@@ -1,0 +1,6 @@
+[submodule "precise_orbit_determination"]
+	path = precise_orbit_determination
+	url = https://bitbucket.org/geoscienceaustralia/pod.git
+[submodule "parameter_estimation_algorithm"]
+	path = parameter_estimation_algorithm
+	url = https://bitbucket.org/geoscienceaustralia/pea.git
