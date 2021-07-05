@@ -1,43 +1,20 @@
-# Analysis Centre Software - Ginarn
+# Analysis Centre Software - Ginan
 
 ## Overview
 
-The *Analysis Centre Software (ACS)* is a processing package being developed to processes GNSS observations for geodetic 
-applications.  
-
-We currently support the processing of:
-
-* the American Global Positioning System (`GPS`)
-* the Russian GLONASS system ('GLONASS')
-* The European Gallileo system ('Gallileo')
-* the Chinese Navigation Satellite System ('Beidou`); and
-* The Japanese QZSS develop system ('QZSS')
-
-We are actively developing the ACS to have the following capabilities and features:
-
-* Precise Orbit & Clock determination of GNSS satellites (GNSS POD).
-* Precise Point Positioning (PPP) of GNSS stations in network and individual mode.
-* Real-Time corrections for PPP users.
-* Analyse full, single and multi-frequency, multi-GNSS data.
-* Delivering atmospheric products such as ionosphere and troposphere models.
-* Servicing a wide range of users and receiver types.
-* Delivering outputs usable and accessible by non-experts.
-* Providing both a real-time and off-line processing capability.
-* Delivering both position and integrity information.
-* Routinely produce IGS final, rapid, ultra-rapid and real-time (RT) products. 
-
-The software is broken into two main components:
-
-* the Network Parameter Estimation Algorithm (`PEA-N`); and 
-* the Precise Orbit Determination (`POD`).
+Ginan is a software toolkit, available as source code, that features two software applications, the POD and the PEA. POD and PEA working together will allow you to estimate your own satellite orbits from a global tracking network.
+The *POD (precise orbit determination)* contains all of the source code needed to determine a GNSS satellite’s orbit. You can establish the initial conditions of an orbit from a broadcast ephemeris file, or from an IGS SP3 file. It can then estimate it’s own orbital trajectory based upon the models specified in configuration files, and output an SP3 file, or provide a partial files which can then be updated from a tracking network.
+The *PEA (parameter estimation algorithm)* takes raw observations in RINEX format or in RTCM format, to estimate the parameters you are interested in. You can run it a single user mode, taking in orbit and clocks supplied by real-time streams to SP3 files obtained from the IGS to estimate your own position in static and kinematic mode. You can also run the PEA in a network mode, and take in a global network of observations to determine your own orbits and satellite clocks to support your application. In summary:
+* The Network Platform accepts carrier, code and ranging observation data from many stations to enable the computation of high accuracy orbits, clocks, satellite phase biases and atmospheric models as well as station coordinates.
+* The User Platform accepts high accuracy orbits, clocks, satellite phase biases and atmospheric models in addition to carrier and code observation data to enable single-receiver users to compute high accuracy positions.
+The Ginan *Combination Platform* accepts parameter estimates and their variance-covariance information to enable the combination of geodetic solutions including combining station coordinates into multi-day solutions, station coordinates into multi-year solutions with the estimation of station velocities, and time series analysis.
+The software is aimed at supporting Australia’s implementation of a national positioning infrastructure that supports the objective of instantaneous GNSS positoning anywhere, anytime, with the highest possible accuracy and the highest possible integrity.
 
 ## Software
 
-The `ACS` Version 0.0.1 beta release supports:
+### The POD 
 
-1. The `POD` 
-
-### Directory Structure
+#### Directory Structure
 
     precise_orbit_determination/
     ├── LICENSE.md
@@ -50,9 +27,9 @@ The `ACS` Version 0.0.1 beta release supports:
     ├── tables/
     ├── scripts/
 
-2. The "PEA"
+### The "PEA"
 
-### Directory Structure
+#### Directory Structure
 
     parameter_estimation_algorithm/
     ├── LICENSE.md
@@ -65,7 +42,7 @@ The `ACS` Version 0.0.1 beta release supports:
     ├── tables/
     ├── scripts/
 
-3. Instructions to use Ginarn:
+## Instructions to use Ginarn:
 
 First clone this repo:
 ```git clone https://github.com/GeoscienceAustralia/ginarn```
@@ -81,14 +58,3 @@ For some example see examples on how to use the PEA and POD.
 ## Bugs / Issues
 
 If you find a bug or would like to request a feature please lodge it BUGS
-
-## Developer Resources
-
-See this page for some [cheat sheets] and tips for those developing the PEA.
-
-For notes on the [Algorithms](Link URL) and utilities provided by this repository.
-
-## Roadmap
-
-See this page for what we are planning to be working on next.
-
