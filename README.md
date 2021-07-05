@@ -7,7 +7,9 @@ The *POD (precise orbit determination)* contains all of the source code needed t
 The *PEA (parameter estimation algorithm)* takes raw observations in RINEX format or in RTCM format, to estimate the parameters you are interested in. You can run it a single user mode, taking in orbit and clocks supplied by real-time streams to SP3 files obtained from the IGS to estimate your own position in static and kinematic mode. You can also run the PEA in a network mode, and take in a global network of observations to determine your own orbits and satellite clocks to support your application. In summary:
 * The Network Platform accepts carrier, code and ranging observation data from many stations to enable the computation of high accuracy orbits, clocks, satellite phase biases and atmospheric models as well as station coordinates.
 * The User Platform accepts high accuracy orbits, clocks, satellite phase biases and atmospheric models in addition to carrier and code observation data to enable single-receiver users to compute high accuracy positions.
+
 The Ginan *Combination Platform* accepts parameter estimates and their variance-covariance information to enable the combination of geodetic solutions including combining station coordinates into multi-day solutions, station coordinates into multi-year solutions with the estimation of station velocities, and time series analysis.
+
 The software is aimed at supporting Australia’s implementation of a national positioning infrastructure that supports the objective of instantaneous GNSS positoning anywhere, anytime, with the highest possible accuracy and the highest possible integrity.
 
 ## Software
@@ -42,7 +44,7 @@ The software is aimed at supporting Australia’s implementation of a national p
     ├── tables/
     ├── scripts/
 
-## Instructions to use Ginarn:
+## Instructions to use Ginan:
 
 First clone this repo:
 ```git clone https://github.com/GeoscienceAustralia/ginarn```
