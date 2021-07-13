@@ -1,0 +1,302 @@
+\chapter{PEA YAML Configuration}
+\label{ch:pea_yaml_configuration}
+\section{PEA processing options (pod\_options)}
+%
+%
+\section{Input File Options}
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+input_files:
+
+root_input_directory: /data/acs/pea/proc/exs/products
+
+atxfiles:      [  igs14_2045_plus.atx                       ]  # Antenna models
+snxfiles:      [  igs19P2062.snx                            ]  # meta data and apriori coords
+blqfiles:      [  OLOAD_GO.BLQ                              ]  # ocean loading is applied
+navfiles:      [  brdm1990.19p                              ]  # gnss broadcast file
+sp3files:      [  gag20624.sp3                              ]  # precise orbit data 
+erpfiles:      [  igs19P2062.erp                            ]  # earth orintation parameters
+#dcbfiles:      [  CAS0MGXRAP_20191990000_01D_01D_DCB.BSX   ]  # monthly DCB file
+#clkfiles:     [  jpl20624.clk                              ]  # satellie and receiver clock 
+orbfiles:      [  gag20624_orbits_partials.out              ]  # need this when estimating orbits (overrides .sp3 file)
+\end{lstlisting}
+
+\section{RINEX station data}
+
+%RINEX2 and RINEX3 data
+There are numerous ways that the \emph{pea} can access GNSS RINEX observations to process. You can specify individual rinex files to process, set it up so that it will search a particular directory, or you can use a command line flag \emph{-rnx <rnxfilename>} to add an additional file to process. The data should be uncompressed (gunzipped, and not in hatanaka format), that is the \emph{pea} expecting to just accept RINEX format]. 
+%
+\begin{lstlisting}[language=xml,caption=pea yaml processing one station example]
+station_data:
+
+	root_stations_directory: /data/ginarn/proc/data
+
+	rnxfiles:
+		- ALIC00AUS_R_20191990000_01D_30S_MO.rnx                          
+\end{lstlisting}\label{lst:pea-yaml-single-station}
+%
+To process one RINEX file, you need to first specify the root dircetory of where the data is being stored in \emph{root\_stations\_directory}, and then the name of the RINEX file as a single entry under \emph{rnxfiles:}, as shown in the listing~ref{lst:pea-yaml-single-station}. 
+%
+\begin{lstlisting}[language=bash,caption=Example showing how to add a RINEX file to the processing list form the command line]
+$ pea --rnx CAS100ATA_R_20191990000_01D_30S_MO.rnx
+\end{lstlisting}\label{lst:pea-cmd-single-station}
+%
+If you wanted to process another file, located in the same \emph{root\_stations\_directory}, this can be achieved at the command line using the \emph{-rnx <rnxfilename} flag, see listing~ref{lst:pea-yaml-add-station}.
+%
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+station_data:
+
+root_stations_directory: /data/acs/pea/proc/exs/data
+
+rnxfiles:
+- "*.rnx"                           #- searching all in file_root directory
+\end{lstlisting}
+
+\section{Real-time streams}
+To process data in real-time you will need to set up the location, username annd password for the caster that you will be obtaining the input data streams from in the configuration file.
+
+The pea supports obtaining streams from casters that use NTRIP 2.0 over http and https. 
+%TODO check I believe we can do multiple casters for input At the moment the pea is able to connect to one caster for input data streams, and a different caster for the output of correction messages.
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+station_data:
+
+	stream_root: "http://<usedname>:<password>@auscors.ga.gov.au:2101/"
+
+	streams:
+		- BCEP00BKG0
+		- SSRA00CNE0
+		- STR100AUS0
+\end{lstlisting}\label{lst:pea-yaml-realtime-single-station}
+%
+As shown in listing:~\ref{lst:pea-yaml-realtime-single-station}, the caster url, username and password are specified within double quotes with the \emph{stream\_root} tag. In this example the streams are being obtained from the auscors caster run by Geoscience Australia. 
+The broadcast information is being obtained from the stream \emph{BCEP00BKG0} being supplied by BKG, and corrections to the utlra-rapid predicted orbit are being obtained from the stream \emph{SSRA00CNE0}. 
+The real-time data being processed is for the continuous GNSS station located at Mount Stromlo obtained from the stream \emph{STR100AUS0}.
+
+You can test your username and password is working correctly by running the curl command:
+\begin{lstlisting}[language=bash]
+curl https://ntrip.data.gnss.ga.gov.au/ALIC00AUS0 -H "Ntrip-Version: NTRIP/2.0" -i  --output - -u <user>
+\end{lstlisting}
+%
+\section{output files}
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+output_files:
+
+root_output_directory:          /data/acs/pea/output/<CONFIG>/
+
+log_level:                      warn                             #debug, info, warn, error as defined in boost::log
+
+output_trace:                   true
+trace_level:                    2
+trace_directory:                ./
+trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
+
+output_residuals:               true
+
+output_persistance:             false
+input_persistance:              false
+persistance_directory:          ./
+persistance_filename:           <CONFIG>.persist
+
+output_config:                  false
+
+output_summary:                 true
+summary_directory:              ./
+summary_filename:               PEA<YYYY><DDD><HH>.SUM
+
+output_ionex:                   false
+ionex_directory:                ./
+ionex_filename:                 IONEX.ionex
+iondsb_filename:                IONEX.iondcb
+
+output_clocks:                  true
+clocks_directory:               ./
+clocks_filename:                <CONFIG>.clk
+output_AR_clocks:               true
+
+output_sinex:                   true
+sinex_directory:                ./
+\end{lstlisting}
+
+\section{output options}
+
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+output_options:
+
+config_description:             EX03_AR
+analysis_agency:                GAA
+analysis_center:                Geoscience Australia
+analysis_program:               AUSACS
+rinex_comment:                  AUSNETWORK1
+\end{lstlisting}
+
+\section{processing Options}
+
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+processing_options:
+
+#start_epoch:               2019-07-18 00:00:00
+#end_epoch:                 2017-03-29 23:59:30
+#max_epochs:                300        #0 is infinite
+epoch_interval:             30          #seconds
+
+process_modes:
+user:                   false
+network:                true
+minimum_constraints:    false
+rts:                    false
+ionosphere:             false
+unit_tests:             false
+
+process_sys:
+gps:            true
+#glo:           true
+gal:            false
+#bds:           true
+
+elevation_mask:     10   #degrees
+
+tide_solid:         true
+tide_pole:          true
+tide_otl:           true
+
+phase_windup:       true
+reject_eclipse:     true            #  reject observation during satellite eclipse periods
+raim:               true
+antexacs:           true
+
+cycle_slip:
+thres_slip: 0.05
+
+max_inno:   0
+max_gdop:   30
+
+troposphere:
+model:      gpt2    #vmf3
+gpt2grid:   gpt_25.grd
+#vmf3dir:    grid5/
+#orography:  orography_ell_5x5
+
+ionosphere:
+corr_mode:      iono_free_linear_combo
+iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
+
+pivot_station:        "USN7"
+#pivot_satellite:      "G01"
+
+code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L,
+L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+L5I, L5Q, L5X]
+\end{lstlisting}
+
+\section{Network filter parameters}
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+network_filter_parameters:
+
+process_mode:               kalman      #lsq
+inverter:                   LLT         #LLT LDLT INV
+
+max_filter_iterations:      3
+max_filter_removals:        3
+
+rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
+rts_directory:              ./
+rts_filename:               <CONFIG>-Orbits.rts
+\end{lstlisting}
+
+\section{Default filter parameters: stations}
+
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+default_filter_parameters:
+
+	stations:	
+		error_model:        elevation_dependent         #uniform elevation_dependent
+			code_sigmas:        [0.30]
+			phase_sigmas:       [0.003]
+		pos:
+			estimated:          false
+			sigma:              [1.0]
+			proc_noise:         [0]
+			#apriori:                                   # taken from other source, rinex file etc.
+			#frame:              xyz #ned
+			#proc_noise_model:   Gaussian
+			#clamp_max:          [+0.5]
+			#clamp_min:          [-0.5]
+		clk:
+			estimated:          true
+			sigma:              [0]
+			proc_noise:         [1.8257418583505538]
+			#proc_noise:         [10]
+			#proc_noise_model:   Gaussian
+		clk_rate:
+			estimated:          false
+			sigma:              [10]
+			proc_noise:         [1e-4]
+			#clamp_max:          [1000]
+			#clamp_min:          [-1000]
+		amb:
+			estimated:          true
+			sigma:              [100]
+			proc_noise:         [0]
+		trop:
+			estimated:          true
+			sigma:              [0.1]
+			proc_noise:         [0.000083333]
+		trop_grads:
+			estimated:          false
+			sigma:              [0.1]
+			proc_noise:         [0.0000036]
+\end{lstlisting}
+
+\section{Default filter parameters: satellites}
+
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+    satellites:
+
+		clk:
+			estimated:          true
+			sigma:              [0]
+			proc_noise:         [0.03651483716701108]
+		
+		clk_rate:
+			estimated:          false
+			sigma:              [0.01]
+			proc_noise:         [1e-6]
+		
+		orb:
+			estimated:          true
+			sigma:              [5e-1, 5e-1, 5e-1, 5e-3, 5e-3, 5e-3, 5e-1]
+\end{lstlisting}
+
+\section{Default filter parameters: eop}
+
+\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+	eop:
+		estimated:  true
+		sigma:      [30]
+		#proc_noise: [0.0000036]
+
+\end{lstlisting}
+
+
+\section{Ambiguity Resolution Options}
+%
+\begin{lstlisting}[language=xml,caption=yaml ambiguity configuration example]
+	ambiguity_resolution_options:
+		Min_elev_for_AR:            15.0
+		GPS_amb_resol:              true
+		GAL_amb_resol:              false
+		#Set_size_for_lambda:        10
+
+	WL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+		WL_succ_rate_thres:         0.9999
+		WL_sol_ratio_thres:         3.0
+		WL_procs_noise_sat:         0.00001
+		WL_procs_noise_sta:         0.0001
+
+	NL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+		NL_succ_rate_thres:         0.9999
+		NL_sol_ratio_thres:         3.0
+		NL_proc_start:              86310
+
+	bias_read_mode:             30              # +1: read DSB biases, +2: read OSB biases, +4: read code biases, +8: read phase biases, +16: read satellite bias, +32: read station bias,
+		bias_output_rate:           300.0
+\end{lstlisting}

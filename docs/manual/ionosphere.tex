@@ -1,0 +1,23 @@
+\chapter{Ionosphere Modelling}
+\label{ch:ionosphere_modelling}
+%
+%\begin{fullwidth}
+\newthought{Ionospheric delay} is the most important nuisance parameter on GNSS processing. 
+GNSS processing algorithm needs to account for it by estimating, correcting or cancelling its effects. 
+The objective of the project is to develop Ionospheric modelling modules to aid in GNSS data processing. 
+he modules will allow end user position algorithms correct the effect of ionosphere delay. 
+The modules also allow the network processing more effectively estimate the ionospheric delays.
+\\
+%
+Two potential ionosphere models have been implemented to date. 
+Both are dual-layer models, each layer containing an ionosphere density map. 
+The maps are represented by spherical cap harmonics in one case and 3rd order b-splines in another. 
+The effectiveness of the maps has been tested using measurements from 60 Australian stations distributed. 
+The geometry free combination of carrier smoothed pseudorange have been used as ionosphere delay measurements. 
+The spherical cap harmonics tested so far can represent the ionospheric delays with an accuracy of about 2-3 TECu, slightly better than the model used for IONEX (single layer, grid based map), but not enough for the 0.2 TECu accuracy needed for PPP. 
+The specific parameters (number of layers, map resolution, layer heights and order of the base function) of each model will be refined to improve model accuracy.
+\\
+%
+%\end{fullwidth}
+
+%\section{Ionosphere-Free Observations}

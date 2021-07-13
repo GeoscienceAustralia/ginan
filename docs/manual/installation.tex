@@ -1,0 +1,263 @@
+\chapter{Installation}
+\label{ch:installation}
+
+
+\section{To Install} 
+
+In this section we will describe how to install the PEA and POD from source. An alternative option to installing all of the dependencies and the source code would be to use one of our docker images available from Docker Hub. Instructions on how to do this are in (see Docker).
+
+\subsection{PEA}
+
+
+\newthought{Dependencies} the following packages need to be installed with the minimum versions as shown below. This guide will outline the preferred method of installation.
+
+CMAKE  > 3.0 requires openssl-devel to be installed (requires openssl-devel)
+YAML   > 0.6
+Boost  > 1.70
+gcc    > 4.1
+Eigen3
+Build
+To build the PEA Precise Estimation Algorithm...
+
+We suggest using the following directory structure when installing the Ginan toolkit. It will be created by following this guide.
+
+%/data/
+%└── acs/
+%    ├── pea/
+%    └── pod/
+
+The following is an example procedure to install the dependencies necessary to run the pea on a base ubuntu linux distribution
+
+Update the base operating system:
+
+\begin{lstlisting}[language=bash]
+$ sudo apt update
+$ sudo apt upgrade
+\end{lstlisting}
+
+Install base utilities gcc, gfortran, git, openssl, blas, lapack, etc
+\begin{lstlisting}[language=bash]
+$ sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make \
+liblapack-dev gzip vim libssl1.0-dev python3-cartopy python3-scipy python3-matplotlib python3-mpltoolkits.basemap
+Create a temporary directory structure to make the dependencies in:
+$ sudo mkdir -p /data/tmp
+$ cd /data/tmp
+\end{lstlisting}
+
+\newthought{YAML}
+We are using the YAML library to parse the configuration files used to run many of the programs found in this library (https://github.com/jbeder/yaml-cpp). Here is an example of how we have installed the yaml library from source:
+\begin{lstlisting}[language=bash]
+$ cd /data/tmp
+$ sudo git clone https://github.com/jbeder/yaml-cpp.git
+$ cd yaml-cpp
+$ sudo mkdir cmake-build
+$ cd cmake-build
+$ sudo cmake .. -DCMAKE\_INSTALL\_PREFIX=/usr/local/ -DYAML\_CPP\_BUILD\_TESTS=OFF
+$ sudo make install yaml-cpp
+$ cd ../..
+$ sudo rm -fr yaml-cpp
+\end{lstlisting}
+
+\newthought{Boost}
+We rely on a number of the utilities provided by boost (https://www.boost.org/), such as their time and logging libraries.
+\begin{lstlisting}[language=bash]
+$ cd /data/tmp/
+$ sudo wget -c https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz
+$ sudo gunzip boost_1_73_0.tar.gz
+$ sudo tar xvf boost_1_73_0.tar
+$ cd boost_1_73_0/
+$ sudo ./bootstrap.sh
+$ sudo ./b2 install
+$ cd ..
+$ sudo rm -fr boost_1_73_0/ boost_1_73_0.tar
+
+\end{lstlisting}
+
+\newthought{Eigen3} is used for performing matrix calculations, and has a very nice API.
+\begin{lstlisting}[language=bash]
+$ cd /data/tmp/
+$ sudo git clone https://gitlab.com/libeigen/eigen.git
+$ cd eigen
+$ sudo mkdir cmake-build
+$ cd cmake-build
+$ sudo cmake ..
+$ sudo make install
+$ cd ../..
+$ sudo rm -rf eigen
+Installing PEA
+PEA Executable
+$ cd /data/acs/
+\end{lstlisting}
+Clone the repository via https:
+
+\begin{lstlisting}[language=bash]
+$ git clone https://bitbucket.org/geoscienceaustralia/pea.git
+\end{lstlisting}
+You should now have...
+
+%pea
+%├── INSTALL.md
+%├── LICENSE.md
+%├── README.md
+%├── aws/                - for automated builds in aws
+%├── config/
+%│   ├── Ex00-UnitTest.yaml
+%│   ├── Ex01-PPP.yaml
+%│   ├── Ex02-Network.yaml
+%│   ├── Ex03-Network_Orbits.yaml
+%│   ├── Ex04-Ionosphere.yaml
+%│   ├── Ex05-Realtime.yaml
+%│   ├── iontest_20115w.yaml
+%│   └── PPP-iontest.yaml
+%├── cpp/
+%│   ├── CMakeLists.txt
+%│   ├── cmake           - files to help cmake find dependencies
+%│   ├── docs            - automatic code documentation configuration
+%│   └── src/
+%│       ├── 3rdparty/   - see ACKNOWLEDGEMENTS in README.md
+%│       ├── common/     - libraries used by the pea
+%│       ├── iono/       - routines for ionosphere modelling
+%│       ├── pea/        - main for `pea`
+%│       └── rtklib/     - subset of modified routines from RTKlib see ACKNOWLEDGEMENTS in README.md
+%└── python
+%    ├── config
+%    ├── README.md
+%    └── source
+%        ├── download_examples.py
+%        ├── install_examples.py
+%        └── other helper programs
+Prepare a directory to build in, its better practise to keep this separated from the source code.
+\begin{lstlisting}[language=bash]
+$ cd pea/cpp
+$ mkdir -p build
+$ cd build
+\end{lstlisting}
+
+Run cmake to find the build dependencies and create the makefile. You have the choice of adding in a couple of compile options. 
+Using the flag -DENABLE\_MONGODB=TRUE will set up the mongodb utilities, adding the flag -DENABLE\_OPTIMISATION=TRUE will set up the compiler to run optimisation O3. 
+Enabling the optimisation flag will speed up the processing by a factor of 3, however this can lead to compile errors depending on the system you are compiling on, if this happens remove this option.
+
+\begin{lstlisting}[language=bash]
+$ cmake ..
+or to enable MONGODB utilities
+$ cmake -DENABLE_MONGODB=TRUE ..
+and to enable Optimisation
+$ cmake -DENABLE_MONGODB=TRUE -DENABLE_OPTIMISATION=TRUE ..
+\end{lstlisting} 
+Now build the pea
+
+\begin{lstlisting}[language=bash]
+$ cmake --build $PWD --target pea
+\end{lstlisting}
+
+To change to build location substitute your preferred destination for \$PWD , e.g /usr/local/bin
+
+Alternatively to the command above you can make the code in parallel using:
+\begin{lstlisting}[language=bash]
+$ make -j 5 all
+\end{lstlisting}
+
+where the -j flag controls how many jobs can be run at the same time.
+
+Check to see if you can execute the pea:
+\begin{lstlisting}[language=bash]
+$ ./pea    
+\end{lstlisting}
+
+and you should see something similar to:
+\begin{lstlisting}[language=bash]
+PEA starting...
+Options:
+  --help                      Help
+  --verbose                   More output
+  --quiet                     Less output
+  --config arg                Configuration file
+  --trace_level arg           Trace level
+  --antenna arg               ANTEX file
+  --navigation arg            Navigation file
+  --sinex arg                 SINEX file
+  --sp3file arg               Orbit (SP3) file
+  --clkfile arg               Clock (CLK) file
+  --dcbfile arg               Code Bias (DCB) file
+  --ionfile arg               Ionosphere (IONEX) file
+  --podfile arg               Orbits (POD) file
+  --blqfile arg               BLQ (Ocean loading) file
+  --erpfile arg               ERP file
+  --elevation_mask arg        Elevation Mask
+  --max_epochs arg            Maximum Epochs
+  --epoch_interval arg        Epoch Interval
+  --rnx arg                   RINEX station file
+  --root_input_dir arg        Directory containg the input data
+  --root_output_directory arg Output directory
+  --start_epoch arg           Start date/time
+  --end_epoch arg             Stop date/time
+  --dump-config-only          Dump the configuration and exit
+PEA finished
+\end{lstlisting}
+
+\newthought{The documentation} for the pea can be generated similarly using doxygen if it is installed.
+
+\begin{lstlisting}[language=bash]
+$ sudo apt-get install doxygen
+$ cd pea/cpp/build
+$ make doc_doxygen
+\end{lstlisting}
+The docs can then be found at doc\_doxygen/html/index.html
+
+\subsection{POD from source}
+
+%The ACS Version 0.0.1 beta release supports:
+
+%The POD
+%Directory Structure
+%pod/
+%├── LICENSE.md
+%├── INSTALL.md
+%├── README.md
+%├── src/
+%├── bin/  (created)
+%├── lib/  (created)
+%├── config/
+%├── tables/
+%├── scripts/
+
+Dependencies
+
+The open basic linear algebra library (Openblas.x86\_64,liblas-libs.x86\_64) (You may need to run the command ln -s /usr/lib64/libopenblas.so.3 /usr/lib64/libopenblas.so)
+A working C compiler (gcc will do), a working C++ compiler (gcc-g++ will do) and a fortran compiler (we have used gfortran)
+Cmake (from cmake.org) at least version 2.8
+If the flags set in CMakeLists.txt do not work with your compiler please remove/replace the ones that don't
+
+Build
+To build the POD ...
+\begin{lstlisting}[language=bash]
+$ cd pod
+$ mkdir build
+$ cd build
+$ cmake3 .. 
+$ make >make.out 2>make.err
+$ less make.err (to verify everything was built correctly)
+\end{lstlisting}
+You should now have the executables in the bin directory: pod crs2trs brdc2ecef
+
+Test
+To test your build of the POD ... - You may not need the ulimit command but we found it necessary
+
+\begin{lstlisting}[language=bash]
+$ cd ../pod/test
+$ ulimit -s unlimited
+$ ./sh_test_pod
+\end{lstlisting}
+
+At the completion of the test run, the sh\_test\_pod script will return any differences to the standard test resuts
+    
+
+
+Configuration File
+The POD Precise Orbit Determination (./bin/pod) uses the configuration file: 
+%├── EQM.in (Full force model equation of motion) ├── VEQ.in (For variational equations) ├── POD.in (For all other config)
+
+
+%\section{From precompiled binaries}
+%
+%To do..

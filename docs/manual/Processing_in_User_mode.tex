@@ -1,0 +1,67 @@
+\chapter{Processing in Precise Point Positioning mode}
+
+\newthought{Precise Point Positioning}(PPP)
+
+\section{Pea PPP Processing examples}
+In this example we will process 24 hours of data from a permanent reference frame station. The algorithm that will be use an L1+L2 and L1+L5 ionosphere free combination. The log files and processing results can be found in /data/acs/pea/output/exs/EX01\_IF/.
+
+\begin{verbatim}
+$ ./pea --config ../../config/Ex01-IF-PPP.yaml
+$ grep "\$POS" /data/acs/pea/output/exs/EX01_IF/EX01_IF-ALIC.TRACE
+\end{verbatim}
+
+And you should see the following: 
+\begin{verbatim}
+<snip> $POS,2062,431940.000,0,-4052052.7956,4212836.0144,-2545104.6423,0.00000043966020,0.00000039738502,0.00000013421476 $POS,2062,431970.000,0,-4052052.7956,4212836.0144,-2545104.6423,0.00000043965772,0.00000039738393,0.00000013421667
+\end{verbatim}
+
+
+\subsection{Using the Ionosphere-free observable to process a static data set - the float solution}
+
+In this example we will process 24 hours of data from a permanent reference frame station. The algorithm will use an L1+L2 and L1+L5 ionosphere-free combination.
+The log files and processing results can be found in `<path to pea>/output/exs/EX01\_IF/`.
+\begin{verbatim}
+$ ./pea --config ../../config/EX01-IF-PPP.yaml
+\end{verbatim}
+The pea will then have the following output in <path to pea>/output/exs/EX01\_IF/ :
+
+EX01\_IF20624.snx              - contains the station position estimates in SINEX format
+EX01\_IF-ALIC2019199900.TRACE  - contains the logging information from the processing run
+
+\begin{verbatim}
+$ grep "REC_POS" /data/acs/pea/output/exs/EX01_IF/EX01_IF-ALIC201919900.TRACE > ALIC_201919900.PPP
+\end{verbatim}
+This will pipe all of the receiver position results reported in the station trace file to a seperate file for plotting.
+\begin{verbatim}
+$ python3 /data/acs/pea/python/source/pppPlot.py --ppp /data/acs/pea/output/exs/EX01_IF/ALIC_201919900.PPP
+\end{verbatim}
+This will then create the plots alic\_pos.png, a time series of the difference between the estimated receiver position and the median estimated position.
+And the plot alic\_snx\_pos.png, a time series of the difference between the estimated receiver position and the IGS SINEX solution for Alic Springs on this day.
+
+\subsection{Single Frequency Processing} 
+\begin{verbatim}
+$ ./pea --config ../../config/Ex01-SF-PPP.yaml
+
+$ grep "\$POS" /data/acs/pea/output/exs/EX01_SF/EX01_SF-ALBY202011500.TRACE
+\end{verbatim}
+And you should see something similar to the following:
+\begin{verbatim}
+<snip>
+$POS,2062,431940.000,0,-4052052.7956,4212836.0144,-2545104.6423,0.00000043966020,0.00000039738502,0.00000013421476
+$POS,2062,431970.000,0,-4052052.7956,4212836.0144,-2545104.6423,0.00000043965772,0.00000039738393,0.00000013421667
+\end{verbatim}
+
+
+
+\subsection{Processing realtime}
+To process a continuous GPS station in real-time you will need to access the data stream from a NTRIP stream and the correction products from a NTRIPCaster.
+Geoscience Australia is running a caster that provides global data stream, a dense network of stream covering the Australian region, and correction procdust provide by IGS Analysis Centres.
+You will need to apply for an AUSCORS account, or use the new NTRIPCaster that streams using https.
+
+You can apply for an account at the following link : \href{https://gnss-users-prod.auth.ap-southeast-2.amazoncognito.com/login?response_type=code&client_id=11njl767q0tl1faf9qna469vl1&redirect_uri=https://search-gnss-elasticsearch-prod-5omhch5quzlu5dcpbct4ev5qz4.ap-southeast-2.es.amazonaws.com/_plugin/kibana/app/kibana&state=e36b2054-7ace-4931-91a3-5ba6de893917}{New GA Account link}
+
+Once your have your account and password you can test that you can successfuly connect to the NTRIPCaster by using the following curl command:
+\begin{Verbatim}
+$ curl https://ntrip.data.gnss.ga.gov.au/MOBS00AUS0 --http0.9 -i -u'<username>:<password> --output -'
+\end{Verbatim}
+

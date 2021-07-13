@@ -1,0 +1,276 @@
+
+# ex15 - Realtime Example
+# Uses CNES SSR stream with orbits, clocks and biases to provide GPS+GAL realtime PPP with resolved ambiguities
+
+input_files:
+
+    root_input_directory: products/
+
+    atxfiles:   [ igs14_2045_plus.atx                                     ]    # required
+    snxfiles:   [ /data/meta_gather.snx, cod21620.snx                               ]    # required
+    blqfiles:   [ OLOAD_GO.BLQ                                  ]    # required if ocean loading is applied
+
+
+station_data:
+
+    stream_root: "http://user:pass@auscors.ga.gov.au:2101/"
+        
+    nav_streams:
+        - SSRA00CNE0 #orbits, clocks and bias
+        - BCEP00BKG0
+
+    obs_streams:
+        - ALIC00AUS0
+        - LMMF00MTQ0
+        - HARB00ZAF0
+
+output_files:
+
+    root_output_directory:          <CONFIG>/
+
+    output_trace:                   true
+    trace_level:                    2
+    trace_directory:                ./
+    trace_filename:                 <CONFIG>-<STATION>_<YYYY><DDD><HH>.TRACE
+    trace_rotate_period:            1
+    trace_rotate_period_units:      day
+
+    output_residuals:               true
+
+    output_persistance:             false
+    input_persistance:              false
+    persistance_directory:          ./
+    persistance_filename:           <CONFIG>.persist
+
+    output_config:                  true
+
+    output_summary:                 true
+    summary_directory:              ./
+    summary_filename:               <CONFIG>-<YYYY><DDD><HH>.SUM
+
+    output_mongo_measurements:      false
+    output_mongo_states:            false
+    output_mongo_metadata:          false
+    delete_mongo_history:           false
+
+
+output_options:
+
+    config_description:             ex15
+    analysis_agency:                GAA
+    analysis_center:                Geoscience Australia
+    analysis_program:               AUSACS
+    rinex_comment:                  AUSNETWORK1
+
+
+processing_options:
+
+    #start_epoch:               2019-07-18 23:39:00
+    #end_epoch:                 2017-03-29 23:59:30
+    max_epochs:                 660        #0 is infinite
+    epoch_interval:             1          #seconds
+    wait_next_epoch:            31
+    wait_all_stations:          15
+
+    ppp_ephemeris:              ssr_apc     # broadcast  ssr_apc  ssr_com  precise
+
+    process_modes:
+        user:                   true
+        network:                false
+        minimum_constraints:    false
+        rts:                    false
+        ionosphere:             false
+        unit_tests:             false
+
+    process_sys:
+        gps:            true
+        glo:            false
+        gal:            true
+        #bds:           true
+
+    elevation_mask:     10   #degrees
+
+    tide_solid:         true
+    tide_pole:          true
+    tide_otl:           true
+
+    phase_windup:       true
+    reject_eclipse:     true            #  reject observation during satellite eclipse periods
+    raim:               true
+    antexacs:           true
+    
+    sat_pcv:            true
+
+    cycle_slip:
+        thres_slip: 0.05
+
+    max_inno:   0
+    max_gdop:   30
+
+    troposphere:
+        model:      gpt2    #vmf3
+        gpt2grid:   gpt_25.grd
+        #vmf3dir:    grid5/
+        #orography:  orography_ell_5x5
+        
+
+    ionosphere:
+        corr_mode:      iono_free_linear_combo
+        iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
+
+    pivot_station:        "USN7"
+    pivot_satellite:      "G01"
+
+    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+                        L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                        L5X, L5Q, L5I,
+                        L6Q, L6I, L6X,
+                        L7Q, L7X, L7I]
+
+
+user_filter_parameters:
+
+    max_filter_iterations:      2
+    max_filter_removals:        2
+
+    rts_lag:                    20      #-ve for full reverse, +ve for limited epochs
+    rts_directory:              ./
+    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+
+
+default_filter_parameters:
+
+    stations:
+
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.15]
+        phase_sigmas:       [0.0015]
+
+        pos:
+            estimated:          true
+            sigma:              [100.0]
+            proc_noise:         [0] #stations static
+            #apriori:                                   # taken from other source, rinex file etc.
+            #frame:              xyz #ned
+            #proc_noise_model:   Gaussian
+
+        clk:
+            estimated:          true
+            sigma:              [0]
+            proc_noise:         [10]
+            #proc_noise_model:   Gaussianex1X_pea_network
+
+        clk_rate:
+            estimated:          false
+            sigma:              [0]
+            proc_noise:         [1]
+
+        amb:
+            estimated:          true
+            sigma:              [60]
+            proc_noise:         [0]
+            #proc_noise_dt:      day
+            #proc_noise_model:   RandomWalk
+
+        trop:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0.0001] #0.1 mm/sqrt(s)
+            proc_noise_dt:      second
+            #proc_noise_model:   RandomWalk
+
+        trop_grads:
+            estimated:          true
+            sigma:              [1]
+            proc_noise:         [0.01]
+            proc_noise_dt:      second
+            #proc_noise_model:   RandomWalk
+
+    satellites:
+
+        clk:
+            estimated:          false
+            sigma:              [0]
+            proc_noise:         [1]
+            #proc_noise_dt:      min
+            #proc_noise_model:   RandomWalk
+
+        clk_rate:
+            estimated:          false
+            sigma:              [0]
+            proc_noise:         [1]
+
+        orb:
+            estimated:          false
+
+
+ambiguity_resolution_options:
+    Min_elev_for_AR:            15.0
+    GPS_amb_resol:              true
+    GAL_amb_resol:              true
+    Fix_and_Hold:               false
+    
+    #Set_size_for_lambda:        10
+    Max_round_iterat:           3
+    
+    WL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+    WL_succ_rate_thres:         0.9999
+    WL_sol_ratio_thres:         3.0
+    WL_procs_noise_sat:         0.00001
+    WL_procs_noise_sta:         0.0001
+    
+    NL_mode:                    lambda_bie        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+    NL_succ_rate_thres:         0.999
+    NL_sol_ratio_thres:         3.0
+    
+    read_SSR:                   true
+    read_OSB:                   false
+    read_DSB:                   false
+
+override_filter_parameters:
+
+    stations:
+
+        #ALIC:
+        #    pos:
+        #        sigma:              [60]
+        #        proc_noise:         [0]
+                ##proc_noise_model:   Gaussian
+            #clk:
+                #sigma:              [0.01]
+
+        #AGGO:
+            #exclude: true
+        #ALIC:
+            #exclude: true
+        #ANKR:
+            #exclude: true
+                #network_estimated:  false
+
+    satellites:
+
+        ### Constellation Overrides
+        #SYS_GPS:
+            #srp:
+                #sigma:              [0.01]
+                #proc_noise:         [0.001]
+                ##proc_noise_model:   RandomWalk
+
+        ### Block Type Overrides
+        #GPS-IIR-A:
+            #pos: { sigma: [10.0] }
+            #vel: { sigma: [0.1] }
+
+        ### PRN Overrides
+        #PRN_G10:
+            #pos: { sigma: [10.0]    }
+            #vel: { sigma: [0.1]     }
+            #clk: { sigma: [1.0]     }
+
+        #PRN_G15:
+            #exclude: true
+
+        ### SVN Overrides
+        #SVN_G265:
+            #pos: {sigma: [10.0] }
+            #vel: {sigma: [0.1]  }

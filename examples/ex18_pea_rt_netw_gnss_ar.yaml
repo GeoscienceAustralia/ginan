@@ -1,0 +1,397 @@
+# ex18 Realtime Using Auscors streams
+# This example relies on provision of precise ephemeris, for example IGU predictions.
+# Precise ephemeris are required to produce clocks
+
+input_files:
+
+    root_input_directory: products/
+
+    atxfiles:   [ igs14_2045_plus.atx                                     ]    # required
+    snxfiles:   [ /data/meta_gather.snx, cod21620.snx                     ]    # required
+    blqfiles:   [ OLOAD_GO.BLQ                                            ]    # required if ocean loading is applied 
+
+    sp3files:   [ igu_prod/igu*.sp3                                       ] # most recent ultras as we are solving for clocks / or pod
+    erpfiles:   [ igu_prod/igu*.erp                                       ]    # erps that go with ultras
+    
+station_data:
+
+    stream_root: "https://user:pass@ntrip.data.gnss.ga.gov.au/"
+    nav_streams:
+        - BCEP00BKG0
+    obs_streams:
+        - ALIC00AUS0
+        - LMMF00MTQ0
+        - HARB00ZAF0
+        - KZN200RUS0
+        - GAMB00PYF0
+        - OHI300ATA0
+        - WHIT00CAN0
+        - SGOC00LKA0
+        - MIZU00JPN0
+        - MAS100ESP0
+        - DUMG00ATA0
+        - MAO000USA0
+        - FTNA00WLF0
+        - CHPG00BRA0
+        - KRGG00ATF0
+        - SCH200CAN0
+        - ASCG00SHN0
+        - URUM00CHN0
+        - PTGG00PHL0
+        - ADH100ARE0
+        - OWMG00NZL0
+        - SGPO00USA0
+        - SEYG00SYC0
+        - BRUX00BEL0
+        - ULAB00MNG0
+        - AREG00PER0
+        - NKLG00GAB0
+        - BAKO00IDN0
+        - SPBY00AUS0
+        - LHAZ00CHN0
+        - SALU00BRA0
+        - STFU00USA0
+        - CAMB00IDN0
+        - MGUE00ARG0
+        - REYK00ISL0
+        - DYNG00GRC0
+        - FLIN00CAN0
+        - CUUT00THA0
+        - KIT300UZB0
+        - SALT00AUS0
+        - KIR800SWE0
+        - WUH200CHN0
+        - NRMG00NCL0
+        - MAL200KEN0
+        - ENAO00PRT0
+        - FAA100PYF0
+        - WDBG00AUS0
+        - SCTB00ATA0
+        - UTQI00USA0
+        - CPVG00CPV0
+        - PYGR00NZL0
+        - KTIA00NZL0
+        - GMSD00JPN0
+        - BOAV00BRA0
+        - SAVO00BRA0
+        - STJO00CAN0
+        - ALGO00CAN0
+        - RGDG00ARG0
+        - POVE00BRA0
+        - BKNL00AUS0
+        - WIND00NAM0
+        - UNSA00ARG0
+        - YELL00CAN0
+        - LPGS00ARG0
+        - NYA200NOR0
+        - IQAL00CAN0
+        - SUTM00ZAF0
+        - TOPL00BRA0
+        - SIN100SGP0
+        - PRDS00CAN0
+        - KOUG00GUF0
+        - HLFX00CAN0
+        - ONS100SWE0
+        - TLSE00FRA0
+        - POAL00BRA0
+        - BRDW00AUS0
+        - METG00FIN0
+        - GOP600CZE0
+        - WGTN00NZL0
+        - PTLD00AUS0
+        - BRST00FRA0
+        - MATG00ITA0
+        - CHUR00CAN0
+        - DUBO00CAN0
+        - BRWN00AUS0
+        - HIKB00NZL0
+        - YRRM00AUS0
+        - FORS00AUS0
+        - MCHL00AUS0
+        - HAY100AUS0
+#        - JOG200IDN0
+#        - MAR700SWE0
+#        - ABNY00AUS0
+#        - MTJO00NZL0
+#        - MANY00AUS0
+#        - WTON00AUS0
+#        - HOFN00ISL0
+#        - OBE400DEU0
+#        - MAHO00NZL0
+#        - POTS00DEU0
+#        - MREE00AUS0
+#        - TBOB00AUS0
+#        - EMMD00AUS0
+#        - ALBU00AUS0
+#        - WEST00NZL0
+
+#output_streams:
+#    stream_root: "http://user:pass@tier3.auscors.ga.gov.au:2101/" 
+#    
+#    stream_label:
+#        - GGA1        
+#    ISG1:
+#        streams: "SSRA00GGA1"
+#        messages:
+#            - "1060"  # RTCM messages to be broadcast
+#            - "1243" 
+#            - "1059" 
+#            - "1242"   
+#            - "1265"   
+#            - "1267"             
+#        ntrip_sourcetable_entry:
+        
+output_files:
+
+    root_output_directory:          <CONFIG>/
+
+    output_trace:                   true
+    trace_level:                    3
+    trace_directory:                ./
+    trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
+    trace_rotate_period:            1
+    trace_rotate_period_units:      day
+
+    output_residuals:               true
+
+    output_persistance:             false
+    input_persistance:              false
+    persistance_directory:          ./
+    persistance_filename:           <CONFIG>.persist
+
+    output_config:                  true
+
+    output_summary:                 true
+    summary_directory:              ./
+    summary_filename:               <CONFIG>-<YYYY><DDD><HH>.SUM
+
+    output_mongo_measurements:      false
+    output_mongo_states:            false
+    output_mongo_metadata:          false
+    delete_mongo_history:           false
+
+    output_clocks:                  true
+    clocks_directory:               ./
+    clocks_filename:                <CONFIG>_<YYYY><DDD><HH>00_01D_30S.CLK
+    output_AR_clocks:               false
+
+output_options:
+
+    config_description:             ex18
+    analysis_agency:                GAA
+    analysis_center:                Geoscience Australia
+    analysis_program:               AUSACS
+    rinex_comment:                  AUSNETWORK1
+
+
+processing_options:
+
+    #start_epoch:               2019-07-18 23:39:00
+    #end_epoch:                 2017-03-29 23:59:30
+    #max_epochs:                 10800        #0 is infinite
+    epoch_interval:             5          #seconds
+    wait_next_epoch:            11
+    wait_all_stations:          5
+
+    ppp_ephemeris:              precise     # broadcast  ssr_apc  ssr_com  precise
+
+    process_modes:
+        user:                   false
+        network:                true
+        minimum_constraints:    false
+        rts:                    false
+        ionosphere:             false
+        unit_tests:             false
+
+    process_sys:
+        gps:            true
+        glo:            false
+        gal:            false
+        #bds:           true
+
+    elevation_mask:     10   #degrees
+
+    tide_solid:         true
+    tide_pole:          true
+    tide_otl:           true
+
+    phase_windup:       true
+    reject_eclipse:     true            #  reject observation during satellite eclipse periods
+    raim:               true
+    antexacs:           true
+
+    cycle_slip:
+        thres_slip: 0.05
+
+    max_inno:   0
+    max_gdop:   30
+
+    troposphere:
+        model:      gpt2    #vmf3
+        gpt2grid:   gpt_25.grd
+        #vmf3dir:    grid5/
+        #orography:  orography_ell_5x5
+        
+
+    ionosphere:
+        corr_mode:      iono_free_linear_combo
+        iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
+
+    pivot_station:        "SPBY"
+    pivot_satellite:      "G01"
+
+    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+                        L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                        L5X, L5Q, L5I,
+                        L6Q, L6X, L6I,
+                        L7Q, L7X, L7I,
+                        L8Q, L8X, L8I]
+
+
+user_filter_parameters:
+
+    max_filter_iterations:      2
+    max_filter_removals:        2
+
+    rts_lag:                    20      #-ve for full reverse, +ve for limited epochs
+    rts_directory:              ./
+    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+
+
+default_filter_parameters:
+
+    stations:
+
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.15]
+        phase_sigmas:       [0.0015]
+
+        pos:
+            estimated:          true
+            sigma:              [10.0]
+            proc_noise:         [0] # stations static
+            #apriori:                                   # taken from other source, rinex file etc.
+            #frame:              xyz #ned
+            #proc_noise_model:   Gaussian
+
+        clk:
+            estimated:          true
+            sigma:              [0]
+            proc_noise:         [10.0]
+            #proc_noise_model:   Gaussian
+
+        clk_rate:
+            estimated:          false
+            sigma:              [0]
+            proc_noise:         [1]
+
+        amb:
+            estimated:          true
+            sigma:              [60]
+            proc_noise:         [0]
+            #proc_noise_dt:      day
+            #proc_noise_model:   RandomWalk
+
+        trop:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0.3]
+            proc_noise_dt:      hour
+            #proc_noise_model:   RandomWalk
+
+        trop_grads:
+            estimated:          true
+            sigma:              [1]
+            proc_noise:         [0]
+            #proc_noise_dt:      hour
+            #proc_noise_model:   RandomWalk
+
+    satellites:
+
+        clk:
+            estimated:          true
+            sigma:              [10.0]
+            proc_noise:         [1.0]
+            #proc_noise_dt:      min
+            #proc_noise_model:   RandomWalk
+
+        clk_rate:
+            estimated:          false
+            sigma:              [0]
+            proc_noise:         [1]
+
+        orb:
+            estimated:          false
+
+
+ambiguity_resolution_options:
+    Min_elev_for_AR:            15.0
+    GPS_amb_resol:              true
+    GAL_amb_resol:              false
+    Fix_and_Hold:               false
+    
+    #Set_size_for_lambda:        10
+    Max_round_iterat:           3
+    
+    WL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+    WL_succ_rate_thres:         0.9999
+    WL_sol_ratio_thres:         3.0
+    WL_procs_noise_sat:         0.00001
+    WL_procs_noise_sta:         0.0001
+    
+    NL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+    NL_succ_rate_thres:         0.999
+    NL_sol_ratio_thres:         3.0
+    #bias_read_mode:             30
+    bias_output_rate:           300.0
+    read_SSR:                   false
+    read_OSB:                   false
+    read_DSB:                   false
+
+override_filter_parameters:
+
+    stations:
+
+        #ALIC:
+        #    pos:
+        #        sigma:              [60]
+        #        proc_noise:         [0]
+                ##proc_noise_model:   Gaussian
+            #clk:
+                #sigma:              [0.01]
+
+        #AGGO:
+            #exclude: true
+        #ALIC:
+            #exclude: true
+        #ANKR:
+            #exclude: true
+                #network_estimated:  false
+
+    satellites:
+
+        ### Constellation Overrides
+        #SYS_GPS:
+            #srp:
+                #sigma:              [0.01]
+                #proc_noise:         [0.001]
+                ##proc_noise_model:   RandomWalk
+
+        ### Block Type Overrides
+        #GPS-IIR-A:
+            #pos: { sigma: [10.0] }
+            #vel: { sigma: [0.1] }
+
+        ### PRN Overrides
+        #PRN_G10:
+            #pos: { sigma: [10.0]    }
+            #vel: { sigma: [0.1]     }
+            #clk: { sigma: [1.0]     }
+
+        #PRN_G15:
+            #exclude: true
+
+        ### SVN Overrides
+        #SVN_G265:
+            #pos: {sigma: [10.0] }
+            #vel: {sigma: [0.1]  }

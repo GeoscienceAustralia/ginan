@@ -1,0 +1,24 @@
+clone:
+  lfs: true
+
+pipelines:
+  default:
+    - step:
+        name: Build docker image
+        services:
+            - docker
+        caches:
+            - docker
+        size: 2x
+        script:
+            - export TAG=$(git describe --tags --always)
+            - export IMAGE="$DOCKER_HUB_USERNAME/ginan-test-alpha:$TAG"
+            - docker build -t "$IMAGE" -f ./aws/docker/Dockerfile .
+            - docker run "$IMAGE" /ginan/aws/docker/run-tests.sh
+            - docker login -u "$DOCKER_HUB_USERNAME" -p "$DOCKER_HUB_PASSWORD"
+            - docker push "$IMAGE"
+
+definitions:
+  services:
+    docker:
+      memory: 6000
