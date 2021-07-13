@@ -1,0 +1,69 @@
+\chapter{Orbit Modelling}
+\label{ch:orbit_modelling}
+
+
+\newthought{POD} is designed to do some stuff.
+
+\section{Gravitational Force Models}
+
+\section{Non-Gravitational Force Models}
+
+\subsection{Solar Radiation Force Models}
+The magnitude of the SRP acting on the satellite depends on a wide range of parameters. 
+The distance to the Sun and the position of the satellite with respect to Earth and Sun (regarding possible eclipses) define the intensity of the incoming radiation.
+ The geometry of the satellite, the optical properties of the external surfaces, and the actual orientation with respect to the Sun largely influence the orientation and magnitude of the evolving SRP.
+ %Therefore any SRP model depends on an accurate implementation of the satellite orbit, the attitude, and the geometric/physical properties of the satellite structure.
+ 
+\subsection{Cannonball}
+\label{sec:cannonball_srp}
+The most basic approach with regard to its analytic development is referred to as the cannonball
+model.The cannonball model provides a useful, first-order approximation, however, due to its homogeneous material properties and symmetrical shape approximation. We recommend its use as an apriori model, before estimation.
+
+\subsection{ECOM I}
+
+\subsection{ECOM II}
+
+\subsection{ECOM C}
+
+\subsection{Box Wing}
+
+\subsection{Antenna Thrust}
+
+\subsection{Albedo}
+
+\section{Transformtation between Celestial and Terrestrial Reference Systems}
+
+The variational equations obtained from the POD need to be transformed into the terrestrial reference frame so that the adjustments can be made in the ECEF frame that the PEA operates in.
+
+\begin{equation}
+    [CRS] = Q(t)R(t)W(t)[TRS]
+\end{equation}
+
+Where,
+$CRS$ is the Celestial Reference System
+$TRS$ is the Terrestrial Reference Systems
+$Q(t)$ is the Celestial Pole motion (Precession-Nutation) matrix
+$R(t)$ is the Earth Rotation matrix
+$W(t)$ is the Polar motion matrix
+\\
+\begin{equation}
+Q(t) = 
+\begin{bmatrix} 
+1-aX^2  & -aXY     & X \\
+ -aXY   & 1 - aY^2 & Y \\
+ -X     & -Y       & 1-a(X^2+Y^2) 
+\end{bmatrix}
+\end{equation}
+\\
+\begin{equation}
+R(t) = R_2(-\theta) = 
+\begin{bmatrix}
+cos \theta & -sin \theta & 0 \\
+sin \Theta & cos \theta  & 0 \\
+0 & 0 1
+\end{bmatrix}
+\end{equation}
+%\\
+%\begin{equation}
+%    W(t) = R_z (-s^') R_y(x_p) R_x(y_p)
+%\end{equation}

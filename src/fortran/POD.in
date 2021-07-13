@@ -1,0 +1,103 @@
+---------------------------------------------------------------------------
+%% Precise Orbit Determination (POD) Tool configuration %%                                       
+---------------------------------------------------------------------------
+
+! ----------------------------------------------------------------------
+%% POD Tool mode:
+! ----------------------------------------------------------------------
+! 1. Orbit Determination (pseudo-observations; orbit fitting)
+! 2. Orbit Determination and Prediction
+! 3. Orbit Integration (Equation of Motion only)
+! 4. Orbit Integration and Partials (Equation of Motion and Variational Equations)
+! ----------------------------------------------------------------------
+POD_MODE_cfg              2
+
+! ----------------------------------------------------------------------
+%% Initial Conditions input mode
+! ----------------------------------------------------------------------
+! 1. Input a-priori orbit in sp3 format (applied as pseudo-observations)
+! 2. Input file with Initial Conditions (State Vector and Parameters at initial epoch per satellite) 
+! ----------------------------------------------------------------------
+IC_input                   1
+! Initial Conditions Reference Frame: ITRF, ICRF
+IC_refsys                  ITRF		
+
+
+! ----------------------------------------------------------------------
+%% Configuration files of Orbit modelling (2 basic initial files):
+! ----------------------------------------------------------------------
+EQM_fname_cfg          EQM.in	! Equation of Motion
+VEQ_fname_cfg          VEQ.in	! Variational Equations
+
+
+! ----------------------------------------------------------------------
+%% Orbit arc length (in hours) 
+! ----------------------------------------------------------------------
+! Orbit Estimation arc
+orbit_determination_arc_cfg     24  
+
+! Orbit Prediction arc
+orbit_prediction_arc_cfg        12
+
+
+! ---------------------------------------------------------------------------
+%% Earth Orientation
+! ---------------------------------------------------------------------------
+! EOP data solution options:
+! 1. IERS C04 										: EOP_sol=1
+! 2. IERS RS/PC Daily 								: EOP_sol=2
+! 3. IGS ultra-rapid ERP + IERS RS/PC Daily (dX,dY)	: EOP_sol=3
+EOP_solution_cfg          1
+
+! EOP data file name   {EOP_sol=1: eopc04_08_IAU2000.62-now	 EOP_sol=2: finals2000A.daily}
+EOP_fname_cfg             eopc04_14_IAU2000.62-now 		
+
+! ERP data file name
+ERP_fname_cfg             igu18543_12.erp
+
+! EOP 
+EOP_Nint_cfg              4   	
+ 
+! ---------------------------------------------------------------------------
+! IAU Precession-Nutation model:
+! 1. IAU2000A:		iau_pn_model = 2000
+! 2. IAU2006/2000A:	iau_pn_model = 2006
+iau_model_cfg             2000
+
+ 
+---------------------------------------------------------------------------
+%% Observation Model                                                       
+! External orbit as pseudo-observations                                                
+pseudobs_orbit_filename_cfg		  igs19424.sp3
+ 
+---------------------------------------------------------------------------
+%% External Orbit Comparison  
+ext_orbit_filename_cfg		  	  igs19424.sp3					
+
+
+---------------------------------------------------------------------------
+%% Parameter Estimation
+Estimator_Iterations_cfg     2
+
+ 
+----------------------------------------------------------------------
+%% Write to sp3 orbit format: Option for write Satellite Velocity vector 
+----------------------------------------------------------------------
+! 0. sp3_velocity_cfg = 0 :: Do not write Velocity vector to sp3 orbit
+! 1. sp3_velocity_cfg > 0 :: Write Velocity vector to sp3 orbit
+sp3_velocity_cfg	  	  1
+! ----------------------------------------------------------------------
+
+----------------------------------------------------------------------
+%% Write partials of the velocity vector w.r.t. parameters into the orbits_partials output file: 
+----------------------------------------------------------------------
+! 0. partials_velocity_cfg = 0 :: Do not write Velocity vector's partials elements
+! 1. partials_velocity_cfg > 0 :: Write Velocity vector's partials elements
+partials_velocity_cfg	  	  0
+! ----------------------------------------------------------------------
+
+
+! ----------------------------------------------------------------------
+%% Leap second
+leapsec_filename_cfg        leap.second
+! ----------------------------------------------------------------------

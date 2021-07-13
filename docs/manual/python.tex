@@ -1,0 +1,517 @@
+
+\chapter{Python}
+\section{Python Installation for Plotting, Processing,
+etc.}\label{python-installation-for-plotting-processing-etc.}
+
+Lastly, to run many of the included scripts for fast parsing of
+.trace/.snx files, plotting of results, automatic running of the PEA
+based on input date/times and stations, etc. then a number of python
+dependencies are needed.
+
+The file \texttt{python/ginan\_py37.yaml} has a list of the necessary
+python dependencies.\\
+The best way to take advantage of this is to install the
+\emph{\emph{Miniconda}} virtual environment manager.\\
+This will allow you to pass the \texttt{.yaml} file into the
+\texttt{conda} command and automatically set up a new python
+environment.
+
+\paragraph{To install miniconda,}enter the following commands:
+
+\begin{lstlisting}[language=bash,caption=Installing conda]
+$ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+$ bash Miniconda3-latest-Linux-x86_64.sh
+\end{lstlisting}
+
+And follow the installation instructions on screen (choosing all
+defaults is fine).
+
+\newthought{Create virtual environment}, after installation you can create the \emph{ginan37} python environment. First open a new terminal session and enter:
+
+\begin{lstlisting}[language=bash,caption=Example showing how to create a conda environment]
+$ conda env create -f <dir_to_pea>/python/ginan_py37.yaml
+\end{lstlisting}
+
+You have now created the virtual python environment \emph{ginan37}
+with all necessary dependencies. Anytime you wish you run python
+scripts, ensure you are in the virtual environment by activating:
+
+\begin{lstlisting}[language=bash,caption=Activating a conda environment]
+$ conda activate gin37
+\end{lstlisting}
+
+And then run your desired script.
+
+\section{Examples to run the PEA from a python script}\label{examples-to-run-the-pea-from-a-python-script}
+
+The following examples will show how to use the python scripts in the
+\texttt{source} directory to automatically gather files and run the pea
+to produce results (as .TRACE files and plots).
+
+\section{Run the PEA}\label{run-the-pea}
+
+The easiest way to run the is to choose a reference station, a start
+time, end time and directories to store the gathered files and resultant
+outputs.\\
+Doing this for station \emph{HOB200AUS} and processing 2 days of data,
+starting 20 Dec 2020 00:00 and ending 21 Dec 2020 23:59:30, we can run
+the following code (assuming the \texttt{pwd} is your pea directory):
+
+\texttt{python3\ python/source/run\_pea\_PPP.py\ HOB200AUS\ 2020-12-20\_00:00:00\ 2020-12-21\_23:59:30\ \textless{}directory\_to\_download\_files\_to\textgreater{}\ \textless{}results\_output\_directory\textgreater{}\ -md\ -del\_yaml}
+
+This will produce a .TRACE file that contains XYZ position information
+for that station and estaimes for the Zenith Total Delay (ZTD). The
+flags are as follows:\\
+- \texttt{-md} is used to allow dates to be input in \emph{YYYY-MM-DD}
+format as above. If the flag is not selected, the format must be
+\emph{YYYY-DOY} (where \emph{DOY} is day-of-year).\\
+- \texttt{-del\_yaml} is used to delete the \texttt{.yaml} config file
+after the pea run. Without this flag, the \texttt{.yaml} file will be
+kept (in \texttt{pwd})
+
+\section{Near-Real-Time (NRT) Daily
+Run}\label{near-real-time-nrt-daily-run}
+
+In this example, we will see how to run the pea to produce ZTD and
+station coordinate results for reference station \emph{HOB200AUS}, using
+the most rececnt data available on GA and CDDIS servers.\\
+Assuming the pwd is your \texttt{pea} directory, then the following code
+should run to produce a .TRACE file and plots of ZTD and XYZ station
+coordinates for the most recent day:
+
+\texttt{python3\ python/source/run\_pea\_PPP.py\ HOB200AUS\ \_\ \_\ \textless{}directory\_to\_download\_files\_to\textgreater{}\ \textless{}results\_output\_directory\textgreater{}\ -rapid\ -m\_r\ -plt\_m\_r}
+
+This differs to the code above in that the flags \texttt{-rapid},
+\texttt{-m\_r} and \texttt{plt\_m\_r} have been selected.\\
+- \texttt{-rapid} will find the rapid versions of files - these are less
+accurate than final versions but are available sooner at CDDIS\\
+- \texttt{-m\_r} will get the code to search the CDDIS database and find
+the most recent rapid files available for \texttt{clk} and \texttt{sp3}
+files. The date and time is then selected based on this, allowing us to
+\_ \_ for the start and end times\\
+- \texttt{-plt\_m\_r} will plot the ZTD and XYZ results as \texttt{.png}
+files and place in a \texttt{plots} directory
+
+
+\section{Site metadata utility}\label{log2snx}
+
+Proper geodetic processing requires knowing of the site's receiver and antenna information. PEA extracts this information from the input sinex file or a set of sinex files. In addition, user can download \href{ftp://igs.ensg.ign.fr/pub/igs/igscb/station/general/igs.snx}{igs.snx} file that contains historical records of $\sim$500 sites and is regenerated daily from the logfiles available at \url{ftp://ftp.igs.org/pub/station/log/}. We developed a similar tool, log2snx.py, that does parsing of available igs logfiles and produces a sinex file as needed by PEA.
+
+\begin{lstlisting}[caption=log2snx.py help message]
+$ python3 scripts/log2snx.py  -h
+  usage: log2snx.py [-h] [-l LOGGLOB] [-r RNXGLOB [RNXGLOB ...]] [-o OUTFILE]
+  [-fs FRAME_SNX] [-fd FRAME_DIS] [-fp FRAME_PSD]
+  [-d DATETIME] [-n NUM_THREADS]
+
+IGS log files parsing utility. Globs over log files using LOGGLOB expression
+and outputs SINEX metadata file. If provided with frame and frame
+discontinuity files (soln), will project the selected stations present in the
+frame to the datetime specified. How to get the logfiles: rclone sync
+igs:pub/sitelogs/ /data/station_logs/station_logs_IGS -vv How to get the frame
+files: rclone sync itrf:pub/itrf/itrf2014 /data/ITRF/itrf2014/ -vv --include
+"*{gnss,IGS-TRF}*" --transfers=10 rclone sync igs:pub/ /data/TRF/ -vv
+--include "{IGS14,IGb14,IGb08,IGS08}/*" see rclone config options inside this
+script file Alternatively, use s3 bucket link to download all the files needed
+s3://peanpod/aux/
+
+optional arguments:
+-h, --help            show this help message and exit
+-l LOGGLOB, --logglob LOGGLOB
+        logs glob path (required)
+-r RNXGLOB [RNXGLOB ...], --rnxglob RNXGLOB [RNXGLOB ...]
+        rinex glob path (optional)
+-o OUTFILE, --outfile OUTFILE
+        output file path (optional)
+-fs FRAME_SNX, --frame_snx FRAME_SNX
+        frame sinex file path (optional)
+-fd FRAME_DIS, --frame_dis FRAME_DIS
+        frame discontinuities file path (required with
+        --frame_snx)
+-fp FRAME_PSD, --frame_psd FRAME_PSD
+        frame psd file path (optional)
+-d DATETIME, --datetime DATETIME
+        date to which project frame coordinates, default is
+        today (optional)
+-n NUM_THREADS, --num_threads NUM_THREADS
+        number of threads to run in parallel
+\end{lstlisting}
+
+\section{Sinex preview utility}\label{snx2map}
+
+To quickly visualise and compare networks, a fast sinex preview utility has been developed - snx2map.py. It accepts any number of sinex files, extract estimated coordinates of the sites present and outputs a map in the form of html page.
+
+\begin{lstlisting}[caption=snx2map.py help message]
+$ python3 scripts/snx2map.py  -h
+usage: snx2map.py [-h] [-i SNXPATH [SNXPATH ...]] [-o OUTDIR]
+
+Parse sinex SITE/ID block and create html map.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i SNXPATH [SNXPATH ...], --snxpath SNXPATH [SNXPATH ...]
+                        path to sinex file (.snx/.ssc). Can be compressed with
+                        LZW (.Z)
+  -o OUTDIR, --outdir OUTDIR
+                        path to output dir
+\end{lstlisting}
+
+
+
+\section{Latency Tool}\label{latency-tool}
+
+To run currently do something like\ldots{}
+
+\begin{verbatim}
+nohup python source/main/python/npi/latency.py 2>&1 & 
+\end{verbatim}
+
+A simple configuration file \texttt{config/config.yaml} looks
+like\ldots{}
+
+\begin{verbatim}
+streams:
+- type: NTRIP
+  protocol: http
+  host: auscors.ga.gov.au
+  port: 2101
+  username: a_username
+  password: a_password
+  count: 10
+  stations:
+  - {format: RTCM3, id: COCO7}
+ 
+\end{verbatim}
+
+and again with more streams looks something like\ldots{}
+
+\begin{verbatim}
+streams:
+- type: NTRIP
+  protocol: http
+  host: auscors.ga.gov.au
+  port: 2101
+  username: a_username
+  password: a_password
+#  count: 10
+  stations:
+  - {id: TID17}
+  - {id: 00NA7}
+  - {id: 01NA7}
+  - {id: ABMF7}
+
+\end{verbatim}
+
+
+\section{Messages}\label{messages}
+
+%\subsection{COCO7}\label{coco7}
+%
+%From 10,000 messages\ldots{} - 1006 - 1008 - 1013 - 1019 - 1020 - 1033 -
+%1044 - 1077 - 1087 - 1097 - 1117 - 1127
+%
+%From 1,000 messages\ldots{} - 1006 Station co-ordinates - 1008 Antenna
+%Description - 1013 Auxiliary Operation Information - System Parameters -
+%1019 Auxiliary Operation Information - Satellite Ephemeris Data - 1020
+%Auxiliary Operation Information - Satellite Ephemeris Data - 1033
+%Receiver and Antenna Description - 1044 Auxiliary Operation Information
+%- Satellite Ephemeris Data - 1077 Observations - GPS MSMs (MSM7) - 1087
+%Observations - GLONASS MSMs (MSM7) - 1097 Observations - Galileo MSMs
+%(MSM7) - 1117 Observations - QZSS MSMs (MSM7) - 1127 Observations - BDS
+%MSMs (MSM7)
+%
+%2018-07-20 12:05:51,887 INFO Connected - starting to read
+%messages\ldots{} 2018-07-20 12:05:51,894 INFO frame length={[}None{]}
+%message number={[}None{]} 2018-07-20 12:05:51,895 INFO frame
+%length={[}56{]} message number={[}1117{]} 2018-07-20 12:05:51,896 INFO
+%frame length={[}294{]} message number={[}1127{]} 2018-07-20 12:05:51,898
+%INFO frame length={[}422{]} message number={[}1077{]} 2018-07-20
+%12:05:51,899 INFO frame length={[}261{]} message number={[}1087{]}
+%2018-07-20 12:05:51,899 INFO frame length={[}22{]} message
+%number={[}1097{]} 2018-07-20 12:05:51,900 INFO frame length={[}56{]}
+%message number={[}1117{]} 2018-07-20 12:05:51,901 INFO frame
+%length={[}294{]} message number={[}1127{]} 2018-07-20 12:05:51,902 INFO
+%frame length={[}422{]} message number={[}1077{]} 2018-07-20 12:05:51,903
+%INFO frame length={[}261{]} message number={[}1087{]} 2018-07-20
+%12:05:51,904 INFO frame length={[}22{]} message number={[}1097{]}
+%2018-07-20 12:05:51,904 INFO frame length={[}56{]} message
+%number={[}1117{]} 2018-07-20 12:05:51,906 INFO frame length={[}294{]}
+%message number={[}1127{]} 2018-07-20 12:05:51,906 INFO frame
+%length={[}56{]} message number={[}1033{]} 2018-07-20 12:05:51,908 INFO
+%frame length={[}422{]} message number={[}1077{]} 2018-07-20 12:05:51,909
+%INFO frame length={[}261{]} message number={[}1087{]} \ldots{}
+%2018-07-20 12:08:27,591 INFO frame length={[}22{]} message
+%number={[}1097{]} 2018-07-20 12:08:27,591 INFO frame length={[}56{]}
+%message number={[}1117{]} 2018-07-20 12:08:27,593 INFO frame
+%length={[}294{]} message number={[}1127{]} 2018-07-20 12:08:28,718 INFO
+%frame length={[}21{]} message number=\protect\hyperlink{section-1}{1006}
+%2018-07-20 12:08:28,718 INFO frame length={[}29{]} message
+%number={[}1008{]} 2018-07-20 12:08:28,720 INFO frame length={[}422{]}
+%message number={[}1077{]} 2018-07-20 12:08:28,720 INFO frame
+%length={[}256{]} message number={[}1087{]} 2018-07-20 12:08:28,720 INFO
+%frame length={[}22{]} message number={[}1097{]} 2018-07-20 12:08:28,721
+%INFO frame length={[}56{]} message number={[}1117{]} 2018-07-20
+%12:08:28,721 INFO frame length={[}294{]} message number={[}1127{]}
+%2018-07-20 12:08:29,566 INFO frame length={[}422{]} message
+%number={[}1077{]} 2018-07-20 12:08:29,567 INFO count={[}1000{]}
+%skipped={[}1{]}
+%
+%9 secs -\textgreater{} 06:00 then 2:29 to 08:29 so 2:38 secs to get
+%1,000 messages = 158 secs to get 1,000 messages = 0.158 secs / message
+%or 6.3 messages / sec
+
+\begin{itemize}
+\item
+  1033 Received and Antenna Description
+\item
+  1077 GPS MSMs
+\item
+  1087 GLONASS MSMs
+\item
+  1097 Galileo MSMs
+\item
+  1117 QZSS MSMs
+\item
+  1127 BDS MSMs
+\end{itemize}
+
+\subsection{MSM (1,2,3,4,5,6,7)}\label{msm-1234567}
+
+MSM message contains - message header - satellite data - signal data
+
+The message header contains - message number DF002 uint12 12-bits -
+reference station id DF003 uint12 12-bits - GNSS epoch time ??? uint30
+30-bits - multiple message bit DF393 bit(1) 1-bit
+
+GNSS Epoch Time - GPS is --TOW DF004 DF004 GPS Epoch Time (TOW)
+0-604,799,999ms 1ms uint30 milliseconds from beginning of GPS week
+(midnight GMT on Saturday night/Sunday morning measured in GPS time) -
+GLONASS is -- GLONASS DAY OF WEEK DF416 int3 3-bits DF416 GLONASS Day of
+Week 0-7 1 uint3 0=sunday, 1=monday, \ldots{}, 6=saturday, 7=not known
+-- GLONASS EPOCH TIME DF034 uint27 27-bits DF034 GLONASS Epoch Time
+0-86,400,999ms 1ms uint27\\
+- Galileo is -- TOW DF248 DF248 GALILEO Epoch Time 0-604,799,999ms 1ms
+uint30 - QZSS is -- TOW DF428 DF428 QZSS Epoch Time 0-604,799,999ms 1ms
+uint30\\
+- BeiDou is -- TOW DF+002 DF427 BeiDou Epoch Time 0-604,799,999ms 1ms
+uint30
+
+\section{RTCM v3}\label{rtcm-v3}
+
+The following is a Hex-ASCII example of a message type 1005 (Stationary
+Antenna Reference Point, No Height Information).
+
+D3 00 13 3E D7 D3 02 02 98 0E DE EF 34 B4 BD 62 AC 09 41 98 6F 33 36 0B
+98
+
+The parameters for this message are: 
+% 
+Reference Station Id = 2003 
+% 
+GPS
+Service supported, but not GLONASS or Galileo 
+% 
+ARP ECEF-X =
+1114104.5999 meters 
+% 
+ARP ECEF-Y = -4850729.7108 meters 
+% 
+ARP ECEF-Z =
+3975521.4643 meters
+
+\section{ACS Metrics}\label{acs-metrics}
+
+\subsection{RTCM v3}\label{rtcm-v3-1}
+
+An \texttt{RTCM\ v3} stream of data consists of a set of
+\texttt{RTCM\ v3} packets.
+
+An \texttt{RTCM\ v3} packet consists of:
+
+\begin{itemize}
+\item
+  8-bit preamble
+\item
+  16-bits ** 6-bit reserved (should be \texttt{0}s) ** 10-bit length
+\item
+  variable length message ** 12-bit message type
+\item
+  24-bit message CRC
+\end{itemize}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule
+x & x & x\tabularnewline
+\midrule
+\endhead
+Preamble & 8-bits &\tabularnewline
+\tabularnewline
+\bottomrule
+\end{longtable}
+
+\begin{itemize}
+\item
+  8-bit pre-amble character
+\item
+  The start or an \texttt{RTCM\ v3} packet is marked by the
+  \texttt{0xD3} pre-amble character
+\end{itemize}
+
+Following this is
+
+\subsection{Reading RTCM3 Data\ldots{}}\label{reading-rtcm3-data}
+
+\begin{itemize}
+\item
+  RTCM3 packet starts with 0xd3 byte so first skip to start of packet
+\end{itemize}
+
+See
+{[}https://pdfs.semanticscholar.org/bf93/21e569cc0f009982af3158a6489accc8f3e5.pdf{]}
+
+RTCM v3 frame looks like: - preamble 8-bits (0xD3) - reserved 6-bits -
+message length 10-bits - message variable length - CRC 24-bits
+
+So to parse it we do 1. find the start of packet byte - i.e.~the
+preamble byte - i.e.~0xd3\\
+2. read the next 2 bytes (aka 16-bits) and extract the message length
+from the right-hand 10-bits
+
+\section{RTCM v3}\label{rtcm-v3-2}
+
+d3 74 63
+
+\begin{verbatim}
+               09   8765 4321
+\end{verbatim}
+
+1101 0011 \textbar{} 0111 0100 \textbar{} 0110 0011 \textbar{}
+
+so the length is 63 (hex which is 99 decimal)
+
+d3 74 63 18 d1 94 65 0d 43 4c 53 14 b1 2c 4f
+
+1101 0011 \textbar{} 0111 0100 \textbar{} 0110 0011 \textbar{} 1101 0011
+\textbar{} 0111 0100 \textbar{} 0110 0011
+
+00011000 00011000
+
+byte 0 = preamble = 0xD3
+
+bytes 1 \& 2 = reserved (6-bits) + message length (10-bits)
+
+\begin{verbatim}
+byte1 & 0x03 << 8 | byte2
+
+byte1 = 00011000
+byte2 = 00011000
+
+00011000 & 0x03 = 00000000
+\end{verbatim}
+
+bytes 3\ldots{}n-1 = variable length message
+
+bytes n\ldots{}n+2 = 24-bit CRC (CRC24)
+
+\subsection{RTCM v3 Message}\label{rtcm-v3-message}
+
+reserved : 1-bit message number : 12-bits uint12
+
+18 d1 is\ldots{}
+
+123456789012 0001100011010001
+
+\section{RTCM v3}\label{rtcm-v3-3}
+
+\subsection{GPS RTK Observable
+Messages}\label{gps-rtk-observable-messages}
+
+message header (aka number aka type): - 1001 - 1002 - 1003 - 1004
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule
+DATA FIELD & DF NUMBER & DATA TYPE & NO. OF BITS\tabularnewline
+\midrule
+\endhead
+Message Number (e.g.,``1001''= 0011 1110 1001) & DF002 & uint12 &
+12\tabularnewline
+Reference Station ID & DF003 & uint12 & 12\tabularnewline
+GPS Epoch Time (TOW) & DF004 & uint30 & 30\tabularnewline
+Synchronous GNSS Flag & DF005 & bit(1) & 1\tabularnewline
+No. of GPS Satellite Signals Processed & DF006 & uint5 &
+5\tabularnewline
+GPS Divergence-free Smoothing Indicator & DF007 & bit(1) &
+1\tabularnewline
+GPS Smoothing Interval & DF008 & bit(3) & 3\tabularnewline
+TOTAL & & & 64\tabularnewline
+\bottomrule
+\end{longtable}
+
+\subsection{Station Antenna Reference Point
+Messages}\label{station-antenna-reference-point-messages}
+
+\begin{itemize}
+\item
+  1005
+\item
+  1006
+\end{itemize}
+
+{\emph{1005}}\label{section}
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule
+DATA FIELD & DF NUMBER & DATA TYPE & NO. OF BITS\tabularnewline
+\midrule
+\endhead
+Message Number (e.g. ``1005''= 0011 1110 1101) & DF002 & uint12 &
+12\tabularnewline
+Reference Station ID & DF003 & uint12 & 12\tabularnewline
+\ldots{} & & &\tabularnewline
+TOTAL & & & 152\tabularnewline
+\bottomrule
+\end{longtable}
+
+\hypertarget{section-1}{{\emph{1006}}\label{section-1}}
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule
+DATA FIELD & DF NUMBER & DATA TYPE & NO. OF BITS\tabularnewline
+\midrule
+\endhead
+Message Number (e.g. ``1006''= 0011 1110 1110) & DF002 & uint12 &
+12\tabularnewline
+Reference Station ID & DF003 & uint12 & 12\tabularnewline
+\ldots{} & & &\tabularnewline
+TOTAL & & & 168\tabularnewline
+\bottomrule
+\end{longtable}
+
+\subsection{Antenna Description
+Messages}\label{antenna-description-messages}
+
+\begin{itemize}
+\item
+  1007
+\item
+  1008
+\end{itemize}
+
+{\emph{1007}}\label{section-2}
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule
+DATA FIELD & DF NUMBER & DATA TYPE & NO. OF BITS\tabularnewline
+\midrule
+\endhead
+Message Number (e.g. ``1007''= 0011 1110 1111) & DF002 & uint12 &
+12\tabularnewline
+Reference Station ID & DF003 & uint12 & 12\tabularnewline
+\ldots{} & & &\tabularnewline
+TOTAL & & & 40+8*N\tabularnewline
+\bottomrule
+\end{longtable}
+
+The Python RTCM3 library knows about the following messages: - 1001 -
+1002 - 1003 - 1004 - 1005 - 1006 - 1008 - 1009 - 1010 - 1011 - 1012 -
+1033
+

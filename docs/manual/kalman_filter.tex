@@ -1,0 +1,146 @@
+\chapter{Kalman Filtering}
+\label{ch:kalman_filter}
+%
+%
+\begin{fullwidth}
+The Kalman filter is over 50 years old but is still one of the most important and common data fusion algorithms in use today. 
+Named after Rudolf E.Kálmán, the great success of the Kalman filter is due to its small computational requirement, elegant recursive properties, and its status as the optimal estimator for one-dimensional linear systems with Gaussian error statistics. 
+Typical uses of the Kalman filter include smoothing noisy data and providing estimates of parameters of interest. 
+Kalman filtering is used in a wide range of applications include global positioning system receivers, in control systems, through to the smoothing the output from laptop trackpads, and many more.
+%
+\end{fullwidth}
+
+\section{Overview of Kalman Filtering}
+
+Kalman filter are typically used to estimate parameters which change with time. 
+Parameters with no process noise are called deterministic.
+A Kalman filter has measurements $y(t)$, with noise $v(t)$, and a state vector (or a parameter list) which have specified statistical properties.
+
+The observation equation at time t:
+\begin{equation}
+    y_t = A_t x_t + v_t
+\end{equation}
+
+The state transition equation:
+\begin{equation}
+    x_{t+1} = S_t x_t + w_t
+\end{equation}
+
+Covariance matrices
+\begin{equation}
+    <v_tv_t^T> = V_t , <w_tw_t^T> = W_t 
+\end{equation}
+
+The kalman filter processing is broken up into three main steps.
+
+\newthought{Prediction} {uses a process noise model} to 'predict' the parameters at the next data epoch, subscript is time quantity refrs to, where as the superscript refers to the time of the data:
+\begin{equation}
+    \hat{x}_{t+1}^t = S_t \hat{x}_t^t
+\end{equation}
+where, $S_t$ is the state transition matrix
+\begin{equation}
+    C_{t+1}^t = S_t C_t^t S_t^t + W_t
+\end{equation}
+where, $w_t$ is the process noise covariance matrix.
+The state transition matrix $S$ projects the state vector (parameters) forward to the next epoch.
+\begin{itemize}
+    \item For random walk $S$ = 1
+    \item For rate terms: $S$ is matrix $[1 \delta t][0 1]$
+    \item for FOGM: $S$ = $e^{-\delta t \beta}$
+    \item For white noise $S$ = 0
+\end{itemize}
+The second equation projects the covariance matrix of the state vector, $C$, forward in time. Contributions from the state transition and process noise ($W$ matrix). $W$ elements are 0 for deterministic parameters.
+%
+\newthought{The Kalman gain} {is the matrix} that allocates the differences between the observation at time t+1 and their predicted value at this time based on the current values of the state vector according to the noise in the measurements and the state vector noise.
+
+\section{Comparison between Weighted Least Squares and Kalman Filtering}
+
+\begin{itemize}
+    \item In kalman filtering apriori constraints must be give for all parameters. This is not needed in weighted least squares, but can also be done.
+    \item Kalman filters can allow for 0 variance parameters, this cannot be done in WLS, as this requires the inversion of the constraint matrix.
+    \item Kalman filter can allow for a method of applying absolute constraints, WLS can only tightly constrain parameters.
+    \item Kalman filters are more prone to numerical stability problems, and take longer to run (they have more parameters).
+    \item Process noise models can be implemented in WLS, but they are computationally slow.
+\end{itemize}
+
+\section{Implementation in the PEA}
+
+\subsection{Observation Weighting}
+%
+The GNSS observations can be weighted in three different ways in the PEA:
+\begin{itemize}
+    \item Unity - all observations are assigned the same variance
+    \item Elevation Dependent - an elevation dependent function is used to scale the observations, those at higher elevation are given more weight (a smaller standard deviation) than those observed at lower elevation
+    \item SNR observations - the Carrier to Noise observations supplied by the receiver are used to determine the observation weight. Generally speaking this is very similar to elevation weighting, but is useful when use observations obtained from a non-geodetic grade receiver/antenna.
+\end{itemize}
+%
+\subsection{Unity}
+
+\subsection{Elevation Dependent Weighting}
+
+\subsection{SNR weighting}
+
+
+%    // Langley RB (1996) GPS receivers and the observables. In: Kleusberg A, Teunissen PJG (eds) GPS for geodesy.
+%    //     Lecture notes in earth sciences, vol 60. Springer, Berlin
+%    // Langley, R. B. (1997). "GPS receiver system noise." GPS World, Vol. 8, No. 6, April, pp. 40-45.
+%    const double BL = 0.8;      // for code (Hz)
+%    const double alpha = 0.5;   // for code (dimensionless)
+%    const double BP = 2;        // for phase (Hz)
+%    // PI in constants.h
+
+%    //wavelength of the PRN code (in meter)
+%    const double P_WL = 29.305;
+%    const double CA_WL = 293.05;
+
+%    //wavelength of the carrier phase (in meter)
+%    // Teunissen PJG (2017) Carrier-phase integer ambiguity resolution. In: Teunissen PJG, Montenbruck O (eds)
+%    //      Handbook of global navigation satellite systems. Springer, Cham, pp 661-685
+%    //const double L = lambdas[ft];//lambdas[L1C];// 0.190;
+
+
+\subsection{Process Noise}
+
+Currently in the PEA we have Gaussian, and random walk process noise models implemented.
+
+The units are in meters, and they are given as $\sigma$ sqrt(variance)
+
+For a random walk process noise, the process noise is incremented at each epoch as $\sqrt{process\_noise}*dt$ where dt is the time step between filter updates.
+
+If you want to allow kinematic processing, then you can increase the process noise e.g.
+proc\_noise [0.003]
+proc\_noise\_dt: second 
+
+equates to $\frac{0.003}/\sqrt{s}$
+\\ 
+Or if you wanted highway sppeds 100km/hr = 28 m/s
+proc\_noise [28]
+proc\_noise\_dt: second
+proc\_noise\_model:   Gaussian
+or
+         proc\_noise\_model:   RandomWalk
+or
+         proc\_noise\_model:   FOGM 1.0
+Where the number after FOGM gives the correlation time B
+That way we could keep the same:
+            proc\_noise:         [0.01]
+            proc\_noise\_dt:      hour
+
+A nice value for using VMF as an apriori value is 0.1mm /sqrt(s)
+%
+\begin{verbatim}
+trop:
+estimated:          true
+sigma:              [0.1]
+proc_noise:         [0.01]
+proc_noise_dt:      hour
+\end{verbatim}
+
+
+
+\section{Recommended Reading}
+
+\begin{enumerate}
+    \item https://ocw.mit.edu/courses/earth-atmospheric-and-planetary-sciences/12-540-principles-of-the-global-positioning-system-spring-2012/lecture-notes/MIT12\_540S12\_lec13.pdf
+\end{enumerate}
+

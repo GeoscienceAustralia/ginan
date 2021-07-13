@@ -1,0 +1,111 @@
+\chapter{Ambiguity Resolution}
+\label{ch:Ambiguity Resolution}
+\begin{fullwidth}
+An advantage of the ambiguity fixed solutions is the significantly reduced number of parameters which have to be solved for. 
+A reduction of the normal equation to be inverted is important because usually a duplication of its size leads to over four times longer computing time for the inversion. 
+If many parameters are estimated (orbits, Earth orientation parameters etc.) ambiguity resolution improves also the results of much longer sessions than the traditional daily solution.  
+Due to the FDMA technology the ambiguity resolution for GLONASS is not a straight forward task, and we have not attempted to implement this into the pea yet.
+\end{fullwidth}
+%
+There are many methods that can be used to resolve ambiguities, but they mainly consist of two steps:
+%
+\begin{enumerate}
+    \item The ambiguities are estimates as real numbers (with the other parameters).
+    \item Integer values of the ambiguities are resolved using the results of step 1 (the real-value ambiguities and the VCV matrix) employing a number of statistical tests to ensure a reliable estimate.
+\end{enumerate}
+%
+\begin{fullwidth}
+\newthought{Determining a reference or a pivot} is normally done by selecting a station with the most number of observations, however this is not possible to no apriori for a systems that is designed to run in real-time.
+\end{fullwidth}
+%
+In the pea we have implemented a number of different ambiguity resolution strategies:
+\begin{itemize}
+    \item rounding and weighted rounding
+    \item bootstrapping
+    \item lambda decorelation
+    \item BIE
+\end{itemize}
+%
+\section{rounding algorithm}
+The simplest strategy to apply is to round the real-values estimates to the nearest integers, without using any variance co-variance information.
+%
+\section{bootstrapping}
+%
+The bootstrapping algorithm takes the first ambiguity and rounds its value to the nearest integer. Having obtained the integer value of this first ambiguity, the real-valued estimates of all remaining ambiguities are then corrected by virtue of their correlation with the first ambiguity. 
+Then the second, but now corrected, real-valued ambiguity estimate is rounded to its nearest integer, and the process is then repeated again with both ambiguities held fixed, and the process is continued until all ambiguities are accommodated. 
+Thus the bootstrapped estimator reduces to ’integer rounding’ in case correlations are absent.
+%
+\section{lambda}
+\section{BIE}
+\subsection{Melbourne-Wubbena linear combination}
+The Melbourne-Wubbena linear combination (Melbourne 1985),(Wubbena 1985) is a linear combination of the L1 and L2 carrier phase plus the P1 and P2 pseudorange. The geometry, troposphere and ionosphere are eliminated by it. The Melbourne-Wubbena linear combination can be represented as:
+%
+\begin{equation}
+E(L_{r,IF}^S) - \frac{cf_2z_{r,w}^s}{f_1^2 - f_2^2} = \rho_r^s + c(dt_{r,IF} - dt_{IF}^s) + \tau_r^s + \lambda_n z_{r,1}^s + (\lambda_{IF}\delta_{r,IF}
+\end{equation}
+%
+Since ,,\% comprises of both code and phase measurements, it is reasonable to exclude the lower
+elevation measurements to avoid the multipath impacts from the code observation. Normally, with
+30 degree elevation cut-off, an averaging of 5 minutes of (4) is good enough to fixing the wide-lane
+ambiguities [RD 04]. The rests are the wide-lane phase bias, which can be broadcasted to the user for
+user side wide-lane ambiguity resolution. Either choosing a pivot receiver bias or a single-differencing
+between two satellites can avoid the linear dependency. 
+%
+%
+doesn't need lambda not as correlated
+%
+\section{Narrowlane and phase clock estimation}
+%
+highly correlated need lambda
+% \[E(L^S) - \]
+%
+%
+With the fixing of the wide-lane ambiguity, equation (1) and (2) can be further deducted as:
+%
+The code bias and phase bias in equations (5) and (6) can be lumped into the corresponding receiver
+and satellite clock errors. Then equations (5) and (6) become:
+%
+with:
+%
+By such an reformulation, there are two types of satellite clock: 1) IGS type clock, but estimated only
+from code measurements; 2) phase clock, estimated using phase measurements and can be used to
+support PPP ambiguity resolution on the user side. The drawback of this approach is that there is no
+precise IGS compatible clock after the processing and it has to be derived from the existing PEA
+processing
+%
+\section{Narrowlane and phase bias estimation}
+%
+In this approach, equation (7) holds the same for the code measurements. However, in equation (8),
+the phase biases are not lumped into the clocks, but the ambiguities. More specifically, equation (8)
+can be written as:
+%
+In equation (9), the clocks are the same as the clocks provided in equation (7), which means the
+precise IGS satellite clock can be estimated.
+The narrow-lane integer ambiguities, as shown in equation (9), are linearly dependent on the phase
+biases, which means they cannot be estimated simultaneously. However, similar as the wide-lane
+ambiguity resolution, the narrow-lane integer ambiguities can be fixed by rounding the float solution
+to the nearest integer, and the remaining will be the phase bias, which can be broadcasted to the
+user for user side PPP ambiguity resolution.
+%
+\newthought{Bootstrapping} is designed to do some stuff.
+%
+\newthought{Rounding}
+%
+\newthought{Lambda}
+%
+Decorrelation algorithm
+%
+%2 nearest
+%
+\section{References on Ambiguity Resolution}
+%
+\begin{itemize}
+    \item A modified phase clock/bias model to improve PPP ambiguity resolution at Wuhan University Journal of Geodesy - Geng et al. (2019)
+    \item On the interoperability of IGS products for precise point positioning with ambiguity resolution Journal of Geodesy - Simon et al. (2020)
+    \item Resolution of GPS carrier-phase ambiguities in precise point positioning (PPP) with daily observations Journal of Geodesy - Ge et al. (2008)
+    \item Real time zero-difference ambiguities fixing and absolute RTK ION NTM - Laurichesse et al. (2008)
+    \item Undifferenced GPS ambiguity resolution using the decoupled clock model and ambiguity datum fixing Navigation – Collins et al. (2010)
+    \item Improving the estimation of fractional-cycle biases for ambiguity resolution in precise point positioning Journal of Geodesy – Geng (2012).
+    \item Modeling and quality control for reliable precise point positioning integer ambiguity resolution with GNSS modernization
+GPS Solutions – Li et al. (2014).
+\end{itemize}

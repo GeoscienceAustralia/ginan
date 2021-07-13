@@ -1,0 +1,62 @@
+\chapter{Equation Conventions}
+\label{ch:conventions}
+
+\newthought{In this manual we will} be adhering to the following conventions
+
+\section{List of Symbols}
+
+\begin{itemize}
+	\item {\LARGE{\boldmath{$i$}}} Receiver identification or {\LARGE{\boldmath{$r$}}}
+	\item {\LARGE{\boldmath{$j$}}} Satellite identification or {\LARGE{\boldmath{$s$}}}
+	\item {\LARGE{\boldmath{$k$}}} Epoch number or {\LARGE{\boldmath{$t$}}}
+	\item {\LARGE{\boldmath{$q$}}} GNSS type (GPS,GALILEO,GLONASS,QZSS)
+	\item {\LARGE{\boldmath{$c$}}} Speed of light [m/s]
+	\item {\LARGE{\boldmath{$x$}}} Vector of parameters to be estimated [m]
+	\item {\LARGE{\boldmath{$y$}}} Vector of observations [m]
+	\item {\LARGE{\boldmath{$A$}}} Design matrix
+	\item {\LARGE{\boldmath{$\sigma$}}} Standard deviation of observable
+	\item {\LARGE{\boldmath{$\Delta$}}} Increment to a priori values [m]
+	\item {\LARGE{\boldmath{$\omega$}}}avelength or {\LARGE{\boldmath{$\lambda_1,\lambda_2,\lambda_5$}}}
+	\item {\LARGE{\boldmath{$f_1,f_2,f_5$}}} frequency
+	\item {\LARGE{\boldmath{$\alpha$}}}mbguity or {\LARGE{\boldmath{$N$}}} Real valued ambguity and {\LARGE{\boldmath{$\bar{N}$}}} Integer part of real valued ambguity
+	\item {\LARGE{\boldmath{$\alpha$}}} level of significance
+	
+	\item {\LARGE{\boldmath{$\beta$}}}iases
+	\item {\LARGE{\boldmath{$\zeta$}}}lock offsets
+	\item {\LARGE{\boldmath{$\delta t$}}}lock error [s]
+	\item {\LARGE{\boldmath{$\kappa$}}}orrection - relativity
+	\item {\LARGE{\boldmath{$\iota$}}}onosphere or  {\LARGE{\boldmath{$I$}}}
+	\item {\LARGE{\boldmath{$\tau$}}}roposphere or {\LARGE{\boldmath{$T,T_h,T_w$}}} [m]
+	\item {\LARGE{\boldmath{$M$}}} elevation dependent mapping function for the troposphere wet delay
+	\item {\LARGE{\boldmath{$\xi$}}} phase wind-up error
+	\item {\LARGE{\boldmath{$\epsilon$}}}rror in observations and unmodelled effects [m]
+	\item {\LARGE{\boldmath{$\phi_i^j$}}} Carrier phase observable (times c) [m]
+	\item {\LARGE{\boldmath{$P_i^j$}}}Pseudo range observable [m]
+		
+\end{itemize}
+
+\begin{fullwidth}
+Lets try this for example:
+For an undifference, uncombined float solution, the linearized observation equations for pseudorange and phase observations from satellite $s$ to receiver $r$ can be described as:
+
+\begin{math}
+\Delta P_{r,f}^{q,s} = u_r^{q,s} . \Delta x + c . (\delta t_r^q - \delta t^{q,s}) + M_r^{q,s} . T_r + \gamma_f^q . I_{r,1}^{q,s} + d_{r,f}^q - d_f^{q,s} + \epsilon_{P,f}^q
+\end{math}\\
+\begin{math}
+\Delta\phi_{r,f}^{q,s} = u_r^{q,s} . \Delta x + c . (\delta t_r^q - \delta t^{q,s}) + M_r^{q,s} . T_r - \gamma_f^q . I_{r,1}^{q,s} + \lambda_f^q . N_{r,f}^{q,s} + b_{r,f}^q - b_f^{q,s} + \epsilon_{L,f}^q 
+\end{math}
+
+where$\Delta P_{r,f}^{q,s}$ and $\Delta\phi_{r,f}^{q,s}$ are the respective pseudorange and phase measurements on the frequency $f$(f=1,2), from which the computed values are removed;
+$u_r^{q,s}$ is the receiver-to-satellite unit vector;
+$\Delta x$ is the vector of the receiver position corrections to its preliminary position; 
+$\delta t_r^q$ and $\delta t^{q,s}$ are the receiver and satellite clock errors respectively;
+$c$ is the speed of light in a vaccum
+$M_r^{q,s}$ is the elevation dependent mapping function for the troposphere wet delay from the corresponding zenith one $T_r$;
+$I_{r,1}^{q,s}$ is the ionosphere delay along the line-of-sight from a receiver to a satellite at the first frequency and $\gamma_f^q = (\lambda_f^q / \lambda_1^q)^2$;
+$\lambda_f^q$ is the wavelength for the frequency $f$ of a GNSS $q$;
+$N_{r,f}^{q,s}$is the phase ambguity 
+$d_{r,f}^q$ and $b_{r,f}^q$ are the receiver hardware delays of code and phase observations respectively;
+$d_f^{q,s}$ and $b_f^{q,s}$ are the satellite hardware delays of code and phase observations, respectively;
+$\epsilon_{P,f}$ and $\epsilon_{L,f}$ are the code and phase measurement noises respectively. 
+
+\end{fullwidth}

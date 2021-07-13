@@ -1,0 +1,11 @@
+streams:
+- type: NTRIP
+  protocol: http
+  host: auscors.ga.gov.au
+  port: 2101
+  username: TaoLi1234
+  password: LGYdOWDnVC
+  count: 10
+  stations:
+  - {format: RTCM3, id: COCO7}
+#  - {format: RTCM3, id: CUT07}

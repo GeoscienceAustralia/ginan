@@ -1,0 +1,2 @@
+*.Z filter=lfs diff=lfs merge=lfs -text
+IGS19P38.ssc filter=lfs diff=lfs merge=lfs -text

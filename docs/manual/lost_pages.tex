@@ -1,0 +1,54 @@
+\chapter{Lost pages}
+\label{ch:lost pages}
+This sections contains information in the hidden functionality that could be used for debugging.
+Below is an old POD help message, with all pre-yaml options present:
+\begin{verbatim}
+Earth Radiation Model (ERM):   1
+
+Default master POD config file = POD.in
+To run from default config file: ../../bin/pod or ../../bin/pod -c POD.in
+
+POD.in config file options by defaut can be overridden on the command line
+
+Command line: ../../bin/pod -c -m -s -o -e -v -a -p -r -t -n -i -u -q -k -w -y -h 
+
+Where: 
+    -c --config  = Config file name [Default POD.config]
+    -m --podmode = POD Mode:
+                                1 - Orbit Determination (pseudo-observations; orbit fitting)
+                                2 - Orbit Determination and Prediction
+                                3 - Orbit Integration (Equation of Motion only)
+                                4 - Orbit Integration and Partials (Equation of Motion and Variational Equations)
+    -s --pobs    = Pseudo observations orbit .sp3 file name
+    -o --cobs    = Comparison orbit .sp3 file name
+    -e --eqm     = EQuations of Motion input file name  [Default: EQM.in]
+    -v --veq     = Variatinal EQuations input file name [Default: VEQ.in]
+    -a --arclen  = Orbit Estimation Arc length (hours)
+    -p --predlen = Orbit Prediction Arc length (hours)
+    -r --eopf    = Earth Orientation Paramaeter (EOP) values file
+    -t --eopsol  = Earth Orientation Paramaeter file type: (1,2,3)
+                                1 - IERS C04 EOP
+                                2 - IERS RS/PC Daily EOP
+                                3 - IGS RP + IERS RS/PC Daily (dX,dY)
+    -n --nutpre  = IAU Precession / Nutation model
+                                2000 - IAU2000A
+                                2006 - IAU2006/2000A
+    -i --estiter = Orbit Estimatimation Iterations (1 or greater)
+    -u --sp3vel  = Output .sp3 file with velocities
+                                0 - Do not write Velocity vector to sp3 orbit
+                                1 - Write Velocity vector to sp3 orbit
+    -q --icmode  = Initial condition from parameter estimation procedure
+    -k --srpmodel= 1: ECOM1, 2:ECOM2, 12:ECOM12, 3:SBOX
+    -w --empmodel= 1: activated, 0: no estimation
+    -d --verbosity = output verbosity level [Default: 0]
+    -y --yaml = yaml config file
+    -h --help.   = Print program help
+
+Examples:
+
+        ../../bin/pod -m 1 -q 1 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 
+        ../../bin/pod -m 2 -q 1 -k 1 -w 0 -s igs16403.sp3 -e EQMx.in -v VEQx.in -p 12
+
+For orbit updates using Parameter Estimation Algorithm (PEA):
+        ../../bin/pod -m 4 -q 2 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3
+\end{verbatim}

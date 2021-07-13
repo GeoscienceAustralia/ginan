@@ -1,0 +1,152 @@
+# 
+# =============================================================================
+# Example 
+# Processess two days of data to obtain satellite and receiver clock values
+# This uses global data obtained from the IGS network
+# =============================================================================
+#
+# General files
+# =============================================================================
+antenna: EX03/general/igs14.atx
+navigation: EX03/products/brdc0880.17n
+sinex: EX03/general/igs17P19423.snx
+grid: EX03/general/gpt_25.grd
+blqfile: EX03/general/OLOAD_GO.BLQ
+
+# =============================================================================
+# Products 
+# =============================================================================
+# In this example we have concatenated two sp3 files together
+# igs19423.sp3 and igs19424.sp3
+sp3: EX03/products/igs19423a.sp3
+erpfile: EX03/products/igs19427.erp
+dcbfile: EX03/products/P1C11703_RINEX.DCB
+# =============================================================================
+# Options
+# =============================================================================
+# in degrees ..
+elevation_mask: 7.5 
+epoch_interval: 30
+output_directory: /data/acs/output/
+
+#=======================================
+# Process Noise values, can be overided by station
+# in metres ..a
+# data weight , parameter weight, process noise
+#pnoise_receiver_clock: 1E1
+pnoise_satellite_clock: 0.2
+pnoise_troposphere: 0.01  # loose 
+pnoise_station_coords: 
+ - 0.001 # North
+ - 0.001 # East
+ - 0.003 # UP
+#
+# Parameter weights
+# TODO: should we be doing this in radial alongtrack crosstrack ?? 
+sigma_satellite_xyz: 
+ - 0.02    # sigma in X
+ - 0.02    # sigma in Y
+ - 0.02    # sigma in Z
+ - 0.001   # sigma in vel X
+ - 0.001   # sigma in vel Y
+ - 0.001   # sigma in vel Z
+
+# spherical caps example, longitude width does not need to be defined
+# assuming a dual layer model
+ion_model: spherical_caps
+ion_lat_centre: -25.0
+ion_long_centre: 133.0
+ion_lat_width: 30.
+ion_mwr: 60. # minumum wavelength resolutions
+ion_bottom_layer_height: 50000 #(in metres)
+ion_top_cap_height: 1500000 #(in metres)
+pnoise_ion_model: 0.1 # standard deviation of the dynamic model per epoch
+
+#=================================
+# TODO work out options and then parameter values, eg, a/b
+#obs_weight_type: sin_el, uniform, residual
+# BASE on RINEX3 standard values
+sigma_observations:
+    sigma_prange: 1.5
+    sigma_phase: 0.002
+# =============================================================================
+# Data
+# =============================================================================
+#info:
+#   - phaseResiduals
+#  - {id: path: EX03/data/zeck0880.17O, receiver_clock_noise: 1E2}
+
+streams:
+- type: FILE
+  format: RINEXv2
+  root: EX03/data
+  end: 2017-03-29 00:10:00
+  stations:
+  - {id: ALIC, path: alic0880.17O, receiver_clock_noise: 1E2}
+  - {id: ANKR, path: ankr0880.17O}
+  - {id: BAKE, path: bake0880.17O}
+  - {id: BAKO, path: bako0880.17O}
+  - {id: BARH, path: barh0880.17O}
+  - {id: BJFS, path: bjfs0880.17O}
+  - {id: BOGT, path: bogt0880.17O}
+  - {id: BRST, path: brst0880.17O}
+  - {id: DAV1, path: dav10880.17O}
+  - {id: DUBO, path: dubo0880.17O}
+  - {id: FLIN, path: flin0880.17O}
+  - {id: GLPS, path: glps0880.17O}
+  - {id: GMSD, path: gmsd0880.17O}
+  - {id: GOLD, path: gold0880.17O}
+  - {id: GRAS, path: gras0880.17O}
+  - {id: GRAZ, path: graz0880.17O}
+  - {id: HARB, path: harb0880.17O}
+  - {id: HERS, path: hers0880.17O}
+  - {id: HERT, path: hert0880.17O}
+  - {id: HOB2, path: hob20880.17O}
+  - {id: HOFN, path: hofn0880.17O}
+  - {id: HYDE, path: hyde0880.17O}
+  - {id: IQAL, path: iqal0880.17O}
+  - {id: IRKJ, path: irkj0880.17O}
+  - {id: JOZ2, path: joz20880.17O}
+  - {id: KERG, path: kerg0880.17O}
+  - {id: KIRU, path: kiru0880.17O}
+  - {id: KIT3, path: kit30880.17O}
+  - {id: KOKV, path: kokv0880.17O}
+  - {id: KOUC, path: kouc0880.17O}
+  - {id: KOUR, path: kour0880.17O}
+  - {id: LPGS, path: lpgs0880.17O}
+  - {id: MAC1, path: mac10880.17O}
+  - {id: MAS1, path: mas10880.17O}
+  - {id: MATE, path: mate0880.17O}
+  - {id: MCIL, path: mcil0880.17O}
+  - {id: NANO, path: nano0880.17O}
+  - {id: NICO, path: nico0880.17O}
+  - {id: NKLG, path: nklg0880.17O}
+  - {id: NNOR, path: nnor0880.17O}
+  - {id: NYAL, path: nya10880.17O}
+  - {id: OUS2, path: ous20880.17O}
+  - {id: PARC, path: parc0880.17O}
+  - {id: PBRI, path: pbri0880.17O}
+  - {id: PDEL, path: pdel0880.17O}
+  - {id: PIMO, path: pimo0880.17O}
+  - {id: POTS, path: pots0880.17O}
+  - {id: RAMO, path: ramo0880.17O}
+  - {id: SCH2, path: sch20880.17O}
+  - {id: SCUB, path: scub0880.17O}
+  - {id: SFER, path: sfer0880.17O}
+  - {id: STHL, path: sthl0880.17O}
+  - {id: SUTV, path: sutv0880.17O}
+  - {id: THTI, path: thti0880.17O}
+  - {id: THU2, path: thu20880.17O}
+  - {id: TIXI, path: tixi0880.17O}
+  - {id: TLSE, path: tlse0880.17O}
+  - {id: TRO1, path: tro10880.17O}
+  - {id: TWTF, path: twtf0880.17O}
+  - {id: ULAB, path: ulab0880.17O}
+  - {id: UNSA, path: unsa0880.17O}
+  - {id: URUM, path: urum0880.17O}
+  - {id: VILL, path: vill0880.17O}
+  - {id: WHIT, path: whit0880.17O}
+  - {id: WIND, path: wind0880.17O}
+  - {id: WTZR, path: wtzr0880.17O}
+  - {id: ZIM2, path: zim20880.17O}
+
