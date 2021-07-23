@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="A page about the standard positioning service">
+        <meta name="author" content="Rupert Brown">
+
+        <title>Ginan GNSS</title>
+
+        <!-- Bootstrap core CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+
+        <!-- Link to the Google font Roboto used by the site. -->
+        <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+
+        <!-- Link to my stylesheet. -->
+        <link rel="stylesheet" href="css/general.css">
+
+        <!-- Favicon code generated for me by www.favicomatic.com -->
+        <link rel="apple-touch-icon-precomposed" sizes="57x57" href="favicons/apple-touch-icon-57x57.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="favicons/apple-touch-icon-114x114.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="72x72" href="favicons/apple-touch-icon-72x72.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="favicons/apple-touch-icon-144x144.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="60x60" href="favicons/apple-touch-icon-60x60.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="120x120" href="favicons/apple-touch-icon-120x120.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="76x76" href="favicons/apple-touch-icon-76x76.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="favicons/apple-touch-icon-152x152.png" />
+        <link rel="icon" type="image/png" href="favicons/favicon-196x196.png" sizes="196x196" />
+        <link rel="icon" type="image/png" href="favicons/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/png" href="favicons/favicon-32x32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="favicons/favicon-16x16.png" sizes="16x16" />
+        <link rel="icon" type="image/png" href="favicons/favicon-128.png" sizes="128x128" />
+        <meta name="application-name" content="&nbsp;"/>
+        <meta name="msapplication-TileColor" content="#FFFFFF" />
+        <meta name="msapplication-TileImage" content="favicons/mstile-144x144.png" />
+        <meta name="msapplication-square70x70logo" content="favicons/mstile-70x70.png" />
+        <meta name="msapplication-square150x150logo" content="favicons/mstile-150x150.png" />
+        <meta name="msapplication-wide310x150logo" content="favicons/mstile-310x150.png" />
+        <meta name="msapplication-square310x310logo" content="favicons/mstile-310x310.png" />
+
+    </head>
+
+    <body>
+        <a name="top">
+        <div class="container">
+    
+            <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light rounded mx-3">
+                <a class="navbar-brand" href="https://geoscienceaustralia.github.io/ginan/index2.html"><img src="images/GinanLogo60.png" width="60" height="60">Ginan</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#Ginan_navbar" aria-controls="Ginan_navbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="Ginan_navbar">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index2.html">Home</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="aboutGinan.html" id="aboutDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">About ...</a>
+                            <div class="dropdown-menu" aria-labelledby="aboutDropdown">
+                                <a class="dropdown-item" href="ga.html">Geoscience Australia</a>
+                                <a class="dropdown-item" href="program.html">Positioning Program</a>
+                                <a class="dropdown-item" href="aboutGinan.html">Ginan</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle active" href="ppp.html" id="theoryDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">What is ...</a>
+                            <div class="dropdown-menu" aria-labelledby="theoryDropdown">
+                                <a class="dropdown-item" href="theory.html">A Position on Earth</a>
+                                <a class="dropdown-item" href="gnss.html">GNSS</a>
+                                <a class="dropdown-item active" href="sps.html">Standard positioning</a>
+                                <a class="dropdown-item" href="rtk.html">RTK positioning</a>
+                                <a class="dropdown-item" href="ppp.html">PPP positioning</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="https://github.com/GeoscienceAustralia/ginan/blob/main/README.md" id="docsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Documentation</a>
+                            <div class="dropdown-menu" aria-labelledby="docsDropdown">
+                                <a class="dropdown-item" href="tech.html" target="_blank">Technology overview</a>
+                                <a class="dropdown-item" href="https://github.com/GeoscienceAustralia/ginan/blob/main/README.md" target="_blank">Installation</a>
+                                <a class="dropdown-item" href="resources/main20210722.pdf" target="_blank">Manual</a>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="https://github.com/GeoscienceAustralia/ginan" target="_blank">Source code</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="documents.html" id="streamsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Resources</a>
+                            <div class="dropdown-menu" aria-labelledby="streamsDropdown">
+                                <a class="dropdown-item" href="documents.html">Documents</a>
+                                <a class="dropdown-item" href="weblinks.html">Web links</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main role="main" class="container">
+                <div class="row">
+                    <div class="col-md-2 col-sm-1 col-xs-0">
+                    </div>
+                    <div class="col-md-8 col-sm-10 col-xs-12 blog-main">
+
+                        <div class="blog-post">
+                            <h1 class="blog-post-title">Standard Positioning Service</h1>
+
+                            <table style="height: 100px; background-color: rgb(250, 229, 212); text-align: left; vertical-align: middle;">
+                                <tbody>
+                                    <tr>
+                                        <td class="align-middle small" style="padding: 10px 10px 10px 20px;">Our experience of positions from satellites will almost certainly be thanks to the <strong><i>Standard Positioning Service</i></strong>. This brilliant concept was pioneered by the US Global Positioning System (GPS) and provides free positions across the globe with an accuracy of a few meters. This section describes how that service works.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <hr>
+                            <p>The GNSS constellations offer a number of different services. The one that will be familiar to most people is the Standard Positioning Service (SPS). This is the service that is open, free and used by smartphones and car navigation devices. Other services offer higher position accuracy but are usually encrypted and reserved for special purposes such as the military. This page describes the SPS and how accurate it is.</p>
+                            <p>The GPS SPS <a href="https://www.gps.gov/technical/ps/">Performance Standard</a> defines the SPS as:</p>
+                            <p><i>The SPS is a positioning and timing service that is available for peaceful civil, commercial, and scientific use. It includes the C/A-code signal, the CM/CL-code signals, and the I5-code/Q5-code signals. The C/A-code signal is transmitted by all satellites and comprises an L1 carrier modulated by a coarse/acquisition (C/A) code ranging signal with a legacy navigation (LNAV) data message. The ...</i></p>
+                            <p>The definition goes on to describe the CM/CL-code and I5-code/Q5-code signals, but for this purpose an exploration of the coarse/acquisition (C/A) code is sufficient.</p>
+
+                            <hr>
+
+                            <h3>The SPS Process</h3>
+
+                            <p>The basic process stages for the Standard Positioning Service (SPS) are:</p>
+                            <ol>
+                                <li>Create the GNSS signal. Each GNSS satellite creates a signal which identifies the satellite, carries information about where the satellite is (the navigation message), and includes a timing reference, using pseudorandom noise (PRN), that allows the receiver to work out its distance from the satellite.</li>
+                                <li>The receiving of the GNSS signal. A receiver has a number of channels. Each channel can process the data from one satellite.</li>
+                                <li>The decoding of the signal. The receiver decodes the navigation message and the distance  message – pseudorandom noise (PRN) code. An algorithm is used to turn the navigation message into an X, Y, Z coordinate of the satellite.</li>
+                                <li>Another algorithm is used to get the pseudorange of the satellite to the receiver using the PRN code.</li>
+                                <li>An algorithm turns the X, Y, Z coordinates and pseudoranges of several satellites into the X, Y, Z position of the receiver.</li>
+                                <li>Finally the receiver can translate the X, Y and Z coordinates into latitude, longitude and altitude (using reference frames).</li>
+                            </ol>    
+                            
+                            <p>Note there is a difference between the PRN code - which is lots of ones and zeros - and the PRN number - which is a regular integer. A GNSS satellite is typically referred to by its PRN number and that satellite will broadcast its signals identifying them using its PRN code.</p>
+
+                            <hr>
+
+                            <h3>Signals and the Speed of Light</h3>
+                            
+                            <div class="text-center">
+                                <img src="images/SpeedOfLight-75pc.png" class="img-fluid mb-3" alt="The time it takes for a GNSS signal to reach Earth">
+                                <p class="figure-caption">The time it takes for a GNSS signal to reach Earth's surface.</p>
+                            </div>
+
+                            <p>A signal from a GNSS satellite, in a 20,000km orbit passing directly over us, takes around 0.0667 seconds to reach Earth's surface. A signal from that satellite as it appears over the horizon takes approximately 0.0854 seconds to reach the same spot. The difference between the two is a mere 0.0187 seconds (18.7 milliseconds) but that difference is crucial when it comes to working out the distance between our GNSS receiver and the satellite. By decoding the PRN code, the receiver has to be able to calculate that distance to work out our position.</p>
+
+                            <hr>
+                            
+                            <h3>Pseudorange</h3>
+
+                            <div class="text-center">
+                                <img src="images/Pseudorange-75pc.png" class="img-fluid mb-3" alt="Pseudorange components">
+                                <p class="figure-caption">Pseudorange components.</p>
+                            </div>
+
+                            <p>The distance between satellite and receiver is called the pseudorange. "Pseudo" because it isn't a simple value of distance. The figure above shows that there are other components that go to make the complete pseudorange value. The greatest part of the pseudorange is the distance between the satellite and the receiver calculated by multiplying the time taken for the GNSS signal to reach the receiver by the speed of light. The time taken is calculated as the difference between the time the signal was sent compared to the time the signal was received. The receiver knows the time the signal was received. It can calculate the time the signal was sent based on the extent to which it has to correlate the PRN code.</p>
+
+                            <hr>
+
+                            <h3>The Navigation Message</h3>
+
+                            <div class="text-center">
+                                <img src="images/DefiningOrbitPosition-75pc.png" class="img-fluid mb-3" alt="Defining a satellite's orbital position">
+                                <p class="figure-caption">Defining a satellite's orbital position.</p>
+                            </div>
+
+                            <p>A satellite's position in its orbit is defined by the values associated with a number of key parameters as shown in the figure above. This orbital position is broadcast by the satellite as part of its message signal. The satellite's position is important data in allowing a receiver to calculate a position.</p>
+
+                            <hr>
+
+                            <h3>Carriers and Codes</h3>
+
+                            <p>If all the GNSS satellites are broadcasting on the same frequency, how come the signals don’t get mixed up? How do we know what comes from where?</p>
+                            <p>The answer to this puzzle lies in understanding how Code Division Multiple Access (CDMA) works. Every GNSS satellite is allocated the entire transmission band all of the time. The trick is that each satellite’s message is coded using their unique PRN code. The key to CDMA is to be able to extract the desired signal while rejecting everything else as random noise.</p>
+                            <p>In CDMA, each message bit is subdivided into a number of short intervals called chips. Each satellite is assigned a unique 1,023 bit chip sequence (PRN code). To transmit 1 bit (of the navigation message), a satellite sends its chip sequence. To transmit a 0 bit, it sends the one's complement of its chip sequence. For example, if satellite A is assigned the chip sequence 00011011, it sends a 1 bit by sending 00011011 and a 0 bit by sending 11100100.</p>
+                            <p>PRN codes are designed to be very <i>orthogonal</i> to one another. That means that codes only correlate (can be matched) when they are almost exactly aligned. A receiver knows all the codes and identifies satellites when comparisons result in strong correlations. The <a href="https://www.gps.gov/technical/prn-codes/">allocation of PRN codes</a> is controlled by the US Space Force.</p>
+                            <p>For GPS, the navigation message is sent at the very sedate rate of 50 bits per second. The rate at which the chips are sent (the chipping rate) is 1.023 mega bits per second. This means that a chip (PRN code) is transmitted in a microsecond. The navigation message and chips modulate the carrier frequency – for L1 this is 1575.42 Mhz.</p>
+
+                            <div class="text-center">
+                                <img src="images/GPS_signal_modulation_scheme.svg" width="540" class="img-fluid mb-3" alt="Carrier C/A Code and navigation message">
+                                <p class="figure-caption">Carrier, C/A Code and navigation message<br>By P. F. Lammertsma, converted to vector by Denelson83 - Satellite Navigation</p>
+                            </div>
+
+                            <hr>
+
+                            <h3>Calculating a position</h3>
+
+                            <div class="text-center">
+                                <img src="images/CalculateAPosition-75pc.png" class="img-fluid mb-3" alt="Calculating a GNSS position">
+                                <p class="figure-caption">Calculating a GNSS position.</p>
+                            </div>
+
+                            <p>Our receiver can see four or more satellites in the sky and can decode their signals. It has four sets of distances and orbital positions. It has a rough idea as to where it is - perhaps the receiver remembers where it was last turned on. The receiver uses the mathematical techniques of linear approximation and a least squares best fit to nudge from the initial position to its actual position. It is able to do this in a dynamic way as the satellites move across the sky and the receiver moves across the Earth. This basic technique represents the Standard Positioning Service.</p>
+
+                            <hr>
+
+                            <h3>How accurate is the Standard Positioning Service?</h3>
+
+                            <p>A <a href="https://www.nstb.tc.faa.gov/reports/PAN96_0117.pdf#page=22">report</a> produced by the US William J. Hughes Technical Center for the US Federal Aviation Administration in 2017 states that the Standard Position Service gives a position that is:</p>
+                            <ol>
+                                <li>Within 3.9 m of the actual vertical position 95% of the time, and</li>
+                                <li>Within 1.9 m of the actual horizontal position 95% of the time.</li>
+                            </ol>
+                            <p>That sounds pretty good. However, the actual performance you experience depends on many things including, but not limited to:</p>
+                            <ol>
+                                <li>The quality of your receiver. The quality of your GNSS antenna and the electronics behind it can have significant impacts on performance,</li>
+                                <li>The number of satellites your receiver can see. Generally the more satellites, the more data, the better the position,</li>
+                                <li>Multi-path effects. If the satellite signals are bouncing around nearby structures, the reflected signals can confuse the receiver,</li>
+                                <li>The accuracy of the navigation message transmitted by the satellite. If, for whatever reason, the satellite clock is a little bit off, or the satellite is a little out of its orbit then the calculated position can be thrown out too.</li>
+                                <li>The atmosphere. Both the ionosphere and troposphere can have effects on the signals which can add errors to a position.</li>
+                            </ol>
+                            <p>The other signals and codes broadcast by GNSS satellites can improve that accuracy. Now there are also augmentation systems available which send additional signals that greatly improve accuracy and often carry signal integrity information. Some of these are available to the general public and some are not.</p>
+                            <p>Ginarn is concerned with a technique called Precise Point Positioning (PPP). PPP aims to be able to compensate for many sources of error and so greatly increase position accuracy - from meters to a few centimeters.</p>
+
+                            <hr>
+                        </div><!-- /.blog-post -->    
+                    </div><!-- /.blog-main -->
+
+                    <div class="col-md-2 col-sm-1 col-xs-0 resources">
+                        <table style="height: 100px; background-color: rgb(184, 250, 250); text-align: center; vertical-align: middle;">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 140px;">                                
+                                        <a href="resources/SPS20210720v01.pdf">
+                                            <img src="images/SPSFrontSlide20210623v01.png" width="104" height="72" class="img-fluid mb-3" alt="Ginarn Project Overview Presentation front slide">
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="align-middle small">Resources - GNSS Standard Positioning Service.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div><!-- /.row -->
+            </main><!-- /.container -->
+
+            <footer class="text-muted">
+                <div class="container">
+                    <p class="float-right">
+                        <a href="#top">Back to top</a>
+                    </p>
+                    <p class="small">Copyright © Geoscience Australia 2021</a>.</p>
+                </div>
+            </footer>
+
+        </div>
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    </body>
+</html>
