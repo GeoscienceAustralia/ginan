@@ -1,5 +1,6 @@
 '''Downloads single tarball which has products, data and solutions dirs
-to disk and extracts the content into examples dir'''
+to disk and extracts the content into examples dir
+how-to-update with aws cli: aws s3 cp examples_aux.tar.gz s3://peanpod/aux/ --acl public-read --metadata md5checksum=[checksum as computed by get_checksum]'''
 import os
 import tarfile
 import urllib.request
@@ -7,7 +8,7 @@ import shutil
 import base64
 import hashlib
 
-def get_checksum_S3(path2file):
+def get_checksum(path2file):
     with open(path2file,'rb') as file:
         filehash = hashlib.md5()
         while True:
@@ -25,18 +26,17 @@ def untar(file):
         
 def download_examples_tar(url,relpath = '../examples/'):
     '''relpath configures output path relative to the sctipt location'''
-    destfile = os.path.basename(url) #proc.tar.gz
+    destfile = os.path.basename(url)
     script_path = os.path.dirname(os.path.realpath(__file__))
     destfile = os.path.abspath(os.path.join(script_path,relpath,destfile))
-    # print(destfile)
     if os.path.exists(destfile):
         print('examples tarball found on disk. Validating...')
         with urllib.request.urlopen(url) as response:
             if response.status == 200:
                 print('server says OK -> computing MD5 of the file found---')
-                md5_checksum = get_checksum_S3(destfile).decode()
+                md5_checksum = get_checksum(destfile).decode()
                 print('requesting MD5 from the server---')
-                md5_checksum_response =  response.getheader('x-amz-meta-md5checksum')
+                md5_checksum_response =  response.getheader('x-amz-meta-xmd5checksum')
                 if md5_checksum_response is not None: #md5 checksum exists on server
                     
                     if md5_checksum == md5_checksum_response:

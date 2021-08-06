@@ -3,6 +3,7 @@
 #define __NETWORK_ESTIMATOR_HPP__
 
 #include "streamTrace.hpp"
+#include "gTime.hpp"
 
 #include <list>
 
@@ -20,6 +21,6 @@ void networkEstimator(
 	Trace&			trace,
 	StationList&	streams,
 	KFState&		kfState,
-	double			tgap);
+	GTime			tsync);
 
 #endif

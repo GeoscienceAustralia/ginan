@@ -40,6 +40,10 @@ SUBROUTINE orbitIC (fname, IC_matrix, PRNmatrix)
 !			Geoscience Australia, Frontier-SI
 ! Created:	29 August 2019
 ! ----------------------------------------------------------------------
+!
+! Changes: 21-07-2021 Tzupang Tseng: read ERP values from IC file
+!
+! ---------------------------------------------------------------------
 
 
       USE mdl_precision
@@ -47,6 +51,7 @@ SUBROUTINE orbitIC (fname, IC_matrix, PRNmatrix)
       USE mdl_config
       USE mdl_param
       use pod_yaml
+      USE mdl_eop, ONLY: ERP_day_IC
       IMPLICIT NONE
 	  
 ! ----------------------------------------------------------------------
@@ -62,7 +67,7 @@ SUBROUTINE orbitIC (fname, IC_matrix, PRNmatrix)
 ! ----------------------------------------------------------------------
 ! Local variables declaration
 ! ----------------------------------------------------------------------
-      INTEGER (KIND = prec_int8) :: i, ipulse
+      INTEGER (KIND = prec_int8) :: i, ipulse, k
       INTEGER (KIND = prec_int2) :: UNIT_IN, ios, ios_ith, ios_data, ios_line
       INTEGER (KIND = prec_int8) :: sz1, sz2, sz3
       CHARACTER (LEN=1024) :: line_ith	  
@@ -92,6 +97,7 @@ UNIT_IN = 9
 ! Read data file
 ! ----------------------------------------------------------------------
       i = 0	  
+      k = 0
       isat = 0	  
 	  Nparam = 0
       DO
@@ -112,6 +118,18 @@ UNIT_IN = 9
 READ (line_ith, * , IOSTAT=ios_data) word1_ln  ! 1st word
 ! ----------------------------------------------------------------------
 !PRINT *, "word1_ln: ", word1_ln
+
+! Read ERP INFO
+! ----------------------------------------------------------------------
+IF (word1_ln == "#INFO_ERP") THEN
+   k=k+1
+   READ (line_ith, * , IOSTAT=ios_data) word_i, word_i,word_i, word_i,word_i,&
+                                        ERP_day_IC(k,1:4)
+!print*,'ERP_day_IC(k,1:4)',k,word_i, word_i,word_i, word_i,word_i,ERP_day_IC(k,1:4)
+
+END IF
+
+
 
 ! ----------------------------------------------------------------------
 ! IC values per satellite 

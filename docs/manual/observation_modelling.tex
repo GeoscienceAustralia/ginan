@@ -5,15 +5,13 @@
 
 \section{Undifferenced - Uncombined}
 To do ..
-\newthought{The PEA and POD} is designed to do some stuff.
+\textit{The PEA and POD} is designed to do some stuff.
 
 \section{GPS Quarter Cycle}
-\begin{fullwidth}
 The $L_2$ Civil code (L2C-code) is shifted by a quarter cycle with respect to the P-code. If a receiver is using either the one or the other code to reconstruct the carrier phase measurements, then they will also be shifted by a quarter of a wavelength relative to each other.\\
 The noise of phase measurement based on L2C-code is usually lower than the noise of phase observations reconstructed based on p-code. However this is only possible to obtain from satellites that have launched since GPS Block IIR-M was deployed. Older GPS satellites do not provide the L2C-code signal.\\
 In RINEX version 2, in order to prevent potential problems in ambiguity resolution some receiver manufactures do correct the phase measurements by 0.25 cycles to keep the phase observations consistent, while others provide the uncorrected phase measurements, an din other cases the user can decide if the correction is applied. Since RINEX version 3.02 the definition has been defined that the phase measurements need to be corrected to have a consistent set of observable that can be introduce for ambiguity resolution.\\
 One option to prevent having the quarter cycle issue is to ensure that ambiguities are not resolved between a Block IIR-M or later  with an older satellite.
-\end{fullwidth}
 
 \section{Single-satellite and Single-Receiver Observation Combinations}
 
@@ -44,7 +42,7 @@ With the help of the lane number $k$, the combinations can be categorized into t
     \item \emph{narrow-lane} combinations which have a shorter wavelength than the individual signal with the shortest wavelength in the combination.
 \end{enumerate}
 
-\newthought{The zero-differenced}, ionosphere free mathematical model for code and phase measurements using dual-frequency can be described by:\\
+\textit{The zero-differenced}, ionosphere free mathematical model for code and phase measurements using dual-frequency can be described by:\\
 
 $ E(P_{r,IF}^S) = \rho_{r}^s + c(dt_{r} - dt^s) + \tau_r^s + c (d_{r,IF} + d_{r,IF}^s) $\label{eq:code_IF_eq}\\
 
@@ -81,9 +79,7 @@ The group of wide-lane combinations is especially useful to help with integer am
 
 
 \subsection{Common widelane}
-\begin{fullwidth}
 To improve ambiguity resolution, often the wide lane linear combination (also called L5 or LW linear combination) is formed from the L1 and L2 carrier phase observables. It is designed to be a geometry-preserving combination using only carrier-phase measurements in the frequencies $f_a$ and $f_b$. By selecting the integer coefficients as $i_A = +1$ and $i_B = -1$, one obtains the WL carrier-phase combination $\phi_{r,WL}^s$ in units of cycles:
-\end{fullwidth}
 \begin{equation}
 \phi_{r,WL}^s = \phi_{r,A}^A - \phi_{r,B}^S = \frac{\psi_{r,A}^s}{\lambda_A} - \frac{\psi{r,B}^s}{\lambda_B} \label{eq:wl_cycles}
 \end{equation}

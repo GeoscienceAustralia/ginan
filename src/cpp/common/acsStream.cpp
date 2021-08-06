@@ -7,9 +7,11 @@
 #include <map>
 #include <boost/utility/binary.hpp>
 #include <boost/filesystem.hpp>
-
+#include "acsRtcmStream.hpp"
 
 static int rtcmdeblvl = 3;
+
+GTime RtcmStream::rtcmDeltaTime = {};
 
 ObsList ObsStream::getObs()
 {
@@ -55,6 +57,7 @@ ObsList ObsStream::getObs()
 	}
 	else
 	{
+
 		return ObsList();
 	}
 }
@@ -323,19 +326,72 @@ map<E_Sys, map<E_FType, double>> signal_phase_alignment =
 };
 
 
+int RtcmStream::adjgpsweek(int week)
+{
+	int w;
+    GTime now;
+    if ( rtcm_UTC.time == 0 )
+        now = utc2gpst(timeget());
+    else
+        now = utc2gpst(rtcm_UTC);
+    
+	time2gpst(now,&w);
+	if (w<1560) w=1560; /* use 2009/12/1 if time is earlier than 2009/12/1 */
+	return week+(w-week+512)/1024*1024;
+}
+
+void RtcmStream::setTime(GTime& time, double tow)
+{
+    GTime now;
+    if (rtcm_UTC != GTime::noTime())
+	{
+		//std::cout << "rtcm_UTC :" << std::put_time( std::gmtime( &rtcm_UTC.time ), "%F %X" )
+		//						  << " : " << rtcm_UTC.sec << std::endl;
+		now = utc2gpst(rtcm_UTC);
+	}
+    else
+    {
+        now = utc2gpst(timeget());
+    }
+
+	int week;
+	double tow_p = time2gpst(now, &week);		//todo aaron, cant use now all the time
+	if (acsConfig.ssrOpts.settime_week_override >= 0) // manually set GPS week when post-processing
+		week = acsConfig.ssrOpts.settime_week_override;
+
+	int sPerWeek = 60*60*24*7;
+	if      (tow < tow_p - sPerWeek/2)				tow += sPerWeek;
+	else if (tow > tow_p + sPerWeek/2)				tow -= sPerWeek;
+
+	time = gpst2time(week, tow);
+}
+
+GTime RtcmStream::getGpst()
+{
+    GTime now;
+    if ( rtcm_UTC.time == 0 )
+        now = utc2gpst(timeget());
+    else
+        now = utc2gpst(rtcm_UTC);
+    return now;
+}
 
 
+int RtcmDecoder::adjgpsweek(int week)
+{
+	int w;
+    GTime now = utc2gpst(timeget());
 
-
-
-
-
+	time2gpst(now,&w);
+	if (w<1560) w=1560; /* use 2009/12/1 if time is earlier than 2009/12/1 */
+	return week+(w-week+512)/1024*1024;
+}
 
 
 
 void RtcmDecoder::setTime(GTime& time, double tow)
 {
-	auto now = utc2gpst(timeget());
+    GTime now = utc2gpst(timeget());
 
 	int week;
 	double tow_p = time2gpst(now, &week);		//todo aaron, cant use now all the time
@@ -349,9 +405,43 @@ void RtcmDecoder::setTime(GTime& time, double tow)
 	time = gpst2time(week, tow);
 }
 
+GTime RtcmDecoder::getGpst()
+{
+    return utc2gpst(timeget());
+}
 
-int RtcmDecoder::SSRDecoder::getUdiIndex(
-	int udi)
+E_RTCMSubmessage CustomDecoder::decodeCustomId(uint8_t* data, unsigned int message_length)
+{
+    int i = 0;
+    int message_number		= getbituInc(data, i, 12);
+	
+    E_RTCMSubmessage customType = E_RTCMSubmessage::_from_integral(getbituInc(data, i, 8));
+	
+	return customType;
+}
+
+GTime CustomDecoder::decodeCustomTimestamp(uint8_t* data, unsigned int message_length)
+{
+    int i = 0;
+    int message_number		= getbituInc(data, i, 12);
+	
+    E_RTCMSubmessage customType = E_RTCMSubmessage::_from_integral(getbituInc(data, i, 8));
+	
+	GTime time;
+    unsigned int* var = (unsigned int*)	&time.time;
+    
+    var[0]			= getbituInc(data,i,32);
+    var[1]			= getbituInc(data,i,32);
+    
+    int milli_sec	= getbituInc(data,i,10);
+    
+    time.sec = (double)milli_sec/1000.0;
+    
+	return time;
+}
+
+
+int SSRDecoder::getUdiIndex(int udi)
 {
 	int index = -1;
 	for (int i = 0; i < 16; ++i) // 16 from updateInterval[16] above
@@ -365,20 +455,24 @@ int RtcmDecoder::SSRDecoder::getUdiIndex(
 	return index;
 }
 
-void RtcmDecoder::SSRDecoder::decodeSSR(
-	uint8_t*		data, 
-	unsigned int	message_length)
+void SSRDecoder::decodeSSR(uint8_t* data, unsigned int message_length)
 {
 	int i = 0;
 	int message_number		= getbituInc(data, i, 12);
 	int	epochTime1s			= getbituInc(data, i, 20);
 	int	ssrUpdateIntIndex	= getbituInc(data, i, 4);
 	int	multipleMessage		= getbituInc(data, i, 1);
+	
 
 	int ssrUpdateInterval	= updateInterval[ssrUpdateIntIndex];
-	double epochTime		= epochTime1s + ssrUpdateInterval / 2.0;
-	BOOST_LOG_TRIVIAL(debug) << "SSR message received: " << message_number;
 
+	double epochTime = epochTime1s + ssrUpdateInterval / 2.0;
+	//std::cout << "SSR message received: " << message_number << std::endl;
+	
+	GTime messTime;
+	setTime(messTime, epochTime);
+	traceLatency(messTime);
+	
 	E_Sys::_enumerated sys = E_Sys::NONE;
 	if 	( message_number == +RtcmMessageType::GPS_SSR_ORB_CORR
 		||message_number == +RtcmMessageType::GPS_SSR_CLK_CORR
@@ -466,7 +560,7 @@ void RtcmDecoder::SSRDecoder::decodeSSR(
 			ssrEph.ssrMeta = ssrMeta;
 
 			setTime(ssrEph.t0, epochTime);
-
+			
 			ssrEph.iod 			= iod;
 			ssrEph.iode			= getbituInc(data, i, ni);
 			// ??ssrEph.iodcrc		= getbituInc(data, i, nj);
@@ -498,7 +592,7 @@ void RtcmDecoder::SSRDecoder::decodeSSR(
 			ssrClk.ssrMeta = ssrMeta;
 
 			setTime(ssrClk.t0, epochTime);
-
+			
 			ssrClk.iod 			= iod;
 			
 			// C = C_0 + C_1(t-t_0)+C_2(t-t_0)^2 where C is a correction in meters.
@@ -520,6 +614,8 @@ void RtcmDecoder::SSRDecoder::decodeSSR(
 
 		if 	(message_number == +RtcmMessageType::GPS_SSR_URA)
 		{
+            //std::cout << "Received SSR URA Message.\n";
+            
 			SSRUra ssrUra;
 
 			setTime(ssrUra.t0, epochTime);
@@ -646,7 +742,7 @@ void RtcmDecoder::SSRDecoder::decodeSSR(
 
 
 		
-void RtcmDecoder::EphemerisDecoder::decodeEphemeris(uint8_t* data, unsigned int message_length)
+void EphemerisDecoder::decodeEphemeris(uint8_t* data, unsigned int message_length)
 {
 	Eph eph = {};
 	int i = 0;
@@ -715,7 +811,9 @@ void RtcmDecoder::EphemerisDecoder::decodeEphemeris(uint8_t* data, unsigned int 
 		if (1)	//todo aaron, janky?
 		{
 			int week;
-			double tow	= time2gpst(utc2gpst(timeget()), &week);
+            GTime now = getGpst();
+                
+			double tow	= time2gpst(now, &week);
 			eph.ttr		= gpst2time(week, floor(tow));
 		}
 		eph.Sat		= SatSys(sys, prn);
@@ -803,7 +901,7 @@ void RtcmDecoder::EphemerisDecoder::decodeEphemeris(uint8_t* data, unsigned int 
 		}
 		eph.Sat		= SatSys(sys, prn);
 		eph.toe		= gpst2time(eph.week,eph.toes);
-		eph.toc		= gpst2time(eph.week,toc);                
+		eph.toc		= gpst2time(eph.week,toc); 
 		
 		eph.A		= SQR(sqrtA);
 		if (message_number == RtcmMessageType::GAL_FNAV_EPHEMERIS )
@@ -823,7 +921,7 @@ void RtcmDecoder::EphemerisDecoder::decodeEphemeris(uint8_t* data, unsigned int 
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error: unrecognised sys in EphemerisDecoder::decode()";
 	}
-
+	
 	//check for iode, add if not found.
 	for (auto& eph_ : nav.ephMap[eph.Sat])
 	{
@@ -833,7 +931,7 @@ void RtcmDecoder::EphemerisDecoder::decodeEphemeris(uint8_t* data, unsigned int 
 			return;
 		}
 	}		
-	//tracepdeex(rtcmdeblvl,std::cout, "\n#RTCM_DEC BRCEPH %s %s %4d %16.9e %13.6e %10.3e ", eph.Sat.id(),eph.toc.to_string(2), eph.iode, eph.f0,eph.f1,eph.f2);
+	//tracepdeex(rtcmdeblvl,std::cout, "\n#RTCM_DEC BRCEPH %s %s %4d %16.9e %13.6e %10.3e, %d ", eph.Sat.id(),eph.toe.to_string(2), eph.iode, eph.f0,eph.f1,eph.f2, message_number);
 	//std::cout << "Adding ephemeris for " << eph.Sat.id() << std::endl;
 	nav.ephMap[eph.Sat].push_back(eph);
 	
@@ -842,7 +940,7 @@ void RtcmDecoder::EphemerisDecoder::decodeEphemeris(uint8_t* data, unsigned int 
 
 
 
-E_FType RtcmDecoder::MSM7Decoder::code_to_ftype(E_Sys sys, E_ObsCode code)
+E_FType MSM7Decoder::code_to_ftype(E_Sys sys, E_ObsCode code)
 {
 	if	( codeTypeMap		.count(sys)		> 0
 		&&codeTypeMap[sys]	.count(code)	> 0)
@@ -853,7 +951,7 @@ E_FType RtcmDecoder::MSM7Decoder::code_to_ftype(E_Sys sys, E_ObsCode code)
 	return FTYPE_NONE;
 }
 
-boost::optional<SignalInfo> RtcmDecoder::MSM7Decoder::get_signal_info(E_Sys sys, uint8_t signal)
+boost::optional<SignalInfo> MSM7Decoder::get_signal_info(E_Sys sys, uint8_t signal)
 {
 	if	( signal_id_mapping		.count(sys)		> 0
 		&&signal_id_mapping[sys].count(signal)	> 0)
@@ -864,7 +962,7 @@ boost::optional<SignalInfo> RtcmDecoder::MSM7Decoder::get_signal_info(E_Sys sys,
 	return boost::optional<SignalInfo>();
 }
 
-E_ObsCode RtcmDecoder::MSM7Decoder::signal_to_code(E_Sys sys, uint8_t signal)
+E_ObsCode MSM7Decoder::signal_to_code(E_Sys sys, uint8_t signal)
 {
 	boost::optional<SignalInfo> info = get_signal_info(sys, signal);
 
@@ -877,8 +975,9 @@ E_ObsCode RtcmDecoder::MSM7Decoder::signal_to_code(E_Sys sys, uint8_t signal)
 }
 
 
-ObsList RtcmDecoder::MSM7Decoder::decodeMSM7(uint8_t* data, unsigned int message_length,
-											map<SatSys,map<E_ObsCode,int>> MSM7_lock_time)
+
+ObsList MSM7Decoder::decodeMSM7(uint8_t* data, unsigned int message_length,
+											 map<SatSys,map<E_ObsCode,int>> MSM7_lock_time)
 {
 	ObsList obsList;
 	int i = 0;
@@ -929,8 +1028,10 @@ ObsList RtcmDecoder::MSM7Decoder::decodeMSM7(uint8_t* data, unsigned int message
 		tobs=utc2gpst(tglo);
 	} 
 	else setTime(tobs, tow);
-
-	//create observations for satelllites according to the mask
+	
+	traceLatency(tobs);
+	
+	//create observations for satellites according to the mask
 	for (int sat = 0; sat < 64; sat++)
 	{
 		bool mask 					= getbituInc(data, i,	1);
@@ -940,6 +1041,9 @@ ObsList RtcmDecoder::MSM7Decoder::decodeMSM7(uint8_t* data, unsigned int message
 			obs.Sat.sys = rtcmsys;
 			obs.Sat.prn = sat + 1;
 			obs.time=tobs;
+			//std::cout << "decodeMSM7, obs.time :" << std::put_time( std::gmtime( &obs.time.time ), "%F %X" )
+			//					  << " : " << obs.time.sec << std::endl;			
+			
 			obsList.push_back(obs);
 		}
 	}
@@ -1169,11 +1273,41 @@ RtcmMessageType RtcmDecoder::message_type(const uint8_t message[])
 	return RtcmMessageType::_from_integral(id);
 }
 
+
+void RtcmStream::traceLatency(GTime tobs)
+{
+	GTime now = getGpst();
+	long sec = now.time - tobs.time;
+	double frac_sec = now.sec - tobs.sec;
+	double latency = (double)sec + frac_sec;
+	//std::cout << "traceLatency : " << latency << " seconds.\n";
+	totalLatency += latency;
+	numMessagesLatency++;
+}
+
+void RtcmStream::createRtcmFile()
+{
+    GTime curTime;
+    time(&curTime.time);
+    long int roundTime = curTime.time;
+    roundTime /= acsConfig.rtcm_rotate_period;
+    roundTime *= acsConfig.rtcm_rotate_period;
+    curTime.time = roundTime;
+    
+    string logtime = curTime.to_string(0);
+    std::replace( logtime.begin(), logtime.end(), '/', '-');              
+    
+    string path_rtcm = rtcm_filename;
+    replaceString(path_rtcm, "<LOGTIME>", logtime);
+    
+    std::ofstream ofs( path_rtcm,std::ofstream::out | std::ofstream::ate);
+}
+
+
 void RtcmStream::parseRTCM(std::istream& inputStream)
 {
 	while (inputStream)
 	{
-		
 		int byteCnt = 0;
 		int pos;
 		while (true)
@@ -1192,18 +1326,19 @@ void RtcmStream::parseRTCM(std::istream& inputStream)
 				}
 			}
 			else
-			{                
+			{ 				
 				return;
 			}
 			byteCnt++;
 		}
-		if ( numPreambleFound == 0 )
+		
+		if (numPreambleFound == 0)
 			byteCnt = 0;
 		
 		numPreambleFound++;
 		numNonMessBytes += byteCnt;
 		
-		if( byteCnt != 0 )
+		if (byteCnt != 0)
 		{
 			std::stringstream message;
 			message << "RTCM Extra Bytes, size : " << byteCnt;
@@ -1233,17 +1368,16 @@ void RtcmStream::parseRTCM(std::istream& inputStream)
 		inputStream.read((char*)message, message_length);
 		if (inputStream.fail())
 		{
-			//tracepdeex(rtcmdeblvl+1,std::cout, "\nSTR_%s bytes in buffer", station.name);
 			inputStream.clear();
 			inputStream.seekg(pos);
 			return;
 		}
+		
 		// Read the frame CRC
 		unsigned int crcRead = 0;
 		inputStream.read((char*)&crcRead, 3);		
 		if (inputStream.fail())
 		{
-			//tracepdeex(rtcmdeblvl+1,std::cout, "\nSTR_%s leaving %d bytes in buffer", station.name, message_length);
 			inputStream.clear();
 			inputStream.seekg(pos);
 			return;
@@ -1251,7 +1385,8 @@ void RtcmStream::parseRTCM(std::istream& inputStream)
 
 		unsigned int crcCalc = crc24q(data, sizeof(data));
 		int nmeass = 0;
-		if(message_length>8) nmeass = getbitu(message, 0,	12);
+		if (message_length > 8) 
+		nmeass = getbitu(message, 0,	12);
 		
 		if	( (((char*)&crcCalc)[0] != ((char*)&crcRead)[2])
 			||(((char*)&crcCalc)[1] != ((char*)&crcRead)[1])
@@ -1267,20 +1402,110 @@ void RtcmStream::parseRTCM(std::istream& inputStream)
 			inputStream.seekg(pos2);
 			continue;
 		}
+		
+		
+		if (acsConfig.record_rtcm)
+        {
+            // Set the filenames based on system time, when replaying recorded streams
+            // the tsync time may be different.
+            
+            // Get time_t seconds since 00:00, 1/1/1970.
+            GTime curTime;
+            time(&curTime.time);
+            long int roundTime = curTime.time;
+            roundTime /= acsConfig.rtcm_rotate_period;
+            roundTime *= acsConfig.rtcm_rotate_period;
+            curTime.time = roundTime;
+            
+            string logtime = curTime.to_string(0);
+            std::replace( logtime.begin(), logtime.end(), '/', '-');              
+            
+ 			string path_rtcm = rtcm_filename;
+			replaceString(path_rtcm, "<LOGTIME>", logtime);
+           
+            std::ofstream ofs(path_rtcm, std::ofstream::app);
+            
+            //Write the custom time stamp message.
+            RtcmEncoder::CustomEndcoder encoder;
+            encoder.encodeTimeStampRTCM();
+            encoder.encodeWriteMessages(ofs);            
+            
+            //copy the message to the output file too
+            ofs.write((char *)data,		message_length+3);
+            ofs.write((char *)&crcRead,	3);
+        }
+		
+		
 		numFramesPassCRC++;
 		
-		
 
-		//tracepdeex(rtcmdeblvl+1,std::cout, "STR_%s : RTCM Message %4d\n", station.name, nmeass);
+		//tracepdeex(rtcmdeblvl+1,std::cout, "STR : RTCM Message %4d\n", nmeass);
 		
 		
 		auto message_type = RtcmDecoder::message_type((unsigned char*) message);
+        
+        
+        if (message_type == +RtcmMessageType::CUSTOM)
+        {
+            numFramesDecoded++;
+            
+            E_RTCMSubmessage submessage = decodeCustomId((uint8_t*) message, message_length);
+            
+			switch (submessage)
+			{
+				case (E_RTCMSubmessage::TIMESTAMP):
+				{
+		            GTime timestamp = decodeCustomTimestamp((uint8_t*) message, message_length);
+		            
+		            rtcm_UTC = timestamp;
+		   
+					if (acsConfig.simulate_real_time)
+					{
+						//get the current time and compare it with the timestamp in the message
+						
+						boost::posix_time::ptime now_ptime = boost::posix_time::microsec_clock::universal_time();
+					    
+					    // Number of seconds since 1/1/1970, long is 64 bits and all may be used.
+    					long int seconds = (now_ptime - boost::posix_time::from_time_t(0)).total_seconds();
+					    
+					    //Number of fractional seconds, The largest this can be is 1000 which is 10 bits unsigned. 
+					    boost::posix_time::ptime now_mod_seconds	= boost::posix_time::from_time_t(seconds);
+					    auto subseconds	= now_ptime - now_mod_seconds;
+					    int milli_sec = subseconds.total_milliseconds();
+					    
+					    GTime now_gtime;
+					    now_gtime.time	= seconds;
+					    now_gtime.sec	= milli_sec / 1000.0;
+					    
+					    //find the delay between creation of the timestamp, and now
+					    auto thisDeltaTime = now_gtime - timestamp;
+					    
+					    //initialise the global rtcm delay if needed
+					    if (rtcmDeltaTime == GTime::noTime())
+					    {
+					    	rtcmDeltaTime = thisDeltaTime;
+					    }
+					    
+					    //if the delay is shorter than the global, go back and wait until it is longer
+					    if (thisDeltaTime < rtcmDeltaTime)
+					    {
+							inputStream.seekg(pos);
+							return;
+					    }
+					}
+		            
+					break;
+				}
+			}
+        }
+        
+        
 		if 		( message_type == +RtcmMessageType::GPS_EPHEMERIS
 				||message_type == +RtcmMessageType::GAL_FNAV_EPHEMERIS
 				/*||message_type == +RtcmMessageType::GAL_INAV_EPHEMERIS*/)
 		{
 			numFramesDecoded++;
-			decodeEphemeris((uint8_t*) message,message_length);
+			decodeEphemeris((uint8_t*) message, message_length);
 		}
 		else if ( message_type == +RtcmMessageType::GPS_SSR_COMB_CORR
 				||message_type == +RtcmMessageType::GPS_SSR_ORB_CORR
@@ -1295,7 +1520,7 @@ void RtcmStream::parseRTCM(std::istream& inputStream)
 				||message_type == +RtcmMessageType::GAL_SSR_PHASE_BIAS)
 		{
 			numFramesDecoded++;
-			decodeSSR((uint8_t*) message,message_length);
+			decodeSSR((uint8_t*) message, message_length);
 		}
 		else if ( message_type == +RtcmMessageType::MSM4_GPS
 				||message_type == +RtcmMessageType::MSM4_GLONASS
@@ -1321,41 +1546,48 @@ void RtcmStream::parseRTCM(std::istream& inputStream)
 			numFramesDecoded++;
 			ObsList obsList = decodeMSM7((uint8_t*) message,message_length,MSM7_lock_time);
 			
-			//SuperList.insert(SuperList.end(),obsList.begin(),obsList.end());
 			int i=54;
 			int multimessage = getbituInc(message, i,	1);
 			
 			//tracepdeex(rtcmdeblvl,std::cout, "\n%s %4d %s %2d %1d", station.name, message_type._to_integral(), obsList.front().time.to_string(0), obsList.size(), multimessage);
 			
-			if(multimessage==0)
+			if (multimessage == 0)
 			{
 				SuperList.insert(SuperList.end(),obsList.begin(),obsList.end());
 				obsListList.push_back(SuperList);
 				SuperList.clear();
+				// Line added for parsing RTCM files, value indicates that it is the last MSM message
+				// for a given time and reference station ID.
+				return;
 			}
-			else if	( SuperList.size()>0
-					&&obsList.size()>0	
-					&&fabs(timediff(SuperList.front().time,obsList.front().time))>0.5)
+			else if	(  SuperList.size()	> 0
+					&& obsList.size()	> 0	
+					&& fabs(timediff(SuperList.front().time, obsList.front().time)) > 0.5)
 			{
 				obsListList.push_back(SuperList);
 				SuperList.clear();
-				SuperList.insert(SuperList.end(),obsList.begin(),obsList.end());
+				SuperList.insert(SuperList.end(), obsList.begin(), obsList.end());
 			}
 			else
-				SuperList.insert(SuperList.end(),obsList.begin(),obsList.end());
+			{
+				SuperList.insert(SuperList.end(), obsList.begin(), obsList.end());
+			}
 				
-			if(SuperList.size()>1000) SuperList.clear();
+			if (SuperList.size() > 1000) 
+			{
+				SuperList.clear();
+			}
 		}
-	} 	
+	} 
 }
 
 /** Initialises SSROut struct. To be called at the start of every epoch
 */
-void initSsrOut(
-	double tgap)
+void initSsrOut()
 {
+	double tgap = acsConfig.epoch_interval;
 	int udi			= acsConfig.ssrOpts.update_interval;
-	int udiIndex	= RtcmDecoder::SSRDecoder::getUdiIndex(udi);
+	int udiIndex	= SSRDecoder::getUdiIndex(udi);
 	int tgapInt		= (int)round(tgap);
 	
 	if (udi < acsConfig.epoch_interval)		BOOST_LOG_TRIVIAL(error) << "Error: Config ssrOpts.update_interval < acsConfig.epoch_interval.";
@@ -1522,7 +1754,7 @@ void	calcSsrCorrections(
 				ssrClk.dclk[1]					= 0;	// set to zero (not used)
 				ssrClk.dclk[2]					= 0;	// set to zero (not used)
 
-				int udiIndex					= RtcmDecoder::SSRDecoder::getUdiIndex((int)round(ssrClk.udi));
+				int udiIndex					= SSRDecoder::getUdiIndex((int)round(ssrClk.udi));
 				if (udiIndex == -1)	
 					BOOST_LOG_TRIVIAL(error) << "Error: ssrClk.udi is not valid (" << ssrClk.udi << ").";
 				
@@ -1553,7 +1785,7 @@ void	calcSsrCorrections(
 				Vector3d::Map(ssrEph.deph, aveDiffRac.rows())	= aveDiffRac; // Copy from Vector3d to C array
 				Vector3d::Map(ssrEph.ddeph,dDiffRac.rows())		= dDiffRac;
 
-				int udiIndex					= RtcmDecoder::SSRDecoder::getUdiIndex((int)round(ssrEph.udi));
+				int udiIndex					= SSRDecoder::getUdiIndex((int)round(ssrEph.udi));
 				if (udiIndex == -1)	
 					BOOST_LOG_TRIVIAL(error) << "Error: ssrEph.udi is not valid (" << ssrEph.udi << ").";
 				
@@ -1573,7 +1805,7 @@ void	calcSsrCorrections(
 			{
 				ssrCodeBias.isSet = false;
 				
-				int udiIndex						= RtcmDecoder::SSRDecoder::getUdiIndex((int)round(ssrCodeBias.udi));
+				int udiIndex						= SSRDecoder::getUdiIndex((int)round(ssrCodeBias.udi));
 				if (udiIndex == -1)	
 					BOOST_LOG_TRIVIAL(error) << "Error: ssrCodeBias.udi is not valid (" << ssrCodeBias.udi << ").";
 				
@@ -1593,7 +1825,7 @@ void	calcSsrCorrections(
 			{
 				ssrPhasBias.isSet = false;
 				
-				int udiIndex						= RtcmDecoder::SSRDecoder::getUdiIndex((int)round(ssrPhasBias.udi));
+				int udiIndex						= SSRDecoder::getUdiIndex((int)round(ssrPhasBias.udi));
 				if (udiIndex == -1)
 					BOOST_LOG_TRIVIAL(error) << "Error: ssrPhasBias.udi is not valid (" << ssrPhasBias.udi << ").";
 				
@@ -1676,6 +1908,10 @@ void	rtcmDecodeFromFile(int epochNum)
 }
 
 /** Creates a file containing the current epoch number
+ * Keeps network mode & end-user modes in sync if running network mode
+ * & end-user mode in parallel on the same machine and exporting/reading
+ * from RTCM files instead of an NTRIP Caster.
+ * Used in conjunction with waitForSyncFile()
 */
 void	exportSyncFile(int epochNum)
 {
@@ -1690,30 +1926,38 @@ void	exportSyncFile(int epochNum)
 	fout << epochNum << std::endl;
 }
 
-/** Creates a file containing the current epoch number
+/** Waits for a specified file to contain the current epoch number.
+ * Used in conjunction with exportSyncFile()
 */
 void	waitForSyncFile(int epochNum)
 {
 	string filename = acsConfig.ssrOpts.rtcm_directory + "sync.tmp";
 	using namespace std::literals::chrono_literals;
 	bool wait = true;
+	int printCounter = 0;
 	while (wait)
 	{
 		std::ifstream fin(filename);
-		while (!fin.is_open())
+		if (fin.is_open())
+		{
+			int numIn = 0;
+			fin >> numIn;
+			if (numIn >= epochNum)
+			{
+				wait = false;
+			}
+		}
+
+		if (wait)
 		{
 			std::this_thread::sleep_for(0.1s);
-			fin.open(filename);
-		}
-		int numIn = 0;
-		fin >> numIn;
-		if (numIn >= epochNum)
-		{
-			wait = false;
-		}
-		else
-		{
-			std::this_thread::sleep_for(0.1s);
+			if (printCounter > 100)
+			{
+				BOOST_LOG_TRIVIAL(warning)
+				<< "Waiting for rtcm sync file: " << filename;
+				printCounter = 0;
+			}
+			++printCounter;
 		}
 	}
 }
@@ -1830,52 +2074,285 @@ void	writeSsrOutToFile(
 	out << std::endl;
 }
 
-
-std::string NtripRtcmStream::getJsonNetworkStatistics(system_clock::time_point epochTime)
+void NtripRtcmStream::connectionError(const boost::system::error_code& err, std::string operation)
 {
-	auto time = std::chrono::system_clock::to_time_t(epochTime);
-	
 	std::stringstream networkJson;
-	networkJson << "{" << std::endl;
-	networkJson << "\"Station\": \"" << url.path.substr(1,url.path.length()) << "\",";
-	networkJson << "\"Epoch\": \"" << std::put_time( std::localtime( &time ), "%F %X" ) << "\","; 
-	networkJson << "\"Network\": \"" <<  acsConfig.analysis_agency << "\",";
-	networkJson << "\"Downloading\": \"true\",";
+	networkJson << connectionErrorJson;
+	if( connectionErrorJson.length() != 0 )
+		networkJson << ",";
+		
+	auto time = std::chrono::system_clock::to_time_t(system_clock::now());
 	
-	auto timeNow = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
-	boost::posix_time::time_duration totalTime = timeNow - startTime;
-	double connRatio = (double)connectedDuration.total_milliseconds() /(double)totalTime.total_milliseconds();
-	
-	double meanReconn = 0;
-	if ( disconnectionCount != 0 )
-		meanReconn = (double)disconnectedDuration.total_milliseconds()/(60.0*1000.0*disconnectionCount);
-
-	networkJson << "\"Disconnects\": " << disconnectionCount << ",";
-	networkJson << "\"MeanDowntime\": " << meanReconn << ",";
-	networkJson << "\"Connected ratio\": " << connRatio << ",";
-
-	double chunkRatio = 0;
-	int numberChunks = numberErroredChunks+numberValidChunks;
-	if ( numberChunks != 0 )
-		chunkRatio = (double)numberErroredChunks/(double)(numberChunks);
-
-	networkJson << "\"Chunks\": " << numberChunks << ",";
-	networkJson << "\"ChunkErrors\": " <<  numberErroredChunks << ",";
-	networkJson << "\"Chunk error ratio\": " << chunkRatio << ",";
-
-	networkJson << "\"RtcmExtraBytes\": " << numNonMessBytes << ",";
-	networkJson << "\"RtcmFailCrc\": " << numFramesFailedCRC << ",";
-	networkJson << "\"RtcmPassedCrc\": " << numFramesPassCRC << ",";
-	networkJson << "\"RtcmDecoded\": " << numFramesDecoded << ",";
-	networkJson << "\"RtcmPreamble\": " << numPreambleFound << ",";
-	
-	double FailedToPreambleRatio = 0;
-	if ( numPreambleFound != 0 )
-		FailedToPreambleRatio = (double)numFramesFailedCRC/(double)numPreambleFound;
-	networkJson << "\"RtcmFailedCrcToPreambleRatio\": " << FailedToPreambleRatio;
+	networkJson << "{";
+	//networkJson << "\"Stream\": \"" << url.path.substr(1,url.path.length()) << "\",";
+	networkJson << "\"Time\" : \"" << std::put_time( std::localtime( &time ), "%F %X" ) << "\",";
+	networkJson << "\"BoostSysErrCode\": " << err.value() << ",";
+	networkJson << "\"BoostSysErrMess\": \"" << err.message() << "\",";
+	networkJson << "\"SocketOperation\": \"" << operation << "\"";
 	networkJson << "}";
 	
-	return networkJson.str();
+	connectionErrorJson = networkJson.str();
+	
+}
+
+void NtripRtcmStream::serverResponse(unsigned int status_code, std::string http_version)
+{
+	std::stringstream networkJson;
+	networkJson << serverResponseJson;
+	if( serverResponseJson.length() != 0 )
+		networkJson << ",";
+	
+	auto time = std::chrono::system_clock::to_time_t(system_clock::now());
+	
+	networkJson << "{";
+	//networkJson << "\"Stream\": \"" << url.path.substr(1,url.path.length()) << "\",";
+	networkJson << "\"Time\" : \"" << std::put_time( std::localtime( &time ), "%F %X" ) << "\",";
+	networkJson << "\"ServerStatus\": " << status_code << ",";
+	networkJson << "\"VersionHTTP\": \"" << http_version << "\"";
+	networkJson << "}";
+	
+	serverResponseJson = networkJson.str();
+}
+
+
+
+std::vector<std::string> NtripRtcmStream::getJsonNetworkStatistics(GTime now)
+{
+	std::vector<std::string> dataJSON;
+	
+	// Copy statistics into total run based statics.
+	if (runData.startTime.time == 0)
+	{
+		GTime start;
+		start.time = boost::posix_time::to_time_t(startTime);
+		start.sec	= (	  startTime.time_of_day().total_milliseconds()
+						- startTime.time_of_day().total_seconds()*1000) / 1000.0;
+		runData		.startTime = start;
+		hourlyData	.startTime = start;
+		epochData	.startTime = start;
+		
+		runData.endTime.time = 0;
+		runData.endTime.sec = 0;
+		
+		runData.streamName = url.path.substr(1,url.path.length());
+		hourlyData.streamName = runData.streamName;
+		epochData.streamName = runData.streamName;
+		
+		// Set the first hours data to zero.
+		GTime tEnd = now;
+		tEnd.time = now.time + 1*60*60;
+		hourlyData.clearStatistics(now,tEnd);		
+		hourlyData.getJsonNetworkStatistics(now);		
+	}
+	else
+	{
+		epochData.startTime = epochData.endTime;
+	}
+	
+	epochData.endTime = now;
+    epochData.numPreambleFound		= numPreambleFound;		numPreambleFound	= 0;	//todo aaron, change these to another struct
+    epochData.numFramesFailedCRC	= numFramesFailedCRC;	numFramesFailedCRC	= 0;
+    epochData.numFramesPassCRC		= numFramesPassCRC;		numFramesPassCRC	= 0;
+    epochData.numFramesDecoded		= numFramesDecoded;		numFramesDecoded	= 0;
+    epochData.numNonMessBytes		= numNonMessBytes;		numNonMessBytes		= 0;
+	epochData.totalLatency			= totalLatency;			totalLatency		= 0;
+	epochData.numMessagesLatency	= numMessagesLatency;	numMessagesLatency	= 0;
+    epochData.disconnectionCount	= disconnectionCount;	disconnectionCount	= 0;
+	
+	// When the connection has cycled within outside an epoch.
+	epochData.connectedDuration = connectedDuration - epochConnectedDuration;
+	epochConnectedDuration = connectedDuration;
+	
+	epochData.disconnectedDuration = disconnectedDuration - epochDisconnectedDuration;
+	epochDisconnectedDuration = disconnectedDuration;
+	
+	// When the connection cycle is within the epoch transition.
+	if (isConnected)
+	{
+		boost::posix_time::ptime pNow	= boost::posix_time::from_time_t(now.time)
+										+ boost::posix_time::milliseconds((int)now.sec*1000);	
+								
+		boost::posix_time::ptime pLast	= boost::posix_time::from_time_t(epochData.startTime.time)
+										+ boost::posix_time::milliseconds((int)epochData.startTime.sec*1000);
+								
+		boost::posix_time::time_duration epochDur	= pNow - pLast;
+		boost::posix_time::time_duration conDur		= pNow - connectedTime;
+		
+		if (conDur < epochDur)
+		{
+			epochData.connectedDuration		+= conDur;
+			epochData.disconnectedDuration	+= epochDur - conDur;
+			epochConnectedDuration			+= conDur;
+			epochDisconnectedDuration		+= epochDur - conDur;
+		}			
+	}
+	else
+	{
+		boost::posix_time::ptime pNow	= boost::posix_time::from_time_t(now.time)
+										+ boost::posix_time::milliseconds((int)now.sec*1000);
+								
+		boost::posix_time::ptime pLast	= boost::posix_time::from_time_t(epochData.startTime.time)
+										+ boost::posix_time::milliseconds((int)epochData.startTime.sec*1000);								
+								
+		boost::posix_time::time_duration epochDur	= pNow - pLast;
+		boost::posix_time::time_duration disConDur	= pNow - disconnectedTime;
+		
+		if (disConDur < epochDur)
+		{
+			epochData.disconnectedDuration	+= disConDur;
+			epochData.connectedDuration		+= epochDur - disConDur;
+			epochDisconnectedDuration		+= disConDur;
+			epochConnectedDuration			+= epochDur - disConDur;
+		}
+	}
+		
+	epochData.numberChunks			= numberValidChunks + numberErroredChunks;
+	numberValidChunks				= 0;
+    epochData.numberErroredChunks	= numberErroredChunks;
+	numberErroredChunks				= 0;
+
+	if (hourlyData.endTime < now)
+	{
+		hourlyData.getJsonNetworkStatistics(now);
+		GTime tEnd = now;
+		tEnd.time = now.time + 1*60*60;
+		hourlyData.clearStatistics(now,tEnd);
+	}
+	
+	hourlyData	.accumulateStatisticsFrom(epochData);
+	runData		.accumulateStatisticsFrom(epochData);
+	
+	std::string strJson;
+	strJson = epochData.getJsonNetworkStatistics(now);		dataJSON.push_back(strJson);
+	strJson = hourlyData.previousJSON;						dataJSON.push_back(strJson);	
+	strJson = runData.getJsonNetworkStatistics(now);		dataJSON.push_back(strJson);
+	
+	std::stringstream networkJson;
+	networkJson << "{";
+	networkJson << "\"Stream\": \"" << url.path.substr(1,url.path.length()) << "\",";
+	networkJson << "\"ConnErrors\": [" << connectionErrorJson << "],";
+	networkJson << "\"ServerResponse\": [" << serverResponseJson << "]";
+	networkJson << "}";
+	connectionErrorJson = "";
+	serverResponseJson = "";	
+	dataJSON.push_back(networkJson.str());
+
+	return dataJSON;
+}
+
+void networkData::accumulateStatisticsFrom(networkData dataToAdd)
+{
+    numPreambleFound		+= dataToAdd.numPreambleFound;
+    numFramesFailedCRC		+= dataToAdd.numFramesFailedCRC;
+    numFramesPassCRC		+= dataToAdd.numFramesPassCRC;
+    numFramesDecoded		+= dataToAdd.numFramesDecoded;
+    numNonMessBytes			+= dataToAdd.numNonMessBytes;
+	totalLatency			+= dataToAdd.totalLatency;
+	numMessagesLatency		+= dataToAdd.numMessagesLatency;	
+
+    disconnectionCount		+= dataToAdd.disconnectionCount;
+    connectedDuration		+= dataToAdd.connectedDuration;
+    disconnectedDuration	+= dataToAdd.disconnectedDuration;
+	
+    numberErroredChunks		+= dataToAdd.numberErroredChunks; 
+	numberChunks			+= dataToAdd.numberChunks;	
+}
+
+void networkData::clearStatistics(GTime tStart, GTime tEnd)
+{
+	startTime	= tStart;
+	endTime		= tEnd;
+    numPreambleFound	= 0;
+    numFramesFailedCRC	= 0;
+    numFramesPassCRC	= 0;
+    numFramesDecoded	= 0;
+    numNonMessBytes		= 0;
+	totalLatency		= 0;
+	numMessagesLatency	= 0;	
+    disconnectionCount	= 0;
+    
+    connectedDuration		= boost::posix_time::hours(0);
+    disconnectedDuration	= boost::posix_time::hours(0);
+	
+    numberErroredChunks	= 0; 
+	numberChunks		= 0;		
+}
+
+std::string networkData::getJsonNetworkStatistics(GTime now)
+{
+	//if( previousJSON.length() != 0 && endTime.time > now.time )
+	//	return previousJSON;
+
+	
+    std::stringstream networkJson;
+    networkJson << "{";
+    networkJson << "\"Stream\": \"" << streamName << "\",";
+    networkJson << "\"Epoch\": \"" << std::put_time( std::localtime( &now.time ), "%F %X" ) << "\",";
+	networkJson << "\"Start\": \"" << std::put_time( std::localtime( &startTime.time ), "%F %X" ) << "\",";
+	networkJson << "\"Finish\": \"" << std::put_time( std::localtime( &endTime.time ), "%F %X" ) << "\",";	
+    networkJson << "\"Network\": \"" <<  acsConfig.analysis_agency << "\",";
+    networkJson << "\"Downloading\": \"true\",";
+    
+    auto timeNow = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
+    boost::posix_time::time_duration totalTime = timeNow - boost::posix_time::from_time_t(startTime.time);
+ 
+	
+	double connRatio;
+	if (disconnectionCount == 0 
+		&& numberChunks > 0) 
+	{
+		connRatio = 1;
+	}
+	else
+	{
+		if (totalTime.total_milliseconds() == 0)
+			connRatio = 0;
+		else
+			connRatio = (double)connectedDuration.total_milliseconds() / (double) totalTime.total_milliseconds();
+	}
+ 	
+	
+    double meanReconn = 0;
+    if (disconnectionCount != 0)
+        meanReconn = (double)disconnectedDuration.total_milliseconds()/(60.0*1000.0*disconnectionCount);
+
+    networkJson << "\"Disconnects\": " << disconnectionCount << ",";
+    networkJson << "\"MeanDowntime\": " << meanReconn << ",";
+    networkJson << "\"ConnectedRatio\": " << connRatio << ",";
+
+    double chunkRatio = 0;
+    
+    if (numberChunks != 0)
+        chunkRatio = (double)numberErroredChunks/(double)(numberChunks);
+
+    networkJson << "\"Chunks\": "			<< numberChunks			<< ",";
+    networkJson << "\"ChunkErrors\": "		<< numberErroredChunks	<< ",";
+    networkJson << "\"ChunkErrorRatio\": "	<< chunkRatio			<< ",";
+
+    networkJson << "\"RtcmExtraBytes\": "	<< numNonMessBytes		<< ",";
+    networkJson << "\"RtcmFailCrc\": "		<< numFramesFailedCRC	<< ",";
+    networkJson << "\"RtcmPassedCrc\": "	<< numFramesPassCRC		<< ",";
+    networkJson << "\"RtcmDecoded\": "		<< numFramesDecoded		<< ",";
+    networkJson << "\"RtcmPreamble\": "		<< numPreambleFound		<< ",";
+    
+    double FailedToPreambleRatio = 0;
+    if ( numPreambleFound != 0 )
+        FailedToPreambleRatio = (double) numFramesFailedCRC / (double) numPreambleFound;
+    networkJson << "\"RtcmFailedCrcToPreambleRatio\": " << FailedToPreambleRatio << ",";
+	
+	if (numMessagesLatency != 0)
+	{
+		double meanLatency = totalLatency / numMessagesLatency;
+		networkJson << "\"meanLatency\": " << meanLatency;
+	}
+	else
+	{
+		networkJson << "\"meanLatency\": " << 0.0;
+	}
+	
+    networkJson << "}";
+    previousJSON = networkJson.str();
+    return networkJson.str();
 }
 
 void NtripRtcmStream::traceMakeNetworkOverview(Trace& trace)

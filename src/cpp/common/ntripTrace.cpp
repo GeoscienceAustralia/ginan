@@ -35,7 +35,7 @@ void NtripTrace::traceSsrClk(SatSys Sat,SSRClk ssrClk)
 	tracepdeex(5,oSsrClk,"% 14.6f\n",ssrClk.dclk[2]);
 }
 
-void NtripTrace::traceSsrCodeB(SatSys Sat, E_ObsCode mode, SSRCodeBias ssrBias)
+void NtripTrace::traceSsrCodeB(SatSys Sat, E_ObsCode mode, SSRBias ssrBias)
 {
 std::ostream oSsrCoB(&ssrCoBBuf);
 	
@@ -48,7 +48,7 @@ std::ostream oSsrCoB(&ssrCoBBuf);
 	tracepdeex(5,oSsrCoB,"% 8.4f\n", ssrBias.bias[mode]);
 }
 
-void NtripTrace::traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRPhasBias ssrBias)
+void NtripTrace::traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias)
 {
 	std::ostream oSsrPhB(&ssrPhBBuf);
 	

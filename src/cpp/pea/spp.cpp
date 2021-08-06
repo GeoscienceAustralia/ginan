@@ -383,7 +383,7 @@ int estpos(
 		kfState.P.setZero();
 
 		//use state transition to initialise states
-		kfState.stateTransition(trace, 0);
+		kfState.stateTransition(trace, GTime::noTime());
 
 		//combine the measurement list into a single matrix
 		numMeas = kfMeasEntryList.size();

@@ -775,6 +775,8 @@ void selectAprioriSource(
 	}
 }
 
+/** Deweight worst measurement
+ */
 bool deweightMeas(
 	Trace&		trace,
 	KFState&	kfState,
@@ -784,7 +786,34 @@ bool deweightMeas(
 	trace << std::endl << "Deweighting " << kfMeas.obsKeys[index] << std::endl;
 
 	kfMeas.R[index] *= SQR(acsConfig.deweight_factor);
+	
+	return true;
+}
 
+/** Count worst measurement
+ */
+bool incrementPhaseSignalError(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index)
+{
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+
+	unsigned int* phaseRejectCount_ptr = (unsigned int*) metaDataMap["phaseRejectCount_ptr"];
+
+	if (phaseRejectCount_ptr == nullptr)
+	{
+		return true;
+	}
+
+	unsigned int&	phaseRejectCount	= *phaseRejectCount_ptr;
+
+	//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
+	phaseRejectCount++;
+	metaDataMap["phaseRejectCount_ptr"] = nullptr;
+
+	
 	return true;
 }
 
@@ -815,36 +844,13 @@ bool countSignalErrors(
 	return true;
 }
 
-bool incrementPhaseSignalError(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index)
-{
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
-
-	unsigned int* phaseRejectCount_ptr = (unsigned int*) metaDataMap["phaseRejectCount_ptr"];
-
-	if (phaseRejectCount_ptr == nullptr)
-	{
-		return true;
-	}
-
-	unsigned int&	phaseRejectCount	= *phaseRejectCount_ptr;
-
-	//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
-	phaseRejectCount++;
-	metaDataMap["phaseRejectCount_ptr"] = nullptr;
-
-	return true;
-}
-
 bool resetPhaseSignalError(
 	KFMeas&		kfMeas,
 	int			index)
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
+	//this will have been set to null if there was an error after adding the measurement to the list
 	unsigned int* phaseRejectCount_ptr = (unsigned int*) metaDataMap["phaseRejectCount_ptr"];
 
 	if (phaseRejectCount_ptr == nullptr)
@@ -855,6 +861,26 @@ bool resetPhaseSignalError(
 	unsigned int&	phaseRejectCount	= *phaseRejectCount_ptr;
 
 	phaseRejectCount = 0;
+
+	return true;
+}
+
+bool resetPhaseSignalOutage(
+	KFMeas&		kfMeas,
+	int			index)
+{
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+
+	unsigned int* phaseOutageCount_ptr = (unsigned int*) metaDataMap["phaseOutageCount_ptr"];
+
+	if (phaseOutageCount_ptr == nullptr)
+	{
+		return true;
+	}
+
+	unsigned int&	phaseOutageCount	= *phaseOutageCount_ptr;
+
+	phaseOutageCount = 0;
 
 	return true;
 }

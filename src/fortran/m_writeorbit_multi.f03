@@ -49,6 +49,10 @@ SUBROUTINE writeorbit_multi (orbitsmatrix_crf,orbitsmatrix_trf,orbits_ics_icrf,P
 !			Geoscience Australia, Frontier-SI
 ! Created:	21 March 2019
 ! ----------------------------------------------------------------------
+!
+! Changes: 21-07-2021 Tzupang Tseng: write out the ERP values
+!
+! ----------------------------------------------------------------------
 
 
       USE mdl_precision
@@ -56,6 +60,7 @@ SUBROUTINE writeorbit_multi (orbitsmatrix_crf,orbitsmatrix_trf,orbits_ics_icrf,P
       USE mdl_config
       USE mdl_param
       USE m_read_satsnx
+      USE mdl_eop, ONLY:ERP_day_glb
       IMPLICIT NONE
 	  
 ! ----------------------------------------------------------------------
@@ -282,6 +287,14 @@ WRITE (UNIT=UNIT_IN,FMT='(a,a4)'           ,IOSTAT=ios_ith) '#INFO    Partials R
 else if (yml_veq_refsys == ICRF) then
 WRITE (UNIT=UNIT_IN,FMT='(a,a4)'           ,IOSTAT=ios_ith) '#INFO    Partials Reference System:         ','ICRF'
 end if
+
+! Output ERP values
+!print*,'IC, EOP_Nint_cfg =', EOP_Nint_cfg
+DO i=1,yml_eop_int_points
+WRITE (UNIT=UNIT_IN,FMT='(a,F7.1,3F14.8)',IOSTAT=ios_ith)'#INFO_ERP MJD XP(arcsec) YP(arcsec) UT1-UTC(sec): ',&
+       ERP_day_glb(i,1), ERP_day_glb(i,2:4)
+END DO
+
 WRITE (UNIT=UNIT_IN,FMT='(a)'              ,IOSTAT=ios_ith) '#INFO    Satellite ICS:                     '
 !DO i_sat = 1 , 1
 DO i_sat = 1 , Nsat

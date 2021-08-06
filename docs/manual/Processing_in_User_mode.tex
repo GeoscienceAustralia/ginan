@@ -1,67 +1,139 @@
-\chapter{Processing in Precise Point Positioning mode}
+\chapter{Using PEA in end user mode}
+\label{ch:pea_user_mode}
+When set to end user mode, the PEA component of Ginan will process each station separately. This mode will allow the estimation of parameters available to users with single receivers. 
+\begin{itemize}
+	\item Receiver position
+	\item Receiver clock offset
+	\item Tropospheric delay at receiver location
+	\item Ionospheric delay at the receiver location (not yet available)
+	\item Carrier phase ambiguities
+\end{itemize}
+In order to use the PEA in end-user mode, the \textit{ processing\_options : process\_modes : user} parameter needs to be set to \textit{true}.
+The results of PEA run in end user mode are printed in the trace files.
+Trace file outputs can be activated by setting the \textit{ output\_files : output\_trace} parameter to \textit{true}.
+The most commonly used outputs from the PEA used in end-user mode are expected to be: the receiver position, receiver velocity, receiver clocks and tropospheric delays.
 
-\newthought{Precise Point Positioning}(PPP)
+\textbf{Receiver position}  results are preceded by the "\$POS" label and thus, in Linux, can be extracted using the command:
+ \begin{lstlisting}
+$ grep "$POS" <path_to_trace_file>
+\end{lstlisting}
+the output line for the for receiver position will have 10 comma separated fields with the following format:
+\begin{lstlisting}
+$POS,2166,278015.000,6,-4052053.0060,4212836.8682,-2545105.0796,0.0245227,0.0231919,0.0163678
+\end{lstlisting}
+the fields represent, from left to right:
+\begin{enumerate}
+	\item  "\$POS" label
+	\item  GPS week
+	\item  GPS TOW in seconds
+	\item  Solution type (6 for float PPP, 1 for ambiguity fixed PPP)
+	\item  Receiver ECEF X position in meters
+	\item  Receiver ECEF Y position in meters
+	\item  Receiver ECEF Z position in meters
+	\item  Standard deviation of ECEF X positions in meters
+	\item  Standard deviation of ECEF X positions in meters
+	\item  Standard deviation of ECEF X positions in meters
+\end{enumerate}
 
-\section{Pea PPP Processing examples}
-In this example we will process 24 hours of data from a permanent reference frame station. The algorithm that will be use an L1+L2 and L1+L5 ionosphere free combination. The log files and processing results can be found in /data/acs/pea/output/exs/EX01\_IF/.
+\textbf{Receiver clock} offset results are preceded by the "\$CLK" label and thus, in Linux, can be extracted using the command:
+ \begin{lstlisting}
+$ grep "$CLK" <path_to_trace_file>
+\end{lstlisting}
+the output line for the for receiver position will have 13 comma separated fields with the following format:
+\begin{lstlisting}
+$CLK,2166,278015.000,6,14,3.1902,0.0000,1.1924,0.0000,0.0860,0.0000,0.0953,0.0000
+\end{lstlisting}
+the fields represent, from left to right:
+\begin{enumerate}
+	\item  "\$CLK" label
+	\item  GPS week
+	\item  GPS TOW in seconds
+	\item  Solution type (6 for float PPP, 1 for ambiguity fixed PPP)
+	\item  Number of satellites used in the solution
+	\item  Receiver clock offset for with respect to GPS clock, in nanoseconds
+	\item  Receiver clock offset for with respect to GLONASS clock, in nanoseconds
+	\item  Receiver clock offset for with respect to Galileo clock, in nanoseconds
+	\item  Receiver clock offset for with respect to Beidou clock, in nanoseconds	
+	\item  Standard deviation of clock offset wrt. GPS, in nanoseconds
+	\item  Standard deviation of clock offset wrt. GLONASS, in nanoseconds
+	\item  Standard deviation of clock offset wrt. Galileo, in nanoseconds
+	\item  Standard deviation of clock offset wrt. Beidou, in nanoseconds	
+\end{enumerate}
+If clock offsets for a particular constellation are not available both the offset and its variance will be set to 0.
 
-\begin{verbatim}
-$ ./pea --config ../../config/Ex01-IF-PPP.yaml
-$ grep "\$POS" /data/acs/pea/output/exs/EX01_IF/EX01_IF-ALIC.TRACE
-\end{verbatim}
+\textbf{Tropospheric delays} at the receiver position are preceded by the "\$TROP" label and thus, in Linux, can be extracted using the command:
+ \begin{lstlisting}
+$ grep "$TROP" <path_to_trace_file>
+\end{lstlisting}
+the tropospheric delay solutions will be represented to either a single line, with the "\$TROP" or three lines, as follows:
+\begin{lstlisting}
+$TROP,2166,278015.000,6,14,2.294950,0.0030977
+$TROP_N,2166,278015.000,6,14,-0.174797,0.0181385
+$TROP_E,2166,278015.000,6,14,-0.223868,0.0250276
+\end{lstlisting}
+each of the troposphere output line will contain 7 comma separated field, of which the first five are:
+\begin{enumerate}
+	\item  Label, "\$TROP", "\$TROP\_N" or "\$TROP\_E"
+	\item  GPS week
+	\item  GPS TOW in seconds
+	\item  Solution type (6 for float PPP, 1 for ambiguity fixed PPP)
+	\item  Number of satellites used in the solution
+\end{enumerate}
+The line starting with "\$TROP" contain the Zenith Tropospheric Delay (ZTD) and its standards deviation, both in meters, as their last two fields.  The line starting with "\$TROP\_N" contains the tropospheric delay gradient in north-south direction, and  the line starting with "\$TROP\_E" contains the tropospheric delay gradient in east-west direction.
 
-And you should see the following: 
-\begin{verbatim}
-<snip> $POS,2062,431940.000,0,-4052052.7956,4212836.0144,-2545104.6423,0.00000043966020,0.00000039738502,0.00000013421476 $POS,2062,431970.000,0,-4052052.7956,4212836.0144,-2545104.6423,0.00000043965772,0.00000039738393,0.00000013421667
-\end{verbatim}
+Configuration files for specific examples have been added to the \textit{examples} folder in the repository. Examples corresponding to end user processing are explained bellow. In order to 
 
+\subsection{Dual frequency PPP with floating ambiguities}
+As the end-user processing mode cannot calculate satellite states, the satellite position and clock offset needs to be provided externally.
+The PEA supports SP3 formatted satellite position inputs, specified in \textit{input\_files : sp3files}, and RINEX clock files, \textit{input\_files : clkiles}, as satellite clock inputs. 
+ANTEX files, with antenna information for both stations and satellites should be provided in  \textit{input\_files : atxfiles} 
+SINEX files, with station antennas should be provided in  \textit{input\_files : snxfiles}
+RINEX 3.XX navigation files, with broadcast clocks should be provided in  \textit{input\_files : navfiles}
+BLQ formatted ocean tide  loading parameters for each station should be provided in \textit{input\_files : blqfiles} if available to correct for OTL, otherwise \textit{processing\_options : tide\_otl} should be set to \textit{false}.
+RINEX 3.XX observation files for the network stations should be provided in \textit{station\_data : rnxfiles} (* can be used as a wildcard).\\
 
-\subsection{Using the Ionosphere-free observable to process a static data set - the float solution}
+The configuration files named \textit{examples/ex11\_pea\_pp\_user\_gps.yaml} and \textit{examples/ex12\_pea\_pp\_user\_gnss.yaml} set the PEA to calculate a post-process end user solution for a static receiver. 
+The constellations to be used in processing can be specified in the \textit{processing\_options : process\_sys} field.
+The tracking of a moving receiver can be done by setting the \textit{default\_filter\_parameters : stations : pos : proc\_noise} parameter to the maximum expected velocity.
+Receiver velocity can also be estimated by setting  \textit{default\_filter\_parameters : stations : pos\_rate : estimate} to \textit{true}.\\
 
-In this example we will process 24 hours of data from a permanent reference frame station. The algorithm will use an L1+L2 and L1+L5 ionosphere-free combination.
-The log files and processing results can be found in `<path to pea>/output/exs/EX01\_IF/`.
-\begin{verbatim}
-$ ./pea --config ../../config/EX01-IF-PPP.yaml
-\end{verbatim}
-The pea will then have the following output in <path to pea>/output/exs/EX01\_IF/ :
+Tropospheric delays are estimated as a combination of hydrostatic and wet components, each component is in turn estimated as the products of the zenith delay and a mapping function.
+ If \textit{default\_filter\_parameters : stations : trop : estimate} is set to \textit{true}, the PEA estimates the zenith wet delay.
+ If \textit{default\_filter\_parameters : stations : trop\_grad : estimate} is set to \textit{true}, the PEA also estimates azimutal components of tropospheric mapping functions.
+The hydrostatic zenith delays and elevation dependent component of mapping functions are calculated based on pre-defined models.
+Available models, whic can be selected using the \textit{processing\_options : troposphere : model} parameter, are the GPT2 and VMF3 models.
+If using the GPT2 model the path to the necessary grid file needs to be specified in  \textit{processing\_options : troposphere : gpt2grid}
+If using the VMF3 model, the tropospheric parameters corresonding to the observatin times need to be provided in a directory specified by \textit{processing\_options : troposphere : vmf3dir}, and the orography file for atmospheric circulation models need to be specified in \textit{processing\_options : troposphere : orography}.\\
+ 
+\subsection{Single frequency PPP}
+It is possible to perform end user PPP processing using single frequency data (although at reduced accuracy) by providing extenal Ionospheric delay data.
+The configuration files named \textit{examples/ex13\_pea\_pp\_user\_gps\_sf.yaml} set an example to process single frequency observations.
+The PEA currently uses IONEX formatted VTEC maps as Ionosphere delay data. 
+The path to the IONEX file needs to be specified  in  \textit{input\_files : ionfiles}.
+In order for the PEA to use the VTEC maps, the \textit{processing\_options : ionosphere : corr\_mode} parameter should to be set to \textit{total\_electron\_content}.
+If provided separatelly, files containing the satellite DCB (either RINEX DCB or bias SINEX) should be specified in \textit{input\_files :dcbfiles} \\
 
-EX01\_IF20624.snx              - contains the station position estimates in SINEX format
-EX01\_IF-ALIC2019199900.TRACE  - contains the logging information from the processing run
+\subsection{Dual frequency PPP with ambiguity resolution}
+The PEA (in both network and user processing modes) can be specified to perform ambiguity resolution in an attempt to improve accuracy and convergence times.
+In aside from the requirements for floating PPP ambiguities, information on satellite hardware biases needs to be provided order to allow correct ambiguity resolution in end user PEA processing.
+For post-process, the PEA use bias SINEX formatted files as input channels for satellite hardware biases.
+The bias SINEX file can be specified in \textit{input\_files :bsxfiles}.
 
-\begin{verbatim}
-$ grep "REC_POS" /data/acs/pea/output/exs/EX01_IF/EX01_IF-ALIC201919900.TRACE > ALIC_201919900.PPP
-\end{verbatim}
-This will pipe all of the receiver position results reported in the station trace file to a seperate file for plotting.
-\begin{verbatim}
-$ python3 /data/acs/pea/python/source/pppPlot.py --ppp /data/acs/pea/output/exs/EX01_IF/ALIC_201919900.PPP
-\end{verbatim}
-This will then create the plots alic\_pos.png, a time series of the difference between the estimated receiver position and the median estimated position.
-And the plot alic\_snx\_pos.png, a time series of the difference between the estimated receiver position and the IGS SINEX solution for Alic Springs on this day.
+The ambiguity resolution process is controlled by the \textit{ambiguity\_resolution\_options} field.
+Currently ambiguity resolution is only supported for GPS and Galileo satellited. 
+Ambiguity resolution for GPS satellites can be activated by setting the \textit{GPS\_amb\_resol} parameter to \textit{true}.
+Ambiguity resolution for Galileo satellites can be activated by setting the \textit{GAL\_amb\_resol} parameter to \textit{true}.
+In addition the ambiguity resolution algorithm needs to be specified for both the wide-lane ambiguity (\textit{WL\_mode}) and narrow-lane ambiguities (\textit{NL\_mode}.
+For best results, \textit{round} or \textit{iter\_rnd} are recommended for Wide-lane ambiguities and  \textit{lambda\_alt} or \textit{lambda\_bie} is recommended for narrow-lane ambiguities.\\
 
-\subsection{Single Frequency Processing} 
-\begin{verbatim}
-$ ./pea --config ../../config/Ex01-SF-PPP.yaml
+\subsection{Real-time PPP}
+The PEA can also be used to process GNSS data in real-time. 
+Real-time processing will make use of RTCM formatted streams for receiver observables and satellite data.
+Currently the PEA can only get real-time data by connecting to an NTRIP caster.
+An example of such a caster, can be accessed by registering at \href{https://www.auscors.ga.gov.au/}.
+The host name, user name and password corresponding to the NTRIP can shold be specified under \textit{station\_data : stream\_root} using the format \textit{http(s)://user:password@hostname/}.
+The mountpoint corresponding to station observables need to be listed under \textit{station\_data : obs\_streams}.
+Ephemeris streams (broadcast ephemeris and SSR corrections) shold be listed under \textit{station\_data : nav\_streams}.
+The PEA support MSM4, MSM5, MSM6 and MSM7 messages for observations, and orbit and clock messages, code bias messages and phase bias messages for GPS and Galileo.\\
 
-$ grep "\$POS" /data/acs/pea/output/exs/EX01_SF/EX01_SF-ALBY202011500.TRACE
-\end{verbatim}
-And you should see something similar to the following:
-\begin{verbatim}
-<snip>
-$POS,2062,431940.000,0,-4052052.7956,4212836.0144,-2545104.6423,0.00000043966020,0.00000039738502,0.00000013421476
-$POS,2062,431970.000,0,-4052052.7956,4212836.0144,-2545104.6423,0.00000043965772,0.00000039738393,0.00000013421667
-\end{verbatim}
-
-
-
-\subsection{Processing realtime}
-To process a continuous GPS station in real-time you will need to access the data stream from a NTRIP stream and the correction products from a NTRIPCaster.
-Geoscience Australia is running a caster that provides global data stream, a dense network of stream covering the Australian region, and correction procdust provide by IGS Analysis Centres.
-You will need to apply for an AUSCORS account, or use the new NTRIPCaster that streams using https.
-
-You can apply for an account at the following link : \href{https://gnss-users-prod.auth.ap-southeast-2.amazoncognito.com/login?response_type=code&client_id=11njl767q0tl1faf9qna469vl1&redirect_uri=https://search-gnss-elasticsearch-prod-5omhch5quzlu5dcpbct4ev5qz4.ap-southeast-2.es.amazonaws.com/_plugin/kibana/app/kibana&state=e36b2054-7ace-4931-91a3-5ba6de893917}{New GA Account link}
-
-Once your have your account and password you can test that you can successfuly connect to the NTRIPCaster by using the following curl command:
-\begin{Verbatim}
-$ curl https://ntrip.data.gnss.ga.gov.au/MOBS00AUS0 --http0.9 -i -u'<username>:<password> --output -'
-\end{Verbatim}
-
+Real-time outputs are not yet defined for PEA, the processed receiver solution are printed in real time on the TRACE files.\\

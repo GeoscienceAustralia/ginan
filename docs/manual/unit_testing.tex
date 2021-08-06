@@ -1,0 +1,21 @@
+\chapter{Unit Testing} \label{ch:UnitTesting}
+
+When developing code for comlex software, it is useful to run tests to demonstrate that not only is new code working as expected, but that no existing code has been broken or had bugs introduced.
+
+The toolkit has some capacity for automatic unit testing to record and compare results from processing runs, to determine if code changes have had unexpected effects.
+
+
+\section{Operation and Usage} 
+
+When the software is running, 'TestStack' objects are created in functions of interest that record the approximate frame stack as the execution progresses through the code. 
+Variables of interest are passed to test functions such as TestMat, with a description of the variable, to either record to, or test the value against, the binary test file.
+
+To run tests, ensure that the code is compiled with the unit testing compile option enabled, and the process\_modes: unit\_tests option set to true.
+
+On each run of the software, a list of available tests according to the code coverage of the particular configuration will be generated and stored in a .names file.
+
+The tests of interest may be selected from the .names file, and copied to a .record file to indicate that the test should be saved.
+During subsequent runs, if the code execution reaches a new test in the .record file, it's value will be saved to the .bin file containing expected test results.
+
+If tests are already stored in the .bin file, then when code execution reaches this point in subsequent runs, the current and stored values will be compared, and result in test pass or failure, depending on the constraints defined within the code.
+

@@ -196,6 +196,9 @@ public:
 	boost::posix_time::time_duration connectedDuration;
 	boost::posix_time::time_duration disconnectedDuration;
 
+	boost::posix_time::time_duration epochConnectedDuration;
+	boost::posix_time::time_duration epochDisconnectedDuration;	
+	
 	bool finishedReadingStream = false;
 	unsigned int chunked_message_length = 0;
 	int numberValidChunks = 0;
@@ -237,7 +240,6 @@ private:
 							tcp::resolver::iterator endpoint_iterator);
 	void handle_write_request(const boost::system::error_code& err);
 	void handle_request_response(const boost::system::error_code& err);    
-	void handle_read_message(const boost::system::error_code& err);
 	void handle_reconnect(const boost::system::error_code& err);
 	
 	void read_content(const boost::system::error_code& err);
@@ -250,11 +252,13 @@ public:
 	void logChunkError();
 	void printChunkHex(std::vector<char> chunk);   
 	
-	virtual void readContentDownloaded(std::vector<char> content){};
-	virtual void connected(){};
-	virtual bool dataChunkDownloaded(vector<char> dataChunk){return false;};
+	virtual void readContentDownloaded(std::vector<char> content){}
+	virtual void connected(){}
+	virtual bool dataChunkDownloaded(vector<char> dataChunk){return false;}
 	virtual void messageChunkLog(std::string message){}
-	virtual void networkLog(std::string message){}    
+	virtual void networkLog(std::string message){} 
+	virtual void connectionError(const boost::system::error_code& err, std::string operation){}
+	virtual void serverResponse(unsigned int status_code, std::string http_version){}
 	
 	B_asio::ssl::context ssl_context;
 	//static B_asio::ssl::context ssl_context;

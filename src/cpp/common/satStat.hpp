@@ -31,8 +31,11 @@ struct SigStat
 		};
 	} slip;
 
-	unsigned int	phaseRejectCount	= 0;
-	unsigned int	phaseOutageCount	= 0;	/* obs outage counter of phase */
+	unsigned int	userPhaseRejectCount	= 0;
+	unsigned int	userPhaseOutageCount	= 0;
+	
+	unsigned int	netwPhaseRejectCount	= 0;
+	unsigned int	netwPhaseOutageCount	= 0;
 };
 
 struct IonoStat

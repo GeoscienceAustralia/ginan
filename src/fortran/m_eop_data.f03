@@ -12,7 +12,7 @@ MODULE m_eop_data
 ! Created:	23 July 2018
 ! ----------------------------------------------------------------------
 
-
+      use pod_yaml
       IMPLICIT NONE
       !SAVE 			
  
@@ -58,9 +58,16 @@ SUBROUTINE eop_data (mjd, EOP_fname, EOP_sol, n_interp , EOP_days)
 ! Author :	Dr. Thomas Papanikolaou, Geoscience Australia 
 ! Created:	23 July 2018
 ! ----------------------------------------------------------------------
+!
+! Changes: 21-07-2021 Tzupang Tseng: read ERP values from IC file
+!
+! ---------------------------------------------------------------------
 
       USE mdl_precision
       USE mdl_num
+      USE mdl_param
+      USE pod_yaml
+      USE mdl_eop, ONLY: ERP_day_glb,ERP_day_IC
       IMPLICIT NONE
 
 ! ----------------------------------------------------------------------
@@ -180,6 +187,31 @@ EOP_days(i,7) = EOP_i(7)
 
 END DO
 ! ----------------------------------------------------------------------
+
+!IF (POD_MODE_glb == 4) THEN
+IF (yml_pod_mode == MODE_IC_INT) THEN
+        IF(ERP_day_IC(1,1) /= 0.d0 ) THEN
+                DO i = 1 , n_interp
+                EOP_days(i,1) = ERP_day_IC(i,1)
+                EOP_days(i,2) = ERP_day_IC(i,2)
+                EOP_days(i,3) = ERP_day_IC(i,3)
+                EOP_days(i,4) = ERP_day_IC(i,4)
+                !print*,'ERP_day_IC =', ERP_day_IC(i,:)
+                END DO
+        ELSEIF (ERP_day_IC(1,1) == 0.d0 ) THEN
+                ERP_day_glb = EOP_days
+                !do i = 1 , n_interp
+                !print*,'ERP_day_glb =', ERP_day_glb(i,1:4)
+                !end do
+
+        END IF
+ELSE
+        ERP_day_glb = EOP_days
+END IF
+!do i = 1 , n_interp
+!print*,'ERP_day_glb =', ERP_day_glb(i,1:4)
+!end do
+
 
 END SUBROUTINE
 

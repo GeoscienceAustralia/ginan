@@ -65,19 +65,23 @@ struct OutputOptions
 	string	trace_filename				= "<STATION><YYYY><DDD><HH>.trace";
 	double	trace_rotate_period			= 60*60*24;
 
-	bool	output_residuals 			= false;
+    bool    record_rtcm                 = false;    
+	string	rtcm_directory	         	= "./";
+    string  obs_rtcm_filename			= "<STATION><YYYY><DDD><HH>-OBS.rtcm3";
+    string  nav_rtcm_filename			= "<STATION><YYYY><DDD><HH>-NAV.rtcm3";
+    double	rtcm_rotate_period			= 60*60*24;
+    
+    bool	output_residuals 			= false;
 
 	bool	output_config	 			= false;
 
 	bool	output_summary 				= false;
 	string	summary_directory			= "./";
 	string	summary_filename			= "pea<YYYY><DDD><HH>.summary";
-	double	summary_rotate_period		= 0;
 
 	bool	output_clocks 				= false;
 	string	clocks_directory			= "./";
 	string	clocks_filename				= "pea<YYYY><DDD><HH>.clk";
-	double	clocks_rotate_period		= 0;
 	bool	output_AR_clocks			= false;
 
 	bool	output_ppp_sol 				= false;
@@ -87,20 +91,14 @@ struct OutputOptions
 	bool	output_ionex 				= false;
 	string	ionex_directory				= "./";
 	string	ionex_filename				= "pea<YYYY><DDD><HH>.ionex";
-	double	ionex_rotate_period			= 0;
 
 	bool	output_ionstec				= false;
 	string	ionstec_directory			= "./";
 	string	ionstec_filename			= "pea<YYYY><DDD><HH>.STEC";
-	double	ionstec_rotate_period		= 0;
 
 	bool	output_biasSINEX			= false;
 	string	biasSINEX_directory			= "./";
 	string	biasSINEX_filename			= "AUS0ACSRAP_<YYYY><DDD><HH>00_01D_30S_ABS.BIA";
-	double	biasSINEX_rotate_period		= 0;
-
-	double	config_rotate_period		= 0;
-
 
 	bool	output_sinex				= false;
 	string 	sinex_directory				= "./";
@@ -164,7 +162,9 @@ struct GlobalOptions
 	bool    caster_test                 = false;
 	string  caster_stream_root          = "";
 	
-	bool	process_user				= true;
+	bool	simulate_real_time			= false;
+	
+	bool	process_user				= false;
 	bool	process_network 			= false;
 	bool	process_minimum_constraints	= false;
 	bool	process_ionosphere			= false;
@@ -192,6 +192,7 @@ struct GlobalOptions
 	double	max_inno     	= 30;
 	double	max_gdop     	= 30;
 	double	deweight_factor	= 100;
+	double	ratio_limit		= 4000;
 
 	double	wait_next_epoch		= 60;
 	double	wait_all_stations	= 0;
@@ -260,7 +261,8 @@ struct KalmanModel
 */
 struct NetworkOptions
 {
-	int			phase_reject_count	= 10;	
+	int			phase_reject_limit	= 10;	
+	int			outage_reset_limit	= 10;	
 
 	int			filter_mode		= E_FilterMode::KALMAN;
 	int			inverter		= E_Inverter::INV;
@@ -421,8 +423,8 @@ struct MinimumConstraintOptions
 */
 struct PPPOptions
 {
-	int			outage_reset_count	= 50;		/* obs outage count to reset bias */
-	int			phase_reject_count	= 10;		/* obs outage count to reset bias */
+	int			phase_reject_limit	= 10;	
+	int			outage_reset_limit	= 10;	
 
 	int			max_filter_iter 	= 2;
 	int			max_prefit_remv 	= 2;
@@ -432,8 +434,6 @@ struct PPPOptions
 	int			rts_lag				= 0;
 	string		rts_directory		= "./";
 	string		rts_filename		= "PPP-<Station>-<YYYY><DDD><HH>.rts";
-
-	bool		ballistics			= false;
 };
 
 /** Options associated with cycle slip detection and repair within the network filter
@@ -489,8 +489,12 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	bool	parse(string filename, boost::program_options::variables_map& vm);
 	bool	parse();
 	void	info(Trace& trace);
-	void	addStationFile(string fileName, string type);
-
+	
+	void	addDataFile(
+		string fileName,
+		string fileType,
+		string dataType);
+	
 	SatelliteOptions&			getSatOpts		(SatSys&	Sat);
 	ReceiverOptions&			getRecOpts		(string		id);
 	MinimumStationOptions&		getMinConOpts	(string 	id);

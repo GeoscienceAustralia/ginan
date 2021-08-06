@@ -2,31 +2,107 @@
 \label{ch:installation}
 
 
-\section{To Install} 
+In this chapter we will describe how to install the PEA and POD from source. An alternative option to installing all of the dependencies and the source code would be to use one of our docker images available from Docker Hub. Instructions on how to do this are in (see \hyperref[ch:docker]{Docker}).
 
-In this section we will describe how to install the PEA and POD from source. An alternative option to installing all of the dependencies and the source code would be to use one of our docker images available from Docker Hub. Instructions on how to do this are in (see Docker).
+\section{Supported Platforms}\label{supported-platforms}
 
-\subsection{PEA}
+Ginan is supported on the following platforms
+
+\begin{itemize}
+\item
+  Linux
+\item
+  MacOS\\
+\end{itemize}
+
+\section{Download}\label{download}
+You can download Ginan source from github using git clone:
+
+\begin{lstlisting}[language=bash]
+$ git clone https://github.com/GeoscienceAustralia/ginan.git
+\end{lstlisting}
+
+Then download all of the example data using the python script provided:
+
+\begin{lstlisting}[language=bash]
+$ python3 scripts/download_examples.py 
+\end{lstlisting}
 
 
-\newthought{Dependencies} the following packages need to be installed with the minimum versions as shown below. This guide will outline the preferred method of installation.
+\section{Directory Structure}\label{directory-structure}
 
-CMAKE  > 3.0 requires openssl-devel to be installed (requires openssl-devel)
-YAML   > 0.6
-Boost  > 1.70
-gcc    > 4.1
-Eigen3
-Build
-To build the PEA Precise Estimation Algorithm...
+\begin{verbatim}
+ginan/
+├── README.md           ! General README information
+├── LICENSE.md          ! Software License information
+├── aws/                ! Amazon Web Services config
+├── bin/                ! Binary executables directory*
+├── CMakeLists.txt      ! Cmake build file
+├── docs/               ! Documentation directory
+├── examples/           ! Ginan examples directory
+│   ├── data/           ! example dataset (rinex files)**
+│   ├── products/       ! example products and aux files**
+│   ├── solutions/      ! example solutions for QC**
+│   --------------PEA examples--------------
+│   ├── ex11            ! PEA example 1
+│   ├── ex12            ! PEA example 2
+│   ├── ex13            ! PEA example 3
+│   ├── ex14            ! PEA example 4
+│   ├── ex15            ! PEA example 5
+│   ├── ex17            ! PEA example 7
+│   ├── ex18            ! PEA example 8
+│   --------------POD examples--------------
+│   ├── ex21            ! POD example 1
+│   ├── ex22            ! POD example 2
+│   ├── ex23            ! POD example 3
+│   ├── ex24            ! POD example 4
+│   ├── ex25            ! POD example 5
+│   └── ex26            ! POD example 6
+│
+├── lib/                ! Compiled objectlibrary directory*
+├── scripts/            ! Auxillary Python and Shell scripts and libraries
+└── src/                ! Source code directory
+    ├── cpp/            ! PEA source code
+    ├── fortran/        ! POD source code
+    ├── cmake/   
+    ├── doc_templates/
+    ├── build/          ! Cmake build directory*
+    └── CMakeLists.txt
+\end{verbatim}
 
-We suggest using the following directory structure when installing the Ginan toolkit. It will be created by following this guide.
+\emph{*created during installation process}
 
-%/data/
-%└── acs/
-%    ├── pea/
-%    └── pod/
+\emph{**created by \texttt{download\_examples.py} script}\\
 
-The following is an example procedure to install the dependencies necessary to run the pea on a base ubuntu linux distribution
+
+\section{Dependencies}\label{dependencies}
+
+Ginan has several software dependencies:
+
+\begin{itemize}
+\item
+  C/C++ and Fortran compiler. We use and recommend
+  \href{https://gcc.gnu.org}{gcc-g++ and gfortran}
+\item
+  BLAS and LAPACK linear algebra libraries. We use and recommend
+  \href{https://www.openblas.net/}{OpenBlas} as this contains both
+  libraries required
+\item
+  CMAKE \textgreater{} 3.0
+\item
+  YAML \textgreater{} 0.6
+\item
+  Boost \textgreater{} 1.70
+\item
+  Eigen3
+\item
+  netCDF4
+\item
+  Python3 (tested on Python 3.7)\\
+\end{itemize}
+
+\section{Installing dependencies with Ubuntu}\label{installing-dependencies-with-ubuntu}
+
 
 Update the base operating system:
 
@@ -35,17 +111,42 @@ $ sudo apt update
 $ sudo apt upgrade
 \end{lstlisting}
 
-Install base utilities gcc, gfortran, git, openssl, blas, lapack, etc
+Install base utilities \texttt{gcc}, \texttt{gfortran}, \texttt{git},
+\texttt{openssl}, \texttt{openblas} etc:
+
 \begin{lstlisting}[language=bash]
-$ sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make \
-liblapack-dev gzip vim libssl1.0-dev python3-cartopy python3-scipy python3-matplotlib python3-mpltoolkits.basemap
-Create a temporary directory structure to make the dependencies in:
+$ sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make libssl1.0-dev
+\end{lstlisting}
+
+
+\section{Building additional
+dependencies}\label{building-additional-dependencies}
+
+Depending on the user's installation choice: install PEA-only, POD-only
+or all software packages, a set of additional dependencies that need to
+be built may change. Below, we explain building all the additional
+dependencies:
+
+First, create a temporary directory structure to make the dependencies
+in, it can be removed after the installation process is done:
+
+\begin{lstlisting}[language=bash]
 $ sudo mkdir -p /data/tmp
 $ cd /data/tmp
 \end{lstlisting}
 
-\newthought{YAML}
-We are using the YAML library to parse the configuration files used to run many of the programs found in this library (https://github.com/jbeder/yaml-cpp). Here is an example of how we have installed the yaml library from source:
+Note that \texttt{/data/tmp} is only used here as example and can be any
+directory
+
+\begin{itemize}
+  
+
+\item \textbf{YAML}
+We are using the \href{https://github.com/jbeder/yaml-cpp}{YAML} library
+to parse the configuration files used to run many of the programs found
+in this library. Here is an example of how to install the yaml library
+from source:
+
 \begin{lstlisting}[language=bash]
 $ cd /data/tmp
 $ sudo git clone https://github.com/jbeder/yaml-cpp.git
@@ -58,11 +159,15 @@ $ cd ../..
 $ sudo rm -fr yaml-cpp
 \end{lstlisting}
 
-\newthought{Boost}
-We rely on a number of the utilities provided by boost (https://www.boost.org/), such as their time and logging libraries.
+\item\textbf{Boost (PEA)}
+
+PEA relies on a number of the utilities provided by
+\href{https://www.boost.org/}{boost}, such as their time and logging
+libraries.
+
 \begin{lstlisting}[language=bash]
 $ cd /data/tmp/
-$ sudo wget -c https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz
+$ sudo wget -c https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
 $ sudo gunzip boost_1_73_0.tar.gz
 $ sudo tar xvf boost_1_73_0.tar
 $ cd boost_1_73_0/
@@ -70,10 +175,13 @@ $ sudo ./bootstrap.sh
 $ sudo ./b2 install
 $ cd ..
 $ sudo rm -fr boost_1_73_0/ boost_1_73_0.tar
-
 \end{lstlisting}
 
-\newthought{Eigen3} is used for performing matrix calculations, and has a very nice API.
+\item\textbf{Eigen3 (PEA)}
+
+Eigen3 is used for performing matrix calculations in PEA, and has a very
+nice API.
+
 \begin{lstlisting}[language=bash]
 $ cd /data/tmp/
 $ sudo git clone https://gitlab.com/libeigen/eigen.git
@@ -84,180 +192,336 @@ $ sudo cmake ..
 $ sudo make install
 $ cd ../..
 $ sudo rm -rf eigen
-Installing PEA
-PEA Executable
-$ cd /data/acs/
 \end{lstlisting}
-Clone the repository via https:
+
+\item\textbf{MongoDB (PEA, optional)}
+
+Needed for realtime preview of the processed results (developers-only)
 
 \begin{lstlisting}[language=bash]
-$ git clone https://bitbucket.org/geoscienceaustralia/pea.git
-\end{lstlisting}
-You should now have...
+$ wget https://github.com/mongodb/mongo-c-driver/releases/download/1.17.1/mongo-c-driver-1.17.1.tar.gz
+$ tar -xvf mongo-c-driver-1.17.1.tar.gz
 
-%pea
-%├── INSTALL.md
-%├── LICENSE.md
-%├── README.md
-%├── aws/                - for automated builds in aws
-%├── config/
-%│   ├── Ex00-UnitTest.yaml
-%│   ├── Ex01-PPP.yaml
-%│   ├── Ex02-Network.yaml
-%│   ├── Ex03-Network_Orbits.yaml
-%│   ├── Ex04-Ionosphere.yaml
-%│   ├── Ex05-Realtime.yaml
-%│   ├── iontest_20115w.yaml
-%│   └── PPP-iontest.yaml
-%├── cpp/
-%│   ├── CMakeLists.txt
-%│   ├── cmake           - files to help cmake find dependencies
-%│   ├── docs            - automatic code documentation configuration
-%│   └── src/
-%│       ├── 3rdparty/   - see ACKNOWLEDGEMENTS in README.md
-%│       ├── common/     - libraries used by the pea
-%│       ├── iono/       - routines for ionosphere modelling
-%│       ├── pea/        - main for `pea`
-%│       └── rtklib/     - subset of modified routines from RTKlib see ACKNOWLEDGEMENTS in README.md
-%└── python
-%    ├── config
-%    ├── README.md
-%    └── source
-%        ├── download_examples.py
-%        ├── install_examples.py
-%        └── other helper programs
-Prepare a directory to build in, its better practise to keep this separated from the source code.
+$ cd mongo-c-driver-1.17.1/
+$ mkdir cmakebuild
+$ cd cmakebuild/
+$ cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF ..
+$ cmake --build .
+$ sudo cmake --build . --target install
+
+$ cd ../../
+$ curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.0/mongo-cxx-driver-r3.6.0.tar.gz
+$ tar -xzf mongo-cxx-driver-r3.6.0.tar.gz
+
+$ cd mongo-cxx-driver-r3.6.0/
+
+$ cd build/
+$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+$ sudo cmake --build . --target EP_mnmlstc_core
+$ cmake --build .
+$ sudo cmake --build . --target install
+
+$ wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+$ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+$ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+
+$ sudo apt update
+$ sudo apt install mongodb-org 
+
+$ sudo systemctl start mongod
+$ sudo systemctl status mongod
+$ mongod
+\end{lstlisting}
+
+\item\textbf{netcdf4 (OTL package)}
+
 \begin{lstlisting}[language=bash]
-$ cd pea/cpp
+$ sudo apt -y install libnetcdf-dev libnetcdf-c++4-dev
+\end{lstlisting}
+
+\end{itemize}
+
+\section{Build}\label{build}
+
+Prepare a directory to build in, its better practise to keep this
+seperated from the source code.
+
+\begin{lstlisting}[language=bash]
+$ cd src
 $ mkdir -p build
 $ cd build
 \end{lstlisting}
 
-Run cmake to find the build dependencies and create the makefile. You have the choice of adding in a couple of compile options. 
-Using the flag -DENABLE\_MONGODB=TRUE will set up the mongodb utilities, adding the flag -DENABLE\_OPTIMISATION=TRUE will set up the compiler to run optimisation O3. 
-Enabling the optimisation flag will speed up the processing by a factor of 3, however this can lead to compile errors depending on the system you are compiling on, if this happens remove this option.
+Run cmake to find the build dependencies and create the make file. If
+you wish to enable the optional MONGO DB utilities you will need to add
+the \texttt{-DENABLE\_MONGODB=TRUE} flag. If you wish to compile an
+optimised version, typically this version will run 3 times faster but
+you may run into compile problems depending on your system, add the
+\texttt{-DOPTIMISATION=TRUE} flag:
 
 \begin{lstlisting}[language=bash]
-$ cmake ..
-or to enable MONGODB utilities
-$ cmake -DENABLE_MONGODB=TRUE ..
-and to enable Optimisation
-$ cmake -DENABLE_MONGODB=TRUE -DENABLE_OPTIMISATION=TRUE ..
-\end{lstlisting} 
-Now build the pea
-
-\begin{lstlisting}[language=bash]
-$ cmake --build $PWD --target pea
+$ cmake [-DENABLE_MONGODB=TRUE] [-DENABLE_OPTIMISATION=TRUE] ..
 \end{lstlisting}
 
-To change to build location substitute your preferred destination for \$PWD , e.g /usr/local/bin
+To build every package simply run \texttt{make} or \texttt{make\ -j\ 2},
+where 2 is a number of parallel threads you want to use for the
+compilation:
 
-Alternatively to the command above you can make the code in parallel using:
 \begin{lstlisting}[language=bash]
-$ make -j 5 all
+$ make [-j 2]
 \end{lstlisting}
 
-where the -j flag controls how many jobs can be run at the same time.
+To build specific package (e.g.~PEA or POD), run as below:
 
-Check to see if you can execute the pea:
 \begin{lstlisting}[language=bash]
-$ ./pea    
+$ make pea -j 2
+$ make pod -j 2
+\end{lstlisting}
+
+This should create executables in the \texttt{bin} directory of Ginan.
+
+Check to see if you can execute the PEA:
+
+\begin{lstlisting}[language=bash]
+$ ../../bin/pea --help
 \end{lstlisting}
 
 and you should see something similar to:
+
 \begin{lstlisting}[language=bash]
-PEA starting...
+PEA starting... (pea_pod_examples vbf8c9cc from Tue Jul 6 06:09:50 2021)
 Options:
-  --help                      Help
-  --verbose                   More output
-  --quiet                     Less output
-  --config arg                Configuration file
-  --trace_level arg           Trace level
-  --antenna arg               ANTEX file
-  --navigation arg            Navigation file
-  --sinex arg                 SINEX file
-  --sp3file arg               Orbit (SP3) file
-  --clkfile arg               Clock (CLK) file
-  --dcbfile arg               Code Bias (DCB) file
-  --ionfile arg               Ionosphere (IONEX) file
-  --podfile arg               Orbits (POD) file
-  --blqfile arg               BLQ (Ocean loading) file
-  --erpfile arg               ERP file
-  --elevation_mask arg        Elevation Mask
-  --max_epochs arg            Maximum Epochs
-  --epoch_interval arg        Epoch Interval
-  --rnx arg                   RINEX station file
-  --root_input_dir arg        Directory containg the input data
-  --root_output_directory arg Output directory
-  --start_epoch arg           Start date/time
-  --end_epoch arg             Stop date/time
-  --dump-config-only          Dump the configuration and exit
+--help                      Help
+--quiet                     Less output
+--verbose                   More output
+--very-verbose              Much more output
+--config arg                Configuration file
+--trace_level arg           Trace level
+--antenna arg               ANTEX file
+--navigation arg            Navigation file
+--sinex arg                 SINEX file
+--sp3files arg              Orbit (SP3) file
+--clkfiles arg              Clock (CLK) file
+--dcbfiles arg              Code Bias (DCB) file
+--bsxfiles arg              Bias Sinex (BSX) file
+--ionfiles arg              Ionosphere (IONEX) file
+--podfiles arg              Orbits (POD) file
+--blqfiles arg              BLQ (Ocean loading) file
+--erpfiles arg              ERP file
+--elevation_mask arg        Elevation Mask
+--max_epochs arg            Maximum Epochs
+--epoch_interval arg        Epoch Interval
+--rnx arg                   RINEX station file
+--root_input_dir arg        Directory containg the input data
+--root_output_directory arg Output directory
+--start_epoch arg           Start date/time
+--end_epoch arg             Stop date/time
+--run_rts_only arg          RTS filename (without _xxxxx suffix)
+--dump-config-only          Dump the configuration and exit
+--input_persistance         Begin with previously stored filter and 
+                            navigation states
+--output_persistance        Store filter and navigation states for restarting
 PEA finished
 \end{lstlisting}
 
-\newthought{The documentation} for the pea can be generated similarly using doxygen if it is installed.
+Similarly, check the POD:
 
 \begin{lstlisting}[language=bash]
-$ sudo apt-get install doxygen
-$ cd pea/cpp/build
+$ ../../bin/pod --help
+\end{lstlisting}
+
+This returns:
+
+\begin{lstlisting}[language=bash]
+Earth Radiation Model (ERM):   1
+
+Default master POD config file = POD.in
+To run from default config file: ../../bin/pod or ../../bin/pod -c POD.in
+
+POD.in config file options by defaut can be overridden on the command line
+
+Command line: ../../bin/pod -m -s -o -a -p -r -t -n -i -u -q -k -w -y -h 
+
+Where: 
+    -m --podmode = POD Mode:
+                                1 - Orbit Determination (pseudo-observations; orbit fitting)
+                                2 - Orbit Determination and Prediction
+                                3 - Orbit Integration (Equation of Motion only)
+                                4 - Orbit Integration and Partials (Equation of Motion and Variational Equations)
+    -s --pobs    = Pseudo observations orbit .sp3 file name
+    -o --cobs    = Comparison orbit .sp3 file name
+    -a --arclen  = Orbit Estimation Arc length (hours)
+    -p --predlen = Orbit Prediction Arc length (hours)
+    -r --eopf    = Earth Orientation Paramaeter (EOP) values file
+    -t --eopsol  = Earth Orientation Paramaeter file type: (1,2,3)
+                                1 - IERS C04 EOP
+                                2 - IERS RS/PC Daily EOP
+                                3 - IGS RP + IERS RS/PC Daily (dX,dY)
+    -n --nutpre  = IAU Precession / Nutation model
+                                2000 - IAU2000A
+                                2006 - IAU2006/2000A
+    -i --estiter = Orbit Estimatimation Iterations (1 or greater)
+    -u --sp3vel  = Output .sp3 file with velocities
+                                0 - Do not write Velocity vector to sp3 orbit
+                                1 - Write Velocity vector to sp3 orbit
+    -q --icmode  = Initial condition from parameter estimation procedure
+    -k --srpmodel= 1: ECOM1, 2:ECOM2, 12:ECOM12, 3:SBOX
+    -w --empmodel= 1: activated, 0: no estimation
+    -d --verbosity = output verbosity level [Default: 0]
+    -y --yaml = yaml config file
+    -h --help.   = Print program help
+
+Examples:
+
+        ../../bin/pod -m 1 -q 1 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex1.yaml
+        ../../bin/pod -m 2 -q 1 -k 1 -w 0 -s igs16403.sp3 -p 12 -y ex2.yaml
+
+For orbit updates using Parameter Estimation Algorithm (PEA):
+        ../../bin/pod -m 4 -q 2 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex3.yaml
+\end{lstlisting}
+
+
+\section{Documentation}\label{documentation}
+
+Ginan documentation consists of two parts: a doxygen-generated
+documentation that shows the actual code infrastructure and a detailed
+manual, written in latex, that provides an overview of the software, a
+thoretical background, a detailed ``how to'' guide etc.\\
+Below, we explain on how to generate each bit of documentation:
+
+\subsection{Doxygen}\label{doxygen}
+
+The Doxygen documentation for Ginan requires \texttt{doxygen} and
+\texttt{graphviz}. If not already installed, type as follows:
+
+\begin{lstlisting}[language=bash]
+$ sudo apt -y install doxygen graphviz
+\end{lstlisting}
+
+On success, proceed to the build directory and call make with
+\texttt{doc\_doxygen} target:
+
+\begin{lstlisting}[language=bash]
+$ cd src/build
 $ make doc_doxygen
 \end{lstlisting}
-The docs can then be found at doc\_doxygen/html/index.html
 
-\subsection{POD from source}
+The docs can then be found at \texttt{docs/html/index.html}. Note that
+documentation is generated automatically if \texttt{make} is called
+without arguments and \texttt{doxygen} and \texttt{graphviz}
+dependencies are satisfied.
 
-%The ACS Version 0.0.1 beta release supports:
+\subsection{Latex}\label{latex}
 
-%The POD
-%Directory Structure
-%pod/
-%├── LICENSE.md
-%├── INSTALL.md
-%├── README.md
-%├── src/
-%├── bin/  (created)
-%├── lib/  (created)
-%├── config/
-%├── tables/
-%├── scripts/
-
-Dependencies
-
-The open basic linear algebra library (Openblas.x86\_64,liblas-libs.x86\_64) (You may need to run the command ln -s /usr/lib64/libopenblas.so.3 /usr/lib64/libopenblas.so)
-A working C compiler (gcc will do), a working C++ compiler (gcc-g++ will do) and a fortran compiler (we have used gfortran)
-Cmake (from cmake.org) at least version 2.8
-If the flags set in CMakeLists.txt do not work with your compiler please remove/replace the ones that don't
-
-Build
-To build the POD ...
-\begin{lstlisting}[language=bash]
-$ cd pod
-$ mkdir build
-$ cd build
-$ cmake3 .. 
-$ make >make.out 2>make.err
-$ less make.err (to verify everything was built correctly)
-\end{lstlisting}
-You should now have the executables in the bin directory: pod crs2trs brdc2ecef
-
-Test
-To test your build of the POD ... - You may not need the ulimit command but we found it necessary
+A detailed Ginan manual is located in \texttt{docs/manual} and is in
+latex format. To compile Latex to pdf you will need a compiler, such as
+texlive:
 
 \begin{lstlisting}[language=bash]
-$ cd ../pod/test
-$ ulimit -s unlimited
-$ ./sh_test_pod
+$ sudo apt install texlive-latex-base texlive-latex-extra
 \end{lstlisting}
 
-At the completion of the test run, the sh\_test\_pod script will return any differences to the standard test resuts
-    
+Now, go to \texttt{docs/manual} and generate the pdf:
+
+\begin{lstlisting}[language=bash]
+$ cd docs/manual
+$ pdflatex main.tex
+$ makeglossaries main
+$ pdflatex main.tex
+\end{lstlisting}
+
+\texttt{main.pdf} file should now appear in the directory.\\
 
 
-Configuration File
-The POD Precise Orbit Determination (./bin/pod) uses the configuration file: 
-%├── EQM.in (Full force model equation of motion) ├── VEQ.in (For variational equations) ├── POD.in (For all other config)
+\section{Ready!}\label{ready}
+
+Congratulations! You are now ready to trial the examples of PEA and POD
+from the examples directory. See Ginan's manual for detailed explanation
+of each example. Note that examples have relative paths to files in them
+and rely on the presence of \texttt{products}, \texttt{data} and
+\texttt{solutions} directories inside the \texttt{examples} directory.
+Make sure you've run \texttt{download\_examples.py} from the
+\hyperref[download]{download} step of this instruction.
+
+The paths are relative to the examples directory and hence all the
+examples must be run from the \texttt{examples} directory.
+
+\begin{lstlisting}[language=bash]
+cd ../../examples
+\end{lstlisting}
+
+To run the first example of the PEA:
+
+\begin{lstlisting}[language=bash]
+../bin/pea --config ex11_pea_pp_user_gps.yaml
+\end{lstlisting}
+
+This should create \texttt{ex11} directory with
+\texttt{ex11-ALIC201919900.TRACE} and \texttt{ex1120624.snx} output
+files. You can remove the need for path specification to the executable
+by adding Ginan's bin directory to \texttt{\textasciitilde{}/.bachrc}
+file:
+
+\begin{lstlisting}[language=bash]
+PATH="path_to_ginan_bin:$PATH"
+\end{lstlisting}
+
+And an example of POD:
+
+\begin{lstlisting}[language=bash]
+../bin/pod -y ex21_pod_fit_gps.yaml
+\end{lstlisting}
+
+At the completion of the test run, \texttt{ex21} directory should be
+create. The \texttt{ex21\_.sh} script will return any differences to the
+standard test resuts.
 
 
-%\section{From precompiled binaries}
-%
-%To do..
+\section{Python Installation for Plotting, Processing,
+etc.}\label{python-installation-for-plotting-processing-etc.}
+
+Lastly, to run many of the included scripts for fast parsing of
+.trace/.snx files, plotting of results, automatic running of the PEA
+based on input date/times and stations, etc. then a number of python
+dependencies are needed.
+
+The file scripts/conda\_gn37.yaml has a list of the necessary python
+dependencies.\\
+The best way to take advantage of this is to install the Miniconda
+virtual environment manager.\\
+This will allow you to pass the .yaml file into the conda command and
+automatically set up a new python environment.
+
+\begin{enumerate}
+  \item\textbf{Install Miniconda}
+
+To install Miniconda, download and execute the Miniconda shell file:
+
+\begin{lstlisting}[language=bash]
+$ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+$ bash Miniconda3-latest-Linux-x86_64.sh
+\end{lstlisting}
+
+And follow the on-screen instructions (choosing all defaults is fine).
+
+\item\textbf{Create virtual
+environment}
+
+After installation you can create the \texttt{gn37} python environment
+using a prepared receipy. First open a new terminal session and enter:
+
+\begin{lstlisting}[language=bash]
+$ conda env create -f <dir_to_ginan>/scripts/conda_gn37.yaml
+\end{lstlisting}
+
+\end{enumerate}
+
+You have now created the virtual python environment \texttt{gn37} with
+all necessary dependencies. Anytime you wish you run python scripts,
+ensure you are in the virtual environment by activating:
+
+\begin{lstlisting}[language=bash]
+$ conda activate gn37
+\end{lstlisting}
+
+And then run your desired script from the \texttt{scripts} directory.

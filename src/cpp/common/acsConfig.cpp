@@ -15,6 +15,7 @@ using std::string;
 
 #include <yaml-cpp/yaml.h>
 
+#include "ntripSourceTable.hpp"
 #include "acsNtripBroadcast.hpp"
 #include "rtsSmoothing.hpp"
 #include "streamTrace.hpp"
@@ -135,11 +136,11 @@ void tryAddRootToPath(
 
 /** Create a station object from a file
 */
-void ACSConfig::addStationFile(
+void ACSConfig::addDataFile(
 	string fileName,			///< Filename to create station from
-	string type)				///< Type of data in file
+	string fileType,			///< Type of data in file
+	string dataType)			///< Type of data
 {
-	
 	if (streamDOAMap.find(fileName) != streamDOAMap.end())
 	{
 		//this stream was already added, dont re-add
@@ -148,7 +149,7 @@ void ACSConfig::addStationFile(
 	
 	boost::filesystem::path filePath(fileName);
 
-	if (checkValidFile(fileName, "station") == false)
+	if (checkValidFile(fileName, dataType) == false)
 	{
 		return;
 	}
@@ -161,42 +162,36 @@ void ACSConfig::addStationFile(
 	auto filename = filePath.filename();
 	string extension = filename.extension().string();
 
-	if (type == "RINEX")
+	string stationId = filename.string().substr(0,4);
+	boost::algorithm::to_upper(stationId);
+
+	auto recOpts = getRecOpts(stationId);
+
+	if (recOpts.exclude)
 	{
-		// Assuming this is a RINEX file named as ssssdddf.yyO or ssssdddhmm.yyO where ssss is the station
+		return;
+	}
+	
+	if (fileType == "RINEX")
+	{
+		auto rinexStream_ptr = std::make_shared<FileRinexStream>(filePath.string());
 
-		string stationId = filename.string().substr(0,4);
-		boost::algorithm::to_upper(stationId);
+		if		(dataType == "NAV")		navStreamMultimap.insert({stationId, std::move(rinexStream_ptr)});
+		else if	(dataType == "OBS")		obsStreamMultimap.insert({stationId, std::move(rinexStream_ptr)});
+		
+		streamDOAMap[fileName] = false;
 
-		auto recOpts = getRecOpts(stationId);
-
-		if (recOpts.exclude == false)
-		{
-			auto rinexStream_ptr = std::make_shared<FileRinexStream>(filePath.string());
-
-			obsStreamMultimap.insert({stationId, std::move(rinexStream_ptr)});
-			rinexFiles.push_back(filename.string());
-			
-			streamDOAMap[fileName] = false;
-		}
+		rinexFiles.push_back(filename.string());
 	}
 
-	if (type == "RTCM")
+	if (fileType == "RTCM")
 	{
-		string stationId = filename.string().substr(0,4);
-		boost::algorithm::to_upper(stationId);
+		auto rtcmStream_ptr = std::make_shared<FileRtcmStream>(filePath.string());
 
-		auto recOpts = getRecOpts(stationId);
-
-		if (recOpts.exclude == false)
-		{
-			auto rtcmStream_ptr = std::make_shared<FileRtcmStream>(filePath.string());
-
-			obsStreamMultimap.insert({stationId, std::move(rtcmStream_ptr)});
-// 			rinexFiles.push_back(filename.string());
-			
-			streamDOAMap[fileName] = false;
-		}
+		if		(dataType == "NAV")		navStreamMultimap.insert({stationId, std::move(rtcmStream_ptr)});
+		else if	(dataType == "OBS")		obsStreamMultimap.insert({stationId, std::move(rtcmStream_ptr)});
+		
+		streamDOAMap[fileName] = false;
 	}
 }
 
@@ -306,7 +301,7 @@ bool configure(
 
 	if (vm.count("rnx"))
 	{
-		acsConfig.addStationFile(vm["rnx"].as<string>(), "RINEX");
+		acsConfig.addDataFile(vm["rnx"].as<string>(), "RINEX", "OBS");
 	}
 
 	// Dump the configuration information
@@ -887,7 +882,7 @@ void globber(
 				// Skip if not a file
 				if (boost::filesystem::is_regular_file(dir_file) == false)
 					continue;
-
+				
 				string dir_fileName = dir_file.path().filename().string();
 
 				if (checkGlob(searchGlob, dir_fileName))
@@ -991,18 +986,21 @@ bool ACSConfig::parse(
 	}
 
 	vector<string> rnxfiles;
-	vector<string> rtcmfiles;
+	vector<string> obs_rtcmfiles;
+	vector<string> nav_rtcmfiles;
 	auto station_data = stringsToYamlObject(yaml, {"station_data"});
 	{
 		trySetFromAny(root_stations_dir,	commandOpts, station_data,	{"root_stations_directory"	});
 		trySetFromAny(rnxfiles,				commandOpts, station_data,	{"rnxfiles"					});
-		trySetFromAny(rtcmfiles,			commandOpts, station_data,	{"rtcmfiles"				});
-
+		trySetFromAny(obs_rtcmfiles,			commandOpts, station_data,	{"obs_rtcmfiles"				});
+		trySetFromAny(nav_rtcmfiles,			commandOpts, station_data,	{"nav_rtcmfiles"				});
 		tryAddRootToPath(root_stations_dir, rnxfiles);
-		tryAddRootToPath(root_stations_dir, rtcmfiles);
+		tryAddRootToPath(root_stations_dir, obs_rtcmfiles);
+		tryAddRootToPath(root_stations_dir, nav_rtcmfiles);
 
 		globber(rnxfiles);
-		globber(rtcmfiles);
+		globber(obs_rtcmfiles);
+		globber(nav_rtcmfiles);
 	}
 
 
@@ -1017,6 +1015,11 @@ bool ACSConfig::parse(
 		trySetFromYaml(trace_directory,			output_files, {"trace_directory"	});
 		trySetFromYaml(trace_filename,			output_files, {"trace_filename"		});
 
+		trySetFromYaml(record_rtcm,		     	output_files, {"record_rtcm"		});
+		trySetFromYaml(rtcm_directory,			output_files, {"rtcm_directory"	    });
+		trySetFromYaml(nav_rtcm_filename,		output_files, {"nav_rtcm_filename"	}); 
+		trySetFromYaml(obs_rtcm_filename,		output_files, {"obs_rtcm_filename"	});        
+        
 		trySetFromYaml(output_residuals,		output_files, {"output_residuals"	});
 		trySetFromYaml(output_config,			output_files, {"output_config"		});
 
@@ -1061,27 +1064,23 @@ bool ACSConfig::parse(
 		trySetFromYaml(delete_mongo_history,			output_files, {"delete_mongo_history"		});
 		trySetFromYaml(mongo_uri,						output_files, {"mongo_uri"					});
 
-		trySetScaledFromYaml(trace_rotate_period,		output_files, {"trace_rotate_period"	}, {"trace_rotate_period_units"		}, E_Period::_from_string_nocase);
-		trySetScaledFromYaml(summary_rotate_period,		output_files, {"summary_rotate_period"	}, {"summary_rotate_period_units"	}, E_Period::_from_string_nocase);
-		trySetScaledFromYaml(config_rotate_period,		output_files, {"config_rotate_period"	}, {"config_rotate_period_units"	}, E_Period::_from_string_nocase);
-		trySetScaledFromYaml(ionex_rotate_period,		output_files, {"ionex_rotate_period"	}, {"ionex_rotate_period_units"		}, E_Period::_from_string_nocase);
-		trySetScaledFromYaml(ionstec_rotate_period,		output_files, {"ionstec_rotate_period"	}, {"ionstec_rotate_period_units"	}, E_Period::_from_string_nocase);
-		trySetScaledFromYaml(biasSINEX_rotate_period,	output_files, {"biasSINEX_rotate_period"}, {"biasSINEX_rotate_period_units"	}, E_Period::_from_string_nocase);
-		
+		trySetScaledFromYaml(trace_rotate_period,		output_files, {"trace_rotate_period"	},	{"trace_rotate_period_units"	},	E_Period::_from_string_nocase);
+		trySetScaledFromYaml(rtcm_rotate_period,		output_files, {"rtcm_rotate_period"		},	{"rtcm_rotate_period_units"		},	E_Period::_from_string_nocase);
 	}
 
 	auto processing_options = stringsToYamlObject(yaml, {"processing_options"});
 	{
-		trySetFromAny(max_epochs,		commandOpts, processing_options, {"max_epochs"		});
-		trySetFromAny(epoch_interval,	commandOpts, processing_options, {"epoch_interval"	});
-
+		trySetFromAny(max_epochs,			commandOpts, processing_options, {"max_epochs"			});
+		trySetFromAny(epoch_interval,		commandOpts, processing_options, {"epoch_interval"		});
+		trySetFromAny(simulate_real_time,	commandOpts, processing_options, {"simulate_real_time"	});
+		
 		string startStr;
 		string stopStr;
 		trySetFromAny(startStr,			commandOpts, processing_options, {"start_epoch"		});
 		trySetFromAny(stopStr,			commandOpts, processing_options, {"end_epoch"		});
 		if (!startStr.empty())	start_epoch	= boost::posix_time::time_from_string(startStr);
 		if (!stopStr .empty())	end_epoch	= boost::posix_time::time_from_string(stopStr);
-
+		
 		trySetFromYaml(process_minimum_constraints,	processing_options, {"process_modes","minimum_constraints"	});
 		trySetFromYaml(process_network,				processing_options, {"process_modes","network"				});
 		trySetFromYaml(process_user,				processing_options, {"process_modes","user"					});
@@ -1113,6 +1112,7 @@ bool ACSConfig::parse(
 		trySetFromYaml(thres_slip,			processing_options, {"cycle_slip",		"thres_slip"	});
 		trySetFromYaml(max_inno,			processing_options, {"max_inno"			});
 		trySetFromYaml(deweight_factor,		processing_options, {"deweight_factor"	});
+		trySetFromYaml(ratio_limit,			processing_options, {"ratio_limit"		});
 		trySetFromYaml(max_gdop,			processing_options, {"max_gdop"			});
 		trySetFromYaml(antexacs,			processing_options, {"antexacs"			});
 		trySetFromYaml(sat_pcv,				processing_options, {"sat_pcv"			});
@@ -1157,9 +1157,8 @@ bool ACSConfig::parse(
 		trySetFromYaml(pppOpts.rts_lag,					user_filter,	{"rts_lag"					});
 		trySetFromYaml(pppOpts.rts_directory,			user_filter,	{"rts_directory"			});
 		trySetFromYaml(pppOpts.rts_filename,			user_filter,	{"rts_filename"				});
-		trySetFromYaml(pppOpts.ballistics,				user_filter,	{"ballistics"				});
-		trySetFromYaml(pppOpts.outage_reset_count,		user_filter,	{"outage_reset_count"		});
-		trySetFromYaml(pppOpts.phase_reject_count,		user_filter,	{"phase_reject_count"		});
+		trySetFromYaml(pppOpts.outage_reset_limit,		user_filter,	{"outage_reset_limit"		});
+		trySetFromYaml(pppOpts.phase_reject_limit,		user_filter,	{"phase_reject_limit"		});
 	}
 
 	auto network_filter = stringsToYamlObject(yaml, {"network_filter_parameters"});
@@ -1171,7 +1170,8 @@ bool ACSConfig::parse(
 		trySetFromYaml(netwOpts.rts_lag,			network_filter,	{"rts_lag"					});
 		trySetFromYaml(netwOpts.rts_directory,		network_filter,	{"rts_directory"			});
 		trySetFromYaml(netwOpts.rts_filename,		network_filter,	{"rts_filename"				});
-		trySetFromYaml(netwOpts.phase_reject_count,	network_filter,	{"phase_reject_count"		});
+		trySetFromYaml(netwOpts.outage_reset_limit,	network_filter,	{"outage_reset_limit"		});
+		trySetFromYaml(netwOpts.phase_reject_limit,	network_filter,	{"phase_reject_limit"		});
 	}
 
 	auto troposphere = stringsToYamlObject(processing_options, {"troposphere"});
@@ -1335,10 +1335,11 @@ bool ACSConfig::parse(
 		trySetFromYaml(ssrOpts.sync_epoch_offset,		ssr, {"sync_epoch_offset"		});
 		trySetFromYaml(ssrOpts.settime_week_override,	ssr, {"settime_week_override"	});
 		trySetFromYaml(ssrOpts.rtcm_directory,			ssr, {"rtcm_directory"			});
-		trySetFromYaml(ssrOpts.read_from_files,	ssr, {"read_from_files"	});
+		trySetFromYaml(ssrOpts.read_from_files,			ssr, {"read_from_files"			});
 	}
 
 	tryAddRootToPath(root_output_dir, 				trace_directory);
+	tryAddRootToPath(root_output_dir, 				rtcm_directory);    
 	tryAddRootToPath(root_output_dir,				summary_directory);
 	tryAddRootToPath(root_output_dir,				clocks_directory);
 	tryAddRootToPath(root_output_dir,				ppp_sol_directory);
@@ -1354,6 +1355,8 @@ bool ACSConfig::parse(
 	tryAddRootToPath(root_output_dir,				ssrOpts.rtcm_directory);
 
 	tryAddRootToPath(trace_directory, 				trace_filename);
+    tryAddRootToPath(rtcm_directory, 				nav_rtcm_filename);
+    tryAddRootToPath(rtcm_directory, 				obs_rtcm_filename);
 	tryAddRootToPath(summary_directory,				summary_filename);
 	tryAddRootToPath(clocks_directory,				clocks_filename);
 	tryAddRootToPath(ppp_sol_directory,				ppp_sol_filename);
@@ -1381,6 +1384,7 @@ bool ACSConfig::parse(
 	replaceTimes(bsxfiles,				start_epoch);
 	replaceTimes(ionfiles,				start_epoch);
 	replaceTimes(trace_directory,		start_epoch);
+	replaceTimes(rtcm_directory,		start_epoch);
 	replaceTimes(trace_filename,		start_epoch);
 	replaceTimes(ionex_directory,		start_epoch);
 	replaceTimes(ionex_filename,		start_epoch);
@@ -1397,11 +1401,16 @@ bool ACSConfig::parse(
 	replaceTimes(root_stations_dir,		start_epoch);
 	replaceTimes(sinex_directory,		start_epoch);
 	replaceTimes(sinex_filename,		start_epoch);
-	replaceTimes(persistance_directory,         start_epoch);
+	replaceTimes(ssrOpts.rtcm_directory,		start_epoch);
+	replaceTimes(persistance_directory,			start_epoch);
 	replaceTimes(persistance_filename,			start_epoch);
 	replaceTimes(pppOpts.rts_filename,			start_epoch);
 	replaceTimes(netwOpts.rts_filename,			start_epoch);
 	replaceTimes(ionFilterOpts.rts_filename,	start_epoch);
+    
+    // The network stream time is in UTC to avoid problems with local time.
+    replaceTimes(nav_rtcm_filename,	 	boost::posix_time::second_clock::universal_time());
+    replaceTimes(obs_rtcm_filename,	 	boost::posix_time::second_clock::universal_time());
 
 	for (auto& station_file : station_files)
 	{
@@ -1409,18 +1418,24 @@ bool ACSConfig::parse(
 	}
 
 
-	trySetFromYaml(acsConfig.caster_test,	yaml,{"station_data", "caster_test"});
-	trySetFromYaml(acsConfig.print_stream_statistics,	yaml,{"station_data", "print_stats"});
 
+	trySetFromYaml(caster_test,	yaml,{"station_data", "caster_test"});
+	trySetFromYaml(print_stream_statistics,	yaml,{"station_data", "print_stats"});
 
+	
+
+	
 	string streamRoot = "";
 	trySetFromYaml(streamRoot,		yaml,	{"station_data", "stream_root"	});
-	if( acsConfig.caster_test )
-		acsConfig.caster_stream_root = streamRoot;
+	if( caster_test )
+		caster_stream_root = streamRoot;
 
 	auto obsStreamNode = stringsToYamlObject(yaml, {"station_data","obs_streams"});
 	auto navStreamNode = stringsToYamlObject(yaml, {"station_data","nav_streams"});
 
+	
+	// Unique list of host names.
+	std::vector<std::string> hosts;
 	for (auto nav : {false, true})
 	{
 		YAML::Node* streamNode_ptr;
@@ -1439,9 +1454,68 @@ bool ACSConfig::parse(
 			while (fullUrl.back() == '/')
 				fullUrl.pop_back();				// in case of terminating '/'
 			std::size_t slashPos = fullUrl.find_last_of("/");	// find first 4 characters after last '/'
-			string id = fullUrl.substr(slashPos + 1, 4);		// e.g. http://user:pass@auscors.ga.gov.au:2101/BCEP00BKG0 --> BCEP
+			string hostname = fullUrl.substr(0,slashPos+1);		// e.g. http://user:pass@auscors.ga.gov.au:2101/BCEP00BKG0 --> BCEP
 
-			ntripStreams[id] = fullUrl;
+			if( std::find(hosts.begin(), hosts.end(), hostname) == hosts.end() )
+			{
+				hosts.push_back( hostname );
+			}
+		}
+	}
+
+	std::multimap<std::string,std::vector<std::string>> hostMap;
+	
+
+#ifndef	ENABLE_UNIT_TESTS
+	NtripSocket::startClients();
+#endif	
+	for( auto host : hosts )
+	{
+		NtripSourceTable sourceTable(host);
+		sourceTable.getSourceTable();
+		hostMap.insert({host,sourceTable.getStreamMounts()});	
+	}
+	
+	for (auto nav : {false, true})
+	{
+		YAML::Node* streamNode_ptr;
+		if (nav == false)	streamNode_ptr = &obsStreamNode;
+		else				streamNode_ptr = &navStreamNode;
+		
+		map<string, string> ntripStreams;
+		for (auto streamUrl : *streamNode_ptr)
+		{
+			string streamUrl_str = streamUrl.as<string>();
+			string fullUrl = streamUrl_str;
+
+			tryAddRootToPath(streamRoot, fullUrl);
+			if (fullUrl.front() == '/')
+				fullUrl.erase(fullUrl.begin()); // in case of full urls given in station_data.streams
+			while (fullUrl.back() == '/')
+				fullUrl.pop_back();				// in case of terminating '/'
+			std::size_t slashPos = fullUrl.find_last_of("/");	// find first 4 characters after last '/'
+			string id		= fullUrl.substr(slashPos + 1, 4);		// e.g. http://user:pass@auscors.ga.gov.au:2101/BCEP00BKG0 --> BCEP
+			string hostname = fullUrl.substr(0,slashPos + 1);		// e.g. http://user:pass@auscors.ga.gov.au:2101/BCEP00BKG0 --> BCEP
+			string mount	= fullUrl.substr(slashPos+1, fullUrl.length()-slashPos+1);
+			bool foundMount = false;
+			auto host = hostMap.find(hostname);
+			if (host != hostMap.end())
+			{
+				auto mounts = host->second;
+				if (std::find(mounts.begin(), mounts.end(), mount) != mounts.end())
+					foundMount = true;
+			}
+			
+			if (foundMount)
+			{
+				ntripStreams[id] = fullUrl;
+			}
+			else
+			{
+				URL url = URL::parse(fullUrl);
+				BOOST_LOG_TRIVIAL(warning) 
+						<< "Stream, " << url.sanitised() << " not found in sourcetable, invalid host/mount combination.\n";
+			}
 		}
 
 		for (auto& [id, streamUrl] : ntripStreams)
@@ -1451,16 +1525,33 @@ bool ACSConfig::parse(
 				//this stream was already added, dont re-add
 				continue;
 			}
-			
-			BOOST_LOG_TRIVIAL(info)
-			<< std::endl << "Adding stream from " << streamUrl;
+
+	
 			auto ntripStream_ptr = std::make_shared<NtripRtcmStream>(streamUrl);
 			ntripRtcmMultimap.insert({id, ntripStream_ptr}); // for network (internet) tracing
+	
+			
+			if (record_rtcm)
+			{
+				NtripRtcmStream& downloadStream = *ntripStream_ptr;
+				string filename;
+				if (nav)		filename = nav_rtcm_filename;
+				else			filename = obs_rtcm_filename;
+				
+				replaceString(filename, "<STATION>", id);	
+				
+				downloadStream.rtcm_filename = filename;
+				downloadStream.createRtcmFile();
+			}
+			
 			if (nav == false)		{	obsStreamMultimap.insert({id, std::move(ntripStream_ptr)});		}
 			else					{	navStreamMultimap.insert({id, std::move(ntripStream_ptr)});		}			
 			streamDOAMap[streamUrl] = false;
 		}
 	}
+
+
+	
 
 	boost::filesystem::path root_stations_path(root_stations_dir);
 
@@ -1468,13 +1559,18 @@ bool ACSConfig::parse(
 	{
 		for (auto& rnxfile : rnxfiles)
 		{
-			addStationFile(rnxfile, "RINEX");
+			addDataFile(rnxfile, "RINEX", "OBS");
 		}
 
-		for (auto& rtcmfile : rtcmfiles)
+		for (auto& rtcmfile : obs_rtcmfiles)
 		{
-			addStationFile(rtcmfile, "RTCM");
+			addDataFile(rtcmfile, "RTCM", "OBS");
 		}
+		
+		for (auto& rtcmfile : nav_rtcmfiles)
+		{
+			addDataFile(rtcmfile, "RTCM", "NAV");
+		}		
 
 		if (obsStreamMultimap.empty())
 		{

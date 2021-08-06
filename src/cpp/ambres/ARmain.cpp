@@ -59,7 +59,7 @@ int sys_frq(short int sys, E_FType& frq1, E_FType& frq2, E_FType& frq3)
 	return 0;
 }
 
-void start_from_acsConfig( double tgap )
+void start_from_acsConfig()
 {
 	sys_solve[E_Sys::GPS] = acsConfig.ambrOpts.solvGPS;
 	sys_solve[E_Sys::GLO] = acsConfig.ambrOpts.solvGLO;
@@ -107,12 +107,14 @@ void start_from_acsConfig( double tgap )
 
 	NLinactive = true;
 
+	double tgap = acsConfig.epoch_interval;
+	
 	if (tgap > 0)
 		NEPOC2NL = (int)(acsConfig.ambrOpts.NLstarttime / tgap);
 }
 
 /* Load ambiguity measurments ( NL ambiguity measurments and its covariance matrixes need to be loaded separately */
-int Load_rawmeas(Trace& trace, ObsList& obslst, KFState& kfState, double tgap)
+int Load_rawmeas(Trace& trace, ObsList& obslst, KFState& kfState)
 {
 	E_FType frq1, frq2, frq3;
 	GTime time = kfState.time;
@@ -126,9 +128,7 @@ int Load_rawmeas(Trace& trace, ObsList& obslst, KFState& kfState, double tgap)
 		double elev = obs.satStat_ptr->el;
 
 		if (!sys_solve[sat.sys]) 					continue;
-
 		if (elev < acsConfig.elevation_mask) 		continue;
-
 		if (!sys_frq(sat.sys, frq1, frq2, frq3)) 	continue;
 
 		double lam1 = obs.satNav_ptr->lamMap[frq1];
@@ -144,10 +144,10 @@ int Load_rawmeas(Trace& trace, ObsList& obslst, KFState& kfState, double tgap)
 		double L2 = obs.Sigs[frq2].L_corr_m / lam2;
 		double P2 = obs.Sigs[frq2].P_corr_m / lam2;
 
-		if	( L1 == 0
-		        || L2 == 0
-		        || P1 == 0
-		        || P2 == 0)
+		if	(  L1 == 0
+			|| L2 == 0
+			|| P1 == 0
+			|| P2 == 0)
 		{
 			continue;
 		}
@@ -313,7 +313,7 @@ int Load_rawmeas(Trace& trace, ObsList& obslst, KFState& kfState, double tgap)
 			}
 		}
 		else
-			NLambKey = {KF::AMBIGUITY, sat, rec, 0};
+			NLambKey = {KF::AMBIGUITY, sat, rec, 12};
 
 		if (kfState.kfIndexMap.find(NLambKey) == kfState.kfIndexMap.end())
 		{
@@ -366,10 +366,11 @@ int Load_rawmeas(Trace& trace, ObsList& obslst, KFState& kfState, double tgap)
 }
 
 /* Network ambiguity resolution */
-int networkAmbigResl( Trace& trace, StationList& stations, KFState& kfState, double tgap)
+int networkAmbigResl( Trace& trace, StationList& stations, KFState& kfState)
 {
-
-	if (acsConfig.ambrOpts.WLmode == E_ARmode::OFF && acsConfig.ambrOpts.NLmode == E_ARmode::OFF) return 0;
+	if	(  acsConfig.ambrOpts.WLmode == E_ARmode::OFF
+		&& acsConfig.ambrOpts.NLmode == E_ARmode::OFF)
+		return 0;
 
 	ENDUSR_MODE = false;
 	int trclvl = 3;
@@ -385,7 +386,7 @@ int networkAmbigResl( Trace& trace, StationList& stations, KFState& kfState, dou
 		AR_initialization = false;
 		Pivot_reset = true;
 		tracepdeex(trclvl, trace, "\n#ARES_MAIN Initializing configuration");
-		start_from_acsConfig( tgap );
+		start_from_acsConfig();
 
 		if (acsConfig.process_ionosphere && acsConfig.ionFilterOpts.model != +E_IonoModel::NONE)
 			AR_Iono_meas = true;
@@ -438,7 +439,7 @@ int networkAmbigResl( Trace& trace, StationList& stations, KFState& kfState, dou
 
 		if (recOpts.exclude) continue;
 
-		Load_rawmeas(trace, rec.obsList, kfState, tgap);
+		Load_rawmeas(trace, rec.obsList, kfState);
 	}
 
 	tracepdeex(2, trace, "\n#ARES_MAIN Solving pivot\n");
@@ -478,7 +479,7 @@ int networkAmbigResl( Trace& trace, StationList& stations, KFState& kfState, dou
 
 	if (acsConfig.ambrOpts.WLmode != E_ARmode::OFF)
 	{
-		WLambEstm(trace, kfState.time, tgap, ARcontr[E_AmbTyp::WL12], NLinactive);
+		WLambEstm(trace, kfState.time, ARcontr[E_AmbTyp::WL12], NLinactive);
 	}
 
 	tracepdeex(3, trace, "\n#ARES_MAIN estimating NL ambiguities\n");
@@ -494,12 +495,13 @@ int networkAmbigResl( Trace& trace, StationList& stations, KFState& kfState, dou
 }
 
 /* Rover Ambiguity resolution */
-int enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState, double tgap)
+int enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState)
 {
+	if ( acsConfig.ambrOpts.WLmode == E_ARmode::OFF ) 
+		return 0;
 
-	if ( acsConfig.ambrOpts.WLmode == E_ARmode::OFF ) return 0;
-
-	if ( obsList.size() <= 0 ) return 0;
+	if ( obsList.size() <= 0 ) 
+		return 0;
 
 	int trclvl = 4;
 	ENDUSR_MODE = true;
@@ -512,7 +514,7 @@ int enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState, double t
 	{
 		AR_initialization = false;
 		tracepdeex(trclvl, trace, "#ARES_MAIN Initializing configuration\n");
-		start_from_acsConfig( tgap );
+		start_from_acsConfig();
 	}
 
 	for (auto& [sat, satamb] : satpiv )
@@ -546,7 +548,7 @@ int enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState, double t
 		staamb.reset = false;
 	}
 
-	Load_rawmeas(trace, obsList, kfState, tgap);
+	Load_rawmeas(trace, obsList, kfState);
 	updt_usr_pivot ( trace, acsConfig.ambrOpts.min_el_AR, rov );
 
 	if (acsConfig.ambrOpts.WLmode != E_ARmode::OFF)
@@ -554,7 +556,7 @@ int enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState, double t
 		tracepdeex(trclvl, trace, "\n#ARES_MAIN estimating WL ambiguities\n");
 		ARState arcnt = ARcontr[E_AmbTyp::WL12];
 		arcnt.recv = rov;
-		WLambEstm(trace, kfState.time, tgap, arcnt, false);
+		WLambEstm(trace, kfState.time, arcnt, false);
 	}
 
 	if (acsConfig.ambrOpts.NLmode != E_ARmode::OFF)

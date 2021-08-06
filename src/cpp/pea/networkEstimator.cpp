@@ -19,36 +19,43 @@
 #include "eigenIncluder.hpp"
 
 
-
-/** Remove ambiguity states from filter when they are not measured for an epoch.
-* This effectively reinitialises them on the following epoch as a new state, and can be used for simple
-* resolution of cycle-slips
-*/
-void removeUnmeasuredAmbiguities(
+/** Remove ambiguity states from filter when they deemed old or bad
+ * This effectively reinitialises them on the following epoch as a new state, and can be used for simple
+ * resolution of cycle-slips
+ */
+void removeBadAmbiguities(
 	Trace&				trace,				///< Trace to output to
-	KFState&			kfState, 			///< Filter to remove states from
-	map<KFKey, bool>	measuredStates)		///< Map of measured states in this epoch to compare against.
+	KFState&			kfState) 			///< Filter to remove states from
 {
-	for (auto it = kfState.stateTransitionMap.cbegin(); it != kfState.stateTransitionMap.cend();  )
+	for (auto [key, index] : kfState.kfIndexMap)
 	{
-		KFKey key = it->first;
-
-		if	( (key.type == KF::AMBIGUITY)
-			&&(measuredStates[key] == false))
+		if (key.type != KF::AMBIGUITY)
 		{
-			trace << std::endl << "Removing " << key.str << " " << key.Sat.id();
-			kfState.procNoiseMap.		erase(key);
-			kfState.initNoiseMap.		erase(key);
-			kfState.stateClampMaxMap.	erase(key);
-			kfState.stateClampMinMap.	erase(key);
-			kfState.rateTransitionMap.	erase(key);
-			kfState.gaussMarkovTauMap.	erase(key);
-
-			it = kfState.stateTransitionMap.erase(it);
+			continue;
 		}
-		else
+		
+		E_FType ft = (E_FType) key.num;
+		
+		auto& station = *key.station_ptr;
+		auto& satStat = station.rtk.satStatMap[key.Sat];
+		auto& sigStat = satStat.sigStatMap[ft];
+		
+		if (sigStat.netwPhaseOutageCount >= acsConfig.netwOpts.outage_reset_limit)
 		{
-			++it;
+			sigStat.netwPhaseOutageCount = 0;
+			
+			trace << std::endl << "Phase ambiguity removed due to long outage: "		<< key.str << " " << key.Sat.id();
+			
+			kfState.removeState(key);
+		}
+		
+		if (sigStat.netwPhaseRejectCount >= acsConfig.netwOpts.phase_reject_limit)
+		{
+			sigStat.netwPhaseRejectCount = 0;
+			
+			trace << std::endl << "Phase ambiguity removed due to high reject count: "	<< key.str << " " << key.Sat.id();
+			
+			kfState.removeState(key);
 		}
 	}
 }
@@ -58,7 +65,8 @@ void postFilterChecks(
 {
 	for (int i = 0; i < kfMeas.V.rows(); i++)
 	{
-		resetPhaseSignalError(kfMeas, i);
+		resetPhaseSignalError	(kfMeas, i);
+		resetPhaseSignalOutage	(kfMeas, i);
 	}
 }
 
@@ -88,7 +96,7 @@ Matrix3d stationEopPartials(
 }
 
 /** Check and correct clock jitter/wraparound
-*/
+ */
 void correctRecClocks(
 	Trace&		trace,		///< Trace to output to
 	KFState&	kfState,	///< Filter to correct clock estimates in
@@ -104,7 +112,7 @@ void correctRecClocks(
 		}
 
 		auto& rec		= *key.station_ptr;
-		auto& recOpts	= acsConfig.getRecOpts(key.str);
+ 		auto& recOpts	= acsConfig.getRecOpts(key.str);
 
 		double wraparound_distance	= CLIGHT * 1e-3;
 		double wraparound_tolerance	= CLIGHT * acsConfig.clock_wrap_threshold;
@@ -129,7 +137,7 @@ void correctRecClocks(
 		}
 		else if	( (rec.rtk.sol.deltaDt_net_old[0] == 0)
 				||( abs(deltaDelta) > wraparound_distance - wraparound_tolerance
-				&&abs(deltaDelta) < wraparound_distance + wraparound_tolerance))
+				  &&abs(deltaDelta) < wraparound_distance + wraparound_tolerance))
 		{
 			//get, modify and set the old bias in the state
 			double oldBias = 0;
@@ -145,16 +153,30 @@ void correctRecClocks(
 }
 
 /** Estimates parameters for a network of stations simultaneously
-*/
+ */
 void networkEstimator(
 	Trace&			trace,			///< Trace to output to
-	StationList&	stations,       ///< List of stations containing observations for this epoch
-	KFState&		kfState,        ///< Kalman filter object containing the network state parameters
-	double			tgap)           ///< The time gap since last epoch
+	StationList&	stations,		///< List of stations containing observations for this epoch
+	KFState&		kfState,		///< Kalman filter object containing the network state parameters
+	GTime			tsync)			///< The time of the epoch
 {
 	TestStack ts(__FUNCTION__);
 
 	kfState.initFilterEpoch();
+	
+	removeBadAmbiguities(trace, kfState);
+	
+	//increment the outage count for all signals
+	for (auto& rec_ptr : stations)
+	{
+		auto& rec = *rec_ptr;
+		
+		for (auto& [Sat,	satStat] : rec.rtk.satStatMap)
+		for (auto& [ft,		sigStat] : satStat.sigStatMap)
+		{
+			sigStat.netwPhaseOutageCount++;
+		}
+	}
 
 	//count the satellites common between receivers
 	int total = 0;
@@ -188,10 +210,6 @@ void networkEstimator(
 																								TestStack::testStr("recString", recString);
 
 	KFMeasEntryList		kfMeasEntryList;
-	KFMeasEntryList		kfMeasEntryListL1; // Phase observations only, for cycle slip detection
-	KFMeasEntryList		kfMeasEntryListL2;
-	KFMeasEntryList		kfMeasEntryListLc;
-	map<KFKey, bool>	measuredStates;
 	Station*	refRec = nullptr;
 	bool		refClk = false;
 
@@ -207,22 +225,12 @@ void networkEstimator(
 
 		int count = satCountMap[obs.Sat];
 
-		E_FType iffreq=FTYPE_IF12;
-		E_FType frstfr=F1;
-		E_FType scndfr=F2;
-		
-		if(obs.Sat.sys == +E_Sys::GAL){
-			iffreq=FTYPE_IF15;
-			scndfr=F5;
-		}
-
 		if	( (count < 2)
 			||(obs.		exclude)
 			||(satOpts.	exclude)
 			||(recOpts.	exclude)
 			||(sig.vsig == false)
-			//||(ft != FTYPE_IF12))		//only use IF linear combinations for now
-			||(ft != iffreq && ft != frstfr && ft != scndfr)) //IF linear combinations used for EKF (for now), L1 & L2 used for cycle slip detection
+			||(ft != FTYPE_IF12))
 		{
 			continue;
 		}
@@ -230,7 +238,7 @@ void networkEstimator(
 
 		if	(    refRec					== nullptr
 			&&( acsConfig.pivot_station	== rec.id
-			||acsConfig.pivot_station	== "<AUTO>"))
+			  ||acsConfig.pivot_station	== "<AUTO>"))
 		{
 			//use this receiver as the reference receiver for clock offsets
 			refRec = &rec;
@@ -245,16 +253,11 @@ void networkEstimator(
 		SatStat& satStat = *obs.satStat_ptr;
 		SigStat& sigStat = satStat.sigStatMap[ft];
 
-		codeMeas.metaDataMap["obs_ptr"]		= &obs;
-		phasMeas.metaDataMap["obs_ptr"]		= &obs;
+		codeMeas.metaDataMap["obs_ptr"]	= &obs;
+		phasMeas.metaDataMap["obs_ptr"]	= &obs;
 		
-		phasMeas.metaDataMap["phaseRejectCount_ptr"] = &sigStat.phaseRejectCount;
-		if (sigStat.phaseRejectCount >= acsConfig.netwOpts.phase_reject_count)
-		{
-			trace << std::endl << "Phase measurement rejected due to high reject count: " << obsKeyPhas;
-			sigStat.phaseRejectCount = 0;
-			continue;
-		}
+		phasMeas.metaDataMap["phaseRejectCount_ptr"] = &sigStat.netwPhaseRejectCount;
+		phasMeas.metaDataMap["phaseOutageCount_ptr"] = &sigStat.netwPhaseOutageCount;
 
 		//initialise this rec/sat's measurements
 		codeMeas.setValue(sig.codeRes);
@@ -272,7 +275,7 @@ void networkEstimator(
 							//type					sat			receiver
 		KFKey satClockKey		=	{KF::SAT_CLOCK,			obs.Sat};
 		KFKey satClockRateKey	=	{KF::SAT_CLOCK_RATE,	obs.Sat};
-		KFKey ambiguityKey		=	{KF::AMBIGUITY,			obs.Sat,	rec.id, 0,								&rec	};	//todo aaron, does there need to be a reference satellite clock to prevent all biases walking off?
+		KFKey ambiguityKey		=	{KF::AMBIGUITY,			obs.Sat,	rec.id, (short)ft,						&rec	};
 		KFKey refClockKey		=	{KF::REF_SYS_BIAS,		{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	&rec	};
 		KFKey recClockKey		=	{KF::REC_SYS_BIAS,		{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	&rec	};
 		KFKey recClockRateKey	=	{KF::REC_SYS_BIAS_RATE,	{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	&rec	};
@@ -418,11 +421,6 @@ void networkEstimator(
 			InitialState init		= initialStateFromConfig(recOpts.amb);
 			init.x = amb;
 			phasMeas.addDsgnEntry(ambiguityKey,		+1,						init);
-			
-			if (ft == iffreq)
-			{
-				measuredStates[ambiguityKey] = true;
-			}
 		}
 
 		if (satOpts.orb.estimate)
@@ -463,25 +461,16 @@ void networkEstimator(
 				phasMeas.addDsgnEntry(eopKeys[i],	eopPartials(i),				init);
 			}
 		}
-		if (ft == iffreq)	//to distinguish measurements used for KF from measurements used for cycle slip analysis
-		{
-			kfMeasEntryList.push_back(codeMeas);
-			kfMeasEntryList.push_back(phasMeas);
-		}
 		
-		//record observations for use in cycle slip analysis
-		if      (ft == frstfr)	kfMeasEntryListL1.push_back(phasMeas);
-		else if (ft == scndfr)	kfMeasEntryListL2.push_back(phasMeas);
-		else if (ft == iffreq)	kfMeasEntryListLc.push_back(phasMeas);
+		kfMeasEntryList.push_back(codeMeas);
+		kfMeasEntryList.push_back(phasMeas);
 
 		//record number of observations per satellite - for publishing SSR corrections
-		++nav.satNavMap[obs.Sat].ssrOut.numObs;
+		nav.satNavMap[obs.Sat].ssrOut.numObs++;
 	}
 
-	removeUnmeasuredAmbiguities(trace, kfState, measuredStates);
-
 	//add process noise to existing states as per their initialisations.
-	kfState.stateTransition(trace, tgap);
+	kfState.stateTransition(trace, tsync);
 
 	//if not enough data is available, return early
 	if (refRec == nullptr)
@@ -506,7 +495,7 @@ void networkEstimator(
 		kfState.lsqRequired = false;
 		trace << std::endl << " -------INITIALISING NETWORK USING LEAST SQUARES--------" << std::endl;
 
-		kfState.leastSquareInitStates(trace, combinedMeas);
+ 		kfState.leastSquareInitStates(trace, combinedMeas);
 	}
 
 	if (acsConfig.netwOpts.filter_mode == E_FilterMode::LSQ)

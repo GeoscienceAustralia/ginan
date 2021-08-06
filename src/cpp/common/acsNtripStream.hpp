@@ -55,7 +55,8 @@ public:
 	bool dataChunkDownloaded(vector<char> dataChunk) override;
 	virtual void messageChunkLog(std::string message) override {}
 	virtual void networkLog(std::string message) override {}
-	
+	virtual void connectionError(const boost::system::error_code& err, std::string operation) override {}
+	virtual void serverResponse(unsigned int status_code, std::string http_version) override {}	
 	/*
 	* Due to boost::asio::io_service::work being added to boost::asio::io_service
 	* io_service.run() blocks the thread in NtripStream::connect() and uses it in 

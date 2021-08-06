@@ -1,9 +1,9 @@
-![gn_logo](https://raw.githubusercontent.com/GeoscienceAustralia/ginan/gh-pages/images/GinanLogo60.png)
+![gn_logo](https://raw.githubusercontent.com/GeoscienceAustralia/ginan/gh-pages/images/GinanLogo273.png)
 
 # Ginan: software toolkit and service
 
 
-#### `Ginan v1.0.0 alpha release`
+#### `Ginan v1.1-alpha release`
 
 ## Overview
 
@@ -12,12 +12,10 @@ Ginan is a processing package being developed to processes GNSS observations for
 We currently support the processing of:
 
 * the United States' Global Positioning System (**GPS**);
-* the Russian GLONASS system (**GLONASS**)*;
+* the Russian GLONASS system (**GLONASS**);
 * the European Union's Galileo system (**Galileo**);
-* the Chinese Navigation Satellite System (**BeiDou**)*;
-* the Japanese QZSS develop system (**QZSS**)*.
-
-*\*precise orbit determination only with full support coming soon*
+* the Chinese Navigation Satellite System (**BeiDou**);
+* the Japanese QZSS develop system (**QZSS**).
 
 We are actively developing Ginan to have the following capabilities and features:
 
@@ -44,7 +42,7 @@ Ginan is supported on the following platforms
 ***
 ## Download
 
-You can downlaod Ginan source from github using git clone:
+You can download Ginan source from github using git clone:
 
     $ git clone https://github.com/GeoscienceAustralia/ginan.git
     
@@ -62,25 +60,25 @@ Then download all of the example data using the python script provided:
     ├── CMakeLists.txt		! Cmake build file
     ├── docs/			    ! Documentation directory
     ├── examples/           ! Ginan examples directory
-    |   ├── data/           ! example dataset (rinex files)**
-    |   ├── products/       ! example products and aux files**
-    |   ├── solutions/      ! example solutions for QC**
-    |   --------------PEA examples--------------
-    |   ├── ex11            ! PEA example 1
-    |   ├── ex12            ! PEA example 2
-    |   ├── ex13            ! PEA example 3
-    |   ├── ex14            ! PEA example 4
-    |   ├── ex15            ! PEA example 5
-    |   ├── ex17            ! PEA example 7
-    |   ├── ex18            ! PEA example 8
-    |   --------------POD examples--------------
-    |   ├── ex21            ! POD example 1
-    |   ├── ex22            ! POD example 2
-    |   ├── ex23            ! POD example 3
-    |   ├── ex24            ! POD example 4
-    |   ├── ex25            ! POD example 5
-    |   └── ex26            ! POD example 6
-    |
+    │   ├── data/           ! example dataset (rinex files)**
+    │   ├── products/       ! example products and aux files**
+    │   ├── solutions/      ! example solutions for QC**
+    │   --------------PEA examples--------------
+    │   ├── ex11            ! PEA example 1
+    │   ├── ex12            ! PEA example 2
+    │   ├── ex13            ! PEA example 3
+    │   ├── ex14            ! PEA example 4
+    │   ├── ex15            ! PEA example 5
+    │   ├── ex17            ! PEA example 7
+    │   ├── ex18            ! PEA example 8
+    │   --------------POD examples--------------
+    │   ├── ex21            ! POD example 1
+    │   ├── ex22            ! POD example 2
+    │   ├── ex23            ! POD example 3
+    │   ├── ex24            ! POD example 4
+    │   ├── ex25            ! POD example 5
+    │   └── ex26            ! POD example 6
+    │
     ├── lib/		        ! Compiled objectlibrary directory*
     ├── scripts/		    ! Auxillary Python and Shell scripts and libraries
     └── src/		        ! Source code directory
@@ -97,13 +95,17 @@ Then download all of the example data using the python script provided:
 ***
 ## Dependencies
 
-Ginan has several software dependencies:
+If you wish to use Ubuntu Linux, you can quickly create your environment by downloading the docker image:
+
+    $ docker pull gnssanalysis/ginan:v1.0-alpha
+
+Otherwise Ginan has several software dependencies:
 
 * C/C++ and Fortran compiler. We use and recommend [gcc-g++ and gfortran](https://gcc.gnu.org)
 * BLAS and LAPACK linear algebra libraries. We use and recommend [OpenBlas](https://www.openblas.net/) as this contains both libraries required
 * CMAKE  > 3.0 
 * YAML   > 0.6
-* Boost  > 1.70
+* Boost  > 1.70 (tested on 1.73)
 * Eigen3
 * netCDF4
 * Python3 (tested on Python 3.7)
@@ -223,7 +225,7 @@ Now you can start it as a service by:
     $ sudo service mongod start -->
 
 ### netcdf4 (OTL package)
-    $ apt -y install libnetcdf-dev libnetcdf-c++4-dev
+    $ sudo apt -y install libnetcdf-dev libnetcdf-c++4-dev
 ***
 ## Build
 Prepare a directory to build in, its better practise to keep this seperated from the source code.
@@ -350,7 +352,11 @@ This returns:
 ***
 ## Documentation
 
-The documentation for Ginan can be generated using `doxygen` and `graphviz`. If not already installed, type as follows:
+Ginan documentation consists of two parts: a doxygen-generated documentation that shows the actual code infrastructure and a detailed manual, written in latex, that provides an overview of the software, a thoretical background, a detailed "how to" guide etc.
+Below, we explain on how to generate each bit of documentation:
+
+### Doxygen
+The Doxygen documentation for Ginan requires `doxygen` and `graphviz`. If not already installed, type as follows:
 
 	$ sudo apt -y install doxygen graphviz
 
@@ -360,6 +366,20 @@ On success, proceed to the build directory and call make with `doc_doxygen` targ
 	$ make doc_doxygen
 
 The docs can then be found at `docs/html/index.html`. Note that documentation is generated automatically if `make` is called without arguments and `doxygen` and `graphviz` dependencies are satisfied.
+
+### Latex
+A detailed Ginan manual is located in `docs/manual` and is in latex format. To compile Latex to pdf you will need a compiler, such as texlive:
+
+    $ sudo apt install texlive-latex-base texlive-latex-extra
+
+Now, go to `docs/manual` and generate the pdf:
+
+    $ cd docs/manual
+    $ pdflatex main.tex
+    $ makeglossaries main
+    $ pdflatex main.tex
+
+`main.pdf` file should now appear in the directory.
 ***
 ## Ready!
 Congratulations! You are now ready to trial the examples of PEA and POD from the examples directory. See Ginan's manual for detailed explanation of each example. Note that examples have relative paths to files in them and rely on the presence of `products`, `data` and `solutions` directories inside the `examples` directory. Make sure you've run `download_examples.py` from the **Download** step of this instruction.

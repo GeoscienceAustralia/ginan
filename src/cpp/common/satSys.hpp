@@ -15,8 +15,8 @@ using std::map;
 */
 struct SatSys
 {
-	E_Sys		sys;		///< Satellite system
-	short int	prn;		///< PRN for this satellite
+	E_Sys		sys = E_Sys::NONE;		///< Satellite system
+	short int	prn = 0;				///< PRN for this satellite
 
 	/** Constructor using satellite system and prn
 	*/
@@ -130,7 +130,7 @@ struct SatSys
 
 	/** Constructs a SatSys object from it's hash uid
 	*/
-	SatSys(int intval)
+	void fromHash(int intval)
 	{
 		sys = E_Sys::_from_integral((intval >> 16)	& 0xFF);
 		prn = 						(intval >> 8)	& 0xFF;

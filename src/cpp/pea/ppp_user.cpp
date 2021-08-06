@@ -35,10 +35,10 @@
 void pppoutstat(
 	Trace&		trace,
 	KFState&	kfState,
-	bool		rts)
+	bool		rts,
+	int 		solStat,
+	int			numSat)
 {
-	int solStat = 0;
-
 	int week;
 	double tow = time2gpst(kfState.time, &week);
 //
@@ -57,16 +57,16 @@ void pppoutstat(
 			{
 				kfState.getKFValue(key, x[key.num], &v[key.num]);
 			}
-			tracepdeex(1, trace, "\n$POS,%d,%.3f,%d,%.4f,%.4f,%.4f,%.14f,%.14f,%.14f\n",
+			tracepdeex(1, trace, "\n$POS,%d,%.3f,%d,%.4f,%.4f,%.4f,%.7f,%.7f,%.7f\n",
 						week,
 						tow,
 						solStat,
 						x[0],
 						x[1],
 						x[2],
-						v[0],
-						v[1],
-						v[2]);
+						sqrt(v[0]),
+						sqrt(v[1]),
+						sqrt(v[2]));
 		}
 
 		if (key.type == KF::PHASE_BIAS)
@@ -74,14 +74,14 @@ void pppoutstat(
 			double phase_bias		= 0;
 			double phase_biasVar	= 0;
 			kfState.getKFValue(key, phase_bias, &phase_biasVar);
-			tracepdeex(1, trace, "$AMB,%d,%.3f,%d,%s,%d,%.4f,%f\n",
+			tracepdeex(1, trace, "$AMB,%d,%.3f,%d,%s,%d,%.4f,%.7f\n",
 						week,
 						tow,
 						solStat,
 						key.Sat.id().c_str(),
 						key.num,
 						phase_bias,
-						phase_biasVar);
+						sqrt(phase_biasVar));
 		}
 
 		if (key.type == KF::TROP)
@@ -92,36 +92,49 @@ void pppoutstat(
 			if (key.num == 1)	grad = "_N";
 			if (key.num == 2)	grad = "_E";
 			kfState.getKFValue(key, trop, &tropVar);
-			tracepdeex(1, trace, "$TROP%s,%d,%.3f,%d,%d,%f,%.14f\n",
+			tracepdeex(1, trace, "$TROP%s,%d,%.3f,%d,%d,%f,%.7f\n",
 					grad.c_str(),
 					week,
 					tow,
 					solStat,
-					1,
+					numSat,
 					trop,
-					tropVar);
+					sqrt(tropVar));
 		}
 
 		if	( key.type	== KF::REC_SYS_BIAS
 			&&key.num	== SatSys(E_Sys::GPS).biasGroup())
 		{
-			double rClk		= 0;
-			double rClkG	= 0;
-			double rClkVar	= 0;
-			double rClkGVar	= 0;
-			kfState.getKFValue(key, rClk,	&rClkVar);
+			double rClkGPS	= 0;
+			double rClkGLO	= 0;
+			double rClkGAL	= 0;
+			double rClkBDS	= 0;
+			double GPSclkVar= 0;
+			double GLOclkVar= 0;
+			double GALclkVar= 0;
+			double BDSclkVar= 0;
+			
+			kfState.getKFValue(key, rClkGPS, &GPSclkVar);
 			key.num = SatSys(E_Sys::GLO).biasGroup();
-			kfState.getKFValue(key, rClkG,	&rClkGVar);
-
-			tracepdeex(1, trace, "$CLK,%d,%.3f,%d,%d,%.4f,%.4f,%.4f,%.4f\n",
+			kfState.getKFValue(key, rClkGLO, &GLOclkVar);
+			key.num = SatSys(E_Sys::GAL).biasGroup();
+			kfState.getKFValue(key, rClkGAL, &GALclkVar);
+			key.num = SatSys(E_Sys::CMP).biasGroup();
+			kfState.getKFValue(key, rClkBDS, &BDSclkVar);
+			
+			tracepdeex(1, trace, "$CLK,%d,%.3f,%d,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
 					week,
 					tow,
 					solStat,
-					1,
-					rClk		* 1E9 / CLIGHT,
-					rClkG		* 1E9 / CLIGHT,
-					rClkVar		* 1E9 / CLIGHT,
-					rClkGVar	* 1E9 / CLIGHT);
+					numSat,
+					rClkGPS			* 1E9 / CLIGHT,
+					rClkGLO			* 1E9 / CLIGHT,
+					rClkGAL			* 1E9 / CLIGHT,
+					rClkBDS			* 1E9 / CLIGHT,
+					sqrt(GPSclkVar)	* 1E9 / CLIGHT,
+					sqrt(GLOclkVar)	* 1E9 / CLIGHT,
+					sqrt(GALclkVar)	* 1E9 / CLIGHT,
+					sqrt(BDSclkVar)	* 1E9 / CLIGHT);
 		}
 	}
 //
@@ -164,11 +177,11 @@ void udbias_ppp(
 		SatStat& satStat = rtk.satStatMap[key.Sat];
 		SigStat& sigStat = satStat.sigStatMap[(E_FType)key.num];
 
-		if (sigStat.phaseRejectCount >= acsConfig.pppOpts.phase_reject_count)
+		if (sigStat.userPhaseRejectCount >= acsConfig.pppOpts.phase_reject_limit)
 		{
-			sigStat.phaseRejectCount = 0;
+			sigStat.userPhaseRejectCount = 0;
 
-			trace << "Removing " << key << " due to repeated rejections > " << acsConfig.pppOpts.phase_reject_count << std::endl;
+			trace << "Removing " << key << " due to repeated rejections > " << acsConfig.pppOpts.phase_reject_limit << std::endl;
 			rtk.pppState.removeState(key);
 		}
 
@@ -177,12 +190,12 @@ void udbias_ppp(
 			rtk.pppState.removeState(key);
 		}
 
-		sigStat.phaseOutageCount++;
-		if (sigStat.phaseOutageCount == acsConfig.pppOpts.outage_reset_count)
+		sigStat.userPhaseOutageCount++;
+		if (sigStat.userPhaseOutageCount == acsConfig.pppOpts.outage_reset_limit)
 		{
-			sigStat.phaseOutageCount = 0;
+			sigStat.userPhaseOutageCount = 0;
 
-			trace << "Removing " << key << " due to extended outage > " << acsConfig.pppOpts.outage_reset_count << std::endl;
+			trace << "Removing " << key << " due to extended outage > " << acsConfig.pppOpts.outage_reset_limit << std::endl;
 			rtk.pppState.removeState(key);
 		}
 	}
@@ -337,8 +350,9 @@ int ppp_filter(
 
 	int lv = 3;
 
+	GTime obsTime = obsList.front().time;
 	double ep[6];
-	time2epoch(obsList.front().time, ep);
+	time2epoch(obsTime, ep);
 	double jd	= ymdhms2jd(ep);
 	double mjd	= jd - JD2MJD;
 
@@ -450,7 +464,8 @@ int ppp_filter(
 		double ionInitVari		= -1;
 		
 		
-		switch (acsConfig.ionoOpts.corr_mode){
+		switch (acsConfig.ionoOpts.corr_mode)
+		{
 			case E_IonoMode::IONO_FREE_LINEAR_COMBO:
 			case E_IonoMode::OFF:					 
 				dIono   = 0; 
@@ -854,7 +869,7 @@ int ppp_filter(
 
 			if	(   acsConfig.max_inno	> 0
 				&&( fabs(codeInnov)		> acsConfig.max_inno
-				||fabs(phasInnov)		> acsConfig.max_inno))
+				  ||fabs(phasInnov)		> acsConfig.max_inno))
 			{
 				tracepde(2, std::cout, "outlier rejected  sat=%s %d res=%9.4f %9.4f el=%4.1f\n", obs.Sat.id().c_str(), ft, codeInnov, phasInnov, satStat.el * R2D);
 				obs.excludeOutlier = true;
@@ -873,28 +888,10 @@ int ppp_filter(
 		}
 	}
 
-	if	( recOpts.pos_rate.estimate
-		&&acsConfig.pppOpts.ballistics)
-	{
-		Vector3d gravity		= rRec.normalized() * -1 * EARTH_G_CONST / rRec.dot(rRec);
-		Vector3d refOmega		= {0, 0, OMGE};
-		Vector3d centrifugal	= - rRec.cross(refOmega).cross(refOmega);
-		Vector3d acceleration	= gravity + centrifugal;
-
-		for (int i = 0; i < 3; i++)
-		{
-			KFKey posRateKey;
-			posRateKey.type	= KF::REC_POS_RATE;
-			posRateKey.num	= i;
-			posRateKey.str	= obsList.front().mount;
-			kfState.setKFTransRate(posRateKey,	{KF::ONE},		acceleration[i]);
-		}
-	}
-
 	removeUnmeasuredAmbiguities(trace, rtk.pppState, measuredStates);
 
 	//add process noise to existing states as per their initialisations.
-	kfState.stateTransition(std::cout, rtk.tt);
+	kfState.stateTransition(std::cout, obsTime);
 
 	//combine the measurement list into a single matrix
 	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
@@ -959,9 +956,9 @@ void update_stat(
 			SatStat& satStat = *obs.satStat_ptr;
 			SigStat& sigStat = satStat.sigStatMap[key];
 
-			sigStat.phaseOutageCount = 0;
-			if (Sig.phaseError)		sigStat.phaseRejectCount++;
-			else 					sigStat.phaseRejectCount = 0;
+			sigStat.userPhaseOutageCount = 0;
+			if (Sig.phaseError)		sigStat.userPhaseRejectCount++;
+			else 					sigStat.userPhaseRejectCount = 0;
 
 		}
 
@@ -1048,7 +1045,7 @@ void pppos(
 
 		if (rtk.sol.stat)
 		{
-			pppoutstat(trace, rtk.pppState);
+			pppoutstat(trace, rtk.pppState,false, rtk.sol.stat,rtk.sol.numSats);
 			rtk.pppState.outputStates(trace);
 		}
 	}

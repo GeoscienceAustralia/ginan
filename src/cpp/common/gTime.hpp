@@ -93,11 +93,39 @@ struct GTime
 		}
 		return time;
 	}
+	
+	GTime& operator+=(const double rhs)
+	{
+		*this = *this + rhs;
+		return *this;
+	}
+
+	GTime operator -(const GTime t) const
+	{
+		GTime time = *this;
+
+		time.time	-= t.time;
+		time.sec	-= t.sec;
+		
+		if (time.sec < 0)
+		{
+			time.time	-= 1;
+			time.sec	+= 1;
+		}
+		
+		return time;
+	}
 
 	GTime operator -(const double t) const
 	{
 		GTime time = *this + (-t);
 		return time;
+	}
+	
+	GTime& operator++(int)
+	{
+		this->time++;
+		return *this;
 	}
 
 

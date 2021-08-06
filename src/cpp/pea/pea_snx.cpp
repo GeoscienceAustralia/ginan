@@ -137,7 +137,7 @@ void sinexPerEpochPerStation(
 
 	if (result == 6)
 	{
-		BOOST_LOG_TRIVIAL(error)
+		BOOST_LOG_TRIVIAL(debug)
 		<< "Station " << rec.id << " position not found in sinex file";
 
 		return; // No current station position estimate!

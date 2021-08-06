@@ -103,5 +103,7 @@ int write_bias_SINEX(
 
 
 extern map<string, map<E_Sys, array<double, 3>>> stationRBiasMap;
-extern array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, SinexBias, std::greater<GTime>>>>>, NUM_MEAS> SINEXBiases_out;	///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]
+extern map<KFKey, map<int,SinexBias>> SINEXBiases_out;
+
+//extern array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, SinexBias, std::greater<GTime>>>>>, NUM_MEAS> SINEXBiases_out;	///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]
 #endif

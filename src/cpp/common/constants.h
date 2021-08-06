@@ -100,7 +100,7 @@ using std::map;
 #define DTTOL       0.005               /* tolerance of time difference (s) */
 #define MAXDTOE     7200.0              /* max time difference to GPS Toe (s) */
 #define MAXDTOE_QZS 3600.0              /* max time difference to QZS Toe (s) */
-#define MAXDTOE_GAL 600.0               /* max time difference to GAL Toe (s) */
+#define MAXDTOE_GAL 1800.0              /* max time difference to GAL Toe (s) */
 #define MAXDTOE_CMP 3600.0              /* max time difference to BDS Toe (s) */
 #define MAXDBDSTOE  3600.0              /* max time difference to ephem Toe (s) for BDS */
 #define MAXDTOE_GLO 1800.0              /* max time difference to GLO Toe (s) */

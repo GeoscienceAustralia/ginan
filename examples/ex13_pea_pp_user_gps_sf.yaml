@@ -10,9 +10,10 @@ input_files:
     snxfiles: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
     blqfiles: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
     navfiles: [ brdm1990.19p        ]  # broadcast navigation file
-    sp3files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
-    clkfiles: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
-    dcbfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    sp3files: [ COD0MGXFIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
+    clkfiles: [ COD0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
+    ionfiles: [ codg1990.19i ]          # Ionospheric delay maps in IONEX format
+    # dcbfiles: [  ]                    # DCB files for Ionosphere may be provided separately
     
 station_data:
 
@@ -20,14 +21,13 @@ station_data:
 
     rnxfiles:
         # Select files to run by:
-        - "ALIC*.rnx"
-        # - "*.rnx"                                       # - searching all in file_root directory
+        - "*.rnx"
         # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
                                                           # - selecting one on the command line using the -rnxfiles option
 
 output_files:
 
-    root_output_directory:          <CONFIG>/ #creates another empty <CONFIG> dir inside <CONFIG> if not absolute
+    root_output_directory:          <CONFIG>/
 
     # TO DO change trace_level to log_level
     output_trace:                   true
@@ -90,22 +90,18 @@ processing_options:
 
     # pivot_station:        "USN7"
     # pivot_satellite:      "G01"
-
-    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L,
+    
+    ionosphere:
+        corr_mode:      total_electron_content
+        
+    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
                         L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                         L5I, L5Q, L5X]
-
-ionosphere_filter_parameters:
-
-    corr_mode:    total_electron_content   # broadcast, sbas, iono_free_linear_combo, estimate, total_electron_content
-    model_noise:    0.001
-    max_filter_iterations:  1
-    max_filter_removals:    0
 
 user_filter_parameters:
 
     max_filter_iterations:      2 #5
-    max_filter_removals:        2 #5
+    max_prefit_removals:        2 #5
 
     rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
     rts_directory:              ./

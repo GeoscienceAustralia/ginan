@@ -582,6 +582,10 @@ int readrnxh(
 	sys		= E_Sys::GPS;
 	tsys	= TSYS_GPS;
 
+	char sysChar = '\0';
+	int typeOffset = 20;
+	int sysCharOffset = 40;
+
 	while (std::getline(inputStream, line))
 	{
 		char*	buff	= &line[0];
@@ -592,9 +596,21 @@ int readrnxh(
 		else if (strstr(label,"RINEX VERSION / TYPE"))
 		{
 			ver		= str2num(buff,0,9);
-			type	= *(buff+20);
 
-			char sysChar = buff[40];
+			type	= buff[typeOffset];
+
+			sysChar = buff[sysCharOffset];
+
+			// possible error in generation by one manufacturer. This hack gets around it
+			if(ver==3.04 && type == ' ')
+			{
+				typeOffset		+= 1;
+				sysCharOffset	+= 2;
+				type	= buff[typeOffset];
+
+				sysChar = buff[sysCharOffset];
+
+			}
 
 			/* satellite system */
 			switch (sysChar)
@@ -1270,6 +1286,7 @@ int readrnxnav(
 /* read rinex clock ----------------------------------------------------------*/
 int readrnxclk(
 	std::istream& 	inputStream,
+	double			ver,
 	nav_t&			nav)
 {
 //     trace(3,"readrnxclk: index=%d\n", index);
@@ -1278,28 +1295,51 @@ int readrnxclk(
 	index++;
 	string line;
 
+	typedef struct 
+	{
+		short offset;
+		short length;
+	} ClkStruct;
+	
+
+	ClkStruct typ = {0,2};
+	ClkStruct as  = {3,3};
+	ClkStruct ar  = {3,4};
+	ClkStruct tim = {8,26};
+	ClkStruct clk = {40,19};
+	ClkStruct std = {60,19};
+
+	/* special case for 3.04 rnx with 9 char AR names */
+	if (ver == 3.04)
+	{
+		ar.length  += 5;
+		tim.offset += 5;
+		clk.offset += 5;
+		std.offset += 5;
+	}
+	
 	while (std::getline(inputStream, line))
 	{
 		char*	buff	= &line[0];
 
 		GTime time;
-		if (str2time(buff,8,26,time))
+		if (str2time(buff,tim.offset,tim.length,time))
 		{
 //             trace(2,"rinex clk invalid epoch: %34.34s\n", buff);
 			continue;
 		}
 
-		string type(buff,2);
+		string type(buff + typ.offset,typ.length);
 
 		string idString;
-		if		(type == "AS")	{	idString.assign(buff + 3, 3);	}
-		else if	(type == "AR")	{	idString.assign(buff + 3, 4);	}
+		if		(type == "AS")	{	idString.assign(buff + as.offset, as.length);	}
+		else if	(type == "AR")	{	idString.assign(buff + ar.offset, ar.length);	}
 		else 						continue;
 
 		Pclk preciseClock = {};
 
-		preciseClock.clk	= str2num(buff, 40, 19);
-		preciseClock.std	= str2num(buff, 60, 19);
+		preciseClock.clk	= str2num(buff, clk.offset, clk.length);
+		preciseClock.std	= str2num(buff, std.offset, std.length);
 		preciseClock.time	= time;
 		preciseClock.index	= index;
 
@@ -1342,7 +1382,7 @@ int readrnx(
 		case 'H': return readrnxnav(inputStream, ver, E_Sys::SBS, 	nav);
 		case 'J': return readrnxnav(inputStream, ver, E_Sys::QZS, 	nav); /* extension */
 		case 'L': return readrnxnav(inputStream, ver, E_Sys::GAL, 	nav); /* extension */
-		case 'C': return readrnxclk(inputStream,					nav);
+		case 'C': return readrnxclk(inputStream, ver,				nav);
 	}
 
 	BOOST_LOG_TRIVIAL(debug)

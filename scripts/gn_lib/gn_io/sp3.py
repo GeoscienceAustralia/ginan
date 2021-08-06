@@ -39,18 +39,20 @@ def mapparm(old,new):
     scl = newlen/oldlen
     return off, scl
 
-def read_sp3(sp3_path,rnx_lbls=True,interp_vel=False,index_vel = None):
+def read_sp3(sp3_path):
     '''Read SP3 file
     Returns STD values converted to proper units (mm/ps) also if present
     # if rinex name -> PG01 to G01 and filter on P
     '''
-    content = path2bytes(str(sp3_path))
+    content = path2bytes(sp3_path)
     header_end = content.find(b'/*')
 
     header = content[:header_end]
     content = content[header_end:]
 
-    fline_b = header.find(b'%f') + 2
+    parsed_header =  parse_sp3_header(header)
+    
+    fline_b = header.find(b'%f') + 2 #TODO add to header parser
     fline = header[fline_b:fline_b+24].strip().split(b'  ')
     base_xyzc = _np.asarray([float(fline[0])]*3 + [float(fline[1])]) #exponent base
 
@@ -65,67 +67,49 @@ def read_sp3(sp3_path,rnx_lbls=True,interp_vel=False,index_vel = None):
 
     dt_index = _np.repeat(a=_datetime2j2000(epochs_dt),repeats=counts)
     b_string = b''.join(data.tolist())
-    n_last_line = len(b_string[b_string[:-2].rfind(b'\n'):].split())
 
-    sp3_df = _pd.read_csv(  _BytesIO(b_string),
-                            dtype={0:'category'},
-                            delim_whitespace=True,
-                            header=None,
-                            names=list(range(n_last_line)))
+
+    series = _pd.Series(b_string.splitlines())
+    data_width =  series.str.len()
+
+    missing = b' '*(data_width.max() - data_width).values.astype(object)
+    series += missing #rows need to be of equal len 
+
+    idx = series.str[0 if parsed_header.HEAD.loc['PV_FLAG']!='P' else 1:4].values.astype(str).astype(object)
+
+
+    data_test = series.str[4:60].values.astype('S56').view(('S14')).reshape(series.shape[0],-1).astype(float)
+
+    if data_width.max() > 60:
+        std = (series.str[60:69].values+series.str[70:73].values).astype('S12').view('S3').astype(object)
+        std[std == b'   '] = None
+        std = std.astype(float).reshape(series.shape[0],-1)
+
+        ind = (series.str[75:76].values + series.str[79:80].values).astype('S2').view('S1')
+        ind[ind == b' '] = b''
+
+        ind = ind.reshape(series.shape[0],-1).astype(str)
+
+        sp3_df = _pd.DataFrame(_np.column_stack([idx,data_test,std,ind]),).astype(
+        {0:"category",1:float,2:float,3:float,4:float,
+              5:float,6:float,7:float,8:float,
+             9:"category",10:"category"})
+        sp3_df.columns = ([['SAT','EST','EST','EST','EST','STD','STD','STD','STD','P_XYZ','P_CLK'],
+                       ['','X','Y','Z','CLK','X','Y','Z','CLK','','']])
+        sp3_df.STD = base_xyzc ** sp3_df.STD.values
+    else:
+        sp3_df = _pd.DataFrame(_np.column_stack([idx,data_test]),).astype(
+        {0:"category",1:float,2:float,3:float,4:float})
+        sp3_df.columns = ([['SAT','EST','EST','EST','EST'],
+                           ['','X','Y','Z','CLK',]])
 
     #999999* None value flag to None
     nanflags2nans(sp3_df)
     # writing header data to dataframe attributes
-    sp3_df.attrs['HEADER'] =  parse_sp3_header(header)
-
-    if sp3_df.shape[1] == 9:
-        sp3_df.columns = ([['SAT','EST','EST','EST','EST','STD','STD','STD','STD'],
-                           ['','X','Y','Z','CLK','X','Y','Z','CLK']])
-        sp3_df.STD = base_xyzc ** sp3_df.STD.values
-
-    elif sp3_df.shape[1] == 11:
-
-        sp3_df.columns = ([['SAT','EST','EST','EST','EST','STD','STD','STD','STD','P_XYZ','P_CLK'],
-                           ['','X','Y','Z','CLK','X','Y','Z','CLK','','']])
-        clk_std = sp3_df.STD.CLK.values #if clk std is missing, P_XYZ flag value is written
-
-        mv_mask = sp3_df.P_CLK.isna() & ~sp3_df.P_XYZ.isna()
-        #moved values due to empty clk std
-        #can be P, EP and EV. The next column may be M then this will be empty
-        #rule is the rightmost columns is never empty if left is not empty
-        sp3_df.P_CLK[mv_mask].update(sp3_df[mv_mask].P_XYZ.values)
-        sp3_df.P_XYZ[mv_mask].update(clk_std[mv_mask])
-        clk_std[mv_mask] = None
-
-        sp3_df.loc[:,[['STD','CLK']]] = clk_std.astype(float)
-        sp3_df.STD = base_xyzc ** sp3_df.STD.values
-
-    elif sp3_df.shape[1] == 7:
-        sp3_df.columns = ([['SAT','EST','EST','EST','EST','P_XYZ','P_CLK'],
-                    ['','X','Y','Z','CLK','','']])
-
-    else:
-        sp3_df.columns = ([['SAT','EST','EST','EST','EST'],
-                           ['','X','Y','Z','CLK',]])
-
-    if rnx_lbls:
-        sat = sp3_df.SAT
-        categories = sat.cat.categories
-
-        p_categories = categories[categories.str.slice(0,1).values == 'P']
-        p_mask = sat.isin(p_categories).values
-
-        sp3_df = sp3_df[p_mask]
-        sp3_df.SAT.cat.rename_categories(categories.str.slice(1),inplace=True)
+    sp3_df.attrs['HEADER'] = parsed_header
 
     sp3_df.set_index([dt_index,'SAT'],inplace=True)
     sp3_df.index.names = ([None,None])
-
-    if interp_vel:
-        if index_vel is not None:
-            sp3_df = sp3_df.loc[index_vel]
-        return _pd.concat([sp3_df,sp3_vel_ch(sp3_df)],axis=1)
-
     return sp3_df
 
 def parse_sp3_header(header):

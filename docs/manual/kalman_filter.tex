@@ -1,57 +1,53 @@
 \chapter{Kalman Filtering}
 \label{ch:kalman_filter}
 %
-%
-\begin{fullwidth}
 The Kalman filter is over 50 years old but is still one of the most important and common data fusion algorithms in use today. 
 Named after Rudolf E.Kálmán, the great success of the Kalman filter is due to its small computational requirement, elegant recursive properties, and its status as the optimal estimator for one-dimensional linear systems with Gaussian error statistics. 
 Typical uses of the Kalman filter include smoothing noisy data and providing estimates of parameters of interest. 
 Kalman filtering is used in a wide range of applications include global positioning system receivers, in control systems, through to the smoothing the output from laptop trackpads, and many more.
-%
-\end{fullwidth}
 
 \section{Overview of Kalman Filtering}
 
 Kalman filter are typically used to estimate parameters which change with time. 
 Parameters with no process noise are called deterministic.
-A Kalman filter has measurements $y(t)$, with noise $v(t)$, and a state vector (or a parameter list) which have specified statistical properties.
+A Kalman filter has measurements $y_t$, with noise $y_t$, and a state vector $\hat x_t$ (or a parameter list) which have specified statistical properties.
 
 The observation equation at time t:
 \begin{equation}
-    y_t = A_t x_t + v_t
+    y_t = H_t x_t + \epsilon_t	 \label{eq:kfObs}
 \end{equation}
 
 The state transition equation:
 \begin{equation}
-    x_{t+1} = S_t x_t + w_t
-\end{equation}
-
-Covariance matrices
-\begin{equation}
-    <v_tv_t^T> = V_t , <w_tw_t^T> = W_t 
+    x_{t+} = F_t x_t + w_t	
 \end{equation}
 
 The kalman filter processing is broken up into three main steps.
 
-\newthought{Prediction} {uses a process noise model} to 'predict' the parameters at the next data epoch, subscript is time quantity refrs to, where as the superscript refers to the time of the data:
+\textit{Prediction} {uses a process noise model} to 'predict' the parameters at the next data epoch, subscript is time quantity refers to, where as the superscript refers to the time of the data:
 \begin{equation}
-    \hat{x}_{t+1}^t = S_t \hat{x}_t^t
+    \hat{x}_{t+1}^t = F_t \hat{x}_t^t
 \end{equation}
-where, $S_t$ is the state transition matrix
+where, $F_t$ is the state transition matrix
 \begin{equation}
-    C_{t+1}^t = S_t C_t^t S_t^t + W_t
+    P_{t+1}^t = F_t P_t^t F_t^\intercal + Q_t
 \end{equation}
-where, $w_t$ is the process noise covariance matrix.
-The state transition matrix $S$ projects the state vector (parameters) forward to the next epoch.
+where, $Q_t$ is the process noise covariance matrix.
+The state transition matrix $F$ projects the state vector (parameters) forward to the next epoch.
 \begin{itemize}
-    \item For random walk $S$ = 1
-    \item For rate terms: $S$ is matrix $[1 \delta t][0 1]$
-    \item for FOGM: $S$ = $e^{-\delta t \beta}$
-    \item For white noise $S$ = 0
+    \item For random walk $F$ = 1
+    \item For rate terms: $F$ is matrix 
+    $\begin{bmatrix}
+    1 & \delta t\\
+    0 & 1
+  \end{bmatrix}$
+    \item for FOGM: $F$ = $e^{-\delta t \beta}$
+    \item For white noise $F$ = 0
 \end{itemize}
-The second equation projects the covariance matrix of the state vector, $C$, forward in time. Contributions from the state transition and process noise ($W$ matrix). $W$ elements are 0 for deterministic parameters.
+The second equation projects the covariance matrix of the state vector, $P$, forward in time. Contributions from the state transition and process noise ($Q$ matrix). 
+$Q$ elements are 0 for deterministic parameters.
 %
-\newthought{The Kalman gain} {is the matrix} that allocates the differences between the observation at time t+1 and their predicted value at this time based on the current values of the state vector according to the noise in the measurements and the state vector noise.
+\textit{The Kalman gain} {is the matrix} that allocates the differences between the observation at time t+1 and their predicted value at this time based on the current values of the state vector according to the noise in the measurements and the state vector noise.
 
 \section{Comparison between Weighted Least Squares and Kalman Filtering}
 
@@ -65,76 +61,268 @@ The second equation projects the covariance matrix of the state vector, $C$, for
 
 \section{Implementation in the PEA}
 
-\subsection{Observation Weighting}
-%
-The GNSS observations can be weighted in three different ways in the PEA:
+\subsection{Robust Kalman Filter Philosophy}
+
+It is well known that the Kalman filter is the optimal technique for estimating parameters of interest from sets of noisy data - provided the model is appropriate.
+
+In addition, statistical techniques may be used to detect defects in models or the parameters used to characterise the data, providing opportunities to intervene and make corrections to the model according to the nature of the anomaly.
+
+By incorporating these features into a single generic module, the robustness that was previously available only under certain circumstances may now be automatically applied to all systems to which it is applied. These benefits extend automatically to all related modules (such as RTS), and often perform better than modules designed specifically to address isolated issues.
+
+\subsection{Initialisation}
+
+When parameters' initial values are not known a-priori, it is often possible to determine them using a least-squares approach.
+
+To minimise processing times, the minimal subset of existing states, measurements, and covariances are used in least-squares estimation whenever the initial value and variance of a parameter is unspecified.
+
+For rate parameters, multiple epoch’s worth of data are required for an ab-initio initialisation. This logic is incorporated into the filter and is applied automatically as required.
+
+\subsection{Outlier detection, Iteration, and Hypothesis Testing}
+
+As a statistical machine, the Kalman filter is capable of detecting measurements that do not fit within the system as modelled.
+
+In these cases, the model may be adjusted on-the-fly, to allow all measurements to be continued to be used without contaminating the results in the filter.
+
+A typical example of a modelling error in GNSS processing is a cycle-slip, in which the ambiguity term (which usually modelled with no change over time) has a discontinuity. Other examples may include clock-jumps or satellite burns.
+
+Hypotheses are to be generated for any measurements that are statistical outliers, and the model iterated as required.
+
+\subsection{Performance Optimisation}
+
+The inversion of large matrices as required by the Kalman filter easily dominates the processing time required during operation. Techniques are available to reduce, and distribute this processing burden across multiple processors.
+
+The Eigen library is used for algebraic manipulation which allows for automatic parallelisation of vector algebra, and improves code robustness by checking matrix dimensions while in use.
+
+\subsubsection{Chunking}
+
+By dividing measurements into multiple smaller sub-matrices, the long inversion times may be reduced, as the inversion order is of $O(n^3)$
+
+\subsubsection{Blocking}
+By separating the filter covariance matrix into a block-diagonal form, individual blocks of the filter may be processed individually, without degredation in accuracy. This may improve performance, and may also enable blocks that are relatively independent to be processed separately, albeit with some degredation in accuracy.
+
+\section{Configuration} \label{KFConfig}
+
+All elements within the kalman filter are configured using the yaml configuration file, and use a consistant format.
+
+\subsection{default\_filter\_parameters}
+
+\begin{lstlisting}[language=yaml,caption=Filter Parameters:]
+
+default_filter_parameters:
+
+    stations:
+
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.15]
+        phase_sigmas:       [0.0015]
+
+        pos:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
+            proc_noise_dt:      second
+            #apriori:                                   # taken from other source, rinex file etc.
+            #frame:              xyz #ned
+            #proc_noise_model:   Gaussian
+
+        clk:
+            estimated:          true
+            sigma:              [0]
+            proc_noise:         [10]
+            proc_noise_dt:      second
+            #proc_noise_model:   Gaussian
+
+        clk_rate:
+            estimated:          false
+            sigma:              [500]
+            proc_noise:         [1e-4]
+            proc_noise_dt:      second
+            clamp_max:          [+500]
+            clamp_min:          [-500]
+            
+    satellites:
+
+        clk:
+            estimated:          true
+            sigma:              [1000]
+            proc_noise:         [1]
+            #proc_noise_dt:      min
+            #proc_noise_model:   RandomWalk
+
+        # clk_rate:
+        #     estimated:          true
+        #     sigma:              [10]
+        #     proc_noise:         [1e-5]
+        #     # clamp_max:          [+500]
+        #     # clamp_min:          [-500]
+
+        orb:
+            estimated:          false
+
+    eop:
+        estimated:  true
+        sigma:      [40]
+
+
+override_filter_parameters:
+
+    stations:
+        #ALIC:
+            pos:
+                sigma:              [0.001]
+                proc_noise:         [0]
+\end{lstlisting}
+
+
+The majority of estimated states are configured in this section. These configurations are applied to all estimates unless another configuration overrides these parameters in the override\_filter\_parameter section.
+
+The parameters that are available for estimation include:
 \begin{itemize}
-    \item Unity - all observations are assigned the same variance
-    \item Elevation Dependent - an elevation dependent function is used to scale the observations, those at higher elevation are given more weight (a smaller standard deviation) than those observed at lower elevation
-    \item SNR observations - the Carrier to Noise observations supplied by the receiver are used to determine the observation weight. Generally speaking this is very similar to elevation weighting, but is useful when use observations obtained from a non-geodetic grade receiver/antenna.
+\item stations:
+\begin{itemize}
+\item pos
+\item pos\_rate
+\item clk
+\item clk\_rate
+\item amb
+\item trop
+\item trop\_grads
 \end{itemize}
-%
-\subsection{Unity}
-
-\subsection{Elevation Dependent Weighting}
-
-\subsection{SNR weighting}
-
-
-%    // Langley RB (1996) GPS receivers and the observables. In: Kleusberg A, Teunissen PJG (eds) GPS for geodesy.
-%    //     Lecture notes in earth sciences, vol 60. Springer, Berlin
-%    // Langley, R. B. (1997). "GPS receiver system noise." GPS World, Vol. 8, No. 6, April, pp. 40-45.
-%    const double BL = 0.8;      // for code (Hz)
-%    const double alpha = 0.5;   // for code (dimensionless)
-%    const double BP = 2;        // for phase (Hz)
-%    // PI in constants.h
-
-%    //wavelength of the PRN code (in meter)
-%    const double P_WL = 29.305;
-%    const double CA_WL = 293.05;
-
-%    //wavelength of the carrier phase (in meter)
-%    // Teunissen PJG (2017) Carrier-phase integer ambiguity resolution. In: Teunissen PJG, Montenbruck O (eds)
-%    //      Handbook of global navigation satellite systems. Springer, Cham, pp 661-685
-%    //const double L = lambdas[ft];//lambdas[L1C];// 0.190;
+\item satellites:
+\begin{itemize}
+\item pos (coming soon)
+\item pos\_rate (coming soon)
+\item clk
+\item clk\_rate
+\item orb
+\end{itemize}
+\end{itemize}
 
 
-\subsection{Process Noise}
+\subsection*{estimated:}
 
-Currently in the PEA we have Gaussian, and random walk process noise models implemented.
+Boolean to add the state(s) to the kalman filter for estimation.
 
-The units are in meters, and they are given as $\sigma$ sqrt(variance)
+\subsection*{sigma:}
 
-For a random walk process noise, the process noise is incremented at each epoch as $\sqrt{process\_noise}*dt$ where dt is the time step between filter updates.
+List of a-priori sigma values for each of the components of the state.
 
-If you want to allow kinematic processing, then you can increase the process noise e.g.
-proc\_noise [0.003]
-proc\_noise\_dt: second 
+If the sigma value is left as zero (or not initialised), then the initial variance and value of the state will be estimated by using a least-squares approach.
+In this case, the user must ensure that the solution is likely rank-sufficient, else the least-squares initialisation will fail.
 
-equates to $\frac{0.003}/\sqrt{s}$
+For states with multiple elements (eg, X,Y,Z positions), multiple sigma values may be added to the list. However, if insufficient values are added to the list, the intialiser will use the last value in the list for any extra elements.
+ie. Setting \lstinline{sigma: [10]} is sufficient to set all x,y,z components of the apriori standard deviation to 10.
+
+\subsection*{proc\_noise:}
+
+List of process noises to be added to the state during state transitions. These are typically in m/sqrt(s), but different times may be assigned separately.
+As for the sigma list, the last value will be used for any elements exceeding the list length.
+
+\subsection*{proc\_noise\_dt:}
+
+Unit of measure for process noise. 
+May be left undefined for seconds, or using sqrt\_second, sqrt\_seconds, sqrt\_minutes, sqrt\_hours, sqrt\_days, sqrt\_weeks, sqrt\_years.
+
+\subsection{override\_filter\_parameters:}
+
+In the case that a specific station or satellite requires an alternate configuration, or to exclude estimates entirely, the override\_filter\_parameters section may be used to overwrite selected components of the configuration.
+
+
+\subsection{user\_filter\_parameters, network\_filter\_parameters:}
+
+The internal operation of the kalman filter is specified in this section. It has a large impact on the robustness, and associated processing time that the filter will achieve.
+
+\begin{lstlisting}[language=yaml,caption=Filter Operating Parameters:]
+
+user_filter_parameters:
+
+    max_filter_iterations:      5 #5
+    max_prefit_removals:        3 #5
+
+    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
+    rts_directory:              ./
+    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+
+    inverter:                   LLT         #LLT LDLT INV
+
+\end{lstlisting}
+
+
+\subsection*{max\_prefit\_removals:}
+
+Maximum number of pre-fit residuals to reject from the filter.
+
+After the vector of residuals has been generated and before the filter update stage is computed, the residuals are compared with the expected values given the existing states and design matrix.
+If the values are deemed to be unreasonable - because the variances of the transformed states and measurements do not overlap to with a 4-sigma level of confidence - then these measurements are deweighted by deweight\_factor, to prevent the bad values from contaminating the filter.
+
+These measurements are recorded as being rejected, and may have additional consequences according to other configurations such as phase\_reject\_limit.
+
+\subsection*{max\_filter\_iterations:}
+
+Maximum number of times to compute the full update stage due to rejections.
+
+This is similar to the max\_filter\_rejections parameter, but the 4-sigma check is performed with post-fit residuals, which are much more precise.
+
+Rejections that occur in this stage require the entire filter inversion to be repeated, and has an associated performance hit when used excessively.
+
+
+\subsection*{inverter:}
+
+There are multiple inverters that may be used within the kalman filter update stage, which may provide different performance outcomes in terms of processing time and accuracty and stability.
+
+The inverter may be selected from:
+\begin{itemize}
+\item llt
+\item ldlt
+\item inv
+\end {itemize}
+
+
+
+\subsection{outage\_reset\_limit:}
+Maximum number of epochs with missed phase measurements before the ambiguity associated with the measurement is reset.
+
+\subsection{phase\_reject\_limit:}
+Maximum number of phase measurements to reject before the ambiguity associated with the measurement is reset.
+
+
+\subsection*{rts\_X:}
+
+For details about rts configuration, see section \ref{ch:RTS}
+
+
+
+
+
+
+
+\subsection{Process Noise Guidelines}
+
+Currently in the PEA we have random walk process noise models implemented.
+
+The units are typically in meters, and they are given as $\sigma$ = $\sqrt{variance}$
+
+For a random walk process noise, the process noise is incremented at each epoch as $\sigma^2\times dt$ where dt is the time step between filter updates.
+
+If you want to allow kinematic processing, then you can increase the process noise e.g.\\
+proc\_noise [0.003]\\
+proc\_noise\_dt: second\\ 
+
+equates to $0.003\frac{1}{\sqrt{s}}$
 \\ 
-Or if you wanted highway sppeds 100km/hr = 28 m/s
-proc\_noise [28]
+Or if you wanted highway sppeds 100km/hr = 28 m/s\\
+proc\_noise [28]\\
 proc\_noise\_dt: second
-proc\_noise\_model:   Gaussian
-or
-         proc\_noise\_model:   RandomWalk
-or
-         proc\_noise\_model:   FOGM 1.0
-Where the number after FOGM gives the correlation time B
-That way we could keep the same:
-            proc\_noise:         [0.01]
-            proc\_noise\_dt:      hour
 
 A nice value for using VMF as an apriori value is 0.1mm /sqrt(s)
 %
-\begin{verbatim}
+\begin{lstlisting}
 trop:
-estimated:          true
-sigma:              [0.1]
-proc_noise:         [0.01]
-proc_noise_dt:      hour
-\end{verbatim}
+    estimated:          true
+    sigma:              [0.1]
+    proc_noise:         [0.01]
+    proc_noise_dt:      hour
+\end{lstlisting}
 
 
 
@@ -143,4 +331,9 @@ proc_noise_dt:      hour
 \begin{enumerate}
     \item https://ocw.mit.edu/courses/earth-atmospheric-and-planetary-sciences/12-540-principles-of-the-global-positioning-system-spring-2012/lecture-notes/MIT12\_540S12\_lec13.pdf
 \end{enumerate}
+
+
+
+
+
 

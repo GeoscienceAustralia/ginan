@@ -124,9 +124,9 @@ extern map<SatSys, Satlpivt>				satpiv;
 extern map<E_Sys, map<string, StatAmbg>>	StatAmbMap_list;
 extern KFState								KF_ARcopy;
 
-int networkAmbigResl( Trace& trace, StationList& stations, KFState& kfState, double tgap);
+int networkAmbigResl( Trace& trace, StationList& stations, KFState& kfState);
 void Netwrk_ARoutput ( Trace& trace, StationList& stations, GTime time, bool ionout, double biaupdt, double arelev);
-int enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState, double tgap);
+int enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState);
 int net_sect_out ( Trace& trace );
 void Netwrk_trace_out(Trace& trace, double arelev,string recv);
 
@@ -135,7 +135,7 @@ void init_net_pivot ( Trace& trace, double arelev, string defref );
 void updt_net_pivot ( Trace& trace, bool wlonly );
 int  rese_net_NL ( Trace& trace, string sta, SatSys insat);
 
-int WLambEstm(Trace& trace, GTime time, double tgap, ARState& ambState, bool wlonly);
+int WLambEstm(Trace& trace, GTime time, ARState& ambState, bool wlonly);
 int NLambEstm(Trace& trace, KFState& kfState, ARState& ambState);
 
 int GNSS_AR(Trace& trace, ARState* ambc);

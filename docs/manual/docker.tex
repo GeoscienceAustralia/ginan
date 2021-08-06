@@ -1,6 +1,6 @@
 \chapter{Docker}
 \label{ch:docker}
-\newthought{Docker is} ``an open platform for developing, shipping, and running applications''. It is a convenient way for us to provide all of the dependencies and the latest release source code so that we can use the ginan tool kit straight out of the box.
+\textit{Docker is} ``an open platform for developing, shipping, and running applications''. It is a convenient way for us to provide all of the dependencies and the latest release source code so that we can use the ginan tool kit straight out of the box.
 %
 In order for this to work, we will first need to install the docker engine onto our local machine. If we are running a different operating system instructions on how to install docker can be found at \href{https://docs.docker.com/get-docker/}{docker desktop downlod link}, these also include alternative methods of installing on ubuntu and has links to recommended best practices.
 %
@@ -38,7 +38,7 @@ Verify that the Docker engine is installed correctly by running the \emph{hello-
 $ docker run hello-world
 \end{lstlisting}
 
-Then we will need to change the ownership:
+Then we will need to include the current user to the \emph{docker} group:
 \begin{lstlisting}[language=bash]
 $ sudo usermod -aG docker root
 $ sudo usermod -aG docker ${USER}
@@ -47,83 +47,63 @@ You will need to log out and back in for the permissions to take effect.
 
 \section{Using Docker}
 
-Once we have docker installed on our local machine we will need to download our image for ginarn:
+Once we have docker installed on our local machine we will need to download our image for Ginan:
 \begin{lstlisting}[language=bash]
-$ docker pull gamichaelmoore/ginarn-base-ubuntu-20.04
+$ docker pull gnssanalysis/ginan:latest
 \end{lstlisting}
 Then we can run the image as follows:
 \begin{lstlisting}[language=bash]
-$ docker run -it -v /data:/data gamichaelmoore/ginarn-base-ubuntu-20.04 bash
+$ docker run -it -v /data:/data gnssanalysis/ginan:latest bash
 \end{lstlisting}
-This gives us a run-time environment where the dependencies of ginan are installed.
-Here, the \texttt{-v} option mounts a volume inside the docker instance at \texttt{/data},
-which maps to the \texttt{/data} folder of the host machine. This way this folder
+This gives us a run-time environment where Ginan is installed with the executables
+\emph{pea} and \emph{pod} already in your path.
+Here, the \emph{-v} option mounts a volume inside the docker instance at \emph{/data},
+which maps to the \emph{/data} folder of the host machine. This way this folder
 can be shared between the host and the container, and the results can persist.
 
-You should now see a \texttt{bash} prompt running inside the docker container.
-
-\section{Building ginan}
-
-\begin{subsection}{Note}
-The instructions here are for separate \texttt{pea} and \texttt{pod} git repositories.
-The docker image for the consolidated repository is still a work-in-progress
-\end{subsection}
-
-To clone the latest version from the git repositories, run the following from inside the container:
+You should now see a \emph{bash} prompt running inside the docker container.
+You can check the availability of Ginan executables by running
 \begin{lstlisting}[language=bash]
-mkdir -p /data/acs
-pushd /data/acs
-# clone pea and pod
-# use your own credentials to clone pea
-git clone https://git@bitbucket.org/geoscienceaustralia/pea.git
-git clone https://anonymous:pipelines@bitbucket.org/geoscienceaustralia/pod.git
-popd
+$ pea --help
+$ pod --help
 \end{lstlisting}
 
-Now, with all the dependencies set up already, we can build the executables:
-
+To run the standard testsuite, try:
 \begin{lstlisting}[language=bash]
-# building pea and pod
-cd /data/acs/pea/cpp
-mkdir build
-cd build
-cmake ..
-cmake --build /data/acs/pea/cpp/build --target pea
-cd /data/acs/
-cd pod
-mkdir build && cd build
-cmake ..
-make
-export PATH=$PATH:/data/acs/pod/bin
+$ /ginan/aws/docker/run-tests.sh
 \end{lstlisting}
 
-This docker image comes with a pre-built conda environment that enables plotting. To use it:
+This docker image comes with a pre-built conda environment that enables plotting. To use it
+you have to activate the python conda environment first:
 \begin{lstlisting}[language=bash]
-conda activate gn37
+$ eval "$(/root/.miniconda3/bin/conda shell.bash hook)"
+$ conda activate gn37
 \end{lstlisting}
+Finally, to exit this session, type:
+\begin{lstlisting}[language=bash]
+$ exit
+\end{lstlisting}
+
 
 \section{Keeping a container running}
-If we instantiate a container this way, our session will finish when we quit the bash prompt.
+If we instantiate a container this way, our session will finish when we quit the \emph{bash} prompt.
 The changes we make to the container will also be lost, except the changes that persist outside
-of the container, that is, the \texttt{/data} folder in our example.
+of the container, that is, the \emph{/data} folder in our example.
 
-Therefore, it is sometimes useful to keep a container running, and connect to it and disconnect
+Therefore, it is sometimes useful to keep a container running, and connect to it and detach
 from it as needed.
 
-To start up a docker container in the disconnected mode, run:
+To start up a docker container in the detached mode, run:
 \begin{lstlisting}[language=bash]
-docker run -d -v /data:/data gamichaelmoore/ginarn-base-ubuntu-20.04 sleep infinity
+$ docker run -d -v /data:/data gnssanalysis/ginan:latest sleep infinity
 \end{lstlisting}
 we can verify that the container is running in the background:
 \begin{lstlisting}[language=bash]
-docker ps
+$ docker ps
 \end{lstlisting}
 This will show a container ID. Docker conveniently also provides an alias as a ``name``.
 We can start a new bash shell inside the container by:
 \begin{lstlisting}[language=bash]
-docker exec -it <name> bash
+$ docker exec -it <name> bash
 \end{lstlisting}
-where \texttt{<name>} is the name or ID of the running docker container.
-
-
-
+where \emph{<name>} is the name or ID of the running docker container.

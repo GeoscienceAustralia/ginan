@@ -147,7 +147,7 @@ network_filter_parameters:
     inverter:                   llt         #LLT LDLT INV
 
     max_filter_iterations:      1
-    max_filter_removals:        3
+    max_prefit_removals:        3
 
     rts_lag:                    10      #-ve for full reverse, +ve for limited epochs 1 epoch?
     rts_directory:              ./
@@ -350,27 +350,6 @@ minimum_constraints:
     #    ALIC: 0.001     #constrain strongly
     #    AGGO: 1
     #    BOAV: 100       #constrain weakly
-
-# cycle_slip_filter_parameters:
-#     enable:                             true            # Enable cycle slip detection + repair within the network estimation filter
-#     freq_l1:                            1575420000      # L1 frequency (Hz)
-#     freq_l2:                            1227600000      # L2 frequency (Hz)
-#     print_activity:                     true            # Print analysis to terminal
-#     debug:                              false           # Export debug files (adds ~0.3s runtime per epoch)
-#     timer_debug:                        false           # Export timing data to file
-#     new_channel_break_in_duration:      2               # Number of epochs to wait before starting data cleaning
-#     d_moving_ave_win:                   5               # Differenced prefit moving average window length
-#     common_mode_method:                 "iqm"           # Method used to calculate common mode. Options: "iqm" (inter-quartile mean), "median" (median), "mean" (mean)
-#     slip_classify_min_pts:              10              # Number of points to perform slip/outlier classification on
-#     slip_classify_post_outlier_pts:     3               # Number of post-outlier epochs to perform slip/outlier classification on (inclusive of the outlier itself). E.g. if outlier detected in epoch 4 and slipClassifyWait = 3, then classification happens in epoch 6. Channel is deweighted in the interim
-#     outlier_p_alpha:                    0.00001         # Alpha value used in outlier p--test
-#     t_alpha:                            0.00001         # Alpha value used in Student's t-test
-#     min_size_p_alpha:                   0.00001         # Alpha value used to verify (potential) slips are large enough (i.e. >= 1 wavelength)
-#     outlier_detect_min_pts:             8               # Number of points to perform outlier analysis on
-#     int_valid_pdf_thresh:               0.99            # Threshold for integer validation PDF test
-#     int_valid_outlier_alpha:            0.00001         # Alpha for integer validation outlier test
-#     deweight_noise:                     1000            # 'Noise' given to deweighted measurements (higher than normal)
-#     int_valid_combo_jump_alpha:         0.00001         # Alpha for integer validation outlier test using combined data
 
 ambiguity_resolution_options:
     Min_elev_for_AR:            15.0

@@ -1,73 +1,211 @@
-\chapter{PEA YAML Configuration}
-\label{ch:pea_yaml_configuration}
-\section{PEA processing options (pod\_options)}
-%
-%
-\section{Input File Options}
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+
+
+
+
+
+
+
+
+
+
+
+
+\chapter{PEA Configuration File - YAML}
+	
+The PEA processing engine uses a single yaml file for configuration of all processing options.
+
+\section{YAML Syntax}
+The yaml format allows for heirarchical, self descriptive configurations of parameters, and has a straightforward syntax.
+
+White-space (indentation) is used to specify heirarchies, with each level typically indented with 4 space characters.
+
+Colons (:) are used to separate configuration keys from their values.
+
+Lists may be created by either appending multiple values on a single line, wrapped in square brackets and separated by commas, or, by adding each value on a separate indented line with a dash before the value.
+
+Adding a hash symbol (\#) to a line will render the remainder of the line as a comment to be ignored by the parser.
+
+Strings with special characters or spaces should be wrapped in quotation marks.
+
+You will see all of these used in the example configuration files, but the files may be re-ordered, or re-formatted to suit your application.
+
+\section{Default Values}
+
+Many processing options have default values associated with them. To prevent repetition, and to ensure that the values are reported correctly, these values may be viewed in the acsConfig.hpp file within the source code directories.
+
+
+\section{Globbing}
+Files may be specified individually, as lists, or by searching available files using a globbed filename using the star character (*)
+
+\section{Wildcard Tags}
+Output filenames can include wildcards wrapped in \lstinline{< >} brackets to allow more generic names to be used. While processing, these tags are replaced with details gathered from processing, and allows for automatic generation of, for example, hourly output files.
+
+\subsection*{\textless CONFIG\textgreater}
+This is replaced with the 'config\_description' value entered in the yaml file.
+\subsection*{\textless STATION\textgreater}
+This is replaced with the 4 character station id of each station that generates a trace file.
+\subsection*{\textless LOGTIME\textgreater}
+This is replaced with the (rounded) time of the epochs within the trace file.
+
+If trace file rotation is configured for 1 hour, the \lstinline{<LOGTIME>} wildcard will be rounded down to the closest hour, and subsequently change value once per hour and generate a separate output file for each hour of processing.
+
+\subsection*
+{\textless DDD\textgreater,
+\textless D\textgreater, 
+\textless WWWW\textgreater, 
+\textless YYYY\textgreater, 
+\textless YY\textgreater, 
+\textless MM\textgreater, 
+\textless DD\textgreater, 
+\textless HH\textgreater}
+These are replaced with the components of time of the start epoch.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{input\_files:}
+
+This section of the yaml file specifies the lists of files to be used for general metadata inputs, and inputs of external product data.
+
+\begin{lstlisting}[language=yaml,caption=A typical input\_files section]
+# Example
 input_files:
 
-root_input_directory: /data/acs/pea/proc/exs/products
-
-atxfiles:      [  igs14_2045_plus.atx                       ]  # Antenna models
-snxfiles:      [  igs19P2062.snx                            ]  # meta data and apriori coords
-blqfiles:      [  OLOAD_GO.BLQ                              ]  # ocean loading is applied
-navfiles:      [  brdm1990.19p                              ]  # gnss broadcast file
-sp3files:      [  gag20624.sp3                              ]  # precise orbit data 
-erpfiles:      [  igs19P2062.erp                            ]  # earth orintation parameters
-#dcbfiles:      [  CAS0MGXRAP_20191990000_01D_01D_DCB.BSX   ]  # monthly DCB file
-#clkfiles:     [  jpl20624.clk                              ]  # satellie and receiver clock 
-orbfiles:      [  gag20624_orbits_partials.out              ]  # need this when estimating orbits (overrides .sp3 file)
+	root_input_directory: /data/acs/pea/proc/exs/products/
+	
+	atxfiles:   [ igs14_2045_plus.atx                                ]
+	snxfiles:   [ igs19P2062.snx                                     ]
+	blqfiles:   [ OLOAD_GO.BLQ                                       ]  
+	navfiles:   [ brdm1990.19p                                       ]  
+	orbfiles:   [ orb_partials/gag20624_orbits_partials_new.out      ]  
+	sp3files:   [ "*.sp3"                                            ]
+	clkfiles:   [ jpl20624.clk                                       ]  
+	erpfiles:   [ igs19P2062.erp                                     ]  
+	dcbfiles:   [ CAS0MGXRAP_20191990000_01D_01D_DCB.BSX             ] 
+	bsxfiles:   []
+	ionfiles:   [] 
 \end{lstlisting}
 
-\section{RINEX station data}
+\subsection*{root\_input\_directory:}
+This specifies a root directory to be prepended to all other file paths specified in this section. For file paths that are absolute, (ie. starting with a /), this parameter is not applied.
 
-%RINEX2 and RINEX3 data
-There are numerous ways that the \emph{pea} can access GNSS RINEX observations to process. You can specify individual rinex files to process, set it up so that it will search a particular directory, or you can use a command line flag \emph{-rnx <rnxfilename>} to add an additional file to process. The data should be uncompressed (gunzipped, and not in hatanaka format), that is the \emph{pea} expecting to just accept RINEX format]. 
-%
-\begin{lstlisting}[language=xml,caption=pea yaml processing one station example]
+\subsection*{atxfiles:}
+A list of ANTEX files to be used in processing. These may supply the antenna parameters to be used by satellites and receivers.
+
+\subsection*{snxfiles:}
+A list of SINEX files to be used in processing. These may supply the initial positions and other metadata for receivers.
+
+\subsection*{blqfiles:}
+A list of BLQ files to be used in processing. These may supply the ocean tide loading data.
+
+\subsection*{navfiles:}
+A list of NAV files to be used in processing. These may supply the basic broadcast ephemerides for satellites.
+
+\subsection*{orbfiles:}
+A list of ORB files to be used in processing. These may supply the PEA with orbital and ratiation pressure data from the Ginan's POD module, allowing precise orbit data to be passed between the two pieces of software.
+
+\subsection*{sp3files:}
+A list of SP3 files to be used in processing. These may supply the ephemerides for higher precision processing.
+
+\subsection*{clkfiles:}
+A list of CLK files to be used in processing. These may supply the clock offsets for satellites and receivers for higher precision processing.
+
+\subsection*{erpfiles:}
+A list of ERP files to be used in processing. These may supply the earth rotation parameter information.
+
+\subsection*{dcbfiles:}
+A list of DCB files to be used in processing. These may supply the differential code biases to assist with ambiguity resolution.
+
+\subsection*{bsxfiles:}
+A list of BSINEX files to be used in processing. These may supply biases to assist with ambiguity resolution.
+
+\subsection*{ionfiles:}
+A list of ION files to be used in processing. These may supply the ionospheric modelling parameters for single frequency processing.
+
+
+
+
+
+
+\section{station\_data:}
+This section specifies the sources of observation data to be used in positioning.
+
+
+There are numerous ways that the \emph{pea} can access GNSS observations to process. 
+You can specify individual files to process, set it up so that it will search a particular directory, or you can use a command line flag \lstinline{--rnx <rnxfilename>} to add an additional file to process. 
+The data should be uncompressed rinex (gunzipped, and not in hatanaka format), or RTCM3 formatted binary data.
+
+
+It may consist of RINEX files, or RTCM streams or files, which are specified as follows:
+\subsubsection{Post processing:}
+
+\begin{lstlisting}[language=yaml,caption=station\_data:]
+# post processing example
 station_data:
-
-	root_stations_directory: /data/ginarn/proc/data
-
+	root_stations_directory: /data/acs/ginan/examples/data
 	rnxfiles:
-		- ALIC00AUS_R_20191990000_01D_30S_MO.rnx                          
-\end{lstlisting}\label{lst:pea-yaml-single-station}
-%
-To process one RINEX file, you need to first specify the root dircetory of where the data is being stored in \emph{root\_stations\_directory}, and then the name of the RINEX file as a single entry under \emph{rnxfiles:}, as shown in the listing~ref{lst:pea-yaml-single-station}. 
-%
-\begin{lstlisting}[language=bash,caption=Example showing how to add a RINEX file to the processing list form the command line]
-$ pea --rnx CAS100ATA_R_20191990000_01D_30S_MO.rnx
-\end{lstlisting}\label{lst:pea-cmd-single-station}
-%
-If you wanted to process another file, located in the same \emph{root\_stations\_directory}, this can be achieved at the command line using the \emph{-rnx <rnxfilename} flag, see listing~ref{lst:pea-yaml-add-station}.
-%
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
-station_data:
-
-root_stations_directory: /data/acs/pea/proc/exs/data
-
-rnxfiles:
-- "*.rnx"                           #- searching all in file_root directory
+		- "ALIC*.rnx"
+		- "BAKO*.rnx"
+		
+	#obs_rtcmfiles:
+	#	- "*-OBS.rtcm3"
+		
+	#nav_rtcmfiles:
+	#	- "*-NAV.rtcm3"
 \end{lstlisting}
 
-\section{Real-time streams}
+
+\subsection*{root\_stations\_directory:}
+This specifies a root directory to be prepended to all other file paths specified in this section. For file paths that are absolute, (ie. starting with a /), this parameter is not applied.
+
+\subsection*{rnxfiles:}
+This is a list of RINEX files to be used for observation data. The first 4 characters of the filename are used as the receiver ID.
+
+If multiple files are supplied with the same ID, they are all processed in sequence - according to the epoch times specified within the files. In this case, it is advisible to correctly specify the start\_epoch for the filter, or the first epoch in the first file will likely be used.
+
+\subsection*{obs\_rtcmfiles:}
+This is a list of RTCM binary files to be used for observation data. The first 4 characters of the filename are used as the receiver ID.
+
+This can be used to read data that has been saved from a stream for later testing.
+
+\subsection*{nav\_rtcmfiles:}
+This is a list of RTCM binary files to be used for navigation and correction data. No receiver is to be associated with these files.
+
+\subsubsection{Real-time processing:}
+
 To process data in real-time you will need to set up the location, username annd password for the caster that you will be obtaining the input data streams from in the configuration file.
 
-The pea supports obtaining streams from casters that use NTRIP 2.0 over http and https. 
-%TODO check I believe we can do multiple casters for input At the moment the pea is able to connect to one caster for input data streams, and a different caster for the output of correction messages.
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+The pea supports obtaining streams from casters that use NTRIP 2.0 over http and https.
+
+
+\begin{lstlisting}[language=yaml,caption=station\_data:, label={lst:realtimeConfig}]
+# realtime streaming example
 station_data:
+	
+	stream_root: "http://<username>:<password>@auscors.ga.gov.au:2101/"
 
-	stream_root: "http://<usedname>:<password>@auscors.ga.gov.au:2101/"
-
-	streams:
+	nav_streams:
 		- BCEP00BKG0
 		- SSRA00CNE0
+		
+	obs_streams:
 		- STR100AUS0
-\end{lstlisting}\label{lst:pea-yaml-realtime-single-station}
-%
-As shown in listing:~\ref{lst:pea-yaml-realtime-single-station}, the caster url, username and password are specified within double quotes with the \emph{stream\_root} tag. In this example the streams are being obtained from the auscors caster run by Geoscience Australia. 
+\end{lstlisting}
+
+As shown in listing: \ref{lst:realtimeConfig}, the caster url, username and password are specified within double quotes with the \emph{stream\_root} tag. In this example the streams are being obtained from the auscors caster run by Geoscience Australia. 
 The broadcast information is being obtained from the stream \emph{BCEP00BKG0} being supplied by BKG, and corrections to the utlra-rapid predicted orbit are being obtained from the stream \emph{SSRA00CNE0}. 
 The real-time data being processed is for the continuous GNSS station located at Mount Stromlo obtained from the stream \emph{STR100AUS0}.
 
@@ -75,228 +213,635 @@ You can test your username and password is working correctly by running the curl
 \begin{lstlisting}[language=bash]
 curl https://ntrip.data.gnss.ga.gov.au/ALIC00AUS0 -H "Ntrip-Version: NTRIP/2.0" -i  --output - -u <user>
 \end{lstlisting}
-%
-\section{output files}
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+
+\subsection*{stream\_root:}
+This specifies a root url to be prepended to all other streams specified in this section. If the streams used have individually specified root urls, usernames, or passwords, this should not be used.
+
+\subsection*{obs\_streams:}
+This is a list of RTCM streams to read realtime data from. The first 4 characters of the filename are used as the receiver ID.
+
+In combination with the stream\_root parameter, they may require a username, password, port and mountpoint.
+
+The streams in this section are processed for observations from receivers.
+
+\subsection*{nav\_streams:}
+This is a list of RTCM streams to read realtime data from. 
+
+In combination with the stream\_root parameter, they may require a username, password, port and mountpoint.
+
+The streams in this section are processed separately from observations, and will typically be used for receiving SSR messages or other navigational data from an external service.
+
+
+
+
+
+
+
+
+
+
+\section{output\_files:}
+This section of the yaml file specifies options to enable outputs and specify file locations.
+
+An example of this section follows:
+\begin{lstlisting}[language=yaml,caption=output\_files:]
 output_files:
 
-root_output_directory:          /data/acs/pea/output/<CONFIG>/
-
-log_level:                      warn                             #debug, info, warn, error as defined in boost::log
+root_output_directory:          /data/acs/ginan/examples/<CONFIG>/
 
 output_trace:                   true
-trace_level:                    2
+trace_level:                    3
 trace_directory:                ./
-trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
+trace_filename:                 <CONFIG>-<STATION><LOGTIME>.TRACE
 
-output_residuals:               true
+output_residuals:               false
 
-output_persistance:             false
-input_persistance:              false
-persistance_directory:          ./
-persistance_filename:           <CONFIG>.persist
+output_config:                  true
 
-output_config:                  false
-
-output_summary:                 true
+output_summary:                 false
 summary_directory:              ./
-summary_filename:               PEA<YYYY><DDD><HH>.SUM
-
-output_ionex:                   false
-ionex_directory:                ./
-ionex_filename:                 IONEX.ionex
-iondsb_filename:                IONEX.iondcb
+summary_filename:               <CONFIG>-<YYYY><DDD><HH>.SUM
 
 output_clocks:                  true
 clocks_directory:               ./
 clocks_filename:                <CONFIG>.clk
-output_AR_clocks:               true
-
-output_sinex:                   true
-sinex_directory:                ./
 \end{lstlisting}
 
-\section{output options}
+\subsection*{root\_output\_dir:}
+This specifies a root directory to be prepended to all other file paths specified in this section. For file paths that are absolute, (ie. starting with a /), this parameter is not applied.
 
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+\subsection*{[X]\_directory:}
+Directory to output file [X] to, where [X] are the features below. May contain wildcard tags. May be relative to root\_output\_dir, or absolute. If the directory does not exist, it will be created.
+
+\begin{itemize}
+\item trace\_directory
+\item summary\_directory
+\item clocks\_directory
+\item ionex\_directory
+\item biasSinex\_directory
+\item sinex\_directory
+\item persistance\_directory
+\item rtcm\_directory
+\end{itemize}
+
+\subsection*{[X]\_filename:}
+Filename to use for output of [X]. May contain wildcard tags. File will be created or overwritten if it already exists.
+
+\begin{itemize}
+\item trace\_filename
+\item summary\_filename
+\item clocks\_filename
+\item ionex\_filename
+\item biasSinex\_filename
+\item sinex\_filename
+\item persistance\_filename
+\item obs\_rtcm\_filename
+\item nav\_rtcm\_filename
+\end{itemize}
+
+\subsection*{trace\_level:}
+Integer from 0-5 to specify verbosity of trace outputs. (5 - print everything)
+
+\subsection*{trace\_rotate\_period, trace\_rotate\_period\_units:}
+Granularity of length of time used for \textless LOGTIME\textgreater tags. These parameters may be used such that the filename of an output will change intermittently, and thus distribute the output over multiple files.
+
+The \textless LOGTIME\textgreater tag is updated according to the epoch time, not the current clock time.
+
+trace\_rotate\_period must be a numeric value, and trace\_rotate\_period\_units may be one of seconds (default), minutes, hours, days, weeks, years, (with or without plural s).
+
+\subsection*{output\_residuals:}
+Boolean to print the residuals from kalman filter operation to relevant trace files.
+
+\subsection*{output\_config:}
+Boolean to print a copy of the yaml file to the top of each trace file. This may assist with keeping a record of the parameters used to generate the particular results contained in the file.
+
+\subsection*{output\_trace:}
+Boolean to generate per-station trace files.
+
+\subsection*{output\_summary:}
+Boolean to generate a network summary file.
+
+\subsection*{output\_clocks:}
+Boolean to generate RINEX formatted clock files from processed data.
+
+\subsection*{output\_AR\_clocks:}
+Boolean to specify that the ambiguity resolved version of clocks should be output if output\_clocks is enabled.
+
+\subsection*{output\_ionex:}
+Boolean to generate an IONEX file from processed ionosphere data.
+
+\subsection*{output\_ionstec:}
+Boolean to generate an IONSTEC file from processed ionosphere data.
+
+\subsection*{output\_biasSINEX:}
+Boolean to generate a biasSINEX from processed network data.
+
+\subsection*{output\_sinex:}
+Boolean to generate a sinex file containing processed solutions, and the metadata used to generate them.
+
+\subsection*{output\_persistance:}
+Boolean to save the network filter state, and navigation and ephemerides structure to disk once per epoch. For realtime processing where ephemerides are sourced from a a stream over several minutes, this may enable quicker start-up if the processor is restarted.
+
+\subsection*{input\_persisance:}
+Boolean to try to load a saved filter and navigation structure from disk.
+
+\subsection*{output\_mongo\_measurements:}
+Boolean to output kalman filter measurements and residuals to a mongo database.
+
+\subsection*{output\_mongo\_states:}
+Boolean to output the results of kalman filter processing to a mongo database.
+
+\subsection*{output\_mongo\_logs:}
+Boolean to output timestamped log data from the console to a mongo database.
+
+\subsection*{output\_mongo\_metadata:}
+Boolean to output timestamped metadata from processing to a mongo database. (unimplemented)
+
+\subsection*{delete\_mongo\_history:}
+Boolean to delete a previous database using the same <CONFIG> tag before processing, to prevent collisions.
+
+\subsection*{mongo\_uri:}
+The URL to the location of the mongo database server.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{processing\_options:}
+
+This sections specifies the extent of processing that is performed by the engine.
+
+\subsection*{epoch\_interval:}
+Increment in nominal epoch time for each processing epoch. This parameter may be used to sub-sample datasets by using an epoch\_interval that is a multiple of the dataset's internal interval between epochs.
+
+\subsection*{start\_epoch}
+Nominal time of the first epoch to process. Time is formatted as YYYY-MM-DD HH:MM:SS.
+This parameter may be left undefined to use the first available data point.
+
+\subsection*{end\_epoch}
+Maximum nominal time of the last epoch to process. This parameter may be left undefined.
+
+\subsection*{max\_epochs:}
+Maximum epochs to process before completion. This parameter may be left undefined.
+
+\subsection*{process\_modes:}
+
+\begin{lstlisting}[language=yaml,caption=process\_modes:]
+process_modes:
+    user:                   true
+    network:                false
+    minimum_constraints:    false
+    rts:                    false
+    ionosphere:             false
+\end{lstlisting}
+
+\subsection*{user:}
+Boolean to process all stations individually. Typically used for determining position of individual receivers.
+
+\subsection*{network:}
+Boolean to process all stations in a single filter. May be used for determination of orbits, clocks, etc.
+
+\subsection*{minimum\_constraints:}
+Boolean to apply a rigid transformation to the results of the network filter after completion.
+
+\subsection*{ionosphere:}
+Boolean to compute an ionosphere model from observations.
+
+\subsection*{unit\_tests:}
+Boolean to run tests to compare intermediate values during processing to stored results.
+
+
+\subsection*{process\_sys:}
+\begin{lstlisting}[language=yaml,caption=process\_sys:]
+process_sys:
+    gps:            true
+    glo:            false
+    gal:            false
+    bds:            false
+\end{lstlisting}
+
+Booleans to enable the various GNSS satellite systems.
+
+\begin{itemize}
+\item gps
+\item glo
+\item gal
+\item bds
+\end{itemize}
+
+\subsection*{elevation\_mask:}
+Minimum elevation required for observations to be used, measured in degrees.
+
+\subsection*{ppp\_ephemeris:}
+Option to specify source of satellite ephemeris used in PPP processing. Sources are:
+\begin{itemize}
+\item broadcast
+\item precise
+\item precise\_com
+\item sbas
+\item ssr\_apc
+\item ssr\_com
+\end{itemize}
+
+\subsection*{tide\_solid:}
+Boolean to apply solid tide model to station positions.
+
+\subsection*{tide\_otl:}
+Boolean to apply ocean tide loading model to station positions.
+
+\subsection*{tide\_pole:}
+Boolean to apply pole tide model to station positions.
+
+\subsection*{phase\_windup}
+Boolean to apply phase windup model to satellite phase measurements.
+
+\subsection*{reject\_eclipse}
+Boolean to exclude eclipsed satellites from processing.
+
+\subsection*{raim}
+Boolean to perform 'Receiver autonomous integrity monitoring' to detect and exclude observations that result in SPP failures.
+
+\subsection*{cycle\_slip: thres\_slip:}
+Threshold to apply to geometry free phase values to determine if an observation should be rejected due to a slip.
+
+\subsection*{max\_inno:}
+Maximum innovation in PPP measurement before both phase and code measurements are excluded.
+
+\subsection*{deweight\_factor:}
+Factor by which measurement variances are increased upon detection of a bad measurement.
+
+\subsection*{max\_gdop:}
+Maximum 'geometric dilution of precision' allowed for an SPP result to be valid.
+
+\subsection*{antexacs:}
+Internal processing option. Bad things will likely happen if this is set to false.
+
+\subsection*{sat\_pcv:}
+Boolean to model satellite phase center variations.
+
+\subsection*{pivot\_station:}
+Station specified as origin for receiver clocks. Clocks for this station will be constrained to zero. May be set to \textless AUTO \textgreater or undefined to use first available station.
+
+\subsection*{pivot\_satellite}:
+Unused.
+
+\subsection*{wait\_next\_epoch:}
+Expected time interval between successive epochs data arriving. For real-time this should be set equal to epoch\_interval.
+
+\subsection*{wait\_all\_stations:}
+Window of delay to allow observation data to be received for processing.
+Processing will begin at the earliest of:
+\begin{itemize}
+\item Observations received for all stations
+\item wait\_all\_stations has elapsed since any station has received observations
+\item wait\_all\_stations has elapsed since wait\_next\_epoch expired.
+\end{itemize}
+
+\subsection*{code\_priorities:}
+List of observation codes that may be used in processing, and the order of priority for use. (Currently only a single code is used per frequency)
+
+\subsection*{joseph\_stabilisation:}
+Boolean to apply additional calculations in filter to ensure numerical stability.
+
+
+
+
+
+
+
+
+
+
+\section{troposphere:}
+
+
+\begin{lstlisting}[language=yaml,caption=troposphere:]
+    troposphere:
+        model:      vmf3    #gpt2
+        vmf3dir:    grid5/
+        orography:  orography_ell_5x5
+        # gpt2grid: EX03/general/gpt_25.grd
+\end{lstlisting}
+\subsection*{model:}
+
+Unused
+
+\subsection*{vmf3dir:}
+
+Location of vmf3 files.
+
+\subsection*{orography:}
+
+Orography filename for vmf3 troposphere.
+
+\subsection*{gpt2grid:}
+
+Name of gpt2 grid file. Will be used as fallback in case of errors with vmf3.
+
+
+
+
+\section{ionosphere:}
+
+\subsection*{corr\_mode:}
+
+Ionosphere correction/model mode. May be one of:
+
+\begin{itemize}
+\item broadcast - broadcast model
+\item sbas - SBAS model
+\item iono\_free\_linear\_combo - L1/L2 or L1/L5 iono-free LC
+\item estimate -  estimation
+\item total\_electron\_content - IONEX TEC model
+\item qzs - QZSS broadcast model
+\item lex - QZSS LEX ionospehre
+\item stec - SLANT TEC model
+\end{itemize}
+
+\subsection*{iflc\_freqs:}
+
+Frequency pairs to be used in ionosphere-free linear combinations. May be one of:
+
+
+\begin{itemize}
+\item any
+\item l1l2\_only
+\item l1l5\_only
+\end{itemize}
+
+
+
+\section{unit\_test\_options:}
+
+\subsection*{output\_pass:}
+
+Boolean to print pass messages in output file when tests pass. This may produce very long test files for not much benefit if we are just looking for failures.
+
+\subsection*{stop\_on\_fail:}
+
+Boolean to halt processing as soon as an error is located. This may allow testing and reporting to complete far sooner if there is a failure.
+
+\subsection*{stop\_on\_done:}
+
+Boolean to halt further processing if all required tests have been completed.
+
+\subsection*{output\_errors:}
+
+Boolean to print debug information about the error to the output file.
+
+\subsection*{absorb\_errors:}
+
+Boolean to replace incorrect values found in processing with the correct test values and continue processing as if the test had passed.
+This may be useful for preventing a single bad test from causing cascading test failures as the values diverge from the original result.
+
+\subsection*{directory, filename:}
+
+File and directory to store and open test files.
+
+
+
+
+
+\section{ionosphere\_filter\_parameters:}
+
+\subsection*{model:}
+
+Model to use in ionosphere routines. May be one of:
+\begin{itemize}
+\item meas\_out
+\item bspline
+\item spherical\_caps
+\item spherical\_harmonics
+\end{itemize}
+
+\subsection*{model\_noise:}
+
+Process noise to be applied to ionosphere kalman filter. (deprecated)
+
+\subsection*{lat\_center, lon\_center:}
+
+Longitude and latitude of center of ionosphere map in degrees.
+
+\subsection*{lat\_width, lon\_width:}
+
+Width of ionosphere maps in degrees.
+
+\subsection*{lat\_res, lon\_res:}
+
+Resolution of ionosphere maps in degrees.
+
+\subsection*{time\_res:}
+
+Resolution of ionosphere maps in time.
+
+\subsection*{func\_order:}
+
+Order of Legendre function used in spherical caps ionosphere.
+
+\subsection*{layer\_heights:}
+
+List of heights of modelled ionosphere layers.
+
+
+
+
+
+
+
+
+
+
+
+\section{output\_options:}
+
+This section specifies values to be used in the generation of output files.
+
+\begin{lstlisting}[language=yaml,caption=output\_options:]
 output_options:
 
-config_description:             EX03_AR
-analysis_agency:                GAA
-analysis_center:                Geoscience Australia
-analysis_program:               AUSACS
-rinex_comment:                  AUSNETWORK1
+    config_description:             ex11
+    analysis_agency:                GAA
+    analysis_center:                Geoscience Australia
+    analysis_program:               AUSACS
+    rinex_comment:                  AUSNETWORK1
 \end{lstlisting}
 
-\section{processing Options}
+\subsection*{config\_description:}
 
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
-processing_options:
+The value entered here is used to complete the \verb|<CONFIG>| wildcard.
+This may enable a single change in the yaml file to make changes to many options, including output folders and filenames.
 
-#start_epoch:               2019-07-18 00:00:00
-#end_epoch:                 2017-03-29 23:59:30
-#max_epochs:                300        #0 is infinite
-epoch_interval:             30          #seconds
+\subsection*{analysis\_agency, analysis\_center, analysis\_program, rinex\_comment:}
 
-process_modes:
-user:                   false
-network:                true
-minimum_constraints:    false
-rts:                    false
-ionosphere:             false
-unit_tests:             false
+String to be written within files during various output files' generation.
 
-process_sys:
-gps:            true
-#glo:           true
-gal:            false
-#bds:           true
 
-elevation_mask:     10   #degrees
 
-tide_solid:         true
-tide_pole:          true
-tide_otl:           true
 
-phase_windup:       true
-reject_eclipse:     true            #  reject observation during satellite eclipse periods
-raim:               true
-antexacs:           true
 
-cycle_slip:
-thres_slip: 0.05
 
-max_inno:   0
-max_gdop:   30
 
-troposphere:
-model:      gpt2    #vmf3
-gpt2grid:   gpt_25.grd
-#vmf3dir:    grid5/
-#orography:  orography_ell_5x5
 
-ionosphere:
-corr_mode:      iono_free_linear_combo
-iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
+\section{user\_filter\_parameters, network\_filter\_parameters, ionosphere\_filter\_parameters:}
 
-pivot_station:        "USN7"
-#pivot_satellite:      "G01"
 
-code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L,
-L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
-L5I, L5Q, L5X]
+\begin{lstlisting}[language=yaml,caption=Kalman Filter Configuration]
+user_filter_parameters:
+
+    max_filter_iterations:      5
+    max_prefit_removals:        3
+
+    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
+    rts_directory:              ./
+    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+
+    inverter:                   LLT         #LLT LDLT INV
+
 \end{lstlisting}
 
-\section{Network filter parameters}
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
-network_filter_parameters:
+For details on the configuration of kalman filters refer to \ref{KFConfig}, and \ref{ch:RTS}
 
-process_mode:               kalman      #lsq
-inverter:                   LLT         #LLT LDLT INV
 
-max_filter_iterations:      3
-max_filter_removals:        3
 
-rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
-rts_directory:              ./
-rts_filename:               <CONFIG>-Orbits.rts
-\end{lstlisting}
 
-\section{Default filter parameters: stations}
 
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
+
+
+
+
+
+\section{default\_filter\_parameters:}
+
+
+
+\begin{lstlisting}[language=yaml,caption=Default\_filter\_parameters]
 default_filter_parameters:
 
-	stations:	
-		error_model:        elevation_dependent         #uniform elevation_dependent
-			code_sigmas:        [0.30]
-			phase_sigmas:       [0.003]
-		pos:
-			estimated:          false
-			sigma:              [1.0]
-			proc_noise:         [0]
-			#apriori:                                   # taken from other source, rinex file etc.
-			#frame:              xyz #ned
-			#proc_noise_model:   Gaussian
-			#clamp_max:          [+0.5]
-			#clamp_min:          [-0.5]
-		clk:
-			estimated:          true
-			sigma:              [0]
-			proc_noise:         [1.8257418583505538]
-			#proc_noise:         [10]
-			#proc_noise_model:   Gaussian
-		clk_rate:
-			estimated:          false
-			sigma:              [10]
-			proc_noise:         [1e-4]
-			#clamp_max:          [1000]
-			#clamp_min:          [-1000]
-		amb:
-			estimated:          true
-			sigma:              [100]
-			proc_noise:         [0]
-		trop:
-			estimated:          true
-			sigma:              [0.1]
-			proc_noise:         [0.000083333]
-		trop_grads:
-			estimated:          false
-			sigma:              [0.1]
-			proc_noise:         [0.0000036]
-\end{lstlisting}
+    stations:
 
-\section{Default filter parameters: satellites}
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.15]
+        phase_sigmas:       [0.0015]
 
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
-    satellites:
-
-		clk:
-			estimated:          true
-			sigma:              [0]
-			proc_noise:         [0.03651483716701108]
-		
-		clk_rate:
-			estimated:          false
-			sigma:              [0.01]
-			proc_noise:         [1e-6]
-		
-		orb:
-			estimated:          true
-			sigma:              [5e-1, 5e-1, 5e-1, 5e-3, 5e-3, 5e-3, 5e-1]
-\end{lstlisting}
-
-\section{Default filter parameters: eop}
-
-\begin{lstlisting}[language=xml,caption=yaml input files configuration example]
-	eop:
-		estimated:  true
-		sigma:      [30]
-		#proc_noise: [0.0000036]
-
+        pos:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0.00057] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
+            proc_noise_dt:      second
 \end{lstlisting}
 
 
-\section{Ambiguity Resolution Options}
-%
-\begin{lstlisting}[language=xml,caption=yaml ambiguity configuration example]
-	ambiguity_resolution_options:
-		Min_elev_for_AR:            15.0
-		GPS_amb_resol:              true
-		GAL_amb_resol:              false
-		#Set_size_for_lambda:        10
+\subsection*{error\_model:}
 
-	WL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
-		WL_succ_rate_thres:         0.9999
-		WL_sol_ratio_thres:         3.0
-		WL_procs_noise_sat:         0.00001
-		WL_procs_noise_sta:         0.0001
+The GNSS observations can be weighted in three different ways in the PEA:
+\begin{itemize}
+    \item uniform - all observations are assigned the same variance
+    \item elevation\_dependent - an elevation dependent function is used to scale the observations, those at higher elevation are given more weight (a smaller standard deviation) than those observed at lower elevation
+    \item SNR observations (coming soon) - the Carrier to Noise observations supplied by the receiver are used to determine the observation weight. Generally speaking this is very similar to elevation weighting, but is useful when use observations obtained from a non-geodetic grade receiver/antenna.
+\end{itemize}
 
-	NL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
-		NL_succ_rate_thres:         0.9999
-		NL_sol_ratio_thres:         3.0
-		NL_proc_start:              86310
+\subsection*{code\_sigmas, phase\_sigmas:}
 
-	bias_read_mode:             30              # +1: read DSB biases, +2: read OSB biases, +4: read code biases, +8: read phase biases, +16: read satellite bias, +32: read station bias,
-		bias_output_rate:           300.0
-\end{lstlisting}
+Lists of the default sigma values for GNSS measurements, measured in meters.
+Separate values may be entered for L1, L2 frequencies if desired, or the last value will be used for any undefined values in the list.
+
+\subsection*{pos, clk, amb, trop...:}
+
+For details on the configuration of estimated elements refer to \ref{KFConfig}
+
+\section{minimum\_constraints:}
+
+For details on the configuration of minimum constraints refer to \ref{MinConConfig}
+
+
+
+
+
+
+
+
+
+\section{ambiguity\_resolution\_options:}
+
+\subsection*{Min\_elev\_for\_AR:}
+
+Minimum elevation to perform ambiguity resolution (degrees)
+
+
+\subsection*{Set\_size\_for\_lambda:}
+
+Candidate set size for lambda.
+
+
+\subsection*{Max\_round\_iterat:}
+
+Maximum number of iterations when performing integer rounding.
+
+
+\subsection*{GPS\_amb\_resol, GLO\_amb\_resol, GAL\_amb\_resol, BDS\_amb\_resol, QZS\_amb\_resol:}
+
+Booleans to enable the resolution of ambiguities for system X.
+
+
+\subsection*{WL\_mode, NL\_mode:}
+
+Mode of ambiguity resolution for widelanes and narrowlanes.
+
+May be one of the following:
+\begin{itemize}
+\item off
+\item round
+\item iter\_rnd
+\item bootst
+\item lambda
+\item lambda\_alt
+\item lambda\_alt2
+\item lambda\_bie
+\end{itemize}
+
+
+\subsection*{WL\_succ\_rate\_thres, NL\_succ\_rate\_thres:}
+
+Threshold for success rate test in LAMBDA. Values between 0 and 1 are valid.
+
+
+\subsection*{WL\_sol\_ratio\_thres, NL\_sol\_ratio\_thres:}
+
+Thresholds for ambiguity validation: Ratio is performance of best solution compared to next best performance set. (greater than 1)
+
+
+\subsection*{WL\_procs\_noise\_sat, WL\_procs\_noise\_sta:}
+
+Process noise applied for stations or satellites in the ambiguity resolution computations.
+
+
+\subsection*{NL\_proc\_start:}
+
+Time before starting to calculate (and output) NL ambiguities/biases (in seconds)
+
+
+\subsection*{read\_OSB, read\_DSB, read\_SSR, read\_satellite\_bias, read\_station\_bias, read\_GLONASS\_IFB:}
+
+Booleans to enable reading of bias types from file.
+
+
+\subsection*{write\_OSB, write\_DSB, write\_SSR\_bias, write\_satellite\_bias, write\_station\_bias:}
+
+Booleans to enable writing of bias types to file.
+
+
+

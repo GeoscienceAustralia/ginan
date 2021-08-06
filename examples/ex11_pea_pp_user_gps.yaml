@@ -102,7 +102,7 @@ processing_options:
 user_filter_parameters:
 
     max_filter_iterations:      5 #5
-    max_filter_removals:        3 #5
+    max_prefit_removals:        3 #5
 
     rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
     rts_directory:              ./
@@ -121,46 +121,37 @@ default_filter_parameters:
         pos:
             estimated:          true
             sigma:              [0.1]
-            proc_noise:         [0.00057] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
+            proc_noise:         [0] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
             proc_noise_dt:      second
-            #apriori:                                   # taken from other source, rinex file etc.
-            #frame:              xyz #ned
-            #proc_noise_model:   Gaussian
 
         clk:
             estimated:          true
             sigma:              [0]
             proc_noise:         [10]
             proc_noise_dt:      second
-            #proc_noise_model:   Gaussian
 
         clk_rate:
             estimated:          false
             sigma:              [500]
             proc_noise:         [1e-4]
             proc_noise_dt:      second
-            clamp_max:          [+500]
-            clamp_min:          [-500]
 
         amb:
             estimated:          true
             sigma:              [60]
             proc_noise:         [0]
             #proc_noise_dt:      day
-            #proc_noise_model:   RandomWalk
 
         trop:
             estimated:          true
             sigma:              [0.1]
             proc_noise:         [0.0001]
             proc_noise_dt:      second
-            #proc_noise_model:   RandomWalk
 
         trop_grads:
             estimated:          true
             sigma:              [1]
             proc_noise:         [0.01]
             proc_noise_dt:      second
-            #proc_noise_model:   RandomWalk
 
 

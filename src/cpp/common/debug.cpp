@@ -61,6 +61,8 @@ std::normal_distribution<double>	rando(0, 15);
 
 void testClockParams()
 {
+	GTime gtime;
+	gtime++;
 	KFState kfState;
 
 	for (int i = 0; i < 100; i++)
@@ -83,7 +85,7 @@ void testClockParams()
 
 		kfMeasEntryList0.push_back(codeMeas);
 
-		kfState.stateTransition(std::cout, 1);
+		kfState.stateTransition(std::cout, gtime++);
 
 // 		kfState.consolidateKFState();
 
@@ -100,6 +102,8 @@ void testClockParams()
 void minimumTest(
 	Trace&					trace)
 {
+	GTime gtime;
+	gtime++;
 	trace << std::endl;
 	map<string, Vector3d> pointMap;
 	Vector3d p;
@@ -176,7 +180,7 @@ void minimumTest(
 
 
 		//add process noise to existing states as per their initialisations.
-		kfStateStations.stateTransition(trace, 0);
+		kfStateStations.stateTransition(trace, gtime);
 
 		KFMeas combinedMeas = kfStateStations.combineKFMeasList(stationEntries);
 
@@ -480,6 +484,8 @@ int isgmain()
 
 void newFilter()
 {
+	GTime gtime;
+	gtime++;
 	KFState kfState;
 	initFilterTrace(kfState, "rts.1", "TEST", -1);
 
@@ -522,7 +528,7 @@ void newFilter()
 
 
 		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, 1);
+		kfState.stateTransition(std::cout, gtime++);
 
 		if (i == 4)
 			continue;
@@ -556,6 +562,8 @@ void newFilter()
 
 void doubleOffsets()
 {
+	GTime gtime;
+	gtime++;
 	KFState kfState;
 
 	KFKey recPosKey				= {KF::REC_POS};
@@ -588,7 +596,7 @@ void doubleOffsets()
 		kfMeasEntryList.push_back(codeMeas);
 
 		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, 1);
+		kfState.stateTransition(std::cout, gtime++);
 
 		//combine the measurement list into a single matrix
 		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
@@ -781,6 +789,8 @@ MatrixXd multiGauss(MatrixXd& Mat)
 
 void ambiguities()
 {
+	GTime gtime;
+	gtime++;
 	KFState kfState;
 	initFilterTrace(kfState, "rts.1");
 
@@ -868,7 +878,7 @@ void ambiguities()
 		}
 
 		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, 1);
+		kfState.stateTransition(std::cout, gtime++);
 
 		//combine the measurement list into a single matrix
 		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
@@ -904,7 +914,7 @@ void ambiguities()
 		}
 
 		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, 1);
+		kfState.stateTransition(std::cout, gtime++);
 
 		//combine the measurement list into a single matrix
 		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
@@ -934,7 +944,7 @@ if (1)
 		}
 
 		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, 1);
+		kfState.stateTransition(std::cout, gtime++);
 
 		//combine the measurement list into a single matrix
 		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
@@ -977,7 +987,7 @@ if (1)
 		}
 
 		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, 1);
+		kfState.stateTransition(std::cout, gtime++);
 
 		//combine the measurement list into a single matrix
 		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
@@ -1020,7 +1030,7 @@ if (1)
 		}
 
 		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, 1);
+		kfState.stateTransition(std::cout, gtime++);
 
 		//combine the measurement list into a single matrix
 		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);

@@ -16,6 +16,9 @@ extern GTime tsync;
 extern int epoch;
 extern ACSConfig acsConfig;
 
+extern void recordNetworkStatistics(std::multimap<std::string, std::shared_ptr<NtripRtcmStream>> downloadStreamMap );
+
+
 struct NtripCasterService
 {
 public:

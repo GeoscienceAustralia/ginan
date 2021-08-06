@@ -56,6 +56,10 @@ SUBROUTINE pod_gnss (EQMfname, VEQfname, PRNmatrix, orbpara_sigma, orbits_partia
 !			Geoscience Australia, Frontier-SI
 ! Created:	20 May 2019
 ! ----------------------------------------------------------------------
+!
+! Changes: 21-07-2021 Tzupang Tseng: allocate two arrays storing the ERP values from EOP file and IC file
+!
+! ----------------------------------------------------------------------
 
 
       USE mdl_precision
@@ -76,7 +80,7 @@ SUBROUTINE pod_gnss (EQMfname, VEQfname, PRNmatrix, orbpara_sigma, orbits_partia
       USE m_orbitIC
       USE m_read_satsnx 
       use pod_yaml
-	  
+      USE mdl_eop, ONLY: ERP_day_glb 
       IMPLICIT NONE
 
 
@@ -198,6 +202,24 @@ CLOSE (UNIT=7, STATUS="DELETE")
 ! Ocean Tides model
 !CALL prm_ocean (EQMfname)												
 ! ----------------------------------------------------------------------
+
+!Allocate a global array for storing ERP values (NJD, XP, YP, UT1-UTC)
+ALLOCATE (ERP_day_IC(yml_eop_int_points,4), STAT = AllocateStatus)
+      IF (AllocateStatus /= 0) THEN
+         PRINT *, "Error: Not enough memory"
+         PRINT *, "Error: SUBROUTINE orbitIC in module m_pod_gnss.f03"
+         PRINT *, "Error: Allocatable Array: ERP_day_IC"
+!         STOP "*** Not enough memory ***"
+      END IF
+ERP_day_IC = 0.d0
+ALLOCATE (ERP_day_glb(yml_eop_int_points,7), STAT = AllocateStatus)
+
+if (AllocateStatus /= 0) then
+        print *,'ERROR: eop_data - allocating ERP_day_glb'
+        stop
+end if
+ERP_day_glb = 0.d0
+
 
 ! ----------------------------------------------------------------------
 ! Satellites Orbits :: PRN numbers 

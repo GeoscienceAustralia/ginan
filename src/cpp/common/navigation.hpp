@@ -481,14 +481,17 @@ namespace boost::serialization
 	}
 }
 
-void	initSsrOut(double tgap);
+void	initSsrOut();
+
 void	calcSsrCorrections(
 	Trace&				trace,
 	std::set<SatSys>&	sats,
 	GTime				iontime);
+
 void	writeSsrOutToFile(
 	int					epochNum,
 	std::set<SatSys>	sats);
+
 void	rtcmEncodeToFile			(int epochNum);
 void	rtcmDecodeFromFile			(int epochNum);
 void	exportSyncFile				(int epochNum);

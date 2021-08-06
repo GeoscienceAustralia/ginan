@@ -55,7 +55,7 @@ using std::string;
 #include "vmf3.h"
 
 nav_t		nav		= {};
-int			epoch	= 1;
+int			epoch	= 0;
 GTime		tsync	= GTime::noTime();
 
 // Used for stream specific tracing.
@@ -130,6 +130,52 @@ void removeInvalidFiles(
 			it++;
 		}
 	}
+}
+
+void recordNetworkStatistics(std::multimap<std::string, std::shared_ptr<NtripRtcmStream>> downloadStreamMap )
+{
+	string netStreamFilename = acsConfig.trace_directory + "NetworkStatistics.json";
+	std::ofstream netStream(netStreamFilename, std::ofstream::out | std::ofstream::ate);
+	
+	if (!netStream)
+	{
+		BOOST_LOG_TRIVIAL(error)
+		<< "Could not open trace file for network statistics at " << netStreamFilename;
+		return;
+	}	
+	
+	std::vector<std::string> dataJSON;
+	std::string epochData = "\"epochData\": [";
+	std::string hourData = "\"hourData\": [";
+	std::string runData = "\"runData\": [";
+	std::string connData = "\"epochConnData\": [";
+				
+	bool isFirstEntry = true;
+	for (auto& [id, s] : downloadStreamMap )
+	{
+		NtripRtcmStream& downStream = *s;
+
+		if( isFirstEntry )
+			isFirstEntry = false;
+		else
+		{
+			epochData += ",";
+			hourData += ",";
+			runData += ",";
+			connData += ",";
+		}
+		dataJSON = downStream.getJsonNetworkStatistics(tsync);
+		epochData += dataJSON[0];
+		hourData += dataJSON[1];
+		runData +=  dataJSON[2];
+		connData +=  dataJSON[3];
+	}
+	epochData += "]";
+	hourData += "]";
+	runData += "]";
+	connData += "]";
+	netStream << "{" << epochData << "," << hourData << "," 
+						<< runData << "," << connData << "}";	
 }
 
 void reloadInputFiles()
@@ -399,6 +445,7 @@ void createTracefiles(
 	string logtime = traceTime.to_string(0);
 	std::replace( logtime.begin(), logtime.end(), '/', '-');
 	
+	if (acsConfig.output_trace)
 	for (auto& [id, rec] : stationMap)
 	{
 		createNewTraceFile(id,		logtime, acsConfig.trace_filename,						rec.traceFilename,				"",					true, acsConfig.output_config);
@@ -506,7 +553,9 @@ void mainOncePerEpochPerStation(
 	
 	if (acsConfig.process_ionosphere)
 	{
-		update_receivr_measr(trace, rec);
+		bool sppUsed;
+		selectAprioriSource(rec,sppUsed);
+		if(rec.aprioriPos.norm()) update_receivr_measr(trace, rec);
 	}
 
 	/* exclude measurements of eclipsing satellite (block IIA) */
@@ -524,11 +573,11 @@ void mainOncePerEpochPerStation(
 		{
 			KFState kfARcopy = rec.rtk.pppState;
 			
-			int nfixed = enduserAmbigResl(trace, rec.obsList, kfARcopy, rec.rtk.tt);
+			int nfixed = enduserAmbigResl(trace, rec.obsList, kfARcopy);
 			if (nfixed>0)
 			{
 				trace << std::endl << "-------------- AR PPP solution ----------------------" << std::endl;
-				pppoutstat(trace, kfARcopy);
+				pppoutstat(trace, kfARcopy,false,SOLQ_FIX,rec.rtk.sol.numSats);
 				trace << std::endl << "------------ AR PPP solution end --------------------" << std::endl;
 			}
 		}
@@ -627,7 +676,7 @@ void mainOncePerEpochPerStation(
 void mainOncePerEpoch(
 	Network&		net,
 	StationList&	epochStations,
-	double			tgap)
+	GTime			tsync)
 {
 	TestStack ts("1/Ep");
 	double ep[6] = {};
@@ -637,14 +686,14 @@ void mainOncePerEpoch(
 	
 	if (acsConfig.ssrOpts.calculate_ssr)
 	{
-		initSsrOut(tgap);
+		initSsrOut();
 	}
 	
 	if (acsConfig.process_network)
 	{
 		netTrace << std::endl << "------=============== " << epoch << " =============-----------" << std::endl;
 
-		networkEstimator(netTrace, epochStations, net.kfState, tgap);
+		networkEstimator(netTrace, epochStations, net.kfState, tsync);
 
 		if	( acsConfig.output_AR_clocks == false 
 			||ARsol_ready() == false) 
@@ -678,7 +727,7 @@ void mainOncePerEpoch(
 			/* Instantaneous AR */
 			KF_ARcopy = net.kfState;
 		
-			networkAmbigResl(netTrace, epochStations, KF_ARcopy, tgap);
+			networkAmbigResl(netTrace, epochStations, KF_ARcopy);
 
 			if (acsConfig.output_AR_clocks  && ARsol_ready())
 			{
@@ -729,13 +778,16 @@ void mainOncePerEpoch(
 		{
 			std::set<SatSys> sats;	// List of satellites visible in this epoch
 			for (auto& rec_ptr	: epochStations)
-				for (auto& obs	: rec_ptr->obsList)
-					sats.insert(obs.Sat);
+			for (auto& obs	: rec_ptr->obsList)
+				sats.insert(obs.Sat);
+			
 			calcSsrCorrections(netTrace, sats, tsync);
+		
 			if (acsConfig.ssrOpts.upload_to_caster)
 				outStreamManager.sendMessages(true);
 			else
 				rtcmEncodeToFile(epoch);
+			
 			if (acsConfig.ssrOpts.sync_epochs)
 				exportSyncFile(epoch);
 		}
@@ -743,7 +795,7 @@ void mainOncePerEpoch(
 
 	if (acsConfig.process_ionosphere)
 	{
-		update_ionosph_model(netTrace, epochStations, tsync, tgap);
+		update_ionosph_model(netTrace, epochStations, tsync);
 	}
 
 	if (acsConfig.output_persistance)
@@ -899,7 +951,9 @@ int main(int argc, char **argv)
 	{
 		BOOST_LOG_TRIVIAL(error) 	<< "Incorrect configuration";
 		BOOST_LOG_TRIVIAL(info) 	<< "PEA finished";
-
+#ifndef	ENABLE_UNIT_TESTS
+		NtripSocket::io_service.stop();
+#endif
 		return EXIT_FAILURE;
 	}
 
@@ -919,17 +973,17 @@ int main(int argc, char **argv)
 	<< " threads" << std::endl;
 
 	// Ensure the output directories exist
-	if (!acsConfig.summary_directory	.empty())	boost::filesystem::create_directories(acsConfig.summary_directory);
-	if (!acsConfig.trace_directory		.empty())	boost::filesystem::create_directories(acsConfig.trace_directory);
-	if (!acsConfig.clocks_directory		.empty())	boost::filesystem::create_directories(acsConfig.clocks_directory);
-	if (!acsConfig.ionex_directory		.empty())	boost::filesystem::create_directories(acsConfig.ionex_directory);
-	if (!acsConfig.ionstec_directory	.empty())	boost::filesystem::create_directories(acsConfig.ionstec_directory);
-	if (!acsConfig.biasSINEX_directory	.empty())	boost::filesystem::create_directories(acsConfig.biasSINEX_directory);
-	if (!acsConfig.sinex_directory		.empty())	boost::filesystem::create_directories(acsConfig.sinex_directory);
-	if (!acsConfig.testOpts.directory	.empty())	boost::filesystem::create_directories(acsConfig.testOpts.directory);
-	if (!acsConfig.ssrOpts.rtcm_directory.empty())	boost::filesystem::create_directories(acsConfig.ssrOpts.rtcm_directory);
-	if (!acsConfig.ppp_sol_directory.empty())		boost::filesystem::create_directories(acsConfig.ppp_sol_directory);
-	if (!acsConfig.persistance_directory.empty())	boost::filesystem::create_directories(acsConfig.persistance_directory);
+	if (!acsConfig.summary_directory		.empty())	boost::filesystem::create_directories(acsConfig.summary_directory);
+	if (!acsConfig.trace_directory			.empty())	boost::filesystem::create_directories(acsConfig.trace_directory);
+	if (!acsConfig.clocks_directory			.empty())	boost::filesystem::create_directories(acsConfig.clocks_directory);
+	if (!acsConfig.ionex_directory			.empty())	boost::filesystem::create_directories(acsConfig.ionex_directory);
+	if (!acsConfig.ionstec_directory		.empty())	boost::filesystem::create_directories(acsConfig.ionstec_directory);
+	if (!acsConfig.biasSINEX_directory		.empty())	boost::filesystem::create_directories(acsConfig.biasSINEX_directory);
+	if (!acsConfig.sinex_directory			.empty())	boost::filesystem::create_directories(acsConfig.sinex_directory);
+	if (!acsConfig.testOpts.directory		.empty())	boost::filesystem::create_directories(acsConfig.testOpts.directory);
+	if (!acsConfig.ssrOpts.rtcm_directory	.empty())	boost::filesystem::create_directories(acsConfig.ssrOpts.rtcm_directory);
+	if (!acsConfig.ppp_sol_directory		.empty())	boost::filesystem::create_directories(acsConfig.ppp_sol_directory);
+	if (!acsConfig.persistance_directory	.empty())	boost::filesystem::create_directories(acsConfig.persistance_directory);
 
 	BOOST_LOG_TRIVIAL(info)
 	<< "Logging with trace level:" << acsConfig.trace_level << std::endl << std::endl;
@@ -1077,8 +1131,6 @@ int main(int argc, char **argv)
 		tsync.time = boost::posix_time::to_time_t(acsConfig.start_epoch);
 	}
 
-	double tgap = acsConfig.epoch_interval;
-
 	BOOST_LOG_TRIVIAL(info)
 	<< std::endl;
 	BOOST_LOG_TRIVIAL(info)
@@ -1095,13 +1147,22 @@ int main(int argc, char **argv)
 	//============================================================================
 
 	// Read the observations for each station and do stuff
-	auto epochStartTime		= system_clock::now();
 	bool complete = false;
+	int loopEpochs = 1;
+	auto nextNominalLoopStartTime = system_clock::now();
 	while (complete == false)
 	{
-		auto prevEpochStartTime	= epochStartTime;
-		epochStartTime = system_clock::now();
+		if (tsync != GTime::noTime())
+		{
+			tsync.time				+= loopEpochs * acsConfig.epoch_interval;
+		}
 		
+		epoch						+= loopEpochs;
+		nextNominalLoopStartTime	+= loopEpochs * std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
+		
+		auto breakTime	= nextNominalLoopStartTime
+						+ std::chrono::milliseconds((int)(acsConfig.wait_all_stations	* 1000));
+						
 		BOOST_LOG_TRIVIAL(info)
 		<< std::endl;
 		BOOST_LOG_TRIVIAL(info)
@@ -1110,12 +1171,10 @@ int main(int argc, char **argv)
 		TestStack ts("Epoch " + std::to_string(epoch));
 
 		StationList epochStations;
-
-		bool repeat		= true;
-		auto maxDelay	= prevEpochStartTime + std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
-		auto breakTime	= maxDelay;
 		
 		//get observations from streams (allow some delay between stations, and retry, to ensure all messages for the epoch have arrived)
+		bool foundFirst	= false;
+		bool repeat		= true;
 		while	( repeat
 				&&system_clock::now() < breakTime)
 		{
@@ -1180,7 +1239,7 @@ int main(int argc, char **argv)
 					//already have observations for this epoch.
 					continue;
 				}
-
+				
 				//try to get some data
 				rec.obsList = obsStream.getObs(tsync);
 
@@ -1192,10 +1251,19 @@ int main(int argc, char **argv)
 					continue;
 				}
 
-				if (breakTime == maxDelay)
+				if (foundFirst == false)
 				{
+					foundFirst = true;
+					
 					//first observation found for this epoch, give any other stations some time to get their observations too
-					breakTime = system_clock::now() + std::chrono::milliseconds((int)(acsConfig.wait_all_stations * 1000));
+					//only shorten waiting periods, never extend
+					auto now = system_clock::now();
+					
+					auto alternateBreakTime = now + std::chrono::milliseconds((int)(acsConfig.wait_all_stations	* 1000));
+					auto alternateStartTime = now + std::chrono::milliseconds((int)(acsConfig.wait_next_epoch	* 1000));
+					
+					if (alternateBreakTime < breakTime)						{	breakTime					= alternateBreakTime;	}
+					if (alternateStartTime < nextNominalLoopStartTime)		{	nextNominalLoopStartTime	= alternateStartTime;	}
 				}
 
 				//initialise the station if required
@@ -1279,6 +1347,8 @@ int main(int argc, char **argv)
 
 					obs.satStat_ptr					= &rec.rtk.satStatMap[obs.Sat];
 					obs.satOrb_ptr					= &nav.orbpod.satOrbitMap[obs.Sat];
+					
+					auto& satOpts = acsConfig.getSatOpts(obs.Sat);
 				}
 
 				obsVariances(rec.obsList);
@@ -1287,10 +1357,12 @@ int main(int argc, char **argv)
 				epochStations.push_back(&rec);
 			}
 		}
+		
 		if (acsConfig.process_user)
 		{
 			if (acsConfig.ssrOpts.sync_epochs)
 				waitForSyncFile(epoch + acsConfig.ssrOpts.sync_epoch_offset);
+			
 			if (acsConfig.ssrOpts.read_from_files)
 				rtcmDecodeFromFile(epoch + acsConfig.ssrOpts.sync_epoch_offset); // add an offset if starting later than 00:00:00
 		}
@@ -1315,44 +1387,12 @@ int main(int argc, char **argv)
 		{
 			NtripBroadcaster::NtripUploadClient& uploadStream = *s;
 			auto trace = getTraceFile(uploadStream);
-			trace << std::endl << "<<<<<<<<<<< Network Trace : Epoch " << epoch << " >>>>>>>>>>>" << std::endl;
-			uploadStream.traceWriteEpoch(trace);
-		}
-		
-		{
-			std::ofstream netStream(acsConfig.trace_directory + "NetworkStatistics.json",std::ofstream::out | std::ofstream::ate);
+            trace << std::endl << "<<<<<<<<<<< Network Trace : Epoch " << epoch << " >>>>>>>>>>>" << std::endl;
+            uploadStream.traceWriteEpoch(trace);
+        }
+        
+        recordNetworkStatistics(ntripRtcmMultimap);
 			
-			netStream << "[";
-			bool isFirstEntry = true;
-			
-			for (auto& [id, rec] : stationMap )
-			{
-				auto down_it = ntripRtcmMultimap.find(rec.id);
-				if	(down_it != ntripRtcmMultimap.end())
-				{
-					NtripRtcmStream& downStream = *down_it->second;
-					
-					if (isFirstEntry)
-						isFirstEntry = false;
-					else
-						netStream << ",";
-					netStream << downStream.getJsonNetworkStatistics(breakTime);
-				}
-			}
-			
-			for (auto& [id, s] : outStreamManager.ntripUploadStreams)
-			{ 
-				NtripBroadcaster::NtripUploadClient& uploadStream = *s;
-				
-				if (isFirstEntry)
-					isFirstEntry = false;
-				else
-					netStream << ",";
-				netStream << uploadStream.getJsonNetworkStatistics(breakTime);
-			}
-			netStream << "]";
-		}
-	
 		if	(complete)
 		{
 			break;
@@ -1368,23 +1408,21 @@ int main(int argc, char **argv)
 			BOOST_LOG_TRIVIAL(warning)
 			<< "Epoch " << epoch << " finished with no observations";
 			
-			tsync.time += tgap;
-			epoch++;
+			//eat one epoch before next loop
+			loopEpochs = 1;
 			continue;
 		}
 
 		double ep[6];
 		time2epoch(tsync, ep);
 		
-		if (acsConfig.output_trace)
-		{
-			createTracefiles(stationMap, net);
-		}
+		createTracefiles(stationMap, net);
 		
 		//try to get svns of all used satellites
-		for (auto& [satUID, satNav] : nav.satNavMap)
+		for (auto& [satId, satNav] : nav.satNavMap)
 		{
-			SatSys Sat(satUID);
+			SatSys Sat;
+			Sat.fromHash(satId);
 			pcvacs_t* pcvsat = findAntenna(Sat.id(), ep, nav);
 			if (pcvsat)
 			{
@@ -1432,10 +1470,9 @@ int main(int argc, char **argv)
 			mainOncePerEpochPerStation(rec, orog, gptg);
 		}	
 
-
 		Eigen::setNbThreads(0);
 
-		mainOncePerEpoch(net, epochStations, tgap);
+		mainOncePerEpoch(net, epochStations, tsync);
 
 		auto epochStopTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
 
@@ -1472,8 +1509,14 @@ int main(int argc, char **argv)
 			break;
 		}
 
-		tsync.time += tgap;
-		epoch++;
+		auto loopStopTime		= system_clock::now();
+		auto loopExcessDuration = loopStopTime - (nextNominalLoopStartTime + std::chrono::milliseconds((int)(acsConfig.wait_all_stations * 1000)));
+		int excessLoops			= loopExcessDuration / std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
+		
+		if (excessLoops < 0)		{	excessLoops = 0;																						}	
+		if (excessLoops > 0)		{	BOOST_LOG_TRIVIAL(warning) << std::endl << "Excessive time elapsed, skipping " << excessLoops << " epochs";		}
+		
+		loopEpochs = 1 + excessLoops;
 	}
 
 

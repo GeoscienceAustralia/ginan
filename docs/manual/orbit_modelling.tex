@@ -1,18 +1,11 @@
-\chapter{Orbit Modelling}
-\label{ch:orbit_modelling}
-
-
-\newthought{POD} is designed to do some stuff.
-
-\section{Gravitational Force Models}
+\chapter{Gravitational Force Models}
 
 \section{Non-Gravitational Force Models}
 
 \subsection{Solar Radiation Force Models}
 The magnitude of the SRP acting on the satellite depends on a wide range of parameters. 
 The distance to the Sun and the position of the satellite with respect to Earth and Sun (regarding possible eclipses) define the intensity of the incoming radiation.
- The geometry of the satellite, the optical properties of the external surfaces, and the actual orientation with respect to the Sun largely influence the orientation and magnitude of the evolving SRP.
- %Therefore any SRP model depends on an accurate implementation of the satellite orbit, the attitude, and the geometric/physical properties of the satellite structure.
+The geometry of the satellite, the optical properties of the external surfaces, and the actual orientation with respect to the Sun largely influence the orientation and magnitude of the evolving SRP.Therefore any SRP model depends on an accurate implementation of the satellite orbit, the attitude, and the geometric/physical properties of the satellite structure.
  
 \subsection{Cannonball}
 \label{sec:cannonball_srp}
@@ -20,18 +13,113 @@ The most basic approach with regard to its analytic development is referred to a
 model.The cannonball model provides a useful, first-order approximation, however, due to its homogeneous material properties and symmetrical shape approximation. We recommend its use as an apriori model, before estimation.
 
 \subsection{ECOM I}
+The ECOM I model has been widely used for a cubic-like satellite and is formed by three unit vectors as defined in the following: 
+\begin{equation}
+e_d = r_{sun} - r_{sat} / |r_{sun} - r_{sat}|
+\end{equation}
+\begin{equation}
+e_y = r_z \times e_d / |r_z \times e_d|
+\end{equation}
+\begin{equation}
+e_b = e_d \times e_y 
+\end{equation}
+
+Where 
+$e_d$ denotes the satellite-sun vector,
+$e_y$ denotes the vector along the axis of the solar panel, 
+$e_b$ is given by the right-hand rule of ed and ey.
+The total SRP acceleration $\ddot{r}_{srp}$ is expressed as 
+
+\begin{equation}
+\ddot{r}_{srp} = D \cdot e_d + Y \cdot e_y + B \cdot e_b
+\end{equation}
+Where 
+$D$ denotes the total acceleration in ed,
+$Y$ denotes the total acceleration in ey, 
+$B$ denotes the total acceleration in eb.
+The D, Y and B can be expressed as 
+
+\begin{equation}
+D = D_0 + D_C \cdot cos \Delta u + D_S \cdot sin \Delta u
+\end{equation}
+\begin{equation}
+Y = Y_0 + Y_C \cdot cos \Delta u + Y_S \cdot sin \Delta u
+\end{equation}
+\begin{equation}
+B = B_0 + B_C \cdot cos \Delta u + B_S \cdot sin \Delta u
+\end{equation}
+
+Where
+$\Delta u$ denotes the argument of latitude of the satellite with respect to the Sun. 
 
 \subsection{ECOM II}
+The ECOM II model has been widely used for an elongate-like satellite and is also formed by ed, ey and eb. The parameters of the ECOM II are different from the ECOM I:  
+
+\begin{equation}
+\begin{split}
+D = D_0 &+ D_2C \cdot cos 2\Delta u + D_2S \cdot sin 2\Delta u \\  
+        &+ D_4C \cdot cos 4\Delta u + D_4S \cdot sin 4\Delta u
+\end{split}
+\end{equation}
+\begin{equation}
+Y = Y_0 
+\end{equation}
+\begin{equation}
+B = B_0 + B_C \cdot cos \Delta u + B_S \cdot sin \Delta u
+\end{equation}
 
 \subsection{ECOM C}
+The ECOM C model is resulted from the combination of ECOM I and ECOM II. The idea is to add the even periodic terms from the ECOM II to the ECOM I. This is because some Block types of satellites are sensitive to the even periodic terms in the SRP model and this ECOM C model might be potentially applied to multi-GNSS constellations. The parameters of the ECOM C are expressed as   
+
+\begin{equation}
+\begin{split}
+D = D_0 &+ D_C  \cdot cos  \Delta u + D_S  \cdot sin  \Delta u \\
+        &+ D_2C \cdot cos 2\Delta u + D_2S \cdot sin 2\Delta u \\
+        &+ D_4C \cdot cos 4\Delta u + D_4S \cdot sin 4\Delta u 
+\end{split}
+\end{equation}
+\begin{equation}
+Y = Y_0 + Y_C \cdot cos \Delta u + Y_S \cdot sin \Delta u
+\end{equation}
+\begin{equation}
+B = B_0 + B_C \cdot cos \Delta u + B_S \cdot sin \Delta u
+\end{equation}
+
 
 \subsection{Box Wing}
+The SRP effect also can be handled by a so-called box-wing model that takes satellite bus areas, solar panel area, satellite attitude and interactions between photons and optical properties. The box-wing model $\ddot{r}_{boxw}$ used for a flat surface of satellite bus with thermal effect can be expressed as
+\begin{equation}
+\ddot{r}_{boxw} = -(A \cdot S_0)/(M \cdot C) cos \theta  
+                   [(\alpha + \delta)(e_d+2/3 \cdot e_N) + 2\rho cos \theta \cdot e_N]  
+\end{equation}
+Where 
+$A$ denotes the cross-section area,
+$S_{0}$ denotes the solar irradince at 1 AU $(1367W/m^2)$, 
+$M$ denotes the mass of satellite,
+$C$ denotes the speed of light,
+$\alpha$ denotes the absorption coefficient,
+$\delta$ denotes the diffusion coefficient,
+$\rho$ denotes the reflection coefficient,
+$e_N$ denotes the normal vector of the surface,
+$cos \theta$ denotes the angle between the $e_d$ and $e_N$. 
+
 
 \subsection{Antenna Thrust}
+The navigation antenna produces a re-bouncing acceleration when the signal is transmitted. This is called as antenna thrust, which generates a constant acceleration in the radial direction of satellite orbit and can be model as 
+\begin{equation}
+\ddot{r}_{ant} = W/(M \cdot C)   
+\end{equation}
+Where 
+$W$ denotes the emitted power in watt.
+
 
 \subsection{Albedo}
+The earth radiation pressure (ERP), called albedo, also creates a small acceleration on navigation satellites. The ERP acceleration can be expressed as
+For satellite bus and solar panel mast
 
-\section{Transformtation between Celestial and Terrestrial Reference Systems}
+
+
+\section{Transformation between Celestial and Terrestrial Reference Systems}
 
 The variational equations obtained from the POD need to be transformed into the terrestrial reference frame so that the adjustments can be made in the ECEF frame that the PEA operates in.
 
@@ -58,7 +146,7 @@ Q(t) =
 \begin{equation}
 R(t) = R_2(-\theta) = 
 \begin{bmatrix}
-cos \theta & -sin \theta & 0 \\
+cos \theta & -sin \theta & 0 \\ 
 sin \Theta & cos \theta  & 0 \\
 0 & 0 1
 \end{bmatrix}

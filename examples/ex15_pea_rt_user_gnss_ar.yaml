@@ -4,10 +4,10 @@
 
 input_files:
 
-    root_input_directory: products/
+    root_input_directory: ginan/examples/products/
 
-    atxfiles:   [ igs14_2045_plus.atx                                     ]    # required
-    snxfiles:   [ /data/meta_gather.snx, cod21620.snx                               ]    # required
+    atxfiles:   [ igs14_2045_plus.atx                           ]    # required
+    snxfiles:   [ meta_gather_20210721.snx                               ]    # required
     blqfiles:   [ OLOAD_GO.BLQ                                  ]    # required if ocean loading is applied
 
 
@@ -20,16 +20,16 @@ station_data:
         - BCEP00BKG0
 
     obs_streams:
-        - ALIC00AUS0
-        - LMMF00MTQ0
-        - HARB00ZAF0
+         - ALIC00AUS0
+        # - WALH00AUS0
+        # - HARB00ZAF0
 
 output_files:
 
     root_output_directory:          <CONFIG>/
 
     output_trace:                   true
-    trace_level:                    2
+    trace_level:                    3
     trace_directory:                ./
     trace_filename:                 <CONFIG>-<STATION>_<YYYY><DDD><HH>.TRACE
     trace_rotate_period:            1
@@ -67,10 +67,10 @@ processing_options:
 
     #start_epoch:               2019-07-18 23:39:00
     #end_epoch:                 2017-03-29 23:59:30
-    max_epochs:                 660        #0 is infinite
+    #max_epochs:                 660        #0 is infinite
     epoch_interval:             1          #seconds
     wait_next_epoch:            31
-    wait_all_stations:          15
+    wait_all_stations:          1
 
     ppp_ephemeris:              ssr_apc     # broadcast  ssr_apc  ssr_com  precise
 
@@ -131,7 +131,7 @@ processing_options:
 user_filter_parameters:
 
     max_filter_iterations:      2
-    max_filter_removals:        2
+    max_prefit_removals:        2
 
     rts_lag:                    20      #-ve for full reverse, +ve for limited epochs
     rts_directory:              ./

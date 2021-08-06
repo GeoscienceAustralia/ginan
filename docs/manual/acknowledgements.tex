@@ -1,102 +1,25 @@
 \chapter{Acknowledgements}
 \label{ch:Acknowledgements}
+\sloppy
 
-\begin{fullwidth}
-    In this section we wish to acknowledge the use of and heritage of some of the source code that we have used to help develop the Ginan.
-\end{fullwidth}
-\noindent\textbf{Eclipse Routine}. The routines to calculate the eclipsing times for GPS satellites were based off the original routines written by Jan Kouba, they have since been heavily modified.
+We wish to acknowledge the use of and heritage of some of the source code that we have used to help develop the Ginan.
 
+\subsection{Eclipse Routine}
+\noindent The routines to calculate the eclipsing times for GPS satellites were based off the original routines written by Jan Kouba, they have since been heavily modified.
 
-\noindent\textbf{JPL Planetary Ephemerides}. We are using the Jet Propulison (JPL) Planetary and Lunar Ephemerides processing program (\url{ftp://ssd.jpl.nasa.gov/pub/eph/planets/fortran/}), in particular the routines:
-
-\begin{itemize}
-    \item CONST.f
-    \item FSIZER3.f
-    \item INTERP.f
-    \item PLEPH.f
-    \item SPLIT.f
-\end{itemize}
+\subsection{JPL Planetary Ephemerides}
+\noindent We are using the Jet Propulison (JPL) Planetary and Lunar Ephemerides processing program (\url{ftp://ssd.jpl.nasa.gov/pub/eph/planets/fortran/}), in particular the routines:
+\texttt{CONST.f, FSIZER3.f, INTERP.f, PLEPH.f, SPLIT.f}
 We have modified the following subroutines:
-\begin{itemize}
-    \item asc2eph.f90
-    \item STATE.f90
-\end{itemize}
+\texttt{asc2eph.f90, STATE.f90}
 so that there is no longer a dependency on a binary file produced in the original JPL form.
 
-
-\noindent\textbf{Standards of Fundamental Astronomy (SOFA) routines}. We have used a number of routines obtained from SOFA, \url{http://www.iausofa.org/}:
-\begin{itemize}
-    \item anp.for
-    \item bi00.for
-    \item bpn2xy.for
-    \item bpn2xy.for
-    \item c2ixys.for
-    \item c2tcio.for
-    \item cal2jd.for
-    \item cp.for
-    \item cr.for
-    \item era00.for
-    \item fad03.for
-    \item fae03.for
-    \item faf03.for
-    \item faju03.for
-    \item fal03.for
-    \item falp03.for
-    \item fama03.for
-    \item fame03.for
-    \item fane03.for
-    \item faom03.for
-    \item fapa03.for
-    \item fasa03.for
-    \item faur03.for
-    \item fave03.for
-    \item gmst00.for
-    \item gmst06.for
-    \item gmst\_iers.f03
-    \item ir.for
-    \item jd2cal.for
-    \item jdcalf.for
-    \item numat.for
-    \item nut00a.for
-    \item obl80.for
-    \item pn00a.for
-    \item pn00.for
-    \item pnm00a.for
-    \item pnm06a.for
-    \item pom00.for
-    \item pr00.for
-    \item rx.for
-    \item rxr.for
-    \item ry.for
-    \item rz.for
-    \item s00.for
-    \item s06.for
-    \item sp00.for
-    \item taiutc.for
-    \item tide\_pole\_oc.f90
-    \item tide\_pole\_se.f90
-    \item time\_GPS.f90
-    \item time\_TAI.f90
-    \item time\_TT.f90
-    \item time\_TT\_sec.f90
-    \item time\_UTC.f90
-    \item tr.for
-    \item xy06.for
-    \item xys00a.for
-    \item xys06a.for
-\end{itemize}
+\subsection{Standards of Fundamental Astronomy (SOFA) routines}
+\noindent We have used a number of routines obtained from SOFA, \url{http://www.iausofa.org/}:
+\texttt{anp.for, bi00.for, bpn2xy.for, bpn2xy.for, c2ixys.for, c2tcio.for, cal2jd.for, cp.for, cr.for, era00.for, fad03.for, fae03.for, faf03.for, faju03.for, fal03.for, falp03.for, fama03.for, fame03.for, fane03.for, faom03.for, fapa03.for, fasa03.for, faur03.for, fave03.for, gmst00.for, gmst06.for, gmst\_iers.f03, ir.for, jd2cal.for, jdcalf.for, numat.for, nut00a.for, obl80.for, pn00a.for, pn00.for, pnm00a.for, pnm06a.for, pom00.for, pr00.for, rx.for, rxr.for, ry.for, rz.for, s00.for, s06.for, sp00.for, taiutc.for, tide\_pole\_oc.f90, tide\_pole\_se.f90, time\_GPS.f90, time\_TAI.f90, time\_TT.f90, time\_TT\_sec.f90, time\_UTC.f90, tr.for, xy06.for, xys00a.for, xys06a.for
+}
 
 
-\noindent\textbf{International Earth Rotation Service (IERS) routines}. The following routines we originally sourced fromthe IERS:
-\begin{itemize}
-    \item interp\_iers.f
-    \item CNMTX.F
-    \item FUNDARG.F
-    \item LAGINT.f
-    \item ORTHO\_EOP.F
-    \item PMSDNUT2.F
-    \item RG\_ZONT2.F
-    \item UTLIBR.F
-    \item IERS\_CMP\_2015.F
-\end{itemize}
-
+\subsection{International Earth Rotation Service (IERS) routines}
+\noindent The following routines we originally sourced from the IERS:
+\texttt{interp\_iers.f, CNMTX.F, FUNDARG.F, LAGINT.f, ORTHO\_EOP.F, PMSDNUT2.F, RG\_ZONT2.F, UTLIBR.F, IERS\_CMP\_2015.F}

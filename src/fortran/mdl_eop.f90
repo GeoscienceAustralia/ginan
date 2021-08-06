@@ -45,6 +45,8 @@ MODULE mdl_eop
       INTEGER (KIND = prec_int2) :: iau_model
       !REAL (KIND = prec_d) :: EOP_day_glb(7)	
       REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE :: EOP_day_glb
+      REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE :: ERP_day_glb 
+      REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE :: ERP_day_IC
       REAL (KIND = prec_d) :: EOP_MJD0_glb	  
 ! ---------------------------------------------------------------------------
 

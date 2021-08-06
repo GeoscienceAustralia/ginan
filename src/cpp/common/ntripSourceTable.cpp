@@ -2,6 +2,14 @@
 
 NtripSourceTable::NtripSourceTable(const std::string& url_str): NtripSocket(url_str)
 {
+	if( disconnectionCount > 2 )
+	{
+		BOOST_LOG_TRIVIAL(info) << url.sanitised()
+								<< ", Could not connect to host for source table.\n";
+		getSourceTableMtx.unlock();
+		return;
+	}
+	
 	std::stringstream request_stream;
 								request_stream	<< "GET / HTTP/1.1\r\n";
 								request_stream	<< "Host: " 	<< url.host << "\r\n";
@@ -60,14 +68,25 @@ void NtripSourceTable::connected()
 	delayed_reconnect();
 }
 
+std::vector<std::string> NtripSourceTable::getStreamMounts()
+{
+	std::vector<std::string> mountPoints;
+	
+	for ( auto entry : sourceTableData)
+		mountPoints.push_back(entry.mountPoint);
+	
+	return mountPoints;
+}
+
 
 bool NtripSourceTable::dataChunkDownloaded(vector<char> dataChunk)
 {
 	sourceTableString.assign(dataChunk.begin(), dataChunk.end());
 	
-	//BOOST_LOG_TRIVIAL(debug) << "dataChunkDownloaded.\n";
-	BOOST_LOG_TRIVIAL(debug) << sourceTableString;
-	BOOST_LOG_TRIVIAL(debug) << std::endl;
+
+	//BOOST_LOG_TRIVIAL(debug) << sourceTableString;
+	//BOOST_LOG_TRIVIAL(debug) << std::endl;
+
 	getSourceTableMtx.unlock();
 	return true;
 }
@@ -76,9 +95,9 @@ void NtripSourceTable::readContentDownloaded(std::vector<char> content)
 {
 	sourceTableString.assign(content.begin(), content.end());
 	
-	//BOOST_LOG_TRIVIAL(debug) << "readContentDownloaded.\n";
-	BOOST_LOG_TRIVIAL(debug) << sourceTableString;
-	BOOST_LOG_TRIVIAL(debug) << std::endl;
+	//BOOST_LOG_TRIVIAL(debug) << sourceTableString;
+	//BOOST_LOG_TRIVIAL(debug) << std::endl;
+
 	getSourceTableMtx.unlock();    
 }
 

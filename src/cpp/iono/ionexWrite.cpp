@@ -138,7 +138,7 @@ static int write_ionex_epoch(
 				double vari;
 				double iono = ion_vtec(time, ipp, ihgt, vari, kfState) / pow(10, IONEX_NEXP);
 
-				tracepdeex(3, trace, "IPP: %8.4f,%9.4f; layr: %1d; delay: %12.6f; var: %.4e\n",
+				tracepdeex(4, trace, "IPP: %8.4f,%9.4f; layr: %1d; delay: %12.6f; var: %.4e\n",
 				           ipp[0]*R2D,
 				           ipp[1]*R2D,
 				           ihgt,

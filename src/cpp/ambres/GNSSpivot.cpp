@@ -81,7 +81,7 @@ void init_usr_pivot( Trace& trace, E_Sys sys, double arelev, string rover)
 		stadat.stabias.WL23var = sigdat.raw.WL23var;
 		stadat.stabias_fix = stadat.stabias;
 	}
-	else if (elmx2 < MIN_PIV_ELE)
+	else if (elmx2 > MIN_PIV_ELE)
 	{
 		tracepdeex(2, trace, "... %s selected (2)", piv2.id().c_str());
 		pivotsats[rover][sys] = piv2;
@@ -120,15 +120,15 @@ void updt_usr_pivot ( Trace& trace, double arelev, string rover )
 {
 	ARrefsta = "UINIT";
 
-	for (auto& [sys, act] : sys_solve) 
+	for (auto& [sys, act] : sys_solve)
 	{
 		if (act == false)
 		{
 			continue;
 		}
-		
+
 		StatAmbg& stadat = StatAmbMap_list[sys][rover];
-		
+
 		bool init=false;
 		if (pivotsats.find(rover) == pivotsats.end()) init=true;
 		else if(pivotsats[rover].find(sys) == pivotsats[rover].end()) init=true;
@@ -139,7 +139,7 @@ void updt_usr_pivot ( Trace& trace, double arelev, string rover )
 		{
 			SatSys& pivt = pivotsats[rover][sys];
 			int& sfrq = sysnfrq[rover][sys];
-			
+
 			SignAmbg& pivdat = stadat.SignList[pivt];
 			string mess = "slip";
 
@@ -165,8 +165,10 @@ void updt_usr_pivot ( Trace& trace, double arelev, string rover )
 				satpiv[pivt].npivot = 0;
 				satpiv[pivt].pivot_in = "NONE";
 
-				SatSys newpiv = {0}, newpiv2 = {0};
-				double maxel = 0.0, maxel2 = 0.0;
+				SatSys newpiv;
+				SatSys newpiv2;
+				double maxel	= 0;
+				double maxel2	= 0;
 
 				for (auto& [sat, sigdat] : stadat.SignList)
 				{
@@ -380,7 +382,7 @@ void check_station(Trace& trace, string sta, int dept, E_Sys sys)
 
 					StatAmbMap[sta].npivot--;
 				}
-				else 
+				else
 					tracepdeex(NPIVTRCLVL, trace, " -- ");
 
 				check_satellite(trace, sat, dept + 1);
@@ -440,7 +442,7 @@ void check_satellite(Trace& trace, SatSys sat, int dept)
 
 					satpiv[sat].npivot--;
 				}
-				else 
+				else
 					tracepdeex(NPIVTRCLVL, trace, " -- ");
 
 				check_station(trace, sta, dept + 1, sat.sys);
@@ -450,7 +452,7 @@ void check_satellite(Trace& trace, SatSys sat, int dept)
 
 		if (recamb.outage)
 			it = satpiv[sat].elev.erase(it);
-		else 
+		else
 			++it;
 	}
 }
@@ -481,7 +483,7 @@ string connect_sat(Trace& trace, string base, SatSys sat, double* maxel, double*
 				string tmp = connect_sat(trace, statn, sat, &tmpel, &qlit);
 
 
-				if (tmpel < MIN_PIV_ELE) 
+				if (tmpel < MIN_PIV_ELE)
 					continue;
 
 				qlit -= 2.0;
@@ -566,7 +568,7 @@ SatSys connect_sta(Trace& trace, string base, string sta, double* maxel, double*
 
 	for (auto& [satl, samb] : StatAmbMap[base].SignList) /* satellites in the pivot */
 	{
-		if (!samb.pivot) 
+		if (!samb.pivot)
 			continue;
 
 		if (satpiv[satl].pivot_in != base)
@@ -576,7 +578,7 @@ SatSys connect_sta(Trace& trace, string base, string sta, double* maxel, double*
 		{
 			SignAmbg& sigamb = StatAmbMap[statn].SignList[satl];
 
-			if (sigamb.outage) 
+			if (sigamb.outage)
 				continue;
 
 			if (sigamb.nfreq < 2)
@@ -610,7 +612,7 @@ SatSys connect_sta(Trace& trace, string base, string sta, double* maxel, double*
 				continue;
 			}
 
-			if (statn == base) 
+			if (statn == base)
 				continue;
 
 			if (!sigamb.pivot)
@@ -626,7 +628,7 @@ SatSys connect_sta(Trace& trace, string base, string sta, double* maxel, double*
 
 			SignAmbg& sigamb2 = StatAmbMap[sta].SignList[tmp];
 
-			if (sigamb2.state < 2) 
+			if (sigamb2.state < 2)
 				continue;
 
 			if ( tmpqlt > mqlit)
@@ -703,7 +705,7 @@ int reconnect_pivot(Trace& trace, E_Sys sys, bool wlonly)
 
 			bool found = true;
 
-			if (!wlonly && sigamb.state < 6) 
+			if (!wlonly && sigamb.state < 6)
 				found = false;
 
 			if (!wlonly && sigamb.fix.NL12var < 0.0)
@@ -755,7 +757,7 @@ int reconnect_pivot(Trace& trace, E_Sys sys, bool wlonly)
 			if (!wlonly && sigamb.state < 6)
 				found = false;
 
-			if (!wlonly && sigamb.fix.NL12var < 0.0) 
+			if (!wlonly && sigamb.fix.NL12var < 0.0)
 				found = false;
 
 			if (maxel < MIN_PIV_ELE) found = false;
@@ -786,7 +788,7 @@ int reconnect_pivot(Trace& trace, E_Sys sys, bool wlonly)
 			}
 		}
 
-		if (nnew == 0) 
+		if (nnew == 0)
 			return miscon_sta[sys].size() + miscon_sat[sys].size();
 	}
 
@@ -811,7 +813,7 @@ int rese_net_NL(Trace& trace, string rec, SatSys insat)
 
 	int namb = 0;
 
-	if (StatAmbMap_list[insat.sys].find(rec) == StatAmbMap_list[insat.sys].end()) 
+	if (StatAmbMap_list[insat.sys].find(rec) == StatAmbMap_list[insat.sys].end())
 		return 0;
 
 	auto& stadat = StatAmbMap_list[insat.sys][rec];
@@ -853,7 +855,7 @@ int rese_net_NL(Trace& trace, string rec, SatSys insat)
 		if (!sigamb.pivot)
 			continue;
 
-		if (satpiv[sat].pivot_in != rec) 
+		if (satpiv[sat].pivot_in != rec)
 			continue;
 
 		tracepdeex(NPIVTRCLVL, trace, "\n#ARES_PIV Initializing NL pivot for satellite %s  ", sat.id().c_str());
@@ -870,10 +872,10 @@ int rese_net_NL(Trace& trace, string rec, SatSys insat)
 
 		for (auto& [rec2, elev] : satpiv[sat].elev )
 		{
-			if (rec == rec2) 
+			if (rec == rec2)
 				continue;
 
-			if (StatAmbMap_list[insat.sys][rec2].SignList[sat].pivot) 
+			if (StatAmbMap_list[insat.sys][rec2].SignList[sat].pivot)
 				namb += rese_net_NL(trace, rec2, sat);
 		}
 	}
@@ -891,13 +893,13 @@ void init_net_pivot ( Trace& trace, double arelev, string defref )
 	string tmp = "UNINIT";
 	int nmx2 = 0, nmx3 = 0;
 
-	for (auto& [sys, ambMap] : StatAmbMap_list) 
+	for (auto& [sys, ambMap] : StatAmbMap_list)
 	{
 		if (sys_solve[sys] == false)
 		{
 			continue;
 		}
-		
+
 		tracepdeex(NPIVTRCLVL, trace, "\n#ARES_PIV Initializing network pivot for %s  %d %d", sys._to_string(), ambMap.size(), satpiv.size());
 
 		for (auto& [rec, stadat] : ambMap)
@@ -987,7 +989,7 @@ void init_net_pivot ( Trace& trace, double arelev, string defref )
 
 			for (auto& [id, staamb] : ambMap) 							/* connecting stations to the pivot */
 			{
-				if (staamb.npivot > 0) 
+				if (staamb.npivot > 0)
 					continue;								/* station already part of the pivot */
 
 				SatSys pivt;
@@ -995,7 +997,7 @@ void init_net_pivot ( Trace& trace, double arelev, string defref )
 
 				for (auto& [sat, satamb] : staamb.SignList)
 				{
-					if (satamb.nfreq < 2) 
+					if (satamb.nfreq < 2)
 						continue;							/* ToDo modify this to account for trple frequency */
 
 					if (satpiv[sat].npivot > 0 && maxel < satamb.elev)
@@ -1043,7 +1045,7 @@ void init_net_pivot ( Trace& trace, double arelev, string defref )
 
 			for (auto& [sat, satamb] : satpiv) 								/* connecting satellites to the pivot */
 			{
-				if (satamb.npivot > 0) 
+				if (satamb.npivot > 0)
 					continue;								/* satellite is already part of the pivot */
 
 				string pvt;
@@ -1113,7 +1115,7 @@ void init_net_pivot ( Trace& trace, double arelev, string defref )
 void updt_net_pivot ( Trace& trace, bool wlonly )
 {
 
-	for (auto& [sys, StatAmbMap] : StatAmbMap_list) 
+	for (auto& [sys, StatAmbMap] : StatAmbMap_list)
 	{
 		if (sys_solve[sys] == false)
 		{
@@ -1154,10 +1156,10 @@ void updt_net_pivot ( Trace& trace, bool wlonly )
 					tracepdeex(2, trace, "\n#ARES_PIV WARNING: Cannot include %s in pivot", sat.id().c_str());
 					it = satpiv.erase(it);
 				}
-				else 
+				else
 					it++;
 			}
-			else 
+			else
 				it++;
 		}
 
@@ -1232,7 +1234,7 @@ void updt_net_pivot ( Trace& trace, bool wlonly )
 					break;
 			}
 
-			if (!nnew) 
+			if (!nnew)
 				break;
 		}
 
@@ -1252,7 +1254,7 @@ void updt_net_pivot ( Trace& trace, bool wlonly )
 					itr = miscon_sat[sys].erase(itr);
 					nnew++;
 				}
-				else 
+				else
 					++itr;
 			}
 
@@ -1266,7 +1268,7 @@ void updt_net_pivot ( Trace& trace, bool wlonly )
 					it = miscon_sta[sys].erase(it);
 					nnew++;
 				}
-				else 
+				else
 					++it;
 			}
 
@@ -1279,7 +1281,7 @@ void updt_net_pivot ( Trace& trace, bool wlonly )
 			tracepdeex(2, trace, "\n#ARES_PIV WARNING satellite %s could not be reconnected nor resetted, needs to be removed from AR solutions ", sat.id().c_str());
 			satpiv[sat].elev.clear();
 
-			for (auto& [rec, samb] : StatAmbMap ) 
+			for (auto& [rec, samb] : StatAmbMap )
 				samb.SignList.erase(sat);
 
 			/* procedures for satellite outages needs to be put here */

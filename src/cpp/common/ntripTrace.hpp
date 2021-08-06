@@ -30,8 +30,8 @@ struct NtripTrace
 	
 	void traceSsrEph(SatSys Sat,SSREph ssrEph);
 	void traceSsrClk(SatSys Sat,SSRClk ssrClk);
-	void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRCodeBias ssrBias);
-	void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRPhasBias ssrBias);
+	void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias);
+	void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias);
 	void traceBroEph(Eph eph,E_Sys sys);
 	
 	

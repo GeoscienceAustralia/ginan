@@ -530,6 +530,14 @@ CALL read_cmdline
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
+! config checks - mode IC_INT was an afterthought, need to add predition arc to determination arc
+if (yml_pod_mode == MODE_IC_INT) then
+    yml_orbit_arc_determination = yml_orbit_arc_determination + yml_orbit_arc_prediction
+    yml_orbit_arc_prediction = 0
+end if
+! ----------------------------------------------------------------------
+
+! ----------------------------------------------------------------------
 ! Major configuration parameters via "read_cmdline routine", "POD.in configuration file" and "Module mdl_config.f03" 
 ! ----------------------------------------------------------------------
 ! Debug

@@ -124,57 +124,66 @@ struct SignalInfo
 
 struct RtcmDecoder
 {
-	static void setTime(GTime& time, double tow);
+	virtual int adjgpsweek(int week);
+	virtual void setTime(GTime& time, double tow);
+	virtual GTime getGpst();
+    
 	static uint16_t message_length(char header[2]);
 	static RtcmMessageType message_type(const uint8_t message[]);
+};   
+   
+struct CustomDecoder : RtcmDecoder
+{
+	GTime				decodeCustomTimestamp	(uint8_t* data, unsigned int message_length);
+	E_RTCMSubmessage	decodeCustomId			(uint8_t* data, unsigned int message_length);
+};
+
+struct SSRDecoder : RtcmDecoder
+{
+	constexpr static int updateInterval[16] =
+    {
+        1, 2, 5, 10, 15, 30, 60, 120, 240, 300, 600, 900, 1800, 3600, 7200, 10800
+    };
+    
+    static int getUdiIndex(int udi);
+    
+    // decodes data from Decoder struct and places in global nav_t struct.
+    void decodeSSR(uint8_t* data, unsigned int message_length);
+    
+    // Optional virtual message functions for trace.
+    virtual void traceSsrEph(SatSys Sat,SSREph ssrEph){}
+    virtual void traceSsrClk(SatSys Sat,SSRClk ssrClk){}
+    virtual void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias){}
+    virtual void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias){} 
+    virtual void traceLatency(GTime gpsTime){}
+};
+
+struct EphemerisDecoder : RtcmDecoder
+{
+    // decodes data from Decoder struct and places in global nav_t struct.
+    void decodeEphemeris(uint8_t* data, unsigned int message_length);
+    
+    // Optional virtual message function for trace.
+    virtual void traceBroEph(Eph eph,E_Sys sys){}
+    virtual void traceLatency(GTime gpsTime){}
+};
+
+struct MSM7Decoder : RtcmDecoder
+{ 
+    E_FType code_to_ftype(E_Sys sys, E_ObsCode code);
+    boost::optional<SignalInfo> get_signal_info(E_Sys sys, uint8_t signal);
+    E_ObsCode signal_to_code(E_Sys sys, uint8_t signal);
+    
+    ObsList decodeMSM7(uint8_t* data, unsigned int message_length,
+                        map<SatSys,map<E_ObsCode,int>> MSM7_lock_time);
 	
-	
-	struct SSRDecoder
-	{
-		constexpr static int updateInterval[16] =
-		{
-			1, 2, 5, 10, 15, 30, 60, 120, 240, 300, 600, 900, 1800, 3600, 7200, 10800
-		};
-		
-		static int getUdiIndex(int udi);
-		
-		// decodes data from Decoder struct and places in global nav_t struct.
-		void decodeSSR(uint8_t* data, unsigned int message_length);
-		
-		// Optional virtual message functions for trace.
-		virtual void traceSsrEph(SatSys Sat,SSREph ssrEph){}
-		virtual void traceSsrClk(SatSys Sat,SSRClk ssrClk){}
-		virtual void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRCodeBias ssrBias){}
-		virtual void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRPhasBias ssrBias){}
-	};
-	
-	struct EphemerisDecoder
-	{
-		// decodes data from Decoder struct and places in global nav_t struct.
-		void decodeEphemeris(uint8_t* data, unsigned int message_length);
-		
-		// Optional virtual message function for trace.
-		virtual void traceBroEph(Eph eph,E_Sys sys){}
-	};
-	
-	struct MSM7Decoder
-	{ 
-		E_FType code_to_ftype(E_Sys sys, E_ObsCode code);
-		boost::optional<SignalInfo> get_signal_info(E_Sys sys, uint8_t signal);
-		E_ObsCode signal_to_code(E_Sys sys, uint8_t signal);
-		
-		ObsList decodeMSM7(
-			uint8_t* data,
-			unsigned int message_length,
-			map<SatSys,map<E_ObsCode,int>> MSM7_lock_time);
-	};
+	virtual void traceLatency(GTime gpsTime){}
 };
 
 
 struct RtcmStream : ObsStream, NavStream, 
-					RtcmDecoder::SSRDecoder,
-					RtcmDecoder::EphemerisDecoder,
-					RtcmDecoder::MSM7Decoder 
+                    SSRDecoder, EphemerisDecoder,
+                    MSM7Decoder, CustomDecoder
 {
 	LockTimeInfo lock_time_info_current;
 	LockTimeInfo lock_time_info_previous;
@@ -182,22 +191,35 @@ struct RtcmStream : ObsStream, NavStream,
 	ObsList SuperList;
 	map<SatSys,map<E_ObsCode,int>> MSM7_lock_time;
 
-	int numPreambleFound	= 0;
-	int numFramesFailedCRC	= 0;
-	int numFramesPassCRC	= 0;
-	int numFramesDecoded	= 0;
-	int numNonMessBytes		= 0;
+    long int	numPreambleFound	= 0;
+    long int	numFramesFailedCRC	= 0;
+    long int	numFramesPassCRC	= 0;
+    long int	numFramesDecoded	= 0;
+    long int	numNonMessBytes		= 0;
+	long int	numMessagesLatency	= 0;
+	double		totalLatency		= 0;
 	
+	static GTime rtcmDeltaTime;
+	
+    GTime rtcm_UTC;
+    int adjgpsweek(int week) override;
+    void setTime(GTime& time, double tow) override;
+    GTime getGpst() override;
+    
+	std::string  rtcm_filename;
+    
+    void createRtcmFile();
 	void parseRTCM(std::istream& inputStream);
-	
-	// Optional virtual message functions for trace.
-	virtual void messageRtcmLog(std::string message){}
-	virtual void messageRtcmByteLog(std::string message){}
-	virtual void traceBroEph(Eph eph,E_Sys sys){}
-// 	virtual void traceSsrEph(SatSys Sat,SSREph ssrEph){}
-// 	virtual void traceSsrClk(SatSys Sat,SSRClk ssrClk){}
-// 	virtual void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRCodeBias ssrBias){}
-// 	virtual void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRPhasBias ssrBias){}
+    
+    // Optional virtual message functions for trace.
+    virtual void messageRtcmLog(std::string message){}
+    virtual void messageRtcmByteLog(std::string message){}
+    virtual void traceBroEph(Eph eph,E_Sys sys)override {}
+    virtual void traceSsrEph(SatSys Sat,SSREph ssrEph) {}
+    virtual void traceSsrClk(SatSys Sat,SSRClk ssrClk) {}
+    virtual void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias) {}
+    virtual void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias) {}
+    void traceLatency(GTime gpsTime) override;
 };
 
 

@@ -33,7 +33,7 @@ double shar_valid = 10.0;
 /*-----------------------------------------------------
 configure_iono_model_sphhar() configures the spherical harmonics model.
 Specifically it initializes:
-shar_valid				time validity of a rotation matrix (the rotation matrix will chace the sun position)
+shar_valid				time validity of a rotation matrix (the rotation matrix will chase the sun position)
 Sph_Basis_list			List of ionosphere basis
 time:  		I 		time of observations (to update the rotation matrix)
 IPP: 			I 		Ionospheric piercing point to be updated
@@ -351,7 +351,7 @@ double ion_vtec_sphhar(
 		}
 
 		iono += 	coef * staval;
-		vari += SQR(coef * stastd);
+		vari += SQR(coef)* stastd;
 	}
 
 	return iono;

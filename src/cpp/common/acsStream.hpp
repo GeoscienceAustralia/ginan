@@ -148,19 +148,54 @@ struct NavStream
 #include "acsRinexStream.hpp"
 #include "acsNtripStream.hpp"
 
+struct networkData
+{
+	std::string streamName;
+	
+	GTime startTime;
+	GTime endTime;
+    long int	numPreambleFound	= 0;
+    long int	numFramesFailedCRC	= 0;
+    long int	numFramesPassCRC	= 0;
+    long int	numFramesDecoded	= 0;
+    long int	numNonMessBytes		= 0;
+	long int	numMessagesLatency	= 0;	
+	double		totalLatency		= 0;
+
+    int disconnectionCount = 0;
+    boost::posix_time::time_duration connectedDuration		= boost::posix_time::hours(0);
+    boost::posix_time::time_duration disconnectedDuration	= boost::posix_time::hours(0);
+	
+    int numberErroredChunks = 0; 
+	int numberChunks = 0;
+	
+	void clearStatistics(GTime tStart, GTime tEnd);
+	void accumulateStatisticsFrom(networkData dataToAdd);
+	
+	std::string previousJSON;
+	std::string getJsonNetworkStatistics(GTime now);
+};
+
 
 /** Object that streams RTCM data from NTRIP castors.
 * Overrides interface functions
 */
 struct NtripRtcmStream : NtripStream, RtcmStream
 {
-	/** NtripTrace is an object in this class as it is also used for the uploading
-	* stream and so it cannot inherit NtripStream and RtcmStream. The overide function
-	* provide for other classes to call functions for NtripTrace without a pointer or
-	* address both of which are problematic for code resuse and understanding.
-	*/
-	NtripTrace ntripTrace;
-	bool print_stream_statistics = false;
+    /** NtripTrace is an object in this class as it is also used for the uploading
+     * stream and so it cannot inherit NtripStream and RtcmStream. The overide function
+     * provide for other classes to call functions for NtripTrace without a pointer or
+     * address both of which are problematic for code resuse and understanding.
+     */
+    NtripTrace ntripTrace;
+    bool print_stream_statistics = false;
+  
+    std::string connectionErrorJson = "";
+    std::string serverResponseJson = "";
+	
+	networkData epochData;
+	networkData hourlyData;
+	networkData runData;
 	
 	NtripRtcmStream(const string& url_str) : NtripStream(url_str)
 	{
@@ -221,12 +256,12 @@ struct NtripRtcmStream : NtripStream, RtcmStream
 		ntripTrace.traceSsrClk(Sat,ssrClk);
 	}
 	
-	void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRCodeBias ssrBias) override
+	void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias) override
 	{
 		ntripTrace.traceSsrCodeB(Sat,mode,ssrBias);
 	}
 	
-	void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRPhasBias ssrBias) override
+	void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias) override
 	{
 		ntripTrace.traceSsrPhasB(Sat,mode,ssrBias);
 	}
@@ -248,20 +283,23 @@ struct NtripRtcmStream : NtripStream, RtcmStream
 	
 	void networkLog(std::string message) override
 	{
-		ntripTrace.networkLog(message);
-	}
-	
-	void traceMakeNetworkOverview(Trace& trace);
+        ntripTrace.networkLog(message);
+    }
+    
+    void connectionError(const boost::system::error_code& err, std::string operation) override;
+    void serverResponse(unsigned int status_code, std::string http_version) override;
+ 
+    void traceMakeNetworkOverview(Trace& trace);
 	
 	void traceWriteEpoch(Trace& trace)
-	{
-		traceMakeNetworkOverview(trace);
-		ntripTrace.traceWriteEpoch(trace);
-	}
-	
-	std::string getJsonNetworkStatistics(system_clock::time_point epochTime);
-	
-	void getNav() override
+    {
+        traceMakeNetworkOverview(trace);
+        ntripTrace.traceWriteEpoch(trace);
+    }
+    
+    std::vector<std::string> getJsonNetworkStatistics(GTime epochTime);
+    
+	void getNav()
 	{
 		//get all data available from the ntrip stream and convert it to an iostream for processing
 		getData();

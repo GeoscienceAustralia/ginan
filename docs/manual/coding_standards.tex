@@ -1,10 +1,12 @@
 \chapter{Coding Standards}
 \label{ch:coding_standards}
 
-\newthought{Coding Standards} for C++
+\textit{Coding Standards} for C++
 
 \section{Code style}
-Overall we are aiming for
+Decades of experience has shown that codebases that are built with concise, clean code have fewer issues and are easier to maintain. If submitting a pull request for a patch to the software, please ensure your code meets the following standards.
+
+Overall we are aiming to
 \begin{itemize}
 	\item  Write for clarity
 	\item  Write for clarity
@@ -12,33 +14,33 @@ Overall we are aiming for
 	\item  Use aliases to reduce clutter.
 \end{itemize}
 
-\subsection{Bad}
+\subsubsection{Unconcise code - Not recommended}
 \begin{lstlisting}[language=C++]
-    //check first letter of satellite type against stomething
+//check first letter of satellite type against something
 
-    if (obs.Sat.id().c_str()[0]) == 'G') 
-        doSomething(); 
-    else if (obs.Sat.id().c_str()[0]) == 'R')
-        doSomething();
-    else if (obs.Sat.id().c_str()[0]) == 'E')
-        doSomething();
-    else if (obs.Sat.id().c_str()[0]) == 'I')
-        doSomething();
-        
+if (obs.Sat.id().c_str()[0]) == 'G') 
+    doSomething(); 
+else if (obs.Sat.id().c_str()[0]) == 'R')
+    doSomething();
+else if (obs.Sat.id().c_str()[0]) == 'E')
+    doSomething();
+else if (obs.Sat.id().c_str()[0]) == 'I')
+    doSomething();
+    
 \end{lstlisting}
 
-\subsection{Good}
+\subsubsection{Clear Code - Good}
 
 \begin{lstlisting}[language=c++]
-    char& sysChar = obs.Sat.id().c_str()[0];
+char& sysChar = obs.Sat.id().c_str()[0];
 
-    switch (sysChar)
-    {
-        case 'G':   doSomething();   break;
-        case 'R':   doSomething();   break;
-        case 'E':   doSomething();   break;
-        case 'I':   doSomething();   break;
-    }
+switch (sysChar)
+{
+    case 'G':   doSomething();   break;
+    case 'R':   doSomething();   break;
+    case 'E':   doSomething();   break;
+    case 'I':   doSomething();   break;
+}
 \end{lstlisting}
 
 
@@ -52,141 +54,142 @@ Overall we are aiming for
 	\item  Use tabs to keep things tidy - If the same function is called multiple times with different parameters, the parameters should line up.
 \end{itemize}
 
-\subsection{Bad}
+\subsubsection{Scattered Parameters - Bad}
 
 \begin{lstlisting}[language=c++]
-    trySetFromYaml(mongo_metadata,output_files,{"mongo_metadata" });
-    trySetFromYaml(mongo_output_measurements,output_files,{"mongo_output_measurements" });
-    trySetFromYaml(mongo_states,output_files,{"mongo_states" });
+trySetFromYaml(mongo_metadata,output_files,{"mongo_metadata" });
+trySetFromYaml(mongo_output_measurements,output_files,{"mongo_output_measurements" });
+trySetFromYaml(mongo_states,output_files,{"mongo_states" });
 \end{lstlisting}
 
-\subsection{Good}
+\subsubsection{Aligned Parameters - Good}
 \begin{lstlisting}[language=c++]
-    trySetFromYaml(mongo_metadata,             output_files, {"mongo_metadata"              });
-    trySetFromYaml(mongo_output_measurements,  output_files, {"mongo_output_measurements"	});
-    trySetFromYaml(mongo_states,               output_files, {"mongo_states"		        });
+trySetFromYaml(mongo_metadata,             output_files, {"mongo_metadata"              });
+trySetFromYaml(mongo_output_measurements,  output_files, {"mongo_output_measurements"	});
+trySetFromYaml(mongo_states,               output_files, {"mongo_states"		        });
 \end{lstlisting}
 
 \section{Statements}
 
-* One statement per line  - \*unless you have a very good reason
+One statement per line 
+- * unless you have a very good reason
 
-\subsection{Bad}
+\subsubsection{Multiple Statements per Line - Bad}
 \begin{lstlisting}[language=c++]
-    z[k]=ROUND(zb[k]); y=zb[k]-z[k]; step[k]=SGN(y);
+z[k]=ROUND(zb[k]); y=zb[k]-z[k]; step[k]=SGN(y);
 \end{lstlisting}
 
-\subsection{Good}
+\subsubsection{Single Statement per Line - Good}
 
 \begin{lstlisting}[language=c++]
-    z[k]    = ROUND(zb[k]);
-    y       = zb[k]-z[k]; 
-    step[k] = SGN(y);
+z[k]    = ROUND(zb[k]);
+y       = zb[k]-z[k]; 
+step[k] = SGN(y);
 \end{lstlisting}
 
-\subsection{Example of a good reason:}
+\subsubsection{Example of a good reason:}
 
 * Multiple statements per line sometimes shows repetetive code more clearly, but put some spaces so the separation is clear.
 
-\subsection{Normal}
+\subsubsection{Normal}
 
 \begin{lstlisting}[language=c++]
-    switch (sysChar)
-    {
-        case ' ':
-        case 'G': 
-            *sys = E_Sys::GPS; 
-            *tsys = TSYS_GPS; 
-            break;
-        case 'R': 
-            *sys = E_Sys::GLO;  
-            *tsys = TSYS_UTC; 
-            break;
-        case 'E': 
-            *sys = E_Sys::GAL;  
-            *tsys = TSYS_GAL; 
-            break;
-        //...continues
-    }
-\end{lstlisting}
-
-\subsection{Ok}
-
-\begin{lstlisting}[language=c++]
-    if      (sys == SYS_GLO)    fact = EFACT_GLO;
-	else if (sys == SYS_CMP)    fact = EFACT_CMP;
-	else if (sys == SYS_GAL)    fact = EFACT_GAL;
-	else if (sys == SYS_SBS)    fact = EFACT_SBS;
-	else                        fact = EFACT_GPS;
-\end{lstlisting}
-
-\subsection{Ok}	
-
-\begin{lstlisting}[language=c++]
-    switch (sysChar)
-    {
-        case ' ':
-        case 'G':   *sys = E_Sys::GPS;      *tsys = TSYS_GPS;    break;
-        case 'R':   *sys = E_Sys::GLO;      *tsys = TSYS_UTC;    break;
-        case 'E':   *sys = E_Sys::GAL;      *tsys = TSYS_GAL;    break;
-        case 'S':   *sys = E_Sys::SBS;      *tsys = TSYS_GPS;    break;
-        case 'J':   *sys = E_Sys::QZS;      *tsys = TSYS_QZS;    break;
+switch (sysChar)
+{
+    case ' ':
+    case 'G': 
+        *sys = E_Sys::GPS; 
+        *tsys = TSYS_GPS; 
+        break;
+    case 'R': 
+        *sys = E_Sys::GLO;  
+        *tsys = TSYS_UTC; 
+        break;
+    case 'E': 
+        *sys = E_Sys::GAL;  
+        *tsys = TSYS_GAL; 
+        break;
     //...continues
-    }
+}
+\end{lstlisting}
+
+\subsubsection{Ok}
+
+\begin{lstlisting}[language=c++]
+if      (sys == SYS_GLO)    fact = EFACT_GLO;
+else if (sys == SYS_CMP)    fact = EFACT_CMP;
+else if (sys == SYS_GAL)    fact = EFACT_GAL;
+else if (sys == SYS_SBS)    fact = EFACT_SBS;
+else                        fact = EFACT_GPS;
+\end{lstlisting}
+
+\subsubsection{Ok}	
+
+\begin{lstlisting}[language=c++]
+switch (sysChar)
+{
+    case ' ':
+    case 'G':   *sys = E_Sys::GPS;      *tsys = TSYS_GPS;    break;
+    case 'R':   *sys = E_Sys::GLO;      *tsys = TSYS_UTC;    break;
+    case 'E':   *sys = E_Sys::GAL;      *tsys = TSYS_GAL;    break;
+    case 'S':   *sys = E_Sys::SBS;      *tsys = TSYS_GPS;    break;
+    case 'J':   *sys = E_Sys::QZS;      *tsys = TSYS_QZS;    break;
+//...continues
+}
 \end{lstlisting}
 
 \section{Braces}
 
 New line for braces.
 \begin{lstlisting}[language=c++]
-    if (pass)
-    {
-        doSomething();
-    }
+if (pass)
+{
+    doSomething();
+}
 \end{lstlisting}
 
 \section{Comments}
 
 \begin{itemize}
-\item Prefer `//` for comments within functions
-\item Use `/* */` only for temporary removal of blocks of code.
-\item Use `/** */` and `///<` for automatic documentation
+\item Prefer \lstinline{//} for comments within functions
+\item Use \lstinline{/* */} only for temporary removal of blocks of code.
+\item Use \lstinline{/** */} and \lstinline{///<} for automatic documentation
 \end{itemize}
 
 \section{Conditional checks}
 %
 \begin{itemize}
-\item  Put `\&\&` and `||` at the beginning of lines when using multiple conditionals.
+\item  Put \lstinline{&&} and \lstinline{||} at the beginning of lines when using multiple conditionals.
 \item  Always use curly braces when using multiple conditionals.
 \end{itemize}
 %
 \begin{lstlisting}[language=c++]
-    if  ( ( testA     > 10)
-        &&( testB   == false
-          ||testC   == false))
-    {
-        //do something
-    }
+if  ( ( testA     > 10)
+    &&( testB   == false
+      ||testC   == false))
+{
+    //do something
+}
 \end{lstlisting}
 
 * Use variables to name return values rather than using functions directly
 
-\subsection{Bad}
+\subsubsection{Bad}
 
 \begin{lstlisting}[language=c++]
-    if (doSomeParsing(someObject))
-    {
-        //code contingent on parsing success? failure?
-    }
+if (doSomeParsing(someObject))
+{
+    //code contingent on parsing success? failure?
+}
 \end{lstlisting}
 
-\subsection{Good}
+\subsubsection{Good}
 \begin{lstlisting}[language=c++]
-    bool fail = doSomeParsing(someObject);
-    if (fail)
-    {
-        //This code is clearly a response to a failure
-    }
+bool fail = doSomeParsing(someObject);
+if (fail)
+{
+    //This code is clearly a response to a failure
+}
 \end{lstlisting}
 
 \section{Variable declaration}
@@ -199,24 +202,24 @@ New line for braces.
 \end{itemize}
 
 \begin{lstlisting}[language=c++]
-    int  type  = 0;
-    bool found = false;         //these have to be declared early so they can be used after the for loop
+int  type  = 0;
+bool found = false;         //these have to be declared early so they can be used after the for loop
 
-    for (int i = 0; i < 10; i++)
+for (int i = 0; i < 10; i++)
+{
+    bool pass = someTestFunction();    //this pass variable isnt declared until it's used - good
+    if (pass)
     {
-        bool pass = someTestFunction();    //this pass variable isnt declared until it's used - good
-        if (pass)
-        {
-            type  = typeMap[i];
-            found = true;
-            break;
-        }
+        type  = typeMap[i];
+        found = true;
+        break;
     }
+}
 
-    if (found)
-    {
-        //...
-    }    
+if (found)
+{
+    //...
+}    
 \end{lstlisting}
 
 \section{Function parameters}
@@ -228,54 +231,54 @@ New line for braces.
 \end{itemize}
 
 \begin{lstlisting}[language=c++]
-    void function(
-            bool        runTests,           ///< Run unit test while processing
-            MyStruct&   myStruct,           ///< Structure to modify
-            OtherStr*	otherStr = nullptr)	///< Optional structure object to populate (cant use reference because its optional)
-    {
-    	//...
-    }
+void function(
+        bool        runTests,           ///< Run unit test while processing
+        MyStruct&   myStruct,           ///< Structure to modify
+        OtherStr*	otherStr = nullptr)	///< Optional structure object to populate (cant use reference because its optional)
+{
+   	//...
+}
 \end{lstlisting}
 
 \section{Naming and Structure}
 %
 \begin{itemize}
-\item For structs/classes, use `CamelCase` with capital start
+\item For structs or classes, use `CamelCase` with capital start
 \item For member variables, use `camelCase` with lowercase start
 \item For config parameters, use `lowercase\_with\_underscores`
-\item Use suffixes (`\_ptr`, `\_arr`, `Map`, `List` etc.) to describe the type of container for complex types
+\item Use suffixes (`\_ptr`, `\_arr`, `Map`, `List` etc.) to describe the type of container for complex types.
 \item Be sure to provide default values for member variables.
 \item Use heirarchical objects where applicable.
 \end{itemize}
 %
 \begin{lstlisting}[language=c++]
-    struct SubStruct
-    {
-        int    type = 0;
-        double val  = 0;
-    };
+struct SubStruct
+{
+    int    type = 0;
+    double val  = 0;
+};
 
-    struct MyStruct
-    {
-        bool          memberVariable = false;
-        double        precision      = 0.1;
+struct MyStruct
+{
+    bool          memberVariable = false;
+    double        precision      = 0.1;
 
-        double                     offset_arr[10]  = {};
-        OtherStruct*               refStruct_ptr   = nullptr;
+    double                     offset_arr[10]  = {};
+    OtherStruct*               refStruct_ptr   = nullptr;
 
-        map<string, double>        offsetMap; 
-        list<map<string, double>>  variationMapList;
-        map<int, SubStruct>        subStructMap;
-    };
+    map<string, double>        offsetMap; 
+    list<map<string, double>>  variationMapList;
+    map<int, SubStruct>        subStructMap;
+};
 
-    //...
+//...
 
-    MyStruct myStruct = {};
+MyStruct myStruct = {};
 
-    if (acsConfig.some_parameter)
-    {
-        //..
-    }
+if (acsConfig.some_parameter)
+{
+    //..
+}
 \end{lstlisting}
 \section{Testing}
 \begin{itemize}
@@ -283,19 +286,19 @@ New line for braces.
 	\item Use TestStack objects with descriptive strings in loops that wrap functions that require automatic unit testing.
 \end{itemize}
 \begin{lstlisting}[language=c++]
-    void function()
+void function()
+{
+    TestStack ts(__FUNCTION__);
+
+    //...
+
+    for (auto& obs : obsList)
     {
-        TestStack ts(__FUNCTION__);
+        TestStack ts(obs.Sat.id());
 
         //...
-
-        for (auto& obs : obsList)
-        {
-            TestStack ts(obs.Sat.id());
-
-            //...
-        }
     }
+}
 \end{lstlisting}
 \section{Documentation}
 \begin{itemize}
@@ -304,23 +307,23 @@ New line for braces.
 \item `///<` for parameters
 \end{itemize}
 \begin{lstlisting}[language=c++]
-    /** Struct to demonstrate documentation.
-    * The first line automatically gets parsed as a brief description, but more detailed descriptions are possible too.
-    */
-    struct MyStruct
-    {
-        bool    dummyBool;                  ///< The thing to the left is documented here
-    };
+/** Struct to demonstrate documentation.
+* The first line automatically gets parsed as a brief description, but more detailed descriptions are possible too.
+*/
+struct MyStruct
+{
+    bool    dummyBool;                  ///< The thing to the left is documented here
+};
 
-    /** Function to demonstrate documentation
-    */
-    void function(
-            bool        runTests,           ///< Run unit test while processing
-            MyStruct&   myStruct,           ///< Structure to modify
-            OtherStr*	otherStr = nullptr)	///< Optional string to populate
-    {
-    	//...
-    }
+/** Function to demonstrate documentation
+*/
+void function(
+        bool        runTests,           ///< Run unit test while processing
+        MyStruct&   myStruct,           ///< Structure to modify
+        OtherStr*	otherStr = nullptr)	///< Optional string to populate
+{
+   	//...
+}
 \end{lstlisting}
 
 \section{STL Templates}
@@ -329,87 +332,86 @@ New line for braces.
 \item Prefer range-based loops rather than iterators or `i` loops, unless unavoidable.
 \end{itemize}
 
-\subsection{Bad}
+\subsubsection{Bad}
 \begin{lstlisting}[language=c++]
-    double double_arr[10] = {};
+double double_arr[10] = {};
 
-    //..(Populate array)
+//..(Populate array)
 
-    for (int i = 0; i < 10; i++)    //Magic number 10 - bad.
-    {
+for (int i = 0; i < 10; i++)    //Magic number 10 - bad.
+{
 
-    }
+}
 \end{lstlisting}
 %
 \begin{lstlisting}[language=c++]
-    map<string, double> doubleMap;
+map<string, double> doubleMap;
 
-    //..(Populate Map)
+//..(Populate Map)
 
-    for (auto iter = doubleMap.begin(); iter != doubleMap.end(); iter++)   //long, undescriptive - bad
-    {
-    	if (iter->first == someVar)     //'first' is undescriptive - bad
-    	{
-    		//..
-    	}
-    }
+for (auto iter = doubleMap.begin(); iter != doubleMap.end(); iter++)   //long, undescriptive - bad
+{
+   	if (iter->first == someVar)     //'first' is undescriptive - bad
+   	{
+   		//..
+   	}
+}
 \end{lstlisting}
-\subsection{Good - Iterating Maps}
+\subsubsection{Good - Iterating Maps}
 \begin{lstlisting}[language=c++]
-    map<string, double> offsetMap;
+map<string, double> offsetMap;
 
-    //..(Populate Map)
+//..(Populate Map)
 
-    for (auto& [siteName, offset] : doubleMap)	//give readable names to map keys and values
+for (auto& [siteName, offset] : doubleMap)	//give readable names to map keys and values
+{
+    if (siteName.empty() == false)
     {
-        if (siteName.empty() == false)
-        {
-        
-        }
+    
     }
+}
 \end{lstlisting}
-\subsection{ Good - Iterating Lists}
+\subsubsection{Good - Iterating Lists}
 \begin{lstlisting}[language=c++]
-    list<Obs> obsList;
+list<Obs> obsList;
 
-    //..(Populate list)
+//..(Populate list)
 
-    for (auto& obs : obsList)         //give readable names to list elements
-    {
-        doSomethingWithObs(obs);
-    }
+for (auto& obs : obsList)         //give readable names to list elements
+{
+    doSomethingWithObs(obs);
+}
 \end{lstlisting}
 
-\section{Special Case - Deleting from maps/lists}
+\subsubsection{Special Case - Deleting from maps/lists}
 
 Use iterators when you need to delete from STL containers:
 \begin{lstlisting}[language=c++]
+for (auto it = someMap.begin(); it != someMap.end();  )
+{
+    KFKey key = it->first;				//give some alias to the key/value so they're readable
 
-    for (auto it = someMap.begin(); it != someMap.end();  )
+    if (measuredStates[key] == false)
     {
-        KFKey key = it->first;				//give some alias to the key/value so they're readable
-
-        if (measuredStates[key] == false)
-        {
-	    	it = someMap.erase(it);
-    	}
-	    else
-	    {
-	    	++it;
-    	}
-    }
+    	it = someMap.erase(it);
+   	}
+    else
+    {
+    	++it;
+   	}
+}
 \end{lstlisting}
 \section{Namespaces}
 
 Commonly used std containers may be included with `using`
 \begin{lstlisting}[language=c++]
-    #include <string>
-    #include <map>
-    #include <list>
-    #include <unordered_map>
-    
-    using std::string;
-    using std::map;
-    using std::list
-    using std::unordered_map;
+#include <string>
+#include <map>
+#include <list>
+#include <unordered_map>
+
+using std::string;
+using std::map;
+using std::list
+using std::unordered_map;
 \end{lstlisting}

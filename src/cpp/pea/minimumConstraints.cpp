@@ -107,7 +107,7 @@ void minimum(
 	}
 
 	//use a state transition to initialise elements
-	kfStateTrans.stateTransition(trace, 0);
+	kfStateTrans.stateTransition(trace, GTime::noTime());
 
 	KFMeas combinedMeas = kfStateTrans.combineKFMeasList(measList);
 
@@ -147,7 +147,7 @@ void minimum(
 
 		//use a state transition to ensure output logs are complete
 		kfState.initFilterEpoch();
-		kfState.stateTransition(std::cout, 0);
+		kfState.stateTransition(std::cout, GTime::noTime());
 
 		trace << std::endl << " -------DOING KALMAN FILTER WITH PSEUDO ELEMENTS FOR MINIMUM CONSTRAINTS --------" << std::endl;
 

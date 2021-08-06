@@ -47,39 +47,23 @@ void NtripCasterService::startPerformanceMonitoring()
 		BOOST_LOG_TRIVIAL(debug) << std::endl << "<<<<<<<<<<< Network Trace : Epoch " << epoch << " >>>>>>>>>>>" << std::endl;
 		BOOST_LOG_TRIVIAL(debug) << "Date / Time : " << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(breakTime)) << std::endl;
 
-		for (auto once : {1})
+		recordNetworkStatistics(downloadStreamMap );
+
+		for (auto& [id, s] : downloadStreamMap )
 		{
-			string netStreamFilename = acsConfig.trace_directory + "NetworkStatistics.json";
-			std::ofstream netStream(netStreamFilename, std::ofstream::out | std::ofstream::ate);
-			if (!netStream)
+			NtripRtcmStream& downStream = *s;
+			
+			auto t = traceFiles.find(id);
+			if ( t == traceFiles.end() )
+				continue;
+			
+			for (auto once : {1})
 			{
-				BOOST_LOG_TRIVIAL(error)
-				<< "Could not open trace file for network statistics at " << netStreamFilename;
-				break;
-			}
-			int streamCnt = 0;
-			netStream << "[";
-			for (auto& [id, s] : downloadStreamMap )
-			{
-				NtripRtcmStream& downStream = *s;
-				
-				auto t = traceFiles.find(id);
-				if ( t == traceFiles.end() )
-					continue;
 				std::ofstream trace(t->second,std::ofstream::out | std::ofstream::app);
 				trace << std::endl << "<<<<<<<<<<< Network Trace : Epoch " << epoch << " >>>>>>>>>>>" << std::endl;
 				trace << "Date / Time : " << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(breakTime)) << std::endl;
 				downStream.traceWriteEpoch(trace);
-				trace.close();
-
-				std::string jsonNetworkStatistics = downStream.getJsonNetworkStatistics(breakTime);
-				netStream.write(jsonNetworkStatistics.c_str(),jsonNetworkStatistics.length());
-				streamCnt++;
-				if( downloadStreamMap.size() != streamCnt )
-				netStream << ",";
-				netStream << std::endl;
 			}
-			netStream << "]";
 		}
 		
 		epoch++;

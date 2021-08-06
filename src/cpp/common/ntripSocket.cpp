@@ -58,7 +58,7 @@ void NtripSocket::delayed_reconnect()
 {
 	if( isConnected )
 	{
-		disconnectedTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
+		disconnectedTime = boost::posix_time::microsec_clock::local_time();
 		isConnected = false;
 		disconnectionCount++;
 		
@@ -107,6 +107,7 @@ void NtripSocket::handle_reconnect(const boost::system::error_code& err)
 		connect();
 	else
 	{
+		connectionError(err,"Timer");
 		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " handle_reconnect : " << err.message() << "\n";
 		if ( err != boost::asio::error::operation_aborted )
 			delayed_reconnect();   
@@ -132,7 +133,9 @@ void NtripSocket::handle_resolve(const boost::system::error_code& err,
 	}
 	else
 	{
+		connectionError(err,"Host Resolving");
 		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " handle_resolve : " << err.message() << "\n";
+
 		if ( err != boost::asio::error::operation_aborted )
 			delayed_reconnect();   
 	}    
@@ -167,7 +170,10 @@ void NtripSocket::handle_connect(const boost::system::error_code& err,
 	}
 	else
 	{
+
+		connectionError(err,"Socket Connecting");
 		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " handle_connect : " << err.message() << "\n";
+
 		if ( err != boost::asio::error::operation_aborted )
 			delayed_reconnect();  
 	} 
@@ -186,6 +192,7 @@ void NtripSocket::handle_sslhandshake(const boost::system::error_code& err)
 	}
 	else
 	{
+		connectionError(err,"SSL Handshake");
 		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " handle_sslhandshake : " << err.message() << "\n";
 		if ( err != boost::asio::error::operation_aborted )
 			delayed_reconnect();        
@@ -215,6 +222,8 @@ void NtripSocket::handle_write_request(const boost::system::error_code& err)
 	}
 	else
 	{
+		connectionError(err,"Writing Server Request");
+
 		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " handle_write_request : " << err.message() << "\n";
 		if ( err != boost::asio::error::operation_aborted )
 			delayed_reconnect();    
@@ -255,6 +264,9 @@ void NtripSocket::handle_request_response(const boost::system::error_code& err)
 		response_stream >> status_code;
 		std::string status_message;
 		std::getline(response_stream, status_message);
+		
+		serverResponse(status_code,http_version);
+		
 		if (!response_stream || http_version.substr(0, 5) != "HTTP/")
 		{
 			if( logHttpSentReceived )
@@ -320,25 +332,13 @@ void NtripSocket::handle_request_response(const boost::system::error_code& err)
 	}
 	else
 	{
+		connectionError(err,"Reading Server Request");
 		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " handle_request_response : " << err.message() << "\n";
 		if ( err != boost::asio::error::operation_aborted )
 			delayed_reconnect();      
 	} 
 }
 
-void NtripSocket::handle_read_message(const boost::system::error_code& err)
-{
-	if (!err )
-	{
-		//readMessage();
-	}
-	else
-	{
-		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " handle_read_message : " << err.message() << "\n";
-		if ( err != boost::asio::error::operation_aborted )
-			delayed_reconnect();  
-	}
-}
 
 void NtripSocket::logChunkError()
 {
@@ -405,6 +405,7 @@ void NtripSocket::read_content(const boost::system::error_code& err)
 	
 	if ( err )
 	{
+		connectionError(err,"Reading Content");
 		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " read_chunked_stream : " << err.message() << "\n";
 		if ( err != boost::asio::error::operation_aborted )
 			delayed_reconnect();
@@ -617,7 +618,9 @@ void NtripSocket::read_chunked_stream(const boost::system::error_code& err)
 	
 	if ( err )
 	{
+		connectionError(err,"Reading Chunked Content");
 		BOOST_LOG_TRIVIAL(error) << "Error " << url.sanitised() << " read_chunked_stream : " << err.message() << "\n";
+
 		if ( err != boost::asio::error::operation_aborted )
 			delayed_reconnect();
 		return;

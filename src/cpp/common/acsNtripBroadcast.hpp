@@ -96,7 +96,7 @@ struct NtripBroadcaster
 		void traceSsrCodeB(
 			SatSys Sat,
 			E_ObsCode mode, 
-			SSRCodeBias ssrBias)
+			SSRBias ssrBias)
 		override
 		{
 			ntripTrace.traceSsrCodeB(Sat, mode, ssrBias);
@@ -105,7 +105,7 @@ struct NtripBroadcaster
 		void traceSsrPhasB(
 			SatSys Sat,
 			E_ObsCode mode, 
-			SSRPhasBias ssrBias)
+			SSRBias ssrBias)
 		override
 		{
 			ntripTrace.traceSsrPhasB(Sat, mode, ssrBias);

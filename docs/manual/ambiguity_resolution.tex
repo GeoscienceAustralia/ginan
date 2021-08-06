@@ -1,11 +1,9 @@
 \chapter{Ambiguity Resolution}
 \label{ch:Ambiguity Resolution}
-\begin{fullwidth}
 An advantage of the ambiguity fixed solutions is the significantly reduced number of parameters which have to be solved for. 
 A reduction of the normal equation to be inverted is important because usually a duplication of its size leads to over four times longer computing time for the inversion. 
 If many parameters are estimated (orbits, Earth orientation parameters etc.) ambiguity resolution improves also the results of much longer sessions than the traditional daily solution.  
 Due to the FDMA technology the ambiguity resolution for GLONASS is not a straight forward task, and we have not attempted to implement this into the pea yet.
-\end{fullwidth}
 %
 There are many methods that can be used to resolve ambiguities, but they mainly consist of two steps:
 %
@@ -14,9 +12,7 @@ There are many methods that can be used to resolve ambiguities, but they mainly 
     \item Integer values of the ambiguities are resolved using the results of step 1 (the real-value ambiguities and the VCV matrix) employing a number of statistical tests to ensure a reliable estimate.
 \end{enumerate}
 %
-\begin{fullwidth}
-\newthought{Determining a reference or a pivot} is normally done by selecting a station with the most number of observations, however this is not possible to no apriori for a systems that is designed to run in real-time.
-\end{fullwidth}
+\textit{Determining a reference or a pivot} is normally done by selecting a station with the most number of observations, however this is not possible to no apriori for a systems that is designed to run in real-time.
 %
 In the pea we have implemented a number of different ambiguity resolution strategies:
 \begin{itemize}
@@ -37,6 +33,8 @@ Thus the bootstrapped estimator reduces to ’integer rounding’ in case correl
 %
 \section{lambda}
 \section{BIE}
+The previously mentioned algorithms are known as @hard decision algorithms.
+
 \subsection{Melbourne-Wubbena linear combination}
 The Melbourne-Wubbena linear combination (Melbourne 1985),(Wubbena 1985) is a linear combination of the L1 and L2 carrier phase plus the P1 and P2 pseudorange. The geometry, troposphere and ionosphere are eliminated by it. The Melbourne-Wubbena linear combination can be represented as:
 %
@@ -62,7 +60,7 @@ highly correlated need lambda
 %
 With the fixing of the wide-lane ambiguity, equation (1) and (2) can be further deducted as:
 %
-The code bias and phase bias in equations (5) and (6) can be lumped into the corresponding receiver
+The code bias and phase bias in equations \eqref{obsEq} and (6) can be lumped into the corresponding receiver
 and satellite clock errors. Then equations (5) and (6) become:
 %
 with:
@@ -87,11 +85,11 @@ ambiguity resolution, the narrow-lane integer ambiguities can be fixed by roundi
 to the nearest integer, and the remaining will be the phase bias, which can be broadcasted to the
 user for user side PPP ambiguity resolution.
 %
-\newthought{Bootstrapping} is designed to do some stuff.
+\textit{Bootstrapping} is designed to do some stuff.
 %
-\newthought{Rounding}
+\textit{Rounding}
 %
-\newthought{Lambda}
+\textit{Lambda}
 %
 Decorrelation algorithm
 %

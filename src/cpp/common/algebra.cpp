@@ -306,15 +306,22 @@ void KFState::clampStateValues()
 }
 
 /** Add process noise and dynamics to filter object according to time gap.
-* This will also sort states according to their kfKey as a result of the way the state transition matrix is generated.
-*/
+ * This will also sort states according to their kfKey as a result of the way the state transition matrix is generated.
+ */
 void KFState::stateTransition(
 	Trace&		trace,		///< [out]	Trace file for output
-	double		tgap)		///< [in]	Time since last update for process noise and dynamics (s)
+	GTime		newTime)	///< [in]	Time of update for process noise and dynamics (s)
 {
-
 	KFState& kfState = *this;
-//
+	
+	if (time == GTime::noTime())
+	{
+		time = newTime;
+	}
+	
+	double tgap = newTime.time - time.time;
+	time = newTime;
+	
 //	TestStack ts(__FUNCTION__);
 
 	int newStateCount = stateTransitionMap.size();
@@ -562,7 +569,7 @@ int KFState::postFitSigmaCheck(
 	auto		variances		= kfMeas.R.array();
 	auto		ratios			= variations / variances;
 	auto		outsideExp		= ratios > SQR(4);
-	double		meanVariations	= variations.mean();
+// 	double		meanVariations	= variations.mean();
 
 	if (output_residuals)
 	{
@@ -601,7 +608,7 @@ int KFState::postFitSigmaCheck(
 /** Compare variances of measurements and pre-filtered states to detect unreasonable values
 */
 int KFState::preFitSigmaCheck(
-	Trace&		trace,      ///< Trace to output to
+	Trace&		trace,		///< Trace to output to
 	KFMeas&		kfMeas)		///< Measurements, noise, and design matrix
 {
 	auto	v = kfMeas.V;
@@ -615,16 +622,15 @@ int KFState::preFitSigmaCheck(
 	auto		variances	= (R + (H * P * H.transpose()).diagonal()).array();
 
 	auto		ratios		= variations / variances;
+	auto		outsideExp	= ratios > SQR(4);
 
-	double		meanRatios		= ratios.mean();
-	double		meanVariations	= variations.mean();
+// 	double		meanRatios		= ratios.mean();
+// 	double		meanVariations	= variations.mean();
 
 	trace << std::endl << "DOING PRE SIGMA CHECK: ";
 // 	std::cout << std::endl << "meanVariations-: " << meanVariations << std::endl;
 
-
 	//if any are outside the expected value, flag an error
-	auto outsideExp	= ratios > SQR(4);
 	if (outsideExp.any())
 	{
 		Eigen::ArrayXd::Index index;
@@ -842,9 +848,9 @@ KFMeas KFState::combineKFMeasList(
 }
 
 void KFState::doRejectCallbacks(
-	Trace&	trace,				///< Trace file for output
-	KFMeas&	kfMeas,				///< Measurements that were passed to the filter
-	int		badIndex)			///< Index in measurement list that was unsatisfactory
+	Trace&		trace,				///< Trace file for output
+	KFMeas&		kfMeas,				///< Measurements that were passed to the filter
+	int			badIndex)			///< Index in measurement list that was unsatisfactory
 {
 	for (auto& callback : rejectCallbacks)
 	{
@@ -923,8 +929,8 @@ int KFState::filterKalman(
 //		cout << kfMeas.Y.size() << endl;
 //		cout << kfMeas.V.size() << endl;
 		int badIndex = kfState.preFitSigmaCheck(trace, kfMeas);
-		if (badIndex < 0)	{	trace << std::endl << "PreSigma check passed" << std::endl;											break;		}
-		else				{	trace << std::endl << "PreSigma check failed.";		doRejectCallbacks(trace, kfMeas, badIndex);		continue;	}
+		if (badIndex < 0)	{	trace << std::endl << "PreSigma check passed" << std::endl;									break;		}
+		else				{	trace << std::endl << "PreSigma check failed.";	doRejectCallbacks(trace, kfMeas, badIndex);	continue;	}
 	}
 
 	MatrixXd Pp;
@@ -941,8 +947,8 @@ int KFState::filterKalman(
 		}
 
 		int badIndex = kfState.postFitSigmaCheck(trace, kfMeas, xp, dx);
-		if (badIndex < 0)	{	trace << std::endl << "Sigma check passed" << std::endl;												break;		}
-		else				{	trace << std::endl << "Sigma check failed.";			doRejectCallbacks(trace, kfMeas, badIndex);		continue;	}
+		if (badIndex < 0)	{	trace << std::endl << "Sigma check passed" << std::endl;									break;		}
+		else				{	trace << std::endl << "Sigma check failed.";	doRejectCallbacks(trace, kfMeas, badIndex);	continue;	}
 	}
 
 // 	if (pass)

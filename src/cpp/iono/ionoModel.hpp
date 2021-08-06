@@ -61,7 +61,7 @@ extern KFState		iono_KFState;
 /* General functions */
 extern int  config_ionosph_model ();
 extern int  update_receivr_measr (Trace& trace, Station& rec);
-extern void update_ionosph_model (Trace& trace, StationList& streams, GTime iontime, double tgap);
+extern void update_ionosph_model (Trace& trace, StationList& streams, GTime iontime);
 extern int  ionex_file_write(Trace& trace, GTime time, bool end = false);
 extern void write_receivr_measr(Trace& trace, std::list<Station*> stations, GTime time);
 

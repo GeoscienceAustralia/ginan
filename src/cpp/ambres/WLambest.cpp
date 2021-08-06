@@ -7,6 +7,39 @@ int wltrclvl = 4;
 map<string,KFState> userWL12KF;
 map<string,KFState> userWL23KF;
 
+/** Remove ambiguity states from filter when they are not measured for an epoch.
+ * This effectively reinitialises them on the following epoch as a new state, and can be used for simple
+ * resolution of cycle-slips
+ */
+void removeUnmeasuredAmbiguities(
+	Trace&				trace,
+	KFState&			kfState, 			///< Filter to remove states from
+	map<KFKey, bool>	measuredStates)		///< Map of measured states in this epoch to compare against.
+{
+	for (auto it = kfState.stateTransitionMap.cbegin(); it != kfState.stateTransitionMap.cend();  )
+	{
+		KFKey key = it->first;
+
+		if	( (key.type == KF::AMBIGUITY)
+			&&(measuredStates[key] == false))
+		{
+			trace << std::endl << "Removing " << key.str << " " << key.Sat.id();
+			kfState.procNoiseMap.		erase(key);
+			kfState.initNoiseMap.		erase(key);
+			kfState.stateClampMaxMap.	erase(key);
+			kfState.stateClampMinMap.	erase(key);
+			kfState.rateTransitionMap.	erase(key);
+			kfState.gaussMarkovTauMap.	erase(key);
+
+			it = kfState.stateTransitionMap.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+}
+
 /* reset station or satellite ambiguities in KF */
 void ResetDisconnectedStates( Trace& trace, KFState& kfState)
 {
@@ -192,9 +225,8 @@ void WLambRes(Trace& trace, KFState& KFstate, ARState& ambState, bool wlonly)
 	}
 }
 
-int WLambEstm( Trace& trace, GTime time, double tgap, ARState& ambState, bool wlonly)
+int WLambEstm( Trace& trace, GTime time, ARState& ambState, bool wlonly)
 {
-
 	tracepdeex(wltrclvl, trace, "\n#WLR Estimating WL ambiguities ... for %s", ambState.recv);
 	//double dtime = stations.front()->obsList.front().time.time;
 	
@@ -302,11 +334,13 @@ int WLambEstm( Trace& trace, GTime time, double tgap, ARState& ambState, bool wl
 
 		tracepdeex(wltrclvl, trace, "\n#WLAR_MEA %d %s %s %10.4f %.4e", nmeas12, rec, sat.id().c_str(), measWL12, variWL12);
 
-		if (sigdat.nfreq < 3) continue;
+		if (sigdat.nfreq < 3) 
+			continue;
 
 		double measWL23 = sigdat.raw.WL23;
 
-		if (sigdat.pivot) measWL23 -= sigdat.fix.WL23;
+		if (sigdat.pivot)
+			measWL23 -= sigdat.fix.WL23;
 
 		double variWL23 = sigdat.raw.WL23var;
 
@@ -348,10 +382,11 @@ int WLambEstm( Trace& trace, GTime time, double tgap, ARState& ambState, bool wl
 
 	tracepdeex(wltrclvl, trace, "\n#WLAR_FIL %d %d %d (%d %d)", nmeas12, nmeas23, min_nmea, sat_num.size(), sta_num.size());
 
-	if (nmeas12 < min_nmea) return 0;
+	if (nmeas12 < min_nmea)
+		return 0;
 
 	removeUnmeasuredAmbiguities(trace, WL12ambKF, activeStatesWL12);
-	WL12ambKF.stateTransition(trace, tgap);
+	WL12ambKF.stateTransition(trace, time);
 	KFMeas combined12 = WL12ambKF.combineKFMeasList(kfMeasEntryList12);
 	combined12.time = time;
 
@@ -404,7 +439,7 @@ int WLambEstm( Trace& trace, GTime time, double tgap, ARState& ambState, bool wl
 	/*if(nmeas12<MIN_WL_MEAS)*/ return nmeas12;			/*not supporting triple frequency just yet... */
 
 	removeUnmeasuredAmbiguities(trace, WL23ambKF, activeStatesWL23);
-	WL23ambKF.stateTransition(trace, tgap);
+	WL23ambKF.stateTransition(trace, time);
 	KFMeas combined23 = WL23ambKF.combineKFMeasList(kfMeasEntryList23);
 	combined23.time = time;
 

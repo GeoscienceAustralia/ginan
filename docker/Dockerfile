@@ -7,7 +7,7 @@ WORKDIR /ginan
 RUN mkdir -p src/build \
     && cd src/build \
     && cmake -DENABLE_OPTIMISATION=TRUE .. \
-    && make \
+    && make -j 3 \
     && cd ../.. \
     && rm -rf src/build
 

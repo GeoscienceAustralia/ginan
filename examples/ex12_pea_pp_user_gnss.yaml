@@ -27,7 +27,7 @@ station_data:
 
 output_files:
 
-    root_output_directory:          <CONFIG>/ #creates another empty <CONFIG> dir inside <CONFIG> if not absolute
+    root_output_directory:          <CONFIG>/
 
     # TO DO change trace_level to log_level
     output_trace:                   true
@@ -100,7 +100,7 @@ processing_options:
 user_filter_parameters:
 
     max_filter_iterations:      5 #5
-    max_filter_removals:        3 #5
+    max_prefit_removals:        3 #5
 
     rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
     rts_directory:              ./

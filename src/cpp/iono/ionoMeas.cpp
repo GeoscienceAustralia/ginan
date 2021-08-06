@@ -10,7 +10,7 @@
 #include "common.hpp"
 #include "enums.h"
 
-#define PHASE_BIAS_STD 0.3
+#define PHASE_BIAS_STD 0.05
 
 extern int Ipp_in_range(GTime time, double *Ion_pp)
 {
@@ -106,7 +106,7 @@ int update_receivr_measr(
 			
 			obs.latIPP[j] = posp[0];
 			obs.lonIPP[j] = posp[1];
-			tracepde(4,trace,"  %8.3f %8.3f\n", posp[0]*R2D, posp[1]*R2D);
+			tracepde(5,trace,"  %8.3f %8.3f\n", posp[0]*R2D, posp[1]*R2D);
 		}
 		
 		if (obs.ionExclude) 

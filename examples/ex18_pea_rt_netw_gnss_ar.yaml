@@ -130,7 +130,7 @@ station_data:
 #    
 #    stream_label:
 #        - GGA1        
-#    ISG1:
+#    GGA1:
 #        streams: "SSRA00GGA1"
 #        messages:
 #            - "1060"  # RTCM messages to be broadcast
@@ -251,7 +251,7 @@ processing_options:
 user_filter_parameters:
 
     max_filter_iterations:      2
-    max_filter_removals:        2
+    max_prefit_removals:        2
 
     rts_lag:                    20      #-ve for full reverse, +ve for limited epochs
     rts_directory:              ./

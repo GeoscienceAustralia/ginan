@@ -7,6 +7,8 @@ int rel_strt[3] = {};
 int rel_nbia = 0;
 int rel_updt = 0;
 
+map<KFKey, map<int,SinexBias>> SINEXBiases_out;
+
 string cod2str(
 	E_ObsCode	code, 
 	E_MeasType	opt)
@@ -189,18 +191,20 @@ int write_bias_SINEX(
 		return 0;
 	}
 	
-	for (auto& idObsObsBiasMap			: SINEXBiases_out)
-	for (auto& [id,		obsObsBiasMap]	: idObsObsBiasMap)
-	for (auto& [code1,	obsBiasMap]		: obsObsBiasMap)
-	for (auto& [code2,	biasMap]		: obsBiasMap)
-	for (auto& [time,	bias]			: biasMap)
+	// for (auto& idObsObsBiasMap			: SINEXBiases_out)
+	// for (auto& [id,		obsObsBiasMap]	: idObsObsBiasMap)
+	// for (auto& [code1,	obsBiasMap]		: obsObsBiasMap)
+	// for (auto& [code2,	biasMap]		: obsBiasMap)
+	// for (auto& [time,	bias]			: biasMap)
+	for (auto& [Key, biasMap] : SINEXBiases_out)
+	for (auto& [ind, bias]    : biasMap)
 	{	
 		if (bias.name.empty() == false			&& opt.REC_biases == false)		continue;	//dont output this because we dont want receivers
 		if (bias.name.empty()					&& opt.SAT_biases == false)		continue;	//dont output this because we dont want satellites
 		if (bias.biasType == +E_BiasType::OSB	&& opt.OSB_biases == false)		continue;	//dont output this because we dont want OSB biases
 		if (bias.biasType == +E_BiasType::DSB	&& opt.DSB_biases == false)		continue;	//dont output this because we dont want DSB biases
 			
-		nwrt += write_bSINEX_line(bias, trace);
+		nwrt += write_bSINEX_line(bias, outputStream);
 	} 
 		
 	tracepdeex(0, outputStream, "-BIAS/SOLUTION\n%%=ENDBIA");
@@ -235,7 +239,7 @@ void outp_bias(
 	E_MeasType	measType)
 {
 	int mxcode = E_ObsCode::NUM_CODES;
-	
+	KFKey key;
 	if		(type == +E_BiasType::OSB)
 	{
 		if (abs_updt <= 0) 
@@ -246,6 +250,9 @@ void outp_bias(
 			sinex_time(time, abs_strt);
 			tracepdeex(2,trace,"\nInitializing absolute biases %04d:%03d:%05d", abs_strt[0], abs_strt[1], abs_strt[2]);
 		} 
+		
+		key.type=KF::PHASE_BIAS;
+		key.num = code1._to_integral();
 	} 
 	else if	(type == +E_BiasType::DSB)
 	{
@@ -255,8 +262,12 @@ void outp_bias(
 		if (rel_strt[0] == 0)
 		{
 			sinex_time(time, rel_strt);
-			tracepdeex(2,trace,"\nInitializing relative biases %04d:%03d:%05d", abs_strt[0], abs_strt[1], abs_strt[2]);
+			tracepdeex(2,trace,"\nInitializing relative biases %04d:%03d:%05d", rel_strt[0], rel_strt[1], rel_strt[2]);
 		} 
+		
+		key.type=KF::DCB;
+		int numcod=E_ObsCode::MAXCODE+1;
+		key.num = numcod*code1._to_integral() + code2._to_integral();
 	}
 	else
 	{
@@ -264,46 +275,59 @@ void outp_bias(
 		return;
 	}
 	
-	tracepdeex(2,trace,"\nLoading bias for sat %s %s %d %d ", Sat.id().c_str(), Sat.svn().c_str(), code1, code2);
+	key.Sat=Sat;
+	key.str=receiver;
+	if (receiver.empty() == false)
+	{
+	 	//this seems to be a receiver
+	 	key.Sat.prn=0;
+	}
 	
 	SinexBias entry;
 	int week;
 	double tow = time2gpst(time, &week);
 	tow = updateInterval * floor(tow / updateInterval);
 	
-	entry.tini		= gpst2time(week, tow);
-	entry.tfin		= gpst2time(week, tow + updateInterval);
+	entry.biasType  = type;
+	entry.name		= receiver;
+	entry.Sat		= Sat;
 	entry.cod1		= code1;
 	entry.cod2		= code2;
-	entry.measType	= measType;
 	
-	if		(type == +E_BiasType::OSB)		abs_nbia++;
-	else if	(type == +E_BiasType::DSB)		rel_nbia++;
+	entry.measType	= measType;
+	entry.tini		= gpst2time(week, tow);
+	entry.tfin		= gpst2time(week, tow + updateInterval);
 	
 	entry.bias	= bias;
 	entry.var	= variance;
 	entry.slop	= 0;
 	entry.slpv	= 0;
-	entry.name	= receiver;
-	entry.Sat	= Sat;
 	
-	string id; 
-	if (receiver.empty() == false)
-	{
-		//this seems to be a receiver
-		id = receiver;
-		id += Sat.sysChar();
+	tracepdeex(2,trace,"\nLoading bias for %s %s %s %d %d %s ", Sat.id().c_str(), Sat.svn().c_str(), receiver.c_str(), code1, code2, entry.tini.to_string(0));
+	
+	auto& BiasMap=SINEXBiases_out[key];
+	int found=-1;
+	
+	for (auto& [ind, bias]    : BiasMap){
+		if(bias.tini!=entry.tini) continue;
+		if(bias.measType!=entry.measType) continue;
+		
+		found=ind;
+		break;
 	}
-	else
-	{
-		id = Sat.id();
+	
+	if(found<0){
+		found=BiasMap.size();
+		if		(type == +E_BiasType::OSB)		abs_nbia++;
+		else if	(type == +E_BiasType::DSB)		rel_nbia++;
+	
+		tracepdeex(2, trace,"... new entry %4d", found);
+		
 	}
-	
-	SINEXBiases_out[measType][id][entry.cod1][entry.cod2][entry.tini] = entry;
-	
-	
-	tracepdeex(2, trace,"... new entry %4d %4d", abs_nbia, rel_nbia);
-	
+	else{
+		tracepdeex(2, trace,"... updating entry %4d", found);
+	}
 	tracepdeex(2, trace,"\n");
+	BiasMap[found]=entry;
 }
 

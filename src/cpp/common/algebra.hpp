@@ -88,7 +88,7 @@ namespace std
 
 			size_t hashval	= hash<string>	{}(key.str)		<< 0
 							^ hash<size_t>	{}(key.Sat) 	<< 1
-							^ hash<string>		{}(key.type) 	<< 2;
+							^ hash<string>	{}(key.type) 	<< 2;
 			return hashval;
 		}
 	};
@@ -104,7 +104,8 @@ namespace std
 
 			size_t hashval	= hash<string>	{}(key.str)		<< 0
 							^ hash<size_t>	{}(key.Sat) 	<< 1
-							^ hash<int>		{}(key.type) 	<< 2;
+							^ hash<int>		{}(key.type) 	<< 2
+							^ hash<short>   {}(key.num) 	<< 3;
 			return hashval;
 		}
 	};
@@ -290,7 +291,7 @@ struct KFState
 
 	void	stateTransition(
 		Trace&		trace,
-		double		tgap);
+		GTime		newTime);
 
 	int	postFitSigmaCheck(
 		Trace&		trace,

@@ -33,7 +33,7 @@ public:
 	
 	std::string sourceTableString;
 	std::vector<SourceTableEntry> sourceTableData;
-	
+	std::vector<std::string> getStreamMounts();
 private:
 	std::mutex getSourceTableMtx; 
 	void connected() override;
