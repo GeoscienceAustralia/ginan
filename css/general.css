@@ -1,0 +1,20 @@
+body {
+    background-color: #fff;
+    font-family: 'Roboto', sans-serif;
+  }
+
+.container {
+    padding: 1rem;
+}
+
+img.image-fluid {
+    margin: 20px 0px 0px 20px;
+}
+
+.jumbotron{
+    margin-top: 20px;
+    background-image: url("../images/JagXK3.jpg");
+    background-origin: content-box;
+    background-position: center center;
+    color: white;
+}
