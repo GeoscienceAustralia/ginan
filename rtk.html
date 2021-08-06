@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="description" content="A page about real time kinematic">
+        <meta name="description" content="A page about real time kinematic and differential GNSS positioning techniques">
         <meta name="author" content="Rupert Brown">
 
         <title>Ginan GNSS</title>
@@ -103,12 +103,12 @@
                     <div class="col-md-8 col-sm-10 col-xs-12 blog-main">
 
                         <div class="blog-post">
-                            <h1 class="blog-post-title">Real Time Kinematic (RTK) Positioning</h1>
+                            <h1 class="blog-post-title">Real Time Kinematic (RTK) and Differential GNSS (DGNSS) Positioning</h1>
 
                             <table style="height: 100px; background-color: rgb(250, 229, 212); text-align: left; vertical-align: middle;">
                                 <tbody>
                                     <tr>
-                                        <td class="align-middle small" style="padding: 10px 10px 10px 20px;"><strong><i>Real Time Kinematic</i></strong> (RTK) positioning is quite distinct from Precise Point Positioning (PPP) which is the technique employed in Ginan. However RTK is a very successful and widely used technology. It is important to know the difference between RTK and PPP.</td>
+                                        <td class="align-middle small" style="padding: 10px 10px 10px 20px;"><strong><i>Real Time Kinematic</i></strong> (RTK) and <strong><i>Differential GNSS</i></strong> (DGNSS) positioning are quite distinct from Precise Point Positioning (PPP) which is the technique employed in Ginan. However RTK, and to an extent DGNSS, are very successful and widely used technologies. It is important to know the difference between RTK, DGNSS and PPP.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -120,20 +120,21 @@
                                 <p class="figure-caption">The basic principles of real time kinematic and differential GNSS positioning.</p>
                             </div>
 
-                            <p>Real time kinematic positioning relies on having a base station that knows exactly its position. This position has usually been verified using techniques in addition to GNSS. The base station picks up GNSS signals and continuously calculates its position. This calculated position may be a distance from its actual position and that distance is identified as the error.</p>
+                            <p>RTK and DGNSS are similar in that both rely on a base station GNSS receiver that knows its exact position, usually verified using techniques in addition to GNSS. The base station receives GNSS signals and transmits data to another GNSS receiver, the rover, which also knows the position of the base station. The rover is able to use the data sent by the base station, and its own GNSS observations, to calculate its position very precisely.</p>
 
-                            <p>Some distance away, as measured along a baseline, is another GNSS receiver - the rover. The rover is also continuously calculating its position. RTK works on the basis that, so long as the baseline is not too great (i.e. hundreds of kilometers), the errors at the rover will be very similar to those at the base station. So the base station continuously transmits an error correction signal to the rover which it can apply to its position to make it more accurate.<p>
+                            <p>The key difference is that with RTK, the base station is sending to the rover the GNSS carrier wave phase measurements it is observing – <strong>measurements</strong>. With DGNSS, the base station is sending position correction date which it has calculated – <strong>corrections</corrections>, typically corrected pseudoranges (distance from receiver to satellite).</p>
 
-                            <p>RTK is a very successful and widely used technique. It has good accuracy and converges on a position quickly. For example, a mine site operator may set up a base station and then equip the mine vehicles with rover GNSS receivers. All those vehicles will know their positions accurate to within a few centimeters. RTK is very common for surveying, drone operations and precision agriculture.</p>
+                            <p>The distance between the base station and the rover is called the baseline. RTK and DGNSS work on the basis that, so long as the baseline is not too great (i.e. hundreds of kilometres), the errors at the rover will be very similar to those at the base station and so can be accounted for.</p>
 
-                            <p>RTK has some downsides:</p>
+                            <p>RTK, and to an extent DGNSS, are very successful and widely used techniques. They have good accuracy and converge on a position quickly, but have some downsides:</p>
+
                             <ol>
                                 <li>It relies on having at least two GNSS receivers (base station and rover) which increases cost. You can buy what is in effect a "base station service" so you don't have to have the physical equipment, but that service still costs money.</li>
                                 <li>You need radio or some other form of communications to transmit the correction signal.</li>
                                 <li>If you lose the correction signal, you can lose accuracy.</li>
                                 <li>The rover has to stay within a few tens of kilometers of the base station. The further away, the less reliable the correction signal becomes.</li>
                             </ol>
-                            <p>Ginan is not an RTK based software application. Ginan will achieve high accuracy positioning using the precise point positioning (PPP) technique.</p>
+                            <p>Ginan is not an RTK or DGNSS based software application. Ginan will achieve high accuracy positioning using the precise point positioning (PPP) technique.</p>
 
 
                             <hr>
