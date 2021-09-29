@@ -773,7 +773,7 @@ bool KFState::chiQC(
 	VectorXd&	xp)         ///< Post filtered state vector
 {
 	auto& H = kfMeas.A;
-	auto W = kfMeas.W(Eigen::all, 0);
+	auto W = kfMeas.W(all, 0);
 
 	VectorXd&	y		= kfMeas.Y;
 	VectorXd	v		= y - H * xp;
@@ -1064,7 +1064,7 @@ void KFState::leastSquareInitStates(
 	}
 
 	//get the subset of the measurement matrix that applies to the uninitialised states
-	auto subsetA = kfMeas.A(Eigen::all, newStateIndicies);
+	auto subsetA = kfMeas.A(all, newStateIndicies);
 
 	//find the subset of measurements that are required for the initialisation
 	auto usedMeas = subsetA.rowwise().any();
@@ -1109,7 +1109,7 @@ void KFState::leastSquareInitStates(
 	//copy in the required measurements from the old set
 	leastSquareMeas.Y.head		(measCount) = kfMeas.Y(leastSquareMeasIndicies);
 	leastSquareMeas.R.head		(measCount) = kfMeas.R(leastSquareMeasIndicies);
-	leastSquareMeas.A.topRows	(measCount) = kfMeas.A(leastSquareMeasIndicies, Eigen::all);
+	leastSquareMeas.A.topRows	(measCount) = kfMeas.A(leastSquareMeasIndicies, all);
 
 	//append any new pseudo measurements to the end
 	for (auto& [state, boool] : pseudoMeasStates)
@@ -1135,7 +1135,7 @@ void KFState::leastSquareInitStates(
 	KFMeas	leastSquareMeasSubs;
 	leastSquareMeasSubs.Y = leastSquareMeas.Y;
 	leastSquareMeasSubs.R = leastSquareMeas.R;
-	leastSquareMeasSubs.A = leastSquareMeas.A(Eigen::all, usedCols);
+	leastSquareMeasSubs.A = leastSquareMeas.A(all, usedCols);
 
 	//invert measurement noise matrix to get a weight matrix
 	leastSquareMeasSubs.W = (1 / leastSquareMeasSubs.R.array()).matrix();

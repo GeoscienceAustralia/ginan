@@ -147,10 +147,10 @@ struct KFMeas
 
 		obsKeys.erase(obsKeys.begin() + index);
 
-		Y = ( Y(keepIndices)             ).eval();
-		V = ( V(keepIndices)             ).eval();
-		R = ( R(keepIndices)             ).eval();
-		A = ( A(keepIndices, Eigen::all) ).eval();
+		Y = ( Y(keepIndices)            ).eval();
+		V = ( V(keepIndices)            ).eval();
+		R = ( R(keepIndices)            ).eval();
+		A = ( A(keepIndices, all)       ).eval();
 	}
 };
 

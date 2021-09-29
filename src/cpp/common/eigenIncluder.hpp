@@ -31,6 +31,7 @@ using Eigen::Map;
 using Eigen::Quaterniond;
 using Eigen::Triplet;
 using Eigen::ArrayXd;
+using Eigen::placeholders::all;
 typedef Eigen::Array<bool,Eigen::Dynamic,1> ArrayXb;
 
 template <typename Type, int Size>
