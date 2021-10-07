@@ -3,7 +3,7 @@
 # Ginan: software toolkit and service
 
 
-#### `Ginan v1.1-alpha release`
+#### `Ginan v1.2-alpha release`
 
 ## Overview
 

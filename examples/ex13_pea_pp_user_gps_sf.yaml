@@ -107,7 +107,7 @@ user_filter_parameters:
     rts_directory:              ./
     rts_filename:               PPP-<CONFIG>-<STATION>.rts
 
-    inverter:                   INV         #LLT LDLT INV (default is INV)
+    inverter:                   LLT         #LLT LDLT INV (default is INV)
 
 default_filter_parameters:
 
