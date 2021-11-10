@@ -429,3 +429,8 @@ You have now created the virtual python environment `gn37` with all necessary de
     $ conda activate gn37
 
 And then run your desired script from the `scripts` directory.
+
+### Acknowledgements:
+We have used routines obtained from RTKLIB, released under a BSD-2 license, these routines have been preserved with minor modifications in the folder `cpp/src/rtklib`. The original source code from RTKLib can be obtained from https://github.com/tomojitakasu/RTKLIB.
+
+We have used routines obtained from Better Enums, released under the BSD-2 license, these routines have been preserved in the folder `cpp/src/3rdparty` The original source code from Better Enums can be obtained from http://github.com/aantron/better-enums.
