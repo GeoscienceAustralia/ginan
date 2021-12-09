@@ -133,15 +133,15 @@
 
                             <p>A global navigation satellite system consists of:</p>
                             <ol>
-                                <li>A constellation of typically 24 satellites moving around the Earth twice a day in three distinct orbits that are inclined to each other and at approximately 20,000 km above the Earth's surface (medium Earth orbit or MEO - the space segment),</li>
+                                <li>A constellation of nominally 24 satellites moving around the Earth twice a day in three distinct orbits that are inclined to each other and at approximately 20,000 km above the Earth's surface (medium Earth orbit or MEO - the space segment),</li>
                                 <li>A number of monitoring stations on the ground that listen to the satellite broadcasts and assess their quality,</li>
                                 <li>A couple of control stations on the ground that can make adjustments to satellite orbits and configurations,</li>
                                 <li>The receivers on the ground - in your phone or your car - that can pick up the satellite signals and decode them to give you a position.</li>
                             </ol>
 
-                            <p>The clever part is that the satellites know where they are - their position in their orbit around the Earth. They continuously broadcast this orbital position along with a special timing or ranging signal.</p>
-                            <p>The speed at which the radio signal travels from the satellite to Earth is known - that is the speed of light. A receiver on the ground can pick up the ranging signal and calculate how far away the satellite is from the receiver. Note: we can say that the speed of light is a known constant but unfortunately that isn't strictly true and, as we'll see later, becomes the source of some position uncertainties.</p>
-                            <p>Given that the satellite is also broadcasting its position, the receiver now has a distance and a position. If the receiver can see four satellites at one time it has enough information to use sophisticated trigonometry to calculate the position of the receiver.</p>
+                            <p>The clever part is that the satellites know where they are - their position in their orbit around the Earth - because the control segment uploads new computed orbits every time they pass over. They continuously broadcast this orbital position along with a special timing or ranging signal.</p>
+                            <p>The speed at which the radio signal travels from the satellite to Earth is known - that is the speed of light. A receiver on the ground can pick up the ranging signal and calculate how far away the satellite is from the receiver. This is called ranging. Note: the speed of light is a known constant but unfortunately other effects become the source of some position uncertainties as we'll see later.</p>
+                            <p>Given that the satellite is also broadcasting its position, the receiver now has a distance and a position. If the receiver can see four satellites at one time it has enough information to use sophisticated trigonometry (trilateration) to calculate the position of the receiver.</p>
 
                             <div class="text-center">
                                 <img src="images/GNSSPositions-75pc.png" class="img-fluid mb-3" alt="The basic GNSS position calculation">
@@ -154,10 +154,10 @@
 
                             <p>There are currently four full GNSS constellations in operation:</p>
                             <ol>
-                                <li>Navstar Global Positioning System (GPS) - the original American system since 1978,</li>
-                                <li>GLONASS from Russia - Global'naya Navigatsionnaya Sputnikovaya Sistema - since 1995,</li>
-                                <li>BeiDou from China since 2018,</li>
-                                <li>Galileo from the European Union since 2021.</li>
+                                <li>Navstar Global Positioning System (GPS) - the original American system started in 1978 and achieved full operational capability in 1995. GPS orbits at 20,200 km above the Earth,</li>
+                                <li>GLONASS from Russia - Global'naya Navigatsionnaya Sputnikovaya Sistema - since 1995. GLONASS orbits at 19,100 km above the Earth,</li>
+                                <li>BeiDou from China since 2018. BeiDou orbits at 21,528 km above the Earth,</li>
+                                <li>Galileo from the European Union since 2021. Galileo orbits at 23,222 km above the Earth,</li>
                             </ol>
 
                             <div class="text-center">
@@ -176,7 +176,7 @@
                             <tbody>
                                 <tr>
                                     <td style="width: 140px; padding: 10px 10px 10px 10px;">                                
-                                        <a href="resources/GNSS20210720v01.pdf">
+                                        <a href="resources/GNSS20211209v01.pdf">
                                             <img src="images/GNSSFrontSlide20210618v01.png" width="104" height="72" class="img-fluid mb-3" alt="Ginarn Project Overview Presentation front slide">
                                         </a>
                                     </td>
