@@ -133,12 +133,17 @@
 
                             <h3>C/A-codes and modulation</h3>
 
-                            <p>To make sense of the Standard Positioning Service (SPS), it is important to understand what the C/A-code concept and how it is used to transmit the information required for ranging, and this determining a position.</p>
-                            <p>Like any other radio message, GNSS signals are transmitted by the satellites at certain frequencies. The best know of these is called L1 which is a frequency of 1575.42 Mhz. It is also referred to as the carrier wave frequency - "carrier" because it is used to carry other information to a receiver.</p>
-                            <p>A carrier wave can be used to carry information by modulating the frequency - modulation gives to the carrier wave a shape that represents the information. That shape can be understood by the receiver and the information recovered.</p>
+                            <p>To make sense of the Standard Positioning Service (SPS), it is important to understand the C/A-code concept and how it is used to transmit the information required for ranging, and thus determining a position.</p>
+                            <p>Like any other radio message, GNSS signals are transmitted by the satellites at certain frequencies. The best known of these is called L1 which is a frequency of 1575.42 Mhz. It is also referred to as the carrier wave frequency - "carrier" because it is used to carry other information to a receiver.</p>
+                            <p>A carrier wave can be used to carry information by modulating its frequency - modulation gives the carrier wave a shape that represents the information. That shape is understood by the receiver and the information recovered.</p>
                             <p>Every GNSS satellite is allocated a unique Pseudo Random Noise (PRN) code (C/A-code) which is modulated onto the satelitte's carrier wave frequency.</p>
                             <p>The position of the satellite is contained within a navigation message. The data in this message is overlaid on the C/A-code. A GNSS receiver can identify the satellite through the PRN code and decode the navigation message, which also contains timing information.</p>
-                            <p>Thus the receiver can determine where the satelitte is, and how far it is from the satellite.</p>
+                            <p>Thus the receiver can determine where the satellite is, and how far it is from the satellite. If a receiver can see four or more satellites and has at least four sets of satellite positions and distances, it can calculate its position.</p>
+
+                            <div class="text-center">
+                                <img src="images/GPS_signal_modulation_scheme.png" class="img-fluid mb-3" alt="The time it takes for a GNSS signal to reach Earth">
+                                <p class="figure-caption">Representing the navigation message and C/A-code being modulated on to the carrier wave.<br>By P. F. Lammertsma, converted to vector by Denelson83 - Satellite Navigation, P. F. Lammertsma, p. 9, CC BY-SA 3.0,<br>https://commons.wikimedia.org/w/index.php?curid=1383669</p>
+                            </div>
                             
                             <hr>
 
