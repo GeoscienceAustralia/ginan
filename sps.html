@@ -151,15 +151,16 @@
 
                             <p>The basic process stages for the Standard Positioning Service (SPS) are:</p>
                             <ol>
-                                <li>Create the GNSS signal. Each GNSS satellite creates a signal which identifies the satellite, carries information about where the satellite is (the navigation message, satellite ephemeris), and includes a timing reference, using pseudorandom noise (PRN), that allows the receiver to work out its distance from the satellite.</li>
-                                <li>The receiving of the GNSS signal. A receiver has a number of channels. Each channel can process the data from one satellite.</li>
-                                <li>The decoding of the signal. The receiver decodes the navigation message and the distance  message – the pseudorandom noise (PRN) code. An algorithm is used to turn the navigation message into an X, Y, Z coordinate of the satellite.</li>
-                                <li>Another algorithm is used to get the pseudorange of the satellite to the receiver using the PRN code.</li>
-                                <li>An algorithm turns the X, Y, Z coordinates and pseudoranges of several satellites into the X, Y, Z position of the receiver.</li>
+                                <li>The systems on the ground - the monitoring and ground control stations - maintain a very close watch on the GNSS satellites in orbit. Central processing systems calculate very precise satellite orbits and adjustments to satellite clocks which are broadcast to the satellites as they pass over ground control stations.</li>
+                                <li>The satellites use the data from the ground control stations and create their GNSS signal. They modulate the carrier wave with their PRN (C/A-code) and the navigation message, and broadcast to the Earth on a continuous basis.</li>
+                                <li>A receiver picks up the GNSS signals. A receiver has a number of channels. Each channel can process the data from one satellite.</li>
+                                <li>The receiver decodes the GNSS signals. The receiver identifies the satellite by decoding its PRN code and matches it to a list of known satellites. It determines the position of that satellite, and how far it is from the satellite, from the navigation message.</li> 
+                                <li>Algorithms are used to turn these satellite positions and distances into a series of X, Y and Z coordinates.</li>
+                                <li>Trigonometry, specifically a technique called trilateration, turns the X, Y, Z coordinates and distances of several satellites into the X, Y, Z position of the receiver.</li>
                                 <li>Finally the receiver can translate the X, Y and Z coordinates into latitude, longitude and height (using reference frames).</li>
                             </ol>    
                             
-                            <p>Note there is a difference between the PRN code - which is lots of ones and zeros - and the PRN number - which is a regular integer. A GNSS satellite is typically referred to by its PRN number and that satellite will broadcast its signals identifying them using its PRN code.</p>
+                            <p>Note there is a difference between the PRN code - which is lots of ones and zeros - and the PRN number - which is a regular integer. A GNSS satellite is typically referred to by its PRN number and that satellite will broadcast its signals encoding them using its PRN code.</p>
 
                             <hr>
 
