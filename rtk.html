@@ -115,27 +115,24 @@
 
                             <hr>
 
+
+                            <p>RTK and DGNSS are similar techniques in that they rely on one, or a network of receivers (base stations) whose positions are very accurately known, to calculate data that allows another receiver (the rover) to determine its position with high accuracy.</p>
+                            <p>The “differencing” between the base receiver’s known position and its computed position using GNSS, allows for errors to be eliminated and thus position accuracy for the rover to be improved. Those errors are local in nature. The closer the rover receiver is to a base receiver the better i.e. tens of kilometres rather than hundreds.</p>
+                            <p>The key difference is that with RTK, the base stations are sending to the rover the GNSS carrier wave measurements it is observing – <em>carrier observations</em>. The rover knows the true positions of the base stations. With DGNSS, the base station is sending the difference between observed and calculated pseudoranges – <em>pseudorange differences</em>.
+                            <p>RTK, and to an extent DGNSS, are very successful and widely used techniques. They have good accuracy and converge on a position quickly, but have some downsides:</p>
+                            <ol>
+                                <li>Both rely on having at least two GNSS receivers (base station and rover) which increases cost. You can buy what is in effect a "base station service" so you don't have to have the physical equipment, but that service still costs money.</li>
+                                <li>You need radio or some other form of communications to transmit the difference data.</li>
+                                <li>If you lose the difference data signal, you can lose accuracy.</li>
+                                <li>The rover has to stay within a few tens of kilometres of the base station. The further away, the less reliable the correction becomes.</li>
+                            </ol>
+                            
                             <div class="text-center">
                                 <img src="images/RTKDGNSS-75pc.png" class="img-fluid mb-3" alt="Basic principles of real time kinematic and differential GNSS positioning">
                                 <p class="figure-caption">The basic principles of real time kinematic and differential GNSS positioning.</p>
-                            </div>
-
-                            <p>RTK and DGNSS are similar in that both rely on a base station GNSS receiver that knows its exact position, usually verified using techniques in addition to GNSS. The base station receives GNSS signals and transmits data to another GNSS receiver, the rover, which also knows the position of the base station. The rover is able to use the data sent by the base station, and its own GNSS observations, to calculate its position very precisely.</p>
-
-                            <p>The key difference is that with RTK the base station is sending to the rover the GNSS carrier wave phase measurements it is observing – <strong>measurements</strong>. With DGNSS the base station is sending position correction data which it has calculated – <strong>corrections</strong>, typically corrected pseudoranges (distance from receiver to satellite).</p>
-
-                            <p>The distance between the base station and the rover is called the baseline. RTK and DGNSS work on the basis that, so long as the baseline is not too great (i.e. hundreds of kilometres), the errors at the rover will be very similar to those at the base station and so can be accounted for.</p>
-
-                            <p>RTK, and to an extent DGNSS, are very successful and widely used techniques. They have good accuracy and converge on a position quickly, but have some downsides:</p>
-
-                            <ol>
-                                <li>Both rely on having at least two GNSS receivers (base station and rover) which increases cost. You can buy what is in effect a "base station service" so you don't have to have the physical equipment, but that service still costs money.</li>
-                                <li>You need radio or some other form of communications to transmit the correction signal between base and rover.</li>
-                                <li>If you lose the correction signal, you lose accuracy.</li>
-                                <li>The rover has to stay within a few tens of kilometers of the base station. The further away, the less accurate calculated positions become.</li>
-                            </ol>
+                            </div>                         
+                            
                             <p>Ginan is not an RTK or DGNSS based software application. Ginan will achieve high accuracy positioning using the precise point positioning (PPP) technique.</p>
-
 
                             <hr>
                         </div><!-- /.blog-post -->    
