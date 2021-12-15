@@ -175,14 +175,17 @@
 
                             <hr>
                             
-                            <h3>Pseudorange</h3>
+                            <h3>Distance - Pseudorange</h3>
 
                             <div class="text-center">
                                 <img src="images/Pseudorange-75pc.png" class="img-fluid mb-3" alt="Pseudorange components">
                                 <p class="figure-caption">Pseudorange components.</p>
                             </div>
 
-                            <p>The distance between satellite and receiver is called the pseudorange. "Pseudo" because it isn't a simple value of distance. The figure above shows that there are other components that go to make the complete pseudorange value. The greatest part of the pseudorange is the distance between the satellite and the receiver calculated by multiplying the time taken for the GNSS signal to reach the receiver by the speed of light. The time taken is calculated as the difference between the time the signal was sent compared to the time the signal was received. The receiver knows the time the signal was received. It can calculate the time the signal was sent based on the extent to which it has to correlate the PRN code.</p>
+                            <p>Up to this point the term "distance" has been used when talking about the space between the GNSS satellite and the receiver. There is a "true distance" between the satellite and receiver that could be measured in meters but in practice it doesn't work quite that way.</p>
+                            <p>As we've discussed already, the distance between the satellite and the receiver is calculated by multiplying the speed of light by the time it takes for the GNSS signal to travel from the satellite to the receiver. This distance calculation is pretty good but isn't the whole story. Other effects cause the distance to appear larger than it actually is.<p>
+                            <p>For this reason the distance between satellite and receiver is called the <emph>pseudorange</emph>. "Pseudo" because it isn't a simple value of distance. The figure above shows the most significant components that go to make the complete pseudorange value.</p>
+                            <p>The greatest part of the pseudorange is the <emph>true distance</emph> between the satellite and the receiver. But the Ionosphere, the Troposphere and delays (biases) in the electronic equipment itself contribute to making the pseudorange appear longer than the true distance - sometimes by hudreds of meters.</p>
 
                             <hr>
 
