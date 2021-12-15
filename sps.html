@@ -185,7 +185,7 @@
                             <p>Up to this point the term "distance" has been used when talking about the space between the GNSS satellite and the receiver. There is a "true distance" between the satellite and receiver that could be measured in meters but in practice it doesn't work quite that way.</p>
                             <p>As we've discussed already, the distance between the satellite and the receiver is calculated by multiplying the speed of light by the time it takes for the GNSS signal to travel from the satellite to the receiver. This distance calculation is pretty good but isn't the whole story. Other effects cause the distance to appear larger than it actually is.<p>
                             <p>For this reason the distance between satellite and receiver is called the <em>pseudorange</em>. "Pseudo" because it isn't a simple value of distance. The figure above shows the most significant components that go to make the complete pseudorange value.</p>
-                            <p>The greatest part of the pseudorange is the <em>true distance</em> between the satellite and the receiver. But the Ionosphere, the Troposphere and delays (biases) in the electronic equipment itself contribute to making the pseudorange appear longer than the true distance - sometimes by hudreds of meters.</p>
+                            <p>The greatest part of the pseudorange is the <em>true distance</em> between the satellite and the receiver. But the Ionosphere, the Troposphere and delays (biases) in the electronic equipment itself contribute to making the pseudorange appear longer than the true distance - sometimes by hundreds of meters. This can have an adverse effect on the calculated position of the receiver.</p>
 
                             <hr>
 
@@ -196,23 +196,21 @@
                                 <p class="figure-caption">Defining a satellite's orbital position.</p>
                             </div>
 
-                            <p>A satellite's position in its orbit is defined by the values associated with a number of key parameters as shown in the figure above. This orbital position is broadcast by the satellite as part of its message signal. The satellite's position is important data in allowing a receiver to calculate a position.</p>
+                            <p>A satellite's position in its orbit is defined by the values associated with a number of key parameters as shown in the figure above. This orbital position is broadcast by the satellite as part of its navigation message. As has been discussed, the satellite's position is important data in allowing a receiver to calculate a position.</p>
 
                             <hr>
 
-                            <h3>Carriers and Codes</h3>
+                            <h3>Carrier waves and Codes</h3>
 
-                            <p>If all the GNSS satellites are broadcasting on the same frequency, how come the signals don’t get mixed up? How do we know what comes from where?</p>
-                            <p>The answer to this puzzle lies in understanding how Code Division Multiple Access (CDMA) works. Every GNSS satellite is allocated the entire transmission band all of the time. The trick is that each satellite’s message is coded using their unique PRN code. The key to CDMA is to be able to extract the desired signal while rejecting everything else as random noise.</p>
-                            <p>In CDMA, each message bit is subdivided into a number of short intervals called chips. Each satellite is assigned a unique 1,023 bit chip sequence (PRN code). To transmit 1 bit (of the navigation message), a satellite sends its chip sequence. To transmit a 0 bit, it sends the one's complement of its chip sequence. For example, if satellite A is assigned the chip sequence 00011011, it sends a 1 bit by sending 00011011 and a 0 bit by sending 11100100.</p>
-                            <p>PRN codes are designed to be very <i>orthogonal</i> to one another. That means that codes only correlate (can be matched) when they are almost exactly aligned. A receiver knows all the codes and identifies satellites when comparisons result in strong correlations. The <a href="https://www.gps.gov/technical/prn-codes/">allocation of PRN codes</a> is controlled by the US Space Force.</p>
-                            <p>For GPS, the navigation message is sent at the very sedate rate of 50 bits per second. The rate at which the chips are sent (the chipping rate) is 1.023 mega bits per second. This means that a chip (PRN code) is transmitted in a microsecond. The navigation message and chips modulate the carrier frequency – for L1 this is 1575.42 Mhz.</p>
-
-                            <div class="text-center">
-                                <img src="images/GPS_signal_modulation_scheme.svg" width="540" class="img-fluid mb-3" alt="Carrier C/A Code and navigation message">
-                                <p class="figure-caption">Carrier, C/A Code and navigation message<br>By P. F. Lammertsma, converted to vector by Denelson83 - Satellite Navigation</p>
-                            </div>
-
+                            <p>The SPS relies on a receiver being able to receive, interpret and measure the C/A-code signals along with the navigation message. As we'll see in the discussion around Precise Point Positioning (PPP) later, the carrier wave itself can also be used as a means of determining the distance between a satellite and the receiver.</p>
+                            <p>For this reason the C/A-code and carrier wave are known as the two main <em>observables</em> in GNSS positioning. Both the C/A-codes and the carrier wave can be used for ranging, even though original GNSS systems were never designed to exploit the carrier wave for positioning. Inexpensive GNSS receivers can measure the codes. More expensive and sophisticated devices are needed to measure the carrier wave.</p>
+                            <p>A question for you: if all the GNSS satellites are broadcasting on the same frequencies, how come the signals don’t get mixed up? How does a receiver know which signal comes from what satellite?</p>
+                            <p>The answer to this puzzle lies in understanding how Code Division Multiple Access (CDMA) works. Every GNSS satellite is allocated the entire transmission band all of the time. The trick is that each satellite’s message is coded using their unique PRN code. The key to CDMA is the receiver's ability to extract the desired signal while rejecting everything else as random noise.</p>
+                            <p>PRN codes are designed to be very <em>orthogonal</em> to one another. That means that codes only correlate (can be matched) when they are almost exactly aligned. A receiver knows all the codes and identifies satellites when comparisons result in strong correlations. The <a href="https://www.gps.gov/technical/prn-codes/">allocation of PRN codes</a> is controlled by the US Space Force.</p>
+                            <p>In CDMA, each message bit (like a bit of the navigation message) is subdivided into a number of short intervals called chips. Each satellite is assigned a unique 1,023 bit chip sequence which is its PRN code. To transmit 1 bit (of the navigation message), a satellite sends its chip sequence. To transmit a 0 bit, it sends the one's complement of its chip sequence. For example, if satellite A is assigned the chip sequence 00011011, it sends a 1 bit by sending 00011011 and a 0 bit by sending 11100100.</p>
+                            <p>For GPS, the navigation message is sent at the very sedate rate of 50 bits per second. The rate at which the chips are sent (the chipping rate) is 1.023 mega bits per second. This means that a chip (PRN code) is transmitted in a microsecond.</p>
+                            <p>Putting it another way, the PRN code is like a key. Receivers have all the keys and compare incoming messages with locally generated codes (keys). There is a timestamp on each chip of the PRN code. So PRN codes from the satellite have satellite atomic clock generated time stamps and the receiver have internally generated time stamps.</p>
+                            
                             <hr>
 
                             <h3>Calculating a position</h3>
