@@ -1,14 +1,11 @@
 '''Base functions for file reading'''
 import gzip
-import unlzw
+import ncompress
 
 def _lzw2bytes(path):
-    '''Decompresses .Z file and outputs the content.
-    Memory leak corrected in the github repo v0.1.2'''
+    '''Decompresses .Z file and outputs the content.'''
     with open(path,'rb') as lzw_file:
-        lzw_compressed = lzw_file.read()
-    databytes = unlzw.unlzw(lzw_compressed)
-    del lzw_compressed
+        databytes = ncompress.decompress(lzw_file)
     return databytes
 
 def _gz2bytes(path):
