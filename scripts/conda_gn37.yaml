@@ -19,5 +19,6 @@ dependencies:
   - pip:
     - georinex
     - p_tqdm #useful for long processing sessions
-    - git+https://github.com/bmatv/python-unlzw.git # memory leak patched
+    - hatanaka
+    - ncompress
 

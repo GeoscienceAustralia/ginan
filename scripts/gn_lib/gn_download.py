@@ -11,25 +11,16 @@ from datetime import timedelta as _timedelta
 from ftplib import FTP_TLS as _FTP_TLS
 from pathlib import Path as _Path
 import urllib.request as _rqs
-import subprocess as _sp
 import pandas as _pd
 import numpy as _np
-import sys as _sys
+import hatanaka as _hatanaka
 
 from .gn_const import GPS_ORIGIN
 
 
 def gen_uncomp_filename(comp_filename):
-    '''Name of Uncompressed filename given the compressed name'''
-    if comp_filename.endswith('.crx.gz'):
-        uncomp_file = comp_filename[:-6]+'rnx'
-    elif comp_filename.endswith('.gz'):
-        uncomp_file = comp_filename[:-3]
-    elif comp_filename.endswith('.Z'):
-        uncomp_file = comp_filename[:-2]
-    else:
-        uncomp_file = comp_filename
-    return uncomp_file
+    '''Name of uncompressed file given the compressed name'''
+    return str(_hatanaka.get_decompressed_path(comp_filename))
 
 
 
@@ -153,20 +144,11 @@ def gpswkD2dt(gpswkD):
 
 def check_file_present(comp_filename, dwndir):
     '''Check if file comp_filename already present in directory dwndir'''
-    
-    if dwndir[-1] != '/':
-        dwndir += '/'
-
-    uncomp_filename = gen_uncomp_filename(comp_filename)
-    uncomp_file = _Path(dwndir+uncomp_filename)
-    
+    uncomp_file = _Path(gen_uncomp_filename(_Path(dwndir) / comp_filename))
     if uncomp_file.is_file():
         print(f'File {uncomp_file.name} already present in {dwndir}')
-        present = True
-    else:
-        present = False
-    
-    return present
+        return True
+    return False
 
 
 
@@ -175,9 +157,6 @@ def check_n_download_url(url, dwndir, filename=False):
     Download single file given URL to download from. 
     Optionally provide filename if different from url name
     '''
-    if dwndir[-1] != '/':
-        dwndir += '/'
-
     if not filename:
         filename = _Path(url).name
     
@@ -190,73 +169,22 @@ def check_n_download_url(url, dwndir, filename=False):
 
 def check_n_download(comp_filename, dwndir, ftps, uncomp=True, remove_crx=False, no_check=False):
     '''Download compressed file to dwndir if not already present and optionally uncompress'''
-    
-    comp_file = _Path(dwndir+comp_filename)
 
-    if dwndir[-1] != '/':
-        dwndir += '/'
+    dwndir = _Path(dwndir)
+    comp_file = dwndir / comp_filename
 
     if no_check or (not check_file_present(comp_filename, dwndir)):
-
         print(f'Downloading {comp_filename}')
 
         with open(comp_file, 'wb') as local_f:
             ftps.retrbinary(f'RETR {comp_filename}', local_f.write)
         if uncomp:
-            _sp.run(['uncompress',f'{comp_file}'])
-            # If RINEX file, need to convert from Hatanaka compression
-            if comp_filename.endswith('.crx.gz'):
-                get_install_crx2rnx()
-                crx_file = _Path(dwndir+comp_filename[:-3])
-                if _sys.path[0][-1] == '/':
-                    run_str = f'{_sys.path[0]}crx2rnx'
-                else:
-                    run_str = f'{_sys.path[0]}/crx2rnx'
-                _sp.run([run_str,f'{str(crx_file)}'])
-
+            _hatanaka.decompress_on_disk(comp_file, delete=remove_crx)
             print(f'Downloaded and uncompressed {comp_filename}')
         else:
             print(f'Downloaded {comp_filename}')
 
-        if remove_crx:
-            if comp_filename.endswith('.crx.gz'):
-                crx_file.unlink()
-        success=True
-        # except:
-        #     print(f'Failed to download {comp_filename}')
-        #     success=False
-    else:
-        success=True
-    
-    return success
-
-
-
-def get_install_crx2rnx(override=False,verbose=False):
-    '''
-    Check for presence of crx2rnx in PATH.
-    If not present, download and extract to python environment PATH location.
-    If override = True, will download if present or not
-    '''
-    if (not _Path(f'{_sys.path[0]}/crx2rnx').is_file()) or (override):
-        if verbose:
-            print(f'Installing crx2rnx at {_sys.path[0]}')
-        tmp_dir = _Path('tmp')
-        if not tmp_dir.is_dir():
-            tmp_dir.mkdir()
-
-        url = 'https://terras.gsi.go.jp/ja/crx2rnx/RNXCMP_4.0.8_src.tar.gz'
-        out_f = _Path('tmp/RNXCMP_4.0.8_src.tar.gz')
-        _rqs.urlretrieve(url,out_f)
-
-        _sp.run(['tar', '-xvf', 'tmp/RNXCMP_4.0.8_src.tar.gz', '-C', 'tmp'])
-        cp = ['gcc','-ansi','-O2','-static','tmp/RNXCMP_4.0.8_src/source/crx2rnx.c','-o','crx2rnx']
-        _sp.run(cp)
-        _sp.run(['rm','-r','tmp'])
-        _sp.run(['mv','crx2rnx',_sys.path[0]])
-    else:
-        if verbose:
-            print(f'crx2rnx already present in {_sys.path[0]}')
+    return True
 
 
 
