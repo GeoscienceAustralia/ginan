@@ -1,0 +1,223 @@
+# ex12 - PPP Ionosphere-Free Observable Example GPS+GAL
+# Uses TU GRAZ orbit and clock products to produce kinematic PPP solition (GPS+GAL, float ambiguities)
+# Total processing duration  ~ 2.5 minutes on 2-cores
+
+input_files:
+
+    root_input_directory: products/
+
+    #atxfiles: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
+    #snxfiles: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
+    #blqfiles: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
+    #navfiles: [ brdm1990.19p        ]  # broadcast navigation file
+    #sp3files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
+    #clkfiles: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
+    #dcbfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+
+station_data:
+
+    stream_root: "https://mmoore:Mmoore73!@ntrip.data.gnss.ga.gov.au/"
+    #stream_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+
+    obs_streams:
+        - ALIC00AUS0
+        - LMMF00MTQ0
+        - HARB00ZAF0
+        - KZN200RUS0
+        - GAMB00PYF0
+        - OHI300ATA0
+        - WHIT00CAN0
+        - MIZU00JPN0
+        - MAS100ESP0
+        - DUMG00ATA0
+        - URUM00CHN0
+
+output_files:
+
+    root_output_directory:          GIN-206-Separate_Streams/
+    output_trace:                   true
+    trace_level:                    3
+    trace_directory:                ./
+    trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
+    output_residuals:               true
+    output_sinex:                   true
+    sinex_directory:                ./
+
+    output_log:                     true
+
+    output_rinex_obs:               true
+    rinex_obs_directory:            ./
+    #rinex_obs_filename:             "<STATION>_<YYYY><DDD>_obs_<SYS>.rnx"
+    rinex_obs_combined:             true
+    rinex_obs_systems:
+         gps:                       true
+         #glo:                       true
+         gal:                       true
+         #qzs:                       true
+         #cmp:                       true
+         #irn:                       true
+
+
+    output_rinex_nav:               true
+    rinex_nav_directory:            ./
+    #rinex_nav_filename:             "<YYYY><DDD>_nav_<SYS>.rnx"
+    rinex_nav_combined:             true
+    rinex_nav_systems:
+         gps:                       true
+         glo:                       true
+         gal:                       true
+         #qzs:                       true
+         #cmp:                       true
+         #irn:                       true
+
+output_options:
+
+    config_description:             ex12
+    analysis_agency:                GAA
+    analysis_center:                Geoscience Australia
+    analysis_program:               AUSACS
+    rinex_comment:                  AUSNETWORK1
+
+processing_options:
+
+    #start_epoch:                2019-07-18 00:00:00
+    #end_epoch:                  2019-07-18 23:59:30
+    epoch_interval:             5          #seconds
+    #max_epochs:                 100        #0 is infinite
+    wait_next_epoch:            5
+    wait_all_stations:          2
+    
+    ppp_ephemeris:              broadcast     # broadcast  ssr_apc  ssr_com  precise
+
+    process_modes:
+        user:                   false
+        network:                false
+        minimum_constraints:    false
+        rts:                    false
+        ionosphere:             false
+
+    process_sys:
+        gps:            true
+        glo:            true
+        gal:            true
+        bds:            true
+
+    elevation_mask:     5   #degrees
+
+    tide_solid:         true
+    tide_pole:          true
+    tide_otl:           true
+
+    phase_windup:       true
+    reject_eclipse:     true            #  reject observation during satellite eclipse periods
+    raim:               true
+    antexacs:           true
+
+    cycle_slip:
+        thres_slip: 0.05
+
+    max_inno:   0
+    max_gdop:   30
+
+    troposphere:
+        model:      gpt2    #gpt2
+        #vmf3dir:    grid5/
+        orography:  orography_ell_5x5
+        gpt2grid: gpt_25.grd
+
+    # pivot_station:        "USN7"
+    # pivot_satellite:      "G01"
+
+    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+                        L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                        L5I, L5Q, L5X]
+
+user_filter_parameters:
+
+    max_filter_iterations:      5 #5
+    max_prefit_removals:        3 #5
+
+    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
+    rts_directory:              ./
+    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+
+    inverter:                   LDLT         #LLT LDLT INV
+
+default_filter_parameters:
+
+    stations:
+
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.15]
+        phase_sigmas:       [0.0015]
+
+        pos:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0.00057] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
+            proc_noise_dt:      second
+
+        clk:
+            estimated:          true
+            sigma:              [0]
+            proc_noise:         [10]
+
+        clk_rate:
+            estimated:          false
+            sigma:              [500]
+            proc_noise:         [1e-4]
+
+        amb:
+            estimated:          true
+            sigma:              [60]
+            proc_noise:         [0]
+            #proc_noise_dt:      day
+
+        trop:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0.0001] #0.1 mm/sqrt(s)
+            proc_noise_dt:      second
+
+        trop_grads:
+            estimated:          true
+            sigma:              [1]
+            proc_noise:         [0.01]
+            proc_noise_dt:      second
+
+    satellites:
+
+        clk:
+            estimated:          false
+            # sigma:              [0]
+            # proc_noise:         [0.03651483716701108]
+            #proc_noise_dt:      min
+
+        clk_rate:
+            estimated:          false
+            # sigma:              [500]
+            # proc_noise:         [1e-4]
+
+        orb:
+            estimated:          false
+
+
+override_filter_parameters:
+
+    stations:
+
+        #ALIC:
+            #pos:
+            #    sigma:              [60]
+
+                #proc_noise:         [0]
+            #clk:
+                #sigma:              [0.01]
+
+        #AGGO:
+            #exclude: true
+        #ALIC:
+            #exclude: true
+        #ANKR:
+            #exclude: true
+                #estimated:  false

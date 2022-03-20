@@ -21,25 +21,26 @@
 struct vmf3grid_t
 {
 	/* vmf3 grid file contents */
-	double lat	[NGRID];          	/* lat grid (degree) */
-	double lon	[NGRID];          	/* lon grid (degree) */
-	double ah	[NGRID];           	/* hydrostatic mapping coefficient */
-	double aw	[NGRID];           	/* wet mapping coefficient */
-	double zhd	[NGRID];          	/* zenith hydrastatic delay (m) */
-	double zwd	[NGRID];			/* zenith wet delay */
-	double resol;					/* grid resolution */
-	double mjd;						/* modified julian date */
+	double lat	[NGRID] = {};          	/* lat grid (degree) */
+	double lon	[NGRID] = {};          	/* lon grid (degree) */
+	double ah	[NGRID] = {};           	/* hydrostatic mapping coefficient */
+	double aw	[NGRID] = {};           	/* wet mapping coefficient */
+	double zhd	[NGRID] = {};          	/* zenith hydrastatic delay (m) */
+	double zwd	[NGRID] = {};			/* zenith wet delay */
+	double resol		= 0;					/* grid resolution */
+	double mjd			= 0;						/* modified julian date */
 } ;
 
 struct vmf3_t
 {
+	double mjd0[3]			= {}; 		// mjd time for vmf3
 	int m;                      /* NWM changing indicator */
 	vmf3grid_t vmf3g[3];        /* vmf3 grid file info */
 };
 
 int		readorog(string file, double *orog);
 void	readvmf3grids(const char *dir, vmf3_t *vmf3, const double jd);
-int		udgrid(const char *dir, vmf3grid_t *vmf3g, const double jd, double mjd0[3], int& m);
+int		udgrid(const char* dir, vmf3_t& vmf3, const double jd);
 int		tropvmf3(const vmf3grid_t *vmf3g, const double *orog,   const double jd, const double lat,  const double lon, const double hgt, const double zd,  const int mi, double *zhd, double *zwd, double mf[2]);
 int		tropvmf3full(vmf3grid_t *vmf3g, const double *orog,  const double jd, const double lat, const double lon,     const double hgt, const double zd,   double mjd0[3], double delay[2], double mf[2]);
 

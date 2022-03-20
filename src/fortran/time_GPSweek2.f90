@@ -37,7 +37,8 @@ SUBROUTINE time_GPSweek2 (mjd , GPS_week, GPS_wsec, GPSweek_mod1024, GPS_day)
 ! Local variables declaration
 ! ----------------------------------------------------------------------
       !REAL (KIND = prec_d) :: GPS_day
-      INTEGER IY, IM, ID, J_flag
+      INTEGER J_flag 
+!       IY, IM,  ID,
       DOUBLE PRECISION DJM0  
       DOUBLE PRECISION mjd_1980, mjd_1999, delta_days, GPS_week_0
 ! ----------------------------------------------------------------------
@@ -78,20 +79,20 @@ SUBROUTINE time_GPSweek2 (mjd , GPS_week, GPS_wsec, GPSweek_mod1024, GPS_day)
 ! GPS Week (according to IGS numbering)
       GPS_week = INT(GPS_week_0)
 ! ----------------------------------------------------------------------
-	  
-	  
+
+
 ! ----------------------------------------------------------------------
 ! Day since start of GPS week (including fraction of the day)
       !GPS_day =  (GPS_week_0 - INT(GPS_week_0)) * 7D0 
       GPS_day = delta_days - GPS_week * 7.D0 
 ! ----------------------------------------------------------------------
-	  
+
 ! ----------------------------------------------------------------------
 ! Seconds since start of GPS week 	  
       !GPS_wsec = (GPS_week_0 - INT(GPS_week_0)) * 7.0D0 * 86400.0D0	  
       GPS_wsec = GPS_day * 	86400.0D0	        
 ! ----------------------------------------------------------------------
-	  !print *,"mjd       ", mjd	  
+      !print *,"mjd       ", mjd	  
       !print *,"mjd_1980  ", mjd_1980	  
       !print *,"delta_days", delta_days	  
       !print *,"GPS_week_0", GPS_week_0	  

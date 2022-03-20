@@ -1,8 +1,11 @@
+#!/usr/bin/env python
+
 import re
 from array import *
 import numpy as np
 import math
 import argparse
+import os
 
 # Initiate the parser
 parser = argparse.ArgumentParser(description="Compare pod output rms and out files")
@@ -15,7 +18,8 @@ parser.add_argument("-em", "--errormargin", dest='errormargin', type=float, requ
 
 def test(solutionrms, solutionout, runout, runrms, errormargin):
     # Get summary stats for each satellite from pod.out and solution/pod.out and save to a list 
-    
+    fail_count = 0
+
     solution_pod_out_log_location = solutionout
     regex = 'RMS-XYZ ITRF CMP ([A-Z]\d\d) +([0-9.0-9?]+) +([0-9.0-9?]+) +([0-9.0-9?]+)'
     
@@ -88,10 +92,11 @@ def test(solutionrms, solutionout, runout, runrms, errormargin):
         mag_diff = math.sqrt((test[1] - solution[1])**2 + (test[2] - solution[2])**2 + (test[3] - solution[3])**2)
         if(mag_diff > errormargin):
             print("Difference of {} found for satellite {}".format(test[0],mag_diff))
+            fail_count+=1
         else:
             print("Within Error Margin, test passed")
 
-        assert mag_diff < errormargin
+        #    assert mag_diff < errormargin
 
     print("Compare difference for pod.rms results against solution benchmark")
     for test_rms, solution_rms in zip(test_rms_out, solution_rms_out):
@@ -101,18 +106,25 @@ def test(solutionrms, solutionout, runout, runrms, errormargin):
         d_diff = test_rms[4] - solution_rms[4]
         
         if((r_diff > errormargin) or (t_diff > errormargin) or (n_diff > errormargin) or (d_diff > errormargin)):
-            print("Difference of found in {} for  R = {}, T = {}, N = {}, 3D = {}".format(test_rms[0],r_diff,t_diff,n_diff,d_diff))
+            print("Difference of {} found for  R = {}, T = {}, N = {}, 3D = {}".format(test_rms[0],r_diff,t_diff,n_diff,d_diff))
+            fail_count += 1
         else:
             print("Within Error Margin, test passed")
 
-        assert r_diff < errormargin
-        assert t_diff < errormargin
-        assert n_diff < errormargin
-        assert d_diff < errormargin
+        #assert r_diff < errormargin
+        #assert t_diff < errormargin
+        #assert n_diff < errormargin
+        #assert d_diff < errormargin
 
+    return fail_count
 
 if __name__ == "__main__":
     
     args = parser.parse_args()
-    test(args.solutionrms, args.solutionout, args.runout, args.runrms, args.errormargin)
-    print("Everything passed")
+    count = test(args.solutionrms, args.solutionout, args.runout, args.runrms, args.errormargin)
+    if (count == 0):
+        print("Everything passed")
+        exit(0)
+    else:
+        print(str(count)+ " tests failed")
+        exit(1)

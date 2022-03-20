@@ -82,7 +82,6 @@ macro (NetCDF_check_interface lang header libs)
   endif (NETCDF_${lang})
 endmacro (NetCDF_check_interface)
 
-MESSAGE(STATUS "TESTING")
 if (${APPLE})
     NetCDF_check_interface (CXX netcdf netcdf-cxx4)
 else()

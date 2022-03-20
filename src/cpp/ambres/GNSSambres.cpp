@@ -5,38 +5,47 @@
 #define SQRT2           1.41421356237309510
 #define AMB_RANG		10
 
-int artrclvl = 4;
+bool 	AR_VERBO = false;
 
-double round_perr (double dx, double var)
+/** Probability of error (assuming normal distribution) */
+double round_perr (
+	double dx,		///< Distance between value and mean
+	double var)		///< Variance
 {
-	if (var < 1e-20) return 0.0;
+	if (var < 1e-20) 
+		return 0;
 
-	double p0 = 0.0;
-	double fact = -1.0 / 4.0 / var;
+	double p0 = 0;
+	double fact = -0.25 / var;
 
 	for (int i = 1; i < AMB_RANG; i++)
 	{
-		p0 += exp((i + 2.0 * dx) * i * fact);
-		p0 += exp((i - 2.0 * dx) * i * fact);
+		p0 += exp((i + 2 * dx) * i * fact);
+		p0 += exp((i - 2 * dx) * i * fact);
 	}
 
-	return p0 / (1.0 + p0);
+	return p0 / (p0 + 1);
 }
 
-int simple_round(Trace& trace, ARState* ambc)
+/** Simple integer Rounding */
+int simple_round(
+	Trace& trace,		///< Debug trace
+	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
+	GinAR_opt opt)		///< Object containing processing options
 {
-	MatrixXd P = ambc->Paflt;
-	VectorXd ret = ambc->aflt;
+	MatrixXd P = mtrx.Paflt;
+	VectorXd ret = mtrx.aflt;
 	int namb = ret.size(), nfix = 0;
 
-	ambc->Ztrs.resize(0, 0);
-	ambc->zfix.resize(0);
+	mtrx.Ztrs.resize(0, 0);
+	mtrx.zfix.resize(0);
 
-	if (namb <= 0) return 0;
+	if (namb <= 0) 
+		return 0;
 
-	double ratthr = 1.0 / (ambc->ratthr + 1.0);
-	double sucthr = 1 - pow(ambc->sucthr, 1.0 / namb);
-	tracepdeex(artrclvl+1, trace, "\n#ARES_RND Using integer rounding ... %.4e  %.4f", sucthr, ratthr);
+	double ratthr = 1 / (opt.ratthr + 1);
+	double sucthr = 1 - pow(opt.sucthr, 1.0 / namb);
+	tracepdeex(ARTRCLVL+1, trace, "\n#ARES_RND Using integer rounding ... %.4e  %.4f", sucthr, ratthr);
 
 	vector <int> zind;
 	vector <int> xind;
@@ -47,8 +56,6 @@ int simple_round(Trace& trace, ARState* ambc)
 		xind.push_back(i);
 		double dv  = ret(i) - ROUND(ret(i));
 		double perr = round_perr (dv, P(i, i));
-
-		tracepdeex(artrclvl+1, trace, "\n#ARES_RND AR for %s %s : %6.3f %.4e %.4e", ambc->ambmap[i].str, ambc->ambmap[i].Sat.id().c_str(), dv, perr, P(i, i) );
 
 		if (fabs(dv) < ratthr && perr < sucthr)
 		{
@@ -61,43 +68,50 @@ int simple_round(Trace& trace, ARState* ambc)
 
 	MatrixXd Z = MatrixXd::Identity(namb, namb);
 
-	if (nfix == 0) return 0;
+	if (nfix == 0) 
+		return 0;
 
-	ambc->Ztrs = Z(zind, xind);
-	ambc->zfix = ret(zind);
+	mtrx.Ztrs = Z(zind, xind);
+	mtrx.zfix = ret(zind);
 
 	return nfix;
 }
 
-int interat_round(Trace& trace, ARState* ambc)
+/** Iterative Rounding */
+int interat_round(
+	Trace& trace,		///< Debug trace
+	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
+	GinAR_opt opt)		///< Object containing processing options
 {
-	MatrixXd P = ambc->Paflt;
-	VectorXd x = ambc->aflt;
+	MatrixXd P = mtrx.Paflt;
+	VectorXd x = mtrx.aflt;
 	int namb = x.size();
 
-	ambc->Ztrs.resize(0, 0);
-	ambc->zfix.resize(0);
+	mtrx.Ztrs.resize(0, 0);
+	mtrx.zfix.resize(0);
 
-	if (namb <= 0) return 0;
+	if (namb <= 0) 
+		return 0;
 
-	double sucthr = 1 - pow(ambc->sucthr, 1.0 / namb);
-	double ratthr = 1.0 / (ambc->ratthr + 1.0);
-	tracepdeex(artrclvl+1, trace, "\n#ARES_RND Using iterative rounding ... %.4e  %.4f", sucthr, ratthr);
-
+	double sucthr = 1 - pow(opt.sucthr, 1.0 / namb);
+	double ratthr = 1 / (opt.ratthr + 1);
+	
 	vector <int> zind;
 	vector <int> xind;
 	xind.reserve(namb);
 
-	for (int i = 0; i < namb; i++) xind.push_back(i);
+	for (int i = 0; i < namb; i++) 
+		xind.push_back(i);
 
 	MatrixXd I = MatrixXd::Identity(namb, namb);
 	MatrixXd Ztrs;
 	VectorXd xfix;
 	VectorXd dvvct = VectorXd::Zero(namb);
 
-	int nfix = 0, nnew = 0;
+	int nfix = 0;
+	int nnew = 0;
 
-	for (int iter = 0; iter < ambc->nitr; iter++)
+	for (int iter = 0; iter < opt.nitr; iter++)
 	{
 		zind.clear();
 		nnew = 0;
@@ -106,8 +120,6 @@ int interat_round(Trace& trace, ARState* ambc)
 		{
 			double dv  = x(i) - ROUND(x(i));
 			double perr = round_perr (dv, P(i, i));
-
-			tracepdeex(artrclvl+1, trace, "\n#ARES_RND %1d AR for %s %s : %6.3f %12.4e %12.4e", iter, ambc->ambmap[i].str, ambc->ambmap[i].Sat.id().c_str(), dv, perr, P(i, i));
 
 			if ((fabs(dv) < ratthr) && (perr < sucthr))
 			{
@@ -133,25 +145,26 @@ int interat_round(Trace& trace, ARState* ambc)
 		nfix = nnew;
 	}
 
-	if (nfix == 0)return 0;
+	if (nfix == 0)
+		return 0;
 
-	ambc->Ztrs = Ztrs;
-	ambc->zfix = xfix;
+	mtrx.Ztrs = Ztrs;
+	mtrx.zfix = xfix;
 
 	return nfix;
 }
 
-
-int Ztrans_reduction(Trace& trace, ARState* ambc)
+/** Lambda decorrelation (trough Z transform) */
+int Ztrans_reduction(
+	Trace& trace,		///< Debug trace
+	GinAR_mtx& mtrx)	///< Reference to structure containing float values and covariance
 {
-	int siz = ambc->aflt.size();
-	int info = 0;
+	int siz = mtrx.aflt.size();
 	int nhigh = 0;
 	MatrixXd modul = MatrixXd::Identity(siz, siz);
 
-
 	LDLT<MatrixXd> ldlt_;
-	ldlt_.compute(ambc->Paflt);
+	ldlt_.compute(mtrx.Paflt);
 
 	if (ldlt_.isPositive() == false)
 	{
@@ -164,16 +177,15 @@ int Ztrans_reduction(Trace& trace, ARState* ambc)
 
 	auto tr = ldlt_.transpositionsP ();
 	MatrixXd Ztrans = tr * modul;
-	VectorXd z_vect = tr * ambc->aflt;
+	VectorXd z_vect = tr * mtrx.aflt;
 
-	if (artrclvl < 3)
+	if (AR_VERBO)
 	{
-		trace << std::endl << "x =" << std::endl << ambc->aflt.transpose() << std::endl;
-		trace << std::endl << "Px=" << std::endl << ambc->Paflt            << std::endl;
+		trace << std::endl << "x =" << std::endl << mtrx.aflt.transpose() << std::endl;
+		trace << std::endl << "Px=" << std::endl << mtrx.Paflt            << std::endl;
 		trace << std::endl << "Lx=" << std::endl << L_mtrx                 << std::endl;
 		trace << std::endl << "D =" << std::endl << D_vect.transpose()     << std::endl;
 		trace << std::endl << "T= " << std::endl << Ztrans                 << std::endl;
-
 	}
 
 	for (int j = siz - 2; j >= 0; j--)
@@ -193,39 +205,40 @@ int Ztrans_reduction(Trace& trace, ARState* ambc)
 
 	}
 
-	ambc->zflt = z_vect;
-	ambc->Ztrs = Ztrans;
-	ambc->Ltrs = L_mtrx;
-	ambc->Dtrs = D_vect;
+	mtrx.zflt = z_vect;
+	mtrx.Ztrs = Ztrans;
+	mtrx.Ltrs = L_mtrx;
+	mtrx.Dtrs = D_vect;
 
-	if (artrclvl < 3)
+	if (AR_VERBO)
 	{
 		trace << std::endl << "Zt=" << std::endl << Ztrans                 << std::endl;
 		trace << std::endl << "Lz=" << std::endl << L_mtrx                 << std::endl;
-		trace << std::endl << "z =" << std::endl << ambc->zflt.transpose() << std::endl;
+		trace << std::endl << "z =" << std::endl << mtrx.zflt.transpose() << std::endl;
+		trace << std::endl << "Dz=" << std::endl << mtrx.Dtrs.transpose() << std::endl;
 	}
 
 	return nhigh;
 }
 
-int integer_bootst(Trace& trace, ARState* ambc)
+/** Integer bootstrapping */
+int integer_bootst(
+	Trace& trace,		///< Debug trace
+	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
+	GinAR_opt opt)		///< Object containing processing options
 {
-	tracepdeex(artrclvl, trace, "\n#WLR Using integer bootstrapping ... ");
-
-	int info = Ztrans_reduction(trace, ambc);
+	int info = Ztrans_reduction(trace, mtrx);
 
 	if (info < 0)
 		return 0;
 
-	double ratt = 1.0 / (ambc->ratthr + 1);
-	double suct = ambc->sucthr;
+	double ratt = 1 / (opt.ratthr + 1);
+	double suct = opt.sucthr;
 
-	tracepdeex(artrclvl, trace, " %.4e %.4e",ratt,1.0-suct);
-
-	MatrixXd Z = ambc->Ztrs;
-	MatrixXd L = ambc->Ltrs;
-	VectorXd D = ambc->Dtrs;
-	VectorXd zflt = ambc->zflt;
+	MatrixXd Z = mtrx.Ztrs;
+	MatrixXd L = mtrx.Ltrs;
+	VectorXd D = mtrx.Dtrs;
+	VectorXd zflt = mtrx.zflt;
 
 	vector<int> xind;
 
@@ -263,17 +276,19 @@ int integer_bootst(Trace& trace, ARState* ambc)
 		zadj.head(i - 1) += (zfix(i) - zadj(i)) * L.block(i, 0, 1, i - 1);
 	}
 
-	ambc->Ztrs = Z(zind, xind);
-	ambc->zfix = zfix(zind);
+	mtrx.Ztrs = Z(zind, xind);
+	mtrx.zfix = zfix(zind);
 
 	return zind.size();
 }
 
-
-int lambda_search(Trace& trace, ARState* ambc, int opt)
+/** Lambda algorithm and its variations (ILQ, Common set, BIE) */
+int lambda_search(
+	Trace& trace,		///< Debug trace
+	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
+	GinAR_opt opt)		///< Object containing processing options
 {
-	tracepdeex(artrclvl, trace, "\n Using lambda search ... %.4f ",1.0-ambc->sucthr);
-	int info = Ztrans_reduction(trace, ambc);
+	int info = Ztrans_reduction(trace, mtrx);
 
 	if (info < 0)
 	{
@@ -281,123 +296,134 @@ int lambda_search(Trace& trace, ARState* ambc, int opt)
 		return 0;
 	}
 
-	int nmax = ambc->Dtrs.size();
-	int k = nmax - 1;
-
-	double succ = erf(sqrt(1 / (8 * ambc->Dtrs(k--))));
 	
-	if (succ < ambc->sucthr) 
+	int nmax = mtrx.Dtrs.size();
+	int k = nmax - 1;
+	int kmax = k;
+
+	double succ = erf(sqrt(1 / (8 * mtrx.Dtrs(k--))));
+	
+	if (succ < opt.sucthr) 
 		return 0;
 
-	int zsiz = 0;
+	int zsiz = 1;
 
-	while (k >= 0 && succ >= ambc->sucthr)
+	while (k >= 0)
 	{
-		succ *= erf(sqrt(1 / (8 * ambc->Dtrs(k--))));
+		succ *= erf(sqrt(1 / (8 * mtrx.Dtrs(k--))));
+		if (succ < opt.sucthr)
+			break;
 		zsiz++;
 	}
-
-	tracepdeex(artrclvl, trace, " %d ambiguities passed success the rate test ... ", zsiz);
-
-	if (zsiz < 4) 
+	if(zsiz<3)
 		return 0;
-
-	/*auto& zfixList = ambc->biemap;
-	zfixList.clear();*/
+	
+	int kmin=kmax-zsiz+1;
 
 	map<double, VectorXd> zfixList;
 
-	MatrixXd Z = ambc->Ztrs.bottomRows(zsiz);
-	MatrixXd L = ambc->Ltrs.bottomRightCorner(zsiz, zsiz);
-	VectorXd D = ambc->Dtrs.tail(zsiz);
-	VectorXd zflt = ambc->zflt.tail(zsiz);
-	vector<int> xind;
-
-	for (int i = 0; i < nmax; i++) 
-		xind.push_back(i);
-
-	MatrixXd Sadj = MatrixXd::Zero(zsiz, zsiz);
-	VectorXd dist = VectorXd::Zero(zsiz);
-	VectorXd zadj = VectorXd::Zero(zsiz);
-	VectorXd zfix = VectorXd::Zero(zsiz);
-	VectorXd step = VectorXd::Zero(zsiz);
-
-	k = zsiz - 1;
+	MatrixXd L = mtrx.Ltrs;
+	VectorXd D = mtrx.Dtrs;
+	VectorXd zflt = mtrx.zflt;
+	
+//	MatrixXd Sadj = MatrixXd::Zero(nmax, nmax);
+	VectorXd dist = VectorXd::Zero(nmax);
+	VectorXd zadj = VectorXd::Zero(nmax);
+	VectorXd zfix = VectorXd::Zero(nmax);
+	VectorXd zdif = VectorXd::Zero(nmax);
+	VectorXd step = VectorXd::Zero(nmax);
+	
+	k = kmax;
 	zadj(k) = zflt(k);
 	zfix(k) = ROUND(zadj(k));
-	double zdif = zadj(k) - zfix(k);
-	step(k) = zdif < 0 ? -1 : 1;
+	zdif(k) = zadj(k) - zfix(k);
+	step(k) = zdif(k) < 0 ? -1 : 1;
 	bool search = true;
 	double maxdist = 1e99;
 	int ncand = 0;
 	
+		trace << std::endl << "L: "    << std::endl << L 				<< std::endl;
+		trace << std::endl << "dist: " << std::endl << dist.transpose() << std::endl;
+		trace << std::endl << "zflt: " << std::endl << zflt.transpose() << std::endl;
+		trace << std::endl << "D: " << std::endl	<< D 				<< std::endl;
+		
+		trace << std::endl << "  zsiz: " << zsiz << ": " << kmin << " - " << kmax << std::endl; 
+	
+	trace << k << ": " << zadj(k) << ", " <<  zfix(k);
 	while (search)
 	{
-		double newdist = dist(k) + zdif * zdif / D(k);
+		double newdist = dist(k) + zdif(k) * zdif(k) / D(k);
 
 		if (newdist < maxdist)
 		{
-			if (k != 0)
+			if (k != kmin)
 			{
 				k--;
 				dist(k) = newdist;
-				Sadj.block(k, 0, 1, k + 1) = (Sadj.block(k + 1, 0, 1, k + 1)).eval() + (zfix(k + 1) - zadj(k + 1)) * L.block(k + 1, 0, 1, k + 1);
-				zadj(k) = zflt(k) + Sadj(k, k);
+				// Sadj.block(k, 0, 1, k-kmin + 1) = (Sadj.block(k + 1, 0, 1, k-kmin+1)).eval() - zdif(k + 1) * L.block(k + 1, 0, 1, k-kmin+1);
+				// zadj(k) = zflt(k) + Sadj(k,k);
+				
+				zadj(k) = zflt(k);
+				for(int j = k+1; j<nmax; j++)
+					zadj(k)-= zdif(j)*L(j,k);
+				
 				zfix(k) = ROUND(zadj(k));
-				zdif = zadj(k) - zfix(k);
-				step(k) = zdif < 0 ? -1 : 1;
+				zdif(k) = zadj(k) - zfix(k);
+				step(k) = zdif(k) < 0 ? -1 : 1;
+				
+				trace << "; " << k << ": " << zadj(k) << ", " <<  zfix(k);
 			}
 			else
 			{
-				//trace << std::endl << "Candidate found:" << zfix.transpose() << ";   dist= " << newdist;
-				zfixList[newdist] = zfix;
+				VectorXd zcut = zfix.tail(zsiz);
+				zfixList[newdist] = zcut;
 				ncand = zfixList.size();
-				double maxd = newdist * ambc->ratthr;
+				double maxd = newdist * opt.ratthr;
+				
+				if (ncand > 1
+				 && maxd  < maxdist) 
+					maxdist = maxd;
 
-				if (maxd < maxdist) maxdist = maxd;
-
-				if (ambc->nset>0 && (ncand >= ambc->nset))
+				// trace << std::endl << "Candidate found:" << zfixList[newdist].transpose() << ";   dist: " << newdist << " / " << maxdist << ";  #cand: " << ncand << " / " << opt.nset << ", zsiz: " << zsiz;
+				
+				if(ncand > opt.nset)
+					break;
+				
+				if (opt.nset>0
+				&& (ncand >= opt.nset))
 				{
-					if (opt < 2)
-					{
-						int ntot = 0;
-						maxd = 0;
-
-						for ( auto& [dis, zcand] : zfixList )
-						{
-							if (ambc->nset>0 && (ntot++ < ambc->nset)) 
-								if 		(dis > maxd ) 		maxd = dis;
-								else if (dis < maxd) 		maxd = dis;
-						}
-
-						if (maxd < maxdist) maxdist = maxd;
-					}
-
+					int ntot = 0;
 					for (auto it = zfixList.begin(); it != zfixList.end(); )
 					{
-						if (it->first > maxdist)
+						if (ntot++ >= opt.nset)
 							it = zfixList.erase(it);
-						else 
+						else
+						{
+							maxd = it->first;
 							++it;
+						}
 					}
-
+					
+					if(maxd < maxdist) 
+						maxdist = maxd;
+			
 					ncand = zfixList.size();
 				}
 
-				zfix(0) += step(0);
-				zdif = zadj(0) - zfix(0);
-				step(0) = -step(0) + (zdif < 0 ? -1 : 1);
+				zfix(kmin)+= step(kmin);
+				zdif(kmin) = zadj(kmin) - zfix(kmin);
+				step(kmin) =-step(kmin) + (step(kmin) < 0 ? 1 : -1);
 			}
 		}
 		else
 		{
-			if (k == (zsiz - 1)) break;
+			if (k == kmax) break;
 			else
 			{
 				k++;
-				zfix(k) += step(k);
-				zdif = zadj(k) - zfix(k);
-				step(k) = -step(k) + (zdif < 0 ? -1 : 1);
+				zfix(k)+= step(k);
+				zdif(k) = zadj(k) - zfix(k);
+				step(k) =-step(k) + (step(k) < 0 ? 1 : -1);
 			}
 		}
 	}
@@ -407,75 +433,35 @@ int lambda_search(Trace& trace, ARState* ambc, int opt)
 
 	double mindist = zfixList.begin()->first;
 	VectorXd zfix0 = zfixList.begin()->second;
-	ambc->zfix = zfix0;
-	ambc->Ztrs = Z;
+	mtrx.zfix = zfix0;
+	MatrixXd Z = mtrx.Ztrs.bottomRows(zsiz);
+	mtrx.Ztrs = Z;
 
-	if (zfixList.size() == 1)
+	if ( opt.mode == E_ARmode::LAMBDA )
 		return zfix0.size();
-
-	if ( opt == 0 )
-		return 0;
-
-	/*
-		{
-			auto it=zfixList.begin();
-			it++;
-			if((it->first/mindist)<ambc->ratthr) return 0;
-			else return zfix0.size();
-		}
-	*/
-	if (opt == 1 && (maxdist / mindist) < ambc->ratthr) 
-		return 0;
-
-	if (opt == 3)
-	{
-		MatrixXd Pbie = Z * ambc->Paflt * Z.transpose();
-		MatrixXd Qbie = Pbie.inverse();
-		double acum = 0;
-
-		for (auto& [dis, fixvec] : zfixList)
-		{
-			VectorXd ybie = fixvec - zflt;
-			double dbie = ybie.transpose() * Qbie * ybie;
-			double fct  = exp(-0.5 * sqrt(dbie));
-			acum += fct;
-		}
-
-		VectorXd zbie = VectorXd::Zero(zsiz);
-
-		for (auto& [dis, fixvec] : zfixList)
-		{
-			VectorXd ybie = fixvec - zflt;
-			double dbie = ybie.transpose() * Qbie * ybie;
-			double fct  = exp(-0.5 * sqrt(dbie)) / acum;
-			zbie += fct * fixvec;
-		}
-
-		ambc->zfix = zbie;
 		
-		/*int nsolv_bie=0;
-		for(int l=0;l<zbie.size();l++)
-		{
-			double zreal=zbie(l);
-			double zintg=ROUND(zreal);
-			if(fabz(zreal-zintg)<0.1)nsolv_bie++;
-		}
-		return nsolv_bie; */
-		return zbie.size();
-	}
-
-	for (auto& [dis, fixvec] : zfixList)
+	if ( opt.mode == E_ARmode::LAMBDA_ALT )
 	{
-		//trace << std::endl << " zcand: " << fixvec.transpose() << "; dist= " << dis << "/" <<maxdist;
-		if (mindist < 0)
+		double first  = 0;
+		double second = 0;
+		for (auto& [dis, fixvec] : zfixList)
 		{
-			mindist = dis;
-			zfix0 = fixvec;
+			if (first == 0) 		first = dis;
+			else if(second == 0)	second =dis;
+			else					break;
 		}
-		else if ((dis / mindist) > ambc->ratthr) 
-			break;
-		else
+		
+		if ((second/first) < opt.ratthr)	return 0;
+		else                                return zfix0.size();
+	}
+	
+	if ( opt.mode == E_ARmode::LAMBDA_AL2 )
+	{
+		for (auto& [dis, fixvec] : zfixList)
 		{
+			if ((dis / mindist) > opt.ratthr) 
+				break;
+			
 			for (int l = 0; l < zfix0.size(); l++)
 			{
 				if (zfix0(l) == -99999.5) 
@@ -485,40 +471,70 @@ int lambda_search(Trace& trace, ARState* ambc, int opt)
 					zfix0(l) = -99999.5;
 			}
 		}
+		
+		vector<int> zind;
+		for (int k = 0; k < zfix0.size(); k++) 
+		if (zfix0(k) != -99999.5)
+			zind.push_back(k);
+		tracepdeex(2, trace, "... %d ambiguties in common\n", zind.size());
+
+		vector<int> xind;
+		for (int k = 0; k < nmax; k++) 
+			xind.push_back(k);
+		
+		mtrx.zfix = zfix0(zind);
+		mtrx.Ztrs = Z(zind, xind);
+		
+		return zind.size();
 	}
-
-	tracepdeex(2, trace, "\n %d candidates selected ",	zfixList.size());
-	vector<int> zind;
-
-	for (int k = 0; k < zfix0.size(); k++) 
-	if (zfix0(k) != -99999.5)
+	
+	if (opt.mode == E_ARmode::LAMBDA_BIE)
 	{
-		zind.push_back(k);
+		double acum = 0;
 
+		for (auto& [dis, fixvec] : zfixList)
+		{
+			double fct  = exp(-0.5 * (dis-mindist));
+			acum += fct;
+		}
+
+		VectorXd zbie = VectorXd::Zero(zsiz);
+
+		for (auto& [dis, fixvec] : zfixList)
+		{
+			double fct  = exp(-0.5 * (dis-mindist)) / acum;
+			if (AR_VERBO) 
+				trace << std::endl << "Candidate found:" << fixvec.transpose() << ";   fact= " << fct;
+			zbie += fct * fixvec;
+		}
+
+		mtrx.zfix = zbie;
+		
+		return zbie.size();
 	}
 
-	tracepdeex(2, trace, "... %d ambiguties in common\n", zind.size());
-
-
-	ambc->zfix = zfix0(zind);
-	ambc->Ztrs = Z(zind, xind);
-
-	return zind.size();
-
+	// should never be hit ...
+	return 0;
+	
 }
 
-int GNSS_AR(Trace& trace, ARState* ambc)
+/** Ambiguity resolution function for Ginan */
+int GNSS_AR(
+	Trace& trace,		///< Debug trace
+	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
+	GinAR_opt opt)		///< Object containing processing options
 {
-	switch (ambc->mode)
+	switch (opt.mode)
 	{
-		case E_ARmode::ROUND:				return simple_round		(trace, ambc);
-		case E_ARmode::ITER_RND:			return interat_round	(trace, ambc);
-		case E_ARmode::BOOTST:				return integer_bootst	(trace, ambc);
-		case E_ARmode::LAMBDA:				return lambda_search	(trace, ambc, 0);
-		case E_ARmode::LAMBDA_ALT:			return lambda_search	(trace, ambc, 2);
-		case E_ARmode::LAMBDA_AL2:			return lambda_search	(trace, ambc, 1);
-		case E_ARmode::LAMBDA_BIE:			return lambda_search	(trace, ambc, 3);
-		default:							tracepdeex(1, trace, "\n AR mode not supported \n");
+		case E_ARmode::OFF:					return 0;
+		case E_ARmode::ROUND:				return simple_round		(trace, mtrx, opt);
+		case E_ARmode::ITER_RND:			return interat_round	(trace, mtrx, opt);
+		case E_ARmode::BOOTST:				return integer_bootst	(trace, mtrx, opt);
+		case E_ARmode::LAMBDA:				return lambda_search	(trace, mtrx, opt);
+		case E_ARmode::LAMBDA_ALT:			return lambda_search	(trace, mtrx, opt);
+		case E_ARmode::LAMBDA_AL2:			return lambda_search	(trace, mtrx, opt);
+		case E_ARmode::LAMBDA_BIE:			return lambda_search	(trace, mtrx, opt);
+		// default:							tracepdeex(1, trace, "\n AR mode not supported \n");
 	}
 
 	return 0;

@@ -1112,7 +1112,7 @@ SUBROUTINE PROPBOXW(BLKID,AREA,REFL,DIFU,ABSP,AREA2,REFL2,DIFU2,ABSP2,REFLIR,DIF
      ENDDO
      
      write(mesg, *) "BOXWING Properties for BLKID: (", BLKID, ") NOT FOUND. "
-     call report('WARNING', pgrm_name, 'PROPBOXW', mesg, 'src/PROPBOXW.f90', 1)     
+     call report('WARNING', pgrm_name, 'PROPBOXW', mesg, 'src/fortran/PROPBOXW.f90', 1)     
      
   ENDIF
 

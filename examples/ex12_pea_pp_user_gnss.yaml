@@ -13,14 +13,14 @@ input_files:
     sp3files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
     clkfiles: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
     dcbfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
-    
+
 station_data:
 
-    root_stations_directory: data/ #need to have it absolute till fixed
+    root_stations_directory: data/
 
     rnxfiles:
         # Select files to run by:
-        - "ALIC*.rnx"
+        - "ALIC*.rnx" # ALIC station rnx file will be found
         # - "*.rnx"                                       # - searching all in file_root directory
         # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
                                                           # - selecting one on the command line using the -rnxfiles option
@@ -29,7 +29,6 @@ output_files:
 
     root_output_directory:          <CONFIG>/
 
-    # TO DO change trace_level to log_level
     output_trace:                   true
     trace_level:                    2
     trace_directory:                ./
@@ -37,6 +36,15 @@ output_files:
     output_residuals:               true
     output_sinex:                   true
     sinex_directory:                ./
+
+    output_log:                     true
+
+    output_mongo_measurements:      true
+    output_mongo_states:            true
+    output_mongo_metadata:          false
+    delete_mongo_history:           false
+    mongo_uri:                      mongodb://127.0.0.1:27017
+    mongo_suffix:                   _<BRANCH> 
 
 output_options:
 
@@ -106,7 +114,7 @@ user_filter_parameters:
     rts_directory:              ./
     rts_filename:               PPP-<CONFIG>-<STATION>.rts
 
-    inverter:                   LLT         #LLT LDLT INV
+    inverter:                   LDLT         #LLT LDLT INV
 
 default_filter_parameters:
 
@@ -121,43 +129,34 @@ default_filter_parameters:
             sigma:              [0.1]
             proc_noise:         [0.00057] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
             proc_noise_dt:      second
-            #apriori:                                   # taken from other source, rinex file etc.
-            #frame:              xyz #ned
-            #proc_noise_model:   Gaussian
 
         clk:
             estimated:          true
-            sigma:              [0]
+            sigma:              [30]
             proc_noise:         [10]
-            #proc_noise_model:   Gaussian
 
         clk_rate:
             estimated:          false
             sigma:              [500]
             proc_noise:         [1e-4]
-            # clamp_max:          [+500]
-            # clamp_min:          [-500]
 
         amb:
             estimated:          true
             sigma:              [60]
             proc_noise:         [0]
             #proc_noise_dt:      day
-            #proc_noise_model:   RandomWalk
 
         trop:
             estimated:          true
             sigma:              [0.1]
             proc_noise:         [0.0001] #0.1 mm/sqrt(s)
             proc_noise_dt:      second
-            #proc_noise_model:   RandomWalk
 
         trop_grads:
             estimated:          true
-            sigma:              [1]
-            proc_noise:         [0.01]
+            sigma:              [0.02]
+            proc_noise:         [1.0E-6]
             proc_noise_dt:      second
-            #proc_noise_model:   RandomWalk
 
     satellites:
 
@@ -166,14 +165,11 @@ default_filter_parameters:
             # sigma:              [0]
             # proc_noise:         [0.03651483716701108]
             #proc_noise_dt:      min
-            #proc_noise_model:   RandomWalk
 
         clk_rate:
             estimated:          false
             # sigma:              [500]
             # proc_noise:         [1e-4]
-            # clamp_max:          [+500]
-            # clamp_min:          [-500]
 
         orb:
             estimated:          false
@@ -183,12 +179,11 @@ override_filter_parameters:
 
     stations:
 
-            #ALIC:
+        #ALIC:
             #pos:
             #    sigma:              [60]
 
                 #proc_noise:         [0]
-                ##proc_noise_model:   Gaussian
             #clk:
                 #sigma:              [0.01]
 
@@ -198,4 +193,4 @@ override_filter_parameters:
             #exclude: true
         #ANKR:
             #exclude: true
-                #network_estimated:  false
+                #estimated:  false

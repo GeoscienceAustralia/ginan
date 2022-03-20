@@ -31,7 +31,7 @@ configure_iono_model_bsplin: Initializes grid map model
 	-  acsConfig.ionFilterOpts.lon_res:		  longitude resolution of gridmap
 	-  acsConfig.ionFilterOpts.layer_heights: Ionosphere layer Heights
 ----------------------------------------------------------------------------*/
-extern int configure_iono_model_bsplin(void)
+int configure_iono_model_bsplin(void)
 {
 	if (acsConfig.ionFilterOpts.lat_width > 180.0 || 0.0 < acsConfig.ionFilterOpts.lat_width ||
 	        acsConfig.ionFilterOpts.lon_width > 360.0 || 0.0 < acsConfig.ionFilterOpts.lon_width)
@@ -107,7 +107,7 @@ returns 1 if the IPP is within the area of coverage
 -----------------------------------------------------
 Author: Ken Harima @ RMIT 04 August 2020
 -----------------------------------------------------*/
-extern int Ipp_check_bsplin(GTime time, double* Ion_pp)
+int Ipp_check_bsplin(GTime time, double* Ion_pp)
 {
 	if (fabs(BSPLINE_LATCEN - Ion_pp[0]) > BSPLINE_LATWID) return 0;
 
@@ -133,7 +133,7 @@ ion_coef_bsplin: Evaluates B-splines basis functions
 
 	BSPLINE_LATINT and BSPLINE_LONINT needs to be set before calling this function
 ----------------------------------------------------------------------------*/
-extern double ion_coef_bsplin(int ind, Obs& obs, bool slant)
+double ion_coef_bsplin(int ind, Obs& obs, bool slant)
 {
 	if (ind >= Bsp_Basis_list.size()) return 0.0;
 
@@ -174,7 +174,7 @@ ion_vtec_bsplin: Estimate Ionosphere VTEC using Ionospheric gridmaps
 	vari				O		variance of VTEC
 returns: VETC at piercing point
 ----------------------------------------------------------------------------*/
-extern double ion_vtec_bsplin(
+double ion_vtec_bsplin(
     GTime time,
     double* Ion_pp,
     int layer,

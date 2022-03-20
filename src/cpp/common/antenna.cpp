@@ -1,4 +1,6 @@
 
+// #pragma GCC optimize ("O0")
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -10,8 +12,9 @@
 #include <boost/algorithm/string.hpp>
 
 #include "navigation.hpp"
-#include "common.hpp"
+#include "constants.hpp"
 #include "antenna.hpp"
+#include "common.hpp"
 #include "enums.h"
 
 #include "eigenIncluder.hpp"
@@ -39,7 +42,7 @@ int decodef(char *p, int n, double *v)
 	for (i = 0; i < n; i++)
 		v[i] = 0;
 
-	for (i = 0, p = strtok(p," "); p && i < n; p = strtok(NULL, " "))
+	for (i = 0, p = strtok(p," "); p && i < n; p = strtok(nullptr, " "))
 	{
 		v[i] = atof(p) * 1E-3;
 		i++;
@@ -47,40 +50,39 @@ int decodef(char *p, int n, double *v)
 	return i;
 }
 
-pcvacs_t* findAntenna(
-	string code,
-	double tc[6],
-	nav_t& nav)
+PhaseCenterData* findAntenna(
+	string	code,
+	GTime	time,
+	nav_t&	nav)
 {
 // 	BOOST_LOG_TRIVIAL(debug)
 // 	<< "Searching for " << type << ", " << code;
 
-	auto it1 = nav.pcvMap.find(code);
-	if (it1 == nav.pcvMap.end())
+	auto it1 = nav.pcMap.find(code);
+	if (it1 == nav.pcMap.end())
 	{
 		return nullptr;
 	}
 	
-	auto& pcvTimeMap = it1->second;
+	auto& [dummyCode, pcvTimeMap] = *it1;
 	
-	if (pcvTimeMap.size() == 0)
+	if (pcvTimeMap.empty())
 	{
 		return nullptr;
 	}
-	
-	GTime time = epoch2time(tc);
 	
 	auto it2 = pcvTimeMap.lower_bound(time);
 	if (it2 == pcvTimeMap.end())
 	{
 		//just use the first chronologically, (last when sorted as they are) instead
 		auto it3 = pcvTimeMap.rbegin();
-		pcvacs_t& pcv = it3->second;
+		
+		auto& [dummyTime, pcv] = *it3;
 		
 		return &pcv;
 	}
 	
-	pcvacs_t& pcv = it2->second;
+	auto& [dummyTime, pcv] = *it2;
 	
 	return &pcv;
 }
@@ -114,17 +116,20 @@ double interp(double x1, double x2, double y1, double y2, double x)
 *
 * note     :       frequencies are sorted as GPS, GLONASS, Galileo and BeiDou
 *----------------------------------------------------------------------------*/
-void recpco(pcvacs_t *pc, int freq, Vector3d& pco)
+void recpco(
+	PhaseCenterData *	phaseCenterData_ptr,
+	int					freq,
+	Vector3d&			pco)
 {
-	pcvacs_t& pcv = *pc;
+	PhaseCenterData& phaseCenterData = *phaseCenterData_ptr;
 	/* assign rec/sat pco */
-	if (pcv.pcoMap.find((E_FType)freq) == pcv.pcoMap.end())		pco = Vector3d::Zero();
-	else														pco = pcv.pcoMap[(E_FType) freq];
+	if (phaseCenterData.pcoMap.find((E_FType)freq) == phaseCenterData.pcoMap.end())		pco = Vector3d::Zero();
+	else																				pco = phaseCenterData.pcoMap[(E_FType) freq];
 }
 
 /* fetch rec pcv ---------------------------------------------------------------
 *
-* args     :       const pcvacs_t pc      I       antenna info
+* args     :       const PhaseCenterData pc      I       antenna info
 *                  const chat sys         I       satellite system
 *                  const int freq         I       frequency 1, 2
 *                  const double el        I       satellite elevation (degree)
@@ -136,7 +141,7 @@ void recpco(pcvacs_t *pc, int freq, Vector3d& pco)
 * note     :       frequencies are sorted as GPS, GLONASS, Galileo and BeiDou
 *----------------------------------------------------------------------------*/
 void recpcv(
-	pcvacs_t*	pc,
+	PhaseCenterData*	pc,
 	int			freq,
 	double		el,
 	double		azi,
@@ -285,8 +290,8 @@ int readantexf(
 		return 0;
 	}
 
-	const pcvacs_t pcv0 = {};
-	pcvacs_t ds_pcv;
+	const PhaseCenterData pcv0 = {};
+	PhaseCenterData ds_pcv;
 
 	E_FType	ft = FTYPE_NONE;
 
@@ -362,17 +367,23 @@ int readantexf(
 			boost::trim_right(id);
 			
 			GTime time = epoch2time(ds_pcv.tf);
-			nav.pcvMap[id][time] = ds_pcv;
+			nav.pcMap[id][time] = ds_pcv;
 			
+			continue;
+		}
+
+		if (strstr(comment, "SINEX CODE"))
+		{
+			ds_pcv.calibModel	.assign(buff,		10);
 			continue;
 		}
 		
 		if (strstr(comment, "TYPE / SERIAL NO"))
 		{
-			ds_pcv.type		.assign(buff,		20);
-			ds_pcv.code		.assign(buff+20,	20);
-			ds_pcv.svn		.assign(buff+40,	4);
-			ds_pcv.cospar	.assign(buff+50,	10);
+			ds_pcv.type			.assign(buff,		20);
+			ds_pcv.code			.assign(buff+20,	20);
+			ds_pcv.svn			.assign(buff+40,	4);
+			ds_pcv.cospar		.assign(buff+50,	10);
 			
 			continue;
 		}
@@ -405,10 +416,10 @@ int readantexf(
 			valid_from[43] = '\0';
 			p = strtok(valid_from, " ");
 			int j = 0;
-			while (p != NULL)
+			while (p != nullptr)
 			{
 				ds_pcv.tf[j] = (double) atoi(p);
-				p = strtok(NULL, " ");
+				p = strtok(nullptr, " ");
 				j++;
 			}
 			
@@ -426,7 +437,7 @@ int readantexf(
 			while (p != nullptr)
 			{
 				ds_pcv.tu[j] = (double) atoi(p);
-				p = strtok(NULL, " ");
+				p = strtok(nullptr, " ");
 				j++;
 			}
 			
@@ -513,16 +524,16 @@ int readantexf(
 // this will not work
 // for galileo models
 void interp_satantmodel(
-	pcvacs_t&			pcv,	///< antenna phase center parameters
+	PhaseCenterData&	phaseCenterData,	///< antenna phase center parameters
 	double				nadir,	///< nadir angle for satellite (rad)
 	map<int, double>&	dant)	///< range offsets for each frequency (m)
 {
-	for (auto& [ft, pcvVector] : pcv.PCVMap1D)
+	for (auto& [ft, pcvVector] : phaseCenterData.PCVMap1D)
 	{
 		double	nadirDeg		= nadir * R2D;				// ang=0-90
 		int		numSections		= pcvVector.size();
-		double	startAngle		= pcv.zenStart;
-		double	sectionWidth	= pcv.zenDelta;
+		double	startAngle		= phaseCenterData.zenStart;
+		double	sectionWidth	= phaseCenterData.zenDelta;
 		double	realSection		= ((nadirDeg - startAngle) / sectionWidth);
 		double	intSection		= (int) realSection;
 		double	fraction		= realSection - intSection;

@@ -34,6 +34,7 @@
 #include "input_otl.h"
 #include "load_functions.h"
 
+// #include "common.hpp"
 using namespace std;
 using namespace boost::timer;
 namespace po = boost::program_options;
@@ -62,9 +63,10 @@ void program_options(int argc, char * argv[], otl_input & input)
 			("verbose", 		"More output")
 			("config", 	 	po::value<std::string>(),	"Configuration file, This specifies the location of green function, and netcdf files for the ocean loading terms")
 			("location", 	po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")
+			("xyz",        po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
 			("code",     	po::value<std::string>(), "Station Code with or without DOMES number (ALIC 50137M0014)")
 			("input",		po::value<std::string>(),	"input file containing list of stations CSV format name, lon, lat")
-			("output",		po::value<std::string>(),	"Output BLQ file")
+			("output",		po::value<std::string>()->default_value("output.blq"),	"Output BLQ file")
 
 			;
 
@@ -91,19 +93,31 @@ void program_options(int argc, char * argv[], otl_input & input)
 	std::string config_f;
 	std::string code_f;
 	std::vector<float> location;
+	bool is_ecef = vm["xyz"].as<bool>();
 	if (vm.count("config"))
 	{
 		config_f = vm["config"].as<std::string>();
 	}
 	if (vm.count("location")) {
 		location = vm["location"].as<std::vector<float>>();
-		input.lon.push_back(location[0]);
-		input.lat.push_back(location[1]);
+		if (is_ecef)
+		{ 
+			/// \todo Need to have a check if there is 3 values in the vector.
+			input.xyz_coords.push_back(location);
+
+		}
+		else
+		{
+			input.lon.push_back(location[0]);
+			input.lat.push_back(location[1]);
+		}
 
 		if (vm.count("code")) {
 			input.code.push_back(vm["code"].as<std::string>());
 		} else { input.code.push_back("XXXX"); }
 	}
+	// std::cout << input.xyz_coords[0][0] << input.xyz_coords[0][1]  << input.xyz_coords[0][2]  << "\n";
+	// exit(0);
 	YAML::Node config = YAML::LoadFile(config_f );
 
 	input.green = config["greenfunction"].as<string>();
@@ -132,12 +146,26 @@ void program_options(int argc, char * argv[], otl_input & input)
 				while (getline(data, word, ',')) {
 					row.push_back(word);
 				}
-				if (row.size() == 3)
+				if (is_ecef)
 				{
-					input.code.push_back(row[0]);
-					input.lon.push_back(stof(row[1]));
-					input.lat.push_back(stof(row[2]));
+					if (row.size() == 4)
+					{
+						std::vector<float> tmp;
+						input.code.push_back(row[0]);
+						tmp.push_back(stof(row[1]));
+						tmp.push_back(stof(row[2]));
+						tmp.push_back(stof(row[3]));
+						input.xyz_coords.push_back(tmp);
+					}
+				} else {
+					if (row.size() == 3)
+					{
+						input.code.push_back(row[0]);
+						input.lon.push_back(stof(row[1]));
+						input.lat.push_back(stof(row[2]));
+					}
 				}
+
 				row.clear();
 				data.clear();
 			}
@@ -150,7 +178,20 @@ void program_options(int argc, char * argv[], otl_input & input)
 		input.output_blq_file = "output.blq";
 	}
 
-
+	if (is_ecef)
+	{
+		for (int i=0; i<input.xyz_coords.size(); i++)
+		{
+			double tmp[3];
+			double ecef[3];
+			ecef[0] = input.xyz_coords[i][0];
+			ecef[1] = input.xyz_coords[i][1];
+			ecef[2] = input.xyz_coords[i][2];
+			ecef2pos(ecef, tmp);
+			input.lon.push_back(tmp[1]*180.0/M_PI);
+			input.lat.push_back(tmp[0]*180.0/M_PI);
+		}
+	}
 };
 
 

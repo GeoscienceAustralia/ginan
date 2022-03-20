@@ -14,22 +14,21 @@ input_files:
     clkfiles: [ COD0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
     ionfiles: [ codg1990.19i ]          # Ionospheric delay maps in IONEX format
     # dcbfiles: [  ]                    # DCB files for Ionosphere may be provided separately
-    
+
 station_data:
 
-    root_stations_directory: data/ #need to have it absolute till fixed
+    root_stations_directory: data/
 
     rnxfiles:
         # Select files to run by:
-        - "*.rnx"
-        # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
-                                                          # - selecting one on the command line using the -rnxfiles option
+        - "AGGO*.rnx"
+        - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
+                                                        # - selecting one on the command line using the -rnxfiles option
 
 output_files:
 
     root_output_directory:          <CONFIG>/
 
-    # TO DO change trace_level to log_level
     output_trace:                   true
     trace_level:                    2
     trace_directory:                ./
@@ -37,7 +36,17 @@ output_files:
     output_residuals:               true
     output_sinex:                   true
     sinex_directory:                ./
+    
+    output_ppp_sol:                 true
+    ppp_sol_filename:               SF_<STATION><YYYY><DDD><HH>.POS
 
+    output_mongo_measurements:      true
+    output_mongo_states:            true
+    output_mongo_metadata:          false
+    delete_mongo_history:           false
+    mongo_uri:                      mongodb://127.0.0.1:27017
+    mongo_suffix:                   <BRANCH>
+    
 output_options:
 
     config_description:             ex13
@@ -50,9 +59,10 @@ output_options:
 processing_options:
 
     start_epoch:                2019-07-18 00:00:00
-    #end_epoch:                  2019-07-18 23:59:30
+    # end_epoch:                  2019-07-18 03:59:30
     epoch_interval:             30          #seconds
-    #max_epochs:                 200        #0 is infinite
+    # max_epochs:                 120        #0 is infinite
+    # wait_next_epoch:            3600
 
     process_modes:
         user:                   true
@@ -90,10 +100,10 @@ processing_options:
 
     # pivot_station:        "USN7"
     # pivot_satellite:      "G01"
-    
+
     ionosphere:
         corr_mode:      total_electron_content
-        
+
     code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
                         L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                         L5I, L5Q, L5X]
@@ -101,13 +111,13 @@ processing_options:
 user_filter_parameters:
 
     max_filter_iterations:      2 #5
-    max_prefit_removals:        2 #5
+    max_prefit_removals:        2 #5 
 
     rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
     rts_directory:              ./
     rts_filename:               PPP-<CONFIG>-<STATION>.rts
 
-    inverter:                   LLT         #LLT LDLT INV (default is INV)
+    inverter:                   LDLT         #LLT LDLT INV (default is INV)
 
 default_filter_parameters:
 
@@ -125,9 +135,8 @@ default_filter_parameters:
 
         clk:
             estimated:          true
-            sigma:              [0]
-            proc_noise:         [1000]
-            #proc_noise_model:   Gaussian
+            sigma:              [1000]
+            proc_noise:         [1]
 
         clk_rate:
             estimated:          false
@@ -137,21 +146,18 @@ default_filter_parameters:
             sigma:              [60]
             proc_noise:         [0]
             #proc_noise_dt:      day
-            #proc_noise_model:   RandomWalk
 
         trop:
             estimated:          true
             sigma:              [0.1]
-            proc_noise:         [0.0001] #0.1 mm/sqrt(s)
+            proc_noise:         [0.000087]
             proc_noise_dt:      second
-            #proc_noise_model:   RandomWalk
 
         trop_grads:
             estimated:          true
             sigma:              [1]
             proc_noise:         [0.01]
             proc_noise_dt:      second
-            #proc_noise_model:   RandomWalk
 
     satellites:
 
@@ -167,12 +173,10 @@ override_filter_parameters:
 
     stations:
 
-            #ALIC:
+        #ALIC:
             #pos:
             #    sigma:              [60]
-
                 #proc_noise:         [0]
-                ##proc_noise_model:   Gaussian
             #clk:
                 #sigma:              [0.01]
 
@@ -182,4 +186,4 @@ override_filter_parameters:
             #exclude: true
         #ANKR:
             #exclude: true
-                #network_estimated:  false
+                #estimated:  false

@@ -1,6 +1,7 @@
 '''Helmert inversion and transformation functions'''
 import numpy as _np
-from .gn_const import WGS84
+import pandas as _pd
+from .gn_const import WGS84, OMEGA_E
 
 
 def gen_helm_aux(pt1,pt2):
@@ -21,18 +22,18 @@ def gen_helm_aux(pt1,pt2):
     xyz_blk[:,0,1] = pt1[:,2]  #z[0,1]
     xyz_blk[:,1,0] = -pt1[:,2] #z[1,0]
 
-    xyz = pt1.reshape((n_points*3,1))
-    A = _np.column_stack([unity_blk,xyz_blk.reshape((n_points*3,3)),xyz]) #matrix
-    rhs = pt2.reshape((n_points*3,1)) - xyz #right-hand side
+    xyz = pt1.reshape((-1,1))
+    A = _np.column_stack([unity_blk,xyz_blk.reshape((-1,3)),xyz]) #matrix
+    rhs = pt2.reshape((-1,1)) - xyz #right-hand side
     return A, rhs
 
 def get_helmert7(pt1,pt2):
     '''inversion of 7 Helmert parameters between 2 sets of points'''
     A, rhs = gen_helm_aux(pt1,pt2)
-    sol = _np.linalg.lstsq(A, rhs,rcond=-1) # parameters
-    res = rhs - _np.dot(A, sol[0])
+    sol = _np.linalg.lstsq(A, rhs,rcond=None) # parameters
+    res = rhs - A@sol[0]
     # sol[0] = [Tx, Ty, Tz, Rx, Ry, Rz, μ]
-    return sol,res.reshape(res.shape[0]//3,3)
+    return sol,res.reshape(-1,3)
 
 def gen_rot_matrix(v):
     '''creates rotation matrix for transform7
@@ -199,26 +200,54 @@ def norm(a:_np.ndarray,axis:int=1)->_np.ndarray:
     '''Computes norm of every vector in the input array'''
     return _np.sqrt((a * a).sum(axis=axis))
 
-def icrf2rac(a):
 
-    #radial
-    r = a.EST[['X','Y','Z']].values
-    r_norm = norm(r)[_np.newaxis].T
+def ecef2eci(sp3_in):
+    '''Simplified conversion of sp3 posiitons from ECEF to ECI'''
+    xyz_idx = _np.argwhere(sp3_in.columns.isin([('EST','X'),('EST','Y'),('EST','Z')])).ravel()
+    theta = OMEGA_E * (sp3_in.index.get_level_values(0).values)
 
-    #along-track
-    v = a.VELi[['X','Y','Z']].values/10000 #back to km/s
-    v_norm = norm(v)[_np.newaxis].T
+    cos_theta = _np.cos(theta)
+    sin_theta = _np.sin(theta)
 
-    #cross-track
-    h = _np.cross(r,v)
-    h_norm = norm(h)[_np.newaxis].T
+    sp3_nd = sp3_in.iloc[:,xyz_idx].values
+    x = sp3_nd[:,0]
+    y = sp3_nd[:,1]
+    z = sp3_nd[:,2]
 
-    ea = v/v_norm
-    ec = h/h_norm
-    er = r/r_norm
-    # er = _np.cross(ea,ec)
-    matx = _np.dstack([er,ea,ec])
+    x_eci = x*cos_theta - y*sin_theta
+    y_eci = x*sin_theta + y*cos_theta
+    return _pd.DataFrame(_np.concatenate([x_eci,y_eci,z]).reshape(3,-1).T,index = sp3_in.index,columns=[['EST','EST','EST'],['X','Y','Z']])
+
+
+def eci2rac_rot(a):
+    '''Computes rotation 3D stack for sp3 vector rotation into RAC/RTN
+    RAC conventions of POD (to be discussed)
+          {u} = |{P}|    
+    [T] = {v} =  {w}x{u}  * -1 # x of two orthogonal unit-vectors gives a unit vector so no need for ||
+          {w} = |{P}x{V}| * -1'''
+
+    # position
+    pos = a.EST[['X','Y','Z']].values
+    # velocity
+    vel = a.VELi[['X','Y','Z']].values/10000 # back to km/s
     
-    RAC =  (r[:,_np.newaxis] * matx).sum(axis=1)
-    return RAC
-    # return _pd.DataFrame(RAC,index = a.index,columns=[['EST_RAC']*3,['R','A','C']])
+    # radial component
+    u_u = pos / norm(pos)[:,_np.newaxis]
+    
+    # -------------------------
+    # General implementation
+    # # cross-track component
+    # w = _np.cross(pos,vel)
+    # w_u = w / norm(w)[:,_np.newaxis]
+    # # along-track component
+    # v_u = _np.cross(w_u,u_u)
+    # -------------------------
+
+    # Simplified implementation
+    # along-track component
+    v_u = vel / norm(vel)[:,_np.newaxis]
+    # cross-track component
+    w_u = _np.cross(u_u,v_u) # || not needed as u_v and v_u are orthogonal
+
+    rot = _np.dstack([u_u,-v_u,-w_u]) # negative v_u and w_u are to be consistent with POD
+    return rot

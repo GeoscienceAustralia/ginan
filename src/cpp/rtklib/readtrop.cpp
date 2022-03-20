@@ -8,28 +8,18 @@
 * args     :       mgex_trop *mtrop	I/O     tropsphere sturct
 * return   :       0 fail, 1 success
 * ---------------------------------------------------------------------------*/
-extern int inittrop(mgex_trop* mtrop)
+int inittrop(mgex_trop* mtrop)
 {
-	int i;
-	mgex_tropcoord tmp = {{0}};
-	mtrop->ver = mtrop->el = mtrop->factor = 0;
-	mtrop->inttrop = mtrop->intdata = mtrop->bstart = mtrop->bend = 0;
+	mgex_tropcoord tmp = {};
+	*mtrop = {};
 	mtrop->obscode = ' ';
-	memset(mtrop->id, 0, sizeof(mtrop->id));
-	memset(mtrop->agency, 0, sizeof(mtrop->agency));
-	memset(mtrop->agencycode, 0, sizeof(mtrop->agencycode));
-	memset(mtrop->solcon, 0, sizeof(mtrop->solcon));
-	memset(mtrop->solfield, 0, sizeof(mtrop->solfield));
-	memset(mtrop->tropmap, 0, sizeof(mtrop->tropmap));
-	memset(mtrop->cfactor, 0, sizeof(mtrop->cfactor));
-
-	for (i = 0; i < MAXIGSSTA; i++)
+	
+	for (int i = 0; i < MAXIGSSTA; i++)
 	{
 		mtrop->tcoord[i] = tmp;
 	}
 
-	if (!(mtrop->tsol =
-				(mgex_tropsol*)malloc(sizeof(mgex_tropsol) * MAXIGSSTA * NTROP)))
+	if (!(mtrop->tsol =	(mgex_tropsol*)malloc(sizeof(mgex_tropsol) * MAXIGSSTA * NTROP)))
 	{
 		return 0;
 	}
@@ -41,7 +31,7 @@ extern int inittrop(mgex_trop* mtrop)
 * args     :       mgex_trop *mtrop	I/O     tropsphere sturct
 * return   :       none
 * ---------------------------------------------------------------------------*/
-extern void freetrop(mgex_trop* mtrop)
+void freetrop(mgex_trop* mtrop)
 {
 	free(mtrop->tsol);
 }
@@ -91,15 +81,27 @@ gtime_t doy2time(int year, int doy, int sod)
 *                  mgex_trop *mtrop	I/O     tropsphere sturct
 * return   :       0 fail, 1 success
 * ---------------------------------------------------------------------------*/
-extern int readtrop(FILE* fp, mgex_trop* mtrop)
+int readtrop(FILE* fp, mgex_trop* mtrop)
 {
-	char buff[2048], *p, *q, t1[4], t2[22], t3[12], t4[2];
-	int i, j, cindex = 0, sindex = 0, ci = 0, si = 0;
+	char buff[2048] = {};
+	char *p = nullptr;
+	char *q = nullptr;
+	char t1[5]	= {};
+	char t2[23]	= {};
+	char t3[13]	= {};
+	char t4[3]	= {};
+	int i = 0;
+	int j = 0;
+	int cindex = 0;
+	int sindex = 0;
+	int ci = 0;
+	int si = 0;
 
 	/* read trop sinex file */
 	while (fgets(buff, sizeof(buff), fp))
 	{
-		if (buff[0] == '*') continue;
+		if (buff[0] == '*') 
+			continue;
 
 		/* header block */
 		if (strstr(buff, "%="))
@@ -114,19 +116,19 @@ extern int readtrop(FILE* fp, mgex_trop* mtrop)
 				/* file agency code */
 				strncpy(mtrop->agency, buff + 11, 3);
 				/* creatation time YDS */
-				mtrop->tbc[0] = (int)strtol(buff + 15, NULL, 10) + 2000;
-				mtrop->tbc[1] = (int)strtol(buff + 18, NULL, 10);
-				mtrop->tbc[2] = (int)strtol(buff + 22, NULL, 10);
+				mtrop->tbc[0] = (int)strtol(buff + 15, nullptr, 10) + 2000;
+				mtrop->tbc[1] = (int)strtol(buff + 18, nullptr, 10);
+				mtrop->tbc[2] = (int)strtol(buff + 22, nullptr, 10);
 				/* agency code */
 				strncpy(mtrop->agencycode, buff + 28, 3);
 				/* start time of solution */
-				mtrop->tbs[0] = (int)strtol(buff + 32, NULL, 10) + 2000;
-				mtrop->tbs[1] = (int)strtol(buff + 35, NULL, 10);
-				mtrop->tbs[2] = (int)strtol(buff + 39, NULL, 10);
+				mtrop->tbs[0] = (int)strtol(buff + 32, nullptr, 10) + 2000;
+				mtrop->tbs[1] = (int)strtol(buff + 35, nullptr, 10);
+				mtrop->tbs[2] = (int)strtol(buff + 39, nullptr, 10);
 				/* end time of solution */
-				mtrop->tbe[0] = (int)strtol(buff + 45, NULL, 10) + 2000;
-				mtrop->tbe[1] = (int)strtol(buff + 48, NULL, 10);
-				mtrop->tbe[2] = (int)strtol(buff + 52, NULL, 10);
+				mtrop->tbe[0] = (int)strtol(buff + 45, nullptr, 10) + 2000;
+				mtrop->tbe[1] = (int)strtol(buff + 48, nullptr, 10);
+				mtrop->tbe[2] = (int)strtol(buff + 52, nullptr, 10);
 				/* observation code */
 				mtrop->obscode = buff[58];
 				/* solution contents */
@@ -148,11 +150,11 @@ extern int readtrop(FILE* fp, mgex_trop* mtrop)
 		/* description block */
 		else if (strstr(buff, " SAMPLING INTERVAL"))
 		{
-			mtrop->intdata = (int)strtol(buff + 31, NULL, 10);
+			mtrop->intdata = (int)strtol(buff + 31, nullptr, 10);
 		}
 		else if (strstr(buff, " SAMPLING TROP"))
 		{
-			mtrop->inttrop = (int)strtol(buff + 31, NULL, 10);
+			mtrop->inttrop = (int)strtol(buff + 31, nullptr, 10);
 		}
 		else if (strstr(buff, " TROP MAPPING FUNCTION"))
 		{
@@ -170,7 +172,7 @@ extern int readtrop(FILE* fp, mgex_trop* mtrop)
 
 			for (i = 0; i < 7; i++)
 			{
-				if (p != NULL && strlen(p))
+				if (p != nullptr && strlen(p))
 				{
 					strcpy(mtrop->solfield[i], p);
 					j += strlen(p) + 1;
@@ -188,7 +190,7 @@ extern int readtrop(FILE* fp, mgex_trop* mtrop)
 
 			for (i = 0; i < 7; i++)
 			{
-				if (p != NULL && strlen(p))
+				if (p != nullptr && strlen(p))
 				{
 					strcpy(mtrop->solfield[i + 7], p);	//todo aaron, buffer overflows on strcpys in this file
 					j += strlen(p) + 1;
@@ -222,27 +224,21 @@ extern int readtrop(FILE* fp, mgex_trop* mtrop)
 		}
 		else if (cindex == 1)
 		{
-			strncpy(mtrop->tcoord[ci].sitecode, buff + 1, 4);
-			strncpy(mtrop->tcoord[ci].ptcode, buff + 6, 2);
-			strncpy(mtrop->tcoord[ci].solid, buff + 9, 4);
+			strncpy(mtrop->tcoord[ci].sitecode,	buff + 1, 4);
+			strncpy(mtrop->tcoord[ci].ptcode,	buff + 6, 2);
+			strncpy(mtrop->tcoord[ci].solid,	buff + 9, 4);
 			mtrop->tcoord[ci].obscode = buff[14];
 
-			strncpy(t3, buff + 16, 12);
-			sscanf(t3, "%lf", &mtrop->tcoord[ci].x[0]);
-			strncpy(t3, buff + 29, 12);
-			sscanf(t3, "%lf", &mtrop->tcoord[ci].x[1]);
-			strncpy(t3, buff + 42, 12);
-			sscanf(t3, "%lf", &mtrop->tcoord[ci].x[2]);
+			strncpy(t3, buff + 16, 12);			sscanf(t3, "%lf", &mtrop->tcoord[ci].x[0]);
+			strncpy(t3, buff + 29, 12);			sscanf(t3, "%lf", &mtrop->tcoord[ci].x[1]);
+			strncpy(t3, buff + 42, 12);			sscanf(t3, "%lf", &mtrop->tcoord[ci].x[2]);
 
-			strncpy(mtrop->tcoord[ci].sys, buff + 55, 6);
-			strncpy(mtrop->tcoord[ci].remark, buff + 62, 5);
+			strncpy(mtrop->tcoord[ci].sys,		buff + 55, 6);
+			strncpy(mtrop->tcoord[ci].remark,	buff + 62, 5);
 
-			strncpy(t4, buff + 69, 2);
-			sscanf(t4, "%lf", &mtrop->tcoord[ci].std[0]);
-			strncpy(t4, buff + 72, 2);
-			sscanf(t4, "%lf", &mtrop->tcoord[ci].std[1]);
-			strncpy(t4, buff + 75, 2);
-			sscanf(t4, "%lf", &mtrop->tcoord[ci].std[2]);
+			strncpy(t4, buff + 69, 2);			sscanf(t4, "%lf", &mtrop->tcoord[ci].std[0]);
+			strncpy(t4, buff + 72, 2);			sscanf(t4, "%lf", &mtrop->tcoord[ci].std[1]);
+			strncpy(t4, buff + 75, 2);			sscanf(t4, "%lf", &mtrop->tcoord[ci].std[2]);
 
 			if (strstr(mtrop->solcon, "MIX"))
 				ci++;
@@ -268,22 +264,23 @@ extern int readtrop(FILE* fp, mgex_trop* mtrop)
 
 		else if (sindex == 1)
 		{
-			q = NULL;
+			q = nullptr;
 			strncpy(mtrop->tsol[si].marker, buff + 1, 4);
 
-			mtrop->tsol[si].ts[0] = (int)strtol(buff + 6, NULL, 10) + 2000;
-			mtrop->tsol[si].ts[1] = (int)strtol(buff + 9, NULL, 10);
-			mtrop->tsol[si].ts[2] = (int)strtol(buff + 13, NULL, 10);
+			mtrop->tsol[si].ts[0] = (int)strtol(buff + 6, nullptr, 10) + 2000;
+			mtrop->tsol[si].ts[1] = (int)strtol(buff + 9, nullptr, 10);
+			mtrop->tsol[si].ts[2] = (int)strtol(buff + 13, nullptr, 10);
 
 			p = strtok(buff + 19, " ");
 
 			for (i = 0; i < 14; i++)
 			{
-				if (p != NULL && strlen(p))
+				if (p != nullptr && strlen(p))
 				{
 					sscanf(p, "%lf", &mtrop->tsol[si].x[i]);
 				}
-				else continue;
+				else 
+					continue;
 
 				p = strtok(buff + 19 + strlen(p) + 1, " ");
 			}
@@ -316,7 +313,8 @@ int readtropmain()
 		printf("No file/n");
 	}
 
-	if (!(inittrop(mtrop))) return 0;
+	if (!(inittrop(mtrop))) 
+		return 0;
 
 	if (fptrop)
 		readtrop(fptrop, mtrop);

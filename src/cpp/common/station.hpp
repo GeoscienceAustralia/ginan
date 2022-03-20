@@ -1,15 +1,12 @@
 #ifndef __STATION__HPP
 #define __STATION__HPP
 
-#include <memory>
-
-#include "constants.h"
+#include "eigenIncluder.hpp"
+#include "common.hpp"
 #include "gTime.hpp"
-#include "snx.hpp"
+#include "sinex.hpp"
 #include "ppp.hpp"
 #include "vmf3.h"
-
-#include "eigenIncluder.hpp"
 
 struct RinexStation
 {
@@ -45,6 +42,10 @@ struct StationLogs
 	map<string, int>	satCount;
 };
 
+
+
+
+
 /** Object to maintain receiver station data
 */
 struct Station : IonoStation, StationLogs
@@ -52,30 +53,37 @@ struct Station : IonoStation, StationLogs
 	RinexStation		rnxStation;
 	rtk_t 				rtk;						///< Legacy rtk filter status
 	Sinex_stn_snx_t		snx;						///< Antenna information
-	vmf3_t				vmf3	= {.m = 1};
 
 	ObsList				obsList;					///< Observations available for this station at this epoch
+	PseudoObsList		pseudoObsList;				///< PseudoObservations available for this station at this epoch
 	string				id;							///< Unique name for this station (4 characters)
 
-	double				mjd0[3]			= {}; 		// mjd time for vmf3
-	ClockJump			cj				= {};
 
 	string				traceFilename;
-	
+	string				tropFilename;
+	string				rtsTropFilename;
+	string				solutFilename;
+	bool				sol_header = false;
 	
 	bool		primaryApriori = false;
-	GTime		aprioriTime	= {};
+	int			aprioriTime[3]	= {};
 	Vector3d	aprioriPos	= Vector3d::Zero();		///< station position (ecef) (m)
 	Vector3d	aprioriVar	= Vector3d::Zero();
+	bool		ready = false;
 };
 
-using StationList = list<Station*>;			///< List of station pointers
+using StationMap	= map<string, Station>;		///< Map of all stations
+
 
 struct Network
 {
 	string traceFilename;
 	string clockFilename;
+	string orbitsFilename;
 	string rtsClockFilename;
+	string tropFilename;
+	string rtsTropFilename;
+	string biasSINEXFilename;
 	string id				= "NET";
 	KFState kfState			= {};
 };

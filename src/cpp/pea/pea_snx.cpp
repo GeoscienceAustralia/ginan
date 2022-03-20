@@ -1,3 +1,6 @@
+
+// #pragma GCC optimize ("O0")
+
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -6,14 +9,15 @@
 #include <boost/log/trivial.hpp>
 
 #include "eigenIncluder.hpp"
+#include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
 #include "station.hpp"
 #include "gTime.hpp"
-#include "snx.hpp"
+#include "sinex.hpp"
 
 void sinexPostProcessing(
-	GTime&						tsync,
+	GTime&						time,
 	map<string, Station>&		stationMap,
 	KFState&					netKFState)
 {
@@ -21,7 +25,9 @@ void sinexPostProcessing(
 	theSinex.acknowledgements.	clear();
 	theSinex.inputHistory.		clear();
 
-	sinex_check_add_ga_reference();
+	// FIXME: network solution could be different?
+	// TODO: replace 0.1 with some auto generated variable or config file entry, should be current version in bitbucket
+	sinex_check_add_ga_reference("PPP Solution", "0.1", false);
 
 	{
 		list<KFState*> kfStatePointers;
@@ -60,9 +66,9 @@ void sinexPostProcessing(
 	}
 
 	// add in the files used to create the solution
-	for (auto& rnxfile : acsConfig.rinexFiles)	{	sinex_add_file(acsConfig.analysis_agency, tsync, rnxfile, "RINEX v3.x");	}
-	for (auto& sp3file : acsConfig.sp3files)	{	sinex_add_file(acsConfig.analysis_agency, tsync, sp3file, "SP3");			}
-	for (auto& snxfile : acsConfig.snxfiles)	{	sinex_add_file(acsConfig.analysis_agency, tsync, snxfile, "SINEX");			}
+	for (auto& rnxfile : acsConfig.rinexFiles)	{	sinex_add_file(acsConfig.analysis_agency, time, rnxfile, "RINEX v3.x");	}
+	for (auto& sp3file : acsConfig.sp3files)	{	sinex_add_file(acsConfig.analysis_agency, time, sp3file, "SP3");		}
+	for (auto& snxfile : acsConfig.snxfiles)	{	sinex_add_file(acsConfig.analysis_agency, time, snxfile, "SINEX");		}
 
 	// Add other statistics as they become available...
 	sinex_add_statistic("SAMPLING INTERVAL (SECONDS)", acsConfig.epoch_interval);
@@ -77,21 +83,19 @@ void sinexPostProcessing(
 
 	string data_agc = "";
 
-	// default this to config. If not set, get it from the first station read.
-	boost::posix_time::ptime start_epoch = acsConfig.start_epoch;
 	GTime start_time;
-	start_time.time = static_cast<int>(boost::posix_time::to_time_t(start_epoch));
+	start_time.time = static_cast<int>(boost::posix_time::to_time_t(acsConfig.start_epoch));
 	start_time.sec	= 0;
 	double	ep[6];
 	int		start[3];
 	int		end[3];
 	time2epoch(start_time, ep);
 	epoch2yds(ep, start);
-	time2epoch(tsync, ep);
+	time2epoch(time, ep);
 	epoch2yds(ep, end);
 	struct timeval tv;
 	struct tm* tmbuf;
-	gettimeofday(&tv, NULL);
+	gettimeofday(&tv, nullptr);
 	tmbuf = gmtime(&tv.tv_sec);
 	int create_yds[3]; // create time for Sinex header
 	create_yds[0]	= tmbuf->tm_year + 1900;
@@ -101,9 +105,11 @@ void sinexPostProcessing(
 					+ tmbuf->tm_hour	* 60 * 60;
 
 
-	sinex_update_header(acsConfig.analysis_agency, create_yds, data_agc, start, end, obsCode, constCode, solcont);
+	sinex_update_header(acsConfig.analysis_agency, create_yds, data_agc, start, end, obsCode, constCode, solcont, 2.02); //Change this if the sinex format gets updated
 
-	write_sinex(acsConfig.sinex_filename, &stationMap);
+	string filename = acsConfig.sinex_filename;
+	replaceTimes(filename, acsConfig.start_epoch);
+	write_sinex(filename, &stationMap);
 }
 
 void sinexPerEpochPerStation(
@@ -127,7 +133,7 @@ void sinexPerEpochPerStation(
 	
 	int result = getstnsnx(rec.id, yds, rec.snx);
 
-	if (result == 1)
+	if (result == E_SnxDataMissing::SITE_ID)
 	{
 // 		BOOST_LOG_TRIVIAL(error)
 // 		<< "Station " << rec.id << " not found in sinex file";		//todo aaron useful eeror
@@ -135,7 +141,7 @@ void sinexPerEpochPerStation(
 		return;
 	}
 
-	if (result == 6)
+	if (result == E_SnxDataMissing::ESTIMATE)
 	{
 		BOOST_LOG_TRIVIAL(debug)
 		<< "Station " << rec.id << " position not found in sinex file";
@@ -162,7 +168,7 @@ void sinexPerEpochPerStation(
 			break;
 		}
 
-		rec.rtk.pcvrec = findAntenna(tmpant, ep, nav);
+		rec.rtk.pcvrec = findAntenna(tmpant, tsync, nav);
 
 		if (rec.rtk.pcvrec)
 		{
@@ -173,7 +179,7 @@ void sinexPerEpochPerStation(
 		// Try searching under the antenna type with DOME => NONE
 		radome2none(tmpant);
 
-		rec.rtk.pcvrec = findAntenna(tmpant, ep, nav);
+		rec.rtk.pcvrec = findAntenna(tmpant, tsync, nav);
 
 		if (rec.rtk.pcvrec)
 		{

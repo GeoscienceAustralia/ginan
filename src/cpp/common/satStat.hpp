@@ -3,13 +3,14 @@
 #ifndef __SATSTAT_HPP__
 #define __SATSTAT_HPP__
 
-#include <unordered_map>
+#include <map>
 
-using std::unordered_map;
+using std::map;
 
 #include "eigenIncluder.hpp"
 
 #include "linearCombo.hpp"
+#include "common.hpp"
 #include "acsQC.hpp"
 #include "enums.h"
 
@@ -47,33 +48,43 @@ struct IonoStat
 	double	extionovar	= 0;
 };
 
-struct MWSlip
+/** Cycle slip repair filter
+*/
+struct flt_t
 {
-	double	mean	= 0;
-	double	sigma	= 0;
-	int		num		= 0;
+	double  a[3];       ///< cycle slip state vector
+	double  Qa[3][3];   ///< cycle slip state variance-covariance matrix
+	int     slip;       ///< cycle slip indicator for multi-epoch
+	int     amb[3];     ///< repaired cycle slip
+	int     ne;         ///< number of epochs involved
+	lc_t    lc_pre;     ///< lc information used for cycle slip repair
 };
+
+struct QC
+{
+	Average		mwSlip		= {};		///<
+	Average		emwSlip		= {};		///<
+	int			amb[3]		= {}; 		///< repaired integer cycle slip
+	double		mw			= 0;		///< MW-LC (m)
+	double		gf			= 0;
+	flt_t		flt			= {};		///< cycle slip repair filter
+	lc_t		lc_pre		= {};		///< lc information
+	lc_t		lc_new		= {};		///< lc information
+};
+
 
 /** Object containing persistant status parameters of individual satellites
 */
-struct SatStat : IonoStat
+struct SatStat : IonoStat, QC
 {
 	double  	phw				= 0;					///< Phase windup (cycle)
 	double  	mapWet			= 0;					///< troposphere wet mapping function
 	double  	mapWetGrads[2]	= {};					///< troposphere wet mapping function
 	Vector3d	e				= Vector3d::Zero();		///< Line-of-sight unit vector
 
-	MWSlip	mwSlip		= {};		///<
-	MWSlip	emwSlip		= {};		///<
-	int		amb[3]		= {}; 		///< repaired integer cycle slip
-	double	mw			= 0;		///< MW-LC (m)
-	double	gf			= 0;
-	flt_t	flt			= {};		///< cycle slip repair filter
-	lc_t	lc_pre		= {};		///< lc information
-	lc_t	lc_new		= {};		///< lc information
 
-	double	dIono		= 0;      	///< TD ionosphere residual
-	double	sigmaIono	= 0;      	///< TD ionosphere residual noise
+	double		dIono		= 0;      	///< TD ionosphere residual
+	double		sigmaIono	= 0;      	///< TD ionosphere residual noise
 
 	union
 	{
@@ -85,7 +96,7 @@ struct SatStat : IonoStat
 		};
 	};
 
-	unordered_map<E_FType, SigStat>	sigStatMap;	///< Map for individual signal status for this SatStat object
+	map<E_FType, SigStat>	sigStatMap;	///< Map for individual signal status for this SatStat object
 };
 
 #endif

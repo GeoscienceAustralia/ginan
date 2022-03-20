@@ -28,4 +28,9 @@ int readrnx(
 	int&							tsys,
 	map<E_Sys, vector<CodeType>>&	sysCodeTypes);
 
+
+
+string rinexSysDesc(
+	E_Sys sys);
+
 #endif

@@ -7,9 +7,9 @@ using std::map;
 
 #include "eigenIncluder.hpp"
 
-#include "peaCommitVersion.h"
 #include "algebraTrace.hpp"
 #include "navigation.hpp"
+#include "constants.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
 #include "station.hpp"
@@ -62,25 +62,6 @@ E_SerialObject getFilterTypeFromFile(
 
 	return type;
 }
-
-/** Initialises the outputs for input/output of filter states during (re)processing
-*/
-void initFilterTrace(
-	KFState&	kfState,		///< Filter object to apply to
-	string		traceFilename,	///< Filename to store/read data from
-	string		stationId,		///< Station description for top line of the trace file
-	int			rts_lag)		///< Number of epochs to lag when doing RTS smoothing (-ve => complete reverse)
-{
-	kfState.rts_filename			= traceFilename;
-	kfState.rts_forward_filename	= traceFilename + FORWARD_SUFFIX;
-	kfState.rts_lag					= rts_lag;
-
-	//remove logtime from forward file.
-	replaceString(kfState.rts_forward_filename, "<LOGTIME>", "");
-
-	std::ofstream ofs1(kfState.rts_forward_filename,			std::ofstream::out | std::ofstream::trunc);
-}
-
 
 void outputPersistanceNav()
 {
@@ -172,7 +153,7 @@ void inputPersistanceStates(
 		destKFState.P			= kfState.P;
 		destKFState.kfIndexMap	= kfState.kfIndexMap;
 
-		//special case for netKFState - fix up the station pointers
+		//fix up the station pointers
 		{
 			map<KFKey, short int> newKFIndexMap;
 
@@ -183,7 +164,7 @@ void inputPersistanceStates(
 				if (receiverId.empty() == false)
 				{
 					//get the appropriate station from the station map;
-					newKey.station_ptr = &stationMap[receiverId];
+					newKey.rec_ptr = &stationMap[receiverId];
 				}
 
 				newKFIndexMap[newKey] = index;

@@ -1,10 +1,12 @@
 
-#pragma GCC optimize ("O0")
+// #pragma GCC optimize ("O0")
 
 #include <iostream>
 #include <random>
 
+#include "eigenIncluder.hpp"
 
+#if 0
 #include "minimumConstraints.hpp"
 #include "rtsSmoothing.hpp"
 #include "observations.hpp"
@@ -19,11 +21,9 @@
 #include "debug.hpp"
 #include "enums.h"
 
-
 void artificialSlip(
 		Trace&	trace,		///<
-		Obs&	obs,		///<
-		lc_t&	lcBase,		///<
+		Obs&	obs,		///< lc_t&	lcBase,		///<
 		char*	strprefix)	///<
 {
 	int lv = 3;
@@ -200,415 +200,7 @@ void minimumTest(
 
 
 
-template<class M>
-csvToMatrix<M>::csvToMatrix(){
-	//cout<<"CsvToMatrix imported Correctly"<<endl;
-}
 
-template<class M>
-
-M  csvToMatrix<M>::load_csv(const string path) {
-
-	//cout<<"**********************************************"<<endl;
-	//cout<<"Reading the data only from current active sheet "<<endl;
-	//cout<<"Please Make sure the correct sheet is selected  "<<endl;
-	//cout<<"**********************************************"<<endl;
-
-	std::ifstream indata;
-	indata.open(path);
-	std::string line;
-	std::vector<double> values;
-	unsigned int rows = 0;
-	while (std::getline(indata, line)) {
-		std::stringstream lineStream(line);
-		std::string cell;
-		while (std::getline(lineStream, cell, ',')) {
-			values.push_back(std::stod(cell));
-		}
-		++rows;
-	}
-	return Map<const Matrix<typename M::Scalar, M::RowsAtCompileTime, M::ColsAtCompileTime, RowMajor>>(values.data(), rows, values.size()/rows);
-}
-
-#include <iostream>
-#include <vector>
-#include <map>
-#include <eigen3/Eigen/Dense>
-#include <fstream>
-
-using namespace Eigen;
-using namespace std;
-
-
-/*
-	----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	| * State vectors  dim(x) = n =  1*3                                                                                                                                                                                                                                                                            |
-	|* x1 = bias                                                                                                                                                                                                                                                                                                                           |
-	| * x2 = d(bias)/dt                                                                                                                                                                                                                                                                                                              |
-	| * x3 = dx2/dt                                                                                                                                                                                                                                                                                                                    |
-
-	|Control variable u_{k} = 0 ;                                                                                                                                                                                                                                                                                         |
-	|Measurement is scalar , by the definition of current problem, so measurement noise R is also scalar . Assigning some random value to noise R,                                         |
-	|* Observerd variable z is just bias .So  z will be a scalar .                                                                                                                                                                                                                              |
-	|* dim(z) = m = 1                                                                                                                                                                                                                                                                                                                |
-	|*Time steps del(T)  = 0.1                                                                                                                                                                                                                                                                                              |
-	|                                                                                                                                                                                                                                                                                                                                                 |
-	| * Matrices :                                                                                                                                                                                                                                                                                                                        |
-	|*  F : Make up for F .                                                                                                                                                                                                                                                                                                        |
-	|* B : Take B = 0                                                                                                                                                                                                                                                                                                                  |
-	|* P  : Defines confidence in the "prediction" of state variables , by virtue of covariance between different variables . Take its values  to be anything , KF f                    |
-	|* will adjust its values.                                                                                                                                                                                                                                                                                                  |
-	|* H is the helper matrix to get the dimensions right. In this case dim(H) = 1*3                                                                                                                                                                                |
-	|* S_{K} will be calculated                                                                                                                                                                                                                                                                                             |
-	|* Q_{K}  : Process Noise Matrix is assumed to be 0.                                                                                                                                                                                                                                        |
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-* */
-
-int isgmain()
-{
-
-	cout << "Start program" << endl;
-
-	// === Initialise filter ===
-
-	int num_clocks = 31;
-	int m = num_clocks;  // # observations
-	int num_params = 2; // # params to model each clock bias
-	int n = 3 * num_clocks;  // # states (when num_params < 3, higher order terms exist but are not used) //n = 93
-
-
-	// x - State vector
-	VectorXd x_pre		= VectorXd::Zero(n);
-	VectorXd x_priori	= VectorXd::Zero(n);
-	VectorXd x_post		= VectorXd::Zero(n);
-
-	// P - Covariance matrix for the state vector
-	MatrixXd P_pre		= MatrixXd::Zero(n, n);      // P(k-1|k-1)
-	MatrixXd P_priori	= MatrixXd::Zero(n, n);   // P(k|k-1)
-	MatrixXd P_post		= MatrixXd::Zero(n, n);     // P(k|k)
-
-	for (int i = 0; i < n; ++i)
-	{
-		P_pre(i, i) = 1000;
-	}
-
-
-
-	// F - State transition matrix
-	double delta_t = 30; // seconds
-
-	MatrixXd F		= MatrixXd::Zero(n, n);
-	MatrixXd F_base = MatrixXd::Zero(3, 3); // F for one clock
-	F_base <<   1,  delta_t,    0.5 * delta_t* delta_t,
-				0,  1,          delta_t,
-				0,  0,          1;
-
-	for (int i = num_params; i < 3; ++i)   // Limit # params by zeroing out cols of F. E.g. if 3rd column is zeroed-out, accel will have no effect on the other terms.
-	{
-		F_base.col(i) *= 0;                                 //num_params =3
-	}
-
-	for (int i = 0; i < num_clocks; ++i)   // Repeat F_base (3x3) along the diagonals of F
-	{
-		F.block(3 * i, 3 * i, 3, 3) = F_base;
-	}
-
-	// u - Control input, B - control matrix (both not used)
-	int u_k = 0;
-	MatrixXd B = MatrixXd::Zero(n, n);
-
-	// Q - Process noise
-	MatrixXd Q		= MatrixXd::Zero(n, n);
-	MatrixXd Q_base	= MatrixXd::Zero(3, 3); // Q for one clock
-	/*
-	// This approach models process noise as a piecewise constant white sequence - i.e. the process noise is assumed to be constant over each sampling period and independent between periods.
-	MatrixXd G = VectorXd::Zero(3); // https://en.wikipedia.org/wiki/Kalman_filter#Example_application,_technical, https://physics.stackexchange.com/questions/146491/what-are-the-equations-for-motion-with-constant-jerk
-	if (num_params == 1)      G << delta_t, 0, 0;     // G - How higher-order parameters (e.g. drift for 1-param, accel for 2-param, jerk for 3-param) affect lower-order params)
-	else if (num_params == 2) G << 1.0 / 2.0*pow(delta_t, 2), delta_t, 0;
-	else if (num_params == 3) G << 1.0 / 6.0*pow(delta_t, 3), 1.0 / 2.0*pow(delta_t, 2), delta_t;
-	else {
-		cout << "Error: Unexpected value in num_params: " << num_params << endl;
-		return 0;
-	}
-	Q_base = G * G.transpose();
-	*/
-
-	// This approach discretises continuous-time white noise (more relevant in our situation than the piecewise constant white noise sequence approach)
-	// See https://github.com/rlabbe/filterpy/blob/master/filterpy/common/discretization.py, and
-	// Bar-Shalom. "Estimation with Applications To Tracking and Navigation". John Wiley & Sons, 2001. Page 272.
-
-
-	if (num_params == 1)
-	{
-		Q_base <<   delta_t,    0,  0,
-					0,          0,  0,
-					0,          0,  0;
-	}
-	else if (num_params == 2)
-	{
-		Q_base <<   pow(delta_t, 3) / 3.0, pow(delta_t, 2) / 2.0,   0,
-					pow(delta_t, 2) / 2.0, delta_t,                 0,
-					0,                     0,                       0;
-	}
-	else if (num_params == 3)
-	{
-
-		Q_base <<   pow(delta_t, 5) / 20.0, pow(delta_t, 4) / 8.0, pow(delta_t, 3) / 6.0,
-					pow(delta_t, 4) / 8.0,  pow(delta_t, 3) / 3.0, pow(delta_t, 2) / 2.0,
-					pow(delta_t, 3) / 6.0,  pow(delta_t, 2) / 2.0, delta_t;
-	}
-	else
-	{
-		cout << "Error: Unexpected value in num_params: " << num_params << endl;
-		return 0;
-	}
-
-	MatrixXd Q_unit = MatrixXd::Zero(n, n);
-
-	for (int i = 0; i < num_clocks; ++i)
-	{
-		Q_unit.block(3 * i, 3 * i, 3, 3) = Q_base;
-	}
-
-	// H - Observation matrix
-	MatrixXd H = MatrixXd::Zero(m, n); // m=31
-
-	for (int i = 0; i < num_clocks; ++i)   //num_clocks =31
-	{
-		H(i, 3 * i) = 1;
-	}
-
-	// R - Measurement noise
-	MatrixXd R = MatrixXd::Zero(m, m);
-
-	for (int i = 0; i < m; ++i)
-	{
-		R(i, i) = 1e-11;  // IGS clock bias var = ~1e-11
-	}
-
-	// z - Observation vector
-	// Load data from csv file
-	//string file_in = "./sample1.csv";
-
-	string file_in = "../tests/all_sats.csv";
-
-	cout << "Reading from " << file_in << endl;
-	cout << "Start program" << endl;
-
-	csvToMatrix<MatrixXd> obj1;
-
-	MatrixXd z_stream = obj1.load_csv(file_in);
-	cout << "Start program3" << endl;
-	z_stream.transposeInPlace();
-
-	assert(z_stream.rows() >= m);
-
-
-	z_stream = z_stream.topRows(m).eval();
-
-	// === Run filter ===
-	cout << "Running filter" << endl;
-	ofstream out;
-	ofstream prefit_out;
-	ofstream state_vector;
-
-	out.			open("../tests/output.tra");
-	prefit_out.		open("../tests/prefit.tra");
-	state_vector.	open("../tests/state_vector.tra");
-
-	for (int Q_pow = -1; Q_pow > -40 ; --Q_pow)
-	{
-		Q = Q_unit * pow(10, Q_pow);
-		prefit_out << pow(10, Q_pow) << " ";
-
-		for (int i = 0; i < n; ++i)          //n = 93
-		{
-			P_pre(i, i) = 1000;
-		}
-
-		cout << "Q_pow: " << Q_pow << endl;
-
-		cout << "P_pre: " << P_pre << endl;
-		VectorXd prefit_sum_of_squares = VectorXd::Zero(m);  //m = 31
-
-		for (int k = 0; k < z_stream.cols(); k++)               //z_streams.cols() = 2880
-		{
-			out << endl << "Epoch: " << k << " ";
-
-			// Predict
-			x_priori = F * x_pre;
-			P_priori = F * P_pre * F.transpose() + Q;
-
-			out << endl << "x_priori: " << x_priori.transpose() << " ";
-
-			// Update
-			VectorXd z = z_stream.col(k);
-
-			VectorXd y = z - H * x_priori;          //  dim(H)  = 31 * 93 , dim(x_priori) = 93*1 , y = 31 * 1
-
-			prefit_out << y(0) << "\t";
-
-			if (k > 20)   // Filter convergence
-			{
-				for (int i = 0; i < m; ++i)
-				{
-					prefit_sum_of_squares(i) += pow(y(i), 2);
-				}
-			}
-
-			MatrixXd S		= (H * P_priori * H.transpose()) + R;
-			MatrixXd S_inv	= S.inverse();
-			MatrixXd K		= P_priori * H.transpose() * S_inv;
-			x_post			= x_priori + K * y;
-
-			state_vector << x_post.transpose() << endl;
-
-			P_post = (MatrixXd::Identity(n, n) - K * H) * P_priori;
-
-			out << endl << "K: " << K.transpose() << " ";
-
-			// k = k-1:
-			x_pre = x_post;
-			P_pre = P_post;
-
-			out << endl;
-		}
-
-		prefit_out << endl << "prefit_sum_of_squares" << prefit_sum_of_squares.transpose();
-		prefit_out << endl << "y\t";
-	}
-
-	cout << "Program finished!" << endl;
-	exit(0);
-}
-
-void newFilter()
-{
-	GTime gtime;
-	gtime++;
-	KFState kfState;
-	initFilterTrace(kfState, "rts.1", "TEST", -1);
-
-	KFMeasEntryList kfMeasEntryList = KFMeasEntryList();
-
-	for (int i = 0; i < 10; i++)
-	{
-		std::cout << i << endl;
-		std::cout << std::endl;
-
-		kfState.initFilterEpoch();
-
-		kfMeasEntryList = KFMeasEntryList();
-
-		KFMeasEntry	codeMeas(&kfState);
-		codeMeas.setValue(i + rando(randoDev));
-		codeMeas.setNoise(15);
-
-		KFKey recPosKey			= {KF::REC_POS};
-		KFKey recPosKey2		= {KF::REC_POS, {}, "die"};
-		KFKey recClockKey		= {KF::REC_SYS_BIAS};
-		KFKey recClockRateKey	= {KF::REC_SYS_BIAS_RATE};
-
-		InitialState recClkInit		= {123,	567,	SQR(0)};
-		InitialState recClkRateInit	= {0,	1000,	SQR(0.01)};
-
-		codeMeas.addDsgnEntry(recClockKey,						+1,	recClkInit);
-		kfState.setKFTransRate(recClockKey, recClockRateKey,	+1,	recClkRateInit);
-
-		if (i < 5)
-		{
-			codeMeas.addDsgnEntry(recPosKey,					+1,	recClkInit);
-		}
-		else
-		{
-			kfState.removeState(recPosKey);
-		}
-
-		kfMeasEntryList.push_back(codeMeas);
-
-
-		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, gtime++);
-
-		if (i == 4)
-			continue;
-
-		//combine the measurement list into a single matrix
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
-
-		if (kfState.lsqRequired)
-		{
-			kfState.lsqRequired = false;
-			std::cout << std::endl << " -------INITIALISING NETWORK USING LEAST SQUARES--------" << std::endl;
-
-			kfState.leastSquareInitStates(std::cout, combinedMeas);
-		}
-
-		kfState.filterKalman(std::cout, combinedMeas, false);
-
-		kfState.outputStates(std::cout);
-
-	}
-
-
-	std::cout << "smoothing:!" << endl;
-
-	RTS_Process(kfState, true);
-
-	std::cout << "Program finished!" << endl;
-	exit(0);
-}
-
-
-void doubleOffsets()
-{
-	GTime gtime;
-	gtime++;
-	KFState kfState;
-
-	KFKey recPosKey				= {KF::REC_POS};
-	InitialState recClkInit		= {0,	100,	SQR(0)};
-
-	for (int i = 0; i < 100; i++)
-	{
-		std::cout << i << endl;
-		std::cout << std::endl;
-
-		kfState.initFilterEpoch();
-
-		KFMeasEntryList kfMeasEntryList;
-
-		KFMeasEntry	codeMeas(&kfState);
-		codeMeas.setNoise(15);
-
-		double pos;
-		kfState.getKFValue(recPosKey, pos);
-
-		double tide = sin(PI / 20 * i) * 10;
-
-		pos += tide;
-
-		double meas  = tide;
-		codeMeas.addDsgnEntry(recPosKey, +1,	recClkInit);
-
-		codeMeas.setValue(meas - pos);
-
-		kfMeasEntryList.push_back(codeMeas);
-
-		//add process noise to existing states as per their initialisations.
-		kfState.stateTransition(std::cout, gtime++);
-
-		//combine the measurement list into a single matrix
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
-
-		kfState.filterKalman(std::cout, combinedMeas, false);
-
-		kfState.outputStates(std::cout);
-	}
-
-	std::cout << "Program finished!" << endl;
-	exit(0);
-}
 
 #include <cmath>
 
@@ -723,69 +315,6 @@ MatrixXd multiGauss(MatrixXd& Mat)
 // 	std::cout << "end" << std::endl;
 // }
 
-// void ballistics()
-// {
-//
-// 	Vector3d tide = Vector3d::Zero();
-// 	Station rec;
-//
-// 	list<Vector3d> sats;
-//
-// 	sats.push_back({+20000000, 0, 0});
-// 	sats.push_back({-20000000, 0, 0});
-// 	sats.push_back({0, +20000000, 0});
-// 	sats.push_back({0, -20000000, 0});
-// 	sats.push_back({0, 0, +20000000});
-// 	sats.push_back({0, 0, -20000000});
-//
-// 	Vector3d leo		= {42164000, 10, 10000};
-// 	Vector3d leoVel		= Vector3d::Zero();
-//
-// 	acsConfig.tropOpts.corr_mode = 0;
-// 	acsConfig.ionoOpts.corr_mode = 0;
-//
-// 	rec.rtk.sol.sppRRec = leo;
-// 	rec.rtk.tt = 30;
-//
-// 	SatStat satStat;
-// 	satStat.el = 1.5;
-// 	satStat.vs = 1;
-//
-// 	SatNav satNav;
-//
-// 	acsConfig.satpcv = 0;
-// 	acsConfig.phase_windup = 0;
-//
-//
-// 	for (double t = 0; t < 60 * 60 * 24; t += 30)
-// 	{
-// 		ObsList obsList;
-//
-// 		for (auto& sat : sats)
-// 		{
-// 			Obs obs;
-// 			obs.satStat_ptr = &satStat;
-// 			obs.satNav_ptr	= &satNav;
-//
-// 			if (t == 0)
-// 			{
-// 				obs.Sigs[L1].L_corr_m = (leo - sat).norm();
-// 				obs.Sigs[L1].P_corr_m = (leo - sat).norm();
-// 				obs.rSat = sat;
-// 			}
-// 			obs.time.time = t;
-//
-// 			obsList.push_back(obs);
-// 		}
-//
-//
-//
-// 		ppp_filter(nullStream, obsList, tide, rec.rtk, rec.station);
-//
-// 		rec.rtk.pppState.outputStates(std::cout);
-// 	}
-//
-// }
 
 void ambiguities()
 {
@@ -1046,123 +575,774 @@ if (1)
 void minimumTest(Trace& trace);
 
 
-void mjdtest()
+
+void lamnda()
 {
-	int doms[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+	int n = 4;
+	MatrixXd q = MatrixXd::Random(n,n);	
+	MatrixXd Q = q * q.transpose();
+	
+	std::cout << "Q"<< std::endl << Q << std::endl;
+	
+	MatrixXd Z = MatrixXd::Identity(n,n);
+	MatrixXd P;
+	
+	P = MatrixXd::Identity(n,n);
+	P(0,1) = 3;
 
+	Z *= P;
+	
+	P = MatrixXd::Identity(n,n);
+	P(1,3) = -2;
 
+	Z *= P;
+	
+	P = MatrixXd::Identity(n,n);
+	P(2,0) = 5;
 
-	double time[6] = {};
-	int yds[6] = {};
-	time[0] = 1995;
-	time[1] = 4;
-	time[2] = 30;
-	time[3] = 23;
-	time[4] = 59;
-	time[5] = 59;
-	epoch2yds(time, yds);
+	Z *= P;
+	
+	P = MatrixXd::Identity(n,n);
+	P(3,1) = 7;
 
-	std::cout << yds[0] << " < " << yds[1] << " " << yds[2] << std::endl;
-	return;
-
-
-
-
-	if (0)
-	for (int m = 0; m < 12; m++)
-	for (int i = 1; i <= doms[m]; i++)
+	Z *= P;
+	
+	std::cout << "Z"<< std::endl << Z << std::endl;
+	
+	MatrixXd Q1 = Z * Q * Z.transpose();
+	
+	std::cout << "Q1"<< std::endl << Q1 << std::endl;
+	
+	MatrixXd J2 = Q1;
+	for (int i = 0; i < J2.cols(); i++)
 	{
-		time[0] = 2019;
-		time[1] = m + 1;
-		time[2] = i;
-		int jd = ymdhms2jd(time);
-		jd2ymdhms(jd + JD2MJD,	time);
-		std::cout << std::endl << time[0] << " " << time[1] << " " << time[2] << " " << time[3] ;
+		J2.col(i) *= 1/J2(i,i);
 	}
+	
+	std::cout << "J2"<< std::endl << J2 << std::endl;
+	
+	
+	
+	
+	MatrixXd R = MatrixXd::Identity(n,n);
+	
+	R(0,3) = 6;
+	R(1,3) = 2;
+	R(2,3) = 1;
+	
+	MatrixXd Q3 = R * Q1 * R.transpose();
+	
+	std::cout << "Q3"<< std::endl << Q3 << std::endl;
+	
+	MatrixXd J4 = Q3;
+	for (int i = 0; i < J2.cols(); i++)
+	{
+		J4.col(i) *= 1/J4(i,i);
+	}
+	
+	std::cout << "J4"<< std::endl << J4 << std::endl;
+	
+	
+	
+	
+	MatrixXd R2 = MatrixXd::Identity(n,n);
+	
+	R2(3,1) = -6;
+	R2(2,1) = 2;
+	
+	MatrixXd Q5 = R2 * Q3 * R2.transpose();
+	
+	std::cout << "Q5"<< std::endl << Q5 << std::endl;
+	
+	MatrixXd J6 = Q5;
+	for (int i = 0; i < J6.cols(); i++)
+	{
+		J6.col(i) *= 1/J6(i,i);
+	}
+	
+	std::cout << "J6"<< std::endl << J6 << std::endl;
+	
+	
+	
+	
+	MatrixXd R3 = MatrixXd::Identity(n,n);
+	
+	R3(0,1) = -1;
+	R3(2,3) = -1;
+	
+	MatrixXd Q7 = R3 * Q5 * R3.transpose();
+	
+	std::cout << "Q7"<< std::endl << Q7 << std::endl;
+	
+	MatrixXd J8 = Q7;
+	for (int i = 0; i < J8.cols(); i++)
+	{
+		J8.col(i) *= 1/J8(i,i);
+	}
+	
+	std::cout << "J8"<< std::endl << J8 << std::endl;
+	
+	
+	
+	
+	MatrixXd R4 = MatrixXd::Identity(n,n);
+	
+	R4(0,1) = -1;
+	
+	MatrixXd Q9 = R4 * Q7 * R4.transpose();
+	
+	std::cout << "Q9"<< std::endl << Q9 << std::endl;
+	
+	MatrixXd J10 = Q9;
+	for (int i = 0; i < J10.cols(); i++)
+	{
+		J10.col(i) *= 1/J10(i,i);
+	}
+	
+	std::cout << "J10"<< std::endl << J10 << std::endl;
+	
+	
+	
+	
+	MatrixXd R5 = MatrixXd::Identity(n,n);
+	
+	R5(2,0) = -3;
+	R5(0,1) = 1;
+	
+	MatrixXd Q11 = R5 * Q9 * R5.transpose();
+	
+	std::cout << "Q11"<< std::endl << Q11 << std::endl;
+	
+	MatrixXd J12 = Q11;
+	for (int i = 0; i < J12.cols(); i++)
+	{
+		J12.col(i) *= 1/J12(i,i);
+	}
+	
+	std::cout << "J12"<< std::endl << J12 << std::endl;
+	
 
 }
 
+#include <fstream>
 
-#include "biasSINEX.hpp"
 
-int read_biasnx_fil(
-	string&		filename,
-	bias_io_opt	opt);
-GTime sinex_time_text(const char* buff);
-GTime sinex_time_text(
-	string& line);
-void biastest()
+#include "navigation.hpp"
+#include "constants.hpp"
+#include "acsConfig.hpp"
+#include "algebra.hpp"
+#include "common.hpp"
+#include "orbits.hpp"
+#include "satSys.hpp"
+#include "gTime.hpp"
+
+bool peph2pos(
+	Trace&		trace,
+	GTime		time,
+	SatSys&		Sat,
+	Vector3d&	rSat,
+	Vector3d&	satVel,
+	double*		dtSat,
+	double&		ephVar,
+	E_Svh&		svh,
+	nav_t& 		nav,
+	PcoMapType*	pcoMap_ptr,
+	bool		applyRelativity);
+
+
+#define Rz(t,X) do {				\
+	double sint = sin(t);			\
+	(X)[8]=1;						\
+	(X)[2]=(X)[5]=(X)[6]=(X)[7]=0;	\
+	(X)[0]=(X)[4]=cos(t);			\
+	(X)[3]=+sint;					\
+	(X)[1]=-sint;					\
+} while (0)
+
+
+void eci2ecefA(
+	const GTime		tutc,
+	Matrix3d&		U)	
 {
-	Obs obs;
-	obs.satNav_ptr					= &nav.satNavMap[obs.Sat];
-// 	obs.satStat_ptr					= &rec.rtk.satStatMap[obs.Sat];
-	obs.satOrb_ptr					= &nav.orbpod.satOrbitMap[obs.Sat];
-	updatenav(obs);
-	obs.Sat = SatSys(E_Sys::GPS, 1);
-	string line = "2019:199:00030";
-	obs.time = sinex_time_text(line);
+	const double ep2000[] = {2000, 1, 1, 12, 0, 0};
+
+//	trace(4,"%s: tutc=%s\n", __FUNCTION__, tutc.to_string(0).c_str());
+
+	/* terrestrial time */
+	GTime	tutc_	= tutc;
+	GTime	tgps	= utc2gpst(tutc_);
+	double	t		= (tgps - epoch2time(ep2000) + 19 + 32.184);	
 	
-	bias_io_opt biasopt;
-	biasopt.OSB_biases = false;
-	biasopt.DSB_biases = true;
-	biasopt.SSR_biases = false;
-	biasopt.SAT_biases = true;
-	biasopt.REC_biases = false;
-	biasopt.HYB_biases = false;
-	biasopt.COD_biases = true;
-	biasopt.PHS_biases = true;	
-	string file = "/data/acs/pea/proc/exs/products/CAS0MGXRAP_20191990000_01D_01D_DCB.BSX";
-	read_biasnx_fil(file, biasopt);
-	double bias[2];
-	double bvar[2];
-	E_ObsCode obsCode;
-	obsCode = E_ObsCode::L1C;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+	double angle = 360 * t / 86400 * D2R;
 	
-	obsCode = E_ObsCode::L1W;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+	Rz(angle,	U.data());
+}
+
+
+
+void getPos(
+	double		t, 
+	Vector3d&	pos)
+{
+	double R = 25000000;
 	
-	obsCode = E_ObsCode::L2C;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+	double M = sqrt(MU_GPS / (R*R*R));
 	
-	obsCode = E_ObsCode::L2S;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+	double angle = M * t;
 	
-	obsCode = E_ObsCode::L2L;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+// 	std::cout << "\nPOSANGLE:" << angle;
 	
-	obsCode = E_ObsCode::L2X;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+	pos(0) = R * cos(angle) * 1;
+	pos(1) = R * sin(angle) * cos(PI/8)*1.05;
+	pos(2) = R * sin(angle)*sin(PI/8);	//todo aaron remove
+}
+
+
+void integrator2()
+{
+	GTime time(1563451230, 0);
 	
-	obsCode = E_ObsCode::L2W;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+	KFState kfState;
+	kfState.output_residuals = true;
+	kfState.inverter = E_Inverter::LDLT;
+
+	std::cout << std::fixed;
+	std::cout << std::setprecision(5);
+	Vector3d pos0 = Vector3d::Zero();
+	Vector3d pos1 = Vector3d::Zero();
+		
 	
-	obsCode = E_ObsCode::L5Q;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+	Vector3d vel = pos1 - pos0;
 	
-	obsCode = E_ObsCode::L5X;
-	inpt_hard_bias(std::cout, obs, obsCode, bias, bvar, biasopt);
-	printf("\n%f\n", bias[0]);
+	double deltaT = 0.00001;
+	int i = 0;
+	int A = 1;
+	double dM;
+	
+	int t = A + i;
+	getPos(t + i,			pos0);
+	getPos(t + i + deltaT,	pos1);
+	
+	vel = (pos1 - pos0) / deltaT;
+	
+	double ii = i;
+	double tt = 0.001;
+	
+	Vector3d pos = pos0;
+	
+	for ( ; i < 100000; i+=100)
+	{
+		std::cout << std::endl << "======================= " << i << std::endl << std::endl;
+		
+		t = A + i;
+		
+		for ( ; ii < i; ii += tt)
+		{
+			Vector3d acc = Vector3d::Zero();
+			
+			acc = -pos.normalized() * MU_GPS / pos.squaredNorm();
+			pos += vel * tt + acc * tt * tt / 2;
+			vel += acc * tt;			
+		}
+		
+		
+		VectorXd keplers0;
+		inertial2Keplers(std::cout, pos, vel, keplers0);
+		
+		kfState.stateTransition(std::cout, {t, 0});
+		
+		MatrixXd partials;
+		getKeplerPartials(keplers0, partials);
+		
+		double noises[6]	= {10000,	10000,	10000,	1,			1,			1};
+		double pnoises[6]	= {0.001,	0.001,	0.001,	0.0000001,	0.0000001,	0.00001};
+		
+		KFMeasEntryList measEntryList;
+		if (1)
+		{
+			VectorXd stateKeplers = keplers0;
+			
+			for (int k = 0; k < 6; k++)
+			{
+				KFKey kfKey;
+				
+				kfKey.type	= KF::KEPLERS;
+				kfKey.num	= k;
+				
+				
+				kfState.getKFValue(kfKey, stateKeplers[k]);
+			}
+			
+			Vector3d statePos;
+			keplers2inertial(stateKeplers, statePos, dM);
+			
+			Vector3d deltaPos = pos - statePos;
+			
+			for (int j = 0; j < 3; j++)
+			{
+				KFMeasEntry measEntry(&kfState);
+				
+				for (int k = 0; k < KEPLER::NUM; k++)
+				{
+					KFKey kfKey;
+					kfKey.type	= KF::KEPLERS;
+					kfKey.num	= k;
+					
+					InitialState init;
+					init.x = stateKeplers[k];
+					init.P = SQR(noises	[k]);
+					init.Q = SQR(pnoises[k]);
+					
+					if	(  k >= KEPLER::LX 
+						&& k <= KEPLER::LZ)
+					{
+						init.P /= SQR(MOMENTUM_SCALE);
+						init.Q /= SQR(MOMENTUM_SCALE);
+					}
+					
+					measEntry.addDsgnEntry(kfKey, partials(j,k), init);
+				}
+				
+				measEntry.setInnov(deltaPos[j]);
+				measEntry.setNoise(0.1);
+				
+				measEntryList.push_back(measEntry);
+			}
+		}
+		
+		{
+			KFKey kfKey;			
+			kfKey.type	= KF::KEPLERS;
+			kfKey.num	= KEPLER::M;
+			kfState.setKFTransRate(kfKey, {.type = KF::ONE}, dM);
+		}
+			
+		//use state transition to initialise
+		kfState.stateTransition(std::cout, {t, 0});
+		
+		KFMeas combinedMeas = kfState.combineKFMeasList(measEntryList, {t, 0});
+		
+		kfState.filterKalman(std::cout, combinedMeas, true);
+		
+		kfState.outputStates(std::cout);
+// 		kfState.outputCorrelations(std::cout);
+	}
+	
+	std::cout << "DONE" << std::endl;
+}
+
+
+
+void getBodyPos(
+	double t,
+	double R,
+	double T,
+	Vector3d& body1)
+{ 
+	body1[0] = R * cos(t * 2*PI / T);
+	body1[1] = R * sin(t * 2*PI / T);
+	body1[2] = 0;
+}
+
+void getAcceleration(
+	double		frac,
+	Vector3d	pos,
+	Vector3d	bodyPos,
+	Vector3d&	acc)
+{
+	double mu = frac * MU_GPS;
+	
+	Vector3d R = bodyPos - pos;
+	acc = mu * R.normalized() / R.squaredNorm();
+// 	std::cout << std::setprecision(20);
+// 	std::cout << "\na: " << acc.transpose();
+}
+
+void orbitTests()
+{
+
+	Vector3d pos0 = Vector3d::Zero();
+	Vector3d vel0 = Vector3d::Zero();
+
+	double t = 0;
+	
+	double dt	= 1/64.0;
+	dt = 100;
+	double R	= 0;
+	R = 2000;
+	bool	useCFM	= tru todo aaron change to just apply a constant force, then see if that works.e;
+// 	useCFM = false;
+	bool	outputIntegrator = true;
+	outputIntegrator = false;
+	double deltaT = 0.0001;
+	
+	//get initial position and velocity
+	{
+		Vector3d pos1 = Vector3d::Zero();
+		
+		getPos(t,			pos0);
+		getPos(t + deltaT,	pos1);
+		
+		vel0 = pos1 - pos0;
+		vel0 /= deltaT;
+	}
+	
+	Vector3d pos = pos0;
+	Vector3d vel = vel0;
+	
+	VectorXd keplers;
+	inertial2Keplers(std::cout, pos, vel, keplers);
+	
+// 	MatrixXd partialsA;
+// 	getKeplerPartials(keplers, partialsA);
+	
+// 	MatrixXd partialsB;
+// 	getKeplerInversePartials(pos, vel, partialsB);
+	
+	MatrixXd dRVdA = MatrixXd::Zero(6,3);
+	
+	dRVdA(0,0) = 0.5	* dt * dt;
+	dRVdA(1,1) = 0.5	* dt * dt;
+	dRVdA(2,2) = 0.5	* dt * dt;
+	dRVdA(3,0) = 1		* dt;
+	dRVdA(4,1) = 1		* dt;
+	dRVdA(5,2) = 1		* dt;
+	
+// 	MatrixXd dKdA = partialsB * dRVdA;
+	
+	
+	
+// 	std::cout << "\nPartialsA:\n" << partialsA;
+// 	std::cout << "\nPartialsB:\n" << partialsB;
+// 	std::cout << "\nPartialsb:\n" << partialsB.inverse();
+	std::cout << "\ndRVdA:\n" << dRVdA;
+// 	std::cout << "\ndKdA:\n" << dKdA;
+	std::cout << "\n";
+
+	
+// 	std::cout << std::fixed;
+// 	std::cout << std::setprecision(5);
+	std::cout << "\nInitial Conds:\n";
+	
+	std::cout << "\npos: " << pos0.transpose() 
+			  << "\nvel: " << vel0.transpose() << "\n";
+	
+	std::cout << "\ndt:  "	<< dt;
+	std::cout << "\nR:   "	<< R;
+	std::cout << "\nCFM: "	<< useCFM;
+	std::cout << "\nInt: "	<< outputIntegrator;
+	std::cout << "\n";
+
+	std::cout << std::fixed;
+	std::cout << std::setprecision(7);
+	
+	VectorXd previousKeplers = keplers;
+
+	std::cout << "\nIntegration";
+	Vector3d acc;
+	while (t < 86401)
+	{		
+		int intT = t;
+		
+		if	(  intT % 120	== 0
+			&& t - intT		== 0)
+		{
+// 			std::cout << std::setprecision(3);
+			
+			std::cout << "\n" << t << "\t" << pos.transpose() << "\t" << keplers.transpose();
+			std::cout << " " << (keplers - previousKeplers).transpose();
+			previousKeplers = keplers;
+		}
+		
+			
+		double dM;
+		if (outputIntegrator == false)
+		{
+			keplers2inertial(keplers, pos, dM);
+			
+			Vector3d pos1;
+			VectorXd keplers1 = keplers;
+			
+			keplers1(KEPLER::M) += dM * deltaT;
+			
+			keplers2inertial(keplers1, pos1, dM);
+			
+			vel = (pos1 - pos) / deltaT;
+			std::cout << "\nkeplers: " << keplers.transpose() << "\n";
+			std::cout << "\nPos: " << pos.transpose() << "\n";
+// 			std::cout << "\nVel: " << vel.transpose() << "\n";
+			
+		}
+		else
+		{
+			inertial2Keplers(std::cout, pos, vel, keplers);
+			
+		}
+		
+		
+		double accTime = dt/2;
+		
+		Vector3d testPos	= pos
+							+ vel / 1 * accTime
+							+ acc / 2 * accTime * accTime;
+		
+		Vector3d testVel	= vel
+							+ acc / 1 * accTime;
+		
+		MatrixXd dKdRV;
+		getKeplerInversePartials(testPos, testVel, dKdRV);
+
+		
+		Vector3d accP;
+		//propagate state into the future
+		{
+			//calcluate accelerations
+			
+			Vector3d body1Pos;
+			getBodyPos(t, R, 86400, body1Pos);
+			
+			Vector3d body2Pos = -body1Pos;
+			
+			Vector3d acc0;
+			Vector3d acc1;
+			Vector3d acc2;
+			
+								
+			getAcceleration(1,		testPos, Vector3d::Zero(),	acc0);
+			getAcceleration(0.5,	testPos, body1Pos,			acc1);
+			getAcceleration(0.5,	testPos, body2Pos,			acc2);
+			
+			if (useCFM)
+			{
+				acc = acc0;
+			}
+			else
+			{
+				acc	= acc1
+					+ acc2;
+			}
+			
+			accP = acc - acc0;
+			
+			double relativeMag = acc.norm() / acc0.norm();
+			
+// 			std::cout << " " << relativeMag;
+		}
+		
+		if (outputIntegrator)
+		{
+			pos	= pos
+				+ vel	/ 1 * dt
+				+ acc	/ 2 * dt * dt;
+			
+			vel = vel
+				+ acc	/ 1 * dt;
+		}
+		else
+		{
+			VectorXd dK = dKdRV * dRVdA * accP;
+// 			std::cout << "\ndKdRV:\n" << dKdRV << "\n";
+// 			std::cout << "\ndRVdA:\n" << dRVdA << "\n";
+// 			std::cout << "\ndK:\n" << dK << "\n";
+			
+			keplers += dK;
+			
+			keplers(KEPLER::M) += dM * dt;
+			if (keplers(KEPLER::M) > 2 * PI)
+			{
+				keplers(KEPLER::M) -= 2 * PI;
+			}
+		}
+		
+		t += dt;
+	}
+	
+	std::cout << std::fixed;
+	std::cout << std::setprecision(3);
+	std::cout << "\nFinal Conds:\n";
+	
+	std::cout << "\npos: " << pos.transpose() 
+			  << "\nvel: " << vel.transpose() << "\n";
+	
+	std::cout << "\ndt:  "	<< dt;
+	std::cout << "\nR:   "	<< R;
+	std::cout << "\nCFM: "	<< useCFM;
+	std::cout << "\nInt: "	<< outputIntegrator;
+	std::cout << "\n";
+
+}
+#endif
+
+
+
+// #include <malloc.h>
+
+// size_t bucket = 0;
+// 
+// static void* plumber_hook(size_t size, const void* caller);
+// static void* plumber_hook(size_t size, const void* caller)
+// {
+// 	void*	result;
+// 	
+// 	/* Restore all old hooks */
+// 	/* Call recursively */
+// 	__malloc_hook		= 0;
+// 	{
+// 		result = malloc(size);
+// 	}
+// 	__malloc_hook		= plumber_hook;
+// 
+// 	bucket += size;
+// 	
+// 	return result;
+// }
+// 
+// 
+// template<typename T>
+// size_t plumberTest(T& t)
+// {
+// 	//begin plumbing
+// 	bucket = 0;
+// 		
+// 	__malloc_hook	= plumber_hook;
+// 	{
+// 		T newT = t;
+// 	}
+// 	__malloc_hook	= 0;
+// 	
+// 	return bucket;
+// }
+
+#include "sinex.hpp"
+#include "acsStream.hpp"
+
+void plumber()
+{
+// 	static map<string, size_t>	plumberMap;
+// 	
+// 	size_t New;
+// 	string v;
+// 	
+// 	printf("Checking plumbing:\n");
+// 	v = "nav";			New = plumberTest(nav			);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "ephMap";		New = plumberTest(nav.ephMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "gephMap";		New = plumberTest(nav.gephMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "sephMap";		New = plumberTest(nav.sephMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "pephMap";		New = plumberTest(nav.pephMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "pclkMap";		New = plumberTest(nav.pclkMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "satNavMap";	New = plumberTest(nav.satNavMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "tecMap";		New = plumberTest(nav.tecMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "pcMap";		New = plumberTest(nav.pcMap		);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	
+// 	printf("\n");
+}
+
+
+void outputMeas(
+			Trace&		trace,   	///< Trace to output to
+			GTime 		time,
+			KFMeas		meas)
+{
+	trace << std::endl << "+ Meas" << std::endl;
+	
+	tracepdeex(2, trace, "#\t%19s\t%15s\t%15s\t%15s\n", "Time", "Observed", "Meas Noise", "Design Mat");
+
+	for (int i = 0; i < meas.A.rows(); i++)
+	{
+		tracepdeex(2, trace, "*\t%19s\t%15.4f\t%15.9f", time.to_string(0).c_str(), meas.Y(i), meas.R(i, i));
+
+		for (int j = 0; j < meas.A.cols(); j++)		tracepdeex(2, trace, "\t%15.5f", meas.A(i, j));
+		tracepdeex(2, trace, "\n");
+	}
+	trace << "- Meas" << std::endl;
+}
+
+// modified from testClockParams() to test chi^2 computation
+std::random_device					randoDev;
+std::mt19937						randoGen(randoDev());
+std::normal_distribution<double>	rando(0, 8);
+
+void testOutlierDetection()
+{
+	GTime gtime;
+	gtime++;
+	KFState kfState;
+
+	kfState.sigma_check		= false;
+	kfState.w_test			= true;
+	kfState.chi_square_test	= true;
+	kfState.chi_square_mode	= E_ChiSqMode::INNOVATION;
+	kfState.sigma_threshold	= 3;
+	kfState.max_prefit_remv = 1;
+
+	for (int i = 0; i < 100; i++)
+	{
+		KFMeasEntryList kfMeasEntryList0;
+
+		for (int j = 0; j < 2; j++)
+		{
+			KFMeasEntry	codeMeas(&kfState);
+			if (i%30 == 20 && j == 1)	codeMeas.setValue(i + rando(randoDev) + 60);	//inject an outlier of 60m
+			else						codeMeas.setValue(i + rando(randoDev));
+			codeMeas.setNoise(100);
+
+			KFKey recClockKey		= {KF::REC_SYS_BIAS};
+			KFKey recClockRateKey	= {KF::REC_SYS_BIAS_RATE};
+
+			InitialState recClkInit		= {0,	SQR(30),	SQR(1)};
+			InitialState recClkRateInit	= {0,	SQR(20),	SQR(0.01)};
+
+			codeMeas.addDsgnEntry(recClockKey,						+1,	recClkInit);
+			kfState.setKFTransRate(recClockKey, recClockRateKey,	+1,	recClkRateInit);
+
+			kfMeasEntryList0.push_back(codeMeas);
+		}
+
+		//inject model failures
+		{
+			KFKey recClockKey	= {KF::REC_SYS_BIAS};
+			if (i == 30)	kfState.setKFValue(recClockKey, 80);
+			if (i == 90)	kfState.setKFValue(recClockKey, 50);
+		}
+
+		kfState.stateTransition(std::cout, gtime++);
+
+// 		kfState.consolidateKFState();
+
+		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList0);
+
+		std::cout << std::endl << "Epoch #: " << i << std::endl;
+
+		std::cout << std::endl << "Pre-fit:" << std::endl;
+		kfState.outputStates(std::cout);
+		outputMeas(std::cout, gtime, combinedMeas);
+
+		kfState.filterKalman(std::cout, combinedMeas, false);
+
+		std::cout << std::endl << "Post-fit:" << std::endl;
+		kfState.outputStates(std::cout);
+	}
+//	exit(0);
 }
 
 void doDebugs()
 {
-// 	biastest();
-// 	mjdtest();
+// 	printf("\n\n\nsensible string test\n");
+// 	string test = "heres a string";
+// 	
+// 	printf("%s\n", test);
+// 	test+= "some more\n";
+// 	printf("%s\n", test);
 // 	exit(0);
-// 	minimumTest(std::cout);
-// 	doubleOffsets();
+	
+// 	orbitTests();
+// 	exit(0);
+// 	integrator2();
+// 	lamnda();
+// 	exit(0);
+// 	basicIntegrator();
 
-// 	newFilter();
-//	newFilter();
-//  	testClockParams();
-// 	isgmain();
+//	testOutlierDetection();
+//	exit(0);
 }
+

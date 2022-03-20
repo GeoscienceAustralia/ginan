@@ -17,35 +17,89 @@
 
 #include "eigenIncluder.hpp"
 #include "gTime.hpp"
+#include "erp.hpp"
 #include "enums.h"
 
 
-#ifdef WIN32
-#define FILEPATHSEP '\\'
-#else
-#define FILEPATHSEP '/'
-#endif
+struct Average
+{
+	double	mean	= 0;
+	double	var		= 0;
+};
 
+
+void lowPassFilter(
+	Average&	avg,
+	double		meas,
+	double		procNoise,
+	double		measVar = 1);
 
 /* coordinates transformation ------------------------------------------------*/
 
 void ecef2enu(const double *pos, const double *r, double *e);
 void enu2ecef(const double *pos, const double *e, double *r);
 void xyz2enu (const double *pos, double *E);
-void eci2ecef(GTime tutc, const double *erpv, double *U, double *gmst);
-void ecef2pos(const double *r, double *pos);
-void ecef2pos(Vector3d& r, double *pos);
-void pos2ecef(const double *pos, double *r);
-
-double geodist(Vector3d& rs, Vector3d& rr, Vector3d& e);
 
 
 //forward declarations
 struct prcopt_t;
-struct erp_t;
 struct StationOptions;
 struct Obs;
 struct SatSys;
+struct ERPValues;
+struct IERS;
+
+void eci2ecef(
+	const GTime		tutc,	
+	ERPValues&		erpv,	
+	Matrix3d&		U,		
+	double*			gmst	= nullptr,		
+	Matrix3d*		dU		= nullptr);
+
+void eci2ecef_sofa(
+	const double	mjdUTC,
+	IERS&			iers,	
+	Matrix3d&		U,		
+	Matrix3d&		dU);
+
+void eci2ecef_sofa(
+	const double	mjdUTC,		
+	IERS&			iers,	
+	Vector3d&		rSat_eci,	
+	Vector3d&		vSat_eci,	
+	Vector3d&		rSat_ecef,	
+	Vector3d&		vSat_ecef);	
+
+void ecef2eci_sofa(
+	const double	mjdUTC,		
+	IERS&			iers,	
+	Vector3d&		rSat_ecef,	
+	Vector3d&		vSat_ecef,	
+	Vector3d&		rSat_eci,	
+	Vector3d&		vSat_eci);	
+
+
+
+Matrix3d R_x(
+	double    Angle);
+
+Matrix3d R_y(
+	double    Angle);
+
+Matrix3d R_z(
+	double    Angle);
+
+
+void ecef2pos(const double *r, double *pos);
+void ecef2pos(Vector3d& r, double *pos);
+void pos2ecef(const double *pos, Vector3d& r);
+
+double geodist(Vector3d& rs, Vector3d& rr, Vector3d& e);
+
+double sagnac(
+	Vector3d& rSource,
+	Vector3d& rDest);
+
 
 /* satellites, systems, codes functions --------------------------------------*/
 
@@ -61,21 +115,24 @@ int setbituInc(unsigned char *buff,int pos,int len,const unsigned int var);
 
 unsigned int crc24q (const unsigned char *buff, int len);
 
-double ymdhms2jd(const double time[6]);
-
 /* positioning models --------------------------------------------------------*/
 void dops(int ns, const double *azel, double elmin, double *dop);
 
-int  readblq(string file, const char *sta, double *odisp);
-int  readerp(string file, erp_t *erp);
-int  geterp (const erp_t *erp, GTime time, double *val);
+int  readblq(string file, const char *sta, double *otlDisplacement);
 
 
-int satexclude(SatSys& sat, int svh);
-
+int satexclude(SatSys& sat, E_Svh svh);
 
 extern int		epoch;
 extern GTime	tsync;
 
+int sisaToSva(double sisa);
+double svaToSisa(int sva);
+double svaToUra(int sva);
+void replaceTimes(
+	string&						str,		///< String to replace macros within
+	boost::posix_time::ptime	time_time);	///< Time to use for replacements
 
+void updatenav(
+	Obs&	obs);
 #endif

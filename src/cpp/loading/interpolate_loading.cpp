@@ -52,6 +52,7 @@ void program_options(int argc, char * argv[], otl_input & input)
 			("verbose", 		"More output")
 			("grid", 	 	po::value<std::string>(),	"Loading grid netCDF file")
 			("location", 	po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")
+			("xyz",        po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
 			("code",     	po::value<std::string>(), "Station Code with or without DOMES number (ALIC 50137M0014)")
 			("input",		po::value<std::string>(),	"input file containing list of stations CSV format name, lon, lat")
 			("output",		po::value<std::string>(),	"Output BLQ file")
@@ -82,15 +83,27 @@ void program_options(int argc, char * argv[], otl_input & input)
 	std::string config_f;
 	std::string code_f;
 	std::vector<float> location;
+	bool is_ecef = vm["xyz"].as<bool>();
 	if (vm.count("config"))
 	{
 		config_f = vm["config"].as<std::string>();
 	}
 	if (vm.count("location")) {
 		location = vm["location"].as<std::vector<float>>();
-		input.lon.push_back(location[0]);
-		input.lat.push_back(location[1]);
-
+		if (is_ecef)
+		{ 
+			if (location.size() == 3)
+			{
+				input.xyz_coords.push_back(location);
+			} else {
+				throw std::runtime_error("XYZ coordinate should have 3 values");
+			}
+		}
+		else
+		{
+			input.lon.push_back(location[0]);
+			input.lat.push_back(location[1]);
+		}
 		if (vm.count("code")) {
 			input.code.push_back(vm["code"].as<std::string>());
 		} else { input.code.push_back("XXXX"); }
@@ -122,11 +135,27 @@ void program_options(int argc, char * argv[], otl_input & input)
 				while (getline(data, word, ',')) {
 					row.push_back(word);
 				}
-				if (row.size() == 3)
+				
+				if (is_ecef)
 				{
-					input.code.push_back(row[0]);
-					input.lon.push_back(stof(row[1]));
-					input.lat.push_back(stof(row[2]));
+					if (row.size() == 4)
+					{
+						std::vector<float> tmp;
+						input.code.push_back(row[0]);
+						tmp.push_back(stof(row[1]));
+						tmp.push_back(stof(row[2]));
+						tmp.push_back(stof(row[3]));
+						input.xyz_coords.push_back(tmp);
+					} else {
+						throw std::runtime_error("xyz coordinates in the csv file should have 4 valuse \"code, x, y, z\"");
+					}
+				} else {
+					if (row.size() == 3)
+					{
+						input.code.push_back(row[0]);
+						input.lon.push_back(stof(row[1]));
+						input.lat.push_back(stof(row[2]));
+					}
 				}
 				row.clear();
 				data.clear();
@@ -140,6 +169,20 @@ void program_options(int argc, char * argv[], otl_input & input)
 		input.output_blq_file = "output.blq";
 	}
 
+	if (is_ecef)
+	{
+		for (int i=0; i<input.xyz_coords.size(); i++)
+		{
+			double tmp[3];
+			double ecef[3];
+			ecef[0] = input.xyz_coords[i][0];
+			ecef[1] = input.xyz_coords[i][1];
+			ecef[2] = input.xyz_coords[i][2];
+			ecef2pos(ecef, tmp);
+			input.lon.push_back(tmp[1]*180.0/M_PI);
+			input.lat.push_back(tmp[0]*180.0/M_PI);
+		}
+	}
 
 };
 
@@ -166,7 +209,6 @@ int main(int argc, char * argv[]) {
 		BOOST_LOG_TRIVIAL(info) << " ========       END       ======= " << "\n";
 
 
-		cpu_timer timer;
 		loadGrid tideinfo;
 
 		tideinfo.set_name(input.tide_file[0]);
@@ -177,18 +219,16 @@ int main(int argc, char * argv[]) {
 		input.wave_names = tideinfo.get_wave_names();
 		
 
-		BOOST_LOG_TRIVIAL(info) << "All file read \n\t" << timer.format();
-
 
 		input.out_disp.resize(boost::extents[input.code.size()][tideinfo.get_nwave()][3]) ;
 	    std::fill(input.out_disp.data(), input.out_disp.data() + input.out_disp.num_elements(), std::complex<float> (0,0));
 
 		for (int i_sta = 0 ; i_sta < input.lat.size(); i_sta++)
-			for ( int i_wave = 0 ; i_wave < tideinfo.get_nwave(); i_wave ++ )
-				for (int i_dir = 0 ; i_dir < 3; i_dir++ )
-					input.out_disp[i_sta][i_wave][i_dir] = std::complex<float> (tideinfo.interpolate(i_wave*6 + 2*i_dir, input.lon[i_sta], input.lat[i_sta]) ,
-																				tideinfo.interpolate(i_wave*6 + 2*i_dir +1, input.lon[i_sta], input.lat[i_sta])
-																				);
+		for (int i_wave = 0 ; i_wave < tideinfo.get_nwave(); i_wave ++ )
+		for (int i_dir = 0 ; i_dir < 3; i_dir++ )
+			input.out_disp[i_sta][i_wave][i_dir] = std::complex<float> (tideinfo.interpolate(i_wave*6 + 2*i_dir, input.lon[i_sta], input.lat[i_sta]) ,
+																		tideinfo.interpolate(i_wave*6 + 2*i_dir +1, input.lon[i_sta], input.lat[i_sta])
+																		);
 
 		write_BLQ(&input, 0);
 

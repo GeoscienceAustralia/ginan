@@ -7,9 +7,10 @@
 
 using std::map;
 
-#include "constants.h"
+#include "constants.hpp"
 #include "enums.h"
-#include <boost/utility/binary.hpp>
+
+#include <boost/assign.hpp>
 
 
 const E_FType ftypes[E_ObsCode::NUM_CODES] =
@@ -124,7 +125,9 @@ const double gpst0[]={1980,1, 6,0,0,0}; /* gps time reference */
 const double gst0 []={1999,8,22,0,0,0}; /* galileo system time reference */
 const double bdt0 []={2006,1, 1,0,0,0}; /* beidou time reference */
 
-const double leaps[MAXLEAPS+1][7]={ /* leap seconds (y,m,d,h,m,s,utc-gpst) */
+const double leaps[MAXLEAPS+1][7]=
+{
+	/* leap seconds (y,m,d,h,m,s,utc-gpst) */
 	{2017,1,1,0,0,0,-18},
 	{2015,7,1,0,0,0,-17},
 	{2012,7,1,0,0,0,-16},
@@ -145,7 +148,10 @@ const double leaps[MAXLEAPS+1][7]={ /* leap seconds (y,m,d,h,m,s,utc-gpst) */
 	{1981,7,1,0,0,0, -1},
 	{0}
 };
-const double chisqr[100]={      /* chi-sqr(n) (alpha=0.001) */
+
+double chisqr_arr[100] =
+{
+	/* chi-sqr(n) (alpha=0.001) */
 	10.8,13.8,16.3,18.5,20.5,22.5,24.3,26.1,27.9,29.6,
 	31.3,32.9,34.5,36.1,37.7,39.3,40.8,42.3,43.8,45.3,
 	46.8,48.3,49.7,51.2,52.6,54.1,55.5,56.9,58.3,59.7,
@@ -281,6 +287,3 @@ const boost::bimap<E_ObsCode,int> mCodes_sds = boost::assign::list_of<boost::bim
 	(E_ObsCode::L5I,1)
 	(E_ObsCode::L5Q,2)
 	(E_ObsCode::L5X,3);
-
-
-

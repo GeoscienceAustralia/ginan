@@ -1,14 +1,15 @@
 
-#include <unordered_map>
+// #pragma GCC optimize ("O0")
+
 #include <algorithm>
 
 #include "eigenIncluder.hpp"
-
 #include "streamTrace.hpp"
 #include "corrections.hpp"
+#include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "testUtils.hpp"
-#include "constants.h"
+#include "constants.hpp"
 #include "algebra.hpp"
 #include "satStat.hpp"
 #include "common.hpp"
@@ -18,7 +19,7 @@
 
 
 #define MAXITR      10          /* max number of iteration for point pos */
-#define ERR_ION     5.0         /* ionospheric delay std (m) */
+#define ERR_ION     7.0         /* ionospheric delay std (m) */
 #define ERR_TROP    3.0         /* tropspheric delay std (m) */
 #define ERR_SAAS    0.3         /* saastamoinen model error std (m) */
 #define ERR_BRDCI   0.5         /* broadcast iono model error factor */
@@ -31,7 +32,7 @@
 double gettgd(
 	SatNav&		satNav)		///< Satellite navigation object
 {
-	if (satNav.eph_ptr == NULL)
+	if (satNav.eph_ptr == nullptr)
 	{
 		return 0;
 	}
@@ -48,7 +49,6 @@ bool	prange(
 	double&		var)		///< Pseudorange variance output
 {
 	SatNav&		satNav	= *obs.satNav_ptr;
-	SatStat&	satStat	= *obs.satStat_ptr;
 	auto&		lam		= satNav.lamMap;
 
 	range	= 0;
@@ -65,7 +65,8 @@ bool	prange(
 
 	/* L1-L2 for GPS/GLO/QZS, L1-L5 for GAL/SBS */
 	if  ( sys == E_Sys::GAL
-		||sys == E_Sys::SBS)
+		||sys == E_Sys::SBS
+		||(sys == E_Sys::GPS && acsConfig.ionoOpts.iflc_freqs==+E_LinearCombo::L1L5_ONLY))
 	{
 		f_2 = F5;
 	}
@@ -117,11 +118,6 @@ bool	prange(
 		PC = P1 - P1_P2 / (1 - gamma);
 	}
 
-	if (acsConfig.ppp_ephemeris == +E_Ephemeris::SBAS)
-	{
-
-	}
-
 	range	= PC;
 	var		= SQR(ERR_CBIAS);
 
@@ -147,6 +143,12 @@ int ionocorr(
 // 			azel[0]	*R2D,
 // 			azel[1]	*R2D);
 
+	if (ionoopt == E_IonoMode::IONO_FREE_LINEAR_COMBO)
+	{
+		ion=0.0;
+		var=0.0;
+		return 1;
+	}
 	/* broadcast model */
 	if (ionoopt == E_IonoMode::BROADCAST)
 	{
@@ -155,11 +157,24 @@ int ionocorr(
 		return 1;
 	}
 
+	
 	ion = 0;
-
-	if (ionoopt == E_IonoMode::OFF)	var = SQR(ERR_ION);
-	else							var = 0;
-
+	var = SQR(ERR_ION);
+	
+	/* tmp fix : KH
+	if (ionoopt ==  E_IonoMode::TOTAL_ELECTRON_CONTENT)
+	{
+		int res = iontec(time, &nav, pos, azel, 1, ion, var);
+		if (!res)
+		{
+			ion = 0;
+			var =	SQR(ERR_ION);
+		}
+		return res;
+	}
+	*/
+	//if (ionoopt != E_IonoMode::OFF)	fprintf(stderr,"SPP not unsupporting ionosphere mode %s", ionoopt._to_string());
+	
 	return 1;
 }
 
@@ -188,12 +203,12 @@ int tropcorr(
 */
 int validateDOP(
 	Trace&		trace,			///< Trace file to output to
-	ObsList&	obsList)		///< List of observations for this epoch
+	ObsList&	obsList,		///< List of observations for this epoch
+	double*     dopout)
 {
 	vector<double> azels;
 	azels.reserve(16);
-	double dop[4];
-
+	double dop[4]={0};
 // 	tracepde(3, trace, "valsol  : n=%d nv=%d\n", obsList.size(), nv);
 
 	// large gdop check
@@ -214,6 +229,11 @@ int validateDOP(
 
 	dops(ns, azels.data(), acsConfig.elevation_mask, dop);
 
+	if(dopout != nullptr){
+		for(int i=0; i<4; i++)
+			dopout[i] = dop[i];
+	}
+	
 	if	( dop[0] <= 0
 		||dop[0] > acsConfig.max_gdop)
 	{
@@ -236,7 +256,7 @@ int estpos(
 
 	KFState& kfState = sol.sppState;
 	kfState = KFState();		//reset to zero to prevent lock-in of bad positions
-
+	
 	int iter;
 	for (iter = 0; iter < MAXITR; iter++)
 	{
@@ -310,12 +330,9 @@ int estpos(
 			}
 
 			// ionospheric corrections
-			int ionopt;
 			double dion;
 			double vion;
-			if (rRec.norm() > 0)	ionopt = acsConfig.ionoOpts.corr_mode;
-			else					ionopt = E_IonoMode::BROADCAST;
-			pass = ionocorr(obs.time, pos, obs.satStat_ptr->azel, ionopt, dion, vion);
+			pass = ionocorr(obs.time, pos, obs.satStat_ptr->azel, acsConfig.ionoOpts.corr_mode, dion, vion);
 			if (pass == false)
 			{
 				printf("Ion Fail\n");
@@ -364,8 +381,11 @@ int estpos(
 
 			// error variance
 			double varEl = obs.Sigs.begin()->second.codeVar;
+			if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO) 
+				varEl *= 3; 
+			
 			double var	= varEl
-						+ obs.var
+						+ obs.ephVar
 						+ vmeas
 						+ vion
 						+ vtrp;
@@ -389,14 +409,14 @@ int estpos(
 		numMeas = kfMeasEntryList.size();
 		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
 
-		if	( (numMeas < combinedMeas.A.cols() - 1)
-			||(numMeas == 0))
-
+		if	( numMeas < combinedMeas.A.cols() - 1
+			||numMeas == 0)
 		{
 			BOOST_LOG_TRIVIAL(info)
-			<< "estpos(): lack of valid measurements ns=" << combinedMeas.A.rows()
+			<< __FUNCTION__ << ": lack of valid measurements ns=" << combinedMeas.A.rows()
 			<< " on " << obsList.front().mount 
 			<< " (has " << obsList.size() << " total observations)";
+			
 			return numMeas;
 		}
 
@@ -410,18 +430,19 @@ int estpos(
 				return numMeas;
 			}
 
-			if (validateDOP(trace, obsList) == false)
+			if (validateDOP(trace, obsList, sol.dop) == false)
 			{
 				return numMeas;
 			}
 
-			//copy states to often-used vectors
-			for (short i = 0; i < 3;				i++)	{	kfState.getKFValue({KF::REC_POS,		{}, "", i}, sol.sppRRec[i]);	}
-			for (short i = 0; i < BiasGroup::NUM;	i++)	{	kfState.getKFValue({KF::REC_SYS_BIAS,	{}, "", i}, sol.dtRec_m[i]);	}
+			double dtRec_m = 0;
+			kfState.getKFValue({KF::REC_SYS_BIAS,	{}, "", E_BiasGroup::GPS}, dtRec_m);
 
+			tracepdeex(3, trace, "\n%f", dtRec_m);
+// 			kfState.outputStates(trace);
 			sol.numSats	= numMeas;
 			sol.stat	= SOLQ_SINGLE;
-			sol.time	= timeadd(obsList.front().time, -sol.dtRec_m[0] / CLIGHT);
+			sol.time	= obsList.front().time - dtRec_m / CLIGHT;
 
 			return 0;
 		}
@@ -493,12 +514,12 @@ void raim_fde(
 		}
 		if (nvsat < 5)
 		{
-			tracepde(3, std::cout, "raim_fde: exsat=%2d lack of satellites nvsat=%2d\n", testObs.Sat, nvsat);
+			tracepde(3, std::cout, "raim_fde: exsat=%s lack of satellites nvsat=%2d\n", testObs.Sat.id().c_str(), nvsat);
 			continue;
 		}
 		rms_e = sqrt(rms_e / nvsat);
 
-		tracepde(3, trace, "raim_fde: exsat=%2d rms=%8.3f\n", testObs.Sat, rms_e);
+		tracepde(3, trace, "raim_fde: exsat=%s rms=%8.3f\n", testObs.Sat.id().c_str(), rms_e);
 
 		if (rms_e > rms_min)
 			continue;
@@ -546,7 +567,7 @@ void sppos(
 	sol.time = obsList.front().time;
 
 	//satellite positons, velocities and clocks
-	satposs(trace, sol.time, obsList, nav, E_Ephemeris::BROADCAST);
+	satposs(trace, sol.time, obsList, nav, acsConfig.ppp_ephemeris, E_OffsetType::APC);
 
 	//estimate receiver position with pseudorange
 	int numMeas = estpos(trace, obsList, sol);
@@ -567,6 +588,7 @@ void sppos(
 		{
 			//all measurements are bad if we cant get spp
 			obs.excludeBadSPP = true;
+			continue;
 		}
 		
 		if	( obs.exclude
@@ -577,9 +599,13 @@ void sppos(
 
 		obs.excludeBadSPP = true;
 	}
+	
+	//copy states to often-used vectors
+	for (short i = 0; i < 3;				i++)	{	sol.sppState.getKFValue({KF::REC_POS,		{}, "", i}, sol.sppRRec[i]);	}
+	for (short i = 0; i < E_BiasGroup::NUM;	i++)	{	sol.sppState.getKFValue({KF::REC_SYS_BIAS,	{}, "", i}, sol.dtRec_m[i]);	}
 
 	TestStack::testMat("sol.sppRRec", sol.sppRRec);
-	tracepde(3, trace,    "\nsppos  sol: %f %f %f", sol.sppRRec[0], sol.sppRRec[1], sol.sppRRec[2]);
-	tracepde(3, trace,    "\nsppos  clk: %f\n", 	sol.dtRec_m[0]);
+	tracepdeex(3, trace,    "\nsppos  sol: %f %f %f",	sol.sppRRec[0], sol.sppRRec[1], sol.sppRRec[2]);
+	tracepdeex(3, trace,    "\nsppos  clk: %f\n", 		sol.dtRec_m[0]);
 }
 

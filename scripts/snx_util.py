@@ -1,6 +1,6 @@
 '''sinex read and gather routines'''
 
-# from gn_lib.gn_filter import get_common_sites as _get_common_sites
+# from gn_lib.gn_aux import sync_snx_sites as _sync_snx_sites
 from gn_lib.gn_io.sinex import gather_sinex as _gather_sinex
 
 
@@ -20,4 +20,4 @@ def snx2df(glob_expr, n_threads=4, unconstrain=False):
 # esa_gather = snx2df('/data/cddis/*/esa*.snx.Z')
 # igs_gather = snx2df('/data/cddis/*/igs*.ssc.Z')
 # jpl_gather = snx2df('/data/cddis/*/jpl*.snx.Z')
-# cod_gather_c,esa_gather_c,igs_gather_c,jpl_gather_c = get_common_sites(cod_gather,esa_gather,igs_gather,jpl_gather)
+# cod_gather_c,esa_gather_c,igs_gather_c,jpl_gather_c = sync_snx_sites(cod_gather,esa_gather,igs_gather,jpl_gather)

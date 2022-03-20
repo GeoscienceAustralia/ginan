@@ -29,7 +29,7 @@ Truncation is set up by the resolution parameter eps0
 -----------------------------------------------------
 Author: German Olivares @ GA 17 January 2019
 -----------------------------------------------------*/
-static double legendre_function(int m, double n, double x)
+double legendre_function(int m, double n, double x)
 {
 	double A, Kmn, P, Ptmp;
 	double eps = 10 * LEG_EPSILON0;
@@ -42,7 +42,7 @@ static double legendre_function(int m, double n, double x)
 		p = pow(n / m, 2) - 1;
 		e1 = -(1 + 1 / p) / (12 * m);
 		e2 = (1 + 3 / pow(p, 2) + 4 / pow(p, 3)) / (360 * pow(m, 3));
-		Kmn = pow(2, -m) * pow((n + m) / (n - m), (n + 2) / 4) * pow(p, m / 2) * exp(e1 + e2) / sqrt(m * PI);
+		Kmn = pow(2, -m) * pow((n + m) / (n - m), (n + 2) / 4) * pow(p, m / 2.0) * exp(e1 + e2) / sqrt(m * PI);
 		A = Kmn * pow(sin(x), m);
 	}
 
@@ -69,7 +69,7 @@ Truncation is set up by the resolution parameter eps0
 ---------------------------------------------------------------------
 Author: German Olivares @ GA 17 January 2019
 ---------------------------------------------------------------------*/
-static double legendre_derivatv(int m, double n, double x)
+double legendre_derivatv(int m, double n, double x)
 {
 	double A, Kmn, dP, P, Ptmp, dPtmp;
 	double eps = 10.0 * LEG_EPSILON0;
@@ -86,7 +86,7 @@ static double legendre_derivatv(int m, double n, double x)
 		p = pow(n / m, 2) - 1;
 		e1 = -(1 + 1 / p) / (12 * m);
 		e2 = (1 + 3 / pow(p, 2) + 4 / pow(p, 3)) / (360 * pow(m, 3));
-		Kmn = pow(2, -m) * pow((n + m) / (n - m), (n + 2) / 4) * pow(p, m / 2) * exp(e1 + e2) / sqrt(m * PI);
+		Kmn = pow(2, -m) * pow((n + m) / (n - m), (n + 2) / 4) * pow(p, m / 2.0) * exp(e1 + e2) / sqrt(m * PI);
 		A = Kmn * pow(sin(x), m);
 	}
 
@@ -125,7 +125,7 @@ static double legendre_derivatv(int m, double n, double x)
 }
 
 /* Returns the root of legendre functions in the interval (ntmp[0], ntmp[1]) */
-static double bisection(int m, double* ntmp, double x, int nu)
+double bisection(int m, double* ntmp, double x, int nu)
 {
 	double Pa, Pd, err;
 	double a = ntmp[0], b = ntmp[1];
@@ -183,20 +183,22 @@ returns 1 if the IPP is within the area of coverage
 -----------------------------------------------------
 Author: Ken Harima @ RMIT 01 August 2020
 -----------------------------------------------------*/
-extern int Ipp_check_sphcap(GTime time, double* Ion_pp)
+int Ipp_check_sphcap(GTime time, double* Ion_pp)
 {
-
-	double pos[3], rpp[3], rrot[3];
+	Vector3d	rpp;
+	double		pos[3];
+	double		rrot[3];
 	pos[0] = Ion_pp[0];
 	pos[1] = Ion_pp[1];
 	pos[2] = acsConfig.ionFilterOpts.layer_heights[0];
 	pos2ecef(pos, rpp);
-	matmul("NN", 3, 1, 3, 1.0, scap_rotmtx, rpp, 0.0, rrot);
+	matmul("NN", 3, 1, 3, 1, scap_rotmtx, rpp.data(), 0, rrot);
 	ecef2pos(rrot, pos);
 
 	Ion_pp[0] = PI / 2 - pos[0];			/* colatitude for spherical harmonic caps */
 
-	if (Ion_pp[0] > scap_maxlat) return 0;
+	if (Ion_pp[0] > scap_maxlat) 
+		return 0;
 
 	Ion_pp[1] = pos[1];
 	return 1;
@@ -212,9 +214,10 @@ ion_coef_sphcap: Evaluates spherical cap harmonics basis functions
 		angIPP				- Angular gain for Ionosphere Piercing Point
 	bool slant		I		false: output coefficient for Vtec, true: output coefficient for delay
 ----------------------------------------------------------------------------*/
-extern double ion_coef_sphcap(int ind, Obs& obs, bool slant)
+double ion_coef_sphcap(int ind, Obs& obs, bool slant)
 {
-	if (ind >= Scp_Basis_list.size()) return 0.0;
+	if (ind >= Scp_Basis_list.size()) 
+		return 0;
 
 	Scp_Basis& basis = Scp_Basis_list[ind];
 
@@ -222,8 +225,8 @@ extern double ion_coef_sphcap(int ind, Obs& obs, bool slant)
 
 	double out;
 
-	if (basis.parity) out = legr * sin(basis.order * obs.lonIPP[basis.hind]);
-	else out = legr * cos(basis.order * obs.lonIPP[basis.hind]);
+	if (basis.parity)	out = legr * sin(basis.order * obs.lonIPP[basis.hind]);
+	else				out = legr * cos(basis.order * obs.lonIPP[basis.hind]);
 
 	if (slant)
 	{
@@ -241,7 +244,7 @@ ion_vtec_sphcap: Estimate Ionosphere VTEC using Spherical Cap Harmonic models
 	vari				O		variance of VTEC
 returns: VETC at piercing point
 ----------------------------------------------------------------------------*/
-extern double ion_vtec_sphcap(
+double ion_vtec_sphcap(
     GTime time,
     double* Ion_pp,
     int layer,
@@ -250,8 +253,8 @@ extern double ion_vtec_sphcap(
 {
 	if (!Ipp_check_sphcap(time, Ion_pp))
 	{
-		vari = 0.0;
-		return 0.0;
+		vari = 0;
+		return 0;
 	}
 
 	vari = 0;
@@ -259,13 +262,14 @@ extern double ion_vtec_sphcap(
 	Obs tmpobs;
 	tmpobs.latIPP[layer] = Ion_pp[0];
 	tmpobs.lonIPP[layer] = Ion_pp[1];
-	tmpobs.angIPP[layer] = 1.0;
+	tmpobs.angIPP[layer] = 1;
 
 	for (int ind = 0; ind < acsConfig.ionFilterOpts.NBasis; ind++)
 	{
 		Scp_Basis& basis = Scp_Basis_list[ind];
 
-		if (basis.hind != layer) continue;
+		if (basis.hind != layer)
+			continue;
 
 		double coef = ion_coef_sphcap(ind, tmpobs, false);
 
@@ -273,7 +277,8 @@ extern double ion_vtec_sphcap(
 		keyC.type	= KF::IONOSPHERIC;
 		keyC.num	= ind;
 
-		double staval = 0, stastd = 0;
+		double staval = 0;
+		double stastd = 0;
 		kfState.getKFValue(keyC, staval, &stastd);
 
 		iono += 	coef * staval;
@@ -294,7 +299,7 @@ configure_iono_model_sphcap: Initializes Spherical caps Ionosphere model
 	-  acsConfig.ionoOpts.func_order:	  Legendre function order
 	-  acsConfig.ionoOpts.layer_heights: Ionosphere layer Heights
 ----------------------------------------------------------------------------*/
-extern int configure_iono_model_sphcap(void)
+int configure_iono_model_sphcap(void)
 {
 	double latc = acsConfig.ionFilterOpts.lat_center * D2R;
 	double lonc = acsConfig.ionFilterOpts.lon_center * D2R;

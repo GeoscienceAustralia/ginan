@@ -1,17 +1,18 @@
 
+// #pragma GCC optimize ("O0")
+
 #include "observations.hpp"
 #include "streamTrace.hpp"
 #include "linearCombo.hpp"
 #include "corrections.hpp"
 #include "navigation.hpp"
 #include "testUtils.hpp"
+#include "ephemeris.hpp"
 #include "acsConfig.hpp"
-#include "constants.h"
+#include "constants.hpp"
 #include "satStat.hpp"
-#include "preceph.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
-#include "constants.h"
 #include "antenna.hpp"
 #include "common.hpp"
 #include "wancorr.h"
@@ -30,12 +31,12 @@
 #define VAR_DCB     	SQR(30.0)       // init variance dcb (m^2)
 #define VAR_GLO_IFB 	SQR( 0.6)       // variance of glonass ifb
 
+#if 0
 /* write solution status for PPP
 */
 void pppoutstat(
 	Trace&		trace,
 	KFState&	kfState,
-	bool		rts,
 	int 		solStat,
 	int			numSat)
 {
@@ -113,15 +114,15 @@ void pppoutstat(
 			double GLOclkVar= 0;
 			double GALclkVar= 0;
 			double BDSclkVar= 0;
-			
+
 			kfState.getKFValue(key, rClkGPS, &GPSclkVar);
 			key.num = SatSys(E_Sys::GLO).biasGroup();
 			kfState.getKFValue(key, rClkGLO, &GLOclkVar);
 			key.num = SatSys(E_Sys::GAL).biasGroup();
 			kfState.getKFValue(key, rClkGAL, &GALclkVar);
-			key.num = SatSys(E_Sys::CMP).biasGroup();
+			key.num = SatSys(E_Sys::BDS).biasGroup();
 			kfState.getKFValue(key, rClkBDS, &BDSclkVar);
-			
+
 			tracepdeex(1, trace, "$CLK,%d,%.3f,%d,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
 					week,
 					tow,
@@ -148,20 +149,23 @@ void pppoutstat(
 // 		             vel[2], acc[0], acc[1], acc[2], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 // 	}
 }
+#endif
 
 /* temporal update of phase biases -------------------------------------------*/
 void udbias_ppp(
 	Trace&		trace,
-	rtk_t&		rtk,
+	Station&	rec,
 	ObsList&	obsList)
 {
 	tracepde(3,trace, "udbias  : n=%d\n", obsList.size());
 
+	auto& rtk = rec.rtk;
+	
 	//handle day-boundary clock jump
 	bool clk_jump = false;
 	if (acsConfig.clock_jump)
 	{
-		if (ROUND(time2gpst(obsList.front().time, NULL) * 10) % (60*60*24) == 0)
+		if (ROUND(time2gpst(obsList.front().time) * 10) % (60*60*24) == 0)
 		{
 			clk_jump = true;
 		}
@@ -183,11 +187,15 @@ void udbias_ppp(
 
 			trace << "Removing " << key << " due to repeated rejections > " << acsConfig.pppOpts.phase_reject_limit << std::endl;
 			rtk.pppState.removeState(key);
+			
+			continue;
 		}
 
 		if	(clk_jump)
 		{
 			rtk.pppState.removeState(key);
+			
+			continue;
 		}
 
 		sigStat.userPhaseOutageCount++;
@@ -197,6 +205,28 @@ void udbias_ppp(
 
 			trace << "Removing " << key << " due to extended outage > " << acsConfig.pppOpts.outage_reset_limit << std::endl;
 			rtk.pppState.removeState(key);
+			
+			continue;
+		}
+		
+		if 	(  acsConfig.reinit_on_all_slips
+			&& sigStat.slip.any)
+		{
+			trace << std::endl << "Phase ambiguity removed due cycle slip detection: "	<< key;
+			
+			rtk.pppState.removeState(key);
+			
+			if (acsConfig.getRecOpts("").ion.estimate == false)
+			{
+				KFKey kfKey = key;
+				for (kfKey.num = 0; kfKey.num < NUM_FTYPES; kfKey.num++)
+				{
+					rtk.pppState.removeState(kfKey);
+					continue;
+				}
+			}
+			
+			continue;
 		}
 	}
 
@@ -212,25 +242,32 @@ void udbias_ppp(
 			continue;
 		}
 
-		if	( (acsConfig.ionoOpts.corr_mode == E_IonoMode::IONO_FREE_LINEAR_COMBO && ft != FTYPE_IF12)
-			||(acsConfig.ionoOpts.corr_mode != E_IonoMode::IONO_FREE_LINEAR_COMBO && ft == FTYPE_IF12)
+		E_FType ifft = FTYPE_IF12;
+		E_FType l    = F2;
+		if (  obs.Sat.sys == +E_Sys::GAL ||
+			( obs.Sat.sys == +E_Sys::GPS && acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L5_ONLY ))
+		{
+			ifft = FTYPE_IF15;
+			l    = F5;
+		}
+
+		if	( (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO && ft != ifft)
+			||(acsConfig.ionoOpts.corr_mode != +E_IonoMode::IONO_FREE_LINEAR_COMBO && ft == ifft)
 			||(sig.L_corr_m == 0)
 			||(sig.P_corr_m == 0))
 		{
 			continue;
 		}
 
-		E_FType l = obs.Sat.sys == +E_Sys::GAL ? F5 : F2;
-
 		double	bias	= 0;
 		int		slip	= obs.satStat_ptr->sigStatMap[ft].slip.any;
 		auto&	lam		= obs.satNav_ptr->lamMap;
 
-		if		(acsConfig.ionoOpts.corr_mode == E_IonoMode::IONO_FREE_LINEAR_COMBO)
+		if		(acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 		{
 			bias = sig.L_corr_m - sig.P_corr_m;
 		}
-		else if (acsConfig.ionoOpts.corr_mode == E_IonoMode::ESTIMATE)
+		else if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::ESTIMATE)
 		{
 			if	( obs.Sigs[F1].P	== 0
 				||obs.Sigs[l].P		== 0
@@ -356,7 +393,9 @@ int ppp_filter(
 	double jd	= ymdhms2jd(ep);
 	double mjd	= jd - JD2MJD;
 
-	auto& recOpts = acsConfig.getRecOpts(obsList.front().mount);
+	string id = obsList.front().mount;
+	
+	auto& recOpts = acsConfig.getRecOpts(id);
 
 	//Get the previous estimate of position or load from the point positioning solution if not initialised.
 	Vector3d x0 = Vector3d::Zero();
@@ -365,13 +404,13 @@ int ppp_filter(
 	{
 		KFKey xKey;
 		xKey.type	= KF::REC_POS;
-		xKey.str	= obsList.front().mount;
+		xKey.str	= id;
 		xKey.num	= i;
 		bool pass = kfState.getKFValue(xKey, x0[i]);
 		if (pass == false)
 		{
 			selectAprioriSource(rec, sppInit);
-			
+
 			x0(i) = rec.aprioriPos(i);
 		}
 	}
@@ -392,11 +431,51 @@ int ppp_filter(
 
 	pppCorrections(trace, obsList, rRec, rtk, rec);
 
-	udbias_ppp(trace, rtk, obsList);
+	udbias_ppp(trace, rec, obsList);
 
 	KFMeasEntryList		kfMeasEntryList;
 	map<KFKey, bool>	measuredStates;
 
+	for (auto sys : E_Sys::_values())
+	{
+		if (acsConfig.process_sys[sys] == false)
+		{
+			continue;
+		}
+		
+		SatSys Sat(sys, 0);
+		
+		auto biasGroup = Sat.biasGroup();
+		
+		InitialState systemBiasInit = initialStateFromConfig(recOpts.clk, biasGroup);
+		
+		KFKey systemBiasKey;
+		{
+			systemBiasKey.type		= KF::REC_SYS_BIAS;
+			systemBiasKey.num		= biasGroup;
+			systemBiasKey.str		= id;
+			systemBiasKey.rec_ptr	= &rec;
+		}
+		
+		double C_dtRecAdj	= rtk.sol.dtRec_m			[biasGroup]
+							- rtk.sol.dtRec_m_ppp_old	[biasGroup];
+
+		rtk.sol.dtRec_m_ppp_old[biasGroup] = rtk.sol.dtRec_m[biasGroup];
+		
+		//get, modify and set the old bias in the state according to SPP estimates
+		trace << std::endl
+		<< "Adjusting " << systemBiasKey.str
+		<< " clock by " << C_dtRecAdj;
+		
+		KFKey oneKey;
+		oneKey.type	= KF::ONE;
+		
+		kfState.setKFTrans(systemBiasKey, oneKey, C_dtRecAdj, systemBiasInit);
+	}
+	
+	//add process noise to existing states as per their initialisations.
+	kfState.stateTransition(std::cout, obsTime);
+	
 	for (auto& obs : obsList)
 	{
 		if (obs.exclude)
@@ -412,17 +491,19 @@ int ppp_filter(
 		int			biasGroup	= obs.Sat.biasGroup();
 
 		E_FType ft2 = F2;
-		if (obs.Sat.sys == +E_Sys::GAL)	ft2 = F5;
-		double ionfact=SQR(lam[F1]) / (SQR(lam[F1])-SQR(lam[ft2]));
+		if ( obs.Sat.sys == +E_Sys::GAL ||
+			(obs.Sat.sys == +E_Sys::GPS && acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L5_ONLY )) ft2 = F5;
 		
+		double ionfact=SQR(lam[F1]) / (SQR(lam[F1])-SQR(lam[ft2]));
+
 		//Satellite already has precise clocks if available
 		double C_dtSat = CLIGHT * obs.dtSat[0];
 
-		//try to get precicse clock for receiver//todo aaron, there is a comment about precise ephemeris in original code
+		//try to get precicse clock for receiver
 
 		double precDtRec	= 0;
 		double precDtRecVar	= 0;
-		pephclk(rtk.sol.time, obs.mount, nav, &precDtRec, &precDtRecVar);
+		pephclk(rtk.sol.time, obs.mount, nav, precDtRec, &precDtRecVar);
 		if (precDtRec != 0)
 		{
 // 			C_dtRec = CLIGHT * precDtRec;
@@ -449,11 +530,7 @@ int ppp_filter(
 		//calculate the trop values, variances, and gradients at the operating points
 		if (recOpts.trop.estimate)
 		{
-			bool pass = model_trop(obs.time, pos, satStat.azel, tropStates,	dTropDx, 	dTrop, varTrop);
-			if	(pass == false)
-			{
-				continue;
-			}
+			dTrop = trop_model_prec(obs.time, pos, satStat.azel, tropStates, dTropDx, varTrop);
 		}
 
 		// ionospheric model
@@ -462,13 +539,13 @@ int ppp_filter(
 		double ionoState		= 0;
 		double ionInitValue		= 0;
 		double ionInitVari		= -1;
-		
-		
+
+
 		switch (acsConfig.ionoOpts.corr_mode)
 		{
 			case E_IonoMode::IONO_FREE_LINEAR_COMBO:
-			case E_IonoMode::OFF:					 
-				dIono   = 0; 
+			case E_IonoMode::OFF:
+				dIono   = 0;
 				varIono = 0;
 				break;
 			case E_IonoMode::ESTIMATE:
@@ -477,7 +554,7 @@ int ppp_filter(
 					ionInitVari  = obs.Sigs[F1].codeVar  + obs.Sigs[ft2].codeVar;
 					ionInitValue*= ionfact;												// from GF to slant Iono(F1)
 					ionInitVari *= ionfact*ionfact;
-					
+
 				}
 				if(kfState.getKFValue({KF::IONOSPHERIC, obs.Sat, obs.mount}, ionoState)) dIono = ionoState;
 				else dIono = ionInitValue;
@@ -489,7 +566,7 @@ int ppp_filter(
 		}
 
 		tracepde(lv, trace, "*---------------------------------------------------*\n");
-		tracepde(lv, trace, " %.6f %s  recpos               = %14.4f %14.4f %14.4f\n",  mjd, obs.Sat.id().c_str(), rec.aprioriPos[0], rec.aprioriPos[1], rec.aprioriPos[2]);
+		tracepde(lv, trace, " %.6f %s  recpos               = %14.4f %14.4f %14.4f\n",  mjd, obs.Sat.id().c_str(), x0[0], x0[1], x0[2]);
 		tracepde(lv, trace, " %.6f %s  tide                 = %14.4f %14.4f %14.4f\n",  mjd, obs.Sat.id().c_str(), dr(0), dr(1), dr(2));
 		tracepde(lv, trace, " %.6f %s  recpos+tide+ant      = %14.4f %14.4f %14.4f\n",  mjd, obs.Sat.id().c_str(), rRec[0], rRec[1], rRec[2]);
 		tracepde(lv, trace, " %.6f %s  sinexpos             = %14.4f %14.4f %14.4f\n",	mjd, obs.Sat.id().c_str(), rec.aprioriPos[0], rec.aprioriPos[1], rec.aprioriPos[2]);
@@ -498,16 +575,14 @@ int ppp_filter(
 		tracepde(lv, trace, " %.6f %s  trop                 = %14.4f\n",	         	mjd, obs.Sat.id().c_str(), dTrop);
 
 
-		if(varIono<0) continue;
-		
-		
+		if (varIono < 0) 
+			continue;
+
 		for (auto& [ft, sig] : obs.Sigs)
 		{
 			TestStack ts(std::to_string(ft));
 
-			SigStat& sigStat = satStat.sigStatMap[ft];
-
-			if (acsConfig.ionoOpts.corr_mode != E_IonoMode::IONO_FREE_LINEAR_COMBO)
+			if (acsConfig.ionoOpts.corr_mode != +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 			{
 				if	( ft == FTYPE_IF12
 					||ft == FTYPE_IF15
@@ -517,7 +592,7 @@ int ppp_filter(
 				}
 			}
 
-			if (acsConfig.ionoOpts.corr_mode == E_IonoMode::IONO_FREE_LINEAR_COMBO)
+			if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 			{
 				/*if	( ft != FTYPE_IF12
 					&&ft != FTYPE_IF15)
@@ -526,21 +601,26 @@ int ppp_filter(
 				}
 
 				if	( (acsConfig.ionoOpts.iflc_freqs == E_LinearCombo::L1L2_ONLY && ft != FTYPE_IF12)
-					||(acsConfig.ionoOpts.iflc_freqs == E_LinearCombo::L1L5_ONLY && ft != FTYPE_IF15))   
+					||(acsConfig.ionoOpts.iflc_freqs == E_LinearCombo::L1L5_ONLY && ft != FTYPE_IF15))
 				{
 					continue;
 				}*/
-				
-				// Ken: It would be nice to be able to use both L1L2 and L1L5 combinations, but not if the correlation matrix cannot be introduced 
-				if(sys == +E_Sys::GPS && ft != FTYPE_IF12) continue;
+
+				// Ken: It would be nice to be able to use both L1L2 and L1L5 combinations, but not if the correlation matrix cannot be introduced
+				if(sys == +E_Sys::GPS)
+				{
+					if(acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L5_ONLY && ft != FTYPE_IF15) continue;
+					if(acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L2_ONLY && ft != FTYPE_IF12) continue;
+					if(acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::ANY       && ft != FTYPE_IF12) continue; // It would be nice to be able to use both L1L2 and L1L5 combinations, but not if the correlation matrix cannot be introduced
+				}
 				if(sys == +E_Sys::GLO && ft != FTYPE_IF12) continue;
 				if(sys == +E_Sys::GAL && ft != FTYPE_IF15) continue;
-				if(sys == +E_Sys::CMP && ft != FTYPE_IF12) continue;		/* need to confirm this */
+				if(sys == +E_Sys::BDS && ft != FTYPE_IF12) continue;		/* need to confirm this */
 				if(sys == +E_Sys::QZS && ft != FTYPE_IF12) continue;
-				
+
 			}
 
-			if (acsConfig.ionoOpts.corr_mode == E_IonoMode::TOTAL_ELECTRON_CONTENT)
+			if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::TOTAL_ELECTRON_CONTENT)
 			{
 				if	(ft != F1)
 				{
@@ -563,8 +643,8 @@ int ppp_filter(
 				case E_IonoMode::ESTIMATE:				 ionC = SQR(lam[ft]/lam[F1]); break;
 				default:								 ionC = SQR(lam[ft]/lam[F1]); break;
 			}
-			double  phaseBias = sig.L_corr_m - sig.P_corr_m + 2 * ionC * dIono;
-					
+			double  phaseBias = sig.L_corr_m - sig.P_corr_m + 2 * ionC * dIono;	//todo aaron, remove for harmony
+
 
 			double varSysIFB = 0;
 			if	(sys == E_Sys::GLO)
@@ -603,6 +683,7 @@ int ppp_filter(
 				tropKeys[i].type	= KF::TROP;
 				tropKeys[i].num		= i;
 				tropKeys[i].str		= obs.mount;
+				tropKeys[i].rec_ptr	= &rec;
 			}
 
 			KFKey phaseBiasKey;
@@ -615,9 +696,10 @@ int ppp_filter(
 
 			KFKey systemBiasKey;
 			{
-				systemBiasKey.type	= KF::REC_SYS_BIAS;
-				systemBiasKey.num	= biasGroup;
-				systemBiasKey.str	= obs.mount;
+				systemBiasKey.type		= KF::REC_SYS_BIAS;
+				systemBiasKey.num		= biasGroup;
+				systemBiasKey.str		= obs.mount;
+				systemBiasKey.rec_ptr	= &rec;
 			}
 
 			KFKey systemBiasRateKey;
@@ -643,20 +725,11 @@ int ppp_filter(
 
 			//get any values required from state, and use variances in the filter instead of below
 			double dcb			= 0;
-			double C_dtRec		= 0;					//todo aaron, there is a comment about precise ephemeris in original code
+			double C_dtRec		= 0;
 
 			kfState.getKFValue(dcbKey,			dcb);
 			kfState.getKFValue(phaseBiasKey,	phaseBias);
 			kfState.getKFValue(systemBiasKey,	C_dtRec);
-
-			double C_dtRecAdj	= rtk.sol.dtRec_m			[biasGroup]
-								- rtk.sol.dtRec_m_ppp_old	[biasGroup];
-			C_dtRec += C_dtRecAdj;
-
-			InitialState systemBiasInit;
-			systemBiasInit.x = C_dtRec;
-			systemBiasInit.P = VAR_CLK;
-			kfState.resetKFValue(systemBiasKey, systemBiasInit);
 
 			//Prepare the measurement innovation values and sigmas
 
@@ -699,15 +772,17 @@ int ppp_filter(
 			double phasInnov	= phasMeasured - phasComputed;
 
 			double codeVar		= sig.codeVar
-								+ obs.var
-								+ varTrop
+								+ obs.ephVar	//todo aaron, remove for harmony
+								+ varTrop		//todo aaron, remove for harmony
 								+ varIono * SQR(ionC);
 
 			double phasVar		= sig.phasVar
-								+ obs.var
-								+ varTrop
+								+ obs.ephVar	//todo aaron, remove for harmony
+								+ varTrop		//todo aaron, remove for harmony
 								+ varIono * SQR(ionC)
 								+ varSysIFB;
+								
+// 			tracepdeex(0, std::cout, "%14.6f %14.6f %14.6f %14.6f %14.6f %14.6f\n", sig.codeVar, sig.phasVar, obs.ephVar, varTrop, varIono, varSysIFB);
 
 			ObsKey obsKeyCode = {obs.Sat, obs.mount, "P", ft};
 			ObsKey obsKeyPhas = {obs.Sat, obs.mount, "L", ft};
@@ -743,9 +818,15 @@ int ppp_filter(
 			{
 				posRateInits[i]				= initialStateFromConfig(recOpts.pos_rate,		i);
 
-// 				posRateInits[i].x = rtk.sol.sppRRec[i];	//todo aaron, get from doppler
+// 				posRateInits[i].x = rtk.sol.sppRRec[i];
 			}
 
+			InitialState systemBiasInit;
+			{
+				systemBiasInit.x = rtk.sol.dtRec_m[biasGroup];
+				systemBiasInit.P = VAR_CLK;
+			}
+		
 			InitialState clockBiasRateInit	= initialStateFromConfig(recOpts.clk_rate);
 
 			InitialState phaseBiasInit		= initialStateFromConfig(recOpts.amb);
@@ -833,7 +914,7 @@ int ppp_filter(
 				}
 			}
 
-			if (acsConfig.ionoOpts.corr_mode == E_IonoMode::ESTIMATE)
+			if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::ESTIMATE)
 			{
 				codeMeas.addDsgnEntry(ionoKey,			-ionC,				ionoInit);
 				phasMeas.addDsgnEntry(ionoKey,			+ionC,				ionoInit);
@@ -871,9 +952,9 @@ int ppp_filter(
 				&&( fabs(codeInnov)		> acsConfig.max_inno
 				  ||fabs(phasInnov)		> acsConfig.max_inno))
 			{
-				tracepde(2, std::cout, "outlier rejected  sat=%s %d res=%9.4f %9.4f el=%4.1f\n", obs.Sat.id().c_str(), ft, codeInnov, phasInnov, satStat.el * R2D);
+				tracepde(2, trace, "outlier rejected  sat=%s %d res=%9.4f %9.4f el=%4.1f\n", obs.Sat.id().c_str(), ft, codeInnov, phasInnov, satStat.el * R2D);
 				obs.excludeOutlier = true;
-				continue;			//todo aaron, moved to filer
+				continue;			//todo aaron, move to filer
 			}
 
 			//Add the completed measurements to the filter
@@ -892,13 +973,14 @@ int ppp_filter(
 
 	//add process noise to existing states as per their initialisations.
 	kfState.stateTransition(std::cout, obsTime);
-
+	
 	//combine the measurement list into a single matrix
 	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
 	combinedMeas.time = obsList.front().time;
 
 	if (combinedMeas.V.rows() == 0)
 	{
+		trace << std::endl << " -------NO MEASUREMENTS TO FILTER!--------" << std::endl;
 		return SOLQ_NONE;
 	}
 
@@ -913,8 +995,6 @@ int ppp_filter(
 	//perform kalman filtering
 	trace << std::endl << " -------DOING KALMAN FILTER --------" << std::endl;
 	kfState.filterKalman(trace, combinedMeas, true);
-
-	rtk.sol.dtRec_m_ppp_old = rtk.sol.dtRec_m;
 
 	TestStack::testMat("combinedMeas.V", combinedMeas.V);
 	TestStack::testMat("combinedMeas.A", combinedMeas.A);
@@ -945,9 +1025,6 @@ void update_stat(
 
 		for (auto& [key, Sig] : obs.Sigs)
 		{
-			if (epoch > 5 && obs.Sat == SatSys(E_Sys::GPS, 16))
-				continue;
-
 			if (Sig.vsig == false)
 				continue;
 
@@ -1002,7 +1079,7 @@ void pppos(
 // 	tracepde(2, trace, "pppos   : time=%s nx=%d n=%d\n", str, rtk.nx, obsList.size());
 
 	/* satellite positions and clocks */
-	satposs(trace, obsList.front().time, obsList, nav, acsConfig.ppp_ephemeris);
+	satposs(trace, obsList.front().time, obsList, nav, acsConfig.ppp_ephemeris, E_OffsetType::APC);
 
 	double pos[3];
 	ecef2pos(rtk.sol.sppRRec.data(), pos);
@@ -1033,7 +1110,7 @@ void pppos(
 		||acsConfig.tide_otl
 		||acsConfig.tide_pole)
 	{
-		tidedisp(trace, gpst2utc(obsList.front().time), rtk.sol.sppRRec, &nav.erp, opt->odisp[0], dTide);
+		tidedisp(trace, gpst2utc(obsList.front().time), rtk.sol.sppRRec, nav.erp, opt->otlDisplacement[0], dTide);
 	}
 
 	int stat = ppp_filter(trace, obsList, dTide, rtk, rec);
@@ -1045,8 +1122,8 @@ void pppos(
 
 		if (rtk.sol.stat)
 		{
-			pppoutstat(trace, rtk.pppState,false, rtk.sol.stat,rtk.sol.numSats);
-			rtk.pppState.outputStates(trace);
+// 			pppoutstat(trace, rtk.pppState,false, rtk.sol.stat,rtk.sol.numSats);
+//			rtk.pppState.outputStates(trace);
 		}
 	}
 }

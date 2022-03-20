@@ -1,14 +1,16 @@
 
+// #pragma GCC optimize ("O0")
+
 #include <math.h>
 
 #include "observations.hpp"
 #include "streamTrace.hpp"
 #include "acsConfig.hpp"
-#include "constants.h"
+#include "constants.hpp"
 #include "satStat.hpp"
 #include "algebra.hpp"
-#include "gTime.hpp"
 #include "common.hpp"
+#include "gTime.hpp"
 #include "enums.h"
 
 
@@ -31,15 +33,13 @@ void obsVariances(
 
 		double el = obs.satStat_ptr->el;
 		if (el == 0)
-			el = PI/4;
+			el = PI/8;
 
 		double elevationScaling = 1;
 		switch (receiverOpts.error_model)
 		{
 			case E_NoiseModel::UNIFORM:					{	elevationScaling = 1;				break;	}
-			case E_NoiseModel::ELEVATION_DEPENDENT:		{	elevationScaling = 1 / sin(el);		break;	}
-// 			case E_NoiseModel::ELEVATION_DEPENDENT2:	{	elevationScaling = break;	}
-		}
+			case E_NoiseModel::ELEVATION_DEPENDENT:		{	elevationScaling = 1 / sin(el);		break;	} }
 
 		sigmaCode *= elevationScaling;
 		sigmaPhas *= elevationScaling;
@@ -120,11 +120,11 @@ double ionmapf(Vector3d& rr, const double el)
 	double pos[3];
 	ecef2pos(rr.data(), pos);
 
-	if (pos[2] >= HION)
+	if (pos[2] >= IONO_HEIGHT)
 		return 1;
 
 	double rRec = RE_WGS84 + pos[2];
-	double rIon = RE_WGS84 + HION;
+	double rIon = RE_WGS84 + IONO_HEIGHT;
 	return 1 / cos(		asin(	  rRec / rIon	* cos(el))	);
 }
 /* ionospheric pierce point position -------------------------------------------
@@ -184,7 +184,7 @@ double tropmodel(GTime time, const double* pos, const double* azel, double humi)
 	hgt = pos[2] < 0 ? 0 : pos[2];
 
 	pres = 1013.25 * pow(1 - 2.2557E-5 * hgt, 5.2568);
-	temp = temp0 - 6.5E-3 * hgt + 273.16;
+	temp = temp0 - 6.5E-3 * hgt + ZEROC;
 	e = 6.108 * humi * exp((17.15 * temp - 4684) / (temp - 38.45));
 
 	/* saastamoninen model */
@@ -194,19 +194,16 @@ double tropmodel(GTime time, const double* pos, const double* azel, double humi)
 
 	return trph + trpw;
 }
-/* troposphere zhd for acs------------------------------------------------------
-* compute tropospheric delay by standard atmosphere and saastamoinen model
-* args   : gtime_t time     I   time
-*          double *pos      I   receiver position {lat,lon,h} (rad,m)
-*          double *azel     I   azimuth/elevation angle {az,el} (rad)
-*          double humi      I   relative humidity
-* return : tropospheric delay (m)
-*-----------------------------------------------------------------------------*/
-double tropacs(const double* pos, const double* azel, double* map)
+
+/** troposphere zhd for acs.
+ * compute tropospheric delay by standard atmosphere and saastamoinen model
+ */
+double tropacs(
+    const double*	pos,	///< receiver position {lat,lon,h} (rad,m)
+    const double*	azel,	///< azimuth/elevation angle {az,el} (rad)
+    double*			map)	///< optional mapping function output
 {
-	const double temp0 = 15.0; /* temparature at sea level */
-	double hgt, pres, temp, e, z, a[2], b[2], c[2];
-	int i;
+	const double temp0 = 15; /* temparature at sea level */
 
 	if	( pos[2]	< -100
 		||pos[2]	> 1E4
@@ -216,56 +213,59 @@ double tropacs(const double* pos, const double* azel, double* map)
 	}
 
 	/* standard atmosphere */
-	hgt = pos[2] < 0 ? 0 : pos[2];
-
 	/* consider the ellipsoid or geoid height */
-	hgt = pos[2];
+	double hgt = pos[2];
 
 	/* standard atmosphere temperature, pressure */
-	temp = temp0 - 6.5E-3 * hgt + 273.15;
-	pres = 1013.25 * pow(288.15 / temp, -5.255877);
-	e = 0.5 * exp(24.3702 - 6162.3496 / temp);
+	double temp	= temp0 - 6.5E-3 * hgt + ZEROC;
+	double pres	= 1013.25 * pow(288.15 / temp, -5.255877);
+	double e	= 0.5 * exp(24.3702 - 6162.3496 / temp);
 
-	/* parameters of dry mapping function */
-	a[0]	= 0.1237 * pow(10, -2)
-			+ 0.1316 * pow(10, -6) * (pres - 1000)
-			+ 0.8057 * pow(10, -5) * sqrt(e)
-			+ 0.1378 * pow(10, -5) * (temp - 288.15);
+	if (map)
+	{
+		double z;
+		double a[2];
+		double b[2];
+		double c[2];
+		
+		/* parameters of dry mapping function */
+		a[0]	= 0.1237 * pow(10, -2)
+				+ 0.1316 * pow(10, -6) * (pres - 1000)
+				+ 0.8057 * pow(10, -5) * sqrt(e)
+				+ 0.1378 * pow(10, -5) * (temp - 288.15);
 
-	b[0]	= 0.3333 * pow(10, -2)
-			+ 0.1946 * pow(10, -6) * (pres - 1000)
-			+ 0.1747 * pow(10, -6) * sqrt(e)
-			+ 0.1040 * pow(10, -6) * (temp - 288.15);
+		b[0]	= 0.3333 * pow(10, -2)
+				+ 0.1946 * pow(10, -6) * (pres - 1000)
+				+ 0.1747 * pow(10, -6) * sqrt(e)
+				+ 0.1040 * pow(10, -6) * (temp - 288.15);
 
-	c[0]	= 0.078;
+		c[0]	= 0.078;
 
-	/* parameters of wet mapping function */
-	a[1]	= 0.5236 * pow(10, -3)
-			+ 0.2471 * pow(10, -6) * (pres - 1000)
-			- 0.1328 * pow(10, -4) * sqrt(e)
-			+ 0.1724 * pow(10, -6) * (temp - 288.15);
+		/* parameters of wet mapping function */
+		a[1]	= 0.5236 * pow(10, -3)
+				+ 0.2471 * pow(10, -6) * (pres - 1000)
+				- 0.1328 * pow(10, -4) * sqrt(e)
+				+ 0.1724 * pow(10, -6) * (temp - 288.15);
 
-	b[1]	= 0.1705 * pow(10, -2)
-			+ 0.7384 * pow(10, -6) * (pres - 1000)
-			+ 0.2147 * pow(10, -4) * sqrt(e)
-			+ 0.3767 * pow(10, -6) * (temp - 288.15);
+		b[1]	= 0.1705 * pow(10, -2)
+				+ 0.7384 * pow(10, -6) * (pres - 1000)
+				+ 0.2147 * pow(10, -4) * sqrt(e)
+				+ 0.3767 * pow(10, -6) * (temp - 288.15);
 
-	c[1]	= 0.05917;
+		c[1]	= 0.05917;
 
-	z = PI / 2 - azel[1];
+		z = PI / 2 - azel[1];
 
-	/* mapping function */
-	for (i = 0; i < 2; i++)
-		map[i] = (1 + a[i] / (1 + b[i] / (1 + c[i]))) / (cos(z) + a[i] / (cos(z) + b[i] / (cos(z) + c[i])));
+		/* mapping function */
+		for (int i = 0; i < 2; i++)
+			map[i] = (1 + a[i] / (1 + b[i] / (1 + c[i]))) / (cos(z) + a[i] / (cos(z) + b[i] / (cos(z) + c[i])));
+	}
 
-#if (0)
-	return 0.002277 * (map[0] * pres	/ (1 - 0.00266 * cos(2 * pos[0]) - 0.00028 * hgt / 1E3) + map[1] * (1255 / temp + 0.05) * e);
-#elif (0)
-	return 0.002277 * (map[0] * pres	/ (1 - 0.00266 * cos(2 * pos[0]) - 0.00028 * hgt / 1E3));
-#else
-	return 0.002277 * (pres				/ (1 - 0.00266 * cos(2 * pos[0]) - 0.00028 * hgt / 1E3));
-#endif
+	double zhd = 0.002277 * (pres / (1 - 0.00266 * cos(2 * pos[0]) - 0.00028 * hgt / 1E3));
+	
+	return zhd;
 }
+
 #ifndef IERS_MODEL
 
 double interpc(const double coef[], double lat)
@@ -352,7 +352,7 @@ double nmf(
 * args   : gtime_t t        I   time
 *          double *pos      I   receiver position {lat,lon,h} (rad,m)
 *          double *azel     I   azimuth/elevation angle {az,el} (rad)
-*          double *mapfw    IO  wet mapping function (NULL: not output)
+*          double *mapfw    IO  wet mapping function (nullptr: not output)
 * return : dry mapping function
 * note   : see ref [5] (NMF) and [9] (GMF)
 *          original JGR paper of [5] has bugs in eq.(4) and (5). the corrected
@@ -365,10 +365,6 @@ double tropmapf(
 	const double	azel[],
 	double*			mapfw)
 {
-#ifdef IERS_MODEL
-	const double ep[] = {2000, 1, 1, 12, 0, 0};
-	double mjd, lat, lon, hgt, zd, gmfh, gmfw;
-#endif
 // 	trace(4, "tropmapf: pos=%10.6f %11.6f %6.1f azel=%5.1f %4.1f\n",
 // 	      pos[0]*R2D,
 // 	      pos[1]*R2D,
@@ -385,21 +381,5 @@ double tropmapf(
 		return 0;
 	}
 
-#ifdef IERS_MODEL
-	mjd = 51544.5 + (timediff(time, epoch2time(ep))) / 86400;
-	lat = pos[0];
-	lon = pos[1];
-	hgt = pos[2] - geoidh(pos); /* height in m (mean sea level) */
-	zd  = PI / 2 - azel[1];
-
-	/* call GMF */
-	gmf_(&mjd, &lat, &lon, &hgt, &zd, &gmfh, &gmfw);
-
-	if (mapfw)
-		*mapfw = gmfw;
-
-	return gmfh;
-#else
 	return nmf(time, pos, azel, mapfw); /* NMF */
-#endif
 }

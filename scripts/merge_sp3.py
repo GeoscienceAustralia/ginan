@@ -1,9 +1,10 @@
 '''sinex stations quick view'''
 import argparse
+import logging as _logging
 import os as _os
 
-
 from gn_lib.gn_io.sp3 import merge_sp3, write_sp3
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Merge sinex SITE/ID block and create html map.')
@@ -22,12 +23,12 @@ def file_path(path):
 
 if __name__ == "__main__":
     parsed_args = parse_arguments()
-    print(parsed_args.outpath)
+    _logging.info(msg=parsed_args.outpath)
     if parsed_args.sp3list:
         merged_df = merge_sp3(sp3_paths = parsed_args.sp3list, clk_paths = parsed_args.clklist)
         write_sp3(sp3_df = merged_df, path = parsed_args.outpath)
     else:
-        print('sp3 list is empty')
+        _logging.error(msg='sp3 list is empty')
 
 
 

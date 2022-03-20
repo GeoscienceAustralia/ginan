@@ -1,16 +1,18 @@
 '''sinex stations quick view'''
 import argparse
+import logging as _logging
 import os as _os
-import pandas as _pd
 
+import pandas as _pd
 import plotly.express as px
 
 from gn_lib.gn_io.sinex import _get_snx_id
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Parse sinex SITE/ID block and create html map.')
     parser.add_argument('-i', '--snxpath', type=file_path,help='path to sinex file (.snx/.ssc). Can be compressed with LZW (.Z)',nargs="+")
-    parser.add_argument('-o', '--outdir',   type=dir_path,help='path to output dir',default='/data/acs/pea/output/')
+    parser.add_argument('-o', '--outdir',   type=dir_path,help='path to output dir',default=None)
     return parser.parse_args()
 
 def dir_path(path):
@@ -30,7 +32,10 @@ def snxid2html(paths, outdir = '/data/acs/pea/output/'):
     size = 0.5
     buf = []
     title=''
-    print(paths)
+
+    _logging.getLogger().setLevel(_logging.INFO)
+    _logging.info(msg=paths)
+
     for path in paths:
         basename = _os.path.basename(path)
         tmp_df = _get_snx_id(path)
@@ -47,12 +52,11 @@ def snxid2html(paths, outdir = '/data/acs/pea/output/'):
                     hover_data = ['PT','DOMES'],
                     projection="natural earth")
 
-    if len(paths)>1:
-        basename = 'gather_map'
-    save_path = _os.path.join(outdir,basename+'.html')
+
+    filename = ('gather_map' if len(paths)>1 else _os.path.basename(paths[0]))+'.html'
+    save_path = _os.path.join(_os.path.curdir if outdir is None else outdir,filename)
     fig.write_html(save_path)
-    print(f'html saved to {save_path}')
-    return
+    _logging.info(msg=f'html saved to {save_path}')
 
 if __name__ == "__main__":
     parsed_args = parse_arguments()

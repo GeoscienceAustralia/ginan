@@ -27,6 +27,7 @@ SUBROUTINE eop_finals2000A (filename,mjd , eop)
 
       USE mdl_precision
       USE mdl_num
+      use pod_yaml
       IMPLICIT NONE
 	  
 ! ----------------------------------------------------------------------
@@ -36,7 +37,7 @@ SUBROUTINE eop_finals2000A (filename,mjd , eop)
       INTEGER (KIND = prec_int8), INTENT(IN) :: mjd
       CHARACTER (LEN=512), INTENT(IN) :: filename
 ! OUT
-      REAL (KIND = prec_d), INTENT(OUT) :: eop(7)
+      REAL (KIND = prec_d), INTENT(OUT) :: eop(EOP_MAX_ARRAY)
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -95,13 +96,17 @@ SUBROUTINE eop_finals2000A (filename,mjd , eop)
          !PRINT *,"IPflag, xp,xp_er, yp,yp_er", IPflag, xp,xp_er, yp,yp_er
          !PRINT *,"IPflag, UT1_UTC,UT1_UTC_Err, LOD,LOD_Err", IPflag, UT1_UTC,UT1_UTC_Err, LOD,LOD_Err
          !PRINT *,"IPflag, dX,dX_Err, dY,dY_Err", IPflag, dX,dX_Err, dY,dY_Err
-		    eop(1) = mjd_day
-            eop(2) = xp
-            eop(3) = yp
-            eop(4) = UT1_UTC
-            eop(5) = LOD
-            eop(6) = dX
-            eop(7) = dY
+	    eop(EOP_MJD) = mjd_day
+            eop(EOP_X) = xp
+            eop(EOP_Y) = yp
+            eop(EOP_UT1) = UT1_UTC
+            eop(EOP_LOD) = LOD / 1000.0d0
+            eop(EOP_DX) = dX / 1000.0d0
+            eop(EOP_DY) = dY / 1000.0d0
+            eop(EOP_X_ERR) = xp_er
+            eop(EOP_Y_ERR) = yp_er
+            eop(EOP_UT1_ERR) = UT1_UTC_Err
+            eop(EOP_LOD_ERR) = LOD_Err / 1000.0d0
             EXIT
          end if
 ! ----------------------------------------------------------------------

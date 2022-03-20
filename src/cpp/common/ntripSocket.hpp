@@ -1,10 +1,10 @@
 #ifndef NTRIPSOCKET_H
 #define NTRIPSOCKET_H
 
+#include <iostream> 
 #include <string>
 #include <vector>
 #include <chrono>
-#include <mutex>
 
 using std::string;
 using std::vector;
@@ -25,7 +25,9 @@ using std::chrono::time_point;
 #include <boost/regex.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
-#include <iostream> 
+
+#include "ntripTrace.hpp"
+
 
 /* Interface to be used for NTRIP version 2, streams for downloading messages.
 * The NtripSteam was ugraded by Alex and now connects and download ansyncronously
@@ -41,21 +43,31 @@ using std::chrono::time_point;
 * An example for the boost library documenation was used;
 * https://www.boost.org/doc/libs/1_40_0/doc/html/boost_asio/example/http/client/async_client.cpp
 */
-namespace io = boost::asio;
-namespace ip = io::ip;
-namespace ssl = io::ssl;
-using tcp = ip::tcp;
-using error_code = boost::system::error_code;
-using ssl_socket = ssl::stream<tcp::socket>;
+namespace B_asio    = boost::asio;
+namespace ip		= B_asio::ip;
+namespace ssl		= B_asio::ssl;
+using tcp			= ip::tcp;
+using error_code	= boost::system::error_code;
+using ssl_socket	= ssl::stream<tcp::socket>;
 
 using namespace boost::system;
 
-namespace B_asio    = boost::asio;
+
+#define ERROR_OUTPUT_RECONNECT_AND_RETURN 																					\
+{																															\
+	onErrorStatistics(err, __FUNCTION__);																					\
+	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << " in " << __FUNCTION__ << " for " << url.sanitised() << "\n";	\
+																															\
+	if (err != boost::asio::error::operation_aborted)																		\
+		delayed_reconnect();        																						\
+																															\
+	return;																													\
+}																																
 
 
 struct Base64
 {
-	static string encode(std::string in)
+	static string encode(string in)
 	{
 		return encode(in.c_str(), in.length());
 	}
@@ -109,14 +121,14 @@ struct URL
 {
 	string  url;
 	string  protocol;
-	string  username;
-	string  password;
+	string  user;
+	string  pass;
 	string  host;
 	string  port_str;
 	int     port;
 	string  path;
 
-	static URL parse(std::string url)
+	static URL parse(string url)
 	{
 
 //      boost::regex re (R"(^((https?)://)?((\w):(\w)@)?([^\s:=/]+)(:(\d+)?)/(.*$))", boost::regex::extended);
@@ -135,6 +147,7 @@ struct URL
 
 		BOOST_LOG_TRIVIAL(debug)
 		<< "protocol=["     << matches[1]
+		
 		<< "] username=["   << matches[3]
 		<< "] password=["   << matches[4]
 		<< "] host=["       << matches[5]
@@ -145,12 +158,13 @@ struct URL
 
 		out.url = url;
 
-		string protocol = matches[1];
-		out.username    = matches[3];
-		out.password    = matches[4];
-		out.host        = matches[5];
-		out.port_str    = matches[7];
-		out.path        = matches[8];
+		string protocol	= matches[1];
+		
+		out.user		= matches[3];
+		out.pass		= matches[4];
+		out.host		= matches[5];
+		out.port_str	= matches[7];
+		out.path		= matches[8];
 
 		out.protocol    = protocol.     empty() ? "http"    : protocol;
 		if (out.port_str.empty())
@@ -163,69 +177,69 @@ struct URL
 		return out;
 	}
 
-	std::string sanitised()
+	string sanitised()
 	{
 		return protocol + ":" + "//" + host + (port > 0 ? (":" + std::to_string(port)) : "") + path;
 	}
 };
 
-class NtripSocket
+struct NtripSocket : NetworkStatistics
 {
 protected:
-	std::shared_ptr<tcp::socket>     _socket;
-	tcp::socket*                     socket_ptr;
-	std::shared_ptr<ssl_socket>      _sslsocket;
-	std::shared_ptr<tcp::resolver>  _resolver;
+	std::shared_ptr<tcp::socket>	_socket;
+	tcp::socket*					socket_ptr;
+	std::shared_ptr<ssl_socket>		_sslsocket;
+	std::shared_ptr<tcp::resolver>	_resolver;
 	
-	std::string request_string;
-	std::string response_string;
+	string request_string;
+	string response_string;
 	
-	boost::asio::deadline_timer timer;
+	boost::asio::deadline_timer		timer;
 	
-	boost::asio::streambuf request;
-	boost::asio::streambuf downloadBuf;
+	boost::asio::streambuf			request;
+	boost::asio::streambuf			downloadBuf;
 
 public:
-	URL                         url;
+	URL		url;
 	
-	int disconnectionCount = 0;
-	bool isConnected = false;
-	boost::posix_time::ptime         startTime;
-	boost::posix_time::ptime         connectedTime;
-	boost::posix_time::ptime         disconnectedTime;
-	boost::posix_time::time_duration connectedDuration;
-	boost::posix_time::time_duration disconnectedDuration;
-
-	boost::posix_time::time_duration epochConnectedDuration;
-	boost::posix_time::time_duration epochDisconnectedDuration;	
+	int		disconnectionCount	= 0;
+	bool	isConnected			= false;
+// 	boost::posix_time::ptime         startTime;			//todo aaron, use NetworkStatistics for this instead
+// 	boost::posix_time::ptime         connectedTime;
+// 	boost::posix_time::ptime         disconnectedTime;
+// 	boost::posix_time::time_duration connectedDuration;
+// 	boost::posix_time::time_duration disconnectedDuration;
+// 
+// 	boost::posix_time::time_duration epochConnectedDuration;
+// 	boost::posix_time::time_duration epochDisconnectedDuration;	
 	
-	bool finishedReadingStream = false;
-	unsigned int chunked_message_length = 0;
-	int numberValidChunks = 0;
-	int numberErroredChunks = 0; 
-	bool logHttpSentReceived = false;
+	bool			finishedReadingStream	= false;
+	unsigned int	chunked_message_length	= 0;
+	int				numberErroredChunks		= 0; 
+	bool			logHttpSentReceived		= false;
 	
 	unsigned int content_length = 0;
-	NtripSocket(const std::string& url_str) : 
+	
+	NtripSocket(const string& url_str) : 
 		timer(io_service),
 		ssl_context(ssl::context::sslv23_client)
 	{
-		startTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
-		url = URL::parse(url_str);
+// 		startTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
+		url			= URL::parse(url_str);	
+		streamName	= url.path;
 	} 
 
 	void setUrl(const string& url_str)
 	{		
-		url = URL::parse(url_str);
+		url			= URL::parse(url_str);
+		streamName	= url.path;
 	}
 	
+	void connect();
 	void disconnect();
 
-	void connect();
 	
-	
-	void start_read_stream();
-	void start_read();
+	void start_read(bool chunked);
 
 protected:        
 	void delayed_reconnect();
@@ -233,35 +247,68 @@ protected:
 private:
 	// These functions manage the connection using the boost service and
 	// asyncronous function calls.
-	void handle_resolve(const boost::system::error_code& err,
-							tcp::resolver::iterator endpoint_iterator);
-	void handle_sslhandshake(const boost::system::error_code& err); 
-	void handle_connect(const boost::system::error_code& err,
-							tcp::resolver::iterator endpoint_iterator);
-	void handle_write_request(const boost::system::error_code& err);
-	void handle_request_response(const boost::system::error_code& err);    
-	void handle_reconnect(const boost::system::error_code& err);
+	void resolve_handler			(const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator);
+	void connect_handler			(const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator);
+	void sslhandshake_handler		(const boost::system::error_code& err); 
+	void write_request_handler		(const boost::system::error_code& err);
+	void request_response_handler	(const boost::system::error_code& err);    
+	void reconnect_timer_handler	(const boost::system::error_code& err);
 	
-	void read_content(const boost::system::error_code& err);
-	void read_chunked_stream(const boost::system::error_code& err);
+	void read_handler_content		(const boost::system::error_code& err);
+	void read_handler_chunked		(const boost::system::error_code& err);
 
-	
-
-	
 public:    
 	void logChunkError();
-	void printChunkHex(std::vector<char> chunk);   
+	void printChunkHex(vector<char> chunk);   
 	
-	virtual void readContentDownloaded(std::vector<char> content){}
-	virtual void connected(){}
-	virtual bool dataChunkDownloaded(vector<char> dataChunk){return false;}
-	virtual void messageChunkLog(std::string message){}
-	virtual void networkLog(std::string message){} 
-	virtual void connectionError(const boost::system::error_code& err, std::string operation){}
-	virtual void serverResponse(unsigned int status_code, std::string http_version){}
+	
+	//content from a stream has been received - process it in virtual functions from other classes
+	virtual bool dataChunkDownloaded(
+		vector<char> dataChunk)
+	{
+		return false;
+	}
+	
+	//content from a one-shot request has been received - process it in virtual functions from other classes
+	virtual void readContentDownloaded(
+		vector<char> content)
+	{
+		
+	}
+	
+	virtual void connected()
+	{
+		
+	}
+	
+	virtual void messageChunkLog(
+		string message)
+	{
+		
+	}
+	
+	virtual void networkLog(
+		string message)
+	{
+		
+	} 
+	
+	virtual void connectionError(
+		const boost::system::error_code& err, 
+		string operation)
+	{
+		
+	}
+	
+	virtual void serverResponse(
+		unsigned int status_code, 
+		string http_version)
+	{
+		
+	}
 	
 	B_asio::ssl::context ssl_context;
-	//static B_asio::ssl::context ssl_context;
+
 	static B_asio::io_service io_service;
 	static void runService()
 	{
@@ -275,4 +322,4 @@ public:
 	}   
 };
 
-#endif // NTRIPSOCKET_H
+#endif

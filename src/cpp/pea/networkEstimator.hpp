@@ -5,22 +5,21 @@
 #include "streamTrace.hpp"
 #include "gTime.hpp"
 
-#include <list>
+#include <map>
 
-using std::list;
+using std::map;
 
 //forward declarations
 struct prcopt_t;
 struct KFState;
 struct Station;
 
-// typedef list<Station*> StationList;
-using StationList = list<Station*>;
+using StationMap = map<string, Station>;
 
 void networkEstimator(
 	Trace&			trace,
-	StationList&	streams,
+	StationMap&		stations,
 	KFState&		kfState,
-	GTime			tsync);
+	GTime			time);
 
 #endif

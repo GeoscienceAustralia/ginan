@@ -3,6 +3,13 @@
 #define __TEST_UTILS_H__
 
 
+#include <boost/log/sinks/basic_sink_backend.hpp>
+#include <boost/log/sinks/sync_frontend.hpp>
+#include <boost/log/trivial.hpp>
+
+namespace sinks = boost::log::sinks;
+
+
 
 #include <unordered_map>
 #include <iostream>
@@ -103,5 +110,15 @@ struct TestStack
 		string 		id,
 		string 		str);
 };
+
+struct ErrorExit : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
+{
+	// The function consumes the log records that come from the frontend
+	void consume(
+		boost::log::record_view																	const&	rec,
+		sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	log_string);
+};
+
+void exitOnErrors();
 
 #endif

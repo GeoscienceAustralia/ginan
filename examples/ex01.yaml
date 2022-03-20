@@ -1,0 +1,142 @@
+# ex01 - Orbit Propagation Example
+
+
+input_files:
+
+    root_input_directory: products/
+
+    atxfiles:   [ igs14_2045_plus.atx                                ]    # required
+    snxfiles:   [ igs19P2062.snx                                     ]    # required
+    blqfiles:   [ OLOAD_GO.BLQ                                       ]    # required if ocean loading is applied
+    sp3files:   [ igs20624.sp3                                       ]
+    erpfiles:   [ igs20627.erp                                     ]    #config parser doesn't accept weekly files yet.
+    # bsxfiles:   [ CAS0MGXRAP_20191990000_01D_01D_DCB.BSX             ]
+    #clkfiles: [ igs20624.clk_30s    ]  # Clk files
+    #clkfiles: [ cod19900.clk_05sA    ]  # Clk files
+    #orbfiles:   [ orb_partials/gag20624_orbits_partials.out.eop_test23      ]    # only need this if we are estimating orbits
+
+    navfiles: [ brdm1990.19p        ]  # broadcast navigation file
+    # dcbfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    egmfiles: [ GGM03S.txt        ]  # Earth gravity model coefficients file
+    jplfiles: [ DE436.1950.2050]     # JPL planetary and lunar ephemerides file
+
+station_data:
+
+    root_stations_directory: products/
+
+    pseudoobs_files: [igs20624.sp3 ]
+
+
+output_files:
+
+    root_output_directory:          <CONFIG>/
+
+    output_trace:                   true
+    trace_level:                    4
+    trace_directory:                ./
+    trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>-<LOGTIME>.TRACE
+    #trace_rotate_period:            6
+    #trace_rotate_period_units:      hours
+
+    output_residuals:               true
+
+    output_summary:                 true
+    summary_directory:              ./
+    summary_filename:               PEA<LOGTIME><YYYY><DDD><HH>.SUM
+
+
+
+output_options:
+
+    config_description:             ex01
+
+
+processing_options:
+
+    #start_epoch:                2019-07-18 12:00:00
+    end_epoch:                2019-07-18 23:45:00
+    #max_epochs:                 9        #0 is infinite
+    epoch_interval:             900          #seconds
+    wait_next_epoch:            100000
+    wait_all_stations:          1
+    
+
+    process_modes:
+        ppp:                    true
+        #rts:                    true
+        
+    process_sys:
+        gps:            true
+        gal:            false
+          
+    force_models:
+        #earth_gravity:                  true
+        gravity_modol:                  GGM03SModel
+        solid_earth_tides:              true
+        ocean_tide_loading:             true
+        third_body_attraction:          true
+        third_body_sun:                 true
+        third_body_moon:                true
+        third_body_planet:              true
+        relativity_effect:              true
+        solar_radiation_pressure:       true
+        thermal_emission:               false
+        earth_albedo:                   false
+        infrared_radiation:             false
+        antenna_thrust:                 false
+        satellite_manoeuvre:            false
+        empirical_acceleration:         false
+        
+        process_third_body:
+            #earth:                      true
+
+        sat_mass:                      455
+        srp_model:                     CANNONBALL
+        srp_area:                      65
+        srp_coef:                      1
+        egmAccDeg:                     12
+        egmAccOrd:                     12
+        egmSTMDeg:                     4
+        egmSTMOrd:                     4     
+
+network_filter_parameters:
+
+    max_filter_iterations:      1
+    max_prefit_removals:        0
+
+    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
+    rts_directory:              ./
+    rts_filename:               <CONFIG>.rts
+
+default_filter_parameters:
+
+    stations:
+        ion:
+            estimated:          true
+            
+    satellites:
+        pos:
+            estimated:          false
+            sigma:              [5]
+            proc_noise:         [0]
+            
+        pos_rate:
+            estimated:          false
+            sigma:              [5000]
+            proc_noise:         [0.01]
+            
+override_filter_parameters:
+    satellites:
+
+        PRN_G01:
+            pos:
+                estimated:          true
+                sigma:              [5]
+                proc_noise:         [0]
+                
+            pos_rate:
+                estimated:          true
+                sigma:              [5000]
+                proc_noise:         [0.03]
+
+             

@@ -367,7 +367,7 @@ sclfa=(AU/Ds)**2
 ALLOCATE (srpcoef(ECOMNUM), STAT = AllocateStatus)
 if (AllocateStatus .ne. 0) then
         write(mesg, *) "Not enough memory - failed to allocate srpceof, dimension =", PD_Param_ID
-        call report('FATAL', pgrm_name, 'orbinfo', mesg, 'src/m_orbinfo.f90', 1)
+        call report('FATAL', pgrm_name, 'orbinfo', mesg, 'src/fortran/m_orbinfo.f90', 1)
 endif
 
 srpcoef = 0.d0

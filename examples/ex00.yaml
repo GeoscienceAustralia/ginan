@@ -1,0 +1,225 @@
+# ex11 - PPP Ionosphere-Free Observable Example
+# Uses IGS orbit and clock products to produce kinematic PPP solition (GPS-only, float ambiguities)
+# Total processing duration  ~ 1.2 minutes on 2-cores
+
+output_options:
+
+    config_description:             ex00
+    analysis_agency:                GAA
+    analysis_center:                Geoscience Australia
+    analysis_program:               AUSACS
+    rinex_comment:                  AUSNETWORK1
+    
+
+input_files:
+
+    root_input_directory: products/
+
+    atxfiles: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
+    snxfiles: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
+    blqfiles: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
+    #navfiles: [ brdm1990.19p        ]  # broadcast navigation file
+    sp3files: [ igs20624.sp3        ]  # satellite orbit files in SP3 format
+    clkfiles: [ COD0R03FIN_20191990000_01D_30S_CLK.CLK       ] 
+    bsxfiles: [ COD0R03FIN_20191990000_01D_01D_OSB.BIA       ]
+    #clkfiles: [ igs20624.clk_30s    ]  # Clk files
+    
+
+station_data:
+
+    root_stations_directory: data/
+
+    rnxfiles:
+        # Select files to run by:
+        - "T*.rnx" 
+        # - "*.rnx"                                       # - searching all in file_root directory
+        # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
+                                                          # - selecting one on the command line using the -rnxfiles option
+
+output_files:
+
+    root_output_directory:          <CONFIG>/
+
+    output_trace:                   true
+    trace_level:                    2
+    trace_directory:                ./
+    trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
+
+    output_residuals:               true
+
+    output_sinex:                   true
+    sinex_directory:                ./
+    
+    output_clocks:                  true
+    clocks_directory:               ./
+    clocks_filename:                <CONFIG><LOGTIME>.clk
+    
+    output_summary:                 true
+
+    output_mongo_measurements:      true
+    output_mongo_states:            true
+    output_mongo_metadata:          false
+    #delete_mongo_history:           true
+    mongo_uri:                      mongodb://127.0.0.1:27017
+    #mongo_suffix:                   user
+    mongo_suffix:                   pppnetx3
+
+processing_options:
+
+    #start_epoch:                2019-07-18 23:44:30
+    #end_epoch:                  2019-07-18 23:59:30
+    epoch_interval:             30          #seconds
+    #max_epochs:                 10        #0 is infinite
+
+    process_modes:
+        #user:                   true
+        ppp:                    true
+        #network:                true
+        #minimum_constraints:    true
+        #rts:                    true
+        #ionosphere:             true
+
+    process_sys:
+        gps:            true
+        glo:            false
+        gal:            false
+        bds:            false
+
+    process_freq:
+        l1:            true
+        l2:            true
+        l5:            true
+        
+    elevation_mask:     7   #degrees
+
+    ionosphere:
+        common_ionosphere:  true
+
+    tide_solid:         true
+    tide_pole:          true
+    tide_otl:           true
+
+    phase_windup:       true
+    reject_eclipse:     true            #  reject observation during satellite eclipse periods
+    raim:               true
+    antexacs:           true
+
+    cycle_slip:
+        thres_slip:     0.05
+
+    max_inno:   0
+    max_gdop:   30
+
+    troposphere:
+        model:      vmf3    #gpt2
+        vmf3dir:    grid5/
+        orography:  orography_ell_5x5
+        # gpt2grid: EX03/general/gpt_25.grd
+
+    # pivot_station:        "USN7"
+    # pivot_satellite:      "G01"
+
+    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L,
+                        L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                        L5I, L5Q, L5X]
+
+user_filter_parameters:
+
+    max_filter_iterations:      5 #5
+    max_prefit_removals:        3 #5
+
+    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
+    rts_directory:              ./
+    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+
+    inverter:                   LDLT         #LLT LDLT INV
+ 
+
+network_filter_parameters:
+    max_filter_iterations:      5 #5
+    max_prefit_removals:        23 #5
+
+    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
+    rts_directory:              ./
+    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+
+    inverter:                   LDLT
+    
+    chunk_stations:             true
+    
+    
+default_filter_parameters:
+
+    stations:
+
+        error_model:        elevation_dependent
+        code_sigmas:        [0.15]
+        phase_sigmas:       [0.0015]
+
+        pos:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0]
+            proc_noise_dt:      second
+
+        clk:
+            estimated:          true
+            sigma:              [30]
+            proc_noise:         [10]
+            proc_noise_dt:      second
+
+        clk_rate:
+            estimated:          false
+            sigma:              [500]
+            proc_noise:         [1e-4]
+            proc_noise_dt:      second
+
+        amb:
+            estimated:          true
+            sigma:              [60]
+            proc_noise:         [0]
+            
+        code_bias:
+            estimated:          true
+            sigma:              [100]
+            #proc_noise:         [0.001]
+            
+        phase_bias:
+            estimated:          true
+            sigma:              [1]
+            #proc_noise:         [0.001]
+
+        trop:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0.0001] #0.1 mm/sqrt(s)
+            proc_noise_dt:      second
+
+        trop_grads:
+            estimated:          true
+            sigma:              [0.02]
+            proc_noise:         [1.0E-6]
+            proc_noise_dt:      second
+
+        ion:
+            estimated:          true
+            sigma:              [20]
+            proc_noise:         [5]
+            proc_noise_dt:      second
+            
+    satellites:
+
+        #clk:
+            #estimated:          true
+            #sigma:              [1000]
+            #proc_noise:         [1]
+            
+        #code_bias:
+            #estimated:          true
+            #sigma:              [1]
+            ##proc_noise:         [0.001]
+            
+        #phase_bias:
+            #estimated:          true
+            #sigma:              [1]
+            ##proc_noise:         [0.001]

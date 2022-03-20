@@ -1,4 +1,7 @@
 
+// #pragma GCC optimize ("O0")
+
+
 
 
 #include <boost/archive/binary_oarchive.hpp>
@@ -285,7 +288,7 @@ bool TestStack::checkMat(
 	bool fail = false;
 	for (int i = 0; i < n; i++)
 	{
-		if (std::isnan(mat[i]))		//todo aaron, eigen has internal versions of these
+		if (std::isnan(mat[i]))
 		{
 			TestOutputStream << std::endl << stack << " has NAN at " << i << std::endl;
 
@@ -369,17 +372,17 @@ void TestStack::testMat(
 	}
 
 	int		errorCount = 0;
-	int		firstI;
-	double	firstA;
-	double	firstB;
-	int		maxI;
-	double	maxA;
-	double	maxB;
+	int		firstI	= -1;
+	double	firstA	= -1;
+	double	firstB	= -1;
+	int		maxI	= -1;
+	double	maxA	= -1;
+	double	maxB	= -1;
 	double	maxFrac = 0;
 	bool	nan = false;
 	bool	inf = false;
 
-	auto& data = entry->second;
+	auto& [dummy, data] = *entry;
 
 	bool sizeOk = true;
 
@@ -789,3 +792,43 @@ void TestStack::testStr(
 #endif
 }
 
+
+
+
+
+
+
+void ErrorExit::consume(
+	boost::log::record_view																	const&	rec,
+	sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	log_string)
+{
+	int logLevel = 0;
+	auto attrs = rec.attribute_values();
+	auto sev = attrs[boost::log::trivial::severity].get();
+	switch (sev)
+	{
+		case boost::log::trivial::trace:			logLevel = 5;			break;
+		case boost::log::trivial::debug:			logLevel = 4;			break;
+		case boost::log::trivial::info:				logLevel = 3;			break;
+		case boost::log::trivial::warning:			logLevel = 2;			break;
+		case boost::log::trivial::error:			logLevel = 1;			break;
+		case boost::log::trivial::fatal:			logLevel = 0;			break;
+	}
+
+	if (logLevel <= acsConfig.fatal_level)
+	{
+		exit(1);
+	}
+}
+
+
+void exitOnErrors()
+{
+	// Construct the sink
+	using LogSink = sinks::synchronous_sink<ErrorExit>;
+
+	boost::shared_ptr<LogSink> logSink = boost::make_shared<LogSink>();
+
+	// Register the sink in the logging core
+	boost::log::core::get()->add_sink(logSink);
+}

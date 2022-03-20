@@ -86,7 +86,7 @@ SUBROUTINE yaw_bds (mjd, r_sat, v_sat, r_sun, orbtype, satbf, BetaP, NPint, &
       REAL (KIND = prec_d) :: delta_Yaw, delta_Yaw_rad
       REAL (KIND = prec_d) :: Rz_yaw(3,3)
 ! ----------------------------------------------------------------------
-      REAL (KIND = prec_d) :: mjdtest
+!       REAL (KIND = prec_d) :: mjdtest
 
 ! ANOON,ANIGHT variables to be removed
       REAL (KIND = prec_d) :: ANOON, ANIGHT

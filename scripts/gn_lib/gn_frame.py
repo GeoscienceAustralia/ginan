@@ -1,4 +1,6 @@
 '''frame of day generation module'''
+import logging
+
 import numpy as _np
 import pandas as _pd
 
@@ -29,7 +31,7 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
     # assert tech_name in ['GPS', 'VLBI', 'SLR',
     #                      'DORIS'], f'{tech_name} not in the TECH list'
 
-    if isinstance(date_or_j2000, _np.int64):
+    if isinstance(date_or_j2000, int):
         date_J2000 = date_or_j2000
     else:
         date_J2000 = (_np.datetime64(date_or_j2000) -
@@ -41,7 +43,7 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
     elif isinstance(discon_path_or_df,str):
         discon_df = _read_discontinuities(discon_path_or_df)
     else:
-        print('check discon_path_or_df')
+        logging.error(msg='check discon_path_or_df')
 
     #itrf sinex file
     if isinstance(itrf_path_or_df, _pd.DataFrame):
@@ -50,7 +52,7 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
         output = _get_snx_vector_gzchunks(
             filename=itrf_path_or_df, block_name='SOLUTION/ESTIMATE')
     else:
-        print('check itrf_path_or_df')
+        logging.error(msg='check itrf_path_or_df')
 
     discon_valid = discon_df[(discon_df.MODEL == 'P')
                            & (discon_df.BEGIN != -999999999)
@@ -84,12 +86,12 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
         elif isinstance(list_path_or_df,_np.ndarray) or isinstance(list_path_or_df,list):
             core_list = list_path_or_df
         else:
-            print('check list_path_or_df')
+            logging.error(msg='check list_path_or_df')
         out_mask = out.CODE.isin(core_list)
         if out_mask.sum()>0:
             out = out[out_mask] 
         else:
-            print('list stations are not in frame')
+            logging.error(msg='list stations are not in frame')
             return None
 
     # test3 =  test3[~test3.index.str.contains(pat='P\d{3}.')] #remove thise weird sites P104 etc
@@ -99,7 +101,7 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
 
     duplicated_mask = combo_index.duplicated()
     if duplicated_mask.sum() > 0:
-        print(f'Removed duplicates of stations: {combo_index[duplicated_mask].get_level_values(0).unique().tolist()}')
+        logging.warning(msg=f'Removed duplicates of stations: {combo_index[duplicated_mask].get_level_values(0).unique().tolist()}')
         out_xyzvel = out.EST[~duplicated_mask].copy()
         out_xyzvel.index = combo_index[~duplicated_mask]
     else:
@@ -124,7 +126,7 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
         elif isinstance(psd_path_or_df,str):
             psd_df = _get_psd_df(psd_path_or_df)
         else:
-            print('check psd_path_or_df')
+            logging.error(msg='check psd_path_or_df')
         out = psd2frame(frame_of_day=out, psd_df=psd_df)
     return out
 

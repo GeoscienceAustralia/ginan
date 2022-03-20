@@ -16,13 +16,8 @@ using std::pair;
 #include "common.hpp"
 #include "acsQC.hpp"
 
-/* new matrix ------------------------------------------------------------------
-* allocate memory of matrix
-* args   : int    n,m       I   number of rows and columns of matrix
-* return : matrix pointer (if n<=0 or m<=0, return NULL)
-*-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern double *mat(int n, int m)
+double *mat(int n, int m)
 {
 	double *p;
 
@@ -32,13 +27,8 @@ extern double *mat(int n, int m)
 	}
 	return p;
 }
-/* new integer matrix ----------------------------------------------------------
-* allocate memory of integer matrix
-* args   : int    n,m       I   number of rows and columns of matrix
-* return : matrix pointer (if n<=0 or m<=0, return NULL)
-*-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern int *imat(int n, int m)
+int *imat(int n, int m)
 {
 	int *p;
 
@@ -48,13 +38,8 @@ extern int *imat(int n, int m)
 	}
 	return p;
 }
-/* zero matrix -----------------------------------------------------------------
-* generate new zero matrix
-* args   : int    n,m       I   number of rows and columns of matrix
-* return : matrix pointer (if n<=0 or m<=0, return NULL)
-*-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern double *zeros(int n, int m)
+double *zeros(int n, int m)
 {
 	double *p;
 
@@ -68,13 +53,8 @@ extern double *zeros(int n, int m)
 #endif
 	return p;
 }
-/* identity matrix -------------------------------------------------------------
-* generate new identity matrix
-* args   : int    n         I   number of rows and columns of matrix
-* return : matrix pointer (if n<=0, return NULL)
-*-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern double *eye(int n)
+double *eye(int n)
 {
 	double *p;
 	int i;
@@ -82,58 +62,27 @@ extern double *eye(int n)
 	if ((p=zeros(n,n))) for (i=0;i<n;i++) p[i+i*n]=1.0;
 	return p;
 }
-/* inner product ---------------------------------------------------------------
-* inner product of vectors
-* args   : double *a,*b     I   vector a,b (n x 1)
-*          int    n         I   size of vector a,b
-* return : a'*b
-*-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern double dot(const double *a, const double *b, int n)
+double dot(const double *a, const double *b, int n)
 {
 	double c=0.0;
 
 	while (--n>=0) c+=a[n]*b[n];
 	return c;
 }
-/* euclid norm -----------------------------------------------------------------
-* euclid norm of vector
-* args   : double *a        I   vector a (n x 1)
-*          int    n         I   size of vector a
-* return : || a ||
-*-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern double norm(const double *a, int n)
+double norm(const double *a, int n)
 {
 	return sqrt(dot(a,a,n));
 }
-/* copy matrix -----------------------------------------------------------------
-* copy matrix
-* args   : double *A        O   destination matrix A (n x m)
-*          double *B        I   source matrix B (n x m)
-*          int    n,m       I   number of rows and columns of matrix
-* return : none
-*-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern void matcpy(double *A, const double *B, int n, int m)
+void matcpy(double *A, const double *B, int n, int m)
 {
 	memcpy(A,B,sizeof(double)*n*m);
 }
-/* matrix routines -----------------------------------------------------------*/
-#ifdef LAPACK /* with LAPACK/BLAS or MKL */
-
-/* multiply matrix (wrapper of blas dgemm) -------------------------------------
-* multiply matrix by matrix (C=alpha*A*B+beta*C)
-* args   : char   *tr       I  transpose flags ("N":normal,"T":transpose)
-*          int    n,k,m     I  size of (transposed) matrix A,B
-*          double alpha     I  alpha
-*          double *A,*B     I  (transposed) matrix A (n x m), B (m x k)
-*          double beta      I  beta
-*          double *C        IO matrix C (n x k)
-* return : none
-*-----------------------------------------------------------------------------*/
+#ifdef LAPACK 
 [[deprecated]]
-extern void matmul(const char *tr, int n, int k, int m, double alpha,
+void matmul(const char *tr, int n, int k, int m, double alpha,
 				const double *A, const double *B, double beta, double *C)
 {
 	int lda=tr[0]=='T'?m:n,ldb=tr[1]=='T'?k:m;
@@ -141,14 +90,8 @@ extern void matmul(const char *tr, int n, int k, int m, double alpha,
 	dgemm_((char *)tr,(char *)tr+1,&n,&k,&m,&alpha,(double *)A,&lda,(double *)B,
 		&ldb,&beta,C,&n);
 }
-/* inverse of matrix -----------------------------------------------------------
-* inverse of matrix (A=A^-1)
-* args   : double *A        IO  matrix (n x n)
-*          int    n         I   size of matrix A
-* return : status (0:ok,0>:error)
-*-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern int matinv(double *A, int n)
+int matinv(double *A, int n)
 {
 	double *work;
 	int info,lwork=n*16,*ipiv=imat(n,1);
@@ -171,7 +114,7 @@ extern int matinv(double *A, int n)
 *          X can be same as Y
 *-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern int solve(const char *tr, const double *A, const double *Y, int n,
+int solve(const char *tr, const double *A, const double *Y, int n,
 				int m, double *X)
 {
 	double *B=mat(n,n);
@@ -189,7 +132,7 @@ extern int solve(const char *tr, const double *A, const double *Y, int n,
 
 /* multiply matrix -----------------------------------------------------------*/
 [[deprecated]]
-extern void matmul(const char *tr, int n, int k, int m, double alpha,
+void matmul(const char *tr, int n, int k, int m, double alpha,
 				const double *A, const double *B, double beta, double *C)
 {
 	double d;
@@ -206,7 +149,6 @@ extern void matmul(const char *tr, int n, int k, int m, double alpha,
 		if (beta==0.0) C[i+j*n]=alpha*d; else C[i+j*n]=alpha*d+beta*C[i+j*n];
 	}
 }
-/* LU decomposition ----------------------------------------------------------*/
 [[deprecated]]
 int ludcmp(double *A, int n, int *indx, double *d)
 {
@@ -242,7 +184,6 @@ int ludcmp(double *A, int n, int *indx, double *d)
 	free(vv);
 	return 0;
 }
-/* LU back-substitution ------------------------------------------------------*/
 [[deprecated]]
 void lubksb(const double *A, int n, const int *indx, double *b)
 {
@@ -258,25 +199,26 @@ void lubksb(const double *A, int n, const int *indx, double *b)
 		s=b[i]; for (j=i+1;j<n;j++) s-=A[i+j*n]*b[j]; b[i]=s/A[i+i*n];
 	}
 }
-/* inverse of matrix ---------------------------------------------------------*/
 [[deprecated]]
-extern int matinv(double *A, int n)
+int matinv(double *A, int n)
 {
 	double d,*B;
 	int i,j,*indx;
 
 	indx=imat(n,1); B=mat(n,n); matcpy(B,A,n,n);
 	if (ludcmp(B,n,indx,&d)) {free(indx); free(B); return -1;}
-	for (j=0;j<n;j++) {
-		for (i=0;i<n;i++) A[i+j*n]=0.0; A[j+j*n]=1.0;
+	for (j=0;j<n;j++)
+	{
+		for (i=0;i<n;i++) 
+			A[i+j*n]=0.0; 
+		A[j+j*n]=1.0;
 		lubksb(B,n,indx,A+j*n);
 	}
 	free(indx); free(B);
 	return 0;
 }
-/* solve linear equation -----------------------------------------------------*/
 [[deprecated]]
-extern int solve(const char *tr, const double *A, const double *Y, int n,
+int solve(const char *tr, const double *A, const double *Y, int n,
 				int m, double *X)
 {
 	double *B=mat(n,n);
@@ -288,33 +230,7 @@ extern int solve(const char *tr, const double *A, const double *Y, int n,
 	return info;
 }
 #endif
-/* end of matrix routines ----------------------------------------------------*/
 
-/* least square estimation -----------------------------------------------------
-* least square estimation by solving normal equation (x=(A*A')^-1*A*y)
-* args   : double *A        I   transpose of (weighted) design matrix (n x m)
-*          double *y        I   (weighted) measurements (m x 1)
-*          int    n,m       I   number of parameters and measurements (n<=m)
-*          double *x        O   estmated parameters (n x 1)
-*          double *Q        O   esimated parameters covariance matrix (n x n)
-* return : status (0:ok,0>:error)
-* notes  : for weighted least square, replace A and y by A*w and w*y (w=W^(1/2))
-*          matirix stored by column-major order (fortran convention)
-*-----------------------------------------------------------------------------*/
-extern int lsq(const double *A, const double *y, int n, int m, double *x,
-			double *Q)
-{
-	double *Ay;
-	int info;
-
-	if (m<n) return -1;
-	Ay=mat(n,1);
-	matmul("NN",n,1,m,1.0,A,y,0.0,Ay); /* Ay=A*y */
-	matmul("NT",n,n,m,1.0,A,A,0.0,Q);  /* Q=A*A' */
-	if (!(info=matinv(Q,n))) matmul("NN",n,1,n,1.0,Q,Ay,0.0,x); /* x=Q^-1*Ay */
-	free(Ay);
-	return info;
-}
 
 /* kalman filter ---------------------------------------------------------------
 * kalman filter state update as follows:
@@ -334,7 +250,7 @@ extern int lsq(const double *A, const double *y, int n, int m, double *x,
 *          if state x[i]==0.0, not updates state x[i]/P[i+i*n]
 *-----------------------------------------------------------------------------*/
 [[deprecated]]
-extern int filter_(const double *x, const double *P, const double *H,
+int filter_(const double *x, const double *P, const double *H,
 				const double *v, const double *R, int n, int m,
 				double *xp, double *Pp)
 {
@@ -355,30 +271,6 @@ extern int filter_(const double *x, const double *P, const double *H,
 	return info;
 }
 
-[[deprecated]]
-extern int filter(double *x, double *P, const double *H, const double *v,
-				const double *R, int n, int m)
-{
-	double *x_,*xp_,*P_,*Pp_,*H_;
-	int i,j,k,info,*ix;
-
-	ix=imat(n,1); for (i=k=0;i<n;i++) if (x[i]!=0.0&&P[i+i*n]>0.0) ix[k++]=i;
-	x_=mat(k,1); xp_=mat(k,1); P_=mat(k,k); Pp_=mat(k,k); H_=mat(k,m);
-	for (i=0;i<k;i++) {
-		x_[i]=x[ix[i]];
-		for (j=0;j<k;j++) P_[i+j*k]=P[ix[i]+ix[j]*n];
-		for (j=0;j<m;j++) H_[i+j*k]=H[ix[i]+j*n];
-	}
-	info=filter_(x_,P_,H_,v,R,k,m,xp_,Pp_);
-	for (i=0;i<k;i++) {
-		x[ix[i]]=xp_[i];
-		for (j=0;j<k;j++) P[ix[i]+ix[j]*n]=Pp_[i+j*k];
-	}
-	free(ix); free(x_); free(xp_); free(P_); free(Pp_); free(H_);
-	return info;
-}
-
-
 /* least-squares and quality control by chi-square testing  --------------------
 * args     :       file   *fp              I       output file
 *                  double *H               I       design matrix (mxn)
@@ -390,46 +282,40 @@ extern int filter(double *x, double *P, const double *H, const double *v,
 *                  int n                   I       number of unknowns (always 2)
 *
 * return   :       0 - no cycle slip, 1 - cycle slip detected
-*
-* ref [2], weighted ionosphere model
 * ---------------------------------------------------------------------------*/
-extern int lsqqc(
+int lsqqc(
 	Trace&	trace,
 	const double *H,
 	const double *P,
 	const double *Z,
 	double *v,
-	double *xo,
-	double *Po,
 	int m,
 	int n,
 	int ind,
-	int norb)
+	int norb,
+	double *xo,
+	double *Po)
 {
-	double *xp, *N, *N1, *Pp, *vtp, *L, *g, *S;
-	int info = 0, i;
-
-	/* memory allocation */
-	xp = mat(n, 1);
-	N = mat(n, m);
-	Pp = mat(n, n);
-	N1 = mat(n, 1);
-	vtp = mat(1, m);
-	L = mat(n, n);
-	g = mat(n, 1);
-
-	S = zeros(n, n);
+	double* xp	= mat(n, 1);
+	double* N	= mat(n, m);
+	double* N1	= mat(n, 1);
+	double* Pp	= mat(n, n);
+	double* vtp	= mat(1, m);
+	double* L	= mat(n, n);
+	double* g	= mat(n, 1);
+	double* S	= zeros(n, n);
+	int info = 0;
 
 	/* least-squares */
-	matmul("TN", n, m, m, 1.0, H, P, 0.0, N); /* H'*P */
-	matmul("NN", n, n, m, 1.0, N, H, 0.0, Pp); /* H'*P*H */
-	matmul("NN", n, 1, m, 1.0, N, Z, 0.0, N1); /* Nl=H'*P*Z */
+	matmul("TN", n, m, m, 1, H, P, 0, N); /* H'*P */
+	matmul("NN", n, n, m, 1, N, H, 0, Pp); /* H'*P*H */
+	matmul("NN", n, 1, m, 1, N, Z, 0, N1); /* Nl=H'*P*Z */
 
 	//TODO build constraint matrix about here
 	/* constrain the 1st epoch LS orbit estimation, to be refined */
 	if (norb > 0)
 	{
-		for (i = 0; i < norb; i++)
+		for (int i = 0; i < norb; i++)
 		{
 			Pp[i + i * n] += 1E6;
 		}
@@ -445,9 +331,9 @@ extern int lsqqc(
 		info = chiqc(trace, H, P, Z, xp, v, m, n, ind);
 
 		/* for output */
-		if (xo != NULL)
+		if (xo)
 			matcpy(xo, xp, n, 1);
-		if (Po != NULL)
+		if (Po)
 			matcpy(Po, Pp, n, n);
 	}
 	else
@@ -478,10 +364,8 @@ extern int lsqqc(
 *                  int n                   I       number of unknowns
 *
 * return   :       0 - no outlier, 1 - outlier detected
-*
-* ref [2], weighted ionosphere model
 * ---------------------------------------------------------------------------*/
-extern int chiqc(
+int chiqc(
 	Trace&	trace,
 	const double *H,
 	const double *P,
@@ -493,33 +377,34 @@ extern int chiqc(
 	int ind)
 {
 	int info = 0;
-	double *vtp = mat(1, m), vtpv = 0.0, val, thres;
+	double* vtp = mat(1, m);
+	double vtpv = 0;
+	double val;
+	double thres;
 
 	matcpy(v, Z, m, 1);
 
 	/* calculate vtpv for chi-square testing */
-	matmul("NN", m, 1, n, 1.0, H, xp, -1.0, v); /* v = H*xp-v */
-	matmul("TN", 1, m, m, 1.0, v, P, 0.0, vtp); /* vtpv */
-	matmul("NN", 1, 1, m, 1.0, vtp, v, 0.0, &vtpv);
+	matmul("NN", m, 1, n, 1, H,		xp, -1, v);		/* v = H*xp-v */
+	matmul("TN", 1, m, m, 1, v,		P,	 0, vtp);	/* vtpv */
+	matmul("NN", 1, 1, m, 1, vtp,	v,	 0, &vtpv);
 
 	if (ind == 0)
 	{
 		val = vtpv / (m - n);
 #if (1)
-		thres = chisqr[m - n - 1] / (m - n);
+		thres = chisqr_arr[m - n - 1] / (m - n);
 #else
-		thres=3.0;
+		thres = 3;
 #endif
 	}
 	else
 	{
 		val = vtpv / m;
-		thres = 35.0;
+		thres = 35;
 	}
 
 	tracepdeex(2, trace, "     vtpv=%8.1f val=%8.1f thres=%6.2f %4d %4d", vtpv, val, thres, m, n);
-	//TODO change this to boost info
-	//printf("     vtpv=%8.1f val=%8.1f thres=%6.2f %4d %4d\n",vtpv,val,thres,m,n);
 	/* chi-square validation */
 	if (val > thres)
 	{

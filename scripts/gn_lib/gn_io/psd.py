@@ -3,7 +3,7 @@ from .sinex import _get_snx_vector
 
 def _get_psd_df(psd_snx_path):
     '''we ignore the monument'''
-    psd_df = _get_snx_vector(path_or_bytes=psd_snx_path,stypes=['EST'])
+    psd_df = _get_snx_vector(path_or_bytes=psd_snx_path,stypes=['EST'],snx_format=None)
     # a['CODE_PT']=a.CODE.values + '_' + a.PT.values.astype(object)
     #monument is always A in psd file, cumcount is used as index if n
     # parameters of the same type are present for the same event

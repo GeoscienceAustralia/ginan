@@ -1,12 +1,15 @@
 
+// #pragma GCC optimize ("O0")
+
 #include <math.h>
 
 #include "streamTrace.hpp"
 #include "acsConfig.hpp"
-#include "constants.h"
+#include "constants.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
 #include "tides.hpp"
+#include "erp.hpp"
 #include "vmf3.h"
 
 #define AS2R        (D2R/3600.0)    /* arc sec to radian */
@@ -16,7 +19,7 @@
 
 /* function prototypes -------------------------------------------------------*/
 #ifdef IERS_MODEL
-extern int dehanttideinel_(double *xsta, int *year, int *mon, int *day,
+int dehanttideinel_(double *xsta, int *year, int *mon, int *day,
 						double *fhr, double *xsun, double *xmon,
 						double *dxtide);
 #endif
@@ -103,7 +106,7 @@ void tide_solid(
 #endif /* !IERS_MODEL */
 
 /* displacement by ocean tide loading (ref [2] 7) ----------------------------*/
-void tide_oload(GTime tut, const double *odisp, double *denu)
+void tide_oload(GTime tut, const double *otlDisplacement, double *denu)
 {
 	const double args[][5]={
 		{1.40519E-4, 2.0,-2.0, 0.0, 0.00},  /* M2 */
@@ -128,7 +131,7 @@ void tide_oload(GTime tut, const double *odisp, double *denu)
 	time2epoch(tut,ep);
 	fday=ep[3]*3600.0+ep[4]*60.0+ep[5];
 	ep[3]=ep[4]=ep[5]=0.0;
-	days=timediff(epoch2time(ep),epoch2time(ep1975))/86400.0+1.0;
+	days = (epoch2time(ep) - epoch2time(ep1975))/86400.0+1.0;
 	t=(27392.500528+1.000000035*days)/36525.0;
 	t2=t*t; t3=t2*t;
 
@@ -139,10 +142,11 @@ void tide_oload(GTime tut, const double *odisp, double *denu)
 	a[4]=2.0*PI;
 
 	/* displacements by 11 constituents */
-	for (i=0;i<11;i++) {
+	for (i=0;i<11;i++) 
+	{
 		ang=0.0;
-		for (j=0;j<5;j++) ang+=a[j]*args[i][j];
-		for (j=0;j<3;j++) dp[j]+=odisp[j+i*6]*cos(ang-odisp[j+3+i*6]*D2R);
+		for (j=0;j<5;j++) ang	+= a[j]*args[i][j];
+		for (j=0;j<3;j++) dp[j]	+= otlDisplacement[j+i*6]*cos(ang-otlDisplacement[j+3+i*6]*D2R);
 	}
 	denu[0]=-dp[1];
 	denu[1]=-dp[2];
@@ -156,7 +160,7 @@ void iers_mean_pole(GTime tut, double *xp_bar, double *yp_bar)
 	const double ep2000[]={2000,1,1,0,0,0};
 	double y,y2,y3;
 
-	y=timediff(tut,epoch2time(ep2000))/86400.0/365.25;
+	y = (tut - epoch2time(ep2000))/86400.0/365.25;
 
 	if (y<3653.0/365.25) { /* until 2010.0 */
 		y2=y*y; y3=y2*y;
@@ -169,8 +173,11 @@ void iers_mean_pole(GTime tut, double *xp_bar, double *yp_bar)
 	}
 }
 /* displacement by pole tide (ref [7] eq.7.26) --------------------------------*/
-void tide_pole(GTime tut, const double *pos, const double *erpv,
-					double *denu)
+void tide_pole(
+	GTime			tut,
+	const double*	pos, 
+	ERPValues&		erpv,
+	double*			denu)
 {
 	double xp_bar,yp_bar,m1,m2,cosl,sinl;
 
@@ -180,8 +187,8 @@ void tide_pole(GTime tut, const double *pos, const double *erpv,
 	iers_mean_pole(tut,&xp_bar,&yp_bar);
 
 	/* ref [7] eq.7.24 */
-	m1= erpv[0]/AS2R-xp_bar*1E-3; /* (as) */
-	m2=-erpv[1]/AS2R+yp_bar*1E-3;
+	m1= erpv.xp/AS2R-xp_bar*1E-3; /* (as) */
+	m2=-erpv.yp/AS2R+yp_bar*1E-3;
 
 	/* sin(2*theta) = sin(2*phi), cos(2*theta)=-cos(2*phi) */
 	cosl=cos(pos[1]);
@@ -201,8 +208,8 @@ void tide_pole(GTime tut, const double *pos, const double *erpv,
 *                                 2: ocean tide loading
 *                                 4: pole tide
 *                                 8: elimate permanent deformation
-*          double *erp      I   earth rotation parameters (NULL: not used)
-*          double *odisp    I   ocean loading parameters  (NULL: not used)
+*          double *erp      I   earth rotation parameters (nullptr: not used)
+*          double *odisp    I   ocean loading parameters  (nullptr: not used)
 *                                 odisp[0+i*6]: consituent i amplitude radial(m)
 *                                 odisp[1+i*6]: consituent i amplitude west  (m)
 *                                 odisp[2+i*6]: consituent i amplitude south (m)
@@ -221,11 +228,14 @@ void tidedisp(
 	Trace&			trace,
 	GTime			tutc,
 	Vector3d&		recPos,
-	const erp_t*	erp,
-	const double*	odisp,
-	Vector3d&		dr)
+	ERP&			erp,
+	const double*	otlDisplacement,
+	Vector3d&		dr,
+	Vector3d*		solid_ptr,
+	Vector3d*		otl_ptr,
+	Vector3d*		pole_ptr)
 {
-	double pos[2],E[9],drt[3],denu[3],rs[3],rm[3],gmst,erpv[5]={0};
+	double pos[2],E[9],drt[3],denu[3],gmst;
 	double ep[6];
 	int lv = 3;
 #ifdef IERS_MODEL
@@ -238,10 +248,10 @@ void tidedisp(
 
 	tracepde(3,trace,"tidedisp: tutc=%s\n", tutc.to_string(0).c_str());
 
-	if (erp)
-		geterp(erp, tutc, erpv);
+	ERPValues erpv;
+	geterp(erp, tutc, erpv);
 
-	GTime tut = timeadd(tutc, erpv[2]);
+	GTime tut = tutc + erpv.ut1_utc;
 
 	dr = Vector3d::Zero();
 
@@ -257,7 +267,9 @@ void tidedisp(
 		/* solid earth tides */
 
 		/* sun and moon position in ecef */
-		sunmoonpos(tutc, erpv, rs, rm, &gmst);
+		Vector3d rs;
+		Vector3d rm;
+		sunmoonpos(tutc, erpv, &rs, &rm, &gmst);
 
 #ifdef IERS_MODEL
 		time2epoch(tutc,ep);
@@ -269,35 +281,57 @@ void tidedisp(
 		/* call DEHANTTIDEINEL */
 		dehanttideinel_((double*)rr, &year, &mon, &day, &fhr, rs, rm, drt);
 #else
-		tide_solid(rs, rm, pos, E, gmst, drt);
+		tide_solid(rs.data(), rm.data(), pos, E, gmst, drt);
 #endif
-
+		
 		for (int i = 0; i < 3; i++)
+		{
 			dr(i) += drt[i];
+			
+			if (solid_ptr)
+			{
+				solid_ptr->data()[i] = drt[i];
+			}
+		}
 
 		tracepde(lv, trace," %.6f      tide (solid)         = %14.4f %14.4f %14.4f\n",mjd,drt[0],drt[1],drt[2]);
 	}
+	
 	if	( acsConfig.tide_otl
-		&&odisp)
+		&&otlDisplacement)
 	{
 		/* ocean tide loading */
-		tide_oload(tut, odisp, denu);
+		tide_oload(tut, otlDisplacement, denu);
 		matmul("TN", 3, 1, 3, 1, E, denu, 0, drt);
 
 		for (int i = 0; i < 3; i++)
+		{
 			dr(i) += drt[i];
+			
+			if (otl_ptr)
+			{
+				otl_ptr->data()[i] = drt[i];
+			}
+		}
 
 		tracepde(lv, trace, " %.6f      tide (ocean)         = %14.4f %14.4f %14.4f\n", mjd, drt[0], drt[1], drt[2]);
 	}
-	if 	( acsConfig.tide_pole
-		&&erp)
+	
+	if 	(acsConfig.tide_pole)
 	{
 		/* pole tide */
-		tide_pole(tut,pos, erpv, denu);
+		tide_pole(tut, pos, erpv, denu);
 		matmul("TN", 3, 1, 3, 1, E, denu, 0, drt);
 
 		for (int i = 0; i < 3; i++)
+		{
 			dr(i) += drt[i];
+			
+			if (pole_ptr)
+			{
+				pole_ptr->data()[i] = drt[i];
+			}
+		}
 
 		tracepde(lv, trace, " %.6f      tide (pole)          = %14.4f %14.4f %14.4f\n",mjd,drt[0],drt[1],drt[2]);
 	}

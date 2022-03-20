@@ -71,92 +71,10 @@ Tzupang Tseng, Umma Zannat}
 }
 \lstset{style=mystyle}
 
-%
-%\usepackage[backend=biber, natbib=true, style=numeric]{biblatex}
-%\addbibresource{sample-handout.bib}
-\usepackage{xargs}
-\renewcommandx{\cite}[3][1={0pt},2={}]{\sidenote[][#1]{\fullcite[#2]{#3}}}
-
-%%
-% Book metadata
-\title{Ginan}
-\date{Version 1.0-alpha}
-\author[The Ginan team]{
-Sebastien Allegyer,
-John Donovan,
-Ken Harima,
-Aaron Hammond,
-Lavanya Kumarappan,
-Tao Li,
-Ronald Maj,
-Bogdan Matviichuk,
-Simon McClusky,
-Michael Moore,
-Thomas Papanikolaou,
-Tzupang Tseng,
-Umma Zannat
-}
-\publisher{Geoscience Australia and Frontier-SI}
-
-%%
-% If they're installed, use Bergamo and Chantilly from www.fontsite.com.
-% They're clones of Bembo and Gill Sans, respectively.
-\IfFileExists{bergamo.sty}{\usepackage[osf]{bergamo}}{}% Bembo
-\IfFileExists{chantill.sty}{\usepackage{chantill}}{}% Gill Sans
-
-%\usepackage{microtype}
-
-%%
-% Just some sample text
-\usepackage{lipsum}
-
-%%
-% For nicely typeset tabular material
-\usepackage{booktabs}
-
-%%
-% For graphics / images
-\usepackage{graphicx}
-\setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
-\graphicspath{{graphics/}}
-
-% The fancyvrb package lets us customize the formatting of verbatim
-% environments.  We use a slightly smaller font.
-\usepackage{fancyvrb}
-\fvset{fontsize=\normalsize}
-
-\usepackage{tikz}
-%\usetikzlibrary{external}
-%\tikzexternalize[prefix=tikz/]
-\usetikzlibrary{shapes.geometric, arrows}
-%%
-% Prints argument within hanging parentheses (i.e., parentheses that take
-% up no horizontal space).  Useful in tabular environments.
-\newcommand{\hangp}[1]{\makebox[0pt][r]{(}#1\makebox[0pt][l]{)}}
-
-%%
-% Prints an asterisk that takes up no horizontal space.
-% Useful in tabular environments.
-\newcommand{\hangstar}{\makebox[0pt][l]{*}}
-
-%%
-% Prints a trailing space in a smart way.
-\usepackage{xspace}
-
-\usepackage{amsmath}
-\usepackage[colorlinks]{hyperref}
-%%
-% Some shortcuts for Tufte's book titles.  The lowercase commands will
-% produce the initials of the book title in italics.  The all-caps commands
-% will print out the full title of the book in italics.
-%\newcommand{\vdqi}{\textit{VDQI}\xspace}
-%\newcommand{\ei}{\textit{EI}\xspace}
-%\newcommand{\ve}{\textit{VE}\xspace}
-%\newcommand{\be}{\textit{BE}\xspace}
-%\newcommand{\VDQI}{\textit{The Visual Display of Quantitative Information}\xspace}
-%\newcommand{\EI}{\textit{Envisioning Information}\xspace}
-%\newcommand{\VE}{\textit{Visual Explanations}\xspace}
-%\newcommand{\BE}{\textit{Beautiful Evidence}\xspace}
+% yaml styling below
+\newcommand\YAMLcolonstyle{\color{red}\mdseries}
+\newcommand\YAMLkeystyle{\color{black}\bfseries}
+\newcommand\YAMLvaluestyle{\color{blue}\mdseries}
 
 \makeatletter
 % here is a macro expanding to the name of the language

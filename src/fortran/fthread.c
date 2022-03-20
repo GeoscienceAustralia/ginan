@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 /* Defines for FORTRAN. NB the decorations are GFORTRAN compiler specific
  * Other compilers/platforms may need different ones and then will need to be some 
@@ -25,7 +28,9 @@
 #define THREAD_GET_MUTEX thread_get_mutex_
 #define THREAD_RELEASE_MUTEX thread_release_mutex_
 
-/*
+#define MKDIR mkdir_
+
+/**
  * THREAD_CREATE - create a new fortran thread 
  *
  * @param thread_func: function pointer: entry to the thread
@@ -36,7 +41,7 @@ void THREAD_CREATE(void *(*thread_func)(void *), pthread_t *thread_id) {
 }
 
 #ifdef __USE_GNU
-/*
+/**
  * THREAD_YIELD - yield control to other threads
  */
 void THREAD_YIELD() {
@@ -44,14 +49,14 @@ void THREAD_YIELD() {
 }
 #endif
 
-/*
+/**
  * THREAD_SELF - get my identifier
  */
 pthread_t THREAD_SELF() {
 	return pthread_self();
 }
 
-/* 
+/** 
  * THREAD_JOIN - wait until the marked thread joins (ends)
  */
 void THREAD_JOIN(pthread_t* theThread) {
@@ -60,14 +65,14 @@ void THREAD_JOIN(pthread_t* theThread) {
 	pthread_join(*theThread, (void **) &value);
 }
 
-/*
+/**
  * THREAD_EXIT - end the thread
  */
 void THREAD_EXIT(void *status) {
 	pthread_exit(status);
 }
 
-/*
+/**
  * THREAD_LOCK  - lock all threads on the mutex supplied
  */
 void THREAD_LOCK(pthread_mutex_t **theMutex) {
@@ -75,14 +80,14 @@ void THREAD_LOCK(pthread_mutex_t **theMutex) {
 	pthread_mutex_lock(*theMutex);
 }
 
-/*
+/**
  * THREAD_UNLOCK - unlock all threads held on the mutex supplied
  */
 void THREAD_UNLOCK(pthread_mutex_t **theMutex) {
 	pthread_mutex_unlock(*theMutex);
 }
 
-/*
+/**
  * THREAD_GET_MUTEX - get a new mutex object
  */
 int THREAD_GET_MUTEX(pthread_mutex_t **theMutex) {
@@ -94,11 +99,22 @@ int THREAD_GET_MUTEX(pthread_mutex_t **theMutex) {
 	return 1;
 }
 
-/* 
+/**
  * THREAD_RELEASE_MUTEX - release the mutex object
  */
 void THREAD_RELEASE_MUTEX(pthread_mutex_t **theMutex) {
 	pthread_mutex_destroy(*theMutex);
 	free(*theMutex);
 	*theMutex = NULL;
+}
+
+/**
+ * MKDIR - create a directory
+ */
+void MKDIR(const char *name, int *length) {
+	int mylen = *length;
+	char path[mylen + 1];
+	strncpy(path, name, mylen);
+	path[mylen] = '\0';
+	mkdir (path, 0775);
 }

@@ -6,12 +6,15 @@
 #include <time.h>
 #include <string>
 
+
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 using std::ostream;
 using std::string;
 
 struct GTime;
 
-void    time2str(GTime t, char *str, int n);
+void	time2str(GTime t, char *str, int n);
 
 /** Time structure used throughout this software
 */
@@ -24,11 +27,11 @@ struct GTime
 	*/
 	static GTime noTime()
 	{
-		GTime nothing = {};
+		GTime nothing;
 		return nothing;
 	}
 
-	string to_string(int n)
+	string to_string(int n) const
 	{
 		char buff[64];
 		time2str(*this, buff, n);
@@ -94,6 +97,11 @@ struct GTime
 		return time;
 	}
 	
+	GTime operator +(const int t) const
+	{
+		return *this + (double) t;
+	}
+	
 	GTime& operator+=(const double rhs)
 	{
 		*this = *this + rhs;
@@ -121,11 +129,40 @@ struct GTime
 		GTime time = *this + (-t);
 		return time;
 	}
+
+	operator double() const
+	{
+		return this->time + this->sec;
+	}
+	
+	
 	
 	GTime& operator++(int)
 	{
 		this->time++;
 		return *this;
+	}
+	
+	
+	boost::posix_time::ptime to_ptime()
+	{
+		return boost::posix_time::from_time_t(time);
+	}
+	
+	GTime()
+	{
+		
+	}
+	
+	GTime(int t, int s)
+	{
+		time	= t;
+		sec		= s;
+	}
+	
+	GTime(boost::posix_time::ptime p_time)
+	{
+		time = boost::posix_time::to_time_t(p_time);
 	}
 
 
@@ -136,10 +173,22 @@ struct GTime
 		ar & time_int;
 		time = time_int;
 	}
-};
 	
-GTime timeadd  (GTime t, double sec);
-double  timediff (GTime t1, GTime t2);
+	GTime roundTime(
+		int		period) const
+	{
+		GTime roundedTime = *this;
+		//round to nearest chunk by integer arithmetic
+		long int roundTime = roundedTime.time;
+		roundTime /= period;
+		roundTime *= period;
+		roundedTime.time = roundTime;
+		
+		return roundedTime;
+	}
+};
+
+	
 GTime gpst2utc (GTime t);
 GTime utc2gpst (GTime t);
 GTime gpst2bdt (GTime t);
@@ -151,17 +200,21 @@ int adjgpsweek(int week);
 
 /* time and string functions -------------------------------------------------*/
 double  str2num(const char *s, int i, int n);
-GTime epoch2time(const double *ep);
-GTime yds2time	(const int* yds);
+
+GTime	epoch2time	(const double *ep);
+GTime	yds2time	(const int* yds);
+
 void    time2epoch(GTime t, double *ep);
 void	epoch2yds(double *ep, int *yds);
-GTime gpst2time(int week, double sec);
-double  time2gpst(GTime t, int *week);
-GTime gst2time(int week, double sec);
-double  time2gst(GTime t, int *week);
-GTime bdt2time(int week, double sec);
-double  time2bdt(GTime t, int *week);
-char    *time_str(GTime t, int n);
+
+GTime	gpst2time(int week, double sec);
+double  time2gpst(GTime t, int *week = nullptr);
+
+GTime	gst2time(int week, double sec);
+double  time2gst(GTime t, int *week = nullptr);
+
+GTime	bdt2time(int week, double sec);
+double  time2bdt(GTime t, int *week = nullptr);
 
 int str2time(
 	const char*	s,
@@ -172,8 +225,11 @@ int str2time(
 
 void	jd2ymdhms(const double jd, double *ep);
 
+double	ymdhms2jd(const double time[6]);
 
-extern unsigned int tickget(void);
-extern void sleepms(int ms);
+double  gpst2mjd(const GTime time);
+
+double  utc2mjd(const GTime time);
+
 
 #endif

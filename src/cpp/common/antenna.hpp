@@ -17,7 +17,6 @@ using std::map;
 
 
 #include "streamTrace.hpp"
-#include "constants.h"
 #include "gTime.hpp"
 #include "enums.h"
 
@@ -25,7 +24,7 @@ using std::map;
 
 typedef map<E_FType, Vector3d> PcoMapType;
 
-struct pcvacs_t
+struct PhaseCenterData
 {
 	/* antenna parameter type */
 	int nf;						/* number of frequencies */
@@ -33,6 +32,7 @@ struct pcvacs_t
 	string code;				/* serial number or satellite code */
 	string svn;					/* SVN in satellites */
 	string cospar;				/* Cospar code satellites */
+	string calibModel;			/* name of the antenna calibration model */
 	double aziDelta;			/* azimuth increment (degree) */
 	double zenStart;
 	double zenStop;
@@ -46,32 +46,38 @@ struct pcvacs_t
 	map<int, 			vector<double>>		PCVMap1D;
 	map<int, map<int,	vector<double>>>	PCVMap2D;
 };
-typedef list<pcvacs_t> PcvList;
 
 
 //forward declaration for pointer below
-struct SatNav;
 struct SatSys;
 struct nav_t;
 
 void satantoff(
-	Trace&		trace,
-	GTime		time,
-	Vector3d&	rs,
-	SatSys&		Sat,
-	SatNav*		satNav_ptr,
-	Vector3d&	dant,
-	PcoMapType*	pcoMap_ptr);
+	Trace&				trace,
+	GTime				time,
+	Vector3d&			rs,
+	SatSys&				Sat,
+	map<int, double>&	lamMap,
+	Vector3d&			dant,
+	PcoMapType*			pcoMap_ptr);
+	
+void satantoff(
+	Trace&				trace,
+	GTime				time,
+	Vector3d&			rSat,
+	E_FType 			ft,
+	Vector3d&			dAnt,
+	PcoMapType*			pcoMap_ptr);
 
-void recpcv(pcvacs_t *pc, int freq, double el, double azi, double& pcv);
-void recpco(pcvacs_t *pc, int freq, Vector3d& pco);
-void satpcv(pcvacs_t *pc, double nadir, double *pcv);
+void recpcv(PhaseCenterData *pc, int freq, double el, double azi, double& pcv);
+void recpco(PhaseCenterData *pc, int freq, Vector3d& pco);
+void satpcv(PhaseCenterData *pc, double nadir, double *pcv);
 
 
-pcvacs_t* findAntenna(
-	string		code, 
-	double		tc[6],
-	nav_t&		nav);
+PhaseCenterData* findAntenna(
+	string	code,
+	GTime	time,
+	nav_t&	nav);
 
 int readantexf(
 	string file, 
@@ -81,7 +87,7 @@ void radome2none(
 	string& antenna_type);
 
 void interp_satantmodel(
-	pcvacs_t&			pcv,
+	PhaseCenterData&			pcv,
 	double				nadir,
 	map<int, double>&	dAntSat);
 
