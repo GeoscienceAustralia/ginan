@@ -1,41 +1,68 @@
 #ifndef RTCMENCODER_H
 #define RTCMENCODER_H
 
-#include "navigation.hpp"
-#include "satSys.hpp"
 #include "observations.hpp"
-#include "enums.h"
-#include "common.hpp"
+#include "navigation.hpp"
 #include "ntripTrace.hpp"
+#include "common.hpp"
+#include "satSys.hpp"
+#include "enums.h"
 
 
-struct RtcmEncoder
+using std::pair;
+
+typedef map<SatSys, pair<SSREph, SSRClk>> 	SsrCombMap;
+typedef map<SatSys, SSRPhasBias> 			SsrPBMap;
+typedef map<SatSys, SSRCodeBias>			SsrCBMap;
+typedef map<SatSys, SSROut> 				SsrClkOutMap;
+typedef map<SatSys, SSRClk>	 				SsrClkMap;
+typedef map<SatSys, SSREph>					SsrEphMap;
+
+
+void calculateSsrComb(
+	GTime 						curTime,
+	int 						udi,
+	SSRMeta 					ssrMeta,
+	int 						masterIod,
+	map<SatSys, SSROut>&		ssrOutMap);
+
+struct RtcmEncoder : RtcmTrace
 {
-	struct Encoder
+	RtcmEncoder(
+		string rtcmMountpoint		= "",
+		string rtcmTraceFilename	= "") : RtcmTrace{rtcmMountpoint, rtcmTraceFilename}
 	{
-		std::vector<uint8_t> data;
-        
-        void encodeWriteMessages(std::ostream& outputStream);
-        void encodeWriteMessageToBuffer(unsigned char * buf, int messLength);
-    };
- 
-    struct CustomEndcoder : Encoder
-    {
-        void encodeTimeStampRTCM();
-    };
-    
-	struct SSREncoder : Encoder
+		
+	}
+	
+	constexpr static int updateInterval[16] =
 	{
-		void encodeSsr		(bool useSSROut);
-        void encodeSsrComb	(E_Sys targetSys, bool useSSROut);
-        void encodeSsrPhase	(E_Sys targetSys, bool useSSROut);
-        void encodeSsrCode	(E_Sys targetSys, bool useSSROut);
-        
-        virtual void traceSsrEph(SatSys Sat,SSREph ssrEph){}
-        virtual void traceSsrClk(SatSys Sat,SSRClk ssrClk){}
-        virtual void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias){}
-        virtual void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias){}        
-    };
+		1, 2, 5, 10, 15, 30, 60, 120, 240, 300, 600, 900, 1800, 3600, 7200, 10800
+	};
+	
+	vector<uint8_t> data;
+	
+	static int getUdiIndex(
+		int udi);
+	
+	void encodeWriteMessages(
+		std::ostream&	outputStream);
+	
+	bool encodeWriteMessageToBuffer(
+		vector<uint8_t>& buffer);
+	
+	vector<uint8_t> encodeSsrComb(
+		map<SatSys, SSROut>&	ssrCombMap);
+	
+	vector<uint8_t> encodeSsrPhase(
+		SsrPBMap&	ssrPBMap);
+	
+	vector<uint8_t> encodeSsrCode(
+		SsrCBMap&	ssrCBMap);
+	
+	vector<uint8_t> encodeTimeStampRTCM();
 };
+
+void	rtcmEncodeToFile();
 
 #endif

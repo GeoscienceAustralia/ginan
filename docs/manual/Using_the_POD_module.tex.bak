@@ -1,0 +1,109 @@
+\section{Introduction}
+This section is to address how to use the POD modules in Ginan software. The Ginan software provides some functions for users in conducting the related GNSS studies. Those functions are associated with the time system conversion, conversion from the broadcast orbit to the earth-centred earth-fixed (ECEF) orbit, conversion between the International Celestial Reference Frame (ICRF) coordinate and International Terrestrial Reference Frame (ITRF) coordinate, and the precise orbit determination (POD).  
+
+
+\section{Time system conversion}
+The Ginan provides conversion among different time systems, including Modified Julian Day (MJD), Day of Year (DOY), calendar year and GPS week. The module of the time system conversion is implemented by command lines, as follows:
+\begin{lstlisting}
+To run main program : ./timesystem
+
+Command line: ./timesystem -j -i -y -m -d -w -k -h
+Input anyone of the following time systems
+
+Where:
+-j --MJD (must use the float number)
+=======================================
+-i --DAY OF YEAR
+-y --YEAR (4 digits) e.g., 2020
+=======================================
+-y --YEAR (4 digits) e.g., 2020
+-m --MONTH
+-d --DAY OF MONTH
+=======================================
+-w --GPS WEEK
+-k --DAY OF GPS WEEK (0-6)
+=======================================
+-h --help.   = Print program help
+
+Examples:
+
+./timesystem -j 58887.0
+  OR
+./timesystem -i 39 -y 2020
+  OR
+./timesystem -d 8 -m 2 -y 2020
+  OR
+./timesystem -w 2091 -k 6
+\end{lstlisting}
+
+\section{Conversion from Broadcast orbit to ECEF orbit}
+The Ginan provides a function that users can convert the RINEX version 2 or 3 of the broadcast ephemeris to the ECEF orbit. The module of the broadcast conversion is implemented by command lines, as follows:
+\begin{lstlisting}
+Conversion from broadcast dynamic elements to ECEF coordinates
+The program can work for multi-GNSS constellations.
+
+To run main program, step 1: ulimit -s unlimited
+To run main program, step 2: ./brdc2ecef
+
+Command line: ./brdc2ecef -f -o -c -h
+
+Where:
+       -f --inputfile  = input file name
+       -o --outputfile = output file name
+       -c --constellation = GNSS TYPE, e.g., A: All GNSS; G: GPS; R: GLONASS
+                                             E: GALILEO;  C: BDS; J: QZSS
+       -l --leap second file = leap.second
+       -r --EOP file
+       -h --help.   = Print program help
+
+Examples:
+
+./brdc2ecef -f BRDC00IGS_R_20163210000_01D_MN.rnx -o brdc16321.sp3 -c A 
+            -l leap.second -r finals2000A.daily
+\end{verbatim}
+
+\section{Precise Orbit Determination}
+The Ginan also provides the precise orbit determination using pseudo observation, which is the orbital data from SP3 file. The POD function can be implemented by using either the command lines or the yaml configuration, as shown below:
+
+\begin{verbatim}
+ Command line: ./pod -m -s -o -a -p -r -t -n -i -u -q -k -w -y -h
+
+ Where:
+    -m --podmode = POD Mode:
+        1 - Orbit Determination (pseudo-observations; orbit fitting)
+        2 - Orbit Determination and Prediction
+        3 - Orbit Integration (Equation of Motion only)
+        4 - Orbit Integration and Partials 
+        (Equation of Motion and Variational Equations)
+    -s --pobs    = Pseudo observations orbit .sp3 file name
+    -o --cobs    = Comparison orbit .sp3 file name
+    -a --arclen  = Orbit Estimation Arc length (hours)
+    -p --predlen = Orbit Prediction Arc length (hours)
+    -r --eopf    = Earth Orientation Paramaeter (EOP) values file
+    -t --eopsol  = Earth Orientation Paramaeter file type: (1,2,3)
+                    1 - IERS C04 EOP
+                    2 - IERS RS/PC Daily EOP
+                    3 - IGS RP + IERS RS/PC Daily (dX,dY)
+    -n --nutpre  = IAU Precession / Nutation model
+                    2000 - IAU2000A
+                    2006 - IAU2006/2000A
+    -i --estiter = Orbit Estimatimation Iterations (1 or greater)
+    -u --sp3vel  = Output .sp3 file with velocities
+                    0 - Do not write Velocity vector to sp3 orbit
+                    1 - Write Velocity vector to sp3 orbit
+    -q --icmode  = Initial condition from parameter estimation procedure
+    -k --srpmodel= 1: ECOM1, 2:ECOM2, 12:ECOM12, 3:SBOX
+    -w --empmodel= 1: activated, 0: no estimation
+    -d --verbosity = output verbosity level [Default: 0]
+    -y --yaml = yaml config file
+    -h --help.   = Print program help
+
+ Examples:
+
+    ./pod -m 1 -q 1 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex1.yaml
+    ./pod -m 2 -q 1 -k 1 -w 0 -s igs16403.sp3 -p 12 -y ex2.yaml
+
+ For orbit updates using Parameter Estimation Algorithm (PEA):
+    ./pod -m 4 -q 2 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex3.yaml
+\end{lstlisting}
+

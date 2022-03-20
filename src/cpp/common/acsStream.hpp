@@ -12,15 +12,12 @@
 #include <map>
 
 
+using std::multimap;
 using std::string;
 using std::tuple;
 using std::list;
 using std::pair;
 using std::map;
-
-
-
-
 
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -48,160 +45,29 @@ using boost::asio::ip::tcp;
 #	include <sys/types.h>
 #endif
 
-#include "ntripTrace.hpp"
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "constants.h"
-#include "station.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "rinex.hpp"
-#include "enum.h"
 
-
-//interfaces
-
-/** Interface for streams that supply observations
-*/
-struct ObsStream
-{
-	RinexStation	rnxStation = {};
-	list<ObsList>	obsListList;	
-	string			sourceString;
-
-	/** Return a list of observations from the stream.
-	* This function may be overridden by objects that use this interface
-	*/
-	virtual ObsList getObs();
-
-	/** Return a list of observations from the stream, with a specified timestamp.
-	* This function may be overridden by objects that use this interface
-	*/
-	ObsList getObs(
-		GTime	time,			///< Timestamp to get observations for
-		double	delta = 0.5)	///< Acceptable tolerance around requested time
-	{
-		while (1)
-		{
-			ObsList obsList = getObs();
-
-			if (obsList.size() == 0)
-			{
-				return obsList;
-			}
-
-			if (time == GTime::noTime())
-			{
-				return obsList;
-			}
-
-			if		(obsList.front().time < time - delta)
-			{
-				eatObs();
-			}
-			else if	(obsList.front().time > time + delta)
-			{
-				return ObsList();
-			}
-			else
-			{
-				return obsList;
-			}
-		}
-	}
-
-
-	/** Check to see if this stream has run out of data
-	*/
-	virtual bool isDead()
-	{
-		return false;
-	}
-
-	/** Remove some observations from memory
-	*/
-	void eatObs()
-	{
-		if (obsListList.size() > 0)
-		{
-			obsListList.pop_front();
-		}
-	}
-};
-
-
-/** Interface for objects that provide navigation data
-*/
-struct NavStream
-{
-	virtual void getNav()
-	{
-
-	}
-};
+#include "streamNav.hpp"
+#include "streamObs.hpp"
+#include "streamSp3.hpp"
+#include "streamFile.hpp"
+#include "streamRtcm.hpp"
+#include "streamRinex.hpp"
+#include "streamNtrip.hpp"
 
 
 
 
-#include "acsFileStream.hpp"
-#include "acsRtcmStream.hpp"
-#include "acsRinexStream.hpp"
-#include "acsNtripStream.hpp"
-
-struct networkData
-{
-	std::string streamName;
-	
-	GTime startTime;
-	GTime endTime;
-    long int	numPreambleFound	= 0;
-    long int	numFramesFailedCRC	= 0;
-    long int	numFramesPassCRC	= 0;
-    long int	numFramesDecoded	= 0;
-    long int	numNonMessBytes		= 0;
-	long int	numMessagesLatency	= 0;	
-	double		totalLatency		= 0;
-
-    int disconnectionCount = 0;
-    boost::posix_time::time_duration connectedDuration		= boost::posix_time::hours(0);
-    boost::posix_time::time_duration disconnectedDuration	= boost::posix_time::hours(0);
-	
-    int numberErroredChunks = 0; 
-	int numberChunks = 0;
-	
-	void clearStatistics(GTime tStart, GTime tEnd);
-	void accumulateStatisticsFrom(networkData dataToAdd);
-	
-	std::string previousJSON;
-	std::string getJsonNetworkStatistics(GTime now);
-};
-
-
-/** Object that streams RTCM data from NTRIP castors.
-* Overrides interface functions
+/** Object that streams RTCM data from NTRIP castors
 */
 struct NtripRtcmStream : NtripStream, RtcmStream
 {
-    /** NtripTrace is an object in this class as it is also used for the uploading
-     * stream and so it cannot inherit NtripStream and RtcmStream. The overide function
-     * provide for other classes to call functions for NtripTrace without a pointer or
-     * address both of which are problematic for code resuse and understanding.
-     */
-    NtripTrace ntripTrace;
     bool print_stream_statistics = false;
-  
-    std::string connectionErrorJson = "";
-    std::string serverResponseJson = "";
-	
-	networkData epochData;
-	networkData hourlyData;
-	networkData runData;
 	
 	NtripRtcmStream(const string& url_str) : NtripStream(url_str)
 	{
-		ntripTrace.mountPoint = url.path;
-		//url = URL::parse(url_str);		// (moved to ntripSocket.hpp)
-		sourceString = url_str; //# new
+		rtcmTraceFilename	= "";
+		rtcmMountPoint		= url.path;
+		sourceString		= url_str;
 		open();
 	}
 
@@ -241,65 +107,15 @@ struct NtripRtcmStream : NtripStream, RtcmStream
 		return obsList;
 	}
 	
-	void traceBroEph(Eph eph,E_Sys sys) override
-	{
-		ntripTrace.traceBroEph(eph,sys);
-	}
-	
-	void traceSsrEph(SatSys Sat,SSREph ssrEph) override
-	{
-		ntripTrace.traceSsrEph(Sat,ssrEph);
-	}
-	
-	void traceSsrClk(SatSys Sat,SSRClk ssrClk) override
-	{
-		ntripTrace.traceSsrClk(Sat,ssrClk);
-	}
-	
-	void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias) override
-	{
-		ntripTrace.traceSsrCodeB(Sat,mode,ssrBias);
-	}
-	
-	void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias) override
-	{
-		ntripTrace.traceSsrPhasB(Sat,mode,ssrBias);
-	}
-	
-	void messageChunkLog(std::string message) override 
-	{
-		ntripTrace.messageChunkLog(message);
-	}
-	
-	void messageRtcmLog(std::string message) override
-	{
-		ntripTrace.messageRtcmLog(message);
-	}
-	
-	void messageRtcmByteLog(std::string message) override
-	{
-		ntripTrace.messageRtcmByteLog(message);
-	}    
-	
-	void networkLog(std::string message) override
-	{
-        ntripTrace.networkLog(message);
-    }
-    
-    void connectionError(const boost::system::error_code& err, std::string operation) override;
-    void serverResponse(unsigned int status_code, std::string http_version) override;
+	void connectionError(
+		const boost::system::error_code& err,
+		string operation) override;
+		
+	void serverResponse(
+		unsigned int status_code, 
+		string http_version) override;
  
-    void traceMakeNetworkOverview(Trace& trace);
-	
-	void traceWriteEpoch(Trace& trace)
-    {
-        traceMakeNetworkOverview(trace);
-        ntripTrace.traceWriteEpoch(trace);
-    }
-    
-    std::vector<std::string> getJsonNetworkStatistics(GTime epochTime);
-    
-	void getNav()
+	void getNav() override
 	{
 		//get all data available from the ntrip stream and convert it to an iostream for processing
 		getData();
@@ -355,6 +171,14 @@ struct FileRtcmStream : ACSFileStream, RtcmStream
 
 		lastObsListSize = obsList.size();
 		return obsList;
+	}
+    
+	void getNav() override
+	{
+// 		getData();	not needed for files
+		FileState fileState = openFile();
+		
+		parseRTCM(fileState.inputStream);
 	}
 
 	bool isDead() override
@@ -452,8 +276,96 @@ struct FileRinexStream : ACSFileStream, RinexStream
 	}
 };
 
+/** Object that streams RINEX data from a file.
+* Overrides interface functions
+*/
+struct FileSp3Stream : ACSFileStream, SP3Stream
+{
+	FileSp3Stream()
+	{
 
-typedef std::shared_ptr<ObsStream> ACSObsStreamPtr;
-typedef std::shared_ptr<NavStream> ACSNavStreamPtr;
+	}
 
+	FileSp3Stream(const string& path)
+	{		
+		sourceString = path;
+		setPath(path);
+		open();
+	}
+
+	void open()
+	{
+		FileState fileState = openFile();
+		
+		readSP3Header(fileState.inputStream);
+	}
+
+	int lastObsListSize = -1;
+
+	PseudoObsList getObs() override
+	{
+		FileState fileState = openFile();
+		
+// 		getData();	not needed for files
+
+		if (obsListList.size() < 2)
+		{
+			parseSP3(fileState.inputStream);
+		}
+
+		//call the base function once it has been prepared
+		PseudoObsList obsList = PseudoObsStream::getObs();
+
+		lastObsListSize = obsList.size();
+		return obsList;
+	}
+	
+	bool parse()
+	{
+		FileState fileState = openFile();
+		
+		parseSP3(fileState.inputStream);
+		
+		return true;
+	}
+
+	bool isDead() override
+	{
+		if (filePos < 0)
+		{
+			return true;
+		}
+		
+		FileState fileState = openFile();
+		
+		if	( lastObsListSize != 0
+			||fileState.inputStream)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+};
+
+
+typedef std::shared_ptr<ObsStream>			ACSObsStreamPtr;
+typedef std::shared_ptr<NavStream>			ACSNavStreamPtr;
+typedef std::shared_ptr<PseudoObsStream>	ACSPseudoObsStreamPtr;
+
+extern	multimap<string, std::shared_ptr<NtripRtcmStream>>	ntripRtcmMultimap;
+extern	multimap<string, ACSObsStreamPtr>					obsStreamMultimap;
+extern	multimap<string, ACSNavStreamPtr>					navStreamMultimap;
+extern	multimap<string, ACSPseudoObsStreamPtr>				pseudoObsStreamMultimap;
+extern	map		<string, bool>								streamDOAMap;
+
+
+
+void writeNetworkTraces(
+	StationMap&		stationMap);
+	
+void recordNetworkStatistics(
+	std::multimap<string,std::shared_ptr<NtripRtcmStream>> downloadStreamMap);
 #endif

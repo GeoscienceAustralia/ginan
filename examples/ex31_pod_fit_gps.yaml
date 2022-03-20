@@ -1,0 +1,350 @@
+pod_data:    # Use initial condition input data below
+#---------------------------------------------------------------------------
+   satellite_PRN:    G23
+   reference_frame:
+      itrf: true
+      icrf: false
+      kepler: false
+   orbit_arc_length: 86400
+   initial_epoch: 2015-04-12-00.0000 # YYYY-MM-DD-SEC.DSEC
+   state_vector:  6804571.8859999999,  -15232535.475000001,  -20431678.779000003, 1697.1661907155067,  2026.6151679363102,  -982.28787769004703 # X, Y, Z, VX, VY, VZ
+ 
+pod_options: 
+   output_directory: ex31/pod_fit/
+# can only choose one option here
+#----------------------------------------------------------------------
+   pod_mode_fit:     true   # pod_mode = 1 Orbit Determination (pseudo-observations; orbit fitting)
+   pod_mode_predict: false  # pod_mode = 2 Orbit Determination and Prediction
+   pod_mode_eqm_int: false  # pod_mode = 3 Orbit Integration (Equation of Motion only)
+   pod_mode_ic_int:  false  # pod_mode = 4 Orbit Integration and Partials (Equation of Motion and Variational Equations)
+      
+# can only choose one option here
+#----------------------------------------------------------------------
+   time_scale:
+      TT_time:  false 
+      UTC_time: false 
+      GPS_time: true 
+      TAI_time: false
+
+# can only choose one option here
+#----------------------------------------------------------------------
+   ic_input_format:
+      sp3:  true   # Input a-priori orbit in sp3 format
+      icf:  false  # Input a-priori orbit in POD Initial Conditions File (ICF) format
+      ic_filename: some_file
+
+# can only choose one option here
+#----------------------------------------------------------------------   
+   ic_input_refsys:
+      itrf: true   # Initial Conditions Reference Frame: ITRF, ICRF
+      icrf: false  # Initial Conditions Reference Frame: ITRF, ICRF
+      kepler: false
+
+#---------------------------------------------------------------------------
+# Observation Model                                                                                            
+   pseudobs_orbit_filename: products/igs20624.sp3 # Pseudo observations orbit filename       
+   pseudobs_interp_step:    900          # Interval (sec) of the interpolated orbit
+   pseudobs_interp_points:  12           # Number of data points used in Lagrange interpolation
+
+#----------------------------------------------------------------------
+# Orbit arc length (in hours) 
+   orbit_arc_determination: 26  # Orbit Estimation arc
+   orbit_arc_prediction:    0  # Orbit Prediction arc
+   orbit_arc_backwards:     2   # Orbit Propagation backwards arc
+
+#---------------------------------------------------------------------------
+# External Orbit Comparison
+   ext_orbit_enabled: true
+   ext_orbit_type_sp3:       false        # Orbit data in sp3 format (including position and velocity vectors)
+   ext_orbit_type_interp:    true         # Interpolated orbit based on Lagrange interpolation of sp3 file
+   ext_orbit_type_kepler:    false        # Keplerian orbit
+   ext_orbit_type_lagrange:  false        # 3-day Lagrange interpolation
+   ext_orbit_type_position_sp3:    false        # Position and SP3 file
+   ext_orbit_filename:       products/igs20624.sp3 # External (comparison)  orbit filename
+   ext_orbit_interp_step:    900          # Interval (sec) of the interpolated/Kepler orbit
+   ext_orbit_interp_points:  12           # Number of data points used in Lagrange interpolation
+
+# can only choose one option here
+#----------------------------------------------------------------------   
+   ext_orbit_frame:
+      itrf: true            # External orbit reference frame - ITRF 
+      icrf: false           # External orbit reference frame - ICRF
+      kepler: false
+ 
+#---------------------------------------------------------------------------
+# Earth Orientation - EOP solution options:
+   EOP_soln_c04:   true         # IERS C04 solution : EOP_sol = 1
+   EOP_soln_rapid: false        # IERS rapid service/prediction center (RS/PC) Daily : EOP_sol = 2
+   EOP_soln_igs:   false        # IGS ultra-rapid ERP + IERS RS/PC Daily (dX,dY) : EOP_sol = 3. Need both rapid_file AND igs_file
+   EOP_soln_c04_file: products/tables/EOP_14_C04_IAU2000A_one_file_1962-now.txt
+   # EOP_soln_rapid_file: finals2000A.daily
+   # ERP_soln_igs_file: igu18543_12.erp
+   EOP_soln_interp_points: 4    # EOP solution interpolation points
+ 
+# ---------------------------------------------------------------------------
+# IAU Precession-Nutation model:
+   iau_model_2000: true         # IAU2000A: iau_pn_model = 2000
+   iau_model_2006: false        # IAU2006/2000A: iau_pn_model = 2006
+
+#---------------------------------------------------------------------------
+# Gravity model file
+   gravity_model_file: products/tables/goco05s.gfc  # goco05s.gfc, eigen-6s2.gfc, ITSG-Grace2014k.gfc
+
+#---------------------------------------------------------------------------
+# Planetary/Lunar ephemeris - JPL DE Ephemeris
+   DE_fname_header: products/tables/header.430_229
+   DE_fname_data:   products/tables/ascp1950.430
+
+#---------------------------------------------------------------------------
+# Ocean tide model file
+   ocean_tides_model_file: products/tables/fes2004_Cnm-Snm.dat # FES2004 ocean tide model
+
+#----------------------------------------------------------------------
+# Leap second filename
+   leapsec_filename: products/tables/leap.second
+
+#----------------------------------------------------------------------
+# Satellite metadata SINEX
+   satsinex_filename: products/tables/igs_metadata_2081.snx
+
+#---------------------------------------------------------------------------
+# Parameter Estimation
+   estimator_procedure:  1
+   estimator_iterations: 2
+
+#---------------------------------------------------------------------------
+# Variational Equations
+   veq_integration: false
+
+#----------------------------------------------------------------------
+# Reference System for Variational Equations'  - Partials & Parameter Estimation 
+   veq_refsys:
+      itrs: true      # ITRS: Terrestrial Reference System
+      icrs: false     # ICRS: Celestial Reference System
+      kepler: false
+
+#----------------------------------------------------------------------
+# Write to sp3 orbit format: Option for write Satellite Velocity vector 
+   sp3_velocity: false        #  Write Velocity vector to sp3 orbit
+
+#----------------------------------------------------------------------
+# Write partials of the velocity vector w.r.t. parameters into the orbits_partials output file: 
+   partials_velocity: false   # Write out velocity vector partials wrt orbital state vector elements
+
+#----------------------------------------------------------------------
+# SRP A priori model 
+# cannon_ball    : use empirical cannonball f0 model - mode 1
+# simple_boxwing : use simple box-wing model - mode 2
+# full_boxwing   : use full box-wing model from repro3 routines - mode 3
+# none           : no a priori SRP model - mode 0
+   srp_apriori_model: 
+      no_model:               false
+      cannon_ball_model:      true
+      simple_boxwing_model:   false
+      full_boxwing_model:     false
+      #
+#----------------------------------------------------------------------
+# SRP modes - Default srp_parameters  = ECOM1 + EMP
+   srp_modes:
+      ECOM1:        false        
+      ECOM2:        true
+      hybrid:       false
+      SBOXW:        false
+      EMPirical:    false
+      
+   gravity_model:
+      central_force:           false   # Central force gravity field              : gravity_model = 0
+      static_gravity_model:    false   # Static global gravity field model        : gravity_model = 1
+      time_variable_model:     true    # Time-variable global gravity field model : gravity_model = 2
+      iers_geopotential_model: false   # IERS conventional geopotential model     : gravity_model = 3
+
+   pulse:
+      enabled:      false
+      epoch_number:     1    # number of epochs to apply pulses
+      offset:       43200    # since the start of day
+      interval:     43200    # repeat every N seconds
+      directions:
+         x_direction:   true
+         y_direction:   true
+         z_direction:   true
+         r_direction:   false
+         t_direction:   false
+         n_direction:   false
+      reference_frame:
+         icrf:          true
+         orbital:       false
+
+eqm_options:
+#---------------------------------------------------------------------------
+# Numerical integration method      
+# Runge-Kutta-Nystrom 7th order RKN7(6): RKN7, Runge-Kutta 4th order: RK4, Runge-Kutta 8th order RK8(7)13: RK8
+   integration_options:
+      RK4_integrator_method: false
+      RKN7_integrator_method: true
+      RK8_integrator_method: false
+      integrator_step: 900         # Integrator stepsize in seconds
+
+#---------------------------------------------------------------------------
+# Gravitational Forces
+   gravity_field:
+      enabled: true 
+      gravity_degree_max:      15      # Gravity model maximum degree/order (d/o)
+      timevar_degree_max:      15      # Time-variable coefficients maximum d/o
+
+#---------------------------------------------------------------------------
+# Planetary Gravitational Forces
+   planetary_perturbations: 
+      enabled: true 
+
+#---------------------------------------------------------------------------
+   tidal_effects:
+      enabled: true
+      solid_tides_nonfreq:    true   # Solid Earth Tides frequency-independent terms
+      solid_tides_freq:       true   # Solid Earth Tides frequency-dependent terms
+      ocean_tides:            true   # Ocean Tides
+      solid_earth_pole_tides: true   # Solid Earth Pole Tide
+      ocean_pole_tide:        true   # Ocean Pole Tide
+      ocean_tides_degree_max: 15     # Ocean Tides model maximum degree/order
+
+#---------------------------------------------------------------------------
+# Relativistic effects
+   relativistic_effects: 
+      enabled: true
+
+#---------------------------------------------------------------------------
+# Non-gravitational Effects
+   non_gravitational_effects:
+      enabled: true
+      solar_radiation: true
+      earth_radiation: true
+      antenna_thrust:  true
+
+   srp_parameters:
+      ECOM_D_bias:  true 
+      ECOM_Y_bias:  true 
+      ECOM_B_bias:  true
+      EMP_R_bias:   false
+      EMP_T_bias:   false
+      EMP_N_bias:   false
+      ECOM_D_cpr:   false 
+      ECOM_Y_cpr:   false 
+      ECOM_B_cpr:   true 
+      ECOM_D_2_cpr: true 
+      ECOM_D_4_cpr: true
+      EMP_R_cpr:    false
+      EMP_T_cpr:    false
+      EMP_N_cpr:    false
+      cpr_count:    1
+
+veq_options:
+#---------------------------------------------------------------------------
+# Numerical integration method      
+# Runge-Kutta-Nystrom 7th order RKN7(6): RKN7, Runge-Kutta 4th order: RK4, Runge-Kutta 8th order RK8(7)13: RK8
+# NB for VEQ, only RK7 is supported. Do not select any other value
+   integration_options:
+      RK4_integrator_method: false
+      RKN7_integrator_method: true
+      RK8_integrator_method: false
+      integrator_step: 900         # Integrator stepsize in seconds
+
+#---------------------------------------------------------------------------
+# Gravitational Forces
+   gravity_field:
+      enabled: true 
+      gravity_degree_max:      5      # Gravity model maximum degree/order (d/o)
+      timevar_degree_max:      5      # Time-variable coefficients maximum d/o
+
+#---------------------------------------------------------------------------
+# Planetary Gravitational Forces
+   planetary_perturbations: 
+      enabled: true 
+
+#---------------------------------------------------------------------------
+   tidal_effects:
+      enabled:                false 
+      solid_tides_nonfreq:    true   # Solid Earth Tides frequency-independent terms
+      solid_tides_freq:       true   # Solid Earth Tides frequency-dependent terms
+      ocean_tides:            true   # Ocean Tides
+      solid_earth_pole_tides: true   # Solid Earth Pole Tide
+      ocean_pole_tide:        true   # Ocean Pole Tide
+      ocean_tides_degree_max: 15     # Ocean Tides model maximum degree/order
+
+#---------------------------------------------------------------------------
+# Relativistic effects
+   relativistic_effects: 
+      enabled: false
+
+#---------------------------------------------------------------------------
+# Non-gravitational Effects
+   non_gravitational_effects:
+      enabled: true
+      solar_radiation: true
+      earth_radiation: true
+      antenna_thrust:  true
+
+   srp_parameters:
+      ECOM_D_bias:  true 
+      ECOM_Y_bias:  true 
+      ECOM_B_bias:  true
+      EMP_R_bias:   false
+      EMP_T_bias:   false
+      EMP_N_bias:   false
+      ECOM_D_cpr:   false 
+      ECOM_Y_cpr:   false 
+      ECOM_B_cpr:   true 
+      ECOM_D_2_cpr: true 
+      ECOM_D_4_cpr: true
+      EMP_R_cpr:    false
+      EMP_T_cpr:    false
+      EMP_N_cpr:    false
+      cpr_count:    1
+
+# put any system, block or PRN overrides here
+overrides:
+   system:
+      GPS:
+         srp_apriori_model: 
+            no_model:   false
+            cannon_ball_model:   true
+            simple_boxwing_model:   false
+            full_boxwing_model:     false
+      GAL:
+         srp_apriori_model: 
+            no_model:   false
+            cannon_ball_model:   false
+            simple_boxwing_model:   false
+            full_boxwing_model:     true
+      GLO:
+         srp_apriori_model: 
+            no_model:   false
+            cannon_ball_model:   false
+            simple_boxwing_model:   true
+            full_boxwing_model:     false
+      BDS:
+         srp_apriori_model: 
+            no_model:   false
+            cannon_ball_model:   false
+            simple_boxwing_model:   true
+            full_boxwing_model:     false
+   block:
+      GPS-IIF:
+         srp_apriori_model: 
+            no_model:   false
+            cannon_ball_model:   false
+            simple_boxwing_model:   true
+            full_boxwing_model:     false
+# GPS BLK IIF use ECOM2 parameters
+         srp_parameters:
+            ECOM_D_bias:   true
+            ECOM_Y_bias:   true 
+            ECOM_B_bias:   true 
+            ECOM_D_2_cpr: false 
+            ECOM_D_4_cpr: false
+            ECOM_B_cpr:   true
+   prn:
+      G01:
+         srp_apriori_model: 
+            no_model:   false
+            cannon_ball_model:   false
+            simple_boxwing_model:   false
+            full_boxwing_model:     true

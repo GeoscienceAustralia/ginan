@@ -1,4 +1,5 @@
 
+// #pragma GCC optimize ("O0")
 
 #include <iostream>
 #include <string>
@@ -23,40 +24,25 @@ E_Sys code2sys(char code)
 	if (code=='R') return E_Sys::GLO;
 	if (code=='E') return E_Sys::GAL; /* extension to sp3-c */
 	if (code=='J') return E_Sys::QZS; /* extension to sp3-c */
-	if (code=='C') return E_Sys::CMP; /* extension to sp3-c */
+	if (code=='C') return E_Sys::BDS; /* extension to sp3-c */
 	if (code=='L') return E_Sys::LEO; /* extension to sp3-c */
 	return E_Sys::NONE;
 }
 
 
-/* read sp3 precise ephemeris file ---------------------------------------------
-* read sp3 precise ephemeris/clock files and set them to navigation data
-* args   : char   *file       I   sp3-c precise ephemeris file
-*                                 (wind-card * is expanded)
-*          nav_t  *nav        IO  navigation data
-*          int    opt         I   options (1: only observed + 2: only predicted +
-*                                 4: not combined)
-* notes  : see ref [1]
-*          precise ephemeris is appended and combined
-*-----------------------------------------------------------------------------*/
-void readsp3(
-	string&	file, 
-	nav_t*	nav, 
-	int		opt)
+/** read an epoch of data from an sp3 precise ephemeris file
+ */
+bool readsp3(
+	std::istream&	fileStream, 	///< stream to read content from
+	list<Peph>&		pephList,		///< list of precise ephemerides for one epoch
+	int				opt,			///< options options (1: only observed + 2: only predicted + 4: not combined)
+	bool&			isUTC,			///< reported utc state in header
+	double*			bfact)			///< bfact values from header
 {
 	GTime	time			= {};
-	double	bfact[2]		= {};
-	char	type=' ';
-	char	tsys[4] = "";
 
 	//fprintf(stdout,"\n SP3READ: Expanded  %s to %d files\n",file,n);
 
-	std::ifstream fileStream(file);
-	if (!fileStream)
-	{
-		printf("\nSp3 file open error %s\n", file.c_str());
-	}
-	
 	//keep track of file number
 	static int index = 0;
 	index++;
@@ -65,13 +51,19 @@ void readsp3(
 	int hashCount	= 0;
 	int cCount		= 0;
 	int fCount		= 0;
-	int iCount		= 0;
-	int plusCount	= 0;
-	int pplusCount	= 0;
 	
+	bool epochFound = false;
 	string line;
 	while (fileStream)
-	{		
+	{	
+		//return early when an epoch is complete
+		int peek = fileStream.peek();
+		if	(  peek == '*'
+			&& epochFound)
+		{
+			return true;
+		}
+		
 		getline(fileStream, line);
 		
 		char* buff = &line[0];
@@ -79,14 +71,16 @@ void readsp3(
 		if (buff[0] == '*')
 		{
 			//epoch line
+			epochFound = true;
+			
 			bool error = str2time(buff, 3, 28, time);
 			if (error)
 			{
 				printf("\nInvalid epoch line in sp3 file %s\n", line.c_str());
-				return;
+				return false;
 			}
 			
-			if (!strcmp(tsys, "UTC"))
+			if (isUTC)
 			{
 				time = utc2gpst(time); /* utc->gpst */
 			}
@@ -215,7 +209,8 @@ void readsp3(
 			
 			if (valid)
 			{
-				nav->pephMap[peph.Sat][peph.time] = peph;
+				pephList.push_back(peph);
+// 				nav->pephMap[peph.Sat][peph.time] = peph;
 			}
 			
 			continue;
@@ -228,10 +223,10 @@ void readsp3(
 			if (hashCount == 1) 
 			{
 				//first line is time and type
-				type = buff[2];
+// 				type = buff[2];
 				int error = str2time(buff, 3, 28, time);
 				if (error) 
-					return;
+					return false;
 				
 				continue;
 			}
@@ -271,8 +266,15 @@ void readsp3(
 			
 			if (cCount == 1)
 			{
+				char tsys[4] = "";
 				strncpy(tsys, buff+9,3); 
 				tsys[3] = '\0';
+				
+				if (!strcmp(tsys, "UTC"))
+				{
+					isUTC = true;
+// 					time = utc2gpst(time); /* utc->gpst */
+				}
 			}
 			continue;
 		}
@@ -292,20 +294,51 @@ void readsp3(
 		if (line.substr(0,3) == "EOF")
 		{
 			//all done
-			return;
+			return true;
 		}
 	}
-	printf("\nDidnt find eof in sp3 file\n");
+	
+// 	printf("\nDidnt find eof in sp3 file\n");
+	return false;
 }
 
+
+void readSp3ToNav(
+	string&	file, 
+	nav_t*	nav, 
+	int		opt)
+{
+	std::ifstream fileStream(file);
+	if (!fileStream)
+	{
+		printf("\nSp3 file open error %s\n", file.c_str());
+	}
+	
+	list<Peph>	pephList;
+	
+	bool	isUTC		= false;
+	double	bfact[2]	= {};
+	while (readsp3(fileStream, pephList, opt, isUTC, bfact))
+	{
+		//keep reading until it fails
+		for (auto& peph : pephList)
+		{
+			nav->pephMap[peph.Sat][peph.time] = peph;
+		}
+		pephList.clear();
+	}
+}
 
 
 void orb2sp3(
 	nav_t& nav)
 {
-	for (auto& [Sat,	satOrbit]	: nav.orbpod.satOrbitMap)
-	for (auto& [time,	orbitInfo]	: satOrbit.orbitInfoList)
+	for (auto& [SatId,	satNav]	: nav.satNavMap)
+	for (auto& [time,	orbitInfo]	: satNav.satOrbit.orbitInfoMap)
 	{
+		SatSys Sat;
+		Sat.fromHash(SatId);
+		
 		Peph peph = {};
 
 		peph.index			= 0;

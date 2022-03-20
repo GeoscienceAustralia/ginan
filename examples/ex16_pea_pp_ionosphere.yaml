@@ -11,29 +11,18 @@ input_files:
     atxfiles:   [ igs14_2045_plus.atx                                ]    # required
     snxfiles:   [ igs19P2062.snx                                     ]    # required
     blqfiles:   [ OLOAD_GO.BLQ                                       ]    # required if ocean loading is applied
-    # navfiles:   [ brdm1990.19p                                       ]    # required but shouldn't!
-    # sp3files:   [ igs20624.sp3                                       ]
-    # erpfiles:   [ igs19P2062.erp                                     ]    #config parser doesn't accept weekly files yet.
-    # #dcbfiles:       # monthly DCB file
-    # bsxfiles:   [ CAS0MGXRAP_20191990000_01D_01D_DCB.BSX             ]
-    #clkfiles:   [     jpl20624.clk                                   ]   # Clk file
-    #orbfiles:   [ orb_partials/gag20624_orbits_partials.out.eop_test23      ]    # only need this if we are estimating orbits
-
     navfiles: [ brdm1990.19p        ]  # broadcast navigation file
     sp3files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
     clkfiles: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
     erpfiles: [ TUG0R03FIN_20191990000_01D_01D_ERP.ERP ] # config parser doesn't accept weekly files yet.
-    # dcbfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
-
+    
 station_data:
 
     root_stations_directory: data/
 
     rnxfiles:
-        # Select files to run by:
-                                                        # - selecting one on the command line using the -rnxfiles option
         - "*.rnx"                                       # - searching all in file_root directory, or
-        # - "A*.rnx"                                       # - searching all in file_root directory, or
+        
 
 
 output_files:
@@ -41,11 +30,9 @@ output_files:
     root_output_directory:          <CONFIG>/
 
     output_trace:                   true
-    trace_level:                    3
+    trace_level:                    2
     trace_directory:                ./
     trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>-<LOGTIME>.TRACE
-    trace_rotate_period:            6
-    trace_rotate_period_units:      hours
 
     output_residuals:               true
 
@@ -63,19 +50,19 @@ output_files:
     output_ionex:                   true
     ionex_directory:                ./
     ionex_filename:                 AUSG<DDD>0.<YY>I
-    
+
     output_ionstec:                 true
     ionstec_directory:              ./
     ionstec_filename:               <CONFIG>_<YYYY><DDD><HH>.stec
-    
-    output_biasSINEX:               true
-    biasSINEX_directory:            ./
-    biasSINEX_filename:             AUS0ACSRAP_<YYYY><DDD><HH>00_01D_01D_REL.BIA
+
+    output_bias_sinex:              true
+    bias_sinex_directory:           ./
+    bias_sinex_filename:            AUS0ACSRAP_<YYYY><DDD><HH>00_01D_01D_REL.BIA
 
     output_clocks:                  false
     clocks_directory:               ./
     clocks_filename:                <CONFIG><LOGTIME>.clk
-    
+
     output_sinex:                   true
 
 output_options:
@@ -91,14 +78,14 @@ processing_options:
 
     start_epoch:               2019-07-18 00:00:00
     # end_epoch:                 2019-07-18 23:59:30
-    max_epochs:                 720        #0 is infinite
+    max_epochs:                 200        #0 is infinite
     epoch_interval:             30          #seconds
 
     process_modes:
         user:                   false
         network:                false
         minimum_constraints:    false
-        rts:                    false #should be true for this examples
+        rts:                    false
         ionosphere:             true
         unit_tests:             false
 
@@ -145,7 +132,7 @@ processing_options:
 network_filter_parameters:
 
     process_mode:               kalman      #lsq
-    inverter:                   llt         #LLT LDLT INV
+    inverter:                   ldlt         #LLT LDLT INV
 
     max_filter_iterations:      1
     max_prefit_removals:        3
@@ -170,7 +157,7 @@ ionosphere_filter_parameters:
     lon_width:    356.0
     lat_res:      5.0
     lon_res:      5.0
-    time_res:     1800.0
+    time_res:     300.0
     func_order:   8
     layer_heights: [450]
     model_noise:    0.01
@@ -337,8 +324,6 @@ override_filter_parameters:
 
 minimum_constraints:
 
-    process_mode:       kalman     #kalman
-
     estimate:
         translation:    true
         rotation:       true
@@ -374,24 +359,6 @@ minimum_constraints:
 #     int_valid_combo_jump_alpha:         0.00001         # Alpha for integer validation outlier test using combined data
 
 ambiguity_resolution_options:
-    Min_elev_for_AR:            15.0
-    GPS_amb_resol:              true
-    GAL_amb_resol:              false
-    
-    WL_mode:                    iter_rnd           # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
-    WL_succ_rate_thres:         0.9999
-    WL_sol_ratio_thres:         3.0
-    WL_procs_noise_sat:         0.00001
-    WL_procs_noise_sta:         0.0001
-    
-    NL_mode:                    iter_rnd      # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
-    NL_succ_rate_thres:         0.9999
-    NL_sol_ratio_thres:         3.0
-    NL_proc_start:              600
-    
-    #Set_size_for_lambda:        10
-    #Max_round_iterat:           3
-
     write_DSB:                  true
     write_satellite_bias:       true
     bias_output_rate:           600

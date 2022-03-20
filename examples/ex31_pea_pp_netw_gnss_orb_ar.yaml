@@ -1,0 +1,446 @@
+# ex31 - Network Example Orbit, Clock, EOP estimation 
+# Uses POD integrated orbit to solve for station positions, satellite orbits,clocks and EOP solution (GPS-only, resolved ambiguities)
+# Total processing duration  ~ 2.25 hours on 4 corses
+# Estimates station positions, satellite orbits, clocks and EOP
+# Uses minimum constriants and run a full RTS back smoothing of states.
+
+input_files:
+
+    root_input_directory: products/
+
+    atxfiles:   [ igs14.atx                                   ]    # required
+    snxfiles:   [ igs19P2062.snx                                     ]    # required
+    blqfiles:   [ OLOAD_GO.BLQ                                       ]    # required if ocean loading is applied
+    navfiles:   [ brdm1990.19p        ]  # broadcast navigation file
+    #sp3files:  [ igs20624.sp3                                       ]
+    erpfiles:   [ igs19P2062.erp                                     ]    #config parser doesn't accept weekly files yet.
+    # dcbfiles:       # monthly DCB file
+    # bsxfiles: [ CAS0MGXRAP_20191990000_01D_01D_DCB.BSX             ]
+    #clkfiles:  [     jpl20624.clk                                   ]   # Clk file
+    orbfiles:   [ ../ex31/pod_fit/gag20624_orbits_partials.out               ]    # only need this if we are estimating orbits
+
+station_data:
+
+    root_stations_directory: data/
+
+    rnxfiles:
+        # Select files to run by:
+                                                        # - selecting one on the command line using the -rnxfiles option
+        - "*.rnx"                                       # - searching all in file_root directory, or
+        # - "A*.rnx"                                       # - searching all in file_root directory, or
+
+
+output_files:
+
+    root_output_directory:          <CONFIG>/pea/
+
+    output_trace:                   true
+    trace_level:                    3
+    trace_directory:                ./
+    trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>-<LOGTIME>.TRACE
+    #trace_rotate_period:            6
+    #trace_rotate_period_units:      hours
+
+    output_residuals:               true
+
+    output_persistance:             false
+    input_persistance:              false
+    persistance_directory:          ./
+    persistance_filename:           <CONFIG>.persist
+
+    output_config:                  true
+
+    output_summary:                 true
+    summary_directory:              ./
+    summary_filename:               PEA<LOGTIME><YYYY><DDD><HH>.SUM
+
+    output_ionex:                   false
+    ionex_directory:                ./
+    ionex_filename:                 AUSG<DDD>0.<YY>I
+
+    output_ionstec:                 false
+    ionstec_directory:              ./
+    ionstec_filename:               IONEX.stec
+
+    output_bias_sinex:              false
+    bias_sinex_directory:           ./
+    bias_sinex_filename:            AUS0ACSRAP_<YYYY><DDD><HH>00_01D_01D_REL.BIA
+
+    output_clocks:                  true
+    clocks_directory:               ./
+    clocks_filename:                <CONFIG><LOGTIME>.clk
+
+    output_sinex:                   true
+
+    output_mongo_measurements:      false
+    output_mongo_states:            false
+    output_mongo_metadata:          false
+    delete_mongo_history:           false
+    mongo_uri:                      mongodb://127.0.0.1:27017
+
+output_options:
+
+    config_description:             ex31
+    analysis_agency:                GAA
+    analysis_center:                Geoscience Australia
+    analysis_program:               AUSACS
+    rinex_comment:                  AUSNETWORK1
+
+
+processing_options:
+
+    #start_epoch:               2019-07-18 00:00:00
+    #end_epoch:                 2019-07-18 23:59:30
+    max_epochs:                 20        #0 is infinite
+    epoch_interval:             60          #seconds
+
+    process_modes:
+        user:                   false
+        network:                true
+        minimum_constraints:    true
+        rts:                    true 
+        ionosphere:             false
+        unit_tests:             false
+
+    process_sys:
+        gps:            true
+        #glo:           true
+        #gal:           true
+        #bds:           true
+
+    elevation_mask:     10   #degrees
+
+    tide_solid:         true
+    tide_pole:          true
+    tide_otl:           true
+
+    phase_windup:       true
+    reject_eclipse:     true            #reject observation during satellite eclipse periods
+    raim:               true
+    antexacs:           true
+
+    cycle_slip:
+        thres_slip:     0.05
+        exclude_lli:    false
+
+    max_inno:   0
+    max_gdop:   30
+
+    troposphere:
+        model:      vmf3    #gpt2
+        vmf3dir:    grid5/
+        orography:  orography_ell_5x5
+        # gpt2grid: EX03/general/gpt_25.grd
+
+    ionosphere:
+        corr_mode:      iono_free_linear_combo
+        iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
+
+    pivot_station:        "HOB2"  #if not provided then will be selected automatically
+    #pivot_satellite:      "G01"
+    
+    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+                        L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                        L5I, L5Q, L5X]
+
+network_filter_parameters:
+
+    process_mode:               kalman      #lsq
+    inverter:                   llt         #LLT LDLT INV
+
+    max_filter_iterations:      10
+    max_prefit_removals:        5
+    outage_reset_limit:     5   # Wait for 5 consecutive missing epoch of data before reseting ambiguity    
+    phase_reject_limit:     2   # Reset ambiguity after 2 large fractional residuals are found (replaces phase_reject_count:)
+
+    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs 1 epoch?
+    rts_directory:              ./
+    rts_filename:               <CONFIG>-Network.rts
+
+# ionosphere_filter_parameters:
+
+#     max_filter_iterations:  5
+#     max_filter_removals:    4
+
+#     rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
+#     rts_directory:              ./
+#     rts_filename:               Ionosphere.rts
+
+#     model:        spherical_harmonics              # meas_out, spherical_harmonics, spherical_caps
+#     lat_center:   0.0
+#     lon_center:   2.5
+#     lat_width:    141.0
+#     lon_width:    356.0
+#     lat_res:      5.0
+#     lon_res:      5.0
+#     time_res:     1800.0
+#     func_order:   15
+#     layer_heights: [450]
+#     model_noise:    0.01
+
+default_filter_parameters:
+
+    stations:
+
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.4 ]
+        phase_sigmas:       [0.004]
+
+        pos:
+            estimated:          true
+            sigma:              [1.0]
+            proc_noise:         [0]
+
+        clk:
+            estimated:          true
+            sigma:              [1000]
+            #proc_noise:         [0]
+            proc_noise:         [5.0]
+            proc_noise_dt:      sqrt_second #per sqrt second
+            #proc_noise_model:   Gaussian
+
+        # clk_rate:
+        #     estimated:          true
+        #     sigma:              [10]
+        #     proc_noise:         [1e-8]
+
+        amb:
+            estimated:          true
+            sigma:              [100]
+            proc_noise:         [0]
+            #proc_noise_dt:      day
+
+#        trop:
+#            estimated:          true
+#            sigma:              [0.1]
+#            proc_noise:         [0.3]
+#            proc_noise_dt:      hour
+
+        trop:
+            estimated:          true
+            sigma:              [0.1]
+            proc_noise:         [0.0001] #0.1 mm
+            proc_noise_dt:      second
+
+        # trop_gauss_markov:
+        #     estimated:          true
+        #     sigma:              [0.05]
+        #     proc_noise:         [1.00E-02]  # steady-state sigma
+        #     tau:                [12600]      # correlation time (units set by proc_noise_dt)
+        #     proc_noise_dt:      second
+        #     #proc_noise_model:   GaussMarkov
+
+
+        trop_grads:
+            estimated:          true
+            sigma:              [0.01]
+            proc_noise:         [1.0E-6]
+            proc_noise_dt:      second
+
+        # trop_grads_gauss_markov:
+        #     estimated:          true
+        #     sigma:              [0.01]
+        #     proc_noise:         [5.49E-03]
+        #     tau:                [9216]
+        #     proc_noise_dt:      second
+        #     #proc_noise_model:   GaussMarkov
+
+
+    satellites:
+
+        clk:
+            estimated:          true
+            sigma:              [1000]
+            proc_noise:         [1]
+            #proc_noise_dt:      min
+
+        # clk_rate:
+        #     estimated:          true
+        #     sigma:              [10]
+        #     proc_noise:         [1e-5]
+
+        orb:
+            estimated:          true
+            sigma:              [5e-1, 5e-1, 5e-1, 5e-3, 5e-3, 5e-3, 5e-1]
+
+    eop:
+        estimated:  true
+        sigma:      [30]
+    eop_rates:
+        estimated:  true
+        sigma:      [30]
+
+override_filter_parameters:
+
+    stations:
+        #ALICAUS01:
+            #pos:
+                #sigma:              [0.001]
+                #proc_noise:         [0]
+            #clk:
+                #sigma:              [0.01]
+
+        #AGGO:
+            #exclude: true
+        #ALIC:
+            #exclude: true
+        #ANKR:
+            #exclude: true
+                #estimated:  false
+
+        #GANP:
+            #exclude: true
+
+    satellites:
+
+        ### Constellation Overrides
+        #SYS_GPS:
+            #srp:
+                #sigma:              [0.01]
+                #proc_noise:         [0.001]
+
+        #SYS_GAL:
+            #clk:
+                #sigma:              [1.0]
+                #proc_noise:         [0.01]
+
+        ### Block Type Overrides
+        #GPS-IIR-A:
+            #pos: { sigma: [10.0] }
+            #vel: { sigma: [0.1] }
+
+        ### PRN Overrides
+        #PRN_G10:
+            #pos: { sigma: [10.0]    }
+            #vel: { sigma: [0.1]     }
+            #clk: { sigma: [1.0]     }
+
+        #PRN_G15:
+            #exclude: true
+
+        ### SVN Overrides
+        #SVN_G265:
+            #pos: {sigma: [10.0] }
+            #vel: {sigma: [0.1]  }
+
+minimum_constraints:
+
+    process_mode:       lsq     #kalman
+
+    estimate:
+        translation:    true
+        rotation:       true
+        scale:          false
+
+    station_default_noise: -1        #constrain none by default (negative numbers are not constrained)
+    #station_default_noise: +1       #constrain all by default
+
+    station_noise:
+        AGGO: 1
+        ALIC: 1
+        ANKR: 1
+        AREG: 1
+        AREQ: 1
+        #ASCG: 1
+        BAKO: 1
+        BOAV: 1
+        #BOGT: 1
+        BREW: 1
+        CAS1: 1
+        CEDU: 1
+        COCO: 1
+        #CPVG: 1
+        CRO1: 1
+        CUSV: 1
+        DARW: 1
+        DAV1: 1
+        DGAR: 1
+        DJIG: 1
+        DYNG: 1
+        FAIR: 1
+        FALK: 1
+        #FFMJ: 1
+        GANP: 1
+        GMSD: 1
+        HERS: 1
+        HOB2: 1
+        IISC: 1
+        ISTA: 1
+        #JFNG: 1
+        JPLM: 1
+        KARR: 1
+        #KERG: 1
+        KIRI: 1
+        KOKV: 1
+        KOUG: 1
+        KZN2: 1
+        #LAUT: 1
+        LHAZ: 1
+        LMMF: 1
+        MADR: 1
+        MAJU: 1
+        #MARS: 1
+        MAS1: 1
+        MATE: 1
+        MAW1: 1
+        MAYG: 1
+        MBAR: 1
+        METG: 1
+        MGUE: 1
+        MRO1: 1
+        NICO: 1
+        #NIUM: 1
+        NKLG: 1
+        NLIB: 1
+        NNOR: 1
+        NOT1: 1
+        OHI3: 1
+        PADO: 1
+        PALM: 1
+        PIE1: 1
+        POAL: 1
+        POHN: 1
+        POVE: 1
+        QUIN: 1
+        REYK: 1
+        RGDG: 1
+        SALU: 1
+        #SAMO: 1
+        SEY2: 1
+        SOLO: 1
+        STHL: 1
+        STJ3: 1
+        STR1: 1
+        THTG: 1
+        TONG: 1
+        #TOPL: 1
+        TOW2: 1
+        TRO1: 1
+        USN7: 1
+        #USUD: 1
+        VACS: 1
+        XMIS: 1
+        YEL2: 1
+        ZAMB: 1
+        #ZIM2: 1	
+
+ambiguity_resolution_options:
+    Min_elev_for_AR:            15.0
+    Solve_for_sys:
+        gps:                    true
+        gal:                    false
+    # GPS_amb_resol:              true
+    # GAL_amb_resol:              false
+
+    WL_mode:                    iter_rnd           # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+    WL_succ_rate_thres:         0.9999
+    WL_sol_ratio_thres:         3.0
+    WL_procs_noise_sat:         0.00001
+    WL_procs_noise_sta:         0.0001
+
+    NL_mode:                    iter_rnd      # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+    NL_succ_rate_thres:         0.9999
+    NL_sol_ratio_thres:         3.0
+
+    #Set_size_for_lambda:        10
+    #Max_round_iterat:           3

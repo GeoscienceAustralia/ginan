@@ -3,7 +3,7 @@
 # Ginan: software toolkit and service
 
 
-#### `Ginan v1.2-alpha release`
+#### `Ginan v1.3-beta release`
 
 ## Overview
 
@@ -44,17 +44,19 @@ Ginan is supported on the following platforms
 
 You can download Ginan source from github using git clone:
 
-    $ git clone https://github.com/GeoscienceAustralia/ginan.git
+    git clone https://github.com/GeoscienceAustralia/ginan.git
     
 Then download all of the example data using the python script provided:
 
-    $ python3 scripts/download_examples.py 
+    pip3 install wheel pandas boto3 unlzw
+    python3 scripts/download_examples.py 
 ***
 ## Directory Structure
 
     ginan/
     ├── README.md			! General README information
     ├── LICENSE.md		    ! Software License information
+    ├── ChangeLOG.md		    ! Release Chnage history
     ├── aws/		        ! Amazon Web Services config
     ├── bin/		        ! Binary executables directory*
     ├── CMakeLists.txt		! Cmake build file
@@ -73,11 +75,20 @@ Then download all of the example data using the python script provided:
     │   ├── ex18            ! PEA example 8
     │   --------------POD examples--------------
     │   ├── ex21            ! POD example 1
-    │   ├── ex22            ! POD example 2
+    │   ├── ex22            ! POD example 2 full GNSS pod fit example (5 constellations)
+    │   ├── ex22/gps        ! POD example 2 US GPS constellation only
+    │   ├── ex22/glo        ! POD example 2 Russian GLONASS constellation only
+    │   ├── ex22/gal        ! POD example 2 European GALILEO constellation only
+    │   ├── ex22/bds        ! POD example 2 Chinese BEIDOU constellation only
+    │   ├── ex22/qzss       ! POD example 2 Japanese QZSS constellation only
     │   ├── ex23            ! POD example 3
     │   ├── ex24            ! POD example 4
     │   ├── ex25            ! POD example 5
     │   └── ex26            ! POD example 6
+    │   --------------long test examples--------------
+    │   ├── ex31/pod_fit    ! POD fit (ex31 stage 1)
+    │   ├── ex31/pea        ! PEA re-estimate parameters
+    │   ├── ex31/pod_ic     ! POD ic integrate
     │
     ├── lib/		        ! Compiled objectlibrary directory*
     ├── scripts/		    ! Auxillary Python and Shell scripts and libraries
@@ -93,11 +104,25 @@ Then download all of the example data using the python script provided:
 
 *\*\*created by `download_examples.py` script*
 ***
+
+## Using Ginan with Docker
+
+With docker, you can quickly create your environment by downloading the docker image:
+
+    docker pull gnssanalysis/ginan:v1.0-alpha
+
+Then you can run `bash` inside image as follows:
+
+    docker run -it -v /data:/data gnssanalysis/ginan:v1.0-alpha bash
+
+To verify you have the Ginan executables available, run in this bash session:
+
+    pea --help
+    pod --help
+
+More details on how to use the image is available in the "Docker" section of Ginan manual (s3://ginan-manual).
+
 ## Dependencies
-
-If you wish to use Ubuntu Linux, you can quickly create your environment by downloading the docker image:
-
-    $ docker pull gnssanalysis/ginan:v1.0-alpha
 
 Otherwise Ginan has several software dependencies:
 
@@ -108,18 +133,30 @@ Otherwise Ginan has several software dependencies:
 * Boost  > 1.70 (tested on 1.73)
 * Eigen3
 * netCDF4
-* Python3 (tested on Python 3.7)
+* Python3 (tested on Python 3.7
+
+Acknowledgements:
+We have used routines obtained from RTKLIB, released under a BSD-2 license, these routines have been preserved with minor modifications in the folder cpp/src/rtklib The original source code from RTKLib can be obtained from https://github.com/tomojitakasu/RTKLIB
+
+We have used routines obtained from Better Enums, released under the BSD-2 license, these routines have been preserved in the folder cpp/src/3rdparty The original source code from Better Enums can be obtained from http://github.com/aantron/better-enums.
 ***
 ## Installing dependencies with Ubuntu
 
 Update the base operating system:
 
-    $ sudo apt update
-    $ sudo apt upgrade
+    sudo apt update
+    sudo apt upgrade
 
 Install base utilities `gcc`, `gfortran`, `git`, `openssl`, `openblas` etc:
 
-    $ sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make libssl1.0-dev
+    sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make libssl1.0-dev
+
+Since Ginan v1.2-alpha both gcc and g++ of version 9 are required, so make sure to update the gcc/g++ alternatives prior to compilation:
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo apt update
+    sudo apt install gcc-9 g++-9
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 51
+    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 51
 ***
 ## Building additional dependencies 
 
@@ -127,86 +164,94 @@ Depending on the user's installation choice: install PEA-only, POD-only or all s
 
 First, create a temporary directory structure to make the dependencies in, it can be removed after the installation process is done:
 
-    $ sudo mkdir -p /data/tmp
-    $ cd /data/tmp
+    mkdir ~/tmp
+    cd ~/tmp
 
-Note that `/data/tmp` is only used here as example and can be any directory
+Note that `~/tmp` is only used here as example and can be any directory
 
 ### YAML
 We are using the [YAML](https://github.com/jbeder/yaml-cpp) library to parse the configuration files used to run many of the programs found in this library. Here is an example of how to install the yaml library from source:
 
-    $ cd /data/tmp
-    $ sudo git clone https://github.com/jbeder/yaml-cpp.git
-    $ cd yaml-cpp
-    $ sudo mkdir cmake-build
-    $ cd cmake-build
-    $ sudo cmake .. -DCMAKE\_INSTALL\_PREFIX=/usr/local/ -DYAML\_CPP\_BUILD\_TESTS=OFF
-    $ sudo make install yaml-cpp
-    $ cd ../..
-    $ sudo rm -fr yaml-cpp
+    cd ~/tmp
+    git clone https://github.com/jbeder/yaml-cpp.git
+    cd yaml-cpp
+    mkdir cmake-build
+    cd cmake-build
+    cmake .. -DCMAKE\_INSTALL\_PREFIX=/usr/local/ -DYAML\_CPP\_BUILD\_TESTS=OFF
+    sudo make install yaml-cpp
+    cd ../..
+    rm -rf yaml-cpp
 
 ### Boost (PEA)
 PEA relies on a number of the utilities provided by [boost](https://www.boost.org/), such as their time and logging libraries.
 
-    $ cd /data/tmp/
-    $ sudo wget -c https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
-    $ sudo gunzip boost_1_73_0.tar.gz
-    $ sudo tar xvf boost_1_73_0.tar
-    $ cd boost_1_73_0/
-    $ sudo ./bootstrap.sh
-    $ sudo ./b2 install
-    $ cd ..
-    $ sudo rm -fr boost_1_73_0/ boost_1_73_0.tar
+    cd ~/tmp
+    wget -c https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
+    gunzip boost_1_73_0.tar.gz
+    tar xvf boost_1_73_0.tar
+    cd boost_1_73_0/
+    ./bootstrap.sh
+    sudo ./b2 install
+    cd ..
+    sudo rm -rf boost_1_73_0/ boost_1_73_0.tar
 
 ### Eigen3 (PEA)
 Eigen3 is used for performing matrix calculations in PEA, and has a very nice API.
 
-    $ cd /data/tmp/
-    $ sudo git clone https://gitlab.com/libeigen/eigen.git
-    $ cd eigen
-    $ sudo mkdir cmake-build
-    $ cd cmake-build
-    $ sudo cmake ..
-    $ sudo make install
-    $ cd ../..
-    $ sudo rm -rf eigen
+    cd ~/tmp
+    git clone https://gitlab.com/libeigen/eigen.git
+    cd eigen
+    git checkout dfa51767
+    mkdir cmake-build
+    cd cmake-build
+    cmake ..
+    sudo make install
+    cd ../..
+    rm -rf eigen
 
 
 ### MongoDB (PEA, optional)
 Needed for realtime preview of the processed results (developers-only)
 
-    $ wget https://github.com/mongodb/mongo-c-driver/releases/download/1.17.1/mongo-c-driver-1.17.1.tar.gz
-    $ tar -xvf mongo-c-driver-1.17.1.tar.gz
+    cd ~/tmp
+    wget https://github.com/mongodb/mongo-c-driver/releases/download/1.17.1/mongo-c-driver-1.17.1.tar.gz
+    tar -xvf mongo-c-driver-1.17.1.tar.gz
+    cd mongo-c-driver-1.17.1/
+    mkdir cmakebuild
+    cd cmakebuild/
+    cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF ..
+    cmake --build .
+    sudo cmake --build . --target install
 
-    $ cd mongo-c-driver-1.17.1/
-    $ mkdir cmakebuild
-    $ cd cmakebuild/
-    $ cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF ..
-    $ cmake --build .
-    $ sudo cmake --build . --target install
+    cd ~/tmp
+    curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.0/mongo-cxx-driver-r3.6.0.tar.gz
+    tar -xzf mongo-cxx-driver-r3.6.0.tar.gz
+    cd mongo-cxx-driver-r3.6.0/build
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+    sudo cmake --build . --target EP_mnmlstc_core
+    cmake --build .
+    sudo cmake --build . --target install
 
-    $ cd ../../
-    $ curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.0/mongo-cxx-driver-r3.6.0.tar.gz
-    $ tar -xzf mongo-cxx-driver-r3.6.0.tar.gz
+    wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+    sudo apt update
+    sudo apt install mongodb-org
 
-    $ cd mongo-cxx-driver-r3.6.0/
+    cd ../..
+    sudo rm -rf mongo-c-driver-1.17.1  mongo-c-driver-1.17.1.tar.gz  mongo-cxx-driver-r3.6.0  mongo-cxx-driver-r3.6.0.tar.gz
 
-    $ cd build/
-    $ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
-    $ sudo cmake --build . --target EP_mnmlstc_core
-    $ cmake --build .
-    $ sudo cmake --build . --target install
 
-    $ wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
-    $ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-    $ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+To start MongoDB:
 
-    $ sudo apt update
-    $ sudo apt install mongodb-org 
+    sudo systemctl start mongod
+    sudo systemctl status mongod
+    mongod
 
-    $ sudo systemctl start mongod
-    $ sudo systemctl status mongod
-    $ mongod
+To autostart MongoDB on system startup:
+
+    systemctl enable mongod.service
+
 
 <!-- If you are using WSL see the notes below and skip this next section: -->
 <!-- #### For WSL:
@@ -218,40 +263,45 @@ to /etc/init.d/mongod
 
 Make the script executable:
 
-    $ sudo chmod a+x /etc/init.d/mongod
+     sudo chmod a+x /etc/init.d/mongod
 
 Now you can start it as a service by:
 
-    $ sudo service mongod start -->
+    sudo service mongod start 
+-->
 
 ### netcdf4 (OTL package)
-    $ sudo apt -y install libnetcdf-dev libnetcdf-c++4-dev
+
+    sudo apt -y install libnetcdf-dev libnetcdf-c++4-dev
 ***
 ## Build
-Prepare a directory to build in, its better practise to keep this seperated from the source code.
+Prepare a directory to build in - it's better practice to keep this separated from the source code.
+From the Ginan git root directory:
 
-    $ cd src
-    $ mkdir -p build
-    $ cd build
+    cd src
+    mkdir build
+    cd build
 
 Run cmake to find the build dependencies and create the make file. If you wish to enable the optional MONGO DB utilities you will need to add the `-DENABLE_MONGODB=TRUE` flag. If you wish to compile an optimised version, typically this version will run 3 times faster but you may run into compile problems depending on your system, add the `-DOPTIMISATION=TRUE` flag:
 
-    $ cmake [-DENABLE_MONGODB=TRUE] [-DENABLE_OPTIMISATION=TRUE] ..
+    cmake [-DENABLE_MONGODB=TRUE] [-DENABLE_OPTIMISATION=TRUE] ..
 
-To build every package simply run `make` or `make -j 2`, where 2 is a number of parallel threads you want to use for the compilation:
+To build every package simply run `make` or `make -j 2` , where 2 is a number of parallel threads you want to use for the compilation:
 
-    $ make [-j 2]
+    make [-j 2]
 
 To build specific package (e.g. PEA or POD), run as below:
 
-    $ make pea -j 2
-    $ make pod -j 2
+    make pea -j 2
+    make pod -j 2
 
 This should create executables in the `bin` directory of Ginan.
 
+cd ../examples
+
 Check to see if you can execute the PEA:
 
-    $ ../../bin/pea --help
+    ../bin/pea --help
 
 and you should see something similar to:
 
@@ -292,17 +342,16 @@ and you should see something similar to:
 
 Similarly, check the POD:
 
-    $ ../../bin/pod --help
+    ../bin/pod --help
 This returns:
 
     Earth Radiation Model (ERM):   1
 
-    Default master POD config file = POD.in
-    To run from default config file: ../../bin/pod or ../../bin/pod -c POD.in
+    Default master POD config file = POD.in (old - no longer supported) - use a yaml config
     
-    POD.in config file options by defaut can be overridden on the command line
+    yaml config file options by defaut can be overridden on the command line
     
-    Command line: ../../bin/pod -m -s -o -a -p -r -t -n -i -u -q -k -w -y -h 
+    Command line: ../bin/pod -m -s -o -a -p -r -t -n -i -u -q -k -w -y -h 
     
     Where: 
         -m --podmode = POD Mode:
@@ -330,16 +379,16 @@ This returns:
         -k --srpmodel= 1: ECOM1, 2:ECOM2, 12:ECOM12, 3:SBOX
         -w --empmodel= 1: activated, 0: no estimation
         -d --verbosity = output verbosity level [Default: 0]
-        -y --yaml = yaml config file
+        -y --config = yaml config file
         -h --help.   = Print program help
     
     Examples:
     
-            ../../bin/pod -m 1 -q 1 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex1.yaml
-            ../../bin/pod -m 2 -q 1 -k 1 -w 0 -s igs16403.sp3 -p 12 -y ex2.yaml
+            ../bin/pod -m 1 -q 1 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex21.yaml
+            ../bin/pod -m 2 -q 1 -k 1 -w 0 -s igs16403.sp3 -p 12 -y exi22.yaml
     
     For orbit updates using Parameter Estimation Algorithm (PEA):
-            ../../bin/pod -m 4 -q 2 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex3.yaml
+            ../bin/pod -m 4 -q 2 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex23.yaml
 
 
 
@@ -356,28 +405,31 @@ Ginan documentation consists of two parts: a doxygen-generated documentation tha
 Below, we explain on how to generate each bit of documentation:
 
 ### Doxygen
+Move back to the root of your ginan installation
+
+    cd ..
 The Doxygen documentation for Ginan requires `doxygen` and `graphviz`. If not already installed, type as follows:
 
-	$ sudo apt -y install doxygen graphviz
+    sudo apt -y install doxygen graphviz
 
 On success, proceed to the build directory and call make with `doc_doxygen` target:
 
-	$ cd src/build
-	$ make doc_doxygen
+    cd src/build
+    make doc_doxygen
 
 The docs can then be found at `docs/html/index.html`. Note that documentation is generated automatically if `make` is called without arguments and `doxygen` and `graphviz` dependencies are satisfied.
 
 ### Latex
 A detailed Ginan manual is located in `docs/manual` and is in latex format. To compile Latex to pdf you will need a compiler, such as texlive:
 
-    $ sudo apt install texlive-latex-base texlive-latex-extra
+    sudo apt install texlive-latex-base texlive-latex-extra
 
 Now, go to `docs/manual` and generate the pdf:
 
-    $ cd docs/manual
-    $ pdflatex main.tex
-    $ makeglossaries main
-    $ pdflatex main.tex
+    cd docs/manual
+    pdflatex main.tex
+    makeglossaries main
+    pdflatex main.tex
 
 `main.pdf` file should now appear in the directory.
 ***
@@ -386,7 +438,7 @@ Congratulations! You are now ready to trial the examples of PEA and POD from the
 
 The paths are relative to the examples directory and hence all the examples must be run from the `examples` directory.
 
-    cd ../../examples
+    cd ../examples
 
 To run the first example of the PEA:
 
@@ -414,19 +466,19 @@ This will allow you to pass the .yaml file into the conda command and automatica
 ### Install Miniconda
 To install Miniconda, download and execute the Miniconda shell file:
 
-    $ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    $ bash Miniconda3-latest-Linux-x86_64.sh
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh
 
 And follow the on-screen instructions  (choosing all defaults is fine).
 
 ### Create virtual environment
 After installation you can create the `gn37` python environment using a prepared receipy. First open a new terminal session and enter:
 
-    $ conda env create -f <dir_to_ginan>/scripts/conda_gn37.yaml
+    conda env create -f <dir_to_ginan>/scripts/conda_gn37.yaml
 
 You have now created the virtual python environment `gn37` with all necessary dependencies. Anytime you wish you run python scripts, ensure you are in the virtual environment by activating:
 
-    $ conda activate gn37
+    conda activate gn37
 
 And then run your desired script from the `scripts` directory.
 
@@ -434,3 +486,5 @@ And then run your desired script from the `scripts` directory.
 We have used routines obtained from RTKLIB, released under a BSD-2 license, these routines have been preserved with minor modifications in the folder `cpp/src/rtklib`. The original source code from RTKLib can be obtained from https://github.com/tomojitakasu/RTKLIB.
 
 We have used routines obtained from Better Enums, released under the BSD-2 license, these routines have been preserved in the folder `cpp/src/3rdparty` The original source code from Better Enums can be obtained from http://github.com/aantron/better-enums.
+
+We have used routines obtained from EGM96, released under the zlib license, these routines have been preserved in the folder `cpp/src/egm96` The original source code from EGM96 can be obtained from https://github.com/emericg/EGM96.

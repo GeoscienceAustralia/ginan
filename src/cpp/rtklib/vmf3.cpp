@@ -1,9 +1,9 @@
 
-#include "constants.h"
+#include "constants.hpp"
 #include "common.hpp"
 #include "vmf3.h"
 
-const double anm_bh[91][5]=
+const double anm_bh[91][5] =
 {
 	{0.00271285863109945,-1.39197786008938E-06,1.34955672002719E-06,2.71686279717968E-07,1.56659301773925E-06},
 	{9.80476624811974E-06,-5.83922611260673E-05,-2.07307023860417E-05,1.14628726961148E-06,4.93610283608719E-06},
@@ -765,22 +765,23 @@ const double bnm_cw[91][5]=
 *
 * return   :       0-failed, 1-successful
 * ---------------------------------------------------------------------------*/
-int readorog(string file, double *orog)
+int readorog(string file, double* orog)
 {
-	FILE *fp=NULL;
+	FILE* fp = nullptr;
 	char buff[64];
-	int i=0;
+	int i = 0;
 
-	fp=fopen(file.c_str(),"r");
+	fp = fopen(file.c_str(), "r");
+
 	if (!fp)
 	{
-		fprintf(stdout,"Warning: reading orog file %s fails\n",file.c_str());
+		fprintf(stdout, "Warning: reading orog file %s fails\n", file.c_str());
 		return 0;
 	}
 
-	while(fgets(buff,64,fp)!=NULL)
+	while (fgets(buff, 64, fp) != nullptr)
 	{
-		sscanf(buff,"%lf",&orog[i]);
+		sscanf(buff, "%lf", &orog[i]);
 		i++;
 	}
 
@@ -794,47 +795,49 @@ int readorog(string file, double *orog)
 *
 * return   :       0-failed, 1-successful
 * ---------------------------------------------------------------------------*/
-int readvmf3(const char *file, vmf3grid_t *vmf3g)
+int readvmf3(const char* file, vmf3grid_t* vmf3g)
 {
-	FILE *fp=NULL;
-	char buff[256], *p=NULL;
+	FILE* fp = nullptr;
+	char buff[256], *p = nullptr;
 	double val[6];
-	int i=0,j;
+	int i = 0, j;
 
-	fp=fopen(file,"r");
-	if (!fp) {
-		fprintf(stdout,"Warning: reading vmf3 file %s fails\n",file);
+	fp = fopen(file, "r");
+
+	if (!fp)
+	{
+		fprintf(stdout, "Warning: reading vmf3 file %s fails\n", file);
 		return 0;
 	}
 
-	while (fgets(buff,256,fp)!=NULL)
+	while (fgets(buff, 256, fp) != nullptr)
 	{
 		/* ignore the first line */
-		if (strchr(buff,'!'))
+		if (strchr(buff, '!'))
 			continue;
 
-		j=0;
-		p=strtok(buff," ");
+		j = 0;
+		p = strtok(buff, " ");
 
 		/* loop over each line */
-		while(p)
+		while (p)
 		{
-			sscanf(p,"%lf",&val[j]);
+			sscanf(p, "%lf", &val[j]);
 			j++;
-			p=strtok(NULL," ");
+			p = strtok(nullptr, " ");
 		}
 
 		/* assign lat lon */
-		vmf3g->lat[i]=val[0];
-		vmf3g->lon[i]=val[1];
-		vmf3g->ah[i]=val[2];
-		vmf3g->aw[i]=val[3];
-		vmf3g->zhd[i]=val[4];
-		vmf3g->zwd[i]=val[5];
+		vmf3g->lat[i] = val[0];
+		vmf3g->lon[i] = val[1];
+		vmf3g->ah[i] = val[2];
+		vmf3g->aw[i] = val[3];
+		vmf3g->zhd[i] = val[4];
+		vmf3g->zwd[i] = val[5];
 
 		/* resolution */
-		if (i==1)
-			vmf3g->resol=vmf3g->lon[i]-vmf3g->lon[i-1];
+		if (i == 1)
+			vmf3g->resol = vmf3g->lon[i] - vmf3g->lon[i - 1];
 
 		i++;
 	}
@@ -849,16 +852,17 @@ int readvmf3(const char *file, vmf3grid_t *vmf3g)
 *
 * return   :       index for the minimum number in the array
 * ---------------------------------------------------------------------------*/
-int minindex(double *x, int n)
+int minindex(double* x, int n)
 {
-	int i,j=0;
-	double m=x[0];
-	for (i=1;i<n;i++)
+	int i, j = 0;
+	double m = x[0];
+
+	for (i = 1; i < n; i++)
 	{
-		if (fabs(x[i])<fabs(m))
+		if (fabs(x[i]) < fabs(m))
 		{
-			m=fabs(x[i]);
-			j=i;
+			m = fabs(x[i]);
+			j = i;
 		}
 	}
 
@@ -873,36 +877,39 @@ int minindex(double *x, int n)
 * return   :       none
 * ---------------------------------------------------------------------------*/
 void searchgrid(const double latd, const double lond, const int reso,
-						int idx[4])
+    int idx[4])
 {
-	int i,ilat[2],ilon[2];
-	double t,latall[NLAT],lonall[NLON];
+	int i, ilat[2], ilon[2];
+	double t, latall[NLAT], lonall[NLON];
 
-	t=reso/2.0;
-	for (i=0;i<NLAT;i++) 	latall[i]=latd-(90-t-reso*(i));
-	for (i=0;i<NLON;i++) 	lonall[i]=lond-(0 +t+reso*(i));
+	t = reso / 2.0;
 
-	ilat[0]=minindex(latall,NLAT);
-	ilon[0]=minindex(lonall,NLON);
+	for (i = 0; i < NLAT; i++) 	latall[i] = latd - (90 - t - reso * (i));
+	for (i = 0; i < NLON; i++) 	lonall[i] = lond - (0  + t + reso * (i));
 
-	ilat[1]=ilat[0]-(latall[ilat[0]]>0?1:(latall[ilat[0]]<0?-1:0));
-	ilon[1]=ilon[0]+(lonall[ilon[0]]>0?1:(lonall[ilon[0]]<0?-1:0));
+	ilat[0] = minindex(latall, NLAT);
+	ilon[0] = minindex(lonall, NLON);
 
-	for (i=0;i<2;i++)
+	ilat[1] = ilat[0] - (latall[ilat[0]] > 0 ? 1 : (latall[ilat[0]] < 0 ? -1 : 0));
+	ilon[1] = ilon[0] + (lonall[ilon[0]] > 0 ? 1 : (lonall[ilon[0]] < 0 ? -1 : 0));
+
+	for (i = 0; i < 2; i++)
 	{
-		if (ilat[i]>NLAT-1)    	ilat[i]=NLAT-1;
-		if (ilat[i]<0)      	ilat[i]=0;
-		if (ilon[i]>NLON-1)    	ilon[i]=ilon[i]-NLON;
-		if (ilon[i]<0)      	ilon[i]=ilon[i]+NLON;
+		if (ilat[i] > NLAT - 1)		ilat[i] = NLAT - 1;
+		if (ilat[i] < 0)			ilat[i] = 0;
+
+		if (ilon[i] > NLON - 1)		ilon[i] = ilon[i] - NLON;
+		if (ilon[i] < 0)			ilon[i] = ilon[i] + NLON;
 	}
 
-	idx[0]=(ilat[0])*NLON+ilon[0];
-	idx[1]=(ilat[0])*NLON+ilon[1];
-	idx[2]=(ilat[1])*NLON+ilon[0];
-	idx[3]=(ilat[1])*NLON+ilon[1];
+	idx[0] = (ilat[0]) * NLON + ilon[0];
+	idx[1] = (ilat[0]) * NLON + ilon[1];
+	idx[2] = (ilat[1]) * NLON + ilon[0];
+	idx[3] = (ilat[1]) * NLON + ilon[1];
 
 	return;
 }
+
 /* searching surroudning 4 grids -----------------------------------------------
 * args     :       const vmf3grid_t *vmf3g I       vmf grid info
 *                  const double latd       I       latitude (degree)
@@ -914,126 +921,153 @@ void searchgrid(const double latd, const double lond, const int reso,
 *
 * return   :       none
 * ---------------------------------------------------------------------------*/
-void searchgrid1(const vmf3grid_t *vmf3g, const double latd,
-					const double lond, const int coin, int idx[4])
+void searchgrid1(
+	const 	vmf3grid_t*	vmf3g, 
+	const 	double		latd,
+    const 	double		lond, 
+	const 	int			coin, 
+			int			idx[4])
 {
-	int i,k,j,m,p=0,q=0;
-	double lat0,lat1,lon0,lon1;
+	int i = 0;
+	int k = 0;
+	int j = 0;
+	int m = 0;
+	int p = 0;
+	int q = 0;
+	double lat0, lat1, lon0, lon1;
 
-	m=coin?1:0;
+	m = coin ? 1 : 0;
 
-	lat0=vmf3g[m].lat[0];
-	lat1=vmf3g[m].lat[NGRID-1];
-	lon0=vmf3g[m].lon[0];
-	lon1=vmf3g[m].lon[NGRID-1];
+	lat0 = vmf3g[m].lat[0];
+	lat1 = vmf3g[m].lat[NGRID - 1];
+	lon0 = vmf3g[m].lon[0];
+	lon1 = vmf3g[m].lon[NGRID - 1];
 
 	/* find lat and lon location of previous grid file */
-	for (i=0;i<NGRID-1;i++)
+	for (i = 0; i < NGRID - 1; i++)
 	{
 		/* descending order for lat, ascending order for lon */
-		if (latd<vmf3g[m].lat[i]&&latd>vmf3g[m].lat[i+1])
-		{ /* lat in grids */
-			j=i;
-			k=i+1;
+		if (latd < vmf3g[m].lat[i] && latd > vmf3g[m].lat[i + 1])
+		{
+			/* lat in grids */
+			j = i;
+			k = i + 1;
 			break;
 		}
-		else if (latd==vmf3g[m].lat[i])
-		{           /* lat on grid */
-			j=k=i;
+		else if (latd == vmf3g[m].lat[i])
+		{
+			/* lat on grid */
+			j = k = i;
 			break;
 		}
-		else if (latd==vmf3g[m].lat[i+1])
-		{         /* lat on grid */
-			j=k=i+1;
+		else if (latd == vmf3g[m].lat[i + 1])
+		{
+			/* lat on grid */
+			j = k = i + 1;
 			break;
 		}
-		else if (latd<lat1)
-		{                       /* lat < -87.5 */
-			j=NGRID-1; k=NGRID-1;
+		else if (latd < lat1)
+		{
+			/* lat < -87.5 */
+			j = NGRID - 1; k = NGRID - 1;
 		}
-		else if (latd>lat0)
-		{            /* lat > 87.5 */
-			j=0; k=0;
+		else if (latd > lat0)
+		{
+			/* lat > 87.5 */
+			j = 0; k = 0;
 		}
 	}
-	for (i=0;i<NGRID-1;i++)
+
+	for (i = 0; i < NGRID - 1; i++)
 	{
-		if (lond>=vmf3g[m].lon[i]&&lond<vmf3g[m].lon[i+1]&&
-				(vmf3g[m].lat[i]==vmf3g[m].lat[j]))
+		if (lond >= vmf3g[m].lon[i] && lond < vmf3g[m].lon[i + 1] &&
+		    (vmf3g[m].lat[i] == vmf3g[m].lat[j]))
 		{
 			/* lon >=2.5 && lon <= 357.5, for latitude j */
-			if (lond==vmf3g[m].lon[i])
-			{            /* lon on grid */
-				idx[0]=idx[1]=i;
-				if (k==j)
-				{                         /* lat on grid */
-					idx[2]=idx[3]=i;
+			if (lond == vmf3g[m].lon[i])
+			{
+				/* lon on grid */
+				idx[0] = idx[1] = i;
+
+				if (k == j)
+				{
+					/* lat on grid */
+					idx[2] = idx[3] = i;
 					break;
 				}
 			}
 			else
-			{                                  /* lon within grids */
-				idx[2]=i; idx[3]=i+1;
-				if (k==j)
+			{
+				/* lon within grids */
+				idx[2] = i; idx[3] = i + 1;
+
+				if (k == j)
 				{
-					idx[0]=i; idx[1]=i+1;
+					idx[0] = i; idx[1] = i + 1;
 					break;
 				}
 			}
 		}
-		else if (lond>=vmf3g[m].lon[i]&&lond<vmf3g[m].lon[i+1]&&
-				(vmf3g[m].lat[i]==vmf3g[m].lat[k]))
+		else if (lond >= vmf3g[m].lon[i] && lond < vmf3g[m].lon[i + 1] &&
+		    (vmf3g[m].lat[i] == vmf3g[m].lat[k]))
 		{
 			/* lon >=2.5 && lon <= 357.5, for latitude k */
-			if (lond==vmf3g[m].lon[i])
-				idx[2]=idx[3]=i;
+			if (lond == vmf3g[m].lon[i])
+				idx[2] = idx[3] = i;
 			else
 			{
-				idx[0]=i; idx[1]=i+1;
+				idx[0] = i; idx[1] = i + 1;
 				break;
 			}
 		}
 		/* longitutde out of range */
-		else if (lond>=lon1&&(vmf3g[m].lon[i]==lon1)&&(vmf3g[m].lat[i]==vmf3g[m].lat[j]))
+		else if (  lond >= lon1
+		    && (vmf3g[m].lon[i] == lon1)
+		    && (vmf3g[m].lat[i] == vmf3g[m].lat[j]))
 		{
-			idx[2]=idx[3]=i;
-			if (k==j)
+			idx[2] = idx[3] = i;
+
+			if (k == j)
 			{
-				idx[0]=idx[1]=i;
+				idx[0] = idx[1] = i;
 				break;
 			}
 		}
-		else if (lond>=lon1&&(vmf3g[m].lon[i+1]==lon1)&&(vmf3g[m].lat[i+1]==vmf3g[m].lat[j]))
+		else if (  lond >= lon1
+		    && (vmf3g[m].lon[i + 1] == lon1)
+		    && (vmf3g[m].lat[i + 1] == vmf3g[m].lat[j]))
 		{
-			idx[2]=idx[3]=i+1;
-			if (k==j)
+			idx[2] = idx[3] = i + 1;
+
+			if (k == j)
 			{
-				idx[0]=idx[1]=i+1;
+				idx[0] = idx[1] = i + 1;
 				break;
 			}
 		}
-		else if (lond>=lon1&&(vmf3g[m].lon[i]==lon1)&&(vmf3g[m].lat[i]==vmf3g[m].lat[k]))
+		else if (lond >= lon1 && (vmf3g[m].lon[i] == lon1) && (vmf3g[m].lat[i] == vmf3g[m].lat[k]))
 		{
-			idx[0]=idx[1]=i;
+			idx[0] = idx[1] = i;
 		}
-		else if (lond>=lon1&&(vmf3g[m].lon[i+1]==lon1)&&(vmf3g[m].lat[i+1]==vmf3g[m].lat[k]))
+		else if (lond >= lon1 && (vmf3g[m].lon[i + 1] == lon1) && (vmf3g[m].lat[i + 1] == vmf3g[m].lat[k]))
 		{
-			idx[0]=idx[1]=i+1;
+			idx[0] = idx[1] = i + 1;
 		}
-		else if (!p&&lond<lon0&&(vmf3g[m].lon[0]==lon0)&&(vmf3g[m].lat[i]==vmf3g[m].lat[j]))
+		else if (!p && lond < lon0 && (vmf3g[m].lon[0] == lon0) && (vmf3g[m].lat[i] == vmf3g[m].lat[j]))
 		{
-			idx[2]=idx[3]=i;
-			p=1;
-			if (k==j)
+			idx[2] = idx[3] = i;
+			p = 1;
+
+			if (k == j)
 			{
-				idx[0]=idx[1]=i;
+				idx[0] = idx[1] = i;
 				break;
 			}
 		}
-		else if (!q&&lond<lon0&&(vmf3g[m].lon[0]==lon0)&&(vmf3g[m].lat[i]==vmf3g[m].lat[k]))
+		else if (!q && lond < lon0 && (vmf3g[m].lon[0] == lon0) && (vmf3g[m].lat[i] == vmf3g[m].lat[k]))
 		{
-			q=1;
-			idx[0]=idx[1]=i;
+			q = 1;
+			idx[0] = idx[1] = i;
 		}
 	}
 
@@ -1051,94 +1085,107 @@ void searchgrid1(const vmf3grid_t *vmf3g, const double latd,
 * return   :
 * ---------------------------------------------------------------------------*/
 void legenpoly(double vmf3h0[4][7], const double doy, const double el,
-					const double hgt, double vmf3h1[4][9])
+    const double hgt, double vmf3h1[4][9])
 {
-	int i,j,k,n,m,nmax=12,p=0,q=0;
-	double x[4],y[4],z[4],bh[4],bw[4],ch[4],cw[4];
-	double bhc[5]={0},bwc[5]={0},chc[5]={0},cwc[5]={0},ah,aw;
-	double a1=2.53e-5,b1=5.49e-3,c1=1.14e-3,h1;
-	double vmat[13][13]={{0}},wmat[13][13]={{0}};
+	int i, j, k, n, m, nmax = 12, p = 0, q = 0;
+	double x[4], y[4], z[4], bh[4], bw[4], ch[4], cw[4];
+	double bhc[5] = {0}, bwc[5] = {0}, chc[5] = {0}, cwc[5] = {0}, ah, aw;
+	double a1 = 2.53e-5, b1 = 5.49e-3, c1 = 1.14e-3, h1;
+	double vmat[13][13] = {{0}}, wmat[13][13] = {{0}};
 
 	/* unit vector */
-	for (i=0;i<4;i++)
+	for (i = 0; i < 4; i++)
 	{
-		x[i]=sin(PIGA/2-vmf3h0[i][0]*D2RGA)*cos(vmf3h0[i][1]*D2RGA);
-		y[i]=sin(PIGA/2-vmf3h0[i][0]*D2RGA)*sin(vmf3h0[i][1]*D2RGA);
-		z[i]=cos(PIGA/2-vmf3h0[i][0]*D2RGA);
+		x[i] = sin(PIGA / 2 - vmf3h0[i][0] * D2RGA) * cos(vmf3h0[i][1] * D2RGA);
+		y[i] = sin(PIGA / 2 - vmf3h0[i][0] * D2RGA) * sin(vmf3h0[i][1] * D2RGA);
+		z[i] = cos(PIGA / 2 - vmf3h0[i][0] * D2RGA);
 	}
 
-	for (i=0;i<4;i++)
+	for (i = 0; i < 4; i++)
 	{
-		vmat[0][0]=1.0; wmat[0][0]=0.0;
-		vmat[1][0]=z[i]*vmat[0][0]; wmat[1][0]=0.0;
+		vmat[0][0] = 1.0; wmat[0][0] = 0.0;
+		vmat[1][0] = z[i] * vmat[0][0]; wmat[1][0] = 0.0;
 
-		for (j=1;j<nmax;j++)
+		for (j = 1; j < nmax; j++)
 		{
-			n=j+1;
-			vmat[j+1][0]=((2*n-1)*z[i]*vmat[j][0]-j*vmat[j-1][0])/n;
-			wmat[j+1][0]=0.0;
+			n = j + 1;
+			vmat[j + 1][0] = ((2 * n - 1) * z[i] * vmat[j][0] - j * vmat[j - 1][0]) / n;
+			wmat[j + 1][0] = 0.0;
 		}
 
-		for (j=0;j<nmax;j++)
+		for (j = 0; j < nmax; j++)
 		{
-			m=j+1;
-			vmat[j+1][j+1]=(2*m-1)*(x[i]*vmat[j][j]-y[i]*wmat[j][j]);
-			wmat[j+1][j+1]=(2*m-1)*(x[i]*wmat[j][j]+y[i]*vmat[j][j]);
+			m = j + 1;
+			vmat[j + 1][j + 1] = (2 * m - 1) * (x[i] * vmat[j][j] - y[i] * wmat[j][j]);
+			wmat[j + 1][j + 1] = (2 * m - 1) * (x[i] * wmat[j][j] + y[i] * vmat[j][j]);
 
-			if (j<nmax-1)
+			if (j < nmax - 1)
 			{
-				vmat[j+2][j+1]=(2*m+1)*z[i]*vmat[j+1][j+1];
-				wmat[j+2][j+1]=(2*m+1)*z[i]*wmat[j+1][j+1];
+				vmat[j + 2][j + 1] = (2 * m + 1) * z[i] * vmat[j + 1][j + 1];
+				wmat[j + 2][j + 1] = (2 * m + 1) * z[i] * wmat[j + 1][j + 1];
 			}
-			for (k=j+2;k<nmax;k++)
+
+			for (k = j + 2; k < nmax; k++)
 			{
-				vmat[k+1][j+1]=((2*(k+1)-1)*z[i]*vmat[k][j+1]-
-								(k+1+j)*vmat[k-1][j+1])/(k+1-m);
-				wmat[k+1][j+1]=((2*(k+1)-1)*z[i]*wmat[k][j+1]-
-								(k+1+j)*wmat[k-1][j+1])/(k+1-m);
+				vmat[k + 1][j + 1] 	= ((2 * (k + 1) - 1) * z[i] * vmat[k][j + 1] - (k + 1 + j) * vmat[k - 1][j + 1]) / (k + 1 - m);
+				wmat[k + 1][j + 1] = ((2 * (k + 1) - 1) * z[i] * wmat[k][j + 1] - (k + 1 + j) * wmat[k - 1][j + 1]) / (k + 1 - m);
 			}
 		}
 
 		/* b) determine coefficients bh, bw, ch, cw */
-		p=0;
-		for (j=0;j<5;j++)
-			bhc[j]=bwc[j]=chc[j]=cwc[j]=0.0;
+		p = 0;
 
-		for (j=0;j<=nmax;j++)
+		for (j = 0; j < 5; j++)
+			bhc[j] = bwc[j] = chc[j] = cwc[j] = 0.0;
+
+		for (j = 0; j <= nmax; j++)
 		{
-			for (k=0;k<=j;k++)
+			for (k = 0; k <= j; k++)
 			{
-				for (q=0;q<5;q++)
+				for (q = 0; q < 5; q++)
 				{
-					bhc[q]+=anm_bh[p][q]*vmat[j][k]+bnm_bh[p][q]*wmat[j][k];
-					bwc[q]+=anm_bw[p][q]*vmat[j][k]+bnm_bw[p][q]*wmat[j][k];
-					chc[q]+=anm_ch[p][q]*vmat[j][k]+bnm_ch[p][q]*wmat[j][k];
-					cwc[q]+=anm_cw[p][q]*vmat[j][k]+bnm_cw[p][q]*wmat[j][k];
+					bhc[q] += anm_bh[p][q] * vmat[j][k] + bnm_bh[p][q] * wmat[j][k];
+					bwc[q] += anm_bw[p][q] * vmat[j][k] + bnm_bw[p][q] * wmat[j][k];
+					chc[q] += anm_ch[p][q] * vmat[j][k] + bnm_ch[p][q] * wmat[j][k];
+					cwc[q] += anm_cw[p][q] * vmat[j][k] + bnm_cw[p][q] * wmat[j][k];
 				}
+
 				p++;
 			}
 		}
 
 		/* adding seasonal amplitudes */
-		bh[i]=bhc[0]+bhc[1]*cos(doy/365.25*2*PIGA)+bhc[2]*sin(doy/365.25*2*PIGA)
-					+bhc[3]*cos(doy/365.25*4*PIGA)+bhc[4]*sin(doy/365.25*4*PIGA);
-		bw[i]=bwc[0]+bwc[1]*cos(doy/365.25*2*PIGA)+bwc[2]*sin(doy/365.25*2*PIGA)
-					+bwc[3]*cos(doy/365.25*4*PIGA)+bwc[4]*sin(doy/365.25*4*PIGA);
-		ch[i]=chc[0]+chc[1]*cos(doy/365.25*2*PIGA)+chc[2]*sin(doy/365.25*2*PIGA)
-					+chc[3]*cos(doy/365.25*4*PIGA)+chc[4]*sin(doy/365.25*4*PIGA);
-		cw[i]=cwc[0]+cwc[1]*cos(doy/365.25*2*PIGA)+cwc[2]*sin(doy/365.25*2*PIGA)
-					+cwc[3]*cos(doy/365.25*4*PIGA)+cwc[4]*sin(doy/365.25*4*PIGA);
+		bh[i]	= bhc[0] 
+				+ bhc[1] * cos(doy / 365.25 * 2 * PIGA) 
+				+ bhc[2] * sin(doy / 365.25 * 2 * PIGA)
+				+ bhc[3] * cos(doy / 365.25 * 4 * PIGA) 
+				+ bhc[4] * sin(doy / 365.25 * 4 * PIGA);
+		bw[i] 	= bwc[0] 
+				+ bwc[1] * cos(doy / 365.25 * 2 * PIGA) 
+				+ bwc[2] * sin(doy / 365.25 * 2 * PIGA)
+				+ bwc[3] * cos(doy / 365.25 * 4 * PIGA) 
+				+ bwc[4] * sin(doy / 365.25 * 4 * PIGA);
+		ch[i] 	= chc[0] 
+				+ chc[1] * cos(doy / 365.25 * 2 * PIGA) 
+				+ chc[2] * sin(doy / 365.25 * 2 * PIGA)
+				+ chc[3] * cos(doy / 365.25 * 4 * PIGA) 
+				+ chc[4] * sin(doy / 365.25 * 4 * PIGA);
+		cw[i] 	= cwc[0] 
+				+ cwc[1] * cos(doy / 365.25 * 2 * PIGA) 
+				+ cwc[2] * sin(doy / 365.25 * 2 * PIGA)
+				+ cwc[3] * cos(doy / 365.25 * 4 * PIGA) 
+				+ cwc[4] * sin(doy / 365.25 * 4 * PIGA);
 	}
 
 	/* using a from the grid and calculate hydro and wet mapping factor */
-	for (i=0;i<4;i++)
+	for (i = 0; i < 4; i++)
 	{
-		ah=vmf3h0[i][2];
-		aw=vmf3h0[i][3];
-		vmf3h1[i][7]=(1+(ah/(1+bh[i]/(1+ch[i]))))/(sin(el)+(ah/(sin(el)+bh[i]/(sin(el)+ch[i]))));
-		vmf3h1[i][8]=(1+(aw/(1+bw[i]/(1+cw[i]))))/(sin(el)+(aw/(sin(el)+bw[i]/(sin(el)+cw[i]))));
-		h1=1/sin(el)-(1+(a1/(1+b1/(1+c1))))/(sin(el)+(a1/(sin(el)+b1/(sin(el)+c1))));
-		vmf3h1[i][7]+=h1*hgt/1000;
+		ah = vmf3h0[i][2];
+		aw = vmf3h0[i][3];
+		vmf3h1[i][7] = (1 + (ah / (1 + bh[i] / (1 + ch[i])))) / (sin(el) + (ah / (sin(el) + bh[i] / (sin(el) + ch[i]))));
+		vmf3h1[i][8] = (1 + (aw / (1 + bw[i] / (1 + cw[i])))) / (sin(el) + (aw / (sin(el) + bw[i] / (sin(el) + cw[i]))));
+		h1 = 1 / sin(el) - (1 + (a1 / (1 + b1 / (1 + c1)))) / (sin(el) + (a1 / (sin(el) + b1 / (sin(el) + c1))));
+		vmf3h1[i][7] += h1 * hgt / 1000;
 	}
 
 	return;
@@ -1158,56 +1205,57 @@ void legenpoly(double vmf3h0[4][7], const double doy, const double el,
 * return   :
 * ---------------------------------------------------------------------------*/
 void interp2(double vmf3h1[4][9], const double latd, const double lond,
-					const int id, double zd[2], double mf[2])
+    const int id, double zd[2], double mf[2])
 {
-	double zh[2],zw[2],mh[2],mw[2];
+	double zh[2], zw[2], mh[2], mw[2];
 
-	if (id==1)
+	if (id == 1)
 	{
-		zd[0]=vmf3h1[1][4];
-		zd[1]=vmf3h1[1][5];
-		mf[0]=vmf3h1[1][7];
-		mf[1]=vmf3h1[1][8];
+		zd[0] = vmf3h1[1][4];
+		zd[1] = vmf3h1[1][5];
+		mf[0] = vmf3h1[1][7];
+		mf[1] = vmf3h1[1][8];
 	}
-	else {
+	else
+	{
 		/* (a) linear interpolation for longitude */
-		if (vmf3h1[0][1]!=vmf3h1[1][1])
+		if (vmf3h1[0][1] != vmf3h1[1][1])
 		{
-			zh[0]=vmf3h1[0][4]+(vmf3h1[1][4]-vmf3h1[0][4])*(lond-vmf3h1[0][1])/(vmf3h1[1][1]-vmf3h1[0][1]);
-			zh[1]=vmf3h1[2][4]+(vmf3h1[3][4]-vmf3h1[2][4])*(lond-vmf3h1[2][1])/(vmf3h1[3][1]-vmf3h1[2][1]);
-			zw[0]=vmf3h1[0][5]+(vmf3h1[1][5]-vmf3h1[0][5])*(lond-vmf3h1[0][1])/(vmf3h1[1][1]-vmf3h1[0][1]);
-			zw[1]=vmf3h1[2][5]+(vmf3h1[3][5]-vmf3h1[2][5])*(lond-vmf3h1[2][1])/(vmf3h1[3][1]-vmf3h1[2][1]);
-			mh[0]=vmf3h1[0][7]+(vmf3h1[1][7]-vmf3h1[0][7])*(lond-vmf3h1[0][1])/(vmf3h1[1][1]-vmf3h1[0][1]);
-			mh[1]=vmf3h1[2][7]+(vmf3h1[3][7]-vmf3h1[2][7])*(lond-vmf3h1[2][1])/(vmf3h1[3][1]-vmf3h1[2][1]);
-			mw[0]=vmf3h1[0][8]+(vmf3h1[1][8]-vmf3h1[0][8])*(lond-vmf3h1[0][1])/(vmf3h1[1][1]-vmf3h1[0][1]);
-			mw[1]=vmf3h1[2][8]+(vmf3h1[3][8]-vmf3h1[2][8])*(lond-vmf3h1[2][1])/(vmf3h1[3][1]-vmf3h1[2][1]);
+			zh[0] = vmf3h1[0][4] + (vmf3h1[1][4] - vmf3h1[0][4]) * (lond - vmf3h1[0][1]) / (vmf3h1[1][1] - vmf3h1[0][1]);
+			zh[1] = vmf3h1[2][4] + (vmf3h1[3][4] - vmf3h1[2][4]) * (lond - vmf3h1[2][1]) / (vmf3h1[3][1] - vmf3h1[2][1]);
+			zw[0] = vmf3h1[0][5] + (vmf3h1[1][5] - vmf3h1[0][5]) * (lond - vmf3h1[0][1]) / (vmf3h1[1][1] - vmf3h1[0][1]);
+			zw[1] = vmf3h1[2][5] + (vmf3h1[3][5] - vmf3h1[2][5]) * (lond - vmf3h1[2][1]) / (vmf3h1[3][1] - vmf3h1[2][1]);
+			mh[0] = vmf3h1[0][7] + (vmf3h1[1][7] - vmf3h1[0][7]) * (lond - vmf3h1[0][1]) / (vmf3h1[1][1] - vmf3h1[0][1]);
+			mh[1] = vmf3h1[2][7] + (vmf3h1[3][7] - vmf3h1[2][7]) * (lond - vmf3h1[2][1]) / (vmf3h1[3][1] - vmf3h1[2][1]);
+			mw[0] = vmf3h1[0][8] + (vmf3h1[1][8] - vmf3h1[0][8]) * (lond - vmf3h1[0][1]) / (vmf3h1[1][1] - vmf3h1[0][1]);
+			mw[1] = vmf3h1[2][8] + (vmf3h1[3][8] - vmf3h1[2][8]) * (lond - vmf3h1[2][1]) / (vmf3h1[3][1] - vmf3h1[2][1]);
 		}
 		else
 		{
-			zh[0]=vmf3h1[0][4];
-			zh[1]=vmf3h1[2][4];
-			zw[0]=vmf3h1[0][5];
-			zw[1]=vmf3h1[2][5];
-			mh[0]=vmf3h1[0][7];
-			mh[1]=vmf3h1[2][7];
-			mw[0]=vmf3h1[0][8];
-			mw[1]=vmf3h1[2][8];
+			zh[0] = vmf3h1[0][4];
+			zh[1] = vmf3h1[2][4];
+			zw[0] = vmf3h1[0][5];
+			zw[1] = vmf3h1[2][5];
+			mh[0] = vmf3h1[0][7];
+			mh[1] = vmf3h1[2][7];
+			mw[0] = vmf3h1[0][8];
+			mw[1] = vmf3h1[2][8];
 		}
 
 		/* linear interpolation for latitude */
-		if (vmf3h1[0][0]!=vmf3h1[2][0])
+		if (vmf3h1[0][0] != vmf3h1[2][0])
 		{
-			zd[0]=zh[0]+(zh[1]-zh[0])*(latd-vmf3h1[0][0])/(vmf3h1[2][0]-vmf3h1[0][0]);
-			zd[1]=zw[0]+(zw[1]-zw[0])*(latd-vmf3h1[0][0])/(vmf3h1[2][0]-vmf3h1[0][0]);
-			mf[0]=mh[0]+(mh[1]-mh[0])*(latd-vmf3h1[0][0])/(vmf3h1[2][0]-vmf3h1[0][0]);
-			mf[1]=mw[0]+(mw[1]-mw[0])*(latd-vmf3h1[0][0])/(vmf3h1[2][0]-vmf3h1[0][0]);
+			zd[0] = zh[0] + (zh[1] - zh[0]) * (latd - vmf3h1[0][0]) / (vmf3h1[2][0] - vmf3h1[0][0]);
+			zd[1] = zw[0] + (zw[1] - zw[0]) * (latd - vmf3h1[0][0]) / (vmf3h1[2][0] - vmf3h1[0][0]);
+			mf[0] = mh[0] + (mh[1] - mh[0]) * (latd - vmf3h1[0][0]) / (vmf3h1[2][0] - vmf3h1[0][0]);
+			mf[1] = mw[0] + (mw[1] - mw[0]) * (latd - vmf3h1[0][0]) / (vmf3h1[2][0] - vmf3h1[0][0]);
 		}
 		else
 		{
-			zd[0]=zh[0];
-			zd[1]=zw[0];
-			mf[0]=mh[0];
-			mf[1]=mw[0];
+			zd[0] = zh[0];
+			zd[1] = zw[0];
+			mf[0] = mh[0];
+			mf[1] = mw[0];
 		}
 	}
 
@@ -1220,43 +1268,48 @@ void interp2(double vmf3h1[4][9], const double latd, const double lond,
 *
 * return   :       none
 * ---------------------------------------------------------------------------*/
-extern void readvmf3grids(const char *dir, vmf3_t *vmf3, const double jd)
+void readvmf3grids(const char* dir, vmf3_t* vmf3, const double jd)
 {
-	int i,hour;
-	double ep[6],ep1[6],mjd,mjd1;
+	int i, hour;
+	double ep[6], ep1[6], mjd, mjd1;
 	char gfile[128];
 
 	/* find the surrounding NWM epochs */
-	jd2ymdhms(jd,ep);
-	ep[3]=ep[4]=ep[5]=0.0;
+	jd2ymdhms(jd, ep);
+	ep[3] = ep[4] = ep[5] = 0.0;
 	double jd1 = ymdhms2jd(ep);
 
-	mjd=jd1-JD2MJD;
-	mjd1=mjd+1;
-	jd2ymdhms(mjd1+JD2MJD,ep1);
+	mjd = jd1 - JD2MJD;
+	mjd1 = mjd + 1;
+	jd2ymdhms(mjd1 + JD2MJD, ep1);
 
-	hour=0;
-	vmf3->m=0;
+	hour = 0;
+	vmf3->m = 0;
 #if (0)	/* not supported yet */
-	for (i=0;i<4;i++)
+
+	for (i = 0; i < 4; i++)
 	{
-		vmf3->vmf3g[i].mjd=0.0;
-		sprintf(gfile,"%sVMF3_%4d%02d%02d.H%02d",dir,
-					(int)ep[0],(int)ep[1],(int)ep[2],hour);
-		printf("%d %s\n",i,gfile);
-		if (!readvmf3(gfile,&vmf3->vmf3g[i]))
+		vmf3->vmf3g[i].mjd = 0.0;
+		sprintf(gfile, "%sVMF3_%4d%02d%02d.H%02d", dir,
+		    (int)ep[0], (int)ep[1], (int)ep[2], hour);
+		printf("%d %s\n", i, gfile);
+
+		if (!readvmf3(gfile, &vmf3->vmf3g[i]))
 			continue;
-		vmf3->vmf3g[i].mjd=mjd+i*0.25;
-		hour+=6;
+
+		vmf3->vmf3g[i].mjd = mjd + i * 0.25;
+		hour += 6;
 		vmf3->m++;
 	}
 
-	sprintf(gfile,"%sVMF3_%4d%02d%02d.H00",dir, (int)ep1[0],(int)ep1[1],(int)ep1[2]);
-	printf("%s\n",gfile);
-	vmf3->vmf3g[4].mjd=0.0;
-	if (!readvmf3(gfile,&vmf3->vmf3g[4]))
+	sprintf(gfile, "%sVMF3_%4d%02d%02d.H00", dir, (int)ep1[0], (int)ep1[1], (int)ep1[2]);
+	printf("%s\n", gfile);
+	vmf3->vmf3g[4].mjd = 0.0;
+
+	if (!readvmf3(gfile, &vmf3->vmf3g[4]))
 		return;
-	vmf3->vmf3g[4].mjd=mjd1;
+
+	vmf3->vmf3g[4].mjd = mjd1;
 	vmf3->m++;
 #endif
 	return;
@@ -1264,110 +1317,101 @@ extern void readvmf3grids(const char *dir, vmf3_t *vmf3, const double jd)
 
 /* update grid -----------------------------------------------------------------
 * args     :       char *dir               I       grid file directory
-*                  vmf3grid_t *vmf3g       I/O     grid information
 *                  const double jd         I       julian day
-*                  double mjd0[3]          I       surrounding NWM epochs
-*                  int *m                  O       NWM identifier
-*                                                  default 1
-*
-* return   :
-*
 * note     :       determine whether to update grid files or not
 * ---------------------------------------------------------------------------*/
-extern int udgrid(const char*	dir,
-				vmf3grid_t*	vmf3g,
-				const double	jd,
-				double		mjd0[3],
-				int&			m)
+int udgrid(
+	const char*		dir,
+    vmf3_t&			vmf3,
+    const double	jd)
 {
-	int resol;
 	bool ic = false;
-	double ep1[6];
-	double ep2[6];
-	double ep3[6];
-	double mjd[3];
 	char gfile[128];
 
 	/* find the surrounding NWM epochs */
+	double mjd[3];
 	mjd[0] = jd - JD2MJD;
-	mjd[1] = floor(mjd[0]*4) / 4;
+	mjd[1] = floor(mjd[0] * 4) / 4;
 	mjd[2] = mjd[1] + 0.25;
 
+	double ep1[6];
+	double ep2[6];
+	double ep3[6];
 	jd2ymdhms(mjd[0] + JD2MJD,	ep1);
 	jd2ymdhms(mjd[1] + JD2MJD,	ep2);
 	jd2ymdhms(mjd[2] + JD2MJD,	ep3);
 
-	if (mjd0[0] == 0)
+	if (vmf3.mjd0[0] == 0)
 	{
 		/* first epoch */
-		mjd0[0] = mjd[0];
-		mjd0[1] = mjd[1];
-		mjd0[2] = mjd[2];
+		vmf3.mjd0[0] = mjd[0];
+		vmf3.mjd0[1] = mjd[1];
+		vmf3.mjd0[2] = mjd[2];
 		ic = true;
 	}
 	else
 	{
 		/* surrounding NWM epoch changes */
-		if	( mjd0[1] != mjd[1]
-			||mjd0[2] != mjd[2])
+		if	(  vmf3.mjd0[1] != mjd[1]
+		    || vmf3.mjd0[2] != mjd[2])
 		{
-			mjd0[1] = mjd[1];
-			mjd0[2] = mjd[2];
+			vmf3.mjd0[1] = mjd[1];
+			vmf3.mjd0[2] = mjd[2];
 			ic = true;
-			vmf3g[1].resol = 0;
-			vmf3g[2].resol = 0;
+			vmf3.vmf3g[1].resol = 0;
+			vmf3.vmf3g[2].resol = 0;
 		}
-		else if (mjd0[0] == mjd0[1]
-				&&(vmf3g[1].resol == 0
-				|| vmf3g[2].resol == 0))
+		else if	(    vmf3.mjd0[0] == vmf3.mjd0[1]
+				&& ( vmf3.vmf3g[1].resol == 0
+				  || vmf3.vmf3g[2].resol == 0))
 		{
 			ic = true;
 		}
 	}
 
-	if	( ic == true
-		&&m	!= 2)
+	if	(  ic
+	    && vmf3.m	!= 2)
 	{
 		/* if observation epoch coincides with NWM epoch */
-		if ((int)ep1[3]%6	== 0
-			&&ep1[4]		== 0
-			&&ep1[5]		== 0)
+		if ((int)ep1[3] % 6	== 0
+		    && ep1[4]		== 0
+		    && ep1[5]		== 0)
 		{
-			sprintf(gfile,"%sVMF3_%4d%02d%02d.H%02d", dir, (int)ep1[0], (int)ep1[1], (int)ep1[2], (int)ep1[3]);
+			sprintf(gfile, "%sVMF3_%4d%02d%02d.H%02d", dir, (int)ep1[0], (int)ep1[1], (int)ep1[2], (int)ep1[3]);
 
-			mjd0[0] = mjd[0];
+			vmf3.mjd0[0] = mjd[0];
 
-			vmf3g[1] = {};
-			vmf3g[2] = {};
+			vmf3.vmf3g[1] = {};
+			vmf3.vmf3g[2] = {};
 
-			if (!readvmf3(gfile, &vmf3g[0]))
+			if (!readvmf3(gfile, &vmf3.vmf3g[0]))
 			{
-				m = 2;
+				vmf3.m = 2;
 				return 0;
 			}
-			resol = (int) vmf3g[0].resol;
-			m = 0;
+
+			vmf3.m = 0;
 		}
 		else
 		{
 			/* construct and read the surroudning epoch files */
-			sprintf(gfile,"%sVMF3_%4d%02d%02d.H%02d",dir, (int)ep2[0], (int)ep2[1], (int)ep2[2], (int)ep2[3]);
+			sprintf(gfile, "%sVMF3_%4d%02d%02d.H%02d", dir, (int)ep2[0], (int)ep2[1], (int)ep2[2], (int)ep2[3]);
 
-			if (!readvmf3(gfile, &vmf3g[1]))
+			if (!readvmf3(gfile, &vmf3.vmf3g[1]))
 			{
-				m = 2;
+				vmf3.m = 2;
 				return 0;
 			}
 
-			sprintf(gfile,"%sVMF3_%4d%02d%02d.H%02d",dir, (int)ep3[0], (int)ep3[1], (int)ep3[2], (int)ep3[3]);
-			if (!readvmf3(gfile, &vmf3g[2]))
+			sprintf(gfile, "%sVMF3_%4d%02d%02d.H%02d", dir, (int)ep3[0], (int)ep3[1], (int)ep3[2], (int)ep3[3]);
+
+			if (!readvmf3(gfile, &vmf3.vmf3g[2]))
 			{
-				m = 2;
+				vmf3.m = 2;
 				return 0;
 			}
 
-			resol			= (int)	vmf3g[1].resol;
-			vmf3g[0].resol	= 		vmf3g[1].resol;
+			vmf3.vmf3g[0].resol	= 		vmf3.vmf3g[1].resol;
 		}
 	}
 
@@ -1389,87 +1433,96 @@ extern int udgrid(const char*	dir,
 *                                                  [1]-wet
 * return   :
 * ---------------------------------------------------------------------------*/
-extern int tropvmf3(const vmf3grid_t *vmf3g,
-					const double *orog,
-					const double jd,
-					const double lat,
-					const double lon,
-					const double hgt,
-					const double zd,
-					const int mi,
-					double *zhd,
-					double *zwd,
-					double mf[2])
+int tropvmf3(const vmf3grid_t* vmf3g,
+    const double* orog,
+    const double jd,
+    const double lat,
+    const double lon,
+    const double hgt,
+    const double zd,
+    const int mi,
+    double* zhd,
+    double* zwd,
+    double mf[2])
 {
-	int i,j,idx[4]={0},leap,yr,mon,id=0,m;
-	const int days[]={0,31,59,90,120,151,181,212,243,273,304,334};
-	double ep1[6],mjd[3],latd,lond,delay[2];
-	double vmf3h0[4][7]={{0}},vmf3h1[4][9]={{0}},coef,doy,el;
+	int i, j, idx[4] = {0}, leap, yr, mon, id = 0, m;
+	const int days[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+	double ep1[6], mjd[3], latd, lond, delay[2];
+	double vmf3h0[4][7] = {{0}}, vmf3h1[4][9] = {{0}}, coef, doy, el;
 
 	/* no grid information */
-	if (vmf3g[0].resol==0&&vmf3g[1].resol==0&&vmf3g[2].resol==0)
+	if (vmf3g[0].resol == 0 && vmf3g[1].resol == 0 && vmf3g[2].resol == 0)
 		return 0;
 
-	m=mi;
+	m = mi;
 
-	latd=round(lat*R2DGA*1e10)/1e10;
-	lond=round(lon*R2DGA*1e10)/1e10;
-	if (lond<0) lond+=360;
+	latd = round(lat * R2DGA * 1e10) / 1e10;
+	lond = round(lon * R2DGA * 1e10) / 1e10;
+
+	if (lond < 0) 
+		lond += 360;
 
 	/* find the surrounding NWM epochs */
-	mjd[0]=jd-JD2MJD;
-	mjd[1]=floor(mjd[0]*4)/4;
-	mjd[2]=mjd[1]+0.25;
+	mjd[0] = jd - JD2MJD;
+	mjd[1] = floor(mjd[0] * 4) / 4;
+	mjd[2] = mjd[1] + 0.25;
 
-	jd2ymdhms(jd,ep1);
+	jd2ymdhms(jd, ep1);
 
 	/* search surrounding grids */
-	searchgrid(latd,lond,vmf3g[0].resol,idx);
+	searchgrid(latd, lond, vmf3g[0].resol, idx);
 
 	/* linear time interpolation of two grid files */
-	coef=(mjd[0]-mjd[1])/(mjd[2]-mjd[1])*m;
+	coef = (mjd[0] - mjd[1]) / (mjd[2] - mjd[1]) * m;
 
-	for (i=0;i<4;i++)
+	for (i = 0; i < 4; i++)
 	{
-		vmf3h0[i][0]=vmf3g[m].lat[idx[i]]+(vmf3g[2].lat[idx[i]]-vmf3g[m].lat[idx[i]])*coef; /* lat */
-		vmf3h0[i][1]=vmf3g[m].lon[idx[i]]+(vmf3g[2].lon[idx[i]]-vmf3g[m].lon[idx[i]])*coef; /* lon */
-		vmf3h0[i][2]=vmf3g[m].ah[idx[i]] +(vmf3g[2].ah[idx[i]] -vmf3g[m].ah[idx[i]]) *coef; /* ah */
-		vmf3h0[i][3]=vmf3g[m].aw[idx[i]] +(vmf3g[2].aw[idx[i]] -vmf3g[m].aw[idx[i]]) *coef; /* aw */
-		vmf3h0[i][4]=vmf3g[m].zhd[idx[i]]+(vmf3g[2].zhd[idx[i]]-vmf3g[m].zhd[idx[i]])*coef; /* zhd */
-		vmf3h0[i][5]=vmf3g[m].zwd[idx[i]]+(vmf3g[2].zwd[idx[i]]-vmf3g[m].zwd[idx[i]])*coef; /* zwd */
+		vmf3h0[i][0] = vmf3g[m].lat[idx[i]] + (vmf3g[2].lat[idx[i]] - vmf3g[m].lat[idx[i]]) * coef; /* lat */
+		vmf3h0[i][1] = vmf3g[m].lon[idx[i]] + (vmf3g[2].lon[idx[i]] - vmf3g[m].lon[idx[i]]) * coef; /* lon */
+		vmf3h0[i][2] = vmf3g[m].ah [idx[i]] + (vmf3g[2].ah [idx[i]] - vmf3g[m].ah [idx[i]]) * coef; /* ah */
+		vmf3h0[i][3] = vmf3g[m].aw [idx[i]] + (vmf3g[2].aw [idx[i]] - vmf3g[m].aw [idx[i]]) * coef; /* aw */
+		vmf3h0[i][4] = vmf3g[m].zhd[idx[i]] + (vmf3g[2].zhd[idx[i]] - vmf3g[m].zhd[idx[i]]) * coef; /* zhd */
+		vmf3h0[i][5] = vmf3g[m].zwd[idx[i]] + (vmf3g[2].zwd[idx[i]] - vmf3g[m].zwd[idx[i]]) * coef; /* zwd */
 	}
 
-	for (i=0;i<4;i++)
+	for (i = 0; i < 4; i++)
 	{
-		for (j=0;j<4;j++) vmf3h1[i][j]=vmf3h0[i][j];
+		for (j = 0; j < 4; j++)
+			vmf3h1[i][j] = vmf3h0[i][j];
+
 		/* (a) zhd */
-		vmf3h0[i][6]=(vmf3h0[i][4]/0.0022768)*(1-0.00266*cos(2*lat)-0.28*1e-6*orog[idx[i]]);
-		vmf3h1[i][6]=vmf3h0[i][6]*pow((1-0.0000226*(hgt-orog[idx[i]])),5.225);
-		vmf3h1[i][4]=0.0022768*vmf3h1[i][6]/(1-0.00266*cos(2*lat)-0.28*1e-6*hgt);
+		vmf3h0[i][6] = (vmf3h0[i][4] / 0.0022768) * (1 - 0.00266 * cos(2 * lat) - 0.28 * 1e-6 * orog[idx[i]]);
+		vmf3h1[i][6] = vmf3h0[i][6] * pow((1 - 0.0000226 * (hgt - orog[idx[i]])), 5.225);
+		vmf3h1[i][4] = 0.0022768 * vmf3h1[i][6] / (1 - 0.00266 * cos(2 * lat) - 0.28 * 1e-6 * hgt);
 
 		/* (b) zwd */
-		vmf3h1[i][5]=vmf3h0[i][5]*exp(-(hgt-orog[idx[i]])/2000);
+		vmf3h1[i][5] = vmf3h0[i][5] * exp(-(hgt - orog[idx[i]]) / 2000);
 	}
 
 	/* day of year */
-	yr=(int)ep1[0];
-	mon=(int)ep1[1];
-	leap=((yr%4==0&&yr%100!=0)||(yr%400==0))?1:0;
-	doy=days[mon-1]+ep1[2]+(mjd[0]-floor(mjd[0]));
-	if (mon>2) doy+=leap;
+	yr = (int)ep1[0];
+	mon = (int)ep1[1];
+	leap = ((yr % 4 == 0 && yr % 100 != 0) || (yr % 400 == 0)) ? 1 : 0;
+	doy = days[mon - 1] + ep1[2] + (mjd[0] - floor(mjd[0]));
 
-	el=PIGA/2.0-zd;
+	if (mon > 2)
+		doy += leap;
+
+	el = PIGA / 2.0 - zd;
 
 	/* legendre polynomials */
-	legenpoly(vmf3h0,doy,el,hgt,vmf3h1);
+	legenpoly(vmf3h0, doy, el, hgt, vmf3h1);
 
-	if ((idx[0]==idx[1])&&(idx[1]==idx[2])&&(idx[2]==idx[3]))
-		id=1;
+	if	(  (idx[0] == idx[1])
+		&& (idx[1] == idx[2])
+		&& (idx[2] == idx[3]))
+		id = 1;
+
 	/* bilinear interpolation */
-	interp2(vmf3h1,latd,lond,id,delay,mf);
+	interp2(vmf3h1, latd, lond, id, delay, mf);
 
-	*zhd=delay[0];
-	*zwd=delay[1];
+	*zhd = delay[0];
+	*zwd = delay[1];
 
 	return 1;
 }
@@ -1491,194 +1544,141 @@ extern int tropvmf3(const vmf3grid_t *vmf3g,
 *
 * return   :
 * ---------------------------------------------------------------------------*/
-extern int tropvmf3full(vmf3grid_t *vmf3g, const double *orog,
-					const double jd, const double lat, const double lon,
-					const double hgt, const double zd,
-					double mjd0[3], double delay[2], double mf[2])
+int tropvmf3full(vmf3grid_t* vmf3g, const double* orog,
+    const double jd, const double lat, const double lon,
+    const double hgt, const double zd,
+    double mjd0[3], double delay[2], double mf[2])
 {
-	int i,j,resol,idx[4]={0},leap,yr,mon,m=1,id=0,ic=0;
-	const int days[]={0,31,59,90,120,151,181,212,243,273,304,334};
-	double ep1[6],ep2[6],ep3[6],mjd[3],latd,lond;
-	double vmf3h0[4][7]={{0}},vmf3h1[4][9]={{0}},coef,doy,el;
+	int i, j, resol, idx[4] = {0}, leap, yr, mon, m = 1, id = 0, ic = 0;
+	const int days[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+	double ep1[6], ep2[6], ep3[6], mjd[3], latd, lond;
+	double vmf3h0[4][7] = {{0}}, vmf3h1[4][9] = {{0}}, coef, doy, el;
 	char gfile[3][128];
 
-	latd=round(lat*R2DGA*1e10)/1e10;
-	lond=round(lon*R2DGA*1e10)/1e10;
-	if (lond<0) lond+=360;
+	latd = round(lat * R2DGA * 1e10) / 1e10;
+	lond = round(lon * R2DGA * 1e10) / 1e10;
+
+	if (lond < 0) lond += 360;
 
 	/* find the surrounding NWM epochs */
-	mjd[0]=jd-JD2MJD;
-	mjd[1]=floor(mjd[0]*4)/4;
-	mjd[2]=mjd[1]+0.25;
+	mjd[0] = jd - JD2MJD;
+	mjd[1] = floor(mjd[0] * 4) / 4;
+	mjd[2] = mjd[1] + 0.25;
 
-	jd2ymdhms(jd,ep1);
-	jd2ymdhms(mjd[1]+JD2MJD,ep2);
-	jd2ymdhms(mjd[2]+JD2MJD,ep3);
+	jd2ymdhms(jd, ep1);
+	jd2ymdhms(mjd[1] + JD2MJD, ep2);
+	jd2ymdhms(mjd[2] + JD2MJD, ep3);
 
-	if (mjd0[0]==0)
+	if (mjd0[0] == 0)
 	{
 		/* first epoch */
-		mjd0[0]=mjd[0];
-		mjd0[1]=mjd[1];
-		mjd0[2]=mjd[2];
-		ic=1;
+		mjd0[0] = mjd[0];
+		mjd0[1] = mjd[1];
+		mjd0[2] = mjd[2];
+		ic = 1;
 	}
 	else
 	{
 		/* surrounding NWM epoch changes */
-		if (mjd0[1]!=mjd[1]||mjd0[2]!=mjd[2])
+		if		(  mjd0[1] != mjd[1] 
+				|| mjd0[2] != mjd[2])
 		{
-			mjd0[1]=mjd[1];
-			mjd0[2]=mjd[2];
-			ic=1;
+			mjd0[1] = mjd[1];
+			mjd0[2] = mjd[2];
+			ic = 1;
 		}
-		else if (mjd0[0]==mjd0[1]&&vmf3g[1].resol==0)
-			ic=1;
+		else if	(  mjd0[0] == mjd0[1] 
+				&& vmf3g[1].resol == 0)
+			ic = 1;
 	}
 
-	if (ic==1)
+	if (ic == 1)
 	{
-		printf("epoch changes %lf %lf  \n",mjd0[1],mjd0[2]);
+		printf("epoch changes %lf %lf  \n", mjd0[1], mjd0[2]);
+
 		/* if observation epoch coincides with NWM epoch */
-		if ((int)ep1[3]%6==0&&ep1[4]==0&&ep1[5]==0)
+		if ((int)ep1[3] % 6 == 0 && ep1[4] == 0 && ep1[5] == 0)
 		{
-			sprintf(gfile[0],"../VMF3_%4d%02d%02d.H%02d", (int)ep1[0],(int)ep1[1],(int)ep1[2],(int)ep1[3]);
-			printf("%s\n",*gfile);
-			mjd0[0]=mjd[0];
-			memset(&vmf3g[1],0,sizeof(vmf3grid_t));
-			memset(&vmf3g[2],0,sizeof(vmf3grid_t));
-			if (!readvmf3(gfile[0],&vmf3g[0]))
+			sprintf(gfile[0], "../VMF3_%4d%02d%02d.H%02d", (int)ep1[0], (int)ep1[1], (int)ep1[2], (int)ep1[3]);
+			printf("%s\n", *gfile);
+			mjd0[0] = mjd[0];
+			vmf3g[1] = {};
+			vmf3g[2] = {};
+			
+			if (!readvmf3(gfile[0], &vmf3g[0]))
 				return 0;
-			resol=(int)vmf3g[0].resol;
-			m=0;
+
+			resol = (int)vmf3g[0].resol;
+			m = 0;
 		}
 		else
 		{
 			/* construct and read the surroudning epoch files */
-			sprintf(gfile[1],"../VMF3_%4d%02d%02d.H%02d",  (int)ep2[0],(int)ep2[1],(int)ep2[2],(int)ep2[3]);
-			if (!readvmf3(gfile[1],&vmf3g[1]))
+			sprintf(gfile[1], "../VMF3_%4d%02d%02d.H%02d",  (int)ep2[0], (int)ep2[1], (int)ep2[2], (int)ep2[3]);
+
+			if (!readvmf3(gfile[1], &vmf3g[1]))
 				return 0;
 
-			sprintf(gfile[2],"../VMF3_%4d%02d%02d.H%02d",  (int)ep3[0],(int)ep3[1],(int)ep3[2],(int)ep3[3]);
-			if (!readvmf3(gfile[2],&vmf3g[2]))
+			sprintf(gfile[2], "../VMF3_%4d%02d%02d.H%02d",  (int)ep3[0], (int)ep3[1], (int)ep3[2], (int)ep3[3]);
+
+			if (!readvmf3(gfile[2], &vmf3g[2]))
 				return 0;
 
-			resol=(int)vmf3g[1].resol;
+			resol = (int)vmf3g[1].resol;
 
-			for (i=1;i<=2;i++)
-				printf("%s\n",gfile[i]);
+			for (i = 1; i <= 2; i++)
+				printf("%s\n", gfile[i]);
 		}
 	}
 
 	/* search surrounding grids */
-	searchgrid(latd,lond,vmf3g[0].resol,idx);
+	searchgrid(latd, lond, vmf3g[0].resol, idx);
 
 	/* linear time interpolation of two grid files */
-	coef=(mjd[0]-mjd[1])/(mjd[2]-mjd[1])*m;
+	coef = (mjd[0] - mjd[1]) / (mjd[2] - mjd[1]) * m;
 
-	for (i=0;i<4;i++)
+	for (i = 0; i < 4; i++)
 	{
-		vmf3h0[i][0]=vmf3g[m].lat[idx[i]]+(vmf3g[2].lat[idx[i]]-vmf3g[m].lat[idx[i]])*coef; /* lat */
-		vmf3h0[i][1]=vmf3g[m].lon[idx[i]]+(vmf3g[2].lon[idx[i]]-vmf3g[m].lon[idx[i]])*coef; /* lon */
-		vmf3h0[i][2]=vmf3g[m].ah[idx[i]] +(vmf3g[2].ah[idx[i]] -vmf3g[m].ah[idx[i]]) *coef; /* ah */
-		vmf3h0[i][3]=vmf3g[m].aw[idx[i]] +(vmf3g[2].aw[idx[i]] -vmf3g[m].aw[idx[i]]) *coef; /* aw */
-		vmf3h0[i][4]=vmf3g[m].zhd[idx[i]]+(vmf3g[2].zhd[idx[i]]-vmf3g[m].zhd[idx[i]])*coef; /* zhd */
-		vmf3h0[i][5]=vmf3g[m].zwd[idx[i]]+(vmf3g[2].zwd[idx[i]]-vmf3g[m].zwd[idx[i]])*coef; /* zwd */
+		vmf3h0[i][0] = vmf3g[m].lat[idx[i]] 	+ (vmf3g[2].lat[idx[i]] 	- vmf3g[m].lat[idx[i]]) * coef; /* lat */
+		vmf3h0[i][1] = vmf3g[m].lon[idx[i]] 	+ (vmf3g[2].lon[idx[i]] 	- vmf3g[m].lon[idx[i]]) * coef; /* lon */
+		vmf3h0[i][2] = vmf3g[m].ah [idx[i]] 	+ (vmf3g[2].ah [idx[i]] 	- vmf3g[m].ah [idx[i]]) * coef; /* ah */
+		vmf3h0[i][3] = vmf3g[m].aw [idx[i]] 	+ (vmf3g[2].aw [idx[i]] 	- vmf3g[m].aw [idx[i]]) * coef; /* aw */
+		vmf3h0[i][4] = vmf3g[m].zhd[idx[i]] 	+ (vmf3g[2].zhd[idx[i]] 	- vmf3g[m].zhd[idx[i]]) * coef; /* zhd */
+		vmf3h0[i][5] = vmf3g[m].zwd[idx[i]] 	+ (vmf3g[2].zwd[idx[i]] 	- vmf3g[m].zwd[idx[i]]) * coef; /* zwd */
 	}
 
-	for (i=0;i<4;i++)
+	for (i = 0; i < 4; i++)
 	{
-		for (j=0;j<4;j++)
-			vmf3h1[i][j]=vmf3h0[i][j];
+		for (j = 0; j < 4; j++)
+			vmf3h1[i][j] = vmf3h0[i][j];
+
 		/* (a) zhd */
-		vmf3h0[i][6]=(vmf3h0[i][4]/0.0022768)*(1-0.00266*cos(2*lat)-0.28*1e-6*orog[idx[i]]);
-		vmf3h1[i][6]=vmf3h0[i][6]*pow((1-0.0000226*(hgt-orog[idx[i]])),5.225);
-		vmf3h1[i][4]=0.0022768*vmf3h1[i][6]/(1-0.00266*cos(2*lat)-0.28*1e-6*hgt);
+		vmf3h0[i][6] = (vmf3h0[i][4] / 0.0022768) * (1 - 0.00266 * cos(2 * lat) - 0.28 * 1e-6 * orog[idx[i]]);
+		vmf3h1[i][6] = vmf3h0[i][6] * pow((1 - 0.0000226 * (hgt - orog[idx[i]])), 5.225);
+		vmf3h1[i][4] = 0.0022768 * vmf3h1[i][6] / (1 - 0.00266 * cos(2 * lat) - 0.28 * 1e-6 * hgt);
 
 		/* (b) zwd */
-		vmf3h1[i][5]=vmf3h0[i][5]*exp(-(hgt-orog[idx[i]])/2000);
+		vmf3h1[i][5] = vmf3h0[i][5] * exp(-(hgt - orog[idx[i]]) / 2000);
 	}
 
 	/* day of year */
-	yr=(int)ep1[0];
-	mon=(int)ep1[1];
-	leap=((yr%4==0&&yr%100!=0)||(yr%400==0))?1:0;
-	doy=days[mon-1]+ep1[2]+(mjd[0]-floor(mjd[0]));
-	if (mon>2) doy+=leap;
+	yr = (int)ep1[0];
+	mon = (int)ep1[1];
+	leap = ((yr % 4 == 0 && yr % 100 != 0) || (yr % 400 == 0)) ? 1 : 0;
+	doy = days[mon - 1] + ep1[2] + (mjd[0] - floor(mjd[0]));
 
-	el=PIGA/2.0-zd;
+	if (mon > 2) doy += leap;
+
+	el = PIGA / 2.0 - zd;
 
 	/* legendre polynomials */
-	legenpoly(vmf3h0,doy,el,hgt,vmf3h1);
+	legenpoly(vmf3h0, doy, el, hgt, vmf3h1);
 
-	if ((idx[0]==idx[1])&&(idx[1]==idx[2])&&(idx[2]==idx[3]))
-		id=1;
+	if ((idx[0] == idx[1]) && (idx[1] == idx[2]) && (idx[2] == idx[3]))
+		id = 1;
+
 	/* bilinear interpolation */
-	interp2(vmf3h1,latd,lond,id,delay,mf);
+	interp2(vmf3h1, latd, lond, id, delay, mf);
 
 	return 1;
 }
-
-#if (0)
-int tropvmf3fullmain()
-{
-	int i,j,m=1;
-	vmf3grid_t vmf3g[3]={{0}};
-	double delay[2],mf[2],jd=2457841.5,lat=0,lon=0,zhd,zwd; //2457842.0
-	char ofile[128],dir[128];
-	double mjd0[3]={0},mjd[3]={0},orog[NGRID]={0};
-	FILE *fp;
-
-	/* read orography file */
-	sprintf(dir,"/data/pde/upload/grid1/");
-	sprintf(ofile,"%sorography_ell_1x1",dir);
-	if (!readorog(ofile,orog)) return 0;
-
-	fp=fopen("out.txt","w");
-	lat=-90;
-
-	for (i=0;i<2880;i++)
-	{
-		m=1;
-		udgrid(dir,vmf3g,jd,mjd0,m);
-		tropvmf3(vmf3g,orog,jd,-0.413121,2.33674,603.176,1.33532,m,&zhd,&zwd,mf);
-		fprintf(fp,"%12.6f %12.6f %12.6f\n",
-				jd-JD2MJD,zhd,zwd);
-		jd=jd+30.0/86400.0;
-	}
-
-
-#if (0)
-	/* testing different lats and lons */
-	for (i=0;i<1;i++)
-	{
-		lat+=2.5;
-		lon=-180;
-		for (j=0;j<1;j++)
-		{
-			lon+=2.5;
-			m=1;
-#if (0)
-			tropvmf3full(vmf3g,orog,jd,lat*D2RGA,lon*D2RGA,603.176,1.33532,mjd,delay,mf);
-			fprintf(fp,"%12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n",
-						lat,lon,delay[0],delay[1],mf[0],mf[1]);
-#else
-			udgrid(dir,vmf3g,jd,mjd0,m);
-			tropvmf3(vmf3g,orog,jd,lat*D2RGA,lon*D2RGA,603.176,1.33532,m,&zhd,&zwd,mf);
-			fprintf(fp,"%12.6f %12.6f %12.6f %12.6f %12.6f %12.6f\n",
-						lat,lon,zhd,zwd,mf[0],mf[1]);
-
-#endif
-			if (lon>=180) break;
-		}
-
-		if (lat>=90) break;
-	}
-#endif
-
-	fclose(fp);
-
-	return 0;
-}
-#endif
-

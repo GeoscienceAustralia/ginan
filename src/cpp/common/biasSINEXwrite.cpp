@@ -1,4 +1,7 @@
+
+
 #include "biasSINEX.hpp"
+#include "constants.hpp"
 
 int abs_strt[3] = {};
 int abs_nbia = 0;
@@ -27,24 +30,7 @@ string cod2str(
 	return outstr;
 }
 
-static void printExponent(
-	Trace&	trace, 
-	double	d,
-	bool	sigma)
-{
-	/* If someone knows how to make C++ print with just one digit as exponent... */
-	int		exponent	= 0;
-	double	base   		= 0;
-	
-	if (d != 0) 
-	{
-		exponent	= (int) floor( log10( fabs(d) ) );
-		base		= d * pow(10, -1 * exponent);
-	}
 
-	if (sigma)	tracepdeex(0, trace, " %8.6fE%+01d",	base, exponent);
-	else		tracepdeex(0, trace, " %18.15fE%+01d",	base, exponent);
-}
 
 /* convert time to yds (doy in bias SINEX starts at 1) */
 void sinex_time(
@@ -55,7 +41,7 @@ void sinex_time(
 	time2epoch(time, ep);
 	
 	ep0[0] = ep[0];
-	int toy = (int) timediff(time, epoch2time(ep0));
+	int toy = (int) (time - epoch2time(ep0));
 
 	yds[0] = (int) ep[0];
 	yds[1] = toy / 86400 + 1;		//doy[0]=toy/86400;
@@ -153,8 +139,8 @@ int write_bSINEX_line(
 			tend[2], 
 			"ns");
 	
-	printExponent(trace,      bias.bias * (1E9/CLIGHT),	false);
-	printExponent(trace, sqrt(bias.var) * (1E9/CLIGHT),	true);
+	traceFormatedFloat(trace,  bias.bias * (1E9/CLIGHT), " %18.15fE%+01d");
+	traceFormatedFloat(trace, sqrt(bias.var) * (1E9/CLIGHT), " %8.6fE%+01d");
 	
 	tracepdeex(0, trace, "\n");
 	return 1;
@@ -166,7 +152,7 @@ int write_bSINEX_line(
 *                  int     opt         I       bias I/O options
 * return   :       number of written biases (-1 if file not found)
 * ---------------------------------------------------------------------------*/
-int write_bias_SINEX(
+int writeBiasSinex(
 	Trace&		trace,
 	GTime		time,
 	string&		biasfile,
@@ -238,96 +224,101 @@ void outp_bias(
 	double		updateInterval, 
 	E_MeasType	measType)
 {
-	int mxcode = E_ObsCode::NUM_CODES;
 	KFKey key;
-	if		(type == +E_BiasType::OSB)
+
+	if	(type == +E_BiasType::OSB)
 	{
-		if (abs_updt <= 0) 
-			abs_updt = (int)(updateInterval + 0.5);
-		
+		if (abs_updt <= 0)
+			abs_updt = (int) (updateInterval + 0.5);
+
 		if (abs_strt[0] == 0)
 		{
-			sinex_time(time, abs_strt);
-			tracepdeex(2,trace,"\nInitializing absolute biases %04d:%03d:%05d", abs_strt[0], abs_strt[1], abs_strt[2]);
-		} 
-		
-		key.type=KF::PHASE_BIAS;
+			sinex_time (time, abs_strt);
+			tracepdeex (2, trace, "\nInitializing absolute biases %04d:%03d:%05d", abs_strt[0], abs_strt[1], abs_strt[2]);
+		}
+
+		key.type = KF::PHASE_BIAS;
 		key.num = code1._to_integral();
-	} 
+	}
 	else if	(type == +E_BiasType::DSB)
 	{
-		if (rel_updt <= 0) 
-			rel_updt = (int)(updateInterval + 0.5);
-		
+		if (rel_updt <= 0)
+			rel_updt = (int) (updateInterval + 0.5);
+
 		if (rel_strt[0] == 0)
 		{
-			sinex_time(time, rel_strt);
-			tracepdeex(2,trace,"\nInitializing relative biases %04d:%03d:%05d", rel_strt[0], rel_strt[1], rel_strt[2]);
-		} 
-		
-		key.type=KF::DCB;
-		int numcod=E_ObsCode::MAXCODE+1;
-		key.num = numcod*code1._to_integral() + code2._to_integral();
+			sinex_time (time, rel_strt);
+			tracepdeex (2, trace, "\nInitializing relative biases %04d:%03d:%05d", rel_strt[0], rel_strt[1], rel_strt[2]);
+		}
+
+		key.type	= KF::DCB;
+		int numcod	= E_ObsCode::MAXCODE + 1;
+		key.num		= numcod * code1._to_integral() + code2._to_integral();
 	}
 	else
 	{
-		tracepdeex(2,trace, "ERROR: unsupported bias format\n");
+		tracepdeex (2, trace, "ERROR: unsupported bias format\n");
 		return;
 	}
-	
-	key.Sat=Sat;
-	key.str=receiver;
+
+	key.Sat = Sat;
+	key.str = receiver;
+
 	if (receiver.empty() == false)
 	{
-	 	//this seems to be a receiver
-	 	key.Sat.prn=0;
+		//this seems to be a receiver
+		key.Sat.prn = 0;
 	}
-	
+
 	SinexBias entry;
 	int week;
 	double tow = time2gpst(time, &week);
-	tow = updateInterval * floor(tow / updateInterval);
-	
+	tow = updateInterval * floor (tow / updateInterval);
+
 	entry.biasType  = type;
 	entry.name		= receiver;
 	entry.Sat		= Sat;
 	entry.cod1		= code1;
 	entry.cod2		= code2;
-	
+
 	entry.measType	= measType;
-	entry.tini		= gpst2time(week, tow);
-	entry.tfin		= gpst2time(week, tow + updateInterval);
-	
+	entry.tini		= gpst2time (week, tow);
+	entry.tfin		= gpst2time (week, tow + updateInterval);
+
 	entry.bias	= bias;
 	entry.var	= variance;
 	entry.slop	= 0;
 	entry.slpv	= 0;
-	
-	tracepdeex(2,trace,"\nLoading bias for %s %s %s %d %d %s ", Sat.id().c_str(), Sat.svn().c_str(), receiver.c_str(), code1, code2, entry.tini.to_string(0));
-	
-	auto& BiasMap=SINEXBiases_out[key];
-	int found=-1;
-	
-	for (auto& [ind, bias]    : BiasMap){
-		if(bias.tini!=entry.tini) continue;
-		if(bias.measType!=entry.measType) continue;
-		
-		found=ind;
+
+	tracepdeex (2, trace, "\nLoading bias for %s %s %s %d %d %s ", Sat.id().c_str(), Sat.svn().c_str(), receiver.c_str(), code1, code2, entry.tini.to_string (0));
+
+	auto& biasMap = SINEXBiases_out[key];
+	int found = -1;
+
+	for (auto& [ind, bias] : biasMap)
+	{
+		if (bias.tini 		!= entry.tini)			continue;
+		if (bias.measType 	!= entry.measType)		continue;
+
+		found = ind;
 		break;
 	}
-	
-	if(found<0){
-		found=BiasMap.size();
+
+	if (found < 0)
+	{
+		found = biasMap.size();
+
 		if		(type == +E_BiasType::OSB)		abs_nbia++;
 		else if	(type == +E_BiasType::DSB)		rel_nbia++;
-	
-		tracepdeex(2, trace,"... new entry %4d", found);
-		
+
+		tracepdeex (2, trace, "... new entry %4d", found);
 	}
-	else{
-		tracepdeex(2, trace,"... updating entry %4d", found);
+	else
+	{
+		tracepdeex (2, trace, "... updating entry %4d", found);
 	}
-	tracepdeex(2, trace,"\n");
-	BiasMap[found]=entry;
+
+	tracepdeex (2, trace, "\n");
+	biasMap[found] = entry;
 }
 

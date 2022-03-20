@@ -8,14 +8,14 @@ SUBROUTINE tide_pole_oc (mjd, xp, yp , dC21,dS21)
 !  of the geopotential harmonics expansion
 ! ----------------------------------------------------------------------
 ! Input arguments:
-! - mjd   :			Modified Julian Day number in Terrestrial Time (TT) 
-!					including the fraction of the day 
+! - mjd   :             Modified Julian Day number in Terrestrial Time (TT) 
+!                             including the fraction of the day 
 ! Output arguments:
-! - dC21  :  		C21 coefficient correction due to Ocean Pole Tide
-! - dS21  :  		S21 coefficient correction due to Ocean Pole Tide
+! - dC21  :             C21 coefficient correction due to Ocean Pole Tide
+! - dS21  :             S21 coefficient correction due to Ocean Pole Tide
 ! ----------------------------------------------------------------------
-! Author :	Dr. Thomas Papanikolaou, Cooperative Research Centre for Spatial Information, Australia
-! Created:	November 2015
+! Author :  Dr. Thomas Papanikolaou, Cooperative Research Centre for Spatial Information, Australia
+! Created:  November 2015
 ! ----------------------------------------------------------------------
 ! Last modified:
 ! - Dr. Thomas Papanikolaou, 30 October 2017:
@@ -25,7 +25,7 @@ SUBROUTINE tide_pole_oc (mjd, xp, yp , dC21,dS21)
 
       USE mdl_precision
       IMPLICIT NONE
-	  
+
 ! ----------------------------------------------------------------------
 ! Dummy arguments declaration
 ! ----------------------------------------------------------------------
@@ -55,9 +55,9 @@ SUBROUTINE tide_pole_oc (mjd, xp, yp , dC21,dS21)
 
 ! ----------------------------------------------------------------------
 jd0 = 2400000.5D0
-CALL iau_JD2CAL ( jd0, mjd, IY, IM, ID, FD, J_flag )	  
+CALL iau_JD2CAL ( jd0, mjd, IY, IM, ID, FD, J_flag )    
 
-epoch = IY*1.D0 + IM/12.D0 + ID/365.25D0 + FD/365.25D0 														
+epoch = IY*1.D0 + IM/12.D0 + ID/365.25D0 + FD/365.25D0                                                                                    
 ! ----------------------------------------------------------------------
 
 
@@ -68,10 +68,10 @@ epoch = IY*1.D0 + IM/12.D0 + ID/365.25D0 + FD/365.25D0
 !      IF (epoch_int >= 2010) THEN
 !         version = 2015
 !      ELSE IF (epoch_int < 2010 .AND. epoch_int >= 2003) THEN
-!	     version = 2010
-!      ELSE IF (epoch_int < 2003 .AND. epoch_int >= 2010)		 
+!          version = 2010
+!      ELSE IF (epoch_int < 2003 .AND. epoch_int >= 2010)          
   
-	  version = 2015
+      version = 2015
       CALL IERS_CMP_2015   (version,epoch , xp_mean,yp_mean,error)
 ! ----------------------------------------------------------------------
 

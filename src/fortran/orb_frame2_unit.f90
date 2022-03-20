@@ -82,10 +82,10 @@ Vz = v(3)
 ! Orbital Frame unit vectors
 ! ----------------------------------------------------------------------
 ! Radial component
-      er = (1D0 / r_norm) * r
+      er = r / r_norm
 	  
 ! Along-track or tangential component
-      et = (1D0 / v_norm) * v
+      et = v / v_norm
 	 
 ! cross product of r,v : angular momentum per unit mass
       CALL productcross(r,v , h)
@@ -93,7 +93,7 @@ Vz = v(3)
       h_norm = sqrt(h_dot)
 
 ! Cross-track or normal component
-     en = (1D0 / h_norm) * h
+     en = h / h_norm
 ! ----------------------------------------------------------------------
 
 ! Along-track or tangential component

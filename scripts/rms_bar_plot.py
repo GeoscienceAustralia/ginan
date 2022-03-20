@@ -12,7 +12,6 @@
 #
 
 import os
-import sys
 import argparse
 from argparse import ArgumentParser
 import time
@@ -20,8 +19,6 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import cm
-import gc
 import math
 
 # File-related statements
@@ -44,7 +41,7 @@ outputdir = os.path.abspath(outputdir)
 # End of command line argument
 
 infile = open(inputfile, 'r')
-mat_1 = np.loadtxt(infile,skiprows=1)
+mat_1 = np.loadtxt(inputfile,skiprows=1)
 year = time.strftime("%Y")
 doy  = time.strftime("%j")
 hr   = time.strftime("%H")
@@ -54,22 +51,25 @@ inputbase = os.path.basename(inputfile)
 outputfile = inputbase.replace("_orbdiff_rtn.out", "")
 file_plt_1 = outputdir + '/orbrms_' + outputfile + gnss + '.png'
 message = 'Output file: ' + file_plt_1
-# Print output filename and path
-print(message)
+
 
 # Get list of PRN's to be plotted based on command line option (gnss) 
 prns = np.unique(mat_1[:,1])
-if gnss == 'G':
+if   gnss == 'G':
      prns = prns[(prns>=1) & (prns<=100)]
-elif gnss == 'E':
-     prns = prns[(prns>=101) & (prns<=200)]
 elif gnss == 'R':
+     prns = prns[(prns>=101) & (prns<=200)]
+elif gnss == 'E':
      prns = prns[(prns>=201) & (prns<=300)]
 elif gnss == 'C':
      prns = prns[(prns>=301) & (prns<=400)]
-elif gnss == 'C':
+elif gnss == 'J':
      prns = prns[(prns>=401) & (prns<=500)]
 
+assert len(prns)!=0, f'No {gnss} GNSS SVs found. Please check the input or -c option'
+
+# Print output filename and path
+print(message)
 print ('GNSS: ',gnss, 'PRNs: ',prns)
 
 #-------plot 1-1------------------------------------------------------------
@@ -158,8 +158,4 @@ plt.xlabel('Satellite PRN number',fontsize=20)
 plt.title(title,fontsize=20)
 plt.grid()
 plt.savefig(file_plt_1,dpi=150)
-
-#plt.show()
-
-#plt.clf()
 

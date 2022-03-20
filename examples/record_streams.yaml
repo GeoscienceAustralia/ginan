@@ -1,0 +1,41 @@
+
+station_data:
+
+    stream_root: "http://mark_yeo:q7MSDjLbvj@tier3.auscors.ga.gov.au:2101/" 
+        
+    nav_streams:
+        - SSRA00GAA1
+        
+    ssr_input_antenna_offset: APC
+
+
+output_files:
+
+    root_output_directory:     recordings
+    
+    record_rtcm_nav:        true
+    record_rtcm_obs:        true
+    output_rinex_obs:       true
+    output_rinex_nav:       true
+    
+    output_decoded_rtcm_json:       true
+    decoded_rtcm_json_directory:    ./rtcm
+    
+    enable_mongo:           false;
+    
+processing_options:
+
+    epoch_interval:             1          #seconds
+    wait_next_epoch:            31
+    wait_all_stations:          1
+    #max_epochs:                 3600
+    require_obs:                false
+    
+    process_modes:
+        preprocessor:           false
+        
+    process_sys:   
+        gps:    true
+        gal:    true
+
+    delete_old_ephemerides:     true

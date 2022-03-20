@@ -31,9 +31,12 @@ module pod_yaml
    type (type_dictionary), pointer :: root_dict, pod_data_dict, pod_options_dict, eqm_options_dict, veq_options_dict
    type (type_dictionary), pointer :: srp_dict, srp_parameters_dict, integ_dict, time_scale_dict, srp_mode_dict
    type (type_dictionary), pointer :: gravity_dict, gravity_model_dict, planets_dict, tides_dict, rel_dict, non_grav_dict
-   type (type_dictionary), pointer :: overrides_dict, pulse_dict
+   type (type_dictionary), pointer :: overrides_dict, pulse_dict, constellations_dict
+   type (type_list), pointer :: prn_list
    logical yml_ext_orbit_enabled, yml_estimate_params, yml_write_sp3_velocities, yml_write_partial_velocities
    logical yml_veq_integration, yml_pulses
+   logical yml_gps_constellation, yml_gal_constellation, yml_glo_constellation, yml_bds_constellation, yml_qzss_constellation
+   logical, allocatable, dimension (:) :: yml_satellites
    integer*4 yml_estimator_procedure, yml_orbit_arc_length
    integer*2 yml_pod_mode
    integer*2 yml_ic_input_format
@@ -97,10 +100,19 @@ module pod_yaml
    real*8        yml_Zo(6), yml_pulse_offset, yml_pulse_interval
    character(512) yml_pod_data_state_vector
 
+   type :: prn_selection
+       character(10) prn_name
+   end type
+
+   type (prn_selection) :: yml_include_prns(500), yml_exclude_prns(500)
+   integer*4      yml_include_prn_count, yml_exclude_prn_count
+
    character(512) yml_orbit_filename, yml_ext_orbit_filename, yml_satsinex_filename, yml_leapsecond_filename, yml_eop_filename
    character(512) yml_gravity_filename, yml_ephemeris_header, yml_ephemeris_data_file, yml_ocean_tides_file, yml_erp_filename
    character(512) yml_ic_filename, yml_output_dir, cmd
    integer        dir_status
+   double precision yml_interpolate_start
+   logical        yml_determination_arc_corrected !you only need to correct it once
 
    integer*4 yml_orbit_steps, yml_orbit_points, yml_orbit_arc_determination, yml_orbit_arc_prediction, yml_orbit_arc_backwards
    integer*4 yml_ext_orbit_steps, yml_ext_orbit_points, yml_eop_option, yml_eop_int_points, yml_estimator_iterations
@@ -126,6 +138,7 @@ module pod_yaml
       real*8  emp_init_values(max_emp_parameters)
       integer*2 ecom_parameters_used, emp_parameters_used
       logical veq_enabled, eqm_enabled, arc_enabled, state_vector_enabled
+      character(2048) integ_header ! for output to screen
    end type
 
    type :: override
@@ -158,6 +171,13 @@ module pod_yaml
    ! eop parameter choices
    integer*2 EOP_NONE, EOP_C04T, EOP_FAST, EOP_SUPER_FAST
    parameter (EOP_NONE = 0, EOP_C04T = 1, EOP_FAST = 2, EOP_SUPER_FAST = 3)
+
+   ! eop array indices
+   integer*2 EOP_MJD, EOP_X, EOP_Y, EOP_UT1, EOP_LOD, EOP_DX, EOP_DY 
+   integer*2 EOP_X_ERR, EOP_Y_ERR, EOP_UT1_ERR, EOP_LOD_ERR, EOP_MAX_ARRAY
+   parameter (EOP_MJD = 1, EOP_X = 2, EOP_Y = 3, EOP_UT1 = 4, EOP_LOD = 5, EOP_DX = 6, EOP_DY = 7)
+   parameter (EOP_X_ERR = 8, EOP_Y_ERR = 9, EOP_UT1_ERR = 10, EOP_LOD_ERR = 11, EOP_MAX_ARRAY = 11)
+
    ! integration methods definition
    integer*2 RK4, RK7, RK8, RK0
    parameter (RK0 = 0, RK4 = 4, RK7 = 7, RK8 = 8)
@@ -175,8 +195,8 @@ module pod_yaml
    parameter (NOT_SPECIFIED = 0, SP3_FILE = 1, IC_FILE = 2)
 
    ! pod modes definition
-   integer*2 NO_MODE, MODE_FIT, MODE_PREDICT, MODE_EQM_INT, MODE_IC_INT
-   parameter (NO_MODE = 0, MODE_FIT = 1, MODE_PREDICT = 2, MODE_EQM_INT = 3, MODE_IC_INT = 4)
+   integer*2 NO_MODE, MODE_FIT, MODE_PREDICT, MODE_EQM_INT, MODE_IC_INT, MODE_DATA_INT
+   parameter (NO_MODE = 0, MODE_FIT = 1, MODE_PREDICT = 2, MODE_EQM_INT = 3, MODE_IC_INT = 4, MODE_DATA_INT = 5)
 
    ! tidal effects bitfield definition
    integer*2 solid_nonfreq, solid_freq, solid_pole, ocean_pole, ocean
@@ -217,10 +237,11 @@ module pod_yaml
 
    contains
 
-subroutine get_yaml(yaml_filepath)
+subroutine get_yaml(yaml_filepath, is_pod_data)
 
    character (*) yaml_filepath
-   logical   show_mesg
+   integer   idx, i
+   logical   show_mesg, is_pod_data
 
    nullify(root_dict)
    nullify(pod_data_dict)
@@ -239,12 +260,13 @@ subroutine get_yaml(yaml_filepath)
    nullify(integ_dict)
    nullify(time_scale_dict)
    nullify(pulse_dict)
+   nullify(constellations_dict)
 
+   is_pod_data = .false.
    my_error_p => my_error
    yml_pod_mode = NO_MODE
    yml_ic_input_format = NOT_SPECIFIED
    yml_ic_input_refsys = NO_REFSYS
-   yml_pod_data_ref_frame = NO_REFSYS
    yml_veq_refsys = NO_REFSYS
    yml_time_scale = NO_time
 
@@ -252,7 +274,16 @@ subroutine get_yaml(yaml_filepath)
    block_override_count = 0
    prn_override_count = 0
 
-   write(*,*) 'YAML version:   ',yaml_commit_id,' (',yaml_branch_name,' branch)'
+   yml_gps_constellation = .true.
+   yml_gal_constellation = .true.
+   yml_glo_constellation = .true.
+   yml_bds_constellation = .true.
+   yml_qzss_constellation = .true.
+
+   yml_include_prn_count = 0
+   yml_exclude_prn_count = 0
+
+   !write(*,*) 'YAML version:   ',yaml_commit_id,' (',yaml_branch_name,' branch)'
 
    root => parse(yaml_filepath,unit=100,error=error)
    if (error/='') then
@@ -275,35 +306,6 @@ subroutine get_yaml(yaml_filepath)
         write(*,*) "could not find any data in YAML config"
         STOP
    end if
-   pod_data_dict = root_dict%get_dictionary("pod_data", .true., my_error_p)
-   if (.not.associated(pod_data_dict)) then
-      write(*,*) "could not find pod_data label in YAML config"
-      STOP
-   else
-      call get_pod_data(pod_data_dict, my_error, yml_pod_data_prn, yml_pod_data_ref_frame,&
-              yml_pod_data_initial_epoch, yml_pod_data_state_vector)  
-      ! parse initial_epoch to get year, month, day, secs
-      if (len_trim(yml_pod_data_initial_epoch) .ge. 18) then
-          read(yml_pod_data_initial_epoch, '(I41XI21XI21XD7.4)', IOSTAT=ios_keyy) yml_pod_data_initial_year,&
-                  yml_pod_data_initial_month, yml_pod_data_initial_day, yml_pod_data_initial_seconds
-      else
-          ! dummy for now - it gets filled later anyway
-          yml_pod_data_initial_year = 0
-          yml_pod_data_initial_month = 0
-          yml_pod_data_initial_day = 0
-          yml_pod_data_initial_seconds = 0.0d0
-      end if
-      call new_prn_override(yml_pod_data_prn)
-      read(yml_pod_data_state_vector, *, IOSTAT=ios_keyy) yml_Zo
-      yml_prn_overrides(prn_override_count)%integ%xpos = yml_Zo(1)
-      yml_prn_overrides(prn_override_count)%integ%ypos = yml_Zo(2)
-      yml_prn_overrides(prn_override_count)%integ%zpos = yml_Zo(3)
-      yml_prn_overrides(prn_override_count)%integ%xvel = yml_Zo(4)
-      yml_prn_overrides(prn_override_count)%integ%yvel = yml_Zo(5)
-      yml_prn_overrides(prn_override_count)%integ%zvel = yml_Zo(6)
-      yml_prn_overrides(prn_override_count)%integ%state_vector_enabled = .true.
-   end if
-
    pod_options_dict = root_dict%get_dictionary("pod_options", .true., my_error_p);
    if (.not.associated(pod_options_dict)) then
       write(*,*) "could not find pod_options label in YAML config"
@@ -323,7 +325,9 @@ subroutine get_yaml(yaml_filepath)
       yml_ic_input_format = get_input_format(pod_options_dict, yml_ic_filename, my_error)
       yml_ic_input_refsys = get_input_refsys(pod_options_dict, my_error)
       yml_veq_refsys = get_veq_refsys(pod_options_dict, my_error)
-      call get_pseudoobs(pod_options_dict, my_error, yml_orbit_filename, yml_orbit_steps, yml_orbit_points);
+      call get_pseudoobs(pod_options_dict, my_error, yml_orbit_filename, yml_orbit_steps, yml_orbit_points, &
+              yml_interpolate_start);
+      yml_determination_arc_corrected = .false.
       call get_orbitarcs(pod_options_dict, my_error, yml_orbit_arc_determination, yml_orbit_arc_prediction,&
               yml_orbit_arc_backwards)
       yml_ext_orbit_enabled = pod_options_dict%get_logical("ext_orbit_enabled", .false., my_error_p)
@@ -363,6 +367,35 @@ subroutine get_yaml(yaml_filepath)
       yml_estimator_procedure = pod_options_dict%get_integer("estimator_procedure", -1, my_error_p)
       yml_veq_integration = pod_options_dict%get_logical("veq_integration", .false., my_error_p)
 
+      constellations_dict = pod_options_dict%get_dictionary("constellations", .true., my_error_p)
+      ! not an error to not have one. Remain with default of all constellations on
+      if (associated(constellations_dict)) then
+          call get_constellations(constellations_dict, my_error, yml_gps_constellation, &
+                   yml_gal_constellation, yml_glo_constellation, yml_bds_constellation, &
+                   yml_qzss_constellation)
+      end if
+      ! only read prn_inclusions and exclusions if not pod data
+      prn_list = pod_options_dict%get_list("prn_inclusions", .false., my_error_p)
+      if (.not. is_pod_data .and. associated(prn_list)) then
+           yml_include_prn_count = get_prns(prn_list, my_error, yml_include_prns)
+           if (yml_include_prn_count > 0) then
+               write (*,*) "limiting to list of satellites:"
+               do i = 1, yml_include_prn_count
+                  write (*,*) trim(yml_include_prns(i)%prn_name)
+               end do
+           end if
+      end if
+      prn_list = pod_options_dict%get_list("prn_exclusions", .false., my_error_p)
+      if (.not. is_pod_data .and. associated(prn_list)) then
+           yml_exclude_prn_count = get_prns(prn_list, my_error, yml_exclude_prns)
+           if (yml_exclude_prn_count > 0) then
+               write (*,*) "excluding list of satellites:"
+               do i = 1, yml_exclude_prn_count
+                  write (*,*) trim(yml_exclude_prns(i)%prn_name)
+               end do
+           end if
+      end if
+
       time_scale_dict = pod_options_dict%get_dictionary("time_scale", .true., my_error_p)
 
       if (.not.associated(time_scale_dict)) then
@@ -385,7 +418,47 @@ subroutine get_yaml(yaml_filepath)
       end if
       yml_pulse_parameter_count = get_yaml_pulses(pulse_dict, my_error, yml_pulses, yml_pulse_ref_frame,&
           yml_pulse_offset, yml_pulse_interval, yml_pulse_epoch_number, yml_pulse_parameters)
+      !print *, "yml_pulse_parameter_count =", yml_pulse_parameter_count
 
+   end if
+
+   if (yml_pod_mode == MODE_DATA_INT) then
+      is_pod_data = .false.
+   pod_data_dict = root_dict%get_dictionary("pod_data", .false., my_error_p)
+   if (.not.associated(pod_data_dict)) then
+       write(*,*) "pod_data_mode selected and no pod_data in yaml config"
+       STOP
+   else
+      call get_pod_data(pod_data_dict, my_error, yml_pod_data_prn,&
+              yml_pod_data_initial_epoch, yml_pod_data_state_vector)  
+      is_pod_data = .true.
+      yml_pod_data_ref_frame = yml_ic_input_refsys
+      ! parse initial_epoch to get year, month, day, secs
+      if (len_trim(yml_pod_data_initial_epoch) .ge. 18) then
+          read(yml_pod_data_initial_epoch, '(I41XI21XI21XD7.4)', IOSTAT=ios_keyy) yml_pod_data_initial_year,&
+                  yml_pod_data_initial_month, yml_pod_data_initial_day, yml_pod_data_initial_seconds
+      else
+          ! dummy for now - it gets filled later anyway
+          yml_pod_data_initial_year = 0
+          yml_pod_data_initial_month = 0
+          yml_pod_data_initial_day = 0
+          yml_pod_data_initial_seconds = 0.0d0
+      end if
+      idx = new_prn_override(yml_pod_data_prn)
+      yml_Zo = 0.d0
+      read(yml_pod_data_state_vector, *, IOSTAT=ios_keyy) yml_Zo
+      ! TODO: if bad read (not enough vars for ecxample) unset is_pod_data.
+      yml_prn_overrides(idx)%integ%xpos = yml_Zo(1)
+      yml_prn_overrides(idx)%integ%ypos = yml_Zo(2)
+      yml_prn_overrides(idx)%integ%zpos = yml_Zo(3)
+      yml_prn_overrides(idx)%integ%xvel = yml_Zo(4)
+      yml_prn_overrides(idx)%integ%yvel = yml_Zo(5)
+      yml_prn_overrides(idx)%integ%zvel = yml_Zo(6)
+      yml_prn_overrides(idx)%integ%state_vector_enabled = .true.
+
+      yml_include_prns(1)%prn_name = trim(yml_pod_data_prn)
+      yml_include_prn_count = 1
+   end if
    end if
 
    eqm_options_dict = root_dict%get_dictionary("eqm_options", .true., my_error_p)
@@ -615,8 +688,56 @@ subroutine get_yaml(yaml_filepath)
        write (*,*) "tidal effects enabled and no tidal effects file specified"
        STOP
    end if
-
 end subroutine get_yaml
+
+function get_prns(list, error, yml_prns)
+   type (type_list) :: list
+   type (type_error) :: error
+   type (type_list_item), pointer :: item
+   class (type_scalar), pointer :: scalar_item
+   class (type_node), pointer :: node
+   type (prn_selection) :: yml_prns(*), my_prn
+
+   integer*4 get_prns
+
+   get_prns = 0
+   item => list%first
+
+   do while (associated(item))
+       nullify(scalar_item)
+       select type (node=>item%node)
+           class is (type_scalar)
+               scalar_item => node
+           class default
+               error%message = trim(node%path) // ' must be a scalar.'
+       end select
+       if (associated (scalar_item)) then
+           my_prn%prn_name = trim (scalar_item%string)
+           get_prns = get_prns + 1
+           yml_prns(get_prns:get_prns) = my_prn
+           item => item%next
+       else
+           nullify (item)
+       end if
+   end do
+
+   return
+end function get_prns
+       
+subroutine get_constellations(dict, error, gps, gal, glo, bds, qzss)
+   type (type_dictionary) :: dict
+   type (type_error) :: error
+   type (type_error), pointer :: e
+   logical gps, gal, glo, bds, qzss
+   nullify(e)
+
+   gps = dict%get_logical("GPS", .false., e)
+   gal = dict%get_logical("GALILEO", .false., e)
+   glo = dict%get_logical("GLONASS", .false., e)
+   bds = dict%get_logical("BEIDOU", .false., e)
+   qzss = dict%get_logical("QZSS", .false., e)
+
+end subroutine get_constellations
 
 function get_yaml_pulses(dict, error, yml_pulses, yml_pulse_ref_frame,& 
           yml_pulse_offset, yml_pulse_interval, yml_pulse_epoch_number, yml_pulse_parameters)
@@ -652,15 +773,15 @@ function get_yaml_pulses(dict, error, yml_pulses, yml_pulse_ref_frame,&
    if (.not. associated(ref_dict)) then
        error = e
        error%message = "cannot find reference_frame label in pulses config"
-       STOP
+       STOP error%message
    endif
-   yml_pulse_ref_frame = get_reference_system (ref_dict, e)
+   yml_pulse_ref_frame = get_reference_system (ref_dict, error)
 
-   parms_dict = dict%get_dictionary("parameters", .true., e)
+   parms_dict = dict%get_dictionary("directions", .true., e)
    if (.not. associated(parms_dict)) then
        error = e
-       error%message = "cannot find parameters label in pulses config"
-       STOP
+       error%message = "cannot find directions label in pulses config"
+       STOP error%message
    endif
    yml_pulse_parameters = get_pulse_parms(parms_dict, yml_pulse_ref_frame, error)
 
@@ -674,6 +795,7 @@ function get_yaml_pulses(dict, error, yml_pulses, yml_pulse_ref_frame,&
    if (associated(e)) then
        error = e
        error%message = "error reading pulses config"
+       STOP error%message
    end if
 
    return
@@ -689,12 +811,20 @@ function get_pulse_parms(dict, ref_frame, error)
 
    get_pulse_parms = 0
 
-   direction_x = dict%get_logical("direction_x", .false., e)
-   direction_y = dict%get_logical("direction_y", .false., e)
-   direction_z = dict%get_logical("direction_z", .false., e)
-   direction_r = dict%get_logical("direction_r", .false., e)
-   direction_t = dict%get_logical("direction_t", .false., e)
-   direction_n = dict%get_logical("direction_n", .false., e)
+   !if (ref_frame == ORBITAL) then
+   !     print *, "pulse ORBITAL ref frame"
+   !else if (ref_frame == ICRF) then
+   !     print *, "pulse ICRF ref frame"
+   !else 
+   !     STOP "no pulse ref frame"
+   !end if
+
+   direction_x = dict%get_logical("x_direction", .false., e)
+   direction_y = dict%get_logical("y_direction", .false., e)
+   direction_z = dict%get_logical("z_direction", .false., e)
+   direction_r = dict%get_logical("r_direction", .false., e)
+   direction_t = dict%get_logical("t_direction", .false., e)
+   direction_n = dict%get_logical("n_direction", .false., e)
 
    if (direction_x) get_pulse_parms = get_pulse_parms + pow (2, DIR_X - one)
    if (direction_y) get_pulse_parms = get_pulse_parms + pow (2, DIR_Y - one)
@@ -1029,15 +1159,13 @@ function get_ECOM_mode(dict, error)
    return
 end function get_ECOM_mode
 
-subroutine get_pod_data(pod_data_dict, error, prn, ref_frame,&
+subroutine get_pod_data(pod_data_dict, error, prn, &
                 init_epoch, state_vector)
    type (type_dictionary), pointer :: pod_data_dict, ref_frame_dict
    type (type_error) :: error
    type (type_error), pointer :: e
 
    character(*) prn, init_epoch, state_vector
-   integer*8 orbit_arc_secs
-   integer*2 ref_frame
 
    nullify (e)
    nullify (time_scale_dict)
@@ -1045,37 +1173,6 @@ subroutine get_pod_data(pod_data_dict, error, prn, ref_frame,&
    prn = pod_data_dict%get_string("satellite_PRN", "", e)
    init_epoch = pod_data_dict%get_string("initial_epoch", "", e)
    state_vector = pod_data_dict%get_string("state_vector", "", e)
-
-   ref_frame_dict = pod_data_dict%get_dictionary("reference_frame", .true., e)
-   if (.not.associated(ref_frame_dict)) then
-       write (*,*) "Could not find reference_frame in pod_data"
-       STOP
-   endif
-   ref_frame = get_reference_system(ref_frame_dict, error)
-
-if (1<0) then
-!debug only
-   if (prn /= "") then
-      write(*,*) "pod_data(prn) is "//prn
-   else
-      write(*,*) "pod_data(prn) is missing"
-   end if
-   if (ref_frame == NO_REFSYS) then
-      write(*,*) "pod_data(reference frame) is ", ref_frame
-   else
-      write(*,*) "pod+data(reference frame) is missing"
-   end if
-   if (init_epoch /= "") then
-      write(*,*) "pod_data(initial epoch) is "//init_epoch
-   else
-      write(*,*) "pod_data(initial epoch) is missing"
-   end if
-   if (state_vector /= "") then
-      write(*,*) "pod_data(state vector) is " //trim(state_vector)
-   else
-      write(*,*) "pod_data(state vector) is missing"
-   end if
-end if
 
    if (associated(e)) then
       error = e
@@ -1237,7 +1334,7 @@ subroutine get_earth_orientation_params(dict, error, eop_option, eop_filename, e
       write (*,*) "Must choose an EOP option"
       STOP
    end if
-   if (eop_filename == "") then
+   if (eop_filename == "" ) then
       write (*,*) "Must specify EOP file relevant to your choice of option"
       STOP
    end if
@@ -1469,6 +1566,7 @@ integer*2 function get_pod_mode(dict, error)
    type (type_error) :: error
    type (type_error), pointer :: e
    logical pod_mode_fit, pod_mode_predict, pod_mode_eqm_int, pod_mode_ic_int
+   logical pod_mode_data_int
 
    nullify(e)
    get_pod_mode = -1
@@ -1480,6 +1578,8 @@ integer*2 function get_pod_mode(dict, error)
    pod_mode_eqm_int = dict%get_logical("pod_mode_eqm_int", .false., e)
    !TODO check for error
    pod_mode_ic_int = dict%get_logical("pod_mode_ic_int", .false., e)
+   !TODO check for error
+   pod_mode_data_int = dict%get_logical("pod_mode_pod_data_int", .false., e)
    !TODO check for error
 
    if (associated(e)) then
@@ -1509,6 +1609,13 @@ integer*2 function get_pod_mode(dict, error)
          STOP
       end if
       get_pod_mode = MODE_IC_INT
+   end if
+   if (pod_mode_data_int) then
+       if (get_pod_mode > 0) then
+         write (*,*) "Cannot select more than one pod mode"
+         STOP
+      end if
+      get_pod_mode = MODE_DATA_INT
    end if
    if (get_pod_mode == NO_MODE) then
       write (*,*) "Must select a pod mode"
@@ -1589,19 +1696,36 @@ integer*2 function get_input_refsys(dict, error)
    return
 end function get_input_refsys
 
-subroutine get_pseudoobs(dict, error, filename, step, points)
+subroutine get_pseudoobs(dict, error, filename, step, points, mjd_start)
    type(type_dictionary) :: dict
    type (type_error) :: error
    character(*) filename
    integer*4 step
    integer*4 points
+   double precision mjd_start, mjd0, ss
+   character(512) start_string
    type (type_error), pointer :: e
+   integer iy, im, id, hh, mm, j_flag
 
    nullify(e)
 
    filename = dict%get_string("pseudobs_orbit_filename", "", e);
    step = dict%get_integer("pseudobs_interp_step", -1, e)
    points = dict%get_integer("pseudobs_interp_points", -1, e)
+   start_string = dict%get_string("IC_time","", e);
+
+   mjd_start = 0.d0
+   if (start_string /= "") then
+       read (start_string, *) iy, im, id, hh, mm, ss
+       !print *, iy, im, id, hh, mm, ss
+       call iau_cal2jd(iy, im, id, mjd0, mjd_start, j_flag)
+       if (j_flag == 0) then
+           mjd_start = mjd_start + ss/86400.0 + mm/1440.0 + hh/24.0
+           !print *, mjd_start
+       else
+           STOP trim(start_string) // " could not parse IC_time requested"
+       end if
+   end if
 
    if (associated(e)) then
       error = e
@@ -1629,7 +1753,7 @@ subroutine get_orbitarcs(dict, error, determination, prediction, backwards)
    return
 end subroutine get_orbitarcs
 
-subroutine new_prn_override(prn)
+integer function new_prn_override(prn)
    character(*) prn
    integer mutex_success, thread_get_mutex
    ! actually a pointer to a C mutex object
@@ -1642,6 +1766,7 @@ subroutine new_prn_override(prn)
    call thread_lock(mutex)
 
    prn_override_count = prn_override_count+1
+   new_prn_override = prn_override_count
    yml_prn_overrides(prn_override_count)%name = TRIM(prn)
    yml_prn_overrides(prn_override_count)%integ%eqm_enabled = .false.
    yml_prn_overrides(prn_override_count)%integ%veq_enabled = .false.
@@ -1649,9 +1774,10 @@ subroutine new_prn_override(prn)
    yml_prn_overrides(prn_override_count)%integ%state_vector_enabled = .false.
    yml_prn_overrides(prn_override_count)%integ%emp_parameters_used = 0
    yml_prn_overrides(prn_override_count)%integ%ecom_parameters_used = 0
+   yml_prn_overrides(prn_override_count)%integ%integ_header = ""
 
    call thread_unlock(mutex)
    call thread_release_mutex(mutex)
-end subroutine new_prn_override
+end function new_prn_override
 
 end module pod_yaml

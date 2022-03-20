@@ -21,12 +21,13 @@ program test_yaml
 
    implicit none
    character (256) filepath
+   logical is_pod_data
 
    call get_command_argument(1, filepath)
    if (filepath=='') then
       write (*,*) 'ERROR: path to YAML file not provided.'
       stop 2
    end if
-   call get_yaml(filepath)
+   call get_yaml(filepath, is_pod_data)
 
 end program test_yaml

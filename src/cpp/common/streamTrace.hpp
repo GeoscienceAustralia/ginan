@@ -7,9 +7,12 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <string>
 #include <boost/format.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <boost/log/trivial.hpp>
 
+using std::string;
 
 extern boost::iostreams::stream< boost::iostreams::null_sink > nullStream;
 
@@ -18,7 +21,7 @@ using Trace = std::ostream;
 
 #include "eigenIncluder.hpp"
 
-extern int level_trace;
+extern int trace_level;
 
 void tracematpde(int lv, Trace& stream, MatrixXd& mat, int width, int precision);
 void tracematpde(int lv, Trace& stream, VectorXd& vec, int width, int precision);
@@ -28,7 +31,7 @@ void tracematpde(int lv, Trace& stream, VectorXd* vec, int width, int precision)
 template<typename... Arguments>
 void tracepde(int level, Trace& stream, std::string const& fmt, Arguments&&... args)
 {
-	if (level > level_trace)
+	if (level > trace_level)
 		return;
 
 	stream << "*" << level << " ";
@@ -44,7 +47,7 @@ void tracepde(int level, Trace& stream, std::string const& fmt, Arguments&&... a
 template<typename... Arguments>
 void tracepdeex(int level, Trace& stream, std::string const& fmt, Arguments&&... args)
 {
-	if (level > level_trace)
+	if (level > trace_level)
 		return;
 
 	boost::format f(fmt);
@@ -54,6 +57,25 @@ void tracepdeex(int level, Trace& stream, std::string const& fmt, Arguments&&...
 	stream << boost::str(f);
 }
 
+
+template<typename T>
+std::ofstream getTraceFile(
+	T& thing)
+{
+	if (thing.traceFilename.empty())
+	{
+		return std::ofstream();
+	}
+
+	std::ofstream trace(thing.traceFilename, std::ios::app);
+	if (!trace)
+	{
+		BOOST_LOG_TRIVIAL(error)
+		<< "Could not open trace file for " << thing.id << " at " << thing.traceFilename;
+	}
+
+	return trace;
+}
 
 //forward declarations
 struct Obs;
@@ -65,10 +87,14 @@ void tracematpde(int level, FILE *fppde, const double *A, int n,
 
 /* debug trace functions -----------------------------------------------------*/
 void tracelevel(int level);
-
+void traceFormatedFloat(Trace& trace, double val, string formatStr);
 void matfprint(const double *A, int n, int m, int p, int q, FILE *fp);
 
 void fatalerr(const char *format, ...);
+
+
+template<typename T>
+std::ofstream getTraceFile(T& thing);
 
 #endif
 

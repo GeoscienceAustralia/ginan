@@ -63,13 +63,14 @@ SUBROUTINE tides_fes2004(FESxxfname)
       INTEGER (KIND = prec_int4) :: UNIT_IN,ios,ios_line,ios_data,AllocateStatus, i,space_i,i_Delaunay_FES, i_3Darray
       CHARACTER (LEN=150) :: line_ith, word1_ln  
       REAL (KIND = prec_q) :: doodson_no, dCp, dSp, dCm, dSm
-      INTEGER (KIND = prec_int8) :: Nread, Mread, nmax, iNmax, iMmax
+      INTEGER (KIND = prec_int8) :: Nread, Mread, nmax
+!       , iNmax, iMmax
       CHARACTER (LEN=5) :: Darw  
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: dCSnm_wrt
       CHARACTER (LEN=100) :: fname				
       CHARACTER (LEN=50) :: fname_id				
-      INTEGER (KIND = prec_int4) :: ifreq  
+!       INTEGER (KIND = prec_int4) :: ifreq  
 
 
 ! ----------------------------------------------------------------------

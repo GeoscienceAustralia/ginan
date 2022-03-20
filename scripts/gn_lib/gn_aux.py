@@ -21,6 +21,17 @@ def update_mindex(dataframe, lvl_name,loc=0,axis=1):
         dataframe.index = mindex_df_updated
     return dataframe
 
+def get_common_index(*dfs,level=None):
+    index_sets = [set(df.index.values if level is None else df.index.levels[level].values) for df in dfs]
+    return set.intersection(*index_sets)
+
+def sync_snx_sites(*dfs):
+    '''Finds common sites present in all gathers and outputs
+    a list of gathers with common sites only'''
+    sites = get_common_index(*dfs,level=0)
+    # index.remove_unused_levels() may be required
+    return [snx_df.loc[sites] for snx_df in dfs]
+
 def code_pt_comboindex(vec):
     '''returns combo index as CODE + PT'''
     tmp_index = vec.index

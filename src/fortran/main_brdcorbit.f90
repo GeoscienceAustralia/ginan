@@ -26,6 +26,7 @@ PROGRAM  main_brdcorbit
       USE m_write_orb2sp3
       USE m_read_leapsec
       USE m_antoffset
+      use pod_yaml
       USE m_eop_data
       USE m_eop_cor
       USE mdl_config
@@ -45,7 +46,8 @@ PROGRAM  main_brdcorbit
       INTEGER (KIND = prec_int4) :: ISAT
       INTEGER (KIND = prec_int4) :: IYEAR4,MONTH,IDAY
       REAL (KIND = prec_d),DIMENSION(4)::IONALPHA, IONBETA
-      REAL (KIND = prec_q) :: AVE(8),STD(8)
+      REAL (KIND = prec_q) :: AVE(8)
+!       ,STD(8)
 !      REAL (KIND = prec_d),DIMENSION(:,:,:),ALLOCATABLE ::EPH, CLK
 !      REAL (KIND = prec_q) ::EPH(32,4000,220),CLK(32,4000,220)
       REAL (KIND = prec_q) ::EPH(32,5000,220),CLK(3,5000,220)
@@ -62,7 +64,8 @@ PROGRAM  main_brdcorbit
       REAL (KIND = prec_d) :: DTGAL,XT, KKK
       
       INTEGER (KIND = prec_int4) :: MAXNSAT, MAXNPAR, MAXEPO
-      INTEGER (KIND = prec_int4) :: sz1, sz2, sz3, IREC, NDT
+      INTEGER (KIND = prec_int4) ::  IREC, NDT
+!       ,sz1, sz2, sz3,
       INTEGER (KIND = prec_int4) :: IG, IR, IE, IC, IJ, TOTG
       INTEGER (KIND = prec_int4) :: IGAL, IBDS, IQZSS, IGLN
 !------------------------------------------------------------------
@@ -84,7 +87,7 @@ PROGRAM  main_brdcorbit
 !-----------------------------------------------------------------
       REAL (KIND = prec_q) :: CRS2TRS(3,3), TRS2CRS(3,3)
       REAL (KIND = prec_q) :: d_CRS2TRS(3,3), d_TRS2CRS(3,3)
-      REAL (KIND = prec_d) :: EOP_cr(7)
+      REAL (KIND = prec_d) :: EOP_cr(EOP_MAX_ARRAY)
       REAL (KIND = prec_q) :: r_TRS(3), r_CRS(3)
       CHARACTER (LEN=512)   :: EOP_fname
       INTEGER (KIND = prec_int4) :: EOP_Nint 
@@ -92,8 +95,8 @@ PROGRAM  main_brdcorbit
       REAL (KIND = prec_d) :: eop(7)
       INTEGER (KIND = prec_int2) :: iau_model
 !----------------------------------------------------------------
-      REAL (KIND = prec_q), DIMENSION(3) :: rbody
-      REAL (KIND = prec_q), DIMENSION(3) :: rSun
+!       REAL (KIND = prec_q), DIMENSION(3) :: rbody
+!       REAL (KIND = prec_q), DIMENSION(3) :: rSun
       DOUBLE PRECISION  JD, Zbody(6)
       INTEGER NTARG_SUN, NCTR
       CHARACTER (LEN=100) :: fname_header, fname_data, fname_out

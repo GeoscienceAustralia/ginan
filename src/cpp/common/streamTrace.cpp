@@ -1,4 +1,6 @@
 
+// #pragma GCC optimize ("O0")
+
 #include "streamTrace.hpp"
 #include <stdarg.h>
 #include <ctype.h>
@@ -15,9 +17,9 @@
 
 #include "observations.hpp"
 #include "navigation.hpp"
-#include "constants.h"
-#include "gTime.hpp"
+#include "constants.hpp"
 #include "common.hpp"
+#include "gTime.hpp"
 
 boost::iostreams::stream< boost::iostreams::null_sink > nullStream( ( boost::iostreams::null_sink() ) );
 
@@ -29,7 +31,7 @@ void tracematpde(
 	int				width,          ///< []
 	int				precision)		///< []
 {
-	if (level > level_trace)
+	if (level > trace_level)
 		return;
 
 	stream	<< std::endl
@@ -48,7 +50,7 @@ void tracematpde(
 	int				width,          ///< []
 	int				precision)      ///< []
 {
-	if (level > level_trace)
+	if (level > trace_level)
 		return;
 
 	stream	<< std::fixed
@@ -65,7 +67,7 @@ void tracematpde(
 	int				width,          ///< []
 	int				precision)      ///< []
 {
-	if (level > level_trace)
+	if (level > trace_level)
 		return;
 
 	stream	<< std::fixed
@@ -82,7 +84,7 @@ void tracematpde(
 	int				width,          ///< []
 	int 			precision)      ///< []
 {
-	if (level > level_trace)
+	if (level > trace_level)
 		return;
 
 	stream	<< std::fixed
@@ -123,18 +125,32 @@ void matfprint(const double A[], int n, int m, int p, int q, FILE *fp)
 
 /* debug trace functions -----------------------------------------------------*/
 
-int level_trace = 0;       /* level of trace */
+int trace_level = 0;       /* level of trace */
 
 void tracelevel(int level)
 {
-	level_trace = level;
+	trace_level = level;
+}
+
+void traceFormatedFloat(Trace& trace, double val, string formatStr)
+{
+	/* If someone knows how to make C++ print with just one digit as exponent... */
+	int		exponent	= 0;
+	double	base		= 0;
+
+	if (val != 0)
+	{
+		exponent	= (int)floor(log10(fabs(val)));
+		base		= val * pow(10, -1 * exponent);
+	}
+	tracepdeex(0, trace, formatStr.c_str(), base, exponent);
 }
 
 void tracepde(int level, FILE *fppde, const char *format, ...)
 {
 	va_list ap;
 
-	if (!fppde||level>level_trace) return;
+	if (!fppde||level>trace_level) return;
 	/* traceswap(); */
 	fprintf(fppde,"*%d ",level);
 	va_start(ap,format); vfprintf(fppde,format,ap); va_end(ap);
@@ -145,7 +161,7 @@ void tracepdeex(int level, FILE *fppde, const char *format, ...)
 {
 	va_list ap;
 
-	if (!fppde||level>level_trace) return;
+	if (!fppde||level>trace_level) return;
 	/* traceswap(); */
 	va_start(ap,format); vfprintf(fppde,format,ap); va_end(ap);
 	fflush(fppde);
@@ -154,6 +170,6 @@ void tracepdeex(int level, FILE *fppde, const char *format, ...)
 [[deprecated]]
 void tracematpde(int level, FILE *fppde, const double *A, int n, int m, int p, int q)
 {
-	if (!fppde||level>level_trace) return;
+	if (!fppde||level>trace_level) return;
 	matfprint(A,n,m,p,q,fppde); fflush(fppde);
 }

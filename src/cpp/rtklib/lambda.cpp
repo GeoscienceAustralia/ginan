@@ -289,8 +289,14 @@ void reduction(int n, double *L, double *D, double *Z)
 	}
 }
 /* modified lambda (mlambda) search (ref. [2]) -------------------------------*/
-int search(int n, int m, const double *L, const double *D,
-				const double *zs, double *zn, double *s)
+int search(
+	int n, 
+	int m, 
+	const double *L, 
+	const double *D,
+	const double *zs,
+	double *zn, 
+	double *s)
 {
 	int i,j,k,c,nn=0,imax=0;
 	double newdist,maxdist=1E99,y;
@@ -387,19 +393,28 @@ int search(int n, int m, const double *L, const double *D,
 * return : status (0:ok,other:error)
 * notes  : matrix stored by column-major order (fortran convension)
 *-----------------------------------------------------------------------------*/
-int lambda(Trace& trace, int n, int m, const double *a, const double *Q,
-				double *F, double *s, double Pf, int *index)
+int lambda(
+	Trace& trace, 
+	int n,
+	int m, 
+	const double *a, 
+	const double *Q,
+	double *F,
+	double *s, 
+	double Pf, 
+	bool& pass)
 {
 	int info,i;
-	double *L,*D,*Z,*z,*E,ratio,cratio=0,srate=1.0;
+	double *L,*D,*Z,*z,*E,ratio,cratio=0,srate=1;
 
-	if (n<=0||m<=0) return -1;
+	if (n<=0||m<=0)
+		return -1;
+	
 	L=zeros(n,n); D=mat(n,1); Z=eye(n); z=mat(n,1),E=mat(n,m);
 
 	/* LD factorization */
 	if (!(info=LD(n,Q,L,D)))
 	{
-
 		/* lambda reduction */
 		reduction(n,L,D,Z);
 
@@ -410,19 +425,19 @@ int lambda(Trace& trace, int n, int m, const double *a, const double *Q,
 		/* fixed fail-rate to derive critical value */
 		cratio=ffratio(1-srate,n,Pf);
 
-		matmul("TN",n,1,n,1.0,Z,a,0.0,z); /* z=Z'*a */
+		matmul("TN",n,1,n,1,Z,a,0,z); /* z=Z'*a */
 
 		/* mlambda search */
-		if (!(info=search(n,m,L,D,z,E,s))) {
+		if (!(info=search(n,m,L,D,z,E,s))) 
+		{
 			info=solve("T",Z,E,n,m,F); /* F=Z'\E */
 		}
 		/* ambiguity validation test */
 		ratio=s[0]/s[1];
-		tracepdeex(2,trace,"  srate = %8.4f %8.2f %8.2f ",
-				srate,1/cratio,1/ratio);
-		*index=(ratio<=cratio)?1:0;
+		tracepdeex(2,trace,"  srate = %8.4f %8.2f %8.2f ", srate, 1/cratio, 1/ratio);
+		pass = (ratio <= cratio);
 	}
-	//if (info==-1&&fppde!=NULL) fprintf(fppde,"Error\n");
+	//if (info==-1&&fppde!=nullptr) fprintf(fppde,"Error\n");
 	free(L); free(D); free(Z); free(z); free(E);
 	return info;
 }

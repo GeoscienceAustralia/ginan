@@ -1,81 +1,164 @@
 #ifndef ACS_RTCM_TRACE
 #define ACS_RTCM_TRACE
 
-#include "enums.h"
 #include "navigation.hpp"
 #include "satSys.hpp"
+#include "enums.h"
 
 #include <iostream>
 #include <string>
 #include <vector>
 #include <boost/date_time/posix_time/posix_time.hpp>
+
+using std::string;
+using std::vector;
+
 #include <boost/asio/buffer.hpp>
 #include <boost/asio.hpp>
 
-struct NtripTrace 
+struct NetworkStatistics
 {
-	int level_trace = 0;
-	std::string mountPoint;
+	string	streamName;
+	GTime	startTime;
+	GTime	endTime;
 	
-	boost::asio::streambuf ssrPhBBuf;
-	boost::asio::streambuf ssrCoBBuf;
-	boost::asio::streambuf ssrClkBuf;
-	boost::asio::streambuf ssrEphBuf;
-	boost::asio::streambuf broEphBuf;
+	string	networkTraceFilename = "";
 	
-	boost::asio::streambuf netConnBuf;
-	boost::asio::streambuf messErrChunkBuf;
-	boost::asio::streambuf messErrRtcmBuf;
-	boost::asio::streambuf messErrRtcmByteBuf;
+	int		connectCount			= 0;
+	int		disconnectCount 		= 0;
+	int 	chunksSent				= 0;
+	int		chunksReceived			= 0;
 	
-	void traceSsrEph(SatSys Sat,SSREph ssrEph);
-	void traceSsrClk(SatSys Sat,SSRClk ssrClk);
-	void traceSsrCodeB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias);
-	void traceSsrPhasB(SatSys Sat,E_ObsCode mode, SSRBias ssrBias);
-	void traceBroEph(Eph eph,E_Sys sys);
+	boost::posix_time::time_duration connectedDuration		= boost::posix_time::hours(0);
+	boost::posix_time::time_duration disconnectedDuration	= boost::posix_time::hours(0);
 	
+	string	getNetworkStatistics(
+		GTime	now,
+		string	label);
 	
-	void networkLog(std::string message)
+	void onConnectedStatistics();
+	
+	void onDisconnectedStatistics();
+	
+	void onChunkSentStatistics();
+	
+	void onChunkReceivedStatistics();
+	
+	void onErrorStatistics(
+		const boost::system::error_code& 	err,
+		string 								operation);
+};
+
+struct RtcmStatistics
+{
+	long int	numPreambleFound	= 0;
+	long int	numFramesFailedCRC	= 0;
+	long int	numFramesPassCRC	= 0;
+	long int	numFramesDecoded	= 0;
+	long int	numNonMessBytes		= 0;
+	long int	numMessagesLatency	= 0;
+	double		totalLatency		= 0;
+	
+	void printRtcmStatistics(
+		Trace& trace);
+};
+
+struct RtcmTrace 
+{
+	string	rtcmTraceFilename	= "";
+	string	rtcmMountPoint;	
+	
+	RtcmTrace(
+		string mountpoint	= "",
+		string filename		= "") : rtcmTraceFilename{filename}, rtcmMountPoint{mountpoint}
 	{
-		if( level_trace < 3 )
-			return;
-		
-		//BOOST_LOG_TRIVIAL(debug) << "NtripTrace::networkLog : " << message << std::endl;
-		std::ostream outStream(&netConnBuf);
-		outStream << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
-		outStream << " " << message << std::endl;
-	}
-	
-	void messageChunkLog(std::string message)
-	{
-		if( level_trace < 3 )
-			return;
-		
-		std::ostream outStream(&messErrChunkBuf);
-		outStream << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
-		outStream << " " << message << std::endl;
-	}
-	
-	void messageRtcmLog(std::string message)
-	{
-		if( level_trace < 3 )
-			return;
-		
-		std::ostream outStream(&messErrRtcmBuf);
-		outStream << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
-		outStream << " " << message << std::endl;
 	}
 
-	void messageRtcmByteLog(std::string message)
+	void networkLog(
+		string message)
 	{
-		if( level_trace < 3 )
+		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
+		if (!outStream)
+		{
+			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 			return;
-		
-		std::ostream outStream(&messErrRtcmByteBuf);
+		}
+	
 		outStream << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
-		outStream << " " << message << std::endl;
+		outStream << " networkLog" << message << std::endl;
+	}
+
+	void messageChunkLog(
+		string message)
+	{
+		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
+		if (!outStream)
+		{
+			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+			return;
+		}
+	
+		outStream << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+		outStream << " messageChunkLog" << message << std::endl;
+	}
+
+	void messageRtcmLog(
+		string message)
+	{
+		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
+		if (!outStream)
+		{
+			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+			return;
+		}
+	
+		outStream << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+		outStream << " messageRtcmLog" << message << std::endl;
+	}
+
+	void messageRtcmByteLog(
+		string message)
+	{
+		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
+		if (!outStream)
+		{
+			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+			return;
+		}
+	
+		outStream << boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+		outStream << " messageRtcmByteLog" << message << std::endl;
 	}   
 
-	void traceWriteEpoch(Trace& trace);
+	void outputSsrEphToJson(
+		const SSREph&	ssrEph,
+		const SatSys&	Sat);
+	
+	void outputSsrClkToJson(
+		const SSRClk&	ssrClk,
+		const SatSys&	Sat);
+	
+	void traceSsrEph(
+		SatSys		Sat,
+		SSREph&		ssrEph);
+
+	void traceSsrClk(
+		SatSys		Sat,
+		SSRClk&		ssrClk);
+
+	void traceSsrCodeB(
+		SatSys		Sat,
+		E_ObsCode	mode,
+		SSRBias&	ssrBias);
+
+	void traceSsrPhasB(
+		SatSys		Sat,
+		E_ObsCode	mode,
+		SSRBias&	ssrBias);
+
+	void traceBroEph(
+		Eph&		eph,
+		E_Sys		sys);
 };
+
 #endif

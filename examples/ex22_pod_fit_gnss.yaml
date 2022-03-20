@@ -1,14 +1,3 @@
-pod_data:    # Use initial condition input data below
-#---------------------------------------------------------------------------
-   satellite_PRN:    G23
-   reference_frame:
-      itrf: true
-      icrf: false
-      kepler: false
-   orbit_arc_length: 86400
-   initial_epoch: 2019-07-18-00.0000000 # YYYY-MM-DD-SEC.DSEC
-   state_vector:  6804571.8859999999,  -15232535.475000001,  -20431678.779000003, 1697.1661907155067,  2026.6151679363102,  -982.28787769004703 # X, Y, Z, VX, VY, VZ
- 
 pod_options:
    output_directory: ex22
 # can only choose one option here

@@ -33,6 +33,7 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
 
       USE mdl_precision
       USE mdl_num
+      use pod_yaml
       IMPLICIT NONE
 
 ! ----------------------------------------------------------------------
@@ -42,7 +43,7 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
       REAL (KIND = prec_d), INTENT(IN) :: mjd_t
       CHARACTER (LEN=512), INTENT(IN) :: filename
 ! OUT
-      REAL (KIND = prec_d), INTENT(OUT) :: erp(2,5)
+      REAL (KIND = prec_d), INTENT(OUT) :: erp(2,EOP_MAX_ARRAY)
       LOGICAL :: igu_flag
 ! ----------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
       CHARACTER (LEN=20) :: char1, char2 
       INTEGER (KIND = prec_int8) :: mjd_day
       REAL (KIND = prec_d) :: mjd_ith, Xpole,Ypole, UT1_UTC,LOD, Xsig,Ysig, UTsig,LODsig, Nr,Nf,Nt, Xrt,Yrt, Xrtsig,Yrtsig
-      REAL (KIND = prec_d) :: igu_erp(2,5)
+      REAL (KIND = prec_d) :: igu_erp(2,EOP_MAX_ARRAY)
 ! ----------------------------------------------------------------------
 
 
@@ -100,11 +101,17 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
 	           READ (UNIT=UNIT_IN,FMT=*,IOSTAT=ios_line) mjd_ith, Xpole, Ypole, UT1_UTC, LOD, &
                                                          Xsig,Ysig, UTsig,LODsig, Nr,Nf,Nt, Xrt,Yrt, Xrtsig,Yrtsig
                ! ERP matrix for the two epochs provided in the *.erp file			
-               igu_erp (erp_i,1) = mjd_ith
-               igu_erp (erp_i,2) = Xpole * 1.0D-6    ! Conversion to arcsec 
-               igu_erp (erp_i,3) = Ypole * 1.0D-6    ! Conversion to arcsec 
-               igu_erp (erp_i,4) = UT1_UTC * 1.0D-7  ! Conversion to seconds
-               igu_erp (erp_i,5) = LOD * 1.0D-7      ! Conversion to seconds
+               igu_erp (erp_i,EOP_MJD) = mjd_ith
+               igu_erp (erp_i,EOP_X) = Xpole * 1.0D-6    ! Conversion to arcsec 
+               igu_erp (erp_i,EOP_Y) = Ypole * 1.0D-6    ! Conversion to arcsec 
+               igu_erp (erp_i,EOP_UT1) = UT1_UTC * 1.0D-7  ! Conversion to seconds
+               igu_erp (erp_i,EOP_LOD) = LOD * 1.0D-7      ! Conversion to seconds
+               igu_erp (erp_i,EOP_X_ERR) = Xsig * 1.0D-6 ! conversion to arcsec^M
+               igu_erp (erp_i,EOP_Y_ERR) = Ysig * 1.0D-6 ! conversion to arc sec^M
+               igu_erp (erp_i,EOP_UT1_ERR) = UTsig * 1.0D-7 ! conversion to seconds^M
+               igu_erp (erp_i,EOP_LOD_ERR) = LODsig * 1.0D-7 ! conversion to seconds^M
+               igu_erp (erp_i,EOP_DX) = Xrt * 1.0D-6 ! conversion to arcsec^M
+               igu_erp (erp_i,EOP_DY) = Yrt * 1.0D-6 ! conversion to arc sec^M
             end do
          end if
 ! ----------------------------------------------------------------------
@@ -117,7 +124,7 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
 
 ! ----------------------------------------------------------------------
 ! Test the time coverage
-      if ( mjd_t >= igu_erp(1,1) .and. mjd_t <= igu_erp(2,1) ) then
+      if ( mjd_t >= igu_erp(1,EOP_MJD) .and. mjd_t <= igu_erp(2,EOP_MJD) ) then
          !erp = igu_erp
          igu_flag = .TRUE.
       else 

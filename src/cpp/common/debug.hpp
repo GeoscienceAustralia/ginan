@@ -10,33 +10,7 @@ void artificialSlip(
 	char*	strprefix);
 
 void	doDebugs();
+
+void	plumber();
+
 #endif
-
-
-#ifndef CSVTOMATRIX_H
-#define CSVTOMATRIX_H
-
-#include <iostream>
-#include <vector>
-#include <map>
-#include <eigen3/Eigen/Dense>
-#include <fstream>
-#include<string>
-#include<sstream>
-#include<stdio.h>
-
-using namespace Eigen;
-using namespace std;
-
-template<class M>
-class csvToMatrix
-{
-public :
-	csvToMatrix();
-	M load_csv( const string) ;
-
-
-
-};
-#endif // CSVTOMATRIX_H
-

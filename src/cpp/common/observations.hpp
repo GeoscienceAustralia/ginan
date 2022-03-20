@@ -11,7 +11,6 @@ using std::string;
 using std::list;
 using std::map;
 
-#include "constants.h"
 #include "satSys.hpp"
 #include "gTime.hpp"
 #include "enums.h"
@@ -27,7 +26,7 @@ struct RawSig
 	double			P		= 0;				///< Pseudorange (meters)
 	double			D		= 0;				///< Doppler
 	unsigned char	LLI		= 0;				///< Loss of lock indicator
-	int				snr		= 0;				///< Signal to Noise ratio
+	double			snr		= 0;				///< Signal to Noise ratio
 
 	bool operator < (const RawSig& b) const
 	{
@@ -110,17 +109,17 @@ struct Obs : RawObs, IonoObs
 
 	Vector3d	rSat			= Vector3d::Zero();	///< ECEF based vector to satellite
 	Vector3d	satVel			= Vector3d::Zero();	///< ECEF based vector of satellite velocity
-	double		var				= 0;	///< Variance
-	SatStat* 	satStat_ptr		= 0;	///< Pointer to a status object for this satellite
-	SatNav*		satNav_ptr		= 0;	///< Pointer to a navigation object for this satellite
-	SatOrbit*	satOrb_ptr		= 0;	///< Pointer to an orbit object for this satellite
-	string 		mount			= "";	///< ID of the receiver that generated the observation
-	double		dtSat[2]		= {};	///< Clock bias of the satellite
-	int 		svh				= 0;	///< Satellite vehicle health
-	int 		iode			= 0;	///< Issue of data ephemeris
-	double 		rescode_v		= 0;	///< Residuals of code
-	bool		vsat			= 0;	///< Valid satellite flag
-	MatrixXd	satPartialMat;			///< Partial derivative matrices for orbits
+	double		ephVar			= 0;				///< Variance of ephemeris derived values
+	
+	SatStat* 	satStat_ptr		= 0;				///< Pointer to a status object for this satellite
+	SatNav*		satNav_ptr		= 0;				///< Pointer to a navigation object for this satellite
+	
+	string 		mount			= "";				///< ID of the receiver that generated the observation
+	double		dtSat[2]		= {};				///< Clock bias of the satellite
+	E_Svh 		svh				= SVH_OK;			///< Satellite vehicle health
+	int 		iode			= 0;				///< Issue of data ephemeris
+	double 		rescode_v		= 0;				///< Residuals of code
+	bool		vsat			= 0;				///< Valid satellite flag
 
 	union
 	{
@@ -140,7 +139,16 @@ struct Obs : RawObs, IonoObs
 };
 
 
-typedef vector<Obs> ObsList;	///< List of observations for an epoch
+struct PseudoObs
+{
+	GTime	 	time	= {};       		///> Receiver sampling time (GPST)
+	SatSys		Sat		= {};				///> Satellite ID (system, prn)
+	Vector3d	pos		= Vector3d::Zero();
+	Vector3d	vel		= Vector3d::Zero();
+};
+
+typedef vector<Obs>			ObsList;		///< List of observations for an epoch
+typedef vector<PseudoObs>	PseudoObsList;	///< List of observations for an epoch
 
 
 #endif

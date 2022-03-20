@@ -68,17 +68,12 @@ $ pea --help
 $ pod --help
 \end{lstlisting}
 
-To run the standard testsuite, try:
+To run some tests, try:
 \begin{lstlisting}[language=bash]
-$ /ginan/aws/docker/run-tests.sh
+$ /ginan/docker/run-tests-pea.sh 1   # this is the test number to run, from 1 to 8 currently
+$ /ginan/docker/run-tests-pod.sh 1   # this is the test number to run, from 1 to 6 currently
 \end{lstlisting}
 
-This docker image comes with a pre-built conda environment that enables plotting. To use it
-you have to activate the python conda environment first:
-\begin{lstlisting}[language=bash]
-$ eval "$(/root/.miniconda3/bin/conda shell.bash hook)"
-$ conda activate gn37
-\end{lstlisting}
 Finally, to exit this session, type:
 \begin{lstlisting}[language=bash]
 $ exit

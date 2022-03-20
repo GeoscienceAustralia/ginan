@@ -1,7 +1,9 @@
 #ifndef NTRIPSOURCETABLE_H
 #define NTRIPSOURCETABLE_H
 
+#include <mutex>
 #include <vector>
+
 #include <boost/algorithm/string/split.hpp>
 
 #include "ntripSocket.hpp"
@@ -16,30 +18,33 @@ struct SourceTableEntry
 		int broadcastFrequency;
 	};
 	
-	std::string mountPoint;
-	std::string location;
-	std::vector<RtcmMessageData> messageData;
+	string mountPoint;
+	string location;
+	vector<RtcmMessageData> messageData;
 };
 
 
 struct NtripSourceTable :  NtripSocket
 {
-	
-public:
-	NtripSourceTable(const std::string& url_str);
+	NtripSourceTable(
+		string url_str);
 	
 	// This function will block until source table has been read.
 	void getSourceTable();
 	
-	std::string sourceTableString;
-	std::vector<SourceTableEntry> sourceTableData;
-	std::vector<std::string> getStreamMounts();
+	string sourceTableString;
+	vector<SourceTableEntry> sourceTableData;
+	vector<string> getStreamMounts();
 private:
 	std::mutex getSourceTableMtx; 
-	void connected() override;
-	bool dataChunkDownloaded(vector<char> dataChunk) override; 
-	void readContentDownloaded(std::vector<char> content) override;
 	
+	void connected() override;
+	
+	bool dataChunkDownloaded(
+		vector<char> dataChunk) override; 
+		
+	void readContentDownloaded(
+		vector<char> content) override;
 };
 
-#endif // NTRIPSOURCETABLE_H
+#endif

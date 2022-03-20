@@ -13,6 +13,7 @@ struct otl_input {
 	std::string green;
 	std::string output_blq_file;
 	std::vector<std::string> tide_file;
+	std::vector< std::vector<float>> xyz_coords;
 	std::vector<float> lon;
 	std::vector<float> lat;
 	std::vector<std::string>  code;

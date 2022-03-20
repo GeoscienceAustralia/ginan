@@ -2,22 +2,26 @@ name: gn37
 channels:
   - conda-forge
 dependencies:
-  - python=3.7      # need ipython 6.5.0 as higher do not autocomlete
+  - python=3.7 # need ipython 6.5.0 as higher do not autocomlete
   - pip
-  - numpy           # don't care of specific numpy and pandas versions
-  - pandas = 1.1.0  #MongoDash required version
+  - numpy # don't care of specific numpy and pandas versions
+  - pandas = 1.1.0 #MongoDash required version
   - matplotlib
   - ruamel.yaml
   - wget
   - boto3
   - ipython = 6.5.0 #need this version
-  - plotly = 4.9.0  #MongoDash
-  - notebook>=5.3   #MongoDash
+  - notebook>=5.3 #MongoDash
   - ipywidgets>=7.2 #MongoDash
-  - dash-bootstrap-components #MongoDash
-  - pymongo         #MongoDash
+  - pymongo = 3.7.2 #MongoDash
+  - pytest
+  - scipy
+  - statsmodels
   - pip:
-    - georinex
-    - p_tqdm #useful for long processing sessions
-    - git+https://github.com/bmatv/python-unlzw.git # memory leak patched
+      - georinex
+      - sklearn
+      - dash==2.0.0
+      - plotly==5.3.1
+      - p_tqdm #useful for long processing sessions
+      - git+https://github.com/bmatv/python-unlzw.git # memory leak patched
 

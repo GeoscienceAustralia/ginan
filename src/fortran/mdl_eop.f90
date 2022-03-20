@@ -27,7 +27,6 @@ MODULE mdl_eop
       USE mdl_precision
       IMPLICIT NONE
       SAVE 			
-	  
 
 ! Allocatable Arrays	  
 ! ---------------------------------------------------------------------------

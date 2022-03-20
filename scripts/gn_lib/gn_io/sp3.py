@@ -1,28 +1,33 @@
 '''Ephemeris functions'''
+import os as _os
 import re as _re
-from io import BytesIO as _BytesIO
 
 import numpy as _np
 import pandas as _pd
 
 from ..gn_aux import unique_cols as _unique_cols
+from ..gn_const import C_LIGHT as _C_LIGHT, SISRE_COEF_DF as _SISRE_COEF_DF
 from ..gn_datetime import datetime2gpsweeksec as _datetime2gpsweeksec
 from ..gn_datetime import datetime2j2000 as _datetime2j2000
 from ..gn_datetime import datetime2mjd as _datetime2mjd
 from ..gn_datetime import j20002rnxdt as _j20002rnxdt
+from ..gn_transform import ecef2eci as _ecef2eci
+from ..gn_transform import eci2rac_rot as _eci2rac_rot
+from ..gn_transform import get_helmert7 as _get_helmert7
+from ..gn_transform import transform7 as _transform7
+from .clk import read_clk as _read_clk, norm_clk as _norm_clk
 from .common import path2bytes
-from .clk import read_clk as _read_clk
 
 _RE_SP3 = _re.compile(rb'^\*(.+)\n((?:[^\*]+)+)',_re.MULTILINE)
 
 # 1st line parser. ^ is start of document, search
 _RE_SP3_HEAD = _re.compile(rb'''^\#(\w)(\w)([\d \.]{28})[ ]+
-                                    (\d+)[ ]+(\w+)[ ]+(\w+)[ ]+
+                                    (\d+)[ ]+([\w\+]+)[ ]+(\w+)[ ]+
                                     (\w+)[ ]+(\w+)''',_re.VERBOSE)
 #SV names. multiline, findall
 _RE_SP3_HEAD_SV = _re.compile(rb'^\+[ ]+(?:[\d]+|)[ ]+((?:[A-Z]\d{2})+)\W',_re.MULTILINE)
 # orbits accuracy codes
-_RE_SP3_ACC = _re.compile(rb'^\+{2}[ ]+((?:[ ]{2}\d{1})+)\W',_re.MULTILINE)
+_RE_SP3_ACC = _re.compile(rb'^\+{2}[ ]+(.{51})\W',_re.MULTILINE)
 # File descriptor and clock
 _RE_SP3_HEAD_FDESCR = _re.compile(rb'\%c[ ](\w{1})[ ]+cc[ ](\w{3})')
 
@@ -65,7 +70,7 @@ def read_sp3(sp3_path):
     epochs_dt = _pd.to_datetime(_pd.Series(dates).str.slice(2,21).values.astype(str),
                                 format=r'%Y %m %d %H %M %S')
 
-    dt_index = _np.repeat(a=_datetime2j2000(epochs_dt),repeats=counts)
+    dt_index = _np.repeat(a=_datetime2j2000(epochs_dt.values),repeats=counts)
     b_string = b''.join(data.tolist())
 
 
@@ -110,6 +115,7 @@ def read_sp3(sp3_path):
 
     sp3_df.set_index([dt_index,'SAT'],inplace=True)
     sp3_df.index.names = ([None,None])
+    sp3_df.attrs['path'] = sp3_path
     return sp3_df
 
 def parse_sp3_header(header):
@@ -127,35 +133,34 @@ def parse_sp3_header(header):
     return _pd.concat([sp3_heading,sv_tbl],keys=['HEAD','SV_INFO'],axis=0)
 
 
-def sp3_vel(sp3_df):
+def sp3_vel(sp3_df,deg=35):
     '''takes sp3_df, interpolates the positions for -1s and +1s and outputs velocities'''
     est = sp3_df.unstack(1).EST[['X','Y','Z']]
     x = est.index.values
     y = est.values
 
-    off,scl = mapparm([x.min(), x.max()],[-1,1])
+    off,scl = mapparm([x.min(), x.max()],[-1,1]) # map from input scale to [-1,1]
 
     x_new = off + scl*(x)
-    coeff = _np.polyfit(x=x_new,y=y,deg=35)
+    coeff = _np.polyfit(x=x_new,y=y,deg=deg)
 
     x_prev = off + scl*(x-1)
     x_next = off + scl*(x+1)
 
-    xx_prev_combined = _np.repeat((x_prev)[_np.newaxis],len(coeff),axis=0)
-    xx_next_combined = _np.repeat((x_next)[_np.newaxis],len(coeff),axis=0)
+    xx_prev_combined = _np.broadcast_to((x_prev)[None],(deg+1,x_prev.shape[0]))
+    xx_next_combined = _np.broadcast_to((x_next)[None],(deg+1,x_prev.shape[0]))
 
-    inputs_prev =  xx_prev_combined ** _np.flip(_np.arange(len(coeff)))[:,_np.newaxis]
-    inputs_next =  xx_next_combined ** _np.flip(_np.arange(len(coeff)))[:,_np.newaxis]
+    inputs_prev =  xx_prev_combined ** _np.flip(_np.arange(deg+1))[:,None]
+    inputs_next =  xx_next_combined ** _np.flip(_np.arange(deg+1))[:,None]
 
     res_prev = coeff.T.dot(inputs_prev)
     res_next = coeff.T.dot(inputs_next)
-
     vel_i = _pd.DataFrame((((res_prev.T - y) + (y - res_next.T))/2)*10000,columns=est.columns,index=est.index).stack()
 
     vel_i.columns = [['VELi']*3] + [vel_i.columns.values.tolist()]
     return vel_i
 
-def sp3_vel_ch(sp3_df, len_tails = 3):
+def sp3_vel_ch(sp3_df, len_tails = 3, deg=60):
     '''takes sp3_df, interpolates the positions for -1s and +1s and outputs velocities'''
     est = sp3_df.unstack(1).EST[['X','Y','Z']]
 
@@ -174,7 +179,7 @@ def sp3_vel_ch(sp3_df, len_tails = 3):
 
     off,scl = mapparm([x.min(), x.max()],[-1,1])
     x_new = off + scl*(x)
-    coeff = _np.polynomial.chebyshev.chebfit(x=x_new,y=y,deg=60)
+    coeff = _np.polynomial.chebyshev.chebfit(x=x_new,y=y,deg=deg)
 
     x_prev = off + scl*(x-.001)
     x_next = off + scl*(x+.001)
@@ -216,13 +221,14 @@ def gen_sp3_header(sp3_df):
     sats = sv_tbl.index.to_list() 
     n_sats = sv_tbl.shape[0]
 
-    sats_header = _np.asarray(sats + ['  0']*(17*5 - n_sats),dtype=object).reshape(5,-1).sum(axis=1) + '\n'
+    sats_rows = (n_sats//17)+1 if n_sats>(17*5) else 5 #should be 5 but MGEX need more lines (e.g. CODE sp3)
+    sats_header = _np.asarray(sats + ['  0']*(17*sats_rows - n_sats),dtype=object).reshape(sats_rows,-1).sum(axis=1) + '\n'
 
     sats_header[0] = '+ {:4}   '.format(n_sats) + sats_header[0]
     sats_header[1:] = '+        ' + sats_header[1:]
 
 
-    sv_orb_head = _np.asarray(sv_tbl.astype(str).str.rjust(3).to_list() + ['  0']*(17*5 - n_sats),dtype=object).reshape(5,-1).sum(axis=1) + '\n'
+    sv_orb_head = _np.asarray(sv_tbl.astype(str).str.rjust(3).to_list() + ['  0']*(17*sats_rows - n_sats),dtype=object).reshape(sats_rows,-1).sum(axis=1) + '\n'
 
     sv_orb_head[0] =  '++       '+ sv_orb_head[0]
     sv_orb_head[1:] = '++       '+ sv_orb_head[1:]
@@ -292,3 +298,85 @@ def merge_sp3(sp3_paths,clk_paths=None):
         merged_sp3.EST.CLK = _pd.concat(clk_dfs).EST.AS * 1000000
         
     return merged_sp3
+
+def sp3_hlm_trans(a:_pd.DataFrame,b:_pd.DataFrame)->tuple((_pd.DataFrame,tuple((_np.ndarray,_pd.DataFrame)))):
+    '''Rotates sp3_b into sp3_a. Returns a tuple of updated sp3_b and HLM array with applied computed parameters and residuals'''
+    hlm = _get_helmert7(pt1=a.EST[['X','Y','Z']].values,
+                        pt2=b.EST[['X','Y','Z']].values)
+
+    hlm = (hlm[0],_pd.DataFrame(hlm[1],columns=[['RES']*3,['X','Y','Z']],index = a.index))
+
+    b.iloc[:,:3] = _transform7(xyz_in=b.EST[['X','Y','Z']].values,helmert_list=hlm[0][0])
+    return b, hlm
+
+def sp3dfs2common(sp3a,sp3b):
+    level0_intersect =  _np.intersect1d(sp3a.index.levels[0].values, sp3b.index.levels[0].values,assume_unique=True) #common time
+    level1_intersect = _np.intersect1d(sp3a.index.levels[1].values, sp3b.index.levels[1].values,assume_unique=True) #common svs
+    
+    mask_a = sp3a.index.get_level_values(0).isin(level0_intersect) & sp3a.index.get_level_values(1).isin(level1_intersect)
+    mask_b = sp3b.index.get_level_values(0).isin(level0_intersect) & sp3b.index.get_level_values(1).isin(level1_intersect)
+
+    return sp3a.iloc[_np.arange(mask_a.shape[0])[mask_a]].sort_index(), sp3b.iloc[_np.arange(mask_b.shape[0])[mask_b]].sort_index()
+
+def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None):
+    hlm_modes = [None, 'ECF', 'ECI']
+    if hlm_mode not in hlm_modes:
+        raise ValueError(f"Invalid hlm_mode. Expected one of: {hlm_modes}")
+
+    hlm = None #init hlm var
+    sp3_a, sp3_b = sp3dfs2common(sp3_a, sp3_b) # produces common sp3 dfs with sorted index
+    if hlm_mode == 'ECF':
+        sp3_b, hlm = sp3_hlm_trans(sp3_a,sp3_b)
+
+    sp3_a_eci = _ecef2eci(sp3_a)
+    sp3_a_eci_vel = _pd.concat([sp3_a_eci,sp3_vel(sp3_df=sp3_a_eci,deg=36)],axis=1) # because of sorted index, no additional manipulation with vel is required - just concat
+    sp3_b_eci = _ecef2eci(sp3_b)
+
+    if hlm_mode == 'ECI':
+        sp3_b_eci, hlm = sp3_hlm_trans(sp3_a_eci,sp3_b_eci)
+
+    xyz_cols_a = _np.argwhere(sp3_a_eci.columns.isin([('EST','X'),('EST','Y'),('EST','Z')])).ravel() # get indices of EST X Y Z cols
+    xyz_cols_b = _np.argwhere(sp3_b_eci.columns.isin([('EST','X'),('EST','Y'),('EST','Z')])).ravel()
+
+    diff_eci = sp3_a_eci.iloc[:,xyz_cols_a] - sp3_b_eci.iloc[:,xyz_cols_b]
+    nd_rac = diff_eci.values[:,_np.newaxis] @ _eci2rac_rot(sp3_a_eci_vel)
+    df_rac = _pd.DataFrame(nd_rac.reshape(-1,3),
+                  index = sp3_a.index,
+                  columns=[['EST_RAC']*3,['Radial','Along-track','Cross-track']])
+
+    df_rac.attrs['sp3_a'] = _os.path.basename(sp3_a.attrs['path'])
+    df_rac.attrs['sp3_b'] = _os.path.basename(sp3_b.attrs['path'])
+    df_rac.attrs['hlm'] = hlm
+    df_rac.attrs['hlm_mode'] = hlm_mode
+    return df_rac
+
+def get_sisre(sp3_a:_pd.DataFrame,sp3_b:_pd.DataFrame,clk_a:_pd.DataFrame,clk_b:_pd.DataFrame)->_pd.DataFrame:
+    '''sp3_a and sp3_b are the dataframes produced by read_sp3 function. clk dataframes are the output of read_clk.
+    Outputs a dataframe of signal-in-space range error (SISRE). The SISRE units are meters'''
+    rac = diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None) * 1000 # km to meters... should be correct
+
+    rac_dt = _np.unique(rac.index.droplevel(1).values) # TODO looks like could be rac.index.levels[0].values
+
+    # need to sync clk dfs with sp3 dfs.
+    clk_a = clk_a.iloc[:,0][clk_a.index.droplevel([1,2]) == 'AS'].droplevel(level=0,axis=0) # faster then clk_a.iloc[:,0].loc['AS']... pandas...
+    clk_b = clk_b.iloc[:,0][clk_b.index.droplevel([1,2]) == 'AS'].droplevel(level=0,axis=0)
+
+    common_dt = _np.intersect1d(rac_dt,_np.intersect1d(clk_a.index.levels[0],clk_b.index.levels[0])) # TODO use sets trick to do the intersection
+
+    clk_a_unst = clk_a.unstack('CODE').loc[common_dt]
+    clk_b_unst = clk_b.unstack('CODE').loc[common_dt]
+
+    coeffs = _SISRE_COEF_DF.T.reindex(rac.index.droplevel(0).str[0])
+    common_svs = _np.intersect1d(clk_a_unst.columns,clk_b_unst.columns) # TODO set.intersect or simply set(concat)
+
+    # clk_diff = (clk_a_unst.loc[common_dt][common_svs] - clk_b_unst.loc[common_dt][common_svs])*_C_LIGHT 
+    # reveals a ~10m clk bias in the IGS clk while he expected mean value for GPS is ~0.5 m (not 10.5!!!).
+    # Montenbruck, Steigenberger, and Hauschild, “Multi-GNSS Signal-in-Space Range Error Assessment – Methodology and Results.”
+
+    clk_diff = (_norm_clk(clk_a_unst.loc[common_dt][common_svs],sv='G01') - _norm_clk(clk_b_unst.loc[common_dt][common_svs],sv='G01'))*_C_LIGHT
+    # Expected mean value for GPS is ~0.05 m because of clocks normalization (e.g., with G01)
+    # Kazmierski, Hadas, and Sośnica, “Weighting of Multi-GNSS Observations in Real-Time Precise Point Positioning.”
+
+    # sisre = sqrt( (r*alpha - d_clk*c)^2 + (a^2 + c^2)/beta )
+    sisre = (((rac.iloc[:,0] * coeffs.values[:,0] ).unstack(1)- clk_diff)**2 + ((rac.iloc[:,1]**2 + rac.iloc[:,2]**2)/coeffs.values[:,1]).unstack(1))**0.5
+    return sisre

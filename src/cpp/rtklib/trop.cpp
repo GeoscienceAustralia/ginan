@@ -20,8 +20,8 @@
 #include <math.h>
 
 #include "trop.h"
+#include "constants.hpp"
 
-#define     PI          3.1415926535897932  /* value of PI */
 #define     MIN(x,y)    (x<y?x:y)           /* minimum of two numbers */
 
 const double ah_mean[55]={      /* coefficients for GMF */
@@ -126,11 +126,13 @@ const double bw_amp[55]={
 *
 * return   :       1, 0, or -1
 * ---------------------------------------------------------------------------*/
-int sign(double x) {
-	if (x>0) return 1;
-	else if (x==0) return 0;
-	else return -1;
+int sign(double x) 
+{
+	if		(x >  0)	return +1;
+	else if	(x == 0)	return  0;
+	else				return -1;
 }
+
 /* vienna mapping function -----------------------------------------------------
 * args     :       const FILE *fp          I       VMF1 coefficients file
 *                  const char *staid       I       station id
@@ -155,13 +157,16 @@ int readvmf(const char *file, const char *staid, double a[7])
 	int info=0;
 
 	fp=fopen(file,"r");
-	if (fp==NULL) {
+	if (fp == nullptr) 
+	{
 		fprintf(stdout,"Warning: no VMF1 coefficients file provided\n");
 		return info;
 	}
 
-	while (fgets(buff,128,fp)!=NULL) {
-		if (strstr(buff,staid)) {
+	while (fgets(buff,128,fp)!=nullptr) 
+	{
+		if (strstr(buff,staid)) 
+		{
 			/* dry a, wet a, zhd, zwd, pressure, temperature, water vapor */
 			sscanf(buff+18,"%lf %lf %lf %lf %lf %lf %lf %lf",
 				&a[0],&a[1],&a[2],&a[3],&tmp,&a[4],&a[5],&a[6]);
@@ -171,95 +176,83 @@ int readvmf(const char *file, const char *staid, double a[7])
 		}
 	}
 
-	if (info==0) fprintf(stdout,"Warning: no station (%s) found in trop.c\n",
-						staid);
+	if (info==0) 
+		fprintf(stdout,"Warning: no station (%s) found in trop.c\n", staid);
 	fclose(fp);
 
 	return info;
 }
-/* vienna mapping function -----------------------------------------------------
-* args     :       const double ah         I       vmf1 dry coefficients
-*                  const double aw         I       vmf1 wet coefficients
-*                  double mjd              I       modified julian date
-*                  double lat              I       ellipsoidal lat (rad)
-*                  double hgt              I       height (m)
-*                  double zd               I       zenith distance (rad)
-*                  int id                  I       0-no height, 1-with height
-*                  double mf[2]            O       mapping function
-*                                                  mf[0] - dry a
-*                                                  mf[1] - wet a
-*
-* note     :       coefficients coming from either GPT2 or from vmf file
-* ---------------------------------------------------------------------------*/
-void vmf1(const double ah, const double aw, double mjd, double lat,
-				double hgt, double zd, int id, double mf[2])
+
+/** vienna mapping function.
+ * coefficients coming from either GPT2 or from vmf file
+ */
+void vmf1(
+	const double	ah,		///< vmf1 dry coefficients
+	const double	aw,		///< vmf1 wet coefficients
+	double			mjd,	///< modified julian date
+	double			lat,	///< ellipsoidal lat (rad)
+	double			hgt,	///< height (m)
+	double			zd,		///< zenith distance (rad)
+	int				id,		///< 0-no height, 1-with height
+	double			mf[2])	///< mapping function (dry, wet)
 {
-	double bh,c0h,phh,c11h,c10h,ch,sine,beta,gamma,topcon,bw,cw,doy;
-	double aht,bht,cht,hkm;
+	double doy = mjd - 44239 + 1 - 28;
 
-	doy=mjd-44239+1-28;
-
-	bh=0.0029;
-	c0h=0.062;
-	bw=0.00146;
-	cw=0.04391;
+	double bh	= 0.0029;
+	double c0h	= 0.062;
+	double bw	= 0.00146;
+	double cw	= 0.04391;
 
 	/* height correction */
-	aht=2.53e-5;
-	bht=5.49e-3;
-	cht=1.14e-3;
-	hkm=hgt/1000;
+	double aht = 2.53e-5;
+	double bht = 5.49e-3;
+	double cht = 1.14e-3;
+	double hkm = hgt / 1000;
 
-	if (lat<0) {    /* southern hemisphere */
-		phh=PI;
-		c11h=0.007;
-		c10h=0.002;
-	}
-	else {          /* northern hemisphere */
-		phh=0.0;
-		c11h=0.005;
-		c10h=0.001;
-	}
+	double phh;
+	double c11h;
+	double c10h;
+	if (lat < 0)	{	phh = PI;	c11h = 0.007;	c10h = 0.002;	}	/* southern hemisphere */
+	else			{	phh = 0;	c11h = 0.005;	c10h = 0.001;	}	/* northern hemisphere */
 
 	/* hydrostatic mapping function */
-	ch=c0h+((cos(doy/365.25*2*PI+phh)+1)*c11h/2+c10h)*(1-cos(lat));
-	sine=sin(PI/2-zd);
-	beta=bh/(sine+ch);
-	gamma=ah/(sine+beta);
-	topcon=(1.0+ah/(1.0+bh/(1.0+ch)));
-	mf[0]=topcon/(sine+gamma);
+	double ch		= c0h + ((cos(doy / 365.25 * 2*PI + phh) + 1) * c11h / 2 + c10h) * (1 - cos(lat));
+	double sine		= sin(PI/2 - zd);
+	double beta		= bh / (sine + ch);
+	double gamma	= ah / (sine + beta);
+	double topcon	= (1 + ah / (1 + bh / (1 + ch)));
+	
+	mf[0] = topcon / (sine + gamma);
 
 	/* height correction */
-	if (id==1) {
-		beta=bht/(sine+cht);
-		gamma=aht/(sine+beta);
-		topcon=(1.0+aht/(1.0+bht/(1.0+cht)));
-		mf[0]+=(1.0/sine-topcon/(sine+gamma))*hkm;
+	if (id == 1)
+	{
+		beta	= bht / (sine + cht);
+		gamma	= aht / (sine + beta);
+		topcon	= (1 + aht / (1 + bht / (1 + cht)));
+		
+		mf[0] += (1 / sine - topcon / (sine + gamma)) * hkm;
 	}
 
 	/* wet mapping function */
-	beta=bw/(sine+cw);
-	gamma=aw/(sine+beta);
-	topcon=(1.0+aw/(1.0+bw/(1.0+cw)));
-	mf[1]=topcon/(sine+gamma);
-
-	return;
+	beta	= bw / (sine + cw);
+	gamma	= aw / (sine + beta);
+	topcon	= (1 + aw / (1 + bw / (1 + cw)));
+	
+	mf[1] = topcon / (sine + gamma);
 }
-/* read GPT grid file ----------------------------------------------------------
-* args     :       FILE *fp                I       vmf1 coefficients file
-*                  gptgrid *gptg           I/O     gpt grid information
-*
-* return   :       0-fail, 1-successful
-* ---------------------------------------------------------------------------*/
-int readgrid(string file, gptgrid_t *gptg)
-{
-	FILE *fp;
-	char buff[256],*p;
-	int i=0,j,k;
-	double val[40];
 
-	fp=fopen(file.c_str(),"r");
-	if (fp==NULL)
+/** read GPT grid file
+ */
+int readgrid(
+	string		file,	///< vmf1 coefficients filename
+	gptgrid_t*	gptg)	///< gpt grid information
+{
+	char buff[256];
+	int i = 0;
+
+	FILE* fp = fopen(file.c_str(), "r");
+	if (fp == nullptr)
 	{
 		gptg->ind = 0;
 
@@ -267,21 +260,24 @@ int readgrid(string file, gptgrid_t *gptg)
 		return 0;
 	}
 
-	gptg->ind=1;
-	while (fgets(buff,256,fp)!=NULL)
+	gptg->ind = 1;
+	
+	while (fgets(buff, 256, fp))
 	{
 		/* ignore the first line */
 		if (strchr(buff,'%'))
 			continue;
 
-		j=0;
-		p=strtok(buff," ");
+		int j = 0;
+		
 		/* loop over each line */
-		while(p)
+		char* p = strtok(buff," ");
+		double val[40];
+		while (p)
 		{
 			sscanf(p,"%lf", &val[j]);
 			j++;
-			p=strtok(NULL," ");
+			p = strtok(nullptr," ");
 		}
 
 		/* assign lat lon */
@@ -289,14 +285,14 @@ int readgrid(string file, gptgrid_t *gptg)
 		gptg->lon[i] = val[1];
 
 		/* assign pres, temp, humid, tlaps, ah, aw */
-		for (k=0;k<5;k++)
+		for (int k=0;k<5;k++)
 		{
-			gptg->pres[i][k]	= val[k+2];          /* pressure */
-			gptg->temp[i][k]	= val[k+7];          /* temperature */
-			gptg->humid[i][k]	= val[k+12]/1000;   /* humidity */
-			gptg->tlaps[i][k]	= val[k+17]/1000;   /* temperature elapse rate */
-			gptg->ah[i][k]		= val[k+24]/1000;      /* ah */
-			gptg->aw[i][k]		= val[k+29]/1000;      /* aw */
+			gptg->pres	[i][k]	= val[k+2];          /* pressure */
+			gptg->temp	[i][k]	= val[k+7];          /* temperature */
+			gptg->humid	[i][k]	= val[k+12]/1000;   /* humidity */
+			gptg->tlaps	[i][k]	= val[k+17]/1000;   /* temperature elapse rate */
+			gptg->ah	[i][k]	= val[k+24]/1000;      /* ah */
+			gptg->aw	[i][k]	= val[k+29]/1000;      /* aw */
 		}
 
 		/* assign undulation and height */
@@ -310,28 +306,39 @@ int readgrid(string file, gptgrid_t *gptg)
 
 	return 1;
 }
-/* coefficients multiplication -------------------------------------------------
-* args     :       double a[5]             I
-*                  double cosfy            I
-*                  double sinfy            I
-*                  double coshy            I
-*                  double sinhy            I
-* ---------------------------------------------------------------------------*/
-double coef(const double a[5], double cosfy, double sinfy, double coshy,
-				double sinhy)
+
+/** coefficients multiplication
+ */
+double coef(
+	const double a[5],
+	double cosfy,
+	double sinfy,
+	double coshy,
+	double sinhy)
 {
-	return a[0]+
-		a[1]*cosfy+a[2]*sinfy+
-		a[3]*coshy+a[4]*sinhy;
+	return	+ a[0]
+			+ a[1] * cosfy
+			+ a[2] * sinfy
+			+ a[3] * coshy
+			+ a[4] * sinhy;
 }
-double coefr(double p1, double p2, double l1, double l2, double a[4])
+
+double coefr(
+	double p1, 
+	double p2, 
+	double l1, 
+	double l2, 
+	double a[4])
 {
 	double r[2];
-	r[0]=p2*a[0]+p1*a[1];
-	r[1]=p2*a[2]+p1*a[3];
 
-	return l2*r[0]+l1*r[1];
+	r[0] = p2 * a[0] + p1 * a[1];
+	r[1] = p2 * a[2] + p1 * a[3];
+
+	return	+ l2 * r[0]
+			+ l1 * r[1];
 }
+
 /* global pressure and temperature ---------------------------------------------
 * args     :       const gptgrid_t *gptg   I       gpt grid information
 *                  double mjd              I       modified julian date
@@ -349,14 +356,14 @@ double coefr(double p1, double p2, double l1, double l2, double a[4])
 *                                                  [5] wet coef
 *                                                  [6] undulation (m)
 * ---------------------------------------------------------------------------*/
-extern void gpt2(
-	const gptgrid_t& gptg,
-	double mjd,
-	double lat,
-	double lon,
-	double hell,
-	int it,
-	double gptval[7])
+void gpt2(
+	const gptgrid_t&	gptg,
+	double				mjd,
+	double				lat,
+	double				lon,
+	double				hell,
+	int					it,
+	double				gptval[7])
 {
 	/* change reference epoch to 1/1/2000 */
 	double mjd1 = mjd - 51544.5;
@@ -380,21 +387,21 @@ extern void gpt2(
 	else        	plon = lon			* 180 / PI;
 
 	/* transform to polar distance in degrees */
-	double pdist=(-lat+PI/2)*180/PI;
+	double pdist = (-lat + PI/2) * 180 / PI;
 
 	/* find the index of the nearest point */
-	int ipod=floor((pdist+5)/5);
-	int ilon=floor((plon+5)/5);
+	int ipod = floor((pdist	+ 5) / 5);
+	int ilon = floor((plon	+ 5) / 5);
 
 	/* normalized (to one) differences */
-	double dpod = (pdist	- (ipod*5-2.5))/5;
-	double dlon = (plon	- (ilon*5-2.5))/5;
+	double dpod = (pdist	- (ipod * 5 - 2.5)) / 5;
+	double dlon = (plon		- (ilon * 5 - 2.5)) / 5;
 
-	if (ipod==37)
-		ipod=36;
+	if (ipod == 37)
+		ipod = 36;
 
 	int index[4];
-	index[0] = (ipod-1)*72+ilon;
+	index[0] = (ipod - 1) * 72 + ilon;
 
 	/* near the pole: nearest neighbour interpolation, otherwise, bilinear */
 	int bl=0;
@@ -419,7 +426,7 @@ extern void gpt2(
 		double dt0	= coef(gptg.tlaps[i],	cosfy, sinfy, coshy, sinhy);
 
 		/* temperature at station height in celsius */
-		gptval[1]= t0+dt0*(hgt-gptg.hgt[i])-273.15;
+		gptval[1]= t0+dt0*(hgt-gptg.hgt[i]) - ZEROC;
 		gptval[2]= dt0 * 1000;
 
 		double con=GRAVITY*MOLARDRY/(UGAS*t0*(1+0.6077*q0));
@@ -457,7 +464,7 @@ extern void gpt2(
 
 		for (int k = 0; k < 4; k++)
 		{
-			undu[k]=gptg.undu[index[k]];
+			undu[k] = gptg.undu[index[k]];
 			double hgt = hell - undu[k];
 
 			/* pressure, temperature at the height of the grid */
@@ -466,12 +473,13 @@ extern void gpt2(
 			q[k]			= coef(gptg.humid	[index[k]], cosfy, sinfy, coshy, sinhy);
 			dt[k]			= coef(gptg.tlaps	[index[k]], cosfy, sinfy, coshy, sinhy);
 
-			t[k]=t0+dt[k]*(hgt-gptg.hgt[index[k]])-273.15;
-			double con=GRAVITY*MOLARDRY/(UGAS*t0*(1+0.6077*q[k]));
+			t[k] = t0 + dt[k] * (hgt - gptg.hgt[index[k]]) - ZEROC;
+			double con = GRAVITY * MOLARDRY / (UGAS * t0 * (1 + 0.6077 * q[k]));
 
-			p[k]=(p0*exp(-con*(hgt-gptg.hgt[index[k]])))/100;
-			ah[k] = coef(gptg.ah[index[k]], cosfy, sinfy, coshy, sinhy);
-			aw[k] = coef(gptg.aw[index[k]], cosfy, sinfy, coshy, sinhy);
+			p[k]	= (p0*exp(-con*(hgt-gptg.hgt[index[k]])))/100;
+			
+			ah[k]			= coef(gptg.ah		[index[k]], cosfy, sinfy, coshy, sinhy);
+			aw[k]			= coef(gptg.aw		[index[k]], cosfy, sinfy, coshy, sinhy);
 		}
 		double dnpod1 = fabs(dpod);
 		double dnpod2 = 1 - dnpod1;
@@ -479,239 +487,260 @@ extern void gpt2(
 		double dnlon2 = 1 - dnlon1;
 
 
-		gptval[0] = coefr(dnpod1, dnpod2, dnlon1, dnlon2, p); /* pressure */
-		gptval[1] = coefr(dnpod1, dnpod2, dnlon1, dnlon2, t);  /* temperature */
-		gptval[2] = coefr(dnpod1, dnpod2, dnlon1, dnlon2, dt) * 1000;/* temperature elapse per km */
+		gptval[0]	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, p); /* pressure */
+		gptval[1]	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, t);  /* temperature */
+		gptval[2]	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, dt) * 1000;/* temperature elapse per km */
 
 		/* humidity */
-		double tp=coefr(dnpod1,dnpod2,dnlon1,dnlon2,q);
-		gptval[3]=tp*gptval[0]/(0.622+0.378*tp);
+		double tp	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, q);
+		gptval[3]	= tp * gptval[0] / (0.622 + 0.378 * tp);
 
 
-		gptval[4] = coefr(dnpod1, dnpod2, dnlon1, dnlon2, ah);   /* hydrostatic coefficient */
-		gptval[5] = coefr(dnpod1, dnpod2, dnlon1, dnlon2, aw);   /* wet coefficient */
-		gptval[6] = coefr(dnpod1, dnpod2, dnlon1, dnlon2, undu);   /* undulation */
+		gptval[4]	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, ah);   /* hydrostatic coefficient */
+		gptval[5]	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, aw);   /* wet coefficient */
+		gptval[6]	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, undu);   /* undulation */
 	}
-
-	return;
 }
-/* global mapping functions (GMF) ----------------------------------------------
-* args     :       double mjd              I       modified julian date
-*                  double lat              I       ellipsoidal lat (rad)
-*                  double lon              I       ellipsoidal lon (rad)
-*                  double hgt              I       ellipsoidal height (m)
-*                  double zd               I       zenith distance (rad)
-*                  double mf[2]            O       mapping function
-*                                                  mf[0] - dry a
-*                                                  mf[1] - wet a
-*
-* return   :       none
-*
-* note     :       **** this function needs to be verifed ****
-* ---------------------------------------------------------------------------*/
-void gmf(const double mjd, const double lat, const double lon,
-				const double hgt, const double zd, double mf[2])
+
+/* Global mapping functions (GMF).
+ * **** this function needs to be verifed ****
+ */
+void gmf(
+	const double	mjd,	///< modified julian date
+	const double	lat,	///< ellipsoidal lat (rad)
+	const double	lon,	///< ellipsoidal lon (rad)
+	const double	hgt,	///< ellipsoidal height (m)
+	const double	zd,		///< zenith distance (rad)
+	double			mf[2])	///< mapping function (dry, wet)
 {
-	int i,j,k,ir,n=9,m=9;
-	double doy,t,dfac[20],sum,P[10][10],ap[55],bp[55];
-	double bh,c0h,c11h,c10h,ch,phh,ahm,aha,ah,sine,beta,gamma,topcon;
-	double a_ht,b_ht,c_ht,hs_km,ht_corr,bw,cw,awm,awa,aw;
+	const int n = 9;
+	const int m = 9;
+	
 
 	/* reference day 28, Jan */
-	doy=mjd-44239.0+1-28;
+	double doy = mjd - 44239.0 + 1 - 28;
 
-	t=sin(lat);
+	double t = sin(lat);
 
 	/* determine factorial n! */
-	dfac[0]=1;
-	for (i=0;i<2*n+1;i++) dfac[i+1]=dfac[i]*i;
+	double dfac[20];
+	dfac[0] = 1;
+	for (int i = 0; i < 2 * n + 1; i++)
+		dfac[i + 1] = dfac[i] * i;
 
 	/* determine Legendre functions, NOTE, to be verified for the arrays */
-	for (i=0;i<=n;i++) {
-		for (j=0;j<=MIN(i,m)+1;j++) {
-			ir=(int)((i-j)/2);
-			sum=0;
-			for (k=0;k<ir+1;k++) {
-				sum=sum+pow(-1,k)*dfac[2*i-2*k]/dfac[k]/
-								dfac[i-k]/dfac[i-j-2*k]*pow(t,i-j-2*k);
+	double P[10][10];
+	for (int i = 0; i <= n; i++)
+	{
+		for (int j = 0; j <= MIN(i, m) + 1; j++)
+		{
+			int ir = (int)((i - j) / 2);
+			double sum = 0;
+			for (int k = 0; k < ir + 1; k++)
+			{
+				sum += pow(-1, k) * dfac[2 * i - 2 * k] / dfac[k] / dfac[i - k] / dfac[i - j - 2 * k] * pow(t, i - j - 2 * k);
 			}
-			P[i][j]=pow(1/2,i)*sqrt(pow((1-pow(t,2)),j))*sum;
+			P[i][j] = pow(0.5, i) * sqrt(pow((1 - pow(t, 2)), j)) * sum;
 		}
 	}
 
 	/* spherical harmonics */
-	i=0;
-	for (n=0;n<=9;n++) {
-		for (m=0;m<=n;m++) {
-			i=i+1;
-			ap[i-1]=P[n][m]*cos(m*lon);
-			bp[i-1]=P[n][m]*sin(m*lon);
+	int i = 0;
+	double ap[55];
+	double bp[55];
+	for (int n = 0; n <= 9; n++)
+	{
+		for (int m = 0; m <= n; m++)
+		{
+			i = i + 1;
+			ap[i - 1] = P[n][m] * cos(m * lon);
+			bp[i - 1] = P[n][m] * sin(m * lon);
 		}
 	}
 
 	/* hydrostatic */
-	bh=0.0029; c0h=0.062;
-	if (lat<0) {        /* southern hemisphere */
-		phh=PI; c11h=0.007; c10h=0.002;
-	}
-	else {              /* northern hemisphere */
-		phh=0;  c11h=0.005; c10h=0.001;
-	}
-	ch=c0h+((cos(doy/365.25*2*PI+phh)+1)*c11h/2.0+c10h)*(1-cos(lat));
+	double bh = 0.0029;
+	double c0h = 0.062;
+	double phh;
+	double c11h;
+	double c10h;
+	if (lat < 0)	{	phh = PI;	c11h = 0.007;	c10h = 0.002;	} /* southern hemisphere */	
+	else			{	phh = 0;	c11h = 0.005;	c10h = 0.001;	} /* northern hemisphere */
+		
+	double ch = c0h + ((cos(doy / 365.25 * 2*PI + phh) + 1) * c11h / 2 + c10h) * (1 - cos(lat));
 
-	ahm=0.0; aha=0.0;
-	for (i=0;i<55;i++) {
-		ahm=ahm+(ah_mean[i]*ap[i]+bh_mean[i]*bp[i])*1E-5;
-		aha=aha+(ah_amp[i] *ap[i]+bh_amp[i] *bp[i])*1E-5;
+	double ahm = 0;
+	double aha = 0;
+	for (int i = 0; i < 55; i++)
+	{
+		ahm += (ah_mean[i]	* ap[i] + bh_mean[i]	* bp[i]) * 1E-5;
+		aha += (ah_amp[i]	* ap[i] + bh_amp[i]		* bp[i]) * 1E-5;
 	}
-	ah=ahm+aha*cos(doy/365.35*2*PI);
+	double ah = ahm + aha * cos(doy / 365.35 * 2*PI);
 
-	sine=sin(PI/2.0-zd);
-	beta=bh/(sine+ch);
-	gamma=ah/(sine+beta);
-	topcon=(1.0+ah/(1.0+bh/(1.0+ch)));
-	mf[0]=topcon/(sine+gamma);
+	double sine		= sin(PI/2 - zd);
+	double beta		= bh / (sine + ch);
+	double gamma	= ah / (sine + beta);
+	double topcon	= (1 + ah / (1 + bh / (1 + ch)));
+	
+	mf[0] = topcon / (sine + gamma);
 
 	/* height correction for dry mapping function from Niell (1996) */
-	a_ht=2.53E-5;
-	b_ht=5.49E-3;
-	c_ht=1.14E-3;
-	hs_km=hgt/1000.0;
+	double a_ht = 2.53E-5;
+	double b_ht = 5.49E-3;
+	double c_ht = 1.14E-3;
+	double hs_km = hgt / 1000.0;
 
-	beta=b_ht/(sine+c_ht);
-	gamma=a_ht/(sine+beta);
-	topcon=(1.0+a_ht/(1.0+b_ht/(1.0+c_ht)));
-	ht_corr=(1/sine-topcon/(sine+gamma))*hs_km;
-	mf[0]=mf[0]+ht_corr;
+	beta	= b_ht / (sine + c_ht);
+	gamma	= a_ht / (sine + beta);
+	topcon	= (1 + a_ht / (1 + b_ht / (1 + c_ht)));
+	
+	double ht_corr = (1 / sine - topcon / (sine + gamma)) * hs_km;
+	
+	mf[0] = mf[0] + ht_corr;
 
 	/* wet mapping function */
-	bw=0.00146; cw=0.04391; awm=0.0; awa=0.0;
+	double bw	= 0.00146; 
+	double cw	= 0.04391; 
+	double awm	= 0; 
+	double awa	= 0;
 
-	for (i=0;i<55;i++) {
-		awm=awm+(aw_mean[i]*ap[i]+bw_mean[i]*bp[i])*1E-5;
-		awa=awa+(aw_amp[i] *ap[i]+bw_amp[i] *bp[i])*1E-5;
+	for (int i = 0; i < 55; i++)
+	{
+		awm += (aw_mean[i]	* ap[i] + bw_mean[i]	* bp[i]) * 1E-5;
+		awa += (aw_amp[i]	* ap[i] + bw_amp[i]		* bp[i]) * 1E-5;
 	}
-	aw=awm+awa*cos(doy/365.25*2*PI);
+	double aw = awm + awa * cos(doy / 365.25 * 2*PI);
 
-	beta=bw/(sine+cw);
-	gamma=aw/(sine+beta);
-	topcon=(1.0+aw/(1.0+bw/(1.0+cw)));
-	mf[1]=topcon/(sine+gamma);
-
-	return;
+	beta	= bw / (sine + cw);
+	gamma	= aw / (sine + beta);
+	topcon	= (1 + aw / (1 + bw / (1 + cw)));
+	
+	mf[1] = topcon / (sine + gamma);
 }
-/* emipirical troposphere mapping function -------------------------------------
-* args     :       const double pres       I       pressure (millibar)
-*                  const double temp       I       temperature (kelvin)
-*                  const double e          I       water vp (millibar)
-*                  const double lat        I       latitude (rad)
-*                  const double hgt        I       height (m)
-*                  const double el         I       ele angle (rad)
-*                  double *map             O       wet mapping function
-*
-* return   :       zenith hydrostatic delay
-*----------------------------------------------------------------------------*/
-double tropemp(const double pres, const double temp, const double e,
-					const double lat, const double hgt, const double el,
-					double *map)
 
+/** emipirical troposphere mapping function
+ */
+double tropemp(
+	const double	pres,	///< pressure (millibar)
+	const double	temp,	///< temperature (kelvin)
+	const double	e,		///< water vp (millibar)
+	const double	lat,	///< latitude (rad)
+	const double	hgt,	///< height (m)
+	const double	el,	    ///< ele angle (rad)
+	double*			map)	///< wet mapping function
 {
-	double z,a[2],b[2],c[2];
-	int i;
+	double a[2];
+	double b[2];
+	double c[2];
 
 	/* parameters of dry mapping function */
-	a[0]=0.1237*pow(10,-2)+0.1316*pow(10,-6)*(pres-1000)+
-			0.8057*pow(10,-5)*sqrt(e)+0.1378*pow(10,-5)*(temp-288.15);
-	b[0]=0.3333*pow(10,-2)+0.1946*pow(10,-6)*(pres-1000)+
-			0.1747*pow(10,-6)*sqrt(e)+0.1040*pow(10,-6)*(temp-288.15);
-	c[0]=0.078;
+	a[0]	= 0.1237 * pow(10, -2) 
+			+ 0.1316 * pow(10, -6) * (pres - 1000) 
+			+ 0.8057 * pow(10, -5) * sqrt(e)
+			+ 0.1378 * pow(10, -5) * (temp - 288.15);
+			
+	b[0]	= 0.3333 * pow(10, -2) 
+			+ 0.1946 * pow(10, -6) * (pres - 1000) 
+			+ 0.1747 * pow(10, -6) * sqrt(e)
+			+ 0.1040 * pow(10, -6) * (temp - 288.15);
+			
+	c[0] = 0.078;
 
 	/* parameters of wet mapping function */
-	a[1]=0.5236*pow(10,-3)+0.2471*pow(10,-6)*(pres-1000)-
-			0.1328*pow(10,-4)*sqrt(e)+0.1724*pow(10,-6)*(temp-288.15);
-	b[1]=0.1705*pow(10,-2)+0.7384*pow(10,-6)*(pres-1000)+
-			0.2147*pow(10,-4)*sqrt(e)+0.3767*pow(10,-6)*(temp-288.15);
-	c[1]=0.05917;
+	a[1]	= 0.5236 * pow(10, -3)
+			+ 0.2471 * pow(10, -6) * (pres - 1000)
+			- 0.1328 * pow(10, -4) * sqrt(e) 
+			+ 0.1724 * pow(10, -6) * (temp - 288.15);
+			
+	b[1]	= 0.1705 * pow(10, -2) 
+			+ 0.7384 * pow(10, -6) * (pres - 1000) 
+			+ 0.2147 * pow(10, -4) * sqrt(e) 
+			+ 0.3767 * pow(10, -6) * (temp - 288.15);
+			
+	c[1]	= 0.05917;
 
-	z=PI/2.0-el;
+	double z = PI/2 - el;
 
 	/* mapping function */
-	for (i=0;i<2;i++)
-		map[i]=
-		(1+a[i]/(1+b[i]/(1+c[i])))/(cos(z)+a[i]/(cos(z)+b[i]/(cos(z)+c[i])));
-	\
-	return 0.002277*(pres/(1.0-0.00266*cos(2.0*lat)-0.00028*hgt/1E3));
+	if (map)
+	for (int i = 0; i < 2; i++)
+	{
+		map[i] =	(1		+ a[i] / 
+									(1		+ b[i] /
+													(1		+ c[i]))) /
+					(cos(z)	+ a[i] / 
+									(cos(z)	+ b[i] / 
+													(cos(z)	+ c[i])));
+	}
+	
+	double zhd = 0.002277 * (pres / (1 - 0.00266 * cos(2 * lat) - 0.00028 * hgt / 1E3));
+	
+	return zhd;
 }
-/* troposphere zenith hydrastatic delay and mapping function -------------------
-* args     :       const gptgrid_t *gptg   I       gpt grid information
-*                  double pos[3]           I       lat,lon,hgt (rad,rad,m)
-*                  double mjd              I       modified julian date
-*                  double el               I       elevation (rad)
-*                  int it                  I       1: no time variation
-*                                                  0: with time variation
-*                  double mf[2]            O       mapping function
-*                                                  mp[0]=dry a
-*                                                  mp[1]=wet a
-*                  double *zwd             O       zenith wet delay
-*
-* return   :       zenith hydrastatic delay (m)
-*
-* note     :       gpt2 is used to get pressure, temperature, water vapor
-*                  pressure and mapping function coefficients and then vmf1
-*                  is used to derive dry and wet mapping function.
-* ---------------------------------------------------------------------------*/
-extern double tropztd(
-	const gptgrid_t& gptg,
-	double pos[3],
-	double mjd,
-	double el,
-	int it,
-	double mf[2],
-	double *zwd)
+
+/** Troposphere zenith hydrastatic delay and mapping function.
+ * gpt2 is used to get pressure, temperature, water vapor pressure and mapping function coefficients and then vmf1 is used to derive dry and wet mapping function.
+ */
+double tropztd(
+	const gptgrid_t&	gptg,	///< gpt grid information
+	double				pos[3],	///< lat,lon,hgt (rad,rad,m)
+	double				mjd,	///< modified julian date
+	double				el,		///< elevation (rad)
+	int					it,		///< 1: no time variation, 0: with time variation
+	double				mf[2],	///< mapping function (dry, wet)
+	double&				zwd)	///< zenith wet delay
 {
-	double gptval[7]={0},a[7]={0},zd,pres,lat,lon,hgt;
-	double gm,tp,ew,zhd=0;
+	double a[7] = {};
 
 	/* standard atmosphere */
-	lat=pos[0];
-	lon=pos[1];
-	hgt=pos[2]<0.0?0.0:pos[2];
-	zd=PI/2.0-el;
+	double lat = pos[0];
+	double lon = pos[1];
+	double hgt = pos[2];
+	
+	double zd = PI/2 - el;
 
 	/* pressure, temperature, water vapor at station height */
-	pres=1013.25*pow((1-0.00000226*hgt),5.225);
-	tp=15.0-6.5E-3*hgt+273.15;
-	ew=0.5/100*exp(-37.2465+0.213166*tp-0.000256908*tp*tp);
-	gm=1.0-0.00266*cos(2.0*lat)-0.00028*hgt/1E3;
+	double pres	= 1013.25 * pow((1 - 0.00000226 * hgt), 5.225);
+	double tp	= 15 - 6.5E-3 * hgt + ZEROC;
+	double ew	= 0.5 / 100 * exp(	- 37.2465 
+									+ 0.213166		* tp 
+									- 0.000256908	* tp * tp);
+	double gm	= 1 - 0.00266 * cos(2 * lat) - 0.00028 * hgt / 1E3;
 
+	double zhd = 0;
 	if (gptg.ind != 0)
 	{
 		/* use GPT2 model */
+		
 		/* get pressure and mapping coefficients from gpts */
-		gpt2(gptg,mjd,lat,lon,hgt,it,gptval);
-		pres=gptval[0];
-		tp=gptval[1]+273.15;    /* celcius to kelvin */
-		ew=gptval[3];
+		double gptval[7] = {};
+		gpt2(gptg,mjd, lat, lon, hgt, it, gptval);
+		
+		pres	= gptval[0];
+		tp		= gptval[1] + ZEROC;    /* celcius to kelvin */
+		ew		= gptval[3];
 
 		/* get mapping function */
-		vmf1(gptval[4],gptval[5],mjd,lat,hgt,zd,1,mf);
+		vmf1(gptval[4], gptval[5], mjd, lat, hgt, zd, 1, mf);
 
 		/* zenith hydrostatic delay */
-		zhd=0.002277*pres/gm;
+		zhd = 0.002277 * pres / gm;
 	}
-	else if (0 && readvmf(NULL,NULL,a))/* currently omitted */
+	else if (0 && readvmf(nullptr, nullptr, a))/* currently omitted */
 	{
 		vmf1(a[0], a[1], mjd, lat, hgt, zd, 0, mf);
 	}
 	else
 	{
 		/* use empirical mapping functions */
+		
 		/* zenith hydrostatic delay */
 		zhd = tropemp(pres, tp, ew, lat, hgt, el, mf);
 	}
 
 	/* zenith wet delay (m) */
-	*zwd = 0.002277 * (1255 / tp + 0.05) * ew * (1 / gm);
+	zwd = 0.002277 * (1255 / tp + 0.05) * ew * (1 / gm);
 
 	return zhd;
 }

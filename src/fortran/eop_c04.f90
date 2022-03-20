@@ -27,6 +27,7 @@ SUBROUTINE eop_c04 (filename,mjd , eop)
 
       USE mdl_precision
       USE mdl_num
+      use pod_yaml
       IMPLICIT NONE
 	  
 ! ----------------------------------------------------------------------
@@ -36,7 +37,7 @@ SUBROUTINE eop_c04 (filename,mjd , eop)
       INTEGER (KIND = prec_int8), INTENT(IN) :: mjd
       CHARACTER (LEN=512), INTENT(IN) :: filename
 ! OUT
-      REAL (KIND = prec_d), INTENT(OUT) :: eop(7)
+      REAL (KIND = prec_d), INTENT(OUT) :: eop(EOP_MAX_ARRAY)
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -46,6 +47,7 @@ SUBROUTINE eop_c04 (filename,mjd , eop)
       INTEGER (KIND = prec_int8) :: i, read_i, len_line
       CHARACTER (LEN=100) :: Format_eop
       CHARACTER (LEN=170) :: line_ith, eop_line 
+      CHARACTER :: first
       INTEGER (KIND = prec_int8) :: year,month,day, mjd_day
       REAL (KIND = prec_d) :: xp,yp,UT1_UTC,LOD,dX,dY, xErr,yErr,UT1_UTC_Err,LOD_Err,dX_Err,dY_Err
       LOGICAL found
@@ -85,6 +87,10 @@ SUBROUTINE eop_c04 (filename,mjd , eop)
          END IF
 ! ----------------------------------------------------------------------
 ! Data - check how much we read
+         !skip lines where year does not start with 1 or 2 ...
+         first = line_ith(1:1)
+         if (first .ne. '1' .and. first .ne. '2') cycle
+
          len_line = len(line_ith)
          IF (len_line >= 155) THEN
 	        READ (line_ith, '(3(I4),I7, 170A)' , IOSTAT=ios_data) year,month,day, mjd_day, eop_line			
@@ -93,13 +99,17 @@ SUBROUTINE eop_c04 (filename,mjd , eop)
                                                             xp,yp,UT1_UTC,LOD,dX,dY, & 
                                                             xErr,yErr,UT1_UTC_Err,LOD_Err,dX_Err,dY_Err
 	           !READ (line_ith, * , IOSTAT=ios_data) year,month,day, mjd_day, xp,yp,UT1_UTC,LOD,dX,dY, xErr,yErr,UT1_UTC_Err,LOD_Err,dX_Err,dY_Err
-               eop(1) = mjd_day
-               eop(2) = xp
-               eop(3) = yp
-               eop(4) = UT1_UTC
-               eop(5) = LOD
-               eop(6) = dX
-               eop(7) = dY
+               eop(EOP_MJD) = mjd_day
+               eop(EOP_X) = xp
+               eop(EOP_Y) = yp
+               eop(EOP_UT1) = UT1_UTC
+               eop(EOP_LOD) = LOD
+               eop(EOP_DX) = dX
+               eop(EOP_DY) = dY
+               eop(EOP_X_ERR) = xErr
+               eop(EOP_Y_ERR) = yErr
+               eop(EOP_UT1_ERR) = UT1_UTC_Err
+               eop(EOP_LOD_ERR) = LOD_Err
                found = .TRUE.
                EXIT
             END IF

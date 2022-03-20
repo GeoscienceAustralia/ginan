@@ -13,10 +13,10 @@ input_files:
     sp3files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
     clkfiles: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
     bsxfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
-    
+
 station_data:
 
-    root_stations_directory: data/ #need to have it absolute till fixed
+    root_stations_directory: data/
 
     rnxfiles:
         # Select files to run by:
@@ -29,7 +29,6 @@ output_files:
 
     root_output_directory:          <CONFIG>/
 
-    # TO DO change trace_level to log_level
     output_trace:                   true
     trace_level:                    2
     trace_directory:                TUG/
@@ -37,6 +36,16 @@ output_files:
     output_residuals:               true
     output_sinex:                   true
     sinex_directory:                ./
+
+    output_ppp_sol:                 true
+    ppp_sol_filename:               <STATION><YYYY><DDD><HH>.POS
+
+    output_mongo_measurements:      true
+    output_mongo_states:            true
+    output_mongo_metadata:          false
+    delete_mongo_history:           false
+    mongo_uri:                      mongodb://127.0.0.1:27017
+    mongo_suffix:                   _<BRANCH>
 
 output_options:
 
@@ -66,6 +75,12 @@ processing_options:
         glo:            false
         gal:            true
         bds:            false
+    
+    solve_amb_for:
+        gps:            true
+        glo:            false
+        gal:            false
+        bds:            false
 
     elevation_mask:     10   #degrees
 
@@ -93,9 +108,9 @@ processing_options:
     # pivot_station:        "USN7"
     # pivot_satellite:      "G01"
 
-    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
-                        L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
-                        L5I, L5Q, L5X]
+    code_priorities: [  L1C, L1X,
+                        L2W,
+                        L5Q]
 
 user_filter_parameters:
 
@@ -106,38 +121,32 @@ user_filter_parameters:
     rts_directory:              ./
     rts_filename:               PPP-<CONFIG>-<STATION>.rts
 
-    inverter:                   LLT         #LLT LDLT INV
+    inverter:                   LDLT         #LLT LDLT INV
 
 default_filter_parameters:
 
     stations:
 
         error_model:        elevation_dependent         #uniform elevation_dependent
-        code_sigmas:        [0.15]
-        phase_sigmas:       [0.0015]
+        code_sigmas:        [0.3]
+        phase_sigmas:       [0.003]
 
         pos:
             estimated:          true
-            sigma:              [0.1]
-            proc_noise:         [0.00057] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
+            sigma:              [1000]
+            proc_noise:         [1000] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
             proc_noise_dt:      second
-            #apriori:                                   # taken from other source, rinex file etc.
-            #frame:              xyz #ned
-            #proc_noise_model:   Gaussian
 
 
         clk:
             estimated:          true
-            sigma:              [0]
+            sigma:              [30]
             proc_noise:         [10] #where is this coming from?
-            #proc_noise_model:   Gaussian
 
         clk_rate:
             estimated:          false
             sigma:              [500]
             proc_noise:         [1e-4]
-            # clamp_max:          [+500]
-            # clamp_min:          [-500]
 
         amb:
             estimated:          true
@@ -149,14 +158,12 @@ default_filter_parameters:
             sigma:              [0.1]
             proc_noise:         [0.0001] #0.1 mm/sqrt(s)
             proc_noise_dt:      second
-            #proc_noise_model:   RandomWalk
 
         trop_grads:
             estimated:          true
-            sigma:              [1]
-            proc_noise:         [0.01]
+            sigma:              [0.02]
+            proc_noise:         [1.0E-6]
             proc_noise_dt:      second
-            #proc_noise_model:   RandomWalk
 
     satellites:
 
@@ -169,31 +176,34 @@ default_filter_parameters:
             estimated:          false
             # sigma:              [500]
             # proc_noise:         [1e-4]
-            # clamp_max:          [+500]
-            # clamp_min:          [-500]
 
         orb:
             estimated:          false
 
 ambiguity_resolution_options:
-    Min_elev_for_AR:            15.0
-    GPS_amb_resol:              true
-    GAL_amb_resol:              false
+    read_DSB:                   false
     
+    Min_elev_for_AR:            15.0
+    Solve_for_sys:
+        gps:                    true
+        gal:                    false
+    # GPS_amb_resol:              true
+    # GAL_amb_resol:              false
+
     WL_mode:                    round           # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
     WL_succ_rate_thres:         0.9999
     WL_sol_ratio_thres:         3.0
     WL_procs_noise_sat:         0.00001
     WL_procs_noise_sta:         0.0001
-    
+
     NL_mode:                    lambda_bie      # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
     NL_succ_rate_thres:         0.9999
     NL_sol_ratio_thres:         3.0
-    
-    #Set_size_for_lambda:        10
-    #Max_round_iterat:           3
 
+    Set_size_for_lambda:        20
+    Max_amb_hold_epoc:          20
+    #Max_round_iterat:           3
+    
 override_filter_parameters:
 
     stations:
-

@@ -245,6 +245,8 @@ void spitFilterToFile(
 		return;
 	}
 
+// 	std::cout << "RTS - writing " << type._to_string() << " to file\n";
+	
 	binary_oarchive serial(fileStream, 1);	//no header
 
 	long int pos = fileStream.tellp();
@@ -306,13 +308,6 @@ bool getFilterObjectFromFile(
 
 	return true;
 }
-
-void initFilterTrace(
-	KFState&	kfState,
-	string		traceFilename,
-	string		stationId	= "",
-	int			rts_lag		= -1);
-
 
 E_SerialObject getFilterTypeFromFile(
 	long int&	startPos,

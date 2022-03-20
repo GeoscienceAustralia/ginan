@@ -75,24 +75,27 @@ SUBROUTINE force_srp (lambda, eBX_ecl, eclipsf, GM, GNSSid, srpid, r, v, r_sun, 
 ! Local variables declaration
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_q) :: Cr
-      REAL (KIND = prec_q) :: ANG,GM
+      REAL (KIND = prec_q) :: GM
+!       ANG,
       REAL (KIND = prec_q) :: Ds,sclfa
       REAL (KIND = prec_q) :: fxo,fyo,fzo
 
       REAL (KIND = prec_q) :: R11(3,3),R33(3,3)
-      REAL (KIND = prec_q) :: surforce(4,3)
-      REAL (KIND = prec_q), DIMENSION(3) :: nz, nx, nd
+!       REAL (KIND = prec_q) :: surforce(4,3)
+!       REAL (KIND = prec_q), DIMENSION(3) :: nz, nx, nd
       REAL (KIND = prec_q), DIMENSION(3) :: er,ed,ey,eb,ex,en,ev,ez,ECOM_ey
       REAL (KIND = prec_q), DIMENSION(3) :: yy,et
-      REAL (KIND = prec_q), DIMENSION(3) :: FXX(3),FZZ(3),FSP(3)
+!       REAL (KIND = prec_q), DIMENSION(3) :: FXX(3),FZZ(3),FSP(3)
       REAL (KIND = prec_q), DIMENSION(3) :: fsrp
       REAL (KIND = prec_q), DIMENSION(9) :: kepler
       REAL (KIND = prec_q), DIMENSION(:), ALLOCATABLE :: srpcoef 
       REAL (KIND = prec_q), DIMENSION(4) :: cosang
-      REAL (KIND = prec_q), DIMENSION(4) :: AREA1,REFL1,DIFU1,ABSP1
+      REAL (KIND = prec_q), DIMENSION(4) :: AREA1,REFL1,DIFU1
+!       ,ABSP1
       INTEGER (KIND = prec_int2) :: AllocateStatus,DeAllocateStatus
       INTEGER              :: ex_i
-      INTEGER              :: i,j,k,m
+      INTEGER              :: i,j
+!       ,k,m
       INTEGER              :: N_param, PD_Param_ID
       INTEGER              :: att_ON
 ! ----------------------------------------------------------------------
@@ -102,7 +105,8 @@ SUBROUTINE force_srp (lambda, eBX_ecl, eclipsf, GM, GNSSid, srpid, r, v, r_sun, 
       REAL (KIND = prec_q) :: A_SOLAR
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_q) :: u_sat,i_sat,omega_sat
-      REAL (KIND = 8)      :: II, KN, U
+      REAL (KIND = 8)      :: II, KN
+!       , U
       REAL (KIND = prec_q) :: F0,alpha
 ! ----------------------------------------------------------------------
 ! Sun-related variables
@@ -358,7 +362,7 @@ END IF
 ALLOCATE (srpcoef(ECOMNUM), STAT = AllocateStatus)
 if (AllocateStatus .ne. 0) then
         write(mesg, *) "failed to allocate srpfcoef array, dimension=", ECOMNUM
-        call report('FATAL', pgrm_name, 'force_srp', mesg, 'src/force_srp.f90', 1)
+        call report('FATAL', pgrm_name, 'force_srp', mesg, 'src/fortran/force_srp.f90', 1)
 endif
 
 !ALLOCATE (srpcoef(NPARAM_EMP_ECOM_glb), STAT = AllocateStatus)
@@ -542,4 +546,4 @@ END IF
 
 !     END IF 
 
- 100 END
+END

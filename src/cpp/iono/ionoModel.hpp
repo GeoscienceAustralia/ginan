@@ -59,30 +59,30 @@ extern ionomodel_t  iono_modl;
 extern KFState		iono_KFState;
 
 /* General functions */
-extern int  config_ionosph_model ();
-extern int  update_receivr_measr (Trace& trace, Station& rec);
-extern void update_ionosph_model (Trace& trace, StationList& streams, GTime iontime);
-extern int  ionex_file_write(Trace& trace, GTime time, bool end = false);
-extern void write_receivr_measr(Trace& trace, std::list<Station*> stations, GTime time);
+int  config_ionosph_model ();
+int  update_receivr_measr (Trace& trace, Station& rec);
+void update_ionosph_model (Trace& trace, StationMap& stationMap, GTime iontime);
+int  ionex_file_write(Trace& trace, GTime time, bool end = false);
+void write_receivr_measr(Trace& trace, std::map<string, Station> stations, GTime time);
 
 /* Spherical Harmonics Model */
-extern int configure_iono_model_sphhar (void);
-extern int Ipp_check_sphhar(GTime time, double *Ion_pp);
-extern double ion_coef_sphhar(int ind, Obs& obs, bool slant = true);
-extern double ion_vtec_sphhar(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
+int configure_iono_model_sphhar (void);
+int Ipp_check_sphhar(GTime time, double *Ion_pp);
+double ion_coef_sphhar(int ind, Obs& obs, bool slant = true);
+double ion_vtec_sphhar(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
 
 
 /* Spherical Cap Model */
-extern int configure_iono_model_sphcap (void);
-extern int Ipp_check_sphcap(GTime time, double *Ion_pp);
-extern double ion_coef_sphcap(int ind, Obs& obs, bool slant = true);
-extern double ion_vtec_sphcap(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
+int configure_iono_model_sphcap (void);
+int Ipp_check_sphcap(GTime time, double *Ion_pp);
+double ion_coef_sphcap(int ind, Obs& obs, bool slant = true);
+double ion_vtec_sphcap(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
 
 /* Bspline Model */
-extern int configure_iono_model_bsplin (void);
-extern int Ipp_check_bsplin(GTime time, double *Ion_pp);
-extern double ion_coef_bsplin(int ind, Obs& obs, bool slant = true);
-extern double ion_vtec_bsplin(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
+int configure_iono_model_bsplin (void);
+int Ipp_check_bsplin(GTime time, double *Ion_pp);
+double ion_coef_bsplin(int ind, Obs& obs, bool slant = true);
+double ion_vtec_bsplin(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
 
 #endif
 

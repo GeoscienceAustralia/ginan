@@ -1,8 +1,9 @@
 #include "ntripSourceTable.hpp"
 
-NtripSourceTable::NtripSourceTable(const std::string& url_str): NtripSocket(url_str)
+NtripSourceTable::NtripSourceTable(
+	string url_str): NtripSocket(url_str)
 {
-	if( disconnectionCount > 2 )
+	if (disconnectionCount > 2)
 	{
 		BOOST_LOG_TRIVIAL(info) << url.sanitised()
 								<< ", Could not connect to host for source table.\n";
@@ -10,44 +11,46 @@ NtripSourceTable::NtripSourceTable(const std::string& url_str): NtripSocket(url_
 		return;
 	}
 	
-	std::stringstream request_stream;
-								request_stream	<< "GET / HTTP/1.1\r\n";
-								request_stream	<< "Host: " 	<< url.host << "\r\n";
-								request_stream	<< "Ntrip-Version: Ntrip/2.0\r\n";
+	std::stringstream	request_stream;
+						request_stream	<< "GET / HTTP/1.1"										<< "\r\n";   
+						request_stream	<< "Host: " 	<< url.host								<< "\r\n";
+						request_stream	<< "Ntrip-Version: Ntrip/2.0"							<< "\r\n";   
 	
-	if (!url.username.empty())
+	if (!url.user.empty())
 	{	
-								request_stream	<< "Authorization: Basic "
-												<< Base64::encode(string(url.username + ":" + url.password))
-												<< "\r\n";
+						request_stream	<< "Authorization: Basic "
+										<< Base64::encode(string(url.user + ":" + url.pass))	<< "\r\n";
 	}
 	
-								request_stream	<< "User-Agent: NTRIP ACS/1.0\r\n";
-								request_stream	<< "Connection: close\r\n";
-								request_stream	<< "\r\n";
+						request_stream	<< "User-Agent: NTRIP ACS/1.0"							<< "\r\n";   
+						request_stream	<< "Connection: close"									<< "\r\n";   
+						request_stream	<< "\r\n";
 	request_string = request_stream.str();
 
 	connect();
 }
+
 void NtripSourceTable::connected()
 {  
 	//BOOST_LOG_TRIVIAL(debug) << "Server Request  :\n" << request_string << std::endl;
 	//BOOST_LOG_TRIVIAL(debug) << "Server Response :\n" << response_string << std::endl;
 	
-	std::string lineStr;
+	string lineStr;
 	std::stringstream responseStream(response_string);
-	while (std::getline(responseStream,lineStr) )
+	while (std::getline(responseStream, lineStr))
 	{
-		std::vector<std::string> tokens;
-		boost::split(tokens,lineStr,boost::is_any_of(" \r\n"),boost::token_compress_on);
+		vector<string> tokens;
+		boost::split(tokens, lineStr, boost::is_any_of(" \r\n"), boost::token_compress_on);
 		
-		if ( tokens[0] == "Transfer-Encoding:" && tokens[1] == "chunked")
+		if	(  tokens[0] == "Transfer-Encoding:" 
+			&& tokens[1] == "chunked")
 		{
-			start_read_stream();
+			start_read(true);
+			
 			return;
 		}
 		
-		if ( tokens[0] == "Content-Length:" )
+		if (tokens[0] == "Content-Length:")
 		{
 			try
 			{
@@ -59,27 +62,30 @@ void NtripSourceTable::connected()
 				delayed_reconnect();  
 				return;
 			}
-			start_read();
+			
+			start_read(false);
+			
 			return;
 		}        
-			
 	}
+	
 	BOOST_LOG_TRIVIAL(error) << "Error, Server Response, NtripSourceTable::connected()\n";
 	delayed_reconnect();
 }
 
-std::vector<std::string> NtripSourceTable::getStreamMounts()
+vector<string> NtripSourceTable::getStreamMounts()
 {
-	std::vector<std::string> mountPoints;
+	vector<string> mountPoints;
 	
-	for ( auto entry : sourceTableData)
+	for (auto entry : sourceTableData)
 		mountPoints.push_back(entry.mountPoint);
 	
 	return mountPoints;
 }
 
 
-bool NtripSourceTable::dataChunkDownloaded(vector<char> dataChunk)
+bool NtripSourceTable::dataChunkDownloaded(
+	vector<char> dataChunk)
 {
 	sourceTableString.assign(dataChunk.begin(), dataChunk.end());
 	
@@ -91,7 +97,8 @@ bool NtripSourceTable::dataChunkDownloaded(vector<char> dataChunk)
 	return true;
 }
 
-void NtripSourceTable::readContentDownloaded(std::vector<char> content)
+void NtripSourceTable::readContentDownloaded(
+	vector<char> content)
 {
 	sourceTableString.assign(content.begin(), content.end());
 	
@@ -104,51 +111,55 @@ void NtripSourceTable::readContentDownloaded(std::vector<char> content)
 void NtripSourceTable::getSourceTable()
 {
 	// Wait for the source table to read before program continues.
+	//lock the mutex, try to lock it again - will fail until an async thread unlocks it, at which point we may continue
 	getSourceTableMtx.lock();
 	getSourceTableMtx.lock();
 	getSourceTableMtx.unlock();
 	
 	// Get data on all mount points.
-	std::string strBuf = sourceTableString;
+	string lineStr;
+	string strBuf = sourceTableString;
 	std::stringstream sourceTable(strBuf);
-	std::string lineStr;
 	
-	while( std::getline(sourceTable,lineStr) )
+	while (std::getline(sourceTable, lineStr))
 	{
-		std::vector<std::string> tokens;
-		boost::split(tokens,lineStr,boost::is_any_of(";\n"),boost::token_compress_on);
+		vector<string> tokens;
+		boost::split(tokens, lineStr, boost::is_any_of(";\n"), boost::token_compress_on);
 		
-		std::string firstToken = tokens[0];
+		string firstToken = tokens[0];
 		boost::to_upper(firstToken);
-		if ( firstToken != "STR" )
+		
+		if (firstToken != "STR")
 			continue;
 		
 		// Not all source table data was included as it is yet to be required.
 		SourceTableEntry curEntry;
-		curEntry.mountPoint = tokens[1];
-		curEntry.location = tokens[2];
+		curEntry.mountPoint	= tokens[1];
+		curEntry.location	= tokens[2];
 		
-		std::vector<std::string> messagesTokens;
-		boost::split(messagesTokens,tokens[4],boost::is_any_of(","),boost::token_compress_on);
-		for ( int i = 0; messagesTokens.size() > i; i++ )
+		vector<string> messagesTokens;
+		boost::split(messagesTokens, tokens[4], boost::is_any_of(","), boost::token_compress_on);
+		for (int i = 0; i < messagesTokens.size(); i++)
 		{
 			int RtcmType;
 			int frequencySeconds;
-			std::vector<std::string> messTokens;
-			boost::split(messTokens,messagesTokens[i],boost::is_any_of("()"),boost::token_compress_on);
+			vector<string> messTokens;
+			boost::split(messTokens, messagesTokens[i], boost::is_any_of("()"), boost::token_compress_on);
 			try
 			{            
 				RtcmType = std::stoi(messTokens[0]);
 				
 				frequencySeconds = -1;
-				if(messTokens.size() == 2)
+				
+				if (messTokens.size() == 2)
 					frequencySeconds = std::stoi(messTokens[1]);
 				
 				SourceTableEntry::RtcmMessageData messData;     
 
 				//messData.messageType = RtcmMessageType::_from_integral(RtcmType);
-				messData.messageType = RtcmType;
-				messData.broadcastFrequency = frequencySeconds;
+				messData.messageType			= RtcmType;
+				messData.broadcastFrequency		= frequencySeconds;
+				
 				curEntry.messageData.push_back(messData);                
 			}    
 			catch (std::exception& e)

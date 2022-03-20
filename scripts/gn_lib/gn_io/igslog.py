@@ -262,10 +262,6 @@ def gather_metadata(logs_glob_path = '/data/station_logs/station_logs_IGS/*/*.lo
     valid_mask = _np.all((( xyz_array != 0) & ~_np.isnan(xyz_array)),axis=1)
 
     xyz_norm = (xyz_array[valid_mask] ** 2).sum(axis=1) **0.5
-
-    # print(valid_mask.shape)
-    # print(valid_mask[valid_mask == True].shape)
-    # print(xyz_norm.shape)
     valid_mask[valid_mask] = (xyz_norm > 6000000) &(xyz_norm < 6500000)
 
 

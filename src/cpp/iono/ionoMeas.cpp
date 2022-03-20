@@ -1,10 +1,12 @@
 
+// #pragma GCC optimize ("O0")
+
 #include "observations.hpp"
 #include "streamTrace.hpp"
 #include "corrections.hpp"
 #include "ionoModel.hpp"
 #include "acsConfig.hpp"
-#include "constants.h"
+#include "constants.hpp"
 #include "satStat.hpp"
 #include "station.hpp"
 #include "common.hpp"
@@ -12,7 +14,10 @@
 
 #define PHASE_BIAS_STD 0.05
 
-extern int Ipp_in_range(GTime time, double *Ion_pp)
+E_ObsCode GPS_Code1 = E_ObsCode::L1C;
+E_ObsCode GPS_Code2 = E_ObsCode::L2W;
+
+int Ipp_in_range(GTime time, double *Ion_pp)
 {
 	switch (acsConfig.ionFilterOpts.model)
 	{
@@ -20,6 +25,7 @@ extern int Ipp_in_range(GTime time, double *Ion_pp)
 		case E_IonoModel::SPHERICAL_HARMONICS:	return Ipp_check_sphhar(time,Ion_pp);
 		case E_IonoModel::SPHERICAL_CAPS:		return Ipp_check_sphcap(time,Ion_pp);
 		case E_IonoModel::BSPLINE:				return Ipp_check_bsplin(time,Ion_pp);
+		case E_IonoModel::NONE:					return 0;
 	}
 	return 0;
 }
@@ -71,8 +77,18 @@ int update_receivr_measr(
 			continue;
 		}
 
-		if( obs.Sat.sys == +E_Sys::GAL ) f2=F5; 
-
+		if ( obs.Sat.sys == +E_Sys::GAL )
+		{
+			f2=F5; 
+		}
+		
+		if ( (obs.Sat.sys == +E_Sys::GPS) 
+		  && (obs.Sigs[F1].code != GPS_Code1 || obs.Sigs[f2].code != GPS_Code2))
+		{
+			obs.ionExclude = 1;
+			continue;
+		}
+		
 		S_LC lc		= getLC(obs, obs.satStat_ptr->lc_new, L1, f2);
 		S_LC lc_pre	= getLC(obs, obs.satStat_ptr->lc_pre, L1, f2);
 
@@ -98,7 +114,7 @@ int update_receivr_measr(
 					posp[0]*R2D, 
 					posp[1]*R2D);
 			
-			if(!Ipp_in_range(obs.time,posp))
+			if (!Ipp_in_range(obs.time,posp))
 			{
 				obs.ionExclude =1;
 				break;
@@ -112,7 +128,7 @@ int update_receivr_measr(
 		if (obs.ionExclude) 
 			continue;
 
-		if (fabs(timediff(satStat.lastObsTime, obs.time)) > 300)
+		if (fabs(satStat.lastObsTime - obs.time) > 300)
 		{
 			satStat.ambvar	= 0;
 		}
@@ -121,7 +137,7 @@ int update_receivr_measr(
 		double varL = obs.Sigs.begin()->second.phasVar;
 		double varP = obs.Sigs.begin()->second.codeVar;
 
-		double amb = - (lc.GF_Phas_m + lc.GF_Code_m);	//todo aaron, the signs of these come out a bit weird
+		double amb = - (lc.GF_Phas_m + lc.GF_Code_m);
 
 		if	( fabs(lc.GF_Phas_m - lc_pre.GF_Phas_m) > 0.05		/* Basic cycle slip detection */
 			||satStat.ambvar <= 0)
@@ -156,9 +172,9 @@ int update_receivr_measr(
 }
 
 void write_receivr_measr(
-	Trace&				trace, 
-	std::list<Station*>	stations, 
-	GTime				time)
+	Trace&						trace, 
+	std::map<string, Station>	stations, 
+	GTime						time)
 {
 	int week;
 	double tow = time2gpst(time, &week);
@@ -168,24 +184,21 @@ void write_receivr_measr(
 
 	std::ofstream stecfile(acsConfig.ionstec_filename, std::ofstream::app);
 
-	tracepdeex(2,stecfile,"\n#IONO_MEAS  week       tow        sta  sat  Iono. meas  Iono. var.  state  # layers");
+	tracepdeex(2,stecfile,"#TYP_MEA,week,       tow,site,sat,  ion_meas,   ion_var,s,l");
 
 	if (nlayer<=0) 
 		tracepdeex(2,stecfile,"  Sta. ECEF X    Sta. ECEF Y    Sta. ECEF Z    Sat. ECEF X    Sat. ECEF Y    Sat. ECEF Z\n");
 	else 
 	{
 		for (int j=0; j<nlayer; j++) 
-			tracepdeex(2,stecfile,"   height   IPP lat.  IPP lon.  Slant F.");
+			tracepdeex(2,stecfile,",     hei,  ipplat,  ipplon, slant_f");
 		
 		tracepdeex(2,stecfile,"\n");
 	}
 
 	int i = 0;
-	for (auto& rec_ptr : stations)
+	for (auto& [id, rec] : stations)
 	{
-		auto& rec = *rec_ptr;
-		//Trace& rectrc = *rec.trace.get();
-		
 		if (rec.obsList.size() < MIN_NSAT_STA) 
 			continue;
 
@@ -194,12 +207,14 @@ void write_receivr_measr(
 			if (obs.ionExclude) 
 				continue;
 			
-			tracepdeex(2,stecfile,"#IONO_MEA, %5d, %12.3f, %s, %s, %10.4f, %10.4e,   %d,     %2d   ",week, tow, 
+			tow = time2gpst(obs.time, &week);
+			
+			tracepdeex(2,stecfile,"IONO_MEA,%4d,%10.3f,%s,%s,%10.4f,%10.4e,%d,%d",week, tow,
 				rec.id, obs.Sat.id().c_str(), obs.STECsmth, obs.STECsmvr, obs.STECtype, nlayer);
 			
 			if (nlayer<=0)
 			{
-				tracepdeex(2,stecfile,", %13.3f, %13.3f, %13.3f, %13.3f, %13.3f, %13.3f\n",
+				tracepdeex(2,stecfile,", %13.3f,%13.3f,%13.3f,%13.3f,%13.3f,%13.3f\n\n",
 					rec.aprioriPos[0],
 					rec.aprioriPos[1], 
 					rec.aprioriPos[2],
@@ -211,7 +226,7 @@ void write_receivr_measr(
 			}
 			for (int j=0; j<nlayer; j++)
 			{
-				tracepdeex(2,stecfile,", %8.0f, %8.2f, %8.3f, %8.3f", acsConfig.ionFilterOpts.layer_heights[j]/1000,
+				tracepdeex(2,stecfile,",%8.0f,%8.3f,%8.3f,%8.3f", acsConfig.ionFilterOpts.layer_heights[j]/1000,
 					obs.latIPP[j]*R2D, 
 					obs.lonIPP[j]*R2D,
 					obs.angIPP[j]);
@@ -220,7 +235,7 @@ void write_receivr_measr(
 			i++;
 		}
 	}
-	tracepdeex(2, stecfile,"---------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+	tracepdeex(2, stecfile,"#---------------------------------------------------------------------------------------------------------\n");
 	tracepdeex(2, trace, "... %d entries written\n", i);
 }
 
