@@ -118,6 +118,7 @@ Then you can run `bash` inside image as follows:
 To verify you have the Ginan executables available, run in this bash session:
 
     pea --help
+    
     pod --help
 
 More details on how to use the image is available in the "Docker" section of Ginan manual (s3://ginan-manual).
@@ -145,6 +146,7 @@ We have used routines obtained from Better Enums, released under the BSD-2 licen
 Update the base operating system:
 
     sudo apt update
+    
     sudo apt upgrade
 
 Install base utilities `gcc`, `gfortran`, `git`, `openssl`, `openblas` etc:
@@ -152,11 +154,17 @@ Install base utilities `gcc`, `gfortran`, `git`, `openssl`, `openblas` etc:
     sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make libssl1.0-dev
 
 Since Ginan v1.2-alpha both gcc and g++ of version 9 are required, so make sure to update the gcc/g++ alternatives prior to compilation:
+
     sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    
     sudo apt update
+    
     sudo apt install gcc-9 g++-9
+    
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 51
+    
     sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 51
+    
 ***
 ## Building additional dependencies 
 
@@ -173,72 +181,117 @@ Note that `~/tmp` is only used here as example and can be any directory
 We are using the [YAML](https://github.com/jbeder/yaml-cpp) library to parse the configuration files used to run many of the programs found in this library. Here is an example of how to install the yaml library from source:
 
     cd ~/tmp
+    
     git clone https://github.com/jbeder/yaml-cpp.git
+    
     cd yaml-cpp
+    
     mkdir cmake-build
+    
     cd cmake-build
+    
     cmake .. -DCMAKE\_INSTALL\_PREFIX=/usr/local/ -DYAML\_CPP\_BUILD\_TESTS=OFF
+    
     sudo make install yaml-cpp
+    
     cd ../..
+    
     rm -rf yaml-cpp
 
 ### Boost (PEA)
 PEA relies on a number of the utilities provided by [boost](https://www.boost.org/), such as their time and logging libraries.
 
     cd ~/tmp
+    
     wget -c https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
+    
     gunzip boost_1_73_0.tar.gz
+    
     tar xvf boost_1_73_0.tar
+    
     cd boost_1_73_0/
+    
     ./bootstrap.sh
+    
     sudo ./b2 install
+    
     cd ..
+    
     sudo rm -rf boost_1_73_0/ boost_1_73_0.tar
 
 ### Eigen3 (PEA)
 Eigen3 is used for performing matrix calculations in PEA, and has a very nice API.
 
     cd ~/tmp
+    
     git clone https://gitlab.com/libeigen/eigen.git
+    
     cd eigen
+    
     git checkout dfa51767
+    
     mkdir cmake-build
+    
     cd cmake-build
+    
     cmake ..
+    
     sudo make install
+    
     cd ../..
+    
     rm -rf eigen
 
 
-### MongoDB (PEA, optional)
+### MongoDB (PEA, optional but now is defaulted to on)
 Needed for realtime preview of the processed results (developers-only)
 
     cd ~/tmp
+    
     wget https://github.com/mongodb/mongo-c-driver/releases/download/1.17.1/mongo-c-driver-1.17.1.tar.gz
+    
     tar -xvf mongo-c-driver-1.17.1.tar.gz
+    
     cd mongo-c-driver-1.17.1/
+    
     mkdir cmakebuild
+    
     cd cmakebuild/
+    
     cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF ..
+    
     cmake --build .
+    
     sudo cmake --build . --target install
 
     cd ~/tmp
+    
     curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.0/mongo-cxx-driver-r3.6.0.tar.gz
+    
     tar -xzf mongo-cxx-driver-r3.6.0.tar.gz
+    
     cd mongo-cxx-driver-r3.6.0/build
+    
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+    
     sudo cmake --build . --target EP_mnmlstc_core
+    
     cmake --build .
+    
     sudo cmake --build . --target install
 
     wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+    
     echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+    
     echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+    
     sudo apt update
-    sudo apt install mongodb-org
+    
+    sudo apt install mongodb-org   
 
     cd ../..
+    
     sudo rm -rf mongo-c-driver-1.17.1  mongo-c-driver-1.17.1.tar.gz  mongo-cxx-driver-r3.6.0  mongo-cxx-driver-r3.6.0.tar.gz
 
 
@@ -279,12 +332,14 @@ Prepare a directory to build in - it's better practice to keep this separated fr
 From the Ginan git root directory:
 
     cd src
+    
     mkdir build
+    
     cd build
 
-Run cmake to find the build dependencies and create the make file. If you wish to enable the optional MONGO DB utilities you will need to add the `-DENABLE_MONGODB=TRUE` flag. If you wish to compile an optimised version, typically this version will run 3 times faster but you may run into compile problems depending on your system, add the `-DOPTIMISATION=TRUE` flag:
+Run cmake to find the build dependencies and create the make file. If you wish to disable the optional MONGO DB utilities you will need to add the `-DENABLE_MONGODB=FALSE` flag. By default you will compile an optimised version, typically this version will run 3 times faster but you may run into compile problems depending on your system, add the `-DOPTIMISATION=FALSE` flag:
 
-    cmake [-DENABLE_MONGODB=TRUE] [-DENABLE_OPTIMISATION=TRUE] ..
+    cmake [-DENABLE_MONGODB=FALSE] [-DENABLE_OPTIMISATION=FALSE] ..
 
 To build every package simply run `make` or `make -j 2` , where 2 is a number of parallel threads you want to use for the compilation:
 
