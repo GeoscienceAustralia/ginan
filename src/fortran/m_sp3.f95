@@ -20,7 +20,7 @@ MODULE m_sp3
 Contains
 
 
-SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_system)
+SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_system, found)
 
 ! ----------------------------------------------------------------------
 ! SUBROUTINE: sp3
@@ -99,6 +99,7 @@ SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_syst
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: orbsp3
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: clock_matrix
       INTEGER (KIND=prec_int2), INTENT(OUT) :: time_system
+      LOGICAL, INTENT (OUT) :: found
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -149,6 +150,7 @@ SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_syst
 	  
       mjd_first = .false.
       mjd_1 = 0.d0
+      found = .false.
 
 ! ----------------------------------------------------------------------
 ! PRN: GNSS constellation ID letter + Satellite number
@@ -312,6 +314,7 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
 			
 ! PRN check
 			IF (GNSSid == GNSSlet .AND. PRN_num == PRN_i) THEN
+                                found = .true.
 				! Position vector
 				r(1) = r_x
 				r(2) = r_y
@@ -335,6 +338,7 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
 			READ (line_ith, fmt_line , IOSTAT=ios_data) char1, char1, PRN_i, v_x, v_y, v_z, clock_v, charN		
 ! PRN check
 			IF (PRN_num == PRN_i) THEN
+                                found = .true.
 				! Velocity vector
 				v(1) = v_x
 				v(2) = v_y
@@ -353,6 +357,8 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
 
       END DO
  100  CLOSE (UNIT=UNIT_IN)
+
+ if (found) then
 
       epochs_read = orb_i
 
@@ -404,7 +410,7 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
            clock_matrix(orb_j, 1:Ncol) = clock_matrix_tmp(orb_i, 1:Ncol)
       end if
   end do
-
+  end if
   deallocate (orbsp3_tmp)
   deallocate (clock_matrix_tmp)
   deallocate (bad_rows)

@@ -110,7 +110,7 @@ SUBROUTINE writeorbit_multi (orbitsmatrix_crf,orbitsmatrix_trf,orbits_ics_icrf,P
       DOUBLE PRECISION FD  
       REAL (KIND = prec_d) :: Sec_00, mjd, mjd_1, jd0
       !INTEGER (KIND = prec_int4) :: DOY
-      CHARACTER (LEN=10) :: srp_model, apr_srp_model
+      CHARACTER (LEN=20) :: srp_model, apr_srp_model
 ! ----------------------------------------------------------------------
     CHARACTER(LEN=8)  :: date_mach
     CHARACTER(LEN=10) :: time_mach
@@ -181,7 +181,8 @@ write(UNIT_IN, fmt=fmt_erp) "MJD", "Xpole", "Ypole", "UT1-UTC", "LOD", "Xsig", &
 write(UNIT_IN, fmt=fmt_erp) time_scale, '10**-6"', '10**-6"', "0.1 us", "0.1 us/d", &
         '10**-6"', '10**-6"', "0.1 us", "0.1 us/d"
 
-DO i=1,yml_eop_int_points
+sz1 = SIZE(ERP_day_glb, DIM=1)
+DO i=1,sz1
 write (str1, '(F8.2)') ERP_day_glb(i,EOP_MJD)
 write (str2, '(i7)') INT(ERP_day_glb(i,EOP_X) * 1000000)
 write (str3, '(i7)') INT(ERP_day_glb(i,EOP_Y) * 1000000)
@@ -191,8 +192,10 @@ write (str6, '(i7)') INT(ERP_day_glb(i,EOP_X_ERR) * 100000)
 write (str7, '(i7)') INT(ERP_day_glb(i,EOP_Y_ERR) * 100000)
 write (str8, '(i8)') INT(ERP_day_glb(i,EOP_UT1_ERR) * 1000000)
 write (str9, '(i8)') INT(ERP_day_glb(i,EOP_LOD_ERR) * 1000000)
+if (ERP_day_glb(i, EOP_MJD) /= 0.d0) then
 WRITE (UNIT=UNIT_IN,FMT=fmt_erp,IOSTAT=ios_ith) &
         str1,str2,str3,str4,str5,str6,str7,str8,str9, 0, 0, 0, 0, 0, 0, 0
+end if
 END DO
 
         close (unit_in)
@@ -330,9 +333,11 @@ end if
 
 ! Output ERP values
 !print*,'IC, EOP_Nint_cfg =', EOP_Nint_cfg
-DO i=1,yml_eop_int_points
+DO i=1,sz1
+if (ERP_day_glb(i,EOP_MJD) /= 0.d0) then
 WRITE (UNIT=UNIT_IN,FMT='(a,F7.1,3F14.8)',IOSTAT=ios_ith)'#INFO_ERP MJD XP(arcsec) YP(arcsec) UT1-UTC(sec): ',&
        ERP_day_glb(i,1), ERP_day_glb(i,2:4)
+end if
 END DO
 
 WRITE (UNIT=UNIT_IN,FMT='(a)'              ,IOSTAT=ios_ith) '#INFO    Satellite ICS:                     '

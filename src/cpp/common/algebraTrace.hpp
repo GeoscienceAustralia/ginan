@@ -93,9 +93,12 @@ namespace boost::serialization
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, GTime& time)
 	{
-		long int time_int = time.time;
+		long int	time_int = time.time;
+		double		time_sec = time.sec;
 		ar & time_int;
-		time.time = time_int;
+		ar & time_sec;
+		time.time	= time_int;
+		time.sec	= time_sec;
 	}
 
 	template<class ARCHIVE>
@@ -229,7 +232,9 @@ using boost::serialization::serialize;
 using boost::archive::binary_oarchive;
 using boost::archive::binary_iarchive;
 
-/** Output filter state to a file for later reading
+/** Output filter state to a file for later reading.
+ * Uses a binary archive which requires all of the relevant class members to have serialization functions written.
+ * Output format is TypeId, ObjectData, NumBytes - this allows seeking backward from the end of the file to the beginning of each object.
 */
 template<class TYPE>
 void spitFilterToFile(

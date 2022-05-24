@@ -144,12 +144,13 @@ WRITE (output, FMT='(A, A17, A4, 3F14.4)') "Orbit residuals: ICRF" // NEW_LINE (
 !CALL cpu_time (CPU_t1)
 !PRINT *,"CPU Time (sec)", CPU_t1-CPU_t0
 
-
+found = .false.
 If (yml_ext_orbit_opt > TYPE_NONE) Then
 ! ----------------------------------------------------------------------
 ! External Orbit Comparison (optional)
-Call orbext(EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, stat_Kepler_extC, stat_XYZ_extT, orbdiff)
+Call orbext(EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, stat_Kepler_extC, stat_XYZ_extT, orbdiff,found)
 !Call orbext (EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, stat_Kepler_extC, stat_XYZ_extT)
+if (found) then
 CALL orbext2(EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, stat_Kepler_extC, stat_XYZ_extT, &
               dorb_icrf, dorb_RTN, dorb_Kepler, dorb_itrf)
 ! ----------------------------------------------------------------------
@@ -166,6 +167,10 @@ output = trim(output) // NEW_LINE ('A') // line
 WRITE (line, FMT='(A17, A4, 3F14.4)') "RMS-XYZ ITRF CMP", PRN, stat_XYZ_extT(1, 1:3)
 output = trim(output) // NEW_LINE ('A') // line
 !WRITE (*,FMT='(A9, 3F17.9)'),"RMS Vxyz", stat_XYZ_extT(1,4:6)
+else
+write (line, *) "PRN not found in comparison file, comparison skipped"
+output = trim(output) // NEW_LINE ('A') // line
+end if
 End If
 
 

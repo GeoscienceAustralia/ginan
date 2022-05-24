@@ -73,7 +73,8 @@ SUBROUTINE prm_main (PRMfname, isVeq)
       CHARACTER (LEN=100) :: fmt_line
       INTEGER (KIND = prec_int8) :: IEMP, IECOM
 ! ----------------------------------------------------------------------
-      INTEGER (KIND = prec_int8) :: i, read_i
+      INTEGER (KIND = prec_int8) :: i, read_i, sz1
+      INTEGER (KIND = prec_int4) :: orbit_arc
       INTEGER (KIND = prec_int2) :: UNIT_IN, ios
       INTEGER (KIND = prec_int2) :: ios_line, ios_key, ios_data
       INTEGER (KIND = prec_int2) :: space_i, VEQ_integration_glb
@@ -472,9 +473,25 @@ End If
 ! ----------------------------------------------------------------------
 ! EOP data reading and save global variables to module mdl_eop.f90
 ! ----------------------------------------------------------------------
-CALL eop_data (mjd_TT, EOP_fname, EOP_sol, EOP_Nint , EOP_day_glb)
 
+orbit_arc = yml_orbit_arc_determination + yml_orbit_arc_prediction + yml_orbit_arc_backwards
+! the orbit arc we need to cover is mjd - backwards arc TO mjd + determination arc + prediction arc
+mjd_TT = mjd_TT - yml_orbit_arc_backwards/24.0d0
+
+if (EOP_sol == EOP_C04T .or. EOP_sol == EOP_FAST) then
+CALL eop_data (mjd_TT, EOP_fname, EOP_sol, orbit_arc, EOP_Nint , EOP_day_glb)
+else
+CALL eop_data (mjd_TT, ERP_fname, EOP_sol, orbit_arc, EOP_Nint, EOP_day_glb)
+end if
 ! ----------------------------------------------------------------------
+mjd_TT = mjd_TT + yml_orbit_arc_backwards/24.0d0
+
+if (.false.) then
+   sz1 = SIZE (EOP_day_glb, DIM=1)
+   DO i=1,sz1
+       print *, EOP_day_glb(i, :)
+   ENDDO
+end if
 
 ! ----------------------------------------------------------------------
 ! Reference frame of initial state vector

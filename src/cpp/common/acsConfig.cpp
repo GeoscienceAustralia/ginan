@@ -136,7 +136,7 @@ void tryAddRootToPath(
 	}
 }
 
-void ACSConfig::outputDefaultConfigutation()
+void ACSConfig::outputDefaultConfiguration()
 {
 	std::cout << std::endl << "Default configuration values:\n\n";
 	
@@ -214,6 +214,7 @@ bool configure(
 	("very-verbose,V", 														"Much more output")
 	("yaml-defaults,Y",														"Print complete set of parsed parameters and their default values")
 	("config,y", 				boost::program_options::value<string>(), 	"Configuration file")
+	("config_description,d", 	boost::program_options::value<string>(), 	"Configuration description")
 	("trace_level,l", 			boost::program_options::value<int>(), 		"Trace level")
 	("fatal_level,L", 			boost::program_options::value<int>(), 		"Fatal error level")
 	("elevation_mask,e", 		boost::program_options::value<float>(), 	"Elevation Mask")
@@ -754,7 +755,7 @@ ReceiverOptions& ACSConfig::getRecOpts(
 	if (recOpts._initialised)
 		return recOpts;
 
-	//initialise the options for this reciever
+	//initialise the options for this receiver
 	auto& globalOpts = recOptsMap[""];
 	if (globalOpts._initialised == false)
 	{
@@ -783,7 +784,7 @@ MinimumStationOptions& ACSConfig::getMinConOpts(
 	if (recOpts._initialised)
 		return recOpts;
 
-	//initialise the options for this reciever
+	//initialise the options for this receiver
 	auto& globalOpts = minCOpts.stationMap[""];
 	if (globalOpts._initialised == false)
 	{
@@ -1264,7 +1265,6 @@ bool ACSConfig::parse(
 		trySetFromYaml(output_mongo_states,			output_files, {"output_mongo_states"		}, "(bool)   Output states");
 		trySetFromYaml(output_mongo_test_stats,		output_files, {"output_mongo_test_stats"	}, "(bool)   Output test statistics");
 		trySetFromYaml(output_intermediate_rts,		output_files, {"output_intermediate_rts"	}, "(bool)   Output best available smoothed states when performing fixed-lag rts (slow, use only when needed)");
-		trySetFromYaml(output_mongo_metadata,		output_files, {"output_mongo_metadata"		}, "(bool)   Output metadata from run");
 		trySetFromYaml(output_mongo_logs,			output_files, {"output_mongo_logs"			}, "(bool)   Output console trace and warnings to mongo with timestamps and other metadata");
 		trySetFromYaml(delete_mongo_history,		output_files, {"delete_mongo_history"		}, "(bool)   Drop the collection in the database at the beginning of the run to only show fresh data");
 		trySetFromYaml(mongo_rts_suffix,			output_files, {"mongo_rts_suffix"			}, "(string) Suffix to append to database elements for reverse smoothed elements");
@@ -1328,6 +1328,8 @@ bool ACSConfig::parse(
 		trySetFromYaml(phase_windup,		processing_options, {"phase_windup"						}, "(bool) Model the effects of rotating satellites on phase");
 		trySetFromYaml(reject_eclipse,		processing_options, {"reject_eclipse"					}, "(bool) Exclude satellites that are in eclipsing season");
 		trySetFromYaml(raim,				processing_options, {"raim"								});
+		trySetFromYaml(interpolate_rec_pco,	processing_options, {"interpolate_rec_pco"				});
+		
 		
 		trySetFromYaml(thres_slip,			processing_options, {"cycle_slip",		"thres_slip"	});
 		trySetFromYaml(mw_proc_noise,		processing_options, {"cycle_slip",		"mw_proc_noise"	});
@@ -1350,7 +1352,7 @@ bool ACSConfig::parse(
 
 		trySetFromYaml(pivot_station,		processing_options, {"pivot_station"	});
 
-		wait_next_epoch = epoch_interval;
+		wait_next_epoch = epoch_interval + 0.01;
 		trySetFromYaml(wait_next_epoch,		processing_options, {"wait_next_epoch"	}, "(float) Time to wait for next epoch's data before skipping the epoch (will default to epoch_interval as an appropriate minimum value for realtime)");		
 		trySetFromYaml(wait_all_stations,	processing_options, {"wait_all_stations"}, "(float) Time to wait from the reception of the first data of an epoch before skipping stations with data still unreceived");
 		trySetFromYaml(require_obs,			processing_options, {"require_obs"		}, "(bool) Exit the program if no observation sources are available");
@@ -1378,6 +1380,28 @@ bool ACSConfig::parse(
 				}
 			}
 		}
+
+		vector<string> clockCodesStrings;
+		for (int i = 0; i < E_Sys::_size(); i++)
+		{
+			E_Sys	sys			= E_Sys::_values()[i];
+			string	sysName		= E_Sys::_names() [i];		boost::algorithm::to_lower(sysName);
+
+			found = trySetFromYaml(clockCodesStrings,	processing_options, {"clock_codes", sysName	}, "(string) Default observation codes on two frequencies for IF combination based satellite clocks");
+			if (found)
+			{
+				if (clockCodesStrings.size() != 2) //two frequencies
+				{
+					BOOST_LOG_TRIVIAL(error)
+					<< std::endl << "\nInvalid clock codes for: " << sysName << ", there should be two codes for each system\n";
+					continue;
+				}
+				
+				clock_codesL1[sys] = E_ObsCode::_from_string(clockCodesStrings.at(0).c_str());
+				clock_codesL2[sys] = E_ObsCode::_from_string(clockCodesStrings.at(1).c_str());
+			}
+		}
+
 		trySetFromYaml(joseph_stabilisation,		processing_options, {"joseph_stabilisation"						});
 		trySetFromYaml(validity_interval_factor,	processing_options, {"validity_interval_factor"					});
 	}
@@ -1538,19 +1562,6 @@ bool ACSConfig::parse(
 		trySetFromYaml(ambrOpts.NLratioThres	  ,	ambres_options, {"NL_sol_ratio_thres"		});
 		trySetFromYaml(ambrOpts.NLstarttime		  ,	ambres_options, {"NL_proc_start"			});
 
-		trySetFromYaml(ambrOpts.readOSB			  ,	ambres_options, {"read_OSB"					});
-		trySetFromYaml(ambrOpts.readDSB			  ,	ambres_options, {"read_DSB"					});
-		trySetFromYaml(ambrOpts.readSSRbias		  ,	ambres_options, {"read_SSR"					});
-		trySetFromYaml(ambrOpts.readSATbias		  ,	ambres_options, {"read_satellite_bias"		});
-		trySetFromYaml(ambrOpts.readRecBias		  ,	ambres_options, {"read_station_bias"		});
-		trySetFromYaml(ambrOpts.readHYBbias		  ,	ambres_options, {"read_GLONASS_IFB"			});
-
-		trySetFromYaml(ambrOpts.writeOSB		  ,	ambres_options, {"write_OSB"				});
-		trySetFromYaml(ambrOpts.writeDSB		  ,	ambres_options, {"write_DSB"				});
-		trySetFromYaml(ambrOpts.writeSSRbias	  ,	ambres_options, {"write_SSR_bias"			});
-		trySetFromYaml(ambrOpts.writeSATbias	  ,	ambres_options, {"write_satellite_bias"		});
-		trySetFromYaml(ambrOpts.writeRecBias	  ,	ambres_options, {"write_station_bias"		});
-
 		trySetFromYaml(ambrOpts.biasOutrate		  ,	ambres_options, {"bias_output_rate"			});
 	}
 
@@ -1563,17 +1574,17 @@ bool ACSConfig::parse(
 
 	auto outputOptions = stringsToYamlObject({yaml, ""}, {"output_options"});
 	{
-		trySetFromYaml(config_description,	outputOptions, {"config_description"}, "(string) ID for this config, used to replace <CONFIG> tags in other options");
-		trySetFromYaml(analysis_agency,		outputOptions, {"analysis_agency"	});
-		trySetFromYaml(analysis_center,		outputOptions, {"analysis_center"	});
-		trySetFromYaml(analysis_program,	outputOptions, {"analysis_program"	});
-		trySetFromYaml(rinex_comment,		outputOptions, {"rinex_comment"		});
-		trySetFromYaml(reference_system,	outputOptions, {"reference_system"	},	"(string) Terrestrial Reference System Code");
-		trySetFromYaml(time_system,			outputOptions, {"time_system"		},	"(string) Time system - e.g. 'G', 'UTC'");
-		trySetFromYaml(ocean_tide_load,		outputOptions, {"ocean_tide_load"	},	"(string) Ocean tide loading model applied");
-		trySetFromYaml(atmosph_tide_load,	outputOptions, {"atmosph_tide_load"	},	"(string) Atmospheric tide loading model applied");
-		trySetFromYaml(geoid_model,			outputOptions, {"geoid_model"		},	"(string) Geoid model name for undulation values");
-		trySetFromYaml(grads_mapping_fn,	outputOptions, {"grads_mapping_fn"	},	"(string) Name of mapping function used for mapping horizontal troposphere gradients");
+		trySetFromAny (config_description,	commandOpts,	outputOptions, {"config_description"}, "(string) ID for this config, used to replace <CONFIG> tags in other options");
+		trySetFromYaml(analysis_agency,						outputOptions, {"analysis_agency"	});
+		trySetFromYaml(analysis_center,						outputOptions, {"analysis_center"	});
+		trySetFromYaml(analysis_program,					outputOptions, {"analysis_program"	});
+		trySetFromYaml(rinex_comment,						outputOptions, {"rinex_comment"		});
+		trySetFromYaml(reference_system,					outputOptions, {"reference_system"	},	"(string) Terrestrial Reference System Code");
+		trySetFromYaml(time_system,							outputOptions, {"time_system"		},	"(string) Time system - e.g. 'G', 'UTC'");
+		trySetFromYaml(ocean_tide_load,						outputOptions, {"ocean_tide_load"	},	"(string) Ocean tide loading model applied");
+		trySetFromYaml(atmosph_tide_load,					outputOptions, {"atmosph_tide_load"	},	"(string) Atmospheric tide loading model applied");
+		trySetFromYaml(geoid_model,							outputOptions, {"geoid_model"		},	"(string) Geoid model name for undulation values");
+		trySetFromYaml(grads_mapping_fn,					outputOptions, {"grads_mapping_fn"	},	"(string) Name of mapping function used for mapping horizontal troposphere gradients");
 	}
 
 	auto defaultFilter = stringsToYamlObject({yaml, ""}, {"default_filter_parameters"});
@@ -1595,11 +1606,16 @@ bool ACSConfig::parse(
 	auto ssr = stringsToYamlObject({yaml, ""}, {"ssr_corrections"});
 	{
 		trySetEnumOpt (ssrOpts.ephemeris_source, 		ssr, {"ephemeris_source" 	}, E_Ephemeris::_from_string_nocase);
+		trySetEnumOpt (ssrOpts.clock_source, 			ssr, {"clock_source" 		}, E_Ephemeris::_from_string_nocase);
+		trySetEnumOpt (ssrOpts.code_bias_source, 		ssr, {"code_bias_source" 	}, E_Ephemeris::_from_string_nocase);
+		trySetEnumOpt (ssrOpts.phase_bias_source, 		ssr, {"phase_bias_source" 	}, E_Ephemeris::_from_string_nocase);
 		trySetFromYaml(ssrOpts.calculate_ssr,			ssr, {"calculate_ssr"			});
 		trySetFromYaml(ssrOpts.prediction_interval,		ssr, {"prediction_interval"		});
 		trySetFromYaml(ssrOpts.prediction_duration,		ssr, {"prediction_duration"		});		
 		trySetFromYaml(ssrOpts.save_to_mongo,			ssr, {"save_to_mongo"			});
 		trySetFromYaml(ssrOpts.rtcm_directory,			ssr, {"rtcm_directory"			});
+		trySetFromYaml(ssrOpts.code_bias_valid_time,	ssr, {"code_bias_valid_time"	},	"(double) Valid time period of SSR code biases");		
+		trySetFromYaml(ssrOpts.phase_bias_valid_time,	ssr, {"phase_bias_valid_time"	},	"(double) Valid time period of SSR phase biases");		
 	}
 	
 	tryAddRootToPath(root_output_dir, 				trace_directory);
@@ -1733,13 +1749,13 @@ bool ACSConfig::parse(
 		replaceTags(station_file);
 	}
 
-	trySetFromYaml(print_stream_statistics,	{yaml, ""},{"station_data", "print_stats"});
+	trySetFromYaml(print_stream_statistics,	 {yaml, ""},{"station_data", "print_stats"});
 
+	trySetEnumOpt( ssr_input_antenna_offset, {yaml, ""},{"station_data","ssr_input_antenna_offset" }, E_OffsetType::_from_string_nocase);
+	trySetFromYaml(if_antenna_phase_centre,	 {yaml, ""},{"station_data", "Use_IF_APC"});
 	
-	trySetEnumOpt( ssr_input_antenna_offset, {yaml, ""},	{"station_data","ssr_input_antenna_offset" }, E_OffsetType::_from_string_nocase);
 	auto [obsStreamNode, obsStreamString] = stringsToYamlObject({yaml, ""},	{"station_data","obs_streams"});
 	auto [navStreamNode, navStreamString] = stringsToYamlObject({yaml, ""},	{"station_data","nav_streams"});
-
 
 	for (auto nav : {false, true})
 	{
@@ -1754,8 +1770,10 @@ bool ACSConfig::parse(
 			string fullUrl = streamUrl_str;
 
 			tryAddRootToPath(stream_root, fullUrl);
+			replaceTags(fullUrl);
+			
 			if (fullUrl.front() == '/')
-				fullUrl.erase(fullUrl.begin()); // in case of full urls given in station_data.streams
+				fullUrl.erase(fullUrl.begin()); // in case of full urls given in station_data.streams	//todo aaron, is this good/useful/correct?
 
 			while (fullUrl.back() == '/')
 				fullUrl.pop_back();				// in case of terminating '/'
@@ -1821,15 +1839,6 @@ bool ACSConfig::parse(
 		uploadingStreamData[outLabel] = outStreamData;
 	}
 
-#	ifndef ENABLE_MONGODB
-	if	(enable_mongo)
-	{
-		std::cout << std::endl << "Error: Mongodb output requested by config but this is a non-Mongodb binary."	<< std::endl;
-		std::cout << std::endl << "Mongodb can be enabled by building with $ cmake -D ENABLE_MONGODB=ON .."		<< std::endl;
-		exit(1);
-	}
-#	endif
-
 #	ifndef ENABLE_UNIT_TESTS
 	if (process_tests)
 	{
@@ -1841,7 +1850,7 @@ bool ACSConfig::parse(
 	
 	if (commandOpts.count("yaml-defaults"))
 	{
-		outputDefaultConfigutation();
+		outputDefaultConfiguration();
 	}
 	
 	return true;

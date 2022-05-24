@@ -59,11 +59,16 @@ static int write_ionex_head(
 
 	tecrms = (double*) malloc(ionex_latres * ionex_lonres * acsConfig.ionFilterOpts.layer_heights.size() * sizeof(double));		//aah, todo delete
 
+	if (acsConfig.ionFilterOpts.layer_heights.empty())
+	{
+		return 0;
+	}
+	
 	double hght1 = acsConfig.ionFilterOpts.layer_heights.front()	/ 1000;
-	double hght2 = acsConfig.ionFilterOpts.layer_heights.back()	/ 1000;
+	double hght2 = acsConfig.ionFilterOpts.layer_heights.back()		/ 1000;
 	double dhght = (hght2 - hght1) / (acsConfig.ionFilterOpts.layer_heights.size() - 1);
 
-	if (isnan(dhght))
+	if (acsConfig.ionFilterOpts.layer_heights.size() == 1)
 		dhght = 0;
 
 	tracepdeex(0, ionex, "%8.1f%12s%-20s%-20.20sIONEX VERSION / TYPE\n", 1.1, " ", "I", "GNS");
@@ -76,7 +81,7 @@ static int write_ionex_head(
 	tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%40sLAT1 / LAT2 / DLAT\n", ionex_latmin + ionex_latinc * (ionex_latres - 1), ionex_latmin, -ionex_latinc, " ");
 	tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%40sLON1 / LON2 / DLON\n", ionex_lonmin, ionex_lonmin + ionex_loninc * (ionex_lonres - 1), ionex_loninc, " ");
 	tracepdeex(0, ionex, "%6d%54sEXPONENT\n", IONEX_NEXP, "");
-	tracepdeex(0, ionex, "%-60s%s\n", acsConfig.rinex_comment,												"COMMENT");
+	tracepdeex(0, ionex, "%-60s%s\n", acsConfig.rinex_comment.c_str(),												"COMMENT");
 	tracepdeex(0, ionex, "%60sEND OF HEADER\n\n", " ");
 	return 1;
 }

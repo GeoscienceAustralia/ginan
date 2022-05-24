@@ -435,7 +435,7 @@ subroutine get_yaml(yaml_filepath, is_pod_data)
       yml_pod_data_ref_frame = yml_ic_input_refsys
       ! parse initial_epoch to get year, month, day, secs
       if (len_trim(yml_pod_data_initial_epoch) .ge. 18) then
-          read(yml_pod_data_initial_epoch, '(I41XI21XI21XD7.4)', IOSTAT=ios_keyy) yml_pod_data_initial_year,&
+          read(yml_pod_data_initial_epoch, '(I4XI2XI2XD7.4)', IOSTAT=ios_keyy) yml_pod_data_initial_year,&
                   yml_pod_data_initial_month, yml_pod_data_initial_day, yml_pod_data_initial_seconds
       else
           ! dummy for now - it gets filled later anyway
@@ -444,6 +444,9 @@ subroutine get_yaml(yaml_filepath, is_pod_data)
           yml_pod_data_initial_day = 0
           yml_pod_data_initial_seconds = 0.0d0
       end if
+      !print *, "read_pod_yaml: ", yml_pod_data_initial_epoch
+      !print *, "read_pod_yaml: ", yml_pod_data_initial_year, yml_pod_data_initial_month, yml_pod_data_initial_day, &
+      !       yml_pod_data_initial_seconds
       idx = new_prn_override(yml_pod_data_prn)
       yml_Zo = 0.d0
       read(yml_pod_data_state_vector, *, IOSTAT=ios_keyy) yml_Zo
@@ -1334,7 +1337,7 @@ subroutine get_earth_orientation_params(dict, error, eop_option, eop_filename, e
       write (*,*) "Must choose an EOP option"
       STOP
    end if
-   if (eop_filename == "" ) then
+   if (eop_filename == "" .and. eop_option /= EOP_SUPER_FAST) then
       write (*,*) "Must specify EOP file relevant to your choice of option"
       STOP
    end if

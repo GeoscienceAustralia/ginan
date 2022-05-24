@@ -13,10 +13,11 @@ pod_options:
    output_directory: ex21
 # can only choose one option here
 #----------------------------------------------------------------------
-   pod_mode_fit:     true   # pod_mode = 1 Orbit Determination (pseudo-observations; orbit fitting)
+   pod_mode_fit:     false  # pod_mode = 1 Orbit Determination (pseudo-observations; orbit fitting)
    pod_mode_predict: false  # pod_mode = 2 Orbit Determination and Prediction
    pod_mode_eqm_int: false  # pod_mode = 3 Orbit Integration (Equation of Motion only)
    pod_mode_ic_int:  false  # pod_mode = 4 Orbit Integration and Partials (Equation of Motion and Variational Equations)
+   pod_mode_pod_data_int:  true # pod_mode = 5 use pod data for single sat testing
       
 # can only choose one option here
 #----------------------------------------------------------------------

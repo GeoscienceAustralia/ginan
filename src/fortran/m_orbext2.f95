@@ -94,6 +94,7 @@ SUBROUTINE orbext2 (EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, 
 !	  REAL (KIND = prec_d), DIMENSION(5,6) :: stat_XYZ, stat_RTN, stat_Kepler
       REAL (KIND = prec_d), DIMENSION(:), ALLOCATABLE :: RMSdsr, Sigmadsr, MEANdsr, MINdsr, MAXdsr 	  
       CHARACTER (LEN=100) :: filename				
+      LOGICAL found
 ! ----------------------------------------------------------------------
 
 
@@ -101,7 +102,7 @@ SUBROUTINE orbext2 (EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, 
 ! ----------------------------------------------------------------------
 ! External Orbit reading: Precise Orbit (sp3)
 ! External orbit: orbext_ICRF, orbext_ITRF, orbext_kepler
-CALL prm_orbext (EQMfname)												
+CALL prm_orbext (EQMfname, found)												
 ! ----------------------------------------------------------------------
 ! Orbit comparison statistics
 ! ICRF

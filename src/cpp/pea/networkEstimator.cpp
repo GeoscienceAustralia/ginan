@@ -140,24 +140,23 @@ void postFilterChecks(
 Matrix3d stationEopPartials(
 	Vector3d&	rRec)
 {
-	const double radsPerMas = 2 * PI / (360	* 60 * 60 * 1000);
-	const double radsPerMts = 2 * PI / (24	* 60 * 60 * 1000);
+	//compute partials and convert to units of MxS
 
 	Matrix3d partials;
 	auto& X = rRec(0);
 	auto& Y = rRec(1);
 	auto& Z = rRec(2);
-	partials(0,0) = +Z * radsPerMas;	//dx/dxp		= dx/dRotY
-	partials(0,1) =  0;					//dy/dxp		= dy/dRotY
-	partials(0,2) = -X * radsPerMas;	//dz/dxp		= dz/dRotY
+	partials(0,0) = +Z * MAS2R;		//dx/dxp		= dx/dRotY
+	partials(0,1) =  0;				//dy/dxp		= dy/dRotY
+	partials(0,2) = -X * MAS2R;		//dz/dxp		= dz/dRotY
 
-	partials(1,0) =  0;					//dx/dyp		= dx/dRotX
-	partials(1,1) = -Z * radsPerMas;	//dy/dyp		= dy/dRotX
-	partials(1,2) = +Y * radsPerMas;	//dz/dyp		= dz/dRotX
+	partials(1,0) =  0;				//dx/dyp		= dx/dRotX
+	partials(1,1) = -Z * MAS2R;		//dy/dyp		= dy/dRotX
+	partials(1,2) = +Y * MAS2R;		//dz/dyp		= dz/dRotX
 
-	partials(2,0) = +Y * radsPerMts;	//dx/dut1		= dx/dRotZ
-	partials(2,1) = -X * radsPerMts;	//dy/dut1		= dy/dRotZ
-	partials(2,2) =  0;					//dz/dut1		= dz/dRotZ
+	partials(2,0) = +Y * MTS2R;		//dx/dut1		= dx/dRotZ
+	partials(2,1) = -X * MTS2R;		//dy/dut1		= dy/dRotZ
+	partials(2,2) =  0;				//dz/dut1		= dz/dRotZ
 
 	return partials;
 }
@@ -318,20 +317,15 @@ void networkEstimator(
 		SatNav&		satNav	= *obs.satNav_ptr;
 		SatStat&	satStat	= *obs.satStat_ptr;
 		SigStat&	sigStat	= satStat.sigStatMap[ft];
+		
+		double codeAdjust = 0;
+		double phasAdjust = 0;
 
 		codeMeas.metaDataMap["obs_ptr"]	= &obs;
 		phasMeas.metaDataMap["obs_ptr"]	= &obs;
 		
 		phasMeas.metaDataMap["PhaseRejectCount_ptr"] = &sigStat.netwPhaseRejectCount;
 		phasMeas.metaDataMap["PhaseOutageCount_ptr"] = &sigStat.netwPhaseOutageCount;
-
-		//initialise this rec/sat's measurements
-		codeMeas.setValue(sig.codeRes);
-		phasMeas.setValue(sig.phasRes);
-
-		/* stochastic model (IF LC to be refined) */
-		codeMeas.setNoise(sig.codeVar);
-		phasMeas.setNoise(sig.phasVar);
 
 		//initialise this rec/sat's design matrix
 
@@ -537,20 +531,50 @@ void networkEstimator(
 			Matrix3d partialMatrix	= stationEopPartials(rec.aprioriPos);
 			Vector3d eopPartials	= partialMatrix * satStat.e;
 
+			ERPValues erpv[2];
+			geterp(nav.erp, time,		erpv[0]);
+			geterp(nav.erp, time + 1,	erpv[1]);
+
 			for (int i = 0; i < 3; i++)
 			{
 				InitialState init	= initialStateFromConfig(acsConfig.netwOpts.eop,					i);
+
+				init.x = erpv[0].vals[i];
+				
+				if (i < 2)		init.x *= R2MAS;
+				else			init.x *= S2MTS;
+				
+				codeAdjust += eopPartials(i) * init.x;
+				phasAdjust += eopPartials(i) * init.x;
+
 				codeMeas.addDsgnEntry(eopKeys[i],	eopPartials(i),				init);
 				phasMeas.addDsgnEntry(eopKeys[i],	eopPartials(i),				init);
 				
 				if (acsConfig.netwOpts.eop_rates.estimate)
 				{
 					InitialState eopRateInit	= initialStateFromConfig(acsConfig.netwOpts.eop_rates,	i);
+					 					
+
+					eopRateInit.x	= erpv[1].vals[i]
+									- erpv[0].vals[i];
+							
+					if (i < 2)		eopRateInit.x *= R2MAS;
+					else			eopRateInit.x *= S2MTS;
+					
+					eopRateInit.x *= 86400;
 					
 					kfState.setKFTransRate(eopKeys[i], eopRateKeys[i],	1/86400.0,	eopRateInit);
 				}
 			}
 		}
+
+		//initialise this rec/sat's measurements
+		codeMeas.setValue(sig.codeRes + codeAdjust);
+		phasMeas.setValue(sig.phasRes + phasAdjust);
+
+		/* stochastic model (IF LC to be refined) */
+		codeMeas.setNoise(sig.codeVar);
+		phasMeas.setNoise(sig.phasVar);
 		
 		kfMeasEntryList.push_back(codeMeas);
 		kfMeasEntryList.push_back(phasMeas);

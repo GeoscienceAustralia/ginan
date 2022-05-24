@@ -2,7 +2,6 @@
 #ifndef ___MONGO_HPP__
 #define ___MONGO_HPP__
 
-#ifdef ENABLE_MONGODB
 
 #include <bsoncxx/builder/basic/document.hpp>
 
@@ -68,7 +67,7 @@ struct Mongo
 #define SSR_PHAS_BIAS	"PBias"
 #define SSR_CODE_BIAS	"CBias"
 #define SSR_EPHEMERIS	"Eph"
-#define SSR_SAT_CLOCK	"Clk"
+#define SSR_CLOCK		"Clk"
 
 #define SSR_DB			"SSRData"
 
@@ -82,7 +81,6 @@ struct Mongo
 #define SSR_BIAS		"Bias"
 #define SSR_VAR			"Var"
 
-#define SSR_TYPE		"Type"
 #define SSR_BRDC		"Brdc"
 #define SSR_PREC		"Prec"
 
@@ -98,12 +96,10 @@ struct MongoLogSinkBackend : public sinks::basic_formatted_sink_backend<char, si
 
 void mongoooo();
 
-vector<SatSys> getSysSats(
-	E_Sys	targetSys);
-
 extern Mongo*	mongo_ptr;
 
 
-#endif
+#define MONGO_NOT_INITIALISED_MESSAGE BOOST_LOG_TRIVIAL(warning)	<< "Mongo actions requested but mongo is not available - check it is enabled and connected correctly"
 
 #endif
+

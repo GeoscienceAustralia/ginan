@@ -67,11 +67,14 @@ void writeSp3Header(
 			   mjdate,
 			   mjdate - floor(mjdate));
 
-	
-	if (outSys[E_Sys::GPS])		for (int prn = MINPRNGPS; prn <= MAXPRNGPS; prn++)	{SatSys s(E_Sys::GPS, prn); outFileDat.sats.insert(s);}
-	if (outSys[E_Sys::GLO])		for (int prn = MINPRNGLO; prn <= MAXPRNGLO; prn++)	{SatSys s(E_Sys::GLO, prn);	outFileDat.sats.insert(s);}
-	if (outSys[E_Sys::GAL])		for (int prn = MINPRNGAL; prn <= MAXPRNGAL; prn++)	{SatSys s(E_Sys::GAL, prn);	outFileDat.sats.insert(s);}
-	if (outSys[E_Sys::BDS])		for (int prn = MINPRNBDS; prn <= MAXPRNBDS; prn++)	{SatSys s(E_Sys::BDS, prn);	outFileDat.sats.insert(s);}
+	for (auto sys : {E_Sys::GPS, E_Sys::GLO, E_Sys::GAL, E_Sys::BDS})
+	{
+		if (outSys[sys])	
+		for (auto Sat : getSysSats(E_Sys::GPS))
+		{
+			outFileDat.sats.insert(Sat);
+		}
+	}
 
 	int lineNumber	= 1;
 	int lineEntries	= 0;
@@ -314,26 +317,7 @@ void writeSysSetSp3(
 
 		GTime 		teph = time;
 
-		PcoMapType* pcoMap_ptr = nullptr;
-		{
-			PhaseCenterData* pcsat = findAntenna(Sat.id(), time, nav);
-
-			if (pcsat == nullptr)
-			{
-				if (Sat.prn < MINPRNSBS)
-				{
-					BOOST_LOG_TRIVIAL(warning)
-						<< "Warning: Writing SP3 file, no satellite ("
-						<< Sat.id() << ") pco information";
-				}
-			}
-			else
-			{
-				pcoMap_ptr = &pcsat->pcoMap;
-			}
-		}
-
-		bool pass = satpos(nullStream, time, teph, obs, acsConfig.orbits_data_source, E_OffsetType::COM, nav, pcoMap_ptr, false, kfState_ptr);
+		bool pass = satpos(nullStream, time, teph, obs, acsConfig.orbits_data_source, E_OffsetType::COM, nav, false, kfState_ptr);
 		if (pass == false)
 		{
 			BOOST_LOG_TRIVIAL(warning) << "Warning: Writing SP3 file, failed to get data for satellite " << Sat.id();

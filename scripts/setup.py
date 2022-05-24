@@ -7,5 +7,6 @@ setup(
     version="0.0.1",
     description="Ginan python scripts",
     author="ga.gov.au",
-    packages=find_packages(include=['gn_lib', 'gn_lib.*', 'gn_lib.gn_io', 'gn_lib.gn_io.*']),
+    packages=find_packages(include=["gn_lib", "gn_lib.*", "gn_lib.gn_io", "gn_lib.gn_io.*"]),
+    install_requires=["plotext==4.2", "scipy", "requests", "requests_oauthlib"],
 )

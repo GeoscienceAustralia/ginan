@@ -8,7 +8,7 @@ conda activate gn37
 
 # download example tests
 cd /ginan
-OLDTAG=f82e335
+OLDTAG=70c9099
 python scripts/download_examples.py -d -p # tag is ignored for products and data tarballs
 
 # run example tests
@@ -32,15 +32,18 @@ case $TEST_NUM in
     tar cfz run-results-ex11.tar.gz ex11
     aws s3 cp run-results-ex11.tar.gz s3://ginan-pipeline-results/$TAG/
     python ../scripts/download_examples.py --push --dirs ex11 --tag $TAG
-    python ../scripts/download_examples.py --dirs ex11 --tag $OLDTAG
+    python ../scripts/download_examples.py --dirs ex11 ex12 --tag $OLDTAG # remove ex12 after testing
     python ../scripts/diffutil.py   -i ex11/ex1120624.snx            -o solutions/ex11/ex1120624.snx            --type sinex --passthrough -a $ATOL
     python ../scripts/diffutil.py   -i ex11/ex1120624.snx            -o solutions/ex11/ex1120624.snx            --type sinex --passthrough
 
-    sed -i 's/REC_SYS_BIAS/   REC_CLOCK/g' solutions/ex11/*.TRACE
     for trace in `ls ex11/*.TRACE`; do
-    tracebase="$(basename $trace)";
-    python ../scripts/diffutil.py   -i $trace -o "solutions/ex11/$tracebase"  --type trace --passthrough -a $ATOL;
-    python ../scripts/diffutil.py   -i $trace -o "solutions/ex11/$tracebase"  --type trace;
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace --passthrough -a $ATOL;
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace --plot;
+    done
+
+    for trace in `ls ex11/*.rts`; do
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace --states_only --passthrough -a $ATOL;
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace --states_only --plot;
     done
     ;;
   2)
@@ -52,9 +55,11 @@ case $TEST_NUM in
     python ../scripts/diffutil.py   -i ex12/ex1220624.snx            -o solutions/ex12/ex1220624.snx            --type sinex --passthrough -a $ATOL
     python ../scripts/diffutil.py   -i ex12/ex1220624.snx            -o solutions/ex12/ex1220624.snx            --type sinex --passthrough
 
-    sed -i 's/REC_SYS_BIAS/   REC_CLOCK/g' ex12/*.TRACE
     python ../scripts/diffutil.py   -i ex12/ex12-ALIC201919900.TRACE -o solutions/ex12/ex12-ALIC201919900.TRACE --type trace --passthrough -a $ATOL
-    python ../scripts/diffutil.py   -i ex12/ex12-ALIC201919900.TRACE -o solutions/ex12/ex12-ALIC201919900.TRACE --type trace
+    for trace in `ls ex12/*.TRACE`; do
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace --passthrough -a $ATOL;
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace;
+    done
     ;;
   3)
 
@@ -66,16 +71,14 @@ case $TEST_NUM in
     python ../scripts/diffutil.py   -i ex13/ex1320624.snx            -o solutions/ex13/ex1320624.snx            --type sinex --passthrough -a $ATOL
     python ../scripts/diffutil.py   -i ex13/ex1320624.snx            -o solutions/ex13/ex1320624.snx            --type sinex --passthrough
 
-    sed -i 's/REC_SYS_BIAS/   REC_CLOCK/g' solutions/ex13/*.TRACE
     for trace in `ls ex13/*.TRACE`; do
-    tracebase="$(basename $trace)";
-    python ../scripts/diffutil.py   -i $trace -o "solutions/ex13/$tracebase"  --type trace --passthrough -a $ATOL;
-    python ../scripts/diffutil.py   -i $trace -o "solutions/ex13/$tracebase"  --type trace;
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace --passthrough -a $ATOL;
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace;
     done
     ;;
   4)
 
-    pea --config ex14_pea_pp_user_gnss_ar.yaml | tee pea14.out
+    pea --config ex14_pea_pp_user_gnss_ar.yaml | tee pea14.out # ex14 run 5
     tar cfz run-results-ex14.tar.gz ex14
     aws s3 cp run-results-ex14.tar.gz s3://ginan-pipeline-results/$TAG/
     python ../scripts/download_examples.py --push --dirs ex14 --tag $TAG
@@ -83,9 +86,10 @@ case $TEST_NUM in
     python ../scripts/diffutil.py   -i ex14/ex1420624.snx            -o solutions/ex14/ex1420624.snx            --type sinex --passthrough -a $ATOL
     python ../scripts/diffutil.py   -i ex14/ex1420624.snx            -o solutions/ex14/ex1420624.snx            --type sinex --passthrough
 
-    sed -i 's/REC_SYS_BIAS/   REC_CLOCK/g' solutions/ex14/TUG/*.TRACE
-    python ../scripts/diffutil.py   -i ex14/TUG/ex14-ALIC201919900.TRACE -o solutions/ex14/TUG/ex14-ALIC201919900.TRACE --type trace --passthrough -a $ATOL
-    python ../scripts/diffutil.py   -i ex14/TUG/ex14-ALIC201919900.TRACE -o solutions/ex14/TUG/ex14-ALIC201919900.TRACE --type trace
+    for trace in `ls ex14/*.TRACE`; do
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace --passthrough -a $ATOL;
+    python ../scripts/diffutil.py   -i $trace -o "solutions/$trace"  --type trace;
+    done
     ;;
   5)
 

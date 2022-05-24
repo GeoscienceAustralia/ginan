@@ -746,7 +746,6 @@ bool peph2pos(
 	double&		ephVar,
 	E_Svh&		svh,
 	nav_t& 		nav,
-	PcoMapType*	pcoMap_ptr,
 	bool		applyRelativity);
 
 
@@ -1237,7 +1236,6 @@ void plumber()
 // 	printf("\n");
 }
 
-
 void outputMeas(
 			Trace&		trace,   	///< Trace to output to
 			GTime 		time,
@@ -1325,6 +1323,51 @@ void testOutlierDetection()
 //	exit(0);
 }
 
+#include "biasSINEX.hpp"
+
+// void testBiasMap()
+// {
+// 	string fileName = "bias.debug";
+// 	std::ofstream outputStream(fileName);
+	
+// 	tracepdeex(0, outputStream, "+BIAS\n");
+// 	// tracepdeex(0, outputStream, "*ID______ BIAS SVN_ PRN STATION__ OBS1 OBS2 BIAS_START____ BIAS_END______ UNIT __ESTIMATED_VALUE____ _STD_DEV___\n");
+// 	tracepdeex(0, outputStream, "*BIAS SVN_ PRN STATION__ OBS1 OBS2 BIAS_START____ BIAS_END______ UNIT __ESTIMATED_VALUE____ _STD_DEV___\n");
+
+// 	for (auto& idObsObsBiasMap			: SINEXBiases)
+// 	for (auto& [id,		obsObsBiasMap]	: idObsObsBiasMap)
+// 	for (auto& [code1,	obsBiasMap]		: obsObsBiasMap)
+// 	for (auto& [code2,	biasMap]		: obsBiasMap)
+// 	for (auto& [time,	bias]			: biasMap)
+// 	{	
+// 		// tracepdeex(0, outputStream, "%-8s", id);
+// 		write_bSINEX_line(bias, outputStream);
+// 	} 
+		
+// 	tracepdeex(0, outputStream, "-BIAS\n%%=ENDBIA");
+// }
+
+void testBiasExporting()
+{
+	Trace trace(NULL);
+	
+	for (auto& idObsObsBiasMap			: SINEXBiases)
+	for (auto& [id,		obsObsBiasMap]	: idObsObsBiasMap)
+	for (auto& [code1,	obsBiasMap]		: obsObsBiasMap)
+	for (auto& [code2,	biasMap]		: obsBiasMap)
+	for (auto& [time,	bias]			: biasMap)
+	{
+		double updateInterval = bias.tfin - bias.tini;
+		outp_bias(trace, time, bias.name, bias.Sat, bias.cod1, bias.cod2, bias.bias, bias.var, updateInterval, bias.measType);
+	}
+	
+	GTime tsync = GTime::noTime();
+	tsync.time = boost::posix_time::to_time_t(acsConfig.start_epoch);
+	string fileName = "debug_ex14_pea_pp_user_gnss_ar_bias_map_all.BIA";
+
+	writeBiasSinex(trace, tsync, fileName);
+}
+
 void doDebugs()
 {
 // 	printf("\n\n\nsensible string test\n");
@@ -1344,5 +1387,9 @@ void doDebugs()
 
 //	testOutlierDetection();
 //	exit(0);
+
+	// testBiasMap();
+	// testBiasExporting();
+	// abort();
 }
 

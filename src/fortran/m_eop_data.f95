@@ -19,7 +19,7 @@ MODULE m_eop_data
 Contains
 
 
-SUBROUTINE eop_data (mjd, EOP_fname, EOP_sol, n_interp , EOP_days)
+SUBROUTINE eop_data (mjd, EOP_fname, EOP_sol, orbit_arc_length, n_interp , EOP_days)
 
 
 ! ----------------------------------------------------------------------
@@ -33,6 +33,7 @@ SUBROUTINE eop_data (mjd, EOP_fname, EOP_sol, n_interp , EOP_days)
 ! - mjd:			Modified Julian Day number of the epoch (in TT)
 ! - EOP_fname:		EOP data file name  e.g. 'eopc04_IAU2000.62-now'
 ! - EOP_sol:		EOP solution type (see Note 1)
+! - orbit_arc_length    arc_length to be integrated over (in hours)
 ! - n_interp:		number of points to be used for EOP data interpolation 
 !
 ! Output arguments:
@@ -76,7 +77,7 @@ SUBROUTINE eop_data (mjd, EOP_fname, EOP_sol, n_interp , EOP_days)
 ! IN
       REAL (KIND = prec_d), INTENT(IN) :: mjd
       CHARACTER (LEN=512), INTENT(IN) :: EOP_fname
-      INTEGER (KIND = prec_int4), INTENT(IN) :: n_interp
+      INTEGER (KIND = prec_int4), INTENT(IN) :: orbit_arc_length, n_interp
       INTEGER (KIND = prec_int1), INTENT(IN) :: EOP_sol
 ! OUT
       !REAL (KIND = prec_d), INTENT(OUT) :: EOP_data(n_interp,7)
@@ -95,25 +96,31 @@ SUBROUTINE eop_data (mjd, EOP_fname, EOP_sol, n_interp , EOP_days)
       DOUBLE PRECISION dUT1_UTC, ut1utc_int, UT1UTC_cor
       DOUBLE PRECISION dX_eop, dY_eop, LOD 
 ! ----------------------------------------------------------------------
-      INTEGER (KIND = prec_int8) :: MJD_i, n_cent
-      INTEGER (KIND = prec_int4) :: i
+      INTEGER (KIND = prec_int8) :: MJD_i, n_cent, half_interp, orbit_days
+      INTEGER (KIND = prec_int4) :: i, j, k, next, rowcount, sz1, sz2
       REAL (KIND = prec_d) :: EOP_i(EOP_MAX_ARRAY)
-      REAL (KIND = prec_d) :: MJDint_ar(n_interp), xint_ar(n_interp), yint_ar(n_interp), UT1int_ar(n_interp)
+      REAL (KIND = prec_d), DIMENSION (:,:), ALLOCATABLE :: EOP_days_data
 ! ----------------------------------------------------------------------
       INTEGER (KIND = prec_int2) :: AllocateStatus, DeAllocateStatus  
+      LOGICAL found, updated
 
 ! ----------------------------------------------------------------------
 ! Dynamic allocatable arrays
-ALLOCATE (EOP_days(n_interp,EOP_MAX_ARRAY), STAT = AllocateStatus)
+half_interp = n_interp/2
+orbit_days = orbit_arc_length / 24
+if (MOD(n_interp, 2) == 1) half_interp = half_interp+1
+if (orbit_arc_length - (24 * orbit_days) > 0) orbit_days = orbit_days + 1
+ALLOCATE (EOP_days_data(n_interp + orbit_days, EOP_MAX_ARRAY), STAT = AllocateStatus)
 
 if (AllocateStatus /= 0) then
-        print *,'ERROR: eop_data - allocating EOP_days(n_interp,7) n_interp:',n_interp
+        print *,'ERROR: eop_data - allocating EOP_days n_interp:',half_interp * 2 + orbit_days
         stop
 end if
 
+updated = .false.
 ! ----------------------------------------------------------------------
 ! Mod - Initialise the EOP interpolation data array (SCM 04022020)
-EOP_days = 0.0d0
+EOP_days_data = 0.0d0
 
 ! ----------------------------------------------------------------------
 ! Time Systems transformation											 
@@ -148,28 +155,34 @@ EOP_days = 0.0d0
 !      dY_eop = EOP_day(7)
 ! ----------------------------------------------------------------------
 
-! ----------------------------------------------------------------------
-! Epochs center definition
-      IF (n_interp/2 - INT(n_interp/2) == 0) THEN
-         n_cent = n_interp/2
-      ELSE
-         n_cent = INT(n_interp/2) + 1
-      END IF
-! ----------------------------------------------------------------------
-
 mjd_day_int = INT(mjd)
 !mjd_day_int = mjd_UTC_day
+sz1 = SIZE(ERP_day_glb, DIM = 1)
+
+do i = 1, sz1
+    if (ERP_day_glb(i, EOP_MJD) /= 0.d0) then
+        eop_days_data(i, :) = ERP_day_glb(i, :)
+    else
+        exit
+    end if
+end do
 
 ! ----------------------------------------------------------------------
 ! EOP data reading
 ! ----------------------------------------------------------------------
-DO i = 1 , n_interp
-   MJD_i = mjd_day_int - n_cent + i
-   CALL eop_rd (EOP_fname, EOP_sol, MJD_i , EOP_i)
-   MJDint_ar(i) = MJD_i
-   xint_ar(i) = EOP_i(EOP_X)
-   yint_ar(i) = EOP_i(EOP_Y)
-   UT1int_ar(i) = EOP_i(EOP_UT1)
+DO i = 1 , n_interp + orbit_days
+   MJD_i = mjd_day_int + i - half_interp
+   found = .false.
+   do j = 1, sz1
+       if (j .le. SIZE (EOP_days_data, DIM = 1)) then
+       if (EOP_days_data(j, EOP_MJD) == MJD_i) then
+           found = .true.
+           exit
+       end if
+       end if
+   end do
+   if (.not. found) then
+       CALL eop_rd (EOP_fname, EOP_sol, MJD_i , EOP_i)
 
 ! LOD (sec)
    LOD = EOP_i(EOP_LOD)
@@ -177,38 +190,98 @@ DO i = 1 , n_interp
    dX_eop = EOP_i(EOP_DX)
    dY_eop = EOP_i(EOP_DY)
 
-EOP_days(i,EOP_MJD) = MJD_i
-EOP_days(i,EOP_X) = EOP_i(EOP_X)
-EOP_days(i,EOP_Y) = EOP_i(EOP_Y)
-EOP_days(i,EOP_UT1) = EOP_i(EOP_UT1)
-EOP_days(i,EOP_LOD) = EOP_i(EOP_LOD)
-EOP_days(i,EOP_DX) = EOP_i(EOP_DX)
-EOP_days(i,EOP_DY) = EOP_i(EOP_DY)
-EOP_days(i,EOP_X_ERR) = EOP_i(EOP_X_ERR)
-EOP_days(i,EOP_Y_ERR) = EOP_i(EOP_Y_ERR)
-EOP_days(i,EOP_UT1_ERR) = EOP_i(EOP_UT1_ERR)
-EOP_days(i,EOP_LOD_ERR) = EOP_i(EOP_LOD_ERR)
+   next = 1
+   do j = 1, SIZE(EOP_days_data, DIM=1)
+       if (EOP_days_data(j, EOP_MJD) == 0.0) then
+               next = j
+               exit
+       end if
+   end do
+   if (mjd_i == EOP_i (EOP_MJD)) then
+       do k = 1, next - 1
+       if (EOP_days_data(k, EOP_MJD) > mjd_i) then
+           do j = next - k, 1, -1
+               EOP_days_data(j+1, :) = EOP_days_data(j, :)
+           end do
+           next = k
+           exit
+       end if
+       end do
+        EOP_days_data(next,EOP_MJD) = MJD_i
+        EOP_days_data(next,EOP_X) = EOP_i(EOP_X)
+        EOP_days_data(next,EOP_Y) = EOP_i(EOP_Y)
+        EOP_days_data(next,EOP_UT1) = EOP_i(EOP_UT1)
+        EOP_days_data(next,EOP_LOD) = EOP_i(EOP_LOD)
+        EOP_days_data(next,EOP_DX) = EOP_i(EOP_DX)
+        EOP_days_data(next,EOP_DY) = EOP_i(EOP_DY)
+        EOP_days_data(next,EOP_X_ERR) = EOP_i(EOP_X_ERR)
+        EOP_days_data(next,EOP_Y_ERR) = EOP_i(EOP_Y_ERR)
+        EOP_days_data(next,EOP_UT1_ERR) = EOP_i(EOP_UT1_ERR)
+        EOP_days_data(next,EOP_LOD_ERR) = EOP_i(EOP_LOD_ERR)
+        updated = .true.
+   end if
+
+   end if
 
 END DO
 ! ----------------------------------------------------------------------
 
-!IF (POD_MODE_glb == 4) THEN
-IF (yml_pod_mode == MODE_IC_INT .or. yml_pod_mode == MODE_DATA_INT) THEN
+sz1 = SIZE(ERP_day_IC, DIM=1)
+sz2 = SIZE(EOP_days_data, DIM=1)
+!Only an IC file has ERP data. Pod_data section of yaml does not
+IF (yml_pod_mode == MODE_IC_INT) THEN
         IF(ERP_day_IC(1,1) /= 0.d0 ) THEN
-                DO i = 1 , n_interp
-                EOP_days(i,EOP_MJD) = ERP_day_IC(i,EOP_MJD)
-                EOP_days(i,EOP_X) = ERP_day_IC(i,EOP_X)
-                EOP_days(i,EOP_Y) = ERP_day_IC(i,EOP_Y)
-                EOP_days(i,EOP_UT1) = ERP_day_IC(i,EOP_UT1)
+                DO i = 1, sz2
+                    if (EOP_days_data(i, EOP_MJD) == ERP_day_IC(1, EOP_MJD)) then
+                        sz2 = i
+                        exit
+                    end if
+                end do
+                if (sz2 < SIZE(EOP_days_data, DIM=1)) then
+                updated = .true.
+                DO i = 1 , sz1
+                EOP_days_data(sz2 + i - 1,EOP_MJD) = ERP_day_IC(i,EOP_MJD)
+                EOP_days_data(sz2 + i - 1,EOP_X) = ERP_day_IC(i,EOP_X)
+                EOP_days_data(sz2 + i - 1,EOP_Y) = ERP_day_IC(i,EOP_Y)
+                EOP_days_data(sz2 + i - 1,EOP_UT1) = ERP_day_IC(i,EOP_UT1)
+                if (sz2 + i > SIZE(EOP_days_data, DIM=1)) exit
                 !print*,'ERP_day_IC =', ERP_day_IC(i,:)
                 END DO
+                end if
         END IF
 END IF
-ERP_day_glb = EOP_days
-!do i = 1 , n_interp
-!print*,'ERP_day_glb =', ERP_day_glb(i,1:4)
-!end do
 
+! now go through the array and remove rows where mjd is 0
+sz1 = SIZE (EOP_days_data, DIM=1)
+rowcount = 0
+do i = 1, sz1
+    if (EOP_days_data(i, EOP_MJD) /= 0.d0) then
+        rowcount = rowcount + 1
+    end if 
+end do
+ALLOCATE (EOP_days(rowcount, EOP_MAX_ARRAY), STAT = AllocateStatus)
+
+if (AllocateStatus /= 0) then
+        print *,'ERROR: eop_data - allocating EOP_days n_interp:',half_interp * 2 + orbit_days
+        stop
+end if
+
+j = 0
+do i = 1, sz1
+    if (EOP_days_data(i, EOP_MJD) /= 0.d0) then
+         j = j+1
+         EOP_days(j,:) = EOP_days_data(i,:)
+    end if
+end do
+if (updated) then
+ERP_day_glb(1:rowcount,:) = EOP_days
+end if
+
+if (.false.) then
+do i = 1 , rowcount
+print*,'ERP_day_glb(', i, ') =', ERP_day_glb(i,1:4)
+end do
+end if
 
 END SUBROUTINE
 

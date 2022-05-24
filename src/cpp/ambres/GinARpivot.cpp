@@ -3,6 +3,7 @@
 map<E_Sys, string>					AR_reflist;
 map<E_AmbTyp,map<E_Sys,ARsatpivts>>	SATpivlist;
 map<E_AmbTyp,map<E_Sys,ARrecpivts>>	RECpivlist;
+map<string,int> 					RecBlackList;
 
 map<string,int> disc_rec;
 map<SatSys,int> disc_sat;
@@ -77,8 +78,8 @@ void Check_rec(
 	int dept)		///< distance from anchor
 {
 	GinAR_piv& recpiv = RECpivlist[typ][sys][rec];
-	if (dept==0) tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV %s", rec);
-	else		 tracepdeex(ARTRCLVL, trace, "%s", rec);
+	if (dept==0) tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV %s", rec.c_str());
+	else		 tracepdeex(ARTRCLVL, trace, "%s", rec.c_str());
 	
 	auto& AR_mealist = ARstations["NETWORK"].AR_meaMap;
 	
@@ -102,7 +103,7 @@ void Check_rec(
 		else											{												tracepdeex(ARTRCLVL, trace, " -- ");	}
 		if ( aval_sat.find(sat) == aval_sat.end() )		{	disc_sat[sat] = E_SigWarning::MAJ_OUTG;												}
 		
-		tracepdeex(ARTRCLVL, trace, "%s ", sat.id());
+		tracepdeex(ARTRCLVL, trace, "%s ", sat.id().c_str());
 		
 		GinAR_piv& satpiv = SATpivlist[typ][sys][sat];
 		int nrec=0;
@@ -147,7 +148,7 @@ string Find__rec(
 	auto& AR_mealist = ARstations["NETWORK"].AR_meaMap;
 	if (AR_mealist.find(key)!=AR_mealist.end())
 	{
-		tracepdeex(ARTRCLVL+2, trace, "\n  Testing %s ...  %2d %1d ", base, AR_mealist[key].hld_epc, AR_mealist[key].cyl_slp?1:0);
+		tracepdeex(ARTRCLVL+2, trace, "\n  Testing %s ...  %2d %1d ", base.c_str(), AR_mealist[key].hld_epc, AR_mealist[key].cyl_slp?1:0);
 		if (   AR_mealist[key].hld_epc == 0
 			&& AR_mealist[key].cyl_slp == false
 			&& AR_mealist[key].sat_ele >= MIN_PIV_ELE)
@@ -170,7 +171,7 @@ string Find__rec(
 			if (rec == base)
 				continue;
 		
-			double dis2 = dist+1;
+			double dis2 = dist+2;
 			string rec2 = Find__rec( trace, sys, typ,rec,sat,dis2);
 			if(	dis2 < mindist)
 			{
@@ -239,7 +240,7 @@ SatSys Find__sat(
 			if(rec2 == base)  
 				continue;
 		
-			double dis2 = dist+1;
+			double dis2 = dist+2;
 			SatSys sat2  = Find__sat( trace, sys, typ, rec2, rec, dis2);
 			if(	dis2 < mindist)
 			{
@@ -261,7 +262,7 @@ int Reset_sat(
 	SatSys sat, 	///< GNSS satellite
 	GTime time) 	///< Reset time
 {
-	SATbialist[typ].erase(sat);
+	// SATbialist[typ].erase(sat);
 	SatSys sat0 = {};
 	KFKey  key = {KF::AMBIGUITY,sat,"",typ};
 	string tmp;
@@ -326,21 +327,22 @@ int Reset_sat(
 
 /** Reset receiver on network pivot */
 int Reset_rec( 
-	Trace& trace,	///< Debug trace
-	E_Sys sys,		///< GNSS system
+	Trace&   trace,	///< Debug trace
+	E_Sys    sys,	///< GNSS system
 	E_AmbTyp typ,	///< Ambiguity type
-	string rec, 	///< Station/receiver name
-	GTime time)		///< Reset time
+	string   rec, 	///< Station/receiver name
+	GTime    time)	///< Reset time
 {
-	RECbialist[typ][sys].erase(rec);
+	// RECbialist[typ][sys].erase(rec);
 	SatSys tmp    = {};
 	KFKey  key    = {KF::AMBIGUITY,tmp,rec,typ};
 	double maxel  = 0;
 	double maxel2 = 0;
+	
 	int    intamb = 0;
 	bool   is_raw = true;
 	
-	tracepdeex(ARTRCLVL+1, trace, "\n#ARES_PIV (Re) setting %s: ", rec);
+	tracepdeex(ARTRCLVL+1, trace, "\n#ARES_PIV (Re) setting %s: ", rec.c_str());
 	auto& AR_mealist = ARstations["NETWORK"].AR_meaMap;
 	
 	for (auto& [sat,piv] : SATpivlist[typ][sys])
@@ -397,14 +399,14 @@ int Reset_rec(
 /** Initilize end-user AR pivot */
 void init_usr_pivot( 
 	Trace& trace,		///< Debug trace
-	E_Sys sys,			///< GNSS System
-	GinAR_opt& opt, 	///< Ginan AR control options
-	E_AmbTyp typ,		///< Ambiguity type
-	GTime time)			///< Solution time
+	GTime time,			///< Solution time
+	GinAR_opt& opt,		///< Ginan AR control options
+	E_Sys sys)			///< GNSS System
 {
-	string rec = opt.recv;
+	string   rec = opt.recv;
+	E_AmbTyp typ = opt.type;
 	
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV Initializing pivot for %s %s %s", rec,sys._to_string(), typ._to_string());
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV Initializing pivot for %s %s %s", rec.c_str(), sys._to_string(), typ._to_string());
 	double maxel = 0;
 	SatSys pivsat;
 	int    pivamb = -99999;
@@ -456,15 +458,15 @@ void init_usr_pivot(
 void updt_usr_pivot ( 
 	Trace& trace,		///< Debug trace
 	GTime time, 		///< Solution time
-	GinAR_opt& opt, 	///< Ginan AR control options
-	E_AmbTyp typ )		///< Ambiguity type
+	GinAR_opt& opt)		///< Ginan AR control options
 {
 	string rec = opt.recv;
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV Checking pivot for %s", rec);
+		E_AmbTyp typ = opt.type;
 	
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV Checking pivot for %s", rec.c_str());
 	auto& AR_mealist = ARstations[rec].AR_meaMap;
 	
-	for (auto [sys,act] : sys_solve) 
+	for (auto [sys,act] : opt.sys_solve) 
 	{
 		if(!act)
 			continue;
@@ -477,7 +479,7 @@ void updt_usr_pivot (
 				reset_WLfilt(trace,typ,time,rec,sys);
 				
 			recpiv.sat_amb.clear();
-			init_usr_pivot( trace, sys, opt, typ, time);
+			init_usr_pivot( trace, time, opt, sys);
 			continue;
 		}
 		
@@ -512,8 +514,8 @@ void updt_usr_pivot (
 			if( maxel < opt.MIN_Elev_piv )
 			{
 				if(typ == +E_AmbTyp::WL12) reset_WLfilt(trace,typ,time,rec,sys);
-				tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV     Resetting pivot for %s in %s",sys._to_string(),rec);
-				init_usr_pivot( trace, sys, opt, typ, time);
+				tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV     Resetting pivot for %s in %s",sys._to_string(), rec.c_str());
+				init_usr_pivot( trace, time, opt, sys);
 			}
 			else
 			{
@@ -527,12 +529,12 @@ void updt_usr_pivot (
 /** Initialize Network pivot */
 void init_net_pivot ( 
 	Trace& trace,		///< Debug trace
-	E_Sys sys,			///< GNSS system
+	GTime time,			///< Solution time
 	GinAR_opt& opt, 	///< Ginan AR control options
-	E_AmbTyp typ,		///< Ambiguity type
-	GTime time)			///< Solution time
+	E_Sys sys)			///< GNSS system
 {
 	MIN_PIV_ELE = opt.MIN_Elev_piv;
+	E_AmbTyp typ = opt.type;
 	
 	if ( typ == +E_AmbTyp::WL12 ) 
 		reset_WLfilt(trace, typ, time, opt.recv, sys);
@@ -559,7 +561,8 @@ void init_net_pivot (
 	
 	/* Select anchor/reference station, if not selected by the "config_AmbigResl" function, or the selected station has no measurments, it is selected among those with maximum number of available measurements */
 	string sysref = AR_reflist[sys];
-	if (nsat.find(sysref) == nsat.end())
+	if (nsat.find(sysref) == nsat.end()
+	||  nsat[sysref]<3)
 	{
 		int nmax=0;
 		for (auto& [rec, n] : nsat)
@@ -573,11 +576,12 @@ void init_net_pivot (
 		AR_reflist[sys] = sysref;
 		tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV Reselecting Anchor station");
 	}
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV Initializing pivot from anchor %s minel: %.2f", sysref, MIN_PIV_ELE*R2D);
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_PIV Initializing pivot from anchor %s minel: %.2f", sysref.c_str(), MIN_PIV_ELE*R2D);
 	
 	SatSys sat0 = {};
 	RECpivlist[typ][sys][sysref].pre_sat = sat0;
 	RECbialist[typ][sys][sysref].rawbias = 0;																						/* Bias for anchor station is 0 */
+	nsat.erase(sysref);
 	
 	/* Include satellites visible by the anchor station (that meet the criteria to be included in the pivot */ 
 	for (auto& [key, amb] : AR_mealist)
@@ -649,13 +653,13 @@ void init_net_pivot (
 void updt_net_pivot( 
 	Trace& trace,		///< Debug trace 
 	GTime time, 		///< Solution time
-	GinAR_opt& opt, 	///< Gina AR control options
-	E_AmbTyp typ)		///< Ambiguity type
+	GinAR_opt& opt)		///< Ginan AR control options
 {
 	MIN_PIV_ELE = opt.MIN_Elev_piv;
 	auto& AR_mealist = ARstations["NETWORK"].AR_meaMap;
+	E_AmbTyp typ = opt.type;
 	
-	for (auto [sys,act] : sys_solve) 
+	for (auto [sys,act] : opt.sys_solve) 
 	{
 		if(!act)
 			continue;
@@ -669,7 +673,7 @@ void updt_net_pivot(
 		string sysref = AR_reflist[sys];
 		if ( recpivlst.empty() )
 		{
-			init_net_pivot(trace,sys,opt,typ,time);
+			init_net_pivot(trace,time,opt,sys);
 			Check_rec( trace,sys,typ,AR_reflist[sys],0);
 			continue;
 		} 
@@ -688,7 +692,7 @@ void updt_net_pivot(
 			}
 			if (!ref_ok)
 			{
-				init_net_pivot(trace,sys,opt,typ,time);
+				init_net_pivot(trace,time,opt,sys);
 				continue;
 			}
 		}	
@@ -818,7 +822,7 @@ void updt_net_pivot(
 					continue;
 				
 				string recs = satpivlst[sats].rec_amb.begin()->first;
-				tracepdeex(ARTRCLVL+1, trace, "\n Disconnecting %s:", recs);
+				tracepdeex(ARTRCLVL+1, trace, "\n Disconnecting %s:", recs.c_str());
 				Unlnk_amb(typ,sats,recs,false);
 				disc_rec[recs] = E_SigWarning::USR_DISC;
 				nnew++;

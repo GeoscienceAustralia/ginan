@@ -139,6 +139,9 @@ void NtripUploader::messageTimeout_hanlder(
 	
 	for (auto RtcmMess : streamConfig.rtcmMessagesTypes)
 	{
+		if (RtcmMess == *streamConfig.rtcmMessagesTypes.rbegin())
+			ssrMeta.multipleMessage = 0;
+		
 		E_Sys sys;
 		switch (RtcmMess)
 		{

@@ -573,7 +573,7 @@ void jd2ymdhms(const double jd, double *ep)
 
 	return;
 }
-double gpst2mjd(const GTime time)
+double gpst2mjd(const GTime time)			//todo aaron, this gives different results to what is used elsewhere, no utc conversion, eg, in erp output code
 {
 	double ep[6];
 	time2epoch(gpst2utc(time), ep);

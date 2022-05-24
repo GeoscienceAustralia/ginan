@@ -182,6 +182,14 @@ void enu2ecef(const double *pos, const double *e, double *r)
 	matmul("TN",3,1,3,1.0,E,e,0.0,r);
 }
 
+void enu2ecef(
+	const	double*		pos,
+	const	Vector3d&	e,
+			Vector3d&	r)
+{
+	enu2ecef(pos, e.data(), r.data());
+}
+
 /* coordinate rotation matrix ------------------------------------------------*/
 //todo aaron delete
 #define Rx(t,X) do {				\

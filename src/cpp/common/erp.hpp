@@ -27,11 +27,18 @@ struct ERP
 
 struct ERPValues
 {
-	double xp		= 0;
-	double yp		= 0;
-	double ut1_utc	= 0;
-	double lod		= 0;
-	double leaps	= 0;
+	union 
+	{
+		double vals[6] = {};
+		struct 
+		{
+			double xp;			///< rads
+			double yp;			///< rads
+			double ut1_utc;		///< seconds
+			double lod;			///< seconds/day
+			double leaps;
+		};
+	};
 };
 
 struct GTime;
@@ -52,7 +59,7 @@ int geterp(
 	ERPValues&		erpv);
 
 void writeERPFromNetwork(
-	KFState&	kfState,
-	GTime		time);
+	string		filename,
+	KFState&	kfState);
 
 #endif

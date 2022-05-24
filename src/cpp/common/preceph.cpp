@@ -18,6 +18,7 @@ using std::map;
 #include "streamTrace.hpp"
 #include "corrections.hpp"
 #include "navigation.hpp"
+#include "biasSINEX.hpp"
 #include "constants.hpp"
 #include "ephemeris.hpp"
 #include "station.hpp"
@@ -28,8 +29,6 @@ using std::map;
 #include "tides.hpp"
 #include "enums.h"
 
-map<string, map<E_Sys, array<double, 3>>> stationRBiasMap;
-	
 #define NMAX        10              /* order of polynomial interpolation */
 #define MAXDTE      900.0           /* max time difference to ephem time (s) */
 #define EXTERR_CLK  1E-3            /* extrapolation error for clock (m/s) */
@@ -65,53 +64,112 @@ map<string, map<E_Sys, array<double, 3>>> stationRBiasMap;
 int readdcb(string file, nav_t *nav)
 {
 	//todo aaron, use maps for these rather than arrays,
-	FILE *fp;
-	double cbias;
-	char buff[256],str1[32],str2[32]="";
-	E_DCBPair type = E_DCBPair::NONE;
-	SatSys Sat;
-//     trace(3,"readdcbf: file=%s\n",file);
-
-	if (!(fp=fopen(file.c_str(), "r")))
+	std::ifstream inputStream(file);
+	if (!inputStream)
 	{
 //         trace(2,"dcb parameters file open error: %s\n",file);
 		return 0;
 	}
-	while (fgets(buff,sizeof(buff),fp))
+
+	double cbias,rms;
+	char str1[32],str2[32]="";
+	E_DCBPair type = E_DCBPair::NONE;
+	SinexBias entry;
+//     trace(3,"readdcbf: file=%s\n",file);
+
+	entry.tini.sec	= 3;
+	entry.measType	= CODE;
+	entry.source	= "dcb";
+
+	string line;
+	while (std::getline(inputStream, line))
 	{
+		char* buff = &line[0];
+
 		if      (strstr(buff,"DIFFERENTIAL (P1-P2) CODE BIASES"))	type = E_DCBPair::P1_P2;
 		else if (strstr(buff,"DIFFERENTIAL (P1-C1) CODE BIASES"))	type = E_DCBPair::P1_C1;
 		else if (strstr(buff,"DIFFERENTIAL (P2-C2) CODE BIASES"))	type = E_DCBPair::P2_C2;
 
-		if	(!type
+		if	( !type
 			||sscanf(buff,"%s %s",str1,str2) < 1)
 			continue;
 
-		if ((cbias = str2num(buff,26,9)) == 0)
+		if ((cbias = str2num(buff,26,9)) == 0) //todo Eugene: bias value is possible to be 0
 			continue;
 
+		rms = str2num(buff,38,9);
+
+		entry.bias = cbias   * 1E-9 * CLIGHT; /* ns -> m */ //todo aaron, this looks like it had issues to begin with
+		entry.var  = SQR(rms * 1E-9 * CLIGHT);
+
+		SatSys Sat(str1);
+
+		if (Sat.sys == +E_Sys::GPS)
+		{
+			if      (type == +E_DCBPair::P1_P2)   { entry.cod1 = E_ObsCode::L1W;  entry.cod2 = E_ObsCode::L2W; }
+			else if (type == +E_DCBPair::P1_C1)   { entry.cod1 = E_ObsCode::L1W;  entry.cod2 = E_ObsCode::L1C; }
+			else if (type == +E_DCBPair::P2_C2)   { entry.cod1 = E_ObsCode::L2W;  entry.cod2 = E_ObsCode::L2D; }
+		}
+		else if (Sat.sys == +E_Sys::GLO)
+		{
+			if      (type == +E_DCBPair::P1_P2)   { entry.cod1 = E_ObsCode::L1P;  entry.cod2 = E_ObsCode::L2P; }
+			else if (type == +E_DCBPair::P1_C1)   { entry.cod1 = E_ObsCode::L1P;  entry.cod2 = E_ObsCode::L1C; }
+			else if (type == +E_DCBPair::P2_C2)   { entry.cod1 = E_ObsCode::L2P;  entry.cod2 = E_ObsCode::L2C; }
+		}
+
+		string id;
 		if  ( !strcmp(str1,"G")
 			||!strcmp(str1,"R"))
 		{
-			E_Sys sys;
-			if (str1[0] == 'G')		sys = E_Sys::GPS;
-			if (str1[0] == 'R')		sys = E_Sys::GLO;
-			
-			auto& rbias = stationRBiasMap[str2][sys];
-			
 			/* receiver dcb */
-			rbias[type-1] = cbias * 1E-9 * CLIGHT; /* ns -> m */ //todo aaron, this looks like it had issues to begin with
-		
+			entry.Sat  = Sat;
+			entry.name = str2;
+			id = str2;
 		}
-		else if (Sat = SatSys(str1), Sat)
+		else if (Sat)
 		{
 			/* satellite dcb */
-			if (type == +E_DCBPair::P1_P2)		nav->satNavMap[Sat].cBias_P1_P2		= cbias * 1E-9 * CLIGHT; /* ns -> m */
-			if (type == +E_DCBPair::P1_C1)		nav->satNavMap[Sat].cBiasMap[F1]	= cbias * 1E-9 * CLIGHT; /* ns -> m */
-			if (type == +E_DCBPair::P2_C2)		nav->satNavMap[Sat].cBiasMap[F2]	= cbias * 1E-9 * CLIGHT; /* ns -> m */
+			entry.Sat  = Sat;
+			entry.name = "";
+			id = str1;
 		}
+
+		if	( Sat.sys == +E_Sys::GLO
+			&&Sat.prn == 0)
+		{
+			// this seems to be a receiver
+			// for ambiguous GLO receiver bias id (i.e. PRN not specified), duplicate bias entry for each satellite
+			for (int prn = MINPRNGLO; prn <= MAXPRNGLO; prn++)
+			{
+				Sat.prn	= prn;
+				id = entry.name + ":" + Sat.id();
+				// entry.Sat = Sat;
+				pushBiasSinex(id, entry);
+			}
+		}
+		else if	( Sat.sys == +E_Sys::GLO
+				&&Sat.prn != 0)
+		{
+			// this can be a receiver or satellite
+			id = id + ":" + Sat.id();
+			pushBiasSinex(id, entry);
+		}
+		else
+		{
+			// this can be a receiver or satellite
+			id = id + ":" + Sat.sysChar();
+			pushBiasSinex(id, entry);
+		}
+
+		// //decompose P1-P2 DCB into OSBs
+		// SinexBias OSB1, OSB2;
+		// bool pass = decomposeDSBBias(entry, OSB1, OSB2);	//todo , check this
+		// if (pass)
+		// {
+		// 	pushBiasSinex(id, OSB1);
+		// 	pushBiasSinex(id, OSB2);
+		// }
 	}
-	fclose(fp);
 
 	return 1;
 }
@@ -543,14 +601,14 @@ int pephclk(
 *                                 {dx,dy,dz} (m) (iono-free LC value)
 * return : none
 *-----------------------------------------------------------------------------*/
-void satantoff(
+void satAntOff(
 	Trace&				trace,
 	GTime				time,
 	Vector3d&			rSat,
 	SatSys& 			Sat,
 	map<int, double>&	lamMap,
 	Vector3d&			dAnt,
-	PcoMapType*			pcoMap_ptr)
+	SatStat*			satStat_ptr)
 {
 	ERPValues erpv;
 	E_FType j = F1;
@@ -567,7 +625,14 @@ void satantoff(
 	Vector3d y = ez.cross(es);	Vector3d ey = y.normalized();
 								Vector3d ex = ey.cross(ez);
 
-
+	if (satStat_ptr)	
+	{
+		auto& satStat = *satStat_ptr;
+		
+		satStat.sunDotSat	= -es.dot(ez);
+		satStat.sunCrossSat	=  es.dot(ex);
+	}
+	
 	int sys = Sat.sys;
 	if 	( sys == E_Sys::GAL
 		||sys == E_Sys::SBS)
@@ -591,20 +656,9 @@ void satantoff(
 	double C1		= gamma	/ (gamma - 1);
 	double C2		= -1	/ (gamma - 1);
 
-	if (pcoMap_ptr == nullptr)
-	{
-		return;
-	}
-	auto& pcoMap = *pcoMap_ptr;
-
 	/* iono-free LC */
-	Vector3d pcoJ;
-	Vector3d pcoK;
-	if (pcoMap.find(j) == pcoMap.end())		pcoJ = Vector3d::Zero();
-	else									pcoJ = pcoMap[j];
-	
-	if (pcoMap.find(k) == pcoMap.end())		pcoK = Vector3d::Zero();
-	else									pcoK = pcoMap[k];
+	Vector3d pcoJ = antPco(Sat.id(), j, time);
+	Vector3d pcoK = antPco(Sat.id(), k, time);
 	
 	for (int i = 0; i < 3; i++)
 	{
@@ -622,13 +676,13 @@ void satantoff(
 	}
 }
 
-void satantoff(
+Vector3d satAntOff(
 	Trace&				trace,
 	GTime				time,
 	Vector3d&			rSat,
+	SatSys& 			Sat,
 	E_FType 			ft,
-	Vector3d&			dAnt,
-	PcoMapType*			pcoMap_ptr)
+	SatStat*			satStat_ptr)
 {
 	tracepde(4, trace, "%s: time=%s\n", __FUNCTION__, time.to_string(3).c_str());
 
@@ -643,17 +697,19 @@ void satantoff(
 	Vector3d y = ez.cross(es);	Vector3d ey = y.normalized();
 								Vector3d ex = ey.cross(ez);
 
-	if (pcoMap_ptr == nullptr)
+	if (satStat_ptr)	
 	{
-		return;
+		auto& satStat = *satStat_ptr;
+		
+		satStat.sunDotSat	= -es.dot(ez);
+		satStat.sunCrossSat	=  es.dot(ex);
 	}
-	auto& pcoMap = *pcoMap_ptr;
 
 	/* iono-free LC */
-	Vector3d pco;
-	if (pcoMap.find(ft) == pcoMap.end())		pco = Vector3d::Zero();
-	else										pco = pcoMap[ft];
+	Vector3d pco = antPco(Sat.id(), ft, time);
 	
+	Vector3d dAnt;
+
 	for (int i = 0; i < 3; i++)
 	{
 		/* ENU to NEU */
@@ -661,6 +717,8 @@ void satantoff(
 				+ pco[0] * ey(i)
 				+ pco[2] * ez(i);	//todo aaron, matrix
 	}
+	
+	return dAnt;
 }
 
 /* satellite position/clock by precise ephemeris/clock -------------------------

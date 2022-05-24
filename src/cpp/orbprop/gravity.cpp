@@ -230,9 +230,9 @@ void GravityModel::solidEarthTidesCorrection(
 	*/
 	for (auto body : {eSun ,eMoon})
 	{
-		double		GM_Body;
-		double		rho;
-		double		az;
+		double		GM_Body	= 0;
+		double		rho	= 0;
+		double		az	= 0;
 		MatrixXd	lg;
 		if (body == eMoon)	{	GM_Body = GM_Moon;	rho = vecRAEMoon(0);	az = vecRAEMoon(1);		lg = Legendre	(4, 4, vecRAEMoon(2));		}
 		if (body == eSun)	{	GM_Body = GM_Sun;	rho = vecRAESun (0);	az = vecRAESun (1);		lg = Legendre	(4, 4, vecRAESun (2));		}
@@ -349,9 +349,9 @@ void GravityModel::oceanTidesCorrection(
 
 	for (auto body : {eSun ,eMoon})
 	{
-		double		GM_Body;
-		double		rho;
-		double		az;
+		double		GM_Body	= 0;
+		double		rho		= 0;
+		double		az		= 0;
 		MatrixXd	lg;
 		if (body == eMoon)	{	GM_Body = GM_Moon;	rho = vecRAEMoon(0);	az = vecRAEMoon(1);		lg = Legendre	(7, 7, vecRAEMoon(2));		}
 		if (body == eSun)	{	GM_Body = GM_Sun;	rho = vecRAESun (0);	az = vecRAESun (1);		lg = Legendre	(7, 7, vecRAESun (2));		}

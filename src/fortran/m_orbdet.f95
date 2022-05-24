@@ -194,7 +194,7 @@ SUBROUTINE orbdet (EQMfname, VEQfname, orb_icrf_final, orb_itrf_final, veqSmatri
       REAL (KIND = prec_d), DIMENSION(3) :: PULSE_dir_vec
       CHARACTER (LEN=3) :: prn_out
       integer (KIND=prec_int4) :: prn_index
-      character (len=50) :: line
+      character (len=100) :: line
 
 ! ----------------------------------------------------------------------
 

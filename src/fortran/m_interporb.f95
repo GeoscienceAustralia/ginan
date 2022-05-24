@@ -23,7 +23,7 @@ MODULE m_interporb
 Contains
 
 
-SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system)
+SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system, found)
 
 
 ! ----------------------------------------------------------------------
@@ -65,6 +65,7 @@ SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbi
 
       USE mdl_precision
       USE mdl_num
+      use mdl_config
       USE m_sp3
       USE m_lagrange
       !USE mdl_arr
@@ -88,6 +89,7 @@ SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbi
 ! OUT
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: orbint
       INTEGER (KIND=prec_int2) , INTENT(OUT) :: time_system
+      LOGICAL , INTENT(OUT) :: found
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -114,7 +116,9 @@ SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbi
  
 ! ----------------------------------------------------------------------
 ! Read IGS sp3 orbit data file (position only): orbsp3 
-Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system)
+Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system, found)
+if (.not. found) return
+
 sz1 = size(orbsp3, DIM = 1)
 ! ----------------------------------------------------------------------
 
@@ -128,7 +132,7 @@ CALL orb_outlier (orbsp3, outlier_value, Noutliers, orbsp3_filt, orb_out)
 
 IF (Noutliers == 0) THEN
 ! Orbit Lagrange interpolation using the input orbit matrix
-CALL interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system)
+CALL interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system, found)
 
 ELSE
 ! Orbit Lagrange interpolation after removing outliers of the input orbit matrix

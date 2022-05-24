@@ -24,18 +24,17 @@ input_files:
 
 station_data:
 
-    stream_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+    stream_root: "https://<USER>:<PASS>@ntrip.test-data.gnss.ga.gov.au/" 
         
     nav_streams:
-        - SSRA00CNE0 #orbits, clocks and bias
-        - BCEP00BKG0
+        - SSRA00GAA0
         
     ssr_input_antenna_offset: APC
 
     obs_streams:
         #- ARUB00AUS0
         #- BALA00AUS0
-        - BBOO00AUS0
+        - GAT000AUS0
         #- BDLE00AUS0
         #- BDVL00AUS0
         #- BEEC00AUS0
@@ -64,12 +63,14 @@ station_data:
         #- FLND00AUS0
 
 output_streams:
-    stream_root: "http://mark_yeo:q7MSDjLbvj@tier3.auscors.ga.gov.au:2101/" 
+    stream_root: "https://<USER>:<PASS>@ntrip.test-data.gnss.ga.gov.au/"
     
     stream_labels:
-        - ISG1        
+        - ISG1   
+        
     ISG1:
-        stream: "SSRA00GAA1"
+        stream: "SSRA00ISG0"
+        
         messages:
             - "1060"  # RTCM messages to be broadcast
             #- "1243" 
@@ -83,6 +84,7 @@ ssr_corrections:
     upload_to_caster:           true          
     update_interval:            10          
     ephemeris_source:           SSR       
+    clock_source:               SSR       
     rtcm_directory:             rtcm/
     
     
@@ -140,7 +142,6 @@ output_files:
     output_mongo_rtcm_messages:     true
     output_mongo_measurements:      false
     output_mongo_states:            false
-    output_mongo_metadata:          false
     #delete_mongo_history:           true
     mongo_uri:                      mongodb://127.0.0.1:27017
     mongo_suffix:                   ""

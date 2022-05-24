@@ -45,6 +45,12 @@ using std::pair;
 */
 
 
+struct KFStatistics
+{
+	double averageRatio	= 0;
+	double sumOfSquares	= 0;
+};
+
 bool KFKey::operator ==(const KFKey& b) const
 {
 	if (str.compare(b.str)	!= 0)		return false;
@@ -619,15 +625,15 @@ void KFState::stateTransition(
 * &  Wieser et al. (2004) - Failure Scenarios to be Considered with Kinematic High Precision Relative GNSS Positioning - http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.573.9628&rep=rep1&type=pdf
 */
 void KFState::preFitSigmaCheck(
-	Trace&		trace,			///< Trace to output to
-	KFMeas&		kfMeas,			///< Measurements, noise, and design matrix
-	KFKey&		badStateKey,	///< Key to the state that has worst ratio (only if worse than badMeasIndex)
-	int&		badMeasIndex,	///< Index of the measurement that has the worst ratio
-	double&		sumOfSqTestStat,	///< Sum of squared test statistics
-	int			begX,			///< Index of first state element to process
-	int			numX,			///< Number of states elements to process
-	int			begH,			///< Index of first measurement to process
-	int			numH)			///< Number of measurements to process
+	Trace&			trace,			///< Trace to output to
+	KFMeas&			kfMeas,			///< Measurements, noise, and design matrix
+	KFKey&			badStateKey,	///< Key to the state that has worst ratio (only if worse than badMeasIndex)
+	int&			badMeasIndex,	///< Index of the measurement that has the worst ratio
+	KFStatistics&	statistics,		///< Test statistics
+	int				begX,			///< Index of first state element to process
+	int				numX,			///< Number of states elements to process
+	int				begH,			///< Index of first measurement to process
+	int				numH)			///< Number of measurements to process
 {
 	auto		v = kfMeas.V.segment(begH, numH);
 	auto		R = kfMeas.R.block(begH, begH, numH, numH);
@@ -666,7 +672,8 @@ void KFState::preFitSigmaCheck(
 		trace << std::endl << "DOING W-TEST: ";
 	}
 
-	sumOfSqTestStat	= measRatios.sum() + stateRatios.sum();
+	statistics.sumOfSquares	= measRatios.sum();
+	statistics.averageRatio	= measRatios.mean();
 
 	//if any are outside the expected value, flag an error
 
@@ -705,24 +712,26 @@ void KFState::preFitSigmaCheck(
 /** Compare variances of measurements and filtered states to detect unreasonable values
 */
 void KFState::postFitSigmaChecks(
-	Trace&		trace,      	///< Trace file to output to
-	KFMeas&		kfMeas,			///< Measurements, noise, and design matrix
-	VectorXd&	xp,         	///< The post-filter state vector to compare with measurements
-	VectorXd&	dx,				///< The innovations from filtering to recalculate the deltas.
-	int			iteration,		///< Number of iterations prior to this check
-	KFKey&		badStateKey,	///< Key to the state that has worst ratio (only if worse than badMeasIndex)
-	int&		badMeasIndex,	///< Index of the measurement that has the worst ratio
-	double&		sumOfSqTestStat,	///< Sum of squared test statistics
-	int			begX,			///< Index of first state element to process
-	int			numX,			///< Number of state elements to process
-	int			begH,			///< Index of first measurement to process
-	int			numH)			///< Number of measurements to process
+	Trace&			trace,      	///< Trace file to output to
+	KFMeas&			kfMeas,			///< Measurements, noise, and design matrix
+	VectorXd&		xp,         	///< The post-filter state vector to compare with measurements
+	VectorXd&		dx,				///< The innovations from filtering to recalculate the deltas.
+	int				iteration,		///< Number of iterations prior to this check
+	KFKey&			badStateKey,	///< Key to the state that has worst ratio (only if worse than badMeasIndex)
+	int&			badMeasIndex,	///< Index of the measurement that has the worst ratio
+	KFStatistics&	statistics,		///< Test statistics
+	int				begX,			///< Index of first state element to process
+	int				numX,			///< Number of state elements to process
+	int				begH,			///< Index of first measurement to process
+	int				numH)			///< Number of measurements to process
 {
-	auto		H = kfMeas.A.block(begH, begX, numH, numX);
-	VectorXd	vv = kfMeas.V.segment(begH, numH) - H * dx.segment(begX, numX);
+	VectorXd vv(kfMeas.V.rows());
+	
+	auto				H	= kfMeas.A.block(begH, begX, numH, numX);
+	vv.segment(begH, numH)	= kfMeas.V.segment(begH, numH) - H * dx.segment(begX, numX);
 
 	//use 'array' for component-wise calculations
-	auto		measVariations		= vv					.array().square();	//delta squared
+	auto		measVariations		= vv.segment(begH, numH).array().square();	//delta squared
 	auto		stateVariations		= dx.segment(begX, numX).array().square();
 	
 	auto		measVariances		= kfMeas.	R.block(begH, begH, numH, numH).diagonal().array();
@@ -744,17 +753,15 @@ void KFState::postFitSigmaChecks(
 		trace << "- Residuals" << std::endl;
 	}
 	
-#	ifdef ENABLE_MONGODB
 	if (acsConfig.output_mongo_measurements)
 	{
 		mongoMeasResiduals(kfMeas.obsKeys, kfMeas.V, vv, kfMeas.R, begH, numH);
 	}
-#	endif
 
 	trace << std::endl << "DOING SIGMACHECK: ";
-	
 
-	sumOfSqTestStat	= measRatios.sum() + stateRatios.sum();
+	statistics.sumOfSquares	= measRatios.sum();
+	statistics.averageRatio	= measRatios.mean();
 
 	//if any are outside the expected values, flag an error
 	
@@ -1249,13 +1256,14 @@ int KFState::filterKalman(
 		filterChunkList.push_back(filterChunk);
 	}
 	
-	double	prefitSumOfSqTestStat	= 0;
+	TestStatistics testStatistics;
+	
 	for (auto& filterChunk : filterChunkList)
 	{
 		if (filterChunk.numX < 0)	filterChunk.numX = x.rows();
 		if (filterChunk.numH < 0)	filterChunk.numH = kfMeas.A.rows();
 		
-		double	chunkSumOfSqTestStat	= 0;
+		KFStatistics statistics;
 		for (int i = 0; i < max_prefit_remv; i++)
 		{
 			auto& chunkTrace = *filterChunk.trace_ptr;
@@ -1269,30 +1277,30 @@ int KFState::filterKalman(
 			KFKey	badState;
 			int		badMeasIndex = -1;
 
-			kfState.preFitSigmaCheck(chunkTrace, kfMeas, badState, badMeasIndex, chunkSumOfSqTestStat, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);
+			kfState.preFitSigmaCheck(chunkTrace, kfMeas, badState, badMeasIndex, statistics, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);
 			
 			if (badState.type)		{	chunkTrace << std::endl << "Prefit check failed state test";		bool keepGoing = doStateRejectCallbacks	(chunkTrace, kfMeas, badState);			/*continue;*/	}	//always fallthrough
 			if (badMeasIndex >= 0)	{	chunkTrace << std::endl << "Prefit check failed measurement test";	bool keepGoing = doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex);		continue;		}	//retry next iteration	
 			else					{	chunkTrace << std::endl << "Prefit check passed";																									break;			}
 		}
 
-		prefitSumOfSqTestStat	+= chunkSumOfSqTestStat;
+		testStatistics.sumOfSquaresPre	+= statistics.sumOfSquares;
+		testStatistics.averageRatioPre	+= statistics.averageRatio / filterChunkList.size();
 	}
 
 	if	(  sigma_check 
 		|| w_test)
 	{
-		trace << std::endl << "Sum-of-squared test statistics (prefit): "	<< prefitSumOfSqTestStat	<< std::endl;
+		trace << std::endl << "Sum-of-squared test statistics (prefit): "	<< testStatistics.sumOfSquaresPre	<< std::endl;
 	}
 	
 	MatrixXd Pp = P;
 	VectorXd xp = x;
 			 dx = VectorXd::Zero(x.rows());
 	
-	double postfitSumOfSqTestStat = 0;
 	for (auto& filterChunk : filterChunkList)
 	{
-		double chunkSumOfSqTestStat = 0;
+		KFStatistics statistics;
 		for (int i = 0; i < max_filter_iter; i++)
 		{
 			auto& chunkTrace = *filterChunk.trace_ptr;
@@ -1307,7 +1315,7 @@ int KFState::filterKalman(
 			
 // 			chunkTrace << "\nFrom " << filterChunk.begH << " for " << filterChunk.numH;
 // 			chunkTrace << "\nStat " << filterChunk.begX << " for " << filterChunk.numX;
-	// 		outputStates(chunkTrace);
+	// 		outputStates(chunkTrace, " Debug");
 
 			if (sigma_check == false)	
 			{
@@ -1317,23 +1325,20 @@ int KFState::filterKalman(
 			KFKey	badState;
 			int		badMeasIndex = -1;
 			
-			kfState.postFitSigmaChecks(chunkTrace, kfMeas, xp, dx, i, badState, badMeasIndex, chunkSumOfSqTestStat, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);
+			kfState.postFitSigmaChecks(chunkTrace, kfMeas, xp, dx, i, badState, badMeasIndex, statistics, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);
 			
 			if (badState.type)		{	chunkTrace << std::endl << "Postfit check failed state test";		bool keepGoing = doStateRejectCallbacks	(chunkTrace, kfMeas, badState);			/*continue;*/	}	//always fallthrough
 			if (badMeasIndex >= 0)	{	chunkTrace << std::endl << "Postfit check failed measurement test";	bool keepGoing = doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex);		continue;		}	//retry next iteration	
 			else					{	chunkTrace << std::endl << "Postfit check passed";																									break;			}	//all ok, finish
 		}
 
-		postfitSumOfSqTestStat += chunkSumOfSqTestStat;
+		testStatistics.sumOfSquaresPost	+= statistics.sumOfSquares;
+		testStatistics.averageRatioPost	+= statistics.averageRatio / filterChunkList.size();
 	}
 
 	if (sigma_check)	
-		trace << std::endl << "Sum-of-squared test statistics (postfit): " << postfitSumOfSqTestStat << std::endl;
+		trace << std::endl << "Sum-of-squared test statistics (postfit): " << testStatistics.sumOfSquaresPost << std::endl;
 
-	double	chiSq		= 0;
-	double	dof			= 0;
-	double	chiSqPerDof	= 0;
-	double	qc			= 0;
 	if (chi_square_test)
 	{
 		for (auto& filterChunk : filterChunkList)
@@ -1342,38 +1347,40 @@ int KFState::filterKalman(
 
 			switch (chi_square_mode)
 			{
-				case E_ChiSqMode::INNOVATION:	{	chiSq += kfState.innovChiSquare(chunkTrace, kfMeas,     filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);	break;	}
-				case E_ChiSqMode::MEASUREMENT:	{	chiSq += kfState.measChiSquare( chunkTrace, kfMeas, dx, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);	break;	}
-				case E_ChiSqMode::STATE:		{	chiSq += kfState.stateChiSquare(chunkTrace, Pp,     dx, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);	break;	}
+				case E_ChiSqMode::INNOVATION:	{	testStatistics.chiSq += kfState.innovChiSquare(chunkTrace, kfMeas,     filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);	break;	}
+				case E_ChiSqMode::MEASUREMENT:	{	testStatistics.chiSq += kfState.measChiSquare( chunkTrace, kfMeas, dx, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);	break;	}
+				case E_ChiSqMode::STATE:		{	testStatistics.chiSq += kfState.stateChiSquare(chunkTrace, Pp,     dx, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);	break;	}
 				default:							break;
 			}
 		}
 
 		trace << std::endl << "Number of measurements:" << kfMeas.A.rows() << "\tNumber of states:" << kfState.x.rows() - 1;
 
-		if (chi_square_mode == +E_ChiSqMode::STATE)	dof	= kfState.x.rows() - 1;
-		else										dof	= kfMeas. A.rows();
+		if (chi_square_mode == +E_ChiSqMode::STATE)	testStatistics.dof	= kfState.x.rows() - 1;
+		else										testStatistics.dof	= kfMeas. A.rows();
 
-		chiSqPerDof	= chiSq / dof;
+		testStatistics.chiSqPerDof	= testStatistics.chiSq / testStatistics.dof;
 
 		// check against threshold
 		boost::math::normal normDist;
 		double	alpha = cdf(complement(normDist, sigma_threshold)) * 2;	//two-tailed
 
-		boost::math::chi_squared chiSqDist(dof);
-		qc = quantile(complement(chiSqDist, alpha));
-		if (chiSq <= qc)	trace << std::endl << "Chi-square test passed";
-		else				trace << std::endl << "Chi-square test failed";
+		boost::math::chi_squared chiSqDist(testStatistics.dof);
+		testStatistics.qc = quantile(complement(chiSqDist, alpha));
+		if (testStatistics.chiSq <= testStatistics.qc)		trace << std::endl << "Chi-square test passed";
+		else												trace << std::endl << "Chi-square test failed";
 
-		trace << std::endl << "Chi-square increment: " << chiSq << "\tThreshold: " << qc << "\tDegree of freedom: " << dof << "\tChi-square per DOF: " << chiSqPerDof << std::endl;
+		trace << std::endl 
+		<< "Chi-square increment: "	<< testStatistics.chiSq 
+		<< "\tThreshold: "			<< testStatistics.qc 
+		<< "\tDegree of freedom: "	<< testStatistics.dof 
+		<< "\tChi-square per DOF: "	<< testStatistics.chiSqPerDof << std::endl;
 	}
 
-#	ifdef ENABLE_MONGODB
 	if (acsConfig.output_mongo_test_stats)
 	{
-		mongoTestStat(kfState, prefitSumOfSqTestStat, postfitSumOfSqTestStat, chiSq, qc, dof, chiSqPerDof);
+		mongoTestStat(kfState, testStatistics);
 	}
-#	endif
 
 // 	if (pass)
 	{
@@ -1740,7 +1747,7 @@ void KFState::leastSquareInitStatesA(
 	if (leastSquareMeas.R.rows() < leastSquareMeas.A.cols())
 	{
 		trace << std::endl << "INSUFFICIENT MEASUREMENTS FOR LEAST SQUARES " << leastSquareMeas.R.rows() <<  " " << x.rows();
-		trace << std::endl << "Setting variances to large initial values ";;
+		trace << std::endl << "Setting variances to large initial values ";
 		for (int i = 0; i < newStateIndicies.size(); i++)
 		{
 			int index = newStateIndicies[i];
@@ -1856,12 +1863,13 @@ VectorXd KFState::getSubState(
 */
 void KFState::outputStates(
 		Trace&		trace,	///< Trace to output to
+		string		suffix,	///< Suffix to append to state block info tag in trace files
 		int			begX,	///< Index of first state element to process
 		int			numX)   ///< Number of state elements to process
 {
 	tracepdeex(2, trace, "\n\n");
 
-	trace << std::endl << "+ States" << std::endl;
+	trace << std::endl << "+ States" << suffix << std::endl;
 	
 	tracepdeex(2, trace, "#\t%19s\t%20s\t%5s\t%3s\t%3s\t%13s\t%16s\t%10s\n", "Time", "Type", "Str", "Sat", "Num", "State", "Variance", "Adjust");
 
@@ -1890,7 +1898,8 @@ void KFState::outputStates(
 
 		tracepdeex(2, trace, "*\t%19s\t%20s\t%5s\t%3s\t%3d\t%13.4f\t%16.9f\t%10.3f\n", time.to_string(0).c_str(), type.c_str(), key.str.c_str(), key.Sat.id().c_str(), key.num, _x, _p, _dx);
 	}
-	trace << "- States" << std::endl;
+	
+	trace << "- States" << suffix << std::endl;
 }
 
 void KFState::outputCorrelations(

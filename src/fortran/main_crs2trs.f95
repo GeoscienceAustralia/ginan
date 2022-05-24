@@ -42,7 +42,7 @@
       REAL (KIND = prec_d) :: mjd_igu
       INTEGER (KIND = prec_int4) :: n_interp
       INTEGER (KIND = prec_int8) :: mjd_UTC_day
-      INTEGER (KIND = prec_int1) :: EOP_sol
+      INTEGER (KIND = prec_int1) :: EOP_sol, EOP_sol2
       INTEGER (KIND = prec_int2) :: iau_model
       DOUBLE PRECISION EOP_cr(EOP_MAX_ARRAY), EOP_cr2(EOP_MAX_ARRAY)
 ! ----------------------------------------------------------------------
@@ -50,7 +50,7 @@
       REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE :: R_Matrix  
       INTEGER (KIND = prec_int2) :: AllocateStatus, DeAllocateStatus
 ! ----------------------------------------------------------------------
-      REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE :: EOP_days	  
+      REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE :: EOP_days, ERP_days  
 
 
 Print *,"ICRF-ITRF transformation matrix and EOP Data processing"
@@ -137,11 +137,11 @@ CALL iau_CAL2JD ( IY, IM, ID, DJM0, mjd, J_flag )
 ! - IERS Earth Orientation Center:			C04 solution
 ! - IERS Rapid Service/Prediction Center:	finals2000A.daily solution
 ! ----------------------------------------------------------------------
-IF (EOP_sol == 1 .OR. EOP_sol == 2) THEN  
+IF (EOP_sol == EOP_C04T .OR. EOP_sol == EOP_FAST) THEN  
 
 ! ----------------------------------------------------------------------
 ! EOP data reading
-CALL eop_data (mjd_TT, EOP_fname, EOP_sol, n_interp , EOP_days)
+CALL eop_data (mjd_TT, EOP_fname, EOP_sol, 0, n_interp , EOP_days)
 !print *,"EOP_days", EOP_days
 ! ----------------------------------------------------------------------
 ! EOP data corrections due to tidal variations
@@ -151,9 +151,12 @@ CALL eop_cor (mjd_TT, EOP_days , EOP_sol, n_interp, EOP_cr)
 ! ----------------------------------------------------------------------
 ! Case 2. ERP by IGS ultra-rapid data: EOP reading and interpolation
 ! ----------------------------------------------------------------------
-ELSEIF (EOP_sol == 3)  THEN 
+ELSEIF (EOP_sol == EOP_SUPER_FAST)  THEN 
 ! EOP ultra-rapid: ERP by IGS and dX,dY (IAU 2000A) by IERS RS/PC (finals2000A.daily)
-	CALL eop_igu (mjd_TT, ERP_fname, EOP_days, EOP_cr)
+        EOP_sol2 = EOP_FAST
+        CALL eop_data (mjd_TT, ERP_fname, EOP_sol2, 0, n_interp, EOP_days)
+        CALL eop_data (mjd_TT, ERP_fname, EOP_sol, 0, n_interp, ERP_days)
+	CALL eop_igu (mjd_TT, ERP_fname, ERP_days, EOP_days, n_interp, EOP_cr)
 END IF
 ! ----------------------------------------------------------------------
 

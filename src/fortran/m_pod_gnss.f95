@@ -170,7 +170,7 @@ SUBROUTINE pod_gnss (EQMfname, VEQfname, PRNmatrix, orbpara_sigma, orbits_partia
       REAL (KIND = prec_d), DIMENSION(:,:,:), ALLOCATABLE :: orbdiff2
 ! ----------------------------------------------------------------------
       CHARACTER (LEN=512) :: EQMfname_PRN, VEQfname_PRN                       
-      CHARACTER (LEN=100) :: mesg
+      CHARACTER (LEN=512) :: mesg
       character (len=512) :: line !must be private to thread
 
       INTEGER (KIND = prec_int4) :: J, idx
@@ -207,9 +207,15 @@ CLOSE (UNIT=7, STATUS="DELETE")
 ! Ocean Tides model
 !CALL prm_ocean (EQMfname)                                                                      
 ! ----------------------------------------------------------------------
-
 !Allocate a global array for storing ERP values (NJD, XP, YP, UT1-UTC)
-ALLOCATE (ERP_day_IC(yml_eop_int_points,4), STAT = AllocateStatus)
+sz1 = yml_orbit_arc_determination + yml_orbit_arc_prediction + yml_orbit_arc_backwards
+if (24 * (sz1/24) == sz1) then
+    sz1 = sz1/24
+else
+    sz1 = sz1/24 + 1
+end if
+sz1 = sz1 + yml_eop_int_points + 1
+ALLOCATE (ERP_day_IC(sz1,4), STAT = AllocateStatus)
       IF (AllocateStatus /= 0) THEN
          PRINT *, "Error: Not enough memory"
          PRINT *, "Error: SUBROUTINE orbitIC in module m_pod_gnss.f95"
@@ -217,7 +223,7 @@ ALLOCATE (ERP_day_IC(yml_eop_int_points,4), STAT = AllocateStatus)
 !         STOP "*** Not enough memory ***"
       END IF
 ERP_day_IC = 0.d0
-ALLOCATE (ERP_day_glb(yml_eop_int_points,EOP_MAX_ARRAY), STAT = AllocateStatus)
+ALLOCATE (ERP_day_glb(sz1,EOP_MAX_ARRAY), STAT = AllocateStatus)
 
 if (AllocateStatus /= 0) then
         print *,'ERROR: eop_data - allocating ERP_day_glb'
@@ -261,6 +267,15 @@ mjd = mjd0 + Sec_00 / 86400.0D0
 CALL iau_JD2CAL ( jd0, mjd, Iyear, Imonth, Iday, FD, J_flag )
 
 END IF
+
+! For pod_data mode reset the initial epodh
+if (yml_pod_mode == MODE_DATA_INT) then
+        Iyear = yml_pod_data_initial_year
+        Imonth = yml_pod_data_initial_month
+        Iday = yml_pod_data_initial_day
+        Sec_00 = yml_pod_data_initial_seconds
+end if
+
 ! ----------------------------------------------------------------------
 print *,"Satellites number: ", Nsat, "IC Epoch: ", Iyear, Imonth, Iday, Sec_00
 print *," "
@@ -292,7 +307,7 @@ write (param_value, *) Sec_00
 Call write_prmfile (EQMfname, fname_id, param_id, param_value)
 Call write_prmfile (VEQfname, fname_id, param_id, param_value)
 ! ----------------------------------------------------------------------
-else
+else 
     yml_pod_data_initial_year = Iyear
     yml_pod_data_initial_month = Imonth
     yml_pod_data_initial_day = Iday
@@ -621,7 +636,7 @@ end if
 ! pulse estimation array with an index of isat 
 if(yml_pulses) PULSES_Array_sat_glb (isat,:,:) = PULSES_Array_aposteriori_glb(:,:)
 
-
+if (yml_pod_mode .ne. MODE_DATA_INT) then
 IF (yml_ic_input_format /= IC_FILE) THEN
 ! Diagonal elements in Xsigma matrix (Orbit parameter uncertainties)
         sz1 = size(Xsigma, DIM = 1)
@@ -629,6 +644,8 @@ IF (yml_ic_input_format /= IC_FILE) THEN
 
         IF (sz1 /= sz2) THEN
         PRINT*,'The Xsigma is not a square matrix !!'
+        PRINT*, "sz1 = ", sz1, ", sz2 = ", sz2
+!        PRINT*, "yml_veq_refsys = ", yml_veq_refsys
         STOP
         END IF
 
@@ -637,6 +654,8 @@ IF (yml_ic_input_format /= IC_FILE) THEN
         END DO
 
 END IF
+END IF
+
 ! ----------------------------------------------------------------------
 ! Create Orbit IC's matrix :: Write estimates for Satellite(isat) SVEC_Zo_ESTIM and ECOM_accel_aposteriori
 ! ----------------------------------------------------------------------

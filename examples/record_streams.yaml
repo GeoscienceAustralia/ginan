@@ -1,10 +1,10 @@
 
 station_data:
 
-    stream_root: "http://mark_yeo:q7MSDjLbvj@tier3.auscors.ga.gov.au:2101/" 
+    stream_root: "https://<USER>:<PASS>@ntrip.test-data.gnss.ga.gov.au/" 
         
     nav_streams:
-        - SSRA00GAA1
+        - GAT000AUS0
         
     ssr_input_antenna_offset: APC
 

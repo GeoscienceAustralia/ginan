@@ -59,7 +59,7 @@ void WL_newsect(
 	amb.mea_fin = time;
 	amb.int_amb = INVALID_WLVAL;
 	
-	tracepdeex(ARTRCLVL+1, trace, "\n#ARES_WLAR New WL archive entry: %s %s %s %4d", rec.c_str(), sat.id().c_str(), time.to_string(0).c_str(), ind );
+	tracepdeex(ARTRCLVL+2, trace, "\n#ARES_WLAR New WL archive entry: %s %s %s %4d", rec.c_str(), sat.id().c_str(), time.to_string(0).c_str(), ind );
 	
 	WL_archive[key][ind] = amb;
 	WL_arch_ind[key]     = ind;
@@ -142,7 +142,7 @@ void  updat_WLfilt(
 		}
 	}
 	
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR Updating WL filter %s %s %s, nmea = %4d", time.to_string(0), rec, sys._to_string(), amblst.size());
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR Updating WL filter %s %s %s, nmea = %4d", time.to_string(0).c_str(), rec, sys._to_string(), amblst.size());
 	
 	/* Remove ambiguities for Unmeasured States */
 	for (auto [key, index] : WLambKF.kfIndexMap) 
@@ -232,7 +232,7 @@ void  updat_WLfilt(
 				WLmeas.setValue(0);
 				WLmeas.setNoise(FIXED_AMB_VAR);
 				
-				tracepdeex(ARTRCLVL+1, trace, "\n WLpiv    %s %10.4f %13.4e", rec,  0, FIXED_AMB_VAR);
+				tracepdeex(ARTRCLVL+1, trace, "\n WLpiv    %s %10.4f %13.4e", rec.c_str(),  0, FIXED_AMB_VAR);
 		
 				init.Q = 0;
 				KFKey kfKey	= {KF::REC_SYS_BIAS, sat0, rec, typ};
@@ -298,7 +298,7 @@ void  updat_WLfilt(
 	
 	if (AR_VERBO)
 	{
-		WLambKF.outputStates(trace);
+		WLambKF.outputStates(trace, " WL");
 		WLambKF.output_residuals = false;
 	}
 	
@@ -349,7 +349,7 @@ void  reslv_WLambg(
 	
 	int nfix = GNSS_AR(trace, ambState, opt);
 	
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR Resolving WL ambiguities %s %s %s %4d %4d", time.to_string(0), rec, sys._to_string(), ambState.aflt.size(), nfix);
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR Resolving WL ambiguities %s %s %s %4d %4d", time.to_string(0).c_str(), rec.c_str(), sys._to_string(), ambState.aflt.size(), nfix);
 	
 	KFState KFcopy = WLambKF;
 	VectorXd fixX = ambState.zfix;
@@ -390,7 +390,7 @@ void  reslv_WLambg(
 	KFcopy.filterKalman(trace, combined, false);
 
 	if (AR_VERBO)
-		KFcopy.outputStates(trace);
+		KFcopy.outputStates(trace, " AR");
 
 	for (auto& [kfKey, index] : KFcopy.kfIndexMap)
 	{
@@ -534,7 +534,7 @@ int  retrv_WLambg(
 	
 	for (auto& [ind,amb] : ambmap)
 	{
-		tracepdeex(ARTRCLVL+2, trace, "\n      Entry: %s %s %d", amb.sec_ini.to_string(0), amb.mea_fin.to_string(0), amb.hld_epc);
+		tracepdeex(ARTRCLVL+2, trace, "\n      Entry: %s %s %d", amb.sec_ini.to_string(0).c_str(), amb.mea_fin.to_string(0).c_str(), amb.hld_epc);
 		
 		if (      amb.hld_epc  < 0) 		continue;
 		if ((time-amb.mea_fin) > DTTOL) 	continue;
@@ -577,9 +577,14 @@ int  updat_WLambg(
 		if (key.Sat.sys != sys)				continue;
 		if (key.num     != typ)				continue;
 		if (key.str     != rec && opt.endu)	continue;
-		if (ambmap.empty()) 			continue;
+		if (ambmap.empty()) 				continue;
 		
 		int WLind = WL_arch_ind[key];
+		
+		if (opt.clear_old_amb) 
+		for (int i=0; i<WLind; i++)
+			ambmap.erase(i);
+		
 		GinAR_amb& amb = ambmap[WLind];
 		if (amb.hld_epc >= 0) 
 			amb.hld_epc++; 

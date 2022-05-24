@@ -21,63 +21,71 @@ using std::map;
 #include "enums.h"
 
 
-
-typedef map<E_FType, Vector3d> PcoMapType;
-
 struct PhaseCenterData
 {
 	/* antenna parameter type */
-	int nf;						/* number of frequencies */
-	string type;				/* antenna type */
-	string code;				/* serial number or satellite code */
-	string svn;					/* SVN in satellites */
-	string cospar;				/* Cospar code satellites */
-	string calibModel;			/* name of the antenna calibration model */
-	double aziDelta;			/* azimuth increment (degree) */
-	double zenStart;
-	double zenStop;
-	double zenDelta;
-	int nz;						/* number of zenith intervals */
-	int naz;					/* number of non-azimuth dependent intervals */
+	E_FType	ft;
+	string	type;					///< antenna type 
+	string	code;					///< serial number or satellite code 
+	string	svn;					///< SVN in satellites 
+	string	cospar;					///< Cospar code satellites 
+	string	calibModel;				///< name of the antenna calibration model 
+	double	aziDelta;				///< azimuth increment (degree) 
+	double	zenStart;
+	double	zenStop;
+	double	zenDelta;
+	int		nz;						///< number of zenith intervals 
+	int		naz;					///< number of non-azimuth dependent intervals 
 
-	double tf[6];				/* valid from YMDHMS */
-	double tu[6];				/* valid until YMDHMS */
-	PcoMapType			pcoMap;			/* phase centre offsets (m) */
-	map<int, 			vector<double>>		PCVMap1D;
-	map<int, map<int,	vector<double>>>	PCVMap2D;
+	double tf[6];					///< valid from YMDHMS 
+	double tu[6];					///< valid until YMDHMS 
+	
+				vector<double>	PCVMap1D;
+	map<int,	vector<double>>	PCVMap2D;
 };
-
 
 //forward declaration for pointer below
 struct SatSys;
 struct nav_t;
 
-void satantoff(
-	Trace&				trace,
-	GTime				time,
-	Vector3d&			rs,
-	SatSys&				Sat,
-	map<int, double>&	lamMap,
-	Vector3d&			dant,
-	PcoMapType*			pcoMap_ptr);
-	
-void satantoff(
+void satAntOff(
 	Trace&				trace,
 	GTime				time,
 	Vector3d&			rSat,
-	E_FType 			ft,
+	SatSys& 			Sat,
+	map<int, double>&	lamMap,
 	Vector3d&			dAnt,
-	PcoMapType*			pcoMap_ptr);
+	SatStat*			satStat_ptr = nullptr);
+	
+Vector3d satAntOff(
+	Trace&				trace,
+	GTime				time,
+	Vector3d&			rSat,
+	SatSys& 			Sat,
+	E_FType 			ft,
+	SatStat*			satStat_ptr = nullptr);
 
-void recpcv(PhaseCenterData *pc, int freq, double el, double azi, double& pcv);
-void recpco(PhaseCenterData *pc, int freq, Vector3d& pco);
-void satpcv(PhaseCenterData *pc, double nadir, double *pcv);
+Vector3d antPco(
+	string		id,
+	E_FType		ft,
+	GTime		time,
+	bool		interp = false);
+
+double antPcv(
+	string		id,
+	E_FType		ft,
+	GTime		time,
+	double		aCos,
+	double		azi = 0);
 
 
-PhaseCenterData* findAntenna(
-	string	code,
-	GTime	time,
-	nav_t&	nav);
+
+bool findAntenna(
+	string				code,
+	GTime				time,
+	nav_t&				nav,
+	E_FType				ft,
+	PhaseCenterData**	pcd_ptr_ptr = nullptr);
 
 int readantexf(
 	string file, 
@@ -85,10 +93,5 @@ int readantexf(
 
 void radome2none(
 	string& antenna_type);
-
-void interp_satantmodel(
-	PhaseCenterData&			pcv,
-	double				nadir,
-	map<int, double>&	dAntSat);
 
 #endif

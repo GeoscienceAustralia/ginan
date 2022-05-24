@@ -97,9 +97,10 @@ SUBROUTINE eop_cor (mjd, EOP_days, EOP_sol, n_interp , EOP_cr)
       DOUBLE PRECISION dUT1_UTC, ut1utc_int, UT1UTC_cor
       DOUBLE PRECISION dX_eop, dY_eop, LOD 
 ! ----------------------------------------------------------------------
-      INTEGER (KIND = prec_int2) :: i, sz1_EOP, sz2_EOP
+      INTEGER i, sz1_EOP, sz2_EOP
       DOUBLE PRECISION x_int, y_int, ut1_int
-      REAL (KIND = prec_d) :: MJDint_ar(n_interp), xint_ar(n_interp), yint_ar(n_interp), UT1int_ar(n_interp)
+      REAL (KIND = prec_d), dimension (:), allocatable :: MJDint_ar, xint_ar, yint_ar, UT1int_ar
+      INTEGER allocate_status
 
 ! ----------------------------------------------------------------------
 ! Time Systems transformation											 
@@ -122,6 +123,12 @@ SUBROUTINE eop_cor (mjd, EOP_days, EOP_sol, n_interp , EOP_cr)
 ! EOP data array
 sz1_EOP = SIZE (EOP_days,DIM=1)
 sz2_EOP = SIZE (EOP_days,DIM=2)
+
+ALLOCATE(mjdint_ar(sz1_EOP), Stat = allocate_status)
+ALLOCATE(xint_ar(sz1_EOP), Stat = allocate_status)
+ALLOCATE(yint_ar(sz1_EOP), Stat = allocate_status)
+ALLOCATE(ut1int_ar(sz1_EOP), Stat = allocate_status)
+
 ! ----------------------------------------------------------------------
 ! Ensure LOD, dX_eop, dY_eop are set to something sensible
 LOD = 0.d0
@@ -137,11 +144,11 @@ dY_eop = 0.d0
          UT1int_ar(i) = EOP_days(i,EOP_UT1)
 
 ! LOD (sec)
-!		 LOD_ar = EOP_days(i,5)
+!		 LOD_ar(i) = EOP_days(i,EOP_LOD)
 
 ! dX,dY (arcsec)													
-!		 dX_ar = EOP_days(i,6)
-!		 dY_ar = EOP_days(i,7)
+!		 dX_ar(i) = EOP_days(i,EOP_dX)
+!		 dY_ar(i) = EOP_days(i,EOP_dY)
 
 If (mjd_UTC_day == EOP_days(i,EOP_MJD) ) then
       LOD =    EOP_days(i,EOP_LOD)
@@ -154,7 +161,7 @@ End If
 ! ----------------------------------------------------------------------
 ! Diurnal and semi-diurnal tidal corrections to EOP data by IERS
 ! "Polar motion" and "UT1" corrections due to ocean tidal and libration effects at interpolation epoch
-      CALL INTERP_iers (MJDint_ar, xint_ar, yint_ar, UT1int_ar, n_interp, mjd_UTC, x_int,y_int,ut1_int)
+      CALL INTERP_iers (MJDint_ar, xint_ar, yint_ar, UT1int_ar, sz1_EOP, n_interp, mjd_UTC, x_int,y_int,ut1_int)
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------

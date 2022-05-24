@@ -72,6 +72,7 @@ output_files:
 
     output_sinex:                   true
 
+    #enable_mongo:                   true
     output_mongo_measurements:      false
     output_mongo_states:            false
     output_mongo_metadata:          false

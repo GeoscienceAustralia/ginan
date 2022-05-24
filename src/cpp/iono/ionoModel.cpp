@@ -86,7 +86,7 @@ void update_ionosph_model(
 	if (acsConfig.ionFilterOpts.model== +E_IonoModel::MEAS_OUT) 
 		return; 
 
-	tracepde(2, trace,"UPDATE IONO MODEL ... %s\n", time.to_string(0));
+	tracepde(2, trace,"UPDATE IONO MODEL ... %s\n", time.to_string(0).c_str());
 	//count valid measurements for each station
 	map<string, map<E_Sys,int>>		stationlist;
 	map<SatSys, int>				satelltlist;
@@ -254,7 +254,7 @@ void update_ionosph_model(
 // 		trace << std::endl << " ------- AFTER IONO KALMAN FILTER --------" << std::endl;
 	}
 
-	iono_KFState.outputStates(trace);
+	iono_KFState.outputStates(trace, " Ion");
 	trace << std::endl << " -------------------------------------------------------------------------" << std::endl;
 	
 	MatrixXd atran = combinedMeas.A.transpose();
@@ -282,12 +282,12 @@ void update_ionosph_model(
 		
 		if (acsConfig.process_sys[dcbKey.Sat.sys])
 		{
-			outp_bias(trace, tsync, E_BiasType::DSB, "",			dcbKey.Sat,	E_ObsCode::L1C, E_ObsCode::L2W, bias, variance, acsConfig.ambrOpts.biasOutrate, CODE);
+			outp_bias(trace, tsync, "",			dcbKey.Sat,	E_ObsCode::L1C, E_ObsCode::L2W, bias, variance, acsConfig.ambrOpts.biasOutrate, CODE);
 		}
 		else if (dcbKey.str != "")
 		{
 			SatSys sat0 = {};
-			outp_bias(trace, tsync, E_BiasType::DSB, dcbKey.str,	sat0,		E_ObsCode::L1C, E_ObsCode::L2W, bias, variance, acsConfig.ambrOpts.biasOutrate, CODE);
+			outp_bias(trace, tsync, dcbKey.str,	sat0,		E_ObsCode::L1C, E_ObsCode::L2W, bias, variance, acsConfig.ambrOpts.biasOutrate, CODE);
 		}
 	}
 }

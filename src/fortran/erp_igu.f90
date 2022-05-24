@@ -1,4 +1,4 @@
-SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
+SUBROUTINE erp_igu (filename,mjd_t , erp,  igu_flag)
 
 
 ! ----------------------------------------------------------------------
@@ -20,8 +20,7 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
 ! Output arguments:
 ! - erp:			Array of the ERP data obtained from the .erp file
 !					ERP data are provided for two epochs every 6 hours
-!   				erp 2x5 matrix
-!   				erp (i,1:5) = [MJD xp yp UT1_UTC LOD]
+!   				erp (:) = [MJD xp yp UT1_UTC LOD]
 !   				MJD:     	MJD epoch referred in the .erp file
 !   				x,y:     	Polar motion coordinates (arcsec)
 !   				UT1_UTC: 	Difference between UT1 and UTC (sec)
@@ -43,32 +42,37 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
       REAL (KIND = prec_d), INTENT(IN) :: mjd_t
       CHARACTER (LEN=512), INTENT(IN) :: filename
 ! OUT
-      REAL (KIND = prec_d), INTENT(OUT) :: erp(2,EOP_MAX_ARRAY)
-      LOGICAL :: igu_flag
+      REAL (KIND = prec_d), INTENT(OUT) :: erp(EOP_MAX_ARRAY)
+      LOGICAL, INTENT(OUT)  :: igu_flag
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
 ! Local variables declaration
 ! ----------------------------------------------------------------------
       INTEGER (KIND = prec_int2) :: UNIT_IN, ios, ios_line, ios_data
-      INTEGER (KIND = prec_int8) :: i, erp_i
+      INTEGER (KIND = prec_int8) :: i, j, erp_i, erp_last, erp_j
       CHARACTER (LEN=100) :: Format_eop
       CHARACTER (LEN=170) :: line_ith  
       CHARACTER (LEN=20) :: char1, char2 
-      INTEGER (KIND = prec_int8) :: mjd_day
+      INTEGER (KIND = prec_int8) :: mjd_day, sz1, sz2
       REAL (KIND = prec_d) :: mjd_ith, Xpole,Ypole, UT1_UTC,LOD, Xsig,Ysig, UTsig,LODsig, Nr,Nf,Nt, Xrt,Yrt, Xrtsig,Yrtsig
-      REAL (KIND = prec_d) :: igu_erp(2,EOP_MAX_ARRAY)
+      REAL (KIND = prec_d) :: igu_erp(100,EOP_MAX_ARRAY),first_erp(EOP_MAX_ARRAY)
+      LOGICAL first
 ! ----------------------------------------------------------------------
 
-
-      igu_flag = .TRUE.
 
 ! ----------------------------------------------------------------------
       UNIT_IN = 9
       Format_eop = '(F8.2,2X, I6,  2(F12.7),2(F11.6),2(F11.6),2(F11.7),2F12.6)'
+      first = .false.
+      erp_last = 1
 ! ----------------------------------------------------------------------
 
+      if (.false.) print *, "erp_igu: looking for mjd ", mjd_t
 
+      igu_erp = 0.d0
+      erp = 0.d0
+      igu_flag = .false.
 ! ----------------------------------------------------------------------
 ! Open data file
       OPEN (UNIT = UNIT_IN, FILE = TRIM (filename), IOSTAT = ios)
@@ -83,12 +87,15 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
 ! ----------------------------------------------------------------------
       i = 0
       !data_i = 0
+      sz1 = size(igu_erp, 1)
+
       DO
-	     READ (UNIT=UNIT_IN,FMT='(A)',IOSTAT=ios_line) line_ith
+      READ (UNIT=UNIT_IN,FMT='(A)',IOSTAT=ios_line, END=30) line_ith
+      !print*, line_ith
 	     i = i + 1
 ! ----------------------------------------------------------------------
 ! End of file
-         IF (ios_line < 0) THEN
+         IF (ios_line > 0) THEN
 !            PRINT *, "End of file, i=", i
             EXIT		
          END IF
@@ -96,12 +103,27 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
 ! Data
   	     READ (line_ith, * , IOSTAT=ios_data) char1  ! 1st word
          if (char1 == 'MJD') then
-	        READ (UNIT=UNIT_IN,FMT='(A)',IOSTAT=ios_line) line_ith
-            do erp_i = 1 , 2
-	           READ (UNIT=UNIT_IN,FMT=*,IOSTAT=ios_line) mjd_ith, Xpole, Ypole, UT1_UTC, LOD, &
+                 !print *, "read mjd header line"
+                 ! next line is the units line : skip
+                 READ (UNIT=UNIT_IN,FMT='(A)',IOSTAT=ios_line, END=30) line_ith
+                 !print *, line_ith
+            erp_j = 1
+            DO
+            ! read sz1 lines at a time (sz1 - 1 after the first one)
+            do erp_i = erp_j , sz1
+            READ (UNIT=UNIT_in, FMT='(A)',IOSTAT=ios_line, END=30) line_ith
+            !print *, line_ith
+               if (ios_line > 0) then
+                   exit
+               end if
+               Xrt = 0.d0
+               Yrt = 0.d0
+               READ (line_ith,*, ERR=10, END=10) mjd_ith, Xpole, Ypole, UT1_UTC, LOD, &
                                                          Xsig,Ysig, UTsig,LODsig, Nr,Nf,Nt, Xrt,Yrt, Xrtsig,Yrtsig
                ! ERP matrix for the two epochs provided in the *.erp file			
-               igu_erp (erp_i,EOP_MJD) = mjd_ith
+10             igu_erp (erp_i,EOP_MJD) = mjd_ith
+               !print *, "new data line"
+               !print *, mjd_ith, Xpole, Ypole, UT1_UTC, LOD, Xsig, Ysig, UTsig, LODsig, Xrt, Yrt
                igu_erp (erp_i,EOP_X) = Xpole * 1.0D-6    ! Conversion to arcsec 
                igu_erp (erp_i,EOP_Y) = Ypole * 1.0D-6    ! Conversion to arcsec 
                igu_erp (erp_i,EOP_UT1) = UT1_UTC * 1.0D-7  ! Conversion to seconds
@@ -112,27 +134,79 @@ SUBROUTINE erp_igu (filename,mjd_t , erp, igu_flag)
                igu_erp (erp_i,EOP_LOD_ERR) = LODsig * 1.0D-7 ! conversion to seconds^M
                igu_erp (erp_i,EOP_DX) = Xrt * 1.0D-6 ! conversion to arcsec^M
                igu_erp (erp_i,EOP_DY) = Yrt * 1.0D-6 ! conversion to arc sec^M
+               erp_last = erp_i
+               if (.not. first) then
+                    first_erp(:) = igu_erp(erp_i, :)
+                    first = .true.
+               end if
             end do
-         end if
-! ----------------------------------------------------------------------
-      END DO
-      CLOSE (UNIT=UNIT_IN)
-! ----------------------------------------------------------------------
-
-! Earth Rotation Parameters of .erp file
-         erp = igu_erp
-
 ! ----------------------------------------------------------------------
 ! Test the time coverage
-      if ( mjd_t >= igu_erp(1,EOP_MJD) .and. mjd_t <= igu_erp(2,EOP_MJD) ) then
+      !print*,  mjd_t, erp_last
+      do i = 1, erp_last - 1
+          !print *, igu_erp(i, EOP_MJD)
+      if ( mjd_t >= igu_erp(i,EOP_MJD) .and. mjd_t < igu_erp(i+1,EOP_MJD) ) then
          !erp = igu_erp
          igu_flag = .TRUE.
-      else 
-	     igu_flag = .FALSE.
+         erp = igu_erp(i,:)
          !PRINT *,"d_mjd:", mjd_t-igu_erp(1,1), mjd_t-igu_erp(2,1)
          !PRINT *,"igu_erp:", igu_erp
+         if (.false.) print *, mjd_t, i, erp
+         exit
       end if
+      end do
+
+! ----------------------------------------------------------------------
+        if (igu_flag) goto 30
+
+        igu_erp(1,:) = igu_erp(erp_last,:)
+        erp_j = 2
+
+! ----------------------------------------------------------------------
+      END DO
+      end if
+      END DO
+30    CLOSE (UNIT=UNIT_IN)
+
+
+if (.not. igu_flag) then
+! ----------------------------------------------------------------------
+! Test the time coverage
+      !print*,  mjd_t, erp_last
+      do i = 1, erp_last - 1
+          !print *, igu_erp(i, EOP_MJD)
+      if ( mjd_t >= igu_erp(i,EOP_MJD) .and. mjd_t < igu_erp(i+1,EOP_MJD) ) then
+         !erp = igu_erp
+         igu_flag = .TRUE.
+         erp = igu_erp(i, :)
+         !PRINT *,"d_mjd:", mjd_t-igu_erp(1,1), mjd_t-igu_erp(2,1)
+         !PRINT *,"igu_erp:", igu_erp
+         exit
+      end if
+      end do
+
+end if 
 ! ----------------------------------------------------------------------
 
+if (.not. igu_flag) then
+        ! no coverage of mjd from file. Put the last entries in so can linearly 
+        ! interpolate up to 24 hours into future
+        if (mjd_t < igu_erp(1, EOP_MJD)) then
+             ! mjd is before first entry. put first entry in
+             erp = first_erp
+             if (mjd_t + 1 < igu_erp(1, EOP_MJD)) then
+                 print *, "error: mjd requested < 24 hours behind earliest ERP data"
+                 STOP
+             end if
+             igu_flag = .true.
+        else
+            erp = igu_erp(erp_last,:)
+            if (igu_erp(erp_last, EOP_MJD) + 1  < mjd_t) then
+                print *, "error: mjd requested > 24 hours in front of latest ERP data"
+                STOP
+            end if
+            igu_flag = .true.
+        end if
+end if
 
 END

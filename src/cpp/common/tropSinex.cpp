@@ -78,6 +78,8 @@ void setTropDesc(
 	theSinex.tropDesc.vecStrings["TROPO PARAMETER NAMES"].clear();
 	theSinex.tropDesc.vecStrings["TROPO PARAMETER UNITS"].clear();
 	theSinex.tropDesc.vecStrings["TROPO PARAMETER WIDTH"].clear();
+	
+	if (theSinex.tropSolList.empty() == false)
 	for (auto& entry : theSinex.tropSolList.front().solutions)
 	{
 		theSinex.tropDesc.vecStrings["TROPO PARAMETER NAMES"].push_back(entry.type);
@@ -151,7 +153,7 @@ int writeTropSiteId(
 
 		Vector3d& antdel	= stationSinex.ecc;
 		Vector3d dr1;
-		enu2ecef(pos, antdel.data(), dr1.data());
+		enu2ecef(pos, antdel, dr1);
 
 		// Calc ant pos (ECEF), convert to lat/lon/ht
 		rRec += dr1;
@@ -210,9 +212,9 @@ int writeTropSiteRec(
 		if (receiver.recfirm.	empty())	receiver.recfirm	= "-----";
 
 		tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %20s %-20s %s\n",
-					receiver.sitecode,
-					receiver.ptcode,
-					receiver.solnid,
+					receiver.sitecode	.c_str(),
+					receiver.ptcode		.c_str(),
+					receiver.solnid		.c_str(),
 					receiver.typecode,
 					receiver.recstart[0],
 					receiver.recstart[1],
@@ -220,9 +222,9 @@ int writeTropSiteRec(
 					receiver.recend[0],
 					receiver.recend[1],
 					receiver.recend[2],
-					receiver.rectype,
-					receiver.recsn,
-					receiver.recfirm);
+					receiver.rectype	.c_str(),
+					receiver.recsn		.c_str(),
+					receiver.recfirm	.c_str());
 	}
 
 	out << "-SITE/RECEIVER" << endl;
@@ -242,9 +244,10 @@ void setTropSiteAntCalibModelsFromNav()
 			||ant.calibModel == defaultStr)
 		{
 			ant.calibModel = defaultStr;
-			PhaseCenterData* pcd = findAntenna(ant.anttype, time, nav);
-			if (pcd != nullptr)
-				ant.calibModel = pcd->calibModel;
+			PhaseCenterData* pcd_ptr;
+			bool pass = findAntenna(ant.anttype, time, nav, F1, &pcd_ptr);
+			if (pass)
+				ant.calibModel = pcd_ptr->calibModel;
 		}
 	}
 }
@@ -490,9 +493,9 @@ void setTropSolsFromFilter(
 			case 0: //zenith
 			{
 				// Add on filter estimates
-				tropSumMap[id][typeWet]	.x		+= x;
+				tropSumMap[id][typeWet]		.x		+= x;
 				tropSumMap[id][typeTotal]	.x		+= x;
-				tropSumMap[id][typeWet]	.var	= newVar;
+				tropSumMap[id][typeWet]		.var	= newVar;
 				tropSumMap[id][typeTotal]	.var	= newVar;
 				break;
 			}
@@ -570,14 +573,15 @@ void setTropSolCommentList()
 {
 	// Adjust trop sol header fields
 	std::ostringstream headerFields;
+	
+	if (theSinex.tropSolList.empty() == false)
 	for (auto& entry : theSinex.tropSolList.front().solutions)
 	{
 		headerFields << " " << std::setw(entry.width) << entry.type;
 	}
 	
 	theSinex.tropSolCommentList.clear();
-	theSinex.tropSolCommentList.push_back("*STATION__ ____EPOCH_____");
-	theSinex.tropSolCommentList.front() += headerFields.str();
+	theSinex.tropSolCommentList.push_back("*STATION__ ____EPOCH_____" + headerFields.str());
 }
 
 /** Set troposphere solution data

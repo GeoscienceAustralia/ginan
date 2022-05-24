@@ -235,7 +235,7 @@ void getSatClksFromEph(
 		
 		obs.satNav_ptr = &nav.satNavMap[obs.Sat]; // for satpos_ssr()
 
-		int pass = satpos(std::cout, time, time, obs, ephType, E_OffsetType::COM, nav, nullptr, false);
+		int pass = satpos(std::cout, time, time, obs, ephType, E_OffsetType::COM, nav, false);
 		if (pass == false)
 		{
 			BOOST_LOG_TRIVIAL(warning)
@@ -300,8 +300,8 @@ void outputRinexClocksHeader(
 		"RINEX VERSION / TYPE");
 
 	tracepdeex(0,clockFile,"%-20s%-20s%4d%02d%02d %02d%02d%02d %4s%s\n",
-		acsConfig.analysis_program.c_str(),
-		acsConfig.analysis_agency.c_str(),
+		acsConfig.analysis_program	.c_str(),
+		acsConfig.analysis_agency	.c_str(),
 		(int)ep[0],
 		(int)ep[1],
 		(int)ep[2],

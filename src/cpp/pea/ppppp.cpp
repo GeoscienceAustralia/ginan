@@ -412,7 +412,7 @@ void propagateUncertainty(
 		i++;
 	}
 
-	propagatedState.outputStates(std::cout);
+	propagatedState.outputStates(std::cout, " Propagated");
 }
 
 
@@ -459,7 +459,7 @@ void PPP(
 	{
 // 		Instrument instrument("PPP output1");
 		
-		kfState.outputStates(trace);
+		kfState.outputStates(trace, " Predicted");
 	}
 	
 	//prepare a map of lists of measurements for use below
@@ -529,7 +529,7 @@ void PPP(
  		kfState.leastSquareInitStatesA(trace, combinedMeas, false, &dx, true);
 		
 		trace << std::endl << "Least Squares Initialised States";
-		kfState.outputStates(trace);
+		kfState.outputStates(trace, " Least Squares");
 	}
 	
 	list<FilterChunk>	filterChunkList;

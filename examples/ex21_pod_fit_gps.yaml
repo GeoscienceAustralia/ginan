@@ -34,6 +34,7 @@ pod_options:
    pseudobs_orbit_filename: products/igs19424.sp3 # Pseudo observations orbit filename       
    pseudobs_interp_step:    900          # Interval (sec) of the interpolated orbit
    pseudobs_interp_points:  12           # Number of data points used in Lagrange interpolation
+   IC_time:    2017 3 30 0 0 0
 
 #----------------------------------------------------------------------
 # Orbit arc length (in hours) 

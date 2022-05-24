@@ -60,11 +60,6 @@ int BS_satantoff( GTime time, SatSys Sat, Vector3d& rs, Vector3d& dant, int gloi
 	char id[5];
 	Sat.getId(id);
 	
-	PhaseCenterData* pcsat = findAntenna(Sat.id(), time, nav);
-
-	if (pcsat == nullptr) return -1;
-	auto& pcoMap = pcsat->pcoMap;
-	
 	E_FType j = F1;
 	E_FType k = F2;
 	double glonfrq1 = FREQ1_GLO + DFRQ1_GLO*gloind;
@@ -102,12 +97,8 @@ int BS_satantoff( GTime time, SatSys Sat, Vector3d& rs, Vector3d& dant, int gloi
 	for (int i = 0; i < 3; i++)	
 	{
 		/* ENU to NEU */
-		Vector3d pcoJ;
-		Vector3d pcoK;
-		if (pcoMap.find(j) == pcoMap.end())	pcoJ = Vector3d::Zero();
-		else								pcoJ = pcoMap[j];
-		if (pcoMap.find(k) == pcoMap.end())	pcoK = Vector3d::Zero();
-		else								pcoK = pcoMap[k];
+		Vector3d pcoJ = antPco(Sat.id(), j, time);
+		Vector3d pcoK = antPco(Sat.id(), k, time);
 		double dant1	= pcoJ[1] * ex(i)
 						+ pcoJ[0] * ey(i)
 						+ pcoJ[2] * ez(i);	//todo aaron, matrix

@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <math.h>    
 #include <tuple>
 #include <list>
 #include <map>
@@ -203,6 +204,8 @@ typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& mea
 typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, int		index);
 
 
+struct KFStatistics;
+
 /** Kalman filter object.
 *
 * Contains most persistant parameters and values of state. Includes state vector, covariance, and process noise.
@@ -241,6 +244,8 @@ struct KFState
 	E_ChiSqMode	chi_square_mode			= E_ChiSqMode::NONE;
 	double		sigma_threshold			= 4;
 
+	string		id						= "KFState";
+	
 	string		rts_filename			= "";
 	string		rts_forward_filename	= "";
 	int			rts_lag					= 0;
@@ -317,29 +322,29 @@ struct KFState
 		GTime		newTime);
 
 	void	preFitSigmaCheck(
-		Trace&		trace,	
-		KFMeas&		kfMeas,	
-		KFKey&		badStateKey,
-		int&		badMeasIndex,	
-		double&		sumOfSqTestStat,
-		int			begX,
-		int			numX,
-		int			begH,
-		int			numH);
+		Trace&			trace,	
+		KFMeas&			kfMeas,	
+		KFKey&			badStateKey,
+		int&			badMeasIndex,	
+		KFStatistics&	statistics,
+		int				begX,
+		int				numX,
+		int				begH,
+		int				numH);
 
 	void	postFitSigmaChecks(
-		Trace&		trace,
-		KFMeas&		kfMeas,
-		VectorXd&	xp,
-		VectorXd&	dx,
-		int			iteration,
-		KFKey&		badStateKey,	
-		int&		badMeasIndex,	
-		double&		sumOfSqTestStat,
-		int			begX,
-		int			numX,
-		int			begH,
-		int			numH);
+		Trace&			trace,
+		KFMeas&			kfMeas,
+		VectorXd&		xp,
+		VectorXd&		dx,
+		int				iteration,
+		KFKey&			badStateKey,	
+		int&			badMeasIndex,	
+		KFStatistics&	statistics,
+		int				begX,
+		int				numX,
+		int				begH,
+		int				numH);
 
 	double stateChiSquare(
 		Trace&		trace,
@@ -384,7 +389,8 @@ struct KFState
 		VectorXd&	xp);
 
 	void 	outputStates(
-		Trace&			trace,			///< Trace to output to
+		Trace&			trace,
+		string			suffix	= "",
 		int				begX	=  0,
 		int				numX 	= -1);
 	

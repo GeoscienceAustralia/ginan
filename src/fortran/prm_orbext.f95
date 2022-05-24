@@ -1,4 +1,4 @@
-SUBROUTINE prm_orbext (PRMfname)
+SUBROUTINE prm_orbext (PRMfname, found)
 
 
 ! ----------------------------------------------------------------------
@@ -65,6 +65,7 @@ SUBROUTINE prm_orbext (PRMfname)
 ! IN
       CHARACTER (LEN=100), INTENT(IN) :: PRMfname				
 ! OUT
+      LOGICAL, INTENT (OUT) :: found
 ! 
 ! ----------------------------------------------------------------------
  
@@ -110,6 +111,7 @@ SUBROUTINE prm_orbext (PRMfname)
 ! ----------------------------------------------------------------------
 ! Orbit parameterization INPUT file read:
 ! ----------------------------------------------------------------------
+found = .false.
 
 ! ----------------------------------------------------------------------
       UNIT_IN = 9  												
@@ -134,6 +136,7 @@ if (.not. yaml_found) then
          PRINT *, "Error in opening file:", PRMfname
          PRINT *, "OPEN IOSTAT=", ios
       END IF
+
 ! ----------------------------------------------------------------------
 
 DO
@@ -252,14 +255,14 @@ READ (PRN, fmt_line , IOSTAT=ios) GNSSid, PRN_no
 ! Read sp3 orbit data that include position and velocity vectors 
 If (yml_ext_orbit_frame == ICRF) Then
 ! ICRF
-Call sp3 (fname_orb, PRN, orbext_ICRF, yml_interpolate_start, clock_matrix, time_system)
+Call sp3 (fname_orb, PRN, orbext_ICRF, yml_interpolate_start, clock_matrix, time_system, found)
 ! Orbit transformation ICRF to ITRF
-Call orbC2T (orbext_ICRF, time_system, orbext_ITRF)
+if (found) Call orbC2T (orbext_ICRF, time_system, orbext_ITRF)
 Else If (yml_ext_orbit_frame == ITRF) Then
 ! ITRF
-Call sp3 (fname_orb, PRN, orbext_ITRF, yml_interpolate_start, clock_matrix, time_system)
+Call sp3 (fname_orb, PRN, orbext_ITRF, yml_interpolate_start, clock_matrix, time_system, found)
 ! Orbit transformation ITRF to ICRF
-Call orbT2C (orbext_ITRF, time_system, orbext_ICRF)
+if (found) Call orbT2C (orbext_ITRF, time_system, orbext_ICRF)
 End IF
 ! ----------------------------------------------------------------------
 
@@ -271,15 +274,15 @@ Else if (data_opt == TYPE_INTERP) then
 
 ! Interpolated Orbit: Read sp3 orbit data and apply Lagrange interpolation
 If (yml_ext_orbit_frame == ICRF) Then
-CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, orbext_ICRF, time_system)
+CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, orbext_ICRF, time_system, found)
 ! Orbit transformation ICRF to ITRF
-Call orbC2T (orbext_ICRF, time_system, orbext_ITRF)
+if (found) Call orbC2T (orbext_ICRF, time_system, orbext_ITRF)
 
 Else If (yml_ext_orbit_frame == ITRF) Then
 
-CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, orbext_ITRF, time_system)
+CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, orbext_ITRF, time_system, found)
 ! Orbit transformation ITRF to ICRF
-Call orbT2C (orbext_ITRF, time_system, orbext_ICRF)
+if (found) Call orbT2C (orbext_ITRF, time_system, orbext_ICRF)
 
 END IF
 ! ----------------------------------------------------------------------
@@ -325,7 +328,7 @@ Zo_el = 2
 GMearth = GM_global
 
 ! Computation of the Kepler orbit arc
-CALL keplerorb (GMearth, MJDo, Sec0, Zo, Zo_el, Ndays, interpstep, orbext_kepler, orbext_ICRF)
+CALL keplerorb (GMearth, MJDo, Sec0, Zo, Zo_el, Ndays, interpstep, orbext_kepler, orbext_ICRF, found)
 
 
 ! ----------------------------------------------------------------------
@@ -334,10 +337,12 @@ CALL keplerorb (GMearth, MJDo, Sec0, Zo, Zo_el, Ndays, interpstep, orbext_kepler
 ! ----------------------------------------------------------------------
 ! Orbit Transformation to ITRF is not applied
 ! The orbit comparison based on Kepler orbits is perfromed only in the inertial frame
+if (found) then
 sz1 = size(orbext_ICRF, DIM = 1)
 sz2 = size(orbext_ICRF, DIM = 2)
 ALLOCATE (orbext_ITRF(sz1,sz2), STAT = AllocateStatus)
 orbext_ITRF = orbext_ICRF
+end if
 ! ----------------------------------------------------------------------
 ! ----------------------------------------------------------------------
 

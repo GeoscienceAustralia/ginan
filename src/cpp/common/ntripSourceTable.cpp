@@ -1,4 +1,8 @@
+
+// #pragma GCC optimize ("O0")
+
 #include "ntripSourceTable.hpp"
+
 
 NtripSourceTable::NtripSourceTable(
 	string url_str): NtripSocket(url_str)
@@ -164,9 +168,9 @@ void NtripSourceTable::getSourceTable()
 			}    
 			catch (std::exception& e)
 			{
-				BOOST_LOG_TRIVIAL(error) << "Error reading source table.\n";
-				BOOST_LOG_TRIVIAL(error) << "URL : " << url.sanitised() << std::endl;
-				BOOST_LOG_TRIVIAL(error) << "SOURCETABLE line : " << lineStr << std::endl;
+// 				BOOST_LOG_TRIVIAL(error) << "Error reading source table.\n";
+// 				BOOST_LOG_TRIVIAL(error) << "URL : " << url.sanitised() << std::endl;
+// 				BOOST_LOG_TRIVIAL(error) << "SOURCETABLE line : " << lineStr << std::endl;
 			}
 		}
 		sourceTableData.push_back(curEntry);

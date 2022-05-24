@@ -5,7 +5,7 @@ from multiprocessing import Pool as _Pool
 
 import numpy as _np
 import pandas as _pd
-from p_tqdm.p_tqdm import tqdm
+from tqdm import tqdm
 
 from ..gn_datetime import datetime2yydoysec, j20002datetime
 from ..gn_frame import get_frame_of_day

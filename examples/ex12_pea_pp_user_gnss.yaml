@@ -12,7 +12,7 @@ input_files:
     navfiles: [ brdm1990.19p        ]  # broadcast navigation file
     sp3files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
     clkfiles: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
-    dcbfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    bsxfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
 
 station_data:
 
@@ -25,12 +25,13 @@ station_data:
         # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
                                                           # - selecting one on the command line using the -rnxfiles option
 
+                                                            
 output_files:
 
     root_output_directory:          <CONFIG>/
 
     output_trace:                   true
-    trace_level:                    2
+    trace_level:                    3
     trace_directory:                ./
     trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
     output_residuals:               true
@@ -39,10 +40,10 @@ output_files:
 
     output_log:                     true
 
+    enable_mongo:                   true
     output_mongo_measurements:      true
     output_mongo_states:            true
-    output_mongo_metadata:          false
-    delete_mongo_history:           false
+    #delete_mongo_history:           true
     mongo_uri:                      mongodb://127.0.0.1:27017
     mongo_suffix:                   _<BRANCH> 
 
@@ -60,7 +61,7 @@ processing_options:
     start_epoch:                2019-07-18 00:00:00
     #end_epoch:                  2019-07-18 23:59:30
     epoch_interval:             30          #seconds
-    max_epochs:                 0        #0 is infinite
+    #max_epochs:                 2        #0 is infinite
 
     process_modes:
         user:                   true
@@ -68,6 +69,7 @@ processing_options:
         minimum_constraints:    false
         rts:                    false
         ionosphere:             false
+        #unit_tests:             true
 
     process_sys:
         gps:            true
@@ -104,6 +106,10 @@ processing_options:
     code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
                         L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                         L5I, L5Q, L5X]
+                        
+    clock_codes:
+        gps: [L1C, L2W]
+        gal: [L1C, L5Q]
 
 user_filter_parameters:
 

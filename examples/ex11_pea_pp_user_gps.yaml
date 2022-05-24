@@ -12,6 +12,7 @@ input_files:
     #navfiles: [ brdm1990.19p        ]  # broadcast navigation file
     sp3files: [ igs20624.sp3        ]  # satellite orbit files in SP3 format
     clkfiles: [ igs20624.clk_30s    ]  # Clk files
+    bsxfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
 
 station_data:
 
@@ -32,7 +33,7 @@ output_files:
     root_output_directory:          <CONFIG>/
 
     output_trace:                   true
-    trace_level:                    2
+    trace_level:                    3
     trace_directory:                ./
     trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
 
@@ -53,9 +54,10 @@ output_files:
     trop_sinex_directory:           ./
     trop_sinex_filename:            <CONFIG>-<STATION><WWWW><D>.tro
 
+    enable_mongo:                   true
     output_mongo_measurements:      true
     output_mongo_states:            true
-    output_mongo_metadata:          false
+    output_mongo_test_stats:        true
     #delete_mongo_history:           true
     mongo_uri:                      mongodb://127.0.0.1:27017
     mongo_suffix:                   _<BRANCH>

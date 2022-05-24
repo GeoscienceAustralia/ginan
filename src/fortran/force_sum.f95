@@ -234,15 +234,6 @@ End IF
 ! Gravity Field
 Fgrav_icrf = (/ 0.D0, 0.0D0, 0.0D0 /)
 Fgrav_itrf = (/ 0.D0, 0.0D0, 0.0D0 /)
-If (.not. yml_gravity_enabled) then
-
-! Setting to Zero
-fx = 0.0D0
-fy = 0.0D0
-fz = 0.0D0    
-Fgrav_icrf = (/ fx, fy, fz /)
-
-Else      
 
 If (FMOD_GRAVFIELD == 0) Then
 
@@ -253,9 +244,17 @@ Fgrav_icrf = (/ fx, fy, fz /)
 
 Else 
 
-! Earth Gravity Field model acceleration components (spherical harmonics expansion) 
 n_max = GFM_Nmax
 m_max = GFM_Mmax
+
+If (.not. yml_gravity_enabled) then
+
+n_max = 0
+m_max = 0
+
+end if
+
+! Earth Gravity Field model acceleration components (spherical harmonics expansion) 
 CALL force_gfm (GMearth, aEarth, rsat_itrf, n_max, m_max, GFM_Cnm, GFM_Snm , fx,fy,fz)
 Fgrav_itrf = (/ fx, fy, fz /)
 
@@ -265,7 +264,6 @@ CALL matrix_Rr (TRS2CRS, Fgrav_itrf , Fgrav_icrf)
 
 End IF
 
-End If
 ! ----------------------------------------------------------------------
 
 

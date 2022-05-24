@@ -420,7 +420,7 @@ int ppp_filter(
 
 	// update receiver position with tide and antenna delta
 	Vector3d dr1;
-	enu2ecef(pos, rtk.opt.antdel.data(), dr1.data());
+	enu2ecef(pos, rtk.opt.antdel, dr1);
 
 	//remove elements of receiver position that we dont want included in the state estimate
 	Vector3d rRec	= x0
@@ -483,6 +483,13 @@ int ppp_filter(
 			continue;
 		}
 
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		
+		if (satOpts.exclude)
+		{
+			continue;
+		}
+		
 		TestStack ts(obs.Sat);
 
 		int			sys			= obs.Sat.sys;

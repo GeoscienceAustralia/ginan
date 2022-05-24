@@ -62,7 +62,7 @@ int resomc(
 	ecef2pos(rRec, pos);
 
 	Vector3d dr1;
-	enu2ecef(pos, opt.antdel.data(), dr1.data());
+	enu2ecef(pos, opt.antdel, dr1);
 	rRec += dr1;
 
 	tracepdeex(lv, trace, "\n   *-------- Observed minus computed           --------*\n");
@@ -93,7 +93,7 @@ int resomc(
 
 											TestStack::testMat("recpos", rec.aprioriPos, 1e-3);
 
-		SatStat&	satStat	= *(obs.satStat_ptr);
+		auto& satStat = *(obs.satStat_ptr);
 
 
 		Vector3d e;
@@ -161,33 +161,23 @@ int resomc(
 		satStat.mapWetGrads[1]	= sin(satStat.az) / mg; /* E grad */
 
 		/* receiver pco correction to the coordinates */
-		map<int, double> dAntRec;
 		for (auto& [ft, sig] : obs.Sigs)
 		{
 			rr2[ft] = rRec;
 
-			if (rtk.pcvrec)
+			Vector3d pco_r = antPco(rtk.antId, ft, obs.time);
+											//check map, continue if null
+			Vector3d dr2;
+			enu2ecef(pos, pco_r, dr2);  /* convert enu to xyz */
+
+			if (ft <= F2)
 			{
-				Vector3d pco_r;
-				recpco(rtk.pcvrec, ft, pco_r);
-												//check map, continue if null
-				Vector3d dr2;
-				enu2ecef(pos, pco_r.data(), dr2.data());  /* convert enu to xyz */
-
-				if (ft <= F2)
-				{
-					tracepde(lv, trace, " %.6f %s  rec pco%d (enu)       = %14.4f %14.4f %14.4f\n", mjd, id, ft, pco_r[0],	pco_r[1],	pco_r[2]);
-					tracepde(lv, trace, " %.6f %s  rec pco%d             = %14.4f %14.4f %14.4f\n", mjd, id, ft, dr2[0],	dr2[1],		dr2[2]);
-				}
-
-				/* get rec position and geometric distance for each frequency */
-				rr2[ft] += dr2;
-
-				/* calculate pcv */
-				double azDeg = satStat.az * R2D;
-				double elDeg = satStat.el * R2D;
-				recpcv(rtk.pcvrec, ft, elDeg, azDeg, dAntRec[ft]);
+				tracepde(lv, trace, " %.6f %s  rec pco%d (enu)       = %14.4f %14.4f %14.4f\n", mjd, id, ft, pco_r[0],	pco_r[1],	pco_r[2]);
+				tracepde(lv, trace, " %.6f %s  rec pco%d             = %14.4f %14.4f %14.4f\n", mjd, id, ft, dr2[0],	dr2[1],		dr2[2]);
 			}
+
+			/* get rec position and geometric distance for each frequency */
+			rr2[ft] += dr2;
 
 			r2[ft] = geodist(obs.rSat, rr2[ft], e);
 		}
@@ -198,22 +188,6 @@ int resomc(
 // // 			antmodel(opt->pcvr, opt->antdel, obs.azel, opt->posopt[1], dAntRec);
 // 		}
 
-		/* satellite and receiver antenna model */
-		double nadir = 0;
-		map<int, double> dAntSat;
-		if	(acsConfig.sat_pcv)
-		{
-			PhaseCenterData* pcvsat = findAntenna(id, obs.time, nav);
-			if (pcvsat)
-			{
-				satantpcv(obs.rSat, rRec, *pcvsat, dAntSat, &nadir);
-			}
-			else
-			{
-				tracepde(1, trace,	"Warning: no satellite (%s) pcv information\n",	id);
-				continue;
-			}
-		}
 
 		/* phase windup model */
 		if (acsConfig.phase_windup)
@@ -244,9 +218,9 @@ int resomc(
 			tracepde(lv, trace, " %.6f %s  dist2                = %14.4f\n",	         	mjd, id, r2[F2]);
 		}
 
-		tracepde(lv, trace, " %.6f %s  satpcv               = %14.4f %14.4f\n",	        mjd, id, dAntSat[F1], dAntSat[F2]);
-		tracepde(lv, trace, " %.6f %s  recpcv               = %14.4f %14.4f\n",	        mjd, id, dAntRec[F1], dAntRec[F2]);
-		tracepde(lv, trace, " %.6f %s  az, el, nadir        = %14.4f %14.4f %14.4f\n",	mjd, id, obs.satStat_ptr->az*R2D, obs.satStat_ptr->el*R2D, nadir);
+// 		tracepde(lv, trace, " %.6f %s  satpcv               = %14.4f %14.4f\n",	        mjd, id, dAntSat[F1], dAntSat[F2]);
+// 		tracepde(lv, trace, " %.6f %s  recpcv               = %14.4f %14.4f\n",	        mjd, id, dAntRec[F1], dAntRec[F2]);
+		tracepde(lv, trace, " %.6f %s  az, el, nadir        = %14.4f %14.4f %14.4f\n",	mjd, id, satStat.az*R2D, satStat.el*R2D, satStat.nadir*R2D);
 		tracepde(lv, trace, " %.6f %s  trop zenith dry (m)  = %14.4f\n",	         	mjd, id, zhd);
 		tracepde(lv, trace, " %.6f %s  trop dry mf          = %14.4f\n",	         	mjd, id, mf[0]);
 		tracepde(lv, trace, " %.6f %s  trop zenith wet (m)  = %14.4f\n",	         	mjd, id, zwd);
@@ -257,9 +231,13 @@ int resomc(
 
 		/* corrected phase and code measurements */
 
+		satStat.nadir = satNadir(obs.rSat, rRec);
+		
 		for (auto& [ft, sig] : obs.Sigs)
 		{
-			corr_meas(trace, obs, ft, obs.satStat_ptr->el, dAntRec[ft], dAntSat[ft], satStat.phw, rec);
+			double recPcv = antPcv(rtk.antId,		ft, obs.time, PI/2 - satStat.el, satStat.az);
+			double satPcv = antPcv(obs.Sat.id(),	ft, obs.time, satStat.nadir);
+			corr_meas(trace, obs, ft, obs.satStat_ptr->el, recPcv, satPcv, satStat.phw, rec, mjd);
 		}
 
 		double c1;

@@ -11,6 +11,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/unordered_map.hpp>
 
+#include <math.h>    
 
 #include "testUtils.hpp"
 #include "acsConfig.hpp"

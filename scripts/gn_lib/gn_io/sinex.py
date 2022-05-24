@@ -8,8 +8,7 @@ from io import BytesIO as _BytesIO
 
 import numpy as _np
 import pandas as _pd
-from p_tqdm import p_map as _p_map
-from p_tqdm.p_tqdm import tqdm as _tqdm
+# from p_tqdm import p_map as _p_map
 
 from ..gn_const import PT_CATEGORY, TYPE_CATEGORY
 from ..gn_datetime import yydoysec2datetime as _yydoysec2datetime
@@ -345,20 +344,21 @@ def _read_snx_solution(path_or_bytes):
                            snx_format=False,
                            verbose=False)
 
-def gather_sinex(glob_expr, n_threads=4, unconstrain=False):
-    '''Expects a glob.glob() expression (e.g. '/data/cddis/*/esa*.snx.Z')'''
+# TODO get rid of p_tqdm. Need to rewrite hte loop with multiprocessing Pool
+# def gather_sinex(glob_expr, n_threads=4, unconstrain=False):
+#     '''Expects a glob.glob() expression (e.g. '/data/cddis/*/esa*.snx.Z')'''
 
-    files = sorted(_glob.glob(glob_expr))
-    n_files = len(files)
-    if not unconstrain:
-        data = _p_map(_get_snx_vector,
-                     files, [('APR', 'EST')] * n_files,
-                     [True] * n_files, [False] * n_files,
-                     num_cpus=n_threads)
-    else:
-        data = _p_map(unc_snx, files, [False] * n_files, num_cpus=4)
-    return data
-    # return _pd.concat(data, axis=0).pivot(index=['CODE','TYPE'],columns='REF_EPOCH').T
+#     files = sorted(_glob.glob(glob_expr))
+#     n_files = len(files)
+#     if not unconstrain:
+#         data = _p_map(_get_snx_vector,
+#                      files, [('APR', 'EST')] * n_files,
+#                      [True] * n_files, [False] * n_files,
+#                      num_cpus=n_threads)
+#     else:
+#         data = _p_map(unc_snx, files, [False] * n_files, num_cpus=4)
+#     return data
+#     # return _pd.concat(data, axis=0).pivot(index=['CODE','TYPE'],columns='REF_EPOCH').T
 
 def _get_snx_vector_gzchunks(filename,block_name='SOLUTION/ESTIMATE',size_lookback=100):
     '''extract block from a large gzipped sinex file e.g. ITRF2014 sinex'''

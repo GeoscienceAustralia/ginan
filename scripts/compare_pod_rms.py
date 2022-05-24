@@ -84,14 +84,14 @@ def test(solutionrms, solutionout, runout, runrms, errormargin):
                 d = float(match.group(5))
                 #print("Name = {}, R = {}, T = {}, N = {}, 3D = {}".format(name,r,t,n,d))
                 test_rms_out.append([name,r,t,n,d])
-    print("Currnet run pod.rms results [Name,R,T,N,3D]")
+    print("Current run pod.rms results [Name,R,T,N,3D]")
     print(test_rms_out)
     
     print("Compare magnitude different for pod.out results against solution benchmark")
     for test, solution in zip(test_pod_out, solution_pod_out):
         mag_diff = math.sqrt((test[1] - solution[1])**2 + (test[2] - solution[2])**2 + (test[3] - solution[3])**2)
         if(mag_diff > errormargin):
-            print("Difference of {} found for satellite {}".format(test[0],mag_diff))
+            print("Difference of {} found for satellite {}".format(mag_diff,test[0]))
             fail_count+=1
         else:
             print("Within Error Margin, test passed")

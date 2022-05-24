@@ -8,7 +8,9 @@
 #include <thread>
 #include <string>
 
-#include "omp.h"
+#ifdef ENABLE_PARALLELISATION
+	#include "omp.h"
+#endif
 
 using namespace std::literals::chrono_literals;
 using std::chrono::system_clock;

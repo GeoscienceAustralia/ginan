@@ -85,7 +85,7 @@ SUBROUTINE prm_pseudobs (PRMfname, pseudobs_opt)
       INTEGER (KIND = prec_int2) :: ios_line, ios_key, ios_data
       INTEGER (KIND = prec_int2) :: space_i
       CHARACTER (LEN=7) :: Format1, Format2, Format3
-      CHARACTER (LEN=500) :: line_ith	  
+      CHARACTER (LEN=500) :: line_ith, mesg 
       CHARACTER (LEN=150) :: word1_ln, word_i, t0	  
 ! ----------------------------------------------------------------------
       CHARACTER (LEN=30) :: fmt_line
@@ -193,6 +193,7 @@ end if
 ! Close of input parameterization file
 ! ----------------------------------------------------------------------
 
+write (mesg, *) "Could not find orbit data for ", PRN
 
 !data_opt = 1
 data_opt = pseudobs_opt
@@ -205,7 +206,9 @@ if (data_opt == TYPE_SP3) Then
 
 ! Read IGS sp3 orbit data file 
 !Call sp3 (fname_orb, PRN, pseudobs_ITRF, clock_matrix)
-Call sp3 (fname_orb, PRN, orbsp3, yml_interpolate_start, clock_matrix, time_system)
+Call sp3 (fname_orb, PRN, orbsp3, yml_interpolate_start, clock_matrix, time_system, found)
+
+if (.not. found) call report('FATAL', pgrm_name, 'prm_pseudobs', trim(mesg), 'src/fortran/prm_pseudobs.f95', 1)
 
 ! ----------------------------------------------------------------------
 ! Pseudo-observations scanning : Outliers detection
@@ -240,7 +243,9 @@ Call obsorbT2C (pseudobs_ITRF, time_system, pseudobs_ICRF)
 Else if (data_opt == TYPE_INTERP) then
 
 ! Interpolated Orbit: Read sp3 orbit data and apply Lagrange interpolation
-CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, pseudobs_ITRF, time_system)
+CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, pseudobs_ITRF, time_system, found)
+
+if (.not. found) call report('FATAL', pgrm_name, 'prm_pseudobs', trim(mesg), 'src/fortran/prm_pseudobs.f95', 1)
 
 ! Orbit transformation ITRF to ICRF
 Call orbT2C (pseudobs_ITRF, time_system, pseudobs_ICRF)

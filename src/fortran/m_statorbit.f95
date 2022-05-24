@@ -103,6 +103,9 @@ SUBROUTINE statorbit (ds1, ds2, dorb_XYZ, dorb_RTN, dorb_Kepler, stat_XYZ, stat_
       REAL (KIND = prec_d) :: kepler1(6), kepler2(6), kepler_9(9) 
       CHARACTER (LEN=100) :: mesg
       logical   allzero
+
+      integer iy, im, id, jflag, ih, imin
+      double precision    fd, fsec
 ! ----------------------------------------------------------------------	  
 
 
@@ -133,6 +136,21 @@ call report ('WARNING', pgrm_name, 'statorbit', mesg, 'src/fortran/m_statorbit.f
 End If
 ! ----------------------------------------------------------------------
 
+!debug: print out the integrated orbit values
+if (.false.) then
+    do j = 1, Nepochs2
+        print *, "mjd = ", ds2(j,1) !mjd
+        call iau_JD2CAL (2400000.5d0, ds2(j,1), Iy, Im, Id, Fd, JFLAG)
+        Fd = fd * 86400.0d0
+        ih = fd / 3600.0d0
+        fd = fd - ih * 3600.0d0
+        imin = fd / 60.0d0
+        fsec = fd - imin * 60.0d0
+        print *, Iy, Im, Id, ih, imin, fsec
+        print *, "ICRF: ", ds2(j,3), ds2(j,4), ds2(j,5)
+        ! TODO: convert to ITRF?
+    end do
+end if
 
 ! ----------------------------------------------------------------------
 ! Find the number of the common epochs

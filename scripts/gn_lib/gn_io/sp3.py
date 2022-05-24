@@ -4,18 +4,18 @@ import re as _re
 
 import numpy as _np
 import pandas as _pd
+from scipy import interpolate
 
 from ..gn_aux import unique_cols as _unique_cols
-from ..gn_const import C_LIGHT as _C_LIGHT, SISRE_COEF_DF as _SISRE_COEF_DF
 from ..gn_datetime import datetime2gpsweeksec as _datetime2gpsweeksec
 from ..gn_datetime import datetime2j2000 as _datetime2j2000
-from ..gn_datetime import datetime2mjd as _datetime2mjd
+from ..gn_datetime import j20002mjd as _j20002mjd
 from ..gn_datetime import j20002rnxdt as _j20002rnxdt
 from ..gn_transform import ecef2eci as _ecef2eci
 from ..gn_transform import eci2rac_rot as _eci2rac_rot
 from ..gn_transform import get_helmert7 as _get_helmert7
 from ..gn_transform import transform7 as _transform7
-from .clk import read_clk as _read_clk, norm_clk as _norm_clk
+from .clk import read_clk as _read_clk
 from .common import path2bytes
 
 _RE_SP3 = _re.compile(rb'^\*(.+)\n((?:[^\*]+)+)',_re.MULTILINE)
@@ -29,25 +29,27 @@ _RE_SP3_HEAD_SV = _re.compile(rb'^\+[ ]+(?:[\d]+|)[ ]+((?:[A-Z]\d{2})+)\W',_re.M
 # orbits accuracy codes
 _RE_SP3_ACC = _re.compile(rb'^\+{2}[ ]+(.{51})\W',_re.MULTILINE)
 # File descriptor and clock
-_RE_SP3_HEAD_FDESCR = _re.compile(rb'\%c[ ](\w{1})[ ]+cc[ ](\w{3})')
+_RE_SP3_HEAD_FDESCR = _re.compile(rb'\%c[ ]+(\w{1})[ ]+cc[ ](\w{3})')
 
 def nanflags2nans(sp3_df):
+    """Converts 999999 or 999999.999999 to NaNs"""
     nan_mask = sp3_df.iloc[:,1:5].values >= 999999
     nans = nan_mask.astype(float)
     nans[nan_mask] = _np.NAN
     sp3_df.iloc[:,1:5] = sp3_df.iloc[:,1:5].values+nans
 
 def mapparm(old,new):
+    """scipy function f map values """
     oldlen = old[1] - old[0]
     newlen = new[1] - new[0]
     off = (old[1]*new[0] - old[0]*new[1])/oldlen
     scl = newlen/oldlen
     return off, scl
 
-def read_sp3(sp3_path):
+def read_sp3(sp3_path,pOnly=True):
     '''Read SP3 file
-    Returns STD values converted to proper units (mm/ps) also if present
-    # if rinex name -> PG01 to G01 and filter on P
+    Returns STD values converted to proper units (mm/ps) also if present.
+    by default leaves only P* values (positions), removing the P key itself
     '''
     content = path2bytes(sp3_path)
     header_end = content.find(b'/*')
@@ -59,12 +61,14 @@ def read_sp3(sp3_path):
     
     fline_b = header.find(b'%f') + 2 #TODO add to header parser
     fline = header[fline_b:fline_b+24].strip().split(b'  ')
-    base_xyzc = _np.asarray([float(fline[0])]*3 + [float(fline[1])]) #exponent base
+    base_xyzc = _np.asarray([float(fline[0])]*3 + [float(fline[1])]) # exponent base
 
     data_blocks = _np.asarray(_RE_SP3.findall(string=content[:content.rfind(b'EOF')]))
 
     dates = data_blocks[:,0]
     data = data_blocks[:,1]
+    if not data[-1].endswith(b"\n"): data[-1]+=b"\n"
+
     counts = _np.char.count(data, b'\n')
 
     epochs_dt = _pd.to_datetime(_pd.Series(dates).str.slice(2,21).values.astype(str),
@@ -73,48 +77,43 @@ def read_sp3(sp3_path):
     dt_index = _np.repeat(a=_datetime2j2000(epochs_dt.values),repeats=counts)
     b_string = b''.join(data.tolist())
 
-
     series = _pd.Series(b_string.splitlines())
     data_width =  series.str.len()
-
     missing = b' '*(data_width.max() - data_width).values.astype(object)
-    series += missing #rows need to be of equal len 
-
-    idx = series.str[0 if parsed_header.HEAD.loc['PV_FLAG']!='P' else 1:4].values.astype(str).astype(object)
-
-
+    series += missing # rows need to be of equal len 
     data_test = series.str[4:60].values.astype('S56').view(('S14')).reshape(series.shape[0],-1).astype(float)
 
-    if data_width.max() > 60:
+    if  parsed_header.HEAD.ORB_TYPE in ["FIT",'INT']:
+        sp3_df = _pd.DataFrame(data_test).astype(float)
+        sp3_df.columns = ([['EST','EST','EST','EST'],
+                           ['X','Y','Z','CLK',]])
+
+    else: # parsed_header.HEAD.ORB_TYPE == 'HLM':
+        # might need to output log message
         std = (series.str[60:69].values+series.str[70:73].values).astype('S12').view('S3').astype(object)
         std[std == b'   '] = None
         std = std.astype(float).reshape(series.shape[0],-1)
 
         ind = (series.str[75:76].values + series.str[79:80].values).astype('S2').view('S1')
         ind[ind == b' '] = b''
-
         ind = ind.reshape(series.shape[0],-1).astype(str)
 
-        sp3_df = _pd.DataFrame(_np.column_stack([idx,data_test,std,ind]),).astype(
-        {0:"category",1:float,2:float,3:float,4:float,
-              5:float,6:float,7:float,8:float,
-             9:"category",10:"category"})
-        sp3_df.columns = ([['SAT','EST','EST','EST','EST','STD','STD','STD','STD','P_XYZ','P_CLK'],
-                       ['','X','Y','Z','CLK','X','Y','Z','CLK','','']])
+        sp3_df = _pd.DataFrame(_np.column_stack([data_test,std,ind]),).astype(
+        {0:float,1:float,2:float,3:float,4:float,5:float,6:float,7:float,8:"category",9:"category"})
+        sp3_df.columns = ([['EST','EST','EST','EST','STD','STD','STD','STD','P_XYZ','P_CLK'],
+                       ['X','Y','Z','CLK','X','Y','Z','CLK','','']])
         sp3_df.STD = base_xyzc ** sp3_df.STD.values
+
+    nanflags2nans(sp3_df) # 999999* None value flag to None
+    if pOnly or parsed_header.HEAD.loc['PV_FLAG']=='P':
+        pMask = series.astype('S1') == b'P'
+        sp3_df = sp3_df[pMask].set_index([dt_index[pMask],series.str[1:4].values[pMask].astype(str).astype(object)])
     else:
-        sp3_df = _pd.DataFrame(_np.column_stack([idx,data_test]),).astype(
-        {0:"category",1:float,2:float,3:float,4:float})
-        sp3_df.columns = ([['SAT','EST','EST','EST','EST'],
-                           ['','X','Y','Z','CLK',]])
-
-    #999999* None value flag to None
-    nanflags2nans(sp3_df)
-    # writing header data to dataframe attributes
-    sp3_df.attrs['HEADER'] = parsed_header
-
-    sp3_df.set_index([dt_index,'SAT'],inplace=True)
-    sp3_df.index.names = ([None,None])
+        sp3_df = sp3_df.set_index([dt_index,
+        series.values.astype('U1'),
+        series.str[1:4].values.astype(str).astype(object)])
+        
+    sp3_df.attrs['HEADER'] = parsed_header # writing header data to dataframe attributes
     sp3_df.attrs['path'] = sp3_path
     return sp3_df
 
@@ -132,10 +131,18 @@ def parse_sp3_header(header):
 
     return _pd.concat([sp3_heading,sv_tbl],keys=['HEAD','SV_INFO'],axis=0)
 
+def getVelSpline(sp3Df):
+    """returns in the same units as intput, e.g. km/s (needs to be x10000 to be in cm as per sp3 standard"""
+    sp3dfECI = sp3Df.EST.unstack(1)[['X','Y','Z']] #_ecef2eci(sp3df)
+    datetime = sp3dfECI.index.values
+    spline = interpolate.CubicSpline(datetime, sp3dfECI.values)
+    velDf = _pd.DataFrame(  data = spline.derivative(1)(datetime),
+                            index = sp3dfECI.index,columns = sp3dfECI.columns).stack(1)
+    return _pd.concat([sp3Df,_pd.concat([velDf],keys=['VELi'],axis=1)],axis=1)
 
-def sp3_vel(sp3_df,deg=35):
+def getVelPoly(sp3Df,deg=35):
     '''takes sp3_df, interpolates the positions for -1s and +1s and outputs velocities'''
-    est = sp3_df.unstack(1).EST[['X','Y','Z']]
+    est = sp3Df.unstack(1).EST[['X','Y','Z']]
     x = est.index.values
     y = est.values
 
@@ -155,47 +162,13 @@ def sp3_vel(sp3_df,deg=35):
 
     res_prev = coeff.T.dot(inputs_prev)
     res_next = coeff.T.dot(inputs_next)
-    vel_i = _pd.DataFrame((((res_prev.T - y) + (y - res_next.T))/2)*10000,columns=est.columns,index=est.index).stack()
+    vel_i = _pd.DataFrame(  (((y-res_prev.T)+(res_next.T-y))/2),
+                            columns=est.columns,
+                            index=est.index).stack()
 
     vel_i.columns = [['VELi']*3] + [vel_i.columns.values.tolist()]
-    return vel_i
 
-def sp3_vel_ch(sp3_df, len_tails = 3, deg=60):
-    '''takes sp3_df, interpolates the positions for -1s and +1s and outputs velocities'''
-    est = sp3_df.unstack(1).EST[['X','Y','Z']]
-
-    x = est.index.values
-    y = est.values
-
-    # addiing short tails to both ends so polynom gets closer to the actual edgepoints
-    steps = (_np.arange(len_tails)+1) #* 900 #15 min steps
-    x_tail_begin = x[0] - _np.flip(steps) * 900
-    x_tail_end = x[-1] + steps * 900
-    y_tail_begin = y[0] - _np.flip(steps)[:,_np.newaxis]*(y[1] - y[0])
-    y_tail_end = y[-1] + steps[:,_np.newaxis]*(y[-1] - y[-2])
-
-    x = _np.concatenate([x_tail_begin,x,x_tail_end])
-    y = _np.concatenate([y_tail_begin,y,y_tail_end])
-
-    off,scl = mapparm([x.min(), x.max()],[-1,1])
-    x_new = off + scl*(x)
-    coeff = _np.polynomial.chebyshev.chebfit(x=x_new,y=y,deg=deg)
-
-    x_prev = off + scl*(x-.001)
-    x_next = off + scl*(x+.001)
-
-    res_prev = _np.polynomial.chebyshev.chebval(x=x_prev,c = coeff).T
-    res_next = _np.polynomial.chebyshev.chebval(x=x_next,c = coeff).T
-    vel_i_arr = (((res_prev - y) + (y - res_next))/2)[len_tails:-len_tails]
-
-    # special case for real edge values not to use extrapolated values
-    vel_i_arr[0] = (y[len_tails] - res_next[len_tails])
-    vel_i_arr[-1] = (res_prev[-1-len_tails] - y[-1-len_tails])
-
-    vel_i = _pd.DataFrame(vel_i_arr*(10000 * 1000),columns=est.columns,index=est.index).stack()
-    vel_i.columns = [['VELi']*3] + [vel_i.columns.values.tolist()]
-    return vel_i
-
+    return _pd.concat([sp3Df,vel_i],axis=1)
 
 def gen_sp3_header(sp3_df):
 
@@ -214,7 +187,7 @@ def gen_sp3_header(sp3_df):
 
 
     gpsweek, gpssec = _datetime2gpsweeksec(sp3_j2000_begin)
-    mjd_days, mjd_sec = _datetime2mjd(sp3_j2000_begin)
+    mjd_days, mjd_sec = _j20002mjd(sp3_j2000_begin)
 
     line2 = [f'##{gpsweek:5}{gpssec:16.8f}{sp3_j2000[1] - sp3_j2000_begin:15.8f}{mjd_days:6}{mjd_sec:16.13f}\n']
 
@@ -267,28 +240,25 @@ def gen_sp3_content(sp3_df):
     return ''.join((_pd.concat([dt_s,data_s]).sort_index()).to_list())
 
 def write_sp3(sp3_df,path):
-
+    """sp3 writer, dataframe to sp3 file"""
     content = gen_sp3_header(sp3_df) + gen_sp3_content(sp3_df) + 'EOF'
     with open(path,'w') as file:
         file.write(content)
 
 def merge_attrs(df_list):
-
+    """Merges attributes of a list of sp3 dataframes into a single set of attributes"""
     df = _pd.concat(list(map(lambda obj: obj.attrs['HEADER'], df_list)),axis=1)
 
     mask_mixed = ~_unique_cols(df.loc['HEAD'])
     values_if_mixed = _np.asarray(['MIX','MIX','MIX',None,'M',None,'MIX','P','MIX','d'])
-    
     head = df[0].loc['HEAD'].values
     head[mask_mixed] = values_if_mixed[mask_mixed]
-    
     sv_info = df.loc['SV_INFO'].max(axis=1).values.astype(int)
 
     return _pd.Series(_np.concatenate([head,sv_info]),index=df.index)
 
 def merge_sp3(sp3_paths,clk_paths=None):
-    '''reads in a list of sp3 files and optianl list of clk files
-    and merges them into a single sp3 file'''
+    '''Reads in a list of sp3 files and optianl list of clk file and merges them into a single sp3 file'''
     sp3_dfs = [read_sp3(sp3_file) for sp3_file in sp3_paths]
     merged_sp3 = _pd.concat(sp3_dfs)
     merged_sp3.attrs['HEADER'] = merge_attrs(sp3_dfs)
@@ -310,15 +280,20 @@ def sp3_hlm_trans(a:_pd.DataFrame,b:_pd.DataFrame)->tuple((_pd.DataFrame,tuple((
     return b, hlm
 
 def sp3dfs2common(sp3a,sp3b):
-    level0_intersect =  _np.intersect1d(sp3a.index.levels[0].values, sp3b.index.levels[0].values,assume_unique=True) #common time
-    level1_intersect = _np.intersect1d(sp3a.index.levels[1].values, sp3b.index.levels[1].values,assume_unique=True) #common svs
-    
-    mask_a = sp3a.index.get_level_values(0).isin(level0_intersect) & sp3a.index.get_level_values(1).isin(level1_intersect)
-    mask_b = sp3b.index.get_level_values(0).isin(level0_intersect) & sp3b.index.get_level_values(1).isin(level1_intersect)
-
+    """Finds common index between the two dataframes and returns filtered dataframes"""
+    ind_a = sp3a.index.remove_unused_levels()
+    ind_b = sp3b.index.remove_unused_levels()
+    level0_intersect =  _np.intersect1d(ind_a.levels[0].values, ind_b.levels[0].values,assume_unique=True) #common time
+    assert len(level0_intersect) != 0, "no common epochs"
+    level1_intersect = _np.intersect1d(ind_a.levels[1].values, ind_b.levels[1].values,assume_unique=True) #common svs
+    assert len(level1_intersect) != 0, "no common svs"
+    mask_a = ind_a.get_level_values(0).isin(level0_intersect) & ind_a.get_level_values(1).isin(level1_intersect)
+    mask_b = ind_b.get_level_values(0).isin(level0_intersect) & ind_b.get_level_values(1).isin(level1_intersect)
     return sp3a.iloc[_np.arange(mask_a.shape[0])[mask_a]].sort_index(), sp3b.iloc[_np.arange(mask_b.shape[0])[mask_b]].sort_index()
 
-def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None):
+def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None,use_cubic_spline = True):
+    """Computes the difference between the two sp3 files in the radial, along-track and cross-track coordinates
+    the interpolator used for computation of the velocities can be based on cubic spline (default) or polynomial"""
     hlm_modes = [None, 'ECF', 'ECI']
     if hlm_mode not in hlm_modes:
         raise ValueError(f"Invalid hlm_mode. Expected one of: {hlm_modes}")
@@ -329,7 +304,10 @@ def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None):
         sp3_b, hlm = sp3_hlm_trans(sp3_a,sp3_b)
 
     sp3_a_eci = _ecef2eci(sp3_a)
-    sp3_a_eci_vel = _pd.concat([sp3_a_eci,sp3_vel(sp3_df=sp3_a_eci,deg=36)],axis=1) # because of sorted index, no additional manipulation with vel is required - just concat
+    if use_cubic_spline:
+        sp3_a_eci_vel = getVelSpline(sp3Df=sp3_a_eci)
+    else:
+        sp3_a_eci_vel = getVelPoly(sp3Df=sp3_a_eci,deg=35)
     sp3_b_eci = _ecef2eci(sp3_b)
 
     if hlm_mode == 'ECI':
@@ -349,34 +327,3 @@ def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None):
     df_rac.attrs['hlm'] = hlm
     df_rac.attrs['hlm_mode'] = hlm_mode
     return df_rac
-
-def get_sisre(sp3_a:_pd.DataFrame,sp3_b:_pd.DataFrame,clk_a:_pd.DataFrame,clk_b:_pd.DataFrame)->_pd.DataFrame:
-    '''sp3_a and sp3_b are the dataframes produced by read_sp3 function. clk dataframes are the output of read_clk.
-    Outputs a dataframe of signal-in-space range error (SISRE). The SISRE units are meters'''
-    rac = diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None) * 1000 # km to meters... should be correct
-
-    rac_dt = _np.unique(rac.index.droplevel(1).values) # TODO looks like could be rac.index.levels[0].values
-
-    # need to sync clk dfs with sp3 dfs.
-    clk_a = clk_a.iloc[:,0][clk_a.index.droplevel([1,2]) == 'AS'].droplevel(level=0,axis=0) # faster then clk_a.iloc[:,0].loc['AS']... pandas...
-    clk_b = clk_b.iloc[:,0][clk_b.index.droplevel([1,2]) == 'AS'].droplevel(level=0,axis=0)
-
-    common_dt = _np.intersect1d(rac_dt,_np.intersect1d(clk_a.index.levels[0],clk_b.index.levels[0])) # TODO use sets trick to do the intersection
-
-    clk_a_unst = clk_a.unstack('CODE').loc[common_dt]
-    clk_b_unst = clk_b.unstack('CODE').loc[common_dt]
-
-    coeffs = _SISRE_COEF_DF.T.reindex(rac.index.droplevel(0).str[0])
-    common_svs = _np.intersect1d(clk_a_unst.columns,clk_b_unst.columns) # TODO set.intersect or simply set(concat)
-
-    # clk_diff = (clk_a_unst.loc[common_dt][common_svs] - clk_b_unst.loc[common_dt][common_svs])*_C_LIGHT 
-    # reveals a ~10m clk bias in the IGS clk while he expected mean value for GPS is ~0.5 m (not 10.5!!!).
-    # Montenbruck, Steigenberger, and Hauschild, “Multi-GNSS Signal-in-Space Range Error Assessment – Methodology and Results.”
-
-    clk_diff = (_norm_clk(clk_a_unst.loc[common_dt][common_svs],sv='G01') - _norm_clk(clk_b_unst.loc[common_dt][common_svs],sv='G01'))*_C_LIGHT
-    # Expected mean value for GPS is ~0.05 m because of clocks normalization (e.g., with G01)
-    # Kazmierski, Hadas, and Sośnica, “Weighting of Multi-GNSS Observations in Real-Time Precise Point Positioning.”
-
-    # sisre = sqrt( (r*alpha - d_clk*c)^2 + (a^2 + c^2)/beta )
-    sisre = (((rac.iloc[:,0] * coeffs.values[:,0] ).unstack(1)- clk_diff)**2 + ((rac.iloc[:,1]**2 + rac.iloc[:,2]**2)/coeffs.values[:,1]).unstack(1))**0.5
-    return sisre

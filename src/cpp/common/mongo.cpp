@@ -1,7 +1,6 @@
 
 // #pragma GCC optimize ("O0")
 
-#ifdef ENABLE_MONGODB
 
 
 #include "observations.hpp"
@@ -53,11 +52,12 @@ void mongoooo()
 		{
 			db["Measurements"]	.drop();
 			db["States"]		.drop();
-			db["TestStatistics"].drop();
 			db["Console"]		.drop();
 			db["SSRData"]		.drop();
 		}
 
+		//create compound and simple indicies for most useful types
+		
 		db["Measurements"]	.create_index(
 								document{}
 									<< "Epoch"	<< 1
@@ -76,36 +76,6 @@ void mongoooo()
 
 		db["SSRData"]		.create_index(
 								document{}
-									<< "ObsCode"	<< 1
-									<< finalize,
-								{});
-
-		db["SSRData"]		.create_index(
-								document{}
-									<< "Data"		<< 1
-									<< finalize,
-								{});
-
-		db["SSRData"]		.create_index(
-								document{}
-									<< "Type"		<< 1
-									<< finalize,
-								{});
-
-		db["SSRData"]		.create_index(
-								document{}
-									<< "Sat"		<< 1
-									<< finalize,
-								{});
-
-		db["SSRData"]		.create_index(
-								document{}
-									<< "Epoch"		<< 1
-									<< finalize,
-								{});
-
-		db["SSRData"]		.create_index(
-								document{}
 									<< "Epoch"		<< 1
 									<< "Sat"		<< 1
 									<< "Type"		<< 1
@@ -113,12 +83,21 @@ void mongoooo()
 									<< "ObsCode"	<< 1
 									<< finalize,
 								{});
+
+		db["Measurements"]	.create_index(	document{}	<< "Epoch"	<< 1	<< finalize,	{});
+		db["Measurements"]	.create_index(	document{}	<< "Site"	<< 1	<< finalize,	{});
+		db["Measurements"]	.create_index(	document{}	<< "Sat"	<< 1	<< finalize,	{});
 		
-		db["TestStatistics"].create_index(
-								document{}
-									<< "Epoch"	<< 1
-									<< finalize,
-								{});
+		db["States"]		.create_index(	document{}	<< "Epoch"	<< 1	<< finalize,	{});
+		db["States"]		.create_index(	document{}	<< "Sat"	<< 1	<< finalize,	{});
+		db["States"]		.create_index(	document{}	<< "Site"	<< 1	<< finalize,	{});
+		
+		db["SSRData"]		.create_index(	document{}	<< "ObsCode"<< 1	<< finalize,	{});
+		db["SSRData"]		.create_index(	document{}	<< "Data"	<< 1	<< finalize,	{});
+		db["SSRData"]		.create_index(	document{}	<< "Type"	<< 1	<< finalize,	{});
+		db["SSRData"]		.create_index(	document{}	<< "Sat"	<< 1	<< finalize,	{});
+		db["SSRData"]		.create_index(	document{}	<< "Epoch"	<< 1	<< finalize,	{});
+		
 
 		if (acsConfig.output_mongo_logs)
 		{
@@ -164,4 +143,3 @@ void MongoLogSinkBackend::consume(
 			<< finalize
 		);
 }
-#endif

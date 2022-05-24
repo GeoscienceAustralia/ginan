@@ -2,7 +2,6 @@
 #ifndef ___WRITEMONGO_HPP__
 #define ___WRITEMONGO_HPP__
 
-#ifdef ENABLE_MONGODB
 
 #include <set>
 
@@ -12,6 +11,18 @@ using std::set;
 #include "mongo.hpp"
 
 
+struct TestStatistics
+{
+	int		numMeas				= 0;
+	double	sumOfSquaresPre		= 0;
+	double	sumOfSquaresPost	= 0;
+	double	averageRatioPre		= 0;
+	double	averageRatioPost	= 0;
+	double	chiSq				= 0;
+	double	dof					= 0;
+	double	chiSqPerDof			= 0;
+	double	qc					= 0;
+};
 
 void mongoMeasResiduals(
 	vector<ObsKey>		obsKeys,
@@ -30,13 +41,7 @@ void mongoMeasSatStat_all(
 
 void mongoTestStat(
 	KFState&			kfState,
-	double				prefitSumOfSqTestStat,
-	double				postfitSumOfSqTestStat,
-	double				chiSq,
-	double				qc,
-	int					dof,
-	double				chiSqPerDof);
+	TestStatistics&		statistics);
 
 #endif
 
-#endif

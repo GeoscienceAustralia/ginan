@@ -19,8 +19,11 @@
 
 #include <iostream>
 #include <fstream>
-#include <omp.h>
 #include <cstdlib> 
+
+#ifdef ENABLE_PARALLELISATION
+	#include "omp.h"
+#endif
 
 #include <yaml-cpp/yaml.h>
 #include <boost/timer/timer.hpp>

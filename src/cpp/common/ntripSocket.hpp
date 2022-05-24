@@ -56,7 +56,7 @@ using namespace boost::system;
 #define ERROR_OUTPUT_RECONNECT_AND_RETURN 																					\
 {																															\
 	onErrorStatistics(err, __FUNCTION__);																					\
-	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << " in " << __FUNCTION__ << " for " << url.sanitised() << "\n";	\
+	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << "\n in " << __FUNCTION__ << " for " << url.sanitised() << "\n";	\
 																															\
 	if (err != boost::asio::error::operation_aborted)																		\
 		delayed_reconnect();        																						\
@@ -252,7 +252,8 @@ private:
 	void sslhandshake_handler		(const boost::system::error_code& err); 
 	void write_request_handler		(const boost::system::error_code& err);
 	void request_response_handler	(const boost::system::error_code& err);    
-	void reconnect_timer_handler	(const boost::system::error_code& err);
+	void reconnect_timer_handler	(const boost::system::error_code& err); 
+	void timeout_handler			(const boost::system::error_code& err); 
 	
 	void read_handler_content		(const boost::system::error_code& err);
 	void read_handler_chunked		(const boost::system::error_code& err);

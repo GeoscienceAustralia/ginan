@@ -32,17 +32,25 @@ using std::map;
 
 
 
-#define PI          3.141592653589793238462643383279502884197169399375105820974  /* pi */
-#define PI2         (PI*2)              /* pi*2 */
-#define D2R         (PI/180.0)          /* deg to rad */
-#define R2D         (180.0/PI)          /* rad to deg */
-#define SC2RAD      3.1415926535898     /* semi-circle to radian (IS-GPS) */
-#define AU          149597870691.0      /* 1 AU (m) */
-#define AS2R        (D2R/3600.0)        /* arc sec to radian */
+#define PI			3.141592653589793238462643383279502884197169399375105820974  /* pi */
+#define PI2			(PI*2)              /* pi*2 */
+#define D2R			(PI/180.0)          /* deg to rad */
+#define R2D			(180.0/PI)          /* rad to deg */
+#define SC2RAD		3.1415926535898     /* semi-circle to radian (IS-GPS) */
+#define AU			149597870691.0      /* 1 AU (m) */
+#define AS2R		(D2R/3600.0)        /* arc sec to radian */
+#define R2AS		(1/AS2R)
+#define MAS2R		(2 * PI / (360	* 60 * 60 * 1000))
+#define MTS2R		(2 * PI / (24	* 60 * 60 * 1000))
+#define S2MTS		(1000.0)
+#define R2MAS		(1/MAS2R)
+#define R2MTS		(1/MTS2R)
+#define MTS2S		(1/S2MTS)
 
-#define OMGE        7.2921151467E-5     /* earth angular velocity (IS-GPS) (rad/s) */
 
-#define G_CONST			6.67408E-11
+#define OMGE		7.2921151467E-5     /* earth angular velocity (IS-GPS) (rad/s) */
+
+#define G_CONST		6.67408E-11
 #define RE_GLO   6378136.0        /* radius of earth (m)            ref [2] */
 #define MU_GPS   3.9860050E14     /* gravitational constant         ref [1] */
 #define MU_GLO   3.9860044E14     /* gravitational constant         ref [2] */
