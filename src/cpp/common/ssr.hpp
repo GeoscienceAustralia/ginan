@@ -103,34 +103,31 @@ struct SSRPhasBias : SSRBias
 struct EphValues
 {
 	GTime			time;
-	unsigned int	iode	= 0;
-	Vector3d		pos		= Vector3d::Zero();
-	Vector3d		vel		= Vector3d::Zero();
+	unsigned int	iode		= 0;
+	Vector3d		brdcPos		= Vector3d::Zero();
+	Vector3d		brdcVel		= Vector3d::Zero();
+	Vector3d		precPos		= Vector3d::Zero();
+	Vector3d		precVel		= Vector3d::Zero();
 };
 
 struct ClkValues
 {
 	GTime			time;
 	unsigned int	iode	= 0;
-	double			clk;
+	double			brdcClk	= 0;
+	double			precClk	= 0;
 };
 
 struct SSREphInput
 {
 	bool		valid = false;
-	EphValues	brdc1;
-	EphValues	brdc2;
-	EphValues	prec1;
-	EphValues	prec2;
+	EphValues	vals[2];
 };	
 
 struct SSRClkInput
 {
 	bool		valid = false;
-	ClkValues	brdc1;
-	ClkValues	brdc2;
-	ClkValues	prec1;
-	ClkValues	prec2;
+	ClkValues	vals[2];
 };	
 
 /* SSR correction type */

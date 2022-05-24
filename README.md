@@ -46,21 +46,24 @@ You can download Ginan source from github using git clone:
 
     git clone https://github.com/GeoscienceAustralia/ginan.git
     
+    cd ginan
+    
 Then download all of the example data using the python script provided:
 
     pip3 install wheel pandas boto3 unlzw
+    
     python3 scripts/download_examples.py 
 ***
 ## Directory Structure
 
     ginan/
-    ├── README.md			! General README information
-    ├── LICENSE.md		    ! Software License information
-    ├── ChangeLOG.md		    ! Release Chnage history
-    ├── aws/		        ! Amazon Web Services config
-    ├── bin/		        ! Binary executables directory*
-    ├── CMakeLists.txt		! Cmake build file
-    ├── docs/			    ! Documentation directory
+    ├── README.md           ! General README information
+    ├── LICENSE.md          ! Software License information
+    ├── ChangeLOG.md        ! Release Chnage history
+    ├── aws/                ! Amazon Web Services config
+    ├── bin/                ! Binary executables directory*
+    ├── CMakeLists.txt      ! Cmake build file
+    ├── docs/               ! Documentation directory
     ├── examples/           ! Ginan examples directory
     │   ├── data/           ! example dataset (rinex files)**
     │   ├── products/       ! example products and aux files**
@@ -90,14 +93,14 @@ Then download all of the example data using the python script provided:
     │   ├── ex31/pea        ! PEA re-estimate parameters
     │   ├── ex31/pod_ic     ! POD ic integrate
     │
-    ├── lib/		        ! Compiled objectlibrary directory*
-    ├── scripts/		    ! Auxillary Python and Shell scripts and libraries
-    └── src/		        ! Source code directory
+    ├── lib/                ! Compiled objectlibrary directory*
+    ├── scripts/            ! Auxillary Python and Shell scripts and libraries
+    └── src/                ! Source code directory
         ├── cpp/            ! PEA source code
         ├── fortran/        ! POD source code
         ├── cmake/   
         ├── doc_templates/
-        ├── build/			! Cmake build directory*
+        ├── build/          ! Cmake build directory*
         └── CMakeLists.txt
 
 *\*created during installation process*
@@ -109,11 +112,11 @@ Then download all of the example data using the python script provided:
 
 With docker, you can quickly create your environment by downloading the docker image:
 
-    docker pull gnssanalysis/ginan:v1.0-alpha
+    docker pull gnssanalysis/ginan:v1.3-beta
 
 Then you can run `bash` inside image as follows:
 
-    docker run -it -v /data:/data gnssanalysis/ginan:v1.0-alpha bash
+    docker run -it -v /data:/data gnssanalysis/ginan:v1.3-beta bash
 
 To verify you have the Ginan executables available, run in this bash session:
 
@@ -129,9 +132,10 @@ Otherwise Ginan has several software dependencies:
 
 * C/C++ and Fortran compiler. We use and recommend [gcc-g++ and gfortran](https://gcc.gnu.org)
 * BLAS and LAPACK linear algebra libraries. We use and recommend [OpenBlas](https://www.openblas.net/) as this contains both libraries required
-* CMAKE  > 3.0 
-* YAML   > 0.6
-* Boost  > 1.70 (tested on 1.73)
+* CMAKE     > 3.0 
+* YAML      > 0.6
+* Boost     > 1.70 (tested on 1.73)
+* Mongo_cxx
 * Eigen3
 * netCDF4
 * Python3 (tested on Python 3.7
@@ -147,7 +151,7 @@ Update the base operating system:
 
     sudo apt update
     
-    sudo apt upgrade
+    sudo apt upgrade -y
 
 Install base utilities `gcc`, `gfortran`, `git`, `openssl`, `openblas` etc:
 
@@ -155,11 +159,11 @@ Install base utilities `gcc`, `gfortran`, `git`, `openssl`, `openblas` etc:
 
 Since Ginan v1.2-alpha both gcc and g++ of version 9 are required, so make sure to update the gcc/g++ alternatives prior to compilation:
 
-    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     
     sudo apt update
     
-    sudo apt install gcc-9 g++-9
+    sudo apt install -y gcc-9 g++-9
     
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 51
     
@@ -170,10 +174,11 @@ Since Ginan v1.2-alpha both gcc and g++ of version 9 are required, so make sure 
 
 Depending on the user's installation choice: install PEA-only, POD-only or all software packages, a set of additional dependencies that need to be built may change. Below, we explain building all the additional dependencies:
 
+Note that many 'make' commands here have the option -j 2 applied, this will enable parallel compilation and may speed up installation time. The number of threads can be increased by changing the number, such as -j 8, but be aware that each new thread may require up to 2GB of memory.
+
 First, create a temporary directory structure to make the dependencies in, it can be removed after the installation process is done:
 
     mkdir ~/tmp
-    cd ~/tmp
 
 Note that `~/tmp` is only used here as example and can be any directory
 
@@ -192,7 +197,7 @@ We are using the [YAML](https://github.com/jbeder/yaml-cpp) library to parse the
     
     cmake .. -DCMAKE\_INSTALL\_PREFIX=/usr/local/ -DYAML\_CPP\_BUILD\_TESTS=OFF
     
-    sudo make install yaml-cpp
+    sudo make install yaml-cpp -j2
     
     cd ../..
     
@@ -205,19 +210,17 @@ PEA relies on a number of the utilities provided by [boost](https://www.boost.or
     
     wget -c https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
     
-    gunzip boost_1_73_0.tar.gz
-    
-    tar xvf boost_1_73_0.tar
+    tar xf boost_1_73_0.tar.gz
     
     cd boost_1_73_0/
     
     ./bootstrap.sh
     
-    sudo ./b2 install
+    sudo ./b2 -j2 install
     
     cd ..
     
-    sudo rm -rf boost_1_73_0/ boost_1_73_0.tar
+    sudo rm -rf boost_1_73_0 boost_1_73_0.tar.gz
 
 ### Eigen3 (PEA)
 Eigen3 is used for performing matrix calculations in PEA, and has a very nice API.
@@ -228,7 +231,7 @@ Eigen3 is used for performing matrix calculations in PEA, and has a very nice AP
     
     cd eigen
     
-    git checkout dfa51767
+    git checkout dfa51767	#versions later than this require g++-10, which interacts poorly with boost
     
     mkdir cmake-build
     
@@ -236,15 +239,15 @@ Eigen3 is used for performing matrix calculations in PEA, and has a very nice AP
     
     cmake ..
     
-    sudo make install
+    sudo make -j2 install
     
     cd ../..
     
     rm -rf eigen
 
 
-### MongoDB (PEA, optional but now is defaulted to on)
-Needed for realtime preview of the processed results (developers-only)
+### Mongo_cxx_driver (PEA)
+Needed for json formatting and other self-descriptive markup.
 
     cd ~/tmp
     
@@ -258,11 +261,11 @@ Needed for realtime preview of the processed results (developers-only)
     
     cd cmakebuild/
     
-    cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF ..
+    cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_EXAMPLES=OFF ../
     
-    cmake --build .
+    cmake --build . -- -j 2
     
-    sudo cmake --build . --target install
+    sudo cmake --build . --target install -- -j 2
 
     cd ~/tmp
     
@@ -272,13 +275,21 @@ Needed for realtime preview of the processed results (developers-only)
     
     cd mongo-cxx-driver-r3.6.0/build
     
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_EXAMPLES=OFF ../
     
-    sudo cmake --build . --target EP_mnmlstc_core
+    sudo cmake --build . --target EP_mnmlstc_core -- -j 2
     
-    cmake --build .
+    cmake --build . -- -j 2
     
     sudo cmake --build . --target install
+
+
+### MongoDB (PEA, optional)
+Needed for realtime preview of the processed results (developers-only)
+
+    #prepare access to repositories to download mongo from
+
+    cd ~/tmp
 
     wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
     
@@ -290,7 +301,7 @@ Needed for realtime preview of the processed results (developers-only)
     
     sudo apt install mongodb-org   
 
-    cd ../..
+    cd ~/tmp
     
     sudo rm -rf mongo-c-driver-1.17.1  mongo-c-driver-1.17.1.tar.gz  mongo-cxx-driver-r3.6.0  mongo-cxx-driver-r3.6.0.tar.gz
 
@@ -298,12 +309,14 @@ Needed for realtime preview of the processed results (developers-only)
 To start MongoDB:
 
     sudo systemctl start mongod
+    
     sudo systemctl status mongod
+    
     mongod
 
 To autostart MongoDB on system startup:
 
-    systemctl enable mongod.service
+    sudo systemctl enable mongod.service
 
 
 <!-- If you are using WSL see the notes below and skip this next section: -->
@@ -337,18 +350,19 @@ From the Ginan git root directory:
     
     cd build
 
-Run cmake to find the build dependencies and create the make file. If you wish to disable the optional MONGO DB utilities you will need to add the `-DENABLE_MONGODB=FALSE` flag. By default you will compile an optimised version, typically this version will run 3 times faster but you may run into compile problems depending on your system, add the `-DOPTIMISATION=FALSE` flag:
+Run cmake to find the build dependencies and create the make file. By default you will compile an optimised version, typically this version will run 3 times faster but you may run into compile problems depending on your system, add the `-DOPTIMISATION=FALSE` flag:
 
-    cmake [-DENABLE_MONGODB=FALSE] [-DENABLE_OPTIMISATION=FALSE] ..
+    cmake ../
 
-To build every package simply run `make` or `make -j 2` , where 2 is a number of parallel threads you want to use for the compilation:
+To build every package simply run `make` or `make -jX` , where X is a number of parallel threads you want to use for the compilation:
 
-    make [-j 2]
+    make -j2
 
 To build specific package (e.g. PEA or POD), run as below:
 
-    make pea -j 2
-    make pod -j 2
+    make pea -j2
+    
+    make pod -j2
 
 This should create executables in the `bin` directory of Ginan.
 
@@ -467,26 +481,13 @@ The Doxygen documentation for Ginan requires `doxygen` and `graphviz`. If not al
 
     sudo apt -y install doxygen graphviz
 
-On success, proceed to the build directory and call make with `doc_doxygen` target:
+On success, proceed to the build directory and call make with `docs` target:
 
     cd src/build
-    make doc_doxygen
+    make docs
 
 The docs can then be found at `docs/html/index.html`. Note that documentation is generated automatically if `make` is called without arguments and `doxygen` and `graphviz` dependencies are satisfied.
 
-### Latex
-A detailed Ginan manual is located in `docs/manual` and is in latex format. To compile Latex to pdf you will need a compiler, such as texlive:
-
-    sudo apt install texlive-latex-base texlive-latex-extra
-
-Now, go to `docs/manual` and generate the pdf:
-
-    cd docs/manual
-    pdflatex main.tex
-    makeglossaries main
-    pdflatex main.tex
-
-`main.pdf` file should now appear in the directory.
 ***
 ## Ready!
 Congratulations! You are now ready to trial the examples of PEA and POD from the examples directory. See Ginan's manual for detailed explanation of each example. Note that examples have relative paths to files in them and rely on the presence of `products`, `data` and `solutions` directories inside the `examples` directory. Make sure you've run `download_examples.py` from the **Download** step of this instruction.
@@ -494,6 +495,8 @@ Congratulations! You are now ready to trial the examples of PEA and POD from the
 The paths are relative to the examples directory and hence all the examples must be run from the `examples` directory.
 
     cd ../examples
+
+NB all examples are now configured to use mongoDB. If you have not installed it, please set enable_mongo to false in the pea config files
 
 To run the first example of the PEA:
 
@@ -507,7 +510,7 @@ And an example of POD:
 
     ../bin/pod -y ex21_pod_fit_gps.yaml
 
-At the completion of the test run, `ex21` directory should be create. The `ex21_.sh` script will return any differences to the standard test resuts.
+At the completion of the test run, `ex21` directory should be created. The `ex21_.sh` script will return any differences to the standard test resuts.
 
 
 ***

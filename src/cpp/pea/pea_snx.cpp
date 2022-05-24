@@ -168,26 +168,27 @@ void sinexPerEpochPerStation(
 			break;
 		}
 
-		rec.rtk.pcvrec = findAntenna(tmpant, tsync, nav);
-
-		if (rec.rtk.pcvrec)
+		bool found;
+		found = findAntenna(tmpant, tsync, nav, F1);
+		if (found)
 		{
 			//all good, carry on
+			rec.rtk.antId = tmpant;
 			break;
 		}
 
 		// Try searching under the antenna type with DOME => NONE
 		radome2none(tmpant);
 
-		rec.rtk.pcvrec = findAntenna(tmpant, tsync, nav);
-
-		if (rec.rtk.pcvrec)
+		found = findAntenna(tmpant, tsync, nav, F1);
+		if (found)
 		{
 			BOOST_LOG_TRIVIAL(warning)
 			<< "Using \"" << tmpant
 			<< "\" instead of: \"" << rec.rtk.opt.anttype
 			<< "\" for radome of " << rec.id;
 
+			rec.rtk.antId = tmpant;
 			break;
 		}
 		else

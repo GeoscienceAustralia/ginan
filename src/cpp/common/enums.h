@@ -46,7 +46,7 @@ typedef enum
 {
 	CODE,
 	PHAS,
-	NUM_MEAS
+	NUM_MEAS_TYPES
 } E_MeasType;
 
 typedef enum
@@ -148,14 +148,6 @@ BETTER_ENUM(KEPLER,				short int,
 			M,
 			NUM
 )
-
-BETTER_ENUM(E_BiasType,				short int,
-	NONE,
-	OSB,
-	DSB
-)
-
-//config file enums
 
 BETTER_ENUM(E_ChiSqMode,	int,
 			NONE,

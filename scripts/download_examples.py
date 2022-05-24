@@ -15,23 +15,23 @@ from gn_lib.gn_download import (
 from gn_lib.gn_io.common import compute_checksum, tar_comp, tar_extr
 
 EX_GLOB_DICT = {
-    "ex11": ["*.TRACE", "*.snx", "*.tro_smoothed"],
+    "ex11": ["*.TRACE", "*.snx", "*.tro_smoothed", "*.rts"],
     "ex12": ["*.TRACE", "*.snx"],
     "ex13": ["*.TRACE", "*.snx"],
-    "ex14": ["TUG/*.TRACE", "*.snx"],
+    "ex14": ["*.TRACE", "*.snx"],
     "ex15": ["*.TRACE", "*.snx"],
     "ex16": ["*.*I", "*.stec", "*.snx", "*SUM", "*.BIA"],
     "ex17": ["*.snx", "*.clk*", "*SUM"],
-    "ex21": ["pod*.out", "pod*.rms"],
-    "ex22g": ["pod*.out", "pod*.rms"],
-    "ex22r": ["pod*.out", "pod*.rms"],
-    "ex22e": ["pod*.out", "pod*.rms"],
-    "ex22c": ["pod*.out", "pod*.rms"],
-    "ex22j": ["pod*.out", "pod*.rms"],
-    "ex23": ["pod*.out", "pod*.rms"],
-    "ex24": ["pod*.out", "pod*.rms"],
-    "ex25": ["pod*.out", "pod*.rms"],
-    "ex26": ["pod*.out", "pod*.rms"],
+    "ex21": ["pod*.out"],
+    "ex22g": ["pod*.out"],
+    "ex22r": ["pod*.out"],
+    "ex22e": ["pod*.out"],
+    "ex22c": ["pod*.out"],
+    "ex22j": ["pod*.out"],
+    "ex23": ["pod*.out"],
+    "ex24": ["pod*.out","*.sp3"],
+    "ex25": ["pod*.out"],
+    "ex26": ["pod*.out"],
 }
 
 

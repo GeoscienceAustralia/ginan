@@ -3,14 +3,19 @@ import logging as _logging
 import numpy as _np
 import pandas as _pd
 
-from gn_lib.gn_const import J2000_ORIGIN as _J2000_ORIGIN
-from gn_lib.gn_io.common import path2bytes
-from gn_lib.gn_io.ionex import read_ionex
+from gn_lib.gn_const import J2000_ORIGIN as _J2000_ORIGIN, C_LIGHT as _C_LIGHT, SISRE_COEF_DF as _SISRE_COEF_DF
+from gn_lib.gn_io.common import path2bytes as _path2bytes
+from gn_lib.gn_io.sp3 import diff_sp3_rac as _diff_sp3_rac, read_sp3 as _read_sp3
+from gn_lib.gn_io.ionex import read_ionex as _read_ionex
+from gn_lib.gn_io.clk import read_clk as _read_clk
 from gn_lib.gn_io.sinex import _get_snx_vector
-from gn_lib.gn_io.stec import read_stec
+from gn_lib.gn_io.stec import read_stec as _read_stec
 from gn_lib.gn_io.trace import _read_trace_residuals, _read_trace_states
+from gn_lib.gn_io.pod import read_pod_out as _read_pod_out
 
 from gn_lib.gn_datetime import j20002datetime as _j20002datetime, datetime2gpsweeksec as _datetime2gpsweeksec
+
+from gn_lib.gn_plot import diff2plot as _diff2plot
 
 
 def _valvar2diffstd(valvar1,valvar2,trace=True,std_coeff=1):
@@ -85,11 +90,20 @@ def _diff2msg(diff, tol = None, dt_as_gpsweek=False):
 
     return msg
 
-def _compare_sv_states(diffstd,log_lvl,tol=None):
-    diff_sv = diffstd[diffstd.attrs['SAT_MASK']].droplevel('NUM',axis=0).unstack(['TYPE','SITE','SAT'])
+
+def _compare_sv_states(diffstd,log_lvl,tol=None,plot=False):
+    diff_sv = diffstd[diffstd.attrs['SAT_MASK']].droplevel('NUM',axis=0).unstack(['TYPE','SITE','SAT','BLK'])
     if diff_sv.empty:
         _logging.warning(f':diffutil SVs states not present. Skipping')
         return 0
+    if plot:
+        # a standard scatter plot
+        _diff2plot(diff_sv.DIFF.PHASE_BIAS)
+
+        # a bar plot of mean values
+        diffstd_mean = diff_sv.DIFF.PHASE_BIAS.mean(axis=0)
+        diffstd_mean.index = diffstd_mean.index.to_series().astype(str)
+        _diff2plot(diffstd_mean,kind='bar')
     bad_sv_states = _diff2msg(diff_sv,tol)
     if bad_sv_states is not None:
         _logging.log(msg=f':diffutil found SV states diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_sv_states.to_string(justify="center")}\n',level=log_lvl)
@@ -98,7 +112,7 @@ def _compare_sv_states(diffstd,log_lvl,tol=None):
     return 0
     
 def _compare_nonsv_states(diffstd,log_lvl,tol=None):
-    diff_nonsv = diffstd[~diffstd.attrs['SAT_MASK']].droplevel('SAT',axis=0).unstack(['TYPE','SITE','NUM'])
+    diff_nonsv = diffstd[~diffstd.attrs['SAT_MASK']].droplevel('SAT',axis=0).unstack(['TYPE','SITE','NUM','BLK'])
     if diff_nonsv.empty:
         _logging.warning(f':diffutil non-SVs states not present. Skipping')
         return 0
@@ -146,11 +160,11 @@ def _compare_stec(diffstd,log_lvl,tol=None):
     _logging.info(f':diffutil [OK] stec states diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}')
     return 0
 
-def difftrace(trace1_path,trace2_path,atol,std_coeff,states_only,log_lvl):
+def difftrace(trace1_path,trace2_path,atol,std_coeff,states_only,log_lvl,plot):
     '''Compares two trace/sum files'''
     
-    trace1 = path2bytes(trace1_path)
-    trace2 = path2bytes(trace2_path)
+    trace1 = _path2bytes(trace1_path)
+    trace2 = _path2bytes(trace2_path)
     _logging.info(f':diffutil -----testing trace states-----')
     states1 = _read_trace_states(trace1)
     states2 = _read_trace_states(trace2)
@@ -160,13 +174,10 @@ def difftrace(trace1_path,trace2_path,atol,std_coeff,states_only,log_lvl):
         status += -1 # don't wait, throw error right away as smth bad happened, errors have been logged
     else:
         diffstd_states    = _valvar2diffstd(states1.iloc[:,:2],states2.iloc[:,:2],std_coeff=std_coeff,trace=True)
-
-        
-        
         if diffstd_states.attrs['EXTRA_SATS'] != []:
             _logging.warning(msg=f':diffutil found no counterpart for: {sorted(diffstd_states.attrs["EXTRA_SATS"])}')
 
-        status += _compare_sv_states(diffstd_states,tol=atol,log_lvl=log_lvl)
+        status += _compare_sv_states(diffstd_states,tol=atol,log_lvl=log_lvl,plot=plot)
         status += _compare_nonsv_states(diffstd_states,tol=atol,log_lvl=log_lvl)
         # status = _compare_recsysbias_states(diffstd_states,tol=atol)
 
@@ -175,7 +186,7 @@ def difftrace(trace1_path,trace2_path,atol,std_coeff,states_only,log_lvl):
         resids1 = _read_trace_residuals(trace1)
         resids2 = _read_trace_residuals(trace2)
         if (resids1 is None) or (resids2 is None): 
-            status+= -1 # don't wait, throw error right away as smth bad happened, errors have been logged
+            status += -1 # don't wait, throw error right away as smth bad happened, errors have been logged
         else:
             diffstd_residuals = _valvar2diffstd(resids1.iloc[:,2:],resids2.iloc[:,2:],std_coeff=std_coeff,trace=True)
 
@@ -189,25 +200,25 @@ def diffsnx(snx1_path,snx2_path,atol,std_coeff,log_lvl):
     '''Compares two sinex files '''
     snx1_df = _get_snx_vector(path_or_bytes=snx1_path,stypes=('EST',),snx_format=True,verbose=True)
     snx2_df = _get_snx_vector(path_or_bytes=snx2_path,stypes=('EST',),snx_format=True,verbose=True)
+
     if (snx1_df is None) or (snx2_df is None): return -1 # don't wait, throw error right away as smth bad happened, errors have been logged
 
     status = 0
     diff_snx = _valvar2diffstd(snx1_df,snx2_df,trace=False,std_coeff=std_coeff).unstack(['CODE_PT','TYPE'])
+    assert diff_snx.size != 0, "no corresponding data to compare"
+
     bad_snx_vals = _diff2msg(diff_snx,tol=atol)
     if bad_snx_vals is not None:
         _logging.log(msg=f':diffutil found estimates diffs above {"the extracted STDs" if atol is None else f"{atol:.1E} tolerance"}:\n{bad_snx_vals.to_string(justify="center")}\n',level=log_lvl)
-        status += -1
+        status = -1
     else:
         _logging.info(f':diffutil [OK] estimates diffs within {"the extracted STDs" if atol is None else f"{atol:.1E} tolerance"}')
-    bad_snx_vals = _diff2msg(diff_snx,tol=None)
     return status
 
 def diffstec(path1,path2,atol,std_coeff,log_lvl):
     '''Compares two stec files '''
-    stec1 = read_stec(path1)
-    stec2 = read_stec(path2)
+    stec1,stec2 = _read_stec(path1), _read_stec(path2)
     status = 0
-
     diffstd = _valvar2diffstd(stec1,stec2,std_coeff=std_coeff)
     status = _compare_stec(diffstd=diffstd,tol=atol,log_lvl=log_lvl)
     return status
@@ -215,8 +226,8 @@ def diffstec(path1,path2,atol,std_coeff,log_lvl):
 def diffionex(ionex1_path,ionex2_path,atol,log_lvl):
     '''Compares two ionex files '''
 
-    ionex1_df = read_ionex(path_or_bytes=ionex1_path)
-    ionex2_df = read_ionex(path_or_bytes=ionex2_path)
+    ionex1_df = _read_ionex(path_or_bytes=ionex1_path)
+    ionex2_df = _read_ionex(path_or_bytes=ionex2_path)
 
     tol = 10**min(ionex1_df.attrs['EXPONENT'],ionex2_df.attrs['EXPONENT']) if atol is None else atol
 
@@ -229,4 +240,91 @@ def diffionex(ionex1_path,ionex2_path,atol,log_lvl):
         status = -1
     else:
         _logging.info(f':diffutil [OK] estimates diffs within {f"10^min(exp1,exp2) = {tol:.1E} tolerance" if atol is None else f"{tol:.1E} tolerance"}')
+    return status
+
+def _compare_clk(clk_a,clk_b,sp3_a = None, sp3_b = None, as_sisre=False):
+    '''clk dataframes are the output of read_clk. sp3_a and sp3_b are the dataframes produced by read_sp3 function.
+    Outputs a dataframe of signal-in-space range error (SISRE). The SISRE units are meters'''
+    common_dt = sorted(set(clk_a.index.levels[1].values).intersection(clk_b.index.levels[1].values))
+    assert len(common_dt) != 0, "no common epochs between clk files" #TODO assert may be too aggressive
+
+    clk_a_unst = clk_a.iloc[:,0][clk_a.index.droplevel([1,2]) == 'AS'].droplevel(level=0,axis=0).rename_axis(index={'CODE':'SV'}).unstack('SV').loc[common_dt] # faster then clk_a.iloc[:,0].loc['AS']... pandas...
+    clk_b_unst = clk_b.iloc[:,0][clk_b.index.droplevel([1,2]) == 'AS'].droplevel(level=0,axis=0).rename_axis(index={'CODE':'SV'}).unstack('SV').loc[common_dt]
+
+    common_svs = sorted(set(clk_a_unst.columns.values).intersection(clk_b_unst.columns.values))
+
+    common_a = clk_a_unst[common_svs]
+    common_b = clk_b_unst[common_svs]
+
+    gnss = _np.asarray(common_svs,dtype='U1')
+    gnss_uni, gnss_ind, gnss_count = _np.unique(gnss,return_index=True,return_counts=True)
+
+    std_val = _pd.Series(_np.std(common_a.values,axis=0) + _np.std(common_b.values,axis=0),index = [gnss,common_svs]).sort_values(ascending=True)
+
+    gnss_std_ind, sv_std_ind = _np.unique(std_val.index.droplevel(1),return_index=True)
+    gnss_uni_minstd = std_val.iloc[sv_std_ind].droplevel(0).index.values #should be sorted so no need for [gnss_uni]
+    _logging.info(f"{gnss_uni_minstd} used for normalisation of the respective GNSS clk values")
+
+    norm_a = common_a - common_a[_np.repeat(gnss_uni_minstd,gnss_count)].values
+    norm_b = common_b - common_b[_np.repeat(gnss_uni_minstd,gnss_count)].values
+
+    clk_diff = (norm_a - norm_b)* _C_LIGHT
+    if not as_sisre:
+        return clk_diff.abs() # abs makes it look like sisre, however for sisre sign needs to be kept
+    else:
+        assert (sp3_a is not None and sp3_b is not None), "please provide sp3 files for sisre analysis"
+        rac = _diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None) * 1000 # km to meters... should be correct
+        common_dt = sorted(set(rac.index.levels[0].values).intersection(clk_diff.index.values))
+        rac = rac.loc(axis=0)[common_dt]
+        coeffs = _SISRE_COEF_DF.T.reindex(rac.index.droplevel(0).str[0])
+        sisre = (((rac.iloc[:,0] * coeffs.values[:,0] ).unstack(1)- clk_diff.loc(axis=0)[common_dt])**2 + ((rac.iloc[:,1]**2 + rac.iloc[:,2]**2)/coeffs.values[:,1]).unstack(1))**0.5
+        return sisre
+
+def diffsp3(sp3_a_path, sp3_b_path, atol, log_lvl):
+    """Compares two sp3 files and outputs a dataframe of differences above tolerance if such were found"""
+    sp3_a, sp3_b = _read_sp3(sp3_a_path), _read_sp3(sp3_b_path)
+    status = 0
+    diff_rac = _diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None) * 1000 # km to meters... should be correct
+
+    bad_rac_vals = _diff2msg(diff_rac.unstack(1),tol=atol)
+    if bad_rac_vals is not None:
+        _logging.log(msg=f':diffutil found estimates diffs above {atol:.1E} tolerance:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
+        status = -1
+    else:
+        _logging.info(f':diffutil [OK] estimates diffs within {atol:.1E} tolerance')
+    return status
+
+def diffpodout(pod_out_a_path, pod_out_b_path, atol, log_lvl):
+    pod_out_a, pod_out_b = _read_pod_out(pod_out_a_path), _read_pod_out(pod_out_b_path)
+    status = 0
+    diff_pod_out = (pod_out_a - pod_out_b)
+
+    bad_rac_vals = _diff2msg(diff_pod_out.unstack(1),tol=atol)
+    if bad_rac_vals is not None:
+        _logging.log(msg=f':diffutil found estimates diffs above {atol:.1E} tolerance:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
+        status = -1
+    else:
+        _logging.info(f':diffutil [OK] estimates diffs within {atol:.1E} tolerance')
+    return status
+
+def diffclk(clk_a_path, clk_b_path, atol, log_lvl, sp3_a_path = None, sp3_b_path = None):
+    """Compares two clk files and provides a difference above atol if present. If sp3 orbits provided - does analysis using the SISRE values"""
+    tol = atol # might find a way to get automatic threshold but only atol for now
+    clk_a, clk_b = _read_clk(clk_a_path), _read_clk(clk_b_path)
+    as_sisre = False
+    if (sp3_a_path is not None) and (sp3_b_path is not None):
+        sp3_a, sp3_b = _read_sp3(sp3_a_path), _read_sp3(sp3_b_path)
+        as_sisre = True
+    else:
+        sp3_a = sp3_b = None
+
+    status = 0
+    diff_clk = _compare_clk(clk_a,clk_b,sp3_a = sp3_a, sp3_b = sp3_b, as_sisre=as_sisre) # type:ignore output looks cleaner this way
+
+    bad_clk_vals = _diff2msg(diff_clk,tol=tol)
+    if bad_clk_vals is not None:
+        _logging.log(msg=f':diffutil found {"SISRE values" if as_sisre else "norm clk diffs"} above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_clk_vals.to_string(justify="center")}\n',level=log_lvl)
+        status -= 1
+    else:
+        _logging.info(f':diffutil [OK] {"SISRE values" if as_sisre else "norm clk diffs"} within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}')
     return status

@@ -229,7 +229,7 @@ def eci2rac_rot(a):
     # position
     pos = a.EST[['X','Y','Z']].values
     # velocity
-    vel = a.VELi[['X','Y','Z']].values/10000 # back to km/s
+    vel = a.VELi[['X','Y','Z']].values # units should be km/s if XYZ are in km
     
     # radial component
     u_u = pos / norm(pos)[:,_np.newaxis]

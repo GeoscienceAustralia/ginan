@@ -19,21 +19,6 @@
 
 #include "eigenIncluder.hpp"
 
-/** Compare two time tags (t2-t1)
-* Returns julian day difference
-*/
-double timecomp(
-	const double t1[6],		///< time tag in [YMDHMS]
-	const double t2[6])		///< time tag in [YMDHMS]
-{
-	/* convert two time tags to julian day */
-	double jd1 = ymdhms2jd(t1);
-	double jd2 = ymdhms2jd(t2);
-
-// 	BOOST_LOG_TRIVIAL(debug) << "time difference in julian day is "<< jd2-jd1;
-
-	return jd2-jd1;
-}
 
 /* decode antenna field */
 int decodef(char *p, int n, double *v)
@@ -50,41 +35,52 @@ int decodef(char *p, int n, double *v)
 	return i;
 }
 
-PhaseCenterData* findAntenna(
-	string	code,
-	GTime	time,
-	nav_t&	nav)
+bool findAntenna(
+	string				code,
+	GTime				time,
+	nav_t&				nav,
+	E_FType				ft,
+	PhaseCenterData**	pcd_ptr_ptr)
 {
 // 	BOOST_LOG_TRIVIAL(debug)
 // 	<< "Searching for " << type << ", " << code;
 
-	auto it1 = nav.pcMap.find(code);
-	if (it1 == nav.pcMap.end())
+	auto it1 = nav.pcvMap.find(code);
+	if (it1 == nav.pcvMap.end())
 	{
-		return nullptr;
+		return false;
 	}
 	
-	auto& [dummyCode, pcvTimeMap] = *it1;
+	auto& [dummyCode, pcvFreqMap] = *it1;
 	
-	if (pcvTimeMap.empty())
+	auto it2 = pcvFreqMap.find(ft);
+	if (it2 == pcvFreqMap.end())
 	{
-		return nullptr;
+		return false;
 	}
 	
-	auto it2 = pcvTimeMap.lower_bound(time);
-	if (it2 == pcvTimeMap.end())
+	auto& [dummy2, pcvTimeMap] = *it2;
+	
+	auto it3 = pcvTimeMap.lower_bound(time);
+	if (it3 == pcvTimeMap.end())
 	{
 		//just use the first chronologically, (last when sorted as they are) instead
-		auto it3 = pcvTimeMap.rbegin();
+		auto it4 = pcvTimeMap.rbegin();
 		
-		auto& [dummyTime, pcv] = *it3;
+		auto& [dummyTime, pcd] = *it4;
 		
-		return &pcv;
+		if (pcd_ptr_ptr)
+			*pcd_ptr_ptr = &pcd;
+		
+		return true;
 	}
 	
-	auto& [dummyTime, pcv] = *it2;
+	auto& [dummyTime, pcd] = *it3;
+		
+	if (pcd_ptr_ptr)
+		*pcd_ptr_ptr = &pcd;
 	
-	return &pcv;
+	return true;
 }
 	
 /* linear interpolate pcv ------------------------------------------------------
@@ -105,62 +101,117 @@ double interp(double x1, double x2, double y1, double y2, double x)
 	return y2-(y2-y1)*(x2-x)/(x2-x1);
 }
 
-/* fetch rec pco ---------------------------------------------------------------
-*
-* args     :       const pcvacs_t *pc     I       antenna info
-*                  const chat sys         I       satellite system
-*                  const int freq         I       frequency 1 or 2
-*                  double pco[3]          O       rec pco (m)
-*
-* return   :       none
-*
-* note     :       frequencies are sorted as GPS, GLONASS, Galileo and BeiDou
-*----------------------------------------------------------------------------*/
-void recpco(
-	PhaseCenterData *	phaseCenterData_ptr,
-	int					freq,
-	Vector3d&			pco)
+Vector3d makeAntPco(
+	string		id,
+	E_FType		ft,
+	GTime		time)
 {
-	PhaseCenterData& phaseCenterData = *phaseCenterData_ptr;
-	/* assign rec/sat pco */
-	if (phaseCenterData.pcoMap.find((E_FType)freq) == phaseCenterData.pcoMap.end())		pco = Vector3d::Zero();
-	else																				pco = phaseCenterData.pcoMap[(E_FType) freq];
+	if (ft == F1)		return Vector3d::Zero();
+	if (ft == F2)		return Vector3d::Zero();
+	
+	Vector3d pco1 = antPco(id, F1, time);
+	Vector3d pco2 = antPco(id, F2, time);
+	
+	if (pco1.isZero())	return Vector3d::Zero();
+	if (pco2.isZero())	return Vector3d::Zero();
+	
+	double lam1 = lam_carr[F1];
+	double lam2 = lam_carr[F2];
+	double lamX = lam_carr[ft];
+	
+	if (lamX == 0)		return Vector3d::Zero();
+	
+	double k32 = (lamX-lam2)/(lam1-lam2);
+	double k31 = (lamX-lam1)/(lam1-lam2);
+	
+	Vector3d pco	= k32 * pco1
+					- k31 * pco2;
+					
+	return pco;
+}
+	
+/** fetch pco
+ */
+Vector3d antPco(
+	string		id,
+	E_FType		ft,
+	GTime		time,
+	bool		interp)
+{
+	auto it1 = nav.pcoMap.find(id);
+	if (it1 == nav.pcoMap.end())
+	{
+		return Vector3d::Zero();
+	}
+	
+	auto& [dummy1, pcoFreqMap] = *it1;
+	
+	auto it2 = pcoFreqMap.find(ft);
+	if (it2 == pcoFreqMap.end())
+	{
+		if (interp)		return makeAntPco(id, ft, time);
+		else			return Vector3d::Zero();
+	}
+	
+	auto& [dummy2, pcoTimeMap] = *it2;
+	
+	auto it3 = pcoTimeMap.lower_bound(time);
+	if (it3 == pcoTimeMap.end())
+	{
+		return Vector3d::Zero();
+	}
+	
+	auto& [dummy3, pco] = *it3;
+	
+	return pco;
 }
 
-/* fetch rec pcv ---------------------------------------------------------------
-*
-* args     :       const PhaseCenterData pc      I       antenna info
-*                  const chat sys         I       satellite system
-*                  const int freq         I       frequency 1, 2
-*                  const double el        I       satellite elevation (degree)
-*                  const double azi       I       azimuth (degree)
-*                  double *pcv            O       rec pcv (m)
-*
-* return   :       none
-*
-* note     :       frequencies are sorted as GPS, GLONASS, Galileo and BeiDou
-*----------------------------------------------------------------------------*/
-void recpcv(
-	PhaseCenterData*	pc,
-	int			freq,
-	double		el,
-	double		azi,
-	double&		pcv)
+/** find and interpolate antenna pcv
+*/
+double antPcv(
+	string		id,		///< antenna id
+	E_FType		ft,		///< frequency
+	GTime		time,	///< time
+	double		aCos,	///< angle between target and antenna axis (radians)
+	double		azi)	///< azimuth angle (radians)
 {
-	int		nz		= pc->nz;
-	int		naz		= pc->naz;
-	double	zen1	= pc->zenStart;
-	double	dzen	= pc->zenDelta;
-	double	dazi	= pc->aziDelta;
-	double	zen		= 90 - el;
-
-	if (pc->PCVMap1D.find(freq) == pc->PCVMap1D.end())
+	auto it1 = nav.pcvMap.find(id);
+	if (it1 == nav.pcvMap.end())
 	{
-		//frequency not found
-		return;
+		return 0;
 	}
-	auto& pcvMap1D = pc->PCVMap1D[freq];
+	
+	auto& [dummy1, pcvFreqMap] = *it1;
 
+	auto it2 = pcvFreqMap.find(ft);
+	if (it2 == pcvFreqMap.end())
+	{
+		return 0;
+	}
+	
+	auto& [dummy2, pcvTimeMap] = *it2;
+	
+	auto it3 = pcvTimeMap.lower_bound(time);
+	if (it3 == pcvTimeMap.end())
+	{
+		return 0;
+	}
+	
+	auto& [dummy3, pcd] = *it3;
+	
+	auto& pcvMap1D = pcd.PCVMap1D;
+	auto& pcvMap2D = pcd.PCVMap2D;
+
+	int		nz		= pcd.nz;
+	int		naz		= pcd.naz;
+	double	zen1	= pcd.zenStart;
+	double	dzen	= pcd.zenDelta;
+	double	dazi	= pcd.aziDelta;
+	double	zen		= aCos * R2D;
+	azi *= R2D;
+	
+	double	pcv;
+	
 	/* select zenith angle range */
 	int zen_n;
 	for (zen_n = 1; zen_n < nz; zen_n++)
@@ -174,7 +225,8 @@ void recpcv(
 	double xz1 = zen1 + dzen * (zen_n - 1);
 	double xz2 = zen1 + dzen * (zen_n);
 
-	if (naz == 0)
+	if	( naz == 0
+		||azi == 0)
 	{
 		/* linear interpolate receiver pcv - non azimuth-dependent */
 		/* interpolate */
@@ -185,13 +237,6 @@ void recpcv(
 	}
 	else
 	{
-		if (pc->PCVMap2D.find(freq) == pc->PCVMap2D.end())
-		{
-			//frequency not found
-			return;
-		}
-		auto& pcvMap2D = pc->PCVMap2D[freq];
-
 		/* bilinear interpolate receiver pcv - azimuth-dependent */
 		/* select azimuth angle range */
 		int az_n;
@@ -217,8 +262,9 @@ void recpcv(
 		pcv	= interp(xa1, xa2, ya1, ya2, azi);
 	}
 
-	return;
+	return pcv;
 }
+
 //=============================================================================
 // radomeNoneAntennaType = radome2none(antennaType)
 //
@@ -275,7 +321,6 @@ int readantexf(
 	int noazi_flag		= 0;
 	int num_azi_rd		= 0;
 	int new_antenna		= 0;
-	int num_antennas	= 0;
 	int irms			= 0;
 
 	char tmp[10];
@@ -291,8 +336,12 @@ int readantexf(
 	}
 
 	const PhaseCenterData pcv0 = {};
-	PhaseCenterData ds_pcv;
-
+	PhaseCenterData recPcv;
+	PhaseCenterData freqPcv;
+	Vector3d	pco = Vector3d::Zero();
+	string		id;
+	GTime		time;
+	
 	E_FType	ft = FTYPE_NONE;
 
 	char buff[512];
@@ -302,28 +351,34 @@ int readantexf(
 
 		if (irms) 
 			continue;
+		
 		/* Read in the ANTEX header information */
+		
 		if (strlen(buff) < 60 )								{	continue;	}
 		if (strstr(comment, "ANTEX VERSION / SYST"))		{	continue;	}
 		if (strstr(comment, "PCV TYPE / REFANT")) 			{	continue;	}
 		if (strstr(comment, "COMMENT")) 					{	continue;	}
 		if (strstr(comment, "END OF HEADER"))				{	continue;	}
+		
 		/* Read in specific Antenna information now */
 		
 		if (strstr(comment, "START OF ANTENNA"))
 		{
-			num_antennas++;
-			ds_pcv		= pcv0;
-			new_antenna	= 1;        /* flag for new antenna */
+			recPcv	= pcv0;
+			freqPcv	= pcv0;
+			pco		= Vector3d::Zero();
+			id		= "";
 			
 			continue;
 		}
+// 		if (strstr(comment, "END OF ANTENNA"))
+// 		{
+// 			GTime time = epoch2time(recPcv.tf);
+// 			
+// 			continue;
+// 		}
 		
-		if (!new_antenna)
-		{
-			continue;
-		}
-		
+
 		if (strstr(comment, "METH / BY / # / DATE"))
 		{
 // 			int num_calibrated;
@@ -344,57 +399,45 @@ int readantexf(
 		
 		if (strstr(comment, "DAZI"))
 		{
-			strncpy(tmp,buff   ,8);tmp[8] = '\0';
-			ds_pcv.aziDelta = atof(tmp);
+			strncpy(tmp,buff   ,8);		tmp[8] = '\0';
+			recPcv.aziDelta = atof(tmp);
 
-			if (ds_pcv.aziDelta < 0.0001)	ds_pcv.naz = 0;
-			else                     		ds_pcv.naz = (360 / ds_pcv.aziDelta) + 1;
+			if (recPcv.aziDelta < 0.0001)	recPcv.naz = 0;
+			else							recPcv.naz = (360 / recPcv.aziDelta) + 1;
 			
 			continue;
 		}
 		
-		if (strstr(comment, "END OF ANTENNA"))
-		{
-			/* reset the flags for the next antenna */
-			new_antenna	= 0;
-
-			/* stack antenna pco and pcv */
-			string id;
-			string& satId = ds_pcv.code;
-			if (satId.find_first_not_of(' ') == satId.npos)		{ id = ds_pcv.type;	}
-			else												{ id = ds_pcv.code;	}
-		
-			boost::trim_right(id);
-			
-			GTime time = epoch2time(ds_pcv.tf);
-			nav.pcMap[id][time] = ds_pcv;
-			
-			continue;
-		}
-
 		if (strstr(comment, "SINEX CODE"))
 		{
-			ds_pcv.calibModel	.assign(buff,		10);
+			recPcv.calibModel	.assign(buff,		10);
 			continue;
 		}
 		
 		if (strstr(comment, "TYPE / SERIAL NO"))
 		{
-			ds_pcv.type			.assign(buff,		20);
-			ds_pcv.code			.assign(buff+20,	20);
-			ds_pcv.svn			.assign(buff+40,	4);
-			ds_pcv.cospar		.assign(buff+50,	10);
+			recPcv.type			.assign(buff,		20);
+			recPcv.code			.assign(buff+20,	20);
+			recPcv.svn			.assign(buff+40,	4);
+			recPcv.cospar		.assign(buff+50,	10);
+			
+			/* stack antenna pco and pcv */
+			string satId = recPcv.code;
+			if (satId.find_first_not_of(' ') == satId.npos)		{ id = recPcv.type;	}
+			else												{ id = recPcv.code;	}
+		
+			boost::trim_right(id);
 			
 			continue;
 		}
 		
 		if (strstr(comment, "ZEN1 / ZEN2 / DZEN"))
 		{
-			strncpy(tmp, buff,		8);	tmp[8] = '\0'; 	ds_pcv.zenStart	= atof(tmp);
-			strncpy(tmp, buff+8,	7);	tmp[8] = '\0'; 	ds_pcv.zenStop	= atof(tmp);
-			strncpy(tmp, buff+16,	7);	tmp[8] = '\0'; 	ds_pcv.zenDelta	= atof(tmp);
+			strncpy(tmp, buff,		8);	tmp[8] = '\0'; 	recPcv.zenStart	= atof(tmp);
+			strncpy(tmp, buff+8,	7);	tmp[8] = '\0'; 	recPcv.zenStop	= atof(tmp);
+			strncpy(tmp, buff+16,	7);	tmp[8] = '\0'; 	recPcv.zenDelta	= atof(tmp);
 
-			ds_pcv.nz = (ds_pcv.zenStop - ds_pcv.zenStart) / ds_pcv.zenDelta + 1 ;
+			recPcv.nz = (recPcv.zenStop - recPcv.zenStart) / recPcv.zenDelta + 1 ;
 			
 			continue;
 		}
@@ -403,7 +446,7 @@ int readantexf(
 		{
 //			strncpy(tmp, buff,		8);
 // 			tmp[8] = '\0'; 	
-// 			ds_pcv.nf		= atoi(tmp);
+// 			pcv.nf		= atoi(tmp);
 			
 			continue;
 		}
@@ -418,10 +461,12 @@ int readantexf(
 			int j = 0;
 			while (p != nullptr)
 			{
-				ds_pcv.tf[j] = (double) atoi(p);
+				recPcv.tf[j] = (double) atoi(p);
 				p = strtok(nullptr, " ");
 				j++;
 			}
+			
+			time = epoch2time(recPcv.tf);
 			
 			continue;
 		}
@@ -436,7 +481,7 @@ int readantexf(
 			int j = 0;
 			while (p != nullptr)
 			{
-				ds_pcv.tu[j] = (double) atoi(p);
+				recPcv.tu[j] = (double) atoi(p);
 				p = strtok(nullptr, " ");
 				j++;
 			}
@@ -453,10 +498,12 @@ int readantexf(
 			}
 
 			/* assign pco value in ENU */
-			Vector3d& enu = ds_pcv.pcoMap[ft];
+			Vector3d enu;
 			enu[0] = neu[1];
 			enu[1] = neu[0];
 			enu[2] = neu[2];
+			
+			pco = enu;
 			
 			continue;
 		}
@@ -471,40 +518,53 @@ int readantexf(
 
 			ft = antexCodes[antexFCode];
 			
+			freqPcv = recPcv;
+			
 			continue;
 		}
 		
-		if (strstr(comment, "END OF FREQUENCY"))	{	noazi_flag	= 0;	continue;	}
+		if (strstr(comment, "END OF FREQUENCY"))
+		{	
+			noazi_flag	= 0;	
+			
+			nav.pcvMap[id][ft][time] = freqPcv;
+			nav.pcoMap[id][ft][time] = pco;
+			
+			continue;
+		}
+		
 		if (strstr(comment, "START OF FREQ RMS"))	{	irms		= 1;	continue;	}
 		if (strstr(comment, "END OF FREQ RMS"))		{	irms		= 0;	continue;	}
 		
-		if (!irms && strstr(buff,"NOAZI"))
+		if	(  irms == 0 
+			&& strstr(buff, "NOAZI"))
 		{
-			for (int i = 0; i < ds_pcv.nz; i++)
+			for (int i = 0; i < recPcv.nz; i++)
 			{
 				offset = i * 8 + 8;
 				strncpy(tmp, buff + offset, 8);
 				tmp[8]='\0';
 				double pcv_val = atof(tmp);
-				ds_pcv.PCVMap1D[ft]			.push_back(pcv_val * 1e-3);
+				freqPcv.PCVMap1D			.push_back(pcv_val * 1e-3);
 			}
 			noazi_flag = 1;
 			
 			continue;
 		}
 		
-		if (!irms && noazi_flag == 1)
+		if	(  irms == 0
+			&& noazi_flag == 1)
 		{
 			strncpy(tmp, buff, 8);
 			tmp[8]='\0';
 
-			for (int i = 0; i < ds_pcv.nz; i++)
+			for (int i = 0; i < recPcv.nz; i++)
 			{
 				offset = i * 8 + 8;
 				strncpy(tmp, buff + offset, 8);
 				tmp[8]='\0';
 				double pcv_val = atof(tmp);
-				ds_pcv.PCVMap2D[ft][num_azi_rd].push_back(pcv_val * 1e-3);
+				freqPcv.PCVMap2D[num_azi_rd].push_back(pcv_val * 1e-3);
 			}
 			num_azi_rd++;
 			
@@ -515,37 +575,4 @@ int readantexf(
 	fclose(fp);
 
 	return 1;
-}
-
-/** Satellite antenna model.
-* Compute satellite antenna phase center parameters
-*/
-// inplace of antmodel_
-// this will not work
-// for galileo models
-void interp_satantmodel(
-	PhaseCenterData&	phaseCenterData,	///< antenna phase center parameters
-	double				nadir,	///< nadir angle for satellite (rad)
-	map<int, double>&	dant)	///< range offsets for each frequency (m)
-{
-	for (auto& [ft, pcvVector] : phaseCenterData.PCVMap1D)
-	{
-		double	nadirDeg		= nadir * R2D;				// ang=0-90
-		int		numSections		= pcvVector.size();
-		double	startAngle		= phaseCenterData.zenStart;
-		double	sectionWidth	= phaseCenterData.zenDelta;
-		double	realSection		= ((nadirDeg - startAngle) / sectionWidth);
-		double	intSection		= (int) realSection;
-		double	fraction		= realSection - intSection;
-
-		if		(intSection < 0)				{	dant[ft] = pcvVector[0];					}
-		else if	(intSection >= numSections)		{	dant[ft] = pcvVector[numSections-1];		}
-		else
-		{
-			double a = pcvVector[intSection];
-			double b = pcvVector[intSection + 1];
-
-			dant[ft] = a + fraction * (b - a);
-		}
-	}
 }

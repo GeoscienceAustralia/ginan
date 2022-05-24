@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+# [1.4] - 2022-05-24
+Improvements to EOP/ERP handling when the integration arc is longer than 1 day - as a result the POD is now twice as fast as before
+
+PEA no longer estimates corrections to ERP parameters but outputs absolute ERP values
+
+Refactoring and simplification of hardware and system Bias handling code
+
+Kalman Filter statistical tests now fully implemented
+
+YAML config error warnings: PEA now attempts to detect typos in the input config file
+
+Mongo C++ library dependencies now required at build time
+
+Bugfixes in RTCM and SSR code
+
+Several CMake build issues resolved
+
+Ambiguity resolution (AR) algorithm improved
+
 ## [1.3] - 2022-03-18
 ### Added
 New fix and hold ambiguity resolution algorithm implemented in the PEA
@@ -44,42 +63,44 @@ Ginan v2 uncombined/undifferenced algorithm code framework implemented
 Output listing of all available PEA configuration options implemented with pea -Y option
 
 ### Changed
-PEA Rauch-Tung-Striebel (RTS) smoothing filter algorithm performance improved
+PEA Rauch-Tung-Striebel (RTS) smoothing filter algorithm performance improved 
 
 MongoDash visualisation tool renamed Ginan Exploratory Data Analysis tool (GinanEDA), numerous performance and analytical features added
 
-PEA output to MongoDB performance improvement and additional outputs implemented
+PEA output to MongoDB performance improvement and additional outputs implemented 
 
-PEA TRACE and solution summary (.SUM) file format updates. All output is now time tagged with improved formating for easier reading and searching
+PEA TRACE and solution summary (.SUM) file format updates. All output is now time tagged with improved formating for easier reading and searching 
 
-PEA Kalman Filter performance and stability improvements
+PEA Kalman Filter performance and stability improvements 
 
-Streamlined and improved handling of RTCM input and output data and correction streams
+Streamlined and improved handling of RTCM input and output data and correction streams 
 
-Unification of PEA user mode and network mode filters in the codebase
+Unification of PEA user mode and network mode filters in the codebase 
 
-Updated all Ginan PEA and POD user use-case examples to reflect changes since Ginanv-1.2-Aplha release
+Updated all Ginan PEA and POD user use-case examples to reflect changes since Ginanv-1.2-Aplha release 
 
-Updated all Ginan PEA and POD user use-case examples filenames to better reflect their purpose
+Updated all Ginan PEA and POD user use-case examples filenames to better reflect their purpose 
 
-Updated Ginan use case example downloader, download_examples.py script updated to allow individual data, products and solutions tar balls to be downloaded separately
+Updated Ginan use case example downloader, download_examples.py script updated to allow individual data, products and solutions tar balls to be downloaded separately 
 
-CMake.txt file simplification and build stability improvements
+CMake.txt file simplification and build stability improvements 
 
-New Ginan download, install, and use-case videos completed
+New Ginan download, install, and use-case videos completed 
 
 ### Deprecated
 ### Removed
 ### Fixed
-Missing .SP3 file entries and “0 position” satellite entries bug fixed in the POD
+Missing .SP3 file entries and “0 position” satellite entries bug fixed in the POD 
 
-Improved outlier and cycle slip detection and data downweighing in the PEA Kalman Filter
+Improved outlier and cycle slip detection and data downweighing in the PEA Kalman Filter 
 
-IONEX file output format bug fixes
+IONEX file output format bug fixes 
 
-Default PEA Kalman Filter inverter changed to LDLT
+Numerous new Ginan python utilities added (difftrace, diffsnx, duffutil, merge_sp3, log2snx, etc) 
 
-Miscellaneous bug fixes and performance improvements
+Default PEA Kalman Filter inverter changed to LDLT 
+
+Miscellaneous bug fixes and performance improvements 
 
 ### Security
 

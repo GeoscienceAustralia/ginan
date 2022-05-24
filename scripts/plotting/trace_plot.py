@@ -38,11 +38,8 @@ import pandas as pd
 from pathlib import Path
 from numpy import loadtxt
 
-from p_tqdm import p_map
-
 import argparse
 from datetime import datetime, timedelta
-import re
 
 from gn_lib.gn_io.trace import _read_trace, _read_trace_res, _read_trace_LC, _read_trace_el
 from gn_lib.gn_io.sinex import _read_snx_solution

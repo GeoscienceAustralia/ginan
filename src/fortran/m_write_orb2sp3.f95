@@ -105,7 +105,7 @@ SUBROUTINE write_orb2sp3 (ORBmatrix, PRNmatrix, sp3_fname, sat_vel, CLKmatrix)
       INTEGER (KIND = prec_int8) :: GPS_week, GPSweek_mod1024, valid_sat_index
       REAL (KIND = prec_d) :: GPS_wsec, GPS_day
       REAL (KIND = prec_d) :: Interval
-      INTEGER (KIND = prec_int8) :: Nsat_17frac, Nsat_lines, j17
+      INTEGER (KIND = prec_int8) :: Nsat_17frac, Nsat_lines, j17, isec_00
       CHARACTER (LEN=1) :: char1
       INTEGER (KIND = prec_int2) :: num1
 ! ----------------------------------------------------------------------
@@ -154,7 +154,7 @@ CLK_C = 'N/A'
 !*  2010 12 25  0  0  0.0000 
 !PG01  -6582.270015  18452.592641 -17946.851511    -67.214659  6  9  8  87       
 !fmt_epoch = '(A3,I5.4,4I3.2,F11.8)'
-fmt_epoch = '(A3,I4,A1, I2,A1, I2,A1, I2,A1 I2,A1 , F11.8)'
+fmt_epoch = '(A3,I4,A1, I2,A1, I2,A1,I2,A1,I2,A1,F11.8)'
 !fmt_pos = '(A1,A1,I2.2,4F14.6,A)'
 !fmt_vel = '(A1,A1,I2.2,4F14.6,A)'
 fmt_pos = '(A1,A3,4F14.6)'
@@ -238,6 +238,7 @@ hour_ti = INT(FD * 24.0D0)
 min_ti  = INT(FD * 24.0D0 * 60.0D0)
 sec_ti  = (FD * 24.0D0 * 60.0D0 * 60.0D0)
 else
+if (sec_00 < 0.d0) Sec_00 = Sec_00 + 86400.0d0
 hour_ti = INT(Sec_00 / (60.0D0 * 60.0D0))
 min_ti  = INT(Sec_00/60.0D0 - hour_ti*60.0D0)  
 sec_ti  = (Sec_00 - hour_ti*3600.0D0 - min_ti*60.D0)
@@ -424,7 +425,8 @@ if (.not. yml_satellites(i_sat)) cycle
 MJD_ti = ORBmatrix(i_write,1, i_sat)
 ! Sec of Day (since 0h)
 Sec_00 = ORBmatrix(i_write,2, i_sat)
-
+iSec_00 = int(sec_00 / 60.0d0)
+if (iSec_00 * 60.d0 - Sec_00 < 1.0d-9) Sec_00 = Sec_00 + 1.0d-9
 ! Satellite PRN number 
 !PRN_ti = sp3_fname(1:3)
 !PRN_ti = sat_prn
@@ -491,9 +493,13 @@ hour_ti = INT(FD * 24.0D0)
 min_ti  = INT(FD * 24.0D0 * 60.0D0)
 sec_ti  = (FD * 24.0D0 * 60.0D0 * 60.0D0)
 else
+if (sec_00 < 0.d0) Sec_00 = Sec_00 + 86400.0d0
 hour_ti = INT(Sec_00 / (60.0D0 * 60.0D0))
 min_ti  = INT(Sec_00/60.0D0 - hour_ti*60.0D0)  
 sec_ti  = (Sec_00 - hour_ti*3600.0D0 - min_ti*60.D0)
+if (sec_ti > 59.9d0) then
+    print *, "wrong seconds"
+end if
 end if
 
 !print *,"sec_ti print", sec_ti 

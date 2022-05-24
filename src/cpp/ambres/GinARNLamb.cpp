@@ -110,7 +110,7 @@ void incl_Zamb(
 	
 	tracepdeex(ARTRCLVL+1,trace,"\n#ARES_NLAR Initializing Zamb:" );
 	for (auto& [key,coef] : Zin)
-		tracepdeex(ARTRCLVL+1,trace," %+7.4f AMB(%s,%s)",coef,key.Sat.id(),key.str);
+		tracepdeex(ARTRCLVL+1,trace," %+7.4f AMB(%s,%s)",coef,key.Sat.id().c_str(),key.str.c_str());
 	
 	GinAR_amb newamb;
 	newamb.sec_ini = time;
@@ -130,7 +130,7 @@ int updat_ambigt(
 	KFState& kfState,	///< KF struct containing raw ambiguity measurements
 	GinAR_opt opt )		///< Ginan AR control options 
 {
-	tracepdeex(ARTRCLVL,trace,"\n#ARES_NLAR Resolving ambiguities %s", kfState.time.to_string(0));
+	tracepdeex(ARTRCLVL,trace,"\n#ARES_NLAR Resolving ambiguities %s", kfState.time.to_string(0).c_str());
 	auto& AR_mealist = ARstations[opt.recv].AR_meaMap;
 	
 	chk_arch( trace, kfState.time, opt );
@@ -157,7 +157,7 @@ int updat_ambigt(
 		E_FType frq3;
 		E_AmbTyp typ = E_AmbTyp::NL12;
 		
-		if (!sys_solve[sys])													continue;	
+		if (!opt.sys_solve[sys])												continue;	
 		if (!sys_frq(sys, frq1, frq2, frq3))									continue;
 		if ( opt.ionmod == +E_IonoMode::ESTIMATE )
 		{
@@ -340,7 +340,7 @@ int updat_ambigt(
 	if (nfix <= 0) 
 		return 0;
 
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_NLAR %s Solved %4d ambiguities out of %4d", kfState.time.to_string(0), nfix, nambig);
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_NLAR %s Solved %4d ambiguities out of %4d", kfState.time.to_string(0).c_str(), nfix, nambig);
 
 	MatrixXd Ztrs = ambState.Ztrs;
 	MatrixXd Sfix = Ztrs * ambState.Paflt * Ztrs.transpose();					/* Variance of z-transform of float ambiguities */

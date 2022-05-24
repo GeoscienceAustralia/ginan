@@ -5,13 +5,10 @@
 using std::multimap;
 using std::map;
 
-#ifdef ENABLE_MONGODB
 #include <bsoncxx/builder/basic/document.hpp>
 #include <bsoncxx/json.hpp>
 
 using bsoncxx::builder::basic::kvp;
-
-#endif
 
 #include "rtcmEncoder.hpp"
 #include "navigation.hpp"
@@ -37,66 +34,85 @@ map		<string, bool>								streamDOAMap;
 
 ObsList ObsStream::getObs()
 {
-	if (obsListList.size() > 0)
+	if (obsListList.empty())
 	{
-		ObsList& obsList = obsListList.front();
-
-		std::sort(obsList.begin(), obsList.end(), [](Obs& a, Obs& b)
-			{
-				if (a.Sat.sys < b.Sat.sys)		return true;
-				if (a.Sat.sys > b.Sat.sys)		return false;
-				if (a.Sat.prn < b.Sat.prn)		return true;
-				else							return false;
-			});
-
-		for (auto& obs					: obsList)
-		for (auto& [ftype, sigsList]	: obs.SigsLists)
-		{
-			sigsList.sort([](RawSig& a, RawSig& b)
-				{
-					auto iterA = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), a.code);
-					auto iterB = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), b.code);
-
-					if (a.L == 0)		return false;
-					if (b.L == 0)		return true;
-					if (a.P == 0)		return false;
-					if (b.P == 0)		return true;
-					if (iterA < iterB)	return true;
-					else				return false;
-				});
-
-			RawSig firstOfType = sigsList.front();
-
-			//use first of type as representative if its in the priority list
-			auto iter = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), firstOfType.code);
-			if (iter != acsConfig.code_priorities.end())
-			{
-				obs.Sigs[ftype] = Sig(firstOfType);
-			}
-		}
-
-		return obsList;
-	}
-	else
-	{
-
 		return ObsList();
 	}
+	ObsList& obsList = obsListList.front();
+
+	std::sort(obsList.begin(), obsList.end(), [](Obs& a, Obs& b)
+		{
+			if (a.Sat.sys < b.Sat.sys)		return true;
+			if (a.Sat.sys > b.Sat.sys)		return false;
+			if (a.Sat.prn < b.Sat.prn)		return true;
+			else							return false;
+		});
+
+	for (auto& obs					: obsList)
+	for (auto& [ftype, sigsList]	: obs.SigsLists)
+	{
+		
+		if (obs.Sat.sys == +E_Sys::GPS)
+		{
+			double dirty_C1W_phase = 0;
+			for(auto& sig : sigsList)
+			if ( sig.code == +E_ObsCode::L1C)
+			{
+				dirty_C1W_phase = sig.L;
+				break;
+			}
+		
+			for(auto& sig : sigsList)
+			if	(  sig.code	== +E_ObsCode::L1W 
+				&& sig.L	== 0)
+			{
+				sig.L = dirty_C1W_phase;
+				break;
+			}
+		}
+		
+		sigsList.sort([](RawSig& a, RawSig& b)
+			{
+				auto iterA = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), a.code);
+				auto iterB = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), b.code);
+
+				if (a.L == 0)		return false;
+				if (b.L == 0)		return true;
+				if (a.P == 0)		return false;
+				if (b.P == 0)		return true;
+				if (iterA < iterB)	return true;
+				else				return false;
+			});
+
+		if (sigsList.empty())
+		{
+			continue;
+		}
+		
+		RawSig firstOfType = sigsList.front();
+
+		//use first of type as representative if its in the priority list
+		auto iter = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), firstOfType.code);
+		if (iter != acsConfig.code_priorities.end())
+		{
+			obs.Sigs[ftype] = Sig(firstOfType);
+		}
+	}
+
+	return obsList;
 }
 
 
 PseudoObsList PseudoObsStream::getObs()
 {
-	if (obsListList.size() > 0)
-	{
-		PseudoObsList& pseudoObsList = obsListList.front();
-
-		return pseudoObsList;
-	}
-	else
+	if (obsListList.empty())
 	{
 		return PseudoObsList();
 	}
+	
+	PseudoObsList& pseudoObsList = obsListList.front();
+
+	return pseudoObsList;
 }
 
 

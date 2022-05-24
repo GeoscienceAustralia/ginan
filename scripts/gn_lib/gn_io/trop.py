@@ -1,6 +1,6 @@
 '''Trop sinex files reader/parser'''
 from io import BytesIO as _BytesIO
-from p_tqdm.p_tqdm import tqdm as _tqdm
+from tqdm import tqdm as _tqdm
 
 import numpy as _np
 import pandas as _pd

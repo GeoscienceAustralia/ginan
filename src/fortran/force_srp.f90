@@ -327,9 +327,9 @@ END IF
       alpha = 1.0d0 ! srpid == SRP_NONE
 
       if (srpid == SRP_CANNONBALL) then
-         fx=-F0/MASS*ed(1)*lambda
-         fy=-F0/MASS*ed(2)*lambda
-         fz=-F0/MASS*ed(3)*lambda
+         fsrp(1)=F0/MASS*ed(1)*lambda *sclfa
+         fsrp(2)=F0/MASS*ed(2)*lambda *sclfa
+         fsrp(3)=F0/MASS*ed(3)*lambda *sclfa
          alpha = F0/MASS
       else if (srpid == SRP_SIMPLE_BW) then
          xmul = 0.02
@@ -341,9 +341,9 @@ END IF
          fyo=Ps/MASS*(xmul*X_SIDE*cosang(1)*ex(2)+zmul*Z_SIDE*cosang(3)*ez(2)+solarmul*A_SOLAR*cosang(4)*ed(2))
          fzo=Ps/MASS*(xmul*X_SIDE*cosang(1)*ex(3)+zmul*Z_SIDE*cosang(3)*ez(3)+solarmul*A_SOLAR*cosang(4)*ed(3))
          alpha = sqrt(fxo**2+fyo**2+fzo**2)
-         fx=-fxo*lambda
-         fy=-fyo*lambda
-         fz=-fzo*lambda
+         fsrp(1)=fxo*lambda*sclfa
+         fsrp(2)=fyo*lambda*sclfa
+         fsrp(3)=fzo*lambda*sclfa
 
       else if (srpid == SRP_FULL_BW) then
          REFF = 0    ! 0: inertial frame,  1: satellite body-fixed frame, 
@@ -352,9 +352,10 @@ END IF
          YSAT(4:6) = v
          CALL SRPFBOXW(REFF,YSAT,R_SUN,SVNID,ACCEL)
          alpha = sqrt(ACCEL(1)**2+ACCEL(2)**2+ACCEL(3)**2)
-         fx=ACCEL(1)*lambda
-         fy=ACCEL(2)*lambda
-         fz=ACCEL(3)*lambda
+         ! negate these values ???
+         fsrp(1)=ACCEL(1)*lambda*sclfa
+         fsrp(2)=ACCEL(2)*lambda*sclfa
+         fsrp(3)=ACCEL(3)*lambda*sclfa
 
       end if
 
@@ -368,6 +369,8 @@ endif
 !ALLOCATE (srpcoef(NPARAM_EMP_ECOM_glb), STAT = AllocateStatus)
 
 srpcoef = 0.d0
+
+if (yml_ECOM_mode /= ECOM_NONE) fsrp = 0.0d0
 
 ! ECOM model
 ! ***********************************************************************
@@ -542,6 +545,7 @@ END IF
      fx=-fsrp(1)
      fy=-fsrp(2)
      fz=-fsrp(3)
+
 
 
 !     END IF 

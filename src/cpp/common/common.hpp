@@ -40,6 +40,11 @@ void ecef2enu(const double *pos, const double *r, double *e);
 void enu2ecef(const double *pos, const double *e, double *r);
 void xyz2enu (const double *pos, double *E);
 
+void enu2ecef(
+	const	double*		pos,
+	const	Vector3d&	e,
+			Vector3d&	r);
+
 
 //forward declarations
 struct prcopt_t;

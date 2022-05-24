@@ -1,5 +1,6 @@
 C----------------------------------------------------------------
-      SUBROUTINE INTERP_iers (RJD,X,Y,UT1,N,rjd_int,x_int,y_int,ut1_int)
+      SUBROUTINE INTERP_iers (RJD,X,Y,UT1,L,N,rjd_int,x_int,
+     .                        y_int,ut1_int)
 C
 C     This subroutine takes a series of x, y, and UT1-UTC values
 C     and interpolates them to an epoch of choice. This routine
@@ -14,7 +15,8 @@ C     RJD     - array of the epochs of data (given in mjd)
 C     X       - array of x polar motion (arcsec)
 C     Y       - array of y polar motion (arcsec)
 C     UT1     - array of UT1-UTC (sec)
-C     n       - number of points in arrays
+C     l       - number of points in arrays
+C     n       - number of points to use (= order of poly + 1)
 C     rjd_int - epoch for the interpolated value
 C     x_int   - interpolated value of x
 C     y_int   - interpolated value of y
@@ -28,19 +30,29 @@ C      coded by Ch. BIZOUARD (Observatoire de Paris) : November 2002
 C                                          Corrected : September 2007   
   
       implicit none
-      integer i,n
-      DOUBLE PRECISION RJD(N), X(N), Y(N), UT1(N),
+      integer l,n, npoints
+      DOUBLE PRECISION RJD(L), X(L), Y(L), UT1(L),
      . rjd_int, x_int, y_int, ut1_int, 
      . cor_x, cor_y, cor_ut1, cor_lod
-      
 
-      CALL LAGINT (RJD,X,n,rjd_int,x_int)
+      npoints = n
+
+      CALL LAGINT (RJD,X,l,npoints,rjd_int,x_int)
   
-      CALL LAGINT (RJD,Y,n,rjd_int,y_int)
+      CALL LAGINT (RJD,Y,l,npoints,rjd_int,y_int)
       
-      CALL LAGINT (RJD,UT1,n,rjd_int,ut1_int)
+      CALL LAGINT (RJD,UT1,l,npoints,rjd_int,ut1_int)
       !PRINT *,"LAGINT", x_int, y_int, ut1_int  
 
+      if (x_int /= x_int) then
+              print *, "interp_iers: bad X pole"
+      end if
+      if (y_int /= y_int) then
+              print *, "interp_iers: bad Y pole"
+      end if
+      if (ut1_int /= ut1_int) then
+              print *, "interp_iers: bad UTC_UT1"
+      end if
 c --------------
 c Oceanic effect      
 c --------------
@@ -73,12 +85,12 @@ C Lunisolar effect
 C
 C----------------------------------------------------------------
 C
-      SUBROUTINE LAGINT (X,Y,n,xint,yout)
+      SUBROUTINE LAGINT (X,Y,l,n,xint,yout)
 C 
 C     This subroutine performs lagrangian interpolation
 C     within a set of (X,Y) pairs to give the y
 C     value corresponding to xint. This program uses a
-C     window of 4 data points to perform the interpolation.
+C     window of n data points to perform the interpolation.
 C     if the window size needs to be changed, this can be
 C     done by changing the indices in the do loops for
 C     variables m and j.
@@ -86,32 +98,68 @@ C
 C     PARAMETERS ARE :
 C     X     - array of values of the independent variable
 C     Y     - array of function values corresponding to x
-C     n     - number of points
+C     l     - number of points in the arrays
+C     n     - number of points to use
 C     xint  - the x-value for which estimate of y is desired
 C     yout  - the y value returned to caller
 
       implicit none
-      REAL*8 X(n),Y(n),xint,yout,term
-      INTEGER i,j,k,m,n
+      INTEGER i,j,k,l,m,n,npoints,nleft,nright,isodd
+      REAL*8 X(l),Y(l),xint,yout,term
+
+      npoints = n
+
+      if (n .ge. l) npoints = l
 
       yout = 0.d0
       k = 0
-      do  i = 1,n-1
-        if ( xint .ge. X(i) .and. xint .lt. X(i+1) ) k = i
-      enddo
-    
-      if ( k .lt. 2 ) k = 2
-      if ( k .gt. n-2 ) k = n-2
-   
-      do m = k-1,k+2
+
+      ! if we did not find a value in range, just linear extrapolate
+      if ( xint .lt. X(1) ) then
+        k = 1
+        npoints = 2
+      else if ( xint .ge. X(l) ) then
+        k = l-1
+        npoints = 2
+      ! otherwise interpolate
+      else
+        do  i = 1,l-1
+          if ( xint .ge. X(i) .and. xint .lt. X(i+1) ) k = i
+        enddo
+        ! if npoints is odd, move k to the nearest point
+        isodd = MOD(npoints,2)
+        if ( (isodd.eq.1) .and. (xint-X(k)) .gt. (X(k+1)-xint)) k = k+1
+      end if
+
+      nleft = (npoints-1)/2
+      nright = npoints/2
+
+      if ( k .lt. nleft+1 ) k = nleft+1
+      if ( k .gt. l-nright ) k = l-nright
+
+      if (npoints .eq. 2) then
+          ! points selected will be k and k+1
+          if (x(k+1) == x(k)) then
+                  print *, "division by 0 at xint = ", xint, ", k=", k
+                  print *, "X = ", X
+                  print *, "Y = ", Y
+                  STOP
+          end if
+          yout = y(k) + (xint-x(k)) * (y(k+1)-y(k)) / (x(k+1)-x(k))
+      else
+      do m = k-nleft,k+nright
         term = y(m)
-        do  j = k-1,k+2
+        do j = k-nleft,k+nright
           if ( m .ne. j ) then
+                  if (.false. .and. (X(m) .eq. X(j))) then
+                      print*, "divide by zero"
+                  end if
             term = term * (xint - X(j))/(X(m) - X(j))
           end if
         enddo 
         yout = yout + term
       enddo
+      end if
    
       return
       end

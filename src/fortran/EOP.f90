@@ -70,6 +70,7 @@ SUBROUTINE EOP (mjd, EOP_cr, CRS2TRS, TRS2CRS, d_CRS2TRS, d_TRS2CRS)
 ! ----------------------------------------------------------------------
 ! Local variables declaration
 ! ----------------------------------------------------------------------
+      INTEGER i, arc_length
       REAL (KIND = prec_d) :: mjd_TT
 ! ----------------------------------------------------------------------
 
@@ -77,7 +78,7 @@ SUBROUTINE EOP (mjd, EOP_cr, CRS2TRS, TRS2CRS, d_CRS2TRS, d_TRS2CRS)
 
 
 mjd_TT = mjd
-
+EOP_cr = 0.d0
 
 
 ! ----------------------------------------------------------------------
@@ -99,16 +100,21 @@ mjd_TT = mjd
 !             dX,dY w.r.t. IAU2000A by IERS RS/PC (finals2000A.daily) 
 ! ----------------------------------------------------------------------
       ELSEIF (EOP_sol == EOP_SUPER_FAST)  THEN 
-            CALL eop_igu (mjd_TT, ERP_fname, EOP_day_glb, EOP_cr)
+            arc_length = yml_orbit_arc_determination + yml_orbit_arc_prediction +&
+                    yml_orbit_arc_backwards
+            CALL eop_igu (mjd_TT, ERP_fname, ERP_day_glb, EOP_day_glb, EOP_Nint, EOP_cr)
       END IF
 ! ----------------------------------------------------------------------
-
+      ! debug
+      if (.false.) then
+              print *, EOP_cr
+      end if
 ! ----------------------------------------------------------------------
 !SCM 20190606 Removed the nutation model correction terms from EOP array,
 !             These terms were adding noise to the orbit fits to IGS products.
 !             Add flag to turn on/off in the future!
-      EOP_cr(6) = 0.D0
-      EOP_cr(7) = 0.D0
+      EOP_cr(EOP_DX) = 0.D0
+      EOP_cr(EOP_DY) = 0.D0
 ! ---------------------------------------------------------------------- 
  
 ! ----------------------------------------------------------------------
@@ -118,10 +124,19 @@ mjd_TT = mjd
       CALL crs_trs (mjd_TT, EOP_cr, iau_model, CRS2TRS, TRS2CRS, d_CRS2TRS, d_TRS2CRS)
 ! ----------------------------------------------------------------------
         
-        
-        
-        
-        
+      ! just some debug
+      if (.false.) then
+      print *, "mjd=", mjd_TT
 
+      print *, "ECI-ECEF matrix"
+      do i = 1, 3
+          print *, crs2trs(i, 1), crs2trs (i, 2), crs2trs (i,3)
+      end do  
+        
+      print *, "derivative of ECI-ECEF matrix"
+      do i = 1, 3
+          print *, d_crs2trs(i, 1), d_crs2trs(i, 2), d_crs2trs(i, 3)
+      end do  
+      end if
 
 END

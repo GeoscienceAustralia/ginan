@@ -7,6 +7,7 @@
 #include <chrono>
 #include <string>
 #include <ctime>
+#include <cmath>
 
 using std::chrono::system_clock;
 using std::chrono::time_point;
@@ -418,7 +419,7 @@ void outputOrbit(
 
 		/* output adjusted ICs */
 		tracepdeex(0, orbitFile, "#IC_XYZ       %s %s %-10s ICRF    %14d %14.6f",
-				Sat.id().c_str(),
+				Sat.id()			.c_str(),
 				Sat.svn()			.c_str(),
 				Sat.blockType()		.c_str(),
 				(int)	initial.t0[0],
@@ -608,24 +609,24 @@ void inertial2Keplers(
 	//Compute the mean anomaly with help of Kepler’s Equation from the eccentric anomaly E and the eccentricity e
 	double M = E - e_ * sin(E);
 	
-	if (isnan(nu))
-	{
-		
-		std::cout << "\n " << e.transpose() << " " << e_r.transpose() << "\n";
-		std::cout << "nu is nan\n";
-	}
-	if (isnan(e_))
-	{
-		std::cout << "e_ is nan\n";
-	}
-	if (isnan(E))
-	{
-		std::cout << "E is nan\n";
-	}
-	if (isnan(M))
-	{
-		std::cout << "M is nan\n";
-	}
+// 	if (isnan(nu))
+// 	{
+// 		
+// 		std::cout << "\n " << e.transpose() << " " << e_r.transpose() << "\n";
+// 		std::cout << "nu is nan\n";
+// 	}
+// 	if (isnan(e_))
+// 	{
+// 		std::cout << "e_ is nan\n";
+// 	}
+// 	if (isnan(E))
+// 	{
+// 		std::cout << "E is nan\n";
+// 	}
+// 	if (isnan(M))
+// 	{
+// 		std::cout << "M is nan\n";
+// 	}
 	
 	keplers(KEPLER::LX)	= L_x / MOMENTUM_SCALE;
 	keplers(KEPLER::LY)	= L_y / MOMENTUM_SCALE;

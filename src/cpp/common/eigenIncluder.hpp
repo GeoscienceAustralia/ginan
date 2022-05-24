@@ -2,6 +2,10 @@
 #ifndef __EIGEN_INCLUDER_HPP__
 #define __EIGEN_INCLUDER_HPP__
 
+#include <cmath>
+
+using std::isnan;
+
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Sparse>

@@ -21,11 +21,12 @@ void calculateSsrComb(
 		return;
 	}
 
-	double commonClockOffset = 0;
-	
+	map<E_Sys, std::array<double,2>> commonClockOffsetsMap; // 0: bias; 1: bias rate
+	map<E_Sys, std::array<GTime, 2>> commonClockEpochsMap;	// 0: 1st straddle pt epoch; 1: 2nd straddle pt epoch
+
 	for (auto& [Sat, ssrOut] : ssrOutMap)
 	{
-		if (ssrOut.clkInput.brdc1.iode != ssrOut.ephInput.brdc1.iode)
+		if (ssrOut.clkInput.vals[0].iode != ssrOut.ephInput.vals[0].iode)
 		{
 			tracepdeex(3, std::cout, "IODE mismatch between clock and ephemeris for %s\n", Sat.id().c_str());
 			continue;
@@ -36,7 +37,6 @@ void calculateSsrComb(
 		auto& ssrEphInput	= ssrOut.ephInput;
 		auto& ssrClkInput	= ssrOut.clkInput;
 		
-		
 		ssrEph.t0 					= curTime + period / 2;
 		ssrClk.t0 					= curTime + period / 2;
 		ssrEph.udi					= period;
@@ -46,64 +46,92 @@ void calculateSsrComb(
 		
 		ssrEph.ssrMeta				= ssrMeta;
 		ssrClk.ssrMeta				= ssrMeta;
-		
-		ssrEph.iode		= ssrEphInput.brdc1.iode;
+
+		ssrEph.iode		= ssrEphInput.vals[0].iode;
 		
 		// ssrEph.iodcrc				= ??
 		
+		double		clkCorrections[2];
+		Vector3d	posCorrections[2];
+		
+		for (int i = 0; i < 2; i++)
+		{
+			posCorrections[i]	= ssrEphInput.vals[i].brdcPos
+								- ssrEphInput.vals[i].precPos;
+			clkCorrections[i]	= ssrClkInput.vals[i].brdcClk
+								- ssrClkInput.vals[i].precClk;
+		}
+#if 0		
 		Vector3d	diffRAC[2];
-		double		diffClock = 0;
+		double		diffClock[2];
+		
 		for (int dt : {0, 1})
 		{
-			double		broadcastEphRatio	= (ssrEph.t0 + dt - ssrEphInput.brdc1.time) / (ssrEphInput.brdc2.time - ssrEphInput.brdc1.time);
-			double		broadcastClkRatio	= (ssrClk.t0 + dt - ssrClkInput.brdc1.time) / (ssrClkInput.brdc2.time - ssrClkInput.brdc1.time);
-			double		preciseEphRatio		= (ssrEph.t0 + dt - ssrEphInput.prec1.time) / (ssrEphInput.prec2.time - ssrEphInput.prec1.time);
-			double		preciseClkRatio		= (ssrClk.t0 + dt - ssrClkInput.prec1.time) / (ssrClkInput.prec2.time - ssrClkInput.prec1.time);
+			double		ephRatio	= (ssrEph.t0 + dt - ssrEphInput.vals[0].time) / (ssrEphInput.vals[1].time - ssrEphInput.vals[0].time);
+			double		clkRatio	= (ssrClk.t0 + dt - ssrClkInput.vals[0].time) / (ssrClkInput.vals[1].time - ssrClkInput.vals[0].time);
 			
-			Vector3d	broadcastPos		= ssrEphInput.brdc1.pos + broadcastEphRatio	* (ssrEphInput.brdc2.pos - ssrEphInput.brdc1.pos);
-			Vector3d	broadcastVel		= ssrEphInput.brdc1.vel + broadcastEphRatio	* (ssrEphInput.brdc2.vel - ssrEphInput.brdc1.vel);
-			double		broadcastClk		= ssrClkInput.brdc1.clk + broadcastClkRatio	* (ssrClkInput.brdc2.clk - ssrClkInput.brdc1.clk);
-			Vector3d	precisePos			= ssrEphInput.prec1.pos + preciseEphRatio	* (ssrEphInput.prec2.pos - ssrEphInput.prec1.pos);
-	// 		Vector3d	preciseVel			= ssrEphInput.prec1.vel + preciseEphRatio	* (ssrEphInput.prec2.vel - ssrEphInput.prec1.vel);
-			double		preciseClk			= ssrClkInput.prec1.clk + preciseClkRatio	* (ssrClkInput.prec2.clk - ssrClkInput.prec1.clk);
+			Vector3d	posCorrection	= posCorrections[0] 			+ ephRatio	* (posCorrections[1]			- posCorrections[0]);
+			double		clkCorrection	= clkCorrections[0]				+ clkRatio	* (clkCorrections[1]			- clkCorrections[0]);
 			
+			Vector3d	satPosition		= ssrEphInput.vals[0].brdcPos	+ ephRatio	* (ssrEphInput.vals[1].brdcPos	- ssrEphInput.vals[0].brdcPos);
+			Vector3d	satVelocity		= ssrEphInput.vals[0].brdcVel	+ ephRatio	* (ssrEphInput.vals[1].brdcVel	- ssrEphInput.vals[0].brdcVel);
 			
-			Vector3d	diffEcef		= broadcastPos - precisePos;
-			Vector3d	diffRac			= ecef2rac(broadcastPos, broadcastVel) 	* diffEcef;
+			Vector3d	diffRac			= ecef2rac(satPosition, satVelocity) * posCorrection;
 			
-			diffRAC[dt]	= diffRac;
+			diffRAC		[dt]	= diffRac;
+			diffClock	[dt]	= -clkCorrection;
 			
-			diffClock	= broadcastClk - preciseClk;
-// 			std::cout << std::fixed;
-// 			std::cout << "BRatio:       " << broadcastEphRatio << std::endl;
-// 			std::cout << "brdc1:        "<< ssrEphInput.brdc1.pos.transpose() << std::endl;
-// 			std::cout << "brdc2:        "<< ssrEphInput.brdc2.pos.transpose() << std::endl;
-// 			std::cout << "broadcastPos: "<< broadcastPos.transpose() << std::endl;
-// 			std::cout << "PRatio:       " << broadcastEphRatio << std::endl;
-// 			std::cout << "prec1:        "<< ssrEphInput.prec1.pos.transpose() << std::endl;
-// 			std::cout << "prec2:        "<< ssrEphInput.prec2.pos.transpose() << std::endl;
-// 			std::cout << "precisePos:   "<< precisePos.transpose() << std::endl;
-// 			std::cout << "diffEcef:     "<< diffEcef.transpose() << std::endl;
-// 			std::cout << "diffRac:      "<< diffRac.transpose() << std::endl;
+			std::cout << std::fixed;
+			std::cout << Sat.id() << " " << dt <<" BRatio:       "<< ephRatio << std::endl;
+			std::cout << Sat.id() << " " << dt <<" iode:         "<< ssrOut.clkInput.vals[0].iode << std::endl;
+			std::cout << Sat.id() << " " << dt <<" brdc1:        "<< ssrEphInput.vals[0].brdcPos.transpose() << std::endl;
+			std::cout << Sat.id() << " " << dt <<" brdc2:        "<< ssrEphInput.vals[1].brdcPos.transpose() << std::endl;
+			std::cout << Sat.id() << " " << dt <<" prec1:        "<< ssrEphInput.vals[0].precPos.transpose() << std::endl;
+			std::cout << Sat.id() << " " << dt <<" prec2:        "<< ssrEphInput.vals[1].precPos.transpose() << std::endl;
+			std::cout << Sat.id() << " " << dt <<" diffEcef:     "<< posCorrection.transpose() << std::endl;
+			std::cout << Sat.id() << " " << dt <<" diffRac:      "<< diffRac.transpose() << std::endl;
+			std::cout << Sat.id() << " " << dt <<" brdc1:        "<< ssrClkInput.vals[0].brdcClk << std::endl;
+			std::cout << Sat.id() << " " << dt <<" brdc2:        "<< ssrClkInput.vals[1].brdcClk << std::endl;
+			std::cout << Sat.id() << " " << dt <<" prec1:        "<< ssrClkInput.vals[0].precClk << std::endl;
+			std::cout << Sat.id() << " " << dt <<" prec2:        "<< ssrClkInput.vals[1].precClk << std::endl;
+			std::cout << Sat.id() << " " << dt <<" clkCorrection:"<< clkCorrection << std::endl;
 		}
 			
 		ssrEph. deph	= diffRAC[0]; 
 		ssrEph.ddeph	= diffRAC[1] - diffRAC[0];
 	
-// 		std::cout << "deph:         "<< ssrEph. deph.transpose() << std::endl;
-// 		std::cout << "ddeph:        "<< ssrEph.ddeph.transpose() << std::endl;
-		ssrClk.dclk[0]	= diffClock;
-		ssrClk.dclk[1]	= 0;	// set to zero (not used)
+		ssrClk.dclk[0]	= diffClock[0];
+		ssrClk.dclk[1]	= diffClock[1] - diffClock[0];
 		ssrClk.dclk[2]	= 0;	// set to zero (not used)
 		
-		//adjust all clock corrections so that they remain within the bounds of the outputs
-		if (commonClockOffset == 0)
-		{
-			commonClockOffset = ssrClk.dclk[0];
-		}
-		ssrClk.dclk[0] -= commonClockOffset;
+// 		std::cout << "deph:         "<< ssrEph. deph.transpose() << std::endl;
+// 		std::cout << "ddeph:        "<< ssrEph.ddeph.transpose() << std::endl;
+		std::cout << "deph:         "<< ssrEph. deph.transpose() << std::endl;
+		std::cout << Sat.id() << "dclk[0]:        "<< ssrClk.dclk[0] << std::endl;
+		std::cout << Sat.id() << "dclk[1]:        "<< ssrClk.dclk[1] << std::endl << std::endl;
+
+#else	/* Bypass interpolation */
+		ssrEph.deph     = ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) * posCorrections[1];
+		ssrClk.dclk[0]	= -clkCorrections[1];
+		ssrClk.dclk[1]	= 0;	// set to zero (not used)
+		ssrClk.dclk[2]	= 0;	// set to zero (not used)
+#endif		
 		
-// break;
+		//adjust all clock corrections so that they remain within the bounds of the outputs
+		if (commonClockOffsetsMap[Sat.sys][0] == 0)
+		{
+			commonClockOffsetsMap[Sat.sys][0] = ssrClk.dclk[0];
+			commonClockOffsetsMap[Sat.sys][1] = ssrClk.dclk[1];
+			commonClockEpochsMap [Sat.sys][0] = ssrClkInput.vals[0].time;
+			commonClockEpochsMap [Sat.sys][1] = ssrClkInput.vals[1].time;
+		}
+		if	( ssrClkInput.vals[0].time != commonClockEpochsMap[Sat.sys][0]
+			||ssrClkInput.vals[1].time != commonClockEpochsMap[Sat.sys][1])
+		{
+			continue; // commonClockOffset is lagging/leading this sat's clock, skip
+		}
+		ssrClk.dclk[0] -= commonClockOffsetsMap[Sat.sys][0];
+		ssrClk.dclk[1] -= commonClockOffsetsMap[Sat.sys][1];
 	}
 // 	std::cout << "Calculated Combined Messages.\n";
 }	

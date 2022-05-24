@@ -18,7 +18,8 @@ KFState RTS_Process(
 	bool		write			= false,
 	StationMap*	stationMap_ptr	= nullptr,
 	string		clockFilename	= "",
-	string		tropFilename	= "");
+	string		tropFilename	= "",
+	string		erpFilename		= "");
 
 
 #endif

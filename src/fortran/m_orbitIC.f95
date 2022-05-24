@@ -106,6 +106,7 @@ UNIT_IN = 9
       k = 0
       isat = 0	  
 	  Nparam = 0
+      sz1 = SIZE (ERP_day_IC, DIM=1)
       DO
 	     READ (UNIT=UNIT_IN,FMT='(A)',IOSTAT=ios_line) line_ith
 	     i = i + 1
@@ -129,8 +130,10 @@ READ (line_ith, * , IOSTAT=ios_data) word1_ln  ! 1st word
 ! ----------------------------------------------------------------------
 IF (word1_ln == "#PODINFO_ERP" .or. word1_ln == "#INFO_ERP") then
    k=k+1
+   if (k <= sz1) then
    READ (line_ith, * , IOSTAT=ios_data) word_i, word_i,word_i, word_i,word_i,&
                                         ERP_day_IC(k,1:4)
+   end if
 !print*,'ERP_day_IC(k,1:4)',k,word_i, word_i,word_i, word_i,word_i,ERP_day_IC(k,1:4)
 
 END IF
@@ -184,6 +187,8 @@ END DO
 CLOSE (UNIT=UNIT_IN)
 
 ! Add ERP offset adjustments
+if (k > sz1) k = sz1
+
 if (erp_offs_read) then
   do i = 1, k
     do j = 2, 4

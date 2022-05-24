@@ -1,11 +1,12 @@
 
 // #pragma GCC optimize ("O0")
 
-#ifdef ENABLE_MONGODB
 
 #include "observations.hpp"
 #include "rtcmEncoder.hpp"
 #include "mongoWrite.hpp"
+#include "GNSSambres.hpp"
+#include "biasSINEX.hpp"
 #include "acsConfig.hpp"
 #include "satStat.hpp"
 #include "common.hpp"
@@ -13,16 +14,12 @@
 
 
 void mongoTestStat(
-	KFState&			kfState,
-	double				prefitSumOfSqTestStat,
-	double				postfitSumOfSqTestStat,
-	double				chiSq,
-	double				qc,
-	int					dof,
-	double				chiSqPerDof)
+	KFState&		kfState,
+	TestStatistics&	testStatistics)
 {
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return;
 	}
 
@@ -31,7 +28,7 @@ void mongoTestStat(
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
 	mongocxx::database			db		= client[acsConfig.mongo_database];
-	mongocxx::collection		coll	= db	["TestStatistics"];
+	mongocxx::collection		coll	= db	["States"];
 
 	mongocxx::options::update	options;
 	options.upsert(true);
@@ -43,26 +40,34 @@ void mongoTestStat(
 
 	bool update = false;
 
+	map<string, double> entries;
+	entries["StatsSumOfSquaresPre"		] = testStatistics.sumOfSquaresPre;
+	entries["StatsAverageRatioPre"		] = testStatistics.averageRatioPre;
+	entries["StatsSumOfSquaresPost"		] = testStatistics.sumOfSquaresPost;
+	entries["StatsAverageRatioPost"		] = testStatistics.averageRatioPost;
+	entries["StatsChiSquare"			] = testStatistics.chiSq;
+	entries["StatsChiSquareThreshold"	] = testStatistics.qc;
+	entries["StatsDegreeOfFreedom"		] = testStatistics.dof;
+	entries["StatsChiSquarePerDOF"		] = testStatistics.chiSqPerDof;
+	
+	for (auto& [state, value] : entries)
 	{
 		mongocxx::model::update_one  mongo_req(
 			document{}
-				<< "Epoch"			<< bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(tsync.time)}
+				<< "Epoch"		<< bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(kfState.time.time)}
+				<< "Site"		<< kfState.id		+ acsConfig.mongo_suffix
+				<< "Sat"		<< ""				+ acsConfig.mongo_suffix
+				<< "State"		<< state
 				<< finalize,
 
 			document{}
 				<< "$set"
 				<< open_document
-					<< "prefitSumOfSqTestStat"	<< prefitSumOfSqTestStat
-					<< "postfitSumOfSqTestStat"	<< postfitSumOfSqTestStat
-					<< "ChiSqaureMode"			<< kfState.chi_square_mode._to_string()
-					<< "ChiSquare"				<< chiSq
-					<< "ChiSquareThreshold"		<< qc
-					<< "DegreeOfFreedom"		<< dof
-					<< "ChiSquarePerDOF"		<< chiSqPerDof
+					<< "x0"		<< value
 				<< close_document
 				<< finalize
 			);
-
+		
 		mongo_req.upsert(true);
 		bulk.append(mongo_req);
 		update = true;
@@ -79,6 +84,7 @@ void mongoMeasSatStat_all(
 {	
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return;
 	}
 
@@ -112,16 +118,19 @@ void mongoMeasSatStat_all(
 
 		mongocxx::model::update_one  mongo_req{
 			document{}
-				<< "Epoch"			<< bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(tsync.time)}
-				<< "Site"			<< obs.mount + acsConfig.mongo_suffix
-				<< "Sat"			<< obs.Sat.id()
+				<< "Epoch"				<< bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(tsync.time)}
+				<< "Site"				<< obs.mount + acsConfig.mongo_suffix
+				<< "Sat"				<< obs.Sat.id()
 				<< finalize,
 
 			document()
 				<< "$set"
 				<< open_document
-					<< "Azimuth"	<< satStat.az * R2D
-					<< "Elevation"	<< satStat.el * R2D
+					<< "Azimuth"		<< satStat.az		* R2D
+					<< "Elevation"		<< satStat.el		* R2D
+					<< "Nadir"			<< satStat.nadir	* R2D
+					<< "sunDotSat"		<< satStat.sunDotSat
+					<< "sunCrossSat"	<< satStat.sunCrossSat
 				<< close_document
 				<< finalize
 			};
@@ -146,6 +155,7 @@ void mongoMeasResiduals(
 {
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return;
 	}
 
@@ -212,6 +222,7 @@ void mongoStates(
 {
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return;
 	}
 
@@ -273,6 +284,7 @@ void mongoCull(
 {
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return;
 	}
 
@@ -302,6 +314,7 @@ void mongoOutput(
 {	
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return;
 	}
 
@@ -385,222 +398,287 @@ void	prepareSsrStates(
 			obs.Sat = Sat;
 			
 			auto& satNav = nav.satNavMap[obs.Sat];
+			SatStat satStatDummy;
 			
-			obs.satNav_ptr = &satNav; // for satpos_ssr()
+			obs.satStat_ptr	= &satStatDummy;
+			obs.satNav_ptr	= &satNav; // for satpos_ssr()
 
 			GTime teph = time;
 			
+			// Clock and orbit corrections (and predicted corrections)
 			for (int tpredict = 0; tpredict <= acsConfig.ssrOpts.prediction_duration; tpredict += acsConfig.ssrOpts.prediction_interval)
 			{
-				//std::cout << "Time offset : " << tpredict << std::endl;
-				GTime pTime = time + tpredict;
-			
-				/* grep satellite antenna information */
-				PcoMapType* pcoMap_ptr = nullptr;
+				GTime	pTime	= time + tpredict;
+				bool	pass	= false;
+				
+				//broadcast values
+				
+				pass = satpos(trace, pTime, pTime, obs, E_Ephemeris::BROADCAST,	E_OffsetType::APC, nav, false);
+				if (pass == false)
 				{
-					PhaseCenterData* satPCD = findAntenna(Sat.id(), pTime, nav);
-
-					if (satPCD == nullptr)
+					BOOST_LOG_TRIVIAL(info) 
+					<< Sat.id() << " failed broadcast predictions.\n";
+					
+					continue;
+				}
+				
+				int			iode		= obs.iode;
+				Vector3d	brdcPos		= obs.rSat;
+				Vector3d	brdcVel		= obs.satVel;
+				double		brdcClkVal	= obs.dtSat[0] * CLIGHT;
+				
+				//precise clock
+				double	precClkVal	= 0;
+				switch (acsConfig.ssrOpts.clock_source)
+				{
+					case E_Ephemeris::BROADCAST:
+					case E_Ephemeris::PRECISE:
+					case E_Ephemeris::SSR:
 					{
-						if (Sat.prn < MINPRNSBS)
-						{
-							tracepde(1, trace,	"Warning: no satellite (%s) pco information\n", Sat.id().c_str());
-							printf(				"Warning: no satellite (%s) pco information\n", Sat.id().c_str());
-						}
+						pass = satpos(trace, pTime, pTime, obs, acsConfig.ssrOpts.clock_source,	E_OffsetType::APC, nav, false);
+						
+						precClkVal = obs.dtSat[0] * CLIGHT;
+						
+						break;
 					}
-					else
+					case E_Ephemeris::KALMAN:
 					{
-						pcoMap_ptr = &satPCD->pcoMap;
+						//currently can't predict clocks
+						if (tpredict == 0)
+						{
+							
+							pass = kfState.getKFValue({.type = KF::SAT_CLOCK, .Sat = Sat}, precClkVal);
+						}
+						
+						break;
 					}
 				}
 				
-				bool pass = satpos(trace, pTime, teph, obs, acsConfig.ssrOpts.ephemeris_source,	E_OffsetType::APC, nav, pcoMap_ptr, false);
+				if (pass == false)
+				{
+					BOOST_LOG_TRIVIAL(info) 
+					<< Sat.id() << " failed ssrClk precise prediction.\n";
+					
+					continue;
+				}
+				
+				//precise orbit
+				switch (acsConfig.ssrOpts.ephemeris_source)
+				{
+					case E_Ephemeris::BROADCAST:
+					case E_Ephemeris::PRECISE:
+					case E_Ephemeris::SSR:
+					{
+						pass = satpos(trace, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_source,	E_OffsetType::APC, nav, false);
+						
+						break;
+					}
+				}
+				
 				if (pass == false)
 				{
 					BOOST_LOG_TRIVIAL(info) 
 					<< Sat.id() << " failed ssrEph precise prediction.\n";
 					break;
 				}
+			
+				Vector3d precPos = obs.rSat;
+				Vector3d precVel = obs.satVel;
 				
+				
+				//output the valid entries
 				{
 					DBEntry entry;
-					entry.stringMap	[SSR_DATA		]	= {SSR_EPHEMERIS,	true};
-					entry.stringMap	[SSR_TYPE		]	= {SSR_PREC,		true};
-					entry.stringMap	[SSR_SAT		]	= {Sat.id(),		true};
-					entry.timeMap	[SSR_EPOCH		]	= {pTime,			true};
+					entry.stringMap	[SSR_DATA			]	= {SSR_CLOCK,		true};
+					entry.stringMap	[SSR_SAT			]	= {Sat.id(),		true};
+					entry.timeMap	[SSR_EPOCH			]	= {pTime,			true};
 					
-					entry.vectorMap	[SSR_POS		]	= {obs.rSat,		false};
-					entry.timeMap	[SSR_UPDATED	]	= {time,			false};
+					entry.doubleMap	[SSR_CLOCK SSR_BRDC	]	= {brdcClkVal,		false};
+					entry.doubleMap	[SSR_CLOCK SSR_PREC	]	= {precClkVal,		false};
+					entry.timeMap	[SSR_UPDATED		]	= {time,			false};
+					entry.intMap	[SSR_IODE			]	= {iode,			false};
 					
 					dbEntryList.push_back(entry);
 				}
 				
 				{
 					DBEntry entry;
-					entry.stringMap	[SSR_DATA		]	= {SSR_SAT_CLOCK,			true};
-					entry.stringMap	[SSR_TYPE		]	= {SSR_PREC,				true};
-					entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
-					entry.timeMap	[SSR_EPOCH		]	= {pTime,					true};
+					entry.stringMap	[SSR_DATA			]	= {SSR_EPHEMERIS,	true};
+					entry.stringMap	[SSR_SAT			]	= {Sat.id(),		true};
+					entry.timeMap	[SSR_EPOCH			]	= {pTime,			true};
 					
-					entry.doubleMap	[SSR_SAT_CLOCK	]	= {obs.dtSat[0] * CLIGHT,	false};
-					entry.timeMap	[SSR_UPDATED	]	= {time,					false};
-					
+					entry.vectorMap	[SSR_POS SSR_BRDC	]	= {brdcPos,			false};
+					entry.vectorMap	[SSR_VEL SSR_BRDC	]	= {brdcVel,			false};
+					entry.vectorMap	[SSR_POS SSR_PREC	]	= {precPos,			false};
+					entry.vectorMap	[SSR_VEL SSR_PREC	]	= {precVel,			false};
+					entry.timeMap	[SSR_UPDATED		]	= {time,			false};
+					entry.intMap	[SSR_IODE			]	= {iode,			false};
+				
 					dbEntryList.push_back(entry);
 				}
 			}
 			
-			if (1)
+			switch (acsConfig.ssrOpts.code_bias_source)
 			{
-				
-			}
-			else
-			{
-				double clkVal = 0;
-				bool pass = kfState.getKFValue({.type = KF::SAT_CLOCK, .Sat = Sat}, clkVal);	//todo aaron, no source here...?
-				if (pass == false)
+				case E_Ephemeris::PRECISE:
 				{
-					BOOST_LOG_TRIVIAL(info) 
-					<< Sat.id() << " failed ssrClk precise prediction.\n";
-	// 				break;
-				}
-				
-				DBEntry entry;
-				entry.stringMap	[SSR_DATA		]	= {SSR_SAT_CLOCK,	true};
-				entry.stringMap	[SSR_TYPE		]	= {SSR_PREC,		true};
-				entry.stringMap	[SSR_SAT		]	= {Sat.id(),		true};
-				entry.timeMap	[SSR_EPOCH		]	= {time,			true};
-				
-				entry.doubleMap	[SSR_SAT_CLOCK	]	= {clkVal,			false};
-				entry.timeMap	[SSR_UPDATED	]	= {time,			false};
-				
-				dbEntryList.push_back(entry);
-			}
-			
-			for (int tpredict = 0; tpredict <= acsConfig.ssrOpts.prediction_duration; tpredict += acsConfig.ssrOpts.prediction_interval)
-			{
-				//std::cout << "Time offset : " << tpredict << std::endl;
-				GTime pTime = time + tpredict;
+					for (auto& obsCode : acsConfig.code_priorities)
+					{
+						double bias = 0;
+						double bvar = 0;
+						bool pass = getBiasSinex(trace, time, Sat.id(), Sat, obsCode, CODE, bias, bvar);
+						if (pass == false)
+						{
+							continue;
+						}
+						
+						DBEntry entry;
+						entry.stringMap	[SSR_DATA		]	= {SSR_CODE_BIAS,			true};
+						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
+						entry.timeMap	[SSR_EPOCH		]	= {time,					true};
+						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
 
-				// Calculate broadcast & precise orb & clock at tsync
-				bool pass = satpos(trace, pTime, teph, obs, E_Ephemeris::BROADCAST, E_OffsetType::APC, nav);
-				if (pass == false)
+						entry.doubleMap	[SSR_BIAS		]	= {-bias,					false};
+						entry.doubleMap	[SSR_VAR		]	= {bvar,					false};
+						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
+					
+						dbEntryList.push_back(entry);
+					}
+					
+					break;
+				}
+				case E_Ephemeris::SSR:
 				{
-					BOOST_LOG_TRIVIAL(info) 
-					<< Sat.id() << " failed ssrEph broadcast prediction.\n";
+					auto it = satNav.receivedSSR.ssrCodeBias_map.upper_bound(time);	
+					if (it == satNav.receivedSSR.ssrCodeBias_map.end())
+					{
+						break;
+					}
+					
+					auto& [dummy, ssrCodeBias] = *it;
+					for (auto& [obsCode, biasVar] : ssrCodeBias.obsCodeBiasMap)
+					{
+						DBEntry entry;
+						entry.stringMap	[SSR_DATA		]	= {SSR_CODE_BIAS,			true};
+						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
+						entry.timeMap	[SSR_EPOCH		]	= {ssrCodeBias.t0,			true};
+						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
+					
+						entry.doubleMap	[SSR_BIAS		]	= {biasVar.bias,			false};
+						entry.doubleMap	[SSR_VAR		]	= {biasVar.var,				false};
+						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
+					
+						dbEntryList.push_back(entry);
+					}
+					
+					break;
+				}
+			}
+			
+			switch (acsConfig.ssrOpts.phase_bias_source)
+			{
+				case E_Ephemeris::SSR:
+				{
+					auto it = satNav.receivedSSR.ssrPhasBias_map.upper_bound(time);
+					if (it == satNav.receivedSSR.ssrPhasBias_map.end())
+					{
+						break;
+					}
+					auto& [dummy, ssrPhasBias] = *it;
+				
+					for (auto& [obsCode, biasVar] : ssrPhasBias.obsCodeBiasMap)
+					{
+						DBEntry entry;
+						entry.stringMap	[SSR_DATA		]	= {SSR_PHAS_BIAS,			true};
+						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
+						entry.timeMap	[SSR_EPOCH		]	= {ssrPhasBias.t0,			true};
+						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
+					
+						entry.doubleMap	[SSR_BIAS		]	= {biasVar.bias,			false};
+						entry.doubleMap	[SSR_VAR		]	= {biasVar.var,				false};
+						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
+					
+						auto& ssrPhase		= ssrPhasBias.ssrPhase;
+						auto& ssrPhaseChs	= ssrPhasBias.ssrPhaseChs;
+						entry.intMap	["dispBiasConistInd"]	= {ssrPhase.dispBiasConistInd,				false};
+						entry.intMap	["MWConistInd"      ]	= {ssrPhase.MWConistInd,					false};
+						entry.doubleMap	["yawAngle"         ]	= {ssrPhase.yawAngle,						false};
+						entry.doubleMap	["yawRate"          ]	= {ssrPhase.yawRate,						false};
+						entry.intMap	["signalIntInd"     ]	= {ssrPhaseChs[obsCode].signalIntInd,		false};
+						entry.intMap	["signalWidIntInd"  ]	= {ssrPhaseChs[obsCode].signalWidIntInd,	false};
+						entry.intMap	["signalDisconCnt"  ]	= {ssrPhaseChs[obsCode].signalDisconCnt,	false};
+					
+						dbEntryList.push_back(entry);
+					}
+					
 					break;
 				}
 				
-				Eph* eph 	= seleph<Eph>(trace, teph, Sat, -1, nav);
-				int iode	= eph->iode;
-				
+				case E_Ephemeris::KALMAN:
 				{
-					DBEntry entry;
-					entry.stringMap	[SSR_DATA		]	= {SSR_EPHEMERIS,	true};
-					entry.stringMap	[SSR_TYPE		]	= {SSR_BRDC,		true};
-					entry.stringMap	[SSR_SAT		]	= {Sat.id(),		true};
-					entry.timeMap	[SSR_EPOCH		]	= {pTime,			true};
-					
-					entry.intMap	[SSR_IODE		]	= {iode,			false};
-					entry.vectorMap	[SSR_POS		]	= {obs.rSat,		false};
-					entry.vectorMap	[SSR_VEL		]	= {obs.satVel,		false};
-					entry.timeMap	[SSR_UPDATED	]	= {time,			false};
+					double bias;
+					double bvar;
 				
-					dbEntryList.push_back(entry);
-				}
+					if (queryBiasOutput(trace, Sat, E_AmbTyp::UCL1, bias, bvar))
+					{
+						E_ObsCode obsCode = acsConfig.clock_codesL1[sys];
+						DBEntry entry;
+						entry.stringMap	[SSR_DATA		]	= {SSR_PHAS_BIAS,			true};
+						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
+						entry.timeMap	[SSR_EPOCH		]	= {time,					true};
+						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
 				
-				double tk 	= pTime - eph->toc;
-				double	clkVal	= (eph->f0 + eph->f1 * tk + eph->f2 * tk * tk) * CLIGHT;
+						entry.doubleMap	[SSR_BIAS		]	= {bias,					false};
+						entry.doubleMap	[SSR_VAR		]	= {bvar,					false};
+						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
+						
+						entry.intMap	["dispBiasConistInd"]	= {0,					false};
+						entry.intMap	["MWConistInd"      ]	= {1,					false};
+						entry.doubleMap	["yawAngle"         ]	= {0.0,					false};			/* To Do: reflect internal yaw calculation here */ 
+						entry.doubleMap	["yawRate"          ]	= {0.0,					false};			/* To Do: reflect internal yaw calculation here */ 
+						entry.intMap	["signalIntInd"     ]	= {1,					false};
+						entry.intMap	["signalWidIntInd"  ]	= {2,					false};
+						entry.intMap	["signalDisconCnt"  ]	= {0,					false};
+						
+						dbEntryList.push_back(entry);
+					}
 				
-				{
-					DBEntry entry;
-					entry.stringMap	[SSR_TYPE		]	= {SSR_BRDC,		true};
-					entry.stringMap	[SSR_DATA		]	= {SSR_SAT_CLOCK,	true};
-					entry.stringMap	[SSR_SAT		]	= {Sat.id(),		true};
-					entry.timeMap	[SSR_EPOCH		]	= {pTime,			true};
-					
-					entry.intMap	[SSR_IODE		]	= {iode,			false};
-					entry.doubleMap	[SSR_SAT_CLOCK	]	= {clkVal,			false};
-					entry.timeMap	[SSR_UPDATED	]	= {time,			false};
-					
-					dbEntryList.push_back(entry);
-				}
-			}
-			
-			for (auto once : {1})
-			{
-				auto it = satNav.receivedSSR.ssrCodeBias_map.upper_bound(time);			//get same biases
-				if (it == satNav.receivedSSR.ssrCodeBias_map.end())
-				{
-					continue;
-				}
+					if (queryBiasOutput(trace, Sat, E_AmbTyp::UCL2, bias, bvar))
+					{
+						E_ObsCode obsCode = acsConfig.clock_codesL2[sys];
+						DBEntry entry;
+						entry.stringMap	[SSR_DATA		]	= {SSR_PHAS_BIAS,			true};
+						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
+						entry.timeMap	[SSR_EPOCH		]	= {time,					true};
+						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
 				
-				auto& [dummy, ssrCodeBias] = *it;
-				
-				for (auto& [obsCode, biasVar] : ssrCodeBias.obsCodeBiasMap)
-				{
-					DBEntry entry;
-					entry.stringMap	[SSR_DATA		]	= {SSR_CODE_BIAS,			true};
-					entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
-					entry.timeMap	[SSR_EPOCH		]	= {ssrCodeBias.t0,			true};
-					entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
+						entry.doubleMap	[SSR_BIAS		]	= {bias,					false};
+						entry.doubleMap	[SSR_VAR		]	= {bvar,					false};
+						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
+						
+						entry.intMap	["dispBiasConistInd"]	= {0,					false};
+						entry.intMap	["MWConistInd"      ]	= {1,					false};
+						entry.doubleMap	["yawAngle"         ]	= {0.0,					false};			/* To Do: reflect internal yaw calculation here */ 
+						entry.doubleMap	["yawRate"          ]	= {0.0,					false};			/* To Do: reflect internal yaw calculation here */ 
+						entry.intMap	["signalIntInd"     ]	= {1,					false};
+						entry.intMap	["signalWidIntInd"  ]	= {2,					false};
+						entry.intMap	["signalDisconCnt"  ]	= {0,					false};
+						
+						dbEntryList.push_back(entry);
+					}
 					
-					entry.doubleMap	[SSR_BIAS		]	= {biasVar.bias,			false};
-					entry.doubleMap	[SSR_VAR		]	= {biasVar.var,				false};
-					entry.timeMap	[SSR_UPDATED	]	= {time,					false};
-					
-					dbEntryList.push_back(entry);
-				}
-			}
-			
-			for (auto once : {1})
-			{
-				auto it = satNav.receivedSSR.ssrPhasBias_map.upper_bound(time);
-				if (it == satNav.receivedSSR.ssrPhasBias_map.end())
-				{
-					continue;
-				}
-				
-				auto& [dummy, ssrPhasBias] = *it;
-				
-				for (auto& [obsCode, biasVar] : ssrPhasBias.obsCodeBiasMap)
-				{
-					DBEntry entry;
-					entry.stringMap	[SSR_DATA		]	= {SSR_PHAS_BIAS,			true};
-					entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
-					entry.timeMap	[SSR_EPOCH		]	= {ssrPhasBias.t0,			true};
-					entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
-					
-					entry.doubleMap	[SSR_BIAS		]	= {biasVar.bias,			false};
-					entry.doubleMap	[SSR_VAR		]	= {biasVar.var,				false};
-					entry.timeMap	[SSR_UPDATED	]	= {time,					false};
-					
-					auto& ssrPhase		= ssrPhasBias.ssrPhase;
-					auto& ssrPhaseChs	= ssrPhasBias.ssrPhaseChs;
-					entry.intMap	["dispBiasConistInd"]	= {ssrPhase.dispBiasConistInd,				false};
-					entry.intMap	["MWConistInd"		]	= {ssrPhase.MWConistInd,					false};
-					entry.doubleMap	["yawAngle"			]	= {ssrPhase.yawAngle,						false};
-					entry.doubleMap	["yawRate"			]	= {ssrPhase.yawRate,						false};
-					entry.intMap	["signalIntInd"		]	= {ssrPhaseChs[obsCode].signalIntInd,		false};
-					entry.intMap	["signalWidIntInd"	]	= {ssrPhaseChs[obsCode].signalWidIntInd,	false};
-					entry.intMap	["signalDisconCnt"	]	= {ssrPhaseChs[obsCode].signalDisconCnt,	false};
-					
-					dbEntryList.push_back(entry);
+					break;
 				}
 			}
 		}
 	}
 	
-#	ifdef ENABLE_MONGODB
+	if (acsConfig.output_mongo_rtcm_messages)
 	{
-		if (acsConfig.output_mongo_rtcm_messages)
-		{
-			BOOST_LOG_TRIVIAL(info)
-			<< "Writing to mongo\n";
-			mongoCull(time - 300.0);
-			mongoOutput(dbEntryList);
-		}
+		BOOST_LOG_TRIVIAL(info)
+		<< "Writing to mongo\n";
+		mongoCull(time - 300.0);
+		mongoOutput(dbEntryList);
 	}
-#	endif
 }
 
-#endif

@@ -326,7 +326,7 @@ void writeRinexObsBody(
 
 					case E_ObsDesc::L:
 						if (sig.L == 0)		tracepdeex(0, rinexStream, "%14.3s  ", "");
-						else				tracepdeex(0, rinexStream, "%14.3f%d%d", sig.L, (uint)sig.LLI, sn_rnx);
+						else				tracepdeex(0, rinexStream, "%14.3f%d%d", sig.L, (unsigned int)sig.LLI, sn_rnx);
 						break;
 
 					case E_ObsDesc::D:

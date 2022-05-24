@@ -20,7 +20,7 @@ MODULE m_orbext
 Contains
 	  
 	  
-SUBROUTINE orbext (EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, stat_Kepler_extC, stat_XYZ_extT, orbdiff)
+SUBROUTINE orbext (EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, stat_Kepler_extC, stat_XYZ_extT, orbdiff, found)
 
 
 ! ----------------------------------------------------------------------
@@ -77,11 +77,12 @@ SUBROUTINE orbext (EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, s
 ! ----------------------------------------------------------------------
 ! IN
       CHARACTER (LEN=100), INTENT(IN)  :: EQMfname				
-      REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE, INTENT(IN) :: orb_icrf, orb_itrf  
+      REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE, INTENT(IN) :: orb_icrf, orb_itrf 
 ! ----------------------------------------------------------------------
 ! OUT
 	  REAL (KIND = prec_d), DIMENSION(5,6), INTENT(OUT) :: stat_XYZ_extC, stat_RTN_extC, stat_Kepler_extC
 	  REAL (KIND = prec_d), DIMENSION(5,6), INTENT(OUT) :: stat_XYZ_extT
+          LOGICAL, INTENT (OUT) :: found
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -104,7 +105,7 @@ SUBROUTINE orbext (EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, s
 ! ----------------------------------------------------------------------
 ! External Orbit reading: Precise Orbit (sp3)
 ! External orbit: orbext_ICRF, orbext_ITRF, orbext_kepler
-CALL prm_orbext (EQMfname)												
+CALL prm_orbext (EQMfname, found)												
 ! ----------------------------------------------------------------------
 ! Orbit comparison statistics
 ! ICRF

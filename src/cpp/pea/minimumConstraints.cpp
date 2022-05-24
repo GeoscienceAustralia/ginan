@@ -117,7 +117,7 @@ void minimum(
 	trace << std::endl << " -------INITIALISING MINIMUM CONSTRAINTS TRANSFORMATION USING LEAST SQUARES--------"<< std::endl;
 	kfStateTrans.leastSquareInitStates(trace, combinedMeas);
 
-	kfStateTrans.outputStates(trace);
+	kfStateTrans.outputStates(trace, " Transform");
 
 	//Do kalman filter on original state using pseudomeasurements
 
@@ -164,8 +164,8 @@ void minimum(
 
 		//use a state transition to ensure output logs are complete
 		kfState.initFilterEpoch();
-		kfState.stateTransition(std::cout, GTime::noTime());
-
+		kfState.stateTransition(std::cout, kfState.time + 0.000001);	//dont repeat the last epoch
+		
 		trace << std::endl << " -------DOING KALMAN FILTER WITH PSEUDO ELEMENTS FOR MINIMUM CONSTRAINTS --------" << std::endl;
 
 		if (kfState.rts_filename.empty() == false)

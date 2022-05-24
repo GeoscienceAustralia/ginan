@@ -10,13 +10,11 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#ifdef ENABLE_MONGODB
 #include <bsoncxx/builder/basic/document.hpp>
 #include <bsoncxx/json.hpp>
 
 using bsoncxx::builder::basic::kvp;
 
-#endif
 
 namespace sinks = boost::log::sinks;
 

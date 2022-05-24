@@ -1,24 +1,27 @@
-'''rclone config file (content from rclone.conf):
-{
-    "cddis": {
-        "explicit_tls": "true",
-        "host": "gdc.cddis.eosdis.nasa.gov",
-        "pass": "9MRceLq8yzJYM_QgC-lvqyCrLuwY",
-        "type": "ftp",
-        "user": "anonymous"
-    },
-    "igs": {
-        "host": "igs-rf.ign.fr",
-        "pass": "fwo4zh4gA9npVM5kMsT9R4rrfq1J",
-        "type": "ftp",
-        "user": "anonymous"
-    },
-    "itrf": {
-        "host": "itrf-ftp.ign.fr",
-        "pass": "E10y_Y3Zg3pNnGNJAjT1QnUq3G5D",
-        "type": "ftp",
-        "user": "anonymous"
-    }'''
+'''
+install rclone with curl https://rclone.org/install.sh | sudo bash -s beta
+
+rclone config file (content from rclone.conf):
+
+[cddis]
+type = ftp
+host = gdc.cddis.eosdis.nasa.gov
+user = anonymous
+pass = somerandomrandompasswordhash
+explicit_tls = true
+
+[itrf]
+type = ftp
+host = itrf-ftp.ign.fr
+user = anonymous
+pass = somerandomrandompasswordhash
+
+[igs]
+type = ftp
+host = igs-rf.ign.fr
+user = anonymous
+pass = somerandomrandompasswordhash
+'''
 
 import argparse
 import os as _os

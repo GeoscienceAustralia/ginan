@@ -53,12 +53,11 @@ struct prcopt_t
 
 struct rtk_t
 {
-	KFState		pppState;					///< RTK control/result type
-	Solution	sol;						///< RTK solution
-	double		tt;							///< time difference between current and previous (s)
-	PhaseCenterData*	pcvrec = nullptr;
-	map<SatSys, SatStat> satStatMap;
-	prcopt_t	opt;						///< processing options
+	KFState					pppState;	///< RTK control/result type
+	Solution				sol;		///< RTK solution
+	string					antId;
+	map<SatSys, SatStat>	satStatMap;
+	prcopt_t				opt;		///< processing options
 };
 
 
@@ -97,19 +96,10 @@ void pppomc(
 	vmf3_t*		vmf3,
 	double*		orog);
 
-/* standard positioning ------------------------------------------------------*/
 void sppos(
 	Trace&		trace,
 	ObsList&	obsList,
 	Solution&	sol);
-	
-void satantpcv(
-	Vector3d&			rs,
-	Vector3d&			rr,
-	PhaseCenterData&			pcv,
-	map<int, double>&	dAntSat,
-	double*				nad = nullptr);
-
 
 void testeclipse(
 	ObsList&	obsList);
@@ -137,7 +127,8 @@ void corr_meas(
 	double		dAntRec,
 	double		dAntSat,
 	double		phw,
-	Station&	rec);
+	Station&	rec,
+	double		mjd);
 
 double sbstropcorr(
 	GTime			time,
@@ -158,6 +149,10 @@ int model_phw(
 	Vector3d&	rRec,
 	double&		phw);
 
+double satNadir(
+	Vector3d&			rs,
+	Vector3d&			rr);
+
 double trop_model_prec(
 	GTime		time,
 	double*		pos,
@@ -174,12 +169,8 @@ int model_iono(
 	double&		dion,
 	double&		var);
 
-void satantpcv(
-	Vector3d&			rs,
-	Vector3d&			rr,
-	PhaseCenterData&			pcv,
-	map<int, double>&	dAntSat,
-	double*				nad);
+void outputDeltaClocks(
+	StationMap& stationMap);
 
 void outputApriori(
 	StationMap& stationMap);

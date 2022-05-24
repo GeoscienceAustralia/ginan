@@ -10,6 +10,7 @@ using std::string;
 #include "rinexNavWrite.hpp"
 #include "streamTrace.hpp"
 #include "navigation.hpp"
+#include "biasSINEX.hpp"
 #include "constants.hpp"
 #include "station.hpp"
 #include "common.hpp"
@@ -1001,7 +1002,8 @@ int decode_eph(
 	eph->idot=data[19]; eph->crc=data[16]; eph->crs =data[ 4]; eph->cuc =data[ 7];
 	eph->cus =data[ 9]; eph->cic=data[12]; eph->cis =data[14];
 
-	if (sys==+E_Sys::GPS||sys==+E_Sys::QZS)
+	if	( sys == +E_Sys::GPS
+		||sys == +E_Sys::QZS)
 	{
 		eph->iode=(int)data[ 3];      /* IODE */
 		eph->iodc=(int)data[26];      /* IODC */
@@ -1017,6 +1019,8 @@ int decode_eph(
 
 		eph->tgd[0]=   data[25];      /* TGD */
 		eph->fit   =   data[28];      /* fit interval */
+
+		decomposeTGDBias(Sat, eph->tgd[0]);
 	}
 	else if (sys==+E_Sys::GAL)
 	{
@@ -1045,6 +1049,8 @@ int decode_eph(
 
 		eph->tgd[0]=   data[25];      /* BGD E5a/E1 */
 		eph->tgd[1]=   data[26];      /* BGD E5b/E1 */
+
+		decomposeBGDBias(Sat, eph->tgd[0], eph->tgd[1]);
 	}
 	else if (sys==+E_Sys::BDS)
 	{

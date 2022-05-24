@@ -1,0 +1,476 @@
+
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h @ONLY)
+
+add_executable(pea
+		cpp/3rdparty/enum.h
+		
+		cpp/3rdparty/jpl/jpl_eph.cpp
+		cpp/3rdparty/jpl/jpl_eph.hpp
+		cpp/3rdparty/jpl/jpl_int.hpp	
+
+		cpp/3rdparty/sofa/sofa.cpp
+		cpp/3rdparty/sofa/sofa.hpp
+		cpp/3rdparty/sofa/sofam.hpp
+
+		cpp/3rdparty/egm96/EGM96.c
+		cpp/3rdparty/egm96/EGM96.h
+		cpp/3rdparty/egm96/EGM96_data.h
+		
+		cpp/common/acsConfig.hpp
+		cpp/common/acsConfig.cpp
+		cpp/common/ntripBroadcast.cpp
+		cpp/common/ntripBroadcast.hpp
+		cpp/common/acsQC.hpp
+		cpp/common/acsQC.cpp
+		cpp/common/acsStream.cpp
+		cpp/common/acsStream.hpp
+		cpp/common/algebra.cpp
+		cpp/common/algebra_old.cpp
+		cpp/common/algebra.hpp
+		cpp/common/algebraTrace.cpp
+		cpp/common/algebraTrace.hpp
+		cpp/common/antenna.hpp
+		cpp/common/antenna.cpp
+		cpp/common/biasSINEX.hpp
+		cpp/common/biasSINEXread.cpp
+		cpp/common/biasSINEXwrite.cpp
+		cpp/common/common.hpp
+		cpp/common/common.cpp
+		cpp/common/constants.hpp
+		cpp/common/constants.cpp
+		cpp/common/corrections.cpp
+		cpp/common/debug.cpp
+		cpp/common/debug.hpp
+		cpp/common/eigenIncluder.hpp
+		cpp/common/ephemeris.cpp
+		cpp/common/ephemeris.hpp
+		cpp/common/enums.h
+		cpp/common/erp.cpp
+		cpp/common/erp.hpp
+		cpp/common/fileLog.cpp
+		cpp/common/fileLog.hpp
+		cpp/common/gTime.cpp
+		cpp/common/gTime.hpp
+		cpp/common/instrument.cpp
+		cpp/common/instrument.hpp
+		cpp/common/linearCombo.cpp
+		cpp/common/linearCombo.hpp
+		cpp/common/mongo.cpp
+		cpp/common/mongo.hpp
+		cpp/common/mongoRead.cpp
+		cpp/common/mongoRead.hpp
+		cpp/common/mongoWrite.cpp
+		cpp/common/mongoWrite.hpp
+		cpp/common/navigation.hpp
+		cpp/common/observations.hpp
+		cpp/common/ntripSocket.cpp
+		cpp/common/ntripSocket.hpp
+		cpp/common/ntripTrace.cpp
+		cpp/common/ntripTrace.hpp
+		cpp/common/ntripSourceTable.cpp
+		cpp/common/ntripSourceTable.hpp
+		cpp/common/orbits.cpp
+		cpp/common/orbits.hpp
+		cpp/common/preceph.cpp
+		cpp/common/rtsSmoothing.cpp
+		cpp/common/rtcmDecoder.cpp
+		cpp/common/rtcmDecoder.hpp
+		cpp/common/rtcmEncoder.cpp
+		cpp/common/rtcmEncoder.hpp
+		cpp/common/satStat.hpp
+		cpp/common/summary.cpp
+		cpp/common/summary.hpp
+		cpp/common/satSys.cpp
+		cpp/common/satSys.hpp
+		cpp/common/sinex.hpp
+		cpp/common/sinex.cpp
+		cpp/common/tropSinex.cpp
+		cpp/common/sp3.cpp
+		cpp/common/sp3Write.cpp
+		cpp/common/sp3Write.hpp		
+		cpp/common/ssr.hpp
+		cpp/common/station.hpp
+		cpp/common/streamTrace.cpp
+		cpp/common/streamTrace.hpp
+		cpp/common/testUtils.cpp
+		cpp/common/testUtils.hpp
+		cpp/common/trigPosInterp.cpp
+		cpp/common/rinexClkWrite.cpp
+		cpp/common/rinexClkWrite.hpp
+		cpp/common/rinexNavWrite.cpp
+		cpp/common/rinexNavWrite.hpp
+		cpp/common/rinexObsWrite.cpp
+		cpp/common/rinexObsWrite.hpp
+
+		cpp/common/streamFile.hpp
+		cpp/common/streamNav.hpp
+		cpp/common/streamNtrip.cpp
+		cpp/common/streamNtrip.hpp
+		cpp/common/streamObs.hpp
+		cpp/common/streamRinex.hpp
+		cpp/common/streamRtcm.hpp
+		cpp/common/streamSp3.hpp
+		
+		cpp/iono/ionoMeas.cpp
+		cpp/iono/ionoModel.cpp
+		cpp/iono/ionoModel.hpp
+		cpp/iono/ionoSpherical.cpp
+		cpp/iono/ionoSphericalCaps.cpp
+		cpp/iono/ionoBSplines.cpp
+		cpp/iono/ionexWrite.cpp
+
+		cpp/ambres/GNSSambres.hpp
+		cpp/ambres/GNSSambres.cpp
+		cpp/ambres/GinARpivot.cpp
+		cpp/ambres/GinARWLamb.cpp
+		cpp/ambres/GinARNLamb.cpp
+		cpp/ambres/GinAR_main.cpp
+		cpp/ambres/GinARoutpt.cpp
+		
+		cpp/orbprop/forceModels.cpp
+		cpp/orbprop/forceModels.hpp
+		cpp/orbprop/gravity.cpp
+		cpp/orbprop/gravity.hpp
+		cpp/orbprop/jplEph.cpp
+		cpp/orbprop/jplEph.hpp
+		cpp/orbprop/forceModels.cpp
+		cpp/orbprop/forceModels.hpp
+		cpp/orbprop/satRefSys.hpp
+		
+		cpp/pea/main.cpp
+		cpp/pea/minimumConstraints.cpp
+		cpp/pea/minimumConstraints.hpp
+		cpp/pea/networkEstimator.cpp
+		cpp/pea/networkEstimator.hpp
+		cpp/pea/pea_snx.cpp
+		cpp/pea/ppp.cpp
+		cpp/pea/ppppp.cpp
+		cpp/pea/ppppp_obs.cpp
+		cpp/pea/ppppp_ambres.cpp
+		cpp/pea/ppppp_pseudoobs.cpp
+		cpp/pea/ppp_user.cpp
+		cpp/pea/ppp_network.cpp
+		cpp/pea/ppp.hpp
+		cpp/pea/spp.cpp
+
+		cpp/rtklib/ionex.cpp
+		cpp/rtklib/lambda.cpp
+		cpp/rtklib/lambda.h
+		cpp/rtklib/readtrop.cpp
+		cpp/rtklib/rinex.cpp
+		cpp/rtklib/rinex.hpp
+		cpp/rtklib/rtkcmn.cpp
+		cpp/rtklib/tides.cpp
+		cpp/rtklib/tides.hpp
+		cpp/rtklib/trop.h
+		cpp/rtklib/trop.cpp
+		cpp/rtklib/vmf3.h
+		cpp/rtklib/vmf3.cpp
+		cpp/rtklib/wancorr.cpp
+		cpp/rtklib/wancorr.h
+		)
+
+target_include_directories(pea PUBLIC
+		cpp/3rdparty
+		cpp/3rdparty/egm96
+		cpp/3rdparty/sofa
+		cpp/3rdparty/jpl
+		
+		cpp/ambres
+		cpp/common
+		cpp/iono
+		cpp/orbprop
+		cpp/pea
+		cpp/peaUploader
+		cpp/rtklib
+		
+		${EIGEN3_INCLUDE_DIRS}
+		${LAPACK_INCLUDE_DIRS}
+		${OPENBLAS_INCLUDE_DIRS}
+		${YAML_INCLUDE_DIRS}
+		${Boost_INCLUDE_DIRS}
+		${LIBMONGOCXX_INCLUDE_DIR}
+		${LIBBSONCXX_INCLUDE_DIR}
+		${OPENSSL_INCLUDE_DIR}
+		"/usr/local/include/mongocxx/v_noabi"
+		"/usr/local/include/bsoncxx/v_noabi"
+		"/usr/local/include/libmongoc-1.0"
+		"/usr/local/include/libbson-1.0"
+		"/usr/local/lib"
+		)		
+		
+add_executable(peaUploader
+		cpp/3rdparty/enum.h
+		cpp/common/acsConfig.hpp
+		cpp/common/acsConfig.cpp
+		cpp/common/acsStream.cpp
+		cpp/common/acsStream.hpp
+		cpp/common/biasSINEX.hpp
+		cpp/common/biasSINEXread.cpp
+		cpp/common/common.hpp
+		cpp/common/common.cpp
+		cpp/common/constants.hpp
+		cpp/common/constants.cpp
+		cpp/common/fileLog.cpp
+		cpp/common/fileLog.hpp
+		cpp/common/gTime.cpp
+		cpp/common/gTime.hpp
+		cpp/common/mongo.cpp
+		cpp/common/mongo.hpp
+		cpp/common/mongoRead.cpp
+		cpp/common/mongoRead.hpp
+		cpp/common/ntripSocket.cpp
+		cpp/common/ntripSocket.hpp
+		cpp/common/ntripTrace.cpp
+		cpp/common/ntripTrace.hpp
+		cpp/common/rtcmEncoder.cpp
+		cpp/common/rtcmEncoder.hpp
+		cpp/common/satSys.cpp
+		cpp/common/satSys.hpp
+		cpp/common/streamTrace.cpp
+		cpp/common/streamTrace.hpp
+		
+		cpp/common/streamNtrip.cpp
+		cpp/common/streamNtrip.hpp
+		
+		cpp/common/rtcmDecoder.cpp
+		cpp/common/rtcmDecoder.hpp
+		cpp/common/ntripBroadcast.cpp
+		cpp/common/ntripBroadcast.hpp
+		
+		cpp/peaUploader/uploadMain.cpp
+		)
+
+target_include_directories(peaUploader PUBLIC
+		cpp/pea
+		cpp/peaUploader
+		cpp/common
+		cpp/orbprop
+		cpp/3rdparty
+		cpp/rtklib
+		${EIGEN3_INCLUDE_DIRS}
+		${YAML_INCLUDE_DIRS}
+		${Boost_INCLUDE_DIRS}
+		${LIBMONGOCXX_INCLUDE_DIR}
+		${LIBBSONCXX_INCLUDE_DIR}
+		${OPENSSL_INCLUDE_DIR}
+		"/usr/local/include/mongocxx/v_noabi"
+		"/usr/local/include/bsoncxx/v_noabi"
+		"/usr/local/include/libmongoc-1.0"
+		"/usr/local/include/libbson-1.0"
+		"/usr/local/lib"
+		)
+
+
+add_executable(brdc2sp3
+		cpp/brdc2sp3/brdc2sp3_main.cpp
+		cpp/common/acsConfig.hpp
+		cpp/common/acsConfig.cpp
+		cpp/common/algebra_old.cpp
+		cpp/common/algebra.hpp
+		cpp/common/antenna.hpp
+		cpp/common/antenna.cpp
+		cpp/common/biasSINEX.hpp
+		cpp/common/biasSINEXread.cpp
+		cpp/common/common.hpp
+		cpp/common/common.cpp	
+		cpp/common/constants.hpp
+		cpp/common/constants.cpp
+		cpp/common/gTime.cpp
+		cpp/common/gTime.hpp
+		cpp/common/navigation.hpp
+		cpp/common/satSys.cpp
+		cpp/common/satSys.hpp
+		cpp/common/streamTrace.cpp
+		cpp/common/streamTrace.hpp
+		cpp/3rdparty/sofa/sofa.cpp		#todo aaron get rid of these
+		cpp/rtklib/rinex.cpp
+		cpp/rtklib/rinex.hpp
+		cpp/rtklib/rtkcmn.cpp
+		cpp/rtklib/tides.hpp
+		)
+
+target_include_directories(brdc2sp3 PUBLIC
+		cpp/pea
+		cpp/common
+		cpp/3rdparty
+		cpp/3rdparty/sofa				#todo aaron get rid of these
+		cpp/orbprop
+		cpp/iono
+		cpp/ambres
+		cpp/rtklib
+		${EIGEN3_INCLUDE_DIRS}
+		${LAPACK_INCLUDE_DIRS}
+		${OPENBLAS_INCLUDE_DIRS}
+		${YAML_INCLUDE_DIRS}
+		${Boost_INCLUDE_DIRS}
+		${LIBMONGOCXX_INCLUDE_DIR}
+		${LIBBSONCXX_INCLUDE_DIR}
+		${OPENSSL_INCLUDE_DIR}
+		"/usr/local/include/bsoncxx/v_noabi"
+		"/usr/local/include/libmongoc-1.0"
+		"/usr/local/include/libbson-1.0"
+		"/usr/local/lib"
+		)
+
+if(OpenMP_CXX_FOUND)
+	target_link_libraries(pea PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
+target_compile_definitions(pea PRIVATE
+							EIGEN_USE_BLAS=1
+						)
+
+target_compile_definitions(peaUploader PRIVATE
+							DEBUGLOM
+						)
+
+target_compile_definitions(brdc2sp3 PRIVATE
+							EIGEN_USE_BLAS=1
+						)
+
+#==================================================
+# Ocean tide loading
+
+set (NETCDF_CXX "YES")
+find_package (NetCDF REQUIRED)
+
+# message(STATUS "...NETCDF     >>>>>>   ${NETCDF_LIBRARIES}     ${NETCDF_INCLUDES}" )
+# message(STATUS "...NETCDF_C++ >>>>>>   ${NETCDF_LIBRARIES_CXX} ${NETCDF_INCLUDES_CXX}" )
+# find_package(netCDFCxx REQUIRED)
+
+add_library(otl
+		STATIC
+		cpp/loading/loading.cpp
+		cpp/loading/tide.cpp
+		cpp/loading/utils.cpp
+		cpp/loading/load_functions.cpp
+		cpp/loading/loadgrid.cpp
+		)
+
+add_executable(make_otl_blq
+		cpp/loading/make_otl_blq.cpp
+		)
+
+
+add_executable(interpolate_loading
+		cpp/loading/interpolate_loading.cpp
+		)
+
+target_include_directories(otl PUBLIC
+		cpp/common
+		cpp/loading
+		${YAML_INCLUDE_DIRS}
+		${Boost_INCLUDE_DIRS}
+		${NETCDF_INCLUDES}
+		${NETCDF_INCLUDES_CXX}
+		)
+
+target_include_directories(make_otl_blq PUBLIC
+		cpp/loading
+		${YAML_INCLUDE_DIRS}
+		${Boost_INCLUDE_DIRS}
+		${NETCDF_INCLUDES}
+		${NETCDF_INCLUDES_CXX}
+		)
+
+target_include_directories(interpolate_loading PUBLIC
+		cpp/loading
+		${YAML_INCLUDE_DIRS}
+		${Boost_INCLUDE_DIRS}
+		${NETCDF_INCLUDES}
+		${NETCDF_INCLUDES_CXX}
+		)
+
+
+target_link_libraries(make_otl_blq PUBLIC
+		otl
+		${NETCDF_LIBRARIES_CXX}
+		${NETCDF_LIBRARIES}
+		Boost::timer
+		Boost::program_options
+		Boost::log
+		Boost::log_setup
+		${YAML_CPP_LIBRARIES}
+		${YAML_CPP_LIB}
+		)
+
+target_link_libraries(interpolate_loading PUBLIC
+		otl
+		${NETCDF_LIBRARIES_CXX}
+		${NETCDF_LIBRARIES}
+		Boost::timer
+		Boost::program_options
+		Boost::log
+		Boost::log_setup
+		${YAML_CPP_LIBRARIES}
+		${YAML_CPP_LIB}
+		)
+
+
+if(OpenMP_CXX_FOUND)
+	target_link_libraries(make_otl_blq			PUBLIC OpenMP::OpenMP_CXX)
+	target_link_libraries(interpolate_loading	PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
+if(ENABLE_UNIT_TESTS)
+	target_compile_definitions(pea PRIVATE ENABLE_UNIT_TESTS=1)
+endif()
+
+if(ENABLE_PARALLELISATION)
+	target_compile_definitions(pea PRIVATE ENABLE_PARALLELISATION=1)
+endif()
+
+
+target_link_libraries(pea PUBLIC
+						m
+						pthread
+						${Boost_LIBRARIES}
+						${BLAS_LIBRARIES}
+						${LAPACK_LIBRARIES}
+						${YAML_CPP_LIBRARIES}
+						${YAML_CPP_LIB}
+						mongo::mongocxx_shared
+						${BLAS_LIBRARY_DIRS}
+						${OPENSSL_LIBRARY_DIRS}
+						${OPENSSL_LIBRARIES}
+					)
+
+target_link_libraries(peaUploader PUBLIC
+						m
+						pthread
+						${Boost_LIBRARIES}
+						${YAML_CPP_LIBRARIES}
+						${YAML_CPP_LIB}
+						mongo::mongocxx_shared
+						${OPENSSL_LIBRARY_DIRS}
+						${OPENSSL_LIBRARIES}
+					)
+
+target_link_libraries(brdc2sp3 PUBLIC
+						m
+						pthread
+						${Boost_LIBRARIES}
+						${BLAS_LIBRARIES}
+						${LAPACK_LIBRARIES}
+						${YAML_CPP_LIBRARIES}
+						${YAML_CPP_LIB}
+						mongo::mongocxx_shared
+						${BLAS_LIBRARY_DIRS}
+						${OPENSSL_LIBRARY_DIRS}
+						${OPENSSL_LIBRARIES}
+					)
+
+if(ENABLE_PARALLELISATION)
+	target_compile_definitions(pea PRIVATE ENABLE_PARALLELISATION=1)
+endif()
+
+add_custom_target(peas)
+
+add_dependencies(peas 
+					pea
+					peaUploader 
+					brdc2sp3
+					)
+					
+					

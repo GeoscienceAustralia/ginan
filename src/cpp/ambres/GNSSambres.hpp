@@ -14,7 +14,7 @@
 #define FIXED_AMB_VAR		1e-8
 #define INVALID_WLVAL		-999999
 #define MAX_ARCH    604800.0
-#define ARTRCLVL	2
+#define ARTRCLVL	3
 
 
 struct GinAR_mtx
@@ -37,30 +37,37 @@ struct GinAR_mtx
 struct GinAR_opt
 {
 	string recv;
-	bool   endu = false;
-	int    mode = E_ARmode::OFF;	/* AR mode */
+	map<E_Sys, bool> sys_solve;
+	
+	bool     endu     = false;
+	E_AmbTyp type     = E_AmbTyp::NONE;
+	int      mode     = E_ARmode::OFF;	/* AR mode */
+	E_IonoMode ionmod = E_IonoMode::IONO_FREE_LINEAR_COMBO;
+	
 	int    nset = 0;	/* candidate set size for lambda */
 	int    nitr = 3;	/* number of iterations for iter_rnd */
 	
 	double MIN_Elev_prc = D2R * 10;	/* min elevation for processing */
-	double MIN_Elev_AR = D2R * 15;  /* min elevation for AR */
+	double MIN_Elev_AR  = D2R * 15;  /* min elevation for AR */
 	double MIN_Elev_piv = D2R * 20;  /* min elevation for pivot */
+	
+	double sucthr       = 0.9999; 	/* success rate threshold */
+	double ratthr       = 3;		/* ratio test threshold */
+	
+	bool  clear_old_amb = false;
+	int    Max_Hold_epc = 0;		/* max hold (epoch) */
+	double Max_Hold_tim = 600;		/* max hold (seconds) */
 	
 	double wlsatp = 0.00001;
 	double wlrecp = 0.0001;
 	int    wlmxit = 2;
 	int    wlmxrm = 0;
 	
-	double sucthr = 0.9999; 	/* success rate threshold */
-	double ratthr = 3;			/* ratio test threshold */
-	int    Max_Hold_epc = 0;	/* max hold (epoch) */
-	double Max_Hold_tim = 600;		/* max hold (seconds) */
-	
 	map<E_Sys,double> wavlen;
 	map<E_Sys,double> wlfact;
 	
-	E_IonoMode ionmod = E_IonoMode::IONO_FREE_LINEAR_COMBO;
-	
+	map<E_Sys,map<E_FType,E_ObsCode>> defCodes;
+	double bias_update=0.0;
 };
 
 struct GinAR_amb
@@ -97,13 +104,8 @@ struct GinAR_bia
 };
 
 typedef map<KFKey,double> Z_Amb; 
-typedef map<string,GinAR_piv> ARrecpivts;
-typedef map<SatSys,GinAR_piv> ARsatpivts;
-extern map<E_Sys, E_ObsCode> defCodesL1;
-extern map<E_Sys, E_ObsCode> defCodesL2;
-extern map<E_Sys, E_ObsCode> defCodesL3;
 
-struct Station_AR_control
+struct GinAR_rec
 {
 	string ID;
 	
@@ -121,32 +123,48 @@ struct Station_AR_control
 	string  solutFilename;
 };
 
+struct GinAR_sat
+{
+	map<string,double> elevations;
+	double anchor_potential = 0.0;
+};
+
+typedef map<string,GinAR_piv> ARrecpivts;
+typedef map<SatSys,GinAR_piv> ARsatpivts;
+
 /* global variables */
-extern map<E_Sys, bool>									sys_solve;
 extern map<E_Sys, string>								AR_reflist;
 extern map<E_AmbTyp,map<E_Sys,ARsatpivts>>				SATpivlist;
 extern map<E_AmbTyp,map<E_Sys,ARrecpivts>>				RECpivlist;
 extern map<E_AmbTyp,map<E_Sys,map<string,GinAR_bia>>>	RECbialist;
 extern map<E_AmbTyp,map<SatSys,GinAR_bia>>				SATbialist;
+extern map<string,int> 									RecBlackList;
 extern bool AR_VERBO;
-extern map<string,Station_AR_control> ARstations;
+
+
+extern map<SatSys,	GinAR_sat>				ARsatellites;
+extern map<string,	GinAR_rec>				ARstations;
+extern map<string,	map<E_Sys,	bool>>		sys_activ;
+extern map<KFKey,	map<GTime,	double>>	elev_archive;
+extern map<KFKey,	list<GTime>>			slip_archive;
 
 /* main functions */
-void config_AmbigResl( void );																				/* Configures the ambiguity resolution algorithms */
-int  networkAmbigResl( Trace& trace, StationMap& stations, KFState& kfState);								/* Ambiguity resolution for network solutions */
-int  enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState, Vector3d snxPos, double dop);		/* Ambiguity resolution for end user solutions */
-int  smoothdAmbigResl( KFState& kfState );																	/* Ambiguity resolution on smoothed KF*/
+void config_AmbigResl( void );																											/* Configures the ambiguity resolution algorithms */
+int  networkAmbigResl( Trace& trace, StationMap& stations, KFState& kfState);															/* Ambiguity resolution for network solutions */
+int  enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState, Vector3d snxPos, double dop, string outfile, bool header_out);	/* Ambiguity resolution for end user solutions */
+int  smoothdAmbigResl( KFState& kfState );																								/* Ambiguity resolution on smoothed KF*/
 bool sys_frq(short int sys, E_FType& frq1, E_FType& frq2, E_FType& frq3);
 bool ARsol_ready(void);
-KFState retrieve_last_ARcopy (void);
-void init_station_AR ( string stationID );
+KFState retrieve_last_ARcopy ();
+GinAR_sat* GinAR_sat_metadata(SatSys sat);
 
 /* Output fuctions */
 void gpggaout( string outfile, KFState& KfState, string recId, int solStat, int numSat, double hdop, bool lng, bool print_header); /* Alternative end user aoutput for ambiguity resolved solutions */
-void artrcout( Trace& trace, GTime time, string rec, GinAR_opt opt );
-void arbiaout( Trace& trace, GTime time, double tupdt );
+void artrcout( Trace& trace, GTime time, GinAR_opt opt );
+void arbiaout( Trace& trace, GTime time, GinAR_opt opt );
 int  arionout( Trace& trace, KFState& KfState, ObsList& obsList, GinAR_opt opt );
-
+bool queryBiasOutput(Trace& trace, SatSys sat, E_AmbTyp type, double& bias, double& variance);
+	
 /* WL ambiguity functions */
 void reset_WLfilt( Trace& trace, E_AmbTyp typ, GTime time, string rec, E_Sys  sys);
 int  retrv_WLambg( Trace& trace, E_AmbTyp typ, GTime time, string rec, SatSys sat);
@@ -160,8 +178,8 @@ int  updat_ambigt( Trace& trace, KFState& kfState, GinAR_opt opt );
 int  apply_ambigt( Trace& trace, KFState& kfState, GinAR_opt opt );
 
 /* Pivot functions */
-void updt_usr_pivot ( Trace& trace, GTime time, GinAR_opt& opt, E_AmbTyp typ );
-void updt_net_pivot ( Trace& trace, GTime time, GinAR_opt& opt, E_AmbTyp typ );
+void updt_usr_pivot ( Trace& trace, GTime time, GinAR_opt& opt );
+void updt_net_pivot ( Trace& trace, GTime time, GinAR_opt& opt );
 
 /* Core ambiguity resolution function */
 int  GNSS_AR(Trace& trace, GinAR_mtx& mtrx, GinAR_opt opt);

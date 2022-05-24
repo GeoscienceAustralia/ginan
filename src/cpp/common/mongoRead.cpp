@@ -10,83 +10,60 @@ using std::deque;
 #include "mongoRead.hpp"
 #include "common.hpp"
 
-vector<SatSys> getSysSats(
-	E_Sys	targetSys)
-{
-	vector<SatSys> sats;
-	/* output satellite PRN*/
-	if (targetSys == +E_Sys::GPS)	for (int prn = MINPRNGPS; prn <= MAXPRNGPS; prn++)	{ sats.push_back(SatSys(E_Sys::GPS, prn)); }
-	if (targetSys == +E_Sys::GLO)	for (int prn = MINPRNGLO; prn <= MAXPRNGLO; prn++)	{ sats.push_back(SatSys(E_Sys::GLO, prn)); }
-	if (targetSys == +E_Sys::GAL)	for (int prn = MINPRNGAL; prn <= MAXPRNGAL; prn++)	{ sats.push_back(SatSys(E_Sys::GAL, prn)); }
-	if (targetSys == +E_Sys::BDS)	for (int prn = MINPRNBDS; prn <= MAXPRNBDS; prn++)	{ sats.push_back(SatSys(E_Sys::BDS, prn)); }
-
-	return sats;
-}
-
 template <typename RETTYPE, typename INTYPE>
 RETTYPE getStraddle(
 	GTime			targetTime,
-	deque<INTYPE>&	brdc,
-	deque<INTYPE>&	prec)
+	deque<INTYPE>&	ssrVec)
 {
 	RETTYPE ssr;
 	
 	ssr.valid = true;
 	
 	//try to find a set of things that straddle the target time, with the same iode
-	//do for both broadcast and precise values
-	for (bool broadcast : {false, true})
+	
+	int bestI = -1;
+	int bestJ = -1;
+	
+	for (int j = 1; j < ssrVec.size(); j++)
 	{
-		deque<INTYPE>* vec_ptr;
+		int i = j - 1;
 		
-		if (broadcast)	vec_ptr = &brdc;
-		else			vec_ptr = &prec;
+		auto& entryI = ssrVec[i];
+		auto& entryJ = ssrVec[j];
 		
-		auto& ssrVec = *vec_ptr;
-		
-		int bestI = -1;
-		int bestJ = -1;
-		
-		for (int j = 1; j < ssrVec.size(); j++)
+		if (entryI.iode != entryJ.iode)
 		{
-			int i = j - 1;
-			
-			auto& entryI = ssrVec[i];
-			auto& entryJ = ssrVec[j];
-			
-			if (entryI.iode != entryJ.iode)
-			{
-				//no good, iodes dont match
-				continue;
-			}
-		
+			//no good, iodes dont match
+			continue;
+		}
+	
 // 			if	( fabs(bestI.time.time - targetTime.time) > acsConfig.
 // 				||fabs(bestJ.time.time - targetTime.time) > acsConfig.
 // 			{
 // 				continue;
 // 			}
-			
-			//these are acceptable - store them for later
-			bestI = i;
-			bestJ = j;
 		
-			if (entryJ.time > targetTime)
-			{
-				//this is as close as we will come to a straddle
-				break;
-			}
-		}
-		
-		if (bestJ < 0)
+		//these are acceptable - store them for later
+		bestI = i;
+		bestJ = j;
+	
+		if (entryJ.time > targetTime)
 		{
-			//nothing found, dont use
-			ssr.valid = false;
+			//this is as close as we will come to a straddle
 			break;
 		}
-		
-		if (broadcast)	{ ssr.brdc1 = ssrVec[bestI];	ssr.brdc2	= ssrVec[bestJ];	}
-		else			{ ssr.prec1 = ssrVec[bestI];	ssr.prec2	= ssrVec[bestJ];	}
 	}
+	
+	if (bestJ < 0)
+	{
+		//nothing found, dont use
+		ssr.valid = false;
+		
+		return RETTYPE();
+	}
+	
+	ssr.vals[0] = ssrVec[bestI];
+	ssr.vals[1]	= ssrVec[bestJ];	
 	
 	return ssr;
 }
@@ -101,6 +78,7 @@ map<SatSys, SSROut> mongoReadSSRData(
 	
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return ssrOutMap;
 	}
 	
@@ -118,33 +96,24 @@ map<SatSys, SSROut> mongoReadSSRData(
 	auto sats = getSysSats(targetSys);
 	for (auto Sat : sats) 
 	{
-		deque<EphValues> ephBroadcastVec;
-		deque<EphValues> ephPreciseVec;
+		deque<EphValues> ephVec;
+		deque<ClkValues> clkVec;
 		
-		deque<ClkValues> clkBroadcastVec;
-		deque<ClkValues> clkPreciseVec;
-		
-		//try to get up to two entries from either side of the desired time, and for broadcast and precise values (separately)
-		for (string	data		: {SSR_EPHEMERIS, SSR_SAT_CLOCK})
-		for (bool	broadcast	: {false, true})
+		//try to get up to two entries from either side of the desired time
+		for (string	data		: {SSR_EPHEMERIS, SSR_CLOCK})
 		for (bool	less		: {false, true})
 		{
 			if (data == SSR_EPHEMERIS	&& 0)	continue;
-			if (data == SSR_SAT_CLOCK	&& 0)	continue;
+			if (data == SSR_CLOCK		&& 0)	continue;
 			
 			string	moreLess;
 			int		sortDir;
 			if (less)		{	moreLess = "$lte";	sortDir = -1;	}
 			else			{	moreLess = "$gt";	sortDir = +1;	}
-			
-			string type;
-			if (broadcast)	{	type = SSR_BRDC;	}
-			else			{	type = SSR_PREC;	}
 		
 			// Find the latest document according to t0_time.
 			auto docSys		= document{}	<< SSR_SAT		<< Sat.id()
 											<< SSR_DATA		<< data
-											<< SSR_TYPE		<< type
 											<< SSR_EPOCH	
 												<< open_document
 												<< moreLess << btime
@@ -176,56 +145,38 @@ map<SatSys, SSROut> mongoReadSSRData(
 				if (data == SSR_EPHEMERIS)
 				{
 					EphValues ephValues;
-	// 				ephValues.time.time 		= std::chrono::system_clock::to_time_t(tp);
 					ephValues.time.time 		= std::chrono::system_clock::to_time_t(tp);
 					
 					for (int i = 0; i < 3; i++)
 					{
-						if (1)
-						{
-							ephValues.pos(i)	= doc[SSR_POS + std::to_string(i)].get_double();
-						}
-						if (broadcast)
-						{
-							ephValues.vel(i)	= doc[SSR_VEL + std::to_string(i)].get_double();
-						}
+						ephValues.brdcPos(i) = doc[SSR_POS SSR_BRDC + std::to_string(i)].get_double();
+						ephValues.precPos(i) = doc[SSR_POS SSR_PREC + std::to_string(i)].get_double();
+						ephValues.brdcVel(i) = doc[SSR_VEL SSR_BRDC + std::to_string(i)].get_double();
+						ephValues.precVel(i) = doc[SSR_VEL SSR_PREC + std::to_string(i)].get_double();
 					}
 					
-					if (broadcast)
-					{
-						ephValues.iode	= doc[SSR_IODE].get_int32();
-					}
+					ephValues.iode	= doc[SSR_IODE].get_int32();
 					
-					if (broadcast)	if (less)	ephBroadcastVec	.push_front	(ephValues);
-									else		ephBroadcastVec	.push_back	(ephValues);
-					else			if (less)	ephPreciseVec	.push_front	(ephValues);
-									else		ephPreciseVec	.push_back	(ephValues);
+					if (less)	ephVec	.push_front	(ephValues);
+					else		ephVec	.push_back	(ephValues);
 					
 					continue;
 				}
 				
-				if (data == SSR_SAT_CLOCK)
+				if (data == SSR_CLOCK)
 				{
 					ClkValues clkValues;
-	// 				ephValues.time.time 		= std::chrono::system_clock::to_time_t(tp);
 					clkValues.time.time 		= std::chrono::system_clock::to_time_t(tp);
 					
-					if (1)
-					{
-						clkValues.clk 	= doc[SSR_SAT_CLOCK	].get_double();
-					}
-					
-					if (broadcast)
-					{
-						clkValues.iode	= doc[SSR_IODE		].get_int32();
-					}
+					clkValues.brdcClk 	= doc[SSR_CLOCK SSR_BRDC].get_double();
+					clkValues.precClk 	= doc[SSR_CLOCK SSR_PREC].get_double();
+				
+					clkValues.iode	= doc[SSR_IODE		].get_int32();
 					
 // 					std::cout << Sat.id() << " less:" << less << " brdc:" << broadcast << "   " << clkValues.time.to_string(0) << std::endl;
 					
-					if (broadcast)	if (less)	clkBroadcastVec	.push_front	(clkValues);
-									else		clkBroadcastVec	.push_back	(clkValues);
-					else			if (less)	clkPreciseVec	.push_front	(clkValues);
-									else		clkPreciseVec	.push_back	(clkValues);
+					if (less)	clkVec	.push_front	(clkValues);
+					else		clkVec	.push_back	(clkValues);
 					
 					continue;
 				}
@@ -252,8 +203,8 @@ map<SatSys, SSROut> mongoReadSSRData(
 		//try to find a set of things that straddle the target time, with the same iode
 		//do for both broadcast and precise values
 		SSROut ssrOut;
-		ssrOut.ephInput = getStraddle<SSREphInput>(targetTime, ephBroadcastVec, ephPreciseVec);
-		ssrOut.clkInput = getStraddle<SSRClkInput>(targetTime, clkBroadcastVec, clkPreciseVec);
+		ssrOut.ephInput = getStraddle<SSREphInput>(targetTime, ephVec);
+		ssrOut.clkInput = getStraddle<SSRClkInput>(targetTime, clkVec);
 		
 		if	(ssrOut.ephInput.valid == false)
 		{
@@ -265,18 +216,8 @@ map<SatSys, SSROut> mongoReadSSRData(
 			tracepdeex(3, std::cout, "Could not retrieve valid clock     for %s\n", Sat.id().c_str()); 
 			continue;
 		}
-		
-// 	std::cout << Sat.id() << "Final straddles:" << "   " << ssrOut.clkInput.brdc1.time.to_string(0) << std::endl;
-// 	std::cout << Sat.id() << "Final straddles:" << "   " << ssrOut.clkInput.brdc2.time.to_string(0) << std::endl;
-// 	std::cout << Sat.id() << "Final straddles:" << "   " << ssrOut.clkInput.brdc1.time.to_string(0) << std::endl;
-// 	std::cout << Sat.id() << "Final straddles:" << "   " << ssrOut.clkInput.brdc2.time.to_string(0) << std::endl;
-// 		SSREphOut&	ssrEph	= ssrOut.ssrEph;
-// 		ssrEph.ssrMeta 		= ssrMeta;
-// 		ssrEph.iod 			= masterIod;
-// 		ssrEph.t0.time		= 0;
-		
+
 		ssrOutMap[Sat] = ssrOut;
-// 	break;
 	}
 
 	return ssrOutMap;
@@ -292,6 +233,7 @@ SsrPBMap mongoReadPhaseBias(
 	
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return ssrPBMap;
 	}
 
@@ -356,9 +298,9 @@ SsrPBMap mongoReadPhaseBias(
 		
 		if (ssrPhasBias.t0.time != 0)
 		{
-			//std::cout << "Phase Bias.\n";
-			//std::cout << "satId : " << sat.id() << std::endl;
-			//std::cout << "Num Observation codes : " << ssrPhasBias.codeBias_map.size() << std::endl;
+			// std::cout << "Phase Bias frame . ";
+			// std::cout << "satId : " << Sat.id();
+			// std::cout << ". Num Observation codes : " << ssrPhasBias.obsCodeBiasMap.size() << std::endl;
 			//std::cout << "Num : " << targetSys._to_string() << " Bias read " << ssrPBMap[ssrPhasBias.t0].size() << std::endl;
 			ssrPBMap[Sat] = ssrPhasBias;
 		}
@@ -377,6 +319,7 @@ SsrCBMap mongoReadCodeBias(
 	
 	if (mongo_ptr == nullptr)
 	{
+		MONGO_NOT_INITIALISED_MESSAGE;
 		return ssrCBMap;
 	}
 
@@ -430,7 +373,7 @@ SsrCBMap mongoReadCodeBias(
 			biasVar.var 		= satDoc[SSR_VAR		].get_double();
 			ssrCodeBias.obsCodeBiasMap[obsCode] = biasVar;
 		}
-
+		
 		if (ssrCodeBias.t0.time != 0)
 		{
 			//std::cout << "Code Bias.\n"

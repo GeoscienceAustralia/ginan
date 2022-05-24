@@ -30,6 +30,9 @@ struct nav_t;
 struct Obs;
 struct Peph;
 
+
+#define ANY_IODE -1
+
 /** GPS/QZS/GAL broadcast ephemeris
  */
 struct Eph
@@ -253,7 +256,6 @@ int satpos(
 	E_Ephemeris		ephType,
 	E_OffsetType	offsetType,
 	nav_t&			nav,
-	PcoMapType* 	pcoMap_ptr		= nullptr,
 	bool			applyRelativity	= true,
 	KFState*		kfState_ptr		= nullptr);
 

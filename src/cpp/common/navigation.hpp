@@ -63,8 +63,6 @@ struct tec_t
 struct SatNav
 {	
 	map<int, double>	lamMap;
-	double				cBias_P1_P2;				///< Satellite DCB - P1-P2 (m)
-	map<int, double>	cBiasMap;					///< Satellite DCB - Px-Cx (m)
 	double				wlbias;						///< wide-lane bias (cycle)
 	
 	SSRMaps				receivedSSR;				///< SSR corrections
@@ -81,7 +79,8 @@ struct nav_t
 {
 	///< navigation data type
 
-	map<string, map<GTime, PhaseCenterData,	std::greater<GTime>>>	pcMap;
+	map<string, map<E_FType, map<GTime, Vector3d,			std::greater<GTime>>>>	pcoMap;
+	map<string, map<E_FType, map<GTime, PhaseCenterData,	std::greater<GTime>>>>	pcvMap;
 	
 	map<int,	map<GTime, Eph,				std::greater<GTime>>> 	ephMap;        /* GPS/QZS/GAL ephemeris */
 	map<int,	map<GTime, Geph,			std::greater<GTime>>>	gephMap;       /* GLONASS ephemeris */

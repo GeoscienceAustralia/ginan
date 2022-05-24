@@ -50,6 +50,7 @@ struct Sig : RawSig
 
 	bool	vsig		= 0;	///< Valid signal flag
 	bool	phaseError	= 0;	///< Valid signal flag
+	bool	phaseBias	= false;	///< Phase biases have been applied to this measurement
 	double	Range		= 0;	///< Corrected range
 	double	L_corr_m	= 0;	///< Corrected carrier phase (meters)
 	double	P_corr_m	= 0;	///< Corrected pseudorange (meters)
@@ -57,6 +58,8 @@ struct Sig : RawSig
 	double	phasRes		= 0;	///< Residuals of phase measurement
 	double	codeVar		= 0;	///< Variance of code measurement
 	double	phasVar		= 0;	///< Variance of phase measurement
+	
+	double	biases[NUM_MEAS_TYPES] = {std::nan("")};
 };
 
 /** Raw observation data from a receiver. Not to be modified by processing functions
@@ -120,7 +123,7 @@ struct Obs : RawObs, IonoObs
 	int 		iode			= 0;				///< Issue of data ephemeris
 	double 		rescode_v		= 0;				///< Residuals of code
 	bool		vsat			= 0;				///< Valid satellite flag
-
+	
 	union
 	{
 		unsigned int exclude;

@@ -4,6 +4,7 @@ from datetime import datetime as _datetime
 import numpy as _np
 import pandas as _pd
 
+from .gn_const import MJD_ORIGIN as _MJD_ORIGIN
 from .gn_const import GPS_ORIGIN as _GPS_ORIGIN
 from .gn_const import J2000_ORIGIN as _J2000_ORIGIN
 from .gn_const import SEC_IN_DAY as _SEC_IN_DAY
@@ -198,16 +199,6 @@ def datetime2gpsweeksec(array:_np.ndarray, as_decimal = False)->tuple or _np.nda
     tow = gps_time - weeks_int * _SECS_IN_WEEK # this eliminates rounding error problem
     return weeks_int + (tow / 1000000) if as_decimal else (weeks_int, tow)
 
-
-def datetime2mjd(array):
-    if array.dtype == int:
-        array= array + _J2000_ORIGIN
-    gps_datetime = array - _GPS_ORIGIN
-    mjd_days = gps_datetime.astype('timedelta64[D]')
-    seconds_frac = (gps_datetime - mjd_days).astype(float)/86400
-    return mjd_days.astype(int) + 44244, seconds_frac
-
-
 def datetime2j2000(datetime:_np.ndarray)->_np.ndarray:
     '''datetime64 conversion to int seconds after J2000 (2000-01-01 12:00:00)'''
     if not isinstance(datetime,_np.ndarray):
@@ -223,6 +214,23 @@ def j20002datetime(j2000secs:_np.ndarray)->_np.ndarray:
         return _J2000_ORIGIN + j2000secs
     return _J2000_ORIGIN + j2000secs.astype(int)
 
+def datetime2mjd(array:_np.ndarray)->tuple:
+    mjd_seconds = (array - _MJD_ORIGIN).astype(int) # seconds
+    return mjd_seconds // _SEC_IN_DAY,	(mjd_seconds % _SEC_IN_DAY) / _SEC_IN_DAY
+
+def j20002mjd(array:_np.ndarray)->tuple:
+    j2000_mjd_bias = (_J2000_ORIGIN - _MJD_ORIGIN).astype(int) # in seconds
+    mjd_seconds = j2000_mjd_bias + array
+    return mjd_seconds // _SEC_IN_DAY,	(mjd_seconds % _SEC_IN_DAY) / _SEC_IN_DAY
+
+def mjd2datetime(mjd:_np.ndarray, seconds_frac:_np.ndarray, pea_partials=False)->_np.ndarray:
+    seconds = (86400 * seconds_frac).astype(int) if not pea_partials else seconds_frac.astype(int) #pod orb_partials file has a custom mjd date format with frac being seconds
+    dt = _MJD_ORIGIN + mjd.astype('timedelta64[D]') + seconds
+    return dt
+
+def mjd2j2000(mjd:_np.ndarray, seconds_frac:_np.ndarray, pea_partials=False)->_np.ndarray:
+    datetime = mjd2datetime(mjd=mjd,seconds_frac=seconds_frac,pea_partials=pea_partials)
+    return datetime2j2000(datetime)
 
 def j20002rnxdt(j2000secs:_np.ndarray)->_np.ndarray:
     '''

@@ -23,6 +23,12 @@ station_data:
     
     ssr_input_antenna_offset: APC
 
+    # nav_streams:
+    # - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/BCEP00DLR0"
+    # - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/SSRA02IGS0"
+
+    # obs_streams:
+    # - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0"    
     
 output_files:
 
@@ -49,10 +55,12 @@ output_files:
     summary_directory:              ./
     summary_filename:               <CONFIG>-<YYYY><DDD><HH>.SUM
 
+    #enable_mongo:                   true
     #output_mongo_measurements:      true
     #output_mongo_states:            true
-    #output_mongo_metadata:          true
     #delete_mongo_history:           true
+    #mongo_uri:                      mongodb://127.0.0.1:27017
+    #mongo_database:                 <CONFIG>
 
 ssr_corrections:
     calculate_ssr:    true
@@ -232,10 +240,6 @@ ambiguity_resolution_options:
     NL_succ_rate_thres:         0.999
     NL_sol_ratio_thres:         3.0
     
-    read_SSR:                   true
-    read_OSB:                   false
-    read_DSB:                   false
-
 override_filter_parameters:
 
     stations:

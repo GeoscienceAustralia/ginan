@@ -1,11 +1,9 @@
 
-#ifdef ENABLE_MONGODB
 #include <bsoncxx/builder/basic/document.hpp>
 #include <bsoncxx/json.hpp>
 
 using bsoncxx::builder::basic::kvp;
 
-#endif
 
 #include <string>
 
@@ -24,7 +22,6 @@ void NetworkStatistics::onErrorStatistics(
 		return;
 	}
 	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
@@ -44,10 +41,6 @@ void NetworkStatistics::onErrorStatistics(
 	doc.append(kvp("Time",						bsoncxx::types::b_date {std::chrono::system_clock::now()}	));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 void NetworkStatistics::onConnectedStatistics()
@@ -56,8 +49,6 @@ void NetworkStatistics::onConnectedStatistics()
 	{
 		return;
 	}
-	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
@@ -76,10 +67,6 @@ void NetworkStatistics::onConnectedStatistics()
 	doc.append(kvp("DisonnectCount",			disconnectCount												));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 void NetworkStatistics::onDisconnectedStatistics()
@@ -88,8 +75,6 @@ void NetworkStatistics::onDisconnectedStatistics()
 	{
 		return;
 	}
-	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
@@ -108,10 +93,6 @@ void NetworkStatistics::onDisconnectedStatistics()
 	doc.append(kvp("DisonnectCount",			disconnectCount												));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 void NetworkStatistics::onChunkSentStatistics()
@@ -120,8 +101,6 @@ void NetworkStatistics::onChunkSentStatistics()
 	{
 		return;
 	}
-	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
@@ -139,10 +118,6 @@ void NetworkStatistics::onChunkSentStatistics()
 	doc.append(kvp("ChunksSent",				chunksSent													));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 void NetworkStatistics::onChunkReceivedStatistics()
@@ -152,7 +127,6 @@ void NetworkStatistics::onChunkReceivedStatistics()
 		return;
 	}
 	
-#	ifdef ENABLE_MONGODB
 	if (trace_level < 5)
 		return;
 	
@@ -172,10 +146,6 @@ void NetworkStatistics::onChunkReceivedStatistics()
 	doc.append(kvp("ChunksReceived",				chunksReceived													));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 void RtcmTrace::outputSsrEphToJson(
@@ -186,8 +156,6 @@ void RtcmTrace::outputSsrEphToJson(
 	{
 		return;
 	}
-	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(rtcmTraceFilename, std::ios::app);
 	if (!fout)
@@ -199,12 +167,14 @@ void RtcmTrace::outputSsrEphToJson(
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("MountPoint",				rtcmMountPoint						));
 	doc.append(kvp("MessageType",				"Orbit Correction"					));
+	doc.append(kvp("EpochTimeGreg",				ssrEph.t0.to_string(1)				));
 	doc.append(kvp("EpochTime1s",				ssrEph.ssrMeta.epochTime1s			));
 	doc.append(kvp("SSRUpdateIntervalInd",		ssrEph.ssrMeta.ssrUpdateIntIndex	));
 	doc.append(kvp("SSRUpdateIntervalSec",		ssrEph.udi							));
 	doc.append(kvp("MultipleMessageIndicator",	ssrEph.ssrMeta.multipleMessage		));
 	doc.append(kvp("SatelliteReferenceDatum",	(int) ssrEph.ssrMeta.referenceDatum	));	// 0 = ITRF, 1 = Regional // bsoncxx doesn't like uints
 	doc.append(kvp("IODSSR",					ssrEph.iod							));
+	doc.append(kvp("IODCRC",					ssrEph.iodcrc						));
 	doc.append(kvp("SSRProviderID",				(int) ssrEph.ssrMeta.provider		));
 	doc.append(kvp("SSRSolutionID",				(int) ssrEph.ssrMeta.solution		));
 	doc.append(kvp("SatelliteID",				Sat.id()							));
@@ -217,10 +187,6 @@ void RtcmTrace::outputSsrEphToJson(
 	doc.append(kvp("DotDeltaCrossTrack",		ssrEph.ddeph[2]						));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 
@@ -232,8 +198,6 @@ void RtcmTrace::outputSsrClkToJson(
 	{
 		return;
 	}
-	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(rtcmTraceFilename, std::ios::app);
 	if (!fout)
@@ -245,6 +209,7 @@ void RtcmTrace::outputSsrClkToJson(
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("MountPoint",				rtcmMountPoint						));
 	doc.append(kvp("MessageType",				"Clock Correction"					));
+	doc.append(kvp("EpochTimeGreg",				ssrClk.t0.to_string(1)				));
 	doc.append(kvp("EpochTime1s",				ssrClk.ssrMeta.epochTime1s			));
 	doc.append(kvp("SSRUpdateIntervalInd",		ssrClk.ssrMeta.ssrUpdateIntIndex	));
 	doc.append(kvp("SSRUpdateIntervalSec",		ssrClk.udi							));
@@ -259,10 +224,6 @@ void RtcmTrace::outputSsrClkToJson(
 	doc.append(kvp("DeltaClockC2",				ssrClk.dclk[2]						));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 
@@ -275,8 +236,6 @@ void RtcmTrace::traceSsrCodeB(
 	{
 		return;
 	}
-	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(rtcmTraceFilename, std::ios::app);
 	if (!fout)
@@ -302,10 +261,6 @@ void RtcmTrace::traceSsrCodeB(
 	doc.append(kvp("Bias",						ssrBias.obsCodeBiasMap[code].bias	));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 void RtcmTrace::traceSsrPhasB(
@@ -317,8 +272,6 @@ void RtcmTrace::traceSsrPhasB(
 	{
 		return;
 	}
-	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(rtcmTraceFilename, std::ios::app);
 	if (!fout)
@@ -344,10 +297,6 @@ void RtcmTrace::traceSsrPhasB(
 	doc.append(kvp("Bias",						ssrBias.obsCodeBiasMap[code].bias	));
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 void RtcmTrace::traceBroEph(
@@ -358,8 +307,6 @@ void RtcmTrace::traceBroEph(
 	{
 		return;
 	}
-	
-#	ifdef ENABLE_MONGODB
 
 	std::ofstream fout(rtcmTraceFilename, std::ios::app);
 	if (!fout)
@@ -461,10 +408,6 @@ void RtcmTrace::traceBroEph(
 	}
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
-	
-#	else
-	BOOST_LOG_TRIVIAL(warning) << "Warning: exporting to JSON requires compilation with MongoDB.";
-#	endif
 }
 
 

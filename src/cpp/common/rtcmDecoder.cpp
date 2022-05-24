@@ -5,10 +5,10 @@
 #include "rtcmEncoder.hpp"
 #include "rtcmDecoder.hpp"
 #include "streamRtcm.hpp"
+#include "biasSINEX.hpp"
 #include "acsConfig.hpp"
 #include "gTime.hpp"
 #include "enums.h"
-
 
 GTime RtcmDecoder::nowTime()
 {
@@ -207,7 +207,7 @@ void RtcmDecoder::decodeSSR(
 			ssrEph.ddeph[1]		= getbitsInc(data, i, 19) * 0.004e-3;
 			ssrEph.ddeph[2]		= getbitsInc(data, i, 19) * 0.004e-3;
 
-			//tracepdeex(0,std::cout, "\n#RTCM_DEC SSRORB %s %s %4d %10.3f %10.3f %10.3f %d ", Sat.id(),ssrEph.t0.to_string(2), ssrEph.iode,ssrEph.deph[0],ssrEph.deph[1],ssrEph.deph[2], iod);
+			//tracepdeex(0,std::cout, "\n#RTCM_DEC SSRORB %s %s %4d %10.3f %10.3f %10.3f %d ", Sat.id().c_str(),ssrEph.t0.to_string(2).c_str(), ssrEph.iode,ssrEph.deph[0],ssrEph.deph[1],ssrEph.deph[2], iod);
 			if	( ssr.ssrEph_map.empty()
 				||ssrEph.iod	!= ssr.ssrEph_map.begin()->second.iod
 				||ssrEph.t0		!= ssr.ssrEph_map.begin()->second.t0)
@@ -238,7 +238,7 @@ void RtcmDecoder::decodeSSR(
 			ssrClk.dclk[1]		= getbitsInc(data, i, 21) * 0.001e-3;
 			ssrClk.dclk[2]		= getbitsInc(data, i, 27) * 0.00002e-3;
 
-			//tracepdeex(0,std::cout, "\n#RTCM_DEC SSRCLK %s %s      %10.3f %10.3f %10.3f %d", Sat.id(),ssrClk.t0.to_string(2), ssrClk.dclk[0],ssrClk.dclk[1],ssrClk.dclk[2], iod);
+			//tracepdeex(0,std::cout, "\n#RTCM_DEC SSRCLK %s %s      %10.3f %10.3f %10.3f %d", Sat.id().c_str(),ssrClk.t0.to_string(2).c_str(), ssrClk.dclk[0],ssrClk.dclk[1],ssrClk.dclk[2], iod);
 			if	( ssr.ssrClk_map.empty()
 				||ssrClk.iod		!= ssr.ssrClk_map.begin()->second.iod
 				||ssrClk.t0			!= ssr.ssrClk_map.begin()->second.t0)
@@ -283,6 +283,15 @@ void RtcmDecoder::decodeSSR(
 			ssrBiasCode.iod				= iod;
 			ssrBiasCode.ssrMeta			= ssrMeta;
 
+			SinexBias	entry;
+			string		id = Sat.id() + ":" + Sat.sysChar();
+
+			entry.measType	= CODE;
+			entry.Sat		= Sat;
+			entry.tini		= tow2Time(epochTime);
+			entry.tfin		= entry.tini + acsConfig.ssrOpts.code_bias_valid_time;
+			entry.source	= "ssr";
+
 			unsigned int nbias			= getbituInc(data, i, 5);
 
 			for (int k = 0; k < nbias && i + 19 <= message_length * 8; k++)
@@ -304,6 +313,15 @@ void RtcmDecoder::decodeSSR(
 
 					if (acsConfig.output_decoded_rtcm_json)
 						traceSsrCodeB(Sat, code, ssrBiasCode);
+					
+					entry.cod1	= code;
+					entry.cod2	= E_ObsCode::NONE;
+					entry.bias	= -bias;
+					entry.var	=  0;
+					entry.slop	=  0;
+					entry.slpv	=  0;
+
+					pushBiasSinex(id, entry);
 				}
 				catch (std::exception& e)
 				{
@@ -339,6 +357,14 @@ void RtcmDecoder::decodeSSR(
 
 			ssrBiasPhas.ssrPhase = ssrPhase;
 
+			SinexBias	entry;
+			string		id = Sat.id() + ":" + Sat.sysChar();
+
+			entry.measType	= PHAS;
+			entry.Sat		= Sat;
+			entry.tini		= tow2Time(epochTime);
+			entry.tfin		= entry.tini + acsConfig.ssrOpts.phase_bias_valid_time;
+
 			for (int k = 0; k < ssrPhase.nbias && i + 32 <= message_length * 8; k++)
 			{
 				SSRPhaseCh ssrPhaseCh;
@@ -367,6 +393,15 @@ void RtcmDecoder::decodeSSR(
 
 					if (acsConfig.output_decoded_rtcm_json)
 						traceSsrPhasB(Sat, code, ssrBiasPhas);
+					
+					entry.cod1	= code;
+					entry.cod2	= E_ObsCode::NONE;
+					entry.bias	= -phaseBias;
+					entry.var	=  0;
+					entry.slop	=  0;
+					entry.slpv	=  0;
+
+					pushBiasSinex(id, entry);
 				}
 				catch (std::exception& e)
 				{
@@ -466,6 +501,8 @@ void RtcmDecoder::decodeEphemeris(
 		eph.toe		= gpst2time(eph.week,eph.toes);
 		eph.toc		= gpst2time(eph.week,toc);
 		eph.A		= SQR(sqrtA);
+
+		decomposeTGDBias(eph.Sat, eph.tgd[0]);
 	}
 	else if (sys == +E_Sys::GAL)
 	{
@@ -537,6 +574,8 @@ void RtcmDecoder::decodeEphemeris(
 			e5b_dvs		= getbituInc(data, i, 1);		// E5b OSDVS
 			e1_hs		= getbituInc(data, i, 2);		// E1 OSHS
 			e1_dvs		= getbituInc(data, i, 1);		// E1 OSDVS
+		
+			decomposeBGDBias(eph.Sat, eph.tgd[0], eph.tgd[1]);
 		}
 
 		if (1)	//todo aaron, janky?
@@ -572,7 +611,7 @@ void RtcmDecoder::decodeEphemeris(
 		BOOST_LOG_TRIVIAL(error) << "Error: unrecognised sys in EphemerisDecoder::decode()";
 	}
 
-	//tracepdeex(rtcmdeblvl,std::cout, "\n#RTCM_DEC BRCEPH %s %s %4d %16.9e %13.6e %10.3e, %d ", eph.Sat.id(),eph.toe.to_string(2), eph.iode, eph.f0,eph.f1,eph.f2, message_number);
+	//tracepdeex(rtcmdeblvl,std::cout, "\n#RTCM_DEC BRCEPH %s %s %4d %16.9e %13.6e %10.3e, %d ", eph.Sat.id().c_str(),eph.toe.to_string(2).c_str(), eph.iode, eph.f0,eph.f1,eph.f2, message_number);
 	//std::cout << "Adding ephemeris for " << eph.Sat.id() << std::endl;
 	
 	if (nav.ephMap[eph.Sat].find(eph.toe) == nav.ephMap[eph.Sat].end())
@@ -1228,7 +1267,7 @@ ObsList RtcmDecoder::decodeMSM7(
 		sig.P *= CLIGHT	/ 1000;
 		sig.L *= freqcy	/ 1000;
 
-		//tracepdeex(rtcmdeblvl,std::cout, "\n#RTCM_DEC MSMOBS %s %s %d %s %.4f %.4f", obs.time.to_string(2), obs.Sat.id(), ft, sig.code._to_string(),sig.P, sig.L );
+		//tracepdeex(rtcmdeblvl,std::cout, "\n#RTCM_DEC MSMOBS %s %s %d %s %.4f %.4f", obs.time.to_string(2), obs.Sat.id().c_str(), ft, sig.code._to_string(),sig.P, sig.L );
 	}
 
 	return obsList;
@@ -1506,7 +1545,7 @@ void RtcmStream::parseRTCM(
 			int i = 54;
 			int multimessage = getbituInc(message, i,	1);
 
-			//tracepdeex(rtcmdeblvl,std::cout, "\n%s %4d %s %2d %1d", station.name, message_type._to_integral(), obsList.front().time.to_string(0), obsList.size(), multimessage);
+			//tracepdeex(rtcmdeblvl,std::cout, "\n%s %4d %s %2d %1d", station.name.c_str(), message_type._to_integral(), obsList.front().time.to_string(0).c_str(), obsList.size(), multimessage);
 
 			if (multimessage == 0)
 			{

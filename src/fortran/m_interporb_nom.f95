@@ -23,7 +23,7 @@ MODULE m_interporb_nom
 Contains
 
 
-SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system)
+SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system, found)
 
 
 ! ----------------------------------------------------------------------
@@ -84,6 +84,7 @@ SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, 
 ! OUT
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: orbint
       INTEGER (KIND=prec_int2), INTENT(OUT) :: time_system
+      LOGICAL, INTENT(OUT) :: found
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -106,7 +107,10 @@ SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, 
 
  
 	  ! Read IGS sp3 orbit data file (position only): orbsp3 
-      Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system)
+      Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system, found)
+
+      if (.not. found) return
+
 	  sz1 = size(orbsp3, DIM = 1)
 
 ! ----------------------------------------------------------------------

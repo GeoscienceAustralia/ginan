@@ -330,9 +330,9 @@ sclfa=(AU/Ds)**2
 !---------------------------
 ! Cannoball model
       if (yml_apriori_srp == SRP_CANNONBALL) then
-         fsrp(1)=F0/MASS*ed(1)*lambda
-         fsrp(2)=F0/MASS*ed(2)*lambda
-         fsrp(3)=F0/MASS*ed(3)*lambda
+         fsrp(1)=F0/MASS*ed(1)*lambda*sclfa
+         fsrp(2)=F0/MASS*ed(2)*lambda*sclfa
+         fsrp(3)=F0/MASS*ed(3)*lambda*sclfa
          alpha = F0/MASS
 
 ! SIMPLE BOX-WING
@@ -342,9 +342,9 @@ sclfa=(AU/Ds)**2
          fyo=Ps/MASS*(0.02*X_SIDE*cosang(1)*ex(2)+0.02*Z_SIDE*cosang(3)*ez(2)+1.7*A_SOLAR*cosang(4)*ed(2))
          fzo=Ps/MASS*(0.02*X_SIDE*cosang(1)*ex(3)+0.02*Z_SIDE*cosang(3)*ez(3)+1.7*A_SOLAR*cosang(4)*ed(3))
          alpha = sqrt(fxo**2+fyo**2+fzo**2)
-         fsrp(1)=fxo*lambda
-         fsrp(2)=fyo*lambda
-         fsrp(3)=fzo*lambda
+         fsrp(1)=fxo*lambda*sclfa
+         fsrp(2)=fyo*lambda*sclfa
+         fsrp(3)=fzo*lambda*sclfa
 
 
 ! BOX-WING model from the repro3 routine
@@ -358,9 +358,9 @@ sclfa=(AU/Ds)**2
          CALL SRPFBOXW(REFF,YSAT,rSun,SVNID,ACCEL)
          alpha = sqrt(ACCEL(1)**2+ACCEL(2)**2+ACCEL(3)**2)
         
-         fsrp(1)=ACCEL(1)
-         fsrp(2)=ACCEL(2)
-         fsrp(3)=ACCEL(3)
+         fsrp(1)=ACCEL(1)*sclfa
+         fsrp(2)=ACCEL(2)*sclfa
+         fsrp(3)=ACCEL(3)*sclfa
       end if
 
 

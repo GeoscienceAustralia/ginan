@@ -40,7 +40,6 @@
 
 #define MAX_ITER_KEPLER 30        ///< max number of iteration of Kelpler
 
-#define ANY_IODE -1
 /** variance by ura ephemeris (ref [1] 20.3.3.3.1.1)
  */
 double var_uraeph(
@@ -91,25 +90,20 @@ double eph2clk(
 	return ans;
 }
 
-/* broadcast ephemeris to satellite position and clock bias --------------------
-* compute satellite position and clock bias with broadcast ephemeris (gps,
-* galileo, qzss)
-* args   : gtime_t time     I   time (gpst)
-*          Eph *eph       I   broadcast ephemeris
-*          double *rs       O   satellite position (ecef) {x,y,z} (m)
-*          double *dts      O   satellite clock bias (s)
-*          double *var      O   satellite position and clock variance (m^2)
-* return : none
+/** broadcast ephemeris to satellite position and clock bias 
+* compute satellite position and clock bias with broadcast ephemeris (gps, galileo, qzss)
+* 
 * notes  : see ref [1],[7],[8]
 *          satellite clock includes relativity correction without code bias
 *          (tgd or bgd)
-*-----------------------------------------------------------------------------*/
+*/
 void eph2pos(
-	GTime		time,
-	Eph&		eph,
-	Vector3d&	rSat,
-	double&		dtSat,
-	double*		var = nullptr)
+	GTime		time,						///< time (gpst)
+	Eph&		eph,						///< broadcast ephemeris
+	Vector3d&	rSat,						///< satellite position (ecef) {x,y,z} (m)
+	double&		dtSat,						///< satellite clock bias (s)
+	double*		var_ptr			= nullptr,	///< satellite position and clock variance (m^2)
+	bool		applyRelativity	= true)		///< apply relativity to clock
 {
 //     trace(4, __FUNCTION__ " : time=%s sat=%2d\n",time.to_string(3).c_str(),eph->Sat);
 
@@ -118,8 +112,8 @@ void eph2pos(
 		rSat 	= Vector3d::Zero();
 		dtSat	= 0;
 		
-		if (var)
-			*var = 0;
+		if (var_ptr)
+			*var_ptr = 0;
 			
 		return;
 	}
@@ -217,11 +211,14 @@ void eph2pos(
 			+ eph.f2 * tk * tk;
 
 	/* relativity correction */
-	dtSat	-= 2 * sqrt(mu * eph.A) * eph.e * sinE / SQR(CLIGHT); //is equivalent to - 2 * obs.rSat.dot(obs.satVel) / CLIGHT; 
+	if (applyRelativity)
+	{
+		dtSat	-= 2 * sqrt(mu * eph.A) * eph.e * sinE / SQR(CLIGHT); //is equivalent to - 2 * obs.rSat.dot(obs.satVel) / CLIGHT; 
+	}
 
 	/* position and clock error variance */
-	if (var)
-		*var = var_uraeph(eph.sva);
+	if (var_ptr)
+		*var_ptr = var_uraeph(eph.sva);
 }
 
 /* glonass orbit differential equations --------------------------------------*/
@@ -618,7 +615,8 @@ bool ephpos(
 	E_Svh&		svh,
 	int&		obsIode,
 	nav_t&		nav,
-	int			iode)
+	int			iode,
+	bool		applyRelativity = true)
 {
 	Vector3d	rSat_1;
 	double		dtSat_1;
@@ -642,8 +640,8 @@ bool ephpos(
 		
 		auto& eph = *eph_ptr;
 
-									eph2pos(time, 	eph, 	rSat, 	dtSat[0], 	&ephVar);
-		time = time + tt;			eph2pos(time,	eph, 	rSat_1,	dtSat_1);
+									eph2pos(time, 	eph, 	rSat, 	dtSat[0], 	&ephVar,	applyRelativity);
+		time = time + tt;			eph2pos(time,	eph, 	rSat_1,	dtSat_1,	nullptr,	applyRelativity);
 		
 		svh		= eph.svh;
 		obsIode	= eph.iode;
@@ -693,7 +691,8 @@ bool ephpos(
 	GTime		teph,
 	Obs&		obs,
 	nav_t&		nav,
-	int			iode)
+	int			iode,
+	bool		applyRelativity = true)
 {
 	return ephpos(
 		trace,
@@ -707,7 +706,8 @@ bool ephpos(
 		obs.svh,
 		obs.iode,
 		nav, 
-		iode);
+		iode,
+		applyRelativity);
 }
 
 
@@ -1019,7 +1019,6 @@ int satpos(
 	E_Ephemeris		ephType,			///< Source of ephemeris
 	E_OffsetType	offsetType,			///< Type of antenna offset to apply
 	nav_t&			nav,				///< navigation data
-	PcoMapType* 	pcoMap_ptr,			///< Optional pointer to phase center offset data (depending on offsetType)
 	bool			applyRelativity,	///< Apply relativity
 	KFState*		kfState_ptr)		///< Optional pointer to a kalman filter to take values from
 {
@@ -1030,17 +1029,17 @@ int satpos(
 	int returnValue = 0;
 	switch (ephType)
 	{
-		case E_Ephemeris::BROADCAST:	returnValue = ephpos		(trace, time, teph,		obs, 	nav,	ANY_IODE);			break;
-		case E_Ephemeris::SSR:			returnValue = satpos_ssr	(trace, time, teph,		obs, 	nav,	applyRelativity);	break;
-		case E_Ephemeris::PRECISE:		returnValue = peph2pos		(trace, time, obs.Sat,	obs, 	nav,	applyRelativity);	break;
-		case E_Ephemeris::KALMAN:		returnValue = kalmanPos		(trace, time, obs.Sat,	obs,	kfState_ptr);				break;
+		case E_Ephemeris::BROADCAST:	returnValue = ephpos		(trace, time, teph,		obs, 	nav,	ANY_IODE,	applyRelativity);	break;
+		case E_Ephemeris::SSR:			returnValue = satpos_ssr	(trace, time, teph,		obs, 	nav,				applyRelativity);	break;
+		case E_Ephemeris::PRECISE:		returnValue = peph2pos		(trace, time, obs.Sat,	obs, 	nav,				applyRelativity);	break;
+		case E_Ephemeris::KALMAN:		returnValue = kalmanPos		(trace, time, obs.Sat,	obs,	kfState_ptr);							break;
 		default:						return false;
 	}
 	
-	double antennaScalar = 0;
-	
 	if 	(ephType == +E_Ephemeris::SSR											&& acsConfig.ssr_input_antenna_offset == +E_OffsetType::UNSPECIFIED)
 		BOOST_LOG_TRIVIAL(error) << "Error: ssr_input_antenna_offset has not been set in config.";
+	
+	double antennaScalar = 0;
 
 	if	(ephType == +E_Ephemeris::SSR		&& offsetType == +E_OffsetType::APC	&& acsConfig.ssr_input_antenna_offset == +E_OffsetType::COM)		antennaScalar = +1;
 	if	(ephType == +E_Ephemeris::SSR		&& offsetType == +E_OffsetType::COM	&& acsConfig.ssr_input_antenna_offset == +E_OffsetType::APC)		antennaScalar = -1;
@@ -1049,11 +1048,14 @@ int satpos(
 	if	(ephType == +E_Ephemeris::BROADCAST	&& offsetType == +E_OffsetType::COM)																	antennaScalar = -1;
 		
 	/* satellite antenna offset correction */
-	if	(  antennaScalar
-		&& pcoMap_ptr != nullptr)
+	if	(antennaScalar)
 	{
 		Vector3d dAnt = Vector3d::Zero();
-		satantoff(trace, time, obs.rSat, obs.Sat, nav.satNavMap[obs.Sat].lamMap, dAnt, pcoMap_ptr);
+		
+		if (acsConfig.if_antenna_phase_centre)
+			     satAntOff(trace, time, obs.rSat, obs.Sat, nav.satNavMap[obs.Sat].lamMap, dAnt, obs.satStat_ptr);
+		else
+			dAnt=satAntOff(trace, time, obs.rSat, obs.Sat, F1, obs.satStat_ptr);
 
 		obs.rSat += dAnt * antennaScalar;	
 	}
@@ -1087,7 +1089,7 @@ void satposs(
 			continue;
 		}
 
-		/* search any psuedorange */
+		/* search any pseudorange */
 		if (obs.Sigs.empty())
 		{
 			tracepde(2, trace, "no pseudorange %s sat=%s\n", obs.time.to_string(3).c_str(), obs.Sat.id().c_str());
@@ -1125,27 +1127,8 @@ void satposs(
 
 		time = time - dt;
 
-		/* satellite antenna information */
-		PcoMapType* pcoMap_ptr = nullptr;
-		{
-			PhaseCenterData* pcsat = findAntenna(obs.Sat.id(), time, nav);
-
-			if (pcsat == nullptr)
-			{
-				if (obs.Sat.prn < MINPRNSBS)
-				{
-					tracepde(1, trace,	"Warning: no satellite (%s) pco information\n", obs.Sat.id().c_str());
-					printf(				"Warning: no satellite (%s) pco information\n", obs.Sat.id().c_str());
-				}
-			}
-			else
-			{
-				pcoMap_ptr = &pcsat->pcoMap;
-			}
-		}
-		
 		/* satellite position and clock at transmission time */
-		pass = satpos(trace, time, teph, obs, ephType, offsetType, nav, pcoMap_ptr, applyRelativity);
+		pass = satpos(trace, time, teph, obs, ephType, offsetType, nav, applyRelativity);
 
 		if (pass == false)
 		{

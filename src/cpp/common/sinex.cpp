@@ -1282,9 +1282,9 @@ int write_snx_receivers(ofstream& out)
 		}
 
 		tracepdeex(0, out, " %4s %2s %4s %c %02d:%03d:%05d %02d:%03d:%05d %20s %5s %s\n",
-					receiver.sitecode.c_str(),
-					receiver.ptcode.c_str(),
-					receiver.solnid.c_str(),
+					receiver.sitecode	.c_str(),
+					receiver.ptcode		.c_str(),
+					receiver.solnid		.c_str(),
 					receiver.typecode,
 					receiver.recstart[0] % 100,
 					receiver.recstart[1],
@@ -1292,9 +1292,9 @@ int write_snx_receivers(ofstream& out)
 					receiver.recend[0] % 100,
 					receiver.recend[1],
 					receiver.recend[2],
-					receiver.rectype.c_str(),
-					receiver.recsn.c_str(),
-					receiver.recfirm.c_str());
+					receiver.rectype	.c_str(),
+					receiver.recsn		.c_str(),
+					receiver.recfirm	.c_str());
 	}
 
 	out << "-SITE/RECEIVER" << endl;
@@ -1366,9 +1366,9 @@ int write_snx_antennas(ofstream& out)
 		}
 		
 		tracepdeex(0, out, " %4s %2s %4s %c %02d:%03d:%05d %02d:%03d:%05d %20s %s\n",
-					ant.sitecode.c_str(),
-					ant.ptcode.c_str(),
-					ant.solnnum.c_str(),
+					ant.sitecode	.c_str(),
+					ant.ptcode		.c_str(),
+					ant.solnnum		.c_str(),
 					ant.typecode,
 					ant.antstart[0] % 100,
 					ant.antstart[1],
@@ -1376,8 +1376,8 @@ int write_snx_antennas(ofstream& out)
 					ant.antend[0] % 100,
 					ant.antend[1],
 					ant.antend[2],
-					ant.anttype.c_str(),
-					ant.antsn.c_str());
+					ant.anttype		.c_str(),
+					ant.antsn		.c_str());
 	}
 
 	out << "-SITE/ANTENNA" << endl;
@@ -2561,7 +2561,7 @@ void parse_snx_satelliteIds(string& s)
 
 	sst.svn			= s.substr(1, 4);
 	sst.prn			= sst.svn[0] + s.substr(6, 2);
-	sst.cospar		= s.substr(9, 9);;
+	sst.cospar		= s.substr(9, 9);
 	sst.obsCode		= s[18];
 	sst.antRcvType	= s.substr(47);
 

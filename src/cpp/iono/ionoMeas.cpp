@@ -210,7 +210,7 @@ void write_receivr_measr(
 			tow = time2gpst(obs.time, &week);
 			
 			tracepdeex(2,stecfile,"IONO_MEA,%4d,%10.3f,%s,%s,%10.4f,%10.4e,%d,%d",week, tow,
-				rec.id, obs.Sat.id().c_str(), obs.STECsmth, obs.STECsmvr, obs.STECtype, nlayer);
+				rec.id.c_str(), obs.Sat.id().c_str(), obs.STECsmth, obs.STECsmvr, obs.STECtype, nlayer);
 			
 			if (nlayer<=0)
 			{

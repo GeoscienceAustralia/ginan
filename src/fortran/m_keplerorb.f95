@@ -23,7 +23,7 @@ MODULE m_keplerorb
 Contains
 
 
-SUBROUTINE keplerorb (GM, MJDo, Sec0, Zo, Zel, Ndays, interv, orb1, orb2)
+SUBROUTINE keplerorb (GM, MJDo, Sec0, Zo, Zel, Ndays, interv, orb1, orb2, found)
 
 
 ! ----------------------------------------------------------------------
@@ -83,6 +83,7 @@ SUBROUTINE keplerorb (GM, MJDo, Sec0, Zo, Zel, Ndays, interv, orb1, orb2)
 ! OUT
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: orb1
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: orb2
+      LOGICAL, INTENT(OUT) :: found
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -103,6 +104,7 @@ SUBROUTINE keplerorb (GM, MJDo, Sec0, Zo, Zel, Ndays, interv, orb1, orb2)
 !GM = 0.39860044150D+15
 ! ----------------------------------------------------------------------
 
+found = .true.
 
 ! Orbit arc in sec
 Sec_arc = Ndays * 86400.D0

@@ -252,6 +252,11 @@ void obs2lcs(
 	int week;
 	int lv = 3;
 
+	if (obsList.empty())
+	{
+		return;
+	}
+	
 	double sec = time2gpst(obsList.front().time, &week);
 
 	tracepde(lv, trace, "\n   *-------- PDE form LC %3d %7.1f             --------*\n", week, sec);

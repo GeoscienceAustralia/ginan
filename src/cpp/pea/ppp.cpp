@@ -336,7 +336,8 @@ void corr_meas(
 	double		dAntRec,	///< Delta for antenna offset of receiver
 	double		dAntSat,	///< Delta for antenna offset of satellite
 	double		phw,		///< Phase wind up
-	Station&	rec)		///< Receiver
+	Station&	rec,		///< Receiver
+	double		mjd)
 {
 	TestStack	ts			(__FUNCTION__);
 	Instrument	instrument	(__FUNCTION__);
@@ -355,66 +356,50 @@ void corr_meas(
 	double bias[2] = {};
 	double bvar[2] = {};
 	
-	bias_io_opt biaopt;
-	biaopt.OSB_biases = acsConfig.ambrOpts.readOSB;
-	biaopt.DSB_biases = acsConfig.ambrOpts.readDSB;
-	biaopt.SSR_biases = acsConfig.ambrOpts.readSSRbias;
-	biaopt.SAT_biases = acsConfig.ambrOpts.readSATbias;
-	biaopt.REC_biases = acsConfig.ambrOpts.readRecBias;
-	biaopt.HYB_biases = acsConfig.ambrOpts.readHYBbias;
-	biaopt.COD_biases = true;
-	biaopt.PHS_biases = true;	
+	bool pass;
+	pass = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, CODE, bias[CODE], bvar[CODE]);
+	sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, PHAS, bias[PHAS], bvar[PHAS]);
 	
-	inpt_hard_bias(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, bias, bvar, biaopt, obs.satNav_ptr);
-	
-#if 0 /* this should not be done. Once all bias messages follow the SINEX format properly, could be activated temporaly in case Galileo L5 biases are absent */ 	
-	if(bias[1]==0.0){
-		if(obs.Sat.sys == +E_Sys::GPS) {
-			if(ft == F1 && sig.code != +E_ObsCode::L1C) inpt_hard_bias(trace,obs,  1, bs, bsv, station, biaopt);
-			if(ft == F1 && sig.code != +E_ObsCode::L2W) inpt_hard_bias(trace,obs, 20, bs, bsv, station, biaopt);
+#if 0 /* this should not be done. Once all bias messages follow the SINEX format properly. Could be activated temporaly in case Galileo L5 biases are absent */ 	
+	if(!sig.phaseBias)
+{
+		if(obs.Sat.sys == +E_Sys::GPS) 
+		{
+			if(ft == F1 && sig.code != +E_ObsCode::L1C) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L1C, PHAS, bias[PHAS], bvar[PHAS]);
+			if(ft == F2 && sig.code != +E_ObsCode::L2W) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L2W, PHAS, bias[PHAS], bvar[PHAS]);
 		}
 		
-		if( obs.Sat.sys == +E_Sys::GAL ){
-			if(ft == F1 && sig.code != +E_ObsCode::L1X) inpt_hard_bias(trace,obs, 12, bs, bsv, station, biaopt);
-			if(ft == F5 && sig.code != +E_ObsCode::L5X) inpt_hard_bias(trace,obs, 26, bs, bsv, station, biaopt);
-			if(ft == F5 && sig.code != +E_ObsCode::L5Q) inpt_hard_bias(trace,obs, 25, bs, bsv, station, biaopt);
-			if(ft == F5 && bs[1]    ==        0.0     )	inpt_hard_bias(trace,obs, 24, bs, bsv, station, biaopt);
+		if( obs.Sat.sys == +E_Sys::GAL)
+		{
+			if(ft == F1 && sig.code != +E_ObsCode::L1X) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L1X, PHAS, bias[PHAS], bvar[PHAS]);
+			if(ft == F5 && sig.code != +E_ObsCode::L5X) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L5X, PHAS, bias[PHAS], bvar[PHAS]);
+			if(ft == F5 && sig.code != +E_ObsCode::L5Q) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L5Q, PHAS, bias[PHAS], bvar[PHAS]);
+			if(ft == F5 && !sig.phaseBias			  )	sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L5I, PHAS, bias[PHAS], bvar[PHAS]);
 		}
 		bias[1]=bs[1];
 		bvar[1]=bsv[1];
 	}
 #endif
-	
-	tracepdeex(3, trace, "\n %s  Biases for code %3d:   %9.4f %9.4f, vari: %10.4e %10.4e", obs.Sat.id().c_str(), sig.code, bias[0], bias[1], bvar[0], bvar[1]);
-	
-	sig.P_corr_m = sig.P       	- dAntSat - dAntRec - bias[0];
-	sig.L_corr_m = sig.L * lam	- dAntSat - dAntRec - bias[1] - phw * lam;
+	tracepde(3, trace, " %.6f %sL%d biases for %3s      = %14.4f %14.4f\n", mjd, obs.Sat.id().c_str(), ft, sig.code._to_string(), bias[CODE], bias[PHAS]);
+			
+	sig.P_corr_m = sig.P       	- dAntSat - dAntRec - bias[CODE];
+	sig.L_corr_m = sig.L * lam	- dAntSat - dAntRec - bias[PHAS] - phw * lam;
 }
 
-
-/* satellite antenna phase center variation ----------------------------------*/
-void satantpcv(
+double satNadir(
 	Vector3d&			rs,
-	Vector3d&			rr,
-	PhaseCenterData&			pcv,
-	map<int, double>&	dAntSat,
-	double*				nad)
+	Vector3d&			rr)
 {
-	Vector3d ru = rr - rs;
-	Vector3d rz = -rs;
-	Vector3d eu = ru.normalized();
-	Vector3d ez = rz.normalized();
-
+	Vector3d ru = rr - rs;			Vector3d eu = ru.normalized();
+	Vector3d rz = -rs;				Vector3d ez = rz.normalized();
+	
 	double cosa = eu.dot(ez);
 	if (cosa < -1)	cosa = -1;
 	if (cosa > +1)	cosa = +1;
 
 	double nadir = acos(cosa);
-	if (nad)
-		*nad = nadir * R2D;
-
-	interp_satantmodel(pcv, nadir, dAntSat);
-	//antmodel_s(pcv,nadir,dAntSat);
+	
+	return nadir;
 }
 
 /* precise tropospheric model ------------------------------------------------*/
@@ -535,12 +520,13 @@ void pppCorrections(
 
 	int lv = 3;
 
+	GTime time = obsList.front().time;
 	double ep[6];
-	time2epoch(obsList.front().time, ep);
+	time2epoch(time, ep);
 	double jd	= ymdhms2jd(ep);
 	double mjd	= jd - JD2MJD;
 
-
+	
 	double pos[3];
 	ecef2pos(rRec.data(), pos);
 
@@ -577,22 +563,6 @@ void pppCorrections(
 // 			antmodel(opt->pcvr, opt->antdel, obs.azel, opt->posopt[1], dAntRec);
 // 		}
 
-		//satellite and receiver antenna model
-		map<int, double> dAntSat;
-		if	(acsConfig.sat_pcv)
-		{
-			PhaseCenterData* pcvsat = findAntenna(obs.Sat.id(), obs.time, nav);
-			if (pcvsat)
-			{
-				satantpcv(obs.rSat, rRec, *pcvsat, dAntSat);
-			}
-			else
-			{
-				tracepde(1, trace,	"Warning: no satellite (%s) pcv information\n",	obs.Sat.id().c_str());
-				continue;
-			}
-		}
-
 		// phase windup model
 		if (acsConfig.phase_windup)
 		{
@@ -602,57 +572,51 @@ void pppCorrections(
 				continue;
 			}
 		}
-
-		map<int, double> dAntRec;
-
+		
 		for (auto& [ft, sig] : obs.Sigs)
 		{
 			TestStack ts("F" + std::to_string(ft));
 
 			sig.Range = r;
 
-			double rpcv = 0;
-
 			/* receiver pco correction to the coordinates */
-			if (rtk.pcvrec)
-			{
-				Vector3d pco_r;
-				Vector3d dr2;
+			Vector3d dr2;
 
-				recpco(rtk.pcvrec, ft, pco_r);
-				enu2ecef(pos, pco_r.data(), dr2.data());    /* convert enu to xyz */
+			Vector3d pco_r = antPco(rtk.antId, ft, time, acsConfig.interpolate_rec_pco);
+			
+			enu2ecef(pos, pco_r, dr2);    /* convert enu to xyz */
 
-				/* get rec position and geometric distance for each frequency */
-				Vector3d rRecFreq = rRec + dr2;
+			/* get rec position and geometric distance for each frequency */
+			Vector3d rRecFreq = rRec + dr2;
 
-				sig.Range = geodist(obs.rSat, rRecFreq, satStat.e);
+			sig.Range = geodist(obs.rSat, rRecFreq, satStat.e);
 
-				/* calculate pcv */
-				double azDeg = satStat.az * R2D;
-				double elDeg = satStat.el * R2D;
-				recpcv(rtk.pcvrec, ft, elDeg, azDeg, rpcv);
-				dAntRec[ft] = rpcv;
+			/* calculate pcv */
+			satStat.nadir = satNadir(obs.rSat, rRec);	//todo aaron move up
+			double satpcv = antPcv(obs.Sat.id(),	ft, time, satStat.nadir);
+			double recpcv = antPcv(rtk.antId,		ft, time, PI/2 - satStat.el, satStat.az);
+			
 
 												TestStack::testMat("obs.rSat",	obs.rSat);
 												TestStack::testMat("rRecFreq",	rRecFreq);
 												TestStack::testMat("rRec",	    rRec);
 												TestStack::testMat("dr2",	     dr2);
 												TestStack::testMat("sig.Range",	sig.Range);
-			}
 			// corrected phase and code measurements
-			corr_meas(trace, obs, ft, satStat.el, dAntRec[ft], dAntSat[ft], satStat.phw, rec);
-
 			tracepde(lv, trace, "*---------------------------------------------------*\n");
-			tracepde(lv, trace, " %.6f %sL%d satpcv              = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, dAntSat[ft]);
-			tracepde(lv, trace, " %.6f %sL%d recpcv              = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, dAntRec[ft]);
+			corr_meas(trace, obs, ft, satStat.el, recpcv, satpcv, satStat.phw, rec, mjd);
+
+			tracepde(lv, trace, " %.6f %sL%d satpcv              = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, satpcv);
+			tracepde(lv, trace, " %.6f %sL%d recpcv              = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, recpcv);
+
 			tracepde(lv, trace, " %.6f %sL%d az, el              = %14.4f %14.4f\n",                mjd, obs.Sat.id().c_str(), ft, satStat.az*R2D, satStat.el*R2D);
 			tracepde(lv, trace, " %.6f %sL%d phw(cycle)          = %14.4f \n",                      mjd, obs.Sat.id().c_str(), ft, satStat.phw);
 			tracepde(lv, trace, " %.6f %sL%d satpos+pco          = %14.4f %14.4f %14.4f\n",         mjd, obs.Sat.id().c_str(), ft, obs.rSat[0], obs.rSat[1], obs.rSat[2]);
 			tracepde(lv, trace, " %.6f %sL%d dist                = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, r);
 
 
-								TestStack::testMat("dAntRec",	dAntRec[ft]);
-								TestStack::testMat("dAntSat",	dAntSat[ft]);
+// 								TestStack::testMat("dAntRec",	dAntRec[ft]);
+								TestStack::testMat("dAntSat",	satpcv);
 		}
 
 		if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
@@ -723,6 +687,36 @@ void pppCorrections(
 	}
 }
 
+void outputDeltaClocks(
+	StationMap& stationMap)
+{
+	KFState aprioriState;
+	
+	for (auto& [id,		rec]	: stationMap)
+	for (auto& [kfKey,	index]	: rec.rtk.pppState.kfIndexMap)
+	{
+		if (kfKey.type != KF::REC_CLOCK)
+		{
+			continue;
+		}
+		
+		double c_dtRecEst = 0;
+		rec.rtk.pppState.getKFValue(kfKey, c_dtRecEst);
+		
+		double dtRecPrec = 0;
+		int ret = pephclk(tsync, id, nav, dtRecPrec);
+		if (ret == 1)
+		{
+			double c_dtRecPrec = CLIGHT * dtRecPrec;
+			aprioriState.addKFState(kfKey, {.x = c_dtRecEst - c_dtRecPrec});
+		}
+	}
+	
+	aprioriState.stateTransition(nullStream, tsync);
+	
+	mongoStates(aprioriState, "_delta");
+}
+
 void outputApriori(
 	StationMap& stationMap)
 {
@@ -730,7 +724,7 @@ void outputApriori(
 	for (auto& [id, rec] : stationMap)
 	{
 		KFKey kfKey;
-		kfKey.str	= id + "_0";
+		kfKey.str	= id;
 		kfKey.type	= KF::REC_POS;
 		
 		for (int i = 0; i < 3; i++)
@@ -740,22 +734,43 @@ void outputApriori(
 			aprioriState.addKFState(kfKey, {.x = rec.aprioriPos[i]});
 		}
 	}
+	
 	for (auto& [id, rec] : stationMap)
 	{
 		KFKey kfKey;
-		kfKey.str	= id + "_0";
+		kfKey.str	= id;
 		kfKey.type	= KF::REC_CLOCK;
 			
-		double precDtRec	= 0;
-		pephclk(tsync, id, nav, precDtRec);
-
-		aprioriState.addKFState(kfKey, {.x = CLIGHT * precDtRec});
+		double dtRec = 0;
+		int ret = pephclk(tsync, id, nav, dtRec);
+		if (ret == 1)
+		{
+			aprioriState.addKFState(kfKey, {.x = CLIGHT * dtRec});
+		}
 	}
+	
+	for (auto& [satId, satNav] : nav.satNavMap)
+	{
+		KFKey kfKey;
+		kfKey.Sat.fromHash(satId);
+		kfKey.type	= KF::SAT_CLOCK;
+			
+		if (acsConfig.process_sys[kfKey.Sat.sys] == false)
+		{
+			continue;
+		}
+		
+		double dtSat = 0;
+		int ret = pephclk(tsync, kfKey.Sat.id(), nav, dtSat);
+		if (ret == 1)
+		{
+			aprioriState.addKFState(kfKey, {.x = CLIGHT * dtSat});
+		}
+	}
+	
 	aprioriState.stateTransition(nullStream, tsync);
 	
-#ifdef ENABLE_MONGODB
-	mongoStates(aprioriState);
-#endif
+	mongoStates(aprioriState, "_0");
 }
 
 /** Compare estimated station position with benchmark in SINEX file

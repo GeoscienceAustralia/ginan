@@ -3,39 +3,20 @@
 
 #include <functional>
 
-#include "GNSSambres.hpp"
 #include "biasSINEX.hpp"
 #include "constants.hpp"
+#include "acsConfig.hpp"
 #include "enums.h"
 
-#define SSR_CBIA_VALID 3600.0
-#define SSR_PBIA_VALID 300.0
 
+array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, SinexBias, std::greater<GTime>>>>>, NUM_MEAS_TYPES> SINEXBiases;		///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]
 
-map<E_Sys, E_ObsCode> defaultCodesL1 =
-{
-	{E_Sys::GPS, E_ObsCode::L1C},
-	{E_Sys::GLO, E_ObsCode::L1C},
-	{E_Sys::GAL, E_ObsCode::L1C},
-	{E_Sys::BDS, E_ObsCode::L2I},
-	{E_Sys::QZS, E_ObsCode::L1C}
-};
-
-map<E_Sys, E_ObsCode> defaultCodesL2 =
-{
-	{E_Sys::GPS, E_ObsCode::L2W},
-	{E_Sys::GLO, E_ObsCode::L2C},
-	{E_Sys::GAL, E_ObsCode::L5Q},
-	{E_Sys::BDS, E_ObsCode::L7I},
-	{E_Sys::QZS, E_ObsCode::L2L}
-};
-
-array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, SinexBias, std::greater<GTime>>>>>, NUM_MEAS> SINEXBiases;		///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]
-
+/** Convert observation code string to enum code
+*/
 E_ObsCode str2code(
-	string&		input,
-	E_MeasType&	measType,
-	double&		lam)
+	string&		input,		///< The input observation code string
+	E_MeasType&	measType,	///< Measurement type of this observation - CODE/PHAS - as output
+	double&		lam)		///< Wave length of this signal as output
 {
 	char cods[] = "Lxx";
 	cods[1] = input[1];
@@ -65,9 +46,30 @@ E_ObsCode str2code(
 	return code;
 }
 
-/* convert time string in bias SINEX to gtime struct */
+/** Convert enum observation code to code string
+*/
+string code2str(
+	E_ObsCode	code,		///< The input enum observation code
+	E_MeasType	measType)	///< Measurement type of this observation - CODE/PHAS
+{
+	if (code == +E_ObsCode::NONE)
+		return "";
+
+	string outstr = code._to_string();
+	
+	char head;
+	if (measType == PHAS)	head='L';	
+	if (measType == CODE)	head='C';
+	
+	outstr[0] = head;
+	
+	return outstr;
+}
+
+/** Convert time string in bias SINEX to gtime struct
+*/
 GTime sinex_time_text(
-	string& line)
+	string& line)			///< Start/End time string in bias SINEX
 {
 	double year;
 	double doy;
@@ -85,18 +87,270 @@ GTime sinex_time_text(
 	return time;
 }
 
-/* read header line in bias SINEX file */
+/** Initialise satellite DSBs between default signals, e.g. P1-P2 DCBs, with 0 values
+*/
+void initialiseBiasSinex()
+{
+	SinexBias entry;
+	entry.tini.sec	= 0;
+	entry.bias		= 0;
+	entry.var		= 0;
+	entry.measType	= CODE;
+	entry.name		= "";
+	entry.source	= "init";
+
+	for (int i = 0; i < E_Sys::_size(); i++)
+	{
+		E_Sys sys	= E_Sys::_values()[i];
+
+		auto sats = getSysSats(sys);
+		if (acsConfig.process_sys[sys])
+		for (auto Sat : sats) 
+		{
+			string id	= Sat.id() + ":" + Sat.sysChar();
+			entry.Sat	= Sat;
+			entry.cod1	= acsConfig.clock_codesL1[sys];
+			entry.cod2	= acsConfig.clock_codesL2[sys];
+			
+			pushBiasSinex(id, entry);
+		}
+	}
+}
+
+/** Add default 0 values to DSBs between default signals, e.g. P1-P2 DCBs, for each bias ID
+*/
+void addDefaultBiasSinex()
+{
+	SinexBias entry;
+	entry.tini.sec	= 0;
+	entry.bias		= 0;
+	entry.var		= 0;
+	entry.measType	= CODE;
+	entry.source	= "def";
+
+	for (auto& [id, obsObsBiasMap] : SINEXBiases[entry.measType])
+	{
+		// get Sat and receiver name from the first entry in the CODE bias map 
+		auto obsBiasMap	= obsObsBiasMap	.begin()->second;
+		auto biasMap	= obsBiasMap	.begin()->second;
+		auto bias		= biasMap		.begin()->second;
+
+		entry.Sat	= bias.Sat;
+		entry.name	= bias.name;
+		entry.cod1	= acsConfig.clock_codesL1[bias.Sat.sys];
+		entry.cod2	= acsConfig.clock_codesL2[bias.Sat.sys];
+		
+		pushBiasSinex(id, entry);
+	}
+	
+	for (auto& Sat : getSysSats(E_Sys::GPS))
+	{
+		entry.cod1	= E_ObsCode::L1W;
+		entry.cod2	= E_ObsCode::L1C;
+		entry.Sat	= Sat;
+		
+		string id	= Sat.id() + ":" + Sat.sysChar();
+
+		pushBiasSinex(id, entry);
+	}
+}
+
+/** Push forward and reverse bias entry into the SINEXBiases map
+*/
+void pushBiasSinex(
+	string		id,			///< Device ID
+	SinexBias	entry)		///< Bias entry to push into the SINEXBiases map
+{
+	//add forward bias to maps
+	SINEXBiases	[entry.measType]
+				[id]
+				[entry.cod1]
+				[entry.cod2]
+				[entry.tini] = entry;
+
+	//create reverse bias and add to maps
+	entry.bias *= -1;
+	entry.slop *= -1;
+
+	E_ObsCode swap = entry.cod1;
+	entry.cod1 = entry.cod2;
+	entry.cod2 = swap;
+
+	SINEXBiases	[entry.measType]
+				[id]
+				[entry.cod1]
+				[entry.cod2]
+				[entry.tini] = entry;
+}
+
+/** Decompose DSB or DCB into OSBs
+*/
+bool decomposeDSBBias(
+	SinexBias&	DSB,		///< DSB to be decomposed
+	SinexBias&	OSB1,		///< OSB on L1 as output
+	SinexBias&	OSB2)		///< OSB on L2 as output
+{
+	if 	( DSB.Sat.sys != +E_Sys::GPS
+		||DSB.cod1 != +E_ObsCode::L1W
+		||DSB.cod2 != +E_ObsCode::L2W)	//only GPS P1-P2 DCB can be decomposed at the moment
+	{
+		string cod1 = code2str(DSB.cod1, DSB.measType);
+		string cod2 = code2str(DSB.cod2, DSB.measType);
+		// printf("DSB %s-%s could not be decomposed at the moment\n", cod1.c_str(), cod2.c_str());
+
+		return false;
+	}
+
+	double lam1	= lambdas[DSB.cod1];
+	double lam2	= lambdas[DSB.cod2];
+	double c2	= -SQR(lam1) / (SQR(lam2) - SQR(lam1));
+	double c1	= c2 - 1;
+
+	OSB1 = DSB;
+	OSB1.cod1		= DSB.cod1;
+	OSB1.cod2		= E_ObsCode::NONE;
+	OSB1.bias		=     c2  * DSB.bias;
+	OSB1.var		= SQR(c2) * DSB.var;
+
+	OSB2 = DSB;
+	OSB2.cod1		= DSB.cod2;
+	OSB2.cod2		= E_ObsCode::NONE;
+	OSB2.bias		=     c1  * DSB.bias;
+	OSB2.var		= SQR(c1) * DSB.var;
+
+	return true;
+}
+
+/** Convert GPS/QZS TGD into OSBs & DSB
+*/
+bool decomposeTGDBias(
+	SatSys		Sat,	///< The satellite to decompose the bias of
+	double		tgd)	///< GPS or QZS TGD to be decomposed
+{
+	auto sys = Sat.sys;
+	
+	E_ObsCode cod1 = E_ObsCode::NONE;
+	E_ObsCode cod2 = E_ObsCode::NONE;
+	if		(sys == +E_Sys::GPS)		{	cod1 = E_ObsCode::L1W;	cod2 = E_ObsCode::L2W;	}
+	else if	(sys == +E_Sys::QZS)		{	cod1 = E_ObsCode::L1C;	cod2 = E_ObsCode::L2L;	}
+	else									return false;
+
+	string	id		= Sat.id() + ":" + Sat.sysChar();
+	double	bias	= tgd * CLIGHT;
+	double	gamma	= SQR(FREQ1) / SQR(FREQ2);
+	
+	SinexBias entry;
+	entry.tini.sec	= 1;
+	entry.measType	= CODE;
+	entry.Sat		= Sat;
+	entry.name		= "";
+
+	//store TGD as C1P-IF OSB
+	entry.cod1		= cod1;
+	entry.cod2		= E_ObsCode::NONE;
+	entry.bias		= bias;
+	entry.var		= 0;
+	entry.source	= "tgd";
+
+	pushBiasSinex(id, entry);
+	
+	if	( cod1 == acsConfig.clock_codesL1[sys]
+		&&cod2 == acsConfig.clock_codesL2[sys])
+	{
+		//covert TGD to C2P-IF OSB
+		entry.cod1		= cod2;
+		entry.cod2		= E_ObsCode::NONE;
+		entry.bias		= bias * gamma;
+		entry.var		= 0;
+		entry.source	= "tgd1";
+
+		pushBiasSinex(id, entry);
+
+		//covert TGD to P1-P2 DCB
+		entry.cod1		= cod1;
+		entry.cod2		= cod2;
+		entry.bias		= bias * (1 - gamma);
+		entry.var		= 0;
+		entry.source	= "tgd2";
+
+		pushBiasSinex(id, entry);
+	}
+
+	return true;
+}
+
+/** Convert GAL BGDs into OSBs & DSB
+*/
+bool decomposeBGDBias(
+	SatSys		Sat,	///< The satellite to decompose the bias of
+	double		bgd1,	///< BGD E5a/E1 to be decomposed
+	double		bgd2)	///< BGD E5b/E1 to be decomposed
+{
+	E_ObsCode cod1 = E_ObsCode::L1C;
+	E_ObsCode cod2 = E_ObsCode::L5Q;
+	E_ObsCode cod3 = E_ObsCode::L7Q;
+
+	string	id			= Sat.id() + ":" + Sat.sysChar();
+	double	bgdE1E5a	= bgd1 * CLIGHT;
+	double	bgdE1E5b	= bgd2 * CLIGHT;
+	double	gammaE1E5a	= SQR(FREQ1) / SQR(FREQ5);
+	double	gammaE1E5b	= SQR(FREQ1) / SQR(FREQ7);
+		
+	SinexBias entry;
+	entry.tini.sec	= 1;
+	entry.measType	= CODE;
+	entry.Sat		= Sat;
+	entry.name		= "";
+	entry.source	= "bgd";
+
+	//store BGD E5b/E1 as C1C-IF OSB
+	entry.cod1		= cod1;
+	entry.cod2		= E_ObsCode::NONE;
+	entry.bias		= bgdE1E5a;
+	entry.var		= 0;
+
+	pushBiasSinex(id, entry);		//todo aaron, check which of these match the clock_codes and only create those.
+
+	//covert BGD E5a/E1 to C5Q-IF OSB
+	entry.cod1		= cod2;
+	entry.cod2		= E_ObsCode::NONE;
+	entry.bias		= bgdE1E5a * gammaE1E5a;
+	entry.var		= 0;
+
+	pushBiasSinex(id, entry);
+
+	//covert BGD E5b/E1 to C7Q-IF OSB
+	entry.cod1		= cod3;
+	entry.cod2		= E_ObsCode::NONE;
+	entry.bias		= bgdE1E5a - bgdE1E5b * (1 - gammaE1E5b);
+	entry.var		= 0;
+
+	pushBiasSinex(id, entry);
+
+	//covert BGD E5b/E1 to C1C-C7Q DSB
+	entry.cod1		= cod1;
+	entry.cod2		= cod3;
+	entry.bias		= bgdE1E5b * (1 - gammaE1E5b);
+	entry.var		= 0;
+
+	pushBiasSinex(id, entry);
+
+	return true;
+}
+
+/** Read header line in bias SINEX file
+*/
 void read_biasSINEX_head(
-	const char* buff)
+	const char* buff)	///< Line to read
 {
 	/* This is the function to read the header, but data in header is of no use at the moment */
 	return;
 }
 
-/* read data line in bias SINEX file */
+/** Read data line in bias SINEX file
+*/
 int read_biasSINEX_line(
-	char*		buff,
-	bias_io_opt	opt)
+	char*		buff)	///< Line to read
 {
 	int size = strlen(buff);
 
@@ -107,23 +361,21 @@ int read_biasSINEX_line(
 	}
 
 	SinexBias entry;
+	entry.source = "bsx";
 
 	string type		(buff + 1,  4);
 	string svn		(buff + 6,  4);
 	string sat		(buff + 11, 3);
 	string name		(buff + 15, 4);
-	string code1str	(buff + 25, 3);
-	string code2str	(buff + 30, 3);
+	string cod1str	(buff + 25, 3);
+	string cod2str	(buff + 30, 3);
 	string startTime(buff + 35, 14);
 	string endTime	(buff + 50, 14);
 	string units	(buff + 65, 3);
 	string biasStr	(buff + 70, 21);
 
-
-
-	if		(type == "DSB ")	{	entry.biasType = E_BiasType::DSB;	}
-	else if	(type == "OSB ")	{	entry.biasType = E_BiasType::OSB;	}
-	else
+	if	( type != "DSB "
+		&&type != "OSB ")
 	{
 		return 0;
 	}
@@ -133,7 +385,9 @@ int read_biasSINEX_line(
 	string id;
 	if (name != "    ")
 	{
-		//this seems to be a receiver
+		//this seems to be a receiver, but may have satellite dependency for glonass
+		entry.Sat  = Sat;
+		entry.name = name;
 		id = name;
 	}
 	else if (sat != "   ")
@@ -143,9 +397,11 @@ int read_biasSINEX_line(
 		if	( Sat.prn == 0
 			||Sat.sys == +E_Sys::NONE)
 		{
-				return 0;
+			return 0;
 		}
 
+		entry.Sat  = Sat;
+		entry.name = "";
 		id = sat;
 	}
 	else
@@ -154,13 +410,11 @@ int read_biasSINEX_line(
 		return 0;
 	}
 	
-	id += Sat.sysChar();
-
 	double lam1		= 0;
 	E_MeasType dummy;
 	double dummy2	= 0;
-	entry.cod1 = str2code(code1str, entry.measType, lam1);
-	entry.cod2 = str2code(code2str, dummy,			dummy2);
+	entry.cod1 = str2code(cod1str, entry.measType, lam1);
+	entry.cod2 = str2code(cod2str, dummy,			dummy2);
 
 	/* decoding start/end times */
 	entry.tini = sinex_time_text(startTime);
@@ -207,34 +461,40 @@ int read_biasSINEX_line(
 	entry.slop	= 0;
 	entry.slpv	= 0;
 
-	//add forward bias to maps
-	SINEXBiases	[entry.measType]
-				[id]
-				[entry.cod1]
-				[entry.cod2]
-				[entry.tini] = entry;
-
-	//create reverse bias and add to maps
-	entry.bias *= -1;
-	entry.slop *= -1;
-
-	E_ObsCode swap = entry.cod1;
-	entry.cod1 = entry.cod2;
-	entry.cod2 = swap;
-
-	SINEXBiases	[entry.measType]
-				[id]
-				[entry.cod1]
-				[entry.cod2]
-				[entry.tini] = entry;
+	if	( Sat.sys == +E_Sys::GLO
+		&&Sat.prn == 0)
+	{
+		// this seems to be a receiver
+		// for ambiguous GLO receiver bias id (i.e. PRN not specified), duplicate bias entry for each satellite
+		for (int prn = MINPRNGLO; prn <= MAXPRNGLO; prn++)
+		{
+			Sat.prn	= prn;
+			id = entry.name + ":" + Sat.id();
+			// entry.Sat = Sat;
+			pushBiasSinex(id, entry);
+		}
+	}
+	else if	( Sat.sys == +E_Sys::GLO
+			&&Sat.prn != 0)
+	{
+		// this can be a receiver or satellite
+		id = id + ":" + Sat.id();
+		pushBiasSinex(id, entry);
+	}
+	else
+	{
+		// this can be a receiver or satellite
+		id = id + ":" + Sat.sysChar();
+		pushBiasSinex(id, entry);
+	}
 
 	return 1;
 }
 
-/* read single bias SINEX file */
+/** Read single bias SINEX file
+*/
 int read_biasnx_fil(
-	string&		filename,
-	bias_io_opt	opt)
+	string&		filename)	///< File to read
 {
 	int nbia = 0;
 	bool datasect = false;
@@ -304,7 +564,7 @@ int read_biasnx_fil(
 		if	(  strstr(buff, " DSB ")
 			|| strstr(buff, " OSB "))
 		{
-			if (read_biasSINEX_line(buff, opt) > 0)
+			if (read_biasSINEX_line(buff) > 0)
 				nbia++;
 		}
 	}
@@ -312,72 +572,14 @@ int read_biasnx_fil(
 	return nbia;
 }
 
-/* --------------- read and store values from SINEX files -----------------------
-* args     :       char*   file    I   Files to read
-*                  int     opt     I   bias I/O options
-* ---------------------------------------------------------------------------*/
+/** Read and store values from SINEX files
+*/
 int readBiasSinex(
-	string& file)
+	string& file)	///< File to read
 {
-	bias_io_opt opt;
-	opt.OSB_biases = acsConfig.ambrOpts.readOSB;
-	opt.DSB_biases = acsConfig.ambrOpts.readDSB;
-	opt.SSR_biases = false;
-	opt.SAT_biases = acsConfig.ambrOpts.readSATbias;
-	opt.REC_biases = acsConfig.ambrOpts.readRecBias;
-	opt.HYB_biases = acsConfig.ambrOpts.readHYBbias;
-	opt.COD_biases = true;
-	opt.PHS_biases = true;
-
-	int nbia = read_biasnx_fil(file, opt);
+	int nbia = read_biasnx_fil(file);
 
 	return nbia;
-}
-
-bool getOSBBias(
-			Trace&		trace,
-			GTime		time,
-	const	string&		id,
-			E_MeasType	measType,
-			SinexBias&	output,
-			E_ObsCode	obsCode)
-{
-	const int lvl = 4;
-
-	//get the map of OSB biases for this ID and obsCode
-	//OSB biases will only have one obsCode
-
-// 	auto& biasMap = SINEXBiases[measType][id][obsCode][E_ObsCode::NONE];
-	try
-	{
-		auto& biasMap = SINEXBiases[measType].at(id).at(obsCode).at(E_ObsCode::NONE);
-
-		//find the last bias in that map that comes before the desired time
-		auto biasIt = biasMap.lower_bound(time);
-		if (biasIt == biasMap.end())
-		{
-			//not found
-			return false;
-		}
-
-		auto& [startTime, bias] = *biasIt;
-
-		if	( bias.tfin.time == 0
-			||bias.tfin >= time)
-		{
-			//end time is satisfactory
-			output = bias;
-			tracepdeex(lvl, trace, " - Found bias for %s %s %s - %s", bias.cod1._to_string(), measType == PHAS ? "phase" : "code ", bias.tini.to_string(0), bias.tfin.to_string(0));
-			return true;
-		}
-
-		//end time was not satisfactory
-		return false;
-	}
-	catch (...)
-	{
-		return false;
-	}
 }
 
 void setRestrictiveStartTime(
@@ -401,16 +603,18 @@ void setRestrictiveEndTime(
 	}
 }
 
-bool dsbRecurser(
-			Trace&			trace,
-			GTime&			time,
-			SinexBias&		output,
-	const	E_ObsCode&		obsCode1,
-	const	E_ObsCode&		obsCode2,
+/** Recurser of bias chaining, i.e. searching the path between base code and secondary code
+*/
+bool biasRecurser(
+			Trace&			trace,				///< Trace to output to
+			GTime&			time,				///< Time of bias to look up
+			SinexBias&		output,				///< The bias entry retrieved
+	const	E_ObsCode&		obsCode1,			///< Base code of observation to find biases for
+	const	E_ObsCode&		obsCode2,			///< Secondary code of observation to find biases for
 	const	map<E_ObsCode,
 			map<E_ObsCode,
-			map<GTime, SinexBias, std::greater<GTime>>>>& obsObsBiasMap,
-			set<E_ObsCode>&	checkedObscodes)
+			map<GTime, SinexBias, std::greater<GTime>>>>& obsObsBiasMap,	///< Bias map for given measrement type & device, as obsObsBiasMap[code1][code2][time]
+			set<E_ObsCode>&	checkedObscodes)	///< A list of all checked observation codes
 {
 	checkedObscodes.insert(obsCode1);
 
@@ -456,7 +660,7 @@ bool dsbRecurser(
 		}
 
 		SinexBias pathB;
-		bool pass = dsbRecurser(trace, time, pathB, secondaryKey, obsCode2, obsObsBiasMap, checkedObscodes);
+		bool pass = biasRecurser(trace, time, pathB, secondaryKey, obsCode2, obsObsBiasMap, checkedObscodes);
 		if (pass == false)
 			continue;
 
@@ -496,23 +700,25 @@ bool dsbRecurser(
 	return false;
 }
 
-bool getDSBBias(
-			Trace&		trace,
-			GTime		time,
-	const	string&		id,
-			E_MeasType	measType,
-			SinexBias&	output,
-			E_ObsCode	obsCode1,
-			E_ObsCode	obsCode2)
+/** Search for hardware bias for given measurmenet type
+*/
+bool getBias(
+			Trace&		trace,				///< Trace to output to
+			GTime		time,				///< Time of bias to look up
+	const	string&		id,					///< The id of the device to retrieve the bias of
+			E_MeasType	measType,			///< The measurement type to retrieve the bias of
+			SinexBias&	output,				///< The bias entry retrieved
+			E_ObsCode	obsCode1,			///< Base code of observation to find biases for
+			E_ObsCode	obsCode2)			///< Secondary code of observation to find biases for
 {
-	//get the basic map of DSB biases for this ID and measurmenet type
+	//get the basic map of biases for this ID and measurmenet type
 	try
 	{
 		auto& biasMap = SINEXBiases[measType].at(id);
 
 		set<E_ObsCode> checkedObscodes;
 
-		bool pass = dsbRecurser(trace, time, output, obsCode1, obsCode2, biasMap, checkedObscodes);
+		bool pass = biasRecurser(trace, time, output, obsCode1, obsCode2, biasMap, checkedObscodes);
 
 		return pass;
 	}
@@ -524,193 +730,58 @@ bool getDSBBias(
 
 /** Search for hardware biases in phase and code
 */
-void inpt_hard_bias(
+bool getBiasSinex(
+	Trace& 			trace,					///< Trace to output to
+	GTime			time,					///< Time of bias to look up
+	string			id,						///< The id of the device to retrieve the bias of
+	SatSys			Sat,					///< The satellite to retrieve the bias of
+	E_ObsCode 		obsCode1,				///< Base code of observation to find biases for
+	E_ObsCode 		obsCode2,				///< Secondary code of observation to find biases for
+	E_MeasType		measType,				///< Type of bias to retreive (code/phase)
+	double&			bias,					///< Hardware bias
+	double&			var)					///< Hardware bias variance
+{
+	const int lv = 4;
+
+	bias	= 0;
+	var		= 0;
+	
+	if (Sat.sys == +E_Sys::GLO)	id = id + ":" + Sat.id();
+	else						id = id + ":" + Sat.sysChar();
+	
+	string type;
+	if (measType == CODE)	type = "CODE";
+	if (measType == PHAS)	type = "PHAS";
+
+	tracepdeex(lv, trace, "Reading bias for %s, %s %4s-%4s ...", id.c_str(), type.c_str(), obsCode1._to_string(), obsCode2._to_string());
+
+	SinexBias foundBias;
+
+	bool pass = getBias(trace, time, id, measType, foundBias, obsCode1, obsCode2);
+	if (pass == false)
+	{
+		tracepdeex(lv, trace, " %s:   not found,            ", type.c_str());
+		return false;
+	}
+	
+	bias	= foundBias.bias;
+	var		= foundBias.var;
+	tracepdeex(lv, trace, " %s: %11.4f from %6s,", type.c_str(), foundBias.bias, foundBias.source.c_str());
+	
+	return true;
+}
+
+/** Search for absolute hardware biases in phase and code
+*/
+bool getBiasSinex(
 	Trace& 			trace,		///< Trace to output to
 	GTime			time,		///< Time of bias to look up
 	string			id,			///< The id of the device to retrieve the bias of
 	SatSys			Sat,		///< The satellite to retrieve the bias of
-	E_ObsCode 		obsCode,	///< Specific code of observation to find biases for
-	double* 		bias,		///< hardware bias
-	double* 		var,		///< hardware bias variance
-	bias_io_opt 	opt,		///< Specific biases to find
-	SatNav*			satNav_ptr)	///< Pointer to satellite navigation data
+	E_ObsCode 		obsCode1,	///< Base code of observation to find biases for
+	E_MeasType		measType,	///< Type of bias to retreive (code/phase)
+	double& 		bias,		///< Hardware bias
+	double& 		var)		///< Hardware bias variance
 {
-	const int lv = 3;
-
-	auto& satNav	= *satNav_ptr;		//todo aaron, check for nullptr
-	auto& ssr		= satNav.receivedSSR;
-	id += Sat.sysChar();
-
-	if (opt.SSR_biases)
-	{
-		auto codeIt = ssr.ssrCodeBias_map.lower_bound(time);
-		if (codeIt != ssr.ssrCodeBias_map.end())
-		{
-			auto& [t, ssrbias] = *codeIt;
-
-			if	(  opt.COD_biases
-				&& ssrbias.t0.time > 0
-				&& fabs(time - ssrbias.t0) < SSR_CBIA_VALID
-				&& ssrbias.obsCodeBiasMap.find(obsCode) != ssrbias.obsCodeBiasMap.end())
-			{
-				auto& ssrBiasEntry = ssrbias.obsCodeBiasMap[obsCode];
-				
-				bias[CODE] = -ssrBiasEntry.bias;
-				var [CODE] =  ssrBiasEntry.var;
-			}
-		}
-
-		auto phasIt = ssr.ssrPhasBias_map.lower_bound(time);
-		if (phasIt != ssr.ssrPhasBias_map.end())
-		{
-			auto& [t, ssrbias] = *phasIt;
-
-			if	(  opt.PHS_biases
-				&& ssrbias.t0.time > 0
-				&& fabs(time - ssrbias.t0) < SSR_PBIA_VALID
-				&& ssrbias.obsCodeBiasMap.find(obsCode) != ssrbias.obsCodeBiasMap.end())
-			{
-				auto& ssrBiasEntry = ssrbias.obsCodeBiasMap[obsCode];
-				
-				bias[PHAS] = -ssrBiasEntry.bias;
-				var [PHAS] =  ssrBiasEntry.var;
-			}
-		}
-	}
-
-	if (opt.OSB_biases)
-	{
-		tracepdeex(lv, trace, "\nReading OSB bias for %5s, code %s ... ", id.c_str(), obsCode._to_string());
-
-		if (opt.COD_biases)
-		{
-			SinexBias foundCodeBias;
-			bool pass = getOSBBias(trace, time, id, CODE, foundCodeBias, obsCode);
-			if (pass)
-			{
-				bias[CODE] = foundCodeBias.bias;
-				var [CODE] = foundCodeBias.var;
-				tracepdeex(lv, trace, " found CODE: %11.4f", foundCodeBias.bias);
-			}
-		}
-
-		if (opt.PHS_biases)
-		{
-			SinexBias foundPhasBias;
-			bool pass = getOSBBias(trace, time, id, PHAS, foundPhasBias, obsCode);
-			if (pass)
-			{
-				bias[PHAS] = foundPhasBias.bias;
-				var [PHAS] = foundPhasBias.var;
-				tracepdeex(lv, trace, " found PHAS: %11.4f", foundPhasBias.bias);
-			}
-		}
-	}
-
-	if	( opt.DSB_biases
-		&&opt.COD_biases)
-	{
-		tracepdeex(lv, trace, "\nReading DSB bias for %4s, code %d ...", id, obsCode._to_string());
-
-		auto defaultCodeL1 = defaultCodesL1[Sat.sys];
-		auto defaultCodeL2 = defaultCodesL2[Sat.sys];
-		double lam1 = satNav.lamMap[ftypes[defaultCodeL1]];
-		double lam2 = satNav.lamMap[ftypes[defaultCodeL2]];		//todo aaron remove later (LCs)
-
-		double c2 = -SQR(lam1) / (SQR(lam2) - SQR(lam1));
-		double c1 = c2 - 1;
-
-		SinexBias foundCodeBias;
-		bool pass = getDSBBias(trace, time, id, CODE, foundCodeBias, obsCode, defaultCodeL1);
-		if (pass)
-		{
-			tracepdeex(lv, trace, " found CODE: %11.4f", foundCodeBias.bias);
-			if (opt.LC12_correction)
-			{
-				SinexBias foundCodeBias2;
-				pass = getDSBBias(trace, time, id, CODE, foundCodeBias2, defaultCodeL1, defaultCodeL2);
-
-				if (pass)
-				{
-					foundCodeBias.bias	+=	   c2	* foundCodeBias2.bias;
-					foundCodeBias.var	+= SQR(c2)	* foundCodeBias2.var;
-// 					printf("\nadd %f, from %f", c2 * foundCodeBias2.bias, foundCodeBias2.bias);
-				}
-				else
-				{
-					tracepdeex(2, trace, "\nWarning: bias not found");
-				}
-			}
-
-			bias[CODE] = foundCodeBias.bias;
-			var [CODE] = foundCodeBias.var;
-			tracepdeex(lv, trace, " found CODE: %11.4f", foundCodeBias.bias);
-		}
-		else
-		{
-			//biases not valid, try to generate
-			tracepdeex(lv, trace, "DSB bias not found, looking for RINEX DCB ... ");
-
-			auto ft = ftypes[obsCode];
-
-			array<double, 3>* rbias_ptr = nullptr;
-			if (opt.REC_biases)
-			{
-				try
-				{
-					auto& biasMap = stationRBiasMap.at(id).at(Sat.sys);
-
-					rbias_ptr = &biasMap;
-				}
-				catch (...)	{}
-			
-			}
-			if (rbias_ptr)
-			{
-				auto& rbias = *rbias_ptr;
-				
-				tracepdeex(lv, trace, "DSB bias note found, looking for RINEX DCB ... ");
-
-				if (satNav.cBias_P1_P2 != 0)
-				{
-					tracepdeex(lv, trace, "P1-P2 DCB found ... ");
-
-					if (ft == F1)						{	bias[CODE] = rbias[0] * c2;													}
-					if (ft == F2)						{	bias[CODE] = rbias[0] * c1;													}
-				}
-
-	// 			if (obs.Sat.sys == +E_Sys::GPS)
-				{
-					if (obsCode == +E_ObsCode::L2C)		{	bias[CODE] = -rbias[1];		tracepdeex(lv, trace, "P2-C2 DCB found ... ");		}//these are negative
-					if (obsCode == +E_ObsCode::L1W)		{	bias[CODE] = +rbias[2];		tracepdeex(lv, trace, "P1-C1 DCB found ... ");		}
-				}
-	// 			else if (obs.Sat.sys == +E_Sys::GLO)	
-	// 			{	
-	// 				if (obsCode == +E_ObsCode::L2P)		{	bias[CODE] = rbias[1];		tracepdeex(lv, trace, "P2-C2 DCB found ... ");		}	
-	// 				if (obsCode == +E_ObsCode::L1P)		{	bias[CODE] = rbias[2];		tracepdeex(lv, trace, "P1-C1 DCB found ... ");		}	
-// 				}
-			}
-			if (opt.SAT_biases)
-			{
-				if (satNav.cBias_P1_P2 != 0)
-				{
-					tracepdeex(lv, trace, "P1-P2 DCB found ... ");
-
-					if (ft == F1)						{		bias[CODE] = satNav.cBias_P1_P2 * c2;			}		
-					if (ft == F2)						{		bias[CODE] = satNav.cBias_P1_P2 * c1;			}
-				}
-
-	// 			if (obs.Sat.sys == +E_Sys::GPS)
-				{
-					if (obsCode == +E_ObsCode::L2C)		{		bias[CODE] = -satNav.cBiasMap[F2];			tracepdeex(lv, trace, "P2-C2 DCB found ... ");		}			//these are negative		
-					if (obsCode == +E_ObsCode::L1W)		{		bias[CODE] = +satNav.cBiasMap[F1];			tracepdeex(lv, trace, "P1-C1 DCB found ... ");		}		
-				}	
-	// 			else if (obs.Sat.sys == +E_Sys::GLO)	
-	// 			{	
-	// 				if (obsCode == +E_ObsCode::L2P)		{		bias[CODE] = satNav.cBiasMap[F2];			tracepdeex(lv, trace, "P2-C2 DCB found ... ");		}	
-	// 				if (obsCode == +E_ObsCode::L1P)		{		bias[CODE] = satNav.cBiasMap[F1];			tracepdeex(lv, trace, "P1-C1 DCB found ... ");		}
-	// 			}
-			}
-		}
-	}
+	return getBiasSinex(trace, time, id, Sat, obsCode1, E_ObsCode::NONE, measType, bias, var);
 }

@@ -92,11 +92,11 @@ output_files:
 
     output_sinex:                   true
 
+    enable_mongo:                   true
     output_mongo_measurements:      true
     output_mongo_states:            true
     output_mongo_test_stats:        true
-    output_mongo_metadata:          false
-    delete_mongo_history:           false
+    delete_mongo_history:           true
     mongo_uri:                      mongodb://127.0.0.1:27017
     mongo_suffix:                   ""
     mongo_rts_suffix:               "_rts"

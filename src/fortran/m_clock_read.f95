@@ -50,6 +50,7 @@ SUBROUTINE clock_read (CLKfname,CLKformat, PRNmatrix, ORB_matrix, CLKmatrix)
       USE mdl_num
       USE m_sp3
       use pod_yaml
+      use mdl_config
       IMPLICIT NONE
 	  
 ! ----------------------------------------------------------------------
@@ -73,6 +74,8 @@ SUBROUTINE clock_read (CLKfname,CLKformat, PRNmatrix, ORB_matrix, CLKmatrix)
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: orbsp3, clock_matrix
       INTEGER (KIND = prec_int2) :: AllocateStatus
       INTEGER (KIND=prec_int2) :: time_system
+      CHARACTER (LEN = 500) :: mesg
+      LOGICAL found, first
 ! ----------------------------------------------------------------------
 
 
@@ -94,15 +97,23 @@ IF (CLKformat == 0) THEN
 	END DO
 ! ----------------------------------------------------------------------
 ELSE IF (CLKformat == 1) THEN	  
+        first = .true.
 	DO isat = 1 , Nsat
 		PRNid = PRNmatrix(isat)
-		CALL sp3(CLKfname,PRNid,orbsp3,yml_interpolate_start,clock_matrix,time_system)
-		IF (isat==1) THEN
+		CALL sp3(CLKfname,PRNid,orbsp3,yml_interpolate_start,clock_matrix,time_system,found)
+                write (mesg, *) "PRN ", PRNid, " not found in sp3 file ", CLKfname
+                if (.not. found) then
+                        call report('WARNING', pgrm_name, 'clock_read', trim(mesg), 'src/fortran/m_clock_read.f95', 1)
+                        continue
+                end if
+		IF (first) THEN
+                        first = .false.
 		! Clock array dimensions
 		Nepochs = SIZE (clock_matrix,DIM=1)
 		Nel     = SIZE (clock_matrix,DIM=2)
 		! Allocate array
 		ALLOCATE (CLKmatrix(Nepochs,Nel,Nsat), STAT = AllocateStatus)
+                CLKmatrix = 0.d0
 		END IF
 		CLKmatrix (:,:,isat) = clock_matrix
 	END DO

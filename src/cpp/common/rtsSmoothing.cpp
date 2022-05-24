@@ -47,27 +47,35 @@ void postRTSActions(
 	KFState&	kfState,			///< State to get filter traces from
 	string		clockFilename,		///< Filename for smoothed clock output
 	string		tropFilename,		///< Filename for smoothed troposphere output
+	string		erpFilename,		///< Filename for smoothed erp output
 	StationMap*	stationMap_ptr)		///< Pointer to map of stations
 {
 	std::ofstream ofs(kfState.rts_filename, std::ofstream::out | std::ofstream::app);
 	
+	if	(	final
+		&&	acsConfig.output_erp)
+	{
+		writeERPFromNetwork(erpFilename, kfState);
+	}
+
 	if	(   final
 		&&  acsConfig.output_clocks
 		&&( acsConfig.clocks_receiver_source	== +E_Ephemeris::KALMAN
 		  ||acsConfig.clocks_satellite_source	== +E_Ephemeris::KALMAN))
 	{
-		tryPrepareFilterPointers(kfState, stationMap_ptr);
+		auto kfState2 = kfState;	//todo aaron, delete this after fixing something else, tryPrepareFilterPointers damages the state
+		tryPrepareFilterPointers(kfState2, stationMap_ptr);
 
-		auto filenameSysMap = getSysOutputFilenames(acsConfig.clocks_filename + SMOOTHED_SUFFIX, kfState.time);
+		auto filenameSysMap = getSysOutputFilenames(acsConfig.clocks_filename + SMOOTHED_SUFFIX, kfState2.time);
 
 		for (auto [filename, sysMap] : filenameSysMap)
 		{
-			outputClocks(filename, acsConfig.clocks_receiver_source, acsConfig.clocks_satellite_source, kfState.time, sysMap, kfState, stationMap_ptr);
+			outputClocks(filename, acsConfig.clocks_receiver_source, acsConfig.clocks_satellite_source, kfState2.time, sysMap, kfState2, stationMap_ptr);
 		}
 	}
 
-	if	(   final
-		&&  acsConfig.output_trop_sinex
+	if	(	final
+		&&	acsConfig.output_trop_sinex
 		&&	acsConfig.trop_data_source == +E_Ephemeris::KALMAN)
 	{
 		outputTropSinex(tropFilename, kfState.time, *stationMap_ptr, kfState, "MIX", true);		//todo aaron, no site specific version here
@@ -75,17 +83,15 @@ void postRTSActions(
 
 	if (final)
 	{
-		kfState.outputStates(ofs);
+		kfState.outputStates(ofs, " RTS");
 	}
 
-#	ifdef ENABLE_MONGODB
 	if	(   acsConfig.output_mongo_states
 		&&( final
 		  ||acsConfig.output_intermediate_rts))
 	{
 		mongoStates(kfState, acsConfig.mongo_rts_suffix);
 	}
-#	endif
 
 // 	pppoutstat(ofs, archiveKF, true);
 }
@@ -96,7 +102,8 @@ void RTS_Output(
 	KFState&	kfState,			///< State to get filter traces from
 	StationMap*	stationMap_ptr,		///< Pointer to map of stations
 	string		clockFilename,		///< Filename to output clocks to once smoothed
-	string		tropFilename)		///< Filename for smoothed troposphere output
+	string		tropFilename,		///< Filename for smoothed troposphere output
+	string		erpFilename)		///< Filename for smoothed erp output
 {
 	string reversedStatesFilename = kfState.rts_filename + BACKWARD_SUFFIX;
 	
@@ -118,7 +125,6 @@ void RTS_Output(
 				KFState archiveKF;
 				bool pass = getFilterObjectFromFile(type, archiveKF, startPos, reversedStatesFilename);
 				
-				
 				if (pass == false)
 				{
 					std::cout << "BAD RTS OUTPUT READ";
@@ -127,15 +133,17 @@ void RTS_Output(
 				
 				archiveKF.rts_filename = kfState.rts_filename;
 				
-				if	( acsConfig.ambrOpts.NLmode != +E_ARmode::OFF )
+				if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
 				{
 					KFState ARRTScopy = archiveKF;
-					int nfix = smoothdAmbigResl( ARRTScopy );
-					postRTSActions(true, ARRTScopy, clockFilename, tropFilename, stationMap_ptr);
+					int nfix = smoothdAmbigResl(ARRTScopy);
+					postRTSActions(true, ARRTScopy, clockFilename, tropFilename, erpFilename, stationMap_ptr);
 				}
-				else 
-					postRTSActions(true, archiveKF, clockFilename, tropFilename, stationMap_ptr);
-
+				else
+				{
+					postRTSActions(true, archiveKF, clockFilename, tropFilename, erpFilename, stationMap_ptr);
+				}
+				
 				break;
 			}
 		}
@@ -152,7 +160,8 @@ KFState RTS_Process(
 	bool		write,
 	StationMap*	stationMap_ptr,
 	string		clockFilename,
-	string		tropFilename)
+	string		tropFilename,
+	string		erpFilename)
 {
 	if (kfState.rts_lag == 0)
 	{
@@ -190,6 +199,7 @@ KFState RTS_Process(
 		{	
 			default:
 			{
+// 				std::cout << "Unknown rts type" << std::endl;
 				break;
 			}
 			case E_SerialObject::TRANSITION_MATRIX:
@@ -302,7 +312,7 @@ KFState RTS_Process(
 					}
 					
 					smoothedKF.rts_filename = kfState.rts_filename;
-					postRTSActions(final, smoothedKF, clockFilename, tropFilename, stationMap_ptr);
+					postRTSActions(final, smoothedKF, clockFilename, tropFilename, erpFilename, stationMap_ptr);
 				}
 				
 				break;
@@ -317,7 +327,7 @@ KFState RTS_Process(
 	
 	if (write)
 	{
-		RTS_Output(kfState, stationMap_ptr, clockFilename, tropFilename);
+		RTS_Output(kfState, stationMap_ptr, clockFilename, tropFilename, erpFilename);
 	}
 
 	if (lag == kfState.rts_lag)

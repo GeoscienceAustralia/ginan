@@ -47,12 +47,14 @@ SUBROUTINE eop_rd (EOP_fname, EOP_sol, mjd , eop)
       INTEGER (KIND = prec_int1), INTENT(IN) :: EOP_sol
       CHARACTER (LEN=512), INTENT(IN) :: EOP_fname
 ! OUT
-      REAL (KIND = prec_d), INTENT(OUT) :: eop(7)
+      REAL (KIND = prec_d), INTENT(OUT) :: eop(EOP_MAX_ARRAY)
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
 ! Local variables declaration
 ! ----------------------------------------------------------------------
+       LOGICAL igu_flag
+       REAL (KIND = prec_d) :: mjd_t
 
 ! ----------------------------------------------------------------------
 
@@ -63,11 +65,12 @@ SUBROUTINE eop_rd (EOP_fname, EOP_sol, mjd , eop)
       ELSE IF (EOP_sol == EOP_FAST) THEN
          CALL eop_finals2000A (EOP_fname,mjd , eop)
       ELSE IF (EOP_sol == EOP_SUPER_FAST) THEN
-         !CALL erp_igu (EOP_fname,mjd , eop)
-		 CALL eop_finals2000A (EOP_fname,mjd , eop)		 
+         mjd_t = mjd * 1.d0
+         CALL erp_igu (EOP_fname,mjd_t , eop, igu_flag)
+	!	 CALL eop_finals2000A (EOP_fname,mjd , eop)		 
       END IF
 ! ----------------------------------------------------------------------
-!         PRINT *, "eop_rd.f90 eop", eop
+      if (.false.) PRINT *, "eop_rd.f90 eop", eop
 
 
 END

@@ -23,36 +23,40 @@ def _trace_extract(path_or_bytes,blk_name):
 	begin = end = 0
 	buf=[]
 
-	blk_begin = (f'+ {blk_name}\n').encode()
-	blk_end   = (f'- {blk_name}'  ).encode()
+	blk_begin = (f'+ {blk_name}').encode()
+	blk_end   = (f'- {blk_name}').encode()
 
 	while True:
 		begin = trace_bytes.find(blk_begin,end)
+		begin_full =  trace_bytes.find(b'\n',begin)
 		if begin==-1:
 			break
-		end = trace_bytes.find(blk_end,begin)
-		buf.append(trace_bytes[begin+len(blk_begin):end])
+		end = trace_bytes.find(blk_end,begin_full)
+
+		blk_content = trace_bytes[begin_full+1:end] 		# needs +1 not to start with '\n'
+		blk_type = b'\t' + trace_bytes[begin+2:begin_full] + b'\n'	# needs +2 to remove ' +'
+		blk_content_w_type = blk_type.join(blk_content.splitlines()) + blk_type
+		buf.append(blk_content_w_type)
 
 	content = b''.join(buf)
 	if len(content) == 0:
 		_logging.error(f'"{blk_name}" data not found')
 		return None
-
 	return content
 
 def _read_trace_states(path_or_bytes):
 	states = _trace_extract(path_or_bytes,blk_name='States')
 	if states is None:
 		return None
-	df = _pd.read_csv(_BytesIO(states),delimiter='\t',usecols=[1,2,3,4,5,6,7,8],skipinitialspace=True,dtype={'SAT':PRN_CATEGORY,'TYPE':STATE_TYPES_CATEGORY},keep_default_na=False,
-					comment='#',header=None,names = ['TIME','TYPE','SITE','SAT','NUM','EST','VAR','ADJ'],parse_dates=['TIME']) # type:ignore
+	df = _pd.read_csv(_BytesIO(states),delimiter='\t',usecols=[1,2,3,4,5,6,7,8,9],skipinitialspace=True,dtype={'SAT':PRN_CATEGORY,'TYPE':STATE_TYPES_CATEGORY},keep_default_na=False,
+					comment='#',header=None,names = ['TIME','TYPE','SITE','SAT','NUM','EST','VAR','ADJ','BLK'],parse_dates=['TIME']) # type:ignore
 	df.TIME = (df.TIME.values - _J2000_ORIGIN).astype('timedelta64[s]').astype(int)
 
 	empty_mask = df.TYPE.values.notna() # dropping ONE type
 	if (~empty_mask).sum()>0:
 		df = df[empty_mask]
 
-	return df.set_index(['TIME','SITE','TYPE','SAT','NUM'])
+	return df.set_index(['TIME','SITE','TYPE','SAT','NUM','BLK'])
 
 def _read_trace_residuals(path_or_bytes,it_max_only=True):
 	residuals = _trace_extract(path_or_bytes,blk_name='Residuals')

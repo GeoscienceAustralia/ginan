@@ -100,13 +100,14 @@ output_files:
     trop_sinex_directory:           ./
     trop_sinex_filename:            <CONFIG>-<STATION><WWWW><D>.tro
 
-    output_mongo_measurements:      false
-    output_mongo_states:            false
-    output_mongo_metadata:          false
+    enable_mongo:                   true
+    output_mongo_measurements:      true
+    output_mongo_states:            true
     output_mongo_rtcm_messages:     true
-    delete_mongo_history:           true
+    output_mongo_test_stats:        true
+    #delete_mongo_history:           true
     mongo_uri:                      mongodb://127.0.0.1:27017
-    mongo_suffix:                   ""
+    mongo_suffix:                   "a"
     mongo_rts_suffix:               "_rts"
 
 output_options:
@@ -121,7 +122,7 @@ processing_options:
 
     start_epoch:                2019-07-18 01:15:00
     end_epoch:                  2019-07-18 22:30:00
-    #max_epochs:                 12        #0 is infinite # comment for full day run
+    max_epochs:                 12        #0 is infinite # comment for full day run
     epoch_interval:             60          #seconds
     deweight_factor:            1000.0
 
@@ -130,7 +131,7 @@ processing_options:
         user:                   false
         network:                true
         minimum_constraints:    true
-        rts:                    true        #should be true for this example
+        rts:                    true
         ionosphere:             false
         unit_tests:             false
 
@@ -339,8 +340,6 @@ minimum_constraints:
     #    BOAV: 100       #constrain weakly
 
 ambiguity_resolution_options:
-    readOSB:                    false
-    readDSB:                    false
     
     Min_elev_for_AR:            15.0
 

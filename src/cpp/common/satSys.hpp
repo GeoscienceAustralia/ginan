@@ -3,9 +3,11 @@
 #define __SATSYS_HPP_
 
 #include <string>
+#include <vector>
 #include <map>
 
 using std::string;
+using std::vector;
 using std::map;
 
 
@@ -257,4 +259,8 @@ namespace std
 		}
 	};
 }
+
+vector<SatSys> getSysSats(
+	E_Sys	targetSys);
+
 #endif

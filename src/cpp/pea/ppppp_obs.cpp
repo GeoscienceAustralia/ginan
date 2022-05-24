@@ -112,7 +112,7 @@ void stationPPP(
 		double		lambda		= obs.satNav_ptr->lamMap[ft];
 		auto		code		= sig.code;
 		
-		PhaseCenterData* satPCD_ptr = findAntenna(Sat.id(), time, nav);
+// 		PhaseCenterData* satPCD_ptr = findAntenna(Sat.id(), time, nav, ft);
 	
 		double observed = 0;
 		if		(measType == CODE)		observed = sig.P;
@@ -374,7 +374,7 @@ void stationPPP(
 // 		if (0)
 		{
 			Vector3d recAntVector;
-			enu2ecef(pos, rec.rtk.opt.antdel.data(), recAntVector.data());
+			enu2ecef(pos, rec.rtk.opt.antdel, recAntVector);
 			
 			{
 				
@@ -392,16 +392,11 @@ void stationPPP(
 		//Receiver Phase Center Offset
 // 		if (0)
 		{
-			Vector3d recPCOVector = Vector3d::Zero();
+			Vector3d pco_enu = antPco(rec.rtk.antId, ft, time);
 			
 			/* receiver pco correction to the coordinates */
-			if (rec.rtk.pcvrec)
-			{
-				Vector3d pco_enu;
-				recpco(rec.rtk.pcvrec, ft, pco_enu);
-				
-				enu2ecef(pos, pco_enu.data(), recPCOVector.data());    /* convert enu to xyz */
-			}
+			Vector3d recPCOVector = Vector3d::Zero();
+			enu2ecef(pos, pco_enu, recPCOVector);    /* convert enu to xyz */
 			
 			double recPCODelta = -recPCOVector.dot(satStat.e);
 			obsComponentList.push_back({"Rec PCO", recPCODelta});
@@ -410,23 +405,7 @@ void stationPPP(
 		//Satellite Phase Center Offset
 		// if (0)
 		{
-			PcoMapType* pcoMap_ptr = nullptr;
-			{
-				if (satPCD_ptr == nullptr)
-				{
-					tracepde(1, trace,	"Warning: no satellite (%s) pco information\n", Sat.id().c_str());
-				}
-				else
-				{
-					pcoMap_ptr = &satPCD_ptr->pcoMap;
-				}
-			}
-
-			Vector3d satPCOVector = Vector3d::Zero();
-			if (pcoMap_ptr != nullptr)
-			{
-				satantoff(trace, time, obs.rSat, ft, satPCOVector, pcoMap_ptr);
-			}
+			Vector3d satPCOVector = satAntOff(trace, time, obs.rSat, Sat, ft, &satStat);
 			
 			double satPCODelta = satPCOVector.dot(satStat.e);
 			obsComponentList.push_back({"Sat PCO", satPCODelta});
@@ -435,16 +414,7 @@ void stationPPP(
 		//Receiver Phase Center Variation
 		if (acsConfig.rec_pcv)
 		{
-			double recPCVDelta = 0;
-			
-			// receiver pco correction to the coordinates 
-			if (rec.rtk.pcvrec)
-			{
-				/* calculate pcv */
-				double azDeg = satStat.az * R2D;
-				double elDeg = satStat.el * R2D;
-				recpcv(rec.rtk.pcvrec, ft, elDeg, azDeg, recPCVDelta);
-			}
+			double recPCVDelta = antPcv(rec.rtk.antId, ft, time, PI/2 - satStat.el, satStat.az);
 			
 			obsComponentList.push_back({"Rec PCV", recPCVDelta});
 		}
@@ -452,20 +422,10 @@ void stationPPP(
 		//Satellite Phase Center Variation
 		if (acsConfig.sat_pcv)
 		{
-			//satellite and receiver antenna model
-			map<int, double> dAntSat;
-			{
-				if (satPCD_ptr)
-				{
-					satantpcv(obs.rSat, rRec, *satPCD_ptr, dAntSat);
-				}
-				else
-				{
-					tracepde(1, trace,	"Warning: no satellite (%s) pcv information\n",	obs.Sat.id().c_str());
-					continue;
-				}
-			}
-			double satPCVDelta = dAntSat[ft];
+			satStat.nadir = satNadir(rSat, rRec);	//todo aaron move up
+			
+			double satPCVDelta = antPcv(Sat.id(), ft, time, satStat.nadir);
+			
 			obsComponentList.push_back({"Sat PCV", satPCVDelta});
 		}
 		
@@ -666,7 +626,7 @@ void stationPPP(
 		{
 			double	recCodeBias		= 0;
 			double	recCodeBiasVar	= DEFAULT_BIAS_VAR;
-			inpt_hard_bias(trace, time, rec.id, Sat, sig.code, &recCodeBias - CODE, &recCodeBiasVar - CODE, {.OSB_biases = true, .COD_biases = true});
+			getBiasSinex(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
 			
 			if (recOpts.code_bias.estimate)
 			if (ft != F1)
@@ -700,7 +660,7 @@ void stationPPP(
 		{
 			double	satCodeBias		= 0;
 			double	satCodeBiasVar	= DEFAULT_BIAS_VAR;
-			inpt_hard_bias(trace, time, Sat.id(), Sat, sig.code, &satCodeBias - CODE, &satCodeBiasVar - CODE, {.OSB_biases = true, .COD_biases = true}, obs.satNav_ptr);
+			getBiasSinex(trace, time, Sat.id(), Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
 			
 			if (satOpts.code_bias.estimate)
 			if (ft != F1)
@@ -733,7 +693,7 @@ void stationPPP(
 		{
 			double	recPhasBias		= 0;
 			double	recPhasBiasVar	= DEFAULT_BIAS_VAR;
-			inpt_hard_bias(trace, time, rec.id, Sat, sig.code, &recPhasBias - PHAS, &recPhasBiasVar - PHAS, {.OSB_biases = true, .PHS_biases = true});
+			getBiasSinex(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
 
 			if (recOpts.phase_bias.estimate)
 			{
@@ -765,7 +725,7 @@ void stationPPP(
 		{
 			double	satPhasBias		= 0;
 			double	satPhasBiasVar	= DEFAULT_BIAS_VAR;
-			inpt_hard_bias(trace, time, Sat.id(), Sat, sig.code, &satPhasBias - PHAS, &satPhasBiasVar - PHAS, {.OSB_biases = true, .PHS_biases = true}, obs.satNav_ptr);
+			getBiasSinex(trace, time, Sat.id(), Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
 			
 			if (satOpts.phase_bias.estimate)
 			{

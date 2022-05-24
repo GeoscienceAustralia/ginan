@@ -95,7 +95,10 @@ struct SatStat : IonoStat, QC
 			double	el;			///< elevation angle (rad)
 		};
 	};
-
+	double nadir		= 0;
+	double sunDotSat	= 0;
+	double sunCrossSat	= 0;
+	
 	map<E_FType, SigStat>	sigStatMap;	///< Map for individual signal status for this SatStat object
 };
 

@@ -280,28 +280,29 @@ void NtripSocket::reconnect_timer_handler(
 	connect();
 }
 
+void NtripSocket::timeout_handler(
+	const boost::system::error_code& err)
+{
+	if (err)
+	{
+// 		ERROR_OUTPUT_RECONNECT_AND_RETURN;
+		return;
+	}
+	
+	if (isConnected == false)
+	{
+		BOOST_LOG_TRIVIAL(error) << "Error: " << url.sanitised() <<" connection timed out, check paths, usernames + passwords, and ports";
+	}
+}
+
 void NtripSocket::delayed_reconnect()
 {
 	if (isConnected)
 	{
 		isConnected = false;
 		disconnectionCount++;
-// 		disconnectedTime = boost::posix_time::microsec_clock::local_time();
-		
-// 		boost::posix_time::time_duration upTime		= disconnectedTime - connectedTime;
-// 		boost::posix_time::time_duration totalTime	= disconnectedTime - startTime;
-// 		connectedDuration += upTime;
-		
+
 		std::stringstream message;
-// 		message << "disconnected, up time minutes : ";
-// 		message << (double)upTime.total_milliseconds()/(60.0*1000.0);
-		
-// 		double ratio = (double)connectedDuration.total_milliseconds() /(double)totalTime.total_milliseconds();
-// 		message << ", ratio (uptime_total/total) : " << ratio;
-// 		message << ", total number of disconnections : " << disconnectionCount;
-		
-// 		double meanConn = (double)connectedDuration.total_milliseconds()/(60.0*1000.0*disconnectionCount);
-// 		message << ", mean connection duration minutes : " << meanConn;
 
 		networkLog(message.str());
 	}
@@ -315,7 +316,7 @@ void NtripSocket::delayed_reconnect()
 // 			boost::posix_time::time_duration totalTime = curTime - startTime;
 			
 // 			if (totalTime.total_milliseconds() > (10.0*1000.0))
-				logHttpSentReceived = true;
+			logHttpSentReceived = true;
 		}
 	}
 	
@@ -377,12 +378,14 @@ void NtripSocket::request_response_handler(
 			std::stringstream message;
 			message << "HTTP Sent :\n";
 			message << request_string;
-			message << "HTTP Reveived :\n";
+			message << "HTTP Received :\n";
 			message << response_string;
 			
 			networkLog(message.str());
 		}
 		
+		BOOST_LOG_TRIVIAL(error) << "Error: " << status_code << " " << status_message << "\n in " << __FUNCTION__ << " for " << url.sanitised() << "\n";
+	
 		delayed_reconnect();
 		
 		return;
@@ -401,21 +404,8 @@ void NtripSocket::request_response_handler(
 	}
 	else
 	{
-// 			boost::posix_time::time_duration downTime = connectedTime - disconnectedTime;
-// 			boost::posix_time::time_duration totalTime = connectedTime - startTime;
-// 			disconnectedDuration += downTime;
-		
 		std::stringstream message;
-// 			message << "connected, down time minutes : ";
-// 			message << downTime.total_milliseconds()/(60.0*1000);
-		
-// 			double ratio = (double)connectedDuration.total_milliseconds() /(double)totalTime.total_milliseconds();
-// 			message << ", ratio (uptime_total/total) : " << ratio;
-// 			message << ", total number of disconnections : " << disconnectionCount;
-		
-// 			double meanReconn = (double)disconnectedDuration.total_milliseconds()/(60.0*1000.0*disconnectionCount);
-// 			message << ", mean re-connection duration minutes : " << meanReconn;
-		
+
 		networkLog(message.str());
 		
 		//BOOST_LOG_TRIVIAL(debug) << message.str() << std::endl;
@@ -427,6 +417,7 @@ void NtripSocket::request_response_handler(
 	connected();
 }
 
+
 void NtripSocket::write_request_handler(
 	const boost::system::error_code& err)
 {
@@ -437,16 +428,17 @@ void NtripSocket::write_request_handler(
 	
 	onChunkSentStatistics();
 	
-	//BOOST_LOG_TRIVIAL(debug) << "Client Write Request Completed.\n";
+	//prepare a timeout because the read_until call doesnt seem to return on bad requests.
+	timer.expires_from_now(boost::posix_time::seconds(10));
+	timer.async_wait(boost::bind(&NtripSocket::timeout_handler, this, bp::error));    
 	
+	// Read the response status line.
 	if (url.protocol == "https")
 	{
-		// Read the response status line.
 		boost::asio::async_read_until(*_sslsocket,	downloadBuf, "\r\n\r\n", boost::bind(&NtripSocket::request_response_handler, this, bp::error));            
 	}
 	else
 	{
-		// Read the response status line.
 		boost::asio::async_read_until(*_socket,		downloadBuf, "\r\n\r\n", boost::bind(&NtripSocket::request_response_handler, this, bp::error));
 	}
 }  

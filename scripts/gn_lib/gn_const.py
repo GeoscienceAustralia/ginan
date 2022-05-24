@@ -2,6 +2,7 @@
 from numpy import datetime64 as _datetime64
 from pandas import CategoricalDtype as _CategoricalDtype, DataFrame as _DataFrame
 
+MJD_ORIGIN   = _datetime64('1858-11-17 00:00:00')
 GPS_ORIGIN   = _datetime64('1980-01-06 00:00:00')
 J2000_ORIGIN = _datetime64('2000-01-01 12:00:00')
 
@@ -51,7 +52,7 @@ PRN_CATEGORY = _CategoricalDtype(categories = [
         'C57', 'C58', 'C59', 'C60', 'C61'])
 
 STATE_TYPES_CATEGORY = _CategoricalDtype(categories =[
-         'PHASE_BIAS', 'REC_POS', 'REC_SYS_BIAS', 'TROP', 'SAT_CLOCK', 'AMBIGUITY','EOP','EOP_RATE','DCB','IONOSPHERIC']) # 'ONE' removed
+         'PHASE_BIAS', 'REC_POS', 'REC_CLOCK', 'REC_SYS_BIAS', 'TROP', 'TROP_GM', 'SAT_CLOCK', 'AMBIGUITY','EOP','EOP_RATE','DCB','IONOSPHERIC']) # 'ONE' removed
 
 #GeodePy
 class Ellipsoid:

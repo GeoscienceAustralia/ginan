@@ -2,6 +2,8 @@
 // #pragma GCC optimize ("O0")
 
 #include <algorithm>
+#include <string>
+#include <math.h>    
 
 #include "eigenIncluder.hpp"
 #include "streamTrace.hpp"
@@ -10,6 +12,7 @@
 #include "acsConfig.hpp"
 #include "testUtils.hpp"
 #include "constants.hpp"
+#include "biasSINEX.hpp"
 #include "algebra.hpp"
 #include "satStat.hpp"
 #include "common.hpp"
@@ -42,6 +45,7 @@ double gettgd(
 /** Calculate pseudorange with code bias correction
 */
 bool	prange(
+	Trace&		trace,
 	Obs&		obs,		///< Observation to calculate pseudorange for
 	int			iter,		///< Iteration number (allows extra tests when elevation values are initialised)
 	int			ionomode,	///< Ionospheric correction mode
@@ -54,8 +58,8 @@ bool	prange(
 	range	= 0;
 	var		= 0;
 
-	int sys = obs.Sat.sys;
-	if (sys == E_Sys::NONE)
+	E_Sys sys = obs.Sat.sys;
+	if (sys == +E_Sys::NONE)
 	{
 		return false;
 	}
@@ -64,9 +68,9 @@ bool	prange(
 	E_FType f_2 = F2;
 
 	/* L1-L2 for GPS/GLO/QZS, L1-L5 for GAL/SBS */
-	if  ( sys == E_Sys::GAL
-		||sys == E_Sys::SBS
-		||(sys == E_Sys::GPS && acsConfig.ionoOpts.iflc_freqs==+E_LinearCombo::L1L5_ONLY))
+	if  ( sys == +E_Sys::GAL
+		||sys == +E_Sys::SBS
+		||(sys == +E_Sys::GPS && acsConfig.ionoOpts.iflc_freqs==+E_LinearCombo::L1L5_ONLY))
 	{
 		f_2 = F5;
 	}
@@ -80,17 +84,18 @@ bool	prange(
 	double gamma	= SQR(lam[f_2]) / SQR(lam[f_1]); /* f1^2/f2^2 */
 	double P1		= obs.Sigs[f_1].P;
 	double P2		= obs.Sigs[f_2].P;
-	double P1_P2	= satNav.cBias_P1_P2;
-	double P1_C1	= satNav.cBiasMap[F1];
-	double P2_C2	= satNav.cBiasMap[F2];
 
-	/* if no P1-P2 DCB, use TGD instead */
-	if (P1_P2 == 0
-		&&(sys == E_Sys::GPS
-		|| sys == E_Sys::GAL
-		|| sys == E_Sys::QZS))
+	double varP1 = 0;
+
+	//get a bias if the default invalid value is still present
+	if (isnan(obs.Sigs[f_1].biases[CODE]))
 	{
-		P1_P2 = (1 - gamma) * gettgd(satNav);
+		bool pass = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, obs.Sigs[f_1].code, E_ObsCode::NONE, CODE, obs.Sigs[f_1].biases[CODE], varP1);
+		if (pass == false)
+		{
+			BOOST_LOG_TRIVIAL(warning)
+			<< "Bias not found in " << __FUNCTION__ << " for " << obs.Sat.id();
+		}
 	}
 
 	double PC = 0;
@@ -115,7 +120,8 @@ bool	prange(
 		}
 // 		if (obs.code[i] == CODE_L1C)
 // 			P1 += P1_C1; /* C1->P1 */
-		PC = P1 - P1_P2 / (1 - gamma);
+// 		PC = P1 - P1_P2 / (1 - gamma);
+		PC = P1 - obs.Sigs[f_1].biases[CODE];
 	}
 
 	range	= PC;
@@ -322,8 +328,8 @@ int estpos(
 			// psudorange with code bias correction
 			double range;
 			double vmeas;
-			int pass = prange(obs, iter, acsConfig.ionoOpts.corr_mode, range, vmeas);
-// 			int pass = prange(obs, iter, E_IonoMode::BROADCAST, range, vmeas);
+			int pass = prange(trace, obs, iter, acsConfig.ionoOpts.corr_mode, range, vmeas);
+// 			int pass = prange(trace, obs, iter, E_IonoMode::BROADCAST, range, vmeas);
 			if (pass == false)
 			{
 				continue;
@@ -439,7 +445,7 @@ int estpos(
 			kfState.getKFValue({KF::REC_SYS_BIAS,	{}, "", E_BiasGroup::GPS}, dtRec_m);
 
 			tracepdeex(3, trace, "\n%f", dtRec_m);
-// 			kfState.outputStates(trace);
+// 			kfState.outputStates(trace, " SPP");
 			sol.numSats	= numMeas;
 			sol.stat	= SOLQ_SINGLE;
 			sol.time	= obsList.front().time - dtRec_m / CLIGHT;

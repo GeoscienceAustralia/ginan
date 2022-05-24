@@ -14,6 +14,7 @@
 #include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
+#include "biasSINEX.hpp"
 #include "common.hpp"
 
 
@@ -59,39 +60,88 @@ int dataindex(
 
 /* read ionex dcb aux data ----------------------------------------------------*/
 void readionexdcb(
-	FILE* fp, 
+	std::ifstream& in,
 	nav_t* navi)
 {
 	char buff[1024];
-	char id[32] = "";
+	SinexBias entry;
+	bool refObs = false;
+
+	entry.tini.sec	= 2;
+	entry.measType	= CODE;
+	entry.source	= "ionex";
 
 	BOOST_LOG_TRIVIAL(debug)
 	<< "readionexdcb:";
 
-	for (auto& [key, satNav] : navi->satNavMap)
+	string line;
+	while (std::getline(in, line))
 	{
-		satNav.cBias_P1_P2 = 0;
-	}
+		char* buff = &line[0];
 
-	while (fgets(buff, sizeof(buff), fp))
-	{
 		if (strlen(buff) < 60)
 			continue;
 
 		char* label = buff + 60;
 
-		if (strstr(label, "PRN / BIAS / RMS") == label)
-		{
-			strncpy(id, buff + 3, 3);
-			id[3] = '\0';
+		SatSys Sat;
 
-			SatSys Sat = SatSys(id);
+		string id;
+		if	( strstr(label,	"COMMENT") == label
+			&&strstr(buff,	"Reference observables"))
+		{
+			char* ptr = strchr(buff, ':');
+			if (ptr != NULL)
+			{
+				string cod1str(ptr + 2, 3);
+				string cod2str(ptr + 6, 3);
+
+				E_MeasType dummy1;
+				double dummy2 = 0;
+				entry.cod1 = str2code(cod1str, dummy1, dummy2);
+				entry.cod2 = str2code(cod2str, dummy1, dummy2);
+
+				refObs = true;
+			}
+
+			continue;
+		}
+		else if (strstr(label, "PRN / BIAS / RMS") == label)
+		{
+			string sat(buff + 3,  3);
+			Sat = SatSys(sat.c_str());
+			entry.Sat  = Sat;
+			entry.name = "";
+			id = sat;
+
+			if (!refObs)
+			{
+				if (Sat.sys == +E_Sys::GPS)
+				{
+					entry.cod1 = E_ObsCode::L1W;
+					entry.cod2 = E_ObsCode::L2W;
+				}
+				else if (Sat.sys == +E_Sys::GLO)
+				{
+					entry.cod1 = E_ObsCode::L1P;
+					entry.cod2 = E_ObsCode::L2P;
+				}
+				else
+				{
+					BOOST_LOG_TRIVIAL(debug)
+					<< "ionex invalid satellite: " << id;
+
+					continue;
+				}
+			}
+			
 			if (Sat)
 			{
-				navi->satNavMap[Sat].cBias_P1_P2 = str2num(buff, 6, 10) * CLIGHT * 1E-9;
+				entry.bias =     str2num(buff,  6, 10) * CLIGHT * 1E-9;
+				entry.var  = SQR(str2num(buff, 16, 10) * CLIGHT * 1E-9);
 
 				BOOST_LOG_TRIVIAL(debug)
-				<< id << navi->satNavMap[Sat].cBias_P1_P2;
+				<< id << entry.bias;
 			}
 			else
 			{
@@ -100,18 +150,96 @@ void readionexdcb(
 
 				continue;
 			}
+			
+			//fallthrough to after the ifs
+		}
+		else if (strstr(label, "STATION / BIAS / RMS") == label)
+		{
+			string sys (buff + 3, 1);
+			string name(buff + 6, 4);
+			Sat = SatSys(sys.c_str());
+			entry.Sat  = Sat;
+			entry.name = name;
+			id = name;
 
-			//dcb[sat-1]=str2num(buff, 6,10);
-			//rms[sat-1]=str2num(buff,16,10);
+			if (!refObs)
+			{
+				if (Sat.sys == +E_Sys::GPS)
+				{
+					entry.cod1 = E_ObsCode::L1W;
+					entry.cod2 = E_ObsCode::L2W;
+				}
+				else if (Sat.sys == +E_Sys::GLO)
+				{
+					entry.cod1 = E_ObsCode::L1P;
+					entry.cod2 = E_ObsCode::L2P;
+				}
+				else
+				{
+					BOOST_LOG_TRIVIAL(debug)
+					<< "ionex invalid satellite system: " << sys;
+
+					continue;
+				}
+			}
+
+			if (Sat)
+			{
+				entry.bias =     str2num(buff, 26, 10) * CLIGHT * 1E-9;
+				entry.var  = SQR(str2num(buff, 36, 10) * CLIGHT * 1E-9);
+
+				BOOST_LOG_TRIVIAL(debug)
+				<< id << entry.bias;
+			}
+			else
+			{
+				BOOST_LOG_TRIVIAL(debug)
+				<< "ionex invalid station: " << id;
+
+				continue;
+			}
+			
+			//fallthrough to after the ifs
 		}
 		else if (strstr(label, "END OF AUX DATA") == label)
 			break;
+		else
+			continue;
+
+		entry.name = id;
+		
+		if	( Sat.sys == +E_Sys::GLO
+			&&Sat.prn == 0)
+		{
+			// this seems to be a receiver
+			// for ambiguous GLO receiver bias id (i.e. PRN not specified), duplicate bias entry for each satellite
+			for (int prn = MINPRNGLO; prn <= MAXPRNGLO; prn++)
+			{
+				Sat.prn	= prn;
+				id = entry.name + ":" + Sat.id();
+				// entry.Sat = Sat;
+				pushBiasSinex(id, entry);
+			}
+		}
+		else if	( Sat.sys == +E_Sys::GLO
+				&&Sat.prn != 0)
+		{
+			// this can be a receiver or satellite
+			id = id + ":" + Sat.id();
+			pushBiasSinex(id, entry);
+		}
+		else
+		{
+			// this can be a receiver or satellite
+			id = id + ":" + Sat.sysChar();
+			pushBiasSinex(id, entry);
+		}
 	}
 }
 
 /* read ionex header ---------------------------------------------------------*/
 double readionexh(
-	FILE* fp,
+	std::ifstream& in,
 	double* lats, 
 	double* lons, 
 	double* hgts, 
@@ -120,13 +248,15 @@ double readionexh(
 	nav_t* navi)
 {
 	double ver = 0;
-	char buff[1024];
 
 	BOOST_LOG_TRIVIAL(debug)
 	<< "readionexh:";
 
-	while (fgets(buff, sizeof(buff), fp))
+	string line;
+	while (std::getline(in, line))
 	{
+		char* buff = &line[0];
+
 		if (strlen(buff) < 60)
 			continue;
 
@@ -181,7 +311,7 @@ double readionexh(
 		else if	( strstr(label,	"START OF AUX DATA") == label
 				&&strstr(buff,	"DIFFERENTIAL CODE BIASES"))
 		{
-			readionexdcb(fp, navi);
+			readionexdcb(in, navi);
 		}
 		else if (strstr(label, "END OF HEADER") == label)
 		{
@@ -194,7 +324,7 @@ double readionexh(
 
 /* read ionex body -----------------------------------------------------------*/
 int readionexb(
-	FILE* fp,
+	std::ifstream& in,
 	const double* lats,
 	const double* lons,
 	const double* hgts,
@@ -204,14 +334,16 @@ int readionexb(
 {
 	GTime time = {};
 	int type = 0;
-	char buff[1024];
-	char* label = buff + 60;
 
 	// if (fdebug)
 	// 	fprintf(fdebug, "readionexb:\n");
 
-	while (fgets(buff, sizeof(buff), fp))
+	string line;
+	while (std::getline(in, line))
 	{
+		char* buff = &line[0];
+		char* label = buff + 60;
+
 		if (strlen(buff) < 60)
 			continue;
 
@@ -289,8 +421,11 @@ int readionexb(
 			
 			for (int m = 0; m < n; m++)
 			{
-				if (m % 16 == 0 && !fgets(buff, sizeof(buff), fp))
+				if	(  m % 16 == 0
+					&& !std::getline(in, line))
 					break;
+
+				buff = &line[0];
 
 				int j = getindex(lon[0] + lon[2] * m, lons);
 
@@ -326,8 +461,8 @@ void readtec(
 	BOOST_LOG_TRIVIAL(debug)
 	<< "readtec : file=" << file;
 
-	FILE* fp = fopen(file.c_str(), "r");
-	if (fp == nullptr)
+	std::ifstream inputStream(file);
+	if (!inputStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "ionex file open error " << file;
@@ -341,7 +476,7 @@ void readtec(
 	double lats[3] = {};
 	double lons[3] = {};
 	double hgts[3] = {};
-	double version = readionexh(fp, lats, lons, hgts, rb, nexp, navi);
+	double version = readionexh(inputStream, lats, lons, hgts, rb, nexp, navi);
 	if (version <= 0)
 	{
 		BOOST_LOG_TRIVIAL(error)
@@ -351,9 +486,7 @@ void readtec(
 	}
 
 	/* read ionex body */
-	readionexb(fp, lats, lons, hgts, rb, nexp, navi);
-
-	fclose(fp);
+	readionexb(inputStream, lats, lons, hgts, rb, nexp, navi);
 }
 
 /* interpolate tec grid data -------------------------------------------------*/

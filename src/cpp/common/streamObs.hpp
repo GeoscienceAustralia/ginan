@@ -32,7 +32,7 @@ struct ObsStream
 		{
 			ObsList obsList = getObs();
 
-			if (obsList.size() == 0)
+			if (obsList.empty())
 			{
 				obsWaitCode = E_ObsWaitCode::NO_DATA_WAIT;
 				return obsList;

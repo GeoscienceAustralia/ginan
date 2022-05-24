@@ -164,13 +164,12 @@ struct OutputOptions
 	string 	persistance_directory		= "./";
 	string	persistance_filename		= "<CONFIG><WWWW><D>.persist";
 
-	bool	enable_mongo				= true;
+	bool	enable_mongo				= false;
 	bool	output_mongo_rtcm_messages	= false;
 	bool	output_mongo_measurements	= false;
 	bool	output_mongo_states			= false;
 	bool	output_mongo_test_stats		= false;
 	bool	output_intermediate_rts		= false;
-	bool	output_mongo_metadata		= false;
 	bool	output_mongo_logs			= false;
 	bool	delete_mongo_history		= false;
 	string	mongo_rts_suffix			= "'";
@@ -210,8 +209,8 @@ struct TestOptions
 	bool	stop_on_done	= false;
 	bool	output_errors	= false;
 	bool	absorb_errors	= false;
-	string	directory		= "";
-	string	filename		= "";
+	string	directory		= "./";
+	string	filename		= "testData";
 };
 
 /** Options for the general operation of the software
@@ -266,6 +265,7 @@ struct GlobalOptions
 	bool	raim			= true;
 	bool	antexacs		= true;
 	bool 	clock_jump		= false;
+	bool	interpolate_rec_pco = true;
 
 	double	thres_slip   	= 0.05;
 	double	mw_proc_noise	= 0;	
@@ -290,6 +290,7 @@ struct GlobalOptions
 	list<string>							station_files;
 
 	E_OffsetType ssr_input_antenna_offset = E_OffsetType::UNSPECIFIED;
+	bool	     if_antenna_phase_centre  = true;
 
 	vector<E_ObsCode>	code_priorities =
 	{
@@ -317,6 +318,24 @@ struct GlobalOptions
 		E_ObsCode::L5I,
 		E_ObsCode::L5Q,
 		E_ObsCode::L5X
+	};
+
+	map<E_Sys, E_ObsCode> clock_codesL1 =	///< Default observation codes on L1 for IF combination based satellite clocks
+	{
+		{E_Sys::GPS, E_ObsCode::L1W},
+		{E_Sys::GLO, E_ObsCode::L1P},
+		{E_Sys::GAL, E_ObsCode::L1C},
+		{E_Sys::BDS, E_ObsCode::L2I},
+		{E_Sys::QZS, E_ObsCode::L1C}
+	};
+
+	map<E_Sys, E_ObsCode> clock_codesL2 =	///< Default observation codes on L2 for IF combination based satellite clocks
+	{
+		{E_Sys::GPS, E_ObsCode::L2W},
+		{E_Sys::GLO, E_ObsCode::L2P},
+		{E_Sys::GAL, E_ObsCode::L5Q},
+		{E_Sys::BDS, E_ObsCode::L7I},
+		{E_Sys::QZS, E_ObsCode::L2L}
 	};
 
 	double clock_wrap_threshold = 0.05e-3;
@@ -451,32 +470,19 @@ struct AmbROptions
 	int			Max_Hold_epoc	= 0;
 	double		Max_Hold_time	= 1200.0;
 
-	double WLsuccsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate WL
-	double WLratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate WL
-	int	   WL_filter_iter = 2;
-	int	   WL_prefit_remv = 2;
+	double	WLsuccsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate WL
+	double	WLratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate WL
+	int		WL_filter_iter = 2;
+	int		WL_prefit_remv = 2;
 	
-	double WLSatPrcNois = 0.0001;	///< Process noise for WL satellite biases
-	double WLRecPrcNois = 0.001;	///< Process noise for WL station biases
+	double	WLSatPrcNois = 0.0001;	///< Process noise for WL satellite biases
+	double	WLRecPrcNois = 0.001;	///< Process noise for WL station biases
 
-	double NLsuccsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate NL
-	double NLratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate NL
-	double NLstarttime = 3600;		///< Time before starting to calculate (and output NL zmbiguities/biases)
+	double	NLsuccsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate NL
+	double	NLratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate NL
+	double	NLstarttime = 3600;		///< Time before starting to calculate (and output NL zmbiguities/biases)
 
-	bool readOSB	 = true;
-	bool readDSB	 = true;
-	bool readSSRbias = false;
-	bool readSATbias = true;
-	bool readRecBias = true;
-	bool readHYBbias = false;
-
-	bool writeOSB     = false;
-	bool writeDSB     = false;
-	bool writeSSRbias = false;
-	bool writeSATbias = false;
-	bool writeRecBias = false;
-
-	double biasOutrate  = 0;		///< Update interval for clock update 0: no output
+	double	biasOutrate  = 0;		///< Update interval for clock update 0: no output
 
 	// bool solvGPS = false;
 	// bool solvGLO = false;
@@ -576,7 +582,12 @@ struct SsrOptions
 	bool			calculate_ssr			= false;
 	int				prediction_interval		= 30;
 	int				prediction_duration		= 0;
+	double			code_bias_valid_time	= 3600.0;	///< Valid time period of SSR code biases
+	double			phase_bias_valid_time	= 30.0;		///< Valid time period of SSR phase biases
 	E_Ephemeris 	ephemeris_source		= E_Ephemeris::PRECISE;
+	E_Ephemeris 	clock_source			= E_Ephemeris::KALMAN;
+	E_Ephemeris 	code_bias_source		= E_Ephemeris::PRECISE;
+	E_Ephemeris 	phase_bias_source		= E_Ephemeris::NONE;
 	bool			save_to_mongo			= false;
 	string			rtcm_directory			= "./";
 };
@@ -594,7 +605,8 @@ struct SsrBroadcast : SSRMetaOpts
 {
 	int						message_timeout		= INT_MAX;
 	string					target_url;
-	set<RtcmMessageType> 	rtcmMessagesTypes;
+	// set<RtcmMessageType> 	rtcmMessagesTypes;
+	set<RtcmMessageType, std::greater<RtcmMessageType>>     rtcmMessagesTypes;
 };
 
 /** Options associated with orbital force models
@@ -643,12 +655,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	bool	parse();
 	void	info(Trace& trace);
 	
-	void	outputDefaultConfigutation();
-
-	void	addDataFile(
-		string fileName,
-		string fileType,
-		string dataType);
+	void	outputDefaultConfiguration();
 
 	SatelliteOptions&			getSatOpts		(SatSys&	Sat);
 	ReceiverOptions&			getRecOpts		(string		id);
