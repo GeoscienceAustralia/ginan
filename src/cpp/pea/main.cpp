@@ -1321,7 +1321,7 @@ void mainOncePerEpoch(
 		SatSys Sat;
 		Sat.fromHash(satId);
 		
-		PhaseCenterData* pcvsat_ptr;
+		PhaseCenterData* pcvsat_ptr = nullptr;
 		findAntenna(Sat.id(), tsync, nav, F1, &pcvsat_ptr);
 		if (pcvsat_ptr)
 		{

@@ -49,8 +49,7 @@ output_files:
     output_mongo_states:            true
     output_mongo_metadata:          false
     delete_mongo_history:           false
-    # mongo_uri:                       mongodb://:@127.0.01
-    mongo_uri:                      mongodb://genUser:ginan2019199@13.54.188.20:44626
+    mongo_uri:                      mongodb://127.0.0.1:27017
     mongo_suffix:                   "_sol" 
 
 output_options:

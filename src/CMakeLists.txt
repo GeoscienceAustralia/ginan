@@ -153,7 +153,7 @@ set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time filesystem system thread program_options serialization timer)
 
-find_package(Eigen3 3.3.0)
+find_package(Eigen3 3.4.0)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
 find_package(mongocxx	REQUIRED)
