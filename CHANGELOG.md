@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+# [1.4.1] 2022-05-27
+Updates to documentation that were missed in the release
+
+Specify versions of Eigen, Boost, Mongo-cxx
+
+Remove spurious CMakeLists.txt in the root directory
+
 # [1.4] - 2022-05-24
 Improvements to EOP/ERP handling when the integration arc is longer than 1 day - as a result the POD is now twice as fast as before
 

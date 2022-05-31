@@ -3,7 +3,7 @@
 # Ginan: software toolkit and service
 
 
-#### `Ginan v1.3-beta release`
+#### `Ginan v1.4-beta release`
 
 ## Overview
 
@@ -62,7 +62,6 @@ Then download all of the example data using the python script provided:
     ├── ChangeLOG.md        ! Release Chnage history
     ├── aws/                ! Amazon Web Services config
     ├── bin/                ! Binary executables directory*
-    ├── CMakeLists.txt      ! Cmake build file
     ├── docs/               ! Documentation directory
     ├── examples/           ! Ginan examples directory
     │   ├── data/           ! example dataset (rinex files)**
@@ -101,6 +100,8 @@ Then download all of the example data using the python script provided:
         ├── cmake/   
         ├── doc_templates/
         ├── build/          ! Cmake build directory*
+        ├── CMakeLists-C.txt
+        ├── CMakeLists-F.txt
         └── CMakeLists.txt
 
 *\*created during installation process*
@@ -112,11 +113,11 @@ Then download all of the example data using the python script provided:
 
 With docker, you can quickly create your environment by downloading the docker image:
 
-    docker pull gnssanalysis/ginan:v1.3-beta
+    docker pull gnssanalysis/ginan:v1.4-beta
 
 Then you can run `bash` inside image as follows:
 
-    docker run -it -v /data:/data gnssanalysis/ginan:v1.3-beta bash
+    docker run -it -v /data:/data gnssanalysis/ginan:v1.4-beta bash
 
 To verify you have the Ginan executables available, run in this bash session:
 
@@ -134,11 +135,11 @@ Otherwise Ginan has several software dependencies:
 * BLAS and LAPACK linear algebra libraries. We use and recommend [OpenBlas](https://www.openblas.net/) as this contains both libraries required
 * CMAKE     > 3.0 
 * YAML      > 0.6
-* Boost     > 1.70 (tested on 1.73)
-* Mongo_cxx
-* Eigen3
+* Boost     >= 1.73 (tested on 1.73)
+* Mongo_cxx >= 3.6.0 (and Mongo_C >= 1.17.1)
+* Eigen3    > 3.4 (we have used 3.4.0)
 * netCDF4
-* Python3 (tested on Python 3.7
+* Python3 (tested on Python 3.7)
 
 Acknowledgements:
 We have used routines obtained from RTKLIB, released under a BSD-2 license, these routines have been preserved with minor modifications in the folder cpp/src/rtklib The original source code from RTKLib can be obtained from https://github.com/tomojitakasu/RTKLIB
@@ -231,7 +232,7 @@ Eigen3 is used for performing matrix calculations in PEA, and has a very nice AP
     
     cd eigen
     
-    git checkout dfa51767	#versions later than this require g++-10, which interacts poorly with boost
+    git checkout 3.4.0
     
     mkdir cmake-build
     
