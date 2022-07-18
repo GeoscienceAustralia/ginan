@@ -1282,8 +1282,8 @@ int readrnxnav(
 		{
 			switch (type)
 			{
-				case 1 : nav.gephMap[geph.Sat][eph.toe] = geph;	break;
-				case 2 : nav.sephMap[seph.Sat][eph.toe] = seph;	break;
+				case 1 : nav.gephMap[geph.Sat][geph.toe] = geph;	break;
+				case 2 : nav.sephMap[seph.Sat][seph.tof] = seph;	break;
 				default: nav.ephMap [eph.Sat] [eph.toe] = eph;	break;
 			}
 		}
