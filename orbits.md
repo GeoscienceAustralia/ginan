@@ -6,7 +6,7 @@
 
 \begin{equation}
 \label{eq:newton_gravity}
-F=G\frac{{m_1}{m_2}}{{r^2}}
+F=G\frac{m_1 m_2}{r^2}
 \end{equation}
 
 ## Non-Gravitational Force Models
