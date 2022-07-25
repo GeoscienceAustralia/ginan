@@ -36,10 +36,10 @@ Where
 $e_d$ denotes the satellite-sun vector,
 $e_y$ denotes the vector along the axis of the solar panel, 
 $e_b$ is given by the right-hand rule of ed and ey.
-The total SRP acceleration $\ddot{r}_{srp}$ is expressed as 
+The total SRP acceleration $\ddot{r_{srp}}$ is expressed as 
 
 \begin{equation}
-\ddot{r}_{srp} = D \cdot e_d + Y \cdot e_y + B \cdot e_b
+\ddot{r_{srp}} = D \cdot e_d + Y \cdot e_y + B \cdot e_b
 \end{equation}
 Where 
 $D$ denotes the total acceleration in ed,
@@ -112,11 +112,9 @@ $cos \theta$ denotes the angle between the $e_d$ and $e_N$.
 
 ### Antenna Thrust
 The navigation antenna produces a re-bouncing acceleration when the signal is transmitted. This is called as antenna thrust, which generates a constant acceleration in the radial direction of satellite orbit and can be model as 
-\begin{equation}
-\ddot{r}_{ant} = W/(M \cdot C)   
-\end{equation}
-Where 
-$W$ denotes the emitted power in watt.
+$\ddot{r_{ant}} = W/(M \cdot C)$
+
+Where $W$ denotes the emitted power in watt.
 
 ### Albedo
 The earth radiation pressure (ERP), called albedo, also creates a small acceleration on navigation satellites. The ERP acceleration can be expressed as
