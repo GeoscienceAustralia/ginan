@@ -1,0 +1,6 @@
+<map id="SatSys::blockType" name="SatSys::blockType">
+<area shape="rect" id="node1" title=" " alt="" coords="368,56,507,83"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#a9f893b7ab2412f42ef7a02423d755940" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="149,5,320,32"/>
+<area shape="rect" id="node3" href="$common_2orbits_8cpp.html#adbf44cc33c6497cf698ffbae0894eb14" title="Output orbit file compatible with the pod." alt="" coords="5,56,101,83"/>
+<area shape="rect" id="node4" href="$structSatSys.html#aa2f7732319c19c6aa872606483a9c471" title=" " alt="" coords="155,56,315,83"/>
+</map>

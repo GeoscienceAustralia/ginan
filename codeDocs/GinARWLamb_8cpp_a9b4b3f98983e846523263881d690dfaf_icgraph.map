@@ -1,0 +1,5 @@
+<map id="remov_WLrecv" name="remov_WLrecv">
+<area shape="rect" id="node1" title="Remove ambiguities and biases for receivers, network." alt="" coords="307,31,425,57"/>
+<area shape="rect" id="node2" href="$GinARpivot_8cpp.html#a50a6ec448f33d1f09d19f2fb10e02299" title="Reset receiver on network pivot." alt="" coords="172,5,259,32"/>
+<area shape="rect" id="node3" href="$GinARpivot_8cpp.html#a00fa2ae3af0a9c725884d6b32254ace2" title="Update network pivot." alt="" coords="5,31,124,57"/>
+</map>

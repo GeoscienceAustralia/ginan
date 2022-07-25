@@ -1,0 +1,4 @@
+<map id="KFState::preFitSigmaCheck" name="KFState::preFitSigmaCheck">
+<area shape="rect" id="node1" title="Compare variances of measurements and pre&#45;filtered states to detect unreasonable values Ref: Wang et ..." alt="" coords="216,5,415,32"/>
+<area shape="rect" id="node2" href="$structKFState.html#a21a4858020ad706771efeea814d6c43f" title="Kalman filter operation." alt="" coords="5,5,168,32"/>
+</map>

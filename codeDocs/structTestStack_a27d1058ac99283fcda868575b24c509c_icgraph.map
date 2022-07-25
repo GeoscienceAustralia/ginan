@@ -1,0 +1,4 @@
+<map id="TestStack::checkMat" name="TestStack::checkMat">
+<area shape="rect" id="node1" title="Check matrix entries for invalid values." alt="" coords="208,5,363,32"/>
+<area shape="rect" id="node2" href="$structTestStack.html#a0533dc322a505880c5ed2f4f1b604826" title="Compare matrix against test dataset." alt="" coords="5,5,160,32"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="Pea_Configuration" name="Pea_Configuration">
+<area shape="rect" id="node1" title="Read a .yaml formatted configuration file." alt="" coords="293,259,435,285"/>
+<area shape="rect" id="node2" href="$Pea_8Configuration_8Examples.html#a74dc9a75a2a00a4bf836d699fdbd753d" title="Ionosphere&#45;free PPP with floating ambiguities." alt="" coords="98,5,153,32"/>
+<area shape="rect" id="node3" href="$Pea_8Configuration_8Examples.html#a4eede30a5183f9732473e059b8e79347" title="Ionosphere&#45;free receiver positioning for multiple GNSS systems." alt="" coords="98,56,153,83"/>
+<area shape="rect" id="node4" href="$Pea_8cpp.html#abfb4687ee0268c9cb9bf02a9c21a3e7b" title=" " alt="" coords="7,107,243,133"/>
+<area shape="rect" id="node5" href="$Pea_8Configuration_8Examples.html#ae57ddb961b3e11541f07eadd6d7fcc97" title="Single&#45;frequency user&#45;mode positioning." alt="" coords="98,157,153,184"/>
+<area shape="rect" id="node6" href="$Pea_8Configuration_8Examples.html#aba43321d2e01a30e22e89b4b0c116690" title="Real&#45;time estimation of Satellite clocks and biases." alt="" coords="98,208,153,235"/>
+<area shape="rect" id="node7" href="$Pea_8cpp.html#ac4da2172d0a3e35a73defb8e01279e17" title="Use available data to estimate unknown parameters of interest." alt="" coords="102,259,149,285"/>
+<area shape="rect" id="node8" href="$Pea_8Configuration_8Examples.html#a6e5921f84337a7609ab1eac4a2b2e614" title="Dual frequency PPP with ambiguity resolution." alt="" coords="98,309,153,336"/>
+<area shape="rect" id="node9" href="$Pea_8Configuration_8Examples.html#a75f4b29ba0341c46990f5c6f13027a5e" title="Satellite clock, bias, and orbit estimation, Minimum&#45;constraints, network&#45;Mode." alt="" coords="98,360,153,387"/>
+<area shape="rect" id="node10" href="$Pea_8Configuration_8Examples.html#a50a42888201658941fa41a79f37a5f7f" title="Real&#45;time PPP and RTCM." alt="" coords="98,411,153,437"/>
+<area shape="rect" id="node11" href="$Pea_8Configuration_8Examples.html#a9a6ae0a553427079f3fd91752c5da88f" title="Post process estimation of atmospheric delays." alt="" coords="98,461,153,488"/>
+<area shape="rect" id="node12" href="$Pea_8cpp.html#a264776c53d09abe55cb398a23e943ddc" title=" " alt="" coords="5,512,245,539"/>
+</map>

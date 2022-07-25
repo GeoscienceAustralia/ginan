@@ -1,0 +1,3 @@
+<map id="InitialState" name="InitialState">
+<area shape="rect" id="node1" title="Object to hold the values used to initialise new states when adding to the kalman filter object." alt="" coords="5,5,100,156"/>
+</map>

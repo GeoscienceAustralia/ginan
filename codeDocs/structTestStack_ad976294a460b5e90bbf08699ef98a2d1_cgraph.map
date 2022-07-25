@@ -1,0 +1,4 @@
+<map id="TestStack::testStatus" name="TestStack::testStatus">
+<area shape="rect" id="node1" title="Get current status of test set." alt="" coords="5,5,164,32"/>
+<area shape="rect" id="node2" href="$structTestStack.html#a9cd98d9355190359aa9a3e9e3b5790a0" title="Print the status of completed (passed/failed) and remaining tests." alt="" coords="212,5,375,32"/>
+</map>

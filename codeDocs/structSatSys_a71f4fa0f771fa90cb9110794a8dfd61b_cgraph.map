@@ -1,0 +1,4 @@
+<map id="SatSys::operator string" name="SatSys::operator string">
+<area shape="rect" id="node1" title="Returns a string of this satellite&#39;s id." alt="" coords="5,5,176,32"/>
+<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="224,5,311,32"/>
+</map>

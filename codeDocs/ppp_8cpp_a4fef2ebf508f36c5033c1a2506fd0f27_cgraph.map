@@ -1,0 +1,4 @@
+<map id="clockGlitchReaction" name="clockGlitchReaction">
+<area shape="rect" id="node1" title="Remove any states connected to a bad clock if it glitches." alt="" coords="5,5,156,32"/>
+<area shape="rect" id="node2" href="$structKFState.html#abdf1505bdab1895a280fd018979849f1" title="Remove a state from a kalman filter object." alt="" coords="204,5,369,32"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="SSROut" name="SSROut">
+<area shape="rect" id="node1" title=" " alt="" coords="342,608,412,685"/>
+<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="90,5,240,361"/>
+<area shape="rect" id="node7" href="$structSSRClk.html" title=" " alt="" coords="131,431,199,538"/>
+<area shape="rect" id="node8" href="$structSSREph.html" title=" " alt="" coords="223,424,299,545"/>
+<area shape="rect" id="node3" href="$structSSRPhasBias.html" title=" " alt="" coords="324,446,430,523"/>
+<area shape="rect" id="node4" href="$structSSRCodeBias.html" title=" " alt="" coords="455,446,563,523"/>
+<area shape="rect" id="node5" href="$structSSRClkInput.html" title=" " alt="" coords="588,446,689,523"/>
+<area shape="rect" id="node6" href="$structSSREphInput.html" title=" " alt="" coords="713,446,817,523"/>
+</map>

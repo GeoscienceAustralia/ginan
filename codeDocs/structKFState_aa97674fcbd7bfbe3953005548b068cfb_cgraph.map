@@ -1,0 +1,4 @@
+<map id="KFState::KFState" name="KFState::KFState">
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,137,32"/>
+<area shape="rect" id="node2" href="$structKFState.html#a34fe78e0ab7a8f1d122ceabddc29b207" title="Clears and initialises the state transition matrix to identity at the beginning of an epoch." alt="" coords="185,5,359,32"/>
+</map>

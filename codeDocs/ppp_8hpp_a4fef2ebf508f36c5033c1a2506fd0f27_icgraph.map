@@ -1,0 +1,4 @@
+<map id="clockGlitchReaction" name="clockGlitchReaction">
+<area shape="rect" id="node1" title="Remove any states connected to a bad clock if it glitches." alt="" coords="177,5,328,32"/>
+<area shape="rect" id="node2" href="$main_8cpp.html#a8f07d049a66dc863071e0d3248e31435" title=" " alt="" coords="5,5,129,32"/>
+</map>

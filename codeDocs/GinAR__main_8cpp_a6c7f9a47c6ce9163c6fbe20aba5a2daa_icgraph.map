@@ -1,0 +1,4 @@
+<map id="retrv_elev" name="retrv_elev">
+<area shape="rect" id="node1" title="Retrieving satellte elevation at given time." alt="" coords="156,5,244,32"/>
+<area shape="rect" id="node2" href="$GinAR__main_8cpp.html#a48fa415df652066004129736fa989e44" title="Loading float ambiguity data from KF." alt="" coords="5,5,108,32"/>
+</map>

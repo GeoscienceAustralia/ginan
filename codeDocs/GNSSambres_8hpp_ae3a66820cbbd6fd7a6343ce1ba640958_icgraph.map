@@ -1,0 +1,6 @@
+<map id="retrv_WLambg" name="retrv_WLambg">
+<area shape="rect" id="node1" title="Retrieve WL ambiguities from archive." alt="" coords="165,56,283,83"/>
+<area shape="rect" id="node2" href="$GinAR__main_8cpp.html#a48fa415df652066004129736fa989e44" title="Loading float ambiguity data from KF." alt="" coords="10,5,113,32"/>
+<area shape="rect" id="node3" href="$GinARoutpt_8cpp.html#ac899b04de8df209c6b867571e95b26eb" title="Export AR Ionosphere measurments." alt="" coords="23,56,99,83"/>
+<area shape="rect" id="node4" href="$GinARNLamb_8cpp.html#a150b7e4a892320cadb8bfd4c813a1aca" title="Update float ambiguity estimates." alt="" coords="5,107,117,133"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="TestStack::getStack" name="TestStack::getStack">
+<area shape="rect" id="node1" title="Get the test stack as a string." alt="" coords="208,31,357,57"/>
+<area shape="rect" id="node2" href="$structTestStack.html#a27d1058ac99283fcda868575b24c509c" title="Check matrix entries for invalid values." alt="" coords="5,5,160,32"/>
+<area shape="rect" id="node3" href="$structTestStack.html#aff20cea87ae5eee6108b33d022913707" title="Compare matrix against test dataset." alt="" coords="11,56,154,83"/>
+</map>

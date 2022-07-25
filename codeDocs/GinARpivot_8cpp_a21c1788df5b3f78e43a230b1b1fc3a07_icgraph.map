@@ -1,0 +1,5 @@
+<map id="Reset_sat" name="Reset_sat">
+<area shape="rect" id="node1" title="Reset satellite on network pivot." alt="" coords="331,31,417,57"/>
+<area shape="rect" id="node2" href="$GinARpivot_8cpp.html#a548fc349652c3ac40da0eaf20d244b7e" title="Initialize Network pivot." alt="" coords="172,5,283,32"/>
+<area shape="rect" id="node3" href="$GinARpivot_8cpp.html#a00fa2ae3af0a9c725884d6b32254ace2" title="Update network pivot." alt="" coords="5,31,124,57"/>
+</map>

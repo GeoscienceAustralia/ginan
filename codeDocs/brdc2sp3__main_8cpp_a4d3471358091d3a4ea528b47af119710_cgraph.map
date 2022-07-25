@@ -1,0 +1,8 @@
+<map id="BS_satantoff" name="BS_satantoff">
+<area shape="rect" id="node1" title=" " alt="" coords="5,79,111,106"/>
+<area shape="rect" id="node2" href="$structSatSys.html#adbdf98ba1ef1f22b6aaed93916529513" title="Sets a 4 character c_string of this satellite&#39;s id." alt="" coords="312,79,419,106"/>
+<area shape="rect" id="node3" href="$rtkcmn_8cpp.html#ac9a81e78329f3b0dafee87842d6c1027" title="get sun and moon position in ecef" alt="" coords="159,29,264,55"/>
+<area shape="rect" id="node4" href="$gTime_8cpp.html#a853f281ccd45b714eb3edb14259a982a" title=" " alt="" coords="172,79,251,106"/>
+<area shape="rect" id="node5" href="$antenna_8cpp.html#a320c9b2df44073e19d4faeee50f848b7" title="fetch pco" alt="" coords="178,130,245,157"/>
+<area shape="rect" id="node6" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="168,181,255,207"/>
+</map>

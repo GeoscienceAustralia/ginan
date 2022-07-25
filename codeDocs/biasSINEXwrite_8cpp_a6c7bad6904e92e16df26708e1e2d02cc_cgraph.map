@@ -1,0 +1,6 @@
+<map id="write_bSINEX_head" name="write_bSINEX_head">
+<area shape="rect" id="node1" title="Write bias SINEX head." alt="" coords="5,56,153,83"/>
+<area shape="rect" id="node2" href="$gTime_8cpp.html#a2a318fa02e2d05aa22eabbcf1a537fcf" title="get current time in utc" alt="" coords="212,5,285,32"/>
+<area shape="rect" id="node3" href="$biasSINEXwrite_8cpp.html#a39dff45cfb618319d83537ea39018e82" title="convert time to yds (doy in bias SINEX starts at 1)" alt="" coords="201,56,296,83"/>
+<area shape="rect" id="node4" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="201,107,296,133"/>
+</map>

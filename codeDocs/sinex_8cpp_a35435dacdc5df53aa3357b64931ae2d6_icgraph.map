@@ -1,0 +1,38 @@
+<map id="write_as_comments" name="write_as_comments">
+<area shape="rect" id="node1" title=" " alt="" coords="272,883,425,909"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#a8e7803442de3991310b6f2c1ce0f81d3" title=" " alt="" coords="39,5,191,32"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#ac1c61db757af3c7fc66d025203a3f3c6" title=" " alt="" coords="39,56,190,83"/>
+<area shape="rect" id="node4" href="$sinex_8cpp.html#a0259a22e3edd25dd8eabac38034cdfe1" title=" " alt="" coords="41,107,188,133"/>
+<area shape="rect" id="node5" href="$sinex_8cpp.html#ae6773d03f80704e51b60808bc9e0e042" title=" " alt="" coords="39,157,191,184"/>
+<area shape="rect" id="node6" href="$sinex_8cpp.html#a3f878bb7e5ae1ad5f2864fd1d9256324" title=" " alt="" coords="49,208,180,235"/>
+<area shape="rect" id="node7" href="$sinex_8cpp.html#abdd382f55226944a05fe01a47169eda5" title=" " alt="" coords="45,259,185,285"/>
+<area shape="rect" id="node8" href="$sinex_8cpp.html#ae4ae94a4d91508f278d6c5c949f2c369" title=" " alt="" coords="47,309,182,336"/>
+<area shape="rect" id="node9" href="$sinex_8cpp.html#a38bbe0aab9d90069888bb5df2e9cb0b7" title=" " alt="" coords="39,360,190,387"/>
+<area shape="rect" id="node10" href="$sinex_8cpp.html#a3454b6082cd186c9fd3ee8654c69ea2a" title=" " alt="" coords="39,411,191,437"/>
+<area shape="rect" id="node11" href="$tropSinex_8cpp.html#a7aa042e01fa4d0739861d7a8e251b5a3" title="Write TROP/DESCRIPTION block." alt="" coords="57,461,172,488"/>
+<area shape="rect" id="node12" href="$sinex_8cpp.html#a0fc115ef3084c76c779d7f5ddb43292b" title=" " alt="" coords="43,512,187,539"/>
+<area shape="rect" id="node13" href="$sinex_8cpp.html#a1458a4b7867fa532e042e382fff96bf8" title=" " alt="" coords="47,563,182,589"/>
+<area shape="rect" id="node14" href="$tropSinex_8cpp.html#a95b499a6b4b43baed944d21264eb49e4" title="Write SITE/ANTENNA block." alt="" coords="50,613,179,640"/>
+<area shape="rect" id="node15" href="$sinex_8cpp.html#a7445f24115294bd327edfef1da5057c9" title=" " alt="" coords="45,664,184,691"/>
+<area shape="rect" id="node16" href="$sinex_8cpp.html#a5ac5f69c01a5faf33ca4cd299ec458e5" title=" " alt="" coords="36,715,193,757"/>
+<area shape="rect" id="node17" href="$sinex_8cpp.html#a4f10fce58e14cd54d5dacf3b6c0d3199" title=" " alt="" coords="26,781,203,808"/>
+<area shape="rect" id="node18" href="$sinex_8cpp.html#a1c4b9b3a6798a206a32de94a5bd7bac0" title=" " alt="" coords="35,832,195,859"/>
+<area shape="rect" id="node19" href="$sinex_8cpp.html#a4b7276efeee70593a07b8c2afa27de60" title=" " alt="" coords="45,883,184,909"/>
+<area shape="rect" id="node20" href="$sinex_8cpp.html#abfc552a17b3fc10aa69c8ea9fde1d1be" title=" " alt="" coords="40,934,189,975"/>
+<area shape="rect" id="node21" href="$sinex_8cpp.html#a8a8e54c1e55d6668fc13725d1f769a59" title=" " alt="" coords="5,1000,224,1027"/>
+<area shape="rect" id="node22" href="$sinex_8cpp.html#aa58f653aeaa546b0dc1fe6f2238dd003" title=" " alt="" coords="47,1051,182,1077"/>
+<area shape="rect" id="node23" href="$sinex_8cpp.html#a803b56233f48ed729a57ac0ad056ae69" title=" " alt="" coords="51,1101,178,1128"/>
+<area shape="rect" id="node24" href="$sinex_8cpp.html#a94f5f6ad2be171cbc714245f57fb5f12" title=" " alt="" coords="34,1152,195,1179"/>
+<area shape="rect" id="node25" href="$sinex_8cpp.html#ace311021db68268a6e9ca3cc03afb1df" title=" " alt="" coords="39,1203,191,1229"/>
+<area shape="rect" id="node26" href="$sinex_8cpp.html#ac979e7ea829f358469090a53ca769c3a" title=" " alt="" coords="39,1253,190,1280"/>
+<area shape="rect" id="node27" href="$sinex_8cpp.html#a24d2291dbda611cc6793130d367da756" title=" " alt="" coords="45,1304,185,1331"/>
+<area shape="rect" id="node28" href="$sinex_8cpp.html#a019cbce20a266857a1bdc10a1507bf27" title=" " alt="" coords="42,1355,187,1381"/>
+<area shape="rect" id="node29" href="$tropSinex_8cpp.html#a984ea12e38f91b4a1121ae68863bd5ed" title="Write SITE/ECCENTRICITY block." alt="" coords="50,1405,179,1432"/>
+<area shape="rect" id="node30" href="$sinex_8cpp.html#ac59f62e8e5c1a5fd193117d4b07239b9" title=" " alt="" coords="37,1456,192,1483"/>
+<area shape="rect" id="node31" href="$sinex_8cpp.html#a0c4d36ba13234456bf25cedd4ca6c20b" title=" " alt="" coords="39,1507,191,1533"/>
+<area shape="rect" id="node32" href="$sinex_8cpp.html#abd03bbf12bfd4f5ff5fa9deaadfd3fd5" title=" " alt="" coords="44,1557,185,1584"/>
+<area shape="rect" id="node33" href="$tropSinex_8cpp.html#a2fb8fe8aceac5caf6ff006e3bd6635d4" title="Write SITE/ID block." alt="" coords="55,1608,174,1635"/>
+<area shape="rect" id="node34" href="$tropSinex_8cpp.html#a8f7ac3f551700a176752a2dc3bb708b5" title="Write SITE/RECEIVER block." alt="" coords="49,1659,180,1685"/>
+<area shape="rect" id="node35" href="$tropSinex_8cpp.html#a124674fc9fc84e524c55903dd04b4f10" title="Write SITE/COORDINATES block." alt="" coords="42,1709,187,1736"/>
+<area shape="rect" id="node36" href="$tropSinex_8cpp.html#aabae1c55df6cb4855fb3706b498e4e28" title="Write TROP/SOLUTION block." alt="" coords="63,1760,166,1787"/>
+</map>

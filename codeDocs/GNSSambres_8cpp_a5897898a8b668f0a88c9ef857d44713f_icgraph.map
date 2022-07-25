@@ -1,0 +1,5 @@
+<map id="round_perr" name="round_perr">
+<area shape="rect" id="node1" title="Probability of error (assuming normal distribution)" alt="" coords="164,31,256,57"/>
+<area shape="rect" id="node2" href="$GNSSambres_8cpp.html#a8292074e76cf91e136884467b24318a0" title="Simple integer Rounding." alt="" coords="5,5,116,32"/>
+<area shape="rect" id="node3" href="$GNSSambres_8cpp.html#aff65fc95b889a3af6c182c7093163bb8" title="Iterative Rounding." alt="" coords="6,56,115,83"/>
+</map>

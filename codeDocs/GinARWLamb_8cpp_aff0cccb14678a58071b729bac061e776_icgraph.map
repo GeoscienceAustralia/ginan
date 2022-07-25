@@ -1,0 +1,8 @@
+<map id="WL_newsect" name="WL_newsect">
+<area shape="rect" id="node1" title="save Resolved WL ambiguities" alt="" coords="343,107,445,133"/>
+<area shape="rect" id="node2" href="$GinARWLamb_8cpp.html#a847f714757d3b9ed6d45bae0778972b0" title="Remove ambiguities and biases for systems, end user." alt="" coords="185,5,285,32"/>
+<area shape="rect" id="node3" href="$GinARWLamb_8cpp.html#ab95d4f2ff0f6e0d2b92d4d4d14f7f787" title="Update WL filter." alt="" coords="183,56,287,83"/>
+<area shape="rect" id="node4" href="$GinARWLamb_8cpp.html#a12713865301eea1dac84952dd9fd1149" title="Update WL ambiguities and save then to archive." alt="" coords="5,132,128,159"/>
+<area shape="rect" id="node5" href="$GinARWLamb_8cpp.html#a860a609b53dc98b39334196fb6e0183e" title="Remove ambiguities and biases for satellites, network." alt="" coords="176,107,295,133"/>
+<area shape="rect" id="node6" href="$GinARWLamb_8cpp.html#a9b4b3f98983e846523263881d690dfaf" title="Remove ambiguities and biases for receivers, network." alt="" coords="176,157,295,184"/>
+</map>

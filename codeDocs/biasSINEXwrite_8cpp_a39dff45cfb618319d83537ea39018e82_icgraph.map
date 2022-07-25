@@ -1,0 +1,6 @@
+<map id="sinex_time" name="sinex_time">
+<area shape="rect" id="node1" title="convert time to yds (doy in bias SINEX starts at 1)" alt="" coords="201,56,296,83"/>
+<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#a6c7bad6904e92e16df26708e1e2d02cc" title="Write bias SINEX head." alt="" coords="5,5,153,32"/>
+<area shape="rect" id="node3" href="$biasSINEXwrite_8cpp.html#a4e4fe834c1dbcb6b4a41560de1d7432e" title="print bias SINEX data line" alt="" coords="9,56,149,83"/>
+<area shape="rect" id="node4" href="$biasSINEXwrite_8cpp.html#a3193a7ae3e27dfbd3caaaba922a113cb" title="Store bias output to write into bias SINEX files." alt="" coords="37,107,122,133"/>
+</map>
