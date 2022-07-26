@@ -64,7 +64,7 @@ int sisaToSva(double sisa)
 	else if (sisa <= 6.00)  return (int)((((sisa - 2.0) / 0.16) + 100) + 0.5);
 	else
 	{
-		BOOST_LOG_TRIVIAL(warning) << "SISA is too large SVA undefined.";
+		BOOST_LOG_TRIVIAL(warning) << "Warning: SISA is too large SVA undefined.";
 		return -1;
 	}
 }

@@ -5,20 +5,20 @@ input_files:
 
     root_input_directory: products/
 
-    atxfiles:   [ igs14_2045_plus.atx                                ]    # required
-    snxfiles:   [ igs19P2062.snx                                     ]    # required
-    blqfiles:   [ OLOAD_GO.BLQ                                       ]    # required if ocean loading is applied
-    sp3files:   [ igs20624.sp3                                       ]
-    erpfiles:   [ igs20627.erp                                     ]    #config parser doesn't accept weekly files yet.
-    # bsxfiles:   [ CAS0MGXRAP_20191990000_01D_01D_DCB.BSX             ]
-    #clkfiles: [ igs20624.clk_30s    ]  # Clk files
-    #clkfiles: [ cod19900.clk_05sA    ]  # Clk files
-    #orbfiles:   [ orb_partials/gag20624_orbits_partials.out.eop_test23      ]    # only need this if we are estimating orbits
+    atx_files:   [ igs14_2045_plus.atx                                ]    # required
+    snx_files:   [ igs19P2062.snx                                     ]    # required
+    blq_files:   [ OLOAD_GO.BLQ                                       ]    # required if ocean loading is applied
+    sp3_files:   [ igs20624.sp3                                       ]
+    erp_files:   [ igs20627.erp                                     ]    #config parser doesn't accept weekly files yet.
+    # bsx_files:   [ CAS0MGXRAP_20191990000_01D_01D_DCB.BSX             ]
+    #clk_files: [ igs20624.clk_30s    ]  # Clk files
+    #clk_files: [ cod19900.clk_05sA    ]  # Clk files
+    #orb_files:   [ orb_partials/gag20624_orbits_partials.out.eop_test23      ]    # only need this if we are estimating orbits
 
-    navfiles: [ brdm1990.19p        ]  # broadcast navigation file
-    # dcbfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
-    egmfiles: [ GGM03S.txt        ]  # Earth gravity model coefficients file
-    jplfiles: [ DE436.1950.2050]     # JPL planetary and lunar ephemerides file
+    nav_files: [ brdm1990.19p        ]  # broadcast navigation file
+    # dcb_files: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    egm_files: [ GGM03S.txt        ]  # Earth gravity model coefficients file
+    jpl_files: [ DE436.1950.2050]     # JPL planetary and lunar ephemerides file
 
 station_data:
 

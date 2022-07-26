@@ -19,7 +19,7 @@ MODULE m_write_orb2sp3
 Contains
 
 
-SUBROUTINE write_orb2sp3 (ORBmatrix, PRNmatrix, sp3_fname, sat_vel, CLKmatrix)
+SUBROUTINE write_orb2sp3 (ORBmatrix, PRNmatrix, sp3_fname, sat_vel, CLKmatrix, is_itrf)
 
 ! ----------------------------------------------------------------------
 ! SUBROUTINE: writesp3_hd 
@@ -51,7 +51,7 @@ SUBROUTINE write_orb2sp3 (ORBmatrix, PRNmatrix, sp3_fname, sat_vel, CLKmatrix)
       REAL (KIND = prec_q), INTENT(IN), DIMENSION(:,:,:), ALLOCATABLE :: ORBmatrix, CLKmatrix 
 	  CHARACTER (LEN=3), ALLOCATABLE, INTENT(IN) :: PRNmatrix(:)
       CHARACTER (*), INTENT(IN) :: sp3_fname
-      logical, INTENT(IN) :: sat_vel	  
+      logical, INTENT(IN) :: sat_vel, is_itrf 
 ! OUT
 ! ----------------------------------------------------------------------
 
@@ -127,7 +127,11 @@ End IF
 
 ! Orbit Reference Frame
 !REFRAME = 'IGS08'
+if (is_itrf) then
 REFRAME = 'ITRF '
+else
+REFRAME = 'ICRF '
+end if
 ! Time System
 TIMESYS = 'GPS'
 

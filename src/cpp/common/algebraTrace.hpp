@@ -5,8 +5,10 @@
 #include <iostream>
 #include <utility>
 #include <string>
+#include <vector>
 #include <map>
 
+using std::vector;
 using std::string;
 using std::pair;
 using std::map;
@@ -16,6 +18,7 @@ using std::map;
 #include <boost/serialization/binary_object.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include "navigation.hpp"
 #include "algebra.hpp"
@@ -29,20 +32,14 @@ BETTER_ENUM(E_SerialObject,		int,
 			FILTER_PLUS,
 			TRANSITION_MATRIX,
 			NAVIGATION_DATA,
-			STRING
-
+			STRING,
+			MEASUREMENT,
+			METADATA
 )
 
 struct TransitionMatrixObject
 {
 	map<pair<int, int>, double>		forwardTransitionMap;
-	int								rows;
-	int								cols;
-};
-
-struct ProcessNoiseObject
-{
-	map<pair<int, int>, double>		processNoiseMap;
 	int								rows;
 	int								cols;
 };
@@ -139,7 +136,7 @@ namespace boost::serialization
 		int num = mapItem.size();
 		ar & num;
 
-		if (num == mapItem.size())
+		if (ARCHIVE::is_saving::value)
 		{
 			//writing
 			for (auto& [kfKey, val] : mapItem)
@@ -171,6 +168,12 @@ namespace boost::serialization
 		serialize(ar, pair_.first);
 		serialize(ar, pair_.second);
 	}
+	
+	template<class ARCHIVE>
+	void serialize(ARCHIVE& ar, string& str)
+	{
+		ar & str;
+	}
 
 	template<class ARCHIVE, class KEY, class TYPE>
 	void serialize(ARCHIVE& ar, map<KEY, TYPE>& mapItem)
@@ -178,7 +181,7 @@ namespace boost::serialization
 		int num = mapItem.size();
 		ar & num;
 
-		if (num == mapItem.size())
+		if (ARCHIVE::is_saving::value)
 		{
 			//writing
 			for (auto& [kfKey, val] : mapItem)
@@ -213,9 +216,12 @@ namespace boost::serialization
 	}
 
 	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, string& object)
+	void serialize(ARCHIVE& ar, ObsKey& obsKey)
 	{
-		ar & object;
+		ar & obsKey.Sat;
+		ar & obsKey.str;
+		ar & obsKey.type;
+		ar & obsKey.num;
 	}
 
 	template<class ARCHIVE>
@@ -225,6 +231,56 @@ namespace boost::serialization
 		serialize(ar, kfState.time);
 		serialize(ar, kfState.x);
 		serialize(ar, kfState.P);
+	}
+	
+	template<class ARCHIVE>
+	void serialize(ARCHIVE& ar, KFMeas& kfMeas)
+	{
+		int rows = kfMeas.H.rows();
+		int cols = kfMeas.H.cols();
+		ar & rows;
+		ar & cols;
+		
+		if (ARCHIVE::is_saving::value) 
+		{
+			//just wrote this, we are writing
+			map<pair<int, int>, double>	H;
+			
+			ar & kfMeas.obsKeys;
+			serialize(ar, kfMeas.time);
+			serialize(ar, kfMeas.VV);
+			
+			for (int i = 0; i < rows; i++)
+			for (int j = 0; j < cols; j++)
+			{
+				double value = kfMeas.H(i,j);
+				if (value)
+				{
+					H[{i,j}] = value;
+				}
+			}
+			
+			serialize(ar, H);
+		}
+		else
+		{
+			//we're reading
+			map<pair<int, int>, double>	H;
+			
+			ar & kfMeas.obsKeys;
+			serialize(ar, kfMeas.time);
+			serialize(ar, kfMeas.VV);
+			serialize(ar, H);
+			
+			kfMeas.H = MatrixXd::Zero(rows,cols);
+			kfMeas.R = MatrixXd::Zero(rows,rows);
+			kfMeas.V = VectorXd::Zero(rows);
+			
+			for (auto & [index, value] : H)
+			{
+				kfMeas.H(index.first, index.second) = value;
+			}
+		}
 	}
 }
 
@@ -250,7 +306,7 @@ void spitFilterToFile(
 		return;
 	}
 
-// 	std::cout << "RTS - writing " << type._to_string() << " to file\n";
+// 	std::cout << "RTS - writing " << type._to_string() << " to file " << filename << "\n";
 	
 	binary_oarchive serial(fileStream, 1);	//no header
 
@@ -331,5 +387,9 @@ void inputPersistanceStates(
 void outputPersistanceStates(
 	map<string, Station>&	stationMap,
 	KFState&				netKFState);
+
+void tryPrepareFilterPointers(
+	KFState&		kfState, 
+	StationMap*		stationMap_ptr);
 
 #endif

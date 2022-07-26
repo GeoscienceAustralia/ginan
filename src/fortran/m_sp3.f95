@@ -20,7 +20,8 @@ MODULE m_sp3
 Contains
 
 
-SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_system, found)
+SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_system, found, &
+                from_prm_pseudobs, no_data_at_first_epoch)
 
 ! ----------------------------------------------------------------------
 ! SUBROUTINE: sp3
@@ -93,13 +94,14 @@ SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_syst
       CHARACTER (LEN=300), INTENT(IN) :: fname
       CHARACTER (LEN=3), INTENT(IN) :: PRNid
       REAL (KIND = prec_q), INTENT (IN) :: interpolate_start
+      LOGICAL, INTENT(IN) :: from_prm_pseudobs
 
 ! OUT
 ! 	  orb1: Allocatable array via mdl_arr.f90 
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: orbsp3
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: clock_matrix
       INTEGER (KIND=prec_int2), INTENT(OUT) :: time_system
-      LOGICAL, INTENT (OUT) :: found
+      LOGICAL, INTENT (OUT) :: found, no_data_at_first_epoch
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -151,6 +153,8 @@ SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_syst
       mjd_first = .false.
       mjd_1 = 0.d0
       found = .false.
+      no_data_at_first_epoch = .false.
+      bad_start_found = .false.
 
 ! ----------------------------------------------------------------------
 ! PRN: GNSS constellation ID letter + Satellite number
@@ -171,13 +175,13 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
 
 ! ----------------------------------------------------------------------
 ! Open file
-      OPEN (UNIT = UNIT_IN, FILE = TRIM (fname), IOSTAT = ios)
+      OPEN (UNIT = UNIT_IN, FILE = TRIM (fname), STATUS='OLD', IOSTAT = ios)
       IF (ios /= 0) THEN
          PRINT *, "Error in opening file:", fname
          PRINT *, "OPEN IOSTAT=", ios
+         STOP
       END IF
 ! ----------------------------------------------------------------------
-
 
 
 ! ----------------------------------------------------------------------
@@ -286,7 +290,11 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
             if (orb_i == 2 .and. mjd_1 /= 0.d0) then
                 yml_determination_arc_corrected = .true.
                 diff = (orbsp3_tmp(1, 1) - mjd_1) * 86400
-                orb_est_arc = orb_est_arc - diff
+                if (from_prm_pseudobs .and. .not. orb_arc_saved) then
+                    orb_est_arc_saved = orb_est_arc
+                    orb_est_arc = orb_est_arc - diff
+                    orb_arc_saved = .true.
+                end if
             end if
             
 ! Sec of Day (since 0h)
@@ -377,10 +385,18 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
              orbsp3_tmp(orb_i, 5) .eq. 0.d0) then
            bad_row_count = bad_row_count + 1
            bad_rows(bad_row_count) = orb_i
+           if (bad_row_count .eq. 1 .and. orb_i .eq. 1 .and. from_prm_pseudobs) then
+                   bad_start_found = .true.
+                   no_data_at_first_epoch = .true.
+           end if
       end if
  end do
      
+ if (from_prm_pseudobs) then
  Nepochs = epochs_read - bad_row_count
+ else
+ Nepochs = epochs_read
+ end if
  Ncol = 2 + Nvec
                ALLOCATE (orbsp3(Nepochs, Ncol), STAT = AllocateStatus)
                if (AllocateStatus .ne. 0) then
@@ -396,13 +412,21 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
                    call report('FATAL', pgrm_name, 'sp3', mesg, 'src/fortran/m_sp3.f95', 1)
                end if
 
-  Nepochs = epochs_read + bad_row_count
+  if (from_prm_pseudobs) Nepochs = Nepochs + bad_row_count
+
   bad_row_count = 1
   orb_j = 0
+  ! we only remove bad rows for the pseudobs. The comparison file needs to keep them in
+  ! it does not convert bad rows from ICRF->ITRF or vice versa
   do orb_i = 1, Nepochs
-     if (orb_i .eq. bad_rows(bad_row_count)) then
+     if (orb_i .eq. bad_rows(bad_row_count) .and. from_prm_pseudobs) then
            bad_row_count = bad_row_count + 1
       else
+           diff = (orbsp3_tmp(orb_i, 1) - orbsp3_tmp(1,1)) * 86400
+           if (bad_start_found .and. .not. orb_arc_saved) then
+               orb_est_arc = orb_est_arc - diff
+               orb_arc_saved = .true.
+           end if
            orb_j = orb_j + 1
            Ncol = 2 + Nvec
            orbsp3(orb_j, 1:Ncol) = orbsp3_tmp(orb_i, 1:Ncol)
@@ -410,10 +434,10 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
            clock_matrix(orb_j, 1:Ncol) = clock_matrix_tmp(orb_i, 1:Ncol)
       end if
   end do
+  deallocate (bad_rows)
   end if
   deallocate (orbsp3_tmp)
   deallocate (clock_matrix_tmp)
-  deallocate (bad_rows)
 	  
 END SUBROUTINE
 

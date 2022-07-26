@@ -126,7 +126,6 @@ void addDefaultBiasSinex()
 	entry.bias		= 0;
 	entry.var		= 0;
 	entry.measType	= CODE;
-	entry.source	= "def";
 
 	for (auto& [id, obsObsBiasMap] : SINEXBiases[entry.measType])
 	{
@@ -135,19 +134,21 @@ void addDefaultBiasSinex()
 		auto biasMap	= obsBiasMap	.begin()->second;
 		auto bias		= biasMap		.begin()->second;
 
-		entry.Sat	= bias.Sat;
-		entry.name	= bias.name;
-		entry.cod1	= acsConfig.clock_codesL1[bias.Sat.sys];
-		entry.cod2	= acsConfig.clock_codesL2[bias.Sat.sys];
+		entry.Sat		= bias.Sat;
+		entry.name		= bias.name;
+		entry.cod1		= acsConfig.clock_codesL1[bias.Sat.sys];
+		entry.cod2		= acsConfig.clock_codesL2[bias.Sat.sys];
+		entry.source	= "def1";
 		
-		pushBiasSinex(id, entry);
+// 		pushBiasSinex(id, entry);	//todo aaron, disabled
 	}
 	
 	for (auto& Sat : getSysSats(E_Sys::GPS))
 	{
-		entry.cod1	= E_ObsCode::L1W;
-		entry.cod2	= E_ObsCode::L1C;
-		entry.Sat	= Sat;
+		entry.cod1		= E_ObsCode::L1W;
+		entry.cod2		= E_ObsCode::L1C;
+		entry.Sat		= Sat;
+		entry.source	= "def2";
 		
 		string id	= Sat.id() + ":" + Sat.sysChar();
 
@@ -167,6 +168,8 @@ void pushBiasSinex(
 				[entry.cod1]
 				[entry.cod2]
 				[entry.tini] = entry;
+				
+	decomposeDSBBias(id, entry);
 
 	//create reverse bias and add to maps
 	entry.bias *= -1;
@@ -181,23 +184,21 @@ void pushBiasSinex(
 				[entry.cod1]
 				[entry.cod2]
 				[entry.tini] = entry;
+				
+	decomposeDSBBias(id, entry);
 }
 
 /** Decompose DSB or DCB into OSBs
 */
 bool decomposeDSBBias(
-	SinexBias&	DSB,		///< DSB to be decomposed
-	SinexBias&	OSB1,		///< OSB on L1 as output
-	SinexBias&	OSB2)		///< OSB on L2 as output
+	string		id,			///< ID of the bias
+	SinexBias&	DSB)		///< DSB to be decomposed
 {
-	if 	( DSB.Sat.sys != +E_Sys::GPS
-		||DSB.cod1 != +E_ObsCode::L1W
-		||DSB.cod2 != +E_ObsCode::L2W)	//only GPS P1-P2 DCB can be decomposed at the moment
+	auto& Sat = DSB.Sat;
+	
+	if	( DSB.cod1 != acsConfig.clock_codesL1[Sat.sys]
+		||DSB.cod2 != acsConfig.clock_codesL2[Sat.sys])
 	{
-		string cod1 = code2str(DSB.cod1, DSB.measType);
-		string cod2 = code2str(DSB.cod2, DSB.measType);
-		// printf("DSB %s-%s could not be decomposed at the moment\n", cod1.c_str(), cod2.c_str());
-
 		return false;
 	}
 
@@ -206,17 +207,21 @@ bool decomposeDSBBias(
 	double c2	= -SQR(lam1) / (SQR(lam2) - SQR(lam1));
 	double c1	= c2 - 1;
 
-	OSB1 = DSB;
-	OSB1.cod1		= DSB.cod1;
-	OSB1.cod2		= E_ObsCode::NONE;
-	OSB1.bias		=     c2  * DSB.bias;
-	OSB1.var		= SQR(c2) * DSB.var;
-
-	OSB2 = DSB;
-	OSB2.cod1		= DSB.cod2;
-	OSB2.cod2		= E_ObsCode::NONE;
-	OSB2.bias		=     c1  * DSB.bias;
-	OSB2.var		= SQR(c1) * DSB.var;
+	SinexBias entry = DSB;
+	entry.cod2		= E_ObsCode::NONE;
+	entry.source	+= "*";
+	
+	entry.cod1		= DSB.cod1;
+	entry.bias		=     c2  * DSB.bias;
+	entry.var		= SQR(c2) * DSB.var;
+	
+	pushBiasSinex(id, entry);
+	
+	entry.cod1		= DSB.cod2;
+	entry.bias		=     c1  * DSB.bias;
+	entry.var		= SQR(c1) * DSB.var;
+	
+	pushBiasSinex(id, entry);
 
 	return true;
 }
@@ -243,38 +248,16 @@ bool decomposeTGDBias(
 	entry.tini.sec	= 1;
 	entry.measType	= CODE;
 	entry.Sat		= Sat;
-	entry.name		= "";
+	entry.name		= Sat.id();
 
-	//store TGD as C1P-IF OSB
+	//covert TGD to P1-P2 DCB
 	entry.cod1		= cod1;
-	entry.cod2		= E_ObsCode::NONE;
-	entry.bias		= bias;
+	entry.cod2		= cod2;
+	entry.bias		= bias * (1 - gamma);
 	entry.var		= 0;
 	entry.source	= "tgd";
 
 	pushBiasSinex(id, entry);
-	
-	if	( cod1 == acsConfig.clock_codesL1[sys]
-		&&cod2 == acsConfig.clock_codesL2[sys])
-	{
-		//covert TGD to C2P-IF OSB
-		entry.cod1		= cod2;
-		entry.cod2		= E_ObsCode::NONE;
-		entry.bias		= bias * gamma;
-		entry.var		= 0;
-		entry.source	= "tgd1";
-
-		pushBiasSinex(id, entry);
-
-		//covert TGD to P1-P2 DCB
-		entry.cod1		= cod1;
-		entry.cod2		= cod2;
-		entry.bias		= bias * (1 - gamma);
-		entry.var		= 0;
-		entry.source	= "tgd2";
-
-		pushBiasSinex(id, entry);
-	}
 
 	return true;
 }
@@ -381,7 +364,11 @@ int read_biasSINEX_line(
 	}
 
 	SatSys Sat(sat.c_str());
-
+	if (acsConfig.process_sys[Sat.sys] == false)
+	{
+		return 0;
+	}
+	
 	string id;
 	if (name != "    ")
 	{
@@ -613,7 +600,8 @@ bool biasRecurser(
 	const	E_ObsCode&		obsCode2,			///< Secondary code of observation to find biases for
 	const	map<E_ObsCode,
 			map<E_ObsCode,
-			map<GTime, SinexBias, std::greater<GTime>>>>& obsObsBiasMap,	///< Bias map for given measrement type & device, as obsObsBiasMap[code1][code2][time]
+			map<GTime, 
+				SinexBias, std::greater<GTime>>>>& obsObsBiasMap,	///< Bias map for given measrement type & device, as obsObsBiasMap[code1][code2][time]
 			set<E_ObsCode>&	checkedObscodes)	///< A list of all checked observation codes
 {
 	checkedObscodes.insert(obsCode1);
@@ -677,11 +665,12 @@ bool biasRecurser(
 		//we've found both sides of the path, join them
 		auto& [dummy, pathA] = *biasIt;
 		output = pathA;
-		output.bias	+= pathB.bias;
-		output.var	+= pathB.var;
-		output.slop	+= pathB.slop;
-		output.slpv	+= pathB.slpv;
-		output.cod2	=  pathB.cod2;
+		output.bias		+= pathB.bias;
+		output.var		+= pathB.var;
+		output.slop		+= pathB.slop;
+		output.slpv		+= pathB.slpv;
+		output.source	+= "," + pathB.source;
+		output.cod2		=  pathB.cod2;
 
 // 		printf("\nTraversing %s %s %s %f %f %f",
 // 			   pathA.cod1._to_string(),
@@ -741,7 +730,7 @@ bool getBiasSinex(
 	double&			bias,					///< Hardware bias
 	double&			var)					///< Hardware bias variance
 {
-	const int lv = 4;
+	const int lv = 3;
 
 	bias	= 0;
 	var		= 0;
@@ -753,7 +742,7 @@ bool getBiasSinex(
 	if (measType == CODE)	type = "CODE";
 	if (measType == PHAS)	type = "PHAS";
 
-	tracepdeex(lv, trace, "Reading bias for %s, %s %4s-%4s ...", id.c_str(), type.c_str(), obsCode1._to_string(), obsCode2._to_string());
+	tracepdeex(lv, trace, "\nReading bias for %s, %s %4s-%4s ...", id.c_str(), type.c_str(), obsCode1._to_string(), obsCode2._to_string());
 
 	SinexBias foundBias;
 

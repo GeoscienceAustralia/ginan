@@ -42,25 +42,6 @@ struct Solution
 	
 };
 
-/**	Legacy processing options from rtklib
-*/
-struct prcopt_t
-{
-	string		anttype; 							///< antenna type
-	double		otlDisplacement[2][6*11] = {};		///< ocean tide loading parameters {rov,base} */	//todo aaron, check orientation
-	Vector3d	antdel		= Vector3d::Zero();		///< antenna delta {rov_e,rov_n,rov_u}
-};
-
-struct rtk_t
-{
-	KFState					pppState;	///< RTK control/result type
-	Solution				sol;		///< RTK solution
-	string					antId;
-	map<SatSys, SatStat>	satStatMap;
-	prcopt_t				opt;		///< processing options
-};
-
-
 void removeUnmeasuredAmbiguities(
 	Trace&				trace,
 	KFState&			kfState,
@@ -76,20 +57,15 @@ InitialState initialStateFromConfig(
 /* precise point positioning -------------------------------------------------*/
 void pppos(
 	Trace&		trace,
-	rtk_t&		rtk,
 	ObsList&	obsList,
-	Station&	refstat);
+	Station&	rec);
 
-// void pppoutstat(
-// 	Trace&		trace,
-// 	KFState&	kfState,
-// 	bool		rts = false,
-// 	int			stat= 0,
-// 	int			nsat= 0);
+void pppoutstat(
+	Trace&		trace,
+	KFState&	kfState);
 
 void pppomc(
 	Trace&		trace,
-	rtk_t&		rtk,
 	ObsList&	obsList,
 	gptgrid_t&	gptg,
 	Station&	rec,
@@ -108,7 +84,6 @@ void pppCorrections(
 	Trace&		trace,
 	ObsList&	obsList,
 	Vector3d&	rRec,
-	rtk_t&		rtk,
 	Station&	rec);
 	
 void PPP(
@@ -123,12 +98,12 @@ void corr_meas(
 	Trace&		trace,
 	Obs&		obs,
 	E_FType		ft,
-	double		el,
 	double		dAntRec,
 	double		dAntSat,
 	double		phw,
 	Station&	rec,
-	double		mjd);
+	double		mjd,
+	bool		oldSchool = true);
 
 double sbstropcorr(
 	GTime			time,
@@ -176,7 +151,8 @@ void outputApriori(
 	StationMap& stationMap);
 
 void outputPPPSolution(
-	Station& rec);
+	string		filename,
+	Station&	rec);
 
 void selectAprioriSource(
 	Station&	rec,
@@ -186,6 +162,12 @@ void postFilterChecks(
 	KFMeas&	kfMeas);
 
 bool deweightMeas(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index);
+
+bool deweightStationMeas(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,

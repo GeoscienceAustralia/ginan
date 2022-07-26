@@ -63,7 +63,7 @@
                 known_blkids(II+30) = 0
         endif
         !QZSS BLKIDS
-        if (II <= 3) then
+        if (II <= 4) then
                 known_blkids(II+40) = 400+II
         else
                 known_blkids(II+40) = 0

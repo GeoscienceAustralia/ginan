@@ -179,10 +179,10 @@ struct GTime
 	{
 		GTime roundedTime = *this;
 		//round to nearest chunk by integer arithmetic
-		long int roundTime = roundedTime.time;
-		roundTime /= period;
-		roundTime *= period;
-		roundedTime.time = roundTime;
+		long int roundTimeTime = roundedTime.time;
+		roundTimeTime /= period;
+		roundTimeTime *= period;
+		roundedTime.time = roundTimeTime;
 		
 		return roundedTime;
 	}

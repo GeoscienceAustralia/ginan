@@ -665,6 +665,38 @@ SUBROUTINE PROPBOXW(BLKID,AREA,REFL,DIFU,ABSP,AREA2,REFL2,DIFU2,ABSP2,REFLIR,DIF
      S_SIDE(1,3) = 0.07D0
      S_SIDE(1,4) = 1D0
 
+  ELSEIF (BLKID.EQ.404) THEN
+     blk_found = .true.
+
+! +/- X SIDE
+     X_SIDE(1,1) = 10.80D0
+     X_SIDE(1,2) = 0.47D0 
+     X_SIDE(1,3) = 0.07D0 
+     X_SIDE(1,4) = 1D0
+
+! +/- Y SIDE
+     Y_SIDE(1,1) = 10.80D0
+     Y_SIDE(1,2) = 0.47D0 
+     Y_SIDE(1,3) = 0.07D0 
+     Y_SIDE(1,4) = 1D0
+
+! -Z SIDE
+     Z_SIDE(1,1) = 5.60D0
+     Z_SIDE(1,2) = 0.47D0
+     Z_SIDE(1,3) = 0.07D0
+     Z_SIDE(1,4) = 1D0
+
+! +Z SIDE
+     Z_SIDE(3,1) = 5.60D0
+     Z_SIDE(3,2) = 0.47D0
+     Z_SIDE(3,3) = 0.07D0
+     Z_SIDE(3,4) = 1D0
+
+! SOLAR PANELS
+     S_SIDE(1,1) = 29.80D0
+     S_SIDE(1,2) = 0.88D0
+     S_SIDE(1,3) = 0.07D0
+     S_SIDE(1,4) = 1D0
 
   ENDIF
 

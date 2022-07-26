@@ -25,20 +25,39 @@
 
 
 
-/* phase and code residuals --------------------------------------------------*/
-int resomc(
-	Trace&		trace,
-	ObsList&	obsList,
-	Vector3d&	dTide,
-	rtk_t&		rtk,
-	gptgrid_t&	gptg,
-	Station&	rec,
-	vmf3_t*		vmf3,
-	double*		orography)
+/** PPP observed-minus-computed 
+ */
+void pppomc(
+	Trace&		trace,			
+	ObsList&	obsList,		
+	gptgrid_t&	gptg,			 
+	Station&	rec,			
+	vmf3_t*		vmf3,			 
+	double*		orography)		 
 {
 	TestStack ts(__FUNCTION__);
 
-	prcopt_t& opt = rtk.opt;
+	if (obsList.empty())
+	{
+		std::cout << "No measurements for " << rec.id;
+		return;
+	}
+	
+	GTime	time = obsList.front().time;
+
+	char str[32];
+	time2str(time, str, 2);
+// 	tracepde(3, trace, "pppos   : time=%s nx=%d n=%d\n", str, rtk.nx, obsList.size());
+
+	/* satellite positions and clocks */
+	satposs(trace, time, obsList, nav, acsConfig.model.sat_pos.ephemeris_source, E_OffsetType::APC);
+
+	/* earth tides correction */
+	Vector3d dTide = Vector3d::Zero();
+	if	( acsConfig.model.tides.enable)
+	{
+		tidedisp(trace, gpst2utc(time), rec.sol.sppRRec, nav.erp, rec.otlDisplacement, dTide);
+	}
 
 	int lv		= 2;
 
@@ -61,9 +80,9 @@ int resomc(
 	double pos[3];
 	ecef2pos(rRec, pos);
 
-	Vector3d dr1;
-	enu2ecef(pos, opt.antdel, dr1);
-	rRec += dr1;
+	Vector3d antDelta;
+	enu2ecef(pos, rec.antDelta, antDelta);
+	rRec += antDelta;
 
 	tracepdeex(lv, trace, "\n   *-------- Observed minus computed           --------*\n");
 
@@ -88,8 +107,8 @@ int resomc(
 		E_FType frq2=F2;
 		if(obs.Sat.sys==+E_Sys::GAL) frq2=F5;
 		
-		tracepde(lv, trace, "*---------------------------------------------------*\n");
-		tracepde(lv, trace, " %.6f %s  recpos               = %14.4f %14.4f %14.4f\n", mjd, id, rec.aprioriPos[0], rec.aprioriPos[1], rec.aprioriPos[2]);
+		tracepdeex(lv, trace, "*---------------------------------------------------*\n");
+		tracepdeex(lv, trace, " %.6f %s  recpos               = %14.4f %14.4f %14.4f\n", mjd, id, rec.aprioriPos[0], rec.aprioriPos[1], rec.aprioriPos[2]);
 
 											TestStack::testMat("recpos", rec.aprioriPos, 1e-3);
 
@@ -165,15 +184,15 @@ int resomc(
 		{
 			rr2[ft] = rRec;
 
-			Vector3d pco_r = antPco(rtk.antId, ft, obs.time);
+			Vector3d pco_r = antPco(rec.antId, ft, obs.time);
 											//check map, continue if null
 			Vector3d dr2;
 			enu2ecef(pos, pco_r, dr2);  /* convert enu to xyz */
 
 			if (ft <= F2)
 			{
-				tracepde(lv, trace, " %.6f %s  rec pco%d (enu)       = %14.4f %14.4f %14.4f\n", mjd, id, ft, pco_r[0],	pco_r[1],	pco_r[2]);
-				tracepde(lv, trace, " %.6f %s  rec pco%d             = %14.4f %14.4f %14.4f\n", mjd, id, ft, dr2[0],	dr2[1],		dr2[2]);
+				tracepdeex(lv, trace, " %.6f %s  rec pco%d (enu)       = %14.4f %14.4f %14.4f\n", mjd, id, ft, pco_r[0],	pco_r[1],	pco_r[2]);
+				tracepdeex(lv, trace, " %.6f %s  rec pco%d             = %14.4f %14.4f %14.4f\n", mjd, id, ft, dr2[0],	dr2[1],		dr2[2]);
 			}
 
 			/* get rec position and geometric distance for each frequency */
@@ -182,52 +201,35 @@ int resomc(
 			r2[ft] = geodist(obs.rSat, rr2[ft], e);
 		}
 
-// 		if (acsConfig.antexacs == 0)
-// 		{
-// // 			std::cout << " Using antmodel() " << std::endl;			//todo aaron, broke this.
-// // 			antmodel(opt->pcvr, opt->antdel, obs.azel, opt->posopt[1], dAntRec);
-// 		}
-
-
 		/* phase windup model */
-		if (acsConfig.phase_windup)
+		if (acsConfig.model.phase_windup)
 		{
-			bool pass = model_phw(rtk.sol.time, obs, rRec, satStat.phw);
+			bool pass = model_phw(rec.sol.time, obs, rRec, satStat.phw);
 			if (pass == false)
 			{
 				continue;
 			}
 		}
 
-		if (acsConfig.antexacs == 0)
-		{
-			tracepde(lv, trace, " %.6f %s  tide                 = %14.4f %14.4f %14.4f\n",  mjd, id, dTide(0), dTide(1), dTide(2));
-			tracepde(lv, trace, " %.6f %s  recpos+tide          = %14.4f %14.4f %14.4f\n",  mjd, id, rRec[0], rRec[1], rRec[2]);
-			tracepde(lv, trace, " %.6f %s  satpos+pco           = %14.4f %14.4f %14.4f\n",	mjd, id, obs.rSat[0], obs.rSat[1], obs.rSat[2]);
-			tracepde(lv, trace, " %.6f %s  dist                 = %14.4f\n",				mjd, id, r);
-		}
-		else
-		{
-			tracepde(lv, trace, " %.6f %s  tide                 = %14.4f %14.4f %14.4f\n", 	mjd, id, dTide(0), dTide(1), dTide(2));
-			tracepde(lv, trace, " %.6f %s  delta xyz            = %14.4f %14.4f %14.4f\n", 	mjd, id, dr1[0], dr1[1], dr1[2]);
-			tracepde(lv, trace, " %.6f %s  enu                  = %14.4f %14.4f %14.4f\n", 	mjd, id, opt.antdel[0], opt.antdel[1], opt.antdel[2]);
-			tracepde(lv, trace, " %.6f %s  recpos+tide+enu+pco1 = %14.4f %14.4f %14.4f\n", 	mjd, id, rr2[F1][0], rr2[F1][1], rr2[F1][2]);
-			tracepde(lv, trace, " %.6f %s  recpos+tide+enu+pco2 = %14.4f %14.4f %14.4f\n", 	mjd, id, rr2[F2][0], rr2[F2][1], rr2[F2][2]);
-			tracepde(lv, trace, " %.6f %s  satpos+pco           = %14.4f %14.4f %14.4f\n", 	mjd, id, obs.rSat[0], obs.rSat[1], obs.rSat[2]);
-			tracepde(lv, trace, " %.6f %s  dist1                = %14.4f\n",	         	mjd, id, r2[F1]);
-			tracepde(lv, trace, " %.6f %s  dist2                = %14.4f\n",	         	mjd, id, r2[F2]);
-		}
+		tracepdeex(lv, trace, " %.6f %s  tide                 = %14.4f %14.4f %14.4f\n",	mjd, id, dTide(0), dTide(1), dTide(2));
+		tracepdeex(lv, trace, " %.6f %s  delta xyz            = %14.4f %14.4f %14.4f\n",	mjd, id, antDelta[0], antDelta[1], antDelta[2]);
+		tracepdeex(lv, trace, " %.6f %s  enu                  = %14.4f %14.4f %14.4f\n",	mjd, id, rec.antDelta[0], rec.antDelta[1], rec.antDelta[2]);
+		tracepdeex(lv, trace, " %.6f %s  recpos+tide+enu+pco1 = %14.4f %14.4f %14.4f\n",	mjd, id, rr2[F1][0], rr2[F1][1], rr2[F1][2]);
+		tracepdeex(lv, trace, " %.6f %s  recpos+tide+enu+pco2 = %14.4f %14.4f %14.4f\n",	mjd, id, rr2[F2][0], rr2[F2][1], rr2[F2][2]);
+		tracepdeex(lv, trace, " %.6f %s  satpos+pco           = %14.4f %14.4f %14.4f\n",	mjd, id, obs.rSat[0], obs.rSat[1], obs.rSat[2]);
+		tracepdeex(lv, trace, " %.6f %s  dist1                = %14.4f\n",					mjd, id, r2[F1]);
+		tracepdeex(lv, trace, " %.6f %s  dist2                = %14.4f\n",					mjd, id, r2[F2]);
 
-// 		tracepde(lv, trace, " %.6f %s  satpcv               = %14.4f %14.4f\n",	        mjd, id, dAntSat[F1], dAntSat[F2]);
-// 		tracepde(lv, trace, " %.6f %s  recpcv               = %14.4f %14.4f\n",	        mjd, id, dAntRec[F1], dAntRec[F2]);
-		tracepde(lv, trace, " %.6f %s  az, el, nadir        = %14.4f %14.4f %14.4f\n",	mjd, id, satStat.az*R2D, satStat.el*R2D, satStat.nadir*R2D);
-		tracepde(lv, trace, " %.6f %s  trop zenith dry (m)  = %14.4f\n",	         	mjd, id, zhd);
-		tracepde(lv, trace, " %.6f %s  trop dry mf          = %14.4f\n",	         	mjd, id, mf[0]);
-		tracepde(lv, trace, " %.6f %s  trop zenith wet (m)  = %14.4f\n",	         	mjd, id, zwd);
-		tracepde(lv, trace, " %.6f %s  trop wet mf          = %14.4f\n",	         	mjd, id, mf[1]);
-		tracepde(lv, trace, " %.6f %s  trop                 = %14.4f\n",	         	mjd, id, dtrp);
+// 		tracepdeex(lv, trace, " %.6f %s  satpcv               = %14.4f %14.4f\n",			mjd, id, dAntSat[F1], dAntSat[F2]);
+// 		tracepdeex(lv, trace, " %.6f %s  recpcv               = %14.4f %14.4f\n",			mjd, id, dAntRec[F1], dAntRec[F2]);
+		tracepdeex(lv, trace, " %.6f %s  az, el, nadir        = %14.4f %14.4f %14.4f\n",	mjd, id, satStat.az*R2D, satStat.el*R2D, satStat.nadir*R2D);
+		tracepdeex(lv, trace, " %.6f %s  trop zenith dry (m)  = %14.4f\n",					mjd, id, zhd);
+		tracepdeex(lv, trace, " %.6f %s  trop dry mf          = %14.4f\n",					mjd, id, mf[0]);
+		tracepdeex(lv, trace, " %.6f %s  trop zenith wet (m)  = %14.4f\n",					mjd, id, zwd);
+		tracepdeex(lv, trace, " %.6f %s  trop wet mf          = %14.4f\n",					mjd, id, mf[1]);
+		tracepdeex(lv, trace, " %.6f %s  trop                 = %14.4f\n",					mjd, id, dtrp);
 
-		tracepde(lv, trace, " %.6f %s  phw(cycle)           = %14.4f \n",	         	mjd, id, satStat.phw);
+		tracepdeex(lv, trace, " %.6f %s  phw(cycle)           = %14.4f \n",					mjd, id, satStat.phw);
 
 		/* corrected phase and code measurements */
 
@@ -235,9 +237,9 @@ int resomc(
 		
 		for (auto& [ft, sig] : obs.Sigs)
 		{
-			double recPcv = antPcv(rtk.antId,		ft, obs.time, PI/2 - satStat.el, satStat.az);
+			double recPcv = antPcv(rec.antId,		ft, obs.time, PI/2 - satStat.el, satStat.az);
 			double satPcv = antPcv(obs.Sat.id(),	ft, obs.time, satStat.nadir);
-			corr_meas(trace, obs, ft, obs.satStat_ptr->el, recPcv, satPcv, satStat.phw, rec, mjd);
+			corr_meas(trace, obs, ft, recPcv, satPcv, satStat.phw, rec, mjd);
 		}
 
 		double c1;
@@ -308,7 +310,6 @@ int resomc(
 			||(obs.Sigs[F1].P_corr_m	== 0)
 			||(obs.Sigs[ft].P_corr_m	== 0))
 		{
-			obs.excludeMissingSig = true;
 			continue;
 		}
 
@@ -320,14 +321,11 @@ int resomc(
 							/ (obs.rSat.norm() + rr2[F1].norm() - r2[F1]));
 		double dtrel2 	= 2 * MU * ln / CLIGHT / CLIGHT;
 
-		if (acsConfig.antexacs)
+		/* geometric distance (UD IF or UD UC, to be refine) */
+		if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 		{
-			/* geometric distance (UD IF or UD UC, to be refine) */
-			if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
-			{
-				r	= r2[F1] * c1
-					- r2[ft] * c2;
-			}
+			r	= r2[F1] * c1
+				- r2[ft] * c2;
 		}
 
 		double expected	= r
@@ -335,14 +333,14 @@ int resomc(
 						+ dtrel
 						+ dtrel2;
 
-		tracepde(lv, trace, " %.6f %s  L(cycle)             = %14.4f %14.4f \n",     	mjd, id, obs.Sigs[F1].L, obs.Sigs[ft].L);
-		tracepde(lv, trace, " %.6f %s  P(m)                 = %14.4f %14.4f \n",     	mjd, id, obs.Sigs[F1].P, obs.Sigs[ft].P);
-		tracepde(lv, trace, " %.6f %s  relativity on clock  = %14.4f\n",		        mjd, id, dtrel);
-		tracepde(lv, trace, " %.6f %s  relativity (shapiro) = %14.4f\n",		        mjd, id, dtrel2);
-		tracepde(lv, trace, " %.6f %s  Calclated Geo (m)    = %14.4f\n",		        mjd, id, expected);
-		tracepde(lv, trace, " %.6f %s  OMC Li(m)            = %14.4f %14.4f %14.4f\n",	mjd, id, obs.Sigs[F1].L_corr_m - expected, obs.Sigs[ft].L_corr_m - expected, obs.Sigs[FTYPE_IF12].L_corr_m - expected);
-		tracepde(lv, trace, " %.6f %s  OMC Pi(m)            = %14.4f %14.4f %14.4f\n",	mjd, id, obs.Sigs[F1].P_corr_m - expected, obs.Sigs[ft].P_corr_m - expected, obs.Sigs[FTYPE_IF12].P_corr_m - expected);
-		tracepde(lv, trace, " %.6f %s  LOS                  = %14.4f %14.4f %14.4f\n",	mjd, id, e[0], e[1], e[2]);
+		tracepdeex(lv, trace, " %.6f %s  L(cycle)             = %14.4f %14.4f \n",			mjd, id, obs.Sigs[F1].L, obs.Sigs[ft].L);
+		tracepdeex(lv, trace, " %.6f %s  P(m)                 = %14.4f %14.4f \n",			mjd, id, obs.Sigs[F1].P, obs.Sigs[ft].P);
+		tracepdeex(lv, trace, " %.6f %s  relativity on clock  = %14.4f\n",					mjd, id, dtrel);
+		tracepdeex(lv, trace, " %.6f %s  relativity (shapiro) = %14.4f\n",					mjd, id, dtrel2);
+		tracepdeex(lv, trace, " %.6f %s  Calclated Geo (m)    = %14.4f\n",					mjd, id, expected);
+		tracepdeex(lv, trace, " %.6f %s  OMC Li(m)            = %14.4f %14.4f %14.4f\n",	mjd, id, obs.Sigs[F1].L_corr_m - expected, obs.Sigs[ft].L_corr_m - expected, obs.Sigs[FTYPE_IF12].L_corr_m - expected);
+		tracepdeex(lv, trace, " %.6f %s  OMC Pi(m)            = %14.4f %14.4f %14.4f\n",	mjd, id, obs.Sigs[F1].P_corr_m - expected, obs.Sigs[ft].P_corr_m - expected, obs.Sigs[FTYPE_IF12].P_corr_m - expected);
+		tracepdeex(lv, trace, " %.6f %s  LOS                  = %14.4f %14.4f %14.4f\n",	mjd, id, e[0], e[1], e[2]);
 
 		//do residuals for all frequencies, plain and linear combinations.
 		for (auto& [ft, sig] : obs.Sigs)
@@ -361,44 +359,8 @@ int resomc(
 		}
 	}
 
-	return nv;
-}
-
-/* observed-minus-computed -------------------------------------------------- */
-void pppomc(
-	Trace&		trace,			///< [in]		Trace for output
-	rtk_t&		rtk,            ///< [in/out]
-	ObsList&	obsList,        ///< [in/out]	List of observations
-	gptgrid_t&	gptg,           ///< [in/out]
-	Station&	rec,        	///< [in/out]
-	vmf3_t*		vmf3,           ///< [in/out]
-	double*		orography)      ///< [in/out]
-{
-	TestStack ts(__FUNCTION__);
-
-	const prcopt_t* opt = &rtk.opt;
-	char str[32];
-
-	GTime	time = obsList.front().time;
-	time2str(time, str, 2);
-// 	tracepde(3, trace, "pppos   : time=%s nx=%d n=%d\n", str, rtk.nx, obsList.size());
-
-	/* satellite positions and clocks */
-	satposs(trace, time, obsList, nav, acsConfig.ppp_ephemeris, E_OffsetType::APC);
-
-	/* earth tides correction */
-	Vector3d dTide = Vector3d::Zero();
-	if	( acsConfig.tide_solid
-		||acsConfig.tide_otl
-		||acsConfig.tide_pole)
-	{
-		tidedisp(trace, gpst2utc(time), rtk.sol.sppRRec, nav.erp, opt->otlDisplacement[0], dTide);
-	}
-
-	/* prefit residuals */
-	int nv = resomc(trace, obsList, dTide, rtk, gptg, rec, vmf3, orography);
 	if (nv == 0)
 	{
-		tracepde(2, trace, "%s ppp no valid obs data\n", str);
+		tracepdeex(2, trace, "%s ppp no valid obs data\n", str);
 	}
 }

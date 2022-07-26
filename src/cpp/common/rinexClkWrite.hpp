@@ -16,12 +16,7 @@ using std::map;
 #include "enums.h"
 
 struct GTime;
-struct KFState;
 class E_Ephemeris;
-
-void tryPrepareFilterPointers(
-	KFState&		kfState, 
-	StationMap*		stationMap_ptr);
 
 void outputClocks(
 	string				filename,

@@ -69,13 +69,14 @@ SUBROUTINE clock_read (CLKfname,CLKformat, PRNmatrix, ORB_matrix, CLKmatrix)
 ! ----------------------------------------------------------------------
 ! Local variables declaration
 ! ----------------------------------------------------------------------
-      INTEGER (KIND = prec_int8) :: Nsat, isat, Nepochs, Nel, Nepochs_orb, i_epochs  
+      INTEGER (KIND = prec_int8) :: Nsat, isat, Nepochs, Nel, Nepochs_orb, i_epochs
+      INTEGER (KIND = prec_int8) :: Cepochs, Cel, i, j 
       CHARACTER (LEN=3) :: PRNid
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: orbsp3, clock_matrix
       INTEGER (KIND = prec_int2) :: AllocateStatus
       INTEGER (KIND=prec_int2) :: time_system
       CHARACTER (LEN = 500) :: mesg
-      LOGICAL found, first
+      LOGICAL found, first, nodata
 ! ----------------------------------------------------------------------
 
 
@@ -87,20 +88,23 @@ IF (CLKformat == 0) THEN
 	! Set Clocks matrix' values to "999999.999999D0" and dimesnions follow the dimensions of Orbit matrix
 	Nepochs_orb = size(ORB_matrix, DIM = 1)
 	ALLOCATE (CLKmatrix(Nepochs_orb,4,Nsat), STAT = AllocateStatus)
+        CLKmatrix = 0.d0
 	DO isat = 1 , Nsat
+               if (yml_satellites(isat)) then
 		DO i_epochs = 1 , Nepochs_orb
 			CLKmatrix (i_epochs,1,isat) = ORB_matrix (i_epochs,1,isat)
 			CLKmatrix (i_epochs,2,isat) = ORB_matrix (i_epochs,2,isat)
 			CLKmatrix (i_epochs,3,isat) = 999999.999999D0
 			CLKmatrix (i_epochs,4,isat) = 999999.999999D0
 		END DO
+                end if
 	END DO
 ! ----------------------------------------------------------------------
 ELSE IF (CLKformat == 1) THEN	  
         first = .true.
 	DO isat = 1 , Nsat
 		PRNid = PRNmatrix(isat)
-		CALL sp3(CLKfname,PRNid,orbsp3,yml_interpolate_start,clock_matrix,time_system,found)
+		CALL sp3(CLKfname,PRNid,orbsp3,yml_interpolate_start,clock_matrix,time_system,found,.false., nodata)
                 write (mesg, *) "PRN ", PRNid, " not found in sp3 file ", CLKfname
                 if (.not. found) then
                         call report('WARNING', pgrm_name, 'clock_read', trim(mesg), 'src/fortran/m_clock_read.f95', 1)
@@ -115,7 +119,16 @@ ELSE IF (CLKformat == 1) THEN
 		ALLOCATE (CLKmatrix(Nepochs,Nel,Nsat), STAT = AllocateStatus)
                 CLKmatrix = 0.d0
 		END IF
-		CLKmatrix (:,:,isat) = clock_matrix
+                if (yml_satellites(isat)) then
+                    cepochs = SIZE(clock_matrix, DIM=1)
+                    cel = SIZE(clock_matrix, DIM=2)
+                    ! because some sats may have been unhealthy in the middle, sizes could be diff
+                    do i=1,min(cepochs, Nepochs)
+                        do j=1,min(cel, Nel)
+                            CLKmatrix(i,j,isat) = clock_matrix(i,j)
+                        end do
+                    end do
+                end if
 	END DO
 ! ----------------------------------------------------------------------
 !ELSE IF (CLKformat == 2) THEN	  

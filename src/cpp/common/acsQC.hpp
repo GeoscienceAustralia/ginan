@@ -98,6 +98,9 @@ int chiqc(
 	int n,
 	int ind);
 
+void clearSlips(
+	ObsList&	obsList);
+
 void detectslips(
 	Trace&		trace,
 	ObsList&	obsList);
@@ -110,11 +113,5 @@ void detslp_mw(
 
 void detslp_ll(
 	ObsList& obsList);
-
-void detectjump(
-	Trace&		trace,
-	ObsList&	obsList,
-	double		elmin);
-
 
 #endif

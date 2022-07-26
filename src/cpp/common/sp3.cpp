@@ -109,7 +109,7 @@ bool readsp3(
 			peph.time 	= time;
 			peph.index	= index;
 			peph.Sat	= Sat;
-			bool valid	= false;
+			bool valid	= true;
 
 			if (buff[0] == 'P')
 			{
@@ -134,7 +134,10 @@ bool readsp3(
 						&&fabs(val - 999999.999999) >= 1E-6)
 					{
 						peph.Pos[j] = val * 1000;
-						valid = true;
+					}
+					else
+					{
+						valid = false;
 					}
 					
 					double base = bfact[0];
@@ -179,7 +182,10 @@ bool readsp3(
 						&&fabs(val - 999999.999999) >= 1E-6)
 					{
 						peph.Clk = val * 1E-6;
-						valid = 1; /* valid epoch */
+					}
+					else
+					{
+// 						valid = false;	//allow clocks to be invalid
 					}
 					
 					double base = bfact[1];
@@ -210,7 +216,7 @@ bool readsp3(
 			if (valid)
 			{
 				pephList.push_back(peph);
-// 				nav->pephMap[peph.Sat][peph.time] = peph;
+// 				nav->pephMap[peph.Sat][peph.time] = peph;		//todo aaron, why doing this?
 			}
 			
 			continue;
@@ -304,9 +310,9 @@ bool readsp3(
 
 
 void readSp3ToNav(
-	string&	file, 
-	nav_t*	nav, 
-	int		opt)
+	string&		file, 
+	Navigation*	nav, 
+	int			opt)
 {
 	std::ifstream fileStream(file);
 	if (!fileStream)
@@ -331,7 +337,7 @@ void readSp3ToNav(
 
 
 void orb2sp3(
-	nav_t& nav)
+	Navigation& nav)
 {
 	for (auto& [SatId,	satNav]	: nav.satNavMap)
 	for (auto& [time,	orbitInfo]	: satNav.satOrbit.orbitInfoMap)
@@ -348,7 +354,8 @@ void orb2sp3(
 		/* copy itrf coordinates */
 		for (int k = 0; k < 3; k++)
 		{
-			peph.Pos[k] = orbitInfo.xtrf[k];
+			peph.Pos	[k] = orbitInfo.xtrf[k];
+			peph.PosStd	[k] = 0.1;			//default value for POD orbits precision
 		}
 
 		nav.pephMap[Sat][time] = peph;

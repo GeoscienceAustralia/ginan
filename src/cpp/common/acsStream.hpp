@@ -60,9 +60,7 @@ using boost::asio::ip::tcp;
 /** Object that streams RTCM data from NTRIP castors
 */
 struct NtripRtcmStream : NtripStream, RtcmStream
-{
-    bool print_stream_statistics = false;
-	
+{	
 	NtripRtcmStream(const string& url_str) : NtripStream(url_str)
 	{
 		rtcmTraceFilename	= "";
@@ -361,11 +359,4 @@ extern	multimap<string, ACSNavStreamPtr>					navStreamMultimap;
 extern	multimap<string, ACSPseudoObsStreamPtr>				pseudoObsStreamMultimap;
 extern	map		<string, bool>								streamDOAMap;
 
-
-
-void writeNetworkTraces(
-	StationMap&		stationMap);
-	
-void recordNetworkStatistics(
-	std::multimap<string,std::shared_ptr<NtripRtcmStream>> downloadStreamMap);
 #endif

@@ -20,7 +20,8 @@ MODULE m_orbdet
 Contains
         
         
-SUBROUTINE orbdet (EQMfname, VEQfname, orb_icrf_final, orb_itrf_final, veqSmatrix_final, veqPmatrix_final, Vres, Vrms, Xsigma)
+SUBROUTINE orbdet (EQMfname, VEQfname, orb_icrf_final, orb_itrf_final, &
+                veqSmatrix_final, veqPmatrix_final, Vres, Vrms, Xsigma, no_initial_data)
 
 
 ! ----------------------------------------------------------------------
@@ -117,6 +118,7 @@ SUBROUTINE orbdet (EQMfname, VEQfname, orb_icrf_final, orb_itrf_final, veqSmatri
       REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: veqSmatrix_final, veqPmatrix_final  
       REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: Vres, Xsigma 
       REAL (KIND = prec_d), DIMENSION(3), INTENT(OUT) :: Vrms 
+      LOGICAL, INTENT(OUT) :: no_initial_data
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -258,8 +260,10 @@ yml_prn_overrides(prn_index)%integ%integ_header = &
 !CALL prm_ocean (EQMfname)                                                                      
 ! ----------------------------------------------------------------------
 ! Pseudo-Observations: Precise Orbit (sp3) 
+no_initial_data = .false.
 pseudobs_opt = TYPE_SP3
-CALL prm_pseudobs (EQMfname, pseudobs_opt)
+CALL prm_pseudobs (EQMfname, pseudobs_opt, no_initial_data)
+if (no_initial_data) return
 ! ----------------------------------------------------------------------
 ! External Orbit comparison: Precise Orbit (sp3)
 !CALL prm_orbext (EQMfname)                                                                     
@@ -918,7 +922,7 @@ End Do
 
 ! ----------------------------------------------------------------------
 ! Orbit Determination and Prediction mode
-IF (yml_pod_mode == MODE_PREDICT) THEN
+IF (yml_pod_mode == MODE_FIT .or. yml_pod_mode == MODE_PREDICT) THEN
 
 ! Orbit Determination number of epochs (without predicted orbit epochs)
 sz1 = size(orb_icrf, DIM = 1)
@@ -1177,6 +1181,7 @@ CALL orbC2T (orb_icrf_final, yml_time_scale, orb_itrf_final)
 ! ----------------------------------------------------------------------
 
  100  if (allocated(ECOM_0_coef)) deallocate(ECOM_0_coef, stat=DeallocateStatus)
+
       END SUBROUTINE
 
 End

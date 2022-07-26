@@ -1,4 +1,5 @@
 #include "GNSSambres.hpp"
+#include "testUtils.hpp"
 #include "acsConfig.hpp"
 #include "tides.hpp"
 
@@ -380,7 +381,7 @@ int LoadFromFlt(
 	auto& AR_mealist = ARstations[recv].AR_meaMap;
 	auto& AmbTyplist = ARstations[recv].AmbTypMap; 
 	
-	for(auto& [key,indx] : kfState.kfIndexMap)
+	for (auto& [key,indx] : kfState.kfIndexMap)
 	{
 		SatSys sat = key.Sat;
 		E_Sys sys  = key.Sat.sys;
@@ -559,7 +560,7 @@ void config_AmbigResl(void)
 		E_FType frq3 = F5;
 		sys_frq(sys, frq1, frq2, frq3);
 		
-		if ( acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO )
+		if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 		{
 			double lam1 = lam_carr[frq1];
 			double lam2 = lam_carr[frq2];
@@ -567,7 +568,7 @@ void config_AmbigResl(void)
 			defAR_WL.wlfact[sys] = lam1*defAR_WL.wavlen[sys]/(lam2-lam1);
 		}
 		
-		if (!acsConfig.ionoOpts.Auto_select_def_code)
+		if (acsConfig.ionoOpts.auto_select_default_code == false)
 		{
 			defAR_WL.defCodes[sys][frq1] = defCodesL1[sys];
 			defAR_WL.defCodes[sys][frq2] = defCodesL2[sys];
@@ -575,13 +576,14 @@ void config_AmbigResl(void)
 		}
 	}
 	
-	defAR_NL = defAR_WL;
-	defAR_NL.mode   = acsConfig.ambrOpts.NLmode;
-	defAR_NL.sucthr = acsConfig.ambrOpts.NLsuccsThres;
-	defAR_NL.ratthr = acsConfig.ambrOpts.NLratioThres;
+	defAR_NL		= defAR_WL;
+	defAR_NL.mode	= acsConfig.ambrOpts.NLmode;
+	defAR_NL.sucthr	= acsConfig.ambrOpts.NLsuccsThres;
+	defAR_NL.ratthr	= acsConfig.ambrOpts.NLratioThres;
 }
 
-/** Ambiguity resolution for network solutions */
+/** Ambiguity resolution for network solutions 
+ */
 int  networkAmbigResl( 
 	Trace& trace,				///< Trace file to output to
 	StationMap& stations,		///< Station struct, containing GNSS observations
@@ -648,6 +650,7 @@ int  networkAmbigResl(
 	
 	opt = defAR_NL;
 	opt.recv = "NETWORK";
+	
 	for(auto& [typ,nmeas] : ARstations[recv].AmbTypMap)
 	{
 		opt.type = typ;
@@ -656,24 +659,27 @@ int  networkAmbigResl(
 	
 	int nfix = updat_ambigt( trace, kfState, opt );
 	
-	if ( nfix == 0 ) 
+	if (nfix == 0) 
 	{
 		artrcout( trace, kfState.time, opt );
 		return 0; 
 	}
 	
-	nfix = apply_ambigt( trace, kfState, opt );
+	nfix = apply_ambigt(trace, kfState, opt);
 	
 	if (nfix > 0.6*namb) FIXREADY = true;
 	if (nfix < 0.4*namb) FIXREADY = false;
 	
-	artrcout( trace, kfState.time, opt );
-	if ( acsConfig.output_bias_sinex &&
-	    acsConfig.ambrOpts.biasOutrate > 0 ) 
-	    	arbiaout( trace, kfState.time, opt );
+	artrcout(trace, kfState.time, opt);
+	
+	if	(  acsConfig.output_bias_sinex 
+		&& acsConfig.ambrOpts.biasOutrate > 0)
+	{
+		arbiaout(trace, kfState.time, opt);
+	}
 	
 	if (   acsConfig.process_ionosphere
-		&& acsConfig.ionFilterOpts.model != +E_IonoModel::NONE	)
+		&& acsConfig.ionModelOpts.model != +E_IonoModel::NONE)
 	for (auto& [rec,station] : stations)
 	{ 
 		auto& recOpts = acsConfig.getRecOpts(rec);
@@ -693,13 +699,12 @@ int  networkAmbigResl(
 
 /** Ambiguity resolution for end user solutions */
 int  enduserAmbigResl( 
-	Trace& trace,				///< Trace file to output to
-	ObsList& obsList,			///< List of observables
-	KFState& kfState_float,		///< KF with end user solutions
-	Vector3d snxPos,			///< Apriori position estimate (from SINEX)
-	double dop,					///< Horizontal dilution of precision
-	string outfile,				///< solution filename
-	bool header)				///< output file header
+	Trace&		trace,			///< Trace file to output to
+	ObsList&	obsList,		///< List of observables
+	KFState&	kfState_float,	///< KF with end user solutions
+	Vector3d	snxPos,			///< Apriori position estimate (from SINEX)
+	double		dop,			///< Horizontal dilution of precision
+	string		outfile)		///< solution filename
 {
 	if (acsConfig.ionoOpts.corr_mode != +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 		acsConfig.ambrOpts.WLmode = +E_ARmode::OFF;
@@ -715,37 +720,41 @@ int  enduserAmbigResl(
 	
 	ARstations[recv].kfState_fixed = kfState_float;
 	
-	ARstations[recv].snxPos_=snxPos;
-	for(short i = 0; i < 3; i++)
+	TestStack::testMat(recv + "fixedx0", ARstations[recv].kfState_fixed.x);
+	TestStack::testMat(recv + "fixedP0", ARstations[recv].kfState_fixed.P);
+	
+	ARstations[recv].snxPos_ = snxPos;
+	for (short i = 0; i < 3; i++)
 		kfState_float.getKFValue({KF::REC_POS,{}, recv,	i}, ARstations[recv].fltPos_[i]);
 
 	if (!ARstations[recv].AR_meaMap.empty()) 
-		clean_obsolete( time, recv );
+		clean_obsolete(time, recv);
 	
 	tracepdeex(ARTRCLVL, trace, "\n#ARES_MAIN End user ambiguity resolution: %s %s", time.to_string(0).c_str(), recv.c_str());
 	sys_activ[recv].clear();
-	LoadFromObs( trace, obsList, time, recv );
+	LoadFromObs(trace, obsList, time, recv);
 	
-	if ( acsConfig.ambrOpts.WLmode != +E_ARmode::OFF )
+	if (acsConfig.ambrOpts.WLmode != +E_ARmode::OFF)
 	{
 		opt.sys_solve = sys_activ[recv];
 		updt_usr_pivot (trace, time, opt);
 		
-		for ( auto& [sys,act] : sys_solve ) if(act)
+		for (auto& [sys,act] : sys_solve) 
+		if (act)
 		{
-			updat_WLambg(trace,E_AmbTyp::WL12,time,sys,opt);
+			updat_WLambg(trace, E_AmbTyp::WL12, time, sys, opt);
 		}
 	}
 	
-	if ( acsConfig.process_rts ) 
+	if (acsConfig.process_rts) 
 	{
-		artrcout( trace, time, opt );
+		artrcout(trace, time, opt);
 		return 0;
 	}
 	
-	int nsat=0;
-	int nrec=0;
-	int namb = LoadFromFlt( trace, ARstations[recv].kfState_fixed, nsat, nrec, recv );
+	int nsat = 0;
+	int nrec = 0;
+	int namb = LoadFromFlt(trace, ARstations[recv].kfState_fixed, nsat, nrec, recv);
 	
 	opt = defAR_NL;
 	opt.recv = recv;
@@ -756,47 +765,50 @@ int  enduserAmbigResl(
 		updt_usr_pivot(trace,time,opt);
 	}
 	
-	int nfix = updat_ambigt( trace,  ARstations[recv].kfState_fixed, opt );
+	int nfix = updat_ambigt(trace, ARstations[recv].kfState_fixed, opt);
 	
-	nfix = apply_ambigt( trace,  ARstations[recv].kfState_fixed, opt );
+	nfix = apply_ambigt(trace, ARstations[recv].kfState_fixed, opt);
 	
 	ARstations[recv].kfState_fixed.outputStates(trace, " Fixed");
+	
+	TestStack::testMat(recv + "fixed", ARstations[recv].kfState_fixed.x);
+	TestStack::testMat(recv + "fixedP", ARstations[recv].kfState_fixed.P);
 
-	for(short i = 0; i < 3; i++)
+	for (short i = 0; i < 3; i++)
 		 ARstations[recv].kfState_fixed.getKFValue({KF::REC_POS,{}, recv,	i}, ARstations[recv].fixPos_[i]);
 		
-	artrcout( trace, time, opt );
-	
-	ARstations[recv].solutFilename = outfile;
+	artrcout(trace, time, opt);
 
-	if(acsConfig.output_ppp_sol)
+	if (acsConfig.output_ppp_sol)
 	{
-		if ( nfix <= 0 ) 
-			gpggaout( outfile + "_AR", ARstations[recv].kfState_fixed, recv, 2, obsList.size(), dop,true, header);
-		else
-			gpggaout( outfile + "_AR", ARstations[recv].kfState_fixed, recv, 5, obsList.size(), dop,true, header);
+		if (nfix <= 0) 			gpggaout(outfile + "_AR", ARstations[recv].kfState_fixed, recv, 2, obsList.size(), dop,true);
+		else					gpggaout(outfile + "_AR", ARstations[recv].kfState_fixed, recv, 5, obsList.size(), dop,true);
 	}
 	
-	if (   acsConfig.process_ionosphere  
-		&& acsConfig.ionFilterOpts.model != +E_IonoModel::NONE	)
-			arionout( trace, ARstations[recv].kfState_fixed, obsList, opt);
+	if	(  acsConfig.process_ionosphere  
+		&& acsConfig.ionModelOpts.model != +E_IonoModel::NONE)
+	{
+		arionout(trace, ARstations[recv].kfState_fixed, obsList, opt);
+	}
 	
 	if (   acsConfig.output_bias_sinex 
 	    && acsConfig.ambrOpts.biasOutrate > 0 ) 
-	    	arbiaout( trace, ARstations[recv].kfState_fixed.time, opt );
-	 
+	{
+    	arbiaout(trace, ARstations[recv].kfState_fixed.time, opt);
+	}
+	
 	return nfix;
 }
 
 /** Ambiguity resolution on smoothed KF solutions*/
-int  smoothdAmbigResl( 
-	KFState& kfState )		///< Smoothed Kf
+int smoothdAmbigResl( 
+	KFState& kfState)		///< Smoothed Kf
 {
-	if ( acsConfig.ambrOpts.NLmode == +E_ARmode::OFF )
+	if (acsConfig.ambrOpts.NLmode == +E_ARmode::OFF)
 		return 0;
 	
-	std::ofstream trace(acsConfig.config_description+"/RTS_AR_debug.trace" ,	std::ofstream::out | std::ofstream::app);
-	kfState.rts_forward_filename = acsConfig.netwOpts.rts_filename + "_RTS_AR";
+	std::ofstream trace(acsConfig.config_description + "/RTS_AR_debug.trace",	std::ofstream::out | std::ofstream::app);
+	kfState.rts_basename = acsConfig.pppOpts.rts_filename + "_RTS_AR";
 	
 	GTime time = kfState.time;
 	
@@ -804,52 +816,52 @@ int  smoothdAmbigResl(
 	
 	string recv = "NETWORK";
 	if (defAR_WL.endu) 
+	for (auto& [key,indx] : kfState.kfIndexMap)
 	{
-		for (auto& [key,indx] : kfState.kfIndexMap)
-		{
-			if (key.type == KF::REC_SYS_BIAS
-			 || key.type == KF::REC_CLOCK)    
-			{ 
-				recv = key.str; 
-				break; 
-			}
+		if	(  key.type == KF::REC_SYS_BIAS
+			|| key.type == KF::REC_CLOCK)    
+		{ 
+			recv = key.str; 
+			break; 
 		}
 	}
+	
 	GinAR_opt opt = defAR_NL;
 	opt.recv = recv;
 	
 	if (!ARstations[recv].AR_meaMap.empty()) 
 		clean_obsolete(time, recv);
 
-	int nsat=0;
-	int nrec=0;
-	int namb = LoadFromFlt( trace, kfState, nsat, nrec, recv );
+	int nsat = 0;
+	int nrec = 0;
+	int namb = LoadFromFlt(trace, kfState, nsat, nrec, recv);
 	tracepdeex(ARTRCLVL, trace, "\n#ARES_MAIN %5d measurements from %3d satellites and %4d", namb, nsat, nrec);
-
 	
 	for (auto& [typ,nmeas] : ARstations[recv].AmbTypMap)
 	{
 		opt.type = typ;
-		if (defAR_WL.endu)  updt_usr_pivot(trace,kfState.time,opt);
-		else        		updt_net_pivot(trace,kfState.time,opt);
+		if (defAR_WL.endu)		updt_usr_pivot(trace,kfState.time,opt);
+		else					updt_net_pivot(trace,kfState.time,opt);
 	}
 	
 	int nfix = updat_ambigt( trace, kfState, opt );
 	
-	if ( nfix == 0 ) 
+	if (nfix == 0) 
 		return 0;
 	
 	tracepdeex(ARTRCLVL, trace, "\n#ARES_MAIN %5d fixed from %5d ambiguities", nfix, namb);
 	nfix = apply_ambigt( trace, kfState, opt );
 	
-	if (nfix > 0.6*namb) FIXREADY = true;
-	if (nfix < 0.4*namb) FIXREADY = false;
+	if (nfix > 0.6 * namb)		FIXREADY = true;
+	if (nfix < 0.4 * namb)		FIXREADY = false;
 	
-	if ( acsConfig.output_bias_sinex &&
-	     acsConfig.ambrOpts.biasOutrate > 0 ) 
-	    	arbiaout( trace, time, opt );
+	if	(  acsConfig.output_bias_sinex 
+		&& acsConfig.ambrOpts.biasOutrate > 0 )
+	{
+		arbiaout(trace, time, opt);
+	}
 	
-	artrcout( trace, kfState.time, opt );
+	artrcout(trace, kfState.time, opt);
 	
 	if (AR_VERBO) 
 		kfState.outputStates(trace, " AR");
@@ -860,13 +872,13 @@ int  smoothdAmbigResl(
 }
 
 /** Indicate if the AR solution is available/stable (60% of ambiguities solved) */
-bool ARsol_ready (void)
+bool ARsol_ready()
 {
 	return FIXREADY;
 }
 
 /** Retrieved the last ambiguity resolved Kalman filter state */
-KFState retrieve_last_ARcopy (void)
+KFState retrieve_last_ARcopy()
 {
 	return 	ARcopy;
 }

@@ -16,8 +16,9 @@ struct Scp_Basis
 	double degree;					/* degree of the function */
 	bool parity;					/* longitude function: false=cosine, true=sine */
 };
+
 map<int, Scp_Basis>  Scp_Basis_list;
-double scap_rotmtx[9] = {0};
+double scap_rotmtx[9] = {};
 double scap_maxlat = PI / 2;
 
 /*-----------------------------------------------------
@@ -34,14 +35,14 @@ double legendre_function(int m, double n, double x)
 	double A, Kmn, P, Ptmp;
 	double eps = 10 * LEG_EPSILON0;
 	int j = 1;
-	double p, e1, e2;
 
-	if ( m == 0 ) A = 1;
+	if (m == 0) 
+		A = 1;
 	else
 	{
-		p = pow(n / m, 2) - 1;
-		e1 = -(1 + 1 / p) / (12 * m);
-		e2 = (1 + 3 / pow(p, 2) + 4 / pow(p, 3)) / (360 * pow(m, 3));
+		double p = pow(n / m, 2) - 1;
+		double e1 = -(1 + 1 / p) / (12 * m);
+		double e2 = (1 + 3 / pow(p, 2) + 4 / pow(p, 3)) / (360 * pow(m, 3));
 		Kmn = pow(2, -m) * pow((n + m) / (n - m), (n + 2) / 4) * pow(p, m / 2.0) * exp(e1 + e2) / sqrt(m * PI);
 		A = Kmn * pow(sin(x), m);
 	}
@@ -72,7 +73,7 @@ Author: German Olivares @ GA 17 January 2019
 double legendre_derivatv(int m, double n, double x)
 {
 	double A, Kmn, dP, P, Ptmp, dPtmp;
-	double eps = 10.0 * LEG_EPSILON0;
+	double eps = 10 * LEG_EPSILON0;
 	double p, e1, e2;
 	int i = 1;
 
@@ -133,7 +134,7 @@ double bisection(int m, double* ntmp, double x, int nu)
 	int step = 0;
 
 	/* Compute the Legendre function value between a and b */
-	if ( (nu - m) % 2 == 0 )
+	if ((nu - m) % 2 == 0)
 	{
 		// Even boundary conditions
 		Pa = legendre_derivatv(m, a, x);
@@ -148,10 +149,13 @@ double bisection(int m, double* ntmp, double x, int nu)
 
 	for (step = 0, err = fabs(Pd); step < LEG_ITER_NUM; step++)
 	{
-		if (err < LEG_EPSILON0) break;
+		if (err < LEG_EPSILON0) 
+			break;
 
-		if ( Pa * Pd < 0 ) b = d;
-		else a = d;
+		if ( Pa * Pd < 0 ) 
+			b = d;
+		else 
+			a = d;
 
 		d = (a + b) / 2;
 
@@ -190,7 +194,7 @@ int Ipp_check_sphcap(GTime time, double* Ion_pp)
 	double		rrot[3];
 	pos[0] = Ion_pp[0];
 	pos[1] = Ion_pp[1];
-	pos[2] = acsConfig.ionFilterOpts.layer_heights[0];
+	pos[2] = acsConfig.ionModelOpts.layer_heights[0];
 	pos2ecef(pos, rpp);
 	matmul("NN", 3, 1, 3, 1, scap_rotmtx, rpp.data(), 0, rrot);
 	ecef2pos(rrot, pos);
@@ -214,7 +218,10 @@ ion_coef_sphcap: Evaluates spherical cap harmonics basis functions
 		angIPP				- Angular gain for Ionosphere Piercing Point
 	bool slant		I		false: output coefficient for Vtec, true: output coefficient for delay
 ----------------------------------------------------------------------------*/
-double ion_coef_sphcap(int ind, Obs& obs, bool slant)
+double ion_coef_sphcap(
+	int		ind, 
+	Obs&	obs, 
+	bool	slant)
 {
 	if (ind >= Scp_Basis_list.size()) 
 		return 0;
@@ -244,7 +251,7 @@ ion_vtec_sphcap: Estimate Ionosphere VTEC using Spherical Cap Harmonic models
 	vari				O		variance of VTEC
 returns: VETC at piercing point
 ----------------------------------------------------------------------------*/
-double ion_vtec_sphcap(
+double ionVtecSphcap(
     GTime time,
     double* Ion_pp,
     int layer,
@@ -264,7 +271,7 @@ double ion_vtec_sphcap(
 	tmpobs.lonIPP[layer] = Ion_pp[1];
 	tmpobs.angIPP[layer] = 1;
 
-	for (int ind = 0; ind < acsConfig.ionFilterOpts.NBasis; ind++)
+	for (int ind = 0; ind < acsConfig.ionModelOpts.NBasis; ind++)
 	{
 		Scp_Basis& basis = Scp_Basis_list[ind];
 
@@ -301,25 +308,29 @@ configure_iono_model_sphcap: Initializes Spherical caps Ionosphere model
 ----------------------------------------------------------------------------*/
 int configure_iono_model_sphcap(void)
 {
-	double latc = acsConfig.ionFilterOpts.lat_center * D2R;
-	double lonc = acsConfig.ionFilterOpts.lon_center * D2R;
-	double latw = acsConfig.ionFilterOpts.lat_width * D2R / 2;
-	double lonw = acsConfig.ionFilterOpts.lon_width * D2R / 2;
-	scap_rotmtx[0] = sin(latc) * cos(lonc);
-	scap_rotmtx[1] = sin(latc) * sin(lonc);
+	double latc = acsConfig.ionexGrid.lat_center	* D2R;
+	double lonc = acsConfig.ionexGrid.lon_center	* D2R;
+	double latw = acsConfig.ionexGrid.lat_width		* D2R / 2;
+	double lonw = acsConfig.ionexGrid.lon_width		* D2R / 2;
+	scap_rotmtx[0] =  sin(latc) * cos(lonc);
+	scap_rotmtx[1] =  sin(latc) * sin(lonc);
 	scap_rotmtx[2] = -cos(latc);
 	scap_rotmtx[3] = -sin(lonc);
-	scap_rotmtx[4] = cos(lonc);
-	scap_rotmtx[5] = 0.0;
-	scap_rotmtx[6] = cos(latc) * cos(lonc);
-	scap_rotmtx[7] = cos(latc) * sin(lonc);
-	scap_rotmtx[8] = sin(latc);
+	scap_rotmtx[4] =  cos(lonc);
+	scap_rotmtx[5] =  0;
+	scap_rotmtx[6] =  cos(latc) * cos(lonc);
+	scap_rotmtx[7] =  cos(latc) * sin(lonc);
+	scap_rotmtx[8] =  sin(latc);
 	scap_maxlat = acos(cos(latc) * cos(latc + latw) * (cos(lonw) - 1) + cos(latw));
 
-	if (scap_maxlat > 0.45 * PI && scap_maxlat > 0.5 * PI) scap_maxlat = PI / 2;
-
-	int Kmax = acsConfig.ionFilterOpts.func_order;
-	int nlay = acsConfig.ionFilterOpts.layer_heights.size();
+	if	(  scap_maxlat > 0.45 * PI 
+		&& scap_maxlat > 0.5 * PI) 
+	{
+		scap_maxlat = PI / 2;
+	}
+	
+	int Kmax = acsConfig.ionModelOpts.function_order;
+	int nlay = acsConfig.ionModelOpts.layer_heights.size();
 	int ind = 0;
 	Scp_Basis basis;
 
@@ -335,10 +346,12 @@ int configure_iono_model_sphcap(void)
 
 			for (int k = m; k <= Kmax; k++)
 			{
-				double nk = 0.0;
+				double nk = 0;
 
-				if (scap_maxlat == PI / 2) nk = 1.0 * k;
-				else if (k == 0) nk = 0.0;
+				if (scap_maxlat == PI / 2) 
+					nk = k;
+				else if (k == 0) 
+					nk = 0;
 				else if ((k - m) % 2)
 				{
 					while (1)
@@ -368,7 +381,8 @@ int configure_iono_model_sphcap(void)
 
 							nodd[0] = nk + 0.1;
 						}
-						else nodd[0] = nodd[1];
+						else 
+							nodd[0] = nodd[1];
 					}
 				}
 				else
@@ -417,13 +431,13 @@ int configure_iono_model_sphcap(void)
 		}
 	}
 
-	acsConfig.ionFilterOpts.NBasis = ind;
+	acsConfig.ionModelOpts.NBasis = ind;
 
-	for (int j = 0; j < acsConfig.ionFilterOpts.NBasis; j++)
+	for (int j = 0; j < acsConfig.ionModelOpts.NBasis; j++)
 	{
 		Scp_Basis& basis = Scp_Basis_list[j];
-		fprintf(fp_iondebug, "SCP_BASIS %3d %2d %2d %8.4f %1d ", j, basis.hind, basis.order, basis.degree, basis.parity);
-		fprintf(fp_iondebug, "\n");
+// 		fprintf(fp_iondebug, "SCP_BASIS %3d %2d %2d %8.4f %1d ", j, basis.hind, basis.order, basis.degree, basis.parity);
+// 		fprintf(fp_iondebug, "\n");
 	}
 
 	return ind;

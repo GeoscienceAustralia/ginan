@@ -5,9 +5,8 @@ from io import BytesIO as _BytesIO
 
 import numpy as _np
 import pandas as _pd
-
-from ..gn_datetime import datetime2j2000 as _datetime2j2000
-from .common import path2bytes
+from gn_lib import gn_datetime as _gn_datetime
+from gn_lib import gn_io as _gn_io
 
 _RE_RNX = _re.compile(rb'^\>(.+)\n((?:[^\>]+)+)',_re.MULTILINE)
 _RE_RNX_HEADER = _re.compile(rb'\n(\w)\s+(\d+)(.+)OBS\sTYPES((?:\W\s{6}.+|))')
@@ -17,7 +16,7 @@ def _read_rnx(rnx_path):
     '''Read RINEX file into pandas DataFrame taking into account
     the signal strength and loss-of-lock field keys.
     Assumes that rinex had been previously Hatanaka decompressed'''
-    rnx_content = path2bytes(str(rnx_path))
+    rnx_content = _gn_io.common.path2bytes(str(rnx_path))
     data_blocks = _np.asarray(_RE_RNX.findall(string=rnx_content))
     header_blocks = _RE_RNX_HEADER.findall(string=rnx_content)
 
@@ -34,7 +33,7 @@ def _read_rnx(rnx_path):
     epochs_dt = _pd.to_datetime(_pd.Series(dates).str.slice(1,20).values.astype(str),
                                 format=r'%Y %m %d %H %M %S')
 
-    dt_index = _np.repeat(a=_datetime2j2000(epochs_dt),repeats=counts)
+    dt_index = _np.repeat(a=_gn_datetime.datetime2j2000(epochs_dt),repeats=counts)
     b_string = b''.join(data.tolist())
 
     b_series = _pd.Series(b_string.splitlines())
@@ -75,7 +74,7 @@ def rnx_vals2df(m):
 
 def _rnx_pos(rnx_path):
     '''Read RINEX file and output APPROX POSITION'''
-    rnx_content = path2bytes(str(rnx_path))
+    rnx_content = _gn_io.common.path2bytes(str(rnx_path))
     pos_line = _RE_RNX_POSITION.findall(string=rnx_content)
     coords = []
     for val in pos_line[0].decode("utf-8").split(' '):

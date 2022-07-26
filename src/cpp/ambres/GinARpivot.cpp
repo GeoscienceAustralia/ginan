@@ -715,7 +715,9 @@ void updt_net_pivot(
 			}
 			
 			if (recpivlst.find(key.str) == recpivlst.end()) disc_rec[key.str] = E_SigWarning::SIG_OUTG;
+			if (recpivlst[key.str].pre_sat.prn <= 0)		disc_rec[key.str] = E_SigWarning::SIG_OUTG;
 			if (satpivlst.find(key.Sat) == satpivlst.end()) disc_sat[key.Sat] = E_SigWarning::SIG_OUTG;
+			if (satpivlst[key.Sat].pre_rec == "")			disc_sat[key.Sat] = E_SigWarning::SIG_OUTG;
 		}
 		Check_rec(trace,sys,typ,sysref,0);
 		

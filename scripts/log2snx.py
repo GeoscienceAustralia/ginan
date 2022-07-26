@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 install rclone with curl https://rclone.org/install.sh | sudo bash -s beta
 
@@ -41,7 +43,7 @@ Alternatively, use s3 bucket link to download all the files needed s3://peanpod/
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-l', '--logglob', help='logs glob path (required)')
+    parser.add_argument('-l', '--logglob', help='logs glob path (required)',required=True)
     parser.add_argument('-r', '--rnxglob', help='rinex glob path (optional)',default=None,nargs="+")
     parser.add_argument('-o', '--outfile', help='output file path (optional)',default= './meta_gather.snx')
     parser.add_argument('-fs', '--frame_snx', type=file_path, help='frame sinex file path (optional)',default=None)

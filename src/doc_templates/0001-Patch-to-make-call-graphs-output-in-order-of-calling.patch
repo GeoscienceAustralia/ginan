@@ -1,0 +1,101 @@
+From be6c9de75f77aae8569eab29be99629c8730fb6d Mon Sep 17 00:00:00 2001
+From: me <me@email.com>
+Date: Wed, 20 Apr 2022 14:26:22 +1000
+Subject: [PATCH] Patch to make call graphs output in order of calling
+
+---
+ src/definition.cpp | 22 +++++++++++++++++++---
+ src/dotnode.cpp    |  2 +-
+ src/memberlist.h   |  2 +-
+ 3 files changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/src/definition.cpp b/src/definition.cpp
+index cd256bfd..83555739 100644
+--- a/src/definition.cpp
++++ b/src/definition.cpp
+@@ -51,6 +51,7 @@ class DefinitionImpl::IMPL
+ 
+     std::unordered_map<std::string,const MemberDef *> sourceRefByDict;
+     std::unordered_map<std::string,const MemberDef *> sourceRefsDict;
++    std::vector<const MemberDef*> thingVect;
+     RefItemVector xrefListItems;
+     GroupList partOfGroups;
+ 
+@@ -130,6 +131,7 @@ void DefinitionImpl::IMPL::init(const QCString &df, const QCString &n)
+   inbodyDocs      = 0;
+   sourceRefByDict.clear();
+   sourceRefsDict.clear();
++  thingVect.clear();
+   outerScope      = Doxygen::globalScope;
+   hidden          = FALSE;
+   isArtificial    = FALSE;
+@@ -1015,9 +1017,14 @@ static inline MemberVector refMapToVector(const std::unordered_map<std::string,c
+                  { return item.second; }     // extract value to add from map Key,Value pair
+                 );
+   // and sort it
+-  std::sort(result.begin(),result.end(),
+-              [](const auto &m1,const auto &m2) { return genericCompareMembers(m1,m2)<0; });
+-  return result;
++  // std::sort(result.begin(),result.end(),
++  //             [](const auto &m1,const auto &m2) { return genericCompareMembers(m1,m2)<0; });
++  MemberVector revres;
++  for (int i = result.size() -1 ; i >= 0; i--)
++  {
++    revres.push_back(result[i]);
++  }
++  return revres;
+ }
+ 
+ /*! Write a reference to the source code fragments in which this
+@@ -1165,6 +1172,7 @@ void DefinitionImpl::addSourceReferences(const MemberDef *md)
+     }
+ 
+     m_impl->sourceRefsDict.insert({name.str(),md});
++    if (std::find(m_impl->thingVect.begin(), m_impl->thingVect.end(), md) == m_impl->thingVect.end())  m_impl->thingVect.push_back(md);
+   }
+ }
+ 
+@@ -1760,6 +1768,14 @@ const MemberVector &DefinitionImpl::getReferencesMembers() const
+   {
+     m_impl->referencesMembers = refMapToVector(m_impl->sourceRefsDict);
+   }
++  
++  m_impl->referencesMembers.m_members.clear();
++  
++  for (auto a : m_impl->thingVect)
++  {
++    m_impl->referencesMembers.push_back(a);
++
++  }
+   return m_impl->referencesMembers;
+ }
+ 
+diff --git a/src/dotnode.cpp b/src/dotnode.cpp
+index beb0dc94..921d401e 100644
+--- a/src/dotnode.cpp
++++ b/src/dotnode.cpp
+@@ -380,7 +380,7 @@ void DotNode::writeBox(TextStream &t,
+     labCol = m_url.isEmpty() ? "grey75" :  // non link
+     (hasNonReachableChildren ? "red" : "black");
+   }
+-  t << "  Node" << m_number << " [label=\"";
++  t << "  Node" << m_number << " [ordering=\"out\", label=\"";
+ 
+   if (m_classDef && Config_getBool(UML_LOOK) && (gt==Inheritance || gt==Collaboration))
+   {
+diff --git a/src/memberlist.h b/src/memberlist.h
+index 2f207c6a..beaca307 100644
+--- a/src/memberlist.h
++++ b/src/memberlist.h
+@@ -73,7 +73,7 @@ class MemberVector
+       auto it = std::find(m_members.begin(),m_members.end(),md);
+       return it!=m_members.end();
+     }
+-  protected:
++//   protected:
+     Vec m_members;
+ };
+ 
+-- 
+2.25.1
+

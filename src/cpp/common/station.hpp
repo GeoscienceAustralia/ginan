@@ -34,33 +34,39 @@ struct StationLogs
 };
 
 
-
+struct Rtk
+{
+	KFState					pppState;
+	Solution				sol;		///< RTK solution
+	string					antType;
+	string					antId;
+	map<SatSys, SatStat>	satStatMap;	
+	double		otlDisplacement[6*11] = {};		///< ocean tide loading parameters
+	Vector3d	antDelta	= Vector3d::Zero();		///< antenna delta {rov_e,rov_n,rov_u}
+};
 
 
 /** Object to maintain receiver station data
 */
-struct Station : StationLogs
+struct Station : StationLogs, Rtk
 {
 	RinexStation		rnxStation;
-	rtk_t 				rtk;						///< Legacy rtk filter status
 	Sinex_stn_snx_t		snx;						///< Antenna information
 
 	ObsList				obsList;					///< Observations available for this station at this epoch
 	PseudoObsList		pseudoObsList;				///< PseudoObservations available for this station at this epoch
 	string				id;							///< Unique name for this station (4 characters)
-
-
-	string				traceFilename;
-	string				tropFilename;
-	string				rtsTropFilename;
-	string				solutFilename;
-	bool				sol_header = false;
 	
 	bool		primaryApriori	= false;
 	int			aprioriTime[3]	= {};
 	Vector3d	aprioriPos		= Vector3d::Zero();		///< station position (ecef) (m)
 	Vector3d	aprioriVar		= Vector3d::Zero();
 	bool		ready			= false;
+	
+	string		traceFilename;
+	
+	
+	map<SatSys, GTime> savedSlips;
 };
 
 using StationMap	= map<string, Station>;		///< Map of all stations
@@ -69,15 +75,8 @@ using StationMap	= map<string, Station>;		///< Map of all stations
 struct Network
 {
 	string traceFilename;
-	string clockFilename;
-	string orbitsFilename;
-	string rtsClockFilename;
-	string tropFilename;
-	string erpFilename;
-	string rtsErpFilename;
-	string rtsTropFilename;
-	string biasSINEXFilename;
-	string id				= "NET";
+	string id				= "Network";
+	
 	KFState kfState			= {};
 };
 

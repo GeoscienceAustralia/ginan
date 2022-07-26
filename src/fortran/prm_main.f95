@@ -64,7 +64,7 @@ SUBROUTINE prm_main (PRMfname, isVeq)
       REAL (KIND = prec_d) :: r_TRS(3), v_TRS(3)
       REAL (KIND = prec_d) :: r_CRS(3), v_CRS(3), v_CRS_1(3), v_CRS_2(3)
 
-      REAL (KIND = prec_d) :: EOP_cr(7)
+      REAL (KIND = prec_d) :: EOP_cr(EOP_MAX_ARRAY)
       REAL (KIND = prec_d) :: CRS2TRS(3,3), TRS2CRS(3,3)
       REAL (KIND = prec_d) :: d_CRS2TRS(3,3), d_TRS2CRS(3,3)
 
@@ -366,6 +366,9 @@ else if (yaml_found) then
 If (yml_ic_input_format == SP3_FILE) then
     !SP3 file coded as if ITRF format
     yml_ic_input_refsys = ITRF
+end if
+if (yml_pod_mode == MODE_DATA_INT) then
+    yml_ic_input_refsys = yml_pod_data_ref_frame
 end if
 if (yml_ic_input_refsys == ITRF) Ref_Zo = "ITRF"
 if (yml_ic_input_refsys == ICRF) Ref_Zo = "ICRF"

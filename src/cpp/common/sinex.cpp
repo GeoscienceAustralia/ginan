@@ -60,9 +60,9 @@ long int time_compare(int left[3], int right[3])
 	return leftfull - rightfull;
 }
 
-bool compare(Sinex_ref_t& one, 	Sinex_ref_t& two)
+bool compare(string& one, 	string& two)
 {
-	if (one.refline.compare(two.refline) == 0)
+	if (one.compare(two) == 0)
 	{
 		return true;
 	}
@@ -189,14 +189,6 @@ bool compare(Sinex_nutcode_t& one, 	Sinex_nutcode_t& two)
 bool compare(Sinex_satident_t& one, 	Sinex_satident_t& two)
 {
 	if 	(one.svn.compare(two.svn) == 0)
-	{
-		return true;
-	}
-	return false;
-}
-bool compare(Sinex_comment_t& one, 	Sinex_comment_t& two)
-{
-	if 	(one.cmtline.compare(two.cmtline) == 0)
 	{
 		return true;
 	}
@@ -541,7 +533,7 @@ int read_snx_header(std::ifstream& in)
 
 	if (in.eof())
 	{
-		BOOST_LOG_TRIVIAL(error) << "empty file" << endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: empty file" << endl;
 		return 1;
 	}
 
@@ -553,7 +545,7 @@ int read_snx_header(std::ifstream& in)
 		|| s[4] != 'X')
 	{
 		// error. not a sinex file
-		BOOST_LOG_TRIVIAL(error) << "Not a sinex file" << endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: Not a sinex file" << endl;
 		return 2;
 	}
 
@@ -591,7 +583,7 @@ int read_snx_header(std::ifstream& in)
 		if (readcount < 15)
 		{
 			// error, not enough parameters
-			BOOST_LOG_TRIVIAL(error) << "Not enough parameters on header line (expected min 15), got " << readcount << endl;
+			BOOST_LOG_TRIVIAL(error) << "Error: Not enough parameters on header line (expected min 15), got " << readcount << endl;
 			return 3;
 		}
 
@@ -717,9 +709,7 @@ void write_snx_header(std::ofstream& out)
 
 void parse_snx_reference(string& s)
 {
-	Sinex_ref_t srt;
-	srt.refline = s;
-	theSinex.refstrings.push_back(srt);
+	theSinex.refstrings.push_back(s);
 }
 
 void write_as_comments(ofstream& out, list<string>& comments)
@@ -767,7 +757,7 @@ int write_snx_reference(ofstream& out)
 
 	for (auto& refString : theSinex.refstrings)
 	{
-		out << refString.refline << endl;
+		out << refString << endl;
 	}
 
 	out << "-FILE/REFERENCE" << endl;
@@ -777,9 +767,7 @@ int write_snx_reference(ofstream& out)
 
 void parse_snx_comment(string& s)
 {
-	Sinex_comment_t sct;
-	sct.cmtline = s;
-	theSinex.commentstrings.push_back(sct);
+	theSinex.commentstrings.push_back(s);
 }
 
 int write_snx_comments(ofstream& out)
@@ -788,7 +776,7 @@ int write_snx_comments(ofstream& out)
 
 	for (auto& commentstring : theSinex.commentstrings)
 	{
-		out << commentstring.cmtline << endl;
+		out << commentstring << endl;
 	}
 
 	out << "-FILE/COMMENT" << endl;
@@ -2346,40 +2334,45 @@ int compare_matrix_entries(Sinex_solmatrix_t& left, Sinex_solmatrix_t& right)
 	return (comp < 0);
 }
 
+matrix_type		mat_type;
+matrix_value	mat_value;
+
 void parse_snx_matrix(string& s)//, matrix_type type, matrix_value value)
 {
 // 	//todo aaron, this is only half complete, the maxrow/col arent used but should be with multiple input matrices.
-// 	int		maxrow = 0;
-// 	int		maxcol = 0;
-// 	Sinex_solmatrix_t smt;
-// 
-// 	int readcount = sscanf(s.c_str(), " %5d %5d %21lf %21lf %21lf",
-// 						&smt.row,
-// 						&smt.col,
-// 						&smt.value[0],
-// 						&smt.value[1],
-// 						&smt.value[2]);
-// 
-// 	if (readcount > 2)
-// 	{
-// 		if (smt.row < smt.col)
-// 		{
-// 			//xor swap
-// 			smt.row ^= smt.col;
-// 			smt.col ^= smt.row;
-// 			smt.row ^= smt.col;
-// 		}
-// 		
-// 		for (int i = readcount - 2; i < 3; i++)
-// 			smt.value[i] = -1;
-// 
-// 		smt.numvals = readcount - 2;
-// 
-// 		if (smt.row > maxrow) maxrow = smt.row;
-// 		if (smt.col > maxcol) maxcol = smt.col;
-// 
-// 		theSinex.matrix_map[type][value].push_back(smt);
-// 	}
+	int		maxrow = 0;
+	int		maxcol = 0;
+	Sinex_solmatrix_t smt;
+
+	int readcount = sscanf(s.c_str(), " %5d %5d %21lf %21lf %21lf",
+						&smt.row,
+						&smt.col,
+						&smt.value[0],
+						&smt.value[1],
+						&smt.value[2]);
+
+	if (readcount > 2)
+	{
+		if (smt.row < smt.col)
+		{
+			//xor swap
+			smt.row ^= smt.col;
+			smt.col ^= smt.row;
+			smt.row ^= smt.col;
+		}
+		
+		int covars = readcount - 2;
+		
+		for (int i = readcount - 2; i < 3; i++)
+			smt.value[i] = -1;
+
+		smt.numvals = readcount - 2;
+
+		if (smt.row > maxrow)		maxrow = smt.row;
+		if (smt.col > maxcol)		maxcol = smt.col;
+
+		theSinex.matrix_map[mat_type][mat_value].push_back(smt);
+	}
 // 	else
 // 	{
 // 		theSinex.matrix_comments.push_back(s);
@@ -3282,7 +3275,7 @@ int read_sinex(
 		{
 			// error - did not find closure line. Report and clean up.
 			BOOST_LOG_TRIVIAL(error)
-			<< "Closure line not found before end." << endl;
+			<< "Error: Closure line not found before end." << endl;
 
 			failure = 1;
 			break;
@@ -3299,7 +3292,7 @@ int read_sinex(
 			if (line != closure)
 			{
 				BOOST_LOG_TRIVIAL(error)
-				<< "Incorrect section closure line encountered: "
+				<< "Error: Incorrect section closure line encountered: "
 				<< closure << " != " << line << endl;
 			}
 			
@@ -3360,7 +3353,7 @@ int read_sinex(
 			else
 			{
 				BOOST_LOG_TRIVIAL(error)
-				<< "error unknown header line: " << line << endl;
+				<< "Error: error unknown header line: " << line << endl;
 
 				failure = 1;	
 			}
@@ -3443,7 +3436,7 @@ int read_sinex(
 			{
 				// error in file. report it.
 				BOOST_LOG_TRIVIAL(error)
-				<< "line starting '%' met not final line" << endl << line << endl;
+				<< "Error: line starting '%' met not final line" << endl << line << endl;
 
 				failure = 1;
 			}
@@ -3526,10 +3519,10 @@ int  write_sinex(
 // 		if (!theSinex.list_normal_eqns.		empty())	{failure += write_snx_normal	(filestream);	if (comm_override) write_pretty_line(filestream);}
 
 
-		for (int i = 0; i < 3; i++)
-			domatrices |= !theSinex.matrix_map[i].empty();
-
-		if (domatrices)
+// 		for (int i = 0; i < 3; i++)
+// 			domatrices |= !theSinex.matrix_map[i].empty();
+// 
+// 		if (domatrices)
 		{
 // 			write_snx_matrices(filestream, stationListPointer);
 			write_snx_matrices_from_filter(filestream); if (comm_override) write_pretty_line(filestream);
@@ -3580,7 +3573,7 @@ int sinex_check_add_ga_reference(string solType, string peaVer, bool isTrop)
 	// step 1: check it is not already there
 	for (auto it = theSinex.refstrings.begin(); it != theSinex.refstrings.end(); it++)
 	{
-		if (it->refline.find("Geoscience Australia") != string::npos)
+		if (it->find("Geoscience Australia") != string::npos)
 		{
 			return 1;
 		}
@@ -3590,7 +3583,7 @@ int sinex_check_add_ga_reference(string solType, string peaVer, bool isTrop)
 	// NB we do not increment the iterator in the loop because the erase if found will do it for us
 	for (auto it = theSinex.refstrings.begin(); it != theSinex.refstrings.end(); )
 	{
-		string	s = it->refline;
+		string	s = *it;
 
 		if 	( s.find("DESCRIPTION") != string::npos
 			||s.find("OUTPUT") 		!= string::npos
@@ -3609,24 +3602,19 @@ int sinex_check_add_ga_reference(string solType, string peaVer, bool isTrop)
 
 	// step 3: put in the Geoscience reference
 	struct utsname	buf;
-	Sinex_ref_t srt;
 	char 	line[81];
 
 	sprintf(line, " %-18s %s", "DESCRIPTION", "Geoscience Australia");
-	srt.refline = line;
-	theSinex.refstrings.push_back(srt);
+	theSinex.refstrings.push_back(line);
 
 	sprintf(line, " %-18s %s", "OUTPUT", solType.c_str());
-	srt.refline = line;
-	theSinex.refstrings.push_back(srt);
+	theSinex.refstrings.push_back(line);
 
 	sprintf(line, " %-18s %s", "CONTACT", "npi@ga.gov.au");
-	srt.refline = line;
-	theSinex.refstrings.push_back(srt);
+	theSinex.refstrings.push_back(line);
 
 	sprintf(line, " %-18s %s", "SOFTWARE", ("Ginan PEA Version " + peaVer).c_str());
-	srt.refline = line;
-	theSinex.refstrings.push_back(srt);
+	theSinex.refstrings.push_back(line);
 
 	int result = uname(&buf);
 
@@ -3656,19 +3644,16 @@ int sinex_check_add_ga_reference(string solType, string peaVer, bool isTrop)
 			strcat(line, " ");
 		}
 
-		srt.refline = line;
-		theSinex.refstrings.push_back(srt);
+		theSinex.refstrings.push_back(line);
 	}
 
 	sprintf(line, " %-18s %s", "INPUT", "RINEX");
-	srt.refline = line;
-	theSinex.refstrings.push_back(srt);
+	theSinex.refstrings.push_back(line);
 
 	if(isTrop)
 	{
 		sprintf(line, " %-18s %03d", "VERSION NUMBER", 1); //note: increment if the processing is modified in a way that might lead to a different error characteristics of the product - see trop snx specs
-		srt.refline = line;
-		theSinex.refstrings.push_back(srt);
+		theSinex.refstrings.push_back(line);
 	}
 	return 0;
 }
@@ -3683,13 +3668,9 @@ void sinex_add_acknowledgement(const string& who, const string& description)
 	theSinex.acknowledgements.push_back(sat);
 }
 
-void sinex_add_comment(const string& what)
+void sinex_add_comment(const string what)
 {
-	Sinex_comment_t sct;
-
-	sct.cmtline = what;
-
-	theSinex.commentstrings.push_back(sct);
+	theSinex.commentstrings.push_back(what);
 }
 
 void sinex_add_file(const string& who, const GTime& when, const string& filename, const string& description)

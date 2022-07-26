@@ -4,11 +4,13 @@ from datetime import datetime as _datetime
 import numpy as _np
 import pandas as _pd
 
-from .gn_const import MJD_ORIGIN as _MJD_ORIGIN
-from .gn_const import GPS_ORIGIN as _GPS_ORIGIN
-from .gn_const import J2000_ORIGIN as _J2000_ORIGIN
-from .gn_const import SEC_IN_DAY as _SEC_IN_DAY
-from .gn_const import SECS_IN_WEEK as _SECS_IN_WEEK
+from gn_lib.gn_const import (
+    MJD_ORIGIN as _MJD_ORIGIN,
+    GPS_ORIGIN as _GPS_ORIGIN,
+    J2000_ORIGIN as _J2000_ORIGIN,
+    SEC_IN_DAY as _SEC_IN_DAY,
+    SEC_IN_WEEK as _SEC_IN_WEEK,
+)
 
 
 def gpsweekD(yr, doy, wkday_suff=False):
@@ -183,7 +185,7 @@ def datetime2yydoysec(datetime):
 def gpsweeksec2datetime(gps_week:_np.ndarray, tow:_np.ndarray, as_j2000:bool=True)->_np.ndarray:
     '''trace file date (gps week, time_of_week) to datetime64 conversion'''
     ORIGIN = (_GPS_ORIGIN - _J2000_ORIGIN).astype(int) if as_j2000 else _GPS_ORIGIN
-    datetime = ORIGIN + (gps_week*_SECS_IN_WEEK + tow)
+    datetime = ORIGIN + (gps_week*_SEC_IN_WEEK + tow)
     return datetime
 
 
@@ -195,14 +197,14 @@ def datetime2gpsweeksec(array:_np.ndarray, as_decimal = False)->tuple or _np.nda
         ORIGIN = _GPS_ORIGIN.astype(int)
         gps_time = array.astype('datetime64[s]').astype(int) - ORIGIN #datetime64 converted to int seconds
 
-    weeks_int = (gps_time/_SECS_IN_WEEK).astype(int)
-    tow = gps_time - weeks_int * _SECS_IN_WEEK # this eliminates rounding error problem
+    weeks_int = (gps_time/_SEC_IN_WEEK).astype(int)
+    tow = gps_time - weeks_int * _SEC_IN_WEEK # this eliminates rounding error problem
     return weeks_int + (tow / 1000000) if as_decimal else (weeks_int, tow)
 
 def datetime2j2000(datetime:_np.ndarray)->_np.ndarray:
     '''datetime64 conversion to int seconds after J2000 (2000-01-01 12:00:00)'''
-    if not isinstance(datetime,_np.ndarray):
-        raise TypeError("input should be numpy ndarray")
+    if not isinstance(datetime,(_np.ndarray,_np.datetime64)):
+        raise TypeError("input should be numpy ndarray or single datetime64 value")
     if datetime.dtype != '<M8[s]':
         return (datetime.astype('datetime64[s]') - _J2000_ORIGIN).astype(int) # this will break on pandas dataframe
     return (datetime.astype('datetime64[s]') - _J2000_ORIGIN).astype(int)
@@ -222,6 +224,9 @@ def j20002mjd(array:_np.ndarray)->tuple:
     j2000_mjd_bias = (_J2000_ORIGIN - _MJD_ORIGIN).astype(int) # in seconds
     mjd_seconds = j2000_mjd_bias + array
     return mjd_seconds // _SEC_IN_DAY,	(mjd_seconds % _SEC_IN_DAY) / _SEC_IN_DAY
+
+def j20002j2000days(array:_np.ndarray)->_np.ndarray:
+    return ((array - _SEC_IN_DAY//2) / _SEC_IN_DAY).astype(int) # SEC_IN_DAY//2 is needed to account for J2000 origin at 12:00
 
 def mjd2datetime(mjd:_np.ndarray, seconds_frac:_np.ndarray, pea_partials=False)->_np.ndarray:
     seconds = (86400 * seconds_frac).astype(int) if not pea_partials else seconds_frac.astype(int) #pod orb_partials file has a custom mjd date format with frac being seconds

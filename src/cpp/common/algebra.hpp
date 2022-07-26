@@ -40,8 +40,9 @@ struct KFKey
 	SatSys		Sat		= {};			///< Satellite
 	string		str		= "";			///< String (receiver ID)
 	short int 	num		= 0;			///< Subkey number (eg xyz => 0,1,2)
-	Station*	rec_ptr	= 0;		///< Pointer to station object for dereferencing
-
+	string		comment	= "";			///< Optional comment
+	Station*	rec_ptr	= 0;			///< Pointer to station object for dereferencing
+	
 	bool operator ==	(const KFKey& b) const;
 	bool operator <		(const KFKey& b) const;
 
@@ -62,11 +63,11 @@ struct ObsKey
 
 	friend ostream& operator<<(ostream& os, const ObsKey& obsKey)
 	{
-		os 
-		<< obsKey.Sat.id()	<< '\t' 
-		<< obsKey.str		<< '\t' 
-		<< obsKey.type		<< '\t' 
-		<< obsKey.num;
+		tracepdeex(0, os, "%4s\t%4s\t%6s\t%3d", 
+					obsKey.Sat.id()	.c_str(),
+					obsKey.str		.c_str(),
+					obsKey.type		.c_str(),
+					obsKey.num);
 		
 		return os;
 	}
@@ -81,6 +82,15 @@ struct ObsKey
 		string str = buff;
 
 		return str;
+	}
+	
+	template<class ARCHIVE>
+	void serialize(ARCHIVE& ar, const unsigned int& version)
+	{
+		ar & Sat;
+		ar & str;
+		ar & num;
+		ar & type;
 	}
 };
 
@@ -145,13 +155,15 @@ struct KFMeas
 {
 	GTime		time = GTime::noTime();		///< Epoch these measurements were recorded
 	VectorXd	Y;							///< Value of the observations (for linear systems)
-	VectorXd	V;							///< Residual of the observations (for non-linear systems)
+	VectorXd	V;							///< Prefit Residual of the observations (for non-linear systems)
+	VectorXd	VV;							///< Postfit Residual of the observations (for non-linear systems)
 	MatrixXd	R;							///< Measurement noise for these observations
 	VectorXd	W;							///< Weight (inverse of noise) used in least squares
-	MatrixXd	A;							///< Design matrix between measurements and state
+	MatrixXd	H;							///< Design matrix between measurements and state
 
-	vector<ObsKey>				obsKeys;					///< Optional labels for reporting when measurements are removed etc.
-	vector<map<string, void*>>	metaDataMaps;
+	vector<ObsKey>								obsKeys;					///< Optional labels for reporting when measurements are removed etc.
+	vector<map<string, void*>>					metaDataMaps;
+	vector<list<tuple<string, double, string>>>	componentLists;	
 	
 	void removeMeas(int index)
 	{
@@ -167,10 +179,11 @@ struct KFMeas
 
 		obsKeys.erase(obsKeys.begin() + index);
 
-		Y = ( Y(keepIndices)			).eval();
-		V = ( V(keepIndices)			).eval();
-		R = ( R(keepIndices, keepIndices)	).eval();
-		A = ( A(keepIndices, all)		).eval();
+		Y	= ( Y	(keepIndices)				).eval();
+		V	= ( V	(keepIndices)				).eval();
+		VV	= ( VV	(keepIndices)				).eval();
+		R	= ( R	(keepIndices, keepIndices)	).eval();
+		H	= ( H	(keepIndices, all)			).eval();
 	}
 };
 
@@ -178,11 +191,12 @@ struct KFMeas
 */
 struct InitialState
 {
-	double	x	= 0;											///< State value
-	double	P	= 0;											///< State Covariance
-	double	Q	= 0;											///< Process Noise
-	double	tau	= -1;											///< Correlation Time, default to -1 (inf) (Random Walk)
-	double	mu	= 0;											///< Desired Mean Value
+	double	estimate	= false;
+	double	x			= 0;	///< State value
+	double	P			= 0;	///< State Covariance
+	double	Q			= 0;	///< Process Noise
+	double	tau			= -1;	///< Correlation Time, default to -1 (inf) (Random Walk)
+	double	mu			= 0;	///< Desired Mean Value
 };
 
 struct KalmanModel;
@@ -235,6 +249,8 @@ struct KFState
 
 	list<StateRejectCallback> 					stateRejectCallbacks;
 	list<MeasRejectCallback> 					measRejectCallbacks;
+	
+	map<string, string>							metaDataMap;
 
 	bool		chiQCPass				= false;
 
@@ -246,8 +262,9 @@ struct KFState
 
 	string		id						= "KFState";
 	
-	string		rts_filename			= "";
-	string		rts_forward_filename	= "";
+// 	string		rts_filename			= "";
+	string		rts_basename			= "";
+// 	string		rts_forward_filename	= "";
 	int			rts_lag					= 0;
 
 	int			max_filter_iter			= 1;
@@ -280,7 +297,8 @@ struct KFState
 	bool	getKFValue(
 		KFKey		key,
 		double&		value,
-		double*		variance = nullptr);
+		double*		variance		= nullptr,
+		double*		adjustment_ptr	= nullptr);
 
 	bool	getKFSigma(
 		KFKey		key,
@@ -306,7 +324,7 @@ struct KFState
 		double			value,
 		InitialState	initialState = {});
 
-	void	addKFState(
+	bool	addKFState(
 		KFKey			kfKey,
 		InitialState	initialState = {});
 
@@ -395,7 +413,11 @@ struct KFState
 		int				numX 	= -1);
 	
 	void	outputCorrelations(
-		Trace&		trace);
+		Trace&		trace);	
+
+	void	outputMeasurements(
+		Trace&		trace,
+		KFMeas&		meas);
 
 	bool	doStateRejectCallbacks(
 		Trace&			trace,
@@ -433,15 +455,13 @@ struct KFState
 
 	KFMeas	combineKFMeasList(
 		KFMeasEntryList&	kfEntryList,
-		GTime				measTime = GTime::noTime());
+		GTime				measTime = GTime::noTime(),
+		MatrixXd*			noiseMatrix_ptr = nullptr);
 
 	VectorXd getSubState(
 		map<KFKey, int>&	kfKeyMap,
-		MatrixXd*			covarMat = nullptr);
-
-	KFMeasEntryList calcPrefitResids(
-		Trace&			trace,
-		KFMeas&			kfMeas);
+		MatrixXd*			covarMat_ptr	= nullptr,
+		VectorXd*			adjustVec_ptr	= nullptr);
 };
 
 /** Object to hold an individual measurement.
@@ -457,7 +477,7 @@ struct KFMeasEntry
 	double innov	= 0;			///< Innovation of measurement (for non-linear systems)
 	ObsKey obsKey	= {};			///< Optional labels to be used in output traces
 
-
+	list<tuple<string, double, string>> componentList;
 
 	map<KFKey,	double>		designEntryMap;
 	map<ObsKey,	double>		noiseEntryMap;
@@ -475,9 +495,9 @@ struct KFMeasEntry
 	/** Adds a noise element for this measurement
 	*/
 	void addNoiseEntry(
-		ObsKey			obsKey,				///< [in]	Key to determine the origin of the noise
-		double			value,				///< [in]	Noise entry matrix entry value
-		double			variance)			///< [in]	Variance of noise element
+		ObsKey			obsKey,				///< Key to determine the origin of the noise
+		double			value,				///< Noise entry matrix entry value
+		double			variance)			///< Variance of noise element
 	{
 		if	( value		== 0
 			||variance	== 0)
@@ -490,33 +510,36 @@ struct KFMeasEntry
 			kfState_ptr->addNoiseElement(obsKey, variance);
 		}
 
-		noiseEntryMap[obsKey] = value;
+		noiseEntryMap[obsKey] += value;
 	}
 
 	/** Adds a design matrix entry for this measurement
 	*/
-	void addDsgnEntry(
-		KFKey			kfKey,				///< [in]	Key to determine which state parameter is affected
-		double			value,				///< [in]	Design matrix entry value
-		InitialState	initialState = {})	///< [in]	Initial conditions for new states
+	bool addDsgnEntry(
+		KFKey			kfKey,				///< Key to determine which state parameter is affected
+		double			value,				///< Design matrix entry value
+		InitialState	initialState = {})	///< Initial conditions for new states
 	{
 		if (value == 0)
 		{
-			return;
+			return false;
 		}
 
+		bool retval = false;
 		if (kfState_ptr)
 		{
-			kfState_ptr->addKFState(kfKey, initialState);
+			retval = kfState_ptr->addKFState(kfKey, initialState);
 		}
 
-		designEntryMap[kfKey] = value;
+		designEntryMap[kfKey] += value;
+		
+		return retval;
 	}
 
 	/** Adds the measurement noise entry for this measurement
 	*/
 	void setNoise(
-		double value)		///< [in]	Measurement noise matrix entry value
+		double value)		///< Measurement noise matrix entry value
 	{
 		if (value == 0)
 		{
@@ -540,7 +563,7 @@ struct KFMeasEntry
 	/** Adds the actual measurement value for this measurement
 	*/
 	void setValue(
-		double value)		///< [in]	Actual measurement entry value
+		double value)		///< Actual measurement entry value
 	{
 		this->value = value;
 	}
@@ -548,7 +571,7 @@ struct KFMeasEntry
 	/** Adds the innovation value for this measurement
 	*/
 	void setInnov(
-		double value)		///< [in]	Innovation entry value
+		double value)		///< Innovation entry value
 	{
 		this->innov = value;
 	}
@@ -558,11 +581,25 @@ KFState mergeFilters(
 	list<KFState*>& kfStatePointerList,
 	bool			includeTrop = false);
 
+MatrixXi correlationMatrix(
+	MatrixXd& P);
+
+void outputResiduals(
+	Trace&			trace,     
+	KFMeas&			kfMeas,		
+	int				iteration,	
+	int				begH,		
+	int				numH);		
+
+
+bool isPositiveSemiDefinite(
+	MatrixXd& mat);
+
 int filter_(const double *x, const double *P, const double *H,
 				const double *v, const double *R, int n, int m,
 				double *xp, double *Pp);
 
-/* matrix and vector functions -----------------------------------------------*/
+// matrix and vector functions
 double *mat  (int n, int m);
 int    *imat (int n, int m);
 double *zeros(int n, int m);

@@ -2,170 +2,164 @@
 # ex15 - Realtime Example
 # Uses CNES SSR stream with orbits, clocks and biases to provide GPS+GAL realtime PPP with resolved ambiguities
 
-input_files:
+inputs:
 
-    root_input_directory: products/
+    root_directory: products/
 
-    atxfiles:   [ igs14_2045_plus.atx                           ]    # required
-    snxfiles:   [ meta_gather_20210721.snx                               ]    # required
-    blqfiles:   [ OLOAD_GO.BLQ                                  ]    # required if ocean loading is applied
+    atx_files:   [ igs14_2045_plus.atx                           ]    # required
+    snx_files:   [ meta_gather_20210721.snx                               ]    # required
+    blq_files:   [ OLOAD_GO.BLQ                                  ]    # required if ocean loading is applied
 
-
-station_data:
-
-    root_stations_directory:    data/recordings/
+    troposphere:
+        gpt2grid_files:   gpt_25.grd
+        #vmf3_directory:    grid5/
+        #orography_files:  orography_ell_5x5
     
-    obs_rtcmfiles: 
-        - "*OBS.rtcm3"
+    gnss_observations:
 
-    nav_rtcmfiles:
-        - "*NAV.rtcm3"
-    
-    ssr_input_antenna_offset: APC
+        root_directory:    ../data/recordings/
+        
+        rtcm_files: 
+            - "*OBS.rtcm3"
 
-    # nav_streams:
-    # - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/BCEP00DLR0"
-    # - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/SSRA02IGS0"
-
-    # obs_streams:
-    # - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0"    
-    
-output_files:
-
-    root_output_directory:          <CONFIG>/
+        #streams:
+        # - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0"  
+        
+    satellite_data:
+        root_directory:    ../data/recordings/
+        
+        rtcm_files:
+            - "*NAV.rtcm3"
+            
+        #root_stream_url: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/
+        #streams:
+        # - "BCEP00DLR0"
+        # - "SSRA02IGS0"
  
-    output_trace:                   true
-    trace_level:                    2
-    trace_directory:                ./
-    trace_filename:                 <CONFIG>-<STATION>_<LOGTIME>.TRACE
-    trace_rotate_period:            1   # 6
-    trace_rotate_period_units:      day # hours
-
-    output_residuals:               true
     
-    output_sinex:                   true
+outputs:
 
-    output_persistance:             false
-    input_persistance:              false
-    persistance_directory:          ./
-    persistance_filename:           <CONFIG>.persist
+    root_directory:          <CONFIG>/
+ 
+    trace:
+        output_stations:                     true
+        output_network:                     true
+        level:                      2
+        directory:                  ./
+        station_filename:                   <CONFIG>-<STATION>_<LOGTIME>.TRACE
+        network_filename:                   <CONFIG>-<STATION>_<LOGTIME>.TRACE
+        output_residuals:           true
+        output_config:              true
+    
+    output_rotation:
+        period:            1   # 6
+        period_units:      day # hours
 
-    output_config:                  true
+    sinex:
+        output:                   true
 
-    summary_directory:              ./
-    summary_filename:               <CONFIG>-<YYYY><DDD><HH>.SUM
+    metadata:
 
-    #enable_mongo:                   true
-    #output_mongo_measurements:      true
-    #output_mongo_states:            true
-    #delete_mongo_history:           true
-    #mongo_uri:                      mongodb://127.0.0.1:27017
-    #mongo_database:                 <CONFIG>
-
-ssr_corrections:
-    calculate_ssr:    true
-    update_interval:  10
-    ssr_ephemeris:    PRECISE
-    upload_to_caster: true
-    sync_epochs:      false
-
-
-output_options:
-
-    config_description:             ex15
-    analysis_agency:                GAA
-    analysis_center:                Geoscience Australia
-    analysis_program:               AUSACS
-    rinex_comment:                  AUSNETWORK1
+        config_description:             ex15
+        analysis_agency:                GAA
+        analysis_center:                Geoscience Australia
+        analysis_program:               AUSACS
+        rinex_comment:                  AUSNETWORK1
 
 
 processing_options:
 
-    #start_epoch:               2019-07-18 23:39:00
-    #end_epoch:                 2017-03-29 23:59:30
-    #max_epochs:                 600        #0 is infinite
-    epoch_interval:             1          #seconds
-    wait_next_epoch:            31
-    wait_all_stations:          1
+    ssr_inputs:
+        validity_interval_factor:   18         # multiplied by UDI to get the validity interval for SSR messages
 
-    ppp_ephemeris:              ssr         # broadcast  ssr  precise
-    validity_interval_factor:   18.0         # multiplied by UDI to get the validity interval for SSR messages
+        ssr_antenna_offset: APC
+    epoch_control:
+        #start_epoch:                2019-07-18 23:39:00
+        #end_epoch:                  2017-03-29 23:59:30
+        #max_epochs:                 600        #0 is infinite
+        epoch_interval:             1          #seconds
+        wait_next_epoch:            31
+        wait_all_stations:          1
 
-    #simulate_real_time:         true
+        #simulate_real_time:         true
     
     process_modes:
         user:                   true
-        network:                false
-        minimum_constraints:    false
-        rts:                    false
-        ionosphere:             false
-        unit_tests:             false
  
-    process_sys:
-        gps:            true
-        glo:            false
-        gal:            true
-        #bds:           true
+    gnss_general:
         
-    solve_amb_for:
-        gps:            true
-        glo:            false
-        gal:            true
-        bds:            false
+        elevation_mask:     10   #degrees
 
-    elevation_mask:     10   #degrees
+        reject_eclipse:     true            #  reject observation during satellite eclipse periods
+        raim:               true
+        
+        delete_old_ephemerides:     true
 
-    tide_solid:         true
-    tide_pole:          true
-    tide_otl:           true
+        max_gdop:   30
+        sys_options:
+            gps:
+                process:                true
+                ambiguity_resolution:   true
+                code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+                                    L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                                    L5X, L5Q, L5I,
+                                    L6Q, L6I, L6X,
+                                    L7Q, L7X, L7I]
 
-    phase_windup:       true
-    reject_eclipse:     true            #  reject observation during satellite eclipse periods
-    raim:               true
-    antexacs:           true
-    
-    delete_old_ephemerides:     true
+            gal:
+                process:                true
+                ambiguity_resolution:   true
+                code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+                                    L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                                    L5X, L5Q, L5I,
+                                    L6Q, L6I, L6X,
+                                    L7Q, L7X, L7I]
 
-    sat_pcv:            true
-
-    cycle_slip:
-        thres_slip: 0.05
-
-    max_inno:   0
-    max_gdop:   30
-
-    troposphere:
-        model:      gpt2    #vmf3
-        gpt2grid:   gpt_25.grd
-        #vmf3dir:    grid5/
-        #orography:  orography_ell_5x5
         
 
-    ionosphere:
-        corr_mode:      iono_free_linear_combo
-        iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
+    gnss_models:
+        troposphere:
+            model:      gpt2    #vmf3
+            
+        sat_pos:
+            source:   ssr         # broadcast  ssr  precise
+        
+        ionospheric_component:
+            corr_mode:      iono_free_linear_combo
+            iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
 
-    pivot_station:        "USN7"
-    pivot_satellite:      "G01"
+    ambiguity_resolution:
+        elevation_mask:                 15
+        
+        #lambda_set_size:                 10
+        max_rounding_iterations:         3
+        # max_amb_hold_epochs:            10            # old 'Fix_and_Hold' parameter is deprecated, fix and hold will be activated if Max_amb_hold_epoc is greater than 0
+        
+        wide_lane:
+            mode:                       iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+            success_rate_threshold:     0.9999
+            solution_ratio_threshold:   3
+            process_noise_sat:          0.00001
+            process_noise_rec:          0.0001
+        
+        narrow_lane:
+            mode:                       lambda_bie        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+            success_rate_threshold:     0.999
+            solution_ratio_threshold:   3
 
-    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
-                        L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
-                        L5X, L5Q, L5I,
-                        L6Q, L6I, L6X,
-                        L7Q, L7X, L7I]
+    filter_options:
+
+        outlier_screening:
+            max_filter_iterations:      2
+            max_prefit_removals:        2
+        
+        rts:
+            lag:                    20      #-ve for full reverse, +ve for limited epochs
+            directory:              ./
+            filename:               PPP-<CONFIG>-<STATION>.rts
 
 
-user_filter_parameters:
-
-    max_filter_iterations:      2
-    max_prefit_removals:        2
-
-    rts_lag:                    20      #-ve for full reverse, +ve for limited epochs
-    rts_directory:              ./
-    rts_filename:               PPP-<CONFIG>-<STATION>.rts
-
-
-default_filter_parameters:
+estimation_parameters:
 
     stations:
 
@@ -174,34 +168,34 @@ default_filter_parameters:
         phase_sigmas:       [0.0015]
 
         pos:
-            estimated:          true
+            estimated:          [true]
             sigma:              [100.0]
             proc_noise:         [0] #stations static
 
         clk:
-            estimated:          true
+            estimated:          [true]
             sigma:              [30]
             proc_noise:         [10]
 
         clk_rate:
-            estimated:          false
+            #estimated:          [true]
             sigma:              [0]
             proc_noise:         [1]
 
         amb:
-            estimated:          true
+            estimated:          [true]
             sigma:              [60]
             proc_noise:         [0]
             #proc_noise_dt:      day
 
         trop:
-            estimated:          true
+            estimated:          [true]
             sigma:              [0.1]
             proc_noise:         [0.0001] #0.1 mm/sqrt(s)
             proc_noise_dt:      second
 
         trop_grads:
-            estimated:          true
+            estimated:          [true]
             sigma:              [0.02]
             proc_noise:         [1.0E-6]
             proc_noise_dt:      second
@@ -209,79 +203,62 @@ default_filter_parameters:
     satellites:
 
         clk:
-            estimated:          false
+            #estimated:          [true]
             sigma:              [0]
             proc_noise:         [1]
             #proc_noise_dt:      min
 
         clk_rate:
-            estimated:          false
+            #estimated:          [true]
             sigma:              [0]
             proc_noise:         [1]
 
         orb:
-            estimated:          false
+            #estimated:          [true]
 
 
-ambiguity_resolution_options:
-    Min_elev_for_AR:            15.0
-    
-    #Set_size_for_lambda:        10
-    Max_round_iterat:           3
-    # Max_amb_hold_epoc:          10            # old 'Fix_and_Hold' parameter is deprecated, fix and hold will be activated if Max_amb_hold_epoc is greater than 0
-    
-    WL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
-    WL_succ_rate_thres:         0.9999
-    WL_sol_ratio_thres:         3.0
-    WL_procs_noise_sat:         0.00001
-    WL_procs_noise_sta:         0.0001
-    
-    NL_mode:                    lambda_bie        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
-    NL_succ_rate_thres:         0.999
-    NL_sol_ratio_thres:         3.0
-    
-override_filter_parameters:
+    overrides:
 
-    stations:
+        stations:
 
-        #ALIC:
-        #    pos:
-        #        sigma:              [60]
-        #        proc_noise:         [0]
-            #clk:
-                #sigma:              [0.01]
+            #ALIC:
+            #    pos:
+            #        sigma:              [60]
+            #        proc_noise:         [0]
+                #clk:
+                    #sigma:              [0.01]
 
-        #AGGO:
-            #exclude: true
-        #ALIC:
-            #exclude: true
-        #ANKR:
-            #exclude: true
-                #estimated:  false
+            #AGGO:
+                #exclude: true
+            #ALIC:
+                #exclude: true
+            #ANKR:
+                #exclude: true
+                    #estimated:  false
 
-    satellites:
+        satellites:
 
-        ### Constellation Overrides
-        #SYS_GPS:
-            #srp:
-                #sigma:              [0.01]
-                #proc_noise:         [0.001]
+            ### Constellation Overrides
+            #SYS_GPS:
+                #srp:
+                    #sigma:              [0.01]
+                    #proc_noise:         [0.001]
 
-        ### Block Type Overrides
-        #GPS-IIR-A:
-            #pos: { sigma: [10.0] }
-            #vel: { sigma: [0.1] }
+            ### Block Type Overrides
+            #GPS-IIR-A:
+                #pos: { sigma: [10.0] }
+                #vel: { sigma: [0.1] }
 
-        ### PRN Overrides
-        #PRN_G10:
-            #pos: { sigma: [10.0]    }
-            #vel: { sigma: [0.1]     }
-            #clk: { sigma: [1.0]     }
+            ### PRN Overrides
+            #PRN_G10:
+                #pos: { sigma: [10.0]    }
+                #vel: { sigma: [0.1]     }
+                #clk: { sigma: [1.0]     }
 
-        #PRN_G15:
-            #exclude: true
+            #PRN_G15:
+                #exclude: true
 
-        ### SVN Overrides
-        #SVN_G265:
-            #pos: {sigma: [10.0] }
-            #vel: {sigma: [0.1]  }
+            ### SVN Overrides
+            #SVN_G265:
+                #pos: {sigma: [10.0] }
+                #vel: {sigma: [0.1]  }

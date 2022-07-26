@@ -57,14 +57,13 @@ set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -fall-intrinsics")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wall")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -fcheck=all")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -fbacktrace")
-#set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-unused-dummy-argument")
+set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-unused-dummy-argument")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-conversion")
-set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-surprising")
-set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-tabs")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-unused-variable")
+set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-tabs")
+set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-surprising")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-unused-label")
-#set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-maybe-uninitialized")
-#set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-ampersand")
+
 
 option(ENABLE_UNIT_TESTS        "ENABLE_UNIT_TESTS"         OFF)
 option(BUILD_DOC                "BUILD_DOCUMENTATION"       ON)
@@ -98,31 +97,26 @@ if (BUILD_DOC)
 	if (DOXYGEN_FOUND)
 
 		# set input and output files
-		set(DOXYGEN_IN      ${CMAKE_CURRENT_SOURCE_DIR}/doc_templates/Doxyfile.in)
-		set(DOXYGEN_OUT     ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-		set(DOXYGEN_LAYIN   ${CMAKE_CURRENT_SOURCE_DIR}/doc_templates/DoxygenLayout.xml.in)
-		set(DOXYGEN_LAYOUT  ${CMAKE_CURRENT_BINARY_DIR}/DoxygenLayout.xml)
-
-		# request to configure the file
-		if (EXISTS "${DOXYGEN_IN}")
-			configure_file(${DOXYGEN_IN}		${DOXYGEN_OUT}		@ONLY)
-		endif()
-		if (EXISTS "${DOXYGEN_LAYIN}")
-			configure_file(${DOXYGEN_LAYIN}		${DOXYGEN_LAYOUT}	@ONLY)
-		endif()
+		set(DOXYGEN_IN		../doc_templates/Doxyfile.in)
+		set(DOXYGEN_OUT		Doxyfile)
+		set(DOXYGEN_LAYIN	../doc_templates/DoxygenLayout.xml.in)
+		set(DOXYGEN_LAYOUT	DoxygenLayout.xml)
 
 		# note the option ALL which allows to build the docs together with the application
 		add_custom_target( docs
-		ALL
-			COMMAND				${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-			WORKING_DIRECTORY	${CMAKE_CURRENT_SOURCE_DIR}/../docs
+			ALL
+			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_IN} -DOUT=${DOXYGEN_OUT} -P "../cmake/Configure.cmake"
+			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_LAYIN} -DOUT=${DOXYGEN_LAYOUT} -P "../cmake/Configure.cmake"
+			COMMAND				${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${DOXYGEN_OUT}
+			WORKING_DIRECTORY	${CMAKE_CURRENT_SOURCE_DIR}/build
 			COMMENT				"Generating API documentation with Doxygen"
 			VERBATIM )
-
+					
 		list(APPEND CTEST_CUSTOM_WARNING_EXCEPTION
 		".*warning: ignoring loop annotation.*"
 		".*warning: .*Consider increasing DOT_GRAPH_MAX_NODES."
 		)
+		
 	else (DOXYGEN_FOUND)
 
 		message("Doxygen need to be installed to generate the doxygen documentation")
@@ -149,11 +143,11 @@ find_package(YAML_CPP 0.6.2 REQUIRED)
 
 find_package(OpenSSL REQUIRED)
 
-set(Boost_NO_SYSTEM_PATHS ON)
+#set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time filesystem system thread program_options serialization timer)
 
-find_package(Eigen3 3.4.0)
+find_package(Eigen3 3.3.0)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
 find_package(mongocxx	REQUIRED)
@@ -233,14 +227,23 @@ ELSE()
 ENDIF()
 
 
-link_directories(/usr/lib64 ${CMAKE_BINARY_DIR}/../lib)
+link_directories(/usr/lib64 ${CMAKE_BINARY_DIR}/../../lib)
+
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h @ONLY)
 
 
+set (NETCDF_CXX "YES")
+find_package (NetCDF REQUIRED)
 
-include(CMakeLists-C.txt)
-include(CMakeLists-F.txt)
+# message(STATUS "...NETCDF     >>>>>>   ${NETCDF_LIBRARIES}     ${NETCDF_INCLUDES}" )
+# message(STATUS "...NETCDF_C++ >>>>>>   ${NETCDF_LIBRARIES_CXX} ${NETCDF_INCLUDES_CXX}" )
+# find_package(netCDFCxx REQUIRED)
 
-					
+add_subdirectory(cpp)
+add_subdirectory(fortran)
+
+					 
+message(STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 message(STATUS "CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_Fortran_FLAGS:     ${CMAKE_Fortran_FLAGS}")

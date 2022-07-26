@@ -1,6 +1,7 @@
 #include <boost/log/trivial.hpp>
 
 #include "eigenIncluder.hpp"
+#include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "station.hpp"
 #include "common.hpp"
@@ -66,13 +67,13 @@ void setTropDesc(
 
 	theSinex.tropDesc.strings	["TROPO MODELING METHOD"]		= tropEstMethod;
 	theSinex.tropDesc.strings	["TIME SYSTEM"]					= acsConfig.time_system;
-	theSinex.tropDesc.strings	["OCEAN TIDE LOADING MODEL"]	= acsConfig.ocean_tide_load;
-	theSinex.tropDesc.strings	["ATMOSPH TIDE LOADING MODEL"]	= acsConfig.atmosph_tide_load;
+	theSinex.tropDesc.strings	["OCEAN TIDE LOADING MODEL"]	= acsConfig.ocean_tide_loading_model;
+	theSinex.tropDesc.strings	["ATMOSPH TIDE LOADING MODEL"]	= acsConfig.atmospheric_tide_loading_model;
 	theSinex.tropDesc.strings	["GEOID MODEL"]					= acsConfig.geoid_model;
 	theSinex.tropDesc.ints		["TROPO SAMPLING INTERVAL"]		= acsConfig.epoch_interval;
-	theSinex.tropDesc.strings	["A PRIORI TROPOSPHERE"]		= acsConfig.tropOpts.model._to_string();
-	theSinex.tropDesc.strings	["TROPO MAPPING FUNCTION"]		= acsConfig.tropOpts.model._to_string();
-	theSinex.tropDesc.strings	["GRADS MAPPING FUNCTION"]		= acsConfig.grads_mapping_fn;
+	theSinex.tropDesc.strings	["A PRIORI TROPOSPHERE"]		= acsConfig.model.trop.model._to_string();
+	theSinex.tropDesc.strings	["TROPO MAPPING FUNCTION"]		= acsConfig.model.trop.model._to_string();
+	theSinex.tropDesc.strings	["GRADS MAPPING FUNCTION"]		= acsConfig.gradient_mapping_function;
 	theSinex.tropDesc.ints		["ELEVATION CUTOFF ANGLE"]		= acsConfig.elevation_mask*R2D;
 
 	theSinex.tropDesc.vecStrings["TROPO PARAMETER NAMES"].clear();
@@ -345,32 +346,19 @@ int writeTropSiteEcc(
 /** Set site coordinates from filter
  */
 void setTropSiteCoordsFromFilter(
-	map<string, Station>&	stationMap,	///< map of stations used in network
-	KFState&				netKFState)	///< Network filter to take state values from
+	map<string, Station>&	stationMap)	///< map of stations used in network
 {
+// 	Instrument	instrument(__FUNCTION__);
+
 	// Merge rec & network filters
 	list<KFState*> kfStatePointers;
 	
 	if (acsConfig.process_user)
 	for (auto& [key, rec] : stationMap)
 	{
-		kfStatePointers.push_back(&rec.rtk.pppState);
+		kfStatePointers.push_back(&rec.pppState);
 	}
 	
-// 	KFState augmentedNetKFState;
-// 	if (acsConfig.process_network)
-// 	{
-// 		augmentedNetKFState = netKFState;
-// 		for (auto& [key, index] : augmentedNetKFState.kfIndexMap)
-// 		{
-// 			if (key.type != KF::REC_POS)
-// 				continue;
-// 			auto& rRec = stationMap[key.str].aprioriPos(key.num);
-// 			auto& state = augmentedNetKFState.x(index);
-// 			state += rRec;	//augment the correction state with the value from the sinex
-// 		}
-// 		kfStatePointers.push_back(&augmentedNetKFState);
-// 	}
 	theSinex.tropKFState = mergeFilters(kfStatePointers, true);
 	
 	for (auto& [key, index] : theSinex.tropKFState.kfIndexMap)
@@ -441,25 +429,6 @@ void setTropSolsFromFilter(
 		double x	= 0;
 		double var	= 0;
 	};
-	
-// 	if (isUserMode == false)
-// 	{
-// 		BOOST_LOG_TRIVIAL(error)
-// 		<< "Error: Trop exporting is incorrect for network mode";
-// 		
-// 			// Network filter output is a correction the a priori. Needs to be added to the a priori ZWD (& ZTD for total) to get the final updated estimates
-// 			//if(key.station_ptr == nullptr)
-// 			//{
-// 			//	BOOST_LOG_TRIVIAL(error)
-// 			//		<< "Error: KFKey has no station_ptr " << key.str;
-// 			//	continue;
-// 			//}
-// 			//double modelledZwd = key.station_ptr->zwd;
-// 			//double modelledZhd = key.station_ptr->zhd;
-// 			//tropMap[sitecode][typeWet]	.mu	= modelledZwd;
-// 			//tropMap[sitecode][typeTotal].mu	= modelledZwd + modelledZhd;
-// 		return;
-// 	}
 	
 	map<string, map<string, State>> tropSumMap;	//for summing similar components - eg trop and trop_gm
 	
@@ -559,7 +528,6 @@ void setTropSolsFromFilter(
 				entry.x	-= modelledZhd;
 			}
 				
-			
 			StationEntry.solutions.push_back({type, 		 entry.x,		units,	8}); //type, value, units (multiplier), printing width
 			StationEntry.solutions.push_back({"STDDEV",	sqrt(entry.var),	1e3,	8});
 		}
@@ -659,8 +627,8 @@ int  writeTropSinexToFile(
 	ofstream fout(filename, std::fstream::in | std::fstream::out);
 	if (!fout)
 	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Could not open " << filename << " for writing trop sinex";
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Could not open " << filename << " for writing trop sinex";
 		
 		return 1;
 	}
@@ -731,17 +699,18 @@ void setTropHeaderData(
  */
 void outputTropSinex(
 	string					filename,	///< filename of file to write out
-	GTime&					time,		///< epoch of solution
+	GTime					time,		///< epoch of solution
 	map<string, Station>&	stationMap,	///< map of stations used in network
-	KFState&				netKFState,	///< network KF state
 	string					markerName,	///< name of station to use ("MIX" for all)
 	bool					isSmoothed)	///< if solution is smoothed (RTS or fixed-lag)
 {
+// 	Instrument instrument(__FUNCTION__);
+	
 	setFileRefData();
 	setTropHeaderData(time);
 	replaceTimes(filename, acsConfig.start_epoch);
 	
-	setTropSiteCoordsFromFilter(stationMap, netKFState);
+	setTropSiteCoordsFromFilter(stationMap);
 	setTropSiteAntCalibModelsFromNav();
 	
 	setTropSols(isSmoothed);				// requires setTropKFState() & setTropSiteCoordsFromFilter to have been called

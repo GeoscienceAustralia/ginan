@@ -53,15 +53,15 @@ using ssl_socket	= ssl::stream<tcp::socket>;
 using namespace boost::system;
 
 
-#define ERROR_OUTPUT_RECONNECT_AND_RETURN 																					\
-{																															\
-	onErrorStatistics(err, __FUNCTION__);																					\
+#define ERROR_OUTPUT_RECONNECT_AND_RETURN 																						\
+{																																\
+	onErrorStatistics(err, __FUNCTION__);																						\
 	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << "\n in " << __FUNCTION__ << " for " << url.sanitised() << "\n";	\
-																															\
-	if (err != boost::asio::error::operation_aborted)																		\
-		delayed_reconnect();        																						\
-																															\
-	return;																													\
+																																\
+	if (err != boost::asio::error::operation_aborted)																			\
+		delayed_reconnect();        																							\
+																																\
+	return;																														\
 }																																
 
 
@@ -202,16 +202,10 @@ protected:
 public:
 	URL		url;
 	
+	double	reconnectDelay		= 1;
 	int		disconnectionCount	= 0;
 	bool	isConnected			= false;
-// 	boost::posix_time::ptime         startTime;			//todo aaron, use NetworkStatistics for this instead
-// 	boost::posix_time::ptime         connectedTime;
-// 	boost::posix_time::ptime         disconnectedTime;
-// 	boost::posix_time::time_duration connectedDuration;
-// 	boost::posix_time::time_duration disconnectedDuration;
-// 
-// 	boost::posix_time::time_duration epochConnectedDuration;
-// 	boost::posix_time::time_duration epochDisconnectedDuration;	
+	
 	
 	bool			finishedReadingStream	= false;
 	unsigned int	chunked_message_length	= 0;
@@ -224,7 +218,6 @@ public:
 		timer(io_service),
 		ssl_context(ssl::context::sslv23_client)
 	{
-// 		startTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
 		url			= URL::parse(url_str);	
 		streamName	= url.path;
 	} 

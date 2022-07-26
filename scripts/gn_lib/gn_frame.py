@@ -4,13 +4,10 @@ import logging
 import numpy as _np
 import pandas as _pd
 
-from .gn_aux import update_mindex
-from .gn_const import J2000_ORIGIN as _J2000_ORIGIN
-from .gn_const import SEC_IN_YEAR as _SEC_IN_YEAR
-from .gn_io.discon import _read_discontinuities
-from .gn_io.psd import _get_psd_df
-from .gn_io.sinex import _get_snx_vector_gzchunks
-from .gn_transform import llh2rot, xyz2llh_heik
+from gn_lib import gn_datetime as _gn_datetime
+from gn_lib.gn_const import SEC_IN_YEAR as _SEC_IN_YEAR
+from gn_lib import gn_io as _gn_io
+from gn_lib import gn_transform as _gn_transform
 
 
 def _get_core_list(core_list_path):
@@ -34,14 +31,13 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
     if isinstance(date_or_j2000, int):
         date_J2000 = date_or_j2000
     else:
-        date_J2000 = (_np.datetime64(date_or_j2000) -
-                      _J2000_ORIGIN).astype(int)
+        date_J2000 = _gn_datetime.datetime2j2000(_np.datetime64(date_or_j2000))
 
     # discontinuities file
     if isinstance(discon_path_or_df,_pd.DataFrame):
         discon_df = discon_path_or_df
     elif isinstance(discon_path_or_df,str):
-        discon_df = _read_discontinuities(discon_path_or_df)
+        discon_df = _gn_io.discon._read_discontinuities(discon_path_or_df)
     else:
         logging.error(msg='check discon_path_or_df')
 
@@ -49,7 +45,7 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
     if isinstance(itrf_path_or_df, _pd.DataFrame):
         output = itrf_path_or_df
     elif isinstance(itrf_path_or_df, str):
-        output = _get_snx_vector_gzchunks(
+        output = _gn_io.sinex._get_snx_vector_gzchunks(
             filename=itrf_path_or_df, block_name='SOLUTION/ESTIMATE')
     else:
         logging.error(msg='check itrf_path_or_df')
@@ -124,7 +120,7 @@ def get_frame_of_day(date_or_j2000, itrf_path_or_df, discon_path_or_df, psd_path
         if isinstance(psd_path_or_df,_pd.DataFrame):
             psd_df = psd_path_or_df
         elif isinstance(psd_path_or_df,str):
-            psd_df = _get_psd_df(psd_path_or_df)
+            psd_df = _gn_io.psd._get_psd_df(psd_path_or_df)
         else:
             logging.error(msg='check psd_path_or_df')
         out = psd2frame(frame_of_day=out, psd_df=psd_df)
@@ -146,9 +142,9 @@ def psd2frame(frame_of_day, psd_df):
     # select only those sites that have psd event
     psd_enu = psd_enu[psd_enu.any(axis=1)]
 
-    llh = xyz2llh_heik(xyz_array=frame_of_day[['STAX','STAY','STAZ']].loc[psd_enu.index].values)
+    llh = _gn_transform.xyz2llh_heik(xyz_array=frame_of_day[['STAX','STAY','STAZ']].loc[psd_enu.index].values)
     phi, lam = llh[:, 0], llh[:, 1]
-    rot = llh2rot(phi=phi, lamb=lam)
+    rot = _gn_transform.llh2rot(phi=phi, lamb=lam)
 
     psd_xyz = _pd.DataFrame(data=_np.squeeze(psd_enu.values[:, _np.newaxis] @ rot, axis=1),
                             index=psd_enu.index, columns=['STAX', 'STAY', 'STAZ'])
@@ -183,7 +179,7 @@ def _get_psd_enu(psd_df, date_J2000):
 def read_frame_snx_all(*file_paths,core_sites=None):
     buf=[]
     for path in file_paths:
-        buf.append(_get_snx_vector_gzchunks(filename=path,block_name='SOLUTION/ESTIMATE'))
+        buf.append(_gn_io.sinex._get_snx_vector_gzchunks(filename=path,block_name='SOLUTION/ESTIMATE'))
     all_frame = _pd.concat(buf)
     if core_sites is not None:
         return all_frame[all_frame.CODE.isin(core_sites)]
@@ -192,7 +188,7 @@ def read_frame_snx_all(*file_paths,core_sites=None):
 def read_disc_all(*file_paths,core_sites=None):
     buf=[]
     for path in file_paths:
-        buf.append(_read_discontinuities(path))
+        buf.append(_gn_io.discon._read_discontinuities(path))
     all_discon = _pd.concat(buf)
     all_discon = all_discon[all_discon.MODEL.values =='P']
     
@@ -203,7 +199,7 @@ def read_disc_all(*file_paths,core_sites=None):
 def read_psd_all(*file_paths,core_sites=None):
     buf=[]
     for path in file_paths:
-        buf.append(_get_psd_df(path))
+        buf.append(_gn_io.psd._get_psd_df(path))
     all_psd = _pd.concat(buf)
     if core_sites is not None:   
         psd_sites = all_psd.index.levels[0]

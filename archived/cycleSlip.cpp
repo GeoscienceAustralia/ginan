@@ -1493,5 +1493,39 @@ struct CycleSlipOptions
 	double	int_valid_combo_jump_alpha		= 0;
 };
 
+/** Calculates prefit residual, returning results as a KFMeasEntryList
+* KFMeasEntryMap[ObsKey].value = prefit residual value
+* KFMeasEntryMap[ObsKey].noise = prefit residual uncertainty
+* KFMeasEntryMap[ObsKey].innov = kfMeas.V(i)
+*/
+KFMeasEntryList KFState::calcPrefitResids(
+	Trace&			trace,				///< Trace file for output
+	KFMeas&			kfMeas)				///< Measurement object
+{
+	KFState& kfState = *this;
+
+	// Calculate prefit resid & uncertainty S
+	Eigen::VectorXd PrefitResid = kfMeas.Y - kfMeas.A * kfState.x;
+	Eigen::MatrixXd S = kfMeas.A * kfState.P * kfMeas.A.transpose() + Eigen::MatrixXd(kfMeas.R.asDiagonal());
+	int numMeas = PrefitResid.size();
+	//assert(kfMeas.R.size() == numMeas);
+	assert(S.rows() == numMeas);
+	assert(S.cols() == numMeas);
+	assert(kfMeas.V.size() == numMeas);
+
+	// Return result within a KFMeasEntryList
+	KFMeasEntryList kfMeasEntryList;
+	for (int meas=0; meas<numMeas; ++meas)
+	{
+		KFMeasEntry entry;
+		entry.value = PrefitResid(meas);
+		//entry.noise = kfMeas.R(meas);
+		entry.noise = S(meas,meas);
+		entry.innov = kfMeas.V(meas);
+		entry.obsKey = kfMeas.obsKeys.at(meas);
+		kfMeasEntryList.push_back(entry);
+	}
+	return kfMeasEntryList;
+}
 #endif
 }

@@ -25,18 +25,23 @@ struct TestStatistics
 };
 
 void mongoMeasResiduals(
-	vector<ObsKey>		obsKeys,
+	GTime				time,
+	vector<ObsKey>&		obsKeys,
 	VectorXd&			prefits,
 	VectorXd&			postfits,
 	MatrixXd&			variance,
+	string				suffix = "",
 	int					beg = 0,
 	int					num = -1);
+
+void mongoMeasComponents(
+	KFMeas&		kfMeas);
 
 void mongoStates(
 	KFState&			kfState,
 	string				suffix = "");
 
-void mongoMeasSatStat_all(
+void mongoMeasSatStat(
 	StationMap&			stationMap);
 
 void mongoTestStat(

@@ -129,17 +129,18 @@ SUBROUTINE orbitmain (EQMfname, VEQfname, orb_icrf, orb_itrf, veqSmatrix, veqPma
 ! ----------------------------------------------------------------------
       CHARACTER (LEN=2048) :: output
       CHARACTER (LEN=256) :: line
-      logical found
+      logical found, no_initial_data
 
 
 ! ----------------------------------------------------------------------
 ! Precise Orbit Determination or Orbit Prediction
-CALL orbdet (EQMfname, VEQfname, orb_icrf, orb_itrf, veqSmatrix, veqPmatrix, Vres, Vrms, Xsigma)
-if (.not.Allocated(orb_icrf)) then
-        print *,"Error from orbdet orb_icrf not allocated"
+CALL orbdet (EQMfname, VEQfname, orb_icrf, orb_itrf, veqSmatrix, veqPmatrix, Vres, Vrms, Xsigma, no_initial_data)
+if (no_initial_data) then
+        print *,"Error from orbdet (Sat unhealthy at initial epoch) processing ", PRN
+        return
 end if
 ! ----------------------------------------------------------------------
-WRITE (output, FMT='(A, A17, A4, 3F14.4)') "Orbit residuals: ICRF" // NEW_LINE ('A'), "RMS-XYZ ICRF FIT", PRN, Vrms
+WRITE (output, FMT='(A, A17, A4, 3F16.4)') "Orbit residuals: ICRF" // NEW_LINE ('A'), "RMS-XYZ ICRF FIT", PRN, Vrms
 !PRINT *,"Orbit Determination: Completed"
 !CALL cpu_time (CPU_t1)
 !PRINT *,"CPU Time (sec)", CPU_t1-CPU_t0
@@ -156,15 +157,15 @@ CALL orbext2(EQMfname, orb_icrf, orb_itrf, stat_XYZ_extC, stat_RTN_extC, stat_Ke
 ! ----------------------------------------------------------------------
 write (line, '(A)') "External Orbit comparison" // NEW_LINE('A') // "Orbit comparison: ICRF"
 output = trim(output) // NEW_LINE ('A') // line
-WRITE (line, FMT='(A17, A4, 3F14.4)') "RMS-RTN ICRF CMP", PRN, stat_RTN_extC(1, 1:3)
+WRITE (line, FMT='(A17, A4, 3F16.4)') "RMS-RTN ICRF CMP", PRN, stat_RTN_extC(1, 1:3)
 output = trim(output) // NEW_LINE ('A') // line
-WRITE (line, FMT='(A17, A4, 3F14.4)') "RMS-XYZ ICRF CMP", PRN, stat_XYZ_extC(1, 1:3)
+WRITE (line, FMT='(A17, A4, 3F16.4)') "RMS-XYZ ICRF CMP", PRN, stat_XYZ_extC(1, 1:3)
 output = trim(output) // NEW_LINE ('A') // line
 !WRITE (*,FMT='(A9, 3F17.9)'),"RMS Vxyz", stat_XYZ_extC(1, 4:6)
 
 write (line, '(A)') "Orbit comparison: ITRF"
 output = trim(output) // NEW_LINE ('A') // line
-WRITE (line, FMT='(A17, A4, 3F14.4)') "RMS-XYZ ITRF CMP", PRN, stat_XYZ_extT(1, 1:3)
+WRITE (line, FMT='(A17, A4, 3F16.4)') "RMS-XYZ ITRF CMP", PRN, stat_XYZ_extT(1, 1:3)
 output = trim(output) // NEW_LINE ('A') // line
 !WRITE (*,FMT='(A9, 3F17.9)'),"RMS Vxyz", stat_XYZ_extT(1,4:6)
 else

@@ -1,140 +1,157 @@
-# ex12 - PPP Ionosphere-Free Observable Example GPS+GAL
-# Uses TU GRAZ orbit and clock products to produce kinematic PPP solition (GPS+GAL, float ambiguities)
-# Total processing duration  ~ 2.5 minutes on 2-cores
+inputs:
 
-input_files:
+    root_directory: products/
 
-    root_input_directory: products/
+    atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
+    snx_files: [ "*.snx"          ]  # SINEX file for meta data and initial position
+    blq_files: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
+    erp_files: [ COD0R03FIN_20191990000_01D_01D_ERP.ERP ]
 
-    atxfiles: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snxfiles: [ "*.snx"          ]  # SINEX file for meta data and initial position
-    blqfiles: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
-    navfiles: [ brdm1990.19p     ]  # broadcast navigation file
-    sp3files: [ COD0MGXFIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
-    clkfiles: [ COD0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
-    bsxfiles: [ COD0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
-    erpfiles: [ COD0R03FIN_20191990000_01D_01D_ERP.ERP ]
-
-station_data:
-
-    root_stations_directory: data/
-
-    rnxfiles:
-        # Select files to run by:
-        - "AREQ*.rnx" # ALIC station rnx file will be found
-        - "AREG*.rnx"
-        # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
-                                                          # - selecting one on the command line using the -rnxfiles option
+    troposphere:
+        # vmf3dir:    grid5/
+        # orography:  orography_ell_5x5
+        gpt2grid_files:   gpt_25.grd
+        
+    satellite_data:
+        nav_files: [ brdm1990.19p     ]  # broadcast navigation file
+        sp3_files: [ COD0MGXFIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
+        clk_files: [ COD0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
+        bsx_files: [ COD0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    
+    gnss_observations:
+        root_directory: ../data/
+        rnx_files:
+            # Select files to run by:
+            - "AREQ*.rnx" # ALIC station rnx file will be found
+            - "AREG*.rnx"
+            # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
+                                                            # - selecting one on the command line using the -rnxfiles option
 
                                                             
-output_files:
+outputs:
 
-    root_output_directory:          <CONFIG>/
+    root_directory:          <CONFIG>/
 
-    output_trace:                   true
-    trace_level:                    2
-    trace_directory:                ./
-    trace_filename:                 <STATION><YYYY><DDD><HH>.TRACE
-    output_residuals:               true
-    output_sinex:                   true
-    sinex_directory:                ./
+    trace:
+        output_stations:                     true
+        level:                      2
+        directory:                  ./
+        station_filename:                   <STATION><YYYY><DDD><HH>.TRACE
+        output_residuals:           true
     
-    output_ppp_sol:                 true
-    ppp_sol_filename:               <CONFIG>_<STATION><YYYY><DDD><HH>.POS
+    sinex:
+        output:                     true
+        directory:                  ./
+    
+    ppp_sol:
+        output:                     true
+        filename:                   <CONFIG>_<STATION><YYYY><DDD><HH>.POS
 
-    output_log:                     true
+    log:
+        output:                     true
 
-    enable_mongo:                   true
-    output_mongo_measurements:      true
-    output_mongo_states:            true
-    output_mongo_metadata:          false
-    delete_mongo_history:           false
-    mongo_uri:                      mongodb://127.0.0.1:27017
-    mongo_suffix:                   "_sol" 
+    metadata:
 
-output_options:
+        config_description:             ex14
+        analysis_agency:                GAA
+        analysis_center:                Geoscience Australia
+        analysis_program:               AUSACS
+        rinex_comment:                  AUSNETWORK1
 
-    config_description:             ex14
-    analysis_agency:                GAA
-    analysis_center:                Geoscience Australia
-    analysis_program:               AUSACS
-    rinex_comment:                  AUSNETWORK1
-
+mongo:
+    enable:                   true
+    output_measurements:      true
+    output_states:            true
+    delete_history:           false
+    uri:                      mongodb://127.0.0.1:27017
+    suffix:                   "_sol" 
+    
+debug:
+    unit_tests:
+        #stop_on_done:   true
+        output_pass:    false
 
 processing_options:
 
-    start_epoch:                2019-07-18 00:00:00
-    end_epoch:                  2019-07-18 06:00:00
-    epoch_interval:             30          #seconds
-    max_epochs:                 0        #0 is infinite
+    epoch_control:
+        start_epoch:                2019-07-18 00:00:00
+        end_epoch:                  2019-07-18 06:00:00
+        epoch_interval:             30          #seconds
+        #max_epochs:                 80        #0 is infinite
 
     process_modes:
         user:                   true
-        network:                false
-        minimum_constraints:    false
-        rts:                    false
-        ionosphere:             false
-
-    process_sys:
-        gps:            true
-        glo:            false
-        gal:            true
-        bds:            false
+        
+    gnss_general:
     
-    solve_amb_for:
-        gps:            true
-        glo:            false
-        gal:            false
-        bds:            false
+        elevation_mask:     10  #degrees
 
-    elevation_mask:     10  #degrees
+        reject_eclipse:     true            #  reject observation during satellite eclipse periods
+        raim:               true
+        
+        max_gdop:   30
 
-    tide_solid:         true
-    tide_pole:          true
-    tide_otl:           true
 
-    phase_windup:       true
-    reject_eclipse:     true            #  reject observation during satellite eclipse periods
-    raim:               true
-    antexacs:           true
+        sys_options:
+            gps:
+                process:                true
+                clock_codes:            [L1C, L2W]
+                ambiguity_resolution:   true
 
-    cycle_slip:
-        thres_slip: 0.05
+                code_priorities: [  L1C,
+                                    L2W,
+                                    L5Q, L5X]
+            gal:
+                process:                true
+                clock_codes:            [L1C, L5Q]
+                ambiguity_resolution:   false
+
+                code_priorities: [  L1C,
+                                    L2W,
+                                    L5Q, L5X]
     
-    reinit_on_all_slips:    true
-
-    max_inno:   0
-    max_gdop:   30
-
-    troposphere:
-        model:      gpt2
-        # vmf3dir:    grid5/
-        # orography:  orography_ell_5x5
-        gpt2grid:   gpt_25.grd
-
-    # pivot_station:        "USN7"
-    # pivot_satellite:      "G01"
-
-    code_priorities: [  L1C,
-                        L2W,
-                        L5Q, L5X]
+    model_error_checking:
+        ambiguities:
+            reinit_on_all_slips:    true
+        
+    gnss_models:
+        troposphere:
+            model:      gpt2
                         
-    clock_codes:
-        gps: [L1W, L2W]
-        gal: [L1C, L5Q]
+    ambiguity_resolution:
 
-user_filter_parameters:
+        elevation_mask:            15
 
-    max_filter_iterations:      5 #5
-    max_prefit_removals:        3 #5
+        wide_lane:
+            mode:                       iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+            success_rate_threshold:     0.999
+            solution_ratio_threshold:   3
+            process_noise_sat:          0.00001
+            process_noise_rec:          0.0001
 
-    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
-    rts_directory:              ./
-    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+        narrow_lane:
+            mode:                       lambda_bie        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+            success_rate_threshold:     0
+            solution_ratio_threshold:   30
 
-    inverter:                   LDLT         #LLT LDLT INV
+        lambda_set_size:                200
+        max_hold_epochs:                0
+        max_rounding_iterations:        5
+    
+    filter_options:
 
-default_filter_parameters:
+        outlier_screening:
+            max_filter_iterations:      5 #5
+            max_prefit_removals:        3 #5
+
+        rts:
+            lag:                    -1      #-ve for full reverse, +ve for limited epochs
+            directory:              ./
+            filename:               PPP-<CONFIG>-<STATION>.rts
+
+        inverter:                   LDLT         #LLT LDLT INV
+
+estimation_parameters:
 
     stations:
 
@@ -143,35 +160,35 @@ default_filter_parameters:
         phase_sigmas:       [0.0015]
 
         pos:
-            estimated:          true
+            estimated:          [true]
             sigma:              [100.0]
             proc_noise:         [100.0] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
             proc_noise_dt:      second
 
         clk:
-            estimated:          true
+            estimated:          [true]
             sigma:              [30]
             proc_noise:         [10]
 
         clk_rate:
-            estimated:          false
+            #estimated:          [true]
             sigma:              [500]
             proc_noise:         [1e-4]
 
         amb:
-            estimated:          true
+            estimated:          [true]
             sigma:              [60]
             proc_noise:         [0]
             #proc_noise_dt:      day
 
         trop:
-            estimated:          true
+            estimated:          [true]
             sigma:              [0.1]
             proc_noise:         [0.0001] #0.1 mm/sqrt(s)
             proc_noise_dt:      second
 
         trop_grads:
-            estimated:          true
+            estimated:          [true]
             sigma:              [0.02]
             proc_noise:         [1.0E-6]
             proc_noise_dt:      second
@@ -179,39 +196,22 @@ default_filter_parameters:
     satellites:
 
         clk:
-            estimated:          false
+            #estimated:          [true]
             # sigma:              [0]
             # proc_noise:         [0.03651483716701108]
             #proc_noise_dt:      min
 
         clk_rate:
-            estimated:          false
+            #estimated:          [true]
             # sigma:              [500]
             # proc_noise:         [1e-4]
 
         orb:
-            estimated:          false
+            #estimated:          [true]
 
-override_filter_parameters:
-    stations:
-        AREG:
-            pos:
-                proc_noise:     [0]
+    overrides:
+        stations:
+            AREG:
+                pos:
+                    proc_noise:     [0]
 
-ambiguity_resolution_options:
-
-    Min_elev_for_AR:            15.0
-
-    WL_mode:                    iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
-    WL_succ_rate_thres:         0.999
-    WL_sol_ratio_thres:         3.0
-    WL_procs_noise_sat:         0.00001
-    WL_procs_noise_sta:         0.0001
-
-    NL_mode:                    lambda_bie        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
-    NL_succ_rate_thres:         0.0
-    NL_sol_ratio_thres:         30.0
-
-    Set_size_for_lambda:        200
-    Max_amb_hold_epoc:          0
-    Max_round_iterat:           5

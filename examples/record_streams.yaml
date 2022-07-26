@@ -1,41 +1,54 @@
 
-station_data:
+inputs:
+    
+    gnss_observations:
 
-    stream_root: "https://<USER>:<PASS>@ntrip.test-data.gnss.ga.gov.au/" 
+    satellite_data:
+
+        root_stream_url: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/" 
+        streams:
+            - GATT00AUS0
         
-    nav_streams:
-        - GAT000AUS0
+        ssr_antenna_offset: APC
+
+
+outputs:
+
+    root_directory:     recordings
+    
+    rtcm_nav:
+        record:         true
+    
+    rinex_nav:
+        output:         true
+    
+    rtcm_obs:
+        record:         true
         
-    ssr_input_antenna_offset: APC
-
-
-output_files:
-
-    root_output_directory:     recordings
+    rinex_obs:
+        output:         true
     
-    record_rtcm_nav:        true
-    record_rtcm_obs:        true
-    output_rinex_obs:       true
-    output_rinex_nav:       true
-    
-    output_decoded_rtcm_json:       true
-    decoded_rtcm_json_directory:    ./rtcm
-    
-    enable_mongo:           false;
+    decoded_rtcm:
+        output:       true
+        directory:    ./rtcm
     
 processing_options:
 
-    epoch_interval:             1          #seconds
-    wait_next_epoch:            31
-    wait_all_stations:          1
-    #max_epochs:                 3600
-    require_obs:                false
+    epoch_control:
+        epoch_interval:             1          #seconds
+        wait_next_epoch:            31
+        wait_all_stations:          1
+        #max_epochs:                 3600
+        require_obs:                false
     
     process_modes:
         preprocessor:           false
         
-    process_sys:   
-        gps:    true
-        gal:    true
-
-    delete_old_ephemerides:     true
+    gnss_general:
+        delete_old_ephemerides:     true
+        sys_options:
+            gps:
+                process:                true
+            gal:
+                process:                true
+            

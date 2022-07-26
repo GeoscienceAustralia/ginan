@@ -104,10 +104,11 @@ SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, 
       REAL (KIND = prec_q), DIMENSION(:), ALLOCATABLE :: Y_interp 
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: clock_matrix
+      LOGICAL nodata
 
  
 	  ! Read IGS sp3 orbit data file (position only): orbsp3 
-      Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system, found)
+      Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system, found,.false., nodata)
 
       if (.not. found) return
 

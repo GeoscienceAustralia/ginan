@@ -175,7 +175,7 @@ if (yml_time_scale == TAI_time) time_scale = 'TAI'
 
 write (UNIT_IN, *) "Version 2"
 write (UNIT_IN, *) " EOP SOLUTION"
-fmt_erp = '(A8,1x,a7,1x,a7,1x,a8,1x,a8,1x,a7,1x,a7,1x,a8,1x,a8,7(1x,i1))'
+fmt_erp = '(A9,1x,a7,1x,a7,1x,a8,1x,a8,1x,a7,1x,a7,1x,a8,1x,a8,7(1x,i1))'
 write(UNIT_IN, fmt=fmt_erp) "MJD", "Xpole", "Ypole", "UT1-UTC", "LOD", "Xsig", &
               "Ysig", "UT1sig", "LODsig"
 write(UNIT_IN, fmt=fmt_erp) time_scale, '10**-6"', '10**-6"', "0.1 us", "0.1 us/d", &
@@ -183,7 +183,7 @@ write(UNIT_IN, fmt=fmt_erp) time_scale, '10**-6"', '10**-6"', "0.1 us", "0.1 us/
 
 sz1 = SIZE(ERP_day_glb, DIM=1)
 DO i=1,sz1
-write (str1, '(F8.2)') ERP_day_glb(i,EOP_MJD)
+write (str1, '(F9.3)') ERP_day_glb(i,EOP_MJD)
 write (str2, '(i7)') INT(ERP_day_glb(i,EOP_X) * 1000000)
 write (str3, '(i7)') INT(ERP_day_glb(i,EOP_Y) * 1000000)
 write (str4, '(i8)') INT(ERP_day_glb(i,EOP_UT1) * 10000000)
@@ -335,7 +335,7 @@ end if
 !print*,'IC, EOP_Nint_cfg =', EOP_Nint_cfg
 DO i=1,sz1
 if (ERP_day_glb(i,EOP_MJD) /= 0.d0) then
-WRITE (UNIT=UNIT_IN,FMT='(a,F7.1,3F14.8)',IOSTAT=ios_ith)'#INFO_ERP MJD XP(arcsec) YP(arcsec) UT1-UTC(sec): ',&
+WRITE (UNIT=UNIT_IN,FMT='(a,F9.3,3F14.8)',IOSTAT=ios_ith)'#INFO_ERP MJD XP(arcsec) YP(arcsec) UT1-UTC(sec): ',&
        ERP_day_glb(i,1), ERP_day_glb(i,2:4)
 end if
 END DO

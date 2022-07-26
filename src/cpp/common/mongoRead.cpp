@@ -85,7 +85,7 @@ map<SatSys, SSROut> mongoReadSSRData(
 	Mongo&						mongo	= *mongo_ptr;
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.config_description];
+	mongocxx::database			db		= client[acsConfig.mongo_database];
 	mongocxx::collection		coll	= db[SSR_DB];
 
 // 	targetTime.time += 300;
@@ -242,7 +242,7 @@ SsrPBMap mongoReadPhaseBias(
 	Mongo&						mongo 	= *mongo_ptr;
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.config_description];
+	mongocxx::database			db		= client[acsConfig.mongo_database];
 	mongocxx::collection		coll	= db[SSR_DB];
 
 	bsoncxx::types::b_date btime{std::chrono::system_clock::from_time_t(time.time)};
@@ -328,7 +328,7 @@ SsrCBMap mongoReadCodeBias(
 	Mongo&						mongo	= *mongo_ptr;
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.config_description];
+	mongocxx::database			db		= client[acsConfig.mongo_database];
 	mongocxx::collection		coll	= db[SSR_DB];
 
 	bsoncxx::types::b_date btime{std::chrono::system_clock::from_time_t(time.time)};

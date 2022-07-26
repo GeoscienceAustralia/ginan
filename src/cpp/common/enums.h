@@ -16,6 +16,7 @@ typedef enum
 	F1 = 1,	L1 = F1,
 	F2 = 2,	L2 = F2,
 	F5 = 5,	L5 = F5,
+	NUM_FTYPES,
 
 	F6 = 6,
 	F8 = 8,
@@ -38,8 +39,7 @@ typedef enum
 	LEX  = F6,
 	B1,
 	B2,
-	B3,
-	NUM_FTYPES
+	B3
 } E_FType;
 
 typedef enum
@@ -59,9 +59,10 @@ typedef enum
 BETTER_ENUM(E_Sys,			short int,
 			NONE,
 			GPS,
-			SBS,
-			GLO,
 			GAL,
+			GLO,
+			SUPPORTED,
+			SBS,
 			QZS,
 			BDS,
 			LEO,
@@ -115,7 +116,7 @@ BETTER_ENUM(KF,				short int,
 	ORBIT_PTS,
 	SRP,
 	
-	KEPLERS,
+	ORBIT,
 	
 	
 	IONOSPHERIC,
@@ -240,11 +241,11 @@ BETTER_ENUM(E_ObsCode, int,
 	L1N   = 6 ,        		          /* L1codeless (GPS) */
 	L1S   = 7 ,        		          /* L1C(D)     (GPS,QZS) */
 	L1L   = 8 ,        		          /* L1C(P)     (GPS,QZS) */
-	L1E   = 9 ,        		          /* L1-SAIF    (QZS) */
+	L1E   = 9 ,        		          /* L1C/B      (QZS) */
 	L1A   = 10,        		          /* E1A        (GAL) */
 	L1B   = 11,        		          /* E1B        (GAL) */
 	L1X   = 12,        		          /* E1B+C,L1C(D+P) (GAL,QZS) */
-	L1Z   = 13,        		          /* E1A+B+C,L1SAIF (GAL,QZS) */
+	L1Z   = 13,        		          /* E1A+B+C,L1-SAIF (GAL,QZS) */
 	L2C   = 14,        		          /* L2C/A,G1C/A (GPS,GLO) */
 	L2D   = 15,        		          /* L2 L1C/A-(P2-P1) (GPS) */
 	L2S   = 16,        		          /* L2C(M)     (GPS,QZS) */
@@ -363,6 +364,93 @@ BETTER_ENUM(E_AmbTyp,	short int,
 			UCL2,
 			UCL3)
 
+BETTER_ENUM(E_NavRecType,	short int,
+			NONE,			/* NONE for unknown */
+			EPH,			/* Ephemerides data including orbit, clock, biases, accuracy and status parameters */
+			STO,			/* System Time and UTC proxy offset parameters */
+			EOP,			/* Earth Orientation Parameters */
+			ION)			/* Global/Regional ionospheric model parameters */
+
+BETTER_ENUM(E_NavMsgType,	short int,
+			NONE,			/* NONE for unknown */
+			LNAV,			/* GPS/QZSS/NavIC Legacy Navigation Messages */
+			FDMA,			/* GLONASS Legacy FDMA Navigation Message */
+			FNAV,			/* Galileo Free Navigation Message */
+			INAV,			/* Galileo Integrity Navigation Message */
+			IFNV,			/* Galileo INAV or FNAV Navigation Message */
+			D1,				/* BeiDou-2/3 MEO/IGSO Navigation Message */
+			D2,				/* BeiDou-2/3 GEO Navigation Message */
+			D1D2,			/* BeiDou-2/3 MEO/IGSO and GEO Navigation Message */
+			SBAS,			/* SBAS Navigation Message */
+			CNAV,			/* GPS/QZSS CNAV Navigation Message */
+			CNV1,			/* BeiDou-3 CNAV-1 Navigation Message */
+			CNV2,			/* GPS/QZSS CNAV-2 Navigation Message
+							   BeiDou-3 CNAV-2 Navigation Message */
+			CNV3,			/* BeiDou-3 CNAV-3 Navigation Message */
+			CNVX)			/* GPS/QZSS CNAV or CNAV-2 Navigation Message
+							   BeiDou-3 CNAV-1, CNAV-2 or CNAV-3 Navigation Message */
+
+BETTER_ENUM(E_SatType,	short int,
+			NONE,			/* NONE or unknown */
+			GEO,
+			IGSO,
+			MEO)
+
+BETTER_ENUM(E_StoCode,	short int,
+			NONE,
+			GPUT,
+			GLUT,
+			GLGP,
+			GAUT,
+			GAGP,	GPGA = GAGP,	// From RINEX 3.04 the GPGA label is replaced by GAGP, while the value and sign for the Galileo minus GPS time offset remains unchanged.
+			GAGL,
+			BDUT,
+			BDGP,
+			BDGL,
+			BDGA,
+			QZUT,
+			QZGP,
+			QZGL,
+			QZGA,
+			QZBD,
+			IRUT,
+			IRGP,
+			IRGL,
+			IRGA,
+			IRBD,
+			IRQZ,
+			SBUT,
+			SBGP,
+			SBGL,
+			SBGA,
+			SBBD,
+			SBQZ,
+			SBIR)
+
+BETTER_ENUM(E_UtcId,	short int,
+			NONE,
+			UTC_USNO,
+			UTC_SU,
+			UTCGAL,
+			UTC_NTSC,
+			UTC_NICT,
+			UTC_NPLI,
+			UTCIRN,
+			UTC_OP,
+			UTC_NIST)
+
+BETTER_ENUM(E_SbasId,	short int,
+			NONE,
+			WAAS,
+			EGNOS,
+			MSAS,
+			GAGAN,
+			SDCM,
+			BDSBAS,
+			KASS,
+			A_SBAS,
+			SPAN)
+
 BETTER_ENUM(RtcmMessageType, uint16_t,
 		NONE 				= 0,
 		
@@ -435,6 +523,7 @@ BETTER_ENUM(E_RTCMSubmessage,	short int,
 
 BETTER_ENUM(E_ObsWaitCode,	short int,
 		OK,
+		EARLY_DATA,
 		NO_DATA_WAIT,
 		NO_DATA_EVER)
 

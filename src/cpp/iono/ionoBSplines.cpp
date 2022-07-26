@@ -10,6 +10,7 @@ struct Bsp_Basis
 	double latit;					/* latitude */
 	double longi;					/* longitude */
 };
+
 map<int, Bsp_Basis>  Bsp_Basis_list;
 
 static double BSPLINE_LATCEN = 0;
@@ -33,20 +34,22 @@ configure_iono_model_bsplin: Initializes grid map model
 ----------------------------------------------------------------------------*/
 int configure_iono_model_bsplin(void)
 {
-	if (acsConfig.ionFilterOpts.lat_width > 180.0 || 0.0 < acsConfig.ionFilterOpts.lat_width ||
-	        acsConfig.ionFilterOpts.lon_width > 360.0 || 0.0 < acsConfig.ionFilterOpts.lon_width)
+	if	(  acsConfig.ionexGrid.lat_width > 180.0
+		|| acsConfig.ionexGrid.lat_width < 0
+		|| acsConfig.ionexGrid.lon_width > 360.0 
+		|| acsConfig.ionexGrid.lon_width < 0)
 	{
 		std::cout << "Wrongly sized gridmaps revise lat and lon width parameters...";
 		return 0;
 	}
 
-	BSPLINE_LATCEN = acsConfig.ionFilterOpts.lat_center * D2R;
-	BSPLINE_LONCEN = acsConfig.ionFilterOpts.lon_center * D2R;
-	BSPLINE_LATINT = acsConfig.ionFilterOpts.lat_res * D2R;
-	BSPLINE_LONINT = acsConfig.ionFilterOpts.lon_res * D2R;
+	BSPLINE_LATCEN = acsConfig.ionexGrid.lat_center	* D2R;
+	BSPLINE_LONCEN = acsConfig.ionexGrid.lon_center	* D2R;
+	BSPLINE_LATINT = acsConfig.ionexGrid.lat_res		* D2R;
+	BSPLINE_LONINT = acsConfig.ionexGrid.lon_res		* D2R;
 
-	int latnum = (int)(acsConfig.ionFilterOpts.lat_width / acsConfig.ionFilterOpts.lat_res) + 1;
-	int lonnum = (int)(acsConfig.ionFilterOpts.lon_width / acsConfig.ionFilterOpts.lon_res) + 1;
+	int latnum = (int)(acsConfig.ionexGrid.lat_width / acsConfig.ionexGrid.lat_res) + 1;
+	int lonnum = (int)(acsConfig.ionexGrid.lon_width / acsConfig.ionexGrid.lon_res) + 1;
 
 	BSPLINE_LATWID = BSPLINE_LATINT * (latnum - 1) / 2;
 	BSPLINE_LONWID = BSPLINE_LONINT * (lonnum - 1) / 2;
@@ -64,7 +67,7 @@ int configure_iono_model_bsplin(void)
 	Bsp_Basis basis;
 	int ind = 0;
 
-	for (int lay = 0; lay < acsConfig.ionFilterOpts.layer_heights.size(); lay++)
+	for (int lay = 0; lay < acsConfig.ionModelOpts.layer_heights.size(); lay++)
 	{
 		basis.hind = lay;
 
@@ -76,9 +79,8 @@ int configure_iono_model_bsplin(void)
 			{
 				double lonmap = lonmin + lon * BSPLINE_LONINT;
 
-				if (lonmap < -PI) lonmap += 2 * PI;
-
-				if (lonmap >  PI) lonmap -= 2 * PI;
+				if (lonmap < -PI)	lonmap += 2 * PI;
+				if (lonmap >  PI)	lonmap -= 2 * PI;
 
 				basis.longi = lonmap;
 				Bsp_Basis_list[ind++] = basis;
@@ -86,13 +88,13 @@ int configure_iono_model_bsplin(void)
 		}
 	}
 
-	acsConfig.ionFilterOpts.NBasis = ind;
+	acsConfig.ionModelOpts.NBasis = ind;
 
-	for (int j = 0; j < acsConfig.ionFilterOpts.NBasis; j++)
+	for (int j = 0; j < acsConfig.ionModelOpts.NBasis; j++)
 	{
 		Bsp_Basis& basis2 = Bsp_Basis_list[j];
-		fprintf(fp_iondebug, "GRD_BASIS %3d %2d %8.4f %8.4f ", j, basis2.hind, basis.latit * R2D, basis.longi * R2D);
-		fprintf(fp_iondebug, "\n");
+// 		fprintf(fp_iondebug, "GRD_BASIS %3d %2d %8.4f %8.4f ", j, basis2.hind, basis.latit * R2D, basis.longi * R2D);
+// 		fprintf(fp_iondebug, "\n");
 	}
 
 	return ind;
@@ -113,11 +115,11 @@ int Ipp_check_bsplin(GTime time, double* Ion_pp)
 
 	double londiff = BSPLINE_LONCEN - Ion_pp[1];
 
-	if (londiff < -PI) londiff += 2 * PI;
+	if (londiff < -PI)	londiff += 2 * PI;
+	if (londiff >  PI)	londiff -= 2 * PI;
 
-	if (londiff >  PI) londiff -= 2 * PI;
-
-	if (fabs(londiff) > BSPLINE_LONWID) return 0;
+	if (fabs(londiff) > BSPLINE_LONWID)
+		return 0;
 
 	return 1;
 }
@@ -135,28 +137,36 @@ ion_coef_bsplin: Evaluates B-splines basis functions
 ----------------------------------------------------------------------------*/
 double ion_coef_bsplin(int ind, Obs& obs, bool slant)
 {
-	if (ind >= Bsp_Basis_list.size()) return 0.0;
+	if (ind >= Bsp_Basis_list.size()) 
+		return 0;
 
 	Bsp_Basis& basis = Bsp_Basis_list[ind];
 
 	double latdiff = (obs.latIPP[basis.hind] - basis.latit) / BSPLINE_LATINT;
 
-	if (latdiff <= -1.0 || latdiff >= 1.0) return 0.0;
-
+	if	(  latdiff <= -1 
+		|| latdiff >= 1) 
+	{
+		return 0;
+	}
+	
 	double londiff = (obs.lonIPP[basis.hind] - basis.longi);
 
-	if (londiff < -PI) londiff += 2 * PI;
-
-	if (londiff >  PI) londiff -= 2 * PI;
+	if (londiff < -PI)	londiff += 2 * PI;
+	if (londiff >  PI)	londiff -= 2 * PI;
 
 	londiff /= BSPLINE_LATINT;
 
-	if (londiff <= -1.0 || londiff >= 1.0) return 0.0;
+	if	(  londiff <= -1 
+		|| londiff >= +1)
+	{
+		return 0;
+	}
+	
+	double out = latdiff < 0 ? (1 + latdiff) : (1 - latdiff);
 
-	double out = latdiff < 0.0 ? (1.0 + latdiff) : (1.0 - latdiff);
-
-	if (londiff < 0.0)out *= 1.0 + londiff;
-	else out *= 1.0 - londiff;
+	if (londiff < 0)		out *= 1 + londiff;
+	else					out *= 1 - londiff;
 
 	if (slant)
 	{
@@ -166,39 +176,38 @@ double ion_coef_bsplin(int ind, Obs& obs, bool slant)
 	return out;
 }
 
-/*-------------------------------------------------------------------------
-ion_vtec_bsplin: Estimate Ionosphere VTEC using Ionospheric gridmaps
-	gtime_t  time		I		time of solutions (not useful for this one
+/** Estimate Ionosphere VTEC using Ionospheric gridmaps
 	Ion_pp				I		Ionosphere Piercing Point
 	layer				I 		Layer number
 	vari				O		variance of VTEC
 returns: VETC at piercing point
 ----------------------------------------------------------------------------*/
-double ion_vtec_bsplin(
-    GTime time,
-    double* Ion_pp,
-    int layer,
-    double& vari,
-    KFState& kfState)
+double ionVtecBsplin(
+	GTime		time,
+	double*		Ion_pp,
+	int			layer,
+	double&		vari,
+	KFState&	kfState)
 {
+	vari = 0;
+	
 	if (!Ipp_check_bsplin(time, Ion_pp))
 	{
-		vari = 0.0;
-		return 0.0;
+		return 0;
 	}
 
-	vari = 0;
 	double iono = 0;
 	Obs tmpobs;
 	tmpobs.latIPP[layer] = Ion_pp[0];
 	tmpobs.lonIPP[layer] = Ion_pp[1];
-	tmpobs.angIPP[layer] = 1.0;
+	tmpobs.angIPP[layer] = 1;
 
-	for (int ind = 0; ind < acsConfig.ionFilterOpts.NBasis; ind++)
+	for (int ind = 0; ind < acsConfig.ionModelOpts.NBasis; ind++)
 	{
 		Bsp_Basis& basis = Bsp_Basis_list[ind];
 
-		if (basis.hind != layer) continue;
+		if (basis.hind != layer) 
+			continue;
 
 		double coef = ion_coef_bsplin(ind, tmpobs, false);
 
@@ -206,7 +215,8 @@ double ion_vtec_bsplin(
 		keyC.type	= KF::IONOSPHERIC;
 		keyC.num	= ind;
 
-		double staval = 0, stastd = 0;
+		double staval = 0;
+		double stastd = 0;
 		kfState.getKFValue(keyC, staval, &stastd);
 
 		iono += 	coef * staval;

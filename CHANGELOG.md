@@ -5,14 +5,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+# [1.5] 2022-07-25
+### Added
+Read/write RINEX4 compatibly
+
+New pod mode: pod_data_int which uses pod_data section for integrating given IC. New example ex00_pod_test_g01.yaml
+
+Option to output pod sp3 as icrf. sp3_itrf: false (default value is true) in pod_options.
+
+### Changed
+PEA YAML config file refactored
+
+Ginan EDA Enhancements
+
+Minimum Constraints algorithm and config options enhanced
+
+Brdc2sp3 application robustness improved
+
+POD ERP/EOP interpolation algorithm improved
+
+Streamlined PEA/POD .erp information handling implemented
+
+RTCM3 SSR orbit and clock IODE rollover interpolation improved
+
+PEA PDE module now cleans and edits all observations, not only sampling interval observations
+
+Improved SPP algorithm
+
+### Fixed
+Numerous bugs
+
+### Deprecated
+PEA v1.4 YAML config files
+
+### Removed
+### Security
+
+# [1.4.2] 2022-07-18
+### Fixed
+Fixed bug in Glonass (GLO) satellite clocks
+
 # [1.4.1] 2022-05-27
+### Added
 Updates to documentation that were missed in the release
 
+### Changed
 Specify versions of Eigen, Boost, Mongo-cxx
 
+### Fixed
+### Deprecated
+### Removed
 Remove spurious CMakeLists.txt in the root directory
 
+### Security
+
 # [1.4] - 2022-05-24
+### Added
+YAML config error warnings: PEA now attempts to detect typos in the input config file
+
+### Changed
 Improvements to EOP/ERP handling when the integration arc is longer than 1 day - as a result the POD is now twice as fast as before
 
 PEA no longer estimates corrections to ERP parameters but outputs absolute ERP values
@@ -21,15 +72,18 @@ Refactoring and simplification of hardware and system Bias handling code
 
 Kalman Filter statistical tests now fully implemented
 
-YAML config error warnings: PEA now attempts to detect typos in the input config file
-
 Mongo C++ library dependencies now required at build time
 
+Ambiguity resolution (AR) algorithm improved
+
+### Fixed
 Bugfixes in RTCM and SSR code
 
 Several CMake build issues resolved
 
-Ambiguity resolution (AR) algorithm improved
+### Removed
+### Deprecated
+### Security
 
 ## [1.3] - 2022-03-18
 ### Added

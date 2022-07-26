@@ -37,6 +37,13 @@ struct SigStat
 	
 	unsigned int	netwPhaseRejectCount	= 0;
 	unsigned int	netwPhaseOutageCount	= 0;
+
+	double recPco = 0;
+	double recPcv = 0;
+	double satPcv = 0;
+	
+	
+	double lambda = 0;
 };
 
 struct IonoStat
@@ -95,9 +102,10 @@ struct SatStat : IonoStat, QC
 			double	el;			///< elevation angle (rad)
 		};
 	};
-	double nadir		= 0;
-	double sunDotSat	= 0;
-	double sunCrossSat	= 0;
+	double	nadir		= 0;
+	double	sunDotSat	= 0;
+	double	sunCrossSat	= 0;
+	bool	slip		= false;
 	
 	map<E_FType, SigStat>	sigStatMap;	///< Map for individual signal status for this SatStat object
 };

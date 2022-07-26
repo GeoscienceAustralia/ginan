@@ -16,8 +16,15 @@
 #include "gTime.hpp"
 #include "sinex.hpp"
 
+void getStationsFromSinex(
+	map<string, Station>&	stationMap,
+	KFState&				kfState)
+{
+	
+}
+
 void sinexPostProcessing(
-	GTime&						time,
+	GTime						time,
 	map<string, Station>&		stationMap,
 	KFState&					netKFState)
 {
@@ -35,7 +42,7 @@ void sinexPostProcessing(
 		if (acsConfig.process_user)
 		for (auto& [key, rec] : stationMap)
 		{
-			kfStatePointers.push_back(&rec.rtk.pppState);
+			kfStatePointers.push_back(&rec.pppState);
 		}
 		
 		KFState augmentedNetKFState;
@@ -66,9 +73,9 @@ void sinexPostProcessing(
 	}
 
 	// add in the files used to create the solution
-	for (auto& rnxfile : acsConfig.rinexFiles)	{	sinex_add_file(acsConfig.analysis_agency, time, rnxfile, "RINEX v3.x");	}
-	for (auto& sp3file : acsConfig.sp3files)	{	sinex_add_file(acsConfig.analysis_agency, time, sp3file, "SP3");		}
-	for (auto& snxfile : acsConfig.snxfiles)	{	sinex_add_file(acsConfig.analysis_agency, time, snxfile, "SINEX");		}
+	for (auto& rnxfile : acsConfig.rnx_files)	{	sinex_add_file(acsConfig.analysis_agency, time, rnxfile, "RINEX v3.x");	}
+	for (auto& sp3file : acsConfig.sp3_files)	{	sinex_add_file(acsConfig.analysis_agency, time, sp3file, "SP3");		}
+	for (auto& snxfile : acsConfig.snx_files)	{	sinex_add_file(acsConfig.analysis_agency, time, snxfile, "SINEX");		}
 
 	// Add other statistics as they become available...
 	sinex_add_statistic("SAMPLING INTERVAL (SECONDS)", acsConfig.epoch_interval);
@@ -113,7 +120,7 @@ void sinexPostProcessing(
 }
 
 void sinexPerEpochPerStation(
-	GTime&		tsync,
+	GTime		time,
 	Station&	rec)
 {
 	// check the station data for currency. If later that the end time, refresh Sinex data
@@ -121,7 +128,7 @@ void sinexPerEpochPerStation(
 	int yds[3];
 	int defaultStop[3] = {-1,-1,-1};
 
-	time2epoch(tsync, ep);
+	time2epoch(time, ep);
 	epoch2yds(ep, yds);
 
 	if 	(  time_compare(rec.snx.stop, yds)			>  0
@@ -149,19 +156,21 @@ void sinexPerEpochPerStation(
 		return; // No current station position estimate!
 	}
 
-	rec.rtk.opt.antdel	= rec.snx.ecc;
-	rec.rtk.opt.anttype	= rec.snx.anttype;
-// 	rec.rtk.opt.antdel	= rec.rnxStation.del;		//todo aaron, this should come from sinex preferably, but what about monument codes....
+	rec.antDelta	= rec.snx.ecc;
+	rec.antType		= rec.snx.anttype;
+// 	rec.opt.antdel	= rec.rnxStation.del;		//todo aaron, this should come from sinex preferably, but what about monument codes....
+	
+	auto trace = getTraceFile(rec);
 	
 	// Initialise the receiver antenna information
 	for (bool once : {1})
 	{
 		string nullstring	= "";
-		string tmpant		= rec.rtk.opt.anttype;
+		string tmpant		= rec.antType;
 
 		if (tmpant.empty())
 		{
-			BOOST_LOG_TRIVIAL(error)
+			trace
 			<< "Antenna name not specified"
 			<< rec.id << ": Antenna name not specified";
 
@@ -169,32 +178,32 @@ void sinexPerEpochPerStation(
 		}
 
 		bool found;
-		found = findAntenna(tmpant, tsync, nav, F1);
+		found = findAntenna(tmpant, time, nav, F1);
 		if (found)
 		{
 			//all good, carry on
-			rec.rtk.antId = tmpant;
+			rec.antId = tmpant;
 			break;
 		}
 
 		// Try searching under the antenna type with DOME => NONE
 		radome2none(tmpant);
 
-		found = findAntenna(tmpant, tsync, nav, F1);
+		found = findAntenna(tmpant, time, nav, F1);
 		if (found)
 		{
-			BOOST_LOG_TRIVIAL(warning)
+			trace
 			<< "Using \"" << tmpant
-			<< "\" instead of: \"" << rec.rtk.opt.anttype
+			<< "\" instead of: \"" << rec.antType
 			<< "\" for radome of " << rec.id;
 
-			rec.rtk.antId = tmpant;
+			rec.antId = tmpant;
 			break;
 		}
 		else
 		{
-			BOOST_LOG_TRIVIAL(error)
-			<< "No information for antenna " << rec.rtk.opt.anttype;
+			trace
+			<< "No information for antenna " << rec.antType;
 
 			break;
 		}

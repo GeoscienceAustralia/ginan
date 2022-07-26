@@ -20,7 +20,7 @@ import logging
 import os as _os
 import shutil
 
-from .gn_datetime import gpsweekD, dt2gpswk, gpswkD2dt
+from gn_lib.gn_datetime import gpsweekD, dt2gpswk, gpswkD2dt
 
 
 import threading

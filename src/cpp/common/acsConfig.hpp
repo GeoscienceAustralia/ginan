@@ -41,34 +41,43 @@ using std::set;
 */
 struct InputOptions
 {
-	vector<string>	atxfiles;
-	vector<string>	snxfiles;
-	vector<string>	blqfiles;
+	vector<string>	atx_files;
+	vector<string>	snx_files;
+	vector<string>	blq_files;
+                       
+	vector<string>	nav_files;
+	vector<string>	orb_files;
+	vector<string>	sp3_files;
+	vector<string>	clk_files;
+                       
+	vector<string>	erp_files;
+	vector<string>	dcb_files;
+	vector<string>	bsx_files;
+	vector<string>	ion_files;
 
-	vector<string>	navfiles;
-	vector<string>	orbfiles;
-	vector<string>	sp3files;
-	vector<string>	clkfiles;
-
-	vector<string>	erpfiles;
-	vector<string>	dcbfiles;
-	vector<string>	bsxfiles;
-	vector<string>	ionfiles;
-
-	vector<string> rnxfiles;
-	vector<string> obs_rtcmfiles;
-	vector<string> nav_rtcmfiles;
+	vector<string> rnx_files;
+	vector<string> obs_rtcm_files;
+	vector<string> nav_rtcm_files;
 	vector<string> pseudoobs_files;
 	
-	vector<string>	egmfiles;
-	vector<string>	jplfiles;
+	vector<string>	egm_files;
+	vector<string>	jpl_files;
 
 	string	root_stations_dir	= "./";
-	string	root_input_dir		= "./";
 	
 	string stream_user			= "";
 	string stream_pass			= "";
-	string stream_root			= "";
+};
+
+struct IonexOptions
+{
+	double			lat_center	= 0;
+	double			lon_center	= 0;
+	double			lat_width	= 90;
+	double			lon_width	= 90;
+	double			lat_res		= 10;
+	double			lon_res		= 10;
+	double			time_res	= 900;
 };
 
 /** Enabling and setting destiations of program outputs.
@@ -77,10 +86,12 @@ struct OutputOptions
 {
 	int		trace_level					= 0;
 	int		fatal_level					= 0;
-	bool	output_trace				= false;
+	bool	output_station_trace		= false;
+	bool	output_network_trace		= false;
 	string	trace_directory				= "./";
-	string	trace_filename				= "<STATION><YYYY><DDD><HH>.trace";
-	double	trace_rotate_period			= 60*60*24;
+	string	station_trace_filename		= "<STATION><YYYY><DDD><HH>.trace";
+	string	network_trace_filename		= "<STATION><YYYY><DDD><HH>.trace";
+	double	rotate_period				= 60*60*24;
 
 	bool	record_rtcm_obs				= false;
 	bool	record_rtcm_nav				= false;
@@ -88,27 +99,26 @@ struct OutputOptions
 	string	rtcm_nav_directory			= "./";
 	string  rtcm_obs_filename			= "<STATION><YYYY><DDD><HH>-OBS.rtcm3";
 	string  rtcm_nav_filename			= "<STREAM><YYYY><DDD><HH>-NAV.rtcm3";
-	double	rtcm_rotate_period			= 60*60*24;
 
 	bool	output_log					= false;
 	string	log_directory	         	= "./";
 	string  log_filename				= "log<LOGTIME>.json";
+
+	bool	output_gpx					= false;
+	string	gpx_directory	         	= "./";
+	string  gpx_filename				= "<STATION>.gpx";
 
 	bool	output_residuals 			= false;
 	bool	output_residual_chain		= true;
 
 	bool	output_config	 			= false;
 
-	bool	output_summary 				= false;
-	string	summary_directory			= "./";
-	string	summary_filename			= "pea<YYYY><DDD><HH>.summary";
-
 	bool			output_clocks 				= false;
 	E_Ephemeris 	clocks_receiver_source  	= E_Ephemeris::KALMAN;
 	E_Ephemeris		clocks_satellite_source 	= E_Ephemeris::KALMAN;
 	string			clocks_directory			= "./";
 	string			clocks_filename				= "pea<YYYY><DDD><HH>_<SYS>.clk";
-	bool			output_AR_clocks			= false;
+	bool			output_ar_clocks			= false;		//todo aaron this config sucks
 
 	bool			output_orbits 					 = false;
 	bool			output_orbit_velocities			 = false;
@@ -116,11 +126,12 @@ struct OutputOptions
 	string			orbits_directory				 = "./";
 	string			orbits_filename					 = "pea<YYYY><DDD>_<SYS>.sp3";
 	
-	bool	output_sys_combined			= true;
+	bool	split_sys					= false;
 
 	bool	output_rinex_obs			= false;
 	string	rinex_obs_directory			= "./";
 	string	rinex_obs_filename			= "<STATION>_<YYYY><DDD>_<SYS>.<YY>O";
+	double	rinex_obs_version			= 3.05;
 	bool	rinex_obs_print_C_code		= true;
 	bool	rinex_obs_print_L_code		= true;
 	bool	rinex_obs_print_D_code	 	= true;
@@ -133,10 +144,12 @@ struct OutputOptions
 	bool	output_ionex 				= false;
 	string	ionex_directory				= "./";
 	string	ionex_filename				= "pea<YYYY><DDD><HH>.ionex";
+	IonexOptions	ionexGrid;
 
 	bool	output_rinex_nav			= false;
 	string	rinex_nav_directory			= "./";
 	string	rinex_nav_filename			= "<YYYY><DDD>_nav_<SYS>.rnx";
+	double	rinex_nav_version			= 3.05;
 
 	bool	output_ionstec				= false;
 	string	ionstec_directory			= "./";
@@ -172,10 +185,15 @@ struct OutputOptions
 	bool	output_intermediate_rts		= false;
 	bool	output_mongo_logs			= false;
 	bool	delete_mongo_history		= false;
-	string	mongo_rts_suffix			= "'";
+	string	mongo_rts_suffix			= "~";
 	string	mongo_uri					= "mongodb://localhost:27017";
 	string	mongo_suffix				= "";
 	string	mongo_database				= "<CONFIG>";
+	
+	void defaultOutputOptions()
+	{
+		*this = OutputOptions();
+	}
 
 	bool	output_decoded_rtcm_json	= false;
 	string 	decoded_rtcm_json_directory	= "./";
@@ -188,54 +206,127 @@ struct OutputOptions
 	bool	output_network_statistics_json	= false;
 	string	network_statistics_json_directory	= "./";
 	string	network_statistics_json_filename	= "<CONFIG>_network_statistics.json";
+	
+	string test_filename	= "testData";
+	string test_directory	= "./";
 };
 
 /** Options to be used only for debugging new features
 */
 struct DebugOptions
 {
-	int		cscase = 0;         /* artificial CS case */
 	int		csfreq = 3;         /* cycle slip detection and repair frequency */
 	
-	bool	check_plumbing	= false;
+	bool	mincon_only			= false;
+	bool	check_plumbing		= false;
+	bool	retain_rts_files	= false;
+	bool	rts_only			= false;
 };
 
 /** Options for unit testing
 */
 struct TestOptions
 {
+	bool	enable			= false;
 	bool	output_pass		= true;
 	bool	stop_on_fail	= false;
 	bool	stop_on_done	= false;
 	bool	output_errors	= false;
 	bool	absorb_errors	= false;
-	string	directory		= "./";
-	string	filename		= "testData";
+};
+
+struct Enable
+{
+	bool enable = true;
+};
+
+struct ModelSatPos : Enable
+{
+	E_Ephemeris	ephemeris_source	= E_Ephemeris::PRECISE;
+};
+
+struct ModelClk : Enable
+{
+	E_Ephemeris	ephemeris_source	= E_Ephemeris::PRECISE;	
+};
+
+struct ModelRecPos : Enable{};
+
+struct ModelTides : Enable
+{
+	bool	solid		= true;
+	bool	otl			= true;
+	bool	pole		= true;
+};
+
+
+/** Options to set the tropospheric model used in calculations
+*/
+struct ModelTrop : Enable
+{
+	E_TropModel		model		= E_TropModel::VMF3;
+	
+	string			vmf3dir;
+	string			orography;
+	string			gpt2grid;
+};	
+
+struct Model
+{
+	ModelRecPos	rec_pos;
+	ModelSatPos	sat_pos;
+	ModelClk	sat_clock;
+	ModelClk	rec_clock;
+	ModelTrop	trop;
+	ModelTides	tides;
+	
+	bool range					= true;
+	
+	bool sat_code_bias			= true;
+	bool rec_code_bias			= true;
+	bool sat_phase_bias			= true;
+	bool rec_phase_bias			= true;
+	
+	bool rec_ant_delta			= true;
+	bool sat_pco				= true;
+	bool rec_pco				= true;
+	bool sat_pcv				= true;
+	bool rec_pcv				= true;
+	
+	bool relativity				= true;
+	bool relativity2			= true;
+	bool sagnac					= true;
+	bool phase_windup			= true;
+	bool integer_ambiguity		= true;
+	bool ionospheric_component	= true;
+	
+	bool clock_definitions		= true;
+	bool ionospheric_model		= false;
 };
 
 /** Options for the general operation of the software
 */
 struct GlobalOptions
 {
+	Model	model;
+	
 	double	epoch_interval	= 1;
 	int		max_epochs		= 0;
 
 	boost::posix_time::ptime start_epoch	{ boost::posix_time::not_a_date_time };
 	boost::posix_time::ptime end_epoch		{ boost::posix_time::not_a_date_time };
 
-	string	config_description			= "Pea";
-	string	analysis_agency				= "GAA";
-	string	analysis_center				= "Geoscience Australia";
-	string	analysis_program			= "AUSACS";
-	string	rinex_comment				= "AUSNETWORK1";
-	string	reference_system			= "igb14";
-	string	time_system					= "G";
-	string	ocean_tide_load				= "FES2004";
-	string	atmosph_tide_load			= "---";
-	string	geoid_model					= "EGM96";
-	string	grads_mapping_fn			= "Chen & Herring, 1992";
-
-	bool    print_stream_statistics     = false;
+	string	config_description				= "Pea";
+	string	analysis_agency					= "GAA";
+	string	analysis_center					= "Geoscience Australia";
+	string	analysis_program				= "AUSACS";
+	string	rinex_comment					= "AUSNETWORK1";
+	string	reference_system				= "igb14";
+	string	time_system						= "G";
+	string	ocean_tide_loading_model		= "FES2004";
+	string	atmospheric_tide_loading_model	= "---";
+	string	geoid_model						= "EGM96";
+	string	gradient_mapping_function		= "Chen & Herring, 1992";
 
 	bool	simulate_real_time			= false;
 
@@ -245,34 +336,27 @@ struct GlobalOptions
 	bool	process_minimum_constraints	= false;
 	bool	process_ionosphere			= false;
 	bool	process_rts					= false;
-	bool	process_tests				= false;
 	bool	process_ppp					= false;
+	bool	process_orbits				= false;
 
-	map<E_Sys,	bool>	process_sys;
-	map<E_Sys,	bool>   solve_amb_for;
-	map<int,	bool>	process_freq;
+	map<E_Sys,	bool>				process_sys;
+	map<E_Sys,	bool>				solve_amb_for;
+	map<E_Sys,	map<int,	bool>>	process_freq;	
+	bool							process_meas[NUM_MEAS_TYPES] = {true, true};
 
 	double	elevation_mask	= 10 * D2R;
 
 	string	pivot_station	= "<AUTO>";
 
-	bool	tide_solid		= false;
-	bool	tide_otl		= false;
-	bool	tide_pole		= false;
 
-	bool	phase_windup	= true;
 	bool	reject_eclipse	= true;
 	bool	raim			= true;
-	bool	antexacs		= true;
-	bool 	clock_jump		= false;
 	bool	interpolate_rec_pco = true;
 
 	double	thres_slip   	= 0.05;
-	double	mw_proc_noise	= 0;	
-	double	max_inno     	= 30;
+	double	mw_proc_noise	= 0;
 	double	max_gdop     	= 30;
 	double	deweight_factor	= 100;
-	double	ratio_limit		= 4000;
 
 	double	wait_next_epoch		= 0;
 	double	wait_all_stations	= 0;
@@ -292,7 +376,9 @@ struct GlobalOptions
 	E_OffsetType ssr_input_antenna_offset = E_OffsetType::UNSPECIFIED;
 	bool	     if_antenna_phase_centre  = true;
 
-	vector<E_ObsCode>	code_priorities =
+	map<E_Sys, vector<E_ObsCode>>	code_priorities;
+	
+	vector<E_ObsCode> code_priorities_default = 
 	{
 		E_ObsCode::L1C,
 		E_ObsCode::L1P,
@@ -337,17 +423,17 @@ struct GlobalOptions
 		{E_Sys::BDS, E_ObsCode::L7I},
 		{E_Sys::QZS, E_ObsCode::L2L}
 	};
-
+	
+	bool dumb_sat_pco	= true;
+	bool dumb_rec_pco	= false;
+	
+	
 	double clock_wrap_threshold = 0.05e-3;
 
 	//to be removed?
 
 	double proc_noise_iono	= 0.001;		//todo aaron, these need values, or move to other type
-
-
-	E_Ephemeris 	ppp_ephemeris      	= E_Ephemeris::PRECISE;
-	bool 			sat_pcv				= true;
-	bool 			rec_pcv				= true;
+	
 	double			predefined_fail		= 0.001;	/* pre-defined fail-rate (0.01,0.001) */
 };
 
@@ -360,12 +446,10 @@ struct KalmanModel
 	vector<double>	proc_noise			= {0};
 	vector<double>	tau					= {-1};	//tau<0 (inf): Random Walk model; tau>0: First Order Gauss Markov model
 	vector<double>	mu					= {0};
-	
-	int				proc_noise_model;
-	bool			estimate 			= false;
+	vector<bool>	estimate			= {false};
 };
 
-struct OutlierOptions
+struct FilterOptions
 {
 	int			phase_reject_limit	= 10;
 	int			outage_reset_limit	= 10;
@@ -378,30 +462,22 @@ struct OutlierOptions
 
 	int			max_filter_iter 	= 2;
 	int			max_prefit_remv 	= 2;
-};
-
-/** Options associated with the user mode (PPP) mode of operation
-*/
-struct PPPOptions : OutlierOptions
-{
+	
+	string		rts_filename	= "Filter-<STATION>.rts";
+	string		rts_directory	= "./";
+	int			rts_lag			= -1;
+	
 	E_Inverter	inverter			= E_Inverter::LDLT;
-
-	int			rts_lag				= 0;
-	string		rts_directory		= "./";
-	string		rts_filename		= "PPP-<Station>-<YYYY><DDD><HH>.rts";
 };
-
 
 /** Options associated with the network processing mode of operation
 */
-struct NetworkOptions : OutlierOptions
+struct NetworkOptions : FilterOptions
 {
-	E_Inverter		inverter		= E_Inverter::LDLT;
-
-	int				rts_lag				= 0;
-	string			rts_directory		= "./";
-	string			rts_filename		= "Network-<YYYY><DDD><HH>.rts";
-
+	NetworkOptions()
+	{
+		rts_filename = "Network.rts";
+	}
 
 	KalmanModel		eop;
 	KalmanModel		eop_rates;
@@ -421,8 +497,9 @@ struct IonosphericOptions
 	E_IonoMode 		corr_mode  			= E_IonoMode::IONO_FREE_LINEAR_COMBO;
 	E_LinearCombo	iflc_freqs			= E_LinearCombo::ANY;
 	
-	bool			common_ionosphere	= false;
-	bool			Auto_select_def_code = false;			
+	bool			common_ionosphere			= false;
+	bool			use_if_combo				= false;
+	bool			auto_select_default_code	= false;
 };
 
 struct SlipOptions
@@ -435,27 +512,13 @@ struct SlipOptions
 	bool SCDIA	= true;
 };
 
-struct IonFilterOptions : OutlierOptions
+struct IonModelOptions
 {
 	E_IonoModel		model			= E_IonoModel::NONE;
-	double			lat_center;
-	double			lon_center;
-	double			lat_width;
-	double			lon_width;
-	double			lat_res;
-	double			lon_res;
-	double			time_res;
-	int				NpLayr;
 	int				NBasis;
-	int				func_order;
+	int				function_order;
 	double			model_noise;
 	vector<double>	layer_heights;
-	
-	E_Inverter		inverter		= E_Inverter::LDLT;
-
-	int		rts_lag				= 0;
-	string	rts_directory		= "./";
-	string	rts_filename		= "Ionosphere-<YYYY><DDD><HH>.rts";
 
 	KalmanModel	ion;
 };
@@ -468,7 +531,7 @@ struct AmbROptions
 	int			AR_max_itr		= 1;
 	double		min_el_AR		= 15;					///< minimum elevation to attempt ambigity resolution (degrees)
 	int			Max_Hold_epoc	= 0;
-	double		Max_Hold_time	= 1200.0;
+	double		Max_Hold_time	= 1200;
 
 	double	WLsuccsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate WL
 	double	WLratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate WL
@@ -483,26 +546,9 @@ struct AmbROptions
 	double	NLstarttime = 3600;		///< Time before starting to calculate (and output NL zmbiguities/biases)
 
 	double	biasOutrate  = 0;		///< Update interval for clock update 0: no output
-
-	// bool solvGPS = false;
-	// bool solvGLO = false;
-	// bool solvGAL = false;
-	// bool solvBDS = false;
-	// bool solvQZS = false;
+	
+	int reduction_limit = 5000;
 };
-
-/** Options to set the tropospheric model used in calculations
-*/
-struct TroposphericOptions
-{
-	E_TropModel		model		= E_TropModel::VMF3;
-	
-	string			vmf3dir;
-	string			orography;
-	string			gpt2grid;
-	
-	
-};	
 
 /** Options to be applied to kalman filter states for individual satellites
 */
@@ -514,11 +560,11 @@ struct SatelliteOptions
 	KalmanModel		clk;
 	KalmanModel		clk_rate;
 	KalmanModel		clk_rate_gauss_markov;
-	KalmanModel		keplers;
+	KalmanModel		orbit;
+	KalmanModel		srp;
 	KalmanModel		pos;
 	KalmanModel		pos_rate;
 	KalmanModel		orb;
-	KalmanModel		srp;
 	KalmanModel		pco;
 	KalmanModel		ant;
 	KalmanModel		code_bias;
@@ -538,7 +584,6 @@ struct ReceiverOptions
 	KalmanModel		clk;
 	KalmanModel		clk_rate;
 	KalmanModel		clk_rate_gauss_markov;
-	KalmanModel		keplers;
 	KalmanModel		dcb;
 	KalmanModel		pco;
 	KalmanModel		ant;
@@ -550,9 +595,9 @@ struct ReceiverOptions
 	KalmanModel		code_bias;
 	KalmanModel		phase_bias;
 
-	E_NoiseModel	error_model	= E_NoiseModel::UNIFORM;
-	vector<double>	code_sigmas	= {0.1};
-	vector<double>	phas_sigmas	= {0.001};
+	E_NoiseModel	error_model	= E_NoiseModel::ELEVATION_DEPENDENT;
+	vector<double>	code_sigmas	= {1};
+	vector<double>	phas_sigmas	= {0.0015};
 };
 
 /** Minimum constraint options for individual receivers
@@ -561,16 +606,19 @@ struct MinimumStationOptions		//todo aaron, move to stations?
 {
 	bool			_initialised	= false;
 
-	double			noise			= -1;
+	vector<double>	noise			= {-1};
 };
 
 /** Options associated with the minimum constraints mode of operation
 */
-struct MinimumConstraintOptions
+struct MinimumConstraintOptions : FilterOptions
 {
-	bool			estimate_scale			= false;
-	bool			estimate_rotation		= false;
-	bool			estimate_translation	= false;
+	KalmanModel		scale;
+	KalmanModel		rotation;
+	KalmanModel		translation;
+	
+	bool			full_vcv		= false;
+	bool			scale_by_vcv	= false;
 
 	map<string,	MinimumStationOptions>		stationMap;
 };
@@ -580,16 +628,19 @@ struct MinimumConstraintOptions
 struct SsrOptions
 {
 	bool			calculate_ssr			= false;
+	bool			extrapolate_corrections	= false;
 	int				prediction_interval		= 30;
 	int				prediction_duration		= 0;
-	double			code_bias_valid_time	= 3600.0;	///< Valid time period of SSR code biases
-	double			phase_bias_valid_time	= 30.0;		///< Valid time period of SSR phase biases
 	E_Ephemeris 	ephemeris_source		= E_Ephemeris::PRECISE;
 	E_Ephemeris 	clock_source			= E_Ephemeris::KALMAN;
 	E_Ephemeris 	code_bias_source		= E_Ephemeris::PRECISE;
 	E_Ephemeris 	phase_bias_source		= E_Ephemeris::NONE;
-	bool			save_to_mongo			= false;
-	string			rtcm_directory			= "./";
+};
+
+struct SsrInOptions
+{
+	double			code_bias_valid_time	= 3600;		///< Valid time period of SSR code biases
+	double			phase_bias_valid_time	= 30;		///< Valid time period of SSR phase biases
 };
 
 struct SSRMetaOpts
@@ -604,8 +655,8 @@ struct SSRMetaOpts
 struct SsrBroadcast : SSRMetaOpts
 {
 	int						message_timeout		= INT_MAX;
-	string					target_url;
-	// set<RtcmMessageType> 	rtcmMessagesTypes;
+	string					url;
+	
 	set<RtcmMessageType, std::greater<RtcmMessageType>>     rtcmMessagesTypes;
 };
 
@@ -644,12 +695,17 @@ struct ForceModels
 struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 {
 	YAML::Node	yaml;
-	map<string, tuple<string,string>>	yamlDefaults;
+	map<string, tuple<string, string>>	yamlDefaults;
+	map<string, bool>					availableOptions;
 	
 
 	string												configFilename;
 	map<string, time_t>									configModifyTimeMap;
 	boost::program_options::variables_map				commandOpts;
+	
+	void	recurseYaml(
+		YAML::Node	node, 
+		string		stack = "");
 
 	bool	parse(string filename, boost::program_options::variables_map& vm);
 	bool	parse();
@@ -664,20 +720,21 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	map<string,		SatelliteOptions>	satOptsMap;
 	map<string,		ReceiverOptions>	recOptsMap;
 
-	PPPOptions					pppOpts;
-	TroposphericOptions			tropOpts;
 	IonosphericOptions			ionoOpts;
-	NetworkOptions				netwOpts;
+	NetworkOptions				pppOpts;
 	MinimumConstraintOptions	minCOpts;
 	TestOptions					testOpts;
 	SsrOptions					ssrOpts;
+	SsrInOptions				ssrInOpts;
 	AmbROptions					ambrOpts;
 	SlipOptions					excludeSlip;
 	ForceModels					forceModels;
-	IonFilterOptions			ionFilterOpts;
+	IonModelOptions			ionModelOpts;
 
 	KalmanModel	ion;
 	list<string>	rinexFiles;
+	
+	bool		common_atmosphere	= false;
 
 	map<string, SsrBroadcast>	uploadingStreamData;
 };
@@ -687,10 +744,11 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 
 
 
-void replaceString(
+bool replaceString(
 	string&	str,
 	string	subStr,
-	string	replacement);
+	string	replacement,
+	bool	warn = true);
 
 void removePath(
 	string &filepath); 	// fully qualified file

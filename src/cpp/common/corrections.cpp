@@ -14,41 +14,6 @@
 #include "enums.h"
 
 
-void obsVariances(
-	ObsList& obsList)
-{
-	for (auto& obs			: obsList)
-	for (auto& [ft, Sig]	: obs.Sigs)
-	{
-		auto& receiverOpts = acsConfig.getRecOpts(obs.mount);
-
-		//get the sigma for this frequency, (or the last one in the list)
-		int freqTypeCode = ft;
-		int freqTypePhas = ft;
-		if (freqTypeCode >= receiverOpts.code_sigmas.size())		freqTypeCode = receiverOpts.code_sigmas.size() - 1;
-		if (freqTypePhas >= receiverOpts.phas_sigmas.size())		freqTypePhas = receiverOpts.phas_sigmas.size() - 1;
-
-		double sigmaCode = receiverOpts.code_sigmas[freqTypeCode];
-		double sigmaPhas = receiverOpts.phas_sigmas[freqTypePhas];
-
-		double el = obs.satStat_ptr->el;
-		if (el == 0)
-			el = PI/8;
-
-		double elevationScaling = 1;
-		switch (receiverOpts.error_model)
-		{
-			case E_NoiseModel::UNIFORM:					{	elevationScaling = 1;				break;	}
-			case E_NoiseModel::ELEVATION_DEPENDENT:		{	elevationScaling = 1 / sin(el);		break;	} }
-
-		sigmaCode *= elevationScaling;
-		sigmaPhas *= elevationScaling;
-
-		Sig.codeVar = sigmaCode * sigmaCode;
-		Sig.phasVar = sigmaPhas * sigmaPhas;
-	}
-}
-
 /* ionosphere model ------------------------------------------------------------
 * compute ionospheric delay by broadcast ionosphere model (klobuchar model)
 * args   : gtime_t t        I   time (gpst)
@@ -75,8 +40,11 @@ double ionmodel(
 		return 0;
 	}
 
-	if (norm(ion, 8) <= 0)
+	if	( ion == nullptr
+		||norm(ion, 8) <= 0)
+	{
 		ion = ion_default;
+	}
 
 	/* earth centered angle (semi-circle) */
 	double psi = 0.0137 / (azel[1] / PI + 0.11) - 0.022;

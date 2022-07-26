@@ -81,7 +81,7 @@ SUBROUTINE eop_data (mjd, EOP_fname, EOP_sol, orbit_arc_length, n_interp , EOP_d
       INTEGER (KIND = prec_int1), INTENT(IN) :: EOP_sol
 ! OUT
       !REAL (KIND = prec_d), INTENT(OUT) :: EOP_data(n_interp,7)
-      REAL (KIND = prec_d), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: EOP_days  
+      REAL (KIND = prec_d), ALLOCATABLE, INTENT(OUT) :: EOP_days(:,:)  
 ! ----------------------------------------------------------------------
 
 
@@ -98,29 +98,18 @@ SUBROUTINE eop_data (mjd, EOP_fname, EOP_sol, orbit_arc_length, n_interp , EOP_d
 ! ----------------------------------------------------------------------
       INTEGER (KIND = prec_int8) :: MJD_i, n_cent, half_interp, orbit_days
       INTEGER (KIND = prec_int4) :: i, j, k, next, rowcount, sz1, sz2
-      REAL (KIND = prec_d) :: EOP_i(EOP_MAX_ARRAY)
+      REAL (KIND = prec_d) :: EOP_i(EOP_MAX_ARRAY), from, to, eop_start, eop_end
       REAL (KIND = prec_d), DIMENSION (:,:), ALLOCATABLE :: EOP_days_data
 ! ----------------------------------------------------------------------
       INTEGER (KIND = prec_int2) :: AllocateStatus, DeAllocateStatus  
-      LOGICAL found, updated
+      LOGICAL found, updated, docall
 
 ! ----------------------------------------------------------------------
 ! Dynamic allocatable arrays
 half_interp = n_interp/2
-orbit_days = orbit_arc_length / 24
 if (MOD(n_interp, 2) == 1) half_interp = half_interp+1
+orbit_days = orbit_arc_length / 24
 if (orbit_arc_length - (24 * orbit_days) > 0) orbit_days = orbit_days + 1
-ALLOCATE (EOP_days_data(n_interp + orbit_days, EOP_MAX_ARRAY), STAT = AllocateStatus)
-
-if (AllocateStatus /= 0) then
-        print *,'ERROR: eop_data - allocating EOP_days n_interp:',half_interp * 2 + orbit_days
-        stop
-end if
-
-updated = .false.
-! ----------------------------------------------------------------------
-! Mod - Initialise the EOP interpolation data array (SCM 04022020)
-EOP_days_data = 0.0d0
 
 ! ----------------------------------------------------------------------
 ! Time Systems transformation											 
@@ -138,6 +127,19 @@ EOP_days_data = 0.0d0
 ! UTC
       mjd_UTC_day = INT (mjd_UTC)
 ! ----------------------------------------------------------------------
+
+if (.false.) then
+! code no longer in use. Read an arc from file in one hit. All types now implemented
+Allocate(EOP_days_data(half_interp * 2 + orbit_days, EOP_MAX_ARRAY), Stat = allocateStatus)
+if (AllocateStatus /= 0) then
+        print *,'ERROR: eop_data - allocating EOP_days n_interp:',half_interp * 2 + orbit_days
+        stop
+end if
+
+updated = .false.
+! ----------------------------------------------------------------------
+! Mod - Initialise the EOP interpolation data array (SCM 04022020)
+EOP_days_data = 0.0d0
 
 ! ----------------------------------------------------------------------
 ! EOP data reading
@@ -275,6 +277,49 @@ do i = 1, sz1
 end do
 if (updated) then
 ERP_day_glb(1:rowcount,:) = EOP_days
+end if
+else 
+   from = mjd - half_interp
+   to = mjd + orbit_arc_length / 24.d0 + half_interp
+   rowcount = 0
+   docall = .true.
+   eop_start = from
+   eop_end = to
+   if (allocated(ERP_day_glb)) then
+       rowcount = size (ERP_day_glb, DIM = 1)
+       eop_start = ERP_day_glb(1, EOP_MJD)
+       eop_end = ERP_day_glb(rowcount, EOP_MJD)
+       docall = .false.
+       if ((rowcount > 0) .and. (eop_start < from) .and. &
+           (eop_end > to)) then
+           docall = .false.
+           !print *, "Not getting new eop dats"
+       end if
+       if (ERP_day_glb(1, EOP_MJD) == 0.d0) then
+           docall = .true.
+       end if
+   end if
+   if (docall) then
+       Allocate(EOP_days_data(MAX_ERP_ROWS, EOP_MAX_ARRAY), stat=allocateStatus)
+       CALL eop_rd_arc (EOP_fname, EOP_sol, from, to, rowcount, eop_days_data)
+   ! TODO: adjustment for EOP/ERP in IC file
+       if (allocated(EOP_days)) Deallocate(EOP_days)
+       Allocate(EOP_days(rowcount, EOP_MAX_ARRAY), stat=AllocateStatus)
+       do i = 1, rowcount
+           EOP_days(i, :) = EOP_days_data(i, :)
+       end do
+       if (allocated(ERP_Day_glb)) Deallocate(ERP_day_glb)
+       Allocate(ERP_Day_glb(rowcount, EOP_MAX_ARRAY), STAT=AllocateStatus)
+       ERP_Day_glb = EOP_Days
+   else if ((.not. allocated(EOP_days)) .or.&
+          & (allocated(EOP_Days) .and. EOP_Days(1, EOP_MJD) /= ERP_day_glb(1, EOP_MJD))) then
+       ! EOP_days is different from ERP_Day_glb ...
+       if (allocated(EOP_days)) Deallocate(EOP_days)
+       allocate(EOP_days(rowcount, EOP_MAX_ARRAY), stat=AllocateStatus)
+       do i = 1, rowcount
+           EOP_days(i,:) = ERP_day_glb(i,:)
+       end do
+   end if
 end if
 
 if (.false.) then

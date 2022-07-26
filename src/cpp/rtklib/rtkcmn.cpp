@@ -164,7 +164,7 @@ void ecef2enu(
 	double E[9];
 
 	xyz2enu(pos,E);
-	matmul("NN",3,1,3,1.0,E,r,0.0,e);
+	matmul("NN",3,1,3,1,E,r,0,e);
 }
 
 /* transform local vector to ecef coordinate -----------------------------------
@@ -190,73 +190,42 @@ void enu2ecef(
 	enu2ecef(pos, e.data(), r.data());
 }
 
-/* coordinate rotation matrix ------------------------------------------------*/
-//todo aaron delete
-#define Rx(t,X) do {				\
-	double sint = sin(t);			\
-	(X)[0]=1;						\
-	(X)[1]=(X)[2]=(X)[3]=(X)[6]=0; 	\
-	(X)[4]=(X)[8]=cos(t);			\
-	(X)[7]=+sin(t); 				\
-	(X)[5]=-sint; 					\
-} while (0)
-
-#define Ry(t,X) do {				\
-	double sint = sin(t);			\
-	(X)[4]=1;						\
-	(X)[1]=(X)[3]=(X)[5]=(X)[7]=0;	\
-	(X)[0]=(X)[8]=cos(t); 			\
-	(X)[2]=+sint;					\
-	(X)[6]=-sint;					\
-} while (0)
-
-#define Rz(t,X) do {				\
-	double sint = sin(t);			\
-	(X)[8]=1;						\
-	(X)[2]=(X)[5]=(X)[6]=(X)[7]=0;	\
-	(X)[0]=(X)[4]=cos(t);			\
-	(X)[3]=+sint;					\
-	(X)[1]=-sint;					\
-} while (0)
-
-
-
 /* Elementary rotations
 */
 Matrix3d R_x(	
-    double    Angle)  ///< Angle in radian		
+	double    Angle)  ///< Angle in radian		
 {
-    const double C = cos(Angle);
-    const double S = sin(Angle);
-    Matrix3d U = Matrix3d::Zero();
-    U(0,0) = 1.0;  U(0,1) = 0.0;  U(0,2) = 0.0;
-    U(1,0) = 0.0;  U(1,1) =  +C;  U(1,2) =  +S;
-    U(2,0) = 0.0;  U(2,1) =  -S;  U(2,2) =  +C;
-    return U;
+	const double C = cos(Angle);
+	const double S = sin(Angle);
+	Matrix3d U = Matrix3d::Zero();
+	U(0,0) = 1;  U(0,1) = 0;  U(0,2) = 0;
+	U(1,0) = 0;  U(1,1) =+C;  U(1,2) =+S;
+	U(2,0) = 0;  U(2,1) =-S;  U(2,2) =+C;
+	return U;
 }
 
 Matrix3d R_y(
-    double    Angle)  ///< Angle in radian
+	double    Angle)  ///< Angle in radian
 {
-    const double C = cos(Angle);
-    const double S = sin(Angle);
-    Matrix3d U = Matrix3d::Zero();
-    U(0,0) =  +C;  U(0,1) = 0.0;  U(0,2) =  -S;
-    U(1,0) = 0.0;  U(1,1) = 1.0;  U(1,2) = 0.0;
-    U(2,0) =  +S;  U(2,1) = 0.0;  U(2,2) =  +C;
-    return U;
+	const double C = cos(Angle);
+	const double S = sin(Angle);
+	Matrix3d U = Matrix3d::Zero();
+	U(0,0) =+C;  U(0,1) = 0;  U(0,2) =-S;
+	U(1,0) = 0;  U(1,1) = 1;  U(1,2) = 0;
+	U(2,0) =+S;  U(2,1) = 0;  U(2,2) =+C;
+	return U;
 }
 
 Matrix3d R_z(
-    double    Angle)  ///< Angle in radian
+	double    Angle)  ///< Angle in radian
 {
-    const double C = cos(Angle);
-    const double S = sin(Angle);
-    Matrix3d U = Matrix3d::Zero();
-    U(0,0) =  +C;  U(0,1) =  +S;  U(0,2) = 0.0;
-    U(1,0) =  -S;  U(1,1) =  +C;  U(1,2) = 0.0;
-    U(2,0) = 0.0;  U(2,1) = 0.0;  U(2,2) = 1.0;
-    return U;
+	const double C = cos(Angle);
+	const double S = sin(Angle);
+	Matrix3d U = Matrix3d::Zero();
+	U(0,0) =+C;  U(0,1) =+S;  U(0,2) = 0;
+	U(1,0) =-S;  U(1,1) =+C;  U(1,2) = 0;
+	U(2,0) = 0;  U(2,1) = 0;  U(2,2) = 1;
+	return U;
 }
 
 /* astronomical arguments: f={l,l',F,D,OMG} (rad) ----------------------------*/
@@ -451,13 +420,9 @@ void eci2ecef(
 	double z	= (				+ 2306.2181	* t + 1.09468 * t2 + 0.018203 * t3) * AS2R;
 	double eps	= (84381.448	-   46.8150	* t	- 0.00059 * t2 + 0.001813 * t3) * AS2R;
 	
-	Matrix3d R1;
-	Matrix3d R2;
-	Matrix3d R3;
-	
-	Rz(-z,	R1.data());
-	Ry(th,	R2.data());
-	Rz(-ze,	R3.data());
+	Matrix3d R1 = R_z(-z);
+	Matrix3d R2 = R_y(th);
+	Matrix3d R3 = R_z(-ze);
 	
 	Matrix3d P = R1 * R2 * R3;		// P = Rz(-z) * Ry(th) * Rz(-ze)
 	// std::cout << "Precession matrix: " << std::endl << std::setw(14) << P << std::endl;
@@ -467,9 +432,9 @@ void eci2ecef(
 	double deps;
 	nut_iau1980(t, f, dpsi, deps);
 	
-	Rx(-eps-deps,	R1.data());
-	Rz(-dpsi,		R2.data());
-	Rx(eps,			R3.data());
+	R1 = R_x(-eps-deps);
+	R2 = R_z(-dpsi);
+	R3 = R_x(eps);
 	
 	Matrix3d N = R1 * R2 * R3;		// N = Rx(-eps) * Rz(-dspi) * Rx(eps)
 	// std::cout << "Nutation matrix: " << std::endl << std::setw(14) << N << std::endl;
@@ -481,9 +446,10 @@ void eci2ecef(
 						+ 0.000063	* sin(2 * f[4])) * AS2R;
 
 	/* eci to ecef transformation matrix */
-	Ry(-erpv.xp,	R1.data());
-	Rx(-erpv.yp,	R2.data());
-	Rz(gast,		R3.data());
+	
+	R1 = R_y(-erpv.xp);
+	R2 = R_x(-erpv.yp);
+	R3 = R_z(gast);
 
 	Matrix3d theta	= R3;
 	// std::cout << "Earth rotation matrix: " << std::endl << std::setw(14) << theta << std::endl;
@@ -709,10 +675,12 @@ void updatenav(
 * get satellite carrier wave lengths
 * args   : int    sat       I   satellite number
 *          int    frq       I   frequency index (0:L1,1:L2,2:L5/3,...)
-*          nav_t  *nav      I   navigation messages
 * return : carrier wave length (m) (0.0: error)
 *-----------------------------------------------------------------------------*/
-double satwavelen(SatSys Sat, int frq, SatNav* satNav_ptr)
+double satwavelen(
+	SatSys Sat, 
+	int frq, 
+	SatNav* satNav_ptr)
 {
 	const double freq_glo[] = { FREQ1_GLO, FREQ2_GLO, FREQ3_GLO};
 	const double dfrq_glo[] = { DFRQ1_GLO, DFRQ2_GLO, 0};
@@ -751,34 +719,6 @@ double satwavelen(SatSys Sat, int frq, SatNav* satNav_ptr)
 * notes  : distance includes sagnac effect correction
 */
 double geodist(
-	const double *rs,	///< satellilte position (ecef at transmission) (m)
-	const double *rr,	///< receiver position (ecef at reception) (m)
-	double *e)			///< line-of-sight vector (ecef)
-{
-	int i;
-
-	if (norm(rs, 3) < RE_WGS84)
-		return -1;
-
-	for (i = 0; i < 3; i++)
-	{
-		e[i] = rs[i] - rr[i];
-		//printf("geodist e %f = sat %f - rec %f \n",e[i],rs[i],rr[i]);
-	}
-
-	double r = norm(e, 3);
-
-	for (i = 0; i < 3; i++)
-		e[i] /= r;
-
-	return r + OMGE * (rs[0] * rr[1] - rs[1] * rr[0]) / CLIGHT;
-}
-
-/** geometric distance
-* compute geometric distance and receiver-to-satellite unit vector
-* notes  : distance includes sagnac effect correction
-*/
-double geodist(
 	Vector3d& rs,	///< satellilte position (ecef at transmission) (m)
 	Vector3d& rr,	///< receiver position (ecef at reception) (m)
 	Vector3d& e)	///< line-of-sight vector (ecef)
@@ -789,7 +729,7 @@ double geodist(
 	e = rs - rr;
 	double r = e.norm();
 	e.normalize();
-	return r + OMGE * (rs(0) * rr(1) - rs(1) * rr(0)) / CLIGHT;
+	return r + sagnac(rs, rr);
 }
 
 double sagnac(

@@ -9,7 +9,7 @@ NtripSourceTable::NtripSourceTable(
 {
 	if (disconnectionCount > 2)
 	{
-		BOOST_LOG_TRIVIAL(info) << url.sanitised()
+		BOOST_LOG_TRIVIAL(warning) << url.sanitised()
 								<< ", Could not connect to host for source table.\n";
 		getSourceTableMtx.unlock();
 		return;

@@ -51,18 +51,19 @@ ObsList ObsStream::getObs()
 	for (auto& obs					: obsList)
 	for (auto& [ftype, sigsList]	: obs.SigsLists)
 	{
+		E_Sys sys = obs.Sat.sys;
 		
-		if (obs.Sat.sys == +E_Sys::GPS)
+		if (sys == +E_Sys::GPS)
 		{
 			double dirty_C1W_phase = 0;
-			for(auto& sig : sigsList)
-			if ( sig.code == +E_ObsCode::L1C)
+			for (auto& sig : sigsList)
+			if	( sig.code == +E_ObsCode::L1C)
 			{
 				dirty_C1W_phase = sig.L;
 				break;
 			}
 		
-			for(auto& sig : sigsList)
+			for (auto& sig : sigsList)
 			if	(  sig.code	== +E_ObsCode::L1W 
 				&& sig.L	== 0)
 			{
@@ -71,10 +72,10 @@ ObsList ObsStream::getObs()
 			}
 		}
 		
-		sigsList.sort([](RawSig& a, RawSig& b)
+		sigsList.sort([sys](RawSig& a, RawSig& b)
 			{
-				auto iterA = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), a.code);
-				auto iterB = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), b.code);
+				auto iterA = std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), a.code);
+				auto iterB = std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), b.code);
 
 				if (a.L == 0)		return false;
 				if (b.L == 0)		return true;
@@ -92,8 +93,8 @@ ObsList ObsStream::getObs()
 		RawSig firstOfType = sigsList.front();
 
 		//use first of type as representative if its in the priority list
-		auto iter = std::find(acsConfig.code_priorities.begin(), acsConfig.code_priorities.end(), firstOfType.code);
-		if (iter != acsConfig.code_priorities.end())
+		auto iter = std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), firstOfType.code);
+		if (iter != acsConfig.code_priorities[sys].end())
 		{
 			obs.Sigs[ftype] = Sig(firstOfType);
 		}
@@ -121,8 +122,8 @@ void RtcmStream::createRtcmFile()
 	GTime curTime;
 	time(&curTime.time);
 	long int roundTime = curTime.time;
-	roundTime /= acsConfig.rtcm_rotate_period;
-	roundTime *= acsConfig.rtcm_rotate_period;
+	roundTime /= acsConfig.rotate_period;
+	roundTime *= acsConfig.rotate_period;
 	curTime.time = roundTime;
 
 	string logtime = curTime.to_string(0);
@@ -135,75 +136,9 @@ void RtcmStream::createRtcmFile()
 }
 
 
-
-
-/** Calculates average of given vector
-*/
-double	calcAve(vector<double> vec)
-{
-	if (vec.empty())
-	{
-		return 0;
-	}
-	
-	double accum = 0;
-	for (auto val : vec)
-	{
-		accum += val;
-	}
-	return accum / vec.size();
-}
-
-/** Encodes nav.satNavMap[].ssrOut to file containing RTCM messages
-*/
-void rtcmEncodeToFile()
-{
-	string filename = acsConfig.ssrOpts.rtcm_directory + "rtcmDataEpoch.dat";
-	
-	std::ofstream ofRtcmSsr(filename, std::ios::out | std::ios::binary);
-	if (!ofRtcmSsr)
-	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Could not open file for exporting SSR corrections at " << filename;
-		return;
-	}
-	
-	RtcmEncoder rtcmSsrEnc;
-	
-// 	SsrCombMap	ssrCombMap;
-// 	SsrEphMap	ssrEphMap;
-// 	SsrClkMap 	ssrClkMap;
-// 	ssrEphMap  = collateSsrEphem (E_Sys::GPS, true);
-// 	ssrClkMap  = collateSsrClocks(E_Sys::GPS, true);
-// 	ssrCombMap = collateSsrComb(ssrEphMap, ssrClkMap);
-// 	rtcmSsrEnc.encodeSsrComb(ssrCombMap);
-// 	
-// 	ssrEphMap  = collateSsrEphem (E_Sys::GAL, true);
-// 	ssrClkMap  = collateSsrClocks(E_Sys::GAL, true);
-// 	ssrCombMap = collateSsrComb(ssrEphMap, ssrClkMap);
-// 	rtcmSsrEnc.encodeSsrComb(ssrCombMap);
-	
-// 	SsrCBMap ssrCBMap;
-// 	ssrCBMap = collateSsrCode(E_Sys::GPS, true);
-// 	rtcmSsrEnc.encodeSsrCode(ssrCBMap);
-// 	
-// 	ssrCBMap = collateSsrCode(E_Sys::GAL, true);
-// 	rtcmSsrEnc.encodeSsrCode(ssrCBMap);	
-// 	
-// 	SsrPBMap ssrPBMap;
-// 	ssrPBMap = collateSsrPhase(E_Sys::GPS, true);
-// 	rtcmSsrEnc.encodeSsrPhase(ssrPBMap);
-// 	
-// 	ssrPBMap = collateSsrPhase(E_Sys::GAL, true);
-//     rtcmSsrEnc.encodeSsrPhase(ssrPBMap);	
-// 	
-// 	rtcmSsrEnc.encodeWriteMessages(ofRtcmSsr);
-}
-
-
 /** Writes nav.satNavMap[].ssrOut to a human-readable file
 */
-void	writeSsrOutToFile(
+void writeSsrOutToFile(
 	int						epochNum,
 	map<SatSys, SSROut>&	ssrOutMap)
 {
@@ -213,7 +148,7 @@ void	writeSsrOutToFile(
 	if (!out)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Could not open trace file for SSR messages at " << filename;
+		<< "Error: Could not open trace file for SSR messages at " << filename;
 		return;
 	}
 	out.precision(17);
@@ -314,7 +249,7 @@ void NtripRtcmStream::connectionError(const boost::system::error_code& err, std:
 
 	if (!logStream)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Error opening log file.\n";
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening log file.\n";
 		return;
 	}
 	
@@ -342,7 +277,7 @@ void NtripRtcmStream::serverResponse(
 	
 	if (!logStream)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Error opening log file.\n";
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening log file.\n";
 		return;
 	}
 
@@ -356,38 +291,4 @@ void NtripRtcmStream::serverResponse(
 	doc.append(kvp("VersionHTTP",	http_version));
 	
 	logStream << bsoncxx::to_json(doc) << std::endl;
-}
-
-void recordNetworkStatistics(
-	std::multimap<string, std::shared_ptr<NtripRtcmStream>> downloadStreamMap)
-{
-	for (auto& [id, s] : downloadStreamMap )
-	{
-		auto& downStream = *s;
-
-// 		std::cout << downStream.getNetworkStatistics(tsync, id) << std::endl;	//todo aaron useless
-	}
-}
-
-void writeNetworkTraces(
-	StationMap& stationMap)
-{
-	// Observations or not provide trace information on the downloading station stream.
-
-	for (auto& [id, rec] : stationMap)
-	{
-		auto down_it = ntripRtcmMultimap.find(rec.id);
-		if (down_it == ntripRtcmMultimap.end())
-		{
-			continue;
-		}
-	
-// 		auto trace = getTraceFile(rec);
-// 		
-// 		trace << std::endl << "<<<<<<<<<<< Network Trace : Epoch " << epoch << " >>>>>>>>>>>" << std::endl;
-// 
-// 		auto& [dummyId, downStream] = *down_it;
-	}
-
-	recordNetworkStatistics(ntripRtcmMultimap);
 }

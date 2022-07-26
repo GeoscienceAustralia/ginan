@@ -25,8 +25,6 @@ struct NtripUploader : NtripSocket, RtcmEncoder
 	boost::asio::deadline_timer		sendTimer;
 	int 	numberChunksSent 		= 0;
 	
-	
-	bool 	print_stream_statistics = false;
 	string	ntripStr 				= "";
 	string	id						= "NtripUploader";
 

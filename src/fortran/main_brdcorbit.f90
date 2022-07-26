@@ -92,7 +92,7 @@ PROGRAM  main_brdcorbit
       CHARACTER (LEN=512)   :: EOP_fname
       INTEGER (KIND = prec_int4) :: EOP_Nint 
       INTEGER (KIND = prec_int1) :: EOP_sol
-      REAL (KIND = prec_d) :: eop(7)
+      REAL (KIND = prec_d) :: eop(EOP_MAX_ARRAY)
       INTEGER (KIND = prec_int2) :: iau_model
 !----------------------------------------------------------------
 !       REAL (KIND = prec_q), DIMENSION(3) :: rbody
@@ -794,7 +794,7 @@ yml_pod_mode = MODE_FIT
 ! WRITE THE ECEF POSITIONS IN A SP3 FORMAT
 ! ----------------------------------------
 !CALL write_brd2sp3 (ISTR,IPRN,TOTG,IG,IR,IE,IC,IJ,SATTYPE, SAMPLE,IYEAR4,MONTH,IDAY,NEWEPOCH2, ECEFPOS, OUTPUT, 0)
-CALL write_orb2sp3(ORBmatrix, PRNmatrix, OUTPUT, .false., CLKmatrix)
+CALL write_orb2sp3(ORBmatrix, PRNmatrix, OUTPUT, .false., CLKmatrix, .true.)
 
 
 CALL cpu_time (CPU_t1)

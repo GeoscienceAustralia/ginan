@@ -46,6 +46,7 @@ SUBROUTINE veqC2T (mjd, sec00, veqZ_C, veqP_C, veqZ_T, veqP_T)
 	  
       USE mdl_precision
       USE mdl_eop
+      USE pod_yaml
       IMPLICIT NONE
 
 	  
@@ -75,7 +76,7 @@ SUBROUTINE veqC2T (mjd, sec00, veqZ_C, veqP_C, veqZ_T, veqP_T)
       INTEGER (KIND = prec_int8) :: Nparam, N1
 	  
 	  REAL (KIND = prec_d) :: mjd_TT, mjd_GPS, mjd_TAI, mjd_UTC
-      DOUBLE PRECISION EOP_cr(7)
+      DOUBLE PRECISION EOP_cr(EOP_MAX_ARRAY)
       DOUBLE PRECISION CRS2TRS(3,3), TRS2CRS(3,3), d_CRS2TRS(3,3), d_TRS2CRS(3,3)
 ! ----------------------------------------------------------------------
 

@@ -283,7 +283,7 @@ void  updat_WLfilt(
 	if (AR_VERBO)
 	{
 		tracepdeex(ARTRCLVL, trace, ", npiv= %4d, ntot = %4d, nsta = %4d", nmea-amblst.size(), nmea, nsta);
-		trace << std::endl << "H:" << std::endl << combWL.A << std::endl << std::endl;
+		trace << std::endl << "H:" << std::endl << combWL.H << std::endl << std::endl;
 		trace << std::endl << "P:" << std::endl << WLambKF.P << std::endl << std::endl;
 		WLambKF.output_residuals = true;
 	}
@@ -597,8 +597,8 @@ int  updat_WLambg(
 }
 
 /** Dump WL ambiguities in archive */
-void dump__WLambg( 
-	Trace& trace ) ///< Trace file to output to
+void dump_WLambg( 
+	Trace& trace) ///< Trace file to output to
 {
 	for (auto& [key,ambmap] : WL_archive)
 	{

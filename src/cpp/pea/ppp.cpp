@@ -2,29 +2,21 @@
 // #pragma GCC optimize ("O0")
 
 /** \file
-* ppp.c : precise point positioning
+* Precise point positioning
 *
-* references :
-*    [1] D.D.McCarthy, IERS Technical Note 21, IERS Conventions 1996, July 1996
-*    [2] D.D.McCarthy and G.Petit, IERS Technical Note 32, IERS Conventions
-*        2003, November 2003
-*    [3] D.A.Vallado, Fundamentals of Astrodynamics and Applications 2nd ed,
-*        Space Technology Library, 2004
-*    [4] J.Kouba, A Guide to using International GNSS Service (IGS) products,
-*        May 2009
-*    [5] RTCM Paper, April 12, 2010, Proposed SSR Messages for SV Orbit Clock,
-*        Code Biases, URA
-*    [6] MacMillan et al., Atmospheric gradients and the VLBI terrestrial and
-*        celestial reference frames, Geophys. Res. Let., 1997
-*    [7] G.Petit and B.Luzum (eds), IERS Technical Note No. 36, IERS
-*         Conventions (2010), 2010
-*    [8] J.Kouba, A simplified yaw-attitude model for eclipsing GPS satellites,
-*        GPS Solutions, 13:1-12, 2009
-*    [9] F.Dilssner, GPS IIF-1 satellite antenna phase center and attitude
-*        modeling, InsideGNSS, September, 2010
-*    [10] F.Dilssner, The GLONASS-M satellite yaw-attitude model, Advances in
-*        Space Research, 2010
-*    [11] IGS MGEX (http://igs.org/mgex)
+* ###References:
+* 
+* 1.  D.D.McCarthy, IERS Technical Note 21, IERS Conventions 1996, July 1996
+* 2.  D.D.McCarthy and G.Petit, IERS Technical Note 32, IERS Conventions 2003, November 2003
+* 3.  D.A.Vallado, Fundamentals of Astrodynamics and Applications 2nd ed, Space Technology Library, 2004
+* 4.  J.Kouba, A Guide to using International GNSS Service (IGS) products, May 2009
+* 5.  RTCM Paper, April 12, 2010, Proposed SSR Messages for SV Orbit Clock, Code Biases, URA
+* 6.  MacMillan et al., Atmospheric gradients and the VLBI terrestrial and celestial reference frames, Geophys. Res. Let., 1997
+* 7.  G.Petit and B.Luzum (eds), IERS Technical Note No. 36, IERS Conventions (2010), 2010
+* 8.  J.Kouba, A simplified yaw-attitude model for eclipsing GPS satellites, GPS Solutions, 13:1-12, 2009
+* 9.  F.Dilssner, GPS IIF-1 satellite antenna phase center and attitude modeling, InsideGNSS, September, 2010
+* 10. F.Dilssner, The GLONASS-M satellite yaw-attitude model, Advances in Space Research, 2010
+* 11. IGS MGEX (http://igs.org/mgex)
 */
 
 
@@ -48,6 +40,7 @@ using std::vector;
 #include "acsConfig.hpp"
 #include "biasSINEX.hpp"
 #include "constants.hpp"
+#include "preceph.hpp"
 #include "satStat.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
@@ -126,34 +119,39 @@ double yaw_nominal(
 
 /** Satellite attitude model
 */
-void sat_yaw(
+double sat_yaw(
 	GTime		time,		///< Time of calculated yaw
-	Vector3d&	rSat,		///< Satellite position (ECEF)
-	Vector3d&	vSat,		///< Satellite velocity (ECEF)
+	Obs&		obs,		///< Satellite observation
 	Vector3d&	exs,		///< Output unit vector XS
 	Vector3d&	eys)		///< Output unit vector YS
 {
+	Vector3d&	rSat = obs.rSat;
+	
 	Vector3d	rSun;
 	ERPValues	erpv;
 	sunmoonpos(gpst2utc(time), erpv, &rSun);
 
-	Vector3d vSatPrime = vSat;
-
-	/* beta and orbit angle */
+	Vector3d vSatPrime = obs.satVel;
 	vSatPrime[0] -= OMGE * rSat[1];
 	vSatPrime[1] += OMGE * rSat[0];
 
-	Vector3d n = rSat.	cross(vSatPrime);
-	Vector3d p = rSun.	cross(n);
+	Vector3d n = rSat.cross(vSatPrime);						//orbit-axis
+	Vector3d p = rSun.cross(n);								//ascension?
 
-	Vector3d es		= rSat.	normalized();
+	Vector3d eSat	= rSat.	normalized();
 	Vector3d eSun	= rSun.	normalized();
-	Vector3d en		= n.	normalized();
-	Vector3d ep		= p.	normalized();
+	Vector3d en		= n.	normalized();					//orbit-axis
+	Vector3d ep		= p.	normalized();					//ascension?
 
-	double beta	= PI / 2 - acos(eSun.dot(en));
-	double E	= acos(es.dot(ep));
-	double mu	= PI / 2 + (es.dot(eSun) <= 0 ? -E : E);
+	/* beta and orbit angle */
+	double beta	= PI / 2 - acos(eSun.dot(en));				//angle between sun and orbital plane
+	
+	double E	= acos(eSat.dot(ep));						//angle between sat and ascension node?
+	
+	double mu;
+	if (eSat.dot(eSun) <= 0)	mu = PI/2 - E;				//sat on dark side
+	else						mu = PI/2 + E;				//sat on noon side
+// 	double mu	= PI / 2 + (eSat.dot(eSun) <= 0 ? -E : E);
 	if      (mu < -PI / 2)		mu += 2 * PI;
 	else if (mu >= PI / 2)		mu -= 2 * PI;
 
@@ -161,13 +159,19 @@ void sat_yaw(
 	double yaw = yaw_nominal(beta, mu);
 
 	/* satellite fixed x,y-vector */
-	Vector3d ex = en.cross(es);
+	Vector3d ex = en.cross(eSat);
 
 	double cosy = cos(yaw);
 	double siny = sin(yaw);
 
 	eys = -cosy * en - siny * ex;
 	exs = -siny * en + cosy * ex;
+	
+// 	obs.satStat_ptr->beta	= beta;
+// 	obs.satStat_ptr->yaw	= yaw;
+// 	obs.satStat_ptr->mu		= mu;
+	
+	return yaw;
 }
 
 /** phase windup model
@@ -179,60 +183,116 @@ int model_phw(
 	double&		phw)	///< Output of phase windup result
 {
 	/* satellite yaw attitude model */
-	Vector3d exs;
-	Vector3d eys;
-	sat_yaw(time, obs.rSat, obs.satVel, exs, eys);
-
+	Vector3d eXsat;
+	Vector3d eYsat;
+	Vector3d eZsat;
+	double yaw = sat_yaw(time, obs, eXsat, eYsat);
+	
 	/* non block IIR satellites, to be refined for other constellations */
 	/* if ((!strstr(type,"BLOCK IIR"))&&(sys!=SYS_GAL)) { */
 
 	/* all the satellite orientation follow block II-A, 21/03/2019*/
 	if (1)
 	{
-		exs *= -1;
-		eys *= -1;
+		eXsat *= -1;
+		eYsat *= -1;
 	}
+	
+	eZsat = eXsat.cross(eYsat);
 
 	/* unit vector satellite to receiver */
-	Vector3d r = rRec - obs.rSat;
-	Vector3d ek = r.normalized();
+	Vector3d k = rRec - obs.rSat;
+	Vector3d eK = k.normalized();
 
 	/* unit vectors of receiver antenna */
 	double E[9];
 	double pos[3];
 	ecef2pos(rRec.data(), pos);
 	xyz2enu(pos, E);
-	Vector3d exr;
-	Vector3d eyr;
-	exr(0) =  E[1];
-	exr(1) =  E[4];
-	exr(2) =  E[7]; /* x = north */
+	Vector3d eXrec;
+	eXrec(0) =  E[1];
+	eXrec(1) =  E[4];
+	eXrec(2) =  E[7]; /* x = north */
 
-	eyr(0) = -E[0];
-	eyr(1) = -E[3];
-	eyr(2) = -E[6]; /* y = west  */
+	Vector3d eYrec;
+	eYrec(0) = -E[0];
+	eYrec(1) = -E[3];
+	eYrec(2) = -E[6]; /* y = west  */
 
-	/* phase windup effect */
-	Vector3d eks = ek.cross(eys);
-	Vector3d ekr = ek.cross(eyr);
-
-	Vector3d ds = exs - ek * ek.dot(exs) - eks;
-	Vector3d dr = exr - ek * ek.dot(exr) + ekr;
-	double cosp = ds.dot(dr) / ds.norm() / dr.norm();
-	if (isfinite(cosp) == false)
+	Vector3d eZrec;
+	eZrec(0) = -E[2];
+	eZrec(1) = -E[5];
+	eZrec(2) = -E[8]; /* z = up  */
+	
+	if (1)
 	{
-		return 0;
+		//Get axis of rotation between antenna boresight and look vector
+		Vector3d recAxis	= eZrec		.cross(eK)		.normalized();
+		Vector3d satAxis	= eZsat		.cross(eK)		.normalized();
+		
+		//We dont need 1,2 for the first axis, because they are common
+		
+		//Get another unit vector to finish the boresight, axis, coordinate set
+		Vector3d recQuad1	= recAxis	.cross(eZrec)	.normalized();
+		Vector3d satQuad1	= satAxis	.cross(eZrec)	.normalized();
+		
+		//Get another unit vector to finish the look vector, axis, coordinate set
+		Vector3d recQuad2	= recAxis	.cross(eK)		.normalized();
+		Vector3d satQuad2	= satAxis	.cross(eK)		.normalized();
+		
+		//Apply a zero-twist rotation to the antenna to align it with the look vector.
+		//Get projection of x axis on coordinate set1, then apply to coordinate set 2
+		Vector3d recXnew	= eXrec.dot(recAxis) * recAxis		+ eXrec.dot(recQuad1) * recQuad2;
+		Vector3d recYnew	= eYrec.dot(recAxis) * recAxis		+ eYrec.dot(recQuad1) * recQuad2;
+							
+		Vector3d satXnew	= eXsat.dot(satAxis) * satAxis		+ eXsat.dot(satQuad1) * satQuad2;
+		Vector3d satYnew	= eYsat.dot(satAxis) * satAxis		+ eYsat.dot(satQuad1) * satQuad2;
+		
+		//Get angle offset by looking at receiver's new x component's alignment with satellite's new components
+		double angleOffset	= atan2(satXnew.dot(recXnew), -satXnew.dot(recYnew));
+		
+		//Convert to a fraction of cycles (apply an offset to match old code)
+		double phaseFraction = angleOffset / (2*PI) - 0.25;
+
+		//keep phase windup continuous from previous result across cycles
+		phw = phaseFraction + floor(phw - phaseFraction + 0.5);		
 	}
-	if      (cosp < -1) cosp = -1;
-	else if (cosp > +1) cosp = +1;
-	double ph = acos(cosp) / 2 / PI;
-	Vector3d drs = ds.cross(dr);
+	else
+	{
+		/* phase windup effect */
+		Vector3d eKsat = eK.cross(eYsat);		//approximate X vector (perpendicular) for sat
+		Vector3d eKrec = eK.cross(eYrec);		//approximate X vector (perpendicular) for rec
+		
+		Vector3d ds = eXsat - eKsat - eK * eK.dot(eXsat);
+		Vector3d dr = eXrec + eKrec - eK * eK.dot(eXrec);
+		Vector3d es = ds.normalized();
+		Vector3d er = dr.normalized();
+		
+		double cosp = es.dot(er);				//projection of 
+		if (isfinite(cosp) == false)
+		{
+			return 0;
+		}
+		if      (cosp < -1)		cosp = -1;
+		else if (cosp > +1)		cosp = +1;
+		
+		double ph = acos(cosp) / (2*PI);		//windup in fractional cycles
+		
+		Vector3d drs = ds.cross(dr);
 
-	if (ek.dot(drs) < 0)
-		ph *= -1;
+		if (eK.dot(drs) < 0)
+		{
+			ph *= -1;
+// 			printf("\n-ve on %s", obs.Sat.id().c_str());
+		}
+		else
+		{
+// 			printf("\n+ve on %s", obs.Sat.id().c_str());
+		}
 
-	phw = ph + floor(phw - ph + 0.5); /* in cycle */
-
+		phw = ph + floor(phw - ph + 0.5);		//keep phase windup continuous from previous result across cycles
+	}
+	
 	return 1;
 }
 
@@ -332,12 +392,12 @@ void corr_meas(
 	Trace&		trace,		///< Trace file to output to
 	Obs&		obs,		///< Observation to correct measurements of
 	E_FType		ft,			///< Frequency type to correct
-	double		el,			///< Satellite elevation
 	double		dAntRec,	///< Delta for antenna offset of receiver
 	double		dAntSat,	///< Delta for antenna offset of satellite
 	double		phw,		///< Phase wind up
 	Station&	rec,		///< Receiver
-	double		mjd)
+	double		mjd,		///< Modified julian date
+	bool		oldSchool)	///< Option to apply 'corrections' here, rather than where they should be
 {
 	TestStack	ts			(__FUNCTION__);
 	Instrument	instrument	(__FUNCTION__);
@@ -353,37 +413,22 @@ void corr_meas(
 		return;
 	}
 	
-	double bias[2] = {};
 	double bvar[2] = {};
 	
 	bool pass;
-	pass = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, CODE, bias[CODE], bvar[CODE]);
-	sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, PHAS, bias[PHAS], bvar[PHAS]);
+	pass			= getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, CODE, sig.biases[CODE], bvar[CODE]);
+	sig.phaseBias	= getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, PHAS, sig.biases[PHAS], bvar[PHAS]);
 	
-#if 0 /* this should not be done. Once all bias messages follow the SINEX format properly. Could be activated temporaly in case Galileo L5 biases are absent */ 	
-	if(!sig.phaseBias)
-{
-		if(obs.Sat.sys == +E_Sys::GPS) 
-		{
-			if(ft == F1 && sig.code != +E_ObsCode::L1C) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L1C, PHAS, bias[PHAS], bvar[PHAS]);
-			if(ft == F2 && sig.code != +E_ObsCode::L2W) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L2W, PHAS, bias[PHAS], bvar[PHAS]);
-		}
-		
-		if( obs.Sat.sys == +E_Sys::GAL)
-		{
-			if(ft == F1 && sig.code != +E_ObsCode::L1X) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L1X, PHAS, bias[PHAS], bvar[PHAS]);
-			if(ft == F5 && sig.code != +E_ObsCode::L5X) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L5X, PHAS, bias[PHAS], bvar[PHAS]);
-			if(ft == F5 && sig.code != +E_ObsCode::L5Q) sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L5Q, PHAS, bias[PHAS], bvar[PHAS]);
-			if(ft == F5 && !sig.phaseBias			  )	sig.phaseBias = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, E_ObsCode::L5I, PHAS, bias[PHAS], bvar[PHAS]);
-		}
-		bias[1]=bs[1];
-		bvar[1]=bsv[1];
-	}
-#endif
-	tracepde(3, trace, " %.6f %sL%d biases for %3s      = %14.4f %14.4f\n", mjd, obs.Sat.id().c_str(), ft, sig.code._to_string(), bias[CODE], bias[PHAS]);
+	tracepdeex(3, trace, " %.6f %sL%d biases for %3s      = %14.4f %14.4f\n", mjd, obs.Sat.id().c_str(), ft, sig.code._to_string(), sig.biases[CODE], sig.biases[PHAS]);
 			
-	sig.P_corr_m = sig.P       	- dAntSat - dAntRec - bias[CODE];
-	sig.L_corr_m = sig.L * lam	- dAntSat - dAntRec - bias[PHAS] - phw * lam;
+	sig.P_corr_m = sig.P;
+	sig.L_corr_m = sig.L * lam;
+	
+	if (oldSchool)
+	{
+		sig.P_corr_m += - dAntSat - dAntRec - sig.biases[CODE];
+		sig.L_corr_m += - dAntSat - dAntRec - sig.biases[PHAS] - phw * lam;
+	}
 }
 
 double satNadir(
@@ -462,7 +507,8 @@ double trop_model_prec(
 	}
 }
 
-/* ionospheric model ---------------------------------------------------------*/
+/** ionospheric model
+ */
 int model_iono(
 	GTime		time,
 	double*		pos,
@@ -475,15 +521,22 @@ int model_iono(
 	{
 		case E_IonoMode::TOTAL_ELECTRON_CONTENT:
 		{
-			int res = iontec(time, &nav, pos, azel, 1, dion, var);
-			if (res)	var +=	VAR_IONEX;			// adding some extra errors to reflect modelling errors
+			int pass = iontec(time, &nav, pos, azel, 1, dion, var);
+			if (pass)	var +=	VAR_IONEX;			// adding some extra errors to reflect modelling errors
 			else		var =	VAR_IONO;
 
-			return res;
+			return pass;
 		}
-		case E_IonoMode::BROADCAST:
+		case E_IonoMode::BROADCAST:	// only GPS Klobuchar model implemented
 		{
-			dion	= ionmodel(time, nav.ion_gps, pos, azel);
+			E_Sys sys = E_Sys::GPS;
+			E_NavMsgType type = defNavMsgType[sys];
+
+			ION* ion_ptr = seleph<ION>(std::cout, time, sys, type, nav);
+			double* vals = nullptr;
+			if (ion_ptr != nullptr)
+				vals = ion_ptr->vals;
+			dion	= ionmodel(time, vals, pos, azel);
 			var		= SQR(dion * ERR_BRDCI);
 
 			return 1;
@@ -509,11 +562,105 @@ int model_iono(
 	}
 }
 
+void combinator(
+	Obs& obs)
+{
+	auto&	satStat	= *obs.satStat_ptr;
+	auto&	lam		= obs.satNav_ptr->lamMap;
+		
+	for (E_FType ft : {F2, F5})
+	{
+		/* iono-free LC */
+		Sig sig1 = obs.Sigs[F1];
+		Sig sig2 = obs.Sigs[ft];
+
+		if	( lam[F1] == 0
+			||lam[ft] == 0)
+			continue;
+
+		if	( (sig1.L_corr_m == 0)
+			||(sig1.P_corr_m == 0)
+			||(sig2.L_corr_m == 0)
+			||(sig2.P_corr_m == 0))
+		{
+			continue;
+		}
+
+		double c1;
+		double c2;
+		S_LC lc = getLC(sig1.L_corr_m,	sig2.L_corr_m,
+						sig1.P_corr_m,	sig2.P_corr_m,
+						lam[F1],		lam[ft],
+						&c1, 			&c2);
+
+		if (lc.valid == false)
+		{
+			continue;
+		}
+
+		Sig lcSig = {};
+		lcSig.L_corr_m = lc.IF_Phas_m;
+		lcSig.P_corr_m = lc.IF_Code_m;
+
+		E_FType newType;
+		switch (ft)
+		{
+			case F2: newType = FTYPE_IF12;	break;
+			case F5: newType = FTYPE_IF15;	break;
+			default: continue;
+		}
+		
+		auto& sigStat_ = satStat.sigStatMap[newType];
+		auto& sigStat1 = satStat.sigStatMap[F1];
+		auto& sigStat2 = satStat.sigStatMap[ft];
+		
+		//update distance measurement for iflc
+		lcSig.Range	= sig1.Range * c1
+					- sig2.Range * c2;
+
+		sigStat_.lambda	= sigStat1.lambda * c1
+						- sigStat2.lambda * c2; 
+
+		sigStat_.satPcv	= sigStat1.satPcv * c1
+						- sigStat2.satPcv * c2; 
+
+		sigStat_.recPcv	= sigStat1.recPcv * c1
+						- sigStat2.recPcv * c2; 
+
+		sigStat_.recPco	= sigStat1.recPco * c1
+						- sigStat2.recPco * c2; 
+
+		
+		lcSig.biases[CODE]	= sig1.biases[CODE] * c1
+							- sig2.biases[CODE] * c2;
+	
+		lcSig.biases[PHAS]	= sig1.biases[PHAS] * c1
+							- sig2.biases[PHAS] * c2;
+
+		double AA = POW4(CLIGHT/lam[F1]) / POW2(POW2(CLIGHT/lam[F1]) - POW2(CLIGHT/lam[ft]));
+		double BB = POW4(CLIGHT/lam[ft]) / POW2(POW2(CLIGHT/lam[F1]) - POW2(CLIGHT/lam[ft]));
+
+		double A = POW4(lam[F1]) / POW2(POW2(lam[F1]) - POW2(lam[ft]));
+		double B = POW4(lam[ft]) / POW2(POW2(lam[F1]) - POW2(lam[ft]));
+// 			printf("\n%f %f\n", A, B);
+// 			printf("\n%f %f\n", AA, BB);
+		lcSig.codeVar	= POW4(lam[F1]) * sig1.codeVar / POW2(POW2(lam[F1]) - POW2(lam[ft]))
+						+ POW4(lam[ft]) * sig2.codeVar / POW2(POW2(lam[F1]) - POW2(lam[ft]));
+
+		lcSig.phasVar 	= POW4(lam[F1]) * sig1.phasVar / POW2(POW2(lam[F1]) - POW2(lam[ft]))
+						+ POW4(lam[ft]) * sig2.phasVar / POW2(POW2(lam[F1]) - POW2(lam[ft]));
+
+		obs.Sigs[newType] = lcSig;
+
+		obs.satStat_ptr->sigStatMap[newType].slip.any	= obs.satStat_ptr->sigStatMap[F1].slip.any
+														| obs.satStat_ptr->sigStatMap[ft].slip.any;
+	}
+}
+
 void pppCorrections(
 	Trace&		trace,
 	ObsList&	obsList,
 	Vector3d&	rRec,
-	rtk_t&		rtk,
 	Station&	rec)
 {
 	TestStack ts(__FUNCTION__);
@@ -530,7 +677,7 @@ void pppCorrections(
 	double pos[3];
 	ecef2pos(rRec.data(), pos);
 
-	tracepde(3,trace, "pppCorrections  : n=%d\n", obsList.size());
+	tracepdeex(3,trace, "pppCorrections  : n=%d\n", obsList.size());
 
 	for (auto& obs : obsList)
 	{
@@ -541,9 +688,10 @@ void pppCorrections(
 
 		TestStack ts(obs.Sat);
 		SatStat&	satStat	= *(obs.satStat_ptr);
-		auto&		lam		= obs.satNav_ptr->lamMap;
 
-		double r = geodist(obs.rSat, rRec, satStat.e);						TestStack::testMat("r",		r);
+		double r = geodist(obs.rSat, rRec, satStat.e);
+		
+		//TestStack::testMat("r",		r);
 		if 	( r <= 0
 			||satStat.el < acsConfig.elevation_mask)
 		{
@@ -557,16 +705,10 @@ void pppCorrections(
 			continue;
 		}
 
-// 		if (acsConfig.antexacs == 0)
-// 		{
-// 			std::cout << " Using antmodel() " << std::endl;			//todo aaron, broke this.
-// 			antmodel(opt->pcvr, opt->antdel, obs.azel, opt->posopt[1], dAntRec);
-// 		}
-
 		// phase windup model
-		if (acsConfig.phase_windup)
+		if (acsConfig.model.phase_windup)
 		{
-			bool pass = model_phw(rtk.sol.time, obs, rRec, satStat.phw);
+			bool pass = model_phw(rec.sol.time, obs, rRec, satStat.phw);
 			if (pass == false)
 			{
 				continue;
@@ -576,114 +718,49 @@ void pppCorrections(
 		for (auto& [ft, sig] : obs.Sigs)
 		{
 			TestStack ts("F" + std::to_string(ft));
-
-			sig.Range = r;
-
+			
+			auto& sigStat = satStat.sigStatMap[ft];
+		
 			/* receiver pco correction to the coordinates */
 			Vector3d dr2;
 
-			Vector3d pco_r = antPco(rtk.antId, ft, time, acsConfig.interpolate_rec_pco);
+			Vector3d pco_r = antPco(rec.antId, ft, time, acsConfig.interpolate_rec_pco);
 			
 			enu2ecef(pos, pco_r, dr2);    /* convert enu to xyz */
 
-			/* get rec position and geometric distance for each frequency */
-			Vector3d rRecFreq = rRec + dr2;
+			sigStat.recPco = dr2.dot(satStat.e);
 
-			sig.Range = geodist(obs.rSat, rRecFreq, satStat.e);
+			sig.Range = (obs.rSat - rRec).norm();
 
 			/* calculate pcv */
 			satStat.nadir = satNadir(obs.rSat, rRec);	//todo aaron move up
-			double satpcv = antPcv(obs.Sat.id(),	ft, time, satStat.nadir);
-			double recpcv = antPcv(rtk.antId,		ft, time, PI/2 - satStat.el, satStat.az);
+			sigStat.satPcv = antPcv(obs.Sat.id(),	ft, time, satStat.nadir);
+			sigStat.recPcv = antPcv(rec.antId,		ft, time, PI/2 - satStat.el, satStat.az);
 			
-
 												TestStack::testMat("obs.rSat",	obs.rSat);
-												TestStack::testMat("rRecFreq",	rRecFreq);
-												TestStack::testMat("rRec",	    rRec);
-												TestStack::testMat("dr2",	     dr2);
-												TestStack::testMat("sig.Range",	sig.Range);
+// 												TestStack::testMat("rRecFreq",	rRecFreq);
+// 												TestStack::testMat("rRec",	    rRec);
+// 												TestStack::testMat("dr2",	     dr2);
+// 												TestStack::testMat("sig.Range",	sig.Range);
 			// corrected phase and code measurements
-			tracepde(lv, trace, "*---------------------------------------------------*\n");
-			corr_meas(trace, obs, ft, satStat.el, recpcv, satpcv, satStat.phw, rec, mjd);
+			tracepdeex(lv, trace, "*---------------------------------------------------*\n");
+			corr_meas(trace, obs, ft, sigStat.recPcv, sigStat.satPcv, satStat.phw, rec, mjd, false);
 
-			tracepde(lv, trace, " %.6f %sL%d satpcv              = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, satpcv);
-			tracepde(lv, trace, " %.6f %sL%d recpcv              = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, recpcv);
+			tracepdeex(lv, trace, " %.6f %sL%d satpcv              = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, sigStat.satPcv);
+			tracepdeex(lv, trace, " %.6f %sL%d recpcv              = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, sigStat.recPcv);
 
-			tracepde(lv, trace, " %.6f %sL%d az, el              = %14.4f %14.4f\n",                mjd, obs.Sat.id().c_str(), ft, satStat.az*R2D, satStat.el*R2D);
-			tracepde(lv, trace, " %.6f %sL%d phw(cycle)          = %14.4f \n",                      mjd, obs.Sat.id().c_str(), ft, satStat.phw);
-			tracepde(lv, trace, " %.6f %sL%d satpos+pco          = %14.4f %14.4f %14.4f\n",         mjd, obs.Sat.id().c_str(), ft, obs.rSat[0], obs.rSat[1], obs.rSat[2]);
-			tracepde(lv, trace, " %.6f %sL%d dist                = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, r);
+			tracepdeex(lv, trace, " %.6f %sL%d az, el              = %14.4f %14.4f\n",                mjd, obs.Sat.id().c_str(), ft, satStat.az*R2D, satStat.el*R2D);
+			tracepdeex(lv, trace, " %.6f %sL%d phw(cycle)          = %14.4f \n",                      mjd, obs.Sat.id().c_str(), ft, satStat.phw);
+			tracepdeex(lv, trace, " %.6f %sL%d satpos+pco          = %14.4f %14.4f %14.4f\n",         mjd, obs.Sat.id().c_str(), ft, obs.rSat[0], obs.rSat[1], obs.rSat[2]);
+			tracepdeex(lv, trace, " %.6f %sL%d dist                = %14.4f\n",                       mjd, obs.Sat.id().c_str(), ft, r);
 
 
-// 								TestStack::testMat("dAntRec",	dAntRec[ft]);
-								TestStack::testMat("dAntSat",	satpcv);
+// 								TestStack::testMat("dAntRec",	sigStat.recPcv);
+								TestStack::testMat("dAntSat",	sigStat.satPcv);
 		}
 
 		if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
-		for (E_FType ft : {F2, F5})
-		{
-			/* iono-free LC */
-			Sig sig1 = obs.Sigs[F1];
-			Sig sig2 = obs.Sigs[ft];
-
-			if	( lam[F1] == 0
-				||lam[ft] == 0)
-				continue;
-
-			if	( (sig1.L_corr_m == 0)
-				||(sig1.P_corr_m == 0)
-				||(sig2.L_corr_m == 0)
-				||(sig2.P_corr_m == 0))
-			{
-				continue;
-			}
-
-			double c1;
-			double c2;
-			S_LC lc = getLC(sig1.L_corr_m,	sig2.L_corr_m,
-							sig1.P_corr_m,	sig2.P_corr_m,
-							lam[F1],		lam[ft],
-							&c1, 			&c2);
-
-			if (lc.valid == false)
-			{
-				continue;
-			}
-
-			Sig lcSig = {};
-			lcSig.L_corr_m = lc.IF_Phas_m;
-			lcSig.P_corr_m = lc.IF_Code_m;
-
-			E_FType newType;
-			switch (ft)
-			{
-				case F2: newType = FTYPE_IF12;	break;
-				case F5: newType = FTYPE_IF15;	break;
-				default: continue;
-			}
-
-			//update distance measurement for iflc
-			lcSig.Range	= sig1.Range * c1
-						- sig2.Range * c2;
-
-			double AA = POW4(CLIGHT/lam[F1]) / POW2(POW2(CLIGHT/lam[F1]) - POW2(CLIGHT/lam[ft]));
-			double BB = POW4(CLIGHT/lam[ft]) / POW2(POW2(CLIGHT/lam[F1]) - POW2(CLIGHT/lam[ft]));
-
-			double A = POW4(lam[F1]) / POW2(POW2(lam[F1]) - POW2(lam[ft]));
-			double B = POW4(lam[ft]) / POW2(POW2(lam[F1]) - POW2(lam[ft]));
-// 			printf("\n%f %f\n", A, B);
-// 			printf("\n%f %f\n", AA, BB);
-			lcSig.codeVar	= POW4(lam[F1]) * sig1.codeVar / POW2(POW2(lam[F1]) - POW2(lam[ft]))
-							+ POW4(lam[ft]) * sig2.codeVar / POW2(POW2(lam[F1]) - POW2(lam[ft]));
-
-			lcSig.phasVar 	= POW4(lam[F1]) * sig1.phasVar / POW2(POW2(lam[F1]) - POW2(lam[ft]))
-							+ POW4(lam[ft]) * sig2.phasVar / POW2(POW2(lam[F1]) - POW2(lam[ft]));
-
-			obs.Sigs[newType] = lcSig;
-
-			obs.satStat_ptr->sigStatMap[newType].slip.any	= obs.satStat_ptr->sigStatMap[F1].slip.any
-															| obs.satStat_ptr->sigStatMap[ft].slip.any;
-		}
+			combinator(obs);
 	}
 }
 
@@ -693,7 +770,7 @@ void outputDeltaClocks(
 	KFState aprioriState;
 	
 	for (auto& [id,		rec]	: stationMap)
-	for (auto& [kfKey,	index]	: rec.rtk.pppState.kfIndexMap)
+	for (auto& [kfKey,	index]	: rec.pppState.kfIndexMap)
 	{
 		if (kfKey.type != KF::REC_CLOCK)
 		{
@@ -701,7 +778,7 @@ void outputDeltaClocks(
 		}
 		
 		double c_dtRecEst = 0;
-		rec.rtk.pppState.getKFValue(kfKey, c_dtRecEst);
+		rec.pppState.getKFValue(kfKey, c_dtRecEst);
 		
 		double dtRecPrec = 0;
 		int ret = pephclk(tsync, id, nav, dtRecPrec);
@@ -776,49 +853,42 @@ void outputApriori(
 /** Compare estimated station position with benchmark in SINEX file
  */
 void outputPPPSolution(
-	Station& rec)
+	string		filename,
+	Station&	rec)
 {
-	Vector3d snxPos = rec.snx.pos;
-	Vector3d estPos = rec.rtk.sol.pppRRec;
-	Vector3d diffEcef = snxPos - estPos;
-	
+	Vector3d snxPos		= rec.snx.pos;
+	Vector3d estPos		= rec.sol.pppRRec;
+	Vector3d diffEcef	= snxPos - estPos;
 	
 	double latLonHt[3];
 	ecef2pos(snxPos, latLonHt); // rad,rad,m
 	
-	double diffEcefArr[3];
-	Vector3d::Map(diffEcefArr, diffEcef.rows())	= diffEcef; // equiv. to diffEcef = diff
-	
-	double diffEnuArr[3];
-	ecef2enu(latLonHt, diffEcefArr, diffEnuArr);
-	
 	Vector3d diffEnu;
-	diffEnu = Vector3d::Map(diffEnuArr, diffEnu.rows());
+	ecef2enu(latLonHt, diffEcef.data(), diffEnu.data());
 
-	std::ofstream fout(rec.solutFilename, std::ios::out | std::ios::app);
+	std::ofstream fout(filename, std::ios::out | std::ios::app);
 	
 	if (!fout)
 	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Could not open trace file for PPP solution at " << rec.solutFilename;
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Could not open trace file for PPP solution at " << filename;
+		
+		return;
 	}
-	else
-	{
-		if(rec.sol_header)
-		{
-			tracepdeex(1,fout,"  Date       UTC time  Sta.   A priory X    A priory Y    A priory Z    Estimated X   Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
-			rec.sol_header = false;
-		}
 	
-		fout << rec.rtk.sol.time.to_string(2) << " ";
-		fout << rec.id << " ";
-		fout << std::fixed << std::setprecision(4);
-		fout << snxPos.transpose() << "  ";
-		fout << estPos.transpose() << "  ";
-		fout << diffEcef.transpose() << "  ";
-		fout << diffEnu.transpose() << "  ";
-		fout << std::endl;
+	if (fout.tellp() == 0)
+	{
+		tracepdeex(1,fout,"  Date       UTC time  Sta.   A priory X    A priory Y    A priory Z    Estimated X   Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
 	}
+
+	fout << rec.sol.time.to_string(2) << " ";
+	fout << rec.id << " ";
+	fout << std::fixed << std::setprecision(4);
+	fout << snxPos.transpose() << "  ";
+	fout << estPos.transpose() << "  ";
+	fout << diffEcef.transpose() << "  ";
+	fout << diffEnu.transpose() << "  ";
+	fout << std::endl;
 }
 
 
@@ -843,15 +913,15 @@ void selectAprioriSource(
 			rec.aprioriTime[i] = rec.snx.start[i];
 		}
 		
-		Vector3d delta = rec.snx.pos - rec.rtk.sol.sppRRec;
+		Vector3d delta = rec.snx.pos - rec.sol.sppRRec;
 		
 		double distance = delta.norm();
 		
 		if	( distance > 20
-			&&rec.rtk.sol.sppRRec.norm() > 0)
+			&&rec.sol.sppRRec.norm() > 0)
 		{
-			BOOST_LOG_TRIVIAL(error)
-			<< "SINEX apriori for " << rec.id << " is " << distance << "m from SPP estimate";
+			BOOST_LOG_TRIVIAL(warning)
+			<< "Warning: SINEX apriori for " << rec.id << " is " << distance << "m from SPP estimate";
 		}
 		
 		return;
@@ -859,9 +929,9 @@ void selectAprioriSource(
 	else
 	{
 		double ep[6];
-		time2epoch(rec.rtk.sol.time, ep);
+		time2epoch(rec.sol.time, ep);
 		epoch2yds(ep, rec.aprioriTime);
-		rec.aprioriPos		= rec.rtk.sol.sppRRec;
+		rec.aprioriPos		= rec.sol.sppRRec;
 		
 		sppUsed				= true;
 	}
@@ -880,6 +950,42 @@ bool deweightMeas(
 	kfMeas.R.row(index) *= acsConfig.deweight_factor;
 	kfMeas.R.col(index) *= acsConfig.deweight_factor;
 	
+	return true;
+}
+
+/** Deweight measurement and its relatives
+ */
+bool deweightStationMeas(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index)
+{
+	string id = kfMeas.obsKeys[index].str;
+	
+	for (int i = 0; i < kfMeas.obsKeys.size(); i++)
+	{
+		auto& obsKey = kfMeas.obsKeys[i];
+		
+		if (obsKey.str != id)
+		{
+			continue;
+		}
+		
+		trace << std::endl << "Deweighting " << kfMeas.obsKeys[i] << std::endl;
+
+		kfMeas.R.row(i) *= acsConfig.deweight_factor;
+		kfMeas.R.col(i) *= acsConfig.deweight_factor;
+		
+		map<string, void*>& metaDataMap = kfMeas.metaDataMaps[i];
+
+		bool* used_ptr = (bool*) metaDataMap["used_ptr"];
+		
+		if (used_ptr)
+		{
+			*used_ptr = false;	
+		}
+	}
 	return true;
 }
 
@@ -905,6 +1011,8 @@ bool incrementPhaseSignalError(
 	//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
 	phaseRejectCount++;
 	metaDataMap["PhaseRejectCount_ptr"] = nullptr;
+	
+	trace << std::endl << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
 	
 	return true;
 }
@@ -942,18 +1050,21 @@ bool resetPhaseSignalError(
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
-	//this will have been set to null if there was an error after adding the measurement to the list
-	unsigned int* PhaseRejectCount_ptr = (unsigned int*) metaDataMap["PhaseRejectCount_ptr"];
-
-	if (PhaseRejectCount_ptr == nullptr)
+	//these will have been set to null if there was an error after adding the measurement to the list
+	for (auto suffix : {"", "_alt"})
 	{
-		return true;
+		unsigned int* PhaseRejectCount_ptr = (unsigned int*) metaDataMap[(string)"PhaseRejectCount_ptr" + suffix];
+
+		if (PhaseRejectCount_ptr == nullptr)
+		{
+			return true;
+		}
+
+		unsigned int&	phaseRejectCount	= *PhaseRejectCount_ptr;
+
+		phaseRejectCount = 0;
 	}
-
-	unsigned int&	phaseRejectCount	= *PhaseRejectCount_ptr;
-
-	phaseRejectCount = 0;
-
+	
 	return true;
 }
 
@@ -963,17 +1074,20 @@ bool resetPhaseSignalOutage(
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
-	unsigned int* PhaseOutageCount_ptr = (unsigned int*) metaDataMap["PhaseOutageCount_ptr"];
-
-	if (PhaseOutageCount_ptr == nullptr)
+	for (auto suffix : {"", "_alt"})
 	{
-		return true;
+		unsigned int* PhaseOutageCount_ptr = (unsigned int*) metaDataMap[(string)"PhaseOutageCount_ptr" + suffix];
+
+		if (PhaseOutageCount_ptr == nullptr)
+		{
+			return true;
+		}
+
+		unsigned int&	phaseOutageCount	= *PhaseOutageCount_ptr;
+
+		phaseOutageCount = 0;
 	}
-
-	unsigned int&	phaseOutageCount	= *PhaseOutageCount_ptr;
-
-	phaseOutageCount = 0;
-
+	
 	return true;
 }
 
@@ -996,9 +1110,9 @@ bool deweightByState(
 
 	int stateIndex = kfState.getKFIndex(kfKey);
 	
-	for (int meas = 0; meas < kfMeas.A.rows(); meas++)
+	for (int meas = 0; meas < kfMeas.H.rows(); meas++)
 	{
-		if (kfMeas.A(meas, stateIndex))
+		if (kfMeas.H(meas, stateIndex))
 		{
 			trace << "- Deweighting " << kfMeas.obsKeys[meas] << std::endl;
 			
@@ -1061,7 +1175,7 @@ bool clockGlitchReaction(
 				
 				auto& rec = *kfKey.rec_ptr;
 				
-				rec.rtk.sol.deltaDt_net_old[0] = 0;
+				rec.sol.deltaDt_net_old[0] = 0;
 			}
 		}
 	}

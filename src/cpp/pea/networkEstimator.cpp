@@ -18,6 +18,7 @@
 #include "orbits.hpp"
 #include "enums.h"
 #include "ppp.hpp"
+#include "erp.hpp"
 
 
 
@@ -43,11 +44,11 @@ void removeBadAmbiguities(
 		
 		E_FType ft = (E_FType) key.num;
 		
-		auto& station = *key.rec_ptr;
-		auto& satStat = station.rtk.satStatMap[key.Sat];
-		auto& sigStat = satStat.sigStatMap[ft];
+		auto& rec		= *key.rec_ptr;
+		auto& satStat	= rec.satStatMap[key.Sat];
+		auto& sigStat	= satStat.sigStatMap[ft];
 		
-		if (sigStat.netwPhaseOutageCount >= acsConfig.netwOpts.outage_reset_limit)
+		if (sigStat.netwPhaseOutageCount >= acsConfig.pppOpts.outage_reset_limit)
 		{
 			sigStat.netwPhaseOutageCount = 0;
 			
@@ -57,7 +58,7 @@ void removeBadAmbiguities(
 			continue;
 		}
 		
-		if (sigStat.netwPhaseRejectCount >= acsConfig.netwOpts.phase_reject_limit)
+		if (sigStat.netwPhaseRejectCount >= acsConfig.pppOpts.phase_reject_limit)
 		{
 			sigStat.netwPhaseRejectCount = 0;
 			
@@ -65,7 +66,9 @@ void removeBadAmbiguities(
 			
 			kfState.removeState(key);
 			
-			if (acsConfig.getRecOpts("").ion.estimate == false)
+			InitialState init = initialStateFromConfig(acsConfig.getRecOpts("").ion);
+			
+			if (init.estimate == false)
 			{
 				KFKey kfKey = key;
 				for (kfKey.num = 0; kfKey.num < NUM_FTYPES; kfKey.num++)
@@ -77,13 +80,21 @@ void removeBadAmbiguities(
 		}
 		
 		if 	(  acsConfig.reinit_on_all_slips
-			&& sigStat.slip.any)
+			&& sigStat.slip.any
+			&& (  (acsConfig.excludeSlip.LLI	&& satStat.sigStatMap[F1].slip.LLI)
+				||(acsConfig.excludeSlip.GF		&& satStat.sigStatMap[F1].slip.GF)	
+				||(acsConfig.excludeSlip.MW		&& satStat.sigStatMap[F1].slip.MW)	
+				||(acsConfig.excludeSlip.EMW	&& satStat.sigStatMap[F1].slip.EMW)	
+				||(acsConfig.excludeSlip.CJ		&& satStat.sigStatMap[F1].slip.CJ)	
+				||(acsConfig.excludeSlip.SCDIA	&& satStat.sigStatMap[F1].slip.SCDIA)))
 		{
 			trace << std::endl << "Phase ambiguity removed due cycle slip detection: "	<< key;
 			
 			kfState.removeState(key);
 			
-			if (acsConfig.getRecOpts("").ion.estimate == false)
+			InitialState init = initialStateFromConfig(acsConfig.getRecOpts("").ion);
+			
+			if (init.estimate == false)
 			{
 				KFKey kfKey = key;
 				for (kfKey.num = 0; kfKey.num < NUM_FTYPES; kfKey.num++)
@@ -183,14 +194,16 @@ void correctRecClocks(
 		auto& rec		= *key.rec_ptr;
  		auto& recOpts	= acsConfig.getRecOpts(key.str);
 
-		double deltaBias		= rec.    rtk.sol.dtRec_m[0] 
-								- refRec->rtk.sol.dtRec_m[0];
+		double deltaBias		= rec.    sol.dtRec_m[0] 
+								- refRec->sol.dtRec_m[0];
 								
-		double previousDelta	= rec.rtk.sol.deltaDt_net_old[0];
+		double previousDelta	= rec.sol.deltaDt_net_old[0];
 
 		double deltaDelta = deltaBias - previousDelta;
 
-		if (recOpts.clk_rate.estimate == false)
+		InitialState init = initialStateFromConfig(acsConfig.getRecOpts("").clk_rate);
+			
+		if (init.estimate == false)
 		{
 			//get, modify and set the old bias in the state according to SPP estimates
 			double oldBias = 0;
@@ -201,7 +214,7 @@ void correctRecClocks(
 			<< "Adjusting " << key.str
 			<< " clock by " << deltaDelta;
 		}
-		else if	( (rec.rtk.sol.deltaDt_net_old[0] == 0)
+		else if	( (rec.sol.deltaDt_net_old[0] == 0)
 				||( abs(deltaDelta) > wraparound_distance - wraparound_tolerance
 				  &&abs(deltaDelta) < wraparound_distance + wraparound_tolerance))
 		{
@@ -214,7 +227,7 @@ void correctRecClocks(
 		}
 
 		//store this value here for next time
-		rec.rtk.sol.deltaDt_net_old[0] = deltaBias;
+		rec.sol.deltaDt_net_old[0] = deltaBias;
 	}
 }
 
@@ -224,7 +237,7 @@ void incrementOutageCount(
 	//increment the outage count for all signals
 	for (auto& [id, rec] : stations)
 	{
-		for (auto& [Sat,	satStat] : rec.rtk.satStatMap)
+		for (auto& [Sat,	satStat] : rec.satStatMap)
 		for (auto& [ft,		sigStat] : satStat.sigStatMap)
 		{
 			sigStat.netwPhaseOutageCount++;
@@ -242,6 +255,8 @@ void networkEstimator(
 {
 	TestStack ts(__FUNCTION__);
 
+	BOOST_LOG_TRIVIAL(info) << "Network Estimation...";
+	
 	kfState.initFilterEpoch();
 	
 	removeBadAmbiguities(trace, kfState);
@@ -283,7 +298,9 @@ void networkEstimator(
 		
 		auto& satOpts = acsConfig.getSatOpts(Sat);
 		
-		if (satOpts.orb.estimate)
+		InitialState init = initialStateFromConfig(satOpts.orb);
+			
+		if (init.estimate)
 			orbPartials(trace, tsync, Sat, satNav.satPartialMat);	
 	}
 
@@ -336,44 +353,40 @@ void networkEstimator(
 		KFKey satClockKey		=	{KF::SAT_CLOCK,				obs.Sat};
 		KFKey satClockRateKey	=	{KF::SAT_CLOCK_RATE,		obs.Sat};
 		KFKey satClockRateGMKey	=	{KF::SAT_CLOCK_RATE_GM,		obs.Sat};
-		KFKey ambiguityKey		=	{KF::AMBIGUITY,				obs.Sat,	rec.id, (short)ft,						&rec	};
-		KFKey refClockKey		=	{KF::REF_SYS_BIAS,			{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	&rec	};
-		KFKey recClockKey		=	{KF::REC_SYS_BIAS,			{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	&rec	};
-		KFKey recClockRateKey	=	{KF::REC_SYS_BIAS_RATE,		{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	&rec	};
-		KFKey recClockRateGMKey	=	{KF::REC_SYS_BIAS_RATE_GM,	{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	&rec	};
-		KFKey recSysBiasKey		=	{KF::REC_SYS_BIAS,			{},			rec.id, obs.Sat.biasGroup(),			&rec	};
+		KFKey ambiguityKey		=	{KF::AMBIGUITY,				obs.Sat,	rec.id, (short)ft,						"", &rec	};
+		KFKey refClockKey		=	{KF::REF_SYS_BIAS,			{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	"", &rec	};
+		KFKey recClockKey		=	{KF::REC_SYS_BIAS,			{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	"", &rec	};
+		KFKey recClockRateKey	=	{KF::REC_SYS_BIAS_RATE,		{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	"", &rec	};
+		KFKey recClockRateGMKey	=	{KF::REC_SYS_BIAS_RATE_GM,	{},			rec.id,	SatSys(E_Sys::GPS).biasGroup(),	"", &rec	};
+		KFKey recSysBiasKey		=	{KF::REC_SYS_BIAS,			{},			rec.id, obs.Sat.biasGroup(),			"", &rec	};
 		KFKey recPosKeys	[3];
-		KFKey satPosKeys	[3];
 		KFKey tropKeys		[3];
 		KFKey tropGMKeys	[3];
-		KFKey eopKeys		[3]		= {	{KF::EOP,				{},			"_XP"},
-										{KF::EOP,				{},			"_YP"},
-										{KF::EOP,				{},			"_UT1"}	};
-		KFKey eopRateKeys	[3]		= {	{KF::EOP_RATE,			{},			"_XP"},
-										{KF::EOP_RATE,			{},			"_YP"},
-										{KF::EOP_RATE,			{},			"_UT1"}	};
+		KFKey eopKeys		[3]		= {	{KF::EOP,				{},			xp_str},
+										{KF::EOP,				{},			yp_str},
+										{KF::EOP,				{},			ut1_str}	};
+		KFKey eopRateKeys	[3]		= {	{KF::EOP_RATE,			{},			xp_str},
+										{KF::EOP_RATE,			{},			yp_str},
+										{KF::EOP_RATE,			{},			ut1_str}	};
 		for (short i = 0; i < 3; i++)
 		{
-			recPosKeys[i]	= {KF::REC_POS,			{},			rec.id,	i,				&rec	};
-			satPosKeys[i]	= {KF::SAT_POS,			obs.Sat,	"",		i						};
+			recPosKeys[i]	= {KF::REC_POS,			{},			rec.id,	i,				"", &rec	};
 		}
 		for (short i = 0; i < 3; i++)
 		{
-			tropKeys[i]		= {KF::TROP,			{},			rec.id,	i,				&rec	};
+			tropKeys[i]		= {KF::TROP,			{},			rec.id,	i,				"", &rec	};
 		}
 		for (short i = 0; i < 3; i++)
 		{
-			tropGMKeys[i]	= {KF::TROP_GM,			{},			rec.id,	i,				&rec	};
+			tropGMKeys[i]	= {KF::TROP_GM,			{},			rec.id,	i,				"", &rec	};
 		}
-
-		//find approximation of ambiguity using L-P
-		double amb = sig.phasRes - sig.codeRes;
-
+		
 		//add the elements in the design matrix.
 		//if they use a state parameter that hasn't been used before, it will be created and initialised
 
 		//all obs have GPS clock bias
-		if (recOpts.clk.estimate)
+// 		if (recOpts.clk.estimate)
+		for (auto once : {1})
 		{
 			if	(    refRec					== nullptr
 				&&( acsConfig.pivot_station	== rec.id
@@ -384,7 +397,9 @@ void networkEstimator(
 				
 				InitialState init		= {0, SQR(0.0001), 0};
 
-				ObsKey obsKeyCode = {{}, "REF"};
+				ObsKey obsKeyCode;
+				obsKeyCode.type = "REF";
+				
 				KFMeasEntry	pseudoMeas1(&kfState, obsKeyCode);
 				pseudoMeas1.setValue(0);
 				pseudoMeas1.setNoise(0.000001);
@@ -402,18 +417,36 @@ void networkEstimator(
 			if (&rec != refRec)
 			{
 				InitialState init		= initialStateFromConfig(recOpts.clk);
+			
+				if (init.estimate == false)
+				{
+					continue;
+				}
+			
 				codeMeas.addDsgnEntry(recClockKey,		+1,					init);
 				phasMeas.addDsgnEntry(recClockKey,		+1,					init);
 
-				if (recOpts.clk_rate.estimate)
+				for (auto once : {1})
 				{
 					InitialState recClkRateInit	= initialStateFromConfig(recOpts.clk_rate);
+			
+					if (recClkRateInit.estimate == false)
+					{
+						continue;
+					}
+			
 					kfState.setKFTransRate(recClockKey, recClockRateKey,	1, recClkRateInit);
 				}
 				
-				if (recOpts.clk_rate_gauss_markov.estimate)
+				for (auto once : {1})
 				{
 					InitialState gmInit			= initialStateFromConfig(recOpts.clk_rate_gauss_markov);
+			
+					if (gmInit.estimate == false)
+					{
+						continue;
+					}
+			
 					kfState.setKFTransRate(recClockKey, recClockRateGMKey,	1, gmInit);
 				}
 			
@@ -428,10 +461,15 @@ void networkEstimator(
 		}
 
 		
-		if (recOpts.pos.estimate)
 		for (int i = 0; i < 3; i++)
 		{
 			InitialState init		= initialStateFromConfig(recOpts.pos,						i);
+			
+			if (init.estimate == false)
+			{
+				continue;
+			}
+			
 			codeMeas.addDsgnEntry(recPosKeys[i],	-satStat.e[i], 			init);
 			phasMeas.addDsgnEntry(recPosKeys[i],	-satStat.e[i], 			init);
 			if (rec.aprioriVar(i) == 0)
@@ -440,93 +478,135 @@ void networkEstimator(
 			}
 		}
 
-		if (recOpts.trop.estimate)
+// 		if (recOpts.trop.estimate)
+		for (auto once : {1})
 		{
 			InitialState init		= initialStateFromConfig(recOpts.trop);
+			
+			if (init.estimate == false)
+			{
+				continue;
+			}
+			
 			codeMeas.addDsgnEntry(tropKeys[0],		satStat.mapWet,			init);
 			phasMeas.addDsgnEntry(tropKeys[0],		satStat.mapWet,			init);
 		}
 
-		if (recOpts.trop_gauss_markov.estimate)
+// 		if (recOpts.trop_gauss_markov.estimate)
+		for (auto once : {1})
 		{
 			InitialState gmInit		= initialStateFromConfig(recOpts.trop_gauss_markov);
+			
+			if (gmInit.estimate == false)
+			{
+				continue;
+			}
+			
 			codeMeas.addDsgnEntry(tropGMKeys[0],	satStat.mapWet,			gmInit);
 			phasMeas.addDsgnEntry(tropGMKeys[0],	satStat.mapWet,			gmInit);
 		}
 
-		if (recOpts.trop_grads.estimate)
+// 		if (recOpts.trop_grads.estimate)
 		for (int i = 0; i < 2; i++)
 		{
 			InitialState init		= initialStateFromConfig(recOpts.trop_grads,				i);
+			
+			if (init.estimate == false)
+			{
+				continue;
+			}
+			
 			codeMeas.addDsgnEntry(tropKeys[i+1],	satStat.mapWetGrads[i],	init);
 			phasMeas.addDsgnEntry(tropKeys[i+1],	satStat.mapWetGrads[i],	init);
 		}
 
-		if (recOpts.trop_grads_gauss_markov.estimate)
+// 		if (recOpts.trop_grads_gauss_markov.estimate)
 		for (int i = 0; i < 2; i++)
 		{
 			InitialState gmInit		= initialStateFromConfig(recOpts.trop_grads_gauss_markov,	i);
+			
+			if (gmInit.estimate == false)
+			{
+				continue;
+			}
+			
 			codeMeas.addDsgnEntry(tropGMKeys[i+1],	satStat.mapWetGrads[i],	gmInit);
 			phasMeas.addDsgnEntry(tropGMKeys[i+1],	satStat.mapWetGrads[i],	gmInit);
 		}
 
-		if (satOpts.clk.estimate)
+// 		if (satOpts.clk.estimate)
+		for (auto once : {1})
 		{
 			InitialState init		= initialStateFromConfig(satOpts.clk);
+			
+			if (init.estimate == false)
+			{
+				continue;
+			}
+			
 			codeMeas.addDsgnEntry(satClockKey,		-1,						init);
 			phasMeas.addDsgnEntry(satClockKey,		-1,						init);
 
-			if (satOpts.clk_rate.estimate)
+			for (auto once : {1})
 			{
 				InitialState satClkRateInit	= initialStateFromConfig(satOpts.clk_rate);
+			
+				if (satClkRateInit.estimate == false)
+				{
+					continue;
+				}
+			
 				kfState.setKFTransRate(satClockKey, satClockRateKey,	1,	satClkRateInit);
 			}
 
-			if (satOpts.clk_rate_gauss_markov.estimate)
+			for (auto once : {1})
 			{
 				InitialState gmInit			= initialStateFromConfig(satOpts.clk_rate_gauss_markov);
+			
+				if (gmInit.estimate == false)
+				{
+					continue;
+				}
+			
 				kfState.setKFTransRate(satClockKey, satClockRateGMKey,	1,	gmInit);
 			}
 		}
-		
-		if (satOpts.pos.estimate)
-		for (int i = 0; i < 3; i++)
-		{
-			InitialState init		= initialStateFromConfig(satOpts.pos,						i);
-			codeMeas.addDsgnEntry(satPosKeys[i],	-satStat.e[i], 			init);
-			phasMeas.addDsgnEntry(satPosKeys[i],	-satStat.e[i], 			init);
-		
-			if (satOpts.pos_rate.estimate)
-			{
-				InitialState satPosRateInit	= initialStateFromConfig(satOpts.pos_rate,			i);
-				kfState.setKFTransRate(satClockKey, satClockRateKey,	1,	satPosRateInit);
-			}
-		}
 
-		if (recOpts.amb.estimate)
+		for (auto once : {1})
 		{
-			InitialState init		= initialStateFromConfig(recOpts.amb);
-			init.x = amb;
+			InitialState init		= initialStateFromConfig(recOpts.amb, ft);
+			
+			if (init.estimate == false)
+			{
+				continue;
+			}
+		
 			phasMeas.addDsgnEntry(ambiguityKey,		+1,						init);
 		}
 
-		if (satOpts.orb.estimate)
+// 		if (satOpts.orb.estimate)
 		{
-			VectorXd orbitPartials = satNav.satPartialMat * satStat.e;
-
-			if (satNav.satOrbit.numUnknowns == orbitPartials.rows())
+// 			if (satNav.satOrbit.numUnknowns == orbitPartials.rows())
 			for (int i = 0; i < satNav.satOrbit.numUnknowns; i++)
 			{
 				string name = satNav.satOrbit.parameterNames[i];
 				KFKey orbPtKey	= {KF::ORBIT_PTS,	obs.Sat,	std::to_string(100 + i).substr(1) + "_" + name};
 
 				InitialState init	= initialStateFromConfig(satOpts.orb, i);
+				
+				if (init.estimate == false)
+				{
+					continue;
+				}
+				
+				VectorXd orbitPartials = satNav.satPartialMat * satStat.e;
+				
 				codeMeas.addDsgnEntry(orbPtKey,		orbitPartials(i),			init);
 				phasMeas.addDsgnEntry(orbPtKey,		orbitPartials(i),			init);
 			}
 		}
 
-		if (acsConfig.netwOpts.eop.estimate)
+// 		if (acsConfig.netwOpts.eop.estimate)
 		{
 			Matrix3d partialMatrix	= stationEopPartials(rec.aprioriPos);
 			Vector3d eopPartials	= partialMatrix * satStat.e;
@@ -537,8 +617,13 @@ void networkEstimator(
 
 			for (int i = 0; i < 3; i++)
 			{
-				InitialState init	= initialStateFromConfig(acsConfig.netwOpts.eop,					i);
-
+				InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop,					i);
+				
+				if (init.estimate == false)
+				{
+					continue;
+				}
+				
 				init.x = erpv[0].vals[i];
 				
 				if (i < 2)		init.x *= R2MAS;
@@ -550,10 +635,15 @@ void networkEstimator(
 				codeMeas.addDsgnEntry(eopKeys[i],	eopPartials(i),				init);
 				phasMeas.addDsgnEntry(eopKeys[i],	eopPartials(i),				init);
 				
-				if (acsConfig.netwOpts.eop_rates.estimate)
+// 				if (acsConfig.netwOpts.eop_rates.estimate)
+				for (auto once : {1})
 				{
-					InitialState eopRateInit	= initialStateFromConfig(acsConfig.netwOpts.eop_rates,	i);
+					InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	i);
 					 					
+					if (eopRateInit.estimate == false)
+					{
+						continue;
+					}
 
 					eopRateInit.x	= erpv[1].vals[i]
 									- erpv[0].vals[i];

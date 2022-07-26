@@ -1,20 +1,18 @@
 '''Trop sinex files reader/parser'''
 from io import BytesIO as _BytesIO
-from tqdm import tqdm as _tqdm
 
 import numpy as _np
 import pandas as _pd
-from .common import path2bytes
-
-from ..gn_datetime import yydoysec2datetime as _yydoysec2datetime
-from .sinex import _snx_extract_blk
+from gn_lib import gn_datetime as _gn_datetime
+from gn_lib import gn_io as _gn_io
+from tqdm import tqdm as _tqdm
 
 
 def _read_tro_solution(path: str, recenter: bool = True) -> _pd.DataFrame:
     '''Parses tro snx file into a dataframe.
     Enabling recenter overrides the default SOD values to 43200 s'''
-    snx_bytes = path2bytes(path)
-    tro_estimate = _snx_extract_blk(snx_bytes=snx_bytes,blk_name='TROP/SOLUTION',remove_header=True)
+    snx_bytes = _gn_io.common.path2bytes(path)
+    tro_estimate = _gn_io._snx_extract_blk(snx_bytes=snx_bytes,blk_name='TROP/SOLUTION',remove_header=True)
     if tro_estimate is None:
         _tqdm.write(f'bounds not found in {path}. Skipping.', end=' | ')
         return None
@@ -34,7 +32,7 @@ def _read_tro_solution(path: str, recenter: bool = True) -> _pd.DataFrame:
             _tqdm.write(f'{path} data corrupted. Skipping', end=' | ')
             return None
 
-    solution_df.REF_EPOCH = _yydoysec2datetime(
+    solution_df.REF_EPOCH = _gn_datetime.yydoysec2datetime(
         solution_df.REF_EPOCH, recenter=recenter, as_j2000=True)
     solution_df.set_index(['CODE', 'REF_EPOCH'], inplace=True)
     solution_df.columns = _pd.MultiIndex.from_product(

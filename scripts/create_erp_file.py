@@ -43,7 +43,7 @@ def erp_outfile(datetime_epoch: datetime, output_dir: Path):
 
     if Path("finals.daily.iau2000.txt").is_file():
         Path("finals.daily.iau2000.txt").unlink()
-    iers_url = "https://datacenter.iers.org/data/latestVersion/finals.daily.iau2000.txt"
+    iers_url = "https://datacenter.iers.org/products/eop/rapid/daily/finals2000A.daily"
     iau2000_daily_file = Path.cwd() / "finals.daily.iau2000.txt"
     _rqs.urlretrieve(iers_url, filename=iau2000_daily_file)
     byte_file = path2bytes(str(iau2000_daily_file))

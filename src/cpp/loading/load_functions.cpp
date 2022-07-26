@@ -1,6 +1,6 @@
 /*!
  * Functions to compute the load
- * @author SÃ©bastien Allgeyer
+ * @author S‚bastien Allgeyer
  * @date 5/3/21
  *
  */
@@ -18,21 +18,19 @@
 #include "boost_ma_type.h"
 #include "utils.h"
 
-/**
- * Compute the loading of a single point
- * @param tide_info [in] vector of classes containing the tide grids
- * @param input [in,out] class containing the coordinates information and also the loading vector [output]
- * @param load [in] class containing the Green's function
- * @param idx [in] index of the point in the list
+/** Compute the loading of a single point
  */
-void load_1_point(tide *tide_info, otl_input *input, loading load,  int idx)
+void load_1_point(
+	tide*		tide_info,		///< vector of classes containing the tide grids
+	otl_input*	input,			///< class containing the coordinates information and also the loading vector
+	loading		load,			///< class containing the Green's function
+	int			idx)			///< index of the point in the list
 {
-
 	MA2d greenZ;
 	MA2d greenNS;
 	MA2d greenEW;
 
-	greenZ.resize(boost::extents[tide_info[0].get_nlat()][tide_info[0].get_nlon()]);
+	greenZ.	resize(boost::extents[tide_info[0].get_nlat()][tide_info[0].get_nlon()]);
 	greenNS.resize(boost::extents[tide_info[0].get_nlat()][tide_info[0].get_nlon()]);
 	greenEW.resize(boost::extents[tide_info[0].get_nlat()][tide_info[0].get_nlon()]);
 
@@ -42,40 +40,40 @@ void load_1_point(tide *tide_info, otl_input *input, loading load,  int idx)
 	float lat0 = input->lat[idx];
 	float lon0 = input->lon[idx];
 
-	for (float *lat_ptr = tide_info[0].get_lat_ptr(); lat_ptr != tide_info[0].get_lat_ptr_end(); lat_ptr++) {
-		for (float *lon_ptr = tide_info[0].get_lon_ptr(); lon_ptr < tide_info[0].get_lon_ptr_end(); lon_ptr++) {
-			double dist, azimuth;
-			calcDistanceBearing(&lat0, &lon0, lat_ptr, lon_ptr, &dist, &azimuth);
+	for (float *lat_ptr = tide_info[0].get_lat_ptr(); lat_ptr != tide_info[0].get_lat_ptr_end(); lat_ptr++) 
+	for (float *lon_ptr = tide_info[0].get_lon_ptr(); lon_ptr < tide_info[0].get_lon_ptr_end(); lon_ptr++) 
+	{
+		double dist, azimuth;
+		calcDistanceBearing(&lat0, &lon0, lat_ptr, lon_ptr, &dist, &azimuth);
 
-			*greenZ_it = load.interpolate_gz(dist);
-			*greenNS_it = load.interpolate_gh(dist) * cos(azimuth);
-			*greenEW_it = load.interpolate_gh(dist) * sin(azimuth);
+		*greenZ_it = load.interpolate_gz(dist);
+		*greenNS_it = load.interpolate_gh(dist) * cos(azimuth);
+		*greenEW_it = load.interpolate_gh(dist) * sin(azimuth);
 
-			// *greenNS_it *= cos(azimuth);
-			// *greenEW_it *= sin(azimuth);
-			if (*greenZ_it != *greenZ_it)
-			{
-				std::cout << " nan detected for " << *lat_ptr << " " <<*lon_ptr << std::endl;
-				std::cout << dist << "  " << azimuth << std::endl;
-				exit(0);
-			}
-			greenZ_it++;
-			greenNS_it++;
-			greenEW_it++;
+		// *greenNS_it *= cos(azimuth);
+		// *greenEW_it *= sin(azimuth);
+		if (*greenZ_it != *greenZ_it)
+		{
+			std::cout << " nan detected for " << *lat_ptr << " " <<*lon_ptr << std::endl;
+			std::cout << dist << "  " << azimuth << std::endl;
+			exit(0);
 		}
+		greenZ_it++;
+		greenNS_it++;
+		greenEW_it++;
 	}
-
-
-
-	// Computing load;
-	for (int it = 0 ; it < input->tide_file.size() ; it++ ) {
+	
+	// Computing load
+	for (int it = 0 ; it < input->tide_file.size() ; it++ ) 
+	{
 		auto tideim_it = tide_info[it].get_out_ptr();
 		auto gz_it = greenZ.origin();
 		auto gNS_it = greenNS.origin();
 		auto gEW_it = greenEW.origin();
 		for (auto tidere_it = tide_info[it].get_in_ptr();
 			 tidere_it != tide_info[it].get_in_ptr_end();
-			 tidere_it++, tideim_it++, gz_it++, gNS_it++, gEW_it++) {
+			 tidere_it++, tideim_it++, gz_it++, gNS_it++, gEW_it++) 
+		{
 			
 			input->dispEW_in[idx][it] += *gEW_it * *tidere_it;
 			input->dispEW_out[idx][it]+= *gEW_it * *tideim_it;
@@ -132,7 +130,8 @@ void write_BLQ(otl_input *input)
 		fprintf(fp,"$$    - %s\n",input->tide_file[i].c_str());
 	fprintf(fp,"$$ Green function used is %s\n",input->green.c_str());
 
-	for (unsigned int i=0; i< input->code.size(); i++) {
+	for (unsigned int i=0; i< input->code.size(); i++) 
+	{
 		fprintf(fp, "  %s\n", input->code[i].c_str());
 		fprintf(fp, "$$ %s                    RADI TANG  lon/lat: %f %f\n", input->code[i].c_str(), input->lon[i],
 				input->lat[i]);

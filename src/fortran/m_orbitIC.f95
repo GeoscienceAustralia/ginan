@@ -76,7 +76,7 @@ SUBROUTINE orbitIC (fname, IC_matrix, PRNmatrix)
       INTEGER (KIND = prec_int2) :: AllocateStatus	  
 ! ----------------------------------------------------------------------
       INTEGER (KIND = prec_int8) :: Nparam, Nsat, Nparam_isat 
-      INTEGER (KIND = prec_int8) :: isat, iparam, jsat
+      INTEGER (KIND = prec_int8) :: isat, iparam, jsat, ksat
       CHARACTER (LEN=3) :: PRN_i
       CHARACTER (LEN=1) :: char1
       CHARACTER (LEN=6) :: PRi, PTi, PNi
@@ -92,10 +92,11 @@ erp_rates_read = .false.
 UNIT_IN = 9  												
 ! ----------------------------------------------------------------------
 ! Open file
-      OPEN (UNIT = UNIT_IN, FILE = TRIM (fname), IOSTAT = ios)
+      OPEN (UNIT = UNIT_IN, FILE = TRIM (fname), STATUS='OLD', IOSTAT = ios)
       IF (ios /= 0) THEN
          PRINT *, "Error in opening file:", fname
          PRINT *, "OPEN IOSTAT=", ios
+         STOP
       END IF
 ! ----------------------------------------------------------------------
 
@@ -248,10 +249,11 @@ UNIT_IN = 9
 
 ! ----------------------------------------------------------------------
 ! Open file
-      OPEN (UNIT = UNIT_IN, FILE = TRIM (fname), IOSTAT = ios)
+      OPEN (UNIT = UNIT_IN, FILE = TRIM (fname), STATUS='OLD', IOSTAT = ios)
       IF (ios /= 0) THEN
          PRINT *, "Error in opening file:", fname
          PRINT *, "OPEN IOSTAT=", ios
+         STOP
       END IF
 ! ----------------------------------------------------------------------
 
@@ -261,6 +263,7 @@ UNIT_IN = 9
       i = 0	  
       ipulse = 0
       isat = 0	  
+      ksat = 0
       DO
 	     READ (UNIT=UNIT_IN,FMT='(A)',IOSTAT=ios_line) line_ith
 	     i = i + 1
@@ -363,11 +366,13 @@ jsat = 0
 
 IF (word1_ln == "#IC_PULSE_INFO") THEN
         ipulse = ipulse + 1
+        ipulse_read = 0
 READ (line_ith, * , IOSTAT=ios_data) word_i, PRN_i, word_i, word_i, word_i,PRi,PTi,PNi
 READ (PRN_i,'(1A,I2)') char1, jsat
 READ (PRi, '(2x,I2)') ipulse_r
 READ (PTi, '(2x,I2)') ipulse_t
 READ (PNi, '(2x,I2)') ipulse_n
+if (ksat /= jsat) ipulse = 1
 ! sanity check make sure ipulse_? vars are ipulse or 0
 if (ipulse_r .ne. ipulse) then
     if (ipulse_r .ne. 0) then
@@ -390,6 +395,7 @@ if (ipulse_n .ne. ipulse) then
     end if
 end if
 if (ipulse_n .ne. 0) ipulse_read= ipulse_read+1
+!print *, "Line_ith - ", line_ith, "pulse_read = ", ipulse_read
 if (ipulse_read .ne. yml_pulse_parameter_count) then
     write (*,*) "Wrong number of pulse parameters read, ", ipulse_read, " should be ", yml_pulse_parameter_count
     STOP
@@ -400,6 +406,7 @@ READ (line_ith, * , IOSTAT=ios_data) word_i, word_i, word_i, word_i, word_i, &
 !print*,'line_ith = ', line_ith
 !print*,'IC_PULSE_INFO, PRN , ipulse =', jsat, ipulse, IC_pulse_matrix_glb(jsat,ipulse,1:5)
 !if (jsat == 2) stop
+ksat = jsat
 END IF
 
 END DO

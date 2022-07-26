@@ -72,38 +72,36 @@ struct SatNav
 	Eph*				eph_ptr			= nullptr;
 	Geph*				geph_ptr		= nullptr;
 	Seph*				seph_ptr		= nullptr;
+	Ceph*				ceph_ptr		= nullptr;
+	STO*				sto_ptr			= nullptr;
+	EOP*				eop_ptr			= nullptr;
+	ION*				ion_ptr			= nullptr;
 	MatrixXd			satPartialMat;				///< Partial derivative matrices for orbits
 };
 
-struct nav_t
+struct Navigation
 {
 	///< navigation data type
 
-	map<string, map<E_FType, map<GTime, Vector3d,			std::greater<GTime>>>>	pcoMap;
-	map<string, map<E_FType, map<GTime, PhaseCenterData,	std::greater<GTime>>>>	pcvMap;
+	map<string, 	map<E_FType, 		map<GTime, Vector3d,		std::greater<GTime>>>>	 pcoMap;
+	map<string, 	map<E_FType, 		map<GTime, PhaseCenterData,	std::greater<GTime>>>>	 pcvMap;
 	
-	map<int,	map<GTime, Eph,				std::greater<GTime>>> 	ephMap;        /* GPS/QZS/GAL ephemeris */
-	map<int,	map<GTime, Geph,			std::greater<GTime>>>	gephMap;       /* GLONASS ephemeris */
-	map<int,	map<GTime, Seph,			std::greater<GTime>>> 	sephMap;       /* SBAS ephemeris */
-	map<int,	PephList> 											pephMap;       /* precise ephemeris */
-	map<string,	PclkList> 											pclkMap;       /* precise clock */
-	map<GTime,	tec_t,						std::greater<GTime>>	tecMap;         /* tec grid data */
+	map<int,							map<GTime, Eph,				std::greater<GTime>>>	 ephMap;	/* GPS/QZS/GAL/BDS ephemeris */
+	map<int,							map<GTime, Geph,			std::greater<GTime>>>	gephMap;	/* GLONASS ephemeris */
+	map<int,							map<GTime, Seph,			std::greater<GTime>>>	sephMap;	/* SBAS ephemeris */
+	map<int,		map<E_NavMsgType,	map<GTime, Ceph,			std::greater<GTime>>>>	cephMap;	/* GPS/QZS/BDS CNVX ephemeris */
+	map<E_Sys,		map<E_NavMsgType,	map<GTime, ION,				std::greater<GTime>>>>	 ionMap;	/* ION messages */
+	map<E_StoCode,	map<E_NavMsgType,	map<GTime, STO,				std::greater<GTime>>>>	 stoMap;	/* STO messages */
+	map<E_Sys,		map<E_NavMsgType,	map<GTime, EOP,				std::greater<GTime>>>>	 eopMap;	/* EOP messages */
+	map<int,		PephList> 																pephMap;	/* precise ephemeris */
+	map<string,		PclkList> 																pclkMap;	/* precise clock */
+	map<GTime,		tec_t,											std::greater<GTime>>	 tecMap;	/* tec grid data */
 	
-	map<int,	SatNav>												satNavMap;
+	map<int,		SatNav>																  satNavMap;
 	
 // 	list<fcbd_t> 		fcbList;        /* satellite fcb data */
 	vmf3_t	vmf3	= {.m = 1};
 	ERP  	erp;         /* earth rotation parameters */
-	double utc_gps[4];  /* GPS delta-UTC parameters {A0,A1,T,W} */
-	double utc_glo[4];  /* GLONASS UTC GPS time parameters */
-	double utc_gal[4];  /* Galileo UTC GPS time parameters */
-	double utc_qzs[4];  /* QZS UTC GPS time parameters */
-	double utc_cmp[4];  /* BeiDou UTC parameters */
-	double utc_sbs[4];  /* SBAS UTC parameters */
-	double ion_gps[8];  /* GPS iono model parameters {a0,a1,a2,a3,b0,b1,b2,b3} */
-	double ion_gal[4];  /* Galileo iono model parameters {ai0,ai1,ai2,0} */
-	double ion_qzs[8];  /* QZSS iono model parameters {a0,a1,a2,a3,b0,b1,b2,b3} */
-	double ion_cmp[8];  /* BeiDou iono model parameters {a0,a1,a2,a3,b0,b1,b2,b3} */
 	int leaps;          /* leap seconds (s) */
 	char glo_fcn[MAXPRNGLO+1];  /* glonass frequency channel number + 8 */
 	double glo_cpbias[4];       /* glonass code-phase bias {1C,1P,2C,2P} (m) */
@@ -129,16 +127,16 @@ struct nav_t
 namespace boost::serialization
 {
 	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, nav_t& nav)
+	void serialize(ARCHIVE& ar, Navigation& nav)
 	{
 		ar & nav.ephMap;
 	}
 }
 
 
+extern map<E_Sys, E_NavMsgType> defNavMsgType;
 
-
-extern	nav_t	nav;
+extern	Navigation	nav;
 
 
 #endif

@@ -1,32 +1,31 @@
 
 // #pragma GCC optimize ("O0")
 
-
-
-
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/map.hpp>
 
+#include <algorithm>
 #include <math.h>    
 
+#include "instrument.hpp"
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
 #include "common.hpp"
 
-list<string>							TestStack::TestStackList;
-list<string>							TestStack::RecordStackList;
-unordered_map<string, vector<double>>	TestStack::TestDoubleData;
-unordered_map<string, string>			TestStack::TestStringData;
-unordered_map<string, int>				TestStack::TestStatus;
-unordered_map<string, string>			TestStack::TestRedirect;
-std::ofstream							TestStack::TestOutputStream;
-std::ofstream							TestStack::TestNameStream;
-bool									TestStack::DontTest			= false;
-bool									TestStack::NewData			= false;
+list<string>					TestStack::TestStackList;
+vector<string>					TestStack::RecordStackList;
+vector<TestThingy>				TestStack::TestDoubleData;
+list<TestThingy>				TestStack::RecordedTests;
+map<string, string>				TestStack::TestStringData;
+map<string, string>				TestStack::TestRedirect;
+std::ofstream					TestStack::TestOutputStream;
+std::ofstream					TestStack::TestNameStream;
+bool							TestStack::DontTest			= false;
+bool							TestStack::NewData			= false;
 
 
 
@@ -35,7 +34,7 @@ bool									TestStack::NewData			= false;
 TestStack::TestStack(string desc)
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -51,7 +50,7 @@ TestStack::TestStack(string desc)
 TestStack::~TestStack()
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -68,7 +67,7 @@ void TestStack::printStatus(
 	bool final)  		///< Option to print missing test cases as failed
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -77,28 +76,30 @@ void TestStack::printStatus(
 	int pass = 0;
 	int fail = 0;
 
-	for (auto& [test, status] : TestStatus)
+	for (auto& test : TestDoubleData)
 	{
-		if (status == +1) 	pass++;
-		if (status == -1)	fail++;
+		if (test.status == +1) 	pass++;
+		if (test.status == -1)	fail++;
 	}
 
 	TestOutputStream
 	<< std::endl	<< std::endl
 	<< "Tested "	<< (pass + fail)
-	<< " of "		<< TestStatus.size()
+	<< " of "		<< TestDoubleData.size()
 	<< " tests."	<< std::endl
 	<< "Passed: "	<< pass << std::endl
 	<< "Failed: "	<< fail << std::endl;
 
 	if (final)
 	{
-		for (auto& [test, status] : TestStatus)
+		for (auto& test : TestDoubleData)
 		{
-			if (status == 0)
+			if (test.status == 0)
+			{
 				TestOutputStream
 				<< std::endl
-				<< "Test missed: \""	<< test << "\"";
+				<< "Test missed: \""	<< test.stack << "\"";
+			}
 		}
 	}
 #endif
@@ -109,24 +110,26 @@ void TestStack::printStatus(
 int TestStack::testStatus()
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return 0;
 	}
 
+// 	Instrument instrument(__FUNCTION__);
+	
 	int totalStatus = 1;
 	bool complete = true;
-	for (auto& [test, status] : TestStatus)
+	for (auto& test : TestDoubleData)
 	{
-		if (status == 0)
+		if (test.status == 0)
 		{
 			//incomplete
 			totalStatus = 0;
 			complete = false;
 		}
 
-		if (status == -1)	//fail
+		if (test.status == -1)	//fail
 		{
 			totalStatus = -1;
 		}
@@ -154,13 +157,21 @@ int TestStack::testStatus()
 void TestStack::openData()
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
 	}
+	
+// 	Instrument instrument(__FUNCTION__);
 
-	std::ifstream inputFilestream(acsConfig.testOpts.filename + ".bin");
+	TestOutputStream.	open(acsConfig.test_filename + ".out");
+	TestNameStream.		open(acsConfig.test_filename + ".names");
+
+	TestOutputStream << "Results for tests run on " << acsConfig.config_description << std::endl;
+	
+	std::cout << "Reading in test data from " << acsConfig.test_filename << "..." << std::endl;
+	std::ifstream inputFilestream(acsConfig.test_filename + ".bin");
 	try
 	{
 		boost::archive::binary_iarchive archive(inputFilestream);
@@ -169,21 +180,9 @@ void TestStack::openData()
 	}
 	catch (...) {}
 
-	for (auto& [test, data] : TestDoubleData)
-	{
-		TestStatus[test] = 0;
-	}
-	for (auto& [test, data] : TestStringData)
-	{
-		TestStatus[test] = 0;
-	}
-
-	TestOutputStream.	open(acsConfig.testOpts.filename + ".out");
-	TestNameStream.		open(acsConfig.testOpts.filename + ".names");
-
 	try
 	{
-		auto yaml = YAML::LoadFile(acsConfig.testOpts.filename + ".redir");
+		auto yaml = YAML::LoadFile(acsConfig.test_filename + ".redir");
 
 		for (YAML::const_iterator it = yaml.begin(); it != yaml.end(); ++it)
 		{
@@ -194,25 +193,33 @@ void TestStack::openData()
 	}
 	catch (...)
 	{
-// 			std::cout << std::endl << "Error loading TestStack redir file" << std::endl;
+//		std::cout << std::endl << "Error loading TestStack redir file" << std::endl;
 	}
 
+	string recordFilename = acsConfig.test_filename + ".record";
+	
+	int numTests = 0;
 	try
 	{
-		auto yaml = YAML::LoadFile(acsConfig.testOpts.filename + ".record");
+		auto yaml = YAML::LoadFile(recordFilename);
 
 		for (YAML::const_iterator it = yaml.begin(); it != yaml.end(); ++it)
 		{
 			string New = it->first.as<string>();
-			RecordStackList.push_back(New);
+			RecordStackList.push_back(std::move(New));
+			
+			numTests++;
 		}
 	}
 	catch (...)
 	{
-		std::cout << std::endl << "Error loading TestStack record file" << std::endl;
+		std::cout << std::endl << "Error loading TestStack record file" << recordFilename << std::endl;
 	}
+	
 
-	TestOutputStream << "Results for tests run on " << acsConfig.config_description << std::endl << std::endl;
+	TestOutputStream << numTests << " tests loaded from file" <<  std::endl << std::endl;
+
+	std::sort(RecordStackList.begin(), RecordStackList.end());
 #endif
 }
 
@@ -222,14 +229,26 @@ void TestStack::openData()
 void TestStack::saveData()
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest)
 		||(NewData == false))
 	{
 		return;
 	}
+	
+// 	Instrument instrument(__FUNCTION__);
+	
+	TestDoubleData.reserve(TestDoubleData.size() + RecordedTests.size());
+	
+	for (auto& test : RecordedTests)
+	{
+		TestDoubleData.push_back(std::move(test));
+	}
+	
+	std::sort(TestDoubleData.begin(), TestDoubleData.end());
+	
 	// create and open a character archive for output
-	std::ofstream outputFilestream(acsConfig.testOpts.filename + ".bin");
+	std::ofstream outputFilestream(acsConfig.test_filename + ".bin");
 
 	// save data to archive
 	{
@@ -249,6 +268,8 @@ string TestStack::getStack(
 	string	id,       		///< Id to append to stack value
 	string&	original)		///< Original stack value when redirected
 {
+// 	Instrument instrument(__FUNCTION__);
+	
 	string stack;
 	for (auto& a : TestStackList)
 	{
@@ -276,12 +297,14 @@ bool TestStack::checkMat(
 	int		n)		///< Number of elements in matrix
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 // 		||(DontTest)
 		)
 	{
 		return true;
 	}
+	
+// 	Instrument instrument(__FUNCTION__);
 
 	string	original;
 	string	stack = getStack(id, original);
@@ -333,42 +356,55 @@ void TestStack::testMat(
 	double*	covariance)     			///< Optional covariance matrix for element-wise thresholds
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
 	}
+	
+// 	Instrument instrument(__FUNCTION__);
 
 	string	original;
 	string	stack = getStack(id, original);
 
-	auto entry = TestDoubleData.find(stack);
-	if (entry == TestDoubleData.end())
+	TestThingy dummy = {stack};
+	
+	auto it = std::lower_bound(TestDoubleData.begin(), TestDoubleData.end(), dummy);
+	if	(	it == TestDoubleData.end()
+		||	it->stack != stack)
 	{
 		if (original != stack)
 		{
 			return;
 		}
-		volatile bool output = false;
-		if	( (output)
-			||(std::find(RecordStackList.begin(), RecordStackList.end(), stack) != RecordStackList.end()))
+		
+		auto it = std::lower_bound(RecordStackList.begin(), RecordStackList.end(), stack);
+		if	(   it == RecordStackList.end()
+			|| *it != stack)
 		{
-			auto redirectEntry = TestRedirect.find(stack);
-			if (redirectEntry != TestRedirect.end())
-			{
-				return;
-			}
-
-			vector<double> data;
-			for (int i = 0; i < n; i++)
-			{
-				data.push_back(mat[i]);
-			}
-			TestDoubleData[stack] = data;
-
-			TestOutputStream << "TEST: Added  '" << stack << std::endl;
-			NewData = true;
+			return;
 		}
+
+		auto redirectEntry = TestRedirect.find(stack);
+		if (redirectEntry != TestRedirect.end())
+		{
+			return;
+		}
+
+		TestThingy test = {stack};
+		
+		test.data.reserve(n);
+		
+		for (int i = 0; i < n; i++)
+		{
+			test.data.push_back(mat[i]);
+		}
+		
+		RecordedTests.push_back(std::move(test));
+
+		TestOutputStream << "TEST: Added  '" << stack << std::endl;
+		NewData = true;
+
 		return;
 	}
 
@@ -376,23 +412,23 @@ void TestStack::testMat(
 	int		firstI	= -1;
 	double	firstA	= -1;
 	double	firstB	= -1;
-	int		maxI	= -1;
-	double	maxA	= -1;
-	double	maxB	= -1;
+	int		maxI	= 0;
+	double	maxA	= 0;
+	double	maxB	= 0;
 	double	maxFrac = 0;
 	bool	nan = false;
 	bool	inf = false;
 
-	auto& [dummy, data] = *entry;
+	auto& test = *it;
 
 	bool sizeOk = true;
 
-	if (n != data.size())
+	if (n != test.data.size())
 	{
 		sizeOk = false;
-		TestOutputStream << "Bad test length: got " << n << " but expected " << data.size() << " for " << stack << std::endl;
+		TestOutputStream << "Bad test length: got " << n << " but expected " << test.data.size() << " for " << stack << std::endl;
 
-		TestStatus[stack] = -1;
+		test.status = -1;
 
 		return;
 	}
@@ -401,7 +437,7 @@ void TestStack::testMat(
 
 	for (int i = 0; i < n; i++)
 	{
-		double Old = data[i];
+		double Old = test.data[i];
 		double New = mat[i];
 
 		double delta = fabs(New - Old);
@@ -474,10 +510,13 @@ void TestStack::testMat(
 	{
 		for (int i = 0; i < n; i++)
 		{
-			mat[i] = data[i];
+			mat[i] = test.data[i];
 		}
 		TestOutputStream << "ABSRB";
 	}
+
+	if (errorCount)		test.status = -1;
+	else				test.status = +1;
 
 	if 	( (errorCount						== 0)
 		&&(acsConfig.testOpts.output_pass	== false))
@@ -485,8 +524,8 @@ void TestStack::testMat(
 		return;
 	}
 
-	if (errorCount > 0)	{	TestStatus[stack] = -1;	TestOutputStream << "---- "; }
-	else				{	TestStatus[stack] = +1;	TestOutputStream << "PASS "; }
+	if (errorCount)		TestOutputStream << "---- ";
+	else				TestOutputStream << "PASS ";
 
 	if (original.size() > 60)
 	{
@@ -580,7 +619,7 @@ void TestStack::testMat(
 	double		precision) 			///< The threshold for failing a comparison
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -597,7 +636,7 @@ void TestStack::checkMat(
 	MatrixXd&	mat)				///< Matrix data to compare
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -614,7 +653,7 @@ void TestStack::checkMat(
 	VectorXd&	vec)				///< Matrix data to compare
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -633,7 +672,7 @@ void TestStack::testMat(
 	MatrixXd*	covariance)				///< Optional covariance matrix for element-wise thresholds
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -655,7 +694,7 @@ void TestStack::testMat(
 	MatrixXd*	covariance)				///< Optional covariance matrix for element-wise thresholds
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -676,13 +715,13 @@ void TestStack::testMat(
 	double		precision)					///< The threshold for failing a comparison
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
 	}
 
-	testMat(id, &num, 1, 1e-6);
+	testMat(id, &num, 1, precision);
 #endif
 }
 
@@ -691,7 +730,7 @@ void TestStack::testInt(
 	int		num)        ///< Integer value to compare
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
+	if	( (acsConfig.testOpts.enable == false)
 		||(DontTest))
 	{
 		return;
@@ -708,89 +747,89 @@ void TestStack::testStr(
 	string id,			///< ID value to append to stack
 	string str)			///< String value to compare
 {
-#ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.process_tests == false)
-		||(DontTest))
-	{
-		return;
-	}
-
-	string	original;
-	string	stack = getStack(id, original);
-
-	auto entry = TestStringData.find(stack);
-	if (entry == TestStringData.end())
-	{
-		if (stack != original)
-		{
-			return;
-		}
-
-		volatile bool output = false;
-		if	( (output)
-			||(std::find(RecordStackList.begin(), RecordStackList.end(), stack) != RecordStackList.end()))
-		{
-			auto redirectEntry = TestRedirect.find(stack);
-			if (redirectEntry != TestRedirect.end())
-			{
-				return;
-			}
-
-			TestStringData[stack] = str;
-
-			TestOutputStream << "TEST: Added  '" << stack << std::endl;
-		}
-		return;
-	}
-
-	auto& data = entry->second;
-
-	if 	( (data == str)
-		&&(acsConfig.testOpts.output_pass	== false))
-	{
-		return;
-	}
-
-	if (data != str)	{	TestStatus[stack] = -1;	TestOutputStream << "----"; }
-	else				{	TestStatus[stack] = +1;	TestOutputStream << "PASS"; }
-
-	if (original.size() > 60)
-	{
-		original = original.substr(0, 20) + ".." + original.substr(original.size() - 38);
-	}
-	else
-	{
-		original.append(60 - original.size(), ' ');
-	}
-
-	TestOutputStream << "\t   " << original;
-
-	if	(data != str)
-	{
-		TestOutputStream
-		<< std::endl << "\texpected \"" << data	<< "\""
-		<< std::endl << "\tbut got  \"" << str	<< "\""
-		<< std::endl << "\t          ";
-		for (int i = 0; i < data.size(); i++)
-		{
-			if (data[i] != str[i])
-			{
-				TestOutputStream << "!";
-				break;
-			}
-			else
-			{
-				TestOutputStream << " ";
-			}
-		}
-
-		if (acsConfig.testOpts.stop_on_fail)
-		{
-			exit(-1);
-		}
-	}
-	TestOutputStream << std::endl;
-#endif
+// #ifdef	ENABLE_UNIT_TESTS
+// 	if	( (acsConfig.testOpts.enable == false)
+// 		||(DontTest))
+// 	{
+// 		return;
+// 	}
+// 
+// 	string	original;
+// 	string	stack = getStack(id, original);
+// 
+// 	auto entry = TestStringData.find(stack);
+// 	if (entry == TestStringData.end())
+// 	{
+// 		if (stack != original)
+// 		{
+// 			return;
+// 		}
+// 
+// 		volatile bool output = false;
+// 		if	( (output)
+// 			||(std::find(RecordStackList.begin(), RecordStackList.end(), stack) != RecordStackList.end()))
+// 		{
+// 			auto redirectEntry = TestRedirect.find(stack);
+// 			if (redirectEntry != TestRedirect.end())
+// 			{
+// 				return;
+// 			}
+// 
+// 			TestStringData[stack] = str;
+// 
+// 			TestOutputStream << "TEST: Added  '" << stack << std::endl;
+// 		}
+// 		return;
+// 	}
+// 
+// 	auto& data = entry->second;
+// 
+// 	if 	( (data == str)
+// 		&&(acsConfig.testOpts.output_pass	== false))
+// 	{
+// 		return;
+// 	}
+// 
+// 	if (data != str)	{	test.status = -1;	TestOutputStream << "----"; }
+// 	else				{	test.status = +1;	TestOutputStream << "PASS"; }
+// 
+// 	if (original.size() > 60)
+// 	{
+// 		original = original.substr(0, 20) + ".." + original.substr(original.size() - 38);
+// 	}
+// 	else
+// 	{
+// 		original.append(60 - original.size(), ' ');
+// 	}
+// 
+// 	TestOutputStream << "\t   " << original;
+// 
+// 	if	(data != str)
+// 	{
+// 		TestOutputStream
+// 		<< std::endl << "\texpected \"" << data	<< "\""
+// 		<< std::endl << "\tbut got  \"" << str	<< "\""
+// 		<< std::endl << "\t          ";
+// 		for (int i = 0; i < data.size(); i++)
+// 		{
+// 			if (data[i] != str[i])
+// 			{
+// 				TestOutputStream << "!";
+// 				break;
+// 			}
+// 			else
+// 			{
+// 				TestOutputStream << " ";
+// 			}
+// 		}
+// 
+// 		if (acsConfig.testOpts.stop_on_fail)
+// 		{
+// 			exit(-1);
+// 		}
+// 	}
+// 	TestOutputStream << std::endl;
+// #endif
 }
 
 
@@ -818,6 +857,7 @@ void ErrorExit::consume(
 
 	if (logLevel <= acsConfig.fatal_level)
 	{
+		std::cout << std::endl << "Message met fatal_message_level condition for exit.\nExiting...\n\n";
 		exit(1);
 	}
 }
@@ -833,3 +873,65 @@ void exitOnErrors()
 	// Register the sink in the logging core
 	boost::log::core::get()->add_sink(logSink);
 }
+
+
+
+// #include <malloc.h>
+
+// size_t bucket = 0;
+// 
+// static void* plumber_hook(size_t size, const void* caller);
+// static void* plumber_hook(size_t size, const void* caller)
+// {
+// 	void*	result;
+// 	
+// 	/* Restore all old hooks */
+// 	/* Call recursively */
+// 	__malloc_hook		= 0;
+// 	{
+// 		result = malloc(size);
+// 	}
+// 	__malloc_hook		= plumber_hook;
+// 
+// 	bucket += size;
+// 	
+// 	return result;
+// }
+// 
+// 
+// template<typename T>
+// size_t plumberTest(T& t)
+// {
+// 	//begin plumbing
+// 	bucket = 0;
+// 		
+// 	__malloc_hook	= plumber_hook;
+// 	{
+// 		T newT = t;
+// 	}
+// 	__malloc_hook	= 0;
+// 	
+// 	return bucket;
+// }
+
+void plumber()
+{
+// 	static map<string, size_t>	plumberMap;
+// 	
+// 	size_t New;
+// 	string v;
+// 	
+// 	printf("Checking plumbing:\n");
+// 	v = "nav";			New = plumberTest(nav			);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "ephMap";		New = plumberTest(nav.ephMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "gephMap";		New = plumberTest(nav.gephMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "sephMap";		New = plumberTest(nav.sephMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "pephMap";		New = plumberTest(nav.pephMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "pclkMap";		New = plumberTest(nav.pclkMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "satNavMap";	New = plumberTest(nav.satNavMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "tecMap";		New = plumberTest(nav.tecMap	);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	v = "pcMap";		New = plumberTest(nav.pcMap		);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+// 	
+// 	printf("\n");
+}
+

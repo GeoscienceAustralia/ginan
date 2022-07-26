@@ -1,7 +1,7 @@
 '''Helmert inversion and transformation functions'''
 import numpy as _np
 import pandas as _pd
-from .gn_const import WGS84, OMEGA_E
+from gn_lib.gn_const import WGS84, OMEGA_E
 
 
 def gen_helm_aux(pt1,pt2):

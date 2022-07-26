@@ -118,11 +118,11 @@ void outputPersistanceStates(
 	int stationMapSize = stationMap.size();
 	serialize(serial, stationMapSize);
 
-	for (auto& [id, station] : stationMap)
+	for (auto& [id, rec] : stationMap)
 	{
 		string tempId = id;
 		serialize(serial, tempId);
-		serialize(serial, station.rtk.pppState);
+		serialize(serial, rec.pppState);
 	}
 }
 
@@ -173,8 +173,6 @@ void inputPersistanceStates(
 		}
 	}
 
-
-
 	int stationMapSize;
 	serialize(serial, stationMapSize);
 
@@ -186,11 +184,46 @@ void inputPersistanceStates(
 		KFState kfState;
 		serialize(serial, kfState);
 
-		KFState& destKFState = stationMap[tempId].rtk.pppState;
+		KFState& destKFState = stationMap[tempId].pppState;
 
 		destKFState.time		= kfState.time;
 		destKFState.x			= kfState.x;
 		destKFState.P			= kfState.P;
 		destKFState.kfIndexMap	= kfState.kfIndexMap;
 	}
+}
+
+
+
+void tryPrepareFilterPointers(
+	KFState&		kfState, 
+	StationMap*		stationMap_ptr)
+{
+	if (stationMap_ptr == nullptr)
+	{
+		return;
+	}
+	
+	auto& stationMap = *stationMap_ptr;
+	
+	map<KFKey, short> replacementKFIndexMap;
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		KFKey kfKey = key;
+		
+		if	(  kfKey.rec_ptr == nullptr
+			&& kfKey.str.empty() == false)
+		{
+			auto it = stationMap.find(kfKey.str);
+			if (it != stationMap.end())
+			{
+				auto& [id, station]	= *it;
+				kfKey.rec_ptr	= &station;
+			}
+		}
+		
+		replacementKFIndexMap[kfKey] = index;
+	}
+	
+	kfState.kfIndexMap = replacementKFIndexMap;
 }

@@ -19,7 +19,8 @@ void writeRinexObs(
 	string&				id,
 	Sinex_stn_snx_t&	snx,
 	GTime&				time,
-	ObsList&			obsList);
+	ObsList&			obsList,
+	const double		rnxver = 3.05);
 
 map<string, map<E_Sys, bool>> getSysOutputFilenames(
 	string	filename,

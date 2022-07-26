@@ -4,30 +4,22 @@ import re as _re
 
 import numpy as _np
 import pandas as _pd
-from scipy import interpolate
-
-from ..gn_aux import unique_cols as _unique_cols
-from ..gn_datetime import datetime2gpsweeksec as _datetime2gpsweeksec
-from ..gn_datetime import datetime2j2000 as _datetime2j2000
-from ..gn_datetime import j20002mjd as _j20002mjd
-from ..gn_datetime import j20002rnxdt as _j20002rnxdt
-from ..gn_transform import ecef2eci as _ecef2eci
-from ..gn_transform import eci2rac_rot as _eci2rac_rot
-from ..gn_transform import get_helmert7 as _get_helmert7
-from ..gn_transform import transform7 as _transform7
-from .clk import read_clk as _read_clk
-from .common import path2bytes
+from gn_lib import gn_aux as _gn_aux
+from gn_lib import gn_datetime as _gn_datetime
+from gn_lib import gn_io as _gn_io
+from gn_lib import gn_transform as _gn_transform
+from scipy import interpolate as _interpolate
 
 _RE_SP3 = _re.compile(rb'^\*(.+)\n((?:[^\*]+)+)',_re.MULTILINE)
 
 # 1st line parser. ^ is start of document, search
 _RE_SP3_HEAD = _re.compile(rb'''^\#(\w)(\w)([\d \.]{28})[ ]+
                                     (\d+)[ ]+([\w\+]+)[ ]+(\w+)[ ]+
-                                    (\w+)[ ]+(\w+)''',_re.VERBOSE)
+                                    (\w+)(?:[ ]+(\w+)|)''',_re.VERBOSE)
 #SV names. multiline, findall
 _RE_SP3_HEAD_SV = _re.compile(rb'^\+[ ]+(?:[\d]+|)[ ]+((?:[A-Z]\d{2})+)\W',_re.MULTILINE)
 # orbits accuracy codes
-_RE_SP3_ACC = _re.compile(rb'^\+{2}[ ]+(.{51})\W',_re.MULTILINE)
+_RE_SP3_ACC = _re.compile(rb'^\+{2}[ ]+([\d\s]{50}\d)\W',_re.MULTILINE)
 # File descriptor and clock
 _RE_SP3_HEAD_FDESCR = _re.compile(rb'\%c[ ]+(\w{1})[ ]+cc[ ](\w{3})')
 
@@ -51,7 +43,7 @@ def read_sp3(sp3_path,pOnly=True):
     Returns STD values converted to proper units (mm/ps) also if present.
     by default leaves only P* values (positions), removing the P key itself
     '''
-    content = path2bytes(sp3_path)
+    content = _gn_io.common.path2bytes(sp3_path)
     header_end = content.find(b'/*')
 
     header = content[:header_end]
@@ -74,7 +66,7 @@ def read_sp3(sp3_path,pOnly=True):
     epochs_dt = _pd.to_datetime(_pd.Series(dates).str.slice(2,21).values.astype(str),
                                 format=r'%Y %m %d %H %M %S')
 
-    dt_index = _np.repeat(a=_datetime2j2000(epochs_dt.values),repeats=counts)
+    dt_index = _np.repeat(a=_gn_datetime.datetime2j2000(epochs_dt.values),repeats=counts)
     b_string = b''.join(data.tolist())
 
     series = _pd.Series(b_string.splitlines())
@@ -118,11 +110,11 @@ def read_sp3(sp3_path,pOnly=True):
     return sp3_df
 
 def parse_sp3_header(header):
-    sp3_heading = list(map( bytes.decode,
-                            _RE_SP3_HEAD.search(header).groups()
-                          + _RE_SP3_HEAD_FDESCR.search(header).groups()))
-    sp3_heading = _pd.Series(sp3_heading,index = ['VERSION','PV_FLAG','DATETIME','N_EPOCHS',
-                            'DATA_USED','COORD_SYS','ORB_TYPE','AC','FILE_TYPE','TIME_SYS'])
+    sp3_heading = _pd.Series( data  = _np.asarray(_RE_SP3_HEAD.search(header).groups() 
+                                                + _RE_SP3_HEAD_FDESCR.search(header).groups()).astype(str),
+                              index = ['VERSION','PV_FLAG','DATETIME','N_EPOCHS','DATA_USED','COORD_SYS','ORB_TYPE','AC',
+                                       'FILE_TYPE','TIME_SYS'])
+
     head_svs = (_np.asarray(b''.join(_RE_SP3_HEAD_SV.findall(header)))
                                 [_np.newaxis].view('S3').astype(str))
     head_svs_std = (_np.asarray(b''.join(_RE_SP3_ACC.findall(header)))
@@ -135,7 +127,7 @@ def getVelSpline(sp3Df):
     """returns in the same units as intput, e.g. km/s (needs to be x10000 to be in cm as per sp3 standard"""
     sp3dfECI = sp3Df.EST.unstack(1)[['X','Y','Z']] #_ecef2eci(sp3df)
     datetime = sp3dfECI.index.values
-    spline = interpolate.CubicSpline(datetime, sp3dfECI.values)
+    spline = _interpolate.CubicSpline(datetime, sp3dfECI.values)
     velDf = _pd.DataFrame(  data = spline.derivative(1)(datetime),
                             index = sp3dfECI.index,columns = sp3dfECI.columns).stack(1)
     return _pd.concat([sp3Df,_pd.concat([velDf],keys=['VELi'],axis=1)],axis=1)
@@ -181,13 +173,13 @@ def gen_sp3_header(sp3_df):
 
 
     #need to update DATETIME outside before writing
-    line1 = ([f'#{head.VERSION}{head.PV_FLAG}{_j20002rnxdt(sp3_j2000_begin)[0][3:-2]}'
+    line1 = ([f'#{head.VERSION}{head.PV_FLAG}{_gn_datetime.j20002rnxdt(sp3_j2000_begin)[0][3:-2]}'
             + f'{sp3_j2000.shape[0]:>9}{head.DATA_USED:>6}'
             + f'{head.COORD_SYS:>6}{head.ORB_TYPE:>4}{head.AC:>5}\n'])
 
 
-    gpsweek, gpssec = _datetime2gpsweeksec(sp3_j2000_begin)
-    mjd_days, mjd_sec = _j20002mjd(sp3_j2000_begin)
+    gpsweek, gpssec = _gn_datetime.datetime2gpsweeksec(sp3_j2000_begin)
+    mjd_days, mjd_sec = _gn_datetime.j20002mjd(sp3_j2000_begin)
 
     line2 = [f'##{gpsweek:5}{gpssec:16.8f}{sp3_j2000[1] - sp3_j2000_begin:15.8f}{mjd_days:6}{mjd_sec:16.13f}\n']
 
@@ -234,7 +226,7 @@ def gen_sp3_content(sp3_df):
 
     dt_uniques = sp3_df.index.levels[0].values
 
-    dt_s = _pd.Series(_j20002rnxdt(dt_uniques),index = dt_uniques-1)
+    dt_s = _pd.Series(_gn_datetime.j20002rnxdt(dt_uniques),index = dt_uniques-1)
     data_s = _pd.Series(sp3_content,index=sp3_df.index.get_level_values(0))
 
     return ''.join((_pd.concat([dt_s,data_s]).sort_index()).to_list())
@@ -249,7 +241,7 @@ def merge_attrs(df_list):
     """Merges attributes of a list of sp3 dataframes into a single set of attributes"""
     df = _pd.concat(list(map(lambda obj: obj.attrs['HEADER'], df_list)),axis=1)
 
-    mask_mixed = ~_unique_cols(df.loc['HEAD'])
+    mask_mixed = ~_gn_aux.unique_cols(df.loc['HEAD'])
     values_if_mixed = _np.asarray(['MIX','MIX','MIX',None,'M',None,'MIX','P','MIX','d'])
     head = df[0].loc['HEAD'].values
     head[mask_mixed] = values_if_mixed[mask_mixed]
@@ -264,51 +256,42 @@ def merge_sp3(sp3_paths,clk_paths=None):
     merged_sp3.attrs['HEADER'] = merge_attrs(sp3_dfs)
     
     if clk_paths is not None:
-        clk_dfs = [_read_clk(clk_file) for clk_file in clk_paths]
+        clk_dfs = [_gn_io.clk.read_clk(clk_file) for clk_file in clk_paths]
         merged_sp3.EST.CLK = _pd.concat(clk_dfs).EST.AS * 1000000
         
     return merged_sp3
 
 def sp3_hlm_trans(a:_pd.DataFrame,b:_pd.DataFrame)->tuple((_pd.DataFrame,tuple((_np.ndarray,_pd.DataFrame)))):
     '''Rotates sp3_b into sp3_a. Returns a tuple of updated sp3_b and HLM array with applied computed parameters and residuals'''
-    hlm = _get_helmert7(pt1=a.EST[['X','Y','Z']].values,
-                        pt2=b.EST[['X','Y','Z']].values)
+    hlm = _gn_transform.get_helmert7(pt1=a.EST[['X','Y','Z']].values,
+                                     pt2=b.EST[['X','Y','Z']].values)
 
     hlm = (hlm[0],_pd.DataFrame(hlm[1],columns=[['RES']*3,['X','Y','Z']],index = a.index))
 
-    b.iloc[:,:3] = _transform7(xyz_in=b.EST[['X','Y','Z']].values,helmert_list=hlm[0][0])
+    b.iloc[:,:3] = _gn_transform.transform7(xyz_in=b.EST[['X','Y','Z']].values,helmert_list=hlm[0][0])
     return b, hlm
 
-def sp3dfs2common(sp3a,sp3b):
-    """Finds common index between the two dataframes and returns filtered dataframes"""
-    ind_a = sp3a.index.remove_unused_levels()
-    ind_b = sp3b.index.remove_unused_levels()
-    level0_intersect =  _np.intersect1d(ind_a.levels[0].values, ind_b.levels[0].values,assume_unique=True) #common time
-    assert len(level0_intersect) != 0, "no common epochs"
-    level1_intersect = _np.intersect1d(ind_a.levels[1].values, ind_b.levels[1].values,assume_unique=True) #common svs
-    assert len(level1_intersect) != 0, "no common svs"
-    mask_a = ind_a.get_level_values(0).isin(level0_intersect) & ind_a.get_level_values(1).isin(level1_intersect)
-    mask_b = ind_b.get_level_values(0).isin(level0_intersect) & ind_b.get_level_values(1).isin(level1_intersect)
-    return sp3a.iloc[_np.arange(mask_a.shape[0])[mask_a]].sort_index(), sp3b.iloc[_np.arange(mask_b.shape[0])[mask_b]].sort_index()
-
 def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None,use_cubic_spline = True):
-    """Computes the difference between the two sp3 files in the radial, along-track and cross-track coordinates
-    the interpolator used for computation of the velocities can be based on cubic spline (default) or polynomial"""
+    """
+    Computes the difference between the two sp3 files in the radial, along-track and cross-track coordinates
+    the interpolator used for computation of the velocities can be based on cubic spline (default) or polynomial
+    Breaks if NaNs appear on unstack in getVelSpline function
+    """
     hlm_modes = [None, 'ECF', 'ECI']
     if hlm_mode not in hlm_modes:
         raise ValueError(f"Invalid hlm_mode. Expected one of: {hlm_modes}")
 
     hlm = None #init hlm var
-    sp3_a, sp3_b = sp3dfs2common(sp3_a, sp3_b) # produces common sp3 dfs with sorted index
+    sp3_a, sp3_b = _gn_aux.sync_idx_dfs(sp3_a, sp3_b) # produces common sp3 dfs with sorted index
     if hlm_mode == 'ECF':
         sp3_b, hlm = sp3_hlm_trans(sp3_a,sp3_b)
 
-    sp3_a_eci = _ecef2eci(sp3_a)
+    sp3_a_eci = _gn_transform.ecef2eci(sp3_a)
     if use_cubic_spline:
         sp3_a_eci_vel = getVelSpline(sp3Df=sp3_a_eci)
     else:
         sp3_a_eci_vel = getVelPoly(sp3Df=sp3_a_eci,deg=35)
-    sp3_b_eci = _ecef2eci(sp3_b)
+    sp3_b_eci = _gn_transform.ecef2eci(sp3_b)
 
     if hlm_mode == 'ECI':
         sp3_b_eci, hlm = sp3_hlm_trans(sp3_a_eci,sp3_b_eci)
@@ -317,7 +300,7 @@ def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None,use_cubic_spline = True):
     xyz_cols_b = _np.argwhere(sp3_b_eci.columns.isin([('EST','X'),('EST','Y'),('EST','Z')])).ravel()
 
     diff_eci = sp3_a_eci.iloc[:,xyz_cols_a] - sp3_b_eci.iloc[:,xyz_cols_b]
-    nd_rac = diff_eci.values[:,_np.newaxis] @ _eci2rac_rot(sp3_a_eci_vel)
+    nd_rac = diff_eci.values[:,_np.newaxis] @ _gn_transform.eci2rac_rot(sp3_a_eci_vel)
     df_rac = _pd.DataFrame(nd_rac.reshape(-1,3),
                   index = sp3_a.index,
                   columns=[['EST_RAC']*3,['Radial','Along-track','Cross-track']])

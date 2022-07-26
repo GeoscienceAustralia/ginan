@@ -9,23 +9,23 @@ using std::setfill;
 map<E_AmbTyp,map<E_Sys,map<string,GinAR_bia>>>	RECbialist;
 map<E_AmbTyp,map<SatSys,GinAR_bia>>				SATbialist;
 
-/** Output GPGGA or modified GPGGA messages */ 
+/** Output GPGGA or modified GPGGA messages
+ */ 
 void gpggaout(
 	string		outfile,		///< File name to output GGA message
 	KFState&	kfState,		///< KF containing the positioning solution
 	string		recId,			///< Receiver ID
 	int 		solStat,		///< Solution quiality (2: ambiguity float, 5: ambiguity fix)
-	int			numSat,			///< # of satellites
+	int			numSat,			///< Number of satellites
 	double      hdop,			///< Horizontal DOP
-	bool		lng,			///< Modified GPGGA format (false: GPGGA format according to NMEA 0183)
-	bool		print_header)	///< Print header line
+	bool		lng)			///< Modified GPGGA format (false: GPGGA format according to NMEA 0183)
 {
 	double ep[6];
 	time2epoch(kfState.time, ep);
 
 	std::ofstream fpar(outfile, std::ios::out | std::ios::app);
 
-	if (print_header) 
+	if (fpar.tellp() == 0) 
 		tracepdeex(1,fpar,"!GPGGA, UTC time, Latitude, N/S, Longitude, E/W, State, # Sat, HDOP, Height, , Geoid,\n");
 
 	double xyz_[3];

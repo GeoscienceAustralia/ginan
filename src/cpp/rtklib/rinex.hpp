@@ -8,8 +8,7 @@
 #include "enums.h"
 
 struct RinexStation;
-struct obs_t;
-struct nav_t;
+struct Navigation;
 
 struct CodeType
 {
@@ -21,7 +20,7 @@ int readrnx(
 	std::istream& 					inputStream,
 	char&							type,
 	ObsList&						obsList,
-	nav_t&							nav,
+	Navigation&						nav,
 	RinexStation*					sta,
 	double&							ver,
 	E_Sys&							sys,

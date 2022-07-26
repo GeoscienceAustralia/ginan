@@ -75,26 +75,32 @@ SUBROUTINE eop_igu (mjd, ERP_fname, ERP_days, EOP_days, EOP_Nint, EOP_int)
 ! Local variables declaration
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_d) :: ERP_igu_data(EOP_Nint,EOP_MAX_ARRAY), ERP_int(EOP_MAX_ARRAY), mjd_t
-      LOGICAL :: igu_flag
+      LOGICAL :: igu_flag, over, under
       INTEGER (KIND = prec_int8) :: mjd_UTC_day
       REAL (KIND = prec_d) :: mjd_ar(EOP_Nint), Xpole_ar(EOP_Nint), Ypole_ar(EOP_Nint), UT1UTC_ar(EOP_Nint), LOD_ar(EOP_Nint)
       REAL (KIND = prec_d) :: Xerr_ar(EOP_Nint), Yerr_ar(EOP_Nint), UT1err_ar(EOP_Nint), LODerr_ar(EOP_Nint)
       REAL (KIND = prec_d) :: mjd_int, Xpole_int, Ypole_int, UT1UTC_int, LOD_int
       REAL (KIND = prec_d) :: Xerr_int, Yerr_int, UT1err_int, LODerr_int
-      REAL (KIND = prec_d) :: dX_eop, dY_eop
+      REAL (KIND = prec_d) :: dX_eop, dY_eop, erp_spacing, myfrac
       INTEGER (KIND = prec_int4) :: i, j, sz1_EOP, sz2_EOP, EOP_nint_used, saved_row_count = 0
-      INTEGER (KIND = prec_int4) :: lo, hi, offset
-      INTEGER MAX_EOP_DATA
-      parameter (MAX_EOP_DATA = 30)
-      REAL (KIND = prec_d) :: ERP_read_data(MAX_EOP_DATA, EOP_MAX_ARRAY)
+      INTEGER (KIND = prec_int4) :: lo, hi, offset, Allocate_Status, gaps
+      REAL (KIND = prec_d), ALLOCATABLE :: ERP_read_data(:, :)
 
       igu_flag = .false.
       ERP_igu_data = 0.d0
+      erp_spacing = 1.d0
+      over = .false.
+      under = .false.
 
 ! ----------------------------------------------------------------------
 ! check we don't have the required data already
       if (allocated(ERP_days)) then
           saved_row_count = SIZE(ERP_days, DIM=1)
+          allocate(ERP_read_data(saved_row_count, EOP_MAX_ARRAY), stat = Allocate_Status)
+          if (Allocate_Status /= 0) then
+              print *, "Could not allocate tmp space for ERP data"
+              stop
+          end if
           do i = 1, saved_row_count
               if (ERP_days(i,EOP_MJD) == 0.d0) then
                    saved_row_count = i-1
@@ -102,7 +108,9 @@ SUBROUTINE eop_igu (mjd, ERP_fname, ERP_days, EOP_days, EOP_Nint, EOP_int)
               end if
               ERP_read_data(i,:) = ERP_days(i, :)
           end do
+         ! print *, "saved_row_count = ", saved_row_count
          DO i = 1, saved_row_count - 1
+         if (i == 1) erp_spacing = ERP_read_data(2, EOP_MJD) - ERP_read_data(1, EOP_MJD)
          if ((ERP_read_data(i, EOP_MJD) <= mjd) .and. (mjd <= ERP_read_data(i+1, EOP_MJD))) then
             igu_flag = .true.
             if (i > (EOP_Nint / 2) .and. ((i + 1) <= (saved_row_count - EOP_Nint / 2))) then
@@ -131,14 +139,19 @@ SUBROUTINE eop_igu (mjd, ERP_fname, ERP_days, EOP_days, EOP_Nint, EOP_int)
          end do
          if (.not. igu_flag) then
              !print *, "mjd=", mjd, ", last row of data is mjd ", ERP_read_data(saved_row_count, EOP_MJD)
-             if (mjd < ERP_read_data(saved_row_count, EOP_MJD) + 1.0d0) then
+             !check for within 36 hours of current limits, just say OK if so
+             if (mjd .gt. ERP_read_data(saved_row_count, EOP_MJD) + 2.d0) then
+                 over = .true.
+             else if (mjd .le. ERP_read_data(saved_row_count, EOP_MJD) + 2.d0) then
                  igu_flag = .true.
                  ERP_igu_data = ERP_read_data(saved_row_count - EOP_Nint + 1:saved_row_count, :)
                  EOP_Nint_used = EOP_Nint
-             else if (mjd < ERP_read_data(1, EOP_MJD)) then
+             else if (mjd .ge. ERP_read_data(1, EOP_MJD) - 2.d0 ) then
                  igu_flag = .true.
                  ERP_igu_data = ERP_read_data(1:EOP_nint,:)
                  EOP_Nint_used = EOP_Nint
+             else
+                 under = .true.
              end if
          end if
      end if
@@ -146,25 +159,39 @@ SUBROUTINE eop_igu (mjd, ERP_fname, ERP_days, EOP_days, EOP_Nint, EOP_int)
 ! ----------------------------------------------------------------------
 ! ERP data reading 
       if (.not. igu_flag) then
+          if (over) then
+              mjd_t = mjd - erp_read_data(saved_row_count, EOP_MJD)
+          else if (under) then
+              mjd_t = erp_read_data(1, EOP_MJD) - mjd
+          end if
+          gaps = INT(mjd_t/erp_spacing)
+          myfrac = (mjd_t/erp_spacing) - gaps
+          if (under) then
+               gaps = gaps * (-1)
+               myfrac = 1 - myfrac
+          end if
+
           if (MOD(EOP_Nint, 2) == 1) then
-              !EOP_Nint is odd, use Nint/2 points below if mjd is above 0.5, else Nint/2 + 1 points below
-              mjd_t = mjd - int(mjd)
-              if (mjd_t > 0.5) then
-                  lo = int(mjd) - EOP_Nint/2 + 1
-                  hi = INT(mjd) + EOP_Nint/2 + 1
+              !EOP_Nint is odd, use Nint/2 points below if myfrac > 0.5, else Nint/2 + 1 points below
+              if (myfrac > 0.5) then
+                  lo = gaps - EOP_Nint/2 + 1
+                  hi = gaps + EOP_Nint/2 + 1
               else
-                  lo = int(mjd) - EOP_Nint/2
-                  hi = int(mjd) + EOP_Nint/2
+                  lo = gaps - EOP_Nint/2
+                  hi = gaps + EOP_Nint/2
               end if
           else
               !EOP_nint is even use half above and half below precisely
-              lo = int(mjd) - EOP_Nint/2 + 1
-              hi = int(mjd) + EOP_Nint/2
+              lo = gaps - EOP_Nint/2 + 1
+              hi = gaps + EOP_Nint/2
           end if
           offset = 1
           EOP_nint_used = 0
+          print *, "gaps = ", gaps, ", hi = ", hi, ", lo = ", lo, ", over = ", over
+          print *, "mjd = ", mjd, ", spacing = ", erp_spacing
+          print *, "hi mjd = ", float(hi) * erp_spacing
           do i = hi, lo, -1
-              mjd_t = float(i)
+              mjd_t = float(i) * erp_spacing
               CALL erp_igu (ERP_fname, mjd_t, ERP_int, igu_flag)
               if (igu_flag) then
                  erp_igu_data (i - lo + offset, :) = ERP_int
@@ -181,6 +208,7 @@ SUBROUTINE eop_igu (mjd, ERP_fname, ERP_days, EOP_days, EOP_Nint, EOP_int)
          PRINT *, "Warning error: Subroutine erp_igu.f90"
          PRINT *, "Input epoch is out of the range covered by the IGS ultra-rapid ERP file" 
          PRINT *, "Check the input ", ERP_fname
+         PRINT *, "requested MJD = ", mjd
          PRINT *,"--------------------------------------------------------"
          STOP  ! END PROGRAM
       end if		 
@@ -269,7 +297,7 @@ END DO
 !      PRINT *, ERP_int
 !      PRINT *,"--------------------------------------------------------"
 
-
+        Deallocate(ERP_read_data, stat = Allocate_Status)
 	  
 END SUBROUTINE
 

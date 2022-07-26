@@ -38,7 +38,7 @@ int decodef(char *p, int n, double *v)
 bool findAntenna(
 	string				code,
 	GTime				time,
-	nav_t&				nav,
+	Navigation&			nav,
 	E_FType				ft,
 	PhaseCenterData**	pcd_ptr_ptr)
 {
@@ -83,21 +83,10 @@ bool findAntenna(
 	return true;
 }
 	
-/* linear interpolate pcv ------------------------------------------------------
-*
-* args     :       double x1              I       x1 lower bound (degree)
-*                  double x2              I       x2 upper bound (degree)
-*                  double y1              I       y1 lower bound (m)
-*                  double y2              I       y2 upper bound (m)
-*                  double x               O       x current point (degree)
-*
-* return   :       interpolated pcv (m)
-*----------------------------------------------------------------------------*/
+/** linearly interpolate
+ */
 double interp(double x1, double x2, double y1, double y2, double x)
 {
-#if (0)
-	return (y2-y1)*(x-x1)/(x2-x1)+y1;
-#endif
 	return y2-(y2-y1)*(x2-x)/(x2-x1);
 }
 
@@ -314,8 +303,8 @@ map<string, E_FType> antexCodes =
 
 /** Read antex file */
 int readantexf(
-	string	file,
-	nav_t&	nav)
+	string		file,
+	Navigation&	nav)
 {
 	int offset;
 	int noazi_flag		= 0;

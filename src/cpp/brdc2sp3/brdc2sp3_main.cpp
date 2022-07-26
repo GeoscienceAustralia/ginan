@@ -29,7 +29,7 @@ using std::string;
 #define SIN_5 -0.0871557427476582 /* sin(-5.0 deg) */
 #define COS_5  0.9961946980917456 /* cos(-5.0 deg) */
 
-nav_t	nav = {};
+Navigation	nav = {};
 string			GNSSinp="GE";
 map<SatSys,int> BS_Satel_List;
 int 			BS_Start_Week		= 0;
@@ -38,15 +38,18 @@ double			BS_Start_Epoc[6]	= {0};
 int 			BS_Epoch_Num		= 0;
 double			BS_Epoch_Inter		= 900.0;
 map<E_Sys,double> BS_Max_Dtime;
+map<E_Sys,double> BS_Est_Delay;
+map<E_Sys,double> BS_Err_Thres;
 
 void helpstring(void)
 {
-	fprintf(stdout, " brdc2sp3 -ant <ATX file> -inp <RINEX NAV file> [options]\n");
+	fprintf(stdout, " brdc2sp3 -antx <ATX file> -rinx <RINEX NAV file> [options]\n");
 	fprintf(stdout, " Options [default]:\n");
-	fprintf(stdout, "     -gns string   GNSS to be processed: G: GPS, R:GLONASS, E:Galileo, C: Beidou, J: QZSS, A: all [GE]\n");
-	fprintf(stdout, "     -int float    Time spacing of SP3 entries [900.0]\n");
-	fprintf(stdout, "     -out string   File name for SP3 output [BS_orbits.sp3]\n");
-	fprintf(stdout, "     -*dt max_dt   set max_dt for constellation (*: 'G','R','E','J' or 'C') [86400.0]\n");
+	fprintf(stdout, "     -gnss  string  GNSS to be processed: G: GPS, R:GLONASS, E:Galileo, C: Beidou, J: QZSS, A: all [GE]\n");
+	fprintf(stdout, "     -intr  float   Time spacing of SP3 entries [900.0]\n");
+	fprintf(stdout, "     -outf  string  File name for SP3 output [BS_orbits.sp3]\n");
+	fprintf(stdout, "     -*dte  max_dt  set max diference-to-TOE for constellation (*: 'G','R','E','J' or 'C') \n");
+	fprintf(stdout, "     -*chk max_dt  set max differece-to-median for ephemeris message check (for each constellation)\n");
 	fprintf(stdout, "     -clst         Select ephemeris with closest Toe (within max_dt seconds) [Latest valid ephemeris]\n");
 	fprintf(stdout, "     -inav         I/NAV only for Galileo [use both F/NAV and I/NAV]\n");
 	fprintf(stdout, "     -fnav         F/NAV only for Galileo [use both F/NAV and I/NAV]\n");
@@ -106,7 +109,7 @@ int BS_satantoff( GTime time, SatSys Sat, Vector3d& rs, Vector3d& dant, int gloi
 						+ pcoK[0] * ey(i)
 						+ pcoK[2] * ez(i);
 						
-		fprintf( stdout,"\n  ATX: %s %11.6f %11.6f %11.6f  %11.6f %11.6f %11.6f", Sat.id().c_str(), pcoJ[0], pcoJ[1], pcoJ[2], pcoK[0], pcoK[1], pcoK[2]);
+		// fprintf( stdout,"\n  ATX: %s %11.6f %11.6f %11.6f  %11.6f %11.6f %11.6f", Sat.id().c_str(), pcoJ[0], pcoJ[1], pcoJ[2], pcoK[0], pcoK[1], pcoK[2]);
 
 		//dant(i)	= C1 * dant1
 		//		+ C2 * dant2;
@@ -115,22 +118,25 @@ int BS_satantoff( GTime time, SatSys Sat, Vector3d& rs, Vector3d& dant, int gloi
 	return 0;
 }
 
-Eph* BS_seleph( GTime time, SatSys Sat, int iode, nav_t& nav_, int opt=0)
+Eph* BS_seleph( GTime time, SatSys Sat, int iode, Navigation& nav_, int opt=0)
 {
-	double valid = 0;
+	// double valid = double valid = BS_Max_Dtime[Sat.sys];
 	
-	switch (Sat.sys) 
-	{
-		case E_Sys::QZS:	valid = MAXDTOE_QZS	+ 1; break;
-		case E_Sys::GAL:	valid = MAXDTOE_GAL	+ 1; break;
-		case E_Sys::BDS:	valid = MAXDTOE_CMP	+ 1; break;
-		default: 			valid = MAXDTOE		+ 1; break;
-	}
+	// switch (Sat.sys) 
+	// {
+	// 	case E_Sys::QZS:	valid = MAXDTOE_QZS	+ 1; break;
+	// 	case E_Sys::GAL:	valid = MAXDTOE_GAL	+ 1; break;
+	// 	case E_Sys::BDS:	valid = MAXDTOE_CMP	+ 1; break;
+	// 	default: 			valid = MAXDTOE		+ 1; break;
+	// }
 	
 	auto& ephList = nav_.ephMap[Sat];
 	Eph* chosen = nullptr;
+	Eph* closest = nullptr;
 	GTime latestToe = GTime::noTime();
-	double max_dtime = BS_Max_Dtime[Sat.sys];
+	double max_dtime = 86400;
+	GTime teph = time - BS_Est_Delay[Sat.sys];
+	double max_dtime2 = BS_Max_Dtime[Sat.sys];
 	for (auto& [dummy, eph] : ephList)
 	{
 		if 	( iode >= 0 )
@@ -138,44 +144,52 @@ Eph* BS_seleph( GTime time, SatSys Sat, int iode, nav_t& nav_, int opt=0)
 			if(iode == eph.iode) return &eph;
 			else continue;
 		}
-		//fprintf(stdout, "    %s %s\n",Sat.id().c_str(),eph.toe.to_string(0).c_str());
-		if(opt == 0)
+		
+		if (eph.svh == SVH_UNHEALTHY)
+			continue;
+		
+		double dtime= fabs(eph.toe - time);
+		
+		if ( max_dtime > dtime)
 		{
-			if (fabs(eph.toe - time) > valid)
-				continue;
-			if (eph.toe > latestToe)
-			{
-				chosen	= &eph;
-				latestToe = eph.toe;
-			}
+			closest	= &eph;
+			max_dtime = dtime;
 		}
-		if(opt==1)
-		{
-			double dtime=max_dtime;
-			if (Sat.sys == +E_Sys::GPS)	dtime = fabs(eph.toe - (time + 3600));
-			else						dtime = fabs(eph.toe - time);
+		
+		// if (dtime > valid)
+		// 	continue;
 			
-			if ( max_dtime > dtime)
-			{
-				chosen	= &eph;
-				latestToe = eph.toe;
-				max_dtime = dtime;
-			}
+		double dtime2=(teph - eph.toe);
+		
+		if (dtime2 < 0)
+			continue;
+		
+		if (dtime2 <= max_dtime2)
+		{
+			chosen	 = &eph;
+			max_dtime2 = dtime2;
 		}
-
-	}
+	}	
+	
+	if (!chosen 
+	 && opt==1)
+		chosen = closest;
 	
 	return chosen;
 }
 
-Geph* BS_selgeph( GTime time, SatSys Sat, int iode, nav_t& nav_, int opt=0)
+Geph* BS_selgeph( GTime time, SatSys Sat, int iode, Navigation& nav_, int opt=0)
 {
-	double valid = MAXDTOE_GLO	+ 1;
+	// double valid = MAXDTOE_GLO	+ 1;
+	// double valid = BS_Max_Dtime[E_Sys::GLO];
 	
 	auto& gephList = nav_.gephMap[Sat];
 	Geph* chosen = nullptr;
+	Geph* closest = nullptr;
 	GTime latestToe = GTime::noTime();
-	double max_dtime = BS_Max_Dtime[E_Sys::GLO];
+	double max_dtime = 86400;
+	GTime teph = time - BS_Est_Delay[E_Sys::GLO];
+	double max_dtime2 = BS_Max_Dtime[E_Sys::GLO];
 	for (auto& [dummy, geph] : gephList)
 	{
 		if 	( iode >= 0 )
@@ -183,29 +197,36 @@ Geph* BS_selgeph( GTime time, SatSys Sat, int iode, nav_t& nav_, int opt=0)
 			if(iode == geph.iode) 	return &geph;
 			else 					continue;
 		}
-		//fprintf(stdout, "    %s %s\n",Sat.id().c_str(),geph.toe.to_string(0).c_str());
-		if(opt==0)
+		
+		if (geph.svh == SVH_UNHEALTHY)
+			continue;
+		
+		double dtime = fabs(geph.toe - time);
+		if ( max_dtime > dtime)
 		{
-			if (fabs(geph.toe - time) > valid)
-				continue;
-			if (geph.toe > latestToe)
-			{
-				chosen	= &geph;
-				latestToe = geph.toe;
-			}
+			closest   = &geph;
+			max_dtime = dtime;
 		}
-		if(opt==1)
+		
+		// if (dtime > valid)
+		// 	continue;
+			
+		double dtime2=(teph - geph.toe);
+		
+		if (dtime2 < 0)
+			continue;
+		
+		if (dtime2 <= max_dtime2)
 		{
-			double dtime = fabs(geph.toe - time);
-			if ( max_dtime > dtime)
-			{
-				chosen	= &geph;
-				latestToe = geph.toe;
-				max_dtime = dtime;
-			}
-		}
+			chosen	 = &geph;
+			max_dtime2 = dtime2;
+		}	
 	}
-	
+
+	if (!chosen
+	 && opt==1)
+	  chosen = closest;
+
 	return chosen;
 }
 
@@ -321,8 +342,8 @@ int BS_eph2pos( GTime	time, Eph* eph, Vector3d& rs, double*	dts) {
 	double y	 = r * sin(u);
 	double cosi  = cos(i);
 
-	/* beidou geo satellite */
-	if (sys == +E_Sys::BDS && prn <= 5)
+	/* beidou geo satellite, prn range may change in the future */
+	if (sys == +E_Sys::BDS && (prn <= 5 || prn >= 59))
 	{
 		double O	= eph->OMG0
 					+ eph->OMGd * tk
@@ -357,6 +378,109 @@ int BS_eph2pos( GTime	time, Eph* eph, Vector3d& rs, double*	dts) {
 	return 0;
 }
 
+void median_check(GTime tstart, GTime tfinsh, map<SatSys,int> satList )
+{
+	GTime midEpoch = tstart + (tstart-tfinsh)/2;
+	for(auto& [sat,nephs] : satList)
+	if(BS_Err_Thres[sat.sys]>0)
+	{
+		double dts;	
+	
+		if(sat.sys == +E_Sys::GLO)
+		{
+			int ind=0;
+			map<int,double> mid_posX;
+			map<int,double> mid_posY;
+			map<int,double> mid_posZ;
+			vector<double> midX;
+			vector<double> midY;
+			vector<double> midZ;
+			
+			map<int,GTime> eph_time;
+			
+			for(auto& [teph, geph] : nav.gephMap[sat])
+			{
+				Vector3d rs(0,0,0);
+		
+				BS_geph2pos( midEpoch, &geph, rs, &dts);
+				eph_time[ind] = teph;
+				mid_posX[ind] = rs[0];
+				mid_posY[ind] = rs[1];
+				mid_posZ[ind] = rs[2];
+				midX.push_back(rs[0]);
+				midY.push_back(rs[1]);
+				midZ.push_back(rs[2]);
+				ind++;
+			}
+			std::sort(midX.begin(),midX.end());
+			std::sort(midY.begin(),midY.end());
+			std::sort(midZ.begin(),midZ.end());
+			double Xmedian=midX[(ind/2)];
+			double Ymedian=midY[(ind/2)];
+			double Zmedian=midZ[(ind/2)];
+			for (int i=0; i<ind; i++)
+			{
+				double dX = sqrt((mid_posX[i]-Xmedian)*(mid_posX[i]-Xmedian) 
+				               + (mid_posY[i]-Ymedian)*(mid_posY[i]-Ymedian) 
+				               + (mid_posZ[i]-Zmedian)*(mid_posZ[i]-Zmedian));
+				
+				if (dX>BS_Err_Thres[sat.sys])
+				{
+					nav.gephMap[sat].erase(eph_time[i]);
+					fprintf(stdout, "\nDiscarding geph for %s Toe:%s   dX=%13.3f",sat.id().c_str(),eph_time[i].to_string(0).c_str(),dX);
+				}
+			}
+		}
+		else
+		{
+			int ind=0;
+			map<int,double> mid_posX;
+			map<int,double> mid_posY;
+			map<int,double> mid_posZ;
+			vector<double> midX;
+			vector<double> midY;
+			vector<double> midZ;
+			
+			map<int,GTime> eph_time;
+			
+			for(auto& [teph, eph] : nav.ephMap[sat])
+			{
+				Vector3d rs(0,0,0);
+		
+				BS_eph2pos( midEpoch, &eph, rs, &dts);
+				eph_time[ind] = teph;
+				mid_posX[ind] = rs[0];
+				mid_posY[ind] = rs[1];
+				mid_posZ[ind] = rs[2];
+				midX.push_back(rs[0]);
+				midY.push_back(rs[1]);
+				midZ.push_back(rs[2]);
+				ind++;
+			}
+			std::sort(midX.begin(),midX.end());
+			std::sort(midY.begin(),midY.end());
+			std::sort(midZ.begin(),midZ.end());
+			int indi=ind/2;
+			double Xmedian = midX[ind/2];
+			double Ymedian = midY[ind/2];
+			double Zmedian = midZ[ind/2];
+				
+			for (int i=0; i<ind; i++)
+			{
+				double dX = sqrt((mid_posX[i]-Xmedian)*(mid_posX[i]-Xmedian) 
+				               + (mid_posY[i]-Ymedian)*(mid_posY[i]-Ymedian) 
+				               + (mid_posZ[i]-Zmedian)*(mid_posZ[i]-Zmedian));
+				
+				if (dX > BS_Err_Thres[sat.sys])
+				{
+					nav.ephMap[sat].erase(eph_time[i]);
+					fprintf(stdout, "\nDiscarding eph for %s Toe:%s  dX= %13.3f",sat.id().c_str(),eph_time[i].to_string(0).c_str(), dX);
+					continue;
+				}
+			}
+		}
+	}
+}
 
 void print_SP3header(FILE* fpout)
 {
@@ -449,32 +573,50 @@ int main(int argc, char **argv)
 	string inpfile;
     string outfile = "BS_orbits.sp3";
     bool fstreq = false;
-    BS_Max_Dtime[E_Sys::GPS] = 86400.0;
-    BS_Max_Dtime[E_Sys::GLO] = 86400.0;
-    BS_Max_Dtime[E_Sys::GAL] = 86400.0;
-    BS_Max_Dtime[E_Sys::QZS] = 86400.0;
-    BS_Max_Dtime[E_Sys::BDS] = 86400.0;
+    BS_Max_Dtime[E_Sys::GPS] = 14400;
+    BS_Max_Dtime[E_Sys::GLO] = 3600;
+    BS_Max_Dtime[E_Sys::GAL] = 3600;
+    BS_Max_Dtime[E_Sys::QZS] = 3600;
+    BS_Max_Dtime[E_Sys::BDS] = 7200;
+    
+    BS_Est_Delay[E_Sys::GPS] = -7200.0;
+    BS_Est_Delay[E_Sys::GLO] = -900;
+    BS_Est_Delay[E_Sys::GAL] = 660;
+    BS_Est_Delay[E_Sys::QZS] = 0;
+    BS_Est_Delay[E_Sys::BDS] = 0;
+    
+    BS_Err_Thres[E_Sys::GPS] = 3000;
+    BS_Err_Thres[E_Sys::GLO] = 9000;
+    BS_Err_Thres[E_Sys::GAL] = 15000;
+    BS_Err_Thres[E_Sys::QZS] = 9000;
+    BS_Err_Thres[E_Sys::BDS] = 9000;
+    
     int ephopt = 0;
     for (int i = 1; i < argc; i++) 
     {
-        if      (!strcmp(argv[i], "-inp") && i+1 < argc)
+        if      (!strcmp(argv[i], "-rinx") && i+1 < argc)
         {
         	inpfile.assign(argv[++i]);
         	navfiles.push_back(inpfile);
         } 
-        else if (!strcmp(argv[i], "-out") && i+1<argc) outfile.assign(argv[++i]);
-        else if (!strcmp(argv[i], "-ant") && i+1<argc) atxfile.assign(argv[++i]);
-        else if (!strcmp(argv[i], "-gns") && i+1<argc) GNSSinp.assign(argv[++i]);
-        else if (!strcmp(argv[i], "-int") && i+1<argc) BS_Epoch_Inter = atof(argv[++i]);
-    	else if (!strcmp(argv[i], "-Gdt") && i+1<argc) BS_Max_Dtime[E_Sys::GPS] = atof(argv[++i]);
-    	else if (!strcmp(argv[i], "-Rdt") && i+1<argc) BS_Max_Dtime[E_Sys::GLO] = atof(argv[++i]);
-    	else if (!strcmp(argv[i], "-Edt") && i+1<argc) BS_Max_Dtime[E_Sys::GAL] = atof(argv[++i]);
-    	else if (!strcmp(argv[i], "-Jdt") && i+1<argc) BS_Max_Dtime[E_Sys::QZS] = atof(argv[++i]);
-    	else if (!strcmp(argv[i], "-Cdt") && i+1<argc) BS_Max_Dtime[E_Sys::BDS] = atof(argv[++i]);
-    	else if (!strcmp(argv[i], "-clst"))			   ephopt = 1;
-    	else if (!strcmp(argv[i], "-inav"))            GALSelection = 5;
-        else if (!strcmp(argv[i], "-fnav"))  		   GALSelection = 2;
-        else if (!strcmp(argv[i], "-frst"))			   fstreq=true;
+        else if (!strcmp(argv[i], "-outf") && i+1<argc) outfile.assign(argv[++i]);
+        else if (!strcmp(argv[i], "-antx") && i+1<argc) atxfile.assign(argv[++i]);
+        else if (!strcmp(argv[i], "-gnss") && i+1<argc) GNSSinp.assign(argv[++i]);
+        else if (!strcmp(argv[i], "-intr") && i+1<argc) BS_Epoch_Inter = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Gdte") && i+1<argc) BS_Max_Dtime[E_Sys::GPS] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Rdte") && i+1<argc) BS_Max_Dtime[E_Sys::GLO] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Edte") && i+1<argc) BS_Max_Dtime[E_Sys::GAL] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Jdte") && i+1<argc) BS_Max_Dtime[E_Sys::QZS] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Cdte") && i+1<argc) BS_Max_Dtime[E_Sys::BDS] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Gchk") && i+1<argc) BS_Err_Thres[E_Sys::GPS] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Rchk") && i+1<argc) BS_Err_Thres[E_Sys::GLO] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Echk") && i+1<argc) BS_Err_Thres[E_Sys::GAL] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Jchk") && i+1<argc) BS_Err_Thres[E_Sys::QZS] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-Cchk") && i+1<argc) BS_Err_Thres[E_Sys::BDS] = atof(argv[++i]);
+    	else if (!strcmp(argv[i], "-clst"))			    ephopt = 1;
+    	else if (!strcmp(argv[i], "-inav"))             GALSelection = 5;
+        else if (!strcmp(argv[i], "-fnav"))  		    GALSelection = 2;
+        else if (!strcmp(argv[i], "-frst"))			    fstreq=true;
         else if (!strcmp(argv[i], "-help"))
         {
         	helpstring();
@@ -557,11 +699,12 @@ int main(int argc, char **argv)
 		{
 			auto [dummy, eph] = *it;
 			double dtoc = eph.toe - eph.toc;
-			double dttr = eph.toe - eph.ttr;
+			double dttm = eph.toe - eph.ttm;
 			bool alert = false;
 			
-			if(dtoc !=0.0) alert = true;
-			if(fabs(dttr)>10000.0) alert = true;
+			if (dtoc !=0.0) 				alert = true;
+			if (fabs(dttm)>10000.0) 		alert = true;
+			if (eph.svh == SVH_UNHEALTHY)	alert = true;
 			
 			if(sys == +E_Sys::GAL && !(eph.code & GALSelection)) alert=true;		/* INAVs messages, change from 5 to 2 for FNAVs (we dont want to mix the two) */
 			
@@ -571,14 +714,14 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				//fprintf(stdout, "%s, %s, %d, %.1f, %s\n", sat.id().c_str(), eph.toe.to_string(0).c_str(), eph.iode, dtoc, eph.ttr.to_string(0).c_str());
 				neph++;
 				if (tstart == GTime::noTime() || tstart > eph.toe)		tstart = eph.toe;
 				if (tfinsh == GTime::noTime() || tfinsh < eph.toe)		tfinsh = eph.toe;
 				it++;
 			}
 		}
-		if(neph>0) BS_Satel_List[sat]=neph;
+		if(neph>0)
+			BS_Satel_List[sat]=neph;
 	}
 	
 	if(GNSS_on[E_Sys::GLO]) for(auto& [satint,gephlist] : nav.gephMap)
@@ -592,7 +735,8 @@ int main(int argc, char **argv)
 			bool alert = false;
 			
 			//if(dtoc !=0.0) alert=true;
-			//if(fabs(dttr)>10000.0) alert=true;
+			//if(fabs(dttm)>10000.0) alert=true;
+			if (geph.svh == SVH_UNHEALTHY)	alert = true;
 			
 			if(alert){
 				it = nav.gephMap[satint].erase(it);
@@ -618,6 +762,8 @@ int main(int argc, char **argv)
 	time2epoch(tsync, BS_Start_Epoc);
 
 	fprintf(stdout, "\nTstart= %s, Tini= %s, Nepoc=%d\n", tstart.to_string(0).c_str(), tsync.to_string(0).c_str(), BS_Epoch_Num);
+
+	median_check(tstart, tfinsh, BS_Satel_List );
 
 	if(fstreq)for(auto it = BS_Satel_List.begin(); it != BS_Satel_List.end();)
 	{
@@ -652,7 +798,7 @@ int main(int argc, char **argv)
 			++it;
 		}
 	}
-
+	
 	print_SP3header(sp3fp);
 	
 	for(int epc=0; epc<BS_Epoch_Num; epc++){
@@ -698,6 +844,6 @@ int main(int argc, char **argv)
 	}
 	
 	fprintf(sp3fp, "\nEOF");
-	
+	fprintf( stdout,"\n");
 	return(EXIT_SUCCESS);
 }

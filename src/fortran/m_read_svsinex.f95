@@ -402,6 +402,7 @@ READ(UNIT_IN,'(a)',iostat=ioerr) record
       IF(TRIM(s_BLKTYP)=='QZS-1')     s_BLKID = 401 
       IF(TRIM(s_BLKTYP)=='QZS-2I')    s_BLKID = 402 ! QZSS-IGSO
       IF(TRIM(s_BLKTYP)=='QZS-2G')    s_BLKID = 403 ! QZSS-GEO
+      IF(TRIM(s_BLKTYP)=='QZS-2A')    s_BLKID = 404 ! QZSS-1R
       satellites(SAT_COUNT)%BLKID = s_BLKID
       ! default all other variables for now
       satellites(SAT_COUNT)%PRN = ''

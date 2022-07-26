@@ -5,8 +5,8 @@ import pandas as _pd
 import plotext as plx
 from matplotlib import cm as _cm
 
-from .gn_const import J2000_ORIGIN as _J2000_ORIGIN
-from .gn_datetime import j20002datetime
+from gn_lib.gn_const import J2000_ORIGIN as _J2000_ORIGIN
+from gn_lib.gn_datetime import j20002datetime as _j20002datetime
 
 
 def plot_vec(df:_pd.DataFrame, axes:list, axes_idx:list,legend:bool=True):
@@ -27,7 +27,7 @@ def plot_vec(df:_pd.DataFrame, axes:list, axes_idx:list,legend:bool=True):
     formatter = _mdates.ConciseDateFormatter(locator,show_offset=True) # offset with date at the bottom
     formatter.zero_formats[3] = '%d-%b' # the 00:00 label formatter
 
-    df.index = j20002datetime(df.index.values) # converting J2000 seconds to datetime64
+    df.index = _j20002datetime(df.index.values) # converting J2000 seconds to datetime64
     components = df.columns.levels[0]
     sv_list = df.columns.levels[1]
     
