@@ -55,7 +55,7 @@ Ginan is supported on the following platforms
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v /data:/data gnssanalysis/ginan:v1.4-beta bash
+    docker run -it -v /data:/data gnssanalysis/ginan:v1.5-markII bash
 
 This command connects the `/data` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
