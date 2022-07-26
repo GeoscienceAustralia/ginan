@@ -92,7 +92,7 @@ SUBROUTINE statorbit (ds1, ds2, dorb_XYZ, dorb_RTN, dorb_Kepler, stat_XYZ, stat_
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_d) :: delta_t, dt_limit
       INTEGER (KIND = prec_int8) :: Nepochs, Nepochs2, Nelements, Nepochs_delta 
-      INTEGER (KIND = prec_int8) :: i, j, j1, k, looptest, l
+      INTEGER (KIND = prec_int8) :: i, j, j1, k, looptest, l, saved_j
       INTEGER (KIND = prec_int8) :: sz1, sz2, sz3, sz4
       INTEGER (KIND = prec_int2) :: AllocateStatus, DeAllocateStatus
 ! ----------------------------------------------------------------------	  
@@ -211,32 +211,30 @@ dorb_kepler = 0.d0
 i = 0
 j = 0
 k = 0
+! the arrays are ordered on time, so when we find a match no need to start j loop at 1 again, but on emore
+! than the last one
+saved_j = 1
 Do i = 1 , Nepochs
+   ! check ds1 for allzeros - move on if so
+   allzero = .true.
+   do l = 3, sz2
+       if (ds1(i, l) .ne. 0.0d0) then
+            allzero = .false.
+       end if
+   end do
+   if (allzero) then
+       cycle
+   end if
    ! Test the time argument: 
-   Do j = 1 , Nepochs2   
+   Do j = saved_j , Nepochs2   
       delta_t = ABS(ds2(j,1) - ds1(i,1))
       IF (delta_t < dt_limit) then
+         saved_j = j+1
          k = k + 1
-         if (.false.) then !debugging
-         if (i==14 .and. j==74) then
-             print *, "i = 14, j = 74, k = ", k
-             print *, ds1(i, 3), ds1(i, 4), ds1(i, 5)
-             print *, ds2(j, 3), ds2(j, 4), ds2(j, 5)
-         end if
-         end if !end debugging 
-	     ! State vector numerical differences at common epochs
-		 dsr(k,1:2) = ds1(i,1:2)
-         ! check ds1 and ds2 for allzeros - move on if so
-         allzero = .true.
-         do l = 3, sz2
-             if (ds1(1, l) .ne. 0.0d0) then
-                  allzero = .false.
-             end if
-         end do
-         if (allzero) then
-             k = k-1
-             cycle
-         end if
+         ! State vector numerical differences at common epochs
+         dsr(k,1:2) = ds1(i,1:2)
+         dsr(k,3:sz2) = 0.d0
+         ! check ds2 for allzeros - move on if so
          allzero = .true.
          do l = 3, sz2
              if (ds2(j,l) .ne. 0.0d0) then

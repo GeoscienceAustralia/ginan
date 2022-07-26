@@ -325,7 +325,11 @@ void NtripSocket::delayed_reconnect()
 	//BOOST_LOG_TRIVIAL(debug) << " " << __FUNCTION__ << " " << url.sanitised() << " Started Timer.\n";
 
 	// Delay and attempt reconnect, this prevents server abuse.
-	timer.expires_from_now(boost::posix_time::seconds(1));
+	timer.expires_from_now(boost::posix_time::seconds((int)reconnectDelay));
+	
+	//wait a little longer next time;
+	reconnectDelay *= 2;
+	
 	timer.async_wait(boost::bind(&NtripSocket::reconnect_timer_handler, this, bp::error));       
 }
 
@@ -394,6 +398,9 @@ void NtripSocket::request_response_handler(
 		
 	//BOOST_LOG_TRIVIAL(debug) << "**********************************************\n";
 	BOOST_LOG_TRIVIAL(debug) << "Connected " << url.sanitised() << std::endl;
+	
+	//conneccted, turn the delay back down.
+	reconnectDelay = 1;
 	
 // 		connectedTime = boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
 	isConnected = true;

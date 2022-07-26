@@ -45,59 +45,60 @@ void mongoooo()
 	mongocxx::client&		client	= *c;
 	mongocxx::database		db		= client[acsConfig.mongo_database];
 	
-	BOOST_LOG_TRIVIAL(info)  << "Mongo connecting to database : " << acsConfig.config_description;
+	BOOST_LOG_TRIVIAL(info)  << "Mongo connecting to database : " << acsConfig.mongo_database;
 	try
 	{
 		if (acsConfig.delete_mongo_history)
 		{
-			db["Measurements"]	.drop();
-			db["States"]		.drop();
-			db["Console"]		.drop();
-			db["SSRData"]		.drop();
+			db["Measurements"]		.drop();
+			db["MeasurementsIndex"]	.drop();
+			db["States"]			.drop();
+			db["StatesIndex"]		.drop();
+			db["Console"]			.drop();
+			db["SSRData"]			.drop();
 		}
 
 		//create compound and simple indicies for most useful types
 		
-		db["Measurements"]	.create_index(
-								document{}
-									<< "Epoch"	<< 1
-									<< "Site"	<< 1
-									<< "Sat"	<< 1
-									<< finalize,
-								{});
-
-		db["States"]		.create_index(
-								document{}
-									<< "Epoch"	<< 1
-									<< "Site"	<< 1
-									<< "Sat"	<< 1
-									<< finalize,
-								{});
-
-		db["SSRData"]		.create_index(
-								document{}
-									<< "Epoch"		<< 1
-									<< "Sat"		<< 1
-									<< "Type"		<< 1
-									<< "Data"		<< 1
-									<< "ObsCode"	<< 1
-									<< finalize,
-								{});
-
-		db["Measurements"]	.create_index(	document{}	<< "Epoch"	<< 1	<< finalize,	{});
-		db["Measurements"]	.create_index(	document{}	<< "Site"	<< 1	<< finalize,	{});
-		db["Measurements"]	.create_index(	document{}	<< "Sat"	<< 1	<< finalize,	{});
+		db["Measurements"]		.create_index(
+									document{}
+										<< "Epoch"	<< 1
+										<< "Site"	<< 1
+										<< "Sat"	<< 1
+										<< finalize,
+									{});
 		
-		db["States"]		.create_index(	document{}	<< "Epoch"	<< 1	<< finalize,	{});
-		db["States"]		.create_index(	document{}	<< "Sat"	<< 1	<< finalize,	{});
-		db["States"]		.create_index(	document{}	<< "Site"	<< 1	<< finalize,	{});
-		
-		db["SSRData"]		.create_index(	document{}	<< "ObsCode"<< 1	<< finalize,	{});
-		db["SSRData"]		.create_index(	document{}	<< "Data"	<< 1	<< finalize,	{});
-		db["SSRData"]		.create_index(	document{}	<< "Type"	<< 1	<< finalize,	{});
-		db["SSRData"]		.create_index(	document{}	<< "Sat"	<< 1	<< finalize,	{});
-		db["SSRData"]		.create_index(	document{}	<< "Epoch"	<< 1	<< finalize,	{});
-		
+		db["MeasurementsIndex"]	.create_index(
+									document{}
+										<< "Site"	<< 1
+										<< "Sat"	<< 1
+										<< finalize,
+									{});
+
+		db["States"]			.create_index(
+									document{}
+										<< "Epoch"	<< 1
+										<< "Site"	<< 1
+										<< "Sat"	<< 1
+										<< finalize,
+									{});
+
+		db["StatesIndex"]		.create_index(
+									document{}
+										<< "Site"	<< 1
+										<< "Sat"	<< 1
+										<< finalize,
+									{});
+
+		db["SSRData"]			.create_index(
+									document{}
+										<< "Epoch"		<< 1
+										<< "Sat"		<< 1
+										<< "Type"		<< 1
+										<< "Data"		<< 1
+										<< "ObsCode"	<< 1
+										<< finalize,
+									{});		
 
 		if (acsConfig.output_mongo_logs)
 		{
@@ -110,11 +111,11 @@ void mongoooo()
 			boost::log::core::get()->add_sink(mongoLogSink);
 		}
 		
-		BOOST_LOG_TRIVIAL(info)  << "Mongo connected to database : " << acsConfig.config_description;
+		BOOST_LOG_TRIVIAL(info)  << "Mongo connected to database : " << acsConfig.mongo_database;
 	}
 	catch (...)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Mongo connection failed - check if service is running at " << acsConfig.mongo_uri;
+		BOOST_LOG_TRIVIAL(error) << "Error: Mongo connection failed - check if service is running at " << acsConfig.mongo_uri;
 		exit(1);
 	}
 }

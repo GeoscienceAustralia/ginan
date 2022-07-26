@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "satSys.hpp"
 #include "algebra.hpp"
+#include "preceph.hpp"
 #include "constants.hpp"
 #include "acsConfig.hpp"
 #include "ephemeris.hpp"
@@ -169,9 +170,10 @@ void eph2pos(
 	double y	= r * sin(u);
 	double cosi = cos(i);
 
-	/* beidou geo satellite (ref [9]) */
-	if	(  sys == +E_Sys::BDS 
-		&& prn <= 5)
+	/* beidou geo satellite (ref [9]), prn range may change in the future */
+	if	( ( sys == +E_Sys::BDS)
+		&&( prn <= 5
+		  ||prn >= 59))
 	{
 		double O	= eph.OMG0
 					+ eph.OMGd * tk
@@ -467,9 +469,13 @@ void cullOldSSRs(
 void cullOldEphs(
 	GTime	time)
 {
-	cullEphMap(time, nav.ephMap);
-	cullEphMap(time, nav.gephMap);
-	cullEphMap(time, nav.sephMap);
+	cullEphMap (time, nav.ephMap);
+	cullEphMap (time, nav.gephMap);
+	cullEphMap (time, nav.sephMap);
+	for (auto& [a,b] : nav.cephMap)
+	{
+		cullEphMap (time, b);
+	}
 }
 
 /** select ephememeris
@@ -536,45 +542,180 @@ EPHTYPE* seleph(
 	return &eph;
 }
 
+/** select CNVX ephememeris
+ */
+template<typename EPHTYPE>
+EPHTYPE* seleph(
+	Trace&																	trace,
+	GTime																	time, 
+	SatSys																	Sat, 
+	E_NavMsgType															type,
+	int																		iode, 
+	map<int, map<E_NavMsgType,	map<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
+{
+//     trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
+
+	if	( Sat.sys != +E_Sys::GPS
+		&&Sat.sys != +E_Sys::QZS
+		&&Sat.sys != +E_Sys::BDS)
+	{
+		tracepdeex(5, trace, "invalid satellite system for CNVX message type: sys=%s type=%s\n", Sat.sys._to_string(), type._to_string());
+		return nullptr;
+	}
+
+	double tmax;
+	switch (Sat.sys)
+	{
+		case E_Sys::QZS:	tmax = MAXDTOE_QZS	+ 1; break;
+		case E_Sys::BDS:	tmax = MAXDTOE_CMP	+ 1; break;
+		default: 			tmax = MAXDTOE		+ 1; break;
+	}
+
+	auto& satEphMap = ephMap[Sat][type];
+
+	if (iode >= 0)
+	{
+		for (auto& [dummy, eph] : satEphMap)
+		{
+			if (iode != eph.iode)
+			{
+				continue;
+			}
+			
+			return &eph;
+		}
+	
+        tracepdeex(5, trace, "no broadcast ephemeris (CNVX): %s sat=%s with iode=%3d\n", time.to_string(0).c_str(), Sat.id().c_str(), iode);
+		return nullptr;
+	}
+	
+	auto it = satEphMap.lower_bound(time + tmax);
+	if (it == satEphMap.end())
+	{
+        tracepdeex(5, trace, "no broadcast ephemeris (CNVX): %s sat=%s within MAXDTOE+ ", time.to_string(0).c_str(), Sat.id().c_str());
+    	if (satEphMap.empty() == false)
+    	{
+    		tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string(0).c_str());
+    	}
+    	tracepdeex(5, trace, "\n");
+		return nullptr;
+	}
+	
+	auto& [ephTime, eph] = *it;
+	
+	if (fabs(eph.toe - time) > tmax)
+	{
+        tracepdeex(5, trace, "no broadcast ephemeris (CNVX): %s sat=%s within MAXDTOE-\n", time.to_string(0).c_str(), Sat.id().c_str());
+		return nullptr;
+	}
+	
+	return &eph;
+}
+
+/** select EOP/ION messages
+ */
+template<typename EPHTYPE>
+EPHTYPE* seleph(
+	Trace&																		trace,
+	GTime																		time, 
+	E_Sys																		sys, 
+	E_NavMsgType																type,
+	map<E_Sys, map<E_NavMsgType,	map<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
+{
+//     trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
+
+	auto& satEphMap = ephMap[sys][type];
+
+	auto it = satEphMap.lower_bound(time);
+	if (it == satEphMap.end())
+	{
+        tracepdeex(5, trace, "no broadcast ephemeris (EOP/ION): %s sys=%s", time.to_string(0).c_str(), sys._to_string());
+    	if (satEphMap.empty() == false)
+    	{
+    		tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string(0).c_str());
+    	}
+    	tracepdeex(5, trace, "\n");
+		return nullptr;
+	}
+	
+	auto& [ephTime, eph] = *it;
+	
+	return &eph;
+}
+
 template<>
 Eph* seleph<Eph>(
-	Trace&	trace,
-	GTime	time, 
-	SatSys	Sat, 
-	int		iode, 
-	nav_t&	nav)
+	Trace&		trace,
+	GTime		time, 
+	SatSys		Sat, 
+	int			iode, 
+	Navigation&	nav)
 {
 	return seleph(trace, time, Sat, iode, nav.ephMap);
 }
 
 template<>
 Geph* seleph<Geph>(
-	Trace&	trace,
-	GTime	time, 
-	SatSys	Sat, 
-	int		iode, 
-	nav_t&	nav)
+	Trace&		trace,
+	GTime		time, 
+	SatSys		Sat, 
+	int			iode, 
+	Navigation&	nav)
 {
 	return seleph(trace, time, Sat, iode, nav.gephMap);
 }
 
 template<>
 Seph* seleph<Seph>(
-	Trace&	trace,
-	GTime	time, 
-	SatSys	Sat, 
-	int		iode, 
-	nav_t&	nav)
+	Trace&		trace,
+	GTime		time, 
+	SatSys		Sat, 
+	int			iode, 
+	Navigation&	nav)
 {
 	return seleph(trace, time, Sat, -1, nav.sephMap);
 }
 
+template<>
+Ceph* seleph<Ceph>(
+	Trace&			trace,
+	GTime			time, 
+	SatSys			Sat, 
+	E_NavMsgType	type,
+	int				iode, 
+	Navigation&		nav)
+{
+	return seleph(trace, time, Sat, type, iode, nav.cephMap);
+}
+
+template<>
+ION* seleph<ION>(
+	Trace&			trace,
+	GTime			time, 
+	E_Sys			sys, 
+	E_NavMsgType	type,
+	Navigation&		nav)
+{
+	return seleph(trace, time, sys, type, nav.ionMap);
+}
+
+template<>
+EOP* seleph<EOP>(
+	Trace&			trace,
+	GTime			time, 
+	E_Sys			sys, 
+	E_NavMsgType	type,
+	Navigation&		nav)
+{
+	return seleph(trace, time, sys, type, nav.eopMap);
+}
+
 /* satellite clock with broadcast ephemeris ----------------------------------*/
 int ephclk(
-	GTime time,
-	GTime teph,
-	Obs& obs,
-	double& dts)
+	GTime	time,
+	GTime	teph,
+	Obs&	obs,
+	double&	dts)
 {
 	int sys;
 
@@ -614,7 +755,7 @@ bool ephpos(
 	double&		ephVar,
 	E_Svh&		svh,
 	int&		obsIode,
-	nav_t&		nav,
+	Navigation&	nav,
 	int			iode,
 	bool		applyRelativity = true)
 {
@@ -690,7 +831,7 @@ bool ephpos(
 	GTime		time,
 	GTime		teph,
 	Obs&		obs,
-	nav_t&		nav,
+	Navigation&	nav,
 	int			iode,
 	bool		applyRelativity = true)
 {
@@ -853,7 +994,7 @@ bool satpos_ssr(
 	Trace&			trace,		
 	GTime			time,
 	GTime			teph,
-	nav_t&			nav,
+	Navigation&		nav,
 	SSRMaps&		ssrMaps,
 	SatSys&			Sat,
 	Vector3d&		rSat,
@@ -882,7 +1023,7 @@ bool satpos_ssr(
 	
 	if (iodClk != iodPos)
 	{
-		BOOST_LOG_TRIVIAL(error) << "IOD inconsistent." << iodClk << " " << iodPos;
+		BOOST_LOG_TRIVIAL(error) << "Error: IOD inconsistent." << iodClk << " " << iodPos;
 // 		std::cout << "Bad SSR Delta function" << std::endl;
 		return false;
 	}
@@ -924,7 +1065,7 @@ bool satpos_ssr(
 
 	Matrix3d rac2ecefMat = rac2ecef(rSat, satVel);
 	
-	Vector3d dPosECEF = rac2ecefMat * dPos;			//todo aaron, check direction
+	Vector3d dPosECEF = rac2ecefMat * dPos;
 	
 	rSat -= dPosECEF;
 
@@ -950,7 +1091,7 @@ bool satpos_ssr(
 		dtSat[0] -= relativity1(rSat, satVel);
 	}
 	
-	tracepde(5, trace, "%s: %s sat=%2d deph=%6.3f %6.3f %6.3f dclk=%6.3f var=%6.3f\n",
+	tracepdeex(5, trace, "%s: %s sat=%2d deph=%6.3f %6.3f %6.3f dclk=%6.3f var=%6.3f\n",
 		__FUNCTION__, time.to_string(2).c_str(), Sat, dPos[0], dPos[1], dPos[2], dClk, ephVar);
 
 	svh = SVH_OK;
@@ -962,7 +1103,7 @@ bool satpos_ssr(
 	GTime		time,
 	GTime		teph,
 	Obs&		obs,
-	nav_t&		nav,
+	Navigation&	nav,
 	bool		applyRelativity = true)
 {
 	return satpos_ssr(
@@ -1018,11 +1159,11 @@ int satpos(
 	Obs&			obs,				///< Observation to determine satellite etc, and store answers
 	E_Ephemeris		ephType,			///< Source of ephemeris
 	E_OffsetType	offsetType,			///< Type of antenna offset to apply
-	nav_t&			nav,				///< navigation data
+	Navigation&		nav,				///< navigation data
 	bool			applyRelativity,	///< Apply relativity
 	KFState*		kfState_ptr)		///< Optional pointer to a kalman filter to take values from
 {
-	tracepde(4, trace, "%s: time=%s sat=%s ephType=%d offsetType=%d\n", __FUNCTION__, time.to_string(3).c_str(), obs.Sat.id().c_str(), ephType, offsetType);
+	tracepdeex(4, trace, "%s: time=%s sat=%s ephType=%d offsetType=%d\n", __FUNCTION__, time.to_string(3).c_str(), obs.Sat.id().c_str(), ephType, offsetType);
 
 	obs.svh = SVH_UNHEALTHY;
 
@@ -1072,7 +1213,7 @@ void satposs(
 	Trace&			trace,				///< Trace to output to
 	GTime			teph,				///< time to select ephemeris (gpst)
 	ObsList&		obsList,			///< List of observations to complete with satellite positions
-	nav_t&			nav,				///< Navigation data
+	Navigation&		nav,				///< Navigation data
 	E_Ephemeris		ephType,			///< Source of ephemeris data
 	E_OffsetType	offsetType,			///< Point of satellite to output position of
 	bool			applyRelativity,	///< Option to apply relativistic correction to clock
@@ -1080,7 +1221,7 @@ void satposs(
 {
 	TestStack ts(__FUNCTION__);
 
-	tracepde(3, trace, "%s: teph=%s n=%d ephType=%d\n", __FUNCTION__, teph.to_string(3).c_str(), obsList.size(), ephType);
+	tracepdeex(3, trace, "%s: teph=%s n=%d ephType=%d\n", __FUNCTION__, teph.to_string(3).c_str(), obsList.size(), ephType);
 
 	for (auto& obs : obsList)
 	{
@@ -1092,7 +1233,7 @@ void satposs(
 		/* search any pseudorange */
 		if (obs.Sigs.empty())
 		{
-			tracepde(2, trace, "no pseudorange %s sat=%s\n", obs.time.to_string(3).c_str(), obs.Sat.id().c_str());
+			tracepdeex(2, trace, "no pseudorange %s sat=%s\n", obs.time.to_string(3).c_str(), obs.Sat.id().c_str());
 			continue;
 		}
 
@@ -1121,7 +1262,7 @@ void satposs(
 			
 		if (pass == false)
 		{
-			tracepde(2, trace, "no satellite clock %s sat=%s\n", time.to_string(3).c_str(), obs.Sat.id().c_str());
+			tracepdeex(2, trace, "no satellite clock %s sat=%s\n", time.to_string(3).c_str(), obs.Sat.id().c_str());
 			continue;
 		}
 
@@ -1132,7 +1273,7 @@ void satposs(
 
 		if (pass == false)
 		{
-			tracepde(3, trace, "satpos failed (no ephemeris?) %s sat=%s\n", time.to_string(3).c_str(), obs.Sat.id().c_str());
+			tracepdeex(3, trace, "satpos failed (no ephemeris?) %s sat=%s\n", time.to_string(3).c_str(), obs.Sat.id().c_str());
 
 			continue;
 		}
@@ -1161,7 +1302,7 @@ void satposs(
 
 		TestStack ts(obs.Sat);
 
-		tracepde(4, trace, "%s sat=%s rs=%13.3f %13.3f %13.3f dtSat=%12.3f var=%7.3f svh=%02X\n",
+		tracepdeex(4, trace, "%s sat=%s rs=%13.3f %13.3f %13.3f dtSat=%12.3f var=%7.3f svh=%02X\n",
 				obs.time.to_string(6).c_str(),
 				obs.Sat.id().c_str(),
 				obs.rSat[0],
@@ -1174,10 +1315,6 @@ void satposs(
 		TestStack::testMat("obs.rSat", obs.rSat);
 	}
 }
-
-
-
-
 
 
 #if (0)

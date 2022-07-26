@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''sinex stations quick view'''
 import argparse
 import logging as _logging
@@ -11,7 +13,7 @@ from gn_lib.gn_io.sinex import _get_snx_id
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Parse sinex SITE/ID block and create html map.')
-    parser.add_argument('-i', '--snxpath', type=file_path,help='path to sinex file (.snx/.ssc). Can be compressed with LZW (.Z)',nargs="+")
+    parser.add_argument('-i', '--snxpath', type=file_path,help='path to sinex file (.snx/.ssc). Can be compressed with LZW (.Z)',nargs="+",required=True)
     parser.add_argument('-o', '--outdir',   type=dir_path,help='path to output dir',default=None)
     return parser.parse_args()
 

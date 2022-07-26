@@ -2,10 +2,9 @@ import numpy as _np
 import pandas as _pd
 import logging as _logging
 
-from .gn_io.sinex import _get_snx_matrix, _get_snx_vector, get_variance_factor
-from .gn_transform import get_helmert7, transform7
-from .gn_io.common import path2bytes
-
+# from .gn_io.sinex import _get_snx_matrix, _get_snx_vector, get_variance_factor
+from gn_lib import gn_io as _gn_io
+from gn_lib import gn_transform as _gn_transform
 
 def cova2neq(cova:_np.ndarray, variance_factor):
     """Function to convert COVA matrix to NEQ matrix as per Bernese ADDNEQ"""
@@ -22,14 +21,14 @@ def corr2cova(corr:_np.ndarray) -> _np.ndarray:
 
 
 def get_neq(path_or_bytes):
-    snx_bytes = path2bytes(path_or_bytes)
+    snx_bytes = _gn_io.common.path2bytes(path_or_bytes)
     # TODO read and parse sinex header
 
-    neq = _get_snx_matrix(path_or_bytes=snx_bytes, stypes=["NEQ"], verbose=False)
+    neq = _gn_io.sinex._get_snx_matrix(path_or_bytes=snx_bytes, stypes=["NEQ"], verbose=False)
 
     vec = b""  # to silence the pylance
     if neq is not None:
-        vec = _get_snx_vector(
+        vec = _gn_io.sinex._get_snx_vector(
             path_or_bytes=snx_bytes, stypes=["APR", "EST", "NEQ"], verbose=False,snx_format=None
         )
         # revisit this vec thing
@@ -39,14 +38,14 @@ def get_neq(path_or_bytes):
         msg="No NEQ was found. Generating from COVA/CORR as not strict"
     )
 
-    apr_est = _get_snx_matrix(path_or_bytes=snx_bytes, stypes=["APR", "EST"], verbose=False)
+    apr_est = _gn_io.sinex._get_snx_matrix(path_or_bytes=snx_bytes, stypes=["APR", "EST"], verbose=False)
 
     if apr_est is not None:
         matrices, stype_dict = apr_est
     else:
         raise ValueError
 
-    variance_factor = get_variance_factor(path_or_bytes)
+    variance_factor = _gn_io.sinex.get_variance_factor(path_or_bytes)
     
     if variance_factor is None:
         variance_factor = 1
@@ -54,7 +53,7 @@ def get_neq(path_or_bytes):
             msg="No variance factor found. Considering it 1"
         )
 
-    a_e = _get_snx_vector(path_or_bytes = snx_bytes, stypes=["EST", "APR"], verbose=False,snx_format=None)
+    a_e = _gn_io.sinex._get_snx_vector(path_or_bytes = snx_bytes, stypes=["EST", "APR"], verbose=False,snx_format=None)
     if a_e is None:
         raise ValueError
 
@@ -134,9 +133,9 @@ def prepare_neq(neq_m, vec_apr_neq, frame_of_day):
 
     if frame_of_day is not None:
         common = _np.intersect1d(aprioris[aprioris_vals_mask].index.values, frame_of_day.index.values)
-        hlm = get_helmert7(pt1=frame_of_day.loc[common].iloc[:, :3].values, pt2=aprioris[aprioris_vals_mask].loc[common].values)  # could not work if the order of XYZ is changed to YXZ etc
+        hlm = _gn_transform.get_helmert7(pt1=frame_of_day.loc[common].iloc[:, :3].values, pt2=aprioris[aprioris_vals_mask].loc[common].values)  # could not work if the order of XYZ is changed to YXZ etc
         # copy over estimate values to 0-aprioris here and rotate them using the computed hlm coeff
-        new_aprioris = _pd.DataFrame(data = transform7(xyz_in=aprioris.values, helmert_list=hlm[0][0] * -1),
+        new_aprioris = _pd.DataFrame(data = _gn_transform.transform7(xyz_in=aprioris.values, helmert_list=hlm[0][0] * -1),
                                      index = aprioris.index, columns = aprioris.columns)
     else:
         new_aprioris = aprioris # we later use substr with a mask and fill_value 0 to make all masked values 0

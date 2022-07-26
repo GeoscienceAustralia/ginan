@@ -378,7 +378,7 @@ void RtcmTrace::traceBroEph(
 		doc.append(kvp("svh",		eph.svh						));
 		doc.append(kvp("tgd[0]",	eph.tgd[0]					));
 		doc.append(kvp("iodc",		eph.iodc					));
-		doc.append(kvp("tow",		time2gpst(eph.ttr,&eph.week)));
+		doc.append(kvp("tow",		time2gpst(eph.ttm,&eph.week)));
 		doc.append(kvp("fit",		eph.fit						));
 	}
 	else if (sys == +E_Sys::GAL)
@@ -404,7 +404,7 @@ void RtcmTrace::traceBroEph(
 		doc.append(kvp("svh",		eph.svh						));
 		doc.append(kvp("tgd[0]",	eph.tgd[0]					));
 		doc.append(kvp("tgd[1]",	eph.tgd[1]					));
-		doc.append(kvp("tow",		time2gpst(eph.ttr,&eph.week)));
+		doc.append(kvp("tow",		time2gpst(eph.ttm,&eph.week)));
 	}
 	
 	fout << bsoncxx::to_json(doc) << std::endl;
@@ -512,12 +512,6 @@ string NetworkStatistics::getNetworkStatistics(
 // 		printToTerminal = true;
 // 	}
 // 
-// 	if	(  printToTerminal
-// 		&& acsConfig.print_stream_statistics)
-// 	{
-// 		BOOST_LOG_TRIVIAL(debug) << traceStr.str();
-// 	}
-// 
 // 	string messLine;
 // 	while (std::getline(traceStr, messLine))
 // 		tracepde(0, trace, (messLine + "\n").c_str());
@@ -555,19 +549,7 @@ void RtcmStatistics::printRtcmStatistics(
 		traceStr << "meanLatency     : " << 0.0			<< std::endl;
 	}
 
-	bool printToTerminal = false;
-	if	(FailedToPreambleRatio	> 0.01)
-	{
-		printToTerminal = true;
-	}
-
-	if	(  printToTerminal
-		&& acsConfig.print_stream_statistics)
-	{
-		BOOST_LOG_TRIVIAL(debug) << traceStr.str();
-	}
-
 	string messLine;
 	while (std::getline(traceStr, messLine))
-		tracepde(0, trace, (messLine + "\n").c_str());
+		tracepdeex(0, trace, (messLine + "\n").c_str());
 }

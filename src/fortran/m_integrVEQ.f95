@@ -139,6 +139,10 @@ tmax = to_sec + arc
 ! Number of epochs
 Nepochs = INT(arc / ABS(step)) + 1
 
+if (arc < 0.d0) then
+     STOP "Fatal error: arc < 0.d0"
+end if
+
 
 ! ----------------------------------------------------------------------
 ! Dynamic allocatable arrays 

@@ -16,32 +16,52 @@ namespace sinks = boost::log::sinks;
 #include <fstream>
 #include <math.h>
 #include <vector>
+#include <tuple>
 #include <list>
 #include <map>
 
 using std::unordered_map;
 using std::vector;
 using std::string;
+using std::tuple;
 using std::list;
 using std::map;
 
 #include "eigenIncluder.hpp"
 
+struct TestThingy
+{
+	string			stack;
+	vector<double>	data;
+	int				status = 0;
+	
+	bool operator < (const TestThingy& rhs) const
+	{
+		return stack < rhs.stack;
+	}
+	
+	template<class ARCHIVE>
+	void serialize(ARCHIVE& ar, const unsigned int& version)
+	{
+		ar & stack;
+		ar & data;
+	}
+};
 
 /** Object to contain sets of tests to perform during runtime
 */
 struct TestStack
 {
-	static list<string>								TestStackList;
-	static list<string>								RecordStackList;
-	static unordered_map<string, vector<double>>	TestDoubleData;
-	static unordered_map<string, string>			TestStringData;
-	static unordered_map<string, int>				TestStatus;
-	static unordered_map<string, string>			TestRedirect;
-	static std::ofstream							TestOutputStream;
-	static std::ofstream							TestNameStream;
-	static bool										DontTest;
-	static bool										NewData;
+	static list<string>				TestStackList;
+	static vector<string>			RecordStackList;
+	static vector<TestThingy>		TestDoubleData;
+	static list<TestThingy>			RecordedTests;
+	static map<string, string>		TestStringData;
+	static map<string, string>		TestRedirect;
+	static std::ofstream			TestOutputStream;
+	static std::ofstream			TestNameStream;
+	static bool						DontTest;
+	static bool						NewData;
 
 	TestStack(string desc);
 
@@ -111,6 +131,22 @@ struct TestStack
 		string 		str);
 };
 
+struct TestClipper
+{
+	bool oldVal = false;
+	
+	TestClipper()
+	{
+		oldVal = TestStack::DontTest;
+		TestStack::DontTest = true;
+	}
+	
+	~TestClipper()
+	{
+		TestStack::DontTest = oldVal;
+	}
+};
+
 struct ErrorExit : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {
 	// The function consumes the log records that come from the frontend
@@ -122,3 +158,22 @@ struct ErrorExit : public sinks::basic_formatted_sink_backend<char, sinks::synch
 void exitOnErrors();
 
 #endif
+
+struct TempDisabler
+{
+	bool	oldVal = false;
+	bool*	bool_ptr;
+	
+	TempDisabler(
+		bool& disable)
+	{
+		oldVal		= disable;
+		disable		= false;
+		bool_ptr	= &disable;
+	}
+	
+	~TempDisabler()
+	{
+		*bool_ptr = oldVal;
+	}
+};

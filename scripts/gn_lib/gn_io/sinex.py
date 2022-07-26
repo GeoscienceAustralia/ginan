@@ -1,18 +1,16 @@
 '''IO functions for various formats used: trace, sinex etc '''
 
-import glob as _glob
 import logging as _logging
 import re as _re
-import zlib
+import zlib as _zlib
 from io import BytesIO as _BytesIO
 
 import numpy as _np
 import pandas as _pd
-# from p_tqdm import p_map as _p_map
 
-from ..gn_const import PT_CATEGORY, TYPE_CATEGORY
-from ..gn_datetime import yydoysec2datetime as _yydoysec2datetime
-from .common import path2bytes
+from gn_lib import gn_const as _gn_const
+from gn_lib import gn_datetime as _gn_datetime
+from gn_lib import gn_io as _gn_io
 
 _RE_BLK_HEAD = _re.compile(rb"\+S\w+\/\w+(\s[LU]|)\s*(CORR|COVA|INFO|)[ ]*\n(?:\*[ ].+\n|)(?:\*\w.+\n|)")
 _RE_STATISTICS = _re.compile(r"^[ ]([A-Z (-]+[A-Z)])[ ]+([\d+\.]+)", _re.MULTILINE)
@@ -112,7 +110,7 @@ def _snx_extract(snx_bytes, stypes, obj_type, verbose=True):
     return _BytesIO(snx_buffer), stypes_rows, stypes_form, stypes_content
 
 def get_variance_factor(path_or_bytes):
-    snx_bytes = path2bytes(path_or_bytes)
+    snx_bytes = _gn_io.common.path2bytes(path_or_bytes)
     stat_bytes = _snx_extract_blk(
         snx_bytes=snx_bytes, blk_name="SOLUTION/STATISTICS", remove_header=True
     )
@@ -145,7 +143,7 @@ def _get_snx_matrix(path_or_bytes,
     Fetch it from estimates vector
     '''
     if isinstance(path_or_bytes, str):
-        snx_bytes = path2bytes(path_or_bytes)
+        snx_bytes = _gn_io.common.path2bytes(path_or_bytes)
     else:
         snx_bytes = path_or_bytes
 
@@ -192,10 +190,10 @@ def _get_snx_vector(path_or_bytes, stypes=('EST','APR'), snx_format=True,verbose
     path = None
     if isinstance(path_or_bytes, str):
         path = path_or_bytes
-        snx_bytes = path2bytes(path)
+        snx_bytes = _gn_io.common.path2bytes(path)
     elif isinstance(path_or_bytes, list):
         path, stypes, snx_format,verbose = path_or_bytes
-        snx_bytes = path2bytes(path)
+        snx_bytes = _gn_io.common.path2bytes(path)
     else:
         snx_bytes = path_or_bytes
 
@@ -224,9 +222,9 @@ def _get_snx_vector(path_or_bytes, stypes=('EST','APR'), snx_format=True,verbose
             names=['INDEX','TYPE', 'CODE', 'PT', 'SOLN', 'REF_EPOCH', 'EST', 'STD'],
             dtype={
                 0:int,
-                1: TYPE_CATEGORY,
+                1: _gn_const.TYPE_CATEGORY,
                 2: object,
-                3: PT_CATEGORY,
+                3: _gn_const.PT_CATEGORY,
                 4: 'category', #can not be int as may be '----'
                 5: object,
                 8: _np.float_,
@@ -254,7 +252,7 @@ def _get_snx_vector(path_or_bytes, stypes=('EST','APR'), snx_format=True,verbose
         idx = stypes_rows[stype]
         vec_df = (vector_raw[prev_idx:prev_idx + idx]).copy()
         if i == 0:
-            vec_df.REF_EPOCH = _yydoysec2datetime(vec_df.REF_EPOCH,
+            vec_df.REF_EPOCH = _gn_datetime.yydoysec2datetime(vec_df.REF_EPOCH,
                                               recenter=True,
                                               as_j2000=True)
         else:
@@ -326,7 +324,7 @@ def _unc_snx_cova(path_or_bytes):
 
 def unc_snx(path,snx_format=True):
     '''removes constrains from snx estimates using either COVA or NEQ method'''
-    snx_bytes = path2bytes(path)
+    snx_bytes = _gn_io.common.path2bytes(path)
     if snx_bytes.find(b'NORMAL_EQUATION_MATRIX') == -1:
         output =  _unc_snx_cova(snx_bytes)
     else:
@@ -368,7 +366,7 @@ def _get_snx_vector_gzchunks(filename,block_name='SOLUTION/ESTIMATE',size_lookba
 
     gzip_file = filename.endswith('.gz')
     if gzip_file:
-        decompressor_zlib = zlib.decompressobj(16+zlib.MAX_WBITS)
+        decompressor_zlib = _zlib.decompressobj(16+_zlib.MAX_WBITS)
 
     with open(file=filename,mode='rb') as compressed_file:
         i=0
@@ -406,7 +404,7 @@ def degminsec2decdeg(series):
     return _deg + sign*_min/60 + sign*_sec/3600
 
 def _get_snx_id(path, sites_only=False):
-    snx_bytes = path2bytes(path)
+    snx_bytes = _gn_io.common.path2bytes(path)
     site_id   = _snx_extract_blk(snx_bytes=snx_bytes,blk_name='SITE/ID',remove_header=True)[0]
     if sites_only:
         return _np.char.strip(_np.asarray(site_id.splitlines()).astype('U5'))

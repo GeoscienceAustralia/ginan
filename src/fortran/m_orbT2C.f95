@@ -79,7 +79,7 @@ SUBROUTINE orbT2C (orbT, time, orbC)
       INTEGER (KIND = prec_int2) :: AllocateStatus
 !       , DeAllocateStatus  
         REAL (KIND = prec_d) :: mjd , mjd_TT, mjd_GPS, mjd_TAI, mjd_UTC
-      DOUBLE PRECISION EOP_cr(7)
+      DOUBLE PRECISION EOP_cr(EOP_MAX_ARRAY)
       DOUBLE PRECISION CRS2TRS(3,3), TRS2CRS(3,3), d_CRS2TRS(3,3), d_TRS2CRS(3,3)
       REAL (KIND = prec_d) :: r_TRS(3), v_TRS(3)
       REAL (KIND = prec_d) :: r_CRS(3), v_CRS(3)

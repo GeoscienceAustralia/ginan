@@ -15,13 +15,13 @@ from gn_lib.gn_download import (
 from gn_lib.gn_io.common import compute_checksum, tar_comp, tar_extr
 
 EX_GLOB_DICT = {
-    "ex11": ["*.TRACE", "*.snx", "*.tro_smoothed", "*.rts"],
+    "ex11": ["*.TRACE", "*.snx", "*.*_smoothed"],
     "ex12": ["*.TRACE", "*.snx"],
     "ex13": ["*.TRACE", "*.snx"],
     "ex14": ["*.TRACE", "*.snx"],
     "ex15": ["*.TRACE", "*.snx"],
-    "ex16": ["*.*I", "*.stec", "*.snx", "*SUM", "*.BIA"],
-    "ex17": ["*.snx", "*.clk*", "*SUM"],
+    "ex16": ["*Network*.TRACE","*.*I", "*.stec", "*.snx", "*.BIA"],
+    "ex17": ["*Network*.TRACE","*.snx", "*.clk*"],
     "ex21": ["pod*.out"],
     "ex22g": ["pod*.out"],
     "ex22r": ["pod*.out"],
@@ -40,8 +40,12 @@ def parse_arguments():
         description=(
             "Downloads 'products', 'data', and 'solutions' tarballs from s3 bucket and"
             " extracts the content into examples dir. The list of tarballs can be"
-            " chaged with the combination of [-p/-d/-s] options. Similar tarballs"
-            ' upload functionality is available - can be activated with "--push" key'
+            " changed with the combination of [-p/-d/-s] options. Similar tarballs"
+            " upload functionality is available - can be activated with '--push' key"
+            "To configure the utility for --push functionality it is enough to create"
+            " ~/.aws/credentials file containing"
+            "[default] / aws_access_key_id=ACCESS_KEY / "
+            "aws_secret_access_key=SECRET_KEY"
         )
     )
     parser.add_argument(
@@ -63,6 +67,9 @@ def parse_arguments():
             " there is no need to overwrite the files."
         ),
     )
+    parser.add_argument("--path", default=None,help="custom path to examples dir, a dir that stores products/data etc, default is ginan/examples")
+    parser.add_argument("--bucket", default="peanpod",help="s3 bucket name to push and pull from")
+    parser.add_argument("--target", default="aux",help="s3 target name (dir) within the selected bucket")
     return parser.parse_args()
 
 
@@ -104,8 +111,8 @@ def update_solutions_dict(examples_dir: _Path, dir: str, ex_glob_dict: dict, tag
 
 def upload_examples_tar(
     examples_path,
-    bucket_name="peanpod",
-    target="aux",
+    bucket,
+    target,
     dirs=("products", "data", "solutions"),
     compression="bz2",
     tag='',
@@ -116,7 +123,7 @@ def upload_examples_tar(
         " message and do nothing. Default paths are [bucket] s3://peanpod/aux/ ->"
         " [html] https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/"
     )
-    base_url = f"https://{bucket_name}.s3.ap-southeast-2.amazonaws.com/{target}"
+    base_url = f"https://{bucket}.s3.ap-southeast-2.amazonaws.com/{target}"
     for dir in dirs:
         # update tarname with tag
         is_example = is_example_name(dir)
@@ -139,7 +146,7 @@ def upload_examples_tar(
                 local_file_path=destpath_targz,
                 metadata={"md5checksum": md5_checksum},
                 public_read=True,
-                bucket_name=bucket_name,
+                bucket_name=bucket,
                 object_key=target + "/" + tarname,
                 verbose=True,
             )
@@ -150,8 +157,8 @@ def upload_examples_tar(
 
 def download_examples_tar(
     examples_path,
-    bucket_name="peanpod",
-    target="aux",
+    bucket,
+    target,
     dirs=("products", "data", "solutions"),
     compression="bz2",
     tag=None,
@@ -163,9 +170,8 @@ def download_examples_tar(
         " are compared at first. If the same - nothing is downloaded, local tarball"
         " gets uncompressed"
     )
-    script_path = _Path(__file__).resolve().parent
-    examples_path = (script_path.parent / "examples").resolve()
-    base_url = f"https://{bucket_name}.s3.ap-southeast-2.amazonaws.com/{target}"
+
+    base_url = f"https://{bucket}.s3.ap-southeast-2.amazonaws.com/{target}"
     for dir in dirs:
         is_example = is_example_name(dir)
         if is_example:
@@ -207,8 +213,13 @@ if __name__ == "__main__":
     parsed_args = parse_arguments()
     _logging.getLogger().setLevel(_logging.INFO)
 
-    script_path = _Path(__file__).resolve().parent
-    examples_path = (script_path.parent / "examples").resolve()
+    if parsed_args.path is None:
+        script_path = _Path(__file__).resolve().parent
+        examples_path = (script_path.parent / "examples").resolve()
+        _logging.info(f"default path relative to script location selected: {examples_path}")
+    else:
+        examples_path = _Path(parsed_args.path)
+        _logging.info(f"custom path selected: {examples_path}")
 
     if parsed_args.dirs != []:
         dirs = parsed_args.dirs
@@ -226,7 +237,7 @@ if __name__ == "__main__":
         _logging.info(f"{dirs} selected")
     if parsed_args.push:
         # copy over the required files if exist - if solutions/blah -> rm blah, copy from ../blah to solutions/blah
-        print("updating solutions")
+        _logging.info(msg="updating solutions")
         [
             update_solutions_dict(
                 examples_dir=examples_path, dir=dir, ex_glob_dict=EX_GLOB_DICT,tag=parsed_args.tag
@@ -238,6 +249,8 @@ if __name__ == "__main__":
             compression="bz2",
             tag=parsed_args.tag,
             examples_path=examples_path,
+            bucket=parsed_args.bucket,
+            target=parsed_args.target
         )
     else:
         download_examples_tar(
@@ -246,4 +259,6 @@ if __name__ == "__main__":
             tag=parsed_args.tag,
             examples_path=examples_path,
             skip_extract=parsed_args.skip_extract,
+            bucket=parsed_args.bucket,
+            target=parsed_args.target
         )

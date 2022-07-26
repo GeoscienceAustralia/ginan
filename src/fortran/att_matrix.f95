@@ -38,6 +38,7 @@ SUBROUTINE att_matrix(mjd, rsat_icrf, vsat_icrf, PRNsat, BLKsat, &
       USE mdl_num
       USE mdl_param
       USE m_matrixinv
+      USE pod_yaml
       !USE m_read_satsnx
       IMPLICIT NONE
         
@@ -78,7 +79,7 @@ SUBROUTINE att_matrix(mjd, rsat_icrf, vsat_icrf, PRNsat, BLKsat, &
       REAL (KIND = prec_d) :: Rbff2crf(3,3)
       REAL (KIND = prec_d) :: Rbff2trf(3,3)
       INTEGER (KIND = prec_int8) :: An
-      REAL (KIND = prec_d) :: EOP_cr(7)
+      REAL (KIND = prec_d) :: EOP_cr(EOP_MAX_ARRAY)
       REAL (KIND = prec_d) :: CRS2TRS(3,3), TRS2CRS(3,3)
       REAL (KIND = prec_d) :: d_CRS2TRS(3,3), d_TRS2CRS(3,3)
         DOUBLE PRECISION, Dimension(4) :: quater 
@@ -86,6 +87,10 @@ SUBROUTINE att_matrix(mjd, rsat_icrf, vsat_icrf, PRNsat, BLKsat, &
       REAL (KIND = prec_d) :: Rz_yaw(3,3)
       REAL (KIND = prec_d) :: Yangle_rad
 
+!---------------------------------------------------------------------
+! TODO: why is EOP_cr not initialised? Dummy for now of all zeros
+!----------------------------------------------------------------------
+EOP_cr = 0.d0
 
 ! ----------------------------------------------------------------------
 ! GNSS Satellite Block Type

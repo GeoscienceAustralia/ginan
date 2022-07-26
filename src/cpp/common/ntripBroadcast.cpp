@@ -91,7 +91,7 @@ void NtripUploader::write_handler(
 void NtripUploader::messageTimeout_hanlder(
 	const boost::system::error_code& err)
 {
-// 	BOOST_LOG_TRIVIAL(info) << "started " << __FUNCTION__ << "\n";
+// 	BOOST_LOG_TRIVIAL(debug) << "started " << __FUNCTION__ << "\n";
 	if (err)
 	{
 		ERROR_OUTPUT_RECONNECT_AND_RETURN;
@@ -239,7 +239,7 @@ void NtripUploader::messageTimeout_hanlder(
 
 void NtripUploader::startBroadcast()
 {
-// 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Starting Send Loop.\n";
+// 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " Starting Send Loop.\n";
 
 	sendTimer.expires_from_now(boost::posix_time::seconds(1));
 	sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeout_hanlder, this, bp::error));

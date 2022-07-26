@@ -3,8 +3,8 @@ import re as _re
 import numpy as _np
 import pandas as _pd
 
-from .common import path2bytes
-from ..gn_datetime import datetime2j2000
+from gn_lib import gn_io as _gn_io
+from gn_lib import gn_datetime as _gn_datetime
 
 _RE_BLKS= _re.compile(rb'H\n((?:[ \-\d]+\n)+)',_re.MULTILINE)
 
@@ -24,7 +24,7 @@ def get_param(head,param_name):
 
 def read_ionex(path_or_bytes):
     '''Exponent is extracted into dataframe attribute'''
-    data = path2bytes(path_or_bytes)
+    data = _gn_io.common.path2bytes(path_or_bytes)
     end_of_head = data.find(b'END OF HEADER') + 13
 
     head = data[:end_of_head]
@@ -69,5 +69,5 @@ def strdatetime2datetime(dt_arr, as_j2000=True):
     + (dt_arr[:,5].astype('timedelta64[s]')))
 
     if as_j2000:
-        return datetime2j2000(datetime)
+        return _gn_datetime.datetime2j2000(datetime)
     return datetime

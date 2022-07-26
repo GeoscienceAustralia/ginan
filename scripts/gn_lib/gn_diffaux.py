@@ -1,24 +1,19 @@
 import logging as _logging
+from typing import Union as _Union
 
 import numpy as _np
 import pandas as _pd
 
-from gn_lib.gn_const import J2000_ORIGIN as _J2000_ORIGIN, C_LIGHT as _C_LIGHT, SISRE_COEF_DF as _SISRE_COEF_DF
-from gn_lib.gn_io.common import path2bytes as _path2bytes
-from gn_lib.gn_io.sp3 import diff_sp3_rac as _diff_sp3_rac, read_sp3 as _read_sp3
-from gn_lib.gn_io.ionex import read_ionex as _read_ionex
-from gn_lib.gn_io.clk import read_clk as _read_clk
-from gn_lib.gn_io.sinex import _get_snx_vector
-from gn_lib.gn_io.stec import read_stec as _read_stec
-from gn_lib.gn_io.trace import _read_trace_residuals, _read_trace_states
-from gn_lib.gn_io.pod import read_pod_out as _read_pod_out
-
-from gn_lib.gn_datetime import j20002datetime as _j20002datetime, datetime2gpsweeksec as _datetime2gpsweeksec
-
-from gn_lib.gn_plot import diff2plot as _diff2plot
+from gn_lib import gn_aux as _gn_aux
+from gn_lib import gn_const as _gn_const
+from gn_lib import gn_datetime as _gn_datetime
+from gn_lib import gn_io as _gn_io
+from gn_lib import gn_plot as _gn_plot
 
 
 def _valvar2diffstd(valvar1,valvar2,trace=True,std_coeff=1):
+    """Auxiliary function to efficiently difference two dataframes,
+    each of them consisting of value-variance pairs"""
     df = _pd.concat([valvar1,valvar2],axis=0,keys=['valvar1','valvar2']).unstack(0) #fastest\
     df_nd = df.values
     diff = df_nd[:,0] - df_nd[:,1]
@@ -78,12 +73,12 @@ def _diff2msg(diff, tol = None, dt_as_gpsweek=False):
 
     msg['DIFF/MIN_DIFF'] = (diff_min.round(4).astype(str)
     +('±' + std_min.round(4).astype(str).str.ljust(6,fillchar='0') if from_valvar else '') 
-    +' @' + ( (_datetime2gpsweeksec(idx_min.values,as_decimal=True)+1E-7).astype('<U11') if dt_as_gpsweek else _j20002datetime(idx_min.values).astype(str)))
+    +' @' + ( (_gn_datetime.datetime2gpsweeksec(idx_min.values,as_decimal=True)+1E-7).astype('<U11') if dt_as_gpsweek else _gn_datetime.j20002datetime(idx_min.values).astype(str)))
 
     if (diff_count[mask]>1).sum()>0:
         msg['MAX_DIFF'] = (diff_max.round(4).astype(str).str.rjust(7) 
         +('±' + std_max.round(4).astype(str).str.ljust(6,fillchar='0') if from_valvar else '') 
-        +' @' + ( (_datetime2gpsweeksec(idx_min.values,as_decimal=True)+1E-7).astype('<U11') if dt_as_gpsweek else _j20002datetime(idx_min.values).astype(str))) * (diff_count[mask]>1)
+        +' @' + ( (_gn_datetime.datetime2gpsweeksec(idx_min.values,as_decimal=True)+1E-7).astype('<U11') if dt_as_gpsweek else _gn_datetime.j20002datetime(idx_min.values).astype(str))) * (diff_count[mask]>1)
         
         msg['MEAN_DIFF'] = (diff_over.mean(axis=0).round(4).astype(str)
         +'±' + diff_over.std(axis=0).round(4).astype(str).str.ljust(6,fillchar='0'))* (diff_count[mask]>1)
@@ -94,37 +89,37 @@ def _diff2msg(diff, tol = None, dt_as_gpsweek=False):
 def _compare_sv_states(diffstd,log_lvl,tol=None,plot=False):
     diff_sv = diffstd[diffstd.attrs['SAT_MASK']].droplevel('NUM',axis=0).unstack(['TYPE','SITE','SAT','BLK'])
     if diff_sv.empty:
-        _logging.warning(f':diffutil SVs states not present. Skipping')
+        _logging.warning(msg=f':diffutil SVs states not present. Skipping')
         return 0
     if plot:
         # a standard scatter plot
-        _diff2plot(diff_sv.DIFF.PHASE_BIAS)
+        _gn_plot.diff2plot(diff_sv.DIFF.PHASE_BIAS)
 
         # a bar plot of mean values
         diffstd_mean = diff_sv.DIFF.PHASE_BIAS.mean(axis=0)
         diffstd_mean.index = diffstd_mean.index.to_series().astype(str)
-        _diff2plot(diffstd_mean,kind='bar')
+        _gn_plot.diff2plot(diffstd_mean,kind='bar')
     bad_sv_states = _diff2msg(diff_sv,tol)
     if bad_sv_states is not None:
         _logging.log(msg=f':diffutil found SV states diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_sv_states.to_string(justify="center")}\n',level=log_lvl)
         return -1
-    _logging.info(f':diffutil [OK] SVs states diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}')
+    _logging.log(msg=f':diffutil [OK] SVs states diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return 0
     
 def _compare_nonsv_states(diffstd,log_lvl,tol=None):
     diff_nonsv = diffstd[~diffstd.attrs['SAT_MASK']].droplevel('SAT',axis=0).unstack(['TYPE','SITE','NUM','BLK'])
     if diff_nonsv.empty:
-        _logging.warning(f':diffutil non-SVs states not present. Skipping')
+        _logging.warning(msg=f':diffutil non-SVs states not present. Skipping')
         return 0
     bad_nonsv_states = _diff2msg(diff_nonsv,tol=tol)
     if bad_nonsv_states is not None:
         _logging.log(msg=f':diffutil non-SVs states diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_nonsv_states.to_string(justify="center")}\n',level=log_lvl)
         return -1
-    _logging.info(f':diffutil [OK] non-SVs states diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}')
+    _logging.log(msg=f':diffutil [OK] non-SVs states diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return 0
 
 def _compare_sat_postfit_residuals(diffstd,log_lvl,tol=None):
-    diff_count = diffstd[diffstd.attrs['SAT_MASK']].unstack(['TYPE','SAT','SITE'])
+    diff_count = diffstd[diffstd.attrs['SAT_MASK']].unstack(['TYPE','SAT','SITE','BLK'])
     if diff_count.empty:
         _logging.warning(f':diffutil SVs residuals not present. Skipping')
         return 0
@@ -132,7 +127,7 @@ def _compare_sat_postfit_residuals(diffstd,log_lvl,tol=None):
     if bad_sv_residuals is not None:
         _logging.log(msg=f':diffutil found SVs residuals diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_sv_residuals.to_string(justify="center")}\n',level=log_lvl)
         return -1
-    _logging.info(f':diffutil [OK] SVs residuals diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}')
+    _logging.log(msg=f':diffutil [OK] SVs residuals diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return 0
 
 def _compare_nonsat_postfit_residuals(diffstd,log_lvl,tol=None):
@@ -140,12 +135,12 @@ def _compare_nonsat_postfit_residuals(diffstd,log_lvl,tol=None):
     if diff_count.empty: #no non-sat records found such as Zamb
         _logging.warning(f':diffutil non-SVs residuals not present. Skipping')
         return 0
-    diff_count =  diff_count.droplevel('SAT').unstack(['SITE','TYPE'])
+    diff_count =  diff_count.droplevel('SAT').unstack(['SITE','TYPE','BLK'])
     bad_nonsv_residuals = _diff2msg(diff_count,tol=tol)
     if bad_nonsv_residuals is not None:
         _logging.log(msg=f':diffutil found non-SVs residuals diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_nonsv_residuals.to_string(justify="center")}\n',level=log_lvl)
         return -1
-    _logging.info(f':diffutil [OK] non-SVs residuals diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}')
+    _logging.log(msg=f':diffutil [OK] non-SVs residuals diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return 0
 
 def _compare_stec(diffstd,log_lvl,tol=None):
@@ -157,49 +152,47 @@ def _compare_stec(diffstd,log_lvl,tol=None):
     if bad_sv_states is not None:
         _logging.log(msg=f':diffutil found stec states diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_sv_states.to_string(justify="center")}\n',level=log_lvl)
         return -1
-    _logging.info(f':diffutil [OK] stec states diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}')
+    _logging.log(msg=f':diffutil [OK] stec states diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return 0
 
-def difftrace(trace1_path,trace2_path,atol,std_coeff,states_only,log_lvl,plot):
+def difftrace(trace1_path,trace2_path,atol,std_coeff,log_lvl,plot):
     '''Compares two trace/sum files'''
-    
-    trace1 = _path2bytes(trace1_path)
-    trace2 = _path2bytes(trace2_path)
-    _logging.info(f':diffutil -----testing trace states-----')
-    states1 = _read_trace_states(trace1)
-    states2 = _read_trace_states(trace2)
+    trace1 = _gn_io.common.path2bytes(trace1_path)
+    trace2 = _gn_io.common.path2bytes(trace2_path)
 
+    _logging.log(msg=f':diffutil -----testing trace states-----',level=log_lvl)
+    states1 = _gn_io.trace._read_trace_states(trace1)
+    states2 = _gn_io.trace._read_trace_states(trace2)
     status = 0
-    if (states1 is None) or (states2 is None):
+    if (states1 is None) and (states2 is None):
+        _logging.log(msg=f':diffutil both compared files are missing states data -> OK',level=log_lvl)
+    elif (states1 is None) or (states2 is None):
         status += -1 # don't wait, throw error right away as smth bad happened, errors have been logged
     else:
         diffstd_states    = _valvar2diffstd(states1.iloc[:,:2],states2.iloc[:,:2],std_coeff=std_coeff,trace=True)
         if diffstd_states.attrs['EXTRA_SATS'] != []:
             _logging.warning(msg=f':diffutil found no counterpart for: {sorted(diffstd_states.attrs["EXTRA_SATS"])}')
-
         status += _compare_sv_states(diffstd_states,tol=atol,log_lvl=log_lvl,plot=plot)
         status += _compare_nonsv_states(diffstd_states,tol=atol,log_lvl=log_lvl)
-        # status = _compare_recsysbias_states(diffstd_states,tol=atol)
 
-    if not states_only:
-        _logging.info(f':diffutil -----testing trace residuals-----')
-        resids1 = _read_trace_residuals(trace1)
-        resids2 = _read_trace_residuals(trace2)
-        if (resids1 is None) or (resids2 is None): 
-            status += -1 # don't wait, throw error right away as smth bad happened, errors have been logged
-        else:
-            diffstd_residuals = _valvar2diffstd(resids1.iloc[:,2:],resids2.iloc[:,2:],std_coeff=std_coeff,trace=True)
-
-            status += _compare_sat_postfit_residuals(diffstd_residuals,tol=atol,log_lvl=log_lvl)
-            status += _compare_nonsat_postfit_residuals(diffstd_residuals,tol=atol,log_lvl=log_lvl)
+    _logging.log(msg=f':diffutil -----testing trace residuals-----',level=log_lvl)
+    resids1 = _gn_io.trace._read_trace_residuals(trace1)
+    resids2 = _gn_io.trace._read_trace_residuals(trace2)
+    if (resids1 is None) and (resids2 is None):
+        _logging.log(msg=f':diffutil both compared files are missing residuals data -> OK',level=log_lvl)
+    elif (resids1 is None) or (resids2 is None): 
+        status += -1 # don't wait, throw error right away as smth bad happened, errors have been logged
     else:
-        _logging.info(f':diffutil skipping residuals as got --states_only')
+        diffstd_residuals = _valvar2diffstd(resids1.iloc[:,2:],resids2.iloc[:,2:],std_coeff=std_coeff,trace=True)
+        status += _compare_sat_postfit_residuals(diffstd_residuals,tol=atol,log_lvl=log_lvl)
+        status += _compare_nonsat_postfit_residuals(diffstd_residuals,tol=atol,log_lvl=log_lvl)
+
     return status
 
 def diffsnx(snx1_path,snx2_path,atol,std_coeff,log_lvl):
     '''Compares two sinex files '''
-    snx1_df = _get_snx_vector(path_or_bytes=snx1_path,stypes=('EST',),snx_format=True,verbose=True)
-    snx2_df = _get_snx_vector(path_or_bytes=snx2_path,stypes=('EST',),snx_format=True,verbose=True)
+    snx1_df = _gn_io.sinex._get_snx_vector(path_or_bytes=snx1_path,stypes=('EST',),snx_format=True,verbose=True)
+    snx2_df = _gn_io.sinex._get_snx_vector(path_or_bytes=snx2_path,stypes=('EST',),snx_format=True,verbose=True)
 
     if (snx1_df is None) or (snx2_df is None): return -1 # don't wait, throw error right away as smth bad happened, errors have been logged
 
@@ -212,12 +205,12 @@ def diffsnx(snx1_path,snx2_path,atol,std_coeff,log_lvl):
         _logging.log(msg=f':diffutil found estimates diffs above {"the extracted STDs" if atol is None else f"{atol:.1E} tolerance"}:\n{bad_snx_vals.to_string(justify="center")}\n',level=log_lvl)
         status = -1
     else:
-        _logging.info(f':diffutil [OK] estimates diffs within {"the extracted STDs" if atol is None else f"{atol:.1E} tolerance"}')
+        _logging.log(msg=f':diffutil [OK] estimates diffs within {"the extracted STDs" if atol is None else f"{atol:.1E} tolerance"}',level=_logging.INFO)
     return status
 
 def diffstec(path1,path2,atol,std_coeff,log_lvl):
     '''Compares two stec files '''
-    stec1,stec2 = _read_stec(path1), _read_stec(path2)
+    stec1,stec2 = _gn_io.stec.read_stec(path1), _gn_io.stec.read_stec(path2)
     status = 0
     diffstd = _valvar2diffstd(stec1,stec2,std_coeff=std_coeff)
     status = _compare_stec(diffstd=diffstd,tol=atol,log_lvl=log_lvl)
@@ -226,8 +219,8 @@ def diffstec(path1,path2,atol,std_coeff,log_lvl):
 def diffionex(ionex1_path,ionex2_path,atol,log_lvl):
     '''Compares two ionex files '''
 
-    ionex1_df = _read_ionex(path_or_bytes=ionex1_path)
-    ionex2_df = _read_ionex(path_or_bytes=ionex2_path)
+    ionex1_df = _gn_io.ionex.read_ionex(path_or_bytes=ionex1_path)
+    ionex2_df = _gn_io.ionex.read_ionex(path_or_bytes=ionex2_path)
 
     tol = 10**min(ionex1_df.attrs['EXPONENT'],ionex2_df.attrs['EXPONENT']) if atol is None else atol
 
@@ -239,63 +232,198 @@ def diffionex(ionex1_path,ionex2_path,atol,log_lvl):
         _logging.log(msg=f':diffutil found IONEX diffs above {f"10^min(exp1,exp2) = {tol:.1E} tolerance" if atol is None else f"{tol:.1E} tolerance"}:\n{bad_ionex_vals.to_string(justify="center")}\n',level=log_lvl)
         status = -1
     else:
-        _logging.info(f':diffutil [OK] estimates diffs within {f"10^min(exp1,exp2) = {tol:.1E} tolerance" if atol is None else f"{tol:.1E} tolerance"}')
+        _logging.log(msg=f':diffutil [OK] estimates diffs within {f"10^min(exp1,exp2) = {tol:.1E} tolerance" if atol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return status
 
-def _compare_clk(clk_a,clk_b,sp3_a = None, sp3_b = None, as_sisre=False):
-    '''clk dataframes are the output of read_clk. sp3_a and sp3_b are the dataframes produced by read_sp3 function.
-    Outputs a dataframe of signal-in-space range error (SISRE). The SISRE units are meters'''
-    common_dt = sorted(set(clk_a.index.levels[1].values).intersection(clk_b.index.levels[1].values))
-    assert len(common_dt) != 0, "no common epochs between clk files" #TODO assert may be too aggressive
+def _compare_clk(clk_a:_pd.DataFrame,clk_b:_pd.DataFrame,
+                 norm_type:str='both',
+                 ext_dt :_Union[_np.ndarray,_pd.Index,None]=None,
+                 ext_svs:_Union[_np.ndarray,_pd.Index,None]=None)->_pd.DataFrame:
+    """
+    clk DataFrames are the output of read_clk. sp3_a and sp3_b are the
+    DataFrames produced by read_sp3 function. Outputs a DataFrame of
+    signal-in-space range error (SISRE). The SISRE units are meters
+    """
 
-    clk_a_unst = clk_a.iloc[:,0][clk_a.index.droplevel([1,2]) == 'AS'].droplevel(level=0,axis=0).rename_axis(index={'CODE':'SV'}).unstack('SV').loc[common_dt] # faster then clk_a.iloc[:,0].loc['AS']... pandas...
-    clk_b_unst = clk_b.iloc[:,0][clk_b.index.droplevel([1,2]) == 'AS'].droplevel(level=0,axis=0).rename_axis(index={'CODE':'SV'}).unstack('SV').loc[common_dt]
+    clk_a = _gn_io.clk.get_AS_entries(clk_a)
+    clk_b = _gn_io.clk.get_AS_entries(clk_b)
 
-    common_svs = sorted(set(clk_a_unst.columns.values).intersection(clk_b_unst.columns.values))
-
-    common_a = clk_a_unst[common_svs]
-    common_b = clk_b_unst[common_svs]
-
-    gnss = _np.asarray(common_svs,dtype='U1')
-    gnss_uni, gnss_ind, gnss_count = _np.unique(gnss,return_index=True,return_counts=True)
-
-    std_val = _pd.Series(_np.std(common_a.values,axis=0) + _np.std(common_b.values,axis=0),index = [gnss,common_svs]).sort_values(ascending=True)
-
-    gnss_std_ind, sv_std_ind = _np.unique(std_val.index.droplevel(1),return_index=True)
-    gnss_uni_minstd = std_val.iloc[sv_std_ind].droplevel(0).index.values #should be sorted so no need for [gnss_uni]
-    _logging.info(f"{gnss_uni_minstd} used for normalisation of the respective GNSS clk values")
-
-    norm_a = common_a - common_a[_np.repeat(gnss_uni_minstd,gnss_count)].values
-    norm_b = common_b - common_b[_np.repeat(gnss_uni_minstd,gnss_count)].values
-
-    clk_diff = (norm_a - norm_b)* _C_LIGHT
-    if not as_sisre:
-        return clk_diff.abs() # abs makes it look like sisre, however for sisre sign needs to be kept
+    if ext_dt is None:
+        common_dt = clk_a.index.levels[0]
     else:
-        assert (sp3_a is not None and sp3_b is not None), "please provide sp3 files for sisre analysis"
-        rac = _diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None) * 1000 # km to meters... should be correct
-        common_dt = sorted(set(rac.index.levels[0].values).intersection(clk_diff.index.values))
-        rac = rac.loc(axis=0)[common_dt]
-        coeffs = _SISRE_COEF_DF.T.reindex(rac.index.droplevel(0).str[0])
-        sisre = (((rac.iloc[:,0] * coeffs.values[:,0] ).unstack(1)- clk_diff.loc(axis=0)[common_dt])**2 + ((rac.iloc[:,1]**2 + rac.iloc[:,2]**2)/coeffs.values[:,1]).unstack(1))**0.5
-        return sisre
+        common_dt = clk_a.index.levels[0].intersection(ext_dt)
+        if len(common_dt) == 0: raise ValueError("no common epochs between clk_a and external dt")
 
-def diffsp3(sp3_a_path, sp3_b_path, atol, log_lvl):
+    common_dt = common_dt.intersection(clk_b.index.levels[0])
+    if len(common_dt) == 0:raise ValueError("no common epochs between clk_a and clk_b")
+
+    clk_a_unst = _gn_aux.rm_duplicates_df(clk_a.loc[common_dt]).unstack(1)
+    clk_b_unst = _gn_aux.rm_duplicates_df(clk_b.loc[common_dt]).unstack(1)
+
+
+    if ext_svs is None:
+        common_svs = clk_a_unst.columns # assuming ext_svs is lots smaller than count of svs in 
+    else:
+        common_svs = clk_a_unst.columns.intersection(ext_svs)
+    if not _gn_aux.array_equal_unordered(common_svs,clk_b_unst.columns.values):
+        common_svs = common_svs.intersection(clk_b_unst.columns)
+        clk_a_unst = clk_a_unst[common_svs]
+        clk_b_unst = clk_b_unst[common_svs]
+    else:
+        _logging.debug('_compare_clk: skipping svs sync for clk_b_unst as the same as common_svs')
+        if not _gn_aux.array_equal_unordered(common_svs,clk_a_unst.columns.values):
+            _logging.debug('_compare_clk: syncing clk_a_unst with common_svs as not equal')
+            clk_a_unst = clk_a_unst[common_svs]
+
+
+    if norm_type == 'sv':
+        norm_type = _gn_io.clk.select_norm_svs_per_gnss(clk_a_unst=clk_a_unst,clk_b_unst=clk_b_unst)
+        #get the sv to use for norm and overwrite norm_type value with sv prn code
+    _gn_io.clk.rm_clk_bias(clk_a_unst,norm_type=norm_type)
+    _gn_io.clk.rm_clk_bias(clk_b_unst,norm_type=norm_type)
+
+    clk_diff = (clk_a_unst - clk_b_unst)*_gn_const.C_LIGHT
+    return clk_diff
+
+
+def sisre(sp3_a: _pd.DataFrame, sp3_b: _pd.DataFrame, 
+          clk_a: _Union[_pd.DataFrame, None] = None,
+          clk_b: _Union[_pd.DataFrame, None] = None,
+          norm_type: str = 'both', output_mode: str = 'rms',
+          clean: bool = True, cutoff: _Union[int, float, None] = None,
+          use_rms: bool = False):
+    """
+    Computes SISRE metric for the combination of orbits and clock offsets. Note,
+    if clock offsets were not provided computes orbit SISRE. Ignores clock
+    offset values which could available in the orbit files (sp3). 
+    TODO Add support for sp3 clock offset values, that could be overridden 
+    TODO by proper clk input. Add a 'force' option to use sp3 clock offsets.
+
+    Returns SISRE metric computed using the equation of Steigenberger &
+    Montenbruck (2020) SISRE = sqrt( (w₁²R² - 2w₁RT + T²) + w₂²(A² + C²) )
+    according to  which is the same as sqrt((αR - cT)² + (A² + C²)/β), with 
+    w₁ = α and w₂ = sqrt(1/β).
+    α and β are given in the table below:
+        BDS(GEO/IGSO)   BDS(MEO)    GPS     GLO     GAL
+    α   0.99            0.98        0.98    0.98    0.98
+    β   127             54          49      45      61
+    *QZSS (J) is being ignored
+    *BeiDou different coeffs for MEO/GEO not implemented yet
+        
+    Parameters
+    ----------
+    sp3_a : sp3 DataFrame a
+        Output of read_sp3 function or a similar sp3 DataFrame.
+    sp3_b : sp3 DataFrame b
+        Output of read_sp3 function or a similar sp3 DataFrame.
+    clk_a : clk DataFrame a (optinal)
+        Output of read_clk function or a similar clk DataFrame.
+    clk_b : clk DataFrame b (optional)
+        Output of read_clk function or a similar clk DataFrame.
+    norm_type : str
+        a norm_type parameter used for the clk values normalisations before
+        differencing.
+    output_mode : str
+        controls at what stage to output SISRE
+    clean : bool
+        switch to use sigma filtering on the data.
+    cutoff : int or float, default None
+        A cutoff value in meters that is used to clip the values above it in
+        both RAC frame values and clk offset differences. Operation is skipped
+        if None is provided (default).
+    use_rms : bool, default False
+        A switch to compute RMS timeseries of RAC and T per each GNSS before
+        computing SISRE.
+
+    Returns
+    -------
+    sisre : DataFrame or Series depending in the output_mode selection
+        output_mode = 'rms'  : Series of RMS SISRE values, value per GNSS.
+        output_mode = 'gnss' : DataFrame of epoch-wise RMS SISRE values per GNSS.
+        output_mode = 'sv'   : DataFrame of epoch-wise SISRE values per SV.
+    """
+    if output_mode not in ['rms', 'sv', 'gnss']:
+        raise ValueError('incorrect output_mode given: %s' % output_mode)
+
+    rac = _gn_io.sp3.diff_sp3_rac(_gn_aux.rm_duplicates_df(sp3_a, rm_nan_level=1),
+                                 _gn_aux.rm_duplicates_df(sp3_b, rm_nan_level=1),
+                                 hlm_mode=None).EST_RAC.unstack() * 1000  # km to meters,
+                                 # sync is being done within the function. 
+                                 # Filters with std over XYZ separately and all satellites together
+    if clean:
+        if cutoff is not None:
+            rac = rac[rac.abs() < cutoff]
+        rac = rac[rac.abs() < _gn_aux.get_std_bounds(
+            rac, axis=0, sigma_coeff=3)]
+
+    if (clk_a is not None) & (clk_b is not None):  # check if clk data is present
+        clk_diff = _compare_clk(clk_a, clk_b, norm_type=norm_type,
+                                ext_dt=rac.index, ext_svs=rac.columns.levels[1])  # units are meters
+        if clean:
+            if cutoff is not None:
+                clk_diff = clk_diff[clk_diff.abs() < cutoff]
+            clk_diff = clk_diff[clk_diff.abs() < _gn_aux.get_std_bounds(
+                clk_diff, axis=0, sigma_coeff=3)]
+        common_epochs_RAC_T = rac.index.intersection(
+            clk_diff.index.values)  # RAC epochs not present in clk_diff
+        common_svs = rac.columns.levels[1].intersection(
+            clk_diff.columns)   # RAC SVs not present in clk_diff
+        # common_epochs_RAC_T here might be not required. TODO
+        clk_diff = clk_diff.loc[common_epochs_RAC_T][common_svs]
+        rac = rac.loc[common_epochs_RAC_T].loc(axis=1)[:, common_svs]
+    else:
+        clk_diff = 0
+        _logging.debug(msg='computing orbit SISRE as clk offsets not given')
+
+    if use_rms:  # compute rms over each constellation svs at each epoch before moving on
+        rac.columns = [rac.columns.droplevel(
+            1), rac.columns.droplevel(0).values.astype('<U1')]
+        clk_diff.columns = clk_diff.columns.values.astype('<U1')
+        rac = _gn_aux.rms(arr=rac, axis=1, level=[0, 1])
+        clk_diff = _gn_aux.rms(clk_diff, axis=1, level=0)
+
+    radial, along, cross = _np.hsplit(rac.values, 3)
+    coeffs_df = _gn_const.SISRE_COEF_DF.reindex(
+        columns=rac.Radial.columns.values.astype('<U1'))
+    alpha, beta = _np.vsplit(coeffs_df.values, indices_or_sections=2)
+
+    sisre = _pd.DataFrame(data=_np.sqrt((alpha*radial + clk_diff)**2 + (along**2 + cross**2)/beta),
+                          index=rac.index, columns=rac.Radial.columns)
+    if output_mode == 'sv':
+        return sisre  # returns per gnss if use_rms was selected
+    if output_mode in ['gnss', 'rms']:
+        if not use_rms:  # with use_rms, cols are already GNSS capitals
+            sisre.columns = sisre.columns.values.astype('<U1')
+        # rms over all SVs of each constellation
+        rms_sisre = _gn_aux.rms(sisre, axis=1, level=0)
+        if output_mode == 'gnss':
+            return rms_sisre
+        # rms over all epochs, a single value per constellation
+        return _gn_aux.rms(rms_sisre, axis=0)
+
+def diffsp3(sp3_a_path, sp3_b_path, atol, log_lvl, clk_a_path, clk_b_path):
     """Compares two sp3 files and outputs a dataframe of differences above tolerance if such were found"""
-    sp3_a, sp3_b = _read_sp3(sp3_a_path), _read_sp3(sp3_b_path)
-    status = 0
-    diff_rac = _diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None) * 1000 # km to meters... should be correct
+    sp3_a, sp3_b = _gn_io.sp3.read_sp3(sp3_a_path), _gn_io.sp3.read_sp3(sp3_b_path)
 
-    bad_rac_vals = _diff2msg(diff_rac.unstack(1),tol=atol)
+    as_sisre = False # the switch only needed for logging msg
+    clk_a = clk_b = None
+    if (clk_a_path is not None) and (clk_b_path is not None):
+        clk_a, clk_b = _gn_io.clk.read_clk(clk_a_path), _gn_io.clk.read_clk(clk_b_path)
+        as_sisre = True
+
+    status = 0
+    diff_rac = sisre(sp3_a=sp3_a.iloc[:,:3],sp3_b=sp3_b.iloc[:,:3],clk_a=clk_a,clk_b=clk_b,norm_type='both',output_mode='sv',clean=False)
+
+    bad_rac_vals = _diff2msg(diff_rac,tol=atol)
     if bad_rac_vals is not None:
-        _logging.log(msg=f':diffutil found estimates diffs above {atol:.1E} tolerance:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
+        _logging.log(msg=f':diffutil found {"SISRE values" if as_sisre else "estimates"} estimates diffs above {atol:.1E} tolerance:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
         status = -1
     else:
-        _logging.info(f':diffutil [OK] estimates diffs within {atol:.1E} tolerance')
+        _logging.log(msg=f':diffutil [OK] {"SISRE values" if as_sisre else "estimates"} diffs within {atol:.1E} tolerance',level=_logging.INFO)
     return status
 
 def diffpodout(pod_out_a_path, pod_out_b_path, atol, log_lvl):
-    pod_out_a, pod_out_b = _read_pod_out(pod_out_a_path), _read_pod_out(pod_out_b_path)
+    pod_out_a, pod_out_b = _gn_io.pod.read_pod_out(pod_out_a_path), _gn_io.pod.read_pod_out(pod_out_b_path)
     status = 0
     diff_pod_out = (pod_out_a - pod_out_b)
 
@@ -304,27 +432,21 @@ def diffpodout(pod_out_a_path, pod_out_b_path, atol, log_lvl):
         _logging.log(msg=f':diffutil found estimates diffs above {atol:.1E} tolerance:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
         status = -1
     else:
-        _logging.info(f':diffutil [OK] estimates diffs within {atol:.1E} tolerance')
+        _logging.log(msg=f':diffutil [OK] estimates diffs within {atol:.1E} tolerance',level=_logging.INFO)
     return status
 
-def diffclk(clk_a_path, clk_b_path, atol, log_lvl, sp3_a_path = None, sp3_b_path = None):
+def diffclk(clk_a_path, clk_b_path, atol, log_lvl):
     """Compares two clk files and provides a difference above atol if present. If sp3 orbits provided - does analysis using the SISRE values"""
     tol = atol # might find a way to get automatic threshold but only atol for now
-    clk_a, clk_b = _read_clk(clk_a_path), _read_clk(clk_b_path)
-    as_sisre = False
-    if (sp3_a_path is not None) and (sp3_b_path is not None):
-        sp3_a, sp3_b = _read_sp3(sp3_a_path), _read_sp3(sp3_b_path)
-        as_sisre = True
-    else:
-        sp3_a = sp3_b = None
+    clk_a, clk_b = _gn_io.clk.read_clk(clk_a_path), _gn_io.clk.read_clk(clk_b_path)
 
     status = 0
-    diff_clk = _compare_clk(clk_a,clk_b,sp3_a = sp3_a, sp3_b = sp3_b, as_sisre=as_sisre) # type:ignore output looks cleaner this way
+    diff_clk = _compare_clk(clk_a=clk_a,clk_b=clk_b,norm_type='both',cutoff=1) # type:ignore output looks cleaner this way
 
     bad_clk_vals = _diff2msg(diff_clk,tol=tol)
     if bad_clk_vals is not None:
-        _logging.log(msg=f':diffutil found {"SISRE values" if as_sisre else "norm clk diffs"} above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_clk_vals.to_string(justify="center")}\n',level=log_lvl)
+        _logging.log(msg=f':diffutil found norm clk diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_clk_vals.to_string(justify="center")}\n',level=log_lvl)
         status -= 1
     else:
-        _logging.info(f':diffutil [OK] {"SISRE values" if as_sisre else "norm clk diffs"} within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}')
+        _logging.log(msg=f':diffutil [OK] norm clk diffs within the {"extracted STDs" if tol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return status

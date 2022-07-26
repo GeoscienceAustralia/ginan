@@ -9,9 +9,6 @@
  *
  * @version 0.2
  *
- * @todo Clean the code
- * @todo Documentation.
- *
  * @author Sebastien Allgeyer
  * @date 26/02/2021
  */

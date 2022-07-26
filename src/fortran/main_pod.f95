@@ -831,10 +831,15 @@ CALL writeorbit_multi (orbits_partials_icrf, orbits_partials_itrf, orbits_ics_ic
 ! Orbit sp3 filename
 write (ORB2sp3_fname, FMT='(A,A,A3,I4,I1,A4)') trim(yml_output_dir), "/", 'gag', (GPS_week), &
         INT(GPS_day) ,'.sp3'
-! ICRF
-!CALL write_orb2sp3 (orbits_partials_icrf, PRNmatrix, ORB2sp3_fname, sat_vel, CLKmatrix)
+if (yml_sp3_output_is_itrf) then
 ! ITRF
-CALL write_orb2sp3 (orbits_partials_itrf, PRNmatrix, ORB2sp3_fname, yml_write_sp3_velocities, CLKmatrix)
+CALL write_orb2sp3 (orbits_partials_itrf, PRNmatrix, ORB2sp3_fname, yml_write_sp3_velocities, CLKmatrix,&
+        yml_sp3_output_is_itrf)
+else
+! ICRF
+CALL write_orb2sp3 (orbits_partials_icrf, PRNmatrix, ORB2sp3_fname, yml_write_sp3_velocities, CLKmatrix,&
+        yml_sp3_output_is_itrf)
+end if
 ! ----------------------------------------------------------------------
 
 

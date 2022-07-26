@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''Utility for comparing sp3 files'''
 import argparse
 import os as _os

@@ -4,7 +4,7 @@
 
 #include <memory>
 
-/* constants/macros ----------------------------------------------------------*/
+/* constants/macros */
 #define SQR(x)      ((x)*(x))
 #define POW2(x)     ((x)*(x))
 #define POW4(x)     ((x)*(x)*(x)*(x))
@@ -34,7 +34,7 @@ void lowPassFilter(
 	double		procNoise,
 	double		measVar = 1);
 
-/* coordinates transformation ------------------------------------------------*/
+/* coordinates transformation */
 
 void ecef2enu(const double *pos, const double *r, double *e);
 void enu2ecef(const double *pos, const double *e, double *r);
@@ -106,10 +106,9 @@ double sagnac(
 	Vector3d& rDest);
 
 
-/* satellites, systems, codes functions --------------------------------------*/
+/* satellites, systems, codes functions */
 
 double satazel(const double *pos, const double *e, double *azel);
-double geodist(const double *rs, const double *rr, double *e);
 
 unsigned int getbitu	(const unsigned char *buff, int  pos, int len);
 int          getbits	(const unsigned char *buff, int  pos, int len);
@@ -120,7 +119,7 @@ int setbituInc(unsigned char *buff,int pos,int len,const unsigned int var);
 
 unsigned int crc24q (const unsigned char *buff, int len);
 
-/* positioning models --------------------------------------------------------*/
+/* positioning models */
 void dops(int ns, const double *azel, double elmin, double *dop);
 
 int  readblq(string file, const char *sta, double *otlDisplacement);

@@ -26,4 +26,7 @@ int newLambda(
 	double			Pf,				
 	int*			index);	
 
+void lambdaCalcs(
+	KFState&	kfState);
+
 #endif

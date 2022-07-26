@@ -276,7 +276,7 @@ void outp_bias(
 	entry.slop	= 0;
 	entry.slpv	= 0;
 
-	tracepdeex (2, trace, "\nLoading bias for %s %s %s %d %d %s ", Sat.id().c_str(), Sat.svn().c_str(), receiver.c_str(), code1, code2, entry.tini.to_string (0));
+	tracepdeex (3, trace, "\nLoading bias for %s %s %s %d %d %s ", Sat.id().c_str(), Sat.svn().c_str(), receiver.c_str(), code1, code2, entry.tini.to_string (0));
 
 	auto& biasMap = SINEXBiases_out[key];
 	int found = -1;
@@ -297,14 +297,14 @@ void outp_bias(
 		if		(type == "OSB")		abs_nbia++;
 		else if	(type == "DSB")		rel_nbia++;
 
-		tracepdeex (2, trace, "... new entry %4d", found);
+		tracepdeex (3, trace, "... new entry %4d", found);
 	}
 	else
 	{
-		tracepdeex (2, trace, "... updating entry %4d", found);
+		tracepdeex (3, trace, "... updating entry %4d", found);
 	}
 
-	tracepdeex (2, trace, "\n");
+	tracepdeex (3, trace, "\n");
 	biasMap[found] = entry;
 }
 

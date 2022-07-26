@@ -55,10 +55,8 @@ SUBROUTINE era_matrix (mjd, ERM, CRS2TRS, TRS2CRS, d_CRS2TRS, d_TRS2CRS)
       DOUBLE PRECISION TT1, TT2, TT1_UT1, TT2_UT1, TAI1, TAI2
       INTEGER (KIND = prec_int8) :: mjd_UTC_day
       DOUBLE PRECISION PR(3,3)
-      DOUBLE PRECISION JD_ut1, Tu
+      DOUBLE PRECISION JD_ut1, Tu, UT1_UTC
 
-	  
-      DOUBLE PRECISION xp, yp, UT1_UTC, dX_eop, dY_eop
       DOUBLE PRECISION xp_rad, yp_rad, arcsec2rad, sp_iau00
       REAL (KIND = prec_d) :: X_iau00A,Y_iau00A,s_iau00A , X_iau06,Y_iau06,s_iau06
       REAL (KIND = prec_d) :: X_iau,Y_iau,s_iau , X_pn,Y_pn

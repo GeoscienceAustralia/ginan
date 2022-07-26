@@ -6,7 +6,7 @@ MJD_ORIGIN   = _datetime64('1858-11-17 00:00:00')
 GPS_ORIGIN   = _datetime64('1980-01-06 00:00:00')
 J2000_ORIGIN = _datetime64('2000-01-01 12:00:00')
 
-SECS_IN_WEEK = 604800
+SEC_IN_WEEK  = 604800
 SEC_IN_DAY   = 86400
 SEC_IN_YEAR  = 31557600
 
@@ -14,22 +14,23 @@ C_LIGHT = 299792458.0     # speed of light (m/s)
 OMEGA_E = 7.2921151467E-5 # rad/sec WGS84 value of earth's rotation rate
 
 # https://www.iers.org/SharedDocs/Publikationen/EN/IERS/Documents/ac/sinex/sinex_v201_appendix1_pdf.pdf
-TYPE_CATEGORY       = _CategoricalDtype(categories = [
-        'STAX','STAY','STAZ','VELX','VELY','VELZ','XGC','YGC','ZGC','RS_RA','RS_DE','RS_RAR',
-        'RS_DER','RS_PL','LOD','UT','XPO','YPO','XPOR','YPOR','NUT_LN','NUT_OB','NUTRLN','NUTROB',
-        'SAT__X','SAT__Y','SAT__Z','SAT_VX','SAT_VY','SAT_VZ','SAT_RP','SAT_GX','SAT_GZ','SATYBI',
-        'TROTOT','TRODRY','TROWET','TGNTOT','TGNWET','TGNDRY','TGETOT','TGEWET','TGEDRY','RBIAS',
-        'TBIAS','SBIAS','ZBIAS','AXI_OF','SATA_Z','SATA_X','SATA_Y',
-        'ALOG_E','TLOG_E','ALOG_N','TLOG_N','ALOG_H','TLOG_H',
-        'AEXP_E','TEXP_E','AEXP_N','TEXP_N','AEXP_H','TEXP_H'])
+TYPE_CATEGORY = object # tmp fix to get rid of Categorical in the future
+# TYPE_CATEGORY       = _CategoricalDtype(categories = [
+#         'STAX','STAY','STAZ','VELX','VELY','VELZ','XGC','YGC','ZGC','RS_RA','RS_DE','RS_RAR',
+#         'RS_DER','RS_PL','LOD','UT','XPO','YPO','XPOR','YPOR','NUT_LN','NUT_OB','NUTRLN','NUTROB',
+#         'SAT__X','SAT__Y','SAT__Z','SAT_VX','SAT_VY','SAT_VZ','SAT_RP','SAT_GX','SAT_GZ','SATYBI',
+#         'TROTOT','TRODRY','TROWET','TGNTOT','TGNWET','TGNDRY','TGETOT','TGEWET','TGEDRY','RBIAS',
+#         'TBIAS','SBIAS','ZBIAS','AXI_OF','SATA_Z','SATA_X','SATA_Y',
+#         'ALOG_E','TLOG_E','ALOG_N','TLOG_N','ALOG_H','TLOG_H',
+#         'AEXP_E','TEXP_E','AEXP_N','TEXP_N','AEXP_H','TEXP_H'])
 
 TECHNIQUE_CATEGORY  = _CategoricalDtype(categories = ['C','D','L','M','P','R'])
 
 UNIT_CATEGORY       = _CategoricalDtype(categories = ['m','m/y','m/s2','ppb','ms','msd2',
-                                               'mas','ma/d','rad','rd/y','rd/d'])
+                                                      'mas','ma/d','rad','rd/y','rd/d'])
 
-PT_CATEGORY         = _CategoricalDtype(categories =   ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-                                                        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'])
+PT_CATEGORY         = _CategoricalDtype(categories = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                                                      'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'])
 
 PRN_CATEGORY = _CategoricalDtype(categories = [
         'G01', 'G02', 'G03', 'G04', 'G05', 'G06', 'G07', 'G08', 'G09',
@@ -50,6 +51,8 @@ PRN_CATEGORY = _CategoricalDtype(categories = [
         'C37', 'C38', 'C39', 'C40', 'C41', 'C42', 'C43', 'C44', 'C45',
         'C46',
         'C57', 'C58', 'C59', 'C60', 'C61'])
+
+CLK_TYPE_CATEGORY = _CategoricalDtype(categories=['CR','DR','AR','AS','MS'])
 
 STATE_TYPES_CATEGORY = _CategoricalDtype(categories =[
          'PHASE_BIAS', 'REC_POS', 'REC_CLOCK', 'REC_SYS_BIAS', 'TROP', 'TROP_GM', 'SAT_CLOCK', 'AMBIGUITY','EOP','EOP_RATE','DCB','IONOSPHERIC']) # 'ONE' removed

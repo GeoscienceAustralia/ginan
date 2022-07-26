@@ -44,7 +44,7 @@ SUBROUTINE crs_trs (mjd, EOP_ar, iau_model, CRS2TRS, TRS2CRS, d_CRS2TRS, d_TRS2C
 ! Dummy arguments declaration
 ! ----------------------------------------------------------------------
 ! IN
-      REAL (KIND = prec_d), INTENT(IN) :: mjd, EOP_ar(7)
+      REAL (KIND = prec_d), INTENT(IN) :: mjd, EOP_ar(EOP_MAX_ARRAY)
       INTEGER (KIND = prec_int2), INTENT(IN) :: iau_model
 ! OUT
       REAL (KIND = prec_d), INTENT(OUT) :: CRS2TRS(3,3), TRS2CRS(3,3)
@@ -85,11 +85,11 @@ SUBROUTINE crs_trs (mjd, EOP_ar, iau_model, CRS2TRS, TRS2CRS, d_CRS2TRS, d_TRS2C
 
 ! ----------------------------------------------------------------------
 ! EOP values
-      xp = EOP_ar(2)
-      yp = EOP_ar(3)
-      UT1_UTC = EOP_ar(4)
-      dX_eop = EOP_ar(6)
-      dY_eop = EOP_ar(7)
+      xp = EOP_ar(EOP_X)
+      yp = EOP_ar(EOP_Y)
+      UT1_UTC = EOP_ar(EOP_UT1)
+      dX_eop = EOP_ar(EOP_DX)
+      dY_eop = EOP_ar(EOP_DY)
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------

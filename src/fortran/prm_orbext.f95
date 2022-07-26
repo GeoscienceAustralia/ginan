@@ -90,7 +90,7 @@ SUBROUTINE prm_orbext (PRMfname, found)
       INTEGER (KIND = prec_int2) :: AllocateStatus, DeAllocateStatus
 ! ----------------------------------------------------------------------
       INTEGER (KIND = prec_int8) :: i, read_i
-      INTEGER (KIND = prec_int2) :: UNIT_IN, ios
+      INTEGER (KIND = prec_int2) :: UNIT_IN, ios, l
       INTEGER (KIND = prec_int2) :: ios_line, ios_key, ios_data
       INTEGER (KIND = prec_int2) :: space_i
       CHARACTER (LEN=7) :: Format1, Format2, Format3
@@ -106,12 +106,14 @@ SUBROUTINE prm_orbext (PRMfname, found)
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: clock_matrix
       INTEGER(KIND=prec_int2) time_system
+      LOGICAL nodata
 
   
 ! ----------------------------------------------------------------------
 ! Orbit parameterization INPUT file read:
 ! ----------------------------------------------------------------------
 found = .false.
+nodata = .false.
 
 ! ----------------------------------------------------------------------
       UNIT_IN = 9  												
@@ -255,12 +257,12 @@ READ (PRN, fmt_line , IOSTAT=ios) GNSSid, PRN_no
 ! Read sp3 orbit data that include position and velocity vectors 
 If (yml_ext_orbit_frame == ICRF) Then
 ! ICRF
-Call sp3 (fname_orb, PRN, orbext_ICRF, yml_interpolate_start, clock_matrix, time_system, found)
+Call sp3 (fname_orb, PRN, orbext_ICRF, yml_interpolate_start, clock_matrix, time_system, found, .false., nodata)
 ! Orbit transformation ICRF to ITRF
 if (found) Call orbC2T (orbext_ICRF, time_system, orbext_ITRF)
 Else If (yml_ext_orbit_frame == ITRF) Then
 ! ITRF
-Call sp3 (fname_orb, PRN, orbext_ITRF, yml_interpolate_start, clock_matrix, time_system, found)
+Call sp3 (fname_orb, PRN, orbext_ITRF, yml_interpolate_start, clock_matrix, time_system, found, .false., nodata)
 ! Orbit transformation ITRF to ICRF
 if (found) Call orbT2C (orbext_ITRF, time_system, orbext_ICRF)
 End IF
@@ -274,13 +276,13 @@ Else if (data_opt == TYPE_INTERP) then
 
 ! Interpolated Orbit: Read sp3 orbit data and apply Lagrange interpolation
 If (yml_ext_orbit_frame == ICRF) Then
-CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, orbext_ICRF, time_system, found)
+CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, orbext_ICRF, time_system, .false., found)
 ! Orbit transformation ICRF to ITRF
 if (found) Call orbC2T (orbext_ICRF, time_system, orbext_ITRF)
 
 Else If (yml_ext_orbit_frame == ITRF) Then
 
-CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, orbext_ITRF, time_system, found)
+CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, orbext_ITRF, time_system, .false., found)
 ! Orbit transformation ITRF to ICRF
 if (found) Call orbT2C (orbext_ITRF, time_system, orbext_ICRF)
 
@@ -374,8 +376,6 @@ Else if (data_opt == TYPE_POSSP3) then
 
 
 End if	  
-
-
 
 
 if (.false.) then

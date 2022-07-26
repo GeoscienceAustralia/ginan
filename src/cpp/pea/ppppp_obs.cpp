@@ -8,15 +8,16 @@
 #include "acsConfig.hpp"
 #include "biasSINEX.hpp"
 #include "antenna.hpp"
+#include "preceph.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
-#include "gTime.hpp"
 #include "common.hpp"
+#include "gTime.hpp"
 #include "tides.hpp"
 
 
 
-#define DEFAULT_BIAS_VAR SQR(2)
+#define DEFAULT_BIAS_VAR SQR(20)
 
 
 void stationPPP(
@@ -59,7 +60,8 @@ void stationPPP(
 		
 		auto& satOpts = acsConfig.getSatOpts(Sat);
 		
-		if (satOpts.orb.estimate)
+		InitialState init	= initialStateFromConfig(satOpts.orb);
+		if (init.estimate)
 			orbPartials(trace, time, Sat, satNav.satPartialMat);	
 	}
 	
@@ -67,30 +69,25 @@ void stationPPP(
 	for (int measType		: {PHAS, CODE})
 	for (auto& [ft, sig]	: obs.Sigs)
 	{
-		if (obs.exclude)
-		{
-			continue;
-		}
-		
-		if (acsConfig.process_freq[ft] == false)
-		{
-			continue;
-		}
-		
 		SatNav&		satNav	= *obs.satNav_ptr;
 		SatStat&	satStat	= *obs.satStat_ptr;
 		SigStat&	sigStat	= satStat.sigStatMap[ft];
 		
-		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
-		auto& recOpts = acsConfig.getRecOpts(rec.id);
-		
-		if (satOpts.exclude)
+		if (acsConfig.process_freq[obs.Sat.sys][ft] == false)
 		{
 			continue;
 		}
 		
-		if (recOpts.exclude)
+		if (acsConfig.process_meas[measType] == false)
 		{
+			continue;
+		}
+		
+		if	(satexclude(obs.Sat, obs.svh))
+		{
+			printf("\n%s excludeSvh",			obs.Sat.id().c_str());
+			
+			obs.exclude = true;
 			continue;
 		}
 		
@@ -104,7 +101,38 @@ void stationPPP(
 			if (acsConfig.excludeSlip.SCDIA	&& satStat.sigStatMap[F1].slip.SCDIA)	{	continue;   }
 		}
 		
-		list<tuple<string, double>> obsComponentList;
+		if (obs.exclude)
+		{
+// 			if (0)
+			{
+				continue;
+			}
+
+			if (obs.excludeBadSPP)		{	printf("\n%s excludeBadSPP",		obs.Sat.id().c_str());	continue;	}
+			if (obs.excludeConfig)		{	printf("\n%s excludeConfig",		obs.Sat.id().c_str());	continue;	}
+			if (obs.excludeEclipse)		{	printf("\n%s excludeEclipse",		obs.Sat.id().c_str());	continue;	}
+			if (obs.excludeElevation)	{	printf("\n%s excludeElevation",		obs.Sat.id().c_str());	continue;	}
+			if (obs.excludeOutlier)		{	printf("\n%s excludeOutlier",		obs.Sat.id().c_str());	continue;	}
+			if (obs.excludeSlip)		{	printf("\n%s excludeSlip",			obs.Sat.id().c_str());	continue;	}
+			if (obs.excludeSystem)		{	printf("\n%s excludeSystem",		obs.Sat.id().c_str());	continue;	}
+			if (obs.excludeSVH)			{	printf("\n%s excludeSVH",			obs.Sat.id().c_str());	continue;	}
+			if (obs.excludeTrop)		{	printf("\n%s excludeTrop",			obs.Sat.id().c_str());	continue;	}
+		}
+		
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		auto& recOpts = acsConfig.getRecOpts(rec.id);
+			
+		if (satOpts.exclude)
+		{
+			printf("\n%s excludeSatOpts",			obs.Sat.id().c_str());
+			continue;
+		}
+		
+		if (recOpts.exclude)
+		{
+			printf("\n%s excludeRecOpts",			obs.Sat.id().c_str());
+			continue;
+		}
 		
 		auto		Sat			= obs.Sat;
 		auto		sys			= Sat.sys;
@@ -133,19 +161,18 @@ void stationPPP(
 			measEntry.metaDataMap["PhaseOutageCount_ptr"] = &sigStat.netwPhaseOutageCount;
 		}
 		
-		
 		measEntry.obsKey.Sat	= obs.Sat;
 		measEntry.obsKey.str	= rec.id;
 		measEntry.obsKey.num	= ft;
-		if		(measType == CODE)		measEntry.obsKey.type = string("P ") + code._to_string();
-		else if	(measType == PHAS)		measEntry.obsKey.type = string("L ") + code._to_string();
+		if		(measType == CODE)		measEntry.obsKey.type = string("P-") + code._to_string();
+		else if	(measType == PHAS)		measEntry.obsKey.type = string("L-") + code._to_string();
 		
 		//Start with the observed measurement and its noise
 		
-		obsComponentList.push_back({"Observed", -observed});
+		measEntry.componentList.push_back({"Observed", -observed, "- Phi"});
 		{
 			ObsKey obsKey;
-			obsKey.str	= obs.mount;
+			obsKey.str	= rec.id;
 			obsKey.Sat	= obs.Sat;
 			obsKey.type	= measEntry.obsKey.type;
 			obsKey.num	= ft;
@@ -162,51 +189,46 @@ void stationPPP(
 		
 		//Calculate the basic range
 		
-		Vector3d vRec = Vector3d::Zero();
-		{
-			if (recOpts.pos_rate.estimate)
-			for (int i = 0; i < 3; i++)
-			{
-				KFKey kfKey;
-				kfKey.type	= KF::REC_POS_RATE;
-				kfKey.str	= obs.mount;
-				kfKey.num	= i;
-				
-				kfState.getKFValue(kfKey, vRec[i]);
-				
-				InitialState init = initialStateFromConfig(recOpts.pos_rate, i);
-				
-// 				measEntry.addDsgnEntry(kfKey, -satStat.e[i], init);
-			}
-		}
-		
 		Vector3d rRec = Vector3d::Zero();
+		Vector3d vRec = Vector3d::Zero();
 		{
 			bool sppInit = false;
 			selectAprioriSource(rec, sppInit);
 
 			rRec = rec.aprioriPos;
 			
-			if	(  recOpts.pos.estimate
-				&& recOpts.keplers.estimate)
-			{
-				std::cout << "Incompatible estimation schemes" << std::endl;
-			}
-			
-			if (recOpts.pos.estimate)
 			for (int i = 0; i < 3; i++)
 			{
+				InitialState init = initialStateFromConfig(recOpts.pos, i);
+				
+				if (init.estimate == false)
+				{
+					continue;
+				}
+				
 				KFKey kfKey;
 				kfKey.type	= KF::REC_POS;
-				kfKey.str	= obs.mount;
+				kfKey.str	= rec.id;
 				kfKey.num	= i;
 				
 				kfState.getKFValue(kfKey, rRec[i]);
 				
-				InitialState init = initialStateFromConfig(recOpts.pos, i);
 				init.x = rRec[i];
 				
 				measEntry.addDsgnEntry(kfKey, -satStat.e[i], init);
+				
+				InitialState rateInit = initialStateFromConfig(recOpts.pos_rate, i);
+				if (rateInit.estimate)
+				{
+					KFKey rateKey;
+					rateKey.type	= KF::REC_POS_RATE;
+					rateKey.str	= rec.id;
+					rateKey.num	= i;
+					
+					kfState.getKFValue(kfKey, vRec[i]);
+					
+					kfState.setKFTransRate(kfKey, rateKey,	1,	rateInit);
+				}
 			}
 		}
 		
@@ -223,274 +245,239 @@ void stationPPP(
 			//initialise using ephemeris values if available
 			rSat					= obs.rSat;
 			
-			if (satOpts.pos.estimate)
-			{
-				Vector3d omegaVector	= Vector3d(0, 0, OMGE);
-				Vector3d rSatInertial	= i2tMatrix.transpose() * rSat;
-				Vector3d vSatInertial 	= i2tMatrix.transpose() * obs.satVel 
-										+ omegaVector.cross(rSatInertial);
-										
-				Vector3d lookVectorInertial = i2tMatrix.transpose() * satStat.e;
-				
-				KFKey satPosKeys[3];
-				KFKey satVelKeys[3];
-				for (int i = 0; i < 3; i++)
-				{
-					satPosKeys[i].type	= KF::SAT_POS;
-					satPosKeys[i].Sat	= Sat;
-					satPosKeys[i].num	= i;
-					
-					satVelKeys[i].type	= KF::SAT_POS_RATE;
-					satVelKeys[i].Sat	= Sat;
-					satVelKeys[i].num	= i;
-				}
-				
-				if (satOpts.pos.estimate)
-				for (int i = 0; i < 3; i++)
-				{
-					bool found = kfState.getKFValue(satPosKeys[i], rSatInertial[i]);
-					if (found) 
-					{
-						satNoise = false;
-					}
-				}
-				
-				
-				if (satOpts.pos_rate.estimate)
-				for (int i = 0; i < 3; i++)
-				{				
-					kfState.getKFValue(satVelKeys[i], vSatInertial[i]);
-				}
-				
-				
-				if (satOpts.pos.estimate)
-				for (int i = 0; i < 3; i++)
-				{
-					InitialState init = initialStateFromConfig(satOpts.pos,			i);
-					init.x = rSatInertial[i];
-					
-					measEntry.addDsgnEntry(satPosKeys[i], lookVectorInertial[i], init);
-				}
-				
-				if (satOpts.pos_rate.estimate)
-				for (int i = 0; i < 3; i++)
-				{
-					InitialState init = initialStateFromConfig(satOpts.pos_rate,	i);
-					
-					init.x = vSatInertial[i];
-					
-					kfState.setKFTransRate(satPosKeys[i], satVelKeys[i],	1,	init);
-				}
-				
-				//refer actual time to estimated time
-				//add offset from orbital motion				
-				double approxRange	= sig.P;
-				double flightTime	= approxRange / CLIGHT;
-		
-				rSatInertial -= flightTime * vSatInertial;
-				
-	// 			rSat = i2tMatrix * rSatInertial;
-			}
-			else
-			{
-				ObsKey obsKey;
-				obsKey.Sat	= obs.Sat;
-				obsKey.type	= "satEph";
-				
-				measEntry.addNoiseEntry(obsKey, 1, obs.ephVar);
-			}
+			ObsKey obsKey;
+			obsKey.Sat	= obs.Sat;
+			obsKey.type	= "satEph";
+			
+			measEntry.addNoiseEntry(obsKey, 1, obs.ephVar);
 		}
 		
 		//Range
-// 		if (0)
 		double rRecSat = (rSat - rRec).norm();
+		if (acsConfig.model.range)
 		{
-			obsComponentList.push_back({"Range", rRecSat});
+			measEntry.componentList.push_back({"Range", rRecSat, "+ rho"});
 		}
 		
 		//Add modelled adjustments and estimated parameter
 		
 		//Receiver Clock
 		
-// 		if (0)
+		if (acsConfig.model.rec_clock.enable)
 		{
 			double	recClk_m = 0;
 			double	precDtRecVar	= 0;
 			double	precDtRec		= 0;
-			pephclk(obs.time, obs.mount, nav, precDtRec, &precDtRecVar);
+			pephclk(obs.time, rec.id, nav, precDtRec, &precDtRecVar);
 			
 			recClk_m		= precDtRec * CLIGHT;
 			precDtRecVar	*= SQR(CLIGHT);
 			
-			if (recOpts.clk.estimate)
+			InitialState init		= initialStateFromConfig(recOpts.clk);
+				
+			if (init.estimate)
 			{
 				KFKey kfKey;
 				kfKey.type		= KF::REC_CLOCK;
-				kfKey.str		= obs.mount;
+				kfKey.str		= rec.id;
 				kfKey.rec_ptr	= &rec;
 				// 			kfKey.num	= i;
 				
 				
 				bool found = kfState.getKFValue(kfKey,	recClk_m);
 				
-				InitialState init		= initialStateFromConfig(recOpts.clk);
 				init.x = recClk_m;
-				init.P = 4;
 				
 				measEntry.addDsgnEntry(kfKey, 1, init);
 			}
 			else
 			{
 				ObsKey obsKey;
-				obsKey.str	= obs.mount;
+				obsKey.str	= rec.id;
 				obsKey.type	= "recClk";		
 				measEntry.addNoiseEntry(obsKey, 1, precDtRecVar);
 			}
 				
-			obsComponentList.push_back({"Rec Clock", recClk_m});
+			measEntry.componentList.push_back({"Rec Clock", recClk_m, "+ Cdt_r"});
 		}
 		
 		//Satellite Clock
-// 		if (0)
+		if (acsConfig.model.sat_clock.enable)
 		{
-			double satClk_m = obs.dtSat[0] * CLIGHT;
+			double satClk_m = obs.dtSat[0] * CLIGHT;	//todo aaron, check its valid before use.
 			
-			if (satOpts.clk.estimate)
+			InitialState init		= initialStateFromConfig(satOpts.clk);
+			
+			if (init.estimate)
 			{
 				KFKey kfKey;
 				kfKey.type	= KF::SAT_CLOCK;
 				kfKey.Sat	= Sat;
 				kfState.getKFValue(kfKey,	satClk_m);
 			
-				InitialState init		= initialStateFromConfig(satOpts.clk);
 				init.x = satClk_m;
 				
 				measEntry.addDsgnEntry(kfKey, -1, init);
 			}
-			obsComponentList.push_back({"Sat Clock", -satClk_m});
+			measEntry.componentList.push_back({"Sat Clock", -satClk_m, "- Cdt_s"});
 		}
 		
 		//Receiver Antenna delta
-// 		if (0)
+		if (acsConfig.model.rec_ant_delta)
 		{
 			Vector3d recAntVector;
-			enu2ecef(pos, rec.rtk.opt.antdel, recAntVector);
+			enu2ecef(pos, rec.antDelta, recAntVector);
 			
 			{
 				
 			}
 			double recAntDelta = -recAntVector.dot(satStat.e);
-			obsComponentList.push_back({"Rec Antenna Delta", recAntDelta});
+			measEntry.componentList.push_back({"Rec Antenna Delta", recAntDelta, "- E.dR_r"});
 		}
 		
 		//Satellite Antenna delta
  		if (0)
 		{
-			
+			//doesnt exist
 		}
+		
+		double gamma	= SQR(satNav.lamMap[L2]) / SQR(satNav.lamMap[L1]);	
+		double C1		= gamma	/ (gamma - 1);
+		double C2		= -1	/ (gamma - 1);
 			
 		//Receiver Phase Center Offset
-// 		if (0)
+		if (acsConfig.model.rec_pco)
 		{
-			Vector3d pco_enu = antPco(rec.rtk.antId, ft, time);
+			Vector3d pco_enu;
 			
 			/* receiver pco correction to the coordinates */
+			if (acsConfig.dumb_rec_pco == false)
+			{
+				pco_enu = antPco(rec.antId, ft, time);
+			}
+			else
+			{
+				Vector3d pco_enus[2];
+				pco_enus[0] = antPco(rec.antId, F1, time);
+				pco_enus[1] = antPco(rec.antId, F2, time);
+				
+				pco_enu	= C1 * pco_enus[0]
+						+ C2 * pco_enus[1];
+			}
+			
 			Vector3d recPCOVector = Vector3d::Zero();
 			enu2ecef(pos, pco_enu, recPCOVector);    /* convert enu to xyz */
 			
 			double recPCODelta = -recPCOVector.dot(satStat.e);
-			obsComponentList.push_back({"Rec PCO", recPCODelta});
+			measEntry.componentList.push_back({"Rec PCO", recPCODelta, "- E.PCO_r"});
 		}
 		
 		//Satellite Phase Center Offset
-		// if (0)
+		if (acsConfig.model.sat_pco)
 		{
-			Vector3d satPCOVector = satAntOff(trace, time, obs.rSat, Sat, ft, &satStat);
+			Vector3d satPCOVector;
+			
+			if (acsConfig.dumb_sat_pco == false)
+			{
+				satPCOVector	= satAntOff(trace, time, obs.rSat, Sat, ft, &satStat);
+			}
+			else
+			{
+				Vector3d pcos[2];
+				pcos[0]			= satAntOff(trace, time, obs.rSat, Sat, F1, &satStat);
+				pcos[1]			= satAntOff(trace, time, obs.rSat, Sat, F2, &satStat);
+				
+				satPCOVector	= C1 * pcos[0]
+								+ C2 * pcos[1];
+			}
 			
 			double satPCODelta = satPCOVector.dot(satStat.e);
-			obsComponentList.push_back({"Sat PCO", satPCODelta});
+			measEntry.componentList.push_back({"Sat PCO", satPCODelta, "+ E.PCO_s"});
 		}
 		
 		//Receiver Phase Center Variation
-		if (acsConfig.rec_pcv)
+		if (acsConfig.model.rec_pcv)
 		{
-			double recPCVDelta = antPcv(rec.rtk.antId, ft, time, PI/2 - satStat.el, satStat.az);
+			double recPCVDelta = antPcv(rec.antId, ft, time, PI/2 - satStat.el, satStat.az);
 			
-			obsComponentList.push_back({"Rec PCV", recPCVDelta});
+			measEntry.componentList.push_back({"Rec PCV", recPCVDelta, "+ PCV_r"});
 		}
 		
 		//Satellite Phase Center Variation
-		if (acsConfig.sat_pcv)
+		if (acsConfig.model.sat_pcv)
 		{
 			satStat.nadir = satNadir(rSat, rRec);	//todo aaron move up
 			
 			double satPCVDelta = antPcv(Sat.id(), ft, time, satStat.nadir);
 			
-			obsComponentList.push_back({"Sat PCV", satPCVDelta});
+			measEntry.componentList.push_back({"Sat PCV", satPCVDelta, "+ PCV_s"});
 		}
 		
 		//Tide delta
-// 		if (0)
+		if (acsConfig.model.tides.enable)
 		{
 			Vector3d tideVectorSum		= Vector3d::Zero();
 			Vector3d tideVectorSolid	= Vector3d::Zero();
 			Vector3d tideVectorOTL		= Vector3d::Zero();
 			Vector3d tideVectorPole		= Vector3d::Zero();
-			if	( acsConfig.tide_solid
-				||acsConfig.tide_otl
-				||acsConfig.tide_pole)
+			if	( acsConfig.model.tides.solid
+				||acsConfig.model.tides.otl
+				||acsConfig.model.tides.pole)
 			{
-				tidedisp(trace, gpst2utc(time), rRec, nav.erp, &rec.rtk.opt.otlDisplacement[0][0], tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorPole);
+				tidedisp(trace, gpst2utc(time), rRec, nav.erp, rec.otlDisplacement, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorPole);
 			}
 			
-			obsComponentList.push_back({"Tides Solid",	-tideVectorSolid.dot(satStat.e)});
-			obsComponentList.push_back({"Tides OTL",	-tideVectorOTL	.dot(satStat.e)});
-			obsComponentList.push_back({"Tides Pole",	-tideVectorPole	.dot(satStat.e)});
+			measEntry.componentList.push_back({"Tides Solid",	-tideVectorSolid.dot(satStat.e), "- E.dT1"});
+			measEntry.componentList.push_back({"Tides OTL",		-tideVectorOTL	.dot(satStat.e), "- E.dT2"});
+			measEntry.componentList.push_back({"Tides Pole",	-tideVectorPole	.dot(satStat.e), "- E.dT3"});
 		}
 		
 		//Relativity corrections
 		//no rel in ppp code 1
-		// if (0)
+		if (acsConfig.model.relativity)
 		{
 			/* note that relativity effect to estimate sat clock */
 			double dtRel1	= relativity1(rSat, obs.satVel);
 			
+			measEntry.componentList.push_back({"Relativity1", dtRel1	* CLIGHT, "+ rel1"});
+		}
+		
+		if (acsConfig.model.relativity2)
+		{
 			/* secondary relativity effect (Shapiro effect) */
 			double ln		= log((rSat.norm() + rRec.norm() + rRecSat)
 							/ (obs.rSat.norm() + rRec.norm() - rRecSat));
 			double dtRel2 	= 2 * MU * ln / CLIGHT / CLIGHT / CLIGHT;
 								
-			obsComponentList.push_back({"Relativity1", dtRel1	* CLIGHT});
-			obsComponentList.push_back({"Relativity2", dtRel2	* CLIGHT});
+			measEntry.componentList.push_back({"Relativity2", dtRel2	* CLIGHT, "+ rel2"});
 		}
 		
 		//Sagnac effect
-// 		if (0)
+		if (acsConfig.model.sagnac)
 		{
 			double dSagnac = sagnac(rSat, rRec);
 			
-			obsComponentList.push_back({"Sagnac", dSagnac});
+			measEntry.componentList.push_back({"Sagnac", dSagnac, "+ sag"});
 		}
 		
 		//Ionospheric delay
-// 		if (0)
+		if (acsConfig.model.ionospheric_component)
 		{
 			double ionosphere_m = 0;
+			double freq = CLIGHT / lambda;
+			double alpha = 40.3e16 / SQR(freq);
 			//calculate the ionosphere values, variances, and gradients at the operating points
-			if (recOpts.ion.estimate)
+			
+			InitialState init = initialStateFromConfig(recOpts.ion);
+				
+			if (init.estimate)
 			{
 				KFKey kfKey;
 				kfKey.type	= KF::IONO_STEC;
-				kfKey.str	= obs.mount;
+				kfKey.str	= rec.id;
 				kfKey.Sat	= obs.Sat;
-				if (acsConfig.ionoOpts.common_ionosphere == false)
-				{
-					//use separate ionospheres for code and phase
-					kfKey.num	= measType;
-				}
-				
-				double freq = CLIGHT / lambda;
-				double alpha = 40.3e16 / SQR(freq);
+// 				if (acsConfig.common_atmosphere				== false)		{		kfKey.str	= rec.id;		}	//dont use common atmospheres for all receivers
+				if (acsConfig.ionoOpts.common_ionosphere	== false)		{		kfKey.num	= measType;		}	//dont use common ionospheres for code and phase
 				
 				double ionosphere_stec  = 0;
 				
@@ -501,17 +488,41 @@ void stationPPP(
 				
 				ionosphere_m = alpha * ionosphere_stec;
 				
-				InitialState init = initialStateFromConfig(recOpts.ion);
 				init.Q = 100;
 				
 				measEntry.addDsgnEntry(kfKey, alpha, init);
+			}			
+			else
+			{
+				double diono	= 0;
+				double dummy	= 0;
+				double varIono	= 0;
+				bool pass = model_iono(time, pos, satStat.azel, dummy, diono, varIono);
+				if (pass)
+				{
+					double ionC = SQR(lambda / obs.satNav_ptr->lamMap[F1]);
+					
+					double sign;
+					if (measType == CODE)		sign = +1;
+					else						sign = -1;   
+										
+					ionosphere_m = sign * ionC * diono;
+					
+					ObsKey obsKey;
+					obsKey.str	= rec.id;
+					obsKey.Sat	= Sat;
+					obsKey.type	= "iono";
+// 					obsKey.num	= ft + measType * 100;	//todo aaron remove meastype
+					
+					measEntry.addNoiseEntry(obsKey, sign * SQR(ionC), varIono);
+				}
 			}
 			
-			obsComponentList.push_back({"Ionosphere", ionosphere_m});
+			measEntry.componentList.push_back({"Ionospheric component", ionosphere_m, "+ " + std::to_string(alpha) + ".I"});
 		}
 		
 		//Tropospheric delay
-// 		if (0)
+		if (acsConfig.model.trop.enable)
 		{
 			double tropStates[3]	= {};
 			double dTropDx[3]		= {};
@@ -519,11 +530,17 @@ void stationPPP(
 
 			double troposphere_m = 0;
 			//calculate the trop values, variances, and gradients at the operating points
-			if (recOpts.trop.estimate)
+			
+			InitialState init = initialStateFromConfig(recOpts.trop);
+				
+			if (init.estimate)
 			{
 				KFKey kfKey;
 				kfKey.type	= KF::TROP;
-				kfKey.str	= obs.mount;
+				if (acsConfig.common_atmosphere == false)
+				{
+					kfKey.str	= rec.id;
+				}
 				
 				//get the previous filter states for linearisation around this operating point
 				for (short i = 0; i < 3; i++)
@@ -542,19 +559,23 @@ void stationPPP(
 				
 				troposphere_m = trop_model_prec(obs.time, pos, satStat.azel, tropStates, dTropDx, varTrop);
 				
-				InitialState init = initialStateFromConfig(recOpts.trop);
 				init.x = tropStates[0];
 				init.P = varTrop;
 				
 				measEntry.addDsgnEntry(kfKey, dTropDx[0], init);
 				
-				if (recOpts.trop_grads.estimate)
+// 				if (recOpts.trop_grads.estimate)
 				for (short i = 0; i < 2; i++)
 				{
+					InitialState init = initialStateFromConfig(recOpts.trop_grads, i);
+					
+					if (init.estimate == false)
+					{
+						continue;
+					}
+					
 					auto kfKeyX = kfKey;
 					kfKeyX.num = i+1;
-					
-					InitialState init = initialStateFromConfig(recOpts.trop_grads, i);
 					
 					measEntry.addDsgnEntry(kfKeyX, dTropDx[i+1], init);
 				}
@@ -562,14 +583,14 @@ void stationPPP(
 			else
 			{
 				ObsKey obsKey;
-				obsKey.str	= obs.mount;
+				obsKey.str	= rec.id;
 				obsKey.Sat	= obs.Sat;
 				obsKey.type	= "trop";
 				measEntry.addNoiseEntry(obsKey, 1, varTrop);
 			}
 			
-			obsComponentList.push_back({"Troposphere", troposphere_m});
-			
+			measEntry.componentList.push_back({"Troposphere", troposphere_m, "+ " + std::to_string(dTropDx[0]) + ".T"});
+
 			{
 				// 		double tropGrads_m = 0;
 				// 		componentList.push_back({"Troposphere Gradients", tropGrads_m});
@@ -577,7 +598,7 @@ void stationPPP(
 		}
 		
 		//Phase wind-up
-		if (acsConfig.phase_windup)
+		if (acsConfig.model.phase_windup)
 		if (measType == PHAS)
 		{
 			bool pass = model_phw(time, obs, rRec, satStat.phw);
@@ -588,19 +609,22 @@ void stationPPP(
 		
 			double phaseWindup_m = satStat.phw * lambda;
 			
-			obsComponentList.push_back({"Phase Wind-up", phaseWindup_m});
+			measEntry.componentList.push_back({"Phase Wind-up", phaseWindup_m, "+ phi"});
 		}
 		
 		//Phase integer ambiguity
+		if (acsConfig.model.integer_ambiguity)
 		if (measType == PHAS)
 		{
 			double ambiguity_m = 0;
 			
-			if (recOpts.amb.estimate)
+			InitialState init		= initialStateFromConfig(recOpts.amb);
+			
+			if (init.estimate)
 			{
 				KFKey kfKey;
 				kfKey.type		= KF::AMBIGUITY;
-				kfKey.str		= obs.mount;
+				kfKey.str		= rec.id;
 				kfKey.Sat		= obs.Sat;
 				kfKey.num		= ft;
 				kfKey.rec_ptr	= &rec;
@@ -612,57 +636,60 @@ void stationPPP(
 				
 				ambiguity_m = ambiguity * lambda;
 				
-				InitialState init		= initialStateFromConfig(recOpts.amb);
 				init.P /= SQR(lambda);
 				
 				measEntry.addDsgnEntry(kfKey, lambda, init);
 			}
 			
-			obsComponentList.push_back({"Phase Ambiguity", ambiguity_m});
+			measEntry.componentList.push_back({"Phase Ambiguity", ambiguity_m, "+ " + std::to_string(lambda) + ".N"});
 		}
 		
 		//Receiver Code biases
+		if (acsConfig.model.rec_code_bias)
 		if (measType == CODE)
 		{
 			double	recCodeBias		= 0;
 			double	recCodeBiasVar	= DEFAULT_BIAS_VAR;
 			getBiasSinex(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
+				
+			InitialState init		= initialStateFromConfig(recOpts.code_bias, ft);
 			
-			if (recOpts.code_bias.estimate)
+			if (init.estimate)
 			if (ft != F1)
 			{
 				
 				KFKey kfKey;
 				kfKey.type	= KF::CODE_BIAS;
-				kfKey.str	= obs.mount;
+				kfKey.str	= rec.id;
 				kfKey.num	= ft;
 				
 				kfState.getKFValue(kfKey, recCodeBias);
-				
-				InitialState init		= initialStateFromConfig(recOpts.code_bias, ft);
 				
 				measEntry.addDsgnEntry(kfKey, 1, init);
 			}
 			else
 			{
 				ObsKey obsKey;
-				obsKey.str	= obs.mount;
+				obsKey.str	= rec.id;
 				obsKey.type	= "recCodeBias";
 				obsKey.num	= ft;
 				measEntry.addNoiseEntry(obsKey, 1, recCodeBiasVar);
 			}
 				
-			obsComponentList.push_back({"Rec Code Bias", recCodeBias}); 
+			measEntry.componentList.push_back({"Rec Code Bias", recCodeBias, "+ d_" + std::to_string(ft) + "r"}); 
 		}
 		
 		//Satellite Code biases
+		if (acsConfig.model.sat_code_bias)
 		if (measType == CODE)
 		{
 			double	satCodeBias		= 0;
 			double	satCodeBiasVar	= DEFAULT_BIAS_VAR;
 			getBiasSinex(trace, time, Sat.id(), Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
+				
+			InitialState init		= initialStateFromConfig(satOpts.code_bias, ft);
 			
-			if (satOpts.code_bias.estimate)
+			if (init.estimate)
 			if (ft != F1)
 			{
 				KFKey kfKey;
@@ -671,8 +698,6 @@ void stationPPP(
 				kfKey.num	= ft;
 				
 				kfState.getKFValue(kfKey, satCodeBias);
-				
-				InitialState init		= initialStateFromConfig(satOpts.code_bias, ft);
 				
 				measEntry.addDsgnEntry(kfKey, 1, init);
 			}
@@ -685,49 +710,53 @@ void stationPPP(
 				measEntry.addNoiseEntry(obsKey, 1, satCodeBiasVar);
 			}
 			
-			obsComponentList.push_back({"Sat Code Bias", satCodeBias});
+			measEntry.componentList.push_back({"Sat Code Bias", satCodeBias, "+ d_" + std::to_string(ft) + "s"});
 		}
 		
 		//Receiver Phase biases
+		if (acsConfig.model.rec_phase_bias)
 		if (measType == PHAS)
 		{
 			double	recPhasBias		= 0;
 			double	recPhasBiasVar	= DEFAULT_BIAS_VAR;
 			getBiasSinex(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
+				
+			InitialState init		= initialStateFromConfig(recOpts.phase_bias, ft);
 
-			if (recOpts.phase_bias.estimate)
+			if (init.estimate)
 			{
 				KFKey kfKey;
 				kfKey.type	= KF::PHASE_BIAS;
-				kfKey.str	= obs.mount;
+				kfKey.str	= rec.id;
 				kfKey.num	= ft;
 				
 				kfState.getKFValue(kfKey, recPhasBias);
-				
-				InitialState init		= initialStateFromConfig(recOpts.phase_bias, ft);
 				
 				measEntry.addDsgnEntry(kfKey, 1, init);
 			}
 			else
 			{
 				ObsKey obsKey;
-				obsKey.str	= obs.mount;
+				obsKey.str	= rec.id;
 				obsKey.type	= "recPhasBias";
 				obsKey.num	= ft;
 				measEntry.addNoiseEntry(obsKey, 1, recPhasBiasVar);
 			}
 			
-			obsComponentList.push_back({"Rec Phase Bias", recPhasBias});
+			measEntry.componentList.push_back({"Rec Phase Bias", recPhasBias, "+ b_" + std::to_string(ft) + "r"});
 		}
 	
 		//Satellite Phase biases
+		if (acsConfig.model.sat_phase_bias)
 		if (measType == PHAS)
 		{
 			double	satPhasBias		= 0;
 			double	satPhasBiasVar	= DEFAULT_BIAS_VAR;
 			getBiasSinex(trace, time, Sat.id(), Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
+				
+			InitialState init		= initialStateFromConfig(satOpts.phase_bias, ft);
 			
-			if (satOpts.phase_bias.estimate)
+			if (init.estimate)
 			{
 				KFKey kfKey;
 				kfKey.type	= KF::PHASE_BIAS;
@@ -735,8 +764,6 @@ void stationPPP(
 				kfKey.num	= ft;
 				
 				kfState.getKFValue(kfKey, satPhasBias);
-				
-				InitialState init		= initialStateFromConfig(satOpts.phase_bias, ft);
 				
 				measEntry.addDsgnEntry(kfKey, 1, init);
 			}
@@ -749,11 +776,11 @@ void stationPPP(
 				measEntry.addNoiseEntry(obsKey, 1, satPhasBiasVar);
 			}
 			
-			obsComponentList.push_back({"Sat Phase Bias", satPhasBias});
+			measEntry.componentList.push_back({"Sat Phase Bias", satPhasBias, "+ b_" + std::to_string(ft) + "s"});
 		}
 		
 		//Satellite orbit adjustments
-		if (satOpts.orb.estimate)
+		if (0)
 		{
 			VectorXd orbitPartials = satNav.satPartialMat * satStat.e;
 
@@ -775,21 +802,31 @@ void stationPPP(
 				
 				double computed = adjustment * orbitPartials(i);
 				
-				obsComponentList.push_back({"Orbit " + name, computed});
+				measEntry.componentList.push_back({"Orbit " + name, computed, "+ dOrb"});
 			}
 		}
 
 		//Calculate residuals and form up the measurement
 		
-		obsComponentList.push_back({"Net Residual", 0});
+		measEntry.componentList.push_back({"Net Residual", 0, ""});
 		double residual = 0;
-		for (auto& [componentName, componentVal] : obsComponentList)
+		for (auto& [componentName, componentVal, eq] : measEntry.componentList)
 		{
 			residual -= componentVal;
 			
 			if (acsConfig.output_residual_chain)
 			{
 				tracepdeex(0, trace, "\n%-20s %+14.4f -> %13.4f", componentName.c_str(), -componentVal, residual);
+			}
+		}
+
+		if (acsConfig.output_residual_chain)
+		{
+			trace << std::endl << std::endl << "0 =";
+		
+			for (auto& [componentName, componentVal, eq] : measEntry.componentList)
+			{
+				tracepdeex(0, trace, " %s", eq.c_str());
 			}
 		}
 		measEntry.setInnov(residual);

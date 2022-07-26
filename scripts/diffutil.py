@@ -7,7 +7,7 @@ import logging as _logging
 import os as _os
 import sys as _sys
 
-from gn_lib.gn_diffaux import diffionex, diffsnx, diffstec, difftrace, diffclk, diffsp3, diffpodout
+from gn_lib import gn_diffaux as _gn_diffaux
 
 #TODO convert argparse to click
 def parse_arguments():
@@ -21,7 +21,7 @@ Supports trace (either .trace or .SUM), sinex, ionex and stec files. The user is
     parser.add_argument('--passthrough', action='store_true',help='passthrough or return 0 even if failed. Useful for pipeline runs.')
     parser.add_argument('-p','--plot', action='store_true',help='output a plot to terminal. Requires plotext')
     # parser.add_argument('--warn_errors', action='store_false',help='log errors as warnings. Useful to "hide" optional checks') # Not used
-    parser.add_argument('--states_only', action='store_true',help='analyse only states blocks (trace files option only)')
+
     parser.add_argument('--aux1', type=file_path,help='path to aux "a" file',default=None)
     parser.add_argument('--aux2', type=file_path,help='path to aux "b" file',default=None)
     return parser.parse_args()
@@ -45,19 +45,19 @@ if __name__ == "__main__":
     status = 0
     log_lvl = 40 if parsed_args.atol is None else 30 # 40 is error, 30 is warning. Constant tolerance differences are reported as warnings
     if parsed_args.type == 'trace':
-        status = difftrace(trace1_path=parsed_args.file1,trace2_path=parsed_args.file2,atol=parsed_args.atol,std_coeff=parsed_args.coef,states_only=parsed_args.states_only,log_lvl=log_lvl,plot=parsed_args.plot)
+        status = _gn_diffaux.difftrace(trace1_path=parsed_args.file1,trace2_path=parsed_args.file2,atol=parsed_args.atol,std_coeff=parsed_args.coef,log_lvl=log_lvl,plot=parsed_args.plot)
     elif parsed_args.type == 'sinex':
-        status = diffsnx(snx1_path = parsed_args.file1,snx2_path = parsed_args.file2,atol=parsed_args.atol,std_coeff=parsed_args.coef,log_lvl=log_lvl)
+        status = _gn_diffaux.diffsnx(snx1_path = parsed_args.file1,snx2_path = parsed_args.file2,atol=parsed_args.atol,std_coeff=parsed_args.coef,log_lvl=log_lvl)
     elif parsed_args.type == 'ionex':
-        status = diffionex(ionex1_path=parsed_args.file1,ionex2_path=parsed_args.file1,atol=parsed_args.atol,log_lvl=log_lvl)
+        status = _gn_diffaux.diffionex(ionex1_path=parsed_args.file1,ionex2_path=parsed_args.file1,atol=parsed_args.atol,log_lvl=log_lvl)
     elif parsed_args.type == 'stec':
-        status = diffstec(path1 = parsed_args.file1,path2 = parsed_args.file2,atol=parsed_args.atol,std_coeff=parsed_args.coef,log_lvl=log_lvl)
+        status = _gn_diffaux.diffstec(path1 = parsed_args.file1,path2 = parsed_args.file2,atol=parsed_args.atol,std_coeff=parsed_args.coef,log_lvl=log_lvl)
     elif parsed_args.type == 'clk':
-        status = diffclk(clk_a_path=parsed_args.file1,clk_b_path=parsed_args.file2,atol=parsed_args.atol,sp3_a_path=parsed_args.aux1,sp3_b_path=parsed_args.aux2,log_lvl=log_lvl)
+        status = _gn_diffaux.diffclk(clk_a_path=parsed_args.file1,clk_b_path=parsed_args.file2,atol=parsed_args.atol,log_lvl=log_lvl)
     elif parsed_args.type == 'sp3':
-        status = diffsp3(sp3_a_path=parsed_args.file1,sp3_b_path=parsed_args.file2,atol=parsed_args.atol,log_lvl=log_lvl)
+        status = _gn_diffaux.diffsp3(sp3_a_path=parsed_args.file1,sp3_b_path=parsed_args.file2,clk_a_path=parsed_args.aux1,clk_b_path=parsed_args.aux2,atol=parsed_args.atol,log_lvl=log_lvl)
     elif parsed_args.type == 'pod':
-        status = diffpodout(pod_out_a_path=parsed_args.file1,pod_out_b_path=parsed_args.file2,atol=parsed_args.atol,log_lvl=log_lvl)
+        status = _gn_diffaux.diffpodout(pod_out_a_path=parsed_args.file1,pod_out_b_path=parsed_args.file2,atol=parsed_args.atol,log_lvl=log_lvl)
     if status:
         if not parsed_args.passthrough:
             _logging.error(msg = f':diffutil failed [{_os.path.abspath(parsed_args.file1)}]\n')

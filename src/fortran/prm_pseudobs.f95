@@ -1,4 +1,4 @@
-SUBROUTINE prm_pseudobs (PRMfname, pseudobs_opt)
+SUBROUTINE prm_pseudobs (PRMfname, pseudobs_opt, no_data_for_first_epoch)
 
 
 ! ----------------------------------------------------------------------
@@ -56,6 +56,7 @@ SUBROUTINE prm_pseudobs (PRMfname, pseudobs_opt)
       CHARACTER (LEN=100), INTENT(IN) :: PRMfname				
       INTEGER (KIND = prec_int2), INTENT(IN) :: pseudobs_opt
 ! OUT
+      LOGICAL, INTENT(OUT) :: no_data_for_first_epoch
 ! 
 ! ----------------------------------------------------------------------
  
@@ -114,6 +115,7 @@ SUBROUTINE prm_pseudobs (PRMfname, pseudobs_opt)
       Format2 = '(F)'
       Format3 = '(I100)'
       found = .false.
+      no_data_for_first_epoch = .false.
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -206,7 +208,10 @@ if (data_opt == TYPE_SP3) Then
 
 ! Read IGS sp3 orbit data file 
 !Call sp3 (fname_orb, PRN, pseudobs_ITRF, clock_matrix)
-Call sp3 (fname_orb, PRN, orbsp3, yml_interpolate_start, clock_matrix, time_system, found)
+Call sp3 (fname_orb, PRN, orbsp3, yml_interpolate_start, clock_matrix, time_system, &
+        found, .true., no_data_for_first_epoch)
+
+!if (no_data_for_first_epoch) return
 
 if (.not. found) call report('FATAL', pgrm_name, 'prm_pseudobs', trim(mesg), 'src/fortran/prm_pseudobs.f95', 1)
 
@@ -243,7 +248,7 @@ Call obsorbT2C (pseudobs_ITRF, time_system, pseudobs_ICRF)
 Else if (data_opt == TYPE_INTERP) then
 
 ! Interpolated Orbit: Read sp3 orbit data and apply Lagrange interpolation
-CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, pseudobs_ITRF, time_system, found)
+CALL interp_orb (fname_orb, PRN, interpstep, NPint, yml_interpolate_start, pseudobs_ITRF, time_system, .true., found)
 
 if (.not. found) call report('FATAL', pgrm_name, 'prm_pseudobs', trim(mesg), 'src/fortran/prm_pseudobs.f95', 1)
 

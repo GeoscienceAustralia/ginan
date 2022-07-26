@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''sinex stations quick view'''
 import argparse
 import logging as _logging

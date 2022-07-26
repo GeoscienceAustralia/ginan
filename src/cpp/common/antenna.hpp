@@ -17,6 +17,7 @@ using std::map;
 
 
 #include "streamTrace.hpp"
+#include "satStat.hpp"
 #include "gTime.hpp"
 #include "enums.h"
 
@@ -46,7 +47,7 @@ struct PhaseCenterData
 
 //forward declaration for pointer below
 struct SatSys;
-struct nav_t;
+struct Navigation;
 
 void satAntOff(
 	Trace&				trace,
@@ -83,13 +84,13 @@ double antPcv(
 bool findAntenna(
 	string				code,
 	GTime				time,
-	nav_t&				nav,
+	Navigation&			nav,
 	E_FType				ft,
 	PhaseCenterData**	pcd_ptr_ptr = nullptr);
 
 int readantexf(
-	string file, 
-	nav_t& nav);
+	string		file, 
+	Navigation&	nav);
 
 void radome2none(
 	string& antenna_type);

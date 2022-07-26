@@ -16,10 +16,7 @@ typedef map<string, Station> StationMap;
 KFState RTS_Process(
 	KFState&	kfState, 
 	bool		write			= false,
-	StationMap*	stationMap_ptr	= nullptr,
-	string		clockFilename	= "",
-	string		tropFilename	= "",
-	string		erpFilename		= "");
+	StationMap*	stationMap_ptr	= nullptr);
 
 
 #endif

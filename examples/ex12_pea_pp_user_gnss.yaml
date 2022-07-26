@@ -2,23 +2,28 @@
 # Uses TU GRAZ orbit and clock products to produce kinematic PPP solition (GPS+GAL, float ambiguities)
 # Total processing duration  ~ 2.5 minutes on 2-cores
 
-input_files:
+inputs:
 
-    root_input_directory: products/
+    root_directory: products/
 
-    atxfiles: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snxfiles: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
-    blqfiles: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
-    navfiles: [ brdm1990.19p        ]  # broadcast navigation file
-    sp3files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
-    clkfiles: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
-    bsxfiles: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
+    snx_files: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
+    blq_files: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
 
-station_data:
-
-    root_stations_directory: data/
-
-    rnxfiles:
+    satellite_data:
+        nav_files: [ brdm1990.19p        ]  # broadcast navigation file
+        sp3_files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
+        clk_files: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
+        bsx_files: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    
+    troposphere:
+        vmf3_directory:    grid5/
+        orography_files:  orography_ell_5x5
+        # gpt2grid_files: EX03/general/gpt_25.grd
+        
+    gnss_observations:
+        root_directory: ../data/
+        rnx_files:
         # Select files to run by:
         - "ALIC*.rnx" # ALIC station rnx file will be found
         # - "*.rnx"                                       # - searching all in file_root directory
@@ -26,103 +31,103 @@ station_data:
                                                           # - selecting one on the command line using the -rnxfiles option
 
                                                             
-output_files:
+outputs:
 
-    root_output_directory:          <CONFIG>/
+    root_directory:          <CONFIG>/
 
-    output_trace:                   true
-    trace_level:                    3
-    trace_directory:                ./
-    trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
-    output_residuals:               true
-    output_sinex:                   true
-    sinex_directory:                ./
+    trace:
+        output_stations:                     true
+        level:                      3
+        directory:                  ./
+        station_filename:                   <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+    
+    sinex:
+        output:                     true
+        directory:                  ./
 
-    output_log:                     true
+    log:
+        output:                     true
 
-    enable_mongo:                   true
-    output_mongo_measurements:      true
-    output_mongo_states:            true
-    #delete_mongo_history:           true
-    mongo_uri:                      mongodb://127.0.0.1:27017
-    mongo_suffix:                   _<BRANCH> 
+    metadata:
+        config_description:         ex12
+        analysis_agency:            GAA
+        analysis_center:            Geoscience Australia
+        analysis_program:           AUSACS
+        rinex_comment:              AUSNETWORK1
 
-output_options:
+    rinex_nav:
+        output:                     true
+        directory:                  ./
+        filename:                   <YYYY><DDD>_nav_<SYS>.rnx
+        version:                    4.00    # 3.05 or 4.00
 
-    config_description:             ex12
-    analysis_agency:                GAA
-    analysis_center:                Geoscience Australia
-    analysis_program:               AUSACS
-    rinex_comment:                  AUSNETWORK1
+mongo:
+    enable:                     true
+    output_measurements:        true
+    output_states:              true
+    #delete_history:             true
+    uri:                        mongodb://127.0.0.1:27017
+    suffix:                     _<BRANCH>_<HASH>
 
 
 processing_options:
 
-    start_epoch:                2019-07-18 00:00:00
-    #end_epoch:                  2019-07-18 23:59:30
-    epoch_interval:             30          #seconds
-    #max_epochs:                 2        #0 is infinite
+    epoch_control:
+        start_epoch:                2019-07-18 00:00:00
+        #end_epoch:                  2019-07-18 23:59:30
+        epoch_interval:             30          #seconds
+        #max_epochs:                 2        #0 is infinite
 
     process_modes:
-        user:                   true
-        network:                false
-        minimum_constraints:    false
-        rts:                    false
-        ionosphere:             false
-        #unit_tests:             true
+        user:               true
 
-    process_sys:
-        gps:            true
-        glo:            false
-        gal:            true
-        bds:            false
+    gnss_general:
+        
+        elevation_mask:     7   #degrees
 
-    elevation_mask:     7   #degrees
+        reject_eclipse:     true            #  reject observation during satellite eclipse periods
+        raim:               true
 
-    tide_solid:         true
-    tide_pole:          true
-    tide_otl:           true
+        max_gdop:   30
+        sys_options:
+            gps:
+                process:        true
+                clock_codes:    [L1C, L2W]
+                code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+                                    L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                                    L5I, L5Q, L5X]
+            gal:
+                process:        true
+                clock_codes:    [L1C, L5Q]
+                code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+                                    L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+                                    L5I, L5Q, L5X]
+    
 
-    phase_windup:       true
-    reject_eclipse:     true            #  reject observation during satellite eclipse periods
-    raim:               true
-    antexacs:           true
+    gnss_models:
+    
+        
+        troposphere:
+            model:      vmf3    #gpt2
 
-    cycle_slip:
-        thres_slip: 0.05
-
-    max_inno:   0
-    max_gdop:   30
-
-    troposphere:
-        model:      vmf3    #gpt2
-        vmf3dir:    grid5/
-        orography:  orography_ell_5x5
-        # gpt2grid: EX03/general/gpt_25.grd
-
-    # pivot_station:        "USN7"
-    # pivot_satellite:      "G01"
-
-    code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
-                        L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
-                        L5I, L5Q, L5X]
                         
-    clock_codes:
-        gps: [L1C, L2W]
-        gal: [L1C, L5Q]
 
-user_filter_parameters:
+    filter_options:
 
-    max_filter_iterations:      5 #5
-    max_prefit_removals:        3 #5
+        outlier_screening:
+            max_filter_iterations:      5 #5
+            max_prefit_removals:        3 #5
 
-    rts_lag:                    -1      #-ve for full reverse, +ve for limited epochs
-    rts_directory:              ./
-    rts_filename:               PPP-<CONFIG>-<STATION>.rts
+        rts:
+            enable:                 false
+            lag:                    -1      #-ve for full reverse, +ve for limited epochs
+            directory:              ./
+            filename:               PPP-<CONFIG>-<STATION>.rts
 
-    inverter:                   LDLT         #LLT LDLT INV
+        inverter:                   LDLT         #LLT LDLT INV
 
-default_filter_parameters:
+estimation_parameters:
 
     stations:
 
@@ -131,35 +136,35 @@ default_filter_parameters:
         phase_sigmas:       [0.0015]
 
         pos:
-            estimated:          true
+            estimated:          [true]
             sigma:              [0.1]
             proc_noise:         [0.00057] #0.57 mm/sqrt(s), Gipsy default value from slow-moving
             proc_noise_dt:      second
 
         clk:
-            estimated:          true
+            estimated:          [true]
             sigma:              [30]
             proc_noise:         [10]
 
         clk_rate:
-            estimated:          false
+            #estimated:          [true]
             sigma:              [500]
             proc_noise:         [1e-4]
 
         amb:
-            estimated:          true
+            estimated:          [true]
             sigma:              [60]
             proc_noise:         [0]
             #proc_noise_dt:      day
 
         trop:
-            estimated:          true
+            estimated:          [true]
             sigma:              [0.1]
             proc_noise:         [0.0001] #0.1 mm/sqrt(s)
             proc_noise_dt:      second
 
         trop_grads:
-            estimated:          true
+            estimated:          [true]
             sigma:              [0.02]
             proc_noise:         [1.0E-6]
             proc_noise_dt:      second
@@ -167,36 +172,36 @@ default_filter_parameters:
     satellites:
 
         clk:
-            estimated:          false
+            #estimated:          [true]
             # sigma:              [0]
             # proc_noise:         [0.03651483716701108]
             #proc_noise_dt:      min
 
         clk_rate:
-            estimated:          false
+            #estimated:          [true]
             # sigma:              [500]
             # proc_noise:         [1e-4]
 
         orb:
-            estimated:          false
+            #estimated:          [true]
 
 
-override_filter_parameters:
+    overrides:
 
-    stations:
+        stations:
 
-        #ALIC:
-            #pos:
-            #    sigma:              [60]
+            #ALIC:
+                #pos:
+                #    sigma:              [60]
 
-                #proc_noise:         [0]
-            #clk:
-                #sigma:              [0.01]
+                    #proc_noise:         [0]
+                #clk:
+                    #sigma:              [0.01]
 
-        #AGGO:
-            #exclude: true
-        #ALIC:
-            #exclude: true
-        #ANKR:
-            #exclude: true
-                #estimated:  false
+            #AGGO:
+                #exclude: true
+            #ALIC:
+                #exclude: true
+            #ANKR:
+                #exclude: true
+                    #estimated:  false

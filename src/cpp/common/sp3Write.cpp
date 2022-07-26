@@ -177,7 +177,7 @@ void writeSp3Header(
 	}
 	if (syschar == 0)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Writing RINEX clock file no systems in process_sys.";
+		BOOST_LOG_TRIVIAL(error) << "Error: Writing RINEX clock file no systems in process_sys.";
 		return;
 	}
 
@@ -219,7 +219,7 @@ void updateSp3Body(
 
 	if (!sp3Stream)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error opening " << filename << " for SP3 file.";
+		BOOST_LOG_TRIVIAL(warning) << "Error opening " << filename << " for SP3 file.";
 		
 		return;
 	}

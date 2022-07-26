@@ -183,4 +183,9 @@ MODULE mdl_config
 ! program debug (for more verbose output)
       INTEGER (KIND = prec_int2) :: gbl_debug
 ! ----------------------------------------------------------------------
+
+! for when we have sp3 file data and the sat is unhealthy at the start
+      logical bad_start_found
+      logical orb_arc_saved
+      double precision orb_est_arc_saved
 END

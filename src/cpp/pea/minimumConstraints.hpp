@@ -6,13 +6,17 @@
 using std::map;
 
 #include "streamTrace.hpp"
+#include "station.hpp"
 
 struct KFState;
 
 
-void minimum(
+void mincon(
 	Trace&					trace,
 	KFState&				kfStateStations);
 
+KFState minconOnly(
+	Trace&		trace,
+	StationMap&	stationMap);
 
 #endif

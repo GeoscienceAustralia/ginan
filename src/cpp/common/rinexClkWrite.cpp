@@ -18,6 +18,7 @@ using std::map;
 #include "constants.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
+#include "preceph.hpp"
 #include "rinex.hpp"
 #include "enums.h"
 
@@ -129,7 +130,7 @@ void getKalmanRecClks(
 
 			if (key.rec_ptr == nullptr)
 			{
-				BOOST_LOG_TRIVIAL(error) << "Kalman RINEX file clock entry has no reference to receiver.";
+				BOOST_LOG_TRIVIAL(error) << "Error: Kalman RINEX file clock entry has no reference to receiver.";
 // 				continue;
 			}
 			else
@@ -173,7 +174,7 @@ void getKalmanRecClks(
 	for (auto& [id, rec] : stationMap)
 	{
 		ClockEntry dummyRefRec;
-		getKalmanRecClks(clkValList, dummyRefRec, rec.rtk.pppState);
+		getKalmanRecClks(clkValList, dummyRefRec, rec.pppState);
 	}
 }
 
@@ -197,7 +198,7 @@ void getPreciseRecClks(
 		if (ret != 1)
 		{
 			BOOST_LOG_TRIVIAL(warning) 
-			<< "Station : " << rec.id
+			<< "Warning: Station : " << rec.id
 			<< ", precise clock entry not calculated.";
 			
 			continue;
@@ -239,7 +240,7 @@ void getSatClksFromEph(
 		if (pass == false)
 		{
 			BOOST_LOG_TRIVIAL(warning)
-			<< "Satellite : " << Sat.id()
+			<< "Warning: Satellite : " << Sat.id()
 			<< ",  clock entry not calculated.";
 			
 			continue;
@@ -266,7 +267,7 @@ void outputRinexClocksHeader(
 	
 	if (!clockFile)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error opening " << filename << " for RINEX clock file.";
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening " << filename << " for RINEX clock file.";
 		return;
 	}
 
@@ -365,41 +366,6 @@ void outputRinexClocksHeader(
 }
 
 
-void tryPrepareFilterPointers(
-	KFState&		kfState, 
-	StationMap*		stationMap_ptr)
-{
-	if (stationMap_ptr == nullptr)
-	{
-		return;
-	}
-	
-	auto& stationMap = *stationMap_ptr;
-	
-	map<KFKey, short> replacementKFIndexMap;
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		KFKey kfKey = key;
-		
-		if	(  kfKey.rec_ptr == nullptr
-			&& kfKey.str.empty() == false)
-		{
-			auto it = stationMap.find(kfKey.str);
-			if (it == stationMap.end())
-			{
-				continue;
-			}
-			
-			auto& [id, station]	= *it;
-			kfKey.rec_ptr	= &station;
-		}
-		
-		replacementKFIndexMap[kfKey] = index;
-	}
-	
-	kfState.kfIndexMap = replacementKFIndexMap;
-}
-
 void outputClocks(
 	string				filename,
 	E_Ephemeris			clkDataRecSrc,
@@ -421,7 +387,7 @@ void outputClocks(
 		case +E_Ephemeris::PRECISE:			//fallthrough
 		case +E_Ephemeris::BROADCAST:		//fallthrough
 		case +E_Ephemeris::SSR:				getSatClksFromEph(clkValList, time, outSys, clkDataSatSrc);	break;
-		default:	BOOST_LOG_TRIVIAL(error) << "Unknown / Undefined clock data source.";				return;
+		default:	BOOST_LOG_TRIVIAL(error) << "Error: Unknown / Undefined clock data source.";		return;
 	}
 
 	switch (clkDataRecSrc)
@@ -433,7 +399,7 @@ void outputClocks(
 		case +E_Ephemeris::PRECISE:			getPreciseRecClks(clkValList, stationMap_ptr, time);		break;
 		case +E_Ephemeris::SSR:				//fallthrough
 		case +E_Ephemeris::BROADCAST:		//fallthrough
-		default:	BOOST_LOG_TRIVIAL(error) << "Printing receiver clocks for " << clkDataRecSrc._to_string() << " not implemented.";	return;
+		default:	BOOST_LOG_TRIVIAL(error) << "Error: Printing receiver clocks for " << clkDataRecSrc._to_string() << " not implemented.";	return;
 	}
 
 	outputRinexClocksHeader(filename, clkValList, referenceRec, outSys, time);
@@ -445,7 +411,7 @@ map<string, map<E_Sys, bool>> getSysOutputFilenames(
 	GTime	logtime,
 	string	id)
 {
-	logtime = logtime.roundTime(acsConfig.trace_rotate_period);
+	logtime = logtime.roundTime(acsConfig.rotate_period);
 	
 	boost::posix_time::ptime	logptime	= boost::posix_time::from_time_t(logtime.time);
 	
@@ -462,8 +428,8 @@ map<string, map<E_Sys, bool>> getSysOutputFilenames(
 		SatSys t_Sat = SatSys(sys, 0);
 		
 		string sysChar;
-		if (acsConfig.output_sys_combined)	sysChar = "M";
-		else								sysChar = string(1, t_Sat.sysChar());
+		if (acsConfig.split_sys)	sysChar = string(1, t_Sat.sysChar());
+		else						sysChar = "M";
 		
 		if (sysChar == "-")
 			continue;

@@ -46,7 +46,9 @@ struct ObsStream
 
 			if	(obsList.front().time < time - delta)
 			{
-				eatObs();
+				obsWaitCode = E_ObsWaitCode::EARLY_DATA;
+				return obsList;
+				
 			}
 			else if	(obsList.front().time > time + delta)
 			{

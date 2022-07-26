@@ -29,7 +29,7 @@ map<int, Sph_Basis>  Sph_Basis_list;
 
 double shar_rotmtx[9];				/* Rotation matrix (to centre of map) */
 GTime shar_time = {};
-double shar_valid = 10.0;
+double shar_valid = 10;
 
 /*-----------------------------------------------------
 configure_iono_model_sphhar() configures the spherical harmonics model.
@@ -44,20 +44,19 @@ Author: Ken Harima @ RMIT 29 July 2020
 -----------------------------------------------------*/
 int configure_iono_model_sphhar()
 {
-
 	for (int i = 0; i < 9; i++)
 	{
-		shar_rotmtx[i] = 0.0;
+		shar_rotmtx[i] = 0;
 	}
 
 	shar_valid = DTTOL;
 	shar_time.time = 0;
 
-	int Kmax = acsConfig.ionFilterOpts.func_order + 1;
-	int nlay = acsConfig.ionFilterOpts.layer_heights.size();
+	int Kmax = acsConfig.ionModelOpts.function_order + 1;
+	int nlay = acsConfig.ionModelOpts.layer_heights.size();
 	if (nlay == 0) 
 	{
-		acsConfig.ionFilterOpts.layer_heights.push_back(350.0);
+		acsConfig.ionModelOpts.layer_heights.push_back(350.0);
 		nlay =1;
 	}
 	int ind = 0;
@@ -71,31 +70,35 @@ int configure_iono_model_sphhar()
 			if (k == 0)
 			{
 				/* legendre 0,0 */
-				Sph_Basis basis;
-				basis.hind = j;
-				basis.order = 0;
-				basis.degree = 0;
-				basis.norm = (0.5 * basis.degree + 0.25) / PI;
 				leg_elem elem;
 				elem.sind = 0;
 				elem.cosd = 0;
-				elem.coef = 1.0;
+				elem.coef = 1;
+				
+				Sph_Basis basis;
+				basis.hind		= j;
+				basis.order		= 0;
+				basis.degree	= 0;
+				basis.norm		= (0.5 * basis.degree + 0.25) / PI;
+				basis.parity	= false;
 				basis.legpoly.push_back(elem);
-				basis.parity = false;
+				
 				basismap[k].first = ind;
-				Sph_Basis_list[ind++] = basis;
+				Sph_Basis_list[ind] = basis;
+				ind++;
 			}
 			else
 			{
 				Sph_Basis basis = Sph_Basis_list[basismap[k - 1].first];
 				/* leg(k-1,k)  =  (2k-1) * coslat * leg(k-1,k-1) */
-				basis.degree = k;
-				basis.norm = (0.5 * k + 0.25) / PI;
+				basis.degree	= k;
+				basis.norm		= (0.5 * k + 0.25) / PI;
 
-				for (int l = (1 - basis.order); l <= basis.order; l++) basis.norm /= 1.0 * (basis.degree + l);
+				for (int l = (1 - basis.order); l <= basis.order; l++) 
+					basis.norm /= 1.0 * (basis.degree + l);
 
 				basis.legpoly.front().cosd++;
-				basis.legpoly.front().coef *= 1.0 * (2 * k - 1);
+				basis.legpoly.front().coef *= 2 * k - 1;
 				basis.parity = false;
 				basismap[k - 1].second = ind;
 				Sph_Basis_list[ind++] = basis;
@@ -110,11 +113,12 @@ int configure_iono_model_sphhar()
 				basis.order = k;
 				basis.norm = (0.5 * basis.degree + 0.25) / PI;
 
-				for (int l = (1 - basis.order); l <= basis.order; l++) basis.norm /= 1.0 * (basis.degree + l);
+				for (int l = (1 - basis.order); l <= basis.order; l++)
+					basis.norm /= 1.0 * (basis.degree + l);
 
 				basis.legpoly.front().cosd--;
 				basis.legpoly.front().sind++;
-				basis.legpoly.front().coef *= -1.0;
+				basis.legpoly.front().coef *= -1;
 				basis.parity = false;
 				basismap[k].first = ind;
 				Sph_Basis_list[ind++] = basis;
@@ -142,7 +146,8 @@ int configure_iono_model_sphhar()
 				basisnew.degree = n;
 				basisnew.norm = (0.5 * basisnew.degree + 0.25) / PI;
 
-				for (int l = (1 - basisnew.order); l <= basisnew.order; l++) basisnew.norm /= 1.0 * (basisnew.degree + l);
+				for (int l = (1 - basisnew.order); l <= basisnew.order; l++)
+					basisnew.norm /= 1.0 * (basisnew.degree + l);
 
 				basisnew.parity = false;
 				basisnew.legpoly.clear();
@@ -150,7 +155,7 @@ int configure_iono_model_sphhar()
 				for (auto& elem : basis1.legpoly)
 				{
 					leg_elem elemnew = elem;
-					elemnew.coef *= -1.0 * (n + m - 1) / (n - m);
+					elemnew.coef *= -1.0 * (n + m - 1) / (n - m);	//be very careful here - the .0 is important annoyingly
 					basisnew.legpoly.push_back(elemnew);
 				}
 
@@ -175,20 +180,21 @@ int configure_iono_model_sphhar()
 		}
 	}
 
-	acsConfig.ionFilterOpts.NBasis = ind;
+	acsConfig.ionModelOpts.NBasis = ind;
 
-	if (fp_iondebug)  for (int j = 0; j < acsConfig.ionFilterOpts.NBasis; j++)
-		{
-			Sph_Basis& basis = Sph_Basis_list[j];
-			fprintf(fp_iondebug, "SPH_BASIS %3d %2d %2d %2d %12.4e %1d %3lu ", j, basis.hind, basis.order, basis.degree, basis.norm, basis.parity, basis.legpoly.size());
-
-			for (auto& item : basis.legpoly)
-			{
-				fprintf(fp_iondebug, "- %2d %2d %8.4f ", item.sind, item.cosd, item.coef);
-			}
-
-			fprintf(fp_iondebug, "\n");
-		}
+// 	if (fp_iondebug)
+// 	for (int j = 0; j < acsConfig.ionModelOpts.NBasis; j++)
+// 	{
+// 		Sph_Basis& basis = Sph_Basis_list[j];
+// 		fprintf(fp_iondebug, "SPH_BASIS %3d %2d %2d %2d %12.4e %1d %3lu ", j, basis.hind, basis.order, basis.degree, basis.norm, basis.parity, basis.legpoly.size());
+// 
+// 		for (auto& item : basis.legpoly)
+// 		{
+// 			fprintf(fp_iondebug, "- %2d %2d %8.4f ", item.sind, item.cosd, item.coef);
+// 		}
+// 
+// 		fprintf(fp_iondebug, "\n");
+// 	}
 
 	return ind;
 }
@@ -229,14 +235,14 @@ int Ipp_check_sphhar(GTime time, double* Ion_pp)
 
 		shar_time = time;
 
-		if (fp_iondebug)
-		{
-			fprintf(fp_iondebug, "SPH_ROTMX %s\n", time.to_string(6).c_str());
-			fprintf(fp_iondebug, "SPH_ROTMX %.5e,%.5e,%.5e; %.5e,%.5e,%.5e; %.5e,%.5e,%.5e\n",
-					shar_rotmtx[0], shar_rotmtx[1], shar_rotmtx[2],
-					shar_rotmtx[3], shar_rotmtx[4], shar_rotmtx[5],
-					shar_rotmtx[6], shar_rotmtx[7], shar_rotmtx[8]);
-		}
+// 		if (fp_iondebug)
+// 		{
+// 			fprintf(fp_iondebug, "SPH_ROTMX %s\n", time.to_string(6).c_str());
+// 			fprintf(fp_iondebug, "SPH_ROTMX %.5e,%.5e,%.5e; %.5e,%.5e,%.5e; %.5e,%.5e,%.5e\n",
+// 					shar_rotmtx[0], shar_rotmtx[1], shar_rotmtx[2],
+// 					shar_rotmtx[3], shar_rotmtx[4], shar_rotmtx[5],
+// 					shar_rotmtx[6], shar_rotmtx[7], shar_rotmtx[8]);
+// 		}
 	}
 
 	Vector3d rpp;
@@ -244,7 +250,7 @@ int Ipp_check_sphhar(GTime time, double* Ion_pp)
 	double rrot[3];
 	pos[0] = Ion_pp[0];
 	pos[1] = Ion_pp[1];
-	pos[2] = acsConfig.ionFilterOpts.layer_heights[0];
+	pos[2] = acsConfig.ionModelOpts.layer_heights[0];
 	pos2ecef(pos, rpp);
 	matmul("NN", 3, 1, 3, 1, shar_rotmtx, rpp.data(), 0, rrot);
 	ecef2pos(rrot, pos);
@@ -317,7 +323,7 @@ ion_vtec_sphcap: Estimate Ionosphere VTEC using Spherical Cap Harmonic models
 	vari				O		variance of VTEC
 returns: VETC at piercing point
 ----------------------------------------------------------------------------*/
-double ion_vtec_sphhar(
+double ionVtecSphhar(
 	GTime time,
 	double* Ion_pp,
 	int layer,
@@ -328,7 +334,7 @@ double ion_vtec_sphhar(
 
 	ionpp_cpy[0] = Ion_pp[0];
 	ionpp_cpy[1] = Ion_pp[1];
-	ionpp_cpy[2] = acsConfig.ionFilterOpts.layer_heights[layer];
+	ionpp_cpy[2] = acsConfig.ionModelOpts.layer_heights[layer];
 
 	Ipp_check_sphhar(time, ionpp_cpy);
 
@@ -339,11 +345,12 @@ double ion_vtec_sphhar(
 	tmpobs.lonIPP[layer] = ionpp_cpy[1];
 	tmpobs.angIPP[layer] = 1;
 
-	for (int ind = 0; ind < acsConfig.ionFilterOpts.NBasis; ind++)
+	for (int ind = 0; ind < acsConfig.ionModelOpts.NBasis; ind++)
 	{
 		Sph_Basis& basis = Sph_Basis_list[ind];
 
-		if (basis.hind != layer) continue;
+		if (basis.hind != layer) 
+			continue;
 
 		double coef = ion_coef_sphhar(ind, tmpobs, false);
 
@@ -351,14 +358,15 @@ double ion_vtec_sphhar(
 		keyC.type	= KF::IONOSPHERIC;
 		keyC.num	= ind;
 
-		double staval = 0, stastd = 0;
+		double staval = 0;
+		double stastd = 0;
 		kfState.getKFValue(keyC, staval, &stastd);
 
-		if (fp_iondebug)
-		{
-			fprintf(fp_iondebug, "VTEC_COEF  %9.5f %10.5f  %9.5f %10.5f  %3d  %9.5f %10.5f %12.5f\n",
-					Ion_pp[0]*R2D, Ion_pp[1]*R2D, ionpp_cpy[0]*R2D, ionpp_cpy[1]*R2D, ind, coef, staval, iono);
-		}
+// 		if (fp_iondebug)
+// 		{
+// 			fprintf(fp_iondebug, "VTEC_COEF  %9.5f %10.5f  %9.5f %10.5f  %3d  %9.5f %10.5f %12.5f\n",
+// 					Ion_pp[0]*R2D, Ion_pp[1]*R2D, ionpp_cpy[0]*R2D, ionpp_cpy[1]*R2D, ind, coef, staval, iono);
+// 		}
 
 		iono += 	coef * staval;
 		vari += SQR(coef)* stastd;

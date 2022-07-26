@@ -146,24 +146,17 @@ void traceFormatedFloat(Trace& trace, double val, string formatStr)
 	tracepdeex(0, trace, formatStr.c_str(), base, exponent);
 }
 
-void tracepde(int level, FILE *fppde, const char *format, ...)
-{
-	va_list ap;
-
-	if (!fppde||level>trace_level) return;
-	/* traceswap(); */
-	fprintf(fppde,"*%d ",level);
-	va_start(ap,format); vfprintf(fppde,format,ap); va_end(ap);
-	fflush(fppde);
-}
-
 void tracepdeex(int level, FILE *fppde, const char *format, ...)
 {
 	va_list ap;
 
-	if (!fppde||level>trace_level) return;
-	/* traceswap(); */
-	va_start(ap,format); vfprintf(fppde,format,ap); va_end(ap);
+	if (!fppde||level>trace_level)
+		return;
+	
+	va_start(ap,format); 
+		vfprintf(fppde,format,ap);
+	va_end(ap);
+	
 	fflush(fppde);
 }
 

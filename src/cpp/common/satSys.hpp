@@ -71,7 +71,7 @@ struct SatSys
 	* Receivers may combine multiple satellite systems on a single internal clock, each with their own bias.
 	* The biases defined by this function are the basis for the different clocks calculated in this software
 	*/
-	short int biasGroup()
+	short int biasGroup()	const
 	{
 		switch (sys)
 		{

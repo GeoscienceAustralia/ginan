@@ -17,28 +17,6 @@ using std::map;
 #include "gTime.hpp"
 #include "enums.h"
 
-
-//===============================================================================
-/* reference structure (mandatory)
-+FILE/REFERENCE
-<any>
-*/
-struct Sinex_ref_t
-{
-	string refline; //name of file used to construct the output
-	// but store anything already there just in case
-} ;
-
-//===============================================================================
-/* comment structure (optional but recommended)
-+FILE/COMMENT
-<any>
-*/
-struct Sinex_comment_t
-{
-	string cmtline; // some comment
-} ;
-
 //===============================================================================
 /* history structure (optional but recommended)
 * ------------------------------------------------------------------------------
@@ -383,16 +361,6 @@ struct Sinex_solneq_t
 
 //=============================================================================
 /*
-+SOLUTION/STATISTICS
-*any string (not used currently)
-*/
-struct Sinex_solstat_t
-{
-	string statistic;
-} ;
-
-//=============================================================================
-/*
 +SOLUTION/MATRIX_ESTIMATE C TYPE (mandatory)
 +SOLUTION/MATRIX_APRIORI C TYPE (recommended)
 +SOLUTION/MATRIX_NORMAL_EQUATION C (mandatory for normal equations)
@@ -635,11 +603,11 @@ struct Sinex
 	KFState	kfState;
 	KFState	tropKFState;
 
-	list<string>                  		historyComments;
-	list<string>                  		filesComments;
-	list<string>                  		ackComments;
-	list<Sinex_ref_t>                 	refstrings;
-	list<Sinex_comment_t>             	commentstrings;
+	list<string>						historyComments;
+	list<string>						filesComments;
+	list<string>						ackComments;
+	list<string>						refstrings;
+	list<string>						commentstrings;
 	list<Sinex_input_history_t>       	inputHistory;
 	list<Sinex_input_file_t>          	inputFiles;
 	list<Sinex_ack_t>                 	acknowledgements;
@@ -835,7 +803,7 @@ void sinex_add_statistic(const string& what, const int		value);
 void sinex_add_statistic(const string& what, const double	value);
 int sinex_check_add_ga_reference(string solType, string peaVer, bool isTrop);
 void sinex_add_acknowledgement(const string& who, const string& description);
-void sinex_add_comment(const string& what);
+void sinex_add_comment(const string what);
 void sinex_add_file(const string& who, const GTime& when, const string& filename, const string& description);
 
 void sinex_update_header(
@@ -850,21 +818,20 @@ void sinex_update_header(
 	double		sinexVer);
 
 void sinexPostProcessing(
-	GTime&					tsync,
+	GTime					time,
 	map<string, Station>&	stationMap,
 	KFState&				netKFState);
 
 void sinexPerEpochPerStation(
-	GTime&		tsync,
+	GTime		time,
 	Station&	rec);
 
 
 // Trop sinex
 void outputTropSinex(
 	string					filename,
-	GTime&					tsync,
+	GTime					time,
 	map<string, Station>&	stationMap,
-	KFState&				netKFState,
 	string					markerName = "MIX",
 	bool					isSmoothed = false);
 
@@ -880,5 +847,9 @@ int write_snx_reference(
 	std::ofstream&	out);
 
 extern Sinex theSinex; // the one and only sinex object.
+
+void getStationsFromSinex(
+	map<string, Station>&	stationMap,
+	KFState&				kfState);
 
 #endif

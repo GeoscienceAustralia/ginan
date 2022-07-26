@@ -23,7 +23,7 @@ MODULE m_interporb
 Contains
 
 
-SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system, found)
+SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system, from_prm_pseudobs, found)
 
 
 ! ----------------------------------------------------------------------
@@ -86,6 +86,7 @@ SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbi
 	  !INTEGER (KIND = 4) :: PRN
       CHARACTER (LEN=3), INTENT(IN) :: PRN
       REAL (KIND=prec_q), INTENT(IN) :: interpolate_start
+      LOGICAL, INTENT(IN) :: from_prm_pseudobs
 ! OUT
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: orbint
       INTEGER (KIND=prec_int2) , INTENT(OUT) :: time_system
@@ -112,11 +113,11 @@ SUBROUTINE interp_orb (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbi
 	  REAL (KIND = prec_d) :: outlier_value 
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: orbsp3_filt, orb_out
       CHARACTER (LEN=100) :: filename
-
+      LOGICAL nodata
  
 ! ----------------------------------------------------------------------
 ! Read IGS sp3 orbit data file (position only): orbsp3 
-Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system, found)
+Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system, found, from_prm_pseudobs, nodata)
 if (.not. found) return
 
 sz1 = size(orbsp3, DIM = 1)
@@ -130,6 +131,7 @@ outlier_value = 0.0D0
 CALL orb_outlier (orbsp3, outlier_value, Noutliers, orbsp3_filt, orb_out)
 !print *, "Noutliers ", Noutliers
 
+!print *, "PRN = ", trim(PRN), ", Noutliers = ", Noutliers
 IF (Noutliers == 0) THEN
 ! Orbit Lagrange interpolation using the input orbit matrix
 CALL interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system, found)

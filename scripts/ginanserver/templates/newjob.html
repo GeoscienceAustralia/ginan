@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Ginan UI Prototype - New Job</title>
+
+    <!-- Booststrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+
+    <!-- Monaco editor -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.css"
+        integrity="sha256-PiFmqYaZVaw0K9d0rk22PAV9zt8qmyzSKj12pjeIEvk=" crossorigin="anonymous">
+    <script>
+        var require = { paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs" } };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"
+        integrity="sha256-gClEqBmTUCQakJj8slR5sol8NNwpb5dtIT8rV5YcG08=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.nls.js"
+        integrity="sha256-737hLVILWKijmqan38ckuGMRsteJWh+tuLZFTVNZozI=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/editor/editor.main.js"
+        integrity="sha256-K1ljBr0X82AhjkTPAf5K0gygUIKs9whlN6qsCUbYSZ8=" crossorigin="anonymous"></script>
+    <!-- Our styling, here as a temporary solution -->
+    <style>
+        body {
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            min-height: 80vh;
+        }
+
+        footer {
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><img src="/static/GLogovWonAlpha.svg" alt="Ginan 'G' Logo" style="height:3ex">Ginan</a>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/status">Status</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/newjob">Job Submission</a></li>
+                <li class="nav-item"><a class="nav-link" href="/plots">Plots</a></li>
+                <li class="nav-item"><a class="nav-link" href="/map">Map</a></li>
+            </ul>
+        </div>
+    </nav>
+    <main>
+        <label for="jobselect" class="form-label">Job Type:</label>
+        <select id="jobselect">
+            <option value="sleep">Sleep</option>
+            <option value="pea">PEA</option>
+            <option value="pod">POD</option>
+        </select>
+        <label for="jobname" class="form-label">Job Name:</label>
+        <input type="text" id="jobname" value="New Job">
+        <button id="jobsubmit" class="btn btn-primary">Submit</button>
+        <div id="configarea" style="display: flex; flex-flow: row; height: 100%;">
+            <div id="configsettings" style="flex: 30 200px;">
+                <ol>
+                    <li>Placeholder 1</li>
+                    <li>Placeholder 2</li>
+                    <li>Placeholder 3</li>
+                    <li>Placeholder 4</li>
+                    <li>Placeholder 5</li>
+                    <li>Placeholder 6</li>
+                    <li>Placeholder 7</li>
+                </ol>
+            </div>
+            <div id="editor" style="flex: 70 400px; border: 1px solid lightgrey"></div>
+        </div>
+    </main>
+    <footer class="pt-3 text-muted border-top">
+        <p>Ginan</p>
+    </footer>
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+        crossorigin="anonymous"></script>
+    <!-- Our code -->
+    <script>
+        const editor = monaco.editor.create(document.getElementById("editor"), {
+            value: ["input_options:", "  root_input_directory: 'inputs'", "", "output_options:",
+                "  root_output_directory: <CONFIG>"].join('\n'),
+            language: "yaml"
+        });
+        async function submitJobHandler(e) {
+            const submitbutton = document.getElementById("jobsubmit");
+            submitbutton.disabled = true;
+            const jobname = document.getElementById("jobname").value;
+            const jobtype = document.getElementById("jobselect").value;
+            const configYAML = editor.getValue();
+            let submitdata = {type: jobtype, name: jobname, configYAML: configYAML};
+            const response = await fetch("/api/jobs", {
+                method: "POST", body: JSON.stringify(submitdata),
+                headers: { "Accept": "application/json", "Content-Type": "application/json" }
+            });
+            const resJSON = await response.json();
+            window.location = resJSON.statusURL;
+        }
+        const submitbutton = document.getElementById("jobsubmit");
+        submitbutton.addEventListener("click", submitJobHandler);
+    </script>
+</body>
+
+</html>

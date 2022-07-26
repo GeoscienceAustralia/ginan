@@ -178,10 +178,13 @@ void lcPrepareBase(
 
 	for (auto& [ft, sig] : obs.Sigs)
 	{
-		double	lambda	= obs.satNav_ptr->lamMap[ft];	//todo aaron need to extend codes slightly to separate GPS/CMP signals with same name.
+		auto& satStat = *obs.satStat_ptr;
+		auto& sigStat = satStat.sigStatMap[ft];
+		
+		sigStat.lambda	= obs.satNav_ptr->lamMap[ft];	//todo aaron need to extend codes slightly to separate GPS/CMP signals with same name.
 
 		//populate variables for later use.
-		lcBase.L_m[ft]	= sig.L * lambda;
+		lcBase.L_m[ft]	= sig.L * sigStat.lambda;
 		lcBase.P[ft]	= sig.P;
 	}
 }
@@ -203,16 +206,15 @@ void obs2lc(
 	int sys = obs.Sat.sys;
 
 	/* SBS and LEO are not included */
-	if (sys == E_Sys::SBS || sys == E_Sys::LEO)
+	if	(  sys == E_Sys::SBS 
+		|| sys == E_Sys::LEO)
 	{
-		tracepde(lv, trace, "PDE, no relevant satellite system involved\n");
+		tracepdeex(lv, trace, "PDE, no relevant satellite system involved\n");
 		return;
 	}
 
-	char id[32];
-	obs.Sat.getId(id);
 	char strprefix[64];
-	sprintf(strprefix, "%3d %7.1f sat=%4s", week, sec, id);
+	sprintf(strprefix, "%3d %7.1f sat=%4s", week, sec, obs.Sat.id().c_str());
 
 	lcPrepareBase(obs, lcBase);
 
@@ -223,15 +225,15 @@ void obs2lc(
 	S_LC& lc15 = getLC(obs, lcBase, F1, F5);
 	S_LC& lc25 = getLC(obs, lcBase, F2, F5);
 
-	tracepde(lv, trace, "%s zd L -- L1  =%14.4f L2  =%14.4f L5  =%14.4f\n", strprefix, lcBase.L_m[F1],	lcBase.L_m[F2],	lcBase.L_m[F5]);
-	tracepde(lv, trace, "%s zd P -- P1  =%14.4f P2  =%14.4f P5  =%14.4f\n", strprefix, lcBase.P[F1],	lcBase.P[F2],	lcBase.P[F5]);
-	tracepde(lv, trace, "%s gf L -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Phas_m,	lc15.GF_Phas_m,	lc25.GF_Phas_m);
-	tracepde(lv, trace, "%s gf P -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Code_m,	lc15.GF_Code_m,	lc25.GF_Code_m);
-	tracepde(lv, trace, "%s mw L -- mw12=%14.4f mw15=%14.4f mw25=%14.4f\n", strprefix, lc12.MW_c,		lc15.MW_c,		lc25.MW_c);
-	tracepde(lv, trace, "%s wl L -- wl12=%14.4f wl15=%14.4f wl25=%14.4f\n", strprefix, lc12.WL_Phas_m,	lc15.WL_Phas_m,	lc25.WL_Phas_m);
-	tracepde(lv, trace, "%s if L -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Phas_m,	lc15.IF_Phas_m,	lc25.IF_Phas_m);
-	tracepde(lv, trace, "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Code_m,	lc15.IF_Code_m,	lc25.IF_Code_m);
-	tracepde(lv, trace, "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n", strprefix, lcBase.mp[F1],	lcBase.mp[F2],	lcBase.mp[F5]);
+	tracepdeex(lv, trace, "%s zd L -- L1  =%14.4f L2  =%14.4f L5  =%14.4f\n", strprefix, lcBase.L_m[F1],	lcBase.L_m[F2],	lcBase.L_m[F5]);
+	tracepdeex(lv, trace, "%s zd P -- P1  =%14.4f P2  =%14.4f P5  =%14.4f\n", strprefix, lcBase.P[F1],		lcBase.P[F2],	lcBase.P[F5]);
+	tracepdeex(lv, trace, "%s gf L -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Phas_m,	lc15.GF_Phas_m,	lc25.GF_Phas_m);
+	tracepdeex(lv, trace, "%s gf P -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Code_m,	lc15.GF_Code_m,	lc25.GF_Code_m);
+	tracepdeex(lv, trace, "%s mw L -- mw12=%14.4f mw15=%14.4f mw25=%14.4f\n", strprefix, lc12.MW_c,			lc15.MW_c,		lc25.MW_c);
+	tracepdeex(lv, trace, "%s wl L -- wl12=%14.4f wl15=%14.4f wl25=%14.4f\n", strprefix, lc12.WL_Phas_m,	lc15.WL_Phas_m,	lc25.WL_Phas_m);
+	tracepdeex(lv, trace, "%s if L -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Phas_m,	lc15.IF_Phas_m,	lc25.IF_Phas_m);
+	tracepdeex(lv, trace, "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Code_m,	lc15.IF_Code_m,	lc25.IF_Code_m);
+	tracepdeex(lv, trace, "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n", strprefix, lcBase.mp[F1],		lcBase.mp[F2],	lcBase.mp[F5]);
 
 	TestStack::testMat("lc12.GF_Phas_m",	lc12.GF_Phas_m);
 	TestStack::testMat("lc12.GF_Code_m",	lc12.GF_Code_m);
@@ -259,7 +261,7 @@ void obs2lcs(
 	
 	double sec = time2gpst(obsList.front().time, &week);
 
-	tracepde(lv, trace, "\n   *-------- PDE form LC %3d %7.1f             --------*\n", week, sec);
+	tracepdeex(lv, trace, "\n   *-------- PDE form LC %3d %7.1f             --------*\n", week, sec);
 
 	for (auto& obs : obsList)
 	{

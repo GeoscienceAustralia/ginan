@@ -73,7 +73,7 @@ SUBROUTINE force_sum (mjd, t_sec, rsat, vsat, SFx, SFy, SFz, integr_stage)
 ! Local variables declaration
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_d), DIMENSION(3) :: rsat_icrf, vsat_icrf, rsat_itrf, vsat_itrf, v_TRS_1, v_TRS_2
-      DOUBLE PRECISION EOP_cr(7)
+      DOUBLE PRECISION EOP_cr(EOP_MAX_ARRAY)
       DOUBLE PRECISION CRS2TRS(3,3), TRS2CRS(3,3), d_CRS2TRS(3,3), d_TRS2CRS(3,3)     
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_d), DIMENSION(3) :: SF, SFgrav, SFnongrav, SFemp
@@ -198,6 +198,7 @@ rsat_itrf = 0.d0
 
 ! Init var
 vSun = 0.d0
+EOP_cr = 0.d0
 
 ! ----------------------------------------------------------------------
 ! EOP data and Tranformation matrices between ITRF and ICRF
@@ -208,10 +209,10 @@ CALL EOP (mjd, EOP_cr, CRS2TRS, TRS2CRS, d_CRS2TRS, d_TRS2CRS)
 
 ! EOP data corrected at computation epoch 
 ! Polar motion coordinates
-xp = EOP_cr(2) 
-yp = EOP_cr(3)
+xp = EOP_cr(EOP_X) 
+yp = EOP_cr(EOP_Y)
 ! UT1-UTC
-ut1_utc = EOP_cr(4) 
+ut1_utc = EOP_cr(EOP_UT1) 
 
 ! State Vector in ITRF
 ! r in ITRF

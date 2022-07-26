@@ -161,6 +161,12 @@ ELSE IF (GNSSid == 'J') THEN
          X_SIDE = 10.1D0
          A_SOLAR= 29.8D0
          F0 = 25.0d-5
+! QZSS-2A
+         else if (TRIM(BLKTYP)=='QZS-2A') then
+         Z_SIDE = 5.6D0
+         X_SIDE = 10.8D0
+         A_SOLAR= 29.8D0
+         F0 = 25.0d-5
 
          else
                  print *,'apr_srp - Unknown block type: ',BLKTYP, ", GNSSid = 'J'"

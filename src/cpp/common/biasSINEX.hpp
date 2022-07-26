@@ -79,9 +79,8 @@ void initialiseBiasSinex();
 void addDefaultBiasSinex();
 
 bool decomposeDSBBias(
-	SinexBias&	DSB,
-	SinexBias&	OSB1,
-	SinexBias&	OSB2);
+	string		id,
+	SinexBias&	DSB);
 
 bool decomposeTGDBias(
 	SatSys		Sat,

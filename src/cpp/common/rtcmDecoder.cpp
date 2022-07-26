@@ -289,7 +289,7 @@ void RtcmDecoder::decodeSSR(
 			entry.measType	= CODE;
 			entry.Sat		= Sat;
 			entry.tini		= tow2Time(epochTime);
-			entry.tfin		= entry.tini + acsConfig.ssrOpts.code_bias_valid_time;
+			entry.tfin		= entry.tini + acsConfig.ssrInOpts.code_bias_valid_time;
 			entry.source	= "ssr";
 
 			unsigned int nbias			= getbituInc(data, i, 5);
@@ -363,7 +363,7 @@ void RtcmDecoder::decodeSSR(
 			entry.measType	= PHAS;
 			entry.Sat		= Sat;
 			entry.tini		= tow2Time(epochTime);
-			entry.tfin		= entry.tini + acsConfig.ssrOpts.phase_bias_valid_time;
+			entry.tfin		= entry.tini + acsConfig.ssrInOpts.phase_bias_valid_time;
 
 			for (int k = 0; k < ssrPhase.nbias && i + 32 <= message_length * 8; k++)
 			{
@@ -448,7 +448,7 @@ void RtcmDecoder::decodeEphemeris(
 	{
 		if (i + 476 > message_length * 8)
 		{
-			BOOST_LOG_TRIVIAL(error) << "rtcm3 1019 length error: len=%d\n" << message_length;
+			BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1019 length error: len=%d\n" << message_length;
 			return;
 		}
 
@@ -495,7 +495,7 @@ void RtcmDecoder::decodeEphemeris(
 			GTime now = getGpst();
 
 			double tow	= time2gpst(now, &week);
-			eph.ttr		= gpst2time(week, floor(tow));
+			eph.ttm		= gpst2time(week, floor(tow));
 		}
 		eph.Sat		= SatSys(sys, prn);
 		eph.toe		= gpst2time(eph.week,eph.toes);
@@ -510,7 +510,7 @@ void RtcmDecoder::decodeEphemeris(
 		{
 			if (i + 496-12 > message_length * 8)
 			{
-				BOOST_LOG_TRIVIAL(error) << "rtcm3 1045 length error: len=%d\n" << message_length;
+				BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1045 length error: len=%d\n" << message_length;
 				return;
 			}
 		}
@@ -518,7 +518,7 @@ void RtcmDecoder::decodeEphemeris(
 		{
 			if (i + 504-12 > message_length * 8)
 			{
-				BOOST_LOG_TRIVIAL(error) << "rtcm3 1046 length error: len=%d\n" << message_length;
+				BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1046 length error: len=%d\n" << message_length;
 				return;
 			}
 		}
@@ -582,7 +582,7 @@ void RtcmDecoder::decodeEphemeris(
 		{
 			int week;
 			double tow	= time2gpst(utc2gpst(timeget()), &week);
-			eph.ttr		= gpst2time(week, floor(tow));
+			eph.ttm		= gpst2time(week, floor(tow));
 		}
 		eph.Sat		= SatSys(sys, prn);
 		eph.toe		= gpst2time(eph.week,eph.toes);
@@ -1414,8 +1414,8 @@ void RtcmStream::parseRTCM(
 			GTime curTime;
 			time(&curTime.time);
 			long int roundTime = curTime.time;
-			roundTime /= acsConfig.rtcm_rotate_period;
-			roundTime *= acsConfig.rtcm_rotate_period;
+			roundTime /= acsConfig.rotate_period;
+			roundTime *= acsConfig.rotate_period;
 			curTime.time = roundTime;
 
 			string logtime = curTime.to_string(0);
@@ -1428,7 +1428,7 @@ void RtcmStream::parseRTCM(
 
 			//Write the custom time stamp message.
 			RtcmEncoder encoder;
-			encoder.encodeTimeStampRTCM();
+			encoder.encodeTimeStampRTCM();			//todo aaron, this looks screwy, needs a return value to work?
 			encoder.encodeWriteMessages(ofs);
 
 			//copy the message to the output file too

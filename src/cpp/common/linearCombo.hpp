@@ -61,13 +61,11 @@ typedef struct
 } lc_t;
 
 //forward declarations
-struct nav_t;
+struct Navigation;
 
 S_LC	getLC(double L_A, double L_B, double P_A, double P_B, double lamA, double lamB, double* c1_out, double* c2_out);
 S_LC&	getLC(lc_t& lcBase, E_FType fA, E_FType fB);
 S_LC&	getLC(Obs& obs, lc_t& lcBase, E_FType fA, E_FType fB);
-
-void obs2lc(FILE* fppde, Obs& obs, lc_t& lc, const nav_t* nav, int cscase, int csfreq);
 
 void obs2lcs(
 	Trace&		trace,

@@ -74,3 +74,39 @@ SUBROUTINE eop_rd (EOP_fname, EOP_sol, mjd , eop)
 
 
 END
+
+SUBROUTINE eop_rd_arc (EOP_fname, EOP_SOL, from, to, rowcount, my_eop_data)
+
+      USE mdl_precision
+      USE mdl_num
+      use pod_yaml
+      IMPLICIT NONE
+
+! ----------------------------------------------------------------------
+! Dummy arguments declaration
+! ----------------------------------------------------------------------
+! IN
+      REAL (KIND = prec_d), INTENT (IN) :: from , to
+      INTEGER (KIND = prec_int1), INTENT(IN) :: EOP_sol
+      CHARACTER (LEN=512), INTENT(IN) :: EOP_fname
+! OUT
+      INTEGER (KIND = prec_int4), INTENT(OUT) :: rowcount
+      REAL (KIND = prec_d), INTENT(OUT) :: my_eop_data(MAX_ERP_ROWS, EOP_MAX_ARRAY)
+! ----------------------------------------------------------------------
+
+! ----------------------------------------------------------------------
+! Local vars
+! ----------------------------------------------------------------------
+      INTEGER (KIND = prec_int4) :: idx, i, allocateStatus
+
+      if (EOP_SOL == EOP_SUPER_FAST) then
+          call erp_igu_read(EOP_fname, from, to, idx, my_eop_data)
+      else if (EOP_SOL == EOP_FAST) then
+          call eop_finals_arc(EOP_fname, from, to, idx, my_eop_data)
+      else if (EOP_SOL == EOP_C04T) then
+          call eop_c04_rd(EOP_fname, from, to, idx, my_eop_data)
+      end if
+
+      rowcount = idx
+end
+

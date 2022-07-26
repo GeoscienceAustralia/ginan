@@ -46,7 +46,7 @@ module pod_yaml
    integer*2 yml_iau_model
    integer*2 yml_time_scale
    integer*2 yml_ECOM_mode
-   logical   yml_EMP_mode
+   logical   yml_EMP_mode, yml_sp3_output_is_itrf
    integer*2 yml_apriori_srp
    integer*2 ios_keyy
    integer*2 yml_pulse_epoch_number, yml_pulse_parameter_count, yml_pulse_ref_frame
@@ -233,6 +233,9 @@ module pod_yaml
    integer*2 one
    parameter (one = 1)
 
+   ! max number of ERP rows to be included
+   integer*4 MAX_ERP_ROWS
+   parameter (MAX_ERP_ROWS = 21000)
    SAVE
 
    contains
@@ -347,6 +350,8 @@ subroutine get_yaml(yaml_filepath, is_pod_data)
       yml_ephemeris_data_file = pod_options_dict%get_string("DE_fname_data", "", my_error_p)
       yml_ocean_tides_file = pod_options_dict%get_string("ocean_tides_model_file", "", my_error_p)
       yml_write_sp3_velocities = pod_options_dict%get_logical("sp3_velocity", .false., my_error_p)
+      ! unlike other logicals this one is true by default
+      yml_sp3_output_is_itrf = pod_options_dict%get_logical("sp3_itrf", .true., my_error_p)
       yml_write_partial_velocities = pod_options_dict%get_logical("partials_velocity", .false., my_error_p)
       yml_estimator_iterations = pod_options_dict%get_integer("estimator_iterations", -1, my_error_p)
       srp_dict = pod_options_dict%get_dictionary("srp_apriori_model", .true., my_error_p)
@@ -430,9 +435,9 @@ subroutine get_yaml(yaml_filepath, is_pod_data)
        STOP
    else
       call get_pod_data(pod_data_dict, my_error, yml_pod_data_prn,&
-              yml_pod_data_initial_epoch, yml_pod_data_state_vector)  
+              yml_pod_data_initial_epoch, yml_pod_data_state_vector,&
+              yml_pod_data_ref_frame)  
       is_pod_data = .true.
-      yml_pod_data_ref_frame = yml_ic_input_refsys
       ! parse initial_epoch to get year, month, day, secs
       if (len_trim(yml_pod_data_initial_epoch) .ge. 18) then
           read(yml_pod_data_initial_epoch, '(I4XI2XI2XD7.4)', IOSTAT=ios_keyy) yml_pod_data_initial_year,&
@@ -1163,19 +1168,27 @@ function get_ECOM_mode(dict, error)
 end function get_ECOM_mode
 
 subroutine get_pod_data(pod_data_dict, error, prn, &
-                init_epoch, state_vector)
+                init_epoch, state_vector, ref_frame)
    type (type_dictionary), pointer :: pod_data_dict, ref_frame_dict
    type (type_error) :: error
    type (type_error), pointer :: e
 
    character(*) prn, init_epoch, state_vector
+   integer*2 ref_frame
 
    nullify (e)
-   nullify (time_scale_dict)
+   nullify (ref_frame_dict)
 
    prn = pod_data_dict%get_string("satellite_PRN", "", e)
    init_epoch = pod_data_dict%get_string("initial_epoch", "", e)
    state_vector = pod_data_dict%get_string("state_vector", "", e)
+   ref_frame_dict = pod_data_dict%get_dictionary("reference_frame", .true., e)
+   if (.not. associated(ref_frame_dict)) then
+       write (*,*) "Warning: No reference system in pod_data, defaulting to ITRF"
+       ref_frame = ITRF
+   else
+       ref_frame = get_reference_system(ref_frame_dict, error)
+   end if
 
    if (associated(e)) then
       error = e

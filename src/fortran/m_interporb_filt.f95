@@ -121,7 +121,7 @@ data_rate = 1
 	  ! Data rate of intial orbit matrix (in sec)
       DO i = 1 , Nepochs_0-1
 		if ( INT(ORB_matrix(i+1,1)) - INT(ORB_matrix(i,1)) == 0 ) then
-			data_rate = INT( ORB_matrix(2,2) - ORB_matrix(1,2) )
+			data_rate = INT( ORB_matrix(i+1,2) - ORB_matrix(i,2) )
 			EXIT
 		end if
 	  End Do

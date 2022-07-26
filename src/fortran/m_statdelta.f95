@@ -78,7 +78,7 @@ SUBROUTINE statdelta (ds1, ds2, dsr, RMSdsr, Sigmadsr, MEANdsr, MINdsr, MAXdsr)
       INTEGER (KIND = prec_int8) :: Nparam 
       REAL (KIND = prec_d), ALLOCATABLE, DIMENSION(:,:) :: ds_temp, ds1_2, ds2_2
       CHARACTER (LEN=100) mesg
-      logical allzero
+      logical allzero, msg_sent
       
 ! ----------------------------------------------------------------------	  
 
@@ -256,11 +256,17 @@ ALLOCATE (MAXdsr(Nelements), STAT = AllocateStatus)
         end if
 
 j = 0
+msg_sent = .false.
 Do i = 3 , sz2
    dx(:) = dsr(:,i)
    if (size(dx) == 0) then
-       print *,"error, size dx is 0, i = ", i
-       STOP
+       if (.not. msg_sent) print *,"error, size dx is 0, i = ", i
+       msg_sent = .true.
+       cycle
+   end if
+   if (msg_sent) then
+       print *, "resuming at i = ", i
+       msg_sent = .false.
    end if
    Call statist(dx, RMSdx, Sigmadx, MEANdx, MINdx, MAXdx)
    j = j + 1

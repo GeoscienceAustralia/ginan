@@ -117,10 +117,11 @@ SUBROUTINE gfc1 (gfmfilename, n_trunc, sigma_shc, GM_gfc, ae_gfc, Nmax_gfc, tide
 
 ! ----------------------------------------------------------------------
 ! Open .gfc file
-      OPEN (UNIT = UNIT_IN, FILE = TRIM (gfmfilename), IOSTAT = ios)
+      OPEN (UNIT = UNIT_IN, FILE = TRIM (gfmfilename), STATUS='OLD', IOSTAT = ios)
       IF (ios /= 0) THEN
          PRINT *, "Error in opening file:", gfmfilename
          PRINT *, "OPEN IOSTAT=", ios
+         STOP
       END IF
 ! ----------------------------------------------------------------------
 
@@ -379,10 +380,11 @@ SUBROUTINE gfc2 (gfmfilename,n_trunc,sigma_shc, mjd_t, Ntv_trunc, GM_gfc, ae_gfc
 
 ! ----------------------------------------------------------------------
 ! Open .gfc file
-      OPEN (UNIT = UNIT_IN, FILE = TRIM (gfmfilename), IOSTAT = ios)
+      OPEN (UNIT = UNIT_IN, FILE = TRIM (gfmfilename), STATUS = 'OLD', IOSTAT = ios)
       IF (ios /= 0) THEN
          PRINT *, "Error in opening file:", gfmfilename
          PRINT *, "OPEN IOSTAT=", ios
+         STOP
       END IF
 ! ----------------------------------------------------------------------
 

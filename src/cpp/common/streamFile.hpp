@@ -69,7 +69,7 @@ struct ACSFileStream
 				
 				if (filePos < 0)
 				{
-					BOOST_LOG_TRIVIAL(error) << "Negative file pos in file at " << filePos
+					BOOST_LOG_TRIVIAL(error) << "Error: Negative file pos in file at " << filePos
 					<< std::endl << " - " << strerror(errno);
 					return;
 				}	

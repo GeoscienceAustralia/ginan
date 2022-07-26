@@ -2,10 +2,16 @@
 #ifndef __ERP_HPP__
 #define __ERP_HPP__
 
+#include <string>
 #include <map>
 
+using std::string;
 using std::map;
 
+
+constexpr char xp_str[]		= "_XP";
+constexpr char yp_str[]		= "_YP";
+constexpr char ut1_str[]	= "_UT1";
 
 /** earth rotation parameter data type 
  */
@@ -18,6 +24,13 @@ struct ERPData
 	double ypr		= 0;		///< pole offset rate (rad/day) 
 	double ut1_utc	= 0;		///< ut1-utc (s) 
 	double lod		= 0;		///< delta length of day (s/day) 
+	
+	double xp_sigma			= 0;
+	double yp_sigma			= 0;
+	double xpr_sigma		= 0;
+	double ypr_sigma		= 0;
+	double ut1_utc_sigma	= 0;
+	double lod_sigma		= 0;
 };
 
 struct ERP

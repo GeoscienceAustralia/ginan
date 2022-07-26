@@ -17,12 +17,12 @@ void calculateSsrComb(
 {
 	if (ssrOutMap.empty())	
 	{
-		BOOST_LOG_TRIVIAL(warning) << "No suitable Ephemeris data available.";
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No suitable Ephemeris data available.";
 		return;
 	}
 
-	map<E_Sys, std::array<double,2>> commonClockOffsetsMap; // 0: bias; 1: bias rate
-	map<E_Sys, std::array<GTime, 2>> commonClockEpochsMap;	// 0: 1st straddle pt epoch; 1: 2nd straddle pt epoch
+	map<E_BiasGroup, std::array<double,2>> commonClockOffsetsMap;	// 0: bias; 1: bias rate
+	map<E_BiasGroup, std::array<GTime, 2>> commonClockEpochsMap;	// 0: 1st straddle pt epoch; 1: 2nd straddle pt epoch
 
 	for (auto& [Sat, ssrOut] : ssrOutMap)
 	{
@@ -61,79 +61,59 @@ void calculateSsrComb(
 			clkCorrections[i]	= ssrClkInput.vals[i].brdcClk
 								- ssrClkInput.vals[i].precClk;
 		}
-#if 0		
-		Vector3d	diffRAC[2];
-		double		diffClock[2];
 		
-		for (int dt : {0, 1})
+		if (acsConfig.ssrOpts.extrapolate_corrections)
 		{
-			double		ephRatio	= (ssrEph.t0 + dt - ssrEphInput.vals[0].time) / (ssrEphInput.vals[1].time - ssrEphInput.vals[0].time);
-			double		clkRatio	= (ssrClk.t0 + dt - ssrClkInput.vals[0].time) / (ssrClkInput.vals[1].time - ssrClkInput.vals[0].time);
-			
-			Vector3d	posCorrection	= posCorrections[0] 			+ ephRatio	* (posCorrections[1]			- posCorrections[0]);
-			double		clkCorrection	= clkCorrections[0]				+ clkRatio	* (clkCorrections[1]			- clkCorrections[0]);
-			
-			Vector3d	satPosition		= ssrEphInput.vals[0].brdcPos	+ ephRatio	* (ssrEphInput.vals[1].brdcPos	- ssrEphInput.vals[0].brdcPos);
-			Vector3d	satVelocity		= ssrEphInput.vals[0].brdcVel	+ ephRatio	* (ssrEphInput.vals[1].brdcVel	- ssrEphInput.vals[0].brdcVel);
-			
-			Vector3d	diffRac			= ecef2rac(satPosition, satVelocity) * posCorrection;
-			
-			diffRAC		[dt]	= diffRac;
-			diffClock	[dt]	= -clkCorrection;
-			
-			std::cout << std::fixed;
-			std::cout << Sat.id() << " " << dt <<" BRatio:       "<< ephRatio << std::endl;
-			std::cout << Sat.id() << " " << dt <<" iode:         "<< ssrOut.clkInput.vals[0].iode << std::endl;
-			std::cout << Sat.id() << " " << dt <<" brdc1:        "<< ssrEphInput.vals[0].brdcPos.transpose() << std::endl;
-			std::cout << Sat.id() << " " << dt <<" brdc2:        "<< ssrEphInput.vals[1].brdcPos.transpose() << std::endl;
-			std::cout << Sat.id() << " " << dt <<" prec1:        "<< ssrEphInput.vals[0].precPos.transpose() << std::endl;
-			std::cout << Sat.id() << " " << dt <<" prec2:        "<< ssrEphInput.vals[1].precPos.transpose() << std::endl;
-			std::cout << Sat.id() << " " << dt <<" diffEcef:     "<< posCorrection.transpose() << std::endl;
-			std::cout << Sat.id() << " " << dt <<" diffRac:      "<< diffRac.transpose() << std::endl;
-			std::cout << Sat.id() << " " << dt <<" brdc1:        "<< ssrClkInput.vals[0].brdcClk << std::endl;
-			std::cout << Sat.id() << " " << dt <<" brdc2:        "<< ssrClkInput.vals[1].brdcClk << std::endl;
-			std::cout << Sat.id() << " " << dt <<" prec1:        "<< ssrClkInput.vals[0].precClk << std::endl;
-			std::cout << Sat.id() << " " << dt <<" prec2:        "<< ssrClkInput.vals[1].precClk << std::endl;
-			std::cout << Sat.id() << " " << dt <<" clkCorrection:"<< clkCorrection << std::endl;
-		}
-			
-		ssrEph. deph	= diffRAC[0]; 
-		ssrEph.ddeph	= diffRAC[1] - diffRAC[0];
-	
-		ssrClk.dclk[0]	= diffClock[0];
-		ssrClk.dclk[1]	= diffClock[1] - diffClock[0];
-		ssrClk.dclk[2]	= 0;	// set to zero (not used)
+			Vector3d	diffRAC[2];
+			double		diffClock[2];
 		
-// 		std::cout << "deph:         "<< ssrEph. deph.transpose() << std::endl;
-// 		std::cout << "ddeph:        "<< ssrEph.ddeph.transpose() << std::endl;
-		std::cout << "deph:         "<< ssrEph. deph.transpose() << std::endl;
-		std::cout << Sat.id() << "dclk[0]:        "<< ssrClk.dclk[0] << std::endl;
-		std::cout << Sat.id() << "dclk[1]:        "<< ssrClk.dclk[1] << std::endl << std::endl;
-
-#else	/* Bypass interpolation */
-		ssrEph.deph     = ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) * posCorrections[1];
-		ssrClk.dclk[0]	= -clkCorrections[1];
-		ssrClk.dclk[1]	= 0;	// set to zero (not used)
-		ssrClk.dclk[2]	= 0;	// set to zero (not used)
-#endif		
+			for (int dt : {0, 1})
+			{
+				double		ephRatio	= (ssrEph.t0 + dt - ssrEphInput.vals[0].time) / (ssrEphInput.vals[1].time - ssrEphInput.vals[0].time);
+				double		clkRatio	= (ssrClk.t0 + dt - ssrClkInput.vals[0].time) / (ssrClkInput.vals[1].time - ssrClkInput.vals[0].time);
+			
+				Vector3d	posCorrection	= posCorrections[0] 			+ ephRatio	* (posCorrections[1]			- posCorrections[0]);
+				double		clkCorrection	= clkCorrections[0]				+ clkRatio	* (clkCorrections[1]			- clkCorrections[0]);
+			
+				Vector3d	satPosition		= ssrEphInput.vals[0].brdcPos	+ ephRatio	* (ssrEphInput.vals[1].brdcPos	- ssrEphInput.vals[0].brdcPos);
+				Vector3d	satVelocity		= ssrEphInput.vals[0].brdcVel	+ ephRatio	* (ssrEphInput.vals[1].brdcVel	- ssrEphInput.vals[0].brdcVel);
+			
+				Vector3d	diffRac			= ecef2rac(satPosition, satVelocity) * posCorrection;
+			
+				diffRAC		[dt]	= diffRac;
+				diffClock	[dt]	= -clkCorrection;
+			}
+			
+			ssrEph. deph	= diffRAC[0]; 
+			ssrEph.ddeph	= diffRAC[1] - diffRAC[0];
+	
+			ssrClk.dclk[0]	= diffClock[0];
+			ssrClk.dclk[1]	= 0; //diffClock[1] - diffClock[0];
+			ssrClk.dclk[2]	= 0;	// set to zero (not used)
+		}
+		else
+		{
+			ssrEph.deph		= ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) * posCorrections[1];
+			ssrClk.dclk[0]	= -clkCorrections[1];
+		}
 		
 		//adjust all clock corrections so that they remain within the bounds of the outputs
-		if (commonClockOffsetsMap[Sat.sys][0] == 0)
+		E_BiasGroup biasGroup = E_BiasGroup::_from_integral(Sat.biasGroup());
+		if (commonClockOffsetsMap[biasGroup][0] == 0)
 		{
-			commonClockOffsetsMap[Sat.sys][0] = ssrClk.dclk[0];
-			commonClockOffsetsMap[Sat.sys][1] = ssrClk.dclk[1];
-			commonClockEpochsMap [Sat.sys][0] = ssrClkInput.vals[0].time;
-			commonClockEpochsMap [Sat.sys][1] = ssrClkInput.vals[1].time;
+			commonClockOffsetsMap[biasGroup][0] = ssrClk.dclk[0];
+			commonClockOffsetsMap[biasGroup][1] = ssrClk.dclk[1];
+			commonClockEpochsMap [biasGroup][0] = ssrClkInput.vals[0].time;
+			commonClockEpochsMap [biasGroup][1] = ssrClkInput.vals[1].time;
 		}
-		if	( ssrClkInput.vals[0].time != commonClockEpochsMap[Sat.sys][0]
-			||ssrClkInput.vals[1].time != commonClockEpochsMap[Sat.sys][1])
+		if	( ssrClkInput.vals[0].time != commonClockEpochsMap[biasGroup][0]
+			||ssrClkInput.vals[1].time != commonClockEpochsMap[biasGroup][1])
 		{
 			continue; // commonClockOffset is lagging/leading this sat's clock, skip
 		}
-		ssrClk.dclk[0] -= commonClockOffsetsMap[Sat.sys][0];
-		ssrClk.dclk[1] -= commonClockOffsetsMap[Sat.sys][1];
+		ssrClk.dclk[0] -= commonClockOffsetsMap[biasGroup][0];
+		ssrClk.dclk[1] -= commonClockOffsetsMap[biasGroup][1];
 	}
-// 	std::cout << "Calculated Combined Messages.\n";
 }	
 
 
@@ -293,14 +273,13 @@ vector<uint8_t> RtcmEncoder::encodeSsrComb(
 
 		outputSsrEphToJson(ssrEph, Sat);
 		outputSsrClkToJson(ssrClk, Sat);
-		
 	}
 	
 	int bitl = byteLen*8-i;
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding combined.\n";
-		BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
 	i = setbituInc(buf, i, bitl, 0); 
 	
@@ -394,7 +373,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
-		BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
 	
 	i = setbituInc(buf,i,bitl,0);
@@ -474,7 +453,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrCode(
 	if (bitl > 7)
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Code.\n";
-		BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
 	
 	i = setbituInc(buf,i,bitl,0);

@@ -16,46 +16,22 @@ using std::map;
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
 #include "acsConfig.hpp"
+#include "testUtils.hpp"
 #include "constants.hpp"
+#include "metaData.hpp"
 #include "algebra.hpp"
 #include "ppp.hpp"
-
-bool isPositiveSemiDefinite(MatrixXd& mat)
-{
-	for (int i = 0; i < mat.rows(); i++)
-	for (int j = 0; j < i; j++)
-	{
-		double a	= mat(i, i);
-		double ab	= mat(i, j);
-		double b	= mat(j, j);
-
-		if (ab * ab > a * b)
-		{
-// 			std::cout << "large off diagonals " << std::endl;
-// 			return false;
-			if (ab > 0) ab = +sqrt(0.99 * a * b);
-			else		ab = -sqrt(0.99 * a * b);
-			mat(i, j) = ab;
-			mat(j, i) = ab;
-		}
-	}
-	return true;
-}
+#include "gpx.hpp"
 
 void postRTSActions(
 	bool		final,				///< This is a final answer, not intermediate - output to files
 	KFState&	kfState,			///< State to get filter traces from
-	string		clockFilename,		///< Filename for smoothed clock output
-	string		tropFilename,		///< Filename for smoothed troposphere output
-	string		erpFilename,		///< Filename for smoothed erp output
 	StationMap*	stationMap_ptr)		///< Pointer to map of stations
 {
-	std::ofstream ofs(kfState.rts_filename, std::ofstream::out | std::ofstream::app);
-	
 	if	(	final
 		&&	acsConfig.output_erp)
 	{
-		writeERPFromNetwork(erpFilename, kfState);
+		writeERPFromNetwork(kfState.metaDataMap[ERP_FILENAME_STR + SMOOTHED_SUFFIX], kfState);
 	}
 
 	if	(   final
@@ -66,7 +42,7 @@ void postRTSActions(
 		auto kfState2 = kfState;	//todo aaron, delete this after fixing something else, tryPrepareFilterPointers damages the state
 		tryPrepareFilterPointers(kfState2, stationMap_ptr);
 
-		auto filenameSysMap = getSysOutputFilenames(acsConfig.clocks_filename + SMOOTHED_SUFFIX, kfState2.time);
+		auto filenameSysMap = getSysOutputFilenames(acsConfig.clocks_filename + SMOOTHED_SUFFIX, kfState2.time);		//todo aaron, this sucks
 
 		for (auto [filename, sysMap] : filenameSysMap)
 		{
@@ -78,11 +54,12 @@ void postRTSActions(
 		&&	acsConfig.output_trop_sinex
 		&&	acsConfig.trop_data_source == +E_Ephemeris::KALMAN)
 	{
-		outputTropSinex(tropFilename, kfState.time, *stationMap_ptr, kfState, "MIX", true);		//todo aaron, no site specific version here
+		outputTropSinex(kfState.metaDataMap[TROP_FILENAME_STR + SMOOTHED_SUFFIX], kfState.time, *stationMap_ptr, "MIX", true);		//todo aaron, no site specific version here
 	}
 
 	if (final)
 	{
+		std::ofstream ofs(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
 		kfState.outputStates(ofs, " RTS");
 	}
 
@@ -92,6 +69,11 @@ void postRTSActions(
 	{
 		mongoStates(kfState, acsConfig.mongo_rts_suffix);
 	}
+	
+	if (acsConfig.output_gpx)
+	{
+		writeGPX(kfState.metaDataMap[GPX_FILENAME_STR + SMOOTHED_SUFFIX], "", kfState);
+	}
 
 // 	pppoutstat(ofs, archiveKF, true);
 }
@@ -100,24 +82,72 @@ void postRTSActions(
 */
 void RTS_Output(
 	KFState&	kfState,			///< State to get filter traces from
-	StationMap*	stationMap_ptr,		///< Pointer to map of stations
-	string		clockFilename,		///< Filename to output clocks to once smoothed
-	string		tropFilename,		///< Filename for smoothed troposphere output
-	string		erpFilename)		///< Filename for smoothed erp output
+	StationMap*	stationMap_ptr)		///< Pointer to map of stations
 {
-	string reversedStatesFilename = kfState.rts_filename + BACKWARD_SUFFIX;
+	string reversedStatesFilename = kfState.rts_basename + BACKWARD_SUFFIX;
 	
 	long int startPos = -1;
+	
+	BOOST_LOG_TRIVIAL(info) 
+	<< "Outputting RTS products...";
+	
+	map<string, string> metaDataMap = kfState.metaDataMap;
+	
 	while (1)
 	{
 		E_SerialObject type = getFilterTypeFromFile(startPos, reversedStatesFilename);
 
+		BOOST_LOG_TRIVIAL(debug) 
+		<< "Outputting " << type._to_string() << " from file position " << startPos << std::endl;
+		
 		switch (type)
 		{
 			default:
 			{
 				std::cout << "UNEXPECTED RTS OUTPUT TYPE";
 				return;
+			}		
+			
+			case E_SerialObject::METADATA:
+			{
+				bool pass = getFilterObjectFromFile(type, metaDataMap, startPos, reversedStatesFilename);
+				if (pass == false)
+				{
+					std::cout << "BAD RTS OUTPUT read";
+					return;
+				}
+				
+				break;
+			}
+			
+			case E_SerialObject::MEASUREMENT:
+			{
+				KFMeas archiveMeas;
+				bool pass = getFilterObjectFromFile(type, archiveMeas, startPos, reversedStatesFilename);
+				if (pass == false)
+				{
+					std::cout << "BAD RTS OUTPUT read";
+					return;
+				}
+				
+				std::ofstream ofs(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
+				if (!ofs)
+				{
+					std::cout << "BAD RTS Write to " << kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX];
+					break;
+				}
+				
+				if (acsConfig.output_residuals)
+				{
+					outputResiduals(ofs, archiveMeas, -1, 0, archiveMeas.obsKeys.size());
+				}
+				
+				if (acsConfig.output_mongo_measurements)
+				{
+					mongoMeasResiduals(archiveMeas.time, archiveMeas.obsKeys, archiveMeas.V, archiveMeas.VV, archiveMeas.R, acsConfig.mongo_rts_suffix);
+				}
+				
+				break;
 			}
 
 			case E_SerialObject::FILTER_PLUS:
@@ -131,17 +161,21 @@ void RTS_Output(
 					return;
 				}
 				
-				archiveKF.rts_filename = kfState.rts_filename;
+				archiveKF.metaDataMap = metaDataMap;
+				
+				archiveKF.dx = VectorXd::Zero(archiveKF.x.rows());
 				
 				if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
 				{
+					TempDisabler td(acsConfig.output_mongo_measurements);
+				
 					KFState ARRTScopy = archiveKF;
 					int nfix = smoothdAmbigResl(ARRTScopy);
-					postRTSActions(true, ARRTScopy, clockFilename, tropFilename, erpFilename, stationMap_ptr);
+					postRTSActions(true, ARRTScopy, stationMap_ptr);
 				}
 				else
 				{
-					postRTSActions(true, archiveKF, clockFilename, tropFilename, erpFilename, stationMap_ptr);
+					postRTSActions(true, archiveKF, stationMap_ptr);
 				}
 				
 				break;
@@ -152,16 +186,20 @@ void RTS_Output(
 		{
 			return;
 		}
+		if (startPos < 0)
+		{
+			BOOST_LOG_TRIVIAL(error) 
+			<< "Oopsie " << std::endl;
+			
+			return;
+		}
 	}
 }
 
 KFState RTS_Process(
 	KFState&	kfState,
 	bool		write,
-	StationMap*	stationMap_ptr,
-	string		clockFilename,
-	string		tropFilename,
-	string		erpFilename)
+	StationMap*	stationMap_ptr)
 {
 	if (kfState.rts_lag == 0)
 	{
@@ -170,14 +208,15 @@ KFState RTS_Process(
 	
 	MatrixXd transitionMatrix;
 
-	KFState kalmanMinus;
-	KFState smoothedKF;
+	KFState	kalmanMinus;
+	KFState	smoothedKF;
+	KFMeas	measurements;
 
 	bool smoothedXready = false;
 	bool smoothedPready = false;
 
-	string inputFile	= kfState.rts_forward_filename;
-	string outputFile	= kfState.rts_filename + BACKWARD_SUFFIX;
+	string inputFile	= kfState.rts_basename + FORWARD_SUFFIX;
+	string outputFile	= kfState.rts_basename + BACKWARD_SUFFIX;
 
 	if (write)
 	{
@@ -190,6 +229,8 @@ KFState RTS_Process(
 	{
 		E_SerialObject type = getFilterTypeFromFile(startPos, inputFile);
 
+// 		std::cout << std::endl << "Found " << type._to_string();
+		
 		if (type == +E_SerialObject::NONE)
 		{
 			break;
@@ -199,7 +240,33 @@ KFState RTS_Process(
 		{	
 			default:
 			{
-// 				std::cout << "Unknown rts type" << std::endl;
+				std::cout << "Unknown rts type" << std::endl;
+				break;
+			}
+			case E_SerialObject::METADATA:
+			{
+				bool pass = getFilterObjectFromFile(type, smoothedKF.metaDataMap, startPos, inputFile);
+				if (pass == false)
+				{
+					std::cout << "CREASS" << std::endl;
+					return KFState();
+				}
+				
+				if (write)
+				{
+					spitFilterToFile(smoothedKF.metaDataMap,	E_SerialObject::METADATA, outputFile);
+				}
+				
+				break;
+			}
+			case E_SerialObject::MEASUREMENT:
+			{
+				bool pass = getFilterObjectFromFile(type, measurements, startPos, inputFile);
+				if (pass == false)
+				{
+					return KFState();
+				}
+				
 				break;
 			}
 			case E_SerialObject::TRANSITION_MATRIX:
@@ -261,12 +328,15 @@ KFState RTS_Process(
 
 				if (smoothedPready == false)
 				{
+					kalmanPlus.metaDataMap = kfState.metaDataMap;
+					
 					smoothedPready	= true;
 					smoothedKF		= kalmanPlus;
 
 					if (write)
 					{
-						spitFilterToFile(smoothedKF, E_SerialObject::FILTER_PLUS, outputFile);
+						spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_PLUS, outputFile);
+						spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT, outputFile);
 					}
 
 					break;
@@ -294,14 +364,28 @@ KFState RTS_Process(
 
 				MatrixXd Ck = kalmanPlus.P * F.transpose() * Pinv;
 
-				smoothedKF.x = ( kalmanPlus.x + Ck * (smoothedKF.x - kalmanMinus.x)						).eval();
-				smoothedKF.P = ( kalmanPlus.P + Ck * (smoothedKF.P - kalmanMinus.P) * Ck.transpose()	).eval();
-
+				VectorXd deltaX = Ck * (smoothedKF.x - kalmanMinus.x);
+				MatrixXd deltaP = Ck * (smoothedKF.P - kalmanMinus.P) * Ck.transpose();
+				
+				smoothedKF.dx	= deltaX;
+				smoothedKF.x	= deltaX + kalmanPlus.x;
+				smoothedKF.P	= deltaP + kalmanPlus.P;
+				
+				if (measurements.H.cols() == deltaX.rows())
+				{
+					measurements.VV -= measurements.H * deltaX;
+				}
+				else
+				{
+					std::cout << "screwy" << std::endl;
+				}
+				
 				smoothedKF.kfIndexMap = kalmanPlus.kfIndexMap;
 
 				if (write)
 				{
-					spitFilterToFile(smoothedKF, E_SerialObject::FILTER_PLUS, outputFile);
+					spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_PLUS, outputFile);
+					spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT, outputFile);
 				}
 				else
 				{
@@ -311,8 +395,14 @@ KFState RTS_Process(
 						final = true;
 					}
 					
-					smoothedKF.rts_filename = kfState.rts_filename;
-					postRTSActions(final, smoothedKF, clockFilename, tropFilename, erpFilename, stationMap_ptr);
+// 					smoothedKF.metaDataMap = kfState.metaDataMap;	//todo aaron check this
+					postRTSActions(final, smoothedKF, stationMap_ptr);
+					
+					if	(  acsConfig.output_mongo_measurements
+						&& acsConfig.output_intermediate_rts)
+					{
+						mongoMeasResiduals(smoothedKF.time, measurements.obsKeys, measurements.V, measurements.VV, measurements.R, acsConfig.mongo_rts_suffix);
+					}
 				}
 				
 				break;
@@ -327,13 +417,13 @@ KFState RTS_Process(
 	
 	if (write)
 	{
-		RTS_Output(kfState, stationMap_ptr, clockFilename, tropFilename, erpFilename);
+		RTS_Output(kfState, stationMap_ptr);
 	}
 
 	if (lag == kfState.rts_lag)
 	{
 		//delete the beginning of the history file
-		string tempFile	= kfState.rts_forward_filename + "_temp";
+		string tempFile	= kfState.rts_basename + FORWARD_SUFFIX + "_temp";
 		{
 			std::ofstream	tempStream(tempFile,	std::ifstream::binary | std::ofstream::out | std::ofstream::trunc);
 			std::fstream	inputStream(inputFile,	std::ifstream::binary | std::ifstream::in);
@@ -353,19 +443,18 @@ KFState RTS_Process(
 		std::rename(tempFile.c_str(), inputFile.c_str());
 	}
 	
-	if (kfState.rts_lag < 0)
+	if	(  kfState.rts_lag < 0
+		&& acsConfig.retain_rts_files == false)
 	{
 		BOOST_LOG_TRIVIAL(info) 
 		<< "Removing RTS file: " << inputFile;
 		
 		std::remove(inputFile.c_str());
 		
-		string reversedStatesFilename = kfState.rts_filename + BACKWARD_SUFFIX;
-		
 		BOOST_LOG_TRIVIAL(info) 
-		<< "Removing RTS file: " << reversedStatesFilename;
+		<< "Removing RTS file: " << outputFile;
 		
-		std::remove(reversedStatesFilename.c_str());
+		std::remove(outputFile.c_str());
 	}
 
 	if (lag == kfState.rts_lag)

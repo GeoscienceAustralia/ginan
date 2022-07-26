@@ -61,7 +61,7 @@ int dataindex(
 /* read ionex dcb aux data ----------------------------------------------------*/
 void readionexdcb(
 	std::ifstream& in,
-	nav_t* navi)
+	Navigation* navi)
 {
 	char buff[1024];
 	SinexBias entry;
@@ -237,7 +237,8 @@ void readionexdcb(
 	}
 }
 
-/* read ionex header ---------------------------------------------------------*/
+/* read ionex header 
+ */
 double readionexh(
 	std::ifstream& in,
 	double* lats, 
@@ -245,7 +246,7 @@ double readionexh(
 	double* hgts, 
 	double& rb, 
 	double& nexp,
-	nav_t* navi)
+	Navigation* navi)
 {
 	double ver = 0;
 
@@ -330,7 +331,7 @@ int readionexb(
 	const double* hgts,
 	double rb,
 	double nexp,
-	nav_t* navi)
+	Navigation* navi)
 {
 	GTime time = {};
 	int type = 0;
@@ -450,13 +451,11 @@ int readionexb(
 * read ionex ionospheric tec grid file
 * args   : char   *file       I   ionex tec grid file
 *                                 (wind-card * is expanded)
-*          nav_t  *nav        IO  navigation data
-*                                 nav->nt, nav->ntmax and nav->tec are modified
 * notes  : see ref [1]
 *-----------------------------------------------------------------------------*/
 void readtec(
 	string file,
-	nav_t* navi)
+	Navigation* navi)
 {
 	BOOST_LOG_TRIVIAL(debug)
 	<< "readtec : file=" << file;
@@ -464,8 +463,8 @@ void readtec(
 	std::ifstream inputStream(file);
 	if (!inputStream)
 	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "ionex file open error " << file;
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: ionex file open error " << file;
 
 		return;
 	}
@@ -479,8 +478,8 @@ void readtec(
 	double version = readionexh(inputStream, lats, lons, hgts, rb, nexp, navi);
 	if (version <= 0)
 	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "ionex file format error " << file;
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: ionex file format error " << file;
 
 		return;
 	}
@@ -575,14 +574,14 @@ int interptec(
 }
 
 /* ionosphere delay by tec grid data -----------------------------------------*/
-int iondelay(
-	GTime time, 
-	const tec_t& tec,
-	const double* pos, 
-	const double* azel,
-	int opt,
-	double& delay,
-	double& var)
+bool iondelay(
+	GTime			time, 
+	const tec_t&	tec,
+	const double*	pos, 
+	const double*	azel,
+	int				opt,
+	double&			delay,
+	double&			var)
 {
 	// if (fdebug)
 	// 	fprintf(fdebug, "%s: time=%s pos=%.1f %.1f azel=%.1f %.1f\n", __FUNCTION__, time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D);
@@ -615,7 +614,7 @@ int iondelay(
 		double rms;
 		double vtec;
 		if (!interptec(tec, i, posp, vtec, rms))
-			return 0;
+			return false;
 
 		const double fact = 40.30E16 / FREQ1 / FREQ1; /* tecu->L1 iono (m) */
 		delay	+= fact * fs * vtec;
@@ -625,32 +624,21 @@ int iondelay(
 	// if (fdebug)
 	// 	fprintf(fdebug, "%s: delay=%7.2f std=%6.2f\n",__FUNCTION__, delay, sqrt(var));
 
-	return 1;
+	return true;
 }
 
-/* ionosphere model by tec grid data -------------------------------------------
-* compute ionospheric delay by tec grid data
-* args   : gtime_t time     I   time (gpst)
-*          nav_t  *nav      I   navigation data
-*          double *pos      I   receiver position {lat,lon,h} (rad,m)
-*          double *azel     I   azimuth/elevation angle {az,el} (rad)
-*          int    opt       I   model option
-*                                bit0: 0:earth-fixed,1:sun-fixed
-*                                bit1: 0:single-layer,1:modified single-layer
-*          double *delay    O   ionospheric delay (L1) (m)
-*          double *var      O   ionospheric dealy (L1) variance (m^2)
-* return : status (1:ok,0:error)
-* notes  : before calling the function, read tec grid data by calling readtec()
+/** ionosphere model by tec grid data 
+ * Before calling the function, read tec grid data by calling readtec()
 *          return ok with delay=0 and var=VAR_NOTEC if el<MIN_EL or h<MIN_HGT
-*-----------------------------------------------------------------------------*/
-int iontec(
-	GTime time,
-	const nav_t*	nav,
-	const double*	pos,
-	const double*	azel,
-	int				opt,
-	double&			delay,
-	double&			var)
+*/
+bool iontec(
+	GTime				time,	///< time (gpst)
+	const Navigation*	nav,	///< navigation data
+	const double*		pos,	///< receiver position {lat,lon,h} (rad,m)
+	const double*		azel,	///< azimuth/elevation angle {az,el} (rad)
+	int					opt,	///< model option* 		bit0: 0:earth-fixed,1:sun-fixed*		bit1: 0:single-layer,1:modified single-layer
+	double&				delay,	///< ionospheric delay (L1) (m)
+	double&				var)	///< ionospheric dealy (L1) variance (m^2)
 {
 	// if (fdebug)
 	// 	fprintf(fdebug, "iontec  : time=%s pos=%.1f %.1f azel=%.1f %.1f nt=%ld\n", time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D, nav->tecList.size());
@@ -661,7 +649,7 @@ int iontec(
 	if	(  azel[1]	< MIN_EL
 		|| pos[2]	< MIN_HGT)
 	{
-		return 1;
+		return true;
 	}
 
 	auto it = nav->tecMap.lower_bound(time);
@@ -670,7 +658,7 @@ int iontec(
 		// if (fdebug)
 		// 	fprintf(fdebug, "%s: tec grid out of period\n", time.to_string(0).c_str());
 
-		return 1;
+		return true;
 	}
 	
 	int stat[2] = {};
@@ -720,11 +708,11 @@ int iontec(
 		// if (fdebug)
 		// 	fprintf(fdebug, "%s: tec grid out of area pos=%6.2f %7.2f azel=%6.1f %5.1f\n",  time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D);
 
-		return 0;
+		return false;
 	}
 
 	// if (fdebug)
 	// 	fprintf(fdebug, "iontec  : delay=%5.2f std=%5.2f\n", delay, sqrt(var));
 
-	return 1;
+	return true;
 }

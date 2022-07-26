@@ -29,22 +29,6 @@ void tracematpde(int lv, Trace& stream, MatrixXd* mat, int width, int precision)
 void tracematpde(int lv, Trace& stream, VectorXd* vec, int width, int precision);
 
 template<typename... Arguments>
-void tracepde(int level, Trace& stream, std::string const& fmt, Arguments&&... args)
-{
-	if (level > trace_level)
-		return;
-
-	stream << "*" << level << " ";
-	boost::format f(fmt);
-	int unroll[] {0, (f % std::forward<Arguments>(args), 0)...};
-	static_cast<void>(unroll);
-
-	stream << boost::str(f);
-
-	stream.flush();
-}
-
-template<typename... Arguments>
 void tracepdeex(int level, Trace& stream, std::string const& fmt, Arguments&&... args)
 {
 	if (level > trace_level)
@@ -71,7 +55,7 @@ std::ofstream getTraceFile(
 	if (!trace)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Could not open trace file for " << thing.id << " at " << thing.traceFilename;
+		<< "Error: Could not open trace file for " << thing.id << " at " << thing.traceFilename;
 	}
 
 	return trace;
@@ -80,7 +64,6 @@ std::ofstream getTraceFile(
 //forward declarations
 struct Obs;
 
-void tracepde(int level, FILE *fppde, const char *format,...);
 void tracepdeex(int level, FILE *fppde, const char *format, ...);
 void tracematpde(int level, FILE *fppde, const double *A, int n,
 						int m, int p, int q);

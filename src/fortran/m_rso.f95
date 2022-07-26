@@ -127,10 +127,11 @@ SUBROUTINE rso (fname, PRN, orbRSO)
 
 ! ----------------------------------------------------------------------
 ! Open file
-      OPEN (UNIT = UNIT_IN, FILE = TRIM (fname), IOSTAT = ios)
+      OPEN (UNIT = UNIT_IN, FILE = TRIM (fname), STATUS='OLD', IOSTAT = ios)
       IF (ios /= 0) THEN
          PRINT *, "Error in opening file:", fname
          PRINT *, "OPEN IOSTAT=", ios
+         STOP
       END IF
 ! ----------------------------------------------------------------------
 ! variable initialisation

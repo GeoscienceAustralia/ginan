@@ -77,6 +77,11 @@ struct RawObs
 
 struct IonoObs
 {
+	IonoObs() : ionExclude(0)
+	{
+		
+	}
+	
 	double STECtoDELAY;
 	int    STECtype;
 	double STECsmth;
@@ -86,7 +91,17 @@ struct IonoObs
 	double lonIPP[MAX_LAYER_NUM];
 	double angIPP[MAX_LAYER_NUM];
 
-	int ionExclude = false;
+	union
+	{
+		unsigned int ionExclude;
+		struct
+		{
+			unsigned ionExcludeElevation	: 1;
+			unsigned ionExcludeCode			: 1;
+			unsigned ionExcludeLC			: 1;
+			unsigned ionExcludeRange		: 1;
+		};
+	};
 };
 
 //forward declarations for pointers below
@@ -96,7 +111,7 @@ struct SatOrbit;
 
 /** Observation, and data derived from it.
 * All processing relevant for a single rec:sat:epoch should be stored here.
-* For data that should persist across epochs: use satStat.
+* For data that should persist across epochs: use SatStat.
 **/
 struct Obs : RawObs, IonoObs
 {
@@ -134,9 +149,10 @@ struct Obs : RawObs, IonoObs
 			unsigned excludeSystem			: 1;
 			unsigned excludeSlip			: 1;
 			unsigned excludeTrop			: 1;
-			unsigned excludeMissingSig		: 1;
 			unsigned excludeOutlier			: 1;
 			unsigned excludeBadSPP			: 1;
+			unsigned excludeConfig			: 1;
+			unsigned excludeSVH				: 1;
 		};
 	};
 };

@@ -88,7 +88,7 @@ SUBROUTINE pd_force (mjd, t_sec, rsat, vsat, Fvec, PDr, PDv, PD_param, integr_st
 ! Local variables declaration
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_d), DIMENSION(3) :: rsat_icrf, vsat_icrf, rsat_itrf, vsat_itrf, v_TRS_1, v_TRS_2
-	  DOUBLE PRECISION EOP_cr(7)
+	  DOUBLE PRECISION EOP_cr(EOP_MAX_ARRAY)
       DOUBLE PRECISION CRS2TRS(3,3), TRS2CRS(3,3), d_CRS2TRS(3,3), d_TRS2CRS(3,3)	  
 ! ----------------------------------------------------------------------
       REAL (KIND = prec_d), DIMENSION(3) :: SF, SFgrav, SFnongrav, SFemp    
@@ -140,6 +140,7 @@ SUBROUTINE pd_force (mjd, t_sec, rsat, vsat, Fvec, PDr, PDv, PD_param, integr_st
 ! ----------------------------------------------------------------------
      INTEGER (KIND = prec_int8) :: N_param, PD_Param_ID
       REAL (KIND = prec_d), DIMENSION(3,3) :: Ugrav_icrf, Ugrav_itrf, Ugrav
+      REAL (KIND = prec_d), DIMENSION(3,3) :: Uplanets_icrf, U_perturb
       REAL (KIND = prec_d) :: PD_EMP_r(3,3), PD_EMP_v(3,3)
       REAL (KIND = prec_d), DIMENSION(:,:), ALLOCATABLE :: PD_EMP_param
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: PD_ECOM_param
@@ -225,10 +226,10 @@ CALL EOP (mjd, EOP_cr, CRS2TRS, TRS2CRS, d_CRS2TRS, d_TRS2CRS)
 
 ! EOP data corrected at computation epoch 
 ! Polar motion coordinates
-xp = EOP_cr(2) 
-yp = EOP_cr(3)
+xp = EOP_cr(EOP_X) 
+yp = EOP_cr(EOP_Y)
 ! UT1-UTC
-ut1_utc = EOP_cr(4) 
+ut1_utc = EOP_cr(EOP_UT1) 
 
 ! State Vector in ITRF
 ! r in ITRF
@@ -277,7 +278,7 @@ Else
 n_max = GFM_Nmax
 m_max = GFM_Mmax
 
-! Partial derivatives
+! Acceleration vector and partial derivatives
 Call pd_geopotential(GMearth, aEarth, rsat_itrf, n_max, m_max, GFM_Cnm, GFM_Snm, Fgrav_itrf, Ugrav_itrf)
 
 ! Acceleration vector transformation from terrestrial to inertial frame
@@ -310,6 +311,9 @@ NCTR = 3
 
 ! Planets perturbation loop
 aPlanets_icrf = (/ 0.D0, 0.0D0, 0.0D0 /)
+Uplanets_icrf(1,:) = (/0.0D0, 0.0D0, 0.0D0 /)
+Uplanets_icrf(2,:) = (/0.0D0, 0.0D0, 0.0D0 /)
+Uplanets_icrf(3,:) = (/0.0D0, 0.0D0, 0.0D0 /)
 DO NTARG_body = 1 , 11
    IF (NTARG_body /= 3) THEN 
 		
@@ -328,9 +332,18 @@ DO NTARG_body = 1 , 11
 ! ----------------------------------------------------------------------
 ! Point-mass perturbations vector due to the selected celestial body
 If (yml_planetary_perturbations_enabled) Then
+! Acceleration vector
       CALL force_gm3rd (rbody, rsat_icrf, GMbody , a_perturb)
+
 ! Overall (sum) planetary pertrubation acceleration vector
-	  aPlanets_icrf = aPlanets_icrf + a_perturb
+	aPlanets_icrf = aPlanets_icrf + a_perturb
+
+! Partial derivatives due to Sun and Moon
+   if (NTARG == 11 .or. NTARG == 10) then
+      CALL pd_gm3rd (rbody, rsat_icrf, GMbody , U_perturb)
+      Uplanets_icrf = Uplanets_icrf + U_perturb
+   endif
+
 end if
 ! ----------------------------------------------------------------------
 
@@ -669,7 +682,7 @@ Fvec = SF
 ! Partial derivatives w.r.t state vector - overall matrix
 ! ----------------------------------------------------------------------
 ! PD w.r.t position vector
-PDr = Ugrav_icrf + PD_EMP_r
+PDr = Ugrav_icrf + Uplanets_icrf + PD_EMP_r
 ! PD  w.r.t velocity vector
 PDv = 0.d0
 ! ----------------------------------------------------------------------

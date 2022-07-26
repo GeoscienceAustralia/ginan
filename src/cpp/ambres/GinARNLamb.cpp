@@ -57,7 +57,7 @@ void chk_arch(
 		if (meas)												archived.mea_fin = time;
 		else if ((time-archived.mea_fin) > opt.Max_Hold_tim )			keep = false;
 		
-		if (archived.hld_epc++ > opt.Max_Hold_epc )					keep = false;
+		if (++archived.hld_epc > opt.Max_Hold_epc )					keep = false;
 		
 		if (keep)
 		{
@@ -400,14 +400,15 @@ int updat_ambigt(
 		bia.outvari = Pfix(ind,ind);
 	}
 	
-	/* Store ambiguties */
-	for(auto& [key,ind] : AmbList)
+	// Store ambiguties
+	for (auto& [key,ind] : AmbList)
 	{
 		double val = xfix(ind);
 		double var = Pfix(ind,ind);
 		double vali = ROUND(val);
 		
-		if ( var < POSTAR_VAR && fabs(val-vali)<0.1 )
+		if	(  var < POSTAR_VAR 
+			&& fabs(val-vali) < 0.1)
 		{
 			AR_mealist[key].fix_fin = kfState.time;
 			AR_mealist[key].int_amb = (int) vali;
@@ -420,7 +421,8 @@ int updat_ambigt(
 	MatrixXd Bsto = Hsto.rightCols(nstates-nambig);
 
 	VectorXd zsto = zfix - Bsto * (xmea.tail(nstates-nambig)).eval();
-	if ( opt.ionmod == +E_IonoMode::IONO_FREE_LINEAR_COMBO ) 
+	
+	if (opt.ionmod == +E_IonoMode::IONO_FREE_LINEAR_COMBO) 
 		zsto += Asto*wmea;
 	
 	if (AR_VERBO)
@@ -430,10 +432,10 @@ int updat_ambigt(
 		trace << std::endl << "zsto: " << std::endl << zsto.transpose() << std::endl;
 	}
 	
-	for(int i = 0; i<nfix; i++)
+	for (int i = 0; i < nfix; i++)
 	{
 		Z_Amb Zsto;
-		for(int j = 0; j<nambig; j++)
+		for (int j = 0; j<nambig; j++)
 		{
 			KFKey key = ambState.ambmap[j];
 			double lam = opt.wavlen[key.Sat.sys];
@@ -442,8 +444,9 @@ int updat_ambigt(
 			if (Zcoef != 0)
 				Zsto[key] = Zcoef;
 		}
-		if ( Zsto.empty() ) 
+		if (Zsto.empty()) 
 			continue;
+		
 		incl_Zamb( trace, kfState.time, Zsto, zsto(i), opt.recv );
 	}
 	return nfix;
@@ -451,9 +454,9 @@ int updat_ambigt(
 
 /** Apply archived Z-ambiguities to float solution */
 int  apply_ambigt( 
-	Trace& trace,			///< Debug trace
-	KFState& kfState,		///< KF containing float/fixed solutions
-	GinAR_opt opt)			///< Ginan AR control options 
+	Trace&		trace,			///< Debug trace
+	KFState&	kfState,		///< KF containing float/fixed solutions
+	GinAR_opt	opt)			///< Ginan AR control options 
 {
 	auto& Zamb_list = ARstations[opt.recv].ZAmb_archive;
 	tracepdeex( ARTRCLVL+1, trace, "\n#ARES_NLAR Retrieving stored ambiguities %d", Zamb_list.size() );
@@ -463,13 +466,13 @@ int  apply_ambigt(
 	init.P = 0;
 	init.Q = 0;
 	
-	SatSys sat0 ={};
-	int nind=0;
+	SatSys sat0 = {};
+	int nind = 0;
 	
 	map<Z_Amb, double>	Zapplied;
 	vector<int> 		AmbReadindx;
 	map<KFKey,int>		AmbList;
-	int indH=0;
+	int indH = 0;
 	
 	for (auto& [Zamb, amb] : Zamb_list )
 	{
@@ -483,13 +486,13 @@ int  apply_ambigt(
 		AmbMeas.setNoise(FIXED_AMB_VAR);
 		
 		bool use = true;
-		tracepdeex( ARTRCLVL, trace, "\n#ARES_NLAR Applying: " );
+		tracepdeex(ARTRCLVL, trace, "\n#ARES_NLAR Applying: ");
 	
-		for (auto& [key,coef] : Zamb )
+		for (auto& [key, coef] : Zamb)
 		{
 			if (kfState.kfIndexMap.find(key) == kfState.kfIndexMap.end()) 
 			{
-				use=false; 
+				use = false; 
 				break;
 			}
 			
@@ -502,8 +505,9 @@ int  apply_ambigt(
 			measList.push_back(AmbMeas);
 			
 			Zapplied[Zamb] = amb.flt_amb;
-			for (auto& [key,coef] : Zamb )
-			if (AmbList.find(key)==AmbList.end())
+			
+			for (auto& [key,coef] : Zamb)
+			if (AmbList.find(key) == AmbList.end())
 			{
 				int indKF = kfState.kfIndexMap[key];
 				AmbReadindx.push_back(indKF);
@@ -515,13 +519,14 @@ int  apply_ambigt(
 		}
 	}
 	
-	if (nind<=0) 
+	if (nind <= 0) 
 		return 0;
 	
-	KFMeas combAmb = kfState.combineKFMeasList(measList);
+	KFMeas combAmb = kfState.combineKFMeasList(measList, kfState.time);
 	kfState.filterKalman(trace, combAmb, false);
 	
-	if(nind<5) return nind;
+	if (nind < 5)
+		return nind;
 	
 	/* Post fit residual check */	
 	VectorXd x_post = kfState.x(AmbReadindx);
@@ -545,7 +550,7 @@ int  apply_ambigt(
 	}
 	
 	indZ = 0;
-	if(opt.endu)
+	if (opt.endu)
 	for (auto& [Zamb, amb] : Zapplied )
 	{
 		if(fabs(v_post(indZ)) > 0.5)

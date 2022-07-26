@@ -1,15 +1,13 @@
-from dash import dcc
-from dash import html
-from dash.dependencies import Input, Output
+import logging
 
-# Connect to main app.py file
-from app import app
-from app import server
+from dash import dcc, html
+from dash.dependencies import Input, Output, State
 
-# Connect to your app pages
-from apps import meas, state, dbinfo, meas_polar
+import GinanEDA
+from app import app, server
+from GinanEDA.apps import dbinfo, meas, meas_polar, state, pos
+from GinanEDA.datasets import db
 
-from datasets import db
 
 CONTENT_STYLE = {
     "margin-left": "18rem",
@@ -27,44 +25,79 @@ SIDEBAR_STYLE = {
 }
 sidebar = html.Div(
     [
+        dcc.Store(id='session-store', storage_type='session', data={}),
+
         html.H2("GINAN", className="display-4"),
         html.P("EDA (MongoDB) ", className="lead"),
         html.Hr(),
-        html.P(f"{db.MONGO_URL} / {db.MONGO_DB}", className="lead", id="db-info-side"),
+        html.P(f"None / None", className="lead", id="db-info-side"),
         # dcc.NavLink("Change it", href="/dbselect", id="page-dbselect-link"),
         # html.P(f"{PEA_DB_NAME}", className="lead"),
         html.Hr(),
-        html.Ul(children=[html.Li(dcc.Link("Db Info",           href="/dbinfo", id="page-dbinfo-link")),
-                          html.Li(dcc.Link("States",           href="/states", id="page-states-link")),
-                          html.Li(dcc.Link("Measurements",     href="/measurements", id="page-measurements-link")),
-                          html.Li(dcc.Link("Measurements Polar",     href="/measurements-polar", id="page-measurements-polar-link"))
-                          ]),
+        html.Ul(
+            children=[
+                html.Li(dcc.Link("Db Info", href="/dbinfo", id="page-dbinfo-link")),
+                html.Li(dcc.Link("States", href="/states", id="page-states-link")),
+                html.Li(
+                    dcc.Link(
+                        "Measurements",
+                        href="/measurements",
+                        id="page-measurements-link",
+                    )
+                ),
+                html.Li(
+                    dcc.Link(
+                        "Measurements Polar",
+                        href="/measurements-polar",
+                        id="page-measurements-polar-link",
+                    )
+                ),
+                html.Li(
+                    dcc.Link(
+                        "Position Analysis",
+                        href="/position-analysis",
+                        id="page-position-link",
+                    )
+                ),
+            ]
+        ),
+        html.Div(id='dummy1'),
+
     ],
     style=SIDEBAR_STYLE,
 )
-content = html.Div(id='page-content', children=[], style=CONTENT_STYLE)
+content = html.Div(id="page-content", children=[], style=CONTENT_STYLE)
 
-app.layout = html.Div([dcc.Location(id='url', refresh=False), sidebar, content ])
+app.layout = html.Div([dcc.Location(id="url", refresh=False), sidebar, content])
 
-@app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')])
-def display_page(pathname):
-    if pathname == '/measurements':
-        return meas.layout()
-    if pathname == '/states':
-        return state.layout()
-    if pathname == '/measurements-polar':
-        return meas_polar.layout()
-    if pathname == '/dbinfo':
+
+@app.callback(Output("page-content", "children"), Input("url", "pathname"),     State("session-store", "data"),
+              )
+def display_page(pathname, datastore):
+    if pathname == "/measurements":
+        return meas.layout(datastore)
+    if pathname == "/states":
+        return state.layout(datastore)
+    if pathname == "/measurements-polar":
+        return meas_polar.layout(datastore)
+    if pathname == "/position-analysis":
+        return pos.layout(datastore)
+    if pathname == "/dbinfo":
         return dbinfo.layout
     else:
         return "404 Page Error! Please choose a link"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('--debug', action='store_true', default=False)
+    parser.add_argument("--debug", action="store_true", default=False)
     args = parser.parse_args()
     # print (args)
-    app.run_server(debug=args.debug, port=8080, host='0.0.0.0')
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
+
+    app.run_server(debug=args.debug, port=8080, host="0.0.0.0")

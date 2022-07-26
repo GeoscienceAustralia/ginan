@@ -246,7 +246,7 @@ void tidedisp(
 	time2epoch(utc2gpst(tutc),ep);
 	double mjd = ymdhms2jd(ep) - JD2MJD;
 
-	tracepde(3,trace,"tidedisp: tutc=%s\n", tutc.to_string(0).c_str());
+	tracepdeex(3,trace,"tidedisp: tutc=%s\n", tutc.to_string(0).c_str());
 
 	ERPValues erpv;
 	geterp(erp, tutc, erpv);
@@ -258,11 +258,11 @@ void tidedisp(
 	if (recPos.norm() <= 0)
 		return;
 
-	pos[0] = asin(recPos[2] / recPos.norm());
+	pos[0] = asin(recPos[2] / recPos.norm());		//todo aaron, use other function
 	pos[1] = atan2(recPos[1], recPos[0]);
 	xyz2enu(pos,E);
 
-	if (acsConfig.tide_solid)
+	if (acsConfig.model.tides.solid)
 	{
 		/* solid earth tides */
 
@@ -294,10 +294,10 @@ void tidedisp(
 			}
 		}
 
-		tracepde(lv, trace," %.6f      tide (solid)         = %14.4f %14.4f %14.4f\n",mjd,drt[0],drt[1],drt[2]);
+		tracepdeex(lv, trace," %.6f      tide (solid)         = %14.4f %14.4f %14.4f\n",mjd,drt[0],drt[1],drt[2]);
 	}
 	
-	if	( acsConfig.tide_otl
+	if	( acsConfig.model.tides.otl
 		&&otlDisplacement)
 	{
 		/* ocean tide loading */
@@ -314,10 +314,10 @@ void tidedisp(
 			}
 		}
 
-		tracepde(lv, trace, " %.6f      tide (ocean)         = %14.4f %14.4f %14.4f\n", mjd, drt[0], drt[1], drt[2]);
+		tracepdeex(lv, trace, " %.6f      tide (ocean)         = %14.4f %14.4f %14.4f\n", mjd, drt[0], drt[1], drt[2]);
 	}
 	
-	if 	(acsConfig.tide_pole)
+	if 	(acsConfig.model.tides.pole)
 	{
 		/* pole tide */
 		tide_pole(tut, pos, erpv, denu);
@@ -333,8 +333,8 @@ void tidedisp(
 			}
 		}
 
-		tracepde(lv, trace, " %.6f      tide (pole)          = %14.4f %14.4f %14.4f\n",mjd,drt[0],drt[1],drt[2]);
+		tracepdeex(lv, trace, " %.6f      tide (pole)          = %14.4f %14.4f %14.4f\n",mjd,drt[0],drt[1],drt[2]);
 	}
 
-	tracepde(5,trace, "tidedisp: dr=%.3f %.3f %.3f\n",dr(0),dr(1),dr(2));
+	tracepdeex(5,trace, "tidedisp: dr=%.3f %.3f %.3f\n",dr(0),dr(1),dr(2));
 }

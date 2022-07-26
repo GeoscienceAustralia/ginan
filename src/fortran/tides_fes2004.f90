@@ -307,10 +307,11 @@ Doodson_mult_T = RESHAPE ( (/                              &
 ! ----------------------------------------------------------------------
 ! Open file
       UNIT_IN = 9  												
-      OPEN (UNIT = UNIT_IN, FILE = TRIM (FESxxfname), IOSTAT = ios)
+      OPEN (UNIT = UNIT_IN, FILE = TRIM (FESxxfname), STATUS='OLD', IOSTAT = ios)
       IF (ios /= 0) THEN
          PRINT *, "Error in opening file:", FESxxfname
          PRINT *, "OPEN IOSTAT=", ios
+         STOP
       END IF
 ! ----------------------------------------------------------------------
 ! Read Header

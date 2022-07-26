@@ -11,15 +11,15 @@ using std::tuple;
 using std::list;
 using std::map;
 
+
+#include "eigenIncluder.hpp"
 #include "observations.hpp"
+#include "forceModels.hpp"
 #include "streamTrace.hpp"
 #include "corrections.hpp"
 #include "forceModels.hpp"
 #include "navigation.hpp"
-#include "acsStream.hpp"
-
-#include "eigenIncluder.hpp"
-#include "forceModels.hpp"
+#include "mongoWrite.hpp"
 #include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "station.hpp"
@@ -31,6 +31,8 @@ using std::map;
 #include <iostream>
 #include <fstream>
 
+/** Replace individual measurements with linear combinations
+ */
 KFMeas makeLCs(
 	KFMeas&		combinedMeas,
 	KFState&	kfState)
@@ -39,60 +41,56 @@ KFMeas makeLCs(
 	
 	auto& recOpts = acsConfig.getRecOpts("");
 	
-	// Replace individual measurements with linear combinations
-	if (recOpts.ion.estimate)
-	{
-		return combinedMeas;
-	}
-	
 	KFMeas newMeas;
 
 	vector<Triplet<double>> tripletList;
 	int meas = 0;
 
-	for (int i = 1; i < combinedMeas.obsKeys.size(); i++)
+	for (int i_2 = 1; i_2 < combinedMeas.obsKeys.size(); i_2++)
 	{
-		int j = i - 1;
-		auto& obsKeyi = combinedMeas.obsKeys[i];
-		auto& obsKeyj = combinedMeas.obsKeys[j];
-		if (obsKeyi.num != F2)
-		{
-			continue;
-		}
-		if (obsKeyj.num != F1)
-		{
-			continue;
-		}
-		if (obsKeyi.Sat != obsKeyj.Sat)
-		{
-			continue;
-		}
+		int i_1 = i_2 - 1;
+		auto& obsKey_1 = combinedMeas.obsKeys[i_1];
+		auto& obsKey_2 = combinedMeas.obsKeys[i_2];
+		if (obsKey_1.num != F1)					{	continue;	}
+		if (obsKey_2.num != F2)					{	continue;	}
+		if (obsKey_1.Sat != obsKey_2.Sat)		{	continue;	}
 		
-		Obs& obs = *(Obs*)combinedMeas.metaDataMaps[i]["obs_ptr"];
+		Obs& obs = *(Obs*)combinedMeas.metaDataMaps[i_1]["obs_ptr"];
 		
-		double lami = obs.satNav_ptr->lamMap[F2];
-		double lamj = obs.satNav_ptr->lamMap[F1];
+		double lam_1 = obs.satNav_ptr->lamMap[F1];
+		double lam_2 = obs.satNav_ptr->lamMap[F2];
 		
-		double fi = CLIGHT / lami;
-		double fj = CLIGHT / lamj;
+		double f_1 = CLIGHT / lam_1;
+		double f_2 = CLIGHT / lam_2;
 		
-		double coeffi = SQR(fi) / (SQR(fi) - SQR(fj));
-		double coeffj = SQR(fj) / (SQR(fj) - SQR(fi));
+		double coeff_1 = SQR(f_1) / (SQR(f_1) - SQR(f_2));
+		double coeff_2 = SQR(f_2) / (SQR(f_2) - SQR(f_1));
 		
-		tripletList.push_back({meas, i, coeffi});
-		tripletList.push_back({meas, j, coeffj});
+		tripletList.push_back({meas, i_1, coeff_1});
+		tripletList.push_back({meas, i_2, coeff_2});
 		meas++;
 		
-		obsKeyj.num		= 12;
-		newMeas.obsKeys.push_back(obsKeyj);
+		obsKey_1.num		= 12;
+		newMeas.obsKeys.push_back(obsKey_1);
+		newMeas.componentLists	.push_back({});
+		
+		//copy metadata from the second to the first, then copy into the new measurement
+		for (auto& [id, value] : combinedMeas.metaDataMaps[i_2])
+		{
+			combinedMeas.metaDataMaps[i_1][id + "_alt"] = value;
+		}
+
+		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps[i_1]);
 	}
 	
-	SparseMatrix<double> F = SparseMatrix<double>(meas, combinedMeas.V.rows());
+	SparseMatrix<double> F;
+	F = SparseMatrix<double>(meas, combinedMeas.V.rows());
 	F.setFromTriplets(tripletList.begin(), tripletList.end());
 	
-	newMeas.V = F * combinedMeas.V;
-	newMeas.A = F * combinedMeas.A;
-	newMeas.R = F * combinedMeas.R * F.transpose();
+	newMeas.V	= F * combinedMeas.V;
+	newMeas.VV	= newMeas.V;
+	newMeas.H	= F * combinedMeas.H;
+	newMeas.R	= F * combinedMeas.R * F.transpose();
 	
 	newMeas.metaDataMaps	= std::move(combinedMeas.metaDataMaps);
 	newMeas.time			= std::move(combinedMeas.time);
@@ -254,7 +252,9 @@ void updateRecClocks(
 		auto	trace	= getTraceFile(rec);
 		auto&	recOpts	= acsConfig.getRecOpts(id);
 		
-		if (recOpts.clk.estimate == false)
+		InitialState init		= initialStateFromConfig(recOpts.clk);
+		
+		if (init.estimate == false)
 		{
 			continue;
 		}
@@ -267,16 +267,14 @@ void updateRecClocks(
 		KFKey oneKey;
 		oneKey.type	= KF::ONE;
 		
-		double C_dtRecAdj	= rec.rtk.sol.dtRec_m[0]
-							- rec.rtk.sol.dtRec_m_pppp_old[0];
+		double C_dtRecAdj	= rec.sol.dtRec_m[0]
+							- rec.sol.dtRec_m_pppp_old[0];
 							
 		trace << std::endl
 		<< "Adjusting " << clkKey.str
 		<< " clock by " << C_dtRecAdj;
 		
-		rec.rtk.sol.dtRec_m_pppp_old[0] = rec.rtk.sol.dtRec_m[0];
-		
-		InitialState init		= initialStateFromConfig(recOpts.clk);
+		rec.sol.dtRec_m_pppp_old[0] = rec.sol.dtRec_m[0];
 		
 		kfState.setKFTrans(clkKey, oneKey, C_dtRecAdj, init);
 	}
@@ -396,8 +394,8 @@ void propagateUncertainty(
 
 	KFState propagatedState;
 	
-	propagatedState.P = combinedMeas.A * kfState.P * combinedMeas.A.transpose();
-	propagatedState.x = combinedMeas.A * kfState.x;
+	propagatedState.P = combinedMeas.H * kfState.P * combinedMeas.H.transpose();
+	propagatedState.x = combinedMeas.H * kfState.x;
 	
 	propagatedState.kfIndexMap.clear();
 	
@@ -518,12 +516,15 @@ void PPP(
 		combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, tsync);
 	}
 	
-	combinedMeas = makeLCs(combinedMeas, kfState);
+	if (acsConfig.ionoOpts.use_if_combo)
+	{
+		combinedMeas = makeLCs(combinedMeas, kfState);
+	}
 	
 	if (kfState.lsqRequired)
 	{
 		kfState.lsqRequired = false;
-		std::cout << std::endl << " -------INITIALISING PPPPP USING LEAST SQUARES--------" << std::endl;
+		std::cout << std::endl << "-------INITIALISING PPPPP USING LEAST SQUARES--------" << std::endl;
 
 		VectorXd dx;
  		kfState.leastSquareInitStatesA(trace, combinedMeas, false, &dx, true);
@@ -535,7 +536,27 @@ void PPP(
 	list<FilterChunk>	filterChunkList;
 	map<string, std::ofstream>	traceList;	//keep in large scope
 	
-	if (acsConfig.netwOpts.chunk_stations)
+	if (acsConfig.pppOpts.chunk_stations)
+	{
+		for (auto& [kfKey, index] : kfState.kfIndexMap)
+		{
+			if (kfKey.type == KF::ONE)
+			{
+				continue;
+			}
+			
+			if (kfKey.str.empty())
+			{
+				BOOST_LOG_TRIVIAL(warning)
+				<< "Warning: Cannot chunk filter with current configuration - disabling.";
+				
+				acsConfig.pppOpts.chunk_stations = false;
+				break;
+			}
+		}
+	}
+
+	if (acsConfig.pppOpts.chunk_stations)
 	{
 		map<string, int>	begH;
 		map<string, int>	endH;
@@ -573,15 +594,15 @@ void PPP(
 		}
 	}
 	
-	if (acsConfig.netwOpts.chunk_size)
+	if (acsConfig.pppOpts.chunk_size)
 	{
 		list<FilterChunk> newFilterChunkList;
 		FilterChunk	bigFilterChunk;
 		
-		int chunks		= filterChunkList.size() / acsConfig.netwOpts.chunk_size	+ 0.5;
+		int chunks		= filterChunkList.size() / acsConfig.pppOpts.chunk_size	+ 0.5;
 		int chunkTarget = -1;
 		if (chunks)			
-			chunkTarget = filterChunkList.size() / chunks							+ 0.5;
+			chunkTarget = filterChunkList.size() / chunks						+ 0.5;
 		
 		int count = 0;
 		for (auto& filterChunk : filterChunkList)
@@ -614,7 +635,12 @@ void PPP(
 		filterChunkList = std::move(newFilterChunkList);
 	}
 
-	
+		
+	if (kfState.output_residuals)
+	{
+		mongoMeasComponents(combinedMeas);	
+	}
+
 	{
 // 		Instrument	instrument("PPP filter");
 		
@@ -629,6 +655,7 @@ void PPP(
 	{
 // 		kfState.outputStates(*filterChunk.trace_ptr, filterChunk.begX, filterChunk.numX);
 	}
+	kfState.outputStates(trace);
 	
 // 	lambdacalcs(kfState);
 	

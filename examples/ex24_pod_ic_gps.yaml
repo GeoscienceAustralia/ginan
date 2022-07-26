@@ -41,7 +41,7 @@ pod_options:
    EOP_soln_rapid: false        # IERS rapid service/prediction center (RS/PC) Daily : EOP_sol = 2
    EOP_soln_igs:   false        # IGS ultra-rapid ERP + IERS RS/PC Daily (dX,dY) : EOP_sol = 3. Need both rapid_file AND igs_file
    EOP_soln_c04_file: products/tables/EOP_14_C04_IAU2000A_one_file_1962-now.txt
-   EOP_soln_rapid_file: finals2000A.daily
+   EOP_soln_rapid_file: products/tables/finals.data.iau2000.txt
    ERP_soln_igs_file: igu18543_12.erp
    EOP_soln_interp_points: 4    # EOP solution interpolation points 	
  

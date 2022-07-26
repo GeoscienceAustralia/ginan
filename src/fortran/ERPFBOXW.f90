@@ -48,6 +48,7 @@
 !!                           401 = QZSS-1
 !!                           402 = QZSS-2I
 !!                           403 = QZSS-2G
+!!                           404 = QZSS-2A
 !!                           NB: when adding a new block number, check last block in this function!
 !!               SVN       : SPACE VEHICLE NUMBER          
 !!               MJD       : MODIFIED JULIAN DAY

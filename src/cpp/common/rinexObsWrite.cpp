@@ -17,6 +17,7 @@ using std::pair;
 #include "rinexClkWrite.hpp"
 #include "observations.hpp"
 #include "streamTrace.hpp"
+#include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
@@ -71,7 +72,7 @@ void updateRinexObsHeader(
 
 		if (sys_c == '-')
 		{
-			BOOST_LOG_TRIVIAL(error) << "Writing RINEX file undefined system.";
+			BOOST_LOG_TRIVIAL(error) << "Error: Writing RINEX file undefined system.";
 			return;
 		}
 
@@ -148,6 +149,17 @@ void updateRinexObsHeader(
 			"TIME OF FIRST OBS");
 
 		rinexOutput.headerTimePos = rinexStream.tellp();
+		
+		//output dummy entry to be overwritten
+		tracepdeex(0, rinexStream, "  %04.0f%6.0f%6.0f%6.0f%6.0f%13.7f     %-12s%-20s\n",
+			ep[0],
+			ep[1],
+			ep[2],
+			ep[3],
+			ep[4],
+			ep[5],
+			tsys,
+			"TIME OF LAST OBS");
 	}
 }
 
@@ -155,7 +167,8 @@ void writeRinexObsHeader(
 	RinexOutput&		fileData,
 	Sinex_stn_snx_t&	snx,
 	std::fstream&		rinexStream,
-	GTime&				firstObsTime)
+	GTime&				firstObsTime,
+	const double		rnxver)
 {
 	fileData.headerTimePos = 0;
 
@@ -169,8 +182,6 @@ void writeRinexObsHeader(
 	boost::replace_all(timeDate, "/", "");
 	boost::replace_all(timeDate, ":", "");
 	timeDate += " UTC";
-
-	double rnxver = 3.05;
 
 	string prog = "PEA v1";
 	string runby = "Geoscience Australia";
@@ -305,7 +316,7 @@ void writeRinexObsBody(
 				// if it locates the E_ObsCode then it will always locate E_ObsDesc.
 				if (foundObsPair)
 				{
-					BOOST_LOG_TRIVIAL(error) << "Writing RINEX file duplicated observation.";
+					BOOST_LOG_TRIVIAL(error) << "Error: Writing RINEX file duplicated observation.";
 					break;
 				}
 				else
@@ -340,7 +351,7 @@ void writeRinexObsBody(
 						break;
 
 					default:
-						BOOST_LOG_TRIVIAL(error) << "Writing RINEX unknown/unused observation code.";
+						BOOST_LOG_TRIVIAL(error) << "Error: Writing RINEX unknown/unused observation code.";
 						break;
 				}
 			}
@@ -404,7 +415,8 @@ void writeRinexObsFile(
 	string				fileName,
 	ObsList&			obsList,
 	GTime&				time,
-	map<E_Sys, bool>	sysMap)
+	map<E_Sys, bool>	sysMap,
+	const double		rnxver)
 {
 	if (obsList.empty())
 		return;
@@ -421,7 +433,7 @@ void writeRinexObsFile(
 		else						fileData.sysDesc = rinexSysDesc(E_Sys::COMB);
 		
 		updateRinexObsOutput(fileData, obsList, sysMap);
-		writeRinexObsHeader(fileData, snx, rinexStream, time);
+		writeRinexObsHeader(fileData, snx, rinexStream, time, rnxver);
 	}
 	else
 	{
@@ -438,8 +450,11 @@ void writeRinexObs(
 	string&				id,
 	Sinex_stn_snx_t&	snx,
 	GTime&				time,
-	ObsList&			obsList)
+	ObsList&			obsList,
+	const double		rnxver)
 {
+	Instrument instrument(__FUNCTION__);
+	
 	string filename = acsConfig.rinex_obs_filename;
 	
 	auto filenameSysMap = getSysOutputFilenames(filename, time, id);
@@ -448,6 +463,6 @@ void writeRinexObs(
 	{
 		auto& fileData = filenameObsFileDataMap[filename];
 		
-		writeRinexObsFile(fileData, snx, filename, obsList, time, sysMap);
+		writeRinexObsFile(fileData, snx, filename, obsList, time, sysMap, rnxver);
 	}
 }

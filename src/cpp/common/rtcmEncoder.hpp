@@ -63,6 +63,4 @@ struct RtcmEncoder : RtcmTrace
 	vector<uint8_t> encodeTimeStampRTCM();
 };
 
-void	rtcmEncodeToFile();
-
 #endif

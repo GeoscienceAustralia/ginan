@@ -5,15 +5,11 @@ from multiprocessing import Pool as _Pool
 
 import numpy as _np
 import pandas as _pd
+from gn_lib import gn_datetime as _gn_datetime
+from gn_lib import gn_frame as _gn_frame
+from gn_lib import gn_io as _gn_io
+from gn_lib import gn_transform as _gn_transform
 from tqdm import tqdm
-
-from ..gn_datetime import datetime2yydoysec, j20002datetime
-from ..gn_frame import get_frame_of_day
-from ..gn_transform import xyz2llh_heik
-from .aux_dicts import  igs_rec_tbl, atx_ant_tbl, atx_rad_tbl,\
-                        translation_rec, translation_ant, translation_rad,\
-                        translation_country
-from .sinex import llh2snxdms, logllh2snxdms
 
 _REGEX_ID  = _re.compile(rb'''
     (?:Four\sCharacter\sID|Site\sID)\s+\:\s*(\w{4}).*\W+
@@ -64,13 +60,7 @@ _REGEX_ANT = _re.compile(  rb'''
     (?:Date[ ]Removed[ ]+\:(?:[ ]*(\d{4}.+|))|)                 # Date Removed line (normally present)
     ''', _re.IGNORECASE|_re.VERBOSE)
 
-_REGEX_REC_PRESENT = _re.compile(rb"3\.1")
-
-_REGEX_ANT_PRESENT = _re.compile(rb"4\.1")
-
-_REGEX_LOGNAME = r'(?:.*\/)(\w{4})(?:\w+_(\d{8})|_(\d{8})\-?\w?|(\d{8})|_.*|\d+|)\.log'
-
-_BLK_NAMES = _np.asarray(['ID','LOC','REC','ANT'])
+_REGEX_LOGNAME = r'(?:.*\/)(\w{4})(?:\w+_(\d{8})|_(\d{8})\-?\w?|(\d{8})|_.*|\d+|)'
 
 def find_recent_logs(logs_glob_path:str,rnx_glob_path=None)->_pd.DataFrame:
     '''Takes glob expression to get the list of log files,
@@ -225,7 +215,7 @@ def gather_metadata(logs_glob_path = '/data/station_logs/station_logs_IGS/*/*.lo
         [gather[:, -3], gather[:, -2]], axis=0)
 
     stacked_rec_ant_dt = igslogdate2datetime64(stacked_rec_ant_dt)
-    snx_date = datetime2yydoysec(stacked_rec_ant_dt)
+    snx_date = _gn_datetime.datetime2yydoysec(stacked_rec_ant_dt)
 
     gather = _np.concatenate([gather, snx_date.reshape(2, gather.shape[0]).T], axis=1)
     stacked_rec_ant_dt_beg_end = stacked_rec_ant_dt.reshape(2, gather.shape[0])  # also deals with nans as no equal sign
@@ -249,7 +239,7 @@ def gather_metadata(logs_glob_path = '/data/station_logs/station_logs_IGS/*/*.lo
     id_loc_df.CITY[id_loc_df.CITY == ''] = 'N/A'
     id_loc_df.CITY = id_loc_df.CITY.str.rstrip().str.upper()
     id_loc_df.COUNTRY = translate_series(id_loc_df.COUNTRY.str.rstrip().str.upper(),
-                                        translation_country).values
+                                        _gn_io.aux_dicts.translation_country).values
     id_loc_df.DOMES_N[id_loc_df.DOMES_N == ''] = '---------'
 
 
@@ -265,11 +255,11 @@ def gather_metadata(logs_glob_path = '/data/station_logs/station_logs_IGS/*/*.lo
     valid_mask[valid_mask] = (xyz_norm > 6000000) &(xyz_norm < 6500000)
 
 
-    llh = xyz2llh_heik(xyz_array[valid_mask],deg=True)
-    llh_snx = llh2snxdms(llh)
+    llh = _gn_transform.xyz2llh_heik(xyz_array[valid_mask],deg=True)
+    llh_snx = _gn_io.sinex.llh2snxdms(llh)
 
     llh2  = id_loc_df[~valid_mask][['LAT','LON','HEI']]
-    llh2_snx = logllh2snxdms(llh2)
+    llh2_snx = _gn_io.sinex.logllh2snxdms(llh2)
     snxdms = _np.empty(valid_mask.shape,dtype=object)
     snxdms[valid_mask] = llh_snx
     # snxdms[valid_mask] =' 000 00 00.0  00 00 00.0   000.0'
@@ -287,20 +277,20 @@ def gather_metadata(logs_glob_path = '/data/station_logs/station_logs_IGS/*/*.lo
     ant_df.RADOME   = ant_df.RADOME.str.rstrip().str.upper()
     ant_df.RADOME2  = ant_df.RADOME2.str.rstrip().str.upper()
 
-    no_rad2_mask = ~ant_df.RADOME.isin(atx_rad_tbl)
+    no_rad2_mask = ~ant_df.RADOME.isin(_gn_io.aux_dicts.atx_rad_tbl)
     ant_df.RADOME[no_rad2_mask] = ant_df.RADOME2[no_rad2_mask]
     # translation_ant.index.name= None
-    antennas = translate_series(ant_df.ANTENNA,translation_ant)
-    invalid_ant_mask = ~antennas.index.isin(atx_ant_tbl)
+    antennas = translate_series(ant_df.ANTENNA,_gn_io.aux_dicts.translation_ant)
+    invalid_ant_mask = ~antennas.index.isin(_gn_io.aux_dicts.atx_ant_tbl)
     bad_antenna_stations = ant_df[invalid_ant_mask]['CODE'].unique()
 
-    receivers = translate_series(rec_df.RECEIVER,translation_rec)
-    invalid_rec_mask = ~receivers.index.isin(igs_rec_tbl)
+    receivers = translate_series(rec_df.RECEIVER,_gn_io.aux_dicts.translation_rec)
+    invalid_rec_mask = ~receivers.index.isin(_gn_io.aux_dicts.igs_rec_tbl)
     bad_rec_stations = rec_df[invalid_rec_mask]['CODE'].unique()
 
-    radomes = translate_series(ant_df.RADOME,translation_rad)
+    radomes = translate_series(ant_df.RADOME,_gn_io.aux_dicts.translation_rad)
 
-    invalid_radomes_mask = ~radomes.index.isin(atx_rad_tbl)
+    invalid_radomes_mask = ~radomes.index.isin(_gn_io.aux_dicts.atx_rad_tbl)
     bad_radome_stations = ant_df[invalid_radomes_mask]['CODE'].unique()
 
     ant_df.ANTENNA  = antennas.values
@@ -322,13 +312,13 @@ def frame2snx_string(frame_of_day):
     '''frame_of_day dataframe to ESTIMATE sinex block'''
     code_pt =frame_of_day.index.to_series().str.split('_',expand=True)#.to_frame().values
     code_pt.columns = ['CODE','PT']
-    frame_dt = j20002datetime(frame_of_day.attrs['REF_EPOCH'])
+    frame_dt = _gn_datetime.j20002datetime(frame_of_day.attrs['REF_EPOCH'])
     frame = _pd.concat([frame_of_day,code_pt],axis=1)#.reindex()
     frame_est = frame[['STAX','STAY','STAZ']].stack(0).to_frame().reset_index(level=1)
     frame_est.columns = ['TYPE','EST']
     frame = frame_est.join(frame[['SOLN','CODE','PT']])
 
-    dt_snx = datetime2yydoysec(frame_dt)
+    dt_snx = _gn_datetime.datetime2yydoysec(frame_dt)
 
     frame.reset_index(drop=True,inplace=True)
     frame['STD'] = 0
@@ -431,7 +421,7 @@ def write_meta_gather_master(logs_glob_path='/data/station_logs/*/*.log',
 
     gather_itrf = None
     if (frame_snx_path is not None) and (frame_soln_path is not None):
-        gather_itrf = get_frame_of_day(frame_datetime,
+        gather_itrf = _gn_frame.get_frame_of_day(frame_datetime,
                         itrf_path_or_df=frame_snx_path,
                         list_path_or_df=sites_meta,
                         discon_path_or_df = frame_soln_path,
@@ -440,7 +430,7 @@ def write_meta_gather_master(logs_glob_path='/data/station_logs/*/*.log',
 
     buf = []
     #gen header
-    gather_dt = datetime2yydoysec(frame_datetime)
+    gather_dt = _gn_datetime.datetime2yydoysec(frame_datetime)
     trf_header = ''
     if gather_itrf is not None:
         trf_header += (

@@ -42,27 +42,27 @@ pod_options:
 
 #---------------------------------------------------------------------------
 # Observation Model                                                                                            
-   pseudobs_orbit_filename: products/igs20624.sp3 # Pseudo observations orbit filename       
-   pseudobs_interp_step:    900          # Interval (sec) of the interpolated orbit
-   pseudobs_interp_points:  12           # Number of data points used in Lagrange interpolation
+   pseudobs_orbit_filename:  products/igs20624.sp3 # Pseudo observations orbit filename       
+   pseudobs_interp_step:     300                   # Interval (sec) of the interpolated orbit
+   pseudobs_interp_points:   12                    # Number of data points used in Lagrange interpolation
 
 #----------------------------------------------------------------------
 # Orbit arc length (in hours) 
    orbit_arc_determination: 26  # Orbit Estimation arc
-   orbit_arc_prediction:    0  # Orbit Prediction arc
+   orbit_arc_prediction:    0   # Orbit Prediction arc
    orbit_arc_backwards:     2   # Orbit Propagation backwards arc
 
 #---------------------------------------------------------------------------
 # External Orbit Comparison
    ext_orbit_enabled: true
-   ext_orbit_type_sp3:       false        # Orbit data in sp3 format (including position and velocity vectors)
-   ext_orbit_type_interp:    true         # Interpolated orbit based on Lagrange interpolation of sp3 file
-   ext_orbit_type_kepler:    false        # Keplerian orbit
-   ext_orbit_type_lagrange:  false        # 3-day Lagrange interpolation
-   ext_orbit_type_position_sp3:    false        # Position and SP3 file
-   ext_orbit_filename:       products/igs20624.sp3 # External (comparison)  orbit filename
-   ext_orbit_interp_step:    900          # Interval (sec) of the interpolated/Kepler orbit
-   ext_orbit_interp_points:  12           # Number of data points used in Lagrange interpolation
+   ext_orbit_type_sp3:           false        # Orbit data in sp3 format (including position and velocity vectors)
+   ext_orbit_type_interp:        true         # Interpolated orbit based on Lagrange interpolation of sp3 file
+   ext_orbit_type_kepler:        false        # Keplerian orbit
+   ext_orbit_type_lagrange:      false        # 3-day Lagrange interpolation
+   ext_orbit_type_position_sp3:  false        # Position and SP3 file
+   ext_orbit_filename:           products/igs20624.sp3 # External (comparison)  orbit filename
+   ext_orbit_interp_step:        300          # Interval (sec) of the interpolated/Kepler orbit
+   ext_orbit_interp_points:      12           # Number of data points used in Lagrange interpolation
 
 # can only choose one option here
 #----------------------------------------------------------------------   
@@ -73,14 +73,14 @@ pod_options:
  
 #---------------------------------------------------------------------------
 # Earth Orientation - EOP solution options:
-   EOP_soln_c04:   true         # IERS C04 solution : EOP_sol = 1
-   EOP_soln_rapid: false        # IERS rapid service/prediction center (RS/PC) Daily : EOP_sol = 2
-   EOP_soln_igs:   false        # IGS ultra-rapid ERP + IERS RS/PC Daily (dX,dY) : EOP_sol = 3. Need both rapid_file AND igs_file
-   EOP_soln_c04_file: products/tables/EOP_14_C04_IAU2000A_one_file_1962-now.txt
-   # EOP_soln_rapid_file: finals2000A.daily
-   # ERP_soln_igs_file: igu18543_12.erp
-   EOP_soln_interp_points: 4    # EOP solution interpolation points
- 
+   EOP_soln_c04:           true         # IERS C04 solution : EOP_sol = 1
+   EOP_soln_rapid:         false        # IERS rapid service/prediction center (RS/PC) Daily : EOP_sol = 2
+   EOP_soln_igs:           false        # IGS ultra-rapid ERP + IERS RS/PC Daily (dX,dY) : EOP_sol = 3. Need both rapid_file AND igs_file
+   EOP_soln_interp_points: 4            # EOP solution interpolation points
+   EOP_soln_c04_file:      products/tables/EOP_14_C04_IAU2000A_one_file_1962-now.txt
+   #EOP_soln_rapid_file:    finals2000A.daily
+   #ERP_soln_igs_file:      igu18543_12.erp
+
 # ---------------------------------------------------------------------------
 # IAU Precession-Nutation model:
    iau_model_2000: true         # IAU2000A: iau_pn_model = 2000
@@ -114,7 +114,7 @@ pod_options:
 
 #---------------------------------------------------------------------------
 # Variational Equations
-   veq_integration: false
+   veq_integration: true
 
 #----------------------------------------------------------------------
 # Reference System for Variational Equations'  - Partials & Parameter Estimation 
@@ -142,7 +142,7 @@ pod_options:
       cannon_ball_model:      true
       simple_boxwing_model:   false
       full_boxwing_model:     false
-      #
+
 #----------------------------------------------------------------------
 # SRP modes - Default srp_parameters  = ECOM1 + EMP
    srp_modes:
@@ -179,10 +179,10 @@ eqm_options:
 # Numerical integration method      
 # Runge-Kutta-Nystrom 7th order RKN7(6): RKN7, Runge-Kutta 4th order: RK4, Runge-Kutta 8th order RK8(7)13: RK8
    integration_options:
-      RK4_integrator_method: false
+      RK4_integrator_method:  false
       RKN7_integrator_method: true
-      RK8_integrator_method: false
-      integrator_step: 900         # Integrator stepsize in seconds
+      RK8_integrator_method:  false
+      integrator_step:        300         # Integrator stepsize in seconds
 
 #---------------------------------------------------------------------------
 # Gravitational Forces
@@ -226,11 +226,11 @@ eqm_options:
       EMP_R_bias:   false
       EMP_T_bias:   false
       EMP_N_bias:   false
-      ECOM_D_cpr:   false 
+      ECOM_D_cpr:   false
       ECOM_Y_cpr:   false 
       ECOM_B_cpr:   true 
       ECOM_D_2_cpr: true 
-      ECOM_D_4_cpr: true
+      ECOM_D_4_cpr: false
       EMP_R_cpr:    false
       EMP_T_cpr:    false
       EMP_N_cpr:    false
@@ -242,10 +242,10 @@ veq_options:
 # Runge-Kutta-Nystrom 7th order RKN7(6): RKN7, Runge-Kutta 4th order: RK4, Runge-Kutta 8th order RK8(7)13: RK8
 # NB for VEQ, only RK7 is supported. Do not select any other value
    integration_options:
-      RK4_integrator_method: false
+      RK4_integrator_method:  false
       RKN7_integrator_method: true
-      RK8_integrator_method: false
-      integrator_step: 900         # Integrator stepsize in seconds
+      RK8_integrator_method:  false
+      integrator_step:        300         # Integrator stepsize in seconds
 
 #---------------------------------------------------------------------------
 # Gravitational Forces
@@ -293,7 +293,7 @@ veq_options:
       ECOM_Y_cpr:   false 
       ECOM_B_cpr:   true 
       ECOM_D_2_cpr: true 
-      ECOM_D_4_cpr: true
+      ECOM_D_4_cpr: false
       EMP_R_cpr:    false
       EMP_T_cpr:    false
       EMP_N_cpr:    false

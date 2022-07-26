@@ -67,7 +67,7 @@ struct GinAR_opt
 	map<E_Sys,double> wlfact;
 	
 	map<E_Sys,map<E_FType,E_ObsCode>> defCodes;
-	double bias_update=0.0;
+	double bias_update = 0;
 };
 
 struct GinAR_amb
@@ -119,14 +119,12 @@ struct GinAR_rec
 	Vector3d snxPos_;
 	Vector3d fltPos_;
 	Vector3d fixPos_;
-	
-	string  solutFilename;
 };
 
 struct GinAR_sat
 {
 	map<string,double> elevations;
-	double anchor_potential = 0.0;
+	double anchor_potential = 0;
 };
 
 typedef map<string,GinAR_piv> ARrecpivts;
@@ -149,42 +147,42 @@ extern map<KFKey,	map<GTime,	double>>	elev_archive;
 extern map<KFKey,	list<GTime>>			slip_archive;
 
 /* main functions */
-void config_AmbigResl( void );																											/* Configures the ambiguity resolution algorithms */
-int  networkAmbigResl( Trace& trace, StationMap& stations, KFState& kfState);															/* Ambiguity resolution for network solutions */
-int  enduserAmbigResl( Trace& trace, ObsList& obsList, KFState& kfState, Vector3d snxPos, double dop, string outfile, bool header_out);	/* Ambiguity resolution for end user solutions */
-int  smoothdAmbigResl( KFState& kfState );																								/* Ambiguity resolution on smoothed KF*/
+void config_AmbigResl();																								/* Configures the ambiguity resolution algorithms */
+int  networkAmbigResl(Trace& trace, StationMap& stations, KFState& kfState);											/* Ambiguity resolution for network solutions */
+int  enduserAmbigResl(Trace& trace, ObsList& obsList, KFState& kfState, Vector3d snxPos, double dop, string outfile);	/* Ambiguity resolution for end user solutions */
+int  smoothdAmbigResl(KFState& kfState);																				/* Ambiguity resolution on smoothed KF*/
 bool sys_frq(short int sys, E_FType& frq1, E_FType& frq2, E_FType& frq3);
-bool ARsol_ready(void);
+bool ARsol_ready();
 KFState retrieve_last_ARcopy ();
 GinAR_sat* GinAR_sat_metadata(SatSys sat);
 
 /* Output fuctions */
-void gpggaout( string outfile, KFState& KfState, string recId, int solStat, int numSat, double hdop, bool lng, bool print_header); /* Alternative end user aoutput for ambiguity resolved solutions */
-void artrcout( Trace& trace, GTime time, GinAR_opt opt );
-void arbiaout( Trace& trace, GTime time, GinAR_opt opt );
-int  arionout( Trace& trace, KFState& KfState, ObsList& obsList, GinAR_opt opt );
-bool queryBiasOutput(Trace& trace, SatSys sat, E_AmbTyp type, double& bias, double& variance);
+void	gpggaout(string outfile, KFState& KfState, string recId, int solStat, int numSat, double hdop, bool lng); /* Alternative end user aoutput for ambiguity resolved solutions */
+void	artrcout(Trace& trace, GTime time, GinAR_opt opt );
+void	arbiaout(Trace& trace, GTime time, GinAR_opt opt );
+int		arionout(Trace& trace, KFState& KfState, ObsList& obsList, GinAR_opt opt );
+bool	queryBiasOutput(Trace& trace, SatSys sat, E_AmbTyp type, double& bias, double& variance);
 	
 /* WL ambiguity functions */
-void reset_WLfilt( Trace& trace, E_AmbTyp typ, GTime time, string rec, E_Sys  sys);
-int  retrv_WLambg( Trace& trace, E_AmbTyp typ, GTime time, string rec, SatSys sat);
-int  updat_WLambg( Trace& trace, E_AmbTyp typ, GTime time,             E_Sys  sys, GinAR_opt opt);
-void remov_WLrecv( Trace& trace, E_AmbTyp typ,             string rec, E_Sys  sys);
-void remov_WLsate( Trace& trace, E_AmbTyp typ,                         SatSys sat);
-void dump__WLambg( Trace& trace );
+void	reset_WLfilt(Trace& trace, E_AmbTyp typ, GTime time, string rec, E_Sys  sys);
+int		retrv_WLambg(Trace& trace, E_AmbTyp typ, GTime time, string rec, SatSys sat);
+int		updat_WLambg(Trace& trace, E_AmbTyp typ, GTime time,             E_Sys  sys, GinAR_opt opt);
+void	remov_WLrecv(Trace& trace, E_AmbTyp typ,             string rec, E_Sys  sys);
+void	remov_WLsate(Trace& trace, E_AmbTyp typ,                         SatSys sat);
+void	dump_WLambg(Trace& trace);
 
 /* NL ambiguity functions */
-int  updat_ambigt( Trace& trace, KFState& kfState, GinAR_opt opt );
-int  apply_ambigt( Trace& trace, KFState& kfState, GinAR_opt opt );
+int		updat_ambigt(Trace& trace, KFState& kfState, GinAR_opt opt);
+int		apply_ambigt(Trace& trace, KFState& kfState, GinAR_opt opt);
 
 /* Pivot functions */
-void updt_usr_pivot ( Trace& trace, GTime time, GinAR_opt& opt );
-void updt_net_pivot ( Trace& trace, GTime time, GinAR_opt& opt );
+void	updt_usr_pivot(Trace& trace, GTime time, GinAR_opt& opt);
+void	updt_net_pivot(Trace& trace, GTime time, GinAR_opt& opt);
 
 /* Core ambiguity resolution function */
-int  GNSS_AR(Trace& trace, GinAR_mtx& mtrx, GinAR_opt opt);
+int		GNSS_AR(Trace& trace, GinAR_mtx& mtrx, GinAR_opt opt);
 
 /* KF function to be deprecated */
-void removeUnmeasuredAmbiguities( Trace& trace,  KFState& kfState, map<KFKey, bool>	measuredStates);
+void	removeUnmeasuredAmbiguities( Trace& trace,  KFState& kfState, map<KFKey, bool>	measuredStates);
 
 #endif

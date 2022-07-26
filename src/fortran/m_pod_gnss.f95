@@ -130,7 +130,7 @@ SUBROUTINE pod_gnss (EQMfname, VEQfname, PRNmatrix, orbpara_sigma, orbits_partia
 !       CHARACTER (LEN=100) :: orbits_fname                       
       CHARACTER (LEN=100) :: fname_write                    
 !       CHARACTER (LEN=100) :: filename                       
-      CHARACTER (LEN=300) ::  ORBpseudobs_fname
+      CHARACTER (LEN=512) ::  ORBpseudobs_fname
 !       , ORBEXT_fname        
 !       fname_sp3,     
 ! ----------------------------------------------------------------------
@@ -184,6 +184,7 @@ SUBROUTINE pod_gnss (EQMfname, VEQfname, PRNmatrix, orbpara_sigma, orbits_partia
       INTEGER (KIND = prec_int2) :: cofactor = 0 ! 0: default
                                                  ! 1: output parameter correlation 
       LOGICAL found, first_sat, jfound, docycle
+      LOGICAL no_data_for_first_epoch
                                                    
 
 ! ----------------------------------------------------------------------
@@ -274,6 +275,10 @@ if (yml_pod_mode == MODE_DATA_INT) then
         Imonth = yml_pod_data_initial_month
         Iday = yml_pod_data_initial_day
         Sec_00 = yml_pod_data_initial_seconds
+        if (allocated(PRNmatrix)) deallocate (PRNmatrix)
+        allocate (PRNmatrix(1), stat=Allocatestatus)
+        PRNmatrix(1) = trim(yml_pod_data_prn)
+        Nsat = 1
 end if
 
 ! ----------------------------------------------------------------------
@@ -343,16 +348,16 @@ call report ('STATUS',pgrm_name,'',trim(mesg), '', 0)
 if      (yml_ECOM_mode /= 0 .and. .not. yml_EMP_mode) then
   write(mesg, *) "SRP force model = ",yml_ECOM_mode
 else if (yml_ECOM_mode == ECOM_NONE .and. yml_EMP_mode) then
-  write(mesg, *) "Empirical force model = ", yml_EMP_mode
+  write(mesg, *) "Empirical force model = ", "On"
 else if (yml_ECOM_mode == ECOM_NONE .and. .not. yml_EMP_mode) then
-  write(mesg, *) "WARNING: No SRP or Empirical force model estimated",yml_EMP_mode,yml_ECOM_mode
+  write(mesg, *) "WARNING: No SRP or Empirical force model estimated"
 else if (yml_ECOM_mode /= ECOM_NONE .and. yml_EMP_mode) then
-  write(mesg, *) "Estimating EMP force model and ECOM SRP parameters estimated together: ",yml_EMP_mode,yml_ECOM_mode
+  write(mesg, *) "Estimating EMP force model and ECOM SRP parameters estimated together: ","On ",yml_ECOM_mode
 else
   write(mesg, *) "Estimating both EMP force model and ECOM SRP parameters not yet not supported: ",yml_EMP_mode,yml_ECOM_mode
-  call report ('FATAL',pgrm_name,'pod_gnss',mesg, '/src/fortran/m_pod_gnss.f95', 1)
+  call report ('FATAL',pgrm_name,'pod_gnss',trim(mesg), '/src/fortran/m_pod_gnss.f95', 1)
 endif
-call report ('STATUS',pgrm_name,'',mesg, ' ', 0)
+call report ('STATUS',pgrm_name,'',trim(mesg), ' ', 0)
 print*,' '
 ! ----------------------------------------------------------------------
 ! Precise Orbit Determination :: Multi-GNSS multi-satellites POD loop
@@ -365,7 +370,11 @@ CALL read_satsnx(yml_satsinex_filename, Iyear, DOY, SEC_00, PRN_isat)
 first_sat = .true.
 allocate(yml_satellites(Nsat),stat = allocatestatus)
 yml_satellites = .false.
+orb_est_arc_saved = orb_est_arc
+orb_arc_saved = .false.
 Do isat = 1 , Nsat
+orb_est_arc = orb_est_arc_saved
+orb_arc_saved = .false.
 !Do isat = 1 , 1
 
 ! ----------------------------------------------------------------------
@@ -380,6 +389,7 @@ PRN = trim(PRN_isat)
 yml_pod_data_prn = PRN
 
 docycle = .false.
+no_data_for_first_epoch = .false.
 
 if (.not. yml_gps_constellation .and. PRN(1:1) == "G") docycle = .true.
 if (.not. yml_gal_constellation .and. PRN(1:1) == "E") docycle = .true.
@@ -450,7 +460,7 @@ IF (yml_ic_input_format == SP3_FILE) THEN
 ! Interpolated Orbit: Read sp3 orbit data and apply Lagrange interpolation
 Call prm_main     (EQMfname_PRN, .false.)
 pseudobs_opt = TYPE_INTERP
-CALL prm_pseudobs (EQMfname_PRN, pseudobs_opt)
+CALL prm_pseudobs (EQMfname_PRN, pseudobs_opt, no_data_for_first_epoch)
 Zo = pseudobs_ITRF(1,3:8)
 write(line,*) "IC: ", pseudobs_ITRF(1,:)
 Deallocate(pseudobs_ITRF, STAT = DeAllocateStatus)
@@ -525,11 +535,23 @@ END IF
 ! End of update/rewrite configuration files
 ! ----------------------------------------------------------------------
 
+if (no_data_for_first_epoch) then
+        print *, "No data at first epoch for PRN: ", PRN
+        yml_satellites(isat) = .false.
+        cycle
+end if
+
 ! ----------------------------------------------------------------------
 ! Precise Orbit Determination :: main subroutine
 !CAll orbitmain (EQMfname, VEQfname, orb_icrf, orb_itrf, veqSmatrix, veqPmatrix, Vres, Vrms)
 CALL orbitmain (EQMfname_PRN, VEQfname_PRN, orb_icrf, orb_itrf, veqSmatrix, veqPmatrix, Vres, Vrms, Xsigma, &
             dorb_icrf, dorb_RTN, dorb_Kepler, dorb_itrf, orbdiff) 
+
+if (.not. allocated (Xsigma) .and. (yml_pod_mode == MODE_FIT .or. yml_pod_mode == MODE_PREDICT)) then
+        yml_satellites(isat) = .false.
+        cycle
+end if
+
 ! ----------------------------------------------------------------------
 print *," "
 print *," "

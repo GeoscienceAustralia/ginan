@@ -21,12 +21,12 @@ using std::map;
 #include "biasSINEX.hpp"
 #include "constants.hpp"
 #include "ephemeris.hpp"
+#include "preceph.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
-#include "algebra.hpp"
-#include "gTime.hpp"
 #include "common.hpp"
 #include "tides.hpp"
+#include "gTime.hpp"
 #include "enums.h"
 
 #define NMAX        10              /* order of polynomial interpolation */
@@ -61,9 +61,9 @@ using std::map;
 }*/
 
 /* read dcb parameters file --------------------------------------------------*/
-int readdcb(string file, nav_t *nav)
+int readdcb(
+	string	file)
 {
-	//todo aaron, use maps for these rather than arrays,
 	std::ifstream inputStream(file);
 	if (!inputStream)
 	{
@@ -94,7 +94,7 @@ int readdcb(string file, nav_t *nav)
 			||sscanf(buff,"%s %s",str1,str2) < 1)
 			continue;
 
-		if ((cbias = str2num(buff,26,9)) == 0) //todo Eugene: bias value is possible to be 0
+		if ((cbias = str2num(buff,26,9)) == 0) //todo: bias value may possibly be 0
 			continue;
 
 		rms = str2num(buff,38,9);
@@ -321,7 +321,7 @@ double interpolate(
 int pephpos(
 	GTime		time,
 	SatSys		Sat,
-	nav_t&		nav,
+	Navigation&	nav,
 	Vector3d&	rSat,
 	double&		dtSat,
 	double*		vare = nullptr,
@@ -341,7 +341,7 @@ int pephpos(
 
 	if (nav.pephMap.empty())
 	{
-		tracepdeex(3, std::cout, "\nLooking for precise position, but no precise ephemerides found");
+		tracepdeex(3, std::cout, "\nLooking for precise position, but no precise ephemerides found for %s", Sat.id().c_str());
 		return 0;
 	}
 	
@@ -491,11 +491,11 @@ int pephpos(
 
 /* satellite clock by precise clock ------------------------------------------*/
 int pephclk(
-	GTime	time,
-	string	id,
-	nav_t&	nav,
-	double&	dtSat,
-	double*	varc)
+	GTime		time,
+	string		id,
+	Navigation&	nav,
+	double&		dtSat,
+	double*		varc)
 {
 //     BOOST_LOG_TRIVIAL(debug)
 // 	<< "pephclk : time=" << time.to_string(3)
@@ -595,11 +595,8 @@ int pephclk(
 * args   : gtime_t time       I   time (gpst)
 *          double *rs         I   satellite position and velocity (ecef)
 *                                 {x,y,z,vx,vy,vz} (m|m/s)
-*          int    sat         I   satellite number
-*          nav_t  *nav        I   navigation data
 *          double *dant       I   satellite antenna phase center offset (ecef)
 *                                 {dx,dy,dz} (m) (iono-free LC value)
-* return : none
 *-----------------------------------------------------------------------------*/
 void satAntOff(
 	Trace&				trace,
@@ -613,7 +610,7 @@ void satAntOff(
 	ERPValues erpv;
 	E_FType j = F1;
 	E_FType k = F2;
-	tracepde(4, trace, "%s: time=%s sat=%2d\n", __FUNCTION__, time.to_string(3).c_str() ,Sat);
+	tracepdeex(4, trace, "%s: time=%s sat=%2d\n", __FUNCTION__, time.to_string(3).c_str() ,Sat);
 
 	/* sun position in ecef */
 	Vector3d rsun;
@@ -684,7 +681,7 @@ Vector3d satAntOff(
 	E_FType 			ft,
 	SatStat*			satStat_ptr)
 {
-	tracepde(4, trace, "%s: time=%s\n", __FUNCTION__, time.to_string(3).c_str());
+	tracepdeex(4, trace, "%s: time=%s\n", __FUNCTION__, time.to_string(3).c_str());
 
 	/* sun position in ecef */
 	Vector3d rsun;
@@ -743,7 +740,7 @@ bool peph2pos(
 	double*		dtSat,
 	double&		ephVar,
 	E_Svh&		svh,
-	nav_t& 		nav,
+	Navigation&	nav,
 	bool		applyRelativity)
 {
 	double dtss1	= 0;
@@ -751,7 +748,7 @@ bool peph2pos(
 	double varPos	= 0;
 	double varClk	= 0;
 
-	tracepde(4, trace, "%s: time=%s sat=%s\n", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
+	tracepdeex(4, trace, "%s: time=%s sat=%s\n", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
 
 	svh = SVH_UNHEALTHY;
 	
@@ -813,7 +810,7 @@ bool peph2pos(
 	GTime		time,
 	SatSys&		Sat,
 	Obs&		obs,
-	nav_t& 		nav,
+	Navigation&	nav,
 	bool		applyRelativity)
 {
 	return peph2pos(trace, time, Sat, obs.rSat, obs.satVel, obs.dtSat, obs.ephVar, obs.svh, nav, applyRelativity);

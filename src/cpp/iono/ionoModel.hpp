@@ -28,61 +28,66 @@
 
 struct sinexbias_t
 {
-	SatSys Sat;
-	char station[9];
-	char cod1[4];
-	char cod2[4];
-	double bias;
-	double biasstd;
-	double slope;
-	double slopestd;
-	int tini[3];
-	int tend[3];
+	SatSys	Sat;
+	char	station[9];
+	char	cod1[4];
+	char	cod2[4];
+	double	bias;
+	double	biasstd;
+	double	slope;
+	double	slopestd;
+	int		tini[3];
+	int		tend[3];
 };
 
-typedef struct
+struct IonModel
 {
-	double rotmtx[9];				/* Rotation matrix (to centre of map) */
-	GTime ion_time;
-	double valid;
+	double	rotmtx[9];				/* Rotation matrix (to centre of map) */
+	GTime	ion_time;
+	double	valid;
 
-	int *m;
-	double *n;
+	int*	m;
+	double*	n;
 
 	map<E_Sys, Station> refStations;
-} ionomodel_t;
+};
 
-extern FILE* fp_iondebug;
 
 /* Global variables */
-extern ionomodel_t  iono_modl;
+extern IonModel		ionModel;
 extern KFState		iono_KFState;
 
 /* General functions */
 int  config_ionosph_model ();
 int  update_receivr_measr (Trace& trace, Station& rec);
-void update_ionosph_model (Trace& trace, StationMap& stationMap, GTime iontime);
-int  ionex_file_write(Trace& trace, GTime time, bool end = false);
-void write_receivr_measr(Trace& trace, std::map<string, Station> stations, GTime time);
+void updateIonosphereModel (Trace& trace, string ionstecFilename, string ionexFilename, StationMap& stationMap, GTime time);
+
+int  ionexFileWrite(
+	Trace&	trace, 
+	string	filename,
+	GTime	time, 
+	bool	end = false);
+
+void writeReceiverMeasurements(Trace& trace, string filename, map<string, Station> stations, GTime time);
 
 /* Spherical Harmonics Model */
 int configure_iono_model_sphhar (void);
 int Ipp_check_sphhar(GTime time, double *Ion_pp);
 double ion_coef_sphhar(int ind, Obs& obs, bool slant = true);
-double ion_vtec_sphhar(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
+double ionVtecSphhar(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
 
 
 /* Spherical Cap Model */
 int configure_iono_model_sphcap (void);
 int Ipp_check_sphcap(GTime time, double *Ion_pp);
 double ion_coef_sphcap(int ind, Obs& obs, bool slant = true);
-double ion_vtec_sphcap(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
+double ionVtecSphcap(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
 
 /* Bspline Model */
 int configure_iono_model_bsplin (void);
 int Ipp_check_bsplin(GTime time, double *Ion_pp);
 double ion_coef_bsplin(int ind, Obs& obs, bool slant = true);
-double ion_vtec_bsplin(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
+double ionVtecBsplin(GTime time, double *Ion_pp, int layer, double& vari, KFState& kfState);
 
 #endif
 

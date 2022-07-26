@@ -58,7 +58,7 @@ int readorbit(
 
 	if (fp == nullptr)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Warning: opening " << file << " failed";
+		BOOST_LOG_TRIVIAL(error) << "Error: opening " << file << " failed";
 		return 0;
 	}
 	
@@ -254,24 +254,20 @@ int readorbit(
 }
 
 
-/* output orbit header file -----------------------------------------------------
-* args     :       char *file              I       orbit file path
-*                  orbpod_t *orbpod        I       orbit info
-*                  double *xp              I       estimated orbit for output
-*                  int n                   I       number of orbital unknowns
-* ----------------------------------------------------------------------------*/
+/** Output orbit file compatible with the pod
+ */
 void outputOrbit(
 	KFState&	kfState)
 {
-	if (acsConfig.orbfiles.empty())
+	if (acsConfig.orb_files.empty())
 	{
 		return;
 	}
 
-	std::ofstream orbitFile(acsConfig.orbfiles.front() + "_pea");
+	std::ofstream orbitFile(acsConfig.orb_files.front() + "_pea");
 	if (!orbitFile)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Warning: output orbit file opening error!\n";
+		BOOST_LOG_TRIVIAL(error) << "Error: output orbit file opening error!\n";
 		return;
 	}
 
@@ -296,7 +292,7 @@ void outputOrbit(
 
 		bool pass = true;
 		int i = 0;
-		for (string type : {"XP", "YP", "UT1"})
+		for (string type : {xp_str, yp_str, ut1_str})
 		{
 			KFKey eopKey = {KF::EOP,	{},	type};
 			pass &= kfState.getKFValue(eopKey, eopAdjustments[i], &eopVariances[i]);
@@ -318,7 +314,7 @@ void outputOrbit(
 
 		bool pass = true;
 		int i = 0;
-		for (string type : {"XP", "YP", "UT1"})
+		for (string type : {xp_str, yp_str, ut1_str})
 		{
 			KFKey eopKey = {KF::EOP_RATE,	{},	type};
 			pass &= kfState.getKFValue(eopKey, eopRateAdjustments[i], &eopRateVariances[i]);
@@ -450,14 +446,14 @@ int orbPartials(
 	
 	if	(orbitInfoMap.size() < INTERPCOUNT)
 	{
-		tracepde(1, trace, "not enough orbits %s sat=%s\n",	time.to_string(0).c_str(), Sat.id().c_str());
+		tracepdeex(1, trace, "not enough orbits %s sat=%s\n",	time.to_string(0).c_str(), Sat.id().c_str());
 		return 0;
 	}
 
 	if	(  time - orbitInfoMap.begin()	->first	> +MAXDTE
 		|| time - orbitInfoMap.rbegin()	->first	< -MAXDTE)
 	{
-		tracepde(1, trace, "no orbit %s sat=%s\n",			time.to_string(0).c_str(), Sat.id().c_str());
+		tracepdeex(1, trace, "no orbit %s sat=%s\n",			time.to_string(0).c_str(), Sat.id().c_str());
 		return 0;
 	}
 
@@ -514,7 +510,7 @@ void readegm(
 
 	if (!fileHandler)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Warning: opening " << strEGMCoeFile << " failed";
+		BOOST_LOG_TRIVIAL(error) << "Error: opening " << strEGMCoeFile << " failed";
 		return;
 	}
 

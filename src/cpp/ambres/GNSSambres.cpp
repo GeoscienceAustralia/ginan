@@ -1,4 +1,7 @@
+
 #include "GNSSambres.hpp"
+#include "testUtils.hpp"
+
 #include <math.h>
 
 #define LOG_PI          1.14472988584940017
@@ -282,54 +285,13 @@ int integer_bootst(
 	if (info < 0)
 		return 0;
 
-	double ratt = 1 / (opt.ratthr + 1);
-	double suct = opt.sucthr;
+	GinAR_mtx mtrx2;
+	mtrx2.aflt = mtrx.zflt;
 
-	MatrixXd Z = mtrx.Ztrs;
-	MatrixXd L = mtrx.Ltrs;
-	VectorXd D = mtrx.Dtrs;
-	VectorXd zflt = mtrx.zflt;
+	MatrixXd Z   = mtrx.Ztrs;
+	mtrx2.Paflt	 = Z*mtrx.Paflt*Z.transpose();
 
-	vector<int> xind;
-
-	for (int j = 0; j < zflt.size(); j++) 
-		xind.push_back(j);
-
-	int zsiz = zflt.size();
-	double succ = 1;
-	int i = zsiz - 1;
-	VectorXd zfix = VectorXd::Zero(zsiz);
-	VectorXd zadj = zflt;
-
-	vector<int> zind;
-
-	while (succ > suct && i >= 0)
-	{
-		succ *= erf(sqrt(1 / (8 * D(i))));
-
-		if (succ < suct)
-			break;
-
-		zfix(i) = ROUND(zadj(i));
-
-		if (fabs(zfix(i) - zadj(i)) > ratt) /* skip ambiguities with high biases */
-		{
-			i--;
-			continue;
-		}
-
-		zind.push_back(i);
-
-		if (i == 0) 
-			break;
-
-		zadj.head(i - 1) += (zfix(i) - zadj(i)) * L.block(i, 0, 1, i - 1);
-	}
-
-	mtrx.Ztrs = Z(zind, xind);
-	mtrx.zfix = zfix(zind);
-
-	return zind.size();
+	return interat_round (trace, mtrx2, opt);
 }
 
 /** Lambda algorithm and its variations (ILQ, Common set, BIE) */
@@ -338,6 +300,8 @@ int lambda_search(
 	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
 	GinAR_opt opt)		///< Object containing processing options
 {
+	TestStack ts(__FUNCTION__);
+	
 	int info = Ztrans_reduction(trace, mtrx);
 
 	if (info < 0)
@@ -471,86 +435,90 @@ int lambda_search(
 	mtrx.zfix = zfix0;
 	MatrixXd Z = mtrx.Ztrs.bottomRows(zsiz);
 	mtrx.Ztrs = Z;
-
-	if ( opt.mode == E_ARmode::LAMBDA )
-		return zfix0.size();
-		
-	if ( opt.mode == E_ARmode::LAMBDA_ALT )
-	{
-		double first  = 0;
-		double second = 0;
-		for (auto& [dis, fixvec] : zfixList)
-		{
-			if (first == 0) 		first = dis;
-			else if(second == 0)	second =dis;
-			else					break;
-		}
-		
-		if ((second/first) < opt.ratthr)	return 0;
-		else                                return zfix0.size();
-	}
 	
-	if ( opt.mode == E_ARmode::LAMBDA_AL2 )
+	TestStack::testMat("zfix0", zfix0);
+	TestStack::testMat("mtrx.Ztrs", mtrx.Ztrs);
+	
+	switch (opt.mode)
 	{
-		for (auto& [dis, fixvec] : zfixList)
-		{
-			if ((dis / mindist) > opt.ratthr) 
-				break;
+		case E_ARmode::LAMBDA:
+			return zfix0.size();
 			
-			for (int l = 0; l < zfix0.size(); l++)
+		case E_ARmode::LAMBDA_ALT:
+		{
+			double first  = 0;
+			double second = 0;
+			for (auto& [dis, fixvec] : zfixList)
 			{
-				if (zfix0(l) == -99999.5) 
-					continue;
-
-				if (zfix0(l) != fixvec(l))
-					zfix0(l) = -99999.5;
+				if		(first	== 0)	first	= dis;
+				else if	(second	== 0)	second	= dis;
+				else					break;
 			}
+			
+			if ((second/first) < opt.ratthr)	return 0;
+			else                                return zfix0.size();
 		}
 		
-		vector<int> zind;
-		for (int k = 0; k < zfix0.size(); k++) 
-		if (zfix0(k) != -99999.5)
-			zind.push_back(k);
-		tracepdeex(2, trace, "... %d ambiguties in common\n", zind.size());
+		case E_ARmode::LAMBDA_AL2:
+		{
+			for (auto& [dis, fixvec] : zfixList)
+			{
+				if ((dis / mindist) > opt.ratthr) 
+					break;
+				
+				for (int l = 0; l < zfix0.size(); l++)
+				{
+					if (zfix0(l) == -99999.5) 
+						continue;
 
-		vector<int> xind;
-		for (int k = 0; k < nmax; k++) 
-			xind.push_back(k);
-		
-		mtrx.zfix = zfix0(zind);
-		mtrx.Ztrs = Z(zind, xind);
-		
-		return zind.size();
-	}
+					if (zfix0(l) != fixvec(l))
+						zfix0(l) = -99999.5;
+				}
+			}
+			
+			vector<int> zind;
+			for (int k = 0; k < zfix0.size(); k++) 
+			if (zfix0(k) != -99999.5)
+				zind.push_back(k);
+			tracepdeex(2, trace, "... %d ambiguties in common\n", zind.size());
+
+			vector<int> xind;
+			for (int k = 0; k < nmax; k++) 
+				xind.push_back(k);
+			
+			mtrx.zfix = zfix0(zind);
+			mtrx.Ztrs = Z(zind, xind);
+			
+			return zind.size();
+		}
 	
-	if (opt.mode == E_ARmode::LAMBDA_BIE)
-	{
-		double acum = 0;
-
-		for (auto& [dis, fixvec] : zfixList)
+		case E_ARmode::LAMBDA_BIE:
 		{
-			double fct  = exp(-0.5 * (dis-mindist));
-			acum += fct;
+			double acum = 0;
+
+			for (auto& [dis, fixvec] : zfixList)
+			{
+				double fct  = exp(-0.5 * (dis-mindist));
+				acum += fct;
+			}
+
+			VectorXd zbie = VectorXd::Zero(zsiz);
+
+			for (auto& [dis, fixvec] : zfixList)
+			{
+				double fct  = exp(-0.5 * (dis-mindist)) / acum;
+				if (AR_VERBO) 
+					trace << std::endl << "BIE Candidate found:" << fixvec.transpose() << ";   dist= " << dis << ";   fact= " << fct;
+				zbie += fct * fixvec;
+			}
+
+			mtrx.zfix = zbie;
+			
+			return zbie.size();
 		}
-
-		VectorXd zbie = VectorXd::Zero(zsiz);
-
-		for (auto& [dis, fixvec] : zfixList)
-		{
-			double fct  = exp(-0.5 * (dis-mindist)) / acum;
-			if (AR_VERBO) 
-				trace << std::endl << "BIE Candidate found:" << fixvec.transpose() << ";   dist= " << dis << ";   fact= " << fct;
-			zbie += fct * fixvec;
-		}
-
-		mtrx.zfix = zbie;
-		
-		return zbie.size();
 	}
 
-	// should never be hit ...
 	return 0;
-	
 }
 
 /** Ambiguity resolution function for Ginan */
@@ -559,6 +527,8 @@ int GNSS_AR(
 	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
 	GinAR_opt opt)		///< Object containing processing options
 {
+	TestStack ts(__FUNCTION__);
+	
 	switch (opt.mode)
 	{
 		case E_ARmode::OFF:					return 0;
