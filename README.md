@@ -7,7 +7,7 @@
 : It will execute all of the code blocks that finish with the `` :<<'```executable' `` tag.
 
 
-#### `Ginan v1.4-beta release`
+#### `Ginan v1.5
 
 ## Overview
 
