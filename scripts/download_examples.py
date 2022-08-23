@@ -4,6 +4,8 @@
 
 import argparse
 import logging as _logging
+from multiprocessing.sharedctypes import Value
+from typing import Union as _Union
 from pathlib import Path as _Path
 from shutil import copy as _copy, rmtree as _rmtree
 
@@ -11,27 +13,29 @@ from gn_lib.gn_download import (
     download_url,
     request_checksum,
     upload_with_chunksize_and_meta,
+    get_vars_from_file
 )
 from gn_lib.gn_io.common import compute_checksum, tar_comp, tar_extr
 
 EX_GLOB_DICT = {
-    "ex11": ["*.TRACE", "*.snx", "*.*_smoothed"],
-    "ex12": ["*.TRACE", "*.snx"],
-    "ex13": ["*.TRACE", "*.snx"],
-    "ex14": ["*.TRACE", "*.snx"],
-    "ex15": ["*.TRACE", "*.snx"],
-    "ex16": ["*Network*.TRACE","*.*I", "*.stec", "*.snx", "*.BIA"],
-    "ex17": ["*Network*.TRACE","*.snx", "*.clk*"],
-    "ex21": ["pod*.out"],
-    "ex22g": ["pod*.out"],
-    "ex22r": ["pod*.out"],
-    "ex22e": ["pod*.out"],
-    "ex22c": ["pod*.out"],
-    "ex22j": ["pod*.out"],
-    "ex23": ["pod*.out"],
-    "ex24": ["pod*.out","*.sp3"],
-    "ex25": ["pod*.out"],
-    "ex26": ["pod*.out"],
+    "ex11" :["*.TRACE", "*.snx", "*.*_smoothed"],
+    "ex12" :["*.TRACE", "*.snx"],
+    "ex13" :["*.TRACE", "*.snx"],
+    "ex14" :["*.TRACE", "*.snx"],
+    "ex15" :["*.TRACE", "*.snx"],
+    "ex16" :["*Network*.TRACE","*.*I", "*.stec", "*.snx", "*.BIA"],
+    "ex17" :["*Network*.TRACE","*.snx", "*.clk*"],
+
+    "ex21" :["pod*.out","*.sp3"],
+    "ex22g":["pod*.out","*.sp3"],
+    "ex22r":["pod*.out","*.sp3"],
+    "ex22e":["pod*.out","*.sp3"],
+    "ex22c":["pod*.out","*.sp3"],
+    "ex22j":["pod*.out","*.sp3"],
+    "ex23" :["pod*.out","*.sp3"],
+    "ex24" :["pod*.out","*.sp3"],
+    "ex25" :["pod*.out","*.sp3"],
+    "ex26" :["pod*.out","*.sp3"],
 }
 
 
@@ -57,7 +61,7 @@ def parse_arguments():
     parser.add_argument("-d", "--data", action="store_true", help="")
     parser.add_argument("-p", "--products", action="store_true", help="")
     parser.add_argument("--dirs", nargs="+", default=[])
-    parser.add_argument("--tag", default="f82e335") # ideally None or some known key should be a default
+    parser.add_argument("--tag", default='')
     parser.add_argument(
         "--skip_extract",
         action="store_true",
@@ -83,13 +87,24 @@ def insert_tag(name: str, tag: str) -> str:
     return "/".join(name_split)
 
 
-def is_example_name(dir_name):
-    return dir_name.startswith("ex") and len(dir_name) <= 5
+def get_example_type(name:str)->_Union[str,bool]:
+    """
+    Checks if input string is a type of example dir, e.g. ex22g, 
+    returns string type of the example test.
+    ex13 (name[2]==1) is 'PEA'  and ex21 (name[2]==2) is 'POD'
+    """
+    if name.startswith("ex") and len(name) <= 5:
+        idx = int(name[2])
+        if   idx == 1: return 'PEA'
+        elif idx == 2: return 'POD'
+        elif idx == 3: return 'PEAPOD'
+        else: raise ValueError(f"Example code '{idx}' could not be matched to a type")
+    return False
 
 
 def update_solutions_dict(examples_dir: _Path, dir: str, ex_glob_dict: dict, tag:str=''):
     """ """
-    if is_example_name(dir):  # room for five-symbol name - ex22g
+    if get_example_type(dir):  # room for five-symbol name - ex22g
         example_dir = examples_dir / dir
         ref_sol_dir = examples_dir /"solutions" / tag / dir
         if example_dir.exists() and ref_sol_dir.exists():
@@ -126,8 +141,8 @@ def upload_examples_tar(
     base_url = f"https://{bucket}.s3.ap-southeast-2.amazonaws.com/{target}"
     for dir in dirs:
         # update tarname with tag
-        is_example = is_example_name(dir)
-        if is_example:
+        example_type = get_example_type(dir)
+        if example_type:
             dir = "solutions/" + (f"{tag}/" if tag != '' else '') + dir
         tarname = dir + ".tar." + compression
         destpath_targz = examples_path / tarname
@@ -161,8 +176,9 @@ def download_examples_tar(
     target,
     dirs=("products", "data", "solutions"),
     compression="bz2",
-    tag=None,
+    tag='',
     skip_extract=False,
+    tags_file_path = None # fall back on tags file if no tag was provided
 ):
     __doc__ = (
         "Downloads compressed selected tarballs from ap-southeast-2 s3 bucket, untars"
@@ -172,30 +188,38 @@ def download_examples_tar(
     )
 
     base_url = f"https://{bucket}.s3.ap-southeast-2.amazonaws.com/{target}"
+    if tag == '' and tags_file_path is not None:
+        _logging.info(f'reading tags from {tags_file_path}')
+        tag = get_vars_from_file(tags_file_path)
+        tag = {'POD':tag.POD, 'PEA':tag.PEA}
+    else:
+        _logging.info(f'using the provided {tag} tag')
+        tag = {'POD':tag, 'PEA':tag}
     for dir in dirs:
-        is_example = is_example_name(dir)
-        if is_example:
-            dir = f"solutions/{dir}"
-        tarname = dir + ".tar." + compression
-        destpath_targz = examples_path / tarname
-        tagged_tarname = (
-            insert_tag(tarname, tag) if (is_example and tag is not None) else tarname
-        )
-        dest_url = base_url + "/" + tagged_tarname
+        example_type = get_example_type(dir)
+
+        if example_type:
+            dir_url = f"solutions/{(f'{tag[example_type]}/{dir}' if tag != '' else dir)}.tar.{compression}"
+            dir = f"solutions/{dir}.tar.{compression}"
+        else:
+            dir = dir_url = f"{dir}.tar.{compression}"
+
+        destpath_targz = examples_path / dir
+        dest_url = base_url + "/" + dir_url
         md5_checksum_aws = request_checksum(dest_url)
         if md5_checksum_aws is None:
             raise FileNotFoundError
         destpath = examples_path / dir
         if not destpath_targz.exists():
-            _logging.warning(msg=f"{tarname} not found on disk ['{md5_checksum_aws}'].")
+            _logging.warning(msg=f"{dir} not found on disk ['{md5_checksum_aws}'].")
             destpath_targz.parent.mkdir(parents=True, exist_ok=True)
             download_url(url=dest_url, destfile=destpath_targz)
             tar_extr(srcpath=destpath_targz, destpath=destpath)
         else:
-            _logging.info(msg=f"{tarname} found on disk. Validating...")
+            _logging.info(msg=f"{dir} found on disk. Validating...")
             md5_checksum = compute_checksum(destpath_targz)
             if md5_checksum_aws != md5_checksum:
-                _logging.info(f'checksums different -> downloading "{tarname}"')
+                _logging.info(f'checksums different -> downloading "{dir_url}"')
                 download_url(url=dest_url, destfile=destpath_targz)
                 tar_extr(srcpath=destpath_targz, destpath=destpath)
             else:
@@ -212,9 +236,8 @@ def download_examples_tar(
 if __name__ == "__main__":
     parsed_args = parse_arguments()
     _logging.getLogger().setLevel(_logging.INFO)
-
+    script_path = _Path(__file__).resolve().parent
     if parsed_args.path is None:
-        script_path = _Path(__file__).resolve().parent
         examples_path = (script_path.parent / "examples").resolve()
         _logging.info(f"default path relative to script location selected: {examples_path}")
     else:
@@ -260,5 +283,6 @@ if __name__ == "__main__":
             examples_path=examples_path,
             skip_extract=parsed_args.skip_extract,
             bucket=parsed_args.bucket,
-            target=parsed_args.target
+            target=parsed_args.target,
+            tags_file_path=(script_path.parent / "docker" / "tags").as_posix()
         )

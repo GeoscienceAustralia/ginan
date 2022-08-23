@@ -298,7 +298,7 @@ void  updat_WLfilt(
 	
 	if (AR_VERBO)
 	{
-		WLambKF.outputStates(trace, " WL");
+		WLambKF.outputStates(trace, "/WL");
 		WLambKF.output_residuals = false;
 	}
 	
@@ -390,7 +390,7 @@ void  reslv_WLambg(
 	KFcopy.filterKalman(trace, combined, false);
 
 	if (AR_VERBO)
-		KFcopy.outputStates(trace, " AR");
+		KFcopy.outputStates(trace, "/AR");
 
 	for (auto& [kfKey, index] : KFcopy.kfIndexMap)
 	{

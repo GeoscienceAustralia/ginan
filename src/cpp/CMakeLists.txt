@@ -389,7 +389,12 @@ add_custom_target(peas)
 add_dependencies(peas 
 					pea
 					brdc2sp3
+					)
+
+if(BUILD_DOC)
+add_dependencies(peas
 					docs
 					)
+endif()
 					
 					

@@ -728,4 +728,11 @@ def download_rinex3(dates, stations, dest, dwn_src='cddis', ftps=False, f_dict=F
     if f_dict:
         return f_dict
 
+def get_vars_from_file(path):
+    from importlib.util import spec_from_loader, module_from_spec
+    from importlib.machinery import SourceFileLoader
 
+    spec = spec_from_loader("tags", SourceFileLoader("tags", path))
+    tags = module_from_spec(spec)
+    spec.loader.exec_module(tags)
+    return tags

@@ -12,14 +12,13 @@ from gn_lib import gn_datetime as _gn_datetime
 from gn_lib import gn_io as _gn_io
 
 def _trace_extract(path_or_bytes,blk_name):
-    # 'States', 'Residuals'
     trace_bytes = _gn_io.common.path2bytes(path_or_bytes) #path2bytes passes through bytes 
 
     begin = end = 0
     buf=[]
 
-    blk_begin = (f'+ {blk_name}').encode()
-    blk_end   = (f'- {blk_name}').encode()
+    blk_begin = (f'+{blk_name}').encode()
+    blk_end   = (f'-{blk_name}').encode()
 
     while True:
         begin = trace_bytes.find(blk_begin,end)
@@ -29,7 +28,7 @@ def _trace_extract(path_or_bytes,blk_name):
         end = trace_bytes.find(blk_end,begin_full)
 
         blk_content = trace_bytes[begin_full+1:end]         # needs +1 not to start with '\n'
-        blk_type = b'\t' + trace_bytes[begin+2:begin_full] + b'\n'	# needs +2 to remove ' +'
+        blk_type = b'\t' + trace_bytes[begin+1:begin_full] + b'\n'	# needs +2 to remove ' +'
         blk_content_w_type = blk_type.join(blk_content.splitlines()) + blk_type
         buf.append(blk_content_w_type)
 
@@ -40,11 +39,16 @@ def _trace_extract(path_or_bytes,blk_name):
     return content
 
 def _read_trace_states(path_or_bytes):
-    states = _trace_extract(path_or_bytes,blk_name='States')
+    states = _trace_extract(path_or_bytes,blk_name='STATES')
     if states is None:
         return None
     df = _pd.read_csv(_BytesIO(states),delimiter='\t',usecols=[1,2,3,4,5,6,7,8,10],skipinitialspace=True,dtype={'SAT':_gn_const.PRN_CATEGORY,'TYPE':_gn_const.STATE_TYPES_CATEGORY},keep_default_na=False,
                     comment='#',header=None,names = ['TIME','TYPE','SITE','SAT','NUM','EST','VAR','ADJ','BLK'],parse_dates=['TIME']) # type:ignore
+
+    if df.size == 0:
+        _logging.error("STATES* blocks present but empty")
+        return None
+
     df.TIME = _gn_datetime.datetime2j2000(df.TIME.values)
 
     empty_mask = df.TYPE.values.notna() # dropping ONE type
@@ -54,11 +58,16 @@ def _read_trace_states(path_or_bytes):
     return df.set_index(['TIME','SITE','TYPE','SAT','NUM','BLK'])
 
 def _read_trace_residuals(path_or_bytes,it_max_only=True):
-    residuals = _trace_extract(path_or_bytes,blk_name='Residuals')
+    residuals = _trace_extract(path_or_bytes,blk_name='RESIDUALS')
     if residuals is None:
         return None
     df = _pd.read_csv(_BytesIO(residuals),delimiter='\t',comment='#',header=None,usecols=[1,2,3,4,5,6,7,8,9],skipinitialspace=True,keep_default_na=False,
             names = ['It','TIME','SITE','SAT','TYPE','PREFIT','POSTFIT','STD','BLK'],parse_dates=['TIME'],dtype={'It':int,'SAT':_gn_const.PRN_CATEGORY}) # type:ignore
+
+    if df.size == 0: # blocks are present bu empty
+        _logging.error("RESIDUALS* blocks present but empty")
+        return None
+
     df.TIME = _gn_datetime.datetime2j2000(df.TIME.values)
 
     empty_mask = df.SITE.values.astype(bool) # may be removed in the future when the pivot is removed from PEA

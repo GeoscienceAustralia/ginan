@@ -60,7 +60,7 @@ void postRTSActions(
 	if (final)
 	{
 		std::ofstream ofs(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
-		kfState.outputStates(ofs, " RTS");
+		kfState.outputStates(ofs, "/RTS");
 	}
 
 	if	(   acsConfig.output_mongo_states

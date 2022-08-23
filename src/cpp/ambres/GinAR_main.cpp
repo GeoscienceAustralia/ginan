@@ -691,7 +691,7 @@ int  networkAmbigResl(
 	}
 	
 	if (AR_VERBO) 
-		kfState.outputStates(trace, " AR");
+		kfState.outputStates(trace, "/AR");
 		
 	ARcopy = kfState;
 	return nfix;
@@ -769,7 +769,7 @@ int  enduserAmbigResl(
 	
 	nfix = apply_ambigt(trace, ARstations[recv].kfState_fixed, opt);
 	
-	ARstations[recv].kfState_fixed.outputStates(trace, " Fixed");
+	ARstations[recv].kfState_fixed.outputStates(trace, "/FIXED");
 	
 	TestStack::testMat(recv + "fixed", ARstations[recv].kfState_fixed.x);
 	TestStack::testMat(recv + "fixedP", ARstations[recv].kfState_fixed.P);
@@ -864,7 +864,7 @@ int smoothdAmbigResl(
 	artrcout(trace, kfState.time, opt);
 	
 	if (AR_VERBO) 
-		kfState.outputStates(trace, " AR");
+		kfState.outputStates(trace, "/AR");
 	
 	ARcopy = kfState;
 	
