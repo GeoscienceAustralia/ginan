@@ -171,7 +171,7 @@ SUBROUTINE pod_gnss (EQMfname, VEQfname, PRNmatrix, orbpara_sigma, orbits_partia
 ! ----------------------------------------------------------------------
       CHARACTER (LEN=512) :: EQMfname_PRN, VEQfname_PRN                       
       CHARACTER (LEN=512) :: mesg
-      character (len=512) :: line !must be private to thread
+      character (len=1024) :: line !must be private to thread
 
       INTEGER (KIND = prec_int4) :: J, idx
       DOUBLE PRECISION MJDD0, MJDD, MJDref  

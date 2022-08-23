@@ -633,7 +633,7 @@ void sppos(
 		obs.excludeBadSPP = true;
 	}
 	
-	sol.sppState.outputStates(trace, " SPP");
+	sol.sppState.outputStates(trace, "/SPP");
 	
 	string id = obsList.front().mount;
 	

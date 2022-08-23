@@ -23,7 +23,8 @@ MODULE m_interporb_nom
 Contains
 
 
-SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, time_system, found)
+SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, orbint, &
+                from_prm_pseudobs, time_system, found)
 
 
 ! ----------------------------------------------------------------------
@@ -81,6 +82,7 @@ SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, 
 	  !INTEGER (KIND = 4) :: PRN
       CHARACTER (LEN=3), INTENT(IN) :: PRN
       REAL (KIND=prec_q), INTENT(IN) :: interpolate_start
+      LOGICAL from_prm_pseudobs
 ! OUT
       REAL (KIND = prec_q), INTENT(OUT), DIMENSION(:,:), ALLOCATABLE :: orbint
       INTEGER (KIND=prec_int2), INTENT(OUT) :: time_system
@@ -108,7 +110,8 @@ SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, 
 
  
 	  ! Read IGS sp3 orbit data file (position only): orbsp3 
-      Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system, found,.false., nodata)
+      Call sp3 (fname_sp3, PRN, orbsp3, interpolate_start, clock_matrix, time_system, &
+              found,from_prm_pseudobs, interv_in, NPint, nodata)
 
       if (.not. found) return
 
@@ -119,6 +122,9 @@ SUBROUTINE interp_orb_nom (fname_sp3, PRN, interv_in, NPint, interpolate_start, 
 ! 1. Interpolation is applied only within the data points (15 min less than 24h arc):  Set Nlimit to 1
 ! 2. Interpolation is applied also after the last data point's epoch (23h 45min 00sec) in order to cover a 24h arc:  Set Nlimit to 0
 Nlimit = 1
+
+if (.not. from_prm_pseudobs) Nlimit = 0
+
 ! default initial value?
 data_rate = 1
 ! ----------------------------------------------------------------------
@@ -170,8 +176,8 @@ END IF
 ! ----------------------------------------------------------------------
 ! Form arrays with data points to be used in the interpolation		
 		if ( i < NPint_1 ) then
-			i1 = i
-			i2 = i + (NPint - 1)
+			i1 = 1
+			i2 = NPint
 			!print *,"sz1, i, epoch_i, i1, i2", sz1, i, epoch_i, i1, i2
 		else if ( sz1 - i < NPint_2 ) then
 			i2 = sz1
@@ -297,6 +303,7 @@ If (i <= sz1 - Nlimit) then
 			
 			If (tint > 86400.D0) then
 			   tint = tint - 86400.D0
+                           if (tint < 1.d-9) tint = 0.d0
 			End If 
 			
 			orbint(epoch_i, 2) = tint

@@ -3,11 +3,12 @@
 # Ginan: Software toolkit and service
 
 : Note - this file is executable. \
-: You can run it by saving the raw markdown to disc, then `` chmod +x README.md``, then ``./README.md`` \
-: It will execute all of the code blocks that finish with the `` :<<'```executable' `` tag.
+: You can run it by saving the raw markdown to disk, then `` chmod +x README.md``, then ``./README.md`` \
+: It will execute all of the code blocks that finish with the `` :<<'```executable' `` tag. \
+: This script will install all dependencies, clone the Ginan repo into the current directory and build the Ginan toolkit.
 
 
-#### `Ginan v1.5 release`
+#### `Ginan v1.5.1 release`
 
 ## Overview
 
@@ -55,7 +56,7 @@ Ginan is supported on the following platforms
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v /data:/data gnssanalysis/ginan:v1.5 bash
+    docker run -it -v /data:/data gnssanalysis/ginan:v1.5.1 bash
 
 This command connects the `/data` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
@@ -87,13 +88,15 @@ If instead you wish to build Ginan from source, there are several software depen
 Update the base operating system and install base utilities `gcc`, `gfortran`, `git`, `openssl`, `openblas` etc:
 
 ```executable
+dir=$PWD
+
 sudo apt update
 
 sudo apt upgrade -y
 
 sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make libssl1.0-dev wget sudo python3 software-properties-common
 
-pip3 install wheel pandas boto3 unlzw tdqm
+pip3 install wheel pandas boto3 unlzw tdqm scipy
 :<<'```executable'
 ```    
 
@@ -122,17 +125,15 @@ Note that many `make` commands here have the option `-j 2` applied, this will en
 First, create a temporary directory structure to make the dependencies in, it can be removed after the installation process is done:
 
 ```executable
-mkdir ~/tmp
+mkdir $dir/tmp
 :<<'```executable'
 ```    
-
-Note that `~/tmp` is only used here as example and can be any directory.
 
 ### YAML-CPP
 We are using the [yaml-cpp](https://github.com/jbeder/yaml-cpp) library to parse the configuration files used to run many of the programs found in this library. Here is an example of how to install the yaml library from source:
 
 ```executable
-cd ~/tmp
+cd $dir/tmp
 
 git clone https://github.com/jbeder/yaml-cpp.git
 
@@ -146,7 +147,7 @@ cmake .. -DCMAKE\_INSTALL\_PREFIX=/usr/local/ -DYAML\_CPP\_BUILD\_TESTS=OFF
 
 sudo make install yaml-cpp -j2
 
-cd ../..
+cd $dir/tmp
 
 rm -rf yaml-cpp
 :<<'```executable'
@@ -156,7 +157,7 @@ rm -rf yaml-cpp
 PEA relies on a number of the utilities provided by [boost](https://www.boost.org/), such as their time and logging libraries.
 
 ```executable
-cd ~/tmp
+cd $dir/tmp
 
 wget -c https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
 
@@ -168,7 +169,7 @@ cd boost_1_73_0/
 
 sudo ./b2 -j2 install
 
-cd ..
+cd $dir/tmp
 
 sudo rm -rf boost_1_73_0 boost_1_73_0.tar.gz
 :<<'```executable'
@@ -178,7 +179,7 @@ sudo rm -rf boost_1_73_0 boost_1_73_0.tar.gz
 Eigen3 is used for performing matrix calculations in PEA, and has a very nice API.
 
 ```executable
-cd ~/tmp
+cd $dir/tmp
 
 git clone https://gitlab.com/libeigen/eigen.git
 
@@ -194,7 +195,7 @@ cmake ..
 
 sudo make -j2 install
 
-cd ../..
+cd $dir/tmp
 
 rm -rf eigen
 :<<'```executable'
@@ -205,7 +206,7 @@ rm -rf eigen
 Needed for json formatting and other self-descriptive markup.
 
 ```executable
-cd ~/tmp
+cd $dir/tmp
 
 wget https://github.com/mongodb/mongo-c-driver/releases/download/1.17.1/mongo-c-driver-1.17.1.tar.gz
 
@@ -221,9 +222,9 @@ cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_EXAMPLES=OFF ../
 
 cmake --build . -- -j 2
 
-cmake --build . --target install -- -j 2
+sudo cmake --build . --target install -- -j 2
 
-cd ~/tmp
+cd $dir/tmp
 
 curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.0/mongo-cxx-driver-r3.6.0.tar.gz
 
@@ -239,7 +240,7 @@ cmake --build . -- -j 2
 
 sudo cmake --build . --target install
 
-cd ~/tmp
+cd $dir/tmp
 
 sudo rm -rf mongo-c-driver-1.17.1  mongo-c-driver-1.17.1.tar.gz  mongo-cxx-driver-r3.6.0  mongo-cxx-driver-r3.6.0.tar.gz
 :<<'```executable'
@@ -251,7 +252,7 @@ Using the mongo database is optional, but is needed for use of the realtime plot
 
 Prepare access to repositories and download and install mongo:
 
-    cd ~/tmp
+    cd $dir/tmp
 
     wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
     
@@ -296,7 +297,10 @@ Now you can start it as a service by:
 
 ### netcdf4 (OTL package)
 
-    sudo apt -y install libnetcdf-dev libnetcdf-c++4-dev
+```executable
+sudo apt -y install libnetcdf-dev libnetcdf-c++4-dev
+:<<'```executable'
+```    
 
 ***
 
@@ -305,6 +309,8 @@ Now you can start it as a service by:
 You can download Ginan source from github using git clone:
 
 ```executable
+cd $dir
+
 git clone https://github.com/GeoscienceAustralia/ginan.git
 
 cd ginan
@@ -446,7 +452,7 @@ This returns:
 
     Default master POD config file = POD.in (old - no longer supported) - use a yaml config
     
-    yaml config file options by defaut can be overridden on the command line
+    yaml config file options by default can be overridden on the command line
     
     Command line: ../bin/pod -m -s -o -a -p -r -t -n -i -u -q -k -w -y -h 
     
@@ -456,7 +462,8 @@ This returns:
                                     2 - Orbit Determination and Prediction
                                     3 - Orbit Integration (Equation of Motion only)
                                     4 - Orbit Integration and Partials (Equation of Motion and Variational Equations)
-        -s --pobs    = Pseudo observations orbit .sp3 file name
+                                    5 - Single satellite integration from pod_data section of yaml
+        -s --pobs    = Pseudo observations orbit .sp3 file name (must be ITRF)
         -o --cobs    = Comparison orbit .sp3 file name
         -a --arclen  = Orbit Estimation Arc length (hours)
         -p --predlen = Orbit Prediction Arc length (hours)
@@ -494,6 +501,7 @@ This returns:
 
     * pod 
     * crs2trs 
+    * timesystem 
     * brdc2ecef -->
 ***
 ## Documentation

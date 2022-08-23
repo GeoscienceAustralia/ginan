@@ -89,7 +89,7 @@ SUBROUTINE prm_orbext (PRMfname, found)
 	  REAL (KIND = prec_d) :: Zo(6), Sec0, MJDo
       INTEGER (KIND = prec_int2) :: AllocateStatus, DeAllocateStatus
 ! ----------------------------------------------------------------------
-      INTEGER (KIND = prec_int8) :: i, read_i
+      INTEGER (KIND = prec_int8) :: i, read_i, interval, int_points
       INTEGER (KIND = prec_int2) :: UNIT_IN, ios, l
       INTEGER (KIND = prec_int2) :: ios_line, ios_key, ios_data
       INTEGER (KIND = prec_int2) :: space_i
@@ -129,6 +129,8 @@ fname_orb = yml_ext_orbit_filename
 interpstep = yml_ext_orbit_steps
 NPint = yml_ext_orbit_points
 data_opt = yml_ext_orbit_opt
+interval = 0
+int_points = 0
 
 if (.not. yaml_found) then
 ! ----------------------------------------------------------------------
@@ -257,12 +259,14 @@ READ (PRN, fmt_line , IOSTAT=ios) GNSSid, PRN_no
 ! Read sp3 orbit data that include position and velocity vectors 
 If (yml_ext_orbit_frame == ICRF) Then
 ! ICRF
-Call sp3 (fname_orb, PRN, orbext_ICRF, yml_interpolate_start, clock_matrix, time_system, found, .false., nodata)
+Call sp3 (fname_orb, PRN, orbext_ICRF, yml_interpolate_start, clock_matrix, time_system,&
+        found, .false., interval, int_points,  nodata)
 ! Orbit transformation ICRF to ITRF
 if (found) Call orbC2T (orbext_ICRF, time_system, orbext_ITRF)
 Else If (yml_ext_orbit_frame == ITRF) Then
 ! ITRF
-Call sp3 (fname_orb, PRN, orbext_ITRF, yml_interpolate_start, clock_matrix, time_system, found, .false., nodata)
+Call sp3 (fname_orb, PRN, orbext_ITRF, yml_interpolate_start, clock_matrix, time_system,&
+        found, .false., interval, int_points, nodata)
 ! Orbit transformation ITRF to ICRF
 if (found) Call orbT2C (orbext_ITRF, time_system, orbext_ICRF)
 End IF

@@ -203,7 +203,7 @@ void outputMeas(
 			GTime 		time,
 			KFMeas		meas)
 {
-	trace << std::endl << "+ Meas" << std::endl;
+	trace << std::endl << "+MEAS" << std::endl;
 	
 	tracepdeex(2, trace, "#\t%19s\t%15s\t%15s\t%15s\n", "Time", "Observed", "Meas Noise", "Design Mat");
 
@@ -214,7 +214,7 @@ void outputMeas(
 		for (int j = 0; j < meas.H.cols(); j++)		tracepdeex(2, trace, "\t%15.5f", meas.H(i, j));
 		tracepdeex(2, trace, "\n");
 	}
-	trace << "- Meas" << std::endl;
+	trace << "-MEAS" << std::endl;
 }
 #endif
 // modified from testClockParams() to test chi^2 computation

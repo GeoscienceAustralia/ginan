@@ -167,6 +167,7 @@ Do j = 1 , Nepochs-1
 	If (TT < 0.D0) Then
 		TTo = TT + (INT(ABS(TT)/86400.D0)+1) * 86400.D0
 	End IF 
+        if (TTo < 1.D-9) TTo = 0.d0
 
 	! MJD and Seconds
 	orbc(j+1,1) = INT(MJDo) + TT / (24.0D0 * 3600.0D0) 
@@ -206,6 +207,7 @@ Do j = 1 , Nepochs-1
 	If (TT >= 86400.D0) Then
 		TTo = TT - INT(TT / 86400.D0) * 86400.D0
 	End IF 
+        if (TTo < 1.D-9) TTo = 0.d0
 
 	! MJD and Seconds
 	orbc(j+1,1) = INT(MJDo) + TT / (24.0D0 * 3600.0D0) 
@@ -241,6 +243,8 @@ Do j = 1 , Nepochs-1
 	If (TT >= 86400.D0) Then
 		TTo = TT - INT(TT / 86400.D0) * 86400.D0
 	End IF 
+
+        if (TTo < 1.D-9) TTo = 0.d0
 
 	! MJD and Seconds
 	orbc(j+1,1) = INT(MJDo) + TT / (24.0D0 * 3600.0D0) 

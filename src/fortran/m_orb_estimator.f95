@@ -151,24 +151,32 @@ Ncommon = Nepochs
 ! Initialise dyn memory
 ! TODO: check the alloc status for each of the below
 ALLOCATE (Xmatrix(6+Nparam,1), STAT = AllocateStatus)
+Xmatrix = 0.d0
 ALLOCATE (Wmatrix(3*Ncommon,1), STAT = AllocateStatus)
+Wmatrix = 0.d0
 ALLOCATE (Vmatrix(3*Ncommon,1), STAT = AllocateStatus)
+Vmatrix = 0.d0
 ALLOCATE (Vmatrix_T(1,3*Ncommon), STAT = AllocateStatus)
+Vmatrix_T = 0.d0
 !ALLOCATE (WP(6+Nparam,6+Nparam), STAT = AllocateStatus)
 
 ALLOCATE (Amatrix(3*Ncommon,6+Nparam), STAT = AllocateStatus)
+Amatrix = 0.d0
 ALLOCATE (AmatrixZ(3*Ncommon,6), STAT = AllocateStatus)
 AmatrixZ = 0.d0
 ALLOCATE (AmatrixP(3*Ncommon,Nparam), STAT = AllocateStatus)
 AmatrixP = 0.d0
 ALLOCATE (Amatrix_T(6+Nparam,3*Ncommon), STAT = AllocateStatus)
+Amatrix_T = 0.d0
 
 ALLOCATE (NEQn(6+Nparam,6+Nparam), STAT = AllocateStatus)
 ALLOCATE (NEQu(6+Nparam,1), STAT = AllocateStatus)
 ALLOCATE (NEQn_inv(6+Nparam,6+Nparam), STAT = AllocateStatus)
 
 ALLOCATE (corrl(6+Nparam,6+Nparam), STAT = AllocateStatus)
+corrl = 0.d0
 ALLOCATE (Xsigma(6+Nparam,6+Nparam), STAT = AllocateStatus)
+Xsigma = 0.d0
 
 ALLOCATE (ObsEpochs(Ncommon,2), STAT = AllocateStatus)
 ObsEpochs = 0.d0
@@ -222,9 +230,16 @@ Do iref = 1 , Norb
 			End If
 ! ----------------------------------------------------------------------
             iobs0 = iobs + 1
+            exit
         end IF
     end Do   
 end Do
+
+if (.false.) then
+        print *, Obsepochs(1, :)
+        print *, Obsepochs(Ncommon, :)
+        print *, Nepochs, Ncommon
+end if
 
 ! ----------------------------------------------------------------------
 ! Design matrix

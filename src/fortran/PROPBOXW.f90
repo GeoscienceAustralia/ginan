@@ -32,12 +32,19 @@ SUBROUTINE PROPBOXW(BLKID,AREA,REFL,DIFU,ABSP,AREA2,REFL2,DIFU2,ABSP2,REFLIR,DIF
 !!        103 = GLONASS-K (Added TAH 190702)
 !!        201 = Galileo (IOV)
 !!        202 = Galileo (FOC)
-!!        301 = BDS GEO
-!!        302 = BDS IGSO
-!!        303 = BDS MEO
+!!        301 = BDS 2M
+!!        302 = BDS 2I
+!!        303 = BDS 2G
+!!        304 = BDS 3M CAST
+!!        305 = BDS 3I CAST
+!!        306 = BDS 3M SECM A
+!!        307 = BDS 3I SECM
+!!        308 = BDS 3M SECM B
+!!        309 = BDS 3G
 !!        401 = QZSS-1
 !!        402 = QZSS-2I
 !!        403 = QZSS-2G
+!!        404 = QZSS-2A
 !!
 !! OUT :  AREA(I,J)  : AREAS OF FLAT SURFACES [m^2]
 !!        REFL(I,J)  : REFLEXION COEFFICIENT
@@ -551,7 +558,7 @@ SUBROUTINE PROPBOXW(BLKID,AREA,REFL,DIFU,ABSP,AREA2,REFL2,DIFU2,ABSP2,REFLIR,DIF
      S_SIDE(1,4) = 1D0
 
 !! ========================================================
-!! BDS satellites (Temporally using)
+!! BDS satellites 
 !! Information: http://mgex.igs.org/IGS_MGEX_Status_BDS.php
 !! The BDS orbit is 30000 km, so the ERP effect could be tiny.
 !! ========================================================
@@ -583,7 +590,172 @@ SUBROUTINE PROPBOXW(BLKID,AREA,REFL,DIFU,ABSP,AREA2,REFL2,DIFU2,ABSP2,REFLIR,DIF
      Z_SIDE(3,4) = 1D0
 
 ! SOLAR PANELS
-     S_SIDE(1,1) = 22.70D0
+     S_SIDE(1,1) = 11.35D0
+     S_SIDE(1,2) = 0.85D0
+     S_SIDE(1,3) = 0.28D0
+     S_SIDE(1,4) = 1D0
+
+  ELSEIF (BLKID.EQ.304) THEN 
+     blk_found = .true. 
+  
+! +/- X SIDE
+     X_SIDE(1,1) = 2.86D0
+     X_SIDE(1,2) = 0.20D0 ! guess 
+     X_SIDE(1,3) = 0.56D0 ! guess
+     X_SIDE(1,4) = 1D0
+
+! +/- Y SIDE
+     Y_SIDE(1,1) = 3.63D0
+     Y_SIDE(1,2) = 0.20D0 
+     Y_SIDE(1,3) = 0.56D0 
+     Y_SIDE(1,4) = 1D0
+
+! -Z SIDE
+     Z_SIDE(1,1) = 2.18D0
+     Z_SIDE(1,2) = 0.0D0 
+     Z_SIDE(1,3) = 0.0D0 
+     Z_SIDE(1,4) = 1D0
+
+! +Z SIDE
+     Z_SIDE(3,1) = 2.18D0
+     Z_SIDE(3,2) = 0.0D0
+     Z_SIDE(3,3) = 0.13D0 !guess
+     Z_SIDE(3,4) = 1D0
+
+! SOLAR PANELS
+     S_SIDE(1,1) = 10.22D0
+     S_SIDE(1,2) = 0.85D0
+     S_SIDE(1,3) = 0.28D0
+     S_SIDE(1,4) = 1D0
+
+  ELSEIF (BLKID.EQ.305) THEN 
+     blk_found = .true. 
+  
+! +/- X SIDE
+     X_SIDE(1,1) = 8.496D0
+     X_SIDE(1,2) = 0.20D0 ! guess 
+     X_SIDE(1,3) = 0.56D0 ! guess
+     X_SIDE(1,4) = 1D0
+
+! +/- Y SIDE
+     Y_SIDE(1,1) = 7.56D0
+     Y_SIDE(1,2) = 0.20D0 
+     Y_SIDE(1,3) = 0.56D0 
+     Y_SIDE(1,4) = 1D0
+
+! -Z SIDE
+     Z_SIDE(1,1) = 4.956D0
+     Z_SIDE(1,2) = 0.0D0 
+     Z_SIDE(1,3) = 0.0D0 
+     Z_SIDE(1,4) = 1D0
+
+! +Z SIDE
+     Z_SIDE(3,1) = 4.956D0
+     Z_SIDE(3,2) = 0.0D0
+     Z_SIDE(3,3) = 0.13D0 !guess
+     Z_SIDE(3,4) = 1D0
+
+! SOLAR PANELS
+     S_SIDE(1,1) = 17.70D0
+     S_SIDE(1,2) = 0.85D0
+     S_SIDE(1,3) = 0.28D0
+     S_SIDE(1,4) = 1D0
+
+  ELSEIF (BLKID.EQ.306.or.BLKID.EQ.307) THEN 
+     blk_found = .true. 
+  
+! +/- X SIDE
+     X_SIDE(1,1) = 1.25D0
+     X_SIDE(1,2) = 0.20D0 ! guess 
+     X_SIDE(1,3) = 0.56D0 ! guess
+     X_SIDE(1,4) = 1D0
+
+! +/- Y SIDE
+     Y_SIDE(1,1) = 3.13D0
+     Y_SIDE(1,2) = 0.20D0 
+     Y_SIDE(1,3) = 0.56D0 
+     Y_SIDE(1,4) = 1D0
+
+! -Z SIDE
+     Z_SIDE(1,1) = 2.59D0
+     Z_SIDE(1,2) = 0.0D0 
+     Z_SIDE(1,3) = 0.0D0 
+     Z_SIDE(1,4) = 1D0
+
+! +Z SIDE
+     Z_SIDE(3,1) = 2.59D0
+     Z_SIDE(3,2) = 0.0D0
+     Z_SIDE(3,3) = 0.13D0 !guess
+     Z_SIDE(3,4) = 1D0
+
+! SOLAR PANELS
+     S_SIDE(1,1) = 5.40D0
+     S_SIDE(1,2) = 0.85D0
+     S_SIDE(1,3) = 0.28D0
+     S_SIDE(1,4) = 1D0
+
+  ELSEIF (BLKID.EQ.308) THEN 
+     blk_found = .true. 
+  
+! +/- X SIDE
+     X_SIDE(1,1) = 1.24D0
+     X_SIDE(1,2) = 0.20D0 ! guess 
+     X_SIDE(1,3) = 0.56D0 ! guess
+     X_SIDE(1,4) = 1D0
+
+! +/- Y SIDE
+     Y_SIDE(1,1) = 3.78D0
+     Y_SIDE(1,2) = 0.20D0 
+     Y_SIDE(1,3) = 0.56D0 
+     Y_SIDE(1,4) = 1D0
+
+! -Z SIDE
+     Z_SIDE(1,1) = 2.57D0
+     Z_SIDE(1,2) = 0.0D0 
+     Z_SIDE(1,3) = 0.0D0 
+     Z_SIDE(1,4) = 1D0
+
+! +Z SIDE
+     Z_SIDE(3,1) = 2.57D0
+     Z_SIDE(3,2) = 0.0D0
+     Z_SIDE(3,3) = 0.13D0 !guess
+     Z_SIDE(3,4) = 1D0
+
+! SOLAR PANELS
+     S_SIDE(1,1) = 5.40D0
+     S_SIDE(1,2) = 0.85D0
+     S_SIDE(1,3) = 0.28D0
+     S_SIDE(1,4) = 1D0
+
+  ELSEIF (BLKID.EQ.309) THEN 
+     blk_found = .true. 
+  
+! +/- X SIDE
+     X_SIDE(1,1) = 8.496D0
+     X_SIDE(1,2) = 0.20D0 ! guess 
+     X_SIDE(1,3) = 0.56D0 ! guess
+     X_SIDE(1,4) = 1D0
+
+! +/- Y SIDE
+     Y_SIDE(1,1) = 7.56D0
+     Y_SIDE(1,2) = 0.20D0 
+     Y_SIDE(1,3) = 0.56D0 
+     Y_SIDE(1,4) = 1D0
+
+! -Z SIDE
+     Z_SIDE(1,1) = 4.95D0
+     Z_SIDE(1,2) = 0.0D0 
+     Z_SIDE(1,3) = 0.0D0 
+     Z_SIDE(1,4) = 1D0
+
+! +Z SIDE
+     Z_SIDE(3,1) = 4.95D0
+     Z_SIDE(3,2) = 0.0D0
+     Z_SIDE(3,3) = 0.13D0 !guess
+     Z_SIDE(3,4) = 1D0
+
+! SOLAR PANELS
+     S_SIDE(1,1) = 17.70D0
      S_SIDE(1,2) = 0.85D0
      S_SIDE(1,3) = 0.28D0
      S_SIDE(1,4) = 1D0

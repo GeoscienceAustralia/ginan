@@ -93,6 +93,7 @@ Nepochs = sz1
 
 ! Dynamic allocatable array
 ALLOCATE (orbC(sz1,sz2), STAT = AllocateStatus)
+orbC = 0.d0
 
 ! ----------------------------------------------------------------------
 ! Computations per epoch loop
