@@ -67,6 +67,8 @@ SUBROUTINE statorbit (ds1, ds2, dorb_XYZ, dorb_RTN, dorb_Kepler, stat_XYZ, stat_
       USE mdl_num
       USE m_statist
       USE mdl_config
+      USE mdl_param
+      use pod_yaml
       IMPLICIT NONE
 
 	  
@@ -104,7 +106,7 @@ SUBROUTINE statorbit (ds1, ds2, dorb_XYZ, dorb_RTN, dorb_Kepler, stat_XYZ, stat_
       CHARACTER (LEN=100) :: mesg
       logical   allzero
 
-      integer iy, im, id, jflag, ih, imin
+      integer iy, im, id, jflag, ih, imin, idx
       double precision    fd, fsec
 ! ----------------------------------------------------------------------	  
 
@@ -273,6 +275,12 @@ print*, dsr(k,3), dsr(k,4), dsr(k,5)
 print*, "next values"
 if (i .ne. Nepochs) print*, ds1(i+1,3), ds1(i+1,4), ds1(i+1,5)
 if (j .ne. Nepochs2) print*, ds2(j+1,3), ds2(j+1,4), ds2(j+1,5)
+do idx = 1, prn_override_count
+    if (yml_prn_overrides(idx)%name == trim(PRN)) then
+          print *, yml_prn_overrides(idx)%integ%integ_header
+          exit
+    end if
+end do
 STOP
 END IF
 	     ! Orbital frame numerical differences at common epochs

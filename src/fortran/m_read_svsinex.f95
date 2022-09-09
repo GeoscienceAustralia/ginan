@@ -394,15 +394,27 @@ READ(UNIT_IN,'(a)',iostat=ioerr) record
       IF(TRIM(s_BLKTYP)=='GLO-K1A'.or.TRIM(s_BLKTYP) == 'GLO-K1B') s_BLKID = 103
       IF(TRIM(s_BLKTYP)=='GAL-1')     s_BLKID = 201 ! Galileo (IOV)
       IF(TRIM(s_BLKTYP)=='GAL-2')     s_BLKID = 202 ! Galileo (FOC)
-      IF(TRIM(s_BLKTYP)=='BDS-2G'.or.TRIM(s_BLKTYP) == 'BDS-3G')            s_BLKID = 301 ! BDS GEO
-      IF(TRIM(s_BLKTYP)=='BDS-2I'.or.TRIM(s_BLKTYP) == 'BDS-3I'.or. &
-         TRIM(s_BLKTYP)=='BDS-3SI-SECM'.or.TRIM(s_BLKTYP) =='BDS-3SI-CAST') s_BLKID = 302 ! BDS IGSO
-      IF(TRIM(s_BLKTYP)=='BDS-2M'.or.TRIM(s_BLKTYP) == 'BDS-3M'.or. &
-         TRIM(s_BLKTYP)=='BDS-3M-SECM'.or.TRIM(s_BLKTYP) =='BDS-3M-CAST')   s_BLKID = 303 ! BDS MEO
+      IF(TRIM(s_BLKTYP)=='GAL-0A' .or. TRIM(s_BLKTYP) == 'GAL-0B') s_BLKID = 209 ! test GAL blkid not used in pod
+      IF(TRIM(s_BLKTYP)=='BDS-2M')                                                s_BLKID = 301 ! BDS 2 MEO
+      IF(TRIM(s_BLKTYP)=='BDS-2I')                                                s_BLKID = 302 ! BDS 2 IGSO
+      IF(TRIM(s_BLKTYP)=='BDS-2G')                                                s_BLKID = 303 ! BDS 2 GEO
+      IF(TRIM(s_BLKTYP)=='BDS-3M-CAST'.or.TRIM(s_BLKTYP)=='BDS-3SM-CAST')         s_BLKID = 304 ! BDS 3 MEO CAST
+      IF(TRIM(s_BLKTYP)=='BDS-3I'.or.TRIM(s_BLKTYP)=='BDS-3SI-CAST')              s_BLKID = 305 ! BDS 3 IGSO CAST
+      IF(TRIM(s_BLKTYP)=='BDS-3M-SECM-A'.or.TRIM(s_BLKTYP)=='BDS-3SM-SECM'.or.&
+              TRIM(s_BLKTYP)=='BDS-3M-SECM')                                      s_BLKID = 306 ! BDS 3 MEO SECM (A)
+      IF(TRIM(s_BLKTYP)=='BDS-3SI-SECM')                                          s_BLKID = 307 ! BDS 3 IGSO SECM
+      IF(TRIM(s_BLKTYP)=='BDS-3M-SECM-B')                                         s_BLKID = 308 ! BDS 3 MEO SECM (B)
+      IF(TRIM(s_BLKTYP)=='BDS-3G')                                                s_BLKID = 309 ! BDS 3 GEO
       IF(TRIM(s_BLKTYP)=='QZS-1')     s_BLKID = 401 
       IF(TRIM(s_BLKTYP)=='QZS-2I')    s_BLKID = 402 ! QZSS-IGSO
       IF(TRIM(s_BLKTYP)=='QZS-2G')    s_BLKID = 403 ! QZSS-GEO
       IF(TRIM(s_BLKTYP)=='QZS-2A')    s_BLKID = 404 ! QZSS-1R
+      if (satsvn(1:1) /= "I" .and. s_BLKID == 0) then
+           ! we don't care about India's satellites just now
+          print *, "BLK type " // TRIM(S_BLKTYP) // " not known to POD (SV=" // satsvn // ")"
+          print *, "Possible corrections required to m_read_svsinex.f95, BOXWINIT.f90 and PROPBOXW.f90"
+          STOP
+      end if
       satellites(SAT_COUNT)%BLKID = s_BLKID
       ! default all other variables for now
       satellites(SAT_COUNT)%PRN = ''
@@ -639,9 +651,8 @@ DO WHILE (.not.found)
          i = i+1
       enddo
       if (i.gt.SAT_COUNT) cycle ! we didn't find this SVN in the list! read next line.
-      if (satellites(i)%PRN == '') then
+      if (satellites(i)%PRN == '' .and. i .le. SAT_COUNT - 1 .and. satellites(i+1)%SVN /= satsvn) then
          ! no PRN for this satellite! Just insert mass period and move to the next line
-         satellites(i)%MASS = s_MASS
          satellites(i)%STARTYR = yr1
          satellites(i)%STARTDOY = doy1
          satellites(i)%STARTSOD = sod1
@@ -650,6 +661,7 @@ DO WHILE (.not.found)
          satellites(i)%STOPDOY = doy2
          satellites(i)%STOPSOD = sod2
          satellites(i)%TSTOP = time2
+         satellites(i)%MASS = s_mass
          cycle
       endif
       if (satellites(i)%TSTART > time2) then
@@ -767,11 +779,11 @@ DO WHILE (.not.found)
          if (SAT_COUNT > MAX_SAT) call report('FATAL', pgrm_name, 'read_sinex_file', &
                 'Too many satellite rows in sinex file (increase MAX_SAT in mdl_param.f95)', &
                 ' ', 0)
+         satellites(i)%MASS = s_MASS
          satellites(SAT_COUNT) = satellites(i)
          satellites(SAT_COUNT)%PRN = ''
          satellites(SAT_COUNT)%TSTART = time1
          satellites(SAT_COUNT)%TSTOP = satellites(i)%TSTART
-         satellites(SAT_COUNT)%MASS = s_MASS
          satellites(SAT_COUNT)%STARTYR=yr1
          satellites(SAT_COUNT)%STARTDOY=doy1
          satellites(SAT_COUNT)%STARTSOD=sod1
@@ -786,6 +798,7 @@ DO WHILE (.not.found)
                 'Too many satellite rows in sinex file (increase MAX_SAT in mdl_param.f95)', &
                 ' ', 0)
          satellites(SAT_COUNT) = satellites(i)
+         satellites(SAT_COUNT)%PRN = satellites(i)%PRN
          satellites(SAT_COUNT)%TSTART = satellites(i)%TSTART
          satellites(SAT_COUNT)%STARTYR = satellites(i)%STARTYR
          satellites(SAT_COUNT)%STARTDOY = satellites(i)%STARTDOY
@@ -1440,10 +1453,8 @@ enddo
 call Qsort_Sinex_SVN(satellites(1:SAT_COUNT))
 endif
 endif
-
 ! TODO: repeat for com block (SATELLITE/COM - com_x, com_y, com_z)
 ! repeat above mass block for centre of mass instead
-
 END SUBROUTINE
 
 END

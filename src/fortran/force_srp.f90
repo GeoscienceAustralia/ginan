@@ -147,7 +147,7 @@ F0 = 0.d0
 fx = 0.d0
 fy = 0.d0
 fz = 0.d0
-call apr_srp(GNSSid, BLKTYP, X_SIDE, Z_SIDE, A_SOLAR, F0)
+call apr_srp(GNSSid, BLKID, BLKTYP, X_SIDE, Z_SIDE, A_SOLAR, F0)
 
 ! The unit vector ez SAT->EARTH
       er(1)=r(1)/sqrt(r(1)**2+r(2)**2+r(3)**2)
@@ -259,7 +259,8 @@ END IF
      if (att_ON == 1) then
 !     PRINT*,'The orbit-normal attitude is applied.'
 
-     if(BLKID == 301 ) then
+     if(BLKID == 303 .or. BLKID == 309 ) then
+             ! BDS GEO TYPES
          CALL productcross (ez,ev,yy)
         ey(1)=yy(1)/sqrt(yy(1)**2+yy(2)**2+yy(3)**2)
         ey(2)=yy(2)/sqrt(yy(1)**2+yy(2)**2+yy(3)**2)
@@ -275,7 +276,10 @@ END IF
         ed(2)=yy(2)/sqrt(yy(1)**2+yy(2)**2+yy(3)**2)
         ed(3)=yy(3)/sqrt(yy(1)**2+yy(2)**2+yy(3)**2)
 
-     elseif(BLKID == 302 .or.BLKID == 303) then
+     elseif(BLKID == 301 .or. BLKID == 302 .or. BLKID == 304 .or.&
+            BLKID == 305 .or. BLKID == 306 .or. BLKID == 307 .or.&
+            BLKID == 308) then
+            ! BDS MEO and IGSO TYPES
         if (eclipsf == 3) then 
 !        if (abs(beta*180.0d0/Pi_global) < 4.d0) then
 !        PRINT*,'ed_YS =',ed, sqrt(ed(1)**2+ed(2)**2+ed(3)**2)

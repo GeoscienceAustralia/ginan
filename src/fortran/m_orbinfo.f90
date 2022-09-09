@@ -132,7 +132,7 @@ fmt_line = '(A1)'
 READ (PRN, fmt_line ) GNSSid
 
 ! Removed hardwired simple boxwing constants with call to apr_srp routine SCM 23/02/2020
-Call apr_srp (GNSSid, BLKTYP, X_SIDE, Z_SIDE, A_SOLAR, F0)
+Call apr_srp (GNSSid, BLKID, BLKTYP, X_SIDE, Z_SIDE, A_SOLAR, F0)
 
 ! ---------------------------------------------------------------------
 
@@ -261,7 +261,8 @@ Call apr_srp (GNSSid, BLKTYP, X_SIDE, Z_SIDE, A_SOLAR, F0)
 !        if (abs(beta*180.0d0/Pi_global) < 4.d0) ex = et
 
 !     end if
-      if(BLKID == 301)then
+      if(BLKID == 303 .or. BLKID == 309)then
+              ! BDS GEO TYPES
       CALL productcross (ez,ev,yy)
       ey(1)=yy(1)/sqrt(yy(1)**2+yy(2)**2+yy(3)**2)
       ey(2)=yy(2)/sqrt(yy(1)**2+yy(2)**2+yy(3)**2)
@@ -280,7 +281,9 @@ Call apr_srp (GNSSid, BLKTYP, X_SIDE, Z_SIDE, A_SOLAR, F0)
       yaw= acos(ed(1)*ed_on(1)+ed(2)*ed_on(2)+ed(3)*ed_on(3))
       IF (beta*180/Pi_global .gt. 0.d0) yaw= -yaw
 
-      elseif(BLKID == 302 .or. BLKID == 303)then
+      elseif(BLKID == 301 .or. BLKID == 302 .or. BLKID == 304 .or.&
+             BLKID == 305 .or. BLKID == 306 .or. BLKID == 307 .or.&
+             BLKID == 308)then
       if (abs(beta*180.0d0/Pi_global) < 4.5d0) then
       CALL productcross (ez,ev,yy)
       ey(1)=yy(1)/sqrt(yy(1)**2+yy(2)**2+yy(3)**2)

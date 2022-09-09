@@ -81,7 +81,7 @@ SUBROUTINE prm_pseudobs (PRMfname, pseudobs_opt, no_data_for_first_epoch)
 	  REAL (KIND = prec_d) :: Zo(6), Sec0, MJDo
       INTEGER (KIND = prec_int2) :: AllocateStatus, DeAllocateStatus
 ! ----------------------------------------------------------------------
-      INTEGER (KIND = prec_int8) :: i, read_i
+      INTEGER (KIND = prec_int8) :: i, read_i, interval, int_points
       INTEGER (KIND = prec_int2) :: UNIT_IN, ios
       INTEGER (KIND = prec_int2) :: ios_line, ios_key, ios_data
       INTEGER (KIND = prec_int2) :: space_i
@@ -103,6 +103,7 @@ SUBROUTINE prm_pseudobs (PRMfname, pseudobs_opt, no_data_for_first_epoch)
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: orbsp3_filt, orb_out
       INTEGER (KIND=prec_int2) time_system
       logical found
+      character (Len=3) :: prn_out    ! for debugging
 
   
 ! ----------------------------------------------------------------------
@@ -116,6 +117,8 @@ SUBROUTINE prm_pseudobs (PRMfname, pseudobs_opt, no_data_for_first_epoch)
       Format3 = '(I100)'
       found = .false.
       no_data_for_first_epoch = .false.
+      prn_out = 'G33' !invalid. change to real PRN for debugging
+
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -135,6 +138,9 @@ i = 0
 fname_orb = yml_orbit_filename
 interpstep = yml_orbit_steps
 NPint = yml_orbit_points
+
+interval = 0
+int_points = 0
 
 if (.not. yaml_found) then
 DO
@@ -209,7 +215,7 @@ if (data_opt == TYPE_SP3) Then
 ! Read IGS sp3 orbit data file 
 !Call sp3 (fname_orb, PRN, pseudobs_ITRF, clock_matrix)
 Call sp3 (fname_orb, PRN, orbsp3, yml_interpolate_start, clock_matrix, time_system, &
-        found, .true., no_data_for_first_epoch)
+        found, .true., interval, int_points, no_data_for_first_epoch)
 
 !if (no_data_for_first_epoch) return
 
@@ -240,6 +246,18 @@ END IF
 ! Orbit transformation ITRF to ICRF
 !Call orbT2C (pseudobs_ITRF, time_sys, pseudobs_ICRF)
 Call obsorbT2C (pseudobs_ITRF, time_system, pseudobs_ICRF)
+
+if (prn_out == PRN) then
+    print *, "prm_pseudobs (direct SP3): ITRF="
+    do i = 1,5
+        print *, pseudobs_ITRF(i, :)
+    end do
+    print *, "ICRF="
+    do i = 1,5
+        print *, pseudobs_ICRF(i, :)
+    end do
+end if 
+
 ! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
@@ -254,6 +272,18 @@ if (.not. found) call report('FATAL', pgrm_name, 'prm_pseudobs', trim(mesg), 'sr
 
 ! Orbit transformation ITRF to ICRF
 Call orbT2C (pseudobs_ITRF, time_system, pseudobs_ICRF)
+
+if (prn_out == PRN) then
+    print *, "prm_pseudobs (interp): ITRF="
+    do i = 1,5
+        print *, pseudobs_ITRF(i, :)
+    end do
+    print *, "ICRF="
+    do i = 1,5
+        print *, pseudobs_ICRF(i, :)
+    end do
+end if 
+
 ! ----------------------------------------------------------------------
 
 End IF

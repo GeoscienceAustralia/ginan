@@ -70,7 +70,7 @@ SUBROUTINE clock_read (CLKfname,CLKformat, PRNmatrix, ORB_matrix, CLKmatrix)
 ! Local variables declaration
 ! ----------------------------------------------------------------------
       INTEGER (KIND = prec_int8) :: Nsat, isat, Nepochs, Nel, Nepochs_orb, i_epochs
-      INTEGER (KIND = prec_int8) :: Cepochs, Cel, i, j 
+      INTEGER (KIND = prec_int8) :: Cepochs, Cel, i, j , interval, int_points
       CHARACTER (LEN=3) :: PRNid
       REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: orbsp3, clock_matrix
       INTEGER (KIND = prec_int2) :: AllocateStatus
@@ -82,6 +82,9 @@ SUBROUTINE clock_read (CLKfname,CLKformat, PRNmatrix, ORB_matrix, CLKmatrix)
 
 ! PRN array dimensions
 Nsat = SIZE (PRNmatrix,DIM=1)
+
+interval = 0
+int_points = 0
 
 IF (CLKformat == 0) THEN
 	!CLKmatrix = 0.0D0  
@@ -104,7 +107,8 @@ ELSE IF (CLKformat == 1) THEN
         first = .true.
 	DO isat = 1 , Nsat
 		PRNid = PRNmatrix(isat)
-		CALL sp3(CLKfname,PRNid,orbsp3,yml_interpolate_start,clock_matrix,time_system,found,.false., nodata)
+		CALL sp3(CLKfname,PRNid,orbsp3,yml_interpolate_start,clock_matrix,time_system,&
+                        found,.false., interval, int_points, nodata)
                 write (mesg, *) "PRN ", PRNid, " not found in sp3 file ", CLKfname
                 if (.not. found) then
                         call report('WARNING', pgrm_name, 'clock_read', trim(mesg), 'src/fortran/m_clock_read.f95', 1)

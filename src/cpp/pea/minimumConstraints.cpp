@@ -25,7 +25,7 @@ void minSiteData(
 	string			suffix		= "",
 	map<int, bool>*	usedMap_ptr	= nullptr)
 {
-	trace << std::endl << "+ Site Data" + suffix;
+	trace << std::endl << "+SITE/DATA" + suffix;
 	tracepdeex(0, trace, "\n#\t%4s\t%9s\t%9s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%s", 
 			"Site", 
 			"Lat", 
@@ -104,7 +104,7 @@ void minSiteData(
 				sqrt(enuCovariance(2,2)) * 1e3,
 				constraint.c_str());
 	}
-	trace << std::endl << "- Site Data" + suffix;
+	trace << std::endl << "-Site Data" + suffix;
 }
 
 void mincon(
@@ -315,14 +315,14 @@ void mincon(
 	{
 		std::cout	<< std::endl << "------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
 		kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, false, &kfStateTrans.dx);
-		kfStateTrans.outputStates(trace, " LSQ");
+		kfStateTrans.outputStates(trace, "/LSQ_MINCON");
 	}
 	
 	std::cout	<< std::endl << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
 	trace		<< std::endl << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
 	kfStateTrans.filterKalman(trace, combinedMeasCulled);
 	
-	kfStateTrans.outputStates(trace, " Transform");
+	kfStateTrans.outputStates(trace, "/TRANSFORM");
 
 	//Do kalman filter on original state using pseudomeasurements
 
@@ -495,7 +495,7 @@ void mincon(
 		else				trace << "in the complete set of stations";
 	}
 	
-	kfStateStations.outputStates(trace, " Constrained");
+	kfStateStations.outputStates(trace, "/CONSTRAINED");
 	
 	for (auto& [key, index] : kfStateStations.kfIndexMap)
 	{
@@ -557,7 +557,7 @@ KFState minconOnly(
 		sinexPerEpochPerStation(kalmanPlus.time, rec);
 	}
 	
-	kalmanPlus.outputStates(trace, " Unconstrained");
+	kalmanPlus.outputStates(trace, "/UNCONSTRAINED");
 	{
 		KFState& kfState = kalmanPlus;
 		mincon(trace, kalmanPlus);

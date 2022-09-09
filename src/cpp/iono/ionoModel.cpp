@@ -240,7 +240,7 @@ void updateIonosphereModel(
 // 		trace << std::endl << " ------- AFTER IONO KALMAN FILTER --------" << std::endl;
 	}
 
-	iono_KFState.outputStates(trace, " Ion");
+	iono_KFState.outputStates(trace, "/ION");
 	
 	MatrixXd atran = combinedMeas.H.transpose();
 	TestStack::testMat("v", combinedMeas.V);
