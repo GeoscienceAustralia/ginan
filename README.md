@@ -96,13 +96,9 @@ sudo apt upgrade -y
 
 sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make libssl1.0-dev wget sudo python3 software-properties-common
 
-<<<<<<< HEAD
 apt install python3-pip
 
 pip3 install wheel pandas boto3 unlzw tdqm
-=======
-pip3 install wheel pandas boto3 unlzw tdqm scipy
->>>>>>> 0b9e6135ec5f44fbcb1f281adb157c7b694c9e02
 :<<'```executable'
 ```    
 
@@ -228,11 +224,7 @@ cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_EXAMPLES=OFF ../
 
 cmake --build .
 
-<<<<<<< HEAD
 cmake --build . --target install
-=======
-sudo cmake --build . --target install -- -j 2
->>>>>>> 0b9e6135ec5f44fbcb1f281adb157c7b694c9e02
 
 cd $dir/tmp
 
@@ -319,13 +311,7 @@ sudo apt -y install libnetcdf-dev libnetcdf-c++4-dev
 You can download Ginan source from github using git clone:
 
 ```executable
-<<<<<<< HEAD
 git clone https://github.com/vduong1005/ginan.git
-=======
-cd $dir
-
-git clone https://github.com/GeoscienceAustralia/ginan.git
->>>>>>> 0b9e6135ec5f44fbcb1f281adb157c7b694c9e02
 
 cd ginan
 :<<'```executable'
