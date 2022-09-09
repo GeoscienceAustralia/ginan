@@ -86,6 +86,11 @@ ntot = []
 r_all_std = []
 t_all_std = []
 n_all_std = []
+
+r_all_rms = []
+t_all_rms = []
+n_all_rms = []
+
 for I in prns:
     i=i+1
     r = []
@@ -93,7 +98,8 @@ for I in prns:
     n = []
     for x in range (0,len(prn)):
         if prn[x] == I:
-           r.append(mat_1[x,10]*100)
+           # Convert from meter to centimeter
+           r.append(mat_1[x,10]*100) 
            t.append(mat_1[x,11]*100)
            n.append(mat_1[x,12]*100)
     rtot.append(r)
@@ -102,23 +108,30 @@ for I in prns:
     r_mean= np.mean(r,dtype=np.float64)
     t_mean= np.mean(t,dtype=np.float64)
     n_mean= np.mean(n,dtype=np.float64)
-    r_std = np.std(r,dtype=np.float64)
+    r_std = np.std(r,dtype=np.float64)  # Deviding by N (not N-1)
     t_std = np.std(t,dtype=np.float64)
-    n_std = np.std(n,dtype=np.float64)
+    n_std = np.std(n,dtype=np.float64)    
+
     r_rms = math.sqrt(r_mean**2+r_std**2)
     t_rms = math.sqrt(t_mean**2+t_std**2)
     n_rms = math.sqrt(n_mean**2+n_std**2)
+
     r_all_std.append(r_std)
     t_all_std.append(t_std)
     n_all_std.append(n_std)
-# Check RMS calculation (all good SCM)
-#    rrms = math.sqrt(sum(x*x for x in r)/len(r))
-#    trms = math.sqrt(sum(x*x for x in t)/len(t))
-#    nrms = math.sqrt(sum(x*x for x in n)/len(n))
+
+    r_all_rms.append(r_rms)
+    t_all_rms.append(t_rms)
+    n_all_rms.append(n_rms)
+
+     # Check RMS calculation (all good SCM)
+     #     rrms = math.sqrt(sum(x*x for x in r)/len(r))     
+     #     trms = math.sqrt(sum(x*x for x in t)/len(t))
+     #     nrms = math.sqrt(sum(x*x for x in n)/len(n))
 
 #    print("PRN: Mean     R/T/N/3D: %3d : %6.3f %6.3f %6.3f %6.3f" %(I,r_mean,t_mean,n_mean,np.sqrt(r_mean**2+t_mean**2+n_mean**2)))
 #    print("PRN: Std Dev  R/T/N/3D: %3d : %6.3f %6.3f %6.3f %6.3f" %(I,r_std,t_std,n_std,np.sqrt(r_std**2+t_std**2+n_std**2)))
-    print("PRN: RMS      R/T/N/3D: %3d : %6.3f %6.3f %6.3f %6.3f" %(I,r_rms,t_rms,n_rms,np.sqrt(r_rms**2+t_rms**2+n_rms**2)))
+    print("PRN: RMS      R/T/N/3D (cm): %3d : %6.3f %6.3f %6.3f %6.3f" %(I,r_rms,t_rms,n_rms,np.sqrt(r_rms**2+t_rms**2+n_rms**2)))    
  
     if i ==0:
        plt.bar(I-bar_width, r_rms, bar_width,alpha=0.8, color='r', align='center', label='Radial')
@@ -143,12 +156,17 @@ r_mean_std = np.mean(r_all_std,dtype=np.float64)
 t_mean_std = np.mean(t_all_std,dtype=np.float64)
 n_mean_std = np.mean(n_all_std,dtype=np.float64)
 
+r_median_rms = np.median(r_all_rms)
+t_median_rms = np.median(t_all_rms)
+n_median_rms = np.median(n_all_rms)
+
 print(" ")
 print("Combined statistics")
-print("PRN: Mean     R/T/N/3D:  ALL: %6.3f %6.3f %6.3f %6.3f" %(rtot_mean,ttot_mean,ntot_mean,np.sqrt(rtot_mean**2+ttot_mean**2+ntot_mean**2)))
-print("PRN: Std Dev  R/T/N/3D:  ALL: %6.3f %6.3f %6.3f %6.3f" %(rtot_std,ttot_std,ntot_std,np.sqrt(rtot_std**2+ttot_std**2+ntot_std**2)))
-print("PRN: RMS      R/T/N/3D:  ALL: %6.3f %6.3f %6.3f %6.3f" %(rtot_rms,ttot_rms,ntot_rms,np.sqrt(rtot_rms**2+ttot_rms**2+ntot_rms**2)))
-print("PRN: Mean STD R/T/N/3D:  ALL: %6.3f %6.3f %6.3f %6.3f" %(r_mean_std,t_mean_std,n_mean_std,np.sqrt(r_mean_std**2+t_mean_std**2+n_mean_std**2)))
+print("PRN:Mean      R/T/N/3D (cm):  ALL: %6.3f %6.3f %6.3f %6.3f" %(rtot_mean,ttot_mean,ntot_mean,np.sqrt(rtot_mean**2+ttot_mean**2+ntot_mean**2)))
+print("PRN:Std Dev   R/T/N/3D (cm):  ALL: %6.3f %6.3f %6.3f %6.3f" %(rtot_std,ttot_std,ntot_std,np.sqrt(rtot_std**2+ttot_std**2+ntot_std**2)))
+print("PRN:RMS       R/T/N/3D (cm):  ALL: %6.3f %6.3f %6.3f %6.3f" %(rtot_rms,ttot_rms,ntot_rms,np.sqrt(rtot_rms**2+ttot_rms**2+ntot_rms**2)))
+print("PRN:Mean STD  R/T/N/3D (cm):  ALL: %6.3f %6.3f %6.3f %6.3f" %(r_mean_std,t_mean_std,n_mean_std,np.sqrt(r_mean_std**2+t_mean_std**2+n_mean_std**2)))
+print("PRN:MedianRMS R/T/N/3D (cm):  ALL: %6.3f %6.3f %6.3f %6.3f" %(r_median_rms,t_median_rms,n_median_rms,np.sqrt(r_median_rms**2+t_median_rms**2+n_median_rms**2)))
 
 plt.xlim( int(min(prns))-1, int(max(prns))+1 )
 plt.yticks(fontsize=16)
@@ -157,5 +175,5 @@ plt.ylabel('RMS (cm)',fontsize=20)
 plt.xlabel('Satellite PRN number',fontsize=20)
 plt.title(title,fontsize=20)
 plt.grid()
-plt.savefig(file_plt_1,dpi=150)
+plt.savefig(file_plt_1,dpi=300)
 

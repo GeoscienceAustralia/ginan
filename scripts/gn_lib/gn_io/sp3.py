@@ -4,6 +4,7 @@ import re as _re
 
 import numpy as _np
 import pandas as _pd
+_pd.options.mode.chained_assignment = None  # default='warn'
 from gn_lib import gn_aux as _gn_aux
 from gn_lib import gn_datetime as _gn_datetime
 from gn_lib import gn_io as _gn_io
@@ -269,6 +270,7 @@ def sp3_hlm_trans(a:_pd.DataFrame,b:_pd.DataFrame)->tuple((_pd.DataFrame,tuple((
     hlm = (hlm[0],_pd.DataFrame(hlm[1],columns=[['RES']*3,['X','Y','Z']],index = a.index))
 
     b.iloc[:,:3] = _gn_transform.transform7(xyz_in=b.EST[['X','Y','Z']].values,helmert_list=hlm[0][0])
+	# b.iloc[:,:3] = _transform7(xyz_in=b.EST[['X','Y','Z']].values,helmert_list=hlm[0][0])
     return b, hlm
 
 def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None,use_cubic_spline = True):
@@ -303,10 +305,11 @@ def diff_sp3_rac(sp3_a,sp3_b,hlm_mode=None,use_cubic_spline = True):
     nd_rac = diff_eci.values[:,_np.newaxis] @ _gn_transform.eci2rac_rot(sp3_a_eci_vel)
     df_rac = _pd.DataFrame(nd_rac.reshape(-1,3),
                   index = sp3_a.index,
-                  columns=[['EST_RAC']*3,['Radial','Along-track','Cross-track']])
-
+                  columns=[['EST_RAC']*3,['Radial','Along-track','Cross-track']])                  
+    
     df_rac.attrs['sp3_a'] = _os.path.basename(sp3_a.attrs['path'])
     df_rac.attrs['sp3_b'] = _os.path.basename(sp3_b.attrs['path'])
     df_rac.attrs['hlm'] = hlm
-    df_rac.attrs['hlm_mode'] = hlm_mode
+    df_rac.attrs['hlm_mode'] = hlm_mode    
+   
     return df_rac

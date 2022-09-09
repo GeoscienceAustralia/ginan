@@ -75,7 +75,7 @@ If instead you wish to build Ginan from source, there are several software depen
 * BLAS and LAPACK linear algebra libraries. We use and recommend [OpenBlas](https://www.openblas.net/) as this contains both libraries required
 * CMAKE     > 3.0 
 * YAML      > 0.6
-* Boost     >= 1.73 (tested on 1.73)
+* Boost     >= 1.79 (tested on 1.73)
 * Mongo_cxx >= 3.6.0 (and Mongo_C >= 1.17.1)
 * Eigen3    > 3.4 (we have used 3.4.0)
 * netCDF4
@@ -92,6 +92,8 @@ sudo apt update
 sudo apt upgrade -y
 
 sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make libssl1.0-dev wget sudo python3 software-properties-common
+
+apt install python3-pip
 
 pip3 install wheel pandas boto3 unlzw tdqm
 :<<'```executable'
@@ -158,11 +160,11 @@ PEA relies on a number of the utilities provided by [boost](https://www.boost.or
 ```executable
 cd ~/tmp
 
-wget -c https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
+wget -c https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.gz
 
-tar -xf boost_1_73_0.tar.gz
+tar -xf boost_1_79_0.tar.gz
 
-cd boost_1_73_0/
+cd boost_1_79_0/
 
 ./bootstrap.sh
 
@@ -170,7 +172,7 @@ sudo ./b2 -j2 install
 
 cd ..
 
-sudo rm -rf boost_1_73_0 boost_1_73_0.tar.gz
+sudo rm -rf boost_1_79_0 boost_1_79_0.tar.gz
 :<<'```executable'
 ```    
 
@@ -219,9 +221,9 @@ cd cmake-build/
 
 cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_EXAMPLES=OFF ../
 
-cmake --build . -- -j 2
+cmake --build .
 
-cmake --build . --target install -- -j 2
+cmake --build . --target install
 
 cd ~/tmp
 
@@ -233,9 +235,9 @@ cd mongo-cxx-driver-r3.6.0/build
 
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_EXAMPLES=OFF ../
 
-sudo cmake --build . --target EP_mnmlstc_core -- -j 2
+sudo cmake --build . --target EP_mnmlstc_core
 
-cmake --build . -- -j 2
+cmake --build .
 
 sudo cmake --build . --target install
 
@@ -305,7 +307,7 @@ Now you can start it as a service by:
 You can download Ginan source from github using git clone:
 
 ```executable
-git clone https://github.com/GeoscienceAustralia/ginan.git
+git clone https://github.com/vduong1005/ginan.git
 
 cd ginan
 :<<'```executable'

@@ -13,6 +13,10 @@ using std::chrono::system_clock;
 using std::chrono::time_point;
 using std::string;
 
+using namespace std;
+using std::ifstream;
+using std::ofstream;
+
 #include "peaCommitVersion.h"
 #include "streamTrace.hpp"
 #include "navigation.hpp"
@@ -506,7 +510,8 @@ void readegm(
 	MatrixXd smn = MatrixXd::Zero(361, 361);
 	MatrixXd cmn = MatrixXd::Zero(361, 361);
 
-	boost::filesystem::ifstream fileHandler(strEGMCoeFile);
+	//boost::filesystem::ifstream fileHandler(strEGMCoeFile);
+        std::ifstream fileHandler(strEGMCoeFile);
 
 	if (!fileHandler)
 	{

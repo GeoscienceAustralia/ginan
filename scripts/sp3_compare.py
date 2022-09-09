@@ -3,6 +3,8 @@
 '''Utility for comparing sp3 files'''
 import argparse
 import os as _os
+from tkinter import font
+import warnings
 
 import matplotlib.pyplot as plt
 
@@ -15,6 +17,7 @@ def parse_arguments():
         The helmert inversion mode is used to selected at which step to do the parameter computation and transfomation: ECF (as in sp3) or ECI.')
     parser.add_argument('sp3_a',type=file_path,help='path to the main sp3 file which will be used to interpolate velocities and compute RAC rotation matrix')
     parser.add_argument('sp3_b',type=file_path,help='path to another sp3 file')
+    parser.add_argument('--ylims', nargs=2, help='the y-axis limits; first arg must be less than second', type=int, default=None)
     parser.add_argument('-hlm', '--hlm_mode', help='helmert inversion mode',default=None, choices=(None, 'ECF', 'ECI'))
     parser.add_argument('-o', '--output', help='plot output path',default=None)
     return parser.parse_args()
@@ -31,12 +34,18 @@ if __name__ == "__main__":
     sp3_a = read_sp3(parsed_args.sp3_a)
     sp3_b = read_sp3(parsed_args.sp3_b)
     a = diff_sp3_rac(sp3_a, sp3_b,hlm_mode=parsed_args.hlm_mode)
-
+    # plt.ylabel("",fontsize=15)
+    # plt.xlabel("",fontsize=15) 
     extended_plot = a.attrs['hlm_mode'] is not None
 
-    fig = plt.figure(figsize=(10, 5+5*extended_plot),dpi=100)
+    fig = plt.figure(figsize=(10, 5+5*extended_plot),dpi=300)    
     gs = fig.add_gridspec(3+3*extended_plot, hspace=0.2)
     ax = gs.subplots(sharex=True, sharey=False)
+ 
+    if parsed_args.ylims is not None:        
+        for a0 in ax:
+            a0.set_ylim(*parsed_args.ylims)
+
     plot_vec(axes=ax,df=a.unstack()['EST_RAC'] * 100000,axes_idx=[1,2,0])
 
     if extended_plot: # append hlm residuals plot if transformation has been selected 
@@ -58,6 +67,7 @@ if __name__ == "__main__":
     fig.suptitle(a.attrs['sp3_a'] + ' - ' + a.attrs['sp3_b'] + (f" (HLM in {a.attrs['hlm_mode']})" if extended_plot else ""),y=0.92)
     fig.patch.set_facecolor('w') #white background (non-transparent)
     fig.legend(bbox_to_anchor = (.955,.89),ncol=2,fontsize=8)
-    plt.subplots_adjust(right=0.8)
-
+    plt.subplots_adjust(right=0.8)    
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    #plt.grid(b=True)   
     fig.savefig(f"{a.attrs['sp3_a'].split('.')[0]}-{a.attrs['sp3_b'].split('.')[0]}.pdf" if parsed_args.output is None else parsed_args.output)
