@@ -42,9 +42,15 @@
 !!                           103 = GLONASS-K (Added TAH 190702)
 !!                           201 = Galileo (IOV) (Added from acc_albedo_propboxw.f)
 !!                           202 = Galileo (FOC) (Added from acc_albedo_propboxw.f)
-!!                           301 = BDS GEO
-!!                           302 = BDS IGSO
-!!                           303 = BDS MEO
+!!                           301 = BDS 2M
+!!                           302 = BDS 2I
+!!                           303 = BDS 2G
+!!                           304 = BDS 3M CAST
+!!                           305 = BDS 3I CAST
+!!                           306 = BDS 3M SECM A
+!!                           307 = BDS 3I SECM
+!!                           308 = BDS 3M SECM B
+!!                           309 = BDS 3G
 !!                           401 = QZSS-1
 !!                           402 = QZSS-2I
 !!                           403 = QZSS-2G
@@ -185,7 +191,7 @@
 ! COSINE(4DEG) FROM THE SOLAR PANEL IN ON ATTITUDE IS SIMILAR TO THAT IN
 ! YS ATTITUDE. (05-11-2019 Dr. TZUPANG TSENG)
 ! =============================================================================
-         IF(BLKID == 301)THEN
+         IF(BLKID == 303 .or. BLKID == 309)THEN
 
 !        Y VECTOR
          Y_SAT(1) = -CRSVEC(1) 

@@ -738,7 +738,7 @@ void outputResiduals(
 	int				begH,			///< Index of first measurement to process
 	int				numH)			///< Number of measurements to process
 {
-	trace << std::endl << "+ Residuals" << std::endl;
+	trace << std::endl << "+RESIDUALS" << std::endl;
 	tracepdeex(2, trace, "#\t%2s\t%19s\t%8s\t%3s\t%7s\t%13s\t%13s\t%16s\n", "It", "Time", "Str", "Sat", "Type", "Prefit Res", "Postfit Res", "Meas Variance");
 	for (int i = begH; i < begH + numH; i++)
 	{
@@ -749,7 +749,7 @@ void outputResiduals(
 		
 		tracepdeex(2, trace, "%%\t%2d\t%19s\t%20s\t%13.4f\t%13.4f\t%16.9f\n", iteration, kfMeas.time.to_string(0).c_str(), ((string)kfMeas.obsKeys[i]).c_str(), kfMeas.V(i), kfMeas.VV(i - begH), kfMeas.R(i,i));
 	}
-	trace << "- Residuals" << std::endl;
+	trace << "-RESIDUALS" << std::endl;
 }
 
 /** Compare variances of measurements and filtered states to detect unreasonable values
@@ -1920,7 +1920,7 @@ void KFState::outputStates(
 {
 	tracepdeex(2, trace, "\n\n");
 
-	trace << std::endl << "+ States" << suffix << std::endl;
+	trace << std::endl << "+STATES" << suffix << std::endl;
 	
 	tracepdeex(2, trace, "#\t%19s\t%20s\t%5s\t%3s\t%3s\t%13s\t%16s\t%10s\t%s\n", "Time", "Type", "Str", "Sat", "Num", "State", "Variance", "Adjust", "Comments");
 
@@ -1959,7 +1959,7 @@ void KFState::outputStates(
 			key.comment.c_str());
 	}
 	
-	trace << "- States" << suffix << std::endl;
+	trace << "-STATES" << suffix << std::endl;
 }
 
 MatrixXi correlationMatrix(
@@ -1987,7 +1987,7 @@ void KFState::outputCorrelations(
 {
 	tracepdeex(2, trace, "\n\n");
 
-	trace << std::endl << "+ Correlations" << std::endl;
+	trace << std::endl << "+CORRELATIONS" << std::endl;
 	
 	int skip = 0;
 	for (auto& [key, index] : kfIndexMap)
@@ -2035,7 +2035,7 @@ void KFState::outputCorrelations(
 		
 		}
 	}
-	trace << std::endl << "- Correlations" << std::endl;
+	trace << std::endl << "-CORRELATIONS" << std::endl;
 }
 
 void KFState::outputMeasurements(
@@ -2043,7 +2043,7 @@ void KFState::outputMeasurements(
 		KFMeas&		meas)
 {
 	tracepdeex(2, trace, "\n\n");
-	trace << std::endl << "+ Measurements" << std::endl;
+	trace << std::endl << "+MEASUREMENTS" << std::endl;
 	
 	int skip = 0;
 	for (auto& [key, index] : kfIndexMap)
@@ -2080,7 +2080,7 @@ void KFState::outputMeasurements(
 		}
 	}
 
-	trace << std::endl << "- Measurements" << std::endl;
+	trace << std::endl << "-MEASUREMENTS" << std::endl;
 }
 
 InitialState initialStateFromConfig(

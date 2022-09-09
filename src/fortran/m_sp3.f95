@@ -21,7 +21,7 @@ Contains
 
 
 SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_system, found, &
-                from_prm_pseudobs, no_data_at_first_epoch)
+                from_prm_pseudobs, interval, NPint, no_data_at_first_epoch)
 
 ! ----------------------------------------------------------------------
 ! SUBROUTINE: sp3
@@ -84,6 +84,7 @@ SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_syst
       use mdl_config
       use mdl_param
       use pod_yaml
+      use m_interporb_filt
       !USE mdl_arr
       IMPLICIT NONE
 	  
@@ -95,6 +96,7 @@ SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_syst
       CHARACTER (LEN=3), INTENT(IN) :: PRNid
       REAL (KIND = prec_q), INTENT (IN) :: interpolate_start
       LOGICAL, INTENT(IN) :: from_prm_pseudobs
+      INTEGER(Kind=prec_int8) :: interval, NPint
 
 ! OUT
 ! 	  orb1: Allocatable array via mdl_arr.f90 
@@ -110,7 +112,7 @@ SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_syst
       INTEGER (KIND = prec_int4) :: PRN_num
       CHARACTER (LEN=1) :: GNSSid
 
-      REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: orbsp3_tmp, clock_matrix_tmp
+      REAL (KIND = prec_q), DIMENSION(:,:), ALLOCATABLE :: orbsp3_tmp, clock_matrix_tmp, orbsp3_2, clock_matrix_2
       INTEGER (KIND = prec_int4), DIMENSION (:), ALLOCATABLE :: bad_rows
 
       CHARACTER (LEN=2) :: ver
@@ -130,7 +132,7 @@ SUBROUTINE sp3 (fname, PRNid, orbsp3, interpolate_start, clock_matrix, time_syst
       REAL (KIND = prec_q) :: r(3), v(3)
       logical mjd_first
 
-      INTEGER (KIND = prec_int8) :: i, orb_i, orb_j, bad_row_count
+      INTEGER (KIND = prec_int8) :: i, orb_i, orb_j, bad_row_count, saved_bad_row_count
       INTEGER (KIND = prec_int2) :: UNIT_IN, ios
       INTEGER (KIND = prec_int2) :: ios_line, ios_key, ios_data
       CHARACTER (LEN=7) :: Format1
@@ -397,17 +399,20 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
  else
  Nepochs = epochs_read
  end if
+
+ saved_bad_row_count = bad_row_count
+
  Ncol = 2 + Nvec
-               ALLOCATE (orbsp3(Nepochs, Ncol), STAT = AllocateStatus)
+               ALLOCATE (orbsp3_2(Nepochs, Ncol), STAT = AllocateStatus)
                if (AllocateStatus .ne. 0) then
                    write(mesg, *) "Not enough memory - failed to allocate orbsp3, dimension = (", &
                                Nepochs, ",", Ncol, ")"
                    call report('FATAL', pgrm_name, 'sp3', mesg, 'src/fortran/m_sp3.f95', 1)
                end if
  Ncol = 2 + Nvec/3
-               ALLOCATE (clock_matrix(Nepochs, Ncol), STAT = AllocateStatus)
+               ALLOCATE (clock_matrix_2(Nepochs, Ncol), STAT = AllocateStatus)
                if (AllocateStatus .ne. 0) then
-                   write(mesg, *) "Not enough memory - failed to allocate orbsp3, dimension = (", &
+                   write(mesg, *) "Not enough memory - failed to allocate clock_matrix, dimension = (", &
                                Nepochs, ",", Ncol, ")"
                    call report('FATAL', pgrm_name, 'sp3', mesg, 'src/fortran/m_sp3.f95', 1)
                end if
@@ -429,11 +434,61 @@ READ (PRNid, fmt_line , IOSTAT=ios) GNSSid, PRN_num
            end if
            orb_j = orb_j + 1
            Ncol = 2 + Nvec
-           orbsp3(orb_j, 1:Ncol) = orbsp3_tmp(orb_i, 1:Ncol)
+           orbsp3_2(orb_j, 1:Ncol) = orbsp3_tmp(orb_i, 1:Ncol)
            Ncol = 2 + Nvec/3
-           clock_matrix(orb_j, 1:Ncol) = clock_matrix_tmp(orb_i, 1:Ncol)
+           clock_matrix_2(orb_j, 1:Ncol) = clock_matrix_tmp(orb_i, 1:Ncol)
       end if
   end do
+
+  ! < 5% data missing: use interp to fill in
+  if (from_prm_pseudobs .and. saved_bad_row_count > 0 .and. (saved_bad_row_count * 20) < SIZE(orbsp3_2, DIM=1)) then
+      ! missing entries screw up the integration. Use interpolation to fill in missing values
+      if (interval == 0) then
+              interval = 10000
+              do i = 1, SIZE(orbsp3_2, DIM=1) - 1
+              if (INT(orbsp3_2(i, 1)) == int(ORBSP3_2(i+1,1))) then
+                      if ( (orbsp3_2(i+1, 2) - orbsp3_2(i,2) < interval)) then
+                              interval = int(orbsp3_2(i+1,2)) - int(orbsp3_2(i,2))
+                      end if
+               else if (int(orbsp3_2(i+1, 2)) + 86400 - int(orbsp3_2(i,2)) < interval) then
+                       interval = int(orbsp3_2(i+1, 2)) + 86400 - int(orbsp3_2(i,2))
+               end if
+               end do
+      end if
+      if (NPint == 0) NPint = 12
+      if (.false.) then
+      print *, saved_bad_row_count, " rows of bad data, trying to fix"
+      print *, "NPint=", Npint, ", interval=", interval
+      end if
+      CALL interp_orb_filt (orbsp3_tmp, orbsp3_2, interval, NPint, interpolate_start, orbsp3)
+  else
+ Ncol = 2 + Nvec
+               ALLOCATE (orbsp3(Nepochs, Ncol), STAT = AllocateStatus)
+               if (AllocateStatus .ne. 0) then
+                   write(mesg, *) "Not enough memory - failed to allocate orbsp3, dimension = (", &
+                               Nepochs, ",", Ncol, ")"
+                   call report('FATAL', pgrm_name, 'sp3', mesg, 'src/fortran/m_sp3.f95', 1)
+               end if
+               orbsp3 = orbsp3_2
+  end if
+ Ncol = 2 + Nvec/3
+               ALLOCATE (clock_matrix(Nepochs, Ncol), STAT = AllocateStatus)
+               if (AllocateStatus .ne. 0) then
+                   write(mesg, *) "Not enough memory - failed to allocate clock_matrix, dimension = (", &
+                               Nepochs, ",", Ncol, ")"
+                   call report('FATAL', pgrm_name, 'sp3', mesg, 'src/fortran/m_sp3.f95', 1)
+               end if
+               ! FIXME: is this correct? Or do we use the filtered one?
+               clock_matrix = clock_matrix_tmp
+      deallocate(orbsp3_2)
+      deallocate(clock_matrix_2)
+  if (saved_bad_row_count > 0 .and. from_prm_pseudobs) then
+      if (.false.) then
+      do i = 1, saved_bad_row_count
+          print *, bad_rows(i), ": corrected to :", orbsp3(bad_rows(i),3:5)
+      end do
+      end if
+  end if
   deallocate (bad_rows)
   end if
   deallocate (orbsp3_tmp)

@@ -1126,7 +1126,7 @@ void mainPerEpochPostProcessingAndOutputs(
 
 			if (ARsol_ready())
 			{
-				KF_ARcopy.outputStates(netTrace, " AR");
+				KF_ARcopy.outputStates(netTrace, "/AR");
 			}
 
 			if (acsConfig.output_mongo_states)

@@ -130,7 +130,7 @@ SUBROUTINE orbdet (EQMfname, VEQfname, orb_icrf_final, orb_itrf_final, &
       INTEGER (KIND = prec_int2) :: VEQmode 
       INTEGER (KIND = prec_int2) :: ESTmode 
       INTEGER (KIND = prec_int2) :: Niter,srp_i 
-      INTEGER (KIND = prec_int8) :: i, j, k, ii, PD_Param_ID
+      INTEGER (KIND = prec_int8) :: i, j, k, l, ii, PD_Param_ID
       INTEGER (KIND = prec_int8) :: IECOM, IEMP
       INTEGER (KIND = prec_int8) :: isbox 
       INTEGER (KIND = prec_int8) :: sz1, sz2 
@@ -387,9 +387,11 @@ PULSES_Array_apriori_glb = PULSES_Array_aposteriori_glb
 ! Numerical Integration: Variational Equations
 ! ----------------------------------------------------------------------
 !PRINT *,"VEQ Integration:"
+if (PRN == prn_out) then
+    print *, "Starting integration, IC = ", Svec_Zo
+end if
 VEQmode = mVEQ
 Call orbinteg (VEQfname, VEQmode, orb0, veqSmatrix, veqPmatrix, .false.)
-! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
 ! Numerical Integration: Equation of Motion
@@ -397,7 +399,6 @@ Call orbinteg (VEQfname, VEQmode, orb0, veqSmatrix, veqPmatrix, .false.)
 !PRINT *,"EQM Integration:"
 VEQmode = mEQM
 Call orbinteg (EQMfname, VEQmode, orb_icrf, veq0, veq1, .false.)
-! ----------------------------------------------------------------------
 
 ! ----------------------------------------------------------------------
 ! Orbit residuals; statistics ! ICRF
@@ -422,24 +423,26 @@ ELSE IF (yml_veq_refsys == ITRF) THEN
 END IF
 ! ----------------------------------------------------------------------
 IF (PRN == prn_out) THEN
-write (filename, '(AAA)') trim(yml_output_dir), "/", "Xmatrix.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "Xmatrix.out", i
 Call writearray (Xmatrix, filename)
-write (filename, '(AAA)') trim(yml_output_dir), "/", "Amatrix.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "Amatrix.out", i
 Call writearray (Amatrix, filename)
-write (filename, '(AAA)') trim(yml_output_dir), "/", "Wmatrix.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "Wmatrix.out", i
 Call writearray (Wmatrix, filename)
-write (filename, '(AAA)') trim(yml_output_dir), "/", "veqSmatrix.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "veqSmatrix.out", i
 Call writearray (veqSmatrix, filename)
-write (filename, '(AAA)') trim(yml_output_dir), "/", "veqPmatrix.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "veqPmatrix.out", i
 Call writearray (veqPmatrix, filename)
-write (filename, '(AAA)') trim(yml_output_dir), "/", "pseudobs_ITRF.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "pseudobs_ITRF.out", i
 Call writearray (pseudobs_ITRF, filename)
-write (filename, '(AAA)') trim(yml_output_dir), "/", "pseudobs_ICRF.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "pseudobs_ICRF.out", i
 Call writearray (pseudobs_ICRF, filename)
-write (filename, '(AAA)') trim(yml_output_dir), "/", "orb_icrf.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "EQMorb_icrf.out", i
 Call writearray (orb_icrf, filename)
-write (filename, '(AAA)') trim(yml_output_dir), "/", "dorb_icrf.out"
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "dorb_icrf.out", i
 Call writearray (dorb_icrf, filename)
+write (filename, '(AAAI1)') trim(yml_output_dir), "/", "VEQorb0.out", i
+Call writearray (orb0, filename)
 END IF
 ! ----------------------------------------------------------------------
   
@@ -974,6 +977,13 @@ Call orbinteg (VEQfname_pred, VEQmode, orb0, veqSmatrix, veqPmatrix, .false.)
 VEQmode = mEQM
 Call orbinteg (EQMfname_pred, VEQmode, orb_icrf, veq0, veq1, .false.)
 ! ----------------------------------------------------------------------
+if (PRN == prn_out) then
+        print *, "prediction arc: orb_icrf(1:5) = "
+        do l = 1,5
+            print *, orb_icrf(l,1:5)
+        end do
+end if
+
 
 ! Orbit estimated part without predicted part
 ALLOCATE (orb_icrf_estim(Nepochs_estim,sz2), STAT = AllocateStatus)
@@ -1144,6 +1154,13 @@ Call orbinteg (EQMfname_back, VEQmode, orb_back, veq0, veq1, .true.)
 ! Orbit integration backwards: Variational Equations solution
 VEQmode = mVEQ
 Call orbinteg (VEQfname_back, VEQmode, orb0, veqSmatrix_back, veqPmatrix_back, .true.)
+
+if (PRN == prn_out) then
+        print *, "backwards arc: orb_back(1:5) = "
+        do l = 1,8
+            print *, orb_back(l,1:5)
+        end do
+end if
 
 ! Merge orbits and partials matrices
 ! Orbit matrix

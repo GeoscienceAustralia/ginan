@@ -63,10 +63,11 @@ set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-unused-variable")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-tabs")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-surprising")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-unused-label")
+set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-maybe-uninitialized")
 
 
 option(ENABLE_UNIT_TESTS        "ENABLE_UNIT_TESTS"         OFF)
-option(BUILD_DOC                "BUILD_DOCUMENTATION"       ON)
+option(BUILD_DOC                "BUILD_DOCUMENTATION"       OFF)
 option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    ON)
 option(ENABLE_OPTIMISATION      "ENABLE_OPTIMISATION"       ON)
 

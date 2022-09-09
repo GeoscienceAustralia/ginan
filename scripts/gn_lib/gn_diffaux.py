@@ -43,7 +43,9 @@ def _diff2msg(diff, tol = None, dt_as_gpsweek=False):
         std_vals = std_df.values if tol is None else tol
     else:
         diff_df = diff
-        assert tol is not None, 'tol can not be None if STD info is missing'
+        if tol is None:
+            _logging.error(msg="tol can not be None if STD info is missing, skipping for now")
+            return None
         std_vals = tol
 
     count_total = (~_np.isnan(diff_df.values)).sum(axis=0)
@@ -401,7 +403,7 @@ def sisre(sp3_a: _pd.DataFrame, sp3_b: _pd.DataFrame,
         # rms over all epochs, a single value per constellation
         return _gn_aux.rms(rms_sisre, axis=0)
 
-def diffsp3(sp3_a_path, sp3_b_path, atol, log_lvl, clk_a_path, clk_b_path):
+def diffsp3(sp3_a_path, sp3_b_path, tol, log_lvl, clk_a_path, clk_b_path):
     """Compares two sp3 files and outputs a dataframe of differences above tolerance if such were found"""
     sp3_a, sp3_b = _gn_io.sp3.read_sp3(sp3_a_path), _gn_io.sp3.read_sp3(sp3_b_path)
 
@@ -414,25 +416,25 @@ def diffsp3(sp3_a_path, sp3_b_path, atol, log_lvl, clk_a_path, clk_b_path):
     status = 0
     diff_rac = sisre(sp3_a=sp3_a.iloc[:,:3],sp3_b=sp3_b.iloc[:,:3],clk_a=clk_a,clk_b=clk_b,norm_type='both',output_mode='sv',clean=False)
 
-    bad_rac_vals = _diff2msg(diff_rac,tol=atol)
+    bad_rac_vals = _diff2msg(diff_rac,tol=tol)
     if bad_rac_vals is not None:
-        _logging.log(msg=f':diffutil found {"SISRE values" if as_sisre else "estimates"} estimates diffs above {atol:.1E} tolerance:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
+        _logging.log(msg=f':diffutil found {"SISRE values" if as_sisre else "estimates"} estimates diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
         status = -1
     else:
-        _logging.log(msg=f':diffutil [OK] {"SISRE values" if as_sisre else "estimates"} diffs within {atol:.1E} tolerance',level=_logging.INFO)
+        _logging.log(msg=f':diffutil [OK] {"SISRE values" if as_sisre else "estimates"} diffs within {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return status
 
-def diffpodout(pod_out_a_path, pod_out_b_path, atol, log_lvl):
+def diffpodout(pod_out_a_path, pod_out_b_path, tol, log_lvl):
     pod_out_a, pod_out_b = _gn_io.pod.read_pod_out(pod_out_a_path), _gn_io.pod.read_pod_out(pod_out_b_path)
     status = 0
     diff_pod_out = (pod_out_a - pod_out_b)
 
-    bad_rac_vals = _diff2msg(diff_pod_out.unstack(1),tol=atol)
+    bad_rac_vals = _diff2msg(diff_pod_out.unstack(1),tol=tol)
     if bad_rac_vals is not None:
-        _logging.log(msg=f':diffutil found estimates diffs above {atol:.1E} tolerance:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
+        _logging.log(msg=f':diffutil found estimates diffs above {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}:\n{bad_rac_vals.to_string(justify="center")}\n',level=log_lvl)
         status = -1
     else:
-        _logging.log(msg=f':diffutil [OK] estimates diffs within {atol:.1E} tolerance',level=_logging.INFO)
+        _logging.log(msg=f':diffutil [OK] estimates diffs within {"the extracted STDs" if tol is None else f"{tol:.1E} tolerance"}',level=_logging.INFO)
     return status
 
 def diffclk(clk_a_path, clk_b_path, atol, log_lvl):

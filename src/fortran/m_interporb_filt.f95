@@ -114,15 +114,16 @@ END IF
 ! 2. Interpolation is applied also after the last data point's epoch (23h 45min 00sec) in order to cover a 24h arc:  Set Nlimit to 0
 Nlimit = 1
 ! default initial value?
-data_rate = 1
+data_rate = 10000
 ! ----------------------------------------------------------------------
 	  
 ! ----------------------------------------------------------------------
 	  ! Data rate of intial orbit matrix (in sec)
       DO i = 1 , Nepochs_0-1
 		if ( INT(ORB_matrix(i+1,1)) - INT(ORB_matrix(i,1)) == 0 ) then
-			data_rate = INT( ORB_matrix(i+1,2) - ORB_matrix(i,2) )
-			EXIT
+                        if (data_rate > INT(ORB_matrix(i+1,2) - ORB_matrix(i,2))) then
+			        data_rate = INT( ORB_matrix(i+1,2) - ORB_matrix(i,2) )
+                        end if
 		end if
 	  End Do
 ! ----------------------------------------------------------------------
@@ -214,7 +215,11 @@ END DO
 		! Position and Velocity Vectors
 		! X
 		Y_interp = ORB_filt(i1:i2, 3)		
-		Call interp_lag(tint, X_interp, Y_interp, Xint) 
+                if (delta_min < 1.d-9) then
+                    Xint = ORB_filt(ORB_filt_epoch, 3)
+                else 
+                    Call interp_lag(tint, X_interp, Y_interp, Xint) 
+                end if
 		! Vx
 		Call interp_lag(tint-1, X_interp, Y_interp, Xint_1) 
         !Vx = Xint_1 - Xint 
@@ -222,15 +227,23 @@ END DO
 
 		! Y
 		Y_interp = ORB_filt(i1:i2, 4)
-		Call interp_lag(tint, X_interp, Y_interp, Yint) 
+                if (delta_min < 1.d-3) then
+                    Yint = ORB_filt(ORB_filt_epoch, 4)
+                else 
+                    Call interp_lag(tint, X_interp, Y_interp, Yint) 
+                end if
 		! Vy
 		Call interp_lag(tint-1, X_interp, Y_interp, Yint_1) 
         !Vy = Yint_1 - Yint
         Vy = Yint - Yint_1
 			
 		! Z
-		Y_interp = ORB_filt(i1:i2, 5)
-		Call interp_lag(tint, X_interp, Y_interp, Zint) 
+                Y_interp = ORB_filt(i1:i2, 5)
+                if (delta_min < 1.d-9) then
+                   Zint = ORB_filt(ORB_filt_epoch, 5)
+                else 
+                   Call interp_lag(tint, X_interp, Y_interp, Zint) 
+                end if
 		! Vz
 		Call interp_lag(tint-1, X_interp, Y_interp, Zint_1) 
         !Vz = Zint_1 - Zint

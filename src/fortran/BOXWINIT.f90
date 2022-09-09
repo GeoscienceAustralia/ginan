@@ -57,7 +57,7 @@
                 known_blkids(II+20) = 0
         endif
         !BDS BLKIDS
-        if (II <= 3) then
+        if (II <= 9) then
                 known_blkids(II+30) = 300+II
         else
                 known_blkids(II+30) = 0

@@ -154,7 +154,7 @@ void tryPatchPaths(
 void dumpConfig(
 	Trace& trace)
 {
-	trace << "+ RAW CONFIG" << std::endl;
+	trace << "+FILE/RAW_CONFIG" << std::endl;
 
 	std::ifstream config(acsConfig.configFilename);
 
@@ -164,7 +164,7 @@ void dumpConfig(
 		trace << str << std::endl;
 	}
 
-	trace << "- RAW CONFIG" << std::endl;
+	trace << "-FILE/RAW_CONFIG" << std::endl;
 }
 
 
