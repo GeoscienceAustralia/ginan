@@ -1,0 +1,10 @@
+version 2
+Source: Xpole,Ypole,Xrt,Yrt,LOD: weighted average of centres;
+        UT1-UTC: integrated from the 5th day prior to Bull. A
+                 last non-predicted value.
+
+Orbits: to be used with the IGS Rapid Orbits (IGR)
+
+  MJD      Xpole   Ypole  UT1-UTC    LOD  Xsig  Ysig   UTsig  LODsig  Nr Nf Nt    Xrt    Yrt  Xrtsig  Yrtsig
+             (10**-6")       (0.1 usec)    (10**-6")     (0.1 usec)              (10**-6"/d)    (10**-6"/d)
+59829.50  302257  313321  -101706  -4213    11    10     129      10   0  0  0   -872  -3160     40     48

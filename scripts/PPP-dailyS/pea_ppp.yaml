@@ -1,0 +1,545 @@
+## TEMPLATE PEA CORRECT CONFIG ##
+#
+#  This configuration file is a template configuration file based on example config
+#  "ex31_pea_pp_netw_gnss_orb_ar.yaml" from the Ginan repository for running Ginan in the
+#  orbit correction step of the clocks and orbits pipeline. It sets what we consider to be
+#  reasonable options for running a typical orbit estimation in this mode, leaving empty
+#  all input files and run specific options (epochs, name, etc.) which should be filled in
+#  at cofig generation.
+#
+#  Note that this config CANNOT be used in its current state; it requires that input file
+#  details be filled in before execution. See `GinanOrbitTask.generate_pea_cor_config()`
+#  in `src/gnsslibs/ginan.py` for details on how this template is completed.
+##
+
+outputs:
+  output_rotation:
+    period: 1
+    period_units: day
+
+  trace:
+    output_config: true
+    output_network: true
+    output_residuals: false
+    output_stations: false
+    level: 3
+    directory: ./
+    station_filename: <STATION><YYYY><DDD><HH>-<LOGTIME>.TRACE
+    network_filename: network-<YYYY><DDD><HH>-<LOGTIME>.TRACE
+
+  ionex:
+    output: false
+    directory: ./
+    filename: AUSG<DDD>0.<YY>I
+
+  ionstec:
+    output: false
+    directory: ./
+    filename: IONEX.stec
+
+  bias_sinex:
+    output: true
+    directory: ./
+    filename: HEM0ACSRAP_<YYYY><DDD><HH>00_01D_01D_REL.BIA
+    output_interval: 900
+
+  clocks:
+    output: true
+    directory: ./
+    filename: <LOGTIME>.clk
+    output_ar_clocks: true
+
+  sinex:
+    output: true
+    directory: ./
+    filename: <WWWW><D>.snx
+
+  erp:
+    output: true
+    directory: ./
+    filename: <WWWW><D>.erp
+
+  ppp_sol:
+    output: true
+    directory: ./
+    filename: <CONFIG>_<STATION><YYYY><DDD><HH>.POS
+
+  metadata:
+    analysis_agency: HEM
+    analysis_center: Hemisphere GNSS
+    analysis_program: Ginan
+    rinex_comment: HEMIARN
+
+    config_description: '20221018_000000'
+
+  root_directory: /home/benjamin/tmp/result
+
+mongo:
+  enable: false
+  output_measurements: false
+  output_states: false
+  output_rtcm_messages: false
+  output_test_stats: false
+  delete_history: false
+  uri: mongodb://127.0.0.1:27017
+  suffix: _
+  rts_suffix: _rts
+
+processing_options:
+  epoch_control:
+    epoch_interval:  300
+    wait_next_epoch: 3600
+    wait_all_stations: 1
+    fatal_message_level: 1
+
+    start_epoch: '2022-10-18 00:00:00'
+    end_epoch: '2022-10-19 00:00:00'
+
+  model_error_checking:
+    deweighting:
+      deweight_factor: 1000
+
+    ambiguities:
+      outage_reset_limit: 1
+      phase_reject_limit: 2
+
+    cycle_slips:
+      detect:
+        lli: true
+
+  process_modes:
+    preprocessor: true
+    network: true
+    ionosphere: false
+    ppp: false
+    user: false
+
+  gnss_general:
+    max_gdop: 30
+    elevation_mask: 7
+
+    reject_eclipse: true
+    raim: true
+
+    sys_options:
+      gps:
+        process: true
+        ambiguity_resolution: false
+        code_priorities: [L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X, L2W, L2P, L2Y,
+          L2C, L2M, L2N, L2D, L2S, L2L, L2X, L5X, L5Q, L5I, L6Q, L6X, L6I, L7Q, L7X,
+          L7I, L8Q, L8X, L8I]
+      gal:
+        process: false
+        ambiguity_resolution: false
+        code_priorities: [L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X, L2W, L2P, L2Y,
+          L2C, L2M, L2N, L2D, L2S, L2L, L2X, L5X, L5Q, L5I, L6Q, L6X, L6I, L7Q, L7X,
+          L7I, L8Q, L8X, L8I]
+
+      glo:
+        process: false
+        ambiguity_resolution: false
+
+    pivot_station: ABMF
+
+  gnss_models:
+    phase_windup:
+      enable: true
+    range:
+      enable: true
+    rec_ant_delta:
+      enable: true
+    rec_clock:
+      enable: true
+    rec_code_bias:
+      enable: true
+    rec_pco:
+      enable: true
+    rec_pcv:
+      enable: true
+    rec_phase_bias:
+      enable: true
+    rec_pos:
+      enable: true
+    relativity2:
+      enable: true
+    relativity:
+      enable: true
+    sagnac:
+      enable: true
+    sat_clock:
+      enable: true
+      source: broadcast    #  {none,precise,ssr,kalman,broadcast}
+    sat_code_bias:
+      enable: true
+    sat_pco:
+      enable: true
+    sat_pcv:
+      enable: true
+    sat_phase_bias:
+      enable: true
+    sat_pos:
+      enable: true
+      source: precise    #  {none,precise,ssr,kalman,broadcast}
+    tides:
+      enable: true
+      otl: true
+      pole: true
+      solid: true
+    troposphere:
+      enable: true
+      model: gpt2
+
+    ionospheric_component:
+      enable: true
+      corr_mode: iono_free_linear_combo
+      iflc_freqs: l1l2_only               # any l1l2_only l1l5_only
+
+  ambiguity_resolution:
+    elevation_mask: 15
+    # lambda_set_size:         10
+    max_rounding_iterations: 3
+
+    wide_lane:
+      mode: iter_rnd                            # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+      success_rate_threshold: 0.9999
+      solution_ratio_threshold: 3
+      process_noise_sat: 0.00001
+      process_noise_rec: 0.0001
+    narrow_lane:
+      mode: iter_rnd                            # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+      success_rate_threshold: 0.9999
+      solution_ratio_threshold: 3
+
+  ssr_corrections:
+    calculate_precursors: false
+
+  minimum_constraints:
+    enable: true
+
+    translation:
+      estimated: [true]
+      # sigma:      [1]
+    rotation:
+      estimated: [true]
+      # sigma:      [40]
+    scale:
+      estimated: [false]
+      # sigma:      [1]
+    inverter: ldlt
+    # full_vcv:        true
+    # scale_by_vcv:    true
+    max_filter_iterations: 10
+    max_prefit_removals: 5
+    outlier_screening:
+      chi_square_mode: none
+      chi_square_test: false
+      sigma_check: true
+      sigma_threshold: 3.000000
+      w_test: false
+
+    # constrain all by default
+    default_station_noise: [1, 1, 1]
+
+    # unconstrain all ARN stations
+    station_noise:
+      ANK1: [-1]
+      ARG1: [-1]
+      ARG2: [-1]
+      ATL1: [-1]
+      BEL1: [-1]
+      BRI1: [-1]
+      CGY1: [-1]
+      CHU1: [-1]
+      DAR2: [-1]
+      FIJ1: [-1]
+      GHA1: [-1]
+      GUA1: [-1]
+      HIA1: [-1]
+      HOU1: [-1]
+      IMN1: [-1]
+      IND1: [-1]
+      ISL1: [-1]
+      LAB1: [-1]
+      LKA1: [-1]
+      MAD1: [-1]
+      MIL1: [-1]
+      MNG1: [-1]
+      MUS1: [-1]
+      NOM1: [-1]
+      NOR1: [-1]
+      NZL1: [-1]
+      OTT1: [-1]
+      PER1: [-1]
+      REC1: [-1]
+      RUS1: [-1]
+      RUS2: [-1]
+      RUS3: [-1]
+      RUS4: [-1]
+      SCD1: [-1]
+      SCL1: [-1]
+      SIT1: [-1]
+      STJ1: [-1]
+      TAH1: [-1]
+      TUN1: [-1]
+      WAS1: [-1]
+      WPG1: [-1]
+      YEL1: [-1]
+
+  filter_options:
+    inverter: ldlt
+
+    outlier_screening:
+      max_filter_iterations: 10
+      max_prefit_removals: 5
+
+    rts:
+      enable: true
+      lag: -1
+      directory: ./
+      filename: <CONFIG>-Network.rts
+
+estimation_parameters:
+  stations:
+    error_model: elevation_dependent
+    code_sigmas: [0.3]
+    phase_sigmas: [0.003]
+
+    pos:
+      estimated:  [true]
+      sigma:      [10]
+      proc_noise: [0]
+
+    clk:
+      estimated: [true]
+      sigma: [1000]
+      proc_noise: [10]
+      proc_noise_dt: sqrt_second
+      # proc_noise_model:   Gaussian
+
+    amb:
+      estimated: [true]
+      sigma: [100]
+      proc_noise: [0]
+      # proc_noise_dt:      day
+
+    trop:
+      estimated: [true]
+      sigma: [0.3]
+      proc_noise: [0.0001]
+      proc_noise_dt: sqrt_second
+      # proc_noise_dt:      hour
+
+    # trop_gauss_markov:
+    #   estimated:          [true]
+    #   sigma:              [0.05]
+    #   proc_noise:         [1.00E-02]
+    #   tau:                [12600]
+    #   proc_noise_dt:      second
+    #   proc_noise_model:   GaussMarkov
+
+    trop_grads:
+      estimated: [true]
+      sigma: [0.03]
+      proc_noise: [1.0E-6]
+      proc_noise_dt: sqrt_second
+
+    # trop_grads_gauss_markov:
+    #   stimated:          [true]
+    #   igma:              [0.01]
+    #   roc_noise:         [5.49E-03]
+    #   au:                [9216]
+    #   proc_noise_dt:      second
+    #   proc_noise_model:   GaussMarkov
+
+  satellites:
+    clk:
+      estimated: [true]
+      sigma: [1000]
+      proc_noise: [1]
+      # proc_noise_dt:      min
+
+    # clk_rate:
+    #   estimated:          [true]
+    #   sigma:              [10]
+    #   proc_noise:         [1e-5]
+
+    orb:
+      estimated: [true]
+      # sigma:             [5e-1, 5e-1, 5e-1, 5e-3, 5e-3, 5e-3, 5e-1]
+      sigma: [5e-1, 5e-1, 5e-1, 5e-3, 5e-3, 5e-3, 5e-2, 1e-2, 1e-2, 1e-3]
+
+  eop:
+    estimated: [true]
+    sigma: [30]
+
+  eop_rates:
+    estimated: [true]
+    sigma: [30]
+
+inputs:
+  root_directory: /home/shared/ginan/realtime
+  atx_files:
+    - tables/antennas.atx                                               # all antennas
+  snx_files:
+    - /home/benjamin/tmp/stations.snx                                   # ARN apr pos
+    - /home/benjamin/tmp/IGS22P40_all.ssc                               # IGS est pos
+  blq_files:
+    - tables/OLOAD_GO.BLQ                                               # ARN BLQ
+    - /home/benjamin/tmp/OLOAD_GO.BLQ                                   # IGS BLQ
+  erp_files:
+    - /home/benjamin/tmp/GFZ0MGXRAP_20222900000_01D_01D_ERP.ERP         # IGS ERPs
+    - /home/benjamin/tmp/GFZ0MGXRAP_20222910000_01D_01D_ERP.ERP
+    - /home/benjamin/tmp/GFZ0MGXRAP_20222920000_01D_01D_ERP.ERP
+  satellite_data:
+    sp3_files:
+      - products/orbits/GFZ0MGXRAP_20222900000_01D_05M_ORB.SP3          # IGS orbits
+      - products/orbits/GFZ0MGXRAP_20222910000_01D_05M_ORB.SP3
+      - products/orbits/GFZ0MGXRAP_20222920000_01D_05M_ORB.SP3
+    nav_files:
+      - runs/2022.10.19.00.00.00_g/stations.rnx                         # ARN merged nav file
+                                                                        # (2022-10-17 12:00:00 to 
+                                                                        #  2022-10-19 00:00:00)
+  troposphere:
+    vmf3_directory:  products/troposphere/grid5/
+    orography_files: products/troposphere/orography_ell_5x5
+    gpt2grid_files:  products/troposphere/gpt2_5.grd
+  gnss_observations:
+    root_directory: /home/shared/ginan/realtime
+    rnx_files:
+      ## unconstrained observations (only NOR1 for now)
+      - rinex/2022.10.18.00.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.01.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.02.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.03.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.04.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.05.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.06.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.07.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.08.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.09.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.10.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.11.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.12.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.13.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.14.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.15.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.16.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.17.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.18.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.19.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.20.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.21.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.22.00.00/NOR1*_MO.rnx
+      - rinex/2022.10.18.23.00.00/NOR1*_MO.rnx
+      ## constrained observations
+      - products/observables/ABMF00GLP_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ABPO00MDG_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ACRG00GHA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ADIS00ETH_R_20222910000_01D_30S_MO.rnx
+      - products/observables/AGGO00ARG_R_20222910000_01D_30S_MO.rnx
+      - products/observables/AIRA00JPN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/AJAC00FRA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ALBH00CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ALG300CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ALGO00CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ALIC00AUS_R_20222910000_01D_30S_MO.rnx
+      - products/observables/AMC400USA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ANMG00MYS_R_20222910000_01D_30S_MO.rnx
+      - products/observables/AREG00PER_R_20222910000_01D_30S_MO.rnx
+      - products/observables/AREQ00PER_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ARHT00ATA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ARUC00ARM_R_20222910000_01D_30S_MO.rnx
+      - products/observables/ASCG00SHN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/AUT000USA_S_20222910000_01D_30S_MO.rnx
+      - products/observables/BADG00RUS_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BAIE00CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BAKE00CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BAMF00CAN_R_20222910000_01D_30S_MO.rnx
+      ## 23 constrained observations above here
+      - products/observables/BAUT00DEU_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BCOV00CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BELE00BRA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BIK000KGZ_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BOAV00BRA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BOGI00POL_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BOGT00COL_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BOR100POL_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BRAZ00BRA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BREW00USA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BRMG00DEU_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BRST00FRA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BRUX00BEL_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BSHM00ISR_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BUCU00ROU_R_20222910000_01D_30S_MO.rnx
+      - products/observables/BZR200ITA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CAS100ATA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CCJ200JPN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CEBR00ESP_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CEDU00AUS_R_20222910000_01D_30S_MO.rnx
+      ## 43 constrained observations above here
+      - products/observables/CHOF00JPN_S_20222910000_01D_30S_MO.rnx
+      - products/observables/CHPG00BRA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CHPI00BRA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CHU200CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CHUR00CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CHWK00CAN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CIBG00IDN_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CKIS00COK_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CMUM00THA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/COCO00AUS_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CORD00ARG_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CPNM00THA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CPVG00CPV_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CRO100VIR_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CUSV00THA_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CYNE00GUF_R_20222910000_01D_30S_MO.rnx
+      - products/observables/CZTG00ATF_S_20222910000_01D_30S_MO.rnx
+      - products/observables/DAE200KOR_R_20222910000_01D_30S_MO.rnx
+      - products/observables/DAEJ00KOR_R_20222910000_01D_30S_MO.rnx
+      ## 62 constrained observations above here
+        # - products/observables/DARW00AUS_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DAV100ATA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DGAR00GBR_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DJIG00DJI_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DLF100NLD_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DRA300CAN_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DRA400CAN_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DRAO00CAN_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DUBO00CAN_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DUMG00ATA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/DYNG00GRC_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/EBRE00ESP_S_20222910000_01D_30S_MO.rnx
+        # - products/observables/ELBA00ITA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/ELIZ00CAN_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/ENAO00PRT_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/EUR200CAN_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/FAA100PYF_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/FAIR00USA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/FALK00FLK_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/FFMJ00DEU_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/FLRS00PRT_S_20222910000_01D_30S_MO.rnx
+        # - products/observables/FRDN00CAN_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/FTNA00WLF_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/FUNC00PRT_S_20222910000_01D_30S_MO.rnx
+        # - products/observables/GAMB00PYF_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GAMG00KOR_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GANP00SVK_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GCGO00USA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GENO00ITA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GLDR00CAN_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GLPS00ECU_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GLSV00UKR_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GODE00USA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GODN00USA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GODS00USA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GOLD00USA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GOP600CZE_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GOPE00CZE_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GRAC00FRA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GRAS00FRA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GRAZ00AUT_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/GUAM00GUM_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/HAL100USA_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/HARB00ZAF_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/HERS00GBR_R_20222910000_01D_30S_MO.rnx
+        # - products/observables/HLFX00CAN_R_20222910000_01D_30S_MO.rnx
