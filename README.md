@@ -8,7 +8,7 @@
 : This script will install all dependencies, clone the Ginan repo into the current directory and build the Ginan toolkit.
 
 
-#### `Ginan v1.5.1 release`
+#### `Ginan v1.5.2 release`
 
 ## Overview
 
@@ -56,7 +56,7 @@ Ginan is supported on the following platforms
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v /data:/data gnssanalysis/ginan:v1.5.1 bash
+    docker run -it -v /data:/data gnssanalysis/ginan:v1.5.2 bash
 
 This command connects the `/data` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
