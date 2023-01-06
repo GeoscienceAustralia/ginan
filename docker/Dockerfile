@@ -13,5 +13,5 @@ RUN mkdir -p src/build \
     && rm -rf src/build
 
 ENV PATH "/ginan/bin:${PATH}"
-RUN cd /ginan/scripts && conda run -n gn37 pip install .
-COPY ./docker/.bashrc /root/.bashrc
+RUN cd /ginan/scripts && pip install .
+#COPY ./docker/.bashrc /root/.bashrc

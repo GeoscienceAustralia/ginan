@@ -100,8 +100,8 @@ int BS_satantoff( GTime time, SatSys Sat, Vector3d& rs, Vector3d& dant, int gloi
 	for (int i = 0; i < 3; i++)	
 	{
 		/* ENU to NEU */
-		Vector3d pcoJ = antPco(Sat.id(), j, time);
-		Vector3d pcoK = antPco(Sat.id(), k, time);
+		Vector3d pcoJ = antPco(Sat.id(), Sat.sys, j, time);
+		Vector3d pcoK = antPco(Sat.id(), Sat.sys, k, time);
 		double dant1	= pcoJ[1] * ex(i)
 						+ pcoJ[0] * ey(i)
 						+ pcoJ[2] * ez(i);	//todo aaron, matrix

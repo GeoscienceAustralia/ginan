@@ -3,6 +3,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [1.5.2] 2022-12-28
+### Added
+### Changed
+No longer need conda environment to run python scripts
+Antenna PCO values now constellation specific
+
+### Fixed
+POD does not output clocks in the predicted part of the generated SP3 file
+
+### Deprecated
+### Removed
+### Security
+
 # [1.5.1] 2022-08-22
 ### Added
 Beidou block ids and SRPs (type 2 and type 3)
@@ -23,7 +36,7 @@ Reading of pod sinex metadata file
 
 # [1.5] 2022-07-26
 ### Added
-Read/write RINEX4 compatibly
+Read/write RINEX4 compatability
 
 New pod mode: pod_data_int which uses pod_data section for integrating given IC. New example ex00_pod_test_g01.yaml
 

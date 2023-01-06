@@ -187,6 +187,23 @@ struct SatSys
 	operator string() const
 	{
 		return id();
+	}	
+	
+	static E_Sys sysFromChar(
+		char sysChar)
+	{
+		switch (sysChar)
+		{
+			case 'G': return E_Sys::GPS;	
+			case 'R': return E_Sys::GLO;	
+			case 'E': return E_Sys::GAL;	
+			case 'J': return E_Sys::QZS;	
+			case 'C': return E_Sys::BDS;	
+			case 'L': return E_Sys::LEO;	
+			case 'I': return E_Sys::IRN;	
+			case 'S': return E_Sys::SBS;	
+			default:  return E_Sys::NONE;	
+		}
 	}
 
 	/** Constructs a SatSys object from a c_string id
@@ -208,17 +225,13 @@ struct SatSys
 		int found = sscanf(id,"%c%d",&code,&prn_);
 		if (found > 0)
 		{
+			sys = sysFromChar(code);
+			
 			switch (code)
 			{
-				case 'G': sys = E_Sys::GPS; break;
-				case 'R': sys = E_Sys::GLO; break;
-				case 'E': sys = E_Sys::GAL; break;
-				case 'J': sys = E_Sys::QZS; break;
-				case 'C': sys = E_Sys::BDS; break;
-				case 'L': sys = E_Sys::LEO; break;
-				case 'I': sys = E_Sys::IRN; break;
-				case 'S': sys = E_Sys::SBS; prn+=100; break;
-				default:  sys = E_Sys::NONE; return;	//todo aaron, if this returns none, bad things happen?
+// 				case 'J': sys = E_Sys::QZS;	prn_ += PRN_OFFSET_QZS;		break;	//todo Eugene: check if affects other code
+// 				case 'S': sys = E_Sys::SBS;	prn_ += PRN_OFFSET_SBS;		break;
+				default:												break;
 			}
 		}
 		if (found > 1)
