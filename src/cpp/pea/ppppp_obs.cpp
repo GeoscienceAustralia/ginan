@@ -353,13 +353,13 @@ void stationPPP(
 			/* receiver pco correction to the coordinates */
 			if (acsConfig.dumb_rec_pco == false)
 			{
-				pco_enu = antPco(rec.antId, ft, time);
+				pco_enu = antPco(rec.antId, Sat.sys, ft, time);
 			}
 			else
 			{
 				Vector3d pco_enus[2];
-				pco_enus[0] = antPco(rec.antId, F1, time);
-				pco_enus[1] = antPco(rec.antId, F2, time);
+				pco_enus[0] = antPco(rec.antId, Sat.sys, F1, time);
+				pco_enus[1] = antPco(rec.antId, Sat.sys, F2, time);
 				
 				pco_enu	= C1 * pco_enus[0]
 						+ C2 * pco_enus[1];
@@ -398,7 +398,7 @@ void stationPPP(
 		//Receiver Phase Center Variation
 		if (acsConfig.model.rec_pcv)
 		{
-			double recPCVDelta = antPcv(rec.antId, ft, time, PI/2 - satStat.el, satStat.az);
+			double recPCVDelta = antPcv(rec.antId, Sat.sys, ft, time, PI/2 - satStat.el, satStat.az);
 			
 			measEntry.componentList.push_back({"Rec PCV", recPCVDelta, "+ PCV_r"});
 		}
@@ -408,7 +408,7 @@ void stationPPP(
 		{
 			satStat.nadir = satNadir(rSat, rRec);	//todo aaron move up
 			
-			double satPCVDelta = antPcv(Sat.id(), ft, time, satStat.nadir);
+			double satPCVDelta = antPcv(Sat.id(), Sat.sys, ft, time, satStat.nadir);
 			
 			measEntry.componentList.push_back({"Sat PCV", satPCVDelta, "+ PCV_s"});
 		}

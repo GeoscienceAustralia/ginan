@@ -5,10 +5,6 @@ set -euo pipefail
 #required env var $GINAN to be set to the checkout root
 export PATH="$PATH:$GINAN/bin"
 
-# activate conda environment
-eval "$(/root/.miniconda3/bin/conda shell.bash hook)"
-conda activate gn37
-
 S3_PREFIX=s3://peanpod/pea/long-tests/ex31/$(date --iso-8601=seconds)/
 
 # ginan source tree is at /ginan

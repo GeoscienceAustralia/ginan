@@ -724,7 +724,7 @@ void pppCorrections(
 			/* receiver pco correction to the coordinates */
 			Vector3d dr2;
 
-			Vector3d pco_r = antPco(rec.antId, ft, time, acsConfig.interpolate_rec_pco);
+			Vector3d pco_r = antPco(rec.antId, obs.Sat.sys, ft, time, acsConfig.interpolate_rec_pco);
 			
 			enu2ecef(pos, pco_r, dr2);    /* convert enu to xyz */
 
@@ -734,8 +734,8 @@ void pppCorrections(
 
 			/* calculate pcv */
 			satStat.nadir = satNadir(obs.rSat, rRec);	//todo aaron move up
-			sigStat.satPcv = antPcv(obs.Sat.id(),	ft, time, satStat.nadir);
-			sigStat.recPcv = antPcv(rec.antId,		ft, time, PI/2 - satStat.el, satStat.az);
+			sigStat.satPcv = antPcv(obs.Sat.id(),	obs.Sat.sys, ft, time, satStat.nadir);
+			sigStat.recPcv = antPcv(rec.antId,		obs.Sat.sys, ft, time, PI/2 - satStat.el, satStat.az);
 			
 												TestStack::testMat("obs.rSat",	obs.rSat);
 // 												TestStack::testMat("rRecFreq",	rRecFreq);

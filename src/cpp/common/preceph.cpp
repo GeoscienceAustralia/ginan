@@ -654,8 +654,8 @@ void satAntOff(
 	double C2		= -1	/ (gamma - 1);
 
 	/* iono-free LC */
-	Vector3d pcoJ = antPco(Sat.id(), j, time);
-	Vector3d pcoK = antPco(Sat.id(), k, time);
+	Vector3d pcoJ = antPco(Sat.id(), Sat.sys, j, time);
+	Vector3d pcoK = antPco(Sat.id(), Sat.sys, k, time);
 	
 	for (int i = 0; i < 3; i++)
 	{
@@ -703,7 +703,7 @@ Vector3d satAntOff(
 	}
 
 	/* iono-free LC */
-	Vector3d pco = antPco(Sat.id(), ft, time);
+	Vector3d pco = antPco(Sat.id(), Sat.sys, ft, time);
 	
 	Vector3d dAnt;
 

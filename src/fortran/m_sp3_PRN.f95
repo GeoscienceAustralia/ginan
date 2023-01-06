@@ -314,6 +314,7 @@ if (Myear /= Nyear .or. Mmonth /= Nmonth .or. Mday /= Nday .or. &
     if (yml_orbit_arc_determination > hkdiff) then
         ! run to min of time remaining in file and current determination arc
         yml_orbit_arc_determination = hkdiff
+        yml_orbit_arc_determination_orig = hkdiff
         orb_est_arc = kdiff * 86400D0 ! it might not be a full hour ...
         print *, "determination arc reduced to ", hkdiff, " hours"
     end if

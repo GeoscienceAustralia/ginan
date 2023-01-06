@@ -68,12 +68,14 @@ Vector3d satAntOff(
 
 Vector3d antPco(
 	string		id,
+	E_Sys		sys,
 	E_FType		ft,
 	GTime		time,
 	bool		interp = false);
 
 double antPcv(
 	string		id,
+	E_Sys		sys,
 	E_FType		ft,
 	GTime		time,
 	double		aCos,
@@ -83,6 +85,7 @@ double antPcv(
 
 bool findAntenna(
 	string				code,
+	E_Sys				sys,
 	GTime				time,
 	Navigation&			nav,
 	E_FType				ft,

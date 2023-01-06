@@ -2,10 +2,6 @@
 
 set -euo pipefail
 
-# activate conda environment
-eval "$(/root/.miniconda3/bin/conda shell.bash hook)"
-conda activate gn37
-
 # download example tests
 source /ginan/docker/tags # PEA's tag as $PEA
 source /ginan/docker/run-aux.sh
