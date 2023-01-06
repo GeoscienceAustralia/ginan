@@ -83,8 +83,8 @@ struct Navigation
 {
 	///< navigation data type
 
-	map<string, 	map<E_FType, 		map<GTime, Vector3d,		std::greater<GTime>>>>	 pcoMap;
-	map<string, 	map<E_FType, 		map<GTime, PhaseCenterData,	std::greater<GTime>>>>	 pcvMap;
+	map<string, 	map<E_Sys,			map<E_FType, 		map<GTime, Vector3d,		std::greater<GTime>>>>>	 pcoMap;
+	map<string, 	map<E_Sys,			map<E_FType, 		map<GTime, PhaseCenterData,	std::greater<GTime>>>>>	 pcvMap;
 	
 	map<int,							map<GTime, Eph,				std::greater<GTime>>>	 ephMap;	/* GPS/QZS/GAL/BDS ephemeris */
 	map<int,							map<GTime, Geph,			std::greater<GTime>>>	gephMap;	/* GLONASS ephemeris */

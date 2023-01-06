@@ -246,7 +246,7 @@ void setTropSiteAntCalibModelsFromNav()
 		{
 			ant.calibModel = defaultStr;
 			PhaseCenterData* pcd_ptr;
-			bool pass = findAntenna(ant.anttype, time, nav, F1, &pcd_ptr);
+			bool pass = findAntenna(ant.anttype, E_Sys::GPS, time, nav, F1, &pcd_ptr);
 			if (pass)
 				ant.calibModel = pcd_ptr->calibModel;
 		}

@@ -184,7 +184,7 @@ void pppomc(
 		{
 			rr2[ft] = rRec;
 
-			Vector3d pco_r = antPco(rec.antId, ft, obs.time);
+			Vector3d pco_r = antPco(rec.antId, obs.Sat.sys, ft, obs.time);
 											//check map, continue if null
 			Vector3d dr2;
 			enu2ecef(pos, pco_r, dr2);  /* convert enu to xyz */
@@ -237,8 +237,8 @@ void pppomc(
 		
 		for (auto& [ft, sig] : obs.Sigs)
 		{
-			double recPcv = antPcv(rec.antId,		ft, obs.time, PI/2 - satStat.el, satStat.az);
-			double satPcv = antPcv(obs.Sat.id(),	ft, obs.time, satStat.nadir);
+			double recPcv = antPcv(rec.antId,		obs.Sat.sys, ft, obs.time, PI/2 - satStat.el, satStat.az);
+			double satPcv = antPcv(obs.Sat.id(),	obs.Sat.sys, ft, obs.time, satStat.nadir);
 			corr_meas(trace, obs, ft, recPcv, satPcv, satStat.phw, rec, mjd);
 		}
 

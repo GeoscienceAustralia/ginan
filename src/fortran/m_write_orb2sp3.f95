@@ -76,10 +76,10 @@ SUBROUTINE write_orb2sp3 (ORBmatrix, PRNmatrix, sp3_fname, sat_vel, CLKmatrix, i
       CHARACTER (LEN=3) :: PRN_ti
       REAL (KIND = prec_q) :: r_ti(3), v_ti(3), cl_ti, Dcl_ti
 
-      DOUBLE PRECISION DJ1, DJ2
+      DOUBLE PRECISION DJ1, DJ2, mjd0, mjd, mjd_last
       INTEGER IY, IM, ID
       DOUBLE PRECISION FD
-      INTEGER J
+      INTEGER J, jflag
 
       !INTEGER (KIND = prec_int4) :: year, month, day, hour_ti, min_ti 
       INTEGER :: year, month, day, hour_ti, min_ti 
@@ -413,6 +413,12 @@ WRITE (UNIT=UNIT_IN,FMT=fmt_line,IOSTAT=ios_ith) &
 ! ----------------------------------------------------------------------
 
 
+call IAU_CAL2JD(yml_pod_data_initial_year, yml_pod_data_initial_month,yml_pod_data_initial_day,&
+        mjd0, mjd, jflag)
+
+mjd = mjd + yml_pod_data_initial_seconds/86400.0d0
+mjd_last = mjd + yml_orbit_arc_determination_orig / 24.0d0
+
 ! ----------------------------------------------------------------------
 ! Write Orbits matrix to the sp3 file	  
 ! ----------------------------------------------------------------------
@@ -451,12 +457,14 @@ v_ti(2) = ORBmatrix(i_write,7, i_sat)
 v_ti(3) = ORBmatrix(i_write,8, i_sat) 
 ! Unit conversion: m/sec to dm/sec                 
 v_ti = v_ti * 1.0D1
+
 end if
 
 ! Clock
 cl_ti  = 999999.999999D0
 Dcl_ti = 999999.999999D0
 IF (clk_write == 1) THEN 
+IF (mjd <= mjd_ti .and. mjd_ti <= mjd_last) then
 DO iCLK_epoch = 1 , Nclk_epoch
   IF ( (ABS(CLKmatrix(iCLK_epoch,1, i_sat)) - ABS(MJD_ti) < 1.0D-3) .AND. &
      & (CLKmatrix(iCLK_epoch,2, i_sat) - Sec_00 < 1.0D-12) )THEN
@@ -467,6 +475,7 @@ DO iCLK_epoch = 1 , Nclk_epoch
 	!EXIT  
   END IF
 END DO
+end if
 END IF
 
 !! Clock correlation (sdev)

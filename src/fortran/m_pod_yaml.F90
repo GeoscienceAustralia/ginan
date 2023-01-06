@@ -110,7 +110,7 @@ module pod_yaml
    character(512) yml_orbit_filename, yml_ext_orbit_filename, yml_satsinex_filename, yml_leapsecond_filename, yml_eop_filename
    character(512) yml_gravity_filename, yml_ephemeris_header, yml_ephemeris_data_file, yml_ocean_tides_file, yml_erp_filename
    character(512) yml_ic_filename, yml_output_dir, cmd
-   integer        dir_status
+   integer        dir_status, yml_orbit_arc_determination_orig
    double precision yml_interpolate_start
    logical        yml_determination_arc_corrected !you only need to correct it once
 
@@ -333,6 +333,7 @@ subroutine get_yaml(yaml_filepath, is_pod_data)
       yml_determination_arc_corrected = .false.
       call get_orbitarcs(pod_options_dict, my_error, yml_orbit_arc_determination, yml_orbit_arc_prediction,&
               yml_orbit_arc_backwards)
+      yml_orbit_arc_determination_orig = yml_orbit_arc_determination
       yml_ext_orbit_enabled = pod_options_dict%get_logical("ext_orbit_enabled", .false., my_error_p)
       if (yml_ext_orbit_enabled) then
          yml_ext_orbit_opt = get_ext_orbit_opt(pod_options_dict, my_error)

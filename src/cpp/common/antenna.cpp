@@ -37,6 +37,7 @@ int decodef(char *p, int n, double *v)
 
 bool findAntenna(
 	string				code,
+	E_Sys				sys,
 	GTime				time,
 	Navigation&			nav,
 	E_FType				ft,
@@ -45,13 +46,21 @@ bool findAntenna(
 // 	BOOST_LOG_TRIVIAL(debug)
 // 	<< "Searching for " << type << ", " << code;
 
-	auto it1 = nav.pcvMap.find(code);
-	if (it1 == nav.pcvMap.end())
+	auto it0 = nav.pcvMap.find(code);
+	if (it0 == nav.pcvMap.end())
 	{
 		return false;
 	}
 	
-	auto& [dummyCode, pcvFreqMap] = *it1;
+	auto& [dummyCode, pcvSysFreqMap] = *it0;
+	
+	auto it1 = pcvSysFreqMap.find(sys);
+	if (it1 == pcvSysFreqMap.end())
+	{
+		return false;
+	}
+	
+	auto& [dummySys, pcvFreqMap] = *it1;
 	
 	auto it2 = pcvFreqMap.find(ft);
 	if (it2 == pcvFreqMap.end())
@@ -92,14 +101,15 @@ double interp(double x1, double x2, double y1, double y2, double x)
 
 Vector3d makeAntPco(
 	string		id,
+	E_Sys		sys,
 	E_FType		ft,
 	GTime		time)
 {
 	if (ft == F1)		return Vector3d::Zero();
 	if (ft == F2)		return Vector3d::Zero();
 	
-	Vector3d pco1 = antPco(id, F1, time);
-	Vector3d pco2 = antPco(id, F2, time);
+	Vector3d pco1 = antPco(id, sys, F1, time);
+	Vector3d pco2 = antPco(id, sys, F2, time);
 	
 	if (pco1.isZero())	return Vector3d::Zero();
 	if (pco2.isZero())	return Vector3d::Zero();
@@ -123,12 +133,21 @@ Vector3d makeAntPco(
  */
 Vector3d antPco(
 	string		id,
+	E_Sys		sys,
 	E_FType		ft,
 	GTime		time,
 	bool		interp)
 {
-	auto it1 = nav.pcoMap.find(id);
-	if (it1 == nav.pcoMap.end())
+	auto it0 = nav.pcoMap.find(id);
+	if (it0 == nav.pcoMap.end())
+	{
+		return Vector3d::Zero();
+	}
+	
+	auto& [dummy0, pcoSysFreqMap] = *it0;
+
+	auto it1 = pcoSysFreqMap.find(sys);
+	if (it1 == pcoSysFreqMap.end())
 	{
 		return Vector3d::Zero();
 	}
@@ -138,7 +157,7 @@ Vector3d antPco(
 	auto it2 = pcoFreqMap.find(ft);
 	if (it2 == pcoFreqMap.end())
 	{
-		if (interp)		return makeAntPco(id, ft, time);
+		if (interp)		return makeAntPco(id, sys, ft, time);
 		else			return Vector3d::Zero();
 	}
 	
@@ -159,13 +178,22 @@ Vector3d antPco(
 */
 double antPcv(
 	string		id,		///< antenna id
+	E_Sys		sys,
 	E_FType		ft,		///< frequency
 	GTime		time,	///< time
 	double		aCos,	///< angle between target and antenna axis (radians)
 	double		azi)	///< azimuth angle (radians)
 {
-	auto it1 = nav.pcvMap.find(id);
-	if (it1 == nav.pcvMap.end())
+	auto it0 = nav.pcvMap.find(id);
+	if (it0 == nav.pcvMap.end())
+	{
+		return 0;
+	}
+	
+	auto& [dummy0, pcvSysFreqMap] = *it0;
+
+	auto it1 = pcvSysFreqMap.find(sys);
+	if (it1 == pcvSysFreqMap.end())
 	{
 		return 0;
 	}
@@ -331,7 +359,8 @@ int readantexf(
 	string		id;
 	GTime		time;
 	
-	E_FType	ft = FTYPE_NONE;
+	E_FType	ft	= FTYPE_NONE;
+	E_Sys	sys	= E_Sys::NONE;
 
 	char buff[512];
 	while (fgets(buff, sizeof(buff), fp))
@@ -504,8 +533,9 @@ int readantexf(
 
 			string antexFCode;
 			antexFCode.assign(&buff[3], 3);
-
-			ft = antexCodes[antexFCode];
+			
+			sys	= SatSys::sysFromChar(antexFCode[0]);
+			ft	= antexCodes[antexFCode];
 			
 			freqPcv = recPcv;
 			
@@ -516,8 +546,8 @@ int readantexf(
 		{	
 			noazi_flag	= 0;	
 			
-			nav.pcvMap[id][ft][time] = freqPcv;
-			nav.pcoMap[id][ft][time] = pco;
+			nav.pcvMap[id][sys][ft][time] = freqPcv;
+			nav.pcoMap[id][sys][ft][time] = pco;
 			
 			continue;
 		}

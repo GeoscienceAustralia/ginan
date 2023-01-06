@@ -1258,7 +1258,7 @@ void mainOncePerEpoch(
 		Sat.fromHash(satId);
 		
 		PhaseCenterData* pcvsat_ptr = nullptr;
-		findAntenna(Sat.id(), time, nav, F1, &pcvsat_ptr);
+		findAntenna(Sat.id(), Sat.sys, time, nav, F1, &pcvsat_ptr);
 		if (pcvsat_ptr)
 		{
 			Sat.setSvn(pcvsat_ptr->svn);
