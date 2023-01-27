@@ -3896,26 +3896,30 @@ E_SnxDataMissing getstnsnx(
 
 	found = false;
 
-	auto ant_it = theSinex.map_antennas[station].lower_bound(time);
-	if (ant_it != theSinex.map_antennas[station].end())
+	auto ant_it = theSinex.map_antennas.find(station);
+	if (ant_it != theSinex.map_antennas.end())
 	{
-		auto& antenna = ant_it->second;
-		found = true;
-		antenna.used = true;
-		
-		stn_snx.anttype = antenna.anttype;
-		stn_snx.antsn	= antenna.antsn;
-		
-		// get next next start time as end time for this aspect
-		if (ant_it != theSinex.map_antennas[station].begin())
+		auto ant_epoch_it = ant_it->second.lower_bound(time);
+		if (ant_epoch_it != ant_it->second.end())
 		{
-			ant_it--;
-			auto& nextAntenna = ant_it->second;
-			
-			setRestrictiveEndTime(antenna.antend,	nextAntenna.antstart);
+			auto& antenna = ant_epoch_it->second;
+			found = true;
+			antenna.used = true;
+
+			stn_snx.anttype = antenna.anttype;
+			stn_snx.antsn	= antenna.antsn;
+
+			// get next next start time as end time for this aspect
+			if (ant_epoch_it != ant_it->second.begin())
+			{
+				ant_epoch_it--;
+				auto& nextAntenna = ant_epoch_it->second;
+
+				setRestrictiveEndTime(antenna.antend,	nextAntenna.antstart);
+			}
+
+			setRestrictiveEndTime(stn_snx.start,	antenna.antend);
 		}
-		
-		setRestrictiveEndTime(stn_snx.start,	antenna.antend);
 	}
 
 	if (!found)
@@ -3923,28 +3927,32 @@ E_SnxDataMissing getstnsnx(
 
 	found = false;
 
-	auto ecc_it = theSinex.map_eccentricities[station].lower_bound(time);
-	if (ecc_it != theSinex.map_eccentricities[station].end())
+	auto ecc_it = theSinex.map_eccentricities.find(station);
+	if (ecc_it != theSinex.map_eccentricities.end())
 	{
-		auto& eccentricity = ecc_it->second;
-		found = true;
-		eccentricity.used = true;
-		
-		stn_snx.eccrs = eccentricity.eccrs;
-
-		for (int i = 0; i < 3; i++)
-			stn_snx.ecc[i] = eccentricity.ecc[i];
-		
-		// get next next start time as end time for this aspect
-		if (ecc_it != theSinex.map_eccentricities[station].begin())
+		auto ecc_epoch_it = ecc_it->second.lower_bound(time);
+		if (ecc_epoch_it != ecc_it->second.end())
 		{
-			ecc_it--;
-			auto& nextEcc = ecc_it->second;
-			
-			setRestrictiveEndTime(eccentricity.eccend,	nextEcc.eccstart);
+			auto& eccentricity = ecc_epoch_it->second;
+			found = true;
+			eccentricity.used = true;
+
+			stn_snx.eccrs = eccentricity.eccrs;
+
+			for (int i = 0; i < 3; i++)
+				stn_snx.ecc[i] = eccentricity.ecc[i];
+
+			// get next next start time as end time for this aspect
+			if (ecc_epoch_it != ecc_it->second.begin())
+			{
+				ecc_epoch_it--;
+				auto& nextEcc = ecc_epoch_it->second;
+
+				setRestrictiveEndTime(eccentricity.eccend,	nextEcc.eccstart);
+			}
+
+			setRestrictiveEndTime(stn_snx.stop,		eccentricity.eccend);
 		}
-		
-		setRestrictiveEndTime(stn_snx.stop,		eccentricity.eccend);
 	}
 
 	if (!found)
