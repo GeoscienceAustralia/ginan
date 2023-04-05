@@ -80,14 +80,17 @@ SUBROUTINE orbitIC (fname, IC_matrix, PRNmatrix)
       CHARACTER (LEN=3) :: PRN_i
       CHARACTER (LEN=1) :: char1
       CHARACTER (LEN=6) :: PRi, PTi, PNi
-      INTEGER (KIND = prec_int8) :: mjd_i
+      CHARACTER (LEN=12) :: not_estimated
+      INTEGER (KIND = prec_int8) :: mjd_i, parms_read, parms_read_old
       REAL (KIND = prec_q) :: sec00_i, xo, yo, zo, Vxo, Vyo, Vzo	  
       REAL (KIND = prec_q) :: ERP_OFF_ic(4), ERP_RATE_ic(4), t_off
-      logical erp_offs_read, erp_rates_read
+      logical erp_offs_read, erp_rates_read, found
 ! ----------------------------------------------------------------------
 
 erp_offs_read = .false.
 erp_rates_read = .false.
+not_estimated = "Nparam:  0 -"
+parms_read = 0
 
 UNIT_IN = 9  												
 ! ----------------------------------------------------------------------
@@ -166,18 +169,29 @@ IF (word1_ln == "#IC_INFO" .or. word1_ln == "#PODIC_INFO") THEN
 !#IC_INFO PRN: G01 SVN: 63 BLK_TYP: GPS-IIF    MASS:  1633.0000 SRP:  CBALL  ECOM2 Nparam:  15 - X Y Z XV YV ZV D0 Y0 B0 BC BS D2C D2S D4C D4S
 !OR
 !#IC_INFO PRN: G04 SVN: 36 ----> UNHEALTHY <---- 
+! next line returns positive if substring is found
+  parms_read = Index(trim(line_ith), not_estimated) 
   READ (line_ith, * , IOSTAT=ios_data) word_i, word_i, PRN_i, word_i, word_i , &
      word_i, healthy, word_i, word_i, word_i, word_i, word_i, word_i, Nparam_isat
-  if (len(trim(line_ith)) .le. 96 .and. trim(healthy) .ne. 'UNHEALTHY'  ) then
+  if ((parms_read .gt. 0) .or. (len(trim(line_ith)) .le. 96 .and. trim(healthy) .ne. 'UNHEALTHY')  ) then
      print *, "WARNING - PRN: ", PRN_i, " not estimated by PEA"
-     cycle
+     found = .false.
+     do j = 1, yml_exclude_prn_count
+        if (yml_exclude_prns(j)%prn_name == PRN_i) found = .true.
+     end do
+     if (.not. found) then
+        yml_exclude_prn_count = yml_exclude_prn_count + 1
+        yml_exclude_prns(yml_exclude_prn_count)%prn_name = trim(PRN_i)
+     end if
   endif
   if ( trim(healthy) .ne. 'UNHEALTHY') then
     isat = isat + 1
-    If (Nparam_isat > Nparam) Nparam = Nparam_isat
+    If ((parms_read .eq. 0) .and. (Nparam_isat > Nparam)) Nparam = Nparam_isat
   else
+    if (trim(healthy) .eq. 'UNHEALTHY') then
     ! UNHEALTHY status is a second line. Don't add to the count now      
     PRINT *, "WARNING - PRN: ", PRN_i, " set ", trim(healthy), " by PEA"
+    endif
   endif
 !PRINT *, "Nparam_isat: ", Nparam_isat
 !PRINT *, "Nparam: ", word1_ln
@@ -228,6 +242,7 @@ Nsat = isat
          PRINT *, "Error: Not enough memory"
          PRINT *, "Error: SUBROUTINE orbitIC in module m_orbitIC.f03"
          PRINT *, "Error: Allocatable Array: IC_matrix"
+!         PRINT *, "Requested size = ", Nsat, " * ", Nparam+2
 !         STOP "*** Not enough memory ***"
       END IF  
       IC_matrix = 0.d0

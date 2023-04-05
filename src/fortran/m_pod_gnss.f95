@@ -260,8 +260,16 @@ Nsat = size(PRNmatrix, DIM = 1)
 
 !print *,"IC_matrix_glb(1,1)", IC_matrix_glb(1,1)
 
-mjd0   = IC_matrix_glb(1,1)
-Sec_00 = IC_matrix_glb(1,2)
+sz1 = SIZE(IC_matrix_glb, DIM=1)
+do idx = 1, sz1
+mjd0   = IC_matrix_glb(idx,1)
+Sec_00 = IC_matrix_glb(idx,2)
+if (mjd0 == 0.d0) then
+    cycle
+else
+    exit
+endif
+end do
 
 jd0 = 2400000.5D0
 mjd = mjd0 + Sec_00 / 86400.0D0
@@ -363,7 +371,18 @@ print*,' '
 ! Precise Orbit Determination :: Multi-GNSS multi-satellites POD loop
 ! ----------------------------------------------------------------------
 ! read the (eop? and) sinex files to load up memory before starting the satellite loop
-PRN_isat = PRNmatrix(1)
+do idx = 1, Nsat
+    jfound = .false.
+    do j = 1, yml_exclude_prn_count
+        if (trim(yml_exclude_prns(j)%prn_name) == PRNmatrix(idx)) then
+            jfound = .true.
+            exit
+        end if
+    end do
+    if (.not. jfound) exit
+end do
+    
+PRN_isat = PRNmatrix(idx)
 CALL read_satsnx(yml_satsinex_filename, Iyear, DOY, SEC_00, PRN_isat)
 
 ! ----------------------------------------------------------------------
@@ -420,7 +439,10 @@ if (yml_exclude_prn_count > 0) then
     if (.not. docycle .and. jfound) docycle = .true. !forcefully excluded
 end if
 
-if (docycle) cycle
+if (docycle) then
+    print *, "PRN ", PRN_isat, " excluded"
+    cycle
+end if
 
 yml_satellites(isat) = .true.
 !print *,"Satellite: ", PRNmatrix(isat) ! isat

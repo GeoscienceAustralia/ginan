@@ -57,6 +57,7 @@ SUBROUTINE eop_igu (mjd, ERP_fname, ERP_days, EOP_days, EOP_Nint, EOP_int)
       USE mdl_precision
       USE mdl_num
       use pod_yaml
+      use mdl_eop, only : ERP_day_IC
       IMPLICIT NONE
 
 ! ----------------------------------------------------------------------
@@ -108,7 +109,16 @@ SUBROUTINE eop_igu (mjd, ERP_fname, ERP_days, EOP_days, EOP_Nint, EOP_int)
               end if
               ERP_read_data(i,:) = ERP_days(i, :)
           end do
-         ! print *, "saved_row_count = ", saved_row_count
+          if (saved_row_count < EOP_Nint) then
+              if (ERP_day_IC(1,1) .ne. 0.d0) then
+                  saved_row_count = size(ERP_day_IC, DIM=1)
+                  Deallocate (ERP_Read_data)
+				  Allocate(ERP_read_data(saved_row_count, EOP_MAX_ARRAY), stat=Allocate_status)
+                  ERP_read_data(1:saved_row_count, 1:4) = ERP_day_IC(1:saved_row_count, 1:4)
+                  ERP_read_data(1:saved_row_count, 5:EOP_MAX_ARRAY) = 0.d0
+              end if
+          end if
+         !print *, "saved_row_count = ", saved_row_count, ", EOP_Nint =", EOP_Nint
          DO i = 1, saved_row_count - 1
          if (i == 1) erp_spacing = ERP_read_data(2, EOP_MJD) - ERP_read_data(1, EOP_MJD)
          if ((ERP_read_data(i, EOP_MJD) <= mjd) .and. (mjd <= ERP_read_data(i+1, EOP_MJD))) then
@@ -128,8 +138,8 @@ SUBROUTINE eop_igu (mjd, ERP_fname, ERP_days, EOP_days, EOP_Nint, EOP_int)
                ERP_igu_data = ERP_read_data(lo:hi, :)
                EOP_Nint_used = EOP_Nint
             else if (i <= EOP_nint/2) then
-                ERP_igu_data = ERP_read_data(1:EOP_Nint,:)
-                EOP_Nint_used = EOP_nint
+               ERP_igu_data = ERP_read_data(1:EOP_Nint,:)
+               EOP_Nint_used = EOP_nint
             else if (i >= (saved_row_count - EOP_Nint/2)) then
                 ERP_igu_data = ERP_read_data(saved_row_count - EOP_Nint + 1:saved_row_count, :)
                 EOP_nint_used = EOP_Nint

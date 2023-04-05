@@ -12,7 +12,7 @@ shopt -s extglob
 function diffex()
 {
   for file in $@; do
-    diffutil.py   -i $file -o solutions/$file -a $ATOL
-    diffutil.py   -i $file -o solutions/$file
+    ../scripts/diffutil.py   -i $file -o solutions/$file -a $ATOL
+    ../scripts/diffutil.py   -i $file -o solutions/$file
   done
 }
