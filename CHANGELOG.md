@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [1.5.3] 2023-04-04
+### Added
+### Changed
+### Fixed
+POD crash using initial conditions file when the first satellite is excluded
+POD to use IC ERP data when not enough supplied by standard ERP file.
+
+### Deprecated
+### Removed
+### Security
+
 # [1.5.2] 2022-12-28
 ### Added
 ### Changed
