@@ -201,7 +201,7 @@ end if
 ! Close of input parameterization file
 ! ----------------------------------------------------------------------
 
-write (mesg, *) "Could not find orbit data for ", PRN
+write (mesg, *) "Could not find orbit data for "//trim(PRN)
 
 !data_opt = 1
 data_opt = pseudobs_opt
@@ -210,6 +210,10 @@ data_opt = pseudobs_opt
 ! ----------------------------------------------------------------------
 ! Orbit (Position vector) obtained from from IGS sp3 data 
 ! ----------------------------------------------------------------------
+if (trim(PRN) == "") then
+   print *, "blank PRN"
+end if
+
 if (data_opt == TYPE_SP3) Then
 
 ! Read IGS sp3 orbit data file 

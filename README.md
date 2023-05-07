@@ -8,7 +8,7 @@
 : This script will install all dependencies, clone the Ginan repo into the current directory and build the Ginan toolkit.
 
 
-#### `Ginan v1.5.3 release`
+#### `Ginan v1.5.4 release`
 
 ## Overview
 
@@ -56,7 +56,7 @@ Ginan is supported on the following platforms
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v /data:/data gnssanalysis/ginan:v1.5.3 bash
+    docker run -it -v /data:/data gnssanalysis/ginan:v1.5.4 bash
 
 This command connects the `/data` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
@@ -303,6 +303,11 @@ sudo apt -y install libnetcdf-dev libnetcdf-c++4-dev
 ```    
 
 ***
+## Install gnaaanalysis python module
+```executable
+sudo pip install gnssanalysis
+:<<'```executable'
+
 
 ## Download
 
@@ -577,7 +582,7 @@ To install Miniconda, download and execute the Miniconda shell file:
 And follow the on-screen instructions  (choosing all defaults is fine).
 
 ### Create virtual environment
-After installation you can create the `gn37` python environment using a prepared receipy. First open a new terminal session and enter:
+After installation you can create the `gn37` python environment using a prepared recipe. First open a new terminal session and enter:
 
     conda env create -f <dir_to_ginan>/scripts/conda_gn37.yaml
 
@@ -586,6 +591,40 @@ You have now created the virtual python environment `gn37` with all necessary de
     conda activate gn37
 
 And then run your desired script from the `scripts` directory.
+
+### Auto Download Script
+The auto download script available in the `scripts` directory is a python tool that will automatically download various inputs needed to run Ginan
+
+The detailed feautures of each option can be found by changing to the `scripts` directory and running
+
+    python3 auto_download_PPP.py --help
+
+However, some of the features include: 
+* the ability to download RINEX files from Geoscience Australia's `gnss-data` data repository, 
+* the ability to choose between final, rapid and ultra-rapid file types 
+* the ability to choose the analysis centre (apart from SNX coordinate and BIA bias files which come from IGS and COD, respectively)
+
+To get started try the following examples:
+
+Examples to run:
+
+#### Download necessary real-time inputs:
+
+    python3 auto_download_PPP.py --target-dir="/data/tmp-dwn" --preset="real-time"
+
+#### Download inputs for post-processed runs:
+
+using most defaults:
+
+    python3 auto_download_PPP.py --target-dir="/data/tmp-dwn" --preset="igs-station" --station-list="ALIC,DARW" --start-datetime="2023-02-24_00:00:00" --end-datetime="2023-02-26_00:00:00"
+
+choosing the solution type (ultra-rapid) and analysis centre (ESA):
+
+    python3 auto_download_PPP.py --target-dir="/data/tmp-dwn" --preset="igs-station" --station-list="ALIC,DARW" --start-datetime="2023-02-24_00:00:00" --end-datetime="2023-02-26_00:00:00" --solution-type="ULT" --analysis-center="ESA"
+
+
+
+
 
 ### Acknowledgements:
 We have used routines obtained from RTKLIB, released under a BSD-2 license, these routines have been preserved with minor modifications in the folder `cpp/src/rtklib`. The original source code from RTKLib can be obtained from https://github.com/tomojitakasu/RTKLIB.

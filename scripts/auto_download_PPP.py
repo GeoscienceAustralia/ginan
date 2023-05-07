@@ -1,4 +1,6 @@
 # Script for auto-downloading the necessary files to run PPP solutions in Ginan
+# import boto3
+import json
 import click
 import random
 import ftplib
@@ -7,27 +9,22 @@ import requests
 import numpy as np
 from time import sleep
 from pathlib import Path
+from typing import Tuple
 from copy import deepcopy
 import concurrent.futures
 from itertools import repeat
-from collections import Counter
-import urllib.request as request
 from urllib.parse import urlparse
 from contextlib import contextmanager
-from datetime import datetime, timedelta
-from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import LegacyApplicationClient
+from datetime import datetime, timedelta, date
 
-
-from gn_lib.gn_datetime import GPSDate
-from gn_lib.gn_download import check_n_download, check_n_download_url, check_file_present, gen_uncomp_filename
+from gnssanalysis.gn_datetime import GPSDate
+from gnssanalysis.gn_download import check_n_download, check_n_download_url, check_file_present
 
 API_URL = "https://data.gnss.ga.gov.au/api"
-OAUTH_URL = "https://prodgeodesy-openam.geodesy.ga.gov.au/openam/oauth2"
 
 
 @contextmanager
-def ftp_tls(url, **kwargs):
+def ftp_tls(url: str, **kwargs) -> None:
     kwargs.setdefault("timeout", 30)
     with ftplib.FTP_TLS(url, **kwargs) as ftps:
         ftps.login()
@@ -36,7 +33,7 @@ def ftp_tls(url, **kwargs):
         ftps.quit()
 
 
-def configure_logging(verbose):
+def configure_logging(verbose: bool) -> None:
     if verbose:
         logging_level = logging.DEBUG
     else:
@@ -45,7 +42,7 @@ def configure_logging(verbose):
     logging.getLogger().setLevel(logging_level)
 
 
-def ensure_folders(paths):
+def ensure_folders(paths: list) -> None:
     """
     Ensures the list of folders exist in the file system.
     """
@@ -56,284 +53,181 @@ def ensure_folders(paths):
             path.mkdir(parents=True)
 
 
+def generate_nominal_span(start_epoch: datetime, end_epoch: datetime) -> str:
+    """
+    Generate the 3 character LEN for IGS filename based on the start and end epochs passed in
+    """
+    span = (end_epoch - start_epoch).total_seconds()
+    if span % 86400 == 0.0:
+        unit = "D"
+        span = int(span // 86400)
+    elif span % 3600 == 0.0:
+        unit = "H"
+        span = int(span // 3600)
+    elif span % 60 == 0.0:
+        unit = "M"
+        span = int(span // 60)
+    else:
+        raise NotImplementedError
+
+    return f"{span:02}{unit}"
+
+
 def generate_long_filename(
     analysis_center: str,  # AAA
     content_type: str,  # CNT
     format_type: str,  # FMT
-    initial_epoch: str,  # %Y%j%H%M
-    timespan: str,  #
+    start_epoch: datetime,
+    end_epoch: datetime = None,
+    timespan: timedelta = None,
     solution_type: str = "",  # TTT
     sampling_rate: str = "15M",  # SMP
     version: str = "0",  # V
     project: str = "EXP",  # PPP, e.g. EXP, OPS
-):
+) -> str:
     """
     Function to generate filename with IGS Long Product Filename convention (v1.0) as outlined in
     http://acc.igs.org/repro3/Long_Product_Filenames_v1.0.pdf
 
     AAAVPPPTTT_YYYYDDDHHMM_LEN_SMP_CNT.FMT[.gz]
     """
+    initial_epoch = start_epoch.strftime("%Y%j%H%M")
+    if end_epoch == None:
+        end_epoch = start_epoch + timespan
+    timespan_str = generate_nominal_span(start_epoch, end_epoch)
 
     result = (
         f"{analysis_center}{version}{project}"
         f"{solution_type}_"
-        f"{initial_epoch}_{timespan}_{sampling_rate}_"
+        f"{initial_epoch}_{timespan_str}_{sampling_rate}_"
         f"{content_type}.{format_type}"
     )
     return result
 
 
-def gen_content_specifier(file_ext):
+def generate_content_type(file_ext: str, analysis_center: str) -> str:
     """
     IGS files following the long filename convention require a content specifier
     Given the file extension, generate the content specifier
     """
     file_ext = file_ext.upper()
-    if file_ext == "ERP":
-        content = "ERP"
-    elif file_ext == "BIA":
-        content = "OSB"
-    elif file_ext == "SP3":
-        content = "ORB"
-    elif file_ext == "CLK":
-        content = "CLK"
-    elif file_ext == "OBX":
-        content = "ATT"
-    elif file_ext == "TRO":
-        content = "TRO"
-    return content
+    file_ext_dict = {
+        "ERP": "ERP",
+        "SP3": "ORB",
+        "CLK": "CLK",
+        "OBX": "ATT",
+        "TRO": "TRO",
+        "SNX": "CRD",
+        "BIA": {"ESA": "BIA", None: "OSB"},
+    }
+    content_type = file_ext_dict.get(file_ext)
+    # If result is still dictionary, use analysis_center to determine content_type
+    if isinstance(content_type, dict):
+        content_type = content_type.get(analysis_center, content_type.get(None))
+    return content_type
 
 
-def gen_cddis_repro_specifiers(analysis_centre, version, project, solution):
+def generate_sampling_rate(file_ext: str, analysis_center: str, solution_type: str) -> str:
     """
-    IGS files following the long filename convention require specifiers
-    Some common specifiers are used by the analysis centres that submit to CDDIS
-    Given the analysis centre, generate the version, project and solution specifiers (where appropriate)
+    IGS files following the long filename convention require a content specifier
+    Given the file extension, generate the content specifier
     """
-    if analysis_centre == "ESA":
-        version = "3"
-    elif analysis_centre == "GFZ":
-        version = "2"
-    elif analysis_centre == "GRG":
-        version = "6"
-        project = "RE3"
-    elif analysis_centre == "IGS":
-        solution = "SNX"
-    elif analysis_centre == "JPL":
-        project = "R3T"
-    elif analysis_centre == "MIT":
-        if solution == "FIN":
-            solution = "GE-"
-    elif analysis_centre == "ULR":
-        project = "TST"
-    elif analysis_centre == "WHU":
-        version = "2"
-    return version, project, solution
+    file_ext = file_ext.upper()
+    sampling_rates = {
+        "ERP": "01D",
+        "BIA": "01D",
+        "SP3": {
+            ("COD", "GFZ", "GRG", "IAC", "JAX", "MIT", "WUM"): "05M",
+            ("ESA"): {"FIN": "05M", "RAP": "15M", None: "15M"},
+            (): "15M",
+        },
+        "CLK": {
+            ("EMR", "IGS", "MIT", "SHA", "USN"): "05M",
+            ("ESA", "GFZ", "GRG"): {"FIN": "30S", "RAP": "05M", None: "30S"},
+            (): "30S",
+        },
+        "OBX": {"GRG": "05M", None: "30S"},
+        "TRO": {"JPL": "30S", None: "01H"},
+        "SNX": "01D",
+    }
+    if file_ext in sampling_rates:
+        file_rates = sampling_rates[file_ext]
+        if isinstance(file_rates, dict):
+            for key in file_rates:
+                if analysis_center in key:
+                    center_rates = file_rates.get(key, file_rates.get(()))
+                    break
+                else:
+                    return file_rates.get(())
+            if isinstance(center_rates, dict):
+                return center_rates.get(solution_type, center_rates.get(None))
+            else:
+                return center_rates
+        else:
+            return file_rates
+    else:
+        return "01D"
 
 
-def gen_prod_filename(
-    reference_dt,
-    file_ext,
-    shift=0,
-    AC="igr",
-    repro3=False,
-    span="01D",
-    ver="0",
-    proj="R03",
-    solution="FIN",
-    sampling="05M",
-    content="CRD",
-):
+def generate_product_filename(
+    reference_start: datetime,
+    file_ext: str,
+    shift: int = 0,
+    long_filename: bool = False,
+    AC: str = "IGS",
+    timespan: timedelta = timedelta(days=1),
+    solution_type: str = "ULT",
+    sampling_rate: str = "15M",
+    version: str = "0",
+    project: str = "OPS",
+    content_type: str = None,
+) -> Tuple[str, GPSDate, datetime]:
     """
     Generate filename, GPSDate obj from datetime
+    Optionally, move reference_start forward by "shift" hours
     """
-    reference_dt -= timedelta(hours=shift)
-    gps_date = GPSDate(str(reference_dt.date()))
+    reference_start += timedelta(hours=shift)
+    if type(reference_start == date):
+        gps_date = GPSDate(str(reference_start))
+    else:
+        gps_date = GPSDate(str(reference_start.date()))
 
-    if repro3:
-        content = gen_content_specifier(file_ext=file_ext)
-        ver, proj, solution = gen_cddis_repro_specifiers(
-            analysis_centre=AC, version=ver, project=proj, solution=solution
-        )
-        IC = reference_dt.strftime("%Y%j%H%M")
-
-        prod_file = (
+    if long_filename:
+        if content_type == None:
+            content_type = generate_content_type(file_ext, analysis_center=AC)
+        product_filename = (
             generate_long_filename(
                 analysis_center=AC,
-                content_type=content,
+                content_type=content_type,
                 format_type=file_ext,
-                initial_epoch=IC,
-                timespan=span,
-                solution_type=solution,
-                sampling_rate=sampling,
-                version=ver,
-                project=proj,
+                start_epoch=reference_start,
+                timespan=timespan,
+                solution_type=solution_type,
+                sampling_rate=sampling_rate,
+                version=version,
+                project=project,
             )
             + ".gz"
         )
-    elif (file_ext == "bia") and (repro3 == False):
-        if (datetime.now() - reference_dt).days > 25:
-            prod_file = "code_monthly.bia"
+    else:
+        if file_ext.lower() == "snx":
+            product_filename = f"igs{gps_date.yr[2:]}P{gps_date.gpswk}.snx.Z"
         else:
-            prod_file = "code.bia"
-    elif (file_ext == "snx") and (repro3 == False):
-        prod_file = f"igs{gps_date.yr[2:]}P{gps_date.gpswkD}.ssc.Z"
-    else:
-        prod_file = f"{AC}{gps_date.gpswkD}.{file_ext}.Z"
-    # hour = f"{reference_dt.hour:02}"
-    return prod_file, gps_date, reference_dt
+            hour = f"{reference_start.hour:02}"
+            product_filename = f"igu{gps_date.gpswkD}_{hour}.{file_ext}.Z"
+    return product_filename, gps_date, reference_start
 
 
-def gen_prod_basepath(repro3=False, file_ext=None):
-    """
-    Generate filename, GPSDate obj from datetime
-    Optionally, move reference_dt back by "shift" hours
-    """
-    if repro3:
-        basepath = "gnss/products/repro3/"
-    elif (file_ext == "bia") & (repro3 == False):
-        basepath = "gnss/products/bias/"
-    else:
-        basepath = "gnss/products/"
-    return basepath
-
-
-def rinex_files_api(params, headers=None):
-    """
-    Query the GNSS data API for a station.
-    """
-    if headers is None:
-        headers = {}
-    response = requests.get(API_URL + "/rinexFiles", params=params, headers=headers)
-
-    if response.status_code == 404:
-        # no data available for query
-        return []
-
-    response.raise_for_status()
-    return response.json()
-
-
-def authentication_token(client_id, client_secret, username, password):
-    oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
-
-    token = oauth.fetch_token(
-        token_url=OAUTH_URL + "/access_token?realm=/",
-        scope=["openid", "profile"],
-        username=username,
-        password=password,
-        client_id=client_id,
-        client_secret=client_secret,
-    )
-
-    return token
-
-
-def download_gnss_data_entry(entry, output_dir: Path, max_retries=5):
-    file_url = entry["fileLocation"]
-    retries = 0
-    download_done = False
-    filename = urlparse(file_url).path.split("/")[-1].split(".")[0] + ".rnx"
-    out_path = output_dir / filename
-    if out_path.is_file():
-        logging.info(f"File {filename} already present in {output_dir}")
-    else:
-        while not download_done and retries <= max_retries:
-            try:
-                logging.info(f"Downloading {filename} to {out_path}")
-                out = request.urlretrieve(file_url, out_path)
-                download_done = True
-                logging.info(f"Downloaded {filename}")
-            except:
-                retries += 1
-                if retries > max_retries:
-                    logging.warning(f"Failed to download {file_url} and reached maximum retry count ({max_retries}).")
-
-                logging.debug(f"Received an error while try to download {file_url}, retrying({retries}).")
-                # Add some backoff time (exponential random as it appears to be contention based?)
-                sleep(random.uniform(0.0, 2.0 ** retries))
-
-
-def available_stations_at_gnss_data_repo(
-    start_epoch: datetime,
-    end_epoch: datetime,
-    stations_list: list,
-    file_period="01D",
-    fileType="obs",
-    rinexVersion="3",
-    coverage_fraction=1,
-    max_retries=5,
-):
-    if start_epoch > end_epoch:
-        start_epoch, end_epoch = end_epoch, start_epoch
-
-    if file_period == "01D":
-        stride = timedelta(days=1)
-    else:
-        stride = timedelta(hours=1)
-
-    def site_id(entry):
-        return entry["siteId"].upper()
-
-    entries = []
-    current_epoch = start_epoch
-    epoch_count = 0
-
-    while current_epoch + stride <= end_epoch:
-        entry_success = False
-        retries = 0
-        while not entry_success and retries <= max_retries:
-            try:
-                new_entries = available_stations_at_gnss_data_repo_single_period(
-                    current_epoch,
-                    current_epoch + stride,
-                    stations_list,
-                    file_period=file_period,
-                    fileType=fileType,
-                    rinexVersion=rinexVersion,
-                )
-                entry_success = True
-            except:
-                retries += 1
-                if retries > max_retries:
-                    logging.warning(f"Failed to receive API response and reached maximum retry count ({max_retries}).")
-                logging.debug(f"Received an error while attempting API call, retrying({retries}).")
-                # Add some backoff time (exponential random as it appears to be contention based?)
-                sleep(random.uniform(0.0, 2.0 ** retries))
-
-        entries += new_entries
-
-        current_epoch += stride
-        epoch_count += 1
-
-    station_count = Counter(site_id(entry) for entry in entries)
-    required_count = int(coverage_fraction * epoch_count)
-
-    return [entry for entry in entries if station_count[site_id(entry)] >= required_count]
-
-
-def available_stations_at_gnss_data_repo_single_period(
-    start_epoch: datetime, end_epoch: datetime, stations_list: list, file_period="01D", fileType="obs", rinexVersion="3"
-):
-    params = dict(
-        stationId=",".join(stations_list),
-        startDate=start_epoch.isoformat(),
-        endDate=(end_epoch - timedelta(seconds=30)).isoformat(),
-        filePeriod=file_period,
-        fileType=fileType,
-        rinexVersion=rinexVersion,
-        decompress=True,
-    )
-    return rinex_files_api(params)
-
-
-def download_file_from_cddis(filename, ftp_folder, output_folder: Path, max_retries=5, uncomp=True):
+def download_file_from_cddis(
+    filename: str, ftp_folder: str, output_folder: Path, max_retries: int = 3, uncomp: bool = True
+) -> None:
     with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
         ftps.cwd(ftp_folder)
         retries = 0
         download_done = False
         while not download_done and retries <= max_retries:
             try:
+                logging.info(f"Attempting Download of: {filename}")
                 check_n_download(filename, str(output_folder) + "/", ftps, uncomp=uncomp)
                 download_done = True
                 logging.info(f"Downloaded {filename}")
@@ -341,237 +235,446 @@ def download_file_from_cddis(filename, ftp_folder, output_folder: Path, max_retr
                 retries += 1
                 if retries > max_retries:
                     logging.warning(f"Failed to download {filename} and reached maximum retry count ({max_retries}).")
+                    if (output_folder / filename).is_file():
+                        (output_folder / filename).unlink()
                     raise e
 
                 logging.debug(f"Received an error ({e}) while try to download {filename}, retrying({retries}).")
                 # Add some backoff time (exponential random as it appears to be contention based?)
-                sleep(random.uniform(0.0, 2.0 ** retries))
+                sleep(random.uniform(0.0, 2.0**retries))
 
 
-def download_prod_cddis(
-    dwndir: Path,
-    start_epoch,
-    end_epoch,
-    file_ext,
-    limit=None,
-    AC="igr",
-    repro3=False,
-    span="01D",
-    ver="0",
-    proj="R03",
-    solution="FIN",
-    sampling="05M",
-    content="CRD",
-):
+def download_multiple_files_from_cddis(files: list, ftp_folder: str, output_folder: Path) -> None:
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Wrap this in a list to force iteration of results and so get the first exception if any were raised
+        list(executor.map(download_file_from_cddis, files, repeat(ftp_folder), repeat(output_folder)))
+
+
+def download_product_from_cddis(
+    download_dir: Path,
+    start_epoch: datetime,
+    end_epoch: datetime,
+    file_ext: str,
+    limit: int = None,
+    long_filename: bool = False,
+    analysis_center: str = "IGS",
+    solution_type: str = "ULT",
+    sampling_rate: str = "15M",
+    project_type: str = "OPS",
+    timespan: timedelta = timedelta(days=2),
+) -> None:
     """
     Download the file/s from CDDIS based on start and end epoch, to the
-    provided the download directory (dwndir)
+    provided the download directory (download_dir)
     """
-    reference_dt = deepcopy(end_epoch)
-    prod_file, gps_date, reference_dt = gen_prod_filename(reference_dt, file_ext, AC=AC, repro3=repro3)
-    basepath = gen_prod_basepath(repro3, file_ext)
-    if file_ext == "snx":
-        shift = 168
-        limit = 1
-    else:
-        shift = 24
+    logging.info(f"Attempting CDDIS Product download - {file_ext}")
+    logging.info(f"Start Epoch - {start_epoch}")
+    logging.info(f"End Epoch - {end_epoch}")
+    reference_start = deepcopy(start_epoch)
 
-    if check_file_present(comp_filename=prod_file, dwndir=str(dwndir)):
-        logging.info(f"File {prod_file} already present in {dwndir}")
-    else:
-        with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
-            if (file_ext == "bia") & (repro3 == False):
-                # Download File:
-                download_file_from_cddis(
-                    filename=prod_file,
-                    ftp_folder=f"{basepath}",
-                    output_folder=dwndir,
-                )
+    if solution_type == "ULT":
+        timespan = timedelta(days=2)
+    elif solution_type == "RAP":
+        timespan = timedelta(days=1)
+    product_filename, gps_date, reference_start = generate_product_filename(
+        reference_start,
+        file_ext,
+        long_filename=long_filename,
+        AC=analysis_center,
+        timespan=timespan,
+        solution_type=solution_type,
+        sampling_rate=sampling_rate,
+        project=project_type,
+    )
+    logging.info(
+        f"Generated filename: {product_filename}, with GPS Date: {gps_date.gpswkD} and reference: {reference_start}"
+    )
+    out_path = download_dir / product_filename[:-3]
+    if out_path.is_file():
+        logging.info(f"File {product_filename[:-3]} already present in {download_dir}")
+        return
+    with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
+        try:
+            ftps.cwd(f"gnss/products/{gps_date.gpswk}")
+        except ftplib.all_errors as e:
+            logging.info(f"{reference_start} too recent")
+            logging.info(f"ftp_lib error: {e}")
+            product_filename, gps_date, reference_start = generate_product_filename(
+                reference_start,
+                file_ext,
+                shift=-6,
+                long_filename=long_filename,
+                AC=analysis_center,
+                timespan=timespan,
+                solution_type=solution_type,
+                sampling_rate=sampling_rate,
+                project=project_type,
+            )
+            ftps.cwd(f"gnss/products/{gps_date.gpswk}")
+
+        all_files = ftps.nlst()
+        if not (product_filename in all_files):
+            logging.info(f"{product_filename} not in gnss/products/{gps_date.gpswk} - too recent")
+            raise FileNotFoundError
+
+        # Download File:
+        download_file_from_cddis(
+            filename=product_filename,
+            ftp_folder=f"gnss/products/{gps_date.gpswk}",
+            output_folder=download_dir,
+        )
+        count = 1
+
+        remain = end_epoch - reference_start
+        while remain.total_seconds() > timespan.total_seconds():
+            if count == limit:
+                remain = timedelta(days=0)
             else:
-                success = False
-                while not success:
-                    try:
-                        ftps.cwd(f"{basepath}{gps_date.gpswk}")
-                        all_files = ftps.nlst()
-                        if not (prod_file in all_files):
-                            logging.info(
-                                f"{reference_dt} too recent for {prod_file} - Not in {basepath}{gps_date.gpswk}"
-                            )
-                            prod_file, gps_date, reference_dt = gen_prod_filename(reference_dt, file_ext, shift=shift)
-                            ftps.cwd(f"/")
-                        else:
-                            success = True
-                    except ftplib.all_errors as e:
-                        logging.info(f"{reference_dt} too recent")
-                        logging.info(f"ftp_lib error: {e}")
-                        # Shift back one week - 168 hours in a week
-                        prod_file, gps_date, reference_dt = gen_prod_filename(
-                            reference_dt, file_ext, shift=shift, AC=AC, repro3=repro3
-                        )
+                product_filename, gps_date, reference_start = generate_product_filename(
+                    reference_start,
+                    file_ext,
+                    shift=24,
+                    long_filename=long_filename,
+                    AC=analysis_center,
+                    timespan=timespan,
+                    solution_type=solution_type,
+                    sampling_rate=sampling_rate,
+                    project=project_type,
+                )
 
                 # Download File:
                 download_file_from_cddis(
-                    filename=prod_file,
-                    ftp_folder=f"{basepath}{gps_date.gpswk}",
-                    output_folder=dwndir,
+                    filename=product_filename,
+                    ftp_folder=f"gnss/products/{gps_date.gpswk}",
+                    output_folder=download_dir,
                 )
-                count = 1
-
-                remain = reference_dt - start_epoch
-                while remain.total_seconds() > 0:
-                    if count == limit:
-                        remain = timedelta(days=0)
-                    else:
-                        prod_file, gps_date, reference_dt = gen_prod_filename(reference_dt, file_ext, shift=shift)
-
-                        # Download File:
-                        download_file_from_cddis(
-                            filename=prod_file,
-                            ftp_folder=f"{basepath}{gps_date.gpswk}",
-                            output_folder=dwndir,
-                        )
-                        count += 1
-                        remain = reference_dt - start_epoch
+                count += 1
+                remain = end_epoch - reference_start
 
 
-def download_atx(dwndir: Path):
+def download_atx(download_dir: Path, long_filename: bool = False) -> None:
     """
-    Download the ATX file necessary for running the PEA
-    provided the download directory (dwndir)
+    Download the ATX, BLQ, GPT-2 files necessary for running the PEA
+    provided the download directory (download_dir) and FTP_TLS client object (ftps)
     """
-    url = "https://files.igs.org/pub/station/general/igs14.atx"
-    logging.info(f"Downloading ATX file")
-    check_n_download_url(url, str(dwndir))
-    logging.info(f"ATX file present in {dwndir}")
+
+    if long_filename:
+        atx_filename = "igs20.atx"
+    else:
+        atx_filename = "igs14.atx"
+    # Get the ATX file if not present already:
+    if not (download_dir / f"{atx_filename}").is_file():
+        ensure_folders([download_dir])
+        url = f"https://files.igs.org/pub/station/general/{atx_filename}"
+        logging.info(f"Downloading ATX file - {atx_filename}")
+        check_n_download_url(url, str(download_dir))
 
 
-def download_blq(dwndir: Path):
+def download_blq(download_dir: Path) -> None:
     """
     Download the BLQ file necessary for running the PEA
-    provided the download directory (dwndir)
+    provided the download directory (download_dir)
     """
     url = "https://peanpod.s3-ap-southeast-2.amazonaws.com/pea/examples/EX03/products/OLOAD_GO.BLQ"
     logging.info(f"Downloading BLQ file")
-    check_n_download_url(url, str(dwndir))
-    logging.info(f"BLQ file present in {dwndir}")
+    check_n_download_url(url, str(download_dir))
+    logging.info(f"BLQ file present in {download_dir}")
 
 
-def download_brdc(dwndir: Path, start_epoch, end_epoch, source, rinexVersion="2"):
+def download_brdc(
+    download_dir: Path,
+    start_epoch: datetime,
+    end_epoch: datetime,
+    source: str = "cddis",
+    rinexVersion: str = "2",
+    filePeriod: str = "01D",
+) -> None:
     """
     Download the most recent BRDC file/s from CDDIS
-    provided the download directory (dwndir)
+    provided the download directory (download_dir)
     """
     # Download Broadcast file/s
-    if source == "gnss-data":
-        api_result = available_stations_at_gnss_data_repo(
+    logging.info("Downloading Broadcast files")
+    if source.lower() == "gnss-data":
+        download_files_from_gnss_data(
+            station_list=["BRDC"],
             start_epoch=start_epoch,
             end_epoch=end_epoch,
-            stations_list=["brdc"],
-            fileType="nav",
-            rinexVersion=rinexVersion,
+            data_dir=download_dir,
+            file_period=filePeriod,
+            file_type="nav",
+            rinex_version=rinexVersion,
         )
-        for result in api_result:
-            download_gnss_data_entry(result, dwndir)
-    elif source == "cddis":
+    elif source.lower() == "cddis":
         reference_dt = start_epoch - timedelta(days=1)
         while (end_epoch - reference_dt).total_seconds() > 0:
             doy = reference_dt.strftime("%j")
             yr = reference_dt.strftime("%y")
             brdc_compfile = f"brdc{doy}0.{yr}n.gz"
-            if check_file_present(brdc_compfile, dwndir=str(dwndir)):
-                logging.info(f"File {brdc_compfile} already present in {dwndir}")
+            if check_file_present(brdc_compfile, str(download_dir)):
+                logging.info(f"File {brdc_compfile} already present in {download_dir}")
             else:
                 download_file_from_cddis(
                     filename=brdc_compfile,
                     ftp_folder=f"gnss/data/daily/{reference_dt.year}/brdc/",
-                    output_folder=dwndir,
+                    output_folder=download_dir,
                 )
             reference_dt += timedelta(days=1)
 
 
-def download_trop_model(dwndir: Path, model="gpt2"):
+def download_trop_model(download_dir: Path, model: str = "gpt2") -> None:
     """
     Download the relevant troposphere model file/s necessary for running the PEA
-    provided the download directory (dwndir) and model
+    provided the download directory (download_dir) and model
     Default is GPT 2.5
     """
     if model == "gpt2":
         url = "https://peanpod.s3-ap-southeast-2.amazonaws.com/pea/examples/EX03/products/gpt_25.grd"
-        check_n_download_url(url, str(dwndir))
-        logging.info(f"Troposphere Model files - GPT 2.5 - present in {dwndir}")
+        check_n_download_url(url, str(download_dir))
+        logging.info(f"Troposphere Model files - GPT 2.5 - present in {download_dir}")
 
 
-def download_mr_sinex_cddis(dwndir: Path, target_date: GPSDate = GPSDate("today")):
+def download_most_recent_cddis_file(
+    download_dir: Path, pointer_date: GPSDate, file_type: str = "SNX", long_filename: bool = False
+) -> None:
     """
-    Download the most recent sinex files from SIO, JPL, GFZ, MIT and CODE
-    provided the download directory (dwndir) and FTP_TLS client object (ftps)
+    Download the most recent files from IGS provided the download directory (download_dir) session, and file type
     """
     with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
-        # Move to directory of current week, get list of available SNX files:
+        # Move to directory of current week:
         ftps.cwd(f"gnss/products/")
-        if target_date.gpswk not in ftps.nlst():
-            GPS_day = int(target_date.gpswkD[-1])
-            target_date = GPSDate(target_date.ts - np.timedelta64(7 + GPS_day, "D"))
-        ftps.cwd(f"{target_date.gpswk}")
-        mr_files = ftps.nlst()
-        mr_snx_files = [f for f in mr_files if f == f"igs{target_date.yr[2:]}P{target_date.gpswkD}.ssc.Z"]
-        logging.info(f"Searching for file: igs{target_date.yr[2:]}P{target_date.gpswkD}.ssc.Z at CDDIS")
-        if mr_snx_files == []:
-            while mr_snx_files == []:
-                logging.info(f"GPS week {target_date.gpswk} too recent")
-                logging.info(f"No IGS snx files found in GPS week {target_date.gpswk}")
-                logging.info(f"Moving to GPS week {int(target_date.gpswk) - 1}")
-                #    rapid_date -= np.timedelta64(1,'D')
-                GPS_day = int(target_date.gpswkD[-1])
-                target_date = GPSDate(target_date.ts - np.timedelta64(7 + GPS_day, "D"))
-
-                z_file_snx = f"igs{target_date.yr[2:]}P{target_date.gpswkD}.ssc.Z"
-                logging.info(f"Searching for file: {z_file_snx}")
-
-                ftps.cwd("../" + target_date.gpswk)
-                mr_files = ftps.nlst()
-                mr_snx_files = [f for f in mr_files if f == f"igs{target_date.yr[2:]}P{target_date.gpswkD}.ssc.Z"]
-    logging.info("Found IGS file")
-
-    # Download IGS Weekly SNX:
-    Z_file = f"igs{target_date.yr[2:]}P{target_date.gpswk}.ssc.Z"
-    if check_file_present(Z_file, dwndir=str(dwndir)):
-        logging.info(f"File {Z_file} already present in {dwndir}")
-    else:
-        download_file_from_cddis(
-            filename=Z_file,
-            ftp_folder=f"gnss/products/{target_date.gpswk}",
-            output_folder=dwndir,
+        if pointer_date.gpswk not in ftps.nlst():
+            GPS_day = int(pointer_date.gpswkD[-1])
+            pointer_date = GPSDate(pointer_date.ts - np.timedelta64(7 + GPS_day, "D"))
+        ftps.cwd(f"{pointer_date.gpswk}")
+        # Search for most recent file
+        logging.info(f"Searching for most recent {file_type} files - Long Filename set to: {long_filename}")
+        target_filename, pointer_date, ftps = search_for_most_recent_file(
+            pointer_date=pointer_date,
+            ftps=ftps,
+            long_filename=long_filename,
+            file_type="SNX",
+            analysis_center="IGS",
+            timespan=timedelta(days=1),
+            solution_type="SNX",
+            sampling_rate="01D",
+            content_type="CRD",
         )
+    # Download recent file:
+    download_file_from_cddis(
+        filename=target_filename,
+        ftp_folder=f"gnss/products/{pointer_date.gpswk}",
+        output_folder=download_dir,
+    )
+
+
+def search_for_most_recent_file(
+    pointer_date: GPSDate,
+    ftps: ftplib.FTP_TLS,
+    long_filename: bool = False,
+    file_type: str = "SNX",
+    analysis_center: str = "IGS",
+    timespan: timedelta = timedelta(days=7),
+    solution_type: str = "SNX",
+    sampling_rate: str = "07D",
+    content_type: str = None,
+    project_type: str = "OPS",
+) -> Tuple[str, GPSDate, ftplib.FTP_TLS]:
+    """
+    Find the most recent file on CDDIS of file type: file_type
+    """
+    if content_type == None:
+        content_type = generate_content_type(file_type, analysis_center)
+    # Get list of available files and those of file type: file_type
+    most_recent_files_in_dir = ftps.nlst()
+    target_filename, pointer_date, _ = generate_product_filename(
+        reference_start=pointer_date.as_datetime,
+        file_ext=file_type,
+        long_filename=long_filename,
+        AC=analysis_center,
+        timespan=timespan,
+        solution_type=solution_type,
+        sampling_rate=sampling_rate,
+        content_type=content_type,
+        project=project_type,
+    )
+    file_list = [f for f in most_recent_files_in_dir if f == target_filename]
+    # If no files of file_type available, keep looking back week by week:
+    while file_list == []:
+        logging.info(f"GPS week {pointer_date.gpswk} too recent")
+        logging.info(f"No IGS {file_type} files found in GPS week {pointer_date.gpswk}")
+        logging.info(f"Moving to GPS week {int(pointer_date.gpswk) - 1}")
+        # Move pointer_date back and search
+        GPS_day = int(pointer_date.gpswkD[-1])
+        pointer_date = GPSDate(pointer_date.ts - np.timedelta64(7 + GPS_day, "D"))
+        target_filename, _, _ = generate_product_filename(
+            reference_start=pointer_date.as_datetime,
+            file_ext=file_type,
+            long_filename=long_filename,
+            AC=analysis_center,
+            timespan=timespan,
+            solution_type=solution_type,
+            sampling_rate=sampling_rate,
+            content_type=content_type,
+            project=project_type,
+        )
+        # pointer_date = GPSDate(np.datetime64(reference_epoch))
+        logging.info(f"Searching for file: {target_filename}")
+        ftps.cwd("../" + pointer_date.gpswk)
+        most_recent_files_in_dir = ftps.nlst()
+        file_list = [f for f in most_recent_files_in_dir if f == target_filename]
+    logging.info("Found IGS file")
+    return target_filename, pointer_date, ftps
+
+
+def available_stations_at_cddis(start_epoch: datetime, end_epoch: datetime) -> list:
+    with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
+        avail_list = []
+
+        start_date = GPSDate(start_epoch.date().isoformat())
+        end_date = GPSDate((end_epoch - timedelta(seconds=1)).date().isoformat())
+
+        logging.info("Start date: " + str(start_date))
+        logging.info("End date: " + str(end_date))
+
+        date = start_date
+
+        while date.ts <= end_date.ts:
+            logging.info("Searching for:" + str(date))
+            c_dir = date.yr + "/" + date.dy + "/" + date.yr[-2:] + "d/"
+            ftps.cwd(f"/gnss/data/daily/{c_dir}")
+            c_list = [x[:4] for x in ftps.nlst() if x.endswith(".crx.gz")]
+            if avail_list == []:
+                avail_list = c_list
+            else:
+                avail_list = list(set(avail_list) & set(c_list))
+            date = date.next
+
+        return sorted(avail_list)
+
+
+def download_daily_rinex_files_from_cddis(station_list: list, target_date: GPSDate, rinex_data_dir: Path) -> None:
+    "Given a list of stations, target date and path to place files, download RINEX daily data from CDDIS"
+    with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
+        logging.info(f"Downloading daily RINEX data for date: {target_date}")
+        c_dir = target_date.yr + "/" + target_date.dy + "/" + target_date.yr[-2:] + "d/"
+        ftps.cwd(f"/gnss/data/daily/{c_dir}")
+        logging.info(f"Downloading stations: {station_list}")
+        day_files = [f for f in ftps.nlst() if f[:4] in station_list]
+        # Download
+        download_multiple_files_from_cddis(day_files, f"/gnss/data/daily/{c_dir}", rinex_data_dir)
+
+
+def download_gnss_data_entry(entry: dict, output_dir: Path, max_retries: int = 3) -> str:
+    file_url = entry["fileLocation"]
+    file_type = entry["fileType"]
+    retries = 0
+    download_done = False
+    if file_type == "obs":
+        filename = urlparse(file_url).path.split("/")[-1].split(".")[0] + ".rnx"
+    elif file_type == "nav":
+        filename = ".".join(urlparse(file_url).path.split("/")[-1].split(".")[:2])
+    out_path = output_dir / filename
+    if out_path.is_file():
+        logging.info(f"File {filename} already present in {output_dir}")
+        return filename
+    else:
+        while not download_done and retries <= max_retries:
+            try:
+                logging.info(f"Downloading {filename} to {out_path}")
+                check_n_download_url(file_url, str(output_dir), filename)
+                download_done = True
+                logging.info(f"Downloaded {filename}")
+                return filename
+            except:
+                retries += 1
+                if retries > max_retries:
+                    logging.warning(f"Failed to download {file_url} and reached maximum retry count ({max_retries}).")
+
+                logging.debug(f"Received an error while try to download {file_url}, retrying({retries}).")
+                # Add some backoff time (exponential random as it appears to be contention based?)
+                sleep(random.uniform(0.0, 2.0**retries))
+
+
+def download_files_from_gnss_data(
+    station_list: list,
+    start_epoch: datetime,
+    end_epoch: datetime,
+    data_dir: Path,
+    file_period: str = "01D",
+    rinex_version: int = 3,
+    file_type: str = "obs",
+    decompress: str = "true",
+) -> None:
+    "Given a list of stations, start and end datetime, and a path to place files, download RINEX data from gnss-data"
+    # Parameters for the Query:
+    QUERY_PARAMS = {
+        "metadataStatus": "valid",
+        "stationId": ",".join(station_list),
+        "fileType": file_type,
+        "rinexVersion": rinex_version,
+        "filePeriod": file_period,
+        "decompress": decompress,
+        "startDate": start_epoch.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "endDate": end_epoch.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "tenantId": "default",
+    }
+    # Submit Request:
+    request = requests.get(API_URL + "/rinexFiles", params=QUERY_PARAMS, headers={})
+    request.raise_for_status()
+    # Download results:
+    files_downloaded = []
+    for query_response_item in json.loads(request.content):
+        filename = download_gnss_data_entry(entry=query_response_item, output_dir=data_dir, max_retries=3)
+        try:
+            files_downloaded.append(filename.upper())
+        except AttributeError:
+            files_downloaded.append(filename)
+    stations_downloaded = set([filename[:4] for filename in files_downloaded])
+    missing_stations = set(station_list) - stations_downloaded
+    logging.info(f"Not downloaded / missing: {list(missing_stations)}")
+
+
+def long_filename_cddis_cutoff(epoch: datetime) -> bool:
+    """
+    Simple function that determines whether long filenames should be expected on the CDDIS server
+    """
+    # Long filename cut-off:
+    long_filename_cutoff = datetime(2022, 11, 27)
+    if epoch >= long_filename_cutoff:
+        return True
+    else:
+        return False
 
 
 def auto_download(
-    target_dir,
-    preset,
-    station_list,
-    start_datetime,
-    end_datetime,
-    most_recent,
-    ac,
-    atx,
-    blq,
-    snx,
-    nav,
-    sp3,
-    erp,
-    clk,
-    bia,
-    repro3,
-    gpt2,
-    product_dir,
-    rinex_data_dir,
-    trop_dir,
-    rinex_file_period,
-    datetime_format,
-    verbose,
-):
+    target_dir: Path,
+    preset: str,
+    station_list: str,
+    start_datetime: str,
+    end_datetime: str,
+    most_recent: bool,
+    analysis_center: str,
+    atx: bool,
+    blq: bool,
+    snx: bool,
+    nav: bool,
+    sp3: bool,
+    erp: bool,
+    clk: bool,
+    bia: bool,
+    gpt2: bool,
+    product_dir: Path,
+    rinex_data_dir: Path,
+    trop_dir: Path,
+    solution_type: str,
+    rinex_file_period: str,
+    bia_ac: str,
+    datetime_format: str,
+    data_source: str,
+    verbose: bool,
+) -> None:
     configure_logging(verbose)
-    target_dir = Path(target_dir)
 
     # Assign flags for preset selection
     if preset == "real-time":
@@ -590,33 +693,34 @@ def auto_download(
         nav = True
         sp3 = True
         erp = True
-        clk = True
-        bia = True
+        if solution_type == "RAP":
+            clk = True
+            bia = True
+
+    if solution_type in ["FIN", "RAP"]:
+        timespan = timedelta(days=1)
+    elif solution_type == "ULT":
+        timespan = timedelta(days=2)
 
     # Assign start and end datetimes (if provided)
     if start_datetime:
         start_epoch = datetime.strptime(start_datetime, datetime_format)
-        target_date = GPSDate(start_epoch.strftime("%Y-%m-%dT%H:%M"))
+        start_gpsdate = GPSDate(start_epoch.strftime("%Y-%m-%dT%H:%M"))
+        long_filename = long_filename_cddis_cutoff(epoch=start_epoch)
+
     if end_datetime:
         end_epoch = datetime.strptime(end_datetime, datetime_format)
 
     # If directories haven't been assigned use default: target-dir
-    target_dir = Path(target_dir)
-
     if not product_dir:
         product_dir = target_dir
-    else:
-        product_dir = Path(product_dir)
-
     if not rinex_data_dir:
         rinex_data_dir = target_dir
-    else:
-        rinex_data_dir = Path(rinex_data_dir)
-
     if not trop_dir:
         trop_dir = target_dir
-    else:
-        trop_dir = Path(trop_dir)
+
+    if not rinex_file_period:
+        rinex_file_period = "01D"
 
     # Ensure the directories exist:
     dir_list = [product_dir, rinex_data_dir, trop_dir, target_dir]
@@ -626,110 +730,124 @@ def auto_download(
     if gpt2:
         trop_model = "gpt2"
     if most_recent:
-        target_date = GPSDate("today")
+        start_gpsdate = GPSDate("today")
+        long_filename = long_filename_cddis_cutoff(epoch=datetime.today())
 
     # Download products based on flags
-    sampling = ""
     if atx:
-        download_atx(dwndir=product_dir)
+        download_atx(download_dir=product_dir, long_filename=long_filename)
     if blq:
-        download_blq(dwndir=product_dir)
+        download_blq(download_dir=product_dir)
     if trop_model:
-        download_trop_model(dwndir=trop_dir, model=trop_model)
+        download_trop_model(download_dir=trop_dir, model=trop_model)
     if nav:
-        download_brdc(dwndir=product_dir, start_epoch=start_epoch, end_epoch=end_epoch, source="cddis")
+        download_brdc(download_dir=product_dir, start_epoch=start_epoch, end_epoch=end_epoch, source=data_source)
     if snx and most_recent:
-        download_mr_sinex_cddis(dwndir=target_dir, target_date=target_date)
-    if snx and not most_recent:
-        if repro3:
-            sampling = "01D"
-        download_prod_cddis(
-            dwndir=product_dir,
-            start_epoch=start_epoch,
-            end_epoch=end_epoch,
-            file_ext="snx",
-            repro3=repro3,
-            sampling=sampling,
-            AC=ac,
+        download_most_recent_cddis_file(
+            download_dir=product_dir, pointer_date=start_gpsdate, file_type="SNX", long_filename=long_filename
         )
+    if snx and not most_recent:
+        try:
+            download_product_from_cddis(
+                download_dir=product_dir,
+                start_epoch=start_epoch,
+                end_epoch=end_epoch,
+                file_ext="SNX",
+                limit=1,
+                long_filename=long_filename,
+                analysis_center="IGS",
+                solution_type="SNX",
+                sampling_rate=generate_sampling_rate(file_ext="SNX", analysis_center="IGS", solution_type="SNX"),
+                timespan=timedelta(days=1),
+            )
+        except FileNotFoundError:
+            logging.info(f"Received an error ({FileNotFoundError}) while try to download - date too recent.")
+            logging.info(f"Downloading most recent SNX file available.")
+            download_most_recent_cddis_file(
+                download_dir=product_dir, pointer_date=start_gpsdate, file_type="SNX", long_filename=long_filename
+            )
     if sp3:
-        if repro3:
-            sampling = "05M"
-        download_prod_cddis(
-            dwndir=product_dir,
+        download_product_from_cddis(
+            download_dir=product_dir,
             start_epoch=start_epoch,
             end_epoch=end_epoch,
-            file_ext="sp3",
-            repro3=repro3,
-            sampling=sampling,
-            AC=ac,
+            file_ext="SP3",
+            limit=None,
+            long_filename=long_filename,
+            analysis_center=analysis_center,
+            solution_type=solution_type,
+            sampling_rate=generate_sampling_rate(
+                file_ext="SP3", analysis_center=analysis_center, solution_type=solution_type
+            ),
+            timespan=timespan,
         )
     if erp:
-        if repro3:
-            sampling = "01D"
-        download_prod_cddis(
-            dwndir=product_dir,
+        download_product_from_cddis(
+            download_dir=product_dir,
             start_epoch=start_epoch,
             end_epoch=end_epoch,
-            file_ext="erp",
-            repro3=repro3,
-            sampling=sampling,
-            AC=ac,
+            file_ext="ERP",
+            limit=None,
+            long_filename=long_filename,
+            analysis_center=analysis_center,
+            solution_type=solution_type,
+            sampling_rate=generate_sampling_rate(
+                file_ext="ERP", analysis_center=analysis_center, solution_type=solution_type
+            ),
+            timespan=timespan,
         )
     if clk:
-        if repro3:
-            sampling = "30S"
-        download_prod_cddis(
-            dwndir=product_dir,
+        download_product_from_cddis(
+            download_dir=product_dir,
             start_epoch=start_epoch,
             end_epoch=end_epoch,
-            file_ext="clk",
-            repro3=repro3,
-            sampling=sampling,
-            AC=ac,
+            file_ext="CLK",
+            limit=None,
+            long_filename=long_filename,
+            analysis_center=analysis_center,
+            solution_type=solution_type,
+            sampling_rate=generate_sampling_rate(
+                file_ext="CLK", analysis_center=analysis_center, solution_type=solution_type
+            ),
+            timespan=timespan,
         )
     if bia:
-        if repro3:
-            sampling = "01D"
-        download_prod_cddis(
-            dwndir=product_dir,
+        download_product_from_cddis(
+            download_dir=product_dir,
             start_epoch=start_epoch,
             end_epoch=end_epoch,
-            file_ext="bia",
-            repro3=repro3,
-            sampling=sampling,
-            AC=ac,
+            file_ext="BIA",
+            limit=None,
+            long_filename=long_filename,
+            analysis_center=bia_ac,
+            solution_type=solution_type,
+            sampling_rate=generate_sampling_rate(
+                file_ext="BIA", analysis_center=analysis_center, solution_type=solution_type
+            ),
+            timespan=timespan,
         )
-
-    # Download RINEX files (if station_list provided)
     if station_list:
-        api_result = available_stations_at_gnss_data_repo(
-            start_epoch=start_epoch, end_epoch=end_epoch, stations_list=station_list, file_period=rinex_file_period
+        # Download RINEX files from gnss-data (if station_list provided)
+        download_files_from_gnss_data(
+            station_list=station_list,
+            start_epoch=start_epoch,
+            end_epoch=end_epoch,
+            data_dir=rinex_data_dir,
+            file_period=rinex_file_period,
+            file_type="obs",
         )
-        download_sites = (entry for entry in api_result)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            list(
-                executor.map(
-                    download_gnss_data_entry,
-                    download_sites,
-                    repeat(rinex_data_dir),
-                )
-            )
-        # for result in api_result:
-        #     download_gnss_data_entry(result, rinex_data_dir)
-        download_list = sorted(list({entry["siteId"].upper() for entry in api_result}))
-        missing_stations = list(set(station_list) - set(download_list))
-        logging.info(f"Stations not downloaded (missing): {missing_stations}")
 
 
 @click.command()
-@click.option("--target-dir", required=True, help="Directory to place file downloads")
-@click.option("--preset", help="Choose from: manual, real-time, igs-station. Default: real-time", default="real-time")
-@click.option("--station-list", help="If igs-station option chosen, provide comma-separated list of IGS stations")
-@click.option("--start-datetime", help="Start of date-time period to download files for")
-@click.option("--end-datetime", help="End of date-time period to download files for")
+@click.option("--target-dir", required=True, help="Directory to place file downloads", type=Path)
+@click.option("--preset", help="Choose from: manual, real-time, igs-station", default="manual", type=str)
+@click.option(
+    "--station-list", help="If igs-station option chosen, provide comma-separated list of IGS stations", type=str
+)
+@click.option("--start-datetime", help="Start of date-time period to download files for", type=str)
+@click.option("--end-datetime", help="End of date-time period to download files for", type=str)
 @click.option("--most-recent", help="Set to download latest version of files", default=False, is_flag=True)
-@click.option("--ac", help="Analysis centre of files to download", default="igr")
+@click.option("--analysis-center", help="Analysis center of files to download", default="IGS", type=str)
 @click.option("--atx", help="Flag to Download ATX file", default=False, is_flag=True)
 @click.option("--blq", help="Flag to Download BLQ file", default=False, is_flag=True)
 @click.option("--snx", help="Flag to Download SNX / SSC file", default=False, is_flag=True)
@@ -738,18 +856,34 @@ def auto_download(
 @click.option("--erp", help="Flag to Download ERP file/s", default=False, is_flag=True)
 @click.option("--clk", help="Flag to Download CLK file/s", default=False, is_flag=True)
 @click.option("--bia", help="Flag to Download BIA bias file", default=False, is_flag=True)
-@click.option("--repro3", help="Flag to use repro3 for all products", default=False, is_flag=True)
 @click.option("--gpt2", help="Flag to Download GPT 2.5 file", default=False, is_flag=True)
-@click.option("--product-dir", help="Directory to Download product files. Default: target-dir")
-@click.option("--rinex-data-dir", help="Directory to Download RINEX data file/s. Default: target-dir")
-@click.option("--trop-dir", help="Directory to Download troposphere model file/s. Default: target-dir")
+@click.option("--product-dir", help="Directory to Download product files. Default: target-dir", type=Path)
+@click.option("--rinex-data-dir", help="Directory to Download RINEX data file/s. Default: target-dir", type=Path)
+@click.option("--trop-dir", help="Directory to Download troposphere model file/s. Default: target-dir", type=Path)
+@click.option(
+    "--solution-type",
+    help="The solution type of products to download from CDDIS. 'RAP': rapid, or 'ULT': ultra-rapid. Default: RAP",
+    default="RAP",
+    type=str,
+)
 @click.option(
     "--rinex-file-period",
     help="File period of RINEX files to download, e.g. 01D, 01H, 15M. Default: 01D",
     default="01D",
+    type=str,
+)
+@click.option("--bia-ac", help="Analysis center of BIA files to download. Default: COD", default="COD", type=str)
+@click.option(
+    "--datetime-format",
+    help="Format of input datetime string. Default: %Y-%m-%d_%H:%M:%S",
+    default="%Y-%m-%d_%H:%M:%S",
+    type=str,
 )
 @click.option(
-    "--datetime-format", help="Format of input datetime string. Default: %Y-%m-%d_%H:%M:%S", default="%Y-%m-%d_%H:%M:%S"
+    "--data-source",
+    help="Source of data for Broadcast files: CDDIS or gnss-data. Default: gnss-data",
+    default="gnss-data",
+    type=str,
 )
 @click.option("--verbose", is_flag=True)
 def auto_download_main(
@@ -759,7 +893,7 @@ def auto_download_main(
     start_datetime,
     end_datetime,
     most_recent,
-    ac,
+    analysis_center,
     atx,
     blq,
     snx,
@@ -768,13 +902,15 @@ def auto_download_main(
     erp,
     clk,
     bia,
-    repro3,
     gpt2,
     product_dir,
     rinex_data_dir,
     trop_dir,
+    solution_type,
     rinex_file_period,
+    bia_ac,
     datetime_format,
+    data_source,
     verbose,
 ):
 
@@ -785,7 +921,7 @@ def auto_download_main(
         start_datetime,
         end_datetime,
         most_recent,
-        ac,
+        analysis_center,
         atx,
         blq,
         snx,
@@ -794,13 +930,15 @@ def auto_download_main(
         erp,
         clk,
         bia,
-        repro3,
         gpt2,
         product_dir,
         rinex_data_dir,
         trop_dir,
+        solution_type,
         rinex_file_period,
+        bia_ac,
         datetime_format,
+        data_source,
         verbose,
     )
 
