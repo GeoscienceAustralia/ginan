@@ -20,3 +20,4 @@ pymongo==3.7.2
 pytest==7.1.2
 scipy==1.7.3
 statsmodels==0.13.2
+gnssanalysis=0.0.28

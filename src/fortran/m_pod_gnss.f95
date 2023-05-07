@@ -405,6 +405,7 @@ orb_arc_saved = .false.
 ! ----------------------------------------------------------------------
 PRN_isat = PRNmatrix(isat)
 PRN = trim(PRN_isat)
+if (PRN == "") cycle
 yml_pod_data_prn = PRN
 
 docycle = .false.

@@ -20,6 +20,7 @@ dependencies:
   - statsmodels=0.13.2
   - pip:
       - sklearn==0.0
+      - gnssanalysis==0.0.28
       - dash==2.0.0
       - plotly==5.3.1
       - tqdm==4.64.0  #useful for long processing sessions
