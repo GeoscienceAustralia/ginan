@@ -1,15 +1,12 @@
-#ifndef NTRIPSOCKET_H
-#define NTRIPSOCKET_H
+
+#pragma once
 
 #include <iostream> 
 #include <string>
 #include <vector>
-#include <chrono>
 
 using std::string;
 using std::vector;
-using std::chrono::system_clock;
-using std::chrono::time_point;
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -50,13 +47,11 @@ using tcp			= ip::tcp;
 using error_code	= boost::system::error_code;
 using ssl_socket	= ssl::stream<tcp::socket>;
 
-using namespace boost::system;
-
 
 #define ERROR_OUTPUT_RECONNECT_AND_RETURN 																						\
 {																																\
 	onErrorStatistics(err, __FUNCTION__);																						\
-	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << "\n in " << __FUNCTION__ << " for " << url.sanitised() << "\n";	\
+	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << " in " << __FUNCTION__ << " for " << url.sanitised() << "\n";	\
 																																\
 	if (err != boost::asio::error::operation_aborted)																			\
 		delayed_reconnect();        																							\
@@ -198,6 +193,8 @@ protected:
 	
 	boost::asio::streambuf			request;
 	boost::asio::streambuf			downloadBuf;
+	
+	vector<char>					receivedHttpData;
 
 public:
 	URL		url;
@@ -206,9 +203,6 @@ public:
 	int		disconnectionCount	= 0;
 	bool	isConnected			= false;
 	
-	
-	bool			finishedReadingStream	= false;
-	unsigned int	chunked_message_length	= 0;
 	int				numberErroredChunks		= 0; 
 	bool			logHttpSentReceived		= false;
 	
@@ -252,15 +246,13 @@ private:
 	void read_handler_chunked		(const boost::system::error_code& err);
 
 public:    
-	void logChunkError();
-	void printChunkHex(vector<char> chunk);   
+	void logChunkError(); 
 	
 	
 	//content from a stream has been received - process it in virtual functions from other classes
-	virtual bool dataChunkDownloaded(
-		vector<char> dataChunk)
+	virtual void dataChunkDownloaded(
+		vector<char>& dataChunk)
 	{
-		return false;
 	}
 	
 	//content from a one-shot request has been received - process it in virtual functions from other classes
@@ -288,18 +280,12 @@ public:
 	} 
 	
 	virtual void connectionError(
-		const boost::system::error_code& err, 
-		string operation)
-	{
-		
-	}
+		const boost::system::error_code&	err, 
+		string								operation);
 	
 	virtual void serverResponse(
-		unsigned int status_code, 
-		string http_version)
-	{
-		
-	}
+		unsigned int	status_code, 
+		string			http_version);
 	
 	B_asio::ssl::context ssl_context;
 
@@ -316,4 +302,3 @@ public:
 	}   
 };
 
-#endif

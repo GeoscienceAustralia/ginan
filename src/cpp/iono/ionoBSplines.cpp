@@ -21,8 +21,7 @@ static double BSPLINE_LATINT = 0;
 static double BSPLINE_LONINT = 0;
 
 
-/*-------------------------------------------------------------------------
-configure_iono_model_bsplin: Initializes grid map model
+/** Initializes grid map model
 	The following configursation parameters are used
 	-  acsConfig.ionFilterOpts.lat_center:    latitude of map centre
 	-  acsConfig.ionFilterOpts.lon_center:    longitude of map centre
@@ -32,11 +31,11 @@ configure_iono_model_bsplin: Initializes grid map model
 	-  acsConfig.ionFilterOpts.lon_res:		  longitude resolution of gridmap
 	-  acsConfig.ionFilterOpts.layer_heights: Ionosphere layer Heights
 ----------------------------------------------------------------------------*/
-int configure_iono_model_bsplin(void)
+int configIonModelBsplin()
 {
-	if	(  acsConfig.ionexGrid.lat_width > 180.0
+	if	(  acsConfig.ionexGrid.lat_width > 180
 		|| acsConfig.ionexGrid.lat_width < 0
-		|| acsConfig.ionexGrid.lon_width > 360.0 
+		|| acsConfig.ionexGrid.lon_width > 360
 		|| acsConfig.ionexGrid.lon_width < 0)
 	{
 		std::cout << "Wrongly sized gridmaps revise lat and lon width parameters...";
@@ -45,8 +44,8 @@ int configure_iono_model_bsplin(void)
 
 	BSPLINE_LATCEN = acsConfig.ionexGrid.lat_center	* D2R;
 	BSPLINE_LONCEN = acsConfig.ionexGrid.lon_center	* D2R;
-	BSPLINE_LATINT = acsConfig.ionexGrid.lat_res		* D2R;
-	BSPLINE_LONINT = acsConfig.ionexGrid.lon_res		* D2R;
+	BSPLINE_LATINT = acsConfig.ionexGrid.lat_res	* D2R;
+	BSPLINE_LONINT = acsConfig.ionexGrid.lon_res	* D2R;
 
 	int latnum = (int)(acsConfig.ionexGrid.lat_width / acsConfig.ionexGrid.lat_res) + 1;
 	int lonnum = (int)(acsConfig.ionexGrid.lon_width / acsConfig.ionexGrid.lon_res) + 1;
@@ -100,18 +99,17 @@ int configure_iono_model_bsplin(void)
 	return ind;
 }
 
-/*-----------------------------------------------------
-Ipp_check_bsplin (time,IPP) checks if the Ionosphere
-Piercing Point falls in area of coverage
+/** checks if the Ionosphere Piercing Point falls in area of coverage
 time:  		I 		time of observations (not used)
 IPP: 			I 		Ionospheric piercing point to be updated
 returns 1 if the IPP is within the area of coverage
 -----------------------------------------------------
 Author: Ken Harima @ RMIT 04 August 2020
 -----------------------------------------------------*/
-int Ipp_check_bsplin(GTime time, double* Ion_pp)
+bool ippCheckBsplin(GTime time, VectorPos& Ion_pp)
 {
-	if (fabs(BSPLINE_LATCEN - Ion_pp[0]) > BSPLINE_LATWID) return 0;
+	if (fabs(BSPLINE_LATCEN - Ion_pp[0]) > BSPLINE_LATWID) 
+		return false;
 
 	double londiff = BSPLINE_LONCEN - Ion_pp[1];
 
@@ -119,13 +117,12 @@ int Ipp_check_bsplin(GTime time, double* Ion_pp)
 	if (londiff >  PI)	londiff -= 2 * PI;
 
 	if (fabs(londiff) > BSPLINE_LONWID)
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
-/*-------------------------------------------------------------------------
-ion_coef_bsplin: Evaluates B-splines basis functions
+/** Evaluates B-splines basis functions
 	int ind			I		Basis function number
 	meas			I		Ionosphere measurement struct
 		latIPP				- Latitude of Ionosphere Piercing Point
@@ -135,22 +132,22 @@ ion_coef_bsplin: Evaluates B-splines basis functions
 
 	BSPLINE_LATINT and BSPLINE_LONINT needs to be set before calling this function
 ----------------------------------------------------------------------------*/
-double ion_coef_bsplin(int ind, Obs& obs, bool slant)
+double ionCoefBsplin(int ind, GObs& obs, bool slant)
 {
 	if (ind >= Bsp_Basis_list.size()) 
 		return 0;
 
 	Bsp_Basis& basis = Bsp_Basis_list[ind];
 
-	double latdiff = (obs.latIPP[basis.hind] - basis.latit) / BSPLINE_LATINT;
+	double latdiff = (obs.ippMap[basis.hind].lat - basis.latit) / BSPLINE_LATINT;
 
 	if	(  latdiff <= -1 
-		|| latdiff >= 1) 
+		|| latdiff >= +1) 
 	{
 		return 0;
 	}
 	
-	double londiff = (obs.lonIPP[basis.hind] - basis.longi);
+	double londiff = (obs.ippMap[basis.hind].lon - basis.longi);
 
 	if (londiff < -PI)	londiff += 2 * PI;
 	if (londiff >  PI)	londiff -= 2 * PI;
@@ -170,7 +167,7 @@ double ion_coef_bsplin(int ind, Obs& obs, bool slant)
 
 	if (slant)
 	{
-		out *= obs.angIPP[basis.hind] * obs.STECtoDELAY;
+		out *= obs.ippMap[basis.hind].ang * obs.STECtoDELAY;
 	}
 
 	return out;
@@ -181,26 +178,26 @@ double ion_coef_bsplin(int ind, Obs& obs, bool slant)
 	layer				I 		Layer number
 	vari				O		variance of VTEC
 returns: VETC at piercing point
-----------------------------------------------------------------------------*/
+*/
 double ionVtecBsplin(
 	GTime		time,
-	double*		Ion_pp,
+	VectorPos&	ionPP,
 	int			layer,
 	double&		vari,
 	KFState&	kfState)
 {
 	vari = 0;
 	
-	if (!Ipp_check_bsplin(time, Ion_pp))
+	if (ippCheckBsplin(time, ionPP) == false)
 	{
 		return 0;
 	}
 
 	double iono = 0;
-	Obs tmpobs;
-	tmpobs.latIPP[layer] = Ion_pp[0];
-	tmpobs.lonIPP[layer] = Ion_pp[1];
-	tmpobs.angIPP[layer] = 1;
+	GObs tmpobs;
+	tmpobs.ippMap[layer].lat = ionPP.lat();
+	tmpobs.ippMap[layer].lon = ionPP.lon();
+	tmpobs.ippMap[layer].ang = 1;
 
 	for (int ind = 0; ind < acsConfig.ionModelOpts.NBasis; ind++)
 	{
@@ -209,7 +206,7 @@ double ionVtecBsplin(
 		if (basis.hind != layer) 
 			continue;
 
-		double coef = ion_coef_bsplin(ind, tmpobs, false);
+		double coef = ionCoefBsplin(ind, tmpobs, false);
 
 		KFKey keyC;
 		keyC.type	= KF::IONOSPHERIC;

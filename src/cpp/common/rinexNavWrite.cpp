@@ -8,11 +8,11 @@
 #include "rinexNavWrite.hpp"
 #include "rinexObsWrite.hpp"
 #include "rinexClkWrite.hpp"
-#include "streamTrace.hpp"
 #include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "common.hpp"
 #include "rinex.hpp"
+#include "trace.hpp"
 
 
 
@@ -54,9 +54,10 @@ void outputNavRinexEph(
 
 	auto sys = eph.Sat.sys;
 
-	double ep[6];
-	if (sys != +E_Sys::BDS)	{		time2epoch(eph.toc,				ep);	}
-	else					{		time2epoch(gpst2bdt(eph.toc),	ep); 	}	/* gpst -> bdt */
+	GEpoch ep;
+	GTime fakeGTime;
+	if (sys == +E_Sys::BDS)	{	fakeGTime.bigTime = eph.toc - (double)GPS_SUB_UTC_2006;		ep = fakeGTime;	}	//todo Eugene: BEpoch?
+	else					{																ep = eph.toc;	}	
 
 	tracepdeex(0, trace, "%-3s %04.0f %02.0f %02.0f %02.0f %02.0f %02.0f", eph.Sat.id().c_str(), ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
@@ -66,7 +67,9 @@ void outputNavRinexEph(
 	trace << std::endl;
 
 	trace << "    ";
-	traceFormatedFloat(trace, eph.iode,		formatStr); /* GPS/QZS: IODE, GAL: IODnav, BDS: AODE */
+	if (sys != +E_Sys::BDS)		{	traceFormatedFloat(trace, eph.iode,		formatStr);	}	/* GPS/QZS: IODE, GAL: IODnav */
+	else 						{	traceFormatedFloat(trace, eph.aode,		formatStr);	}	/* BDS: AODE */
+	
 	traceFormatedFloat(trace, eph.crs,		formatStr);
 	traceFormatedFloat(trace, eph.deln,		formatStr);
 	traceFormatedFloat(trace, eph.M0,		formatStr);
@@ -96,16 +99,16 @@ void outputNavRinexEph(
 	trace << "    ";
 	traceFormatedFloat(trace, eph.idot,		formatStr);
 	traceFormatedFloat(trace, eph.code,		formatStr);
-	traceFormatedFloat(trace, eph.week,		formatStr); /* GPS/QZS: GPS week, GAL: GAL week, BDS: BDT week */
+	traceFormatedFloat(trace, eph.week,		formatStr);	/* GPS/QZS: GPS week, GAL: GAL week, BDS: BDT week */
 	traceFormatedFloat(trace, eph.flag,		formatStr);
 	trace << std::endl;
 
 	trace << "    ";
-	if (sys != +E_Sys::GAL)		{	traceFormatedFloat(trace, svaToUra(eph.sva),	formatStr);	}
-	else						{	traceFormatedFloat(trace, svaToSisa(eph.sva),	formatStr);	}
+	if (sys == +E_Sys::GAL)		{	traceFormatedFloat(trace, svaToSisa	(eph.sva),	formatStr);	}
+	else						{	traceFormatedFloat(trace, svaToUra	(eph.sva),	formatStr);	}
 	
 	traceFormatedFloat(trace, eph.svh,		formatStr);
-	traceFormatedFloat(trace, eph.tgd[0],	formatStr); /* GPS/QZS:TGD, GAL:BGD E5a/E1, BDS: TGD1 B1/B3 */
+	traceFormatedFloat(trace, eph.tgd[0],	formatStr);	/* GPS/QZS:TGD, GAL:BGD E5a/E1, BDS: TGD1 B1/B3 */
 
 	if	(  sys == +E_Sys::GAL
 		|| sys == +E_Sys::BDS)	{	traceFormatedFloat(trace, eph.tgd[1],	formatStr);	}	/* GAL:BGD E5b/E1, BDS: TGD2 B2/B3 */	
@@ -113,16 +116,16 @@ void outputNavRinexEph(
 	trace << std::endl;
 
 	trace << "    ";
-	double ttm;
-	int week;
-	if (sys != +E_Sys::BDS)		{	ttm = time2gpst(eph.ttm,			&week);	}	
-	else 						{	ttm = time2bdt(gpst2bdt(eph.ttm),	&week);	} /* gpst -> bdt */
+	double	ttm		= 0;
+	int		week	= 0;
+	if (sys == +E_Sys::BDS)		{	ttm = BTow(eph.ttm);	week = GWeek(eph.ttm);		} /* gpst -> bdt */
+	else						{	ttm = GTow(eph.ttm);	week = GWeek(eph.ttm);		}	
 	traceFormatedFloat(trace, ttm + (week - eph.week) * 604800.0, formatStr);
 
-	if		(  sys == +E_Sys::GPS 
-			|| sys == +E_Sys::QZS)	{		traceFormatedFloat(trace, eph.fit,	formatStr);	}	
-	else if (  sys == +E_Sys::BDS)	{		traceFormatedFloat(trace, eph.iodc,	formatStr);	}	/* AODC */
-	else							{		traceFormatedFloat(trace, 0,		formatStr);	}	/* spare */
+	if		(sys == +E_Sys::GPS)	{		traceFormatedFloat(trace, eph.fit,		formatStr);	}	/* fit interval in hours for GPS */
+	else if (sys == +E_Sys::QZS)	{		traceFormatedFloat(trace, eph.fitFlag,	formatStr);	}	/* fit interval flag for QZS */	
+	else if (sys == +E_Sys::BDS)	{		traceFormatedFloat(trace, eph.iodc,		formatStr);	}	/* BDS: AODC */
+	else							{		traceFormatedFloat(trace, 0,			formatStr);	}	/* spare */
 	trace << std::endl;
 }
 
@@ -146,15 +149,23 @@ void outputNavRinexGeph(
 		return;
 	}
 
-	double tof = time2gpst(gpst2utc(geph.tof), nullptr);      /* v.3: tow in utc */
+	// double tof = time2gpst(gpst2utc(geph.tof), nullptr);      /* v.3: tow in utc */
 
-	double ep[6];
-	GTime toe = gpst2utc(geph.toe); /* gpst -> utc */
-	time2epoch(toe, ep);
+	UtcTime	utcTime;
+	GTime fakeGTime;
 
+	utcTime = geph.tof;
+	fakeGTime.bigTime = utcTime.bigTime;	// todo Eugene: UEpoch
+	double tof = GTow(fakeGTime);
+	
+	// GEpoch ep = geph.toe;
+	utcTime = geph.toe;
+	fakeGTime.bigTime = utcTime.bigTime;	// todo Eugene: UEpoch
+	GEpoch ep = fakeGTime;
+	
 	tracepdeex(0, trace, "%-3s %04.0f %02.0f %02.0f %02.0f %02.0f %02.0f", geph.Sat.id().c_str(), ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
-	traceFormatedFloat(trace, geph.taun,	formatStr);
-	traceFormatedFloat(trace, geph.gamn,	formatStr);
+	traceFormatedFloat(trace,-geph.taun,	formatStr);   	// -taun
+	traceFormatedFloat(trace, geph.gammaN,	formatStr);
 	traceFormatedFloat(trace, tof, formatStr);
 	trace << std::endl;
 
@@ -200,9 +211,9 @@ void outputNavRinexCeph(
 	auto sys	= ceph.Sat.sys;
 	auto type	= ceph.type;
 
-	double ep[6];
-	if (sys != +E_Sys::BDS)	{		time2epoch(ceph.toc,			ep);	}
-	else					{		time2epoch(gpst2bdt(ceph.toc),	ep); 	}	/* gpst -> bdt */
+	GEpoch ep;
+	if (sys != +E_Sys::BDS)	{	ep = ceph.toc;				}
+// 	else					{	ep = gpst2bdt(ceph.toc); 	}
 
 	tracepdeex(0, trace, "%-3s %04.0f %02.0f %02.0f %02.0f %02.0f %02.0f", ceph.Sat.id().c_str(), ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
@@ -268,9 +279,10 @@ void outputNavRinexCeph(
 		if (type==+E_NavMsgType::CNAV)
 		{
 			trace << "    ";
-			double ttm;
-			int week;
-			ttm = time2gpst(ceph.ttm,	&week);	
+			double ttm = GTow(ceph.ttm);
+			// int week;
+			// ttm = time2gpst(ceph.ttm,	&week);	
+			
 			traceFormatedFloat(trace, ttm, 			formatStr);
 			traceFormatedFloat(trace, ceph.wnop,	formatStr);
 			trace << "                   ";
@@ -287,9 +299,9 @@ void outputNavRinexCeph(
 			trace << std::endl;
 
 			trace << "    ";
-			double ttm;
-			int week;
-			ttm = time2gpst(ceph.ttm,	&week);	
+			double ttm = GTow(ceph.ttm);
+			// int week;
+			// ttm = time2gpst(ceph.ttm,	&week);	
 			traceFormatedFloat(trace, ttm, 			formatStr);
 			traceFormatedFloat(trace, ceph.wnop,	formatStr);
 			trace << "                   ";
@@ -313,7 +325,6 @@ void outputNavRinexCeph(
 		if  ( type==+E_NavMsgType::CNV1
 			||type==+E_NavMsgType::CNV2)
 		{
-
 			trace << "    ";
 			if		(type==+E_NavMsgType::CNV1)
 			{
@@ -337,9 +348,8 @@ void outputNavRinexCeph(
 			trace << std::endl;
 
 			trace << "    ";
-			double ttm;
-			int week;
-			ttm = time2bdt(gpst2bdt(ceph.ttm),	&week);
+			double ttm = GTow(ceph.ttm);
+			// ttm = time2bdt(gpst2bdt(ceph.ttm),	&week);
 			traceFormatedFloat(trace, ttm, 			formatStr);
 			trace << "                   ";
 			traceFormatedFloat(trace, ceph.iode,	formatStr);
@@ -356,9 +366,8 @@ void outputNavRinexCeph(
 			trace << std::endl;
 
 			trace << "    ";
-			double ttm;
-			int week;
-			ttm = time2bdt(gpst2bdt(ceph.ttm),	&week);
+			double ttm = GTow(ceph.ttm);
+// 			ttm = time2bdt(gpst2bdt(ceph.ttm),	&week);
 			traceFormatedFloat(trace, ttm,			formatStr);
 			trace << "                   ";
 			trace << "                   ";
@@ -388,9 +397,9 @@ void outputNavRinexSTO(
 
 	auto sys = sto.Sat.sys;
 
-	double ep[6];
-	if (sys != +E_Sys::BDS)	{		time2epoch(sto.tot,				ep);	}
-	else					{		time2epoch(gpst2bdt(sto.tot),	ep); 	}
+	GEpoch ep;
+	if (sys != +E_Sys::BDS)	{	ep = sto.tot;				}
+// 	else					{	ep = gpst2bdt(sto.tot); 	}
 
 	tracepdeex(0, trace, "    %04.0f %02.0f %02.0f %02.0f %02.0f %02.0f", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
@@ -404,10 +413,11 @@ void outputNavRinexSTO(
 	trace << std::endl;
 
 	trace << "    ";
-	double ttm;
-	int week, weekRef;
-	if (sys != +E_Sys::BDS)		{	time2gpst(sto.tot,				&weekRef);	ttm = time2gpst(sto.ttm,			&week);	}
-	else 						{	time2bdt(gpst2bdt(sto.tot),		&weekRef);	ttm = time2bdt(gpst2bdt(sto.ttm),	&week);	} /* gpst -> bdt */
+	int		week;
+	int		weekRef;
+	double	ttm;
+	if (sys != +E_Sys::BDS)		{	weekRef = GWeek(sto.tot);	week = GWeek(sto.ttm);	ttm = GTow(sto.ttm);	}
+	else 						{	weekRef = GWeek(sto.tot);	week = GWeek(sto.ttm);	ttm = GTow(sto.ttm) - 14;	} /* gpst -> bdt */
 	traceFormatedFloat(trace, ttm + (week - weekRef) * 604800.0, formatStr);
 	traceFormatedFloat(trace, sto.A0,	formatStr);
 	traceFormatedFloat(trace, sto.A1,	formatStr);
@@ -435,10 +445,10 @@ void outputNavRinexEOP(
 
 	auto sys = eop.Sat.sys;
 
-	double ep[6];
-	if (sys != +E_Sys::BDS)	{		time2epoch(eop.teop,			ep);	}
-	else					{		time2epoch(gpst2bdt(eop.teop),	ep); 	}
-
+	GEpoch ep;
+	if (sys != +E_Sys::BDS)	{	ep = eop.teop;				}
+// 	else					{	ep = gpst2bdt(eop.teop); 	}
+	
 	tracepdeex(0, trace, "    %04.0f %02.0f %02.0f %02.0f %02.0f %02.0f", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
 	traceFormatedFloat(trace, eop.xp	* R2AS,	formatStr);
@@ -454,10 +464,13 @@ void outputNavRinexEOP(
 	trace << std::endl;
 
 	trace << "    ";
-	double ttm;
-	int week, weekRef;
-	if (sys != +E_Sys::BDS)		{	time2gpst(eop.teop,				&weekRef);	ttm = time2gpst(eop.ttm,			&week);	}
-	else 						{	time2bdt(gpst2bdt(eop.teop),	&weekRef);	ttm = time2bdt(gpst2bdt(eop.ttm),	&week);	} /* gpst -> bdt */
+	// double ttm;
+	// int week, weekRef;
+	// if (sys != +E_Sys::BDS)		{	time2gpst(eop.teop,				&weekRef);	ttm = time2gpst(eop.ttm,			&week);	}
+// 	else 						{	time2bdt(gpst2bdt(eop.teop),	&weekRef);	ttm = time2bdt(gpst2bdt(eop.ttm),	&week);	} /* gpst -> bdt */
+	double ttm	= GTow(eop.ttm);
+	int week	= GWeek(eop.ttm);
+	int weekRef = GWeek(eop.teop);
 	traceFormatedFloat(trace, ttm + (week - weekRef) * 604800.0, formatStr);
 	traceFormatedFloat(trace, eop.dut1,			formatStr);
 	traceFormatedFloat(trace, eop.dur,			formatStr);
@@ -486,9 +499,9 @@ void outputNavRinexION(
 	auto sys	= ion.Sat.sys;
 	auto type	= ion.type;
 
-	double ep[6];
-	if (sys != +E_Sys::BDS)	{		time2epoch(ion.ttm,				ep);	}
-	else					{		time2epoch(gpst2bdt(ion.ttm),	ep); 	}
+	GEpoch ep;
+	if (sys != +E_Sys::BDS)	{	ep = ion.ttm;				}
+// 	else					{	ep = gpst2bdt(ion.ttm); 	}
 
 	tracepdeex(0, trace, "    %04.0f %02.0f %02.0f %02.0f %02.0f %02.0f", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
@@ -570,31 +583,32 @@ void outputNavRinexBody(
 		{
 			E_NavMsgType type = defNavMsgType[sys];
 
-			ION* ion_ptr = seleph<ION>(std::cout, tsync, sys, type, nav);	if (ion_ptr != nullptr)	outputNavRinexION(*ion_ptr, rinexStream, rnxver);
-			EOP* eop_ptr = seleph<EOP>(std::cout, tsync, sys, type, nav);	if (eop_ptr != nullptr)	outputNavRinexEOP(*eop_ptr, rinexStream, rnxver);
+			auto* ion_ptr = seleph<ION>(std::cout, tsync, sys, type, nav);	if (ion_ptr != nullptr)	outputNavRinexION(*ion_ptr, rinexStream, rnxver);
+			auto* eop_ptr = seleph<EOP>(std::cout, tsync, sys, type, nav);	if (eop_ptr != nullptr)	outputNavRinexEOP(*eop_ptr, rinexStream, rnxver);
 		}
 
 		int idode = -1;
-		for (auto& [satId, satNav] : nav.satNavMap)
+		for (auto& [Sat, satNav] : nav.satNavMap)
 		{
-			SatSys sat;
-			sat.fromHash(satId);
-
-			if (sat.sys != sys)
+			if (Sat.sys != sys)
 				continue;
 
+			E_NavMsgType nvtyp = acsConfig.used_nav_types[Sat.sys];
+			
 			if (sys == +E_Sys::GLO)
 			{
-				Geph* geph_ptr = seleph<Geph>(std::cout, tsync, sat, -1, nav);
+				auto geph_ptr = seleph<Geph>(std::cout, tsync, Sat, nvtyp, ANY_IODE, nav);
 
 				if (geph_ptr == nullptr)
 					continue;
+				
+				auto& geph = *geph_ptr;
 
-				if	( outFileData.last_iode.find(sat)	== outFileData.last_iode.end()
-					||geph_ptr->iode					!= outFileData.last_iode[sat])
+				if	( outFileData.last_iode.find(Sat)	== outFileData.last_iode.end()
+					||geph.iode							!= outFileData.last_iode[Sat])
 				{
-					outFileData.last_iode[sat] = geph_ptr->iode;
-					outputNavRinexGeph(*geph_ptr, rinexStream, rnxver);
+					outFileData.last_iode[Sat] = geph.iode;
+					outputNavRinexGeph(geph, rinexStream, rnxver);
 				}
 				
 				continue;
@@ -602,7 +616,7 @@ void outputNavRinexBody(
 			else if (sys == +E_Sys::SBS)
 			{
 				//optional to do (probably not useful): Seph writing
-				// Seph* seph_ptr = seleph<Seph>(std::cout, tsync, sat, -1, nav);
+				// Seph* seph_ptr = seleph<Seph>(std::cout, tsync, sat, ANY_IODE, nav);
 
 				// if (seph_ptr == nullptr)
 				// 	continue;
@@ -618,16 +632,16 @@ void outputNavRinexBody(
 			}
 			else
 			{
-				Eph* eph_ptr = seleph<Eph>(std::cout, tsync, sat, -1, nav);
+				auto eph_ptr = seleph<Eph>(std::cout, tsync, Sat, nvtyp, ANY_IODE, nav);
 			
 				if (eph_ptr == nullptr)
 					continue;
 
 				// Note iode can be zero, checking the map makes a zero entry as well.
-				if	(  outFileData.last_iode.find(sat)	== outFileData.last_iode.end() 
-					|| eph_ptr->iode					!= outFileData.last_iode[sat])
+				if	(  outFileData.last_iode.find(Sat)	== outFileData.last_iode.end() 
+					|| eph_ptr->iode					!= outFileData.last_iode[Sat])
 				{
-					outFileData.last_iode[sat] = eph_ptr->iode;
+					outFileData.last_iode[Sat] = eph_ptr->iode;
 					outputNavRinexEph(*eph_ptr, rinexStream, rnxver);
 				}
 				
@@ -643,15 +657,12 @@ void rinexNavHeader(
 	Trace&				rinexStream,
 	const double		rnxver)
 {
-	string prog		= "PEA v1";
+	string prog		= "PEA v2";
 	string runby	= "Geoscience Australia";
 
-	GTime now = utc2gpst(timeget());
+	GTime now = timeGet();
 
-	char tempStr[20];
-	time2str(now, tempStr, 0);
-
-	string timeDate(tempStr);
+	string timeDate = now.to_string();
 	boost::replace_all(timeDate, "/", "");
 	boost::replace_all(timeDate, ":", "");
 	timeDate += " UTC";
@@ -749,10 +760,10 @@ void rinexNavHeader(
 
 				for (auto& [dummy, sto] : stoList)
 				{
-					int week;
-					double tow;
-					if (sys == +E_Sys::BDS)	{	tow = time2bdt(gpst2bdt(sto.tot),	&week);	} /* gpst -> bdt */
-					else 					{	tow = time2gpst(sto.tot,			&week);	}	
+					int		week;
+					double	tow;
+					if (sys == +E_Sys::BDS)	{	tow = BTow(sto.tot);	week = BWeek(sto.tot);	} 
+					else 					{	tow = GTow(sto.tot);	week = GWeek(sto.tot);	}	
 
 					tracepdeex(0, rinexStream, "%s %17.10E%16.9E%7.0f%5.0f %-5s %-2s %-20s\n",
 						code._to_string(),
@@ -781,6 +792,7 @@ void writeRinexNav(const double rnxver)
 		if (!rinexStream)
 		{
 			BOOST_LOG_TRIVIAL(error) << "Error opening " << filename << " for writing rinex nav";
+			return;
 		}
 		
 		if (rinexStream.tellp() == 0)
@@ -820,13 +832,15 @@ void outputNavRinexBodyAll(
 		}
 	}
 
-	for (auto& [satId,	ephList]	: nav.ephMap)
+	for (auto& [satId,	navList]	: nav.ephMap)
+	for (auto& [nvtyp,	ephList]	: navList)
 	for (auto& [time,	eph]		: ephList)
 	{
 		outputNavRinexEph(eph, rinexStream, rnxver);
 	}
 
-	for (auto& [satId,	gephList]	: nav.gephMap)
+	for (auto& [satId,	navList]	: nav.gephMap)
+	for (auto& [nvtyp,	gephList]	: navList)
 	for (auto& [time,	geph]		: gephList)
 	{
 		outputNavRinexGeph(geph, rinexStream, rnxver);
@@ -862,10 +876,12 @@ void writeRinexNavAll(string filename, const double rnxver)
 	if (!rinexStream)
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error opening " << filename << " for writing rinex nav";
+		return;
 	}
 	
 	if (rinexStream.tellp() == 0)
 		rinexNavHeader(sysMap, rinexStream, rnxver);
+	
 	
 	outputNavRinexBodyAll(rinexStream, rnxver);
 }

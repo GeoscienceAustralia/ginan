@@ -1,27 +1,193 @@
 
-#ifndef __GATIME_HPP__
-#define __GATIME_HPP__
+#pragma once
 
 #include <iostream>
 #include <time.h>
 #include <string>
+#include <array>
 
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 using std::ostream;
 using std::string;
+using std::array;
 
+struct PTime;
 struct GTime;
+struct UtcTime;
+struct GEpoch;
+struct UEpoch;
+struct GWeek;
+struct GTow;
+struct MjDateTT;
+struct MjDateUtc;
 
-void	time2str(GTime t, char *str, int n);
+
+
+#define GPS_SUB_UTC_2000 13
+#define GPS_SUB_UTC_2006 14
+
+
+extern const GTime	GPS_t0;
+extern const double	MJD_j2000;
+extern const int	secondsInDay;
+
+string	time2str(GTime t, int n);
+
+GTime	epoch2time	(const double *ep);
+
+double leapSeconds( GTime time );
+		
+struct Int
+{
+	int val = 0;
+	
+	Int()
+	{
+		
+	}
+	
+	Int(
+		const int& in)
+	: val {in}
+	{
+		
+	}
+	
+	operator int() const
+	{
+		return val;
+	}
+	
+	Int& operator =(
+		const int& in)
+	{
+		val = in;
+		return *this;
+	}
+};
+
+struct Double
+{
+	double val = 0;
+	
+	Double()
+	{
+		
+	}
+	
+	Double(
+		const double& in)
+	: val {in}
+	{
+		
+	}
+	
+	operator double() const
+	{
+		return val;
+	}
+	
+	Double& operator =(
+		const double& in)
+	{
+		val = in;
+		return *this;
+	}
+};
+
+
+struct GWeek	: Int	
+{
+	GWeek(
+		int in)
+	{
+		val = in;
+	}
+};
+
+struct BWeek	: Int	
+{
+	BWeek(
+		int in)
+	{
+		val = in;
+	}
+};
+
+struct GTow		: Double
+{
+	GTow(
+		double in)
+	{
+		val = in;
+	}
+};
+
+struct BTow		: Double
+{
+	BTow(
+		double in)
+	{
+		val = in;
+	}
+};
+
+struct RTod		: Double
+{
+	RTod(
+		double in)
+	{
+		val = in;
+	}
+};
+
+struct Duration
+{
+	long double bigTime	= 0;	
+
+	double to_double() const
+	{
+		return (double) bigTime;
+	}
+	
+	long int to_int() const
+	{
+		return (long int) bigTime;
+	}
+	
+	bool operator <		(const double& t2) const
+	{
+		if (this->bigTime	< t2)	return true;
+		else						return false;
+	}
+
+	bool operator >		(const double& t2) const
+	{
+		if (this->bigTime	> t2)	return true;
+		else						return false;
+	}
+
+	long double operator -		(const Duration& t2) const
+	{
+		return this->bigTime - t2.bigTime;
+	}
+
+	double operator /		(const Duration& t2) const
+	{
+		return this->bigTime / t2.bigTime;
+	}
+	
+
+	friend ostream& operator<<(ostream& os, const Duration& time);
+};
 
 /** Time structure used throughout this software
 */
 struct GTime
 {
-	time_t time	= 0;		///< Time (s) expressed by standard time_t
-	double sec	= 0;		///< Fractions of second ( 0 < sec < 1 )
+	long double bigTime = 0;
 
 	/** Uninitialised time for comparisons
 	*/
@@ -30,48 +196,48 @@ struct GTime
 		GTime nothing;
 		return nothing;
 	}
+	
+	GTime(
+		GTow	tow,
+		GTime	nearTime);
+	
+	GTime(
+		BTow	tow,
+		GTime	nearTime);
+	
+	GTime(
+		RTod	tod,
+		GTime	nearTime);
+	   
+	string to_string(int n = 2) const;
 
-	string to_string(int n) const
+	bool operator ==	(const GTime& t2) const
 	{
-		char buff[64];
-		time2str(*this, buff, n);
-		string result = buff;
-		return result;
+		if (this->bigTime	!= t2.bigTime)	return false;
+		else								return true;
 	}
 
-	bool operator ==(const GTime &t2) const
-	{
-		if (this->time	!= t2.time)	return false;
-		if (this->sec	!= t2.sec)	return false;
-		else						return true;
-	}
-
-	bool operator !=(const GTime &t2) const
+	bool operator !=	(const GTime& t2) const
 	{
 		return !(*this == t2);
 	}
 
-//     bool operator <(const GTime &t2) const
-// 	{
-// 		if (this->time	< t2.time)	return true;
-// 		if (this->time	> t2.time)	return false;
-// 		if (this->sec	< t2.sec)	return true;
-// 		else						return false;
-// 	}
-
-	bool operator <(const GTime &t2) const
+	bool operator <		(const GTime& t2) const
 	{
-		if (this->time	< t2.time)	return true;
-		if (this->time	> t2.time)	return false;
-		if (this->sec	< t2.sec)	return true;
-		else						return false;
+		if (this->bigTime	< t2.bigTime)	return true;
+		else								return false;
 	}
 
-	bool operator >(const GTime &t2) const
+	bool operator >		(const GTime& t2) const
 	{
-		if (this->time	> t2.time)	return true;
-		if (this->time	< t2.time)	return false;
-		if (this->sec	> t2.sec)	return true;
+		if (this->bigTime	> t2.bigTime)	return true;
+		else								return false;
+	}
+	
+	bool operator >=	(const GTime& t2) const
+	{
+		if (*this		>	t2)		return true;
+		if (*this		==	t2)		return true;
 		else						return false;
 	}
 
@@ -79,27 +245,20 @@ struct GTime
 
 	GTime operator +(const double t) const
 	{
-		GTime time = *this;
-
-		time.sec += t;
-
-		double fracSeconds	= time.sec - (int) time.sec;
-		double intSeconds	= time.sec - fracSeconds;
-
-		time.time	+= intSeconds;
-		time.sec	-= intSeconds;
-
-		if (time.sec < 0)
-		{
-			time.sec	+= 1;
-			time.time	-= 1;
-		}
-		return time;
+		GTime gTime = *this;
+		
+		gTime.bigTime += t;
+		
+		return gTime;
 	}
 	
 	GTime operator +(const int t) const
 	{
-		return *this + (double) t;
+		GTime gTime = *this;
+		
+		gTime.bigTime += t;
+		
+		return gTime;
 	}
 	
 	GTime& operator+=(const double rhs)
@@ -107,21 +266,19 @@ struct GTime
 		*this = *this + rhs;
 		return *this;
 	}
-
-	GTime operator -(const GTime t) const
+	
+	GTime& operator-=(const double rhs)
 	{
-		GTime time = *this;
+		*this = *this - rhs;
+		return *this;
+	}
 
-		time.time	-= t.time;
-		time.sec	-= t.sec;
+	Duration operator -(const GTime t) const
+	{
+		Duration duration;
+		duration.bigTime	= bigTime	- t.bigTime;
 		
-		if (time.sec < 0)
-		{
-			time.time	-= 1;
-			time.sec	+= 1;
-		}
-		
-		return time;
+		return duration;
 	}
 
 	GTime operator -(const double t) const
@@ -130,23 +287,11 @@ struct GTime
 		return time;
 	}
 
-	operator double() const
-	{
-		return this->time + this->sec;
-	}
-	
-	
 	
 	GTime& operator++(int)
 	{
-		this->time++;
+		this->bigTime++;
 		return *this;
-	}
-	
-	
-	boost::posix_time::ptime to_ptime()
-	{
-		return boost::posix_time::from_time_t(time);
 	}
 	
 	GTime()
@@ -154,64 +299,310 @@ struct GTime
 		
 	}
 	
-	GTime(int t, int s)
-	{
-		time	= t;
-		sec		= s;
-	}
+	GTime(
+		GWeek	gpsWeek,
+		GTow	tow);
 	
-	GTime(boost::posix_time::ptime p_time)
-	{
-		time = boost::posix_time::to_time_t(p_time);
-	}
+	GTime(
+		BWeek	bdsWeek,
+		BTow	tow);
+	
+	GTime(
+		MjDateTT mjdTT);
+	
+	GTime(
+		MjDateUtc mjdUtc);
 
 
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
 	{
-		long int time_int = time;
-		ar & time_int;
-		time = time_int;
+		ar & bigTime;
 	}
 	
-	GTime roundTime(
-		int		period) const
+	GTime floorTime(
+		double	period) const;
+	
+	string gregString();
+	
+	operator long double()		const;
+	operator MjDateTT()			const;
+	operator GEpoch()			const;
+	operator UtcTime()			const;
+	operator GWeek()			const;
+	operator BWeek()			const;
+	operator GTow()				const;
+	operator BTow()				const;
+	operator PTime()			const;
+	operator string()			const;
+	operator RTod()				const;
+};
+
+struct PTime
+{
+	long double bigTime	= 0;	
+	
+	PTime()
 	{
-		GTime roundedTime = *this;
-		//round to nearest chunk by integer arithmetic
-		long int roundTimeTime = roundedTime.time;
-		roundTimeTime /= period;
-		roundTimeTime *= period;
-		roundedTime.time = roundTimeTime;
 		
-		return roundedTime;
+	}
+	
+	operator GTime() const;
+};
+
+
+PTime timeGet();
+
+
+struct MjDateUtc
+{
+	long double val;
+	
+	MjDateUtc()
+	{
+		
+	}
+	
+	MjDateUtc(
+		GTime	time);
+	
+	double to_double() const
+	{
+		return (double) val;
 	}
 };
 
+
+struct MjDateUt1
+{
+	long double val;
 	
-GTime gpst2utc (GTime t);
-GTime utc2gpst (GTime t);
-GTime gpst2bdt (GTime t);
-GTime bdt2gpst (GTime t);
-GTime timeget  (void);
-double  time2doy(GTime t);
-double  utc2gmst (GTime t, double ut1_utc);
-int adjgpsweek(int week);
+	MjDateUt1()
+	{
+		
+	}
+	
+	MjDateUt1(
+		GTime	time,
+		double	ut1_utc);
+	
+	double to_double() const
+	{
+		return (double) val;
+	}
+	
+	double to_j2000() const
+	{
+		return (double) (val - MJD_j2000);
+	}
+};
 
-/* time and string functions -------------------------------------------------*/
+struct MjDateTT
+{
+	long double val;
+	
+	double to_double() const
+	{
+		return (double) val;
+	}
+	
+	double to_j2000() const
+	{
+		return (double) (val - MJD_j2000);
+	}
+};
+
+struct UtcTime
+{
+	long double bigTime;
+	
+	UtcTime operator +(const double t) const
+	{
+		UtcTime time = *this;
+
+		time.bigTime += t;
+		
+		return time;
+	}
+	   
+	string to_string(int n) const
+	{
+		GTime gTime;
+		gTime.bigTime	= this->bigTime;
+	
+		return gTime.to_string(n);
+	}
+	
+	UtcTime()
+	{
+		
+	}
+	
+	operator GTime()	const;
+};
+
+struct GEpoch : array<double, 6>
+{
+	GTime toGTime() const;
+	
+	operator GTime() const;
+	
+	double& year;
+	double& month;
+	double& day;
+	double& hour;
+	double& min;
+	double& sec;
+	
+	GEpoch(
+		double yearVal	= 0,
+		double monthVal	= 0,
+		double dayVal	= 0,
+		double hourVal	= 0,
+		double minVal	= 0,
+		double secVal	= 0)
+	:	year	{ (*this)[0]},
+		month	{ (*this)[1]},
+		day 	{ (*this)[2]},
+		hour	{ (*this)[3]},
+		min 	{ (*this)[4]},
+		sec		{ (*this)[5]}
+	{
+		year	= yearVal;
+		month	= monthVal;
+		day 	= dayVal;
+		hour	= hourVal;
+		min 	= minVal;
+		sec		= secVal;
+	}
+	
+	GEpoch(
+		const GEpoch& other)
+	:	year	{ (*this)[0]},
+		month	{ (*this)[1]},
+		day 	{ (*this)[2]},
+		hour	{ (*this)[3]},
+		min 	{ (*this)[4]},
+		sec		{ (*this)[5]}
+	{
+		//special copy constructor to deal with aliases
+		year	= other.year;
+		month	= other.month;
+		day 	= other.day;
+		hour	= other.hour;
+		min 	= other.min;
+		sec		= other.sec;
+	}
+	
+	GEpoch& operator = (
+		const GEpoch& other)
+	{
+		year	= other.year;
+		month	= other.month;
+		day 	= other.day;
+		hour	= other.hour;
+		min 	= other.min;
+		sec		= other.sec;
+		
+		return *this;
+	}
+};
+
+
+struct UYds : array<int, 3>
+{
+	int& year;
+	int& doy;
+	int& sod;
+	
+	UYds(
+		int yearval = 0,
+		int doyVal	= 0,
+		int sodVal	= 0)
+	:	year{ (*this)[0]},
+		doy	{ (*this)[1]},
+		sod { (*this)[2]}
+	{
+		year	= yearval;
+		doy		= doyVal;
+		sod		= sodVal;
+	}
+	
+	UYds(
+		const UYds& yds)
+	:	year{ (*this)[0]},
+		doy	{ (*this)[1]},
+		sod { (*this)[2]}
+    {
+		//special copy constructor to deal with aliases
+		year	= yds.year;
+		doy		= yds.doy;
+		sod		= yds.sod;
+    }
+	
+	UYds& operator = (
+		const UYds& other)
+	{
+		year	= other.year;
+		doy		= other.doy;
+		sod		= other.sod;
+		
+		return *this;
+	}
+	
+	UYds(
+		const GTime& time)
+	:	year{ (*this)[0]},
+		doy	{ (*this)[1]},
+		sod { (*this)[2]}
+	{
+		double leap = leapSeconds(time);
+		GTime utc_Time = (time - leap);
+		GEpoch ep = utc_Time;
+		
+		//make new time with only the year of the input one,
+		GEpoch ep0(2000, 1, 1, 0, 0, 0);
+		ep0[0] = ep[0];
+		
+		//subtract off the years
+		Duration toy = utc_Time - (GTime) ep0;
+
+		year = (int) ep[0];
+		doy = toy.to_int() / 86400 + 1;	//(doy in bias SINEX (where yds is common) starts at 1)
+		sod = toy.to_int() % 86400;
+	}
+	
+	UYds& operator +=(
+		const double offset)
+	{
+		sod += offset;
+		while (sod > secondsInDay)		{	sod -= secondsInDay;		doy++;	}
+		while (sod < 0)					{	sod += secondsInDay;		doy--;	}
+		
+		while (doy > 366)				{	doy -= 365;					year++;	}
+		while (doy < 1)					{	doy += 365;					year--;	}	//todo aaron, ew
+		
+		return *this;
+	}
+  
+	UYds& operator = (
+		const GTime& time)
+	{
+		*this = UYds(time);
+		
+		return *this;
+	}
+	
+	operator GTime()	const;
+};
+
+UtcTime gpst2utc (GTime t);
+GTime utc2gpst (UtcTime t);
+
 double  str2num(const char *s, int i, int n);
-
-GTime	epoch2time	(const double *ep);
-GTime	yds2time	(const int* yds);
-
-void    time2epoch(GTime t, double *ep);
-void	epoch2yds(double *ep, int *yds);
 
 GTime	gpst2time(int week, double sec);
 double  time2gpst(GTime t, int *week = nullptr);
-
-GTime	gst2time(int week, double sec);
-double  time2gst(GTime t, int *week = nullptr);
 
 GTime	bdt2time(int week, double sec);
 double  time2bdt(GTime t, int *week = nullptr);
@@ -222,14 +613,13 @@ int str2time(
 	int			n,
 	GTime&		t);
 
-
 void	jd2ymdhms(const double jd, double *ep);
 
 double	ymdhms2jd(const double time[6]);
 
-double  gpst2mjd(const GTime time);
 
-double  utc2mjd(const GTime time);
-
-
-#endif
+GTime nearestTime(
+	GTime	referenceEpoch,
+	double	tom,
+	GTime	nearTime,
+	int		mod);

@@ -1,22 +1,22 @@
-#ifndef __MINIMUM_CONSTRAINTS_HPP__
-#define __MINIMUM_CONSTRAINTS_HPP__
+
+
+#pragma once
 
 #include <map>
 
 using std::map;
 
-#include "streamTrace.hpp"
 #include "station.hpp"
+#include "trace.hpp"
 
 struct KFState;
 
 
 void mincon(
-	Trace&					trace,
-	KFState&				kfStateStations);
+	Trace&		trace,
+	KFState&	kfStateStations,
+	bool		commentSinex	= false);
 
 KFState minconOnly(
 	Trace&		trace,
 	StationMap&	stationMap);
-
-#endif

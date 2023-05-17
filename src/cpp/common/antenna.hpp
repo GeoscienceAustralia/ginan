@@ -1,28 +1,23 @@
 
-#ifndef ANTENNA_H
-#define ANTENNA_H
+#pragma once
 
 
 #include <string>
 #include <vector>
-#include <list>
 #include <map>
 
 using std::string;
 using std::vector;
-using std::list;
 using std::map;
 
 #include "eigenIncluder.hpp"
-
-
-#include "streamTrace.hpp"
+#include "azElMapData.hpp"
 #include "satStat.hpp"
 #include "gTime.hpp"
+#include "trace.hpp"
 #include "enums.h"
 
-
-struct PhaseCenterData
+struct PhaseCenterData : AzElMapData<double>
 {
 	/* antenna parameter type */
 	E_FType	ft;
@@ -31,46 +26,42 @@ struct PhaseCenterData
 	string	svn;					///< SVN in satellites 
 	string	cospar;					///< Cospar code satellites 
 	string	calibModel;				///< name of the antenna calibration model 
-	double	aziDelta;				///< azimuth increment (degree) 
-	double	zenStart;
-	double	zenStop;
-	double	zenDelta;
-	int		nz;						///< number of zenith intervals 
-	int		naz;					///< number of non-azimuth dependent intervals 
 
 	double tf[6];					///< valid from YMDHMS 
 	double tu[6];					///< valid until YMDHMS 
-	
-				vector<double>	PCVMap1D;
-	map<int,	vector<double>>	PCVMap2D;
+};
+
+struct PhaseCenterOffset
+{
+	Vector3d	satPco = Vector3d::Zero();
+	Vector3d	recPco = Vector3d::Zero();
 };
 
 //forward declaration for pointer below
 struct SatSys;
+struct AttStatus;
 struct Navigation;
 
-void satAntOff(
+VectorEcef satAntOff(
 	Trace&				trace,
 	GTime				time,
-	Vector3d&			rSat,
+	AttStatus&			attStatus,
 	SatSys& 			Sat,
-	map<int, double>&	lamMap,
-	Vector3d&			dAnt,
-	SatStat*			satStat_ptr = nullptr);
+	map<int, double>&	lamMap);
 	
-Vector3d satAntOff(
+VectorEcef satAntOff(
 	Trace&				trace,
 	GTime				time,
-	Vector3d&			rSat,
+	AttStatus&			attStatus,
 	SatSys& 			Sat,
-	E_FType 			ft,
-	SatStat*			satStat_ptr = nullptr);
+	E_FType 			ft);
 
 Vector3d antPco(
 	string		id,
 	E_Sys		sys,
 	E_FType		ft,
 	GTime		time,
+	E_Radio		radio,
 	bool		interp = false);
 
 double antPcv(
@@ -78,10 +69,8 @@ double antPcv(
 	E_Sys		sys,
 	E_FType		ft,
 	GTime		time,
-	double		aCos,
-	double		azi = 0);
-
-
+	AttStatus&	attStatus,
+	VectorEcef	e);
 
 bool findAntenna(
 	string				code,
@@ -98,4 +87,3 @@ int readantexf(
 void radome2none(
 	string& antenna_type);
 
-#endif

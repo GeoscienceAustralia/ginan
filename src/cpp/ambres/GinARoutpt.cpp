@@ -1,5 +1,8 @@
+
+#include "coordinates.hpp"
 #include "GNSSambres.hpp"
 #include "biasSINEX.hpp"
+
 #include <iomanip>
 
 using std::setprecision;
@@ -20,42 +23,38 @@ void gpggaout(
 	double      hdop,			///< Horizontal DOP
 	bool		lng)			///< Modified GPGGA format (false: GPGGA format according to NMEA 0183)
 {
-	double ep[6];
-	time2epoch(kfState.time, ep);
+	GEpoch ep = kfState.time;
 
 	std::ofstream fpar(outfile, std::ios::out | std::ios::app);
 
 	if (fpar.tellp() == 0) 
 		tracepdeex(1,fpar,"!GPGGA, UTC time, Latitude, N/S, Longitude, E/W, State, # Sat, HDOP, Height, , Geoid,\n");
 
-	double xyz_[3];
+	VectorEcef ecef;
 	for (short i = 0; i < 3; i++)
-		kfState.getKFValue({KF::REC_POS,		{}, recId,	i}, xyz_[i]);
+		kfState.getKFValue({KF::REC_POS,		{}, recId,	i}, ecef[i]);
 	
-	double lla_[3];
-	ecef2pos(xyz_, lla_);
-	lla_[0]*=R2D;
-	lla_[1]*=R2D;
+	VectorPos pos = ecef2pos(ecef);
 	
-	double latint = floor(fabs(lla_[0]));
-	double lonint = floor(fabs(lla_[1]));
+	double latint = floor(fabs(pos.latDeg()));
+	double lonint = floor(fabs(pos.lonDeg()));
 	
-	double latv = latint*100 + (fabs(lla_[0]) - latint)*60;
-	double lonv = lonint*100 + (fabs(lla_[1]) - lonint)*60;
-	char   latc = lla_[0]>0?'N':'S';
-	char   lonc = lla_[1]>0?'E':'W';
+	double latv = latint*100 + (fabs(pos.latDeg()) - latint)*60;
+	double lonv = lonint*100 + (fabs(pos.lonDeg()) - lonint)*60;
+	char   latc = pos.latDeg()>0?'N':'S';
+	char   lonc = pos.lonDeg()>0?'E':'W';
 	
 	if (lng)
 	{
 		tracepdeex(1,fpar,"$GPGGALONG,%02.0f%02.0f%05.2f,",ep[3],ep[4],ep[5]);
 		tracepdeex(1,fpar,"%012.7f,%c,%013.7f,%c,",	latv,latc, lonv,lonc);
-		tracepdeex(1,fpar,"%1d,%02d,%3.1f,%09.3f",	solStat, numSat, hdop,lla_[2]);
+		tracepdeex(1,fpar,"%1d,%02d,%3.1f,%09.3f",	solStat, numSat, hdop,pos.hgt());
 	}
 	else
 	{
 		tracepdeex(1,fpar,"$GPGGA,%02.0f%02.0f%05.2f,",ep[3],ep[4],ep[5]);
 		tracepdeex(1,fpar,"%09.4f,%c,%010.4f,%c,",	latv,latc, lonv,lonc);
-		tracepdeex(1,fpar,"%1d,%02d,%3.1f,%08.2f",	solStat, numSat, hdop,lla_[2]);
+		tracepdeex(1,fpar,"%1d,%02d,%3.1f,%08.2f",	solStat, numSat, hdop,pos.hgt());
 	}
 	tracepdeex(1,fpar,",M,0.0,M,,,\n");
 }
@@ -66,8 +65,8 @@ void artrcout(
 	GTime time, 	///< Solution time
 	GinAR_opt opt )	///< Ginan AR control options
 {
-	int week;
-	double tow = time2gpst(time,&week);
+	GTow	tow		= time;
+	GWeek	week	= time;
 	map<E_AmbTyp,int> Nmeas;
 	map<E_AmbTyp,int> Nfixd;
 	
@@ -78,7 +77,7 @@ void artrcout(
 			continue;
 		
 		E_AmbTyp typs = E_AmbTyp::_from_integral(key.num);
-		tracepdeex(ARTRCLVL+1, trace, "\n#ARES_MEAS, %s", amb.mea_fin.to_string(0).c_str());
+		tracepdeex(ARTRCLVL+1, trace, "\n#ARES_MEAS, %s", amb.mea_fin.to_string().c_str());
 		tracepdeex(ARTRCLVL+1, trace, ", %s, %s, %s", key.str.c_str(), key.Sat.id().c_str(), typs._to_string());
 		tracepdeex(ARTRCLVL+1, trace, ", %6.2f, %4d, %4d, %1d, %10.5f", amb.sat_ele*R2D, amb.hld_epc, amb.out_epc, amb.cyl_slp?1:0, amb.raw_amb);
 		
@@ -113,135 +112,20 @@ void artrcout(
 	
 	if (opt.endu)
 	{
-		double latLonHt[3];
-		ecef2pos(ARstations[opt.recv].snxPos_, latLonHt); 
+		VectorPos pos = ecef2pos(ARstations[opt.recv].snxPos_); 
 			
-		double dXYZ_FL[3];
-		double dXYZ_AR[3];
-		for(short i = 0; i < 3; i++)
-		{
-			dXYZ_AR[i] = ARstations[opt.recv].fixPos_[i] - ARstations[opt.recv].snxPos_[i];
-			dXYZ_FL[i] = ARstations[opt.recv].fltPos_[i] - ARstations[opt.recv].snxPos_[i];
-		}
-	
-		double dENU_FL[3];
-		double dENU_AR[3];
-		ecef2enu(latLonHt, dXYZ_AR, dENU_AR);
-		ecef2enu(latLonHt, dXYZ_FL, dENU_FL);
-	
-		int week_;
-		double tow_ = time2gpst(time,&week_);
-		tracepdeex(2,trace, "\n#ARES_DPOS,%4d,%8.1f,",week_,tow_);
+		VectorEcef	dXYZ_FL = ARstations[opt.recv].fltPos_ - ARstations[opt.recv].snxPos_;
+		VectorEcef	dXYZ_AR = ARstations[opt.recv].fixPos_ - ARstations[opt.recv].snxPos_;
+		
+		VectorEnu	dENU_FL = ecef2enu(pos, dXYZ_FL);
+		VectorEnu	dENU_AR = ecef2enu(pos, dXYZ_AR);
+		
+		tracepdeex(2,trace, "\n#ARES_DPOS,%4d,%8.1f,",week,tow);
 		tracepdeex(2,trace, "%8.4f,%8.4f,%8.4f,",dENU_AR[0],dENU_AR[1],dENU_AR[2]);
 		tracepdeex(2,trace, "%8.4f,%8.4f,%8.4f,",dENU_FL[0],dENU_FL[1],dENU_FL[2]);
 	}
 	
 	return;	
-}
-
-/** Output phase biases */
-void arbiaout( 
-	Trace& trace,	///< Output stream 
-	GTime time, 	///< Solution time
-	GinAR_opt opt )	///< Ginan AR control options
-{
-	int week;
-	double tow=time2gpst(time,&week);
-	
-	double tupdt = opt.bias_update;
-	if (tupdt==0)
-		return;
-		
-	for (auto& [typ,lst] : SATbialist)
-	for (auto& [sat,bia] : lst)
-	{
-		/* reflect the biases here (maybe save a time series) */
-		tracepdeex(ARTRCLVL,trace,"\n#ARES_BIA %4d, %8.1f, %s, %s       %8.4f, %8.4f, %11.4e", week, tow, typ._to_string(), sat.id().c_str(),bia.rawbias, bia.outbias, sqrt(bia.outvari));
-		
-		E_FType frq1;
-		E_FType frq2;
-		E_FType frq3;
-		if (!sys_frq(sat.sys, frq1, frq2, frq3))				continue;
-		
-		E_ObsCode non  = E_ObsCode::NONE;
-		E_ObsCode def1 = opt.defCodes[sat.sys][frq1];
-		E_ObsCode def2 = opt.defCodes[sat.sys][frq2];
-		E_ObsCode def3 = opt.defCodes[sat.sys][frq3];
-		
-		if (typ == +E_AmbTyp::UCL1) outp_bias(trace,time,"", sat,def1,non,bia.outbias,bia.outvari,tupdt,PHAS);
-		if (typ == +E_AmbTyp::UCL2) outp_bias(trace,time,"", sat,def2,non,bia.outbias,bia.outvari,tupdt,PHAS);
-		if (typ == +E_AmbTyp::UCL3) outp_bias(trace,time,"", sat,def3,non,bia.outbias,bia.outvari,tupdt,PHAS);
-		if (typ == +E_AmbTyp::NL12)
-		{
-			if (SATbialist[E_AmbTyp::WL12].find(sat) == SATbialist[E_AmbTyp::WL12].end()) 
-				continue;
-				
-			double NLbia = bia.outbias;
-			double NLvar = bia.outvari;
-			double WLbia = SATbialist[E_AmbTyp::WL12][sat].outbias;
-			double WLvar = SATbialist[E_AmbTyp::WL12][sat].outvari;
-		
-			double lam1  = lambdas[def1];
-			double lam2  = lambdas[def2];
-		
-			double c1	 = lam1 / (lam2 - lam1);
-			double c2	 = lam2 / (lam2 - lam1);
-			double L1bia = lam1 * (NLbia - c1 * WLbia);
-			double L2bia = lam2 * (NLbia - c2 * WLbia);
-			double L1var = lam1*lam1 * (NLvar + c1*c1 * WLvar);
-			double L2var = lam2*lam2 * (NLvar + c2*c2 * WLvar);
-		
-			outp_bias(trace,time,"",sat,def1,non,L1bia,L1var,tupdt,PHAS);
-			outp_bias(trace,time,"",sat,def2,non,L2bia,L2var,tupdt,PHAS);
-		}
-	}
-
-	SatSys sat0 = {};	
-	for (auto& [typ,lst1] : RECbialist)
-	for (auto& [sys,lst2] : lst1)
-	for (auto& [rec,bia]  : lst2)
-	{
-		/* reflect the biases here (maybe save a time series) */
-		tracepdeex(ARTRCLVL+1,trace,"\n#ARES_BIA %4d, %8.1f, %s, %s,      %s, %8.4f, %8.4f, %11.4e", week, tow, typ._to_string(), sys._to_string(), rec.c_str(), bia.rawbias, bia.outbias, sqrt(bia.outvari));
-		
-		E_FType frq1;
-		E_FType frq2;
-		E_FType frq3;
-		if (!sys_frq(sys, frq1, frq2, frq3))				continue;
-		
-		E_ObsCode non  = E_ObsCode::NONE;
-		E_ObsCode def1 = opt.defCodes[sys][frq1];
-		E_ObsCode def2 = opt.defCodes[sys][frq2];
-		E_ObsCode def3 = opt.defCodes[sys][frq3];
-		
-		if (typ == +E_AmbTyp::UCL1) outp_bias(trace,time,rec,sat0,def1,non,bia.outbias,bia.outvari,tupdt,PHAS);
-		if (typ == +E_AmbTyp::UCL2) outp_bias(trace,time,rec,sat0,def2,non,bia.outbias,bia.outvari,tupdt,PHAS);
-		if (typ == +E_AmbTyp::UCL3) outp_bias(trace,time,rec,sat0,def3,non,bia.outbias,bia.outvari,tupdt,PHAS);
-		if (typ == +E_AmbTyp::NL12)
-		{
-			if (RECbialist[E_AmbTyp::WL12].find(sys)      == RECbialist[E_AmbTyp::WL12].end())			continue;
-			if (RECbialist[E_AmbTyp::WL12][sys].find(rec) == RECbialist[E_AmbTyp::WL12][sys].end()) 	continue;
-			
-			double NLbia = bia.outbias;
-			double NLvar = bia.outvari;
-			double WLbia = RECbialist[E_AmbTyp::WL12][sys][rec].outbias;
-			double WLvar = RECbialist[E_AmbTyp::WL12][sys][rec].outvari;
-			
-			double lam1  = lambdas[def1];
-			double lam2  = lambdas[def2];
-			
-			double c1	 = lam1 / (lam2 - lam1);
-			double c2	 = lam2 / (lam2 - lam1);
-			double L1bia = lam1 * (NLbia - c1 * WLbia);
-			double L2bia = lam2 * (NLbia - c2 * WLbia);
-			double L1var = lam1*lam1 * (NLvar + c1*c1 * WLvar);
-			double L2var = lam2*lam2 * (NLvar + c2*c2 * WLvar);
-			
-			outp_bias(trace,time,rec,sat0,def1,non,L1bia,L1var,tupdt,PHAS);
-			outp_bias(trace,time,rec,sat0,def2,non,L2bia,L2var,tupdt,PHAS);
-		}
-	}
-	return;
 }
 
 /** Export AR Ionosphere measurments */
@@ -253,7 +137,7 @@ int arionout(
 {
 	int nion=0;
 	
-	for (auto& obs : obsList)
+	for (auto& obs : only<GObs>(obsList))
 	{
 		KFKey key;
 		if ( opt.ionmod == +E_IonoMode::ESTIMATE )
@@ -262,7 +146,7 @@ int arionout(
 			double val;
 			double var;
 			if	(!kfState.getKFValue(key,val,&var)) 
-			continue;
+				continue;
 			
 			obs.STECsmth = val;
 			obs.STECsmvr = var;
@@ -271,10 +155,15 @@ int arionout(
 		}
 		else if ( opt.ionmod == +E_IonoMode::IONO_FREE_LINEAR_COMBO )
 		{
-			E_FType frq1 = F1;
-			E_FType frq2 = F2;
+			E_FType frq1;
+			E_FType frq2;
+			E_FType frq3;
+			if (!satFreqs(obs.Sat.sys, frq1, frq2, frq3))
+				continue;
 			
 			int wlamb =  retrv_WLambg(trace, E_AmbTyp::WL12,kfState.time,obs.mount,obs.Sat);
+			if ( wlamb == INVALID_WLVAL) 
+				continue;
 			
 			if (opt.endu) key = {KF::PHASE_BIAS,obs.Sat, obs.mount, E_FType::FTYPE_IF12};
 			else          key = {KF::AMBIGUITY ,obs.Sat, obs.mount, E_FType::FTYPE_IF12};
@@ -288,8 +177,6 @@ int arionout(
 				if (!kfState.getKFValue(key,val,&var))		continue;
 				frq2 = F5;
 			}
-			
-			if ( wlamb == INVALID_WLVAL) 					continue;
 			
 			double lam1 = obs.satNav_ptr->lamMap[frq1];
 			double lam2 = obs.satNav_ptr->lamMap[frq2];
@@ -312,14 +199,15 @@ int arionout(
 				wlvari = satbias.outvari + recbias.outvari;
 			}
 			
-			double c2 = lam1*lam1/(lam2-lam1);
-			double c1 = c2/(lam2+lam1);
-			double c3 = lam1/lam2;
-			double s1 = c1*c1;
-			double s2 = c2*c2;
-			double s3 = c3*c3;
+			double alpha = SQR(CLIGHT)/40.30E16;
+			double c2 = alpha/(lam1-lam2);
+			double c1 = -c2/(lam1+lam2);
+			double c3 = alpha/lam1/lam2;
+			double s1 = SQR(c1);
+			double s2 = SQR(c2);
+			double s3 = SQR(c3);
 			
-			obs.STECsmth = c1*(L2-L1) + c2*(wlamb + wlbias) - c3*val;
+			obs.STECsmth = c1*(L1-L2) + c2*(wlamb + wlbias) + c3*val;
 			obs.STECsmvr = s1*(V2+V1) + s2*(        wlvari) + s3*val;
 			obs.STECtype = 2;
 			nion++;
@@ -329,91 +217,69 @@ int arionout(
 	return nion;
 }
 
-/* Querry satellite phase bias */
-bool queryBiasOutput(
-	Trace& trace,			///< Debug stream
-	SatSys sat, 			///< GNSS satellite
-	E_AmbTyp type,			///< Ambiguity type UCL1, UCL2, UCL3, NL12, WL12
-	double& bias,			///< Phase bias value
-	double& variance)		///< Phase bias variance
+/** Querry Ginan 1.0 AR algorithms for phase biases, it does not check for specific codes just carrier frequencies 
+returns false if bias is not found */
+bool queryBiasWLNL(
+	Trace& trace,		///< debug stream 
+	SatSys sat,			///< satellite (for receiver biases, sat.sys needs to be set to the appropriate system, and sat.prn must be 0)
+	string rec,			///< receiver  (for satellite biases nees to be "")
+	E_FType ft, 		///< Signal frequency
+	double& bias,		///< signal bias
+	double& vari)		///< bias variance	
 {
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_BIAS Searching for %s biases: ", sat.id().c_str());
+	E_Sys sys = sat.sys;
 	
-	if (SATbialist.find(E_AmbTyp::WL12)!=SATbialist.end()
-		  && SATbialist.find(E_AmbTyp::NL12)!=SATbialist.end())
+	E_FType frq1;
+	E_FType frq2;
+	E_FType frq3;
+	if (!satFreqs(sys, frq1, frq2, frq3))
+		return false;
+				
+	if	(  ft != frq1
+		&& ft != frq2)
 	{
-		if(SATbialist[E_AmbTyp::WL12].find(sat) == SATbialist[E_AmbTyp::WL12].end())
-		{
-			tracepdeex(ARTRCLVL, trace, "WL not found\n");
-			return false;
-		}
-		
-		if(SATbialist[E_AmbTyp::NL12].find(sat) == SATbialist[E_AmbTyp::NL12].end())
-		{
-			tracepdeex(ARTRCLVL, trace, "NL not found\n");
-			return false;
-		}
+		return false;
+	}
+	
+	double lam_ = nav.satNavMap[sat].lamMap[ft];
+	double lam1 = nav.satNavMap[sat].lamMap[frq1];
+	double lam2 = nav.satNavMap[sat].lamMap[frq2];
+	
+	/* satellite bias */
+	if (rec.empty())
+	{
+		if (SATbialist[E_AmbTyp::WL12].find(sat) == SATbialist[E_AmbTyp::WL12].end())					return false;
+		if (SATbialist[E_AmbTyp::NL12].find(sat) == SATbialist[E_AmbTyp::NL12].end())					return false;
 		
 		double WLbia = SATbialist[E_AmbTyp::WL12][sat].outbias;
 		double WLvar = SATbialist[E_AmbTyp::WL12][sat].outvari;
 		double NLbia = SATbialist[E_AmbTyp::NL12][sat].outbias;
 		double NLvar = SATbialist[E_AmbTyp::NL12][sat].outvari;
 		
-		tracepdeex(ARTRCLVL, trace, "WL: %.4f + NL:%.4f\n", WLbia, NLbia);
-		
-		double lam1  = CLIGHT/FREQ1;
-		double lam2  = CLIGHT/FREQ2;
-		
-		if (sat.sys == +E_Sys::GAL)
-			lam2  = CLIGHT/FREQ5;
-			
-		if (type == +E_AmbTyp::UCL1)
-		{
-			double c = lam1 / (lam2-lam1);
-			bias     = lam1      * (NLbia -   c*WLbia);
-			variance = lam1*lam1 * (NLvar + c*c*WLvar);
-			return true;
-		}
-		
-		if (type == +E_AmbTyp::UCL2)
-		{
-			double c = lam2 / (lam2-lam1);
-			bias     = lam2      * (NLbia -   c*WLbia);
-			variance = lam2*lam2 * (NLvar + c*c*WLvar);
-			return true;
-		}
+		double c1	 = lam_ / (lam2 - lam1);
+		bias		 = lam_ * (NLbia - c1 * WLbia);
+		vari		 = lam_*lam_ * (NLvar + c1*c1 * WLvar);
+		return true;
 	}
 	
-	if (SATbialist.find(type) == SATbialist.end())
+	/* receiver bias */ 
+	if (sat.prn==0)
 	{
-		tracepdeex(ARTRCLVL, trace, "%s not found\n",type._to_string());
-		return false;
-	}
-	if(SATbialist[type].find(sat) == SATbialist[type].end())
-		return false;
-	
-	
-	double lam1  = CLIGHT/FREQ1;
-	if (type == +E_AmbTyp::UCL2) 
-	{  
-		if(sat.sys == +E_Sys::GAL) 
-			lam1 = CLIGHT/FREQ5;  
-		else
-			lam1 = CLIGHT/FREQ2;
-	}
-	
-	if (type == +E_AmbTyp::UCL3) 
-	{  
-		if(sat.sys == +E_Sys::GAL) 
-			lam1 = CLIGHT/FREQ7;  
-		else
-			lam1 = CLIGHT/FREQ5;
+		if (RECbialist[E_AmbTyp::WL12].find(sat.sys)      == RECbialist[E_AmbTyp::WL12].end())			return false;
+		if (RECbialist[E_AmbTyp::WL12][sat.sys].find(rec) == RECbialist[E_AmbTyp::WL12][sys].end()) 	return false;
+		if (RECbialist[E_AmbTyp::NL12].find(sat.sys)      == RECbialist[E_AmbTyp::NL12].end())			return false;
+		if (RECbialist[E_AmbTyp::NL12][sat.sys].find(rec) == RECbialist[E_AmbTyp::NL12][sys].end()) 	return false;
+		
+		double WLbia = RECbialist[E_AmbTyp::WL12][sat.sys][rec].outbias;
+		double WLvar = RECbialist[E_AmbTyp::WL12][sat.sys][rec].outvari;
+		double NLbia = RECbialist[E_AmbTyp::NL12][sat.sys][rec].outbias;
+		double NLvar = RECbialist[E_AmbTyp::NL12][sat.sys][rec].outvari;
+		
+		double c1	 = lam_ / (lam2 - lam1);
+		bias		 = lam_ * (NLbia - c1 * WLbia);
+		vari		 = lam_*lam_ * (NLvar + c1*c1 * WLvar);
+		return true;
 	}
 	
-	bias	 = SATbialist[type][sat].outbias*lam1;
-	variance = SATbialist[type][sat].outvari*lam1*lam1;
-	
-	tracepdeex(ARTRCLVL, trace, ".4f",bias);
-	
-	return true;
-}
+	return false; /* Ginan 1.0 does not support hybrid biases */
+}	

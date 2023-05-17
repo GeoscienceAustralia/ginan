@@ -37,7 +37,7 @@ void sinexPostProcessing(
 	sinex_check_add_ga_reference("PPP Solution", "0.1", false);
 
 	{
-		list<KFState*> kfStatePointers;
+		vector<KFState*> kfStatePointers;
 
 		if (acsConfig.process_user)
 		for (auto& [key, rec] : stationMap)
@@ -46,10 +46,12 @@ void sinexPostProcessing(
 		}
 		
 		KFState augmentedNetKFState;
-		if (acsConfig.process_network)
+		if	( acsConfig.process_network
+			||acsConfig.process_ppp)
 		{
 			augmentedNetKFState = netKFState;
 			
+			if (acsConfig.process_network)
 			for (auto& [key, index] : augmentedNetKFState.kfIndexMap)
 			{
 				if (key.type != KF::REC_POS)
@@ -73,9 +75,10 @@ void sinexPostProcessing(
 	}
 
 	// add in the files used to create the solution
-	for (auto& rnxfile : acsConfig.rnx_files)	{	sinex_add_file(acsConfig.analysis_agency, time, rnxfile, "RINEX v3.x");	}
-	for (auto& sp3file : acsConfig.sp3_files)	{	sinex_add_file(acsConfig.analysis_agency, time, sp3file, "SP3");		}
-	for (auto& snxfile : acsConfig.snx_files)	{	sinex_add_file(acsConfig.analysis_agency, time, snxfile, "SINEX");		}
+	for (auto& ubxinput : acsConfig.ubx_inputs)	{	sinex_add_file(acsConfig.analysis_agency, time, ubxinput, "UBX");			}
+	for (auto& rnxinput : acsConfig.rnx_inputs)	{	sinex_add_file(acsConfig.analysis_agency, time, rnxinput, "RINEX v3.x");	}
+	for (auto& sp3input : acsConfig.sp3_files)	{	sinex_add_file(acsConfig.analysis_agency, time, sp3input, "SP3");			}
+	for (auto& snxinput : acsConfig.snx_files)	{	sinex_add_file(acsConfig.analysis_agency, time, snxinput, "SINEX");			}
 
 	// Add other statistics as they become available...
 	sinex_add_statistic("SAMPLING INTERVAL (SECONDS)", acsConfig.epoch_interval);
@@ -87,36 +90,18 @@ void sinexPostProcessing(
 	// uncomment next bit once integrated
 	// if (acsConfig.orbit_output) solcont += 'O';
 
-
 	string data_agc = "";
 
-	GTime start_time;
-	start_time.time = static_cast<int>(boost::posix_time::to_time_t(acsConfig.start_epoch));
-	start_time.sec	= 0;
-	double	ep[6];
-	int		start[3];
-	int		end[3];
-	time2epoch(start_time, ep);
-	epoch2yds(ep, start);
-	time2epoch(time, ep);
-	epoch2yds(ep, end);
-	struct timeval tv;
-	struct tm* tmbuf;
-	gettimeofday(&tv, nullptr);
-	tmbuf = gmtime(&tv.tv_sec);
-	int create_yds[3]; // create time for Sinex header
-	create_yds[0]	= tmbuf->tm_year + 1900;
-	create_yds[1]	= tmbuf->tm_yday;
-	create_yds[2]	= tmbuf->tm_sec
-					+ tmbuf->tm_min		* 60
-					+ tmbuf->tm_hour	* 60 * 60;
+	PTime startTime;
+	startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);		//todo aaron, make these constructors for ptime.
 
-
-	sinex_update_header(acsConfig.analysis_agency, create_yds, data_agc, start, end, obsCode, constCode, solcont, 2.02); //Change this if the sinex format gets updated
+	updateSinexHeader(acsConfig.analysis_agency, data_agc, (GTime) startTime, time, obsCode, constCode, solcont, 2.02); //Change this if the sinex format gets updated
 
 	string filename = acsConfig.sinex_filename;
+	
 	replaceTimes(filename, acsConfig.start_epoch);
-	write_sinex(filename, &stationMap);
+	
+	writeSinex(filename, stationMap);
 }
 
 void sinexPerEpochPerStation(
@@ -124,12 +109,8 @@ void sinexPerEpochPerStation(
 	Station&	rec)
 {
 	// check the station data for currency. If later that the end time, refresh Sinex data
-	double ep[6];
-	int yds[3];
-	int defaultStop[3] = {-1,-1,-1};
-
-	time2epoch(time, ep);
-	epoch2yds(ep, yds);
+	UYds yds = time;
+	UYds defaultStop(-1,-1,-1);
 
 	if 	(  time_compare(rec.snx.stop, yds)			>  0
 		&& time_compare(rec.snx.stop, defaultStop)	!= 0)
@@ -138,27 +119,17 @@ void sinexPerEpochPerStation(
 		return;
 	}
 	
-	int result = getstnsnx(rec.id, yds, rec.snx);
+	auto result = getStnSnx(rec.id, time, rec.snx);
 
-	if (result == E_SnxDataMissing::SITE_ID)
-	{
-// 		BOOST_LOG_TRIVIAL(error)
-// 		<< "Station " << rec.id << " not found in sinex file";		//todo aaron useful eeror
-
-		return;
-	}
-
-	if (result == E_SnxDataMissing::ESTIMATE)
-	{
-		BOOST_LOG_TRIVIAL(debug)
-		<< "Station " << rec.id << " position not found in sinex file";
-
-		return; // No current station position estimate!
-	}
-
-	rec.antDelta	= rec.snx.ecc;
-	rec.antType		= rec.snx.anttype;
-// 	rec.opt.antdel	= rec.rnxStation.del;		//todo aaron, this should come from sinex preferably, but what about monument codes....
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
+	
+	if (rec.antDelta	.isZero())		rec.antDelta		= recOpts.eccentricity;
+	if (rec.antennaType	.empty())		rec.antennaType		= recOpts.antenna_type;
+	if (rec.receiverType.empty())		rec.receiverType	= recOpts.receiver_type;
+	
+	if (rec.antDelta	.isZero())		rec.antDelta		= rec.snx.ecc_ptr->ecc;
+	if (rec.antennaType	.empty())		rec.antennaType		= rec.snx.ant_ptr->type;
+	if (rec.receiverType.empty())		rec.receiverType	= rec.snx.rec_ptr->type;
 	
 	auto trace = getTraceFile(rec);
 	
@@ -166,7 +137,7 @@ void sinexPerEpochPerStation(
 	for (bool once : {1})
 	{
 		string nullstring	= "";
-		string tmpant		= rec.antType;
+		string tmpant		= rec.antennaType;
 
 		if (tmpant.empty())
 		{
@@ -182,7 +153,7 @@ void sinexPerEpochPerStation(
 		if (found)
 		{
 			//all good, carry on
-			rec.antId = tmpant;
+			rec.antennaId = tmpant;
 			break;
 		}
 
@@ -193,19 +164,36 @@ void sinexPerEpochPerStation(
 		if (found)
 		{
 			trace
-			<< "Using \"" << tmpant
-			<< "\" instead of: \"" << rec.antType
-			<< "\" for radome of " << rec.id;
+			<< "Using '" << tmpant
+			<< "' instead of: '" << rec.antennaType
+			<< "' for radome of " << rec.id;
 
-			rec.antId = tmpant;
+			rec.antennaId = tmpant;
 			break;
 		}
 		else
 		{
 			trace
-			<< "No information for antenna " << rec.antType;
+			<< "No information for antenna " << rec.antennaType;
 
 			break;
 		}
+	}
+
+	if	( result.failureEstimate
+		&&recOpts.apriori_pos.isZero())
+	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Station " << rec.id << " position not found in sinex or yaml files";
+
+		return; // No current station position estimate!
+	}
+	
+	if (result.failureSiteId)
+	{
+		BOOST_LOG_TRIVIAL(error)
+		<< "Station " << rec.id << " not found in sinex file";
+
+		return;
 	}
 }

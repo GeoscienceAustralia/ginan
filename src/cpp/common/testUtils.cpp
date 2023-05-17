@@ -297,7 +297,7 @@ bool TestStack::checkMat(
 	int		n)		///< Number of elements in matrix
 {
 #ifdef	ENABLE_UNIT_TESTS
-	if	( (acsConfig.testOpts.enable == false)
+	if	( acsConfig.testOpts.enable == false
 // 		||(DontTest)
 		)
 	{

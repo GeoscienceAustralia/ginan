@@ -16,7 +16,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstdlib> 
 
 #ifdef ENABLE_PARALLELISATION
 	#include "omp.h"
@@ -58,14 +57,14 @@ void program_options(int argc, char * argv[], otl_input & input)
 
 	// Do not set default values here, as this will overide the configuration file opitions!!!
 	desc.add_options()
-			("help", 			"This help message")
-			("quiet", 			"Less output")
-			("verbose", 		"More output")
-			("config", 	 	po::value<std::string>(),	"Configuration file, This specifies the location of green function, and netcdf files for the ocean loading terms")
-			("location", 	po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")
-			("xyz",        po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
-			("code",     	po::value<std::string>(), "Station Code with or without DOMES number (ALIC 50137M0014)")
-			("input",		po::value<std::string>(),	"input file containing list of stations CSV format name, lon, lat")
+			("help",			"This help message")
+			("quiet",			"Less output")
+			("verbose",			"More output")
+			("config",		po::value<std::string>(),	"Configuration file, This specifies the location of green function, and netcdf files for the ocean loading terms")
+			("location",	po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")
+			("xyz",			po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
+			("code",		po::value<std::string>(), "Station Code with or without DOMES number (ALIC 50137M0014)")
+			("input",		po::value<std::string>(), "input file containing list of stations CSV format name, lon, lat")
 			("output",		po::value<std::string>()->default_value("output.blq"),	"Output BLQ file")
 
 			;
@@ -118,9 +117,33 @@ void program_options(int argc, char * argv[], otl_input & input)
 	}
 	// std::cout << input.xyz_coords[0][0] << input.xyz_coords[0][1]  << input.xyz_coords[0][2]  << "\n";
 	// exit(0);
+	if (config_f.length() == 0)
+	{
+		struct noconfig : std::exception {
+			const char* what() const noexcept { return "No config file supplied"; }
+		} error;
+		throw error;
+	}
 	YAML::Node config = YAML::LoadFile(config_f );
 
-	input.green = config["greenfunction"].as<string>();
+	if (config["greenfunction"])
+	{
+		input.green = config["greenfunction"].as<string>();
+		if (input.green.length() == 0)
+		{
+			struct nogf : std::exception {
+				const char* what() const noexcept { return "No green function defined"; }
+			} error;
+			throw error;
+		}
+	}
+	else
+	{
+	   	struct nogfd : std::exception {
+			const char* what() const noexcept { return "No greenfunction config entry"; }
+		} error;
+		throw error;
+	}
 	expand_path(input.green);
 
 	YAML::Node tidefiles = config["tide"];

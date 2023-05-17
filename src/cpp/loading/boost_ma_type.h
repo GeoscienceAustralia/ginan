@@ -6,10 +6,7 @@
  *
  */
 
-#ifndef PEA_BOOST_MA_TYPE_H
-#define PEA_BOOST_MA_TYPE_H
-
-// #include <complex>
+#pragma once
 
 
 typedef boost::multi_array<double, 3> MA3d;
@@ -23,5 +20,3 @@ typedef boost::multi_array<float, 1> MA1f;
 typedef boost::multi_array< std::complex<float>, 3> MA3cf;
 typedef boost::multi_array< std::complex<float>, 2> MA2cf;
 typedef boost::multi_array< std::complex<float>, 1> MA1cf;
-
-#endif //PEA_BOOST_MA_TYPE_H

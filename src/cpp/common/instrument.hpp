@@ -1,7 +1,5 @@
 
-#ifndef __INSTRUMENT_HPP__
-#define __INSTRUMENT_HPP__
-
+#pragma once
 
 #include <string>
 #include <map>
@@ -14,15 +12,18 @@ struct Instrument
 {
 	static map<string, size_t>		timeMap;
 	static map<string, size_t>		callMap;
+	
+	bool print = false;
 
 	size_t	start;
 	string	description;
 	
-	Instrument(string desc);
+	Instrument(
+		string	desc, 
+		bool	print = false);
 
 	~Instrument();
 
 	static void printStatus();
 };
 
-#endif

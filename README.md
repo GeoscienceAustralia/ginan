@@ -5,10 +5,11 @@
 : Note - this file is executable. \
 : You can run it by saving the raw markdown to disk, then `` chmod +x README.md``, then ``./README.md`` \
 : It will execute all of the code blocks that finish with the `` :<<'```executable' `` tag. \
-: This script will install all dependencies, clone the Ginan repo into the current directory and build the Ginan toolkit.
+: This script will install all dependencies, and clone the Ginan repo into the current directory \(if required\) and build the Ginan toolkit. \
+: To check out the stable v1 branch from Github, append -b ginan-v1 to the clone command below to get the v1 branch source. 
 
 
-#### `Ginan v1.5.4 release`
+#### `Ginan v2.0-beta release`
 
 ## Overview
 
@@ -46,17 +47,23 @@ The software consists of three main components:
 
 Ginan is supported on the following platforms
 
-* Linux: tested on Ubuntu 18.04 and 20.04
+* Linux: tested on Ubuntu 18.04 and 20.04 and 22.04
 * MacOS: tested on 10.15 (x86)
 * Windows: via docker or WSL on Windows 10 and above
 ***
 
+NB If you are using Ubuntu 22.04 and gcc11, you will need to make the the following adjustments (applies to WSL as well):
+* Boost 1.74.0
+* Mongo-c-driver 1.21.2
+* Mongocxx 3.7.0
+* manual adjustment of CMakeLists.txt to reflect new boost version
+***
 
 ## Using Ginan with Docker
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v /data:/data gnssanalysis/ginan:v1.5.4 bash
+    docker run -it -v /data:/data gnssanalysis/ginan:v2.0-beta bash
 
 This command connects the `/data` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
@@ -96,7 +103,7 @@ sudo apt upgrade -y
 
 sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools openssh-server cmake make libssl1.0-dev wget sudo python3 software-properties-common
 
-pip3 install wheel pandas boto3 unlzw tdqm scipy
+sudo -H pip3 install wheel pandas boto3 unlzw tdqm scipy gnssanalysis
 :<<'```executable'
 ```    
 
@@ -246,7 +253,6 @@ sudo rm -rf mongo-c-driver-1.17.1  mongo-c-driver-1.17.1.tar.gz  mongo-cxx-drive
 :<<'```executable'
 ```    
 
-
 ### MongoDB (PEA, optional)
 Using the mongo database is optional, but is needed for use of the realtime plotting and statistics available through the `GinanEDA`
 
@@ -313,16 +319,23 @@ sudo pip install gnssanalysis
 
 You can download Ginan source from github using git clone:
 
+
 ```executable
+if [ ! -d "../ginan" -o ! -f CHANGELOG.md ]
+then
 cd $dir
+
 
 git clone https://github.com/GeoscienceAustralia/ginan.git
 
 cd ginan
+else
+echo "already in a checkout directory, no need to download again"
+fi
 :<<'```executable'
 ```    
 
-Then download all of the example data using the python script provided:
+Then download all of the example data using the python script provided (requires `gnssanalysis`):
 
 ```executable
 python3 scripts/download_examples.py

@@ -14,20 +14,25 @@ src/src.kdev4
 *.[cr]nx
 
 # data directories in examples
-examples/*/
+examples/*
 examples/*.gz
 examples/*.bz2
 # to be fixed in future release
 examples/DE.430
 #symbolic links to yaml files (as yml)
 examples/*.yml
-#symbolic link to executable
+#symbolic link to executables
 examples/pea
+examples/ginan
 # pod output records
 examples/*.out
+examples/examples.zip
 
+examples/GinanYamlInspector.html
+
+Docs/
 # ignore cmake build and ide files
-src/*.kdev4
+*.kdev4
 src/.kdev/
 src/build/
 bin/
@@ -67,10 +72,21 @@ docs/html/
 docs/DoxygenLayout.xml
 docs/Doxyfile
 
+Docs/codeDocs/*
+
+Docs/*.html
+
+*.kate-swp
+
+
+
 *.swp
 # Node artifact files
 node_modules/
 dist/
+package-lock.json
+package.json
+
 
 # Compiled Java class files
 *.class
@@ -119,7 +135,7 @@ Thumbs.db
 
 # vscode settings
 .vscode/
-
+build/
 # visual studio file/settings
 src/CMakeSettings.json
 src/CMakeFiles/
@@ -129,3 +145,7 @@ src/CMakeFiles/
 src/cpp/pea/peaCommitVersion.h
 src/build/
 src/cmake-*
+src/build*
+
+# folder for test files (shouldn't be uploaded)
+scratch

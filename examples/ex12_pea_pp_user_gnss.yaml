@@ -7,7 +7,7 @@ inputs:
     root_directory: products/
 
     atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snx_files: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
+    snx_files: [ "igs*.snx", tables/igs_satellite_metadata_2203_plus.snx ]  # SINEX file for meta data and initial position
     blq_files: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
 
     satellite_data:
@@ -15,15 +15,20 @@ inputs:
         sp3_files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
         clk_files: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
         bsx_files: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+        # obx_files: [ TUG0R03FIN_20191990000_01D_30S_ATT.OBX ] # satellite attitude files in orbex format
     
     troposphere:
-        vmf3_directory:    grid5/
+        vmf_files:        [grid5/VMF3_20190718.H00, grid5/VMF3_20190718.H06, grid5/VMF3_20190718.H12, grid5/VMF3_20190718.H18]
         orography_files:  orography_ell_5x5
-        # gpt2grid_files: EX03/general/gpt_25.grd
-        
+        # gpt2grid_files: gpt_25.grd
+    
+    egm_files:  [ tables/EGM2008.gfc         ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050     ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat]
+    
     gnss_observations:
-        root_directory: ../data/
-        rnx_files:
+        inputs_root: data/
+        rnx_inputs:
         # Select files to run by:
         - "ALIC*.rnx" # ALIC station rnx file will be found
         # - "*.rnx"                                       # - searching all in file_root directory
@@ -36,7 +41,7 @@ outputs:
     root_directory:          <CONFIG>/
 
     trace:
-        output_stations:                     true
+        output_stations:            true
         level:                      3
         directory:                  ./
         station_filename:                   <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
@@ -56,19 +61,16 @@ outputs:
         analysis_program:           AUSACS
         rinex_comment:              AUSNETWORK1
 
-    rinex_nav:
-        output:                     true
-        directory:                  ./
-        filename:                   <YYYY><DDD>_nav_<SYS>.rnx
-        version:                    4.00    # 3.05 or 4.00
+    ppp_sol:
+        output:                 true
+        filename:               <STATION><YYYY><DDD><HH>_<CONFIG>.POS
 
 mongo:
-    enable:                     true
-    output_measurements:        true
-    output_states:              true
+    enable:                     false
+    output_measurements:        false
+    output_states:              false
     #delete_history:             true
     uri:                        mongodb://127.0.0.1:27017
-    suffix:                     _<BRANCH>_<HASH>
 
 
 processing_options:
@@ -86,32 +88,33 @@ processing_options:
         
         elevation_mask:     7   #degrees
 
-        reject_eclipse:     true            #  reject observation during satellite eclipse periods
         raim:               true
 
         max_gdop:   30
         sys_options:
             gps:
                 process:        true
-                clock_codes:    [L1C, L2W]
+                reject_eclipse: false
                 code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
                                     L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                                     L5I, L5Q, L5X]
             gal:
                 process:        true
-                clock_codes:    [L1C, L5Q]
+                reject_eclipse: false
                 code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
-                                    L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                                     L5I, L5Q, L5X]
     
 
     gnss_models:
     
-        
         troposphere:
             model:      vmf3    #gpt2
 
-                        
+        sat_attitude:
+            sources:      [MODEL]
+            valid_var:    0.01
+            invalid_var:  1
+                                                                                        
 
     filter_options:
 
@@ -168,40 +171,3 @@ estimation_parameters:
             sigma:              [0.02]
             proc_noise:         [1.0E-6]
             proc_noise_dt:      second
-
-    satellites:
-
-        clk:
-            #estimated:          [true]
-            # sigma:              [0]
-            # proc_noise:         [0.03651483716701108]
-            #proc_noise_dt:      min
-
-        clk_rate:
-            #estimated:          [true]
-            # sigma:              [500]
-            # proc_noise:         [1e-4]
-
-        orb:
-            #estimated:          [true]
-
-
-    overrides:
-
-        stations:
-
-            #ALIC:
-                #pos:
-                #    sigma:              [60]
-
-                    #proc_noise:         [0]
-                #clk:
-                    #sigma:              [0.01]
-
-            #AGGO:
-                #exclude: true
-            #ALIC:
-                #exclude: true
-            #ANKR:
-                #exclude: true
-                    #estimated:  false

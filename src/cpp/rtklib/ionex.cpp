@@ -22,7 +22,8 @@
 #define MIN_EL      0.0         /* min elevation angle (rad) */
 #define MIN_HGT     -1000.0     /* min user height (m) */
 
-/* get index -----------------------------------------------------------------*/
+/* get index 
+ */
 int getindex(
 	double value, 
 	const double* range)
@@ -34,14 +35,16 @@ int getindex(
 	return (int) floor((value - range[0]) / range[2] + 0.5);
 }
 
-/* get number of items -------------------------------------------------------*/
+/* get number of items 
+ */
 int nitem(
 	const double* range)
 {
 	return getindex(range[1], range) + 1;
 }
 
-/* data index (i:lat,j:lon,k:hgt) --------------------------------------------*/
+/* data index (i:lat,j:lon,k:hgt)
+ */
 int dataindex(
 	int i,
 	int j,
@@ -58,18 +61,19 @@ int dataindex(
 	return i + ndata[0] * (j + ndata[1] * k);
 }
 
-/* read ionex dcb aux data ----------------------------------------------------*/
+/** read ionex dcb aux data 
+ */
 void readionexdcb(
 	std::ifstream& in,
 	Navigation* navi)
 {
 	char buff[1024];
-	SinexBias entry;
+	BiasEntry entry;
 	bool refObs = false;
 
-	entry.tini.sec	= 2;
-	entry.measType	= CODE;
-	entry.source	= "ionex";
+	entry.tini.bigTime	= 2;
+	entry.measType		= CODE;
+	entry.source		= "ionex";
 
 	BOOST_LOG_TRIVIAL(debug)
 	<< "readionexdcb:";
@@ -91,15 +95,14 @@ void readionexdcb(
 			&&strstr(buff,	"Reference observables"))
 		{
 			char* ptr = strchr(buff, ':');
-			if (ptr != NULL)
+			if (ptr != nullptr)
 			{
 				string cod1str(ptr + 2, 3);
 				string cod2str(ptr + 6, 3);
 
 				E_MeasType dummy1;
-				double dummy2 = 0;
-				entry.cod1 = str2code(cod1str, dummy1, dummy2);
-				entry.cod2 = str2code(cod2str, dummy1, dummy2);
+				entry.cod1 = str2code(cod1str, dummy1);
+				entry.cod2 = str2code(cod2str, dummy1);
 
 				refObs = true;
 			}
@@ -213,7 +216,7 @@ void readionexdcb(
 		{
 			// this seems to be a receiver
 			// for ambiguous GLO receiver bias id (i.e. PRN not specified), duplicate bias entry for each satellite
-			for (int prn = MINPRNGLO; prn <= MAXPRNGLO; prn++)
+			for (int prn = 1; prn <= NSATGLO; prn++)
 			{
 				Sat.prn	= prn;
 				id = entry.name + ":" + Sat.id();
@@ -263,7 +266,7 @@ double readionexh(
 
 		char* label = buff + 60;
 
-		if (strstr(label, "IONEX VERSION / TYPE") == label)
+		if		(strstr(label, "IONEX VERSION / TYPE")	== label)
 		{
 			if (buff[20] == 'I')
 				ver = str2num(buff, 0, 8);
@@ -271,14 +274,14 @@ double readionexh(
 			BOOST_LOG_TRIVIAL(debug)
 			<< " ver= " << ver;
 		}
-		else if (strstr(label, "BASE RADIUS") == label)
+		else if (strstr(label, "BASE RADIUS")			== label)
 		{
 			rb = str2num(buff, 0, 8);
 
 			BOOST_LOG_TRIVIAL(debug)
 			<< " rad= " << rb;
 		}
-		else if (strstr(label, "HGT1 / HGT2 / DHGT") == label)
+		else if (strstr(label, "HGT1 / HGT2 / DHGT")	== label)
 		{
 			hgts[0] = str2num(buff, 2, 6);
 			hgts[1] = str2num(buff, 8, 6);
@@ -287,7 +290,7 @@ double readionexh(
 			BOOST_LOG_TRIVIAL(debug)
 			<< " heights= " << hgts[0] << " " << hgts[1] << " " << hgts[2];
 		}
-		else if (strstr(label, "LAT1 / LAT2 / DLAT") == label)
+		else if (strstr(label, "LAT1 / LAT2 / DLAT")	== label)
 		{
 			lats[0] = str2num(buff, 2, 6);
 			lats[1] = str2num(buff, 8, 6);
@@ -296,7 +299,7 @@ double readionexh(
 			BOOST_LOG_TRIVIAL(debug)
 			<< " lats= " << lats[0] << " " << lats[1] << " " << lats[2];
 		}
-		else if (strstr(label, "LON1 / LON2 / DLON") == label)
+		else if (strstr(label, "LON1 / LON2 / DLON")	== label)
 		{
 			lons[0] = str2num(buff, 2,  6);
 			lons[1] = str2num(buff, 8,  6);
@@ -305,16 +308,16 @@ double readionexh(
 			BOOST_LOG_TRIVIAL(debug)
 			<< " lons= " << lons[0] << " " << lons[1] << " " << lons[2];
 		}
-		else if ( strstr(label, "EXPONENT") == label)
+		else if (strstr(label, "EXPONENT")				== label)
 		{
 			nexp = str2num(buff, 0, 6);
 		}
-		else if	( strstr(label,	"START OF AUX DATA") == label
+		else if	( strstr(label,	"START OF AUX DATA")	== label
 				&&strstr(buff,	"DIFFERENTIAL CODE BIASES"))
 		{
 			readionexdcb(in, navi);
 		}
-		else if (strstr(label, "END OF HEADER") == label)
+		else if (strstr(label, "END OF HEADER")			== label)
 		{
 			return ver;
 		}
@@ -351,7 +354,7 @@ int readionexb(
 		if 		(strstr(label, "START OF TEC MAP")		== label)
 		{
 			type = 1;
-			time.time = 0;
+			time.bigTime = 0;
 			
 		}
 		else if (strstr(label, "END OF TEC MAP")		== label)
@@ -364,7 +367,7 @@ int readionexb(
 		else if (strstr(label, "START OF RMS MAP")		== label)
 		{
 			type = 2;
-			time.time = 0;
+			time.bigTime = 0;
 		}
 		else if (strstr(label, "END OF RMS MAP")		== label)
 		{
@@ -404,7 +407,7 @@ int readionexb(
 			}
 		}
 		else if	( strstr(label, "LAT/LON1/LON2/DLON/H")	== label
-				&& time.time
+				&& time.bigTime
 				&& type)
 		{
 			double lon[3];
@@ -447,18 +450,14 @@ int readionexb(
 	return 1;
 }
 
-/* read ionex tec grid file ----------------------------------------------------
-* read ionex ionospheric tec grid file
-* args   : char   *file       I   ionex tec grid file
-*                                 (wind-card * is expanded)
-* notes  : see ref [1]
-*-----------------------------------------------------------------------------*/
-void readtec(
-	string file,
-	Navigation* navi)
+/** read ionex tec grid file
+ */
+void readTec(
+	string		file,
+	Navigation*	navi)
 {
 	BOOST_LOG_TRIVIAL(debug)
-	<< "readtec : file=" << file;
+	<< __FUNCTION__ << " : file=" << file;
 
 	std::ifstream inputStream(file);
 	if (!inputStream)
@@ -488,13 +487,14 @@ void readtec(
 	readionexb(inputStream, lats, lons, hgts, rb, nexp, navi);
 }
 
-/* interpolate tec grid data -------------------------------------------------*/
-int interptec(
-	const tec_t& tec,
-	int k, 
-	const double* posp,
-	double& value,
-	double& rms)
+/** interpolate tec grid data 
+ */
+int interpTec(
+	const	tec_t&		tec,
+			int			k, 
+	const	VectorPos&	posp,
+			double&		value,
+			double&		rms)
 {
 	// if (fdebug)
 	// 	fprintf(fdebug, "%s: k=%d posp=%.2f %.2f\n",__FUNCTION__, k, posp[0]*R2D, posp[1]*R2D);
@@ -508,8 +508,8 @@ int interptec(
 		return 0;
 	}
 
-	double dlat = posp[0] * R2D - tec.lats[0];
-	double dlon = posp[1] * R2D - tec.lons[0];
+	double dlat = posp.latDeg() - tec.lats[0];
+	double dlon = posp.lonDeg() - tec.lons[0];
 
 	if (tec.lons[2] > 0)	dlon -= floor( dlon / 360) * 360; /*  0<=dlon<360 */
 	else					dlon += floor(-dlon / 360) * 360; /* -360<dlon<=0 */
@@ -573,15 +573,17 @@ int interptec(
 	return 1;
 }
 
-/* ionosphere delay by tec grid data -----------------------------------------*/
-bool iondelay(
-	GTime			time, 
-	const tec_t&	tec,
-	const double*	pos, 
-	const double*	azel,
-	int				opt,
-	double&			delay,
-	double&			var)
+/** ionosphere delay by tec grid data 
+ */
+bool ionDelay(
+	GTime				time, 
+	const tec_t&		tec,
+	const VectorPos&	pos, 
+	const double*		azel,
+	E_IonoMapFn			mapFn,	///< model of mapping function
+	E_IonoFrame			frame,	///< reference frame
+	double&				delay,
+	double&				var)
 {
 	// if (fdebug)
 	// 	fprintf(fdebug, "%s: time=%s pos=%.1f %.1f azel=%.1f %.1f\n", __FUNCTION__, time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D);
@@ -594,26 +596,20 @@ bool iondelay(
 		double hion = tec.hgts[0] + tec.hgts[2] * i;
 
 		/* ionospheric pierce point position */
-		double posp[3] = {};
-		double fs = ionppp(pos, azel, tec.rb, hion, posp);
+		VectorPos posp;
+		ionppp(pos, azel, tec.rb, hion, posp);
+		double fs = ionmapf(pos, azel, mapFn, acsConfig.ionoOpts.mapping_function_layer_height);
 
-		if (opt & 2)
-		{
-			/* modified single layer mapping function (M-SLM) ref [2] */
-			double rp = tec.rb / (tec.rb + hion) * sin(0.9782 * (PI / 2 - azel[1]));
-			fs = 1 / sqrt(1 - rp * rp);
-		}
-
-		if (opt & 1)
+		if (frame == +E_IonoFrame::SUN_FIXED)
 		{
 			/* earth rotation correction (sun-fixed coordinate) */
-			posp[1] += 2 * PI * (time - tec.time) / 86400;
+			posp[1] += 2 * PI * (time - tec.time).to_double() / 86400;
 		}
 
 		/* interpolate tec grid data */
 		double rms;
 		double vtec;
-		if (!interptec(tec, i, posp, vtec, rms))
+		if (interpTec(tec, i, posp, vtec, rms) == false)
 			return false;
 
 		const double fact = 40.30E16 / FREQ1 / FREQ1; /* tecu->L1 iono (m) */
@@ -628,15 +624,16 @@ bool iondelay(
 }
 
 /** ionosphere model by tec grid data 
- * Before calling the function, read tec grid data by calling readtec()
-*          return ok with delay=0 and var=VAR_NOTEC if el<MIN_EL or h<MIN_HGT
+ * Before calling the function, read tec grid data by calling readTec()
+*          return ok with delay=0 and var=VAR_NOTEC if el < MIN_EL or h < MIN_HGT
 */
 bool iontec(
 	GTime				time,	///< time (gpst)
 	const Navigation*	nav,	///< navigation data
-	const double*		pos,	///< receiver position {lat,lon,h} (rad,m)
+	const VectorPos&	pos,	///< receiver position {lat,lon,h} (rad,m)
 	const double*		azel,	///< azimuth/elevation angle {az,el} (rad)
-	int					opt,	///< model option* 		bit0: 0:earth-fixed,1:sun-fixed*		bit1: 0:single-layer,1:modified single-layer
+	E_IonoMapFn			mapFn,	///< model of mapping function
+	E_IonoFrame			frame,	///< reference frame
 	double&				delay,	///< ionospheric delay (L1) (m)
 	double&				var)	///< ionospheric dealy (L1) variance (m^2)
 {
@@ -646,8 +643,8 @@ bool iontec(
 	delay	= 0;
 	var		= VAR_NOTEC;
 
-	if	(  azel[1]	< MIN_EL
-		|| pos[2]	< MIN_HGT)
+	if	(  azel[1]		< MIN_EL
+		|| pos.hgt()	< MIN_HGT)
 	{
 		return true;
 	}
@@ -661,44 +658,43 @@ bool iontec(
 		return true;
 	}
 	
-	int stat[2] = {};
+	bool pass[2] = {};
 	double dels[2];
 	double vars[2];
 	
 	auto& [t0, tec0] = *it;
-	stat[0] = iondelay(time, tec0, pos, azel, opt, dels[0], vars[0]);
+	pass[0] = ionDelay(time, tec0, pos, azel, mapFn, frame, dels[0], vars[0]);
 		
 	if (it == nav->tecMap.begin())
 	{
 		delay	= dels[0];
 		var		= vars[0];
-		return stat[0];
+		return pass[0];
 	}
 	
 	//go forward and get the next timestep if available
 	it--;
 	
 	auto& [t1, tec1] = *it;
-	stat[1] = iondelay(time, tec1, pos, azel, opt, dels[1], vars[1]);
-
+	pass[1] = ionDelay(time, tec1, pos, azel, mapFn, frame, dels[1], vars[1]);
 	
 
-	if	(  stat[0]
-		&& stat[1])
+	if	(  pass[0]
+		&& pass[1])
 	{
 		/* linear interpolation by time */
-		double tt	= (tec1.time	- tec0.time);
-		double a	= (time			- tec0.time) / tt;
+		double tt	= (tec1.time	- tec0.time).to_double();
+		double a	= (time			- tec0.time).to_double() / tt;
 		
 		delay	= dels[0] * (1 - a) + dels[1] * a;
 		var		= vars[0] * (1 - a) + vars[1] * a;
 	}
-	else if (stat[0])   /* nearest-neighbour extrapolation by time */
+	else if (pass[0])   /* nearest-neighbour extrapolation by time */
 	{
 		delay	= dels[0];
 		var		= vars[0];
 	}
-	else if (stat[1])
+	else if (pass[1])
 	{
 		delay	= dels[1];
 		var		= vars[1];

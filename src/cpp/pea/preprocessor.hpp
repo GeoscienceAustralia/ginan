@@ -1,12 +1,11 @@
 
-#ifndef __PREPROCESSOR_HPP__
-#define __PREPROCESSOR_HPP__
-
-#include "streamTrace.hpp"
+#pragma once
 
 struct Station;
 
 void preprocessor(
 	Station&	rec);
 
-#endif
+void obsVariances(
+	ObsList& obsList);
+

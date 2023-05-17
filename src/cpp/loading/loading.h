@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef PEA_LOADING_H
-#define PEA_LOADING_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -31,6 +30,3 @@ private:
 
 };
 
-
-
-#endif //PEA_LOADING_H

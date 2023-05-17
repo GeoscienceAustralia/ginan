@@ -147,7 +147,7 @@ void program_options(int argc, char * argv[], otl_input & input)
 						tmp.push_back(stof(row[3]));
 						input.xyz_coords.push_back(tmp);
 					} else {
-						throw std::runtime_error("xyz coordinates in the csv file should have 4 valuse \"code, x, y, z\"");
+						throw std::runtime_error("xyz coordinates in the csv file should have 4 values 'code, x, y, z'");
 					}
 				} else {
 					if (row.size() == 3)

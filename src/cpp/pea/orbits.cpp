@@ -26,6 +26,4 @@ void dummyOrbitPropagator(
 			kfState.addKFState(key, init);
 		}
 	}
-	
-	
 }

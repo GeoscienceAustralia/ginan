@@ -129,7 +129,7 @@ def auto_run_main(
         start_datetime=start_datetime,
         end_datetime=end_datetime,
         most_recent=False,
-        ac=analysis_centre,
+        analysis_centre=analysis_centre,
         atx=atx,
         blq=blq,
         snx=snx,

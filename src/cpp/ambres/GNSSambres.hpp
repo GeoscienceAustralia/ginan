@@ -1,14 +1,14 @@
-#ifndef GNSS_AMB_RES_HPP
-#define GNSS_AMB_RES_HPP
+
+#pragma once
 
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
-#include "streamTrace.hpp"
 #include "constants.hpp"
 #include "algebra.hpp"
 #include "station.hpp"
 #include "satSys.hpp"
 #include "common.hpp"
+#include "trace.hpp"
 
 #define POSTAR_VAR			1e-6
 #define FIXED_AMB_VAR		1e-8
@@ -116,9 +116,9 @@ struct GinAR_rec
 	
 	KFState kfState_fixed;
 	
-	Vector3d snxPos_;
-	Vector3d fltPos_;
-	Vector3d fixPos_;
+	VectorEcef snxPos_;
+	VectorEcef fltPos_;
+	VectorEcef fixPos_;
 };
 
 struct GinAR_sat
@@ -144,14 +144,14 @@ extern map<SatSys,	GinAR_sat>				ARsatellites;
 extern map<string,	GinAR_rec>				ARstations;
 extern map<string,	map<E_Sys,	bool>>		sys_activ;
 extern map<KFKey,	map<GTime,	double>>	elev_archive;
-extern map<KFKey,	list<GTime>>			slip_archive;
+extern map<KFKey,	vector<GTime>>			slip_archive;
 
 /* main functions */
 void config_AmbigResl();																								/* Configures the ambiguity resolution algorithms */
 int  networkAmbigResl(Trace& trace, StationMap& stations, KFState& kfState);											/* Ambiguity resolution for network solutions */
 int  enduserAmbigResl(Trace& trace, ObsList& obsList, KFState& kfState, Vector3d snxPos, double dop, string outfile);	/* Ambiguity resolution for end user solutions */
 int  smoothdAmbigResl(KFState& kfState);																				/* Ambiguity resolution on smoothed KF*/
-bool sys_frq(short int sys, E_FType& frq1, E_FType& frq2, E_FType& frq3);
+
 bool ARsol_ready();
 KFState retrieve_last_ARcopy ();
 GinAR_sat* GinAR_sat_metadata(SatSys sat);
@@ -159,10 +159,9 @@ GinAR_sat* GinAR_sat_metadata(SatSys sat);
 /* Output fuctions */
 void	gpggaout(string outfile, KFState& KfState, string recId, int solStat, int numSat, double hdop, bool lng); /* Alternative end user aoutput for ambiguity resolved solutions */
 void	artrcout(Trace& trace, GTime time, GinAR_opt opt );
-void	arbiaout(Trace& trace, GTime time, GinAR_opt opt );
 int		arionout(Trace& trace, KFState& KfState, ObsList& obsList, GinAR_opt opt );
-bool	queryBiasOutput(Trace& trace, SatSys sat, E_AmbTyp type, double& bias, double& variance);
-	
+bool	queryBiasWLNL(Trace& trace, SatSys sat, string rec, E_FType ft, double& bias, double& vari);
+
 /* WL ambiguity functions */
 void	reset_WLfilt(Trace& trace, E_AmbTyp typ, GTime time, string rec, E_Sys  sys);
 int		retrv_WLambg(Trace& trace, E_AmbTyp typ, GTime time, string rec, SatSys sat);
@@ -185,4 +184,3 @@ int		GNSS_AR(Trace& trace, GinAR_mtx& mtrx, GinAR_opt opt);
 /* KF function to be deprecated */
 void	removeUnmeasuredAmbiguities( Trace& trace,  KFState& kfState, map<KFKey, bool>	measuredStates);
 
-#endif

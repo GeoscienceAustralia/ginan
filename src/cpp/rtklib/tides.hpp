@@ -1,32 +1,17 @@
 
-#ifndef __TIDES_HPP__
-#define __TIDES_HPP__
+#pragma once
 
 #include "eigenIncluder.hpp"
-#include "streamTrace.hpp"
 #include "gTime.hpp"
+#include "trace.hpp"
 
 
 //forward declaration
 struct ERP;
 
-/* earth tide models ---------------------------------------------------------*/
-
-void sunmoonpos_eci(
-	GTime			tut,
-	Vector3d*		rsun_ptr,
-	Vector3d*		rmoon_ptr);
-
-void sunmoonpos(
-	GTime			tutc,
-	ERPValues&		erpv,
-	Vector3d*		rsun	= nullptr,
-	Vector3d*		rmoon	= nullptr,
-	double*			gmst	= nullptr);
-
-void tidedisp(
+void tideDisp(
 	Trace&			trace,
-	GTime			tutc,
+	GTime			time,
 	Vector3d&		recPos,
 	ERP&			erp,
 	const double*	otlDisplacement,
@@ -36,5 +21,3 @@ void tidedisp(
 	Vector3d*		pole_ptr	= nullptr);
 
 
-
-#endif

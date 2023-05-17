@@ -12,166 +12,193 @@ using std::map;
 
 #include <boost/assign.hpp>
 
-
-const E_FType ftypes[E_ObsCode::NUM_CODES] =
+map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 {
-	[E_ObsCode::NONE] = FTYPE_NONE,
-	[E_ObsCode::L1C] = F1,
-	[E_ObsCode::L1P] = F1,
-	[E_ObsCode::L1W] = F1,
-	[E_ObsCode::L1Y] = F1,
-	[E_ObsCode::L1M] = F1,
-	[E_ObsCode::L1N] = F1,
-	[E_ObsCode::L1S] = F1,
-	[E_ObsCode::L1L] = F1,
-	[E_ObsCode::L1E] = F1,
-	[E_ObsCode::L1A] = F1,
-	[E_ObsCode::L1B] = F1,
-	[E_ObsCode::L1X] = F1,
-	[E_ObsCode::L1Z] = F1,
-	[E_ObsCode::L2C] = F2,
-	[E_ObsCode::L2D] = F2,
-	[E_ObsCode::L2S] = F2,
-	[E_ObsCode::L2L] = F2,
-	[E_ObsCode::L2X] = F2,
-	[E_ObsCode::L2P] = F2,
-	[E_ObsCode::L2W] = F2,
-	[E_ObsCode::L2Y] = F2,
-	[E_ObsCode::L2M] = F2,
-	[E_ObsCode::L2N] = F2,
-	[E_ObsCode::L5I] = F5,
-	[E_ObsCode::L5Q] = F5,
-	[E_ObsCode::L5X] = F5,
-	[E_ObsCode::L7I] = F7,
-	[E_ObsCode::L7Q] = F7,
-	[E_ObsCode::L7X] = F7,
-	[E_ObsCode::L6A] = F6,
-	[E_ObsCode::L6B] = F6,
-	[E_ObsCode::L6C] = F6,
-	[E_ObsCode::L6X] = F6,
-	[E_ObsCode::L6Z] = F6,
-	[E_ObsCode::L6S] = F6,
-	[E_ObsCode::L6L] = F6,
-	[E_ObsCode::L8I] = F8,
-	[E_ObsCode::L8Q] = F8,
-	[E_ObsCode::L8X] = F8,
-	[E_ObsCode::L2I] = F2,
-	[E_ObsCode::L2Q] = F2,
-	[E_ObsCode::L6I] = F6,
-	[E_ObsCode::L6Q] = F6,
-	[E_ObsCode::L3I] = F3,
-	[E_ObsCode::L3Q] = F3,
-	[E_ObsCode::L3X] = F3,
-	[E_ObsCode::L1I] = F1,
-	[E_ObsCode::L1Q] = F1
+	{	E_Sys::GPS,
+		{
+			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::L1C,	F1	},
+			{E_ObsCode::L1S,	F1	},
+			{E_ObsCode::L1L,	F1	},
+			{E_ObsCode::L1X,	F1	},
+			{E_ObsCode::L1P,	F1	},
+			{E_ObsCode::L1W,	F1	},
+			{E_ObsCode::L1Y,	F1	},
+			{E_ObsCode::L1M,	F1	},
+			{E_ObsCode::L1N,	F1	},
+
+			{E_ObsCode::L2C,	F2	},
+			{E_ObsCode::L2D,	F2	},
+			{E_ObsCode::L2S,	F2	},
+			{E_ObsCode::L2L,	F2	},
+			{E_ObsCode::L2X,	F2	},
+			{E_ObsCode::L2P,	F2	},
+			{E_ObsCode::L2W,	F2	},
+			{E_ObsCode::L2Y,	F2	},
+			{E_ObsCode::L2M,	F2	},
+			{E_ObsCode::L2N,	F2	},
+
+			{E_ObsCode::L5I,	F5	},
+			{E_ObsCode::L5Q,	F5	},
+			{E_ObsCode::L5X,	F5	}
+		}
+	},
+
+	{	E_Sys::GLO,
+		{
+			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::L1C,	G1	},
+			{E_ObsCode::L1P,	G1	},
+
+			{E_ObsCode::L2C,	G2	},
+			{E_ObsCode::L2P,	G2	},
+
+			{E_ObsCode::L3I,	G3	},
+			{E_ObsCode::L3Q,	G3	},
+			{E_ObsCode::L3X,	G3	},
+
+			{E_ObsCode::L4A,	G4	},
+			{E_ObsCode::L4B,	G4	},
+			{E_ObsCode::L4X,	G4	},
+			
+			{E_ObsCode::L6A,	G6	},
+			{E_ObsCode::L6B,	G6	},
+			{E_ObsCode::L6X,	G6	}
+		}
+	},
+
+	{	E_Sys::GAL,
+		{
+			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::L1A,	F1	},
+			{E_ObsCode::L1B,	F1	},
+			{E_ObsCode::L1C,	F1	},
+			{E_ObsCode::L1X,	F1	},
+			{E_ObsCode::L1Z,	F1	},
+
+			{E_ObsCode::L5I,	F5	},
+			{E_ObsCode::L5Q,	F5	},
+			{E_ObsCode::L5X,	F5	},
+
+			{E_ObsCode::L6A,	F6	},
+			{E_ObsCode::L6B,	F6	},
+			{E_ObsCode::L6C,	F6	},
+			{E_ObsCode::L6X,	F6	},
+			{E_ObsCode::L6Z,	F6	},
+
+			{E_ObsCode::L7I,	F7	},
+			{E_ObsCode::L7Q,	F7	},
+			{E_ObsCode::L7X,	F7	},
+
+			{E_ObsCode::L8I,	F8	},
+			{E_ObsCode::L8Q,	F8	},
+			{E_ObsCode::L8X,	F8	}
+		}
+	},
+
+	{	E_Sys::BDS,
+		{
+			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::L1D,	F1	},
+			{E_ObsCode::L1P,	F1	},
+			{E_ObsCode::L1X,	F1	},
+			{E_ObsCode::L1S,	F1	},
+			{E_ObsCode::L1L,	F1	},
+			{E_ObsCode::L1Z,	F1	},
+			{E_ObsCode::L1A,	F1	},
+			{E_ObsCode::L1N,	F1	},
+			
+			{E_ObsCode::L2I,	B1	},
+			{E_ObsCode::L2Q,	B1	},
+			{E_ObsCode::L2X,	B1	},
+
+			{E_ObsCode::L5D,	F5	},
+			{E_ObsCode::L5P,	F5	},
+			{E_ObsCode::L5X,	F5	},
+
+			{E_ObsCode::L6I,	B3	},
+			{E_ObsCode::L6Q,	B3	},
+			{E_ObsCode::L6X,	B3	},
+			{E_ObsCode::L6D,	B3	},
+			{E_ObsCode::L6P,	B3	},
+			{E_ObsCode::L6Z,	B3	},
+			{E_ObsCode::L6A,	B3	},
+
+			{E_ObsCode::L7I,	F7	},
+			{E_ObsCode::L7Q,	F7	},
+			{E_ObsCode::L7X,	F7	},
+			{E_ObsCode::L7D,	F7	},
+			{E_ObsCode::L7P,	F7	},
+			{E_ObsCode::L7Z,	F7	},
+
+			{E_ObsCode::L8D,	F8	},
+			{E_ObsCode::L8P,	F8	},
+			{E_ObsCode::L8Z,	F8	}
+		}
+	},
+
+	{	E_Sys::QZS,
+		{
+			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::L1C,	F1	},
+			{E_ObsCode::L1E,	F1	},
+			{E_ObsCode::L1S,	F1	},
+			{E_ObsCode::L1L,	F1	},
+			{E_ObsCode::L1X,	F1	},
+			{E_ObsCode::L1Z,	F1	},
+			{E_ObsCode::L1B,	F1	},
+
+			{E_ObsCode::L2S,	F2	},
+			{E_ObsCode::L2L,	F2	},
+			{E_ObsCode::L2X,	F2	},
+
+			{E_ObsCode::L5I,	F5	},
+			{E_ObsCode::L5Q,	F5	},
+			{E_ObsCode::L5X,	F5	},
+			{E_ObsCode::L5D,	F5	},
+			{E_ObsCode::L5P,	F5	},
+			{E_ObsCode::L5Z,	F5	},
+
+			{E_ObsCode::L6S,	F6	},
+			{E_ObsCode::L6L,	F6	},
+			{E_ObsCode::L6X,	F6	},
+			{E_ObsCode::L6E,	F6	},
+			{E_ObsCode::L6Z,	F6	}
+		}
+	},
+
+	{	E_Sys::IRN,
+		{
+			/* NavIC F1 in the works... */
+			
+			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::L5A,	F5	},
+			{E_ObsCode::L5B,	F5	},
+			{E_ObsCode::L5C,	F5	},
+			{E_ObsCode::L5X,	F5	},
+
+			{E_ObsCode::L9A,	I9	},
+			{E_ObsCode::L9B,	I9	},
+			{E_ObsCode::L9C,	I9	},
+			{E_ObsCode::L9X,	I9	}
+		}
+	},
+	
+	{	E_Sys::SBS,
+		{
+			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::L1C,	F1	},
+
+			{E_ObsCode::L5I,	F5	},
+			{E_ObsCode::L5Q,	F5	},
+			{E_ObsCode::L5X,	F5	}
+		}
+	}
 };
 
 
-const double lambdas[E_ObsCode::NUM_CODES] =
-{
-	[E_ObsCode::NONE] = 0,
-	[E_ObsCode::L1C] = CLIGHT/FREQ1,
-	[E_ObsCode::L1P] = CLIGHT/FREQ1,
-	[E_ObsCode::L1W] = CLIGHT/FREQ1,
-	[E_ObsCode::L1Y] = CLIGHT/FREQ1,
-	[E_ObsCode::L1M] = CLIGHT/FREQ1,
-	[E_ObsCode::L1N] = CLIGHT/FREQ1,
-	[E_ObsCode::L1S] = CLIGHT/FREQ1,
-	[E_ObsCode::L1L] = CLIGHT/FREQ1,
-	[E_ObsCode::L1E] = CLIGHT/FREQ1,
-	[E_ObsCode::L1A] = CLIGHT/FREQ1,
-	[E_ObsCode::L1B] = CLIGHT/FREQ1,
-	[E_ObsCode::L1X] = CLIGHT/FREQ1,
-	[E_ObsCode::L1Z] = CLIGHT/FREQ1,
-	[E_ObsCode::L2C] = CLIGHT/FREQ2,
-	[E_ObsCode::L2D] = CLIGHT/FREQ2,
-	[E_ObsCode::L2S] = CLIGHT/FREQ2,
-	[E_ObsCode::L2L] = CLIGHT/FREQ2,
-	[E_ObsCode::L2X] = CLIGHT/FREQ2,
-	[E_ObsCode::L2P] = CLIGHT/FREQ2,
-	[E_ObsCode::L2W] = CLIGHT/FREQ2,
-	[E_ObsCode::L2Y] = CLIGHT/FREQ2,
-	[E_ObsCode::L2M] = CLIGHT/FREQ2,
-	[E_ObsCode::L2N] = CLIGHT/FREQ2,
-	[E_ObsCode::L5I] = CLIGHT/FREQ5,
-	[E_ObsCode::L5Q] = CLIGHT/FREQ5,
-	[E_ObsCode::L5X] = CLIGHT/FREQ5,
-	[E_ObsCode::L7I] = CLIGHT/FREQ7,
-	[E_ObsCode::L7Q] = CLIGHT/FREQ7,
-	[E_ObsCode::L7X] = CLIGHT/FREQ7,
-	[E_ObsCode::L6A] = CLIGHT/FREQ6,
-	[E_ObsCode::L6B] = CLIGHT/FREQ6,
-	[E_ObsCode::L6C] = CLIGHT/FREQ6,
-	[E_ObsCode::L6X] = CLIGHT/FREQ6,
-	[E_ObsCode::L6Z] = CLIGHT/FREQ6,
-	[E_ObsCode::L6S] = CLIGHT/FREQ6,
-	[E_ObsCode::L6L] = CLIGHT/FREQ6,
-	[E_ObsCode::L8I] = CLIGHT/FREQ8,
-	[E_ObsCode::L8Q] = CLIGHT/FREQ8,
-	[E_ObsCode::L8X] = CLIGHT/FREQ8,
-	[E_ObsCode::L2I] = CLIGHT/FREQ2,
-	[E_ObsCode::L2Q] = CLIGHT/FREQ2,
-	[E_ObsCode::L6I] = CLIGHT/FREQ6,
-	[E_ObsCode::L6Q] = CLIGHT/FREQ6,
-	[E_ObsCode::L3I] = CLIGHT/FREQ2,
-	[E_ObsCode::L3Q] = CLIGHT/FREQ2,
-	[E_ObsCode::L3X] = CLIGHT/FREQ2,
-	[E_ObsCode::L1I] = CLIGHT/FREQ1,
-	[E_ObsCode::L1Q] = CLIGHT/FREQ1
-};
 
 
-const double gpst0[]={1980,1, 6,0,0,0}; /* gps time reference */
-const double gst0 []={1999,8,22,0,0,0}; /* galileo system time reference */
-const double bdt0 []={2006,1, 1,0,0,0}; /* beidou time reference */
-
-const double leaps[MAXLEAPS+1][7]=
-{
-	/* leap seconds (y,m,d,h,m,s,utc-gpst) */
-	{2017,1,1,0,0,0,-18},
-	{2015,7,1,0,0,0,-17},
-	{2012,7,1,0,0,0,-16},
-	{2009,1,1,0,0,0,-15},
-	{2006,1,1,0,0,0,-14},
-	{1999,1,1,0,0,0,-13},
-	{1997,7,1,0,0,0,-12},
-	{1996,1,1,0,0,0,-11},
-	{1994,7,1,0,0,0,-10},
-	{1993,7,1,0,0,0, -9},
-	{1992,7,1,0,0,0, -8},
-	{1991,1,1,0,0,0, -7},
-	{1990,1,1,0,0,0, -6},
-	{1988,1,1,0,0,0, -5},
-	{1985,7,1,0,0,0, -4},
-	{1983,7,1,0,0,0, -3},
-	{1982,7,1,0,0,0, -2},
-	{1981,7,1,0,0,0, -1},
-	{0}
-};
-
-double chisqr_arr[100] =
-{
-	/* chi-sqr(n) (alpha=0.001) */
-	10.8,13.8,16.3,18.5,20.5,22.5,24.3,26.1,27.9,29.6,
-	31.3,32.9,34.5,36.1,37.7,39.3,40.8,42.3,43.8,45.3,
-	46.8,48.3,49.7,51.2,52.6,54.1,55.5,56.9,58.3,59.7,
-	61.1,62.5,63.9,65.2,66.6,68.0,69.3,70.7,72.1,73.4,
-	74.7,76.0,77.3,78.6,80.0,81.3,82.6,84.0,85.4,86.7,
-	88.0,89.3,90.6,91.9,93.3,94.7,96.0,97.4,98.7,100 ,
-	101 ,102 ,103 ,104 ,105 ,107 ,108 ,109 ,110 ,112 ,
-	113 ,114 ,115 ,116 ,118 ,119 ,120 ,122 ,123 ,125 ,
-	126 ,127 ,128 ,129 ,131 ,132 ,133 ,134 ,135 ,137 ,
-	138 ,139 ,140 ,142 ,143 ,144 ,145 ,147 ,148 ,149
-};
-
-map<int, double> lam_carr =
-{
-	{F1, CLIGHT/FREQ1},
-	{F2, CLIGHT/FREQ2},
-	{F5, CLIGHT/FREQ5},
-	{F6, CLIGHT/FREQ6},
-	{F8, CLIGHT/FREQ8}
-};
 
 const unsigned int tbl_CRC24Q[]=
 {
@@ -213,8 +240,8 @@ const boost::bimap<E_ObsCode,int> mCodes_gps = boost::assign::list_of<boost::bim
 	(E_ObsCode::L1C,0)
 	(E_ObsCode::L1P,1)
 	(E_ObsCode::L1W,2)
-	(E_ObsCode::L1Y,3)
-	(E_ObsCode::L1M,4)
+	(E_ObsCode::L1S,3)
+	(E_ObsCode::L1L,4)
 	(E_ObsCode::L2C,5)
 	(E_ObsCode::L2D,6)
 	(E_ObsCode::L2S,7)
@@ -272,18 +299,104 @@ const boost::bimap<E_ObsCode,int> mCodes_qzs = boost::assign::list_of<boost::bim
 	(E_ObsCode::L1X,12);
 
 const boost::bimap<E_ObsCode,int> mCodes_bds = boost::assign::list_of<boost::bimap<E_ObsCode,int>::relation>
-	(E_ObsCode::L1I,0)
-	(E_ObsCode::L1Q,1)
-	(E_ObsCode::L1X,2)
-	(E_ObsCode::L7I,3)
-	(E_ObsCode::L7Q,4)
-	(E_ObsCode::L7X,5)
-	(E_ObsCode::L6I,6)
-	(E_ObsCode::L6Q,7)
-	(E_ObsCode::L6X,8);
+	(E_ObsCode::L2I,0)
+	(E_ObsCode::L2Q,1)
+	(E_ObsCode::L2X,2)
+	(E_ObsCode::L6I,3)
+	(E_ObsCode::L6Q,4)
+	(E_ObsCode::L6X,5)
+	(E_ObsCode::L7I,6)
+	(E_ObsCode::L7Q,7)
+	(E_ObsCode::L7X,8)
+	(E_ObsCode::L1D,9)
+	(E_ObsCode::L1P,10)
+	(E_ObsCode::NONE,11)
+	(E_ObsCode::L5D,12)
+	(E_ObsCode::L5P,13)
+	(E_ObsCode::NONE,14)
+	(E_ObsCode::L1A,15);
 
-const boost::bimap<E_ObsCode,int> mCodes_sds = boost::assign::list_of<boost::bimap<E_ObsCode,int>::relation>
+const boost::bimap<E_ObsCode,int> mCodes_sbs = boost::assign::list_of<boost::bimap<E_ObsCode,int>::relation>
 	(E_ObsCode::L1C,0)
 	(E_ObsCode::L5I,1)
-	(E_ObsCode::L5Q,2)
-	(E_ObsCode::L5X,3);
+	(E_ObsCode::L5Q,2);
+
+
+
+map<E_Sys, map<E_FType, E_ObsCode>> codeHax =
+{
+	{	E_Sys::GPS,
+		{
+			{F1, E_ObsCode::L1C },
+			{F2, E_ObsCode::L2W },
+			{F5, E_ObsCode::L5I }
+		}
+	},
+
+	{	E_Sys::GLO,
+		{
+			{G1, E_ObsCode::NONE },
+			{G2, E_ObsCode::NONE },
+			{G3, E_ObsCode::L3I  },
+			{G4, E_ObsCode::L4B  },
+			{G6, E_ObsCode::L6B  }
+		}	
+	},
+
+	{	E_Sys::GAL,
+		{
+			{F1, E_ObsCode::L1C },
+			{F5, E_ObsCode::L5I },
+			{F6, E_ObsCode::L6C },
+			{F7, E_ObsCode::L7I },
+			{F8, E_ObsCode::L8I }
+		}
+	},
+
+	{	E_Sys::BDS,
+		{
+			{F1, E_ObsCode::L1P	},
+			{B1, E_ObsCode::L2I	},
+			{F5, E_ObsCode::L5P	},
+			{B3, E_ObsCode::L6I	},
+			{F7, E_ObsCode::L7P	},
+			{F8, E_ObsCode::L8P	},
+		}
+	},
+
+	{	E_Sys::QZS,
+		{
+			{F1, E_ObsCode::L1C },
+			{F2, E_ObsCode::L2L },
+			{F5, E_ObsCode::L5I },
+			{F6, E_ObsCode::L6S }
+		}
+	},
+
+	{	E_Sys::IRN,
+		{
+			{F5, E_ObsCode::L1A },
+			{I9, E_ObsCode::L9A }
+		}
+	},
+	
+	{	E_Sys::SBS,
+		{
+			{F1, E_ObsCode::L1C },
+			{F1, E_ObsCode::L5I }
+		}
+	}
+};
+
+E_ObsCode freq2CodeHax(
+	E_Sys	sys, 
+	E_FType	ft)
+{
+	if (codeHax.find(sys) == codeHax.end())
+		return E_ObsCode::NONE;
+	
+	if (codeHax[sys].find(ft) == codeHax[sys].end())
+		return E_ObsCode::NONE;
+	
+	return codeHax[sys][ft];
+}

@@ -366,7 +366,7 @@ void gpt2(
 	double				gptval[7])
 {
 	/* change reference epoch to 1/1/2000 */
-	double mjd1 = mjd - 51544.5;
+	double mjd1 = mjd - MJD_j2000;
 
 	/* factors for amplitudes */
 	double cosfy = 0;
@@ -684,7 +684,7 @@ double tropemp(
  */
 double tropztd(
 	const gptgrid_t&	gptg,	///< gpt grid information
-	double				pos[3],	///< lat,lon,hgt (rad,rad,m)
+	VectorPos&			pos,	///< lat,lon,hgt (rad,rad,m)
 	double				mjd,	///< modified julian date
 	double				el,		///< elevation (rad)
 	int					it,		///< 1: no time variation, 0: with time variation
@@ -694,9 +694,9 @@ double tropztd(
 	double a[7] = {};
 
 	/* standard atmosphere */
-	double lat = pos[0];
-	double lon = pos[1];
-	double hgt = pos[2];
+	double lat = pos.lat();
+	double lon = pos.lon();
+	double hgt = pos.hgt();
 	
 	double zd = PI/2 - el;
 

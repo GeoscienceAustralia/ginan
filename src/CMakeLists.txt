@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8...3.22)
 cmake_policy(SET CMP0063 NEW)
-cmake_policy(SET CMP0054 OLD)
 
 project(ginan)
+
 
 enable_language(Fortran)
 
@@ -40,7 +40,7 @@ set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-write-strings")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-overflow")
-# 	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-c++11-narrowing")
+set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-narrowing")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unused-but-set-variable")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-sign-compare")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-stringop-truncation")
@@ -48,8 +48,11 @@ set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unused-variable")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-switch")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-dangling-else")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-misleading-indentation")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-var-tracking-assignments")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unknown-warning-option")
+#set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fno-var-tracking-assignments")
+#set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unknown-warning-option")
+set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-truncation")
+set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-extern-c-compat")
+set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-zero-length")
 
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -g")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -frecursive")
@@ -66,10 +69,25 @@ set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-unused-label")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -Wno-maybe-uninitialized")
 
 
-option(ENABLE_UNIT_TESTS        "ENABLE_UNIT_TESTS"         OFF)
-option(BUILD_DOC                "BUILD_DOCUMENTATION"       OFF)
-option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    ON)
-option(ENABLE_OPTIMISATION      "ENABLE_OPTIMISATION"       ON)
+
+
+if (NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release)
+endif()
+
+	option(ENABLE_UNIT_TESTS        "ENABLE_UNIT_TESTS"         OFF)
+	option(BUILD_DOC                "BUILD_DOCUMENTATION"       ON)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    OFF)
+	option(ENABLE_OPTIMISATION      "ENABLE_OPTIMISATION"       OFF)
+else ()
+	option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    ON)
+	option(ENABLE_OPTIMISATION      "ENABLE_OPTIMISATION"       ON)
+endif ()
+
+
+
 
 if(ENABLE_UNIT_TESTS)
 	message(STATUS "Setting unit tests      on")
@@ -120,17 +138,13 @@ if (BUILD_DOC)
 		
 	else (DOXYGEN_FOUND)
 
-		message("Doxygen need to be installed to generate the doxygen documentation")
-
+		message("Doxygen need to be installed to generate the doxygen documentation, disabling")
+		set(BUILD_DOC off CACHE BOOL "" FORCE)
 	endif (DOXYGEN_FOUND)
 endif()
 
 
-#set debug if nothing else is set.
-set(default_build_type "Debug")
-if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE ${default_build_type})
-endif()
+
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
@@ -192,35 +206,53 @@ else()
 	message(STATUS "Mongocxx was not found")
 endif()
 
-	message(STATUS "Found C++ compiler:       " ${CMAKE_CXX_COMPILER_VERSION})
+	message(STATUS "Found C++ compiler:       " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
 
 
 IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
 	FIND_PACKAGE(Git)
 	IF(GIT_FOUND)
-		EXECUTE_PROCESS(
-		COMMAND ${GIT_EXECUTABLE} describe --tags --always
-		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
-		OUTPUT_VARIABLE "GINAN_COMMIT_VERSION"
-			OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 		EXECUTE_PROCESS(
-				COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-				WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
-			OUTPUT_VARIABLE "GINAN_BRANCH_NAME"
-				OUTPUT_STRIP_TRAILING_WHITESPACE)
-
+			COMMAND ${GIT_EXECUTABLE} log --pretty=format:'%h' -n 1
+			OUTPUT_VARIABLE GINAN_COMMIT_HASH
+			ERROR_QUIET
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		EXECUTE_PROCESS(
+			COMMAND bash -c "git diff --quiet --exit-code || echo -dirty "
+			OUTPUT_VARIABLE GINAN_COMMIT_DIFF
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		EXECUTE_PROCESS(
+			COMMAND ${GIT_EXECUTABLE} describe --exact-match --tags
+			OUTPUT_VARIABLE GINAN_COMMIT_TAG ERROR_QUIET
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		EXECUTE_PROCESS(
+			COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+			OUTPUT_VARIABLE GINAN_BRANCH_NAME
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
 		EXECUTE_PROCESS(
 			COMMAND ${GIT_EXECUTABLE} log -1 --format=%cd --date=local
-			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
-		OUTPUT_VARIABLE "GINAN_COMMIT_DATE"
-		OUTPUT_STRIP_TRAILING_WHITESPACE)
+			OUTPUT_VARIABLE "GINAN_COMMIT_DATE"
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
 
+		if (GINAN_COMMIT_TAG STREQUAL "")
+			set(GINAN_COMMIT_TAG "untagged")
+		endif()
+		string(REGEX REPLACE "'" "" GINAN_COMMIT_HASH "${GINAN_COMMIT_HASH}")
+
+		SET(GINAN_COMMIT_VERSION "${GINAN_COMMIT_TAG}-${GINAN_COMMIT_HASH}${GINAN_COMMIT_DIFF}")
 		MESSAGE(STATUS "Git branch tag:           ${GINAN_COMMIT_VERSION}")
 		MESSAGE(STATUS "Git branch:               ${GINAN_BRANCH_NAME}")
 	ELSE(GIT_FOUND)
-		SET(GINAN_COMMIT_VERSION 0)
-		SET(GINAN_BRANCH_NAME "unknown branch")
+		SET(GINAN_COMMIT_VERSION "N/A")
+		SET(GINAN_COMMIT_DIFF "N/A")
+		SET(GINAN_COMMIT_TAG "N/A")
+		SET(GINAN_BRANCH_NAME "N/A")
 		MESSAGE( STATUS "Git not found: ${GINAN_COMMIT_VERSION}" )
 	ENDIF(GIT_FOUND)
 ELSE()

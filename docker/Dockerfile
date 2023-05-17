@@ -1,5 +1,4 @@
 FROM gnssanalysis/ginan-env:latest
-
 ENV HOME /root
 RUN mkdir -p /ginan
 ADD . /ginan
@@ -7,11 +6,12 @@ WORKDIR /ginan
 ARG TARGET
 RUN mkdir -p src/build \
     && cd src/build \
-    && cmake -DENABLE_OPTIMISATION=TRUE -DENABLE_PARALLELISATION=TRUE -DENABLE_MONGODB=TRUE .. \
-    && make -j 3 $TARGET \
+    && cmake -DENABLE_OPTIMISATION=TRUE -DENABLE_PARALLELISATION=TRUE .. \
+    && make -j 2 $TARGET \
     && cd ../.. \
     && rm -rf src/build
 
 ENV PATH "/ginan/bin:${PATH}"
-RUN cd /ginan/scripts && pip install .
-#COPY ./docker/.bashrc /root/.bashrc
+# Here to update gnssanalysis for the pipeline if needed.
+RUN pip3 install gnssanalysis==0.0.26
+

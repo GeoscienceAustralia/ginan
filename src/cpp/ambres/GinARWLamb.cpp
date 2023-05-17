@@ -59,7 +59,7 @@ void WL_newsect(
 	amb.mea_fin = time;
 	amb.int_amb = INVALID_WLVAL;
 	
-	tracepdeex(ARTRCLVL+2, trace, "\n#ARES_WLAR New WL archive entry: %s %s %s %4d", rec.c_str(), sat.id().c_str(), time.to_string(0).c_str(), ind );
+	tracepdeex(ARTRCLVL+2, trace, "\n#ARES_WLAR New WL archive entry: %s %s %s %4d", rec.c_str(), sat.id().c_str(), time.to_string().c_str(), ind );
 	
 	WL_archive[key][ind] = amb;
 	WL_arch_ind[key]     = ind;
@@ -142,7 +142,7 @@ void  updat_WLfilt(
 		}
 	}
 	
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR Updating WL filter %s %s %s, nmea = %4d", time.to_string(0).c_str(), rec, sys._to_string(), amblst.size());
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR Updating WL filter %s %s %s, nmea = %4d", time.to_string().c_str(), rec, sys._to_string(), amblst.size());
 	
 	/* Remove ambiguities for Unmeasured States */
 	for (auto [key, index] : WLambKF.kfIndexMap) 
@@ -168,7 +168,11 @@ void  updat_WLfilt(
 	/* Main measurements */
 	for (auto& [mkey,amb] : amblst)
 	{
-		ObsKey obsKey = { mkey.Sat, mkey.str, "WLmea" };
+		KFKey obsKey;
+		obsKey.Sat		= mkey.Sat;
+		obsKey.str		= mkey.str;
+		obsKey.type		= KF::WL_MEAS;
+		
 		KFMeasEntry	WLmeas(&WLambKF, obsKey);
 		
 		WLmeas.setValue(amb.raw_amb);
@@ -211,10 +215,15 @@ void  updat_WLfilt(
 		string rec = opt.recv;
 		SatSys sat = RECpivlist[typ][sys][rec].pre_sat;
 		int    amb = RECpivlist[typ][sys][rec].sat_amb[sat];
-		ObsKey obsKey = { sat, rec, "WLpiv" };
+		KFKey obsKey;
+		obsKey.Sat		= sat;
+		obsKey.str		= rec;
+		obsKey.type		= KF::WL_PIV;
+		
 		KFMeasEntry	WLmeas(&WLambKF, obsKey);
 		WLmeas.setValue(amb);
 		WLmeas.setNoise(FIXED_AMB_VAR);
+		
 		KFKey kfKey	= {KF::AMBIGUITY, sat, rec, typ};
 		init.Q = 0;
 		WLmeas.addDsgnEntry( kfKey, 1, init);
@@ -227,7 +236,12 @@ void  updat_WLfilt(
 		{
 			if ( rec == AR_reflist[sys] )
 			{
-				ObsKey obsKey = { sat0, rec, "WLpiv" };
+				KFKey obsKey;
+				
+				obsKey.Sat		= sat0;
+				obsKey.str		= rec;
+				obsKey.type		= KF::WL_PIV;
+				
 				KFMeasEntry	WLmeas(&WLambKF, obsKey);
 				WLmeas.setValue(0);
 				WLmeas.setNoise(FIXED_AMB_VAR);
@@ -244,8 +258,14 @@ void  updat_WLfilt(
 			{
 				SatSys sat = RECpivlist[typ][sys][rec].pre_sat;
 				double amb = RECpivlist[typ][sys][rec].sat_amb[sat];
-				ObsKey obsKey = { sat, rec, "WLpiv" };
+				
+				KFKey obsKey;
+				obsKey.Sat		= sat;
+				obsKey.str		= rec;
+				obsKey.type		= KF::WL_PIV;
+				
 				KFMeasEntry	WLmeas(&WLambKF, obsKey);
+				
 				WLmeas.setValue(amb);
 				WLmeas.setNoise(FIXED_AMB_VAR);
 				
@@ -263,11 +283,18 @@ void  updat_WLfilt(
 		{
 			string rec = SATpivlist[typ][sys][sat].pre_rec;
 			double amb = SATpivlist[typ][sys][sat].rec_amb[rec];
-			ObsKey obsKey = { sat, rec, "WLpiv" };
+			
+			KFKey obsKey;
+			obsKey.Sat		= sat;
+			obsKey.str		= rec;
+			obsKey.type		= KF::WL_PIV;
+			
 			KFMeasEntry	WLmeas(&WLambKF, obsKey);
 			WLmeas.setValue(amb);
 			WLmeas.setNoise(FIXED_AMB_VAR);
+			
 			tracepdeex(ARTRCLVL+1, trace, "\n WLpiv %s %s %10.4f %13.4e", sat.id().c_str(), rec.c_str(), amb, FIXED_AMB_VAR);
+			
 			KFKey kfKey	= {KF::AMBIGUITY, sat, rec, typ};
 			init.Q = 0;
 			WLmeas.addDsgnEntry( kfKey, 1, init);
@@ -349,7 +376,7 @@ void  reslv_WLambg(
 	
 	int nfix = GNSS_AR(trace, ambState, opt);
 	
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR Resolving WL ambiguities %s %s %s %4d %4d", time.to_string(0).c_str(), rec.c_str(), sys._to_string(), ambState.aflt.size(), nfix);
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR Resolving WL ambiguities %s %s %s %4d %4d", time.to_string().c_str(), rec.c_str(), sys._to_string(), ambState.aflt.size(), nfix);
 	
 	KFState KFcopy = WLambKF;
 	VectorXd fixX = ambState.zfix;
@@ -361,7 +388,7 @@ void  reslv_WLambg(
 
 	for (int i = 0; i < nfix; i++)
 	{
-		ObsKey obsKey;
+		KFKey obsKey;
 		obsKey.str = "WLint ";
 		obsKey.num = i;
 		
@@ -606,7 +633,7 @@ void dump_WLambg(
 		{
 			E_AmbTyp typs = E_AmbTyp::_from_integral(key.num);
 			tracepdeex(ARTRCLVL, trace, "\n#ARES_WLAR archived ambiguity: %s %s %s", key.Sat.id().c_str(), key.str.c_str(), typs._to_string());
-			tracepdeex(ARTRCLVL, trace, " %s %s %s",amb.sec_ini.to_string(0).c_str(),amb.mea_fin.to_string(0).c_str(),amb.fix_fin.to_string(0).c_str());
+			tracepdeex(ARTRCLVL, trace, " %s %s %s",amb.sec_ini.to_string().c_str(),amb.mea_fin.to_string().c_str(),amb.fix_fin.to_string().c_str());
 			tracepdeex(ARTRCLVL, trace, " %4d %4d %5d", amb.hld_epc, ind, amb.int_amb);
 		}
 	}

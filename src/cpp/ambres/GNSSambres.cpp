@@ -275,23 +275,90 @@ int Ztrans_reduction(
 }
 
 /** Integer bootstrapping */
+// int integer_bootst(
+// 	Trace& trace,		///< Debug trace
+// 	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
+// 	GinAR_opt opt)		///< Object containing processing options
+// {
+// 	int info = Ztrans_reduction(trace, mtrx);
+
+// 	if (info < 0)
+// 		return 0;
+
+	
+
+// 	GinAR_mtx mtrx2;
+// 	mtrx2.aflt = mtrx.zflt;
+
+// 	MatrixXd Z   = mtrx.Ztrs;
+// 	mtrx2.Paflt	 = Z*mtrx.Paflt*Z.transpose();
+
+// 	int nfix = interat_round (trace, mtrx2, opt);
+
+// 	mtrx.Ztrs = mtrx2.Ztrs * Z;
+// 	mtrx.zfix = mtrx2.zfix;
+
+// 	return nfix;
+// }
+
 int integer_bootst(
 	Trace& trace,		///< Debug trace
 	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
 	GinAR_opt opt)		///< Object containing processing options
 {
-	int info = Ztrans_reduction(trace, mtrx);
+	LDLT<MatrixXd> ldlt_;
+	ldlt_.compute(mtrx.Paflt);
 
-	if (info < 0)
+	if (ldlt_.isPositive() == false)
+	{
+		tracepdeex(1, trace, "WARNING: LD decomposition error, ambiguity matrix may not positive definite\n");
 		return 0;
+	}
+
+	MatrixXd L_ = ldlt_.matrixL();
+	auto     tr = ldlt_.transpositionsP ();
+	
+	int siz = mtrx.aflt.size();
+	MatrixXd I0 = MatrixXd::Identity(siz, siz);
+	MatrixXd Zt = tr * I0;
+	VectorXd z_ = tr * mtrx.aflt;
+
+	for (int j = siz - 2; j >= 0; j--)
+	{
+		for (int i = j + 1; i < siz; i++)
+		{
+			double mu = ROUND(L_(i, j));
+
+			if (mu != 0)
+			{
+				L_.row(i) -= mu * L_.row(j);
+				Zt.row(i) -= mu * Zt.row(j);
+				z_    (i) -= mu * z_    (j);
+			}
+		}
+	}
+
+	MatrixXd Pz = Zt*mtrx.Paflt*Zt.transpose();
 
 	GinAR_mtx mtrx2;
-	mtrx2.aflt = mtrx.zflt;
+	mtrx2.aflt  = z_;
+	mtrx2.Paflt	= Pz;
 
-	MatrixXd Z   = mtrx.Ztrs;
-	mtrx2.Paflt	 = Z*mtrx.Paflt*Z.transpose();
+	if (AR_VERBO)
+	{
+		trace << std::endl << "x_=" << std::endl << mtrx.aflt.transpose() 	<< std::endl;
+		trace << std::endl << "Px=" << std::endl << mtrx.Paflt 				<< std::endl;
+		trace << std::endl << "Zt=" << std::endl << Zt 						<< std::endl;
+		trace << std::endl << "z_=" << std::endl << z_.transpose() 			<< std::endl;
+		trace << std::endl << "Pz=" << std::endl << Pz						<< std::endl;
+	}
 
-	return interat_round (trace, mtrx2, opt);
+	int nfix = interat_round (trace, mtrx2, opt);
+
+	mtrx.Ztrs = mtrx2.Ztrs * Zt;
+	mtrx.zfix = mtrx2.zfix;
+
+	return nfix;
 }
 
 /** Lambda algorithm and its variations (ILQ, Common set, BIE) */
@@ -300,8 +367,6 @@ int lambda_search(
 	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
 	GinAR_opt opt)		///< Object containing processing options
 {
-	TestStack ts(__FUNCTION__);
-	
 	int info = Ztrans_reduction(trace, mtrx);
 
 	if (info < 0)
@@ -436,9 +501,6 @@ int lambda_search(
 	MatrixXd Z = mtrx.Ztrs.bottomRows(zsiz);
 	mtrx.Ztrs = Z;
 	
-	TestStack::testMat("zfix0", zfix0);
-	TestStack::testMat("mtrx.Ztrs", mtrx.Ztrs);
-	
 	switch (opt.mode)
 	{
 		case E_ARmode::LAMBDA:
@@ -527,12 +589,10 @@ int GNSS_AR(
 	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
 	GinAR_opt opt)		///< Object containing processing options
 {
-	TestStack ts(__FUNCTION__);
-	
 	switch (opt.mode)
 	{
 		case E_ARmode::OFF:					return 0;
-		case E_ARmode::ROUND:				return simple_round		(trace, mtrx, opt);
+		case E_ARmode::ROUND:				return simple_round	(trace, mtrx, opt);
 		case E_ARmode::ITER_RND:			return interat_round	(trace, mtrx, opt);
 		case E_ARmode::BOOTST:				return integer_bootst	(trace, mtrx, opt);
 		case E_ARmode::LAMBDA:				return lambda_search	(trace, mtrx, opt);

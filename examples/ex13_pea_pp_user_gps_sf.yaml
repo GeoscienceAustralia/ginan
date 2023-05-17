@@ -7,24 +7,29 @@ inputs:
     root_directory: products/
 
     atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snx_files: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
+    snx_files: [ "igs*.snx", tables/igs_satellite_metadata_2203_plus.snx ]  # SINEX file for meta data and initial position
     blq_files: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
-    ion_files: [ codg1990.19i ]          # Ionospheric delay maps in IONEX format
 
     troposphere:
         gpt2grid_files:   gpt_25.grd
-
+    
+    ionosphere:
+        ion_files: [ codg1990.19i ]           # Ionospheric delay maps in IONEX format
+    
+    egm_files:  [ tables/EGM2008.gfc         ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050     ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat]
+    
     satellite_data:
         nav_files: [ brdm1990.19p        ]  # broadcast navigation file
         sp3_files: [ COD0MGXFIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
         clk_files: [ COD0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
-        # dcb_files: [  ]                    # DCB files for Ionosphere may be provided separately
     
     gnss_observations:
 
-        root_directory: ../data/
+        inputs_root: data/
         
-        rnx_files:
+        rnx_inputs:
             # Select files to run by:
             #- "AGGO*.rnx"
             - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
@@ -47,7 +52,7 @@ outputs:
     
     ppp_sol:
         output:                     true
-        filename:                   SF_<STATION><YYYY><DDD><HH>.POS
+        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.POS
 
     
     metadata:
@@ -58,23 +63,13 @@ outputs:
         analysis_program:               AUSACS
         rinex_comment:                  AUSNETWORK1
 
-mongo:
-    enable:                     true
-    output_measurements:        true
-    output_states:              true
-    output_test_stats:          true
-    #delete_history:             true
-    uri:                        mongodb://127.0.0.1:27017
-    suffix:                     <BRANCH>_<HASH>
-
 processing_options:
 
     epoch_control:
         start_epoch:                2019-07-18 00:00:00
         # end_epoch:                  2019-07-18 03:59:30
         epoch_interval:             30          #seconds
-        # max_epochs:                 120        #0 is infinite
-        # wait_next_epoch:            3600
+        max_epochs:                 360        #0 is infinite
 
     process_modes:
         user:           true
@@ -82,16 +77,14 @@ processing_options:
     gnss_general:
         elevation_mask:     7   #degrees
 
-        reject_eclipse:     true            #  reject observation during satellite eclipse periods
         raim:               true
 
         max_gdop:   30
         sys_options:
             gps:
-                process:    true
-                code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
-                                    L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
-                                    L5I, L5Q, L5X]
+                process:            true
+                reject_eclipse:     true
+                code_priorities:    [ L1C ]
     gnss_models:
         
 
@@ -155,32 +148,3 @@ estimation_parameters:
             sigma:              [1]
             proc_noise:         [0.01]
             proc_noise_dt:      second
-
-    satellites:
-
-        clk:
-            #estimated:          [true]
-        clk_rate:
-            #estimated:          [true]
-        orb:
-            #estimated:          [true]
-
-
-    overrides:
-
-        stations:
-
-            #ALIC:
-                #pos:
-                #    sigma:              [60]
-                    #proc_noise:         [0]
-                #clk:
-                    #sigma:              [0.01]
-
-            #AGGO:
-                #exclude: true
-            #ALIC:
-                #exclude: true
-            #ANKR:
-                #exclude: true
-                    #estimated:  false

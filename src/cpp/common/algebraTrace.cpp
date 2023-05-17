@@ -20,6 +20,9 @@ using std::map;
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/string.hpp>
 
+map<short int, string> idStringMap;
+map<string, short int> stringIdMap;
+
 /** Returns the type of object that is located at the specified position in a file
 */
 E_SerialObject getFilterTypeFromFile(
@@ -50,15 +53,15 @@ E_SerialObject getFilterTypeFromFile(
 		return E_SerialObject::NONE;
 	}
 
-	serialize(serial, itemDelta);
+	serial & itemDelta;
 
 	long int itemPosition = currentPosition - itemDelta;
 
 	fileStream.seekg(itemPosition, fileStream.beg);
 
-	int type_int;
-	serialize(serial, type_int);
-	E_SerialObject type = E_SerialObject::_from_integral(type_int);
+	int typeInt;
+	serial & typeInt;
+	E_SerialObject type = E_SerialObject::_from_integral(typeInt);
 
 	return type;
 }
@@ -113,16 +116,16 @@ void outputPersistanceStates(
 
 	binary_oarchive serial(fileStream, 1);	//no header
 
-	serialize(serial, netKFState);
+	serial & netKFState;
 
 	int stationMapSize = stationMap.size();
-	serialize(serial, stationMapSize);
+	serial & stationMapSize;
 
 	for (auto& [id, rec] : stationMap)
 	{
 		string tempId = id;
-		serialize(serial, tempId);
-		serialize(serial, rec.pppState);
+		serial & tempId;
+		serial & rec.pppState;
 	}
 }
 
@@ -144,7 +147,7 @@ void inputPersistanceStates(
 
 	{
 		KFState kfState;
-		serialize(serial, kfState);
+		serial & kfState;
 
 		KFState& destKFState = netKFState;
 
@@ -174,15 +177,15 @@ void inputPersistanceStates(
 	}
 
 	int stationMapSize;
-	serialize(serial, stationMapSize);
+	serial & stationMapSize;
 
 	for (int i = 0; i < stationMapSize; i++)
 	{
 		string tempId;
-		serialize(serial, tempId);
+		serial & tempId;
 
 		KFState kfState;
-		serialize(serial, kfState);
+		serial & kfState;
 
 		KFState& destKFState = stationMap[tempId].pppState;
 

@@ -17,7 +17,7 @@
 
 #include "algebra.hpp"
 #include "common.hpp"
-#include "streamTrace.hpp"
+#include "trace.hpp"
 
 
 /* constants/macros ----------------------------------------------------------*/

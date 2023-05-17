@@ -10,14 +10,15 @@ using std::string;
 
 #include "eigenIncluder.hpp"
 
-#include "streamTrace.hpp"
 #include "navigation.hpp"
-#include "gTime.hpp"
 #include "common.hpp"
+#include "trace.hpp"
+#include "gTime.hpp"
 #include "enums.h"
 
 
-/* satellite code to satellite system ----------------------------------------*/
+/** satellite code to satellite system
+*/
 E_Sys code2sys(char code)
 {
 	if (code=='G'||code==' ') return E_Sys::GPS;
@@ -29,14 +30,13 @@ E_Sys code2sys(char code)
 	return E_Sys::NONE;
 }
 
-
 /** read an epoch of data from an sp3 precise ephemeris file
  */
 bool readsp3(
 	std::istream&	fileStream, 	///< stream to read content from
-	list<Peph>&		pephList,		///< list of precise ephemerides for one epoch
+	vector<Peph>&	pephList,		///< vector of precise ephemerides for one epoch
 	int				opt,			///< options options (1: only observed + 2: only predicted + 4: not combined)
-	bool&			isUTC,			///< reported utc state in header
+	E_TimeSys&		tsys,			///< time system
 	double*			bfact)			///< bfact values from header
 {
 	GTime	time			= {};
@@ -80,9 +80,12 @@ bool readsp3(
 				return false;
 			}
 			
-			if (isUTC)
+			if (tsys == +E_TimeSys::UTC)
 			{
-				time = utc2gpst(time); /* utc->gpst */
+				UtcTime utcTime;
+				utcTime.bigTime	= time.bigTime;
+				
+				time = utcTime; 
 			}
 			continue;
 		}
@@ -96,12 +99,7 @@ bool readsp3(
 			E_Sys sys = code2sys(buff[1]);
 			int prn = (int)str2num(buff, 2, 2);
 			
-			if		(sys == +E_Sys::SBS)	prn += 100;
-			else if (sys == +E_Sys::QZS)	prn += 192; /* extension to sp3-c */
-
-			SatSys Sat;
-			Sat.sys = sys;
-			Sat.prn = prn;
+			SatSys Sat(sys, prn);
 			if (!Sat)
 				continue;
 
@@ -130,10 +128,9 @@ bool readsp3(
 				if (buff[0]=='P')
 				{ 
 					/* position */
-					if	( val != 0
-						&&fabs(val - 999999.999999) >= 1E-6)
+					if	( val != 0)
 					{
-						peph.Pos[j] = val * 1000;
+						peph.pos[j] = val * 1000;
 					}
 					else
 					{
@@ -144,23 +141,22 @@ bool readsp3(
 					if	(  base	> 0
 						&& std	> 0)
 					{
-						peph.PosStd[j] = pow(base, std) * 1E-3;
+						peph.posStd[j] = pow(base, std) * 1E-3;
 					}
 				}
 				else if (valid)
 				{
 // 					/* velocity */
-// 					if	( val !=0
-// 						&&fabs(val - 999999.999999) >= 1E-6)
+// 					if	( val !=0)
 // 					{
-// 						peph.Vel[j] = val * 0.1;
+// 						peph.vel[j] = val * 0.1;
 // 					}
 // 					
 // 					double base = bfact[j < 3 ? 0 : 1];
 // 					if	(  base	> 0
 // 						&& std	> 0)
 // 					{
-// 						peph.VelStd[j] = pow(base, std) * 1E-7;
+// 						peph.velStd[j] = pow(base, std) * 1E-7;
 // 					}
 				}
 			}
@@ -172,19 +168,22 @@ bool readsp3(
 				if (j == 3	&& (opt&1)	&&  pred_c)		continue;
 				if (j == 3	&& (opt&2)	&& !pred_c)		continue;
 
+				string checkValue;
+				checkValue.assign(buff + 4 + j * 14, 7);
 				double val = str2num(buff, 4	+ j * 14,	14);
 				double std = str2num(buff,61	+ j * 3,	3);
 
 				if (buff[0] == 'P')
 				{ 
-					/* position */
+					/* clock */
 					if	( val != 0
-						&&fabs(val - 999999.999999) >= 1E-6)
+						&&checkValue != " 999999")
 					{
-						peph.Clk = val * 1E-6;
+						peph.clk = val * 1E-6;
 					}
 					else
 					{
+						peph.clk = INVALID_CLOCK_VALUE;
 // 						valid = false;	//allow clocks to be invalid
 					}
 					
@@ -192,14 +191,14 @@ bool readsp3(
 					if	(  base	> 0
 						&& std	> 0)
 					{
-						peph.ClkStd = pow(base, std) * 1E-12;
+						peph.clkStd = pow(base, std) * 1E-12;
 					}
 				}
 				else if (valid)
 				{
-// 					/* velocity */
+// 					/* clock rate */
 // 					if	( val !=0
-// 						&&fabs(val - 999999.999999) >= 1E-6)
+// 						&&fabs(val) < NO_SP3_CLK)
 // 					{
 // 						peph.dCk = val * 1E-10;
 // 					}
@@ -216,12 +215,22 @@ bool readsp3(
 			if (valid)
 			{
 				pephList.push_back(peph);
-// 				nav->pephMap[peph.Sat][peph.time] = peph;		//todo aaron, why doing this?
 			}
 			
 			continue;
 		}
-		
+		/*
+	Quick and dirty read of the velocities
+	@todo change later.
+		*/
+		if (buff[0] == 'V')
+		{
+			for (int i=0; i < 3; i++)
+			{
+				double val = str2num(buff, 4 + i * 14, 14);
+				pephList.back().vel[i] = val * 0.1;
+			}
+		}
 		if (buff[0] == '#')
 		{
 			hashCount++;
@@ -272,14 +281,28 @@ bool readsp3(
 			
 			if (cCount == 1)
 			{
-				char tsys[4] = "";
-				strncpy(tsys, buff+9,3); 
-				tsys[3] = '\0';
+				string timeSysStr = line.substr(9, 3);
 				
-				if (!strcmp(tsys, "UTC"))
+				if		(timeSysStr == "GPS")	tsys = E_TimeSys::GPST;
+				else if	(timeSysStr == "GLO")	tsys = E_TimeSys::GLONASST;
+				else if	(timeSysStr == "GAL")	tsys = E_TimeSys::GST;
+				else if	(timeSysStr == "QZS")	tsys = E_TimeSys::QZSST;
+				else if	(timeSysStr == "TAI")	tsys = E_TimeSys::TAI;
+				else if	(timeSysStr == "UTC")	tsys = E_TimeSys::UTC;
+				else
 				{
-					isUTC = true;
-// 					time = utc2gpst(time); /* utc->gpst */
+					BOOST_LOG_TRIVIAL(error)
+					<< "Unknown sp3 time system: " << timeSysStr << std::endl;
+					return false;
+				}
+
+				// currently only GPST and UTC are supported
+				if	( tsys != +E_TimeSys::GPST
+					&&tsys != +E_TimeSys::UTC)
+				{
+					BOOST_LOG_TRIVIAL(error)
+					<< "Unsupported time system: " << timeSysStr << std::endl;
+					return false;
 				}
 			}
 			continue;
@@ -320,16 +343,16 @@ void readSp3ToNav(
 		printf("\nSp3 file open error %s\n", file.c_str());
 	}
 	
-	list<Peph>	pephList;
+	vector<Peph>	pephList;
 	
-	bool	isUTC		= false;
+	E_TimeSys	tsys	= E_TimeSys::NONE;
 	double	bfact[2]	= {};
-	while (readsp3(fileStream, pephList, opt, isUTC, bfact))
+	while (readsp3(fileStream, pephList, opt, tsys, bfact))
 	{
 		//keep reading until it fails
 		for (auto& peph : pephList)
 		{
-			nav->pephMap[peph.Sat][peph.time] = peph;
+			nav->pephMap[peph.Sat.id()][peph.time] = peph;
 		}
 		pephList.clear();
 	}
@@ -339,12 +362,9 @@ void readSp3ToNav(
 void orb2sp3(
 	Navigation& nav)
 {
-	for (auto& [SatId,	satNav]	: nav.satNavMap)
+	for (auto& [Sat,	satNav]		: nav.satNavMap)
 	for (auto& [time,	orbitInfo]	: satNav.satOrbit.orbitInfoMap)
 	{
-		SatSys Sat;
-		Sat.fromHash(SatId);
-		
 		Peph peph = {};
 
 		peph.index			= 0;
@@ -352,12 +372,9 @@ void orb2sp3(
 		peph.Sat			= Sat;
 
 		/* copy itrf coordinates */
-		for (int k = 0; k < 3; k++)
-		{
-			peph.Pos	[k] = orbitInfo.xtrf[k];
-			peph.PosStd	[k] = 0.1;			//default value for POD orbits precision
-		}
+		peph.pos	= orbitInfo.posEcef;
+		peph.posStd	= Vector3d::Ones() * 0.1;//default value for POD orbits precision
 
-		nav.pephMap[Sat][time] = peph;
+		nav.pephMap[Sat.id()][time] = peph;
 	}
 }

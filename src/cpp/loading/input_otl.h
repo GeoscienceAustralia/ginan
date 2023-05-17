@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef PEA_INPUT_OTL_H
-#define PEA_INPUT_OTL_H
+#pragma once
 
 #include  "boost_ma_type.h"
 struct otl_input {
@@ -26,6 +25,3 @@ struct otl_input {
 	std::vector< std::string > wave_names;
 	MA3cf out_disp; //  nstation, nphase, naxis  
 };
-
-
-#endif //PEA_INPUT_OTL_H

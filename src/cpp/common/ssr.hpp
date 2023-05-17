@@ -1,91 +1,146 @@
 
-#ifndef __SSR_H__
-#define __SSR_H__
+#pragma once
 
+#include <set>
 
 #include "eigenIncluder.hpp"
+#include "gTime.hpp"
+#include "trace.hpp"
 
+
+const double ura_ssr[] =
+{
+	0,
+	0.25,
+	0.5,
+	0.75,
+	1,
+	1.25,
+	1.5,
+	1.75,
+	2,
+	2.75,
+	3.5,
+	4.25,
+	5,
+	5.75,
+	6.5,
+	7.25,
+	8,
+	10.25,
+	12.5,
+	14.75,
+	17,
+	19.25,
+	21.5,
+	23.75,
+	26,
+	32.75,
+	39.5,
+	46.25,
+	53,
+	59.75,
+	66.5,
+	73.25,
+	80,
+	100.25,
+	120.5,
+	140.75,
+	161,
+	181.25,
+	201.5,
+	221.75,
+	242,
+	302.75,
+	363.5,
+	424.25,
+	485,
+	545.75,
+	606.5,
+	667.25,
+	728,
+	910.25,
+	1092.5,
+	1274.75,
+	1457,
+	1639.25,
+	1821.5,
+	2003.75,
+	2186,
+	2732.75,
+	3279.5,
+	3826.25,
+	4373,
+	4919.75,
+	5466.5,
+	6013.25
+};
 
 // SSR message metadata
 struct SSRMeta
 {
-	int				epochTime1s			= 0;
-	int				ssrUpdateIntIndex	= -1;
-	int				multipleMessage		= 0;
-	unsigned int	referenceDatum		= 0;
-	unsigned int	provider			= 0;
-	unsigned int	solution			= 0;
+	int				epochTime1s		= 0;
+	GTime			receivedTime	= {};
+	int				updateIntIndex	= -1;
+	int				multipleMessage	= 0;
+	unsigned int	referenceDatum	= 0;
+	unsigned int	provider		= 0;
+	unsigned int	solution		= 0;
+	unsigned int	numSats			= 0;
 };
 
 struct SSREph
 {
-	SSRMeta 	ssrMeta;
-	GTime		t0			= {};
-	double		udi			=  0;		///< update interval
-	int			iod			= -1;	
-	int			iode		= -1;		///< issue of data
-	int			iodcrc		= -1;
-	Vector3d	deph 		= Vector3d::Zero();		///<     delta orbit {radial,along,cross} (m)
-	Vector3d	ddeph		= Vector3d::Zero();		///< dot delta orbit {radial,along,cross} (m/s)
+	SSRMeta 	ssrMeta	= {};
+	GTime		t0		= {};
+	double		udi		=  0;				///< update interval
+	int			iod		= -1;
+	int			iode	= -1;				///< issue of data
+	int			iodcrc	= -1;
+	Vector3d	deph 	= Vector3d::Zero();	///<     delta orbit {radial,along,cross} (m)
+	Vector3d	ddeph	= Vector3d::Zero();	///< dot delta orbit {radial,along,cross} (m/s)
 };
 
 struct SSRClk
 {
-	SSRMeta ssrMeta	= {};
-	GTime	t0		= {};
-	double	udi		= 0;			///< update interval
-	int		iod		= -1;
-	double	dclk[3]	= {};			///< delta clock {c0,c1,c2} (m,m/s,m/s^2)
-};
-
-struct SSRHRClk
-{
-	SSRMeta ssrMeta	= {};
-	GTime	t0		= {};
-	double	udi		= 0;			///< update interval
-	int		iod		= -1;
-	double	hrclk	= 0;			///< high-rate clock corection (m)
+	SSRMeta 	ssrMeta	= {};
+	GTime		t0		= {};
+	double		udi		= 0;				///< update interval
+	int			iod		= -1;
+	double		dclk[3]	= {};				///< delta clock {c0,c1,c2} (m,m/s,m/s^2)
 };
 
 struct SSRUra
 {
-	GTime	t0	= {};
-	double	udi	= 0;				///< update interval
-	int		iod	= -1;
-	int		ura	= 0;				///< URA indicator
+	SSRMeta 	ssrMeta	= {};
+	GTime		t0		= {};
+	double		udi		= 0;				///< update interval
+	int			iod		= -1;
+	int			ura		= 0;				///< URA indicator
 };
 
-struct SSRPhase
+struct SSRHRClk
 {
-	int dispBiasConistInd	= -1;
-	int MWConistInd			= -1;
-	unsigned int nbias		= 0;
-	double yawAngle			= 0;
-	double yawRate			= 0;
-};
-
-struct SSRPhaseCh
-{
-	unsigned int signalIntInd		= -1;
-	unsigned int signalWidIntInd	= -1;
-	unsigned int signalDisconCnt	= -1;
+	SSRMeta 	ssrMeta	= {};
+	GTime		t0		= {};
+	double		udi		= 0;				///< update interval
+	int			iod		= -1;
+	double		hrclk	= 0;				///< high-rate clock corection (m)
 };
 
 struct BiasVar
 {
-	double bias	= 0;				///< biases (m) 
-	double var	= 0;				///< biases variance (m^2) 
+	double		bias	= 0;				///< biases (m) 
+	double		var		= 0;				///< biases variance (m^2) 
 };
-
 
 struct SSRBias
 {
-	SSRMeta		ssrMeta;
-	
-	GTime	t0	= {};
-	double	udi	= 0;				///< update interval
-	int		iod	= -1;
-	
+	SSRMeta			ssrMeta	= {};
+	GTime			t0		= {};
+	double			udi		= 0;				///< update interval
+	int				iod		= -1;
+	unsigned int	nbias	= 0;
 	map<E_ObsCode, BiasVar> obsCodeBiasMap;
 };
 
@@ -94,20 +149,108 @@ struct SSRCodeBias : SSRBias
 	//just inherit.
 };
 
+struct SSRPhase
+{
+	int				dispBiasConistInd	= -1;
+	int				MWConistInd			= -1;
+	double			yawAngle			= 0;
+	double			yawRate				= 0;
+};
+
+struct SSRPhaseCh
+{
+	unsigned int	signalIntInd		= -1;
+	unsigned int	signalWLIntInd		= -1;
+	unsigned int	signalDisconCnt		= -1;
+};
+
 struct SSRPhasBias : SSRBias
 {
 	SSRPhase	ssrPhase; 					///< Additional data for SSR phase messages
 	map<E_ObsCode, SSRPhaseCh> ssrPhaseChs;	///< Additional data for SSR phase messages, for each channel
 };
 
+struct SphComp
+{
+	int		hind;
+	int		order;
+	int		degree;
+	bool	parity;
+	double	coeffc;
+	double	variance;
+};
+
+struct SSRVTEClayer
+{
+	double height	= 0;
+	int maxOrder	= 0;
+	int maxDegree	= 0;
+	map<int, SphComp> sphHarmonic;
+};
+
+struct SSRAtmGlobal
+{
+	GTime					time;
+	int 					numberLayers;
+	map<int, SSRVTEClayer>	layers;
+	double					vtecQuality;
+	int 					iod;
+};
+
+struct SSRSTECData
+{
+	int 				iod;
+	double				accr;
+	map<int,double>		poly;
+	map<int,double>		grid;
+};
+
+struct SSRTropData
+{
+	double acc;
+	map<int,double>	poly;
+	map<int,double>	gridDry;
+	map<int,double>	gridWet;
+};
+
+struct SSRAtmRegion
+{
+	int regionDefIOD = -1;
+	map<int, double>					gridLat;
+	map<int, double>					gridLon;
+	
+	double minLat		= 0;
+	double maxLat		= 0;
+	double intLat		= 0;
+	                	
+	double minLon		= 0;
+	double maxLon		= 0;
+	double intLon		= 0;
+	
+	int tropPolySize	= 0;
+	int ionoPolySize	= 0;
+	
+				map<GTime,SSRTropData, std::greater<GTime>>		tropData;
+	map<SatSys,	map<GTime,SSRSTECData, std::greater<GTime>>>	stecData;
+};
+
+struct SSRAtm
+{
+	SSRMeta					ssrMeta;
+	map<GTime,SSRAtmGlobal, std::greater<GTime>>	atmosGlobalMap;
+	map<int,SSRAtmRegion>							atmosRegionsMap;
+};
+
 struct EphValues
 {
 	GTime			time;
-	unsigned int	iode		= 0;
-	Vector3d		brdcPos		= Vector3d::Zero();
-	Vector3d		brdcVel		= Vector3d::Zero();
-	Vector3d		precPos		= Vector3d::Zero();
-	Vector3d		precVel		= Vector3d::Zero();
+	unsigned int	iode	= 0;
+	Vector3d		brdcPos	= Vector3d::Zero();
+	Vector3d		brdcVel	= Vector3d::Zero();
+	Vector3d		precPos	= Vector3d::Zero();
+	Vector3d		precVel	= Vector3d::Zero();
+
+	double			ephVar	= 0;
 };
 
 struct ClkValues
@@ -137,14 +280,12 @@ struct SSRMaps
 	map<GTime, SSRPhasBias,	std::greater<GTime>>	ssrPhasBias_map;
 	map<GTime, SSRClk,		std::greater<GTime>>	ssrClk_map;
 	map<GTime, SSREph,		std::greater<GTime>>	ssrEph_map;
-	map<GTime, SSRHRClk,	std::greater<GTime>>	ssrHRClk_map;		//todo aaron missing implementation?
+	map<GTime, SSRHRClk,	std::greater<GTime>>	ssrHRClk_map;
 	map<GTime, SSRUra,		std::greater<GTime>>	ssrUra_map;
 
 	int refd_;					///< sat ref datum (0:ITRF,1:regional)
-	unsigned char update_;		///<update flag (0:no update,1:update)
+	unsigned char update_;		///< update flag (0:no update,1:update)
 };
-
-
 
 struct SSROut
 {
@@ -158,15 +299,50 @@ struct SSROut
 	
 	SSRClk			ssrClk;
 	SSREph			ssrEph;
+	
+	SSRHRClk		ssrHRClk;
+	SSRUra			ssrUra;
+	
+	bool ephUpdated		= false;
+	bool clkUpdated		= false;
+	bool hrclkUpdated	= false;
+	bool phaseUpdated	= false;
+	bool codeUpdated	= false;
+	bool uraUpdated		= false;
 };
 
+struct KFState;
+
+int uraToClassValue(double ura);
+double ephVarToUra(double ephVar);
+
 void prepareSsrStates(
-	Trace&								trace,
-	KFState&							kfState,
-	GTime								time);
+	Trace&				trace,
+	KFState&			kfState,
+	GTime				time);
 
 void writeSsrOutToFile(
 	int					epochNum,
 	std::set<SatSys>	sats);
 
-#endif
+
+bool ssrPosDelta(
+	GTime			time,
+	GTime			ephTime,
+	SatPos&			satPos,
+	const SSRMaps&	ssrMaps,
+	Vector3d&		dPos,
+	int&			iodPos,
+	int&			iodEph,
+	GTime&			validStart,
+	GTime&			validStop);
+
+bool ssrClkDelta(
+	GTime			time,
+	GTime			ephTime,
+	SatPos&			satPos,
+	const SSRMaps&	ssrMaps,
+	double&			dclk, 
+	int&			iodClk,
+	GTime&			validStart,
+	GTime&			validStop);

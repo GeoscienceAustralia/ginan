@@ -5,14 +5,12 @@
  *
  */
 
-#ifndef PEA_UTILS_H
-#define PEA_UTILS_H
-
+#pragma once
 
 double rad_to_deg(double rad);
 
 double deg_to_rad(double rad);
 
 void calcDistanceBearing(float *lat1, float *lon1, float * lat2, float *lon2, double *dist, double *brng);
-void ecef2pos(const double *r, double *pos);
-#endif //PEA_UTILS_H
+
+void ecef2pos(const double *r, double* pos);

@@ -1,6 +1,5 @@
 
-#ifndef ___MONGO_HPP__
-#define ___MONGO_HPP__
+#pragma once
 
 
 #include <bsoncxx/builder/basic/document.hpp>
@@ -19,26 +18,32 @@
 #include <boost/log/sinks/basic_sink_backend.hpp>
 
 #include <string>
+#include <vector>
+#include <deque>
 #include <map>
 
 
 using std::string;
+using std::vector;
+using std::deque;
 using std::map;
 
 
-#include "station.hpp"
-#include "observations.hpp"
-#include "algebra.hpp"
 #include "networkEstimator.hpp"
+#include "observations.hpp"
+#include "station.hpp"
+#include "algebra.hpp"
 
 
 struct DBEntry
 {
-	map<string, tuple<string,	bool>>		stringMap;
-	map<string, tuple<GTime,	bool>>		timeMap;
-	map<string, tuple<double,	bool>>		doubleMap;
-	map<string, tuple<int,		bool>>		intMap;	
-	map<string, tuple<Vector3d,	bool>>		vectorMap;	
+	map<string, tuple<string,			bool>>		stringMap;
+	map<string, tuple<GTime,			bool>>		timeMap;
+	map<string, tuple<double,			bool>>		doubleMap;
+	map<string, tuple<int,				bool>>		intMap;	
+	map<string, tuple<Vector3d,			bool>>		vectorMap;	
+	map<string, tuple<vector<double>,	bool>>		doubleArrayMap;	
+	map<string, tuple<deque<bool>,		bool>>		boolArrayMap;	
 };
 
 using bsoncxx::builder::stream::close_array;
@@ -53,9 +58,9 @@ namespace sinks = boost::log::sinks;
 
 struct Mongo
 {
-	mongocxx::instance		instance; 	// This should be done only once.
-	mongocxx::uri			uri;
-	mongocxx::pool			pool;
+	static mongocxx::instance		instance; 	// This should be done only once.
+	mongocxx::uri					uri;
+	mongocxx::pool					pool;
 
 	Mongo(string uriString) : uri{uriString}, pool{uri}
 	{
@@ -63,28 +68,54 @@ struct Mongo
 	}
 };
 
-#define SSR_DATA		"Data"
-#define SSR_PHAS_BIAS	"PBias"
-#define SSR_CODE_BIAS	"CBias"
-#define SSR_EPHEMERIS	"Eph"
-#define SSR_CLOCK		"Clk"
+#define SSR_DB				"SSRData"
 
-#define SSR_DB			"SSRData"
+#define SSR_DATA			"Data"
+#define SSR_PHAS_BIAS		"PBias"
+#define SSR_CODE_BIAS		"CBias"
+#define SSR_EPHEMERIS		"Eph"
+#define SSR_CLOCK			"Clk"
 
-#define SSR_EPOCH		"Epoch"
-#define SSR_UPDATED		"Updated"
-#define SSR_SAT	 		"Sat"
-#define SSR_IODE		"Iode"
-#define SSR_POS			"Pos"
-#define SSR_VEL			"Vel"
-#define SSR_OBSCODE		"ObsCode"
-#define SSR_BIAS		"Bias"
-#define SSR_VAR			"Var"
-
-#define SSR_BRDC		"Brdc"
-#define SSR_PREC		"Prec"
+#define IGS_ION_META		"igsSSRMeta"
+#define IGS_ION_ENTRY		"igsSSREntry"
 
 
+#define SSR_EPOCH			"Epoch"
+#define SSR_UPDATED			"Updated"
+#define SSR_SAT	 			"Sat"
+#define SSR_IODE			"Iode"
+#define SSR_POS				"Pos"
+#define SSR_VEL				"Vel"
+#define SSR_OBSCODE			"ObsCode"
+#define SSR_BIAS			"Bias"
+#define SSR_VAR				"Var"
+
+#define IGS_ION_NLAY		"ionoMetNlay"
+#define IGS_ION_NBAS		"ionoMetNbas"
+#define IGS_ION_QLTY		"ionoMetQlty"
+#define SSR_ION_IND			"ionoBasInd"
+#define IGS_ION_HGT			"ionoBasHgt"
+#define IGS_ION_DEG			"ionoBasDeg"
+#define IGS_ION_ORD			"ionoBasOrd"
+#define IGS_ION_PAR			"ionoBasPar"
+#define IGS_ION_VAL			"ionoBasVal"
+
+#define SSR_BRDC			"Brdc"
+#define SSR_PREC			"Prec"
+
+#define REMOTE_DATA_DB		"Remote"
+
+#define REMOTE_DATA			"Data"
+#define REMOTE_EPOCH		"Epoch"
+#define REMOTE_ORBIT		"Orbit"
+#define REMOTE_CLOCK		"Clock"
+#define REMOTE_SAT			"Sat"
+#define REMOTE_UPDATED		"Updated"
+#define REMOTE_POS			"Pos"
+#define REMOTE_VEL			"Vel"
+#define REMOTE_CLK			"Clk"
+#define REMOTE_CLK_DRIFT	"ClkRate"
+#define REMOTE_STR			"Str"
 
 struct MongoLogSinkBackend : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {
@@ -96,10 +127,14 @@ struct MongoLogSinkBackend : public sinks::basic_formatted_sink_backend<char, si
 
 void mongoooo();
 
-extern Mongo*	mongo_ptr;
+document entryToDocument(
+	DBEntry&	entry,
+	bool		type);
+
+extern Mongo*	localMongo_ptr;
+extern Mongo*	remoteMongo_ptr;
 
 
 #define MONGO_NOT_INITIALISED_MESSAGE BOOST_LOG_TRIVIAL(warning)	<< "Mongo actions requested but mongo is not available - check it is enabled and connected correctly"
 
-#endif
 

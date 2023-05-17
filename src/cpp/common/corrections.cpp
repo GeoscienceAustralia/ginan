@@ -4,13 +4,14 @@
 #include <math.h>
 
 #include "observations.hpp"
-#include "streamTrace.hpp"
+#include "coordinates.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
 #include "satStat.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
 #include "gTime.hpp"
+#include "trace.hpp"
 #include "enums.h"
 
 
@@ -23,10 +24,10 @@
 * return : ionospheric delay (L1) (m)
 *-----------------------------------------------------------------------------*/
 double ionmodel(
-	GTime			t,
-	const double*	ion,
-	const double*	pos,
-	const double*	azel)
+	GTime				t,
+	const double*		ion,
+	const VectorPos&	pos,
+	const double*		azel)
 {
 	const double ion_default[] = /* 2004/1/1 */
 	{
@@ -34,7 +35,7 @@ double ionmodel(
 		0.1167E+06, -0.2294E+06, -0.1311E+06, 0.1049E+07
 	};
 
-	if	( pos[2]	< -1E3
+	if	( pos.hgt()	< -1000
 		||azel[1]	<= 0)
 	{
 		return 0;
@@ -50,19 +51,20 @@ double ionmodel(
 	double psi = 0.0137 / (azel[1] / PI + 0.11) - 0.022;
 
 	/* subionospheric latitude/longitude (semi-circle) */
-	double phi = pos[0] / PI + psi * cos(azel[0]);
+	double phi = pos.lat() / PI + psi * cos(azel[0]);
 
 	if      (phi > +0.416)		phi = +0.416;
 	else if (phi < -0.416)		phi = -0.416;
 
-	double lam = pos[1] / PI + psi * sin(azel[0]) / cos(phi * PI);
+	double lam = pos.lon() / PI + psi * sin(azel[0]) / cos(phi * PI);
 
 	/* geomagnetic latitude (semi-circle) */
 	phi += 0.064 * cos((lam - 1.617) * PI);
 
 	/* local time (s) */
-	int week;
-	double tt = 43200 * lam + time2gpst(t, &week);
+	// int week;
+	// double tt = 43200 * lam + time2gpst(t, &week);
+	double tt = GTow(t) + 43200.0 * lam;
 	tt -= floor(tt / 86400) * 86400; /* 0<=tt<86400 */
 
 	/* slant factor */
@@ -77,23 +79,27 @@ double ionmodel(
 
 	return CLIGHT * f * (fabs(x) < 1.57 ? 5E-9 + amp * (1 + x * x * (-0.5 + x * x / 24)) : 5E-9);
 }
-/* ionosphere mapping function -------------------------------------------------
-* compute ionospheric delay mapping function by single layer model
-* args   : double *pos      I   receiver position {lat,lon,h} (rad,m)
-*          double *azel     I   azimuth/elevation angle {az,el} (rad)
-* return : ionospheric mapping function
-*-----------------------------------------------------------------------------*/
-double ionmapf(Vector3d& rr, const double el)
+
+/** ionosphere mapping function
+*/
+double ionmapf(
+	const VectorPos&	pos,	///< receiver position in geocentric spherical coordinates
+	const double*		azel,	///< satellite azimuth/elevation angle (rad)
+	E_IonoMapFn			mapFn,	///< model of mapping function
+	double				hion)	///< layer height (km)
 {
-	double pos[3];
-	ecef2pos(rr.data(), pos);
+	double alpha = 1;
+	switch (mapFn)
+	{
+		case E_IonoMapFn::SLM:		// fallthrough
+		case E_IonoMapFn::MLM:							break;	// same to SLM but need to call the function multiple times
+		case E_IonoMapFn::MSLM:			alpha = 0.9782;	break;
+		case E_IonoMapFn::KLOBUCHAR:	return 1 + 16 * pow(0.53 - azel[1] / PI, 3);
+	}
 
-	if (pos[2] >= IONO_HEIGHT)
-		return 1;
+	double rp = RE_MEAN / (RE_MEAN + hion) * sin(alpha * (PI / 2 - azel[1]));
 
-	double rRec = RE_WGS84 + pos[2];
-	double rIon = RE_WGS84 + IONO_HEIGHT;
-	return 1 / cos(		asin(	  rRec / rIon	* cos(el))	);
+	return 1 / sqrt(1 - SQR(rp));
 }
 /* ionospheric pierce point position -------------------------------------------
 * compute ionospheric pierce point (ipp) position and slant factor
@@ -101,35 +107,41 @@ double ionmapf(Vector3d& rr, const double el)
 *          double *azel     I   azimuth/elevation angle {az,el} (rad)
 *          double re        I   earth radius (km)
 *          double hion      I   altitude of ionosphere (km)
-*          double *posp     O   pierce point position {lat,lon,h} (rad,m)
+*          double *posp     O   pierce point position {lat,lon,r} (rad,m) in geocentric spherical coordinate system
 * return : slant factor
 * notes  : see ref [2], only valid on the earth surface
 *          fixing bug on ref [2] A.4.4.10.1 A-22,23
 *-----------------------------------------------------------------------------*/
-double ionppp(const double* pos, const double* azel, double re,
-					double hion, double* posp)
+double ionppp(
+	const VectorPos&	pos, 
+	const double*		azel, 
+	double				re,
+	double				hion, 
+	VectorPos&			posp)
 {
-	double cosaz, rp, ap, sinap, tanap;
+	double ri = re + hion;
+	double rp = re / ri * cos(azel[1]);
+	double ap = PI / 2 - azel[1] - asin(rp);
+	double sinap = sin(ap);
+	double tanap = tan(ap);
+	double cosaz = cos(azel[0]);
+	posp[0] = asin(sin(pos.lat()) * cos(ap) + cos(pos.lat()) * sinap * cosaz);
 
-	rp = re / (re + hion) * cos(azel[1]);
-	ap = PI / 2 - azel[1] - asin(rp);
-	sinap = sin(ap);
-	tanap = tan(ap);
-	cosaz = cos(azel[0]);
-	posp[0] = asin(sin(pos[0]) * cos(ap) + cos(pos[0]) * sinap * cosaz);
-
-	if	( (pos[0] > +70 * D2R && +tanap * cosaz > tan(PI / 2 - pos[0]))
-		||(pos[0] < -70 * D2R && -tanap * cosaz > tan(PI / 2 + pos[0])))
+	if	( (pos.lat() > +70 * D2R && +tanap * cosaz > tan(PI / 2 - pos.lat()))
+		||(pos.lat() < -70 * D2R && -tanap * cosaz > tan(PI / 2 + pos.lat())))
 	{
-		posp[1] = pos[1] + PI - asin(sinap * sin(azel[0]) / cos(posp[0]));
-	}
+		posp.lon() = pos.lon() + PI	- asin(sinap * sin(azel[0]) / cos(posp.lat()));	
+	}	
 	else
-	{
-		posp[1] = pos[1] + asin(sinap * sin(azel[0]) / cos(posp[0]));
+	{	
+		posp.lon() = pos.lon()		+ asin(sinap * sin(azel[0]) / cos(posp.lat()));	
 	}
 
-	return 1 / sqrt(1 - rp * rp);
+	posp[2] = ri * 1000;	// geocentric radius
+
+	return 1 / sqrt(1 - SQR(rp));
 }
+
 /* troposphere model -----------------------------------------------------------
 * compute tropospheric delay by standard atmosphere and saastamoinen model
 * args   : gtime_t time     I   time
@@ -138,27 +150,32 @@ double ionppp(const double* pos, const double* azel, double re,
 *          double humi      I   relative humidity
 * return : tropospheric delay (m)
 *-----------------------------------------------------------------------------*/
-double tropmodel(GTime time, const double* pos, const double* azel, double humi)
+double tropmodel(
+			GTime		time, 
+	const	VectorPos&	pos, 
+	const	double*		azel,
+			double		humi)
 {
 	const double temp0 = 15; /* temparature at sea level */
-	double hgt, pres, temp, e, z, trph, trpw;
 
-	if	(  pos[2] < -100
-		|| 1E4 < pos[2]
+	if	(  pos.hgt() < -100
+		|| pos.hgt() > +10000 
 		|| azel[1] <= 0)
+	{
 		return 0;
-
+	}
+	
 	/* standard atmosphere */
-	hgt = pos[2] < 0 ? 0 : pos[2];
+	double hgt = pos.hgt() < 0 ? 0 : pos.hgt();
 
-	pres = 1013.25 * pow(1 - 2.2557E-5 * hgt, 5.2568);
-	temp = temp0 - 6.5E-3 * hgt + ZEROC;
-	e = 6.108 * humi * exp((17.15 * temp - 4684) / (temp - 38.45));
+	double pres = 1013.25 * pow(1 - 2.2557E-5 * hgt, 5.2568);
+	double temp = temp0 - 6.5E-3 * hgt + ZEROC;
+	double e = 6.108 * humi * exp((17.15 * temp - 4684) / (temp - 38.45));
 
 	/* saastamoninen model */
-	z = PI / 2 - azel[1];
-	trph = 0.0022768 * pres / (1 - 0.00266 * cos(2 * pos[0]) - 0.00028 * hgt / 1E3) / cos(z);
-	trpw = 0.002277 * (1255 / temp + 0.05) * e / cos(z);
+	double z = PI / 2 - azel[1];
+	double trph = 0.0022768 * pres / (1 - 0.00266 * cos(2 * pos.lat()) - 0.00028 * hgt / 1E3) / cos(z);
+	double trpw = 0.002277 * (1255 / temp + 0.05) * e / cos(z);
 
 	return trph + trpw;
 }
@@ -167,22 +184,22 @@ double tropmodel(GTime time, const double* pos, const double* azel, double humi)
  * compute tropospheric delay by standard atmosphere and saastamoinen model
  */
 double tropacs(
-    const double*	pos,	///< receiver position {lat,lon,h} (rad,m)
-    const double*	azel,	///< azimuth/elevation angle {az,el} (rad)
-    double*			map)	///< optional mapping function output
+    const VectorPos&	pos,	///< receiver position {lat,lon,h} (rad,m)
+    const double*		azel,	///< azimuth/elevation angle {az,el} (rad)
+    double*				map)	///< optional mapping function output
 {
 	const double temp0 = 15; /* temparature at sea level */
 
-	if	( pos[2]	< -100
-		||pos[2]	> 1E4
-		||azel[1]	<= 0)
+	if	(  pos.hgt() < -100
+		|| pos.hgt() > +10000 
+		|| azel[1] <= 0)
 	{
 		return 0;
 	}
 
 	/* standard atmosphere */
 	/* consider the ellipsoid or geoid height */
-	double hgt = pos[2];
+	double hgt = pos.hgt();
 
 	/* standard atmosphere temperature, pressure */
 	double temp	= temp0 - 6.5E-3 * hgt + ZEROC;
@@ -229,7 +246,7 @@ double tropacs(
 			map[i] = (1 + a[i] / (1 + b[i] / (1 + c[i]))) / (cos(z) + a[i] / (cos(z) + b[i] / (cos(z) + c[i])));
 	}
 
-	double zhd = 0.002277 * (pres / (1 - 0.00266 * cos(2 * pos[0]) - 0.00028 * hgt / 1E3));
+	double zhd = 0.002277 * (pres / (1 - 0.00266 * cos(2 * pos.lat()) - 0.00028 * hgt / 1E3));
 	
 	return zhd;
 }
@@ -256,10 +273,10 @@ double mapf(double el, double a, double b, double c)
 												(sinel + c))));
 }
 double nmf(
-	GTime			time,
-	const double	pos[],
-	const double	azel[],
-	double*			mapfw)
+	GTime				time,
+	const VectorPos&	pos,
+	const double		azel[],
+	double*				mapfw)
 {
 	/* ref [5] table 3 */
 	/* hydro-ave-a,b,c, hydro-amp-a,b,c, wet-a,b,c at latitude 15,30,45,60,75 */
@@ -280,8 +297,8 @@ double nmf(
 	const double aht[] = { 2.53E-5, 5.49E-3, 1.14E-3}; /* height correction */
 
 	double el	= azel[1];
-	double lat	= pos[0] * R2D;
-	double hgt	= pos[2];
+	double lat	= pos.latDeg();
+	double hgt	= pos.hgt();
 
 	if (el <= 0)
 	{
@@ -291,8 +308,10 @@ double nmf(
 		return 0;
 	}
 
+	UYds yds = time;
+	
 	/* year from doy 28, added half a year for southern latitudes */
-	double y = (time2doy(time) - 28) / 365.25 + (lat < 0 ? 0.5 : 0);
+	double y = (yds.doy - 28) / 365.25 + (lat < 0 ? 0.5 : 0);
 
 	double cosy = cos(2 * PI * y);
 	lat = fabs(lat);
@@ -328,20 +347,20 @@ double nmf(
 *          ftp://web.haystack.edu/pub/aen/nmf/NMF_JGR.pdf
 *-----------------------------------------------------------------------------*/
 double tropmapf(
-	GTime			time,
-	const double	pos[],
-	const double	azel[],
-	double*			mapfw)
+	GTime				time,
+	const VectorPos&	pos,
+	const double		azel[],
+	double*				mapfw)
 {
 // 	trace(4, "tropmapf: pos=%10.6f %11.6f %6.1f azel=%5.1f %4.1f\n",
-// 	      pos[0]*R2D,
-// 	      pos[1]*R2D,
+// 	      pos.latDeg(),
+// 	      pos.lonDeg(),
 // 	      pos[2],
 // 	      azel[0]*R2D,
 // 	      azel[1]*R2D);
 
-	if	( pos[2] < -1000
-		||pos[2] > 20000)
+	if	( pos.hgt() < -1000
+		||pos.hgt() > +20000)
 	{
 		if (mapfw)
 			*mapfw = 0;

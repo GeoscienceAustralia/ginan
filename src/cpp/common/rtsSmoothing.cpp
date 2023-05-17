@@ -13,66 +13,101 @@ using std::map;
 #include "rinexClkWrite.hpp"
 #include "algebraTrace.hpp"
 #include "rtsSmoothing.hpp"
+#include "binaryStore.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
 #include "acsConfig.hpp"
 #include "testUtils.hpp"
 #include "constants.hpp"
+#include "ionoModel.hpp"
+#include "sp3Write.cpp"
 #include "metaData.hpp"
 #include "algebra.hpp"
+#include "sinex.hpp"
+#include "cost.hpp"
 #include "ppp.hpp"
 #include "gpx.hpp"
+
 
 void postRTSActions(
 	bool		final,				///< This is a final answer, not intermediate - output to files
 	KFState&	kfState,			///< State to get filter traces from
 	StationMap*	stationMap_ptr)		///< Pointer to map of stations
 {
-	if	(	final
-		&&	acsConfig.output_erp)
+	if	( final
+		||acsConfig.pppOpts.output_intermediate_rts)
 	{
-		writeERPFromNetwork(kfState.metaDataMap[ERP_FILENAME_STR + SMOOTHED_SUFFIX], kfState);
+		mongoStates(kfState, "_rts");
 	}
 
-	if	(   final
-		&&  acsConfig.output_clocks
-		&&( acsConfig.clocks_receiver_source	== +E_Ephemeris::KALMAN
-		  ||acsConfig.clocks_satellite_source	== +E_Ephemeris::KALMAN))
+	if	( final
+		||acsConfig.pppOpts.output_intermediate_rts)
 	{
-		auto kfState2 = kfState;	//todo aaron, delete this after fixing something else, tryPrepareFilterPointers damages the state
-		tryPrepareFilterPointers(kfState2, stationMap_ptr);
-
-		auto filenameSysMap = getSysOutputFilenames(acsConfig.clocks_filename + SMOOTHED_SUFFIX, kfState2.time);		//todo aaron, this sucks
-
-		for (auto [filename, sysMap] : filenameSysMap)
-		{
-			outputClocks(filename, acsConfig.clocks_receiver_source, acsConfig.clocks_satellite_source, kfState2.time, sysMap, kfState2, stationMap_ptr);
-		}
+		storeStates(kfState, "rts");
 	}
-
-	if	(	final
-		&&	acsConfig.output_trop_sinex
-		&&	acsConfig.trop_data_source == +E_Ephemeris::KALMAN)
+	
+	if (final == false)
 	{
-		outputTropSinex(kfState.metaDataMap[TROP_FILENAME_STR + SMOOTHED_SUFFIX], kfState.time, *stationMap_ptr, "MIX", true);		//todo aaron, no site specific version here
+		return;
 	}
-
-	if (final)
+	
 	{
 		std::ofstream ofs(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
 		kfState.outputStates(ofs, "/RTS");
 	}
-
-	if	(   acsConfig.output_mongo_states
-		&&( final
-		  ||acsConfig.output_intermediate_rts))
+	
+	if (acsConfig.output_erp)
 	{
-		mongoStates(kfState, acsConfig.mongo_rts_suffix);
+		writeERPFromNetwork(kfState.metaDataMap[ERP_FILENAME_STR + SMOOTHED_SUFFIX], kfState);
+	}
+
+	if	(   acsConfig.output_clocks
+		&&( acsConfig.clocks_receiver_sources.front()	== +E_Source::KALMAN
+		  ||acsConfig.clocks_satellite_sources.front()	== +E_Source::KALMAN))
+	{
+		auto kfState2 = kfState;	//todo aaron, delete this after fixing something else, tryPrepareFilterPointers damages the state
+		tryPrepareFilterPointers(kfState2, stationMap_ptr);
+
+		outputClocks			(kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, kfState2.time, kfState2, stationMap_ptr);
+	}
+	
+	if (acsConfig.output_orbits)
+	{
+		outputSp3				(kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbits_data_sources, &kfState);
+	}
+
+	if (acsConfig.output_trop_sinex)
+	{
+		outputTropSinex			(kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState, "MIX", true);
+	}
+
+	if (acsConfig.output_ionex)
+	{
+		ionexFileWrite			(kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState);
 	}
 	
 	if (acsConfig.output_gpx)
 	{
-		writeGPX(kfState.metaDataMap[GPX_FILENAME_STR + SMOOTHED_SUFFIX], "", kfState);
+		for (auto& [id, rec] : *stationMap_ptr)
+		{
+			writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], id, kfState);
+		}
+	}
+
+	if (acsConfig.output_ppp_sol)
+	{
+		for (auto& [id, rec] : *stationMap_ptr)
+		{
+			outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], rec);
+		}
+	}
+	
+	if (acsConfig.output_cost)
+	{
+		for (auto& [id, rec] : *stationMap_ptr)
+		{
+			outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], rec, kfState.time, kfState);
+		}
 	}
 
 // 	pppoutstat(ofs, archiveKF, true);
@@ -130,27 +165,25 @@ void RTS_Output(
 					return;
 				}
 				
-				std::ofstream ofs(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
+				string filename = kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX];
+				std::ofstream ofs(filename, std::ofstream::out | std::ofstream::app);
 				if (!ofs)
 				{
-					std::cout << "BAD RTS Write to " << kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX];
+					std::cout << "BAD RTS Write to " << filename;
 					break;
 				}
 				
 				if (acsConfig.output_residuals)
 				{
-					outputResiduals(ofs, archiveMeas, -1, 0, archiveMeas.obsKeys.size());
-				}
+					outputResiduals(ofs, archiveMeas, -1, "/RTS", 0, archiveMeas.obsKeys.size());
 				
-				if (acsConfig.output_mongo_measurements)
-				{
-					mongoMeasResiduals(archiveMeas.time, archiveMeas.obsKeys, archiveMeas.V, archiveMeas.VV, archiveMeas.R, acsConfig.mongo_rts_suffix);
+					mongoMeasResiduals(archiveMeas.time, archiveMeas, "_rts");
 				}
 				
 				break;
 			}
 
-			case E_SerialObject::FILTER_PLUS:
+			case E_SerialObject::FILTER_SMOOTHED:
 			{
 				KFState archiveKF;
 				bool pass = getFilterObjectFromFile(type, archiveKF, startPos, reversedStatesFilename);
@@ -163,14 +196,12 @@ void RTS_Output(
 				
 				archiveKF.metaDataMap = metaDataMap;
 				
-				archiveKF.dx = VectorXd::Zero(archiveKF.x.rows());
-				
 				if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
 				{
-					TempDisabler td(acsConfig.output_mongo_measurements);
-				
 					KFState ARRTScopy = archiveKF;
-					int nfix = smoothdAmbigResl(ARRTScopy);
+					
+					smoothdAmbigResl(ARRTScopy);
+					
 					postRTSActions(true, ARRTScopy, stationMap_ptr);
 				}
 				else
@@ -205,7 +236,11 @@ KFState RTS_Process(
 	{
 		return KFState();
 	}
-	
+
+	if (stationMap_ptr)
+		for (auto& [id, rec] : *stationMap_ptr)
+			rec.obsList.clear();
+
 	MatrixXd transitionMatrix;
 
 	KFState	kalmanMinus;
@@ -224,12 +259,12 @@ KFState RTS_Process(
 	}
 
 	long int startPos = -1;
-	int lag = 0;					//todo aaron, change lag to use times rather than iterations, iterations may be multiple per epoch
+	double lag = 0;
 	while (lag != kfState.rts_lag)
 	{
 		E_SerialObject type = getFilterTypeFromFile(startPos, inputFile);
 
-// 		std::cout << std::endl << "Found " << type._to_string();
+		std::cout << "Found " << type._to_string() << std::endl;
 		
 		if (type == +E_SerialObject::NONE)
 		{
@@ -311,21 +346,21 @@ KFState RTS_Process(
 			}
 			case E_SerialObject::FILTER_PLUS:
 			{
-				lag++;
-
-				if (write)
-				{
-					BOOST_LOG_TRIVIAL(info) 
-					<< "RTS iterations: " << lag;
-				}
-
 				KFState kalmanPlus;
 				bool pass = getFilterObjectFromFile(type, kalmanPlus, startPos, inputFile);
 				if (pass == false)
 				{
 					return KFState();
 				}
+				
+				lag = (kfState.time - kalmanPlus.time).to_double();
 
+				if (write)
+				{
+					BOOST_LOG_TRIVIAL(info) 
+					<< "RTS lag: " << lag;
+				}
+				
 				if (smoothedPready == false)
 				{
 					kalmanPlus.metaDataMap = kfState.metaDataMap;
@@ -335,8 +370,8 @@ KFState RTS_Process(
 
 					if (write)
 					{
-						spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_PLUS, outputFile);
-						spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT, outputFile);
+						spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_SMOOTHED,	outputFile);
+						spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT,		outputFile);
 					}
 
 					break;
@@ -358,12 +393,94 @@ KFState RTS_Process(
 
 				kalmanMinus.P(0,0) = 1;
 
-				MatrixXd Pinv = kalmanMinus.P.inverse();
+				MatrixXd FP = F * kalmanPlus.P;
+				
+				auto Q = kalmanMinus.P.triangularView<Eigen::Upper>().transpose();
+				
+				int fail1 = true;
+				int fail2 = true;
+				MatrixXd Ckt;
+				
+				E_Inverter inverter = acsConfig.pppOpts.rts_inverter;
+				
+				auto failInversion = [&]()
+				{
+					auto oldInverter = inverter;
+					inverter = E_Inverter::_from_integral(((int)inverter)+1);
+					
+					BOOST_LOG_TRIVIAL(warning)
+					<< "Warning: Inverter type " << oldInverter._to_string() << " failed, trying " << inverter._to_string();
+				};
+				
+				while	(inverter != +E_Inverter::FIRST_UNSUPPORTED
+						&&(  fail1
+						  || fail2))
+				switch (inverter)
+				{
+					default:
+					{
+						BOOST_LOG_TRIVIAL(warning)
+						<< "Warning: Inverter type " << acsConfig.pppOpts.rts_inverter._to_string() << " not supported, reverting to LDLT";
+						
+						acsConfig.pppOpts.rts_inverter	= E_Inverter::LDLT;
+						inverter						= E_Inverter::LDLT;
+						
+						continue;
+					}
+					case E_Inverter::INV:
+					{
+						Eigen::FullPivLU<MatrixXd> solver(Q);
+						
+						if (solver.isInvertible() == false)
+						{
+							fail1 = true;
+							
+							failInversion();
+							
+							break;
+						}
+						
+						MatrixXd Pinv = solver.inverse();
 
-				Pinv = (Pinv + Pinv.transpose()).eval()	/ 2;
+						Pinv = (Pinv + Pinv.transpose()).eval()	/ 2;
 
-				MatrixXd Ck = kalmanPlus.P * F.transpose() * Pinv;
+						Ckt = (kalmanPlus.P * F.transpose() * Pinv).transpose();
+						
+						fail1 = false;
+						fail2 = false;
+						
+						break;
+					}
+					case E_Inverter::LLT:		{	Eigen::LLT					<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
+					case E_Inverter::LDLT:		{	Eigen::LDLT					<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
+					case E_Inverter::COLPIVHQR:	{	Eigen::ColPivHouseholderQR	<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
+					case E_Inverter::BDCSVD:	{	Eigen::BDCSVD				<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
+					case E_Inverter::JACOBISVD:	{	Eigen::JacobiSVD			<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
+// 					case E_Inverter::FULLPIVHQR:{	Eigen::FullPivHouseholderQR	<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
+// 					case E_Inverter::FULLPIVLU:	{	Eigen::FullPivLU			<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
+				}
+				
+				if	(  fail1 
+					|| fail2)
+				{
+					BOOST_LOG_TRIVIAL(warning) 
+					<< "Warning: RTS failed to find solution to invert system of equations, smoothed values may be bad " << fail1 << " " << fail2;
+					
+					std::cout << std::endl << "P-det: " << kalmanMinus.P.determinant();
+					
+					kalmanMinus.outputConditionNumber(std::cout);
+					
+					std::cout << std::endl << "P:\n" << kalmanMinus.P.format(HeavyFmt);
+					kalmanMinus.outputCorrelations(std::cout);
+					std::cout << std::endl;
+					
+					//break out of the loop
+					lag = kfState.rts_lag;
+					break;
+				}
 
+				MatrixXd Ck = Ckt.transpose();
+				
 				VectorXd deltaX = Ck * (smoothedKF.x - kalmanMinus.x);
 				MatrixXd deltaP = Ck * (smoothedKF.P - kalmanMinus.P) * Ck.transpose();
 				
@@ -373,7 +490,7 @@ KFState RTS_Process(
 				
 				if (measurements.H.cols() == deltaX.rows())
 				{
-					measurements.VV -= measurements.H * deltaX;
+					measurements.VV -= measurements.H * deltaX;		//todo aaron, is this the correct deltaX to be adding here? wrong plus/minus timepoint?
 				}
 				else
 				{
@@ -384,13 +501,13 @@ KFState RTS_Process(
 
 				if (write)
 				{
-					spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_PLUS, outputFile);
-					spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT, outputFile);
+					spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_SMOOTHED,	outputFile);
+					spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT,		outputFile);
 				}
 				else
 				{
 					bool final = false;
-					if (lag == kfState.rts_lag)
+					if (lag >= kfState.rts_lag)
 					{
 						final = true;
 					}
@@ -398,10 +515,9 @@ KFState RTS_Process(
 // 					smoothedKF.metaDataMap = kfState.metaDataMap;	//todo aaron check this
 					postRTSActions(final, smoothedKF, stationMap_ptr);
 					
-					if	(  acsConfig.output_mongo_measurements
-						&& acsConfig.output_intermediate_rts)
+					if (acsConfig.pppOpts.output_intermediate_rts)
 					{
-						mongoMeasResiduals(smoothedKF.time, measurements.obsKeys, measurements.V, measurements.VV, measurements.R, acsConfig.mongo_rts_suffix);
+						mongoMeasResiduals(smoothedKF.time, measurements, "_rts");
 					}
 				}
 				

@@ -1,5 +1,5 @@
-#ifndef WRITECLK_HPP
-#define WRITECLK_HPP
+
+#pragma once
 
 // Needed as StationMap is a kind of typedef.
 #include "station.hpp"
@@ -10,22 +10,17 @@
 
 using std::vector;
 using std::string;
-using std::pair;
 using std::map;
 
 #include "enums.h"
 
 struct GTime;
-class E_Ephemeris;
+class E_Source;
 
 void outputClocks(
 	string				filename,
-	E_Ephemeris			clkDataRecSrc,
-	E_Ephemeris			clkDataSatSrc,
+	vector<E_Source>	clkDataRecSrcs,
+	vector<E_Source>	clkDataSatSrcs,
 	GTime&				time,
-	OutSys&				outSys,
 	KFState&			kfState,
-	StationMap*			stationMap_ptr,
-	bool				isUser = false);
-
-#endif
+	StationMap*			stationMap_ptr = nullptr);

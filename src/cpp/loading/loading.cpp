@@ -12,6 +12,8 @@
 #include <vector>
 #include <cmath>
 
+#include <boost/log/trivial.hpp>
+
 const double PI = std::atan(1.0)*4;
 
 
@@ -57,21 +59,30 @@ void loading::read() {
 	dist.reserve(n_green);
 	Gz.reserve(n_green);
 	Gh.reserve(n_green);
+
 	ifstream infile(fileName);
+	if(infile.fail())
+	{
+		BOOST_LOG_TRIVIAL(error) << fileName << " doesn't exist\n\t";
+		exit(0);
+	}
 	string line;
 	int i=0;
 	while (getline(infile, line))
 	{
-		istringstream iss(line);
-		double d, gz, gzh, gh, ghz;
-		if (!(iss >> d >> gz >> gzh >> gh >> ghz)) { break; } // error
-		dist.push_back(d ) ;
-		Gz.push_back(gz / (6371e3 * dist[i] * PI/180.0) * 1e-12)   ;
-		Gh.push_back(gh / (6371e3 * dist[i] * PI/180.0) * 1e-12)   ;
-		dist[i] *= PI/180.0;
-		//cout << dist[i] << " " << Gz[i] << " " <<Gh[i] <<"\n";
-		i++;
+		if (line.size()!= 0 and line.at(0) != '#')
+		{
+			istringstream iss(line);
+			double d, gz, gzh, gh, ghz;
+			if (!(iss >> d >> gz >> gzh >> gh >> ghz)) { break; } // error
+			dist.push_back(d) ;
+			Gz.push_back(gz / (6371e3 * dist[i] * PI/180.0) * 1e-12)   ;
+			Gh.push_back(gh / (6371e3 * dist[i] * PI/180.0) * 1e-12)   ;
+			dist[i] *= PI/180.0;
+			i++;
+		}
 	}
+	BOOST_LOG_TRIVIAL(error) << fileName << " greens function has been loaded\n\t";
 	return ;
 }
 

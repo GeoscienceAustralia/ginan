@@ -1,18 +1,10 @@
 
-#ifndef __ORBIT_HPP__
-#define __ORBIT_HPP__
-
-
-#include <unordered_map>
-#include <list>
-
-using std::unordered_map;
-using std::list;
+#pragma once
 
 
 #include "eigenIncluder.hpp"
-#include "satSys.hpp"
 #include "station.hpp"
+#include "satSys.hpp"
 
 
 ///< initial orbit state info
@@ -26,28 +18,27 @@ struct InitialOrbit
 struct OrbitInfo
 {
 	// orbit info for one sat on the ith epoch
-	GTime	time;					///< Time of the orbit epoch
-	double	ti[2];					///< the ith epoch [MJD][sod]
+	GTime		time;		///< Time of the orbit epoch
+	double		ti[2];		///< the ith epoch [MJD][sod]
 
-	Vector<double, 6>	xcrf;		///< icrf pos(m) and vel(m/s)
-	Vector<double, 6>	xtrf;		///< itrf pos(m) and vel(m/s)
+	VectorEci	posEci;
+	VectorEci	velEci;
+	VectorEcef	posEcef;
+	VectorEcef	velEcef;
 
-	MatrixXd			partials;	///< partial wrt initial state
+	MatrixXd	partials;	///< partial wrt initial state
 };
 
 struct SatOrbit
 {
 	InitialOrbit								initialOrbit;
 	map<GTime, OrbitInfo, std::greater<GTime>>	orbitInfoMap;
-	int											numUnknowns;			///< number of unknowns
+	int											numUnknowns;
 	vector<string>								parameterNames;
 	string										srpModel[2];
 	double										mass;
 };
 
-void readegm(
-	string      file,
-	EGMCoef&	egm);
 
 
 int orbPartials(
@@ -62,29 +53,22 @@ int readorbit(
 struct KFState;
 
 void outputOrbit(
-	KFState&	kfState);
+			KFState&	kfState);
 
-
-void keplers2inertial(
-	VectorXd&	keplers0, 
-	Vector3d&	pos,
-	double&		dM);
-
-
-void inertial2Keplers(
+VectorEci keplers2Inertial(
 			Trace&		trace,
-	const	Vector3d&	r,
-	const	Vector3d&	v,
-			VectorXd&	keplers);
+	const	Vector6d&	keplers0);
 
-void getKeplerPartials(
-	VectorXd&	keplers0,
-	MatrixXd&	partials);
-	
-void getKeplerInversePartials(
-	Vector3d&	pos,
-	Vector3d&	vel,
-	MatrixXd&	partials);
- 
-#endif
+bool inertial2Keplers(
+			Trace&		trace,
+	const	VectorEci&	r,
+	const	VectorEci&	v,
+			Vector6d&	keplers);
 
+VectorEci propagateEllipse(
+			Trace&		trace,
+			GTime		time,
+			double		dt, 
+			VectorEci&	rSat,
+			VectorEci&	vSat, 
+			VectorEcef&	ecef);

@@ -7,7 +7,7 @@ inputs:
     root_directory: products/
 
     atx_files:   [ igs14_2045_plus.atx                                     ]    # required
-    snx_files:   [ cod21620.snx                     ]    # required
+    snx_files:   [ cod21620.snx, tables/igs_satellite_metadata_2203_plus.snx ]    # required
     blq_files:   [ OLOAD_GO.BLQ                                            ]    # required if ocean loading is applied 
        
     erp_files:   [ "*.erp"                                       ]    # erps that go with ultras
@@ -134,22 +134,26 @@ inputs:
             - BCEP00BKG0
 
 outputs:
-    streams:
-        root_stream_url: "http://user:pass@tier3.auscors.ga.gov.au:2101/" 
-
-        #streams:
-            #- GGA1        
-        #GGA1:
-            #streams: "SSRA00GGA1"
-            #messages:
-                #- "1060"  # RTCM messages to be broadcast
-                #- "1243" 
-                #- "1059" 
-                #- "1242"   
-                #- "1265"   
-                #- "1267"             
-        
+    #streams:
+    #    root_url: "http://user:pass@tier3.auscors.ga.gov.au:2101/" 
     
+    #    labels:
+    #        - GGA1
+    #    GGA1:
+    #        url: "SSRA00GGA1"
+    #        messages:
+    #            rtcm_1057:
+    #                udi: 60
+    #            rtcm_1058:
+    #                udi: 5
+    #            rtcm_1059:
+    #                udi: 60
+    #            rtcm_1060:
+    #                udi: 5
+    #            rtcm_1061:
+    #                udi: 5
+    #            rtcm_1062:
+    #                udi: 1
 
     root_directory:          <CONFIG>/
 
@@ -193,6 +197,7 @@ mongo:
     enable:                   true
     output_measurements:      false
     output_states:            false
+    #output_rtcm_messages:     true
     #output_metadata:          false
     delete_history:           false
 
@@ -294,6 +299,10 @@ processing_options:
             directory:              ./
             filename:               PPP-<CONFIG>-<STATION>.rts
 
+    #ssr_corrections:
+    #    calculate_precursors:    true
+    #    prediction_interval:  10
+    #    ephemeris_source:    PRECISE
 
 estimation_parameters:
 

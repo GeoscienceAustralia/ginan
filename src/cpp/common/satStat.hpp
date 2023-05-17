@@ -1,7 +1,5 @@
 
-
-#ifndef __SATSTAT_HPP__
-#define __SATSTAT_HPP__
+#pragma once
 
 #include <map>
 
@@ -18,7 +16,7 @@ using std::map;
 */
 struct SigStat
 {
-	union
+	union SlipStat
 	{
 		unsigned int any	= 0;	///< Non zero value indicates a slip has been detected
 		struct
@@ -26,22 +24,19 @@ struct SigStat
 			unsigned LLI	: 1;	///< Slip detected by loss of lock indicator
 			unsigned GF		: 1;	///< Slip detected by geometry free combination
 			unsigned MW		: 1;	///< Slip detected by Melbourne Wubenna combination
-			unsigned EMW	: 1;	///< Slip detected by extended MW combination
-			unsigned CJ		: 1;	///< Slip detected as clock jump
 			unsigned SCDIA	: 1;	///< Slip detected DIA
 		};
-	} slip;
-
-	unsigned int	userPhaseRejectCount	= 0;
-	unsigned int	userPhaseOutageCount	= 0;
+	};
 	
-	unsigned int	netwPhaseRejectCount	= 0;
-	unsigned int	netwPhaseOutageCount	= 0;
+	SlipStat savedSlip;
+	SlipStat slip;
+
+	unsigned int	phaseRejectCount	= 0;
+	unsigned int	phaseOutageCount	= 0;
 
 	double recPco = 0;
 	double recPcv = 0;
 	double satPcv = 0;
-	
 	
 	double lambda = 0;
 };
@@ -84,30 +79,29 @@ struct QC
 */
 struct SatStat : IonoStat, QC
 {
-	double  	phw				= 0;					///< Phase windup (cycle)
-	double  	mapWet			= 0;					///< troposphere wet mapping function
-	double  	mapWetGrads[2]	= {};					///< troposphere wet mapping function
-	Vector3d	e				= Vector3d::Zero();		///< Line-of-sight unit vector
+	double  	phw				= 0;		///< Phase windup (cycle)
+	double  	mapWet			= 0;		///< troposphere wet mapping function
+	double  	mapWetGrads[2]	= {};		///< troposphere wet mapping function
+	VectorEcef	e;							///< Line-of-sight unit vector
 
 
-	double		dIono		= 0;      	///< TD ionosphere residual
-	double		sigmaIono	= 0;      	///< TD ionosphere residual noise
+	double		dIono		= 0;			///< TD ionosphere residual
+	double		sigmaIono	= 0;			///< TD ionosphere residual noise
+	double		prevSTEC	= 0;
 
 	union
 	{
-		double		azel[2] = {};	///< azimuth/elevation angles as array(rad)
+		double		azel[2] = {};			///< azimuth/elevation angles as array(rad)
 		struct
 		{
-			double	az;			///< azimuth angle (rad)
-			double	el;			///< elevation angle (rad)
+			double	az;						///< azimuth angle (rad)
+			double	el;						///< elevation angle (rad)
 		};
 	};
-	double	nadir		= 0;
-	double	sunDotSat	= 0;
-	double	sunCrossSat	= 0;
 	bool	slip		= false;
 	
-	map<E_FType, SigStat>	sigStatMap;	///< Map for individual signal status for this SatStat object
+	map<string, SigStat>	sigStatMap;		///< Map for individual signal status for this SatStat object
+
 };
 
-#endif
+string ft2string(E_FType ft);

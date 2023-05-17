@@ -4,7 +4,7 @@ inputs:
     root_directory: products/
 
     atx_files:   [ igs14_2045_plus.atx                                ]    # required
-    snx_files:   [ igs19P2062.snx                                     ]    # required
+    snx_files:   [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx ]    # required
     blq_files:   [ OLOAD_GO.BLQ                                       ]    # required if ocean loading is applied
     erp_files:   [ TUG0R03FIN_20191990000_01D_01D_ERP.ERP ] # config parser doesn't accept weekly files yet.
     
@@ -12,15 +12,20 @@ inputs:
         nav_files:   [ brdm1990.19p        ]  # broadcast navigation file
         sp3_files:   [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
         clk_files:   [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
+        bsx_files:   [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # satellite hardware biases in BSX format
 
     troposphere:
         # vmf3dir:    grid5/
         # orography:  orography_ell_5x5
         gpt2grid_files:   gpt_25.grd
     
+    egm_files:  [ tables/EGM2008.gfc         ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050     ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat]
+    
     gnss_observations:
-        root_directory: ../data/
-        rnx_files:
+        inputs_root: data/
+        rnx_inputs:
             - "*.rnx"                                       # - searching all in file_root directory, or
 
 outputs:
@@ -32,15 +37,15 @@ outputs:
         output_network:                     true
         level:                      2
         directory:                  ./
-        station_filename:                   <CONFIG>-<STATION><YYYY><DDD><HH>-<LOGTIME>.TRACE
-        network_filename:                   <CONFIG>-<STATION><YYYY><DDD><HH>-<LOGTIME>.TRACE
+        station_filename:           <STATION><YYYY><DDD><HH>_<CONFIG>.TRACE
+        network_filename:           <STATION><YYYY><DDD><HH>_<CONFIG>.TRACE
         output_residuals:           true
         output_config:              true
 
     ionex:
         output:                     true
         directory:                  ./
-        filename:                   AUSG<DDD>0.<YY>I
+        filename:                   <AGENCY>0GINRPD<YYYY><DDD><HH>00_02H_05M_GIM.INX
         grid:
             lat_center:                 0
             lon_center:                 2.5
@@ -58,9 +63,9 @@ outputs:
     bias_sinex:
         output:                     true
         directory:                  ./
-        filename:                   AUS0ACSRAP_<YYYY><DDD><HH>00_01D_01D_REL.BIA
-        output_interval:            600
-
+        filename:                   <AGENCY>0GINRPD<YYYY><DDD><HH>00_01D_01D_OSB.BIA
+        code_output_interval:       86400
+        
     sinex:
         output:                     true
 
@@ -68,20 +73,21 @@ outputs:
         config_description:         ex16
         analysis_agency:            GAA
         analysis_center:            Geoscience Australia
-        analysis_program:           AUSACS
-        rinex_comment:              AUSNETWORK1
+        analysis_program:           GINAN
+        rinex_comment:              IGS
 
 
 processing_options:
 
     epoch_control:
-        start_epoch:                2019-07-18 00:00:00
-        # end_epoch:                 2019-07-18 23:59:30
-        max_epochs:                 200        #0 is infinite
-        epoch_interval:             30          #seconds
+        start_epoch:        2019-07-18 00:00:00
+        # end_epoch:         2019-07-18 23:59:30
+        max_epochs:         241        #0 is infinite
+        epoch_interval:     30          #seconds
 
     process_modes:
-        ionosphere:             true
+        # ppp:         true
+        ionosphere:         true
 
     gnss_general:
         error_model:        elevation_dependent
@@ -92,45 +98,108 @@ processing_options:
     
         elevation_mask:     10   #degrees
 
-        reject_eclipse:     true            #reject observation during satellite eclipse periods
         raim:               true
 
         max_gdop:   30
         pivot_station:        "USN7"
         sys_options:
             gps:
-                process:        true
-                code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
-                                    L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
-                                    L5I, L5Q, L5X]
-            
-            
+                process:            true
+                reject_eclipse:     true            #reject observation during satellite eclipse periods
+                use_for_iono_model: true
+                code_priorities:    [ L1C, L2W ]
+
     gnss_models:
         troposphere:
             model:          gpt2
             
         ionospheric_component:
-            corr_mode:      iono_free_linear_combo
-            iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
+            common_ionosphere:  true
+            use_if_combo:       false
 
         ionospheric_model:
         
             model:              spherical_harmonics     # meas_out, spherical_harmonics
             function_order:     8
             layer_heights:      [450]
-            model_noise:        0.01
             
 
     filter_options:
 
+        inverter:                   ldlt         #LLT LDLT INV
+
         outlier_screening:
-            max_filter_iterations:  5
-            #max_prefit_removals:    4
+            max_filter_iterations:      10
+            max_prefit_removals:         2
+
+        rts:
+            enable:                 true
+            lag:                    -1      #-ve for full reverse, +ve for limited epochs
+            directory:              ./
+            filename:               <CONFIG>-Network.rts
+
 
 estimation_parameters:
+
     stations:
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.3]
+        phase_sigmas:       [0.003]
 
+        pos:
+            estimated:          [true]
+            sigma:              [100.0]
+            proc_noise:         [0] 
+            proc_noise_dt:      second
 
+        clk:
+            estimated:          [true]
+            sigma:              [1000]
+            proc_noise:         [100]
+
+        amb:
+            estimated:          [true]
+            sigma:              [1000.0]
+            proc_noise:         [0]
+            #proc_noise_dt:      day
+
+        trop:
+            estimated:          [true]
+            sigma:              [0.1]
+            proc_noise:         [0.0001]
+            proc_noise_dt:      second
+
+        trop_grads:
+            estimated:          [true]
+            sigma:              [0.02]
+            proc_noise:         [1.0E-6]
+            proc_noise_dt:      second
+        
+        ion_stec:
+            estimated:          [true]
+            sigma:              [200]
+            proc_noise:         [0.1]
+
+        phase_bias:
+            estimated:          [true]
+            sigma:              [10]
+            proc_noise:         [0]
+        
+        code_bias:
+            estimated:          [true]
+            sigma:              [100.0]
+            proc_noise:         [0]
+
+    ion:   
+        estimated:          [true]
+        sigma:              [100]
+        proc_noise:         [0.01]
+        
+    satellites:
+        code_bias:
+            estimated:          [true]
+            sigma:              [100.0]
+            proc_noise:         [0]
 debug:
     unit_tests:
         #enable: true

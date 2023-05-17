@@ -1,8 +1,6 @@
-#ifndef _WANCORR_H_
-#define _WANCORR_H_
 
+#pragma once
 
 double wancorr(const int prn, const double el, const int freq);
 
 
-#endif

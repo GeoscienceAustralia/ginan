@@ -7,11 +7,13 @@
 
 #include "rinexObsWrite.hpp"
 #include "rinexClkWrite.hpp"
+#include "coordinates.hpp"
 #include "GNSSambres.hpp"
 #include "navigation.hpp"
 #include "ephemeris.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
+#include "mongoRead.hpp"
 #include "sp3Write.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
@@ -22,28 +24,34 @@
 
 struct Sp3Entry
 {
-	SatSys 		sat			= {};
-	Vector3d	satPos		= Vector3d::Zero();		// Satellite position.
-	Vector3d	satVel		= Vector3d::Zero();		// Satellite velocity.
-	double	 	clock[2]	= {};					// Mean clock delta reference.
+	SatSys 		sat;
+	Vector3d	satPos		= Vector3d::Zero();				// Satellite position.
+	Vector3d	satVel		= Vector3d::Zero();				// Satellite velocity.
+	double	 	satClk		= INVALID_CLOCK_VALUE / 1e6;
+	double		satClkVel	= INVALID_CLOCK_VALUE / 1e6;
 	double		sigma		= 0;
+	bool		predicted	= false;
 };
 
-typedef map<int, Sp3Entry> Sp3SatList;
 
+struct Sp3FileData
+{
+	set<SatSys> sats;
+	long 		numEpoch		= 0;
+	long 		numEpoch_pos	= 0;
+};
 
 Sp3FileData sp3CombinedFileData;
-map<E_Sys, Sp3FileData> sp3SytemFileData;
+Sp3FileData predictedSp3CombinedFileData;
 
 void writeSp3Header(
 	std::fstream& 		sp3Stream,
-	Sp3SatList&			entryList,
+	map<int, Sp3Entry>&	entryList,
 	GTime				time,
-	OutSys				outSys,
+	map<E_Sys, bool>&	outSys,
 	Sp3FileData&		outFileDat)
 {
-	double ep[6] = {};
-	time2epoch(time, ep);
+	GEpoch ep = time;
 	
 	outFileDat = {};
 	outFileDat.numEpoch = 1;
@@ -57,21 +65,26 @@ void writeSp3Header(
 	//TODO Check, coordinate system and Orbit Type from example product file.
 	tracepdeex(0, sp3Stream, "%7d ORBIT IGS14 HLM %4s\n",   outFileDat.numEpoch,   acsConfig.analysis_agency.c_str());
 
-	int week;
-	double tow_sec = time2gpst(time, &week);
-	double mjdate = 7.0 * week + tow_sec / 86400.0 + 44244.0;
+	GWeek	week	= time;
+	GTow	tow		= time;
+	double mjdate = 7.0 * week + tow / 86400.0 + 44244.0;	//todo aaron ew.
 	tracepdeex(0, sp3Stream, "## %4d %15.8f %14.8f %5.0f %15.13f\n",
 			   week,
-			   tow_sec,
-			   acsConfig.epoch_interval,
+			   tow,
+			   acsConfig.orbits_output_interval,
 			   mjdate,
 			   mjdate - floor(mjdate));
 
 	for (auto sys : {E_Sys::GPS, E_Sys::GLO, E_Sys::GAL, E_Sys::BDS})
 	{
 		if (outSys[sys])	
-		for (auto Sat : getSysSats(E_Sys::GPS))
+		for (auto Sat : getSysSats(sys))
 		{
+			auto satOpts = acsConfig.getSatOpts(Sat);
+			
+			if (satOpts.exclude)
+				continue;
+			
 			outFileDat.sats.insert(Sat);
 		}
 	}
@@ -195,22 +208,19 @@ void writeSp3Header(
 	tracepdeex(0, sp3Stream, "%%i    0    0    0    0      0      0      0      0         0\n");
 
 	// There is a minimum of four comment lines.
-	tracepdeex(0, sp3Stream, "/* Created using Ginan at: %s.\n",   timeget().to_string(0).c_str());
-	tracepdeex(0, sp3Stream, "/* WARNING: For Geoscience Australia's internal use only\n");
+	tracepdeex(0, sp3Stream, "/* Created using Ginan at: %s.\n",   ((GTime)timeGet()).to_string().c_str());
+	tracepdeex(0, sp3Stream, "/* WARNING: Not for operational use\n");
 	tracepdeex(0, sp3Stream, "/*\n");
 	tracepdeex(0, sp3Stream, "/*\n");
 }
 
 void updateSp3Body(
-	string&				filename,		///< Path to output file.
-	Sp3SatList&			entryList,		///< List of data to print.
+	string				filename,		///< Path to output file.
+	map<int, Sp3Entry>&	entryList,		///< List of data to print.
 	GTime				time,			///< Epoch time.
-	OutSys				outSys,			///< Systems to include in file.
+	map<E_Sys, bool>&	outSys,			///< Systems to include in file.
 	Sp3FileData&		outFileDat)		///< Current file editing information. 
 {
-	double ep[6] = {};
-	time2epoch(time, ep);
-
 	//first create if non existing
 	{
 		std::fstream maker(filename, std::ios::app);
@@ -244,6 +254,7 @@ void updateSp3Body(
 		sp3Stream.seekp(-4, std::ios::end);
 	}
 
+	GEpoch ep = time;
 	tracepdeex(0, sp3Stream, "*  %4.0f %2.0f %2.0f %2.0f %2.0f %11.8f\n",   ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
 	// Note position is in kilometers and clock values microseconds.
@@ -255,36 +266,44 @@ void updateSp3Body(
 		{			
 			auto& [key, entry] = *it;
 			
+			char predictedChar;
+			if (entry.predicted)		predictedChar = 'P';
+			else						predictedChar = ' ';
+				
 			{
-				tracepdeex(0, sp3Stream, "P%s%14.6f%14.6f%14.6f%14.6f\n",
+				tracepdeex(0, sp3Stream, "P%s%14.6f%14.6f%14.6f%14.6f%19s%c\n",
 						entry.sat.id().c_str(),
 						entry.satPos.x() / 1000,
 						entry.satPos.y() / 1000,
 						entry.satPos.z() / 1000,
-						entry.clock[0] * 1e6);
+						entry.satClk * 1e6,
+						"",
+						predictedChar);
 			}
 			
 			if (acsConfig.output_orbit_velocities)
 			{
-				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f\n",
+				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f%19s%c\n",
 						entry.sat.id().c_str(),
 						entry.satVel.x(),
 						entry.satVel.y(),
 						entry.satVel.z(),
-						entry.clock[1] * 1e6);
+						entry.satClkVel * 1e6,
+						"",
+						predictedChar);
 			}
 		}
 		else
 		{
 			{
 				tracepdeex(0, sp3Stream, "P%s%14.6f%14.6f%14.6f%14.6f\n",
-						sat.id().c_str(), 0, 0, 0, 999999.999999);
+						sat.id().c_str(), 0, 0, 0, NO_SP3_CLK);
 			}
 			
 			if (acsConfig.output_orbit_velocities)
 			{
 				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f\n",
-						sat.id().c_str(), 0, 0, 0, 999999.999999);
+						sat.id().c_str(), 0, 0, 0, NO_SP3_CLK);
 			}
 		}
 	}
@@ -293,31 +312,30 @@ void updateSp3Body(
 }
 
 void writeSysSetSp3(
-	string			filename,
-	GTime			time,
-	OutSys			outSys,
-	Sp3FileData&	outFileDat,
-	E_Ephemeris		sp3DataSrc,	
-	KFState*		kfState_ptr)
+	string				filename,
+	GTime				time,
+	map<E_Sys, bool>&	outSys,
+	Sp3FileData&		outFileDat,
+	vector<E_Source>	sp3DataSrcs,	
+	KFState*			kfState_ptr,
+	bool				predicted)
 {
-	Sp3SatList entryList;
+	map<int, Sp3Entry> entryList;
 
-	for (auto& [satId, satNav] : nav.satNavMap)
+	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
-		SatSys Sat;
-		Sat.fromHash(satId);
-
-		if (!outSys[Sat.sys])
+		if (outSys[Sat.sys] == false)
 			continue;
 
 		// Create a dummy observation
-		Obs obs;
-		obs.Sat = Sat;
-		obs.satNav_ptr = &nav.satNavMap[Sat];
+		GObs obs;
+		obs.Sat			= Sat;
+		obs.satNav_ptr	= &nav.satNavMap[Sat];
 
-		GTime 		teph = time;
-
-		bool pass = satpos(nullStream, time, teph, obs, acsConfig.orbits_data_source, E_OffsetType::COM, nav, false, kfState_ptr);
+		bool pass = true;
+		pass &= satclk(nullStream, time, time, obs, sp3DataSrcs,					nav, kfState_ptr);
+		pass &= satpos(nullStream, time, time, obs, sp3DataSrcs, E_OffsetType::COM,	nav, kfState_ptr);
+		
 		if (pass == false)
 		{
 			BOOST_LOG_TRIVIAL(warning) << "Warning: Writing SP3 file, failed to get data for satellite " << Sat.id();
@@ -326,11 +344,20 @@ void writeSysSetSp3(
 
 		Sp3Entry entry;
 		entry.sat = Sat;
-		entry.satPos = obs.rSat;
-		entry.satVel = obs.satVel;
-		entry.clock[0] = obs.dtSat[0];
-		entry.clock[1] = obs.dtSat[1];
-		entry.sigma = sqrt(obs.ephVar);
+		if (acsConfig.output_inertial_orbits)
+		{
+			entry.satPos = obs.rSatEci0;
+			entry.satVel = obs.vSatEci0;
+		}
+		else
+		{
+			entry.satPos = obs.rSat;
+			entry.satVel = obs.satVel;
+		}
+		entry.satClk	= obs.satClk;
+		entry.satClkVel	= obs.satClkVel;
+		entry.sigma		= sqrt(obs.satClkVar);
+		entry.predicted	= predicted;
 
 		entryList[Sat] = entry;
 	}
@@ -340,14 +367,89 @@ void writeSysSetSp3(
 
 
 void outputSp3(
-	GTime		time,
-	E_Ephemeris	sp3DataSrc,
-	KFState*	kfState_ptr)
+	string				filename,
+	GTime				time,
+	vector<E_Source>	sp3DataSrcs,
+	KFState*			kfState_ptr,
+	bool				predicted)
 {
-	auto sysFilenames = getSysOutputFilenames(acsConfig.orbits_filename, time);
+	time = time.floorTime(1);
+	
+	GTow tow = time;
+	if (int(tow) % acsConfig.orbits_output_interval != 0)
+		return;
+
+	auto sysFilenames = getSysOutputFilenames(filename, time);
 
 	for (auto [filename, sysMap] : sysFilenames)
 	{
-		writeSysSetSp3(filename, time, sysMap, sp3CombinedFileData, sp3DataSrc, kfState_ptr);
+		writeSysSetSp3(filename, time, sysMap, sp3CombinedFileData, sp3DataSrcs, kfState_ptr, predicted);
+	}
+}
+
+void outputMongoOrbits()
+{
+	map<GTime, map<int, Sp3Entry>> entryListMap;
+	
+	auto orbitMapMap = mongoReadOrbits();
+	auto clockMapMap = mongoReadClocks();
+	
+	map<E_Sys, bool> outSys;
+	
+	auto sysFilenames = getSysOutputFilenames(acsConfig.predicted_orbits_filename, tsync);
+
+	for (auto [filename, sysMap] : sysFilenames)
+	{
+		for (auto& [Sat,	timeMap]	: orbitMapMap)
+		for (auto& [time,	state]		: timeMap)
+		{
+			ERPValues erpv = geterp(nav.erp, time);
+
+			FrameSwapper frameSwapper(time, erpv);
+			
+			auto& entry = entryListMap[time][Sat];
+			
+			entry.sat = Sat;
+			
+			if (acsConfig.output_inertial_orbits)
+			{
+				entry.satPos = state.head(3);
+				entry.satVel = state.tail(3);
+			}
+			else
+			{
+				VectorEci rSat = (Vector3d) state.head(3);
+				VectorEci vSat = (Vector3d) state.tail(3);
+				
+				VectorEcef vSatEcef;
+				entry.satPos = frameSwapper(rSat, &vSat, &vSatEcef);
+				entry.satVel = vSatEcef;
+			}
+			
+			auto timeMapIt = clockMapMap.find(Sat.id());
+			if (timeMapIt == clockMapMap.end())
+			{
+				continue;
+			}
+			
+			auto& [dummy1, timeClkMap] = *timeMapIt;
+			
+			auto timeIt = timeClkMap.find(time);
+			if (timeIt == timeClkMap.end())
+			{
+				continue;
+			}
+			
+			auto& [dummy2, clockTuple]	= *timeIt;
+			auto& [clock, drift]		= clockTuple;
+			
+			entry.satClk	= clock;
+			entry.satClkVel	= drift;
+		}
+		
+		for (auto& [time, entryList] : entryListMap)
+		{
+			updateSp3Body(filename, entryList, time, sysMap, predictedSp3CombinedFileData);
+		}
 	}
 }

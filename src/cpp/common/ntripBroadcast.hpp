@@ -1,6 +1,5 @@
 
-#ifndef NTRIPSSRBROADCASTER_H
-#define NTRIPSSRBROADCASTER_H
+#pragma once
 
 
 #include <mutex>
@@ -25,6 +24,8 @@ struct NtripUploader : NtripSocket, RtcmEncoder
 	boost::asio::deadline_timer		sendTimer;
 	int 	numberChunksSent 		= 0;
 	
+	GTime	previousTargetTime;	///< Time to prevent aliasing
+	
 	string	ntripStr 				= "";
 	string	id						= "NtripUploader";
 
@@ -35,7 +36,14 @@ struct NtripUploader : NtripSocket, RtcmEncoder
 								:	NtripSocket(url_str), 
 									sendTimer(io_service)
 	{
-		rtcmMountPoint = url.path;
+		if (url.path.empty())
+		{
+			BOOST_LOG_TRIVIAL(error) << "Error: Ntrip uploader created with empty url";
+			
+			return;
+		}
+		
+		rtcmMountpoint = url.path.substr(1);	// remove '/'
 		
 		if (acsConfig.output_encoded_rtcm_json)
 		{
@@ -67,7 +75,7 @@ struct NtripUploader : NtripSocket, RtcmEncoder
 	void connected() 
 	override;
 
-	void messageTimeout_hanlder(
+	void messageTimeout_handler(
 		const boost::system::error_code& err);
 	
 	void write_handler(
@@ -94,4 +102,3 @@ struct NtripBroadcaster
 
 extern	NtripBroadcaster ntripBroadcaster;
 
-#endif

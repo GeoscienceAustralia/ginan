@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef PEA_LOAD_FUNCTIONS_H
-#define PEA_LOAD_FUNCTIONS_H
+#pragma once
 
 #include "tide.h"
 #include "input_otl.h"
@@ -17,5 +16,3 @@ void write_BLQ(otl_input *input);
 void write_BLQ(otl_input *input, int code);
 
 
-
-#endif //PEA_LOAD_FUNCTIONS_H

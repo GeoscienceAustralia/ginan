@@ -1,6 +1,5 @@
 
-#ifndef __GPX_HPP__
-#define __GPX_HPP__
+#pragma once
 
 
 
@@ -8,5 +7,3 @@ void writeGPX(
 	string		filename,
 	string		id,
 	KFState&	kfState);
-
-#endif

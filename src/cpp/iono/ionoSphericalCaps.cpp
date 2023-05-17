@@ -1,4 +1,5 @@
 
+#include "coordinates.hpp"
 #include "ionoModel.hpp"
 #include "observations.hpp"
 #include "common.hpp"
@@ -178,8 +179,7 @@ double bisection(int m, double* ntmp, double x, int nu)
 	return (d);
 }
 
-/*-----------------------------------------------------
-Ipp_check_sphcap (time,IPP) transforms the Ionosphere
+/** transforms the Ionosphere
 Piercing Point and checks if it falls in area of coverage
 time:  		I 		time of observations (not used)
 IPP: 			I 		Ionospheric piercing point to be updated
@@ -187,30 +187,34 @@ returns 1 if the IPP is within the area of coverage
 -----------------------------------------------------
 Author: Ken Harima @ RMIT 01 August 2020
 -----------------------------------------------------*/
-int Ipp_check_sphcap(GTime time, double* Ion_pp)
+bool ippCheckSphcap(
+	GTime		time, 
+	VectorPos&	ionPP)
 {
-	Vector3d	rpp;
-	double		pos[3];
-	double		rrot[3];
-	pos[0] = Ion_pp[0];
-	pos[1] = Ion_pp[1];
+	VectorPos pos;
+	pos[0] = ionPP[0];
+	pos[1] = ionPP[1];
 	pos[2] = acsConfig.ionModelOpts.layer_heights[0];
-	pos2ecef(pos, rpp);
-	matmul("NN", 3, 1, 3, 1, scap_rotmtx, rpp.data(), 0, rrot);
-	ecef2pos(rrot, pos);
+	
+	VectorEcef	rpp = pos2ecef(pos);
+	
+	VectorEcef rrot;
+	matmul("NN", 3, 1, 3, 1, scap_rotmtx, rpp.data(), 0, rrot.data());
+	
+	pos = ecef2pos(rrot);
 
-	Ion_pp[0] = PI / 2 - pos[0];			/* colatitude for spherical harmonic caps */
+	ionPP[0] = PI / 2 - pos.lat();			/* colatitude for spherical harmonic caps */
 
-	if (Ion_pp[0] > scap_maxlat) 
-		return 0;
+	if (ionPP[0] > scap_maxlat) 
+		return false;
 
-	Ion_pp[1] = pos[1];
-	return 1;
+	ionPP[1] = pos[1];
+
+	return true;
 }
 
 
-/*-------------------------------------------------------------------------
-ion_coef_sphcap: Evaluates spherical cap harmonics basis functions
+/** Evaluates spherical cap harmonics basis functions
 	int ind			I		Basis function number
 	obs				I		Ionosphere measurement struct
 		latIPP				- Latitude of Ionosphere Piercing Point
@@ -218,9 +222,9 @@ ion_coef_sphcap: Evaluates spherical cap harmonics basis functions
 		angIPP				- Angular gain for Ionosphere Piercing Point
 	bool slant		I		false: output coefficient for Vtec, true: output coefficient for delay
 ----------------------------------------------------------------------------*/
-double ion_coef_sphcap(
+double ionCoefSphcap(
 	int		ind, 
-	Obs&	obs, 
+	GObs&	obs, 
 	bool	slant)
 {
 	if (ind >= Scp_Basis_list.size()) 
@@ -228,23 +232,22 @@ double ion_coef_sphcap(
 
 	Scp_Basis& basis = Scp_Basis_list[ind];
 
-	double legr	= legendre_function(basis.order, basis.degree, obs.latIPP[basis.hind]);		// Legendre function
+	double legr	= legendre_function(basis.order, basis.degree, obs.ippMap[basis.hind].lat);		// Legendre function
 
 	double out;
 
-	if (basis.parity)	out = legr * sin(basis.order * obs.lonIPP[basis.hind]);
-	else				out = legr * cos(basis.order * obs.lonIPP[basis.hind]);
+	if (basis.parity)	out = legr * sin(basis.order * obs.ippMap[basis.hind].lon);
+	else				out = legr * cos(basis.order * obs.ippMap[basis.hind].lon);
 
 	if (slant)
 	{
-		out *= obs.angIPP[basis.hind] * obs.STECtoDELAY;
+		out *= obs.ippMap[basis.hind].ang * obs.STECtoDELAY;
 	}
 
 	return out;
 }
 
-/*-------------------------------------------------------------------------
-ion_vtec_sphcap: Estimate Ionosphere VTEC using Spherical Cap Harmonic models
+/** Estimate Ionosphere VTEC using Spherical Cap Harmonic models
 	gtime_t  time		I		time of solutions (not useful for this one
 	Ion_pp				I		Ionosphere Piercing Point
 	layer				I 		Layer number
@@ -252,24 +255,24 @@ ion_vtec_sphcap: Estimate Ionosphere VTEC using Spherical Cap Harmonic models
 returns: VETC at piercing point
 ----------------------------------------------------------------------------*/
 double ionVtecSphcap(
-    GTime time,
-    double* Ion_pp,
-    int layer,
-    double& vari,
-    KFState& kfState)
+    GTime		time,
+    VectorPos&	ionPP,
+    int			layer,
+    double&		var,
+    KFState&	kfState)
 {
-	if (!Ipp_check_sphcap(time, Ion_pp))
+	if (ippCheckSphcap(time, ionPP) == false)
 	{
-		vari = 0;
+		var = 0;
 		return 0;
 	}
 
-	vari = 0;
+	var = 0;
 	double iono = 0;
-	Obs tmpobs;
-	tmpobs.latIPP[layer] = Ion_pp[0];
-	tmpobs.lonIPP[layer] = Ion_pp[1];
-	tmpobs.angIPP[layer] = 1;
+	GObs tmpobs;
+	tmpobs.ippMap[layer].lat = ionPP[0];
+	tmpobs.ippMap[layer].lon = ionPP[1];
+	tmpobs.ippMap[layer].ang = 1;
 
 	for (int ind = 0; ind < acsConfig.ionModelOpts.NBasis; ind++)
 	{
@@ -278,7 +281,7 @@ double ionVtecSphcap(
 		if (basis.hind != layer)
 			continue;
 
-		double coef = ion_coef_sphcap(ind, tmpobs, false);
+		double coef = ionCoefSphcap(ind, tmpobs, false);
 
 		KFKey keyC;
 		keyC.type	= KF::IONOSPHERIC;
@@ -288,16 +291,15 @@ double ionVtecSphcap(
 		double stastd = 0;
 		kfState.getKFValue(keyC, staval, &stastd);
 
-		iono += 	coef * staval;
-		vari += SQR(coef * stastd);
+		iono	+= 		coef * staval;
+		var		+= SQR( coef * stastd);
 	}
 
 	return iono;
 }
 
 
-/*-------------------------------------------------------------------------
-configure_iono_model_sphcap: Initializes Spherical caps Ionosphere model
+/** Initializes Spherical caps Ionosphere model
 	The following configursation parameters are used
 	-  acsConfig.ionoOpts.lat_center:    latitude of map centre
 	-  acsConfig.ionoOpts.lon_center:    longitude of map centre
@@ -306,7 +308,7 @@ configure_iono_model_sphcap: Initializes Spherical caps Ionosphere model
 	-  acsConfig.ionoOpts.func_order:	  Legendre function order
 	-  acsConfig.ionoOpts.layer_heights: Ionosphere layer Heights
 ----------------------------------------------------------------------------*/
-int configure_iono_model_sphcap(void)
+int configIonModelSphcap()
 {
 	double latc = acsConfig.ionexGrid.lat_center	* D2R;
 	double lonc = acsConfig.ionexGrid.lon_center	* D2R;
@@ -373,7 +375,7 @@ int configure_iono_model_sphcap(void)
 							break;
 						}
 
-						if ((p1 * p1) < 0)
+						if ((p1 * p2) < 0)
 						{
 							nk = bisection(m, nodd, scap_maxlat, k);
 
@@ -406,7 +408,7 @@ int configure_iono_model_sphcap(void)
 							break;
 						}
 
-						if ((p1 * p1) < 0)
+						if ((p1 * p2) < 0)
 						{
 							nk = bisection(m, neve, scap_maxlat, k);
 

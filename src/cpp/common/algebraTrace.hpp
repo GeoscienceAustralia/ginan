@@ -1,6 +1,5 @@
 
-#ifndef __ALGEBRA_TRACE_HPP__
-#define __ALGEBRA_TRACE_HPP__
+#pragma once
 
 #include <iostream>
 #include <utility>
@@ -21,6 +20,7 @@ using std::map;
 #include <boost/serialization/vector.hpp>
 
 #include "navigation.hpp"
+#include "station.hpp"
 #include "algebra.hpp"
 #include "enum.h"
 
@@ -30,6 +30,7 @@ BETTER_ENUM(E_SerialObject,		int,
 			NONE,
 			FILTER_MINUS,
 			FILTER_PLUS,
+			FILTER_SMOOTHED,
 			TRANSITION_MATRIX,
 			NAVIGATION_DATA,
 			STRING,
@@ -42,247 +43,19 @@ struct TransitionMatrixObject
 	map<pair<int, int>, double>		forwardTransitionMap;
 	int								rows;
 	int								cols;
+	
+	template<class ARCHIVE>
+	void serialize(ARCHIVE& ar, const unsigned int& version)
+	{
+		ar & forwardTransitionMap;
+		ar & rows;
+		ar & cols;
+	}
 };
 
-typedef map<pair<KFKey, KFKey>, double>	CovarAdjustObject;
-typedef map<KFKey, double>				StateAdjustObject;
-
-namespace boost::serialization
-{
-	template<class ARCHIVE>    void serialize(ARCHIVE& ar, int&					integer)    {ar & integer;    	}
-	template<class ARCHIVE>    void serialize(ARCHIVE& ar, long int&			integer)    {ar & integer;    	}
-	template<class ARCHIVE>    void serialize(ARCHIVE& ar, short int&			integer)    {ar & integer;    	}
-	template<class ARCHIVE>    void serialize(ARCHIVE& ar, size_t&				size_type)	{ar & size_type; 	}
-	template<class ARCHIVE>    void serialize(ARCHIVE& ar, map<int, double>&	Map)		{ar & Map;			}
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, VectorXd& vec)
-	{
-		int rows = vec.rows();
-		ar & rows;
-
-		vec.resize(rows);
-
-		for (int row = 0; row < vec.rows(); row++)
-		{
-			ar & vec(row);
-		}
-	}
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, MatrixXd& mat)
-	{
-		int rows = mat.rows();
-		int cols = mat.cols();
-
-		ar & rows;
-		ar & cols;
-
-		mat.resize(rows, cols);
-
-		for (int row = 0; row < mat.rows(); row++)
-		for (int col = 0; col < mat.cols(); col++)
-		{
-			ar & mat(row, col);
-		}
-	}
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, GTime& time)
-	{
-		long int	time_int = time.time;
-		double		time_sec = time.sec;
-		ar & time_int;
-		ar & time_sec;
-		time.time	= time_int;
-		time.sec	= time_sec;
-	}
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, E_Sys& sys)
-	{
-		short int sys_int = sys;
-		ar & sys_int;
-		sys = E_Sys::_from_integral(sys_int);
-	}
-
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, SatSys& Sat)
-	{
-		serialize(ar, Sat.sys);
-		ar & Sat.prn;
-	}
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, KFKey& kfKey)
-	{
-		ar & kfKey.type;
-		ar & kfKey.num;
-		ar & kfKey.str;
-		serialize(ar, kfKey.Sat);
-	}
-
-//     template<class ARCHIVE, class TYPE1, class TYPE2>
-//     void serialize(ARCHIVE& ar, pair<TYPE1, TYPE2>& pair_)
-//     {
-// 		serialize(ar, pair_.first);
-// 		serialize(ar, pair_.second);
-// 	}
-
-	template<class ARCHIVE, class TYPE>
-	void serialize(ARCHIVE& ar, map<KFKey, TYPE>& mapItem)
-	{
-		int num = mapItem.size();
-		ar & num;
-
-		if (ARCHIVE::is_saving::value)
-		{
-			//writing
-			for (auto& [kfKey, val] : mapItem)
-			{
-				KFKey key = kfKey;
-
-				serialize(ar, key);
-
-				ar & val;
-			}
-		}
-		else
-		{
-			//reading
-			for (int i = 0; i < num; i++)
-			{
-				KFKey kfKey;
-
-				serialize(ar, kfKey);
-
-				ar & mapItem[kfKey];
-			}
-		}
-	}
-
-	template<class ARCHIVE, class A, class B>
-	void serialize(ARCHIVE& ar, pair<A,B>& pair_)
-	{
-		serialize(ar, pair_.first);
-		serialize(ar, pair_.second);
-	}
+extern map<short int, string> idStringMap;
+extern map<string, short int> stringIdMap;
 	
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, string& str)
-	{
-		ar & str;
-	}
-
-	template<class ARCHIVE, class KEY, class TYPE>
-	void serialize(ARCHIVE& ar, map<KEY, TYPE>& mapItem)
-	{
-		int num = mapItem.size();
-		ar & num;
-
-		if (ARCHIVE::is_saving::value)
-		{
-			//writing
-			for (auto& [kfKey, val] : mapItem)
-			{
-				KEY key = kfKey;
-
-				serialize(ar, key);
-
-				ar & val;
-			}
-		}
-		else
-		{
-			//reading
-			for (int i = 0; i < num; i++)
-			{
-				KEY kfKey;
-
-				serialize(ar, kfKey);
-
-				ar & mapItem[kfKey];
-			}
-		}
-	}
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, TransitionMatrixObject& object)
-	{
-		ar & object.forwardTransitionMap;
-		ar & object.rows;
-		ar & object.cols;
-	}
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, ObsKey& obsKey)
-	{
-		ar & obsKey.Sat;
-		ar & obsKey.str;
-		ar & obsKey.type;
-		ar & obsKey.num;
-	}
-
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, KFState& kfState)
-	{
-		serialize(ar, kfState.kfIndexMap);
-		serialize(ar, kfState.time);
-		serialize(ar, kfState.x);
-		serialize(ar, kfState.P);
-	}
-	
-	template<class ARCHIVE>
-	void serialize(ARCHIVE& ar, KFMeas& kfMeas)
-	{
-		int rows = kfMeas.H.rows();
-		int cols = kfMeas.H.cols();
-		ar & rows;
-		ar & cols;
-		
-		if (ARCHIVE::is_saving::value) 
-		{
-			//just wrote this, we are writing
-			map<pair<int, int>, double>	H;
-			
-			ar & kfMeas.obsKeys;
-			serialize(ar, kfMeas.time);
-			serialize(ar, kfMeas.VV);
-			
-			for (int i = 0; i < rows; i++)
-			for (int j = 0; j < cols; j++)
-			{
-				double value = kfMeas.H(i,j);
-				if (value)
-				{
-					H[{i,j}] = value;
-				}
-			}
-			
-			serialize(ar, H);
-		}
-		else
-		{
-			//we're reading
-			map<pair<int, int>, double>	H;
-			
-			ar & kfMeas.obsKeys;
-			serialize(ar, kfMeas.time);
-			serialize(ar, kfMeas.VV);
-			serialize(ar, H);
-			
-			kfMeas.H = MatrixXd::Zero(rows,cols);
-			kfMeas.R = MatrixXd::Zero(rows,rows);
-			kfMeas.V = VectorXd::Zero(rows);
-			
-			for (auto & [index, value] : H)
-			{
-				kfMeas.H(index.first, index.second) = value;
-			}
-		}
-	}
-}
 
 using boost::serialization::serialize;
 using boost::archive::binary_oarchive;
@@ -313,12 +86,12 @@ void spitFilterToFile(
 	long int pos = fileStream.tellp();
 
 	int type_int = type;
-	serialize(serial, type_int);
-	serialize(serial, object);
+	serial & type_int;
+	serial & object;
 
 	long int end = fileStream.tellp();
 	long int delta = end - pos;
-	serialize(serial, delta);
+	serial & delta;
 }
 
 /* Retrieve an object from an archive
@@ -347,23 +120,23 @@ bool getFilterObjectFromFile(
 
 	long int currentPosition = fileStream.tellg();
 
-	serialize(serial, itemDelta);
+	serial & itemDelta;
 
 	long int itemPosition = currentPosition - itemDelta;
 
 	fileStream.seekg(itemPosition, fileStream.beg);
 
-	int type_int;
-	serialize(serial, type_int);
+	int typeInt;
+	serial & typeInt;
 
-	E_SerialObject type = E_SerialObject::_from_integral(type_int);
+	E_SerialObject type = E_SerialObject::_from_integral(typeInt);
 	if (type != expectedType)
 	{
 		std::cout << std::endl << "Error: Unexpected algebra file object type";
 		return false;
 	}
 
-	serialize(serial, object);
+	serial & object;
 
 	startPos = itemPosition;
 
@@ -374,7 +147,6 @@ E_SerialObject getFilterTypeFromFile(
 	long int&	startPos,
 	string		filename);
 
-#include "station.hpp"
 
 void inputPersistanceNav();
 
@@ -391,5 +163,3 @@ void outputPersistanceStates(
 void tryPrepareFilterPointers(
 	KFState&		kfState, 
 	StationMap*		stationMap_ptr);
-
-#endif

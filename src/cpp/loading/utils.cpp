@@ -24,7 +24,7 @@ const double PI = atan(1.0)*4;
 * return : none
 * notes  : WGS84, ellipsoidal height
 *-----------------------------------------------------------------------------*/
-void ecef2pos(const double *r, double *pos)
+void ecef2pos(const double *r, double* pos)
 {
 	double e2=FE_WGS84*(2.0-FE_WGS84);
 	double r2=r[0]*r[0] + r[1]*r[1];
@@ -40,6 +40,7 @@ void ecef2pos(const double *r, double *pos)
 		v=RE_WGS84/sqrt(1.0-e2*sinp*sinp);
 		z=r[2]+v*e2*sinp;
 	}
+
 	pos[0]=r2>1E-12?atan(z/sqrt(r2)):(r[2]>0.0?PI/2.0:-PI/2.0);
 	pos[1]=r2>1E-12?atan2(r[1],r[0]):0.0;
 	pos[2]=sqrt(r2+z*z)-v;

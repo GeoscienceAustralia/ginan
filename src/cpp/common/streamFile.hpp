@@ -1,113 +1,99 @@
 
-#ifndef __ACS_FILESTREAM_HPP
-#define __ACS_FILESTREAM_HPP
+#pragma once
 
 
-/** Interface to be used for file streams
-*/
-struct ACSFileStream
+#include <istream>
+#include <memory>
+#include <string>
+
+using std::make_unique;
+using std::unique_ptr;
+using std::string;
+
+#include "streamParser.hpp"
+
+
+struct FileState : std::ifstream
 {
-	struct FileState
-	{
-		long int&		filePos;
-		std::ifstream	inputStream;
-		
-		FileState(
-			string					path, 
-			long int&				filePos, 
-			std::ifstream::openmode	mode = std::ifstream::in) 
-				: filePos {filePos}
-		{
-			if (filePos < 0)
-			{
-// 				BOOST_LOG_TRIVIAL(error) << "Error seeking to negative position in file at " << path << " to " << filePos
-// 				<< std::endl;
-				return;
-			}
-			
-// 			std::cout << "Opening" << std::endl;
-			inputStream.open(path, mode);
-			
-			if (!inputStream)
-			{
-				BOOST_LOG_TRIVIAL(error) << "Error opening file at " << path
-				<< std::endl << " - " << strerror(errno);
-				filePos = -1;
-				return;
-			}
-			
-// 			std::cout << "Seeking" << std::endl;
-			inputStream.seekg(filePos);
-			
-// 			std::cout << "Using" << std::endl;
-			
-			if (!inputStream)
-			{
-				BOOST_LOG_TRIVIAL(error) << "Error seeking in file at " << filePos << " in " << path
-				<< std::endl << " - " << strerror(errno);
-				
-				filePos = -1;
-				return;
-			}
-		}
-		
-		~FileState()
-		{
-// 			std::cout << "Closed" << std::endl;
-			if (inputStream)
-			{
-				filePos = inputStream.tellg();
-				
-				if (!inputStream)
-				{
-					BOOST_LOG_TRIVIAL(error) << "Error telling in file at " << filePos
-					<< std::endl << " - " << strerror(errno);
-					
-					filePos = -1;
-					return;
-				}
-				
-				if (filePos < 0)
-				{
-					BOOST_LOG_TRIVIAL(error) << "Error: Negative file pos in file at " << filePos
-					<< std::endl << " - " << strerror(errno);
-					return;
-				}	
-			}
-			else
-			{
-// 				BOOST_LOG_TRIVIAL(error) << "InputStream is dead before destruction "
-// 				<< std::endl;
-				
-				if (inputStream.eof())
-				{
-// 					BOOST_LOG_TRIVIAL(error) << "InputStream has end of file "
-// 					<< std::endl;
-				}
-				filePos = -1;
-				return;
-			}
-		}
-	};
+	long int&		filePos;
 	
-	string			path;
-	long int		filePos = 0;
-
-	ACSFileStream()
+	FileState(
+		string					path, 
+		long int&				filePos, 
+		std::ifstream::openmode	mode = std::ifstream::in) 
+			: filePos {filePos}
 	{
-
+		if (filePos < 0)
+		{
+// 			BOOST_LOG_TRIVIAL(error) << "Error seeking to negative position in file at " << path << " to " << filePos	<< std::endl;
+			close();
+			return;
+		}
+		
+		open(path, mode);
+		
+		if (!*this)
+		{
+			BOOST_LOG_TRIVIAL(error) << "Error opening file at " << path
+			<< std::endl << " - " << strerror(errno);
+			filePos = -1;
+			return;
+		}
+		
+		seekg(filePos);
+		
+		if (!*this)
+		{
+			BOOST_LOG_TRIVIAL(error) << "Error seeking in file at " << filePos << " in " << path
+			<< std::endl << " - " << strerror(errno);
+			
+			filePos = -1;
+			return;
+		}
 	}
-
-	void setPath(const string& path)
+	
+	~FileState()
 	{
-		this->path = path;
-	}
-
-	FileState openFile()
-	{
-		return FileState(path, filePos);
+		filePos = streamPos(*this);
 	}
 };
 
+struct FileStream : Stream
+{
+	string			path;
+	long int		filePos = 0;
+	
+	FileStream(
+		string	path)
+	:	path	(path)
+	{
+		
+	}
+	
+	unique_ptr<std::istream> getIStream_ptr() override
+	{
+// 		std::cout << "Getting FileStream" << std::endl;
+		
+		return make_unique<FileState>(path, filePos);
+	}
+	
+	bool isDead() override
+	{
+		if (filePos < 0)
+		{
+			return true;
+		}
+		
+		auto iStream_ptr = this->getIStream_ptr();
+		
+		if	(*iStream_ptr)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+};
 
-#endif

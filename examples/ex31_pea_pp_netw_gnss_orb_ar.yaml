@@ -9,7 +9,7 @@ inputs:
     root_directory: products/
 
     atx_files:   [ igs14.atx                                    ]    # required
-    snx_files:   [ igs19P2062.snx                               ]    # required
+    snx_files:   [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx  ]    # required
     blq_files:   [ OLOAD_GO.BLQ                                 ]    # required if ocean loading is applied
     erp_files:   [ ../ex31/pod_fit/gag20624.erp                 ]    #config parser doesn't accept weekly files yet.
 
@@ -23,16 +23,16 @@ inputs:
 
     gnss_observations:
 
-        root_directory: ../data/
+        inputs_root: data/
 
-        rnx_files:
+        rnx_inputs:
             # Select files to run by:
                                                             # - selecting one on the command line using the -rnxfiles option
             - "*.rnx"                                       # - searching all in file_root directory, or
             # - "A*.rnx"                                    # - searching all in file_root directory, or
 
     troposphere:
-        vmf3_directory:    grid5/
+        vmf_files:   [ "grid5/*.H00","grid5/*.H06","grid5/*.H12","grid5/*.H18" ]
         orography_files:  orography_ell_5x5
         # gpt2grid: EX03/general/gpt_25.grd
 
@@ -69,7 +69,8 @@ outputs:
         output:                     false
         directory:                  ./
         filename:                   AUS0ACSRAP_<YYYY><DDD><HH>00_01D_01D_REL.BIA
-        output_interval:            900
+        phase_output_interval:      900
+        code_output_interval:	    900.0 
     
     clocks:
         output:                     true
@@ -101,15 +102,14 @@ outputs:
         rinex_comment:              AUSNETWORK1
 
 mongo:
-    enable:                         true
+    enable:                         false
     output_measurements:            true
     output_states:                  true
     output_rtcm_messages:           true
     output_test_stats:              true
     #delete_history:                true
     uri:                            mongodb://127.0.0.1:27017
-    suffix:                         _
-    rts_suffix:                     _rts
+
     
 debug:
     mincon_only: false
@@ -135,7 +135,7 @@ processing_options:
             phase_reject_limit:          2
             
         cycle_slips:
-            detect:
+            exclude:
                 lli:    false
 
     process_modes:
@@ -152,7 +152,6 @@ processing_options:
         max_gdop:           30
         elevation_mask:     10   #degrees
 
-        reject_eclipse:     true
         raim:               true
 
         pivot_station:        "USN7" #if not provided then will be selected automatically
@@ -161,7 +160,7 @@ processing_options:
             gps:
                 process:                true
                 ambiguity_resolution:   false
-        
+                reject_eclipse: true
                 code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
                                     L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                                     L5I, L5Q, L5X]
@@ -269,7 +268,7 @@ processing_options:
             w_test:                  false            # (bool)  Enable w-test
 
         #default_station_noise: [1,1,1]                  #constrain all by defaul. [-1] to unconstrain all stations
-        default_station_noise:	[0.003, 0.004, 0.007]                   
+        # default_station_noise:	[0.003, 0.004, 0.007]                   
 
         #station_noise:
         #    ALIC: 0.001     # constrain strongly
@@ -387,7 +386,7 @@ estimation_parameters:
         estimated:  [true]
         sigma:      [30]
 
-    overrides:
+    # overrides:
 
         #stations:
             #AGGO:
