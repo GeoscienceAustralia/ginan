@@ -11,31 +11,27 @@ using std::chrono::system_clock;
 using std::string;
 
 #include "peaCommitVersion.h"
-#include "streamTrace.hpp"
+#include "instrument.hpp"
 #include "navigation.hpp"
 #include "constants.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
 #include "gTime.hpp"
+#include "trace.hpp"
 #include "erp.hpp"
 
 
 /** read earth rotation parameters
  */
-int readerp(
-	string	filename,	///< IGS ERP file (IGS ERP ver.2)
+void readerp(
+	string	filename,		///< IGS ERP file (IGS ERP ver.2)
 	ERP&	erp)			///< earth rotation parameters
 {
-	FILE*		fp;
-	ERPData*	erp_data;
-
-//	trace(3,"%s: file=%s\n",__FUNCTION__, file);
-
 	std::ifstream filestream(filename);
 	if (!filestream)
 	{
 //         trace(2,"erp file open error: file=%s\n",file);
-		return 0;
+		return;
 	}
 	
 	while (filestream)
@@ -44,46 +40,51 @@ int readerp(
 		
 		getline(filestream, line);
 
-		double v[14] = {};
-		
-		if (sscanf(line.c_str(),"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
-				v,v+1,v+2,v+3,v+4,v+5,v+6,v+7,v+8,v+9,v+10,v+11,v+12,v+13) < 5)
+		double v[14]	= {};
+		double mjdval	= 0;
+		int found = sscanf(line.c_str(),"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+				&mjdval,v+1,v+2,v+3,v+4,v+5,v+6,v+7,v+8,v+9,v+10,v+11,v+12,v+13);
+		if (found < 5)
 		{
 			continue;
 		}
+		
+		MjDateUtc mjd;
+		mjd.val = mjdval;
 	
-		ERPData erpData;
+		ERPValues erpv;
 		
-		erpData.mjd		= v[0];
-		erpData.xp		= v[1]	* 1E-6*AS2R;
-		erpData.yp		= v[2]	* 1E-6*AS2R;
-		erpData.ut1_utc	= v[3]	* 1E-7;
-		erpData.lod		= v[4]	* 1E-7;
-		erpData.xpr		= v[12]	* 1E-6*AS2R;
-		erpData.ypr		= v[13]	* 1E-6*AS2R;
+ 		erpv.time	= mjd;
+		erpv.xp		= v[1]	* 1E-6*AS2R;
+		erpv.yp		= v[2]	* 1E-6*AS2R;
+		erpv.ut1Utc	= v[3]	* 1E-7;
+		erpv.lod	= v[4]	* 1E-7;
+		erpv.xpr	= v[12]	* 1E-6*AS2R;
+		erpv.ypr	= v[13]	* 1E-6*AS2R;
 		
-		erp.erpMap[erpData.mjd] = erpData;
+		erp.erpMap[erpv.time] = erpv;
 	}
-	
-	return 1;
 }
 
 
 /** Get earth rotation parameter values
  */
-int geterp(
+ERPValues geterp(
 	ERP&			erp,
-	double			mjd,
-	ERPValues&		erpv)
+	GTime			time)
 {
+	Instrument instrument(__FUNCTION__);
+	
+	ERPValues erpv;
+	
 	if (erp.erpMap.empty())
-		return 0;
+		return erpv;
 	
 	//find two erps to interpolate between (may be duplicate)
-	ERPData* erp1_ptr;
-	ERPData* erp2_ptr;
+	ERPValues* erp1_ptr;
+	ERPValues* erp2_ptr;
 	
-	auto it = erp.erpMap.lower_bound(mjd);
+	auto it = erp.erpMap.lower_bound(time);
 	
 	if		(it == erp.erpMap.end())
 	{
@@ -109,122 +110,32 @@ int geterp(
 		erp1_ptr = &erp1;
 	}
 	
-	ERPData& erp1 = *erp1_ptr;
-	ERPData& erp2 = *erp2_ptr;
+	ERPValues& erp1 = *erp1_ptr;
+	ERPValues& erp2 = *erp2_ptr;
 	
 	//interpolate values between erps
 	double a;
-	if (erp2.mjd == erp1.mjd)	a = 0;	
-	else						a = (mjd - erp1.mjd) / (erp2.mjd - erp1.mjd);
+	if (erp2.time == erp1.time)		a	= 0;	
+	else							a	= (time			- erp1.time).to_double()
+										/ (erp2.time	- erp1.time).to_double();	
 	
-	erpv.xp			= (1-a) * erp1.xp		+ a * erp2.xp;
-	erpv.yp			= (1-a) * erp1.yp		+ a * erp2.yp;
-	erpv.ut1_utc	= (1-a) * erp1.ut1_utc	+ a * erp2.ut1_utc;
-	erpv.lod		= (1-a) * erp1.lod		+ a * erp2.lod;
+	erpv.xp		= (1-a) * erp1.xp		+ a * erp2.xp;
+	erpv.yp		= (1-a) * erp1.yp		+ a * erp2.yp;
+	erpv.ut1Utc	= (1-a) * erp1.ut1Utc	+ a * erp2.ut1Utc;
+	erpv.lod	= (1-a) * erp1.lod		+ a * erp2.lod;
 	
-	return 1;
+	return erpv;
 }
-
-/** Get earth rotation parameter values
- */
-int geterp(
-	ERP&			erp, 
-	GTime			time,
-	ERPValues&		erpv)
-{
-	const double ep[] = {2000, 1, 1, 12, 0, 0};
-	double day;
-
-//	trace(4,"geterp:\n");
-
-	double mjd = 51544.5 + (gpst2utc(time) - epoch2time(ep)) / 86400.0;		//todo aaron, convert to function
-
-	return geterp(erp, mjd, erpv);
-}
-
-/* get earth rotation parameter values -----------------------------------------
-* get earth rotation parameter values
-* args   : erp_t  *erp        I   earth rotation parameters
-*          double time        I   time (modified julian date)
-*          double *erpv       O   erp values {xp,yp,ut1_utc,lod} (rad,rad,s,s/d)
-* return : status (1:ok,0:error)
-*-----------------------------------------------------------------------------*/
-// int geterp_from_utc(
-// 	const erp_t*	erp,
-// 	double 			leapSec, 
-// 	double			mjd,
-// 	double*			erpv)
-// {
-// 	double day;
-// 
-// //	trace(4,"geterp:\n");
-// 
-// 	if (erp->n <= 0)
-// 		return 0;
-// 
-// 	if (mjd <= erp->data[0].mjd)
-// 	{
-// 		day = mjd-erp->data[0].mjd;
-// 		
-// 		erpv[0]	= erp->data[0].xp     			+ erp->data[0].xpr * day;
-// 		erpv[1]	= erp->data[0].yp     			+ erp->data[0].ypr * day;
-// 		erpv[2]	= erp->data[0].ut1_utc			- erp->data[0].lod * day;
-// 		erpv[3]	= erp->data[0].lod;
-// 		erpv[4] = leapSec;
-// 		
-// 		return 1;
-// 	}
-// 	
-// 	if (mjd >= erp->data[erp->n-1].mjd)
-// 	{
-// 		day = mjd-erp->data[erp->n-1].mjd;
-// 		
-// 		erpv[0] = erp->data[erp->n-1].xp     	+ erp->data[erp->n-1].xpr * day;
-// 		erpv[1] = erp->data[erp->n-1].yp     	+ erp->data[erp->n-1].ypr * day;
-// 		erpv[2] = erp->data[erp->n-1].ut1_utc	- erp->data[erp->n-1].lod * day;
-// 		erpv[3] = erp->data[erp->n-1].lod;
-// 		erpv[4] = leapSec;
-// 
-// 		return 1;
-// 	}
-// 	
-// 	int i;
-// 	int j = 0;
-// 	int k = erp->n - 1;
-// 	while (j < k-1)
-// 	{
-// 		i = (j+k) / 2;
-// 		
-// 		if (mjd < erp->data[i].mjd)
-// 			k = i; 
-// 		else 
-// 			j = i;
-// 	}
-// 	
-// 	double a;
-// 	if (erp->data[j].mjd == erp->data[j+1].mjd)
-// 	{
-// 		a = 0.5;
-// 	}
-// 	else
-// 	{
-// 		a = (mjd - erp->data[j].mjd) / (erp->data[j+1].mjd - erp->data[j].mjd);
-// 	}
-// 	
-// 	erpv[0] = (1-a) * erp->data[j].xp     + a * erp->data[j+1].xp;
-// 	erpv[1] = (1-a) * erp->data[j].yp     + a * erp->data[j+1].yp;
-// 	erpv[2] = (1-a) * erp->data[j].ut1_utc+ a * erp->data[j+1].ut1_utc;
-// 	erpv[3] = (1-a) * erp->data[j].lod    + a * erp->data[j+1].lod;
-// 	erpv[4] = leapSec;
-// 	
-// 	return 1;
-// }
 
 void writeERP(
 	string		filename,
-	ERPData&	erp,
-	GTime		time)
+	ERPValues&	erp)
 {
+	if (filename.empty())
+	{
+		return;
+	}
+	
 	std::ofstream erpStream(filename, std::ios::app);
 
 	if (!erpStream)
@@ -238,10 +149,8 @@ void writeERP(
 
 	if (erpStream.tellp() == 0)
 	{
-	// 	auto peaStopTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
-		
 		erpStream << "VERSION 2" << std::endl;
-		erpStream << " Generated by GINAN " << GINAN_COMMIT_VERSION << " branch " << GINAN_BRANCH_NAME << /*" at " << peaStopTime <<*/ std::endl;
+		erpStream << " Generated by GINAN " << GINAN_COMMIT_VERSION << " branch " << GINAN_BRANCH_NAME << std::endl;
 		
 		erpStream << "----------------------------------------------------------------------------------------------------------------" << std::endl;
 		erpStream << "       MJD    Xpole    Ypole  UT1-UTC      LOD     Xsig     Ysig    UTsig   LODsig  Nr  Nf  Nt      Xrt      Yrt" << std::endl;
@@ -252,23 +161,23 @@ void writeERP(
 	int numFixedRecs	= 0;
 	int numSats			= 0;
 		
-	double mjd = gpst2mjd(time);
+	MjDateUtc mjd = erp.time;
 	
 	tracepdeex(0, erpStream, "%8.4f %8d %8d %8d %8d %8d %8d %8d %8d %3d %3d %3d %8d %8d\n",
-					mjd,
+					mjd.to_double(),
 			(int)	(erp.xp				* 1E6 * R2AS),
 			(int)	(erp.yp				* 1E6 * R2AS),
-			(int)	(erp.ut1_utc		* 1E7),
+			(int)	(erp.ut1Utc			* 1E7),
 			(int)	(erp.lod			* 1E7),
-			(int)	(erp.xp_sigma		* 1E6 * R2AS),  
-			(int)	(erp.yp_sigma		* 1E6 * R2AS),
-			(int)	(erp.ut1_utc_sigma	* 1E7),
-			(int)	(erp.lod_sigma		* 1E7),
+			(int)	(erp.xpSigma		* 1E6 * R2AS),  
+			(int)	(erp.ypSigma		* 1E6 * R2AS),
+			(int)	(erp.ut1UtcSigma	* 1E7),
+			(int)	(erp.lodSigma		* 1E7),
 					numRecs,            
 					numFixedRecs,       
 					numSats,            
-			(int)	(erp.xpr		* 1E6 * R2AS),
-			(int)	(erp.ypr		* 1E6 * R2AS));
+			(int)	(erp.xpr			* 1E6 * R2AS),
+			(int)	(erp.ypr			* 1E6 * R2AS));
 }
 
 void writeERPFromNetwork(
@@ -277,7 +186,7 @@ void writeERPFromNetwork(
 {
 	static GTime lastTime = GTime::noTime();
 	
-	if (abs(lastTime - kfState.time) < 10)
+	if (abs((lastTime - kfState.time).to_double()) < 10)
 	{
 		//dont write duplicate lines (closer than 10s (4dp mjd))
 		return;
@@ -285,19 +194,69 @@ void writeERPFromNetwork(
 	
 	lastTime = kfState.time;
 
-	double ep[6];
-	time2epoch(kfState.time, ep);
-	double jd	= ymdhms2jd(ep);
-
-	ERPData erpd;
-	erpd.mjd	= jd - JD2MJD;
+	ERPValues erpv;
+	erpv.time = kfState.time;
 	
-	kfState.getKFValue({.type = KF::EOP,		.str= xp_str},	erpd.xp,		&erpd.xp_sigma		);			erpd.xp			*= MAS2R;		erpd.xp_sigma		= sqrt(erpd.xp_sigma)		* MAS2R; 		
-	kfState.getKFValue({.type = KF::EOP,		.str= yp_str},	erpd.yp,		&erpd.yp_sigma		);			erpd.yp			*= MAS2R;       erpd.yp_sigma		= sqrt(erpd.yp_sigma)		* MAS2R; 
-	kfState.getKFValue({.type = KF::EOP,		.str= ut1_str},	erpd.ut1_utc,	&erpd.ut1_utc_sigma	);			erpd.ut1_utc	*= MTS2S;       erpd.ut1_utc_sigma	= sqrt(erpd.ut1_utc_sigma)	* MTS2S; 
-	kfState.getKFValue({.type = KF::EOP_RATE,	.str= xp_str},	erpd.xpr,		&erpd.xpr_sigma		);			erpd.xpr		*= MAS2R;       erpd.xpr_sigma	    = sqrt(erpd.xpr_sigma)	    * MAS2R; 
-	kfState.getKFValue({.type = KF::EOP_RATE,	.str= yp_str},	erpd.ypr,		&erpd.ypr_sigma		);			erpd.ypr		*= MAS2R;       erpd.ypr_sigma	    = sqrt(erpd.ypr_sigma)	    * MAS2R; 
-	kfState.getKFValue({.type = KF::EOP_RATE,	.str= ut1_str},	erpd.lod,		&erpd.lod_sigma		);			erpd.lod		*= MTS2S * -1;	erpd.lod_sigma		= sqrt(erpd.lod_sigma)		* MTS2S; //lod is negative for some reason
+	bool found = false;
 	
-	writeERP(filename, erpd, kfState.time);
+	KFKey kfKey;
+	
+	kfKey.type = KF::EOP;
+	kfKey.num = 0;		found |= kfState.getKFValue(kfKey,	erpv.xp,		&erpv.xpSigma		);			erpv.xp		*= MAS2R;		erpv.xpSigma		= sqrt(erpv.xpSigma)		* MAS2R;
+	kfKey.num = 1;		found |= kfState.getKFValue(kfKey,	erpv.yp,		&erpv.ypSigma		);			erpv.yp		*= MAS2R;		erpv.ypSigma		= sqrt(erpv.ypSigma)		* MAS2R; 
+	kfKey.num = 2;		found |= kfState.getKFValue(kfKey,	erpv.ut1Utc,	&erpv.ut1UtcSigma	);			erpv.ut1Utc	*= MTS2S;		erpv.ut1UtcSigma	= sqrt(erpv.ut1UtcSigma)	* MTS2S; 
+	
+	kfKey.type = KF::EOP_RATE;
+	kfKey.num = 0;		found |= kfState.getKFValue(kfKey,	erpv.xpr,		&erpv.xprSigma		);			erpv.xpr	*= MAS2R;		erpv.xprSigma		= sqrt(erpv.xprSigma)		* MAS2R; 
+	kfKey.num = 1;		found |= kfState.getKFValue(kfKey,	erpv.ypr,		&erpv.yprSigma		);			erpv.ypr	*= MAS2R;		erpv.yprSigma		= sqrt(erpv.yprSigma)		* MAS2R; 
+	kfKey.num = 2;		found |= kfState.getKFValue(kfKey,	erpv.lod,		&erpv.lodSigma		);			erpv.lod	*= MTS2S * -1;	erpv.lodSigma		= sqrt(erpv.lodSigma)		* MTS2S; //lod is negative for some reason
+	
+	if (found)
+	{
+		//using old method, enter and return
+		
+		writeERP(filename, erpv);
+		
+		return;
+	}
+	
+	ERPValues erpvs[2];
+	erpvs[0] = geterp(nav.erp, kfState.time);
+	erpvs[1] = geterp(nav.erp, kfState.time + 1);
+	
+	erpv		= erpvs[0];
+	erpv.time	= kfState.time;
+	erpv.xpr	= erpvs[1].xp - erpvs[0].xp;	// per 1 second dt
+	erpv.ypr	= erpvs[1].yp - erpvs[0].yp;	// per 1 second dt
+	
+	for (int i = 0; i < 3; i++)
+	{
+		double adjust			= 0;
+		double adjustVar		= 0;
+		double rateAdjust		= 0;
+		double rateAdjustVar	= 0;
+		
+		KFKey kfKey;
+		kfKey.num	= i;
+		
+		kfKey.type	= KF::EOP_ADJUST;
+		kfState.getKFValue(kfKey, adjust,		&adjustVar);
+		
+		kfKey.type	= KF::EOP_RATE_ADJUST;
+		kfState.getKFValue(kfKey, rateAdjust,	&rateAdjustVar);
+		
+		switch (i)
+		{
+			case 0:	erpv.xp		+= adjust		* MAS2R;		erpv.xpSigma		= sqrt(adjustVar)		* MAS2R;
+					erpv.xpr	+= rateAdjust	* MAS2R;		erpv.xprSigma		= sqrt(rateAdjustVar)	* MAS2R;	break;
+			case 1:	erpv.yp		+= adjust		* MAS2R;		erpv.ypSigma		= sqrt(adjustVar)		* MAS2R;
+					erpv.ypr	+= rateAdjust	* MAS2R;		erpv.yprSigma		= sqrt(rateAdjustVar)	* MAS2R;	break;
+			case 2:	erpv.ut1Utc	+= adjust		* MTS2S;		erpv.ut1UtcSigma	= sqrt(adjustVar)		* MTS2S;
+					erpv.lod	+= rateAdjust	* MTS2S * -1;	erpv.lodSigma		= sqrt(rateAdjustVar)	* MTS2S;	break;	//lod is negative for some reason
+			default:
+				break;
+		}
+	}
+		
+	writeERP(filename, erpv);
 }

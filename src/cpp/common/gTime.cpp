@@ -9,21 +9,82 @@
 
 using std::ostream;
 
+#include "navigation.hpp"
 #include "constants.hpp"
+#include "acsConfig.hpp"
 #include "gTime.hpp"
+#include "sinex.hpp"
+#include "enums.h"
+
+
+const GTime j2000TT		= GEpoch{2000, E_Month::JAN, 1,		11,	58,	55.816	+ GPS_SUB_UTC_2000};	// defined in utc 11:58:55.816
+const GTime j2000Utc	= GEpoch{2000, E_Month::JAN, 1,		12,	0,	0};								// right answer, wrong reason? todo
+
+const GTime GPS_t0		= GEpoch{1980, E_Month::JAN, 6,		0,	0,	0};								// gps time reference 
+const GTime GLO_t0		= GEpoch{1980, E_Month::JAN, 6,	   21,	0,	0};								// glo time reference (without leap seconds)
+const GTime GAL_t0		= GEpoch{1999, E_Month::AUG, 22,	0,	0,	0};								// galileo system time reference as gps time -> 13 seconds before 0:00:00 UTC on Sunday, 22 August 1999 (midnight between 21 and 22 August)
+const GTime BDS_t0		= GEpoch{2006, E_Month::JAN, 1,		0,	0,	0		+ GPS_SUB_UTC_2006};	// beidou time reference as gps time - defined in utc 11:58:55.816
+
+const int		GPS_t0_sub_POSIX_t0	= 315964800;
+const double	MJD_j2000			= 51544.5;
+
+
+const int			secondsInWeek	= 60 * 60 * 24 * 7;
+const int			secondsInDay	= 60 * 60 * 24;
+const long double	secondsInDayP	= 60 * 60 * 24;
+
+map<GTime, int, std::greater<GTime>> leapSecondMap = 
+{
+	{ GEpoch{2017,	1,	1,	0,	0,	18},	18},
+	{ GEpoch{2015,	7,	1,	0,	0,	17},	17},
+	{ GEpoch{2012,	7,	1,	0,	0,	16},	16},
+	{ GEpoch{2009,	1,	1,	0,	0,	15},	15},
+	{ GEpoch{2006,	1,	1,	0,	0,	14},	14},
+	{ GEpoch{1999,	1,	1,	0,	0,	13},	13},
+	{ GEpoch{1997,	7,	1,	0,	0,	12},	12},
+	{ GEpoch{1996,	1,	1,	0,	0,	11},	11},
+	{ GEpoch{1994,	7,	1,	0,	0,	10},	10},
+	{ GEpoch{1993,	7,	1,	0,	0,	9},		9},
+	{ GEpoch{1992,	7,	1,	0,	0,	8},		8},
+	{ GEpoch{1991,	1,	1,	0,	0,	7},		7},
+	{ GEpoch{1990,	1,	1,	0,	0,	6},		6},
+	{ GEpoch{1988,	1,	1,	0,	0,	5},		5},
+	{ GEpoch{1985,	7,	1,	0,	0,	4},		4},
+	{ GEpoch{1983,	7,	1,	0,	0,	3},		3},
+	{ GEpoch{1982,	7,	1,	0,	0,	2},		2},
+	{ GEpoch{1981,	7,	1,	0,	0,	1},		1},
+	{ GEpoch{1980,	1,	6,	0,	0,	0},		0}
+};
+
 
 ostream& operator <<(ostream& stream, const GTime& time)
 {
-	stream << time.time << ": " << time.sec;
+	stream << time.to_string();
 	return stream;
 }
 
-/* string to number ------------------------------------------------------------
-* convert substring in string to number
+ostream& operator <<(ostream& stream, const Duration& duration)
+{
+	char buff[64];
+	
+	int decimal = (duration.bigTime - floor(duration.bigTime)) * 100;
+	
+	snprintf(buff, sizeof(buff), "%02d:%02d:%02d.%02d", 
+			(int)	duration.bigTime / 60 / 60,
+			(int)	duration.bigTime / 60			% 60,
+			(int)	duration.bigTime				% 60,
+					decimal);
+	
+	stream << buff;
+	
+	return stream;
+}
+
+/* convert substring in string to number
 * args   : char   *s        I   string ("... nnn.nnn ...")
 *          int    i,n       I   substring position and width
 * return : converted number (0.0:error)
-*-----------------------------------------------------------------------------*/
+*/
 double str2num(const char *s, int i, int n)
 {
 	double value;
@@ -41,13 +102,11 @@ double str2num(const char *s, int i, int n)
 	return sscanf(str, "%lf", &value) == 1 ? value : 0;
 }
 
-/* string to time --------------------------------------------------------------
-* convert substring in string to GTime struct
+/* convert substring in string to GTime struct
 * args   : char   *s        I   string ("... yyyy mm dd hh mm ss ...")
 *          int    i,n       I   substring position and width
 *          GTime *t       O   GTime struct
-* return : status (0:ok,0>:error)
-*-----------------------------------------------------------------------------*/
+* return : status (0:ok,0>:error)*/
 int str2time(
 	const char*	s, 
 	int			i, 
@@ -91,451 +150,253 @@ int str2time(
 	return 0;
 }
 
-/* convert calendar day/time to time -------------------------------------------
-* convert calendar day/time to GTime struct
-* args   : double *ep       I   day/time {year,month,day,hour,min,sec}
-* return : GTime struct
-* notes  : proper in 1970-2037 or 1970-2099 (64bit time_t)
-*-----------------------------------------------------------------------------*/
-GTime epoch2time(const double *ep)
-{
-	const int doy[] = {1,32,60,91,121,152,182,213,244,274,305,335};
-	
-	GTime time = {};
-	int year	= (int) ep[0];
-	int mon		= (int) ep[1];
-	int day		= (int) ep[2];
-
-	if	(  year	< 1970
-		|| year	> 2099
-		|| mon	< 1
-		|| mon	> 12)
-	{
-		return time;
-	}
-
-	// leap year if year%4==0 in 1901-2099
-	int days	= (year-1970)*365+(year-1969)/4+doy[mon-1]+day-2+(year%4==0&&mon>=3?1:0);
-	int sec		= (int) floor(ep[5]);
-	time.time	= (time_t)days*86400+(int)ep[3]*3600+(int)ep[4]*60+sec;
-	time.sec	= ep[5] - sec;
-	
-	return time;
-}
-
 GTime yds2time(const int* yds)
 {
 	int year	= yds[0];
 	int doy		= yds[1];
 	int sec		= yds[2];
 	
-	if (year<1970||2099<year||doy<1||366<doy) 
-		return {};
+	if	( year	< 1970
+		||doy	< 1
+		||doy	> 366)
+	{
+		return GTime::noTime();
+	}
 
-	/* leap year if year%4==0 in 1901-2099 */
-	int days=(year-1970)*365+(year-1969)/4 + doy - 2;
+	int leapDays	= (year-1968-1) / 4	// -1968 = last leap year before 1970; -1 = year must end before applying leap-day
+					- (year-1900-1) / 100
+					+ (year-1600-1) / 400;
+					
+	int days = (year-1970)*365 + leapDays + doy - 1;
 	
-	GTime time = {};
-	time.time = (time_t)days*86400+sec;
+	PTime time = {};
+	time.bigTime = days * 86400.0 + sec;	//.0 to prevent eventual overflow
 	
 	return time;
 }
 
-/* time to calendar day/time ---------------------------------------------------
-* convert GTime struct to calendar day/time
-* args   : GTime t        I   GTime struct
-*          double *ep       O   day/time {year,month,day,hour,min,sec}
-* return : none
-* notes  : proper in 1970-2037 or 1970-2099 (64bit time_t)
-*-----------------------------------------------------------------------------*/
-void time2epoch(GTime t, double* ep)
+
+UYds::operator GTime() const
 {
-	const int mday[] =
-	{
-		/* # of days in a month */
-		31,28,31,30,31,30,31,31,30,31,30,31,
-		31,28,31,30,31,30,31,31,30,31,30,31,
-		31,29,31,30,31,30,31,31,30,31,30,31,
-		31,28,31,30,31,30,31,31,30,31,30,31
-	};
-
-	/* leap year if year % 4 == 0 in 1901-2099 */
-
-	int days	= (int) (t.time / 86400);
-	int sec		= (int) (t.time - (time_t) days * 86400);
-
-	int doy = days % (365*4+1);
-	int mon;
-	for (mon = 0; mon < 48; mon++)
-	{
-		if (doy >= mday[mon])
-			doy -= mday[mon];
-		else
-			break;
-	}
-	ep[0] = 1970 + days / 1461 * 4 + mon / 12;
-	ep[1] = mon % 12 + 1;
-	ep[2] = doy + 1;
-	ep[3] = sec / 3600;
-	ep[4] = sec % 3600 / 60;
-	ep[5] = sec % 60 + t.sec;
+	GTime time = yds2time(this->data());
+	double leap = leapSeconds(time);
+	time += leap;
+	return time;
 }
 
-/* epoch to year doy sod converter----------------------------------------------
-* args    : double 	*ep		I day/time {year, mon, day, hour, min,sec}
-*		  : int		*yds	O year, doy, sod
-* return  : none
-*------------------------------------------------------------------------------*/
-void epoch2yds(double *ep, int *yds)
+
+GTime epoch2time(const double *ep)
 {
-	const int mday[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	int year	= (int) ep[0];
+	int mon		= (int) ep[1];
+	int day		= (int) ep[2];
+	int hour	= (int) ep[3];
+	int min		= (int) ep[4];
+	double floatSec =	ep[5];
 
-	int year	= ep[0];
-	int month	= ep[1];
-	int dom		= ep[2];
-	int hour	= ep[3];
-	int minute	= ep[4];
-	int second	= ep[5];
-
-	int doy = dom;
-
-	//add days for all previous months
-	for (int i = 1; i <= 12; i++)
+	if	(  year	< 1970
+		|| mon	< 1
+		|| mon	> 12)
 	{
-		if (month > i)
-		{
-			doy += mday[i];
-		}
+		return GTime::noTime();
 	}
 
-	/* all years 1900-2099 divisible by 4 are leap years */
-	if	( month		> 2
-		&&year % 4	== 0)
+	const int dayOffsetFromMonth[] = {0,31,59,90,120,151,181,212,243,273,304,334};
+	int dayOfYear = dayOffsetFromMonth[mon-1] + day;
+	
+	if	( (	mon >= 3)				//after feb29
+		&&(	year % 4	== 0)		//every 4 years
+		&&( year % 100	!= 0	
+		  ||year % 400	== 0))		
 	{
-		doy++;
+		dayOfYear++;
 	}
 
+	int sec	= (int) floor(floatSec);
+	double partialSec = floatSec - sec;
+	int secOfDay	= hour	* 60 * 60 
+					+ min	* 60 
+					+ sec;
 
-	yds[0]	= year;
-	yds[1]	= doy;
-	yds[2]	= hour		* 60 * 60
-			+ minute	* 60
-			+ second;
+	int yds[3];
+	yds[0] = year;
+	yds[1] = dayOfYear;
+	yds[2] = secOfDay;
+	GTime time = yds2time(yds);			//todo aaron sketchy
+	time += partialSec;
+	
+	return time;
 }
 
-/* gps time to time ------------------------------------------------------------
-* convert week and tow in gps time to GTime struct
+
+/* convert week and tow in gps time to GTime struct
 * args   : int    week      I   week number in gps time
 *          double sec       I   time of week in gps time (s)
 * return : GTime struct
-*-----------------------------------------------------------------------------*/
+*/
 GTime gpst2time(int week, double sec)
 {
-	GTime t = epoch2time(gpst0);
+	GTime t = GPS_t0;
 
 	if 	( sec <-1E9
 		||sec > 1E9)
 	{
 		sec = 0;
 	}
-	t.time += 60*60*24*7*week + (int)sec;
-	t.sec = sec - (int)sec;
+	t.bigTime	+= secondsInWeek *	week;
+	t.bigTime	+= sec;
+	
 	return t;
 }
 
-/* time to gps time ------------------------------------------------------------
-* convert GTime struct to week and tow in gps time
+/* convert GTime struct to week and tow in gps time
 * args   : GTime t        I   GTime struct
 *          int    *week     IO  week number in gps time (nullptr: no output)
 * return : time of week in gps time (s)
-*-----------------------------------------------------------------------------*/
+*/
 double time2gpst(GTime t, int *week)
 {
-	GTime t0 = epoch2time(gpst0);
+	GTime t0 = GPS_t0;
 
-	time_t sec = t.time - t0.time;
-	int w=(int)(sec/(86400*7));
+	auto sec = t.bigTime - t0.bigTime;
+	int w = (int)(sec / (86400*7));
 
-	if (week) *week=w;
-	return (double)(sec-w*86400*7)+t.sec;
+	if (week) 
+		*week = w;
+
+// 	return (double)sec - w * 86400 * 7 + t.bigTime;		//todo aaron broke this
+	return 0;
 }
 
-/* galileo system time to time -------------------------------------------------
-* convert week and tow in galileo system time (gst) to GTime struct
-* args   : int    week      I   week number in gst
-*          double sec       I   time of week in gst (s)
-* return : GTime struct
-*-----------------------------------------------------------------------------*/
-GTime gst2time(int week, double sec)
-{
-	GTime t=epoch2time(gst0);
 
-	if (sec<-1E9||1E9<sec) sec=0.0;
-	t.time+=86400*7*week+(int)sec;
-	t.sec=sec-(int)sec;
-	return t;
-}
-
-/* time to galileo system time -------------------------------------------------
-* convert GTime struct to week and tow in galileo system time (gst)
-* args   : GTime t        I   GTime struct
-*          int    *week     IO  week number in gst (nullptr: no output)
-* return : time of week in gst (s)
-*-----------------------------------------------------------------------------*/
-double time2gst(GTime t, int *week)
-{
-	GTime t0=epoch2time(gst0);
-	time_t sec=t.time-t0.time;
-	int w=(int)(sec/(86400*7));
-
-	if (week) *week=w;
-	return (double)(sec-w*86400*7)+t.sec;
-}
-
-/* beidou time (bdt) to time ---------------------------------------------------
-* convert week and tow in beidou time (bdt) to GTime struct
-* args   : int    week      I   week number in bdt
-*          double sec       I   time of week in bdt (s)
-* return : GTime struct
-*-----------------------------------------------------------------------------*/
-GTime bdt2time(int week, double sec)
-{
-	GTime t=epoch2time(bdt0);
-
-	if (sec<-1E9||1E9<sec) sec=0.0;
-	t.time+=86400*7*week+(int)sec;
-	t.sec=sec-(int)sec;
-	return t;
-}
-
-/* time to beidouo time (bdt) --------------------------------------------------
-* convert GTime struct to week and tow in beidou time (bdt)
+/* convert GTime struct to week and tow in beidou time (bdt)
 * args   : GTime t        I   GTime struct
 *          int    *week     IO  week number in bdt (nullptr: no output)
 * return : time of week in bdt (s)
-*-----------------------------------------------------------------------------*/
+*/
 double time2bdt(GTime t, int *week)
 {
-	GTime t0=epoch2time(bdt0);
-	time_t sec=t.time-t0.time;
-	int w=(int)(sec/(86400*7));
+	GTime t0 = BDS_t0;
+	
+	auto sec = t.bigTime - t0.bigTime;
+	int w = (int)(sec / (86400*7));
 
-	if (week) *week=w;
-	return (double)(sec-w*86400*7)+t.sec;
+	if (week) 
+		*week=w;
+	
+	return (double)(sec - w * 86400 * 7);
 }
 
-/* add time --------------------------------------------------------------------
-* add time to GTime struct
-* args   : GTime t        I   GTime struct
-*          double sec       I   time to add (s)
-* return : GTime struct (t+sec)
-*-----------------------------------------------------------------------------*/
-// GTime timeadd(GTime t, double sec)
-// {
-// 	double tt;
-// 
-// 	t.sec+=sec; tt=floor(t.sec); t.time+=(int)tt; t.sec-=tt;
-// 	return t;
-// }
 
 
-/** get current time in utc
- */
-GTime timeget()
+PTime timeGet()
 {
-	double ep[6]={0};
-	struct timeval tv;
-	struct tm *tt;
+	struct timeval timeVal{};
+	gettimeofday(&timeVal, nullptr);
+	
+	PTime pTime;
+	pTime.bigTime	= timeVal.tv_sec
+					+ timeVal.tv_usec * 1e-6;
 
-	if	(!gettimeofday(&tv,nullptr)
-		&&(tt=gmtime(&tv.tv_sec)))
+	return pTime;
+}
+
+/* GPStime - UTC */
+double leapSeconds(
+		GTime time)
+{
+	if (nav.leaps >= 0)
+		return nav.leaps;
+
+	if (acsConfig.leap_seconds >= 0)
+		return acsConfig.leap_seconds;
+
+	auto it = leapSecondMap.lower_bound(time);
+	if (it == leapSecondMap.end())
 	{
-		ep[0]=tt->tm_year+1900;
-		ep[1]=tt->tm_mon+1;
-		ep[2]=tt->tm_mday;
-		ep[3]=tt->tm_hour;
-		ep[4]=tt->tm_min;
-		ep[5]=tt->tm_sec+tv.tv_usec*1E-6;
+		return 0;
 	}
-	return epoch2time(ep);
+
+	auto& [leapTime, seconds] = *it;
+	
+	return seconds;
 }
 
 
-/* gpstime to utc --------------------------------------------------------------
-* convert gpstime to utc considering leap seconds
-* args   : GTime t        I   time expressed in gpstime
-* return : time expressed in utc
-* notes  : ignore slight time offset under 100 ns
-*-----------------------------------------------------------------------------*/
-GTime gpst2utc(
+UtcTime gpst2utc(
 	GTime t)
 {
-	for (int i = 0; leaps[i][0] > 0; i++) 
-	{
-		GTime tu = t + leaps[i][6];
-		
-		if ((tu - epoch2time(leaps[i])) >= 0) 
-			return tu;
-	}
-	return t;
+	long double leaps = leapSeconds(t);
+	
+	UtcTime utcTime;
+	utcTime.bigTime	= t.bigTime - leaps;
+			
+	return utcTime;
 }
 
-/* utc to gpstime --------------------------------------------------------------
-* convert utc to gpstime considering leap seconds
-* args   : GTime t        I   time expressed in utc
-* return : time expressed in gpstime
-* notes  : ignore slight time offset under 100 ns
-*-----------------------------------------------------------------------------*/
-GTime utc2gpst(GTime t)
+GTime utc2gpst(UtcTime utcTime)
 {
-	for (int i = 0; leaps[i][0] > 0; i++) 
-	{
-		if ((t - epoch2time(leaps[i])) >= 0) 		//todo aaron, one leap second has a for loop.. check
-			return t -leaps[i][6];
-	}
-	return t;
+	GTime gTime;
+	gTime.bigTime	= utcTime.bigTime;
+
+	double leaps	= leapSeconds(gTime);
+	leaps			= leapSeconds(gTime - leaps);
+	
+	gTime.bigTime += leaps;
+	
+	return gTime;
 }
 
-/* gpstime to bdt --------------------------------------------------------------
-* convert gpstime to bdt (beidou navigation satellite system time)
-* args   : GTime t        I   time expressed in gpstime
-* return : time expressed in bdt
-* notes  : ref [8] 3.3, 2006/1/1 00:00 BDT = 2006/1/1 00:00 UTC
-*          no leap seconds in BDT
-*          ignore slight time offset under 100 ns
-*-----------------------------------------------------------------------------*/
-GTime gpst2bdt(GTime t)
+string GTime::to_string(
+	int n) const
 {
-	return t - 14.0;
-}
-
-/* bdt to gpstime --------------------------------------------------------------
-* convert bdt (beidou navigation satellite system time) to gpstime
-* args   : GTime t        I   time expressed in bdt
-* return : time expressed in gpstime
-* notes  : see gpst2bdt()
-*-----------------------------------------------------------------------------*/
-GTime bdt2gpst(GTime t)
-{
-	return t + 14.0;
-}
-
-/* time to day and sec -------------------------------------------------------*/
-double time2sec(GTime time, GTime* day)
-{
-	double ep[6],sec;
-	time2epoch(time,ep);
-	sec=ep[3]*3600.0+ep[4]*60.0+ep[5];
-	ep[3]=ep[4]=ep[5]=0.0;
-	*day=epoch2time(ep);
-	return sec;
-}
-
-/* utc to gmst -----------------------------------------------------------------
-* convert utc to gmst (Greenwich mean sidereal time)
-* args   : GTime t        I   time expressed in utc
-*          double ut1_utc   I   UT1-UTC (s)
-* return : gmst (rad)
-*-----------------------------------------------------------------------------*/
-double utc2gmst(GTime t, double ut1_utc)
-{
-	const double ep2000[]={2000,1,1,12,0,0};
-
-	GTime tut		= t + ut1_utc;
-	GTime tut0;
-	double ut		= time2sec(tut,&tut0);
-	double t1		= (tut0 - epoch2time(ep2000))/86400.0/36525.0;
-	double t2		= t1*t1; 
-	double t3		= t2*t1;
-	double gmst0	= 24110.54841+8640184.812866*t1+0.093104*t2-6.2E-6*t3;
-	double gmst		= gmst0+1.002737909350795*ut;
-
-	return fmod(gmst,86400.0)*PI/43200.0; /* 0 <= gmst <= 2*PI */
-}
-
-/* time to string --------------------------------------------------------------
-* convert GTime struct to string
-* args   : GTime t        I   GTime struct
-*          char   *s        O   string ("yyyy/mm/dd hh:mm:ss.ssss")
-*          int    n         I   number of decimals
-* return : none
-*-----------------------------------------------------------------------------*/
-void time2str(
-	GTime	t,
-	char*	s, 
-	int		n)
-{
-	double ep[6];
-
+	GTime t = *this;
+	
 	if		(n < 0) 		n = 0;
 	else if (n > 12)		n = 12;
 	
-	if (1 - t.sec < 0.5 / pow(10, n))
+	double exper = pow(10, n);
+	
+	long double val = t.bigTime * exper;
+	val -= (long int) val;
+	
+	if (val > 0.5)
 	{
-		t.time++; 
-		t.sec = 0;
+		t.bigTime += 0.5 / exper; 
 	};
 	
-	time2epoch(t, ep);
+	GEpoch ep(t);
+		
+	char buff[64];
+	snprintf(buff, sizeof(buff),"%04.0f-%02.0f-%02.0f %02.0f:%02.0f:%0*.*f",
+			ep[0],
+			ep[1],
+			ep[2],
+			ep[3],
+			ep[4],
+			n<=0?2:n+3,n<=0?0:n,
+			ep[5]);
 	
-	sprintf(s,"%04.0f-%02.0f-%02.0f %02.0f:%02.0f:%0*.*f",ep[0],ep[1],ep[2],
-			ep[3],ep[4],n<=0?2:n+3,n<=0?0:n,ep[5]);
+	return buff;
 }
 
-/* time to day of year ---------------------------------------------------------
-* convert time to day of year
-* args   : GTime t        I   GTime struct
-* return : day of year (days)
-*-----------------------------------------------------------------------------*/
-double time2doy(GTime t)
-{
-	double ep[6];
-
-	time2epoch(t,ep);
-	ep[1] = ep[2] = 1;
-	ep[3] = ep[4] = ep[5] = 0;
-	return (t - epoch2time(ep)) / 86400.0 + 1;
-}
-
-/* adjust gps week number ------------------------------------------------------
-* adjust gps week number using cpu time
-* args   : int   week       I   not-adjusted gps week number
-* return : adjusted gps week number
-*-----------------------------------------------------------------------------*/
-int adjgpsweek(int week)
-{
-	int w;
-	(void)time2gpst(utc2gpst(timeget()),&w);
-	if (w<1560) w=1560; /* use 2009/12/1 if time is earlier than 2009/12/1 */
-	return week+(w-week+512)/1024*1024;
-}
-
-
-/* set precision ---------------------------------------------------------------
-*
-* args     :       const double n          I       source number
-*
-* return   :       formatted number
-*----------------------------------------------------------------------------*/
+/* set precision
+ */
 double setdigits(const double n)
 {
 	char str[128];
 	double m;
 
-	sprintf(str,"%.4f",n);
+	snprintf(str, sizeof(str),"%.4f",n);
 	sscanf(str,"%lf",&m);
 
 	return m;
 }
-/* Julian day to YMDHMS --------------------------------------------------------
-*
+
+/* Julian day to YMDHMS
 * args     :       const double jd         I       Julian day
 *                  double ep[6]            O       Y,M,D,H,M,S
-*
-* return   :       none
-*
-* reference:       [3]
-*----------------------------------------------------------------------------*/
+*/
 void jd2ymdhms(const double jd, double *ep)
 {
 	int b,c,d,e;
@@ -573,22 +434,7 @@ void jd2ymdhms(const double jd, double *ep)
 
 	return;
 }
-double gpst2mjd(const GTime time)			//todo aaron, this gives different results to what is used elsewhere, no utc conversion, eg, in erp output code
-{
-	double ep[6];
-	time2epoch(gpst2utc(time), ep);
-	double jd	= ymdhms2jd(ep);
-	return jd - JD2MJD;
-}
 
-double utc2mjd(const GTime time)
-{
-	double ep[6];
-	time2epoch(time, ep);
-	double jd	= ymdhms2jd(ep);
-	return jd - JD2MJD;
-}
-	
 /** YMDHMS to Julian Day   
 * return   :       julian day
 */
@@ -612,12 +458,228 @@ double ymdhms2jd(
 
 	double day	= time[2]
 				+ hr	/ 24
-				+ min	/ 24/ 60
-				+ sec	/ 24/ 60 / 60;
+				+ min	/ 24 / 60
+				+ sec	/ secondsInDay;
 
-	double jd = (floor(365.25*i)+floor(30.6001*(j+1))+day+1720981.5);
+	double jd	= floor(365.25*i)
+				+ floor(30.6001*(j+1))
+				+ day
+				+ 1720981.5;
 
 // 	BOOST_LOG_TRIVIAL(debug) << "YMDH to JD: year=" << yr << " mon=" << mon << " day=" << day << " hour=" << hr << ", jd=" << jd;
 	return jd;
+};
+
+
+GTime::operator GEpoch() const
+{
+	PTime pTime = *this;
+	
+	GEpoch ep;
+	
+	const int mday[] =
+	{
+		/* # of days in a month */
+		31,28,31,30,31,30,31,31,30,31,30,31,
+		31,28,31,30,31,30,31,31,30,31,30,31,
+		31,29,31,30,31,30,31,31,30,31,30,31,
+		31,28,31,30,31,30,31,31,30,31,30,31
+	};
+
+	/* leap year if year % 4 == 0 in 1901-2099 */
+
+	int		days	= (int) (pTime.bigTime / secondsInDayP);
+	double	remSecs	= pTime.bigTime - (time_t) days * secondsInDay;
+
+	int doy = days % (365*4+1);
+	int mon;
+	for (mon = 0; mon < 48; mon++)
+	{
+		if (doy >= mday[mon])
+			doy -= mday[mon];
+		else
+			break;
+	}
+	ep.year		= 1970 
+				+ days	/ 1461 * 4 		//1461 = 365.25 * 4
+				+ mon	/ 12;
+	ep.month	= mon % 12			+ 1;
+	ep.day		= doy				+ 1;
+	
+	ep.hour	= (int) (remSecs / 3600);		remSecs -= ep.hour	* 3600;
+	ep.min	= (int) (remSecs / 60);			remSecs -= ep.min	* 60;
+	ep.sec	= 		(remSecs);
+	
+	return ep;
 }
 
+GTime GTime::floorTime(
+	double	period) const
+{
+	GTime roundedTime = *this;
+
+	//need separate functions for fractional / whole seconds
+	//ignore fractions greater than one
+	if (period < 1)
+	{
+		double fractionalSeconds = bigTime - (long int) bigTime;
+		
+		int wholePeriods = fractionalSeconds / period;
+		
+		fractionalSeconds = wholePeriods * period;
+		
+		roundedTime.bigTime = fractionalSeconds + (long int) bigTime;
+	}
+	else
+	{
+		//round to nearest chunk by integer arithmetic
+		roundedTime.bigTime = ((long int) (roundedTime.bigTime / period)) * period;
+	}
+	
+	return roundedTime;
+}
+
+/** Returns GTime in "dd-mmm-yyyy hh:mm:ss" format
+*/
+string GTime::gregString()
+{
+	GEpoch epoch = *this;
+	char buffer[25];
+	snprintf(buffer, 25, "%02d-%3s-%04d %02d:%02d:%02d",
+								(int)epoch.day,
+		E_Month::_from_integral((int)epoch.month)._to_string(),
+								(int)epoch.year,
+								(int)epoch.hour,
+								(int)epoch.min,
+								(int)epoch.sec);
+	return buffer;
+}
+
+
+
+/** Use a time of modulus and recent time to calculate the new time
+ */
+GTime nearestTime(
+	GTime	referenceEpoch,	//
+	double	tom,
+	GTime	nearTime,
+	int		mod)
+{
+	time_t	seconds		= (time_t) (nearTime.bigTime - referenceEpoch.bigTime);
+	int		nearMod		= seconds / mod;
+	int		nearTom		= seconds % mod;
+	
+	int		deltaTom	= tom - nearTom;
+	
+	int		newMod		= nearMod;
+	
+	if		(deltaTom > + mod / 2)		{	newMod--;	}
+	else if	(deltaTom < - mod / 2)		{	newMod++;	}
+	
+	GTime newTime	= referenceEpoch
+					+ newMod * mod
+					+ tom;		
+	
+	return newTime;
+}
+
+
+GTime::operator MjDateTT() const
+{
+	long double thisDate = *this;
+	long double thenDate = j2000TT;
+	
+	long double deltaDate = thisDate - thenDate;
+	deltaDate /= secondsInDayP;
+	
+	MjDateTT mjd;
+	mjd.val	= MJD_j2000
+			+ deltaDate;
+	
+	return mjd;
+}
+
+GTime::GTime(
+	MjDateTT mjdTT)
+{
+	long double deltaDays = mjdTT.val	- MJD_j2000;
+	
+	bigTime	= j2000TT.bigTime 
+			+ deltaDays * secondsInDayP;
+}
+
+GTime::GTime(
+	MjDateUtc mjdUtc)
+{
+	long double deltaDays = mjdUtc.val	- MJD_j2000;
+	
+	bigTime	= j2000Utc.bigTime 
+			+ deltaDays * secondsInDayP;
+			
+	long double leaps = leapSeconds(*this);
+	
+	bigTime += leaps;
+}
+
+MjDateUt1::MjDateUt1(
+	GTime	time,
+	double	ut1_utc)
+{
+	MjDateUtc mjdUtc = time;
+	
+	val	= mjdUtc.val
+		+ ut1_utc / secondsInDayP;
+}
+
+MjDateUtc::MjDateUtc(
+	GTime	time)
+{
+	long double thisDate = time;
+	long double thenDate = j2000Utc;
+	
+	long double deltaDate = thisDate - thenDate;
+	deltaDate /= secondsInDayP;
+	
+	long double leaps = leapSeconds(time);
+	
+	val	= MJD_j2000
+		+ deltaDate 
+		- leaps / secondsInDayP;
+}
+
+GTime::GTime(GWeek	gpsWeek,	GTow	tow)		{	*this	= GPS_t0	+ gpsWeek * secondsInWeek	+ tow;	}
+GTime::GTime(BWeek	bdsWeek,	BTow	tow)		{	*this	= BDS_t0	+ bdsWeek * secondsInWeek	+ tow;	}
+
+GEpoch	::operator GTime()		const{	return epoch2time(this->data());	}
+UtcTime	::operator GTime()		const{	return utc2gpst(*this);				}
+GTime	::operator UtcTime()	const{	return gpst2utc(*this);				}
+
+
+GTime::GTime(GTow	tow,	GTime	nearTime)	{	*this = nearestTime(GPS_t0, tow, nearTime, secondsInWeek);	}
+GTime::GTime(BTow	tow,	GTime	nearTime)	{	*this = nearestTime(BDS_t0, tow, nearTime, secondsInWeek);	}
+
+GTime::GTime(RTod	tod,	GTime	nearTime)
+{
+	RTod nearTod = nearTime;
+	
+	double delta = tod - nearTod;
+	
+	while (delta > +secondsInDay / 2)			delta -= secondsInDay;
+	while (delta < -secondsInDay / 2)			delta += secondsInDay;
+	
+	*this = nearTime + delta;
+}
+
+
+GTime::operator long double()	const{																													return bigTime;	}
+
+GTime::operator GWeek()			const{	Duration seconds = *this - GPS_t0;		GWeek	gWeek	= seconds.to_int() / secondsInWeek;						return gWeek;	}
+GTime::operator BWeek()			const{	Duration seconds = *this - BDS_t0;		BWeek	bWeek	= seconds.to_int() / secondsInWeek;						return bWeek;	}
+GTime::operator GTow()			const{	Duration seconds = *this - GPS_t0;		GTow	gTow	= fmod(seconds.to_double(), 					(double)secondsInWeek);		return gTow;	}
+GTime::operator BTow()			const{	Duration seconds = *this - BDS_t0;		BTow	bTow	= fmod(seconds.to_double(), 					(double)secondsInWeek);		return bTow;	}
+GTime::operator RTod()			const{	Duration seconds = *this - GLO_t0;		RTod	rTod	= fmod(seconds.to_double()-leapSeconds(*this),	(double)secondsInDay);		return rTod;	}
+
+PTime::operator GTime() 		const{	GTime gTime;	gTime.bigTime	= bigTime - GPS_t0_sub_POSIX_t0;												return gTime;}
+GTime::operator PTime() 		const{	PTime pTime;	pTime.bigTime	= bigTime + GPS_t0_sub_POSIX_t0;												return pTime;}
+
+GTime::operator string()		const{	return to_string(2);	}

@@ -1,5 +1,5 @@
-#ifndef __WRITEPOSCLKSP3_HPP
-#define __WRITEPOSCLKSP3_HPP
+
+#pragma once
 
 #include <string>
 #include <set>
@@ -10,26 +10,15 @@ using std::set;
 #include "rinexClkWrite.hpp"
 
 struct GTime;
-class E_Ephemeris;
+class E_Source;
 struct KFState;
 
-struct Sp3FileData
-{
-	set<SatSys> sats			= {};
-	long 		numEpoch		= 0;
-	long 		numEpoch_pos	= 0;
-};
-
-void writeSysSetSp3(
-	string			filename,
-	GTime			time,
-	OutSys			outSys,
-	Sp3FileData&	outFileDat,
-	E_Ephemeris		sp3DataSrc,	
-	KFState*		kfState_ptr = nullptr);
-
 void outputSp3(
-	GTime		time,
-	E_Ephemeris	sp3DataSrc,	
-	KFState*	kfState_ptr = nullptr);
-#endif
+	string				filename,
+	GTime				time,
+	vector<E_Source>	sp3DataSrcs,
+	KFState*			kfState_ptr	= nullptr,
+	bool				predicted	= false);
+
+void outputMongoOrbits();
+

@@ -3,6 +3,22 @@
 
 #include "summary.hpp"
 
+void outputStatistics(
+	Trace&				trace,
+	map<string, int>&	statisticsMap,
+	map<string, int>&	statisticsMapSum)
+{
+	Block block(trace, "Filter Statistics");
+	
+	for (auto& [str, count] : statisticsMap)
+	{
+		tracepdeex(0, trace, "! %-30s: %d\n", str.c_str(), count);
+		statisticsMapSum[str] += count;
+	}
+	
+	statisticsMap.clear();
+}
+
 /** Output statistics from each station.
 * Including observation counts, slips, beginning and ending epochs*/
 void outputSummaries(
@@ -14,8 +30,8 @@ void outputSummaries(
 	for (auto& [id, rec] : stationMap)
 	{
 		trace << std::endl << "------------------- " << rec.id << " --------------------";
-		auto a	= boost::posix_time::from_time_t(rec.firstEpoch.time);
-		auto b	= boost::posix_time::from_time_t(rec.lastEpoch.time);
+		auto a	= boost::posix_time::from_time_t((time_t)rec.firstEpoch.bigTime);
+		auto b	= boost::posix_time::from_time_t((time_t)rec.lastEpoch.	bigTime);
 		auto ab	= b-a;
 
 		trace << std::endl << "First Epoch : " << a;
@@ -49,7 +65,8 @@ void outputSummaries(
 
 			trace << sat << " : " << count;
 		}
-		trace << std::endl << "Obs/Slips   : " << rec.obsCount / (rec.slipCount + 1);
+		trace << std::endl << "GObs/Slips   : " << rec.obsCount / (rec.slipCount + 1);
 		trace << std::endl;
 	}
+	
 }

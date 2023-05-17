@@ -7,13 +7,25 @@
 #include "acsConfig.hpp"
 #include "constants.hpp"
 
+/** Convert SSR URA to URA_CLASS and URA_VALUE combination, with 3 Msb URA_CLASS and 3Lsb URA_VALUE
+*/
+int uraToClassValue(double ura)
+{
+	int uraClassValue = 0;
+
+	for (uraClassValue = 0; uraClassValue < 64; uraClassValue++)
+		if (ura_ssr[uraClassValue] >= ura)
+			break;
+
+	return uraClassValue;
+}
 
 void calculateSsrComb(
-	GTime 						curTime,
-	int 						period,
-	SSRMeta 					ssrMeta,
-	int 						masterIod,
-	map<SatSys, SSROut>&		ssrOutMap)
+	GTime 			referenceTime,
+	int 			udi,
+	SSRMeta 		ssrMeta,
+	int 			masterIod,
+	SsrOutMap&		ssrOutMap)
 {
 	if (ssrOutMap.empty())	
 	{
@@ -21,8 +33,8 @@ void calculateSsrComb(
 		return;
 	}
 
-	map<E_BiasGroup, std::array<double,2>> commonClockOffsetsMap;	// 0: bias; 1: bias rate
-	map<E_BiasGroup, std::array<GTime, 2>> commonClockEpochsMap;	// 0: 1st straddle pt epoch; 1: 2nd straddle pt epoch
+	map<E_Sys, std::array<double, 2>> commonClockOffsetsMap;	// 0: bias; 1: bias rate
+	map<E_Sys, std::array<GTime,  2>> commonClockEpochsMap;	// 0: 1st straddle pt epoch; 1: 2nd straddle pt epoch
 
 	for (auto& [Sat, ssrOut] : ssrOutMap)
 	{
@@ -34,25 +46,30 @@ void calculateSsrComb(
 		
 		auto& ssrEph		= ssrOut.ssrEph;
 		auto& ssrClk		= ssrOut.ssrClk;
+		auto& ssrUra		= ssrOut.ssrUra;
 		auto& ssrEphInput	= ssrOut.ephInput;
 		auto& ssrClkInput	= ssrOut.clkInput;
 		
-		ssrEph.t0 					= curTime + period / 2;
-		ssrClk.t0 					= curTime + period / 2;
-		ssrEph.udi					= period;
-		ssrClk.udi					= period;
-		ssrEph.iod					= masterIod;
-		ssrClk.iod					= masterIod;
+		ssrEph.t0 			= referenceTime;
+		ssrClk.t0 			= referenceTime;
+		ssrUra.t0 			= referenceTime;
+		ssrEph.udi			= udi;
+		ssrClk.udi			= udi;
+		ssrUra.udi			= udi;
+		ssrEph.iod			= masterIod;
+		ssrClk.iod			= masterIod;
+		ssrUra.iod			= masterIod;
 		
-		ssrEph.ssrMeta				= ssrMeta;
-		ssrClk.ssrMeta				= ssrMeta;
+		ssrEph.ssrMeta		= ssrMeta;
+		ssrClk.ssrMeta		= ssrMeta;
+		ssrUra.ssrMeta		= ssrMeta;
 
-		ssrEph.iode		= ssrEphInput.vals[0].iode;
-		
-		// ssrEph.iodcrc				= ??
+		ssrEph.iode			= ssrEphInput.vals[0].iode;
+		// ssrEph.iodcrc		= ??
 		
 		double		clkCorrections[2];
 		Vector3d	posCorrections[2];
+		double		uras[2];
 		
 		for (int i = 0; i < 2; i++)
 		{
@@ -60,20 +77,23 @@ void calculateSsrComb(
 								- ssrEphInput.vals[i].precPos;
 			clkCorrections[i]	= ssrClkInput.vals[i].brdcClk
 								- ssrClkInput.vals[i].precClk;
+			uras[i]				= ephVarToUra(ssrEphInput.vals[i].ephVar);
 		}
 		
-		if (acsConfig.ssrOpts.extrapolate_corrections)
+		if (acsConfig.ssrOpts.extrapolate_corrections)	// todo Eugene: check if ura can be interpolated
 		{
 			Vector3d	diffRAC[2];
 			double		diffClock[2];
+			double		uraSsr[2];
 		
 			for (int dt : {0, 1})
 			{
-				double		ephRatio	= (ssrEph.t0 + dt - ssrEphInput.vals[0].time) / (ssrEphInput.vals[1].time - ssrEphInput.vals[0].time);
-				double		clkRatio	= (ssrClk.t0 + dt - ssrClkInput.vals[0].time) / (ssrClkInput.vals[1].time - ssrClkInput.vals[0].time);
+				double		ephRatio	= (ssrEph.t0 + dt - ssrEphInput.vals[0].time).to_double() / (ssrEphInput.vals[1].time - ssrEphInput.vals[0].time).to_double();
+				double		clkRatio	= (ssrClk.t0 + dt - ssrClkInput.vals[0].time).to_double() / (ssrClkInput.vals[1].time - ssrClkInput.vals[0].time).to_double();
 			
 				Vector3d	posCorrection	= posCorrections[0] 			+ ephRatio	* (posCorrections[1]			- posCorrections[0]);
 				double		clkCorrection	= clkCorrections[0]				+ clkRatio	* (clkCorrections[1]			- clkCorrections[0]);
+				double		ura				= uras[0] 						+ ephRatio	* (uras[1]						- uras[0]);
 			
 				Vector3d	satPosition		= ssrEphInput.vals[0].brdcPos	+ ephRatio	* (ssrEphInput.vals[1].brdcPos	- ssrEphInput.vals[0].brdcPos);
 				Vector3d	satVelocity		= ssrEphInput.vals[0].brdcVel	+ ephRatio	* (ssrEphInput.vals[1].brdcVel	- ssrEphInput.vals[0].brdcVel);
@@ -82,6 +102,7 @@ void calculateSsrComb(
 			
 				diffRAC		[dt]	= diffRac;
 				diffClock	[dt]	= -clkCorrection;
+				uraSsr		[dt]	= ura;
 			}
 			
 			ssrEph. deph	= diffRAC[0]; 
@@ -90,29 +111,32 @@ void calculateSsrComb(
 			ssrClk.dclk[0]	= diffClock[0];
 			ssrClk.dclk[1]	= 0; //diffClock[1] - diffClock[0];
 			ssrClk.dclk[2]	= 0;	// set to zero (not used)
+
+			ssrUra.ura		= uraSsr[0];
 		}
 		else
 		{
 			ssrEph.deph		= ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) * posCorrections[1];
 			ssrClk.dclk[0]	= -clkCorrections[1];
+			ssrUra.ura		= uras[1];
 		}
 		
 		//adjust all clock corrections so that they remain within the bounds of the outputs
-		E_BiasGroup biasGroup = E_BiasGroup::_from_integral(Sat.biasGroup());
-		if (commonClockOffsetsMap[biasGroup][0] == 0)
+		E_Sys sys = Sat.sys;
+		if (commonClockOffsetsMap[sys][0] == 0)
 		{
-			commonClockOffsetsMap[biasGroup][0] = ssrClk.dclk[0];
-			commonClockOffsetsMap[biasGroup][1] = ssrClk.dclk[1];
-			commonClockEpochsMap [biasGroup][0] = ssrClkInput.vals[0].time;
-			commonClockEpochsMap [biasGroup][1] = ssrClkInput.vals[1].time;
+			commonClockOffsetsMap[sys][0] = ssrClk.dclk[0];
+			commonClockOffsetsMap[sys][1] = ssrClk.dclk[1];
+			commonClockEpochsMap [sys][0] = ssrClkInput.vals[0].time;
+			commonClockEpochsMap [sys][1] = ssrClkInput.vals[1].time;
 		}
-		if	( ssrClkInput.vals[0].time != commonClockEpochsMap[biasGroup][0]
-			||ssrClkInput.vals[1].time != commonClockEpochsMap[biasGroup][1])
+		if	( ssrClkInput.vals[0].time != commonClockEpochsMap[sys][0]
+			||ssrClkInput.vals[1].time != commonClockEpochsMap[sys][1])
 		{
 			continue; // commonClockOffset is lagging/leading this sat's clock, skip
 		}
-		ssrClk.dclk[0] -= commonClockOffsetsMap[biasGroup][0];
-		ssrClk.dclk[1] -= commonClockOffsetsMap[biasGroup][1];
+		ssrClk.dclk[0] -= commonClockOffsetsMap[sys][0];
+		ssrClk.dclk[1] -= commonClockOffsetsMap[sys][1];
 	}
 }	
 
@@ -152,37 +176,44 @@ bool RtcmEncoder::encodeWriteMessageToBuffer(
 	{
 		return false;
 	}
+
+	if (messLength > 1023)
+	{
+		BOOST_LOG_TRIVIAL(error) << "Error: message length exceeds the limit.";	
+		return false;
+	}
 	
 // 	unsigned char nbuf[messLength+6];
-	vector<uint8_t> newbuffer(messLength+6);
+	vector<uint8_t> newbuffer(messLength + 6);
 	unsigned char* nbuf	= newbuffer.data();
 	unsigned char* buf	= buffer.data();
 	
-	i = setbituInc(nbuf,i,8,	RTCM_PREAMBLE);
-	i = setbituInc(nbuf,i,6,	0);
-	i = setbituInc(nbuf,i,10,	messLength);
+	i = setbituInc(nbuf, i,  8, RTCM_PREAMBLE);
+	i = setbituInc(nbuf, i,  6, 0);
+	i = setbituInc(nbuf, i, 10, messLength);
 
-	memcpy(nbuf+3,buf,sizeof(uint8_t)*messLength);
-	i = i + messLength*8;
+	memcpy(nbuf + 3, buf, sizeof(uint8_t)* messLength);
+	i = i + messLength * 8;
 
 	const unsigned char* bCrcBuf = (const unsigned char *)nbuf;
-	unsigned int crcCalc = crc24q(bCrcBuf, sizeof(char)*(messLength+3));
+	unsigned int crcCalc = crc24q(bCrcBuf, sizeof(char) * (messLength + 3));
 	
 	unsigned char* bCrcCalc = (unsigned char*)&crcCalc;
 	unsigned int b1 = 0;
 	unsigned int b2 = 0;
 	unsigned int b3 = 0;
-	setbituInc((unsigned char *)&b1,0,8,*(bCrcCalc+0));
-	setbituInc((unsigned char *)&b2,0,8,*(bCrcCalc+1));
-	setbituInc((unsigned char *)&b3,0,8,*(bCrcCalc+2));
-	i = setbituInc(nbuf,i,8,b3);
-	i = setbituInc(nbuf,i,8,b2);
-	i = setbituInc(nbuf,i,8,b1);
+	setbituInc((unsigned char *)&b1, 0, 8, *(bCrcCalc + 0));
+	setbituInc((unsigned char *)&b2, 0, 8, *(bCrcCalc + 1));
+	setbituInc((unsigned char *)&b3, 0, 8, *(bCrcCalc + 2));
+	i = setbituInc(nbuf, i, 8, b3);
+	i = setbituInc(nbuf, i, 8, b2);
+	i = setbituInc(nbuf, i, 8, b1);
 	
-	data.insert(data.end(), &nbuf[0], &nbuf[messLength+6]);
+	data.insert(data.end(), &nbuf[0], &nbuf[messLength + 6]);
 	
 	return true;
 }
+
 
 vector<uint8_t> RtcmEncoder::encodeTimeStampRTCM()
 {
@@ -190,95 +221,277 @@ vector<uint8_t> RtcmEncoder::encodeTimeStampRTCM()
 	unsigned int messCode = +RtcmMessageType::CUSTOM;
 	unsigned int messType = +E_RTCMSubmessage::TIMESTAMP;
 	
-	boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
-	
-	// Number of seconds since 1/1/1970, long is 64 bits and all may be used.
-	long int seconds = (now - boost::posix_time::from_time_t(0)).total_seconds();
-	
-	//Number of fractional seconds, The largest this can be is 1000 which is 10 bits unsigned. 
-	boost::posix_time::ptime now_mod_seconds	= boost::posix_time::from_time_t(seconds);
-	auto subseconds	= now - now_mod_seconds;
-	int milli_sec = subseconds.total_milliseconds();
-	
-	unsigned int* var = (unsigned int*) &seconds;
+	PTime now = timeGet();
 	
 	int i = 0;
-	//int byteLen = ceil((12.0+8.0+64.0+10.0)/8.0);
-	int byteLen = 12;
+	int byteLen = 11;
 	vector<uint8_t> buffer(byteLen);
 	unsigned char* buf = buffer.data();
-	i = setbituInc(buf, i, 12,		messCode);
-	i = setbituInc(buf, i, 8,		messType);
-	i = setbituInc(buf, i, 32,		var[0]);
-	i = setbituInc(buf, i, 32,		var[1]);
-	i = setbituInc(buf, i, 10, (int)milli_sec);
+	unsigned int reserved = 0;
+	i = setbituInc(buf, i, 12,	messCode);
+	i = setbituInc(buf, i, 8,	messType);
+	i = setbituInc(buf, i, 4,	reserved);
+	
+	long int milliseconds = now.bigTime * 1000;
+	
+	unsigned int chunk;
+	chunk = milliseconds;	i = setbituInc(buf, i, 32,	chunk);		milliseconds >>= 32;
+	chunk = milliseconds;	i = setbituInc(buf, i, 32,	chunk);
+	
+	traceTimestamp(now);
 	
 	return buffer;
 }
 
-vector<uint8_t> RtcmEncoder::encodeSsrComb(
-	map<SatSys, SSROut>& ssrOutMap)
+
+/** encode SSR header information
+*/
+int RtcmEncoder::encodeSsrHeader(
+	unsigned char*	buf,					///< byte data
+	E_Sys			sys,					///< system to encode
+	RtcmMessageType	messCode,				///< RTCM message code to encode ephemeris of
+	SSRMeta&		ssrMeta,				///< SSR metadata
+	int				iod,					///< IOD SSR
+	int				dispBiasConistInd,		///< Dispersive Bias Consistency Indicator (for phase bias only)
+	int				MWConistInd)			///< MW Consistency Indicator (for phase bias only)
 {
-	int numSat = ssrOutMap.size();
-	if (numSat == 0)
+	string	messCodeStr	= messCode._to_string();
+	string	messTypeStr	= messCodeStr.substr(8);
+
+	int ne = 0;
+	int ns = 0;
+	switch (sys)
+	{
+		case E_Sys::GPS:	ne = 20;	ns = 6;		break;
+		case E_Sys::GLO:	ne = 17;	ns = 6;		break;
+		case E_Sys::GAL:	ne = 20;	ns = 6;		break;
+		case E_Sys::QZS:	ne = 20;	ns = 4;		break;
+		case E_Sys::BDS:	ne = 20;	ns = 6;		break;
+		case E_Sys::SBS:	ne = 20;	ns = 6;		break;
+		default:
+			BOOST_LOG_TRIVIAL(error) << "Error: unrecognised system: " << sys._to_string() << " in " << __FUNCTION__;
+			return 0;
+	}
+
+	int i = 0;
+	i = setbituInc(buf, i, 12, messCode);
+	i = setbituInc(buf, i, ne, ssrMeta.epochTime1s);
+	i = setbituInc(buf, i,  4, ssrMeta.updateIntIndex);
+	i = setbituInc(buf, i,  1, ssrMeta.multipleMessage);
+
+	if	( messTypeStr == "ORB_CORR"
+		||messTypeStr == "COMB_CORR")
+	{
+		i = setbituInc(buf, i,  1, ssrMeta.referenceDatum);
+	}
+
+	i = setbituInc(buf, i,  4, iod);
+	i = setbituInc(buf, i, 16, ssrMeta.provider);
+	i = setbituInc(buf, i,  4, ssrMeta.solution);
+
+	if  ( messTypeStr == "PHASE_BIAS")
+	{
+		i = setbituInc(buf, i,  1, dispBiasConistInd);
+		i = setbituInc(buf, i,  1, MWConistInd);
+	}
+
+	i = setbituInc(buf, i, ns, ssrMeta.numSats);
+
+	return i;
+}
+
+/** encode orbit/clock messages
+*/
+vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
+	SsrOutMap&		ssrOutMap,				///< orbits/clocks to encode
+	RtcmMessageType	messCode)				///< RTCM message code to encode ephemeris of
+{
+	string	messCodeStr	= messCode._to_string();
+	string	messTypeStr	= messCodeStr.substr(8);
+
+	int numSats = ssrOutMap.size();
+	if (numSats == 0)
 	{
 		return vector<uint8_t>();
 	}
 	
-	auto& [Sat, ssrOut1]	= *ssrOutMap.begin();
-	auto& ssrEph			= ssrOut1.ssrEph;
+	auto& [Sat, ssrOut]		= *ssrOutMap.begin();
+	auto& ssrEph			= ssrOut.ssrEph;
 	auto& ssrMeta			= ssrEph.ssrMeta;
-	
-	int i		= 0;
-	int bitLen	= 0;
-	int ni		= 0;
-	unsigned int messCode = 0;
-	if		(Sat.sys == +E_Sys::GPS) {	messCode = +RtcmMessageType::GPS_SSR_COMB_CORR;		ni= 8; bitLen = 68+numSat*205;}
-	else if (Sat.sys == +E_Sys::GAL) {	messCode = +RtcmMessageType::GAL_SSR_COMB_CORR;		ni=10; bitLen = 68+numSat*207;}
-	
-	int byteLen = ceil(bitLen/8.0);
+	ssrMeta.numSats			= numSats;
+
+	int np = 0;
+	int ni = 0;
+	int nj = 0;
+	switch (Sat.sys)
+	{
+		case E_Sys::GPS:	np = 6;		ni =  8;	nj =  0;	break;
+		case E_Sys::GLO:	np = 5;		ni =  8;	nj =  0;	break;
+		case E_Sys::GAL:	np = 6;		ni = 10;	nj =  0;	break;
+		case E_Sys::QZS:	np = 4;		ni =  8;	nj =  0;	break;
+		case E_Sys::BDS:	np = 6;		ni =  8;	nj = 10;	break;
+		case E_Sys::SBS:	np = 6;		ni =  9;	nj =  0;	break;
+		default:
+			BOOST_LOG_TRIVIAL(error) << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
+			return vector<uint8_t>();
+	}
+
+	int bitLen = 0;
+	switch (messCode)
+	{
+		case RtcmMessageType::GPS_SSR_ORB_CORR:			bitLen = 68 + numSats * 135;	break;
+		case RtcmMessageType::GPS_SSR_CLK_CORR:			bitLen = 67 + numSats *  76;	break;
+		case RtcmMessageType::GPS_SSR_COMB_CORR:		bitLen = 68 + numSats * 205;	break;
+		case RtcmMessageType::GPS_SSR_HR_CLK_CORR:		bitLen = 67 + numSats *  28;	break;
+		case RtcmMessageType::GLO_SSR_ORB_CORR:			bitLen = 65 + numSats * 134;	break;
+		case RtcmMessageType::GLO_SSR_CLK_CORR:			bitLen = 64 + numSats *  75;	break;
+		case RtcmMessageType::GLO_SSR_COMB_CORR:		bitLen = 65 + numSats * 204;	break;
+		case RtcmMessageType::GLO_SSR_HR_CLK_CORR:		bitLen = 64 + numSats *  27;	break;
+		case RtcmMessageType::GAL_SSR_ORB_CORR:			bitLen = 68 + numSats * 137;	break;
+		case RtcmMessageType::GAL_SSR_CLK_CORR:			bitLen = 67 + numSats *  76;	break;
+		case RtcmMessageType::GAL_SSR_COMB_CORR:		bitLen = 68 + numSats * 207;	break;
+		case RtcmMessageType::GAL_SSR_HR_CLK_CORR:		bitLen = 67 + numSats *  28;	break;
+		case RtcmMessageType::QZS_SSR_ORB_CORR:			bitLen = 66 + numSats * 133;	break;
+		case RtcmMessageType::QZS_SSR_CLK_CORR:			bitLen = 65 + numSats *  74;	break;
+		case RtcmMessageType::QZS_SSR_COMB_CORR:		bitLen = 66 + numSats * 203;	break;
+		case RtcmMessageType::QZS_SSR_HR_CLK_CORR:		bitLen = 65 + numSats *  26;	break;
+		case RtcmMessageType::BDS_SSR_ORB_CORR:			bitLen = 68 + numSats * 145;	break;
+		case RtcmMessageType::BDS_SSR_CLK_CORR:			bitLen = 67 + numSats *  76;	break;
+		case RtcmMessageType::BDS_SSR_COMB_CORR:		bitLen = 68 + numSats * 215;	break;
+		case RtcmMessageType::BDS_SSR_HR_CLK_CORR:		bitLen = 67 + numSats *  28;	break;
+		case RtcmMessageType::SBS_SSR_ORB_CORR:			bitLen = 68 + numSats * 160;	break;
+		case RtcmMessageType::SBS_SSR_CLK_CORR:			bitLen = 67 + numSats *  76;	break;
+		case RtcmMessageType::SBS_SSR_COMB_CORR:		bitLen = 68 + numSats * 230;	break;
+		case RtcmMessageType::SBS_SSR_HR_CLK_CORR:		bitLen = 67 + numSats *  28;	break;
+		default:	return vector<uint8_t>();
+	}
+
+	int byteLen = ceil(bitLen / 8.0);
 	vector<uint8_t> buffer(byteLen);
 	unsigned char* buf = buffer.data();
 
+	int i = 0;
 	// Write the header information.
-	i = setbituInc(buf,i,12,	messCode);
-	i = setbituInc(buf,i,20,	ssrMeta.epochTime1s);
-	i = setbituInc(buf,i,4,		ssrMeta.ssrUpdateIntIndex);
-	i = setbituInc(buf,i,1,		ssrMeta.multipleMessage);
-	i = setbituInc(buf,i,1,		ssrMeta.referenceDatum);
-	i = setbituInc(buf,i,4,		ssrEph.iod);
-	i = setbituInc(buf,i,16,	ssrMeta.provider);
-	i = setbituInc(buf,i,4,		ssrMeta.solution);
-	i = setbituInc(buf,i,6,		numSat);
+	i = encodeSsrHeader(buf, Sat.sys, messCode, ssrMeta, ssrEph.iod);
 	
 	for (auto& [Sat, ssrOut] : ssrOutMap)
 	{
 		auto& ssrEph = ssrOut.ssrEph;
 		auto& ssrClk = ssrOut.ssrClk;
-			
-		i = setbituInc(buf,i, 6,	Sat.prn);
-		i = setbituInc(buf,i, ni,	ssrEph.iode);
-		
-		int d;
-		d = (int)round(ssrEph.deph[0]		/ 0.1e-3);				i = setbitsInc(buf,i,22,d);
-		d = (int)round(ssrEph.deph[1]		/ 0.4e-3);				i = setbitsInc(buf,i,20,d);
-		d = (int)round(ssrEph.deph[2]		/ 0.4e-3);				i = setbitsInc(buf,i,20,d);
-		d = (int)round(ssrEph.ddeph[0]		/ 0.001e-3);			i = setbitsInc(buf,i,21,d); 
-		d = (int)round(ssrEph.ddeph[1]		/ 0.004e-3);			i = setbitsInc(buf,i,19,d);    
-		d = (int)round(ssrEph.ddeph[2]		/ 0.004e-3);			i = setbitsInc(buf,i,19,d);
-		
-		d = (int)round(ssrClk.dclk[0]		/ 0.1e-3);				i = setbitsInc(buf,i,22,d); 
-		d = (int)round(ssrClk.dclk[1]		/ 0.001e-3);			i = setbitsInc(buf,i,21,d);  
-		d = (int)round(ssrClk.dclk[2]		/ 0.00002e-3);			i = setbitsInc(buf,i,27,d);   
 
-		outputSsrEphToJson(ssrEph, Sat);
-		outputSsrClkToJson(ssrClk, Sat);
+		SSRHRClk ssrHRClk;
+		ssrHRClk.ssrMeta	= ssrClk.ssrMeta;
+		ssrHRClk.t0			= ssrClk.t0;
+		ssrHRClk.udi		= ssrClk.udi;
+		ssrHRClk.iod		= ssrClk.iod;
+
+		//convert doubles to scaled integers
+		int deph	[3];
+		int ddeph	[3];
+		int dclk	[3];
+		deph[0]		= (int)round(ssrEph.deph[0]		/ 0.1e-3);
+		deph[1]		= (int)round(ssrEph.deph[1]		/ 0.4e-3);
+		deph[2]		= (int)round(ssrEph.deph[2]		/ 0.4e-3);
+		ddeph[0]	= (int)round(ssrEph.ddeph[0]	/ 0.001e-3);
+		ddeph[1]	= (int)round(ssrEph.ddeph[1]	/ 0.004e-3);
+		ddeph[2]	= (int)round(ssrEph.ddeph[2]	/ 0.004e-3);
+		dclk[0]		= (int)round(ssrClk.dclk[0]		/ 0.1e-3);
+		dclk[1]		= (int)round(ssrClk.dclk[1]		/ 0.001e-3);
+		dclk[2]		= (int)round(ssrClk.dclk[2]		/ 0.00002e-3);
+
+		i = setbituInc(buf, i, np, Sat.prn);
+
+		if	( messTypeStr == "ORB_CORR"
+			||messTypeStr == "COMB_CORR")
+		{
+			i = setbituInc(buf, i, nj, ssrEph.iodcrc);
+			i = setbituInc(buf, i, ni, ssrEph.iode);
+			
+			i = setbitsInc(buf, i, 22, deph[0]);
+			i = setbitsInc(buf, i, 20, deph[1]);
+			i = setbitsInc(buf, i, 20, deph[2]);
+			i = setbitsInc(buf, i, 21, ddeph[0]);
+			i = setbitsInc(buf, i, 19, ddeph[1]);
+			i = setbitsInc(buf, i, 19, ddeph[2]);
+
+			lastRegSsrEphMap[Sat] = ssrEph;
+
+			nav.satNavMap[Sat].transmittedSSR.ssrEph_map[ssrEph.t0] = ssrEph;
+			traceSsrEph(messCode, Sat, ssrEph);
+		}
+
+		if	( messTypeStr == "CLK_CORR"
+			||messTypeStr == "COMB_CORR")
+		{
+			try
+			{
+				auto& lastSsrEph = lastRegSsrEphMap.at(Sat);
+
+				if (ssrEph.iode != lastSsrEph.iode)
+				{
+					return vector<uint8_t>();
+				}
+			}
+			catch (...)
+			{
+				return vector<uint8_t>();
+			}
+			
+			i = setbitsInc(buf, i, 22, dclk[0]);
+			i = setbitsInc(buf, i, 21, dclk[1]);
+			i = setbitsInc(buf, i, 27, dclk[2]);
+
+			lastRegSsrClkMap[Sat] = ssrClk;
+
+			nav.satNavMap[Sat].transmittedSSR.ssrClk_map[ssrClk.t0] = ssrClk;
+			traceSsrClk(messCode, Sat, ssrClk);
+		}
+
+		if	( messTypeStr == "HR_CLK_CORR")
+		{
+			try
+			{
+				auto& lastSsrEph = lastRegSsrEphMap.at(Sat);
+
+				if (ssrEph.iode != lastSsrEph.iode)
+				{
+					return vector<uint8_t>();
+				}
+			}
+			catch (...)
+			{
+				return vector<uint8_t>();
+			}
+			
+			try
+			{
+				auto& lastRegSsrClk = lastRegSsrClkMap.at(Sat);
+
+				GTime currentTime = ssrHRClk.t0;
+				double tClk = (currentTime - lastRegSsrClk.t0).to_double();
+
+				double dclkReg	= lastRegSsrClk.dclk[0]
+								+ lastRegSsrClk.dclk[1] * tClk
+								+ lastRegSsrClk.dclk[2] * tClk * tClk;
+
+				ssrHRClk.hrclk	= ssrClk.dclk[0] - dclkReg;
+			}
+			catch (...)
+			{
+				return vector<uint8_t>();
+			}
+
+			i = setbitsInc(buf, i, 22, ssrHRClk.hrclk	/ 0.1e-3);
+
+			nav.satNavMap[Sat].transmittedSSR.ssrHRClk_map[ssrHRClk.t0] = ssrHRClk;
+			traceSsrHRClk(messCode, Sat, ssrHRClk);
+		}
 	}
 	
-	int bitl = byteLen*8-i;
+	int bitl = byteLen * 8 - i;
 	if (bitl > 7 )
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error encoding combined.\n";
+		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Orbit/Clock.\n";
 		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
 	i = setbituInc(buf, i, bitl, 0); 
@@ -286,63 +499,82 @@ vector<uint8_t> RtcmEncoder::encodeSsrComb(
 	return buffer;
 }
 
+/** encode phase bias messages
+*/
 vector<uint8_t> RtcmEncoder::encodeSsrPhase(
-	SsrPBMap& ssrPBMap)
+	SsrPBMap&		ssrPBMap,				///< phase biases to encode
+	RtcmMessageType	messCode)				///< RTCM message code to encode ephemeris of
 {
-	int numSat = ssrPBMap.size();
-	
-	int i = 0;
-	int bitLen = 0;
-
-	int totalNbias = 0;
-	for (auto& [Sat,ssrPhasBias] : ssrPBMap)
+	int numSats = ssrPBMap.size();
+	if (numSats == 0)
 	{
-		totalNbias += ssrPhasBias.obsCodeBiasMap.size();
+		return vector<uint8_t>();
+	}
+
+	int totalNumBias = 0;
+	for (auto& [Sat, ssrPhasBias] : ssrPBMap)
+	{
+		totalNumBias += ssrPhasBias.obsCodeBiasMap.size();
+	}
+	if (totalNumBias == 0)
+	{
+		return vector<uint8_t>();
 	}
 	
-	if (totalNbias == 0)
-		return vector<uint8_t>();
-	
-	// Write the header information.
-	auto s_it = ssrPBMap.begin();
-	auto& [Sat, ssrPhasBias] = *s_it;
-	SSRMeta& ssrMeta = ssrPhasBias.ssrMeta;
+	auto& [Sat, ssrPhasBias]	= *ssrPBMap.begin();
+	auto& ssrMeta				= ssrPhasBias.ssrMeta;
+	ssrMeta.numSats				= numSats;
 	
 	int np = 0;
-	int ni = 0;
-	int nj = 0;
-	int offp = 0;
-	unsigned int messCode = 0;
-	if (Sat.sys == +E_Sys::GPS) {	messCode = +RtcmMessageType::GPS_SSR_PHASE_BIAS;	np=6; ni= 8; nj= 0; offp=0;	bitLen = 69+numSat*28+totalNbias*32;}	
-	if (Sat.sys == +E_Sys::GAL)	{	messCode = +RtcmMessageType::GAL_SSR_PHASE_BIAS;	np=6; ni=10; nj= 0; offp=0;	bitLen = 69+numSat*28+totalNbias*32;}
+	switch (Sat.sys)
+	{
+		case E_Sys::GPS:	np = 6;		break;
+		case E_Sys::GLO:	np = 5;		break;
+		case E_Sys::GAL:	np = 6;		break;
+		case E_Sys::QZS:	np = 4;		break;
+		case E_Sys::BDS:	np = 6;		break;
+		case E_Sys::SBS:	np = 6;		break;
+		default:
+			BOOST_LOG_TRIVIAL(error) << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
+			return vector<uint8_t>();
+	}
+
+	int bitLen = 0;
+	switch (messCode)
+	{
+		case RtcmMessageType::GPS_SSR_PHASE_BIAS:	bitLen = 69 + numSats * 28 + totalNumBias * 32;		break;
+		case RtcmMessageType::GLO_SSR_PHASE_BIAS:	bitLen = 66 + numSats * 27 + totalNumBias * 32;		break;
+		case RtcmMessageType::GAL_SSR_PHASE_BIAS:	bitLen = 69 + numSats * 28 + totalNumBias * 32;		break;
+		case RtcmMessageType::QZS_SSR_PHASE_BIAS:	bitLen = 67 + numSats * 26 + totalNumBias * 32;		break;
+		case RtcmMessageType::BDS_SSR_PHASE_BIAS:	bitLen = 69 + numSats * 28 + totalNumBias * 32;		break;
+		case RtcmMessageType::SBS_SSR_PHASE_BIAS:	bitLen = 69 + numSats * 28 + totalNumBias * 32;		break;
+		default:	return vector<uint8_t>();
+	}
 	
-	int byteLen = ceil(bitLen/8.0);
+	int byteLen = ceil(bitLen / 8.0);
 	vector<uint8_t> buffer(byteLen);
 	unsigned char* buf = buffer.data();
 
-	i = setbituInc(buf,i,12,messCode);
-	i = setbituInc(buf,i,20,ssrMeta.epochTime1s);
-	i = setbituInc(buf,i,4,	ssrMeta.ssrUpdateIntIndex);
-	i = setbituInc(buf,i,1,	ssrMeta.multipleMessage);
+	int i = 0;
+	// Write the header information.
+	int dispBiasConistInd	= ssrPhasBias.ssrPhase.dispBiasConistInd;
+	int MWConistInd			= ssrPhasBias.ssrPhase.MWConistInd;
+	i = encodeSsrHeader(buf, Sat.sys, messCode, ssrMeta, ssrPhasBias.iod, dispBiasConistInd, MWConistInd);
 	
-	i = setbituInc(buf,i,4,	ssrPhasBias.iod);
-	i = setbituInc(buf,i,16,ssrMeta.provider);
-	i = setbituInc(buf,i,4,	ssrMeta.solution);
-
-	i = setbituInc(buf,i,1,	ssrPhasBias.ssrPhase.dispBiasConistInd);
-	i = setbituInc(buf,i,1,	ssrPhasBias.ssrPhase.MWConistInd); 
-	
-	i = setbituInc(buf,i,6,numSat);
-	
-	for (auto& [sat, ssrPhasBias] : ssrPBMap)
+	for (auto& [Sat, ssrPhasBias] : ssrPBMap)
 	{
+		ssrPhasBias.udi		= updateInterval[ssrMeta.updateIntIndex];	// for rtcmTrace (debugging)
+
 		SSRPhase ssrPhase = ssrPhasBias.ssrPhase;
 		
-		int d;
-															i = setbituInc(buf,i,np,sat.prn);
-		d = ssrPhasBias.obsCodeBiasMap.size();				i = setbituInc(buf,i,5,	d);
-		d = (int)round(ssrPhase.yawAngle	*256	/PI);	i = setbituInc(buf,i,9,	d);
-		d = (int)round(ssrPhase.yawRate		*8192	/PI);	i = setbitsInc(buf,i,8,	d);
+		unsigned int nbias	= ssrPhasBias.obsCodeBiasMap.size();
+		int yawAngle		= (int)round(ssrPhase.yawAngle	*  256	/ SC2RAD);
+		int yawRate			= (int)round(ssrPhase.yawRate	* 8192	/ SC2RAD);
+
+		i = setbituInc(buf, i, np, Sat.prn);
+		i = setbituInc(buf, i,  5, nbias);
+		i = setbituInc(buf, i,  9, yawAngle);
+		i = setbitsInc(buf, i,  8, yawRate);
 		
 		for (auto& [obsCode, entry] : ssrPhasBias.obsCodeBiasMap)
 		{
@@ -353,110 +585,677 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 			//BOOST_LOG_TRIVIAL(debug) << "mCodes_gps.size() : " << mCodes_gps.size() << std::endl;
 			//print_map( mCodes_gps.left, " E_ObsCode <--> RTCM ", BOOST_LOG_TRIVIAL(debug) );
 			
-			int rtcm_code = 0;
-			if		( sat.sys == +E_Sys::GPS )		rtcm_code = mCodes_gps.left.at(obsCode);		//todo aaron, crash heaven, needs else, try
-			else if ( sat.sys == +E_Sys::GAL )		rtcm_code = mCodes_gal.left.at(obsCode); 
+			int rtcmCode = 0;
+			if		(Sat.sys == +E_Sys::GPS)	{	rtcmCode = mCodes_gps.left.at(obsCode);	}	//todo aaron, crash heaven, needs else, try
+			else if (Sat.sys == +E_Sys::GLO)	{	rtcmCode = mCodes_glo.left.at(obsCode);	}
+			else if (Sat.sys == +E_Sys::GAL)	{	rtcmCode = mCodes_gal.left.at(obsCode); }
+			else if (Sat.sys == +E_Sys::QZS)	{	rtcmCode = mCodes_qzs.left.at(obsCode);	}
+			else if (Sat.sys == +E_Sys::BDS)	{	rtcmCode = mCodes_bds.left.at(obsCode);	}
+			else if (Sat.sys == +E_Sys::SBS)	{	rtcmCode = mCodes_sbs.left.at(obsCode);	}
 			
-			//BOOST_LOG_TRIVIAL(debug) << "rtcm_code      : " << rtcm_code << std::endl;
+			//BOOST_LOG_TRIVIAL(debug) << "rtcmCode      : " << rtcmCode << std::endl;
 			
-													i = setbituInc(buf,i,5,	rtcm_code);
-													i = setbituInc(buf,i,1,	ssrPhaseCh.signalIntInd);
-													i = setbituInc(buf,i,2,	ssrPhaseCh.signalWidIntInd);
-													i = setbituInc(buf,i,4,	ssrPhaseCh.signalDisconCnt);
-			d = (int)round(entry.bias / 0.0001);	i = setbitsInc(buf,i,20,d);
+			int bias = (int)round(entry.bias / 0.0001);
+
+			i = setbituInc(buf, i,  5, rtcmCode);
+			i = setbituInc(buf, i,  1, ssrPhaseCh.signalIntInd);
+			i = setbituInc(buf, i,  2, ssrPhaseCh.signalWLIntInd);
+			i = setbituInc(buf, i,  4, ssrPhaseCh.signalDisconCnt);
+			i = setbitsInc(buf, i, 20, bias);
 			
-			traceSsrPhasB(sat, obsCode, ssrPhasBias);   
+			nav.satNavMap[Sat].transmittedSSR.ssrPhasBias_map[ssrPhasBias.t0] = ssrPhasBias;
+			
+			traceSsrPhasBias(messCode, Sat, obsCode, ssrPhasBias);  
 		}
 	} 
 	
-	int bitl = byteLen*8-i;
+	int bitl = byteLen * 8 - i;
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
 		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
 	
-	i = setbituInc(buf,i,bitl,0);
+	i = setbituInc(buf, i, bitl, 0);
 	
 	return buffer;
 }
 
-
+/** encode code bias messages
+*/
 vector<uint8_t> RtcmEncoder::encodeSsrCode(
-	SsrCBMap& ssrCBMap)
+	SsrCBMap&		ssrCBMap,				///< code biases to encode
+	RtcmMessageType	messCode)				///< RTCM message code to encode ephemeris of
 {	
-	int numSat = ssrCBMap.size();
-	
-	int i = 0;
-
-	int totalNbias = 0;
-	for (auto s_it = ssrCBMap.begin(); s_it != ssrCBMap.end(); s_it++)
-	{
-		SSRCodeBias ssrCodeBias = s_it->second;
-		totalNbias += ssrCodeBias.obsCodeBiasMap.size();
-	}
-	
-	if (totalNbias == 0)
+	int numSats = ssrCBMap.size();
+	if (numSats == 0)
 	{
 		return vector<uint8_t>();
 	}
 	
-	// Write the header information.
+	int totalNumBias = 0;
+	for (auto& [Sat, ssrCodeBias] : ssrCBMap)
+	{
+		totalNumBias += ssrCodeBias.obsCodeBiasMap.size();
+	}
+	if (totalNumBias == 0)
+	{
+		return vector<uint8_t>();
+	}
 
-	auto s_it = ssrCBMap.begin();
-	auto& [Sat, ssrCodeBias] = *s_it;
-	SSRMeta& ssrMeta = ssrCodeBias.ssrMeta;
-	
-	int bitLen	= 67 
-				+ 11 * numSat
-				+ 19 * totalNbias;
+	auto& [Sat, ssrCodeBias]	= *ssrCBMap.begin();
+	auto& ssrMeta				= ssrCodeBias.ssrMeta;
+	ssrMeta.numSats				= numSats;
+
+	int np = 0;
+	switch (Sat.sys)
+	{
+		case E_Sys::GPS:	np = 6;		break;
+		case E_Sys::GLO:	np = 5;		break;
+		case E_Sys::GAL:	np = 6;		break;
+		case E_Sys::QZS:	np = 4;		break;
+		case E_Sys::BDS:	np = 6;		break;
+		case E_Sys::SBS:	np = 6;		break;
+		default:
+			BOOST_LOG_TRIVIAL(error) << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
+			return vector<uint8_t>();
+	}
+
+	int bitLen = 0;
+	switch (messCode)
+	{
+		case RtcmMessageType::GPS_SSR_CODE_BIAS:	bitLen = 67 + numSats * 11 + totalNumBias * 19;		break;
+		case RtcmMessageType::GLO_SSR_CODE_BIAS:	bitLen = 64 + numSats * 10 + totalNumBias * 19;		break;
+		case RtcmMessageType::GAL_SSR_CODE_BIAS:	bitLen = 67 + numSats * 11 + totalNumBias * 19;		break;
+		case RtcmMessageType::QZS_SSR_CODE_BIAS:	bitLen = 65 + numSats *  9 + totalNumBias * 19;		break;
+		case RtcmMessageType::BDS_SSR_CODE_BIAS:	bitLen = 67 + numSats * 11 + totalNumBias * 19;		break;
+		case RtcmMessageType::SBS_SSR_CODE_BIAS:	bitLen = 67 + numSats * 11 + totalNumBias * 19;		break;
+		default:	return vector<uint8_t>();
+	}
+
 	int byteLen = ceil(bitLen / 8.0);
-	
 	vector<uint8_t> buffer(byteLen);
 	unsigned char* buf = buffer.data();
-	
-	unsigned int messCode = 0;
-	if (Sat.sys == +E_Sys::GPS)	{	messCode = +RtcmMessageType::GPS_SSR_CODE_BIAS;}
-	if (Sat.sys == +E_Sys::GAL)	{	messCode = +RtcmMessageType::GAL_SSR_CODE_BIAS;}
 
-	i = setbituInc(buf,i,12,messCode);
-	i = setbituInc(buf,i,20,ssrMeta.epochTime1s);
-	i = setbituInc(buf,i,4,	ssrMeta.ssrUpdateIntIndex);
-	i = setbituInc(buf,i,1,	ssrMeta.multipleMessage);
-	
-	i = setbituInc(buf,i,4,	ssrCodeBias.iod);
-	i = setbituInc(buf,i,16,ssrMeta.provider);
-	i = setbituInc(buf,i,4,	ssrMeta.solution);
-	i = setbituInc(buf,i,6,	numSat);
+	int i = 0;
+	// Write the header information.
+	i = encodeSsrHeader(buf, Sat.sys, messCode, ssrMeta, ssrCodeBias.iod);
 
-	for (auto& [sat, ssrCodeBias] : ssrCBMap)
+	for (auto& [Sat, ssrCodeBias] : ssrCBMap)
 	{
-		i = setbituInc(buf, i, 6, sat.prn);
-		unsigned int nbias = ssrCodeBias.obsCodeBiasMap.size();
+		ssrCodeBias.udi		= updateInterval[ssrMeta.updateIntIndex];	// for rtcmTrace (debugging)
 
-		i = setbituInc(buf, i, 5, nbias);
+		unsigned int nbias	= ssrCodeBias.obsCodeBiasMap.size();
+
+		i = setbituInc(buf, i, np, Sat.prn);
+		i = setbituInc(buf, i,  5, nbias);
 		
 		for (auto& [obsCode, entry] : ssrCodeBias.obsCodeBiasMap)
 		{
-			int rtcm_code = 0;
-			if		( sat.sys == +E_Sys::GPS )	{	rtcm_code = mCodes_gps.left.at(obsCode);		}
-			else if ( sat.sys == +E_Sys::GAL )	{	rtcm_code = mCodes_gal.left.at(obsCode);		}
+			int rtcmCode = 0;
+			if		(Sat.sys == +E_Sys::GPS)	{	rtcmCode = mCodes_gps.left.at(obsCode);	}
+			else if (Sat.sys == +E_Sys::GLO)	{	rtcmCode = mCodes_glo.left.at(obsCode);	}
+			else if (Sat.sys == +E_Sys::GAL)	{	rtcmCode = mCodes_gal.left.at(obsCode);	}
+			else if (Sat.sys == +E_Sys::QZS)	{	rtcmCode = mCodes_qzs.left.at(obsCode);	}
+			else if (Sat.sys == +E_Sys::BDS)	{	rtcmCode = mCodes_bds.left.at(obsCode);	}
+			else if (Sat.sys == +E_Sys::SBS)	{	rtcmCode = mCodes_sbs.left.at(obsCode);	}
 
-													i = setbituInc(buf, i, 5,	rtcm_code);
-			int d = (int)round(entry.bias / 0.01);	i = setbitsInc(buf, i, 14,	d);
+			int bias = (int)round(entry.bias / 0.01);
 
-			traceSsrCodeB(sat, obsCode, ssrCodeBias);         
+			i = setbituInc(buf, i,  5, rtcmCode);
+			i = setbitsInc(buf, i, 14, bias);
+			
+			nav.satNavMap[Sat].transmittedSSR.ssrCodeBias_map[ssrCodeBias.t0] = ssrCodeBias;
+
+			traceSsrCodeBias(messCode, Sat, obsCode, ssrCodeBias);
 		}
 	}
 	
-	int bitl = byteLen*8-i;
+	int bitl = byteLen * 8 - i;
 	if (bitl > 7)
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Code.\n";
 		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
-	
-	i = setbituInc(buf,i,bitl,0);
+	i = setbituInc(buf, i, bitl, 0);
 	
 	return buffer;
+}
+
+/** encode URA messages
+*/
+vector<uint8_t> RtcmEncoder::encodeSsrUra(
+	SsrOutMap&		ssrOutMap,				///< URAs to encode
+	RtcmMessageType	messCode)				///< RTCM message code to encode ephemeris of
+{
+	int numSats = ssrOutMap.size();
+	if (numSats == 0)
+	{
+		return vector<uint8_t>();
+	}
+	
+	auto& [Sat, ssrOut]		= *ssrOutMap.begin();
+	auto& ssrUra			= ssrOut.ssrUra;
+	auto& ssrMeta			= ssrUra.ssrMeta;
+	ssrMeta.numSats			= numSats;
+	
+	int np = 0;
+	switch (Sat.sys)
+	{
+		case E_Sys::GPS:	np = 6;		break;
+		case E_Sys::GLO:	np = 5;		break;
+		case E_Sys::GAL:	np = 6;		break;
+		case E_Sys::QZS:	np = 4;		break;
+		case E_Sys::BDS:	np = 6;		break;
+		case E_Sys::SBS:	np = 6;		break;
+		default:
+			BOOST_LOG_TRIVIAL(error) << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
+			return vector<uint8_t>();
+	}
+
+	int bitLen = 0;
+	switch (messCode)
+	{
+		case RtcmMessageType::GPS_SSR_URA:		bitLen = 67 + numSats * 12;		break;
+		case RtcmMessageType::GLO_SSR_URA:		bitLen = 64 + numSats * 11;		break;
+		case RtcmMessageType::GAL_SSR_URA:		bitLen = 67 + numSats * 12;		break;
+		case RtcmMessageType::QZS_SSR_URA:		bitLen = 65 + numSats * 10;		break;
+		case RtcmMessageType::BDS_SSR_URA:		bitLen = 67 + numSats * 12;		break;
+		case RtcmMessageType::SBS_SSR_URA:		bitLen = 67 + numSats * 12;		break;
+		default:	return vector<uint8_t>();
+	}
+
+	int byteLen = ceil(bitLen / 8.0);
+	vector<uint8_t> buffer(byteLen);
+	unsigned char* buf = buffer.data();
+
+	int i = 0;
+	// Write the header information.
+	i = encodeSsrHeader(buf, Sat.sys, messCode, ssrMeta, ssrUra.iod);
+	
+	for (auto& [Sat, ssrOut] : ssrOutMap)
+	{
+		auto& ssrUra = ssrOut.ssrUra;
+
+		ssrUra.udi		= updateInterval[ssrMeta.updateIntIndex];	// for rtcmTrace (debugging)
+
+		int uraClassValue = uraToClassValue(ssrUra.ura);
+
+		i = setbituInc(buf, i, np, Sat.prn);
+		i = setbituInc(buf, i,  6, uraClassValue);
+		
+		nav.satNavMap[Sat].transmittedSSR.ssrUra_map[ssrUra.t0] = ssrUra;
+
+		traceSsrUra(messCode, Sat, ssrUra);
+	}
+	
+	int bitl = byteLen * 8 - i;
+	if (bitl > 7 )
+	{
+		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR URA.\n";
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+	}
+	i = setbituInc(buf, i, bitl, 0); 
+	
+	return buffer;
+}
+
+/** encode GPS/GAL/BDS/QZS ephemeris messages
+*/
+vector<uint8_t> RtcmEncoder::encodeEphemeris(
+		Eph&			eph,					///< ephemeris to encode
+		RtcmMessageType	messCode)				///< RTCM message code to encode ephemeris of
+{
+	int bitLen = 0;
+	switch (messCode)
+	{
+		case RtcmMessageType:: GPS_EPHEMERIS:		{ bitLen	= 488;	break; }
+		case RtcmMessageType:: BDS_EPHEMERIS:		{ bitLen	= 511;	break; }
+		case RtcmMessageType:: QZS_EPHEMERIS:		{ bitLen	= 485;	break; }
+		case RtcmMessageType:: GAL_FNAV_EPHEMERIS:	{ bitLen	= 496;	break; }
+		case RtcmMessageType:: GAL_INAV_EPHEMERIS:	{ bitLen	= 504;	break; }
+		default:	return vector<uint8_t>();
+	}
+
+	int byteLen = ceil(bitLen / 8.0);
+	vector<uint8_t> buffer(byteLen);
+	unsigned char* buf = buffer.data();
+
+	int i = 0;
+	i = setbituInc(buf, i, 12, messCode);
+
+	auto Sat	= eph.Sat;
+	auto type	= eph.type;
+	if (Sat.sys == +E_Sys::GPS)
+	{
+		int idot			= (int)			round(eph.idot	/P2_43/SC2RAD);
+		int tocs			= (int)			round(eph.tocs	/16.0 );
+		int f2				= (int)			round(eph.f2	/P2_55);
+		int f1				= (int)			round(eph.f1	/P2_43);
+		int f0				= (int)			round(eph.f0	/P2_31);
+		int crs				= (int)			round(eph.crs	/P2_5 );
+		int deln			= (int)			round(eph.deln	/P2_43/SC2RAD);
+		int M0				= (int)			round(eph.M0	/P2_31/SC2RAD);
+		int cuc				= (int)			round(eph.cuc	/P2_29);
+		unsigned int e		= (unsigned int)round(eph.e		/P2_33);
+		int cus				= (int)			round(eph.cus	/P2_29);
+		unsigned int sqrtA	= (unsigned int)round(eph.sqrtA	/P2_19);
+		int toes			= (int)			round(eph.toes	/16.0 );
+		int cic				= (int)			round(eph.cic	/P2_29);
+		int OMG0			= (int)			round(eph.OMG0	/P2_31/SC2RAD);
+		int cis				= (int)			round(eph.cis	/P2_29);
+		int i0				= (int)			round(eph.i0	/P2_31/SC2RAD);
+		int crc				= (int)			round(eph.crc	/P2_5 );
+		int omg				= (int)			round(eph.omg	/P2_31/SC2RAD);
+		int OMGd			= (int)			round(eph.OMGd	/P2_43/SC2RAD);
+		int tgd				= (int)			round(eph.tgd[0]/P2_31);
+
+		i = setbituInc(buf, i,  6, Sat.prn);
+		i = setbituInc(buf, i, 10, eph.weekRollOver);
+		i = setbituInc(buf, i,  4, eph.sva);
+		i = setbituInc(buf, i,  2, eph.code);
+		i = setbitsInc(buf, i, 14, idot);
+		i = setbituInc(buf, i,  8, eph.iode);
+		i = setbituInc(buf, i, 16, tocs);
+		i = setbitsInc(buf, i,  8, f2);
+		i = setbitsInc(buf, i, 16, f1);
+		i = setbitsInc(buf, i, 22, f0);
+		i = setbituInc(buf, i, 10, eph.iodc);
+		i = setbitsInc(buf, i, 16, crs);
+		i = setbitsInc(buf, i, 16, deln);
+		i = setbitsInc(buf, i, 32, M0);
+		i = setbitsInc(buf, i, 16, cuc);
+		i = setbituInc(buf, i, 32, e);
+		i = setbitsInc(buf, i, 16, cus);
+		i = setbituInc(buf, i, 32, sqrtA);
+		i = setbituInc(buf, i, 16, toes);
+		i = setbitsInc(buf, i, 16, cic);
+		i = setbitsInc(buf, i, 32, OMG0);
+		i = setbitsInc(buf, i, 16, cis);
+		i = setbitsInc(buf, i, 32, i0);
+		i = setbitsInc(buf, i, 16, crc);
+		i = setbitsInc(buf, i, 32, omg);
+		i = setbitsInc(buf, i, 24, OMGd);
+		i = setbitsInc(buf, i,  8, tgd);
+		i = setbituInc(buf, i,  6, eph.svh);
+		i = setbituInc(buf, i,  1, eph.flag);
+		i = setbituInc(buf, i,  1, eph.fitFlag);
+	}
+	else if (Sat.sys == +E_Sys::BDS)
+	{
+		int idot			= (int)			round(eph.idot	/P2_43/SC2RAD);
+		int tocs			= (int)			round(eph.tocs	/8.0  );
+		int f2				= (int)			round(eph.f2	/P2_66);
+		int f1				= (int)			round(eph.f1	/P2_50);
+		int f0				= (int)			round(eph.f0	/P2_33);
+		int crs				= (int)			round(eph.crs	/P2_6 );
+		int deln			= (int)			round(eph.deln	/P2_43/SC2RAD);
+		int M0				= (int)			round(eph.M0	/P2_31/SC2RAD);
+		int cuc				= (int)			round(eph.cuc	/P2_31);
+		unsigned int e		= (unsigned int)round(eph.e		/P2_33);
+		int cus				= (int)			round(eph.cus	/P2_31);
+		unsigned int sqrtA	= (unsigned int)round(eph.sqrtA	/P2_19);
+		int toes			= (int)			round(eph.toes	/8.0  );
+		int cic				= (int)			round(eph.cic	/P2_31);
+		int OMG0			= (int)			round(eph.OMG0	/P2_31/SC2RAD);
+		int cis				= (int)			round(eph.cis	/P2_31);
+		int i0				= (int)			round(eph.i0	/P2_31/SC2RAD);
+		int crc				= (int)			round(eph.crc	/P2_6 );
+		int omg				= (int)			round(eph.omg	/P2_31/SC2RAD);
+		int OMGd			= (int)			round(eph.OMGd	/P2_43/SC2RAD);
+		int tgd1			= (int)			round(eph.tgd[0]/1E-10);
+		int tgd2			= (int)			round(eph.tgd[1]/1E-10);
+
+		i = setbituInc(buf, i,  6, Sat.prn);
+		i = setbituInc(buf, i, 13, eph.weekRollOver);
+		i = setbituInc(buf, i,  4, eph.sva);
+		i = setbitsInc(buf, i, 14, idot);
+		i = setbituInc(buf, i,  5, eph.aode);
+		i = setbituInc(buf, i, 17, tocs);
+		i = setbitsInc(buf, i, 11, f2);
+		i = setbitsInc(buf, i, 22, f1);
+		i = setbitsInc(buf, i, 24, f0);
+		i = setbituInc(buf, i,  5, eph.aodc);
+		i = setbitsInc(buf, i, 18, crs);
+		i = setbitsInc(buf, i, 16, deln);
+		i = setbitsInc(buf, i, 32, M0);
+		i = setbitsInc(buf, i, 18, cuc);
+		i = setbituInc(buf, i, 32, e);
+		i = setbitsInc(buf, i, 18, cus);
+		i = setbituInc(buf, i, 32, sqrtA);
+		i = setbituInc(buf, i, 17, toes);
+		i = setbitsInc(buf, i, 18, cic);
+		i = setbitsInc(buf, i, 32, OMG0);
+		i = setbitsInc(buf, i, 18, cis);
+		i = setbitsInc(buf, i, 32, i0);
+		i = setbitsInc(buf, i, 18, crc);
+		i = setbitsInc(buf, i, 32, omg);
+		i = setbitsInc(buf, i, 24, OMGd);
+		i = setbitsInc(buf, i, 10, tgd1);
+		i = setbitsInc(buf, i, 10, tgd2);
+		i = setbituInc(buf, i,  1, eph.svh);
+	}
+	else if (Sat.sys == +E_Sys::QZS)
+	{
+		int tocs			= (int)			round(eph.tocs	/16.0 );
+		int f2				= (int)			round(eph.f2	/P2_55);
+		int f1				= (int)			round(eph.f1	/P2_43);
+		int f0				= (int)			round(eph.f0	/P2_31);
+		int crs				= (int)			round(eph.crs	/P2_5 );
+		int deln			= (int)			round(eph.deln	/P2_43/SC2RAD);
+		int M0				= (int)			round(eph.M0	/P2_31/SC2RAD);
+		int cuc				= (int)			round(eph.cuc	/P2_29);
+		unsigned int e		= (unsigned int)round(eph.e		/P2_33);
+		int cus				= (int)			round(eph.cus	/P2_29);
+		unsigned int sqrtA	= (unsigned int)round(eph.sqrtA	/P2_19);
+		int toes			= (int)			round(eph.toes	/16.0 );
+		int cic				= (int)			round(eph.cic	/P2_29);
+		int OMG0			= (int)			round(eph.OMG0	/P2_31/SC2RAD);
+		int cis				= (int)			round(eph.cis	/P2_29);
+		int i0				= (int)			round(eph.i0	/P2_31/SC2RAD);
+		int crc				= (int)			round(eph.crc	/P2_5 );
+		int omg				= (int)			round(eph.omg	/P2_31/SC2RAD);
+		int OMGd			= (int)			round(eph.OMGd	/P2_43/SC2RAD);
+		int idot			= (int)			round(eph.idot	/P2_43/SC2RAD);
+		int tgd				= (int)			round(eph.tgd[0]/P2_31);
+
+		i = setbituInc(buf, i,  4, Sat.prn);
+		i = setbituInc(buf, i, 16, tocs);
+		i = setbitsInc(buf, i,  8, f2);
+		i = setbitsInc(buf, i, 16, f1);
+		i = setbitsInc(buf, i, 22, f0);
+		i = setbituInc(buf, i,  8, eph.iode);
+		i = setbitsInc(buf, i, 16, crs);
+		i = setbitsInc(buf, i, 16, deln);
+		i = setbitsInc(buf, i, 32, M0);
+		i = setbitsInc(buf, i, 16, cuc);
+		i = setbituInc(buf, i, 32, e);
+		i = setbitsInc(buf, i, 16, cus);
+		i = setbituInc(buf, i, 32, sqrtA);
+		i = setbituInc(buf, i, 16, toes);
+		i = setbitsInc(buf, i, 16, cic);
+		i = setbitsInc(buf, i, 32, OMG0);
+		i = setbitsInc(buf, i, 16, cis);
+		i = setbitsInc(buf, i, 32, i0);
+		i = setbitsInc(buf, i, 16, crc);
+		i = setbitsInc(buf, i, 32, omg);
+		i = setbitsInc(buf, i, 24, OMGd);
+		i = setbitsInc(buf, i, 14, idot);
+		i = setbituInc(buf, i,  2, eph.code);
+		i = setbituInc(buf, i, 10, eph.weekRollOver);
+		i = setbituInc(buf, i,  4, eph.sva);
+		i = setbituInc(buf, i,  6, eph.svh);
+		i = setbitsInc(buf, i,  8, tgd);
+		i = setbituInc(buf, i, 10, eph.iodc);
+		i = setbituInc(buf, i,  1, eph.fitFlag);
+	}
+	else if (Sat.sys == +E_Sys::GAL)
+	{
+		int idot			= (int)			round(eph.idot	/P2_43/SC2RAD);
+		int tocs			= (int)			round(eph.tocs	/60.0 );
+		int f2				= (int)			round(eph.f2	/P2_59);
+		int f1				= (int)			round(eph.f1	/P2_46);
+		int f0				= (int)			round(eph.f0	/P2_34);
+		int crs				= (int)			round(eph.crs	/P2_5 );
+		int deln			= (int)			round(eph.deln	/P2_43/SC2RAD);
+		int M0				= (int)			round(eph.M0	/P2_31/SC2RAD);
+		int cuc				= (int)			round(eph.cuc	/P2_29);
+		unsigned int e		= (unsigned int)round(eph.e		/P2_33);
+		int cus				= (int)			round(eph.cus	/P2_29);
+		unsigned int sqrtA	= (unsigned int)round(eph.sqrtA	/P2_19);
+		int toes			= (int)			round(eph.toes	/60.0 );
+		int cic				= (int)			round(eph.cic	/P2_29);
+		int OMG0			= (int)			round(eph.OMG0	/P2_31/SC2RAD);
+		int cis				= (int)			round(eph.cis	/P2_29);
+		int i0				= (int)			round(eph.i0	/P2_31/SC2RAD);
+		int crc				= (int)			round(eph.crc	/P2_5 );
+		int omg				= (int)			round(eph.omg	/P2_31/SC2RAD);
+		int OMGd			= (int)			round(eph.OMGd	/P2_43/SC2RAD);
+		int bgd1			= (int)			round(eph.tgd[0]/P2_32);
+		int bgd2			= (int)			round(eph.tgd[1]/P2_32);
+
+		i = setbituInc(buf, i,  6, Sat.prn);
+		i = setbituInc(buf, i, 12, eph.weekRollOver);
+		i = setbituInc(buf, i, 10, eph.iode);
+		i = setbituInc(buf, i,  8, eph.sva);
+		i = setbitsInc(buf, i, 14, idot);
+		i = setbituInc(buf, i, 14, tocs);
+		i = setbitsInc(buf, i,  6, f2);
+		i = setbitsInc(buf, i, 21, f1);
+		i = setbitsInc(buf, i, 31, f0);
+		i = setbitsInc(buf, i, 16, crs);
+		i = setbitsInc(buf, i, 16, deln);
+		i = setbitsInc(buf, i, 32, M0);
+		i = setbitsInc(buf, i, 16, cuc);
+		i = setbituInc(buf, i, 32, e);
+		i = setbitsInc(buf, i, 16, cus);
+		i = setbituInc(buf, i, 32, sqrtA);
+		i = setbituInc(buf, i, 14, toes);
+		i = setbitsInc(buf, i, 16, cic);
+		i = setbitsInc(buf, i, 32, OMG0);
+		i = setbitsInc(buf, i, 16, cis);
+		i = setbitsInc(buf, i, 32, i0);
+		i = setbitsInc(buf, i, 16, crc);
+		i = setbitsInc(buf, i, 32, omg);
+		i = setbitsInc(buf, i, 24, OMGd);
+		i = setbitsInc(buf, i, 10, bgd1);
+
+		if		(type == +E_NavMsgType::FNAV)
+		{
+			i = setbituInc(buf, i,  2, eph.e5a_hs);
+			i = setbituInc(buf, i,  1, eph.e5a_dvs);
+			i = setbituInc(buf, i,  7, 0); /* reserved */
+		}
+		else if (type == +E_NavMsgType::INAV)
+		{
+			i = setbitsInc(buf, i, 10, bgd2);
+			i = setbituInc(buf, i,  2, eph.e5b_hs);
+			i = setbituInc(buf, i,  1, eph.e5b_dvs);
+			i = setbituInc(buf, i,  2, eph.e1_hs);
+			i = setbituInc(buf, i,  1, eph.e1_dvs);
+		}
+	}
+	
+	int bitl = byteLen * 8 - i;
+	if (bitl > 7)
+	{
+		BOOST_LOG_TRIVIAL(error) << "Error encoding ephmeris.\n";
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+	}
+	i = setbituInc(buf, i, bitl, 0);
+
+	if (acsConfig.output_encoded_rtcm_json)
+		traceBrdcEph(messCode, eph);
+		
+	return buffer;
+}
+
+/** encode GLO ephemeris messages
+*/
+vector<uint8_t> RtcmEncoder::encodeEphemeris(
+		Geph&			geph,					///< ephemeris to encode
+		RtcmMessageType	messCode)				///< RTCM message code to encode ephemeris of
+{
+	int bitLen = 360;
+
+	int byteLen = ceil(bitLen / 8.0);
+	vector<uint8_t> buffer(byteLen);
+	unsigned char* buf = buffer.data();
+
+	int i = 0;
+	i = setbituInc(buf, i, 12, messCode);
+
+	auto Sat = geph.Sat;
+	{
+		int vel[3], pos[3], acc[3];
+		for (int j=0; j<3; j++)
+		{
+			vel[j]	= (int)round(geph.vel[j]/P2_20/1E3);
+			pos[j]	= (int)round(geph.pos[j]/P2_11/1E3);
+			acc[j]	= (int)round(geph.acc[j]/P2_30/1E3);
+		}
+
+		int gammaN	= (int)round(geph.gammaN	/ P2_40);
+		int taun	= (int)round(geph.taun		/ P2_30);
+		int dtaun	= (int)round(geph.dtaun		/ P2_30);
+
+		i	= setbituInc(buf, i,  6, Sat.prn);
+		i	= setbituInc(buf, i,  5, geph.frq+7);
+		i	= setbituInc(buf, i,  4, 0);				// almanac health, P1
+		i	= setbituInc(buf, i,  5, geph.tk_hour);
+		i	= setbituInc(buf, i,  6, geph.tk_min);
+		i	= setbituInc(buf, i,  1, geph.tk_sec);
+		i	= setbituInc(buf, i,  1, geph.svh);
+		i	= setbituInc(buf, i,  1, 0);				// P2
+		i	= setbituInc(buf, i,  7, geph.tb);
+		i	= setbitgInc(buf, i, 24, vel[0]);
+		i	= setbitgInc(buf, i, 27, pos[0]);
+		i	= setbitgInc(buf, i,  5, acc[0]);
+		i	= setbitgInc(buf, i, 24, vel[1]);
+		i	= setbitgInc(buf, i, 27, pos[1]);
+		i	= setbitgInc(buf, i,  5, acc[1]);
+		i	= setbitgInc(buf, i, 24, vel[2]);
+		i	= setbitgInc(buf, i, 27, pos[2]);
+		i	= setbitgInc(buf, i,  5, acc[2]);
+		i	= setbituInc(buf, i,  1, 0);				// P3
+		i	= setbitgInc(buf, i, 11, gammaN);
+		i	= setbituInc(buf, i,  3, 0);				// P, ln
+		i	= setbitgInc(buf, i, 22, taun);
+		i	= setbitgInc(buf, i,  5, dtaun);
+		i	= setbituInc(buf, i,  5, geph.age);
+		i	= setbituInc(buf, i,  5, 0);				// P4, FT
+		i	= setbituInc(buf, i, 11, geph.NT);			// GLONASS-M only
+		i	= setbituInc(buf, i,  2, geph.glonassM);	// M (if GLONASS-M data feilds valid)
+		i	= setbituInc(buf, i,  1, geph.moreData);	// availability of additional data
+		i	= setbituInc(buf, i, 11, 0);				// NA
+		i	= setbitgInc(buf, i, 32, 0);				// tauc
+		i	= setbituInc(buf, i,  5, geph.N4);			// additional data and GLONASS-M only
+		i	= setbitgInc(buf, i, 22, 0);				// tauGPS
+		i	= setbituInc(buf, i,  1, 0);				// ln
+		i	= setbituInc(buf, i,  7, 0);				// reserved
+	}
+
+	int bitl = byteLen * 8 - i;
+	if (bitl > 7)
+	{
+		BOOST_LOG_TRIVIAL(error) << "Error encoding ephmeris.\n";
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+	}
+	i = setbituInc(buf, i, bitl, 0);
+
+	if (acsConfig.output_encoded_rtcm_json)
+		traceBrdcEph(messCode, geph);
+	
+	return buffer;
+}
+
+
+/** set unsigned bits to byte data
+*/
+void setbitu(
+	unsigned char*	buff,			///< byte data
+	int 			pos,			///< bit position from start of data (bits)
+	int				len,			///< bit length (bits) (len<=32)
+	unsigned int	value)			///< value to set
+{
+	unsigned int mask=1u<<(len-1);
+	
+	if	( len <= 0
+		||len >  32)
+	{
+		return;
+	}
+	
+	unsigned long int invalid = (1ul<<len);
+	
+	if (value >= invalid)
+	{
+		std::cout << "Warning: " << __FUNCTION__ << " has data outside range\n";
+	}
+	
+	for (int i = pos; i < pos+len; i++, mask >>= 1) 
+	{
+		if (value&mask)	buff[i/8] |=  (1u<<(7-i%8));
+		else			buff[i/8] &= ~(1u<<(7-i%8));
+	}
+}
+
+/** set signed bits to byte data
+*/
+void setbits(
+	unsigned char*	buff,	///< byte data
+	int				pos,	///< bit position from start of data (bits)
+	int				len,	///< bit length (bits) (len<=32)
+	int				value)	///< value to set
+{
+	unsigned int mask = 1u<<(len-1);
+	
+	if	( len <= 0
+		||len >  32)
+	{
+		return;
+	}
+	
+	long int invalid = (1ul<<(len-1));
+	
+	if	( +value >= invalid
+		||-value >= invalid)
+	{
+		std::cout << "Warning: " << __FUNCTION__ << " has data outside range, setting invalid\n";
+		value = -invalid;
+	}
+	
+	for (int i = pos; i < pos+len; i++, mask >>= 1) 
+	{
+		if (value&mask)	buff[i/8] |=  (1u<<(7-i%8));
+		else			buff[i/8] &= ~(1u<<(7-i%8));
+	}
+}
+
+/** increasingly set unsigned bits to byte data
+*/
+int setbituInc(
+	unsigned char*	buff,	///< byte data
+	int				pos,	///< bit position from start of data (bits)
+	int				len,	///< bit length (bits) (len<=32)
+	unsigned int	value)	///< value to set
+{   
+	setbitu(buff, pos, len, value);
+	return pos + len;
+}
+
+/** increasingly set signed bits to byte data
+*/
+int setbitsInc(
+	unsigned char*	buff,	///< byte data
+	int				pos,	///< bit position from start of data (bits)
+	int				len,	///< bit length (bits) (len<=32)
+	int				value)	///< value to set
+{
+	setbits(buff, pos, len, value);
+	return pos + len;
+}
+
+/** set sign-magnitude bits applied in GLO nav messages
+*/
+void setbitg(
+	unsigned char*	buff,	///< byte data
+	int				pos,	///< bit position from start of data (bits)
+	int				len,	///< bit length (bits) (len<=32)
+	int				value)	///< value to set
+{
+    setbitu(buff, pos, 1, value<0?1:0);
+    setbitu(buff, pos+1, len-1, value<0?-value:value);
+}
+
+/** increasingly set sign-magnitude bits applied in GLO nav messages
+*/
+int setbitgInc(
+	unsigned char*	buff,	///< byte data
+	int				pos,	///< bit position from start of data (bits)
+	int				len,	///< bit length (bits) (len<=32)
+	int				value)	///< value to set
+{
+	setbitg(buff, pos, len, value);
+	return pos + len;
 }

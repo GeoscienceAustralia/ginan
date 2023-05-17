@@ -1,26 +1,107 @@
 
-#ifndef __ACSOBSSTREAM_HPP__
-#define __ACSOBSSTREAM_HPP__
+#pragma once
 
+#include "streamParser.hpp"
+#include "acsConfig.hpp"
 #include "station.hpp"
 #include "enums.h"
 
-//interfaces
 
-/** Interface for streams that supply observations
-*/
-struct ObsStream
+
+struct ObsLister
 {
-	RinexStation	rnxStation = {};
 	list<ObsList>	obsListList;	
-	string			sourceString;
-	E_ObsWaitCode	obsWaitCode = E_ObsWaitCode::OK;
+};
 
-	/** Return a list of observations from the stream.
-	* This function may be overridden by objects that use this interface
-	*/
-	virtual ObsList getObs();
+struct ObsStream : StreamParser
+{
+	E_ObsWaitCode	obsWaitCode = E_ObsWaitCode::OK;	
+	
+	ObsStream(
+		unique_ptr<Stream> stream_ptr,
+		unique_ptr<Parser> parser_ptr)
+	:	StreamParser(std::move(stream_ptr), std::move(parser_ptr))
+	{
+		
+	}
+	
+	ObsList getObs()
+	{
+		try
+		{
+			auto& obsLister = dynamic_cast<ObsLister&>(parser);
+			
+			if (obsLister.obsListList.size() < 2)
+			{
+				parse();
+			}
+				
+			if (obsLister.obsListList.empty())
+			{
+				return ObsList();
+			}
+			
+			ObsList& obsList = obsLister.obsListList.front();
 
+			for (auto& obs					: only<GObs>(obsList))
+			for (auto& [ftype, sigsList]	: obs.SigsLists)
+			{
+				E_Sys sys = obs.Sat.sys;
+				
+				if (sys == +E_Sys::GPS)
+				{
+					double dirty_C1W_phase = 0;
+					for (auto& sig : sigsList)
+					if	( sig.code == +E_ObsCode::L1C)
+					{
+						dirty_C1W_phase = sig.L;
+						break;
+					}
+				
+					for (auto& sig : sigsList)
+					if	(  sig.code	== +E_ObsCode::L1W 
+						&& sig.L	== 0)
+					{
+						sig.L = dirty_C1W_phase;
+						break;
+					}
+				}
+				
+				sigsList.sort([sys](Sig& a, Sig& b)
+					{
+						auto iterA = std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), a.code);
+						auto iterB = std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), b.code);
+
+						if (a.L == 0)		return false;
+						if (b.L == 0)		return true;
+						if (a.P == 0)		return false;
+						if (b.P == 0)		return true;
+						if (iterA < iterB)	return true;
+						else				return false;
+					});
+
+				if (sigsList.empty())
+				{
+					continue;
+				}
+				
+				Sig firstOfType = sigsList.front();
+
+				//use first of type as representative if its in the priority list
+				auto iter = std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), firstOfType.code);
+				if (iter != acsConfig.code_priorities[sys].end())
+				{
+					obs.Sigs[ftype] = Sig(firstOfType);
+				}
+			}
+
+			return obsList;
+		}
+		catch(...){}
+		
+		return ObsList();
+	}
+	
 	/** Return a list of observations from the stream, with a specified timestamp.
 	* This function may be overridden by objects that use this interface
 	*/
@@ -37,20 +118,20 @@ struct ObsStream
 				obsWaitCode = E_ObsWaitCode::NO_DATA_WAIT;
 				return obsList;
 			}
-
+			
 			if (time == GTime::noTime())
 			{
 				obsWaitCode = E_ObsWaitCode::OK;
 				return obsList;
 			}
 
-			if	(obsList.front().time < time - delta)
+			if		(obsList.front()->time < time - delta)
 			{
 				obsWaitCode = E_ObsWaitCode::EARLY_DATA;
 				return obsList;
 				
 			}
-			else if	(obsList.front().time > time + delta)
+			else if	(obsList.front()->time > time + delta)
 			{
 				obsWaitCode = E_ObsWaitCode::NO_DATA_EVER;
 				return ObsList();
@@ -62,91 +143,39 @@ struct ObsStream
 			}
 		}
 	}
-
-
-	/** Check to see if this stream has run out of data
-	*/
-	virtual bool isDead()
-	{
-		return false;
-	}
-
+	
 	/** Remove some observations from memory
 	*/
 	void eatObs()
 	{
-		if (obsListList.size() > 0)
+		try
 		{
-			obsListList.pop_front();
+			auto& obsLister = dynamic_cast<ObsLister&>(parser);
+			
+			if (obsLister.obsListList.size() > 0)
+			{
+				obsLister.obsListList.pop_front();
+			}
+		}
+		catch(...){}
+	}
+	
+	bool hasObs()
+	{
+		try
+		{
+			auto& obsLister = dynamic_cast<ObsLister&>(parser);
+			
+			if (obsLister.obsListList.empty())
+			{
+				return false;
+			}
+			
+			return true;
+		}
+		catch(...)
+		{
+			return false;
 		}
 	}
 };
-
-/** Interface for streams that supply observations
-*/
-struct PseudoObsStream
-{
-	list<PseudoObsList>	obsListList;	
-	string				sourceString;
-
-	/** Return a list of observations from the stream.
-	* This function may be overridden by objects that use this interface
-	*/
-	virtual PseudoObsList getObs();
-
-	/** Return a list of observations from the stream, with a specified timestamp.
-	* This function may be overridden by objects that use this interface
-	*/
-	PseudoObsList getObs(
-		GTime	time,			///< Timestamp to get observations for
-		double	delta = 0.5)	///< Acceptable tolerance around requested time
-	{
-		while (1)
-		{
-			PseudoObsList pseudoObsList = getObs();
-
-			if (pseudoObsList.size() == 0)
-			{
-				return pseudoObsList;
-			}
-
-			if (time == GTime::noTime())
-			{
-				return pseudoObsList;
-			}
-
-			if		(pseudoObsList.front().time < time - delta)
-			{
-				eatObs();
-			}
-			else if	(pseudoObsList.front().time > time + delta)
-			{
-				return PseudoObsList();
-			}
-			else
-			{
-				return pseudoObsList;
-			}
-		}
-	}
-
-
-	/** Check to see if this stream has run out of data
-	*/
-	virtual bool isDead()
-	{
-		return false;
-	}
-
-	/** Remove some observations from memory
-	*/
-	void eatObs()
-	{
-		if (obsListList.size() > 0)
-		{
-			obsListList.pop_front();
-		}
-	}
-};
-
-#endif

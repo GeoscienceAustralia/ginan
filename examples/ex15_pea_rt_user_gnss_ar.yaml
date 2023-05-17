@@ -7,7 +7,7 @@ inputs:
     root_directory: products/
 
     atx_files:   [ igs14_2045_plus.atx                           ]    # required
-    snx_files:   [ meta_gather_20210721.snx                               ]    # required
+    snx_files:   [ meta_gather_20210721.snx, tables/igs_satellite_metadata_2203_plus.snx ]    # required
     blq_files:   [ OLOAD_GO.BLQ                                  ]    # required if ocean loading is applied
 
     troposphere:
@@ -15,28 +15,30 @@ inputs:
         #vmf3_directory:    grid5/
         #orography_files:  orography_ell_5x5
     
+    egm_files:  [ tables/EGM2008.gfc         ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050     ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat]
+    
     gnss_observations:
 
-        root_directory:    ../data/recordings/
+        inputs_root:    recordings/
         
-        rtcm_files: 
-            - "*OBS.rtcm3"
-
-        #streams:
-        # - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0"  
+        rtcm_inputs:
+            - "*OBS.rtcm"
+            #- "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0"  
+            #- "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/AGGO00AUS0"  
+            #- "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/DARW00AUS0"  
         
     satellite_data:
-        root_directory:    ../data/recordings/
+        inputs_root:    recordings/
         
-        rtcm_files:
+        #inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        
+        rtcm_inputs:
+            #- "BCEP00DLR0"
+            #- "SSRA02IGS0"
             - "*NAV.rtcm3"
-            
-        #root_stream_url: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/
-        #streams:
-        # - "BCEP00DLR0"
-        # - "SSRA02IGS0"
- 
-    
+      
 outputs:
 
     root_directory:          <CONFIG>/
@@ -65,6 +67,37 @@ outputs:
         analysis_center:                Geoscience Australia
         analysis_program:               AUSACS
         rinex_comment:                  AUSNETWORK1
+        
+    decoded_rtcm:
+        output:                     true
+        filename:                   <CONFIG>-<YYYY><DDD><HH>_decoded_rtcm.json
+
+    rinex_nav:
+        output:        true
+        filename:      BRDC<YYYY><DDD><HH>_<SYS>.rnx
+
+    rinex_obs:
+        output:         true
+        filename:       <STATION><YYYY><DDD><HH>_<SYS>.rnx
+
+    rtcm_nav:
+        #output:         true
+        filename:       <STREAM>-<YYYY><DDD><HH>-NAV.rtcm3
+    rtcm_obs:
+        #output:         true
+        filename:       <STATION>-<YYYY><DDD><HH>-OBS.rtcm3
+        
+    ntrip_log:
+        output:         true
+
+mongo:
+    enable:                     true
+    output_measurements:        true
+    output_states:              true
+    #output_test_stats:          true
+    #delete_history:             true
+    uri:                        mongodb://127.0.0.1:27017
+    suffix:                     _
 
 
 processing_options:
@@ -84,13 +117,12 @@ processing_options:
         #simulate_real_time:         true
     
     process_modes:
-        user:                   true
+        ppp:                   true
  
     gnss_general:
         
         elevation_mask:     10   #degrees
 
-        reject_eclipse:     true            #  reject observation during satellite eclipse periods
         raim:               true
         
         delete_old_ephemerides:     true
@@ -100,6 +132,7 @@ processing_options:
             gps:
                 process:                true
                 ambiguity_resolution:   true
+                reject_eclipse: true
                 code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
                                     L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                                     L5X, L5Q, L5I,
@@ -109,24 +142,26 @@ processing_options:
             gal:
                 process:                true
                 ambiguity_resolution:   true
+                reject_eclipse: true
                 code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
                                     L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                                     L5X, L5Q, L5I,
                                     L6Q, L6I, L6X,
                                     L7Q, L7X, L7I]
 
-        
-
     gnss_models:
         troposphere:
             model:      gpt2    #vmf3
             
         sat_pos:
-            source:   ssr         # broadcast  ssr  precise
+            sources:   [ssr, broadcast]         # broadcast  ssr  precise
         
         ionospheric_component:
             corr_mode:      iono_free_linear_combo
             iflc_freqs:     l1l2_only   #any l1l2_only l1l5_only
+            
+        sat_attitude:
+            #enable: false
 
     ambiguity_resolution:
         elevation_mask:                 15
@@ -200,6 +235,12 @@ estimation_parameters:
             proc_noise:         [1.0E-6]
             proc_noise_dt:      second
 
+        ion_stec:
+            estimated:          [true]
+            sigma:              [10]
+            proc_noise:         [10]
+            proc_noise_dt:      second
+
     satellites:
 
         clk:
@@ -216,49 +257,3 @@ estimation_parameters:
         orb:
             #estimated:          [true]
 
-
-    overrides:
-
-        stations:
-
-            #ALIC:
-            #    pos:
-            #        sigma:              [60]
-            #        proc_noise:         [0]
-                #clk:
-                    #sigma:              [0.01]
-
-            #AGGO:
-                #exclude: true
-            #ALIC:
-                #exclude: true
-            #ANKR:
-                #exclude: true
-                    #estimated:  false
-
-        satellites:
-
-            ### Constellation Overrides
-            #SYS_GPS:
-                #srp:
-                    #sigma:              [0.01]
-                    #proc_noise:         [0.001]
-
-            ### Block Type Overrides
-            #GPS-IIR-A:
-                #pos: { sigma: [10.0] }
-                #vel: { sigma: [0.1] }
-
-            ### PRN Overrides
-            #PRN_G10:
-                #pos: { sigma: [10.0]    }
-                #vel: { sigma: [0.1]     }
-                #clk: { sigma: [1.0]     }
-
-            #PRN_G15:
-                #exclude: true
-
-            ### SVN Overrides
-            #SVN_G265:
-                #pos: {sigma: [10.0] }
-                #vel: {sigma: [0.1]  }

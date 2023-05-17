@@ -7,39 +7,51 @@ inputs:
     root_directory: products/
 
     atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snx_files: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
+    snx_files: [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx ]  # SINEX file for meta data and initial position
     blq_files: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
 
     troposphere:
-        vmf3_directory:    grid5/
+        vmf_files:          [grid5/VMF3_20190718.H00, grid5/VMF3_20190718.H06, grid5/VMF3_20190718.H12, grid5/VMF3_20190718.H18]
         orography_files:  orography_ell_5x5
-        # gpt2grid_files: EX03/general/gpt_25.grd
- 
+        # gpt2grid_files: gpt_25.grd
+    
+    egm_files:  [ tables/EGM2008.gfc         ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050     ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat]
+    
     satellite_data:
         #nav_files: [ brdm1990.19p        ]  # broadcast navigation file
         sp3_files: [ igs20624.sp3        ]  # satellite orbit files in SP3 format
         clk_files: [ igs20624.clk_30s    ]  # Clk files
         bsx_files: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
-    
+        
+        #rtcm_inputs:
     gnss_observations:
-        root_directory: ../data/
-        rnx_files:
-            # Select files to run by:
-            - "ALIC*.rnx" # ALIC station rnx file will be found
-            - "AGGO*.rnx"
-            - "BAKO*.rnx"
-            - "COCO*.rnx"
-            #- "*.rnx"                                       # - searching all in file_root directory
-            # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
-                                                          # - selecting one on the command line using the -rnxfiles option
+        inputs_root: data/
+        
+        ubx_inputs:
+            #- serial:///dev/ttyACM0
+        rtcm_inputs:
+            #- https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0
+        rnx_inputs:
+            - "ALIC*.rnx"
+            #- "ANKO*.rnx"
 
+station_options:
+    XMPL:  
+        #apriori_position: [120000,20000,40000]
+        #eccentricity:      [1, 2, 3]
+        #antenna_type:      LEICA
+        #receiver_type:     UBLOX
+            
 outputs:
 
     root_directory:             <CONFIG>/
 
     trace:
-        output_stations:                 true
-        level:                  3
+        output_stations:        true
+        output_network:         true
+        level:                  4
         directory:              ./
         station_filename:               <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
         output_residuals:       true
@@ -50,21 +62,23 @@ outputs:
     
     clocks:                 
         output:                 true
-        directory:              ./
-        filename:               <CONFIG><LOGTIME>.clk
-        
-    rinex_obs:
-        output:                 true
-        split_sys:              true
         
     trop_sinex:
-        output:                 true
-        source:                 KALMAN
-        directory:              ./
-        filename:               <CONFIG>-<STATION><WWWW><D>.tro
+        #output:                 true
+        sources:                [KALMAN]
+
+    cost:
+        #output:                     true
+        sources:                    [KALMAN]
+        directory:                  ./
+        filename:                   cost_s_t_<STATION>_ga__.dat
+        time_interval:              300
         
     gpx:  
-        output:                 true
+        #output:                 true
+        
+    orbex:
+        #output:                 true
 
     metadata:
         config_description:     ex11
@@ -72,22 +86,57 @@ outputs:
         analysis_center:        Geoscience Australia
         analysis_program:       AUSACS
         rinex_comment:          AUSNETWORK1
+    
+    ppp_sol:
+        output:                 true
+        filename:               <STATION><YYYY><DDD><HH>_<CONFIG>.POS
 
 mongo:
     enable:                     true
-    #output_measurements:        true
-    #output_states:              true
-    #output_test_stats:          true
+    output_measurements:        true
+    output_states:              true
+    output_test_stats:          true
     delete_history:             true
     uri:                        mongodb://127.0.0.1:27017
-    suffix:                     _
+    #suffix:                     
 
 
 debug:
     #unit_tests:
         #stop_on_done:   true
         #output_pass:    false
+
+station_options:
     
+    global:
+        rnx_code_conversions:
+            gps:
+                C1:     L1C
+                C2:     L2S
+                P2:     L2W
+                C5:     L5Q
+        rnx_phase_conversions:
+            gps:
+                L2:     L2W
+                L5:     L5Q
+                L1:     L1C
+    
+    AGGO:
+        rnx_code_conversions:
+            gps:
+               C5:      L5I
+        rnx_phase_conversions:
+            gps:
+               L5:      L5I
+
+    COCO:
+        rnx_code_conversions:
+            gps:
+               C5:      L5I
+        rnx_phase_conversions:
+            gps:
+               L5:      L5I
+
 processing_options:
 
     epoch_control:
@@ -97,19 +146,24 @@ processing_options:
         #max_epochs:                 1        #0 is infinite
 
     process_modes:
+        #ppp:                   true
         user:                   true
 
     gnss_general:
+
+        #require_apriori_positions: true
         
         elevation_mask:     7   #degrees
     
-        reject_eclipse:     true      
         raim:               true
 
         max_gdop:   30
         sys_options:
+            bds:
+                #process:    true
             gps:
                 process:    true
+                reject_eclipse: true
                 code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L,
                                     L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
                                     L5I, L5Q, L5X]
@@ -117,11 +171,17 @@ processing_options:
     gnss_models:
             
         tides:
-            solid:         true
-            pole:          true
-            otl:           true
+            #solid:         false
+            #pole:          false
+            #otl:           false
         troposphere:
             model:          vmf3    #gpt2
+        sat_pos:
+            #sources:        [broadcast]
+        sat_clock:
+            #sources:        [broadcast]
+        sat_attitude:
+            sources:        [model]
             
     #reinit_on_all_slips:       true
     #reinit_on_clock_error:     true
@@ -134,12 +194,15 @@ processing_options:
         outlier_screening:
             max_filter_iterations:      5 #5
             max_prefit_removals:        3 #5
+            
+        station_chunking: 
+            #enable:                 true
 
         rts:
             enable:                 true
             lag:                    -1      #-ve for full reverse, +ve for limited epochs
             directory:              ./
-            filename:               PPP-<CONFIG>-<STATION>.rts
+            suffix:                 _smoothed
 
         inverter:                   LDLT         #LLT LDLT INV
 
@@ -154,8 +217,8 @@ estimation_parameters:
 
         pos:
             estimated:          [true]
-            sigma:              [0.1]
-            proc_noise:         [0]
+            sigma:              [100]
+            proc_noise:         [100]
             proc_noise_dt:      second
 
         clk:
@@ -184,8 +247,6 @@ estimation_parameters:
 
         trop_grads:
             estimated:          [true]
-            sigma:              [0.02]
+            sigma:              [0.005]
             proc_noise:         [1.0E-6]
             proc_noise_dt:      second
-
-

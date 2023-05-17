@@ -1,9 +1,9 @@
-#ifndef RTCMENCODER_H
-#define RTCMENCODER_H
+
+#pragma once
 
 #include "observations.hpp"
 #include "navigation.hpp"
-#include "ntripTrace.hpp"
+#include "rtcmTrace.hpp"
 #include "common.hpp"
 #include "satSys.hpp"
 #include "enums.h"
@@ -11,26 +11,28 @@
 
 using std::pair;
 
-typedef map<SatSys, pair<SSREph, SSRClk>> 	SsrCombMap;
-typedef map<SatSys, SSRPhasBias> 			SsrPBMap;
-typedef map<SatSys, SSRCodeBias>			SsrCBMap;
-typedef map<SatSys, SSROut> 				SsrClkOutMap;
-typedef map<SatSys, SSRClk>	 				SsrClkMap;
 typedef map<SatSys, SSREph>					SsrEphMap;
+typedef map<SatSys, SSRClk>	 				SsrClkMap;
+typedef map<SatSys, SSRUra>					SsrUraMap;
+typedef map<SatSys, SSRHRClk>				SsrHRClkMap;
+typedef map<SatSys, SSRCodeBias>			SsrCBMap;
+typedef map<SatSys, SSRPhasBias>			SsrPBMap;
 
+typedef map<SatSys, SSROut> 				SsrOutMap;
 
 void calculateSsrComb(
-	GTime 						curTime,
-	int 						udi,
-	SSRMeta 					ssrMeta,
-	int 						masterIod,
-	map<SatSys, SSROut>&		ssrOutMap);
+	GTime 			referenceTime,
+	int 			udi,
+	SSRMeta 		ssrMeta,
+	int 			masterIod,
+	SsrOutMap&		ssrOutMap);
 
 struct RtcmEncoder : RtcmTrace
 {
 	RtcmEncoder(
 		string rtcmMountpoint		= "",
-		string rtcmTraceFilename	= "") : RtcmTrace{rtcmMountpoint, rtcmTraceFilename}
+		string rtcmTraceFilename	= "") 
+	:	RtcmTrace {rtcmMountpoint, rtcmTraceFilename}
 	{
 		
 	}
@@ -41,7 +43,12 @@ struct RtcmEncoder : RtcmTrace
 	};
 	
 	vector<uint8_t> data;
+
+	int masterIod 		= 1;
 	
+	SsrEphMap	lastRegSsrEphMap;	///< last SSR orbit corrections uploaded, used to check IODE's
+	SsrClkMap	lastRegSsrClkMap;	///< last regular SSR clock corrections uploaded, used to calculate high rate SSR clock corrections
+
 	static int getUdiIndex(
 		int udi);
 	
@@ -51,16 +58,42 @@ struct RtcmEncoder : RtcmTrace
 	bool encodeWriteMessageToBuffer(
 		vector<uint8_t>& buffer);
 	
-	vector<uint8_t> encodeSsrComb(
-		map<SatSys, SSROut>&	ssrCombMap);
+	vector<uint8_t> encodeTimeStampRTCM();
 	
-	vector<uint8_t> encodeSsrPhase(
-		SsrPBMap&	ssrPBMap);
+	int encodeSsrHeader(
+		unsigned char*	buf,
+		E_Sys			sys,
+		RtcmMessageType	messCode,
+		SSRMeta&		ssrMeta,
+		int				iod,
+		int				dispBiasConistInd	= -1,
+		int				MWConistInd			= -1);
+
+	vector<uint8_t> encodeSsrOrbClk(
+		SsrOutMap&		ssrOutMap,
+		RtcmMessageType	messCode);
+	
+	vector<uint8_t> encodeSsrUra(
+		SsrOutMap&		ssrOutMap,
+		RtcmMessageType	messCode);
 	
 	vector<uint8_t> encodeSsrCode(
-		SsrCBMap&	ssrCBMap);
+		SsrCBMap&		ssrCBMap,
+		RtcmMessageType	messCode);
 	
-	vector<uint8_t> encodeTimeStampRTCM();
+	vector<uint8_t> encodeSsrPhase(
+		SsrPBMap&		ssrPBMap,
+		RtcmMessageType	messCode);
+	
+	vector<uint8_t> encodeEphemeris(
+		Eph&			eph,
+		RtcmMessageType	messCode);
+	
+	vector<uint8_t> encodeEphemeris(
+		Geph&			geph,
+		RtcmMessageType	messCode);
 };
 
-#endif
+int setbitsInc(unsigned char *buff, int pos, int len, const				int value);
+int setbituInc(unsigned char *buff, int pos, int len, const unsigned	int value);
+int setbitgInc(unsigned char *buff, int pos, int len, const				int value);

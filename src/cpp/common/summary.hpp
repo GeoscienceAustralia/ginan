@@ -1,15 +1,18 @@
-#ifndef __SUMMARY_HPP__
-#define __SUMMARY_HPP__
+
+#pragma once
 
 #include <map>
 
 using std::map;
 
-#include "streamTrace.hpp"
 #include "station.hpp"
+#include "trace.hpp"
+
+void outputStatistics(
+	Trace&					trace,
+	map<string, int>&		statisticsMap,
+	map<string, int>&		statisticsMapSum);
 
 void outputSummaries(
 	Trace&					trace,	
 	map<string, Station>&	stationMap);
-
-#endif

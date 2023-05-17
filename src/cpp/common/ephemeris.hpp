@@ -1,85 +1,126 @@
 
-#ifndef __EPHEMERIS_HPP__
-#define __EPHEMERIS_HPP__
+#pragma once
 
-
-#include <map>
 
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
-#include "streamTrace.hpp"
 #include "constants.hpp"
-#include "antenna.hpp"
 #include "satSys.hpp"
 #include "gTime.hpp"
+#include "trace.hpp"
 #include "enums.h"
 
 
 #include <iostream>
 #include <string>
-#include <list>
+#include <vector>
+#include <map>
 
 using std::string;
-using std::list;
+using std::vector;
 using std::map;
 
 
 //forward declarations
 struct Navigation;
-struct Obs;
+struct GObs;
 struct Peph;
 
-#define ANY_IODE -1
+#define ANY_IODE				-1
+#define NO_SP3_CLK				999999.999999
+#define INVALID_CLOCK_VALUE		NO_SP3_CLK
+
+struct KeplerEph
+{
+	double A	= 0;		///< semi major axis
+	double e	= 0;		///< eccentricity
+	double i0	= 0;		///< inclination
+	double OMG0	= 0;		///< right ascension of ascending node
+	double omg	= 0;		///< argument of perigee
+	double M0	= 0;		///< mean anomoly
+	double deln	= 0;		///< correction mean motion
+	double OMGd	= 0;		///< rate of OMG
+	double idot	= 0;		///< rate of inclination
+	double crc	= 0;		///< correction radial		cosine
+	double crs	= 0;		///< correction radial		  sine
+	double cuc	= 0;		///< correction lattitude	cosine
+	double cus	= 0;		///< correction lattitude	  sine
+	double cic	= 0;		///< correction inclination cosine
+	double cis	= 0;		///< correction inclination   sine
+	double dn0d	= 0;		///< rate of correction mean motion
+	double Adot	= 0;		///< rate of A
+};
+
+struct BrdcEph
+{
+	
+};
 
 /** GPS/QZS/GAL/BDS broadcast ephemeris
  */
-struct Eph
+struct Eph : BrdcEph, KeplerEph
 {    
 	E_NavMsgType	type = E_NavMsgType::NONE;	///< message type
 	SatSys	Sat;		///< satellite number
-	int		iode;		///< IODE
+	int		iode;		///< GPS/QZS: IODE, GAL: IODnav
 	int		iodc;		///< IODC
+	int		aode;		///< BDS AODE
+	int		aodc;		///< BDS AODC
 	int		sva;		///< SV accuracy (URA index)
 	E_Svh	svh;		///< SV health
-	int		week;		///< GPS/QZS: gps week, GAL: galileo week
-	int		code;		///< GPS/QZS: code on L2, GAL/CMP: data sources
-	int		flag;		///< GPS/QZS: L2 P data flag, CMP: nav type
+	int		week;		///< GPS/QZS: gps week, GAL:gps week (i.e. galileo week + 1024), BDS: beidou week
+	int		code;		///< GPS/QZS: code on L2, GAL: data source
+	int		flag;		///< GPS L2 P data flag
 	GTime	toc;		///< time of clock
 	GTime	toe;		///< time of ephemeris
 	GTime	ttm;		///< transmission time
 	
-						
-	double A;			///< semi major axis
-	double e;			///< eccentricity
-	double i0;			///< inclination
-	double OMG0;		///< right ascension of ascending node
-	double omg;			///< argument of perigee
-	double M0;			///< mean anomoly
-	double deln;		///< correction mean motion
-	double OMGd;		///< rate of OMG
-	double idot;		///< rate of inclination
-	double crc;			///< correction radial		cosine
-	double crs;			///< correction radial		  sine
-	double cuc;			///< correction lattitude	cosine
-	double cus;			///< correction lattitude	  sine
-	double cic;			///< correction inclination cosine
-	double cis;			///< correction inclination   sine
 	
 	double toes;        ///< TOE (s) in week
 	double fit;         ///< fit interval (h)
-	double f0;	///< SV clock parameter (af0)
-	double f1;	///< SV clock parameter (af1)
-	double f2;	///< SV clock parameter (af2)
-	double tgd[4];      ///< group delay parameters
-						///< GPS/QZS:tgd[0]=TGD
-						///< GAL    :tgd[0]=BGD E5a/E1,tgd[1]=BGD E5b/E1
-						///< CMP    :tgd[0]=BGD1,tgd[1]=BGD2
+	double f0;			///< SV clock parameter (af0)
+	double f1;			///< SV clock parameter (af1)
+	double f2;			///< SV clock parameter (af2)
+	double tgd[4]	= {};	///< group delay parameters
+							///< GPS/QZS:tgd[0]=TGD
+							///< GAL    :tgd[0]=BGD E5a/E1,tgd[1]=BGD E5b/E1
+							///< BDS    :tgd[0]=BGD1,tgd[1]=BGD2
+
+	E_SatType		orb		= E_SatType::NONE;		///< BDS sat/orbit type
+	GTime	top		= {};	///< time of prediction
+	double	tops	= 0;	///< t_op (s) in week
+	double	ura[4]	= {};	///< user range accuracy or GAL SISA
+							///< GPS/QZS CNVX: ura[0]=URAI_NED0, ura[1]=URAI_NED1, ura[2]=URAI_NED2, ura[3]=URAI_ED
+	double	isc[6]	= {};	///< inter-signal corrections
+							///< GPS/QZS CNAV: isc[0]=ISC_L1CA, isc[1]=ISC_L2C, isc[2]=ISC_L5I5, isc[3]=ISC_L5Q5
+							///< GPS/QZS CNV2: isc[0]=ISC_L1CA, isc[1]=ISC_L2C, isc[2]=ISC_L5I5, isc[3]=ISC_L5Q5, isc[4]=ISC_L1Cd, isc[5]=ISC_L1Cp
+							///< BDS	 CNV1: isc[0]=ISC_B1Cd
+							///< BDS	 CNV2: isc[1]=ISC_B2ad
+	double	sis[5]	= {};	///< signal in space accuracy index
+							///< BDS CNVX sis[0]=SISAI_oe, sis[1]=SISAI_ocb, sis[2]=SISAI_oc1, sis[3]=SISAI_oc2, sis[4]=SISMAI
+
+
+	// original messages from stream/rinex for debugging
+	double	tocs;			///< TOC (s) within week
+	int		weekRollOver;	///< week number (rolled over)
+	double	sqrtA;			///< sqrt A
+	int		e5a_hs	= 0;	///< GAL E5a signal health status
+	int		e5a_dvs	= 0;	///< GAL E5a data validity status
+	int		e5b_hs	= 0;	///< GAL E5b signal health status
+	int		e5b_dvs	= 0;	///< GAL E5b data validity status
+	int		e1_hs	= 0;	///< GAL E1 signal health status
+	int		e1_dvs	= 0;	///< GAL E1 data validity status
+	double	ttms;			///< transmission time (s) within week
+	int		fitFlag;		///< fit flag
+
 
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
 	{
 		ar & iode;
 		ar & iodc;
+		ar & aode;
+		ar & aodc;
 		ar & sva;
 		ar & svh;
 		ar & week;
@@ -118,7 +159,7 @@ struct Eph
 
 /** GLONASS broadcast ephemeris
  */
-struct Geph
+struct Geph : BrdcEph
 {       
 	E_NavMsgType	type = E_NavMsgType::NONE;	///< message type
 	SatSys		Sat;		///< satellite number 
@@ -132,40 +173,59 @@ struct Geph
 	Vector3d	pos;		///< satellite position (ecef) (m) 
 	Vector3d	vel;		///< satellite velocity (ecef) (m/s) 
 	Vector3d	acc;	 	///< satellite acceleration (ecef) (m/s^2) 
-	double		taun,gamn;	///< SV clock bias (s)/relative freq bias 
+	double		taun;		///< SV clock bias (s)
+	double		gammaN;		///< SV relative freq bias 
 	double		dtaun;		///< delay between L1 and L2 (s) 
+
+
+	// original messages from stream/rinex for debugging
+	double	tofs;			///< TOF (s) within the current day
+    int		tk_hour;		///< number of hours of TOF
+    int		tk_min;			///< number of minutes of TOF
+    double	tk_sec;			///< seconds of TOF
+	int		tb;				///< number of 15 min of TOE
+	int		glonassM;		///< type of GLO satellites
+	int		NT;				///< calender number of day within 4-year interval
+	bool	moreData;		///< availability of additional data
+	int		N4;				///< 4-year interval number
 };
 
 /** precise clock
  */
 struct Pclk
 { 			
-	double	clk;		///< satellite clock (s)
-	double	std;		///< satellite clock std (s)
-	GTime	time;		///< time (GPST)
-	int		index;		///< clock index for multiple files
+	double		clk			= INVALID_CLOCK_VALUE;		///< satellite clock (s)
+	double		clkStd		= 0;						///< satellite clock std (s)
+	int			clkIndex;								///< clock index for multiple files
 };
 
 /** precise ephemeris
  */
-struct Peph
+struct Peph : Pclk
 {
 	SatSys		Sat;							///< satellite number 
 	GTime		time;							///< time (GPST) 
 	int			index;							///< ephemeris index for multiple files 
-	Vector3d	Pos		= Vector3d::Zero();		///< satellite position (ecef) (m)
-	Vector3d	PosStd	= Vector3d::Zero();		///< satellite position std (m) 
-	Vector3d	Vel		= Vector3d::Zero();		///< satellite velocity/clk-rate (m/s) 
-	Vector3d	VelStd	= Vector3d::Zero();		///< satellite velocity/clk-rate std (m/s) 
-	double		Clk		= 0;
-	double		ClkStd	= 0;
-	double		dCk		= 0;
-	double		dCkStd	= 0;
+	VectorEcef	pos;							///< satellite position					(m)
+	Vector3d	posStd	= Vector3d::Zero();		///< satellite position std				(m) 
+	VectorEcef	vel;							///< satellite velocity/clk-rate		(m/s) 
+	Vector3d	velStd	= Vector3d::Zero();		///< satellite velocity/clk-rate std	(m/s) 
+};
+
+/** Satellite attitude
+ */
+struct Att
+{
+	SatSys		Sat;	///< satellite number
+	GTime		time;	///< time (GPST) 
+	int			index;	///< ephemeris index for multiple files 
+	E_ObxFrame	frame;
+	Quaterniond	q = Eigen::Quaterniond::Identity();	///< satellite attitude represented w/ a quaternion
 };
 
 /** SBAS ephemeris
  */
-struct Seph
+struct Seph : BrdcEph 
 {        
 	E_NavMsgType	type = E_NavMsgType::NONE;	///< message type
 	SatSys		Sat;			///< satellite number
@@ -173,18 +233,18 @@ struct Seph
 	GTime		tof;			///< time of message frame (GPST) 
 	int			sva;			///< SV accuracy (URA index) 
 	E_Svh		svh;			///< SV health 
-	Vector3d	pos;			///< satellite position (m) (ecef) 
-	Vector3d	vel;			///< satellite velocity (m/s) (ecef) 
-	Vector3d	acc;			///< satellite acceleration (m/s^2) (ecef) 
-	double		af0,af1;		///< satellite clock-offset/drift (s,s/s) 
-	
+	VectorEcef	pos;			///< satellite position (m) (ecef) 
+	VectorEcef	vel;			///< satellite velocity (m/s) (ecef) 
+	VectorEcef	acc;			///< satellite acceleration (m/s^2) (ecef) 
+	double		af0		= 0;	///< satellite clock-offset/drift (s) 
+	double		af1		= 0;	///< satellite clock-drift (s/s) 
 	int			iode	= 0;	//unused, for templating only
-	int			toe		= 0;	//unused, for templating only
+	GTime		toe;			//unused, for templating only
 };
 
 /** GPS/QZS CNAV/CNAV-2 or BDS CNAV-1/CNAV-2/CNAV-3 ephemeris
 */
-struct Ceph
+struct Ceph : KeplerEph
 {
 	E_NavMsgType	type	= E_NavMsgType::NONE;	///< message type
 	E_SatType		orb		= E_SatType::NONE;		///< BDS sat/orbit type
@@ -198,25 +258,6 @@ struct Ceph
 	GTime	toe		= {};	///< time of ephemeris, for GPS/QZS, TOE==TOC
 	GTime	top		= {};	///< time of prediction
 	GTime	ttm		= {};	///< transmission time
-	
-						
-	double	A		= 0;	///< semi major axis
-	double	Adot	= 0;	///< rate of A
-	double	e		= 0;	///< eccentricity
-	double	i0		= 0;	///< inclination
-	double	OMG0	= 0;	///< right ascension of ascending node
-	double	omg		= 0;	///< argument of perigee
-	double	M0		= 0;	///< mean anomoly
-	double	deln	= 0;	///< correction mean motion
-	double	dn0d	= 0;	///< rate of correction mean motion
-	double	OMGd	= 0;	///< rate of OMG
-	double	idot	= 0;	///< rate of inclination
-	double	crc		= 0;	///< correction radial		cosine
-	double	crs		= 0;	///< correction radial		sine
-	double	cuc		= 0;	///< correction lattitude	cosine
-	double	cus		= 0;	///< correction lattitude	sine
-	double	cic		= 0;	///< correction inclination cosine
-	double	cis		= 0;	///< correction inclination sine
 	
 	double	ura[4]	= {};	///< user range accuracy
 							///< GPS/QZS: ura[0]=URAI_NED0, ura[1]=URAI_NED1, ura[2]=URAI_NED2, ura[3]=URAI_ED
@@ -325,87 +366,6 @@ struct ION
 
 struct Navigation;
 
-
-template<typename EPHTYPE>
-EPHTYPE* seleph(
-	Trace&		trace,
-	GTime		time, 
-	SatSys		Sat, 
-	int			iode, 
-	Navigation&	nav);
-
-template<>
-Eph* seleph<Eph>(
-	Trace&		trace,
-	GTime		time, 
-	SatSys		Sat, 
-	int			iode, 
-	Navigation&	nav);
-
-template<>
-Geph* seleph<Geph>(
-	Trace&		trace,
-	GTime		time, 
-	SatSys		Sat, 
-	int			iode, 
-	Navigation&	nav);
-
-template<>
-Seph* seleph<Seph>(
-	Trace&		trace,
-	GTime		time, 
-	SatSys		Sat, 
-	int			iode, 
-	Navigation&	nav);
-
-template<typename EPHTYPE>
-EPHTYPE* seleph(
-	Trace&			trace,
-	GTime			time, 
-	SatSys			Sat, 
-	E_NavMsgType	type,
-	int				iode, 
-	Navigation&		nav);
-
-template<>
-Ceph* seleph<Ceph>(
-	Trace&			trace,
-	GTime			time, 
-	SatSys			Sat, 
-	E_NavMsgType	type,
-	int				iode, 
-	Navigation&		nav);
-
-template<typename EPHTYPE>
-EPHTYPE* seleph(
-	Trace&			trace,
-	GTime			time, 
-	E_Sys			sys, 
-	E_NavMsgType	type,
-	Navigation&		nav);
-
-template<>
-ION* seleph<ION>(
-	Trace&			trace,
-	GTime			time, 
-	E_Sys			sys, 
-	E_NavMsgType	type,
-	Navigation&		nav);
-
-template<>
-EOP* seleph<EOP>(
-	Trace&			trace,
-	GTime			time, 
-	E_Sys			sys, 
-	E_NavMsgType	type,
-	Navigation&		nav);
-
-
-Vector3d ecef2rac(
-	Vector3d& vecToRotate,
-	Vector3d& r,
-	Vector3d& v);
-
 Matrix3d ecef2rac(
 	Vector3d& rSat,		
 	Vector3d& satVel);	
@@ -420,26 +380,40 @@ void cullOldSSRs(
 
 struct KFState;
 
-int satpos(
-	Trace&			trace,
-	GTime			time,
-	GTime			teph,
-	Obs&			obs,
-	E_Ephemeris		ephType,
-	E_OffsetType	offsetType,
-	Navigation&		nav,
-	bool			applyRelativity	= true,
-	KFState*		kfState_ptr		= nullptr);
 
-void satposs(
-	Trace&			trace,
-	GTime			teph,
-	ObsList&		obsList,
-	Navigation&		nav,
-	E_Ephemeris		ephType,
-	E_OffsetType	offsetType = E_OffsetType::COM,
-	bool			applyRelativity = true,
-	bool			applyFlightTime = true);
+template<typename TYPE> TYPE*	seleph(Trace& trace, GTime time, SatSys Sat,	E_NavMsgType type, int iode,	Navigation& nav);
+template<typename TYPE> TYPE*	seleph(Trace& trace, GTime time, E_Sys sys,		E_NavMsgType type, 				Navigation& nav);
+
+
+bool satclk(
+	Trace&				trace,
+	GTime				time,
+	GTime				teph,
+	SatPos&				satPos,
+	vector<E_Source>	ephTypes,
+	Navigation&			nav,
+	const KFState*		kfState_ptr		= nullptr);
+
+bool satpos(
+	Trace&				trace,
+	GTime				time,
+	GTime				teph,
+	SatPos&				satPos,
+	vector<E_Source>	ephTypes,
+	E_OffsetType		offsetType,
+	Navigation&			nav,
+	const KFState*		kfState_ptr		= nullptr);
+
+bool satPosClk(
+	Trace&				trace,
+	GTime				teph,
+	GObs&				obs,
+	Navigation&			nav,
+	vector<E_Source>	posSources,
+	vector<E_Source>	clkSources,
+	E_OffsetType		offsetType		= E_OffsetType::COM,
+	E_Relativity		applyRelativity	= E_Relativity::ON,
+	const KFState*		kfState_ptr		= nullptr);
 
 void readSp3ToNav(
 	string&		file, 
@@ -448,17 +422,108 @@ void readSp3ToNav(
 
 bool readsp3(
 	std::istream&	fileStream, 
-	list<Peph>&		pephList,	
+	vector<Peph>&	pephList,	
 	int				opt,		
-	bool&			isUTC,
+	E_TimeSys&		tsys,
 	double*			bfact);
-
-double	interppol(
-	const double*	x,
-	double*			y,
-	int				n);
 
 void	orb2sp3(
 	Navigation&	nav);
 
-#endif
+void readOrbex(
+	string			filepath,
+	Navigation&		nav);
+
+
+bool satPosKalman(
+	Trace&			trace,
+	GTime			time,
+	SatPos&			satPos,
+	const KFState*	kfState_ptr);
+
+bool satClkKalman(
+	Trace&			trace,
+	GTime			time,
+	SatPos&			satPos,
+	const KFState*	kfState_ptr);
+
+
+bool satPosRemote(
+	Trace&			trace,
+	GTime			time,
+	SatPos&			satPos);
+
+bool satClkRemote(
+	Trace&			trace,
+	GTime			time,
+	SatPos&			satPos);
+
+
+bool satClkBroadcast(
+	Trace&			trace,
+	GTime			time,
+	GTime			teph,
+	SatSys			Sat,
+	double&			satClk,
+	double&			satClkVel,
+	double&			ephVar,
+	bool&			ephClkValid,
+	int&			obsIode,
+	Navigation&		nav);
+
+bool satPosBroadcast(
+	Trace&			trace,
+	GTime			time,
+	GTime			teph,
+	SatSys			Sat,
+	Vector3d&		rSat,
+	Vector3d&		satVel,
+	double&			ephVar,
+	bool&			ephPosValid,
+	int&			obsIode,
+	Navigation&		nav);
+
+
+bool satClkBroadcast(
+	Trace&			trace,
+	GTime			time,
+	GTime			teph,
+	SatPos&			satPos,
+	Navigation&		nav,
+	int				iode = ANY_IODE);
+
+bool satPosBroadcast(
+	Trace&			trace,
+	GTime			time,
+	GTime			teph,
+	SatPos&			satPos,
+	Navigation&		nav,
+	int				iode = ANY_IODE);
+
+
+bool satPosPrecise(
+	Trace&			trace,
+	GTime			time,
+	SatPos&			satPos,
+	Navigation&		nav);
+
+bool satClkPrecise(
+	Trace&			trace,
+	GTime			time,
+	SatPos&			satPos,
+	Navigation&		nav);
+
+
+bool satPosSSR(
+	Trace&			trace,
+	GTime			time,
+	GTime			teph,
+	SatPos&			satPos,
+	Navigation&		nav);
+
+bool satClkSSR(
+	Trace&			trace,
+	GTime			time,
+	GTime			teph,
+	SatPos&			satPos,
+	Navigation&		nav);

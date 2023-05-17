@@ -1,215 +1,63 @@
 
-input_files:
+inputs:
 
-    root_input_directory: products/
+    root_directory: products/
 
-    atxfiles: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snxfiles: [ "igs*.snx"          ]  # SINEX file for meta data and initial position
-    blqfiles: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
-    #navfiles: [ brdm1990.19p        ]  # broadcast navigation file
-    sp3files: [ COD0MGXFIN_20191990000_01D_05M_ORB.SP3       ]
-    clkfiles: [ COD0R03FIN_20191990000_01D_30S_CLK.CLK       ] 
-    bsxfiles: [ COD0R03FIN_20191990000_01D_01D_OSB.BIA       ]
-    
-
-station_data:
-
-    root_stations_directory: data/
-
-    rnxfiles:
-        # Select files to run by:
-        - "T*.rnx" 
-        # - "*.rnx"                                       # - searching all in file_root directory
-        # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
-                                                          # - selecting one on the command line using the -rnxfiles option
-
-output_files:
-
-    root_output_directory:          <CONFIG>/
-
-    output_trace:                   true
-    trace_level:                    2
-    trace_directory:                ./
-    trace_filename:                 <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
-
-    output_residuals:               true
-    #output_residual_chain:          false
-
-    output_summary:                 true
-
-    enable_mongo:                   true
-    output_mongo_measurements:      true
-    output_mongo_states:            true
-    output_mongo_metadata:          false
-    #delete_mongo_history:           true
-    mongo_uri:                      mongodb://127.0.0.1:27017
-    mongo_suffix:                   pppnetx3
-    
-output_options:
-    config_description:             new
-    analysis_agency:                GAA
-    analysis_center:                Geoscience Australia
-    analysis_program:               AUSACS
-    rinex_comment:                  AUSNETWORK1
-
-processing_options:
-
-    #start_epoch:                2019-07-18 23:44:30
-    #end_epoch:                  2019-07-18 23:59:30
-    epoch_interval:             30          #seconds
-    #max_epochs:                 10        #0 is infinite
-
-    process_modes:
-        #user:                   true
-        ppp:                    true
-        #network:                true
-        #minimum_constraints:    true
-        #rts:                    true
-        #ionosphere:             true        
-
-    model:
-        relativity2:        false
-        clock_definitions:  false
-
-    process_sys:
-        gps:            true
-        glo:            false
-        gal:            false
-        bds:            false
-
-    process_freq:
-        gps:
-            l1:         true
-            l2:         true
-            #l5:         true
-        gal:
-            l1:         true
-            l5:         true
-
-    process_meas:
-        #code:            false
-        #phase:           false
-        
-    elevation_mask:     7   #degrees
-
-    ionosphere:
-        common_ionosphere:  true
-
-    tide_solid:         true
-    tide_pole:          true
-    tide_otl:           true
-
-    cycle_slip:
-        thres_slip:     0.05
-
-    max_inno:   0
-    max_gdop:   30
+    #atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
+    #snx_files: [ "igs*.snx", tables/igs_satellite_metadata_2203_plus.snx ]  # SINEX file for meta data and initial position
+    #blq_files: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
 
     troposphere:
-        model:      vmf3    #gpt2
-        vmf3dir:    grid5/
-        orography:  orography_ell_5x5
-        # gpt2grid: EX03/general/gpt_25.grd
-
-    code_priorities: [  L1C, #L1P, L1Y, L1W, L1M, L1N, L1S, L1L,
-                        L2W, #L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
-                        L5I, L5Q, L5X]
-
-user_filter_parameters:
-
-    max_filter_iterations:      5 #5
-    max_prefit_removals:        3 #5
-
-network_filter_parameters:
-    max_filter_iterations:      5
-    max_prefit_removals:        5
-    phase_reject_limit:         3
-    outage_reset_limit:         3
-    sigma_threshold:            40
+        #vmf3_directory:    grid5/
+        #orography_files:  orography_ell_5x5
+        # gpt2grid_files: EX03/general/gpt_25.grd
+ 
+    satellite_data:
+        #nav_files: [ brdm1990.19p        ]  # broadcast navigation file
+        #sp3_files: [ igs20624.sp3        ]  # satellite orbit files in SP3 format
+        #clk_files: [ igs20624.clk_30s    ]  # Clk files
+        #bsx_files: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+        
+        #rtcm_inputs:
     
-    chunk_stations:             true
+    gnss_observations:
+        inputs_root: data/
+        
+        ubx_inputs:
+            - serial:///dev/ttyACM0
+            #- "bin.bin"
+        rtcm_inputs:
+            #- https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0
+        rnx_inputs:
+            # Select files to run by:
+            #- "ALIC*.rnx" # ALIC station rnx file will be found
+            #- "AGGO*.rnx"
+            #- "BAKO*.rnx"
+            #- "COCO*.rnx"
+            #- "*.19o"
+            #- "*.rnx"                                       # - searching all in file_root directory
+            # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
+                                                          # - selecting one on the command line using the -rnxfiles option
 
-    rts_lag:                    -1
-    rts_directory:              ./
-    rts_filename:               <CONFIG>-<STATION>.rts
+outputs:
 
-ambiguity_resolution_options:
-    reduction_limit:            5000
+    root_directory:             <CONFIG>/
+
+    trace:
+        output_stations:                 true
+        level:                  3
+        directory:              ./
+        station_filename:               <CONFIG>-<STATION><YYYY><DDD><HH>.TRACE
+        output_residuals:       true
+
+    sinex:
+        output:                 true
+        directory:              ./
     
-default_filter_parameters:
-
-    stations:
-
-        error_model:        elevation_dependent
-        code_sigmas:        [0.15]
-        phase_sigmas:       [0.0015]
-
-        pos:
-            estimated:          [true]
-            sigma:              [0.1]
-            proc_noise:         [0]
-
-        clk:
-            estimated:          [true]
-            sigma:              [30]
-            proc_noise:         [10]
-
-        clk_rate:
-            #estimated:          [true]
-            sigma:              [500]
-            proc_noise:         [1e-4]
-
-        amb:
-            estimated:          [true]
-            sigma:              [60]
-            proc_noise:         [0]
-            
-        code_bias:
-            estimated:          [true]
-            sigma:              [100]
-            #proc_noise:         [0.001]
-            
-        phase_bias:
-            estimated:          [true]
-            sigma:              [1]
-            #proc_noise:         [0.001]
-
-        trop:
-            estimated:          [true]
-            sigma:              [0.1]
-            proc_noise:         [0.0001] #0.1 mm/sqrt(s)
-            proc_noise_dt:      second
-
-        trop_grads:
-            estimated:          [true]
-            sigma:              [0.02]
-            proc_noise:         [1.0E-6]
-            proc_noise_dt:      second
-
-        ion:
-            estimated:          [true]
-            sigma:              [20]
-            proc_noise:         [5]
-            proc_noise_dt:      second
-            
-    satellites:
-
-        #clk:
-            #estimated:          [true]
-            #sigma:              [1000]
-            #proc_noise:         [1]
-            
-        #code_bias:
-            #estimated:          [true]
-            #sigma:              [1]
-            ##proc_noise:         [0.001]
-            
-        #phase_bias:
-            #estimated:          [true]
-            #sigma:              [1]
-            ##proc_noise:         [0.001]
-
-override_filter_parameters:
-    satellites:
-        G04:
-            #exclude: true
+    clocks:                 
+        output:                 true
+        
+    rinex_obs:
+        output:                 true
+        split_sys:              true
+        

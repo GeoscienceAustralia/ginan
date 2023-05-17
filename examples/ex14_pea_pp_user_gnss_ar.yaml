@@ -3,27 +3,32 @@ inputs:
     root_directory: products/
 
     atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snx_files: [ "*.snx"          ]  # SINEX file for meta data and initial position
+    snx_files: [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx ]  # SINEX file for meta data and initial position
     blq_files: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
     erp_files: [ COD0R03FIN_20191990000_01D_01D_ERP.ERP ]
 
     troposphere:
-        # vmf3dir:    grid5/
-        # orography:  orography_ell_5x5
+        # vmf_files:      [grid5/VMF20190718.H00, grid5/VMF20190718.H06, grid5/VMF20190718.H12, grid5/VMF20190718.H18]
+        # orography:      orography_ell_5x5
         gpt2grid_files:   gpt_25.grd
-        
+    
+    egm_files:  [ tables/EGM2008.gfc         ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050     ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat]
+    
     satellite_data:
+    
         nav_files: [ brdm1990.19p     ]  # broadcast navigation file
         sp3_files: [ COD0MGXFIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
         clk_files: [ COD0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
         bsx_files: [ COD0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
     
     gnss_observations:
-        root_directory: ../data/
-        rnx_files:
+        inputs_root: data/
+        rnx_inputs:
             # Select files to run by:
-            - "AREQ*.rnx" # ALIC station rnx file will be found
-            - "AREG*.rnx"
+            - "AREQ00PER_R_20191990000_01D_30S_MO.rnx" # ALIC station rnx file will be found
+            - "AREG00PER_R_20191990000_01D_30S_MO.rnx"
             # - ALIC00AUS_R_20191990000_01D_30S_MO.rnx        # - selecting them individually below, or
                                                             # - selecting one on the command line using the -rnxfiles option
 
@@ -33,11 +38,14 @@ outputs:
     root_directory:          <CONFIG>/
 
     trace:
-        output_stations:                     true
+        output_stations:            true
+        output_network:             true                                         
         level:                      2
         directory:                  ./
         station_filename:                   <STATION><YYYY><DDD><HH>.TRACE
+        network_filename:           Network_trace.SUM
         output_residuals:           true
+        output_config:              true                                
     
     sinex:
         output:                     true
@@ -45,7 +53,7 @@ outputs:
     
     ppp_sol:
         output:                     true
-        filename:                   <CONFIG>_<STATION><YYYY><DDD><HH>.POS
+        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.POS
 
     log:
         output:                     true
@@ -59,12 +67,11 @@ outputs:
         rinex_comment:                  AUSNETWORK1
 
 mongo:
-    enable:                   true
-    output_measurements:      true
-    output_states:            true
+    enable:                   false
+    output_measurements:      false
+    output_states:            false
     delete_history:           false
     uri:                      mongodb://127.0.0.1:27017
-    suffix:                   "_sol" 
     
 debug:
     unit_tests:
@@ -86,7 +93,6 @@ processing_options:
     
         elevation_mask:     10  #degrees
 
-        reject_eclipse:     true            #  reject observation during satellite eclipse periods
         raim:               true
         
         max_gdop:   30
@@ -95,20 +101,14 @@ processing_options:
         sys_options:
             gps:
                 process:                true
-                clock_codes:            [L1C, L2W]
                 ambiguity_resolution:   true
-
-                code_priorities: [  L1C,
-                                    L2W,
-                                    L5Q, L5X]
+                reject_eclipse: true
+                code_priorities: [  L1C, L2W ]
             gal:
                 process:                true
-                clock_codes:            [L1C, L5Q]
                 ambiguity_resolution:   false
-
-                code_priorities: [  L1C,
-                                    L2W,
-                                    L5Q, L5X]
+                reject_eclipse: true
+                code_priorities: [  L1C,L1X, L5Q, L5X]
     
     model_error_checking:
         ambiguities:
@@ -208,10 +208,3 @@ estimation_parameters:
 
         orb:
             #estimated:          [true]
-
-    overrides:
-        stations:
-            AREG:
-                pos:
-                    proc_noise:     [0]
-

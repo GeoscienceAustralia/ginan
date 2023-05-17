@@ -4,9 +4,12 @@
 
 #include "observations.hpp"
 #include "rtcmEncoder.hpp"
+#include "coordinates.hpp"
 #include "instrument.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
+#include "orbitProp.hpp"
+#include "rtcmTrace.hpp"
 #include "biasSINEX.hpp"
 #include "acsConfig.hpp"
 #include "satStat.hpp"
@@ -15,19 +18,44 @@
 
 
 #include <bsoncxx/builder/basic/document.hpp>
+#include <bsoncxx/builder/stream/array.hpp>
+
 #include <bsoncxx/json.hpp>
 
+using bsoncxx::builder::stream::close_array;
+using bsoncxx::builder::stream::close_document;
+using bsoncxx::builder::stream::document;
+using bsoncxx::builder::stream::finalize;
+using bsoncxx::builder::stream::open_array;
+using bsoncxx::builder::stream::open_document;
 using bsoncxx::builder::basic::kvp;
+using bsoncxx::types::b_date;
+
+using std::make_pair;
+
+b_date bDate(
+	GTime time)
+{
+	int fractionalMilliseconds = (time.bigTime - (long int) time.bigTime) * 1000;
+	
+	auto stdTime = std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime);
+	
+	stdTime += std::chrono::milliseconds(fractionalMilliseconds);
+	
+	return b_date(stdTime);
+}	
 
 void mongoTestStat(
 	KFState&		kfState,
 	TestStatistics&	testStatistics)
 {
+	auto& mongo_ptr = localMongo_ptr;
+	
 	if (mongo_ptr == nullptr)
 	{
 		MONGO_NOT_INITIALISED_MESSAGE;
 		
-		acsConfig.output_mongo_test_stats = false;
+		acsConfig.localMongo.output_test_stats = false;
 		
 		return;
 	}
@@ -38,11 +66,8 @@ void mongoTestStat(
 
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.mongo_database];
+	mongocxx::database			db		= client[acsConfig.localMongo.database];
 	mongocxx::collection		coll	= db	["States"];
-
-	mongocxx::options::update	options;
-	options.upsert(true);
 
 	mongocxx::options::bulk_write bulk_opts;
 	bulk_opts.ordered(false);
@@ -63,24 +88,15 @@ void mongoTestStat(
 	
 	for (auto& [state, value] : entries)
 	{
-		mongocxx::model::update_one  mongo_req(
-			document{}
-				<< "Epoch"		<< bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(kfState.time.time)}
-				<< "Site"		<< kfState.id		+ acsConfig.mongo_suffix
-				<< "Sat"		<< ""				+ acsConfig.mongo_suffix
-				<< "State"		<< state
-				<< finalize,
-
-			document{}
-				<< "$set"
-				<< open_document
-					<< "x0"		<< value
-				<< close_document
-				<< finalize
-			);
+		bsoncxx::builder::stream::document doc{};
+		doc	<< "Epoch"		<< bDate(kfState.time)
+			<< "Site"		<< kfState.id		+ acsConfig.localMongo.suffix
+			<< "Sat"		<< ""				+ acsConfig.localMongo.suffix
+			<< "State"		<< state
+			<< "x"			<< value;
 		
-		mongo_req.upsert(true);
-		bulk.append(mongo_req);
+		bsoncxx::document::value doc_val = doc << finalize;
+		bulk.append(mongocxx::model::insert_one(doc_val.view()));
 		update = true;
 	}
 
@@ -90,14 +106,16 @@ void mongoTestStat(
 	}
 }
 
-void mongoMeasSatStat(
-	StationMap& stationMap)
+void mongoTrace(
+	string json)
 {	
+	auto& mongo_ptr = localMongo_ptr;
+	
 	if (mongo_ptr == nullptr)
 	{
 		MONGO_NOT_INITIALISED_MESSAGE;
 		
-		acsConfig.output_mongo_measurements = false;
+		acsConfig.localMongo.output_trace = false;
 		
 		return;
 	}
@@ -108,114 +126,180 @@ void mongoMeasSatStat(
 
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.mongo_database];
+	mongocxx::database			db		= client[acsConfig.localMongo.database];
 	
-	for (auto pseudoIndex : {false, true})
+
+	string collectionName = "Trace";
+	
+	mongocxx::collection		coll	= db[collectionName];
+
+	mongocxx::options::bulk_write bulk_opts;
+	bulk_opts.ordered(false);
+
+	auto bulk = coll.create_bulk_write(bulk_opts);
+
+	bool update = false;
+
+	auto doc = bsoncxx::from_json(json);
+	
+	bulk.append(mongocxx::model::insert_one(doc.view()));
+	
+	bulk.execute();
+}
+
+void mongoOutputConfig(
+	string& config)
+{
+	auto& mongo_ptr = localMongo_ptr;
+	
+	if (mongo_ptr == nullptr)
 	{
-		string collectionName = "Measurements";
-		if (pseudoIndex)		
-			collectionName += "Index";
+		MONGO_NOT_INITIALISED_MESSAGE;
 		
-		mongocxx::collection		coll	= db[collectionName];
+		return;
+	}
+	
+	Instrument instrument(__FUNCTION__);
 
-		mongocxx::options::update	options;
-		options.upsert(true);
+	Mongo& mongo = *mongo_ptr;
 
-		mongocxx::options::bulk_write bulk_opts;
-		bulk_opts.ordered(false);
+	auto 						c		= mongo.pool.acquire();
+	mongocxx::client&			client	= *c;
+	mongocxx::database			db		= client[acsConfig.localMongo.database];
+	
 
-		auto bulk = coll.create_bulk_write(bulk_opts);
+	string collectionName = "Config";
+	
+	mongocxx::collection		coll	= db[collectionName];
 
-		bool update = false;
+	mongocxx::options::bulk_write bulk_opts;
+	bulk_opts.ordered(false);
 
-		for (auto& [id, rec] : stationMap)
-		for (auto& obs : rec.obsList)
-		{
-			if (obs.exclude)
-				continue;
+	auto bulk = coll.create_bulk_write(bulk_opts);
 
-			if (obs.satStat_ptr == nullptr)
-				continue;
-
-			SatStat& satStat = *obs.satStat_ptr;
-
-			bsoncxx::builder::basic::document keyDoc = {};
-			if (pseudoIndex == false)
-			{
-				//only add epoch data to full collection, not the pseudoIndex subset
-				keyDoc.append(kvp("Epoch",	bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(tsync.time)}	));
-			}
-			
-			{
-				keyDoc.append(kvp("Site",	obs.mount	+ acsConfig.mongo_suffix							));
-				keyDoc.append(kvp("Sat",	obs.Sat.id()													));
-			}
-			
-			bsoncxx::builder::basic::document valDoc = {};
-			valDoc.append(kvp("Azimuth",		pseudoIndex ? true : satStat.az		* R2D		));
-			valDoc.append(kvp("Elevation",		pseudoIndex ? true : satStat.el		* R2D		));
-			valDoc.append(kvp("Nadir",			pseudoIndex ? true : satStat.nadir	* R2D		));
-			valDoc.append(kvp("sunDotSat",		pseudoIndex ? true : satStat.sunDotSat			));
-			valDoc.append(kvp("sunCrossSat",	pseudoIndex ? true : satStat.sunCrossSat		));
-			valDoc.append(kvp("slip",			pseudoIndex ? true : satStat.slip				));
-			valDoc.append(kvp("Phase Windup",	pseudoIndex ? true : satStat.phw				));
-			
-			mongocxx::model::update_one  mongo_req(
-				keyDoc.extract(),
-
-				document{}
-					<< "$set" << valDoc
-					<< finalize
-				);
-
-			mongo_req.upsert(true);
-			bulk.append(mongo_req);
-			update = true;
-		}
-
-		if (update)
-			bulk.execute();
+	bool update = false;
+	
+	try
+	{
+		auto doc = bsoncxx::from_json(config);
+		
+		bulk.append(mongocxx::model::insert_one(doc.view()));
+		
+		bulk.execute();
+	}
+	catch (...)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Could not output config to mongo, likely due to empty entries in yaml.";
 	}
 }
+
+void mongoMeasSatStat(
+	StationMap& stationMap)
+{	
+	auto& mongo_ptr = localMongo_ptr;
+	
+	if (mongo_ptr == nullptr)
+	{
+		MONGO_NOT_INITIALISED_MESSAGE;
+		
+		acsConfig.localMongo.output_measurements = false;
+		
+		return;
+	}
+	
+	Instrument instrument(__FUNCTION__);
+
+	Mongo& mongo = *mongo_ptr;
+
+	auto 						c		= mongo.pool.acquire();
+	mongocxx::client&			client	= *c;
+	mongocxx::database			db		= client[acsConfig.localMongo.database];
+	
+
+	string collectionName = "Geometry";
+	
+	mongocxx::collection		coll	= db[collectionName];
+
+	mongocxx::options::bulk_write bulk_opts;
+	bulk_opts.ordered(false);
+
+	auto bulk = coll.create_bulk_write(bulk_opts);
+
+	bool update = false;
+
+	for (auto& [id, rec] : stationMap)
+	for (auto& obs : only<GObs>(rec.obsList))
+	{
+		if (obs.exclude)
+			continue;
+
+		if (obs.satStat_ptr == nullptr)
+			continue;
+
+		SatStat& satStat = *obs.satStat_ptr;
+
+		bsoncxx::builder::stream::document doc{};
+		doc		<< "Epoch"		<< bDate(tsync)
+				<< "Site"		<< obs.mount	
+				<< "Sat"		<< obs.Sat.id()
+				<< "Series"		<< acsConfig.localMongo.suffix
+				<< "Azimuth"	<< satStat.az		* R2D		
+				<< "Elevation"	<< satStat.el		* R2D;
+
+		bsoncxx::document::value doc_val = doc << finalize;
+		bulk.append(mongocxx::model::insert_one(doc_val.view()));
+		update = true;
+	}
+
+	if (update)
+		bulk.execute();
+}
+
 
 
 void mongoMeasResiduals(
 	GTime				time,
-	vector<ObsKey>&		obsKeys,
-	VectorXd&			prefits,
-	VectorXd&			postfits,
-	MatrixXd&			variance,
+	KFMeas&				kfMeas,
 	string				suffix,
 	int					beg,
 	int					num)
 {
-	if (mongo_ptr == nullptr)
-	{
-		MONGO_NOT_INITIALISED_MESSAGE;
-		
-		acsConfig.output_mongo_measurements = false;
-		
-		return;
-	}
-	
 	Instrument instrument(__FUNCTION__);
-
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.mongo_database];
 	
-	for (auto pseudoIndex : {false, true})
+	for (auto mongo_ptr_ptr : {&localMongo_ptr, &remoteMongo_ptr})
 	{
+		auto& mongo_ptr = *mongo_ptr_ptr;
+		
+		MongoOptions*	config_ptr;
+		if (mongo_ptr_ptr == &localMongo_ptr)		config_ptr = &acsConfig.localMongo;
+		else										config_ptr = &acsConfig.remoteMongo;
+		
+		auto& config = *config_ptr;
+		
+		if (config.output_measurements == false)
+		{
+			continue;
+		}
+	
+		if (mongo_ptr == nullptr)
+		{
+			MONGO_NOT_INITIALISED_MESSAGE;
+			
+			config.output_measurements = false;
+			
+			continue;
+		}
+			
+		Mongo& mongo = *mongo_ptr;
+
+		auto 						c		= mongo.pool.acquire();
+		mongocxx::client&			client	= *c;
+		mongocxx::database			db		= client[config.database];
+
+		
 		string collectionName = "Measurements";
-		if (pseudoIndex)		
-			collectionName += "Index";
 		
 		mongocxx::collection		coll	= db[collectionName];
-
-		mongocxx::options::update	options;
-		options.upsert(true);
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -226,136 +310,115 @@ void mongoMeasResiduals(
 
 		if (num < 0)
 		{
-			num = prefits.rows();
+			num = kfMeas.obsKeys.size();
 		}
+
+		map<tuple<string, string>, vector<int>> lookup;
 		
-		options.upsert(true);
+		map<string, bool> indexSeries;
+		map<string, bool> indexLabel;
+		map<string, bool> indexSite;
+		map<string, bool> indexSat;
+
 		for (int i = beg; i < beg + num; i++)
 		{
-			ObsKey& obsKey = obsKeys[i];
+			KFKey& obsKey = kfMeas.obsKeys[i];
+			
+			string commentString = "";
+			if (obsKey.comment.empty() == false)
+				commentString = obsKey.comment + "-";
+			
+			string name = commentString + std::to_string(obsKey.num);
+			
+			lookup[make_tuple(obsKey.str, obsKey.Sat.id())].push_back(i);
+		}
 
-			string name = obsKey.type + std::to_string(obsKey.num);
-
-			bsoncxx::builder::basic::document keyDoc = {};
-			if (pseudoIndex == false)
+		for (auto& [description, index] : lookup)
+		{
+			bsoncxx::builder::stream::document doc{};
+			auto& [site, sat] = description;
+			doc		<< "Epoch"		<< bDate(time)
+					<< "Site"		<< site
+					<< "Sat"		<< sat
+					<< "Series"		<< config.suffix + suffix;
+					
+			indexSeries	[config.suffix + suffix]	= true;
+			indexSite	[site]						= true;
+			indexSat	[sat]						= true;
+			
+			for (int& i : index)
 			{
-				//only add epoch data to full collection, not the pseudoIndex subset
-				keyDoc.append(kvp("Epoch",	bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(time.time)}	));
+				KFKey& obsKey = kfMeas.obsKeys[i];
+			
+				string commentString = "";
+				if (obsKey.comment.empty() == false)
+					commentString = obsKey.comment + "-";
+				
+				string name = commentString + std::to_string(obsKey.num);
+				
+				doc << name + "-Prefit"		<<	kfMeas.V	(i)	
+					<< name + "-Postfit"	<<	kfMeas.VV	(i)	
+					<< name + "-Variance"	<<	kfMeas.R	(i,i);
+					
+				indexLabel[name + "-Prefit"]	= true;
+				indexLabel[name + "-Postfit"]	= true;
+				indexLabel[name + "-Variance"]	= true;
+				
+				if	( config.output_components == false
+					||kfMeas.componentLists.empty())
+				{
+					continue;
+				}
+				
+				auto& componentList = kfMeas.componentLists[i];
+				
+				for (auto& component : componentList)
+				{
+					auto& [comp, value, desc] = component;
+				
+					string label = name + " " + KF::_from_integral_unchecked(obsKey.type)._to_string() + " " + comp._to_string();
+					
+					doc << label << value;
+					
+					indexLabel[label] = true;
+				}
 			}
 			
-			{
-				keyDoc.append(kvp("Site",	obsKey.str	+ acsConfig.mongo_suffix	+ suffix							));
-				keyDoc.append(kvp("Sat",	obsKey.Sat.id()							+ suffix							));
-			}
+			bsoncxx::document::value doc_val = doc << finalize;
 			
-			bsoncxx::builder::basic::document valDoc = {};
-			valDoc.append(kvp(name + "-Prefit",		pseudoIndex ? true : prefits(i)		));
-			valDoc.append(kvp(name + "-Postfit",	pseudoIndex ? true : postfits(i)	));
-			valDoc.append(kvp(name + "-Variance",	pseudoIndex ? true : variance(i,i)	));
+			bulk.append(mongocxx::model::insert_one(doc_val.view()));
 			
-			mongocxx::model::update_one  mongo_req(
-				keyDoc.extract(),
-
-				document{}
-					<< "$set" << valDoc
-					<< finalize
-				);
-
-			mongo_req.upsert(true);
-			
-			bulk.append(mongo_req);
 			update = true;
 		}
 
 		if (update)
 		{
 			bulk.execute();
-		}
-	}
-}
 
-void mongoMeasComponents(
-	KFMeas&		kfMeas)
-{
-	if (mongo_ptr == nullptr)
-	{
-		MONGO_NOT_INITIALISED_MESSAGE;
-		
-		acsConfig.output_mongo_measurements = false;
-		
-		return;
-	}
-	
-	Instrument instrument(__FUNCTION__);
-	
-	Mongo& mongo = *mongo_ptr;
-	
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.mongo_database];
-	
-	for (auto pseudoIndex : {false, true})
-	{
-		string collectionName = "Measurements";
-		if (pseudoIndex)		
-			collectionName += "Index";
-		
-		mongocxx::collection		coll	= db[collectionName];
-	
-		mongocxx::options::update	options;
-		options.upsert(true);
-		
-		mongocxx::options::bulk_write bulk_opts;
-		bulk_opts.ordered(false);
-		
-		auto bulk = coll.create_bulk_write(bulk_opts);
-		
-		bool update = false;
-		
-		options.upsert(true);
-		for (int i = 0; i < kfMeas.obsKeys.size(); i++)
-		{
-			ObsKey&	obsKey			= kfMeas.obsKeys[i];
-			auto&	componentList	= kfMeas.componentLists[i];
-			
-			string name = obsKey.type + std::to_string(obsKey.num);
-
-			bsoncxx::builder::basic::document keyDoc = {};
-			if (pseudoIndex == false)
+			auto addIndices = [&](string name, map<string, bool> index)
 			{
-				//only add epoch data to full collection, not the pseudoIndex subset
-				keyDoc.append(kvp("Epoch",	bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(tsync.time)}	));
-			}
+				mongocxx::options::update	options;
+				options.upsert(true);
+				
+				auto eachDoc = document{};
+				
+				auto arrayDoc = eachDoc << "$each" << open_array;
+				for (auto &[indexName, unused]: index)
+				{
+					arrayDoc << indexName;
+				}
+				arrayDoc << close_array;
+				
+				auto findDoc	= document{}									<< "type"	<< name							<< finalize;
+				auto updateDoc	= document{} << "$addToSet" << open_document	<< "Values" << eachDoc << close_document	<< finalize;
+				
+				db["Content"].update_one(findDoc.view(), updateDoc.view(), options);
+			};
 			
-			{
-				keyDoc.append(kvp("Site",	obsKey.str	+ acsConfig.mongo_suffix							));
-				keyDoc.append(kvp("Sat",	obsKey.Sat.id()													));
-			}
-			
-			bsoncxx::builder::basic::document valDoc = {};
-			for (auto& component : componentList)
-			{
-				auto& [comp, value, desc] = component;
-			
-				valDoc.append(kvp(name + "-" + comp,		pseudoIndex ? true : value		));
-			}
-			
-			mongocxx::model::update_one  mongo_req(
-				keyDoc.extract(),
-
-				document{}
-					<< "$set" << valDoc
-					<< finalize
-				);
-			
-			mongo_req.upsert(true);
-			bulk.append(mongo_req);
-			update = true;
-		}
-		
-		if (update)
-		{
-			bulk.execute();
+			addIndices("Measurements",	indexLabel);
+			addIndices("Series",		indexSeries);
+			addIndices("Site",			indexSite);
+			addIndices("Sat",			indexSat);
 		}
 	}
 }
@@ -364,40 +427,53 @@ void mongoStates(
 	KFState&			kfState,
 	string				suffix)
 {
-	if (mongo_ptr == nullptr)
-	{
-		MONGO_NOT_INITIALISED_MESSAGE;
-		
-		acsConfig.output_mongo_states = false;
-		
-		return;
-	}
-
 	Instrument instrument(__FUNCTION__);
 	
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.mongo_database];
-	
-	for (auto pseudoIndex : {false, true})
+	for (auto mongo_ptr_ptr : {&localMongo_ptr, &remoteMongo_ptr})
 	{
-		string collectionName = "States";
-		if (pseudoIndex)		
-			collectionName += "Index";
+		auto& mongo_ptr = *mongo_ptr_ptr;
 		
-		mongocxx::collection		coll	= db[collectionName];
+		MongoOptions*	config_ptr;
+		if (mongo_ptr_ptr == &localMongo_ptr)		config_ptr = &acsConfig.localMongo;
+		else										config_ptr = &acsConfig.remoteMongo;
+		
+		auto& config = *config_ptr;
+		
+		if (config.output_states == false)
+		{
+			continue;
+		}
+		
+		if (mongo_ptr == nullptr)
+		{
+			MONGO_NOT_INITIALISED_MESSAGE;
+			
+			config.output_states = false;
+			
+			return;
+		}
+		
+		Instrument instrument(__FUNCTION__);
+		
+		Mongo& mongo = *mongo_ptr;
+
+		auto 						c		= mongo.pool.acquire();
+		mongocxx::client&			client	= *c;
+		mongocxx::database			db		= client[config.database];
 
 		mongocxx::options::update	options;
 		options.upsert(true);
-
+		
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
+		
+		auto bulk = db["States"].create_bulk_write(bulk_opts);
 
-		auto bulk = coll.create_bulk_write(bulk_opts);
-
-		bool update = false;
+		map<tuple<string, string, string>, vector<pair<int, int>>> lookup;
+		map<string, bool> indexSeries;
+		map<string, bool> indexState;
+		map<string, bool> indexSite;
+		map<string, bool> indexSat;
 
 		for (auto& [key, index] : kfState.kfIndexMap)
 		{
@@ -405,86 +481,151 @@ void mongoStates(
 			{
 				continue;
 			}
+			
+			lookup[make_tuple(key.str, key.Sat.id(), KF::_from_integral_unchecked(key.type)._to_string())].push_back(make_pair(index, key.num));
+		}
 
-			bsoncxx::builder::basic::document keyDoc = {};
-			if (pseudoIndex == false)
-			{
-				//only add epoch data to full collection, not the index subset
-				keyDoc.append(kvp("Epoch",	bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(kfState.time.time)}	));
-			}
+		vector<bsoncxx::document::value> documents;
+
+		bool update = false;
+		
+		for (auto &[description, index] : lookup)
+		{
+			auto &[site, sat, state] = description;
+
+			bsoncxx::builder::stream::document doc{};
+			doc		<< "Epoch"		<< bDate(kfState.time)
+					<< "Site"		<< site
+					<< "Sat"		<< sat
+					<< "State"		<< state
+					<< "Series"		<< config.suffix + suffix;
+
+			indexSeries	[config.suffix + suffix]	= true;
+			indexState	[state]						= true;
+			indexSat	[sat]						= true;
+			indexSite	[site]						= true;
+
+			auto	array_builder = doc << "x"		<< open_array;	for (auto &[i, num]: index)		array_builder << kfState.x	(i);	array_builder << close_array;
+					array_builder = doc << "dx"		<< open_array;	for (auto &[i, num]: index)		array_builder << kfState.dx	(i);	array_builder << close_array;
+					array_builder = doc << "P"		<< open_array;	for (auto &[i, num]: index)		array_builder << kfState.P	(i,i);	array_builder << close_array;
+					array_builder = doc << "Num"	<< open_array;	for (auto &[i, num]: index)		array_builder << num;				array_builder << close_array;
 			
-			{
-				keyDoc.append(kvp("Site",	key.str			+ acsConfig.mongo_suffix + suffix		));
-				keyDoc.append(kvp("Sat",	key.Sat.id()	+ acsConfig.mongo_suffix + suffix		));
-				keyDoc.append(kvp("State",	KF::_from_integral_unchecked(key.type)._to_string()		));
-			}
+			bsoncxx::document::value doc_val = doc << finalize;
 			
-			bsoncxx::builder::basic::document valDoc = {};
-			valDoc.append(kvp("x"	+ std::to_string(key.num),		pseudoIndex ? true : kfState.x	(index)			));
-			valDoc.append(kvp("dx"	+ std::to_string(key.num),		pseudoIndex ? true : kfState.dx	(index)			));
-			valDoc.append(kvp("P"	+ std::to_string(key.num),		pseudoIndex ? true : kfState.P	(index,index)	));
-			
-			string setType;
-			
-			if (pseudoIndex)	setType = "$setOnInsert";
-			else				setType = "$set";
-			
-			bsoncxx::builder::basic::document valThing = {};
-			valThing.append(kvp(setType,		valDoc));
-			
-			mongocxx::model::update_one  mongo_req(
-				keyDoc	.extract(),
-				valThing.extract());
+			bulk.append(mongocxx::model::insert_one(doc_val.view()));	
 			
 			update = true;
-
-			mongo_req.upsert(true);
-			bulk.append(mongo_req);
-			
-			
 		}
-
+		
 		if (update)
 		{
-			Instrument instrument("execution");
 			bulk.execute();
+
+			auto addIndices = [&](string name, map<string, bool> index)
+			{
+				auto eachDoc = document{};
+				
+				auto arrayDoc = eachDoc << "$each" << open_array;
+				for (auto &[indexStr, unused]: index)
+				{
+					arrayDoc << indexStr;
+				}
+				arrayDoc << close_array;
+				
+				auto findDoc	= document{}									<< "type"	<< name							<< finalize;
+				auto updateDoc	= document{} << "$addToSet" << open_document	<< "Values" << eachDoc << close_document	<< finalize;
+				
+				db["Content"].update_one(findDoc.view(), updateDoc.view(), options);
+			};
+			
+			addIndices("Series",indexSeries);
+			addIndices("State",	indexState);
+			addIndices("Site",	indexSite);
+			addIndices("Sat",	indexSat);
 		}
 	}
 }
 
+
 void mongoCull(
-	GTime cullTime)
+	GTime time)
 {
-	if (mongo_ptr == nullptr)
+	for (auto mongo_ptr_ptr : {&localMongo_ptr, &remoteMongo_ptr})
 	{
-		MONGO_NOT_INITIALISED_MESSAGE;
-		return;
+		auto& mongo_ptr = *mongo_ptr_ptr;
+		
+		MongoOptions*	config_ptr;
+		if (mongo_ptr_ptr == &localMongo_ptr)		config_ptr = &acsConfig.localMongo;
+		else										config_ptr = &acsConfig.remoteMongo;
+		
+		auto& config = *config_ptr;
+		
+		if (config.cull_history == false)
+		{
+			continue;
+		}
+		
+		if (mongo_ptr == nullptr)
+		{
+			MONGO_NOT_INITIALISED_MESSAGE;
+			return;
+		}
+
+		Mongo& mongo = *mongo_ptr;
+
+		auto 						c		= mongo.pool.acquire();
+		mongocxx::client&			client	= *c;
+		mongocxx::database			db		= client[config.database];
+		
+		for (auto collection: {SSR_DB, REMOTE_DATA_DB})
+		{
+			mongocxx::collection		coll	= db[collection];
+
+			using bsoncxx::builder::basic::kvp;
+			
+			b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)(time - config.min_cull_age)).bigTime)};
+			
+			// Remove all documents that match a condition.
+			auto docSys		= document{}	<< SSR_EPOCH	
+												<< open_document
+												<< "$lt" << btime
+												<< close_document 
+											<< finalize;
+											
+			coll.delete_many(docSys.view());
+		}
 	}
-
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.mongo_database];
-	mongocxx::collection		coll	= db[SSR_DB];
-
-    using bsoncxx::builder::basic::kvp;
-	
-	bsoncxx::types::b_date btime{std::chrono::system_clock::from_time_t(cullTime.time)};
-	
-    // Remove all documents that match a condition.
-	auto docSys		= document{}	<< SSR_EPOCH	
-										<< open_document
-										<< "$lt" << btime
-										<< close_document 
-									<< finalize;
-									
-    coll.delete_many(docSys.view());
 }
 
+document entryToDocument(
+	DBEntry&	entry,
+	bool		type)
+{
+	// builder::document builds an empty BSON document
+	document doc = {};
+	
+	for (auto&[k,v]:entry.stringMap)		{auto& [e,b] = v; if (type == b)							doc << k << e;}
+	for (auto&[k,v]:entry.intMap)			{auto& [e,b] = v; if (type == b)							doc << k << e;}
+	for (auto&[k,v]:entry.doubleMap)		{auto& [e,b] = v; if (type == b)							doc << k << e;}
+	for (auto&[k,v]:entry.timeMap)			{auto& [e,b] = v; if (type == b)							doc << k << b_date{std::chrono::system_clock::from_time_t((time_t)((PTime)e).bigTime)};}
+	for (auto&[k,v]:entry.vectorMap)		{auto& [e,b] = v; if (type == b) for (int i=0;i<3;i++)		doc << k + std::to_string(i) << e[i];}
+	for (auto&[k,v]:entry.doubleArrayMap)	{auto& [e,b] = v; if (type == b) { auto builder = doc << k << open_array; for (auto& a : e) builder << a; builder << close_array; }}
+	for (auto&[k,v]:entry.boolArrayMap)		{auto& [e,b] = v; if (type == b) { auto builder = doc << k << open_array; for (auto& a : e) builder << a; builder << close_array; }}
+	
+	return doc;
+}
+
+
 void mongoOutput(
-	list<DBEntry>& dbEntryList)
+	vector<DBEntry>&	dbEntryList,
+	MongoOptions&		config,
+	string				collection)
 {	
+	Mongo* mongo_ptr;
+	
+	if (config.local)		mongo_ptr = localMongo_ptr;
+	else					mongo_ptr = remoteMongo_ptr;
+	
 	if (mongo_ptr == nullptr)
 	{
 		MONGO_NOT_INITIALISED_MESSAGE;
@@ -495,8 +636,8 @@ void mongoOutput(
 
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.mongo_database];
-	mongocxx::collection		coll	= db[SSR_DB];
+	mongocxx::database			db		= client[config.database];
+	mongocxx::collection		coll	= db[collection];
 
 	mongocxx::options::update	options;
 	options.upsert(true);
@@ -508,28 +649,15 @@ void mongoOutput(
 
 	bool update = false;
 
-    using bsoncxx::builder::basic::kvp;
+	using bsoncxx::builder::basic::kvp;
 	
 	for (auto& entry : dbEntryList)
 	{
 		// builder::document builds an empty BSON document
-		bsoncxx::builder::basic::document keys = {};
-		bsoncxx::builder::basic::document vals = {};
-		bsoncxx::builder::basic::document Vals = {};
+		auto keys = entryToDocument(entry, true);
+		auto vals = entryToDocument(entry, false);
 		
-		for (bool key : {false, true})
-		{
-			auto* ptr = &keys;
-			if (key)	ptr = &keys;
-			else		ptr = &vals;
-			auto& doc = *ptr;
-			
-			for (auto&[k,v]:entry.stringMap)	{auto& [e,b] = v; if (key == b)							doc.append(kvp(k,						e));}
-			for (auto&[k,v]:entry.intMap)		{auto& [e,b] = v; if (key == b)							doc.append(kvp(k,						e));}
-			for (auto&[k,v]:entry.doubleMap)	{auto& [e,b] = v; if (key == b)							doc.append(kvp(k,						e));}
-			for (auto&[k,v]:entry.timeMap)		{auto& [e,b] = v; if (key == b)							doc.append(kvp(k, bsoncxx::types::b_date {std::chrono::system_clock::from_time_t(e.time)}));}
-			for (auto&[k,v]:entry.vectorMap)	{auto& [e,b] = v; if (key == b) for (int i=0;i<3;i++)	doc.append(kvp(k + std::to_string(i),	e[i]));}
-		}
+		bsoncxx::builder::basic::document Vals = {};
 		
 		Vals.append(kvp("$set", vals));
 			
@@ -546,17 +674,29 @@ void mongoOutput(
 		bulk.execute();
 }
 
+/** Write states generating SSR corrections to Mongo DB
+*/
 void	prepareSsrStates(
 	Trace&				trace,			///< Trace to output to
 	KFState&			kfState,		///< Filter object to extract state elements from
 	GTime 				time)			///< Time of current epoch
 {
-	list<DBEntry>	dbEntryList;
-	
-	for (int i = 0; i < E_Sys::_size(); i++)
+	if	( acsConfig.localMongo.	output_ssr_precursors == false
+		&&acsConfig.remoteMongo.output_ssr_precursors == false)
 	{
-		E_Sys	sys			= E_Sys::_values()[i];
-		string	sysName		= E_Sys::_names() [i];		boost::algorithm::to_lower(sysName);
+		return;
+	}
+	
+	BOOST_LOG_TRIVIAL(info)
+	<< "Calculating SSR message precursors\n";
+		
+	vector<DBEntry>	dbEntryList;
+
+ 	time.bigTime = (long int) (time.bigTime + 0.5);	// time tags in mongo will be rounded up to whole sec
+	
+	for (E_Sys sys : E_Sys::_values())
+	{
+		string	sysName		= boost::algorithm::to_lower_copy((string) sys._to_string());
 
 		if (acsConfig.process_sys[sys] == false)
 			continue;
@@ -567,14 +707,14 @@ void	prepareSsrStates(
 		for (auto& Sat : sats)
 		{
 			// Create a dummy observation
-			Obs obs;
+			GObs obs;
 			obs.Sat = Sat;
 			
 			auto& satNav = nav.satNavMap[obs.Sat];
 			SatStat satStatDummy;
 			
 			obs.satStat_ptr	= &satStatDummy;
-			obs.satNav_ptr	= &satNav; // for satpos_ssr()
+			obs.satNav_ptr	= &satNav;
 
 			GTime teph = time;
 			
@@ -582,11 +722,11 @@ void	prepareSsrStates(
 			for (int tpredict = 0; tpredict <= acsConfig.ssrOpts.prediction_duration; tpredict += acsConfig.ssrOpts.prediction_interval)
 			{
 				GTime	pTime	= time + tpredict;
-				bool	pass	= false;
+				bool	pass	= true;
 				
 				//broadcast values
-				
-				pass = satpos(trace, pTime, pTime, obs, E_Ephemeris::BROADCAST,	E_OffsetType::APC, nav, false);
+				pass &= satclk(nullStream, pTime, pTime, obs, {E_Source::BROADCAST},					nav);
+				pass &= satpos(nullStream, pTime, pTime, obs, {E_Source::BROADCAST}, E_OffsetType::APC,	nav);
 				if (pass == false)
 				{
 					BOOST_LOG_TRIVIAL(info) 
@@ -595,68 +735,34 @@ void	prepareSsrStates(
 					continue;
 				}
 				
-				int			iode		= obs.iode;
+				int			iodeClk		= obs.iodeClk;
+				int			iodePos		= obs.iodePos;
+// 				int			iodcrc		= ?
 				Vector3d	brdcPos		= obs.rSat;
 				Vector3d	brdcVel		= obs.satVel;
-				double		brdcClkVal	= obs.dtSat[0] * CLIGHT;
+				double		brdcClkVal	= obs.satClk * CLIGHT;
 				
-				//precise clock
-				double	precClkVal	= 0;
-				switch (acsConfig.ssrOpts.clock_source)
+				pass = true;
+				pass &= satclk(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_sources,						nav, &kfState);
+				pass &= satpos(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_sources, E_OffsetType::APC,	nav, &kfState);
+				if (obs.satClk == INVALID_CLOCK_VALUE)
 				{
-					case E_Ephemeris::BROADCAST:
-					case E_Ephemeris::PRECISE:
-					case E_Ephemeris::SSR:
-					{
-						pass = satpos(trace, pTime, pTime, obs, acsConfig.ssrOpts.clock_source,	E_OffsetType::APC, nav, false);
-						
-						precClkVal = obs.dtSat[0] * CLIGHT;
-						
-						break;
-					}
-					case E_Ephemeris::KALMAN:
-					{
-						//currently can't predict clocks
-						if (tpredict == 0)
-						{
-							pass = kfState.getKFValue({.type = KF::SAT_CLOCK, .Sat = Sat}, precClkVal);
-						}
-						
-						break;
-					}
+					pass = false;
 				}
+
+				//precise clock
+				double	precClkVal = obs.satClk * CLIGHT;
 				
-				if (pass == false)
-				{
-					BOOST_LOG_TRIVIAL(info) 
-					<< Sat.id() << " failed ssrClk precise prediction.\n";
+				if (pass == false)	
+				{	
+					BOOST_LOG_TRIVIAL(info) << Sat.id() << " failed ssrprecise prediction.\n";	
 					
 					continue;
-				}
+				}	
 				
-				//precise orbit
-				switch (acsConfig.ssrOpts.ephemeris_source)
-				{
-					case E_Ephemeris::BROADCAST:
-					case E_Ephemeris::PRECISE:
-					case E_Ephemeris::SSR:
-					{
-						pass = satpos(trace, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_source,	E_OffsetType::APC, nav, false);
-						
-						break;
-					}
-				}
-				
-				if (pass == false)
-				{
-					BOOST_LOG_TRIVIAL(info) 
-					<< Sat.id() << " failed ssrEph precise prediction.\n";
-					break;
-				}
-			
-				Vector3d precPos = obs.rSat;
-				Vector3d precVel = obs.satVel;
-				
+				Vector3d	precPos = obs.rSat;
+				Vector3d	precVel = obs.satVel;
+				double		posVar	= obs.posVar;
 				
 				//output the valid entries
 				{
@@ -668,7 +774,7 @@ void	prepareSsrStates(
 					entry.doubleMap	[SSR_CLOCK SSR_BRDC	]	= {brdcClkVal,		false};
 					entry.doubleMap	[SSR_CLOCK SSR_PREC	]	= {precClkVal,		false};
 					entry.timeMap	[SSR_UPDATED		]	= {time,			false};
-					entry.intMap	[SSR_IODE			]	= {iode,			false};
+					entry.intMap	[SSR_IODE			]	= {iodeClk,			false};
 					
 					dbEntryList.push_back(entry);
 				}
@@ -683,16 +789,18 @@ void	prepareSsrStates(
 					entry.vectorMap	[SSR_VEL SSR_BRDC	]	= {brdcVel,			false};
 					entry.vectorMap	[SSR_POS SSR_PREC	]	= {precPos,			false};
 					entry.vectorMap	[SSR_VEL SSR_PREC	]	= {precVel,			false};
+					entry.doubleMap	[SSR_VAR			]	= {posVar,			false};
 					entry.timeMap	[SSR_UPDATED		]	= {time,			false};
-					entry.intMap	[SSR_IODE			]	= {iode,			false};
+					entry.intMap	[SSR_IODE			]	= {iodePos,			false};
 				
 					dbEntryList.push_back(entry);
 				}
 			}
 			
-			switch (acsConfig.ssrOpts.code_bias_source)
+			E_Source source = acsConfig.ssrOpts.code_bias_sources.front();
+			switch (source)
 			{
-				case E_Ephemeris::PRECISE:
+				case E_Source::PRECISE:
 				{
 					for (auto& obsCode : acsConfig.code_priorities[Sat.sys])
 					{
@@ -710,7 +818,7 @@ void	prepareSsrStates(
 						entry.timeMap	[SSR_EPOCH		]	= {time,					true};
 						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
 
-						entry.doubleMap	[SSR_BIAS		]	= {-bias,					false};
+						entry.doubleMap	[SSR_BIAS		]	= {bias,					false};
 						entry.doubleMap	[SSR_VAR		]	= {bvar,					false};
 						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
 					
@@ -719,7 +827,8 @@ void	prepareSsrStates(
 					
 					break;
 				}
-				case E_Ephemeris::SSR:
+				
+				case E_Source::SSR:
 				{
 					auto it = satNav.receivedSSR.ssrCodeBias_map.upper_bound(time);	
 					if (it == satNav.receivedSSR.ssrCodeBias_map.end())
@@ -745,11 +854,76 @@ void	prepareSsrStates(
 					
 					break;
 				}
+				
+				case E_Source::KALMAN:
+				{
+					for (auto& obsCode : acsConfig.code_priorities[Sat.sys])
+					{
+						double bias = 0;
+						double bvar = 0;
+						bool pass = queryBiasOutput(trace, time, Sat,"", obsCode, bias, bvar, CODE);
+						if (pass == false)
+						{
+							continue;
+						}
+						
+						DBEntry entry;
+						entry.stringMap	[SSR_DATA		]	= {SSR_CODE_BIAS,			true};
+						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
+						entry.timeMap	[SSR_EPOCH		]	= {time,					true};
+						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
+
+						entry.doubleMap	[SSR_BIAS		]	= {bias,					false};
+						entry.doubleMap	[SSR_VAR		]	= {bvar,					false};
+						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
+					
+						dbEntryList.push_back(entry);
+					}
+					
+					break;
+				}
 			}
 			
-			switch (acsConfig.ssrOpts.phase_bias_source)
+			source = acsConfig.ssrOpts.phase_bias_sources.front();
+			switch (source)
 			{
-				case E_Ephemeris::SSR:
+				case E_Source::PRECISE:
+				{
+					for (auto& obsCode : acsConfig.code_priorities[Sat.sys])
+					{
+						double bias = 0;
+						double bvar = 0;
+						bool pass = getBiasSinex(trace, time, Sat.id(), Sat, obsCode, PHAS, bias, bvar);
+						if (pass == false)
+						{
+							continue;
+						}
+						
+						DBEntry entry;
+						entry.stringMap	[SSR_DATA		]	= {SSR_PHAS_BIAS,			true};
+						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
+						entry.timeMap	[SSR_EPOCH		]	= {time,					true};
+						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
+				
+						entry.doubleMap	[SSR_BIAS		]	= {bias,					false};
+						entry.doubleMap	[SSR_VAR		]	= {bvar,					false};
+						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
+						
+						entry.intMap	["dispBiasConistInd"]	= {0,					false};
+						entry.intMap	["MWConistInd"      ]	= {1,					false};
+						entry.doubleMap	["yawAngle"         ]	= {0,					false};			/* To Do: reflect internal yaw calculation here */ 
+						entry.doubleMap	["yawRate"          ]	= {0,					false};			/* To Do: reflect internal yaw calculation here */ 
+						entry.intMap	["signalIntInd"     ]	= {1,					false};
+						entry.intMap	["signalWLIntInd"   ]	= {2,					false};
+						entry.intMap	["signalDisconCnt"  ]	= {0,					false};
+						
+						dbEntryList.push_back(entry);
+					}
+					
+					break;
+				}
+				
+				case E_Source::SSR:
 				{
 					auto it = satNav.receivedSSR.ssrPhasBias_map.upper_bound(time);
 					if (it == satNav.receivedSSR.ssrPhasBias_map.end())
@@ -777,7 +951,7 @@ void	prepareSsrStates(
 						entry.doubleMap	["yawAngle"         ]	= {ssrPhase.yawAngle,						false};
 						entry.doubleMap	["yawRate"          ]	= {ssrPhase.yawRate,						false};
 						entry.intMap	["signalIntInd"     ]	= {ssrPhaseChs[obsCode].signalIntInd,		false};
-						entry.intMap	["signalWidIntInd"  ]	= {ssrPhaseChs[obsCode].signalWidIntInd,	false};
+						entry.intMap	["signalWLIntInd"   ]	= {ssrPhaseChs[obsCode].signalWLIntInd,		false};
 						entry.intMap	["signalDisconCnt"  ]	= {ssrPhaseChs[obsCode].signalDisconCnt,	false};
 					
 						dbEntryList.push_back(entry);
@@ -786,14 +960,14 @@ void	prepareSsrStates(
 					break;
 				}
 				
-				case E_Ephemeris::KALMAN:
+				case E_Source::KALMAN:
 				{
 					double bias;
 					double bvar;
 				
-					if (queryBiasOutput(trace, Sat, E_AmbTyp::UCL1, bias, bvar))
+					for (auto& obsCode : acsConfig.code_priorities[sys])
+					if (queryBiasOutput(trace, time, Sat, "", obsCode, bias, bvar, PHAS))
 					{
-						E_ObsCode obsCode = acsConfig.clock_codesL1[sys];
 						DBEntry entry;
 						entry.stringMap	[SSR_DATA		]	= {SSR_PHAS_BIAS,			true};
 						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
@@ -809,31 +983,7 @@ void	prepareSsrStates(
 						entry.doubleMap	["yawAngle"         ]	= {0,					false};			/* To Do: reflect internal yaw calculation here */ 
 						entry.doubleMap	["yawRate"          ]	= {0,					false};			/* To Do: reflect internal yaw calculation here */ 
 						entry.intMap	["signalIntInd"     ]	= {1,					false};
-						entry.intMap	["signalWidIntInd"  ]	= {2,					false};
-						entry.intMap	["signalDisconCnt"  ]	= {0,					false};
-						
-						dbEntryList.push_back(entry);
-					}
-				
-					if (queryBiasOutput(trace, Sat, E_AmbTyp::UCL2, bias, bvar))
-					{
-						E_ObsCode obsCode = acsConfig.clock_codesL2[sys];
-						DBEntry entry;
-						entry.stringMap	[SSR_DATA		]	= {SSR_PHAS_BIAS,			true};
-						entry.stringMap	[SSR_SAT		]	= {Sat.id(),				true};
-						entry.timeMap	[SSR_EPOCH		]	= {time,					true};
-						entry.stringMap	[SSR_OBSCODE	]	= {obsCode._to_string(),	true};
-				
-						entry.doubleMap	[SSR_BIAS		]	= {bias,					false};
-						entry.doubleMap	[SSR_VAR		]	= {bvar,					false};
-						entry.timeMap	[SSR_UPDATED	]	= {time,					false};
-						
-						entry.intMap	["dispBiasConistInd"]	= {0,					false};
-						entry.intMap	["MWConistInd"      ]	= {1,					false};
-						entry.doubleMap	["yawAngle"         ]	= {0,					false};			/* To Do: reflect internal yaw calculation here */ 
-						entry.doubleMap	["yawRate"          ]	= {0,					false};			/* To Do: reflect internal yaw calculation here */ 
-						entry.intMap	["signalIntInd"     ]	= {1,					false};
-						entry.intMap	["signalWidIntInd"  ]	= {2,					false};
+						entry.intMap	["signalWLIntInd"   ]	= {2,					false};
 						entry.intMap	["signalDisconCnt"  ]	= {0,					false};
 						
 						dbEntryList.push_back(entry);
@@ -845,13 +995,221 @@ void	prepareSsrStates(
 		}
 	}
 	
-	if (acsConfig.output_mongo_rtcm_messages)
+	// IGS SSR Ionosphere
+	E_Source source = acsConfig.ssrOpts.ionosphere_sources.front();
+	switch (source)
 	{
-		BOOST_LOG_TRIVIAL(debug)
-		<< "Writing to mongo\n";
+		case E_Source::SSR:
+		case E_Source::KALMAN:
+		{
+			auto it = nav.ssrAtm.atmosGlobalMap.lower_bound(time);
+			if (it == nav.ssrAtm.atmosGlobalMap.end())
+				break;
+			
+			auto& [t0, atmGlob] = *it;
+			
+			if (fabs((atmGlob.time - time).to_double()) > acsConfig.ssrInOpts.global_vtec_valid_time)
+				break;
+			
+			if (atmGlob.layers.size()==0)
+				break;
+			
+			int nbasis=0;
+			for (auto& [hind, laydata]: atmGlob.layers)
+			for (auto& [bind, basdata]: laydata.sphHarmonic)
+			{
+				DBEntry entry;
+				entry.stringMap	[SSR_DATA		]	= {IGS_ION_ENTRY,			true};
+				entry.timeMap	[SSR_EPOCH		]	= {atmGlob.time,			true};
+				entry.intMap	[SSR_ION_IND	]	= {nbasis++,				true};
+				
+				entry.intMap	[IGS_ION_HGT	]	= {basdata.hind,			false};
+		 		entry.intMap	[IGS_ION_DEG	]	= {basdata.degree,			false};
+		 		entry.intMap	[IGS_ION_ORD	]	= {basdata.order,			false};
+				entry.intMap	[IGS_ION_PAR	]	= {basdata.parity,			false};
+				entry.doubleMap	[IGS_ION_VAL	]	= {basdata.coeffc,			false};
+				
+				dbEntryList.push_back(entry);
+			}
+			
+			{
+				DBEntry entry;
+				entry.stringMap	[SSR_DATA		]	= {IGS_ION_META,			true};
+				entry.timeMap	[SSR_EPOCH		]	= {atmGlob.time,			true};
+				
+				entry.intMap	[IGS_ION_NLAY	]	= {atmGlob.numberLayers,	false};
+				entry.intMap	[IGS_ION_NBAS	]	= {nbasis,					false};
+				entry.doubleMap	[IGS_ION_QLTY	]	= {atmGlob.vtecQuality,		false};
+				for (auto& [hind, laydata]: atmGlob.layers)
+				{
+					string hghStr = "Height_"+std::to_string(hind);
+					entry.doubleMap	[hghStr		]	= {laydata.height,			false};
+				}
+				dbEntryList.push_back(entry);
+			}
+		}
+	}
+	
+	if (acsConfig.localMongo.	output_ssr_precursors)		mongoOutput(dbEntryList, acsConfig.localMongo,	SSR_DB);
+	if (acsConfig.remoteMongo.	output_ssr_precursors)		mongoOutput(dbEntryList, acsConfig.remoteMongo,	SSR_DB);
+}
+
+void	outputMongoPredictions(
+	Trace&			trace,		///< Trace to output to
+	Orbits&			orbits,		///< Filter object to extract state elements from
+	GTime 			time,		///< Time of current epoch
+	MongoOptions&	config)
+{
+	vector<DBEntry>	dbEntryList;
+
+ 	time.bigTime = (long int) (time.bigTime + 0.5);	// time tags in mongo will be rounded up to whole sec
+	
+	for (auto& orbit : orbits)
+	{	
+		DBEntry entry;
+		entry.stringMap	[REMOTE_DATA		]	= {REMOTE_ORBIT,		true};
+		entry.stringMap	[REMOTE_SAT			]	= {orbit.Sat.id(),		true};
+		entry.timeMap	[REMOTE_EPOCH		]	= {time,				true};
 		
-		mongoCull(time - 300.0);
-		mongoOutput(dbEntryList);
+		entry.timeMap	[REMOTE_UPDATED		]	= {tsync,				false};
+		entry.vectorMap	[REMOTE_POS			]	= {orbit.pos,			false};
+		entry.vectorMap	[REMOTE_VEL			]	= {orbit.vel,			false};
+		
+		dbEntryList.push_back(entry);
+	}
+	
+	BOOST_LOG_TRIVIAL(debug)
+	<< "Writing to mongo\n";
+	
+	mongoOutput(dbEntryList, config, REMOTE_DATA_DB);
+}
+
+/** Write GPS/GAL/BDS/QZS ephemeris to Mongo DB
+*/
+void	mongoBrdcEph(
+	Eph&		eph)	///< GPS/GAL/BDS/QZS ephemeris to write
+{
+	auto& mongo_ptr = remoteMongo_ptr;
+	
+	if (mongo_ptr == nullptr)
+	{
+		MONGO_NOT_INITIALISED_MESSAGE;
+		
+		acsConfig.remoteMongo.output_rtcm_messages = false;
+		
+		return;
+	}
+
+	Instrument instrument(__FUNCTION__);
+
+	Mongo& mongo = *mongo_ptr;
+
+	auto 						c		= mongo.pool.acquire();
+	mongocxx::client&			client	= *c;
+	mongocxx::database			db		= client[acsConfig.remoteMongo.database];
+	mongocxx::collection		coll	= db	["Ephemeris"];
+
+	mongocxx::options::update	options;
+	options.upsert(true);
+
+	mongocxx::options::bulk_write bulk_opts;
+	bulk_opts.ordered(false);
+
+	auto bulk = coll.create_bulk_write(bulk_opts);
+
+	bool update = false;
+
+	bsoncxx::builder::basic::document keyDoc = {};
+
+	// Note the Satellite id is not set in rinex correctly as we a mixing GNSS systems.
+	keyDoc.append(kvp("Sat",			eph.Sat.id()																		));
+	keyDoc.append(kvp("Type",			eph.type._to_string()																));
+	keyDoc.append(kvp("ToeGPST",		b_date {std::chrono::system_clock::from_time_t((time_t)((PTime)eph.toe).bigTime)}	));
+	keyDoc.append(kvp("TocGPST",		b_date {std::chrono::system_clock::from_time_t((time_t)((PTime)eph.toc).bigTime)}	));
+
+	bsoncxx::builder::basic::document valDoc = {};
+
+	traceBrdcEphBody(valDoc, eph);
+
+	mongocxx::model::update_one  mongo_req(
+		keyDoc.extract(),
+
+		document{}
+			<< "$set" << valDoc
+			<< finalize
+		);
+	
+	mongo_req.upsert(true);
+	bulk.append(mongo_req);
+	update = true;
+
+	if (update)
+	{
+		bulk.execute();
 	}
 }
 
+/** Write GLO ephemeris to Mongo DB
+*/
+void	mongoBrdcEph(
+	Geph&		geph)	///< GLO ephemeris to write
+{
+	auto& mongo_ptr = remoteMongo_ptr;
+	
+	if (mongo_ptr == nullptr)
+	{
+		MONGO_NOT_INITIALISED_MESSAGE;
+		
+		acsConfig.remoteMongo.output_rtcm_messages = false;
+		
+		return;
+	}
+
+	Instrument instrument(__FUNCTION__);
+
+	Mongo& mongo = *mongo_ptr;
+
+	auto 						c		= mongo.pool.acquire();
+	mongocxx::client&			client	= *c;
+	mongocxx::database			db		= client[acsConfig.remoteMongo.database];
+	mongocxx::collection		coll	= db	["Ephemeris"];
+
+	mongocxx::options::update	options;
+	options.upsert(true);
+
+	mongocxx::options::bulk_write bulk_opts;
+	bulk_opts.ordered(false);
+
+	auto bulk = coll.create_bulk_write(bulk_opts);
+
+	bool update = false;
+
+	bsoncxx::builder::basic::document keyDoc = {};
+
+	// Note the Satellite id is not set in rinex correctly as we a mixing GNSS systems.
+	keyDoc.append(kvp("Sat",			geph.Sat.id()																		));
+	keyDoc.append(kvp("Type",			geph.type._to_string()																));
+	keyDoc.append(kvp("ToeGPST",		b_date {std::chrono::system_clock::from_time_t((time_t)((PTime)geph.toe).bigTime)}	));
+	keyDoc.append(kvp("TofGPST",		b_date {std::chrono::system_clock::from_time_t((time_t)((PTime)geph.tof).bigTime)}	));
+
+	bsoncxx::builder::basic::document valDoc = {};
+
+	traceBrdcEphBody(valDoc, geph);
+
+	mongocxx::model::update_one  mongo_req(
+		keyDoc.extract(),
+
+		document{}
+			<< "$set" << valDoc
+			<< finalize
+		);
+
+	mongo_req.upsert(true);
+	bulk.append(mongo_req);
+	update = true;
+
+	if (update)
+	{
+		bulk.execute();
+	}
+}

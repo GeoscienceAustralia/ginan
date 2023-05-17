@@ -1,4 +1,4 @@
-from gn_lib.gn_datetime import GPSDate
+from gnssanalysis.gn_datetime import GPSDate
 import numpy as np
 
 def test_gpsdate():

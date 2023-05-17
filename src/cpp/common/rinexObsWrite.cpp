@@ -16,11 +16,11 @@ using std::pair;
 #include "rinexObsWrite.hpp"
 #include "rinexClkWrite.hpp"
 #include "observations.hpp"
-#include "streamTrace.hpp"
 #include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
+#include "trace.hpp"
 
 struct RinexOutput
 {
@@ -28,7 +28,7 @@ struct RinexOutput
 	long headerObsPos	= 0;
 	long headerTimePos	= 0;
 	
-	map<E_Sys, list<pair<E_ObsCode, E_ObsDesc>>> codesPerSys;
+	map<E_Sys, vector<pair<E_ObsCode, E_ObsDesc>>> codesPerSys;
 };
 
 map<string, RinexOutput> filenameObsFileDataMap;
@@ -129,10 +129,10 @@ void updateRinexObsHeader(
 
 	if (rinexOutput.headerTimePos == 0)
 	{
-		string tsys = "GPS"; // PEA internal time is GPS.
-		double	ep[6];
-		time2epoch(firstObsTime, ep);
+		string timeSysStr = "GPS"; // PEA internal time is GPS.
 
+		GEpoch ep = firstObsTime;
+		
 		tracepdeex(0, rinexStream, "%10.3f%50s%-20s\n",
 			acsConfig.epoch_interval,
 			"",
@@ -145,7 +145,7 @@ void updateRinexObsHeader(
 			ep[3],
 			ep[4],
 			ep[5],
-			tsys,
+			timeSysStr,
 			"TIME OF FIRST OBS");
 
 		rinexOutput.headerTimePos = rinexStream.tellp();
@@ -158,14 +158,14 @@ void updateRinexObsHeader(
 			ep[3],
 			ep[4],
 			ep[5],
-			tsys,
+			timeSysStr,
 			"TIME OF LAST OBS");
 	}
 }
 
 void writeRinexObsHeader(
 	RinexOutput&		fileData,
-	Sinex_stn_snx_t&	snx,
+	SinexRecData&		snx,
 	std::fstream&		rinexStream,
 	GTime&				firstObsTime,
 	const double		rnxver)
@@ -173,17 +173,14 @@ void writeRinexObsHeader(
 	fileData.headerTimePos = 0;
 
 	// Write the RINEX header.
-	GTime now = utc2gpst(timeget());
+	GTime now = timeGet();
 
-	char tempStr[20];
-	time2str(now, tempStr, 0);
-
-	string timeDate(tempStr);
+	string timeDate = now.to_string();
 	boost::replace_all(timeDate, "/", "");
 	boost::replace_all(timeDate, ":", "");
 	timeDate += " UTC";
 
-	string prog = "PEA v1";
+	string prog = "PEA v2";
 	string runby = "Geoscience Australia";
 
 	tracepdeex(0, rinexStream, "%9.2f%-11s%-20s%-20s%-20s\n",
@@ -200,11 +197,11 @@ void writeRinexObsHeader(
 		"PGM / RUN BY / DATE");
 
 	tracepdeex(0, rinexStream, "%-60.60s%-20s\n",
-		snx.sitecode,
+		snx.id_ptr->sitecode,
 		"MARKER NAME");
 
 	tracepdeex(0, rinexStream, "%-20.20s%-40.40s%-20s\n",
-		snx.monuid,
+		snx.id_ptr->domes,
 		"",
 		"MARKER NUMBER");
 
@@ -217,14 +214,14 @@ void writeRinexObsHeader(
 		"OBSERVER / AGENCY");
 
 	tracepdeex(0, rinexStream, "%-20.20s%-20.20s%-20.20s%-20s\n",
-		snx.recsn,
-		snx.rectype,
-		snx.recfirm,
+		snx.rec_ptr->sn,
+		snx.rec_ptr->type,
+		snx.rec_ptr->firm,
 		"REC # / TYPE / VERS");
 
 	tracepdeex(0, rinexStream, "%-20.20s%-20.20s%-20.20s%-20s\n",
-		snx.antsn,
-		snx.anttype,
+		snx.ant_ptr->sn,
+		snx.ant_ptr->type,
 		"",
 		"ANT # / TYPE");
 
@@ -236,9 +233,9 @@ void writeRinexObsHeader(
 		"APPROX POSITION XYZ");
 
 	tracepdeex(0, rinexStream, "%14.4f%14.4f%14.4f%-18s%-20s\n",
-		snx.ecc[2],
-		snx.ecc[1],
-		snx.ecc[0],
+		snx.ecc_ptr->ecc[2],
+		snx.ecc_ptr->ecc[1],
+		snx.ecc_ptr->ecc[0],
 		"",
 		"ANTENNA: DELTA H/E/N");
 
@@ -258,9 +255,8 @@ void writeRinexObsBody(
 	GTime&				time,
 	map<E_Sys, bool>&	sysMap)
 {
-	string tsys = "GPS"; // PEA internal time is GPS.
-	double	ep[6];
-	time2epoch(time, ep);
+	GEpoch	ep = time;
+	string timeSysStr = "GPS"; // PEA internal time is GPS.
 
 	rinexStream.seekp(fileData.headerTimePos);
 	tracepdeex(0, rinexStream, "  %04.0f%6.0f%6.0f%6.0f%6.0f%13.7f     %-12s%-20s\n",
@@ -270,12 +266,23 @@ void writeRinexObsBody(
 		ep[3],
 		ep[4],
 		ep[5],
-		tsys,
+		timeSysStr,
 		"TIME OF LAST OBS");
 
 	// Write the RINEX body.
 	rinexStream.seekp(0, std::ios::end);
 
+	int count = 0;
+	for (auto& obs : only<GObs>(obsList))
+	{
+		if (sysMap[obs.Sat.sys] == false)
+		{
+			continue;
+		}
+		
+		count++;
+	}
+	
 	// flag epoch flag (0:ok,1:power failure,>1:event flag)
 	int		flag = 0;
 	tracepdeex(0, rinexStream, "> %04.0f %02.0f %02.0f %02.0f %02.0f%11.7f  %d%3d%21s\n",
@@ -286,10 +293,10 @@ void writeRinexObsBody(
 		ep[4],
 		ep[5],
 		flag,
-		obsList.size(),
+		count,
 		"");
 
-	for (auto& obs : obsList)
+	for (auto& obs : only<GObs>(obsList))
 	{
 		if (sysMap[obs.Sat.sys] == false)
 		{
@@ -324,8 +331,7 @@ void writeRinexObsBody(
 					foundObsPair = true;
 				}
 
-				double sn_raw = (sig.snr - 0.5) / 4;
-				int sn_rnx = std::min(std::max((int)std::round(sn_raw / 6.0), 1), 9);
+				int sn_rnx = std::min(std::max((int)std::round(sig.snr / 6.0), 1), 9);
 
 				switch (obsDesc)
 				{
@@ -346,8 +352,8 @@ void writeRinexObsBody(
 						break;
 
 					case E_ObsDesc::S:
-						if (sn_raw == 0)	tracepdeex(0, rinexStream, "%14.3s  ", "");
-						else				tracepdeex(0, rinexStream, "%14.3f  ", sn_raw);
+						if (sig.snr == 0)	tracepdeex(0, rinexStream, "%14.3s  ", "");
+						else				tracepdeex(0, rinexStream, "%14.3f  ", sig.snr);
 						break;
 
 					default:
@@ -366,13 +372,13 @@ void writeRinexObsBody(
 	}
 }
 
-bool updateRinexObsOutput(
+bool updateRinexObsOutput(			
 	RinexOutput&		rinexOutput,	///< Information for writing file.
 	ObsList&			obsList,		///< List of observation data
 	map<E_Sys, bool>	sysMap)			///< Options to enable outputting specific systems
 {
 	bool foundNew = false;
-	for (auto& obs : obsList)
+	for (auto& obs : only<GObs>(obsList))
 	{
 		E_Sys sys = obs.Sat.sys;
 		
@@ -394,12 +400,11 @@ bool updateRinexObsOutput(
 			
 			code = sig.code;
 			
-			double sn_raw = (sig.snr - 0.5) / 4;	//todo aaron, check this
 			code = sig.code;
 			type = E_ObsDesc::C;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.P 	!= 0	&&acsConfig.rinex_obs_print_C_code)		{	foundNew = true;	codes.push_back(codePair);	}	
 			type = E_ObsDesc::L;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.L		!= 0	&&acsConfig.rinex_obs_print_L_code)		{	foundNew = true;	codes.push_back(codePair);	}		
 			type = E_ObsDesc::D;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.D		!= 0	&&acsConfig.rinex_obs_print_D_code)		{	foundNew = true;	codes.push_back(codePair);	}		
-			type = E_ObsDesc::S;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sn_raw	!= 0	&&acsConfig.rinex_obs_print_S_code)		{	foundNew = true;	codes.push_back(codePair);	}	
+			type = E_ObsDesc::S;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.snr	!= 0	&&acsConfig.rinex_obs_print_S_code)		{	foundNew = true;	codes.push_back(codePair);	}	
 		}
 
 		if (codes.size() == 0)
@@ -411,7 +416,7 @@ bool updateRinexObsOutput(
 
 void writeRinexObsFile(
 	RinexOutput&		fileData,
-	Sinex_stn_snx_t&	snx,
+	SinexRecData&		snx,
 	string				fileName,
 	ObsList&			obsList,
 	GTime&				time,
@@ -447,17 +452,17 @@ void writeRinexObsFile(
 map<string, string> rinexObsFilenameMap;
 
 void writeRinexObs(
-	string&				id,
-	Sinex_stn_snx_t&	snx,
-	GTime&				time,
-	ObsList&			obsList,
-	const double		rnxver)
+	string&			id,
+	SinexRecData&	snx,
+	GTime&			time,
+	ObsList&		obsList,
+	const double	rnxver)
 {
 	Instrument instrument(__FUNCTION__);
 	
 	string filename = acsConfig.rinex_obs_filename;
 	
-	auto filenameSysMap = getSysOutputFilenames(filename, time, id);
+	auto filenameSysMap = getSysOutputFilenames(filename, time, true, id);
 	
 	for (auto [filename, sysMap] : filenameSysMap)
 	{

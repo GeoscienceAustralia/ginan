@@ -1,17 +1,13 @@
 
-#ifndef ___COMMON_HPP__
-#define ___COMMON_HPP__
+#pragma once
 
 #include <memory>
 
 /* constants/macros */
 #define SQR(x)      ((x)*(x))
-#define POW2(x)     ((x)*(x))
 #define POW4(x)     ((x)*(x)*(x)*(x))
 #define SQRT(x)     ((x)<=0.0?0.0:sqrt(x))
 #define ROUND(x)    (int)floor((x)+0.5)
-#define MAX(x,y)    ((x)>(y)?(x):(y))
-#define MIN(x,y)    ((x)<(y)?(x):(y))
 #define SWAP(x,y)   do {double tmp_; tmp_=x; x=y; y=tmp_;} while (0)
 #define SGN(x)      ((x)<=0.0?-1.0:1.0)
 
@@ -20,6 +16,12 @@
 #include "erp.hpp"
 #include "enums.h"
 
+using std::multimap;
+using std::vector;
+using std::pair;
+
+struct SatSys;
+struct SatPos;
 
 struct Average
 {
@@ -36,107 +38,232 @@ void lowPassFilter(
 
 /* coordinates transformation */
 
-void ecef2enu(const double *pos, const double *r, double *e);
-void enu2ecef(const double *pos, const double *e, double *r);
-void xyz2enu (const double *pos, double *E);
+void wrapPlusMinusPi(
+	double&	angle);
 
-void enu2ecef(
-	const	double*		pos,
-	const	Vector3d&	e,
-			Vector3d&	r);
-
-
-//forward declarations
-struct prcopt_t;
-struct StationOptions;
-struct Obs;
-struct SatSys;
-struct ERPValues;
-struct IERS;
-
-void eci2ecef(
-	const GTime		tutc,	
-	ERPValues&		erpv,	
-	Matrix3d&		U,		
-	double*			gmst	= nullptr,		
-	Matrix3d*		dU		= nullptr);
-
-void eci2ecef_sofa(
-	const double	mjdUTC,
-	IERS&			iers,	
-	Matrix3d&		U,		
-	Matrix3d&		dU);
-
-void eci2ecef_sofa(
-	const double	mjdUTC,		
-	IERS&			iers,	
-	Vector3d&		rSat_eci,	
-	Vector3d&		vSat_eci,	
-	Vector3d&		rSat_ecef,	
-	Vector3d&		vSat_ecef);	
-
-void ecef2eci_sofa(
-	const double	mjdUTC,		
-	IERS&			iers,	
-	Vector3d&		rSat_ecef,	
-	Vector3d&		vSat_ecef,	
-	Vector3d&		rSat_eci,	
-	Vector3d&		vSat_eci);	
-
-
-
-Matrix3d R_x(
-	double    Angle);
-
-Matrix3d R_y(
-	double    Angle);
-
-Matrix3d R_z(
-	double    Angle);
-
-
-void ecef2pos(const double *r, double *pos);
-void ecef2pos(Vector3d& r, double *pos);
-void pos2ecef(const double *pos, Vector3d& r);
+void wrap2Pi(
+	double&	angle);
 
 double geodist(Vector3d& rs, Vector3d& rr, Vector3d& e);
 
 double sagnac(
-	Vector3d& rSource,
-	Vector3d& rDest);
+	Vector3d&	rSource,
+	Vector3d&	rDest,
+	Vector3d	vel = Vector3d::Zero());
 
 
-/* satellites, systems, codes functions */
-
-double satazel(const double *pos, const double *e, double *azel);
-
-unsigned int getbitu	(const unsigned char *buff, int  pos, int len);
-int          getbits	(const unsigned char *buff, int  pos, int len);
-unsigned int getbituInc	(const unsigned char *buff, int& pos, int len);
-int          getbitsInc	(const unsigned char *buff, int& pos, int len);
-int setbitsInc(unsigned char *buff,int pos,int len,const int var);
-int setbituInc(unsigned char *buff,int pos,int len,const unsigned int var);
+double satazel(
+	const	VectorPos&	pos, 
+	const	VectorEcef&	e, 
+			double*		azel);
 
 unsigned int crc24q (const unsigned char *buff, int len);
 
-/* positioning models */
 void dops(int ns, const double *azel, double elmin, double *dop);
 
 int  readblq(string file, const char *sta, double *otlDisplacement);
 
-
-int satexclude(SatSys& sat, E_Svh svh);
-
-extern int		epoch;
-extern GTime	tsync;
+bool satFreqs(
+	E_Sys		sys,
+	E_FType&	frq1,
+	E_FType&	frq2,
+	E_FType&	frq3);
 
 int sisaToSva(double sisa);
 double svaToSisa(int sva);
+int uraToSva(double ura);
 double svaToUra(int sva);
+
 void replaceTimes(
 	string&						str,		///< String to replace macros within
 	boost::posix_time::ptime	time_time);	///< Time to use for replacements
 
 void updatenav(
-	Obs&	obs);
-#endif
+	SatPos&	obs);
+
+
+
+/** An iterator that trys to cast elements to the desired type before using them
+ */
+template<
+	typename OUTTYPE,
+	typename INTYPE, 
+	typename VOIDTYPE>
+struct IteratorType
+{
+	typename INTYPE::iterator	ptr_ptr;
+	typename INTYPE::iterator	endPtr_ptr;
+	
+	IteratorType(
+		typename INTYPE::iterator	startPtr_ptr,
+		typename INTYPE::iterator	endPtr_ptr)
+	:	ptr_ptr		(startPtr_ptr),
+		endPtr_ptr	(endPtr_ptr)
+	{
+		ptr_ptr--;
+		incrementUntilGood();
+	}
+	
+	bool operator !=(IteratorType rhs) 
+	{
+		return ptr_ptr != rhs.ptr_ptr;
+	}
+	
+	OUTTYPE& operator*()
+	{
+		return static_cast<OUTTYPE&>(**ptr_ptr);
+	}
+	
+	void incrementUntilGood()
+	{
+		while (1)
+		{
+			++ptr_ptr;
+			if (ptr_ptr == endPtr_ptr)				
+				return;
+			
+			try
+			{
+				(void) dynamic_cast<OUTTYPE&>(**ptr_ptr);
+				//no throw, sucess, stop
+				return;
+			}
+			catch(...){}
+		}
+	}
+	
+	void operator++()
+	{
+		incrementUntilGood();
+	}
+};
+
+/** An iterator that trys to cast elements to the desired type before using them
+ */
+template<
+	typename OUTTYPE, 
+	typename INTYPE, 
+	typename KEYTYPE>
+struct MapIteratorType
+{
+	typename INTYPE::iterator	ptr_ptr;
+	typename INTYPE::iterator	endPtr_ptr;
+	
+	MapIteratorType(
+		typename INTYPE::iterator	startPtr_ptr,
+		typename INTYPE::iterator	endPtr_ptr)
+	:	ptr_ptr		(startPtr_ptr),
+		endPtr_ptr	(endPtr_ptr)
+	{
+		if (ptr_ptr == endPtr_ptr)					
+			return;
+		
+		try
+		{
+			(void) dynamic_cast<OUTTYPE&>(*ptr_ptr->second);
+			//no throw, sucess, stop
+			return;
+		}
+		catch(...){}
+		
+		incrementUntilGood();
+	}
+	
+	bool operator !=(MapIteratorType rhs) 
+	{
+		return ptr_ptr != rhs.ptr_ptr;
+	}
+	
+	const pair<const KEYTYPE&, OUTTYPE&> operator*()
+	{
+		auto& thing = *ptr_ptr->second;
+		return {ptr_ptr->first, dynamic_cast<OUTTYPE&>(thing)};
+	}
+	
+	void incrementUntilGood()
+	{
+		while (1)
+		{
+			++ptr_ptr;
+			if (ptr_ptr == endPtr_ptr)					
+				return;
+			
+			try
+			{
+				(void) dynamic_cast<OUTTYPE&>(*ptr_ptr->second);
+				//no throw, sucess, stop
+				return;
+			}
+			catch(...){}
+		}
+	}
+	
+	void operator++()
+	{
+		incrementUntilGood();
+	}
+};
+
+/** An object just for templating the other functions without over-verbosity
+ */
+template <
+	template<typename,typename,typename> typename	ITERATOR, 
+	typename										TYPE,
+	typename										KEYTYPE,
+	typename										INTYPE>
+struct Typer
+{
+	INTYPE& baseContainer;
+	
+	Typer(
+		INTYPE& baseContainer)
+	: baseContainer (baseContainer)
+	{
+		
+	}
+
+			ITERATOR<TYPE, INTYPE, KEYTYPE>		begin()			{ return ITERATOR<TYPE, INTYPE, KEYTYPE>(baseContainer.begin(),	baseContainer.end());	}
+	const	ITERATOR<TYPE, INTYPE, KEYTYPE>		begin()	const	{ return ITERATOR<TYPE, INTYPE, KEYTYPE>(baseContainer.begin(),	baseContainer.end());	}
+			ITERATOR<TYPE, INTYPE, KEYTYPE>		end()			{ return ITERATOR<TYPE, INTYPE, KEYTYPE>(baseContainer.end(),	baseContainer.end());	}
+    const	ITERATOR<TYPE, INTYPE, KEYTYPE>		end()	const	{ return ITERATOR<TYPE, INTYPE, KEYTYPE>(baseContainer.end(),	baseContainer.end());	}
+};
+
+
+/** Use only a subset of a vector that can be cast to a desired type
+ */
+template<
+	typename OUT,
+	typename ENTRY
+	>
+Typer<
+	IteratorType,	
+	OUT, 
+	void, 
+	vector<ENTRY>> 
+only(
+	vector<ENTRY>& in) 
+{
+	return Typer<IteratorType,		OUT,	void,		vector<ENTRY>				>(in);
+}
+
+
+/** Use only a subset of a map that can be cast to a desired type
+ */
+template<
+	typename OUT, 
+	typename KEYTYPE, 
+	typename VALUE>
+Typer<
+	MapIteratorType,	
+	OUT, 
+	KEYTYPE, 
+	multimap<KEYTYPE, VALUE>> 
+only(
+	multimap<KEYTYPE, VALUE>& in) 
+{
+	return Typer<MapIteratorType,	OUT,	KEYTYPE,	multimap<KEYTYPE, VALUE>	>(in);
+}
+
+
+extern int		epoch;
+extern GTime	tsync;

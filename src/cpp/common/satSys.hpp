@@ -1,6 +1,5 @@
 
-#ifndef __SATSYS_HPP_
-#define __SATSYS_HPP_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -13,36 +12,18 @@ using std::map;
 
 #include "enums.h"
 
-#define MINPRNGPS   1                   /* min satellite PRN number of GPS */
-#define MAXPRNGPS   32                  /* max satellite PRN number of GPS */
-#define NSATGPS     (MAXPRNGPS-MINPRNGPS+1) /* number of GPS satellites */
+#define RAW_SBAS_PRN_OFFSET	119
+#define RAW_QZSS_PRN_OFFSET	192
+#define QZS_SAIF_PRN_OFFSET	182
+
 #define NSYSGPS     1
-
-#define MINPRNGLO   1                   /* min satellite slot number of GLONASS */
-#define MAXPRNGLO   27                  /* max satellite slot number of GLONASS */
-#define NSATGLO     (MAXPRNGLO-MINPRNGLO+1) /* number of GLONASS satellites */
-
-#define MINPRNGAL   1                   /* min satellite PRN number of Galileo */
-#define MAXPRNGAL   30                  /* max satellite PRN number of Galileo */
-#define NSATGAL    (MAXPRNGAL-MINPRNGAL+1) /* number of Galileo satellites */
-
-#define MINPRNQZS   193                 /* min satellite PRN number of QZSS */
-#define MAXPRNQZS   199                 /* max satellite PRN number of QZSS */
-#define MINPRNQZS_S 183                 /* min satellite PRN number of QZSS SAIF */
-#define MAXPRNQZS_S 189                 /* max satellite PRN number of QZSS SAIF */
-#define NSATQZS     (MAXPRNQZS-MINPRNQZS+1) /* number of QZSS satellites */
-
-#define MINPRNBDS   1                   /* min satellite sat number of BeiDou */
-#define MAXPRNBDS   35                  /* max satellite sat number of BeiDou */
-#define NSATBDS     (MAXPRNBDS-MINPRNBDS+1) /* number of BeiDou satellites */
-
-#define MINPRNLEO   1                   /* min satellite sat number of LEO */
-#define MAXPRNLEO   10                  /* max satellite sat number of LEO */
-#define NSATLEO     (MAXPRNLEO-MINPRNLEO+1) /* number of LEO satellites */
-
-#define MINPRNSBS   120                 /* min satellite PRN number of SBAS */
-#define MAXPRNSBS   142                 /* max satellite PRN number of SBAS */
-#define NSATSBS     (MAXPRNSBS-MINPRNSBS+1) /* number of SBAS satellites */
+#define NSATGPS   	32						///< potential number of GPS satellites, PRN goes from 1 to this number
+#define NSATGLO   	27						///< potential number of GLONASS satellites, PRN goes from 1 to this number
+#define NSATGAL   	36						///< potential number of Galileo satellites, PRN goes from 1 to this number
+#define NSATQZS   	7						///< potential number of QZSS satellites, PRN goes from 1 to this number
+#define NSATLEO		78                  	///< potential number of LEO satellites, PRN goes from 1 to this number
+#define NSATBDS   	61						///< potential number of Beidou satellites, PRN goes from 1 to this number
+#define NSATSBS   	39						///< potential number of SBAS satellites, PRN goes from 1 to this number
 
 /** Object holding satellite id, and providing related functions
 */
@@ -66,22 +47,6 @@ struct SatSys
 		string 	svn;
 	};
 
-
-	/** Returns the bias group associated with this satellite.
-	* Receivers may combine multiple satellite systems on a single internal clock, each with their own bias.
-	* The biases defined by this function are the basis for the different clocks calculated in this software
-	*/
-	short int biasGroup()	const
-	{
-		switch (sys)
-		{
-			default:			return E_BiasGroup::GPS;
-			case E_Sys::GLO:	return E_BiasGroup::GLO;
-			case E_Sys::GAL:	return E_BiasGroup::GAL;
-			case E_Sys::BDS:	return E_BiasGroup::BDS;
-		}
-	}
-
 #define SBAS_CHAR 's'
 	/** Returns the character used as a prefix for this system.
 	*/
@@ -101,14 +66,7 @@ struct SatSys
 		}
 	}
 
-	/** Sets a 4 character c_string of this satellite's id.
-	*/
-	void getId(char* str) const
-	{
-		char sys_c = sysChar();
-		if (sys_c == SBAS_CHAR)		sprintf(str, "%03d", 			prn);
-		else						sprintf(str, "%c%02d",	sys_c,	prn);
-	}
+	void getId(char* str) const;
 
 	/** Returns a unique id for this satellite (for use in hashes)
 	*/
@@ -119,46 +77,28 @@ struct SatSys
 		return intval;
 	}
 
-	static map<SatSys, SatData> SatDataMap;
+	static map<SatSys, SatData> satDataMap;
 
 	void setBlockType(
 		string blockType)
 	{
-		SatDataMap[*this].block = blockType;
+		satDataMap[*this].block = blockType;
 	}
 
 	void setSvn(
 		string svn)
 	{
-		SatDataMap[*this].svn = svn;
+		satDataMap[*this].svn = svn;
 	}
 
 	string blockType() const
 	{
-		auto iterator = SatDataMap.find(*this);
-		if (iterator == SatDataMap.end())
-		{
-			return "";
-		}
-		else
-		{
-			auto& satData = iterator->second;
-			return satData.block;
-		}
+		return satDataMap[*this].block;
 	}
 
 	string svn() const
 	{
-		auto iterator = SatDataMap.find(*this);
-		if (iterator == SatDataMap.end())
-		{
-			return "";
-		}
-		else
-		{
-			auto& satData = iterator->second;
-			return satData.svn;
-		}
+		return satDataMap[*this].svn;
 	}
 
 	/** Constructs a SatSys object from it's hash uid
@@ -174,8 +114,11 @@ struct SatSys
 	string id() const
 	{
 		char cstring[5];
+		
 		getId(cstring);
+		
 		string str = cstring;
+		
 		if (str != "-00")
 			return str;
 		else
@@ -208,35 +151,33 @@ struct SatSys
 
 	/** Constructs a SatSys object from a c_string id
 	*/
-	SatSys(const char *id)
+	SatSys(const char* id)
 	{
 		char code;
 		int prn_;
 
-		if (sscanf(id,"%d",&prn_)==1)
+		if (sscanf(id, "%d", &prn_) == 1)
 		{
 			prn = prn_;
-			if      (MINPRNGPS <= prn && prn <= MAXPRNGPS) sys = E_Sys::GPS;
-			else if (MINPRNSBS <= prn && prn <= MAXPRNSBS) sys = E_Sys::SBS;
-			else if (MINPRNQZS <= prn && prn <= MAXPRNQZS) sys = E_Sys::QZS;
-			else return;
-			return;
+			if (1 <= prn && prn <= NSATGPS) {	sys = E_Sys::GPS;	return;}
+			
+			prn = prn_ - RAW_SBAS_PRN_OFFSET;
+			if (1 <= prn && prn <= NSATSBS) {	sys = E_Sys::SBS;	return;}
+			
+			prn = prn_ - RAW_QZSS_PRN_OFFSET;
+			if (1 <= prn && prn <= NSATQZS) {	sys = E_Sys::QZS;	return;}
+			
+			prn = prn_;							sys = E_Sys::NONE;	return;
 		}
-		int found = sscanf(id,"%c%d",&code,&prn_);
+		
+		int found = sscanf(id, "%c%d", &code, &prn_);
 		if (found > 0)
 		{
 			sys = sysFromChar(code);
-			
-			switch (code)
-			{
-// 				case 'J': sys = E_Sys::QZS;	prn_ += PRN_OFFSET_QZS;		break;	//todo Eugene: check if affects other code
-// 				case 'S': sys = E_Sys::SBS;	prn_ += PRN_OFFSET_SBS;		break;
-				default:												break;
-			}
 		}
+		
 		if (found > 1)
 			prn = prn_;
-		return;
 	}
 
 	/* Returns a string of this satellite's system id
@@ -276,4 +217,3 @@ namespace std
 vector<SatSys> getSysSats(
 	E_Sys	targetSys);
 
-#endif

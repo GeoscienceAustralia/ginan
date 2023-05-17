@@ -1,6 +1,5 @@
 
-#ifndef __RTS_SMOOTHING_HPP__
-#define __RTS_SMOOTHING_HPP__
+#pragma once
 
 #include <map>
 #include <string>
@@ -19,4 +18,3 @@ KFState RTS_Process(
 	StationMap*	stationMap_ptr	= nullptr);
 
 
-#endif

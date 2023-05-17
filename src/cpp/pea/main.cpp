@@ -18,14 +18,18 @@ using namespace std::literals::chrono_literals;
 using std::this_thread::sleep_for;
 using std::chrono::system_clock;
 using std::chrono::time_point;
+using std::make_unique;
+using std::make_shared;
 using std::string;
 
 #include <boost/log/utility/setup/console.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 
+
+
 #include "minimumConstraints.hpp"
-#include "ntripSourceTable.hpp"
 #include "networkEstimator.hpp"
 #include "peaCommitVersion.h"
 #include "ntripBroadcast.hpp"
@@ -37,22 +41,34 @@ using std::string;
 #include "preprocessor.hpp"
 #include "ntripSocket.hpp"
 #include "rtcmEncoder.hpp"
+#include "sinexParser.hpp"
+#include "streamRinex.hpp"
 #include "corrections.hpp"
-#include "forceModels.hpp"
-#include "streamTrace.hpp"
+#include "coordinates.hpp"
+#include "staticField.hpp"
+#include "geomagField.hpp"
+#include "binaryStore.hpp"
+#include "orbexWrite.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
 #include "instrument.hpp"
+#include "streamFile.hpp"
+#include "streamRtcm.hpp"
+#include "ephPrecise.hpp"
 #include "acsConfig.hpp"
-#include "acsStream.hpp"
 #include "testUtils.hpp"
+#include "streamUbx.hpp"
+#include "streamSp3.hpp"
+#include "streamSlr.hpp"
+#include "oceanTide.hpp"
+#include "orbitProp.hpp"
 #include "biasSINEX.hpp"
 #include "ionoModel.hpp"
 #include "ephemeris.hpp"
 #include "sp3Write.hpp"
 #include "metaData.hpp"
+#include "attitude.hpp"
 #include "station.hpp"
-#include "preceph.hpp"
 #include "summary.hpp"
 #include "antenna.hpp"
 #include "satStat.hpp"
@@ -61,18 +77,26 @@ using std::string;
 #include "common.hpp"
 #include "orbits.hpp"
 #include "gTime.hpp"
+#include "trace.hpp"
 #include "debug.hpp"
 #include "sinex.hpp"
+#include "cost.hpp"
 #include "enums.h"
 #include "ppp.hpp"
 #include "gpx.hpp"
+#include "slr.hpp"
+#include "api.hpp"
 #include "trop.h"
 #include "vmf3.h"
 
+Navigation				nav		= {};
+int						epoch	= 1;
+GTime					tsync	= GTime::noTime();
+map<int, SatIdentity>	satIdMap;
+SlrSiteObsMap			slrSiteObsMap;
+map<string, Station>	stationMap;
 
-Navigation		nav		= {};
-int				epoch	= 1;
-GTime			tsync	= GTime::noTime();
+void outputMqtt(KFState& kfState);
 
 bool fileChanged(
 	string filename)
@@ -82,7 +106,7 @@ bool fileChanged(
 	{
 		return false;
 	}
-
+	
 	auto modifyTime = boost::filesystem::last_write_time(filename);
 	
 	auto it = acsConfig.configModifyTimeMap.find(filename);
@@ -126,35 +150,25 @@ void removeInvalidFiles(
 	}
 }
 
-/** Create a station object from a file
+/** Create a station object from an input
 */
-void addStationDataFile(
-	string fileName,			///< Filename to create station from
-	string fileType,			///< Type of data in file
-	string dataType)			///< Type of data
+void addStationData(
+	string	inputName,			///< Filename to create station from
+	string	inputFormat,		///< Type of data in file
+	string	dataType)			///< Type of data
 {
-	if (streamDOAMap.find(fileName) != streamDOAMap.end())
+	if (streamDOAMap.find(inputName) != streamDOAMap.end())
 	{
 		//this stream was already added, dont re-add
 		return;
 	}
-
-	boost::filesystem::path filePath(fileName);
-
-	if (checkValidFile(fileName, dataType) == false)
-	{
-		return;
-	}
-
-	if (!boost::filesystem::is_regular_file(filePath))
-	{
-		return;
-	}
-
-	auto filename = filePath.filename();
-	string extension = filename.extension().string();
-
-	string stationId = filename.string().substr(0,4);
+	
+	string mountpoint;
+	auto lastSlashPos = inputName.find_last_of('/');
+	if (lastSlashPos == string::npos)		{	mountpoint = inputName;								}
+	else									{	mountpoint = inputName.substr(lastSlashPos + 1);	};
+	
+	string stationId	= mountpoint.substr(0,4);
 	boost::algorithm::to_upper(stationId);
 
 	auto& recOpts = acsConfig.getRecOpts(stationId);
@@ -163,58 +177,68 @@ void addStationDataFile(
 	{
 		return;
 	}
-
-	if (fileType == "RINEX")
+	
+	string protocol;
+	string subInputName;
+	auto protocolPos = inputName.find("://");
+	if (protocolPos == string::npos)	{	protocol = "file";								subInputName = inputName;							}
+	else								{	protocol = inputName.substr(0, protocolPos);	subInputName = inputName.substr(protocolPos + 3);	}
+	
+	std::unique_ptr<Stream>			stream_ptr;
+	std::unique_ptr<Parser>			parser_ptr;
+	
+	if	( protocol == "file"
+		||protocol == "serial")
 	{
-		auto rinexStream_ptr = std::make_shared<FileRinexStream>(filePath.string());
-
-		if		(dataType == "NAV")		navStreamMultimap.insert({stationId, std::move(rinexStream_ptr)});
-		else if	(dataType == "OBS")		obsStreamMultimap.insert({stationId, std::move(rinexStream_ptr)});
-
-		streamDOAMap[fileName] = false;
-
-		acsConfig.rinexFiles.push_back(filename.string());
-	}
-
-	if (fileType == "RTCM")
-	{
-		auto rtcmStream_ptr = std::make_shared<FileRtcmStream>(filePath.string());
-
-		if		(dataType == "NAV")		navStreamMultimap.insert({stationId, std::move(rtcmStream_ptr)});
-		else if	(dataType == "OBS")		obsStreamMultimap.insert({stationId, std::move(rtcmStream_ptr)});
-
-		streamDOAMap[fileName] = false;
+		if (checkValidFile(subInputName, dataType) == false)
+		{
+			return;
+		}
 	}
 	
-	if (fileType == "SP3")
+	if		(protocol == "file")		{	stream_ptr = make_unique<FileStream>	(subInputName);	}
+	else if (protocol == "serial")		{	stream_ptr = make_unique<SerialStream>	(subInputName);	}
+	else if (protocol == "http")		{	stream_ptr = make_unique<NtripStream>	(inputName);	}
+	else if (protocol == "https")		{	stream_ptr = make_unique<NtripStream>	(inputName);	}
+	else if (protocol == "ntrip")		{	stream_ptr = make_unique<NtripStream>	(inputName);	}
+	else
 	{
-		auto pseudoObsStream_ptr = std::make_shared<FileSp3Stream>(filePath.string());
-
-		if		(dataType == "PSEUDO")	pseudoObsStreamMultimap.insert({stationId, std::move(pseudoObsStream_ptr)});
-
-		streamDOAMap[fileName] = false;
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Invalid protocol " << protocol;
 	}
+	
+	if		(inputFormat == "RINEX")	{	parser_ptr = make_unique<RinexParser>	();	}
+	else if	(inputFormat == "UBX")		{	parser_ptr = make_unique<UbxParser>		();	}
+	else if (inputFormat == "RTCM")		{	parser_ptr = make_unique<RtcmParser>	();	static_cast<RtcmParser*>(parser_ptr.get())->rtcmMountpoint = mountpoint;	}
+	else if (inputFormat == "SP3")		{	parser_ptr = make_unique<Sp3Parser>		();	}
+	else if (inputFormat == "SINEX")	{	parser_ptr = make_unique<SinexParser>	();	}
+	else if (inputFormat == "SLR")		{	parser_ptr = make_unique<SlrParser>		();	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Invalid inputFormat " << inputFormat;
+	}
+	
+	shared_ptr<StreamParser> streamParser_ptr;
+		
+	if (dataType == "NAV")	streamParser_ptr = make_shared<StreamParser>(std::move(stream_ptr), std::move(parser_ptr));
+	else					streamParser_ptr = make_shared<ObsStream>	(std::move(stream_ptr), std::move(parser_ptr));
+			
+	streamParser_ptr->stream.sourceString = inputName;
+	
+	streamParserMultimap.insert({stationId, std::move(streamParser_ptr)});
+	
+	streamDOAMap[inputName] = false;
 }
 
 void reloadInputFiles()
 {
-	boost::filesystem::path root_stations_path(acsConfig.root_stations_dir);
-
-	if (boost::filesystem::is_directory(root_stations_path))
-	{
-		for (auto& rnxfile			: acsConfig.rnx_files)			{	addStationDataFile(rnxfile,			"RINEX",	"OBS");			}	
-		for (auto& rtcmfile			: acsConfig.obs_rtcm_files)		{	addStationDataFile(rtcmfile,		"RTCM",		"OBS");			}	
-		for (auto& rtcmfile			: acsConfig.nav_rtcm_files)		{	addStationDataFile(rtcmfile,		"RTCM",		"NAV");			}
-		for (auto& pseudoobsfile	: acsConfig.pseudoobs_files)	{	addStationDataFile(pseudoobsfile,	"SP3",		"PSEUDO");		}
-
-		if	( obsStreamMultimap.empty()
-			&&acsConfig.require_obs)
-		{
-			BOOST_LOG_TRIVIAL(warning)
-			<< "Warning: No station observation (rnx) files found in "
-			<< acsConfig.root_stations_dir;
-		}
-	}
+	for (auto& ubxinputs		: acsConfig.ubx_inputs)			{	addStationData(ubxinputs,		"UBX",		"OBS");			}
+	for (auto& rnxinputs		: acsConfig.rnx_inputs)			{	addStationData(rnxinputs,		"RINEX",	"OBS");			}	
+	for (auto& rtcminputs		: acsConfig.obs_rtcm_inputs)	{	addStationData(rtcminputs,		"RTCM",		"OBS");			}	
+	for (auto& rtcminputs		: acsConfig.nav_rtcm_inputs)	{	addStationData(rtcminputs,		"RTCM",		"NAV");			}
+	for (auto& pseudosp3inputs	: acsConfig.pseudo_sp3_inputs)	{	addStationData(pseudosp3inputs,	"SP3",		"PSEUDO");		}
+	for (auto& pseudosnxinputs	: acsConfig.pseudo_snx_inputs)	{	addStationData(pseudosnxinputs,	"SINEX",	"PSEUDO");		}
 
 	removeInvalidFiles(acsConfig.atx_files);
 	for (auto& atxfile : acsConfig.atx_files)
@@ -268,7 +292,7 @@ void reloadInputFiles()
 			updated = true;
 
 			BOOST_LOG_TRIVIAL(info)
-			<< "Reading in the orbit file" << orbfile << std::endl;
+			<< "Reading ORB file " << orbfile << std::endl;
 
 			readorbit(orbfile);
 		}
@@ -294,6 +318,20 @@ void reloadInputFiles()
 		}
 	}
 
+	removeInvalidFiles(acsConfig.obx_files);
+	for (auto& obxfile : acsConfig.obx_files)
+	{
+		if (fileChanged(obxfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading OBX file " << obxfile;
+
+		readOrbex(obxfile, nav);
+	}
+
 	removeInvalidFiles(acsConfig.nav_files);
 	for (auto& navfile : acsConfig.nav_files)
 	{
@@ -305,9 +343,9 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info)
 		<< "Loading NAV file " << navfile;
 
-		FileRinexStream rinexStream(navfile);
-
-		rinexStream.parse();
+		auto rinexStream = make_unique<StreamParser>(make_unique<FileStream>(navfile), make_unique<RinexParser>());
+		
+		rinexStream->parse();
 	}
 
 	removeInvalidFiles(acsConfig.clk_files);
@@ -322,9 +360,9 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info)
 		<< "Loading CLK file " << clkfile;
 
-		FileRinexStream rinexStream(clkfile);
-
-		rinexStream.parse();
+		auto rinexStream = make_unique<StreamParser>(make_unique<FileStream>(clkfile), make_unique<RinexParser>());
+		
+		rinexStream->parse();
 	}
 
 	removeInvalidFiles(acsConfig.dcb_files);
@@ -368,7 +406,21 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info)
 		<< "Loading ION file " << ionfile;
 
-		readtec(ionfile, &nav);
+		readTec(ionfile, &nav);
+	}
+
+	removeInvalidFiles(acsConfig.igrf_files);
+	for (auto& igrffile : acsConfig.igrf_files)
+	{
+		if (fileChanged(igrffile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading IGRF file " << igrffile;
+
+		readIGRF(igrffile);
 	}
 
 	static bool once = true;
@@ -383,7 +435,7 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info)
 		<< "Loading SNX file " <<  snxfile << std::endl;
 
-		bool fail = read_sinex(snxfile, once);
+		bool fail = readSinex(snxfile, once);
 		if (fail)
 		{
 			BOOST_LOG_TRIVIAL(error)
@@ -394,6 +446,100 @@ void reloadInputFiles()
 
 		once = false;
 	}
+	
+	removeInvalidFiles(acsConfig.vmf_files);
+	for (auto& vmffile : acsConfig.vmf_files)
+	{
+		if (fileChanged(vmffile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading VMF file " << vmffile;
+
+		readvmf3(vmffile, nav.vmf3);
+	}
+	
+	if (acsConfig.model.trop.orography.empty() == false)
+	for (auto once : {1})
+	{
+		if (fileChanged(acsConfig.model.trop.orography) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading ORO " << acsConfig.model.trop.orography;
+		
+		readorog(acsConfig.model.trop.orography, nav.vmf3.orography);
+	}
+	
+	if (acsConfig.model.trop.gpt2grid.empty() == false)
+	for (auto once : {1})
+	{
+		if (fileChanged(acsConfig.model.trop.gpt2grid) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading GPT file " << acsConfig.model.trop.gpt2grid;
+		
+		readgrid(acsConfig.model.trop.gpt2grid, &nav.gptg);
+	}
+	
+
+	removeInvalidFiles(acsConfig.sid_files); // satellite ID (sp3c code) data
+	for (auto& sidfile : acsConfig.sid_files)
+	{
+		if (fileChanged(sidfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading Sat ID file " << sidfile;
+
+		readSatId(sidfile);
+	}
+
+	removeInvalidFiles(acsConfig.crd_files); // SLR observation data
+	for (auto& crdfile : acsConfig.crd_files)
+	{
+		if (fileChanged(crdfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading CRD file " << crdfile;
+
+		readCrd(crdfile);
+	}
+	
+	if (acsConfig.output_slr_obs)
+	{
+		auto slrObsFiles = outputSortedSlrObs(); // CRD files need to be parsed before sorted .slr_obs files are exported
+		for (auto& slrObsFile : slrObsFiles)			
+		{	
+			addStationData(slrObsFile, "SLR", "OBS");
+		}
+	}
+
+	removeInvalidFiles(acsConfig.com_files); // centre-of-mass data
+	for (auto& comfile : acsConfig.com_files)
+	{
+		if (fileChanged(comfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading CoM file " << comfile;
+
+		readCom(comfile);
+	}
 
 	removeInvalidFiles(acsConfig.egm_files);
 	for (auto& egmfile : acsConfig.egm_files)
@@ -403,10 +549,29 @@ void reloadInputFiles()
 			continue;
 		}
 
-		BOOST_LOG_TRIVIAL(info)
-		<< "Loading EGMCoef file " << egmfile;
+		BOOST_LOG_TRIVIAL(info) 
+		<< "Loading EGM file " << egmfile;
 
-		readegm(egmfile, nav.egm);
+		egm.degMax		= acsConfig.orbitPropagation.degree_max;
+		
+		egm.readegm(egmfile);
+	}	
+
+	removeInvalidFiles(acsConfig.tide_files);
+	for (auto& tidefile : acsConfig.tide_files)
+	{
+		if (fileChanged(tidefile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info) 
+		<< "Loading tide file " << tidefile;
+
+		tide.filename	= tidefile;
+		tide.degMax		= acsConfig.orbitPropagation.degree_max;
+		
+		tide.readocetide();
 	}	
 
 	removeInvalidFiles(acsConfig.jpl_files);
@@ -417,16 +582,70 @@ void reloadInputFiles()
 			continue;
 		}
 
-		BOOST_LOG_TRIVIAL(info)
+		BOOST_LOG_TRIVIAL(info) 
 		<< "Loading JPL file " << jplfile;
 		
 		nav.jplEph_ptr = (struct jpl_eph_data*) jpl_init_ephemeris(jplfile.c_str(), nullptr, nullptr);          // a Pointer to The jpl_eph_data Structure
+		
+		if (jpl_init_error_code())
+		{
+			BOOST_LOG_TRIVIAL(warning) 
+			<< "Warning: JPL file had error code " << jpl_init_error_code();
+		}
 	}		
+}
+
+/** Select 2 clocks for receivers according to the available signals
+ */
+void setClockCodesForReceiver(
+	Station&	rec)
+{
+	map<E_Sys,map<E_ObsCode,int>> satsPerCode;
+	
+	for (auto&	obs				: only<GObs>(rec.obsList))
+	for (auto&	[ft, sigList]	: obs.SigsLists)
+	for (auto&	sig				: sigList)
+	{
+		if (rec.recClockCodes.find(obs.Sat.sys) != rec.recClockCodes.end())
+			continue;
+		
+		for (auto&	[ft, Sig]	: obs.Sigs)
+			satsPerCode[obs.Sat.sys][sig.code]++;
+	}
+	
+	for (auto&	[sys, codeList]	: satsPerCode)
+	{
+		vector<E_ObsCode> selectedCodes;
+		for (auto& code : acsConfig.code_priorities[sys])
+		{
+			if (codeList.find(code) == codeList.end())
+				continue;
+			
+			if (codeList[code] < 4)		// minimum number for spp
+				continue;
+			
+			if	(  selectedCodes.size() == 1
+				&& code2Freq[sys][code] == code2Freq[sys][selectedCodes[0]])
+			{
+				continue;
+			}
+			
+			selectedCodes.push_back(code);
+		
+			if (selectedCodes.size() < 2)
+				continue;
+			
+			rec.recClockCodes[sys].first  = selectedCodes[0];
+			rec.recClockCodes[sys].second = selectedCodes[1];
+			
+			break;
+		}
+	}
 }
 
 void configureUploadingStreams()
 {
-	for (auto& [outLabel, outStreamData] : acsConfig.uploadingStreamData)
+	for (auto& [outLabel, outStreamData] : acsConfig.netOpts.uploadingStreamData)
 	{
 		auto it = ntripBroadcaster.ntripUploadStreams.find(outLabel);
 
@@ -443,17 +662,16 @@ void configureUploadingStreams()
 		auto& [label, outStream_ptr]	= *it;
 		auto& outStream					= *outStream_ptr;
 		
-		outStream.streamConfig.rtcmMessagesTypes	= outStreamData.rtcmMessagesTypes;
+		outStream.streamConfig.rtcmMsgOptsMap		= outStreamData.rtcmMsgOptsMap;
 		outStream.streamConfig.itrf_datum 			= outStreamData.itrf_datum;
 		outStream.streamConfig.provider_id 			= outStreamData.provider_id;
 		outStream.streamConfig.solution_id 			= outStreamData.solution_id;
-		outStream.streamConfig.update_interval	 	= outStreamData.update_interval;
 		outStream.streamConfig.master_iod 			= outStreamData.master_iod;
 	}
 
 	for (auto it = ntripBroadcaster.ntripUploadStreams.begin(); it != ntripBroadcaster.ntripUploadStreams.end();)
 	{
-		if (acsConfig.uploadingStreamData.find(it->first) == acsConfig.uploadingStreamData.end())
+		if (acsConfig.netOpts.uploadingStreamData.find(it->first) == acsConfig.netOpts.uploadingStreamData.end())
 		{
 			auto& [label, outStream_ptr]	= *it;
 			auto& outStream					= *outStream_ptr;
@@ -463,106 +681,6 @@ void configureUploadingStreams()
 		else
 		{
 			it++;
-		}
-	}
-}
-
-void configureDownloadingStreams()
-{
-// 	std::multimap<string, vector<string>> hostMap;
-// 	
-// 	for (auto host : acsConfig.netwOpts.download_hosts)
-// 	{
-// 		NtripSourceTable sourceTable(host);
-// 
-// 		sourceTable.getSourceTable();
-// 
-// 		hostMap.insert({host, sourceTable.getStreamMounts()});
-// 	}
-
-	for (auto nav : {false, true})
-	{
-		set<string>* streamUrls_ptr;
-		if (nav == false)	streamUrls_ptr = &acsConfig.pppOpts.obs_mount_url;
-		else				streamUrls_ptr = &acsConfig.pppOpts.nav_mount_url;
-
-		auto& streamUrls = *streamUrls_ptr;
-
-		map<string, string> ntripStreams;
-		for (auto fullUrl : streamUrls)
-		{
-			std::size_t slashPos = fullUrl.find_last_of("/");	// find first 4 characters after last '/'			//todo aaron, lots of redundancy here, same code in config file, and below
-			string id		= fullUrl.substr(slashPos + 1,	4);					// e.g. http://user:pass@auscors.ga.gov.au:2101/BCEP00BKG0 --> BCEP
-			ntripStreams[id] = fullUrl;
-		}
-
-		// Check for additional streams to add.
-		for (auto& [id, fullUrl] : ntripStreams)
-		{
-			if (streamDOAMap.find(fullUrl) != streamDOAMap.end())
-			{
-				//this stream was already added, dont re-add
-				continue;
-			}
-
-			// Do not insert stream twice.
-			if (ntripRtcmMultimap.find(id) != ntripRtcmMultimap.end())
-				continue;
-
-			std::size_t slashPos = fullUrl.find_last_of("/");	// find first 4 characters after last '/'
-			string hostname = fullUrl.substr(0,				slashPos + 1);
-			string mount	= fullUrl.substr(slashPos + 1,	fullUrl.length() - slashPos+1);
-			
-			auto ntripStream_ptr = std::make_shared<NtripRtcmStream>(fullUrl);
-			ntripRtcmMultimap.insert({id, ntripStream_ptr}); // for network (internet) tracing
-
-			//prepare to download streams if enabled
-			{
-				NtripRtcmStream& downloadStream = *ntripStream_ptr;
-				string filename;
-				if (nav)		filename = acsConfig.rtcm_nav_filename;
-				else			filename = acsConfig.rtcm_obs_filename;
-
-				bool createFile = false;
-				if (nav == true		&& acsConfig.record_rtcm_nav)		createFile = true;
-				if (nav == false	&& acsConfig.record_rtcm_obs)		createFile = true;
-
-				if (createFile)
-				{
-					replaceString(filename, "<STATION>",	id);
-					replaceString(filename, "<STREAM>",		mount);
-					
-					downloadStream.rtcm_filename	= filename;
-					downloadStream.record_rtcm		= true;
-					downloadStream.createRtcmFile();
-				}
-				
-				if (acsConfig.output_decoded_rtcm_json)
-				{
-					filename = acsConfig.decoded_rtcm_json_filename;
-					replaceString(filename, "<STATION>",	id);
-					replaceString(filename, "<STREAM>",		mount);
-					downloadStream.rtcmTraceFilename = filename;
-				}
-			}
-
-			if (nav == false)		{	obsStreamMultimap.insert({id, std::move(ntripStream_ptr)});		}
-			else					{	navStreamMultimap.insert({id, std::move(ntripStream_ptr)});		}
-			streamDOAMap[fullUrl] = false;
-		}
-
-		// Check for any streams to remove.
-		for (auto [id, fullUrl] : ntripStreams)
-		{
-			auto it = ntripRtcmMultimap.find(id);
-			if (it == ntripRtcmMultimap.end())
-			{
-				NtripRtcmStream& downloadStream = *it->second;
-				downloadStream.disconnect();	
-				BOOST_LOG_TRIVIAL(warning) << "Warning: Removing downloading mount point : " << id << std::endl;
-				if (nav == false)		{	obsStreamMultimap.erase(id);	}
-				else					{	navStreamMultimap.erase(id);	}
-			}
 		}
 	}
 }
@@ -579,7 +697,8 @@ bool createNewTraceFile(
 	replaceTimes (new_path_trace, logptime);
 
 	// Create the trace file if its a new filename, otherwise, keep the old one
-	if (new_path_trace == old_path_trace)
+	if	( new_path_trace == old_path_trace
+		||new_path_trace.empty())
 	{
 		//the filename is the same, keep using the old ones
 		return false;
@@ -618,39 +737,45 @@ bool createNewTraceFile(
 	return true;
 }
 
-map<string, string> fileNames;
-
-/** Create new empty trace files only when required when the filename is changed
- */
-void createTracefiles(
-	map<string, Station>&	stationMap,
-	Network&				net)
+/** Returns (posix) for current epoch
+*/
+boost::posix_time::ptime currentLogptime()
 {
-	string dummyStr;
-	GTime logtime = tsync.roundTime(acsConfig.rotate_period);
+	PTime logtime = tsync.floorTime(acsConfig.rotate_period);
 	
-	boost::posix_time::ptime	logptime	= boost::posix_time::from_time_t(logtime.time);
+	boost::posix_time::ptime	logptime	= boost::posix_time::from_time_t((time_t)logtime.bigTime);
 	
-	if (logtime.time == GTime::noTime())
+	if ((GTime)logtime == GTime::noTime())
 	{
 		logptime = boost::posix_time::not_a_date_time;
 	}
-	
+	return logptime;
+}
+
+/** Create directories if required
+ */
+void createDirectories(
+	boost::posix_time::ptime	logptime)
+{
 	// Ensure the output directories exist
 	for (auto directory : {
 								acsConfig.erp_directory,
 								acsConfig.gpx_directory,
 								acsConfig.log_directory,
+								acsConfig.cost_directory,
 								acsConfig.test_directory,
 								acsConfig.ionex_directory,
+								acsConfig.orbex_directory,
 								acsConfig.sinex_directory,
 								acsConfig.trace_directory,
 								acsConfig.orbits_directory,
 								acsConfig.clocks_directory,
+								acsConfig.slr_obs_directory,
 								acsConfig.ionstec_directory,
 								acsConfig.ppp_sol_directory,
 								acsConfig.rtcm_nav_directory,
 								acsConfig.rtcm_obs_directory,
+								acsConfig.orbit_ics_directory,
 								acsConfig.rinex_obs_directory,
 								acsConfig.rinex_nav_directory,
 								acsConfig.trop_sinex_directory,
@@ -666,8 +791,26 @@ void createTracefiles(
 		if (directory.empty())	continue;
 		
 		replaceTimes(directory, logptime);
-		boost::filesystem::create_directories(directory);
+		bool created = boost::filesystem::create_directories(directory);
+		{
+			if (created)
+			{
+				created = false;
+			}
+		}
 	}
+}
+
+map<string, string> fileNames;
+
+/** Create new empty trace files only when required when the filename is changed
+ */
+void createTracefiles(
+	map<string, Station>&	stationMap,
+	Network&				net)
+{
+	boost::posix_time::ptime logptime = currentLogptime();
+	createDirectories(logptime);
 	
 	for (auto rts : {false, true})
 	{
@@ -679,13 +822,16 @@ void createTracefiles(
 		}
 
 		
-		string suff = "";
+		string suff		= "";
+		string metaSuff	= "";
 		
 		if (rts)
 		{
-			suff = SMOOTHED_SUFFIX;
+			suff		= acsConfig.pppOpts.rts_smoothed_suffix;
+			metaSuff	= SMOOTHED_SUFFIX;
 			
-			if (acsConfig.process_network)
+			if	( acsConfig.process_network
+				||acsConfig.process_ppp)
 			{
 				bool newTraceFile = createNewTraceFile(net.id,		boost::posix_time::not_a_date_time,	acsConfig.pppOpts.rts_filename,		net.kfState.rts_basename);
 			
@@ -713,13 +859,22 @@ void createTracefiles(
 			}
 		}
 		
-		for (auto& [id, rec] : stationMap)
+		bool newTraceFile = false;
+		
+		for (auto& [Sat, satNav] : nav.satNavMap)
 		{
-			bool newTraceFile = false;
-			
+			if	(  acsConfig.output_satellite_trace
+				&& suff.empty())
+			{
+				newTraceFile |= createNewTraceFile(Sat,			logptime,	acsConfig.satellite_trace_filename		+ suff,	satNav.traceFilename,												true,	acsConfig.output_config);
+			}	
+		}
+		
+		for (auto& [id, rec] : stationMap)
+		{	
 			if (acsConfig.output_station_trace)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.station_trace_filename	+ suff,	rec.pppState.metaDataMap[TRACE_FILENAME_STR		+ suff],	true,	acsConfig.output_config);
+				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.station_trace_filename	+ suff,	rec.pppState.metaDataMap[TRACE_FILENAME_STR			+ metaSuff],	true,	acsConfig.output_config);
 				
 				if (suff.empty())
 				{
@@ -727,20 +882,58 @@ void createTracefiles(
 				}
 			}
 			
-			if	(	acsConfig.output_trop_sinex
-				&&	acsConfig.process_user)
+			if	( acsConfig.output_trop_sinex
+				&&acsConfig.process_user)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.trop_sinex_filename		+ suff,	rec.pppState.metaDataMap[TROP_FILENAME_STR		+ suff]);
+				if (acsConfig.process_user)
+				{
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.trop_sinex_filename		+ suff,	rec.pppState.metaDataMap[TROP_FILENAME_STR			+ metaSuff]);
+				}
+				
+				if (acsConfig.process_ppp)
+				{
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.trop_sinex_filename		+ suff,	net.kfState	.metaDataMap[TROP_FILENAME_STR			+ metaSuff]);
+				}
+			}
+
+			if	(acsConfig.output_cost)
+			{
+				if (acsConfig.process_user)
+				{
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.cost_filename				+ suff,	rec.pppState.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
+				}
+				
+				if (acsConfig.process_ppp)
+				{
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.cost_filename				+ suff,	net.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
+				}
 			}
 			
 			if (acsConfig.output_ppp_sol)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.ppp_sol_filename			+ suff,	rec.pppState.metaDataMap[SOLUTION_FILENAME_STR	+ suff],	true,	acsConfig.output_config);
+				if (acsConfig.process_user)
+				{
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.ppp_sol_filename			+ suff,	rec.pppState.metaDataMap[SOL_FILENAME_STR	+ id	+ metaSuff],	true,	acsConfig.output_config);
+				}
+				
+				if (acsConfig.process_ppp)
+				{
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.ppp_sol_filename			+ suff,	net.kfState	.metaDataMap[SOL_FILENAME_STR	+ id	+ metaSuff],	true,	acsConfig.output_config);
+				}
 			}
 			
 			if (acsConfig.output_gpx)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	rec.pppState.metaDataMap[GPX_FILENAME_STR		+ suff]);
+				if (acsConfig.process_user)
+				{
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	rec.pppState.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
+				}
+				
+				if	( acsConfig.process_ppp
+					||acsConfig.process_network)
+				{
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	net.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
+				}
 			}
 			
 					
@@ -751,11 +944,9 @@ void createTracefiles(
 			}
 		}
 		
-		bool newTraceFile = false;
-		
 		if (acsConfig.output_network_trace)
 		{
-			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.network_trace_filename	+ suff,	net.kfState.metaDataMap[TRACE_FILENAME_STR		+ suff],	true,	acsConfig.output_config);
+			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.network_trace_filename	+ suff,	net.kfState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
 			
 			if (suff.empty())
 			{
@@ -765,35 +956,53 @@ void createTracefiles(
 
 		if (acsConfig.output_ionex)
 		{
-			newTraceFile |= createNewTraceFile("",		logptime,	acsConfig.ionex_filename			+ suff,	net.kfState.metaDataMap[IONEX_FILENAME_STR		+ suff]);
+			newTraceFile |= createNewTraceFile("",		logptime,	acsConfig.ionex_filename			+ suff,	net.kfState.metaDataMap[IONEX_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile("",		logptime,	acsConfig.ionex_filename			+ suff,	iono_KFState.metaDataMap[IONEX_FILENAME_STR		+ metaSuff]);
+		
+			newTraceFile |= createNewTraceFile("IONO",	logptime,	acsConfig.network_trace_filename	+ suff,	iono_KFState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
 		}
 
 		if (acsConfig.output_ionstec)
 		{
-			newTraceFile |= createNewTraceFile("",		logptime,	acsConfig.ionstec_filename			+ suff,	net.kfState.metaDataMap[IONSTEC_FILENAME_STR	+ suff]);
+			newTraceFile |= createNewTraceFile("",		logptime,	acsConfig.ionstec_filename			+ suff,	net.kfState.metaDataMap[IONSTEC_FILENAME_STR	+ metaSuff]);
 		}
 		
 	
-		if	( acsConfig.output_trop_sinex
-			&&acsConfig.process_network)
-		{	
-			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.trop_sinex_filename		+ suff,	net.kfState.metaDataMap[TROP_FILENAME_STR		+ suff]);
+		if	( ( acsConfig.output_trop_sinex)
+			&&( acsConfig.process_ppp
+			  ||acsConfig.process_network))
+		{
+			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.trop_sinex_filename		+ suff,	net.kfState.metaDataMap[TROP_FILENAME_STR		+ metaSuff]);
 		}
 
-		if	( acsConfig.output_erp
-			&&acsConfig.process_network)
+		if (acsConfig.output_erp)
 		{	
-			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.erp_filename				+ suff,	net.kfState.metaDataMap[ERP_FILENAME_STR		+ suff]);
+			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.erp_filename				+ suff,	net.kfState.metaDataMap[ERP_FILENAME_STR		+ metaSuff]);
 		}
 		
 		if (acsConfig.output_clocks)
 		{
-			auto filenameMap = getSysOutputFilenames(acsConfig.clocks_filename,		tsync);
+			auto singleFilenameMap	= getSysOutputFilenames(acsConfig.clocks_filename,	tsync, false);
+			auto filenameMap		= getSysOutputFilenames(acsConfig.clocks_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(net.id,	logptime,	filename + suff,						fileNames[filename + suff]);
+				newTraceFile |= createNewTraceFile(net.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
 			}
+		
+			net.kfState.metaDataMap[CLK_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
 		}	
+
+		if (acsConfig.output_orbits)
+		{
+			auto singleFilenameMap	= getSysOutputFilenames(acsConfig.orbits_filename,	tsync, false);
+			auto filenameMap		= getSysOutputFilenames(acsConfig.orbits_filename,	tsync);
+			for (auto& [filename, dummy] : filenameMap)
+			{
+				newTraceFile |= createNewTraceFile(net.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
+			}
+
+			net.kfState.metaDataMap[SP3_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
+		}
 		
 		if	(  rts 
 			&& newTraceFile)
@@ -807,25 +1016,32 @@ void createTracefiles(
 		createNewTraceFile("",			logptime,	acsConfig.log_filename,								FileLog::path_log);
 	}
 	
-	if	(acsConfig.output_decoded_rtcm_json)
+	if (acsConfig.output_ntrip_log)
 	{
-		createNewTraceFile(net.id,		logptime,	acsConfig.decoded_rtcm_json_filename,				acsConfig.decoded_rtcm_json_filename);	//todo aaron, these will collide after first iteratio?
-	}
-
-	if	(acsConfig.output_encoded_rtcm_json)
-	{
-		createNewTraceFile(net.id,		logptime,	acsConfig.encoded_rtcm_json_filename,				acsConfig.encoded_rtcm_json_filename);
+		for (auto& [id, stream_ptr] : ntripBroadcaster.ntripUploadStreams)
+		{
+			auto& stream = *stream_ptr;
+			
+			createNewTraceFile(id,			logptime,	acsConfig.ntrip_log_filename,					stream.networkTraceFilename);
+		}
+		
+		for (auto& [id, streamParser_ptr] : streamParserMultimap)
+		try
+		{			
+			auto& ntripStream = dynamic_cast<NtripStream&>(streamParser_ptr->stream);
+			
+			createNewTraceFile(id,			logptime,	acsConfig.ntrip_log_filename,					ntripStream.networkTraceFilename);
+		}
+		catch(...){}
 	}
 
 	if (acsConfig.output_rinex_obs)
+	for (auto& [id, rec] : stationMap)
 	{
-		for (auto& [id, rec] : stationMap)
+		auto filenameMap = getSysOutputFilenames(acsConfig.rinex_obs_filename,	tsync, true, id);
+		for (auto& [filename, dummy] : filenameMap)
 		{
-			auto filenameMap = getSysOutputFilenames(acsConfig.rinex_obs_filename,	tsync, id);
-			for (auto& [filename, dummy] : filenameMap)
-			{
-				createNewTraceFile(id,		logptime,	filename,										fileNames[filename]);
-			}
+			createNewTraceFile(id,		logptime,	filename,											fileNames[filename]);
 		}
 	}
 	
@@ -834,16 +1050,16 @@ void createTracefiles(
 		auto filenameMap = getSysOutputFilenames(acsConfig.rinex_nav_filename,	tsync);
 		for (auto& [filename, dummy] : filenameMap)
 		{
-			createNewTraceFile("",		logptime,	filename,											fileNames[filename]);
+			createNewTraceFile("Navs",	logptime,	filename,											fileNames[filename]);
 		}
 	}
 
-	if (acsConfig.output_orbits)
+	if (acsConfig.output_orbex)
 	{
-		auto filenameMap = getSysOutputFilenames(acsConfig.orbits_filename,		tsync);
+		auto filenameMap = getSysOutputFilenames(acsConfig.orbex_filename,		tsync);
 		for (auto& [filename, dummy] : filenameMap)
 		{
-			createNewTraceFile(net.id,	logptime,	filename,											fileNames[filename]);
+			createNewTraceFile(net.id,	logptime,	filename,											fileNames[filename],					false,	false);
 		}
 	}
 		
@@ -851,6 +1067,61 @@ void createTracefiles(
 	{
 		createNewTraceFile("", 		logptime,	acsConfig.bias_sinex_filename,	fileNames[acsConfig.bias_sinex_filename]);
 	}	
+	
+	for (auto& [id, streamParser_ptr] : streamParserMultimap)
+	try
+	{
+		auto& rtcmParser = dynamic_cast<RtcmParser&>(streamParser_ptr->parser);
+		
+		if (acsConfig.output_decoded_rtcm_json)
+		{
+			string filename = acsConfig.decoded_rtcm_json_filename;
+			
+			replaceString(filename, "<STREAM>",		rtcmParser.rtcmMountpoint);
+			
+			createNewTraceFile(id, 		logptime,	filename,	rtcmParser.rtcmTraceFilename);
+		}
+		
+		for (auto nav : {false, true})
+		{
+			bool isNav = true;
+			try
+			{
+				auto& obsStream = dynamic_cast<ObsStream&>(*streamParser_ptr);
+				
+				isNav = false;
+			}
+			catch(...){}
+			
+			if	( (acsConfig.record_rtcm_nav && isNav == true	&& nav == true)
+				||(acsConfig.record_rtcm_obs && isNav == false	&& nav == false))
+			{
+				string filename;
+				
+				if (nav)	filename = acsConfig.rtcm_nav_filename;
+				else		filename = acsConfig.rtcm_obs_filename; 
+				
+				replaceString(filename, "<STREAM>",		rtcmParser.rtcmMountpoint);
+				
+				createNewTraceFile(id, 		logptime,	filename,	rtcmParser.rtcm_filename);
+			}
+		}
+	}
+	catch(...){}
+	
+	for (auto& [id, streamParser_ptr] : streamParserMultimap)
+	try
+	{
+		auto& ubxParser = dynamic_cast<UbxParser&>(streamParser_ptr->parser);
+		
+		if (acsConfig.record_raw_ubx)
+		{
+			string filename = acsConfig.raw_ubx_filename;
+			
+			createNewTraceFile(id, 		logptime,	filename,	ubxParser.raw_ubx_filename);
+		}
+	}
+	catch(...){}
 }
 
 void avoidCollisions(
@@ -861,20 +1132,11 @@ void avoidCollisions(
 		auto trace = getTraceFile(rec);
 	}
 	
-	// if the vmf3 option has been selected:
-	if	(acsConfig.model.trop.vmf3dir.empty() == false)
+	for (auto& [id, rec] : stationMap)
 	{
-		BOOST_LOG_TRIVIAL(debug)
-		<< "VMF3 option chosen";
-		
-		double ep[6];
-		time2epoch(tsync, ep);
-		
-		double jd = ymdhms2jd(ep);
-
-		// read vmf3 grid information
-		nav.vmf3.m = 1;
-		udgrid(acsConfig.model.trop.vmf3dir.c_str(), nav.vmf3, jd);
+		//create sinex estimate maps
+		theSinex.map_estimates_primary	[id];
+		theSinex.map_estimates			[id];
 	}
 }
 
@@ -909,16 +1171,17 @@ void initialiseStation(
 
 	if (acsConfig.process_user)
 	{
-		rec.pppState.id					= id;
-		rec.pppState.max_filter_iter	= acsConfig.pppOpts.max_filter_iter;
-		rec.pppState.max_prefit_remv	= acsConfig.pppOpts.max_prefit_remv;
-		rec.pppState.inverter			= acsConfig.pppOpts.inverter;
-		rec.pppState.sigma_threshold	= acsConfig.pppOpts.sigma_threshold;
-		rec.pppState.sigma_check		= acsConfig.pppOpts.sigma_check;
-		rec.pppState.w_test				= acsConfig.pppOpts.w_test;
-		rec.pppState.chi_square_test	= acsConfig.pppOpts.chi_square_test;
-		rec.pppState.chi_square_mode	= acsConfig.pppOpts.chi_square_mode;
-		rec.pppState.output_residuals	= acsConfig.output_residuals;
+		rec.pppState.id							= id;
+		rec.pppState.max_filter_iter			= acsConfig.pppOpts.max_filter_iter;
+		rec.pppState.max_prefit_remv			= acsConfig.pppOpts.max_prefit_remv;
+		rec.pppState.inverter					= acsConfig.pppOpts.inverter;
+		rec.pppState.sigma_threshold			= acsConfig.pppOpts.sigma_threshold;
+		rec.pppState.sigma_check				= acsConfig.pppOpts.sigma_check;
+		rec.pppState.w_test						= acsConfig.pppOpts.w_test;
+		rec.pppState.chi_square_test			= acsConfig.pppOpts.chi_square_test;
+		rec.pppState.chi_square_mode			= acsConfig.pppOpts.chi_square_mode;
+		rec.pppState.output_residuals			= acsConfig.output_residuals;
+		rec.pppState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
 
 		rec.pppState.measRejectCallbacks	.push_back(countSignalErrors);
 		rec.pppState.measRejectCallbacks	.push_back(deweightMeas);
@@ -933,6 +1196,7 @@ void initialiseStation(
 	}
 }
 
+
 /** Perform operations for each station
  * This function occurs in parallel with other stations - ensure that any operations on global maps do not create new entries, as that will destroy the map for other processes.
  * Variables within the rec object are ok to use, but be aware that pointers from the within the receiver often point to global variables.
@@ -940,27 +1204,56 @@ void initialiseStation(
  */
 void mainOncePerEpochPerStation(
 	Station&	rec,
-	double*		orog,
-	gptgrid_t&	gptg,
+	Network&	net,
 	bool&		emptyEpoch)
 {
-	TestStack ts(rec.id);
 	Instrument instrument(__FUNCTION__);
 	
-	if (rec.ready == false)
+	auto trace = getTraceFile(rec);
+	
+	if (acsConfig.process_spp)
+	{
+		sppos(trace, rec.obsList, rec.sol, rec.id);
+		
+		//recalculate variances now that elevations are known due to satellite postions calculation above
+		obsVariances(rec.obsList);
+	}
+	
+	if	(  rec.ready == false
+		|| rec.invalid)
 	{
 		return;
 	}
 	
-	sinexPerEpochPerStation(tsync, rec);		//todo aaron, move out of preprocessor?
+	sinexPerEpochPerStation(tsync, rec);
+	
+	bool sppUsed;
+	selectAprioriSource(rec, sppUsed);
+	
+	setClockCodesForReceiver(rec);
+	
+	if	( sppUsed
+		&&acsConfig.require_apriori_positions)
+	{
+		trace << std::endl			<< "Station " << rec.id << " rejected due to lack of apriori position";
+		BOOST_LOG_TRIVIAL(warning)	<< "Station " << rec.id << " rejected due to lack of apriori position";
+		
+		rec.invalid = true;
+		return;
+	}
+	if	( rec.antennaId.empty()
+		&&acsConfig.require_antenna_details)
+	{
+		trace << std::endl			<< "Station " << rec.id << " rejected due to lack of antenna details";
+		BOOST_LOG_TRIVIAL(warning)	<< "Station " << rec.id << " rejected due to lack of antenna details";
+		
+		rec.invalid = true;
+		return;
+	}
 	
 	emptyEpoch = false;
-
-	auto trace = getTraceFile(rec);
-
-	trace << std::endl << "------=============== Epoch " << epoch << " =============-----------" << std::endl;
-	trace << std::endl << "------=============== Time  " << boost::posix_time::from_time_t(tsync.time) << " =============-----------" << std::endl;
-
+	
+	
 	BOOST_LOG_TRIVIAL(trace)
 	<< "Read " << rec.obsList.size()
 	<< " observations for station " << rec.id;
@@ -968,105 +1261,99 @@ void mainOncePerEpochPerStation(
 	//calculate statistics
 	{
 		Instrument instrument("Statistics");
-		if (rec.firstEpoch	== GTime::noTime())		{	rec.firstEpoch	= rec.obsList.front().time;		}
-														rec.lastEpoch	= rec.obsList.front().time;
+		if ((GTime) rec.firstEpoch	== GTime::noTime())		{	rec.firstEpoch	= rec.obsList.front()->time;		}
+																rec.lastEpoch	= rec.obsList.front()->time;
 		rec.epochCount++;
 		rec.obsCount += rec.obsList.size();
 
-		for (auto& obs				: rec.obsList)
+		for (auto& obs				: only<GObs>(rec.obsList))
 		for (auto& [ft, sigList]	: obs.SigsLists)
 		for (auto& sig				: sigList)
 		{
 			rec.codeCount[sig.code]++;
 		}
 
-		for (auto& obs				: rec.obsList)
+		for (auto& obs				: only<GObs>(rec.obsList))
 		{
-			rec.satCount[obs.Sat.id()]++;
+			rec.satCount[obs.Sat]++;
 		}
 	}
 
 	if (acsConfig.process_ionosphere)
 	{
-		bool sppUsed;
-		selectAprioriSource(rec, sppUsed);
-
-		if (rec.aprioriPos.norm())
+		if (rec.aprioriPos.isZero() == false)
 			update_receivr_measr(trace, rec);
 	}
 
-	/* exclude measurements of eclipsing satellite (block IIA) */
-	if (acsConfig.reject_eclipse)
-	{
-		testeclipse(rec.obsList);
-	}
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
+	
+	rec.antBoresight	= recOpts.antenna_boresight;
+	rec.antAzimuth		= recOpts.antenna_azimuth;
+	
+	recAtt(rec, tsync, acsConfig.model.rec_attitude.sources);
 
 	if (acsConfig.process_user)
 	{
 		Instrument instrument("ppp");
 		pppos(trace, rec.obsList, rec);
 		
-		if (rec.sol.stat != SOLQ_NONE)
+		if (rec.sol.status != +E_Solution::NONE)
 		{
 			int nfixed = 0;
 			
 			rec.pppState.outputStates(trace);
-			pppoutstat(trace, rec.pppState);
+			pppoutstat(trace, rec.pppState, rec.id);
 			
 			if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
 			{
-				TempDisabler td(acsConfig.output_mongo_measurements);
+				TempDisabler td(rec.pppState.outputMongoMeasurements);
 				
-				nfixed = enduserAmbigResl(trace, rec.obsList, rec.pppState, rec.snx.pos, rec.sol.dop[2], rec.pppState.metaDataMap[SOLUTION_FILENAME_STR]);
+				nfixed = enduserAmbigResl(trace, rec.obsList, rec.pppState, rec.snx.pos, rec.sol.dop[2], rec.pppState.metaDataMap[SOL_FILENAME_STR + rec.id]);
 			}
 			
 			trace << std::endl << "Solution with " << nfixed << " ambigities resolved";
 			
 			if (acsConfig.output_ppp_sol)
 			{
-				outputPPPSolution(rec.pppState.metaDataMap[SOLUTION_FILENAME_STR], rec);
+				outputPPPSolution(rec.pppState.metaDataMap[SOL_FILENAME_STR + rec.id], rec);
 			}
 		}
+	}
+	
+	if (acsConfig.process_ppp)
+	{
+		pppoutstat(trace, net.kfState, rec.id);
 	}
 
 	if (acsConfig.process_network)
 	for (auto once : {1})
 	{
-		Instrument instrument("net");
 		// If there is no antenna information skip processing this station
-		if (rec.snx.anttype.empty())
+		if (rec.antennaType.empty())
 		{
 			BOOST_LOG_TRIVIAL(warning)
 			<< "Warning: \tNo Antenna Information for " << rec.id
 			<< " skipping this station";
 
+			rec.invalid = true;
+			
 			break;
 		}
 
-		// if the vmf3 option has been selected, use it, otherwise send null
-		vmf3_t*	rtkVmf3_ptr = nullptr;
-		double*	rtkOrog_ptr = nullptr;
-		if	(acsConfig.model.trop.vmf3dir.empty() == false)		//todo aaron, use the option rather than the filename
-		{
-			rtkVmf3_ptr = &nav.vmf3;
-			rtkOrog_ptr = orog;
-		}
-
 		/* observed minus computed for each satellites */
-		pppomc(trace, rec.obsList, gptg, rec, rtkVmf3_ptr, rtkOrog_ptr);
+		pppomc(trace, rec.obsList, nav.gptg, rec, nav.vmf3);
 	}
 
 	if	(  acsConfig.process_rts
-		&& acsConfig.pppOpts.rts_lag > 0
-		&& epoch >= acsConfig.pppOpts.rts_lag)
+		&& acsConfig.pppOpts.rts_lag > 0)
 	{
 		KFState rts = RTS_Process(rec.pppState);
 	}
 
-	if	(  acsConfig.process_user
-		&& acsConfig.output_mongo_states)
+	if (acsConfig.process_user)
 	{
 		mongoStates(rec.pppState);
+		storeStates(rec.pppState);
 	}
 
 	if (acsConfig.output_rinex_obs)
@@ -1076,7 +1363,65 @@ void mainOncePerEpochPerStation(
 
 	if (acsConfig.output_gpx)
 	{
-		writeGPX(rec.pppState.metaDataMap[GPX_FILENAME_STR], rec.id, rec.pppState);
+		if (acsConfig.process_user)
+		{
+			writeGPX(rec.pppState.metaDataMap[GPX_FILENAME_STR + rec.id],	rec.id, rec.pppState);
+		}
+		
+		if	( acsConfig.process_ppp
+			||acsConfig.process_network)
+		{
+			writeGPX(net.kfState.metaDataMap[GPX_FILENAME_STR + rec.id],	rec.id, net.kfState);
+		}
+	}
+}
+
+void outputPredictedStates(
+	Trace&			trace,
+	Network&		net,
+	MongoOptions&	mongoOptions)
+{
+	if (mongoOptions.predict_states == false)
+	{
+		return;
+	}
+		
+	tuple<double, double>	forward = {+1, mongoOptions.forward_prediction_duration};
+	tuple<double, double>	reverse = {-1, mongoOptions.reverse_prediction_duration};
+
+	for (auto& duo : {forward, reverse})
+	{
+		auto& [sign, duration] = duo;
+		
+		if (duration < 0)
+		{
+			continue;
+		}
+		
+		Orbits orbits = prepareOrbits(trace, net.kfState);
+		
+		if (orbits.empty())
+		{
+			continue;
+		}
+		
+		GTime orbitsTime	= tsync;
+		GTime stopTime		= tsync + sign * duration;
+		
+		for (GTime time = tsync; sign * (time - stopTime).to_double() <= 0; time += sign * mongoOptions.prediction_interval)
+		{
+			OrbitIntegrator integrator;
+			integrator.timeInit				= orbitsTime;
+			integrator.propagationOptions	= acsConfig.orbitPropagation;
+
+			double tgap = (time - orbitsTime).to_double();
+			
+			integrateOrbits(integrator, orbits, tgap, acsConfig.orbitPropagation.integrator_time_step);
+			
+			orbitsTime = time;
+			
+			outputMongoPredictions(trace, orbits, time, mongoOptions);
+		}
 	}
 }
 
@@ -1092,70 +1437,101 @@ void mainPerEpochPostProcessingAndOutputs(
 	if (acsConfig.process_user)
 	{
 		if (acsConfig.output_trop_sinex)
-		for (auto& [id, rec] : stationMap)
 		{
-			outputTropSinex(rec.pppState.metaDataMap["tropFilename"], tsync, stationMap, id);
+			vector<KFState*> kfStatePointers;
+			for (auto& [key, rec] : stationMap)
+			{
+				kfStatePointers.push_back(&rec.pppState);
+			}
+			KFState mergedKfState = mergeFilters(kfStatePointers, true);
+			for (auto& [id, rec] : stationMap)
+			{
+				outputTropSinex(rec.pppState.metaDataMap[TROP_FILENAME_STR], tsync, mergedKfState, id);
+			}
 		}
 		
 		if (acsConfig.output_clocks)
 		{
-			auto filenameSysMap = getSysOutputFilenames(acsConfig.clocks_filename, tsync);
-
-			for (auto [filename, sysMap] : filenameSysMap)
-			{
-				outputClocks(filename, acsConfig.clocks_receiver_source, acsConfig.clocks_satellite_source, tsync, sysMap, net.kfState, &stationMap);
-			}
+			outputClocks(acsConfig.clocks_filename, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, tsync, net.kfState, &stationMap);
 		}
 	}
 	
 	if	( acsConfig.process_ppp
 		||acsConfig.process_network)
 	{
-		if (acsConfig.output_mongo_states)
+		mongoStates(net.kfState);
+		
+		if (acsConfig.output_trop_sinex)
 		{
-			mongoStates(net.kfState);
+			outputTropSinex(net.kfState.metaDataMap[TROP_FILENAME_STR],				tsync, net.kfState, "MIX");
+		}
+	}
+	
+	if (acsConfig.output_cost)
+	for (auto& [id, rec] : stationMap)
+	{
+		if (acsConfig.process_user)
+		{
+			outputCost(rec.pppState.metaDataMap[COST_FILENAME_STR + id],	rec,	tsync, rec.pppState);
 		}
 		
-		KFState KF_ARcopy = net.kfState;
+		if (acsConfig.process_ppp)
+		{
+			outputCost(net.kfState.metaDataMap[COST_FILENAME_STR + id],		rec,	tsync, net.kfState);
+		}
+	}
+	
+	
+	KFState tempAugmentedKF = net.kfState;
+	
+	tempAugmentedKF.rts_basename = "";
+	
+	if (acsConfig.process_network)
+	{
+		tempAugmentedKF.outputStates(netTrace);
 		
+		KFState KF_ARcopy = net.kfState;
+		KF_ARcopy.outputMongoMeasurements = false;
 		if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
 		{
-			TempDisabler td(acsConfig.output_mongo_measurements);
-				
 			networkAmbigResl(netTrace, stationMap, KF_ARcopy);
-
+			
 			if (ARsol_ready())
 			{
 				KF_ARcopy.outputStates(netTrace, "/AR");
 			}
 
-			if (acsConfig.output_mongo_states)
-			{
-				mongoStates(KF_ARcopy, "_AR");
-			}
+			mongoStates(KF_ARcopy, "_AR");
 		}
-		
-		net.kfState.outputStates(netTrace);
 		
 		if (acsConfig.output_clocks)
 		{
-			auto filenameSysMap = getSysOutputFilenames(acsConfig.clocks_filename, tsync);
-			
 			if	( acsConfig.output_ar_clocks == false
-				||ARsol_ready() == false)
+				|| ARsol_ready() == false)
 			{
-				for (auto [filename, sysMap] : filenameSysMap)
-				{
-					outputClocks(filename, acsConfig.clocks_receiver_source, acsConfig.clocks_satellite_source, tsync, sysMap, net.kfState, &stationMap);
-				}
+				outputClocks(acsConfig.clocks_filename, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, tsync, tempAugmentedKF,	&stationMap);
 			}
 			else
 			{
-				for (auto [filename, sysMap] : filenameSysMap)
-				{
-					outputClocks(filename, E_Ephemeris::KALMAN, E_Ephemeris::KALMAN, tsync, sysMap, KF_ARcopy, &stationMap);
-				}
+				outputClocks(acsConfig.clocks_filename, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, tsync, KF_ARcopy,		&stationMap);
 			}
+		}
+		
+		if	(  acsConfig.process_minimum_constraints
+			&& acsConfig.minCOpts.once_per_epoch)
+		{
+			BOOST_LOG_TRIVIAL(info)
+			<< std::endl
+			<< "---------------PROCESSING NETWORK WITH MINIMUM CONSTRAINTS ------------- " << std::endl;
+			
+			for (auto& [id, rec] : stationMap)
+			{
+				rec.minconApriori = rec.aprioriPos;
+			}
+			
+			mincon(netTrace, tempAugmentedKF);
+	
+			mongoStates(tempAugmentedKF, "_mincon");
 		}
 		
 		if (acsConfig.output_erp)
@@ -1164,44 +1540,92 @@ void mainPerEpochPostProcessingAndOutputs(
 		}
 
 		if	(  acsConfig.process_rts
-			&& acsConfig.pppOpts.rts_lag > 0
-			&& epoch >= acsConfig.pppOpts.rts_lag)
+			&& acsConfig.pppOpts.rts_lag > 0)
 		{
 			RTS_Process(net.kfState,	false, &stationMap);
 			RTS_Process(KF_ARcopy,		false, &stationMap);
 
 			if (ARsol_ready())
 			{
-				auto filenameSysMap = getSysOutputFilenames(acsConfig.clocks_filename, tsync);
-
-				for (auto [filename, sysMap] : filenameSysMap)
-				{
-					outputClocks(filename, E_Ephemeris::KALMAN, E_Ephemeris::KALMAN, tsync, sysMap, KF_ARcopy, &stationMap);
-				}
+				outputClocks(acsConfig.clocks_filename, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, tsync, KF_ARcopy, &stationMap);
 			}
 		}
 	}
 	
-	if (acsConfig.ssrOpts.calculate_ssr)
+	if (acsConfig.process_ppp)
 	{
-		BOOST_LOG_TRIVIAL(info)
-		<< "Calculating SSR message precursors\n";
+		KFState KF_ARcopy;
 		
+		/* select ambiguity resolved KF */
+		if	(  acsConfig.ambrOpts.NLmode != +E_ARmode::OFF  
+			&& copyFixedKF(KF_ARcopy))
+		{
+			tempAugmentedKF = KF_ARcopy;
+		}
+		
+		if	(  acsConfig.process_minimum_constraints
+			&& acsConfig.minCOpts.once_per_epoch)
+		{
+			BOOST_LOG_TRIVIAL(info)
+			<< std::endl
+			<< "---------------PROCESSING NETWORK WITH MINIMUM CONSTRAINTS ------------- " << std::endl;
+			
+			for (auto& [id, rec] : stationMap)
+			{
+				rec.minconApriori = rec.aprioriPos;
+			}
+			
+			mincon(netTrace, tempAugmentedKF);
+	
+			mongoStates(tempAugmentedKF, "MINCON");
+		}
+		
+		if (acsConfig.output_erp)
+		{
+			writeERPFromNetwork(net.kfState.metaDataMap[ERP_FILENAME_STR], net.kfState);
+		}
+		
+		if (acsConfig.output_clocks)
+		{
+			outputClocks(acsConfig.clocks_filename, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, tsync, tempAugmentedKF, &stationMap);
+		}
+		
+		if	(  acsConfig.process_rts
+			&& acsConfig.pppOpts.rts_lag > 0)
+		{
+			RTS_Process(net.kfState,	false, &stationMap);
+		}
+
+		outputStatistics(netTrace, net.kfState.statisticsMap, net.kfState.statisticsMapSum);
+	}
+	
+	{
 		if	(  ARsol_ready() 
 			&& acsConfig.output_ar_clocks)
 		{
 			KFState KF_ARcopy = retrieve_last_ARcopy();
-			prepareSsrStates(netTrace, KF_ARcopy,	tsync);
+			prepareSsrStates(netTrace, KF_ARcopy,		tsync);
 		}
 		else
 		{
-			prepareSsrStates(netTrace, net.kfState,	tsync);
+			prepareSsrStates(netTrace, tempAugmentedKF,	tsync);
 		}
 	}
 	
 	if (acsConfig.output_orbits)
 	{
-		outputSp3(tsync, acsConfig.orbits_data_source, &net.kfState);
+		outputSp3(acsConfig.orbits_filename, tsync, acsConfig.orbits_data_sources, &tempAugmentedKF);
+	}
+	
+	if (acsConfig.output_orbex)
+	{
+		outputOrbex(tsync, acsConfig.orbex_orbit_sources, acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources, &net.kfState);
+	}
+	
+	if (acsConfig.output_ionex)
+	{
+		if (acsConfig.process_ionosphere)			ionexFileWrite(iono_KFState.metaDataMap	[IONEX_FILENAME_STR], tsync, iono_KFState);			
+		else										ionexFileWrite(net.kfState.metaDataMap	[IONEX_FILENAME_STR], tsync, net.kfState);					
 	}
 
 	if (acsConfig.output_persistance)
@@ -1209,21 +1633,93 @@ void mainPerEpochPostProcessingAndOutputs(
 		outputPersistanceNav();
 	}
 	
-	if (acsConfig.output_mongo_states)
+	outputApriori		(stationMap);
+	outputDeltaClocks	(stationMap);
+	
+	if (acsConfig.output_bias_sinex)
 	{
-		outputApriori		(stationMap);
-		outputDeltaClocks	(stationMap);
+		writeBiasSinex(netTrace, tsync, fileNames[acsConfig.bias_sinex_filename], stationMap);
 	}
+	
+	if (acsConfig.output_orbit_ics)
+	{
+		outputOrbitConfig(net.kfState);
+	}
+	
+	outputPredictedStates(netTrace, net, acsConfig.remoteMongo);
+	
+	mongoCull(tsync);
 }
+
+void mainOncePerEpochPerSatellite(
+	Trace&	trace,
+	GTime	time,
+	SatSys	Sat)
+{
+	auto& satNav 	= nav.satNavMap[Sat];
+	auto& satOpts	= acsConfig.getSatOpts(Sat);
+	
+	//get svn and block type if possible
+	if (Sat.svn().empty())
+	{
+		auto it = nav.svnMap[Sat].lower_bound(time);
+		if (it == nav.svnMap[Sat].end())
+		{
+			BOOST_LOG_TRIVIAL(warning) << "Warning: SVN not found for " << Sat.id();
+			
+			Sat.setSvn("UNKNOWN");
+		}
+		else
+		{
+			Sat.setSvn(it->second);
+		}
+	}
+	
+	if (Sat.blockType().empty())
+	{
+		auto it = nav.blocktypeMap.find(Sat.svn());
+		if (it == nav.blocktypeMap.end())
+		{
+			BOOST_LOG_TRIVIAL(warning) << "Warning: Block type not found for " << Sat.id() << ", attitude modelling etc may be affected, check sinex file";
+			
+			Sat.setBlockType("UNKNOWN");
+		}
+		else
+		{
+			Sat.setBlockType(it->second);
+		}		
+	}
+	
+	GObs obs;
+	obs.Sat			= Sat;
+	obs.time		= time;
+	obs.satNav_ptr	= &satNav;	
+	
+	bool pass =	satpos(nullStream, time, time, obs, acsConfig.model.sat_pos.ephemeris_sources, E_OffsetType::COM, nav);
+	if (pass == false)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << obs.Sat.id() << ".";
+	}
+	
+	ERPValues erpv = geterp(nav.erp, tsync);
+	
+	FrameSwapper frameSwapper(time, erpv);
+	
+	obs.rSatEci0 = frameSwapper(obs.rSat);
+	
+	satNav.aprioriPos	= obs.rSatEci0;
+	satNav.antBoresight	= satOpts.antenna_boresight;
+	satNav.antAzimuth	= satOpts.antenna_azimuth;
+	
+	updateSatAtts(obs);
+}
+
 
 void mainOncePerEpoch(
 	Network&		net,
 	StationMap&		stationMap,
 	GTime			time)
 {
-	Instrument	instrument	("1/Ep");
-	TestStack	ts			("1/Ep");
-	
 	//load any changes from the config
 	bool newConfig = acsConfig.parse();
 	
@@ -1239,32 +1735,23 @@ void mainOncePerEpoch(
 	//make any changes to streams.
 	if (newConfig)
 	{
-		configureDownloadingStreams();
 		configureUploadingStreams();
 	}
 	
 	auto netTrace = getTraceFile(net);
 	
-	netTrace << std::endl << "------=============== Epoch " << epoch << " =============-----------" << std::endl;
-	netTrace << std::endl << "------=============== Time  " << boost::posix_time::from_time_t(time.time) << " =============-----------" << std::endl;
-	
 	//initialise mongo if not already done
 	mongoooo();
 
-	//try to get svns of all used satellites
-	for (auto& [satId, satNav] : nav.satNavMap)
+	//try to get svns & block types of all used satellites
+	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
-		SatSys Sat;
-		Sat.fromHash(satId);
-		
-		PhaseCenterData* pcvsat_ptr = nullptr;
-		findAntenna(Sat.id(), Sat.sys, time, nav, F1, &pcvsat_ptr);
-		if (pcvsat_ptr)
-		{
-			Sat.setSvn(pcvsat_ptr->svn);
-		}
+		if (acsConfig.process_sys[Sat.sys] == false)
+			continue;
+	
+		mainOncePerEpochPerSatellite(netTrace, time, Sat);
 	}
-		
+
 	//do per-station pre processing
 	bool emptyEpoch = true;
 #	ifdef ENABLE_PARALLELISATION
@@ -1279,7 +1766,7 @@ void mainOncePerEpoch(
 		std::advance(rec_ptr_iterator, i);
 
 		auto& [id, rec] = *rec_ptr_iterator;
-		mainOncePerEpochPerStation(rec,nav.orography, nav.gptg, emptyEpoch);
+		mainOncePerEpochPerStation(rec, net, emptyEpoch);
 	}
 	Eigen::setNbThreads(0);
 
@@ -1289,14 +1776,11 @@ void mainOncePerEpoch(
 		<< "Warning: Epoch " << epoch << " has no observations";
 	}
 
-	if (acsConfig.output_mongo_measurements)
-	{
-		mongoMeasSatStat(stationMap);
-	}
+	mongoMeasSatStat(stationMap);
 
 	if (acsConfig.process_ppp)
 	{
-		PPP(netTrace, stationMap, net.kfState, nav.gptg, nav.orography);
+		PPP(netTrace, stationMap, net.kfState);
 	}
 
 	if (acsConfig.output_rinex_nav)
@@ -1333,6 +1817,8 @@ void mainOncePerEpoch(
 	}
 	
 	TestStack::testStatus();
+
+	callbacksOncePerEpoch();
 }
 
 void mainPostProcessing(
@@ -1341,19 +1827,20 @@ void mainPostProcessing(
 {
 	auto netTrace = getTraceFile(net);
 	
-	if	(  acsConfig.process_ionosphere
-		&& acsConfig.output_ionex)
-	{
-		ionexFileWrite(netTrace, net.kfState.metaDataMap[IONEX_FILENAME_STR], tsync, true);
-	}
-
-	if	( acsConfig.process_network
-		&&acsConfig.process_minimum_constraints)
+	if	( ( acsConfig.process_network
+		  ||acsConfig.process_ppp)
+		&&	acsConfig.process_minimum_constraints
+		&&	acsConfig.minCOpts.once_per_epoch == false)
 	{
 		BOOST_LOG_TRIVIAL(info)
 		<< std::endl
 		<< "---------------PROCESSING NETWORK WITH MINIMUM CONSTRAINTS ------------- " << std::endl;
 		
+		for (auto& [id, rec] : stationMap)
+		{
+			rec.minconApriori = rec.aprioriPos;
+		}
+			
 		mincon(netTrace, net.kfState);
 	}
 	
@@ -1376,32 +1863,49 @@ void mainPostProcessing(
 		outputPersistanceStates(stationMap, net.kfState);
 	}
 
-	if (acsConfig.process_network)
+	if	( acsConfig.process_network
+		||acsConfig.process_ppp)
 	{
-		outputOrbit(net.kfState);
+// 		outputMqtt	(net.kfState);
+		outputOrbit	(net.kfState);
 	}
-
-	if	(acsConfig.process_rts)
+	
+	outputPredictedStates(netTrace, net, acsConfig.localMongo);
+	
+	if (acsConfig.output_predicted_orbits)
+	{
+		outputMongoOrbits();
+	}
+	
+	if (acsConfig.process_rts)
 	{
 		if	(  acsConfig.process_user
 			&& acsConfig.pppOpts.rts_lag < 0)
+		for (auto& [id, rec] : stationMap)
 		{
-			for (auto& [id, rec] : stationMap)
-			{
-				BOOST_LOG_TRIVIAL(info)
-				<< std::endl
-				<< "---------------PROCESSING PPP WITH RTS------------------------- " << std::endl;
+			BOOST_LOG_TRIVIAL(info)
+			<< std::endl
+			<< "---------------PROCESSING PPP WITH RTS------------------------- " << std::endl;
 
-				RTS_Process(rec.pppState,	true, &stationMap);
-			}
+			RTS_Process(rec.pppState,	true, &stationMap);
 		}
-
+		
 		if	( acsConfig.process_network
 			&&acsConfig.pppOpts.rts_lag < 0)
 		{
 			BOOST_LOG_TRIVIAL(info)
 			<< std::endl
 			<< "---------------PROCESSING NETWORK WITH RTS--------------------- " << std::endl;
+
+			RTS_Process(net.kfState,		true, &stationMap);
+		}
+		
+		if	( acsConfig.process_ppp
+			&&acsConfig.pppOpts.rts_lag < 0)
+		{
+			BOOST_LOG_TRIVIAL(info)
+			<< std::endl
+			<< "---------------PROCESSING PPPPP WITH RTS--------------------- " << std::endl;
 
 			RTS_Process(net.kfState,		true, &stationMap);
 		}
@@ -1417,34 +1921,33 @@ void mainPostProcessing(
 		}
 	}
 
-	if (acsConfig.output_bias_sinex)
-	{
-		writeBiasSinex(netTrace, tsync, fileNames[acsConfig.bias_sinex_filename]);
-	}
-
 	if (acsConfig.testOpts.enable)
 	{
 		TestStack::printStatus(true);
 		TestStack::saveData();
-		Instrument::printStatus();
 	}
 
+	Instrument::printStatus();
+
 	outputSummaries(netTrace, stationMap);
+	
+	outputStatistics(netTrace, net.kfState.statisticsMapSum, net.kfState.statisticsMapSum);
 }
 
-int main(
+int ginan(
 	int		argc, 
 	char**	argv)
 {
 	tracelevel(5);
-
-	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::info);
-	boost::log::add_console_log(std::cout, boost::log::keywords::format = "%Message%");
-
+	
+	// Register the sink in the logging core
+	boost::log::core::get()->add_sink(boost::make_shared<sinks::synchronous_sink<ConsoleLog>>());
+	boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::info);
+	
 	BOOST_LOG_TRIVIAL(info)
 	<< "PEA starting... (" << GINAN_BRANCH_NAME << " " GINAN_COMMIT_VERSION " from " << GINAN_COMMIT_DATE << ")" << std::endl;
 
-	auto peaStartTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
+	GTime peaStartTime = timeGet();
 
 	exitOnErrors();
 	
@@ -1476,22 +1979,6 @@ int main(
 
 	tracelevel(acsConfig.trace_level);
 
-	//read orography file for VMF3
-	{
-		int orog_sucess = false;
-		if 	( acsConfig.model.trop.orography.empty() == false		//todo aaron, check the option, not the filename, or just read anyway
-			&&acsConfig.model.trop.vmf3dir	.empty() == false)
-		{
-			orog_sucess = readorog(acsConfig.model.trop.orography, nav.orography);
-		}
-
-		if (orog_sucess == false)
-		{
-			// read gpt2 grid file
-			readgrid(acsConfig.model.trop.gpt2grid, &nav.gptg);
-		}
-	}
-
 	if (acsConfig.input_persistance)
 	{
 		BOOST_LOG_TRIVIAL(info)
@@ -1502,7 +1989,7 @@ int main(
 
 	if (acsConfig.process_ionosphere)
 	{
-		bool pass = config_ionosph_model();
+		bool pass = configIonModel();
 		if	(pass == false)
 		{
 			BOOST_LOG_TRIVIAL(error)
@@ -1512,34 +1999,53 @@ int main(
 		}
 	}
 	
-	if	( acsConfig.ambrOpts.NLmode != +E_ARmode::OFF )
+	if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
+	{
 		config_AmbigResl();
-
-	map<string, Station> stationMap;
+	}
 	
 	//prepare the satNavMap so that it at least has entries for everything
+	for (auto [sys, max] :	{	tuple<E_Sys, int>{E_Sys::GPS, NSATGPS},
+								tuple<E_Sys, int>{E_Sys::GLO, NSATGLO},
+								tuple<E_Sys, int>{E_Sys::GAL, NSATGAL},
+								tuple<E_Sys, int>{E_Sys::QZS, NSATQZS},
+								tuple<E_Sys, int>{E_Sys::LEO, NSATLEO},
+								tuple<E_Sys, int>{E_Sys::BDS, NSATBDS},
+								tuple<E_Sys, int>{E_Sys::SBS, NSATSBS}})
+	for (int prn = 1; prn < max; prn++)
 	{
-		for (int prn = MINPRNGPS; prn <= MAXPRNGPS; prn++)	{	SatSys s(E_Sys::GPS, prn);	nav.satNavMap[s];	}
-		for (int prn = MINPRNGLO; prn <= MAXPRNGLO; prn++)	{	SatSys s(E_Sys::GLO, prn);	nav.satNavMap[s];	}
-		for (int prn = MINPRNGAL; prn <= MAXPRNGAL; prn++)	{	SatSys s(E_Sys::GAL, prn);	nav.satNavMap[s];	}
-		for (int prn = MINPRNBDS; prn <= MAXPRNBDS; prn++)	{	SatSys s(E_Sys::BDS, prn);	nav.satNavMap[s];	}	
+		SatSys Sat(sys, prn);
+		
+		if (acsConfig.process_sys[Sat.sys] == false)
+			continue;
+	
+		auto& satOpts = acsConfig.getSatOpts(Sat);
+		
+		if (satOpts.exclude)
+			continue;
+		
+		nav.satNavMap[Sat].id = Sat.id();
 	}
 
 	Network net;
 	{
-		net.kfState.id					= "Net";
-		net.kfState.max_filter_iter		= acsConfig.pppOpts.max_filter_iter;
-		net.kfState.max_prefit_remv		= acsConfig.pppOpts.max_prefit_remv;
-		net.kfState.inverter			= acsConfig.pppOpts.inverter;
-		net.kfState.sigma_check			= acsConfig.pppOpts.sigma_check;
-		net.kfState.sigma_threshold		= acsConfig.pppOpts.sigma_threshold;
-		net.kfState.w_test				= acsConfig.pppOpts.w_test;
-		net.kfState.chi_square_test		= acsConfig.pppOpts.chi_square_test;
-		net.kfState.chi_square_mode		= acsConfig.pppOpts.chi_square_mode;
-		net.kfState.output_residuals	= acsConfig.output_residuals;
+		net.kfState.id						= "Net";
+		net.kfState.max_filter_iter			= acsConfig.pppOpts.max_filter_iter;
+		net.kfState.max_prefit_remv			= acsConfig.pppOpts.max_prefit_remv;
+		net.kfState.inverter				= acsConfig.pppOpts.inverter;
+		net.kfState.sigma_check				= acsConfig.pppOpts.sigma_check;
+		net.kfState.sigma_threshold			= acsConfig.pppOpts.sigma_threshold;
+		net.kfState.w_test					= acsConfig.pppOpts.w_test;
+		net.kfState.chi_square_test			= acsConfig.pppOpts.chi_square_test;
+		net.kfState.chi_square_mode			= acsConfig.pppOpts.chi_square_mode;
+		net.kfState.simulate_filter_only	= acsConfig.pppOpts.simulate_filter_only;
+		net.kfState.output_residuals		= acsConfig.output_residuals;
+		net.kfState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
+		net.kfState.measRejectCallbacks	.push_back(orbitMeasReaction);
 		net.kfState.measRejectCallbacks	.push_back(deweightMeas);
 		net.kfState.measRejectCallbacks	.push_back(incrementPhaseSignalError);
 		net.kfState.stateRejectCallbacks.push_back(deweightByState);
+		net.kfState.stateRejectCallbacks.push_back(orbitGlitchReaction);
 	}
 
 	if	(  acsConfig.process_rts
@@ -1552,6 +2058,16 @@ int main(
 	//initialise mongo
 	mongoooo();
 	
+	{
+		YAML::Emitter emitter;
+		emitter << YAML::DoubleQuoted << YAML::Flow << YAML::BeginSeq << acsConfig.yamls[0];
+	
+		string config(emitter.c_str() + 1);
+		
+		mongoOutputConfig(config);
+	}
+		
+		
 	if (acsConfig.rts_only)
 	{
 		net.kfState.rts_lag = 4000;
@@ -1572,26 +2088,33 @@ int main(
 	
 	initialiseBiasSinex();
 
+	boost::posix_time::ptime logptime = currentLogptime();
+	createDirectories(logptime);
+	
 	reloadInputFiles();
 
 	addDefaultBiasSinex();
 
 	NtripSocket::startClients();
 
-	configureDownloadingStreams();
 	configureUploadingStreams();
 	
-	for (auto& [id, s] : obsStreamMultimap)
+	for (auto& [id, obsStream] : only<ObsStream>(streamParserMultimap))
 	{
 		auto& rec = stationMap[id];
 		
 		initialiseStation(id, rec);
 	}
+
+	if (acsConfig.start_epoch.is_not_a_date_time() == false)
+	{
+		PTime startTime;
+		startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
+		
+		tsync = startTime;
+	}
 	
 	createTracefiles(stationMap, net);
-	
-	//initialise mongo
-	mongoooo();
 	
 	if (acsConfig.mincon_only)
 	{
@@ -1600,17 +2123,10 @@ int main(
 	
 	doDebugs();
 
-	if (acsConfig.start_epoch.is_not_a_date_time() == false)
-	{
-		tsync.time = boost::posix_time::to_time_t(acsConfig.start_epoch);
-	}
-
 	BOOST_LOG_TRIVIAL(info)
 	<< std::endl;
 	BOOST_LOG_TRIVIAL(info)
 	<< "Starting to process epochs...";
-
-	TestStack ts(acsConfig.config_description);
 	
 	//============================================================================
 	// MAIN PROCESSING LOOP														//
@@ -1624,7 +2140,12 @@ int main(
 	{
 		if (tsync != GTime::noTime())
 		{
-			tsync.time				+= loopEpochs * acsConfig.epoch_interval;
+			tsync.bigTime			+= loopEpochs * acsConfig.epoch_interval;
+			
+			if (fabs(tsync.bigTime - round(tsync.bigTime)) < acsConfig.epoch_tolerance)
+			{
+				tsync.bigTime = round(tsync.bigTime);
+			}
 		}
 
 		epoch						+= loopEpochs;
@@ -1637,48 +2158,67 @@ int main(
 		BOOST_LOG_TRIVIAL(info) << std::endl
 		<< "Starting epoch #" << epoch;
 
-		TestStack ts("Epoch " + std::to_string(epoch));
-		
 		for (auto& [id, rec] : stationMap)
 		{
 			rec.ready = false;
-			clearSlips(rec.obsList);
+			
+			auto trace		= getTraceFile(rec);
+
+			trace		<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
+			trace		<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
+		}
+		
+		{
+			auto netTrace	= getTraceFile(net);
+			
+			netTrace	<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
+			netTrace	<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
 		}
 
 		//get observations from streams (allow some delay between stations, and retry, to ensure all messages for the epoch have arrived)
 		map<string, bool>	dataAvailableMap;
 		bool 				foundFirst	= false;
 		bool				repeat		= true;
-		while	( repeat
-				&&system_clock::now() < breakTime)
+		bool				atLeastOnce	= true;
+		while	(   atLeastOnce
+				||( repeat
+				  &&system_clock::now() < breakTime))
 		{
+			atLeastOnce = false;
+			
 			if (acsConfig.require_obs)
 			{
 				repeat = false;
 			}
 
-			for (auto& [id, s] : navStreamMultimap)
-			{
-				auto& navStream = *s;
-
-				navStream.getNav();
-			}
-
 			//remove any dead streams
-			for (auto iter = obsStreamMultimap.begin(); iter != obsStreamMultimap.end(); )
+			for (auto iter = streamParserMultimap.begin(); iter != streamParserMultimap.end(); )
 			{
-				auto& [dummy, obsStream_ptr]	= *iter;
-				auto& obsStream					= *obsStream_ptr;
+				auto& [id, streamParser_ptr]	= *iter;
+				auto& stream					= streamParser_ptr->stream;
 				
-				if (obsStream.isDead())
+				try
+				{
+					auto& obsStream	= dynamic_cast<ObsStream&>(*streamParser_ptr);
+					
+					if (obsStream.hasObs())
+					{
+						iter++;
+						continue;
+					}
+				}
+				catch(...){}
+				
+				if (stream.isDead())
 				{
 					BOOST_LOG_TRIVIAL(info)
-					<< "No more data available on " << obsStream.sourceString << std::endl;
+					<< "No more data available on " << stream.sourceString << std::endl;
 
 					//record as dead and erase
-					streamDOAMap[obsStream.sourceString] = true;
+					streamDOAMap[stream.sourceString] = true;
 
-					iter = obsStreamMultimap.erase(iter);
+					iter = streamParserMultimap.erase(iter);
+					stationMap[id].obsList.clear();
 				}
 				else
 				{
@@ -1686,24 +2226,51 @@ int main(
 				}
 			}
 
-			if	(  obsStreamMultimap		.empty()
-				&& pseudoObsStreamMultimap	.empty()
-				&& acsConfig.require_obs)
+			if (streamParserMultimap.empty())
 			{
-				BOOST_LOG_TRIVIAL(info)
-				<< std::endl;
-				BOOST_LOG_TRIVIAL(info)
-				<< "Inputs finished at epoch #" << epoch;
+				static bool once = true;
+				if (once)
+				{
+					once = false;
+					
+					BOOST_LOG_TRIVIAL(info)
+					<< std::endl;
+					BOOST_LOG_TRIVIAL(info)
+					<< "Inputs finished at epoch #" << epoch;
+				}
 
-				complete = true;
+				if (acsConfig.require_obs)
+					complete = true;
 
 				break;
 			}
 
-			for (auto& [id, s] : obsStreamMultimap)
+			//parse all non-observation streams
+			for (auto& [id, streamParser_ptr] : streamParserMultimap)
+			try
 			{
-				ObsStream&	obsStream	= *s;
-
+				auto& obsStream = dynamic_cast<ObsStream&>(*streamParser_ptr);
+			}
+			catch (std::bad_cast& e)
+			{
+				streamParser_ptr->parse();
+			}
+			
+			for (auto& [id, streamParser_ptr] : streamParserMultimap)
+			{
+				ObsStream* obsStream_ptr;
+				
+				try
+				{
+					obsStream_ptr = &dynamic_cast<ObsStream&>(*streamParser_ptr);
+				}
+				catch (std::bad_cast& e)
+				{
+					continue;
+				}
+				
+				auto& obsStream = *obsStream_ptr;
+				
 				auto& recOpts = acsConfig.getRecOpts(id);
 
 				if (recOpts.exclude)
@@ -1719,14 +2286,15 @@ int main(
 					bool moreData = true;
 					while (moreData)
 					{
-						rec.obsList = obsStream.getObs(tsync);
+						if (acsConfig.assign_closest_epoch)	rec.obsList = obsStream.getObs(tsync, acsConfig.epoch_interval / 2);
+						else								rec.obsList = obsStream.getObs(tsync, acsConfig.epoch_tolerance);
 
 						switch (obsStream.obsWaitCode)
 						{
-							case E_ObsWaitCode::EARLY_DATA:							preprocessor(rec);	obsStream.eatObs();	break;
-							case E_ObsWaitCode::OK:				moreData = false;	preprocessor(rec);	obsStream.eatObs();	break;
-							case E_ObsWaitCode::NO_DATA_WAIT:	moreData = false;											break;
-							case E_ObsWaitCode::NO_DATA_EVER:	moreData = false;											break;
+							case E_ObsWaitCode::EARLY_DATA:								preprocessor(rec);	obsStream.eatObs();	break;
+							case E_ObsWaitCode::OK:					moreData = false;	preprocessor(rec);	obsStream.eatObs();	break;
+							case E_ObsWaitCode::NO_DATA_WAIT:		moreData = false;											break;
+							case E_ObsWaitCode::NO_DATA_EVER:		moreData = false;											break;
 						}
 					}
 				}
@@ -1738,7 +2306,7 @@ int main(
 					{
 						// try again later
 						repeat = true;
-						sleep_for(2ms);
+						sleep_for(1ms);
 					}
 					
 					continue;
@@ -1746,10 +2314,11 @@ int main(
 				
 				if (tsync == GTime::noTime())
 				{
-					tsync.time				= ((int) (rec.obsList.front().time / acsConfig.epoch_interval)) * acsConfig.epoch_interval;
-					acsConfig.start_epoch	= boost::posix_time::from_time_t(tsync);
+					tsync = rec.obsList.front()->time.floorTime(acsConfig.epoch_interval);
 					
-					if (tsync + 0.5 < rec.obsList.front().time)
+					acsConfig.start_epoch	= boost::posix_time::from_time_t((time_t)((PTime)tsync).bigTime);
+					
+					if (tsync + acsConfig.epoch_tolerance < rec.obsList.front()->time)
 					{
 						repeat = true;
 						continue;	
@@ -1775,40 +2344,6 @@ int main(
 				
 				rec.ready = true;
 			}
-			
-			for (auto& [id, s] : pseudoObsStreamMultimap)
-			{
-				PseudoObsStream&	pseudoObsStream	= *s;
-	
-				auto& pseudoRec = stationMap[id];
-				
-				if	( (pseudoRec.pseudoObsList.empty()		== false)
-					&&(pseudoRec.pseudoObsList.front().time	== tsync))
-				{
-					//already have observations for this epoch.
-					continue;
-				}
-				
-				//try to get some data
-				pseudoRec.pseudoObsList = pseudoObsStream.getObs(tsync);
-
-				if (pseudoRec.pseudoObsList.empty())
-				{
-					continue;
-				}
-				
-				if (tsync == GTime::noTime())
-				{
-					tsync.time				= ((int)(pseudoRec.pseudoObsList.front().time / acsConfig.epoch_interval)) * acsConfig.epoch_interval;
-					acsConfig.start_epoch	= boost::posix_time::from_time_t(tsync);
-					
-					if (tsync + 0.5 < pseudoRec.pseudoObsList.front().time)
-					{
-						repeat = true;
-						continue;	
-					}
-				}
-			}
 		}
 
 		if (complete)
@@ -1821,27 +2356,29 @@ int main(
 			if (acsConfig.require_obs)
 				continue;
 			
-			tsync = utc2gpst(timeget());
+			tsync = timeGet();
 		}
 		
 		BOOST_LOG_TRIVIAL(info)
 		<< "Synced " << dataAvailableMap.size() << " stations...";
 		
-		auto epochStartTime	= boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
+		GTime epochStartTime	= timeGet();
 		{
 			mainOncePerEpoch(net, stationMap, tsync);
 		}
-		auto epochStopTime	= boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
+		GTime epochStopTime		= timeGet();
 
 		
 		
-		int week;
-		double sec = time2gpst(tsync, &week);
-		auto boostTime = boost::posix_time::from_time_t(tsync.time);
-
+		GWeek	week	= tsync;
+		GTow	tow		= tsync;
+		
+		int fractionalMilliseconds = (tsync.bigTime - (long int) tsync.bigTime) * 1000;
+		auto boostTime = boost::posix_time::from_time_t((time_t)((PTime)tsync).bigTime) + boost::posix_time::millisec(fractionalMilliseconds);
+	
 		BOOST_LOG_TRIVIAL(info)
 		<< "Processed epoch #" << epoch
-		<< " - " << "GPS time: " << week << " " << std::setw(6) << sec << " - " << boostTime 
+		<< " - " << "GPS time: " << week << " " << std::setw(6) << tow << " - " << boostTime 
 		<< " (took " << (epochStopTime-epochStartTime) << ")";
 
 		// Check end epoch
@@ -1886,15 +2423,15 @@ int main(
 	}
 
 	// Disconnect the downloading clients and stop the io_service for clean shutdown.
-	for (auto& [id, s] : ntripRtcmMultimap)
+	for (auto& [id, ntripStream] : only<NtripStream>(streamParserMultimap))
 	{
-		auto& downStream = *s;
-		downStream.disconnect();
+		ntripStream.disconnect();
 	}
+	
 	ntripBroadcaster.stopBroadcast();
 	NtripSocket::io_service.stop();
 
-	auto peaInterTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
+	GTime peaInterTime = timeGet();
 	BOOST_LOG_TRIVIAL(info)
 	<< std::endl
 	<< "PEA started  processing at : " << peaStartTime << std::endl
@@ -1907,8 +2444,7 @@ int main(
 
 	mainPostProcessing(net, stationMap);
 
-	auto peaStopTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
-
+	GTime peaStopTime = timeGet();
 	BOOST_LOG_TRIVIAL(info)
 	<< std::endl
 	<< "PEA started  processing at : " << peaStartTime	<< std::endl
@@ -1920,3 +2456,4 @@ int main(
 
 	return EXIT_SUCCESS;
 }
+

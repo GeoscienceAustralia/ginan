@@ -1,12 +1,16 @@
+#!/usr/bin/env python3
+
+"""_summary_
+"""
 import logging
 
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 
-import GinanEDA
+import ginaneda
 from app import app, server
-from GinanEDA.apps import dbinfo, meas, meas_polar, state, pos
-from GinanEDA.datasets import db
+from ginaneda.apps import dbinfo, meas, meas_polar, state, pos, clock
+from ginaneda.datasets import db
 
 
 CONTENT_STYLE = {
@@ -36,8 +40,16 @@ sidebar = html.Div(
         html.Hr(),
         html.Ul(
             children=[
-                html.Li(dcc.Link("Db Info", href="/dbinfo", id="page-dbinfo-link")),
-                html.Li(dcc.Link("States", href="/states", id="page-states-link")),
+                html.Li(
+                    dcc.Link(
+                        "Db Info",
+                        href="/dbinfo",
+                        id="page-dbinfo-link")),
+                html.Li(
+                    dcc.Link(
+                        "States",
+                        href="/states",
+                        id="page-states-link")),
                 html.Li(
                     dcc.Link(
                         "Measurements",
@@ -59,6 +71,13 @@ sidebar = html.Div(
                         id="page-position-link",
                     )
                 ),
+                html.Li(
+                    dcc.Link(
+                        "Clock Analysis",
+                        href="/clock-analysis",
+                        id="page-clock-link",
+                    )
+                ),
             ]
         ),
         html.Div(id='dummy1'),
@@ -68,21 +87,26 @@ sidebar = html.Div(
 )
 content = html.Div(id="page-content", children=[], style=CONTENT_STYLE)
 
-app.layout = html.Div([dcc.Location(id="url", refresh=False), sidebar, content])
+app.layout = html.Div(
+    [dcc.Location(id="url", refresh=False), sidebar, content])
 
 
-@app.callback(Output("page-content", "children"), Input("url", "pathname"),     State("session-store", "data"),
-              )
+@app.callback(Output("page-content", "children"), Input("url",
+              "pathname"), State("session-store", "data"), )
 def display_page(pathname, datastore):
+    """_summary_
+    """
     if pathname == "/measurements":
         return meas.layout(datastore)
-    if pathname == "/states":
+    elif pathname == "/states":
         return state.layout(datastore)
-    if pathname == "/measurements-polar":
+    elif pathname == "/measurements-polar":
         return meas_polar.layout(datastore)
-    if pathname == "/position-analysis":
+    elif pathname == "/position-analysis":
         return pos.layout(datastore)
-    if pathname == "/dbinfo":
+    elif pathname == "/clock-analysis":
+        return clock.layout(datastore)
+    elif pathname == "/dbinfo":
         return dbinfo.layout
     else:
         return "404 Page Error! Please choose a link"

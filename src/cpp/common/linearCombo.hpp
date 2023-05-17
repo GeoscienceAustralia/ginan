@@ -1,14 +1,14 @@
-#ifndef __LINEAR_COMBO_H_
-#define __LINEAR_COMBO_H_
+
+#pragma once
 
 #include <map>
 
 using std::map;
 
 #include "observations.hpp"
-#include "streamTrace.hpp"
-#include "gTime.hpp"
 #include "satSys.hpp"
+#include "gTime.hpp"
+#include "trace.hpp"
 #include "enums.h"
 
 
@@ -39,13 +39,6 @@ typedef struct
 	double	lam_B;
 	double	lam_WL;
 	double	lam_NL;
-// 	double	gf;		///< geometry-free LC for phase (m)
-// 	double	gfc;  	///< geometry-free LC for code (m)
-// 	double	wl;		///< wide-lane LC for phase (m)
-// 	double	If;		///< ionosphere-free LC for phase (m)
-// 	double	ifc;	///< ionosphere-free LC for code (m)
-// 	double	mw;		///< Melbourne Wenbunna LC for phase (cycle)
-// 	double	nl; 	///< Narrow-lane LC for code (m)
 } S_LC;
 
 typedef struct
@@ -65,10 +58,9 @@ struct Navigation;
 
 S_LC	getLC(double L_A, double L_B, double P_A, double P_B, double lamA, double lamB, double* c1_out, double* c2_out);
 S_LC&	getLC(lc_t& lcBase, E_FType fA, E_FType fB);
-S_LC&	getLC(Obs& obs, lc_t& lcBase, E_FType fA, E_FType fB);
+S_LC&	getLC(GObs& obs, lc_t& lcBase, E_FType fA, E_FType fB);
 
 void obs2lcs(
 	Trace&		trace,
 	ObsList&	obsList);
 
-#endif

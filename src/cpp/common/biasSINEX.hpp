@@ -1,5 +1,5 @@
-#ifndef BIAS_SINEX_HPP
-#define BIAS_SINEX_HPP
+
+#pragma once
 
 #include "navigation.hpp"
 #include "acsConfig.hpp"
@@ -20,12 +20,7 @@ using std::array;
 using std::map;
 using std::set;
 
-/** Struct for SINEX bias record
-*-------------------------------------------------------------------------------
-+BIAS/SOLUTION
-*BIAS SVN_ PRN STATION__ OBS1 OBS2 BIAS_START____ BIAS_END______ UNIT __ESTIMATED_VALUE____ _STD_DEV___ __ESTIMATED_SLOPE____ _STD_DEV___
-*/
-struct SinexBias
+struct BiasEntry
 {
 	GTime		tini;								///< start time
 	GTime		tfin;								///< end time
@@ -39,32 +34,13 @@ struct SinexBias
 	string		name		= "";					///< receiver name for receiver bias
 	SatSys		Sat;								///< satellite prn for satellite bias / satellite system for receiver bias
 	string		source		= "X";
-};
-
-struct Deriv_OSB
-{
-	GTime	tini;
-	GTime	tfin;
-	GTime	updated;
-	int		iod			= 0;
-	double	Lbias		= 0;			///< bias in meters
-	double	Pbias		= 0;			///< bias in meters
-	double	Lvar		= 0;			///< bias variance in meters^2
-	double	Pvar		= 0;			///< bias variance in meters^2
-	bool	LValid	= false;
-	bool	PValid	= false;
-};
-
-struct bias_opt
-{
-	bool SSR_biases		= false;
-	bool non_SSR_biases	= true;
+	
+	long int	posInOutFile =-1;					///< Position this entry is written in biasSINEX file 
 };
 
 E_ObsCode str2code(
 	string&		input,
-	E_MeasType&	measType,
-	double&		lam);
+	E_MeasType&	measType);
 
 string code2str(
 	E_ObsCode	code, 
@@ -72,7 +48,7 @@ string code2str(
 
 void pushBiasSinex(
 	string		id,
-	SinexBias	entry);
+	BiasEntry	entry);
 
 void initialiseBiasSinex();
 
@@ -80,7 +56,7 @@ void addDefaultBiasSinex();
 
 bool decomposeDSBBias(
 	string		id,
-	SinexBias&	DSB);
+	BiasEntry&	DSB);
 
 bool decomposeTGDBias(
 	SatSys		Sat,
@@ -115,28 +91,20 @@ bool getBiasSinex(
 	double& 		bias,
 	double& 		var);
 
-void outp_bias(
-	Trace&		trace,
-	GTime		time,
-	string		receiver, 
-	SatSys		Sat, 
-	E_ObsCode	code1,
-	E_ObsCode	code2, 
-	double		bias, 
-	double		variance,
-	double		updat, 
-	E_MeasType	measType);
-
 int writeBiasSinex(
 	Trace&		trace,
 	GTime		time,
-	string		biasfile);
+	string		biasfile,
+	StationMap&	stationMap);
 
+bool queryBiasOutput(
+	Trace&		trace, 
+	GTime		time,
+	SatSys		Sat,
+	string		Rec,
+	E_ObsCode	obsCode, 
+	double& 	bias_out, 
+	double& 	variance,
+	E_MeasType	type);
 
-
-extern array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, SinexBias, std::greater<GTime>>>>>, NUM_MEAS_TYPES> SINEXBiases;		///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]
-
-extern map<KFKey, map<int,SinexBias>> SINEXBiases_out;		///< Multi dimensional map, as SINEXBiases_out[key][ind]
-
-
-#endif
+extern array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, BiasEntry, std::greater<GTime>>>>>, NUM_MEAS_TYPES> SINEXBiases;		///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]

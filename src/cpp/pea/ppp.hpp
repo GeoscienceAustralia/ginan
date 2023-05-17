@@ -1,6 +1,5 @@
 
-#ifndef __PPP_HPP__
-#define __PPP_HPP__
+#pragma once
 
 #include <map>
 
@@ -14,47 +13,21 @@ using std::map;
 
 //forward declarations
 struct Station;
-struct vmf3_t;
+struct Solution;
+struct Vmf3;
 struct gptgrid_t;
+struct AttStatus;
 struct PhaseCenterData;
 using StationMap = map<string, Station>;
 
 
 
 
-/** Solution of user mode processing functinos
-*/
-struct Solution
-{
-	/* solution type */
-	GTime				time;       							///< time (GPST)
-	map<int, double>	dtRec_m; 								///< receiver clock bias to time systems (m)
-	map<int, double>	dtRec_m_ppp_old; 						///< previous receiver clock bias to time systems (m)
-	map<int, double>	dtRec_m_pppp_old; 						///< previous receiver clock bias to time systems (m)
-	map<int, double>	deltaDt_net_old;						///< previous receiver clock bias to time systems (m)
-	map<int, double>	pppdtRec_m;								///< receiver clock bias to time systems (s)
-	int					stat;									///< solution status (SOLQ_???)
-	int					numSats;								///< number of valid satellites
-	KFState				sppState;								///< SPP filter object
-	double				dop[4];
-	Vector3d			sppRRec			= Vector3d::Zero();		///< Position vector from spp
-	Vector3d			pppRRec			= Vector3d::Zero();		///< Position vector from ppp
-	
-};
-
 void removeUnmeasuredAmbiguities(
 	Trace&				trace,
 	KFState&			kfState,
 	map<KFKey, bool>	measuredStates);
 
-struct KalmanModel;
-struct StationOptions;
-
-InitialState initialStateFromConfig(
-	KalmanModel&	kalmanModel,
-	int				index = 0);
-
-/* precise point positioning -------------------------------------------------*/
 void pppos(
 	Trace&		trace,
 	ObsList&	obsList,
@@ -62,22 +35,23 @@ void pppos(
 
 void pppoutstat(
 	Trace&		trace,
-	KFState&	kfState);
+	KFState&	kfState,
+	string		id);
 
 void pppomc(
-	Trace&		trace,
-	ObsList&	obsList,
-	gptgrid_t&	gptg,
-	Station&	rec,
-	vmf3_t*		vmf3,
-	double*		orog);
+	Trace&			trace,
+	ObsList&		obsList,
+	gptgrid_t&		gptg,
+	Station&		rec,			
+	Vmf3&			vmf3);		
 
 void sppos(
 	Trace&		trace,
 	ObsList&	obsList,
-	Solution&	sol);
+	Solution&	sol,
+	string		id);
 
-void testeclipse(
+void testEclipse(
 	ObsList&	obsList);
 
 void pppCorrections(
@@ -87,58 +61,44 @@ void pppCorrections(
 	Station&	rec);
 	
 void PPP(
-	Trace&			trace,		
-	StationMap&		stations,	
-	KFState&		kfState,	
-	gptgrid_t&		gptg,		
-// 	vmf3_t*			vmf3,		
-	double*			orography);	
+	Trace&			trace,
+	StationMap&		stations,
+	KFState&		kfState);
 
 void corr_meas(
 	Trace&		trace,
-	Obs&		obs,
+	GObs&		obs,
 	E_FType		ft,
 	double		dAntRec,
 	double		dAntSat,
 	double		phw,
-	Station&	rec,
-	double		mjd,
 	bool		oldSchool = true);
 
 double sbstropcorr(
 	GTime			time,
-	Vector3d&		rRec,
+	VectorEcef&		rRec,
 	double			el,
 	double*			var = nullptr);
 
-double measVar(
-	int				sys,
-	double			el,
-	E_FType			ft,
-	int				type,
-	StationOptions&	stationOpts);
-
-int model_phw(
-	GTime		time,
-	Obs&		obs,
-	Vector3d&	rRec,
+void phaseWindup(
+	GObs&		obs,
+	Station&	rec,
 	double&		phw);
 
-double satNadir(
-	Vector3d&			rs,
-	Vector3d&			rr);
+double gradMapFn(
+	double		el);
 
 double trop_model_prec(
 	GTime		time,
-	double*		pos,
+	VectorPos&	pos,
 	double*		azel,
 	double*		tropStates,
 	double*		dTropDx,
 	double&		var);
 
-int model_iono(
+int ionoModel(
 	GTime		time,
-	double*		pos,
+	VectorPos&	pos,
 	double*		azel,
 	double		ionoState,
 	double&		dion,
@@ -205,26 +165,90 @@ bool clockGlitchReaction(
 	KFMeas&		kfMeas,
 	KFKey&		kfKey);
 
+bool orbitGlitchReaction(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	KFKey&		kfKey);
+
+bool orbitMeasReaction(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index);
 
 
 
 void stationPPP(
 			Trace&				netTrace,		
 			Station&			rec,			
-/*	const*/	KFState&			kfState,		
-			KFMeasEntryList&	kfMeasEntryList,
-			gptgrid_t&			gptg,			
-// 			vmf3_t*				vmf3,			
-			double*				orography);		
+	const	KFState&			kfState,		
+			KFMeasEntryList&	kfMeasEntryList);
 
 
-void stationPseudo(
+void orbitPseudoObs(
 			Trace&				netTrace,			
 			Station&			rec,				
-/*	const*/	KFState&			kfState,			
+	const	KFState&			kfState,			
 			KFMeasEntryList&	kfMeasEntryList);	
+
+void stationPseudoObs(
+			Trace&				netTrace,			
+			Station&			rec,				
+	const	KFState&			kfState,			
+			KFMeasEntryList&	kfMeasEntryList,
+			StationMap&			stationMap,
+			MatrixXd*			R_ptr = nullptr);
+
+void stationSlr(
+			Trace&				netTrace,		
+			Station&			rec,			
+	const	KFState&			kfState,		
+			KFMeasEntryList&	kfMeasEntryList);		
 
 Matrix3d stationEopPartials(
 	Vector3d&	rRec);
 
-#endif
+
+bool satQuat(
+	GObs&				obs,
+	vector<E_Source>	attitudeTypes,
+	Quaterniond&		quat,
+	bool				origGal	= false);
+
+void satYaw(
+	GObs&		obs,
+	AttStatus&	attStatus);
+	
+int PPP_AR(
+	Trace&		trace,		
+	KFState&	kfState);
+
+bool copyFixedKF(
+	KFState& fixed);
+
+bool queryBiasUC(
+	Trace&		trace,	
+	GTime		time,		
+	SatSys		sat,		
+	string		rec,		
+	E_ObsCode	code,	
+	double&		bias,	
+	double&		vari,	
+	E_MeasType	typ);
+
+void biasPseudoObs(
+	Trace&				trace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
+
+void ambgPseudoObs(
+	Trace&				trace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
+
+void ionoPseudoObs (
+	Trace&				trace,
+	StationMap&			stations,	
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);

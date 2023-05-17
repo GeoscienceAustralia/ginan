@@ -2,30 +2,40 @@
 // #pragma GCC optimize ("O0")
 
 #include "streamNtrip.hpp"
-
+#include "trace.hpp"
 
 void NtripStream::getData()
 {
-	receivedDataBufferMtx.lock();
+	lock_guard<mutex> guard(receivedDataBufferMtx);
+	
+	const int reserve = 8192;
+	
+	receivedData.reserve(reserve);
+	
+	for (auto it = chunkList.begin(); it != chunkList.end();  )
 	{
-		//if ( receivedDataBuffer.size() > 0 )
-		//    BOOST_LOG_TRIVIAL(debug) << "NtripStream::getData(), receivedDataBuffer.size() = " << receivedDataBuffer.size() << std::endl;
-		receivedData.insert(receivedData.end(), receivedDataBuffer.begin(), receivedDataBuffer.end());
-		receivedDataBuffer.clear();
+		auto& chunk = *it;
+		
+		if (receivedData.size() + chunk.size() > reserve)
+		{
+			break;
+		}
+	
+// 		std::cout << "\nCHUNK";
+// 		printHex(std::cout, chunk);
+		
+		receivedData.insert(receivedData.end(), chunk.begin(), chunk.end());
+
+		it = chunkList.erase(it);
 	}
-	receivedDataBufferMtx.unlock();
 }
 
-bool NtripStream::dataChunkDownloaded(
-	vector<char> dataChunk)
+void NtripStream::dataChunkDownloaded(
+	vector<char>& dataChunk)
 {
-	receivedDataBufferMtx.lock();
-	{
-		receivedDataBuffer.insert(receivedDataBuffer.end(), dataChunk.begin(), dataChunk.end());
-	}
-	receivedDataBufferMtx.unlock(); 
+	lock_guard<mutex> guard(receivedDataBufferMtx);
 	
-	return false;
+	chunkList.push_back(std::move(dataChunk));
 }
 
 void NtripStream::connected()

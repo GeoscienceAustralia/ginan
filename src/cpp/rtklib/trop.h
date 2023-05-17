@@ -11,9 +11,10 @@
 *           [2] vmf1.m file from http://ggosatm.hg.tuwien.ac.at/DELAY/SOURCE/
 *           [3] gpt2 file from http://ggosatm.hg.tuwien.ac.at/DELAY/SOURCE/
 *-----------------------------------------------------------------------------*/
-#ifndef TROP_H
-#define TROP_H
 
+#pragma once
+
+#include "eigenIncluder.hpp"
 #include "gTime.hpp"
 
 #include <string>
@@ -44,7 +45,7 @@ void	gpt2(const gptgrid_t *gptg, double mjd, double lat, double lon, double hell
 
 double tropztd(
 	const gptgrid_t&	gptg,
-	double				pos[3],
+	VectorPos&			pos,
 	double				mjd,
 	double				el,
 	int					it,
@@ -54,15 +55,13 @@ double tropztd(
 void	vmf1(const double ah, const double aw, double mjd, double lat, double hgt, double zd, int id, double mf[2]);
 int		readgrid(string file, gptgrid_t *gptg);
 
-double	tropmodel(GTime time, const double *pos, const double *azel, double humi);
+double	tropmodel(GTime time, const VectorPos& pos, const double *azel, double humi);
 
 double	tropacs(
-	const double*	pos, 
-	const double*	azel,
-	double*			map = nullptr);
+	const VectorPos&	pos,
+	const double*		azel,
+	double*				map = nullptr);
 
-double	tropmapf(GTime time, const double *pos, const double *azel,double *mapfw);
-int		tropcorr(GTime time, const double *pos, const double *azel, int tropopt, double *trp, double *var);
+double	tropmapf(GTime time, const VectorPos& pos, const double *azel,double *mapfw);
+int		tropcorr(GTime time, const VectorPos& pos, const double *azel, int tropopt, double *trp, double *var);
 
-
-#endif

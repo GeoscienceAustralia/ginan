@@ -9,14 +9,13 @@
 #include "enums.h"
 
 
-array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, SinexBias, std::greater<GTime>>>>>, NUM_MEAS_TYPES> SINEXBiases;		///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]
+array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, BiasEntry, std::greater<GTime>>>>>, NUM_MEAS_TYPES> SINEXBiases;		///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]
 
 /** Convert observation code string to enum code
 */
 E_ObsCode str2code(
 	string&		input,		///< The input observation code string
-	E_MeasType&	measType,	///< Measurement type of this observation - CODE/PHAS - as output
-	double&		lam)		///< Wave length of this signal as output
+	E_MeasType&	measType)	///< Measurement type of this observation - CODE/PHAS - as output
 {
 	char cods[] = "Lxx";
 	cods[1] = input[1];
@@ -40,8 +39,6 @@ E_ObsCode str2code(
 	{
 		code = E_ObsCode::NONE;
 	}
-
-	lam = lambdas[code];
 
 	return code;
 }
@@ -69,7 +66,7 @@ string code2str(
 /** Convert time string in bias SINEX to gtime struct
 */
 GTime sinex_time_text(
-	string& line)			///< Start/End time string in bias SINEX
+	string& line)		///< time system
 {
 	double year;
 	double doy;
@@ -81,9 +78,26 @@ GTime sinex_time_text(
 	{
 		ep[0] = year;
 		time = epoch2time(ep);
-		time = time + 86400 * (doy - 1) + tod;
+		time += 86400 * (doy - 1) + tod;
 	}
-
+	
+	if	(  acsConfig.bias_time_system == "C")
+		time += 14;
+	
+	if	(  acsConfig.bias_time_system == "TAI")
+		time -= 19;
+	
+	if	(  acsConfig.bias_time_system == "R")
+		time -= 10800.0;
+	
+	if	(  acsConfig.bias_time_system == "R"
+		|| acsConfig.bias_time_system == "UTC")
+	{
+		double leap1 = leapSeconds(time);
+		double leap2 = leapSeconds(time + leap1 + 1);
+		time += leap2;
+	}
+	 
 	return time;
 }
 
@@ -91,18 +105,15 @@ GTime sinex_time_text(
 */
 void initialiseBiasSinex()
 {
-	SinexBias entry;
-	entry.tini.sec	= 0;
+	BiasEntry entry;
 	entry.bias		= 0;
 	entry.var		= 0;
 	entry.measType	= CODE;
 	entry.name		= "";
 	entry.source	= "init";
 
-	for (int i = 0; i < E_Sys::_size(); i++)
+	for (E_Sys sys : E_Sys::_values())
 	{
-		E_Sys sys	= E_Sys::_values()[i];
-
 		auto sats = getSysSats(sys);
 		if (acsConfig.process_sys[sys])
 		for (auto Sat : sats) 
@@ -121,8 +132,7 @@ void initialiseBiasSinex()
 */
 void addDefaultBiasSinex()
 {
-	SinexBias entry;
-	entry.tini.sec	= 0;
+	BiasEntry entry;
 	entry.bias		= 0;
 	entry.var		= 0;
 	entry.measType	= CODE;
@@ -160,7 +170,7 @@ void addDefaultBiasSinex()
 */
 void pushBiasSinex(
 	string		id,			///< Device ID
-	SinexBias	entry)		///< Bias entry to push into the SINEXBiases map
+	BiasEntry	entry)		///< Bias entry to push into the SINEXBiases map
 {
 	//add forward bias to maps
 	SINEXBiases	[entry.measType]
@@ -192,9 +202,12 @@ void pushBiasSinex(
 */
 bool decomposeDSBBias(
 	string		id,			///< ID of the bias
-	SinexBias&	DSB)		///< DSB to be decomposed
+	BiasEntry&	DSB)		///< DSB to be decomposed
 {
 	auto& Sat = DSB.Sat;
+	
+	if (Sat.sys == +E_Sys::GLO)
+		return false;
 	
 	if	( DSB.cod1 != acsConfig.clock_codesL1[Sat.sys]
 		||DSB.cod2 != acsConfig.clock_codesL2[Sat.sys])
@@ -202,12 +215,21 @@ bool decomposeDSBBias(
 		return false;
 	}
 
-	double lam1	= lambdas[DSB.cod1];
-	double lam2	= lambdas[DSB.cod2];
+	E_FType ft1 = code2Freq[Sat.sys][DSB.cod1];
+	E_FType ft2 = code2Freq[Sat.sys][DSB.cod2];
+	double lam1	= nav.satNavMap[Sat].lamMap[ft1];
+	double lam2	= nav.satNavMap[Sat].lamMap[ft2];
+	
+	if	(  lam1 == 0
+		|| lam2 == 0)
+	{
+		return false;
+	}
+	
 	double c2	= -SQR(lam1) / (SQR(lam2) - SQR(lam1));
 	double c1	= c2 - 1;
 
-	SinexBias entry = DSB;
+	BiasEntry entry = DSB;
 	entry.cod2		= E_ObsCode::NONE;
 	entry.source	+= "*";
 	
@@ -244,11 +266,11 @@ bool decomposeTGDBias(
 	double	bias	= tgd * CLIGHT;
 	double	gamma	= SQR(FREQ1) / SQR(FREQ2);
 	
-	SinexBias entry;
-	entry.tini.sec	= 1;
-	entry.measType	= CODE;
-	entry.Sat		= Sat;
-	entry.name		= Sat.id();
+	BiasEntry entry;
+	entry.tini.bigTime	= 1;
+	entry.measType		= CODE;
+	entry.Sat			= Sat;
+	entry.name			= Sat.id();
 
 	//covert TGD to P1-P2 DCB
 	entry.cod1		= cod1;
@@ -279,12 +301,12 @@ bool decomposeBGDBias(
 	double	gammaE1E5a	= SQR(FREQ1) / SQR(FREQ5);
 	double	gammaE1E5b	= SQR(FREQ1) / SQR(FREQ7);
 		
-	SinexBias entry;
-	entry.tini.sec	= 1;
-	entry.measType	= CODE;
-	entry.Sat		= Sat;
-	entry.name		= "";
-	entry.source	= "bgd";
+	BiasEntry entry;
+	entry.tini.bigTime	= 1;
+	entry.measType		= CODE;
+	entry.Sat			= Sat;
+	entry.name			= "";
+	entry.source		= "bgd";
 
 	//store BGD E5b/E1 as C1C-IF OSB
 	entry.cod1		= cod1;
@@ -333,7 +355,7 @@ void read_biasSINEX_head(
 /** Read data line in bias SINEX file
 */
 int read_biasSINEX_line(
-	char*		buff)	///< Line to read
+	char*		buff)	///< time system "UTC", "TAI", etc.
 {
 	int size = strlen(buff);
 
@@ -343,7 +365,7 @@ int read_biasSINEX_line(
 		return 0;
 	}
 
-	SinexBias entry;
+	BiasEntry entry;
 	entry.source = "bsx";
 
 	string type		(buff + 1,  4);
@@ -397,11 +419,19 @@ int read_biasSINEX_line(
 		return 0;
 	}
 	
-	double lam1		= 0;
 	E_MeasType dummy;
-	double dummy2	= 0;
-	entry.cod1 = str2code(cod1str, entry.measType, lam1);
-	entry.cod2 = str2code(cod2str, dummy,			dummy2);
+	entry.cod1 = str2code(cod1str, entry.measType);
+	entry.cod2 = str2code(cod2str, dummy);
+
+	
+	SatSys lamSat = Sat;
+	if (lamSat.prn == 0)
+	{
+		lamSat.prn++;
+	}
+
+	int ft1 = code2Freq[Sat.sys][entry.cod1];
+	double lam1 = nav.satNavMap[lamSat].lamMap[ft1];
 
 	/* decoding start/end times */
 	entry.tini = sinex_time_text(startTime);
@@ -453,7 +483,7 @@ int read_biasSINEX_line(
 	{
 		// this seems to be a receiver
 		// for ambiguous GLO receiver bias id (i.e. PRN not specified), duplicate bias entry for each satellite
-		for (int prn = MINPRNGLO; prn <= MAXPRNGLO; prn++)
+		for (int prn = 1; prn <= NSATGLO; prn++)
 		{
 			Sat.prn	= prn;
 			id = entry.name + ":" + Sat.id();
@@ -480,7 +510,7 @@ int read_biasSINEX_line(
 
 /** Read single bias SINEX file
 */
-int read_biasnx_fil(
+int readBiasSinex(
 	string&		filename)	///< File to read
 {
 	int nbia = 0;
@@ -503,6 +533,18 @@ int read_biasnx_fil(
 		if (buff[0] == '*')
 			continue;       /* comment line */
 
+		if (strstr(buff, "TIME_SYSTEM"))
+		{
+			string timeSystem(buff + 40,  1);
+			if (timeSystem != "   ")
+			{
+				if		(timeSystem == "U")		timeSystem = "UTC";
+				else if	(timeSystem == "T")		timeSystem = "TAI";
+				
+				acsConfig.bias_time_system =	timeSystem;
+			}
+		}
+		
 		if (strstr(buff, "%=BIA"))
 		{
 			read_biasSINEX_head(buff);
@@ -559,16 +601,6 @@ int read_biasnx_fil(
 	return nbia;
 }
 
-/** Read and store values from SINEX files
-*/
-int readBiasSinex(
-	string& file)	///< File to read
-{
-	int nbia = read_biasnx_fil(file);
-
-	return nbia;
-}
-
 void setRestrictiveStartTime(
 	GTime& current,
 	GTime& potential)
@@ -583,7 +615,7 @@ void setRestrictiveEndTime(
 	GTime& current,
 	GTime& potential)
 {
-	if	( current.time == 0
+	if	( current.bigTime == 0
 		||current < potential)
 	{
 		current = potential;
@@ -595,13 +627,13 @@ void setRestrictiveEndTime(
 bool biasRecurser(
 			Trace&			trace,				///< Trace to output to
 			GTime&			time,				///< Time of bias to look up
-			SinexBias&		output,				///< The bias entry retrieved
+			BiasEntry&		output,				///< The bias entry retrieved
 	const	E_ObsCode&		obsCode1,			///< Base code of observation to find biases for
 	const	E_ObsCode&		obsCode2,			///< Secondary code of observation to find biases for
 	const	map<E_ObsCode,
 			map<E_ObsCode,
 			map<GTime, 
-				SinexBias, std::greater<GTime>>>>& obsObsBiasMap,	///< Bias map for given measrement type & device, as obsObsBiasMap[code1][code2][time]
+				BiasEntry, std::greater<GTime>>>>& obsObsBiasMap,	///< Bias map for given measrement type & device, as obsObsBiasMap[code1][code2][time]
 			set<E_ObsCode>&	checkedObscodes)	///< A list of all checked observation codes
 {
 	checkedObscodes.insert(obsCode1);
@@ -647,7 +679,7 @@ bool biasRecurser(
 			continue;
 		}
 
-		SinexBias pathB;
+		BiasEntry pathB;
 		bool pass = biasRecurser(trace, time, pathB, secondaryKey, obsCode2, obsObsBiasMap, checkedObscodes);
 		if (pass == false)
 			continue;
@@ -696,7 +728,7 @@ bool getBias(
 			GTime		time,				///< Time of bias to look up
 	const	string&		id,					///< The id of the device to retrieve the bias of
 			E_MeasType	measType,			///< The measurement type to retrieve the bias of
-			SinexBias&	output,				///< The bias entry retrieved
+			BiasEntry&	output,				///< The bias entry retrieved
 			E_ObsCode	obsCode1,			///< Base code of observation to find biases for
 			E_ObsCode	obsCode2)			///< Secondary code of observation to find biases for
 {
@@ -733,7 +765,7 @@ bool getBiasSinex(
 	const int lv = 3;
 
 	bias	= 0;
-	var		= 0;
+	var		= SQR(acsConfig.no_bias_sigma);
 	
 	if (Sat.sys == +E_Sys::GLO)	id = id + ":" + Sat.id();
 	else						id = id + ":" + Sat.sysChar();
@@ -744,8 +776,16 @@ bool getBiasSinex(
 
 	tracepdeex(lv, trace, "\nReading bias for %s, %s %4s-%4s ...", id.c_str(), type.c_str(), obsCode1._to_string(), obsCode2._to_string());
 
-	SinexBias foundBias;
+	BiasEntry foundBias;
 
+	if	(  acsConfig.ssrInOpts.one_freq_phase_bias
+		&& measType == PHAS)
+	 {
+		E_FType freq = code2Freq[Sat.sys][obsCode1];
+		
+		obsCode1 = freq2CodeHax(Sat.sys, freq);
+	 }
+	 
 	bool pass = getBias(trace, time, id, measType, foundBias, obsCode1, obsCode2);
 	if (pass == false)
 	{
@@ -755,7 +795,7 @@ bool getBiasSinex(
 	
 	bias	= foundBias.bias;
 	var		= foundBias.var;
-	tracepdeex(lv, trace, " %s: %11.4f from %6s,", type.c_str(), foundBias.bias, foundBias.source.c_str());
+	tracepdeex(lv, trace, " %s: %11.4f from %-6s,", type.c_str(), foundBias.bias, foundBias.source.c_str());
 	
 	return true;
 }

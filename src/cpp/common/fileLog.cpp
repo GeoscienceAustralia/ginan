@@ -28,7 +28,7 @@ void FileLog::consume(
 {
 	string mess = log_string.c_str();
 	boost::erase_all(mess, "\n");
-	if (mess == "")
+	if (mess.empty())
 		return;
 
 	int logLevel = 2;
@@ -49,11 +49,11 @@ void FileLog::consume(
 	if (!logStream)
 		return;
 	
-	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	GTime time = timeGet();
 	
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("label", 		"message"));
-// 	doc.append(kvp("timestamp", 	std::put_time(std::localtime( &now ),"%F %X")));
+	doc.append(kvp("Time", 			time.to_string()));
 	doc.append(kvp("level", 		logLevel));
 	doc.append(kvp("str", 			mess));
 	

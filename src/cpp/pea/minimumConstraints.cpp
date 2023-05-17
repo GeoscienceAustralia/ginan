@@ -3,17 +3,19 @@
 
 #include <iostream>
 #include <vector>
-#include <list>
 
 using std::vector;
-using std::list;
 
+#include "minimumConstraints.hpp"
 #include "eigenIncluder.hpp"
 #include "algebraTrace.hpp"
-#include "streamTrace.hpp"
+#include "coordinates.hpp"
+#include "mongoWrite.hpp"
 #include "acsConfig.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
+#include "sinex.hpp"
+#include "trace.hpp"
 #include "enums.h"
 
 #define MINCONONLY_FILENAME "minconOnly.bin"
@@ -47,7 +49,6 @@ void minSiteData(
 		if (key.num		!= 0)				continue;
 		
 		Station&	rec			= *key.rec_ptr;
-		auto		stationOpts	= acsConfig.getMinConOpts(rec.id);
 
 		bool used = true;
 	
@@ -76,26 +77,33 @@ void minSiteData(
 			constraint = "!";
 		}
 		
-		Vector3d aprioriPos = rec.snx.pos;
+		Vector3d aprioriPos = rec.minconApriori;
 
-		//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
-		Vector3d statePos = aprioriPos + filterPos;
+		Vector3d statePos = filterPos;
+		if (acsConfig.process_network)
+		{
+			//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
+			statePos += aprioriPos;
+		}
 		
-		double pos[3];
-		ecef2pos(statePos, pos);
+		auto& pos = rec.pos;
+	
+		pos = ecef2pos(statePos);
+		
+		Vector3d deltaR = statePos - aprioriPos;
 		
 		Vector3d enuResidual;
 		Matrix3d enuCovariance;
 		Matrix3d E;
-		xyz2enu(pos, E.data());
+		pos2enu(pos, E.data());
 		enuCovariance	= E * filterVar * E.transpose();
-		enuResidual		= E * filterPos;
+		enuResidual		= E * deltaR;
 		
 		tracepdeex(0, trace, "\n@\t%4s\t%9.4f\t%9.4f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%s", 
 				rec.id.c_str(),
-				pos[0] * R2D, 
-				pos[1] * R2D, 
-				pos[2],
+				pos.latDeg(), 
+				pos.lonDeg(), 
+				pos.hgt(),
 				enuResidual(1) * 1000,
 				enuResidual(0) * 1000,
 				enuResidual(2) * 1000,
@@ -108,8 +116,9 @@ void minSiteData(
 }
 
 void mincon(
-	Trace&					trace,
-	KFState&				kfStateStations)
+	Trace&		trace,
+	KFState&	kfStateStations,
+	bool		commentSinex)
 {
 	// Reference: Estimating regional deformation from a combination of space and terrestrial geodetic data - Appendix E
 	// Perform LSQ/Kalman filter to determine transformation state
@@ -128,18 +137,20 @@ void mincon(
 	}
 	
 	//Determine transformation state
-	KFState			kfStateTrans;
+	KFState kfStateTrans;
 	
-	kfStateTrans.id					= "MINIMUM";
-	kfStateTrans.max_filter_iter	= acsConfig.minCOpts.max_filter_iter;
-	kfStateTrans.max_prefit_remv	= acsConfig.minCOpts.max_prefit_remv;
-	kfStateTrans.inverter			= acsConfig.minCOpts.inverter;
-	kfStateTrans.sigma_threshold	= acsConfig.minCOpts.sigma_threshold;
-	kfStateTrans.sigma_check		= acsConfig.minCOpts.sigma_check;
-	kfStateTrans.w_test				= acsConfig.minCOpts.w_test;
-	kfStateTrans.chi_square_test	= acsConfig.minCOpts.chi_square_test;
-	kfStateTrans.chi_square_mode	= acsConfig.minCOpts.chi_square_mode;
-	kfStateTrans.output_residuals	= acsConfig.output_residuals;
+	
+	kfStateTrans.id							= "MINIMUM";
+	kfStateTrans.max_filter_iter			= acsConfig.minCOpts.max_filter_iter;
+	kfStateTrans.max_prefit_remv			= acsConfig.minCOpts.max_prefit_remv;
+	kfStateTrans.inverter					= acsConfig.minCOpts.inverter;
+	kfStateTrans.sigma_threshold			= acsConfig.minCOpts.sigma_threshold;
+	kfStateTrans.sigma_check				= acsConfig.minCOpts.sigma_check;
+	kfStateTrans.w_test						= acsConfig.minCOpts.w_test;
+	kfStateTrans.chi_square_test			= acsConfig.minCOpts.chi_square_test;
+	kfStateTrans.chi_square_mode			= acsConfig.minCOpts.chi_square_mode;
+	kfStateTrans.output_residuals			= acsConfig.output_residuals;
+	kfStateTrans.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
 	
 	kfStateTrans.measRejectCallbacks.push_back(deweightStationMeas);
 	
@@ -176,10 +187,13 @@ void mincon(
 		}
 		
 		Station&	rec			= *key.rec_ptr;
-		auto		stationOpts	= acsConfig.getMinConOpts(rec.id);
+		auto&		stationOpts	= acsConfig.getRecOpts(rec.id);
 
+		Vector3d aprioriPos = rec.minconApriori;
 		bool used = true;
-		if (stationOpts.noise[0] <= 0)
+		
+		if	( stationOpts.minConNoise[0] <= 0
+			||aprioriPos.isZero())
 		{
 			R.row(index).setZero();
 			R.col(index).setZero();
@@ -204,12 +218,14 @@ void mincon(
 			kfStateStations.getKFValue(kfKey, filterPos(i), &filterVar(i));
 		}
 
-		Vector3d aprioriPos = rec.snx.pos;
+			
 
-		//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
-		Vector3d statePos = aprioriPos + filterPos;
-
-// 		std::cout << std::endl << aprioriPos.transpose() << "\t" << filterPos.transpose();
+		Vector3d statePos = filterPos;
+		if (acsConfig.process_network)
+		{
+			//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
+			statePos += aprioriPos;
+		}
 		
 		Vector3d linearPos = aprioriPos;//+ filterPos;
 		
@@ -223,21 +239,22 @@ void mincon(
 		for (int i = 0; i < 3; i++)
 		{
 			int j = i;
-			if (j >= stationOpts.noise.size())	
-				j = stationOpts.noise.size() - 1;
+			if (j >= stationOpts.minConNoise.size())	
+				j = stationOpts.minConNoise.size() - 1;
 			
-			enuNoise(i) = stationOpts.noise[j];
+			enuNoise(i) = stationOpts.minConNoise[j];
 		}
 		
 		MatrixXd oldVarianceXYZ;
 		if (acsConfig.minCOpts.scale_by_vcv)	oldVarianceXYZ = kfStateStations.P.block(index, index, 3, 3);
 		else									oldVarianceXYZ = Matrix3d::Identity();
 		
-		double pos[3];
-		ecef2pos(linearPos, pos);
+		auto& pos = rec.pos;
+	
+		pos = ecef2pos(linearPos);
 		
 		Matrix3d E;
-		xyz2enu(pos, E.data());
+		pos2enu(pos, E.data());
 		
 		Matrix3d S = enuNoise.asDiagonal();
 		
@@ -259,7 +276,10 @@ void mincon(
 		
 		for (short xyz = 0; xyz < 3; xyz++)
 		{
-			ObsKey obsKey = {{}, rec.id, { (char)('X' + xyz)}};
+			KFKey obsKey;
+			obsKey.str		= rec.id;
+// 			obsKey.subStr	= {(char)('X' + xyz)};
+			obsKey.num		= xyz;
 
 			KFMeasEntry meas(&kfStateTrans, obsKey);
 
@@ -297,6 +317,7 @@ void mincon(
 				meas.metaDataMap["used_ptr"] = &usedMap[xIndex];
 				
 				measListCulled.push_back(meas);
+// 		std::cout << std::endl << aprioriPos.transpose() << "\t" << statePos.transpose() << "\t" << deltaR.transpose();
 			}
 		}
 	}
@@ -311,19 +332,25 @@ void mincon(
 	KFMeas combinedMeas			= kfStateTrans.combineKFMeasList(measList,			GTime::noTime(), &R);
 	KFMeas combinedMeasCulled	= kfStateTrans.combineKFMeasList(measListCulled,	GTime::noTime(), &RR);
 	
+// 		kfStateTrans.outputStates(trace, "/MINCON TRANSFORM PRE");
 	if (kfStateTrans.lsqRequired)
 	{
-		std::cout	<< std::endl << "------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
+		trace << std::endl << "------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
 		kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, false, &kfStateTrans.dx);
-		kfStateTrans.outputStates(trace, "/LSQ_MINCON");
+		kfStateTrans.dx = VectorXd::Zero(kfStateTrans.x.rows());
+		kfStateTrans.outputStates(trace, "/MINCON TRANSFORM LSQ");
 	}
 	
-	std::cout	<< std::endl << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
-	trace		<< std::endl << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
+	trace << std::endl << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
+	
+	kfStateTrans.suffix = "/MINCON TRANSFORM";
+	
 	kfStateTrans.filterKalman(trace, combinedMeasCulled);
 	
-	kfStateTrans.outputStates(trace, "/TRANSFORM");
+	kfStateTrans.outputStates(trace, "/MINCON TRANSFORM");
 
+	mongoStates(kfStateTrans, "_minconXform");
+	
 	//Do kalman filter on original state using pseudomeasurements
 
 	//generalised inverse (Ref:E.3)
@@ -335,14 +362,14 @@ void mincon(
 	for (auto& [kfKey, index] : kfStateStations.kfIndexMap)
 	{
 		if (kfStateStations.P(index, index))
-			W(index, index) = 1 / kfStateStations.P(index, index);	//todo aaron, should this be all of them, or just a subset?
+			W(index, index) = 1 / kfStateStations.P(index, index);	
 	}
 // 	MatrixXd W = combinedMeas.R.diagonal().asDiagonal();
 
 	MatrixXd TW		= T.transpose() * W;
 	MatrixXd TWT	= T.transpose() * W * T;
 	
-	auto QQ = TWT.bottomRightCorner(TWT.rows()-1, TWT.cols()-1).triangularView<Eigen::Upper>().adjoint();
+	auto QQ = TWT.bottomRightCorner(TWT.rows()-1, TWT.cols()-1).triangularView<Eigen::Upper>().transpose();
 	LDLT<MatrixXd> solver;
 	solver.compute(QQ);
 	if (solver.info() != Eigen::ComputationInfo::Success)
@@ -382,7 +409,7 @@ void mincon(
 		pseudoMeas.obsKeys.resize		(rows);
 
 		//use a state transition to ensure output logs are complete
-		kfState.stateTransition(std::cout, kfState.time + 0.000001);	//dont repeat the last epoch
+		kfState.stateTransition(std::cout, kfState.time);
 		
 		trace << std::endl << " -------DOING KALMAN FILTER WITH PSEUDO ELEMENTS FOR MINIMUM CONSTRAINTS --------" << std::endl;
 
@@ -449,19 +476,26 @@ void mincon(
 			}
 			
 			Station&	rec			= *key.rec_ptr;
-			Vector3d	aprioriPos	= rec.snx.pos;
+			Vector3d	aprioriPos	= rec.minconApriori;
 			count++;
 
-			//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
-			Vector3d statePos = aprioriPos + filterPos;
-	
-			double pos[3];
-			ecef2pos(statePos, pos);
+			Vector3d statePos = filterPos;
+			if (acsConfig.process_network)
+			{
+				//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
+				statePos += aprioriPos;
+			}
 			
-			Vector3d enuResidual;
+			auto& pos = rec.pos;
+	
+			pos = ecef2pos(statePos);
+		
+			Vector3d deltaR = statePos - aprioriPos;
+			
 			Matrix3d E;
-			xyz2enu(pos, E.data());
-			enuResidual = E * filterPos;
+			pos2enu(pos, E.data());
+			
+			Vector3d enuResidual = E * deltaR;
 	
 			for (int i = 0; i < 4; i++)
 			{
@@ -497,28 +531,31 @@ void mincon(
 	
 	kfStateStations.outputStates(trace, "/CONSTRAINED");
 	
-	for (auto& [key, index] : kfStateStations.kfIndexMap)
+	if (commentSinex)
 	{
-		if	(  key.num	== 0
-			&& key.type	== KF::REC_POS)
+		for (auto& [key, index] : kfStateStations.kfIndexMap)
 		{
-			sinex_add_comment((string)" Minimum Constraints Stations: " + key.str + (usedMap[index] ? "   used" : " unused"));
+			if	(  key.num	== 0
+				&& key.type	== KF::REC_POS)
+			{
+				sinex_add_comment((string)" Minimum Constraints Stations: " + key.str + (usedMap[index] ? "   used" : " unused"));
+			}
 		}
-	}
-	
-	for (auto& [key, index] : kfStateTrans.kfIndexMap)
-	{
-		if (index == 0)
-			continue;
-		char line[128] = "";
-		snprintf(line, sizeof(line), " Minimum Constraints Transform: %12s:%c %+9f %6s +- %8f",
-				KF::_from_integral(key.type)._to_string(),
-				'X' + key.num,
-				kfStateTrans.x(index),
-				key.comment.c_str(),
-				sqrt(kfStateTrans.P(index,index)));
-				 
-		sinex_add_comment(line);
+		
+		for (auto& [key, index] : kfStateTrans.kfIndexMap)
+		{
+			if (index == 0)
+				continue;
+			char line[128] = "";
+			snprintf(line, sizeof(line), " Minimum Constraints Transform: %12s:%c %+9f %6s +- %8f",
+					KF::_from_integral(key.type)._to_string(),
+					'X' + key.num,
+					kfStateTrans.x(index),
+					key.comment.c_str(),
+					sqrt(kfStateTrans.P(index,index)));
+					
+			sinex_add_comment(line);
+		}
 	}
 }
 
@@ -543,13 +580,13 @@ KFState minconOnly(
 	}
 	
 	int n = kalmanPlus.x.rows();
-	kalmanPlus.Z = MatrixXd::Zero(n,n);
+// 	kalmanPlus.Z = MatrixXd::Zero(n,n);
 	
 	tryPrepareFilterPointers(kalmanPlus, &stationMap);
 	
 	for (auto& [kfKey, index] : kalmanPlus.kfIndexMap)
 	{
-		kalmanPlus.stateTransitionMap[kfKey][kfKey]	= {1,	0};
+		kalmanPlus.stateTransitionMap[kfKey][kfKey][0] = 1;		//todo aaron, remove, just in init function?
 	}
 	
 	for (auto& [id, rec] : stationMap)

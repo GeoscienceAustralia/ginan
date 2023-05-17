@@ -1,60 +1,45 @@
 
-#ifndef __SP3_STREAM__HPP
-#define __SP3_STREAM__HPP
-
+#pragma once
 
 #include "streamObs.hpp"
 #include "ephemeris.hpp"
 
-/** Interface for rinex streams
-*/
-struct SP3Stream : PseudoObsStream
+struct Sp3Parser : Parser, ObsLister
 {
-	PseudoObsList	tempPseudoObsList;
+	ObsList	tempObsList;
 
 	
-	bool	isUTC		= false;
+	E_TimeSys	tsys	= E_TimeSys::GPST;
+
 	double	bfact[2]	= {};
-	
-	SP3Stream()
-	{
 
-	}
-
-	void parseSP3(
+	void parse(
 		std::istream& inputStream)
 	{
-// 		//read some of the input,(up to next epoch header?)
-// 		//save outputs to member variables.
-// 		//eg. header metadata
-// 		//eg. list of (ObsLists) with multiple sats, signals combined for each epoch.
-// 		//dont parse all, just some.
-		list<Peph>	pephList;
+		vector<Peph>	pephList;
 	
-		bool more = readsp3(inputStream, pephList, 0, isUTC, bfact);
+		bool more = readsp3(inputStream, pephList, 0, tsys, bfact);
 		
 		for (auto& peph : pephList)
 		{
-			PseudoObs pseudoObs;
-			pseudoObs.pos	= peph.Pos;
-			pseudoObs.vel	= peph.Vel;
-			pseudoObs.time	= peph.time;
-			pseudoObs.Sat	= peph.Sat;
+			PObs pObs;
+			pObs.pos	= peph.pos;
+			pObs.vel	= peph.vel;
+			pObs.time	= peph.time;
+			pObs.Sat	= peph.Sat;
 			
-			tempPseudoObsList.push_back(pseudoObs);
+			tempObsList.push_back((shared_ptr<PObs>)pObs);
 		}
 		
-		if (tempPseudoObsList.size() > 0)
+		if (tempObsList.size() > 0)
 		{
-			obsListList.push_back(std::move(tempPseudoObsList));
+			obsListList.push_back(std::move(tempObsList));
 		}
 	}
-
-	int readSP3Header(
-		std::istream& inputStream)
+	
+	string parserType()
 	{
-		return EXIT_SUCCESS;
+		return "Sp3Parser";
 	}
 };
 
-#endif

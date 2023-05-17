@@ -1,7 +1,5 @@
 
-#ifndef __TEST_UTILS_H__
-#define __TEST_UTILS_H__
-
+#pragma once
 
 #include <boost/log/sinks/basic_sink_backend.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
@@ -9,9 +7,6 @@
 
 namespace sinks = boost::log::sinks;
 
-
-
-#include <unordered_map>
 #include <iostream>
 #include <fstream>
 #include <math.h>
@@ -20,7 +15,6 @@ namespace sinks = boost::log::sinks;
 #include <list>
 #include <map>
 
-using std::unordered_map;
 using std::vector;
 using std::string;
 using std::tuple;
@@ -131,22 +125,6 @@ struct TestStack
 		string 		str);
 };
 
-struct TestClipper
-{
-	bool oldVal = false;
-	
-	TestClipper()
-	{
-		oldVal = TestStack::DontTest;
-		TestStack::DontTest = true;
-	}
-	
-	~TestClipper()
-	{
-		TestStack::DontTest = oldVal;
-	}
-};
-
 struct ErrorExit : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {
 	// The function consumes the log records that come from the frontend
@@ -157,7 +135,6 @@ struct ErrorExit : public sinks::basic_formatted_sink_backend<char, sinks::synch
 
 void exitOnErrors();
 
-#endif
 
 struct TempDisabler
 {

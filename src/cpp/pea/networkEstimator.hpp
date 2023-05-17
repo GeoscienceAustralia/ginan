@@ -1,16 +1,14 @@
 
-#ifndef __NETWORK_ESTIMATOR_HPP__
-#define __NETWORK_ESTIMATOR_HPP__
+#pragma once
 
-#include "streamTrace.hpp"
 #include "gTime.hpp"
+#include "trace.hpp"
 
 #include <map>
 
 using std::map;
 
 //forward declarations
-struct prcopt_t;
 struct KFState;
 struct Station;
 
@@ -21,5 +19,3 @@ void networkEstimator(
 	StationMap&		stations,
 	KFState&		kfState,
 	GTime			time);
-
-#endif

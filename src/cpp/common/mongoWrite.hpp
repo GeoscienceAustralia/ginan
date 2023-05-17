@@ -1,7 +1,5 @@
 
-#ifndef ___WRITEMONGO_HPP__
-#define ___WRITEMONGO_HPP__
-
+#pragma once
 
 #include <set>
 
@@ -26,16 +24,16 @@ struct TestStatistics
 
 void mongoMeasResiduals(
 	GTime				time,
-	vector<ObsKey>&		obsKeys,
-	VectorXd&			prefits,
-	VectorXd&			postfits,
-	MatrixXd&			variance,
-	string				suffix = "",
-	int					beg = 0,
-	int					num = -1);
+	KFMeas&				kfMeas,
+	string				suffix	= "",
+	int					beg		= 0,
+	int					num		= -1);
 
-void mongoMeasComponents(
-	KFMeas&		kfMeas);
+void mongoTrace(
+	string		json);
+
+void mongoOutputConfig(
+	string& config);
 
 void mongoStates(
 	KFState&			kfState,
@@ -48,5 +46,22 @@ void mongoTestStat(
 	KFState&			kfState,
 	TestStatistics&		statistics);
 
-#endif
+void mongoBrdcEph(
+	Eph&		eph);
 
+void mongoBrdcEph(
+	Geph&		geph);
+
+struct OrbitState;
+struct MongoOptions;
+
+typedef vector<OrbitState> Orbits;
+
+void	outputMongoPredictions(
+	Trace&			trace,		
+	Orbits&			orbits,		
+	GTime 			time,
+	MongoOptions&	config);	
+
+void mongoCull(
+	GTime time);

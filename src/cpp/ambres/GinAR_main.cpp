@@ -1,7 +1,9 @@
+
+
 #include "GNSSambres.hpp"
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
-#include "tides.hpp"
+#include "planets.hpp"
 
 #define SMP2RESET	20
 
@@ -18,7 +20,24 @@ map<SatSys,GinAR_sat> ARsatellites;
 
 
 map<KFKey,map<GTime,double>>	elev_archive;
-map<KFKey,list<GTime>>      	slip_archive;
+map<KFKey,vector<GTime>>      	slip_archive;
+
+map<E_Sys, double> systemFreq1 =
+{
+	{E_Sys::GPS, FREQ1     },
+	{E_Sys::GAL, FREQ1     },
+	{E_Sys::BDS, FREQ1_CMP },
+	{E_Sys::QZS, FREQ1     }
+};
+
+map<E_Sys, double> systemFreq2 =
+{
+	{E_Sys::GPS, FREQ2 },
+	{E_Sys::GAL, FREQ5 },
+	{E_Sys::BDS, FREQ3_CMP },
+	{E_Sys::QZS, FREQ1 }
+};
+
 
 map<E_Sys, E_ObsCode> defCodesL1 =
 {
@@ -34,7 +53,7 @@ map<E_Sys, E_ObsCode> defCodesL2 =
 	{E_Sys::GPS, E_ObsCode::L2W},
 	{E_Sys::GLO, E_ObsCode::L2C},
 	{E_Sys::GAL, E_ObsCode::L5Q},
-	{E_Sys::BDS, E_ObsCode::L7I},
+	{E_Sys::BDS, E_ObsCode::L6I},
 	{E_Sys::QZS, E_ObsCode::L2S}
 };
 
@@ -43,57 +62,9 @@ map<E_Sys, E_ObsCode> defCodesL3 =
 	{E_Sys::GPS, E_ObsCode::L5X},
 	{E_Sys::GLO, E_ObsCode::L3Q},
 	{E_Sys::GAL, E_ObsCode::L7Q},
-	{E_Sys::BDS, E_ObsCode::L6I},
+	{E_Sys::BDS, E_ObsCode::L5P},
 	{E_Sys::QZS, E_ObsCode::L5Q}
 };
-
-/** Default frequencies for each system */
-bool sys_frq(
-	short int sys,		///< GNSS system e.g. GPS, GLO, GAL ...
-	E_FType& frq1,		///< frequency of first Carrier
-	E_FType& frq2,		///< frequency of second Carrier
-	E_FType& frq3)		///< frequency of third Carrier
-{
-	switch (sys)
-	{
-		case E_Sys::GPS:
-			frq1 = F1;
-			frq2 = F2;
-			frq3 = F5;
-			if (acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L5_ONLY)
-			{
-				frq2 = F5; 
-				frq3 = F2;	
-			}
-			return true;
-
-		case E_Sys::GLO:
-			frq1 = F1;
-			frq2 = F2;
-			frq3 = FTYPE_NONE;
-			return true;
-
-		case E_Sys::GAL:
-			frq1 = F1;
-			frq2 = F5;
-			frq3 = F7;
-			return true;
-
-		case E_Sys::QZS:
-			frq1 = F1;
-			frq2 = F2;
-			frq3 = F5;
-			return true;
-
-		case E_Sys::BDS:
-			frq1 = B1;
-			frq2 = B2;
-			frq3 = B3;
-			return true;
-	}
-
-	return false;
-}
 
 /** Retrieving satellte elevation at given time */
 double retrv_elev(
@@ -105,7 +76,7 @@ double retrv_elev(
 	auto elev_list = elev_archive[kfkey];
 	for (auto& [atim,elev] : elev_list)
 	{
-		double dt = time-atim;
+		double dt = (time-atim).to_double();
 		if (dt > DTTOL)  								continue;
 		if (dt < -acsConfig.ambrOpts.Max_Hold_time)		return -1;
 		return elev;
@@ -119,17 +90,20 @@ void clean_obsolete(
 	string recv)		///< Receiver
 {
 	auto& AR_mealist = ARstations[recv].AR_meaMap;
-	for (auto it = AR_mealist.begin(); it != AR_mealist.end();)
+	for (auto it = AR_mealist.begin(); it != AR_mealist.end(); )
 	{
+		auto& [key, AR_mea] = *it;
+	
 		if (  recv != "NETWORK" 
-		   && recv != it->first.str) 
+		   && recv != key.str)
+		{
+			it++;
 			continue;
+		}
 		
-		auto& AR_mea = it->second;
-		
-		if ( (time - AR_mea.mea_fin) > defAR_WL.Max_Hold_tim
-		  || (time - AR_mea.mea_fin) < -DTTOL
-		  || (       AR_mea.out_epc) > defAR_WL.Max_Hold_epc)
+		if	( (time -	AR_mea.mea_fin) > defAR_WL.Max_Hold_tim
+			||(time -	AR_mea.mea_fin) < -DTTOL
+			||(			AR_mea.out_epc) > defAR_WL.Max_Hold_epc)
 		{
 			it = AR_mealist.erase(it);
 		}
@@ -148,12 +122,10 @@ GinAR_sat* GinAR_sat_metadata(SatSys sat)
 }
 
 double eclipse_safe(
-	Obs& obs)
+	GObs& obs)
 {
-	ERPValues erpv;
-	
-	Vector3d rSun;
-	sunmoonpos(gpst2utc(obs.time), erpv, &rSun);
+	VectorEcef rSun;
+	planetPosEcef(obs.time, E_ThirdBody::SUN, rSun);
 	
 	Vector3d rSat = obs.rSat;
 	Vector3d vSat = obs.satVel;
@@ -168,12 +140,12 @@ double eclipse_safe(
 
 /** Loading float ambiguity data from Observations (WL, cycle slip & elevation) */
 void LoadFromObs( 
-	Trace& trace,			///< Trace file to output to
-	ObsList& obslst, 		///< Observation list
-	GTime time, 			///< Observation time (usually from KF or solutions)
-	string recv)			///< Receiver network identifier
+	Trace&		trace,			///< Trace file to output to
+	ObsList&	obsList, 		///< Observation list
+	GTime		time, 			///< Observation time (usually from KF or solutions)
+	string		recv)			///< Receiver network identifier
 {
-	if (obslst.size() <= 0)
+	if (obsList.empty())
 	{
 		RecBlackList[recv]+=100;
 		return;
@@ -185,8 +157,8 @@ void LoadFromObs(
 	
 	auto& AR_mealist = ARstations[recv].AR_meaMap;
 	
-	tracepdeex(ARTRCLVL+1, trace, "\n#ARES_MEA Saving metadata for %s %s", time.to_string(0).c_str(), obslst.front().mount.c_str());
-	for (auto& obs : obslst)
+	tracepdeex(ARTRCLVL+1, trace, "\n#ARES_MEA Saving metadata for %s %s", time.to_string().c_str(), recv.c_str());
+	for (auto& obs : only<GObs>(obsList))
 	{
 		SatSys sat = obs.Sat;
 		E_Sys  sys = sat.sys;
@@ -196,7 +168,7 @@ void LoadFromObs(
 		E_FType frq1;
 		E_FType frq2;
 		E_FType frq3;
-		if (!sys_frq(sys, frq1, frq2, frq3))				continue;
+		if (!satFreqs(sys, frq1, frq2, frq3))				continue;
 		
 		double elev = obs.satStat_ptr->el;
 		if (elev < acsConfig.elevation_mask)				continue;
@@ -261,19 +233,19 @@ void LoadFromObs(
 		
 		if ( defAR_WL.ionmod == +E_IonoMode::ESTIMATE)
 		{
-			if (obs.satStat_ptr->sigStatMap[frq1].slip.any)
+			if (obs.satStat_ptr->sigStatMap[ft2string(frq1)].slip.any)
 			{
 				key.num = E_AmbTyp::UCL1;
 				slip_archive[key].push_back(time);
 				tracepdeex(ARTRCLVL+2, trace, "L1 slip ");
 			}
-			if (obs.satStat_ptr->sigStatMap[frq2].slip.any)
+			if (obs.satStat_ptr->sigStatMap[ft2string(frq2)].slip.any)
 			{
 				key.num = E_AmbTyp::UCL2;
 				slip_archive[key].push_back(time);
 				tracepdeex(ARTRCLVL+2, trace, "L2 slip ");
 			}
-			if (obs.satStat_ptr->sigStatMap[frq3].slip.any)
+			if (obs.satStat_ptr->sigStatMap[ft2string(frq3)].slip.any)
 			{
 				key.num = E_AmbTyp::UCL3;
 				slip_archive[key].push_back(time);
@@ -287,8 +259,8 @@ void LoadFromObs(
 		if ( defAR_WL.ionmod == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 		{
 			bool slip = false;
-			if (obs.satStat_ptr->sigStatMap[frq1].slip.any						// To do change from "any" to MW, GF && CDIA
-			 || obs.satStat_ptr->sigStatMap[frq2].slip.any )
+			if	(  obs.satStat_ptr->sigStatMap[ft2string(frq1)].slip.any		// todo change from "any" to MW, GF && CDIA
+				|| obs.satStat_ptr->sigStatMap[ft2string(frq2)].slip.any)
 			{
 				key.num = E_AmbTyp::NL12;
 				slip_archive[key].push_back(time);
@@ -376,7 +348,7 @@ int LoadFromFlt(
 	map<SatSys,int> Satlist;
 	map<string,int> Reclist;
 	
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_MEA Loading from KF: %s", time.to_string(0).c_str());
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_MEA Loading from KF: %s", time.to_string().c_str());
 	
 	auto& AR_mealist = ARstations[recv].AR_meaMap;
 	auto& AmbTyplist = ARstations[recv].AmbTypMap; 
@@ -392,7 +364,7 @@ int LoadFromFlt(
 		if ( defAR_WL.endu && key.type != KF::PHASE_BIAS)	continue;
 		if (!defAR_WL.endu && key.type != KF::AMBIGUITY)	continue;
 		if (!sys_solve[sys])								continue;
-		if (!sys_frq(sys, frq1, frq2, frq3))				continue;
+		if (!satFreqs(sys, frq1, frq2, frq3))				continue;
 		
 		string rec = key.str;
 		KFKey  key2 = {KF::AMBIGUITY,sat,rec,0};
@@ -425,7 +397,7 @@ int LoadFromFlt(
 		bool sig_slip = false; 
 		for(auto& slip_tim : slip_archive[key2])
 		{
-			double dt = time-slip_tim;
+			double dt = (time-slip_tim).to_double();
 			if (fabs(dt)>DTTOL)
 				continue;
 			
@@ -486,7 +458,7 @@ int LoadFromFlt(
 }		
 
 /** Loading configuration options from acsConfig */
-void config_AmbigResl(void)
+void config_AmbigResl()
 {
 	for (auto& [sys,act]: acsConfig.solve_amb_for)
 	if (acsConfig.process_sys[sys])
@@ -540,7 +512,7 @@ void config_AmbigResl(void)
 	  && !(defAR_WL.ionmod == +E_IonoMode::ESTIMATE))					
 		  defAR_WL.ionmod =  E_IonoMode::OFF;
 	
-	defAR_WL.bias_update = acsConfig.ambrOpts.biasOutrate;
+	defAR_WL.bias_update = acsConfig.ambrOpts.code_output_interval;
 	
 	defAR_WL.type = E_AmbTyp::WL12;
 	
@@ -558,12 +530,14 @@ void config_AmbigResl(void)
 		E_FType frq1 = F1;
 		E_FType frq2 = F2;
 		E_FType frq3 = F5;
-		sys_frq(sys, frq1, frq2, frq3);
+		satFreqs(sys, frq1, frq2, frq3);
 		
-		if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
+		if	(  acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO
+			&& sys != +E_Sys::GLO)
 		{
-			double lam1 = lam_carr[frq1];
-			double lam2 = lam_carr[frq2];
+			double lam1 = CLIGHT / systemFreq1[sys];
+			double lam2 = CLIGHT / systemFreq2[sys];
+			
 			defAR_WL.wavlen[sys] = lam1*lam2/(lam2+lam1);
 			defAR_WL.wlfact[sys] = lam1*defAR_WL.wavlen[sys]/(lam2-lam1);
 		}
@@ -597,7 +571,7 @@ int  networkAmbigResl(
 	
 	GTime time = kfState.time;
 	tracepdeex(ARTRCLVL, trace, "\n#ARES_MAIN Ambiguity Resolution on %3d Stations at %s",
-	           stations.size(), time.to_string(0).c_str());
+	           stations.size(), time.to_string().c_str());
 	
 
 	/* Clean obsolete measurements */ 
@@ -615,7 +589,7 @@ int  networkAmbigResl(
 		if (recOpts.exclude) 
 			continue;
 
-		LoadFromObs( trace, station.obsList, time, recv );
+		LoadFromObs(trace, station.obsList, time, recv);
 	}
 	
 	for (auto& [typ,sysmap] : RECpivlist)
@@ -638,22 +612,22 @@ int  networkAmbigResl(
 		}
 	}
 	
-	if ( acsConfig.process_rts ) 
+	if (acsConfig.process_rts) 
 	{
-		artrcout( trace, kfState.time, opt );
+		artrcout(trace, kfState.time, opt);
 		return 0;
 	}
 	
-	int nsat=0;
-	int nrec=0;
-	int namb = LoadFromFlt( trace, kfState, nsat, nrec, recv );
+	int nsat = 0;
+	int nrec = 0;
+	int namb = LoadFromFlt(trace, kfState, nsat, nrec, recv);
 	
 	opt = defAR_NL;
 	opt.recv = "NETWORK";
 	
-	for(auto& [typ,nmeas] : ARstations[recv].AmbTypMap)
+	for(auto& [type, nmeas] : ARstations[recv].AmbTypMap)
 	{
-		opt.type = typ;
+		opt.type = type;
 		updt_net_pivot(trace, time,opt);
 	}
 	
@@ -667,18 +641,12 @@ int  networkAmbigResl(
 	
 	nfix = apply_ambigt(trace, kfState, opt);
 	
-	if (nfix > 0.6*namb) FIXREADY = true;
-	if (nfix < 0.4*namb) FIXREADY = false;
+	if (nfix > 0.6 * namb)		FIXREADY = true;
+	if (nfix < 0.4 * namb)		FIXREADY = false;
 	
 	artrcout(trace, kfState.time, opt);
 	
-	if	(  acsConfig.output_bias_sinex 
-		&& acsConfig.ambrOpts.biasOutrate > 0)
-	{
-		arbiaout(trace, kfState.time, opt);
-	}
-	
-	if (   acsConfig.process_ionosphere
+	if	(  acsConfig.process_ionosphere
 		&& acsConfig.ionModelOpts.model != +E_IonoModel::NONE)
 	for (auto& [rec,station] : stations)
 	{ 
@@ -687,13 +655,14 @@ int  networkAmbigResl(
 		if (recOpts.exclude) 
 			continue;
 
-		arionout( trace, kfState, station.obsList, opt );
+		arionout(trace, kfState, station.obsList, opt);
 	}
 	
 	if (AR_VERBO) 
 		kfState.outputStates(trace, "/AR");
 		
 	ARcopy = kfState;
+	
 	return nfix;
 }
 
@@ -706,6 +675,7 @@ int  enduserAmbigResl(
 	double		dop,			///< Horizontal dilution of precision
 	string		outfile)		///< solution filename
 {
+
 	if (acsConfig.ionoOpts.corr_mode != +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 		acsConfig.ambrOpts.WLmode = +E_ARmode::OFF;
 	
@@ -714,14 +684,11 @@ int  enduserAmbigResl(
 	if (obsList.empty())								return 0;
 	
 	GTime time = kfState_float.time;
-	string recv = obsList.front().mount;
+	string recv = obsList.front()->mount;
 	GinAR_opt opt = defAR_WL;
 	opt.recv = recv;
 	
 	ARstations[recv].kfState_fixed = kfState_float;
-	
-	TestStack::testMat(recv + "fixedx0", ARstations[recv].kfState_fixed.x);
-	TestStack::testMat(recv + "fixedP0", ARstations[recv].kfState_fixed.P);
 	
 	ARstations[recv].snxPos_ = snxPos;
 	for (short i = 0; i < 3; i++)
@@ -730,7 +697,7 @@ int  enduserAmbigResl(
 	if (!ARstations[recv].AR_meaMap.empty()) 
 		clean_obsolete(time, recv);
 	
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_MAIN End user ambiguity resolution: %s %s", time.to_string(0).c_str(), recv.c_str());
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_MAIN End user ambiguity resolution: %s %s", time.to_string().c_str(), recv.c_str());
 	sys_activ[recv].clear();
 	LoadFromObs(trace, obsList, time, recv);
 	
@@ -770,9 +737,6 @@ int  enduserAmbigResl(
 	nfix = apply_ambigt(trace, ARstations[recv].kfState_fixed, opt);
 	
 	ARstations[recv].kfState_fixed.outputStates(trace, "/FIXED");
-	
-	TestStack::testMat(recv + "fixed", ARstations[recv].kfState_fixed.x);
-	TestStack::testMat(recv + "fixedP", ARstations[recv].kfState_fixed.P);
 
 	for (short i = 0; i < 3; i++)
 		 ARstations[recv].kfState_fixed.getKFValue({KF::REC_POS,{}, recv,	i}, ARstations[recv].fixPos_[i]);
@@ -791,12 +755,6 @@ int  enduserAmbigResl(
 		arionout(trace, ARstations[recv].kfState_fixed, obsList, opt);
 	}
 	
-	if (   acsConfig.output_bias_sinex 
-	    && acsConfig.ambrOpts.biasOutrate > 0 ) 
-	{
-    	arbiaout(trace, ARstations[recv].kfState_fixed.time, opt);
-	}
-	
 	return nfix;
 }
 
@@ -812,7 +770,7 @@ int smoothdAmbigResl(
 	
 	GTime time = kfState.time;
 	
-	tracepdeex(ARTRCLVL, trace, "\n#ARES__RTS Ambiguity resolution on smoothed solutions %s", time.to_string(0).c_str());
+	tracepdeex(ARTRCLVL, trace, "\n#ARES__RTS Ambiguity resolution on smoothed solutions %s", time.to_string().c_str());
 	
 	string recv = "NETWORK";
 	if (defAR_WL.endu) 
@@ -854,12 +812,6 @@ int smoothdAmbigResl(
 	
 	if (nfix > 0.6 * namb)		FIXREADY = true;
 	if (nfix < 0.4 * namb)		FIXREADY = false;
-	
-	if	(  acsConfig.output_bias_sinex 
-		&& acsConfig.ambrOpts.biasOutrate > 0 )
-	{
-		arbiaout(trace, time, opt);
-	}
 	
 	artrcout(trace, kfState.time, opt);
 	

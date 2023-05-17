@@ -1,45 +1,58 @@
 
 inputs:
+
+    root_directory: products
+    
     
     gnss_observations:
 
+        inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/" 
+        rtcm_inputs:
+            - GATT00AUS0
+            
+        #rtcm_inputs:
+            #- "recordings/*.rtcm"
+            
     satellite_data:
 
-        root_stream_url: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/" 
-        streams:
-            - GATT00AUS0
+        inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/" 
+        #rtcm_inputs:
+            #- GATT00AUS0
+        rtcm_inputs:
+            - "BCEP00DLR0"
+            - "SSRA02IGS0"
+    
+
+        #sp3_files: [blah.sp3]
         
-        ssr_antenna_offset: APC
-
-
 outputs:
 
     root_directory:     recordings
     
     rtcm_nav:
-        record:         true
+        output:         true
     
     rinex_nav:
-        output:         true
+        #output:         true
     
     rtcm_obs:
-        record:         true
+        output:         true
         
     rinex_obs:
+        #output:         true
+        
+    orbex:
         output:         true
-    
-    decoded_rtcm:
-        output:       true
-        directory:    ./rtcm
-    
+        
 processing_options:
 
     epoch_control:
         epoch_interval:             1          #seconds
-        wait_next_epoch:            31
+        wait_next_epoch:            10
         wait_all_stations:          1
         #max_epochs:                 3600
         require_obs:                false
+        simulate_real_time:         true
     
     process_modes:
         preprocessor:           false
@@ -51,4 +64,19 @@ processing_options:
                 process:                true
             gal:
                 process:                true
+    
+    gnss_models:
+            
+        tides:
+            #solid:         false
+            #pole:          false
+            #otl:           false
+        troposphere:
+            model:          vmf3    #gpt2
+        sat_pos:
+            #source:         broadcast
+        sat_clock:
+            #source:         broadcast
+        sat_attitude:
+            source:         model
             

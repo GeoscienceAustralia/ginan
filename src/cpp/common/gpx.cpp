@@ -1,11 +1,12 @@
 
 #include <boost/log/trivial.hpp>
 
-#include "streamTrace.hpp"
+#include "coordinates.hpp"
 #include "constants.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
 #include "gTime.hpp"
+#include "trace.hpp"
 
 #include <string>
 #include <map>
@@ -46,7 +47,7 @@ void writeGPXHeader(
 	}
 	
 	output << gpxHeader;
-	output << "<time>" << boost::posix_time::from_time_t(time.time) << "</time>";
+	output << "<time>" << boost::posix_time::from_time_t((time_t)((PTime)time).bigTime) << "</time>";
 	output << "  </metadata>\n";
 	output << "<trk>"
 	<< "<name>" << name << "</name>\n"
@@ -56,12 +57,14 @@ void writeGPXHeader(
 
 void writeGPXEntry(
 	Trace&		output,
+	string		id,
 	KFState&	kfState)
 {
-	double xyz[3];
+	VectorEcef xyz;
 	for (auto [kfKey, index] : kfState.kfIndexMap)
 	{
-		if (kfKey.type != KF::REC_POS)
+		if	( kfKey.type	!= KF::REC_POS
+			||kfKey.str		!= id)
 		{
 			continue;
 		}
@@ -69,17 +72,16 @@ void writeGPXEntry(
 		kfState.getKFValue(kfKey, xyz[kfKey.num]);
 	}
 	
-	double pos[3];
-	ecef2pos(xyz, pos);
+	VectorPos pos = ecef2pos(xyz);
 	
 	output << std::setprecision(10);
 	
 	output << "      <trkpt "
-	<< "lat='" << pos[0] * R2D << "' "
-	<< "lon='" << pos[1] * R2D << "' "
+	<< "lat='" << pos.latDeg() << "' "
+	<< "lon='" << pos.lonDeg() << "' "
 	<< ">"
-	<< "<ele>" << pos[2] << "</ele>"
-	<< "<time>" << boost::posix_time::from_time_t(kfState.time.time) << "</time>"
+	<< "<ele>" << pos.hgt() << "</ele>"
+	<< "<time>" << boost::posix_time::from_time_t((time_t)((PTime)kfState.time).bigTime) << "</time>"
 	<< "</trkpt>\n";
 }
 
@@ -105,7 +107,7 @@ void writeGPX(
 	
 	output.seekp(gpxEndOfContentPositionMap[filename]);
 	
-	writeGPXEntry(output, kfState);
+	writeGPXEntry(output, id, kfState);
 	
 	gpxEndOfContentPositionMap[filename] = output.tellp();
 	

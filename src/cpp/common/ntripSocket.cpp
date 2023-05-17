@@ -1,14 +1,26 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "ntripSocket.hpp"
+// #define BSONCXX_POLY_USE_MNMLSTC
+// #define BSONCXX_POLY_USE_SYSTEM_MNMLSTC
+
+#include <bsoncxx/builder/basic/document.hpp>
+#include <bsoncxx/json.hpp>
 
 #include <boost/system/error_code.hpp>
-#include <list>
+
+#include <chrono>
+
+
+#include "ntripSocket.hpp"
+#include "acsConfig.hpp"
+
+
+using std::chrono::system_clock;
+using bsoncxx::builder::basic::kvp;
 
 namespace bp = boost::asio::placeholders;
 
-//B_asio::ssl::context NtripSocket::ssl_context(ssl::context::sslv23_client);
 B_asio::io_service NtripSocket::io_service;
 
 
@@ -24,24 +36,22 @@ void NtripSocket::logChunkError()
 	message << numberErroredChunks;
 // 	message << ", ratio (error/total) : " << (double)numberErroredChunks /(double)(numberErroredChunks+numberValidChunks);
 	
+	std::cout << message.str() << std::endl;
 	messageChunkLog(message.str());      
+	
+		//todo aaron
+// 		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
+// 		if (!outStream)
+// 		{
+// 			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+// 			return;
+// 		}
+// 	
+// 		outStream << (GTime) timeGet();
+// 		outStream << " messageChunkLog" << message << std::endl;
 }
 
 
-void NtripSocket::printChunkHex(
-	vector<char> chunk)
-{
-	BOOST_LOG_TRIVIAL(debug) << "HTTP Chunk Data : ";
-
-	for (int i = 0; i < chunk.size(); i++)
-	{
-		if (i % 10 == 0)
-			BOOST_LOG_TRIVIAL(debug) << std::endl;       
-		
-		printf("%02x ",(unsigned char)chunk[i]);
-	}
-	BOOST_LOG_TRIVIAL(debug) << std::endl; 
-}
 
 
 void NtripSocket::start_read(
@@ -117,154 +127,112 @@ void NtripSocket::read_handler_chunked(
 	// If there is a problem with the chunking attempt is made to pass the message to the
 	// RTCM parser. The RTCM parser has further error checking and may recover some messages.
 	
-	vector<char> chunk;
-	std::istream messStream(&downloadBuf);
-	unsigned int sz = downloadBuf.size();
-	
-	char c_i;
-	char c_j;
-	unsigned int i = 0;
-	
 	onChunkReceivedStatistics();
 	
+// 	std::istream messStream(&downloadBuf);
+// 	unsigned int sz = downloadBuf.size();
+
+// 	std::cout << " size" << downloadBuf.size() << std::endl;
+	int oldSize		= receivedHttpData	.size();
+	int extraSize	= downloadBuf		.size();
+	
+	receivedHttpData.resize(oldSize + extraSize);
+	auto destination = boost::asio::buffer(&receivedHttpData[oldSize], extraSize);
+	buffer_copy(destination, downloadBuf.data());
+	downloadBuf.consume(extraSize);
+	
+	int last = receivedHttpData.size();
+	
+	int start = 0;
+	if (receivedHttpData.empty() == false)
 	while (true)
 	{
-		if (chunked_message_length == 0)
+		int endOfLength = 0;
+		int endOfHeader;
+		for (endOfHeader = start + 2; endOfHeader < last; endOfHeader++)
 		{
-			chunk.clear();
-			messStream.read(&c_i,1);
-			chunk.push_back(c_i);
-			for (i++; i < sz; i++)
+			unsigned char c1 = receivedHttpData[endOfHeader - 1];
+			unsigned char c2 = receivedHttpData[endOfHeader];
+			
+			if	( c1 == ';')
 			{
-				messStream.read(&c_j,1);
-				chunk.push_back(c_j);
-				if	(  c_i == '\r' 
-					&& c_j == '\n')
-				{
-					break;
-				}
-				c_i = c_j;
+				endOfLength = endOfHeader - 1;
 			}
+			
+			if	( c1 == '\r'
+				&&c2 == '\n')
+			{
+				break;
+			}
+		}
 		
-			if (i >= sz)
-			{
-				//BOOST_LOG_TRIVIAL(debug) << "\nEnd of Buffer Reached Searching for Message Header Chunk.\n";
-				//BOOST_LOG_TRIVIAL(debug) << "downloadBuf.size() : " << downloadBuf.size() << std::endl;
-				//BOOST_LOG_TRIVIAL(debug) << "chunk.size()      : " << chunk.size() << std::endl;
-				//printChunkHex(chunk);
-				std::ostream outStream(&downloadBuf);
-				outStream.write(&chunk[0],chunk.size());
-				//BOOST_LOG_TRIVIAL(debug) << "messBuffer.size() : " << downloadBuf.size() << std::endl;
-				break;
-			}            
-
-			// Read the first chunk with the message length.
-			
-			// Put termination charater on string.
-			chunk.push_back(0);
-			string messStr(&chunk[0]);
-			messStr = messStr.substr(0, messStr.length()-2);
-			// NTRIP 2 allows for an extended header.
-			std::size_t ext = messStr.find(";");
-			if (ext != string::npos)
-			{
-				//BOOST_LOG_TRIVIAL(debug) << "Found Extension in Message Length : " << messStr << std::endl;
-				messStr = messStr.substr(0,ext);
-			}
-			
-			try
-			{
-				// Two is added for the termination charaters.
-				chunked_message_length = (unsigned int)std::stoi(messStr, 0, 16); 
-				//BOOST_LOG_TRIVIAL(debug) << "\nValid Message Length Chunk Found.\n";
-				//BOOST_LOG_TRIVIAL(debug) << "message chunk  : " << messStr << std::endl;
-				//BOOST_LOG_TRIVIAL(debug) << "message_length : " << chunked_message_length << std::endl;
-				//BOOST_LOG_TRIVIAL(debug) << "chunk.size()      : " << chunk.size() << std::endl;
-				//printChunkHex(chunk);                    
-				
-				
-				// Check if message is too long and set to zero.
-				if (chunked_message_length > 1000000)
-				{
-					//BOOST_LOG_TRIVIAL(warning) << "\nError Message Header, Body too Long.\n";
-					//printChunkHex(chunk);
-					logChunkError();
-					chunked_message_length = 0;
-				}
-				
-			}
-			catch (std::exception& e)
-			{  
-				//BOOST_LOG_TRIVIAL(warning) << "\nError Message Header, string not an integer.\n";
-				//BOOST_LOG_TRIVIAL(warning) << "chunk.size() : " << chunk.size() << std::endl;
-				//printChunkHex(chunk);
-				logChunkError();
-				chunked_message_length = 0;
-			}            
-		}
-		else
+		if (endOfHeader >= last)
 		{
-			// Read the second chunk with the message.		//todo aaron, roll into the first one and clean up
-			
-			// Buffer position for the end of the message body chunk.
-			int bodyPos = i+chunked_message_length+2;
-			
-			// There is not enough data to read the message body.
-			if (sz < bodyPos)
-			{
-				//BOOST_LOG_TRIVIAL(warning) << "\nBuffer sz : " << sz << std::endl;
-				//BOOST_LOG_TRIVIAL(warning) << "Message end pos : " << bodyPos << std::endl;
-				//BOOST_LOG_TRIVIAL(warning) << "Message buffer not large enough exiting.\n";
-				break;
-			}
-				
-			// Copy message out of receive buffer.
-			chunk.clear();
-			for (; i < bodyPos; i++)
-			{
-				messStream.read(&c_i,1);
-				chunk.push_back(c_i);
-			}                
-			
-			// Check the last two characters are '\r' and '\n' to complete chunk.
-			if	(  chunk[chunked_message_length]	== '\r' 
-				&& chunk[chunked_message_length+1]	== '\n')
-			{
-				// Remove the '\r\n' from the data vector.
-				chunk.pop_back();
-				chunk.pop_back();
-				
-				finishedReadingStream = dataChunkDownloaded(chunk);
-				if (finishedReadingStream)
-				{
-					disconnect();
-					
-					return;
-				}
-			}
-			else
-			{
-				logChunkError();
-				
-				/*
-				BOOST_LOG_TRIVIAL(warning) << "\nMissing Termination of Chunk Message.\n";
-				BOOST_LOG_TRIVIAL(warning) << "message_length : " << message_length << std::endl;
-				BOOST_LOG_TRIVIAL(warning) << "chunk.size() : " << chunk.size() << std::endl;
-				printChunkHex(chunk);
-				BOOST_LOG_TRIVIAL(warning) << "chunk[message_length]   : ";
-				printf("%02x\n",(unsigned char)chunk[message_length]);
-				BOOST_LOG_TRIVIAL(warning) << "chunk[message_length+1] : ";
-				printf("%02x\n",(unsigned char)chunk[message_length+1]);
-				*/
-			}
-			
-			//BOOST_LOG_TRIVIAL(debug) << "\nProcessed Chunk Body.\n";
-			//BOOST_LOG_TRIVIAL(debug) << "chunk.size() : " << chunk.size() << std::endl;
-			chunked_message_length = 0;           
+			break;
 		}
+		
+		if (endOfLength == 0)
+		{
+			endOfLength = endOfHeader - 1;
+		}
+
+		string hexLength(&receivedHttpData[start], &receivedHttpData[endOfLength]);
+// 		std::cout << "\nhexLength: " << hexLength << "\n";
+		
+		int messageLength;
+		try
+		{
+			messageLength = std::stoi(hexLength, 0, 16); 
+		}
+		catch (std::exception& e)
+		{  
+			BOOST_LOG_TRIVIAL(warning) << "\nError Message Header, string not an integer: " << hexLength;
+			logChunkError();
+			start = endOfHeader;
+			continue;
+		}  
+		
+		if (messageLength > 10000)
+		{
+			BOOST_LOG_TRIVIAL(warning) << "\nError Message Header, Body too Long: " << messageLength;
+			logChunkError();
+			start = endOfHeader;
+			continue;
+		}
+		
+		if (endOfHeader + messageLength + 2 > receivedHttpData.size())
+		{
+			//not enough data, continue from this start later
+			break;
+		}
+		
+		int startOfMessage	= endOfHeader + 1;
+		int endOfMessage	= startOfMessage + messageLength;
+		
+		char  postAmble1	= receivedHttpData[endOfMessage];
+		char  postAmble2	= receivedHttpData[endOfMessage + 1];
+	
+		if	( postAmble1 != '\r'
+			||postAmble2 != '\n')
+		{
+			BOOST_LOG_TRIVIAL(warning) << "\nMissing Termination of Chunk Message.\n";
+			start = endOfHeader;
+			continue;
+		}
+// 		printf("\npostamble: %02x %02x\n", postAmble1, postAmble2);
+		
+		vector<char> chunk(&receivedHttpData[startOfMessage], &receivedHttpData[endOfMessage]);
+// 		printHex(std::cout, chunk);
+		dataChunkDownloaded(chunk);
+		
+		start = endOfHeader + messageLength + 3;
 	}
 	
-	
+	if (start > 0)
+	{
+		receivedHttpData.erase(receivedHttpData.begin(), receivedHttpData.begin() + start - 1);
+	}
+
 	start_read(true);
 }
 
@@ -311,11 +279,6 @@ void NtripSocket::delayed_reconnect()
 		// If the network does not connect after 10 seconds print the HTTP request and receive.
 		if (logHttpSentReceived == false)
 		{
-// 			auto curTime = boost::posix_time::from_time_t(system_clock::to_time_t(system_clock::now()));
-			
-// 			boost::posix_time::time_duration totalTime = curTime - startTime;
-			
-// 			if (totalTime.total_milliseconds() > (10.0*1000.0))
 			logHttpSentReceived = true;
 		}
 	}
@@ -380,9 +343,9 @@ void NtripSocket::request_response_handler(
 		if (logHttpSentReceived)
 		{
 			std::stringstream message;
-			message << "HTTP Sent :\n";
+			message << "\nHTTP Sent     : ";
 			message << request_string;
-			message << "HTTP Received :\n";
+			message << "\nHTTP Received : ";
 			message << response_string;
 			
 			networkLog(message.str());
@@ -402,7 +365,6 @@ void NtripSocket::request_response_handler(
 	//conneccted, turn the delay back down.
 	reconnectDelay = 1;
 	
-// 		connectedTime = boost::posix_time::from_time_t(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
 	isConnected = true;
 
 	if (disconnectionCount == 0)
@@ -512,18 +474,14 @@ void NtripSocket::resolve_handler(
 	
 	//BOOST_LOG_TRIVIAL(debug) << "Resolve Completed.\n";
 	
-	// Attempt a connection to the first endpoint in the list. Each endpoint
-	// will be tried until we successfully establish a connection.
+	// Attempt a connection to the first endpoint in the list. Each endpoint will be tried until we successfully establish a connection.
 
 	tcp::endpoint endpoint = *endpoint_iterator;
 	socket_ptr->async_connect(endpoint, boost::bind(&NtripSocket::connect_handler, this, bp::error, ++endpoint_iterator));
 }
 
-
 void NtripSocket::connect()
-{
-	chunked_message_length = 0;
-	
+{	
 	// Pointers are required as objects may need to be destroyed to full recover
 	// socket error.
 	_socket		= std::make_shared<tcp::socket>		(io_service);
@@ -560,9 +518,64 @@ void NtripSocket::disconnect()
 		
 	}
 		
-	// Clear the buffers except receivedBuffer that could possibly retain
-	// valid RTCM messages.
+	// Clear the buffers except receivedBuffer that could possibly retain valid RTCM messages.
 	request		.consume(request	.size());
 	downloadBuf	.consume(downloadBuf.size());
+}
+
+
+void NtripSocket::connectionError(
+	const boost::system::error_code&	err, 
+	string								operation)
+{
+	if (acsConfig.output_ntrip_log == false)
+		return;
+
+	std::ofstream logStream(networkTraceFilename, std::ofstream::app);
+
+	if (!logStream)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening log file.\n";
+		return;
+	}
+	
+	GTime time = timeGet();
+
+	bsoncxx::builder::basic::document doc = {};
+	doc.append(kvp("label", 			"connectionError"));
+	doc.append(kvp("Stream", 			url.path.substr(1,url.path.length())));
+	doc.append(kvp("Time", 				time.to_string()));
+	doc.append(kvp("BoostSysErrCode",	err.value()));
+	doc.append(kvp("BoostSysErrMess",	err.message()));
+	doc.append(kvp("SocketOperation",	operation));
+	
+	logStream << bsoncxx::to_json(doc) << std::endl;
+}
+
+void NtripSocket::serverResponse(
+	unsigned int	status_code,
+	string			http_version)
+{
+	if (acsConfig.output_ntrip_log == false)
+		return;
+
+	std::ofstream logStream(networkTraceFilename, std::ofstream::app);
+	
+	if (!logStream)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening log file.\n";
+		return;
+	}
+
+	GTime time = timeGet();
+
+	bsoncxx::builder::basic::document doc = {};
+	doc.append(kvp("label", 		"serverResponse"));
+	doc.append(kvp("Stream", 		url.path.substr(1,url.path.length())));
+	doc.append(kvp("Time", 			time.to_string()));
+	doc.append(kvp("ServerStatus", 	(int)status_code));
+	doc.append(kvp("VersionHTTP",	http_version));
+	
+	logStream << bsoncxx::to_json(doc) << std::endl;
 }
 

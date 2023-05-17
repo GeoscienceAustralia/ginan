@@ -348,7 +348,7 @@ int Reset_rec(
 	for (auto& [sat,piv] : SATpivlist[typ][sys])
 	{
 		key.Sat=sat;
-		if ( piv.pre_rec == "")									continue;
+		if ( piv.pre_rec.empty())								continue;
 		
 		if (AR_mealist.find(key) == AR_mealist.end()) 			continue;
 		if (AR_mealist[key].out_epc >  0  ) 					continue;
@@ -717,7 +717,7 @@ void updt_net_pivot(
 			if (recpivlst.find(key.str) == recpivlst.end()) disc_rec[key.str] = E_SigWarning::SIG_OUTG;
 			if (recpivlst[key.str].pre_sat.prn <= 0)		disc_rec[key.str] = E_SigWarning::SIG_OUTG;
 			if (satpivlst.find(key.Sat) == satpivlst.end()) disc_sat[key.Sat] = E_SigWarning::SIG_OUTG;
-			if (satpivlst[key.Sat].pre_rec == "")			disc_sat[key.Sat] = E_SigWarning::SIG_OUTG;
+			if (satpivlst[key.Sat].pre_rec.empty())			disc_sat[key.Sat] = E_SigWarning::SIG_OUTG;
 		}
 		Check_rec(trace,sys,typ,sysref,0);
 		

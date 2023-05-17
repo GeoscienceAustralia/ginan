@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [2.0.0] 2023-05-18
+### Added
+### Changed
+Many changes for v2.0, will be fully documented with v2.1 ...
+### Fixed
+### Deprecated
+### Removed
+### Security
+
 # [1.5.4] 2023-05-07
 ### Added
 New dependency - Ginan relies on the python gnssanalysis tools (installable by pip) for running most scripts, although it is not required to run the main products themselves.

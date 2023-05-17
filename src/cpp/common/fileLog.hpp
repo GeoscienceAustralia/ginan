@@ -1,15 +1,17 @@
-#ifndef FILELOG_H
-#define FILELOG_H
+
+#pragma once
 
 #include "acsConfig.hpp"
 #include "gTime.hpp"
 
 #include <boost/log/sinks/basic_sink_backend.hpp>
-#include <string>
-#include <fstream> 
 
 namespace sinks = boost::log::sinks;
+
+#include <string>
+#include <fstream> 
 using std::string;
+
 
 struct FileLog : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {
@@ -21,5 +23,3 @@ struct FileLog : public sinks::basic_formatted_sink_backend<char, sinks::synchro
 };
 
 void addFileLog();
-
-#endif // FILELOG_H

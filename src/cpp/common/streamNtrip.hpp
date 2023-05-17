@@ -1,8 +1,7 @@
 
-#ifndef __ACS_NTRIPSTREAM_HPP
-#define __ACS_NTRIPSTREAM_HPP
+#pragma once
 
-#include "ntripTrace.hpp"
+#include "streamSerial.hpp"
 #include "ntripSocket.hpp"
 
 
@@ -10,17 +9,15 @@
 
 
 
-struct NtripStream : NtripSocket
+struct NtripStream : NtripSocket, SerialStream
 {
+	
 private:
-	// This mutex ensures that the main thread and the io_service thread do
-	// not alter the receivedDataBuffer buffer at the same time.
-	std::mutex		receivedDataBufferMtx;
-	vector<char>	receivedDataBuffer;
+
+	std::mutex				receivedDataBufferMtx;	//< This mutex ensures that the main thread and the io_service thread dont alter the receivedDataBuffer buffer at the same time.
+	vector<vector<char>>	chunkList;
 
 public:
-	vector<char>	receivedData;
-	
 	
 	NtripStream(
 		const string& url_str) : 
@@ -40,20 +37,20 @@ public:
 							request_stream	<< "\r\n";        
 		
 		request_string = request_stream.str();
-		chunked_message_length = 0;
 	
 		connect();
 	}
 
 	/** Retrieve data from the stream and store it for later removal
 	*/
-	void getData();
+	void getData()
+	override;
 	
 	void connected()
 	override;
 	
-	bool dataChunkDownloaded(
-		vector<char> dataChunk)
+	void dataChunkDownloaded(
+		vector<char>& dataChunk)
 	override;
 	
 	
@@ -65,7 +62,7 @@ public:
 	* As it is detached there is no need for a join, there is one worker thread
 	* for all the NtripStream objects.
 	*/ 
+	
+	virtual ~NtripStream() = default;
 };
 
-
-#endif

@@ -1,7 +1,5 @@
 
-#ifndef __LAMBDA_H_
-#define __LAMBDA_H_
-
+#pragma once
 /* integer ambiguity resolution ----------------------------------------------*/
 int lambda(
 	Trace& trace, 
@@ -29,4 +27,4 @@ int newLambda(
 void lambdaCalcs(
 	KFState&	kfState);
 
-#endif
+

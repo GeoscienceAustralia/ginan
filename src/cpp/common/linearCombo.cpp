@@ -2,11 +2,11 @@
 // #pragma GCC optimize ("O0")
 
 #include "linearCombo.hpp"
-#include "streamTrace.hpp"
 #include "testUtils.hpp"
 #include "satStat.hpp"
 #include "debug.hpp"
 #include "acsQC.hpp"
+#include "trace.hpp"
 
 
 /** Create combinations between specific observation values
@@ -110,7 +110,7 @@ S_LC& getLC(
 /** Get/calculate linear combination values for an observation
 */
 S_LC& getLC(
-	Obs&		obs,	///< Observation to compute values form
+	GObs&		obs,	///< Observation to compute values form
 	lc_t&		lcBase,	///< Linear combination base object
 	E_FType		fA,		///< Frequency type A
 	E_FType		fB)		///< Frequency type B
@@ -118,7 +118,7 @@ S_LC& getLC(
 	//try to get existing LC from the observation's satStat object
 	S_LC& lc = getLC(lcBase, fA, fB);
 
-	if (lc.valid == true)
+	if (lc.valid)
 	{
 		return lc;
 	}
@@ -170,7 +170,7 @@ S_LC& getLC(
 /** Prepare a base object for linear combinations using observation data
 */
 void lcPrepareBase(
-	Obs&	obs,		///< Observation data to use
+	GObs&	obs,		///< Observation data to use
 	lc_t&	lcBase)		///< Linear combination base object to prepare
 {
 	lcBase.time	= obs.time;
@@ -179,9 +179,9 @@ void lcPrepareBase(
 	for (auto& [ft, sig] : obs.Sigs)
 	{
 		auto& satStat = *obs.satStat_ptr;
-		auto& sigStat = satStat.sigStatMap[ft];
+		auto& sigStat = satStat.sigStatMap[ft2string(ft)];
 		
-		sigStat.lambda	= obs.satNav_ptr->lamMap[ft];	//todo aaron need to extend codes slightly to separate GPS/CMP signals with same name.
+		sigStat.lambda	= obs.satNav_ptr->lamMap[ft];
 
 		//populate variables for later use.
 		lcBase.L_m[ft]	= sig.L * sigStat.lambda;
@@ -193,16 +193,11 @@ void lcPrepareBase(
 */
 void obs2lc(
 	Trace&	trace,	///< Trace to output to
-	Obs&	obs,	///< Observation to prepare combinations for
+	GObs&	obs,	///< Observation to prepare combinations for
 	lc_t&	lcBase)	///< Linear combination base object to use
 {
-	TestStack ts(__FUNCTION__ + obs.Sat.id());
-
 	int lv = 3;
-
-	int week;
-	double sec = time2gpst(obs.time, &week);
-
+	
 	int sys = obs.Sat.sys;
 
 	/* SBS and LEO are not included */
@@ -213,34 +208,53 @@ void obs2lc(
 		return;
 	}
 
+	E_FType frq1 = F1;
+	E_FType frq2 = F2;
+	E_FType frq3 = F5;
+	if (sys == E_Sys::GLO) 
+	{
+		frq1 = G1;
+		frq2 = G2;
+	}
+	if (sys == E_Sys::GAL)
+		frq2 = F7;
+	if (sys == E_Sys::BDS) 
+	{
+		frq1 = B1;
+		frq2 = B3;
+		frq3 = F5;
+	}
+	
+
 	char strprefix[64];
-	sprintf(strprefix, "%3d %7.1f sat=%4s", week, sec, obs.Sat.id().c_str());
+	snprintf(strprefix, sizeof(strprefix), "%3s sat=%4s", obs.time.to_string().c_str(), obs.Sat.id().c_str());
 
 	lcPrepareBase(obs, lcBase);
 
-// 	artificialSlip(trace, obs, lcBase, strprefix);
-
 	//iterate pairwise over the frequencies.
-	S_LC& lc12 = getLC(obs, lcBase, F1, F2);
-	S_LC& lc15 = getLC(obs, lcBase, F1, F5);
-	S_LC& lc25 = getLC(obs, lcBase, F2, F5);
+	S_LC& lc12 = getLC(obs, lcBase, frq1, frq2);
+	S_LC& lc15 = getLC(obs, lcBase, frq1, frq3);
+	S_LC& lc25 = getLC(obs, lcBase, frq2, frq3);
 
-	tracepdeex(lv, trace, "%s zd L -- L1  =%14.4f L2  =%14.4f L5  =%14.4f\n", strprefix, lcBase.L_m[F1],	lcBase.L_m[F2],	lcBase.L_m[F5]);
-	tracepdeex(lv, trace, "%s zd P -- P1  =%14.4f P2  =%14.4f P5  =%14.4f\n", strprefix, lcBase.P[F1],		lcBase.P[F2],	lcBase.P[F5]);
-	tracepdeex(lv, trace, "%s gf L -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Phas_m,	lc15.GF_Phas_m,	lc25.GF_Phas_m);
-	tracepdeex(lv, trace, "%s gf P -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Code_m,	lc15.GF_Code_m,	lc25.GF_Code_m);
-	tracepdeex(lv, trace, "%s mw L -- mw12=%14.4f mw15=%14.4f mw25=%14.4f\n", strprefix, lc12.MW_c,			lc15.MW_c,		lc25.MW_c);
-	tracepdeex(lv, trace, "%s wl L -- wl12=%14.4f wl15=%14.4f wl25=%14.4f\n", strprefix, lc12.WL_Phas_m,	lc15.WL_Phas_m,	lc25.WL_Phas_m);
-	tracepdeex(lv, trace, "%s if L -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Phas_m,	lc15.IF_Phas_m,	lc25.IF_Phas_m);
-	tracepdeex(lv, trace, "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Code_m,	lc15.IF_Code_m,	lc25.IF_Code_m);
-	tracepdeex(lv, trace, "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n", strprefix, lcBase.mp[F1],		lcBase.mp[F2],	lcBase.mp[F5]);
+	tracepdeex(lv, trace, "%s zd L -- L1  =%14.4f L2  =%14.4f L5  =%14.4f\n", strprefix, lcBase.L_m[frq1],	lcBase.L_m[frq2],	lcBase.L_m[frq3]);
+	tracepdeex(lv, trace, "%s zd P -- P1  =%14.4f P2  =%14.4f P5  =%14.4f\n", strprefix, lcBase.P[frq1],	lcBase.P[frq2],		lcBase.P[frq3]);
+	tracepdeex(lv, trace, "%s gf L -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Phas_m,	lc15.GF_Phas_m,		lc25.GF_Phas_m);
+	tracepdeex(lv, trace, "%s gf P -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Code_m,	lc15.GF_Code_m,		lc25.GF_Code_m);
+	tracepdeex(lv, trace, "%s mw L -- mw12=%14.4f mw15=%14.4f mw25=%14.4f\n", strprefix, lc12.MW_c,			lc15.MW_c,			lc25.MW_c);
+	tracepdeex(lv, trace, "%s wl L -- wl12=%14.4f wl15=%14.4f wl25=%14.4f\n", strprefix, lc12.WL_Phas_m,	lc15.WL_Phas_m,		lc25.WL_Phas_m);
+	tracepdeex(lv, trace, "%s if L -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Phas_m,	lc15.IF_Phas_m,		lc25.IF_Phas_m);
+	tracepdeex(lv, trace, "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Code_m,	lc15.IF_Code_m,		lc25.IF_Code_m);
+	tracepdeex(lv, trace, "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n", strprefix, lcBase.mp[frq1],	lcBase.mp[frq2],	lcBase.mp[frq3]);
 
-	TestStack::testMat("lc12.GF_Phas_m",	lc12.GF_Phas_m);
-	TestStack::testMat("lc12.GF_Code_m",	lc12.GF_Code_m);
-	TestStack::testMat("lc12.MW_c",			lc12.MW_c);
-	TestStack::testMat("lc15.GF_Phas_m",	lc15.GF_Phas_m);
-	TestStack::testMat("lc15.GF_Code_m",	lc15.GF_Code_m);
-	TestStack::testMat("lc15.MW_c",			lc15.MW_c);
+	traceJson(lv, trace, obs.time, 
+				{
+					{"data",	__FUNCTION__		},
+					{"Sat",		obs.Sat.id()		} 
+				},
+				{
+					{"L1",		lcBase.L_m[frq1]	},	{"L2",		lcBase.L_m[frq2]	},	//etc
+					{"mp1",		lcBase.mp[frq1]		},	{"mp2",		lcBase.mp[frq2]		},	
+				});
 }
 
 /** Function to prepare some predefined linear combinations from a list of observations
@@ -249,21 +263,16 @@ void obs2lcs(
 	Trace&		trace,		///< Trace to output to
 	ObsList&	obsList)	///< List of bservation to prepare combinations for
 {
-	TestStack ts(__FUNCTION__);
-
-	int week;
 	int lv = 3;
 
 	if (obsList.empty())
 	{
 		return;
 	}
-	
-	double sec = time2gpst(obsList.front().time, &week);
 
-	tracepdeex(lv, trace, "\n   *-------- PDE form LC %3d %7.1f             --------*\n", week, sec);
+	tracepdeex(lv, trace, "\n   *-------- PDE form LC %s             --------*\n", obsList.front()->time.to_string().c_str());
 
-	for (auto& obs : obsList)
+	for (auto& obs : only<GObs>(obsList))
 	{
 		if (obs.exclude)
 		{

@@ -1,46 +1,97 @@
-
 # ex17 - Network Example
-# Uses TU GRAZ orbit to solve for satellite clocks (GPS-only, resolved ambiguities)
+# Uses IGS final orbit to solve for satellite clocks (GPS-only, resolved ambiguities)
 # Estimates clocks
 
 inputs:
 
     root_directory: products/
 
-    atx_files:   [ igs14_2045_plus.atx                                ]    # required
-    snx_files:   [ igs19P2062.snx                                     ]    # required
+    atx_files:   [ igs20.atx                                          ]    # required
+    #atx_files:  [ igsR3_2077.atx                                     ]    # required
+    #atx_files:  [ igs14_2045_plus.atx                                 ]    # required
+    snx_files:  [ IGS1R03SNX_20192000000_01D_01D_CRD.SNX, tables/igs_satellite_metadata_2203_plus.snx ]    # required
+    #snx_files:   [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx ]    # required
     blq_files:   [ OLOAD_GO.BLQ                                       ]    # required if ocean loading is applied
-    erp_files:   [ igs19P2062.erp                                     ]  
+    erp_files:  [ IGS1R03SNX_20191950000_07D_01D_ERP.ERP             ]  
+    #erp_files:   [ igs19P2062.erp                                     ]  
 
     satellite_data:
-        # nav_files:   [ brdm1990.19p                                       ] 
-        # sp3_files:   [ igs20624.sp3                                       ]
-        # dcb_files:       # monthly DCB file
-        # bsx_files:   [ CAS0MGXRAP_20191990000_01D_01D_DCB.BSX             ]
-        # clk_files:   [     jpl20624.clk                                   ]   # Clk file
-        # orb_files:   [ orb_partials/gag20624_orbits_partials.out.eop_test23      ]    # only need this if we are estimating orbits
-
-        nav_files: [ brdm1990.19p        ]  # broadcast navigation file
-        sp3_files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
-        # clk_files: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ] # satellite clock files in RNX CLK format
-        # dcb_files: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
-    
+        nav_files:   [ brdm1990.19p                                       ]
+        #sp3_files:   [ igs20624.sp3                                       ]
+        #bsx_files:   [ code_monthly.bia                                   ]
+        #clk_files:   [ igs20624.clk_30s                                   ]
+        sp3_files:  [ IGS2R03FIN_20191990000_01D_05M_ORB.SP3             ]
+        bsx_files:  [ IGS2R03FIN_20191990000_01D_01D_OSB.BIA             ]
+        #clk_files:  [ IGS2R03FIN_20191990000_01D_30S_CLK.CLK             ]
+   
+    egm_files:  [ tables/EGM2008.gfc          ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050      ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat ]
     
     troposphere:
-        vmf3_directory:    grid5/
-        orography_files:  orography_ell_5x5
-        # gpt2grid: EX03/general/gpt_25.grd
- 
+        orography_files: orography_ell_5x5
+        gpt2grid_files:  gpt_25.grd
+        vmf_files:       [ grid5/VMF3_20190718.H00, grid5/VMF3_20190718.H06, grid5/VMF3_20190718.H12, grid5/VMF3_20190718.H18, grid5/VMF3_20190719.H00 ]
+
     gnss_observations:
 
-        root_directory: ../data/
+        inputs_root: data/
         
-        rnx_files:
-            - "AGGO*.rnx"
+        rnx_inputs:
+            - "CPVG*.rnx"
+            - "DJIG*.rnx"
+            - "DUMG*.rnx"
+            - "GAMB*.rnx"
+            - "GLPS*.rnx"
+            - "HARB*.rnx"
+            - "KOKV*.rnx"
+            - "NYA2*.rnx"
+            - "OHI3*.rnx"
+            - "NYA2*.rnx"
+            - "MAW1*.rnx"
+            - "STK2*.rnx"
+            - "URUM*.rnx"
+            - "COCO*.rnx"
+            - "KRGG*.rnx"
+            - "ASCG*.rnx"
+            - "PTGG*.rnx"
+            - "OUS2*.rnx"
+            - "KITG*.rnx"
+            - "ULAB*.rnx"
+            - "RAEG*.rnx"
+            - "BAKE*.rnx"
+            - "LHAZ*.rnx"
+            - "KZN2*.rnx"
+            - "MCIL*.rnx"
+            - "BSHM*.rnx"
+            - "REYK*.rnx"
+            - "LMMF*.rnx"
+            - "VACS*.rnx"
+            - "AREG*.rnx"
+            - "KARR*.rnx"
+            - "HOB2*.rnx"
+            - "PERT*.rnx"
+            - "RABT*.rnx"
+            - "DUBO*.rnx"
+            - "MDO1*.rnx"
+            - "MBAR*.rnx"
+            - "PERT*.rnx"
+            - "JFNG*.rnx"
+            - "NKLG*.rnx"
+            - "DARW*.rnx"
+            - "PNGM*.rnx"
+            - "MIKL*.rnx"
+            - "SYDN*.rnx"
+            - "YKRO*.rnx"
+            - "NRMG*.rnx"
+            - "CZTG*.rnx"
+            - "IQAL*.rnx"
+            #- "AGGO*.rnx"
+            #- "FFMJ*.rnx"
+            - "ZIM2*.rnx"
             - "CEDU*.rnx"
             - "DGAR*.rnx"
             - "FAIR*.rnx"
-            - "FFMJ*.rnx"
             - "HERS*.rnx"
             - "IISC*.rnx"
             - "KIRI*.rnx"
@@ -56,8 +107,6 @@ inputs:
             - "TOPL*.rnx"
             - "TOW2*.rnx"
             - "USN7*.rnx"
-            - "ZIM2*.rnx"
-
 
 outputs:
 
@@ -66,7 +115,7 @@ outputs:
     trace:
         output_stations:                     true
         output_network:                     true
-        level:                      2
+        level:                      4
         directory:                  ./
         station_filename:                   <CONFIG>-<STATION><YYYY><DDD><HH>-<LOGTIME>.TRACE
         network_filename:                   <CONFIG>-<STATION><YYYY><DDD><HH>-<LOGTIME>.TRACE
@@ -74,8 +123,8 @@ outputs:
         output_config:              true
 
     output_rotation:
-        period:                     6
-        period_units:               hours
+        period:                     1
+        period_units:               day
 
     ionex:    
         output:                     false
@@ -89,10 +138,13 @@ outputs:
 
     bias_sinex:
         output:                     true
+        code_output_interval:       900.0
         directory:                  ./
-        filename:                   AUS0ACSRAP_<YYYY><DDD><HH>00_01D_01D_REL.BIA
-        output_interval:            900
-    
+        filename:                   <CONFIG>-<LOGTIME>.BIA
+        #filename:                  AUS0ACSRAP_<YYYY><DDD><HH>00_01D_01D_REL.BIA
+        output_rec_bias:            false
+        phase_output_interval:      900.0
+
     clocks:
         output:                     true
         directory:                  ./
@@ -107,9 +159,16 @@ outputs:
 
     trop_sinex:
         output:                     true
-        source:                     KALMAN
+        sources:                    [KALMAN]
         directory:                  ./
         filename:                   <CONFIG>-<STATION><WWWW><D>.tro
+
+    cost:
+        output:                     true
+        sources:                    [KALMAN]
+        directory:                  ./
+        filename:                   cost_s_t_<STATION>_ga__.dat
+        time_interval:              300
 
     metadata:
 
@@ -121,22 +180,24 @@ outputs:
 
 mongo:
     enable:                   true
+    database:                 <CONFIG>
     output_measurements:      true
     output_states:            true
     output_rtcm_messages:     true
     output_test_stats:        true
-    #delete_history:           true
+    delete_history:           true
     uri:                      mongodb://127.0.0.1:27017
-    suffix:                   "a"
-    rts_suffix:               "_rts"
+    suffix:                   ""
 
 processing_options:
 
     epoch_control:
-        start_epoch:                2019-07-18 01:15:00
-        end_epoch:                  2019-07-18 22:30:00
-        max_epochs:                 12        #0 is infinite # comment for full day run
+        #start_epoch:                2019-07-18 14:40:00
+        #start_epoch:                2019-07-18 12:00:00
+        end_epoch:                  2019-07-18 15:10:00
+        #max_epochs:                 12        #0 is infinite # comment for full day run
         epoch_interval:             60          #seconds
+        fatal_message_level:        1
    
     model_error_checking:
         deweighting:
@@ -145,34 +206,37 @@ processing_options:
         ambiguities:
             outage_reset_limit:          1
             phase_reject_limit:          2
-            
+            #reinit_on_all_slips:         true     # (bool) Any detected slips cause removal and reinitialisation of ambiguities
+           
         cycle_slips:
-            detect:
+            exclude:
                 lli:    false
-
+            reset_on:
+                scdia:  false
 
     process_modes:
         network:                true
+        #ppp:                    true
 
     gnss_general:
     
         max_gdop:   30
         elevation_mask:     10   #degrees
 
-        reject_eclipse:     true
         raim:               true
+        use_if_apc:         true  
 
         pivot_station:        "USN7" #if not provided then will be selected automatically
 
         sys_options:
             gps:
                 process:                true
-                ambiguity_resolution:   true
-        
+                ambiguity_resolution:   false
+                reject_eclipse: false 
                 code_priorities: [  L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
                                     L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
-                                    L5I, L5Q, L5X]
-                        
+                                    #L5I, L5Q, L5X
+                                    ]
 
     gnss_models:
         
@@ -182,50 +246,68 @@ processing_options:
         ionospheric_component:
             corr_mode:      iono_free_linear_combo
             iflc_freqs:     l1l2_only
+            #use_if_combo:   false
 
-    ambiguity_resolution:
+        sat_pos:
+            source:         precise
+
+    #ambiguity_resolution:
         
-        elevation_mask:                 15
+        #elevation_mask:                 15
 
-        wide_lane:
-            mode:                       iter_rnd     
-            success_rate_threshold:     0.9999
-            solution_ratio_threshold:   3
-            process_noise_sat:          0.00001
-            process_noise_rec:          0.0001
+        #wide_lane:
+            #mode:                       iter_rnd     
+            #success_rate_threshold:     0.9999
+            #solution_ratio_threshold:   3
+            #process_noise_sat:          0.00001
+            #process_noise_rec:          0.0001
 
-        narrow_lane:                 
-            mode:                       iter_rnd     
-            success_rate_threshold:     0.9999
-            solution_ratio_threshold:   3
+        #narrow_lane:                 
+            #mode:                       iter_rnd     
+            #success_rate_threshold:     0.9999
+            #solution_ratio_threshold:   3
 
 
-        #lambda_set_size:                10
-        #max_round_iterations:           3
+        ##lambda_set_size:                10
+        ##max_round_iterations:           3
         
     ssr_corrections: 
-        calculate_precursors:      true
+        calculate_precursors:      false
                             
     minimum_constraints:
         enable: true
+
+        once_per_epoch: true            # (bool) Perform minimum constraints on a temporary filter and output results once per epoch
 
         translation:
             estimated:  [true]
         rotation:
             estimated:  [true]
-            
-            
-            
+        scale:
+            estimated:  [false]
+            #sigma:      [1]
+
         inverter:                   ldlt       
 
         #full_vcv:       true
-        scale_by_vcv:   true
-        default_station_noise: [1]       #constrain all by default
+        #scale_by_vcv:   true
+        max_filter_iterations:              10                             
+        max_prefit_removals:                5                # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
+        outlier_screening:            
+            chi_square_mode:                none             # (enum)  Chi-square test mode - innovation, measurement, state {NONE,INNOVATION,MEASUREMENT,STATE}
+            chi_square_test:                false            # (bool)  Enable Chi-square test
+            sigma_check:                    true             # (bool)  Enable prefit and postfit sigma check
+            sigma_threshold:                3.000000         # (float) sigma threshold
+            w_test:                         false            # (bool)  Enable w-test
+
+        #default_station_noise: [1]       #constrain all by default
+        #default_station_noise: [0.01, 0.01, 0.01]       #constrain all by default
 
         station_noise:
+            global: [0.01, 0.01, 0.01]
         #    ALIC: 0.001     #constrain strongly
-            #STN3: [20]
-            #DONT: [-1]
+        #    STN3: [20]
+        #    DONT: [-1]
         #    BOAV: 100       #constrain weakly
 
 
@@ -238,10 +320,10 @@ processing_options:
             max_prefit_removals:         2
 
         rts:
-            enable:                 true
+            #enable:                 true
             lag:                    -1      #-ve for full reverse, +ve for limited epochs
             directory:              ./
-            filename:               <CONFIG>-Network.rts
+            filename:               <CONFIG>-Netwuseork.rts
 
 estimation_parameters:
 
@@ -251,49 +333,112 @@ estimation_parameters:
         code_sigmas:        [0.3333]
         phase_sigmas:       [0.0033]
 
-        pos:
-            estimated:          [true]
-            sigma:              [0.01]
-            proc_noise:         [0]
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [1.0]
+                proc_noise:         [0]
 
-        clk:
-            estimated:          [true]
-            sigma:              [1000]
-            proc_noise:         [10]
-            proc_noise_dt:      sqrt_second
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [10]
+                proc_noise_dt:      sqrt_second
 
-        amb:
-            estimated:          [true]
-            sigma:              [100]
-            proc_noise:         [0]
+            amb:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [0]
 
-        trop:
-            estimated:          [true]
-            sigma:              [0.3]
-            proc_noise:         [0.0001] #0.1 mm
-            proc_noise_dt:      sqrt_second
+            phase_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
 
-        trop_grads:
-            estimated:          [true]
-            sigma:              [0.02]
-            proc_noise:         [1.0E-6]
-            proc_noise_dt:      sqrt_second
+            code_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
+
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001] #0.1 mm
+                proc_noise_dt:      sqrt_second
+
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+                proc_noise_dt:      sqrt_second
+                
+            ion_stec:
+                estimated:          [true]
+                sigma:              [70]
+                proc_noise:         [-1]
+
+        USN7:
+            clk:
+                #estimated:          [false]    # Set reference (pivot) station clock
+                #sigma:              [10]
+                #proc_noise:         [1e-8]
+
+        AGGO:
+            clk_rate:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [1e-8]
+          
+        CEDU:
+            trop_gauss_markov:
+                estimated:          [true]
+                sigma:              [0.05]
+                proc_noise:         [0.01]
+                tau:                [12600]
+                proc_noise_dt:      sqrt_second
+
+            trop_grads_gauss_markov:
+                estimated:          [true]
+                sigma:              [0.01]
+                proc_noise:         [0.00549]
+                tau:                [9216]
+                proc_noise_dt:      second			
 
     satellites:
 
-        clk:
-            estimated:          [true]
-            sigma:              [1000]
-            proc_noise:         [1]
-            #proc_noise_dt:      min
+        global:
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [1]
+                #proc_noise_dt:      min
 
-        # clk_rate:
-        #     estimated:          [true]
-        #     sigma:              [10]
-        #     proc_noise:         [1e-5]
+            #clk_rate:
+                #estimated:          [true]
+                #sigma:              [10]
+                #proc_noise:         [1e-5]
 
-        orb:
-            #estimated:          [true]
+            #orb:
+                #estimated:          [false]
+
+        G01:
+            clk_rate:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [1e-5]
+
+        G02:
+            clk_rate:
+                estimated:          [true]
+                sigma:              [0.1]
+                proc_noise:         [1e-6]
+
+            clk_rate_gauss_markov:
+                estimated:          [true]
+                sigma:              [0.05]
+                proc_noise:         [1e-3] 
+                proc_noise_dt:      sqrt_second
+                tau:                [86400]     
 
     eop:
         estimated:  [true]
@@ -303,70 +448,6 @@ estimation_parameters:
         estimated:  [true]
         sigma:      [30]
 
-
-    overrides:
-
-        stations:
-            AGGO:
-                clk_rate:
-                    estimated:          [true]
-                    sigma:              [10]
-                    proc_noise:         [1e-8]
-                    
-            CEDU:
-                trop_gauss_markov:
-                    estimated:          [true]
-                    sigma:              [0.05]
-                    proc_noise:         [0.01]
-                    tau:                [12600]
-                    proc_noise_dt:      sqrt_second
-
-                trop_grads_gauss_markov:
-                    estimated:          [true]
-                    sigma:              [0.01]
-                    proc_noise:         [0.00549]
-                    tau:                [9216]
-                    proc_noise_dt:      second
-                    
-        satellites:
-
-            ### Constellation Overrides
-            #SYS_GPS:
-                #srp:
-                    #sigma:              [0.01]
-                    #proc_noise:         [0.001]
-
-            #SYS_GAL:
-                #clk:
-                    #sigma:              [1.0]
-                    #proc_noise:         [0.01]
-
-            ### Block Type Overrides
-            #GPS-IIR-A:
-
-            ### PRN Overrides
-            
-            PRN_G01:
-                clk_rate:
-                    estimated:          [true]
-                    sigma:              [10]
-                    proc_noise:         [1e-5]
-
-            PRN_G02:
-
-                clk_rate:
-                    estimated:          [true]
-                    sigma:              [0.1]
-                    proc_noise:         [1e-6]
-
-                clk_rate_gauss_markov:
-                    estimated:          [true]
-                    sigma:              [0.05]
-                    proc_noise:         [1e-3] 
-                    proc_noise_dt:      sqrt_second
-                    tau:                [86400] 
-
-            ### SVN Overrides
-            #SVN_G265:
-                #pos: {sigma: [10.0] }
-                #vel: {sigma: [0.1]  }
+debug:
+    unit_tests:
+        #enable: true

@@ -1,38 +1,48 @@
-#ifndef READMONGO_H
-#define READMONGO_H
 
-#include <rtcmEncoder.hpp>
+#pragma once
 
-#include <bsoncxx/stdx/string_view.hpp>
-#include <bsoncxx/types.hpp>
-
+#include "rtcmEncoder.hpp"
 #include "mongo.hpp"
-#include "ssr.hpp"
+
+struct SSRMeta;
 
 
-SsrClkOutMap mongoReadClocks(
-	GTime	curTime,
-	SSRMeta	ssrMeta,
-	int		masterIod,
-	E_Sys	targetSys);
+SsrOutMap mongoReadOrbClk(
+	GTime		referenceTime,
+	SSRMeta&	ssrMeta,
+	int			masterIod,
+	E_Sys		targetSys);
 
 SsrCBMap mongoReadCodeBias(
-	GTime	curTime,
-	SSRMeta	ssrMeta,
-	int		masterIod,
-	E_Sys	targetSys);
-
-map<SatSys, SSROut> mongoReadSSRData(
-	GTime	targetTime,
-	SSRMeta	ssrMeta,
-	int		masterIod,
-	E_Sys	targetSys);
+	SSRMeta&	ssrMeta,
+	int			masterIod,
+	E_Sys		targetSys);
 
 SsrPBMap mongoReadPhaseBias(
-	GTime	curTime,
+	SSRMeta&	ssrMeta,
+	int			masterIod,
+	E_Sys		targetSys);
+
+Eph mongoReadEphemeris(
+	GTime			targetTime,
+	SatSys			Sat,
+	RtcmMessageType	rtcmMessCode);
+
+Geph mongoReadGloEphemeris(
+	GTime			targetTime,
+	SatSys			Sat);
+	
+SSRAtm mongoReadIGSIonosphere(
+	GTime	time,
 	SSRMeta	ssrMeta,
-	int		masterIod,
-	E_Sys	targetSys);
+	int		masterIod);
 
+map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
+	GTime	time	= GTime::noTime(),
+	SatSys	Sat		= SatSys(),
+	bool	remote	= false);
 
-#endif 
+map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
+	GTime	time	= GTime::noTime(),
+	string	str		= "",
+	bool	remote	= false);

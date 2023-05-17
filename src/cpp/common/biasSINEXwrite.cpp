@@ -1,17 +1,41 @@
 
+// #pragma GCC optimize ("O0")
 
 #include "biasSINEX.hpp"
 #include "constants.hpp"
+#include "GNSSambres.hpp"
+#include "ppp.hpp"
+#include "ionoModel.hpp"
 
-int abs_strt[3] = {};
-int abs_nbia = 0;
-int abs_updt = 0;
-int rel_strt[3] = {};
-int rel_nbia = 0;
-int rel_updt = 0;
+map<KFKey, map<int, BiasEntry>> SINEXBiases_out;
+long int	BottomOfFile = 0;
+UYds 		StartTimeofFile;
+string		lastBiasSINEXFile = "";
 
-map<KFKey, map<int,SinexBias>> SINEXBiases_out;
-
+/* Adjust time reference for bias SINEX file (will be UTC by default) */
+void convertTime(GTime &time, string system)
+{
+	if (acsConfig.bias_time_system == "UTC")
+		return;
+	
+	if (acsConfig.bias_time_system == "R")
+	{
+		time += 10800.0;
+		return;
+	}
+	
+	double leap1 = leapSeconds(time);
+	double leap2 = leapSeconds(time + leap1 + 1);
+	time += leap2;
+	
+	if (acsConfig.bias_time_system == "C")
+		time -= 14;
+	
+	if (acsConfig.bias_time_system == "TAI")
+		time += 19;
+	
+	return;
+}
 
 /** Determine if the bias is an OSB or DSB given observation codes
 */
@@ -25,75 +49,100 @@ string	biasType(
 	else																return "NONE";
 }
 
-/** convert time to yds (doy in bias SINEX starts at 1)
+/** Update bias SINEX first line
 */
-void sinex_time(
-	GTime time,		///< GTime to be converted to yds
-	int *yds)		///< Year, doy and seconds
+void updateFirstLine(
+	GTime		time, 				///< Time of bias to write
+	Trace&		trace,			///< Trace to output to
+	int 		numbias)			///< Number of biases to be written
 {
-	double ep[6], ep0[6] = {2000, 1, 1, 0, 0, 0};
-	time2epoch(time, ep);
+	GTime now = timeGet();
 	
-	ep0[0] = ep[0];
-	int toy = (int) (time - epoch2time(ep0));
+	convertTime(now,acsConfig.bias_time_system);
+	
+	UYds  yds_now = now;
+	UYds  ydsTime = now;
 
-	yds[0] = (int) ep[0];
-	yds[1] = toy / 86400 + 1;		//doy[0]=toy/86400;
-	yds[2] = toy % 86400;
+	trace.seekp(0);
+	tracepdeex(0, trace, "%%=BIA 1.00 %3s %4d:%03d:%05d ", acsConfig.analysis_agency.c_str(), yds_now[0], yds_now[1], yds_now[2]); 
+	tracepdeex(0, trace, "%3s %4d:%03d:%05d ",acsConfig.analysis_agency.c_str(), StartTimeofFile[0], StartTimeofFile[1], StartTimeofFile[2]);
+	tracepdeex(0, trace, "%4d:%03d:%05d A %8d\n", ydsTime[0], ydsTime[1], ydsTime[2], numbias);
 }
 
-/** Write bias SINEX head
+/** Write bias SINEX head for the first time
 */
-void write_bSINEX_head(
-	GTime	time, 				///< Time of bias to write
-	Trace&	trace,				///< Trace to output to
-	int *	yds0,				///< Year, doy and seconds
-	int 	numbiases,			///< Number of biases to write
-	string	type,				///< Bias type - OSB and/or DSB
-	int		updatetime, 		///< Update time (seconds)
-	string	mode)				///< Bias mode - ABSOLUTE and/or RELATIVE
+void writeBSINEXHeader(
+	GTime		time, 				///< Time of bias to write
+	Trace&		trace,			///< Trace to output to
+	double		updateInterval) 	///< Bias Update Interval (seconds)
 {
-	int yds[3];
-	GTime now = timeget();
-	sinex_time(now,yds);
-
-	tracepdeex(0, trace, "%%=BIA 1.00 %3s %4d:%03d:%05d %3s %4d:%03d:%05d", acsConfig.analysis_agency.c_str(), yds[0], yds[1], yds[2], acsConfig.analysis_agency.c_str(), yds0[0], yds0[1], yds0[2]);
-
-	sinex_time(time, yds);
-	tracepdeex(0, trace, " %4d:%03d:%05d %8d\n", yds[0], yds[1], yds[2], numbiases);
+	GTime tim =time;
+	convertTime(tim,acsConfig.bias_time_system);
+	StartTimeofFile = tim;
+	updateFirstLine(time, trace, 0);
+	
 	tracepdeex(0, trace, "*-------------------------------------------------------------------------------\n");
 	tracepdeex(0, trace, "+FILE/REFERENCE\n");
-	tracepdeex(0, trace, " DESCRIPTION       AUS, Position Australia, Geoscience Australia\n");			//todo aaron, get name from config
-	tracepdeex(0, trace, " OUTPUT            AUS %s estimates for day %3d, %4d\n", type.c_str(), yds0[1], yds0[0]);
-	tracepdeex(0, trace, " CONTACT           ken.harima@ga.gov.au\n");
-	tracepdeex(0, trace, " SOFTWARE          Ginan\n");
-	tracepdeex(0, trace, " INPUT             Daily 30-sec observations from IGS stations\n");
+	tracepdeex(0, trace, " DESCRIPTION       %s, %s\n",acsConfig.analysis_agency.c_str(), acsConfig.analysis_center.c_str());
+	tracepdeex(0, trace, " OUTPUT            OSB estimates for day %3d, %4d\n", StartTimeofFile[1], StartTimeofFile[0]);
+	tracepdeex(0, trace, " CONTACT           %s\n", acsConfig.ac_contact.c_str());
+	tracepdeex(0, trace, " SOFTWARE          %s\n", acsConfig.analysis_program.c_str());
+	tracepdeex(0, trace, " INPUT             %s\n", acsConfig.rinex_comment.c_str());
 	tracepdeex(0, trace, "-FILE/REFERENCE\n");
+	
+	
 	tracepdeex(0, trace, "*-------------------------------------------------------------------------------\n");
 	tracepdeex(0, trace, "+BIAS/DESCRIPTION\n");
 	tracepdeex(0, trace, " OBSERVATION_SAMPLING                    %12.0f\n", acsConfig.epoch_interval);
-	tracepdeex(0, trace, " PARAMETER_SPACING                       %12d\n", updatetime);
-	tracepdeex(0, trace, " DETERMINATION_METHO                     CLOCK_ANALYSIS\n");
-	tracepdeex(0, trace, " BIAS_MODE                               %s\n", mode.c_str());
-	tracepdeex(0, trace, " TIME_SYSTEM                             G  \n");
-	//tracepdeex(0, trace, " RECEIVER_CLOCK_REFERENCE_GNSS           G  \n");
-	//tracepdeex(0, trace, " SATELLITE_CLOCK_REFERENCE_OBSERVABLES   G  L1C  L2W\n");
+	tracepdeex(0, trace, " PARAMETER_SPACING                       %12.0f\n", updateInterval);
+	tracepdeex(0, trace, " DETERMINATION_METHOD                    COMBINED_ANALYSIS\n");
+	tracepdeex(0, trace, " BIAS_MODE                               ABSOLUTE\n");
+	tracepdeex(0, trace, " TIME_SYSTEM                             %s  \n",acsConfig.bias_time_system.c_str());
+	
+	E_Sys refConst = acsConfig.receiver_reference_clk;
+	tracepdeex(0, trace, " RECEIVER_CLOCK_REFERENCE_GNSS           %c\n", refConst._to_string()[0]);
+	
+	for (auto& [sys,solve] : acsConfig.solve_amb_for)
+	{
+		if (!solve) 
+			continue;
+			
+		char sysChar;
+		switch (sys)
+		{
+			case E_Sys::GPS:	sysChar = 'G'; break;
+			case E_Sys::GLO:	sysChar = 'R'; break;
+			case E_Sys::GAL:	sysChar = 'E'; break;
+			case E_Sys::QZS:	sysChar = 'J'; break;
+			case E_Sys::BDS:	sysChar = 'C'; break;
+			default:			continue;
+		}
+		
+		E_ObsCode code1= acsConfig.clock_codesL1[sys];
+		E_ObsCode code2= acsConfig.clock_codesL2[sys];
+		tracepdeex(0, trace, " SATELLITE_CLOCK_REFERENCE_OBSERVABLES   %c  %s  %s\n", sysChar,code1._to_string(),code2._to_string());
+	}
 	tracepdeex(0, trace, "-BIAS/DESCRIPTION\n");
+	
+	
 	tracepdeex(0, trace, "*-------------------------------------------------------------------------------\n");
 	tracepdeex(0, trace, "+BIAS/SOLUTION\n");
 	tracepdeex(0, trace, "*BIAS SVN_ PRN STATION__ OBS1 OBS2 BIAS_START____ BIAS_END______ UNIT __ESTIMATED_VALUE____ _STD_DEV___\n");
+	
+	BottomOfFile = trace.tellp();
 }
 
 /** print bias SINEX data line
 */
-int write_bSINEX_line(
-	SinexBias	bias,			///< Bias entry to write
-	Trace&		trace)			///< Trace to output to
+int writeBSINEXLine(
+	GTime		time,
+	BiasEntry&	bias,			///< Bias entry to write
+	Trace&		trace)		///< Stream to output to
 {
 	string typstr = biasType(bias.cod1, bias.cod2);
-	if	( typstr != "OSB"
-		&&typstr != "DSB")
+	if	( typstr != "OSB")
 		return 0;
+	
 	
 	string sat = "   ";
 	string svn = "    ";
@@ -109,8 +158,19 @@ int write_bSINEX_line(
 		svn = bias.Sat.svn();
 	}
 	
+	
 	string cod1 = code2str(bias.cod1, bias.measType);
 	string cod2 = code2str(bias.cod2, bias.measType);
+	
+	bool newbotton = false;
+	if (bias.posInOutFile < 0)
+	{
+		trace.seekp(BottomOfFile);
+		bias.posInOutFile = BottomOfFile;
+		newbotton = true;
+	}
+	else
+		trace.seekp(bias.posInOutFile);
 	
 	tracepdeex(0, trace, " %-4s %4s %3s %-9s %-4s %-4s",
 			typstr.c_str(), 
@@ -120,12 +180,16 @@ int write_bSINEX_line(
 			cod1.c_str(),
 			cod2.c_str());
 	
-	int	tini[3];
-	int tend[3];
-	sinex_time(bias.tini, tini);
-	sinex_time(bias.tfin, tend);
+	GTime tim; 
+	tim = bias.tini;
+	convertTime(tim,acsConfig.bias_time_system);
+	UYds tini = tim;
 	
-	tracepdeex(0, trace, " %4d:%03d:%05d %4d:%03d:%05d %4s",
+	tim = bias.tfin;
+	convertTime(tim,acsConfig.bias_time_system);
+	UYds tend = tim;
+	
+	tracepdeex(0, trace, " %4d:%03d:%05d %4d:%03d:%05d %-4s",
 			tini[0],
 			tini[1],
 			tini[2], 
@@ -134,11 +198,157 @@ int write_bSINEX_line(
 			tend[2], 
 			"ns");
 	
-	traceFormatedFloat(trace,  bias.bias * (1E9/CLIGHT), " %18.15fE%+01d");
-	traceFormatedFloat(trace, sqrt(bias.var) * (1E9/CLIGHT), " %8.6fE%+01d");
+	tracepdeex(0, trace, " %21.5f",     bias.bias * (1E9/CLIGHT));
+	tracepdeex(0, trace, " %11.6f", sqrt(bias.var) * (1E9/CLIGHT));
 	
 	tracepdeex(0, trace, "\n");
+	
+	if (newbotton)
+		BottomOfFile = trace.tellp();
+		
 	return 1;
+}
+
+/** Adding/updating new bias entry
+ */
+int addBiasEntry(
+	Trace&		trace,
+	GTime		tini,
+	GTime		tfin,
+	KFKey		kfKey,
+	E_MeasType	measType,
+	double		bias,
+	double		var)
+{
+	auto& biasMap = SINEXBiases_out[kfKey];
+	int found = -1;
+
+	for (auto& [ind, bias] : biasMap)
+	{
+		if (bias.tini 		!= tini)			continue;
+		if (bias.measType 	!= measType)		continue;
+
+		found = ind;
+		break;
+	}
+	
+	tracepdeex(3,trace,"\n Searched %s bias for %s %2d %s:  ",(measType==CODE)?"CODE ":"PHASE", kfKey.Sat.id().c_str(), kfKey.num, tini.to_string(0).c_str());
+	
+	if (found >= 0)
+	{
+		biasMap[found].bias = bias;
+		
+		if (var < 1e-12)
+			var = 1e-12;
+		
+		biasMap[found].var = var;
+		tracepdeex(4,trace," found at index %d: %.4f %.4f", found, bias, var);
+	}
+	else
+	{
+		found = biasMap.size();
+		BiasEntry entry;
+		entry.name		= kfKey.str;
+		entry.Sat		= kfKey.Sat;
+		entry.cod1		= E_ObsCode::_from_integral(kfKey.num);
+		entry.cod2		= E_ObsCode::NONE;
+		
+		entry.measType	= measType;
+		entry.tini		= tini;
+		entry.tfin		= tfin;
+
+		entry.bias	= bias;
+		entry.var	= var;
+		entry.slop	= 0;
+		entry.slpv	= 0;
+		entry.posInOutFile = -1;
+		biasMap[found] = entry;
+		
+		tracepdeex(4,trace," not found, stored at index %d:  %.4f %.4f", found, bias, var);
+	}
+	return found;
+}
+
+/** Store bias output to write into bias SINEX files
+*/
+void updateBiasOutput(
+	Trace&		trace,			
+	GTime		time,			///< Time of bias update 
+	StationMap&	stationMap,		///< stations for which to output receiver biases
+	E_MeasType	measType)
+{
+	int nstore = 0;
+	double bias;
+	double bvar;
+	
+	double updateRate = 0;
+	if (measType == E_MeasType::CODE)	updateRate = acsConfig.ambrOpts.code_output_interval;
+	if (measType == E_MeasType::PHAS)	updateRate = acsConfig.ambrOpts.phase_output_interval;
+	
+	if (updateRate <= 0)
+		return;
+	
+	if (updateRate < 30)
+		updateRate = 30;
+		
+	GWeek	week	= time;
+	GTow	tow		= time;
+	
+	tow = updateRate * floor(tow / updateRate);
+	GTime tini = gpst2time (week, tow);
+	GTime tfin = tini + updateRate;
+	
+	KFKey key;
+	if (measType == E_MeasType::CODE)	key.type = KF::CODE_BIAS;
+	if (measType == E_MeasType::PHAS)	key.type = KF::PHASE_BIAS;
+			
+	for (E_Sys sys : E_Sys::_values())
+	{
+		if (acsConfig.process_sys[sys] == false)
+			continue;
+		
+		auto sats = getSysSats(sys);
+		
+		for (auto& Sat : sats)
+		for (auto& obsCode : acsConfig.code_priorities[sys])
+		if (queryBiasOutput(trace, time, Sat, "", obsCode, bias, bvar, measType))
+		{
+			key.Sat 	= Sat;
+			key.str 	= "";
+			key.num		= obsCode;
+			
+			if (bias != 0)
+				addBiasEntry( trace, tini, tfin, key, measType, bias, bvar);
+			else if (key.type == KF::CODE_BIAS
+				 && (obsCode == acsConfig.clock_codesL1[Sat.sys]
+				  || obsCode == acsConfig.clock_codesL2[Sat.sys]))
+			{
+				bvar = 1e-12;
+				addBiasEntry( trace, tini, tfin, key, measType, bias, bvar);
+			}
+				
+		}
+		
+		if (acsConfig.ambrOpts.output_rec_bias == false)
+			continue;
+	
+		SatSys sat0;
+		sat0.sys = sys;
+		sat0.prn = 0;
+	
+		for (auto& [id, rec] : stationMap)
+		for (auto& obsCode : acsConfig.code_priorities[sys])
+		if (queryBiasOutput(trace, time, sat0, id, obsCode, bias, bvar, measType))
+		{
+			key.Sat 	= sat0;
+			key.str 	= id;
+			key.num		= obsCode;
+			
+			if (bias != 0)
+				addBiasEntry( trace, tini, tfin, key, measType, bias, bvar);
+		}
+	
+	}
 }
 
 /** Write stored bias output to SINEX file
@@ -147,164 +357,184 @@ int write_bSINEX_line(
 int writeBiasSinex(
 	Trace&		trace,			///< Trace to output to
 	GTime		time,			///< Time of bias to write
-	string		biasfile)		///< File to write
+	string		biasfile,		///< File to write
+	StationMap&	stationMap)		///< stations for which to output receiver biases
 { 
-	tracepdeex(2,trace,"Writing bias SINEX into: %s\n", biasfile.c_str());
+	tracepdeex(3,trace,"Writing bias SINEX into: %s %s\n", biasfile.c_str(), time.to_string(0).c_str());
 	
-	std::ofstream outputStream(biasfile);
+	std::ofstream outputStream(biasfile, std::fstream::in | std::fstream::out);
 	if (!outputStream)
 	{
 		tracepdeex(2, trace, "ERROR: cannot open bias SINEX output: %s\n", biasfile.c_str());
 		return -1;
 	} 
 	
-	int nwrt=0;
+	if	(  acsConfig.ambrOpts.code_output_interval	<= 0
+		&& acsConfig.ambrOpts.phase_output_interval	<= 0)
+	{
+		return 0;
+	}
 	
-	// if		(opt.OSB_biases)	write_bSINEX_head(time, outputStream, abs_strt, abs_nbia, "OSB", abs_updt, "ABSOLUTE");
-	// else if	(opt.DSB_biases)	write_bSINEX_head(time, outputStream, rel_strt, rel_nbia, "DSB", rel_updt, "RELATIVE");
-	// else
-	// {
-	// 	tracepdeex(2, trace, "ERROR: unsupported bias format\n");
-	// 	return 0;
-	// }
-	write_bSINEX_head(time, outputStream, abs_strt, abs_nbia, "OSB+DSB", abs_updt, "ABSOLUTE+RELATIVE");	
-
-	// for (auto& idObsObsBiasMap			: SINEXBiases_out)
-	// for (auto& [id,		obsObsBiasMap]	: idObsObsBiasMap)
-	// for (auto& [code1,	obsBiasMap]		: obsObsBiasMap)
-	// for (auto& [code2,	biasMap]		: obsBiasMap)
-	// for (auto& [time,	bias]			: biasMap)
+	if (biasfile != lastBiasSINEXFile)
+	{
+		tracepdeex(3, trace, "\nStarting new bias SINEX file: %s\n", biasfile.c_str());
+		
+		double updt1;
+		double updt2;
+		
+		if (acsConfig.ambrOpts.code_output_interval > acsConfig.ambrOpts.phase_output_interval)
+		{
+			updt1 = acsConfig.ambrOpts.code_output_interval;
+			updt2 = acsConfig.ambrOpts.phase_output_interval;
+		}
+		else
+		{
+			updt1 = acsConfig.ambrOpts.phase_output_interval;
+			updt2 = acsConfig.ambrOpts.code_output_interval;
+		}
+		
+		if (updt2==0) 
+			updt2 = updt1;
+		
+		// int week;
+		// double tow = time2gpst(time, &week);
+		// tow = updt1 * floor (tow / updt1);
+		// GTime time0 = gpst2time (week, tow);
+		
+		GTime time0 = time.floorTime((int)updt1);
+		
+		SINEXBiases_out.clear();
+		
+		writeBSINEXHeader(time0, outputStream, updt2);	
+		
+		lastBiasSINEXFile = biasfile;
+	}
+	
+	if (acsConfig.ambrOpts.code_output_interval		> 0) 		updateBiasOutput(trace, time, stationMap, CODE);
+	if (acsConfig.ambrOpts.phase_output_interval	> 0) 		updateBiasOutput(trace, time, stationMap, PHAS);
+	
+	int numbias=0;
+	for (auto& [key, biasMap] : SINEXBiases_out)
+	for (auto& [ind, bias]	 : biasMap)
+	{
+		if	(biasType(bias.cod1, bias.cod2) != "OSB")
+			continue;
+		
+		numbias++;
+	}
+	
+	updateFirstLine(time, outputStream, numbias);
+	
 	for (auto& [Key, biasMap] : SINEXBiases_out)
 	for (auto& [ind, bias]    : biasMap)
-	{	
-		// if (bias.name.empty() == false			&& opt.REC_biases == false)		continue;	//dont output this because we dont want receivers
-		// if (bias.name.empty()					&& opt.SAT_biases == false)		continue;	//dont output this because we dont want satellites
-		// if (bias.biasType == +E_BiasType::OSB	&& opt.OSB_biases == false)		continue;	//dont output this because we dont want OSB biases
-		// if (bias.biasType == +E_BiasType::DSB	&& opt.DSB_biases == false)		continue;	//dont output this because we dont want DSB biases
-			
-		nwrt += write_bSINEX_line(bias, outputStream);
-	} 
+	{
+		if ((time-bias.tfin) > DTTOL)
+			continue;
 		
+		if (bias.measType!=CODE)
+			continue;
+		
+		tracepdeex(5,trace,"\n CODE bias for %s %2d %s ... at pos %d", bias.Sat.id().c_str(), bias.cod1._to_string(), ind, bias.posInOutFile);
+		
+		writeBSINEXLine(time, bias, outputStream);
+	}
+	
+	for (auto& [Key, biasMap] : SINEXBiases_out)
+	for (auto& [ind, bias]    : biasMap)
+	{
+		if ((time-bias.tfin) > DTTOL)
+			continue;
+		
+		if (bias.measType==CODE)
+			continue;
+		
+		tracepdeex(5,trace,"\n PHASE bias for %s %2d %s ... at pos %d", bias.Sat.id().c_str(), bias.cod1._to_string(), ind, bias.posInOutFile);
+		
+		writeBSINEXLine(time, bias, outputStream);
+	}
+	
+	outputStream.seekp(BottomOfFile);
+	
 	tracepdeex(0, outputStream, "-BIAS/SOLUTION\n%%=ENDBIA");
 	
-	return nwrt;
+	return numbias;
 }
 
-
-/**************************************************************************************************************************/
-/**************************************************************************************************************************/
-/**************************************************************************************************************************/
-
-/** Store bias output to write into bias SINEX files
+/** Find and combine biases from multiple sources: 
+bias inputs, WLNL biases from Ginan 1.0, UC biases from Ginan 2.0 
+and DCB from ionosphere modules
 */
-void outp_bias(
-	Trace&		trace,				///< Trace to output to
-	GTime		time,				///< Time of bias to write
-	string		receiver, 			///< Receiver to output bias of
-	SatSys		Sat,				///< Satellite to output bias of
-	E_ObsCode	code1,				///< Base code of observation to output for
-	E_ObsCode	code2,				///< Secondary code of observation to output for
-	double		bias,				///< Hardware bias
-	double		variance, 			///< Hardware bias variance
-	double		updateInterval,		///< Update Interval of hardbias output (seconds) 
-	E_MeasType	measType)			///< Measurement type to output bias for
+bool queryBiasOutput(
+	Trace&		trace, 
+	GTime		time,
+	SatSys		Sat,
+	string		Rec,
+	E_ObsCode	obsCode, 
+	double& 	bias, 
+	double& 	variance,
+	E_MeasType	type)
 {
-	KFKey key;
-
-	string type = biasType(code1, code2);
-	if	(type == "OSB")
+	bias = 0;
+	variance = 0;
+	E_FType ftyp = code2Freq[Sat.sys][obsCode];
+	
+	tracepdeex(2,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string(0).c_str());
+	
+	if (acsConfig.process_ppp)					/* Ginan 2.x	*/
 	{
-		if (abs_updt <= 0)
-			abs_updt = (int) (updateInterval + 0.5);
-
-		if (abs_strt[0] == 0)
+		double pppBias;
+		double pppVar;
+		
+		if (!queryBiasUC(trace, time, Sat, Rec, obsCode, pppBias, pppVar, type))
+			return false;
+		
+		tracepdeex(2,trace,"found UC %.4f %.4e", bias, variance);
+		bias		+= pppBias;
+		variance	+= pppVar;
+	}
+	else if (acsConfig.process_network)			/* Ginan 1.x */
+	{
+		double extBias;
+		double extVar;
+		getBiasSinex(trace, time, Sat.id(), Sat, obsCode, type, extBias, extVar);
+		
+		bias		+= extBias;
+		variance	+= extVar;
+	
+		if (bias!=0)
+			tracepdeex(4,trace,"found a-priory");
+	
+		if	(  type == PHAS
+			&& acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
 		{
-			sinex_time (time, abs_strt);
-			tracepdeex (2, trace, "\nInitializing absolute biases %04d:%03d:%05d", abs_strt[0], abs_strt[1], abs_strt[2]);
+			double WLNLbias;
+			double WLNLvar;
+			
+			if (!queryBiasWLNL(trace, Sat, Rec, ftyp, WLNLbias, WLNLvar))
+				return false;
+			
+			tracepdeex(4,trace," plus WLNL");
+			
+			bias		+= WLNLbias;
+			variance	+= WLNLvar;
 		}
-
-		key.type 	= KF::PHASE_BIAS;
 	}
-	else if	(type == "DSB")
+	
+	/* Ionosphere DCB */
+	if	(  type == CODE
+		&& acsConfig.process_ionosphere)
 	{
-		if (rel_updt <= 0)
-			rel_updt = (int) (updateInterval + 0.5);
-
-		if (rel_strt[0] == 0)
-		{
-			sinex_time (time, rel_strt);
-			tracepdeex (2, trace, "\nInitializing relative biases %04d:%03d:%05d", rel_strt[0], rel_strt[1], rel_strt[2]);
-		}
-
-		key.type	= KF::DCB;
+		double dcbBias;
+		double dcbVar;
+		
+		if (!queryBiasDCB(trace, Sat, Rec, ftyp, dcbBias, dcbVar))
+			return false;
+		
+		tracepdeex(4,trace," plus DCB");
+		
+		bias		+= dcbBias;
+		variance	+= dcbVar;
 	}
-	else
-	{
-		tracepdeex (2, trace, "ERROR: unsupported bias format\n");
-		return;
-	}
-
-	int numcod	= E_ObsCode::MAXCODE + 1;
-	key.num		= numcod * code1._to_integral() + code2._to_integral();
-	key.Sat 	= Sat;
-	key.str 	= receiver;
-
-	if (receiver.empty() == false)
-	{
-		//this seems to be a receiver
-		if (Sat.sys != +E_Sys::GLO)
-			key.Sat.prn = 0;
-	}
-
-	SinexBias entry;
-	int week;
-	double tow = time2gpst(time, &week);
-	if (updateInterval != 0)
-		tow = updateInterval * floor (tow / updateInterval);
-
-	entry.name		= receiver;
-	entry.Sat		= Sat;
-	entry.cod1		= code1;
-	entry.cod2		= code2;
-
-	entry.measType	= measType;
-	entry.tini		= gpst2time (week, tow);
-	entry.tfin		= gpst2time (week, tow + updateInterval);
-
-	entry.bias	= bias;
-	entry.var	= variance;
-	entry.slop	= 0;
-	entry.slpv	= 0;
-
-	tracepdeex (3, trace, "\nLoading bias for %s %s %s %d %d %s ", Sat.id().c_str(), Sat.svn().c_str(), receiver.c_str(), code1, code2, entry.tini.to_string (0));
-
-	auto& biasMap = SINEXBiases_out[key];
-	int found = -1;
-
-	for (auto& [ind, bias] : biasMap)
-	{
-		if (bias.tini 		!= entry.tini)			continue;
-		if (bias.measType 	!= entry.measType)		continue;
-
-		found = ind;
-		break;
-	}
-
-	if (found < 0)
-	{
-		found = biasMap.size();
-
-		if		(type == "OSB")		abs_nbia++;
-		else if	(type == "DSB")		rel_nbia++;
-
-		tracepdeex (3, trace, "... new entry %4d", found);
-	}
-	else
-	{
-		tracepdeex (3, trace, "... updating entry %4d", found);
-	}
-
-	tracepdeex (3, trace, "\n");
-	biasMap[found] = entry;
+	
+	return true;
 }
-

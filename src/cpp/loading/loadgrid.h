@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef TEST_CODE_LOADGRID_H
-#define TEST_CODE_LOADGRID_H
+#pragma once
+
 #include <string>
 #include <boost/multi_array.hpp>
 #include "boost_ma_type.h"
@@ -52,5 +52,3 @@ private:
 
 };
 
-
-#endif //TEST_CODE_LOADGRID_H

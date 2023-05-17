@@ -70,11 +70,10 @@ void configureUploadingStreams()
 		auto& [label, outStream_ptr]	= *it;
 		auto& outStream					= *outStream_ptr;
 		
-		outStream.streamConfig.rtcmMessagesTypes	= outStreamData.rtcmMessagesTypes;
+		outStream.streamConfig.rtcmMsgOptsMap		= outStreamData.rtcmMsgOptsMap;
 		outStream.streamConfig.itrf_datum			= outStreamData.itrf_datum;
 		outStream.streamConfig.provider_id			= outStreamData.provider_id;
 		outStream.streamConfig.solution_id			= outStreamData.solution_id;
-		outStream.streamConfig.update_interval		= outStreamData.update_interval;
 		outStream.streamConfig.master_iod			= outStreamData.master_iod;
 	}
 

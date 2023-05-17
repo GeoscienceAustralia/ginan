@@ -1,3 +1,4 @@
+#include "testUtils.hpp"
 #include "GNSSambres.hpp"
 
 /** Comapring two Z-transformed ambiguities */
@@ -35,12 +36,12 @@ void chk_arch(
 		for (auto& [key,coef] : Zambigty )
 		{
 			E_AmbTyp typ = E_AmbTyp::NL12;
-			if  ( opt.ionmod == +E_IonoMode::ESTIMATE )
+			if  (opt.ionmod == +E_IonoMode::ESTIMATE)
 			{
 				E_FType frq1;
 				E_FType frq2;
 				E_FType frq3;
-				sys_frq(key.Sat.sys, frq1, frq2, frq3);
+				satFreqs(key.Sat.sys, frq1, frq2, frq3);
 				
 				if (key.num == frq1)	typ = E_AmbTyp::UCL1;
 				if (key.num == frq2)	typ = E_AmbTyp::UCL2;
@@ -130,7 +131,7 @@ int updat_ambigt(
 	KFState& kfState,	///< KF struct containing raw ambiguity measurements
 	GinAR_opt opt )		///< Ginan AR control options 
 {
-	tracepdeex(ARTRCLVL,trace,"\n#ARES_NLAR Resolving ambiguities %s", kfState.time.to_string(0).c_str());
+	tracepdeex(ARTRCLVL,trace,"\n#ARES_NLAR Resolving ambiguities %s", kfState.time.to_string().c_str());
 	auto& AR_mealist = ARstations[opt.recv].AR_meaMap;
 	
 	chk_arch( trace, kfState.time, opt );
@@ -146,19 +147,18 @@ int updat_ambigt(
 	GinAR_mtx   ambState;
 		
 	int nstates = 0;
-	SatSys  sat0;
-	for (auto& [key,indx] : kfState.kfIndexMap)
+	for (auto& [key, indx] : kfState.kfIndexMap)
 	{
-		SatSys  sat = key.Sat;
+		SatSys  Sat = key.Sat;
 		string  rec = key.str;
-		E_Sys	sys = sat.sys;
+		E_Sys	sys = Sat.sys;
 		E_FType frq1;
 		E_FType frq2;
 		E_FType frq3;
 		E_AmbTyp typ = E_AmbTyp::NL12;
 		
 		if (!opt.sys_solve[sys])												continue;	
-		if (!sys_frq(sys, frq1, frq2, frq3))									continue;
+		if (!satFreqs(sys, frq1, frq2, frq3))									continue;
 		if ( opt.ionmod == +E_IonoMode::ESTIMATE )
 		{
 			if(key.num == frq1) typ = E_AmbTyp::UCL1;
@@ -173,23 +173,24 @@ int updat_ambigt(
 		else
 		{
 			if (key.type != KF::AMBIGUITY)  									continue;
-			if (SATpivlist[typ][sys].find(sat) == SATpivlist[typ][sys].end())	continue;
+			if (SATpivlist[typ][sys].find(Sat) == SATpivlist[typ][sys].end())	continue;
 		}
 		if (RECpivlist[typ][sys].find(rec) == RECpivlist[typ][sys].end())		continue;
 		
-		KFKey key2 = {KF::AMBIGUITY, sat, rec, typ};
-		if ( AR_mealist.find(key2) == AR_mealist.end() )						continue;
-		if ( AR_mealist[key2].sat_ele < opt.MIN_Elev_AR )							continue;
+		KFKey key2 = {KF::AMBIGUITY, Sat, rec, typ};
+		if (AR_mealist.find(key2) == AR_mealist.end())							continue;
+		if (AR_mealist[key2].sat_ele < opt.MIN_Elev_AR)							continue;
 		
 		if ( opt.ionmod == +E_IonoMode::IONO_FREE_LINEAR_COMBO ){
-			int WLamb = retrv_WLambg(trace, E_AmbTyp::WL12,kfState.time,rec,sat);
+			int WLamb = retrv_WLambg(trace, E_AmbTyp::WL12,kfState.time,rec,Sat);
 			if ( WLamb == INVALID_WLVAL )
 			{
-				tracepdeex(ARTRCLVL+2,trace,"\n#ARES_NLAR Failed to retrieve WL ambiguities for %s %s %s", kfState.time.to_string(0),rec,sat.id().c_str());
+				tracepdeex(ARTRCLVL+2,trace,"\n#ARES_NLAR Failed to retrieve WL ambiguities for %s %s %s", kfState.time.to_string(),rec.c_str(),Sat.id().c_str());
 				continue;
 			}
 			double wlfct = opt.wlfact[sys];
-			tracepdeex(ARTRCLVL+2,trace,"\n#ARES_NLAR Retrieved WL amb %s %s %s %d %f", kfState.time.to_string(0).c_str(),rec,sat.id().c_str(),WLamb,wlfct);
+			
+			tracepdeex(ARTRCLVL+2,trace,"\n#ARES_NLAR Retrieved WL amb %s %s %s %d %f", kfState.time.to_string().c_str(),rec.c_str(),Sat.id().c_str(),WLamb,wlfct);
 			WLcorrMap[key2] = wlfct*WLamb;
 		}
 		else WLcorrMap[key2] = 0;
@@ -198,13 +199,12 @@ int updat_ambigt(
 		ambState.ambmap[nstates] = key;
 		AmbList[key2] = nstates++;
 		
-		sat0.sys = sys;
-		key2 = {KF::REC_SYS_BIAS, sat0, rec, typ};
+		key2 = {KF::REC_SYS_BIAS, SatSys(Sat.sys), rec, typ};
 		RecList[key2] = 0;
 		
 		if ( !opt.endu )
 		{
-			key2 = {KF::PHASE_BIAS, sat, "", typ};
+			key2 = {KF::PHASE_BIAS, Sat, "", typ};
 			SatList[key2] = 0;
 		}
 	}
@@ -239,7 +239,7 @@ int updat_ambigt(
 	/* ambiguity measurements */
 	xmea.head(nambig)                 = raw_xmea;
 	Pmea.topLeftCorner(nambig,nambig) = raw_Pmea;
-	for (auto& [key,ind] : AmbList)
+	for (auto& [key, ind] : AmbList)
 	{
 		xmea(ind) -= WLcorrMap[key];
 		wmea(ind)  = WLcorrMap[key];
@@ -249,8 +249,7 @@ int updat_ambigt(
 		
 		Hinv(ind,ind) = NLwavlng;
 		
-		sat0.sys = key.Sat.sys;
-		KFKey key2 = {KF::REC_SYS_BIAS, sat0, key.str, key.num};
+		KFKey key2 = {KF::REC_SYS_BIAS, SatSys(key.Sat.sys), key.str, key.num};
 		Hinv(ind,RecList[key2]) = NLwavlng;
 		
 		if (!opt.endu)
@@ -340,7 +339,7 @@ int updat_ambigt(
 	if (nfix <= 0) 
 		return 0;
 
-	tracepdeex(ARTRCLVL, trace, "\n#ARES_NLAR %s Solved %4d ambiguities out of %4d", kfState.time.to_string(0).c_str(), nfix, nambig);
+	tracepdeex(ARTRCLVL, trace, "\n#ARES_NLAR %s Solved %4d ambiguities out of %4d", kfState.time.to_string().c_str(), nfix, nambig);
 
 	MatrixXd Ztrs = ambState.Ztrs;
 	MatrixXd Sfix = Ztrs * ambState.Paflt * Ztrs.transpose();					/* Variance of z-transform of float ambiguities */
@@ -474,12 +473,17 @@ int  apply_ambigt(
 	map<KFKey,int>		AmbList;
 	int indH = 0;
 	
-	for (auto& [Zamb, amb] : Zamb_list )
+	for (auto& [Zamb, amb] : Zamb_list)
 	{
 		if ( (kfState.time-amb.mea_fin) > opt.Max_Hold_tim ) 
 			continue;
 		
-		ObsKey obsKey = { sat0, "COMBIN", "Zamb", nind };
+		KFKey obsKey;
+		obsKey.Sat		= sat0;
+		obsKey.str		= "COMBIN";
+		obsKey.type		= KF::Z_AMB;
+		obsKey.num		= nind;
+
 		KFMeasEntry	AmbMeas(&kfState, obsKey);
 		
 		AmbMeas.setValue(amb.flt_amb);
@@ -551,16 +555,16 @@ int  apply_ambigt(
 	
 	indZ = 0;
 	if (opt.endu)
-	for (auto& [Zamb, amb] : Zapplied )
+	for (auto& [Zamb, amb] : Zapplied)
 	{
-		if(fabs(v_post(indZ)) > 0.5)
+		if (fabs(v_post(indZ)) > 0.5)
 		{
 			tracepdeex( ARTRCLVL, trace, "\n#ARES_NLAR High postfit residual for: " );
 			for (auto& [key,coef] : Zamb )
 				tracepdeex(ARTRCLVL, trace, "%+.2f x (%s,%s) ", coef, key.str.c_str(), key.Sat.id().c_str());
 			tracepdeex( ARTRCLVL, trace, "removing from list" );
 		
-			Zamb_list.erase(Zamb);
+			Zamb_list.erase(Zamb);	//todo aaron, this is sketchy, cant erase while iterating
 		}
 		indZ++;
 	}

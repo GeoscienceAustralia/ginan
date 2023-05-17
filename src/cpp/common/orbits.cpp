@@ -13,20 +13,20 @@ using std::chrono::system_clock;
 using std::chrono::time_point;
 using std::string;
 
+
 #include "peaCommitVersion.h"
-#include "streamTrace.hpp"
+#include "eigenIncluder.hpp"
+#include "coordinates.hpp"
 #include "navigation.hpp"
+#include "ephPrecise.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
-#include "ephemeris.hpp"
 #include "algebra.hpp"
 #include "orbits.hpp"
 #include "satSys.hpp"
 #include "common.hpp"
+#include "trace.hpp"
 #include "enums.h"
-
-#include "eigenIncluder.hpp"
-
 
 
 /* split a string data into data -----------------------------------------------
@@ -205,7 +205,8 @@ int readorbit(
 			|| buff[0] == 'R'
 			|| buff[0] == 'C'
 			|| buff[0] == 'E'
-			|| buff[0] == 'J')
+			|| buff[0] == 'J'
+			|| buff[0] == 'L')
 		{
 			SatSys Sat = SatSys(buff);
 			auto& satOrbit = nav.satNavMap[Sat].satOrbit;
@@ -223,17 +224,19 @@ int readorbit(
 			orbitInfo.ti[0] += orbitInfo.ti[1] / 24 / 3600;
 
 			double ep[6];
-			jd2ymdhms(orbitInfo.ti[0] + JD2MJD, ep);
+			jd2ymdhms(orbitInfo.ti[0] + JD2MJD, ep);	//todo aaron, remove this and the function
 
 			orbitInfo.time		= epoch2time(ep);
 
 			orbitInfo.partials.resize(satOrbit.numUnknowns, 3);
 
-			for (int j = 0; j < 6; j++)
+			for (int j = 0; j < 3; j++)
 			{
 				/* pos, vel and their partials */
-				orbitInfo.xcrf[j]		= data[j + 2];
-				orbitInfo.xtrf[j]		= data[j + 8];
+				orbitInfo.posEci [j] = data[j + 2];
+				orbitInfo.velEci [j] = data[j + 2 + 3];
+				orbitInfo.posEcef[j] = data[j + 8];
+				orbitInfo.velEcef[j] = data[j + 8 + 3];
 			}
 
 			int k = 0;
@@ -271,15 +274,12 @@ void outputOrbit(
 		return;
 	}
 
-	double ep[6];
-	time2epoch(kfState.time, ep);
-	double jd	= ymdhms2jd(ep);
-	double mjd	= jd - JD2MJD;
+	MjDateTT mjd = kfState.time;
 	
-	std::time_t end_time = system_clock::to_time_t(system_clock::now());
+	GTime endTime = timeGet();
 
 	tracepdeex(0, orbitFile, "#INFO    Orbit estimated by PEA\n");
-	tracepdeex(0, orbitFile, "#INFO    Generated from: PEA (v%s) at %s\n", GINAN_COMMIT_VERSION, std::ctime(&end_time));
+	tracepdeex(0, orbitFile, "#INFO    Generated from: PEA (v%s) at %s\n", GINAN_COMMIT_VERSION, endTime.to_string().c_str());
 	
 	for (auto& str : nav.podInfoList)
 	{
@@ -291,21 +291,21 @@ void outputOrbit(
 		double eopVariances[3]		= {};
 
 		bool pass = true;
-		int i = 0;
-		for (string type : {xp_str, yp_str, ut1_str})
+		for (short i = 0; i < 3; i++)
 		{
-			KFKey eopKey = {KF::EOP,	{},	type};
+			KFKey eopKey;
+			eopKey.type	= KF::EOP;
+			eopKey.num	= i;
 			pass &= kfState.getKFValue(eopKey, eopAdjustments[i], &eopVariances[i]);
-			i++;
 		}
 
 		tracepdeex(0, orbitFile, "#ERP_d0         MJD XP(arcsec)     YP(arcsec)     UT1-UTC(sec):    ");
 		if (pass == false)		{	tracepdeex(0, orbitFile, " ----> UNESTIMATED <---- \n");																							}	
-		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd, eopAdjustments[0] / 1000, eopAdjustments[1] / 1000, eopAdjustments[2] / 1000);		}
+		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd.to_double(), eopAdjustments[0] / 1000, eopAdjustments[1] / 1000, eopAdjustments[2] / 1000);		}
 
 		tracepdeex(0, orbitFile, "#ERP_sigma      MJD XP(arcsec)     YP(arcsec)     UT1-UTC(sec):    ");
 		if (pass == false)		{	tracepdeex(0, orbitFile, " ----> UNESTIMATED <---- \n");																										}	
-		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd, sqrt(eopVariances[0]) / 1000, sqrt(eopVariances[1]) / 1000, sqrt(eopVariances[2]) / 1000);		}
+		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd.to_double(), sqrt(eopVariances[0]) / 1000, sqrt(eopVariances[1]) / 1000, sqrt(eopVariances[2]) / 1000);		}
 	}
 	
 	{
@@ -313,30 +313,27 @@ void outputOrbit(
 		double eopRateVariances[3]		= {};
 
 		bool pass = true;
-		int i = 0;
-		for (string type : {xp_str, yp_str, ut1_str})
+		for (int i = 0; i < 3; i++)
 		{
-			KFKey eopKey = {KF::EOP_RATE,	{},	type};
+			KFKey eopKey;
+			eopKey.type	= KF::EOP_RATE;
+			eopKey.num	= i;
 			pass &= kfState.getKFValue(eopKey, eopRateAdjustments[i], &eopRateVariances[i]);
-			i++;
 		}
 		
 		tracepdeex(0, orbitFile, "#ERP_RATE_d0    MJD XP(arcsec/day) YP(arcsec/day) UT1-UTC(sec/day):");
 		if (pass == false)		{	tracepdeex(0, orbitFile, " ----> UNESTIMATED <---- \n");																										}	
-		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd, eopRateAdjustments[0] / 1000, eopRateAdjustments[1] / 1000, eopRateAdjustments[2] / 1000);		}
+		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd.to_double(), eopRateAdjustments[0] / 1000, eopRateAdjustments[1] / 1000, eopRateAdjustments[2] / 1000);		}
 
 		tracepdeex(0, orbitFile, "#ERP_RATE_sigma MJD XP(arcsec/day) YP(arcsec/day) UT1-UTC(sec/day):");
 		if (pass == false)		{	tracepdeex(0, orbitFile, " ----> UNESTIMATED <---- \n");																													}	
-		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd, sqrt(eopRateVariances[0]) / 1000, sqrt(eopRateVariances[1]) / 1000, sqrt(eopRateVariances[2]) / 1000);		}
+		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd.to_double(), sqrt(eopRateVariances[0]) / 1000, sqrt(eopRateVariances[1]) / 1000, sqrt(eopRateVariances[2]) / 1000);		}
 	}
 
 	tracepdeex(0, orbitFile, "#INFO    Satellite ICS:\n");
 
-	for (auto& [SatId, satNav] : nav.satNavMap)
+	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
-		SatSys Sat;
-		Sat.fromHash(SatId);
-		
 		auto& satOrbit = satNav.satOrbit;
 		
 		if (acsConfig.process_sys[Sat.sys] == false)
@@ -350,12 +347,12 @@ void outputOrbit(
 		vector<double> adjustments(satOrbit.numUnknowns, 0);
 
 		bool pass = true;
-		for (int i = 0; i < satOrbit.numUnknowns; i++)
+		for (short i = 0; i < satOrbit.numUnknowns; i++)
 		{
 			//get relevant states from kfState
 
 			string name = satOrbit.parameterNames[i];
-			KFKey kfKey = {KF::ORBIT_PTS, Sat, std::to_string(100 + i).substr(1) + "_" + name};
+			KFKey kfKey = {.type = KF::ORBIT_PTS, .Sat = Sat, .num = i, .comment = name};
 
 			pass &= kfState.getKFValue(kfKey, adjustments[i]);
 		}
@@ -485,77 +482,38 @@ int orbPartials(
 		{
 			OrbitInfo& orbit = orbit_it->second;
 
-			t[i] = orbit.time - time;
+			t[i] = (orbit.time - time).to_double();
 			p[i] = orbit.partials(row, col);
 		}
 
-		interpPartials(row, col) = interppol(t, p, INTERPCOUNT);
+		interpPartials(row, col) = interpolate(t, p, INTERPCOUNT);
 	}
 
 	return 1;
 }
 
 
-void readegm(
-	string 		strEGMCoeFile, 
-	EGMCoef& 	egmCoe)
-{
-	// ifstream egmCoeFile;
-    int j = 0, n = 360;
-    double val = 0;
-	MatrixXd smn = MatrixXd::Zero(361, 361);
-	MatrixXd cmn = MatrixXd::Zero(361, 361);
-
-	boost::filesystem::ifstream fileHandler(strEGMCoeFile);
-
-	if (!fileHandler)
-	{
-		BOOST_LOG_TRIVIAL(error) << "Error: opening " << strEGMCoeFile << " failed";
-		return;
-	}
-
-	double tmp;
-	while (j <= n){
-		for (int i = 0; i <= j; i++){
-			fileHandler >> tmp;
-			fileHandler >> tmp;
-			fileHandler >> tmp;
-			cmn(j,i) = tmp;
-			// std::cout << std::setw(4) << j << std::setw(4) << i << std::setw(10) << cmn(j,i);
-			fileHandler >> tmp;
-			smn(j,i) = tmp;
-			fileHandler >> tmp;
-			fileHandler >> tmp;			
-			// std::cout << std::setw(10) << smn(j,i) << std::endl;
-		}
-		j++;
-	}
 
 
-	egmCoe.smn = smn;
-	egmCoe.cmn = cmn;
-
-}
+#define RTOL_KEPLER			1E-14		///< relative tolerance for Kepler equation
+#define MAX_ITER_KEPLER		30			///< max number of iteration of Kelpler
 
 
-void inertial2Keplers(
+
+bool inertial2Keplers(
 			Trace&		trace,
-	const	Vector3d&	r,
-	const	Vector3d&	v,
-			VectorXd&	keplers)
-{
-// 	std::cout << "\nIN: " << r.transpose() << " " << v.transpose();
-	keplers = VectorXd::Zero(KEPLER::NUM);
-	
+	const	VectorEci&	r,
+	const	VectorEci&	v,
+			Vector6d&	keplers)
+{	
 	Vector3d e_r = r.normalized();
 	
 	//Calculate orbital momentum vector (perpendicular to both position and velocity)
 	Vector3d L = r.cross(v);
 	
 	//Obtain the eccentricity vector
-	Vector3d e	= v.cross(L) / MU_GPS - e_r;
+	Vector3d e	= v.cross(L) / MU - e_r;
 	
-// 	std::cout << e.transpose() << std::endl;
 	double L_x = L(0);
 	double L_y = L(1);
 	double L_z = L(2);
@@ -571,14 +529,11 @@ void inertial2Keplers(
 	}
 	n0.normalize();
 
-	
 	//get another handy vector
 	Vector3d n1 = L.cross(n0).normalized();
 	
-	
 	double e_X = e.dot(n0);
 	double e_Y = e.dot(n1);
-	
 
 	//Determine the orbit eccentricity, which is simply the magnitude of the eccentricity vector e,
 	double e_ = e.norm();
@@ -590,7 +545,6 @@ void inertial2Keplers(
 		trace << "\n fixingBBB";
 	}
 	e.normalize();
-
 	
 	//Determine the true anomaly (angle between e and r)
 	double nu;
@@ -605,52 +559,39 @@ void inertial2Keplers(
 	//Compute the mean anomaly with help of Kepler’s Equation from the eccentric anomaly E and the eccentricity e
 	double M = E - e_ * sin(E);
 	
-// 	if (isnan(nu))
-// 	{
-// 		
-// 		std::cout << "\n " << e.transpose() << " " << e_r.transpose() << "\n";
-// 		std::cout << "nu is nan\n";
-// 	}
-// 	if (isnan(e_))
-// 	{
-// 		std::cout << "e_ is nan\n";
-// 	}
-// 	if (isnan(E))
-// 	{
-// 		std::cout << "E is nan\n";
-// 	}
-// 	if (isnan(M))
-// 	{
-// 		std::cout << "M is nan\n";
-// 	}
+// 	std::cout << std::endl << "n0 " << n0.transpose();
+// 	std::cout << "\te " << e.transpose();
+// 	std::cout << "\tn1 " << n1.transpose();
+// 	std::cout << "\tnu " << nu;
+// 	std::cout << "\tE " << E;
+// 	std::cout << "\tM " << M;
 	
-	keplers(KEPLER::LX)	= L_x / MOMENTUM_SCALE;
-	keplers(KEPLER::LY)	= L_y / MOMENTUM_SCALE;
-	keplers(KEPLER::LZ)	= L_z / MOMENTUM_SCALE;
+	if (isnan(nu))	{		std::cout << "nu is nan\n";		return false;	}
+	if (isnan(e_))	{		std::cout << "e_ is nan\n";		return false;	}
+	if (isnan(E))	{		std::cout << "E is nan\n";		return false;	}
+	if (isnan(M))	{		std::cout << "M is nan\n";		return false;	}	
+	
+	keplers(KEPLER::LX)	= L_x;
+	keplers(KEPLER::LY)	= L_y;
+	keplers(KEPLER::LZ)	= L_z;
 	keplers(KEPLER::EU)	= e_X;
 	keplers(KEPLER::EV)	= e_Y;
 	keplers(KEPLER::M )	= M;
+	
+	return true;
 }
 
 
-
-
-#define RTOL_KEPLER			1E-14		///< relative tolerance for Kepler equation
-#define MAX_ITER_KEPLER		30			///< max number of iteration of Kelpler
-
-void keplers2inertial(
-	VectorXd&	keplers0, 
-	Vector3d&	pos,
-	double&		dM)
-{
-	Trace& trace = std::cout;
-	
+VectorEci keplers2Inertial(
+			Trace&		trace,
+	const	Vector6d&	keplers0)
+{	
 	Vector3d L		= Vector3d::Zero();
 	Vector2d eee	= Vector2d::Zero();
 	
-	L[0]		= keplers0[KEPLER::LX] * MOMENTUM_SCALE;
-	L[1]		= keplers0[KEPLER::LY] * MOMENTUM_SCALE;
-	L[2]		= keplers0[KEPLER::LZ] * MOMENTUM_SCALE;
+	L[0]		= keplers0[KEPLER::LX];
+	L[1]		= keplers0[KEPLER::LY];
+	L[2]		= keplers0[KEPLER::LZ];
 	eee[0]		= keplers0[KEPLER::EU];
 	eee[1]		= keplers0[KEPLER::EV];
 	double M	= keplers0[KEPLER::M ];
@@ -664,7 +605,7 @@ void keplers2inertial(
 	int n;
 	for (n = 0; n < MAX_ITER_KEPLER; n++)
 	{
-		std::cout << "\nE: " << n << " " << E << " " << Eprev;
+// 		std::cout << "\nE: " << n << " " << E << " " << Eprev;
 		Eprev = E;
 		E -= (E - e_ * sin(E) - M) / (1 - e_ * cos(E));
 		
@@ -677,26 +618,15 @@ void keplers2inertial(
 	if (n >= MAX_ITER_KEPLER)
 	{
 		std::cout << "iteratios";
-		return;
+		
+		return VectorEci();
 	}
 
 
 	double nu	= 2 * atan2(	sqrt(1 + e_) * sin(E/2), 
 								sqrt(1 - e_) * cos(E/2));
 	
-			
-	if (isnan(nu))
-	{
-		std::cout << "nu is NAN\n";
-	}
-	double r	= L.squaredNorm() / MU_GPS / (1 + e_ * cos(nu));
-	
-	
-	
-	if (isnan(r))
-	{
-		std::cout << "r is NAN\n";
-	}
+	double r	= L.squaredNorm() / MU / (1 + e_ * cos(nu));
 	
 	L.normalize();
 	
@@ -708,11 +638,13 @@ void keplers2inertial(
 		n0 = Vector3d(1,0,0);
 	}	
 	n0.normalize();
+	
 
 	//get another handy vector
 	Vector3d n1 = L.cross(n0).normalized();
 	
-	Vector3d e = eee[0] * n0 + eee[1] * n1;
+	Vector3d e	= eee[0] * n0 
+				+ eee[1] * n1;
 	
 	if (e.norm() < 0.000001)
 	{
@@ -724,45 +656,62 @@ void keplers2inertial(
 	
 	double x = r * cos(nu);
 	double y = r * sin(nu);
-	
-	
+
 	double cos_w = n0.dot(e);
 	double cos_i = L(2);
+	
 	double cos_W = n0(0);
+	double sin_W = n0(1);					//dont unify, needs sign
+	
 	if		(cos_w > +1)		cos_w = +1;
 	else if (cos_w < -1)		cos_w = -1;
 	if		(cos_i > +1)		cos_i = +1;
 	else if (cos_i < -1)		cos_i = -1;
-	if		(cos_W > +1)		cos_W = +1;
-	else if (cos_W < -1)		cos_W = -1;
 	
 	
 	double sin_w = sqrt(1 - SQR(cos_w));
 	double sin_i = sqrt(1 - SQR(cos_i));
-	double sin_W = sqrt(1 - SQR(cos_W));
 	
-	if (isnan(sin_w))
+	if (n0.dot(e.cross(L)) < 0)
 	{
-		std::cout << "sin_w is NAN\n";
+		sin_w *= -1;
 	}
-	if (isnan(sin_i))
-	{
-		std::cout << "sin_i is NAN\n";
-	}
-	if (isnan(sin_W))
-	{
-		std::cout << "sin_W is NAN\n";
-	}
-	pos[0] = x * (cos_w * cos_W 	- sin_w * cos_i * sin_W	)	- y * (cos_w * cos_i * sin_W	+ sin_w * cos_W);
-	pos[1] = x * (cos_w * sin_W 	+ sin_w * cos_i * cos_W	)	+ y * (cos_w * cos_i * cos_W	- sin_w * sin_W);
-	pos[2] = x * (					+ sin_w * sin_i			)	+ y * (cos_w * sin_i);
 	
-	double A = r / (1 - e_ * cos(E));
+// 	std::cout << "\tcosw " << cos_w;
+// 	std::cout << "\tcosi " << cos_i;
+// 	std::cout << "\tcosW " << cos_W;
+// 	std::cout << "\tsinw " << sin_w;
+// 	std::cout << "\tsini " << sin_i;
+// 	std::cout << "\tsinW " << sin_W;
 	
-	dM = sqrt(MU_GPS /A/A/A);
+	if (isnan(nu))		{		std::cout << "nu is NAN\n";		}
+	if (isnan(r))		{		std::cout << "r is NAN\n";		}
+	if (isnan(sin_w))	{		std::cout << "sin_w is NAN\n";	}
+	if (isnan(sin_i))	{		std::cout << "sin_i is NAN\n";	}
+	if (isnan(sin_W))	{		std::cout << "sin_W is NAN\n";	}
+	
+	VectorEci rSat;
+	rSat.x() = x * (cos_w * cos_W 	- sin_w * cos_i * sin_W	)	- y * (cos_w * cos_i * sin_W	+ sin_w * cos_W);
+	rSat.y() = x * (cos_w * sin_W 	+ sin_w * cos_i * cos_W	)	+ y * (cos_w * cos_i * cos_W	- sin_w * sin_W);
+	rSat.z() = x * (				+ sin_w * sin_i			)	+ y * (cos_w * sin_i);
+	
+	return rSat;
+// 	std::cout << "\te " << e.transpose();
+// 	std::cout << std::endl << "n0 " << n0.transpose();
+// 	std::cout << "\tn1 " << n1.transpose();
+	
+// 	std::cout << "\tnu " << nu;
+	
+// 	std::cout << "\tE " << E;
+// 	std::cout << "\tM " << M;
+	
+// 	double A = r / (1 - e_ * cos(E));
+// 	
+// 	dM = sqrt(MU_GPS /A/A/A);
 }
 
 void getKeplerPartials(
+	Trace&		trace,
 	VectorXd&	keplers0,
 	MatrixXd&	partials)
 {
@@ -774,9 +723,7 @@ void getKeplerPartials(
 	};
 	
 	//get base position
-	Vector3d pos0;
-	double dummy;
-	keplers2inertial(keplers0, pos0, dummy);
+	VectorEci pos0 = keplers2Inertial(trace, keplers0);
 	
 	for (int i = 0; i < 6; i++)
 	{
@@ -784,9 +731,7 @@ void getKeplerPartials(
 		
 		keplers1[i] += deltas[i];
 		
-		
-		Vector3d pos1;
-		keplers2inertial(keplers1, pos1, dummy);
+		VectorEci pos1 = keplers2Inertial(trace, keplers1);
 		
 		partials.col(i) = (pos1 - pos0) / deltas[i];
 	}
@@ -794,8 +739,9 @@ void getKeplerPartials(
 
 
 void getKeplerInversePartials(
-	Vector3d&	pos,
-	Vector3d&	vel,
+	Trace&		trace,
+	VectorEci&	pos,
+	VectorEci&	vel,
 	MatrixXd&	partials)
 {
 	double deltas[6] =
@@ -806,24 +752,83 @@ void getKeplerInversePartials(
 	partials = MatrixXd::Zero(6, 6);
 
 	//get base keplers
-	VectorXd keplers0;
-	inertial2Keplers(std::cout, pos, vel, keplers0);
+	Vector6d keplers0;
+	bool pass = inertial2Keplers(std::cout, pos, vel, keplers0);
 		
 	for (int i = 0; i < 6; i++)
 	{
-		Vector3d pos1 = pos;
-		Vector3d vel1 = vel;
+		VectorEci pos1 = pos;
+		VectorEci vel1 = vel;
 		
 		if (i < 3)		pos1[i]		+= deltas[i];
 		else			vel1[i-3]	+= deltas[i];
 		
-		VectorXd keplers1;
-		
-		inertial2Keplers(std::cout, pos1, vel1, keplers1);
+		Vector6d keplers1;
+		pass = inertial2Keplers(std::cout, pos1, vel1, keplers1);
 		
 		partials.col(i) = (keplers1 - keplers0) / deltas[i];
 	}
 }
 
-
+VectorEci propagateEllipse(
+	Trace&		trace,
+	GTime		time,
+	double		dt, 
+	VectorEci&	rSat,
+	VectorEci&	vSat, 
+	VectorEcef&	ecef)
+{
+	ERPValues erpv = geterp(nav.erp, time);
+	
+	FrameSwapper frameSwapper(time + dt, erpv);
+	
+	if (dt == 0)
+	{
+		ecef = frameSwapper(rSat);
+		
+		return rSat;
+	}
+	
+	Vector6d keplers0;
+	
+	bool pass = inertial2Keplers(trace, rSat, vSat, keplers0);
+	
+	if (pass == false)
+	{
+		VectorEci newPos	= rSat
+							+ vSat * dt;
+							
+		ecef = frameSwapper(newPos);
+		
+		return newPos;
+	}
+	
+	
+	Vector3d L = Vector3d(
+		keplers0[KEPLER::LX], 
+		keplers0[KEPLER::LY], 
+		keplers0[KEPLER::LZ]
+	);
+	
+	double h = L.norm(); 
+	
+	Vector2d E = Vector2d(
+		keplers0[KEPLER::EU],
+		keplers0[KEPLER::EV]
+	);
+	
+	double e = E.norm();
+	
+	double T = 2 * PI / SQR(MU_GPS) * pow(h / sqrt(1 - SQR(e)), 3);		//2.82
+	
+	keplers0[KEPLER::M] += 2 * PI * dt / T;
+	
+	VectorEci newPos = keplers2Inertial(trace, keplers0);
+	
+// 	std::cout << "\nrSatInertial:       " << 		newPos.transpose();
+	
+	ecef = frameSwapper(newPos);
+	
+	return newPos;
+}
 

@@ -1,10 +1,14 @@
 
-#ifndef __EIGEN_INCLUDER_HPP__
-#define __EIGEN_INCLUDER_HPP__
+#pragma once
 
 #include <cmath>
 
 using std::isnan;
+
+
+#include <boost/serialization/array.hpp>
+#define EIGEN_DENSEBASE_PLUGIN "EigenDenseBaseAddons.h"
+
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -15,6 +19,7 @@ using std::isnan;
 #include <eigen3/Eigen/Cholesky>
 #include <eigen3/Eigen/Geometry>
 #include <eigen3/Eigen/OrderingMethods>
+
 using Eigen::SimplicialLLT;
 using Eigen::SimplicialLDLT;
 using Eigen::COLAMDOrdering;
@@ -26,8 +31,9 @@ using Eigen::MatrixXd;
 using Eigen::Matrix2d;
 using Eigen::Matrix3d;
 using Eigen::VectorXd;
-using Vector6d = Eigen::Vector<double, 6>;
-using Matrix6d = Eigen::Matrix<double, 6, 6>;
+using Array6d	= Eigen::Array<double, 1, 6>;
+using Vector6d	= Eigen::Vector<double, 6>;
+using Matrix6d	= Eigen::Matrix<double, 6, 6>;
 using Eigen::Vector3d;
 using Eigen::Vector2d;
 using Eigen::MatrixXi;
@@ -39,9 +45,133 @@ using Eigen::Quaterniond;
 using Eigen::Triplet;
 using Eigen::ArrayXd;
 using Eigen::placeholders::all;
+
 typedef Eigen::Array<bool,Eigen::Dynamic,1> ArrayXb;
 
 template <typename Type, int Size>
 using Vector = Matrix<Type, Size, 1>;
 
-#endif
+
+struct Vector3dInit : Vector3d
+{
+	Vector3dInit()
+	{
+		Vector3d::setZero();
+	}
+	
+	Vector3dInit& operator=(const Vector3d in)
+	{
+		Vector3d::operator=(in);
+
+		return *this;
+	}
+};
+
+struct VectorEnu : Vector3d
+{
+	VectorEnu()
+	{
+		Vector3d::setZero();
+	}
+	
+	VectorEnu(const Vector3d& in)
+	{
+		Vector3d::operator=(in);
+	}
+	
+	VectorEnu& operator=(const Vector3d in)
+	{
+		Vector3d::operator=(in);
+
+		return *this;
+	}
+	
+	double& e()	{		return x();		}
+	double& n()	{		return y();		}
+	double& u()	{		return z();		}
+	
+	double& r()	{		return x();		}
+	double& f()	{		return y();		}
+};
+
+struct VectorEcef : Vector3d
+{
+	VectorEcef()
+	{
+		Vector3d::setZero();
+	}
+	
+	VectorEcef(const Vector3d& in)
+	{
+		Vector3d::operator=(in);
+	}
+	
+	VectorEcef& operator=(const Vector3d& in)
+	{
+		Vector3d::operator=(in);
+
+		return *this;
+	}
+	
+	VectorEcef operator*(const double		rhs)	{		return Vector3d(((Vector3d)*this) * (			rhs));		}
+	VectorEcef operator-(const VectorEcef&	rhs)	{		return Vector3d(((Vector3d)*this) - ((Vector3d)	rhs));		}
+	VectorEcef operator+(const VectorEcef&	rhs)	{		return Vector3d(((Vector3d)*this) + ((Vector3d)	rhs));		}
+};
+
+struct VectorEci : Vector3d
+{
+	VectorEci()
+	{
+		Vector3d::setZero();
+	}
+	
+	VectorEci(const Vector3d& in)
+	{
+		Vector3d::operator=(in);
+	}
+	
+	VectorEci& operator=(const Vector3d& in)
+	{
+		Vector3d::operator=(in);
+
+		return *this;
+	}
+	
+	VectorEci operator*(const double	rhs)	{		return Vector3d(((Vector3d)*this) * (			rhs));		}
+	VectorEci operator-(const VectorEci& rhs)	{		return Vector3d(((Vector3d)*this) - ((Vector3d)	rhs));		}
+	VectorEci operator+(const VectorEci& rhs)	{		return Vector3d(((Vector3d)*this) + ((Vector3d)	rhs));		}
+};
+
+struct VectorPos : Vector3d
+{
+	VectorPos()
+	{
+		Vector3d::setZero();
+	}
+	
+	VectorPos(const Vector3d& in)
+	{
+		Vector3d::operator=(in);
+	}
+	
+	VectorPos& operator=(const Vector3d& in)
+	{
+		Vector3d::operator=(in);
+
+		return *this;
+	}
+	
+			double&	lat()				{		return x();			}
+			double&	lon()				{		return y();			}
+			double&	hgt()				{		return z();			}
+	
+	const	double&	lat()		const	{		return x();			}
+	const	double&	lon()		const	{		return y();			}
+	const	double&	hgt()		const	{		return z();			}
+	
+			double	latDeg()	const;
+			double	lonDeg()	const;
+};
+
+const Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ",\n", "[", "]", "[", "]");
+

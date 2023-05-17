@@ -21,8 +21,8 @@ case $TEST_NUM in
     mv pod21.out ex21/pod.out
     DIR="ex21"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   2g) # ex22 GPS
@@ -30,8 +30,8 @@ case $TEST_NUM in
     mv pod22g.out ex22g/pod.out
     DIR="ex22g"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   2r) # ex22 GLONASS
@@ -39,8 +39,8 @@ case $TEST_NUM in
     mv pod22r.out ex22r/pod.out
     DIR="ex22r"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   2e) # ex22 GALILEO
@@ -48,8 +48,8 @@ case $TEST_NUM in
     mv pod22e.out ex22e/pod.out
     DIR="ex22e"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   2c) # ex22 BEIDOU
@@ -57,8 +57,8 @@ case $TEST_NUM in
     mv pod22c.out ex22c/pod.out
     DIR="ex22c"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   2j) # ex22 QZSS
@@ -66,8 +66,8 @@ case $TEST_NUM in
     mv pod22j.out ex22j/pod.out
     DIR="ex22j"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   3)
@@ -75,8 +75,8 @@ case $TEST_NUM in
     mv pod23.out ex23/pod.out
     DIR="ex23"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   4)
@@ -84,8 +84,8 @@ case $TEST_NUM in
     mv pod24.out ex24/pod.out
     DIR="ex24"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   5)
@@ -93,8 +93,8 @@ case $TEST_NUM in
     mv pod25.out ex25/pod.out
     DIR="ex25"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
   6)
@@ -102,8 +102,8 @@ case $TEST_NUM in
     mv pod26.out ex26/pod.out
     DIR="ex26"
     results2s3 $DIR
-    ../scripts/download_examples.py --push --dirs $DIR --tag $TAG
-    ../scripts/download_examples.py --dirs $DIR --tag $POD
+    ../scripts/download_examples.py --push $DIR --tag $TAG
+    ../scripts/download_examples.py $DIR --tag $POD
     diffex $DIR/{*.sp3,pod.out}
     ;;
 esac
