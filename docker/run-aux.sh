@@ -16,11 +16,11 @@ function diffex()
     echo $file
     if [ ${file: -3} = 'snx' ]
     then
-      diffutil -i $file solutions/$file -a $ATOL --passthrough
-      diffutil -i $file solutions/$file --passthrough
+      diffutil -i $file ../inputData/solutions/$file -a $ATOL --passthrough
+      diffutil -i $file ../inputData/solutions/$file --passthrough
     else
-      diffutil -i $file solutions/$file -a $ATOL
-      diffutil -i $file solutions/$file
+      diffutil -i $file ../inputData/solutions/$file -a $ATOL
+      diffutil -i $file ../inputData/solutions/$file
     fi
   done
 }
@@ -44,7 +44,7 @@ for file;
         echo %%%%%%%%%% Failure running $PROG on $file:
         echo %%%%%%%%%% Diffing $file and solutions/$file:
         echo %%%%%%%%%%
-        diff -W 300 -y -w --suppress-common-lines solutions/$file $file | head -n 600;
+        diff -W 300 -y -w --suppress-common-lines ../inputData/solutions/$file $file | head -n 600;
         echo %%%%%%%%%%
         echo %%%%%%%%%% .......
         echo %%%%%%%%%% 

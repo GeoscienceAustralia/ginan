@@ -700,7 +700,7 @@ struct SinexSatSnx /* satellite meta data */
 
 
 void nearestYear(
-	int&	year);
+	double&	year);
 
 int readSinex(
 	string	filepath,
@@ -740,7 +740,7 @@ void sinex_add_statistic(const string& what, const double	value);
 int sinex_check_add_ga_reference(string solType, string peaVer, bool isTrop);
 void sinex_add_acknowledgement(const string& who, const string& description);
 void sinex_add_comment(const string what);
-void sinex_add_file(const string& who, const GTime& when, const string& filename, const string& description);
+void sinex_add_files(const string& who, const GTime& when, const vector<string>& filenames, const string& description);
 
 void updateSinexHeader(
 	string& 	create_agc,

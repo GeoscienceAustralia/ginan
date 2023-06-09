@@ -9,7 +9,7 @@ import shutil
 import os
 import re
 
-write_loc = "../examples/slr/downloaded"
+write_loc = "../inputData/slr/downloaded"
 
 data_url = "https://cddis.nasa.gov/archive/slr/data/npt_crd"
 orbits_url = "https://cddis.nasa.gov/archive/slr/products/orbits"

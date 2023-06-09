@@ -26,7 +26,7 @@ namespace bp = boost::asio::placeholders;
 using boost::posix_time::ptime;
 using boost::posix_time::time_duration;
 
-void debugSSR(GTime time, E_Sys sys);
+void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap);
 
 void NtripBroadcaster::startBroadcast()
 {
@@ -105,15 +105,23 @@ void NtripUploader::messageTimeout_handler(
 	SSRMeta		ssrMeta;
 	SsrOutMap	ssrOutMap;
 	
-
-	GTime	nowTime		= timeGet();
-	GTime	targetTime	= nowTime.floorTime(1);
+	GTime	latestTime;
+	
+	if		(acsConfig.ssrOpts.output_timing == +E_SSROutTiming::GPS_TIME) 					latestTime = timeGet();
+	else if (acsConfig.ssrOpts.output_timing == +E_SSROutTiming::LATEST_CLOCK_ESTIMATE)		latestTime = mongoReadLastClock();
+	
+	if (latestTime == GTime::noTime())
+		return;
+	
+	GTime	targetTime	= latestTime.floorTime(1);
 	
 	if (targetTime == previousTargetTime)
 	{
 		//already did this epoch
 		return;
 	}
+	
+	BOOST_LOG_TRIVIAL(debug) << "SSR OUT Targeting epoch: " << targetTime.to_string(0) << std::endl;
 	
 	ssrMeta.receivedTime		= targetTime;	// for rtcmTrace (debugging)
 	ssrMeta.multipleMessage 	= 1; // We assume there will be more messages.
@@ -232,13 +240,16 @@ void NtripUploader::messageTimeout_handler(
 				auto buffer = encodeSsrOrbClk(ssrOutMap, messCode);
 				bool write = encodeWriteMessageToBuffer(buffer);
 				
-				debugSSR(t0, sys);
-				
-				if (write == false)
+				if (acsConfig.trace_level > 5)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					debugSSR(t0, targetTime, sys, ssrOutMap);
+					
+					if (write == false)
+					{
+						std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					}
 				}
-				
+
 				break;
 			}
 			case +RtcmMessageType::GPS_SSR_URA:
@@ -418,6 +429,10 @@ void NtripUploader::messageTimeout_handler(
 				}
 				break;
 			}
+			case +RtcmMessageType::COMPACT_SSR:
+			{
+				break;	
+			}
 			default:
 				BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect message type: " << messCode << std::endl;
 		}
@@ -446,6 +461,8 @@ void NtripUploader::messageTimeout_handler(
 	
 		if (url.protocol == "https")	{	boost::asio::async_write(*_sslsocket,	outMessages, boost::bind(&NtripUploader::write_handler, this, bp::error));}
 		else							{	boost::asio::async_write(*_socket,		outMessages, boost::bind(&NtripUploader::write_handler, this, bp::error));}
+
+		previousTargetTime = targetTime;
 	}
 }
 

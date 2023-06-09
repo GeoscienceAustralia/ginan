@@ -25,6 +25,7 @@ int  ginan2IonoMeas (Trace& trace, StationMap& stationMap, KFState& measKFstate)
 
 void updateIonosphereModel (Trace& trace, string ionstecFilename, string ionexFilename, StationMap& stationMap, GTime time);
 void ionosphereSsrUpdate(Trace& trace, KFState& kfState);
+bool overwriteIonoKF(KFState& kfState);
 bool queryBiasDCB (Trace& trace, SatSys Sat, string Rec, E_FType freq, double& bias, double& vari);
 bool ionexFileWrite(
 	string		filename, 

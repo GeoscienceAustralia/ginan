@@ -47,7 +47,7 @@ void pppomc(
 
 	// satellite positions and clocks
 	for (auto& obs : only<GObs>(obsList))
-		satPosClk(trace, time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, E_OffsetType::APC);
+		satPosClk(trace, time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
 
 	// earth tides correction
 	Vector3d dTide = Vector3d::Zero();
@@ -89,14 +89,11 @@ void pppomc(
 		char id[8];
 		obs.Sat.getId(id);
 		
-		E_FType frq1 = F1;
-		E_FType frq2 = F2;
-		if (obs.Sat.sys == +E_Sys::GAL) 		frq2 = F5;
-		if (obs.Sat.sys == +E_Sys::GLO)
-		{
-												frq1 = G1;
-												frq2 = G2;
-		}
+		E_FType frq1;
+		E_FType frq2;
+		E_FType frq3;
+		if (!satFreqs(obs.Sat.sys,frq1,frq2,frq3))
+			continue;
 		
 		tracepdeex(lv, trace, "\n*---------------------------------------------------*");
 		tracepdeex(lv, trace, "\n%s %s  recpos               = %14.4f %14.4f %14.4f", timeStr.c_str(), id, rec.aprioriPos[0], rec.aprioriPos[1], rec.aprioriPos[2]);

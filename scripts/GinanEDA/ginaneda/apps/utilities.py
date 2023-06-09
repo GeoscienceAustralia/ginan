@@ -1,5 +1,6 @@
 """Generic utilites for the EDA
 """
+import numpy as np
 from dash import dcc
 from dash import html
 import plotly.graph_objs as go
@@ -61,9 +62,22 @@ def generate_trace(graph_type, x_array, y_array, label):
     """
     if graph_type == "Line" or graph_type == "Scatter":
         mode = "lines" if graph_type == "Line" else "markers"
-        trace = go.Scatter(x=x_array, y=y_array, mode=mode, name=label)
+        trace = go.Scatter(x=x_array, y=y_array, mode=mode, name=label,
+                           hovertemplate =
+                           '<i>y</i>: %{y:.2f}'+
+                           '<br><b>x</b>: %{x}<br>'+
+                           f'<b>{label}</b>'
+                           )
     elif graph_type == "POLAR":
         trace = go.Scatterpolar(r=y_array, theta=x_array, mode="markers", name=label)
+    elif graph_type == "Fourier":
+        transformed = np.absolute(np.fft.fft(y_array))
+        trace = go.Scatter(y=transformed, mode="lines", name=label,
+                           hovertemplate =
+                           '<i>y</i>: %{y:.2f}'+
+                           '<br><b>x</b>: %{x}<br>'+
+                           f'<b>{label}</b>'
+                           )
     elif graph_type == "HistogramX":
         trace = go.Histogram(x=y_array, name=label)
     elif graph_type == "HistogramY":

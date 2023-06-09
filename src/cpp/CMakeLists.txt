@@ -3,7 +3,6 @@
 
 add_subdirectory(3rdparty/sofa)
 
-
 add_library(ginan_core
 		3rdparty/enum.h
 		3rdparty/EigenDenseBaseAddons.h
@@ -26,6 +25,7 @@ add_library(ginan_core
 		pea/minimumConstraints.hpp
 		pea/networkEstimator.cpp
 		pea/networkEstimator.hpp
+		pea/peaCommitStrings.cpp
 		pea/pea_snx.cpp
 		pea/ppp.cpp
 		pea/ppppp.cpp
@@ -214,6 +214,7 @@ add_library(ginan_core
 		
 		common/acsConfig.hpp
 		common/acsConfig.cpp
+		common/acsConfigDocs.cpp
 		)
 
 target_include_directories(ginan_core PUBLIC

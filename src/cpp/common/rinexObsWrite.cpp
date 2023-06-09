@@ -173,10 +173,10 @@ void writeRinexObsHeader(
 	fileData.headerTimePos = 0;
 
 	// Write the RINEX header.
-	GTime now = timeGet();
+	UtcTime now = timeGet();
 
-	string timeDate = now.to_string();
-	boost::replace_all(timeDate, "/", "");
+	string timeDate = now.to_string(0);
+	boost::replace_all(timeDate, "-", "");
 	boost::replace_all(timeDate, ":", "");
 	timeDate += " UTC";
 

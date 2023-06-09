@@ -776,6 +776,8 @@ void PPP(
 	biasPseudoObs(trace, kfState, kfMeasEntryList);
 	ambgPseudoObs(trace, kfState, kfMeasEntryList);
 
+	initPseudoObs(trace, kfState, kfMeasEntryList);
+	
 	//use state transition to initialise new state elements
 	{
 		Instrument	instrument("PPP stateTransition2");
@@ -836,6 +838,9 @@ void PPP(
 // 	lambdacalcs(kfState);
 	
 	KFState kfStatefixed = kfState;
+	
+	kfStatefixed.suffix = "AR";
+	
 	PPP_AR(trace, kfStatefixed);
 	
 	for (auto& [recId, rec] : stationMap)
@@ -851,7 +856,7 @@ void PPP(
 		
 		for (short i = 0; i < 3; i++)
 		{
-			kfStatefixed.getKFValue({KF::ORBIT, 		{}, recId,	i},		rec.sol.pppRRec[i]);
+			kfStatefixed.getKFValue({KF::ORBIT, 		{}, recId,	i},		rec.sol.pppRRec[i]);		//todo aaron, this is eci
 			kfStatefixed.getKFValue({KF::ORBIT,			{}, recId,	i + 3},	rec.sol.pppVRec[i]);
 		}
 

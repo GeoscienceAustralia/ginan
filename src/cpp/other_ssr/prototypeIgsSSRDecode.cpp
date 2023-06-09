@@ -8,8 +8,8 @@
 struct SSRHeader
 {
 	GTime time;
-	int updateInterval = 1;
-	int iod;
+	int updateInterval	= 1;
+	int iod				= -1;
 	int numSats;
 	int dispBiasConsis;
 	int mwConsis;

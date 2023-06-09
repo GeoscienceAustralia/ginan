@@ -6,10 +6,10 @@
 : You can run it by saving the raw markdown to disk, then `` chmod +x README.md``, then ``./README.md`` \
 : It will execute all of the code blocks that finish with the `` :<<'```executable' `` tag. \
 : This script will install all dependencies, and clone the Ginan repo into the current directory \(if required\) and build the Ginan toolkit. \
-: To check out the stable v1 branch from Github, append -b ginan-v1 to the clone command below to get the v1 branch source. 
+: To check out the stable v1 branch from Github, append "-b ginan-v1" to the clone command below to get the v1 branch source. 
 
 
-#### `Ginan v2.0-beta release`
+#### `Ginan v2.0.1-beta release`
 
 ## Overview
 
@@ -63,7 +63,7 @@ NB If you are using Ubuntu 22.04 and gcc11, you will need to make the the follow
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v /data:/data gnssanalysis/ginan:v2.0-beta bash
+    docker run -it -v /data:/data gnssanalysis/ginan:v2.0.1-beta bash
 
 This command connects the `/data` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
@@ -72,8 +72,6 @@ You will need to have [docker](https://docs.docker.com/get-docker/) installed to
 To verify you have the Ginan executables available once at the Ginan command line, run:
 
     pea --help
-    
-    pod --help
 
 ## Dependencies
 
@@ -83,8 +81,8 @@ If instead you wish to build Ginan from source, there are several software depen
 * BLAS and LAPACK linear algebra libraries. We use and recommend [OpenBlas](https://www.openblas.net/) as this contains both libraries required
 * CMAKE     > 3.0 
 * YAML      > 0.6
-* Boost     >= 1.73 (tested on 1.73)
-* Mongo_cxx >= 3.6.0 (and Mongo_C >= 1.17.1)
+* Boost     >= 1.73 (tested on 1.73). On Ubuntu 22.04 which uses gcc-11, you need Boost >= 1.74.0
+* Mongo_cxx >= 3.6.0 (and Mongo_C >= 1.17.1). On Ubuntu 22.04, you should use Mongo_cxx >= 3.6.7 (preferably 3.7.0)
 * Eigen3    > 3.4 (we have used 3.4.0)
 * netCDF4
 * Python3 (tested on Python 3.7)
@@ -108,6 +106,7 @@ sudo -H pip3 install wheel pandas boto3 unlzw tdqm scipy gnssanalysis
 ```    
 
 Ginan requires at least version 9 of both gcc and g++, so make sure to update the gcc/g++ alternatives prior to compilation:
+(this is not required on Ubuntu 22.04)
 
 ```executable
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
@@ -162,6 +161,7 @@ rm -rf yaml-cpp
 
 ### Boost (PEA)
 PEA relies on a number of the utilities provided by [boost](https://www.boost.org/), such as their time and logging libraries.
+NB for compilation on Ubuntu 22.04 and using gcc-11, you need to change this to boost_1_74_0
 
 ```executable
 cd $dir/tmp
@@ -215,6 +215,8 @@ Needed for json formatting and other self-descriptive markup.
 ```executable
 cd $dir/tmp
 
+# for Ubuntu 22.04 changre this to 1.21.2
+
 wget https://github.com/mongodb/mongo-c-driver/releases/download/1.17.1/mongo-c-driver-1.17.1.tar.gz
 
 tar -xf mongo-c-driver-1.17.1.tar.gz
@@ -232,6 +234,8 @@ cmake --build . -- -j 2
 sudo cmake --build . --target install -- -j 2
 
 cd $dir/tmp
+
+# for Ubuntu 22.04 change this to 3.7.0
 
 curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.0/mongo-cxx-driver-r3.6.0.tar.gz
 
@@ -338,7 +342,7 @@ fi
 Then download all of the example data using the python script provided (requires `gnssanalysis`):
 
 ```executable
-python3 scripts/download_examples.py
+python3 scripts/download_example_input_data.py
 :<<'```executable'
 ```    
 ***
@@ -353,40 +357,20 @@ Upon installation, thie ginan directory should have the following structure:
     ├── aws/                ! Amazon Web Services config
     ├── bin/                ! Binary executables directory*
     ├── Docs/               ! Documentation directory
-    ├── examples/           ! Ginan examples directory
+    ├── inputData/          ! Input data for examples **
     │   ├── data/           ! example dataset (rinex files)**
-    │   ├── products/       ! example products and aux files**
-    │   ├── solutions/      ! example solutions for QC**
-    │   --------------PEA examples--------------
-    │   ├── ex11            ! PEA example 1
-    │   ├── ex12            ! PEA example 2
-    │   ├── ex13            ! PEA example 3
-    │   ├── ex14            ! PEA example 4
-    │   ├── ex15            ! PEA example 5
-    │   ├── ex17            ! PEA example 7
-    │   ├── ex18            ! PEA example 8
-    │   --------------POD examples--------------
-    │   ├── ex21            ! POD example 1
-    │   ├── ex22            ! POD example 2 full GNSS pod fit example (5 constellations)
-    │   ├── ex22/gps        ! POD example 2 US GPS constellation only
-    │   ├── ex22/glo        ! POD example 2 Russian GLONASS constellation only
-    │   ├── ex22/gal        ! POD example 2 European GALILEO constellation only
-    │   ├── ex22/bds        ! POD example 2 Chinese BEIDOU constellation only
-    │   ├── ex22/qzss       ! POD example 2 Japanese QZSS constellation only
-    │   ├── ex23            ! POD example 3
-    │   ├── ex24            ! POD example 4
-    │   ├── ex25            ! POD example 5
-    │   └── ex26            ! POD example 6
-    │   --------------long test examples--------------
-    │   ├── ex31/pod_fit    ! POD fit (ex31 stage 1)
-    │   ├── ex31/pea        ! PEA re-estimate parameters
-    │   ├── ex31/pod_ic     ! POD ic integrate
+    │   └── products/       ! example products and aux files**
+    │
+    ├── exampleConfigs      ! Example configuration files
+    │   ├── Ex02            ! 
+    │   ├── Ex41            ! 
+    │   ├── Ex42            ! 
+    │   └── Ex48            ! 
     │
     ├── lib/                ! Compiled objectlibrary directory*
     ├── scripts/            ! Auxillary Python and Shell scripts and libraries
     └── src/                ! Source code directory
-        ├── cpp/            ! PEA source code
-        ├── fortran/        ! POD source code
+        ├── cpp/            ! Ginan source code
         ├── cmake/   
         ├── doc_templates/
         ├── build/          ! Cmake build directory*
@@ -394,7 +378,7 @@ Upon installation, thie ginan directory should have the following structure:
 
 *\*created during installation process*
 
-*\*\*created by `download_examples.py` script*
+*\*\*created by `download_example_input_data.py` script*
 ***
 ## Build
 Prepare a directory to build in - it's better practice to keep this separated from the source code.
@@ -423,18 +407,16 @@ make -j2
 :<<'```executable'
 ```    
 
-Alternatively, to build only a specific package (e.g. PEA or POD), run as below:
+Alternatively, to build only a specific package (e.g. PEA), run as below:
 
     make pea -j2
-    
-    make pod -j2
 
 This should create executables in the `bin` directory of Ginan.
 
-Check to see if you can execute the PEA from the examples directory
+Check to see if you can execute the PEA from the exampleConfigs directory
 
 ```executable
-cd ../../examples
+cd ../../exampleConfigs
 
 ../bin/pea --help
 :<<'```executable'
@@ -458,69 +440,6 @@ and you should see something similar to:
     PEA finished
 
 
-Similarly, check the POD:
-
-```executable
-../bin/pod --help
-:<<'```executable'
-```    
-This returns:
-
-    Earth Radiation Model (ERM):   1
-
-    Default master POD config file = POD.in (old - no longer supported) - use a yaml config
-    
-    yaml config file options by default can be overridden on the command line
-    
-    Command line: ../bin/pod -m -s -o -a -p -r -t -n -i -u -q -k -w -y -h 
-    
-    Where: 
-        -m --podmode = POD Mode:
-                                    1 - Orbit Determination (pseudo-observations; orbit fitting)
-                                    2 - Orbit Determination and Prediction
-                                    3 - Orbit Integration (Equation of Motion only)
-                                    4 - Orbit Integration and Partials (Equation of Motion and Variational Equations)
-                                    5 - Single satellite integration from pod_data section of yaml
-        -s --pobs    = Pseudo observations orbit .sp3 file name (must be ITRF)
-        -o --cobs    = Comparison orbit .sp3 file name
-        -a --arclen  = Orbit Estimation Arc length (hours)
-        -p --predlen = Orbit Prediction Arc length (hours)
-        -r --eopf    = Earth Orientation Paramaeter (EOP) values file
-        -t --eopsol  = Earth Orientation Paramaeter file type: (1,2,3)
-                                    1 - IERS C04 EOP
-                                    2 - IERS RS/PC Daily EOP
-                                    3 - IGS RP + IERS RS/PC Daily (dX,dY)
-        -n --nutpre  = IAU Precession / Nutation model
-                                    2000 - IAU2000A
-                                    2006 - IAU2006/2000A
-        -i --estiter = Orbit Estimatimation Iterations (1 or greater)
-        -u --sp3vel  = Output .sp3 file with velocities
-                                    0 - Do not write Velocity vector to sp3 orbit
-                                    1 - Write Velocity vector to sp3 orbit
-        -q --icmode  = Initial condition from parameter estimation procedure
-        -k --srpmodel= 1: ECOM1, 2:ECOM2, 12:ECOM12, 3:SBOX
-        -w --empmodel= 1: activated, 0: no estimation
-        -d --verbosity = output verbosity level [Default: 0]
-        -y --config = yaml config file
-        -h --help.   = Print program help
-    
-    Examples:
-    
-            ../bin/pod -m 1 -q 1 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex21.yaml
-            ../bin/pod -m 2 -q 1 -k 1 -w 0 -s igs16403.sp3 -p 12 -y exi22.yaml
-    
-    For orbit updates using Parameter Estimation Algorithm (PEA):
-            ../bin/pod -m 4 -q 2 -k 1 -w 0 -s igs16403.sp3 -o igs16403.sp3 -y ex23.yaml
-
-
-
-<!-- You should now have the executables in the bin directory: 
-    ├── bin			        
-
-    * pod 
-    * crs2trs 
-    * timesystem 
-    * brdc2ecef -->
 ***
 ## Documentation
 
@@ -553,30 +472,23 @@ Note that documentation is also generated automatically if `make` is called with
 
 ***
 ## Ready!
-Congratulations! You are now ready to trial the examples of PEA and POD from the examples directory. See Ginan's manual for detailed explanation of each example. Note that examples have relative paths to files in them and rely on the presence of `products`, `data` and `solutions` directories inside the `examples` directory. Make sure you've run `download_examples.py` from the **Download** step of this instruction.
+Congratulations! You are now ready to trial the examples of PEA and POD from the exampleConfigs directory. See Ginan's manual for detailed explanation of each example. Note that examples have relative paths to files in them and rely on the presence of `products`, `data` and `solutions` directories inside the `inputData` directory. Make sure you've run `download_example_input_data.py` from the **Download** step of this instruction.
 
-The paths are relative to the examples directory and hence all the examples must be run from the `examples` directory.
+The paths are relative to the exampleConfigs directory and hence all the examples must be run from the `exampleConfigs` directory.
 
-NB Examples may be configured to use mongoDB. If you have not installed it, please set `enable_mongo` to false in the pea config files
+NB Examples may be configured to use mongoDB. If you have not installed it, please set `mongo: enable` to false in the pea config files
 
 To run the first example of the PEA:
 
 ```
-cd ../examples
+cd ../exampleConfigs
 
-../bin/pea --config ex11_pea_pp_user_gps.yaml
+../bin/pea --config ex41_gin2_pp_user.yaml
 ```    
 
-This should create `ex11` directory with `ex11-ALIC201919900.TRACE` and `ex1120624.snx` output files. You can remove the need for path specification to the executable by adding Ginan's bin directory to `~/.bachrc` file:
+This should create `ex41` directory with `ex11-ALIC201919900.TRACE` and `ex1120624.snx` output files. You can remove the need for path specification to the executable by adding Ginan's bin directory to `~/.bachrc` file:
 
     PATH="path_to_ginan_bin:$PATH"
-
-And an example of POD:
-
-    ../bin/pod -y ex21_pod_fit_gps.yaml
-
-At the completion of the test run, `ex21` directory should be created. The `ex21_.sh` script will return any differences to the standard test resuts.
-
 
 ***
 ## Python Installation for Plotting, Processing, etc.

@@ -693,7 +693,7 @@ void	prepareSsrStates(
 	vector<DBEntry>	dbEntryList;
 
  	time.bigTime = (long int) (time.bigTime + 0.5);	// time tags in mongo will be rounded up to whole sec
-	
+
 	for (E_Sys sys : E_Sys::_values())
 	{
 		string	sysName		= boost::algorithm::to_lower_copy((string) sys._to_string());
@@ -724,24 +724,6 @@ void	prepareSsrStates(
 				GTime	pTime	= time + tpredict;
 				bool	pass	= true;
 				
-				//broadcast values
-				pass &= satclk(nullStream, pTime, pTime, obs, {E_Source::BROADCAST},					nav);
-				pass &= satpos(nullStream, pTime, pTime, obs, {E_Source::BROADCAST}, E_OffsetType::APC,	nav);
-				if (pass == false)
-				{
-					BOOST_LOG_TRIVIAL(info) 
-					<< Sat.id() << " failed broadcast predictions.\n";
-					
-					continue;
-				}
-				
-				int			iodeClk		= obs.iodeClk;
-				int			iodePos		= obs.iodePos;
-// 				int			iodcrc		= ?
-				Vector3d	brdcPos		= obs.rSat;
-				Vector3d	brdcVel		= obs.satVel;
-				double		brdcClkVal	= obs.satClk * CLIGHT;
-				
 				pass = true;
 				pass &= satclk(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_sources,						nav, &kfState);
 				pass &= satpos(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_sources, E_OffsetType::APC,	nav, &kfState);
@@ -759,10 +741,36 @@ void	prepareSsrStates(
 					
 					continue;
 				}	
+
+				if (obs.iodeClk != obs.iodePos)
+				{
+					BOOST_LOG_TRIVIAL(info) 
+					<< Sat.id() << " IODE clock" << obs.iodeClk << " mismatch IODE orbit " << obs.iodePos << ".\n";
+
+					continue;
+				}
 				
 				Vector3d	precPos = obs.rSat;
 				Vector3d	precVel = obs.satVel;
 				double		posVar	= obs.posVar;
+				
+				//broadcast values, must come after precise values to associate the correct IODE (when SSR in use)
+				pass &= satClkBroadcast(nullStream, pTime, pTime, obs, nav, obs.iodeClk);
+				pass &= satPosBroadcast(nullStream, pTime, pTime, obs, nav, obs.iodePos);
+				if (pass == false)
+				{
+					BOOST_LOG_TRIVIAL(info) 
+					<< Sat.id() << " failed broadcast predictions.\n";
+					
+					continue;
+				}
+				
+				int			iodeClk		= obs.iodeClk;
+				int			iodePos		= obs.iodePos;
+// 				int			iodcrc		= ?
+				Vector3d	brdcPos		= obs.rSat;
+				Vector3d	brdcVel		= obs.satVel;
+				double		brdcClkVal	= obs.satClk * CLIGHT;
 				
 				//output the valid entries
 				{

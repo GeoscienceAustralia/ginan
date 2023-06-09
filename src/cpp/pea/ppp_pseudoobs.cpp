@@ -22,70 +22,6 @@
 
 map<SatSys, double> expNoiseMap;
 
-map<E_Sys, map<E_FType, double>> genericWavelength = 
-{
-	{
-		E_Sys::GPS,	
-		{	
-			{F1, CLIGHT / FREQ1},
-			{F2, CLIGHT / FREQ2},
-			{F5, CLIGHT / FREQ5},
-			{F6, CLIGHT / FREQ6},
-			{F7, CLIGHT / FREQ7},
-			{F8, CLIGHT / FREQ8}
-		}
-	},
-					
-	{
-		E_Sys::GAL,	
-		{
-			{F1, CLIGHT / FREQ1},
-			{F2, CLIGHT / FREQ2},
-			{F5, CLIGHT / FREQ5},
-			{F6, CLIGHT / FREQ6},
-			{F7, CLIGHT / FREQ7},
-			{F8, CLIGHT / FREQ8}
-		}
-	},
-					
-	{
-		E_Sys::BDS,	
-		{
-			{B1, CLIGHT / FREQ1_CMP},
-			{F2, CLIGHT / FREQ2},
-			{B3, CLIGHT / FREQ3_CMP},
-			{F5, CLIGHT / FREQ5},
-			{F6, CLIGHT / FREQ6},
-			{F7, CLIGHT / FREQ7},
-			{F8, CLIGHT / FREQ8}
-		}
-	},
-					
-	{
-		E_Sys::QZS,
-		{
-			{F1, CLIGHT / FREQ1},
-			{F2, CLIGHT / FREQ2},
-			{F5, CLIGHT / FREQ5},
-			{F6, CLIGHT / FREQ6},
-			{F7, CLIGHT / FREQ7},
-			{F8, CLIGHT / FREQ8}
-		}
-	},
-					
-	{
-		E_Sys::GLO,
-		{
-			{G1, CLIGHT / FREQ1_GLO},
-			{G2, CLIGHT / FREQ2_GLO},
-			{G3, CLIGHT / FREQ3_GLO},
-			{G4, CLIGHT / FREQ4_GLO},
-			{G6, CLIGHT / FREQ6_GLO}
-		}
-	}
-};
-
-
 struct AvBiasMonitor
 {
 	int					numCode = 0;
@@ -107,6 +43,88 @@ typedef map<E_Sys,map<int,bool>> RecSetList;
 	COMMON_ARG(		KFState&				)	kfState,			\
 	COMMON_ARG(		KFMeasEntryList&		)	kfMeasEntryList,	\
 	COMMON_ARG(		RecSetList&				)	recSetList
+
+void initPseudoObs(
+			Trace&				trace,				///< Trace to output to
+			KFState&			kfState,			///< Kalman filter object containing the network state parameters
+			KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
+{	
+	if	( kfMeasEntryList.empty() == false
+		||epoch != 1)
+	{
+		return;
+	}
+	
+	for (auto& [Sat, satNav] : nav.satNavMap)
+	{
+		if (acsConfig.process_sys[Sat.sys] == false)
+		{
+			continue;
+		}
+		
+		auto& satOpts = acsConfig.getSatOpts(Sat);
+		
+		if (satOpts.exclude)
+		{
+			continue;
+		}
+		
+		
+		bool newState = false;
+		
+		for (int i = 0; i < 3; i++)
+		{
+			InitialState posInit = initialStateFromConfig(satOpts.orbit, i);
+			InitialState velInit = initialStateFromConfig(satOpts.orbit, i + 3);
+			
+			if (posInit.estimate == false)
+			{
+				continue;
+			}
+			
+			KFKey satPosKey;
+			KFKey satVelKey;
+			
+			satPosKey.type	= KF::ORBIT;
+			satPosKey.Sat	= Sat;
+			satPosKey.num	= i;
+			
+			satVelKey.type	= KF::ORBIT;
+			satVelKey.Sat	= Sat;
+			satVelKey.num	= i + 3;
+		
+			newState |= kfState.addKFState(satPosKey, posInit);
+			newState |= kfState.addKFState(satVelKey, velInit);
+			
+			kfState.setKFTransRate(satPosKey, satVelKey,	1,	velInit);
+		}
+
+		if (newState == false)
+		{
+			continue;
+		}
+		
+		addKFSatEMPStates(satOpts.emp_dyb_0,	kfState,	KF::EMP_DYB_0,	Sat);
+		addKFSatEMPStates(satOpts.emp_dyb_1c,	kfState,	KF::EMP_DYB_1C,	Sat);
+		addKFSatEMPStates(satOpts.emp_dyb_1s,	kfState,	KF::EMP_DYB_1S,	Sat);
+		addKFSatEMPStates(satOpts.emp_dyb_2c,	kfState,	KF::EMP_DYB_2C,	Sat);
+		addKFSatEMPStates(satOpts.emp_dyb_2s,	kfState,	KF::EMP_DYB_2S,	Sat);
+		addKFSatEMPStates(satOpts.emp_dyb_3c,	kfState,	KF::EMP_DYB_3C,	Sat);
+		addKFSatEMPStates(satOpts.emp_dyb_3s,	kfState,	KF::EMP_DYB_3S,	Sat);
+		addKFSatEMPStates(satOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	Sat);
+		addKFSatEMPStates(satOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	Sat);
+		
+		addKFSatEMPStates(satOpts.srp_dyb_0,	kfState,	KF::SRP_DYB_0,	Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_1c,	kfState,	KF::SRP_DYB_1C,	Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_1s,	kfState,	KF::SRP_DYB_1S,	Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_2c,	kfState,	KF::SRP_DYB_2C,	Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_2s,	kfState,	KF::SRP_DYB_2S,	Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_3c,	kfState,	KF::SRP_DYB_3C,	Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_3s,	kfState,	KF::SRP_DYB_3S,	Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_4c,	kfState,	KF::SRP_DYB_4C,	Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_4s,	kfState,	KF::SRP_DYB_4S,	Sat);
+	}
+}
 
 void orbitPseudoObs(
 			Trace&				trace,				///< Trace to output to
@@ -217,10 +235,7 @@ void orbitPseudoObs(
 					statePosEci[i] = posInit.x;
 				}
 				
-				if (acsConfig.pppOpts.simulate_pseudos_only == false)
-				{
-					kfMeasEntry.addDsgnEntry(satPosKeys[i], 1, posInit);
-				}
+				kfMeasEntry.addDsgnEntry(satPosKeys[i], 1, posInit);
 				
 					
 				kfState.setKFTransRate(satPosKeys[i], satVelKeys[i],	1,	velInit);
@@ -229,14 +244,15 @@ void orbitPseudoObs(
 							- statePosEci[i];
 
 				kfMeasEntry.setInnov(omc);
-				kfMeasEntry.setNoise(1);
 					
-				kfMeasEntry.obsKey.comment	= "PseudoPos";
+				kfMeasEntry.obsKey.comment	= "ECI PseudoPos";
 				kfMeasEntry.obsKey.type		= KF::ORBIT;
 				kfMeasEntry.obsKey.Sat		= obs.Sat;
 				kfMeasEntry.obsKey.num		= i;
 				kfMeasEntry.metaDataMap["pseudoObs"] = (void*) true;
 					
+				kfMeasEntry.addNoiseEntry(kfMeasEntry.obsKey, 1, SQR(satOpts.pseudo_sigmas[0]));
+				
 				kfMeasEntryList.push_back(kfMeasEntry);
 			}
 		}
@@ -250,6 +266,16 @@ void orbitPseudoObs(
 		addKFSatEMPStates(satOpts.emp_dyb_3s,	kfState,	KF::EMP_DYB_3S,	obs.Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	obs.Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	obs.Sat);
+		
+		addKFSatEMPStates(satOpts.srp_dyb_0,	kfState,	KF::SRP_DYB_0,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_1c,	kfState,	KF::SRP_DYB_1C,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_1s,	kfState,	KF::SRP_DYB_1S,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_2c,	kfState,	KF::SRP_DYB_2C,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_2s,	kfState,	KF::SRP_DYB_2S,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_3c,	kfState,	KF::SRP_DYB_3C,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_3s,	kfState,	KF::SRP_DYB_3S,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_4c,	kfState,	KF::SRP_DYB_4C,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_4s,	kfState,	KF::SRP_DYB_4S,	obs.Sat);
 	}
 }
 
@@ -497,8 +523,8 @@ void pseudoRecDcb(COMMON_PSEUDO_ARGS)
 		{
 			E_FType	ft1		= code2Freq			[sys][code1];
 			E_FType	ft2		= code2Freq			[sys][code2];
-			double	lam1	= genericWavelength	[sys][ft1];
-			double	lam2	= genericWavelength	[sys][ft2];
+			double	lam1	= genericWavelength	[ft1];
+			double	lam2	= genericWavelength	[ft2];
 			
 			if	( lam1 == 0
 				||lam2 == 0)

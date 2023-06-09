@@ -816,7 +816,14 @@ void outputResiduals(
 	tracepdeex(0, trace, "#\t%2s\t%22s\t%10s\t%4s\t%4s\t%5s\t%13s\t%13s\t%16s\t %s\n", "It", "Time", "Type", "Sat", "Str", "Num", "Prefit Res", "Postfit Res", "Meas Variance", "Comments");
 	for (int i = begH; i < begH + numH; i++)
 	{
-		tracepdeex(0, trace, "%%\t%2d\t%21s\t%20s\t%13.8f\t%13.8f\t%16.9f\t %s\n", iteration, kfMeas.time.to_string(2).c_str(), ((string)kfMeas.obsKeys[i]).c_str(), kfMeas.V(i), kfMeas.VV(i), kfMeas.R(i,i), kfMeas.obsKeys[i].comment.c_str());
+		char var[32];
+		
+		double R = kfMeas.R(i,i);
+		
+		if		(R	== 0 || (fabs(R)	> 0.0001	&& fabs(R)	< 1e7))		snprintf(var,	sizeof(var),	"%16.7f",	R);
+		else																snprintf(var,	sizeof(var),	"%16.3e",	R);
+		
+		tracepdeex(0, trace, "%%\t%2d\t%21s\t%20s\t%13.8f\t%13.8f\t%s\t %s\n", iteration, kfMeas.time.to_string(2).c_str(), ((string)kfMeas.obsKeys[i]).c_str(), kfMeas.V(i), kfMeas.VV(i), var, kfMeas.obsKeys[i].comment.c_str());
 	}
 }
 
@@ -1269,11 +1276,12 @@ KFMeas KFState::combineKFMeasList(
 			meas++;
 		}
 		
-// 		std::cout << R_A << std::endl;
+// 		std::cout << MatrixXd(R_A) << std::endl;
 		kfMeas.R = R_A * uncorrelatedNoise.asDiagonal() * R_A.transpose();
 		
 // 		std::cout << std::setprecision(5);
 // 		std::cout << "R" << std::endl << kfMeas.R << std::endl;
+// 		std::cout << "R_" << std::endl << uncorrelatedNoise << std::endl;
 	}
 
 	return kfMeas;
@@ -2110,7 +2118,7 @@ void KFState::outputStates(
 		char xStr[20];
 		char pStr[20];
 		if (noAdjust)																snprintf(dStr, sizeof(dStr), "%15.0s", "");
-		else if (_dx	== 0 || (fabs(_dx)	> 0.0001	&& fabs(_dx)	< 1e8))		snprintf(dStr, sizeof(dStr), "%15.8f",	_dx);
+		else if (_dx	== 0 || (fabs(_dx)	> 0.0001	&& fabs(_dx)	< 1e5))		snprintf(dStr, sizeof(dStr), "%15.8f",	_dx);
 		else																		snprintf(dStr, sizeof(dStr), "%15.4e",	_dx);
 		
 		if		(_x		== 0 || (fabs(_x)	> 0.0001	&& fabs(_x)		< 1e8))		snprintf(xStr, sizeof(xStr), "%17.7f",	_x);

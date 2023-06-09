@@ -57,7 +57,7 @@ void writeSp3Header(
 	outFileDat.numEpoch = 1;
 	
 	// note "#dV" for velocity and position.
-	if (acsConfig.output_orbit_velocities)		tracepdeex(0, sp3Stream, "#dV%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
+	if (acsConfig.output_sp3_velocities)		tracepdeex(0, sp3Stream, "#dV%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 	else										tracepdeex(0, sp3Stream, "#dP%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
 	outFileDat.numEpoch_pos = sp3Stream.tellp();
@@ -71,7 +71,7 @@ void writeSp3Header(
 	tracepdeex(0, sp3Stream, "## %4d %15.8f %14.8f %5.0f %15.13f\n",
 			   week,
 			   tow,
-			   acsConfig.orbits_output_interval,
+			   acsConfig.sp3_output_interval,
 			   mjdate,
 			   mjdate - floor(mjdate));
 
@@ -208,7 +208,7 @@ void writeSp3Header(
 	tracepdeex(0, sp3Stream, "%%i    0    0    0    0      0      0      0      0         0\n");
 
 	// There is a minimum of four comment lines.
-	tracepdeex(0, sp3Stream, "/* Created using Ginan at: %s.\n",   ((GTime)timeGet()).to_string().c_str());
+	tracepdeex(0, sp3Stream, "/* Created using Ginan at: %s.\n",   timeGet().to_string().c_str());
 	tracepdeex(0, sp3Stream, "/* WARNING: Not for operational use\n");
 	tracepdeex(0, sp3Stream, "/*\n");
 	tracepdeex(0, sp3Stream, "/*\n");
@@ -281,7 +281,7 @@ void updateSp3Body(
 						predictedChar);
 			}
 			
-			if (acsConfig.output_orbit_velocities)
+			if (acsConfig.output_sp3_velocities)
 			{
 				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f%19s%c\n",
 						entry.sat.id().c_str(),
@@ -300,7 +300,7 @@ void updateSp3Body(
 						sat.id().c_str(), 0, 0, 0, NO_SP3_CLK);
 			}
 			
-			if (acsConfig.output_orbit_velocities)
+			if (acsConfig.output_sp3_velocities)
 			{
 				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f\n",
 						sat.id().c_str(), 0, 0, 0, NO_SP3_CLK);
@@ -316,7 +316,8 @@ void writeSysSetSp3(
 	GTime				time,
 	map<E_Sys, bool>&	outSys,
 	Sp3FileData&		outFileDat,
-	vector<E_Source>	sp3DataSrcs,	
+	vector<E_Source>	sp3OrbitSrcs,	
+	vector<E_Source>	sp3ClockSrcs,	
 	KFState*			kfState_ptr,
 	bool				predicted)
 {
@@ -332,11 +333,10 @@ void writeSysSetSp3(
 		obs.Sat			= Sat;
 		obs.satNav_ptr	= &nav.satNavMap[Sat];
 
-		bool pass = true;
-		pass &= satclk(nullStream, time, time, obs, sp3DataSrcs,					nav, kfState_ptr);
-		pass &= satpos(nullStream, time, time, obs, sp3DataSrcs, E_OffsetType::COM,	nav, kfState_ptr);
+		bool clkPass = satclk(nullStream, time, time, obs, sp3OrbitSrcs,					nav, kfState_ptr);
+		bool posPass = satpos(nullStream, time, time, obs, sp3ClockSrcs, E_OffsetType::COM,	nav, kfState_ptr);
 		
-		if (pass == false)
+		if (posPass == false)
 		{
 			BOOST_LOG_TRIVIAL(warning) << "Warning: Writing SP3 file, failed to get data for satellite " << Sat.id();
 			continue;
@@ -354,8 +354,18 @@ void writeSysSetSp3(
 			entry.satPos = obs.rSat;
 			entry.satVel = obs.satVel;
 		}
-		entry.satClk	= obs.satClk;
-		entry.satClkVel	= obs.satClkVel;
+		
+		if (clkPass)
+		{
+			entry.satClk	= obs.satClk;
+			entry.satClkVel	= obs.satClkVel;
+		}
+		else
+		{
+			entry.satClk	= INVALID_CLOCK_VALUE / 1e6;
+			entry.satClkVel	= INVALID_CLOCK_VALUE / 1e6;
+		}
+		
 		entry.sigma		= sqrt(obs.satClkVar);
 		entry.predicted	= predicted;
 
@@ -369,21 +379,22 @@ void writeSysSetSp3(
 void outputSp3(
 	string				filename,
 	GTime				time,
-	vector<E_Source>	sp3DataSrcs,
+	vector<E_Source>	sp3OrbitSrcs,
+	vector<E_Source>	sp3ClockSrcs,
 	KFState*			kfState_ptr,
 	bool				predicted)
 {
 	time = time.floorTime(1);
 	
 	GTow tow = time;
-	if (int(tow) % acsConfig.orbits_output_interval != 0)
+	if (int(tow) % acsConfig.sp3_output_interval != 0)
 		return;
 
 	auto sysFilenames = getSysOutputFilenames(filename, time);
 
 	for (auto [filename, sysMap] : sysFilenames)
 	{
-		writeSysSetSp3(filename, time, sysMap, sp3CombinedFileData, sp3DataSrcs, kfState_ptr, predicted);
+		writeSysSetSp3(filename, time, sysMap, sp3CombinedFileData, sp3OrbitSrcs, sp3ClockSrcs, kfState_ptr, predicted);
 	}
 }
 
@@ -396,7 +407,7 @@ void outputMongoOrbits()
 	
 	map<E_Sys, bool> outSys;
 	
-	auto sysFilenames = getSysOutputFilenames(acsConfig.predicted_orbits_filename, tsync);
+	auto sysFilenames = getSysOutputFilenames(acsConfig.predicted_sp3_filename, tsync);
 
 	for (auto [filename, sysMap] : sysFilenames)
 	{

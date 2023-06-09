@@ -194,12 +194,12 @@ struct SSRAtmGlobal
 	int 					numberLayers;
 	map<int, SSRVTEClayer>	layers;
 	double					vtecQuality;
-	int 					iod;
+	int 					iod = -1;
 };
 
 struct SSRSTECData
 {
-	int 				iod;
+	int 				iod = -1;
 	double				accr;
 	map<int,double>		poly;
 	map<int,double>		grid;
@@ -244,7 +244,7 @@ struct SSRAtm
 struct EphValues
 {
 	GTime			time;
-	unsigned int	iode	= 0;
+	unsigned int	iode	= -1;
 	Vector3d		brdcPos	= Vector3d::Zero();
 	Vector3d		brdcVel	= Vector3d::Zero();
 	Vector3d		precPos	= Vector3d::Zero();
@@ -256,7 +256,7 @@ struct EphValues
 struct ClkValues
 {
 	GTime			time;
-	unsigned int	iode	= 0;
+	unsigned int	iode	= -1;
 	double			brdcClk	= 0;
 	double			precClk	= 0;
 };

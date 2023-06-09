@@ -160,7 +160,15 @@ bool copyFixedKF(KFState& fixed)
 {
 	fixed = kfState_forAR;
 	
+	/* add additional readiness check here if needed */
+	
 	return fixKFReady;
+}
+
+void overwriteFixedKF(
+	KFState& kfState)
+{
+	kfState_forAR = kfState;
 }
 
 bool queryBiasUC(

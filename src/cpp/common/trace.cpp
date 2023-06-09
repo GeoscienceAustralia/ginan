@@ -3,6 +3,9 @@
 
 #include <stdarg.h>
 #include <ctype.h>
+#include <unordered_map>
+
+using std::unordered_map;
 
 #include <boost/iostreams/stream.hpp>
 #include <boost/format.hpp>
@@ -23,7 +26,7 @@ void ConsoleLog::consume(
 	boost::log::record_view																	const&	rec,
 	sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	logString)
 {
-	static map<string, bool> warnedMap;
+	static unordered_map<string, bool> warnedMap;
 	
 	auto attrs = rec.attribute_values();
 	auto sev = attrs[boost::log::trivial::severity].get();

@@ -47,7 +47,7 @@ struct RtcmTrace
 			return;
 		}
 	
-		outStream << (GTime)timeGet();
+		outStream << timeGet();
 		outStream << " networkLog" << message << std::endl;
 	}
 
@@ -66,7 +66,7 @@ struct RtcmTrace
 			return;
 		}
 	
-		outStream << (GTime)timeGet();
+		outStream << timeGet();
 		outStream << " messageRtcmLog" << message << std::endl;
 	}
 	

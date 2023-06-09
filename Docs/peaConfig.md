@@ -63,7 +63,7 @@ This is replaced with the id of the a given stream where appropriate.
 These are replaced with the (rounded) time of the epochs within the trace file.
 
 If trace file rotation is configured for 1 hour, the `<LOGTIME>` wildcard will be rounded down to the closest hour, and subsequently change value once per hour and generate a separate output file for each hour of processing.
-
+<!---
 ## Major YAML configs
 
 
@@ -72,46 +72,10 @@ If trace file rotation is configured for 1 hour, the `<LOGTIME>` wildcard will b
 This specifies a root string to be prepended to all other file paths specified in the section. For file paths that are absolute, (ie. starting with a `/`), this parameter is not applied.
 
 
-#### `inputs:`
-
-This section of the yaml file specifies the lists of files to be used for general metadata inputs, and inputs of external product data.
-
-##### `gnss_observations:`
-
-This section specifies the sources of observation data to be used in positioning.
-
-
-There are numerous ways that the `pea` can access GNSS observations to process. 
-You can specify individual files to process, set it up so that it will search a particular directory, or you can use a command line flag `--rnx <rnxfilename>` to add an additional file to process. 
-
-The data should be uncompressed rinex (gunzipped, and not in hatanaka format), or RTCM3 formatted binary data.
-
-
-It may consist of RINEX files, or RTCM streams or files, which are specified as follows:
-
-```
-	gnss_observations:
-		root_stations_directory: /data/acs/ginan/examples/data
-		rnx_files:
-			- "ALIC*.rnx"
-			- "BAKO*.rnx"
-			
-		#rtcm_files:
-		#	- "*-OBS.rtcm3"
-
-		#streams:
-		# - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0"  
-```     
-
-The first 4 characters of the filename are used as the receiver ID.
-
-If multiple files are supplied with the same ID, they are all processed in sequence - according to the epoch times specified within the files. In this case, it is advisible to correctly specify the start_epoch for the filter, or the first epoch in the first file will likely be used.
-
-
 
 ##### `satellite_data:`
 
-This section specifies sources of ephemerides and other satellite data.
+
 
 ```
     satellite_data:
@@ -281,3 +245,11 @@ A nice value for using VMF as an apriori value is 0.1mm /sqrt(s)
 	    sigma:              [0.1]
 	    proc_noise:         [0.01]
 	    proc_noise_dt:      hour
+-->
+## Pea Config Examples
+
+Example configurations for the different `pea` use-cases are included in the git repository in the `examples` directory.
+These examples utilise a reference dataset from 2019, which demonstrate the majority of the features that are currently supported by Ginan.
+
+For descriptions of the specifics of those examples, refer to the code documentation's [Pea.Configuration.Examples](codeDocs/Pea_8Configuration_8Examples.html) page.
+

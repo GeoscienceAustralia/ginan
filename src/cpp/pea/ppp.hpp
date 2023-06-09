@@ -192,6 +192,11 @@ void orbitPseudoObs(
 	const	KFState&			kfState,			
 			KFMeasEntryList&	kfMeasEntryList);	
 
+void initPseudoObs(
+			Trace&				netTrace,			
+			KFState&			kfState,			
+			KFMeasEntryList&	kfMeasEntryList);	
+
 void stationPseudoObs(
 			Trace&				netTrace,			
 			Station&			rec,				
@@ -226,6 +231,9 @@ int PPP_AR(
 
 bool copyFixedKF(
 	KFState& fixed);
+
+void overwriteFixedKF(
+	KFState& kfState);
 
 bool queryBiasUC(
 	Trace&		trace,	

@@ -1,0 +1,11 @@
+
+inputs:
+    include_yamls:
+        - tiny_realtime_network.yaml
+        - static_user.yaml
+        - mongo_outputs.yaml
+        - example_inputs.yaml
+    
+outputs:
+    metadata:
+        config_description:     "ex202"

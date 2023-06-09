@@ -1,0 +1,144 @@
+# ex01 - Orbit Propagation Example
+
+inputs:
+
+    root_directory: products/
+
+    atx_files:   [ igs14_2045_plus.atx                                ]    # required
+    snx_files:   [ ../../../cddis/igs19P20342.snx                                     ]    # required
+    blq_files:   [ OLOAD_GO.BLQ                                       ]    # required if ocean loading is applied
+    erp_files:   [ igs96p02.erp                                     ]  
+
+    pseudo_observations:
+        inputs_root:    "products/"
+        snx_inputs:
+            - "../../../cddis/*0.snx"
+            #- "igs19P2062.snx"
+            #- "cod21620.snx"  
+            #- "cod21621.snx"  
+            #- "cod21622.snx"  
+            #- "cod21623.snx"  
+            #- "cod21624.snx"  
+            #- "cod21625.snx"  
+
+    satellite_modeling:
+        egm_files:  [ tables/EGM2008.gfc         ]  # Earth gravity model coefficients file
+        jpl_files:  [ tables/DE436.1950.2050     ]  # JPL planetary and lunar ephemerides file
+        tide_files: [ tables/fes2014b_Cnm-Snm.dat]
+
+
+outputs:
+
+    root_directory:          <CONFIG>/
+
+    trace:
+        output_stations:                     true
+        output_network:                     true
+        level:                      2
+        directory:                  ./
+        station_filename:                   <CONFIG>-<STATION>.TRACE
+        network_filename:                   <CONFIG>-<STATION>.TRACE
+        output_residuals:           true
+        #output_config:              true
+
+    metadata:
+
+        config_description:         ex03
+        analysis_agency:            GAA
+        analysis_center:            Geoscience Australia
+        analysis_program:           AUSACS
+        rinex_comment:              AUSNETWORK1
+
+mongo:
+    enable:                   true
+    output_measurements:      true
+    output_states:            true
+    output_rtcm_messages:     false
+    output_test_stats:        false
+    delete_history:           false
+    uri:                      mongodb://127.0.0.1:27017
+    suffix:                   "KF"
+
+station_options:
+    ALIC:
+        aliases: [constrained]
+    SYDN:
+        aliases: [constrained]
+    ALBY:
+        aliases: [constrained]
+    PERT:
+        aliases: [constrained]
+    CEDU:
+        aliases: [constrained]
+    HOBA:
+        aliases: [constrained]
+    DARW:
+        aliases: [constrained]
+processing_options:
+
+    epoch_control:
+        #start_epoch:                2007-04-12 00:00:00
+        #end_epoch:                 2007-04-15 00:00:00
+        #max_epochs:                 #5        #0 is infinite
+        #epoch_interval:             86400          #seconds
+        epoch_interval:             604800          #seconds
+        # wait_next_epoch:            100000
+        # wait_all_stations:          1
+    
+
+    process_modes:
+        ppp:                    true
+        preprocessor:           false
+        
+    filter_options:
+        outlier_screening:
+            sigma_threshold: 100
+            
+        #chunking:
+            #enable: true
+            #size:   1
+
+        rts:
+            #enable:                 true
+            lag:                    -1      #-ve for full reverse, +ve for limited epochs
+            directory:              ./
+            filename:               <CONFIG>-Network.rts
+        
+    minimum_constraints:
+        enable: true
+
+        translation:
+            estimated:  [true]
+        rotation:
+            estimated:  [true]    
+        scale:
+            #estimated:  [true]     
+
+        #full_vcv:       true
+        #scale_by_vcv:   true
+        #once_per_epoch: true
+        
+        station_noise:
+        
+            global:         [-1]
+            unconstrained:  [-1]
+            constrained:    [1]
+            XMPL:   [2]
+            
+            #STN3: [20]
+            #DONT: [-1]
+        #    BOAV: 100       #constrain weakly
+
+estimation_parameters:
+    stations:
+        pos:
+            estimated:          [true]
+            sigma:              [1]
+            proc_noise:         [0]
+            
+        strain_rate:
+            estimated:          [true]
+            sigma:              [100]
+            #proc_noise:         [0.0001]
+            proc_noise_dt:      years
+            

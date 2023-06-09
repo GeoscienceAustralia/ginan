@@ -7,6 +7,8 @@
 using std::string;
 
 
+#define BSX_FILENAME_STR		((string)"bsxFilename")
+#define ORBEX_FILENAME_STR		((string)"orbexFilename")
 #define GPX_FILENAME_STR		((string)"gpxFilename")
 #define ERP_FILENAME_STR		((string)"erpFilename")
 #define TRACE_FILENAME_STR		((string)"traceFilename")
@@ -18,5 +20,3 @@ using std::string;
 #define ION_FILENAME_STR		((string)"ionFilename")
 #define SP3_FILENAME_STR		((string)"sp3Filename")
 #define CLK_FILENAME_STR		((string)"clkFilename")
-
-

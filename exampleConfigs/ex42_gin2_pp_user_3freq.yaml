@@ -1,0 +1,169 @@
+
+inputs:
+
+    root_directory: products/
+    
+    atx_files:  [ M20.ATX ]  # Antenna models for receivers and satellites in ANTEX format
+    snx_files:  [ igs19P2062.snx, tables/igs_metadata_2063.snx ]  # SINEX file for meta data and initial position
+    blq_files:  [ OLOAD_GO.BLQ         ]  # ocean loading is applied
+    erp_files:  [ TUG0R03FIN_20191990000_01D_01D_ERP.ERP ]
+    
+    satellite_data:
+        # nav_files: [ brdm1990.19p     ]  # broadcast navigation file
+        sp3_files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ]  # satellite orbit files in SP3 format
+        clk_files: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ]  # Clk files
+        bsx_files: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    
+    egm_files:  [ tables/EGM2008.gfc          ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050      ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat ]
+        
+    gnss_observations:
+        inputs_root: data/
+        rnx_inputs:
+            - AGGO00ARG_R_20191990000_01D_30S_MO.rnx
+            - ALIC00AUS_R_20191990000_01D_30S_MO.rnx
+            - BAKO00IDN_R_20191990000_01D_30S_MO.rnx
+            - COCO00AUS_R_20191990000_01D_30S_MO.rnx
+            - DARW00AUS_R_20191990000_01D_30S_MO.rnx
+            
+    
+    troposphere:
+        gpt2grid_files:   gpt_25.grd
+
+outputs:
+
+    root_directory:         outputs/<CONFIG>/
+
+    trace:
+        output_stations:            true
+        output_network:             true
+        level:                      2
+        station_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+    
+    ppp_sol:	                              
+        output:	                    true       
+        filename:	                <STATION><YYYY><DDD><HH>_<CONFIG>.POS
+    
+    output_rotation:
+        period:                     3   
+        period_units:               hours
+
+    metadata:
+        config_description:         "ex42"
+
+processing_options:
+    epoch_control:
+        # start_epoch:                2022-03-12 00:00:00
+        # end_epoch:                  2022-03-14 00:00:00
+        epoch_interval:             30
+        max_epochs:                 360
+    
+    process_modes:
+        ppp:                 true
+        
+    gnss_general:
+        elevation_mask:                 10  #degrees
+        sys_options:
+            gps:
+                process:                true
+                ambiguity_resolution:   true
+                reject_eclipse:         true
+                code_priorities:        [ L1C, L2W ]
+            gal:
+                process:                true
+                ambiguity_resolution:   false
+                reject_eclipse:         true
+                code_priorities:        [ L1C, L5Q, L1X, L5X ]
+            # glo:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1P, L1C, L2P, L2C ]
+            # qzs:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1C, L2L, L2X ]
+
+    gnss_models:
+        sat_attitude:	                              
+            enable:             false
+            source:             nominal
+        troposphere:
+            model:              gpt2
+        ionospheric_component:
+            common_ionosphere:  true
+            use_if_combo:       false
+
+    # model_error_checking:
+    #     cycle_slips:
+    #         detect:
+    #             lli:                false
+
+    ambiguity_resolution:
+        elevation_mask:                 15
+        lambda_set_size:                200
+        narrow_lane:
+            mode:                       lambda_bie
+            success_rate_threshold:     0.99
+            solution_ratio_threshold:   30
+
+    filter_options:
+        outlier_screening:
+            max_filter_iterations:      5 
+            max_prefit_removals:        3 
+
+estimation_parameters:
+
+    stations:
+        error_model:        elevation_dependent   
+        code_sigmas:        [0.3]
+        phase_sigmas:       [0.003]
+
+        pos:
+            estimated:          [true]
+            sigma:              [100.0]
+            proc_noise:         [100.0] 
+            proc_noise_dt:      second
+
+        clk:
+            estimated:          [true]
+            sigma:              [1000]
+            proc_noise:         [100]
+
+        amb:
+            estimated:          [true]
+            sigma:              [60.0]
+            proc_noise:         [0]
+            #proc_noise_dt:      day
+
+        trop:
+            estimated:          [true]
+            sigma:              [0.1]
+            proc_noise:         [0.0001]
+            proc_noise_dt:      second
+
+        trop_grads:
+            estimated:          [true]
+            sigma:              [0.02]
+            proc_noise:         [1.0E-6]
+            proc_noise_dt:      second
+        
+        ion_stec:
+            estimated:          [true]
+            sigma:              [200]
+            proc_noise:         [0.1]
+
+        phase_bias:
+            estimated:          [true]
+            sigma:              [10]
+            proc_noise:         [0]
+        
+        code_bias:
+            estimated:          [true]
+            sigma:              [100.0]
+            proc_noise:         [0]

@@ -56,7 +56,6 @@
 	COMMON_ARG(			KFMeasEntry&		)	measEntry,		\
 	COMMON_ARG(			VectorEcef&			)	rRec,			\
 	COMMON_ARG(			VectorEcef&			)	rSat,			\
-	COMMON_ARG(			Vector3d&			)	rRecInertial,	\
 	COMMON_ARG(			double&				)	rRecSat,		\
 	COMMON_ARG(			double&				)	lambda,			\
 	COMMON_ARG(			SatSys&				)	sysSat,			\
@@ -400,7 +399,7 @@ inline void pppIonStec2(COMMON_PPP_ARGS)
 		bool pass = ionoModel(time, pos, satStat.azel, dummy, diono, varIono);
 		if (pass)
 		{
-			double stec = diono * SQR(FREQ1) / 40.3e16;	// restore STEC
+			double stec = diono * SQR(FREQ1) / TEC_CONSTANT;	// restore STEC
 			
 			ionosphere_m = factor * alpha * stec;
 		}
@@ -470,7 +469,7 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 		bool pass = ionoModel(time, pos, satStat.azel, dummy, diono, varIono);
 		if (pass)
 		{
-			double stec = diono * SQR(FREQ1) / 40.3e16;	// restore STEC
+			double stec = diono * SQR(FREQ1) / TEC_CONSTANT;	// restore STEC
 			double vtec = stec / fs;	// restore VTEC for nMax calculation
 
 			// nMax = 14.0e12 / 3.17e18 * stec*1e16;	// calculate nMax, see ref [1]
@@ -491,7 +490,7 @@ inline void pppIonModel(COMMON_PPP_ARGS)
 	double ionosphere_m	= 0;
 	double varIono		= 0;
 	double freq			= CLIGHT / lambda;
-	double alpha		= 40.3e16 / SQR(freq);
+	double alpha		= TEC_CONSTANT / SQR(freq);
 	double sign			= 1;
 	
 	if (measType == CODE)		sign = +1;
@@ -956,7 +955,9 @@ void stationPPP(
 	GTime time = rec.obsList.front()->time;
 	
 	for (auto& obs : only<GObs>(rec.obsList))
-		satPosClk(trace, time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, E_OffsetType::COM, E_Relativity::OFF, &kfState);
+	{
+		satPosClk(trace, time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, &kfState, E_OffsetType::COM, E_Relativity::OFF);
+	}
 	
 	ERPValues erpv = geterp(nav.erp, time);
 	
@@ -981,18 +982,19 @@ void stationPPP(
 	for (auto&	sig				: sigList)
 	for (auto	measType		: {PHAS, CODE})
 	{
-		tracepdeex(1, trace, "\n\n----------------------------------------------------");
-		tracepdeex(1, trace, "\nProcessing %s %s %s: ", obs.Sat.id().c_str(), sig.code._to_string(), (measType == PHAS) ? "L" : "P");
-	
+		char measDescription[64];
+		
+		snprintf(measDescription, sizeof(measDescription), "%s %s %s", obs.Sat.id().c_str(), sig.code._to_string(), (measType == PHAS) ? "L" : "P");
+		
 		if (acsConfig.process_sys[obs.Sat.sys] == false)
 		{
-			tracepdeex(2, trace, " - System skipped");
+			tracepdeex(4, trace, "\n%s - System skipped", measDescription);
 			continue;
 		}
 		
 		if (acsConfig.process_meas[measType] == false)
 		{
-			tracepdeex(2, trace, " - Measurement type skipped");
+			tracepdeex(4, trace, "\n%s - Measurement type skipped", measDescription);
 			continue;
 		}
 		
@@ -1001,9 +1003,13 @@ void stationPPP(
 		auto prioritityIt = std::find(sysCodes.begin(), sysCodes.end(), sig.code);
 		if (prioritityIt == sysCodes.end())
 		{
-			tracepdeex(2, trace, " - Code type skipped");
+			tracepdeex(4, trace, "\n%s - Code type skipped", measDescription);
 			continue;
 		}
+		
+		tracepdeex(1, trace, "\n\n----------------------------------------------------");
+		tracepdeex(1, trace, "\nProcessing %s: ", measDescription);
+	
 		
 		string		sigName			= sig.code._to_string();
 		SatNav&		satNav			= *obs.satNav_ptr;
@@ -1105,7 +1111,6 @@ void stationPPP(
 		
 		VectorEcef rRec			= rec.aprioriPos;
 	
-		VectorEci rRecInertial	= frameSwapper(rRec);
 		{
 			for (int i = 0; i < 3; i++)
 			{
@@ -1139,6 +1144,46 @@ void stationPPP(
 					rateKey.comment	= rateInit.comment;
 					
 					kfState.setKFTransRate(kfKey, rateKey,	1,	rateInit);
+				}
+			}
+			
+			if (initialStateFromConfig(recOpts.orbit).estimate)
+			{
+				bool found = false;
+				VectorEci rRecInertial = frameSwapper(rRec);
+				
+				for (int i = 0; i < 3; i++)
+				{
+					InitialState posInit = initialStateFromConfig(recOpts.orbit,i);
+					InitialState velInit = initialStateFromConfig(recOpts.orbit,i + 3);
+					
+					KFKey posKey;
+					posKey.type		= KF::ORBIT;
+					posKey.num		= i;
+					posKey.comment	= posInit.comment;
+					
+					if (recOpts.sat_id.empty())	posKey.str		= rec.id;
+					else						posKey.Sat		= SatSys(recOpts.sat_id.c_str());
+					
+					KFKey velKey	= posKey;
+					velKey.num		= i + 3;
+					velKey.comment	= velInit.comment;
+					
+					
+					found |= kfState.getKFValue(posKey, rRec[i]);
+					
+					if (posInit.x == 0)			posInit.x = rRecInertial[i];
+					
+					VectorEci eSatInertial	= frameSwapper(satStat.e);
+					
+					measEntry.addDsgnEntry	(posKey,			-eSatInertial[i],				posInit);
+					
+					kfState.setKFTransRate	(posKey, velKey,	1,					velInit,	posInit);	//todo aaron will create noise elements that kill something else
+				}
+				
+				if (found)
+				{
+					rRec = frameSwapper(rRecInertial);
 				}
 			}
 		}
@@ -1183,7 +1228,7 @@ void stationPPP(
 				
 				VectorEci eSatInertial	= frameSwapper(satStat.e);
 				
-				measEntry.addDsgnEntry	(posKey,			eSatInertial[i],				posInit);
+				measEntry.addDsgnEntry	(posKey,			+eSatInertial[i],				posInit);
 				
 				kfState.setKFTransRate	(posKey, velKey,	1,					velInit,	posInit);	//todo aaron will create noise elements that kill something else
 			}
@@ -1265,6 +1310,16 @@ void stationPPP(
 		addKFSatEMPStates(satOpts.emp_dyb_3s,	kfState,	KF::EMP_DYB_3S,	obs.Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	obs.Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	obs.Sat);
+		
+		addKFSatEMPStates(satOpts.srp_dyb_0,	kfState,	KF::SRP_DYB_0,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_1c,	kfState,	KF::SRP_DYB_1C,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_1s,	kfState,	KF::SRP_DYB_1S,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_2c,	kfState,	KF::SRP_DYB_2C,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_2s,	kfState,	KF::SRP_DYB_2S,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_3c,	kfState,	KF::SRP_DYB_3C,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_3s,	kfState,	KF::SRP_DYB_3S,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_4c,	kfState,	KF::SRP_DYB_4C,	obs.Sat);
+		addKFSatEMPStates(satOpts.srp_dyb_4s,	kfState,	KF::SRP_DYB_4S,	obs.Sat);
 	
 		//Calculate residuals and form up the measurement
 		

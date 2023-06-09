@@ -1,0 +1,390 @@
+# Ginan v2 Network UCUD clock and bias estimation example
+inputs:
+
+    root_directory: products/
+    
+    atx_files:  [ M20.ATX ]  # Antenna models for receivers and satellites in ANTEX format
+    snx_files:  [ igs19P2062.snx, tables/igs_metadata_2063.snx ]  # SINEX file for meta data and initial position
+    blq_files:  [ OLOAD_GO.BLQ         ]  # ocean loading is applied
+    erp_files:  [ TUG0R03FIN_20191990000_01D_01D_ERP.ERP ]
+    
+    satellite_data:
+        # nav_files: [ brdm1990.19p     ]  # broadcast navigation file
+        sp3_files: [ TUG0R03FIN_20191990000_01D_05M_ORB.SP3 ]  # satellite orbit files in SP3 format
+        # clk_files: [ TUG0R03FIN_20191990000_01D_30S_CLK.CLK ]  # Clk files
+        #bsx_files: [ TUG0R03FIN_20191990000_01D_01D_OSB.BIA ] # daily signal biases files
+    
+    egm_files:  [ tables/EGM2008.gfc          ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050      ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat ]
+        
+    troposphere:
+        # orography_files: orography_ell_5x5
+        gpt2grid_files:  gpt_25.grd
+        # vmf_files:       [ grid5/VMF3_20190718.H00, grid5/VMF3_20190718.H06, grid5/VMF3_20190718.H12, grid5/VMF3_20190718.H18, grid5/VMF3_20190719.H00 ]
+
+    gnss_observations:
+
+        inputs_root: data/
+        rnx_inputs:
+            - "AREG*.rnx"
+            - "ASCG*.rnx"
+            - "BAKO*.rnx"
+            - "BOGT*.rnx"
+            - "CEDU*.rnx"
+            - "COCO*.rnx"
+            - "CPVG*.rnx"
+            - "CRO1*.rnx"
+            - "CUSV*.rnx"
+            - "DARW*.rnx"
+            - "DGAR*.rnx"
+            - "DJIG*.rnx"
+            - "FAIR*.rnx"
+            - "FFMJ*.rnx"
+            - "GANP*.rnx"
+            - "HERS*.rnx"
+            - "HOB2*.rnx"
+            - "IISC*.rnx"
+            - "JFNG*.rnx"
+            - "KARR*.rnx"
+            - "KIRI*.rnx"
+            - "KOKV*.rnx"
+            - "KZN2*.rnx"
+            - "LHAZ*.rnx"
+            - "LMMF*.rnx"
+            - "MAW1*.rnx"
+            - "MBAR*.rnx"
+            - "METG*.rnx"
+            - "MGUE*.rnx"
+            - "NICO*.rnx"
+            - "NKLG*.rnx"
+            - "OHI3*.rnx"
+            - "POAL*.rnx"
+            - "QUIN*.rnx"
+            - "REYK*.rnx"
+            - "RGDG*.rnx"
+            - "SAMO*.rnx"
+            - "SEY2*.rnx"
+            - "SOLO*.rnx"
+            - "STJ2*.rnx"
+            - "TONG*.rnx"
+            - "TOPL*.rnx"
+            - "TOW2*.rnx"
+            - "USN7*.rnx"
+            - "VACS*.rnx"
+            - "ZIM2*.rnx"
+    
+outputs:
+
+    root_directory:         <CONFIG>/
+
+    trace:
+        output_stations:            true
+        output_network:             true
+        level:                      2
+        station_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+
+    ppp_sol:	                              
+        output:	                    false          	# (bool) 
+        filename:	                <STATION><YYYY><DDD><HH>_<CONFIG>.POS
+    
+    output_rotation:
+        period:                     1   # 6
+        period_units:               day # hours
+
+    ionex:
+        output:                     false
+        directory:                  ./
+        filename:                   AUSG<DDD>0.<YY>I
+
+    ionstec:
+        output:                     false
+        directory:                  ./
+        filename:                   IONEX.stec
+
+    bias_sinex:
+        output:                     true
+        code_output_interval:       900.0
+        directory:                  ./
+        # filename:                   <CONFIG>-<LOGTIME>.BIA
+        filename:                   AUS0GINRAP_<YYYY><DDD><HH>00_01D_15M_OSB.BIA
+        output_rec_bias:            false
+        phase_output_interval:      900.0
+
+    clocks:
+        output:                     true
+        directory:                  ./
+        filename:                   AUS0GINRAP_<YYYY><DDD><HH>00_01D_30S_CLK.CLK
+        output_ar_clocks:           true
+
+    sinex:
+        output:                     true
+
+    #erp:
+        #output:                     true
+
+    trop_sinex:
+        output:                     true
+        sources:                    [KALMAN]
+        directory:                  ./
+        filename:                   <CONFIG>-<STATION><WWWW><D>.tro
+
+    metadata:
+        config_description:         "ex47"
+        analysis_agency:            GAA
+        analysis_center:            Geoscience Australia
+        ac_contact:                 Simon.McClusky@ga.gov.au
+        analysis_program:           Ginan
+        rinex_comment:              "Daily 30-sec observations from IGS stations"
+
+mongo:
+    enable:                     true
+    database:                   <CONFIG>
+    output_measurements:        true
+    output_components:          true
+    output_states:              true
+    output_rtcm_messages:       true
+    output_test_stats:          true
+    delete_history:             true
+    uri:                        mongodb://127.0.0.1:27017
+    suffix:                     ""
+
+processing_options:
+    epoch_control:
+        # start_epoch:                2022-03-12 00:00:00
+        # end_epoch:                  2022-03-14 00:00:00
+        epoch_interval:             30
+        #max_epochs:                 1440
+        wait_next_epoch:            3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+        wait_all_stations:          1
+    
+    process_modes:
+        ppp:                 true
+        
+    gnss_general:
+        elevation_mask:         10     # degrees
+        error_model:            elevation_dependent     # {uniform,elevation_dependent}
+        rec_reference_system:   gps
+
+        sys_options:
+            gps:
+                process:                true
+                ambiguity_resolution:   false
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                # network_amb_pivot:      true
+                code_priorities:        [ L1W, L2W, L1C, L2L, L5Q, L2X, L5X ]
+            gal:
+                process:                true
+                ambiguity_resolution:   false
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                zero_satellite_dcb:     true
+                # network_amb_pivot:      true
+                code_priorities:        [ L1C, L5Q, L6C, L1X, L5X, L6X ]
+            # glo:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1P, L1C, L2P, L2C ]
+            # qzs:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1C, L2L, L2X ]
+
+    gnss_models:
+        sat_attitude:
+            enable:             true
+            sources:            [model]
+        troposphere:
+            model:              gpt2
+        ionospheric_component:
+            common_ionosphere:  true   # Code and Phase measurment share the same ionosphere
+            use_if_combo:       false 
+
+    model_error_checking:
+        deweighting:
+            deweight_factor:            10000
+            
+        ambiguities:
+            #outage_reset_limit:          1
+            phase_reject_limit:          2
+            reinit_on_all_slips:         true     # (bool) Any detected slips cause removal and reinitialisation of ambiguities
+
+    ambiguity_resolution:
+        elevation_mask:                 15
+        lambda_set_size:                200
+        narrow_lane:
+            mode:                       lambda_bie        # off, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+            success_rate_threshold:     0.99
+            solution_ratio_threshold:   30
+
+    filter_options:
+        outlier_screening:
+            max_filter_iterations:      50 
+            max_prefit_removals:        3 
+
+        rts:
+            enable:                 false 
+
+    minimum_constraints:
+        enable: true
+
+        once_per_epoch: false            # (bool) Perform minimum constraints on a temporary filter and output results once per epoch
+
+        translation:
+            estimated:  [true]
+        rotation:
+            estimated:  [true]
+        scale:
+            estimated:  [false]
+            #sigma:      [1]
+
+        inverter:                   ldlt
+
+        #full_vcv:       true
+        #scale_by_vcv:   true
+        max_filter_iterations:              20
+        max_prefit_removals:                3              # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
+        outlier_screening:
+            chi_square_mode:                none             # (enum)  Chi-square test mode - innovation, measurement, state {NONE,INNOVATION,MEASUREMENT,STATE}
+            chi_square_test:                false            # (bool)  Enable Chi-square test
+            sigma_check:                    true             # (bool)  Enable prefit and postfit sigma check
+            sigma_threshold:                3.000000         # (float) sigma threshold
+            w_test:                         false            # (bool)  Enable w-test
+
+        #default_station_noise: [1]       #constrain all by default
+        #default_station_noise: [0.01, 0.01, 0.01]       #constrain all by default
+
+        station_noise:
+            global: [0.01, 0.01, 0.01]
+
+estimation_parameters:
+
+    stations:
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.4]
+        phase_sigmas:       [0.004]
+
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [1]
+                proc_noise:         [0.0] 
+                proc_noise_dt:      second
+
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [100]
+
+            amb:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [0]
+                #proc_noise_dt:      day
+
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001]
+                proc_noise_dt:      second
+
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+                proc_noise_dt:      second
+        
+            ion_stec:
+                estimated:          [true]
+                sigma:              [200]
+                proc_noise:         [20]
+
+            phase_bias:
+                estimated:          [true]
+                sigma:              [20]
+                proc_noise:         [0]
+        
+            code_bias:
+                estimated:          [true]
+                sigma:              [20]
+                proc_noise:         [0]
+        USN7:
+            clk:
+                estimated:          [false]
+            code_bias:
+                estimated:          [false] 
+            phase_bias:
+                estimated:          [false] 
+        FFMJ:
+            L1X:
+                code_bias:          
+                    estimated:      [false]
+                phase_bias:
+                    estimated:      [false]
+            L1W:
+                phase_bias:
+                    estimated:      [false]
+            L2X:
+                code_bias:          
+                    estimated:      [false]
+                phase_bias:
+                    estimated:          [false]
+            
+            # L3X:
+            #     code_bias:          
+            #         estimated:      [false]
+            L5X:
+                code_bias:          
+                    estimated:      [false]
+                phase_bias:
+                    estimated:      [false]
+            L6X:
+                code_bias:          
+                    estimated:      [false]
+                phase_bias:
+                    estimated:      [false]
+            # L7X:
+            #     code_bias:          
+            #         estimated:      [false]
+            # L8X:
+            #     code_bias:          
+            #         estimated:      [false]
+            
+    satellites:
+        global:
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [1]
+
+            phase_bias:
+                estimated:          [true]
+                sigma:              [20]
+                proc_noise:         [0.01]
+            
+            code_bias:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [0]
+
+        SYS_GPS:
+            L1W:
+                code_bias:
+                    sigma:          [1e-8]
+            L2W:
+                code_bias:
+                    sigma:          [1e-8]
+        SYS_GAL:
+            L1C:
+                code_bias:
+                    sigma:          [1e-8]
+            L5Q:
+                code_bias:
+                    sigma:          [1e-8]

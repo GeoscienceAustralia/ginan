@@ -1,0 +1,55 @@
+
+inputs:
+
+    root_directory: products/
+
+    atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
+    snx_files: [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx ]  # SINEX file for meta data and initial position
+    
+    satellite_data:
+        nav_files: [ brdm1990.19p        ]  # broadcast navigation file
+
+outputs:
+
+    root_directory:             outputs/<CONFIG>/
+
+    sp3:
+        output:             true
+        output_interval:    900
+        output_velocities:  true
+        #output_inertial:    true
+        
+    metadata:
+        config_description:     brdc2sp3
+        analysis_agency:        GAA
+        analysis_center:        Geoscience Australia
+        analysis_program:       AUSACS
+        rinex_comment:          AUSNETWORK1
+    
+processing_options:
+
+    epoch_control:
+        start_epoch:                2019-07-18 00:00:00
+        end_epoch:                  2019-07-19 00:00:00
+        epoch_interval:             900          #seconds
+
+    process_modes:
+        preprocessor:           false
+
+    gnss_general:
+        
+        elevation_mask:     7   #degrees
+    
+        raim:               true
+
+        max_gdop:   30
+        sys_options:
+            gps: { process:    true}
+            gal: { process:    true}
+            glo: { process:    true}
+            bds: { process:    true}
+    
+    gnss_models:
+        sat_attitude:
+            sources:         [model]
+        

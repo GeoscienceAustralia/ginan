@@ -34,7 +34,7 @@ Sinex theSinex(false); // the one and only sinex object.
 // cease to work safely around 2045!
 // when we write years, write out modulo 100
 // This only applies to site data, for satellites it is using 4 digit years
-void nearestYear(int& year)
+void nearestYear(double& year)
 {
 	if (year > 50)	year += 1900;
 	else			year += 2000;
@@ -559,7 +559,7 @@ int read_snx_header(std::ifstream& in)
 		char data_agc[4];
 		char solcontents[7];
 
-		int  readcount = sscanf(p + 6, "%4lf %3s %2d:%3d:%5d %3s %2d:%3d:%5d %2d:%3d:%5d %c %5d %c %c %c %c %c %c %c",
+		int  readcount = sscanf(p + 6, "%4lf %3s %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf %2lf:%3lf:%5lf %c %5d %c %c %c %c %c %c %c",
 						&theSinex.ver,
 						create_agc,
 						&theSinex.filedate[0],
@@ -667,16 +667,16 @@ void write_snx_header(std::ofstream& out)
 	offset += snprintf(line + offset, sizeof(line) - offset, "%%=SNX %4.2lf %3s %2.2d:%3.3d:%5.5d %3s %2.2d:%3.3d:%5.5d %2.2d:%3.3d:%5.5d %c %5d %c",
 			theSinex.ver,
 			theSinex.create_agc.c_str(),
-			theSinex.filedate[0] % 100,
-			theSinex.filedate[1],
-			theSinex.filedate[2],
+			(int)theSinex.filedate[0] % 100,
+			(int)theSinex.filedate[1],
+			(int)theSinex.filedate[2],
 			theSinex.data_agc.c_str(),
-			theSinex.solution_start_date[0] % 100,
-			theSinex.solution_start_date[1],
-			theSinex.solution_start_date[2],
-			theSinex.solution_end_date[0] % 100,
-			theSinex.solution_end_date[1],
-			theSinex.solution_end_date[2],
+			(int)theSinex.solution_start_date[0] % 100,
+			(int)theSinex.solution_start_date[1],
+			(int)theSinex.solution_start_date[2],
+			(int)theSinex.solution_end_date[0] % 100,
+			(int)theSinex.solution_end_date[1],
+			(int)theSinex.solution_end_date[2],
 			theSinex.ObsCode,
 			theSinex.numparam,
 			theSinex.ConstCode);
@@ -771,7 +771,7 @@ void parse_snx_inputHistory(string& s)
 
 		siht.code = s[1];
 
-		readcount = sscanf(p + 6, "%4lf %3s %2d:%3d:%5d %3s %2d:%3d:%5d %2d:%3d:%5d %c %5d %c %c %c %c %c %c %c",
+		readcount = sscanf(p + 6, "%4lf %3s %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf %2lf:%3lf:%5lf %c %5d %c %c %c %c %c %c %c",
 							&siht.fmt,
 							create_agc,
 							&siht.create_time[0],
@@ -833,16 +833,16 @@ void write_snx_input_history(ofstream& out)
 				siht.code,
 				siht.fmt,
 				siht.create_agency.c_str(),
-				siht.create_time[0] % 100,
-				siht.create_time[1],
-				siht.create_time[2],
+				(int)siht.create_time[0] % 100,
+				(int)siht.create_time[1],
+				(int)siht.create_time[2],
 				siht.data_agency.c_str(),
-				siht.start[0] % 100,
-				siht.start[1],
-				siht.start[2],
-				siht.stop[0] % 100,
-				siht.stop[1],
-				siht.stop[2],
+				(int)siht.start[0] % 100,
+				(int)siht.start[1],
+				(int)siht.start[2],
+				(int)siht.stop[0] % 100,
+				(int)siht.stop[1],
+				(int)siht.stop[2],
 				siht.obs_tech,
 				siht.num_estimates,
 				siht.constraint);
@@ -870,7 +870,7 @@ void parse_snx_inputFiles(string& s)
 	sif.file		= s.substr(18, 29);
 	sif.description	= s.substr(48, 32);
 
-	int  readcount = sscanf(p + 1, "%3s %2d:%3d:%5d",
+	int  readcount = sscanf(p + 1, "%3s %2lf:%3lf:%5lf",
 							agency,
 							&sif.yds[0],
 							&sif.yds[1],
@@ -900,9 +900,9 @@ void write_snx_input_files(ofstream& out)
 		int len;
 		snprintf(line, sizeof(line), " %3s %02d:%03d:%05d ",
 				sif.agency.c_str(),
-				sif.yds[0] % 100,
-				sif.yds[1],
-				sif.yds[2]);
+				(int)sif.yds[0] % 100,
+				(int)sif.yds[1],
+				(int)sif.yds[2]);
 
 		// if the filename length is greater than 29 (format spec limit) make into a comment line
 		if (sif.file.length() > 29)
@@ -1032,7 +1032,7 @@ void parse_snx_siteData(string& s)
 
 	int    readcount;
 
-	readcount = sscanf(p + 28, "%2d:%3d:%5d %2d:%3d:%5d %3s %2d:%3d:%5d",
+	readcount = sscanf(p + 28, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf",
 						&start[0], 
 						&start[1],
 						&start[2], 
@@ -1092,16 +1092,16 @@ void write_snx_sitedata(ofstream& out, list<SinexRecData>* pstns)
 				ssd.site_pt.c_str(),
 				ssd.sitesoln.c_str(),
 				ssd.obscode,
-				ssd.start[0] % 100,
-				ssd.start[1],
-				ssd.start[2],
-				ssd.stop[0] % 100,
-				ssd.stop[1],
-				ssd.stop[2],
+				(int)ssd.start[0] % 100,
+				(int)ssd.start[1],
+				(int)ssd.start[2],
+				(int)ssd.stop[0] % 100,
+				(int)ssd.stop[1],
+				(int)ssd.stop[2],
 				ssd.agency.c_str(),
-				ssd.create[0] % 100,
-				ssd.create[1],
-				ssd.create[2]);
+				(int)ssd.create[0] % 100,
+				(int)ssd.create[1],
+				(int)ssd.create[2]);
 
 		if (pstns == nullptr)
 			doit = true;
@@ -1137,7 +1137,7 @@ void parse_snx_receivers(string& s)
 	srt.firm 		= trim(s.substr(69, 11));
 	int readcount;
 
-	readcount = sscanf(p + 16, "%2d:%3d:%5d %2d:%3d:%5d",
+	readcount = sscanf(p + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 						&srt.start[0],
 						&srt.start[1],
 						&srt.start[2],
@@ -1187,12 +1187,12 @@ void write_snx_receivers(ofstream& out)
 					receiver.ptcode		.c_str(),
 					receiver.solnid		.c_str(),
 					receiver.typecode,
-					receiver.start[0] % 100,
-					receiver.start[1],
-					receiver.start[2],
-					receiver.end[0] % 100,
-					receiver.end[1],
-					receiver.end[2],
+					(int)receiver.start[0] % 100,
+					(int)receiver.start[1],
+					(int)receiver.start[2],
+					(int)receiver.end[0] % 100,
+					(int)receiver.end[1],
+					(int)receiver.end[2],
 					receiver.type	.c_str(),
 					receiver.sn		.c_str(),
 					receiver.firm	.c_str());
@@ -1212,7 +1212,7 @@ void parse_snx_antennas(string& s)
 	ant.type		= s.substr(42, 20);
 	ant.sn			= trim(s.substr(63, 5));
 
-	int    readcount = sscanf(p + 16, "%2d:%3d:%5d %2d:%3d:%5d",
+	int    readcount = sscanf(p + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 								&ant.start[0],
 								&ant.start[1],
 								&ant.start[2],
@@ -1263,12 +1263,12 @@ void write_snx_antennas(ofstream& out)
 					ant.ptcode		.c_str(),
 					ant.solnnum		.c_str(),
 					ant.typecode,
-					ant.start[0] % 100,
-					ant.start[1],
-					ant.start[2],
-					ant.end[0] % 100,
-					ant.end[1],
-					ant.end[2],
+					(int)ant.start[0] % 100,
+					(int)ant.start[1],
+					(int)ant.start[2],
+					(int)ant.end[0] % 100,
+					(int)ant.end[1],
+					(int)ant.end[2],
 					ant.type	.c_str(),
 					ant.sn		.c_str());
 	}
@@ -1563,7 +1563,7 @@ void parse_snx_siteEccentricity(string& s)
 	sset.rs			= s.substr(42, 3);
 	char   junk[4];
 
-	int readcount = sscanf(p + 16, "%2d:%3d:%5d %2d:%3d:%5d %3s %8lf %8lf %8lf",
+	int readcount = sscanf(p + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %3s %8lf %8lf %8lf",
 						&sset.start[0],
 						&sset.start[1],
 						&sset.start[2],
@@ -1617,12 +1617,12 @@ void write_snx_site_eccs(ofstream& out)
 					set.ptcode.c_str(),
 					set.solnnum.c_str(),
 					set.typecode,
-					set.start[0] % 100,
-					set.start[1],
-					set.start[2],
-					set.end[0] % 100,
-					set.end[1],
-					set.end[2],
+					(int)set.start[0] % 100,
+					(int)set.start[1],
+					(int)set.start[2],
+					(int)set.end[0] % 100,
+					(int)set.end[1],
+					(int)set.end[2],
 					set.rs.c_str(),
 					set.ecc.u(),
 					set.ecc.n(),
@@ -1655,7 +1655,7 @@ void parse_snx_epochs(string& s)
 	sst.solnnum		= s.substr(9, 4);
 	sst.typecode	= s[14];
 
-	int readcount = sscanf(p + 16, "%2d:%3d:%5d %2d:%3d:%5d %2d:%3d:%5d",
+	int readcount = sscanf(p + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 								&sst.start[0],
 								&sst.start[1],
 								&sst.start[2],
@@ -1714,15 +1714,15 @@ void write_snx_epochs(ofstream& out, list<SinexRecData>* pstns)
 					sst.ptcode.c_str(),
 					sst.solnnum.c_str(),
 					sst.typecode,
-					sst.start[0] % 100,
-					sst.start[1],
-					sst.start[2],
-					sst.end[0] % 100,
-					sst.end[1],
-					sst.end[2],
-					sst.mean[0] % 100,
-					sst.mean[1],
-					sst.mean[2]);
+					(int)sst.start[0] % 100,
+					(int)sst.start[1],
+					(int)sst.start[2],
+					(int)sst.end[0] % 100,
+					(int)sst.end[1],
+					(int)sst.end[2],
+					(int)sst.mean[0] % 100,
+					(int)sst.mean[1],
+					(int)sst.mean[2]);
 
 		if (pstns == nullptr)
 			doit = true;
@@ -1808,7 +1808,7 @@ void parse_snx_solutionEstimates(string& s)
 
 	sst.index		= atoi(s.substr(1, 5).c_str());
 	
-	int	readcount	= sscanf(s.c_str() + 27, "%2d:%3d:%5d",
+	int	readcount	= sscanf(s.c_str() + 27, "%2lf:%3lf:%5lf",
 						&sst.refepoch[0],
 						&sst.refepoch[1],
 						&sst.refepoch[2]);
@@ -1869,9 +1869,9 @@ void write_snx_estimates_from_filter(ofstream& out)
 				key.str.c_str(),
 				ptcode.c_str(),
 				1,
-				theSinex.solution_end_date[0] % 100,
-				theSinex.solution_end_date[1],
-				theSinex.solution_end_date[2],
+				(int)theSinex.solution_end_date[0] % 100,
+				(int)theSinex.solution_end_date[1],
+				(int)theSinex.solution_end_date[2],
 				"m",
 				'9',	// TODO: replace with sst.constraint when fixed
 						theSinex.kfState.x(index),
@@ -1944,7 +1944,7 @@ void parse_snx_apriori(string& s)
 
 	unit[4] = '\0';
 
-	int    readcount = sscanf(s.c_str() + 27, "%2d:%3d:%5d %4s %c %21lf %11lf",
+	int    readcount = sscanf(s.c_str() + 27, "%2lf:%3lf:%5lf %4s %c %21lf %11lf",
 								&sst.epoch[0],
 								&sst.epoch[1],
 								&sst.epoch[2],
@@ -2001,9 +2001,9 @@ void write_snx_apriori(ofstream& out, list<SinexRecData>* pstns = nullptr)
 				sst.sitecode.c_str(),
 				sst.ptcode.c_str(),
 				sst.solnnum.c_str(),
-				sst.epoch[0] % 100,
-				sst.epoch[1],
-				sst.epoch[2],
+				(int)sst.epoch[0] % 100,
+				(int)sst.epoch[1],
+				(int)sst.epoch[2],
 				sst.unit.c_str(),
 				sst.constraint,
 				sst.param,
@@ -2042,9 +2042,9 @@ void write_snx_apriori_from_stations(
 					id.c_str(),
 					sst.id_ptr->ptcode.c_str(),
 					1, //sst.solnnum.c_str(),
-					rec.aprioriTime[0] % 100,
-					rec.aprioriTime[1],
-					rec.aprioriTime[2],
+					(int)rec.aprioriTime[0] % 100,
+					(int)rec.aprioriTime[1],
+					(int)rec.aprioriTime[2],
 					"m", //sst.unit.c_str(),
 					'3',//sst.constraint,
 					rec.aprioriPos(i),// sst.param,
@@ -2069,7 +2069,7 @@ void parse_snx_normals(string& s)
 
 	unit[4] = '\0';
 
-	int    readcount = sscanf(s.c_str() + 27, "%2d:%3d:%5d %4s %c %21lf",
+	int    readcount = sscanf(s.c_str() + 27, "%2lf:%3lf:%5lf %4s %c %21lf",
 						&sst.epoch[0],
 						&sst.epoch[1],
 						&sst.epoch[2],
@@ -2122,9 +2122,9 @@ void write_snx_normal(ofstream& out, list<SinexRecData>* pstns = nullptr)
 				sst.site.c_str(),
 				sst.pt.c_str(),
 				sst.solnnum.c_str(),
-				sst.epoch[0] % 100,
-				sst.epoch[1],
-				sst.epoch[2],
+				(int)sst.epoch[0] % 100,
+				(int)sst.epoch[1],
+				(int)sst.epoch[2],
 				sst.unit.c_str(),
 				sst.constraint,
 				sst.normal);
@@ -2273,11 +2273,11 @@ void parse_snx_dataHandling(string& s)
 	if (s.size() >= 75+4)
 		sdt.comments	= s.substr(75, 4);	//4
 
-	int	readcount	= sscanf(s.c_str() + 16, "%2d:%3d:%5d",
+	int	readcount	= sscanf(s.c_str() + 16, "%2lf:%3lf:%5lf",
 					&sdt.epochstart[0],
 					&sdt.epochstart[1],
 					&sdt.epochstart[2]);
-	readcount		+= sscanf(s.c_str() + 29, "%2d:%3d:%5d",
+	readcount		+= sscanf(s.c_str() + 29, "%2lf:%3lf:%5lf",
 					&sdt.epochend[0],
 					&sdt.epochend[1],
 					&sdt.epochend[2]);
@@ -2422,7 +2422,7 @@ void parse_snx_satelliteIds(string& s)
 
 	const char* p = s.c_str() + 21;
 
-	int 	readcount = sscanf(p, "%2d:%3d:%5d %2d:%3d:%5d",
+	int 	readcount = sscanf(p, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 						&sst.timeSinceLaunch[0],
 						&sst.timeSinceLaunch[1],
 						&sst.timeSinceLaunch[2],
@@ -2455,12 +2455,12 @@ void write_snx_satids(ofstream& out)
 				ssi.prn.c_str() + 1,
 				ssi.cospar.c_str(),
 				ssi.obsCode,
-				ssi.timeSinceLaunch[0],
-				ssi.timeSinceLaunch[1],
-				ssi.timeSinceLaunch[2],
-				ssi.timeUntilDecom[0],
-				ssi.timeUntilDecom[1],
-				ssi.timeUntilDecom[2],
+				(int)ssi.timeSinceLaunch[0],
+				(int)ssi.timeSinceLaunch[1],
+				(int)ssi.timeSinceLaunch[2],
+				(int)ssi.timeUntilDecom[0],
+				(int)ssi.timeUntilDecom[1],
+				(int)ssi.timeUntilDecom[2],
 				ssi.antRcvType.c_str());
 
 		out << line << endl;
@@ -2528,7 +2528,7 @@ void parse_snx_satprns(string& s)
 	spt.prn			= s.substr(36, 3);
 	spt.comment		= s.substr(40);
 
-	int readcount = sscanf(s.c_str() + 6, "%4d:%3d:%5d %4d:%3d:%5d",
+	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf",
 						&spt.start[0],
 						&spt.start[1],
 						&spt.start[2],
@@ -2557,12 +2557,12 @@ void write_snx_satprns(ofstream& out)
 	{
 		snprintf(line, sizeof(line), " %4s %4.4d:%3.3d:%5.5d %4.4d:%3.3d:%5.5d %3s %s",
 				spt.svn.c_str(),
-				spt.start[0],
-				spt.start[1],
-				spt.start[2],
-				spt.stop[0],
-				spt.stop[1],
-				spt.stop[2],
+				(int)spt.start[0],
+				(int)spt.start[1],
+				(int)spt.start[2],
+				(int)spt.stop[0],
+				(int)spt.stop[1],
+				(int)spt.stop[2],
 				spt.prn.c_str(),
 				spt.comment.c_str());
 
@@ -2597,7 +2597,7 @@ void parse_snx_satfreqchannels(string& s)
 	sfc.svn		= s.substr(1, 4);
 	sfc.comment	= s.substr(40);
 
-	int readcount = sscanf(s.c_str() + 6, "%4d:%3d:%5d %4d:%3d:%5d %3d",
+	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %3d",
 						&sfc.start[0],
 						&sfc.start[1],
 						&sfc.start[2],
@@ -2625,12 +2625,12 @@ void write_snx_satfreqchn(ofstream& out)
 
 		snprintf(line, sizeof(line), " %4s %4.4d:%3.3d:%5.5d %4.4d:%3.3d:%5.5d %3d %s",
 				sfc.svn.c_str(),
-				sfc.start[0],
-				sfc.start[1],
-				sfc.start[2],
-				sfc.stop[0],
-				sfc.stop[1],
-				sfc.stop[2],
+				(int)sfc.start[0],
+				(int)sfc.start[1],
+				(int)sfc.start[2],
+				(int)sfc.stop[0],
+				(int)sfc.stop[1],
+				(int)sfc.stop[2],
 				sfc.channel,
 				sfc.comment.c_str());
 
@@ -2667,7 +2667,7 @@ void parse_snx_satelliteMass(string& s)
 	ssm.svn		= s.substr(1, 4);
 	ssm.comment	= s.substr(46);
 
-	int readcount = sscanf(s.c_str() + 6, "%4d:%3d:%5d %4d:%3d:%5d %9lf",
+	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %9lf",
 						&ssm.start[0],
 						&ssm.start[1],
 						&ssm.start[2],
@@ -2696,12 +2696,12 @@ void write_snx_satmass(ofstream& out)
 
 		snprintf(line, sizeof(line), " %4s %4.4d:%3.3d:%5.5d %4.4d:%3.3d:%5.5d %9.3lf %s",
 				ssm.svn.c_str(),
-				ssm.start[0],
-				ssm.start[1],
-				ssm.start[2],
-				ssm.stop[0],
-				ssm.stop[1],
-				ssm.stop[2],
+				(int)ssm.start[0],
+				(int)ssm.start[1],
+				(int)ssm.start[2],
+				(int)ssm.stop[0],
+				(int)ssm.stop[1],
+				(int)ssm.stop[2],
 				ssm.mass,
 				ssm.comment.c_str());
 
@@ -2738,7 +2738,7 @@ void parse_snx_satelliteComs(string& s)
 	sct.svn		= s.substr(1, 4);
 	sct.comment	= s.substr(66);
 
-	int readcount = sscanf(s.c_str() + 6, "%4d:%3d:%5d %4d:%3d:%5d %9lf %9lf %9lf",
+	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %9lf %9lf %9lf",
 						&sct.start[0],
 						&sct.start[1],
 						&sct.start[2],
@@ -2768,12 +2768,12 @@ void write_snx_satcom(ofstream& out)
 
 		snprintf(line, sizeof(line), " %4s %4.4d:%3.3d:%5.5d %4.4d:%3.3d:%5.5d %9.4lf %9.4lf %9.4lf %s",
 				sct.svn.c_str(),
-				sct.start[0],
-				sct.start[1],
-				sct.start[2],
-				sct.stop[0],
-				sct.stop[1],
-				sct.stop[2],
+				(int)sct.start[0],
+				(int)sct.start[1],
+				(int)sct.start[2],
+				(int)sct.stop[0],
+				(int)sct.stop[1],
+				(int)sct.stop[2],
 				sct.com[0],
 				sct.com[1],
 				sct.com[2],
@@ -2876,7 +2876,7 @@ void parse_snx_satellitePowers(string& s)
 	spt.svn		= s.substr(1, 4);
 	spt.comment	= s.substr(41);
 
-	int readcount = sscanf(s.c_str() + 6, "%4d:%3d:%5d %4d:%3d:%5d %4d",
+	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %4d",
 						&spt.start[0],
 						&spt.start[1],
 						&spt.start[2],
@@ -2905,12 +2905,12 @@ void write_snx_satpower(ofstream& out)
 
 		snprintf(line, sizeof(line), " %4s %4.4d:%3.3d:%5.5d %4.4d:%3.3d:%5.5d %4d %s",
 				spt.svn.c_str(),
-				spt.start[0],
-				spt.start[1],
-				spt.start[2],
-				spt.stop[0],
-				spt.stop[1],
-				spt.stop[2],
+				(int)spt.start[0],
+				(int)spt.start[1],
+				(int)spt.start[2],
+				(int)spt.stop[0],
+				(int)spt.stop[1],
+				(int)spt.stop[2],
 				spt.power,
 				spt.comment.c_str());
 
@@ -3016,7 +3016,7 @@ void parseSinexSatYawRates(string& line)
 	entry.svn			= line.substr(1, 4);
 	entry.comment		= line.substr(51);
 
-	int readCount = sscanf(line.c_str() + 6, "%4d:%3d:%5d %4d:%3d:%5d    %c %8lf",
+	int readCount = sscanf(line.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf    %c %8lf",
 						&entry.start[0],
 						&entry.start[1],
 						&entry.start[2],
@@ -3420,16 +3420,23 @@ void sinex_add_comment(const string what)
 	theSinex.blockComments["FILE/COMMENT"].push_back(what);
 }
 
-void sinex_add_file(const string& who, const GTime& time, const string& filename, const string& description)
+void sinex_add_files(
+	const string&			who,
+	const GTime&			time, 
+	const vector<string>&	filenames, 
+	const string&			description)
 {
-	Sinex_input_file_t	sif;
+	for (auto& filename : filenames)
+	{
+		Sinex_input_file_t	sif;
 
-	sif.yds			= time;
-	sif.agency		= who;
-	sif.file		= filename;
-	sif.description	= description;
+		sif.yds			= time;
+		sif.agency		= who;
+		sif.file		= filename;
+		sif.description	= description;
 
-	theSinex.inputFiles.push_back(sif);
+		theSinex.inputFiles.push_back(sif);
+	}
 }
 
 int sinex_site_count()

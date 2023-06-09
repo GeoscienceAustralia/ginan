@@ -8,34 +8,9 @@
 #include "ionoModel.hpp"
 
 map<KFKey, map<int, BiasEntry>> SINEXBiases_out;
-long int	BottomOfFile = 0;
-UYds 		StartTimeofFile;
+long int	bottomOfFile = 0;
+double 		startTimeofFile[3];
 string		lastBiasSINEXFile = "";
-
-/* Adjust time reference for bias SINEX file (will be UTC by default) */
-void convertTime(GTime &time, string system)
-{
-	if (acsConfig.bias_time_system == "UTC")
-		return;
-	
-	if (acsConfig.bias_time_system == "R")
-	{
-		time += 10800.0;
-		return;
-	}
-	
-	double leap1 = leapSeconds(time);
-	double leap2 = leapSeconds(time + leap1 + 1);
-	time += leap2;
-	
-	if (acsConfig.bias_time_system == "C")
-		time -= 14;
-	
-	if (acsConfig.bias_time_system == "TAI")
-		time += 19;
-	
-	return;
-}
 
 /** Determine if the bias is an OSB or DSB given observation codes
 */
@@ -53,38 +28,39 @@ string	biasType(
 */
 void updateFirstLine(
 	GTime		time, 				///< Time of bias to write
-	Trace&		trace,			///< Trace to output to
+	E_TimeSys	tsys,				///< Time system
+	Trace&		trace,				///< Trace to output to
 	int 		numbias)			///< Number of biases to be written
 {
 	GTime now = timeGet();
 	
-	convertTime(now,acsConfig.bias_time_system);
-	
-	UYds  yds_now = now;
-	UYds  ydsTime = now;
+	double ydsNow[3];
+	time2yds(now,  ydsNow, tsys);
+
+	double ydsEnd[3];
+	time2yds(time, ydsEnd, tsys);
 
 	trace.seekp(0);
-	tracepdeex(0, trace, "%%=BIA 1.00 %3s %4d:%03d:%05d ", acsConfig.analysis_agency.c_str(), yds_now[0], yds_now[1], yds_now[2]); 
-	tracepdeex(0, trace, "%3s %4d:%03d:%05d ",acsConfig.analysis_agency.c_str(), StartTimeofFile[0], StartTimeofFile[1], StartTimeofFile[2]);
-	tracepdeex(0, trace, "%4d:%03d:%05d A %8d\n", ydsTime[0], ydsTime[1], ydsTime[2], numbias);
+	tracepdeex(0, trace, "%%=BIA 1.00 %3s %4d:%03d:%05d ", acsConfig.analysis_agency.c_str(), (int)ydsNow[0], (int)ydsNow[1], (int)ydsNow[2]);
+	tracepdeex(0, trace, "%3s %4d:%03d:%05d ",acsConfig.analysis_agency.c_str(), (int)startTimeofFile[0], (int)startTimeofFile[1], (int)startTimeofFile[2]);
+	tracepdeex(0, trace, "%4d:%03d:%05d A %8d\n", (int)ydsEnd[0], (int)ydsEnd[1], (int)ydsEnd[2], numbias);
 }
 
 /** Write bias SINEX head for the first time
 */
 void writeBSINEXHeader(
 	GTime		time, 				///< Time of bias to write
-	Trace&		trace,			///< Trace to output to
+	E_TimeSys	tsys,				///< Time system
+	Trace&		trace,				///< Trace to output to
 	double		updateInterval) 	///< Bias Update Interval (seconds)
 {
-	GTime tim =time;
-	convertTime(tim,acsConfig.bias_time_system);
-	StartTimeofFile = tim;
-	updateFirstLine(time, trace, 0);
+	time2yds(time, startTimeofFile, tsys);
+	updateFirstLine(time, tsys, trace, 0);
 	
 	tracepdeex(0, trace, "*-------------------------------------------------------------------------------\n");
 	tracepdeex(0, trace, "+FILE/REFERENCE\n");
 	tracepdeex(0, trace, " DESCRIPTION       %s, %s\n",acsConfig.analysis_agency.c_str(), acsConfig.analysis_center.c_str());
-	tracepdeex(0, trace, " OUTPUT            OSB estimates for day %3d, %4d\n", StartTimeofFile[1], StartTimeofFile[0]);
+	tracepdeex(0, trace, " OUTPUT            OSB estimates for day %3d, %4d\n", startTimeofFile[1], startTimeofFile[0]);
 	tracepdeex(0, trace, " CONTACT           %s\n", acsConfig.ac_contact.c_str());
 	tracepdeex(0, trace, " SOFTWARE          %s\n", acsConfig.analysis_program.c_str());
 	tracepdeex(0, trace, " INPUT             %s\n", acsConfig.rinex_comment.c_str());
@@ -97,7 +73,7 @@ void writeBSINEXHeader(
 	tracepdeex(0, trace, " PARAMETER_SPACING                       %12.0f\n", updateInterval);
 	tracepdeex(0, trace, " DETERMINATION_METHOD                    COMBINED_ANALYSIS\n");
 	tracepdeex(0, trace, " BIAS_MODE                               ABSOLUTE\n");
-	tracepdeex(0, trace, " TIME_SYSTEM                             %s  \n",acsConfig.bias_time_system.c_str());
+	tracepdeex(0, trace, " TIME_SYSTEM                             %s  \n", acsConfig.bias_time_system.c_str());
 	
 	E_Sys refConst = acsConfig.receiver_reference_clk;
 	tracepdeex(0, trace, " RECEIVER_CLOCK_REFERENCE_GNSS           %c\n", refConst._to_string()[0]);
@@ -129,18 +105,20 @@ void writeBSINEXHeader(
 	tracepdeex(0, trace, "+BIAS/SOLUTION\n");
 	tracepdeex(0, trace, "*BIAS SVN_ PRN STATION__ OBS1 OBS2 BIAS_START____ BIAS_END______ UNIT __ESTIMATED_VALUE____ _STD_DEV___\n");
 	
-	BottomOfFile = trace.tellp();
+	bottomOfFile = trace.tellp();
 }
 
 /** print bias SINEX data line
 */
 int writeBSINEXLine(
-	GTime		time,
+	GTime		time,			///< Time of bias to write
+	E_TimeSys	tsys,			///< Time system
 	BiasEntry&	bias,			///< Bias entry to write
-	Trace&		trace)		///< Stream to output to
+	Trace&		trace)			///< Stream to output to
 {
 	string typstr = biasType(bias.cod1, bias.cod2);
-	if	( typstr != "OSB")
+	
+	if (typstr != "OSB")
 		return 0;
 	
 	
@@ -158,19 +136,21 @@ int writeBSINEXLine(
 		svn = bias.Sat.svn();
 	}
 	
-	
 	string cod1 = code2str(bias.cod1, bias.measType);
 	string cod2 = code2str(bias.cod2, bias.measType);
 	
-	bool newbotton = false;
+	bool newbottom = false;
 	if (bias.posInOutFile < 0)
 	{
-		trace.seekp(BottomOfFile);
-		bias.posInOutFile = BottomOfFile;
-		newbotton = true;
+		trace.seekp(bottomOfFile);
+		
+		bias.posInOutFile = bottomOfFile;
+		newbottom = true;
 	}
 	else
+	{
 		trace.seekp(bias.posInOutFile);
+	}
 	
 	tracepdeex(0, trace, " %-4s %4s %3s %-9s %-4s %-4s",
 			typstr.c_str(), 
@@ -180,22 +160,18 @@ int writeBSINEXLine(
 			cod1.c_str(),
 			cod2.c_str());
 	
-	GTime tim; 
-	tim = bias.tini;
-	convertTime(tim,acsConfig.bias_time_system);
-	UYds tini = tim;
-	
-	tim = bias.tfin;
-	convertTime(tim,acsConfig.bias_time_system);
-	UYds tend = tim;
+	double tini[3];
+	double tend[3];
+	time2yds(bias.tini, tini, tsys);
+	time2yds(bias.tfin, tend, tsys);
 	
 	tracepdeex(0, trace, " %4d:%03d:%05d %4d:%03d:%05d %-4s",
-			tini[0],
-			tini[1],
-			tini[2], 
-			tend[0],
-			tend[1],
-			tend[2], 
+			(int)tini[0],
+			(int)tini[1],
+			(int)tini[2], 
+			(int)tend[0],
+			(int)tend[1],
+			(int)tend[2], 
 			"ns");
 	
 	tracepdeex(0, trace, " %21.5f",     bias.bias * (1E9/CLIGHT));
@@ -203,8 +179,8 @@ int writeBSINEXLine(
 	
 	tracepdeex(0, trace, "\n");
 	
-	if (newbotton)
-		BottomOfFile = trace.tellp();
+	if (newbottom)
+		bottomOfFile = trace.tellp();
 		
 	return 1;
 }
@@ -368,13 +344,20 @@ int writeBiasSinex(
 		tracepdeex(2, trace, "ERROR: cannot open bias SINEX output: %s\n", biasfile.c_str());
 		return -1;
 	} 
-	
+
 	if	(  acsConfig.ambrOpts.code_output_interval	<= 0
 		&& acsConfig.ambrOpts.phase_output_interval	<= 0)
 	{
 		return 0;
 	}
 	
+	E_TimeSys tsys = E_TimeSys::NONE;
+	if		(acsConfig.bias_time_system == "G")		tsys = E_TimeSys::GPST;
+	else if	(acsConfig.bias_time_system == "C")		tsys = E_TimeSys::BDT;
+	else if	(acsConfig.bias_time_system == "R")		tsys = E_TimeSys::GLONASST;
+	else if	(acsConfig.bias_time_system == "UTC")	tsys = E_TimeSys::UTC;
+	else if	(acsConfig.bias_time_system == "TAI")	tsys = E_TimeSys::TAI;
+
 	if (biasfile != lastBiasSINEXFile)
 	{
 		tracepdeex(3, trace, "\nStarting new bias SINEX file: %s\n", biasfile.c_str());
@@ -405,7 +388,7 @@ int writeBiasSinex(
 		
 		SINEXBiases_out.clear();
 		
-		writeBSINEXHeader(time0, outputStream, updt2);	
+		writeBSINEXHeader(time0, tsys, outputStream, updt2);	
 		
 		lastBiasSINEXFile = biasfile;
 	}
@@ -423,7 +406,7 @@ int writeBiasSinex(
 		numbias++;
 	}
 	
-	updateFirstLine(time, outputStream, numbias);
+	updateFirstLine(time, tsys, outputStream, numbias);
 	
 	for (auto& [Key, biasMap] : SINEXBiases_out)
 	for (auto& [ind, bias]    : biasMap)
@@ -436,7 +419,7 @@ int writeBiasSinex(
 		
 		tracepdeex(5,trace,"\n CODE bias for %s %2d %s ... at pos %d", bias.Sat.id().c_str(), bias.cod1._to_string(), ind, bias.posInOutFile);
 		
-		writeBSINEXLine(time, bias, outputStream);
+		writeBSINEXLine(time, tsys, bias, outputStream);
 	}
 	
 	for (auto& [Key, biasMap] : SINEXBiases_out)
@@ -450,14 +433,30 @@ int writeBiasSinex(
 		
 		tracepdeex(5,trace,"\n PHASE bias for %s %2d %s ... at pos %d", bias.Sat.id().c_str(), bias.cod1._to_string(), ind, bias.posInOutFile);
 		
-		writeBSINEXLine(time, bias, outputStream);
+		writeBSINEXLine(time, tsys, bias, outputStream);
 	}
 	
-	outputStream.seekp(BottomOfFile);
+	outputStream.seekp(bottomOfFile);
 	
 	tracepdeex(0, outputStream, "-BIAS/SOLUTION\n%%=ENDBIA");
 	
 	return numbias;
+}
+
+int writeBiasSinex(
+	Trace&		trace,			///< Trace to output to
+	GTime		time,			///< Time of bias to write
+	string		biasfile,		///< File to write
+	StationMap&	stationMap,		///< stations for which to output receiver biases
+	KFState&	kfState)		///< KF strunct from witch to extract bias estimations
+{
+	if (acsConfig.process_ppp && !overwriteIonoKF (kfState))
+		overwriteFixedKF(kfState);
+	
+	if (acsConfig.process_ionosphere && !overwriteIonoKF (kfState))
+		return 0;
+	
+	return writeBiasSinex(std::cout, time,	biasfile, stationMap);
 }
 
 /** Find and combine biases from multiple sources: 
@@ -478,7 +477,7 @@ bool queryBiasOutput(
 	variance = 0;
 	E_FType ftyp = code2Freq[Sat.sys][obsCode];
 	
-	tracepdeex(2,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string(0).c_str());
+	tracepdeex(3,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string(0).c_str());
 	
 	if (acsConfig.process_ppp)					/* Ginan 2.x	*/
 	{
@@ -488,7 +487,7 @@ bool queryBiasOutput(
 		if (!queryBiasUC(trace, time, Sat, Rec, obsCode, pppBias, pppVar, type))
 			return false;
 		
-		tracepdeex(2,trace,"found UC %.4f %.4e", bias, variance);
+		tracepdeex(4,trace,"found UC %.4f %.4e", bias, variance);
 		bias		+= pppBias;
 		variance	+= pppVar;
 	}

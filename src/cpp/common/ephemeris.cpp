@@ -162,8 +162,14 @@ bool satpos(
 		satPos.posSource	= ephType;
 		satPos.ephPosValid	= true;
 		
+		if (ephType == +E_Source::SSR)
+		{
+			satPos.clkSource	= ephType;
+			satPos.ephClkValid	= true;
+		}
+		
 		if 	(ephType == +E_Source::SSR												&& acsConfig.ssr_input_antenna_offset == +E_OffsetType::UNSPECIFIED)
-			BOOST_LOG_TRIVIAL(error) << "Error: ssr_input_antenna_offset has not been set in config.\n";
+			BOOST_LOG_TRIVIAL(error) << "Error: ssr_antenna_offset has not been set in config.\n";
 
 		if	(ephType == +E_Source::SSR			&& offsetType == +E_OffsetType::APC	&& acsConfig.ssr_input_antenna_offset == +E_OffsetType::COM)		antennaScalar = +1;
 		if	(ephType == +E_Source::SSR			&& offsetType == +E_OffsetType::COM	&& acsConfig.ssr_input_antenna_offset == +E_OffsetType::APC)		antennaScalar = -1;
@@ -196,17 +202,10 @@ bool satpos(
 		
 		E_FType j;
 		E_FType k;
+		E_FType l;
 		E_Sys sys = satPos.Sat.sys;
-		switch (sys)
-		{
-			case E_Sys::GPS: j = F1;	k = (acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L5_ONLY) ? F5 : F2; 	break;
-			case E_Sys::GLO: j = G1;	k = G2; 	break;
-			case E_Sys::GAL: j = F1;	k = F5; 	break;
-			case E_Sys::BDS: j = B1;	k = B3; 	break;
-			case E_Sys::QZS: j = F1;	k = F2; 	break;
-			case E_Sys::SBS: j = F1;	k = F5; 	break;
-			default: return false;
-		}
+		if (!satFreqs(sys,j,k,l))
+			return false;
 		
 		if	( satPos.satNav_ptr->lamMap.empty()
 			||satPos.satNav_ptr->lamMap[j] == 0
@@ -231,7 +230,7 @@ void adjustRelativity(
 {
 	E_Relativity clockHasRelativity;
 	
-	if (satPos.clkSource == +E_Source::BROADCAST && satPos.Sat.sys == +E_Sys::GLO)	clockHasRelativity = E_Relativity::ON;
+	if (satPos.clkSource == +E_Source::BROADCAST && satPos.Sat.sys == +E_Sys::GLO)	clockHasRelativity = E_Relativity::ON;	// Ref: RTCM STANDARD 10403.3
 	else																			clockHasRelativity = E_Relativity::OFF;
 	
 	if (clockHasRelativity == applyRelativity)
@@ -259,18 +258,18 @@ bool satPosClk(
 	Navigation&			nav,				///< Navigation data
 	vector<E_Source>	posSources,			///< Source of ephemeris data
 	vector<E_Source>	clkSources,			///< Source of ephemeris data
+	const KFState*		kfState_ptr,		///< Optional pointer to a kalman filter to take values from
 	E_OffsetType		offsetType,			///< Point of satellite to output position of
-	E_Relativity		applyRelativity,	///< Option to apply relativistic correction to clock
-	const KFState*		kfState_ptr)		///< Optional pointer to a kalman filter to take values from
+	E_Relativity		applyRelativity)	///< Option to apply relativistic correction to clock
 {
-	tracepdeex(3, trace, "\n%-10s: teph=%s %s", __FUNCTION__, teph.to_string(3).c_str(), obs.Sat.id());
-
 	if (obs.exclude)
 	{
 		obs.failureExclude = true;
 		
 		return false;
 	}
+
+	tracepdeex(3, trace, "\n%-10s: teph=%s %s", __FUNCTION__, teph.to_string(3).c_str(), obs.Sat.id());
 
 	double pr = 0;
 
@@ -313,7 +312,7 @@ bool satPosClk(
 
 	tracepdeex(5, trace, "\neph time %s %s pr=%.5f, satClk= %.5f", obs.Sat.id().c_str(), time.to_string(3).c_str(), pr / CLIGHT, obs.satClk);
 	
-	time -= obs.satClk;
+	time -= obs.satClk;	// Eugene: what if using ssr?
 	
 	// satellite position and clock at transmission time
 	pass = satpos(trace, time, teph, obs, posSources, offsetType,	nav,	kfState_ptr);
@@ -329,13 +328,14 @@ bool satPosClk(
 	
 	adjustRelativity(obs, applyRelativity);
 	
-	tracepdeex(4, trace, "\n%s sat=%s rs=%13.3f %13.3f %13.3f dtSat=%12.3f var=%7.3f ephPosValid=%1X %s ephClkValid=%1X %s",
+	tracepdeex(4, trace, "\n%s sat=%s rs=%13.3f %13.3f %13.3f dtSat=%12.3f varPos=%7.3f varClk=%7.3f ephPosValid=%1X %s ephClkValid=%1X %s",
 			obs.time.to_string(6).c_str(),
 			obs.Sat.id().c_str(),
 			obs.rSat[0],
 			obs.rSat[1],
 			obs.rSat[2],
 			obs.satClk * 1E9,
+			obs.posVar,
 			obs.satClkVar,
 			obs.ephPosValid,
 			obs.posSource._to_string(),

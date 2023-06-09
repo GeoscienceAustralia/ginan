@@ -1,0 +1,32 @@
+
+inputs:
+
+    root_directory: products/
+    
+    snx_files:  [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx, IGS1R03SNX_20191950000_07D_07D_CRD.SNX ] 
+    atx_files:  [ igs20.atx                                     ]  
+    blq_files:  [ OLOAD_GO.BLQ                                  ]  
+    erp_files:  [ igs19P2062.erp                                ]       
+    egm_files:  [ tables/EGM2008.gfc                            ]  
+    jpl_files:  [ tables/DE436.1950.2050                        ]  
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat                   ]
+    
+    satellite_data:
+        nav_files: [ brdm1990.19p                               ]
+        clk_files: [ IGS2R03FIN_20191990000_01D_30S_CLK.CLK     ] 
+        bsx_files: [ IGS2R03FIN_20191990000_01D_01D_OSB.BIA     ] 
+        sp3_files:
+        - IGS2R03FIN_20191980000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20192000000_01D_05M_ORB.SP3
+    
+    troposphere:
+        orography_files: orography_ell_5x5
+        gpt2grid_files:  gpt_25.grd
+        vmf_files:       
+        - grid5/VMF3_20190718.H00
+        - grid5/VMF3_20190718.H06
+        - grid5/VMF3_20190718.H12
+        - grid5/VMF3_20190718.H18
+        - grid5/VMF3_20190719.H00
+

@@ -1,0 +1,56 @@
+
+inputs:
+
+    gnss_observations:
+
+        inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/" 
+        rtcm_inputs:
+            - "GATT00AUS0"
+            
+    satellite_data:
+
+        inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/" 
+        rtcm_inputs:
+            - "BCEP00BKG0"
+            - "SSRA02IGS0"
+        
+outputs:
+
+    root_directory:     outputs/recordings/<CONFIG>
+    
+    rtcm_nav:
+        output:         true
+    
+    rinex_nav:
+        output:         true
+    
+    rtcm_obs:
+        output:         true
+        
+    rinex_obs:
+        output:         true
+        
+    metadata:
+        config_description:     "recording1"
+        
+processing_options:
+
+    epoch_control:
+        epoch_interval:             1    
+        wait_next_epoch:            10
+        wait_all_stations:          1
+        #max_epochs:                 3600
+        require_obs:                false
+    
+    process_modes:
+        preprocessor:               false
+        spp:                        false
+        
+    gnss_general:
+        delete_old_ephemerides:     true
+        sys_options:
+            gps:
+                process:            true
+            gal:
+                process:            true
+    

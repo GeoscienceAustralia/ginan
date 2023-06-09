@@ -62,15 +62,15 @@ struct Eph : BrdcEph, KeplerEph
 {    
 	E_NavMsgType	type = E_NavMsgType::NONE;	///< message type
 	SatSys	Sat;		///< satellite number
-	int		iode;		///< GPS/QZS: IODE, GAL: IODnav
-	int		iodc;		///< IODC
+	int		iode = -1;	///< GPS/QZS: IODE, GAL: IODnav
+	int		iodc = -1;	///< IODC
 	int		aode;		///< BDS AODE
 	int		aodc;		///< BDS AODC
 	int		sva;		///< SV accuracy (URA index)
 	E_Svh	svh;		///< SV health
 	int		week;		///< GPS/QZS: gps week, GAL:gps week (i.e. galileo week + 1024), BDS: beidou week
-	int		code;		///< GPS/QZS: code on L2, GAL: data source
-	int		flag;		///< GPS L2 P data flag
+	int		code = 0;	///< GPS/QZS: code on L2, GAL: data source
+	int		flag = 0;	///< GPS L2 P data flag
 	GTime	toc;		///< time of clock
 	GTime	toe;		///< time of ephemeris
 	GTime	ttm;		///< transmission time
@@ -110,8 +110,8 @@ struct Eph : BrdcEph, KeplerEph
 	int		e5b_dvs	= 0;	///< GAL E5b data validity status
 	int		e1_hs	= 0;	///< GAL E1 signal health status
 	int		e1_dvs	= 0;	///< GAL E1 data validity status
-	double	ttms;			///< transmission time (s) within week
-	int		fitFlag;		///< fit flag
+	double	ttms	= 0;	///< transmission time (s) within week
+	int		fitFlag	= 0;	///< fit flag
 
 
 	template<class ARCHIVE>
@@ -163,7 +163,7 @@ struct Geph : BrdcEph
 {       
 	E_NavMsgType	type = E_NavMsgType::NONE;	///< message type
 	SatSys		Sat;		///< satellite number 
-	int			iode;		///< IODE (0-6 bit of tb field) 
+	int			iode = -1;	///< IODE (0-6 bit of tb field) 
 	int			frq;		///< satellite frequency number
 	E_Svh		svh;		///< satellite health
 	int			sva;		///< satellite accuracy
@@ -238,9 +238,11 @@ struct Seph : BrdcEph
 	VectorEcef	acc;			///< satellite acceleration (m/s^2) (ecef) 
 	double		af0		= 0;	///< satellite clock-offset/drift (s) 
 	double		af1		= 0;	///< satellite clock-drift (s/s) 
-	int			iode	= 0;	//unused, for templating only
+	int			iode	= -1;	//unused, for templating only
 	GTime		toe;			//unused, for templating only
-};
+
+	double		tofs;			///< TOF (s) within the week
+ };
 
 /** GPS/QZS CNAV/CNAV-2 or BDS CNAV-1/CNAV-2/CNAV-3 ephemeris
 */
@@ -249,8 +251,8 @@ struct Ceph : KeplerEph
 	E_NavMsgType	type	= E_NavMsgType::NONE;	///< message type
 	E_SatType		orb		= E_SatType::NONE;		///< BDS sat/orbit type
 	SatSys	Sat;			///< satellite number
-	int		iode	= 0;	///< BDS CNAV1/CNV2 IODE
-	int		iodc	= 0;	///< BDS CNAV1/CNV2 IODC
+	int		iode	= -1;	///< BDS CNAV1/CNV2 IODE
+	int		iodc	= -1;	///< BDS CNAV1/CNV2 IODC
 	E_Svh	svh;			///< SV health
 	int		wnop	= 0;	///< GPS/QZS: GPS week number (of prediction?) with AR
 	int		flag	= 0;	///< BDS B1C/B2a+B1C/B2b integrity flags
@@ -277,6 +279,8 @@ struct Ceph : KeplerEph
 							///< GPS/QZS:		tgd[0]=TGD
 							///< BDS CNAV1/CNV2: tgd[0]=TGD_B1Cp, tgd[1]=TGD_B2ap
 							///< BDS CNAV3:	tgd[2]=TGD_B2bI
+
+	double	ttms	= 0;	///< transmission time (s) within week
 };
 
 /** system Time offset message
@@ -291,9 +295,11 @@ struct STO
 	E_SbasId		sid  = E_SbasId::NONE;	///< SBAS ID
 	E_UtcId			uid  = E_UtcId::NONE;	///< UTC ID
 
-	double A0;				///< (sec)
-	double A1;				///< (sec/sec)
-	double A2;				///< (sec/sec^2)
+	double A0	= 0;	///< (sec)
+	double A1	= 0;	///< (sec/sec)
+	double A2	= 0;	///< (sec/sec^2)
+
+	double ttms	= 0;	///< transmission time (s) within week
 };
 
 /** EOP message
@@ -314,6 +320,8 @@ struct EOP
 	double dut1		= 0;		///< ut1-utc or ut1-gpst (s)
 	double dur		= 0;		///< delta ut1 rate (s/day)
 	double durr		= 0;		///< delta ut1 rate rate (s/day^2)
+
+	double			ttms;		///< transmission time (s) within week
 };
 
 /** ionosphere message
@@ -411,9 +419,9 @@ bool satPosClk(
 	Navigation&			nav,
 	vector<E_Source>	posSources,
 	vector<E_Source>	clkSources,
+	const KFState*		kfState_ptr		= nullptr,
 	E_OffsetType		offsetType		= E_OffsetType::COM,
-	E_Relativity		applyRelativity	= E_Relativity::ON,
-	const KFState*		kfState_ptr		= nullptr);
+	E_Relativity		applyRelativity	= E_Relativity::ON);
 
 void readSp3ToNav(
 	string&		file, 

@@ -24,10 +24,11 @@ using namespace boost::numeric::odeint;
 
 struct EMP
 {
-	int			deg		= 0;
-	int			axisId	= 0;
-	E_TrigType	type	= E_TrigType::CONSTANT;
-	double		value	= 0;
+	bool		srpScaled	= false;
+	int			deg			= 0;
+	int			axisId		= 0;
+	E_TrigType	type		= E_TrigType::CONSTANT;
+	double		value		= 0;
 };
 
 struct OrbitState
@@ -36,10 +37,13 @@ struct OrbitState
 	string	str;
 	double	satMass		= 0;
 	double	satPower	= 0;
+	double	satArea		= 0;
 	
 	KFState	subState;
 	
 	vector<EMP> empInput;
+	
+	map<E_Component, double>	componentsMap;
 	
 	int empnum	= 0;
 	Vector3d	pos;
@@ -193,5 +197,6 @@ void addKFSatEMPStates(
 			string			id);
 
 void outputOrbitConfig(
-		KFState&	kfState);
+		KFState&	kfState,
+		string		suffix = "");
 

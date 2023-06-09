@@ -33,6 +33,7 @@ void writeSysSetOrbex(
 	KFState*			kfState_ptr = nullptr);
 
 void outputOrbex(
+	string				filename,
 	GTime				time,
 	vector<E_Source>	orbDataSrcs,
 	vector<E_Source>	clkDataSrcs,

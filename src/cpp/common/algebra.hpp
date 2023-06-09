@@ -332,7 +332,8 @@ struct KFState : KFState_
 	:	KFState_		(kfState),	
 		kfStateMutex	()		
 	{
-		
+		//dont use same rts file unless explicitly copied
+		rts_basename.clear();
 	}
 	
 	KFState()
@@ -355,6 +356,9 @@ struct KFState : KFState_
 		KFState_* thatKfState_ = (KFState_*)&kfState;
 		
 		*thisKfState_ = *thatKfState_;
+		
+		//dont use same rts file unless explicitly copied
+		rts_basename.clear();
 		
         return *this;
     }

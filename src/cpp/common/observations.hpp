@@ -201,8 +201,8 @@ struct SatPos
 	double		satClkVel		= 0;
 	double		satClkVar		= 0;
 	
-	int 		iodeClk			= 0;				///< Issue of data ephemeris
-	int 		iodePos			= 0;				///< Issue of data ephemeris
+	int 		iodeClk			= -1;				///< Issue of data ephemeris
+	int 		iodePos			= -1;				///< Issue of data ephemeris
 	bool		ephPosValid		= false;
 	bool		ephClkValid		= false;
 	bool		vsat			= 0;				///< Valid satellite flag

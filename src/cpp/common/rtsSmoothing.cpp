@@ -14,6 +14,7 @@ using std::map;
 #include "algebraTrace.hpp"
 #include "rtsSmoothing.hpp"
 #include "binaryStore.hpp"
+#include "orbexWrite.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
 #include "acsConfig.hpp"
@@ -61,6 +62,11 @@ void postRTSActions(
 		writeERPFromNetwork(kfState.metaDataMap[ERP_FILENAME_STR + SMOOTHED_SUFFIX], kfState);
 	}
 
+	if (acsConfig.output_bias_sinex)
+	{
+		writeBiasSinex(nullStream, kfState.time, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], *stationMap_ptr, kfState);
+	}
+
 	if	(   acsConfig.output_clocks
 		&&( acsConfig.clocks_receiver_sources.front()	== +E_Source::KALMAN
 		  ||acsConfig.clocks_satellite_sources.front()	== +E_Source::KALMAN))
@@ -71,9 +77,14 @@ void postRTSActions(
 		outputClocks			(kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, kfState2.time, kfState2, stationMap_ptr);
 	}
 	
-	if (acsConfig.output_orbits)
+	if (acsConfig.output_orbex)
 	{
-		outputSp3				(kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbits_data_sources, &kfState);
+		outputOrbex				(kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbex_orbit_sources, acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources, &kfState);
+	}
+	
+	if (acsConfig.output_sp3)
+	{
+		outputSp3				(kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.sp3_orbit_sources, acsConfig.sp3_clock_sources, &kfState);
 	}
 
 	if (acsConfig.output_trop_sinex)
@@ -98,6 +109,9 @@ void postRTSActions(
 	{
 		for (auto& [id, rec] : *stationMap_ptr)
 		{
+			rec.sol.time = kfState.time;
+			for (short i = 0; i < 3; i++)
+				kfState.getKFValue({KF::REC_POS, 		{}, id,	i},		rec.sol.pppRRec[i]);
 			outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], rec);
 		}
 	}
@@ -260,6 +274,7 @@ KFState RTS_Process(
 
 	long int startPos = -1;
 	double lag = 0;
+    std::cout << std::endl;
 	while (lag != kfState.rts_lag)
 	{
 		E_SerialObject type = getFilterTypeFromFile(startPos, inputFile);
@@ -559,7 +574,7 @@ KFState RTS_Process(
 		std::rename(tempFile.c_str(), inputFile.c_str());
 	}
 	
-	if	(  kfState.rts_lag < 0
+	if	(  kfState.rts_lag <= 0
 		&& acsConfig.retain_rts_files == false)
 	{
 		BOOST_LOG_TRIVIAL(info) 

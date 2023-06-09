@@ -232,24 +232,16 @@ void udbias_ppp(
 		}
 
 		E_FType ifft	= FTYPE_IF12;
-		E_FType ft1		= F1;
-		E_FType ft2		= F2;
-		
-		if	(    obs.Sat.sys == +E_Sys::GAL 
-			||(  obs.Sat.sys == +E_Sys::GPS 
-			  && acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L5_ONLY))
-		{
+		E_FType ft1;
+		E_FType ft2;
+		E_FType ft3;
+		if (!satFreqs(obs.Sat.sys,ft1,ft2,ft3))
+			continue;
+			
+		if (ft1 == F1
+		 && ft2 == F5)
 			ifft = FTYPE_IF15;
-			ft2  = F5;
-		}
 		
-		if (obs.Sat.sys == +E_Sys::GLO)
-		{
-			ft1  = G1;
-			ft2  = G2;
-		}
-		
-
 		if	( (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO && ft != ifft)
 			||(acsConfig.ionoOpts.corr_mode != +E_IonoMode::IONO_FREE_LINEAR_COMBO && ft == ifft)
 			||(sig.L_corr_m == 0)
@@ -462,21 +454,11 @@ E_Solution ppp_filter(
 		SatStat&	satStat		= *(obs.satStat_ptr);
 		SatSys		sysSat		= SatSys(sys);
 
-		E_FType ft1 = F1;
-		E_FType ft2 = F2;
-		
-		if	(    obs.Sat.sys == +E_Sys::GAL 
-			||(  obs.Sat.sys == +E_Sys::GPS 
-			  && acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L5_ONLY)) 
-		{
-			ft2 = F5;
-		}
-		
-		if (obs.Sat.sys == +E_Sys::GLO)
-		{
-			ft1 = G1;
-			ft2 = G2;
-		}
+		E_FType ft1;
+		E_FType ft2;
+		E_FType ft3;
+		if (!satFreqs(sys,ft1,ft2,ft3))
+			continue;
 		
 		double ionfact = SQR(lam[ft1]) / (SQR(lam[ft1]) - SQR(lam[ft2]));
 
@@ -589,30 +571,11 @@ E_Solution ppp_filter(
 
 			if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 			{
-				/*if	( ft != FTYPE_IF12
-					&&ft != FTYPE_IF15)
-				{
-					continue;
-				}
-
-				if	( (acsConfig.ionoOpts.iflc_freqs == E_LinearCombo::L1L2_ONLY && ft != FTYPE_IF12)
-					||(acsConfig.ionoOpts.iflc_freqs == E_LinearCombo::L1L5_ONLY && ft != FTYPE_IF15))
-				{
-					continue;
-				}*/
-
-				// Ken: It would be nice to be able to use both L1L2 and L1L5 combinations, but not if the correlation matrix cannot be introduced
-				if(sys == +E_Sys::GPS)
-				{
-					if(acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L5_ONLY && ft != FTYPE_IF15) continue;
-					if(acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::L1L2_ONLY && ft != FTYPE_IF12) continue;
-					if(acsConfig.ionoOpts.iflc_freqs == +E_LinearCombo::ANY       && ft != FTYPE_IF12) continue; // It would be nice to be able to use both L1L2 and L1L5 combinations, but not if the correlation matrix cannot be introduced
-				}
-				if(sys == +E_Sys::GLO && ft != FTYPE_IF12) continue;
-				if(sys == +E_Sys::GAL && ft != FTYPE_IF15) continue;
-				if(sys == +E_Sys::BDS && ft != FTYPE_IF12) continue;		/* need to confirm this */
-				if(sys == +E_Sys::QZS && ft != FTYPE_IF12) continue;
-
+				if(ft != FTYPE_IF12   && ft != FTYPE_IF15)	continue;
+				if(sys == +E_Sys::GLO && ft != FTYPE_IF12)	continue;
+				if(sys == +E_Sys::GAL && ft != FTYPE_IF15)	continue;
+				if(sys == +E_Sys::BDS && ft != FTYPE_IF12)	continue;		/* need to confirm this */
+				if(sys == +E_Sys::QZS && ft != FTYPE_IF12)	continue;
 			}
 
 			if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::TOTAL_ELECTRON_CONTENT)
@@ -1078,7 +1041,7 @@ void pppos(
 
 	// satellite positions and clocks
 	for (auto& obs : only<GObs>(obsList))
-		satPosClk(trace, obsList.front()->time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, E_OffsetType::APC);
+		satPosClk(trace, obsList.front()->time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
 
 	auto& pos = rec.pos;
 	

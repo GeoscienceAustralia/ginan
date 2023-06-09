@@ -170,11 +170,7 @@ def get_series(data, collection, state, site, sat, db, serie, x1, x2, x3):
     for cursor in mongo_cl["Geometry"].aggregate(pipeline):
         req2[db+"_"+cursor['_id']['series']+suffix+"_"+cursor['_id']['site']+"_"+cursor['_id']['sat']] = cursor
     
-    for r in req2:
-        print(r)
-    print("=====")
-    for r in req:
-        print(r)
+
     if len(req2)!=0:
         for r in req:
             if r in req2:

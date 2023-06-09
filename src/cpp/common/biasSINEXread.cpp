@@ -68,36 +68,20 @@ string code2str(
 GTime sinex_time_text(
 	string& line)		///< time system
 {
-	double year;
-	double doy;
-	double tod;
-	double ep[6] = {2000, 1, 1, 0, 0, 0};
-	GTime time = {};
+	E_TimeSys tsys = E_TimeSys::NONE;
+	if		(acsConfig.bias_time_system == "G")		tsys = E_TimeSys::GPST;
+	else if	(acsConfig.bias_time_system == "C")		tsys = E_TimeSys::BDT;
+	else if	(acsConfig.bias_time_system == "R")		tsys = E_TimeSys::GLONASST;
+	else if	(acsConfig.bias_time_system == "UTC")	tsys = E_TimeSys::UTC;
+	else if	(acsConfig.bias_time_system == "TAI")	tsys = E_TimeSys::TAI;
 
-	if (sscanf(line.c_str(), "%lf:%lf:%lf", &year, &doy, &tod) == 3)
+	double yds[3];
+	GTime time = {};
+	if (sscanf(line.c_str(), "%lf:%lf:%lf", &yds[0], &yds[1], &yds[2]) == 3)
 	{
-		ep[0] = year;
-		time = epoch2time(ep);
-		time += 86400 * (doy - 1) + tod;
+		time = yds2time(yds, tsys);
 	}
 	
-	if	(  acsConfig.bias_time_system == "C")
-		time += 14;
-	
-	if	(  acsConfig.bias_time_system == "TAI")
-		time -= 19;
-	
-	if	(  acsConfig.bias_time_system == "R")
-		time -= 10800.0;
-	
-	if	(  acsConfig.bias_time_system == "R"
-		|| acsConfig.bias_time_system == "UTC")
-	{
-		double leap1 = leapSeconds(time);
-		double leap2 = leapSeconds(time + leap1 + 1);
-		time += leap2;
-	}
-	 
 	return time;
 }
 
@@ -206,9 +190,6 @@ bool decomposeDSBBias(
 {
 	auto& Sat = DSB.Sat;
 	
-	if (Sat.sys == +E_Sys::GLO)
-		return false;
-	
 	if	( DSB.cod1 != acsConfig.clock_codesL1[Sat.sys]
 		||DSB.cod2 != acsConfig.clock_codesL2[Sat.sys])
 	{
@@ -217,8 +198,8 @@ bool decomposeDSBBias(
 
 	E_FType ft1 = code2Freq[Sat.sys][DSB.cod1];
 	E_FType ft2 = code2Freq[Sat.sys][DSB.cod2];
-	double lam1	= nav.satNavMap[Sat].lamMap[ft1];
-	double lam2	= nav.satNavMap[Sat].lamMap[ft2];
+	double lam1	= genericWavelength[ft1];
+	double lam2	= genericWavelength[ft2];
 	
 	if	(  lam1 == 0
 		|| lam2 == 0)
@@ -510,7 +491,7 @@ int read_biasSINEX_line(
 
 /** Read single bias SINEX file
 */
-int readBiasSinex(
+bool readBiasSinex(
 	string&		filename)	///< File to read
 {
 	int nbia = 0;
@@ -520,7 +501,7 @@ int readBiasSinex(
 	if (!inputStream)
 	{
 		printf("Warning: could not find bias SINEX file %s \n", filename.c_str());
-		return -1;
+		return false;
 	}
 
 	//fprintf(stdout,"\nReading bias SINEX file: %s \n",biasfile);
@@ -536,12 +517,20 @@ int readBiasSinex(
 		if (strstr(buff, "TIME_SYSTEM"))
 		{
 			string timeSystem(buff + 40,  1);
-			if (timeSystem != "   ")
+			if (timeSystem != " ")
 			{
-				if		(timeSystem == "U")		timeSystem = "UTC";
-				else if	(timeSystem == "T")		timeSystem = "TAI";
+				if		( timeSystem == "G"
+						||timeSystem == "C"
+						||timeSystem == "R");	// nothing to do
+				else if	( timeSystem == "U")	timeSystem = "UTC";
+				else if	( timeSystem == "T")	timeSystem = "TAI";
+				else
+				{
+					BOOST_LOG_TRIVIAL(warning) << "Warning: unsupported time system: " << timeSystem;
+					return false;
+				}
 				
-				acsConfig.bias_time_system =	timeSystem;
+				acsConfig.bias_time_system = timeSystem;
 			}
 		}
 		
@@ -554,13 +543,13 @@ int readBiasSinex(
 		if (strstr(buff, "%=ENDBIA"))
 		{
 			//fprintf(stdout,"\n ... %d biases read\n",nbia);
-			return nbia;
+			return true;
 		}
 
 		if (strstr(buff, "%="))
 		{
 			printf(", Warning: erroneous bias SINEX file %s \n", filename.c_str());
-			return -1;
+			return false;
 		}
 
 		if (strstr(buff, "+FILE/REFERENCE"))
@@ -598,7 +587,7 @@ int readBiasSinex(
 		}
 	}
 
-	return nbia;
+	return true;
 }
 
 void setRestrictiveStartTime(

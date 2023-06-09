@@ -118,6 +118,7 @@ void callback0()
 
 string nonNumericStack(
 	string			stack,
+	string&			cut,
 	bool			colon = true);
 
 #include "acsConfig.hpp"
@@ -150,7 +151,8 @@ void callback2()
 		{
 			token = stack.substr(pos_start, pos_end - pos_start);
 			pos_start = pos_end + 1;
-			token = nonNumericStack(token);
+			string dummy;
+			token = nonNumericStack(token, dummy);
 			flatStack += token;
 		}
 	

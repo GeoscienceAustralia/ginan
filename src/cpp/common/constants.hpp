@@ -9,6 +9,8 @@ using std::map;
 
 #include <boost/bimap.hpp>
 
+
+#define TEC_CONSTANT 40.308193e16
 #define CLIGHT      299792458.0         /* speed of light (m/s) */
 
 #define PSOL        1367/CLIGHT         /* solar radiation pressure at 1 AU, [N/m^2] (1367 W/m^2); IERS 96 */
@@ -211,6 +213,7 @@ using std::map;
 #define BACKWARD_SUFFIX		"_backward"
 
 extern map<E_Sys, map<E_ObsCode, E_FType>> code2Freq;
+extern map<E_FType, double> genericWavelength;
 
 #define Arcs        3600.0*180.0/PI     /* Arcseconds per radian */
 

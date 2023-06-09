@@ -32,7 +32,7 @@ void SinexParser::parseSinexEstimates(
 	
 	UYds yds;
 	int	readcount;
-	readcount = sscanf(s.c_str() + 27, "%2d:%3d:%5d",
+	readcount = sscanf(s.c_str() + 27, "%2lf:%3lf:%5lf",
 						&yds[0],
 						&yds[1],
 						&yds[2]);
@@ -127,7 +127,7 @@ void SinexParser::parseSinexDiscontinuities(
 	UYds endYds;
 
 	int	readcount;
-	readcount = sscanf(s.c_str() + 16, "%2d:%3d:%5d %2d:%3d:%5d",
+	readcount = sscanf(s.c_str() + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 						&startYds[0],
 						&startYds[1],
 						&startYds[2],

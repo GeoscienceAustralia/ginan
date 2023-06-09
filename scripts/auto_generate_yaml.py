@@ -364,7 +364,7 @@ def edit_config_template_pea(
 
 @click.command()
 @click.option("--target-dir", required=True, help="Directory to place the final config / YAML file, e.g. /var/config")
-@click.option("--template-path", required=True, help="Path to the YAML template to use, e.g. /var/ginan/examples/ex12")
+@click.option("--template-path", required=True, help="Path to the YAML template to use, e.g. /var/ginan/exampleConfigs/ex12")
 @click.option("--product-dir", required=True, help="Directory to input products, e.g. /var/product")
 @click.option("--data-dir", help="Directory to input data, e.g. /var/data. If missing same as product-dir")
 @click.option("--output-dir", help="Directory to output data, e.g. /var/output. If missing same as product-dir")

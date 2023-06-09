@@ -109,7 +109,7 @@ def auto_run_main(
                     "Please provide path to ginan directory with the ginan-path option\n"
                 )
 
-    template_path = next((ginan_path / "examples").glob(template_example + "*.yaml"))
+    template_path = next((ginan_path / "exampleConfigs").glob(template_example + "*.yaml"))
 
     if run_mode == "igs-station":
         atx = True

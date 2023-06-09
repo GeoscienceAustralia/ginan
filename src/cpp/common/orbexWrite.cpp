@@ -56,7 +56,7 @@ void writeOrbexHeader(
 	tracepdeex(0, orbexStream, "+FILE/DESCRIPTION\n");
 	tracepdeex(0, orbexStream, " DESCRIPTION         %s\n", "Satellite attitude quaternions");
 	tracepdeex(0, orbexStream, " CREATED_BY          %s %s\n", acsConfig.analysis_agency.c_str(), acsConfig.analysis_program.c_str());
-	tracepdeex(0, orbexStream, " CREATION_DATE       %s\n", ((GTime)timeGet()).to_string(0).c_str());
+	tracepdeex(0, orbexStream, " CREATION_DATE       %s\n", timeGet().to_string(0).c_str());
 	tracepdeex(0, orbexStream, " INPUT_DATA          %s\n", "");
 	tracepdeex(0, orbexStream, " CONTACT             %s\n", "npi@ga.gov.au");
 	tracepdeex(0, orbexStream, " TIME_SYSTEM         %s\n", "GPS");
@@ -433,13 +433,14 @@ void writeSysSetOrbex(
 /** Output ORBEX files
 */
 void outputOrbex(
+	string				filename,
 	GTime				time,			///< Epoch time (GPST)
 	vector<E_Source>	orbDataSrcs,	///< Data source for satellite positions & velocities
 	vector<E_Source>	clkDataSrcs,	///< Data source for satellite clocks
 	vector<E_Source>	attDataSrcs,	///< Data source for satellite attitudes
 	KFState*			kfState_ptr)	///< Pointer to a kalman filter to take values from
 {
-	auto sysFilenames = getSysOutputFilenames(acsConfig.orbex_filename, time);
+	auto sysFilenames = getSysOutputFilenames(filename, time);
 
 	for (auto [filename, sysMap] : sysFilenames)
 	{

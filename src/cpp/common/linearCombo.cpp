@@ -208,24 +208,12 @@ void obs2lc(
 		return;
 	}
 
-	E_FType frq1 = F1;
-	E_FType frq2 = F2;
-	E_FType frq3 = F5;
-	if (sys == E_Sys::GLO) 
-	{
-		frq1 = G1;
-		frq2 = G2;
-	}
-	if (sys == E_Sys::GAL)
-		frq2 = F7;
-	if (sys == E_Sys::BDS) 
-	{
-		frq1 = B1;
-		frq2 = B3;
-		frq3 = F5;
-	}
+	E_FType frq1;
+	E_FType frq2;
+	E_FType frq3;
+	if (!satFreqs(obs.Sat.sys,frq1,frq2,frq3))
+		return;
 	
-
 	char strprefix[64];
 	snprintf(strprefix, sizeof(strprefix), "%3s sat=%4s", obs.time.to_string().c_str(), obs.Sat.id().c_str());
 
