@@ -67,6 +67,45 @@ RETTYPE getStraddle(
 	return ssr;
 }
 
+GTime mongoReadLastClock()		//todo aaron delete me
+{
+	GTime outTime;
+	
+	auto& mongo_ptr = remoteMongo_ptr;
+	
+	if (mongo_ptr == nullptr)
+	{
+		MONGO_NOT_INITIALISED_MESSAGE;
+		return outTime;
+	}
+	
+	Mongo&						mongo	= *mongo_ptr;
+	auto 						c		= mongo.pool.acquire();
+	mongocxx::client&			client	= *c;
+	mongocxx::database			db		= client[acsConfig.remoteMongo.database];
+	mongocxx::collection		coll	= db[SSR_DB];
+	
+	auto docClk		= document{}	<< SSR_DATA		<< SSR_CLOCK
+									<< finalize;
+											
+	auto docSort	= document{}	<< SSR_EPOCH 		<< -1 
+									<< finalize;
+	
+	auto findOpts 	= mongocxx::options::find{};
+	findOpts.limit(1);
+	findOpts.sort(docSort.view());
+	
+	auto cursor  	= coll.find(docClk.view(), findOpts);
+	for (auto doc : cursor)
+	{
+		PTime timeEpoch;
+		auto tp			= doc[SSR_EPOCH		].get_date();	
+		timeEpoch.bigTime	= std::chrono::system_clock::to_time_t(tp);
+		outTime = timeEpoch;			
+	}
+	return outTime;
+}
+
 /** Read orbits and clocks from Mongo DB
 */
 SsrOutMap mongoReadOrbClk(

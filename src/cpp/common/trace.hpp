@@ -80,13 +80,6 @@ void printHex(
 void tracelevel(int level);
 void traceFormatedFloat(Trace& trace, double val, string formatStr);
 
-void fatalerr(const char *format, ...);
-
-
-template<typename T>
-std::ofstream getTraceFile(T& thing);
-
-
 struct Block
 {
 	Trace& trace;

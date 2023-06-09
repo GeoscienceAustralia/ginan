@@ -73,20 +73,13 @@ bool readsp3(
 			//epoch line
 			epochFound = true;
 			
-			bool error = str2time(buff, 3, 28, time);
+			bool error = str2time(buff, 3, 28, time, tsys);
 			if (error)
 			{
 				printf("\nInvalid epoch line in sp3 file %s\n", line.c_str());
 				return false;
 			}
 			
-			if (tsys == +E_TimeSys::UTC)
-			{
-				UtcTime utcTime;
-				utcTime.bigTime	= time.bigTime;
-				
-				time = utcTime; 
-			}
 			continue;
 		}
 		
@@ -239,7 +232,7 @@ bool readsp3(
 			{
 				//first line is time and type
 // 				type = buff[2];
-				int error = str2time(buff, 3, 28, time);
+				int error = str2time(buff, 3, 28, time);	// time system unknown at beginning but does not matter
 				if (error) 
 					return false;
 				

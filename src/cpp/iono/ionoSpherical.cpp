@@ -176,7 +176,7 @@ Author: Ken Harima @ RMIT 20 May 2020
 		latIPP				- Latitude of Ionosphere Piercing Point
 		lonIPP				- Longitude of Ionosphere Piercing Point
 		angIPP				- Angular gain for Ionosphere Piercing Point
-	int slant		I		0: coefficient for Vtec, 1: coefficient for slant delay
+	int slant		I		0: coefficient for VTEC, 1: coefficient for STEC
 ----------------------------------------------------------------------------*/
 double ionCoefSphhar(int ind, GObs& obs, bool slant)
 {
@@ -203,7 +203,7 @@ double ionCoefSphhar(int ind, GObs& obs, bool slant)
 
 	if (slant)
 	{
-		out *= obs.ippMap[basis.hind].ang * obs.STECtoDELAY;
+		out *= obs.ippMap[basis.hind].ang;
 	}
 
 	return out;

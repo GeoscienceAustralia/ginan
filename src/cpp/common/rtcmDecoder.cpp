@@ -39,9 +39,8 @@ GTime RtcmDecoder::rtcmTime()
 	GTime time;
 
 	if		(rtcmTimestampTime	!= GTime::noTime())		time = rtcmTimestampTime;
-	// todo Eugene: time from obs
-	// todo Eugene: gps nav
 	else if (tsync				!= GTime::noTime())		time = tsync;
+	// todo Eugene: gps nav
 	else 												time = timeGet();
 	
 	return time;
@@ -99,7 +98,7 @@ E_RTCMSubmessage RtcmDecoder::decodeCustomId(
 	return customType;
 }
 
-PTime RtcmDecoder::decodeCustomTimestamp(
+GTime RtcmDecoder::decodeCustomTimestamp(
 	vector<unsigned char>& data)
 {
 	int i = 0;
@@ -109,7 +108,7 @@ PTime RtcmDecoder::decodeCustomTimestamp(
 
 	E_RTCMSubmessage customType = E_RTCMSubmessage::_from_integral(customMessageNumber);
 
-	PTime time;
+	GTime time;
 	
 	int reserved 			= getbituInc(data, i, 4);
 		
@@ -597,7 +596,8 @@ void RtcmDecoder::decodeEphemeris(
 		eph.toe		= GTime(GTow(eph.toes), nearTime);	
 		eph.toc		= GTime(GTow(eph.tocs), nearTime);
 		
-		decomposeTGDBias(eph.Sat, eph.tgd[0]);
+		if (acsConfig.use_tgd_bias)
+			decomposeTGDBias(eph.Sat, eph.tgd[0]);
 	}
 	else if (sys == +E_Sys::GLO)
 	{
@@ -749,8 +749,8 @@ void RtcmDecoder::decodeEphemeris(
 		eph.ttm		= nearTime;
 		eph.toe		= GTime(GTow(eph.toes), nearTime);
 		eph.toc		= GTime(GTow(eph.tocs), nearTime);
-
-		decomposeTGDBias(eph.Sat, eph.tgd[0]);
+		if (acsConfig.use_tgd_bias)
+			decomposeTGDBias(eph.Sat, eph.tgd[0]);
 	}
 	else if (sys == +E_Sys::GAL)
 	{
@@ -830,8 +830,9 @@ void RtcmDecoder::decodeEphemeris(
 						+ (eph.e1_dvs	<< 0);
 			eph.svh		= (E_Svh)svh;
 			eph.code	= (1<<0)+(1<<2)+(1<<9); // data source = I/NAV+E1+E5b
-		
-			decomposeBGDBias(eph.Sat, eph.tgd[0], eph.tgd[1]);
+			
+			if (acsConfig.use_tgd_bias)
+				decomposeBGDBias(eph.Sat, eph.tgd[0], eph.tgd[1]);
 		}
 
 		eph.Sat		= SatSys(sys, prn);
@@ -865,7 +866,7 @@ void RtcmDecoder::decodeEphemeris(
 	}
 	else if (sys == +E_Sys::GLO)
 	{
-		nav.gephMap[geph.Sat][E_NavMsgType::FDMA][geph.toe] = geph;
+		nav.gephMap[geph.Sat][geph.type][geph.toe] = geph;
 		
 		tracepdeex(6,std::cout, "\n#RTCM_BRD EPHEMR %s %s %d", geph.Sat.id().c_str(), geph.toe.to_string(2).c_str(), geph.iode);
 		
@@ -1161,16 +1162,9 @@ ObsList RtcmDecoder::decodeMSM(
 	{
 		int dowi = (epoch_time_ >> 27);
 		int todi = (epoch_time_ & 0x7FFFFFF);
-		double utctow	= 86400 * dowi 
-						+ 0.001 * todi 
-						- 10800;			//3 hours moscow time
 						
-		GTime fakeGTime = GTime(GTow(utctow), nearTime);
-		
-		UtcTime utcTime;
-		utcTime.bigTime	= fakeGTime.bigTime;
-		
-		tobs = utcTime;
+		RTod tk	= 0.001 * todi;
+		tobs = GTime(tk, nearTime);
 	}
 
 	traceLatency(tobs);

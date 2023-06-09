@@ -28,6 +28,8 @@ const GTime BDS_t0		= GEpoch{2006, E_Month::JAN, 1,		0,	0,	0		+ GPS_SUB_UTC_2006
 const int		GPS_t0_sub_POSIX_t0	= 315964800;
 const double	MJD_j2000			= 51544.5;
 
+const auto POSIX_GPS_t0	= boost::posix_time::from_time_t(GPS_t0_sub_POSIX_t0);
+
 
 const int			secondsInWeek	= 60 * 60 * 24 * 7;
 const int			secondsInDay	= 60 * 60 * 24;
@@ -111,7 +113,8 @@ int str2time(
 	const char*	s, 
 	int			i, 
 	int			n, 
-	GTime&		t)
+	GTime&		t,
+	E_TimeSys	tsys)
 {
 	double ep[6];
 	char str[256],*p=str;
@@ -145,16 +148,18 @@ int str2time(
 	if	(ep[0] < 100)
 		ep[0] += ep[0] < 80 ? 2000 : 1900;
 	
-	t = epoch2time(ep);
+	t = epoch2time(ep, tsys);
 	
 	return 0;
 }
 
-GTime yds2time(const int* yds)
+GTime yds2time(
+	const double*	yds,
+	E_TimeSys		tsys)
 {
-	int year	= yds[0];
-	int doy		= yds[1];
-	int sec		= yds[2];
+	int year	= (int) yds[0];
+	int doy		= (int) yds[1];
+	double sec	=       yds[2];
 	
 	if	( year	< 1970
 		||doy	< 1
@@ -169,30 +174,66 @@ GTime yds2time(const int* yds)
 					
 	int days = (year-1970)*365 + leapDays + doy - 1;
 	
-	PTime time = {};
-	time.bigTime = days * 86400.0 + sec;	//.0 to prevent eventual overflow
+	PTime pTime = {};
+	pTime.bigTime = days * 86400.0 + sec;	//.0 to prevent eventual overflow
+
+	GTime time = pTime;
+	switch (tsys)
+	{
+		case E_TimeSys::GPST:																				break;	// nothing to do for now
+		case E_TimeSys::GST:																				break;	// nothing to do for now
+		case E_TimeSys::QZSST:																				break;	// nothing to do for now
+		case E_TimeSys::BDT:		{ time += GPS_SUB_UTC_2006;											}	break;
+		case E_TimeSys::GLONASST:	{ time -= 10800;													}			// fallthough to account for leap seconds further
+		case E_TimeSys::UTC:		{ UtcTime utcTime;	utcTime.bigTime = time.bigTime;	time = utcTime;	}	break;
+		case E_TimeSys::TAI:		{ time += GPS_SUB_TAI;												}	break;
+		default:
+		{
+			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << std::endl;
+		}
+	}
 	
 	return time;
 }
 
-
-UYds::operator GTime() const
+void time2yds(
+	GTime			time,
+	double*			yds,
+	E_TimeSys		tsys)
 {
-	GTime time = yds2time(this->data());
-	double leap = leapSeconds(time);
-	time += leap;
-	return time;
+	GEpoch gEpoch;
+	time2epoch(time, gEpoch.data(), tsys);
+	
+	//make new time with only the year of the input one,
+	GEpoch gEpoch0(2000, 1, 1, 0, 0, 0);
+	gEpoch0[0] = gEpoch[0];
+	
+	//subtract off the years
+	Duration toy = (GTime)gEpoch - (GTime)gEpoch0;
+
+	yds[0] = gEpoch0[0];
+	yds[1] = toy.to_int() / 86400 + 1;	//(doy in bias SINEX (where yds is common) starts at 1)
+	yds[2] = fmod(toy.to_double(), 86400);
 }
 
 
-GTime epoch2time(const double *ep)
+
+UYds::operator GTime() const
+{
+	return yds2time(this->data(), E_TimeSys::UTC);
+}
+
+
+GTime epoch2time(
+	const double*	ep,
+	E_TimeSys		tsys)
 {
 	int year	= (int) ep[0];
 	int mon		= (int) ep[1];
 	int day		= (int) ep[2];
 	int hour	= (int) ep[3];
 	int min		= (int) ep[4];
-	double floatSec =	ep[5];
+	double sec	= 	    ep[5];
 
 	if	(  year	< 1970
 		|| mon	< 1
@@ -212,20 +253,73 @@ GTime epoch2time(const double *ep)
 		dayOfYear++;
 	}
 
-	int sec	= (int) floor(floatSec);
-	double partialSec = floatSec - sec;
-	int secOfDay	= hour	* 60 * 60 
+	double secOfDay	= hour	* 60 * 60 
 					+ min	* 60 
 					+ sec;
 
-	int yds[3];
+	double yds[3];
 	yds[0] = year;
 	yds[1] = dayOfYear;
 	yds[2] = secOfDay;
-	GTime time = yds2time(yds);			//todo aaron sketchy
-	time += partialSec;
-	
+	GTime time = yds2time(yds, tsys);
+
 	return time;
+}
+
+void time2epoch(
+	GTime			time,
+	double*			ep,
+	E_TimeSys		tsys)
+{
+	switch (tsys)
+	{
+		case E_TimeSys::GPST:																				break;	// nothing to do for now
+		case E_TimeSys::GST:																				break;	// nothing to do for now
+		case E_TimeSys::QZSST:																				break;	// nothing to do for now
+		case E_TimeSys::BDT:		{ time -= GPS_SUB_UTC_2006;											}	break;
+		case E_TimeSys::GLONASST:	{ time += 10800;													}			// fallthough to account for leap seconds further
+		case E_TimeSys::UTC:		{ UtcTime utcTime = time;	time.bigTime = utcTime.bigTime;			}	break;
+		case E_TimeSys::TAI:		{ time -= GPS_SUB_TAI;												}	break;
+		default:
+		{
+			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << std::endl;
+		}
+	}
+
+	PTime pTime = time;
+	
+	const int mday[] =
+	{
+		/* # of days in a month */
+		31,28,31,30,31,30,31,31,30,31,30,31,
+		31,28,31,30,31,30,31,31,30,31,30,31,
+		31,29,31,30,31,30,31,31,30,31,30,31,
+		31,28,31,30,31,30,31,31,30,31,30,31
+	};
+
+	/* leap year if year % 4 == 0 in 1901-2099 */
+
+	int		days	= (int) (pTime.bigTime / secondsInDayP);
+	double	remSecs	= pTime.bigTime - (time_t) days * secondsInDay;
+
+	int doy = days % (365*4+1);
+	int mon;
+	for (mon = 0; mon < 48; mon++)
+	{
+		if (doy >= mday[mon])
+			doy -= mday[mon];
+		else
+			break;
+	}
+	ep[0]		= 1970 
+				+ days	/ 1461 * 4 		//1461 = 365.25 * 4
+				+ mon	/ 12;
+	ep[1]		= mon % 12			+ 1;
+	ep[2]		= doy				+ 1;
+	
+	ep[3]		= (int) (remSecs / 3600);		remSecs -= ep[3]	* 3600;
+	ep[4]		= (int) (remSecs / 60);			remSecs -= ep[4]	* 60;
+	ep[5]		= 		(remSecs);
 }
 
 
@@ -289,16 +383,15 @@ double time2bdt(GTime t, int *week)
 
 
 
-PTime timeGet()
+GTime timeGet()
 {
-	struct timeval timeVal{};
-	gettimeofday(&timeVal, nullptr);
-	
-	PTime pTime;
-	pTime.bigTime	= timeVal.tv_sec
-					+ timeVal.tv_usec * 1e-6;
+	auto posixUtcNow	= boost::posix_time::microsec_clock::universal_time();
+	auto duration		= posixUtcNow - POSIX_GPS_t0;	// UtcTime lines up w/ GTime at GPS_t0
 
-	return pTime;
+	UtcTime utcTime;
+	utcTime.bigTime	= duration.total_microseconds() * 1e-6;
+
+	return utcTime;
 }
 
 /* GPStime - UTC */
@@ -314,6 +407,7 @@ double leapSeconds(
 	auto it = leapSecondMap.lower_bound(time);
 	if (it == leapSecondMap.end())
 	{
+		BOOST_LOG_TRIVIAL(error) << "Error: leap seconds not available.";
 		return 0;
 	}
 
@@ -324,12 +418,12 @@ double leapSeconds(
 
 
 UtcTime gpst2utc(
-	GTime t)
+	GTime time)
 {
-	long double leaps = leapSeconds(t);
+	long double leaps = leapSeconds(time);
 	
 	UtcTime utcTime;
-	utcTime.bigTime	= t.bigTime - leaps;
+	utcTime.bigTime	= time.bigTime - leaps;
 			
 	return utcTime;
 }
@@ -340,7 +434,7 @@ GTime utc2gpst(UtcTime utcTime)
 	gTime.bigTime	= utcTime.bigTime;
 
 	double leaps	= leapSeconds(gTime);
-	leaps			= leapSeconds(gTime - leaps);
+	leaps			= leapSeconds(gTime + leaps);
 	
 	gTime.bigTime += leaps;
 	
@@ -473,44 +567,10 @@ double ymdhms2jd(
 
 GTime::operator GEpoch() const
 {
-	PTime pTime = *this;
-	
-	GEpoch ep;
-	
-	const int mday[] =
-	{
-		/* # of days in a month */
-		31,28,31,30,31,30,31,31,30,31,30,31,
-		31,28,31,30,31,30,31,31,30,31,30,31,
-		31,29,31,30,31,30,31,31,30,31,30,31,
-		31,28,31,30,31,30,31,31,30,31,30,31
-	};
+	GEpoch gEpoch;
+	time2epoch(*this, gEpoch.data());	
 
-	/* leap year if year % 4 == 0 in 1901-2099 */
-
-	int		days	= (int) (pTime.bigTime / secondsInDayP);
-	double	remSecs	= pTime.bigTime - (time_t) days * secondsInDay;
-
-	int doy = days % (365*4+1);
-	int mon;
-	for (mon = 0; mon < 48; mon++)
-	{
-		if (doy >= mday[mon])
-			doy -= mday[mon];
-		else
-			break;
-	}
-	ep.year		= 1970 
-				+ days	/ 1461 * 4 		//1461 = 365.25 * 4
-				+ mon	/ 12;
-	ep.month	= mon % 12			+ 1;
-	ep.day		= doy				+ 1;
-	
-	ep.hour	= (int) (remSecs / 3600);		remSecs -= ep.hour	* 3600;
-	ep.min	= (int) (remSecs / 60);			remSecs -= ep.min	* 60;
-	ep.sec	= 		(remSecs);
-	
-	return ep;
+	return gEpoch;
 }
 
 GTime GTime::floorTime(

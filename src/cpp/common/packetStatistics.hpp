@@ -20,7 +20,7 @@ struct PacketStatistics
 	// 	traceStr << "Start           : " << std::put_time(std::localtime(&startTime.time),	"%F %X")	<< std::endl;
 	// 	traceStr << "Finish          : " << std::put_time(std::localtime(&endTime.time),	"%F %X")	<< std::endl;
 
-//	 	double totalTime = (GTime)timeGet() - startTime;
+//	 	double totalTime = timeGet() - startTime;
 
 		traceStr << "ExtraBytes  : " << numNonMessBytes		<< std::endl;
 		traceStr << "FailCrc     : " << numFramesFailedCRC 	<< std::endl;

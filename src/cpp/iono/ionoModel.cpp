@@ -23,6 +23,24 @@ map<E_Sys,string>	ionRefRec;
 #define		INIT_VAR_SDCB	100.0
 #define		INIT_VAR_SCHP	100.0
 
+bool overwriteIonoKF (
+	KFState&	kfState)
+{
+	bool ionoKF = false;
+	
+	for (auto& [key, index] : kfState.kfIndexMap)
+	if (key.type == +KF::DCB)
+	{
+		ionoKF = true;
+		break;
+	}
+	
+	if (ionoKF)
+		iono_KFState = kfState;
+		
+	return ionoKF;
+}
+
 void ionosphereSsrUpdate(
 	Trace&		trace,
 	KFState&	kfState)
@@ -317,41 +335,29 @@ bool queryBiasDCB(
 	double&	bias,	///< Output bias value
 	double&	var)	///< Output bias variance
 {
-	E_FType frq1 = F1;
-	E_FType frq2 = F2;
-	
-	if (Sat.sys == +E_Sys::GAL)
-		frq2 = F5;
-
-	if (Sat.sys == +E_Sys::GLO)
-	{
-		frq1 = G1;
-		frq2 = G2;
-	}
-
-	if	(  freq != frq1
-		&& freq != frq2)
-	{
-		return false;
-	}
-
 	double lamb = nav.satNavMap[Sat].lamMap[freq];
 	if (lamb == 0)
 		return false;
 
-	KFKey kfKey;
-	kfKey.type	= KF::DCB;
-	kfKey.str	= Rec;
-	kfKey.Sat	= Sat;
-
 	double dcbVal;
 	double dcbVar;
 
-	bool pass = iono_KFState.getKFValue(kfKey, dcbVal, &dcbVar);
+	bool pass = false;
+	for (auto& [key, index] : iono_KFState.kfIndexMap)
+	if	(  key.type == +KF::DCB
+		&& key.Sat  == Sat
+		&& key.str  == Rec)
+	{
+		/* We need a way to select between GAL L1X-L5X and L1C-L5Q DCBs... */
+		pass = iono_KFState.getKFValue(key, dcbVal, &dcbVar);
+		if (pass)
+			break;
+	}
+	
 	if (pass == false)
 		return false;
-
-	double coef = SQR(CLIGHT / lamb) / 40.3e16;
+	
+	double coef = TEC_CONSTANT * SQR(lamb / CLIGHT);
 	bias	= 	  coef	* dcbVal;
 	var		= SQR(coef) * dcbVar;
 	

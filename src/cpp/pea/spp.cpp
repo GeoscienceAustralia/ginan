@@ -55,29 +55,11 @@ bool	prange(
 		return false;
 	}
 
-	E_FType f_1 = E_FType::FTYPE_NONE;
+	E_FType f_1;
 	E_FType f_2;
-	
-	for (auto& code : acsConfig.code_priorities[sys])
-	{
-		if (f_1 == E_FType::FTYPE_NONE)
-		{
-			f_1 = code2Freq[sys][code];
-			continue;
-		}
-		E_FType ft = code2Freq[sys][code]; //todo aaron this reproduces something that happens in acsQC, store and reuse.
-		if (ft != f_1)
-		{
-			f_2 = ft;
-			break;
-		}
-	}
-
-	if (acsConfig.ionoOpts.iflc_freqs==+E_LinearCombo::L1L5_ONLY) 
-	{
-		f_1 = F1;
-		f_2 = F5;
-	}
+	E_FType f_3;
+	if (!satFreqs(sys,f_1,f_2,f_3))
+		return false;
 
 	if	( obs.Sigs[f_1].P	== 0
 		|| lam[f_1]			== 0)

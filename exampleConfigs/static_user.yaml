@@ -1,0 +1,165 @@
+
+outputs:
+
+    root_directory:                 outputs/<CONFIG>/
+
+    trace:
+        output_stations:            true
+        output_network:             true
+        level:                      2
+        station_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+    
+    ppp_sol:                              
+        output:                     true         
+        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.POS
+    
+    output_rotation:
+        period:                     1 
+        period_units:               day
+
+    clocks:
+        output:                     true
+        directory:                  ./
+        filename:                   <CONFIG><LOGTIME>.clk
+        output_ar_clocks:           true
+
+    sinex:
+        output:                     true
+
+    trop_sinex:
+        output:                     true
+        sources:                    [KALMAN]
+        directory:                  ./
+        filename:                   <CONFIG>-<STATION><WWWW><D>.tro
+
+    metadata:
+        config_description:         "ex41"
+
+processing_options:
+    epoch_control:
+        epoch_interval:             30
+        
+    process_modes:
+        ppp:                 true
+        
+    gnss_general:
+    
+        elevation_mask:                 10  #degrees
+        rec_reference_system:           GPS
+        sys_options:
+            gps:
+                process:                true
+                # ambiguity_resolution:   true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                clock_codes:            [ L1C, L2W ]
+                code_priorities:        [ L1C, L2W ]
+            gal:
+                process:                true
+                # ambiguity_resolution:   true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [ L1C, L5Q, L1X, L5X ]
+            # glo:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1P, L1C, L2P, L2C ]
+            # qzs:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1C, L2L, L2X ]
+
+    gnss_models:
+    
+        sat_attitude:                              
+            enable:             true
+            sources:            [model]
+    
+        troposphere:
+            model:              gpt2
+            
+        sat_clock:
+            sources:            [KALMAN, PRECISE, SSR, BROADCAST]
+            
+        sat_pos:
+            sources:            [KALMAN, PRECISE, SSR, BROADCAST]
+        
+        ionospheric_component:
+            common_ionosphere:  true   # Code and Phase measurment share the same ionosphere
+            use_if_combo:       false 
+
+    model_error_checking:
+    
+        deweighting:
+            deweight_factor:            10000
+
+        ambiguities:
+            outage_reset_limit:         10
+            phase_reject_limit:         2
+            reinit_on_all_slips:        true    
+
+    filter_options:
+
+        outlier_screening:
+            max_filter_iterations:      5 
+            max_prefit_removals:        3 
+
+        station_chunking:
+            enable:                     true
+            
+        rts:
+            enable:                     true 
+
+estimation_parameters:
+
+    stations:
+        error_model:        elevation_dependent         #uniform elevation_dependent
+        code_sigmas:        [0.3]
+        phase_sigmas:       [0.003]
+
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [0] 
+
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [100]
+
+            amb:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [0]
+
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001]
+
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+        
+            ion_stec:
+                estimated:          [true]
+                sigma:              [200]
+                proc_noise:         [10]
+
+            phase_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
+        
+            code_bias:
+                estimated:          [true]
+                sigma:              [20]
+                proc_noise:         [0]

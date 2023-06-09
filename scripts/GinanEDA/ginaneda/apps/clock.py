@@ -91,6 +91,19 @@ update_button = html.Div(
     style={"width": "5%", "display": "inline-block"},
 )
 
+def dropdown_satsys(sat_list):
+    # syschar = list(['ALL'])
+    syschar = ['ALL'] + list(set(s[0] for s in sat_list if len(s) > 1))
+    p = util.named_dropdown(
+        None,
+        id="cl_dropdown_sys",
+        options=[{"label": i, "value": i} for i in syschar],
+        placeholder="SysChar",
+        value='ALL',
+        multi=False,
+    )
+    p.style = {"width": "20%", "display": "inline-block"}
+    return p
 
 @app.callback(
     Output("plot4", "figure"),
@@ -99,10 +112,11 @@ update_button = html.Div(
     State("cl_dropdown_type", "value"),
     State("cl_dropdown_serie1", "value"),
     State("cl_dropdown_serie", "value"),
+    State("cl_dropdown_sys", "value")
     # State("checklist", "value"),
     # State("exclude_npt", "value")
 )
-def update_graph_pos(click, data_dict, graph_type, serie, serie1):
+def update_graph_pos(click, data_dict, graph_type, serie, serie1, syssat):
     """Update the new graph
     """
     if graph_type is None:
@@ -113,14 +127,20 @@ def update_graph_pos(click, data_dict, graph_type, serie, serie1):
         trace = []
         logger.info("Request done")
         if graph_type == "SAT":
-            list_serie = data_dict['DB_SAT']#[1:]
+            if syssat == "ALL":
+                list_serie = data_dict['DB_SAT']#[1:]
+            else:
+                list_serie = []
+                for sat in data_dict['DB_SAT']:
+                    if len(sat) > 1 and sat[0] == syssat:
+                        list_serie.append(sat)
             dd = db.get_series2(data_dict, "States", "SAT_CLOCK", [""], list_serie, serie, "Epoch", "x", x3=None)
             dd1 = db.get_series2(data_dict, "States", "SAT_CLOCK", [""], list_serie, serie1, "Epoch", "x", x3=None)
             key = "sat"
         elif graph_type == "SITE":
             list_serie = data_dict['DB_SITE']#[1:]
-            dd = db.get_series2(data_dict, "States", "REC_CLOCK", list_serie, [""], serie, "Epoch", "x", x3=None)
-            dd1 = db.get_series2(data_dict, "States", "REC_CLOCK", list_serie, ["G00"], serie1, "Epoch", "x", x3=None)
+            dd = db.get_series2(data_dict, "States", "REC_CLOCK", list_serie, ["G--"], serie, "Epoch", "x", x3=None)
+            dd1 = db.get_series2(data_dict, "States", "REC_CLOCK", list_serie, [""], serie1, "Epoch", "x", x3=None)
             key = "site"
         
         data_ =[]
@@ -186,6 +206,7 @@ def layout(data_dict):
                 dropdown_type,
                 dropdown_serie(data_dict['Series']),
                 dropdown_serie1(data_dict['Series']),
+                dropdown_satsys(data_dict['DB_SAT']),
                 # exclude_start(),
                 update_button,
                 dcc.Graph(

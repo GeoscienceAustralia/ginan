@@ -9,6 +9,8 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include "enums.h"
+
 using std::ostream;
 using std::string;
 using std::array;
@@ -17,7 +19,6 @@ struct PTime;
 struct GTime;
 struct UtcTime;
 struct GEpoch;
-struct UEpoch;
 struct GWeek;
 struct GTow;
 struct MjDateTT;
@@ -25,9 +26,9 @@ struct MjDateUtc;
 
 
 
-#define GPS_SUB_UTC_2000 13
-#define GPS_SUB_UTC_2006 14
-
+#define GPS_SUB_UTC_2000	+13
+#define GPS_SUB_UTC_2006	+14
+#define GPS_SUB_TAI			-19
 
 extern const GTime	GPS_t0;
 extern const double	MJD_j2000;
@@ -35,7 +36,23 @@ extern const int	secondsInDay;
 
 string	time2str(GTime t, int n);
 
-GTime	epoch2time	(const double *ep);
+GTime yds2time(
+	const double*	yds,
+	E_TimeSys		tsys = E_TimeSys::GPST);
+
+void time2yds(
+	GTime			time,
+	double*			yds,
+	E_TimeSys		tsys = E_TimeSys::GPST);
+
+GTime epoch2time(
+	const double*	ep,
+	E_TimeSys		tsys = E_TimeSys::GPST);
+
+void time2epoch(
+	GTime			time,
+	double*			ep,
+	E_TimeSys		tsys = E_TimeSys::GPST);
 
 double leapSeconds( GTime time );
 		
@@ -351,7 +368,7 @@ struct PTime
 };
 
 
-PTime timeGet();
+GTime timeGet();
 
 
 struct MjDateUtc
@@ -414,7 +431,7 @@ struct MjDateTT
 
 struct UtcTime
 {
-	long double bigTime;
+	long double bigTime;	// Eugene: bigTime can be ambiguous, e.g. 1167264000.5, never know if GPST is 2017-01-01 00:00:17.5 or 2017-01-01 00:00:18.5
 	
 	UtcTime operator +(const double t) const
 	{
@@ -509,16 +526,16 @@ struct GEpoch : array<double, 6>
 };
 
 
-struct UYds : array<int, 3>
+struct UYds : array<double, 3>
 {
-	int& year;
-	int& doy;
-	int& sod;
+	double& year;
+	double& doy;
+	double& sod;
 	
 	UYds(
-		int yearval = 0,
-		int doyVal	= 0,
-		int sodVal	= 0)
+		double yearval	= 0,
+		double doyVal	= 0,
+		double sodVal	= 0)
 	:	year{ (*this)[0]},
 		doy	{ (*this)[1]},
 		sod { (*this)[2]}
@@ -556,20 +573,7 @@ struct UYds : array<int, 3>
 		doy	{ (*this)[1]},
 		sod { (*this)[2]}
 	{
-		double leap = leapSeconds(time);
-		GTime utc_Time = (time - leap);
-		GEpoch ep = utc_Time;
-		
-		//make new time with only the year of the input one,
-		GEpoch ep0(2000, 1, 1, 0, 0, 0);
-		ep0[0] = ep[0];
-		
-		//subtract off the years
-		Duration toy = utc_Time - (GTime) ep0;
-
-		year = (int) ep[0];
-		doy = toy.to_int() / 86400 + 1;	//(doy in bias SINEX (where yds is common) starts at 1)
-		sod = toy.to_int() % 86400;
+		time2yds(time, this->data(), E_TimeSys::UTC);
 	}
 	
 	UYds& operator +=(
@@ -611,7 +615,8 @@ int str2time(
 	const char*	s,
 	int			i,
 	int			n,
-	GTime&		t);
+	GTime&		t,
+	E_TimeSys	tsys = E_TimeSys::GPST);
 
 void	jd2ymdhms(const double jd, double *ep);
 

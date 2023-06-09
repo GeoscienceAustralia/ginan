@@ -56,19 +56,19 @@ int readdcb(
 	entry.source		= "dcb";
 
 	string line;
+	string type;
 	while (std::getline(inputStream, line))
 	{
 		char* buff = &line[0];
 
-		E_DCBPair type = E_DCBPair::NONE;
-		if      (strstr(buff,"DIFFERENTIAL (P1-P2) CODE BIASES"))	type = E_DCBPair::P1_P2;
-		else if (strstr(buff,"DIFFERENTIAL (P1-C1) CODE BIASES"))	type = E_DCBPair::P1_C1;
-		else if (strstr(buff,"DIFFERENTIAL (P2-C2) CODE BIASES"))	type = E_DCBPair::P2_C2;
+		if      (strstr(buff,"DIFFERENTIAL (P1-P2) CODE BIASES"))	type = "P1_P2";
+		else if (strstr(buff,"DIFFERENTIAL (P1-C1) CODE BIASES"))	type = "P1_C1";
+		else if (strstr(buff,"DIFFERENTIAL (P2-C2) CODE BIASES"))	type = "P2_C2";
 
 		char str1[32] = "";
 		char str2[32] = "";
 		
-		if	( !type
+		if	( type.empty()
 			||sscanf(buff,"%31s %31s", str1, str2) < 1)
 			continue;
 
@@ -82,15 +82,17 @@ int readdcb(
 
 		if (Sat.sys == +E_Sys::GPS)
 		{
-			if      (type == +E_DCBPair::P1_P2)   { entry.cod1 = E_ObsCode::L1W;  entry.cod2 = E_ObsCode::L2W; }
-			else if (type == +E_DCBPair::P1_C1)   { entry.cod1 = E_ObsCode::L1W;  entry.cod2 = E_ObsCode::L1C; }
-			else if (type == +E_DCBPair::P2_C2)   { entry.cod1 = E_ObsCode::L2W;  entry.cod2 = E_ObsCode::L2D; }
+			if      (type == "P1_P2")   { entry.cod1 = E_ObsCode::L1W;  entry.cod2 = E_ObsCode::L2W; }
+			else if (type == "P1_C1")   { entry.cod1 = E_ObsCode::L1W;  entry.cod2 = E_ObsCode::L1C; }
+			else if (type == "P2_C2")   { entry.cod1 = E_ObsCode::L2W;  entry.cod2 = E_ObsCode::L2D; }
+			else continue;
 		}
 		else if (Sat.sys == +E_Sys::GLO)
 		{
-			if      (type == +E_DCBPair::P1_P2)   { entry.cod1 = E_ObsCode::L1P;  entry.cod2 = E_ObsCode::L2P; }
-			else if (type == +E_DCBPair::P1_C1)   { entry.cod1 = E_ObsCode::L1P;  entry.cod2 = E_ObsCode::L1C; }
-			else if (type == +E_DCBPair::P2_C2)   { entry.cod1 = E_ObsCode::L2P;  entry.cod2 = E_ObsCode::L2C; }
+			if      (type == "P1_P2")   { entry.cod1 = E_ObsCode::L1P;  entry.cod2 = E_ObsCode::L2P; }
+			else if (type == "P1_C1")   { entry.cod1 = E_ObsCode::L1P;  entry.cod2 = E_ObsCode::L1C; }
+			else if (type == "P2_C2")   { entry.cod1 = E_ObsCode::L2P;  entry.cod2 = E_ObsCode::L2C; }
+			else continue;
 		}
 
 		string id;
@@ -500,17 +502,10 @@ VectorEcef satAntOff(
 
 	E_FType j;
 	E_FType k;
+	E_FType l;
 	E_Sys sys = Sat.sys;
-	switch (sys)
-	{
-		case E_Sys::GPS: j = F1;	k = F2; 	break;		//todo aaron, change to use same format as new_preprocessor
-		case E_Sys::GLO: j = G1;	k = G2; 	break;
-		case E_Sys::GAL: j = F1;	k = F5; 	break;
-		case E_Sys::BDS: j = B1;	k = B3; 	break;
-		case E_Sys::QZS: j = F1;	k = F2; 	break;
-		case E_Sys::SBS: j = F1;	k = F5; 	break;
-		default: return dAnt;
-	}
+	if (!satFreqs(sys,j,k,l))
+			return dAnt;
 	
 	if 	( lamMap[j] == 0
 		||lamMap[k] == 0)

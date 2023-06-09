@@ -43,7 +43,7 @@ struct SinexParser : Parser, ObsLister
 	// when we write years, write out modulo 100
 	// This only applies to site data, for satellites it is using 4 digit years
 	void nearestYear(
-		int& year)
+		double& year)
 	{
 		if (year > 50)	year += 1900;
 		else			year += 2000;

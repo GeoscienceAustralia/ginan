@@ -36,7 +36,7 @@ double var_uraeph(
 		2.4, 3.4, 4.85, 6.85, 9.65, 13.65, 24.0, 48.0, 96.0, 192.0, 384.0, 768.0, 1536.0, 3072.0, 6144.0
 	};
 	
-	return ura < 0 || 15 < ura ? SQR(6144.0) : SQR(ura_value[ura]);
+	return ura < 0 || 15 <= ura ? SQR(6144.0) : SQR(ura_value[ura]);
 }
 
 /** select EOP/ION messages
@@ -302,7 +302,7 @@ void eph2Pos(
 
 	if (n >= MAX_ITER_KEPLER)
 	{
-//         trace(2,"kepler iteration overflow sat=%2d\n",eph->Sat);
+        printf("kepler iteration overflow sat=%s\n",eph.Sat.id().c_str());
 		return;
 	}
 
@@ -446,7 +446,7 @@ bool satClkBroadcast(
 	double&			satClkVel,
 	double&			ephVar,
 	bool&			ephClkValid,
-	int&			obsIode,
+	int&			iode,
 	Navigation&		nav)
 {
 	double		satClk1;
@@ -462,7 +462,7 @@ bool satClkBroadcast(
 
 	auto type = acsConfig.used_nav_types[Sat.sys];
 	
-	auto eph_ptr = seleph<TYPE>(trace, teph, Sat, type, obsIode, nav);
+	auto eph_ptr = seleph<TYPE>(trace, teph, Sat, type, iode, nav);
 
 	if (eph_ptr == nullptr)
 	{
@@ -480,7 +480,7 @@ bool satClkBroadcast(
 		ephClkValid = true;
 	}
 	
-	obsIode	= eph.iode;
+	iode	= eph.iode;
 	
 	/* satellite velocity and clock drift by differential approx */
 	satClkVel = (satClk1 - satClk) / tt;
@@ -502,7 +502,7 @@ bool satPosBroadcast(
 	Vector3d&		satVel,
 	double&			ephVar,
 	bool&			ephPosValid,
-	int&			obsIode,
+	int&			iode,
 	Navigation&		nav)
 {
 	Vector3d	rSat_1;
@@ -514,7 +514,7 @@ bool satPosBroadcast(
 
 	auto type = acsConfig.used_nav_types[Sat.sys];
 	
-	auto eph_ptr = seleph<TYPE>(trace, teph, Sat, type, obsIode, nav);
+	auto eph_ptr = seleph<TYPE>(trace, teph, Sat, type, iode, nav);
 
 	if (eph_ptr == nullptr)
 	{
@@ -532,7 +532,7 @@ bool satPosBroadcast(
 		ephPosValid = true;
 	}
 	
-	obsIode	= eph.iode;
+	iode	= eph.iode;
 
 	/* satellite velocity and clock drift by differential approx */
 	satVel = (rSat_1 - rSat) / tt;
@@ -551,7 +551,7 @@ bool satClkBroadcast(
 	double&			satClkVel,
 	double&			ephVar,
 	bool&			ephClkValid,
-	int&			obsIode,
+	int&			iode,
 	Navigation&		nav)
 {
 	int sys = Sat.sys;
@@ -561,9 +561,9 @@ bool satClkBroadcast(
 	if		(  sys == +E_Sys::GPS
 			|| sys == +E_Sys::GAL
 			|| sys == +E_Sys::QZS
-			|| sys == +E_Sys::BDS)	{	return satClkBroadcast<Eph>		(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, obsIode, nav);	}
-	else if (  sys == +E_Sys::GLO)	{	return satClkBroadcast<Geph>	(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, obsIode, nav);	}
-	else if (  sys == +E_Sys::SBS)	{	return satClkBroadcast<Seph>	(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, obsIode, nav);	}
+			|| sys == +E_Sys::BDS)	{	return satClkBroadcast<Eph>		(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, iode, nav);	}
+	else if (  sys == +E_Sys::GLO)	{	return satClkBroadcast<Geph>	(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, iode, nav);	}
+	else if (  sys == +E_Sys::SBS)	{	return satClkBroadcast<Seph>	(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, iode, nav);	}
 	else							{	return false;																										}
 }
 
@@ -579,7 +579,7 @@ bool satPosBroadcast(
 	Vector3d&		satVel,
 	double&			ephVar,
 	bool&			ephPosValid,
-	int&			obsIode,
+	int&			iode,
 	Navigation&		nav)
 {
 	int sys = Sat.sys;
@@ -589,9 +589,9 @@ bool satPosBroadcast(
 	if		(  sys == +E_Sys::GPS
 			|| sys == +E_Sys::GAL
 			|| sys == +E_Sys::QZS
-			|| sys == +E_Sys::BDS)	{	return satPosBroadcast<Eph>		(trace, time, teph, Sat, rSat,		satVel,		ephVar, ephPosValid, obsIode, nav);	}
-	else if (  sys == +E_Sys::GLO)	{	return satPosBroadcast<Geph>	(trace, time, teph, Sat, rSat,		satVel,		ephVar, ephPosValid, obsIode, nav);	}
-	else if (  sys == +E_Sys::SBS)	{	return satPosBroadcast<Seph>	(trace, time, teph, Sat, rSat,		satVel,		ephVar, ephPosValid, obsIode, nav);	}
+			|| sys == +E_Sys::BDS)	{	return satPosBroadcast<Eph>		(trace, time, teph, Sat, rSat,		satVel,		ephVar, ephPosValid, iode, nav);	}
+	else if (  sys == +E_Sys::GLO)	{	return satPosBroadcast<Geph>	(trace, time, teph, Sat, rSat,		satVel,		ephVar, ephPosValid, iode, nav);	}
+	else if (  sys == +E_Sys::SBS)	{	return satPosBroadcast<Seph>	(trace, time, teph, Sat, rSat,		satVel,		ephVar, ephPosValid, iode, nav);	}
 	else							{	return false;																										}
 
 }

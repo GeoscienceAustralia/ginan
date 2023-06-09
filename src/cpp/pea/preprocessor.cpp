@@ -126,6 +126,7 @@ void recordSlips(
 }
 
 void preprocessor(
+	Network&	net,
 	Station&	rec)
 {
 	if (acsConfig.process_preprocessor == false)
@@ -222,7 +223,7 @@ void preprocessor(
 	outputObservations(trace, obsList);
 	
 	for (auto& obs : only<GObs>(obsList))
-		satPosClk(trace, rec.sol.time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, E_OffsetType::APC);
+		satPosClk(trace, rec.sol.time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
 	
 	obsVariances(obsList);
 

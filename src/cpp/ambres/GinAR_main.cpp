@@ -8,12 +8,16 @@
 #define SMP2RESET	20
 
 KFState ARcopy;
-map<E_Sys, bool> sys_solve;
-map<string,map<E_Sys, bool>> sys_activ;
+
 GinAR_opt defAR_WL;
 GinAR_opt defAR_NL;
-map <E_Sys, map<E_FType,bool>> defCodesChecked;
-bool FIXREADY = false;								/* network ambiguity resolution rate */
+
+map<E_Sys, bool> sys_solve;
+
+map<string,map<E_Sys, bool>> sys_activ;
+map<E_Sys, map<E_FType,bool>> defCodesChecked;
+
+bool fixReady = false;								/* network ambiguity resolution rate */
 
 map<string,GinAR_rec> ARstations;
 map<SatSys,GinAR_sat> ARsatellites;
@@ -407,7 +411,7 @@ int LoadFromFlt(
 		double rawNL = 0, NLvar = 0;
 		kfState.getKFValue(key, rawNL, &NLvar);
 		rawNL = (rawNL - defAR_NL.wlfact[sys] * WLamb)/lamNL;
-		NLvar/= lamNL*lamNL;
+		NLvar/= SQR(lamNL);
 		
 		E_AmbTyp typ = E_AmbTyp::NL12;
 		if ( defAR_NL.ionmod == +E_IonoMode::ESTIMATE )
@@ -416,10 +420,10 @@ int LoadFromFlt(
 			if (key.num == frq2) typ = E_AmbTyp::UCL2;
 			if (key.num == frq3) typ = E_AmbTyp::UCL3;
 		}
-		if (AmbTyplist.find(typ) == AmbTyplist.end())	AmbTyplist[typ] = 1;
-		else											AmbTyplist[typ]+= 1;
 		
-		key2.num=typ;
+		AmbTyplist[typ]++;
+		
+		key2.num = typ;
 		if (AR_mealist.find(key2) == AR_mealist.end())
 		{
 			AR_mealist[key2].sec_ini = time;
@@ -641,8 +645,8 @@ int  networkAmbigResl(
 	
 	nfix = apply_ambigt(trace, kfState, opt);
 	
-	if (nfix > 0.6 * namb)		FIXREADY = true;
-	if (nfix < 0.4 * namb)		FIXREADY = false;
+	if (nfix > 0.6 * namb)		fixReady = true;
+	if (nfix < 0.4 * namb)		fixReady = false;
 	
 	artrcout(trace, kfState.time, opt);
 	
@@ -798,8 +802,8 @@ int smoothdAmbigResl(
 	for (auto& [typ,nmeas] : ARstations[recv].AmbTypMap)
 	{
 		opt.type = typ;
-		if (defAR_WL.endu)		updt_usr_pivot(trace,kfState.time,opt);
-		else					updt_net_pivot(trace,kfState.time,opt);
+		if (defAR_WL.endu)		updt_usr_pivot(trace, kfState.time, opt);
+		else					updt_net_pivot(trace, kfState.time, opt);
 	}
 	
 	int nfix = updat_ambigt( trace, kfState, opt );
@@ -810,8 +814,8 @@ int smoothdAmbigResl(
 	tracepdeex(ARTRCLVL, trace, "\n#ARES_MAIN %5d fixed from %5d ambiguities", nfix, namb);
 	nfix = apply_ambigt( trace, kfState, opt );
 	
-	if (nfix > 0.6 * namb)		FIXREADY = true;
-	if (nfix < 0.4 * namb)		FIXREADY = false;
+	if (nfix > 0.6 * namb)		fixReady = true;
+	if (nfix < 0.4 * namb)		fixReady = false;
 	
 	artrcout(trace, kfState.time, opt);
 	
@@ -826,7 +830,7 @@ int smoothdAmbigResl(
 /** Indicate if the AR solution is available/stable (60% of ambiguities solved) */
 bool ARsol_ready()
 {
-	return FIXREADY;
+	return fixReady;
 }
 
 /** Retrieved the last ambiguity resolved Kalman filter state */

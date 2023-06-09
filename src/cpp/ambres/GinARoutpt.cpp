@@ -199,7 +199,7 @@ int arionout(
 				wlvari = satbias.outvari + recbias.outvari;
 			}
 			
-			double alpha = SQR(CLIGHT)/40.30E16;
+			double alpha = SQR(CLIGHT) / TEC_CONSTANT;
 			double c2 = alpha/(lam1-lam2);
 			double c1 = -c2/(lam1+lam2);
 			double c3 = alpha/lam1/lam2;

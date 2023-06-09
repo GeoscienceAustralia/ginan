@@ -67,7 +67,7 @@ bool decomposeBGDBias(
 	double		bgd1,
 	double		bgd2);
 	
-int readBiasSinex(
+bool readBiasSinex(
 	string& file);
 
 bool getBiasSinex(
@@ -90,6 +90,13 @@ bool getBiasSinex(
 	E_MeasType		measType,
 	double& 		bias,
 	double& 		var);
+
+int writeBiasSinex(
+	Trace&		trace,
+	GTime		time,
+	string		biasfile,
+	StationMap&	stationMap,
+	KFState&	kfState);
 
 int writeBiasSinex(
 	Trace&		trace,

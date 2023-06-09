@@ -52,11 +52,14 @@ map<E_Sys, E_NavMsgType> defNavMsgType =
 */
 void setstr(char *dst, const char *src, int n)
 {
-	char *p=dst;
-	const char *q=src;
-	while (*q&&q<src+n) *p++=*q++;
-	*p--='\0';
-	while (p>=dst&&*p==' ') *p--='\0';
+	char *p = dst;
+	const char *q = src;
+
+	while (*q && q < src + n)		*p++ = *q++;
+
+	*p-- = '\0';
+
+	while (p >= dst && *p == ' ')	*p-- = '\0';
 }
 
 /** Decode obs header
@@ -71,23 +74,24 @@ void decodeObsH(
 	RinexStation*					rec)
 {
 	double del[3];
-	int prn,fcn;
+	int prn;
+	int fcn;
 	const char *p;
 	char* buff	= &line[0];
-	char* label	= buff+60;
+	char* label	= buff + 60;
 
 	auto& recOpts = acsConfig.getRecOpts(rec->id);
 	
 //	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": ver=" << ver;
 
-	if      (strstr(label,"MARKER NAME"         ))
+	if      (strstr(label, "MARKER NAME"         ))
 	{
 		if (rec)
 		{
 			rec->id				.assign(buff,		60);
 		}
 	}
-	else if (strstr(label,"MARKER NUMBER"       ))
+	else if (strstr(label, "MARKER NUMBER"       ))
 	{
 		if (rec) 
 		{
@@ -96,37 +100,37 @@ void decodeObsH(
 	}
 //     else if (strstr(label,"MARKER TYPE"         )) ; // ver.3
 //     else if (strstr(label,"OBSERVER / AGENCY"   )) ;
-	else if (strstr(label,"REC # / TYPE / VERS" ))
+	else if (strstr(label, "REC # / TYPE / VERS" ))
 	{
 		if (rec)
 		{
 			rec->recSerial		.assign(buff,		20);
-			rec->recType		.assign(buff+20,	20);
-			rec->recFWVersion	.assign(buff+40,	20);
+			rec->recType		.assign(buff + 20,	20);
+			rec->recFWVersion	.assign(buff + 40,	20);
 		}
 	}
-	else if (strstr(label,"ANT # / TYPE"        ))
+	else if (strstr(label, "ANT # / TYPE"        ))
 	{
 		if (rec)
 		{
 			rec->antSerial		.assign(buff,		20);
-			rec->antDesc		.assign(buff+20,	20);
+			rec->antDesc		.assign(buff + 20,	20);
 		}
 	}
-	else if (strstr(label,"APPROX POSITION XYZ" ))
-	{
-		if (rec)
-		{
-			for (int i = 0, j = 0; i<3 ; i++, j += 14)
-				rec->pos[i] = str2num(buff,j,14);
-		}
-	}
-	else if (strstr(label,"ANTENNA: DELTA H/E/N"))
+	else if (strstr(label, "APPROX POSITION XYZ" ))
 	{
 		if (rec)
 		{
 			for (int i = 0, j = 0; i < 3; i++, j += 14)
-				del[i] = str2num(buff,j,14);
+				rec->pos[i] = str2num(buff, j, 14);
+		}
+	}
+	else if (strstr(label, "ANTENNA: DELTA H/E/N"))
+	{
+		if (rec)
+		{
+			for (int i = 0, j = 0; i < 3; i++, j += 14)
+				del[i] = str2num(buff, j, 14);
 
 			rec->del[2] = del[0]; // h
 			rec->del[0] = del[1]; // e
@@ -139,7 +143,7 @@ void decodeObsH(
 //     else if (strstr(label,"ANTENNA: ZERODIR AZI")) ; // opt ver.3
 //     else if (strstr(label,"ANTENNA: ZERODIR XYZ")) ; // opt ver.3
 //     else if (strstr(label,"CENTER OF MASS: XYZ" )) ; // opt ver.3
-	else if (strstr(label,"SYS / # / OBS TYPES" ))
+	else if (strstr(label, "SYS / # / OBS TYPES" ))
 	{
 		// ver.3
 		//get system from code letter
@@ -175,8 +179,8 @@ void decodeObsH(
 			codeType.type = buff[k];
 
 			char code[] = "Lxx";
-			code[1] = buff[k+1];
-			code[2] = buff[k+2];
+			code[1] = buff[k + 1];
+			code[2] = buff[k + 2];
 			if	( (Sat.sys == +E_Sys::BDS)
 				&&(code[1] == '1')
 				&&(ver == 3.02))
@@ -224,13 +228,13 @@ void decodeObsH(
 //         }
 	}
 //     else if (strstr(label,"WAVELENGTH FACT L1/2")) ; // opt ver.2
-	else if (strstr(label,"# / TYPES OF OBSERV" ))
+	else if (strstr(label, "# / TYPES OF OBSERV" ))
 	{ 
 		// ver.2
 
-		int n = (int)str2num(buff,0,6);
+		int n = (int)str2num(buff, 0, 6);
 		
-		for (int i = 0, j = 10; i < n; i++, j+=6)
+		for (int i = 0, j = 10; i < n; i++, j += 6)
 		{
 			if (j > 58)
 			{
@@ -280,9 +284,9 @@ void decodeObsH(
 		}
 		//*tobs[0][nt]='\0';
 	}
-//     else if (strstr(label,"SIGNAL STRENGTH UNIT")) ; // opt ver.3
-//     else if (strstr(label,"INTERVAL"            )) ; // opt
-	else if (strstr(label,"TIME OF FIRST OBS"   ))
+//     else if (strstr(label, "SIGNAL STRENGTH UNIT")) ; // opt ver.3
+//     else if (strstr(label, "INTERVAL"            )) ; // opt
+	else if (strstr(label, "TIME OF FIRST OBS"   ))
 	{
 		if      (!strncmp(buff+48, "GPS", 3)) tsys = E_TimeSys::GPST;
 		else if (!strncmp(buff+48, "GLO", 3)) tsys = E_TimeSys::UTC;
@@ -290,48 +294,48 @@ void decodeObsH(
 		else if (!strncmp(buff+48, "QZS", 3)) tsys = E_TimeSys::QZSST;	// ver.3.02
 		else if (!strncmp(buff+48, "BDT", 3)) tsys = E_TimeSys::BDT;	// ver.3.02
 	}
-//     else if (strstr(label,"TIME OF LAST OBS"    )) ; // opt
-//     else if (strstr(label,"RCV CLOCK OFFS APPL" )) ; // opt
-//     else if (strstr(label,"SYS / DCBS APPLIED"  )) ; // opt ver.3
-//     else if (strstr(label,"SYS / PCVS APPLIED"  )) ; // opt ver.3
-//     else if (strstr(label,"SYS / SCALE FACTOR"  )) ; // opt ver.3
-//     else if (strstr(label,"SYS / PHASE SHIFTS"  )) ; // ver.3.01
-	else if (strstr(label,"GLONASS SLOT / FRQ #"))
+//     else if (strstr(label, "TIME OF LAST OBS"    )) ; // opt
+//     else if (strstr(label, "RCV CLOCK OFFS APPL" )) ; // opt
+//     else if (strstr(label, "SYS / DCBS APPLIED"  )) ; // opt ver.3
+//     else if (strstr(label, "SYS / PCVS APPLIED"  )) ; // opt ver.3
+//     else if (strstr(label, "SYS / SCALE FACTOR"  )) ; // opt ver.3
+//     else if (strstr(label, "SYS / PHASE SHIFTS"  )) ; // ver.3.01
+	else if (strstr(label, "GLONASS SLOT / FRQ #"))
 	{
 		// ver.3.02
 		p = buff + 4;
 		for (int i = 0; i < 8; i++, p += 8)
 		{
-			if (sscanf(p,"R%2d %2d", &prn, &fcn) < 2)
+			if (sscanf(p, "R%2d %2d", &prn, &fcn) < 2)
 				continue;
 
 			if (1 <= prn
 				&&prn <= NSATGLO)
 			{
-				nav.glo_fcn[prn-1] = fcn+8;
+				nav.glo_fcn[prn - 1] = fcn + 8;
 			}
 
 		}
 	}
-	else if (strstr(label,"GLONASS COD/PHS/BIS" ))
+	else if (strstr(label, "GLONASS COD/PHS/BIS" ))
 	{
 		// ver.3.02
 		p = buff;
 		for (int i = 0; i < 4; i++, p += 13)
 		{
-			if      (strncmp(p+1,"C1C",3)) nav.glo_cpbias[0]=str2num(p,5,8);
-			else if (strncmp(p+1,"C1P",3)) nav.glo_cpbias[1]=str2num(p,5,8);
-			else if (strncmp(p+1,"C2C",3)) nav.glo_cpbias[2]=str2num(p,5,8);
-			else if (strncmp(p+1,"C2P",3)) nav.glo_cpbias[3]=str2num(p,5,8);
+			if      (strncmp(p + 1, "C1C", 3)) nav.glo_cpbias[0] = str2num(p, 5, 8);
+			else if (strncmp(p + 1, "C1P", 3)) nav.glo_cpbias[1] = str2num(p, 5, 8);
+			else if (strncmp(p + 1, "C2C", 3)) nav.glo_cpbias[2] = str2num(p, 5, 8);
+			else if (strncmp(p + 1, "C2P", 3)) nav.glo_cpbias[3] = str2num(p, 5, 8);
 		}
 	}
-	else if (strstr(label,"LEAP SECONDS"        ))
+	else if (strstr(label, "LEAP SECONDS"        ))
 	{
 		// This would be GPS-UTC, and NOT optional as of RINEX 4
-		nav.leaps=(int)str2num(buff,0,6);
+		nav.leaps = (int)str2num(buff, 0, 6);
 	}
-//     else if (strstr(label,"# OF SALTELLITES"    )) ; // opt
-//     else if (strstr(label,"PRN / # OF OBS"      )) ; // opt
+//     else if (strstr(label, "# OF SALTELLITES"    )) ; // opt
+//     else if (strstr(label, "PRN / # OF OBS"      )) ; // opt
 }
 
 /** Decode nav header
@@ -346,7 +350,7 @@ void decodeNavH(
 
 // 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__;
 
-	if		(strstr(label,"ION ALPHA"           ))
+	if		(strstr(label, "ION ALPHA"           ))
 	{
 		// opt ver.2
 		E_NavMsgType type	= defNavMsgType[sys];
@@ -359,9 +363,9 @@ void decodeNavH(
 		ionEntry.ttm		= time;
 
 		for (int i = 0, j = 2; i < 4; i++, j += 12)
-			ionEntry.vals[i]	= str2num(buff,j,12);
+			ionEntry.vals[i]	= str2num(buff, j, 12);
 	}
-	else if (strstr(label,"ION BETA"            ))
+	else if (strstr(label, "ION BETA"            ))
 	{
 		// opt ver.2
 		E_NavMsgType type	= defNavMsgType[sys];
@@ -374,9 +378,9 @@ void decodeNavH(
 		ionEntry.ttm		= time;
 
 		for (int i = 0, j = 2; i < 4; i++, j += 12)
-			ionEntry.vals[i+4]	= str2num(buff,j,12);
+			ionEntry.vals[i + 4]	= str2num(buff, j, 12);
 	}
-	else if (strstr(label,"DELTA-UTC: A0,A1,T,W"))
+	else if (strstr(label, "DELTA-UTC: A0,A1,T,W"))
 	{
 		// opt ver.2
 		E_NavMsgType type	= defNavMsgType[sys];
@@ -388,8 +392,8 @@ void decodeNavH(
 			case E_Sys::GAL:	code = E_StoCode::GAUT;	break;
 		}
 
-		GTow tow			= 		str2num(buff,31,9);
-		GWeek week			= (int)	str2num(buff,40,9);
+		GTow tow			= 		str2num(buff, 31, 9);
+		GWeek week			= (int)	str2num(buff, 40, 9);
 		GTime time(week, tow);
 
 		STO& stoEntry		= nav.stoMap[code][type][time];
@@ -399,11 +403,11 @@ void decodeNavH(
 		stoEntry.tot		= time;
 		stoEntry.code		= code;
 
-		stoEntry.A0			= str2num(buff, 3,19);
-		stoEntry.A1			= str2num(buff,22,19);
+		stoEntry.A0			= str2num(buff,  3, 19);
+		stoEntry.A1			= str2num(buff, 22, 19);
 		stoEntry.A2			= 0;
 	}
-	else if (strstr(label,"IONOSPHERIC CORR"    ))
+	else if (strstr(label, "IONOSPHERIC CORR"    ))
 	{
 		// opt ver.3
 		char sysStr[4]		= "";
@@ -416,30 +420,30 @@ void decodeNavH(
 
 		ionEntry.type		= type;
 		ionEntry.Sat.sys	= sys;
-		ionEntry.Sat.prn	= str2num(buff,55,3);
+		ionEntry.Sat.prn	= str2num(buff, 55, 3);
 		ionEntry.ttm		= time;
 
 		if		( buff[3] == 'A'
 				||buff[3] == ' ')
 		{
 			for (int i = 0, j = 5; i < 4; i++, j += 12)
-				ionEntry.vals[i]	= str2num(buff,j,12);
+				ionEntry.vals[i]		= str2num(buff, j, 12);
 		}
 		else if	( buff[3] == 'B')
 		{
 			for (int i = 0, j = 5; i < 4; i++, j += 12)
-				ionEntry.vals[i+4]	= str2num(buff,j,12);
+				ionEntry.vals[i + 4]	= str2num(buff, j, 12);
 		}
 	}
-	else if (strstr(label,"TIME SYSTEM CORR"    ))
+	else if (strstr(label, "TIME SYSTEM CORR"    ))
 	{
 		// opt ver.3
 		char codeStr[5] 	= "";
-		strncpy(codeStr,buff,4);
+		strncpy(codeStr, buff, 4);
 		E_StoCode code		= E_StoCode::_from_string(codeStr);
 
 		char id[8] 			= "";
-		strncpy(id,buff+51,5);
+		strncpy(id, buff + 51, 5);
 		SatSys Sat			= SatSys(id);
 
 		if (Sat.sys == +E_Sys::NONE)
@@ -460,8 +464,8 @@ void decodeNavH(
 
 		E_NavMsgType type	= defNavMsgType[Sat.sys];
 
-		double sec			= str2num(buff,38, 7);
-		double week			= str2num(buff,45, 5);
+		double sec			= str2num(buff, 38, 7);
+		double week			= str2num(buff, 45, 5);
 		GTime time			= {};
 		if (Sat.sys != +E_Sys::BDS)	{	time = GTime(GWeek(week), GTow(sec));	}
 		else						{	time = GTime(BWeek(week), BTow(sec));	}
@@ -474,14 +478,14 @@ void decodeNavH(
 		stoEntry.ttm		= time;
 		stoEntry.code		= code;
 
-		stoEntry.A0			= str2num(buff, 5,17);
-		stoEntry.A1			= str2num(buff,22,16);
+		stoEntry.A0			= str2num(buff,  5, 17);
+		stoEntry.A1			= str2num(buff, 22, 16);
 		stoEntry.A2			= 0.0;
 	}
-	else if (strstr(label,"LEAP SECONDS"        ))
+	else if (strstr(label, "LEAP SECONDS"        ))
 	{
 		// opt
-		nav.leaps=(int)str2num(buff,0,6);
+		nav.leaps=(int)str2num(buff, 0, 6);
 	}
 }
 /** Decode gnav header
@@ -495,11 +499,11 @@ void decodeGnavH(
 
 // 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__;
 
-	if      (strstr(label,"CORR TO SYTEM TIME"  )) ; // opt
-	else if (strstr(label,"LEAP SECONDS"        ))
+	if      (strstr(label, "CORR TO SYTEM TIME"  )) ; // opt
+	else if (strstr(label, "LEAP SECONDS"        ))
 	{
 		// opt
-		nav.leaps=(int)str2num(buff,0,6);
+		nav.leaps=(int)str2num(buff, 0, 6);
 	}
 }
 
@@ -519,7 +523,7 @@ void decodeHnavH(
 	else if (strstr(label, "LEAP SECONDS"        ))
 	{
 		// opt
-		nav.leaps= (int)str2num(buff,0,6);
+		nav.leaps= (int)str2num(buff, 0, 6);
 	}
 }
 
@@ -559,16 +563,16 @@ int readRnxH(
 		{
 			continue;
 		}
-		else if (strstr(label,"RINEX VERSION / TYPE"))
+		else if (strstr(label, "RINEX VERSION / TYPE"))
 		{
-			ver		= str2num(buff,0,9);
+			ver		= str2num(buff, 0, 9);
 
 			type	= buff[typeOffset];
 
 			sysChar = buff[sysCharOffset];
 
 			// possible error in generation by one manufacturer. This hack gets around it
-			if(ver==3.04 && type == ' ')
+			if(ver == 3.04 && type == ' ')
 			{
 				typeOffset		+= 1;
 				sysCharOffset	+= 2;
@@ -596,17 +600,17 @@ int readRnxH(
 			}
 			continue;
 		}
-		else if (strstr(label,"PGM / RUN BY / DATE"))
+		else if (strstr(label, "PGM / RUN BY / DATE"))
 			continue;
-		else if (strstr(label,"COMMENT"))
+		else if (strstr(label, "COMMENT"))
 		{ 
 			// read cnes wl satellite fractional bias
-			if	( strstr(buff,"WIDELANE SATELLITE FRACTIONAL BIASES")
-				||strstr(buff,"WIDELANE SATELLITE FRACTIONNAL BIASES"))
+			if	( strstr(buff, "WIDELANE SATELLITE FRACTIONAL BIASES")
+				||strstr(buff, "WIDELANE SATELLITE FRACTIONNAL BIASES"))
 			{
-				block=1;
+				block = 1;
 			}
-			if (strstr(buff,"->"))
+			if (strstr(buff, "->"))
 			{
 				//may be a conversion line, test
 				
@@ -649,15 +653,15 @@ int readRnxH(
 				SatSys Sat;
 
 				// cnes/cls grg clock
-				if	( !strncmp(buff,"WL",2)
-					&&(Sat = SatSys(buff+3), Sat)
-					&& sscanf(buff+40,"%lf", &bias) == 1)
+				if	( !strncmp(buff, "WL", 2)
+					&&(Sat = SatSys(buff + 3), Sat)
+					&& sscanf(buff+40, "%lf", &bias) == 1)
 				{
 					nav.satNavMap[Sat].wlbias = bias;
 				}
 				// cnes ppp-wizard clock
-				else if ((Sat = SatSys(buff+1), Sat)
-						&&sscanf(buff+6,"%lf",&bias) == 1)
+				else if ((Sat = SatSys(buff + 1), Sat)
+						&&sscanf(buff+6, "%lf", &bias) == 1)
 				{
 					nav.satNavMap[Sat].wlbias = bias;
 				}
@@ -675,11 +679,11 @@ int readRnxH(
 			case 'E': //fallthrough
 			case 'L': decodeNavH 			(  line, E_Sys::GAL, nav); break; // extension
 		}
-		if (strstr(label,"END OF HEADER"))
+		if (strstr(label, "END OF HEADER"))
 			return 1;
 
-		if (++i>=MAXPOSHEAD
-			&&type==' ')
+		if (++i >= MAXPOSHEAD
+			&&type == ' ')
 		{
 			break; // no rinex file
 		}
@@ -692,6 +696,7 @@ int decodeObsEpoch(
 	std::istream& 		inputStream,
 	string&				line,
 	double				ver,
+	E_TimeSys			tsys,
 	GTime&				time,
 	int&				flag,
 	vector<SatSys>&		sats)
@@ -717,7 +722,7 @@ int decodeObsEpoch(
 			return n;
 		}
 
-		bool error = str2time(buff, 0, 26, time);
+		bool error = str2time(buff, 0, 26, time, tsys);
 		if (error)
 		{
 			BOOST_LOG_TRIVIAL(debug)
@@ -760,7 +765,7 @@ int decodeObsEpoch(
 			return n;
 
 		if	( buff[0] != '>'
-			||str2time(buff, 1, 28, time))
+			||str2time(buff, 1, 28, time, tsys))
 		{
 			BOOST_LOG_TRIVIAL(debug)
 			<< "rinex obs invalid epoch: epoch=" << buff;
@@ -855,7 +860,7 @@ int decodeObsData(
 		}
 
 		double val = str2num(buff, j,		14);
-		double lli = str2num(buff, j+14,	1);
+		double lli = str2num(buff, j + 14,	1);
 		lli = (unsigned char) lli & 0x03;
 		
 		RawSig& sig = *rawSig;
@@ -884,6 +889,7 @@ int decodeObsData(
 int readRnxObsB(
 	std::istream& 					inputStream,
 	double							ver,
+	E_TimeSys						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	int&							flag,
 	ObsList&						obsList)
@@ -901,7 +907,7 @@ int readRnxObsB(
 		// decode obs epoch
 		if (i == 0)
 		{
-			nSats = decodeObsEpoch(inputStream, line, ver, time, flag, sats);
+			nSats = decodeObsEpoch(inputStream, line, ver, tsys, time, flag, sats);
 			if (nSats <= 0)
 			{
 				continue;
@@ -954,22 +960,10 @@ int readRnxObs(
 //	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ 	<< ": ver=" << ver << " tsys=" << tsys;
 
 	// read rinex obs data body
-	int n = readRnxObsB(inputStream, ver, sysCodeTypes, flag, obsList);
+	int n = readRnxObsB(inputStream, ver, tsys, sysCodeTypes, flag, obsList);
 
-	if	( n >= 0
-		&&stat >= 0)
-	{
-		if (tsys == +E_TimeSys::UTC)
-		for (auto& obs : only<GObs>(obsList))
-		{
-			UtcTime utcTime;
-			utcTime.bigTime	= obs.time.bigTime;
-			
-			obs.time = utcTime; 
-		}
-
+	if	(n >= 0)
 		stat = 1;
-	}
 
 	return stat;
 }
@@ -1011,7 +1005,8 @@ int decodeEph(
 	eph.cuc		= data[ 7];
 	eph.e		= data[ 8];
 	eph.cus		= data[ 9];
-	eph.A		= SQR(data[10]);
+	eph.sqrtA	= data[10];			eph.A	= SQR(eph.sqrtA);
+	eph.toes	= data[11];			// toe (s) in gps/bdt week
 	eph.cic		= data[12];
 	eph.OMG0	= data[13];
 	eph.cis		= data[14];
@@ -1020,16 +1015,16 @@ int decodeEph(
 	eph.omg		= data[17];
 	eph.OMGd	= data[18];
 	eph.idot	= data[19];
+	eph.week	=(int)data[21];		// gps/bdt week
+	eph.ttms	= data[27];
 
-	if	( sys == +E_Sys::GPS
-		||sys == +E_Sys::QZS)
+	if		( sys == +E_Sys::GPS
+			||sys == +E_Sys::QZS)
 	{
 		eph.iode	=(int)data[ 3];		// IODE
 		eph.iodc	=(int)data[26];		// IODC
-		eph.toes	=     data[11];		// toe (s) in gps week
-		eph.week	=(int)data[21];		// gps week
-		eph.toe		= GTime((GTow)GTime(GWeek(eph.week), GTow(data[11])), eph.toc);
-		eph.ttm		= GTime((GTow)GTime(GWeek(eph.week), GTow(data[27])), eph.toc);
+		eph.toe		= GTime(GTow(eph.toes), eph.toc);
+		eph.ttm		= GTime(GTow(eph.ttms), eph.toc);
 
 		eph.code	=(int)		data[20];	// GPS: codes on L2 ch
 		eph.svh		=(E_Svh)	data[24];	// sv health
@@ -1040,75 +1035,73 @@ int decodeEph(
 		
 		if		(sys == +E_Sys::GPS)	{	eph.fit		= data[28];										}	// fit interval in hours for GPS
 		else if	(sys == +E_Sys::QZS)	{	eph.fitFlag	= data[28];		eph.fit	= eph.fitFlag?0.0:2.0;	}	// fit interval flag for QZS
-
-		decomposeTGDBias(Sat, eph.tgd[0]);
+		
+		if (acsConfig.use_tgd_bias)
+			decomposeTGDBias(Sat, eph.tgd[0]);
 	}
-	else if (sys==+E_Sys::GAL)
+	else if ( sys == +E_Sys::GAL)
 	{
 		// GAL ver.3
 		eph.iode	=(int)data[ 3];		// IODnav
-		eph.toes	=     data[11];		// toe (s) in galileo week
-		eph.week	=(int)data[21];		// gal week = gps week
-		eph.toe		= GTime((GTow)GTime(GWeek(eph.week), GTow(data[11])), eph.toc);
-		eph.ttm		= GTime((GTow)GTime(GWeek(eph.week), GTow(data[27])), eph.toc);
+		eph.toe		= GTime(GTow(eph.toes), eph.toc);
+		eph.ttm		= GTime(GTow(eph.ttms), eph.toc);
 
-		eph.code=(int)data[20];		// data sources
-									// bit 0 set: I/NAV E1-B
-									// bit 1 set: F/NAV E5a-I
-									// bit 2 set: I/NAV E5b-I
-									// bit 8 set: af0-af2 toc are for E5a.E1
-									// bit 9 set: af0-af2 toc are for E5b.E1
+		eph.code	=(int)data[20];		// data sources
+										// bit 0 set: I/NAV E1-B
+										// bit 1 set: F/NAV E5a-I
+										// bit 2 set: I/NAV E5b-I
+										// bit 8 set: af0-af2 toc are for E5a.E1
+										// bit 9 set: af0-af2 toc are for E5b.E1
 		unsigned short iNavMask = 0x0005;
 		unsigned short fNavMask = 0x0002;
 		if		(eph.code & iNavMask)	eph.type = E_NavMsgType::INAV;
 		else if	(eph.code & fNavMask)	eph.type = E_NavMsgType::FNAV;
 
-		eph.svh =(E_Svh)data[24];	// sv health
-									// bit     0: E1B DVS
-									// bit   1-2: E1B HS
-									// bit     3: E5a DVS
-									// bit   4-5: E5a HS
-									// bit     6: E5b DVS
-									// bit   7-8: E5b HS
-		eph.sva = sisaToSva(data[23]);
+		eph.svh		=(E_Svh)data[24];	// sv health
+										// bit     0: E1B DVS
+										// bit   1-2: E1B HS
+										// bit     3: E5a DVS
+										// bit   4-5: E5a HS
+										// bit     6: E5b DVS
+										// bit   7-8: E5b HS
+		eph.sva		=sisaToSva(data[23]);
 		
 		eph.tgd[0]=   data[25];		// BGD E5a/E1
 		eph.tgd[1]=   data[26];		// BGD E5b/E1
-
-		decomposeBGDBias(Sat, eph.tgd[0], eph.tgd[1]);
+		
+		if (acsConfig.use_tgd_bias)
+			decomposeBGDBias(Sat, eph.tgd[0], eph.tgd[1]);
 	}
-	else if (sys==+E_Sys::BDS)
+	else if ( sys == +E_Sys::BDS)
 	{
 		// BeiDou v.3.02
-		if (Sat.prn>5&&Sat.prn<59)	eph.type = E_NavMsgType::D1;	// MEO/IGSO
-		else						eph.type = E_NavMsgType::D2;	// GEO, prn range may change in the future*/
+		if (Sat.prn > 5 && Sat.prn < 59)	eph.type = E_NavMsgType::D1;	// MEO/IGSO
+		else								eph.type = E_NavMsgType::D2;	// GEO, prn range may change in the future*/
 
-		// eph.toc		= bdt2gpst(eph.toc);	// bdt -> gpst
+		eph.tocs	= BTow(toc);
 		eph.aode	=(int)data[ 3];			// AODE
 		eph.aodc	=(int)data[28];			// AODC
-		eph.toes	=     data[11];			// toe (s) in bdt week
-		eph.week	=(int)data[21];			// bdt week
 		eph.iode	= int(eph.tocs / 720) % 240;
 		eph.iodc	= eph.iode + 256 * int(eph.tocs / 172800) % 4;
-		eph.toe		= GTime(BWeek(eph.week), BTow(data[11]));
-		eph.ttm		= GTime(BWeek(eph.week), BTow(data[27]));
+		eph.toe		= GTime(BTow(eph.toes), eph.toc);
+		eph.ttm		= GTime(BTow(eph.ttms), eph.toc);
 
 		eph.svh		=(E_Svh)data[24];		// satH1
 		eph.sva		=uraToSva(data[23]);	// ura (m->index)
 
-		eph.tgd[0]	=     data[25];			// TGD1 B1/B3
-		eph.tgd[1]	=     data[26];			// TGD2 B2/B3
+		eph.tgd[0]	= data[25];			// TGD1 B1/B3
+		eph.tgd[1]	= data[26];			// TGD2 B2/B3
 	}
 
-	if	( eph.iode<0
-		||eph.iode>1023)
+	if	( eph.iode < 0
+		||eph.iode > 1023)
 	{
 		BOOST_LOG_TRIVIAL(debug)
 		<< "rinex nav invalid: sat=" << Sat.id() << " iode=" << eph.iode;
 	}
 
-	if	( eph.iodc<0
-		||eph.iodc>1023)
+	if	( eph.iodc < 0
+		||eph.iodc > 1023)
 	{
 		BOOST_LOG_TRIVIAL(debug)
 		<< "rinex nav invalid: sat=" << Sat.id() << " iodc=" << eph.iodc;
@@ -1125,14 +1118,12 @@ int decodeGeph(
 	vector<double>&	data,	///< Data to decode
 	Geph&			geph)	///< Glonass ephemeris
 {
-	GTime tof;
-	double tow,tod;
-	int week,dow;
+	double tow;
 
 //     BOOST_LOG_TRIVIAL(debug)
 // 	<< "decodeGeph: ver=" << ver << " sat=" << Sat.id();
 
-	if (Sat.sys!=+E_Sys::GLO)
+	if (Sat.sys != +E_Sys::GLO)
 	{
 		BOOST_LOG_TRIVIAL(debug)
 		<< "glonass ephemeris error: invalid satellite sat=" << Sat.id();
@@ -1140,22 +1131,16 @@ int decodeGeph(
 		return 0;
 	}
 
-	geph.type=defNavMsgType[Sat.sys];
-	geph.Sat=Sat;
+	geph.type	= defNavMsgType[Sat.sys];
+	geph.Sat	= Sat;
 
-	// time of day in utc
-	if (ver <= 2.99)	tod =		data[2];
-	else 				tod = fmod(	data[2], 86400); // tod (v.2), tow (v.3) in utc
+	RTod toes	= int(RTod(toc) + 450.0) / 900 * 900.0;
+	geph.toe	= GTime(toes, toc);
 
-	tow = GTow(toc);
-	toc = (toc+450.0).floorTime(900);
-	tof = toc.floorTime(86400.0) + tod;
-	
-	geph.toe = utc2gpst(toc);   // toc (gpst)	// Eugene to fix
-	geph.tof = utc2gpst(tof);   // tof (gpst)	// Eugene to fix
+	geph.tofs	= data[2];		// UTC
+	geph.tof	= GTime(RTod(geph.tofs + 10800.0), toc);
 
-	// iode = tb (7bit), tb =index of UTC+3H within current day
-	geph.iode	= (int) (fmod(tow+10800.0,86400.0)/900.0+0.5);
+	geph.iode	= (int)toes / 900;
 
 	geph.taun	= -data[0];   	// -taun -> +taun
 	geph.gammaN	=  data[1];   	// +gamman
@@ -1171,11 +1156,17 @@ int decodeGeph(
 	geph.frq = (int)	data[10];
 	geph.age = (int)	data[14];
 
+	if (ver >= 3.05)
+	{
+		// todo Eugene: additional records from version 3.05 and on
+	}
+
 	// some receiver output >128 for minus frequency number
 	if (geph.frq >  128)
 		geph.frq -= 256;
 
-	if (geph.frq<MINFREQ_GLO||MAXFREQ_GLO<geph.frq)
+	if	( geph.frq < MINFREQ_GLO
+		||geph.frq > MAXFREQ_GLO)
 	{
 		BOOST_LOG_TRIVIAL(debug)
 		<< "rinex gnav invalid freq: sat=" << Sat << " fn=" << geph.frq;
@@ -1192,12 +1183,10 @@ int decodeSeph(
 	vector<double>&	data,
 	Seph&			seph)
 {
-	int week;
-
 //     BOOST_LOG_TRIVIAL(debug)
 // 	<< "decodeSeph: ver=" << ver << " sat=" << Sat.id();
 
-	if (Sat.sys!=+E_Sys::SBS)
+	if (Sat.sys != +E_Sys::SBS)
 	{
 		BOOST_LOG_TRIVIAL(debug)
 		<< "geo ephemeris error: invalid satellite sat=" << Sat.id();
@@ -1205,22 +1194,25 @@ int decodeSeph(
 		return 0;
 	}
 
-	seph.type=defNavMsgType[Sat.sys];
-	seph.Sat=Sat;
-	seph.t0 =toc;
+	seph.type	= defNavMsgType[Sat.sys];
+	seph.Sat	= Sat;
+	seph.t0		= toc;
 
-	// time2gpst(seph.t0,&week);
-	seph.tof = GTime(GTow(data[2]),seph.t0);
+	seph.tofs	= data[2];
+	seph.tof	= GTime(GTow(seph.tofs), seph.t0);
 
-	seph.af0=data[0];
-	seph.af1=data[1];
+	seph.af0	= data[0];
+	seph.af1	= data[1];
 
-	seph.pos[0]=data[3]*1E3; seph.pos[1]=data[7]*1E3; seph.pos[2]=data[11]*1E3;
-	seph.vel[0]=data[4]*1E3; seph.vel[1]=data[8]*1E3; seph.vel[2]=data[12]*1E3;
-	seph.acc[0]=data[5]*1E3; seph.acc[1]=data[9]*1E3; seph.acc[2]=data[13]*1E3;
+	for (int i = 0; i < 3; i++)
+	{
+		seph.pos[i] = data[3 + i*4] * 1E3;
+		seph.vel[i] = data[4 + i*4] * 1E3;
+		seph.acc[i] = data[5 + i*4] * 1E3;
+	}
 
-	seph.svh=(E_Svh)data[6];
-	seph.sva=uraToSva(data[10]);
+	seph.svh	= (E_Svh)data[6];
+	seph.sva	= uraToSva(data[10]);
 
 	return 1;
 }
@@ -1294,12 +1286,11 @@ int decodeCeph(
 	ceph.idot	= data[19];
 	ceph.dn0d	= data[20];
 
-	if	(sys==+E_Sys::GPS||sys==+E_Sys::QZS)
+	if		( sys == +E_Sys::GPS
+			||sys == +E_Sys::QZS)
 	{
-		int week = GWeek(ceph.toc);
-		ceph.toe = ceph.toc;
-		// ceph.toes = time2gpst(ceph.toe,&week);
-		ceph.toes = GTow(ceph.toe);
+		ceph.toe	= ceph.toc;
+		ceph.toes	= GTow(ceph.toe);
 
 		ceph.ura[0]	= data[21];  
 		ceph.ura[1]	= data[22];  
@@ -1317,7 +1308,8 @@ int decodeCeph(
 
 		if		(type == +E_NavMsgType::CNAV)
 		{
-			ceph.ttm	= GTime((GTow)GTime(GWeek(week), GTow(data[31])), ceph.toc);
+			ceph.ttms	= data[31];
+			ceph.ttm	= GTime(GTow(ceph.ttms), ceph.toc);
 			ceph.wnop	= (int)data[32];
 		}
 		else if (type == +E_NavMsgType::CNV2)
@@ -1325,21 +1317,17 @@ int decodeCeph(
 			ceph.isc[4] = data[31];  
 			ceph.isc[5] = data[32];  
 
-			ceph.ttm	= GTime((GTow)GTime(GWeek(week), GTow(data[35])), ceph.toc);
+			ceph.ttms	= data[35];
+			ceph.ttm	= GTime(GTow(ceph.ttms), ceph.toc);
 			ceph.wnop = (int)data[36];
 		}
 
 		ceph.tops	= data[11];  	// top (s) in seconds
-		ceph.top	= GTime((GTow)GTime(GWeek(ceph.wnop), GTow(ceph.tops)), ceph.toc);
+		ceph.top	= GTime(GTow(ceph.tops), ceph.toc);
 	}
-	else if (sys==+E_Sys::BDS)
+	else if	( sys == +E_Sys::BDS)
 	{
 		// BeiDou v.4.00
-		int week;
-		
-		time2bdt(ceph.toc,&week);
-
-// 		ceph.toc = bdt2gpst(ceph.toc); // bdt -> gpst
 
 		ceph.orb = E_SatType::_from_integral(data[21]);
 
@@ -1348,8 +1336,8 @@ int decodeCeph(
 		ceph.sis[2]	= data[25];  
 		ceph.sis[3]	= data[26];  
 
-		if  ( type==+E_NavMsgType::CNV1
-			||type==+E_NavMsgType::CNV2)
+		if  ( type == +E_NavMsgType::CNV1
+			||type == +E_NavMsgType::CNV2)
 		{
 			ceph.isc[0]	= data[27];  
 			ceph.isc[1]	= data[28];  
@@ -1362,33 +1350,37 @@ int decodeCeph(
 			ceph.svh 	= (E_Svh)data[32];	// sv health
 			ceph.flag	= (int)data[33];  	// integrity flag
 			ceph.iodc	= (int)data[34];  	// IODC
-			ceph.iode	= (int)data[37];  	// IODE
+			ceph.iode	= (int)data[38];  	// IODE
 
-// 			ceph.ttm = bdt2gpst(bdt2time(week,data[35])); adjweek(ceph.ttm,ceph.toc);// bdt -> gpst
+			ceph.ttms	= data[35];
+			ceph.ttm	= GTime(BTow(ceph.ttms), ceph.toc);
 		}
-		else if (type==+E_NavMsgType::CNV3)
+		else if (type == +E_NavMsgType::CNV3)
 		{
 			ceph.sis[4]	= data[27];  
 			ceph.svh	= (E_Svh)data[28];	// sv health
 			ceph.flag	= (int)data[29];  	// integrity flag
 			ceph.tgd[2]	= data[30];  	// TGD_B2ap
 
-// 			ceph.ttm = bdt2gpst(bdt2time(week,data[31])); adjweek(ceph.ttm,ceph.toc);// bdt -> gpst
+			ceph.ttms	= data[31];
+			ceph.ttm	= GTime(BTow(ceph.ttms), ceph.toc);
 		}
 
 		ceph.toes	= data[11];  	// top (s) in seconds
 		ceph.tops	= data[22];  	// top (s) in seconds
-// 		ceph.toe	= bdt2gpst(bdt2time(week,data[11])); adjweek(ceph.toe,ceph.toc);// bdt -> gpst
-// 		ceph.top	= bdt2gpst(bdt2time(week,data[22])); adjweek(ceph.top,ceph.toc);// bdt -> gpst
+		ceph.toe	= GTime(BTow(ceph.toes), ceph.toc);
+		ceph.top	= GTime(BTow(ceph.tops), ceph.toc);
 	}
 
-	if (ceph.iode<0||1023<ceph.iode)
+	if	( ceph.iode < 0
+		||ceph.iode > 1023)
 	{
 		BOOST_LOG_TRIVIAL(debug)
 		<< "rinex nav invalid: sat=" << Sat.id() << " iode=" << ceph.iode;
 	}
 
-	if (ceph.iodc<0||1023<ceph.iodc)
+	if	( ceph.iodc < 0
+		||ceph.iodc > 1023)
 	{
 		BOOST_LOG_TRIVIAL(debug)
 		<< "rinex nav invalid: sat=" << Sat.id() << " iodc=" << ceph.iodc;
@@ -1425,12 +1417,14 @@ int decodeSto(
 	sto.sid		= E_SbasId	::_from_integral(data[1]);
 	sto.uid		= E_UtcId	::_from_integral(data[2]);
 
+	sto.ttms	= data[3];
+
 	sto.A0		= data[4];
 	sto.A1		= data[5];
 	sto.A2		= data[6];
 
-	if (sys != +E_Sys::BDS)	{GWeek week = sto.tot;		sto.ttm = gpst2time(week,data[3]);		}
-// 	else					{time2bdt (sto.tot,&week);	sto.ttm=bdt2gpst( bdt2time(week,data[3]));	sto.tot=bdt2gpst(sto.tot);	}
+	if (sys != +E_Sys::BDS)		{ sto.ttm = GTime(GWeek(sto.tot), GTow(sto.ttms));}
+	else						{ sto.ttm = GTime(BWeek(sto.tot), BTow(sto.ttms));}
 
 	return 1;
 }
@@ -1465,12 +1459,13 @@ int decodeEop(
 	eop.yp		= data[4] * AS2R;
 	eop.ypr		= data[5] * AS2R;
 	eop.yprr	= data[6] * AS2R;
+	eop.ttms	= data[7];
 	eop.dut1	= data[8];
 	eop.dur		= data[9];
 	eop.durr	= data[10];
 
-	if (sys != +E_Sys::BDS)		{ eop.ttm = GTime(GTow(data[7]), eop.teop);}
-	else						{ eop.ttm = GTime(BTow(data[7]), eop.teop);}
+	if (sys != +E_Sys::BDS)		{ eop.ttm = GTime(GWeek(eop.teop), GTow(eop.ttms));}
+	else						{ eop.ttm = GTime(BWeek(eop.teop), BTow(eop.ttms));}
 
 	return 1;
 }
@@ -1498,46 +1493,43 @@ int decodeIon(
 	ion.Sat		= Sat;
 	ion.type	= type;
 	ion.ttm		= toc;
-	
-// 	if (sys == +E_Sys::BDS)
-// 		ion.ttm=bdt2gpst(ion.ttm);
 
-	if	( sys==+E_Sys::GAL
-		&&type==+E_NavMsgType::IFNV)
+	if	( sys == +E_Sys::GAL
+		&&type == +E_NavMsgType::IFNV)
 	{
-		ion.ai0=data[0];
-		ion.ai1=data[1];
-		ion.ai2=data[2];
+		ion.ai0 = data[0];
+		ion.ai1 = data[1];
+		ion.ai2 = data[2];
 
-		ion.flag=(int)data[3];
+		ion.flag = (int)data[3];
 	}
-	else if	( sys==+E_Sys::BDS
-			&&type==+E_NavMsgType::CNVX)
+	else if	( sys == +E_Sys::BDS
+			&&type == +E_NavMsgType::CNVX)
 	{
-		ion.alpha1=data[0];
-		ion.alpha2=data[1];
-		ion.alpha3=data[2];
-		ion.alpha4=data[3];
-		ion.alpha5=data[4];
-		ion.alpha6=data[5];
-		ion.alpha7=data[6];
-		ion.alpha8=data[7];
-		ion.alpha9=data[8];
+		ion.alpha1 = data[0];
+		ion.alpha2 = data[1];
+		ion.alpha3 = data[2];
+		ion.alpha4 = data[3];
+		ion.alpha5 = data[4];
+		ion.alpha6 = data[5];
+		ion.alpha7 = data[6];
+		ion.alpha8 = data[7];
+		ion.alpha9 = data[8];
 	}
-	else if	( type==+E_NavMsgType::LNAV
-			||type==+E_NavMsgType::D1D2
-			||type==+E_NavMsgType::CNVX)
+	else if	( type == +E_NavMsgType::LNAV
+			||type == +E_NavMsgType::D1D2
+			||type == +E_NavMsgType::CNVX)
 	{
-		ion.a0=data[0];
-		ion.a1=data[1];
-		ion.a2=data[2];
-		ion.a3=data[3];
-		ion.b0=data[4];
-		ion.b1=data[5];
-		ion.b2=data[6];
-		ion.b3=data[7];
+		ion.a0 = data[0];
+		ion.a1 = data[1];
+		ion.a2 = data[2];
+		ion.a3 = data[3];
+		ion.b0 = data[4];
+		ion.b1 = data[5];
+		ion.b2 = data[6];
+		ion.b3 = data[7];
 
-		ion.code=(int)data[8];
+		ion.code = (int)data[8];
 
 		if (ion.code == 1)	// QZS Japan area coefficients are currently skipped
 			return 0;
@@ -1563,9 +1555,9 @@ int readRnxNavB(
 {
 	GTime toc;
 	vector<double> data;
-	int sp=3;
+	int sp = 3;
 	string	line;
-	char id[8]="";
+	char id[8] = "";
 	char *p;
 
 // 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": ver=" << ver << " sys=" << sys;
@@ -1586,15 +1578,15 @@ int readRnxNavB(
 			{
 				// ver.4
 				char typeStr[5] = "";
-				strncpy(typeStr,buff+2,3);
+				strncpy(typeStr, buff+2, 3);
 				recType	= E_NavRecType::_from_string(typeStr);
 
-				strncpy(id,buff+6,3);
+				strncpy(id, buff + 6, 3);
 				Sat=SatSys(id);
 				sys=Sat.sys;
 
-				strncpy(typeStr,buff+10,4);
-				std::replace(typeStr, typeStr+4, ' ', '\0');
+				strncpy(typeStr, buff + 10, 4);
+				std::replace(typeStr, typeStr + 4, ' ', '\0');
 				msgType	= E_NavMsgType::_from_string(typeStr);
 
 				continue;
@@ -1606,38 +1598,36 @@ int readRnxNavB(
 				||sys == +E_Sys::QZS)
 			{
 				// ver.3 or GAL/QZS
-				strncpy(id,buff,3);
+				strncpy(id, buff, 3);
 				sp = 4;
 				if (ver < 4.0)	// satellite id included in message type field in ver.4
 				{
 					Sat=SatSys(id);
 					if (ver >= 3.0)
-						sys=Sat.sys;
+						sys = Sat.sys;
 				}
 			}
 			else
 			{
 				Sat.sys = sys;
-				Sat.prn = str2num(buff,0,2);
+				Sat.prn = str2num(buff, 0, 2);
+			}
+
+			E_TimeSys tsys = E_TimeSys::GPST;
+			switch (sys)
+			{
+				case E_Sys::GPS:	tsys = E_TimeSys::GPST;		break;
+				case E_Sys::GLO:	tsys = E_TimeSys::UTC;		break;
+				case E_Sys::GAL:	tsys = E_TimeSys::GST;		break;
+				case E_Sys::BDS:	tsys = E_TimeSys::BDT;		break;
+				case E_Sys::QZS:	tsys = E_TimeSys::QZSST;	break;
+				case E_Sys::SBS:	tsys = E_TimeSys::GPST;		break;
+				default:			tsys = E_TimeSys::GPST;		break;
 			}
 
 			// decode toc field
-			GTime tempTime;
-			bool error = str2time(buff+sp, 0, 19, tempTime);
-			if (error == false)
-			{				
-				if (sys == +E_Sys::BDS)		{	toc.bigTime	= tempTime.bigTime + (double) GPS_SUB_UTC_2006;		}
-				else						{	toc			= tempTime;											}
-
-				// if (sys == +E_Sys::GLO)	// todo Eugene: UEpoch
-				// {
-				// 	UtcTime	utcTime;
-				// 	utcTime.bigTime	= tempTime.bigTime;
-
-				// 	toc	= utcTime;
-				// }
-			}
-			else
+			bool error = str2time(buff+sp, 0, 19, toc, tsys);
+			if (error == true)
 			{
 //                 BOOST_LOG_TRIVIAL(debug)
 // 				<< "rinex nav toc error: " << buff;
@@ -1649,19 +1639,19 @@ int readRnxNavB(
 			{
 				// decode STO code, SBAS ID & UTC ID for STO message
 				char code[19] = "";
-				strncpy(code,buff+24,18);
-				std::replace(code, code+18, ' ', '\0');
+				strncpy(code, buff + 24, 18);
+				std::replace(code, code + 18, ' ', '\0');
 				data.push_back(E_StoCode::_from_string(code));
 
-				strncpy(code,buff+43,18);
-				std::replace(code, code+18, '-', '_' );
-				std::replace(code, code+18, ' ', '\0');
+				strncpy(code, buff + 43, 18);
+				std::replace(code, code + 18, '-', '_' );
+				std::replace(code, code + 18, ' ', '\0');
 				data.push_back(*(E_SbasId::_from_string_nothrow(code)));	//code may be empty
 
-				strncpy(code,buff+62,18);
-				std::replace(code, code+18, '(', '_' );
-				std::replace(code, code+18, ')', '\0');
-				std::replace(code, code+18, ' ', '\0');
+				strncpy(code, buff + 62, 18);
+				std::replace(code, code + 18, '(', '_' );
+				std::replace(code, code + 18, ')', '\0');
+				std::replace(code, code + 18, ' ', '\0');
 				data.push_back(*(E_UtcId::_from_string_nothrow(code)));		//code may be empty
 			}
 			else
@@ -1670,7 +1660,7 @@ int readRnxNavB(
 				p = buff+sp+19;
 				for (int j = 0; j < 3; j++, p += 19)
 				{
-					data.push_back(str2num(p,0,19));
+					data.push_back(str2num(p, 0, 19));
 				}
 			}
 
@@ -1683,7 +1673,7 @@ int readRnxNavB(
 			p = buff+sp;
 			for (int j = 0; j < 4; j++, p += 19)
 			{
-				data.push_back(str2num(p,0,19));
+				data.push_back(str2num(p, 0, 19));
 			}
 			// decode ephemeris
 			if		(recType == +E_NavRecType::EPH)
@@ -1691,22 +1681,22 @@ int readRnxNavB(
 				switch (msgType)
 				{
 					case E_NavMsgType::CNAV:		//fallthrough
-					case E_NavMsgType::CNV3:			{	if (data.size() >= 35)	{ type = E_EphType::CEPH;	return decodeCeph(ver,Sat,msgType,	toc,data,ceph); }	break;	}
+					case E_NavMsgType::CNV3:			{	if (data.size() >= 35)	{ type = E_EphType::CEPH;	return decodeCeph(ver, Sat, msgType,	toc, data, ceph); }	break;	}
 					case E_NavMsgType::CNV1:		//fallthrough
-					case E_NavMsgType::CNV2: 			{	if (data.size() >= 39)	{ type = E_EphType::CEPH;	return decodeCeph(ver,Sat,msgType,	toc,data,ceph); }	break;	}
-					case E_NavMsgType::FDMA: 			{	if (data.size() >= 15)	{ type = E_EphType::GEPH;	return decodeGeph(ver,Sat,			toc,data,geph); }	break;	}
-					case E_NavMsgType::SBAS: 			{	if (data.size() >= 15)	{ type = E_EphType::SEPH;	return decodeSeph(ver,Sat,			toc,data,seph); }	break;	}
-					default:							{	if (data.size() >= 31)	{ type = E_EphType:: EPH;	return decodeEph (ver,Sat,			toc,data, eph); }	break;	}
+					case E_NavMsgType::CNV2: 			{	if (data.size() >= 39)	{ type = E_EphType::CEPH;	return decodeCeph(ver, Sat, msgType,	toc, data, ceph); }	break;	}
+					case E_NavMsgType::FDMA: 			{	if (data.size() >= 15)	{ type = E_EphType::GEPH;	return decodeGeph(ver, Sat,				toc, data, geph); }	break;	}	// todo Eugene: additional records from version 3.05 and on
+					case E_NavMsgType::SBAS: 			{	if (data.size() >= 15)	{ type = E_EphType::SEPH;	return decodeSeph(ver, Sat,				toc, data, seph); }	break;	}
+					default:							{	if (data.size() >= 31)	{ type = E_EphType:: EPH;	return decodeEph (ver, Sat,				toc, data,  eph); }	break;	}
 				}
 			}
-			else if (recType == +E_NavRecType::STO)		{	if (data.size() >= 7)	{ type = E_EphType:: STO;	return decodeSto (ver,Sat,msgType,	toc,data, sto); }			}
-			else if (recType == +E_NavRecType::EOP)		{	if (data.size() >= 11)	{ type = E_EphType:: EOP;	return decodeEop (ver,Sat,msgType,	toc,data, eop); }			}
+			else if (recType == +E_NavRecType::STO)		{	if (data.size() >=  7)	{ type = E_EphType:: STO;	return decodeSto (ver, Sat, msgType,	toc, data,  sto); }			}
+			else if (recType == +E_NavRecType::EOP)		{	if (data.size() >= 11)	{ type = E_EphType:: EOP;	return decodeEop (ver, Sat, msgType,	toc, data,  eop); }			}
 			else if (recType == +E_NavRecType::ION)
 			{
 				switch (sys)
 				{
-					case E_Sys::GAL: 					{	if (data.size() >= 7)	{ type = E_EphType:: ION;	return decodeIon (ver,Sat,msgType,	toc,data, ion); }	break;	}
-					default: 							{	if (data.size() >= 11)	{ type = E_EphType:: ION;	return decodeIon (ver,Sat,msgType,	toc,data, ion); }	break;	}
+					case E_Sys::GAL: 					{	if (data.size() >=  7)	{ type = E_EphType:: ION;	return decodeIon (ver, Sat, msgType,	toc, data,  ion); }	break;	}
+					default: 							{	if (data.size() >= 11)	{ type = E_EphType:: ION;	return decodeIon (ver, Sat, msgType,	toc, data,  ion); }	break;	}
 				}
 			}
 			else
@@ -1724,37 +1714,46 @@ int readRnxNav(
 	E_Sys			sys,			///< Satellite system
 	Navigation&		nav)			///< Navigation object
 {
-	Eph			eph		= {};
-	Geph		geph	= {};
-	Seph		seph	= {};
-	Ceph		ceph	= {};
-	STO			sto		= {};
-	EOP			eop		= {};
-	ION			ion		= {};
-	int			stat	= {};
-	E_EphType	type	= {};
 
 // 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": ver=" << ver << " sys=" << sys;
 
 	// read rinex navigation data body
-	while ((stat = readRnxNavB(inputStream, ver, sys, type, eph, geph, seph, ceph, sto, eop, ion)) >= 0)
+	while (1)
 	{
-		// add ephemeris to navigation data
-		if (stat)
+		// initialise each time to avoid incomplete overwriting
+		Eph			eph		= {};
+		Geph		geph	= {};
+		Seph		seph	= {};
+		Ceph		ceph	= {};
+		STO			sto		= {};
+		EOP			eop		= {};
+		ION			ion		= {};
+		
+		E_EphType	type;
+
+		int stat = readRnxNavB(inputStream, ver, sys, type, eph, geph, seph, ceph, sto, eop, ion);
+
+		if		(stat < 0)
 		{
+			break;
+		}
+		else if	(stat > 0)
+		{
+			// add ephemeris to navigation data
 			switch (type)
 			{
-				case E_EphType::EPH:	nav.ephMap	[eph.Sat]		[eph.type]				[eph.toe]	= eph;	break;
-				case E_EphType::GEPH:	nav.gephMap	[geph.Sat]		[E_NavMsgType::FDMA]	[geph.toe]	= geph;	break;
-				case E_EphType::SEPH:	nav.sephMap	[seph.Sat]		[E_NavMsgType::SBAS]	[seph.t0]	= seph;	break;
-				case E_EphType::CEPH:	nav.cephMap	[ceph.Sat]		[ceph.type]				[ceph.toe]	= ceph;	break;
-				case E_EphType::STO:	nav.stoMap	[sto.code]		[sto.type]				[sto.tot ]	= sto;	break;
-				case E_EphType::EOP:	nav.eopMap	[eop.Sat.sys]	[eop.type]				[eop.teop]	= eop;	break;
-				case E_EphType::ION:	nav.ionMap	[ion.Sat.sys]	[ion.type]				[ion.ttm ]	= ion;	break;
+				case E_EphType::EPH:	nav.ephMap	[eph. Sat]		[eph. type]	[eph. toe]	= eph;	break;
+				case E_EphType::GEPH:	nav.gephMap	[geph.Sat]		[geph.type]	[geph.toe]	= geph;	break;
+				case E_EphType::SEPH:	nav.sephMap	[seph.Sat]		[seph.type]	[seph.t0 ]	= seph;	break;
+				case E_EphType::CEPH:	nav.cephMap	[ceph.Sat]		[ceph.type]	[ceph.toe]	= ceph;	break;
+				case E_EphType::STO:	nav.stoMap	[sto.code]		[sto. type]	[sto. tot]	= sto;	break;
+				case E_EphType::EOP:	nav.eopMap	[eop.Sat.sys]	[eop. type]	[eop.teop]	= eop;	break;
+				case E_EphType::ION:	nav.ionMap	[ion.Sat.sys]	[ion. type]	[ion. ttm]	= ion;	break;
 				default: continue;
 			}
 		}
 	}
+
 	return	( nav. ephMap.empty() == false
 			||nav.gephMap.empty() == false
 			||nav.sephMap.empty() == false
@@ -1784,12 +1783,12 @@ int readRnxClk(
 	} ClkStruct;
 
 
-	ClkStruct typ = {0,2};
-	ClkStruct as  = {3,3};
-	ClkStruct ar  = {3,4};
-	ClkStruct tim = {8,26};
-	ClkStruct clk = {40,19};
-	ClkStruct std = {60,19};
+	ClkStruct typ = { 0,  2};
+	ClkStruct as  = { 3,  3};
+	ClkStruct ar  = { 3,  4};
+	ClkStruct tim = { 8, 26};
+	ClkStruct clk = {40, 19};
+	ClkStruct std = {60, 19};
 
 	// special case for 3.04 rnx with 9 char AR names
 	if (ver == 3.04)
@@ -1811,7 +1810,7 @@ int readRnxClk(
 			continue;
 		}
 
-		string type(buff + typ.offset,typ.length);
+		string type(buff + typ.offset, typ.length);
 
 		string idString;
 		if		(type == "AS")	{	idString.assign(buff + as.offset, as.length);	}

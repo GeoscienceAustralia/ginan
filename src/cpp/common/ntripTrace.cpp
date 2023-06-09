@@ -169,7 +169,7 @@ string NetworkStatistics::getNetworkStatistics(
 	doc.append(kvp("Network", 			acsConfig.analysis_agency));
 	doc.append(kvp("Downloading", 		true));
 
-	double totalTime = ((GTime)timeGet() - startTime).to_double();
+	double totalTime = (timeGet() - startTime).to_double();
 
 // 	double connRatio;
 // 	if (disconnectionCount == 0
@@ -213,7 +213,7 @@ string NetworkStatistics::getNetworkStatistics(
 // 	traceStr << "Start           : " << std::put_time(std::localtime(&startTime.time),	"%F %X")	<< std::endl;
 // 	traceStr << "Finish          : " << std::put_time(std::localtime(&endTime.time),	"%F %X")	<< std::endl;
 // 
-// 	double totalTime = (GTime)timeGet() - startTime;
+// 	double totalTime = timeGet() - startTime;
 // 
 // 	double connRatio;
 // 	if (disconnectionCount == 0

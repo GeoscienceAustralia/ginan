@@ -14,7 +14,7 @@ using std::chrono::time_point;
 using std::string;
 
 
-#include "peaCommitVersion.h"
+#include "peaCommitStrings.hpp"
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
@@ -279,7 +279,7 @@ void outputOrbit(
 	GTime endTime = timeGet();
 
 	tracepdeex(0, orbitFile, "#INFO    Orbit estimated by PEA\n");
-	tracepdeex(0, orbitFile, "#INFO    Generated from: PEA (v%s) at %s\n", GINAN_COMMIT_VERSION, endTime.to_string().c_str());
+	tracepdeex(0, orbitFile, "#INFO    Generated from: PEA (v%s) at %s\n", ginanCommitVersion(), endTime.to_string().c_str());
 	
 	for (auto& str : nav.podInfoList)
 	{

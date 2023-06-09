@@ -158,8 +158,9 @@ string ilrsIdToCosparId(
 	int YY	= stoi(YYXXXAA.substr(0,2));
 	int XXX	= stoi(YYXXXAA.substr(2,3));
 	int AA	= stoi(YYXXXAA.substr(5,2));
-	int YYYY = YY;
-	nearestYear(YYYY);
+	double year = YY;
+	nearestYear(year);
+	int YYYY = (int)year;
 	if (AA > 26)
 		BOOST_LOG_TRIVIAL(error) << "Error converting IlrsId to CosparId - AA = " << AA;
 	char A = 'A' + AA - 1;
@@ -189,17 +190,17 @@ int cosparIdToIlrsId(
  * Assumes session duration is <24hrs
  */
 GTime sessionSod2Time(
-	double	eventSod,				///< Seconds-of-day of the event
-	double	startSessionSod,		///< Seconds-of-day of the start of the session (which encompasses the event)
-	GTime	startSessionMidnight)	///< Midnight of the date that the session starts
+	double	eventSod,				///< Seconds-of-day of the event in UTC time
+	GTime	startSession)			///< session start time
 {
-	GTime recordTime = startSessionMidnight + eventSod;
-	if (round(eventSod) < startSessionSod)	// Event falls on the following day (e.g. if eventSod was 00:01 and startSessionSod was 23:55)
-		recordTime = recordTime + S_IN_DAY;
-
-	UtcTime utcTime;
-	utcTime.bigTime	= recordTime.bigTime;		//todo aaron ew, is this something tricky, if so needs a comment
-	recordTime = utcTime; 
+	UYds startYds = startSession;
+	
+	double delta = eventSod - startYds.sod;
+	
+	if (delta > +secondsInDay / 2)	delta -= secondsInDay;
+	if (delta < -secondsInDay / 2)	delta += secondsInDay;
+	
+	GTime recordTime = startSession + delta;
 
 	return recordTime;
 }
@@ -263,7 +264,7 @@ void readCrd(
 		if (crdSession.h4.data_qual_alert_ind != 0)
 			obsHeader.excludeAlert = true;
 
-		GEpoch startEp =
+		double startEp[6] =
 		{	
 			crdSession.h4.start_year,
 			crdSession.h4.start_mon,
@@ -273,7 +274,7 @@ void readCrd(
 			crdSession.h4.start_sec 
 		};
 		
-		GEpoch endEp =
+		double endEp[6] =
 		{		
 			crdSession.h4.end_year,
 			crdSession.h4.end_mon,
@@ -283,35 +284,23 @@ void readCrd(
 			crdSession.h4.end_sec 
 		};
 		
-		GTime startSession	= startEp;
-		GTime endSession	= endEp;
+		GTime startSession	= epoch2time(startEp,	E_TimeSys::UTC);
+		GTime endSession	= epoch2time(endEp,		E_TimeSys::UTC);
 
 		double sessionLength = (endSession - startSession).to_double();
-		if (sessionLength > S_IN_DAY)
-			BOOST_LOG_TRIVIAL(error) << "Error: CRD session spans more than 24hrs";
-
-		UYds startYds = startSession;
-		double startSessionSod = startYds[2];
-		GEpoch startSessionMidnight =  // 00:00 of day that session starts
-		{	
-			crdSession.h4.start_year,
-			crdSession.h4.start_mon,
-			crdSession.h4.start_day,
-			0,
-			0,
-			0
-		};
+		if (sessionLength > S_IN_DAY/2)
+			BOOST_LOG_TRIVIAL(error) << "Error: CRD session spans more than 12hrs";
 
 		for (auto& record : crdSession.d11)
 		{
 			LObs obs = obsHeader; // copy over header info
-			GTime obsTime = sessionSod2Time(record.sec_of_day, startSessionSod, startSessionMidnight);
+			GTime obsTime = sessionSod2Time(record.sec_of_day, startSession);
 
 			// Find closest weather data entry
 			double minDeltaSec = S_IN_DAY;
 			for (auto& weather : crdSession.d20)
 			{
-				GTime weatherTime = sessionSod2Time(weather.sec_of_day, startSessionSod, startSessionMidnight);
+				GTime weatherTime = sessionSod2Time(weather.sec_of_day, startSession);
 
 				double deltaSec = fabs((obsTime - weatherTime).to_double());
 				if (deltaSec < minDeltaSec)

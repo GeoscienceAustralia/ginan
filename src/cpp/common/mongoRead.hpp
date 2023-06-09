@@ -6,6 +6,7 @@
 
 struct SSRMeta;
 
+GTime mongoReadLastClock();
 
 SsrOutMap mongoReadOrbClk(
 	GTime		referenceTime,

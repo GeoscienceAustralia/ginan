@@ -47,7 +47,7 @@ void NtripSocket::logChunkError()
 // 			return;
 // 		}
 // 	
-// 		outStream << (GTime) timeGet();
+// 		outStream << timeGet();
 // 		outStream << " messageChunkLog" << message << std::endl;
 }
 
@@ -149,7 +149,7 @@ void NtripSocket::read_handler_chunked(
 	{
 		int endOfLength = 0;
 		int endOfHeader;
-		for (endOfHeader = start + 2; endOfHeader < last; endOfHeader++)
+		for (endOfHeader = start + 1; endOfHeader < last; endOfHeader++)
 		{
 			unsigned char c1 = receivedHttpData[endOfHeader - 1];
 			unsigned char c2 = receivedHttpData[endOfHeader];
@@ -173,10 +173,16 @@ void NtripSocket::read_handler_chunked(
 		
 		if (endOfLength == 0)
 		{
-			endOfLength = endOfHeader - 1;
+			endOfLength = endOfHeader - 2;
+		}
+		
+		if (endOfLength < 0)
+		{
+			start = 2;
+			continue;
 		}
 
-		string hexLength(&receivedHttpData[start], &receivedHttpData[endOfLength]);
+		string hexLength(&receivedHttpData[start], &receivedHttpData[endOfLength + 1]);
 // 		std::cout << "\nhexLength: " << hexLength << "\n";
 		
 		int messageLength;
@@ -200,17 +206,18 @@ void NtripSocket::read_handler_chunked(
 			continue;
 		}
 		
-		if (endOfHeader + messageLength + 2 > receivedHttpData.size())
+		int startOfMessage	= endOfHeader + 1;
+		int endOfMessage	= startOfMessage + messageLength - 1;
+		
+		if (endOfMessage + 2 >= receivedHttpData.size())
 		{
 			//not enough data, continue from this start later
 			break;
 		}
 		
-		int startOfMessage	= endOfHeader + 1;
-		int endOfMessage	= startOfMessage + messageLength;
 		
-		char  postAmble1	= receivedHttpData[endOfMessage];
-		char  postAmble2	= receivedHttpData[endOfMessage + 1];
+		char  postAmble1	= receivedHttpData[endOfMessage + 1];
+		char  postAmble2	= receivedHttpData[endOfMessage + 2];
 	
 		if	( postAmble1 != '\r'
 			||postAmble2 != '\n')
@@ -221,16 +228,16 @@ void NtripSocket::read_handler_chunked(
 		}
 // 		printf("\npostamble: %02x %02x\n", postAmble1, postAmble2);
 		
-		vector<char> chunk(&receivedHttpData[startOfMessage], &receivedHttpData[endOfMessage]);
+		vector<char> chunk(&receivedHttpData[startOfMessage], &receivedHttpData[endOfMessage] + 1);
 // 		printHex(std::cout, chunk);
 		dataChunkDownloaded(chunk);
 		
-		start = endOfHeader + messageLength + 3;
+		start = endOfMessage + 2;
 	}
 	
 	if (start > 0)
 	{
-		receivedHttpData.erase(receivedHttpData.begin(), receivedHttpData.begin() + start - 1);
+		receivedHttpData.erase(receivedHttpData.begin(), receivedHttpData.begin() + start);
 	}
 
 	start_read(true);

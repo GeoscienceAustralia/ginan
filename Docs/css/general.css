@@ -48,6 +48,15 @@ img.image-fluid {
     scroll-margin-top: 100px;
       margin-top: 1rem;
   }
+
+  h6
+  {
+    display:inline;
+  }
+  h6+p
+  {
+    display:inline;
+  }
   img
   {
 

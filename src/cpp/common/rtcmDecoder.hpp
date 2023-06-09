@@ -65,7 +65,7 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
 	void decodeSSR(
 		vector<unsigned char>&	message);
 	
-	PTime decodeCustomTimestamp(
+	GTime decodeCustomTimestamp(
 		vector<unsigned char>&	message);
 	
 	E_RTCMSubmessage decodeCustomId(

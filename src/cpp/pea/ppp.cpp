@@ -614,7 +614,7 @@ void outputApriori(
 	
 	aprioriState.stateTransition(nullStream, tsync);
 	
-	mongoStates(aprioriState, "_apriori");
+	mongoStates(aprioriState, "apriori");
 	storeStates(aprioriState, "apriori");
 }
 
@@ -646,7 +646,7 @@ void outputPPPSolution(
 	
 	if (fout.tellp() == 0)
 	{
-		tracepdeex(1,fout,"  Date       UTC time  Sta.   A priory X    A priory Y    A priory Z    Estimated X   Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
+		tracepdeex(1,fout,"  Date       UTC time  Sta.   A priori X    A priori Y    A priori Z    Estimated X   Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
 	}
 
 	fout << rec.sol.time.to_string(2) << " ";

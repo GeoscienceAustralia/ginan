@@ -9,7 +9,7 @@ source $GINAN/docker/tags
 source $GINAN/docker/run-aux.sh
 
 # /ginan/scripts/download_examples.py -d -p # tag is ignored for products and data tarballs
-$GINAN/scripts/download_examples.py -d -p -l # tag is ignored for products and data tarballs
+$GINAN/scripts/download_example_input_data.py -d -p -l # tag is ignored for products and data tarballs
 
 #ensure mongo is running
 mkdir -p $GINAN/db
@@ -19,10 +19,10 @@ sleep 5
 # run example tests
 TEST_NUM=$1
 
-cd $GINAN/examples
+cd $GINAN/pipelineTests
 
 ATOL=1E-4
-# to add new examples one needs to add a dictionary to EX_GLOB_DICT so download_examples.py knows which files to push, otherwise it will fail. Also, make sure that example dir name starts with `ex` and has no more than 3 chars following (at least for now). If a group of examples is being created, e.g. ex9* - add an example type to get_example_type and a respective tag to the `tags` file.
+# to add new examples one needs to add a dictionary to EX_GLOB_DICT so download_example_input_data.py knows which files to push, otherwise it will fail. Also, make sure that example dir name starts with `ex` and has no more than 3 chars following (at least for now). If a group of examples is being created, e.g. ex9* - add an example type to get_example_type and a respective tag to the `tags` file.
 
 case $TEST_NUM in
   1)
@@ -36,8 +36,8 @@ case $TEST_NUM in
     make_otl_blq --config ex51_otl_fes2014b_prem.yaml --input loading/sites_coastal50.csv --output $DIR/coastal50_PREM.blq
 
     results2s3 $DIR
-     ../scripts/download_examples.py --push $DIR --tag $TAG
-     ../scripts/download_examples.py $DIR --tag $OTHER
+     ../scripts/download_example_input_data.py --push $DIR --tag $TAG
+     ../scripts/download_example_input_data.py $DIR --tag $OTHER
     ATOL=1.3E-2 # BRST has diff of 1.23E-2
     runAllAndDiffOnFailure diffex $DIR/*.blq
     diffutil -i $DIR/coastal50_PREM.blq loading/blq/C50_FES2014b_PREM_CE.blq -a $ATOL
@@ -49,8 +49,8 @@ case $TEST_NUM in
     interpolate_loading --grid loading/grids/oceantide.nc --code 'BRO1 50176M003' --location 122.2090 -18.0039 --output $DIR/bro1.blq
     interpolate_loading --grid loading/grids/oceantide.nc --input loading/sites_coastal50.csv --output $DIR/coastal50.blq
     results2s3 $DIR
-     ../scripts/download_examples.py --push $DIR --tag $TAG
-     ../scripts/download_examples.py $DIR --tag $OTHER
+     ../scripts/download_example_input_data.py --push $DIR --tag $TAG
+     ../scripts/download_example_input_data.py $DIR --tag $OTHER
     ATOL=1E-2
     runAllAndDiffOnFailure diffex $DIR/*.blq
     ;;
@@ -60,12 +60,12 @@ case $TEST_NUM in
     pea --config ex43a_pea_pp_user_gps.yaml -v | tee pea43a.out # TODO which branch is this config in? Need to modify output dir
     DIR="ex43" # having ex11a or ex11 will download results with PEA TAG, not OTHER, if no TAG provided
     results2s3 $DIR
-    ../scripts/download_examples.py $DIR --tag $TAG --push
-    ../scripts/download_examples.py $DIR --tag $OTHER
+    ../scripts/download_example_input_data.py $DIR --tag $TAG --push
+    ../scripts/download_example_input_data.py $DIR --tag $OTHER
     DIR="ex43a" # having ex11a or ex11 will download results with PEA TAG, not OTHER, if no TAG provided
     results2s3 $DIR
-    ../scripts/download_examples.py $DIR --tag $TAG --push
-    ../scripts/download_examples.py $DIR --tag $OTHER
+    ../scripts/download_example_input_data.py $DIR --tag $TAG --push
+    ../scripts/download_example_input_data.py $DIR --tag $OTHER
     runAllAndDiffOnFailure diffex $DIR/{*snx,!(*Network*).TRACE}
     DIR="ex43" # having ex11a or ex11 will download results with PEA TAG, not OTHER, if no TAG provided
     runAllAndDiffOnFailure diffex $DIR/{*snx,!(*Network*).TRACE}
@@ -78,16 +78,16 @@ case $TEST_NUM in
     pea --config ex41_gin2_pp_user.yaml
     DIR="ex41"
     results2s3 $DIR
-     ../scripts/download_examples.py $DIR --tag $TAG --push
-     ../scripts/download_examples.py $DIR --tag $OTHER
+     ../scripts/download_example_input_data.py $DIR --tag $TAG --push
+     ../scripts/download_example_input_data.py $DIR --tag $OTHER
      runAllAndDiffOnFailure diffex $DIR/*.TRACE
     ;;
   10)
     pea --config ex42_gin2_pp_user_3freq.yaml
     DIR="ex42"
     results2s3 $DIR
-     ../scripts/download_examples.py $DIR --tag $TAG --push
-     ../scripts/download_examples.py $DIR --tag $OTHER
+     ../scripts/download_example_input_data.py $DIR --tag $TAG --push
+     ../scripts/download_example_input_data.py $DIR --tag $OTHER
      runAllAndDiffOnFailure diffex $DIR/*.TRACE
     ;;
   8)
@@ -95,8 +95,8 @@ case $TEST_NUM in
 	pea -dex44 -l5 --config ex11_pea_pp_user_gps.yaml -v | tee pea44.out
     DIR="ex44" 
 	results2s3 $DIR
-    ../scripts/download_examples.py $DIR --tag $TAG --push
-    ../scripts/download_examples.py $DIR --tag $OTHER
+    ../scripts/download_example_input_data.py $DIR --tag $TAG --push
+    ../scripts/download_example_input_data.py $DIR --tag $OTHER
     #diffex $DIR/{*snx,*ALIC*.TRACE} # no need to check results - this is done in ex11
     count=`grep "STARTING SPP LSQ" $DIR/*ALIC*.TRACE | wc -l`
     if [ $count -eq 0 ]

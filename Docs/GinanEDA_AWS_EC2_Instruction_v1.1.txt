@@ -1,0 +1,131 @@
+=== Instructions to setup GinanEDA with AWS EC2 server ===
+	Modified from Mark's (Ron's) and Simon's (DM via Discord) instructions
+
+
+=== 1st time only ===
+
+1. Create a key pair using EC2
+	Go to https://console.aws.amazon.com/ec2/
+	Go to 'Key Pairs' (under left pane, 'Network & Security')
+	'Create key pair' (top right, orange)
+		Name: your choice
+		Key pair type: 'RSA'
+		Private key file format: '.pem'
+		'Create key pair'
+	The private key (.pem file) will download locally through your browser - save this somewhere safe (e.g. ~/.ssh/mark_isg.pem)
+	
+	
+2. Get public key
+	Open a terminal on your local machine:
+	$ cd ~/.ssh
+	$ chmod 600 mark_isg.pem
+	$ ssh-keygen -y -f mark_isg.pem > mark_isg.pub
+	$ cat mark_isg.pub
+	^ This is your public key
+	Note: do not move the private key to a Windows partition (if you are on WSL) as the permissions will be altered so that the connection cannot be established
+
+
+
+=== For each server ===
+
+3. On the EC2 instance, append your public key to ~/.ssh/authorized_keys
+	$ vim ~/.ssh/authorized_keys
+
+
+
+4. Change security settings for the EC2 instance
+	Go to https://console.aws.amazon.com/ec2/
+	Go to 'Security Groups' (under left pane, 'Network & Security')
+	Search for the name of your EC2 server
+	'Inbound rules', 'Edit inbound rules'
+	'Add rule'
+		Type: SSH
+		Source: Anywhere-IPv4
+		'Save rules'
+	Note: need to double check 'Inbound rules' to make sure the added rule is saved
+	
+5. Find the EC2's Public DNS
+	Go to https://ap-southeast-2.console.aws.amazon.com/cloud9/home#
+	Select the server, click 'View details', 'Go To Instance'
+	Click the Instance ID link (blue text)
+	Copy the Public IPv4 DNS (e.g. "ec2-13-55-168-85.ap-southeast-2.compute.amazonaws.com")
+	Note: this will change each time the server shuts down. To avoid this, see section on elastic IPs below
+
+
+
+=== On local machine - 1st time only ===
+
+6. SSH into the EC2 instance
+	Make sure you can SSH from your local machine into your EC2 instance:
+	$ ssh -i "~/.ssh/mark_isg.pem" ubuntu@ec2-13-55-168-85.ap-southeast-2.compute.amazonaws.com
+	For elastic IPs:
+	$ ssh -i "~/.ssh/mark_isg.pem" ubuntu@13.55.168.85
+	Once you know you can access your server, just exit SSH:
+	$ exit
+
+
+=== every time you use ===
+
+7. Create a tunnel between the remote and local machines
+	On your local machine, create a tunnel for port 8080 on the remote machine to 8081 on the local machine:
+	$ ssh -fN -i ~/.ssh/mark_isg.pem -L 8081:localhost:8080 ubuntu@ec2-13-55-168-85.ap-southeast-2.compute.amazonaws.com
+	For elastic IPs:
+	$ ssh -fN -i ~/.ssh/mark_isg.pem -L 8081:localhost:8080 ubuntu@13.55.168.85
+	Note: you don't have to run this command again during a short period of time
+
+
+8. SSH into your EC2 instance from your local machine (see step 6)
+
+
+9. Start the EDA on your remote machine via SSH
+	Run scripts/GinanEDA/index.py under your Ginan directory 
+	$ python3 /data/acs/ginan/scripts/GinanEDA/index.py
+	Note: you may need to 'pip3 install' some of the dependencies for the first time, just follow the prompts shown on the terminal
+
+
+10. View the EDA on a web browser
+	On you local machine, open a browser and go to http://127.0.0.1:8081/dbinfo
+	Now you can run your test and view the results with GinanEDA on a web browser
+
+
+
+=== Optional ===
+
+11. Create / re-use an elastic IP & associate with EC2 instance
+	Go to https://ap-southeast-2.console.aws.amazon.com/ec2/v2/home?region=ap-southeast-2#Addresses
+	'Allocate Elastic IP Address' (top right, orange)
+		'Allocate'
+		Copy down the allocated IP address
+	'Actions' (top right), 'Associate Elastic IP address'
+		Resource type: 'Instance'
+		Instance: search for the name of your EC2 server
+		'Associate'
+	This IP address can now be used instead of the Public DNS
+
+	
+12. Find the EC2's elastic IP address
+	Go to https://ap-southeast-2.console.aws.amazon.com/cloud9/home#
+	Select the server, click 'View details', 'Go To Instance'
+	Click the Instance ID link (blue text)
+	Copy the Public IPv4 address (e.g. "13.55.168.85")
+
+
+13. Establish a tunnel between the remote and local machines automatically with an elastic IP
+	On your local machine, check your .bashrc file and verify it sources ~/.bash_aliases
+	$ vim ~/.bashrc
+	Check if following lines exist
+
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+	If not, add them to your .bashrc file
+	Create .bash_aliases if it does not exist under your home directory
+	$ touch ~/.bash_aliases
+	Add the command line in step 7 to .bash_aliases, i.e.
+	
+ssh -fN -i ~/.ssh/mark_isg.pem -L 8081:localhost:8080 ubuntu@13.55.168.85
+
+	Now every time you open your terminal on your local machine, the tunnel will be established automatically
+	Note: you may need to switch to non-login shell if you use WSL:
+	$ bash

@@ -496,8 +496,7 @@ int interpTec(
 			double&		value,
 			double&		rms)
 {
-	// if (fdebug)
-	// 	fprintf(fdebug, "%s: k=%d posp=%.2f %.2f\n",__FUNCTION__, k, posp[0]*R2D, posp[1]*R2D);
+	tracepdeex(6,std::cout, "%s: k=%d posp=%.2f %.2f\n",__FUNCTION__, k, posp[0]*R2D, posp[1]*R2D);
 
 	value	= 0;
 	rms		= 0;
@@ -544,7 +543,7 @@ int interpTec(
 		rms		= (1 - a) * (1 - b) * r[0] 		+ a * (1 - b) * r[1] 		+ (1 - a) * b * r[2] 		+ a * b * r[3];
 
 		// if (fdebug)
-		// 	fprintf(fdebug, "  gridpoints: %8.2f %8.2f %8.2f %8.2f -> %9.3f\n", d[0], d[1], d[2], d[3], value);
+		tracepdeex(6,std::cout, "  gridpoints: %8.2f %8.2f %8.2f %8.2f -> %9.3f\n", d[0], d[1], d[2], d[3], value);
 	}
 	/* nearest-neighbour extrapolation (outside of grid) */
 	else if (a <=	0.5 && b <= 0.5 && d[0] > 0) 	{	value = d[0];		rms = r[0];		}
@@ -612,13 +611,12 @@ bool ionDelay(
 		if (interpTec(tec, i, posp, vtec, rms) == false)
 			return false;
 
-		const double fact = 40.30E16 / FREQ1 / FREQ1; /* tecu->L1 iono (m) */
+		const double fact = TEC_CONSTANT / SQR(FREQ1); /* tecu->L1 iono (m) */
 		delay	+= fact * fs * vtec;
 		var		+= SQR(fact * fs * rms);
 	}
 
-	// if (fdebug)
-	// 	fprintf(fdebug, "%s: delay=%7.2f std=%6.2f\n",__FUNCTION__, delay, sqrt(var));
+	tracepdeex(6,std::cout, "%s: delay=%7.2f std=%6.2f\n",__FUNCTION__, delay, sqrt(var));
 
 	return true;
 }

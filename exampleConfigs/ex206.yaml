@@ -1,0 +1,9 @@
+
+inputs:
+    include_yamls:
+        - dynamic_user_ppp.yaml
+        - mongo_outputs.yaml
+    
+outputs:
+    metadata:
+        config_description:     "ex206"

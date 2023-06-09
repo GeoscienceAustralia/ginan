@@ -221,7 +221,7 @@ vector<uint8_t> RtcmEncoder::encodeTimeStampRTCM()
 	unsigned int messCode = +RtcmMessageType::CUSTOM;
 	unsigned int messType = +E_RTCMSubmessage::TIMESTAMP;
 	
-	PTime now = timeGet();
+	GTime now = timeGet();
 	
 	int i = 0;
 	int byteLen = 11;

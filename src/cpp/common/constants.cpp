@@ -12,6 +12,23 @@ using std::map;
 
 #include <boost/assign.hpp>
 
+map<E_FType, double> genericWavelength = 
+{
+	{F1, CLIGHT / FREQ1},
+	{F2, CLIGHT / FREQ2},
+	{F5, CLIGHT / FREQ5},
+	{F6, CLIGHT / FREQ6},
+	{F7, CLIGHT / FREQ7},
+	{F8, CLIGHT / FREQ8},
+	{B1, CLIGHT / FREQ1_CMP},
+	{B3, CLIGHT / FREQ3_CMP},
+	{G1, CLIGHT / FREQ1_GLO},
+	{G2, CLIGHT / FREQ2_GLO},
+	{G3, CLIGHT / FREQ3_GLO},
+	{G4, CLIGHT / FREQ4_GLO},
+	{G6, CLIGHT / FREQ6_GLO}
+};
+
 map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 {
 	{	E_Sys::GPS,

@@ -1,0 +1,11 @@
+
+inputs:
+    include_yamls:
+        - large_post_network.yaml
+        - network_clocks_and_biases.yaml
+        - mongo_outputs.yaml
+        - example_inputs.yaml
+    
+outputs:
+    metadata:
+        config_description:     "ex204"

@@ -42,7 +42,7 @@ def exclude_start():
     )
 
 
-possible_plot = ["Line", "Scatter", "HistogramX", "HistogramY"]
+possible_plot = ["Line", "Scatter", "HistogramX", "HistogramY", "Fourier"]
 
 
 def dropdown_type():

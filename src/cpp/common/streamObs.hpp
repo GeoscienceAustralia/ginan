@@ -52,15 +52,21 @@ struct ObsStream : StreamParser
 				{
 					double dirty_C1W_phase = 0;
 					for (auto& sig : sigsList)
-					if	( sig.code == +E_ObsCode::L1C)
 					{
-						dirty_C1W_phase = sig.L;
-						break;
+						if	( sig.code == +E_ObsCode::L1C)
+							dirty_C1W_phase = sig.L;
+						
+						if	(  sig.code	== +E_ObsCode::L1W
+							&& sig.P	== 0)
+						{
+							sig.L = 0;
+						}
 					}
 				
 					for (auto& sig : sigsList)
 					if	(  sig.code	== +E_ObsCode::L1W 
-						&& sig.L	== 0)
+						&& sig.L	== 0
+						&& sig.P    != 0)
 					{
 						sig.L = dirty_C1W_phase;
 						break;

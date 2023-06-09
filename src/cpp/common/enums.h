@@ -77,14 +77,6 @@ BETTER_ENUM(E_Sys,			short int,
 			IMS,
 			COMB)
 
-
-BETTER_ENUM(E_DCBPair,		short int,
-			NONE,
-			P1_P2,
-			P1_C1,
-			P2_C2)
-
-
 BETTER_ENUM(E_OffsetType,	short int,
 			UNSPECIFIED,
 			APC,
@@ -173,7 +165,16 @@ BETTER_ENUM(KF,				short int,
 	EMP_DYB_3C,
 	EMP_DYB_3S,
 	EMP_DYB_4C,
-	EMP_DYB_4S,			LAST_ORBIT_STATE	= EMP_DYB_4S,
+	EMP_DYB_4S,
+	SRP_DYB_0,
+	SRP_DYB_1C,
+	SRP_DYB_1S,
+	SRP_DYB_2C,
+	SRP_DYB_2S,
+	SRP_DYB_3C,
+	SRP_DYB_3S,
+	SRP_DYB_4C,
+	SRP_DYB_4S,			LAST_ORBIT_STATE	= SRP_DYB_4S,
 	
 	RANGE
 	
@@ -240,11 +241,6 @@ BETTER_ENUM(E_IonoMapFn,		int,
 BETTER_ENUM(E_IonoFrame,		int,
 			EARTH_FIXED,				///< Earth-fixed reference frame
 			SUN_FIXED)					///< Sun-fixed reference frame
-
-BETTER_ENUM(E_LinearCombo,		int,				//todo aaron, remove this and use code priorities only
-			ANY,
-			L1L2_ONLY,
-			L1L5_ONLY)
 
 BETTER_ENUM(E_Period,			int,
 			SECOND	= 1, 				
@@ -790,6 +786,11 @@ BETTER_ENUM(E_FilePos, short int,
 	NUM_SAMPLES,
 	FOOTER)
 
+BETTER_ENUM(E_SSROutTiming, short int,
+	GPS_TIME,
+	LATEST_CLOCK_ESTIMATE)
+
+
 BETTER_ENUM(E_Component, short int,
 	NONE,
 	X,
@@ -831,6 +832,15 @@ BETTER_ENUM(E_Component, short int,
 	EOP,
 	NET_RESIDUAL,
 	ORBIT_PT,
-	SAT_REFLECTOR_DELTA)
+	SAT_REFLECTOR_DELTA,
+	CENTRAL_FORCE,
+	ALBEDO,
+	INDIRECT_J2,
+	EMPIRICAL,
+	GENERAL_RELATIVITY,
+	EGM,
+	SRP,
+	ANTENNA_THRUST,
+	PLANETARY_PERTURBATION)
 
 

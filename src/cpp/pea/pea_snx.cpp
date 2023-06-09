@@ -75,10 +75,10 @@ void sinexPostProcessing(
 	}
 
 	// add in the files used to create the solution
-	for (auto& ubxinput : acsConfig.ubx_inputs)	{	sinex_add_file(acsConfig.analysis_agency, time, ubxinput, "UBX");			}
-	for (auto& rnxinput : acsConfig.rnx_inputs)	{	sinex_add_file(acsConfig.analysis_agency, time, rnxinput, "RINEX v3.x");	}
-	for (auto& sp3input : acsConfig.sp3_files)	{	sinex_add_file(acsConfig.analysis_agency, time, sp3input, "SP3");			}
-	for (auto& snxinput : acsConfig.snx_files)	{	sinex_add_file(acsConfig.analysis_agency, time, snxinput, "SINEX");			}
+	for (auto& [id, ubxinput] : acsConfig.ubx_inputs)	{	sinex_add_files(acsConfig.analysis_agency, time, ubxinput,				"UBX");			}
+	for (auto& [id, rnxinput] : acsConfig.rnx_inputs)	{	sinex_add_files(acsConfig.analysis_agency, time, rnxinput,				"RINEX v3.x");	}
+														{	sinex_add_files(acsConfig.analysis_agency, time, acsConfig.sp3_files,	"SP3");			}
+														{	sinex_add_files(acsConfig.analysis_agency, time, acsConfig.snx_files,	"SINEX");		}
 
 	// Add other statistics as they become available...
 	sinex_add_statistic("SAMPLING INTERVAL (SECONDS)", acsConfig.epoch_interval);

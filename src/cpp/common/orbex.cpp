@@ -206,20 +206,12 @@ bool readOrbexEph(
 		if	( line[0] == '#'
 			&&line[1] == '#')
 		{
-			bool error = str2time(buff, 3, 32, time);
+			bool error = str2time(buff, 3, 32, time, tsys);
 			if (error)
 			{
 				BOOST_LOG_TRIVIAL(error)
 				<< "Invalid epoch line in Orbex file: " << line << std::endl;
 				return false;
-			}
-			
-			if (tsys == +E_TimeSys::UTC)
-			{
-				UtcTime utcTime;
-				utcTime.bigTime	= time.bigTime;
-				
-				time = utcTime; 
 			}
 
 			nsat = str2num(buff, 36, 3);

@@ -3,10 +3,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
-# [2.0.0] 2023-05-18
+# [2.0.1] 2023-06-09
 ### Added
 ### Changed
-Many changes for v2.0, will be fully documented with v2.1 ...
+Unified User and Network operation modes (One Observation Model & Filter)
+More GNSS constellations – Full Multi-Constellation capability (Ex SBAS)
+Better internal frequency indexing (complete Multi-Frequency capability)
+UnDifferenced / UnCombined (UDUC) processing (v1 was Combined IF only)
+CPP integrated and coupled Precise Orbit Determination (POD) capability
+More robust data handling in filter cycle slip and outlier detection and removal
+Complete RTCM3 phase 1 and Phase 2 message decoding and encoding
+SLR data handling fully implemented
+Model & Performance improvements
 ### Fixed
 ### Deprecated
 ### Removed

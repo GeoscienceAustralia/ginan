@@ -77,20 +77,11 @@ void update_receivr_measr(
 			continue;
 		}
 
-		E_FType frq1 = F1;
-		E_FType frq2 = F2;
-
-		if (obs.Sat.sys == +E_Sys::GAL)		{						frq2 = F5; 		}
-		if (obs.Sat.sys == +E_Sys::GLO)		{	frq1 = G1;			frq2 = G2;		}	
-		if (obs.Sat.sys == +E_Sys::BDS)		{	frq1 = B1;			frq2 = F7;		}
-		
-		// if	(   obs.Sat.sys == +E_Sys::GPS
-		// 	&& (obs.Sigs[F1].code != GPS_Code1
-		// 	  ||obs.Sigs[f2].code != GPS_Code2))
-		// {
-		// 	obs.ionExcludeCode = 1;
-		// 	continue;
-		// }
+		E_FType frq1;
+		E_FType frq2;
+		E_FType frq3;
+		if (!satFreqs(obs.Sat.sys,frq1,frq2,frq3))
+			continue;
 		
 		S_LC lc		= getLC(obs, obs.satStat_ptr->lc_new, frq1, frq2);
 		S_LC lc_pre	= getLC(obs, obs.satStat_ptr->lc_pre, frq1, frq2);
@@ -159,8 +150,8 @@ void update_receivr_measr(
 			satStat.ambvar	 = SmtG * (varP);
 		}
 		obs.STECtype = 1;
-		obs.STECsmth = (satStat.gf_amb + lc.GF_Phas_m);
-		obs.STECsmvr = (satStat.ambvar + 2*varL) + SQR(PHASE_BIAS_STD);
+		obs.STECsmth = (satStat.gf_amb + lc.GF_Phas_m)/obs.STECtoDELAY;
+		obs.STECsmvr =((satStat.ambvar + 2*varL) + SQR(PHASE_BIAS_STD))/obs.STECtoDELAY/obs.STECtoDELAY;
 		obs.STECcodeComb = obs.Sigs[frq1].code._to_integral() * 100 + obs.Sigs[frq2].code._to_integral();
 		
 		satStat.prevSTEC = lc.GF_Phas_m;

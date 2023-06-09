@@ -93,13 +93,14 @@ struct InputOptions
 	vector<string>	bsx_files;
 	vector<string>	ion_files;
 	vector<string>	igrf_files;
-
-	vector<string> rnx_inputs;
-	vector<string> ubx_inputs;
-	vector<string> obs_rtcm_inputs;
-	vector<string> nav_rtcm_inputs;
-	vector<string> pseudo_sp3_inputs;
-	vector<string> pseudo_snx_inputs;
+	
+	vector<string>	nav_rtcm_inputs;
+	
+	map<string, vector<string>>	rnx_inputs;
+	map<string, vector<string>>	ubx_inputs;
+	map<string, vector<string>>	obs_rtcm_inputs;
+	map<string, vector<string>>	pseudo_sp3_inputs;
+	map<string, vector<string>>	pseudo_snx_inputs;
 	
 	vector<string> atm_reg_definitions;
 
@@ -168,25 +169,26 @@ struct OutputOptions
 	bool	output_config	 			= false;
 
 	bool				output_clocks 				= false;
-	vector<E_Source>	clocks_receiver_sources  	= {E_Source::KALMAN};
-	vector<E_Source>	clocks_satellite_sources 	= {E_Source::KALMAN};
+	vector<E_Source>	clocks_receiver_sources  	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+	vector<E_Source>	clocks_satellite_sources 	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	string				clocks_directory			= "./";
 	string				clocks_filename				= "<CONFIG>-<LOGTIME>_<SYS>.clk";
 	bool				output_ar_clocks			= false;		//todo aaron this config sucks
 
-	bool				output_orbits 				= false;
+	bool				output_sp3 					= false;
 	bool				output_predicted_orbits 	= false;
 	bool				output_inertial_orbits		= false;
-	bool				output_orbit_velocities		= false;
-	vector<E_Source>	orbits_data_sources 		= {E_Source::BROADCAST};
-	int					orbits_output_interval		= 900;
-	string				orbits_directory			= "./";
-	string				orbits_filename				= "<CONFIG>-<LOGTIME>_<SYS>-Filt.sp3";
-	string				predicted_orbits_filename	= "<CONFIG>-<LOGTIME>_<SYS>-Prop.sp3";
+	bool				output_sp3_velocities		= false;
+	vector<E_Source>	sp3_orbit_sources 			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+	vector<E_Source>	sp3_clock_sources 			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+	int					sp3_output_interval			= 900;
+	string				sp3_directory				= "./";
+	string				sp3_filename				= "<CONFIG>-<LOGTIME>_<SYS>-Filt.sp3";
+	string				predicted_sp3_filename		= "<CONFIG>-<LOGTIME>_<SYS>-Prop.sp3";
 	
 	bool				output_orbex 				= false;
-	vector<E_Source>	orbex_orbit_sources			= {E_Source::BROADCAST};
-	vector<E_Source>	orbex_clock_sources			= {E_Source::BROADCAST};
+	vector<E_Source>	orbex_orbit_sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+	vector<E_Source>	orbex_clock_sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>	orbex_attitude_sources 		= {E_Source::NOMINAL};
 	string				orbex_directory				= "./";
 	string				orbex_filename				= "<CONFIG>-<LOGTIME>_<SYS>.obx";
@@ -473,6 +475,7 @@ struct GlobalOptions
 	double	deweight_factor	= 100;
 	
 	double	no_bias_sigma	= 20;
+	bool	use_tgd_bias	= false;
 	
 	double	orbit_pos_proc_noise			= 10;
 	double	orbit_vel_proc_noise			= 5;
@@ -617,7 +620,6 @@ struct FilterOptions
 	bool		w_test					= false;
 	bool		chi_square_test			= false;
 	bool		simulate_filter_only	= false;
-	bool		simulate_pseudos_only	= false;
 	E_ChiSqMode	chi_square_mode			= E_ChiSqMode::NONE;
 	double		sigma_threshold			= 4;
 
@@ -654,7 +656,6 @@ struct PPPOptions : FilterOptions
 struct IonosphericOptions
 {
 	E_IonoMode 		corr_mode  			= E_IonoMode::IONO_FREE_LINEAR_COMBO;
-	E_LinearCombo	iflc_freqs			= E_LinearCombo::ANY;
 	E_IonoMapFn		mapping_function	= E_IonoMapFn::MSLM;
 	
 	double			pierce_point_layer_height		= 450;
@@ -876,7 +877,6 @@ struct SatelliteOptions
 	KalmanModel			clk;
 	KalmanModel			clk_rate;
 	KalmanModel			orbit;
-	KalmanModel			srp;
 	KalmanModel			pos;
 	KalmanModel			pos_rate;
 	KalmanModel			orb;
@@ -885,6 +885,7 @@ struct SatelliteOptions
 	KalmanModel			code_bias;
 	KalmanModel			phase_bias;
 	KalmanModel			ion_model;
+	
 	KalmanModel			emp_dyb_0;
 	KalmanModel			emp_dyb_1c;
 	KalmanModel			emp_dyb_1s;
@@ -894,10 +895,21 @@ struct SatelliteOptions
 	KalmanModel			emp_dyb_3s;
 	KalmanModel			emp_dyb_4c;
 	KalmanModel			emp_dyb_4s;
+	
+	KalmanModel			srp_dyb_0;
+	KalmanModel			srp_dyb_1c;
+	KalmanModel			srp_dyb_1s;
+	KalmanModel			srp_dyb_2c;
+	KalmanModel			srp_dyb_2s;
+	KalmanModel			srp_dyb_3c;
+	KalmanModel			srp_dyb_3s;
+	KalmanModel			srp_dyb_4c;
+	KalmanModel			srp_dyb_4s;
                     	
 	bool				exclude				= false;
 	vector<double>		code_sigmas			= {0};
 	vector<double>		phas_sigmas			= {0};
+	vector<double>		pseudo_sigmas		= {100000};
 	vector<double>		laser_sigmas		= {0};
                     	
 	Vector3d			antenna_boresight	= { 0,  0, +1};
@@ -909,7 +921,6 @@ struct SatelliteOptions
 		clk			+= rhs.clk;
 		clk_rate	+= rhs.clk_rate;
 		orbit		+= rhs.orbit;
-		srp			+= rhs.srp;
 		pos			+= rhs.pos;
 		pos_rate	+= rhs.pos_rate;
 		orb			+= rhs.orb;
@@ -918,6 +929,7 @@ struct SatelliteOptions
 		code_bias	+= rhs.code_bias;
 		phase_bias	+= rhs.phase_bias;
 		ion_model	+= rhs.ion_model;
+		
 		emp_dyb_0	+= rhs.emp_dyb_0;
 		emp_dyb_1c	+= rhs.emp_dyb_1c;
 		emp_dyb_1s	+= rhs.emp_dyb_1s;
@@ -928,9 +940,20 @@ struct SatelliteOptions
 		emp_dyb_4c	+= rhs.emp_dyb_4c;
 		emp_dyb_4s	+= rhs.emp_dyb_4s;
 		
+		srp_dyb_0	+= rhs.srp_dyb_0;
+		srp_dyb_1c	+= rhs.srp_dyb_1c;
+		srp_dyb_1s	+= rhs.srp_dyb_1s;
+		srp_dyb_2c	+= rhs.srp_dyb_2c;
+		srp_dyb_2s	+= rhs.srp_dyb_2s;
+		srp_dyb_3c	+= rhs.srp_dyb_3c;
+		srp_dyb_3s	+= rhs.srp_dyb_3s;
+		srp_dyb_4c	+= rhs.srp_dyb_4c;
+		srp_dyb_4s	+= rhs.srp_dyb_4s;
+		
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.code_sigmas			))	{ code_sigmas		= rhs.code_sigmas		;	setInited(*this, code_sigmas		);	}
 		if (isInited(rhs, rhs.phas_sigmas			))	{ phas_sigmas		= rhs.phas_sigmas		;	setInited(*this, phas_sigmas		);	}
+		if (isInited(rhs, rhs.pseudo_sigmas			))	{ pseudo_sigmas		= rhs.pseudo_sigmas		;	setInited(*this, pseudo_sigmas		);	}
 		if (isInited(rhs, rhs.laser_sigmas			))	{ laser_sigmas		= rhs.laser_sigmas		;	setInited(*this, laser_sigmas		);	}
 		
 		if (isInited(rhs, rhs.antenna_boresight		))	{ antenna_boresight	= rhs.antenna_boresight	;	setInited(*this, antenna_boresight	);	}
@@ -983,6 +1006,7 @@ struct ReceiverOptions
 	Vector3d			antenna_azimuth		= { 0, +1,  0};
 	string				antenna_type		;
 	string				receiver_type		;
+	string				sat_id				;
 	
 	ReceiverOptions& operator+=(
 		const ReceiverOptions& rhs)
@@ -1022,6 +1046,7 @@ struct ReceiverOptions
 		if (isInited(rhs, rhs.antenna_azimuth		))	{ antenna_azimuth	= rhs.antenna_azimuth	;	setInited(*this, antenna_azimuth	);	}
 		if (isInited(rhs, rhs.antenna_type			))	{ antenna_type		= rhs.antenna_type		;	setInited(*this, antenna_type		);	}
 		if (isInited(rhs, rhs.receiver_type			))	{ receiver_type		= rhs.receiver_type		;	setInited(*this, receiver_type		);	}
+		if (isInited(rhs, rhs.sat_id				))	{ sat_id			= rhs.sat_id			;	setInited(*this, sat_id				);	}
 		
 		return *this;
 	}
@@ -1079,6 +1104,7 @@ struct SsrOptions
 	vector<E_Source>	phase_bias_sources		= {E_Source::NONE};
 	vector<E_Source>	ionosphere_sources		= {E_Source::NONE};
 	// vector<E_Source> 		troposphere_sources		= E_Source::NONE;
+	E_SSROutTiming		output_timing			= E_SSROutTiming::GPS_TIME;
 };
 
 struct SsrInOptions
@@ -1143,6 +1169,7 @@ struct OrbitPropagation
 	int				degree_max						= 12;
 	double 			sat_mass						= 1000;
 	double 			sat_area						= 20;
+	double 			sat_power						= 20;
 	double			srp_cr							= 1.25;
 	double 			integrator_time_step			= 60;
 	bool			itrf_pseudoobs					= true;
@@ -1154,6 +1181,7 @@ struct YamlDefault
 	string	comment;
 	bool	found;
 	string	foundValue;
+	string	enumName;
 };
 
 /** General options object to be used throughout the software
@@ -1170,6 +1198,8 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	map<string, time_t>									configModifyTimeMap;
 	boost::program_options::variables_map				commandOpts;
 	
+	static map<string, string>			docs;
+	
 	void	recurseYaml(
 		YAML::Node	node, 
 		string		stack		= "",
@@ -1184,7 +1214,8 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	void	info(
 		Trace& trace);
 	
-	void	outputDefaultConfiguration();
+	void	outputDefaultConfiguration(
+		int level);
 
 	SatelliteOptions&			getSatOpts				(SatSys	Sat,	vector<string> suffixes = {});
 	ReceiverOptions&			getRecOpts				(string	id,		vector<string> suffixes = {});

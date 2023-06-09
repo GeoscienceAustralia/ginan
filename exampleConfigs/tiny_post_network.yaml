@@ -1,0 +1,11 @@
+
+inputs:
+    gnss_observations:
+        inputs_root: data/
+        rnx_inputs:
+            - "COCO00AUS_R_20191990000_01D_30S_MO.rnx"
+            - "LHAZ00CHN_R_20191990000_01D_30S_MO.rnx"
+            - "KZN200RUS_S_20191990000_01D_30S_MO.rnx"
+            - ALIC:
+                - "ALIC00AUS_R_20191990000_01D_30S_MO.rnx"
+                

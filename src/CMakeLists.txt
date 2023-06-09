@@ -54,6 +54,8 @@ set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-truncation")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-extern-c-compat")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-zero-length")
 
+set(CMAKE_CXX_FLAGS 					"${CMAKE_CXX_FLAGS} -save-temps")
+
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -g")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -frecursive")
 set (CMAKE_Fortran_FLAGS				"${CMAKE_Fortran_FLAGS} -fall-intrinsics")
@@ -122,7 +124,7 @@ if (BUILD_DOC)
 		set(DOXYGEN_LAYOUT	DoxygenLayout.xml)
 
 		# note the option ALL which allows to build the docs together with the application
-		add_custom_target( docs
+		add_custom_target(docs
 			ALL
 			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_IN} -DOUT=${DOXYGEN_OUT} -P "../cmake/Configure.cmake"
 			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_LAYIN} -DOUT=${DOXYGEN_LAYOUT} -P "../cmake/Configure.cmake"
@@ -130,7 +132,17 @@ if (BUILD_DOC)
 			WORKING_DIRECTORY	${CMAKE_CURRENT_SOURCE_DIR}/build
 			COMMENT				"Generating API documentation with Doxygen"
 			VERBATIM )
-					
+		
+		add_custom_target(generateConfigMd
+			COMMAND 			pea -Y 1
+			COMMAND				mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/../Docs
+			COMMAND				cp defaultConfiguration.md ${CMAKE_CURRENT_SOURCE_DIR}/../Docs
+			COMMENT				"Generating config markdown file"
+			VERBATIM )
+		
+		add_dependencies(docs
+			generateConfigMd)
+		
 		list(APPEND CTEST_CUSTOM_WARNING_EXCEPTION
 		".*warning: ignoring loop annotation.*"
 		".*warning: .*Consider increasing DOT_GRAPH_MAX_NODES."
