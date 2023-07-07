@@ -12,7 +12,7 @@ The Ginan team have made a series of short videos to describe Ginan and help wit
 * [Ginan Video Tutorial - Docker Install](https://www.youtube.com/watch?v=uW1DcIbZk1g&list=PL0jP_ahe-BFnChGLpQmXYpHNFiRze4DZR&index=3)
 
 #### Installation: 
-The written notes on how to download and install supporting packages and the Ginan software are detailed [here](page.html?c=on&p=readme.md)
+The written notes on how to download and install supporting packages and the Ginan software are detailed [here](page.html?c=on&p=install.index)
 
 #### Development journey: 
 Ginan is actively being developed by the team at Geoscience Australia. The features and benefits of this latest release are described in the GitHub [CHANGELOG.md](https://github.com/GeoscienceAustralia/ginan/blob/main/CHANGELOG.md)
