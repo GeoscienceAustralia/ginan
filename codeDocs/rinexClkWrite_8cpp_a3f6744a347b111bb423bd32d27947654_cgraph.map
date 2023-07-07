@@ -1,6 +1,6 @@
 <map id="getSatClksFromEph" name="getSatClksFromEph">
 <area shape="rect" id="node1" title=" " alt="" coords="5,56,155,83"/>
 <area shape="rect" id="node2" href="$structSatSys.html#aa31d14f6b8c2100c085c732b9a3fef3f" title="Constructs a SatSys object from it&#39;s hash uid." alt="" coords="203,5,341,32"/>
-<area shape="rect" id="node3" href="$ephemeris_8cpp.html#a00df4213eb6f901bcb5928f44a24bd4d" title=" " alt="" coords="239,56,305,83"/>
+<area shape="rect" id="node3" href="$ephemeris_8cpp.html#a2713d42c4eabf1cc1360791078335d58" title=" " alt="" coords="239,56,305,83"/>
 <area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="389,81,476,108"/>
 </map>

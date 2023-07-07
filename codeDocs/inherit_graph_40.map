@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structInitialState.html" title="Object to hold the values used to initialise new states when adding to the kalman filter object." alt="" coords="5,5,99,32"/>
+<area shape="rect" id="node1" href="$structGeomagMainField.html" title="Structure for variables related to the International Geomagnetic Reference Field 13th Generation Inte..." alt="" coords="5,5,144,32"/>
+<area shape="rect" id="node2" href="$structGeomagSecularVariation.html" title="Structure for secular variation (SV) inherited from GeomagMainField." alt="" coords="192,5,376,32"/>
 </map>

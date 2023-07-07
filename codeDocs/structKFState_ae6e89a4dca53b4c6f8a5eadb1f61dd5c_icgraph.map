@@ -1,4 +1,5 @@
 <map id="KFState::doMeasRejectCallbacks" name="KFState::doMeasRejectCallbacks">
-<area shape="rect" id="node1" title=" " alt="" coords="216,5,452,32"/>
-<area shape="rect" id="node2" href="$structKFState.html#a21a4858020ad706771efeea814d6c43f" title="Kalman filter operation." alt="" coords="5,5,168,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="216,31,452,57"/>
+<area shape="rect" id="node2" href="$structKFState.html#ae99b9a0b478d94b6cff9ba2328914178" title="Kalman filter operation." alt="" coords="5,5,168,32"/>
+<area shape="rect" id="node3" href="$ppp__callbacks_8cpp.html#a1e3adabb954f5e009016d143450f37a1" title="Reject measurements attached to worst state using measurement reject callback list." alt="" coords="31,56,142,83"/>
 </map>

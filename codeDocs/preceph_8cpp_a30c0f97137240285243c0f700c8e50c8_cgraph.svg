@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title=" ">
+<g id="a_node1"><a xlink:title="Satellite position/clock by precise ephemeris/clock.">
 <polygon fill="#bfbfbf" stroke="black" points="0,-95.5 0,-114.5 64,-114.5 64,-95.5 0,-95.5"/>
 <text text-anchor="middle" x="32" y="-102.5" font-family="Helvetica,sans-Serif" font-size="10.00">peph2pos</text>
 </a>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="216,-171.5 216,-190.5 287,-190.5 287,-171.5 216,-171.5"/>
 <text text-anchor="middle" x="251.5" y="-178.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -35,8 +35,8 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="203,-76.5 203,-95.5 300,-95.5 300,-76.5 203,-76.5"/>
+<g id="a_node3"><a xlink:href="structGTime.html#a014569457fd867977d0eeb73beef1518" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="203,-76.5 203,-95.5 300,-95.5 300,-76.5 203,-76.5"/>
 <text text-anchor="middle" x="251.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">GTime::to_string</text>
 </a>
 </g>
@@ -46,80 +46,80 @@
 <title>Node1&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M64.25,-106.97C91.48,-108.21 131.98,-108.93 167,-105 183.55,-103.14 201.6,-99.27 216.67,-95.51"/>
 </g>
-<!-- Node6 -->
+<!-- Node4 -->
 <g id="node4" class="node">
-<title>Node6</title>
+<title>Node4</title>
 <g id="a_node4"><a xlink:href="structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" target="_top" xlink:title="Returns a std::string of this satellite&#39;s id.">
 <polygon fill="white" stroke="red" points="219,-114.5 219,-133.5 284,-133.5 284,-114.5 219,-114.5"/>
 <text text-anchor="middle" x="251.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">SatSys::id</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node6 -->
+<!-- Node1&#45;&gt;Node4 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node6</title>
+<title>Node1&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M64.16,-107.72C105.27,-111.31 177.25,-117.6 218.69,-121.22"/>
 </g>
-<!-- Node9 -->
+<!-- Node7 -->
 <g id="node5" class="node">
-<title>Node9</title>
-<g id="a_node5"><a xlink:href="preceph_8cpp.html#a2768c950b4e9ca8de2eaa45e6ed10e87" target="_top" xlink:title=" ">
+<title>Node7</title>
+<g id="a_node5"><a xlink:href="preceph_8cpp.html#a135be49caa064c3f374b141707df9a9e" target="_top" xlink:title="satellite position by precise ephemeris">
 <polygon fill="white" stroke="red" points="104.5,-76.5 104.5,-95.5 162.5,-95.5 162.5,-76.5 104.5,-76.5"/>
 <text text-anchor="middle" x="133.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">pephpos</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node9 -->
+<!-- Node1&#45;&gt;Node7 -->
 <g id="edge4" class="edge">
-<title>Node1&#45;&gt;Node9</title>
+<title>Node1&#45;&gt;Node7</title>
 <path fill="none" stroke="midnightblue" d="M64.21,-99.04C77.09,-96.58 91.9,-93.75 104.44,-91.36"/>
 </g>
-<!-- Node13 -->
+<!-- Node9 -->
 <g id="node6" class="node">
-<title>Node13</title>
-<g id="a_node6"><a xlink:href="preceph_8cpp.html#a2e21e986800a930603c04dea42c199be" target="_top" xlink:title=" ">
+<title>Node9</title>
+<g id="a_node6"><a xlink:href="preceph_8cpp.html#a9b397011acc77332d794d70e471b8ca3" target="_top" xlink:title="satellite clock by precise clock">
 <polygon fill="white" stroke="black" points="106,-38.5 106,-57.5 161,-57.5 161,-38.5 106,-38.5"/>
 <text text-anchor="middle" x="133.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">pephclk</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node13 -->
+<!-- Node1&#45;&gt;Node9 -->
 <g id="edge8" class="edge">
-<title>Node1&#45;&gt;Node13</title>
+<title>Node1&#45;&gt;Node9</title>
 <path fill="none" stroke="midnightblue" d="M49.88,-95.33C68.29,-84.79 97.56,-68.01 115.87,-57.53"/>
 </g>
-<!-- Node14 -->
+<!-- Node10 -->
 <g id="node7" class="node">
-<title>Node14</title>
+<title>Node10</title>
 <g id="a_node7"><a xlink:href="ephemeris_8cpp.html#a825cb3c61ee628e2b78ed0b360e6a617" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="100,-0.5 100,-19.5 167,-19.5 167,-0.5 100,-0.5"/>
 <text text-anchor="middle" x="133.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">relativity1</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node14 -->
+<!-- Node1&#45;&gt;Node10 -->
 <g id="edge10" class="edge">
-<title>Node1&#45;&gt;Node14</title>
+<title>Node1&#45;&gt;Node10</title>
 <path fill="none" stroke="midnightblue" d="M39.99,-95.23C51.33,-79.83 75.01,-49.57 100,-29 104.14,-25.59 108.96,-22.42 113.6,-19.68"/>
 </g>
-<!-- Node9&#45;&gt;Node2 -->
+<!-- Node7&#45;&gt;Node2 -->
 <g id="edge5" class="edge">
-<title>Node9&#45;&gt;Node2</title>
+<title>Node7&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M146.08,-95.75C159.65,-107.16 182.86,-126.57 203,-143 214.95,-152.75 228.72,-163.74 238.34,-171.38"/>
 </g>
-<!-- Node9&#45;&gt;Node3 -->
+<!-- Node7&#45;&gt;Node3 -->
 <g id="edge7" class="edge">
-<title>Node9&#45;&gt;Node3</title>
+<title>Node7&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M162.58,-86C174.65,-86 189.1,-86 202.76,-86"/>
 </g>
-<!-- Node9&#45;&gt;Node6 -->
+<!-- Node7&#45;&gt;Node4 -->
 <g id="edge6" class="edge">
-<title>Node9&#45;&gt;Node6</title>
+<title>Node7&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M162.58,-95.2C180.42,-101.04 203.45,-108.59 221.47,-114.49"/>
 </g>
-<!-- Node13&#45;&gt;Node3 -->
+<!-- Node9&#45;&gt;Node3 -->
 <g id="edge9" class="edge">
-<title>Node13&#45;&gt;Node3</title>
+<title>Node9&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M161.11,-56.72C179.04,-62.59 202.69,-70.34 221.16,-76.39"/>
 </g>
 </g>

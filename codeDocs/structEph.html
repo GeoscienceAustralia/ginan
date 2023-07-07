@@ -85,6 +85,11 @@ $(function() {
 </div>
 <p><code>#include &lt;ephemeris.hpp&gt;</code></p>
 <div class="dynheader">
+Inheritance diagram for Eph:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structEph__inherit__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
 Collaboration diagram for Eph:</div>
 <div class="dyncontent">
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structEph__coll__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
@@ -93,37 +98,43 @@ Collaboration diagram for Eph:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a94a8724bd273a72dd3f648f5b289d0a2"><td class="memTemplParams" colspan="2">template&lt;class ARCHIVE &gt; </td></tr>
-<tr class="memitem:a94a8724bd273a72dd3f648f5b289d0a2"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structEph.html#a94a8724bd273a72dd3f648f5b289d0a2">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;version)</td></tr>
+<tr class="memitem:a94a8724bd273a72dd3f648f5b289d0a2"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structEph.html#a94a8724bd273a72dd3f648f5b289d0a2">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;version)</td></tr>
 <tr class="separator:a94a8724bd273a72dd3f648f5b289d0a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a4bbe69e281b96b3b6eea0ed52753cc86"><td class="memItemLeft" align="right" valign="top">E_NavMsgType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a4bbe69e281b96b3b6eea0ed52753cc86">type</a> = <a class="el" href="enums_8h.html#ad272ec1f335d680e948c51dea39d3375">E_NavMsgType::NONE</a></td></tr>
+<tr class="memitem:a4bbe69e281b96b3b6eea0ed52753cc86"><td class="memItemLeft" align="right" valign="top">E_NavMsgType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a4bbe69e281b96b3b6eea0ed52753cc86">type</a> = <a class="el" href="enums_8h.html#a73aeaa6097657d473373a66998ffdbaa">E_NavMsgType::NONE</a></td></tr>
 <tr class="memdesc:a4bbe69e281b96b3b6eea0ed52753cc86"><td class="mdescLeft">&#160;</td><td class="mdescRight">message type  <a href="structEph.html#a4bbe69e281b96b3b6eea0ed52753cc86">More...</a><br /></td></tr>
 <tr class="separator:a4bbe69e281b96b3b6eea0ed52753cc86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c6d47a827c83ec8d1dd018a38446881"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a3c6d47a827c83ec8d1dd018a38446881">Sat</a></td></tr>
 <tr class="memdesc:a3c6d47a827c83ec8d1dd018a38446881"><td class="mdescLeft">&#160;</td><td class="mdescRight">satellite number  <a href="structEph.html#a3c6d47a827c83ec8d1dd018a38446881">More...</a><br /></td></tr>
 <tr class="separator:a3c6d47a827c83ec8d1dd018a38446881"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8911960ca4fda6b0d099513813eda047"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a8911960ca4fda6b0d099513813eda047">iode</a></td></tr>
-<tr class="memdesc:a8911960ca4fda6b0d099513813eda047"><td class="mdescLeft">&#160;</td><td class="mdescRight">IODE.  <a href="structEph.html#a8911960ca4fda6b0d099513813eda047">More...</a><br /></td></tr>
+<tr class="memitem:a8911960ca4fda6b0d099513813eda047"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a8911960ca4fda6b0d099513813eda047">iode</a> = -1</td></tr>
+<tr class="memdesc:a8911960ca4fda6b0d099513813eda047"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS/QZS: IODE, GAL: IODnav.  <a href="structEph.html#a8911960ca4fda6b0d099513813eda047">More...</a><br /></td></tr>
 <tr class="separator:a8911960ca4fda6b0d099513813eda047"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad881ceb86dea9a9687d1f9debf2865fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ad881ceb86dea9a9687d1f9debf2865fc">iodc</a></td></tr>
+<tr class="memitem:ad881ceb86dea9a9687d1f9debf2865fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ad881ceb86dea9a9687d1f9debf2865fc">iodc</a> = -1</td></tr>
 <tr class="memdesc:ad881ceb86dea9a9687d1f9debf2865fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">IODC.  <a href="structEph.html#ad881ceb86dea9a9687d1f9debf2865fc">More...</a><br /></td></tr>
 <tr class="separator:ad881ceb86dea9a9687d1f9debf2865fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae9b3f21f5717e23c2207b82e453fcb16"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ae9b3f21f5717e23c2207b82e453fcb16">sva</a></td></tr>
+<tr class="memitem:adc6c7fea92c6f8c909bc5e83776d64f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#adc6c7fea92c6f8c909bc5e83776d64f5">aode</a></td></tr>
+<tr class="memdesc:adc6c7fea92c6f8c909bc5e83776d64f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">BDS AODE.  <a href="structEph.html#adc6c7fea92c6f8c909bc5e83776d64f5">More...</a><br /></td></tr>
+<tr class="separator:adc6c7fea92c6f8c909bc5e83776d64f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1346e9ac30e6848ff626def7f98425a2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a1346e9ac30e6848ff626def7f98425a2">aodc</a></td></tr>
+<tr class="memdesc:a1346e9ac30e6848ff626def7f98425a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">BDS AODC.  <a href="structEph.html#a1346e9ac30e6848ff626def7f98425a2">More...</a><br /></td></tr>
+<tr class="separator:a1346e9ac30e6848ff626def7f98425a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9b3f21f5717e23c2207b82e453fcb16"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ae9b3f21f5717e23c2207b82e453fcb16">sva</a></td></tr>
 <tr class="memdesc:ae9b3f21f5717e23c2207b82e453fcb16"><td class="mdescLeft">&#160;</td><td class="mdescRight">SV accuracy (URA index)  <a href="structEph.html#ae9b3f21f5717e23c2207b82e453fcb16">More...</a><br /></td></tr>
 <tr class="separator:ae9b3f21f5717e23c2207b82e453fcb16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68b639243db59a0d1d4af5d243a2ab8e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806">E_Svh</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a68b639243db59a0d1d4af5d243a2ab8e">svh</a></td></tr>
 <tr class="memdesc:a68b639243db59a0d1d4af5d243a2ab8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">SV health.  <a href="structEph.html#a68b639243db59a0d1d4af5d243a2ab8e">More...</a><br /></td></tr>
 <tr class="separator:a68b639243db59a0d1d4af5d243a2ab8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a519a421915337cdfd315d3bdfcf0ec31"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a519a421915337cdfd315d3bdfcf0ec31">week</a></td></tr>
-<tr class="memdesc:a519a421915337cdfd315d3bdfcf0ec31"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS/QZS: gps week, GAL: galileo week.  <a href="structEph.html#a519a421915337cdfd315d3bdfcf0ec31">More...</a><br /></td></tr>
+<tr class="memitem:a519a421915337cdfd315d3bdfcf0ec31"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a519a421915337cdfd315d3bdfcf0ec31">week</a></td></tr>
+<tr class="memdesc:a519a421915337cdfd315d3bdfcf0ec31"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS/QZS: gps week, GAL:gps week (i.e. galileo week + 1024), BDS: beidou week.  <a href="structEph.html#a519a421915337cdfd315d3bdfcf0ec31">More...</a><br /></td></tr>
 <tr class="separator:a519a421915337cdfd315d3bdfcf0ec31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab53670c8b82eb03c40d12d4b0415683c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ab53670c8b82eb03c40d12d4b0415683c">code</a></td></tr>
-<tr class="memdesc:ab53670c8b82eb03c40d12d4b0415683c"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS/QZS: code on L2, GAL/CMP: data sources.  <a href="structEph.html#ab53670c8b82eb03c40d12d4b0415683c">More...</a><br /></td></tr>
+<tr class="memitem:ab53670c8b82eb03c40d12d4b0415683c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ab53670c8b82eb03c40d12d4b0415683c">code</a> = 0</td></tr>
+<tr class="memdesc:ab53670c8b82eb03c40d12d4b0415683c"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS/QZS: code on L2, GAL: data source.  <a href="structEph.html#ab53670c8b82eb03c40d12d4b0415683c">More...</a><br /></td></tr>
 <tr class="separator:ab53670c8b82eb03c40d12d4b0415683c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5c2bc9be82441d485dcb1dcb8a021005"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a5c2bc9be82441d485dcb1dcb8a021005">flag</a></td></tr>
-<tr class="memdesc:a5c2bc9be82441d485dcb1dcb8a021005"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS/QZS: L2 P data flag, CMP: nav type.  <a href="structEph.html#a5c2bc9be82441d485dcb1dcb8a021005">More...</a><br /></td></tr>
+<tr class="memitem:a5c2bc9be82441d485dcb1dcb8a021005"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a5c2bc9be82441d485dcb1dcb8a021005">flag</a> = 0</td></tr>
+<tr class="memdesc:a5c2bc9be82441d485dcb1dcb8a021005"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS L2 P data flag.  <a href="structEph.html#a5c2bc9be82441d485dcb1dcb8a021005">More...</a><br /></td></tr>
 <tr class="separator:a5c2bc9be82441d485dcb1dcb8a021005"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f5913f4d9a85f1c2255c3857357349c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a4f5913f4d9a85f1c2255c3857357349c">toc</a></td></tr>
 <tr class="memdesc:a4f5913f4d9a85f1c2255c3857357349c"><td class="mdescLeft">&#160;</td><td class="mdescRight">time of clock  <a href="structEph.html#a4f5913f4d9a85f1c2255c3857357349c">More...</a><br /></td></tr>
@@ -134,51 +145,6 @@ Data Fields</h2></td></tr>
 <tr class="memitem:abb86916dd7500dbe6570a15fddcf1e0d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#abb86916dd7500dbe6570a15fddcf1e0d">ttm</a></td></tr>
 <tr class="memdesc:abb86916dd7500dbe6570a15fddcf1e0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">transmission time  <a href="structEph.html#abb86916dd7500dbe6570a15fddcf1e0d">More...</a><br /></td></tr>
 <tr class="separator:abb86916dd7500dbe6570a15fddcf1e0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa74232f0268b266630a953f72a18fb4f"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#aa74232f0268b266630a953f72a18fb4f">A</a></td></tr>
-<tr class="memdesc:aa74232f0268b266630a953f72a18fb4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">semi major axis  <a href="structEph.html#aa74232f0268b266630a953f72a18fb4f">More...</a><br /></td></tr>
-<tr class="separator:aa74232f0268b266630a953f72a18fb4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a178263a95953295eefddffb335e0e891"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a178263a95953295eefddffb335e0e891">e</a></td></tr>
-<tr class="memdesc:a178263a95953295eefddffb335e0e891"><td class="mdescLeft">&#160;</td><td class="mdescRight">eccentricity  <a href="structEph.html#a178263a95953295eefddffb335e0e891">More...</a><br /></td></tr>
-<tr class="separator:a178263a95953295eefddffb335e0e891"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afec01cfefcf549402c4b5f420ddb8d4a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#afec01cfefcf549402c4b5f420ddb8d4a">i0</a></td></tr>
-<tr class="memdesc:afec01cfefcf549402c4b5f420ddb8d4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">inclination  <a href="structEph.html#afec01cfefcf549402c4b5f420ddb8d4a">More...</a><br /></td></tr>
-<tr class="separator:afec01cfefcf549402c4b5f420ddb8d4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a642f038598b63b88db42f506369e6c30"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a642f038598b63b88db42f506369e6c30">OMG0</a></td></tr>
-<tr class="memdesc:a642f038598b63b88db42f506369e6c30"><td class="mdescLeft">&#160;</td><td class="mdescRight">right ascension of ascending node  <a href="structEph.html#a642f038598b63b88db42f506369e6c30">More...</a><br /></td></tr>
-<tr class="separator:a642f038598b63b88db42f506369e6c30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af584c5a05f4c0cc7d82bf674863c8ae6"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#af584c5a05f4c0cc7d82bf674863c8ae6">omg</a></td></tr>
-<tr class="memdesc:af584c5a05f4c0cc7d82bf674863c8ae6"><td class="mdescLeft">&#160;</td><td class="mdescRight">argument of perigee  <a href="structEph.html#af584c5a05f4c0cc7d82bf674863c8ae6">More...</a><br /></td></tr>
-<tr class="separator:af584c5a05f4c0cc7d82bf674863c8ae6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd7d430c5704ba1a9bffb001f11edf40"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#afd7d430c5704ba1a9bffb001f11edf40">M0</a></td></tr>
-<tr class="memdesc:afd7d430c5704ba1a9bffb001f11edf40"><td class="mdescLeft">&#160;</td><td class="mdescRight">mean anomoly  <a href="structEph.html#afd7d430c5704ba1a9bffb001f11edf40">More...</a><br /></td></tr>
-<tr class="separator:afd7d430c5704ba1a9bffb001f11edf40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89136d1e9b2b8f3b2864de3fbaf98650"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a89136d1e9b2b8f3b2864de3fbaf98650">deln</a></td></tr>
-<tr class="memdesc:a89136d1e9b2b8f3b2864de3fbaf98650"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction mean motion  <a href="structEph.html#a89136d1e9b2b8f3b2864de3fbaf98650">More...</a><br /></td></tr>
-<tr class="separator:a89136d1e9b2b8f3b2864de3fbaf98650"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2bab5f1298184710512d7d959e2cb56"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ad2bab5f1298184710512d7d959e2cb56">OMGd</a></td></tr>
-<tr class="memdesc:ad2bab5f1298184710512d7d959e2cb56"><td class="mdescLeft">&#160;</td><td class="mdescRight">rate of OMG  <a href="structEph.html#ad2bab5f1298184710512d7d959e2cb56">More...</a><br /></td></tr>
-<tr class="separator:ad2bab5f1298184710512d7d959e2cb56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bde282727af854013d78cb27b9e4320"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a5bde282727af854013d78cb27b9e4320">idot</a></td></tr>
-<tr class="memdesc:a5bde282727af854013d78cb27b9e4320"><td class="mdescLeft">&#160;</td><td class="mdescRight">rate of inclination  <a href="structEph.html#a5bde282727af854013d78cb27b9e4320">More...</a><br /></td></tr>
-<tr class="separator:a5bde282727af854013d78cb27b9e4320"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeebd067a55aa192ab5f4d91c0a8a4c5d"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#aeebd067a55aa192ab5f4d91c0a8a4c5d">crc</a></td></tr>
-<tr class="memdesc:aeebd067a55aa192ab5f4d91c0a8a4c5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction radial cosine  <a href="structEph.html#aeebd067a55aa192ab5f4d91c0a8a4c5d">More...</a><br /></td></tr>
-<tr class="separator:aeebd067a55aa192ab5f4d91c0a8a4c5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a381640f29ffe0b50952ae1ebbdfeb564"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a381640f29ffe0b50952ae1ebbdfeb564">crs</a></td></tr>
-<tr class="memdesc:a381640f29ffe0b50952ae1ebbdfeb564"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction radial sine  <a href="structEph.html#a381640f29ffe0b50952ae1ebbdfeb564">More...</a><br /></td></tr>
-<tr class="separator:a381640f29ffe0b50952ae1ebbdfeb564"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0df46efa964b3239649f237b25ab5118"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a0df46efa964b3239649f237b25ab5118">cuc</a></td></tr>
-<tr class="memdesc:a0df46efa964b3239649f237b25ab5118"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction lattitude cosine  <a href="structEph.html#a0df46efa964b3239649f237b25ab5118">More...</a><br /></td></tr>
-<tr class="separator:a0df46efa964b3239649f237b25ab5118"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e7f6813c0f34edd38182e46cdf7d2d5"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a5e7f6813c0f34edd38182e46cdf7d2d5">cus</a></td></tr>
-<tr class="memdesc:a5e7f6813c0f34edd38182e46cdf7d2d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction lattitude sine  <a href="structEph.html#a5e7f6813c0f34edd38182e46cdf7d2d5">More...</a><br /></td></tr>
-<tr class="separator:a5e7f6813c0f34edd38182e46cdf7d2d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a183d26388c6f9a334c613a770e576989"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a183d26388c6f9a334c613a770e576989">cic</a></td></tr>
-<tr class="memdesc:a183d26388c6f9a334c613a770e576989"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction inclination cosine  <a href="structEph.html#a183d26388c6f9a334c613a770e576989">More...</a><br /></td></tr>
-<tr class="separator:a183d26388c6f9a334c613a770e576989"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac799628af0a269f5364cc2d7e8ec1de5"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ac799628af0a269f5364cc2d7e8ec1de5">cis</a></td></tr>
-<tr class="memdesc:ac799628af0a269f5364cc2d7e8ec1de5"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction inclination sine  <a href="structEph.html#ac799628af0a269f5364cc2d7e8ec1de5">More...</a><br /></td></tr>
-<tr class="separator:ac799628af0a269f5364cc2d7e8ec1de5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf65a5ef07d8cd81414cec6990789083"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#acf65a5ef07d8cd81414cec6990789083">toes</a></td></tr>
 <tr class="memdesc:acf65a5ef07d8cd81414cec6990789083"><td class="mdescLeft">&#160;</td><td class="mdescRight">TOE (s) in week.  <a href="structEph.html#acf65a5ef07d8cd81414cec6990789083">More...</a><br /></td></tr>
 <tr class="separator:acf65a5ef07d8cd81414cec6990789083"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -194,9 +160,112 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a1bb3deda8171977193dbbd65aaf2ce31"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a1bb3deda8171977193dbbd65aaf2ce31">f2</a></td></tr>
 <tr class="memdesc:a1bb3deda8171977193dbbd65aaf2ce31"><td class="mdescLeft">&#160;</td><td class="mdescRight">SV clock parameter (af2)  <a href="structEph.html#a1bb3deda8171977193dbbd65aaf2ce31">More...</a><br /></td></tr>
 <tr class="separator:a1bb3deda8171977193dbbd65aaf2ce31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac78e459c901431206b9a383296db17ae"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ac78e459c901431206b9a383296db17ae">tgd</a> [4]</td></tr>
-<tr class="memdesc:ac78e459c901431206b9a383296db17ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">group delay parameters GPS/QZS:tgd[0]=TGD GAL :tgd[0]=BGD E5a/E1,tgd[1]=BGD E5b/E1 CMP :tgd[0]=BGD1,tgd[1]=BGD2  <a href="structEph.html#ac78e459c901431206b9a383296db17ae">More...</a><br /></td></tr>
+<tr class="memitem:ac78e459c901431206b9a383296db17ae"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ac78e459c901431206b9a383296db17ae">tgd</a> [4] = {}</td></tr>
+<tr class="memdesc:ac78e459c901431206b9a383296db17ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">group delay parameters GPS/QZS:tgd[0]=TGD GAL :tgd[0]=BGD E5a/E1,tgd[1]=BGD E5b/E1 BDS :tgd[0]=BGD1,tgd[1]=BGD2  <a href="structEph.html#ac78e459c901431206b9a383296db17ae">More...</a><br /></td></tr>
 <tr class="separator:ac78e459c901431206b9a383296db17ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d7f5a86d8e3bfcc1b2a4375c2598b2a"><td class="memItemLeft" align="right" valign="top">E_SatType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a4d7f5a86d8e3bfcc1b2a4375c2598b2a">orb</a> = <a class="el" href="enums_8h.html#a73aeaa6097657d473373a66998ffdbaa">E_SatType::NONE</a></td></tr>
+<tr class="memdesc:a4d7f5a86d8e3bfcc1b2a4375c2598b2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">BDS sat/orbit type.  <a href="structEph.html#a4d7f5a86d8e3bfcc1b2a4375c2598b2a">More...</a><br /></td></tr>
+<tr class="separator:a4d7f5a86d8e3bfcc1b2a4375c2598b2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a796d6f0ad02792d3eceb87f2ca4bbde1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a796d6f0ad02792d3eceb87f2ca4bbde1">top</a> = {}</td></tr>
+<tr class="memdesc:a796d6f0ad02792d3eceb87f2ca4bbde1"><td class="mdescLeft">&#160;</td><td class="mdescRight">time of prediction  <a href="structEph.html#a796d6f0ad02792d3eceb87f2ca4bbde1">More...</a><br /></td></tr>
+<tr class="separator:a796d6f0ad02792d3eceb87f2ca4bbde1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a71f553bd717147f3111d05e69087aa"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a4a71f553bd717147f3111d05e69087aa">tops</a> = 0</td></tr>
+<tr class="memdesc:a4a71f553bd717147f3111d05e69087aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">t_op (s) in week  <a href="structEph.html#a4a71f553bd717147f3111d05e69087aa">More...</a><br /></td></tr>
+<tr class="separator:a4a71f553bd717147f3111d05e69087aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72fe6d74f4593fc24975d48b478361ca"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a72fe6d74f4593fc24975d48b478361ca">ura</a> [4] = {}</td></tr>
+<tr class="memdesc:a72fe6d74f4593fc24975d48b478361ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">user range accuracy or GAL SISA GPS/QZS CNVX: ura[0]=URAI_NED0, ura[1]=URAI_NED1, ura[2]=URAI_NED2, ura[3]=URAI_ED  <a href="structEph.html#a72fe6d74f4593fc24975d48b478361ca">More...</a><br /></td></tr>
+<tr class="separator:a72fe6d74f4593fc24975d48b478361ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a576417fc33e8e7c31827d33b1f8d3ef6"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a576417fc33e8e7c31827d33b1f8d3ef6">isc</a> [6] = {}</td></tr>
+<tr class="memdesc:a576417fc33e8e7c31827d33b1f8d3ef6"><td class="mdescLeft">&#160;</td><td class="mdescRight">inter-signal corrections GPS/QZS CNAV: isc[0]=ISC_L1CA, isc[1]=ISC_L2C, isc[2]=ISC_L5I5, isc[3]=ISC_L5Q5 GPS/QZS CNV2: isc[0]=ISC_L1CA, isc[1]=ISC_L2C, isc[2]=ISC_L5I5, isc[3]=ISC_L5Q5, isc[4]=ISC_L1Cd, isc[5]=ISC_L1Cp BDS CNV1: isc[0]=ISC_B1Cd BDS CNV2: isc[1]=ISC_B2ad  <a href="structEph.html#a576417fc33e8e7c31827d33b1f8d3ef6">More...</a><br /></td></tr>
+<tr class="separator:a576417fc33e8e7c31827d33b1f8d3ef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17b73e183b452aa778c4290408c3f565"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a17b73e183b452aa778c4290408c3f565">sis</a> [5] = {}</td></tr>
+<tr class="memdesc:a17b73e183b452aa778c4290408c3f565"><td class="mdescLeft">&#160;</td><td class="mdescRight">signal in space accuracy index BDS CNVX sis[0]=SISAI_oe, sis[1]=SISAI_ocb, sis[2]=SISAI_oc1, sis[3]=SISAI_oc2, sis[4]=SISMAI  <a href="structEph.html#a17b73e183b452aa778c4290408c3f565">More...</a><br /></td></tr>
+<tr class="separator:a17b73e183b452aa778c4290408c3f565"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd4a7799574e3f609d838814b19c579e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#afd4a7799574e3f609d838814b19c579e">tocs</a></td></tr>
+<tr class="memdesc:afd4a7799574e3f609d838814b19c579e"><td class="mdescLeft">&#160;</td><td class="mdescRight">TOC (s) within week.  <a href="structEph.html#afd4a7799574e3f609d838814b19c579e">More...</a><br /></td></tr>
+<tr class="separator:afd4a7799574e3f609d838814b19c579e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a702cf9807bb66b844680bffb73510026"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a702cf9807bb66b844680bffb73510026">weekRollOver</a></td></tr>
+<tr class="memdesc:a702cf9807bb66b844680bffb73510026"><td class="mdescLeft">&#160;</td><td class="mdescRight">week number (rolled over)  <a href="structEph.html#a702cf9807bb66b844680bffb73510026">More...</a><br /></td></tr>
+<tr class="separator:a702cf9807bb66b844680bffb73510026"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0c38c275de6c69d577750b2e632fefb"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#af0c38c275de6c69d577750b2e632fefb">sqrtA</a></td></tr>
+<tr class="memdesc:af0c38c275de6c69d577750b2e632fefb"><td class="mdescLeft">&#160;</td><td class="mdescRight">sqrt <a class="el" href="structA.html">A</a>  <a href="structEph.html#af0c38c275de6c69d577750b2e632fefb">More...</a><br /></td></tr>
+<tr class="separator:af0c38c275de6c69d577750b2e632fefb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b071e2683479a240c27e8bb69e48b22"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a8b071e2683479a240c27e8bb69e48b22">e5a_hs</a> = 0</td></tr>
+<tr class="memdesc:a8b071e2683479a240c27e8bb69e48b22"><td class="mdescLeft">&#160;</td><td class="mdescRight">GAL E5a signal health status.  <a href="structEph.html#a8b071e2683479a240c27e8bb69e48b22">More...</a><br /></td></tr>
+<tr class="separator:a8b071e2683479a240c27e8bb69e48b22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04877d020091afa00cf737b61f32046b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a04877d020091afa00cf737b61f32046b">e5a_dvs</a> = 0</td></tr>
+<tr class="memdesc:a04877d020091afa00cf737b61f32046b"><td class="mdescLeft">&#160;</td><td class="mdescRight">GAL E5a data validity status.  <a href="structEph.html#a04877d020091afa00cf737b61f32046b">More...</a><br /></td></tr>
+<tr class="separator:a04877d020091afa00cf737b61f32046b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b6ee0b3f71a5a14a40b509fece5098a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a9b6ee0b3f71a5a14a40b509fece5098a">e5b_hs</a> = 0</td></tr>
+<tr class="memdesc:a9b6ee0b3f71a5a14a40b509fece5098a"><td class="mdescLeft">&#160;</td><td class="mdescRight">GAL E5b signal health status.  <a href="structEph.html#a9b6ee0b3f71a5a14a40b509fece5098a">More...</a><br /></td></tr>
+<tr class="separator:a9b6ee0b3f71a5a14a40b509fece5098a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42393e0eb44003e43a26c75ce96f4101"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a42393e0eb44003e43a26c75ce96f4101">e5b_dvs</a> = 0</td></tr>
+<tr class="memdesc:a42393e0eb44003e43a26c75ce96f4101"><td class="mdescLeft">&#160;</td><td class="mdescRight">GAL E5b data validity status.  <a href="structEph.html#a42393e0eb44003e43a26c75ce96f4101">More...</a><br /></td></tr>
+<tr class="separator:a42393e0eb44003e43a26c75ce96f4101"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8277fca4ddd012b271d2cd4c3c75f6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#ac8277fca4ddd012b271d2cd4c3c75f6e">e1_hs</a> = 0</td></tr>
+<tr class="memdesc:ac8277fca4ddd012b271d2cd4c3c75f6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">GAL E1 signal health status.  <a href="structEph.html#ac8277fca4ddd012b271d2cd4c3c75f6e">More...</a><br /></td></tr>
+<tr class="separator:ac8277fca4ddd012b271d2cd4c3c75f6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a723d0910b33d168a316bd5463179a11c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a723d0910b33d168a316bd5463179a11c">e1_dvs</a> = 0</td></tr>
+<tr class="memdesc:a723d0910b33d168a316bd5463179a11c"><td class="mdescLeft">&#160;</td><td class="mdescRight">GAL E1 data validity status.  <a href="structEph.html#a723d0910b33d168a316bd5463179a11c">More...</a><br /></td></tr>
+<tr class="separator:a723d0910b33d168a316bd5463179a11c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9704495ec7c72f14cd92e7d33dbbb6b4"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a9704495ec7c72f14cd92e7d33dbbb6b4">ttms</a> = 0</td></tr>
+<tr class="memdesc:a9704495ec7c72f14cd92e7d33dbbb6b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">transmission time (s) within week  <a href="structEph.html#a9704495ec7c72f14cd92e7d33dbbb6b4">More...</a><br /></td></tr>
+<tr class="separator:a9704495ec7c72f14cd92e7d33dbbb6b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4091ac06f7f24a1989d320771c693a91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEph.html#a4091ac06f7f24a1989d320771c693a91">fitFlag</a> = 0</td></tr>
+<tr class="memdesc:a4091ac06f7f24a1989d320771c693a91"><td class="mdescLeft">&#160;</td><td class="mdescRight">fit flag  <a href="structEph.html#a4091ac06f7f24a1989d320771c693a91">More...</a><br /></td></tr>
+<tr class="separator:a4091ac06f7f24a1989d320771c693a91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_structKeplerEph"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structKeplerEph')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structKeplerEph.html">KeplerEph</a></td></tr>
+<tr class="memitem:a76ac61a6bba5e1343621e0f4ae67961d inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a76ac61a6bba5e1343621e0f4ae67961d">A</a> = 0</td></tr>
+<tr class="memdesc:a76ac61a6bba5e1343621e0f4ae67961d inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">semi major axis  <a href="structKeplerEph.html#a76ac61a6bba5e1343621e0f4ae67961d">More...</a><br /></td></tr>
+<tr class="separator:a76ac61a6bba5e1343621e0f4ae67961d inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b00bfa71c98a4926a54b9cca98be356 inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a3b00bfa71c98a4926a54b9cca98be356">e</a> = 0</td></tr>
+<tr class="memdesc:a3b00bfa71c98a4926a54b9cca98be356 inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">eccentricity  <a href="structKeplerEph.html#a3b00bfa71c98a4926a54b9cca98be356">More...</a><br /></td></tr>
+<tr class="separator:a3b00bfa71c98a4926a54b9cca98be356 inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbf57942c173651ee828540dd1bdc4df inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#adbf57942c173651ee828540dd1bdc4df">i0</a> = 0</td></tr>
+<tr class="memdesc:adbf57942c173651ee828540dd1bdc4df inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">inclination  <a href="structKeplerEph.html#adbf57942c173651ee828540dd1bdc4df">More...</a><br /></td></tr>
+<tr class="separator:adbf57942c173651ee828540dd1bdc4df inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a215d1e28854486d58b90e1f6d92b6a7d inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a215d1e28854486d58b90e1f6d92b6a7d">OMG0</a> = 0</td></tr>
+<tr class="memdesc:a215d1e28854486d58b90e1f6d92b6a7d inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">right ascension of ascending node  <a href="structKeplerEph.html#a215d1e28854486d58b90e1f6d92b6a7d">More...</a><br /></td></tr>
+<tr class="separator:a215d1e28854486d58b90e1f6d92b6a7d inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a089104c3eb1e4d2016cc517dd6a2639d inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a089104c3eb1e4d2016cc517dd6a2639d">omg</a> = 0</td></tr>
+<tr class="memdesc:a089104c3eb1e4d2016cc517dd6a2639d inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">argument of perigee  <a href="structKeplerEph.html#a089104c3eb1e4d2016cc517dd6a2639d">More...</a><br /></td></tr>
+<tr class="separator:a089104c3eb1e4d2016cc517dd6a2639d inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf8d3b66a4f553a38cbd4ec9f753dddd inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#acf8d3b66a4f553a38cbd4ec9f753dddd">M0</a> = 0</td></tr>
+<tr class="memdesc:acf8d3b66a4f553a38cbd4ec9f753dddd inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">mean anomoly  <a href="structKeplerEph.html#acf8d3b66a4f553a38cbd4ec9f753dddd">More...</a><br /></td></tr>
+<tr class="separator:acf8d3b66a4f553a38cbd4ec9f753dddd inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14ef4b30de00e17daeb000656c128f20 inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a14ef4b30de00e17daeb000656c128f20">deln</a> = 0</td></tr>
+<tr class="memdesc:a14ef4b30de00e17daeb000656c128f20 inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction mean motion  <a href="structKeplerEph.html#a14ef4b30de00e17daeb000656c128f20">More...</a><br /></td></tr>
+<tr class="separator:a14ef4b30de00e17daeb000656c128f20 inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ff67f5e705ff5e5fa16aac0e55a65dd inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a5ff67f5e705ff5e5fa16aac0e55a65dd">OMGd</a> = 0</td></tr>
+<tr class="memdesc:a5ff67f5e705ff5e5fa16aac0e55a65dd inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">rate of OMG  <a href="structKeplerEph.html#a5ff67f5e705ff5e5fa16aac0e55a65dd">More...</a><br /></td></tr>
+<tr class="separator:a5ff67f5e705ff5e5fa16aac0e55a65dd inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8ca3ab701c3440a9197a2346ff8ea15 inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#af8ca3ab701c3440a9197a2346ff8ea15">idot</a> = 0</td></tr>
+<tr class="memdesc:af8ca3ab701c3440a9197a2346ff8ea15 inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">rate of inclination  <a href="structKeplerEph.html#af8ca3ab701c3440a9197a2346ff8ea15">More...</a><br /></td></tr>
+<tr class="separator:af8ca3ab701c3440a9197a2346ff8ea15 inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a882978b0cfa213c6833d705b2375747d inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a882978b0cfa213c6833d705b2375747d">crc</a> = 0</td></tr>
+<tr class="memdesc:a882978b0cfa213c6833d705b2375747d inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction radial cosine  <a href="structKeplerEph.html#a882978b0cfa213c6833d705b2375747d">More...</a><br /></td></tr>
+<tr class="separator:a882978b0cfa213c6833d705b2375747d inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35a6aaa7a127d0bc03fc65aa8c6e21d5 inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a35a6aaa7a127d0bc03fc65aa8c6e21d5">crs</a> = 0</td></tr>
+<tr class="memdesc:a35a6aaa7a127d0bc03fc65aa8c6e21d5 inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction radial sine  <a href="structKeplerEph.html#a35a6aaa7a127d0bc03fc65aa8c6e21d5">More...</a><br /></td></tr>
+<tr class="separator:a35a6aaa7a127d0bc03fc65aa8c6e21d5 inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f9089172bfade2502e0b2e9f91b08ed inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a3f9089172bfade2502e0b2e9f91b08ed">cuc</a> = 0</td></tr>
+<tr class="memdesc:a3f9089172bfade2502e0b2e9f91b08ed inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction lattitude cosine  <a href="structKeplerEph.html#a3f9089172bfade2502e0b2e9f91b08ed">More...</a><br /></td></tr>
+<tr class="separator:a3f9089172bfade2502e0b2e9f91b08ed inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf6cefdf422e31088fad18485828ac11 inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#adf6cefdf422e31088fad18485828ac11">cus</a> = 0</td></tr>
+<tr class="memdesc:adf6cefdf422e31088fad18485828ac11 inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction lattitude sine  <a href="structKeplerEph.html#adf6cefdf422e31088fad18485828ac11">More...</a><br /></td></tr>
+<tr class="separator:adf6cefdf422e31088fad18485828ac11 inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac5f0520031f34cc932b9bb174cc44a1 inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#aac5f0520031f34cc932b9bb174cc44a1">cic</a> = 0</td></tr>
+<tr class="memdesc:aac5f0520031f34cc932b9bb174cc44a1 inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction inclination cosine  <a href="structKeplerEph.html#aac5f0520031f34cc932b9bb174cc44a1">More...</a><br /></td></tr>
+<tr class="separator:aac5f0520031f34cc932b9bb174cc44a1 inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae574a6ccc8ffb14bbf35e59e932c910a inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#ae574a6ccc8ffb14bbf35e59e932c910a">cis</a> = 0</td></tr>
+<tr class="memdesc:ae574a6ccc8ffb14bbf35e59e932c910a inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">correction inclination sine  <a href="structKeplerEph.html#ae574a6ccc8ffb14bbf35e59e932c910a">More...</a><br /></td></tr>
+<tr class="separator:ae574a6ccc8ffb14bbf35e59e932c910a inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a3bcff921840658b21d7df7b6fed8b4 inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a8a3bcff921840658b21d7df7b6fed8b4">dn0d</a> = 0</td></tr>
+<tr class="memdesc:a8a3bcff921840658b21d7df7b6fed8b4 inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">rate of correction mean motion  <a href="structKeplerEph.html#a8a3bcff921840658b21d7df7b6fed8b4">More...</a><br /></td></tr>
+<tr class="separator:a8a3bcff921840658b21d7df7b6fed8b4 inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49d17fa4351f9495a1ff3ede9503a1c4 inherit pub_attribs_structKeplerEph"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKeplerEph.html#a49d17fa4351f9495a1ff3ede9503a1c4">Adot</a> = 0</td></tr>
+<tr class="memdesc:a49d17fa4351f9495a1ff3ede9503a1c4 inherit pub_attribs_structKeplerEph"><td class="mdescLeft">&#160;</td><td class="mdescRight">rate of <a class="el" href="structA.html">A</a>  <a href="structKeplerEph.html#a49d17fa4351f9495a1ff3ede9503a1c4">More...</a><br /></td></tr>
+<tr class="separator:a49d17fa4351f9495a1ff3ede9503a1c4 inherit pub_attribs_structKeplerEph"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a94a8724bd273a72dd3f648f5b289d0a2" name="a94a8724bd273a72dd3f648f5b289d0a2"></a>
@@ -219,7 +288,7 @@ template&lt;class ARCHIVE &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
           <td class="paramname"><em>version</em>&#160;</td>
         </tr>
         <tr>
@@ -238,51 +307,35 @@ template&lt;class ARCHIVE &gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Field Documentation</h2>
-<a id="aa74232f0268b266630a953f72a18fb4f" name="aa74232f0268b266630a953f72a18fb4f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa74232f0268b266630a953f72a18fb4f">&#9670;&nbsp;</a></span>A</h2>
+<a id="a1346e9ac30e6848ff626def7f98425a2" name="a1346e9ac30e6848ff626def7f98425a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1346e9ac30e6848ff626def7f98425a2">&#9670;&nbsp;</a></span>aodc</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::A</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::aodc</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>semi major axis </p>
+<p>BDS AODC. </p>
 
 </div>
 </div>
-<a id="a183d26388c6f9a334c613a770e576989" name="a183d26388c6f9a334c613a770e576989"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a183d26388c6f9a334c613a770e576989">&#9670;&nbsp;</a></span>cic</h2>
+<a id="adc6c7fea92c6f8c909bc5e83776d64f5" name="adc6c7fea92c6f8c909bc5e83776d64f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc6c7fea92c6f8c909bc5e83776d64f5">&#9670;&nbsp;</a></span>aode</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::cic</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::aode</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>correction inclination cosine </p>
-
-</div>
-</div>
-<a id="ac799628af0a269f5364cc2d7e8ec1de5" name="ac799628af0a269f5364cc2d7e8ec1de5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac799628af0a269f5364cc2d7e8ec1de5">&#9670;&nbsp;</a></span>cis</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Eph::cis</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>correction inclination sine </p>
+<p>BDS AODE. </p>
 
 </div>
 </div>
@@ -293,108 +346,108 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Eph::code</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::code = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>GPS/QZS: code on L2, GAL/CMP: data sources. </p>
+<p>GPS/QZS: code on L2, GAL: data source. </p>
 
 </div>
 </div>
-<a id="aeebd067a55aa192ab5f4d91c0a8a4c5d" name="aeebd067a55aa192ab5f4d91c0a8a4c5d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeebd067a55aa192ab5f4d91c0a8a4c5d">&#9670;&nbsp;</a></span>crc</h2>
+<a id="a723d0910b33d168a316bd5463179a11c" name="a723d0910b33d168a316bd5463179a11c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a723d0910b33d168a316bd5463179a11c">&#9670;&nbsp;</a></span>e1_dvs</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::crc</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::e1_dvs = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>correction radial cosine </p>
+<p>GAL E1 data validity status. </p>
 
 </div>
 </div>
-<a id="a381640f29ffe0b50952ae1ebbdfeb564" name="a381640f29ffe0b50952ae1ebbdfeb564"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a381640f29ffe0b50952ae1ebbdfeb564">&#9670;&nbsp;</a></span>crs</h2>
+<a id="ac8277fca4ddd012b271d2cd4c3c75f6e" name="ac8277fca4ddd012b271d2cd4c3c75f6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8277fca4ddd012b271d2cd4c3c75f6e">&#9670;&nbsp;</a></span>e1_hs</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::crs</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::e1_hs = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>correction radial sine </p>
+<p>GAL E1 signal health status. </p>
 
 </div>
 </div>
-<a id="a0df46efa964b3239649f237b25ab5118" name="a0df46efa964b3239649f237b25ab5118"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0df46efa964b3239649f237b25ab5118">&#9670;&nbsp;</a></span>cuc</h2>
+<a id="a04877d020091afa00cf737b61f32046b" name="a04877d020091afa00cf737b61f32046b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04877d020091afa00cf737b61f32046b">&#9670;&nbsp;</a></span>e5a_dvs</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::cuc</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::e5a_dvs = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>correction lattitude cosine </p>
+<p>GAL E5a data validity status. </p>
 
 </div>
 </div>
-<a id="a5e7f6813c0f34edd38182e46cdf7d2d5" name="a5e7f6813c0f34edd38182e46cdf7d2d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5e7f6813c0f34edd38182e46cdf7d2d5">&#9670;&nbsp;</a></span>cus</h2>
+<a id="a8b071e2683479a240c27e8bb69e48b22" name="a8b071e2683479a240c27e8bb69e48b22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b071e2683479a240c27e8bb69e48b22">&#9670;&nbsp;</a></span>e5a_hs</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::cus</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::e5a_hs = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>correction lattitude sine </p>
+<p>GAL E5a signal health status. </p>
 
 </div>
 </div>
-<a id="a89136d1e9b2b8f3b2864de3fbaf98650" name="a89136d1e9b2b8f3b2864de3fbaf98650"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a89136d1e9b2b8f3b2864de3fbaf98650">&#9670;&nbsp;</a></span>deln</h2>
+<a id="a42393e0eb44003e43a26c75ce96f4101" name="a42393e0eb44003e43a26c75ce96f4101"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42393e0eb44003e43a26c75ce96f4101">&#9670;&nbsp;</a></span>e5b_dvs</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::deln</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::e5b_dvs = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>correction mean motion </p>
+<p>GAL E5b data validity status. </p>
 
 </div>
 </div>
-<a id="a178263a95953295eefddffb335e0e891" name="a178263a95953295eefddffb335e0e891"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a178263a95953295eefddffb335e0e891">&#9670;&nbsp;</a></span>e</h2>
+<a id="a9b6ee0b3f71a5a14a40b509fece5098a" name="a9b6ee0b3f71a5a14a40b509fece5098a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b6ee0b3f71a5a14a40b509fece5098a">&#9670;&nbsp;</a></span>e5b_hs</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::e</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::e5b_hs = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>eccentricity </p>
+<p>GAL E5b signal health status. </p>
 
 </div>
 </div>
@@ -462,6 +515,22 @@ template&lt;class ARCHIVE &gt; </div>
 
 </div>
 </div>
+<a id="a4091ac06f7f24a1989d320771c693a91" name="a4091ac06f7f24a1989d320771c693a91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4091ac06f7f24a1989d320771c693a91">&#9670;&nbsp;</a></span>fitFlag</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::fitFlag = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>fit flag </p>
+
+</div>
+</div>
 <a id="a5c2bc9be82441d485dcb1dcb8a021005" name="a5c2bc9be82441d485dcb1dcb8a021005"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5c2bc9be82441d485dcb1dcb8a021005">&#9670;&nbsp;</a></span>flag</h2>
 
@@ -469,44 +538,12 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Eph::flag</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::flag = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>GPS/QZS: L2 P data flag, CMP: nav type. </p>
-
-</div>
-</div>
-<a id="afec01cfefcf549402c4b5f420ddb8d4a" name="afec01cfefcf549402c4b5f420ddb8d4a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afec01cfefcf549402c4b5f420ddb8d4a">&#9670;&nbsp;</a></span>i0</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Eph::i0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>inclination </p>
-
-</div>
-</div>
-<a id="a5bde282727af854013d78cb27b9e4320" name="a5bde282727af854013d78cb27b9e4320"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5bde282727af854013d78cb27b9e4320">&#9670;&nbsp;</a></span>idot</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Eph::idot</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>rate of inclination </p>
+<p>GPS L2 P data flag. </p>
 
 </div>
 </div>
@@ -517,7 +554,7 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Eph::iodc</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::iodc = -1</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -533,76 +570,44 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Eph::iode</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::iode = -1</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>IODE. </p>
+<p>GPS/QZS: IODE, GAL: IODnav. </p>
 
 </div>
 </div>
-<a id="afd7d430c5704ba1a9bffb001f11edf40" name="afd7d430c5704ba1a9bffb001f11edf40"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afd7d430c5704ba1a9bffb001f11edf40">&#9670;&nbsp;</a></span>M0</h2>
+<a id="a576417fc33e8e7c31827d33b1f8d3ef6" name="a576417fc33e8e7c31827d33b1f8d3ef6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a576417fc33e8e7c31827d33b1f8d3ef6">&#9670;&nbsp;</a></span>isc</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::M0</td>
+          <td class="memname">double Eph::isc[6] = {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>mean anomoly </p>
+<p>inter-signal corrections GPS/QZS CNAV: isc[0]=ISC_L1CA, isc[1]=ISC_L2C, isc[2]=ISC_L5I5, isc[3]=ISC_L5Q5 GPS/QZS CNV2: isc[0]=ISC_L1CA, isc[1]=ISC_L2C, isc[2]=ISC_L5I5, isc[3]=ISC_L5Q5, isc[4]=ISC_L1Cd, isc[5]=ISC_L1Cp BDS CNV1: isc[0]=ISC_B1Cd BDS CNV2: isc[1]=ISC_B2ad </p>
 
 </div>
 </div>
-<a id="af584c5a05f4c0cc7d82bf674863c8ae6" name="af584c5a05f4c0cc7d82bf674863c8ae6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af584c5a05f4c0cc7d82bf674863c8ae6">&#9670;&nbsp;</a></span>omg</h2>
+<a id="a4d7f5a86d8e3bfcc1b2a4375c2598b2a" name="a4d7f5a86d8e3bfcc1b2a4375c2598b2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d7f5a86d8e3bfcc1b2a4375c2598b2a">&#9670;&nbsp;</a></span>orb</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::omg</td>
+          <td class="memname">E_SatType Eph::orb = <a class="el" href="enums_8h.html#a73aeaa6097657d473373a66998ffdbaa">E_SatType::NONE</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>argument of perigee </p>
-
-</div>
-</div>
-<a id="a642f038598b63b88db42f506369e6c30" name="a642f038598b63b88db42f506369e6c30"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a642f038598b63b88db42f506369e6c30">&#9670;&nbsp;</a></span>OMG0</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Eph::OMG0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>right ascension of ascending node </p>
-
-</div>
-</div>
-<a id="ad2bab5f1298184710512d7d959e2cb56" name="ad2bab5f1298184710512d7d959e2cb56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2bab5f1298184710512d7d959e2cb56">&#9670;&nbsp;</a></span>OMGd</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Eph::OMGd</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>rate of OMG </p>
+<p>BDS sat/orbit type. </p>
 
 </div>
 </div>
@@ -622,6 +627,38 @@ template&lt;class ARCHIVE &gt; </div>
 
 </div>
 </div>
+<a id="a17b73e183b452aa778c4290408c3f565" name="a17b73e183b452aa778c4290408c3f565"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17b73e183b452aa778c4290408c3f565">&#9670;&nbsp;</a></span>sis</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Eph::sis[5] = {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>signal in space accuracy index BDS CNVX sis[0]=SISAI_oe, sis[1]=SISAI_ocb, sis[2]=SISAI_oc1, sis[3]=SISAI_oc2, sis[4]=SISMAI </p>
+
+</div>
+</div>
+<a id="af0c38c275de6c69d577750b2e632fefb" name="af0c38c275de6c69d577750b2e632fefb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0c38c275de6c69d577750b2e632fefb">&#9670;&nbsp;</a></span>sqrtA</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Eph::sqrtA</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>sqrt <a class="el" href="structA.html">A</a> </p>
+
+</div>
+</div>
 <a id="ae9b3f21f5717e23c2207b82e453fcb16" name="ae9b3f21f5717e23c2207b82e453fcb16"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae9b3f21f5717e23c2207b82e453fcb16">&#9670;&nbsp;</a></span>sva</h2>
 
@@ -629,7 +666,7 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Eph::sva</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::sva</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -661,12 +698,12 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Eph::tgd[4]</td>
+          <td class="memname">double Eph::tgd[4] = {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>group delay parameters GPS/QZS:tgd[0]=TGD GAL :tgd[0]=BGD E5a/E1,tgd[1]=BGD E5b/E1 CMP :tgd[0]=BGD1,tgd[1]=BGD2 </p>
+<p>group delay parameters GPS/QZS:tgd[0]=TGD GAL :tgd[0]=BGD E5a/E1,tgd[1]=BGD E5b/E1 BDS :tgd[0]=BGD1,tgd[1]=BGD2 </p>
 
 </div>
 </div>
@@ -683,6 +720,22 @@ template&lt;class ARCHIVE &gt; </div>
 </div><div class="memdoc">
 
 <p>time of clock </p>
+
+</div>
+</div>
+<a id="afd4a7799574e3f609d838814b19c579e" name="afd4a7799574e3f609d838814b19c579e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd4a7799574e3f609d838814b19c579e">&#9670;&nbsp;</a></span>tocs</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Eph::tocs</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>TOC (s) within week. </p>
 
 </div>
 </div>
@@ -718,6 +771,38 @@ template&lt;class ARCHIVE &gt; </div>
 
 </div>
 </div>
+<a id="a796d6f0ad02792d3eceb87f2ca4bbde1" name="a796d6f0ad02792d3eceb87f2ca4bbde1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a796d6f0ad02792d3eceb87f2ca4bbde1">&#9670;&nbsp;</a></span>top</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> Eph::top = {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>time of prediction </p>
+
+</div>
+</div>
+<a id="a4a71f553bd717147f3111d05e69087aa" name="a4a71f553bd717147f3111d05e69087aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a71f553bd717147f3111d05e69087aa">&#9670;&nbsp;</a></span>tops</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Eph::tops = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>t_op (s) in week </p>
+
+</div>
+</div>
 <a id="abb86916dd7500dbe6570a15fddcf1e0d" name="abb86916dd7500dbe6570a15fddcf1e0d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abb86916dd7500dbe6570a15fddcf1e0d">&#9670;&nbsp;</a></span>ttm</h2>
 
@@ -734,6 +819,22 @@ template&lt;class ARCHIVE &gt; </div>
 
 </div>
 </div>
+<a id="a9704495ec7c72f14cd92e7d33dbbb6b4" name="a9704495ec7c72f14cd92e7d33dbbb6b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9704495ec7c72f14cd92e7d33dbbb6b4">&#9670;&nbsp;</a></span>ttms</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Eph::ttms = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>transmission time (s) within week </p>
+
+</div>
+</div>
 <a id="a4bbe69e281b96b3b6eea0ed52753cc86" name="a4bbe69e281b96b3b6eea0ed52753cc86"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4bbe69e281b96b3b6eea0ed52753cc86">&#9670;&nbsp;</a></span>type</h2>
 
@@ -741,12 +842,28 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">E_NavMsgType Eph::type = <a class="el" href="enums_8h.html#ad272ec1f335d680e948c51dea39d3375">E_NavMsgType::NONE</a></td>
+          <td class="memname">E_NavMsgType Eph::type = <a class="el" href="enums_8h.html#a73aeaa6097657d473373a66998ffdbaa">E_NavMsgType::NONE</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>message type </p>
+
+</div>
+</div>
+<a id="a72fe6d74f4593fc24975d48b478361ca" name="a72fe6d74f4593fc24975d48b478361ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72fe6d74f4593fc24975d48b478361ca">&#9670;&nbsp;</a></span>ura</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Eph::ura[4] = {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>user range accuracy or GAL SISA GPS/QZS CNVX: ura[0]=URAI_NED0, ura[1]=URAI_NED1, ura[2]=URAI_NED2, ura[3]=URAI_ED </p>
 
 </div>
 </div>
@@ -757,12 +874,28 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Eph::week</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::week</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>GPS/QZS: gps week, GAL: galileo week. </p>
+<p>GPS/QZS: gps week, GAL:gps week (i.e. galileo week + 1024), BDS: beidou week. </p>
+
+</div>
+</div>
+<a id="a702cf9807bb66b844680bffb73510026" name="a702cf9807bb66b844680bffb73510026"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a702cf9807bb66b844680bffb73510026">&#9670;&nbsp;</a></span>weekRollOver</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Eph::weekRollOver</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>week number (rolled over) </p>
 
 </div>
 </div>

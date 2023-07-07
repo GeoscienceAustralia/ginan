@@ -86,7 +86,7 @@ $(function() {
 <a href="#details">More...</a></p>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >This software uses specialised kalman filter classes to perform filtering. </p>
-<p >Using a classes such as <a class="el" href="structKFState.html" title="Kalman filter object.">KFState</a>, <a class="el" href="structKFMeas.html" title="Object to hold measurements, design matrices, and residuals for multiple observations.">KFMeas</a>, etc, prevents duplication of code, and ensures that many edge cases are taken care of without the need for the developer to consider them explicitly.</p>
+<p >Using a classes such as <a class="el" href="structKFState.html">KFState</a>, <a class="el" href="structKFMeas.html" title="Object to hold measurements, design matrices, and residuals for multiple observations.">KFMeas</a>, etc, prevents duplication of code, and ensures that many edge cases are taken care of without the need for the developer to consider them explicitly.</p>
 <p >The basic workflow for using the filter is: create filter object, initialise the state transition matrix at the beginning of each epoch create a list of measurements (only adding entries for required states, using KFKeys to reference the state element) combining measurements that were in a list into a single matrix corresponding to the new state, and filtering - filtering internally saves the states for RTS code, using a single sequential file that has some headers added so that it can be traversed backwards</p>
 <p >The filter has some pre/post fit checks that remove measurements that are out of expected ranges, and there are functions provided for setting, resetting, and getting values, noises, and covariance values.</p>
 <p >KFKeys are used to identify states. They may have a type, <a class="el" href="structSatStat.html" title="Object containing persistant status parameters of individual satellites.">SatStat</a> value, string, and number associated with them, and can be set and read from filter objects as required.</p>
@@ -100,14 +100,14 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6ec6b537bc94eb558cc7baa9dd84c85f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="algebra_8cpp.html#a6ec6b537bc94eb558cc7baa9dd84c85f">outputResiduals</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iteration, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begH, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numH)</td></tr>
-<tr class="separator:a6ec6b537bc94eb558cc7baa9dd84c85f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb9b81b7f95c771aa529d3fddde7d466"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="algebra_8cpp.html#aeb9b81b7f95c771aa529d3fddde7d466">outputResiduals</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> iteration, string suffix, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begH, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numH)</td></tr>
+<tr class="separator:aeb9b81b7f95c771aa529d3fddde7d466"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a59553eaf0cf6e852b86aa6f68a58e0a7"><td class="memItemLeft" align="right" valign="top">MatrixXi&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="algebra_8cpp.html#a59553eaf0cf6e852b86aa6f68a58e0a7">correlationMatrix</a> (MatrixXd &amp;P)</td></tr>
 <tr class="separator:a59553eaf0cf6e852b86aa6f68a58e0a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a304f0d512353a3c5a991c2439ea73287"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structInitialState.html">InitialState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="algebra_8cpp.html#a304f0d512353a3c5a991c2439ea73287">initialStateFromConfig</a> (<a class="el" href="structKalmanModel.html">KalmanModel</a> &amp;kalmanModel, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index)</td></tr>
+<tr class="memitem:a304f0d512353a3c5a991c2439ea73287"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structInitialState.html">InitialState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="algebra_8cpp.html#a304f0d512353a3c5a991c2439ea73287">initialStateFromConfig</a> (<a class="el" href="structKalmanModel.html">KalmanModel</a> &amp;kalmanModel, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
 <tr class="separator:a304f0d512353a3c5a991c2439ea73287"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a875aaa79fee3ea86808271f92784a3ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFState.html">KFState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="algebra_8cpp.html#a875aaa79fee3ea86808271f92784a3ad">mergeFilters</a> (list&lt; <a class="el" href="structKFState.html">KFState</a> * &gt; &amp;kfStatePointerList, bool includeTrop)</td></tr>
-<tr class="separator:a875aaa79fee3ea86808271f92784a3ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74c09f6117cc256b375dcf2442cffd76"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFState.html">KFState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="algebra_8cpp.html#a74c09f6117cc256b375dcf2442cffd76">mergeFilters</a> (vector&lt; <a class="el" href="structKFState.html">KFState</a> * &gt; &amp;kfStatePointerList, bool includeTrop)</td></tr>
+<tr class="separator:a74c09f6117cc256b375dcf2442cffd76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a409341f11cb16e20ae10acf6c0e03fcc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="algebra_8cpp.html#a409341f11cb16e20ae10acf6c0e03fcc">isPositiveSemiDefinite</a> (MatrixXd &amp;<a class="el" href="algebra__old_8cpp.html#a1d2c1ecab5b17dcc773fcd83c0b87b7e">mat</a>)</td></tr>
 <tr class="separator:a409341f11cb16e20ae10acf6c0e03fcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -150,7 +150,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>index</em>&#160;</td>
         </tr>
         <tr>
@@ -163,7 +163,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="algebra_8cpp_a304f0d512353a3c5a991c2439ea73287_icgraph.svg" width="588" height="544"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="algebra_8cpp_a304f0d512353a3c5a991c2439ea73287_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -196,8 +196,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a875aaa79fee3ea86808271f92784a3ad" name="a875aaa79fee3ea86808271f92784a3ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a875aaa79fee3ea86808271f92784a3ad">&#9670;&nbsp;</a></span>mergeFilters()</h2>
+<a id="a74c09f6117cc256b375dcf2442cffd76" name="a74c09f6117cc256b375dcf2442cffd76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74c09f6117cc256b375dcf2442cffd76">&#9670;&nbsp;</a></span>mergeFilters()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -205,7 +205,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname"><a class="el" href="structKFState.html">KFState</a> mergeFilters </td>
           <td>(</td>
-          <td class="paramtype">list&lt; <a class="el" href="structKFState.html">KFState</a> * &gt; &amp;&#160;</td>
+          <td class="paramtype">vector&lt; <a class="el" href="structKFState.html">KFState</a> * &gt; &amp;&#160;</td>
           <td class="paramname"><em>kfStatePointerList</em>, </td>
         </tr>
         <tr>
@@ -224,13 +224,13 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="algebra_8cpp_a875aaa79fee3ea86808271f92784a3ad_icgraph.svg" width="366" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="algebra_8cpp_a74c09f6117cc256b375dcf2442cffd76_icgraph.svg" width="375" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a6ec6b537bc94eb558cc7baa9dd84c85f" name="a6ec6b537bc94eb558cc7baa9dd84c85f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ec6b537bc94eb558cc7baa9dd84c85f">&#9670;&nbsp;</a></span>outputResiduals()</h2>
+<a id="aeb9b81b7f95c771aa529d3fddde7d466" name="aeb9b81b7f95c771aa529d3fddde7d466"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb9b81b7f95c771aa529d3fddde7d466">&#9670;&nbsp;</a></span>outputResiduals()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -250,19 +250,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>iteration</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>suffix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begH</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numH</em>&#160;</td>
         </tr>
         <tr>
@@ -277,6 +283,7 @@ Here is the caller graph for this function:</div>
     <tr><td class="paramname">trace</td><td>Trace file to output to</td></tr>
     <tr><td class="paramname">kfMeas</td><td>Measurements, noise, and design matrix</td></tr>
     <tr><td class="paramname">iteration</td><td>Number of iterations prior to this check</td></tr>
+    <tr><td class="paramname">suffix</td><td>Suffix to use in header</td></tr>
     <tr><td class="paramname">begH</td><td>Index of first measurement to process</td></tr>
     <tr><td class="paramname">numH</td><td>Number of measurements to process </td></tr>
   </table>
@@ -285,12 +292,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="algebra_8cpp_a6ec6b537bc94eb558cc7baa9dd84c85f_cgraph.svg" width="315" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="algebra_8cpp_aeb9b81b7f95c771aa529d3fddde7d466_cgraph.svg" width="315" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="algebra_8cpp_a6ec6b537bc94eb558cc7baa9dd84c85f_icgraph.svg" width="398" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="algebra_8cpp_aeb9b81b7f95c771aa529d3fddde7d466_icgraph.svg" width="398" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

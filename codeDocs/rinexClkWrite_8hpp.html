@@ -83,17 +83,17 @@ $(function() {
 <div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rinexClkWrite_8hpp__dep__incl.svg" width="100%" height="473"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rinexClkWrite_8hpp__dep__incl.svg" width="100%" height="540"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a10767971ea1d0a67bdf7bd414968ff4f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinexClkWrite_8hpp.html#a10767971ea1d0a67bdf7bd414968ff4f">outputClocks</a> (string filename, E_Ephemeris clkDataRecSrc, E_Ephemeris clkDataSatSrc, <a class="el" href="structGTime.html">GTime</a> &amp;time, <a class="el" href="rinexObsWrite_8hpp.html#a75917003086e7a6f48f6736ee7c509b2">OutSys</a> &amp;outSys, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> *stationMap_ptr, bool isUser=false)</td></tr>
-<tr class="separator:a10767971ea1d0a67bdf7bd414968ff4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a659c133e6b02f1574e6dc0792f98f6c4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinexClkWrite_8hpp.html#a659c133e6b02f1574e6dc0792f98f6c4">outputClocks</a> (string filename, vector&lt; E_Source &gt; clkDataRecSrcs, vector&lt; E_Source &gt; clkDataSatSrcs, <a class="el" href="structGTime.html">GTime</a> &amp;time, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> *stationMap_ptr=nullptr)</td></tr>
+<tr class="separator:a659c133e6b02f1574e6dc0792f98f6c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a10767971ea1d0a67bdf7bd414968ff4f" name="a10767971ea1d0a67bdf7bd414968ff4f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a10767971ea1d0a67bdf7bd414968ff4f">&#9670;&nbsp;</a></span>outputClocks()</h2>
+<a id="a659c133e6b02f1574e6dc0792f98f6c4" name="a659c133e6b02f1574e6dc0792f98f6c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a659c133e6b02f1574e6dc0792f98f6c4">&#9670;&nbsp;</a></span>outputClocks()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -107,26 +107,20 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">E_Ephemeris&#160;</td>
-          <td class="paramname"><em>clkDataRecSrc</em>, </td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>clkDataRecSrcs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">E_Ephemeris&#160;</td>
-          <td class="paramname"><em>clkDataSatSrc</em>, </td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>clkDataSatSrcs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td>
           <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="rinexObsWrite_8hpp.html#a75917003086e7a6f48f6736ee7c509b2">OutSys</a> &amp;&#160;</td>
-          <td class="paramname"><em>outSys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -138,13 +132,7 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> *&#160;</td>
-          <td class="paramname"><em>stationMap_ptr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>isUser</em> = <code>false</code>&#160;</td>
+          <td class="paramname"><em>stationMap_ptr</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -156,12 +144,12 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinexClkWrite_8hpp_a10767971ea1d0a67bdf7bd414968ff4f_cgraph.svg" width="356" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinexClkWrite_8hpp_a659c133e6b02f1574e6dc0792f98f6c4_cgraph.svg" width="342" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinexClkWrite_8hpp_a10767971ea1d0a67bdf7bd414968ff4f_icgraph.svg" width="379" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinexClkWrite_8hpp_a659c133e6b02f1574e6dc0792f98f6c4_icgraph.svg" width="379" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

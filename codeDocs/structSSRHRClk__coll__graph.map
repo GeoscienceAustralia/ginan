@@ -1,5 +1,5 @@
 <map id="SSRHRClk" name="SSRHRClk">
-<area shape="rect" id="node1" title=" " alt="" coords="128,424,215,531"/>
-<area shape="rect" id="node2" href="$structSSRMeta.html" title=" " alt="" coords="5,108,161,259"/>
-<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="185,5,336,361"/>
+<area shape="rect" id="node1" title=" " alt="" coords="98,887,185,993"/>
+<area shape="rect" id="node2" href="$structSSRMeta.html" title=" " alt="" coords="5,659,155,824"/>
+<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="49,5,231,596"/>
 </map>

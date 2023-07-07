@@ -1,6 +1,5 @@
 <map id="MinimumConstraintOptions" name="MinimumConstraintOptions">
-<area shape="rect" id="node1" title="Options associated with the minimum constraints mode of operation." alt="" coords="144,321,345,413"/>
-<area shape="rect" id="node2" href="$structFilterOptions.html" title=" " alt="" coords="5,5,164,229"/>
-<area shape="rect" id="node3" href="$structKalmanModel.html" title="Options associated with kalman filter states." alt="" coords="189,79,301,156"/>
-<area shape="rect" id="node4" title=" " alt="" coords="325,71,543,163"/>
+<area shape="rect" id="node1" title="Options associated with the minimum constraints mode of operation." alt="" coords="94,365,295,472"/>
+<area shape="rect" id="node2" href="$structFilterOptions.html" title=" " alt="" coords="5,5,200,273"/>
+<area shape="rect" id="node3" href="$structKalmanModel.html" title="Options associated with kalman filter states." alt="" coords="225,101,349,178"/>
 </map>

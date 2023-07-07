@@ -1,11 +1,8 @@
 <map id="outputNavRinexSTO" name="outputNavRinexSTO">
-<area shape="rect" id="node1" title=" " alt="" coords="5,167,159,194"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="405,167,500,194"/>
-<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="239,41,325,67"/>
-<area shape="rect" id="node4" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="219,91,345,118"/>
-<area shape="rect" id="node5" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="233,142,331,169"/>
-<area shape="rect" id="node6" href="$gTime_8cpp.html#a0f1c35b5babe507c5b320111c1e634b7" title=" " alt="" coords="243,193,321,219"/>
-<area shape="rect" id="node7" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="238,243,326,270"/>
-<area shape="rect" id="node8" href="$gTime_8cpp.html#a043c97b6d22706c23f55a5d29563d7dd" title=" " alt="" coords="241,294,323,321"/>
-<area shape="rect" id="node9" href="$streamTrace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="207,345,357,371"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,83,159,110"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="405,83,500,110"/>
+<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="239,33,325,59"/>
+<area shape="rect" id="node4" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="219,83,345,110"/>
+<area shape="rect" id="node5" href="$gTime_8cpp.html#a210bda8e07fa8a70ce6c79948e42efe0" title=" " alt="" coords="233,134,331,161"/>
+<area shape="rect" id="node6" href="$trace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="207,185,357,211"/>
 </map>

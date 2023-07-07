@@ -1,7 +1,7 @@
 <map id="ionVtecSphhar" name="ionVtecSphhar">
-<area shape="rect" id="node1" title=" " alt="" coords="5,81,121,108"/>
-<area shape="rect" id="node2" href="$ionoSpherical_8cpp.html#a32460ecb229f47f08516ff7a35f45f47" title=" " alt="" coords="178,5,317,32"/>
+<area shape="rect" id="node1" title="Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not us..." alt="" coords="5,81,121,108"/>
+<area shape="rect" id="node2" href="$ionoSpherical_8cpp.html#a32460ecb229f47f08516ff7a35f45f47" title="rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IP..." alt="" coords="178,5,317,32"/>
 <area shape="rect" id="node3" href="$trop_8cpp.html#aee11659ecea14ca59feae2dbe9f160d5" title="coefficients multiplication" alt="" coords="222,56,273,83"/>
-<area shape="rect" id="node4" href="$ionoSpherical_8cpp.html#a0d27755d579e100f284507dea013ccad" title=" " alt="" coords="183,107,311,133"/>
-<area shape="rect" id="node5" href="$structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="169,157,325,184"/>
+<area shape="rect" id="node4" href="$ionoSpherical_8cpp.html#a5087349da86eaabbc342eb3f623ca963" title="Evaluates spherical cap harmonics basis functions int ind I Basis function number obs I Ionosphere me..." alt="" coords="183,107,311,133"/>
+<area shape="rect" id="node5" href="$structKFState.html#a1e56cacd1a83d3913b20940b1892d407" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="169,157,325,184"/>
 </map>

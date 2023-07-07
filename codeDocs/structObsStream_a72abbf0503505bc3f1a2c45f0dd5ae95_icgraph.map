@@ -1,8 +1,4 @@
 <map id="ObsStream::getObs" name="ObsStream::getObs">
-<area shape="rect" id="node1" title="Return a list of observations from the stream." alt="" coords="243,107,391,133"/>
-<area shape="rect" id="node2" href="$structNtripRtcmStream.html#a7ae2807fa53dc422270a34553e1f80c9" title="Return a list of observations from the stream." alt="" coords="5,5,195,32"/>
-<area shape="rect" id="node3" href="$structFileRinexStream.html#a8032f619708821820655c1ed3c7f2e57" title="Return a list of observations from the stream." alt="" coords="9,56,191,83"/>
-<area shape="rect" id="node4" href="$structFileRtcmStream.html#a60fb40d30b75c23712ce49ff8b9655ab" title="Return a list of observations from the stream." alt="" coords="11,107,189,133"/>
-<area shape="rect" id="node5" href="$structObsStream.html#a6d0ad39e5f301fc9455cfe5d9d3c3f99" title="Return a list of observations from the stream, with a specified timestamp." alt="" coords="26,157,174,184"/>
-<area shape="rect" id="node6" href="$main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="73,208,127,235"/>
+<area shape="rect" id="node1" title=" " alt="" coords="201,5,349,32"/>
+<area shape="rect" id="node2" href="$structObsStream.html#a6d0ad39e5f301fc9455cfe5d9d3c3f99" title="Return a list of observations from the stream, with a specified timestamp." alt="" coords="5,5,153,32"/>
 </map>

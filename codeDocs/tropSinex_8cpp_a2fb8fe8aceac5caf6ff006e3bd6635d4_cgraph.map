@@ -1,9 +1,7 @@
 <map id="writeTropSiteId" name="writeTropSiteId">
-<area shape="rect" id="node1" title="Write SITE/ID block." alt="" coords="5,132,124,159"/>
+<area shape="rect" id="node1" title="Write SITE/ID block." alt="" coords="5,81,124,108"/>
 <area shape="rect" id="node2" href="$sinex_8cpp.html#a35435dacdc5df53aa3357b64931ae2d6" title=" " alt="" coords="172,5,325,32"/>
-<area shape="rect" id="node3" href="$rtkcmn_8cpp.html#af69d89b6d7834290bd7c181f828e652a" title="Transform geodetic postion to ecef." alt="" coords="208,56,289,83"/>
-<area shape="rect" id="node4" href="$sinex_8cpp.html#af6a5f07daf9e8d4806b3d9db1509e4c2" title=" " alt="" coords="205,107,292,133"/>
-<area shape="rect" id="node5" href="$rtkcmn_8cpp.html#a1926e232cdab381c3ccfc8abca86b2a8" title=" " alt="" coords="207,157,290,184"/>
-<area shape="rect" id="node6" href="$rtkcmn_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="208,208,289,235"/>
-<area shape="rect" id="node7" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="201,259,296,285"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#a90b64cf64ebf22149d1b6b867bf27e85" title=" " alt="" coords="205,56,292,83"/>
+<area shape="rect" id="node4" href="$utils_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="208,107,289,133"/>
+<area shape="rect" id="node5" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="201,157,296,184"/>
 </map>

@@ -32,23 +32,23 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M116.14,-17.24C127.73,-18.71 139.92,-20.25 151.53,-21.72"/>
 </g>
-<!-- Node4 -->
+<!-- Node5 -->
 <g id="node3" class="node">
-<title>Node4</title>
+<title>Node5</title>
 <g id="a_node3"><a xlink:href="algebra__old_8cpp.html#a1d2c1ecab5b17dcc773fcd83c0b87b7e" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="304,-0.5 304,-19.5 340,-19.5 340,-0.5 304,-0.5"/>
+<polygon fill="white" stroke="black" points="304,-0.5 304,-19.5 340,-19.5 340,-0.5 304,-0.5"/>
 <text text-anchor="middle" x="322" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">mat</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node4 -->
+<!-- Node1&#45;&gt;Node5 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node4</title>
+<title>Node1&#45;&gt;Node5</title>
 <path fill="none" stroke="midnightblue" d="M116.17,-10C176.1,-10 266.63,-10 303.97,-10"/>
 </g>
-<!-- Node2&#45;&gt;Node4 -->
+<!-- Node2&#45;&gt;Node5 -->
 <g id="edge2" class="edge">
-<title>Node2&#45;&gt;Node4</title>
+<title>Node2&#45;&gt;Node5</title>
 <path fill="none" stroke="midnightblue" d="M266.32,-19.44C280.02,-17.08 293.69,-14.72 303.93,-12.95"/>
 </g>
 </g>

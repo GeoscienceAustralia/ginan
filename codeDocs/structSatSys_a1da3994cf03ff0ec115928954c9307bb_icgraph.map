@@ -1,8 +1,11 @@
 <map id="SatSys::svn" name="SatSys::svn">
-<area shape="rect" id="node1" title=" " alt="" coords="368,107,465,133"/>
-<area shape="rect" id="node2" href="$structACSConfig.html#a9f893b7ab2412f42ef7a02423d755940" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="149,5,320,32"/>
-<area shape="rect" id="node3" href="$common_2orbits_8cpp.html#adbf44cc33c6497cf698ffbae0894eb14" title="Output orbit file compatible with the pod." alt="" coords="5,107,101,133"/>
-<area shape="rect" id="node4" href="$structSatSys.html#a2ddfec2df97dea21d4c8b04502d75c3a" title=" " alt="" coords="175,56,294,83"/>
-<area shape="rect" id="node5" href="$biasSINEXwrite_8cpp.html#a4e4fe834c1dbcb6b4a41560de1d7432e" title="print bias SINEX data line" alt="" coords="165,107,305,133"/>
-<area shape="rect" id="node6" href="$biasSINEXwrite_8cpp.html#a3193a7ae3e27dfbd3caaaba922a113cb" title="Store bias output to write into bias SINEX files." alt="" coords="192,157,277,184"/>
+<area shape="rect" id="node1" title=" " alt="" coords="495,183,592,209"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#aeba33c340b4695e47f2d41bf97402400" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="276,5,447,32"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a6c8573ceb67a86d932ae7861185b41b5" title=" " alt="" coords="5,107,228,133"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a97974606e1ce768c7689466ef0a359ab" title="Yaw model for BDS&#45;2I/2M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="312,56,411,83"/>
+<area shape="rect" id="node5" href="$structSatSys.html#a2ddfec2df97dea21d4c8b04502d75c3a" title=" " alt="" coords="302,107,421,133"/>
+<area shape="rect" id="node6" href="$attitude_8cpp.html#aaba71c01b77e887c80e8dc69a8366d61" title="Yaw model for GPS sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="315,157,407,184"/>
+<area shape="rect" id="node7" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="317,208,406,235"/>
+<area shape="rect" id="node8" href="$biasSINEXwrite_8cpp.html#adcabd7eefaca5c01cf305a80294e57a7" title="print bias SINEX data line" alt="" coords="296,259,427,285"/>
+<area shape="rect" id="node9" href="$attitude_8cpp.html#a3d99fe34c55c1e5e80b495aa7fb4a5dc" title="Yaw model for QZSS&#45;1 satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="312,309,411,336"/>
 </map>

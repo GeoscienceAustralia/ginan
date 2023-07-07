@@ -77,7 +77,8 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle"><div class="title">mongoWrite.hpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -94,48 +95,142 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a3677a7ec98f4fdefaa33531da5223a1d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a3677a7ec98f4fdefaa33531da5223a1d">mongoMeasResiduals</a> (<a class="el" href="structGTime.html">GTime</a> time, vector&lt; <a class="el" href="structObsKey.html">ObsKey</a> &gt; &amp;obsKeys, VectorXd &amp;prefits, VectorXd &amp;postfits, MatrixXd &amp;variance, string suffix=&quot;&quot;, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> beg=0, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> num=-1)</td></tr>
-<tr class="separator:a3677a7ec98f4fdefaa33531da5223a1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f0f324277fdce6079133ae9ae57532e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a6f0f324277fdce6079133ae9ae57532e">mongoMeasComponents</a> (<a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas)</td></tr>
-<tr class="separator:a6f0f324277fdce6079133ae9ae57532e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a638df4188586ab5c156cec04925aa790"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a638df4188586ab5c156cec04925aa790">mongoMeasResiduals</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, string suffix=&quot;&quot;, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> beg=0, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> num=-1)</td></tr>
+<tr class="separator:a638df4188586ab5c156cec04925aa790"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f12c01cfc6e9d43dbe0b44b5b56ded5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a3f12c01cfc6e9d43dbe0b44b5b56ded5">mongoTrace</a> (string json)</td></tr>
+<tr class="separator:a3f12c01cfc6e9d43dbe0b44b5b56ded5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f981fc9e6ef57b5cbe513cefe140004"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a2f981fc9e6ef57b5cbe513cefe140004">mongoOutputConfig</a> (string &amp;config)</td></tr>
+<tr class="separator:a2f981fc9e6ef57b5cbe513cefe140004"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e4518f708ac056a92ca8d5708b220f2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a0e4518f708ac056a92ca8d5708b220f2">mongoStates</a> (<a class="el" href="structKFState.html">KFState</a> &amp;kfState, string suffix=&quot;&quot;)</td></tr>
 <tr class="separator:a0e4518f708ac056a92ca8d5708b220f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d64a52ffcedcad750b91db10db67ea6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a5d64a52ffcedcad750b91db10db67ea6">mongoMeasSatStat</a> (<a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap)</td></tr>
+<tr class="memitem:a5d64a52ffcedcad750b91db10db67ea6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a5d64a52ffcedcad750b91db10db67ea6">mongoMeasSatStat</a> (<a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
 <tr class="separator:a5d64a52ffcedcad750b91db10db67ea6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d0e973f1fbb739bd46dba7a80cf96cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a7d0e973f1fbb739bd46dba7a80cf96cb">mongoTestStat</a> (<a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structTestStatistics.html">TestStatistics</a> &amp;statistics)</td></tr>
 <tr class="separator:a7d0e973f1fbb739bd46dba7a80cf96cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1576cde6096a7d6d91b039e1e26aed7a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a1576cde6096a7d6d91b039e1e26aed7a">mongoBrdcEph</a> (<a class="el" href="structEph.html">Eph</a> &amp;eph)</td></tr>
+<tr class="memdesc:a1576cde6096a7d6d91b039e1e26aed7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write GPS/GAL/BDS/QZS ephemeris to <a class="el" href="structMongo.html">Mongo</a> DB.  <a href="mongoWrite_8hpp.html#a1576cde6096a7d6d91b039e1e26aed7a">More...</a><br /></td></tr>
+<tr class="separator:a1576cde6096a7d6d91b039e1e26aed7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9ddb311ae7580422c5874411c8257fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#ad9ddb311ae7580422c5874411c8257fe">mongoBrdcEph</a> (<a class="el" href="structGeph.html">Geph</a> &amp;geph)</td></tr>
+<tr class="memdesc:ad9ddb311ae7580422c5874411c8257fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write GLO ephemeris to <a class="el" href="structMongo.html">Mongo</a> DB.  <a href="mongoWrite_8hpp.html#ad9ddb311ae7580422c5874411c8257fe">More...</a><br /></td></tr>
+<tr class="separator:ad9ddb311ae7580422c5874411c8257fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79e86b0b884c49a1cf945e34efb1924d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a79e86b0b884c49a1cf945e34efb1924d">outputMongoPredictions</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="mongoWrite_8hpp.html#a74bb2d58eb8d98c0ebdea20f13d1ab50">Orbits</a> &amp;orbits, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structMongoOptions.html">MongoOptions</a> &amp;config)</td></tr>
+<tr class="separator:a79e86b0b884c49a1cf945e34efb1924d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e1ea42cd56b80f3c36e459fe86b6b05"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a9e1ea42cd56b80f3c36e459fe86b6b05">mongoCull</a> (<a class="el" href="structGTime.html">GTime</a> time)</td></tr>
+<tr class="separator:a9e1ea42cd56b80f3c36e459fe86b6b05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a74bb2d58eb8d98c0ebdea20f13d1ab50"><td class="memItemLeft" align="right" valign="top">typedef vector&lt; <a class="el" href="structOrbitState.html">OrbitState</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoWrite_8hpp.html#a74bb2d58eb8d98c0ebdea20f13d1ab50">Orbits</a></td></tr>
+<tr class="separator:a74bb2d58eb8d98c0ebdea20f13d1ab50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="a6f0f324277fdce6079133ae9ae57532e" name="a6f0f324277fdce6079133ae9ae57532e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f0f324277fdce6079133ae9ae57532e">&#9670;&nbsp;</a></span>mongoMeasComponents()</h2>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="a74bb2d58eb8d98c0ebdea20f13d1ab50" name="a74bb2d58eb8d98c0ebdea20f13d1ab50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74bb2d58eb8d98c0ebdea20f13d1ab50">&#9670;&nbsp;</a></span>Orbits</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void mongoMeasComponents </td>
+          <td class="memname">typedef vector&lt;<a class="el" href="structOrbitState.html">OrbitState</a>&gt; <a class="el" href="mongoWrite_8hpp.html#a74bb2d58eb8d98c0ebdea20f13d1ab50">Orbits</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a1576cde6096a7d6d91b039e1e26aed7a" name="a1576cde6096a7d6d91b039e1e26aed7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1576cde6096a7d6d91b039e1e26aed7a">&#9670;&nbsp;</a></span>mongoBrdcEph() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mongoBrdcEph </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFMeas.html">KFMeas</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfMeas</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structEph.html">Eph</a> &amp;&#160;</td>
+          <td class="paramname"><em>eph</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write GPS/GAL/BDS/QZS ephemeris to <a class="el" href="structMongo.html">Mongo</a> DB. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">eph</td><td>GPS/GAL/BDS/QZS ephemeris to write </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a1576cde6096a7d6d91b039e1e26aed7a_cgraph.svg" width="320" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a1576cde6096a7d6d91b039e1e26aed7a_icgraph.svg" width="414" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad9ddb311ae7580422c5874411c8257fe" name="ad9ddb311ae7580422c5874411c8257fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9ddb311ae7580422c5874411c8257fe">&#9670;&nbsp;</a></span>mongoBrdcEph() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mongoBrdcEph </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGeph.html">Geph</a> &amp;&#160;</td>
+          <td class="paramname"><em>geph</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write GLO ephemeris to <a class="el" href="structMongo.html">Mongo</a> DB. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">geph</td><td>GLO ephemeris to write </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_ad9ddb311ae7580422c5874411c8257fe_cgraph.svg" width="320" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a9e1ea42cd56b80f3c36e459fe86b6b05" name="a9e1ea42cd56b80f3c36e459fe86b6b05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e1ea42cd56b80f3c36e459fe86b6b05">&#9670;&nbsp;</a></span>mongoCull()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mongoCull </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a6f0f324277fdce6079133ae9ae57532e_cgraph.svg" width="330" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a6f0f324277fdce6079133ae9ae57532e_icgraph.svg" width="290" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a9e1ea42cd56b80f3c36e459fe86b6b05_icgraph.svg" width="364" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a3677a7ec98f4fdefaa33531da5223a1d" name="a3677a7ec98f4fdefaa33531da5223a1d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3677a7ec98f4fdefaa33531da5223a1d">&#9670;&nbsp;</a></span>mongoMeasResiduals()</h2>
+<a id="a638df4188586ab5c156cec04925aa790" name="a638df4188586ab5c156cec04925aa790"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a638df4188586ab5c156cec04925aa790">&#9670;&nbsp;</a></span>mongoMeasResiduals()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -149,26 +244,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">vector&lt; <a class="el" href="structObsKey.html">ObsKey</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>obsKeys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">VectorXd &amp;&#160;</td>
-          <td class="paramname"><em>prefits</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">VectorXd &amp;&#160;</td>
-          <td class="paramname"><em>postfits</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">MatrixXd &amp;&#160;</td>
-          <td class="paramname"><em>variance</em>, </td>
+          <td class="paramtype"><a class="el" href="structKFMeas.html">KFMeas</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeas</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -179,13 +256,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>beg</em> = <code>0</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>num</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
@@ -198,12 +275,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a3677a7ec98f4fdefaa33531da5223a1d_cgraph.svg" width="311" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a638df4188586ab5c156cec04925aa790_cgraph.svg" width="311" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a3677a7ec98f4fdefaa33531da5223a1d_icgraph.svg" width="588" height="114"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a638df4188586ab5c156cec04925aa790_icgraph.svg" width="539" height="114"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -224,9 +301,37 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a5d64a52ffcedcad750b91db10db67ea6_cgraph.svg" width="270" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a5d64a52ffcedcad750b91db10db67ea6_icgraph.svg" width="356" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2f981fc9e6ef57b5cbe513cefe140004" name="a2f981fc9e6ef57b5cbe513cefe140004"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f981fc9e6ef57b5cbe513cefe140004">&#9670;&nbsp;</a></span>mongoOutputConfig()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mongoOutputConfig </td>
+          <td>(</td>
+          <td class="paramtype">string &amp;&#160;</td>
+          <td class="paramname"><em>config</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a2f981fc9e6ef57b5cbe513cefe140004_icgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -257,9 +362,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a0e4518f708ac056a92ca8d5708b220f2_cgraph.svg" width="228" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a0e4518f708ac056a92ca8d5708b220f2_icgraph.svg" width="643" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a0e4518f708ac056a92ca8d5708b220f2_icgraph.svg" width="643" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -290,9 +400,91 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a7d0e973f1fbb739bd46dba7a80cf96cb_cgraph.svg" width="239" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a7d0e973f1fbb739bd46dba7a80cf96cb_icgraph.svg" width="340" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3f12c01cfc6e9d43dbe0b44b5b56ded5" name="a3f12c01cfc6e9d43dbe0b44b5b56ded5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f12c01cfc6e9d43dbe0b44b5b56ded5">&#9670;&nbsp;</a></span>mongoTrace()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mongoTrace </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>json</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a79e86b0b884c49a1cf945e34efb1924d" name="a79e86b0b884c49a1cf945e34efb1924d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79e86b0b884c49a1cf945e34efb1924d">&#9670;&nbsp;</a></span>outputMongoPredictions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void outputMongoPredictions </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="mongoWrite_8hpp.html#a74bb2d58eb8d98c0ebdea20f13d1ab50">Orbits</a> &amp;&#160;</td>
+          <td class="paramname"><em>orbits</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structMongoOptions.html">MongoOptions</a> &amp;&#160;</td>
+          <td class="paramname"><em>config</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">orbits</td><td>Filter object to extract state elements from</td></tr>
+    <tr><td class="paramname">time</td><td>Time of current epoch</td></tr>
+    <tr><td class="paramname">config</td><td>Set of options for the mongo instance to be used </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a79e86b0b884c49a1cf945e34efb1924d_cgraph.svg" width="350" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoWrite_8hpp_a79e86b0b884c49a1cf945e34efb1924d_icgraph.svg" width="406" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

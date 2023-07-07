@@ -78,6 +78,11 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>navigation data type  
+ <a href="structNavigation.html#details">More...</a></p>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p >navigation data type </p>
+</div>
 <p><code>#include &lt;navigation.hpp&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for Navigation:</div>
@@ -88,57 +93,78 @@ Collaboration diagram for Navigation:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aed1a8409f9f542a4eef4af7271ddbc37"><td class="memTemplParams" colspan="2">template&lt;class ARCHIVE &gt; </td></tr>
-<tr class="memitem:aed1a8409f9f542a4eef4af7271ddbc37"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structNavigation.html#aed1a8409f9f542a4eef4af7271ddbc37">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;version)</td></tr>
+<tr class="memitem:aed1a8409f9f542a4eef4af7271ddbc37"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structNavigation.html#aed1a8409f9f542a4eef4af7271ddbc37">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;version)</td></tr>
 <tr class="separator:aed1a8409f9f542a4eef4af7271ddbc37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a8efb6470549e655a233f0cf34ab03ee2"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, Vector3d, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a8efb6470549e655a233f0cf34ab03ee2">pcoMap</a></td></tr>
-<tr class="memdesc:a8efb6470549e655a233f0cf34ab03ee2"><td class="mdescLeft">&#160;</td><td class="mdescRight">&lt; navigation data type  <a href="structNavigation.html#a8efb6470549e655a233f0cf34ab03ee2">More...</a><br /></td></tr>
-<tr class="separator:a8efb6470549e655a233f0cf34ab03ee2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a287aac3678c094ad06e7401e277a70c4"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPhaseCenterData.html">PhaseCenterData</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a287aac3678c094ad06e7401e277a70c4">pcvMap</a></td></tr>
-<tr class="separator:a287aac3678c094ad06e7401e277a70c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac35fca0e220a46af69fd35f94e190a25"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structEph.html">Eph</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#ac35fca0e220a46af69fd35f94e190a25">ephMap</a></td></tr>
-<tr class="separator:ac35fca0e220a46af69fd35f94e190a25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a40eb7e7868d49fbfc413bbf8c3f2e6bf"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structGeph.html">Geph</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a40eb7e7868d49fbfc413bbf8c3f2e6bf">gephMap</a></td></tr>
-<tr class="separator:a40eb7e7868d49fbfc413bbf8c3f2e6bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1881299770601a3f98a621008dc2b520"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structSeph.html">Seph</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a1881299770601a3f98a621008dc2b520">sephMap</a></td></tr>
-<tr class="separator:a1881299770601a3f98a621008dc2b520"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7dd8ddae11945af6dbaf33378d6ed8b6"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structCeph.html">Ceph</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a7dd8ddae11945af6dbaf33378d6ed8b6">cephMap</a></td></tr>
-<tr class="separator:a7dd8ddae11945af6dbaf33378d6ed8b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4c03df279d6405185af44b2cfd2d087"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPeph.html">Peph</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#af4c03df279d6405185af44b2cfd2d087">pephMap</a></td></tr>
+<tr class="memdesc:af4c03df279d6405185af44b2cfd2d087"><td class="mdescLeft">&#160;</td><td class="mdescRight">precise ephemeris  <a href="structNavigation.html#af4c03df279d6405185af44b2cfd2d087">More...</a><br /></td></tr>
+<tr class="separator:af4c03df279d6405185af44b2cfd2d087"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7557f9b7391d340645e99932f5d5161"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPclk.html">Pclk</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#ab7557f9b7391d340645e99932f5d5161">pclkMap</a></td></tr>
+<tr class="memdesc:ab7557f9b7391d340645e99932f5d5161"><td class="mdescLeft">&#160;</td><td class="mdescRight">precise clock  <a href="structNavigation.html#ab7557f9b7391d340645e99932f5d5161">More...</a><br /></td></tr>
+<tr class="separator:ab7557f9b7391d340645e99932f5d5161"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adab6bd5e635b2b45aff233750a4a32df"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structAtt.html">Att</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#adab6bd5e635b2b45aff233750a4a32df">attMapMap</a></td></tr>
+<tr class="memdesc:adab6bd5e635b2b45aff233750a4a32df"><td class="mdescLeft">&#160;</td><td class="mdescRight">attitudes  <a href="structNavigation.html#adab6bd5e635b2b45aff233750a4a32df">More...</a><br /></td></tr>
+<tr class="separator:adab6bd5e635b2b45aff233750a4a32df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e05fef53abcba4c60687be8d0f907cb"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structAzElMapData.html">AzElMapData</a>&lt; Vector3d &gt;, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a9e05fef53abcba4c60687be8d0f907cb">dragMap</a></td></tr>
+<tr class="separator:a9e05fef53abcba4c60687be8d0f907cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a988d796d5eee50a2c592ecc3609e839e"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structAzElMapData.html">AzElMapData</a>&lt; Vector3d &gt;, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a988d796d5eee50a2c592ecc3609e839e">reflectorMap</a></td></tr>
+<tr class="separator:a988d796d5eee50a2c592ecc3609e839e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1288482f4d3c399591f66c48900d64f8"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPhaseCenterOffset.html">PhaseCenterOffset</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a1288482f4d3c399591f66c48900d64f8">pcoMap</a></td></tr>
+<tr class="separator:a1288482f4d3c399591f66c48900d64f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d70558d7363381e0c3abc7d44fc6a7a"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPhaseCenterData.html">PhaseCenterData</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a4d70558d7363381e0c3abc7d44fc6a7a">pcvMap</a></td></tr>
+<tr class="separator:a4d70558d7363381e0c3abc7d44fc6a7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e1b69f28434cbb3f893d8dbcedc6385"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structEph.html">Eph</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a4e1b69f28434cbb3f893d8dbcedc6385">ephMap</a></td></tr>
+<tr class="memdesc:a4e1b69f28434cbb3f893d8dbcedc6385"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS/QZS/GAL/BDS ephemeris.  <a href="structNavigation.html#a4e1b69f28434cbb3f893d8dbcedc6385">More...</a><br /></td></tr>
+<tr class="separator:a4e1b69f28434cbb3f893d8dbcedc6385"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af91b207c74d5724c437b25fc58b97be1"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structGeph.html">Geph</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#af91b207c74d5724c437b25fc58b97be1">gephMap</a></td></tr>
+<tr class="memdesc:af91b207c74d5724c437b25fc58b97be1"><td class="mdescLeft">&#160;</td><td class="mdescRight">GLONASS ephemeris.  <a href="structNavigation.html#af91b207c74d5724c437b25fc58b97be1">More...</a><br /></td></tr>
+<tr class="separator:af91b207c74d5724c437b25fc58b97be1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83977191e74cbdeeeaacddae3bcbe8dc"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structSeph.html">Seph</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a83977191e74cbdeeeaacddae3bcbe8dc">sephMap</a></td></tr>
+<tr class="memdesc:a83977191e74cbdeeeaacddae3bcbe8dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">SBAS ephemeris.  <a href="structNavigation.html#a83977191e74cbdeeeaacddae3bcbe8dc">More...</a><br /></td></tr>
+<tr class="separator:a83977191e74cbdeeeaacddae3bcbe8dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90b14b4c48dc255e94f7b12e59e9dd9b"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structCeph.html">Ceph</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a90b14b4c48dc255e94f7b12e59e9dd9b">cephMap</a></td></tr>
+<tr class="memdesc:a90b14b4c48dc255e94f7b12e59e9dd9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS/QZS/BDS CNVX ephemeris.  <a href="structNavigation.html#a90b14b4c48dc255e94f7b12e59e9dd9b">More...</a><br /></td></tr>
+<tr class="separator:a90b14b4c48dc255e94f7b12e59e9dd9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef13c30bc06f28d5eefabffa98eab1fb"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structION.html">ION</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#aef13c30bc06f28d5eefabffa98eab1fb">ionMap</a></td></tr>
+<tr class="memdesc:aef13c30bc06f28d5eefabffa98eab1fb"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structION.html" title="ionosphere message">ION</a> messages.  <a href="structNavigation.html#aef13c30bc06f28d5eefabffa98eab1fb">More...</a><br /></td></tr>
 <tr class="separator:aef13c30bc06f28d5eefabffa98eab1fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a617dbe0834bc947294142a841d91455d"><td class="memItemLeft" align="right" valign="top">map&lt; E_StoCode, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structSTO.html">STO</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a617dbe0834bc947294142a841d91455d">stoMap</a></td></tr>
+<tr class="memdesc:a617dbe0834bc947294142a841d91455d"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structSTO.html" title="system Time offset message">STO</a> messages.  <a href="structNavigation.html#a617dbe0834bc947294142a841d91455d">More...</a><br /></td></tr>
 <tr class="separator:a617dbe0834bc947294142a841d91455d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa903554c4d23cd999c9b06856d33f10b"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structEOP.html">EOP</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#aa903554c4d23cd999c9b06856d33f10b">eopMap</a></td></tr>
+<tr class="memdesc:aa903554c4d23cd999c9b06856d33f10b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structEOP.html" title="EOP message.">EOP</a> messages.  <a href="structNavigation.html#aa903554c4d23cd999c9b06856d33f10b">More...</a><br /></td></tr>
 <tr class="separator:aa903554c4d23cd999c9b06856d33f10b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a686e5cccb81c5582398e26468567584a"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, <a class="el" href="navigation_8hpp.html#ab3bf012c6216e8d46bc35f2d303ab204">PephList</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a686e5cccb81c5582398e26468567584a">pephMap</a></td></tr>
-<tr class="separator:a686e5cccb81c5582398e26468567584a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe51daea32e4e6a1c9c7ddce8fb1bfff"><td class="memItemLeft" align="right" valign="top">map&lt; string, <a class="el" href="navigation_8hpp.html#a0291432e394669a4dd7f77e22ab2420d">PclkList</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#afe51daea32e4e6a1c9c7ddce8fb1bfff">pclkMap</a></td></tr>
-<tr class="separator:afe51daea32e4e6a1c9c7ddce8fb1bfff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4f28932f1303cb66024adb89bad9abe"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structtec__t.html">tec_t</a>, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#ac4f28932f1303cb66024adb89bad9abe">tecMap</a></td></tr>
+<tr class="memdesc:ac4f28932f1303cb66024adb89bad9abe"><td class="mdescLeft">&#160;</td><td class="mdescRight">tec grid data  <a href="structNavigation.html#ac4f28932f1303cb66024adb89bad9abe">More...</a><br /></td></tr>
 <tr class="separator:ac4f28932f1303cb66024adb89bad9abe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05c6ff74260e5bf3820c7977bd846010"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, <a class="el" href="structSatNav.html">SatNav</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a05c6ff74260e5bf3820c7977bd846010">satNavMap</a></td></tr>
-<tr class="separator:a05c6ff74260e5bf3820c7977bd846010"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a013e47e1afb98e7bfc6fb2572bb7d975"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structvmf3__t.html">vmf3_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a013e47e1afb98e7bfc6fb2572bb7d975">vmf3</a> = {.m = 1}</td></tr>
-<tr class="separator:a013e47e1afb98e7bfc6fb2572bb7d975"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ddd62ae616b59acf3e92f263ddad8f2"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, string, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a1ddd62ae616b59acf3e92f263ddad8f2">svnMap</a></td></tr>
+<tr class="memdesc:a1ddd62ae616b59acf3e92f263ddad8f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sat SVNs.  <a href="structNavigation.html#a1ddd62ae616b59acf3e92f263ddad8f2">More...</a><br /></td></tr>
+<tr class="separator:a1ddd62ae616b59acf3e92f263ddad8f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7ce4699b2322732baf4e51df5e18d4e"><td class="memItemLeft" align="right" valign="top">map&lt; string, string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#ad7ce4699b2322732baf4e51df5e18d4e">blocktypeMap</a></td></tr>
+<tr class="memdesc:ad7ce4699b2322732baf4e51df5e18d4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">svn blocktypes  <a href="structNavigation.html#ad7ce4699b2322732baf4e51df5e18d4e">More...</a><br /></td></tr>
+<tr class="separator:ad7ce4699b2322732baf4e51df5e18d4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbd77fa13c7426f89eb71e3257022641"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, <a class="el" href="structSatNav.html">SatNav</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#adbd77fa13c7426f89eb71e3257022641">satNavMap</a></td></tr>
+<tr class="separator:adbd77fa13c7426f89eb71e3257022641"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af06ec2e0d9330f5b1991b3314a9c0dda"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSSRAtm.html">SSRAtm</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#af06ec2e0d9330f5b1991b3314a9c0dda">ssrAtm</a></td></tr>
+<tr class="separator:af06ec2e0d9330f5b1991b3314a9c0dda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4b6b1ec34a8eddd93af8c8e4f0e39af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structVmf3.html">Vmf3</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#aa4b6b1ec34a8eddd93af8c8e4f0e39af">vmf3</a></td></tr>
+<tr class="separator:aa4b6b1ec34a8eddd93af8c8e4f0e39af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adafeb724ba7b2ba56cab86cfe8ad9b8e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structERP.html">ERP</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#adafeb724ba7b2ba56cab86cfe8ad9b8e">erp</a></td></tr>
 <tr class="separator:adafeb724ba7b2ba56cab86cfe8ad9b8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7fb35c28490bddc244028809e2e17bad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a7fb35c28490bddc244028809e2e17bad">leaps</a></td></tr>
+<tr class="memitem:a7fb35c28490bddc244028809e2e17bad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a7fb35c28490bddc244028809e2e17bad">leaps</a> = -1</td></tr>
 <tr class="separator:a7fb35c28490bddc244028809e2e17bad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acaf43b341d024a479d107d33fb01ae45"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#acaf43b341d024a479d107d33fb01ae45">glo_fcn</a> [<a class="el" href="satSys_8hpp.html#ae99f41997b3e8060016ddd7d54af8de9">MAXPRNGLO</a>+1]</td></tr>
-<tr class="separator:acaf43b341d024a479d107d33fb01ae45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f4f25159cde78bbf117623a39e8498a"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a5f4f25159cde78bbf117623a39e8498a">glo_fcn</a> [<a class="el" href="satSys_8hpp.html#abde430edaa2207bd080a71379221f9c4">NSATGLO</a>+1]</td></tr>
+<tr class="separator:a5f4f25159cde78bbf117623a39e8498a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a4d6284ab246618951d49f6ce755af7"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a0a4d6284ab246618951d49f6ce755af7">glo_cpbias</a> [4]</td></tr>
 <tr class="separator:a0a4d6284ab246618951d49f6ce755af7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0abd94d55e9bdcb7fdaacbbf019226b"><td class="memItemLeft" align="right" valign="top">EGMCoef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#ae0abd94d55e9bdcb7fdaacbbf019226b">egm</a></td></tr>
-<tr class="separator:ae0abd94d55e9bdcb7fdaacbbf019226b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d35e44f0cffe17e655c6dea25f10cdc"><td class="memItemLeft" align="right" valign="top">struct jpl_eph_data *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a5d35e44f0cffe17e655c6dea25f10cdc">jplEph_ptr</a> = nullptr</td></tr>
 <tr class="separator:a5d35e44f0cffe17e655c6dea25f10cdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ec5aa7bcf16dc475a5c7959bf948ab9"><td class="memItemLeft" align="right" valign="top">list&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a2ec5aa7bcf16dc475a5c7959bf948ab9">podInfoList</a></td></tr>
-<tr class="separator:a2ec5aa7bcf16dc475a5c7959bf948ab9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b459ea140220d49d943f892c1d80be0"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a0b459ea140220d49d943f892c1d80be0">orography</a> [<a class="el" href="vmf3_8h.html#a6197bfd3643b36383f689df3548d5db8">NGRID</a>] = {}</td></tr>
-<tr class="separator:a0b459ea140220d49d943f892c1d80be0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a545560f211ea38f2eb968baaf367763e"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a545560f211ea38f2eb968baaf367763e">podInfoList</a></td></tr>
+<tr class="separator:a545560f211ea38f2eb968baaf367763e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a011a988c33b81dbad82b4168c6e6ae49"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structgptgrid__t.html">gptgrid_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNavigation.html#a011a988c33b81dbad82b4168c6e6ae49">gptg</a> = {}</td></tr>
+<tr class="memdesc:a011a988c33b81dbad82b4168c6e6ae49"><td class="mdescLeft">&#160;</td><td class="mdescRight">gpt grid information  <a href="structNavigation.html#a011a988c33b81dbad82b4168c6e6ae49">More...</a><br /></td></tr>
 <tr class="separator:a011a988c33b81dbad82b4168c6e6ae49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -162,7 +188,7 @@ template&lt;class ARCHIVE &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
           <td class="paramname"><em>version</em>&#160;</td>
         </tr>
         <tr>
@@ -181,28 +207,62 @@ template&lt;class ARCHIVE &gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Field Documentation</h2>
-<a id="a7dd8ddae11945af6dbaf33378d6ed8b6" name="a7dd8ddae11945af6dbaf33378d6ed8b6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7dd8ddae11945af6dbaf33378d6ed8b6">&#9670;&nbsp;</a></span>cephMap</h2>
+<a id="adab6bd5e635b2b45aff233750a4a32df" name="adab6bd5e635b2b45aff233750a4a32df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adab6bd5e635b2b45aff233750a4a32df">&#9670;&nbsp;</a></span>attMapMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt;E_NavMsgType, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structCeph.html">Ceph</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; Navigation::cephMap</td>
+          <td class="memname">map&lt;string, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structAtt.html">Att</a>&gt; &gt; Navigation::attMapMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
+<p>attitudes </p>
+
 </div>
 </div>
-<a id="ae0abd94d55e9bdcb7fdaacbbf019226b" name="ae0abd94d55e9bdcb7fdaacbbf019226b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae0abd94d55e9bdcb7fdaacbbf019226b">&#9670;&nbsp;</a></span>egm</h2>
+<a id="ad7ce4699b2322732baf4e51df5e18d4e" name="ad7ce4699b2322732baf4e51df5e18d4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7ce4699b2322732baf4e51df5e18d4e">&#9670;&nbsp;</a></span>blocktypeMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">EGMCoef Navigation::egm</td>
+          <td class="memname">map&lt;string, string&gt; Navigation::blocktypeMap</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>svn blocktypes </p>
+
+</div>
+</div>
+<a id="a90b14b4c48dc255e94f7b12e59e9dd9b" name="a90b14b4c48dc255e94f7b12e59e9dd9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90b14b4c48dc255e94f7b12e59e9dd9b">&#9670;&nbsp;</a></span>cephMap</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">map&lt;<a class="el" href="structSatSys.html">SatSys</a>, map&lt;E_NavMsgType, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structCeph.html">Ceph</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; Navigation::cephMap</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>GPS/QZS/BDS CNVX ephemeris. </p>
+
+</div>
+</div>
+<a id="a9e05fef53abcba4c60687be8d0f907cb" name="a9e05fef53abcba4c60687be8d0f907cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e05fef53abcba4c60687be8d0f907cb">&#9670;&nbsp;</a></span>dragMap</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">map&lt;string, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structAzElMapData.html">AzElMapData</a>&lt;Vector3d&gt;, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; Navigation::dragMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -221,19 +281,23 @@ template&lt;class ARCHIVE &gt; </div>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="structEOP.html" title="EOP message.">EOP</a> messages. </p>
+
 </div>
 </div>
-<a id="ac35fca0e220a46af69fd35f94e190a25" name="ac35fca0e220a46af69fd35f94e190a25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac35fca0e220a46af69fd35f94e190a25">&#9670;&nbsp;</a></span>ephMap</h2>
+<a id="a4e1b69f28434cbb3f893d8dbcedc6385" name="a4e1b69f28434cbb3f893d8dbcedc6385"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e1b69f28434cbb3f893d8dbcedc6385">&#9670;&nbsp;</a></span>ephMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structEph.html">Eph</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; Navigation::ephMap</td>
+          <td class="memname">map&lt;<a class="el" href="structSatSys.html">SatSys</a>, map&lt;E_NavMsgType, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structEph.html">Eph</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; Navigation::ephMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>GPS/QZS/GAL/BDS ephemeris. </p>
 
 </div>
 </div>
@@ -251,17 +315,19 @@ template&lt;class ARCHIVE &gt; </div>
 
 </div>
 </div>
-<a id="a40eb7e7868d49fbfc413bbf8c3f2e6bf" name="a40eb7e7868d49fbfc413bbf8c3f2e6bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a40eb7e7868d49fbfc413bbf8c3f2e6bf">&#9670;&nbsp;</a></span>gephMap</h2>
+<a id="af91b207c74d5724c437b25fc58b97be1" name="af91b207c74d5724c437b25fc58b97be1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af91b207c74d5724c437b25fc58b97be1">&#9670;&nbsp;</a></span>gephMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structGeph.html">Geph</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; Navigation::gephMap</td>
+          <td class="memname">map&lt;<a class="el" href="structSatSys.html">SatSys</a>, map&lt;E_NavMsgType, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structGeph.html">Geph</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; Navigation::gephMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>GLONASS ephemeris. </p>
 
 </div>
 </div>
@@ -279,14 +345,14 @@ template&lt;class ARCHIVE &gt; </div>
 
 </div>
 </div>
-<a id="acaf43b341d024a479d107d33fb01ae45" name="acaf43b341d024a479d107d33fb01ae45"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acaf43b341d024a479d107d33fb01ae45">&#9670;&nbsp;</a></span>glo_fcn</h2>
+<a id="a5f4f25159cde78bbf117623a39e8498a" name="a5f4f25159cde78bbf117623a39e8498a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f4f25159cde78bbf117623a39e8498a">&#9670;&nbsp;</a></span>glo_fcn</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">char Navigation::glo_fcn[<a class="el" href="satSys_8hpp.html#ae99f41997b3e8060016ddd7d54af8de9">MAXPRNGLO</a>+1]</td>
+          <td class="memname">char Navigation::glo_fcn[<a class="el" href="satSys_8hpp.html#abde430edaa2207bd080a71379221f9c4">NSATGLO</a>+1]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -305,6 +371,8 @@ template&lt;class ARCHIVE &gt; </div>
       </table>
 </div><div class="memdoc">
 
+<p>gpt grid information </p>
+
 </div>
 </div>
 <a id="aef13c30bc06f28d5eefabffa98eab1fb" name="aef13c30bc06f28d5eefabffa98eab1fb"></a>
@@ -318,6 +386,8 @@ template&lt;class ARCHIVE &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="structION.html" title="ionosphere message">ION</a> messages. </p>
 
 </div>
 </div>
@@ -342,121 +412,139 @@ template&lt;class ARCHIVE &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Navigation::leaps</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> Navigation::leaps = -1</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a0b459ea140220d49d943f892c1d80be0" name="a0b459ea140220d49d943f892c1d80be0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0b459ea140220d49d943f892c1d80be0">&#9670;&nbsp;</a></span>orography</h2>
+<a id="ab7557f9b7391d340645e99932f5d5161" name="ab7557f9b7391d340645e99932f5d5161"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7557f9b7391d340645e99932f5d5161">&#9670;&nbsp;</a></span>pclkMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Navigation::orography[<a class="el" href="vmf3_8h.html#a6197bfd3643b36383f689df3548d5db8">NGRID</a>] = {}</td>
+          <td class="memname">map&lt;string, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPclk.html">Pclk</a>&gt; &gt; Navigation::pclkMap</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>precise clock </p>
+
+</div>
+</div>
+<a id="a1288482f4d3c399591f66c48900d64f8" name="a1288482f4d3c399591f66c48900d64f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1288482f4d3c399591f66c48900d64f8">&#9670;&nbsp;</a></span>pcoMap</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">map&lt;string, map&lt;E_Sys, map&lt;<a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPhaseCenterOffset.html">PhaseCenterOffset</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; &gt; Navigation::pcoMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="afe51daea32e4e6a1c9c7ddce8fb1bfff" name="afe51daea32e4e6a1c9c7ddce8fb1bfff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe51daea32e4e6a1c9c7ddce8fb1bfff">&#9670;&nbsp;</a></span>pclkMap</h2>
+<a id="a4d70558d7363381e0c3abc7d44fc6a7a" name="a4d70558d7363381e0c3abc7d44fc6a7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d70558d7363381e0c3abc7d44fc6a7a">&#9670;&nbsp;</a></span>pcvMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;string, <a class="el" href="navigation_8hpp.html#a0291432e394669a4dd7f77e22ab2420d">PclkList</a>&gt; Navigation::pclkMap</td>
+          <td class="memname">map&lt;string, map&lt;E_Sys, map&lt;<a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPhaseCenterData.html">PhaseCenterData</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; &gt; Navigation::pcvMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a8efb6470549e655a233f0cf34ab03ee2" name="a8efb6470549e655a233f0cf34ab03ee2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8efb6470549e655a233f0cf34ab03ee2">&#9670;&nbsp;</a></span>pcoMap</h2>
+<a id="af4c03df279d6405185af44b2cfd2d087" name="af4c03df279d6405185af44b2cfd2d087"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4c03df279d6405185af44b2cfd2d087">&#9670;&nbsp;</a></span>pephMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;string, map&lt;<a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>, map&lt;<a class="el" href="structGTime.html">GTime</a>, Vector3d, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; Navigation::pcoMap</td>
+          <td class="memname">map&lt;string, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPeph.html">Peph</a>&gt; &gt; Navigation::pephMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>&lt; navigation data type </p>
+<p>precise ephemeris </p>
 
 </div>
 </div>
-<a id="a287aac3678c094ad06e7401e277a70c4" name="a287aac3678c094ad06e7401e277a70c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a287aac3678c094ad06e7401e277a70c4">&#9670;&nbsp;</a></span>pcvMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;string, map&lt;<a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structPhaseCenterData.html">PhaseCenterData</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; Navigation::pcvMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a686e5cccb81c5582398e26468567584a" name="a686e5cccb81c5582398e26468567584a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a686e5cccb81c5582398e26468567584a">&#9670;&nbsp;</a></span>pephMap</h2>
+<a id="a545560f211ea38f2eb968baaf367763e" name="a545560f211ea38f2eb968baaf367763e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a545560f211ea38f2eb968baaf367763e">&#9670;&nbsp;</a></span>podInfoList</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, <a class="el" href="navigation_8hpp.html#ab3bf012c6216e8d46bc35f2d303ab204">PephList</a>&gt; Navigation::pephMap</td>
+          <td class="memname">vector&lt;string&gt; Navigation::podInfoList</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a2ec5aa7bcf16dc475a5c7959bf948ab9" name="a2ec5aa7bcf16dc475a5c7959bf948ab9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ec5aa7bcf16dc475a5c7959bf948ab9">&#9670;&nbsp;</a></span>podInfoList</h2>
+<a id="a988d796d5eee50a2c592ecc3609e839e" name="a988d796d5eee50a2c592ecc3609e839e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a988d796d5eee50a2c592ecc3609e839e">&#9670;&nbsp;</a></span>reflectorMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">list&lt;string&gt; Navigation::podInfoList</td>
+          <td class="memname">map&lt;string, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structAzElMapData.html">AzElMapData</a>&lt;Vector3d&gt;, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; Navigation::reflectorMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a05c6ff74260e5bf3820c7977bd846010" name="a05c6ff74260e5bf3820c7977bd846010"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05c6ff74260e5bf3820c7977bd846010">&#9670;&nbsp;</a></span>satNavMap</h2>
+<a id="adbd77fa13c7426f89eb71e3257022641" name="adbd77fa13c7426f89eb71e3257022641"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbd77fa13c7426f89eb71e3257022641">&#9670;&nbsp;</a></span>satNavMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, <a class="el" href="structSatNav.html">SatNav</a>&gt; Navigation::satNavMap</td>
+          <td class="memname">map&lt;<a class="el" href="structSatSys.html">SatSys</a>, <a class="el" href="structSatNav.html">SatNav</a>&gt; Navigation::satNavMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a1881299770601a3f98a621008dc2b520" name="a1881299770601a3f98a621008dc2b520"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1881299770601a3f98a621008dc2b520">&#9670;&nbsp;</a></span>sephMap</h2>
+<a id="a83977191e74cbdeeeaacddae3bcbe8dc" name="a83977191e74cbdeeeaacddae3bcbe8dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a83977191e74cbdeeeaacddae3bcbe8dc">&#9670;&nbsp;</a></span>sephMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structSeph.html">Seph</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; Navigation::sephMap</td>
+          <td class="memname">map&lt;<a class="el" href="structSatSys.html">SatSys</a>, map&lt;E_NavMsgType, map&lt;<a class="el" href="structGTime.html">GTime</a>, <a class="el" href="structSeph.html">Seph</a>, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; &gt; Navigation::sephMap</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>SBAS ephemeris. </p>
+
+</div>
+</div>
+<a id="af06ec2e0d9330f5b1991b3314a9c0dda" name="af06ec2e0d9330f5b1991b3314a9c0dda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af06ec2e0d9330f5b1991b3314a9c0dda">&#9670;&nbsp;</a></span>ssrAtm</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structSSRAtm.html">SSRAtm</a> Navigation::ssrAtm</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -475,6 +563,24 @@ template&lt;class ARCHIVE &gt; </div>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="structSTO.html" title="system Time offset message">STO</a> messages. </p>
+
+</div>
+</div>
+<a id="a1ddd62ae616b59acf3e92f263ddad8f2" name="a1ddd62ae616b59acf3e92f263ddad8f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ddd62ae616b59acf3e92f263ddad8f2">&#9670;&nbsp;</a></span>svnMap</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">map&lt;<a class="el" href="structSatSys.html">SatSys</a>, map&lt;<a class="el" href="structGTime.html">GTime</a>, string, std::greater&lt;<a class="el" href="structGTime.html">GTime</a>&gt; &gt; &gt; Navigation::svnMap</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sat SVNs. </p>
+
 </div>
 </div>
 <a id="ac4f28932f1303cb66024adb89bad9abe" name="ac4f28932f1303cb66024adb89bad9abe"></a>
@@ -489,16 +595,18 @@ template&lt;class ARCHIVE &gt; </div>
       </table>
 </div><div class="memdoc">
 
+<p>tec grid data </p>
+
 </div>
 </div>
-<a id="a013e47e1afb98e7bfc6fb2572bb7d975" name="a013e47e1afb98e7bfc6fb2572bb7d975"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a013e47e1afb98e7bfc6fb2572bb7d975">&#9670;&nbsp;</a></span>vmf3</h2>
+<a id="aa4b6b1ec34a8eddd93af8c8e4f0e39af" name="aa4b6b1ec34a8eddd93af8c8e4f0e39af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4b6b1ec34a8eddd93af8c8e4f0e39af">&#9670;&nbsp;</a></span>vmf3</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structvmf3__t.html">vmf3_t</a> Navigation::vmf3 = {.m = 1}</td>
+          <td class="memname"><a class="el" href="structVmf3.html">Vmf3</a> Navigation::vmf3</td>
         </tr>
       </table>
 </div><div class="memdoc">

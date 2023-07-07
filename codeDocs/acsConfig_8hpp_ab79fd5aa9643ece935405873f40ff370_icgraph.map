@@ -1,8 +1,8 @@
 <map id="checkValidFile" name="checkValidFile">
 <area shape="rect" id="node1" title="Description for error messages." alt="" coords="329,107,444,133"/>
 <area shape="rect" id="node2" href="$acsConfig_8cpp.html#a730af658b2d0567252d8a37b3982f2f3" title=" " alt="" coords="147,5,270,32"/>
-<area shape="rect" id="node3" href="$acsConfig_8cpp.html#a428af53af7dd917738fb5d204948f74f" title="Prepare the configuration of the program." alt="" coords="5,56,88,83"/>
-<area shape="rect" id="node4" href="$main_8cpp.html#a32bd79fa27f816f5f13badbebe4e15b2" title="Create a station object from a file." alt="" coords="136,56,281,83"/>
-<area shape="rect" id="node5" href="$main_8cpp.html#a044cd088d8a6d17451b655ea49b820f7" title=" " alt="" coords="159,157,259,184"/>
-<area shape="rect" id="node6" href="$main_8cpp.html#a34804c3a0ffc29cad1548a9a3af91d45" title=" " alt="" coords="136,208,281,235"/>
+<area shape="rect" id="node3" href="$acsConfig_8cpp.html#a428af53af7dd917738fb5d204948f74f" title="Prepare the configuration of the program." alt="" coords="5,31,88,57"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a044cd088d8a6d17451b655ea49b820f7" title=" " alt="" coords="159,107,259,133"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#a34804c3a0ffc29cad1548a9a3af91d45" title=" " alt="" coords="136,157,281,184"/>
+<area shape="rect" id="node6" href="$main_8cpp.html#a54d210f60c2488eb2654eaf7a3bbf6c4" title="Create a station object from an input." alt="" coords="147,208,270,235"/>
 </map>

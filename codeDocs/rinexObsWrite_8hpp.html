@@ -76,47 +76,26 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">rinexObsWrite.hpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp__dep__incl.svg" width="100%" height="406"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp__dep__incl.svg" width="100%" height="473"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ac877cc7d9f9d6f7dab13e8173a07bf7f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinexObsWrite_8hpp.html#ac877cc7d9f9d6f7dab13e8173a07bf7f">writeRinexObs</a> (string &amp;id, <a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a> &amp;snx, <a class="el" href="structGTime.html">GTime</a> &amp;time, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList, const double rnxver=3.05)</td></tr>
-<tr class="separator:ac877cc7d9f9d6f7dab13e8173a07bf7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ab1f02948f65a5f4a92d2dae7fe5d80"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; E_Sys, bool &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinexObsWrite_8hpp.html#a9ab1f02948f65a5f4a92d2dae7fe5d80">getSysOutputFilenames</a> (string filename, <a class="el" href="structGTime.html">GTime</a> logtime, string id=&quot;&quot;)</td></tr>
-<tr class="separator:a9ab1f02948f65a5f4a92d2dae7fe5d80"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:a75917003086e7a6f48f6736ee7c509b2"><td class="memItemLeft" align="right" valign="top">typedef map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinexObsWrite_8hpp.html#a75917003086e7a6f48f6736ee7c509b2">OutSys</a></td></tr>
-<tr class="separator:a75917003086e7a6f48f6736ee7c509b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae264f69b0cc4035734c45842f2b96420"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinexObsWrite_8hpp.html#ae264f69b0cc4035734c45842f2b96420">writeRinexObs</a> (string &amp;id, <a class="el" href="structSinexRecData.html">SinexRecData</a> &amp;snx, <a class="el" href="structGTime.html">GTime</a> &amp;time, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList, const double rnxver=3.05)</td></tr>
+<tr class="separator:ae264f69b0cc4035734c45842f2b96420"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae93568c6b777d8da16152b8772abc4dc"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; E_Sys, bool &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinexObsWrite_8hpp.html#ae93568c6b777d8da16152b8772abc4dc">getSysOutputFilenames</a> (string filename, <a class="el" href="structGTime.html">GTime</a> logtime, bool replaceSys=true, string id=&quot;&quot;)</td></tr>
+<tr class="separator:ae93568c6b777d8da16152b8772abc4dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="a75917003086e7a6f48f6736ee7c509b2" name="a75917003086e7a6f48f6736ee7c509b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a75917003086e7a6f48f6736ee7c509b2">&#9670;&nbsp;</a></span>OutSys</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef map&lt;E_Sys,bool&gt; <a class="el" href="rinexObsWrite_8hpp.html#a75917003086e7a6f48f6736ee7c509b2">OutSys</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a9ab1f02948f65a5f4a92d2dae7fe5d80" name="a9ab1f02948f65a5f4a92d2dae7fe5d80"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9ab1f02948f65a5f4a92d2dae7fe5d80">&#9670;&nbsp;</a></span>getSysOutputFilenames()</h2>
+<a id="ae93568c6b777d8da16152b8772abc4dc" name="ae93568c6b777d8da16152b8772abc4dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae93568c6b777d8da16152b8772abc4dc">&#9670;&nbsp;</a></span>getSysOutputFilenames()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -136,6 +115,12 @@ Typedefs</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>replaceSys</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>id</em> = <code>&quot;&quot;</code>&#160;</td>
         </tr>
@@ -149,18 +134,18 @@ Typedefs</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp_a9ab1f02948f65a5f4a92d2dae7fe5d80_cgraph.svg" width="532" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp_ae93568c6b777d8da16152b8772abc4dc_cgraph.svg" width="526" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp_a9ab1f02948f65a5f4a92d2dae7fe5d80_icgraph.svg" width="623" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp_ae93568c6b777d8da16152b8772abc4dc_icgraph.svg" width="382" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ac877cc7d9f9d6f7dab13e8173a07bf7f" name="ac877cc7d9f9d6f7dab13e8173a07bf7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac877cc7d9f9d6f7dab13e8173a07bf7f">&#9670;&nbsp;</a></span>writeRinexObs()</h2>
+<a id="ae264f69b0cc4035734c45842f2b96420" name="ae264f69b0cc4035734c45842f2b96420"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae264f69b0cc4035734c45842f2b96420">&#9670;&nbsp;</a></span>writeRinexObs()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -174,7 +159,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structSinexRecData.html">SinexRecData</a> &amp;&#160;</td>
           <td class="paramname"><em>snx</em>, </td>
         </tr>
         <tr>
@@ -186,7 +171,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>, </td>
         </tr>
         <tr>
@@ -205,12 +190,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp_ac877cc7d9f9d6f7dab13e8173a07bf7f_cgraph.svg" width="352" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp_ae264f69b0cc4035734c45842f2b96420_cgraph.svg" width="352" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp_ac877cc7d9f9d6f7dab13e8173a07bf7f_icgraph.svg" width="391" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinexObsWrite_8hpp_ae264f69b0cc4035734c45842f2b96420_icgraph.svg" width="391" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

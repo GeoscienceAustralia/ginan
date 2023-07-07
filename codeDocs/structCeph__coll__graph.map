@@ -1,5 +1,6 @@
 <map id="Ceph" name="Ceph">
-<area shape="rect" id="node1" title="GPS/QZS CNAV/CNAV&#45;2 or BDS CNAV&#45;1/CNAV&#45;2/CNAV&#45;3 ephemeris." alt="" coords="123,468,201,1015"/>
-<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,35,148,332"/>
-<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="172,5,323,361"/>
+<area shape="rect" id="node1" title="GPS/QZS CNAV/CNAV&#45;2 or BDS CNAV&#45;1/CNAV&#45;2/CNAV&#45;3 ephemeris." alt="" coords="151,703,223,1015"/>
+<area shape="rect" id="node2" href="$structKeplerEph.html" title=" " alt="" coords="5,145,92,457"/>
+<area shape="rect" id="node3" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="116,152,259,449"/>
+<area shape="rect" id="node4" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="283,5,465,596"/>
 </map>

@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title="Write out trop sinex file header.">
+<g id="a_node1"><a xlink:title="Reset comments to their default values.">
 <polygon fill="#bfbfbf" stroke="black" points="152,-0.5 152,-19.5 249,-19.5 249,-0.5 152,-0.5"/>
 <text text-anchor="middle" x="200.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">writeTropHeader</text>
 </a>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="tropSinex_8cpp.html#ab59eaf15f25fdbc2cdf51adbadfc9ad3" target="_top" xlink:title="Write troposphere Sinex data to file.">
+<g id="a_node2"><a xlink:href="tropSinex_8cpp.html#af9d3901b3a9964efc0c953a396f9e145" target="_top" xlink:title="Write troposphere Sinex data to file.">
 <polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 116,-19.5 116,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="58" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">writeTropSinexToFile</text>
 </a>

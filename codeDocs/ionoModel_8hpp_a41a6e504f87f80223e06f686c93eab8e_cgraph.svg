@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title=" ">
+<g id="a_node1"><a xlink:title="Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not us...">
 <polygon fill="#bfbfbf" stroke="black" points="0,-57.5 0,-76.5 87,-76.5 87,-57.5 0,-57.5"/>
 <text text-anchor="middle" x="43.5" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">ionVtecSphhar</text>
 </a>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="ionoSpherical_8cpp.html#a32460ecb229f47f08516ff7a35f45f47" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="ionoSpherical_8cpp.html#a32460ecb229f47f08516ff7a35f45f47" target="_top" xlink:title="rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IP...">
 <polygon fill="white" stroke="red" points="129.5,-114.5 129.5,-133.5 233.5,-133.5 233.5,-114.5 129.5,-114.5"/>
 <text text-anchor="middle" x="181.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">Ipp_check_sphhar</text>
 </a>
@@ -32,46 +32,46 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M62.59,-76.6C78.31,-84.74 101.81,-96.41 123,-105 131.38,-108.4 140.62,-111.65 149.19,-114.48"/>
 </g>
-<!-- Node20 -->
+<!-- Node4 -->
 <g id="node3" class="node">
-<title>Node20</title>
+<title>Node4</title>
 <g id="a_node3"><a xlink:href="trop_8cpp.html#aee11659ecea14ca59feae2dbe9f160d5" target="_top" xlink:title="coefficients multiplication">
 <polygon fill="white" stroke="black" points="162.5,-76.5 162.5,-95.5 200.5,-95.5 200.5,-76.5 162.5,-76.5"/>
 <text text-anchor="middle" x="181.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">coef</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node20 -->
+<!-- Node1&#45;&gt;Node4 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node20</title>
+<title>Node1&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M87.16,-72.96C112.4,-76.49 143.07,-80.77 162.2,-83.44"/>
 </g>
-<!-- Node21 -->
+<!-- Node5 -->
 <g id="node4" class="node">
-<title>Node21</title>
-<g id="a_node4"><a xlink:href="ionoSpherical_8cpp.html#a0d27755d579e100f284507dea013ccad" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="133.5,-38.5 133.5,-57.5 229.5,-57.5 229.5,-38.5 133.5,-38.5"/>
+<title>Node5</title>
+<g id="a_node4"><a xlink:href="ionoSpherical_8cpp.html#a5087349da86eaabbc342eb3f623ca963" target="_top" xlink:title="Evaluates spherical cap harmonics basis functions int ind I Basis function number obs I Ionosphere me...">
+<polygon fill="white" stroke="black" points="133.5,-38.5 133.5,-57.5 229.5,-57.5 229.5,-38.5 133.5,-38.5"/>
 <text text-anchor="middle" x="181.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">ion_coef_sphhar</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node21 -->
+<!-- Node1&#45;&gt;Node5 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node21</title>
+<title>Node1&#45;&gt;Node5</title>
 <path fill="none" stroke="midnightblue" d="M87.16,-61.04C101.8,-58.99 118.28,-56.69 133.26,-54.6"/>
 </g>
-<!-- Node23 -->
+<!-- Node6 -->
 <g id="node5" class="node">
-<title>Node23</title>
-<g id="a_node5"><a xlink:href="structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" target="_top" xlink:title="Returns the value and variance of a state within the kalman filter object.">
+<title>Node6</title>
+<g id="a_node5"><a xlink:href="structKFState.html#a1e56cacd1a83d3913b20940b1892d407" target="_top" xlink:title="Returns the value and variance of a state within the kalman filter object.">
 <polygon fill="white" stroke="black" points="123,-0.5 123,-19.5 240,-19.5 240,-0.5 123,-0.5"/>
 <text text-anchor="middle" x="181.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::getKFValue</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node23 -->
+<!-- Node1&#45;&gt;Node6 -->
 <g id="edge4" class="edge">
-<title>Node1&#45;&gt;Node23</title>
+<title>Node1&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M62.59,-57.4C78.31,-49.26 101.81,-37.59 123,-29 131.38,-25.6 140.62,-22.35 149.19,-19.52"/>
 </g>
 </g>

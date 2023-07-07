@@ -1,16 +1,17 @@
 <map id="mainPostProcessing" name="mainPostProcessing">
-<area shape="rect" id="node1" title=" " alt="" coords="5,309,159,336"/>
-<area shape="rect" id="node2" href="$streamTrace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="247,5,347,32"/>
-<area shape="rect" id="node3" href="$ionexWrite_8cpp.html#ae5b27d11f885de5405bd0b5f8f563143" title=" " alt="" coords="239,56,354,83"/>
-<area shape="rect" id="node4" href="$minimumConstraints_8cpp.html#a85e412176915fe538d691251614f877a" title=" " alt="" coords="261,107,332,133"/>
-<area shape="rect" id="node5" href="$GinARWLamb_8cpp.html#a58df4ba0c84cda469fbdfbf8309003ce" title="Dump WL ambiguities in archive." alt="" coords="235,157,358,184"/>
-<area shape="rect" id="node6" href="$pea__snx_8cpp.html#a6b5f4d774fbaf2921b08fe116510c5bf" title=" " alt="" coords="219,208,374,235"/>
-<area shape="rect" id="node7" href="$algebraTrace_8cpp.html#a60fa1cde6cf8b8c7da7ee8a01915cb27" title=" " alt="" coords="207,259,387,285"/>
-<area shape="rect" id="node8" href="$common_2orbits_8cpp.html#adbf44cc33c6497cf698ffbae0894eb14" title="Output orbit file compatible with the pod." alt="" coords="249,309,345,336"/>
-<area shape="rect" id="node9" href="$rtsSmoothing_8cpp.html#a38ab8796647005faee38cdd21deaf19b" title=" " alt="" coords="245,360,349,387"/>
-<area shape="rect" id="node10" href="$biasSINEXwrite_8cpp.html#aee560ba7f0a3ee3cb198627a9673c27e" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="237,411,356,437"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,335,159,361"/>
+<area shape="rect" id="node2" href="$trace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="247,5,347,32"/>
+<area shape="rect" id="node3" href="$minimumConstraints_8cpp.html#ab2bcd4f17ec253836699f41c2c330ee0" title=" " alt="" coords="261,56,332,83"/>
+<area shape="rect" id="node4" href="$GinARWLamb_8cpp.html#a58df4ba0c84cda469fbdfbf8309003ce" title="Dump WL ambiguities in archive." alt="" coords="235,107,358,133"/>
+<area shape="rect" id="node5" href="$pea__snx_8cpp.html#a6b5f4d774fbaf2921b08fe116510c5bf" title=" " alt="" coords="219,157,374,184"/>
+<area shape="rect" id="node6" href="$algebraTrace_8cpp.html#a60fa1cde6cf8b8c7da7ee8a01915cb27" title=" " alt="" coords="207,208,387,235"/>
+<area shape="rect" id="node7" href="$common_2orbits_8cpp.html#adbf44cc33c6497cf698ffbae0894eb14" title="Output orbit file compatible with the pod." alt="" coords="249,259,345,285"/>
+<area shape="rect" id="node8" href="$main_8cpp.html#aff27912083f0b1f7faa7327c48930fed" title=" " alt="" coords="213,309,380,336"/>
+<area shape="rect" id="node9" href="$sp3Write_8cpp.html#a4b1d20154c3982bbbe24760f2a54c99a" title=" " alt="" coords="223,360,370,387"/>
+<area shape="rect" id="node10" href="$rtsSmoothing_8cpp.html#a38ab8796647005faee38cdd21deaf19b" title=" " alt="" coords="245,411,349,437"/>
 <area shape="rect" id="node11" href="$structTestStack.html#a9cd98d9355190359aa9a3e9e3b5790a0" title="Print the status of completed (passed/failed) and remaining tests." alt="" coords="215,461,378,488"/>
 <area shape="rect" id="node12" href="$structTestStack.html#ad5199e6ca0d6243836b8461c3bf0ec4a" title="Save test data." alt="" coords="219,512,374,539"/>
 <area shape="rect" id="node13" href="$structInstrument.html#ab19d00db11bbc84e197d3db049be7a29" title="Print the status of completed (passed/failed) and remaining tests." alt="" coords="211,563,383,589"/>
 <area shape="rect" id="node14" href="$summary_8cpp.html#a0221c7e59e3af48eb85a860e411c324b" title="Output statistics from each station." alt="" coords="227,613,366,640"/>
+<area shape="rect" id="node15" href="$summary_8cpp.html#a12c28641db36becdeac64e075107d855" title=" " alt="" coords="235,664,359,691"/>
 </map>

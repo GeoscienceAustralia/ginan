@@ -1,10 +1,9 @@
 <map id="sinexPerEpochPerStation" name="sinexPerEpochPerStation">
-<area shape="rect" id="node1" title=" " alt="" coords="5,157,189,184"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="246,5,345,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a42a98c9bc4ba5249c22e031840d672e0" title=" " alt="" coords="249,56,341,83"/>
-<area shape="rect" id="node4" href="$sinex_8cpp.html#a5d4b582fbe641b956dec6621e592ac63" title=" " alt="" coords="237,107,353,133"/>
-<area shape="rect" id="node5" href="$sinex_8cpp.html#af6a5f07daf9e8d4806b3d9db1509e4c2" title=" " alt="" coords="252,157,339,184"/>
-<area shape="rect" id="node6" href="$streamTrace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="245,208,345,235"/>
-<area shape="rect" id="node7" href="$antenna_8cpp.html#a2d3f4dae3a3c4725639033f1bf62fd71" title=" " alt="" coords="245,259,346,285"/>
-<area shape="rect" id="node8" href="$antenna_8cpp.html#a3beefedc70e84beab788d3d0dd2e9138" title=" " alt="" coords="239,309,351,336"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,132,189,159"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#ae504318cd0c1f450949803a48ea72527" title="seconds diff bewteen left and right If left &lt; right the value is negative" alt="" coords="266,5,382,32"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#ad20e49427687e154a8fd08b2723f7b6e" title=" " alt="" coords="280,56,368,83"/>
+<area shape="rect" id="node4" href="$structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="237,107,411,133"/>
+<area shape="rect" id="node5" href="$trace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="274,157,374,184"/>
+<area shape="rect" id="node6" href="$antenna_8cpp.html#a204d102006d5bff3d311de7f6f189e44" title=" " alt="" coords="273,208,375,235"/>
+<area shape="rect" id="node7" href="$antenna_8cpp.html#a3beefedc70e84beab788d3d0dd2e9138" title="Change the last four characters of antenna type to NONE e,g, &quot;AOAD/M_T &#160;&#160;&#160;&#160;&#160;&#160;&#160;JPLA&quot; =&gt; &quot;AOAD/M_T &#160;&#160;&#160;&#160;..." alt="" coords="268,259,380,285"/>
 </map>

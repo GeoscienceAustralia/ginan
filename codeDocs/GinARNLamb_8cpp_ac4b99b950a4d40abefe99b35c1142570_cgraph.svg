@@ -35,21 +35,21 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="GinAR__main_8cpp.html#a970d7fea64de71970c5f7d85c109b244" target="_top" xlink:title="Default frequencies for each system.">
-<polygon fill="white" stroke="black" points="105.5,-38.5 105.5,-57.5 157.5,-57.5 157.5,-38.5 105.5,-38.5"/>
-<text text-anchor="middle" x="131.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">sys_frq</text>
+<g id="a_node3"><a xlink:href="acsQC_8cpp.html#abd57aff1d197b2747eab5e751cbb0b57" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="102.5,-38.5 102.5,-57.5 160.5,-57.5 160.5,-38.5 102.5,-38.5"/>
+<text text-anchor="middle" x="131.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">satFreqs</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
 <title>Node1&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M60.05,-48C74.39,-48 91.52,-48 105.3,-48"/>
+<path fill="none" stroke="midnightblue" d="M60.05,-48C73.35,-48 89.07,-48 102.27,-48"/>
 </g>
 <!-- Node4 -->
 <g id="node4" class="node">
 <title>Node4</title>
-<g id="a_node4"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node4"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="96,-0.5 96,-19.5 167,-19.5 167,-0.5 96,-0.5"/>
 <text text-anchor="middle" x="131.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>

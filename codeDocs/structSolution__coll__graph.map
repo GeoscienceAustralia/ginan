@@ -1,7 +1,7 @@
 <map id="Solution" name="Solution">
-<area shape="rect" id="node1" title="Solution of user mode processing functinos." alt="" coords="339,1224,434,1331"/>
-<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="27,5,178,361"/>
-<area shape="rect" id="node4" href="$structKFState.html" title="Kalman filter object." alt="" coords="150,424,353,1103"/>
-<area shape="rect" id="node3" title=" " alt="" coords="378,725,528,802"/>
-<area shape="rect" id="node5" title=" " alt="" coords="565,725,645,802"/>
+<area shape="rect" id="node1" title="Solution of user mode processing functinos." alt="" coords="361,864,462,971"/>
+<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,79,188,669"/>
+<area shape="rect" id="node3" title=" " alt="" coords="213,335,383,413"/>
+<area shape="rect" id="node4" href="$structKFState.html" title=" " alt="" coords="407,5,642,743"/>
+<area shape="rect" id="node5" href="$structVectorEcef.html" title=" " alt="" coords="666,299,783,449"/>
 </map>

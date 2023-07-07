@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="common_8cpp.html#af46d40a3b1917639b0318b11a974701c" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="rtcmEncoder_8cpp.html#af46d40a3b1917639b0318b11a974701c" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="238.5,-76.5 238.5,-95.5 303.5,-95.5 303.5,-76.5 238.5,-76.5"/>
 <text text-anchor="middle" x="271" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">setbituInc</text>
 </a>
@@ -35,7 +35,7 @@
 <!-- Node4 -->
 <g id="node3" class="node">
 <title>Node4</title>
-<g id="a_node3"><a xlink:href="common_8cpp.html#a601072b6fadfeb365f51fbcaf7e4f5f8" target="_top" xlink:title=" ">
+<g id="a_node3"><a xlink:href="rtcmEncoder_8cpp.html#a601072b6fadfeb365f51fbcaf7e4f5f8" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="239,-38.5 239,-57.5 303,-57.5 303,-38.5 239,-38.5"/>
 <text text-anchor="middle" x="271" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">setbitsInc</text>
 </a>

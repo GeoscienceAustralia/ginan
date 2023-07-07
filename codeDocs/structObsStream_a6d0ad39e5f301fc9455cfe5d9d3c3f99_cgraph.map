@@ -1,5 +1,6 @@
 <map id="ObsStream::getObs" name="ObsStream::getObs">
-<area shape="rect" id="node1" title="Return a list of observations from the stream, with a specified timestamp." alt="" coords="5,31,153,57"/>
-<area shape="rect" id="node2" href="$structObsStream.html#a72abbf0503505bc3f1a2c45f0dd5ae95" title="Return a list of observations from the stream." alt="" coords="201,5,349,32"/>
+<area shape="rect" id="node1" title="Return a list of observations from the stream, with a specified timestamp." alt="" coords="5,56,153,83"/>
+<area shape="rect" id="node2" href="$structObsStream.html#a72abbf0503505bc3f1a2c45f0dd5ae95" title=" " alt="" coords="201,5,349,32"/>
 <area shape="rect" id="node3" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="215,56,335,83"/>
+<area shape="rect" id="node4" href="$structObsStream.html#a3b3648eec3b950447ed844f09589d20a" title="Remove some observations from memory." alt="" coords="201,107,349,133"/>
 </map>

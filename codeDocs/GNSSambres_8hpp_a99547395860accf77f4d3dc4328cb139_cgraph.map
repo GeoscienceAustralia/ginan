@@ -1,14 +1,13 @@
 <map id="smoothdAmbigResl" name="smoothdAmbigResl">
-<area shape="rect" id="node1" title="Ambiguity resolution on smoothed KF solutions." alt="" coords="5,242,155,268"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="432,242,527,268"/>
-<area shape="rect" id="node3" href="$structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" title=" " alt="" coords="415,292,544,319"/>
-<area shape="rect" id="node4" href="$GinAR__main_8cpp.html#abfd3ee0f4426056acecc54f389deb7eb" title="Eliminated ambiguity measurements older than (current time &#45; max hold epocs) for the specified receiv..." alt="" coords="225,90,345,116"/>
-<area shape="rect" id="node5" href="$GinAR__main_8cpp.html#a48fa415df652066004129736fa989e44" title="Loading float ambiguity data from KF." alt="" coords="233,140,336,167"/>
-<area shape="rect" id="node6" href="$GinARpivot_8cpp.html#a82123e7131dcf632ddf6dc4baf239255" title="Update User Pivot." alt="" coords="225,191,344,218"/>
-<area shape="rect" id="node7" href="$GinARpivot_8cpp.html#a00fa2ae3af0a9c725884d6b32254ace2" title="Update network pivot." alt="" coords="225,242,344,268"/>
-<area shape="rect" id="node8" href="$GinARNLamb_8cpp.html#a150b7e4a892320cadb8bfd4c813a1aca" title="Update float ambiguity estimates." alt="" coords="229,292,341,319"/>
-<area shape="rect" id="node9" href="$GinARNLamb_8cpp.html#ad93bb9c322526f57beacb5aeb5c4e66a" title="Apply archived Z&#45;ambiguities to float solution." alt="" coords="229,343,340,370"/>
-<area shape="rect" id="node10" href="$GinARoutpt_8cpp.html#a2952ccee33c3cebafed9b014755ce986" title="Output phase biases." alt="" coords="247,394,323,420"/>
-<area shape="rect" id="node11" href="$GinARoutpt_8cpp.html#a15eeefdc06bd3997b9c8dd4bbc9c4088" title="Output ambiguity measurments/states." alt="" coords="248,444,321,471"/>
-<area shape="rect" id="node12" href="$structKFState.html#a0c84e911a5ea760fe728baec661e33f0" title="Output keys and states in human readable format." alt="" coords="203,495,367,522"/>
+<area shape="rect" id="node1" title="Ambiguity resolution on smoothed KF solutions." alt="" coords="5,216,155,242"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="432,241,527,268"/>
+<area shape="rect" id="node3" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="415,292,544,318"/>
+<area shape="rect" id="node4" href="$GinAR__main_8cpp.html#abfd3ee0f4426056acecc54f389deb7eb" title="Eliminated ambiguity measurements older than (current time &#45; max hold epocs) for the specified receiv..." alt="" coords="225,89,345,116"/>
+<area shape="rect" id="node5" href="$GinAR__main_8cpp.html#a48fa415df652066004129736fa989e44" title="Loading float ambiguity data from KF." alt="" coords="233,140,336,166"/>
+<area shape="rect" id="node6" href="$GinARpivot_8cpp.html#a82123e7131dcf632ddf6dc4baf239255" title="Update User Pivot." alt="" coords="225,190,344,217"/>
+<area shape="rect" id="node7" href="$GinARpivot_8cpp.html#a00fa2ae3af0a9c725884d6b32254ace2" title="Update network pivot." alt="" coords="225,241,344,268"/>
+<area shape="rect" id="node8" href="$GinARNLamb_8cpp.html#a150b7e4a892320cadb8bfd4c813a1aca" title="Update float ambiguity estimates." alt="" coords="229,292,341,318"/>
+<area shape="rect" id="node9" href="$GinARNLamb_8cpp.html#ad93bb9c322526f57beacb5aeb5c4e66a" title="Apply archived Z&#45;ambiguities to float solution." alt="" coords="229,342,340,369"/>
+<area shape="rect" id="node10" href="$GinARoutpt_8cpp.html#a15eeefdc06bd3997b9c8dd4bbc9c4088" title="Output ambiguity measurments/states." alt="" coords="248,393,321,420"/>
+<area shape="rect" id="node11" href="$structKFState.html#a0c84e911a5ea760fe728baec661e33f0" title="Output keys and states in human readable format." alt="" coords="203,444,367,470"/>
 </map>

@@ -84,13 +84,13 @@ $(function() {
 <div class="dynheader">
 Collaboration diagram for Instrument:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structInstrument__coll__graph.svg" width="298" height="272"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structInstrument__coll__graph.svg" width="298" height="287"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a937aeefa2f04f236c60f1660d5e4eddf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInstrument.html#a937aeefa2f04f236c60f1660d5e4eddf">Instrument</a> (string desc)</td></tr>
-<tr class="separator:a937aeefa2f04f236c60f1660d5e4eddf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa462002c2a57a1030e08779a0ec8e32a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInstrument.html#aa462002c2a57a1030e08779a0ec8e32a">Instrument</a> (string desc, bool <a class="el" href="structInstrument.html#acabe7363f6b50fc80cb068f5623425a0">print</a>=false)</td></tr>
+<tr class="separator:aa462002c2a57a1030e08779a0ec8e32a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d7d6e5a2b05597c049a9e0ca3be3d5f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInstrument.html#a4d7d6e5a2b05597c049a9e0ca3be3d5f">~Instrument</a> ()</td></tr>
 <tr class="memdesc:a4d7d6e5a2b05597c049a9e0ca3be3d5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pop a level from the stack for runtime tests.  <a href="structInstrument.html#a4d7d6e5a2b05597c049a9e0ca3be3d5f">More...</a><br /></td></tr>
 <tr class="separator:a4d7d6e5a2b05597c049a9e0ca3be3d5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -103,6 +103,8 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
+<tr class="memitem:acabe7363f6b50fc80cb068f5623425a0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInstrument.html#acabe7363f6b50fc80cb068f5623425a0">print</a> = false</td></tr>
+<tr class="separator:acabe7363f6b50fc80cb068f5623425a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46cb9c1e62f96f2a918b494233fb3377"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInstrument.html#a46cb9c1e62f96f2a918b494233fb3377">start</a></td></tr>
 <tr class="separator:a46cb9c1e62f96f2a918b494233fb3377"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9e3eca44ea7cf549316460aef06dbe2"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInstrument.html#ab9e3eca44ea7cf549316460aef06dbe2">description</a></td></tr>
@@ -116,8 +118,8 @@ Static Public Attributes</h2></td></tr>
 <tr class="separator:ae9998d3e0133fcd239b90b350bc280a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a937aeefa2f04f236c60f1660d5e4eddf" name="a937aeefa2f04f236c60f1660d5e4eddf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a937aeefa2f04f236c60f1660d5e4eddf">&#9670;&nbsp;</a></span>Instrument()</h2>
+<a id="aa462002c2a57a1030e08779a0ec8e32a" name="aa462002c2a57a1030e08779a0ec8e32a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa462002c2a57a1030e08779a0ec8e32a">&#9670;&nbsp;</a></span>Instrument()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -126,8 +128,18 @@ Static Public Attributes</h2></td></tr>
           <td class="memname">Instrument::Instrument </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>desc</em></td><td>)</td>
+          <td class="paramname"><em>desc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>print</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -217,6 +229,20 @@ Here is the caller graph for this function:</div>
       <table class="memname">
         <tr>
           <td class="memname">string Instrument::description</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acabe7363f6b50fc80cb068f5623425a0" name="acabe7363f6b50fc80cb068f5623425a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acabe7363f6b50fc80cb068f5623425a0">&#9670;&nbsp;</a></span>print</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Instrument::print = false</td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.4"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Ginan: /data/acs/ginan/src/cpp/rtklib/rinex.cpp File Reference</title>
+<title>Ginan: /data/acs/ginan/src/cpp/common/rinex.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -71,7 +71,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_df511e5bd85cec96854b39d5e1c27aa8.html">cpp</a></li><li class="navelem"><a class="el" href="dir_2d340a610648b7d5907a75febc608311.html">rtklib</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_df511e5bd85cec96854b39d5e1c27aa8.html">cpp</a></li><li class="navelem"><a class="el" href="dir_8a65d247160fca2a969d6d8ca16055a2.html">common</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -83,156 +83,74 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ad6a8477bb1f9222ff5b2487476ee31f0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ad6a8477bb1f9222ff5b2487476ee31f0">BETTER_ENUM</a> (E_EphType, short <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, <a class="el" href="enums_8h.html#ad272ec1f335d680e948c51dea39d3375">NONE</a>, EPH, GEPH, SEPH, CEPH, <a class="el" href="structSTO.html">STO</a>, <a class="el" href="structEOP.html">EOP</a>, <a class="el" href="structION.html">ION</a>) map&lt; E_Sys</td></tr>
+<tr class="memitem:ad6a8477bb1f9222ff5b2487476ee31f0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ad6a8477bb1f9222ff5b2487476ee31f0">BETTER_ENUM</a> (E_EphType, short <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="enums_8h.html#a73aeaa6097657d473373a66998ffdbaa">NONE</a>, EPH, GEPH, SEPH, CEPH, <a class="el" href="structSTO.html">STO</a>, <a class="el" href="structEOP.html">EOP</a>, <a class="el" href="structION.html">ION</a>) map&lt; E_Sys</td></tr>
 <tr class="memdesc:ad6a8477bb1f9222ff5b2487476ee31f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default navigation massage type for RINEX 3 and 2.  <a href="rinex_8cpp.html#ad6a8477bb1f9222ff5b2487476ee31f0">More...</a><br /></td></tr>
 <tr class="separator:ad6a8477bb1f9222ff5b2487476ee31f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6376198348c1ba8648f5bbe2ee58e4ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a6376198348c1ba8648f5bbe2ee58e4ab">setstr</a> (char *dst, const char *src, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> n)</td></tr>
+<tr class="memitem:a6376198348c1ba8648f5bbe2ee58e4ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a6376198348c1ba8648f5bbe2ee58e4ab">setstr</a> (char *dst, const char *src, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> n)</td></tr>
 <tr class="memdesc:a6376198348c1ba8648f5bbe2ee58e4ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set string without tail space.  <a href="rinex_8cpp.html#a6376198348c1ba8648f5bbe2ee58e4ab">More...</a><br /></td></tr>
 <tr class="separator:a6376198348c1ba8648f5bbe2ee58e4ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa658848066a28188b0e4b23f739ef883"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#aa658848066a28188b0e4b23f739ef883">adjweek</a> (<a class="el" href="structGTime.html">GTime</a> t, <a class="el" href="structGTime.html">GTime</a> t0)</td></tr>
-<tr class="memdesc:aa658848066a28188b0e4b23f739ef883"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adjust time considering week handover.  <a href="rinex_8cpp.html#aa658848066a28188b0e4b23f739ef883">More...</a><br /></td></tr>
-<tr class="separator:aa658848066a28188b0e4b23f739ef883"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6a67106f4591c7b02b2128d88d92155"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ae6a67106f4591c7b02b2128d88d92155">adjday</a> (<a class="el" href="structGTime.html">GTime</a> t, <a class="el" href="structGTime.html">GTime</a> t0)</td></tr>
-<tr class="memdesc:ae6a67106f4591c7b02b2128d88d92155"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adjust time considering day handover.  <a href="rinex_8cpp.html#ae6a67106f4591c7b02b2128d88d92155">More...</a><br /></td></tr>
-<tr class="separator:ae6a67106f4591c7b02b2128d88d92155"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f073cc8f2e3bddcb18f0bb37351af70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a9f073cc8f2e3bddcb18f0bb37351af70">uraindex</a> (double value)</td></tr>
-<tr class="memdesc:a9f073cc8f2e3bddcb18f0bb37351af70"><td class="mdescLeft">&#160;</td><td class="mdescRight">URA value (m) to ura index.  <a href="rinex_8cpp.html#a9f073cc8f2e3bddcb18f0bb37351af70">More...</a><br /></td></tr>
-<tr class="separator:a9f073cc8f2e3bddcb18f0bb37351af70"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3758818a3905273fa02e75588404b88c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a3758818a3905273fa02e75588404b88c">convcode</a> (double ver, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> sys, const char *str, char *type)</td></tr>
-<tr class="memdesc:a3758818a3905273fa02e75588404b88c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert rinex obs type ver.2 -&gt; ver.3.  <a href="rinex_8cpp.html#a3758818a3905273fa02e75588404b88c">More...</a><br /></td></tr>
-<tr class="separator:a3758818a3905273fa02e75588404b88c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a14aeff424f301ac2512155167d548348"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a14aeff424f301ac2512155167d548348">decodeObsh</a> (std::istream &amp;inputStream, string &amp;line, double ver, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;tsys, map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structRinexStation.html">RinexStation</a> *sta)</td></tr>
-<tr class="memdesc:a14aeff424f301ac2512155167d548348"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode obs header.  <a href="rinex_8cpp.html#a14aeff424f301ac2512155167d548348">More...</a><br /></td></tr>
-<tr class="separator:a14aeff424f301ac2512155167d548348"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98a2dc67757d3341b779c2d60a4f64e3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a98a2dc67757d3341b779c2d60a4f64e3">decodeNavh</a> (string &amp;line, E_Sys sys, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="memdesc:a98a2dc67757d3341b779c2d60a4f64e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode nav header.  <a href="rinex_8cpp.html#a98a2dc67757d3341b779c2d60a4f64e3">More...</a><br /></td></tr>
-<tr class="separator:a98a2dc67757d3341b779c2d60a4f64e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0c8334faa319e55082962e09df62b0c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ab0c8334faa319e55082962e09df62b0c">decodeGnavh</a> (string &amp;line, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="memdesc:ab0c8334faa319e55082962e09df62b0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode gnav header.  <a href="rinex_8cpp.html#ab0c8334faa319e55082962e09df62b0c">More...</a><br /></td></tr>
-<tr class="separator:ab0c8334faa319e55082962e09df62b0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2d8f37738f720ba76e3354346fc4e17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ad2d8f37738f720ba76e3354346fc4e17">decodeHnavh</a> (string &amp;line, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="memdesc:ad2d8f37738f720ba76e3354346fc4e17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode geo nav header.  <a href="rinex_8cpp.html#ad2d8f37738f720ba76e3354346fc4e17">More...</a><br /></td></tr>
-<tr class="separator:ad2d8f37738f720ba76e3354346fc4e17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af51477471020f72c312825cdd4165640"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#af51477471020f72c312825cdd4165640">readrnxh</a> (std::istream &amp;inputStream, double &amp;ver, char &amp;type, E_Sys &amp;sys, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;tsys, map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structRinexStation.html">RinexStation</a> *sta)</td></tr>
-<tr class="memdesc:af51477471020f72c312825cdd4165640"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex header.  <a href="rinex_8cpp.html#af51477471020f72c312825cdd4165640">More...</a><br /></td></tr>
-<tr class="separator:af51477471020f72c312825cdd4165640"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abaed7d9574f8e8fd3eaec0714632304b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#abaed7d9574f8e8fd3eaec0714632304b">decodeObsepoch</a> (std::istream &amp;inputStream, string &amp;line, double ver, <a class="el" href="structGTime.html">GTime</a> &amp;time, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;flag, vector&lt; <a class="el" href="structSatSys.html">SatSys</a> &gt; &amp;sats)</td></tr>
-<tr class="memdesc:abaed7d9574f8e8fd3eaec0714632304b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode obs epoch.  <a href="rinex_8cpp.html#abaed7d9574f8e8fd3eaec0714632304b">More...</a><br /></td></tr>
-<tr class="separator:abaed7d9574f8e8fd3eaec0714632304b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5135924cbf858be2d644414f3e04b828"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a5135924cbf858be2d644414f3e04b828">decodeObsdata</a> (std::istream &amp;inputStream, string &amp;line, double ver, map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="structRawObs.html">RawObs</a> &amp;obs, <a class="el" href="structSatSys.html">SatSys</a> &amp;v2SatSys_ptr)</td></tr>
-<tr class="memdesc:a5135924cbf858be2d644414f3e04b828"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode obs data.  <a href="rinex_8cpp.html#a5135924cbf858be2d644414f3e04b828">More...</a><br /></td></tr>
-<tr class="separator:a5135924cbf858be2d644414f3e04b828"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8904a223b164e16e88cc0e2e0681d5c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a8904a223b164e16e88cc0e2e0681d5c2">readrnxobsb</a> (std::istream &amp;inputStream, double ver, map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;flag, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList)</td></tr>
-<tr class="memdesc:a8904a223b164e16e88cc0e2e0681d5c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex obs data body.  <a href="rinex_8cpp.html#a8904a223b164e16e88cc0e2e0681d5c2">More...</a><br /></td></tr>
-<tr class="separator:a8904a223b164e16e88cc0e2e0681d5c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ac0513671bff5c91f961ebca3ae1673"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a7ac0513671bff5c91f961ebca3ae1673">readrnxobs</a> (std::istream &amp;inputStream, double ver, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> tsys, map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList)</td></tr>
-<tr class="memdesc:a7ac0513671bff5c91f961ebca3ae1673"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex obs.  <a href="rinex_8cpp.html#a7ac0513671bff5c91f961ebca3ae1673">More...</a><br /></td></tr>
-<tr class="separator:a7ac0513671bff5c91f961ebca3ae1673"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3132fbeb0a7c18e3316f143ae063998"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ae3132fbeb0a7c18e3316f143ae063998">decodeEph</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structGTime.html">GTime</a> toc, double *data, <a class="el" href="structEph.html">Eph</a> &amp;eph)</td></tr>
-<tr class="memdesc:ae3132fbeb0a7c18e3316f143ae063998"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode ephemeris.  <a href="rinex_8cpp.html#ae3132fbeb0a7c18e3316f143ae063998">More...</a><br /></td></tr>
-<tr class="separator:ae3132fbeb0a7c18e3316f143ae063998"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30b3cdcd487d258c340534e7ddbde2e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a30b3cdcd487d258c340534e7ddbde2e1">decodeGeph</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structGTime.html">GTime</a> toc, double *data, <a class="el" href="structGeph.html">Geph</a> &amp;geph)</td></tr>
-<tr class="memdesc:a30b3cdcd487d258c340534e7ddbde2e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode glonass ephemeris.  <a href="rinex_8cpp.html#a30b3cdcd487d258c340534e7ddbde2e1">More...</a><br /></td></tr>
-<tr class="separator:a30b3cdcd487d258c340534e7ddbde2e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6613c8a15b270944e8f29ebf0357c3b0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a6613c8a15b270944e8f29ebf0357c3b0">decodeSeph</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structGTime.html">GTime</a> toc, double *data, <a class="el" href="structSeph.html">Seph</a> &amp;seph)</td></tr>
-<tr class="memdesc:a6613c8a15b270944e8f29ebf0357c3b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode geo ephemeris.  <a href="rinex_8cpp.html#a6613c8a15b270944e8f29ebf0357c3b0">More...</a><br /></td></tr>
-<tr class="separator:a6613c8a15b270944e8f29ebf0357c3b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a49860903ba3deda27374072016e16fbb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a49860903ba3deda27374072016e16fbb">decodeCeph</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="structGTime.html">GTime</a> toc, double *data, <a class="el" href="structCeph.html">Ceph</a> &amp;ceph)</td></tr>
-<tr class="memdesc:a49860903ba3deda27374072016e16fbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode CNVX ephemeris.  <a href="rinex_8cpp.html#a49860903ba3deda27374072016e16fbb">More...</a><br /></td></tr>
-<tr class="separator:a49860903ba3deda27374072016e16fbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf5c2200567764637e86c93fa34ea658"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#abf5c2200567764637e86c93fa34ea658">decodeSto</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="structGTime.html">GTime</a> toc, double *data, <a class="el" href="structSTO.html">STO</a> &amp;sto)</td></tr>
-<tr class="memdesc:abf5c2200567764637e86c93fa34ea658"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode <a class="el" href="structSTO.html" title="system Time offset message">STO</a> message.  <a href="rinex_8cpp.html#abf5c2200567764637e86c93fa34ea658">More...</a><br /></td></tr>
-<tr class="separator:abf5c2200567764637e86c93fa34ea658"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47e197e8bad4103334d186f5fde306eb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a47e197e8bad4103334d186f5fde306eb">decodeEop</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="structGTime.html">GTime</a> toc, double *data, <a class="el" href="structEOP.html">EOP</a> &amp;eop)</td></tr>
-<tr class="memdesc:a47e197e8bad4103334d186f5fde306eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode <a class="el" href="structEOP.html" title="EOP message.">EOP</a> message.  <a href="rinex_8cpp.html#a47e197e8bad4103334d186f5fde306eb">More...</a><br /></td></tr>
-<tr class="separator:a47e197e8bad4103334d186f5fde306eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc14d56bbd6b9fe0ced3dfc102fcc6a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#afc14d56bbd6b9fe0ced3dfc102fcc6a8">decodeIon</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="structGTime.html">GTime</a> toc, double *data, <a class="el" href="structION.html">ION</a> &amp;ion)</td></tr>
-<tr class="memdesc:afc14d56bbd6b9fe0ced3dfc102fcc6a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode <a class="el" href="structION.html" title="ionosphere message">ION</a> message.  <a href="rinex_8cpp.html#afc14d56bbd6b9fe0ced3dfc102fcc6a8">More...</a><br /></td></tr>
-<tr class="separator:afc14d56bbd6b9fe0ced3dfc102fcc6a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af33ae77491d2a7f4b184f0c320874f2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#af33ae77491d2a7f4b184f0c320874f2f">readrnxnavb</a> (std::istream &amp;inputStream, double ver, E_Sys sys, E_EphType &amp;type, <a class="el" href="structEph.html">Eph</a> &amp;eph, <a class="el" href="structGeph.html">Geph</a> &amp;geph, <a class="el" href="structSeph.html">Seph</a> &amp;seph, <a class="el" href="structCeph.html">Ceph</a> &amp;ceph, <a class="el" href="structSTO.html">STO</a> &amp;sto, <a class="el" href="structEOP.html">EOP</a> &amp;eop, <a class="el" href="structION.html">ION</a> &amp;ion)</td></tr>
-<tr class="memdesc:af33ae77491d2a7f4b184f0c320874f2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex navigation data body.  <a href="rinex_8cpp.html#af33ae77491d2a7f4b184f0c320874f2f">More...</a><br /></td></tr>
-<tr class="separator:af33ae77491d2a7f4b184f0c320874f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a045f9195bb89cfcb58018ebacc367fcf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a045f9195bb89cfcb58018ebacc367fcf">readrnxnav</a> (std::istream &amp;inputStream, double ver, E_Sys sys, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="memdesc:a045f9195bb89cfcb58018ebacc367fcf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex nav/gnav/geo nav.  <a href="rinex_8cpp.html#a045f9195bb89cfcb58018ebacc367fcf">More...</a><br /></td></tr>
-<tr class="separator:a045f9195bb89cfcb58018ebacc367fcf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a284b8fafe2b4b51d562ce5be276d84"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a4a284b8fafe2b4b51d562ce5be276d84">readrnxclk</a> (std::istream &amp;inputStream, double ver, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="memdesc:a4a284b8fafe2b4b51d562ce5be276d84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex clock.  <a href="rinex_8cpp.html#a4a284b8fafe2b4b51d562ce5be276d84">More...</a><br /></td></tr>
-<tr class="separator:a4a284b8fafe2b4b51d562ce5be276d84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7ce6f0e18abbe3361d4db9077a37e36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#af7ce6f0e18abbe3361d4db9077a37e36">readrnx</a> (std::istream &amp;inputStream, char &amp;type, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structRinexStation.html">RinexStation</a> *sta, double &amp;ver, E_Sys &amp;sys, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;tsys, map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes)</td></tr>
-<tr class="memdesc:af7ce6f0e18abbe3361d4db9077a37e36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex file.  <a href="rinex_8cpp.html#af7ce6f0e18abbe3361d4db9077a37e36">More...</a><br /></td></tr>
-<tr class="separator:af7ce6f0e18abbe3361d4db9077a37e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af70972b806e723e3d028ddc8058d3998"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#af70972b806e723e3d028ddc8058d3998">decodeObsH</a> (std::istream &amp;inputStream, string &amp;line, double ver, E_TimeSys &amp;tsys, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structRinexStation.html">RinexStation</a> *rec)</td></tr>
+<tr class="memdesc:af70972b806e723e3d028ddc8058d3998"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode obs header.  <a href="rinex_8cpp.html#af70972b806e723e3d028ddc8058d3998">More...</a><br /></td></tr>
+<tr class="separator:af70972b806e723e3d028ddc8058d3998"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a60f187ca9defbaa801f242efb7f18b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a7a60f187ca9defbaa801f242efb7f18b">decodeNavH</a> (string &amp;line, E_Sys sys, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
+<tr class="memdesc:a7a60f187ca9defbaa801f242efb7f18b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode nav header.  <a href="rinex_8cpp.html#a7a60f187ca9defbaa801f242efb7f18b">More...</a><br /></td></tr>
+<tr class="separator:a7a60f187ca9defbaa801f242efb7f18b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ae01240baac2b9246e1d1f4ad068eaf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a3ae01240baac2b9246e1d1f4ad068eaf">decodeGnavH</a> (string &amp;line, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
+<tr class="memdesc:a3ae01240baac2b9246e1d1f4ad068eaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode gnav header.  <a href="rinex_8cpp.html#a3ae01240baac2b9246e1d1f4ad068eaf">More...</a><br /></td></tr>
+<tr class="separator:a3ae01240baac2b9246e1d1f4ad068eaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb9ed7a2f9c56ac369434c213abaed3e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#aeb9ed7a2f9c56ac369434c213abaed3e">decodeHnavH</a> (string &amp;line, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
+<tr class="memdesc:aeb9ed7a2f9c56ac369434c213abaed3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode geo nav header.  <a href="rinex_8cpp.html#aeb9ed7a2f9c56ac369434c213abaed3e">More...</a><br /></td></tr>
+<tr class="separator:aeb9ed7a2f9c56ac369434c213abaed3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed72692757d15d9b0fa9b4cd9de1a9c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#aed72692757d15d9b0fa9b4cd9de1a9c8">readRnxH</a> (std::istream &amp;inputStream, double &amp;ver, char &amp;type, E_Sys &amp;sys, E_TimeSys &amp;tsys, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structRinexStation.html">RinexStation</a> *rec)</td></tr>
+<tr class="memdesc:aed72692757d15d9b0fa9b4cd9de1a9c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex header.  <a href="rinex_8cpp.html#aed72692757d15d9b0fa9b4cd9de1a9c8">More...</a><br /></td></tr>
+<tr class="separator:aed72692757d15d9b0fa9b4cd9de1a9c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88f2d75f4dbbc4569d0fc07e474d63cc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a88f2d75f4dbbc4569d0fc07e474d63cc">decodeObsEpoch</a> (std::istream &amp;inputStream, string &amp;line, double ver, E_TimeSys tsys, <a class="el" href="structGTime.html">GTime</a> &amp;time, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;flag, vector&lt; <a class="el" href="structSatSys.html">SatSys</a> &gt; &amp;sats)</td></tr>
+<tr class="memdesc:a88f2d75f4dbbc4569d0fc07e474d63cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode obs epoch.  <a href="rinex_8cpp.html#a88f2d75f4dbbc4569d0fc07e474d63cc">More...</a><br /></td></tr>
+<tr class="separator:a88f2d75f4dbbc4569d0fc07e474d63cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a435e959376f897a6b62de80b86e0d451"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a435e959376f897a6b62de80b86e0d451">decodeObsData</a> (std::istream &amp;inputStream, string &amp;line, double ver, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="structGObs.html">GObs</a> &amp;obs, <a class="el" href="structSatSys.html">SatSys</a> &amp;v2SatSys)</td></tr>
+<tr class="memdesc:a435e959376f897a6b62de80b86e0d451"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode obs data.  <a href="rinex_8cpp.html#a435e959376f897a6b62de80b86e0d451">More...</a><br /></td></tr>
+<tr class="separator:a435e959376f897a6b62de80b86e0d451"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d866c72fe703ad325f166a0126e1791"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a7d866c72fe703ad325f166a0126e1791">readRnxObsB</a> (std::istream &amp;inputStream, double ver, E_TimeSys tsys, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;flag, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList)</td></tr>
+<tr class="memdesc:a7d866c72fe703ad325f166a0126e1791"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex obs data body.  <a href="rinex_8cpp.html#a7d866c72fe703ad325f166a0126e1791">More...</a><br /></td></tr>
+<tr class="separator:a7d866c72fe703ad325f166a0126e1791"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab76f7c2099549c8ac6eea25ba125c8bb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ab76f7c2099549c8ac6eea25ba125c8bb">readRnxObs</a> (std::istream &amp;inputStream, double ver, E_TimeSys tsys, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList, <a class="el" href="structRinexStation.html">RinexStation</a> *sta)</td></tr>
+<tr class="memdesc:ab76f7c2099549c8ac6eea25ba125c8bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex obs.  <a href="rinex_8cpp.html#ab76f7c2099549c8ac6eea25ba125c8bb">More...</a><br /></td></tr>
+<tr class="separator:ab76f7c2099549c8ac6eea25ba125c8bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a979e29d6c67b175b1c72c8a619e2c6fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a979e29d6c67b175b1c72c8a619e2c6fa">decodeEph</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structGTime.html">GTime</a> toc, vector&lt; double &gt; &amp;data, <a class="el" href="structEph.html">Eph</a> &amp;eph)</td></tr>
+<tr class="memdesc:a979e29d6c67b175b1c72c8a619e2c6fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode ephemeris.  <a href="rinex_8cpp.html#a979e29d6c67b175b1c72c8a619e2c6fa">More...</a><br /></td></tr>
+<tr class="separator:a979e29d6c67b175b1c72c8a619e2c6fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae809a4d28d2ab5e2c8100852605ad114"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ae809a4d28d2ab5e2c8100852605ad114">decodeGeph</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structGTime.html">GTime</a> toc, vector&lt; double &gt; &amp;data, <a class="el" href="structGeph.html">Geph</a> &amp;geph)</td></tr>
+<tr class="memdesc:ae809a4d28d2ab5e2c8100852605ad114"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode glonass ephemeris.  <a href="rinex_8cpp.html#ae809a4d28d2ab5e2c8100852605ad114">More...</a><br /></td></tr>
+<tr class="separator:ae809a4d28d2ab5e2c8100852605ad114"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac537c5434aa7432a5dc292e882cfbc17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ac537c5434aa7432a5dc292e882cfbc17">decodeSeph</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structGTime.html">GTime</a> toc, vector&lt; double &gt; &amp;data, <a class="el" href="structSeph.html">Seph</a> &amp;seph)</td></tr>
+<tr class="memdesc:ac537c5434aa7432a5dc292e882cfbc17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode geo ephemeris.  <a href="rinex_8cpp.html#ac537c5434aa7432a5dc292e882cfbc17">More...</a><br /></td></tr>
+<tr class="separator:ac537c5434aa7432a5dc292e882cfbc17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac721d8d1b845308215141fb2291a92bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ac721d8d1b845308215141fb2291a92bd">decodeCeph</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="structGTime.html">GTime</a> toc, vector&lt; double &gt; &amp;data, <a class="el" href="structCeph.html">Ceph</a> &amp;ceph)</td></tr>
+<tr class="memdesc:ac721d8d1b845308215141fb2291a92bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode CNVX ephemeris.  <a href="rinex_8cpp.html#ac721d8d1b845308215141fb2291a92bd">More...</a><br /></td></tr>
+<tr class="separator:ac721d8d1b845308215141fb2291a92bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f83de913c4e69ead61fcfcefddd6eb8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a7f83de913c4e69ead61fcfcefddd6eb8">decodeSto</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="structGTime.html">GTime</a> toc, vector&lt; double &gt; &amp;data, <a class="el" href="structSTO.html">STO</a> &amp;sto)</td></tr>
+<tr class="memdesc:a7f83de913c4e69ead61fcfcefddd6eb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode <a class="el" href="structSTO.html" title="system Time offset message">STO</a> message.  <a href="rinex_8cpp.html#a7f83de913c4e69ead61fcfcefddd6eb8">More...</a><br /></td></tr>
+<tr class="separator:a7f83de913c4e69ead61fcfcefddd6eb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a675fb8dcd8c4dc15418fa7cfcb980093"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a675fb8dcd8c4dc15418fa7cfcb980093">decodeEop</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="structGTime.html">GTime</a> toc, vector&lt; double &gt; &amp;data, <a class="el" href="structEOP.html">EOP</a> &amp;eop)</td></tr>
+<tr class="memdesc:a675fb8dcd8c4dc15418fa7cfcb980093"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode <a class="el" href="structEOP.html" title="EOP message.">EOP</a> message.  <a href="rinex_8cpp.html#a675fb8dcd8c4dc15418fa7cfcb980093">More...</a><br /></td></tr>
+<tr class="separator:a675fb8dcd8c4dc15418fa7cfcb980093"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae14c4ab1a5d0d4373fb2cd1fc24f3943"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#ae14c4ab1a5d0d4373fb2cd1fc24f3943">decodeIon</a> (double ver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="structGTime.html">GTime</a> toc, vector&lt; double &gt; &amp;data, <a class="el" href="structION.html">ION</a> &amp;ion)</td></tr>
+<tr class="memdesc:ae14c4ab1a5d0d4373fb2cd1fc24f3943"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode <a class="el" href="structION.html" title="ionosphere message">ION</a> message.  <a href="rinex_8cpp.html#ae14c4ab1a5d0d4373fb2cd1fc24f3943">More...</a><br /></td></tr>
+<tr class="separator:ae14c4ab1a5d0d4373fb2cd1fc24f3943"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a792445378357d92f2cba6dc7ec14c75b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a792445378357d92f2cba6dc7ec14c75b">readRnxNavB</a> (std::istream &amp;inputStream, double ver, E_Sys sys, E_EphType &amp;type, <a class="el" href="structEph.html">Eph</a> &amp;eph, <a class="el" href="structGeph.html">Geph</a> &amp;geph, <a class="el" href="structSeph.html">Seph</a> &amp;seph, <a class="el" href="structCeph.html">Ceph</a> &amp;ceph, <a class="el" href="structSTO.html">STO</a> &amp;sto, <a class="el" href="structEOP.html">EOP</a> &amp;eop, <a class="el" href="structION.html">ION</a> &amp;ion)</td></tr>
+<tr class="memdesc:a792445378357d92f2cba6dc7ec14c75b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex navigation data body.  <a href="rinex_8cpp.html#a792445378357d92f2cba6dc7ec14c75b">More...</a><br /></td></tr>
+<tr class="separator:a792445378357d92f2cba6dc7ec14c75b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73b7b5a70a0a8fa601dc56facd07d3f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a73b7b5a70a0a8fa601dc56facd07d3f7">readRnxNav</a> (std::istream &amp;inputStream, double ver, E_Sys sys, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
+<tr class="memdesc:a73b7b5a70a0a8fa601dc56facd07d3f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex nav/gnav/geo nav.  <a href="rinex_8cpp.html#a73b7b5a70a0a8fa601dc56facd07d3f7">More...</a><br /></td></tr>
+<tr class="separator:a73b7b5a70a0a8fa601dc56facd07d3f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31dd08ba5cac291e98978728ec29f60c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#a31dd08ba5cac291e98978728ec29f60c">readRnxClk</a> (std::istream &amp;inputStream, double ver, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
+<tr class="memdesc:a31dd08ba5cac291e98978728ec29f60c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex clock.  <a href="rinex_8cpp.html#a31dd08ba5cac291e98978728ec29f60c">More...</a><br /></td></tr>
+<tr class="separator:a31dd08ba5cac291e98978728ec29f60c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfe92a2c6d1d139626ed2505d5477811"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8cpp.html#acfe92a2c6d1d139626ed2505d5477811">readRnx</a> (std::istream &amp;inputStream, char &amp;type, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structRinexStation.html">RinexStation</a> *sta, double &amp;ver, E_Sys &amp;sys, E_TimeSys &amp;tsys, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes)</td></tr>
+<tr class="memdesc:acfe92a2c6d1d139626ed2505d5477811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex file.  <a href="rinex_8cpp.html#acfe92a2c6d1d139626ed2505d5477811">More...</a><br /></td></tr>
+<tr class="separator:acfe92a2c6d1d139626ed2505d5477811"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ae6a67106f4591c7b02b2128d88d92155" name="ae6a67106f4591c7b02b2128d88d92155"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae6a67106f4591c7b02b2128d88d92155">&#9670;&nbsp;</a></span>adjday()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> adjday </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>t</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>t0</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Adjust time considering day handover. </p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ae6a67106f4591c7b02b2128d88d92155_icgraph.svg" width="228" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aa658848066a28188b0e4b23f739ef883" name="aa658848066a28188b0e4b23f739ef883"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa658848066a28188b0e4b23f739ef883">&#9670;&nbsp;</a></span>adjweek()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> adjweek </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>t</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>t0</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Adjust time considering week handover. </p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_aa658848066a28188b0e4b23f739ef883_icgraph.svg" width="239" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
 <a id="ad6a8477bb1f9222ff5b2487476ee31f0" name="ad6a8477bb1f9222ff5b2487476ee31f0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad6a8477bb1f9222ff5b2487476ee31f0">&#9670;&nbsp;</a></span>BETTER_ENUM()</h2>
 
@@ -248,13 +166,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">short <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype">short <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ad272ec1f335d680e948c51dea39d3375">NONE</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#a73aeaa6097657d473373a66998ffdbaa">NONE</a>&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
@@ -311,56 +229,14 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a3758818a3905273fa02e75588404b88c" name="a3758818a3905273fa02e75588404b88c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3758818a3905273fa02e75588404b88c">&#9670;&nbsp;</a></span>convcode()</h2>
+<a id="ac721d8d1b845308215141fb2291a92bd" name="ac721d8d1b845308215141fb2291a92bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac721d8d1b845308215141fb2291a92bd">&#9670;&nbsp;</a></span>decodeCeph()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void convcode </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>ver</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>sys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>str</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>type</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Convert rinex obs type ver.2 -&gt; ver.3. </p>
-
-</div>
-</div>
-<a id="a49860903ba3deda27374072016e16fbb" name="a49860903ba3deda27374072016e16fbb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a49860903ba3deda27374072016e16fbb">&#9670;&nbsp;</a></span>decodeCeph()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeCeph </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeCeph </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>ver</em>, </td>
@@ -386,7 +262,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype">vector&lt; double &gt; &amp;&#160;</td>
           <td class="paramname"><em>data</em>, </td>
         </tr>
         <tr>
@@ -408,7 +284,7 @@ Here is the caller graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">ver</td><td>RINEX version</td></tr>
     <tr><td class="paramname">Sat</td><td>Satellite ID</td></tr>
-    <tr><td class="paramname">type</td><td><a class="el" href="structNavigation.html">Navigation</a> message type</td></tr>
+    <tr><td class="paramname">type</td><td><a class="el" href="structNavigation.html" title="navigation data type">Navigation</a> message type</td></tr>
     <tr><td class="paramname">toc</td><td>Time of clock</td></tr>
     <tr><td class="paramname">data</td><td>Data to decode</td></tr>
     <tr><td class="paramname">ceph</td><td>CNVX ephemeris </td></tr>
@@ -418,24 +294,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a49860903ba3deda27374072016e16fbb_cgraph.svg" width="250" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ac721d8d1b845308215141fb2291a92bd_cgraph.svg" width="248" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a49860903ba3deda27374072016e16fbb_icgraph.svg" width="266" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ac721d8d1b845308215141fb2291a92bd_icgraph.svg" width="272" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a47e197e8bad4103334d186f5fde306eb" name="a47e197e8bad4103334d186f5fde306eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a47e197e8bad4103334d186f5fde306eb">&#9670;&nbsp;</a></span>decodeEop()</h2>
+<a id="a675fb8dcd8c4dc15418fa7cfcb980093" name="a675fb8dcd8c4dc15418fa7cfcb980093"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a675fb8dcd8c4dc15418fa7cfcb980093">&#9670;&nbsp;</a></span>decodeEop()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeEop </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeEop </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>ver</em>, </td>
@@ -461,7 +337,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype">vector&lt; double &gt; &amp;&#160;</td>
           <td class="paramname"><em>data</em>, </td>
         </tr>
         <tr>
@@ -480,26 +356,21 @@ Here is the caller graph for this function:</div>
 
 <p>Decode <a class="el" href="structEOP.html" title="EOP message.">EOP</a> message. </p>
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a47e197e8bad4103334d186f5fde306eb_cgraph.svg" width="240" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a47e197e8bad4103334d186f5fde306eb_icgraph.svg" width="256" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a675fb8dcd8c4dc15418fa7cfcb980093_icgraph.svg" width="263" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ae3132fbeb0a7c18e3316f143ae063998" name="ae3132fbeb0a7c18e3316f143ae063998"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae3132fbeb0a7c18e3316f143ae063998">&#9670;&nbsp;</a></span>decodeEph()</h2>
+<a id="a979e29d6c67b175b1c72c8a619e2c6fa" name="a979e29d6c67b175b1c72c8a619e2c6fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a979e29d6c67b175b1c72c8a619e2c6fa">&#9670;&nbsp;</a></span>decodeEph()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeEph </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeEph </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>ver</em>, </td>
@@ -519,7 +390,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype">vector&lt; double &gt; &amp;&#160;</td>
           <td class="paramname"><em>data</em>, </td>
         </tr>
         <tr>
@@ -540,24 +411,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ae3132fbeb0a7c18e3316f143ae063998_cgraph.svg" width="442" height="431"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a979e29d6c67b175b1c72c8a619e2c6fa_cgraph.svg" width="442" height="219"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ae3132fbeb0a7c18e3316f143ae063998_icgraph.svg" width="256" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a979e29d6c67b175b1c72c8a619e2c6fa_icgraph.svg" width="263" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a30b3cdcd487d258c340534e7ddbde2e1" name="a30b3cdcd487d258c340534e7ddbde2e1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a30b3cdcd487d258c340534e7ddbde2e1">&#9670;&nbsp;</a></span>decodeGeph()</h2>
+<a id="ae809a4d28d2ab5e2c8100852605ad114" name="ae809a4d28d2ab5e2c8100852605ad114"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae809a4d28d2ab5e2c8100852605ad114">&#9670;&nbsp;</a></span>decodeGeph()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeGeph </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeGeph </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>ver</em>, </td>
@@ -577,7 +448,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype">vector&lt; double &gt; &amp;&#160;</td>
           <td class="paramname"><em>data</em>, </td>
         </tr>
         <tr>
@@ -608,24 +479,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a30b3cdcd487d258c340534e7ddbde2e1_cgraph.svg" width="250" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ae809a4d28d2ab5e2c8100852605ad114_cgraph.svg" width="248" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a30b3cdcd487d258c340534e7ddbde2e1_icgraph.svg" width="266" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ae809a4d28d2ab5e2c8100852605ad114_icgraph.svg" width="272" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ab0c8334faa319e55082962e09df62b0c" name="ab0c8334faa319e55082962e09df62b0c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab0c8334faa319e55082962e09df62b0c">&#9670;&nbsp;</a></span>decodeGnavh()</h2>
+<a id="a3ae01240baac2b9246e1d1f4ad068eaf" name="a3ae01240baac2b9246e1d1f4ad068eaf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ae01240baac2b9246e1d1f4ad068eaf">&#9670;&nbsp;</a></span>decodeGnavH()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void decodeGnavh </td>
+          <td class="memname">void decodeGnavH </td>
           <td>(</td>
           <td class="paramtype">string &amp;&#160;</td>
           <td class="paramname"><em>line</em>, </td>
@@ -648,24 +519,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ab0c8334faa319e55082962e09df62b0c_cgraph.svg" width="246" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a3ae01240baac2b9246e1d1f4ad068eaf_cgraph.svg" width="248" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ab0c8334faa319e55082962e09df62b0c_icgraph.svg" width="250" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a3ae01240baac2b9246e1d1f4ad068eaf_icgraph.svg" width="259" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ad2d8f37738f720ba76e3354346fc4e17" name="ad2d8f37738f720ba76e3354346fc4e17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2d8f37738f720ba76e3354346fc4e17">&#9670;&nbsp;</a></span>decodeHnavh()</h2>
+<a id="aeb9ed7a2f9c56ac369434c213abaed3e" name="aeb9ed7a2f9c56ac369434c213abaed3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb9ed7a2f9c56ac369434c213abaed3e">&#9670;&nbsp;</a></span>decodeHnavH()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void decodeHnavh </td>
+          <td class="memname">void decodeHnavH </td>
           <td>(</td>
           <td class="paramtype">string &amp;&#160;</td>
           <td class="paramname"><em>line</em>, </td>
@@ -688,24 +559,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ad2d8f37738f720ba76e3354346fc4e17_cgraph.svg" width="246" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_aeb9ed7a2f9c56ac369434c213abaed3e_cgraph.svg" width="248" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ad2d8f37738f720ba76e3354346fc4e17_icgraph.svg" width="250" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_aeb9ed7a2f9c56ac369434c213abaed3e_icgraph.svg" width="259" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="afc14d56bbd6b9fe0ced3dfc102fcc6a8" name="afc14d56bbd6b9fe0ced3dfc102fcc6a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc14d56bbd6b9fe0ced3dfc102fcc6a8">&#9670;&nbsp;</a></span>decodeIon()</h2>
+<a id="ae14c4ab1a5d0d4373fb2cd1fc24f3943" name="ae14c4ab1a5d0d4373fb2cd1fc24f3943"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae14c4ab1a5d0d4373fb2cd1fc24f3943">&#9670;&nbsp;</a></span>decodeIon()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeIon </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeIon </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>ver</em>, </td>
@@ -731,7 +602,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype">vector&lt; double &gt; &amp;&#160;</td>
           <td class="paramname"><em>data</em>, </td>
         </tr>
         <tr>
@@ -750,26 +621,21 @@ Here is the caller graph for this function:</div>
 
 <p>Decode <a class="el" href="structION.html" title="ionosphere message">ION</a> message. </p>
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_afc14d56bbd6b9fe0ced3dfc102fcc6a8_cgraph.svg" width="227" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_afc14d56bbd6b9fe0ced3dfc102fcc6a8_icgraph.svg" width="252" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ae14c4ab1a5d0d4373fb2cd1fc24f3943_icgraph.svg" width="259" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a98a2dc67757d3341b779c2d60a4f64e3" name="a98a2dc67757d3341b779c2d60a4f64e3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a98a2dc67757d3341b779c2d60a4f64e3">&#9670;&nbsp;</a></span>decodeNavh()</h2>
+<a id="a7a60f187ca9defbaa801f242efb7f18b" name="a7a60f187ca9defbaa801f242efb7f18b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a60f187ca9defbaa801f242efb7f18b">&#9670;&nbsp;</a></span>decodeNavH()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void decodeNavh </td>
+          <td class="memname">void decodeNavH </td>
           <td>(</td>
           <td class="paramtype">string &amp;&#160;</td>
           <td class="paramname"><em>line</em>, </td>
@@ -799,31 +665,31 @@ Here is the caller graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">line</td><td>Line to decode</td></tr>
     <tr><td class="paramname">sys</td><td>GNSS system</td></tr>
-    <tr><td class="paramname">nav</td><td><a class="el" href="structNavigation.html">Navigation</a> data </td></tr>
+    <tr><td class="paramname">nav</td><td><a class="el" href="structNavigation.html" title="navigation data type">Navigation</a> data </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a98a2dc67757d3341b779c2d60a4f64e3_cgraph.svg" width="250" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a7a60f187ca9defbaa801f242efb7f18b_cgraph.svg" width="240" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a98a2dc67757d3341b779c2d60a4f64e3_icgraph.svg" width="242" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a7a60f187ca9defbaa801f242efb7f18b_icgraph.svg" width="251" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a5135924cbf858be2d644414f3e04b828" name="a5135924cbf858be2d644414f3e04b828"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5135924cbf858be2d644414f3e04b828">&#9670;&nbsp;</a></span>decodeObsdata()</h2>
+<a id="a435e959376f897a6b62de80b86e0d451" name="a435e959376f897a6b62de80b86e0d451"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a435e959376f897a6b62de80b86e0d451">&#9670;&nbsp;</a></span>decodeObsData()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeObsdata </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeObsData </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -843,20 +709,20 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramtype">map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
           <td class="paramname"><em>sysCodeTypes</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structRawObs.html">RawObs</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structGObs.html">GObs</a> &amp;&#160;</td>
           <td class="paramname"><em>obs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a> &amp;&#160;</td>
-          <td class="paramname"><em>v2SatSys_ptr</em>&#160;</td>
+          <td class="paramname"><em>v2SatSys</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -870,24 +736,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a5135924cbf858be2d644414f3e04b828_cgraph.svg" width="258" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a435e959376f897a6b62de80b86e0d451_cgraph.svg" width="260" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a5135924cbf858be2d644414f3e04b828_icgraph.svg" width="284" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a435e959376f897a6b62de80b86e0d451_icgraph.svg" width="295" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="abaed7d9574f8e8fd3eaec0714632304b" name="abaed7d9574f8e8fd3eaec0714632304b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abaed7d9574f8e8fd3eaec0714632304b">&#9670;&nbsp;</a></span>decodeObsepoch()</h2>
+<a id="a88f2d75f4dbbc4569d0fc07e474d63cc" name="a88f2d75f4dbbc4569d0fc07e474d63cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88f2d75f4dbbc4569d0fc07e474d63cc">&#9670;&nbsp;</a></span>decodeObsEpoch()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeObsepoch </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeObsEpoch </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -907,13 +773,19 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">E_TimeSys&#160;</td>
+          <td class="paramname"><em>tsys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td>
           <td class="paramname"><em>time</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
           <td class="paramname"><em>flag</em>, </td>
         </tr>
         <tr>
@@ -934,24 +806,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_abaed7d9574f8e8fd3eaec0714632304b_cgraph.svg" width="270" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a88f2d75f4dbbc4569d0fc07e474d63cc_cgraph.svg" width="270" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_abaed7d9574f8e8fd3eaec0714632304b_icgraph.svg" width="295" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a88f2d75f4dbbc4569d0fc07e474d63cc_icgraph.svg" width="303" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a14aeff424f301ac2512155167d548348" name="a14aeff424f301ac2512155167d548348"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a14aeff424f301ac2512155167d548348">&#9670;&nbsp;</a></span>decodeObsh()</h2>
+<a id="af70972b806e723e3d028ddc8058d3998" name="af70972b806e723e3d028ddc8058d3998"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af70972b806e723e3d028ddc8058d3998">&#9670;&nbsp;</a></span>decodeObsH()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void decodeObsh </td>
+          <td class="memname">void decodeObsH </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -971,13 +843,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype">E_TimeSys &amp;&#160;</td>
           <td class="paramname"><em>tsys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramtype">map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
           <td class="paramname"><em>sysCodeTypes</em>, </td>
         </tr>
         <tr>
@@ -990,7 +862,7 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structRinexStation.html">RinexStation</a> *&#160;</td>
-          <td class="paramname"><em>sta</em>&#160;</td>
+          <td class="paramname"><em>rec</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1004,24 +876,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a14aeff424f301ac2512155167d548348_cgraph.svg" width="238" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_af70972b806e723e3d028ddc8058d3998_cgraph.svg" width="336" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a14aeff424f301ac2512155167d548348_icgraph.svg" width="242" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_af70972b806e723e3d028ddc8058d3998_icgraph.svg" width="250" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a6613c8a15b270944e8f29ebf0357c3b0" name="a6613c8a15b270944e8f29ebf0357c3b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6613c8a15b270944e8f29ebf0357c3b0">&#9670;&nbsp;</a></span>decodeSeph()</h2>
+<a id="ac537c5434aa7432a5dc292e882cfbc17" name="ac537c5434aa7432a5dc292e882cfbc17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac537c5434aa7432a5dc292e882cfbc17">&#9670;&nbsp;</a></span>decodeSeph()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeSeph </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeSeph </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>ver</em>, </td>
@@ -1041,7 +913,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype">vector&lt; double &gt; &amp;&#160;</td>
           <td class="paramname"><em>data</em>, </td>
         </tr>
         <tr>
@@ -1062,24 +934,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a6613c8a15b270944e8f29ebf0357c3b0_cgraph.svg" width="248" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ac537c5434aa7432a5dc292e882cfbc17_cgraph.svg" width="247" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a6613c8a15b270944e8f29ebf0357c3b0_icgraph.svg" width="264" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ac537c5434aa7432a5dc292e882cfbc17_icgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="abf5c2200567764637e86c93fa34ea658" name="abf5c2200567764637e86c93fa34ea658"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf5c2200567764637e86c93fa34ea658">&#9670;&nbsp;</a></span>decodeSto()</h2>
+<a id="a7f83de913c4e69ead61fcfcefddd6eb8" name="a7f83de913c4e69ead61fcfcefddd6eb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f83de913c4e69ead61fcfcefddd6eb8">&#9670;&nbsp;</a></span>decodeSto()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> decodeSto </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> decodeSto </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>ver</em>, </td>
@@ -1105,7 +977,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype">vector&lt; double &gt; &amp;&#160;</td>
           <td class="paramname"><em>data</em>, </td>
         </tr>
         <tr>
@@ -1124,26 +996,21 @@ Here is the caller graph for this function:</div>
 
 <p>Decode <a class="el" href="structSTO.html" title="system Time offset message">STO</a> message. </p>
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_abf5c2200567764637e86c93fa34ea658_cgraph.svg" width="238" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_abf5c2200567764637e86c93fa34ea658_icgraph.svg" width="254" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a7f83de913c4e69ead61fcfcefddd6eb8_icgraph.svg" width="260" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="af7ce6f0e18abbe3361d4db9077a37e36" name="af7ce6f0e18abbe3361d4db9077a37e36"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7ce6f0e18abbe3361d4db9077a37e36">&#9670;&nbsp;</a></span>readrnx()</h2>
+<a id="acfe92a2c6d1d139626ed2505d5477811" name="acfe92a2c6d1d139626ed2505d5477811"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acfe92a2c6d1d139626ed2505d5477811">&#9670;&nbsp;</a></span>readRnx()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readrnx </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readRnx </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -1157,7 +1024,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>, </td>
         </tr>
         <tr>
@@ -1187,13 +1054,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype">E_TimeSys &amp;&#160;</td>
           <td class="paramname"><em>tsys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramtype">map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
           <td class="paramname"><em>sysCodeTypes</em>&#160;</td>
         </tr>
         <tr>
@@ -1208,24 +1075,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_af7ce6f0e18abbe3361d4db9077a37e36_cgraph.svg" width="227" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_acfe92a2c6d1d139626ed2505d5477811_cgraph.svg" width="238" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_af7ce6f0e18abbe3361d4db9077a37e36_icgraph.svg" width="358" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_acfe92a2c6d1d139626ed2505d5477811_icgraph.svg" width="279" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a4a284b8fafe2b4b51d562ce5be276d84" name="a4a284b8fafe2b4b51d562ce5be276d84"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a284b8fafe2b4b51d562ce5be276d84">&#9670;&nbsp;</a></span>readrnxclk()</h2>
+<a id="a31dd08ba5cac291e98978728ec29f60c" name="a31dd08ba5cac291e98978728ec29f60c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31dd08ba5cac291e98978728ec29f60c">&#9670;&nbsp;</a></span>readRnxClk()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readrnxclk </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readRnxClk </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -1254,24 +1121,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a4a284b8fafe2b4b51d562ce5be276d84_cgraph.svg" width="227" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a31dd08ba5cac291e98978728ec29f60c_cgraph.svg" width="234" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a4a284b8fafe2b4b51d562ce5be276d84_icgraph.svg" width="222" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a31dd08ba5cac291e98978728ec29f60c_icgraph.svg" width="232" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="af51477471020f72c312825cdd4165640" name="af51477471020f72c312825cdd4165640"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af51477471020f72c312825cdd4165640">&#9670;&nbsp;</a></span>readrnxh()</h2>
+<a id="aed72692757d15d9b0fa9b4cd9de1a9c8" name="aed72692757d15d9b0fa9b4cd9de1a9c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed72692757d15d9b0fa9b4cd9de1a9c8">&#9670;&nbsp;</a></span>readRnxH()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readrnxh </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readRnxH </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -1297,13 +1164,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype">E_TimeSys &amp;&#160;</td>
           <td class="paramname"><em>tsys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramtype">map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
           <td class="paramname"><em>sysCodeTypes</em>, </td>
         </tr>
         <tr>
@@ -1316,7 +1183,7 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structRinexStation.html">RinexStation</a> *&#160;</td>
-          <td class="paramname"><em>sta</em>&#160;</td>
+          <td class="paramname"><em>rec</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1330,24 +1197,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_af51477471020f72c312825cdd4165640_cgraph.svg" width="374" height="215"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_aed72692757d15d9b0fa9b4cd9de1a9c8_cgraph.svg" width="526" height="331"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_af51477471020f72c312825cdd4165640_icgraph.svg" width="211" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_aed72692757d15d9b0fa9b4cd9de1a9c8_icgraph.svg" width="222" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a045f9195bb89cfcb58018ebacc367fcf" name="a045f9195bb89cfcb58018ebacc367fcf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a045f9195bb89cfcb58018ebacc367fcf">&#9670;&nbsp;</a></span>readrnxnav()</h2>
+<a id="a73b7b5a70a0a8fa601dc56facd07d3f7" name="a73b7b5a70a0a8fa601dc56facd07d3f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73b7b5a70a0a8fa601dc56facd07d3f7">&#9670;&nbsp;</a></span>readRnxNav()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readrnxnav </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readRnxNav </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -1381,34 +1248,34 @@ Here is the caller graph for this function:</div>
 <p>Read rinex nav/gnav/geo nav. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">inputStream</td><td>Input stream to read</td></tr>
+    <tr><td class="paramname">inputStream</td><td><a class="el" href="structInput.html">Input</a> stream to read</td></tr>
     <tr><td class="paramname">ver</td><td>RINEX version</td></tr>
     <tr><td class="paramname">sys</td><td>Satellite system</td></tr>
-    <tr><td class="paramname">nav</td><td><a class="el" href="structNavigation.html">Navigation</a> object </td></tr>
+    <tr><td class="paramname">nav</td><td><a class="el" href="structNavigation.html" title="navigation data type">Navigation</a> object </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a045f9195bb89cfcb58018ebacc367fcf_cgraph.svg" width="259" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a73b7b5a70a0a8fa601dc56facd07d3f7_cgraph.svg" width="272" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a045f9195bb89cfcb58018ebacc367fcf_icgraph.svg" width="227" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a73b7b5a70a0a8fa601dc56facd07d3f7_icgraph.svg" width="238" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="af33ae77491d2a7f4b184f0c320874f2f" name="af33ae77491d2a7f4b184f0c320874f2f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af33ae77491d2a7f4b184f0c320874f2f">&#9670;&nbsp;</a></span>readrnxnavb()</h2>
+<a id="a792445378357d92f2cba6dc7ec14c75b" name="a792445378357d92f2cba6dc7ec14c75b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a792445378357d92f2cba6dc7ec14c75b">&#9670;&nbsp;</a></span>readRnxNavB()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readrnxnavb </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readRnxNavB </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -1484,7 +1351,7 @@ Here is the caller graph for this function:</div>
 <p>Read rinex navigation data body. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">inputStream</td><td>Input stream to read</td></tr>
+    <tr><td class="paramname">inputStream</td><td><a class="el" href="structInput.html">Input</a> stream to read</td></tr>
     <tr><td class="paramname">ver</td><td>RINEX version</td></tr>
     <tr><td class="paramname">sys</td><td>Satellite system</td></tr>
     <tr><td class="paramname">type</td><td>Ephemeris type (output)</td></tr>
@@ -1501,24 +1368,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_af33ae77491d2a7f4b184f0c320874f2f_cgraph.svg" width="266" height="443"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a792445378357d92f2cba6dc7ec14c75b_cgraph.svg" width="272" height="443"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_af33ae77491d2a7f4b184f0c320874f2f_icgraph.svg" width="259" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a792445378357d92f2cba6dc7ec14c75b_icgraph.svg" width="272" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a7ac0513671bff5c91f961ebca3ae1673" name="a7ac0513671bff5c91f961ebca3ae1673"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ac0513671bff5c91f961ebca3ae1673">&#9670;&nbsp;</a></span>readrnxobs()</h2>
+<a id="ab76f7c2099549c8ac6eea25ba125c8bb" name="ab76f7c2099549c8ac6eea25ba125c8bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab76f7c2099549c8ac6eea25ba125c8bb">&#9670;&nbsp;</a></span>readRnxObs()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readrnxobs </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readRnxObs </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -1532,20 +1399,26 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype">E_TimeSys&#160;</td>
           <td class="paramname"><em>tsys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramtype">map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
           <td class="paramname"><em>sysCodeTypes</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
-          <td class="paramname"><em>obsList</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
+          <td class="paramname"><em>obsList</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structRinexStation.html">RinexStation</a> *&#160;</td>
+          <td class="paramname"><em>sta</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1559,24 +1432,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a7ac0513671bff5c91f961ebca3ae1673_cgraph.svg" width="256" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ab76f7c2099549c8ac6eea25ba125c8bb_cgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a7ac0513671bff5c91f961ebca3ae1673_icgraph.svg" width="226" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_ab76f7c2099549c8ac6eea25ba125c8bb_icgraph.svg" width="236" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a8904a223b164e16e88cc0e2e0681d5c2" name="a8904a223b164e16e88cc0e2e0681d5c2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8904a223b164e16e88cc0e2e0681d5c2">&#9670;&nbsp;</a></span>readrnxobsb()</h2>
+<a id="a7d866c72fe703ad325f166a0126e1791" name="a7d866c72fe703ad325f166a0126e1791"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d866c72fe703ad325f166a0126e1791">&#9670;&nbsp;</a></span>readRnxObsB()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readrnxobsb </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readRnxObsB </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -1590,19 +1463,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramtype">E_TimeSys&#160;</td>
+          <td class="paramname"><em>tsys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
           <td class="paramname"><em>sysCodeTypes</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
           <td class="paramname"><em>flag</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>&#160;</td>
         </tr>
         <tr>
@@ -1617,12 +1496,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a8904a223b164e16e88cc0e2e0681d5c2_cgraph.svg" width="295" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a7d866c72fe703ad325f166a0126e1791_cgraph.svg" width="303" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a8904a223b164e16e88cc0e2e0681d5c2_icgraph.svg" width="256" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a7d866c72fe703ad325f166a0126e1791_icgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1648,7 +1527,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>n</em>&#160;</td>
         </tr>
         <tr>
@@ -1660,30 +1539,10 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Set string without tail space. </p>
-
-</div>
-</div>
-<a id="a9f073cc8f2e3bddcb18f0bb37351af70" name="a9f073cc8f2e3bddcb18f0bb37351af70"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f073cc8f2e3bddcb18f0bb37351af70">&#9670;&nbsp;</a></span>uraindex()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> uraindex </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>value</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>URA value (m) to ura index. </p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a9f073cc8f2e3bddcb18f0bb37351af70_icgraph.svg" width="239" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8cpp_a6376198348c1ba8648f5bbe2ee58e4ab_icgraph.svg" width="222" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

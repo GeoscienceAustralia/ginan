@@ -86,23 +86,101 @@ Functions</h2></td></tr>
 <tr class="memitem:a961567e1b6659842a971db2d3cc759fc"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a961567e1b6659842a971db2d3cc759fc">biasType</a> (E_ObsCode code1, E_ObsCode code2)</td></tr>
 <tr class="memdesc:a961567e1b6659842a971db2d3cc759fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine if the bias is an OSB or DSB given observation codes.  <a href="biasSINEXwrite_8cpp.html#a961567e1b6659842a971db2d3cc759fc">More...</a><br /></td></tr>
 <tr class="separator:a961567e1b6659842a971db2d3cc759fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39dff45cfb618319d83537ea39018e82"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a39dff45cfb618319d83537ea39018e82">sinex_time</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> *yds)</td></tr>
-<tr class="memdesc:a39dff45cfb618319d83537ea39018e82"><td class="mdescLeft">&#160;</td><td class="mdescRight">convert time to yds (doy in bias SINEX starts at 1)  <a href="biasSINEXwrite_8cpp.html#a39dff45cfb618319d83537ea39018e82">More...</a><br /></td></tr>
-<tr class="separator:a39dff45cfb618319d83537ea39018e82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c7bad6904e92e16df26708e1e2d02cc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a6c7bad6904e92e16df26708e1e2d02cc">write_bSINEX_head</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> *yds0, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numbiases, string type, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> updatetime, string mode)</td></tr>
-<tr class="memdesc:a6c7bad6904e92e16df26708e1e2d02cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write bias SINEX head.  <a href="biasSINEXwrite_8cpp.html#a6c7bad6904e92e16df26708e1e2d02cc">More...</a><br /></td></tr>
-<tr class="separator:a6c7bad6904e92e16df26708e1e2d02cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e4fe834c1dbcb6b4a41560de1d7432e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a4e4fe834c1dbcb6b4a41560de1d7432e">write_bSINEX_line</a> (<a class="el" href="structSinexBias.html">SinexBias</a> bias, <a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace)</td></tr>
-<tr class="memdesc:a4e4fe834c1dbcb6b4a41560de1d7432e"><td class="mdescLeft">&#160;</td><td class="mdescRight">print bias SINEX data line  <a href="biasSINEXwrite_8cpp.html#a4e4fe834c1dbcb6b4a41560de1d7432e">More...</a><br /></td></tr>
-<tr class="separator:a4e4fe834c1dbcb6b4a41560de1d7432e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee560ba7f0a3ee3cb198627a9673c27e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#aee560ba7f0a3ee3cb198627a9673c27e">writeBiasSinex</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, string biasfile)</td></tr>
-<tr class="memdesc:aee560ba7f0a3ee3cb198627a9673c27e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write stored bias output to SINEX file Return number of written biases (-1 if file not found)  <a href="biasSINEXwrite_8cpp.html#aee560ba7f0a3ee3cb198627a9673c27e">More...</a><br /></td></tr>
-<tr class="separator:aee560ba7f0a3ee3cb198627a9673c27e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3193a7ae3e27dfbd3caaaba922a113cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a3193a7ae3e27dfbd3caaaba922a113cb">outp_bias</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, string receiver, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode code1, E_ObsCode code2, double bias, double variance, double updateInterval, <a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9">E_MeasType</a> measType)</td></tr>
-<tr class="memdesc:a3193a7ae3e27dfbd3caaaba922a113cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store bias output to write into bias SINEX files.  <a href="biasSINEXwrite_8cpp.html#a3193a7ae3e27dfbd3caaaba922a113cb">More...</a><br /></td></tr>
-<tr class="separator:a3193a7ae3e27dfbd3caaaba922a113cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a986e047c2dd383adf5526d99e5c418c4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a986e047c2dd383adf5526d99e5c418c4">updateFirstLine</a> (<a class="el" href="structGTime.html">GTime</a> time, E_TimeSys tsys, <a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numbias)</td></tr>
+<tr class="memdesc:a986e047c2dd383adf5526d99e5c418c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update bias SINEX first line.  <a href="biasSINEXwrite_8cpp.html#a986e047c2dd383adf5526d99e5c418c4">More...</a><br /></td></tr>
+<tr class="separator:a986e047c2dd383adf5526d99e5c418c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab94f8678684d9733ffbe150e860a564a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#ab94f8678684d9733ffbe150e860a564a">writeBSINEXHeader</a> (<a class="el" href="structGTime.html">GTime</a> time, E_TimeSys tsys, <a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, double updateInterval)</td></tr>
+<tr class="memdesc:ab94f8678684d9733ffbe150e860a564a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write bias SINEX head for the first time.  <a href="biasSINEXwrite_8cpp.html#ab94f8678684d9733ffbe150e860a564a">More...</a><br /></td></tr>
+<tr class="separator:ab94f8678684d9733ffbe150e860a564a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcabd7eefaca5c01cf305a80294e57a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#adcabd7eefaca5c01cf305a80294e57a7">writeBSINEXLine</a> (<a class="el" href="structGTime.html">GTime</a> time, E_TimeSys tsys, <a class="el" href="structBiasEntry.html">BiasEntry</a> &amp;bias, <a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace)</td></tr>
+<tr class="memdesc:adcabd7eefaca5c01cf305a80294e57a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">print bias SINEX data line  <a href="biasSINEXwrite_8cpp.html#adcabd7eefaca5c01cf305a80294e57a7">More...</a><br /></td></tr>
+<tr class="separator:adcabd7eefaca5c01cf305a80294e57a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81a0e7abe30b31f541babeca9dc3a085"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a81a0e7abe30b31f541babeca9dc3a085">addBiasEntry</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> tini, <a class="el" href="structGTime.html">GTime</a> tfin, <a class="el" href="structKFKey.html">KFKey</a> kfKey, <a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9">E_MeasType</a> measType, double bias, double var)</td></tr>
+<tr class="memdesc:a81a0e7abe30b31f541babeca9dc3a085"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adding/updating new bias entry.  <a href="biasSINEXwrite_8cpp.html#a81a0e7abe30b31f541babeca9dc3a085">More...</a><br /></td></tr>
+<tr class="separator:a81a0e7abe30b31f541babeca9dc3a085"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc8237c886f93fe5f584339ab0cbf81e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#abc8237c886f93fe5f584339ab0cbf81e">updateBiasOutput</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9">E_MeasType</a> measType)</td></tr>
+<tr class="memdesc:abc8237c886f93fe5f584339ab0cbf81e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store bias output to write into bias SINEX files.  <a href="biasSINEXwrite_8cpp.html#abc8237c886f93fe5f584339ab0cbf81e">More...</a><br /></td></tr>
+<tr class="separator:abc8237c886f93fe5f584339ab0cbf81e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a975aa402cca9e4828c089e82bb68c5a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a975aa402cca9e4828c089e82bb68c5a6">writeBiasSinex</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, string biasfile, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
+<tr class="memdesc:a975aa402cca9e4828c089e82bb68c5a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write stored bias output to SINEX file Return number of written biases (-1 if file not found)  <a href="biasSINEXwrite_8cpp.html#a975aa402cca9e4828c089e82bb68c5a6">More...</a><br /></td></tr>
+<tr class="separator:a975aa402cca9e4828c089e82bb68c5a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afef6efc924f449b2fe170b2e08077d98"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#afef6efc924f449b2fe170b2e08077d98">writeBiasSinex</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, string biasfile, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:afef6efc924f449b2fe170b2e08077d98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c6a6779a265ef6ae5bab30f892dd183"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="biasSINEXwrite_8cpp.html#a7c6a6779a265ef6ae5bab30f892dd183">queryBiasOutput</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, string Rec, E_ObsCode obsCode, double &amp;bias, double &amp;variance, <a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9">E_MeasType</a> type)</td></tr>
+<tr class="memdesc:a7c6a6779a265ef6ae5bab30f892dd183"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find and combine biases from multiple sources: bias inputs, WLNL biases from Ginan 1.0, UC biases from Ginan 2.0 and DCB from ionosphere modules.  <a href="biasSINEXwrite_8cpp.html#a7c6a6779a265ef6ae5bab30f892dd183">More...</a><br /></td></tr>
+<tr class="separator:a7c6a6779a265ef6ae5bab30f892dd183"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a81a0e7abe30b31f541babeca9dc3a085" name="a81a0e7abe30b31f541babeca9dc3a085"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81a0e7abe30b31f541babeca9dc3a085">&#9670;&nbsp;</a></span>addBiasEntry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> addBiasEntry </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>tini</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>tfin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>kfKey</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9">E_MeasType</a>&#160;</td>
+          <td class="paramname"><em>measType</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>bias</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>var</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Adding/updating new bias entry. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a81a0e7abe30b31f541babeca9dc3a085_cgraph.svg" width="296" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a81a0e7abe30b31f541babeca9dc3a085_icgraph.svg" width="306" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a961567e1b6659842a971db2d3cc759fc" name="a961567e1b6659842a971db2d3cc759fc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a961567e1b6659842a971db2d3cc759fc">&#9670;&nbsp;</a></span>biasType()</h2>
 
@@ -140,19 +218,19 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a961567e1b6659842a971db2d3cc759fc_icgraph.svg" width="278" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a961567e1b6659842a971db2d3cc759fc_icgraph.svg" width="435" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a3193a7ae3e27dfbd3caaaba922a113cb" name="a3193a7ae3e27dfbd3caaaba922a113cb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3193a7ae3e27dfbd3caaaba922a113cb">&#9670;&nbsp;</a></span>outp_bias()</h2>
+<a id="a7c6a6779a265ef6ae5bab30f892dd183" name="a7c6a6779a265ef6ae5bab30f892dd183"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c6a6779a265ef6ae5bab30f892dd183">&#9670;&nbsp;</a></span>queryBiasOutput()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void outp_bias </td>
+          <td class="memname">bool queryBiasOutput </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -166,44 +244,84 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>receiver</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
           <td class="paramname"><em>Sat</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">E_ObsCode&#160;</td>
-          <td class="paramname"><em>code1</em>, </td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>Rec</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">E_ObsCode&#160;</td>
-          <td class="paramname"><em>code2</em>, </td>
+          <td class="paramname"><em>obsCode</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">double &amp;&#160;</td>
           <td class="paramname"><em>bias</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">double &amp;&#160;</td>
           <td class="paramname"><em>variance</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>updateInterval</em>, </td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9">E_MeasType</a>&#160;</td>
+          <td class="paramname"><em>type</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Find and combine biases from multiple sources: bias inputs, WLNL biases from Ginan 1.0, UC biases from Ginan 2.0 and DCB from ionosphere modules. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a7c6a6779a265ef6ae5bab30f892dd183_cgraph.svg" width="616" height="271"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a7c6a6779a265ef6ae5bab30f892dd183_icgraph.svg" width="328" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="abc8237c886f93fe5f584339ab0cbf81e" name="abc8237c886f93fe5f584339ab0cbf81e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc8237c886f93fe5f584339ab0cbf81e">&#9670;&nbsp;</a></span>updateBiasOutput()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void updateBiasOutput </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;&#160;</td>
+          <td class="paramname"><em>stationMap</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -223,39 +341,33 @@ Here is the caller graph for this function:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
-    <tr><td class="paramname">time</td><td>Time of bias to write</td></tr>
-    <tr><td class="paramname">receiver</td><td>Receiver to output bias of</td></tr>
-    <tr><td class="paramname">Sat</td><td>Satellite to output bias of</td></tr>
-    <tr><td class="paramname">code1</td><td>Base code of observation to output for</td></tr>
-    <tr><td class="paramname">code2</td><td>Secondary code of observation to output for</td></tr>
-    <tr><td class="paramname">bias</td><td>Hardware bias</td></tr>
-    <tr><td class="paramname">variance</td><td>Hardware bias variance</td></tr>
-    <tr><td class="paramname">updateInterval</td><td>Update Interval of hardbias output (seconds)</td></tr>
-    <tr><td class="paramname">measType</td><td>Measurement type to output bias for </td></tr>
+    <tr><td class="paramname">time</td><td>Time of bias update</td></tr>
+    <tr><td class="paramname">stationMap</td><td>stations for which to output receiver biases</td></tr>
+    <tr><td class="paramname">measType</td><td>Type of measurement to find bias for </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a3193a7ae3e27dfbd3caaaba922a113cb_cgraph.svg" width="274" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_abc8237c886f93fe5f584339ab0cbf81e_cgraph.svg" width="328" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a3193a7ae3e27dfbd3caaaba922a113cb_icgraph.svg" width="323" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_abc8237c886f93fe5f584339ab0cbf81e_icgraph.svg" width="316" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a39dff45cfb618319d83537ea39018e82" name="a39dff45cfb618319d83537ea39018e82"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a39dff45cfb618319d83537ea39018e82">&#9670;&nbsp;</a></span>sinex_time()</h2>
+<a id="a986e047c2dd383adf5526d99e5c418c4" name="a986e047c2dd383adf5526d99e5c418c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a986e047c2dd383adf5526d99e5c418c4">&#9670;&nbsp;</a></span>updateFirstLine()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void sinex_time </td>
+          <td class="memname">void updateFirstLine </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>time</em>, </td>
@@ -263,49 +375,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> *&#160;</td>
-          <td class="paramname"><em>yds</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>convert time to yds (doy in bias SINEX starts at 1) </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">time</td><td><a class="el" href="structGTime.html" title="Time structure used throughout this software.">GTime</a> to be converted to yds</td></tr>
-    <tr><td class="paramname">yds</td><td>Year, doy and seconds </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a39dff45cfb618319d83537ea39018e82_cgraph.svg" width="252" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a39dff45cfb618319d83537ea39018e82_icgraph.svg" width="302" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a6c7bad6904e92e16df26708e1e2d02cc" name="a6c7bad6904e92e16df26708e1e2d02cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6c7bad6904e92e16df26708e1e2d02cc">&#9670;&nbsp;</a></span>write_bSINEX_head()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void write_bSINEX_head </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
+          <td class="paramtype">E_TimeSys&#160;</td>
+          <td class="paramname"><em>tsys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -316,32 +387,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> *&#160;</td>
-          <td class="paramname"><em>yds0</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>numbiases</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>updatetime</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>mode</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>numbias</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -351,42 +398,239 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Write bias SINEX head. </p>
+<p>Update bias SINEX first line. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">time</td><td>Time of bias to write</td></tr>
+    <tr><td class="paramname">tsys</td><td>Time system</td></tr>
     <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
-    <tr><td class="paramname">yds0</td><td>Year, doy and seconds</td></tr>
-    <tr><td class="paramname">numbiases</td><td>Number of biases to write</td></tr>
-    <tr><td class="paramname">type</td><td>Bias type - OSB and/or DSB</td></tr>
-    <tr><td class="paramname">updatetime</td><td>Update time (seconds)</td></tr>
-    <tr><td class="paramname">mode</td><td>Bias mode - ABSOLUTE and/or RELATIVE </td></tr>
+    <tr><td class="paramname">numbias</td><td>Number of biases to be written </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a6c7bad6904e92e16df26708e1e2d02cc_cgraph.svg" width="302" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a986e047c2dd383adf5526d99e5c418c4_cgraph.svg" width="275" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a6c7bad6904e92e16df26708e1e2d02cc_icgraph.svg" width="326" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a986e047c2dd383adf5526d99e5c418c4_icgraph.svg" width="498" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a4e4fe834c1dbcb6b4a41560de1d7432e" name="a4e4fe834c1dbcb6b4a41560de1d7432e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4e4fe834c1dbcb6b4a41560de1d7432e">&#9670;&nbsp;</a></span>write_bSINEX_line()</h2>
+<a id="a975aa402cca9e4828c089e82bb68c5a6" name="a975aa402cca9e4828c089e82bb68c5a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a975aa402cca9e4828c089e82bb68c5a6">&#9670;&nbsp;</a></span>writeBiasSinex() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> write_bSINEX_line </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> writeBiasSinex </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structSinexBias.html">SinexBias</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>biasfile</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;&#160;</td>
+          <td class="paramname"><em>stationMap</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write stored bias output to SINEX file Return number of written biases (-1 if file not found) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">time</td><td>Time of bias to write</td></tr>
+    <tr><td class="paramname">biasfile</td><td>File to write</td></tr>
+    <tr><td class="paramname">stationMap</td><td>stations for which to output receiver biases </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a975aa402cca9e4828c089e82bb68c5a6_cgraph.svg" width="640" height="372"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a975aa402cca9e4828c089e82bb68c5a6_icgraph.svg" width="296" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="afef6efc924f449b2fe170b2e08077d98" name="afef6efc924f449b2fe170b2e08077d98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afef6efc924f449b2fe170b2e08077d98">&#9670;&nbsp;</a></span>writeBiasSinex() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> writeBiasSinex </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>biasfile</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;&#160;</td>
+          <td class="paramname"><em>stationMap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">time</td><td>Time of bias to write</td></tr>
+    <tr><td class="paramname">biasfile</td><td>File to write</td></tr>
+    <tr><td class="paramname">stationMap</td><td>stations for which to output receiver biases</td></tr>
+    <tr><td class="paramname">kfState</td><td>KF strunct from witch to extract bias estimations </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_afef6efc924f449b2fe170b2e08077d98_cgraph.svg" width="312" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_afef6efc924f449b2fe170b2e08077d98_icgraph.svg" width="391" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab94f8678684d9733ffbe150e860a564a" name="ab94f8678684d9733ffbe150e860a564a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab94f8678684d9733ffbe150e860a564a">&#9670;&nbsp;</a></span>writeBSINEXHeader()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void writeBSINEXHeader </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_TimeSys&#160;</td>
+          <td class="paramname"><em>tsys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>updateInterval</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write bias SINEX head for the first time. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">time</td><td>Time of bias to write</td></tr>
+    <tr><td class="paramname">tsys</td><td>Time system</td></tr>
+    <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">updateInterval</td><td>Bias Update Interval (seconds) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_ab94f8678684d9733ffbe150e860a564a_cgraph.svg" width="474" height="164"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_ab94f8678684d9733ffbe150e860a564a_icgraph.svg" width="328" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adcabd7eefaca5c01cf305a80294e57a7" name="adcabd7eefaca5c01cf305a80294e57a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcabd7eefaca5c01cf305a80294e57a7">&#9670;&nbsp;</a></span>writeBSINEXLine()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> writeBSINEXLine </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_TimeSys&#160;</td>
+          <td class="paramname"><em>tsys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structBiasEntry.html">BiasEntry</a> &amp;&#160;</td>
           <td class="paramname"><em>bias</em>, </td>
         </tr>
         <tr>
@@ -406,74 +650,22 @@ Here is the caller graph for this function:</div>
 <p>print bias SINEX data line </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">bias</td><td>Bias entry to write</td></tr>
-    <tr><td class="paramname">trace</td><td>Trace to output to </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a4e4fe834c1dbcb6b4a41560de1d7432e_cgraph.svg" width="492" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_a4e4fe834c1dbcb6b4a41560de1d7432e_icgraph.svg" width="318" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aee560ba7f0a3ee3cb198627a9673c27e" name="aee560ba7f0a3ee3cb198627a9673c27e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee560ba7f0a3ee3cb198627a9673c27e">&#9670;&nbsp;</a></span>writeBiasSinex()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> writeBiasSinex </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>biasfile</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Write stored bias output to SINEX file Return number of written biases (-1 if file not found) </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
     <tr><td class="paramname">time</td><td>Time of bias to write</td></tr>
-    <tr><td class="paramname">biasfile</td><td>File to write </td></tr>
+    <tr><td class="paramname">tsys</td><td>Time system</td></tr>
+    <tr><td class="paramname">bias</td><td>Bias entry to write</td></tr>
+    <tr><td class="paramname">trace</td><td><a class="el" href="structStream.html">Stream</a> to output to </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_aee560ba7f0a3ee3cb198627a9673c27e_cgraph.svg" width="468" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_adcabd7eefaca5c01cf305a80294e57a7_cgraph.svg" width="316" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_aee560ba7f0a3ee3cb198627a9673c27e_icgraph.svg" width="331" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="biasSINEXwrite_8cpp_adcabd7eefaca5c01cf305a80294e57a7_icgraph.svg" width="308" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

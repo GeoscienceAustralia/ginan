@@ -1,4 +1,4 @@
 <map id="radome2none" name="radome2none">
-<area shape="rect" id="node1" title=" " alt="" coords="237,5,349,32"/>
+<area shape="rect" id="node1" title="Change the last four characters of antenna type to NONE e,g, &quot;AOAD/M_T &#160;&#160;&#160;&#160;&#160;&#160;&#160;JPLA&quot; =&gt; &quot;AOAD/M_T &#160;&#160;&#160;&#160;..." alt="" coords="237,5,349,32"/>
 <area shape="rect" id="node2" href="$pea__snx_8cpp.html#a8e1c8eabbdcd632cd47f48b220ce3d25" title=" " alt="" coords="5,5,189,32"/>
 </map>

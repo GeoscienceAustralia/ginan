@@ -1,4 +1,4 @@
 <map id="DebugOptions" name="DebugOptions">
-<area shape="rect" id="node1" title="Options to be used only for debugging new features." alt="" coords="47,5,189,141"/>
-<area shape="rect" id="node2" href="$structACSConfig.html" title="General options object to be used throughout the software." alt="" coords="5,189,231,677"/>
+<area shape="rect" id="node1" title="Options to be used only for debugging new features." alt="" coords="23,5,213,171"/>
+<area shape="rect" id="node2" href="$structACSConfig.html" title="General options object to be used throughout the software." alt="" coords="5,219,231,751"/>
 </map>

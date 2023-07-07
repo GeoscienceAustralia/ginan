@@ -22,10 +22,10 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="structNtripUploader.html#a0763f31214a177f3d9be2301138fd0e7" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structNtripUploader.html#a391d7d2c8f7b72a659bd35d8242fb30a" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="0,-39 0,-69 175,-69 175,-39 0,-39"/>
 <text text-anchor="start" x="8" y="-57" font-family="Helvetica,sans-Serif" font-size="10.00">NtripUploader::messageTimeout</text>
-<text text-anchor="middle" x="87.5" y="-46" font-family="Helvetica,sans-Serif" font-size="10.00">_hanlder</text>
+<text text-anchor="middle" x="87.5" y="-46" font-family="Helvetica,sans-Serif" font-size="10.00">_handler</text>
 </a>
 </g>
 </g>
@@ -37,16 +37,16 @@
 <!-- Node5 -->
 <g id="node3" class="node">
 <title>Node5</title>
-<g id="a_node3"><a xlink:href="structRtcmStream.html#a34a7a941dab214b7ff6b17e8a53eb55a" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="18.5,-0.5 18.5,-19.5 156.5,-19.5 156.5,-0.5 18.5,-0.5"/>
-<text text-anchor="middle" x="87.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">RtcmStream::parseRTCM</text>
+<g id="a_node3"><a xlink:href="structRtcmDecoder.html#a9dcc38e7fa87e8aef6ec17cc3626146a" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="12.5,-0.5 12.5,-19.5 162.5,-19.5 162.5,-0.5 12.5,-0.5"/>
+<text text-anchor="middle" x="87.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">RtcmDecoder::recordFrame</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node5 -->
 <g id="edge3" class="edge">
 <title>Node1&#45;&gt;Node5</title>
-<path fill="none" stroke="midnightblue" d="M210.96,-23.75C193.14,-21.75 174.18,-19.62 156.63,-17.65"/>
+<path fill="none" stroke="midnightblue" d="M210.96,-23.75C195.21,-21.98 178.56,-20.11 162.78,-18.34"/>
 </g>
 <!-- Node2&#45;&gt;Node2 -->
 <g id="edge2" class="edge">

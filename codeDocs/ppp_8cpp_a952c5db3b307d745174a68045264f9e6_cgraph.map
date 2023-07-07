@@ -1,7 +1,8 @@
 <map id="outputPPPSolution" name="outputPPPSolution">
-<area shape="rect" id="node1" title="Compare estimated station position with benchmark in SINEX file." alt="" coords="5,81,147,108"/>
-<area shape="rect" id="node2" href="$rtkcmn_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="219,5,300,32"/>
-<area shape="rect" id="node3" href="$rtkcmn_8cpp.html#afcfc8fbadfd57eaa5b29712f2db88c64" title=" " alt="" coords="218,56,301,83"/>
-<area shape="rect" id="node4" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="212,107,307,133"/>
-<area shape="rect" id="node5" href="$structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" title=" " alt="" coords="195,157,324,184"/>
+<area shape="rect" id="node1" title="Compare estimated station position with benchmark in SINEX file." alt="" coords="5,107,147,133"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="195,5,368,32"/>
+<area shape="rect" id="node3" href="$utils_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="241,56,322,83"/>
+<area shape="rect" id="node4" href="$coordinates_8cpp.html#a04048e2e965c36987a98fb8c4f04bea2" title=" " alt="" coords="240,107,323,133"/>
+<area shape="rect" id="node5" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="234,157,329,184"/>
+<area shape="rect" id="node6" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="217,208,346,235"/>
 </map>

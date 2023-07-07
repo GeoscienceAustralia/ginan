@@ -1,4 +1,6 @@
 <map id="Sinex_site_ecc_t" name="Sinex_site_ecc_t">
-<area shape="rect" id="node1" title=" " alt="" coords="5,189,136,325"/>
-<area shape="rect" id="node2" title=" " alt="" coords="41,5,100,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="97,307,228,399"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,64,64,141"/>
+<area shape="rect" id="node3" href="$structUYds.html" title=" " alt="" coords="89,5,237,200"/>
+<area shape="rect" id="node4" href="$structVectorEnu.html" title=" " alt="" coords="261,13,374,193"/>
 </map>

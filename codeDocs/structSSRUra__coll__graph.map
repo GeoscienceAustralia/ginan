@@ -1,4 +1,5 @@
 <map id="SSRUra" name="SSRUra">
-<area shape="rect" id="node1" title=" " alt="" coords="45,424,116,531"/>
-<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,156,361"/>
+<area shape="rect" id="node1" title=" " alt="" coords="106,887,177,993"/>
+<area shape="rect" id="node2" href="$structSSRMeta.html" title=" " alt="" coords="5,659,155,824"/>
+<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="49,5,231,596"/>
 </map>

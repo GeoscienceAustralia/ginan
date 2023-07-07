@@ -1,5 +1,4 @@
 <map id="selectAprioriSource" name="selectAprioriSource">
-<area shape="rect" id="node1" title=" " alt="" coords="5,31,153,57"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="201,5,300,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a42a98c9bc4ba5249c22e031840d672e0" title=" " alt="" coords="205,56,297,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,153,32"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="201,5,375,32"/>
 </map>

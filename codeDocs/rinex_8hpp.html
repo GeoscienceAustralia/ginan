@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.4"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Ginan: /data/acs/ginan/src/cpp/rtklib/rinex.hpp File Reference</title>
+<title>Ginan: /data/acs/ginan/src/cpp/common/rinex.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -71,7 +71,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_df511e5bd85cec96854b39d5e1c27aa8.html">cpp</a></li><li class="navelem"><a class="el" href="dir_2d340a610648b7d5907a75febc608311.html">rtklib</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_df511e5bd85cec96854b39d5e1c27aa8.html">cpp</a></li><li class="navelem"><a class="el" href="dir_8a65d247160fca2a969d6d8ca16055a2.html">common</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -84,7 +84,7 @@ $(function() {
 <div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rinex_8hpp__dep__incl.svg" width="100%" height="417"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rinex_8hpp__dep__incl.svg" width="100%" height="406"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -94,21 +94,21 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:af7ce6f0e18abbe3361d4db9077a37e36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8hpp.html#af7ce6f0e18abbe3361d4db9077a37e36">readrnx</a> (std::istream &amp;inputStream, char &amp;type, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structRinexStation.html">RinexStation</a> *sta, double &amp;ver, E_Sys &amp;sys, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;tsys, map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes)</td></tr>
-<tr class="memdesc:af7ce6f0e18abbe3361d4db9077a37e36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex file.  <a href="rinex_8hpp.html#af7ce6f0e18abbe3361d4db9077a37e36">More...</a><br /></td></tr>
-<tr class="separator:af7ce6f0e18abbe3361d4db9077a37e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfe92a2c6d1d139626ed2505d5477811"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8hpp.html#acfe92a2c6d1d139626ed2505d5477811">readRnx</a> (std::istream &amp;inputStream, char &amp;type, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structRinexStation.html">RinexStation</a> *sta, double &amp;ver, E_Sys &amp;sys, E_TimeSys &amp;tsys, map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;sysCodeTypes)</td></tr>
+<tr class="memdesc:acfe92a2c6d1d139626ed2505d5477811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read rinex file.  <a href="rinex_8hpp.html#acfe92a2c6d1d139626ed2505d5477811">More...</a><br /></td></tr>
+<tr class="separator:acfe92a2c6d1d139626ed2505d5477811"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7392cc91a14f17ab70dd83c89365d9b2"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rinex_8hpp.html#a7392cc91a14f17ab70dd83c89365d9b2">rinexSysDesc</a> (E_Sys sys)</td></tr>
 <tr class="separator:a7392cc91a14f17ab70dd83c89365d9b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="af7ce6f0e18abbe3361d4db9077a37e36" name="af7ce6f0e18abbe3361d4db9077a37e36"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7ce6f0e18abbe3361d4db9077a37e36">&#9670;&nbsp;</a></span>readrnx()</h2>
+<a id="acfe92a2c6d1d139626ed2505d5477811" name="acfe92a2c6d1d139626ed2505d5477811"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acfe92a2c6d1d139626ed2505d5477811">&#9670;&nbsp;</a></span>readRnx()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readrnx </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readRnx </td>
           <td>(</td>
           <td class="paramtype">std::istream &amp;&#160;</td>
           <td class="paramname"><em>inputStream</em>, </td>
@@ -122,7 +122,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>, </td>
         </tr>
         <tr>
@@ -152,13 +152,13 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype">E_TimeSys &amp;&#160;</td>
           <td class="paramname"><em>tsys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; E_Sys, vector&lt; <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramtype">map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, <a class="el" href="structCodeType.html">CodeType</a> &gt; &gt; &amp;&#160;</td>
           <td class="paramname"><em>sysCodeTypes</em>&#160;</td>
         </tr>
         <tr>
@@ -173,12 +173,12 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8hpp_af7ce6f0e18abbe3361d4db9077a37e36_cgraph.svg" width="227" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8hpp_acfe92a2c6d1d139626ed2505d5477811_cgraph.svg" width="238" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8hpp_af7ce6f0e18abbe3361d4db9077a37e36_icgraph.svg" width="358" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rinex_8hpp_acfe92a2c6d1d139626ed2505d5477811_icgraph.svg" width="279" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

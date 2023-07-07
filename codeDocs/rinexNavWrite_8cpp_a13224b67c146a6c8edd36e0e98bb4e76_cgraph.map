@@ -1,12 +1,11 @@
 <map id="outputNavRinexBody" name="outputNavRinexBody">
-<area shape="rect" id="node1" title=" " alt="" coords="5,208,165,235"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#ad506cac35e66f4336a1e14217d7c60e5" title=" " alt="" coords="235,5,353,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,183,165,209"/>
+<area shape="rect" id="node2" href="$ephBroadcast_8cpp.html#ad506cac35e66f4336a1e14217d7c60e5" title=" " alt="" coords="235,5,353,32"/>
 <area shape="rect" id="node3" href="$rinexNavWrite_8cpp.html#aa67df0b1827f3ff1c4da263aed385531" title=" " alt="" coords="219,56,369,83"/>
-<area shape="rect" id="node4" href="$ephemeris_8cpp.html#ac302de8d138d36fb5378742d8b4296da" title=" " alt="" coords="233,107,355,133"/>
+<area shape="rect" id="node4" href="$ephBroadcast_8cpp.html#ac302de8d138d36fb5378742d8b4296da" title=" " alt="" coords="233,107,355,133"/>
 <area shape="rect" id="node5" href="$rinexNavWrite_8cpp.html#a44ce18e58314bf68508dc220c1e807cc" title=" " alt="" coords="217,157,371,184"/>
-<area shape="rect" id="node6" href="$structSatSys.html#aa31d14f6b8c2100c085c732b9a3fef3f" title="Constructs a SatSys object from it&#39;s hash uid." alt="" coords="225,208,363,235"/>
-<area shape="rect" id="node7" href="$ephemeris_8cpp.html#aecb4df22f46995cce2eb340f5ea24635" title=" " alt="" coords="229,259,359,285"/>
-<area shape="rect" id="node8" href="$rinexNavWrite_8cpp.html#a46fd4ea12d70dbba01d33413b01d175f" title=" " alt="" coords="213,309,375,336"/>
-<area shape="rect" id="node9" href="$ephemeris_8cpp.html#a7da191c91fa26999f40461876ed64cd0" title=" " alt="" coords="235,360,353,387"/>
-<area shape="rect" id="node10" href="$rinexNavWrite_8cpp.html#af49aa619a891c6d00f32ac721ab01cd0" title=" " alt="" coords="219,411,369,437"/>
+<area shape="rect" id="node6" href="$ephBroadcast_8cpp.html#aa9d94c33df0fa25cd32e6e066c3fb977" title=" " alt="" coords="229,208,359,235"/>
+<area shape="rect" id="node7" href="$rinexNavWrite_8cpp.html#a46fd4ea12d70dbba01d33413b01d175f" title=" " alt="" coords="213,259,375,285"/>
+<area shape="rect" id="node8" href="$ephBroadcast_8cpp.html#af0638720e8bdddc345af44b14fbbfac8" title=" " alt="" coords="235,309,353,336"/>
+<area shape="rect" id="node9" href="$rinexNavWrite_8cpp.html#af49aa619a891c6d00f32ac721ab01cd0" title=" " alt="" coords="219,360,369,387"/>
 </map>

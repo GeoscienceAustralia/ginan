@@ -1,5 +1,4 @@
 <map id="ModelTrop" name="ModelTrop">
-<area shape="rect" id="node1" title="Options to set the tropospheric model used in calculations." alt="" coords="48,175,137,252"/>
-<area shape="rect" id="node2" href="$structEnable.html" title=" " alt="" coords="5,5,87,83"/>
-<area shape="rect" id="node3" title=" " alt="" coords="111,5,170,83"/>
+<area shape="rect" id="node1" title="Options to set the tropospheric model used in calculations." alt="" coords="5,160,95,252"/>
+<area shape="rect" id="node2" title=" " alt="" coords="21,5,79,83"/>
 </map>

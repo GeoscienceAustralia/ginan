@@ -1,5 +1,5 @@
 <map id="NtripUploader" name="NtripUploader">
-<area shape="rect" id="node1" title=" " alt="" coords="126,644,341,912"/>
-<area shape="rect" id="node2" href="$structNtripSocket.html" title=" " alt="" coords="5,5,213,596"/>
-<area shape="rect" id="node3" href="$structRtcmEncoder.html" title=" " alt="" coords="238,203,479,398"/>
+<area shape="rect" id="node1" title=" " alt="" coords="126,615,341,897"/>
+<area shape="rect" id="node2" href="$structNtripSocket.html" title=" " alt="" coords="5,5,213,567"/>
+<area shape="rect" id="node3" href="$structRtcmEncoder.html" title=" " alt="" coords="238,137,479,435"/>
 </map>

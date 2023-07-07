@@ -1,18 +1,18 @@
 <map id="coef" name="coef">
 <area shape="rect" id="node1" title="coefficients multiplication" alt="" coords="371,360,421,387"/>
-<area shape="rect" id="node2" href="$ionoSphericalCaps_8cpp.html#a620486fd228e2133a32860533ca923c8" title=" " alt="" coords="174,5,293,32"/>
-<area shape="rect" id="node3" href="$GinARNLamb_8cpp.html#af71b69e23375694ef4e5f632002864d7" title="Comapring two Z&#45;transformed ambiguities." alt="" coords="182,56,285,83"/>
-<area shape="rect" id="node4" href="$GinARNLamb_8cpp.html#aec84319e21a1558de999b084be3e8cad" title="Add Z&#45;transformed ambiguity to archive." alt="" coords="5,145,96,172"/>
-<area shape="rect" id="node5" href="$ionoSpherical_8cpp.html#a41a6e504f87f80223e06f686c93eab8e" title=" " alt="" coords="175,107,291,133"/>
-<area shape="rect" id="node6" href="$corrections_8cpp.html#a2ea2641272a527a2a8f0ba726b99ccb1" title=" " alt="" coords="27,284,75,311"/>
-<area shape="rect" id="node7" href="$trop_8cpp.html#a080102fd2b8058490e933925884c4001" title=" " alt="" coords="208,208,259,235"/>
-<area shape="rect" id="node8" href="$GinARNLamb_8cpp.html#ad93bb9c322526f57beacb5aeb5c4e66a" title="Apply archived Z&#45;ambiguities to float solution." alt="" coords="178,259,289,285"/>
+<area shape="rect" id="node2" href="$ionoSpherical_8cpp.html#a4a9e6ef4c262368496c36ccd84c1bb58" title="Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not us..." alt="" coords="175,5,291,32"/>
+<area shape="rect" id="node3" href="$ionoModel_8cpp.html#a27d1fa4a9c987b7a08670dea1f9c9111" title="Estimate biases from Ionosphere modelling DCBs." alt="" coords="176,56,291,83"/>
+<area shape="rect" id="node4" href="$ionoLocalSTEC_8cpp.html#a11b3a9b1f612a452b6abc10fb21e07f6" title=" " alt="" coords="170,107,297,133"/>
+<area shape="rect" id="node5" href="$GinARNLamb_8cpp.html#af71b69e23375694ef4e5f632002864d7" title="Comapring two Z&#45;transformed ambiguities." alt="" coords="182,157,285,184"/>
+<area shape="rect" id="node6" href="$GinARNLamb_8cpp.html#aec84319e21a1558de999b084be3e8cad" title="Add Z&#45;transformed ambiguity to archive." alt="" coords="5,475,96,501"/>
+<area shape="rect" id="node7" href="$ionoSphericalCaps_8cpp.html#a5e798eccc5cf6a6f5364aa0b085c7df0" title="Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not us..." alt="" coords="174,208,293,235"/>
+<area shape="rect" id="node8" href="$corrections_8cpp.html#a2b2a203a5df36e8c1d9896c2e1e854e8" title=" " alt="" coords="27,335,75,361"/>
 <area shape="rect" id="node9" href="$ionoModel_8cpp.html#a2bdc3287aad0d2793f4ef6adbf389680" title="Updating the ionosphere model parameters &#160;&#160;The ionosphere model should be initialized by calling &#39;con..." alt="" coords="144,309,323,336"/>
-<area shape="rect" id="node10" href="$ionoBSplines_8cpp.html#aef570343aff2d9e50754ea4150ad4c29" title="Estimate Ionosphere VTEC using Ionospheric gridmaps Ion_pp I Ionosphere Piercing Point layer I Layer ..." alt="" coords="178,360,289,387"/>
+<area shape="rect" id="node10" href="$ionoBSplines_8cpp.html#af8b69e53386db097895cdb35126f3c9a" title="Estimate Ionosphere VTEC using Ionospheric gridmaps Ion_pp I Ionosphere Piercing Point layer I Layer ..." alt="" coords="178,360,289,387"/>
 <area shape="rect" id="node11" href="$corrections_8cpp.html#abae235364162e6df2195cc74a3d4277a" title=" " alt="" coords="200,411,267,437"/>
-<area shape="rect" id="node12" href="$acsQC_8cpp.html#a50b9ebf4a56ec6edec979531b0515887" title="Cycle slip detection and repair for triple&#45;frequency." alt="" coords="190,512,277,539"/>
-<area shape="rect" id="node13" href="$acsQC_8cpp.html#ae52b478bb7d30e6aaf8f0e6b4e526681" title="Cycle slip detection and repair for dual&#45;frequency." alt="" coords="190,563,277,589"/>
-<area shape="rect" id="node14" href="$GinARNLamb_8cpp.html#ac4b99b950a4d40abefe99b35c1142570" title="Check Z&#45;transformed ambiguities and remove old entries." alt="" coords="193,613,273,640"/>
-<area shape="rect" id="node15" href="$vmf3_8cpp.html#aac15381a34bd52a98936b30664f63af0" title=" " alt="" coords="192,664,275,691"/>
-<area shape="rect" id="node16" href="$vmf3_8cpp.html#a374fb2ddda710d0ccca2a2fbd3fae151" title=" " alt="" coords="182,715,285,741"/>
+<area shape="rect" id="node12" href="$GinARNLamb_8cpp.html#ad93bb9c322526f57beacb5aeb5c4e66a" title="Apply archived Z&#45;ambiguities to float solution." alt="" coords="178,461,289,488"/>
+<area shape="rect" id="node13" href="$trop_8cpp.html#a080102fd2b8058490e933925884c4001" title=" " alt="" coords="208,512,259,539"/>
+<area shape="rect" id="node14" href="$acsQC_8cpp.html#a5278f59e23c92b2a1912d5dde5e2f809" title="Cycle slip detection and repair for triple&#45;frequency." alt="" coords="190,613,277,640"/>
+<area shape="rect" id="node15" href="$acsQC_8cpp.html#a9a7675a515de2802ed917e9d32dd897d" title="Cycle slip detection for dual&#45;frequency." alt="" coords="190,664,277,691"/>
+<area shape="rect" id="node16" href="$GinARNLamb_8cpp.html#ac4b99b950a4d40abefe99b35c1142570" title="Check Z&#45;transformed ambiguities and remove old entries." alt="" coords="193,715,273,741"/>
 </map>

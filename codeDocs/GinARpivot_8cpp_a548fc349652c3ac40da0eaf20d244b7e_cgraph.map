@@ -1,7 +1,7 @@
 <map id="init_net_pivot" name="init_net_pivot">
 <area shape="rect" id="node1" title="Initialize Network pivot." alt="" coords="5,107,116,133"/>
 <area shape="rect" id="node2" href="$GinARWLamb_8cpp.html#a847f714757d3b9ed6d45bae0778972b0" title="Remove ambiguities and biases for systems, end user." alt="" coords="164,5,264,32"/>
-<area shape="rect" id="node3" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="312,132,407,159"/>
+<area shape="rect" id="node3" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="312,132,407,159"/>
 <area shape="rect" id="node4" href="$GinARpivot_8cpp.html#aa6bd501576fa27cf1dc55b457809b0e4" title="Add ambiguity to pivot tree." alt="" coords="317,183,402,209"/>
 <area shape="rect" id="node5" href="$GinARpivot_8cpp.html#a50a6ec448f33d1f09d19f2fb10e02299" title="Reset receiver on network pivot." alt="" coords="171,157,257,184"/>
 <area shape="rect" id="node6" href="$GinARpivot_8cpp.html#a21c1788df5b3f78e43a230b1b1fc3a07" title="Reset satellite on network pivot." alt="" coords="171,208,257,235"/>

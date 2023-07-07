@@ -1,14 +1,4 @@
 <map id="SatSys::fromHash" name="SatSys::fromHash">
-<area shape="rect" id="node1" title="Constructs a SatSys object from it&#39;s hash uid." alt="" coords="409,259,548,285"/>
-<area shape="rect" id="node2" href="$brdc2sp3__main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="254,5,309,32"/>
-<area shape="rect" id="node3" href="$rinexClkWrite_8cpp.html#a3f6744a347b111bb423bd32d27947654" title=" " alt="" coords="207,56,356,83"/>
-<area shape="rect" id="node4" href="$sp3Write_8cpp.html#a53c4eda35c9ccdfe9aa683fb0272c8c0" title=" " alt="" coords="220,107,343,133"/>
-<area shape="rect" id="node5" href="$ephemeris_8cpp.html#a54c09f3ed2a61e7f23caae21c73a0e8e" title=" " alt="" coords="233,157,330,184"/>
-<area shape="rect" id="node6" href="$networkEstimator_8cpp.html#a36828506971a6b66c6e61db51197c9e1" title="Estimates parameters for a network of stations simultaneously." alt="" coords="212,208,351,235"/>
-<area shape="rect" id="node7" href="$main_8cpp.html#adec1174713b31a762011c372983df1e5" title=" " alt="" coords="5,259,153,285"/>
-<area shape="rect" id="node8" href="$rinexNavWrite_8cpp.html#a13224b67c146a6c8edd36e0e98bb4e76" title=" " alt="" coords="201,259,361,285"/>
-<area shape="rect" id="node9" href="$sp3_8cpp.html#a7bb0b718cb690d2c707c50b532302c01" title=" " alt="" coords="244,360,319,387"/>
-<area shape="rect" id="node10" href="$common_2orbits_8cpp.html#adbf44cc33c6497cf698ffbae0894eb14" title="Output orbit file compatible with the pod." alt="" coords="233,411,329,437"/>
-<area shape="rect" id="node11" href="$ppp_8cpp.html#a2819b8840bd01cf172f0bda75f89efcc" title=" " alt="" coords="228,461,335,488"/>
-<area shape="rect" id="node12" href="$ppppp__obs_8cpp.html#a3db2ffced7ab37c4874c3a53fcb7953e" title=" " alt="" coords="236,512,327,539"/>
+<area shape="rect" id="node1" title="Constructs a SatSys object from it&#39;s hash uid." alt="" coords="151,5,289,32"/>
+<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a54c09f3ed2a61e7f23caae21c73a0e8e" title=" " alt="" coords="5,5,103,32"/>
 </map>

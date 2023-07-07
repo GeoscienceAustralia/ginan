@@ -1,6 +1,6 @@
 <map id="updt_net_pivot" name="updt_net_pivot">
 <area shape="rect" id="node1" title="Update network pivot." alt="" coords="5,305,124,332"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="635,272,729,298"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="635,272,729,298"/>
 <area shape="rect" id="node3" href="$GinARpivot_8cpp.html#a548fc349652c3ac40da0eaf20d244b7e" title="Initialize Network pivot." alt="" coords="172,77,283,104"/>
 <area shape="rect" id="node4" href="$GinARpivot_8cpp.html#aa6bd501576fa27cf1dc55b457809b0e4" title="Add ambiguity to pivot tree." alt="" coords="485,424,570,450"/>
 <area shape="rect" id="node5" href="$GinARpivot_8cpp.html#a50a6ec448f33d1f09d19f2fb10e02299" title="Reset receiver on network pivot." alt="" coords="332,380,419,406"/>

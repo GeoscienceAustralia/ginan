@@ -1,4 +1,6 @@
 <map id="RtcmEncoder::encodeTimeStampRTCM" name="RtcmEncoder::encodeTimeStampRTCM">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,280,32"/>
-<area shape="rect" id="node2" href="$common_8cpp.html#af46d40a3b1917639b0318b11a974701c" title=" " alt="" coords="328,5,415,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,280,83"/>
+<area shape="rect" id="node2" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="393,5,468,32"/>
+<area shape="rect" id="node3" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="387,56,474,83"/>
+<area shape="rect" id="node4" href="$structRtcmTrace.html#a2e5a2d492060c59091840d96dfe07bb8" title=" " alt="" coords="328,107,533,133"/>
 </map>

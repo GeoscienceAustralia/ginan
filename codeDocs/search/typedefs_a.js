@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['tcp_0',['tcp',['../ntripSocket_8hpp.html#a1d106711b8da67655088eefa9c11b8b1',1,'ntripSocket.hpp']]],
-  ['trace_1',['Trace',['../algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c',1,'Trace():&#160;algebra.hpp'],['../streamTrace_8hpp.html#ae5ae5639b7d053f5f4fbf114d6ebb837',1,'Trace():&#160;streamTrace.hpp']]]
+  ['vector_0',['Vector',['../eigenIncluder_8hpp.html#aa5c3ed580f4bf0d7e2256d14b338fb15',1,'eigenIncluder.hpp']]],
+  ['vector6d_1',['Vector6d',['../eigenIncluder_8hpp.html#a7c92072ddd5d5d85e6840cb5637af311',1,'eigenIncluder.hpp']]]
 ];

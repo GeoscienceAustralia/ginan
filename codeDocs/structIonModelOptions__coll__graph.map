@@ -1,5 +1,5 @@
 <map id="IonModelOptions" name="IonModelOptions">
-<area shape="rect" id="node1" title=" " alt="" coords="8,344,140,465"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,143,83"/>
-<area shape="rect" id="node3" href="$structKalmanModel.html" title="Options associated with kalman filter states." alt="" coords="181,204,293,281"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,344,157,495"/>
+<area shape="rect" id="node2" title=" " alt="" coords="13,5,150,83"/>
+<area shape="rect" id="node3" href="$structKalmanModel.html" title="Options associated with kalman filter states." alt="" coords="189,204,313,281"/>
 </map>

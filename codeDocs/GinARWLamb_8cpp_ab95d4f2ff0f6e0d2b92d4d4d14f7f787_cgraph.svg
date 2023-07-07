@@ -109,7 +109,7 @@ var sectionId = 'dynsection-16';
 <!-- Node5 -->
 <g id="node5" class="node">
 <title>Node5</title>
-<g id="a_node5"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node5"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="338.5,-420.5 338.5,-439.5 409.5,-439.5 409.5,-420.5 338.5,-420.5"/>
 <text text-anchor="middle" x="374" y="-427.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -137,8 +137,8 @@ var sectionId = 'dynsection-16';
 <!-- Node9 -->
 <g id="node7" class="node">
 <title>Node9</title>
-<g id="a_node7"><a xlink:href="structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="325.5,-164.5 325.5,-183.5 422.5,-183.5 422.5,-164.5 325.5,-164.5"/>
+<g id="a_node7"><a xlink:href="structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="325.5,-164.5 325.5,-183.5 422.5,-183.5 422.5,-164.5 325.5,-164.5"/>
 <text text-anchor="middle" x="374" y="-171.5" font-family="Helvetica,sans-Serif" font-size="10.00">GTime::to_string</text>
 </a>
 </g>
@@ -148,93 +148,93 @@ var sectionId = 'dynsection-16';
 <title>Node1&#45;&gt;Node9</title>
 <path fill="none" stroke="midnightblue" d="M42.79,-316.7C50.04,-339.85 71.91,-398.14 114,-421 176.1,-454.73 219.28,-466.91 273,-421 350.99,-354.36 241.4,-270.17 309,-193 313.43,-187.94 319.14,-184.2 325.32,-181.44"/>
 </g>
-<!-- Node12 -->
+<!-- Node10 -->
 <g id="node8" class="node">
-<title>Node12</title>
-<g id="a_node8"><a xlink:href="structKFState.html#abdf1505bdab1895a280fd018979849f1" target="_top" xlink:title="Remove a state from a kalman filter object.">
+<title>Node10</title>
+<g id="a_node8"><a xlink:href="structKFState.html#a28480b75cbb9f622f48a695f04000948" target="_top" xlink:title="Remove a state from a kalman filter object.">
 <polygon fill="white" stroke="black" points="131.5,-392.5 131.5,-411.5 255.5,-411.5 255.5,-392.5 131.5,-392.5"/>
 <text text-anchor="middle" x="193.5" y="-399.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::removeState</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node12 -->
+<!-- Node1&#45;&gt;Node10 -->
 <g id="edge10" class="edge">
-<title>Node1&#45;&gt;Node12</title>
+<title>Node1&#45;&gt;Node10</title>
 <path fill="none" stroke="midnightblue" d="M46.52,-316.61C58.11,-332.9 83.92,-365.85 114,-383 120.82,-386.89 128.42,-389.99 136.12,-392.45"/>
 </g>
-<!-- Node13 -->
+<!-- Node11 -->
 <g id="node9" class="node">
-<title>Node13</title>
-<g id="a_node9"><a xlink:href="structKFMeasEntry.html#a56ed46a7048dcd7e87e75eebc342dc7d" target="_top" xlink:title="Adds the actual measurement value for this measurement.">
+<title>Node11</title>
+<g id="a_node9"><a xlink:href="structKFMeasEntry.html#a7d612c21a6d8f4367e273baf672e6cbd" target="_top" xlink:title="Adds the actual measurement value for this measurement.">
 <polygon fill="white" stroke="black" points="129,-354.5 129,-373.5 258,-373.5 258,-354.5 129,-354.5"/>
 <text text-anchor="middle" x="193.5" y="-361.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFMeasEntry::setValue</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node13 -->
+<!-- Node1&#45;&gt;Node11 -->
 <g id="edge11" class="edge">
-<title>Node1&#45;&gt;Node13</title>
+<title>Node1&#45;&gt;Node11</title>
 <path fill="none" stroke="midnightblue" d="M55.95,-316.6C70.61,-325.07 93.15,-337.25 114,-345 123.86,-348.66 134.68,-351.81 145.05,-354.43"/>
 </g>
-<!-- Node14 -->
+<!-- Node12 -->
 <g id="node10" class="node">
-<title>Node14</title>
-<g id="a_node10"><a xlink:href="structKFMeasEntry.html#a1054abe38550bcd614c1a3c1afe752ee" target="_top" xlink:title="Adds the measurement noise entry for this measurement.">
+<title>Node12</title>
+<g id="a_node10"><a xlink:href="structKFMeasEntry.html#a58172784aeb65ed62d2b21ee570f4980" target="_top" xlink:title="Adds the measurement noise entry for this measurement.">
 <polygon fill="white" stroke="black" points="129,-316.5 129,-335.5 258,-335.5 258,-316.5 129,-316.5"/>
 <text text-anchor="middle" x="193.5" y="-323.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFMeasEntry::setNoise</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node14 -->
+<!-- Node1&#45;&gt;Node12 -->
 <g id="edge12" class="edge">
-<title>Node1&#45;&gt;Node14</title>
+<title>Node1&#45;&gt;Node12</title>
 <path fill="none" stroke="midnightblue" d="M78.09,-311.75C93.44,-313.66 111.57,-315.92 128.82,-318.07"/>
 </g>
-<!-- Node15 -->
+<!-- Node13 -->
 <g id="node11" class="node">
-<title>Node15</title>
-<g id="a_node11"><a xlink:href="structKFMeasEntry.html#aa07d07ef75fccb307a91283ec47b38a8" target="_top" xlink:title="Adds a design matrix entry for this measurement.">
+<title>Node13</title>
+<g id="a_node11"><a xlink:href="structKFMeasEntry.html#a5acb825be0bbd5c284f5922b2fa82242" target="_top" xlink:title="Adds a design matrix entry for this measurement.">
 <polygon fill="white" stroke="black" points="116,-278.5 116,-297.5 271,-297.5 271,-278.5 116,-278.5"/>
 <text text-anchor="middle" x="193.5" y="-285.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFMeasEntry::addDsgnEntry</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node15 -->
+<!-- Node1&#45;&gt;Node13 -->
 <g id="edge13" class="edge">
-<title>Node1&#45;&gt;Node15</title>
+<title>Node1&#45;&gt;Node13</title>
 <path fill="none" stroke="midnightblue" d="M78.09,-302.25C89.73,-300.8 102.98,-299.15 116.23,-297.5"/>
 </g>
-<!-- Node16 -->
+<!-- Node14 -->
 <g id="node12" class="node">
-<title>Node16</title>
-<g id="a_node12"><a xlink:href="structKFState.html#a170d9c3a01bee9ec1f7264615b087c58" target="_top" xlink:title="Add process noise and dynamics to filter object according to time gap.">
+<title>Node14</title>
+<g id="a_node12"><a xlink:href="structKFState.html#a7f8e4b9291361c063cef8d9178f07707" target="_top" xlink:title="Add process noise and dynamics to filter object according to time gap.">
 <polygon fill="white" stroke="red" points="126.5,-202.5 126.5,-221.5 260.5,-221.5 260.5,-202.5 126.5,-202.5"/>
 <text text-anchor="middle" x="193.5" y="-209.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::stateTransition</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node16 -->
+<!-- Node1&#45;&gt;Node14 -->
 <g id="edge15" class="edge">
-<title>Node1&#45;&gt;Node16</title>
+<title>Node1&#45;&gt;Node14</title>
 <path fill="none" stroke="midnightblue" d="M47.56,-297.25C59.88,-282.01 85.75,-252.58 114,-236 124.45,-229.87 136.61,-225.16 148.2,-221.61"/>
 </g>
-<!-- Node21 -->
+<!-- Node18 -->
 <g id="node13" class="node">
-<title>Node21</title>
+<title>Node18</title>
 <g id="a_node13"><a xlink:href="structKFState.html#a4422abfc2efdc898a2558d57be35e863" target="_top" xlink:title="Combine a list of KFMeasEntrys into a single KFMeas object for used in the filter.">
 <polygon fill="white" stroke="red" points="114,-164.5 114,-183.5 273,-183.5 273,-164.5 114,-164.5"/>
 <text text-anchor="middle" x="193.5" y="-171.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::combineKFMeasList</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node21 -->
+<!-- Node1&#45;&gt;Node18 -->
 <g id="edge18" class="edge">
-<title>Node1&#45;&gt;Node21</title>
+<title>Node1&#45;&gt;Node18</title>
 <path fill="none" stroke="midnightblue" d="M43.42,-297.27C51.75,-275.06 75.3,-220.41 114,-193 119.49,-189.11 125.69,-186.01 132.12,-183.54"/>
 </g>
-<!-- Node22 -->
+<!-- Node20 -->
 <g id="node14" class="node">
-<title>Node22</title>
+<title>Node20</title>
 <g id="a_node14"><a xlink:href="structKFState.html#ae1fc274c403b77dc814ed90763b4dea1" target="_top" xlink:title="Least squares estimator for new kalman filter states.">
 <polygon fill="white" stroke="red" points="126.5,-115 126.5,-145 260.5,-145 260.5,-115 126.5,-115"/>
 <text text-anchor="start" x="134.5" y="-133" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::leastSquareInit</text>
@@ -242,23 +242,23 @@ var sectionId = 'dynsection-16';
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node22 -->
+<!-- Node1&#45;&gt;Node20 -->
 <g id="edge20" class="edge">
-<title>Node1&#45;&gt;Node22</title>
+<title>Node1&#45;&gt;Node20</title>
 <path fill="none" stroke="midnightblue" d="M41.96,-297.18C47.83,-270.32 67.82,-194.93 114,-155 118.44,-151.16 123.46,-147.92 128.78,-145.16"/>
 </g>
-<!-- Node24 -->
+<!-- Node22 -->
 <g id="node15" class="node">
-<title>Node24</title>
-<g id="a_node15"><a xlink:href="structKFState.html#a21a4858020ad706771efeea814d6c43f" target="_top" xlink:title="Kalman filter operation.">
+<title>Node22</title>
+<g id="a_node15"><a xlink:href="structKFState.html#ae99b9a0b478d94b6cff9ba2328914178" target="_top" xlink:title="Kalman filter operation.">
 <polygon fill="white" stroke="red" points="132.5,-76.5 132.5,-95.5 254.5,-95.5 254.5,-76.5 132.5,-76.5"/>
 <text text-anchor="middle" x="193.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::filterKalman</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node24 -->
+<!-- Node1&#45;&gt;Node22 -->
 <g id="edge21" class="edge">
-<title>Node1&#45;&gt;Node24</title>
+<title>Node1&#45;&gt;Node22</title>
 <path fill="none" stroke="midnightblue" d="M40.52,-297.3C42.79,-264.92 54.62,-159.54 114,-106 119.33,-101.2 125.65,-97.51 132.35,-94.69"/>
 </g>
 <!-- Node36 -->
@@ -278,7 +278,7 @@ var sectionId = 'dynsection-16';
 <!-- Node37 -->
 <g id="node17" class="node">
 <title>Node37</title>
-<g id="a_node17"><a xlink:href="structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" target="_top" xlink:title="Returns the value and variance of a state within the kalman filter object.">
+<g id="a_node17"><a xlink:href="structKFState.html#a405c50a3085d8328e81dcd6786f775d3" target="_top" xlink:title="Returns the value and variance of a state within the kalman filter object.">
 <polygon fill="white" stroke="black" points="135,-0.5 135,-19.5 252,-19.5 252,-0.5 135,-0.5"/>
 <text text-anchor="middle" x="193.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::getKFValue</text>
 </a>
@@ -309,29 +309,29 @@ var sectionId = 'dynsection-16';
 <title>Node3&#45;&gt;Node9</title>
 <path fill="none" stroke="midnightblue" d="M205.02,-544.4C222.42,-527.84 256.88,-491.99 273,-454 318.74,-346.2 232.7,-281.83 309,-193 313.38,-187.9 319.06,-184.14 325.23,-181.36"/>
 </g>
-<!-- Node16&#45;&gt;Node2 -->
+<!-- Node14&#45;&gt;Node2 -->
 <g id="edge17" class="edge">
-<title>Node16&#45;&gt;Node2</title>
+<title>Node14&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M260.71,-212C276.49,-212 293.3,-212 308.97,-212"/>
 </g>
-<!-- Node16&#45;&gt;Node4 -->
+<!-- Node14&#45;&gt;Node4 -->
 <g id="edge16" class="edge">
-<title>Node16&#45;&gt;Node4</title>
+<title>Node14&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M215.29,-221.54C233.44,-230.97 259,-247.16 273,-269 317.03,-337.68 254,-388.74 309,-449 314.31,-454.82 321.32,-458.89 328.74,-461.73"/>
 </g>
-<!-- Node21&#45;&gt;Node4 -->
+<!-- Node18&#45;&gt;Node4 -->
 <g id="edge19" class="edge">
-<title>Node21&#45;&gt;Node4</title>
+<title>Node18&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M261.27,-183.69C265.62,-186.2 269.61,-189.26 273,-193 350.18,-278.12 234.02,-361.94 309,-449 314.22,-455.06 321.27,-459.23 328.8,-462.1"/>
 </g>
-<!-- Node24&#45;&gt;Node2 -->
+<!-- Node22&#45;&gt;Node2 -->
 <g id="edge23" class="edge">
-<title>Node24&#45;&gt;Node2</title>
+<title>Node22&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M254.86,-95.06C261.45,-97.83 267.69,-101.4 273,-106 304.63,-133.4 277.92,-164.98 309,-193 313.3,-196.88 318.37,-199.97 323.73,-202.43"/>
 </g>
-<!-- Node24&#45;&gt;Node4 -->
+<!-- Node22&#45;&gt;Node4 -->
 <g id="edge22" class="edge">
-<title>Node24&#45;&gt;Node4</title>
+<title>Node22&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M254.72,-92.98C261.67,-96.04 268.03,-100.26 273,-106 373.26,-221.95 211.03,-331.11 309,-449 314.19,-455.24 321.32,-459.49 328.95,-462.37"/>
 </g>
 <!-- Node36&#45;&gt;Node5 -->

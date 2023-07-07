@@ -79,31 +79,35 @@ $(function() {
 <div class="dynheader">
 Collaboration diagram for Sp3Entry:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structSp3Entry__coll__graph.svg" width="259" height="478"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structSp3Entry__coll__graph.svg" width="259" height="507"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a6d5da7bf9b294d46a47ebdc90ee9931b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#a6d5da7bf9b294d46a47ebdc90ee9931b">sat</a> = {}</td></tr>
+<tr class="memitem:a6d5da7bf9b294d46a47ebdc90ee9931b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#a6d5da7bf9b294d46a47ebdc90ee9931b">sat</a></td></tr>
 <tr class="separator:a6d5da7bf9b294d46a47ebdc90ee9931b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a080c0e0db0be366346d3e432ba4af0f4"><td class="memItemLeft" align="right" valign="top">Vector3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#a080c0e0db0be366346d3e432ba4af0f4">satPos</a> = Vector3d::Zero()</td></tr>
 <tr class="separator:a080c0e0db0be366346d3e432ba4af0f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae671e5d1ee71a29fda771bc7afe6a5cf"><td class="memItemLeft" align="right" valign="top">Vector3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#ae671e5d1ee71a29fda771bc7afe6a5cf">satVel</a> = Vector3d::Zero()</td></tr>
 <tr class="separator:ae671e5d1ee71a29fda771bc7afe6a5cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91d6b71e58c71036536c7e1d3e61a7c6"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#a91d6b71e58c71036536c7e1d3e61a7c6">clock</a> [2] = {}</td></tr>
-<tr class="separator:a91d6b71e58c71036536c7e1d3e61a7c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69de99e189d82b45c0c1a531857b9749"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#a69de99e189d82b45c0c1a531857b9749">satClk</a> = <a class="el" href="ephemeris_8hpp.html#a710e2e723c5fcb953f27e205d0d34fae">INVALID_CLOCK_VALUE</a> / 1e6</td></tr>
+<tr class="separator:a69de99e189d82b45c0c1a531857b9749"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a556c657cfd45c4beb94dd6b4430e67ca"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#a556c657cfd45c4beb94dd6b4430e67ca">satClkVel</a> = <a class="el" href="ephemeris_8hpp.html#a710e2e723c5fcb953f27e205d0d34fae">INVALID_CLOCK_VALUE</a> / 1e6</td></tr>
+<tr class="separator:a556c657cfd45c4beb94dd6b4430e67ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67e812646ea39e3b70f5abcfcbc83995"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#a67e812646ea39e3b70f5abcfcbc83995">sigma</a> = 0</td></tr>
 <tr class="separator:a67e812646ea39e3b70f5abcfcbc83995"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a301172c347f44b696a0ed374e3d830ba"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3Entry.html#a301172c347f44b696a0ed374e3d830ba">predicted</a> = false</td></tr>
+<tr class="separator:a301172c347f44b696a0ed374e3d830ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Field Documentation</h2>
-<a id="a91d6b71e58c71036536c7e1d3e61a7c6" name="a91d6b71e58c71036536c7e1d3e61a7c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91d6b71e58c71036536c7e1d3e61a7c6">&#9670;&nbsp;</a></span>clock</h2>
+<a id="a301172c347f44b696a0ed374e3d830ba" name="a301172c347f44b696a0ed374e3d830ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a301172c347f44b696a0ed374e3d830ba">&#9670;&nbsp;</a></span>predicted</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Sp3Entry::clock[2] = {}</td>
+          <td class="memname">bool Sp3Entry::predicted = false</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -117,7 +121,35 @@ Data Fields</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structSatSys.html">SatSys</a> Sp3Entry::sat = {}</td>
+          <td class="memname"><a class="el" href="structSatSys.html">SatSys</a> Sp3Entry::sat</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a69de99e189d82b45c0c1a531857b9749" name="a69de99e189d82b45c0c1a531857b9749"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69de99e189d82b45c0c1a531857b9749">&#9670;&nbsp;</a></span>satClk</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Sp3Entry::satClk = <a class="el" href="ephemeris_8hpp.html#a710e2e723c5fcb953f27e205d0d34fae">INVALID_CLOCK_VALUE</a> / 1e6</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a556c657cfd45c4beb94dd6b4430e67ca" name="a556c657cfd45c4beb94dd6b4430e67ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a556c657cfd45c4beb94dd6b4430e67ca">&#9670;&nbsp;</a></span>satClkVel</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Sp3Entry::satClkVel = <a class="el" href="ephemeris_8hpp.html#a710e2e723c5fcb953f27e205d0d34fae">INVALID_CLOCK_VALUE</a> / 1e6</td>
         </tr>
       </table>
 </div><div class="memdoc">

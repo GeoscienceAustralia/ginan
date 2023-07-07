@@ -1,5 +1,5 @@
 <map id="write_snx_matrices_from_filter" name="write_snx_matrices_from_filter">
 <area shape="rect" id="node1" title=" " alt="" coords="5,23,155,65"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="232,5,327,32"/>
-<area shape="rect" id="node3" href="$sinex_8cpp.html#a35435dacdc5df53aa3357b64931ae2d6" title=" " alt="" coords="203,56,356,83"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#a35435dacdc5df53aa3357b64931ae2d6" title=" " alt="" coords="203,5,356,32"/>
+<area shape="rect" id="node3" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="232,56,327,83"/>
 </map>

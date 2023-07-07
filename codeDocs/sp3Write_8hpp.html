@@ -76,7 +76,6 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">sp3Write.hpp File Reference</div></div>
 </div><!--header-->
@@ -87,71 +86,49 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp__dep__incl.svg" width="379" height="142"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSp3FileData.html">Sp3FileData</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:abb2d8c06f003a591b702590c2238a7ed"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3Write_8hpp.html#abb2d8c06f003a591b702590c2238a7ed">writeSysSetSp3</a> (string filename, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="rinexObsWrite_8hpp.html#a75917003086e7a6f48f6736ee7c509b2">OutSys</a> outSys, <a class="el" href="structSp3FileData.html">Sp3FileData</a> &amp;outFileDat, E_Ephemeris sp3DataSrc, <a class="el" href="structKFState.html">KFState</a> *kfState_ptr=nullptr)</td></tr>
-<tr class="separator:abb2d8c06f003a591b702590c2238a7ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2a81d18c401c582954c3da0fc4a98ead"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3Write_8hpp.html#a2a81d18c401c582954c3da0fc4a98ead">outputSp3</a> (<a class="el" href="structGTime.html">GTime</a> time, E_Ephemeris sp3DataSrc, <a class="el" href="structKFState.html">KFState</a> *kfState_ptr=nullptr)</td></tr>
-<tr class="separator:a2a81d18c401c582954c3da0fc4a98ead"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab560b9be30d61e39dda132682a5ddf29"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3Write_8hpp.html#ab560b9be30d61e39dda132682a5ddf29">outputSp3</a> (string filename, <a class="el" href="structGTime.html">GTime</a> time, vector&lt; E_Source &gt; sp3OrbitSrcs, vector&lt; E_Source &gt; sp3ClockSrcs, <a class="el" href="structKFState.html">KFState</a> *kfState_ptr=nullptr, bool predicted=false)</td></tr>
+<tr class="separator:ab560b9be30d61e39dda132682a5ddf29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b1d20154c3982bbbe24760f2a54c99a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3Write_8hpp.html#a4b1d20154c3982bbbe24760f2a54c99a">outputMongoOrbits</a> ()</td></tr>
+<tr class="separator:a4b1d20154c3982bbbe24760f2a54c99a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a2a81d18c401c582954c3da0fc4a98ead" name="a2a81d18c401c582954c3da0fc4a98ead"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2a81d18c401c582954c3da0fc4a98ead">&#9670;&nbsp;</a></span>outputSp3()</h2>
+<a id="a4b1d20154c3982bbbe24760f2a54c99a" name="a4b1d20154c3982bbbe24760f2a54c99a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b1d20154c3982bbbe24760f2a54c99a">&#9670;&nbsp;</a></span>outputMongoOrbits()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void outputSp3 </td>
+          <td class="memname">void outputMongoOrbits </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td class="paramtype">E_Ephemeris&#160;</td>
-          <td class="paramname"><em>sp3DataSrc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> *&#160;</td>
-          <td class="paramname"><em>kfState_ptr</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp_a2a81d18c401c582954c3da0fc4a98ead_cgraph.svg" width="323" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp_a4b1d20154c3982bbbe24760f2a54c99a_cgraph.svg" width="382" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp_a2a81d18c401c582954c3da0fc4a98ead_icgraph.svg" width="360" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp_a4b1d20154c3982bbbe24760f2a54c99a_icgraph.svg" width="359" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="abb2d8c06f003a591b702590c2238a7ed" name="abb2d8c06f003a591b702590c2238a7ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abb2d8c06f003a591b702590c2238a7ed">&#9670;&nbsp;</a></span>writeSysSetSp3()</h2>
+<a id="ab560b9be30d61e39dda132682a5ddf29" name="ab560b9be30d61e39dda132682a5ddf29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab560b9be30d61e39dda132682a5ddf29">&#9670;&nbsp;</a></span>outputSp3()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void writeSysSetSp3 </td>
+          <td class="memname">void outputSp3 </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>filename</em>, </td>
@@ -165,26 +142,26 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="rinexObsWrite_8hpp.html#a75917003086e7a6f48f6736ee7c509b2">OutSys</a>&#160;</td>
-          <td class="paramname"><em>outSys</em>, </td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>sp3OrbitSrcs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structSp3FileData.html">Sp3FileData</a> &amp;&#160;</td>
-          <td class="paramname"><em>outFileDat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Ephemeris&#160;</td>
-          <td class="paramname"><em>sp3DataSrc</em>, </td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>sp3ClockSrcs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> *&#160;</td>
-          <td class="paramname"><em>kfState_ptr</em> = <code>nullptr</code>&#160;</td>
+          <td class="paramname"><em>kfState_ptr</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>predicted</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -196,12 +173,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp_abb2d8c06f003a591b702590c2238a7ed_cgraph.svg" width="455" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp_ab560b9be30d61e39dda132682a5ddf29_cgraph.svg" width="506" height="114"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp_abb2d8c06f003a591b702590c2238a7ed_icgraph.svg" width="270" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sp3Write_8hpp_ab560b9be30d61e39dda132682a5ddf29_icgraph.svg" width="360" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

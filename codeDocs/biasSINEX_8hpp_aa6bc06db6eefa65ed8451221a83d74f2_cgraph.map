@@ -1,4 +1,5 @@
 <map id="readBiasSinex" name="readBiasSinex">
-<area shape="rect" id="node1" title="Read and store values from SINEX files." alt="" coords="5,5,120,32"/>
-<area shape="rect" id="node2" href="$biasSINEXread_8cpp.html#a9e282accccd8c78b498a291eff1720a5" title="Read single bias SINEX file." alt="" coords="168,5,289,32"/>
+<area shape="rect" id="node1" title="Read single bias SINEX file." alt="" coords="5,31,120,57"/>
+<area shape="rect" id="node2" href="$biasSINEXread_8cpp.html#a7bedabb30d7e162ea04c4027051041f6" title="Read header line in bias SINEX file." alt="" coords="168,5,331,32"/>
+<area shape="rect" id="node3" href="$biasSINEXread_8cpp.html#afe3e2e7c8dbfe8bd5991dbbdac91ede2" title="Read data line in bias SINEX file." alt="" coords="172,56,327,83"/>
 </map>

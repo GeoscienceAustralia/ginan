@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="sinex_8cpp.html#a5d4b582fbe641b956dec6621e592ac63" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="sinex_8cpp.html#ae504318cd0c1f450949803a48ea72527" target="_top" xlink:title="seconds diff bewteen left and right If left &lt; right the value is negative">
 <polygon fill="white" stroke="black" points="95,-0.5 95,-19.5 182,-19.5 182,-0.5 95,-0.5"/>
 <text text-anchor="middle" x="138.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">time_compare</text>
 </a>

@@ -1,18 +1,16 @@
 <map id="write_sinex" name="write_sinex">
-<area shape="rect" id="node1" title=" " alt="" coords="5,360,103,387"/>
-<area shape="rect" id="node2" href="$sinex_8cpp.html#a636859cd3e0a9e3062bf6ad610fb779f" title=" " alt="" coords="184,5,336,32"/>
-<area shape="rect" id="node3" href="$sinex_8cpp.html#aea2c8625621b459ad8928d6105688ad9" title=" " alt="" coords="191,56,329,83"/>
-<area shape="rect" id="node4" href="$sinex_8cpp.html#a24958aa87271b24dcab7694d4af3720f" title=" " alt="" coords="194,107,326,133"/>
-<area shape="rect" id="node5" href="$sinex_8cpp.html#abb02e510789a0533ee22f501e54efb92" title=" " alt="" coords="183,157,337,184"/>
-<area shape="rect" id="node6" href="$sinex_8cpp.html#adc3dc88fc2e6652490d9f3ce3f0ef861" title=" " alt="" coords="179,208,341,235"/>
-<area shape="rect" id="node7" href="$sinex_8cpp.html#a4f10fce58e14cd54d5dacf3b6c0d3199" title=" " alt="" coords="171,259,349,285"/>
-<area shape="rect" id="node8" href="$sinex_8cpp.html#a1c4b9b3a6798a206a32de94a5bd7bac0" title=" " alt="" coords="180,309,340,336"/>
-<area shape="rect" id="node9" href="$sinex_8cpp.html#a8a8e54c1e55d6668fc13725d1f769a59" title=" " alt="" coords="151,360,369,387"/>
-<area shape="rect" id="node10" href="$sinex_8cpp.html#aa58f653aeaa546b0dc1fe6f2238dd003" title=" " alt="" coords="193,411,327,437"/>
-<area shape="rect" id="node11" href="$sinex_8cpp.html#ace311021db68268a6e9ca3cc03afb1df" title=" " alt="" coords="184,461,336,488"/>
-<area shape="rect" id="node12" href="$sinex_8cpp.html#a0c4d36ba13234456bf25cedd4ca6c20b" title=" " alt="" coords="184,512,336,539"/>
-<area shape="rect" id="node13" href="$sinex_8cpp.html#a3454b6082cd186c9fd3ee8654c69ea2a" title=" " alt="" coords="184,563,336,589"/>
-<area shape="rect" id="node14" href="$sinex_8cpp.html#a5ac5f69c01a5faf33ca4cd299ec458e5" title=" " alt="" coords="181,614,339,655"/>
-<area shape="rect" id="node15" href="$sinex_8cpp.html#a8e81508919daf3771748f1d99583f7b1" title=" " alt="" coords="174,679,346,721"/>
-<area shape="rect" id="node16" href="$sinex_8cpp.html#abfc552a17b3fc10aa69c8ea9fde1d1be" title=" " alt="" coords="185,745,335,786"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,309,103,336"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#aea2c8625621b459ad8928d6105688ad9" title=" " alt="" coords="191,5,329,32"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#abb02e510789a0533ee22f501e54efb92" title=" " alt="" coords="183,56,337,83"/>
+<area shape="rect" id="node4" href="$sinex_8cpp.html#adc3dc88fc2e6652490d9f3ce3f0ef861" title=" " alt="" coords="179,107,341,133"/>
+<area shape="rect" id="node5" href="$sinex_8cpp.html#a4f10fce58e14cd54d5dacf3b6c0d3199" title=" " alt="" coords="171,157,349,184"/>
+<area shape="rect" id="node6" href="$sinex_8cpp.html#a1c4b9b3a6798a206a32de94a5bd7bac0" title=" " alt="" coords="180,208,340,235"/>
+<area shape="rect" id="node7" href="$sinex_8cpp.html#a8a8e54c1e55d6668fc13725d1f769a59" title=" " alt="" coords="151,259,369,285"/>
+<area shape="rect" id="node8" href="$sinex_8cpp.html#aa58f653aeaa546b0dc1fe6f2238dd003" title=" " alt="" coords="193,309,327,336"/>
+<area shape="rect" id="node9" href="$sinex_8cpp.html#ace311021db68268a6e9ca3cc03afb1df" title=" " alt="" coords="184,360,336,387"/>
+<area shape="rect" id="node10" href="$sinex_8cpp.html#a0c4d36ba13234456bf25cedd4ca6c20b" title=" " alt="" coords="184,411,336,437"/>
+<area shape="rect" id="node11" href="$sinex_8cpp.html#a3454b6082cd186c9fd3ee8654c69ea2a" title=" " alt="" coords="184,461,336,488"/>
+<area shape="rect" id="node12" href="$sinex_8cpp.html#a5ac5f69c01a5faf33ca4cd299ec458e5" title=" " alt="" coords="181,513,339,554"/>
+<area shape="rect" id="node13" href="$sinex_8cpp.html#a8e81508919daf3771748f1d99583f7b1" title=" " alt="" coords="174,578,346,619"/>
+<area shape="rect" id="node14" href="$sinex_8cpp.html#abfc552a17b3fc10aa69c8ea9fde1d1be" title=" " alt="" coords="185,643,335,685"/>
 </map>

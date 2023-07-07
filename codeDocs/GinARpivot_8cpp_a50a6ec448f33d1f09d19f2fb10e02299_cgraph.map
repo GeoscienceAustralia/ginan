@@ -1,6 +1,6 @@
 <map id="Reset_rec" name="Reset_rec">
 <area shape="rect" id="node1" title="Reset receiver on network pivot." alt="" coords="5,56,92,83"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="307,5,401,32"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="307,5,401,32"/>
 <area shape="rect" id="node3" href="$GinARWLamb_8cpp.html#a9b4b3f98983e846523263881d690dfaf" title="Remove ambiguities and biases for receivers, network." alt="" coords="140,31,259,57"/>
 <area shape="rect" id="node4" href="$GinARpivot_8cpp.html#aa6bd501576fa27cf1dc55b457809b0e4" title="Add ambiguity to pivot tree." alt="" coords="157,81,242,108"/>
 <area shape="rect" id="node5" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="156,132,243,159"/>

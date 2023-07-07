@@ -1,6 +1,7 @@
 <map id="RtcmDecoder" name="RtcmDecoder">
-<area shape="rect" id="node1" title=" " alt="" coords="99,307,316,619"/>
-<area shape="rect" id="node4" href="$structRtcmStream.html" title=" " alt="" coords="109,667,305,832"/>
-<area shape="rect" id="node2" href="$structRtcmTrace.html" title=" " alt="" coords="5,5,199,259"/>
-<area shape="rect" id="node3" href="$structRtcmStatistics.html" title=" " alt="" coords="223,49,405,215"/>
+<area shape="rect" id="node1" title=" " alt="" coords="145,351,362,765"/>
+<area shape="rect" id="node5" href="$structRtcmParser.html" title=" " alt="" coords="194,813,313,905"/>
+<area shape="rect" id="node2" href="$structRtcmTrace.html" title=" " alt="" coords="5,5,176,303"/>
+<area shape="rect" id="node3" href="$structObsLister.html" title=" " alt="" coords="200,115,307,193"/>
+<area shape="rect" id="node4" href="$structPacketStatistics.html" title=" " alt="" coords="331,35,514,273"/>
 </map>

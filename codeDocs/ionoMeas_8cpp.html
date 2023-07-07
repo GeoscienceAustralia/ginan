@@ -83,22 +83,76 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6dc09994e73227556cf4b42233b9ff77"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoMeas_8cpp.html#a6dc09994e73227556cf4b42233b9ff77">Ipp_in_range</a> (<a class="el" href="structGTime.html">GTime</a> time, double *Ion_pp)</td></tr>
-<tr class="separator:a6dc09994e73227556cf4b42233b9ff77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3dce4bc6a3c8a98b9f14fd6804d330c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoMeas_8cpp.html#a3dce4bc6a3c8a98b9f14fd6804d330c3">update_receivr_measr</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
-<tr class="separator:a3dce4bc6a3c8a98b9f14fd6804d330c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64f11294b91f69a27d286d8f6346b116"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoMeas_8cpp.html#a64f11294b91f69a27d286d8f6346b116">writeReceiverMeasurements</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string filename, std::map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; stations, <a class="el" href="structGTime.html">GTime</a> time)</td></tr>
-<tr class="separator:a64f11294b91f69a27d286d8f6346b116"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fca709584385c6d11cb9d64ff0dfd59"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoMeas_8cpp.html#a2fca709584385c6d11cb9d64ff0dfd59">ippInRange</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;Ion_pp)</td></tr>
+<tr class="separator:a2fca709584385c6d11cb9d64ff0dfd59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1cb9ea2aa583c7c0745a8d788253889"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoMeas_8cpp.html#ae1cb9ea2aa583c7c0745a8d788253889">update_receivr_measr</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
+<tr class="separator:ae1cb9ea2aa583c7c0745a8d788253889"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52ea83d839caafd8dbeaeb78cd607271"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoMeas_8cpp.html#a52ea83d839caafd8dbeaeb78cd607271">writeReceiverMeasurements</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string filename, map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;stations, <a class="el" href="structGTime.html">GTime</a> time)</td></tr>
+<tr class="separator:a52ea83d839caafd8dbeaeb78cd607271"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2005a7695bfb7b9a595eb802265219d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoMeas_8cpp.html#a2005a7695bfb7b9a595eb802265219d7">ginan2IonoMeas</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="structKFState.html">KFState</a> &amp;measKFstate)</td></tr>
+<tr class="separator:a2005a7695bfb7b9a595eb802265219d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a6dc09994e73227556cf4b42233b9ff77" name="a6dc09994e73227556cf4b42233b9ff77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6dc09994e73227556cf4b42233b9ff77">&#9670;&nbsp;</a></span>Ipp_in_range()</h2>
+<a id="a2005a7695bfb7b9a595eb802265219d7" name="a2005a7695bfb7b9a595eb802265219d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2005a7695bfb7b9a595eb802265219d7">&#9670;&nbsp;</a></span>ginan2IonoMeas()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Ipp_in_range </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ginan2IonoMeas </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;&#160;</td>
+          <td class="paramname"><em>stationMap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>measKFstate</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>debug trace</td></tr>
+    <tr><td class="paramname">stationMap</td><td>List of stations containing observations for this epoch</td></tr>
+    <tr><td class="paramname">measKFstate</td><td>Kalman filter object containing the ionosphere estimates </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a2005a7695bfb7b9a595eb802265219d7_cgraph.svg" width="344" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a2005a7695bfb7b9a595eb802265219d7_icgraph.svg" width="235" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2fca709584385c6d11cb9d64ff0dfd59" name="a2fca709584385c6d11cb9d64ff0dfd59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2fca709584385c6d11cb9d64ff0dfd59">&#9670;&nbsp;</a></span>ippInRange()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ippInRange </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>time</em>, </td>
@@ -106,7 +160,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>Ion_pp</em>&#160;</td>
         </tr>
         <tr>
@@ -119,24 +173,24 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a6dc09994e73227556cf4b42233b9ff77_cgraph.svg" width="304" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a2fca709584385c6d11cb9d64ff0dfd59_cgraph.svg" width="283" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a6dc09994e73227556cf4b42233b9ff77_icgraph.svg" width="331" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a2fca709584385c6d11cb9d64ff0dfd59_icgraph.svg" width="320" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a3dce4bc6a3c8a98b9f14fd6804d330c3" name="a3dce4bc6a3c8a98b9f14fd6804d330c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3dce4bc6a3c8a98b9f14fd6804d330c3">&#9670;&nbsp;</a></span>update_receivr_measr()</h2>
+<a id="ae1cb9ea2aa583c7c0745a8d788253889" name="ae1cb9ea2aa583c7c0745a8d788253889"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae1cb9ea2aa583c7c0745a8d788253889">&#9670;&nbsp;</a></span>update_receivr_measr()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> update_receivr_measr </td>
+          <td class="memname">void update_receivr_measr </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -157,18 +211,18 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a3dce4bc6a3c8a98b9f14fd6804d330c3_cgraph.svg" width="331" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_ae1cb9ea2aa583c7c0745a8d788253889_cgraph.svg" width="530" height="423"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a3dce4bc6a3c8a98b9f14fd6804d330c3_icgraph.svg" width="440" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_ae1cb9ea2aa583c7c0745a8d788253889_icgraph.svg" width="440" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a64f11294b91f69a27d286d8f6346b116" name="a64f11294b91f69a27d286d8f6346b116"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64f11294b91f69a27d286d8f6346b116">&#9670;&nbsp;</a></span>writeReceiverMeasurements()</h2>
+<a id="a52ea83d839caafd8dbeaeb78cd607271" name="a52ea83d839caafd8dbeaeb78cd607271"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a52ea83d839caafd8dbeaeb78cd607271">&#9670;&nbsp;</a></span>writeReceiverMeasurements()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -188,7 +242,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::map&lt; string, <a class="el" href="structStation.html">Station</a> &gt;&#160;</td>
+          <td class="paramtype">map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>stations</em>, </td>
         </tr>
         <tr>
@@ -207,12 +261,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a64f11294b91f69a27d286d8f6346b116_cgraph.svg" width="363" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a52ea83d839caafd8dbeaeb78cd607271_cgraph.svg" width="363" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a64f11294b91f69a27d286d8f6346b116_icgraph.svg" width="447" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoMeas_8cpp_a52ea83d839caafd8dbeaeb78cd607271_icgraph.svg" width="447" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

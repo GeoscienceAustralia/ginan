@@ -1,8 +1,9 @@
 <map id="spitFilterToFile" name="spitFilterToFile">
-<area shape="rect" id="node1" title="Output filter state to a file for later reading." alt="" coords="351,107,465,133"/>
-<area shape="rect" id="node2" href="$structKFState.html#a170d9c3a01bee9ec1f7264615b087c58" title="Add process noise and dynamics to filter object according to time gap." alt="" coords="124,5,303,32"/>
-<area shape="rect" id="node3" href="$minimumConstraints_8cpp.html#a85e412176915fe538d691251614f877a" title=" " alt="" coords="5,56,76,83"/>
-<area shape="rect" id="node4" href="$structKFState.html#a21a4858020ad706771efeea814d6c43f" title="Kalman filter operation." alt="" coords="132,56,295,83"/>
-<area shape="rect" id="node5" href="$rtsSmoothing_8cpp.html#a38ab8796647005faee38cdd21deaf19b" title=" " alt="" coords="161,107,265,133"/>
-<area shape="rect" id="node6" href="$main_8cpp.html#a29d52cfc981619584262b20b497865db" title="Create new empty trace files only when required when the filename is changed." alt="" coords="150,157,277,184"/>
+<area shape="rect" id="node1" title="Output filter state to a file for later reading." alt="" coords="400,132,515,159"/>
+<area shape="rect" id="node2" href="$structKFState.html#a35b82ca74c6a6795abf1b6e919a4fec1" title="Add process noise and dynamics to filter object manually." alt="" coords="124,5,352,32"/>
+<area shape="rect" id="node3" href="$structKFState.html#a7f8e4b9291361c063cef8d9178f07707" title="Add process noise and dynamics to filter object according to time gap." alt="" coords="149,56,327,83"/>
+<area shape="rect" id="node4" href="$minimumConstraints_8cpp.html#ab2bcd4f17ec253836699f41c2c330ee0" title=" " alt="" coords="5,107,76,133"/>
+<area shape="rect" id="node5" href="$structKFState.html#ae99b9a0b478d94b6cff9ba2328914178" title="Kalman filter operation." alt="" coords="157,107,319,133"/>
+<area shape="rect" id="node6" href="$rtsSmoothing_8cpp.html#a38ab8796647005faee38cdd21deaf19b" title=" " alt="" coords="186,157,290,184"/>
+<area shape="rect" id="node7" href="$main_8cpp.html#a29d52cfc981619584262b20b497865db" title="Create new empty trace files only when required when the filename is changed." alt="" coords="175,208,301,235"/>
 </map>

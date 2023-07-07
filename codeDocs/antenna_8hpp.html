@@ -84,37 +84,39 @@ $(function() {
 <div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="antenna_8hpp__dep__incl.svg" width="100%" height="551"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="antenna_8hpp__dep__incl.svg" width="100%" height="473"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPhaseCenterData.html">PhaseCenterData</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPhaseCenterOffset.html">PhaseCenterOffset</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ac40b3d271b571851b9ee0e0c1131546d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#ac40b3d271b571851b9ee0e0c1131546d">satAntOff</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, Vector3d &amp;rSat, <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat, map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, double &gt; &amp;lamMap, Vector3d &amp;dAnt, <a class="el" href="structSatStat.html">SatStat</a> *satStat_ptr=nullptr)</td></tr>
-<tr class="separator:ac40b3d271b571851b9ee0e0c1131546d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acc6b59453288452e02d564d22e410fdf"><td class="memItemLeft" align="right" valign="top">Vector3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#acc6b59453288452e02d564d22e410fdf">satAntOff</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, Vector3d &amp;rSat, <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, <a class="el" href="structSatStat.html">SatStat</a> *satStat_ptr=nullptr)</td></tr>
-<tr class="separator:acc6b59453288452e02d564d22e410fdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e1a72b7ddecf308659b6909a83a104b"><td class="memItemLeft" align="right" valign="top">Vector3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#a2e1a72b7ddecf308659b6909a83a104b">antPco</a> (string id, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, <a class="el" href="structGTime.html">GTime</a> time, bool <a class="el" href="wancorr_8cpp.html#a5e7b583cfcb815a52461d8121c16d355">interp</a>=false)</td></tr>
-<tr class="memdesc:a2e1a72b7ddecf308659b6909a83a104b"><td class="mdescLeft">&#160;</td><td class="mdescRight">fetch pco  <a href="antenna_8hpp.html#a2e1a72b7ddecf308659b6909a83a104b">More...</a><br /></td></tr>
-<tr class="separator:a2e1a72b7ddecf308659b6909a83a104b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d8036ab82ccb38af44d49bcc22d1ead"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#a5d8036ab82ccb38af44d49bcc22d1ead">antPcv</a> (string id, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, <a class="el" href="structGTime.html">GTime</a> time, double aCos, double azi=0)</td></tr>
-<tr class="memdesc:a5d8036ab82ccb38af44d49bcc22d1ead"><td class="mdescLeft">&#160;</td><td class="mdescRight">find and interpolate antenna pcv  <a href="antenna_8hpp.html#a5d8036ab82ccb38af44d49bcc22d1ead">More...</a><br /></td></tr>
-<tr class="separator:a5d8036ab82ccb38af44d49bcc22d1ead"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad8882e2e88f66fa028d89ccc220a7200"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#ad8882e2e88f66fa028d89ccc220a7200">findAntenna</a> (string code, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, <a class="el" href="structPhaseCenterData.html">PhaseCenterData</a> **pcd_ptr_ptr=nullptr)</td></tr>
-<tr class="separator:ad8882e2e88f66fa028d89ccc220a7200"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae23e7dede27378f5a445120a5ae13e62"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#ae23e7dede27378f5a445120a5ae13e62">readantexf</a> (string file, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
+<tr class="memitem:ac24a7ecc232807f046a15e914b5df57f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structVectorEcef.html">VectorEcef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#ac24a7ecc232807f046a15e914b5df57f">satAntOff</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structAttStatus.html">AttStatus</a> &amp;attStatus, <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, double &gt; &amp;lamMap)</td></tr>
+<tr class="memdesc:ac24a7ecc232807f046a15e914b5df57f"><td class="mdescLeft">&#160;</td><td class="mdescRight">satellite antenna phase center offset in ecef  <a href="antenna_8hpp.html#ac24a7ecc232807f046a15e914b5df57f">More...</a><br /></td></tr>
+<tr class="separator:ac24a7ecc232807f046a15e914b5df57f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa49c11c2bd15040e7966ad0f3978cf0a"><td class="memItemLeft" align="right" valign="top">Vector3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#aa49c11c2bd15040e7966ad0f3978cf0a">antPco</a> (string id, E_Sys sys, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, <a class="el" href="structGTime.html">GTime</a> time, double &amp;var, E_Radio radio, bool <a class="el" href="wancorr_8cpp.html#a5e7b583cfcb815a52461d8121c16d355">interp</a>=false)</td></tr>
+<tr class="memdesc:aa49c11c2bd15040e7966ad0f3978cf0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">fetch pco  <a href="antenna_8hpp.html#aa49c11c2bd15040e7966ad0f3978cf0a">More...</a><br /></td></tr>
+<tr class="separator:aa49c11c2bd15040e7966ad0f3978cf0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28e3dcdc8c9fb5a3369931fb18833f26"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#a28e3dcdc8c9fb5a3369931fb18833f26">antPcv</a> (string id, E_Sys sys, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structAttStatus.html">AttStatus</a> &amp;attStatus, <a class="el" href="structVectorEcef.html">VectorEcef</a> e)</td></tr>
+<tr class="memdesc:a28e3dcdc8c9fb5a3369931fb18833f26"><td class="mdescLeft">&#160;</td><td class="mdescRight">find and interpolate antenna pcv  <a href="antenna_8hpp.html#a28e3dcdc8c9fb5a3369931fb18833f26">More...</a><br /></td></tr>
+<tr class="separator:a28e3dcdc8c9fb5a3369931fb18833f26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd95630452f87aa41f8cb07821d722a0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#acd95630452f87aa41f8cb07821d722a0">findAntenna</a> (string code, E_Sys sys, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, <a class="el" href="structPhaseCenterData.html">PhaseCenterData</a> **pcd_ptr_ptr=nullptr)</td></tr>
+<tr class="separator:acd95630452f87aa41f8cb07821d722a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae23e7dede27378f5a445120a5ae13e62"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#ae23e7dede27378f5a445120a5ae13e62">readantexf</a> (string file, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
 <tr class="memdesc:ae23e7dede27378f5a445120a5ae13e62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read antex file.  <a href="antenna_8hpp.html#ae23e7dede27378f5a445120a5ae13e62">More...</a><br /></td></tr>
 <tr class="separator:ae23e7dede27378f5a445120a5ae13e62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3beefedc70e84beab788d3d0dd2e9138"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="antenna_8hpp.html#a3beefedc70e84beab788d3d0dd2e9138">radome2none</a> (string &amp;antenna_type)</td></tr>
+<tr class="memdesc:a3beefedc70e84beab788d3d0dd2e9138"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the last four characters of antenna type to NONE e,g, "AOAD/M_T        JPLA" =&gt; "AOAD/M_T        NONE" This function is useful for when searching for an antenna model in ANTEX The IGS convention is to default to NONE for the radome if the calibration value is not available.  <a href="antenna_8hpp.html#a3beefedc70e84beab788d3d0dd2e9138">More...</a><br /></td></tr>
 <tr class="separator:a3beefedc70e84beab788d3d0dd2e9138"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a2e1a72b7ddecf308659b6909a83a104b" name="a2e1a72b7ddecf308659b6909a83a104b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e1a72b7ddecf308659b6909a83a104b">&#9670;&nbsp;</a></span>antPco()</h2>
+<a id="aa49c11c2bd15040e7966ad0f3978cf0a" name="aa49c11c2bd15040e7966ad0f3978cf0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa49c11c2bd15040e7966ad0f3978cf0a">&#9670;&nbsp;</a></span>antPco()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -128,6 +130,12 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">E_Sys&#160;</td>
+          <td class="paramname"><em>sys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td>
           <td class="paramname"><em>ft</em>, </td>
         </tr>
@@ -136,6 +144,18 @@ Functions</h2></td></tr>
           <td></td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>var</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_Radio&#160;</td>
+          <td class="paramname"><em>radio</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -155,18 +175,18 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_a2e1a72b7ddecf308659b6909a83a104b_cgraph.svg" width="228" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_aa49c11c2bd15040e7966ad0f3978cf0a_cgraph.svg" width="228" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_a2e1a72b7ddecf308659b6909a83a104b_icgraph.svg" width="384" height="268"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_aa49c11c2bd15040e7966ad0f3978cf0a_icgraph.svg" width="359" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a5d8036ab82ccb38af44d49bcc22d1ead" name="a5d8036ab82ccb38af44d49bcc22d1ead"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5d8036ab82ccb38af44d49bcc22d1ead">&#9670;&nbsp;</a></span>antPcv()</h2>
+<a id="a28e3dcdc8c9fb5a3369931fb18833f26" name="a28e3dcdc8c9fb5a3369931fb18833f26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28e3dcdc8c9fb5a3369931fb18833f26">&#9670;&nbsp;</a></span>antPcv()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -176,6 +196,12 @@ Here is the caller graph for this function:</div>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_Sys&#160;</td>
+          <td class="paramname"><em>sys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -192,14 +218,14 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>aCos</em>, </td>
+          <td class="paramtype"><a class="el" href="structAttStatus.html">AttStatus</a> &amp;&#160;</td>
+          <td class="paramname"><em>attStatus</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>azi</em> = <code>0</code>&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorEcef.html">VectorEcef</a>&#160;</td>
+          <td class="paramname"><em>e</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -213,28 +239,29 @@ Here is the caller graph for this function:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">id</td><td>antenna id</td></tr>
+    <tr><td class="paramname">sys</td><td>satellite system</td></tr>
     <tr><td class="paramname">ft</td><td>frequency</td></tr>
     <tr><td class="paramname">time</td><td>time</td></tr>
-    <tr><td class="paramname">aCos</td><td>angle between target and antenna axis (radians)</td></tr>
-    <tr><td class="paramname">azi</td><td>azimuth angle (radians) </td></tr>
+    <tr><td class="paramname">attStatus</td><td>Orientation of antenna</td></tr>
+    <tr><td class="paramname">e</td><td>Line of sight vector </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_a5d8036ab82ccb38af44d49bcc22d1ead_cgraph.svg" width="186" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_a28e3dcdc8c9fb5a3369931fb18833f26_cgraph.svg" width="226" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_a5d8036ab82ccb38af44d49bcc22d1ead_icgraph.svg" width="246" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_a28e3dcdc8c9fb5a3369931fb18833f26_icgraph.svg" width="246" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ad8882e2e88f66fa028d89ccc220a7200" name="ad8882e2e88f66fa028d89ccc220a7200"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad8882e2e88f66fa028d89ccc220a7200">&#9670;&nbsp;</a></span>findAntenna()</h2>
+<a id="acd95630452f87aa41f8cb07821d722a0" name="acd95630452f87aa41f8cb07821d722a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd95630452f87aa41f8cb07821d722a0">&#9670;&nbsp;</a></span>findAntenna()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -244,6 +271,12 @@ Here is the caller graph for this function:</div>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>code</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_Sys&#160;</td>
+          <td class="paramname"><em>sys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -279,7 +312,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ad8882e2e88f66fa028d89ccc220a7200_icgraph.svg" width="356" height="155"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_acd95630452f87aa41f8cb07821d722a0_icgraph.svg" width="344" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -299,6 +332,8 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Change the last four characters of antenna type to NONE e,g, "AOAD/M_T        JPLA" =&gt; "AOAD/M_T        NONE" This function is useful for when searching for an antenna model in ANTEX The IGS convention is to default to NONE for the radome if the calibration value is not available. </p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -314,7 +349,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readantexf </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readantexf </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>file</em>, </td>
@@ -337,24 +372,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ae23e7dede27378f5a445120a5ae13e62_cgraph.svg" width="251" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ae23e7dede27378f5a445120a5ae13e62_cgraph.svg" width="479" height="327"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ae23e7dede27378f5a445120a5ae13e62_icgraph.svg" width="278" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ae23e7dede27378f5a445120a5ae13e62_icgraph.svg" width="278" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="acc6b59453288452e02d564d22e410fdf" name="acc6b59453288452e02d564d22e410fdf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acc6b59453288452e02d564d22e410fdf">&#9670;&nbsp;</a></span>satAntOff() <span class="overload">[1/2]</span></h2>
+<a id="ac24a7ecc232807f046a15e914b5df57f" name="ac24a7ecc232807f046a15e914b5df57f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac24a7ecc232807f046a15e914b5df57f">&#9670;&nbsp;</a></span>satAntOff()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Vector3d satAntOff </td>
+          <td class="memname"><a class="el" href="structVectorEcef.html">VectorEcef</a> satAntOff </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -368,8 +403,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
+          <td class="paramtype"><a class="el" href="structAttStatus.html">AttStatus</a> &amp;&#160;</td>
+          <td class="paramname"><em>attStatus</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -380,14 +415,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td>
-          <td class="paramname"><em>ft</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatStat.html">SatStat</a> *&#160;</td>
-          <td class="paramname"><em>satStat_ptr</em> = <code>nullptr</code>&#160;</td>
+          <td class="paramtype">map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>lamMap</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -396,78 +425,27 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>satellite antenna phase center offset in ecef </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>Trace file to output to</td></tr>
+    <tr><td class="paramname">time</td><td><a class="el" href="structSolution.html" title="Solution of user mode processing functinos.">Solution</a> time</td></tr>
+    <tr><td class="paramname">attStatus</td><td>attitude status</td></tr>
+    <tr><td class="paramname">Sat</td><td>Satellite ID</td></tr>
+    <tr><td class="paramname">lamMap</td><td>Lambda (wavelengths) map </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_acc6b59453288452e02d564d22e410fdf_cgraph.svg" width="272" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ac40b3d271b571851b9ee0e0c1131546d" name="ac40b3d271b571851b9ee0e0c1131546d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac40b3d271b571851b9ee0e0c1131546d">&#9670;&nbsp;</a></span>satAntOff() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void satAntOff </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a> &amp;&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, double &gt; &amp;&#160;</td>
-          <td class="paramname"><em>lamMap</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>dAnt</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatStat.html">SatStat</a> *&#160;</td>
-          <td class="paramname"><em>satStat_ptr</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ac40b3d271b571851b9ee0e0c1131546d_cgraph.svg" width="272" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ac24a7ecc232807f046a15e914b5df57f_cgraph.svg" width="272" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ac40b3d271b571851b9ee0e0c1131546d_icgraph.svg" width="234" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="antenna_8hpp_ac24a7ecc232807f046a15e914b5df57f_icgraph.svg" width="208" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M151.8,-35.54C133.1,-38.05 112.1,-40.87 94.82,-43.19"/>
 </g>
-<!-- Node7 -->
+<!-- Node6 -->
 <g id="node3" class="node">
-<title>Node7</title>
+<title>Node6</title>
 <g id="a_node3"><a xlink:href="tropSinex_8cpp.html#ab59eaf15f25fdbc2cdf51adbadfc9ad3" target="_top" xlink:title="Write troposphere Sinex data to file.">
 <polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 116,-19.5 116,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="58" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">writeTropSinexToFile</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node7 -->
+<!-- Node1&#45;&gt;Node6 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node7</title>
+<title>Node1&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M151.8,-22.46C140.29,-20.92 127.91,-19.25 116.07,-17.66"/>
 </g>
 </g>

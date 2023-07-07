@@ -1,8 +1,5 @@
 <map id="decodeSeph" name="decodeSeph">
-<area shape="rect" id="node1" title="Decode geo ephemeris." alt="" coords="5,107,107,133"/>
-<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="155,5,242,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="155,56,243,83"/>
-<area shape="rect" id="node4" href="$rinex_8cpp.html#aa658848066a28188b0e4b23f739ef883" title="Adjust time considering week handover." alt="" coords="160,107,237,133"/>
-<area shape="rect" id="node5" href="$gTime_8cpp.html#a6ab7d9a372acf84508cf00f0befd6095" title=" " alt="" coords="155,157,243,184"/>
-<area shape="rect" id="node6" href="$rinex_8cpp.html#a9f073cc8f2e3bddcb18f0bb37351af70" title="URA value (m) to ura index." alt="" coords="159,208,238,235"/>
+<area shape="rect" id="node1" title="Decode geo ephemeris." alt="" coords="5,31,107,57"/>
+<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="155,5,241,32"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#a96d3e41867e71358683d0395b85972af" title="URA value (m) to ura index." alt="" coords="157,56,239,83"/>
 </map>

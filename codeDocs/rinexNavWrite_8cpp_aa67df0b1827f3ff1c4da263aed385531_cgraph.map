@@ -1,9 +1,8 @@
 <map id="outputNavRinexION" name="outputNavRinexION">
-<area shape="rect" id="node1" title=" " alt="" coords="5,112,156,139"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="403,112,497,139"/>
-<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="236,36,323,63"/>
-<area shape="rect" id="node4" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="216,87,343,113"/>
-<area shape="rect" id="node5" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="230,137,329,164"/>
-<area shape="rect" id="node6" href="$gTime_8cpp.html#a0f1c35b5babe507c5b320111c1e634b7" title=" " alt="" coords="240,188,319,215"/>
-<area shape="rect" id="node7" href="$streamTrace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="204,239,355,265"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,84,156,110"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="403,84,497,110"/>
+<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="236,33,323,60"/>
+<area shape="rect" id="node4" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="216,84,343,110"/>
+<area shape="rect" id="node5" href="$gTime_8cpp.html#a210bda8e07fa8a70ce6c79948e42efe0" title=" " alt="" coords="230,134,329,161"/>
+<area shape="rect" id="node6" href="$trace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="204,185,355,212"/>
 </map>

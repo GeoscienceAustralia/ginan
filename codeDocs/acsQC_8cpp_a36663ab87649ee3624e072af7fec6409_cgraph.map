@@ -1,5 +1,7 @@
 <map id="detslp_mw" name="detslp_mw">
-<area shape="rect" id="node1" title="Detect slip by Melbourne&#45;Wubbena linear combination jump." alt="" coords="5,31,99,57"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="147,5,241,32"/>
-<area shape="rect" id="node3" href="$linearCombo_8cpp.html#afdd3451cef793c3574f718f2f79d9278" title="Create combinations between specific observation values." alt="" coords="165,56,223,83"/>
+<area shape="rect" id="node1" title="Detect slip by Melbourne&#45;Wubbena linear combination jump." alt="" coords="5,81,99,108"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="147,5,241,32"/>
+<area shape="rect" id="node3" href="$acsQC_8cpp.html#abd57aff1d197b2747eab5e751cbb0b57" title=" " alt="" coords="155,56,233,83"/>
+<area shape="rect" id="node4" href="$linearCombo_8cpp.html#afdd3451cef793c3574f718f2f79d9278" title="Create combinations between specific observation values." alt="" coords="165,107,223,133"/>
+<area shape="rect" id="node5" href="$ppp_8cpp.html#add1aa65516313588ef8e125a7d748f51" title=" " alt="" coords="155,157,233,184"/>
 </map>

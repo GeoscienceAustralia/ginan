@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="257,-152.5 257,-171.5 328,-171.5 328,-152.5 257,-152.5"/>
 <text text-anchor="middle" x="292.5" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -35,8 +35,8 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="244,-114.5 244,-133.5 341,-133.5 341,-114.5 244,-114.5"/>
+<g id="a_node3"><a xlink:href="structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="244,-114.5 244,-133.5 341,-133.5 341,-114.5 244,-114.5"/>
 <text text-anchor="middle" x="292.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">GTime::to_string</text>
 </a>
 </g>
@@ -46,118 +46,118 @@
 <title>Node1&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M48.95,-152.58C60.28,-169.78 86.81,-205.38 120,-219 156.18,-233.85 174.95,-239.91 208,-219 239.58,-199.01 216.77,-168.6 244,-143 248.01,-139.23 252.87,-136.17 257.92,-133.7"/>
 </g>
-<!-- Node6 -->
+<!-- Node4 -->
 <g id="node4" class="node">
-<title>Node6</title>
+<title>Node4</title>
 <g id="a_node4"><a xlink:href="GinARNLamb_8cpp.html#ac4b99b950a4d40abefe99b35c1142570" target="_top" xlink:title="Check Z&#45;transformed ambiguities and remove old entries.">
 <polygon fill="white" stroke="red" points="134,-190.5 134,-209.5 194,-209.5 194,-190.5 134,-190.5"/>
 <text text-anchor="middle" x="164" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">chk_arch</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node6 -->
+<!-- Node1&#45;&gt;Node4 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node6</title>
+<title>Node1&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M63.09,-152.54C85.24,-163.06 120.67,-179.89 142.85,-190.43"/>
 </g>
-<!-- Node8 -->
+<!-- Node6 -->
 <g id="node5" class="node">
-<title>Node8</title>
-<g id="a_node5"><a xlink:href="GinAR__main_8cpp.html#a970d7fea64de71970c5f7d85c109b244" target="_top" xlink:title="Default frequencies for each system.">
-<polygon fill="white" stroke="black" points="266.5,-190.5 266.5,-209.5 318.5,-209.5 318.5,-190.5 266.5,-190.5"/>
-<text text-anchor="middle" x="292.5" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">sys_frq</text>
+<title>Node6</title>
+<g id="a_node5"><a xlink:href="acsQC_8cpp.html#abd57aff1d197b2747eab5e751cbb0b57" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="263.5,-190.5 263.5,-209.5 321.5,-209.5 321.5,-190.5 263.5,-190.5"/>
+<text text-anchor="middle" x="292.5" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">satFreqs</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node8 -->
+<!-- Node1&#45;&gt;Node6 -->
 <g id="edge6" class="edge">
-<title>Node1&#45;&gt;Node8</title>
-<path fill="none" stroke="midnightblue" d="M84.03,-152.41C135.87,-164.3 223.46,-184.39 266.33,-194.23"/>
+<title>Node1&#45;&gt;Node6</title>
+<path fill="none" stroke="midnightblue" d="M84.03,-152.41C134.63,-164.02 219.29,-183.44 263.18,-193.5"/>
 </g>
-<!-- Node9 -->
+<!-- Node7 -->
 <g id="node6" class="node">
-<title>Node9</title>
+<title>Node7</title>
 <g id="a_node6"><a xlink:href="GinARWLamb_8cpp.html#ae3a66820cbbd6fd7a6343ce1ba640958" target="_top" xlink:title="Retrieve WL ambiguities from archive.">
 <polygon fill="white" stroke="black" points="120,-114.5 120,-133.5 208,-133.5 208,-114.5 120,-114.5"/>
 <text text-anchor="middle" x="164" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">retrv_WLambg</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node9 -->
+<!-- Node1&#45;&gt;Node7 -->
 <g id="edge7" class="edge">
-<title>Node1&#45;&gt;Node9</title>
+<title>Node1&#45;&gt;Node7</title>
 <path fill="none" stroke="midnightblue" d="M84.3,-136.46C95.82,-134.64 108.37,-132.65 119.99,-130.81"/>
 </g>
-<!-- Node10 -->
+<!-- Node8 -->
 <g id="node7" class="node">
-<title>Node10</title>
+<title>Node8</title>
 <g id="a_node7"><a xlink:href="structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" target="_top" xlink:title="Returns a std::string of this satellite&#39;s id.">
 <polygon fill="white" stroke="red" points="260,-76.5 260,-95.5 325,-95.5 325,-76.5 260,-76.5"/>
 <text text-anchor="middle" x="292.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">SatSys::id</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node10 -->
+<!-- Node1&#45;&gt;Node8 -->
 <g id="edge11" class="edge">
-<title>Node1&#45;&gt;Node10</title>
+<title>Node1&#45;&gt;Node8</title>
 <path fill="none" stroke="midnightblue" d="M58.27,-133.46C73.36,-124.53 97.39,-111.61 120,-105 167.44,-91.13 224.97,-87.25 259.88,-86.24"/>
 </g>
-<!-- Node13 -->
+<!-- Node11 -->
 <g id="node8" class="node">
-<title>Node13</title>
+<title>Node11</title>
 <g id="a_node8"><a xlink:href="GNSSambres_8cpp.html#a5828fccde37f3654b3bd28203461dc8b" target="_top" xlink:title="Ambiguity resolution function for Ginan.">
 <polygon fill="white" stroke="red" points="133,-38.5 133,-57.5 195,-57.5 195,-38.5 133,-38.5"/>
 <text text-anchor="middle" x="164" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">GNSS_AR</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node13 -->
+<!-- Node1&#45;&gt;Node11 -->
 <g id="edge12" class="edge">
-<title>Node1&#45;&gt;Node13</title>
+<title>Node1&#45;&gt;Node11</title>
 <path fill="none" stroke="midnightblue" d="M51.86,-133.5C65.59,-119.11 93.2,-91.42 120,-72 127.34,-66.68 135.97,-61.65 143.57,-57.59"/>
 </g>
-<!-- Node27 -->
+<!-- Node22 -->
 <g id="node9" class="node">
-<title>Node27</title>
+<title>Node22</title>
 <g id="a_node9"><a xlink:href="GinARNLamb_8cpp.html#aec84319e21a1558de999b084be3e8cad" target="_top" xlink:title="Add Z&#45;transformed ambiguity to archive.">
 <polygon fill="white" stroke="red" points="130,-0.5 130,-19.5 198,-19.5 198,-0.5 130,-0.5"/>
 <text text-anchor="middle" x="164" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">incl_Zamb</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node27 -->
+<!-- Node1&#45;&gt;Node22 -->
 <g id="edge13" class="edge">
-<title>Node1&#45;&gt;Node27</title>
+<title>Node1&#45;&gt;Node22</title>
 <path fill="none" stroke="midnightblue" d="M47.18,-133.42C56.97,-111.99 83.36,-59.64 120,-29 124.38,-25.34 129.58,-22.25 134.83,-19.71"/>
 </g>
-<!-- Node6&#45;&gt;Node2 -->
+<!-- Node4&#45;&gt;Node2 -->
 <g id="edge5" class="edge">
-<title>Node6&#45;&gt;Node2</title>
+<title>Node4&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M194.02,-191.28C213.57,-185.41 239.36,-177.66 259.5,-171.61"/>
 </g>
-<!-- Node6&#45;&gt;Node8 -->
+<!-- Node4&#45;&gt;Node6 -->
 <g id="edge4" class="edge">
-<title>Node6&#45;&gt;Node8</title>
-<path fill="none" stroke="midnightblue" d="M194.02,-200C215.9,-200 245.61,-200 266.46,-200"/>
+<title>Node4&#45;&gt;Node6</title>
+<path fill="none" stroke="midnightblue" d="M194.02,-200C214.88,-200 242.85,-200 263.48,-200"/>
 </g>
-<!-- Node9&#45;&gt;Node2 -->
+<!-- Node7&#45;&gt;Node2 -->
 <g id="edge8" class="edge">
-<title>Node9&#45;&gt;Node2</title>
+<title>Node7&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M196.92,-133.59C216.1,-139.35 240.41,-146.65 259.59,-152.41"/>
 </g>
-<!-- Node9&#45;&gt;Node3 -->
+<!-- Node7&#45;&gt;Node3 -->
 <g id="edge9" class="edge">
-<title>Node9&#45;&gt;Node3</title>
+<title>Node7&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M208.18,-124C219.63,-124 232.06,-124 243.74,-124"/>
 </g>
-<!-- Node9&#45;&gt;Node10 -->
+<!-- Node7&#45;&gt;Node8 -->
 <g id="edge10" class="edge">
-<title>Node9&#45;&gt;Node10</title>
+<title>Node7&#45;&gt;Node8</title>
 <path fill="none" stroke="midnightblue" d="M196.92,-114.41C216.1,-108.65 240.41,-101.35 259.59,-95.59"/>
 </g>
-<!-- Node27&#45;&gt;Node2 -->
+<!-- Node22&#45;&gt;Node2 -->
 <g id="edge14" class="edge">
-<title>Node27&#45;&gt;Node2</title>
+<title>Node22&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M195.84,-19.7C200.36,-22.17 204.62,-25.23 208,-29 243.44,-68.58 207.86,-104.05 244,-143 247.63,-146.91 252.16,-150.03 256.98,-152.51"/>
 </g>
 </g>

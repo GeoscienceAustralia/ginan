@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="GNSSambres_8cpp.html#a8292074e76cf91e136884467b24318a0" target="_top" xlink:title="Simple integer Rounding.">
+<g id="a_node2"><a xlink:href="$GNSSambres_8cpp.html#a8292074e76cf91e136884467b24318a0" xlink:title="Simple integer Rounding.">
 <polygon fill="white" stroke="red" points="102,-114.5 102,-133.5 185,-133.5 185,-114.5 102,-114.5"/>
 <text text-anchor="middle" x="143.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">simple_round</text>
 </a>
@@ -35,7 +35,7 @@
 <!-- Node5 -->
 <g id="node3" class="node">
 <title>Node5</title>
-<g id="a_node3"><a xlink:href="GNSSambres_8cpp.html#aff65fc95b889a3af6c182c7093163bb8" target="_top" xlink:title="Iterative Rounding.">
+<g id="a_node3"><a xlink:href="$GNSSambres_8cpp.html#aff65fc95b889a3af6c182c7093163bb8" xlink:title="Iterative Rounding.">
 <polygon fill="white" stroke="red" points="225,-57.5 225,-76.5 307,-76.5 307,-57.5 225,-57.5"/>
 <text text-anchor="middle" x="266" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">interat_round</text>
 </a>
@@ -49,7 +49,7 @@
 <!-- Node6 -->
 <g id="node4" class="node">
 <title>Node6</title>
-<g id="a_node4"><a xlink:href="GNSSambres_8cpp.html#a0c81d8384a1295cd8a6371a9c9968325" target="_top" xlink:title="Integer bootstrapping.">
+<g id="a_node4"><a xlink:href="$GNSSambres_8cpp.html#a0c81d8384a1295cd8a6371a9c9968325" xlink:title="Integer bootstrapping.">
 <polygon fill="white" stroke="red" points="100,-38.5 100,-57.5 187,-57.5 187,-38.5 100,-38.5"/>
 <text text-anchor="middle" x="143.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">integer_bootst</text>
 </a>
@@ -60,18 +60,18 @@
 <title>Node1&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M62.19,-61.81C73.82,-59.81 87.33,-57.49 99.92,-55.32"/>
 </g>
-<!-- Node9 -->
+<!-- Node7 -->
 <g id="node5" class="node">
-<title>Node9</title>
-<g id="a_node5"><a xlink:href="GNSSambres_8cpp.html#aab3dd27d035c545c6c854a6906616e79" target="_top" xlink:title="Lambda algorithm and its variations (ILQ, Common set, BIE)">
+<title>Node7</title>
+<g id="a_node5"><a xlink:href="$GNSSambres_8cpp.html#aab3dd27d035c545c6c854a6906616e79" xlink:title="Lambda algorithm and its variations (ILQ, Common set, BIE)">
 <polygon fill="white" stroke="red" points="98,-0.5 98,-19.5 189,-19.5 189,-0.5 98,-0.5"/>
 <text text-anchor="middle" x="143.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">lambda_search</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node9 -->
+<!-- Node1&#45;&gt;Node7 -->
 <g id="edge5" class="edge">
-<title>Node1&#45;&gt;Node9</title>
+<title>Node1&#45;&gt;Node7</title>
 <path fill="none" stroke="midnightblue" d="M47.45,-57.41C60.65,-49.38 80.26,-37.86 98,-29 104.61,-25.7 111.94,-22.42 118.71,-19.54"/>
 </g>
 <!-- Node6&#45;&gt;Node5 -->

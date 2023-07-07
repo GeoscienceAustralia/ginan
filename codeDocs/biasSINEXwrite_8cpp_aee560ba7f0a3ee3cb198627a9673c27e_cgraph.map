@@ -1,6 +1,6 @@
 <map id="writeBiasSinex" name="writeBiasSinex">
 <area shape="rect" id="node1" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="5,24,124,50"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="368,24,463,50"/>
-<area shape="rect" id="node3" href="$biasSINEXwrite_8cpp.html#a6c7bad6904e92e16df26708e1e2d02cc" title="Write bias SINEX head." alt="" coords="172,24,320,50"/>
-<area shape="rect" id="node4" href="$biasSINEXwrite_8cpp.html#a4e4fe834c1dbcb6b4a41560de1d7432e" title="print bias SINEX data line" alt="" coords="176,74,316,101"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="368,24,463,50"/>
+<area shape="rect" id="node3" href="$biasSINEXwrite_8cpp.html#ab80aded2bb2420800137f2c656c04ef0" title="Write bias SINEX head." alt="" coords="172,24,320,50"/>
+<area shape="rect" id="node4" href="$biasSINEXwrite_8cpp.html#a7efb73455569a96ce12f4d644a274260" title="print bias SINEX data line" alt="" coords="176,74,316,101"/>
 </map>

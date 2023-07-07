@@ -78,7 +78,6 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
 <a href="#func-members">Functions</a> &#124;
-<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle"><div class="title">sinex.hpp File Reference</div></div>
 </div><!--header-->
@@ -129,9 +128,11 @@ Data Structures</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__solmatrix__t.html">Sinex_solmatrix_t</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__datahandling__t.html">Sinex_datahandling_t</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__satid__t.html">Sinex_satid_t</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__satident__t.html">Sinex_satident_t</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinexSatIdentity.html">SinexSatIdentity</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__satprn__t.html">Sinex_satprn_t</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -147,6 +148,10 @@ Data Structures</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__satpc__t.html">Sinex_satpc_t</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinexSatYawRate.html">SinexSatYawRate</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinexSatAttMode.html">SinexSatAttMode</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinexTropDesc.html">SinexTropDesc</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinexTropSol.html">SinexTropSol</a></td></tr>
@@ -157,69 +162,63 @@ Data Structures</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__stn__soln__t.html">Sinex_stn_soln_t</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinexSatSnx.html">SinexSatSnx</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSinex__sat__snx__t.html">Sinex_sat_snx_t</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">union &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unionGetSnxResult.html">GetSnxResult</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa7095ca5f93f6529a75020f467ac4f7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#aa7095ca5f93f6529a75020f467ac4f7a">read_sinex</a> (string filepath, bool primary)</td></tr>
-<tr class="separator:aa7095ca5f93f6529a75020f467ac4f7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ddbde555bbc2d42ac7064ed41182cd6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a7ddbde555bbc2d42ac7064ed41182cd6">write_sinex</a> (string filepath, map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; *stationMap=nullptr, <a class="el" href="structSinex__sat__snx__t.html">Sinex_sat_snx_t</a> *psat=nullptr, bool comm_override=true)</td></tr>
-<tr class="separator:a7ddbde555bbc2d42ac7064ed41182cd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d59468f38eaa9bd70673a0bc31fe783"><td class="memItemLeft" align="right" valign="top">E_SnxDataMissing&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a7d59468f38eaa9bd70673a0bc31fe783">getstnsnx</a> (string station, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> yds[3], <a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a> &amp;snx)</td></tr>
-<tr class="separator:a7d59468f38eaa9bd70673a0bc31fe783"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb916c31d8e994982c7b199d9d0fa836"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#adb916c31d8e994982c7b199d9d0fa836">getsatsnx</a> (string prn, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> yds[3], <a class="el" href="structSinex__sat__snx__t.html">Sinex_sat_snx_t</a> &amp;snx)</td></tr>
-<tr class="separator:adb916c31d8e994982c7b199d9d0fa836"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0e17ff7fad77f6707bf2fbec239cb18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#aa0e17ff7fad77f6707bf2fbec239cb18">sinex_report</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace)</td></tr>
-<tr class="separator:aa0e17ff7fad77f6707bf2fbec239cb18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac81a0831ff6092eed391d352bdc2b9b9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#ac81a0831ff6092eed391d352bdc2b9b9">sinex_sat_count</a> ()</td></tr>
-<tr class="separator:ac81a0831ff6092eed391d352bdc2b9b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a46653127430d2b620ae146f7eb40c303"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a46653127430d2b620ae146f7eb40c303">sinex_site_count</a> ()</td></tr>
-<tr class="separator:a46653127430d2b620ae146f7eb40c303"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d4b582fbe641b956dec6621e592ac63"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a5d4b582fbe641b956dec6621e592ac63">time_compare</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> left[3], <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> right[3])</td></tr>
-<tr class="separator:a5d4b582fbe641b956dec6621e592ac63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9402284d294db2cdbc34e1af4365ad25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a9402284d294db2cdbc34e1af4365ad25">sinex_update_estimate</a> (const <a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a> &amp;station, E_Estimate e, double val, double std, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> yds[3], <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> newidx, double defstd)</td></tr>
-<tr class="separator:a9402284d294db2cdbc34e1af4365ad25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2a983c373a67946d9a6d55caf65125ea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a2a983c373a67946d9a6d55caf65125ea">sinex_update_matrix</a> (<a class="el" href="sinex_8hpp.html#a07962dd0449c5d375d80af8cfaad8672">matrix_type</a> mt, <a class="el" href="sinex_8hpp.html#a60ebdb8d331262f6ae7dad99a265a447">matrix_value</a> mv, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> row, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> col, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> nvals, double val[3])</td></tr>
-<tr class="separator:a2a983c373a67946d9a6d55caf65125ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91c087518865e9b29c151d95391471c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a91c087518865e9b29c151d95391471c6">sinex_add_statistic</a> (const string &amp;what, const <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> value)</td></tr>
+<tr class="memitem:a5ed46782b3a26cc6d0a1a30e650be386"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a5ed46782b3a26cc6d0a1a30e650be386">nearestYear</a> (double &amp;year)</td></tr>
+<tr class="separator:a5ed46782b3a26cc6d0a1a30e650be386"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e1feec33e7e733fe8203f9edf11f2ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a4e1feec33e7e733fe8203f9edf11f2ad">readSinex</a> (string filepath, bool primary)</td></tr>
+<tr class="separator:a4e1feec33e7e733fe8203f9edf11f2ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e6c1860c3f578f6e33c608ddc176f01"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a0e6c1860c3f578f6e33c608ddc176f01">writeSinex</a> (string filepath, map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
+<tr class="separator:a0e6c1860c3f578f6e33c608ddc176f01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c70ebb7cae3e7098c33cf67963f8888"><td class="memItemLeft" align="right" valign="top"><a class="el" href="unionGetSnxResult.html">GetSnxResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a6c70ebb7cae3e7098c33cf67963f8888">getStnSnx</a> (string rec, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSinexRecData.html">SinexRecData</a> &amp;snx)</td></tr>
+<tr class="separator:a6c70ebb7cae3e7098c33cf67963f8888"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70cb9f709bfade630c6afbb3ccd1df0f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="unionGetSnxResult.html">GetSnxResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a70cb9f709bfade630c6afbb3ccd1df0f">getSatSnx</a> (string prn, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSinexSatSnx.html">SinexSatSnx</a> &amp;snx)</td></tr>
+<tr class="separator:a70cb9f709bfade630c6afbb3ccd1df0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2aaef93ea3374245842bc1c2679930e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#ac2aaef93ea3374245842bc1c2679930e">getRecBias</a> (string station, <a class="el" href="structUYds.html">UYds</a> yds, map&lt; char, double &gt; &amp;stn_bias)</td></tr>
+<tr class="separator:ac2aaef93ea3374245842bc1c2679930e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae504318cd0c1f450949803a48ea72527"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#ae504318cd0c1f450949803a48ea72527">time_compare</a> (<a class="el" href="structUYds.html">UYds</a> &amp;left, <a class="el" href="structUYds.html">UYds</a> &amp;right)</td></tr>
+<tr class="memdesc:ae504318cd0c1f450949803a48ea72527"><td class="mdescLeft">&#160;</td><td class="mdescRight">seconds diff bewteen left and right If left &lt; right the value is negative  <a href="sinex_8hpp.html#ae504318cd0c1f450949803a48ea72527">More...</a><br /></td></tr>
+<tr class="separator:ae504318cd0c1f450949803a48ea72527"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91c087518865e9b29c151d95391471c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a91c087518865e9b29c151d95391471c6">sinex_add_statistic</a> (const string &amp;what, const <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> value)</td></tr>
 <tr class="separator:a91c087518865e9b29c151d95391471c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0dfe03b24d8e8d5643c3f788bc34b0d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a0dfe03b24d8e8d5643c3f788bc34b0d2">sinex_add_statistic</a> (const string &amp;what, const double value)</td></tr>
 <tr class="separator:a0dfe03b24d8e8d5643c3f788bc34b0d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32c742a3442654bb9d17958a0bd32621"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a32c742a3442654bb9d17958a0bd32621">sinex_check_add_ga_reference</a> (string solType, string peaVer, bool isTrop)</td></tr>
+<tr class="memitem:a32c742a3442654bb9d17958a0bd32621"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a32c742a3442654bb9d17958a0bd32621">sinex_check_add_ga_reference</a> (string solType, string peaVer, bool isTrop)</td></tr>
 <tr class="separator:a32c742a3442654bb9d17958a0bd32621"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a794f7e8805753450abc772dd86e806dc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a794f7e8805753450abc772dd86e806dc">sinex_add_acknowledgement</a> (const string &amp;who, const string &amp;description)</td></tr>
 <tr class="separator:a794f7e8805753450abc772dd86e806dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4bde61f873ae7c59acf3c7340a36ea7e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a4bde61f873ae7c59acf3c7340a36ea7e">sinex_add_comment</a> (const string what)</td></tr>
 <tr class="separator:a4bde61f873ae7c59acf3c7340a36ea7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab52fc6aa89ee3cb1c9db7c0ebff41378"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#ab52fc6aa89ee3cb1c9db7c0ebff41378">sinex_add_file</a> (const string &amp;who, const <a class="el" href="structGTime.html">GTime</a> &amp;when, const string &amp;filename, const string &amp;description)</td></tr>
-<tr class="separator:ab52fc6aa89ee3cb1c9db7c0ebff41378"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a182eb82bc3e7885feba85677baea2b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a3a182eb82bc3e7885feba85677baea2b">sinex_update_header</a> (string &amp;create_agc, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> create_date[3], string &amp;data_agc, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> soln_start[3], <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> soln_end[3], const char obsCode, const char constCode, string &amp;contents, double sinexVer)</td></tr>
-<tr class="separator:a3a182eb82bc3e7885feba85677baea2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b5f4d774fbaf2921b08fe116510c5bf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a6b5f4d774fbaf2921b08fe116510c5bf">sinexPostProcessing</a> (<a class="el" href="structGTime.html">GTime</a> time, map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;stationMap, <a class="el" href="structKFState.html">KFState</a> &amp;netKFState)</td></tr>
+<tr class="memitem:a84715b8588f34c7b772509fcfa0e79c0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a84715b8588f34c7b772509fcfa0e79c0">sinex_add_files</a> (const string &amp;who, const <a class="el" href="structGTime.html">GTime</a> &amp;when, const vector&lt; string &gt; &amp;filenames, const string &amp;description)</td></tr>
+<tr class="separator:a84715b8588f34c7b772509fcfa0e79c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff412d7cf476298a141d5ea518e2d956"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#aff412d7cf476298a141d5ea518e2d956">updateSinexHeader</a> (string &amp;create_agc, string &amp;data_agc, <a class="el" href="structUYds.html">UYds</a> soln_start, <a class="el" href="structUYds.html">UYds</a> soln_end, const char obsCode, const char constCode, string &amp;contents, double sinexVer)</td></tr>
+<tr class="separator:aff412d7cf476298a141d5ea518e2d956"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b5f4d774fbaf2921b08fe116510c5bf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a6b5f4d774fbaf2921b08fe116510c5bf">sinexPostProcessing</a> (<a class="el" href="structGTime.html">GTime</a> time, map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="structKFState.html">KFState</a> &amp;netKFState)</td></tr>
 <tr class="separator:a6b5f4d774fbaf2921b08fe116510c5bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e1c8eabbdcd632cd47f48b220ce3d25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a8e1c8eabbdcd632cd47f48b220ce3d25">sinexPerEpochPerStation</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
 <tr class="separator:a8e1c8eabbdcd632cd47f48b220ce3d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31fdba2dcd8e8fb805cab31cfe62ffb8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a31fdba2dcd8e8fb805cab31cfe62ffb8">outputTropSinex</a> (string filename, <a class="el" href="structGTime.html">GTime</a> time, map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;stationMap, string markerName=&quot;MIX&quot;, bool isSmoothed=false)</td></tr>
-<tr class="memdesc:a31fdba2dcd8e8fb805cab31cfe62ffb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Export troposphere <a class="el" href="structSinex.html">Sinex</a> data.  <a href="sinex_8hpp.html#a31fdba2dcd8e8fb805cab31cfe62ffb8">More...</a><br /></td></tr>
-<tr class="separator:a31fdba2dcd8e8fb805cab31cfe62ffb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82d76698a32ad8844f8f8e339675b64a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a82d76698a32ad8844f8f8e339675b64a">outputTropSinex</a> (string filename, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structKFState.html">KFState</a> &amp;netKfState, string markerName=&quot;MIX&quot;, bool isSmoothed=false)</td></tr>
+<tr class="memdesc:a82d76698a32ad8844f8f8e339675b64a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output troposphere SINEX data.  <a href="sinex_8hpp.html#a82d76698a32ad8844f8f8e339675b64a">More...</a><br /></td></tr>
+<tr class="separator:a82d76698a32ad8844f8f8e339675b64a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada4f47e7185039a0f77a311398cb168c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#ada4f47e7185039a0f77a311398cb168c">write_as_comments</a> (std::ofstream &amp;out, list&lt; string &gt; &amp;comments)</td></tr>
 <tr class="separator:ada4f47e7185039a0f77a311398cb168c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afdeb15b3fecc8fbd4afe68ff4047b045"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#afdeb15b3fecc8fbd4afe68ff4047b045">write_pretty_line</a> (std::ofstream &amp;out)</td></tr>
-<tr class="separator:afdeb15b3fecc8fbd4afe68ff4047b045"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3f6027344f449da094da6619304d7e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#af3f6027344f449da094da6619304d7e0">write_snx_reference</a> (std::ofstream &amp;out)</td></tr>
-<tr class="separator:af3f6027344f449da094da6619304d7e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31e21ec90e6030a1e1c688b770535c83"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a31e21ec90e6030a1e1c688b770535c83">getStationsFromSinex</a> (map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;stationMap, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="memitem:aab76a3915e89f4d123ef1c154178eb77"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#aab76a3915e89f4d123ef1c154178eb77">write_snx_reference</a> (std::ofstream &amp;out)</td></tr>
+<tr class="separator:aab76a3915e89f4d123ef1c154178eb77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac13f2d1cf494d7ef906f056ebe75f44c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#ac13f2d1cf494d7ef906f056ebe75f44c">getSnxSatMaxYawRate</a> (string prn, <a class="el" href="structGTime.html">GTime</a> &amp;time, double &amp;maxYawRate)</td></tr>
+<tr class="memdesc:ac13f2d1cf494d7ef906f056ebe75f44c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get yaw rate sinex entry for sat.  <a href="sinex_8hpp.html#ac13f2d1cf494d7ef906f056ebe75f44c">More...</a><br /></td></tr>
+<tr class="separator:ac13f2d1cf494d7ef906f056ebe75f44c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab187bb823c2ba475212f337346448de1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#ab187bb823c2ba475212f337346448de1">getSnxSatBlockType</a> (string svn, string &amp;blockType)</td></tr>
+<tr class="separator:ab187bb823c2ba475212f337346448de1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2427a868db0f0ab748d35d7fedaffb6d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a2427a868db0f0ab748d35d7fedaffb6d">getSnxSatAttMode</a> (string svn, <a class="el" href="structGTime.html">GTime</a> &amp;time, string &amp;attMode)</td></tr>
+<tr class="memdesc:a2427a868db0f0ab748d35d7fedaffb6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get attitude mode for sat.  <a href="sinex_8hpp.html#a2427a868db0f0ab748d35d7fedaffb6d">More...</a><br /></td></tr>
+<tr class="separator:a2427a868db0f0ab748d35d7fedaffb6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31e21ec90e6030a1e1c688b770535c83"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a31e21ec90e6030a1e1c688b770535c83">getStationsFromSinex</a> (map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
 <tr class="separator:a31e21ec90e6030a1e1c688b770535c83"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:a26e13a44f124576be64b3088754b7a89"><td class="memItemLeft" align="right" valign="top">typedef map&lt; string, list&lt; <a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a26e13a44f124576be64b3088754b7a89">station_map</a></td></tr>
-<tr class="separator:a26e13a44f124576be64b3088754b7a89"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a2fcf7afba44a201a802d3400f8d6b8"><td class="memItemLeft" align="right" valign="top">typedef map&lt; string, list&lt; <a class="el" href="structSinex__sat__snx__t.html">Sinex_sat_snx_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a6a2fcf7afba44a201a802d3400f8d6b8">satellite_map</a></td></tr>
-<tr class="separator:a6a2fcf7afba44a201a802d3400f8d6b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -235,37 +234,30 @@ Enumerations</h2></td></tr>
 , <a class="el" href="sinex_8hpp.html#a60ebdb8d331262f6ae7dad99a265a447aa4808cbf86ad11eea48bddf07e8630fc">MAX_MATRIX_VALUE</a>
  }</td></tr>
 <tr class="separator:a60ebdb8d331262f6ae7dad99a265a447"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8eb63e750a825ec74188676aecc8f893"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sinex_8hpp.html#a8eb63e750a825ec74188676aecc8f893">E_EccType</a> { <a class="el" href="sinex_8hpp.html#a8eb63e750a825ec74188676aecc8f893a04f94606a3a73981e326e3a64654e1c7">P_ANT</a>
+, <a class="el" href="sinex_8hpp.html#a8eb63e750a825ec74188676aecc8f893a679e1ec877c3610ed03f7cf75230d133">L_LRA</a>
+ }</td></tr>
+<tr class="separator:a8eb63e750a825ec74188676aecc8f893"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="a6a2fcf7afba44a201a802d3400f8d6b8" name="a6a2fcf7afba44a201a802d3400f8d6b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6a2fcf7afba44a201a802d3400f8d6b8">&#9670;&nbsp;</a></span>satellite_map</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef map&lt;string, list&lt;<a class="el" href="structSinex__sat__snx__t.html">Sinex_sat_snx_t</a>&gt; &gt; <a class="el" href="sinex_8hpp.html#a6a2fcf7afba44a201a802d3400f8d6b8">satellite_map</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a26e13a44f124576be64b3088754b7a89" name="a26e13a44f124576be64b3088754b7a89"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a26e13a44f124576be64b3088754b7a89">&#9670;&nbsp;</a></span>station_map</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef map&lt;string, list&lt;<a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a>&gt; &gt; <a class="el" href="sinex_8hpp.html#a26e13a44f124576be64b3088754b7a89">station_map</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="a8eb63e750a825ec74188676aecc8f893" name="a8eb63e750a825ec74188676aecc8f893"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8eb63e750a825ec74188676aecc8f893">&#9670;&nbsp;</a></span>E_EccType</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="sinex_8hpp.html#a8eb63e750a825ec74188676aecc8f893">E_EccType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8eb63e750a825ec74188676aecc8f893a04f94606a3a73981e326e3a64654e1c7" name="a8eb63e750a825ec74188676aecc8f893a04f94606a3a73981e326e3a64654e1c7"></a>P_ANT&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a8eb63e750a825ec74188676aecc8f893a679e1ec877c3610ed03f7cf75230d133" name="a8eb63e750a825ec74188676aecc8f893a679e1ec877c3610ed03f7cf75230d133"></a>L_LRA&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
 <a id="a07962dd0449c5d375d80af8cfaad8672" name="a07962dd0449c5d375d80af8cfaad8672"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a07962dd0449c5d375d80af8cfaad8672">&#9670;&nbsp;</a></span>matrix_type</h2>
 
@@ -307,14 +299,53 @@ Enumerations</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="adb916c31d8e994982c7b199d9d0fa836" name="adb916c31d8e994982c7b199d9d0fa836"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb916c31d8e994982c7b199d9d0fa836">&#9670;&nbsp;</a></span>getsatsnx()</h2>
+<a id="ac2aaef93ea3374245842bc1c2679930e" name="ac2aaef93ea3374245842bc1c2679930e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2aaef93ea3374245842bc1c2679930e">&#9670;&nbsp;</a></span>getRecBias()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> getsatsnx </td>
+          <td class="memname">void getRecBias </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>station</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structUYds.html">UYds</a>&#160;</td>
+          <td class="paramname"><em>yds</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">map&lt; char, double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>stn_bias</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_ac2aaef93ea3374245842bc1c2679930e_icgraph.svg" width="255" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a70cb9f709bfade630c6afbb3ccd1df0f" name="a70cb9f709bfade630c6afbb3ccd1df0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70cb9f709bfade630c6afbb3ccd1df0f">&#9670;&nbsp;</a></span>getSatSnx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="unionGetSnxResult.html">GetSnxResult</a> getSatSnx </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>prn</em>, </td>
@@ -322,13 +353,13 @@ Enumerations</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>yds</em>[3], </td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structSinex__sat__snx__t.html">Sinex_sat_snx_t</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structSinexSatSnx.html">SinexSatSnx</a> &amp;&#160;</td>
           <td class="paramname"><em>snx</em>&#160;</td>
         </tr>
         <tr>
@@ -338,6 +369,126 @@ Enumerations</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a70cb9f709bfade630c6afbb3ccd1df0f_icgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2427a868db0f0ab748d35d7fedaffb6d" name="a2427a868db0f0ab748d35d7fedaffb6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2427a868db0f0ab748d35d7fedaffb6d">&#9670;&nbsp;</a></span>getSnxSatAttMode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool getSnxSatAttMode </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>svn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string &amp;&#160;</td>
+          <td class="paramname"><em>attMode</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get attitude mode for sat. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a2427a868db0f0ab748d35d7fedaffb6d_cgraph.svg" width="322" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a2427a868db0f0ab748d35d7fedaffb6d_icgraph.svg" width="300" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab187bb823c2ba475212f337346448de1" name="ab187bb823c2ba475212f337346448de1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab187bb823c2ba475212f337346448de1">&#9670;&nbsp;</a></span>getSnxSatBlockType()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool getSnxSatBlockType </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>svn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string &amp;&#160;</td>
+          <td class="paramname"><em>blockType</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac13f2d1cf494d7ef906f056ebe75f44c" name="ac13f2d1cf494d7ef906f056ebe75f44c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac13f2d1cf494d7ef906f056ebe75f44c">&#9670;&nbsp;</a></span>getSnxSatMaxYawRate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool getSnxSatMaxYawRate </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>prn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>maxYawRate</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get yaw rate sinex entry for sat. </p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_ac13f2d1cf494d7ef906f056ebe75f44c_icgraph.svg" width="322" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -369,28 +520,28 @@ Enumerations</h2></td></tr>
 
 </div>
 </div>
-<a id="a7d59468f38eaa9bd70673a0bc31fe783" name="a7d59468f38eaa9bd70673a0bc31fe783"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7d59468f38eaa9bd70673a0bc31fe783">&#9670;&nbsp;</a></span>getstnsnx()</h2>
+<a id="a6c70ebb7cae3e7098c33cf67963f8888" name="a6c70ebb7cae3e7098c33cf67963f8888"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c70ebb7cae3e7098c33cf67963f8888">&#9670;&nbsp;</a></span>getStnSnx()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">E_SnxDataMissing getstnsnx </td>
+          <td class="memname"><a class="el" href="unionGetSnxResult.html">GetSnxResult</a> getStnSnx </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>station</em>, </td>
+          <td class="paramname"><em>rec</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>yds</em>[3], </td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structSinexRecData.html">SinexRecData</a> &amp;&#160;</td>
           <td class="paramname"><em>snx</em>&#160;</td>
         </tr>
         <tr>
@@ -403,18 +554,41 @@ Enumerations</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a7d59468f38eaa9bd70673a0bc31fe783_cgraph.svg" width="314" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a6c70ebb7cae3e7098c33cf67963f8888_cgraph.svg" width="315" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a7d59468f38eaa9bd70673a0bc31fe783_icgraph.svg" width="330" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a6c70ebb7cae3e7098c33cf67963f8888_icgraph.svg" width="331" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a31fdba2dcd8e8fb805cab31cfe62ffb8" name="a31fdba2dcd8e8fb805cab31cfe62ffb8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a31fdba2dcd8e8fb805cab31cfe62ffb8">&#9670;&nbsp;</a></span>outputTropSinex()</h2>
+<a id="a5ed46782b3a26cc6d0a1a30e650be386" name="a5ed46782b3a26cc6d0a1a30e650be386"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ed46782b3a26cc6d0a1a30e650be386">&#9670;&nbsp;</a></span>nearestYear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void nearestYear </td>
+          <td>(</td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>year</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a5ed46782b3a26cc6d0a1a30e650be386_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="a82d76698a32ad8844f8f8e339675b64a" name="a82d76698a32ad8844f8f8e339675b64a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82d76698a32ad8844f8f8e339675b64a">&#9670;&nbsp;</a></span>outputTropSinex()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -434,8 +608,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>stationMap</em>, </td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>netKfState</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -457,12 +631,12 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Export troposphere <a class="el" href="structSinex.html">Sinex</a> data. </p>
+<p>Output troposphere SINEX data. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">filename</td><td>filename of file to write out</td></tr>
     <tr><td class="paramname">time</td><td>epoch of solution</td></tr>
-    <tr><td class="paramname">stationMap</td><td>map of stations used in network</td></tr>
+    <tr><td class="paramname">netKfState</td><td>KF state</td></tr>
     <tr><td class="paramname">markerName</td><td>name of station to use ("MIX" for all)</td></tr>
     <tr><td class="paramname">isSmoothed</td><td>if solution is smoothed (RTS or fixed-lag) </td></tr>
   </table>
@@ -471,24 +645,24 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a31fdba2dcd8e8fb805cab31cfe62ffb8_cgraph.svg" width="390" height="459"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a82d76698a32ad8844f8f8e339675b64a_cgraph.svg" width="342" height="408"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a31fdba2dcd8e8fb805cab31cfe62ffb8_icgraph.svg" width="399" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a82d76698a32ad8844f8f8e339675b64a_icgraph.svg" width="399" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="aa7095ca5f93f6529a75020f467ac4f7a" name="aa7095ca5f93f6529a75020f467ac4f7a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa7095ca5f93f6529a75020f467ac4f7a">&#9670;&nbsp;</a></span>read_sinex()</h2>
+<a id="a4e1feec33e7e733fe8203f9edf11f2ad" name="a4e1feec33e7e733fe8203f9edf11f2ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e1feec33e7e733fe8203f9edf11f2ad">&#9670;&nbsp;</a></span>readSinex()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> read_sinex </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readSinex </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>filepath</em>, </td>
@@ -509,12 +683,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_aa7095ca5f93f6529a75020f467ac4f7a_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a4e1feec33e7e733fe8203f9edf11f2ad_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_aa7095ca5f93f6529a75020f467ac4f7a_icgraph.svg" width="278" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a4e1feec33e7e733fe8203f9edf11f2ad_icgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -570,14 +744,14 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ab52fc6aa89ee3cb1c9db7c0ebff41378" name="ab52fc6aa89ee3cb1c9db7c0ebff41378"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab52fc6aa89ee3cb1c9db7c0ebff41378">&#9670;&nbsp;</a></span>sinex_add_file()</h2>
+<a id="a84715b8588f34c7b772509fcfa0e79c0" name="a84715b8588f34c7b772509fcfa0e79c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84715b8588f34c7b772509fcfa0e79c0">&#9670;&nbsp;</a></span>sinex_add_files()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void sinex_add_file </td>
+          <td class="memname">void sinex_add_files </td>
           <td>(</td>
           <td class="paramtype">const string &amp;&#160;</td>
           <td class="paramname"><em>who</em>, </td>
@@ -591,8 +765,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const string &amp;&#160;</td>
-          <td class="paramname"><em>filename</em>, </td>
+          <td class="paramtype">const vector&lt; string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>filenames</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -608,14 +782,9 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_ab52fc6aa89ee3cb1c9db7c0ebff41378_cgraph.svg" width="274" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_ab52fc6aa89ee3cb1c9db7c0ebff41378_icgraph.svg" width="330" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a84715b8588f34c7b772509fcfa0e79c0_icgraph.svg" width="336" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -663,7 +832,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>value</em>&#160;</td>
         </tr>
         <tr>
@@ -688,7 +857,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> sinex_check_add_ga_reference </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> sinex_check_add_ga_reference </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>solType</em>, </td>
@@ -720,243 +889,6 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="aa0e17ff7fad77f6707bf2fbec239cb18" name="aa0e17ff7fad77f6707bf2fbec239cb18"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0e17ff7fad77f6707bf2fbec239cb18">&#9670;&nbsp;</a></span>sinex_report()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void sinex_report </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ac81a0831ff6092eed391d352bdc2b9b9" name="ac81a0831ff6092eed391d352bdc2b9b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac81a0831ff6092eed391d352bdc2b9b9">&#9670;&nbsp;</a></span>sinex_sat_count()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> sinex_sat_count </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a46653127430d2b620ae146f7eb40c303" name="a46653127430d2b620ae146f7eb40c303"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a46653127430d2b620ae146f7eb40c303">&#9670;&nbsp;</a></span>sinex_site_count()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> sinex_site_count </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a9402284d294db2cdbc34e1af4365ad25" name="a9402284d294db2cdbc34e1af4365ad25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9402284d294db2cdbc34e1af4365ad25">&#9670;&nbsp;</a></span>sinex_update_estimate()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void sinex_update_estimate </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structSinex__stn__snx__t.html">Sinex_stn_snx_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>station</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Estimate&#160;</td>
-          <td class="paramname"><em>e</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>val</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>std</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>yds</em>[3], </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>newidx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>defstd</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3a182eb82bc3e7885feba85677baea2b" name="a3a182eb82bc3e7885feba85677baea2b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a182eb82bc3e7885feba85677baea2b">&#9670;&nbsp;</a></span>sinex_update_header()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void sinex_update_header </td>
-          <td>(</td>
-          <td class="paramtype">string &amp;&#160;</td>
-          <td class="paramname"><em>create_agc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>create_date</em>[3], </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&#160;</td>
-          <td class="paramname"><em>data_agc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>soln_start</em>[3], </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>soln_end</em>[3], </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char&#160;</td>
-          <td class="paramname"><em>obsCode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char&#160;</td>
-          <td class="paramname"><em>constCode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&#160;</td>
-          <td class="paramname"><em>contents</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>sinexVer</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a3a182eb82bc3e7885feba85677baea2b_icgraph.svg" width="375" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a2a983c373a67946d9a6d55caf65125ea" name="a2a983c373a67946d9a6d55caf65125ea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2a983c373a67946d9a6d55caf65125ea">&#9670;&nbsp;</a></span>sinex_update_matrix()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void sinex_update_matrix </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="sinex_8hpp.html#a07962dd0449c5d375d80af8cfaad8672">matrix_type</a>&#160;</td>
-          <td class="paramname"><em>mt</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="sinex_8hpp.html#a60ebdb8d331262f6ae7dad99a265a447">matrix_value</a>&#160;</td>
-          <td class="paramname"><em>mv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>row</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>col</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>nvals</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>val</em>[3]&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a8e1c8eabbdcd632cd47f48b220ce3d25" name="a8e1c8eabbdcd632cd47f48b220ce3d25"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8e1c8eabbdcd632cd47f48b220ce3d25">&#9670;&nbsp;</a></span>sinexPerEpochPerStation()</h2>
 
@@ -985,7 +917,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a8e1c8eabbdcd632cd47f48b220ce3d25_cgraph.svg" width="359" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a8e1c8eabbdcd632cd47f48b220ce3d25_cgraph.svg" width="416" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -1029,7 +961,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a6b5f4d774fbaf2921b08fe116510c5bf_cgraph.svg" width="522" height="459"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a6b5f4d774fbaf2921b08fe116510c5bf_cgraph.svg" width="370" height="358"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -1039,23 +971,94 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a5d4b582fbe641b956dec6621e592ac63" name="a5d4b582fbe641b956dec6621e592ac63"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5d4b582fbe641b956dec6621e592ac63">&#9670;&nbsp;</a></span>time_compare()</h2>
+<a id="ae504318cd0c1f450949803a48ea72527" name="ae504318cd0c1f450949803a48ea72527"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae504318cd0c1f450949803a48ea72527">&#9670;&nbsp;</a></span>time_compare()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">long <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> time_compare </td>
+          <td class="memname">long <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> time_compare </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>left</em>[3], </td>
+          <td class="paramtype"><a class="el" href="structUYds.html">UYds</a> &amp;&#160;</td>
+          <td class="paramname"><em>left</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>right</em>[3]&#160;</td>
+          <td class="paramtype"><a class="el" href="structUYds.html">UYds</a> &amp;&#160;</td>
+          <td class="paramname"><em>right</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>seconds diff bewteen left and right If left &lt; right the value is negative </p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_ae504318cd0c1f450949803a48ea72527_icgraph.svg" width="359" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aff412d7cf476298a141d5ea518e2d956" name="aff412d7cf476298a141d5ea518e2d956"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff412d7cf476298a141d5ea518e2d956">&#9670;&nbsp;</a></span>updateSinexHeader()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void updateSinexHeader </td>
+          <td>(</td>
+          <td class="paramtype">string &amp;&#160;</td>
+          <td class="paramname"><em>create_agc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string &amp;&#160;</td>
+          <td class="paramname"><em>data_agc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structUYds.html">UYds</a>&#160;</td>
+          <td class="paramname"><em>soln_start</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structUYds.html">UYds</a>&#160;</td>
+          <td class="paramname"><em>soln_end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char&#160;</td>
+          <td class="paramname"><em>obsCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char&#160;</td>
+          <td class="paramname"><em>constCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string &amp;&#160;</td>
+          <td class="paramname"><em>contents</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>sinexVer</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1065,9 +1068,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_aff412d7cf476298a141d5ea518e2d956_cgraph.svg" width="284" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a5d4b582fbe641b956dec6621e592ac63_icgraph.svg" width="359" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_aff412d7cf476298a141d5ea518e2d956_icgraph.svg" width="364" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1100,14 +1108,14 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="afdeb15b3fecc8fbd4afe68ff4047b045" name="afdeb15b3fecc8fbd4afe68ff4047b045"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afdeb15b3fecc8fbd4afe68ff4047b045">&#9670;&nbsp;</a></span>write_pretty_line()</h2>
+<a id="aab76a3915e89f4d123ef1c154178eb77" name="aab76a3915e89f4d123ef1c154178eb77"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab76a3915e89f4d123ef1c154178eb77">&#9670;&nbsp;</a></span>write_snx_reference()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void write_pretty_line </td>
+          <td class="memname">void write_snx_reference </td>
           <td>(</td>
           <td class="paramtype">std::ofstream &amp;&#160;</td>
           <td class="paramname"><em>out</em></td><td>)</td>
@@ -1118,14 +1126,14 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a7ddbde555bbc2d42ac7064ed41182cd6" name="a7ddbde555bbc2d42ac7064ed41182cd6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ddbde555bbc2d42ac7064ed41182cd6">&#9670;&nbsp;</a></span>write_sinex()</h2>
+<a id="a0e6c1860c3f578f6e33c608ddc176f01" name="a0e6c1860c3f578f6e33c608ddc176f01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e6c1860c3f578f6e33c608ddc176f01">&#9670;&nbsp;</a></span>writeSinex()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> write_sinex </td>
+          <td class="memname">bool writeSinex </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>filepath</em>, </td>
@@ -1133,20 +1141,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; *&#160;</td>
-          <td class="paramname"><em>stationMap</em> = <code>nullptr</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSinex__sat__snx__t.html">Sinex_sat_snx_t</a> *&#160;</td>
-          <td class="paramname"><em>psat</em> = <code>nullptr</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>comm_override</em> = <code>true</code>&#160;</td>
+          <td class="paramtype">map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>stationMap</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1158,31 +1154,13 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a7ddbde555bbc2d42ac7064ed41182cd6_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a0e6c1860c3f578f6e33c608ddc176f01_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a7ddbde555bbc2d42ac7064ed41182cd6_icgraph.svg" width="311" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sinex_8hpp_a0e6c1860c3f578f6e33c608ddc176f01_icgraph.svg" width="304" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-
-</div>
-</div>
-<a id="af3f6027344f449da094da6619304d7e0" name="af3f6027344f449da094da6619304d7e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3f6027344f449da094da6619304d7e0">&#9670;&nbsp;</a></span>write_snx_reference()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> write_snx_reference </td>
-          <td>(</td>
-          <td class="paramtype">std::ofstream &amp;&#160;</td>
-          <td class="paramname"><em>out</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
 
 </div>
 </div>

@@ -83,101 +83,66 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a44b66dafdc2256a58461f7eee35058a7"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a44b66dafdc2256a58461f7eee35058a7">var_uraeph</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> ura)</td></tr>
-<tr class="memdesc:a44b66dafdc2256a58461f7eee35058a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">variance by ura ephemeris (ref [1] 20.3.3.3.1.1)  <a href="ephemeris_8cpp.html#a44b66dafdc2256a58461f7eee35058a7">More...</a><br /></td></tr>
-<tr class="separator:a44b66dafdc2256a58461f7eee35058a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a16f6ba062b344678a58d194d9c4a8410"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a16f6ba062b344678a58d194d9c4a8410">var_urassr</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> ura)</td></tr>
-<tr class="memdesc:a16f6ba062b344678a58d194d9c4a8410"><td class="mdescLeft">&#160;</td><td class="mdescRight">variance by ura ssr (ref [4])  <a href="ephemeris_8cpp.html#a16f6ba062b344678a58d194d9c4a8410">More...</a><br /></td></tr>
-<tr class="separator:a16f6ba062b344678a58d194d9c4a8410"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e4b61d7dfc9c94a976fa308b94e3125"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a7e4b61d7dfc9c94a976fa308b94e3125">eph2clk</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structEph.html">Eph</a> &amp;eph)</td></tr>
-<tr class="memdesc:a7e4b61d7dfc9c94a976fa308b94e3125"><td class="mdescLeft">&#160;</td><td class="mdescRight">broadcast ephemeris to satellite clock bias compute satellite clock bias with broadcast ephemeris (gps, galileo, qzss) notes : see ref [1],[7],[8] satellite clock does not include relativity correction and tdg  <a href="ephemeris_8cpp.html#a7e4b61d7dfc9c94a976fa308b94e3125">More...</a><br /></td></tr>
-<tr class="separator:a7e4b61d7dfc9c94a976fa308b94e3125"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f6719d14c7d9cf51d97ebecfc73f38a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a6f6719d14c7d9cf51d97ebecfc73f38a">eph2pos</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structEph.html">Eph</a> &amp;eph, Vector3d &amp;rSat, double &amp;dtSat, double *var_ptr=nullptr, bool applyRelativity=true)</td></tr>
-<tr class="memdesc:a6f6719d14c7d9cf51d97ebecfc73f38a"><td class="mdescLeft">&#160;</td><td class="mdescRight">broadcast ephemeris to satellite position and clock bias compute satellite position and clock bias with broadcast ephemeris (gps, galileo, qzss)  <a href="ephemeris_8cpp.html#a6f6719d14c7d9cf51d97ebecfc73f38a">More...</a><br /></td></tr>
-<tr class="separator:a6f6719d14c7d9cf51d97ebecfc73f38a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf92dec14314e37b11d1fea4d109457d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#acf92dec14314e37b11d1fea4d109457d">deq</a> (const double *x, double *xdot, Vector3d &amp;acc)</td></tr>
-<tr class="separator:acf92dec14314e37b11d1fea4d109457d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85401dd19686a023df6d387705483e50"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a85401dd19686a023df6d387705483e50">glorbit</a> (double t, double *x, Vector3d &amp;acc)</td></tr>
-<tr class="separator:a85401dd19686a023df6d387705483e50"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a54093d364e091d7941925c9a1089e276"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a54093d364e091d7941925c9a1089e276">geph2clk</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGeph.html">Geph</a> &amp;geph)</td></tr>
-<tr class="separator:a54093d364e091d7941925c9a1089e276"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a28411224dea3279a5d6884e8af04cdaa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a28411224dea3279a5d6884e8af04cdaa">geph2pos</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGeph.html">Geph</a> &amp;geph, Vector3d &amp;rSat, double &amp;dts, double *var=nullptr)</td></tr>
-<tr class="memdesc:a28411224dea3279a5d6884e8af04cdaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">glonass ephemeris to satellite position and clock bias.  <a href="ephemeris_8cpp.html#a28411224dea3279a5d6884e8af04cdaa">More...</a><br /></td></tr>
-<tr class="separator:a28411224dea3279a5d6884e8af04cdaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4067cb995409fce1b919bed224bf5644"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a4067cb995409fce1b919bed224bf5644">seph2clk</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSeph.html">Seph</a> &amp;seph)</td></tr>
-<tr class="separator:a4067cb995409fce1b919bed224bf5644"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8554ab873b3d3cd9c605c5aff342549"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#af8554ab873b3d3cd9c605c5aff342549">seph2pos</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSeph.html">Seph</a> &amp;seph, Vector3d &amp;rSat, double &amp;dtSat, double *var=nullptr)</td></tr>
-<tr class="memdesc:af8554ab873b3d3cd9c605c5aff342549"><td class="mdescLeft">&#160;</td><td class="mdescRight">sbas ephemeris to satellite position and clock bias ----------------------&mdash; compute satellite position and clock bias with sbas ephemeris  <a href="ephemeris_8cpp.html#af8554ab873b3d3cd9c605c5aff342549">More...</a><br /></td></tr>
-<tr class="separator:af8554ab873b3d3cd9c605c5aff342549"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdf84814dfc38928fa86e6fd0e6edb00"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#abdf84814dfc38928fa86e6fd0e6edb00">ephVarToUra</a> (double ephVar)</td></tr>
+<tr class="memdesc:abdf84814dfc38928fa86e6fd0e6edb00"><td class="mdescLeft">&#160;</td><td class="mdescRight">URA SSR by variance.  <a href="ephemeris_8cpp.html#abdf84814dfc38928fa86e6fd0e6edb00">More...</a><br /></td></tr>
+<tr class="separator:abdf84814dfc38928fa86e6fd0e6edb00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a825cb3c61ee628e2b78ed0b360e6a617"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a825cb3c61ee628e2b78ed0b360e6a617">relativity1</a> (Vector3d &amp;rSat, Vector3d &amp;satVel)</td></tr>
+<tr class="separator:a825cb3c61ee628e2b78ed0b360e6a617"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54c09f3ed2a61e7f23caae21c73a0e8e"><td class="memTemplParams" colspan="2">template&lt;typename TYPE &gt; </td></tr>
 <tr class="memitem:a54c09f3ed2a61e7f23caae21c73a0e8e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a54c09f3ed2a61e7f23caae21c73a0e8e">cullEphMap</a> (<a class="el" href="structGTime.html">GTime</a> time, TYPE &amp;map)</td></tr>
 <tr class="separator:a54c09f3ed2a61e7f23caae21c73a0e8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0454d2b2803d537bbbfe5ee1405f547"><td class="memTemplParams" colspan="2">template&lt;typename TYPE &gt; </td></tr>
-<tr class="memitem:ab0454d2b2803d537bbbfe5ee1405f547"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#ab0454d2b2803d537bbbfe5ee1405f547">cullSSRMap</a> (<a class="el" href="structGTime.html">GTime</a> time, TYPE &amp;map)</td></tr>
-<tr class="separator:ab0454d2b2803d537bbbfe5ee1405f547"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3a8b4b103b082a7cab9c5e53b5f4338"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#af3a8b4b103b082a7cab9c5e53b5f4338">cullOldSSRs</a> (<a class="el" href="structGTime.html">GTime</a> time)</td></tr>
-<tr class="separator:af3a8b4b103b082a7cab9c5e53b5f4338"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec22060c47a6a68b1f56a0d513a8df8a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#aec22060c47a6a68b1f56a0d513a8df8a">cullOldEphs</a> (<a class="el" href="structGTime.html">GTime</a> time)</td></tr>
 <tr class="separator:aec22060c47a6a68b1f56a0d513a8df8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1c8372fd221a0909216384e0b3fdced5"><td class="memTemplParams" colspan="2">template&lt;typename EPHTYPE &gt; </td></tr>
-<tr class="memitem:a1c8372fd221a0909216384e0b3fdced5"><td class="memTemplItemLeft" align="right" valign="top">EPHTYPE *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a1c8372fd221a0909216384e0b3fdced5">seleph</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iode, map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, EPHTYPE, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &amp;ephMap)</td></tr>
-<tr class="memdesc:a1c8372fd221a0909216384e0b3fdced5"><td class="mdescLeft">&#160;</td><td class="mdescRight">select ephememeris  <a href="ephemeris_8cpp.html#a1c8372fd221a0909216384e0b3fdced5">More...</a><br /></td></tr>
-<tr class="separator:a1c8372fd221a0909216384e0b3fdced5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31748a494ef26f486a80bd408f542c84"><td class="memTemplParams" colspan="2">template&lt;typename EPHTYPE &gt; </td></tr>
-<tr class="memitem:a31748a494ef26f486a80bd408f542c84"><td class="memTemplItemLeft" align="right" valign="top">EPHTYPE *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a31748a494ef26f486a80bd408f542c84">seleph</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iode, map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, EPHTYPE, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt; &amp;ephMap)</td></tr>
-<tr class="memdesc:a31748a494ef26f486a80bd408f542c84"><td class="mdescLeft">&#160;</td><td class="mdescRight">select CNVX ephememeris  <a href="ephemeris_8cpp.html#a31748a494ef26f486a80bd408f542c84">More...</a><br /></td></tr>
-<tr class="separator:a31748a494ef26f486a80bd408f542c84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aafadf4c82f9a3c77eafb0b54526ca268"><td class="memTemplParams" colspan="2">template&lt;typename EPHTYPE &gt; </td></tr>
-<tr class="memitem:aafadf4c82f9a3c77eafb0b54526ca268"><td class="memTemplItemLeft" align="right" valign="top">EPHTYPE *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#aafadf4c82f9a3c77eafb0b54526ca268">seleph</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, E_Sys sys, E_NavMsgType type, map&lt; E_Sys, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, EPHTYPE, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt; &amp;ephMap)</td></tr>
-<tr class="memdesc:aafadf4c82f9a3c77eafb0b54526ca268"><td class="mdescLeft">&#160;</td><td class="mdescRight">select EOP/ION messages  <a href="ephemeris_8cpp.html#aafadf4c82f9a3c77eafb0b54526ca268">More...</a><br /></td></tr>
-<tr class="separator:aafadf4c82f9a3c77eafb0b54526ca268"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7da191c91fa26999f40461876ed64cd0"><td class="memItemLeft" align="right" valign="top">template&lt;&gt; </td></tr>
-<tr class="memitem:a7da191c91fa26999f40461876ed64cd0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structEph.html">Eph</a> *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a7da191c91fa26999f40461876ed64cd0">seleph&lt; Eph &gt;</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iode, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="separator:a7da191c91fa26999f40461876ed64cd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aecb4df22f46995cce2eb340f5ea24635"><td class="memItemLeft" align="right" valign="top">template&lt;&gt; </td></tr>
-<tr class="memitem:aecb4df22f46995cce2eb340f5ea24635"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structGeph.html">Geph</a> *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#aecb4df22f46995cce2eb340f5ea24635">seleph&lt; Geph &gt;</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iode, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="separator:aecb4df22f46995cce2eb340f5ea24635"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc3c7e257ad1c48a66c3aca9caddf893"><td class="memItemLeft" align="right" valign="top">template&lt;&gt; </td></tr>
-<tr class="memitem:adc3c7e257ad1c48a66c3aca9caddf893"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structSeph.html">Seph</a> *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#adc3c7e257ad1c48a66c3aca9caddf893">seleph&lt; Seph &gt;</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iode, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="separator:adc3c7e257ad1c48a66c3aca9caddf893"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a57188a2f97e32a59c7d16466dc49d6"><td class="memItemLeft" align="right" valign="top">template&lt;&gt; </td></tr>
-<tr class="memitem:a3a57188a2f97e32a59c7d16466dc49d6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structCeph.html">Ceph</a> *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a3a57188a2f97e32a59c7d16466dc49d6">seleph&lt; Ceph &gt;</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_NavMsgType type, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iode, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="separator:a3a57188a2f97e32a59c7d16466dc49d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad506cac35e66f4336a1e14217d7c60e5"><td class="memItemLeft" align="right" valign="top">template&lt;&gt; </td></tr>
-<tr class="memitem:ad506cac35e66f4336a1e14217d7c60e5"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structION.html">ION</a> *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#ad506cac35e66f4336a1e14217d7c60e5">seleph&lt; ION &gt;</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, E_Sys sys, E_NavMsgType type, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="separator:ad506cac35e66f4336a1e14217d7c60e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac302de8d138d36fb5378742d8b4296da"><td class="memItemLeft" align="right" valign="top">template&lt;&gt; </td></tr>
-<tr class="memitem:ac302de8d138d36fb5378742d8b4296da"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structEOP.html">EOP</a> *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#ac302de8d138d36fb5378742d8b4296da">seleph&lt; EOP &gt;</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, E_Sys sys, E_NavMsgType type, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
-<tr class="separator:ac302de8d138d36fb5378742d8b4296da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e9656cbaa8bb74ade4b33d285159524"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a5e9656cbaa8bb74ade4b33d285159524">ephclk</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structObs.html">Obs</a> &amp;obs, double &amp;dts)</td></tr>
-<tr class="separator:a5e9656cbaa8bb74ade4b33d285159524"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3050fa4ac87b7613db03576f2db76cc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#af3050fa4ac87b7613db03576f2db76cc">ephpos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structSatSys.html">SatSys</a> Sat, Vector3d &amp;rSat, Vector3d &amp;satVel, double *dtSat, double &amp;ephVar, <a class="el" href="enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806">E_Svh</a> &amp;svh, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;obsIode, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iode, bool applyRelativity=true)</td></tr>
-<tr class="separator:af3050fa4ac87b7613db03576f2db76cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9cd5627e548655e7b0a7fec27c14ce9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#af9cd5627e548655e7b0a7fec27c14ce9">ephpos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structObs.html">Obs</a> &amp;obs, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iode, bool applyRelativity=true)</td></tr>
-<tr class="separator:af9cd5627e548655e7b0a7fec27c14ce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d65fc686fade9db8e953ae1ef13d929"><td class="memItemLeft" align="right" valign="top">Matrix3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a6d65fc686fade9db8e953ae1ef13d929">ecef2rac</a> (Vector3d &amp;rSat, Vector3d &amp;satVel)</td></tr>
-<tr class="separator:a6d65fc686fade9db8e953ae1ef13d929"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8bdff335e8cf4b98bed4b31c8c943b55"><td class="memItemLeft" align="right" valign="top">Matrix3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a8bdff335e8cf4b98bed4b31c8c943b55">rac2ecef</a> (Vector3d &amp;rSat, Vector3d &amp;satVel)</td></tr>
-<tr class="separator:a8bdff335e8cf4b98bed4b31c8c943b55"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a825cb3c61ee628e2b78ed0b360e6a617"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a825cb3c61ee628e2b78ed0b360e6a617">relativity1</a> (Vector3d &amp;rSat, Vector3d &amp;satVel)</td></tr>
-<tr class="separator:a825cb3c61ee628e2b78ed0b360e6a617"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a90eaad2a0ea82ada36ae6e79b8011600"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a90eaad2a0ea82ada36ae6e79b8011600">ssrPosDelta</a> (<a class="el" href="structGTime.html">GTime</a> time, const <a class="el" href="structSSRMaps.html">SSRMaps</a> &amp;ssrMaps, Vector3d &amp;dPos, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;iodPos, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;iodEph)</td></tr>
-<tr class="separator:a90eaad2a0ea82ada36ae6e79b8011600"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ac0bd514e432be4402a6511fb891d72"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a3ac0bd514e432be4402a6511fb891d72">ssrClkDelta</a> (<a class="el" href="structGTime.html">GTime</a> time, const <a class="el" href="structSSRMaps.html">SSRMaps</a> &amp;ssrMaps, double &amp;dclk, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;iodClk)</td></tr>
-<tr class="separator:a3ac0bd514e432be4402a6511fb891d72"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00caab23439d951d25d874f5f01c204c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a00caab23439d951d25d874f5f01c204c">satpos_ssr</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="structSSRMaps.html">SSRMaps</a> &amp;ssrMaps, <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat, Vector3d &amp;rSat, Vector3d &amp;satVel, double *dtSat, <a class="el" href="enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806">E_Svh</a> &amp;svh, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;obsIode, double &amp;ephVar, bool applyRelativity=true)</td></tr>
-<tr class="separator:a00caab23439d951d25d874f5f01c204c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4420d8c2f8feba3902348cb0b82f2056"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a4420d8c2f8feba3902348cb0b82f2056">satpos_ssr</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structObs.html">Obs</a> &amp;obs, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, bool applyRelativity=true)</td></tr>
-<tr class="separator:a4420d8c2f8feba3902348cb0b82f2056"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9b8aa496bacec0c8a8a76cac9adeb727"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a9b8aa496bacec0c8a8a76cac9adeb727">kalmanPos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structObs.html">Obs</a> &amp;obs, <a class="el" href="structKFState.html">KFState</a> *kfState_ptr)</td></tr>
-<tr class="separator:a9b8aa496bacec0c8a8a76cac9adeb727"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00df4213eb6f901bcb5928f44a24bd4d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a00df4213eb6f901bcb5928f44a24bd4d">satpos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structObs.html">Obs</a> &amp;obs, E_Ephemeris ephType, E_OffsetType offsetType, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, bool applyRelativity, <a class="el" href="structKFState.html">KFState</a> *kfState_ptr)</td></tr>
-<tr class="separator:a00df4213eb6f901bcb5928f44a24bd4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf14c43fc8c865aae63cb7408d64d0d5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#acf14c43fc8c865aae63cb7408d64d0d5">satposs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, E_Ephemeris ephType, E_OffsetType offsetType, bool applyRelativity, bool applyFlightTime)</td></tr>
-<tr class="memdesc:acf14c43fc8c865aae63cb7408d64d0d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">satellite positions and clocks.  <a href="ephemeris_8cpp.html#acf14c43fc8c865aae63cb7408d64d0d5">More...</a><br /></td></tr>
-<tr class="separator:acf14c43fc8c865aae63cb7408d64d0d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42547b0f92028b6e6578ab807bf985f2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a42547b0f92028b6e6578ab807bf985f2">satclk</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structSatPos.html">SatPos</a> &amp;satPos, vector&lt; E_Source &gt; ephTypes, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, const <a class="el" href="structKFState.html">KFState</a> *kfState_ptr)</td></tr>
+<tr class="separator:a42547b0f92028b6e6578ab807bf985f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86b1602f8ee3a6b7220b506825592953"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a86b1602f8ee3a6b7220b506825592953">satpos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structSatPos.html">SatPos</a> &amp;satPos, vector&lt; E_Source &gt; ephTypes, E_OffsetType offsetType, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, const <a class="el" href="structKFState.html">KFState</a> *kfState_ptr)</td></tr>
+<tr class="memdesc:a86b1602f8ee3a6b7220b506825592953"><td class="mdescLeft">&#160;</td><td class="mdescRight">compute satellite position and clock satellite clock does not include code bias correction (tgd or bgd)  <a href="ephemeris_8cpp.html#a86b1602f8ee3a6b7220b506825592953">More...</a><br /></td></tr>
+<tr class="separator:a86b1602f8ee3a6b7220b506825592953"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f782f472dfa7b3977fa16aebccadf4f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a9f782f472dfa7b3977fa16aebccadf4f">adjustRelativity</a> (<a class="el" href="structSatPos.html">SatPos</a> &amp;satPos, E_Relativity applyRelativity)</td></tr>
+<tr class="separator:a9f782f472dfa7b3977fa16aebccadf4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a082fe4b7393586d8a7a2b1ab32cfe131"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ephemeris_8cpp.html#a082fe4b7393586d8a7a2b1ab32cfe131">satPosClk</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> teph, <a class="el" href="structGObs.html">GObs</a> &amp;obs, <a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, vector&lt; E_Source &gt; posSources, vector&lt; E_Source &gt; clkSources, const <a class="el" href="structKFState.html">KFState</a> *kfState_ptr, E_OffsetType offsetType, E_Relativity applyRelativity)</td></tr>
+<tr class="memdesc:a082fe4b7393586d8a7a2b1ab32cfe131"><td class="mdescLeft">&#160;</td><td class="mdescRight">satellite positions and clocks.  <a href="ephemeris_8cpp.html#a082fe4b7393586d8a7a2b1ab32cfe131">More...</a><br /></td></tr>
+<tr class="separator:a082fe4b7393586d8a7a2b1ab32cfe131"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a9f782f472dfa7b3977fa16aebccadf4f" name="a9f782f472dfa7b3977fa16aebccadf4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f782f472dfa7b3977fa16aebccadf4f">&#9670;&nbsp;</a></span>adjustRelativity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void adjustRelativity </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSatPos.html">SatPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>satPos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_Relativity&#160;</td>
+          <td class="paramname"><em>applyRelativity</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a9f782f472dfa7b3977fa16aebccadf4f_cgraph.svg" width="274" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a9f782f472dfa7b3977fa16aebccadf4f_icgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a54c09f3ed2a61e7f23caae21c73a0e8e" name="a54c09f3ed2a61e7f23caae21c73a0e8e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a54c09f3ed2a61e7f23caae21c73a0e8e">&#9670;&nbsp;</a></span>cullEphMap()</h2>
 
@@ -246,719 +211,27 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="af3a8b4b103b082a7cab9c5e53b5f4338" name="af3a8b4b103b082a7cab9c5e53b5f4338"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3a8b4b103b082a7cab9c5e53b5f4338">&#9670;&nbsp;</a></span>cullOldSSRs()</h2>
+<a id="abdf84814dfc38928fa86e6fd0e6edb00" name="abdf84814dfc38928fa86e6fd0e6edb00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdf84814dfc38928fa86e6fd0e6edb00">&#9670;&nbsp;</a></span>ephVarToUra()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void cullOldSSRs </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_af3a8b4b103b082a7cab9c5e53b5f4338_cgraph.svg" width="256" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_af3a8b4b103b082a7cab9c5e53b5f4338_icgraph.svg" width="306" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ab0454d2b2803d537bbbfe5ee1405f547" name="ab0454d2b2803d537bbbfe5ee1405f547"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab0454d2b2803d537bbbfe5ee1405f547">&#9670;&nbsp;</a></span>cullSSRMap()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TYPE &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">void cullSSRMap </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">TYPE &amp;&#160;</td>
-          <td class="paramname"><em>map</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_ab0454d2b2803d537bbbfe5ee1405f547_icgraph.svg" width="256" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="acf92dec14314e37b11d1fea4d109457d" name="acf92dec14314e37b11d1fea4d109457d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf92dec14314e37b11d1fea4d109457d">&#9670;&nbsp;</a></span>deq()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void deq </td>
-          <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>x</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>xdot</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>acc</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_acf92dec14314e37b11d1fea4d109457d_cgraph.svg" width="148" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_acf92dec14314e37b11d1fea4d109457d_icgraph.svg" width="170" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a6d65fc686fade9db8e953ae1ef13d929" name="a6d65fc686fade9db8e953ae1ef13d929"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d65fc686fade9db8e953ae1ef13d929">&#9670;&nbsp;</a></span>ecef2rac()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Matrix3d ecef2rac </td>
-          <td>(</td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>satVel</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a6d65fc686fade9db8e953ae1ef13d929_icgraph.svg" width="276" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a7e4b61d7dfc9c94a976fa308b94e3125" name="a7e4b61d7dfc9c94a976fa308b94e3125"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e4b61d7dfc9c94a976fa308b94e3125">&#9670;&nbsp;</a></span>eph2clk()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double eph2clk </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structEph.html">Eph</a> &amp;&#160;</td>
-          <td class="paramname"><em>eph</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>broadcast ephemeris to satellite clock bias compute satellite clock bias with broadcast ephemeris (gps, galileo, qzss) notes : see ref [1],[7],[8] satellite clock does not include relativity correction and tdg </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">time</td><td>time by satellite clock (gpst)</td></tr>
-    <tr><td class="paramname">eph</td><td>broadcast ephemeris </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a7e4b61d7dfc9c94a976fa308b94e3125_icgraph.svg" width="198" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a6f6719d14c7d9cf51d97ebecfc73f38a" name="a6f6719d14c7d9cf51d97ebecfc73f38a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f6719d14c7d9cf51d97ebecfc73f38a">&#9670;&nbsp;</a></span>eph2pos()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void eph2pos </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structEph.html">Eph</a> &amp;&#160;</td>
-          <td class="paramname"><em>eph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>dtSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>var_ptr</em> = <code>nullptr</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>applyRelativity</em> = <code>true</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>broadcast ephemeris to satellite position and clock bias compute satellite position and clock bias with broadcast ephemeris (gps, galileo, qzss) </p>
-<p >notes : see ref [1],[7],[8] satellite clock includes relativity correction without code bias (tgd or bgd) </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">time</td><td>time (gpst)</td></tr>
-    <tr><td class="paramname">eph</td><td>broadcast ephemeris</td></tr>
-    <tr><td class="paramname">rSat</td><td>satellite position (ecef) {x,y,z} (m)</td></tr>
-    <tr><td class="paramname">dtSat</td><td>satellite clock bias (s)</td></tr>
-    <tr><td class="paramname">var_ptr</td><td>satellite position and clock variance (m^2)</td></tr>
-    <tr><td class="paramname">applyRelativity</td><td>apply relativity to clock </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a6f6719d14c7d9cf51d97ebecfc73f38a_cgraph.svg" width="231" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a6f6719d14c7d9cf51d97ebecfc73f38a_icgraph.svg" width="206" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a5e9656cbaa8bb74ade4b33d285159524" name="a5e9656cbaa8bb74ade4b33d285159524"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5e9656cbaa8bb74ade4b33d285159524">&#9670;&nbsp;</a></span>ephclk()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> ephclk </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>teph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>dts</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a5e9656cbaa8bb74ade4b33d285159524_cgraph.svg" width="206" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a5e9656cbaa8bb74ade4b33d285159524_icgraph.svg" width="196" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="af9cd5627e548655e7b0a7fec27c14ce9" name="af9cd5627e548655e7b0a7fec27c14ce9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af9cd5627e548655e7b0a7fec27c14ce9">&#9670;&nbsp;</a></span>ephpos() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool ephpos </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>teph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>iode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>applyRelativity</em> = <code>true</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_af9cd5627e548655e7b0a7fec27c14ce9_cgraph.svg" width="198" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="af3050fa4ac87b7613db03576f2db76cc" name="af3050fa4ac87b7613db03576f2db76cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3050fa4ac87b7613db03576f2db76cc">&#9670;&nbsp;</a></span>ephpos() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool ephpos </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>teph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>satVel</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>dtSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>ephVar</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806">E_Svh</a> &amp;&#160;</td>
-          <td class="paramname"><em>svh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
-          <td class="paramname"><em>obsIode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>iode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>applyRelativity</em> = <code>true</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_af3050fa4ac87b7613db03576f2db76cc_cgraph.svg" width="258" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_af3050fa4ac87b7613db03576f2db76cc_icgraph.svg" width="332" height="114"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a54093d364e091d7941925c9a1089e276" name="a54093d364e091d7941925c9a1089e276"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a54093d364e091d7941925c9a1089e276">&#9670;&nbsp;</a></span>geph2clk()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double geph2clk </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGeph.html">Geph</a> &amp;&#160;</td>
-          <td class="paramname"><em>geph</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a54093d364e091d7941925c9a1089e276_icgraph.svg" width="206" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a28411224dea3279a5d6884e8af04cdaa" name="a28411224dea3279a5d6884e8af04cdaa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a28411224dea3279a5d6884e8af04cdaa">&#9670;&nbsp;</a></span>geph2pos()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void geph2pos </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGeph.html">Geph</a> &amp;&#160;</td>
-          <td class="paramname"><em>geph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>dts</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>var</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>glonass ephemeris to satellite position and clock bias. </p>
-<p >compute satellite position and clock bias with glonass ephemeris</p><ul>
-<li></li>
-</ul>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">time</td><td>time (gpst)</td></tr>
-    <tr><td class="paramname">geph</td><td>glonass ephemeris</td></tr>
-    <tr><td class="paramname">rSat</td><td>satellite position {x,y,z} (ecef) (m)</td></tr>
-    <tr><td class="paramname">dts</td><td>satellite clock bias (s)</td></tr>
-    <tr><td class="paramname">var</td><td>satellite position and clock variance (m^2) </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a28411224dea3279a5d6884e8af04cdaa_cgraph.svg" width="208" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a28411224dea3279a5d6884e8af04cdaa_icgraph.svg" width="214" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a85401dd19686a023df6d387705483e50" name="a85401dd19686a023df6d387705483e50"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85401dd19686a023df6d387705483e50">&#9670;&nbsp;</a></span>glorbit()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void glorbit </td>
+          <td class="memname">double ephVarToUra </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>t</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>ephVar</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>x</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>acc</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a85401dd19686a023df6d387705483e50_cgraph.svg" width="170" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+
+<p>URA SSR by variance. </p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a85401dd19686a023df6d387705483e50_icgraph.svg" width="208" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a9b8aa496bacec0c8a8a76cac9adeb727" name="a9b8aa496bacec0c8a8a76cac9adeb727"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9b8aa496bacec0c8a8a76cac9adeb727">&#9670;&nbsp;</a></span>kalmanPos()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool kalmanPos </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> *&#160;</td>
-          <td class="paramname"><em>kfState_ptr</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a9b8aa496bacec0c8a8a76cac9adeb727_cgraph.svg" width="310" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a9b8aa496bacec0c8a8a76cac9adeb727_icgraph.svg" width="219" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a8bdff335e8cf4b98bed4b31c8c943b55" name="a8bdff335e8cf4b98bed4b31c8c943b55"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8bdff335e8cf4b98bed4b31c8c943b55">&#9670;&nbsp;</a></span>rac2ecef()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Matrix3d rac2ecef </td>
-          <td>(</td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>satVel</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a8bdff335e8cf4b98bed4b31c8c943b55_cgraph.svg" width="216" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a8bdff335e8cf4b98bed4b31c8c943b55_icgraph.svg" width="228" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_abdf84814dfc38928fa86e6fd0e6edb00_icgraph.svg" width="303" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -991,19 +264,19 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a825cb3c61ee628e2b78ed0b360e6a617_icgraph.svg" width="239" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a825cb3c61ee628e2b78ed0b360e6a617_icgraph.svg" width="274" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a00df4213eb6f901bcb5928f44a24bd4d" name="a00df4213eb6f901bcb5928f44a24bd4d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00df4213eb6f901bcb5928f44a24bd4d">&#9670;&nbsp;</a></span>satpos()</h2>
+<a id="a42547b0f92028b6e6578ab807bf985f2" name="a42547b0f92028b6e6578ab807bf985f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42547b0f92028b6e6578ab807bf985f2">&#9670;&nbsp;</a></span>satclk()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> satpos </td>
+          <td class="memname">bool satclk </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -1023,20 +296,14 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
+          <td class="paramtype"><a class="el" href="structSatPos.html">SatPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>satPos</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">E_Ephemeris&#160;</td>
-          <td class="paramname"><em>ephType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_OffsetType&#160;</td>
-          <td class="paramname"><em>offsetType</em>, </td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>ephTypes</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1047,13 +314,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>applyRelativity</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> *&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> *&#160;</td>
           <td class="paramname"><em>kfState_ptr</em>&#160;</td>
         </tr>
         <tr>
@@ -1063,41 +324,27 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
-    <tr><td class="paramname">time</td><td>time (gpst)</td></tr>
-    <tr><td class="paramname">teph</td><td>time to select ephemeris (gpst)</td></tr>
-    <tr><td class="paramname">obs</td><td>Observation to determine satellite etc, and store answers</td></tr>
-    <tr><td class="paramname">ephType</td><td>Source of ephemeris</td></tr>
-    <tr><td class="paramname">offsetType</td><td>Type of antenna offset to apply</td></tr>
-    <tr><td class="paramname">nav</td><td>navigation data</td></tr>
-    <tr><td class="paramname">applyRelativity</td><td>Apply relativity</td></tr>
-    <tr><td class="paramname">kfState_ptr</td><td>Optional pointer to a kalman filter to take values from </td></tr>
-  </table>
-  </dd>
-</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a00df4213eb6f901bcb5928f44a24bd4d_cgraph.svg" width="396" height="364"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a42547b0f92028b6e6578ab807bf985f2_cgraph.svg" width="426" height="316"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a00df4213eb6f901bcb5928f44a24bd4d_icgraph.svg" width="274" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a42547b0f92028b6e6578ab807bf985f2_icgraph.svg" width="270" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a00caab23439d951d25d874f5f01c204c" name="a00caab23439d951d25d874f5f01c204c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00caab23439d951d25d874f5f01c204c">&#9670;&nbsp;</a></span>satpos_ssr() <span class="overload">[1/2]</span></h2>
+<a id="a86b1602f8ee3a6b7220b506825592953" name="a86b1602f8ee3a6b7220b506825592953"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86b1602f8ee3a6b7220b506825592953">&#9670;&nbsp;</a></span>satpos()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool satpos_ssr </td>
+          <td class="memname">bool satpos </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -1113,6 +360,24 @@ Here is the caller graph for this function:</div>
           <td></td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>teph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatPos.html">SatPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>satPos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>ephTypes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_OffsetType&#160;</td>
+          <td class="paramname"><em>offsetType</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1123,56 +388,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structSSRMaps.html">SSRMaps</a> &amp;&#160;</td>
-          <td class="paramname"><em>ssrMaps</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a> &amp;&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>satVel</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>dtSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806">E_Svh</a> &amp;&#160;</td>
-          <td class="paramname"><em>svh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
-          <td class="paramname"><em>obsIode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>ephVar</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>applyRelativity</em> = <code>true</code>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> *&#160;</td>
+          <td class="paramname"><em>kfState_ptr</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1181,36 +398,45 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>compute satellite position and clock satellite clock does not include code bias correction (tgd or bgd) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">time</td><td>time (gpst)</td></tr>
+    <tr><td class="paramname">teph</td><td>time to select ephemeris (gpst)</td></tr>
+    <tr><td class="paramname">satPos</td><td>Data required for determining and storing satellite positions/clocks</td></tr>
+    <tr><td class="paramname">ephTypes</td><td>Source of ephemeris</td></tr>
+    <tr><td class="paramname">offsetType</td><td>Type of antenna offset to apply</td></tr>
+    <tr><td class="paramname">nav</td><td>navigation data</td></tr>
+    <tr><td class="paramname">kfState_ptr</td><td>Optional pointer to a kalman filter to take values from </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a00caab23439d951d25d874f5f01c204c_cgraph.svg" width="426" height="418"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a86b1602f8ee3a6b7220b506825592953_cgraph.svg" width="596" height="548"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a00caab23439d951d25d874f5f01c204c_icgraph.svg" width="240" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a86b1602f8ee3a6b7220b506825592953_icgraph.svg" width="486" height="443"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a4420d8c2f8feba3902348cb0b82f2056" name="a4420d8c2f8feba3902348cb0b82f2056"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4420d8c2f8feba3902348cb0b82f2056">&#9670;&nbsp;</a></span>satpos_ssr() <span class="overload">[2/2]</span></h2>
+<a id="a082fe4b7393586d8a7a2b1ab32cfe131" name="a082fe4b7393586d8a7a2b1ab32cfe131"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a082fe4b7393586d8a7a2b1ab32cfe131">&#9670;&nbsp;</a></span>satPosClk()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool satpos_ssr </td>
+          <td class="memname">bool satPosClk </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1221,7 +447,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structGObs.html">GObs</a> &amp;&#160;</td>
           <td class="paramname"><em>obs</em>, </td>
         </tr>
         <tr>
@@ -1233,59 +459,20 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>applyRelativity</em> = <code>true</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a4420d8c2f8feba3902348cb0b82f2056_cgraph.svg" width="240" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="acf14c43fc8c865aae63cb7408d64d0d5" name="acf14c43fc8c865aae63cb7408d64d0d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf14c43fc8c865aae63cb7408d64d0d5">&#9670;&nbsp;</a></span>satposs()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void satposs </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>posSources</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>teph</em>, </td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>clkSources</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
-          <td class="paramname"><em>obsList</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Ephemeris&#160;</td>
-          <td class="paramname"><em>ephType</em>, </td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> *&#160;</td>
+          <td class="paramname"><em>kfState_ptr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1296,14 +483,8 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>applyRelativity</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>applyFlightTime</em>&#160;</td>
+          <td class="paramtype">E_Relativity&#160;</td>
+          <td class="paramname"><em>applyRelativity</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1319,801 +500,25 @@ Here is the call graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
     <tr><td class="paramname">teph</td><td>time to select ephemeris (gpst)</td></tr>
-    <tr><td class="paramname">obsList</td><td>List of observations to complete with satellite positions</td></tr>
-    <tr><td class="paramname">nav</td><td><a class="el" href="structNavigation.html">Navigation</a> data</td></tr>
-    <tr><td class="paramname">ephType</td><td>Source of ephemeris data</td></tr>
+    <tr><td class="paramname">obs</td><td>observations to complete with satellite positions</td></tr>
+    <tr><td class="paramname">nav</td><td><a class="el" href="structNavigation.html" title="navigation data type">Navigation</a> data</td></tr>
+    <tr><td class="paramname">posSources</td><td>Source of ephemeris data</td></tr>
+    <tr><td class="paramname">clkSources</td><td>Source of ephemeris data</td></tr>
+    <tr><td class="paramname">kfState_ptr</td><td>Optional pointer to a kalman filter to take values from</td></tr>
     <tr><td class="paramname">offsetType</td><td>Point of satellite to output position of</td></tr>
-    <tr><td class="paramname">applyRelativity</td><td>Option to apply relativistic correction to clock</td></tr>
-    <tr><td class="paramname">applyFlightTime</td><td>Option to apply offset due to flight time of light signal </td></tr>
+    <tr><td class="paramname">applyRelativity</td><td><a class="el" href="structOption.html">Option</a> to apply relativistic correction to clock </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_acf14c43fc8c865aae63cb7408d64d0d5_cgraph.svg" width="451" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a082fe4b7393586d8a7a2b1ab32cfe131_cgraph.svg" width="448" height="260"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_acf14c43fc8c865aae63cb7408d64d0d5_icgraph.svg" width="238" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aafadf4c82f9a3c77eafb0b54526ca268" name="aafadf4c82f9a3c77eafb0b54526ca268"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aafadf4c82f9a3c77eafb0b54526ca268">&#9670;&nbsp;</a></span>seleph() <span class="overload">[1/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename EPHTYPE &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">EPHTYPE * seleph </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Sys&#160;</td>
-          <td class="paramname"><em>sys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_NavMsgType&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">map&lt; E_Sys, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, EPHTYPE, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt; &amp;&#160;</td>
-          <td class="paramname"><em>ephMap</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>select EOP/ION messages </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_aafadf4c82f9a3c77eafb0b54526ca268_cgraph.svg" width="254" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a31748a494ef26f486a80bd408f542c84" name="a31748a494ef26f486a80bd408f542c84"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a31748a494ef26f486a80bd408f542c84">&#9670;&nbsp;</a></span>seleph() <span class="overload">[2/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename EPHTYPE &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">EPHTYPE * seleph </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_NavMsgType&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>iode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt; E_NavMsgType, map&lt; <a class="el" href="structGTime.html">GTime</a>, EPHTYPE, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &gt; &amp;&#160;</td>
-          <td class="paramname"><em>ephMap</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>select CNVX ephememeris </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a31748a494ef26f486a80bd408f542c84_cgraph.svg" width="254" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a1c8372fd221a0909216384e0b3fdced5" name="a1c8372fd221a0909216384e0b3fdced5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1c8372fd221a0909216384e0b3fdced5">&#9670;&nbsp;</a></span>seleph() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename EPHTYPE &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">EPHTYPE * seleph </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>iode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, EPHTYPE, std::greater&lt; <a class="el" href="structGTime.html">GTime</a> &gt; &gt; &gt; &amp;&#160;</td>
-          <td class="paramname"><em>ephMap</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>select ephememeris </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a1c8372fd221a0909216384e0b3fdced5_cgraph.svg" width="254" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a1c8372fd221a0909216384e0b3fdced5_icgraph.svg" width="254" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a3a57188a2f97e32a59c7d16466dc49d6" name="a3a57188a2f97e32a59c7d16466dc49d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a57188a2f97e32a59c7d16466dc49d6">&#9670;&nbsp;</a></span>seleph&lt; Ceph &gt;()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structCeph.html">Ceph</a> * <a class="el" href="ephemeris_8hpp.html#ae8c26d8633b2b50dfa6afbe046a9d3bb">seleph</a>&lt; <a class="el" href="structCeph.html">Ceph</a> &gt; </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_NavMsgType&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>iode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a3a57188a2f97e32a59c7d16466dc49d6_cgraph.svg" width="252" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ac302de8d138d36fb5378742d8b4296da" name="ac302de8d138d36fb5378742d8b4296da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac302de8d138d36fb5378742d8b4296da">&#9670;&nbsp;</a></span>seleph&lt; EOP &gt;()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structEOP.html">EOP</a> * <a class="el" href="ephemeris_8hpp.html#ae8c26d8633b2b50dfa6afbe046a9d3bb">seleph</a>&lt; <a class="el" href="structEOP.html">EOP</a> &gt; </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Sys&#160;</td>
-          <td class="paramname"><em>sys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_NavMsgType&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_ac302de8d138d36fb5378742d8b4296da_cgraph.svg" width="246" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_ac302de8d138d36fb5378742d8b4296da_icgraph.svg" width="340" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a7da191c91fa26999f40461876ed64cd0" name="a7da191c91fa26999f40461876ed64cd0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7da191c91fa26999f40461876ed64cd0">&#9670;&nbsp;</a></span>seleph&lt; Eph &gt;()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structEph.html">Eph</a> * <a class="el" href="ephemeris_8hpp.html#ae8c26d8633b2b50dfa6afbe046a9d3bb">seleph</a>&lt; <a class="el" href="structEph.html">Eph</a> &gt; </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>iode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a7da191c91fa26999f40461876ed64cd0_cgraph.svg" width="243" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a7da191c91fa26999f40461876ed64cd0_icgraph.svg" width="476" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aecb4df22f46995cce2eb340f5ea24635" name="aecb4df22f46995cce2eb340f5ea24635"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aecb4df22f46995cce2eb340f5ea24635">&#9670;&nbsp;</a></span>seleph&lt; Geph &gt;()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structGeph.html">Geph</a> * <a class="el" href="ephemeris_8hpp.html#ae8c26d8633b2b50dfa6afbe046a9d3bb">seleph</a>&lt; <a class="el" href="structGeph.html">Geph</a> &gt; </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>iode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_aecb4df22f46995cce2eb340f5ea24635_cgraph.svg" width="254" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_aecb4df22f46995cce2eb340f5ea24635_icgraph.svg" width="348" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ad506cac35e66f4336a1e14217d7c60e5" name="ad506cac35e66f4336a1e14217d7c60e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad506cac35e66f4336a1e14217d7c60e5">&#9670;&nbsp;</a></span>seleph&lt; ION &gt;()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structION.html">ION</a> * <a class="el" href="ephemeris_8hpp.html#ae8c26d8633b2b50dfa6afbe046a9d3bb">seleph</a>&lt; <a class="el" href="structION.html">ION</a> &gt; </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Sys&#160;</td>
-          <td class="paramname"><em>sys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_NavMsgType&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_ad506cac35e66f4336a1e14217d7c60e5_cgraph.svg" width="243" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_ad506cac35e66f4336a1e14217d7c60e5_icgraph.svg" width="338" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="adc3c7e257ad1c48a66c3aca9caddf893" name="adc3c7e257ad1c48a66c3aca9caddf893"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc3c7e257ad1c48a66c3aca9caddf893">&#9670;&nbsp;</a></span>seleph&lt; Seph &gt;()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structSeph.html">Seph</a> * <a class="el" href="ephemeris_8hpp.html#ae8c26d8633b2b50dfa6afbe046a9d3bb">seleph</a>&lt; <a class="el" href="structSeph.html">Seph</a> &gt; </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
-          <td class="paramname"><em>Sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>iode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structNavigation.html">Navigation</a> &amp;&#160;</td>
-          <td class="paramname"><em>nav</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_adc3c7e257ad1c48a66c3aca9caddf893_cgraph.svg" width="251" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_adc3c7e257ad1c48a66c3aca9caddf893_icgraph.svg" width="255" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a4067cb995409fce1b919bed224bf5644" name="a4067cb995409fce1b919bed224bf5644"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4067cb995409fce1b919bed224bf5644">&#9670;&nbsp;</a></span>seph2clk()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double seph2clk </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSeph.html">Seph</a> &amp;&#160;</td>
-          <td class="paramname"><em>seph</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a4067cb995409fce1b919bed224bf5644_icgraph.svg" width="204" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="af8554ab873b3d3cd9c605c5aff342549" name="af8554ab873b3d3cd9c605c5aff342549"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af8554ab873b3d3cd9c605c5aff342549">&#9670;&nbsp;</a></span>seph2pos()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void seph2pos </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSeph.html">Seph</a> &amp;&#160;</td>
-          <td class="paramname"><em>seph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>dtSat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>var</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>sbas ephemeris to satellite position and clock bias ----------------------&mdash; compute satellite position and clock bias with sbas ephemeris </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">time</td><td>time (gpst)</td></tr>
-    <tr><td class="paramname">seph</td><td>sbas ephemeris</td></tr>
-    <tr><td class="paramname">rSat</td><td>satellite position {x,y,z} (ecef) (m)</td></tr>
-    <tr><td class="paramname">dtSat</td><td>satellite clock bias (s)</td></tr>
-    <tr><td class="paramname">var</td><td>satellite position and clock variance (m^2) </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_af8554ab873b3d3cd9c605c5aff342549_cgraph.svg" width="238" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_af8554ab873b3d3cd9c605c5aff342549_icgraph.svg" width="212" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a3ac0bd514e432be4402a6511fb891d72" name="a3ac0bd514e432be4402a6511fb891d72"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ac0bd514e432be4402a6511fb891d72">&#9670;&nbsp;</a></span>ssrClkDelta()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool ssrClkDelta </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structSSRMaps.html">SSRMaps</a> &amp;&#160;</td>
-          <td class="paramname"><em>ssrMaps</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>dclk</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
-          <td class="paramname"><em>iodClk</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a3ac0bd514e432be4402a6511fb891d72_icgraph.svg" width="247" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a90eaad2a0ea82ada36ae6e79b8011600" name="a90eaad2a0ea82ada36ae6e79b8011600"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a90eaad2a0ea82ada36ae6e79b8011600">&#9670;&nbsp;</a></span>ssrPosDelta()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool ssrPosDelta </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structSSRMaps.html">SSRMaps</a> &amp;&#160;</td>
-          <td class="paramname"><em>ssrMaps</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>dPos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
-          <td class="paramname"><em>iodPos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
-          <td class="paramname"><em>iodEph</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a90eaad2a0ea82ada36ae6e79b8011600_cgraph.svg" width="287" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a90eaad2a0ea82ada36ae6e79b8011600_icgraph.svg" width="248" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a44b66dafdc2256a58461f7eee35058a7" name="a44b66dafdc2256a58461f7eee35058a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a44b66dafdc2256a58461f7eee35058a7">&#9670;&nbsp;</a></span>var_uraeph()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double var_uraeph </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>ura</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>variance by ura ephemeris (ref [1] 20.3.3.3.1.1) </p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a44b66dafdc2256a58461f7eee35058a7_icgraph.svg" width="238" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a16f6ba062b344678a58d194d9c4a8410" name="a16f6ba062b344678a58d194d9c4a8410"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a16f6ba062b344678a58d194d9c4a8410">&#9670;&nbsp;</a></span>var_urassr()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double var_urassr </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>ura</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>variance by ura ssr (ref [4]) </p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a16f6ba062b344678a58d194d9c4a8410_icgraph.svg" width="240" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ephemeris_8cpp_a082fe4b7393586d8a7a2b1ab32cfe131_icgraph.svg" width="252" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

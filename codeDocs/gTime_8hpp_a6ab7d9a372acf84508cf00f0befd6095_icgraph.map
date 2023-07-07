@@ -1,15 +1,6 @@
 <map id="gpst2time" name="gpst2time">
-<area shape="rect" id="node1" title=" " alt="" coords="288,300,376,327"/>
-<area shape="rect" id="node2" href="$brdc2sp3__main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="95,5,150,32"/>
-<area shape="rect" id="node3" href="$structRtcmDecoder.html#a30e1272fcf539706e94183c7835a36e0" title=" " alt="" coords="31,56,214,83"/>
-<area shape="rect" id="node4" href="$rinex_8cpp.html#a30b3cdcd487d258c340534e7ddbde2e1" title="Decode glonass ephemeris." alt="" coords="71,107,174,133"/>
-<area shape="rect" id="node5" href="$rinex_8cpp.html#a47e197e8bad4103334d186f5fde306eb" title="Decode EOP message." alt="" coords="76,157,169,184"/>
-<area shape="rect" id="node6" href="$biasSINEXwrite_8cpp.html#a3193a7ae3e27dfbd3caaaba922a113cb" title="Store bias output to write into bias SINEX files." alt="" coords="80,208,165,235"/>
-<area shape="rect" id="node7" href="$rinex_8cpp.html#a49860903ba3deda27374072016e16fbb" title="Decode CNVX ephemeris." alt="" coords="71,259,174,285"/>
-<area shape="rect" id="node8" href="$structNtripUploader.html#a0763f31214a177f3d9be2301138fd0e7" title=" " alt="" coords="6,334,239,375"/>
-<area shape="rect" id="node9" href="$structRtcmDecoder.html#a6673aa5a16d7e997de9ce5e43fac7860" title=" " alt="" coords="5,400,240,427"/>
-<area shape="rect" id="node10" href="$rinex_8cpp.html#a98a2dc67757d3341b779c2d60a4f64e3" title="Decode nav header." alt="" coords="71,451,174,477"/>
-<area shape="rect" id="node11" href="$rinex_8cpp.html#ae3132fbeb0a7c18e3316f143ae063998" title="Decode ephemeris." alt="" coords="76,501,169,528"/>
-<area shape="rect" id="node12" href="$rinex_8cpp.html#a6613c8a15b270944e8f29ebf0357c3b0" title="Decode geo ephemeris." alt="" coords="72,552,173,579"/>
-<area shape="rect" id="node13" href="$rinex_8cpp.html#abf5c2200567764637e86c93fa34ea658" title="Decode STO message." alt="" coords="77,603,168,629"/>
+<area shape="rect" id="node1" title=" " alt="" coords="300,56,388,83"/>
+<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#abc8237c886f93fe5f584339ab0cbf81e" title="Store bias output to write into bias SINEX files." alt="" coords="59,5,198,32"/>
+<area shape="rect" id="node3" href="$structicdDecoder.html#aea659f71285c53546a37983124997094" title=" " alt="" coords="5,56,252,83"/>
+<area shape="rect" id="node4" href="$structUbxDecoder.html#a3702427c895daa3f024fb18b638b2f67" title=" " alt="" coords="31,107,227,133"/>
 </map>

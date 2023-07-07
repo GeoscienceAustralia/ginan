@@ -21,222 +21,222 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="ionoSphericalCaps_8cpp.html#a620486fd228e2133a32860533ca923c8" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="126.5,-532.5 126.5,-551.5 215.5,-551.5 215.5,-532.5 126.5,-532.5"/>
-<text text-anchor="middle" x="171" y="-539.5" font-family="Helvetica,sans-Serif" font-size="10.00">ionVtecSphcap</text>
+<g id="a_node2"><a xlink:href="ionoSpherical_8cpp.html#a4a9e6ef4c262368496c36ccd84c1bb58" target="_top" xlink:title="Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not us...">
+<polygon fill="white" stroke="red" points="127.5,-532.5 127.5,-551.5 214.5,-551.5 214.5,-532.5 127.5,-532.5"/>
+<text text-anchor="middle" x="171" y="-539.5" font-family="Helvetica,sans-Serif" font-size="10.00">ionVtecSphhar</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node2 -->
 <g id="edge1" class="edge">
 <title>Node1&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M291.18,-285.75C287.53,-327.09 271.39,-487.37 238,-523 232.05,-529.35 224.12,-533.63 215.84,-536.49"/>
+<path fill="none" stroke="midnightblue" d="M291.18,-285.75C287.53,-327.09 271.39,-487.37 238,-523 231.8,-529.61 223.47,-533.97 214.81,-536.84"/>
 </g>
-<!-- Node10 -->
+<!-- Node15 -->
 <g id="node3" class="node">
-<title>Node10</title>
-<g id="a_node3"><a xlink:href="GinARNLamb_8cpp.html#af71b69e23375694ef4e5f632002864d7" target="_top" xlink:title="Comapring two Z&#45;transformed ambiguities.">
-<polygon fill="white" stroke="black" points="132.5,-494.5 132.5,-513.5 209.5,-513.5 209.5,-494.5 132.5,-494.5"/>
-<text text-anchor="middle" x="171" y="-501.5" font-family="Helvetica,sans-Serif" font-size="10.00">comp_Zamb</text>
+<title>Node15</title>
+<g id="a_node3"><a xlink:href="ionoModel_8cpp.html#a27d1fa4a9c987b7a08670dea1f9c9111" target="_top" xlink:title="Estimate biases from Ionosphere modelling DCBs.">
+<polygon fill="white" stroke="red" points="128,-494.5 128,-513.5 214,-513.5 214,-494.5 128,-494.5"/>
+<text text-anchor="middle" x="171" y="-501.5" font-family="Helvetica,sans-Serif" font-size="10.00">queryBiasDCB</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node10 -->
+<!-- Node1&#45;&gt;Node15 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node10</title>
-<path fill="none" stroke="midnightblue" d="M292.61,-285.92C294.09,-319.09 294.19,-427.25 238,-485 230.52,-492.69 220.14,-497.32 209.82,-500.1"/>
+<title>Node1&#45;&gt;Node15</title>
+<path fill="none" stroke="midnightblue" d="M292.61,-285.92C294.09,-319.09 294.19,-427.25 238,-485 231.6,-491.58 223.08,-495.92 214.29,-498.77"/>
 </g>
-<!-- Node11 -->
+<!-- Node21 -->
 <g id="node4" class="node">
-<title>Node11</title>
-<g id="a_node4"><a xlink:href="GinARNLamb_8cpp.html#aec84319e21a1558de999b084be3e8cad" target="_top" xlink:title="Add Z&#45;transformed ambiguity to archive.">
-<polygon fill="white" stroke="red" points="0,-427.5 0,-446.5 68,-446.5 68,-427.5 0,-427.5"/>
-<text text-anchor="middle" x="34" y="-434.5" font-family="Helvetica,sans-Serif" font-size="10.00">incl_Zamb</text>
+<title>Node21</title>
+<g id="a_node4"><a xlink:href="ionoLocalSTEC_8cpp.html#a11b3a9b1f612a452b6abc10fb21e07f6" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="123.5,-456.5 123.5,-475.5 218.5,-475.5 218.5,-456.5 123.5,-456.5"/>
+<text text-anchor="middle" x="171" y="-463.5" font-family="Helvetica,sans-Serif" font-size="10.00">getCmpSSRIono</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node11 -->
-<g id="edge12" class="edge">
-<title>Node1&#45;&gt;Node11</title>
-<path fill="none" stroke="midnightblue" d="M286.51,-266.48C278.08,-252.94 260.54,-228.7 238,-219 183.29,-195.47 151.29,-182.8 104,-219 55.37,-256.22 87.11,-293.82 68,-352 58.91,-379.67 45.84,-411.48 39.21,-427.18"/>
-</g>
-<!-- Node19 -->
-<g id="node5" class="node">
-<title>Node19</title>
-<g id="a_node5"><a xlink:href="ionoSpherical_8cpp.html#a41a6e504f87f80223e06f686c93eab8e" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="127.5,-456.5 127.5,-475.5 214.5,-475.5 214.5,-456.5 127.5,-456.5"/>
-<text text-anchor="middle" x="171" y="-463.5" font-family="Helvetica,sans-Serif" font-size="10.00">ionVtecSphhar</text>
-</a>
-</g>
-</g>
-<!-- Node1&#45;&gt;Node19 -->
-<g id="edge4" class="edge">
-<title>Node1&#45;&gt;Node19</title>
-<path fill="none" stroke="midnightblue" d="M291.68,-285.72C290.23,-313.85 282.22,-396.23 238,-442 231.65,-448.58 223.35,-453.36 214.8,-456.83"/>
-</g>
-<!-- Node20 -->
-<g id="node6" class="node">
-<title>Node20</title>
-<g id="a_node6"><a xlink:href="corrections_8cpp.html#a2ea2641272a527a2a8f0ba726b99ccb1" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="16,-323.5 16,-342.5 52,-342.5 52,-323.5 16,-323.5"/>
-<text text-anchor="middle" x="34" y="-330.5" font-family="Helvetica,sans-Serif" font-size="10.00">nmf</text>
-</a>
-</g>
-</g>
-<!-- Node1&#45;&gt;Node20 -->
-<g id="edge5" class="edge">
-<title>Node1&#45;&gt;Node20</title>
-<path fill="none" stroke="midnightblue" d="M291.53,-285.59C289.69,-311.01 280.79,-380.19 238,-409 188.6,-442.26 158.46,-433.11 104,-409 72.88,-395.22 49.79,-359.7 40.07,-342.55"/>
+<!-- Node1&#45;&gt;Node21 -->
+<g id="edge3" class="edge">
+<title>Node1&#45;&gt;Node21</title>
+<path fill="none" stroke="midnightblue" d="M291.94,-285.74C291.22,-314.71 285.04,-401.15 238,-447 232.62,-452.24 225.89,-456.06 218.8,-458.83"/>
 </g>
 <!-- Node27 -->
-<g id="node7" class="node">
+<g id="node5" class="node">
 <title>Node27</title>
-<g id="a_node7"><a xlink:href="trop_8cpp.html#a080102fd2b8058490e933925884c4001" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="152,-380.5 152,-399.5 190,-399.5 190,-380.5 152,-380.5"/>
-<text text-anchor="middle" x="171" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">gpt2</text>
+<g id="a_node5"><a xlink:href="GinARNLamb_8cpp.html#af71b69e23375694ef4e5f632002864d7" target="_top" xlink:title="Comapring two Z&#45;transformed ambiguities.">
+<polygon fill="white" stroke="black" points="132.5,-418.5 132.5,-437.5 209.5,-437.5 209.5,-418.5 132.5,-418.5"/>
+<text text-anchor="middle" x="171" y="-425.5" font-family="Helvetica,sans-Serif" font-size="10.00">comp_Zamb</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node27 -->
-<g id="edge6" class="edge">
+<g id="edge4" class="edge">
 <title>Node1&#45;&gt;Node27</title>
-<path fill="none" stroke="midnightblue" d="M289.21,-285.71C283.18,-304.97 267.06,-348.11 238,-371 224.23,-381.84 204.51,-386.5 190.22,-388.5"/>
+<path fill="none" stroke="midnightblue" d="M290.95,-285.66C287.76,-310.1 275.98,-374.83 238,-409 230.11,-416.1 219.73,-420.56 209.54,-423.35"/>
 </g>
-<!-- Node30 -->
-<g id="node8" class="node">
-<title>Node30</title>
-<g id="a_node8"><a xlink:href="GinARNLamb_8cpp.html#ad93bb9c322526f57beacb5aeb5c4e66a" target="_top" xlink:title="Apply archived Z&#45;ambiguities to float solution.">
-<polygon fill="white" stroke="red" points="129.5,-342.5 129.5,-361.5 212.5,-361.5 212.5,-342.5 129.5,-342.5"/>
-<text text-anchor="middle" x="171" y="-349.5" font-family="Helvetica,sans-Serif" font-size="10.00">apply_ambigt</text>
+<!-- Node28 -->
+<g id="node6" class="node">
+<title>Node28</title>
+<g id="a_node6"><a xlink:href="GinARNLamb_8cpp.html#aec84319e21a1558de999b084be3e8cad" target="_top" xlink:title="Add Z&#45;transformed ambiguity to archive.">
+<polygon fill="white" stroke="red" points="0,-180.5 0,-199.5 68,-199.5 68,-180.5 0,-180.5"/>
+<text text-anchor="middle" x="34" y="-187.5" font-family="Helvetica,sans-Serif" font-size="10.00">incl_Zamb</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node30 -->
-<g id="edge7" class="edge">
-<title>Node1&#45;&gt;Node30</title>
-<path fill="none" stroke="midnightblue" d="M285.48,-285.57C276.34,-298.27 258.5,-320.53 238,-333 230.26,-337.71 221.29,-341.3 212.52,-344.01"/>
+<!-- Node1&#45;&gt;Node28 -->
+<g id="edge14" class="edge">
+<title>Node1&#45;&gt;Node28</title>
+<path fill="none" stroke="midnightblue" d="M291.53,-266.41C289.69,-240.99 280.79,-171.81 238,-143 188.6,-109.74 160.91,-125.46 104,-143 80.45,-150.26 57.75,-168.6 45.16,-180.11"/>
 </g>
-<!-- Node6 -->
+<!-- Node32 -->
+<g id="node7" class="node">
+<title>Node32</title>
+<g id="a_node7"><a xlink:href="ionoSphericalCaps_8cpp.html#a5e798eccc5cf6a6f5364aa0b085c7df0" target="_top" xlink:title="Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not us...">
+<polygon fill="white" stroke="red" points="126.5,-380.5 126.5,-399.5 215.5,-399.5 215.5,-380.5 126.5,-380.5"/>
+<text text-anchor="middle" x="171" y="-387.5" font-family="Helvetica,sans-Serif" font-size="10.00">ionVtecSphcap</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node32 -->
+<g id="edge6" class="edge">
+<title>Node1&#45;&gt;Node32</title>
+<path fill="none" stroke="midnightblue" d="M288.73,-285.6C282.05,-303.83 265.13,-343.63 238,-366 230.38,-372.28 220.98,-376.99 211.68,-380.5"/>
+</g>
+<!-- Node33 -->
+<g id="node8" class="node">
+<title>Node33</title>
+<g id="a_node8"><a xlink:href="corrections_8cpp.html#a2b2a203a5df36e8c1d9896c2e1e854e8" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="16,-285.5 16,-304.5 52,-304.5 52,-285.5 16,-285.5"/>
+<text text-anchor="middle" x="34" y="-292.5" font-family="Helvetica,sans-Serif" font-size="10.00">nmf</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node33 -->
+<g id="edge7" class="edge">
+<title>Node1&#45;&gt;Node33</title>
+<path fill="none" stroke="midnightblue" d="M286.51,-285.52C278.08,-299.06 260.54,-323.3 238,-333 183.29,-356.53 161.68,-347.83 104,-333 82.81,-327.55 61.15,-314.07 47.89,-304.72"/>
+</g>
+<!-- Node38 -->
 <g id="node9" class="node">
-<title>Node6</title>
+<title>Node38</title>
 <g id="a_node9"><a xlink:href="ionoModel_8cpp.html#a2bdc3287aad0d2793f4ef6adbf389680" target="_top" xlink:title="Updating the ionosphere model parameters &#160;&#160;The ionosphere model should be initialized by calling &#39;con...">
 <polygon fill="white" stroke="red" points="104,-304.5 104,-323.5 238,-323.5 238,-304.5 104,-304.5"/>
 <text text-anchor="middle" x="171" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00">updateIonosphereModel</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node6 -->
+<!-- Node1&#45;&gt;Node38 -->
 <g id="edge8" class="edge">
-<title>Node1&#45;&gt;Node6</title>
+<title>Node1&#45;&gt;Node38</title>
 <path fill="none" stroke="midnightblue" d="M273.6,-282.77C263.2,-286.53 249.93,-291.19 238,-295 227.89,-298.23 216.83,-301.51 206.71,-304.42"/>
 </g>
-<!-- Node31 -->
+<!-- Node39 -->
 <g id="node10" class="node">
-<title>Node31</title>
-<g id="a_node10"><a xlink:href="ionoBSplines_8cpp.html#aef570343aff2d9e50754ea4150ad4c29" target="_top" xlink:title="Estimate Ionosphere VTEC using Ionospheric gridmaps Ion_pp I Ionosphere Piercing Point layer I Layer ...">
+<title>Node39</title>
+<g id="a_node10"><a xlink:href="ionoBSplines_8cpp.html#af8b69e53386db097895cdb35126f3c9a" target="_top" xlink:title="Estimate Ionosphere VTEC using Ionospheric gridmaps Ion_pp I Ionosphere Piercing Point layer I Layer ...">
 <polygon fill="white" stroke="red" points="129.5,-266.5 129.5,-285.5 212.5,-285.5 212.5,-266.5 129.5,-266.5"/>
 <text text-anchor="middle" x="171" y="-273.5" font-family="Helvetica,sans-Serif" font-size="10.00">ionVtecBsplin</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node31 -->
+<!-- Node1&#45;&gt;Node39 -->
 <g id="edge9" class="edge">
-<title>Node1&#45;&gt;Node31</title>
+<title>Node1&#45;&gt;Node39</title>
 <path fill="none" stroke="midnightblue" d="M273.77,-276C257.58,-276 233.32,-276 212.55,-276"/>
 </g>
-<!-- Node32 -->
+<!-- Node40 -->
 <g id="node11" class="node">
-<title>Node32</title>
+<title>Node40</title>
 <g id="a_node11"><a xlink:href="corrections_8cpp.html#abae235364162e6df2195cc74a3d4277a" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="146,-228.5 146,-247.5 196,-247.5 196,-228.5 146,-228.5"/>
 <text text-anchor="middle" x="171" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">interpc</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node32 -->
+<!-- Node1&#45;&gt;Node40 -->
 <g id="edge10" class="edge">
-<title>Node1&#45;&gt;Node32</title>
+<title>Node1&#45;&gt;Node40</title>
 <path fill="none" stroke="midnightblue" d="M273.6,-269.23C263.2,-265.47 249.93,-260.81 238,-257 224.26,-252.61 208.76,-248.12 196.24,-244.61"/>
 </g>
-<!-- Node33 -->
+<!-- Node41 -->
 <g id="node12" class="node">
-<title>Node33</title>
-<g id="a_node12"><a xlink:href="acsQC_8cpp.html#a50b9ebf4a56ec6edec979531b0515887" target="_top" xlink:title="Cycle slip detection and repair for triple&#45;frequency.">
-<polygon fill="white" stroke="red" points="138.5,-152.5 138.5,-171.5 203.5,-171.5 203.5,-152.5 138.5,-152.5"/>
-<text text-anchor="middle" x="171" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">cycleslip3</text>
+<title>Node41</title>
+<g id="a_node12"><a xlink:href="GinARNLamb_8cpp.html#ad93bb9c322526f57beacb5aeb5c4e66a" target="_top" xlink:title="Apply archived Z&#45;ambiguities to float solution.">
+<polygon fill="white" stroke="red" points="129.5,-190.5 129.5,-209.5 212.5,-209.5 212.5,-190.5 129.5,-190.5"/>
+<text text-anchor="middle" x="171" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">apply_ambigt</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node33 -->
-<g id="edge13" class="edge">
-<title>Node1&#45;&gt;Node33</title>
-<path fill="none" stroke="midnightblue" d="M288.73,-266.4C282.05,-248.17 265.13,-208.37 238,-186 228.22,-177.93 215.49,-172.46 203.83,-168.8"/>
+<!-- Node1&#45;&gt;Node41 -->
+<g id="edge12" class="edge">
+<title>Node1&#45;&gt;Node41</title>
+<path fill="none" stroke="midnightblue" d="M285.48,-266.43C276.34,-253.73 258.5,-231.47 238,-219 230.26,-214.29 221.29,-210.7 212.52,-207.99"/>
 </g>
-<!-- Node37 -->
+<!-- Node42 -->
 <g id="node13" class="node">
-<title>Node37</title>
-<g id="a_node13"><a xlink:href="acsQC_8cpp.html#ae52b478bb7d30e6aaf8f0e6b4e526681" target="_top" xlink:title="Cycle slip detection and repair for dual&#45;frequency.">
-<polygon fill="white" stroke="red" points="138.5,-114.5 138.5,-133.5 203.5,-133.5 203.5,-114.5 138.5,-114.5"/>
-<text text-anchor="middle" x="171" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">cycleslip2</text>
+<title>Node42</title>
+<g id="a_node13"><a xlink:href="trop_8cpp.html#a080102fd2b8058490e933925884c4001" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="152,-152.5 152,-171.5 190,-171.5 190,-152.5 152,-152.5"/>
+<text text-anchor="middle" x="171" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">gpt2</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node37 -->
-<g id="edge14" class="edge">
-<title>Node1&#45;&gt;Node37</title>
-<path fill="none" stroke="midnightblue" d="M290.95,-266.34C287.76,-241.9 275.98,-177.17 238,-143 228.6,-134.55 215.67,-129.84 203.75,-127.22"/>
+<!-- Node1&#45;&gt;Node42 -->
+<g id="edge13" class="edge">
+<title>Node1&#45;&gt;Node42</title>
+<path fill="none" stroke="midnightblue" d="M289.21,-266.29C283.18,-247.03 267.06,-203.89 238,-181 224.23,-170.16 204.51,-165.5 190.22,-163.5"/>
 </g>
-<!-- Node38 -->
+<!-- Node45 -->
 <g id="node14" class="node">
-<title>Node38</title>
-<g id="a_node14"><a xlink:href="GinARNLamb_8cpp.html#ac4b99b950a4d40abefe99b35c1142570" target="_top" xlink:title="Check Z&#45;transformed ambiguities and remove old entries.">
-<polygon fill="white" stroke="red" points="141,-76.5 141,-95.5 201,-95.5 201,-76.5 141,-76.5"/>
-<text text-anchor="middle" x="171" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">chk_arch</text>
+<title>Node45</title>
+<g id="a_node14"><a xlink:href="acsQC_8cpp.html#a5278f59e23c92b2a1912d5dde5e2f809" target="_top" xlink:title="Cycle slip detection and repair for triple&#45;frequency.">
+<polygon fill="white" stroke="red" points="138.5,-76.5 138.5,-95.5 203.5,-95.5 203.5,-76.5 138.5,-76.5"/>
+<text text-anchor="middle" x="171" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">cycleslip3</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node38 -->
+<!-- Node1&#45;&gt;Node45 -->
 <g id="edge15" class="edge">
-<title>Node1&#45;&gt;Node38</title>
-<path fill="none" stroke="midnightblue" d="M291.94,-266.26C291.22,-237.29 285.04,-150.85 238,-105 228.18,-95.43 213.86,-90.62 201.07,-88.23"/>
+<title>Node1&#45;&gt;Node45</title>
+<path fill="none" stroke="midnightblue" d="M291.68,-266.28C290.23,-238.15 282.22,-155.77 238,-110 228.93,-100.62 215.92,-94.89 203.84,-91.39"/>
 </g>
-<!-- Node39 -->
+<!-- Node49 -->
 <g id="node15" class="node">
-<title>Node39</title>
-<g id="a_node15"><a xlink:href="vmf3_8cpp.html#aac15381a34bd52a98936b30664f63af0" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="140,-38.5 140,-57.5 202,-57.5 202,-38.5 140,-38.5"/>
-<text text-anchor="middle" x="171" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">tropvmf3</text>
+<title>Node49</title>
+<g id="a_node15"><a xlink:href="acsQC_8cpp.html#a9a7675a515de2802ed917e9d32dd897d" target="_top" xlink:title="Cycle slip detection for dual&#45;frequency.">
+<polygon fill="white" stroke="red" points="138.5,-38.5 138.5,-57.5 203.5,-57.5 203.5,-38.5 138.5,-38.5"/>
+<text text-anchor="middle" x="171" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">cycleslip2</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node39 -->
+<!-- Node1&#45;&gt;Node49 -->
 <g id="edge16" class="edge">
-<title>Node1&#45;&gt;Node39</title>
-<path fill="none" stroke="midnightblue" d="M292.61,-266.08C294.09,-232.91 294.19,-124.75 238,-67 228.69,-57.43 214.89,-52.59 202.32,-50.19"/>
+<title>Node1&#45;&gt;Node49</title>
+<path fill="none" stroke="midnightblue" d="M292.61,-266.08C294.09,-232.91 294.19,-124.75 238,-67 229.02,-57.77 215.87,-52.95 203.67,-50.45"/>
 </g>
-<!-- Node40 -->
+<!-- Node50 -->
 <g id="node16" class="node">
-<title>Node40</title>
-<g id="a_node16"><a xlink:href="vmf3_8cpp.html#a374fb2ddda710d0ccca2a2fbd3fae151" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="132.5,-0.5 132.5,-19.5 209.5,-19.5 209.5,-0.5 132.5,-0.5"/>
-<text text-anchor="middle" x="171" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">tropvmf3full</text>
+<title>Node50</title>
+<g id="a_node16"><a xlink:href="GinARNLamb_8cpp.html#ac4b99b950a4d40abefe99b35c1142570" target="_top" xlink:title="Check Z&#45;transformed ambiguities and remove old entries.">
+<polygon fill="white" stroke="red" points="141,-0.5 141,-19.5 201,-19.5 201,-0.5 141,-0.5"/>
+<text text-anchor="middle" x="171" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">chk_arch</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node40 -->
+<!-- Node1&#45;&gt;Node50 -->
 <g id="edge17" class="edge">
-<title>Node1&#45;&gt;Node40</title>
-<path fill="none" stroke="midnightblue" d="M291.18,-266.25C287.53,-224.91 271.39,-64.63 238,-29 230.58,-21.08 220.1,-16.39 209.66,-13.64"/>
+<title>Node1&#45;&gt;Node50</title>
+<path fill="none" stroke="midnightblue" d="M291.18,-266.25C287.53,-224.91 271.39,-64.63 238,-29 228.54,-18.91 214.11,-14.06 201.14,-11.78"/>
 </g>
-<!-- Node10&#45;&gt;Node11 -->
-<g id="edge3" class="edge">
-<title>Node10&#45;&gt;Node11</title>
-<path fill="none" stroke="midnightblue" d="M132.21,-495.42C122.77,-492.66 112.83,-489.2 104,-485 82.13,-474.59 59.61,-457.5 46.48,-446.77"/>
+<!-- Node27&#45;&gt;Node28 -->
+<g id="edge5" class="edge">
+<title>Node27&#45;&gt;Node28</title>
+<path fill="none" stroke="midnightblue" d="M132.23,-424.04C121.92,-421.27 111.53,-416.65 104,-409 61.04,-365.35 86.99,-334.22 68,-276 58.82,-247.87 45.68,-215.49 39.09,-199.69"/>
 </g>
-<!-- Node32&#45;&gt;Node20 -->
+<!-- Node40&#45;&gt;Node33 -->
 <g id="edge11" class="edge">
-<title>Node32&#45;&gt;Node20</title>
-<path fill="none" stroke="midnightblue" d="M145.78,-241.64C132.68,-244.41 116.65,-249.12 104,-257 75.71,-274.62 51.93,-307.05 41.17,-323.25"/>
+<title>Node40&#45;&gt;Node33</title>
+<path fill="none" stroke="midnightblue" d="M145.73,-243.6C133.06,-246.87 117.44,-251.44 104,-257 84.66,-264.99 63.79,-277 50.13,-285.38"/>
 </g>
 </g>
 </svg>

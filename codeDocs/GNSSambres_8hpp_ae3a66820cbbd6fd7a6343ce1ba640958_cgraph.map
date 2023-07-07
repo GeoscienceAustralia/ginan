@@ -1,6 +1,6 @@
 <map id="retrv_WLambg" name="retrv_WLambg">
 <area shape="rect" id="node1" title="Retrieve WL ambiguities from archive." alt="" coords="5,56,123,83"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="188,5,283,32"/>
-<area shape="rect" id="node3" href="$structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" title=" " alt="" coords="171,56,300,83"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="188,5,283,32"/>
+<area shape="rect" id="node3" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="171,56,300,83"/>
 <area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="192,107,279,133"/>
 </map>

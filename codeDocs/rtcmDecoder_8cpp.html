@@ -83,12 +83,713 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a5e5d26d65b7b8b3a25c4d761960a282b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a5e5d26d65b7b8b3a25c4d761960a282b">lockTimeFromIndicator</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> indicator)</td></tr>
+<tr class="memitem:a5e5d26d65b7b8b3a25c4d761960a282b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a5e5d26d65b7b8b3a25c4d761960a282b">lockTimeFromIndicator</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> indicator)</td></tr>
 <tr class="separator:a5e5d26d65b7b8b3a25c4d761960a282b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f2ff04aa3d45fed395d6df26ebe7709"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a1f2ff04aa3d45fed395d6df26ebe7709">highResLockTimeFromIndicator</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> indicator)</td></tr>
+<tr class="memitem:a1f2ff04aa3d45fed395d6df26ebe7709"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a1f2ff04aa3d45fed395d6df26ebe7709">highResLockTimeFromIndicator</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> indicator)</td></tr>
 <tr class="separator:a1f2ff04aa3d45fed395d6df26ebe7709"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85a03123ae20efc3b06434f616140943"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a85a03123ae20efc3b06434f616140943">getbitu</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len)</td></tr>
+<tr class="memdesc:a85a03123ae20efc3b06434f616140943"><td class="mdescLeft">&#160;</td><td class="mdescRight">extract unsigned bits from byte data  <a href="rtcmDecoder_8cpp.html#a85a03123ae20efc3b06434f616140943">More...</a><br /></td></tr>
+<tr class="separator:a85a03123ae20efc3b06434f616140943"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad48f005e9a609843e1616f9267a27d29"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#ad48f005e9a609843e1616f9267a27d29">getbitu</a> (vector&lt; unsigned char &gt; &amp;buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len)</td></tr>
+<tr class="memdesc:ad48f005e9a609843e1616f9267a27d29"><td class="mdescLeft">&#160;</td><td class="mdescRight">extract unsigned bits from RTCM messages  <a href="rtcmDecoder_8cpp.html#ad48f005e9a609843e1616f9267a27d29">More...</a><br /></td></tr>
+<tr class="separator:ad48f005e9a609843e1616f9267a27d29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b4fecad74db6a33e3e755d5c55245ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a2b4fecad74db6a33e3e755d5c55245ad">getbits</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len, bool *failure_ptr)</td></tr>
+<tr class="memdesc:a2b4fecad74db6a33e3e755d5c55245ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">extract signed bits from byte data  <a href="rtcmDecoder_8cpp.html#a2b4fecad74db6a33e3e755d5c55245ad">More...</a><br /></td></tr>
+<tr class="separator:a2b4fecad74db6a33e3e755d5c55245ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa6463f592ed6478626814466d3d02a5"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#aaa6463f592ed6478626814466d3d02a5">getbituInc</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len)</td></tr>
+<tr class="memdesc:aaa6463f592ed6478626814466d3d02a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">increasingly extract unsigned bits from byte data  <a href="rtcmDecoder_8cpp.html#aaa6463f592ed6478626814466d3d02a5">More...</a><br /></td></tr>
+<tr class="separator:aaa6463f592ed6478626814466d3d02a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69d3829c3bb9d0cbd55dc204c09ab50c"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a69d3829c3bb9d0cbd55dc204c09ab50c">getbituInc</a> (vector&lt; unsigned char &gt; &amp;buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len)</td></tr>
+<tr class="memdesc:a69d3829c3bb9d0cbd55dc204c09ab50c"><td class="mdescLeft">&#160;</td><td class="mdescRight">increasingly extract unsigned bits from RTCM messages  <a href="rtcmDecoder_8cpp.html#a69d3829c3bb9d0cbd55dc204c09ab50c">More...</a><br /></td></tr>
+<tr class="separator:a69d3829c3bb9d0cbd55dc204c09ab50c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f81fd7eaa74dfc180469d0accafb183"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a8f81fd7eaa74dfc180469d0accafb183">getbitsInc</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len, bool *failure_ptr)</td></tr>
+<tr class="memdesc:a8f81fd7eaa74dfc180469d0accafb183"><td class="mdescLeft">&#160;</td><td class="mdescRight">increasingly extract signed bits from byte data  <a href="rtcmDecoder_8cpp.html#a8f81fd7eaa74dfc180469d0accafb183">More...</a><br /></td></tr>
+<tr class="separator:a8f81fd7eaa74dfc180469d0accafb183"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8dd2031443a023c665ba918bcd91436"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#ad8dd2031443a023c665ba918bcd91436">getbitsInc</a> (vector&lt; unsigned char &gt; &amp;buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len, bool *failure_ptr)</td></tr>
+<tr class="memdesc:ad8dd2031443a023c665ba918bcd91436"><td class="mdescLeft">&#160;</td><td class="mdescRight">increasingly extract signed bits from RTCM messages  <a href="rtcmDecoder_8cpp.html#ad8dd2031443a023c665ba918bcd91436">More...</a><br /></td></tr>
+<tr class="separator:ad8dd2031443a023c665ba918bcd91436"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0235020c0ce59b7095c246bcb8496cb"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#ac0235020c0ce59b7095c246bcb8496cb">getbitsIncScale</a> (vector&lt; unsigned char &gt; &amp;buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len, double scale, bool *failure_ptr)</td></tr>
+<tr class="memdesc:ac0235020c0ce59b7095c246bcb8496cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">increasingly extract signed bits from RTCM messages with scale factor/resolution applied  <a href="rtcmDecoder_8cpp.html#ac0235020c0ce59b7095c246bcb8496cb">More...</a><br /></td></tr>
+<tr class="separator:ac0235020c0ce59b7095c246bcb8496cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1859a6292dbeabca9b05b0a4455a00f9"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a1859a6292dbeabca9b05b0a4455a00f9">getbituIncScale</a> (vector&lt; unsigned char &gt; &amp;buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len, double scale)</td></tr>
+<tr class="memdesc:a1859a6292dbeabca9b05b0a4455a00f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">increasingly extract unsigned bits from RTCM messages with scale factor/resolution applied  <a href="rtcmDecoder_8cpp.html#a1859a6292dbeabca9b05b0a4455a00f9">More...</a><br /></td></tr>
+<tr class="separator:a1859a6292dbeabca9b05b0a4455a00f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48a309e0f4832dd7f5025c0717c5c645"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a48a309e0f4832dd7f5025c0717c5c645">getbitg</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len)</td></tr>
+<tr class="memdesc:a48a309e0f4832dd7f5025c0717c5c645"><td class="mdescLeft">&#160;</td><td class="mdescRight">extract sign-magnitude bits applied in GLO nav messages from byte data  <a href="rtcmDecoder_8cpp.html#a48a309e0f4832dd7f5025c0717c5c645">More...</a><br /></td></tr>
+<tr class="separator:a48a309e0f4832dd7f5025c0717c5c645"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33beca135638237503bffc4badf8fb94"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#a33beca135638237503bffc4badf8fb94">getbitgInc</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len)</td></tr>
+<tr class="memdesc:a33beca135638237503bffc4badf8fb94"><td class="mdescLeft">&#160;</td><td class="mdescRight">increasingly extract sign-magnitude bits applied in GLO nav messages from byte data  <a href="rtcmDecoder_8cpp.html#a33beca135638237503bffc4badf8fb94">More...</a><br /></td></tr>
+<tr class="separator:a33beca135638237503bffc4badf8fb94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0b3b95ec92f7c5d647f698845ffa5b2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rtcmDecoder_8cpp.html#ab0b3b95ec92f7c5d647f698845ffa5b2">getbitgInc</a> (vector&lt; unsigned char &gt; &amp;buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;pos, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len)</td></tr>
+<tr class="memdesc:ab0b3b95ec92f7c5d647f698845ffa5b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">increasingly extract sign-magnitude bits applied in GLO nav messages from RTCM messages  <a href="rtcmDecoder_8cpp.html#ab0b3b95ec92f7c5d647f698845ffa5b2">More...</a><br /></td></tr>
+<tr class="separator:ab0b3b95ec92f7c5d647f698845ffa5b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a48a309e0f4832dd7f5025c0717c5c645" name="a48a309e0f4832dd7f5025c0717c5c645"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48a309e0f4832dd7f5025c0717c5c645">&#9670;&nbsp;</a></span>getbitg()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbitg </td>
+          <td>(</td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>extract sign-magnitude bits applied in GLO nav messages from byte data </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a48a309e0f4832dd7f5025c0717c5c645_cgraph.svg" width="195" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a48a309e0f4832dd7f5025c0717c5c645_icgraph.svg" width="214" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a33beca135638237503bffc4badf8fb94" name="a33beca135638237503bffc4badf8fb94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33beca135638237503bffc4badf8fb94">&#9670;&nbsp;</a></span>getbitgInc() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbitgInc </td>
+          <td>(</td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>increasingly extract sign-magnitude bits applied in GLO nav messages from byte data </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a33beca135638237503bffc4badf8fb94_cgraph.svg" width="214" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a33beca135638237503bffc4badf8fb94_icgraph.svg" width="380" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab0b3b95ec92f7c5d647f698845ffa5b2" name="ab0b3b95ec92f7c5d647f698845ffa5b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0b3b95ec92f7c5d647f698845ffa5b2">&#9670;&nbsp;</a></span>getbitgInc() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbitgInc </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>increasingly extract sign-magnitude bits applied in GLO nav messages from RTCM messages </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_ab0b3b95ec92f7c5d647f698845ffa5b2_cgraph.svg" width="232" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2b4fecad74db6a33e3e755d5c55245ad" name="a2b4fecad74db6a33e3e755d5c55245ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b4fecad74db6a33e3e755d5c55245ad">&#9670;&nbsp;</a></span>getbits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbits </td>
+          <td>(</td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>failure_ptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>extract signed bits from byte data </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32)</td></tr>
+    <tr><td class="paramname">failure_ptr</td><td>pointer for failure flag </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a2b4fecad74db6a33e3e755d5c55245ad_cgraph.svg" width="194" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a2b4fecad74db6a33e3e755d5c55245ad_icgraph.svg" width="212" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8f81fd7eaa74dfc180469d0accafb183" name="a8f81fd7eaa74dfc180469d0accafb183"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f81fd7eaa74dfc180469d0accafb183">&#9670;&nbsp;</a></span>getbitsInc() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbitsInc </td>
+          <td>(</td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>failure_ptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>increasingly extract signed bits from byte data </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32)</td></tr>
+    <tr><td class="paramname">failure_ptr</td><td>pointer for failure flag </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a8f81fd7eaa74dfc180469d0accafb183_cgraph.svg" width="212" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a8f81fd7eaa74dfc180469d0accafb183_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="ad8dd2031443a023c665ba918bcd91436" name="ad8dd2031443a023c665ba918bcd91436"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8dd2031443a023c665ba918bcd91436">&#9670;&nbsp;</a></span>getbitsInc() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbitsInc </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>failure_ptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>increasingly extract signed bits from RTCM messages </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32)</td></tr>
+    <tr><td class="paramname">failure_ptr</td><td>pointer for failure flag </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_ad8dd2031443a023c665ba918bcd91436_cgraph.svg" width="232" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ac0235020c0ce59b7095c246bcb8496cb" name="ac0235020c0ce59b7095c246bcb8496cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0235020c0ce59b7095c246bcb8496cb">&#9670;&nbsp;</a></span>getbitsIncScale()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double getbitsIncScale </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>scale</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>failure_ptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>increasingly extract signed bits from RTCM messages with scale factor/resolution applied </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32)</td></tr>
+    <tr><td class="paramname">scale</td><td>scale factor/resolution</td></tr>
+    <tr><td class="paramname">failure_ptr</td><td>pointer for failure flag </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_ac0235020c0ce59b7095c246bcb8496cb_cgraph.svg" width="267" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_ac0235020c0ce59b7095c246bcb8496cb_icgraph.svg" width="378" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a85a03123ae20efc3b06434f616140943" name="a85a03123ae20efc3b06434f616140943"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85a03123ae20efc3b06434f616140943">&#9670;&nbsp;</a></span>getbitu() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbitu </td>
+          <td>(</td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>extract unsigned bits from byte data </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a85a03123ae20efc3b06434f616140943_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="ad48f005e9a609843e1616f9267a27d29" name="ad48f005e9a609843e1616f9267a27d29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad48f005e9a609843e1616f9267a27d29">&#9670;&nbsp;</a></span>getbitu() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbitu </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>extract unsigned bits from RTCM messages </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>RTCM messages</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_ad48f005e9a609843e1616f9267a27d29_cgraph.svg" width="195" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aaa6463f592ed6478626814466d3d02a5" name="aaa6463f592ed6478626814466d3d02a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa6463f592ed6478626814466d3d02a5">&#9670;&nbsp;</a></span>getbituInc() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbituInc </td>
+          <td>(</td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>increasingly extract unsigned bits from byte data </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_aaa6463f592ed6478626814466d3d02a5_cgraph.svg" width="214" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_aaa6463f592ed6478626814466d3d02a5_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="a69d3829c3bb9d0cbd55dc204c09ab50c" name="a69d3829c3bb9d0cbd55dc204c09ab50c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69d3829c3bb9d0cbd55dc204c09ab50c">&#9670;&nbsp;</a></span>getbituInc() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> getbituInc </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>increasingly extract unsigned bits from RTCM messages </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a69d3829c3bb9d0cbd55dc204c09ab50c_cgraph.svg" width="232" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a1859a6292dbeabca9b05b0a4455a00f9" name="a1859a6292dbeabca9b05b0a4455a00f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1859a6292dbeabca9b05b0a4455a00f9">&#9670;&nbsp;</a></span>getbituIncScale()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double getbituIncScale </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>scale</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>increasingly extract unsigned bits from RTCM messages with scale factor/resolution applied </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>byte data</td></tr>
+    <tr><td class="paramname">pos</td><td>bit position from start of data (bits)</td></tr>
+    <tr><td class="paramname">len</td><td>bit length (bits) (len&lt;=32)</td></tr>
+    <tr><td class="paramname">scale</td><td>scale factor/resolution </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a1859a6292dbeabca9b05b0a4455a00f9_cgraph.svg" width="268" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a1859a6292dbeabca9b05b0a4455a00f9_icgraph.svg" width="379" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a1f2ff04aa3d45fed395d6df26ebe7709" name="a1f2ff04aa3d45fed395d6df26ebe7709"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1f2ff04aa3d45fed395d6df26ebe7709">&#9670;&nbsp;</a></span>highResLockTimeFromIndicator()</h2>
 
@@ -98,16 +799,21 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">double highResLockTimeFromIndicator </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>indicator</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a1f2ff04aa3d45fed395d6df26ebe7709_cgraph.svg" width="380" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a1f2ff04aa3d45fed395d6df26ebe7709_icgraph.svg" width="491" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a1f2ff04aa3d45fed395d6df26ebe7709_icgraph.svg" width="483" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -121,12 +827,17 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">double lockTimeFromIndicator </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>indicator</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="rtcmDecoder_8cpp_a5e5d26d65b7b8b3a25c4d761960a282b_icgraph.svg" width="427" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

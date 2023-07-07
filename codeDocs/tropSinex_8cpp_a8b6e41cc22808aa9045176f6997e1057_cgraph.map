@@ -1,6 +1,4 @@
 <map id="setTropHeaderData" name="setTropHeaderData">
-<area shape="rect" id="node1" title=" " alt="" coords="5,56,152,83"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="231,5,330,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a42a98c9bc4ba5249c22e031840d672e0" title=" " alt="" coords="235,56,327,83"/>
-<area shape="rect" id="node4" href="$sinex_8cpp.html#a3a182eb82bc3e7885feba85677baea2b" title=" " alt="" coords="200,107,361,133"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,152,32"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#aff412d7cf476298a141d5ea518e2d956" title=" " alt="" coords="200,5,351,32"/>
 </map>

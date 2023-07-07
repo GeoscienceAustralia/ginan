@@ -35,7 +35,7 @@
 <!-- Node5 -->
 <g id="node3" class="node">
 <title>Node5</title>
-<g id="a_node3"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node3"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="230,-57.5 230,-76.5 301,-76.5 301,-57.5 230,-57.5"/>
 <text text-anchor="middle" x="265.5" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -46,66 +46,66 @@
 <title>Node1&#45;&gt;Node5</title>
 <path fill="none" stroke="midnightblue" d="M78.4,-95.5C109.35,-102.23 155.07,-108.66 194,-100 214.18,-95.51 235.42,-84.6 249.25,-76.55"/>
 </g>
-<!-- Node12 -->
+<!-- Node10 -->
 <g id="node4" class="node">
-<title>Node12</title>
+<title>Node10</title>
 <g id="a_node4"><a xlink:href="GinARpivot_8cpp.html#aa6bd501576fa27cf1dc55b457809b0e4" target="_top" xlink:title="Add ambiguity to pivot tree.">
 <polygon fill="white" stroke="black" points="233.5,-19.5 233.5,-38.5 297.5,-38.5 297.5,-19.5 233.5,-19.5"/>
 <text text-anchor="middle" x="265.5" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">Link_amb</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node12 -->
+<!-- Node1&#45;&gt;Node10 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node12</title>
+<title>Node1&#45;&gt;Node10</title>
 <path fill="none" stroke="midnightblue" d="M83.24,-84.95C114.25,-83.19 157.64,-78.63 194,-67 196.81,-66.1 226.98,-49.64 246.93,-38.68"/>
 </g>
-<!-- Node13 -->
+<!-- Node11 -->
 <g id="node5" class="node">
-<title>Node13</title>
+<title>Node11</title>
 <g id="a_node5"><a xlink:href="GinARpivot_8cpp.html#a50a6ec448f33d1f09d19f2fb10e02299" target="_top" xlink:title="Reset receiver on network pivot.">
 <polygon fill="white" stroke="red" points="124,-38.5 124,-57.5 189,-57.5 189,-38.5 124,-38.5"/>
 <text text-anchor="middle" x="156.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">Reset_rec</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node13 -->
+<!-- Node1&#45;&gt;Node11 -->
 <g id="edge4" class="edge">
-<title>Node1&#45;&gt;Node13</title>
+<title>Node1&#45;&gt;Node11</title>
 <path fill="none" stroke="midnightblue" d="M71.01,-76.41C88.14,-70.65 109.87,-63.35 126.99,-57.59"/>
 </g>
-<!-- Node16 -->
+<!-- Node14 -->
 <g id="node6" class="node">
-<title>Node16</title>
+<title>Node14</title>
 <g id="a_node6"><a xlink:href="GinARpivot_8cpp.html#a21c1788df5b3f78e43a230b1b1fc3a07" target="_top" xlink:title="Reset satellite on network pivot.">
 <polygon fill="white" stroke="red" points="124,-0.5 124,-19.5 189,-19.5 189,-0.5 124,-0.5"/>
 <text text-anchor="middle" x="156.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Reset_sat</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node16 -->
+<!-- Node1&#45;&gt;Node14 -->
 <g id="edge7" class="edge">
-<title>Node1&#45;&gt;Node16</title>
+<title>Node1&#45;&gt;Node14</title>
 <path fill="none" stroke="midnightblue" d="M54.27,-76.3C68.93,-64.43 95.01,-44.05 119,-29 124.2,-25.74 130.03,-22.52 135.48,-19.69"/>
 </g>
-<!-- Node13&#45;&gt;Node5 -->
+<!-- Node11&#45;&gt;Node5 -->
 <g id="edge5" class="edge">
-<title>Node13&#45;&gt;Node5</title>
+<title>Node11&#45;&gt;Node5</title>
 <path fill="none" stroke="midnightblue" d="M189.02,-53.6C201.85,-55.87 216.71,-58.51 229.83,-60.84"/>
 </g>
-<!-- Node13&#45;&gt;Node12 -->
+<!-- Node11&#45;&gt;Node10 -->
 <g id="edge6" class="edge">
-<title>Node13&#45;&gt;Node12</title>
+<title>Node11&#45;&gt;Node10</title>
 <path fill="none" stroke="midnightblue" d="M189.02,-42.4C202.96,-39.93 219.29,-37.03 233.2,-34.56"/>
 </g>
-<!-- Node16&#45;&gt;Node5 -->
+<!-- Node14&#45;&gt;Node5 -->
 <g id="edge8" class="edge">
-<title>Node16&#45;&gt;Node5</title>
+<title>Node14&#45;&gt;Node5</title>
 <path fill="none" stroke="midnightblue" d="M176.1,-19.61C181.84,-22.6 188.19,-25.92 194,-29 212.06,-38.57 232.63,-49.68 246.86,-57.4"/>
 </g>
-<!-- Node16&#45;&gt;Node12 -->
+<!-- Node14&#45;&gt;Node10 -->
 <g id="edge9" class="edge">
-<title>Node16&#45;&gt;Node12</title>
+<title>Node14&#45;&gt;Node10</title>
 <path fill="none" stroke="midnightblue" d="M189.02,-15.6C202.96,-18.07 219.29,-20.97 233.2,-23.44"/>
 </g>
 </g>

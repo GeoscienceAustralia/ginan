@@ -1,5 +1,7 @@
 <map id="Eph" name="Eph">
-<area shape="rect" id="node1" title="GPS/QZS/GAL/BDS broadcast ephemeris." alt="" coords="111,453,213,941"/>
-<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,35,148,332"/>
-<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="172,5,323,361"/>
+<area shape="rect" id="node1" title="GPS/QZS/GAL/BDS broadcast ephemeris." alt="" coords="153,703,281,1235"/>
+<area shape="rect" id="node2" href="$structBrdcEph.html" title=" " alt="" coords="5,262,80,339"/>
+<area shape="rect" id="node3" href="$structKeplerEph.html" title=" " alt="" coords="105,145,191,457"/>
+<area shape="rect" id="node4" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="215,152,358,449"/>
+<area shape="rect" id="node5" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="382,5,565,596"/>
 </map>

@@ -1,18 +1,15 @@
 <map id="mat" name="mat">
-<area shape="rect" id="node1" title=" " alt="" coords="572,376,620,403"/>
-<area shape="rect" id="node2" href="$structTestStack.html#aff20cea87ae5eee6108b33d022913707" title="Compare matrix against test dataset." alt="" coords="367,5,510,32"/>
-<area shape="rect" id="node3" href="$lambda_8cpp.html#a364f9f201016e3baff0a9366158a823b" title=" " alt="" coords="5,275,76,301"/>
-<area shape="rect" id="node4" href="$namespaceboost_1_1serialization.html#aa3a45e5f6faa1219473551fa10548d20" title=" " alt="" coords="365,107,512,149"/>
-<area shape="rect" id="node5" href="$lambda_8cpp.html#a95d9f9037b4b559cb1af6c1d66f26728" title=" " alt="" coords="252,173,291,200"/>
-<area shape="rect" id="node6" href="$streamTrace_8cpp.html#a76b1da110b3fe9ef71f509dd07a2e665" title=" " alt="" coords="386,224,491,251"/>
-<area shape="rect" id="node7" href="$algebra__old_8cpp.html#aeeb14c76251388cfcbcbcf3177990976" title=" " alt="" coords="243,224,299,251"/>
-<area shape="rect" id="node8" href="$algebra__old_8cpp.html#acc2b857563b3c233a09fe2427965f7b2" title=" " alt="" coords="129,325,185,352"/>
-<area shape="rect" id="node9" href="$algebra__old_8cpp.html#a54fd9b64416949c38e879ac889964d2a" title=" " alt="" coords="128,275,185,301"/>
-<area shape="rect" id="node10" href="$lambda_8cpp.html#a7a45f828294c77c7e36d0a8cbfa229a3" title=" " alt="" coords="124,427,189,453"/>
-<area shape="rect" id="node11" href="$algebra__old_8cpp.html#a56b19c4e307111fe68e1e2c1f57868a1" title=" " alt="" coords="127,376,187,403"/>
-<area shape="rect" id="node12" href="$algebra__old_8cpp.html#a4035d20f11b4bd8085e6b0f84f8c0764" title=" " alt="" coords="237,376,305,403"/>
-<area shape="rect" id="node13" href="$algebra_8cpp.html#a409341f11cb16e20ae10acf6c0e03fcc" title=" " alt="" coords="353,579,524,605"/>
-<area shape="rect" id="node14" href="$algebra__old_8cpp.html#a7098620b4cf8e43e18b502711fa84a85" title=" " alt="" coords="403,629,474,656"/>
-<area shape="rect" id="node15" href="$algebra__old_8cpp.html#a446a2803e5eaeb996733dd8d73966f00" title=" " alt="" coords="243,528,300,555"/>
-<area shape="rect" id="node16" href="$structTestStack.html#a27d1058ac99283fcda868575b24c509c" title="Check matrix entries for invalid values." alt="" coords="361,731,516,757"/>
+<area shape="rect" id="node1" title=" " alt="" coords="567,284,615,311"/>
+<area shape="rect" id="node2" href="$algebra_8cpp.html#a409341f11cb16e20ae10acf6c0e03fcc" title=" " alt="" coords="348,5,519,32"/>
+<area shape="rect" id="node3" href="$structTestStack.html#a27d1058ac99283fcda868575b24c509c" title="Check matrix entries for invalid values." alt="" coords="356,56,511,83"/>
+<area shape="rect" id="node4" href="$algebra__old_8cpp.html#a7098620b4cf8e43e18b502711fa84a85" title=" " alt="" coords="398,107,469,133"/>
+<area shape="rect" id="node5" href="$algebra__old_8cpp.html#a4035d20f11b4bd8085e6b0f84f8c0764" title=" " alt="" coords="232,157,300,184"/>
+<area shape="rect" id="node6" href="$algebra__old_8cpp.html#a54fd9b64416949c38e879ac889964d2a" title=" " alt="" coords="125,208,183,235"/>
+<area shape="rect" id="node7" href="$lambda_8cpp.html#a364f9f201016e3baff0a9366158a823b" title=" " alt="" coords="5,437,76,464"/>
+<area shape="rect" id="node8" href="$algebra__old_8cpp.html#acc2b857563b3c233a09fe2427965f7b2" title=" " alt="" coords="126,259,182,285"/>
+<area shape="rect" id="node9" href="$algebra__old_8cpp.html#a56b19c4e307111fe68e1e2c1f57868a1" title=" " alt="" coords="124,309,184,336"/>
+<area shape="rect" id="node10" href="$algebra__old_8cpp.html#aeeb14c76251388cfcbcbcf3177990976" title=" " alt="" coords="238,360,294,387"/>
+<area shape="rect" id="node11" href="$lambda_8cpp.html#a95d9f9037b4b559cb1af6c1d66f26728" title=" " alt="" coords="247,413,285,440"/>
+<area shape="rect" id="node12" href="$structTestStack.html#aff20cea87ae5eee6108b33d022913707" title="Compare matrix against test dataset." alt="" coords="362,461,505,488"/>
+<area shape="rect" id="node13" href="$lambda_8cpp.html#a7a45f828294c77c7e36d0a8cbfa229a3" title=" " alt="" coords="233,487,299,513"/>
 </map>

@@ -1,5 +1,5 @@
 <map id="integer_bootst" name="integer_bootst">
 <area shape="rect" id="node1" title="Integer bootstrapping." alt="" coords="5,31,121,57"/>
-<area shape="rect" id="node2" href="$GNSSambres_8cpp.html#a5499472ab2c3558fb4d2af6a3d896c36" title="Lambda decorrelation (trough Z transform)" alt="" coords="169,5,301,32"/>
-<area shape="rect" id="node3" href="$GNSSambres_8cpp.html#aff65fc95b889a3af6c182c7093163bb8" title="Iterative Rounding." alt="" coords="181,56,290,83"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="177,5,271,32"/>
+<area shape="rect" id="node3" href="$GNSSambres_8cpp.html#aff65fc95b889a3af6c182c7093163bb8" title="Iterative Rounding." alt="" coords="169,56,279,83"/>
 </map>

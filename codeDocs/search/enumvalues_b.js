@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['svh_5fok_0',['SVH_OK',['../enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806a32b69479fb2c6d7097447b84053bb790',1,'enums.h']]],
-  ['svh_5funhealthy_1',['SVH_UNHEALTHY',['../enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806a2d769bc4f7eb8726b2401aa42c926e2b',1,'enums.h']]]
+  ['p_5fant_0',['P_ANT',['../sinex_8hpp.html#a8eb63e750a825ec74188676aecc8f893a04f94606a3a73981e326e3a64654e1c7',1,'sinex.hpp']]],
+  ['phas_1',['PHAS',['../enums_8h.html#afb3acbb8308f9097a77690267d0536e9a22b9a06eb44d6b64b574db06a8c7f0d9',1,'enums.h']]]
 ];

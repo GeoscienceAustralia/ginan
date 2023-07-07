@@ -1,7 +1,7 @@
 <map id="updateRecClocks" name="updateRecClocks">
-<area shape="rect" id="node1" title="Update the accelerations applied to orbital elements during the interval between epochs." alt="" coords="5,81,140,108"/>
-<area shape="rect" id="node2" href="$streamTrace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="225,5,325,32"/>
-<area shape="rect" id="node3" href="$structACSConfig.html#a7ddfbaf20a1c9181d73d0dabe92beace" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="188,56,361,83"/>
+<area shape="rect" id="node1" title="Prepare receiver clocks using spp values to minimise pre&#45;fit residuals." alt="" coords="5,81,140,108"/>
+<area shape="rect" id="node2" href="$trace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="225,5,325,32"/>
+<area shape="rect" id="node3" href="$structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="188,56,361,83"/>
 <area shape="rect" id="node4" href="$algebra_8cpp.html#a304f0d512353a3c5a991c2439ea73287" title=" " alt="" coords="191,107,359,133"/>
-<area shape="rect" id="node5" href="$structKFState.html#ae544a260c4983f5a1b06f71ddad7338f" title="Adds dynamics to a filter state by inserting off&#45;diagonal, non&#45;time dependent elements to transition ..." alt="" coords="198,157,351,184"/>
+<area shape="rect" id="node5" href="$structKFState.html#aca3d8484dbabdecee93352e625c96ed1" title="Adds dynamics to a filter state by inserting off&#45;diagonal, non&#45;time dependent elements to transition ..." alt="" coords="198,157,351,184"/>
 </map>

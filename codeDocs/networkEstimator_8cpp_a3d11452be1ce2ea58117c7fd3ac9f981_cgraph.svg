@@ -21,30 +21,30 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" target="_top" xlink:title="Returns the value and variance of a state within the kalman filter object.">
-<polygon fill="white" stroke="black" points="171.5,-38.5 171.5,-57.5 288.5,-57.5 288.5,-38.5 171.5,-38.5"/>
-<text text-anchor="middle" x="230" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::getKFValue</text>
+<g id="a_node2"><a xlink:href="structKFState.html#a28480b75cbb9f622f48a695f04000948" target="_top" xlink:title="Remove a state from a kalman filter object.">
+<polygon fill="white" stroke="black" points="168,-38.5 168,-57.5 292,-57.5 292,-38.5 168,-38.5"/>
+<text text-anchor="middle" x="230" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::removeState</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node2 -->
 <g id="edge1" class="edge">
 <title>Node1&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M132.42,-36.67C145.33,-38.19 158.79,-39.77 171.42,-41.25"/>
+<path fill="none" stroke="midnightblue" d="M132.42,-36.67C144.1,-38.04 156.23,-39.47 167.79,-40.82"/>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="structKFState.html#abdf1505bdab1895a280fd018979849f1" target="_top" xlink:title="Remove a state from a kalman filter object.">
-<polygon fill="white" stroke="black" points="168,-0.5 168,-19.5 292,-19.5 292,-0.5 168,-0.5"/>
-<text text-anchor="middle" x="230" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::removeState</text>
+<g id="a_node3"><a xlink:href="structKFState.html#a405c50a3085d8328e81dcd6786f775d3" target="_top" xlink:title="Returns the value and variance of a state within the kalman filter object.">
+<polygon fill="white" stroke="black" points="171.5,-0.5 171.5,-19.5 288.5,-19.5 288.5,-0.5 171.5,-0.5"/>
+<text text-anchor="middle" x="230" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::getKFValue</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
 <title>Node1&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M132.42,-21.33C144.1,-19.96 156.23,-18.53 167.79,-17.18"/>
+<path fill="none" stroke="midnightblue" d="M132.42,-21.33C145.33,-19.81 158.79,-18.23 171.42,-16.75"/>
 </g>
 </g>
 </svg>

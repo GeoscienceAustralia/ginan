@@ -1,5 +1,4 @@
 <map id="updateRinexObsHeader" name="updateRinexObsHeader">
-<area shape="rect" id="node1" title=" " alt="" coords="5,31,181,57"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="231,5,326,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="229,56,328,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,181,32"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="229,5,324,32"/>
 </map>

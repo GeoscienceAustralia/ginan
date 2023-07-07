@@ -92,8 +92,11 @@ Collaboration diagram for KFMeas:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a8e76ae174802f569b84d22fc990e266a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#a8e76ae174802f569b84d22fc990e266a">removeMeas</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index)</td></tr>
+<tr class="memitem:a8e76ae174802f569b84d22fc990e266a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#a8e76ae174802f569b84d22fc990e266a">removeMeas</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
 <tr class="separator:a8e76ae174802f569b84d22fc990e266a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1084cbfd379845a4a3b999ebd5a82a3d"><td class="memTemplParams" colspan="2">template&lt;class ARCHIVE &gt; </td></tr>
+<tr class="memitem:a1084cbfd379845a4a3b999ebd5a82a3d"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structKFMeas.html#a1084cbfd379845a4a3b999ebd5a82a3d">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;version)</td></tr>
+<tr class="separator:a1084cbfd379845a4a3b999ebd5a82a3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
@@ -118,13 +121,16 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a774f016e42195697f506b7e345e55ad5"><td class="memItemLeft" align="right" valign="top">MatrixXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#a774f016e42195697f506b7e345e55ad5">H</a></td></tr>
 <tr class="memdesc:a774f016e42195697f506b7e345e55ad5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Design matrix between measurements and state.  <a href="structKFMeas.html#a774f016e42195697f506b7e345e55ad5">More...</a><br /></td></tr>
 <tr class="separator:a774f016e42195697f506b7e345e55ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4fa2c00854e6d804260cb21634474b7b"><td class="memItemLeft" align="right" valign="top">vector&lt; <a class="el" href="structObsKey.html">ObsKey</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#a4fa2c00854e6d804260cb21634474b7b">obsKeys</a></td></tr>
-<tr class="memdesc:a4fa2c00854e6d804260cb21634474b7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional labels for reporting when measurements are removed etc.  <a href="structKFMeas.html#a4fa2c00854e6d804260cb21634474b7b">More...</a><br /></td></tr>
-<tr class="separator:a4fa2c00854e6d804260cb21634474b7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b0b0d0ca5c859935151a135c5e82de4"><td class="memItemLeft" align="right" valign="top">MatrixXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#a1b0b0d0ca5c859935151a135c5e82de4">H_star</a></td></tr>
+<tr class="memdesc:a1b0b0d0ca5c859935151a135c5e82de4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Design matrix between measurements and noise states.  <a href="structKFMeas.html#a1b0b0d0ca5c859935151a135c5e82de4">More...</a><br /></td></tr>
+<tr class="separator:a1b0b0d0ca5c859935151a135c5e82de4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac721c2fae22f3318dcbef55f9ba898d1"><td class="memItemLeft" align="right" valign="top">vector&lt; <a class="el" href="structKFKey.html">KFKey</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#ac721c2fae22f3318dcbef55f9ba898d1">obsKeys</a></td></tr>
+<tr class="memdesc:ac721c2fae22f3318dcbef55f9ba898d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional labels for reporting when measurements are removed etc.  <a href="structKFMeas.html#ac721c2fae22f3318dcbef55f9ba898d1">More...</a><br /></td></tr>
+<tr class="separator:ac721c2fae22f3318dcbef55f9ba898d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac47d0e04f2135b0628b02f95a752ca13"><td class="memItemLeft" align="right" valign="top">vector&lt; map&lt; string, void * &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#ac47d0e04f2135b0628b02f95a752ca13">metaDataMaps</a></td></tr>
 <tr class="separator:ac47d0e04f2135b0628b02f95a752ca13"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a34ec09b855a77526687101f99dd0223f"><td class="memItemLeft" align="right" valign="top">vector&lt; list&lt; tuple&lt; string, double, string &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#a34ec09b855a77526687101f99dd0223f">componentLists</a></td></tr>
-<tr class="separator:a34ec09b855a77526687101f99dd0223f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a674a105d6d6932ea6b70358a50a5163c"><td class="memItemLeft" align="right" valign="top">vector&lt; vector&lt; tuple&lt; E_Component, double, string, double &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeas.html#a674a105d6d6932ea6b70358a50a5163c">componentLists</a></td></tr>
+<tr class="separator:a674a105d6d6932ea6b70358a50a5163c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a8e76ae174802f569b84d22fc990e266a" name="a8e76ae174802f569b84d22fc990e266a"></a>
@@ -139,7 +145,7 @@ Data Fields</h2></td></tr>
         <tr>
           <td class="memname">void KFMeas::removeMeas </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>index</em></td><td>)</td>
           <td></td>
         </tr>
@@ -153,15 +159,53 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a id="a1084cbfd379845a4a3b999ebd5a82a3d" name="a1084cbfd379845a4a3b999ebd5a82a3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1084cbfd379845a4a3b999ebd5a82a3d">&#9670;&nbsp;</a></span>serialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class ARCHIVE &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFMeas::serialize </td>
+          <td>(</td>
+          <td class="paramtype">ARCHIVE &amp;&#160;</td>
+          <td class="paramname"><em>ar</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>version</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Field Documentation</h2>
-<a id="a34ec09b855a77526687101f99dd0223f" name="a34ec09b855a77526687101f99dd0223f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a34ec09b855a77526687101f99dd0223f">&#9670;&nbsp;</a></span>componentLists</h2>
+<a id="a674a105d6d6932ea6b70358a50a5163c" name="a674a105d6d6932ea6b70358a50a5163c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a674a105d6d6932ea6b70358a50a5163c">&#9670;&nbsp;</a></span>componentLists</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">vector&lt;list&lt;tuple&lt;string, double, string&gt; &gt; &gt; KFMeas::componentLists</td>
+          <td class="memname">vector&lt;vector&lt;tuple&lt;E_Component, double, string, double&gt; &gt; &gt; KFMeas::componentLists</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -184,6 +228,22 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a id="a1b0b0d0ca5c859935151a135c5e82de4" name="a1b0b0d0ca5c859935151a135c5e82de4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b0b0d0ca5c859935151a135c5e82de4">&#9670;&nbsp;</a></span>H_star</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixXd KFMeas::H_star</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Design matrix between measurements and noise states. </p>
+
+</div>
+</div>
 <a id="ac47d0e04f2135b0628b02f95a752ca13" name="ac47d0e04f2135b0628b02f95a752ca13"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac47d0e04f2135b0628b02f95a752ca13">&#9670;&nbsp;</a></span>metaDataMaps</h2>
 
@@ -198,14 +258,14 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="a4fa2c00854e6d804260cb21634474b7b" name="a4fa2c00854e6d804260cb21634474b7b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4fa2c00854e6d804260cb21634474b7b">&#9670;&nbsp;</a></span>obsKeys</h2>
+<a id="ac721c2fae22f3318dcbef55f9ba898d1" name="ac721c2fae22f3318dcbef55f9ba898d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac721c2fae22f3318dcbef55f9ba898d1">&#9670;&nbsp;</a></span>obsKeys</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">vector&lt;<a class="el" href="structObsKey.html">ObsKey</a>&gt; KFMeas::obsKeys</td>
+          <td class="memname">vector&lt;<a class="el" href="structKFKey.html">KFKey</a>&gt; KFMeas::obsKeys</td>
         </tr>
       </table>
 </div><div class="memdoc">

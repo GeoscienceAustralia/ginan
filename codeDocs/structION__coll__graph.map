@@ -1,5 +1,5 @@
 <map id="ION" name="ION">
-<area shape="rect" id="node1" title="ionosphere message" alt="" coords="121,424,203,853"/>
-<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,35,148,332"/>
-<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="172,5,323,361"/>
+<area shape="rect" id="node1" title="ionosphere message" alt="" coords="129,659,211,1088"/>
+<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,152,148,449"/>
+<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="172,5,355,596"/>
 </map>

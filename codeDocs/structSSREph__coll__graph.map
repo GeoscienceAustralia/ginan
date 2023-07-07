@@ -1,6 +1,6 @@
 <map id="SSREph" name="SSREph">
-<area shape="rect" id="node1" title=" " alt="" coords="223,439,299,560"/>
-<area shape="rect" id="node2" href="$structSSRMeta.html" title=" " alt="" coords="5,108,161,259"/>
-<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="185,5,336,361"/>
-<area shape="rect" id="node4" title=" " alt="" coords="361,145,441,222"/>
+<area shape="rect" id="node1" title=" " alt="" coords="165,901,241,1023"/>
+<area shape="rect" id="node2" href="$structSSRMeta.html" title=" " alt="" coords="5,659,155,824"/>
+<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="49,5,231,596"/>
+<area shape="rect" id="node4" title=" " alt="" coords="256,703,336,780"/>
 </map>

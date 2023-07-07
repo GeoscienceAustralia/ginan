@@ -1,7 +1,6 @@
 
 # Flex Events
 
-
 Certain satellites in the GPS constellation have the ability to change the output power on the signals they transmit toward Earth. Effectively this is achieved by re-distributing the power allocated to each signal component as seen in \cite{steigenberger_flex_2018}. This means that individual signal components can therefore transmit above previously stated maximum \citep[sec. 6.3.1]{IS-GPS-200G_2012}. 
 
 This `flexible power` or `flex power` capability is used as an anti-jamming technique. When flex power is activated (or de-activated) by the Control Segment of the GPS system, it is sometimes referred to as a "flex event". When a series of flex events are associated with a given set of GPS satellites, alter the power spectral distribution in similar ways and/or are targeted over the same geographical region, this is categorised as a flex power mode \citep{steigenberger_flex_2018}. In \cite{steigenberger_flex_2018}, three flex power modes are discussed. This includes a global activation for all healthy GPS Block IIR-M and IIF satellite for a period of 4 days (Mode II) to a geographically localised (regional) activation for 10 out of 12 Block IIF satellites on a continuous basis over a point centred in the Middle East (Mode I).

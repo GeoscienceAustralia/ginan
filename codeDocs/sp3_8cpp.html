@@ -84,11 +84,12 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aa6a1cc81baa057b53e2f3a644959a432"><td class="memItemLeft" align="right" valign="top">E_Sys&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3_8cpp.html#aa6a1cc81baa057b53e2f3a644959a432">code2sys</a> (char code)</td></tr>
+<tr class="memdesc:aa6a1cc81baa057b53e2f3a644959a432"><td class="mdescLeft">&#160;</td><td class="mdescRight">satellite code to satellite system  <a href="sp3_8cpp.html#aa6a1cc81baa057b53e2f3a644959a432">More...</a><br /></td></tr>
 <tr class="separator:aa6a1cc81baa057b53e2f3a644959a432"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a312f81af37fc5915220869ee56af6c91"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3_8cpp.html#a312f81af37fc5915220869ee56af6c91">readsp3</a> (std::istream &amp;fileStream, list&lt; <a class="el" href="structPeph.html">Peph</a> &gt; &amp;pephList, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> opt, bool &amp;isUTC, double *bfact)</td></tr>
-<tr class="memdesc:a312f81af37fc5915220869ee56af6c91"><td class="mdescLeft">&#160;</td><td class="mdescRight">read an epoch of data from an sp3 precise ephemeris file  <a href="sp3_8cpp.html#a312f81af37fc5915220869ee56af6c91">More...</a><br /></td></tr>
-<tr class="separator:a312f81af37fc5915220869ee56af6c91"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a318ada9d3e4098983bc500ae3985f4e3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3_8cpp.html#a318ada9d3e4098983bc500ae3985f4e3">readSp3ToNav</a> (string &amp;file, <a class="el" href="structNavigation.html">Navigation</a> *<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> opt)</td></tr>
+<tr class="memitem:a02d321d95cd2020d9ad64a3abfba6216"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3_8cpp.html#a02d321d95cd2020d9ad64a3abfba6216">readsp3</a> (std::istream &amp;fileStream, vector&lt; <a class="el" href="structPeph.html">Peph</a> &gt; &amp;pephList, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> opt, E_TimeSys &amp;tsys, double *bfact)</td></tr>
+<tr class="memdesc:a02d321d95cd2020d9ad64a3abfba6216"><td class="mdescLeft">&#160;</td><td class="mdescRight">read an epoch of data from an sp3 precise ephemeris file  <a href="sp3_8cpp.html#a02d321d95cd2020d9ad64a3abfba6216">More...</a><br /></td></tr>
+<tr class="separator:a02d321d95cd2020d9ad64a3abfba6216"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a318ada9d3e4098983bc500ae3985f4e3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3_8cpp.html#a318ada9d3e4098983bc500ae3985f4e3">readSp3ToNav</a> (string &amp;file, <a class="el" href="structNavigation.html">Navigation</a> *<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> opt)</td></tr>
 <tr class="separator:a318ada9d3e4098983bc500ae3985f4e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7bb0b718cb690d2c707c50b532302c01"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sp3_8cpp.html#a7bb0b718cb690d2c707c50b532302c01">orb2sp3</a> (<a class="el" href="structNavigation.html">Navigation</a> &amp;<a class="el" href="main_8cpp.html#af1c79bd0949a575b0fc90f35c6909ae9">nav</a>)</td></tr>
 <tr class="separator:a7bb0b718cb690d2c707c50b532302c01"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -109,6 +110,9 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>satellite code to satellite system </p>
+<p >Satellite code to satellite system. </p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -133,11 +137,6 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sp3_8cpp_a7bb0b718cb690d2c707c50b532302c01_cgraph.svg" width="272" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="sp3_8cpp_a7bb0b718cb690d2c707c50b532302c01_icgraph.svg" width="259" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
@@ -145,8 +144,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a312f81af37fc5915220869ee56af6c91" name="a312f81af37fc5915220869ee56af6c91"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a312f81af37fc5915220869ee56af6c91">&#9670;&nbsp;</a></span>readsp3()</h2>
+<a id="a02d321d95cd2020d9ad64a3abfba6216" name="a02d321d95cd2020d9ad64a3abfba6216"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02d321d95cd2020d9ad64a3abfba6216">&#9670;&nbsp;</a></span>readsp3()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -160,20 +159,20 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">list&lt; <a class="el" href="structPeph.html">Peph</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">vector&lt; <a class="el" href="structPeph.html">Peph</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>pephList</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>opt</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool &amp;&#160;</td>
-          <td class="paramname"><em>isUTC</em>, </td>
+          <td class="paramtype">E_TimeSys &amp;&#160;</td>
+          <td class="paramname"><em>tsys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -193,9 +192,9 @@ Here is the caller graph for this function:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">fileStream</td><td>stream to read content from</td></tr>
-    <tr><td class="paramname">pephList</td><td>list of precise ephemerides for one epoch</td></tr>
+    <tr><td class="paramname">pephList</td><td>vector of precise ephemerides for one epoch</td></tr>
     <tr><td class="paramname">opt</td><td>options options (1: only observed + 2: only predicted + 4: not combined)</td></tr>
-    <tr><td class="paramname">isUTC</td><td>reported utc state in header</td></tr>
+    <tr><td class="paramname">tsys</td><td>time system</td></tr>
     <tr><td class="paramname">bfact</td><td>bfact values from header </td></tr>
   </table>
   </dd>
@@ -203,12 +202,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sp3_8cpp_a312f81af37fc5915220869ee56af6c91_cgraph.svg" width="216" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sp3_8cpp_a02d321d95cd2020d9ad64a3abfba6216_cgraph.svg" width="216" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="sp3_8cpp_a312f81af37fc5915220869ee56af6c91_icgraph.svg" width="295" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="sp3_8cpp_a02d321d95cd2020d9ad64a3abfba6216_icgraph.svg" width="264" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -234,7 +233,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>opt</em>&#160;</td>
         </tr>
         <tr>

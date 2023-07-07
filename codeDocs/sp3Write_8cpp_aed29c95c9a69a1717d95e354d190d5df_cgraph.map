@@ -1,8 +1,7 @@
 <map id="writeSp3Header" name="writeSp3Header">
-<area shape="rect" id="node1" title=" " alt="" coords="5,107,132,133"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="180,5,279,32"/>
-<area shape="rect" id="node3" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="182,56,277,83"/>
-<area shape="rect" id="node4" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="185,107,273,133"/>
-<area shape="rect" id="node5" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="182,157,277,184"/>
-<area shape="rect" id="node6" href="$gTime_8cpp.html#a2a318fa02e2d05aa22eabbcf1a537fcf" title="get current time in utc" alt="" coords="193,208,266,235"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,132,108"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="218,5,313,32"/>
+<area shape="rect" id="node3" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="218,56,313,83"/>
+<area shape="rect" id="node4" href="$structACSConfig.html#a9f893b7ab2412f42ef7a02423d755940" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="180,107,351,133"/>
+<area shape="rect" id="node5" href="$gTime_8cpp.html#a54a930f8f70224e438c222c4e200905d" title=" " alt="" coords="228,157,303,184"/>
 </map>

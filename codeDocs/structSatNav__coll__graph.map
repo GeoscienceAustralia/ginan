@@ -1,14 +1,12 @@
 <map id="SatNav" name="SatNav">
-<area shape="rect" id="node1" title=" " alt="" coords="668,615,747,692"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,240,156,317"/>
-<area shape="rect" id="node3" href="$structSSRMaps.html" title=" " alt="" coords="180,233,269,325"/>
-<area shape="rect" id="node4" href="$structSatOrbit.html" title=" " alt="" coords="293,233,428,325"/>
-<area shape="rect" id="node5" href="$structEph.html" title="GPS/QZS/GAL/BDS broadcast ephemeris." alt="" coords="452,35,555,523"/>
-<area shape="rect" id="node6" href="$structGeph.html" title="GLONASS broadcast ephemeris." alt="" coords="579,181,654,376"/>
-<area shape="rect" id="node7" href="$structSeph.html" title="SBAS ephemeris." alt="" coords="678,196,745,361"/>
-<area shape="rect" id="node8" href="$structCeph.html" title="GPS/QZS CNAV/CNAV&#45;2 or BDS CNAV&#45;1/CNAV&#45;2/CNAV&#45;3 ephemeris." alt="" coords="771,5,849,552"/>
-<area shape="rect" id="node9" href="$structSTO.html" title="system Time offset message" alt="" coords="879,196,947,361"/>
-<area shape="rect" id="node10" href="$structEOP.html" title="EOP message." alt="" coords="971,174,1038,383"/>
-<area shape="rect" id="node11" href="$structION.html" title="ionosphere message" alt="" coords="1063,64,1144,493"/>
-<area shape="rect" id="node12" title=" " alt="" coords="1168,240,1249,317"/>
+<area shape="rect" id="node1" title=" " alt="" coords="623,388,701,465"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,189,156,267"/>
+<area shape="rect" id="node3" href="$structSSRMaps.html" title=" " alt="" coords="180,182,269,274"/>
+<area shape="rect" id="node4" href="$structSatOrbit.html" title=" " alt="" coords="293,182,428,274"/>
+<area shape="rect" id="node5" title=" " alt="" coords="399,5,458,83"/>
+<area shape="rect" id="node6" href="$structVectorEci.html" title=" " alt="" coords="605,153,719,303"/>
+<area shape="rect" id="node7" title=" " alt="" coords="693,5,773,83"/>
+<area shape="rect" id="node8" href="$structBrdcEph.html" title=" " alt="" coords="886,189,961,267"/>
+<area shape="rect" id="node9" title=" " alt="" coords="985,189,1067,267"/>
+<area shape="rect" id="node10" href="$structAttStatus.html" title="Persistent data for yaw model." alt="" coords="1091,145,1230,311"/>
 </map>

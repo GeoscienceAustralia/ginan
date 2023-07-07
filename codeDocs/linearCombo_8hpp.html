@@ -102,10 +102,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a0a1d4b7c2fde10c3ff389e0d5719d237"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structS__LC.html">S_LC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="linearCombo_8hpp.html#a0a1d4b7c2fde10c3ff389e0d5719d237">getLC</a> (<a class="el" href="structlc__t.html">lc_t</a> &amp;lcBase, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> fA, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> fB)</td></tr>
 <tr class="memdesc:a0a1d4b7c2fde10c3ff389e0d5719d237"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get combinations from pre-computed values, or return an empty value.  <a href="linearCombo_8hpp.html#a0a1d4b7c2fde10c3ff389e0d5719d237">More...</a><br /></td></tr>
 <tr class="separator:a0a1d4b7c2fde10c3ff389e0d5719d237"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5a4550126e0afcc4a997b359e8e75874"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structS__LC.html">S_LC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="linearCombo_8hpp.html#a5a4550126e0afcc4a997b359e8e75874">getLC</a> (<a class="el" href="structObs.html">Obs</a> &amp;obs, <a class="el" href="structlc__t.html">lc_t</a> &amp;lcBase, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> fA, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> fB)</td></tr>
-<tr class="memdesc:a5a4550126e0afcc4a997b359e8e75874"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get/calculate linear combination values for an observation.  <a href="linearCombo_8hpp.html#a5a4550126e0afcc4a997b359e8e75874">More...</a><br /></td></tr>
-<tr class="separator:a5a4550126e0afcc4a997b359e8e75874"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a600e3c4eaf808e42c88785d56dc70350"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="linearCombo_8hpp.html#a600e3c4eaf808e42c88785d56dc70350">obs2lcs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList)</td></tr>
+<tr class="memitem:a2bc7d05ff9a6e80b2157605b6e309256"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structS__LC.html">S_LC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="linearCombo_8hpp.html#a2bc7d05ff9a6e80b2157605b6e309256">getLC</a> (<a class="el" href="structGObs.html">GObs</a> &amp;obs, <a class="el" href="structlc__t.html">lc_t</a> &amp;lcBase, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> fA, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> fB)</td></tr>
+<tr class="memdesc:a2bc7d05ff9a6e80b2157605b6e309256"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get/calculate linear combination values for an observation.  <a href="linearCombo_8hpp.html#a2bc7d05ff9a6e80b2157605b6e309256">More...</a><br /></td></tr>
+<tr class="separator:a2bc7d05ff9a6e80b2157605b6e309256"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a600e3c4eaf808e42c88785d56dc70350"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="linearCombo_8hpp.html#a600e3c4eaf808e42c88785d56dc70350">obs2lcs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList)</td></tr>
 <tr class="memdesc:a600e3c4eaf808e42c88785d56dc70350"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to prepare some predefined linear combinations from a list of observations.  <a href="linearCombo_8hpp.html#a600e3c4eaf808e42c88785d56dc70350">More...</a><br /></td></tr>
 <tr class="separator:a600e3c4eaf808e42c88785d56dc70350"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -175,11 +175,11 @@ Functions</h2></td></tr>
 <p>Create combinations between specific observation values. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">L_A</td><td>Phase measurement A (in meters)</td></tr>
+    <tr><td class="paramname">L_A</td><td>Phase measurement <a class="el" href="structA.html">A</a> (in meters)</td></tr>
     <tr><td class="paramname">L_B</td><td>Phase measurement B (in meters)</td></tr>
-    <tr><td class="paramname">P_A</td><td>Code measurement A (in meters)</td></tr>
+    <tr><td class="paramname">P_A</td><td>Code measurement <a class="el" href="structA.html">A</a> (in meters)</td></tr>
     <tr><td class="paramname">P_B</td><td>Code measurement B (in meters)</td></tr>
-    <tr><td class="paramname">lamA</td><td>Wavelength A</td></tr>
+    <tr><td class="paramname">lamA</td><td>Wavelength <a class="el" href="structA.html">A</a></td></tr>
     <tr><td class="paramname">lamB</td><td>Wavelength B</td></tr>
     <tr><td class="paramname">c1_out</td><td>Ionosphere free coefficient 1</td></tr>
     <tr><td class="paramname">c2_out</td><td>Ionosphere free coefficient 2 </td></tr>
@@ -194,8 +194,64 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="a2bc7d05ff9a6e80b2157605b6e309256" name="a2bc7d05ff9a6e80b2157605b6e309256"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bc7d05ff9a6e80b2157605b6e309256">&#9670;&nbsp;</a></span>getLC() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structS__LC.html">S_LC</a> &amp; getLC </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGObs.html">GObs</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structlc__t.html">lc_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>lcBase</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td>
+          <td class="paramname"><em>fA</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td>
+          <td class="paramname"><em>fB</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get/calculate linear combination values for an observation. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">obs</td><td><a class="el" href="structObservation.html">Observation</a> to compute values form</td></tr>
+    <tr><td class="paramname">lcBase</td><td>Linear combination base object</td></tr>
+    <tr><td class="paramname">fA</td><td>Frequency type <a class="el" href="structA.html">A</a></td></tr>
+    <tr><td class="paramname">fB</td><td>Frequency type B </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="linearCombo_8hpp_a2bc7d05ff9a6e80b2157605b6e309256_cgraph.svg" width="176" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a0a1d4b7c2fde10c3ff389e0d5719d237" name="a0a1d4b7c2fde10c3ff389e0d5719d237"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0a1d4b7c2fde10c3ff389e0d5719d237">&#9670;&nbsp;</a></span>getLC() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a1d4b7c2fde10c3ff389e0d5719d237">&#9670;&nbsp;</a></span>getLC() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -230,67 +286,11 @@ Here is the caller graph for this function:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">lcBase</td><td>Linear combination base object</td></tr>
-    <tr><td class="paramname">fA</td><td>Frequency type A</td></tr>
+    <tr><td class="paramname">fA</td><td>Frequency type <a class="el" href="structA.html">A</a></td></tr>
     <tr><td class="paramname">fB</td><td>Frequency type B </td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a5a4550126e0afcc4a997b359e8e75874" name="a5a4550126e0afcc4a997b359e8e75874"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5a4550126e0afcc4a997b359e8e75874">&#9670;&nbsp;</a></span>getLC() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structS__LC.html">S_LC</a> &amp; getLC </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structlc__t.html">lc_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>lcBase</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td>
-          <td class="paramname"><em>fA</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td>
-          <td class="paramname"><em>fB</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get/calculate linear combination values for an observation. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">obs</td><td>Observation to compute values form</td></tr>
-    <tr><td class="paramname">lcBase</td><td>Linear combination base object</td></tr>
-    <tr><td class="paramname">fA</td><td>Frequency type A</td></tr>
-    <tr><td class="paramname">fB</td><td>Frequency type B </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="linearCombo_8hpp_a5a4550126e0afcc4a997b359e8e75874_cgraph.svg" width="176" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -309,7 +309,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>&#160;</td>
         </tr>
         <tr>
@@ -331,7 +331,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="linearCombo_8hpp_a600e3c4eaf808e42c88785d56dc70350_cgraph.svg" width="336" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="linearCombo_8hpp_a600e3c4eaf808e42c88785d56dc70350_cgraph.svg" width="336" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>

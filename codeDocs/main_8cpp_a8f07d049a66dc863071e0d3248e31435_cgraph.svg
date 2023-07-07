@@ -35,7 +35,7 @@
 <!-- Node4 -->
 <g id="node3" class="node">
 <title>Node4</title>
-<g id="a_node3"><a xlink:href="ppp_8cpp.html#a0caa845727695a6c596b31259522975c" target="_top" xlink:title=" ">
+<g id="a_node3"><a xlink:href="ppp__callbacks_8cpp.html#a0caa845727695a6c596b31259522975c" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="134.5,-114.5 134.5,-133.5 236.5,-133.5 236.5,-114.5 134.5,-114.5"/>
 <text text-anchor="middle" x="185.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">countSignalErrors</text>
 </a>
@@ -49,7 +49,7 @@
 <!-- Node5 -->
 <g id="node4" class="node">
 <title>Node5</title>
-<g id="a_node4"><a xlink:href="ppp_8cpp.html#a968c51f5aa3843055150caa0aaf58dcb" target="_top" xlink:title="Deweight worst measurement.">
+<g id="a_node4"><a xlink:href="ppp__callbacks_8cpp.html#a968c51f5aa3843055150caa0aaf58dcb" target="_top" xlink:title="Deweight worst measurement.">
 <polygon fill="white" stroke="black" points="141.5,-76.5 141.5,-95.5 229.5,-95.5 229.5,-76.5 141.5,-76.5"/>
 <text text-anchor="middle" x="185.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">deweightMeas</text>
 </a>
@@ -63,9 +63,9 @@
 <!-- Node6 -->
 <g id="node5" class="node">
 <title>Node6</title>
-<g id="a_node5"><a xlink:href="ppp_8cpp.html#aa0797b6f2a2f17b2fb86e99db808dea3" target="_top" xlink:title="Deweight measurements attached to worst state.">
-<polygon fill="white" stroke="red" points="135.5,-38.5 135.5,-57.5 235.5,-57.5 235.5,-38.5 135.5,-38.5"/>
-<text text-anchor="middle" x="185.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">deweightByState</text>
+<g id="a_node5"><a xlink:href="ppp__callbacks_8cpp.html#a1e3adabb954f5e009016d143450f37a1" target="_top" xlink:title="Reject measurements attached to worst state using measurement reject callback list.">
+<polygon fill="white" stroke="red" points="144,-38.5 144,-57.5 227,-57.5 227,-38.5 144,-38.5"/>
+<text text-anchor="middle" x="185.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">rejectByState</text>
 </a>
 </g>
 </g>
@@ -74,18 +74,18 @@
 <title>Node1&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M82.07,-76.41C102.84,-70.65 129.17,-63.35 149.94,-57.59"/>
 </g>
-<!-- Node8 -->
+<!-- Node9 -->
 <g id="node6" class="node">
-<title>Node8</title>
-<g id="a_node6"><a xlink:href="ppp_8cpp.html#a4fef2ebf508f36c5033c1a2506fd0f27" target="_top" xlink:title="Remove any states connected to a bad clock if it glitches.">
+<title>Node9</title>
+<g id="a_node6"><a xlink:href="ppp__callbacks_8cpp.html#ad44c63f6ba0b2504f7228c7190afe9ab" target="_top" xlink:title="Remove any states connected to a bad clock if it glitches.">
 <polygon fill="white" stroke="red" points="129,-0.5 129,-19.5 242,-19.5 242,-0.5 129,-0.5"/>
 <text text-anchor="middle" x="185.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">clockGlitchReaction</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node8 -->
+<!-- Node1&#45;&gt;Node9 -->
 <g id="edge5" class="edge">
-<title>Node1&#45;&gt;Node8</title>
+<title>Node1&#45;&gt;Node9</title>
 <path fill="none" stroke="midnightblue" d="M58.98,-76.39C74.19,-64.05 102.22,-42.61 129,-29 136.08,-25.4 144,-22.23 151.59,-19.56"/>
 </g>
 </g>

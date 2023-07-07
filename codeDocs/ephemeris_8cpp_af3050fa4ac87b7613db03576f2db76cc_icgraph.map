@@ -1,6 +1,6 @@
 <map id="ephpos" name="ephpos">
 <area shape="rect" id="node1" title=" " alt="" coords="257,56,327,83"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#af9cd5627e548655e7b0a7fec27c14ce9" title=" " alt="" coords="129,5,199,32"/>
-<area shape="rect" id="node3" href="$ephemeris_8cpp.html#a00caab23439d951d25d874f5f01c204c" title=" " alt="" coords="119,56,209,83"/>
-<area shape="rect" id="node4" href="$ephemeris_8cpp.html#a00df4213eb6f901bcb5928f44a24bd4d" title=" " alt="" coords="5,81,71,108"/>
+<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a41f37e8c125fa5ef8da1d6889cc6b888" title=" " alt="" coords="129,5,199,32"/>
+<area shape="rect" id="node3" href="$ephemeris_8cpp.html#aefd46b6f7f1ff6f8bb1f56cab126b8fc" title="satellite position and clock with ssr correction" alt="" coords="119,56,209,83"/>
+<area shape="rect" id="node4" href="$ephemeris_8cpp.html#a377067d62bc6a5337983be131715b7d9" title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg..." alt="" coords="5,81,71,108"/>
 </map>

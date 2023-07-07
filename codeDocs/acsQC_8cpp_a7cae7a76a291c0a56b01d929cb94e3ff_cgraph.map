@@ -1,4 +1,5 @@
 <map id="detslp_ll" name="detslp_ll">
-<area shape="rect" id="node1" title="Detect cycle slip by reported loss of lock." alt="" coords="5,5,83,32"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="131,5,225,32"/>
+<area shape="rect" id="node1" title="Detect cycle slip by reported loss of lock." alt="" coords="5,31,83,57"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="131,5,225,32"/>
+<area shape="rect" id="node3" href="$ppp_8cpp.html#add1aa65516313588ef8e125a7d748f51" title=" " alt="" coords="139,56,217,83"/>
 </map>

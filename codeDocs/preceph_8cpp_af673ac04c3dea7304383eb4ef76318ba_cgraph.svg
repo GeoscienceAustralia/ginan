@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title=" ">
+<g id="a_node1"><a xlink:title="read dcb parameters file">
 <polygon fill="#bfbfbf" stroke="black" points="0,-57.5 0,-76.5 56,-76.5 56,-57.5 0,-57.5"/>
 <text text-anchor="middle" x="28" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">readdcb</text>
 </a>
@@ -49,7 +49,7 @@
 <!-- Node6 -->
 <g id="node4" class="node">
 <title>Node6</title>
-<g id="a_node4"><a xlink:href="biasSINEXread_8cpp.html#a6a51f9914e96ab2fec060c9463b86ae4" target="_top" xlink:title="Push forward and reverse bias entry into the SINEXBiases map.">
+<g id="a_node4"><a xlink:href="biasSINEXread_8cpp.html#aeeda4dd24974c674f01d3b17be379d7f" target="_top" xlink:title="Push forward and reverse bias entry into the SINEXBiases map.">
 <polygon fill="white" stroke="red" points="95.5,-38.5 95.5,-57.5 183.5,-57.5 183.5,-38.5 95.5,-38.5"/>
 <text text-anchor="middle" x="139.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">pushBiasSinex</text>
 </a>

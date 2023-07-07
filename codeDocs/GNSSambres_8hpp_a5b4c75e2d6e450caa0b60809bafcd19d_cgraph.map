@@ -1,5 +1,4 @@
 <map id="enduserAmbigResl" name="enduserAmbigResl">
-<area shape="rect" id="node1" title="Ambiguity resolution for end user solutions." alt="" coords="5,31,149,57"/>
-<area shape="rect" id="node2" href="$structTestStack.html#aff20cea87ae5eee6108b33d022913707" title="Compare matrix against test dataset." alt="" coords="204,5,347,32"/>
-<area shape="rect" id="node3" href="$structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="197,56,353,83"/>
+<area shape="rect" id="node1" title="Ambiguity resolution for end user solutions." alt="" coords="5,5,149,32"/>
+<area shape="rect" id="node2" href="$structKFState.html#a405c50a3085d8328e81dcd6786f775d3" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="197,5,353,32"/>
 </map>

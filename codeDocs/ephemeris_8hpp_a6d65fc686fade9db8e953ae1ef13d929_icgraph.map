@@ -1,5 +1,6 @@
 <map id="ecef2rac" name="ecef2rac">
-<area shape="rect" id="node1" title=" " alt="" coords="192,31,271,57"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a8bdff335e8cf4b98bed4b31c8c943b55" title=" " alt="" coords="35,5,114,32"/>
-<area shape="rect" id="node3" href="$rtcmEncoder_8cpp.html#a476bbbc84db313790006799d5b6e2554" title=" " alt="" coords="5,56,144,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="192,56,271,83"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a18338f781fea251d0f8b03666fde5b9e" title="Yaw model for GAL IOV sats." alt="" coords="20,5,129,32"/>
+<area shape="rect" id="node3" href="$ephSSR_8cpp.html#a8bdff335e8cf4b98bed4b31c8c943b55" title=" " alt="" coords="35,56,114,83"/>
+<area shape="rect" id="node4" href="$rtcmEncoder_8cpp.html#adfb38209fa7487f56c3ec23c14a40218" title=" " alt="" coords="5,107,144,133"/>
 </map>

@@ -1,5 +1,6 @@
 <map id="orbPartials" name="orbPartials">
-<area shape="rect" id="node1" title=" " alt="" coords="192,31,284,57"/>
+<area shape="rect" id="node1" title=" " alt="" coords="192,56,284,83"/>
 <area shape="rect" id="node2" href="$networkEstimator_8cpp.html#a36828506971a6b66c6e61db51197c9e1" title="Estimates parameters for a network of stations simultaneously." alt="" coords="5,5,144,32"/>
-<area shape="rect" id="node3" href="$ppppp__obs_8cpp.html#a3db2ffced7ab37c4874c3a53fcb7953e" title=" " alt="" coords="29,56,120,83"/>
+<area shape="rect" id="node3" href="$ppp__obs_8cpp.html#aa6a7c175b1b4ea3c417b058d36edc96d" title=" " alt="" coords="29,56,120,83"/>
+<area shape="rect" id="node4" href="$ppp__slr_8cpp.html#a8a0fd95f3ae58d8d033b52aa2811c60c" title=" " alt="" coords="33,107,117,133"/>
 </map>

@@ -1,8 +1,4 @@
 <map id="Ipp_check_sphhar" name="Ipp_check_sphhar">
-<area shape="rect" id="node1" title=" " alt="" coords="5,107,144,133"/>
-<area shape="rect" id="node2" href="$rtkcmn_8cpp.html#ac9a81e78329f3b0dafee87842d6c1027" title="get sun and moon position in ecef" alt="" coords="192,5,297,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a853f281ccd45b714eb3edb14259a982a" title=" " alt="" coords="205,56,284,83"/>
-<area shape="rect" id="node4" href="$rtkcmn_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="204,107,285,133"/>
-<area shape="rect" id="node5" href="$rtkcmn_8cpp.html#af69d89b6d7834290bd7c181f828e652a" title="Transform geodetic postion to ecef." alt="" coords="204,157,285,184"/>
-<area shape="rect" id="node6" href="$algebra__old_8cpp.html#adc33998911a24938042604ba1f8e6196" title=" " alt="" coords="208,208,281,235"/>
+<area shape="rect" id="node1" title="rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IP..." alt="" coords="5,5,144,32"/>
+<area shape="rect" id="node2" href="$utils_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="192,5,273,32"/>
 </map>

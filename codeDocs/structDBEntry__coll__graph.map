@@ -1,8 +1,10 @@
 <map id="DBEntry" name="DBEntry">
-<area shape="rect" id="node1" title=" " alt="" coords="380,160,455,237"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,149,97"/>
-<area shape="rect" id="node3" title=" " alt="" coords="174,5,319,97"/>
-<area shape="rect" id="node4" title=" " alt="" coords="344,5,491,97"/>
-<area shape="rect" id="node5" title=" " alt="" coords="515,5,659,97"/>
-<area shape="rect" id="node6" title=" " alt="" coords="683,5,845,97"/>
+<area shape="rect" id="node1" title=" " alt="" coords="549,175,624,252"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,13,149,105"/>
+<area shape="rect" id="node3" title=" " alt="" coords="174,13,319,105"/>
+<area shape="rect" id="node4" title=" " alt="" coords="344,13,491,105"/>
+<area shape="rect" id="node5" title=" " alt="" coords="515,13,659,105"/>
+<area shape="rect" id="node6" title=" " alt="" coords="683,13,845,105"/>
+<area shape="rect" id="node7" title=" " alt="" coords="869,5,1025,112"/>
+<area shape="rect" id="node8" title=" " alt="" coords="1049,13,1250,105"/>
 </map>

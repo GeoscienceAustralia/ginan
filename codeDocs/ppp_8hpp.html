@@ -76,7 +76,6 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle"><div class="title">ppp.hpp File Reference</div></div>
@@ -88,56 +87,48 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp__dep__incl.svg" width="100%" height="473"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSolution.html">Solution</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structSolution.html" title="Solution of user mode processing functinos.">Solution</a> of user mode processing functinos.  <a href="structSolution.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aa11b4c1b41a5e7ed3aec7faca15cad1e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aa11b4c1b41a5e7ed3aec7faca15cad1e">removeUnmeasuredAmbiguities</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, map&lt; <a class="el" href="structKFKey.html">KFKey</a>, bool &gt; measuredStates)</td></tr>
 <tr class="memdesc:aa11b4c1b41a5e7ed3aec7faca15cad1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove ambiguity states from filter when they are not measured for an epoch.  <a href="ppp_8hpp.html#aa11b4c1b41a5e7ed3aec7faca15cad1e">More...</a><br /></td></tr>
 <tr class="separator:aa11b4c1b41a5e7ed3aec7faca15cad1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1736c997216f8411ca960e7fd14ce98a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structInitialState.html">InitialState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a1736c997216f8411ca960e7fd14ce98a">initialStateFromConfig</a> (<a class="el" href="structKalmanModel.html">KalmanModel</a> &amp;kalmanModel, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index=0)</td></tr>
-<tr class="separator:a1736c997216f8411ca960e7fd14ce98a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a70cbdeafd26c3c4a863baa1a23e760a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a70cbdeafd26c3c4a863baa1a23e760a8">pppos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
+<tr class="memitem:a70cbdeafd26c3c4a863baa1a23e760a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a70cbdeafd26c3c4a863baa1a23e760a8">pppos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
+<tr class="memdesc:a70cbdeafd26c3c4a863baa1a23e760a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">precise point positioning  <a href="ppp_8hpp.html#a70cbdeafd26c3c4a863baa1a23e760a8">More...</a><br /></td></tr>
 <tr class="separator:a70cbdeafd26c3c4a863baa1a23e760a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e076a3f51f99801075781e364f639bb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a2e076a3f51f99801075781e364f639bb">pppoutstat</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
-<tr class="separator:a2e076a3f51f99801075781e364f639bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4f408f70515faeb6a5f5b14a245f79a1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a4f408f70515faeb6a5f5b14a245f79a1">pppomc</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList, <a class="el" href="structgptgrid__t.html">gptgrid_t</a> &amp;gptg, <a class="el" href="structStation.html">Station</a> &amp;rec, <a class="el" href="structvmf3__t.html">vmf3_t</a> *vmf3, double *orog)</td></tr>
-<tr class="memdesc:a4f408f70515faeb6a5f5b14a245f79a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">PPP observed-minus-computed.  <a href="ppp_8hpp.html#a4f408f70515faeb6a5f5b14a245f79a1">More...</a><br /></td></tr>
-<tr class="separator:a4f408f70515faeb6a5f5b14a245f79a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80e3d976b8371ffec2003e91fbd86282"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a80e3d976b8371ffec2003e91fbd86282">sppos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList, <a class="el" href="structSolution.html">Solution</a> &amp;sol)</td></tr>
-<tr class="memdesc:a80e3d976b8371ffec2003e91fbd86282"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute receiver position, velocity, clock bias by single-point positioning with pseudorange observables.  <a href="ppp_8hpp.html#a80e3d976b8371ffec2003e91fbd86282">More...</a><br /></td></tr>
-<tr class="separator:a80e3d976b8371ffec2003e91fbd86282"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3feecafa11a2ea6ce4db54fba1b5a24"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ad3feecafa11a2ea6ce4db54fba1b5a24">testeclipse</a> (<a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList)</td></tr>
-<tr class="memdesc:ad3feecafa11a2ea6ce4db54fba1b5a24"><td class="mdescLeft">&#160;</td><td class="mdescRight">exclude meas of eclipsing satellite (block IIA)  <a href="ppp_8hpp.html#ad3feecafa11a2ea6ce4db54fba1b5a24">More...</a><br /></td></tr>
-<tr class="separator:ad3feecafa11a2ea6ce4db54fba1b5a24"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab64566108038907ed6df48da876f33c3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ab64566108038907ed6df48da876f33c3">pppCorrections</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;obsList, Vector3d &amp;rRec, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
+<tr class="memitem:a2a5d0fd5b2f408f0624e1352af2ede7d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a2a5d0fd5b2f408f0624e1352af2ede7d">pppoutstat</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, string id)</td></tr>
+<tr class="separator:a2a5d0fd5b2f408f0624e1352af2ede7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1986299316c605c9c72b50a2f9c6c524"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a1986299316c605c9c72b50a2f9c6c524">pppomc</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList, <a class="el" href="structgptgrid__t.html">gptgrid_t</a> &amp;gptg, <a class="el" href="structStation.html">Station</a> &amp;rec, <a class="el" href="structVmf3.html">Vmf3</a> &amp;vmf3)</td></tr>
+<tr class="memdesc:a1986299316c605c9c72b50a2f9c6c524"><td class="mdescLeft">&#160;</td><td class="mdescRight">PPP observed-minus-computed.  <a href="ppp_8hpp.html#a1986299316c605c9c72b50a2f9c6c524">More...</a><br /></td></tr>
+<tr class="separator:a1986299316c605c9c72b50a2f9c6c524"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f5a2db6ac404b796c6130f71e439b96"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a8f5a2db6ac404b796c6130f71e439b96">sppos</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList, <a class="el" href="structSolution.html">Solution</a> &amp;sol, string id)</td></tr>
+<tr class="memdesc:a8f5a2db6ac404b796c6130f71e439b96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute receiver position, velocity, clock bias by single-point positioning with pseudorange observables.  <a href="ppp_8hpp.html#a8f5a2db6ac404b796c6130f71e439b96">More...</a><br /></td></tr>
+<tr class="separator:a8f5a2db6ac404b796c6130f71e439b96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a360c3ba909b48b37e45577a4f2cc0970"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a360c3ba909b48b37e45577a4f2cc0970">testEclipse</a> (<a class="el" href="structObsList.html">ObsList</a> &amp;obsList)</td></tr>
+<tr class="memdesc:a360c3ba909b48b37e45577a4f2cc0970"><td class="mdescLeft">&#160;</td><td class="mdescRight">exclude meas of eclipsing satellite (block IIA)  <a href="ppp_8hpp.html#a360c3ba909b48b37e45577a4f2cc0970">More...</a><br /></td></tr>
+<tr class="separator:a360c3ba909b48b37e45577a4f2cc0970"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab64566108038907ed6df48da876f33c3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ab64566108038907ed6df48da876f33c3">pppCorrections</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structObsList.html">ObsList</a> &amp;obsList, Vector3d &amp;rRec, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
 <tr class="separator:ab64566108038907ed6df48da876f33c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a936f239adc72073920104f4acc2aea67"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a936f239adc72073920104f4acc2aea67">PPP</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stations, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structgptgrid__t.html">gptgrid_t</a> &amp;gptg, double *orography)</td></tr>
-<tr class="separator:a936f239adc72073920104f4acc2aea67"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8163f6718aea2cb789038ec9ce3f46a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aa8163f6718aea2cb789038ec9ce3f46a">corr_meas</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structObs.html">Obs</a> &amp;obs, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, double dAntRec, double dAntSat, double phw, <a class="el" href="structStation.html">Station</a> &amp;rec, double mjd, bool oldSchool=true)</td></tr>
-<tr class="memdesc:aa8163f6718aea2cb789038ec9ce3f46a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Antenna corrected measurement.  <a href="ppp_8hpp.html#aa8163f6718aea2cb789038ec9ce3f46a">More...</a><br /></td></tr>
-<tr class="separator:aa8163f6718aea2cb789038ec9ce3f46a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ae381b6c9dfab3c91500fa28e137db7"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a4ae381b6c9dfab3c91500fa28e137db7">sbstropcorr</a> (<a class="el" href="structGTime.html">GTime</a> time, Vector3d &amp;rRec, double el, double *var=nullptr)</td></tr>
-<tr class="separator:a4ae381b6c9dfab3c91500fa28e137db7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af834f8e02e5b7507767354aa04f3bc7f"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#af834f8e02e5b7507767354aa04f3bc7f">measVar</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> sys, double el, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> type, StationOptions &amp;stationOpts)</td></tr>
-<tr class="separator:af834f8e02e5b7507767354aa04f3bc7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a16577502bd03c2d743d118a6993420d5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a16577502bd03c2d743d118a6993420d5">model_phw</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structObs.html">Obs</a> &amp;obs, Vector3d &amp;rRec, double &amp;phw)</td></tr>
-<tr class="memdesc:a16577502bd03c2d743d118a6993420d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">phase windup model  <a href="ppp_8hpp.html#a16577502bd03c2d743d118a6993420d5">More...</a><br /></td></tr>
-<tr class="separator:a16577502bd03c2d743d118a6993420d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48dcee1dcb9f674b2110d7033cd789c4"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a48dcee1dcb9f674b2110d7033cd789c4">satNadir</a> (Vector3d &amp;rs, Vector3d &amp;rr)</td></tr>
-<tr class="separator:a48dcee1dcb9f674b2110d7033cd789c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac3b334c7b75e0dda650bd38b16a212f6"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ac3b334c7b75e0dda650bd38b16a212f6">trop_model_prec</a> (<a class="el" href="structGTime.html">GTime</a> time, double *pos, double *azel, double *tropStates, double *dTropDx, double &amp;var)</td></tr>
-<tr class="separator:ac3b334c7b75e0dda650bd38b16a212f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31da24b9718095fb343b7da6a677c72d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a31da24b9718095fb343b7da6a677c72d">model_iono</a> (<a class="el" href="structGTime.html">GTime</a> time, double *pos, double *azel, double ionoState, double &amp;dion, double &amp;var)</td></tr>
-<tr class="memdesc:a31da24b9718095fb343b7da6a677c72d"><td class="mdescLeft">&#160;</td><td class="mdescRight">ionospheric model  <a href="ppp_8hpp.html#a31da24b9718095fb343b7da6a677c72d">More...</a><br /></td></tr>
-<tr class="separator:a31da24b9718095fb343b7da6a677c72d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acaf9f9b65e2c225585368eca0023995c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#acaf9f9b65e2c225585368eca0023995c">outputDeltaClocks</a> (<a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap)</td></tr>
+<tr class="memitem:a5b83217f78c296330608a622c27a2ef5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a5b83217f78c296330608a622c27a2ef5">PPP</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stations, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:a5b83217f78c296330608a622c27a2ef5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a927ec416d8fb16f97292a5fecf7f4cca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a927ec416d8fb16f97292a5fecf7f4cca">corr_meas</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGObs.html">GObs</a> &amp;obs, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> ft, double dAntRec, double dAntSat, double phw, bool oldSchool=true)</td></tr>
+<tr class="memdesc:a927ec416d8fb16f97292a5fecf7f4cca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Antenna corrected measurement.  <a href="ppp_8hpp.html#a927ec416d8fb16f97292a5fecf7f4cca">More...</a><br /></td></tr>
+<tr class="separator:a927ec416d8fb16f97292a5fecf7f4cca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea89c4c7a111d6907e2e683fc90b2f32"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aea89c4c7a111d6907e2e683fc90b2f32">sbstropcorr</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorEcef.html">VectorEcef</a> &amp;rRec, double el, double *var=nullptr)</td></tr>
+<tr class="separator:aea89c4c7a111d6907e2e683fc90b2f32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab36a56db01387171300bccd33bea098c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ab36a56db01387171300bccd33bea098c">phaseWindup</a> (<a class="el" href="structGObs.html">GObs</a> &amp;obs, <a class="el" href="structStation.html">Station</a> &amp;rec, double &amp;phw)</td></tr>
+<tr class="memdesc:ab36a56db01387171300bccd33bea098c"><td class="mdescLeft">&#160;</td><td class="mdescRight">phase windup model  <a href="ppp_8hpp.html#ab36a56db01387171300bccd33bea098c">More...</a><br /></td></tr>
+<tr class="separator:ab36a56db01387171300bccd33bea098c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6eb06591c70d0cedc57a24881f9d2706"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a6eb06591c70d0cedc57a24881f9d2706">gradMapFn</a> (double el)</td></tr>
+<tr class="memdesc:a6eb06591c70d0cedc57a24881f9d2706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns gradient mapping function m_az(el) Valid for 0 &lt; el &lt; 0.9999 * PI/2; returns 0 otherwise Ref: <a href="https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/97JB01739">https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/97JB01739</a>.  <a href="ppp_8hpp.html#a6eb06591c70d0cedc57a24881f9d2706">More...</a><br /></td></tr>
+<tr class="separator:a6eb06591c70d0cedc57a24881f9d2706"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f621fb83d9d7edb2cde4d77ac8b17f0"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a7f621fb83d9d7edb2cde4d77ac8b17f0">trop_model_prec</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, double *azel, double *tropStates, double *dTropDx, double &amp;var)</td></tr>
+<tr class="separator:a7f621fb83d9d7edb2cde4d77ac8b17f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08fc6acb7b0150a3980428eac9963e59"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a08fc6acb7b0150a3980428eac9963e59">ionoModel</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, double *azel, double ionoState, double &amp;dion, double &amp;var)</td></tr>
+<tr class="memdesc:a08fc6acb7b0150a3980428eac9963e59"><td class="mdescLeft">&#160;</td><td class="mdescRight">ionospheric model  <a href="ppp_8hpp.html#a08fc6acb7b0150a3980428eac9963e59">More...</a><br /></td></tr>
+<tr class="separator:a08fc6acb7b0150a3980428eac9963e59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acaf9f9b65e2c225585368eca0023995c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#acaf9f9b65e2c225585368eca0023995c">outputDeltaClocks</a> (<a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
 <tr class="separator:acaf9f9b65e2c225585368eca0023995c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2819b8840bd01cf172f0bda75f89efcc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a2819b8840bd01cf172f0bda75f89efcc">outputApriori</a> (<a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap)</td></tr>
+<tr class="memitem:a2819b8840bd01cf172f0bda75f89efcc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a2819b8840bd01cf172f0bda75f89efcc">outputApriori</a> (<a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
 <tr class="separator:a2819b8840bd01cf172f0bda75f89efcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a952c5db3b307d745174a68045264f9e6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a952c5db3b307d745174a68045264f9e6">outputPPPSolution</a> (string filename, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
 <tr class="memdesc:a952c5db3b307d745174a68045264f9e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare estimated station position with benchmark in SINEX file.  <a href="ppp_8hpp.html#a952c5db3b307d745174a68045264f9e6">More...</a><br /></td></tr>
@@ -146,33 +137,63 @@ Functions</h2></td></tr>
 <tr class="separator:ad779b8fc6690a4089c1a6a0c56c972cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4aec9796d8fba83efe8e2557b89d508a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a4aec9796d8fba83efe8e2557b89d508a">postFilterChecks</a> (<a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas)</td></tr>
 <tr class="separator:a4aec9796d8fba83efe8e2557b89d508a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a968c51f5aa3843055150caa0aaf58dcb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a968c51f5aa3843055150caa0aaf58dcb">deweightMeas</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index)</td></tr>
+<tr class="memitem:a968c51f5aa3843055150caa0aaf58dcb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a968c51f5aa3843055150caa0aaf58dcb">deweightMeas</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
 <tr class="memdesc:a968c51f5aa3843055150caa0aaf58dcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deweight worst measurement.  <a href="ppp_8hpp.html#a968c51f5aa3843055150caa0aaf58dcb">More...</a><br /></td></tr>
 <tr class="separator:a968c51f5aa3843055150caa0aaf58dcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ff69fbde2656ecb8d0af6f6cb549d6d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a5ff69fbde2656ecb8d0af6f6cb549d6d">deweightStationMeas</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index)</td></tr>
+<tr class="memitem:ab466671c931531ed84596c36f48242f3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ab466671c931531ed84596c36f48242f3">pseudoMeasTest</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
+<tr class="memdesc:ab466671c931531ed84596c36f48242f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call state rejection functions when a measurement is a pseudo observation.  <a href="ppp_8hpp.html#ab466671c931531ed84596c36f48242f3">More...</a><br /></td></tr>
+<tr class="separator:ab466671c931531ed84596c36f48242f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ff69fbde2656ecb8d0af6f6cb549d6d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a5ff69fbde2656ecb8d0af6f6cb549d6d">deweightStationMeas</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
 <tr class="memdesc:a5ff69fbde2656ecb8d0af6f6cb549d6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deweight measurement and its relatives.  <a href="ppp_8hpp.html#a5ff69fbde2656ecb8d0af6f6cb549d6d">More...</a><br /></td></tr>
 <tr class="separator:a5ff69fbde2656ecb8d0af6f6cb549d6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0caa845727695a6c596b31259522975c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a0caa845727695a6c596b31259522975c">countSignalErrors</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index)</td></tr>
+<tr class="memitem:a0caa845727695a6c596b31259522975c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a0caa845727695a6c596b31259522975c">countSignalErrors</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
 <tr class="separator:a0caa845727695a6c596b31259522975c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ed443f460fefe8ce41ac2417d16efb2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a4ed443f460fefe8ce41ac2417d16efb2">incrementPhaseSignalError</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index)</td></tr>
+<tr class="memitem:a4ed443f460fefe8ce41ac2417d16efb2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a4ed443f460fefe8ce41ac2417d16efb2">incrementPhaseSignalError</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
 <tr class="memdesc:a4ed443f460fefe8ce41ac2417d16efb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count worst measurement.  <a href="ppp_8hpp.html#a4ed443f460fefe8ce41ac2417d16efb2">More...</a><br /></td></tr>
 <tr class="separator:a4ed443f460fefe8ce41ac2417d16efb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25f6a8757de3716a61a1c0952978aa9a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a25f6a8757de3716a61a1c0952978aa9a">resetPhaseSignalError</a> (<a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index)</td></tr>
+<tr class="memitem:a25f6a8757de3716a61a1c0952978aa9a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a25f6a8757de3716a61a1c0952978aa9a">resetPhaseSignalError</a> (<a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
 <tr class="separator:a25f6a8757de3716a61a1c0952978aa9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7876230dc10974f36981266f3df6cde"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aa7876230dc10974f36981266f3df6cde">resetPhaseSignalOutage</a> (<a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> index)</td></tr>
+<tr class="memitem:aa7876230dc10974f36981266f3df6cde"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aa7876230dc10974f36981266f3df6cde">resetPhaseSignalOutage</a> (<a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
 <tr class="separator:aa7876230dc10974f36981266f3df6cde"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0797b6f2a2f17b2fb86e99db808dea3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aa0797b6f2a2f17b2fb86e99db808dea3">deweightByState</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="structKFKey.html">KFKey</a> &amp;kfKey)</td></tr>
-<tr class="memdesc:aa0797b6f2a2f17b2fb86e99db808dea3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deweight measurements attached to worst state.  <a href="ppp_8hpp.html#aa0797b6f2a2f17b2fb86e99db808dea3">More...</a><br /></td></tr>
-<tr class="separator:aa0797b6f2a2f17b2fb86e99db808dea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4fef2ebf508f36c5033c1a2506fd0f27"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a4fef2ebf508f36c5033c1a2506fd0f27">clockGlitchReaction</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="structKFKey.html">KFKey</a> &amp;kfKey)</td></tr>
-<tr class="memdesc:a4fef2ebf508f36c5033c1a2506fd0f27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove any states connected to a bad clock if it glitches.  <a href="ppp_8hpp.html#a4fef2ebf508f36c5033c1a2506fd0f27">More...</a><br /></td></tr>
-<tr class="separator:a4fef2ebf508f36c5033c1a2506fd0f27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3db2ffced7ab37c4874c3a53fcb7953e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a3db2ffced7ab37c4874c3a53fcb7953e">stationPPP</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;netTrace, <a class="el" href="structStation.html">Station</a> &amp;rec, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a67e57d0b554c4361fc16211615b23835">KFMeasEntryList</a> &amp;kfMeasEntryList, <a class="el" href="structgptgrid__t.html">gptgrid_t</a> &amp;gptg, double *orography)</td></tr>
-<tr class="separator:a3db2ffced7ab37c4874c3a53fcb7953e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab255260e2ca2e89c21d280174f5a5a0b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ab255260e2ca2e89c21d280174f5a5a0b">stationPseudo</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;netTrace, <a class="el" href="structStation.html">Station</a> &amp;rec, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a67e57d0b554c4361fc16211615b23835">KFMeasEntryList</a> &amp;kfMeasEntryList)</td></tr>
-<tr class="separator:ab255260e2ca2e89c21d280174f5a5a0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16fbd7affa1caa2044cafbeee71a5d72"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a16fbd7affa1caa2044cafbeee71a5d72">resetIonoSignalOutage</a> (<a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> index)</td></tr>
+<tr class="separator:a16fbd7affa1caa2044cafbeee71a5d72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e3adabb954f5e009016d143450f37a1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a1e3adabb954f5e009016d143450f37a1">rejectByState</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, const <a class="el" href="structKFKey.html">KFKey</a> &amp;kfKey)</td></tr>
+<tr class="memdesc:a1e3adabb954f5e009016d143450f37a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reject measurements attached to worst state using measurement reject callback list.  <a href="ppp_8hpp.html#a1e3adabb954f5e009016d143450f37a1">More...</a><br /></td></tr>
+<tr class="separator:a1e3adabb954f5e009016d143450f37a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad44c63f6ba0b2504f7228c7190afe9ab"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ad44c63f6ba0b2504f7228c7190afe9ab">clockGlitchReaction</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, const <a class="el" href="structKFKey.html">KFKey</a> &amp;kfKey)</td></tr>
+<tr class="memdesc:ad44c63f6ba0b2504f7228c7190afe9ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove any states connected to a bad clock if it glitches.  <a href="ppp_8hpp.html#ad44c63f6ba0b2504f7228c7190afe9ab">More...</a><br /></td></tr>
+<tr class="separator:ad44c63f6ba0b2504f7228c7190afe9ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5fbd7b3caa896a0279ea7de032e5724"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ac5fbd7b3caa896a0279ea7de032e5724">orbitGlitchReaction</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, const <a class="el" href="structKFKey.html">KFKey</a> &amp;kfKey)</td></tr>
+<tr class="separator:ac5fbd7b3caa896a0279ea7de032e5724"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6a7c175b1b4ea3c417b058d36edc96d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aa6a7c175b1b4ea3c417b058d36edc96d">stationPPP</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;netTrace, <a class="el" href="structStation.html">Station</a> &amp;rec, const <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfMeasEntryList)</td></tr>
+<tr class="separator:aa6a7c175b1b4ea3c417b058d36edc96d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa64f1fc2ebdb3b9819709c8e3d8e3a5d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aa64f1fc2ebdb3b9819709c8e3d8e3a5d">orbitPseudoObs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;netTrace, <a class="el" href="structStation.html">Station</a> &amp;rec, const <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfMeasEntryList)</td></tr>
+<tr class="separator:aa64f1fc2ebdb3b9819709c8e3d8e3a5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1499427b8a86f16c3790a87343b93f25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a1499427b8a86f16c3790a87343b93f25">initPseudoObs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;netTrace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfMeasEntryList)</td></tr>
+<tr class="separator:a1499427b8a86f16c3790a87343b93f25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f089204cd56a92c8d6059dbd52c8118"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a3f089204cd56a92c8d6059dbd52c8118">stationPseudoObs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;netTrace, <a class="el" href="structStation.html">Station</a> &amp;rec, const <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfMeasEntryList, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, MatrixXd *R_ptr=nullptr)</td></tr>
+<tr class="separator:a3f089204cd56a92c8d6059dbd52c8118"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a0fd95f3ae58d8d033b52aa2811c60c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a8a0fd95f3ae58d8d033b52aa2811c60c">stationSlr</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;netTrace, <a class="el" href="structStation.html">Station</a> &amp;rec, const <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfMeasEntryList)</td></tr>
+<tr class="separator:a8a0fd95f3ae58d8d033b52aa2811c60c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbb209c5763e1986e5382dc2c030f28a"><td class="memItemLeft" align="right" valign="top">Matrix3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#adbb209c5763e1986e5382dc2c030f28a">stationEopPartials</a> (Vector3d &amp;rRec)</td></tr>
 <tr class="separator:adbb209c5763e1986e5382dc2c030f28a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee2353a3f136ae267660e8e676895a5e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#aee2353a3f136ae267660e8e676895a5e">satQuat</a> (<a class="el" href="structGObs.html">GObs</a> &amp;obs, vector&lt; E_Source &gt; attitudeTypes, Quaterniond &amp;quat, bool origGal=false)</td></tr>
+<tr class="memdesc:aee2353a3f136ae267660e8e676895a5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Satellite attitude - calculates attitude of satellite as a quaternion (ECEF) Also transforms coordinates in body frame into ECEF Returns false if no attitude available (usually due to eclipse)  <a href="ppp_8hpp.html#aee2353a3f136ae267660e8e676895a5e">More...</a><br /></td></tr>
+<tr class="separator:aee2353a3f136ae267660e8e676895a5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1cdd13433e600a199742087c8078181"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#af1cdd13433e600a199742087c8078181">PPP_AR</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:af1cdd13433e600a199742087c8078181"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18c06c612962a837990f58efb2ed0816"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a18c06c612962a837990f58efb2ed0816">copyFixedKF</a> (<a class="el" href="structKFState.html">KFState</a> &amp;fixed)</td></tr>
+<tr class="separator:a18c06c612962a837990f58efb2ed0816"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0d96b142a3eb7ded11951b7e1c80af1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ab0d96b142a3eb7ded11951b7e1c80af1">overwriteFixedKF</a> (<a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:ab0d96b142a3eb7ded11951b7e1c80af1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b4d41dd7890d8f5466c00fb59f7482d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a5b4d41dd7890d8f5466c00fb59f7482d">queryBiasUC</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> sat, string rec, E_ObsCode code, double &amp;bias, double &amp;vari, <a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9">E_MeasType</a> typ)</td></tr>
+<tr class="separator:a5b4d41dd7890d8f5466c00fb59f7482d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0c41e2e4663de24e52dcc5be1df9bda"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#ae0c41e2e4663de24e52dcc5be1df9bda">biasPseudoObs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfMeasEntryList)</td></tr>
+<tr class="separator:ae0c41e2e4663de24e52dcc5be1df9bda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02995a7f24f39419730eea3b664553cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a02995a7f24f39419730eea3b664553cf">ambgPseudoObs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfMeasEntryList)</td></tr>
+<tr class="separator:a02995a7f24f39419730eea3b664553cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8208bc0e1665e6a28aff4552762dd411"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ppp_8hpp.html#a8208bc0e1665e6a28aff4552762dd411">ionoPseudoObs</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stations, <a class="el" href="structKFState.html">KFState</a> &amp;kfState, <a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfMeasEntryList)</td></tr>
+<tr class="separator:a8208bc0e1665e6a28aff4552762dd411"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -195,8 +216,96 @@ Typedefs</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a4fef2ebf508f36c5033c1a2506fd0f27" name="a4fef2ebf508f36c5033c1a2506fd0f27"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4fef2ebf508f36c5033c1a2506fd0f27">&#9670;&nbsp;</a></span>clockGlitchReaction()</h2>
+<a id="a02995a7f24f39419730eea3b664553cf" name="a02995a7f24f39419730eea3b664553cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02995a7f24f39419730eea3b664553cf">&#9670;&nbsp;</a></span>ambgPseudoObs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ambgPseudoObs </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeasEntryList</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a02995a7f24f39419730eea3b664553cf_cgraph.svg" width="400" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a02995a7f24f39419730eea3b664553cf_icgraph.svg" width="236" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae0c41e2e4663de24e52dcc5be1df9bda" name="ae0c41e2e4663de24e52dcc5be1df9bda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0c41e2e4663de24e52dcc5be1df9bda">&#9670;&nbsp;</a></span>biasPseudoObs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void biasPseudoObs </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeasEntryList</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ae0c41e2e4663de24e52dcc5be1df9bda_cgraph.svg" width="514" height="332"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ae0c41e2e4663de24e52dcc5be1df9bda_icgraph.svg" width="227" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad44c63f6ba0b2504f7228c7190afe9ab" name="ad44c63f6ba0b2504f7228c7190afe9ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad44c63f6ba0b2504f7228c7190afe9ab">&#9670;&nbsp;</a></span>clockGlitchReaction()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -222,7 +331,7 @@ Typedefs</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a> &amp;&#160;</td>
           <td class="paramname"><em>kfKey</em>&#160;</td>
         </tr>
         <tr>
@@ -237,18 +346,41 @@ Typedefs</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4fef2ebf508f36c5033c1a2506fd0f27_cgraph.svg" width="375" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ad44c63f6ba0b2504f7228c7190afe9ab_cgraph.svg" width="375" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4fef2ebf508f36c5033c1a2506fd0f27_icgraph.svg" width="334" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ad44c63f6ba0b2504f7228c7190afe9ab_icgraph.svg" width="334" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="aa8163f6718aea2cb789038ec9ce3f46a" name="aa8163f6718aea2cb789038ec9ce3f46a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8163f6718aea2cb789038ec9ce3f46a">&#9670;&nbsp;</a></span>corr_meas()</h2>
+<a id="a18c06c612962a837990f58efb2ed0816" name="a18c06c612962a837990f58efb2ed0816"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18c06c612962a837990f58efb2ed0816">&#9670;&nbsp;</a></span>copyFixedKF()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool copyFixedKF </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>fixed</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a18c06c612962a837990f58efb2ed0816_icgraph.svg" width="376" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a927ec416d8fb16f97292a5fecf7f4cca" name="a927ec416d8fb16f97292a5fecf7f4cca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a927ec416d8fb16f97292a5fecf7f4cca">&#9670;&nbsp;</a></span>corr_meas()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -262,7 +394,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structGObs.html">GObs</a> &amp;&#160;</td>
           <td class="paramname"><em>obs</em>, </td>
         </tr>
         <tr>
@@ -292,18 +424,6 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structStation.html">Station</a> &amp;&#160;</td>
-          <td class="paramname"><em>rec</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>mjd</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>oldSchool</em> = <code>true</code>&#160;</td>
         </tr>
@@ -319,26 +439,24 @@ Here is the caller graph for this function:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace file to output to</td></tr>
-    <tr><td class="paramname">obs</td><td>Observation to correct measurements of</td></tr>
+    <tr><td class="paramname">obs</td><td><a class="el" href="structObservation.html">Observation</a> to correct measurements of</td></tr>
     <tr><td class="paramname">ft</td><td>Frequency type to correct</td></tr>
     <tr><td class="paramname">dAntRec</td><td>Delta for antenna offset of receiver</td></tr>
     <tr><td class="paramname">dAntSat</td><td>Delta for antenna offset of satellite</td></tr>
     <tr><td class="paramname">phw</td><td>Phase wind up</td></tr>
-    <tr><td class="paramname">rec</td><td>Receiver</td></tr>
-    <tr><td class="paramname">mjd</td><td>Modified julian date</td></tr>
-    <tr><td class="paramname">oldSchool</td><td>Option to apply 'corrections' here, rather than where they should be </td></tr>
+    <tr><td class="paramname">oldSchool</td><td><a class="el" href="structOption.html">Option</a> to apply 'corrections' here, rather than where they should be </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aa8163f6718aea2cb789038ec9ce3f46a_cgraph.svg" width="399" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a927ec416d8fb16f97292a5fecf7f4cca_cgraph.svg" width="422" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aa8163f6718aea2cb789038ec9ce3f46a_icgraph.svg" width="270" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a927ec416d8fb16f97292a5fecf7f4cca_icgraph.svg" width="270" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -370,7 +488,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>index</em>&#160;</td>
         </tr>
         <tr>
@@ -384,58 +502,6 @@ Here is the caller graph for this function:</div>
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a0caa845727695a6c596b31259522975c_icgraph.svg" width="319" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aa0797b6f2a2f17b2fb86e99db808dea3" name="aa0797b6f2a2f17b2fb86e99db808dea3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0797b6f2a2f17b2fb86e99db808dea3">&#9670;&nbsp;</a></span>deweightByState()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool deweightByState </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>trace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfState</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structKFMeas.html">KFMeas</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfMeas</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfKey</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Deweight measurements attached to worst state. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aa0797b6f2a2f17b2fb86e99db808dea3_cgraph.svg" width="347" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aa0797b6f2a2f17b2fb86e99db808dea3_icgraph.svg" width="419" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -467,7 +533,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>index</em>&#160;</td>
         </tr>
         <tr>
@@ -482,7 +548,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a968c51f5aa3843055150caa0aaf58dcb_icgraph.svg" width="403" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a968c51f5aa3843055150caa0aaf58dcb_icgraph.svg" width="300" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -514,7 +580,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>index</em>&#160;</td>
         </tr>
         <tr>
@@ -530,6 +596,37 @@ Here is the caller graph for this function:</div>
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a5ff69fbde2656ecb8d0af6f6cb549d6d_icgraph.svg" width="292" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a6eb06591c70d0cedc57a24881f9d2706" name="a6eb06591c70d0cedc57a24881f9d2706"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6eb06591c70d0cedc57a24881f9d2706">&#9670;&nbsp;</a></span>gradMapFn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double gradMapFn </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>el</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns gradient mapping function m_az(el) Valid for 0 &lt; el &lt; 0.9999 * PI/2; returns 0 otherwise Ref: <a href="https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/97JB01739">https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/97JB01739</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">el</td><td>Elevation (rad) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a6eb06591c70d0cedc57a24881f9d2706_icgraph.svg" width="284" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -561,7 +658,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>index</em>&#160;</td>
         </tr>
         <tr>
@@ -576,28 +673,34 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4ed443f460fefe8ce41ac2417d16efb2_icgraph.svg" width="312" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4ed443f460fefe8ce41ac2417d16efb2_icgraph.svg" width="316" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a1736c997216f8411ca960e7fd14ce98a" name="a1736c997216f8411ca960e7fd14ce98a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1736c997216f8411ca960e7fd14ce98a">&#9670;&nbsp;</a></span>initialStateFromConfig()</h2>
+<a id="a1499427b8a86f16c3790a87343b93f25" name="a1499427b8a86f16c3790a87343b93f25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1499427b8a86f16c3790a87343b93f25">&#9670;&nbsp;</a></span>initPseudoObs()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structInitialState.html">InitialState</a> initialStateFromConfig </td>
+          <td class="memname">void initPseudoObs </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKalmanModel.html">KalmanModel</a> &amp;&#160;</td>
-          <td class="paramname"><em>kalmanModel</em>, </td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>netTrace</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>index</em> = <code>0</code>&#160;</td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeasEntryList</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -606,73 +709,35 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">netTrace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">kfState</td><td>Kalman filter object containing the network state parameters</td></tr>
+    <tr><td class="paramname">kfMeasEntryList</td><td>List to append kf measurements to </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a1499427b8a86f16c3790a87343b93f25_cgraph.svg" width="572" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a1736c997216f8411ca960e7fd14ce98a_icgraph.svg" width="588" height="544"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a1499427b8a86f16c3790a87343b93f25_icgraph.svg" width="220" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="af834f8e02e5b7507767354aa04f3bc7f" name="af834f8e02e5b7507767354aa04f3bc7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af834f8e02e5b7507767354aa04f3bc7f">&#9670;&nbsp;</a></span>measVar()</h2>
+<a id="a08fc6acb7b0150a3980428eac9963e59" name="a08fc6acb7b0150a3980428eac9963e59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08fc6acb7b0150a3980428eac9963e59">&#9670;&nbsp;</a></span>ionoModel()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double measVar </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>sys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>el</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td>
-          <td class="paramname"><em>ft</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">StationOptions &amp;&#160;</td>
-          <td class="paramname"><em>stationOpts</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_af834f8e02e5b7507767354aa04f3bc7f_icgraph.svg" width="246" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a31da24b9718095fb343b7da6a677c72d" name="a31da24b9718095fb343b7da6a677c72d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a31da24b9718095fb343b7da6a677c72d">&#9670;&nbsp;</a></span>model_iono()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> model_iono </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ionoModel </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>time</em>, </td>
@@ -680,7 +745,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
@@ -719,45 +784,45 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a31da24b9718095fb343b7da6a677c72d_cgraph.svg" width="276" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a08fc6acb7b0150a3980428eac9963e59_cgraph.svg" width="268" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a31da24b9718095fb343b7da6a677c72d_icgraph.svg" width="248" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a08fc6acb7b0150a3980428eac9963e59_icgraph.svg" width="252" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a16577502bd03c2d743d118a6993420d5" name="a16577502bd03c2d743d118a6993420d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a16577502bd03c2d743d118a6993420d5">&#9670;&nbsp;</a></span>model_phw()</h2>
+<a id="a8208bc0e1665e6a28aff4552762dd411" name="a8208bc0e1665e6a28aff4552762dd411"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8208bc0e1665e6a28aff4552762dd411">&#9670;&nbsp;</a></span>ionoPseudoObs()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> model_phw </td>
+          <td class="memname">void ionoPseudoObs </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>time</em>, </td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
+          <td class="paramtype"><a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;&#160;</td>
+          <td class="paramname"><em>stations</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rRec</em>, </td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>phw</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeasEntryList</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -766,26 +831,124 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a8208bc0e1665e6a28aff4552762dd411_cgraph.svg" width="392" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a8208bc0e1665e6a28aff4552762dd411_icgraph.svg" width="228" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
-<p>phase windup model </p>
+</div>
+</div>
+<a id="ac5fbd7b3caa896a0279ea7de032e5724" name="ac5fbd7b3caa896a0279ea7de032e5724"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5fbd7b3caa896a0279ea7de032e5724">&#9670;&nbsp;</a></span>orbitGlitchReaction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool orbitGlitchReaction </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFMeas.html">KFMeas</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeas</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfKey</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ac5fbd7b3caa896a0279ea7de032e5724_cgraph.svg" width="434" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ac5fbd7b3caa896a0279ea7de032e5724_icgraph.svg" width="443" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aa64f1fc2ebdb3b9819709c8e3d8e3a5d" name="aa64f1fc2ebdb3b9819709c8e3d8e3a5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa64f1fc2ebdb3b9819709c8e3d8e3a5d">&#9670;&nbsp;</a></span>orbitPseudoObs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void orbitPseudoObs </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>netTrace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structStation.html">Station</a> &amp;&#160;</td>
+          <td class="paramname"><em>rec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeasEntryList</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">time</td><td>Time</td></tr>
-    <tr><td class="paramname">obs</td><td>Observation detailing the satellite to apply model to</td></tr>
-    <tr><td class="paramname">rRec</td><td>Position of receiver (ECEF)</td></tr>
-    <tr><td class="paramname">phw</td><td>Output of phase windup result </td></tr>
+    <tr><td class="paramname">netTrace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">rec</td><td>Receiver to perform calculations for</td></tr>
+    <tr><td class="paramname">kfState</td><td>Kalman filter object containing the network state parameters</td></tr>
+    <tr><td class="paramname">kfMeasEntryList</td><td>List to append kf measurements to </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a16577502bd03c2d743d118a6993420d5_cgraph.svg" width="238" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aa64f1fc2ebdb3b9819709c8e3d8e3a5d_cgraph.svg" width="614" height="595"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a16577502bd03c2d743d118a6993420d5_icgraph.svg" width="276" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aa64f1fc2ebdb3b9819709c8e3d8e3a5d_icgraph.svg" width="230" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -808,7 +971,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a2819b8840bd01cf172f0bda75f89efcc_cgraph.svg" width="344" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a2819b8840bd01cf172f0bda75f89efcc_cgraph.svg" width="479" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -876,12 +1039,84 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a952c5db3b307d745174a68045264f9e6_cgraph.svg" width="330" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a952c5db3b307d745174a68045264f9e6_cgraph.svg" width="374" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a952c5db3b307d745174a68045264f9e6_icgraph.svg" width="415" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a952c5db3b307d745174a68045264f9e6_icgraph.svg" width="415" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab0d96b142a3eb7ded11951b7e1c80af1" name="ab0d96b142a3eb7ded11951b7e1c80af1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0d96b142a3eb7ded11951b7e1c80af1">&#9670;&nbsp;</a></span>overwriteFixedKF()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void overwriteFixedKF </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ab0d96b142a3eb7ded11951b7e1c80af1_icgraph.svg" width="312" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab36a56db01387171300bccd33bea098c" name="ab36a56db01387171300bccd33bea098c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab36a56db01387171300bccd33bea098c">&#9670;&nbsp;</a></span>phaseWindup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void phaseWindup </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGObs.html">GObs</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structStation.html">Station</a> &amp;&#160;</td>
+          <td class="paramname"><em>rec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>phw</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>phase windup model </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">obs</td><td><a class="el" href="structObservation.html">Observation</a> detailing the satellite to apply model to</td></tr>
+    <tr><td class="paramname">rec</td><td>Position of receiver (ECEF)</td></tr>
+    <tr><td class="paramname">phw</td><td>Output of phase windup result </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ab36a56db01387171300bccd33bea098c_icgraph.svg" width="304" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -904,7 +1139,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4aec9796d8fba83efe8e2557b89d508a_cgraph.svg" width="370" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4aec9796d8fba83efe8e2557b89d508a_cgraph.svg" width="370" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -914,8 +1149,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a936f239adc72073920104f4acc2aea67" name="a936f239adc72073920104f4acc2aea67"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a936f239adc72073920104f4acc2aea67">&#9670;&nbsp;</a></span>PPP()</h2>
+<a id="a5b83217f78c296330608a622c27a2ef5" name="a5b83217f78c296330608a622c27a2ef5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b83217f78c296330608a622c27a2ef5">&#9670;&nbsp;</a></span>PPP()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -936,19 +1171,7 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfState</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structgptgrid__t.html">gptgrid_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>gptg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>orography</em>&#160;</td>
+          <td class="paramname"><em>kfState</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -961,21 +1184,64 @@ Here is the caller graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace to output to</td></tr>
     <tr><td class="paramname">stations</td><td>List of stations containing observations for this epoch</td></tr>
-    <tr><td class="paramname">kfState</td><td>Kalman filter object containing the network state parameters</td></tr>
-    <tr><td class="paramname">gptg</td><td>[in/out]</td></tr>
-    <tr><td class="paramname">orography</td><td>Pointer to orography maps </td></tr>
+    <tr><td class="paramname">kfState</td><td>Kalman filter object containing the network state parameters </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a936f239adc72073920104f4acc2aea67_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a5b83217f78c296330608a622c27a2ef5_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a936f239adc72073920104f4acc2aea67_icgraph.svg" width="254" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a5b83217f78c296330608a622c27a2ef5_icgraph.svg" width="363" height="114"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af1cdd13433e600a199742087c8078181" name="af1cdd13433e600a199742087c8078181"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1cdd13433e600a199742087c8078181">&#9670;&nbsp;</a></span>PPP_AR()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> PPP_AR </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>Debug trace</td></tr>
+    <tr><td class="paramname">kfState</td><td>Filter state </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_af1cdd13433e600a199742087c8078181_cgraph.svg" width="427" height="164"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_af1cdd13433e600a199742087c8078181_icgraph.svg" width="228" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -995,7 +1261,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>, </td>
         </tr>
         <tr>
@@ -1020,7 +1286,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ab64566108038907ed6df48da876f33c3_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ab64566108038907ed6df48da876f33c3_cgraph.svg" width="467" height="578"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -1030,8 +1296,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a4f408f70515faeb6a5f5b14a245f79a1" name="a4f408f70515faeb6a5f5b14a245f79a1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4f408f70515faeb6a5f5b14a245f79a1">&#9670;&nbsp;</a></span>pppomc()</h2>
+<a id="a1986299316c605c9c72b50a2f9c6c524" name="a1986299316c605c9c72b50a2f9c6c524"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1986299316c605c9c72b50a2f9c6c524">&#9670;&nbsp;</a></span>pppomc()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1045,7 +1311,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>, </td>
         </tr>
         <tr>
@@ -1063,14 +1329,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structvmf3__t.html">vmf3_t</a> *&#160;</td>
-          <td class="paramname"><em>vmf3</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>orog</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structVmf3.html">Vmf3</a> &amp;&#160;</td>
+          <td class="paramname"><em>vmf3</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1084,12 +1344,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4f408f70515faeb6a5f5b14a245f79a1_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a1986299316c605c9c72b50a2f9c6c524_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4f408f70515faeb6a5f5b14a245f79a1_icgraph.svg" width="348" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a1986299316c605c9c72b50a2f9c6c524_icgraph.svg" width="348" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1109,7 +1369,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>, </td>
         </tr>
         <tr>
@@ -1125,10 +1385,12 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>precise point positioning </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a70cbdeafd26c3c4a863baa1a23e760a8_cgraph.svg" width="362" height="371"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a70cbdeafd26c3c4a863baa1a23e760a8_cgraph.svg" width="643" height="418"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -1138,8 +1400,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a2e076a3f51f99801075781e364f639bb" name="a2e076a3f51f99801075781e364f639bb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e076a3f51f99801075781e364f639bb">&#9670;&nbsp;</a></span>pppoutstat()</h2>
+<a id="a2a5d0fd5b2f408f0624e1352af2ede7d" name="a2a5d0fd5b2f408f0624e1352af2ede7d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a5d0fd5b2f408f0624e1352af2ede7d">&#9670;&nbsp;</a></span>pppoutstat()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1154,7 +1416,13 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfState</em>&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>id</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1166,12 +1434,203 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a2e076a3f51f99801075781e364f639bb_cgraph.svg" width="307" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a2a5d0fd5b2f408f0624e1352af2ede7d_cgraph.svg" width="307" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a2e076a3f51f99801075781e364f639bb_icgraph.svg" width="366" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a2a5d0fd5b2f408f0624e1352af2ede7d_icgraph.svg" width="366" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab466671c931531ed84596c36f48242f3" name="ab466671c931531ed84596c36f48242f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab466671c931531ed84596c36f48242f3">&#9670;&nbsp;</a></span>pseudoMeasTest()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool pseudoMeasTest </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFMeas.html">KFMeas</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeas</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>index</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Call state rejection functions when a measurement is a pseudo observation. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ab466671c931531ed84596c36f48242f3_cgraph.svg" width="336" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ab466671c931531ed84596c36f48242f3_icgraph.svg" width="248" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5b4d41dd7890d8f5466c00fb59f7482d" name="a5b4d41dd7890d8f5466c00fb59f7482d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b4d41dd7890d8f5466c00fb59f7482d">&#9670;&nbsp;</a></span>queryBiasUC()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool queryBiasUC </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>sat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>rec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_ObsCode&#160;</td>
+          <td class="paramname"><em>code</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>bias</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>vari</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9">E_MeasType</a>&#160;</td>
+          <td class="paramname"><em>typ</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>debug stream</td></tr>
+    <tr><td class="paramname">time</td><td>time of biases</td></tr>
+    <tr><td class="paramname">sat</td><td>satellite (for receiver biases, sat.sys needs to be set to the appropriate system, and sat.prn must be 0)</td></tr>
+    <tr><td class="paramname">rec</td><td>receiver (for satellite biases nees to be "")</td></tr>
+    <tr><td class="paramname">code</td><td>signal code</td></tr>
+    <tr><td class="paramname">bias</td><td>bias value</td></tr>
+    <tr><td class="paramname">vari</td><td>bias variance</td></tr>
+    <tr><td class="paramname">typ</td><td>measurement type </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a5b4d41dd7890d8f5466c00fb59f7482d_cgraph.svg" width="482" height="316"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a5b4d41dd7890d8f5466c00fb59f7482d_icgraph.svg" width="296" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a1e3adabb954f5e009016d143450f37a1" name="a1e3adabb954f5e009016d143450f37a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e3adabb954f5e009016d143450f37a1">&#9670;&nbsp;</a></span>rejectByState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool rejectByState </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFMeas.html">KFMeas</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeas</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfKey</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reject measurements attached to worst state using measurement reject callback list. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a1e3adabb954f5e009016d143450f37a1_cgraph.svg" width="406" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a1e3adabb954f5e009016d143450f37a1_icgraph.svg" width="294" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1231,6 +1690,39 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="a16fbd7affa1caa2044cafbeee71a5d72" name="a16fbd7affa1caa2044cafbeee71a5d72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16fbd7affa1caa2044cafbeee71a5d72">&#9670;&nbsp;</a></span>resetIonoSignalOutage()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool resetIonoSignalOutage </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structKFMeas.html">KFMeas</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeas</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>index</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a16fbd7affa1caa2044cafbeee71a5d72_icgraph.svg" width="359" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a25f6a8757de3716a61a1c0952978aa9a" name="a25f6a8757de3716a61a1c0952978aa9a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a25f6a8757de3716a61a1c0952978aa9a">&#9670;&nbsp;</a></span>resetPhaseSignalError()</h2>
 
@@ -1246,7 +1738,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>index</em>&#160;</td>
         </tr>
         <tr>
@@ -1279,7 +1771,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>index</em>&#160;</td>
         </tr>
         <tr>
@@ -1297,23 +1789,35 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a48dcee1dcb9f674b2110d7033cd789c4" name="a48dcee1dcb9f674b2110d7033cd789c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48dcee1dcb9f674b2110d7033cd789c4">&#9670;&nbsp;</a></span>satNadir()</h2>
+<a id="aee2353a3f136ae267660e8e676895a5e" name="aee2353a3f136ae267660e8e676895a5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee2353a3f136ae267660e8e676895a5e">&#9670;&nbsp;</a></span>satQuat()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double satNadir </td>
+          <td class="memname">bool satQuat </td>
           <td>(</td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rs</em>, </td>
+          <td class="paramtype"><a class="el" href="structGObs.html">GObs</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rr</em>&#160;</td>
+          <td class="paramtype">vector&lt; E_Source &gt;&#160;</td>
+          <td class="paramname"><em>attitudeTypes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Quaterniond &amp;&#160;</td>
+          <td class="paramname"><em>quat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>origGal</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1322,16 +1826,32 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Satellite attitude - calculates attitude of satellite as a quaternion (ECEF) Also transforms coordinates in body frame into ECEF Returns false if no attitude available (usually due to eclipse) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">obs</td><td>observation</td></tr>
+    <tr><td class="paramname">attitudeTypes</td><td>Attitude type</td></tr>
+    <tr><td class="paramname">quat</td><td>Rotation of satellite from ECEF</td></tr>
+    <tr><td class="paramname">origGal</td><td>Use original GAL frame of ref (rotate 180deg yaw from default GPS/antex) - affects GAL only </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aee2353a3f136ae267660e8e676895a5e_cgraph.svg" width="232" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a48dcee1dcb9f674b2110d7033cd789c4_icgraph.svg" width="256" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aee2353a3f136ae267660e8e676895a5e_icgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a4ae381b6c9dfab3c91500fa28e137db7" name="a4ae381b6c9dfab3c91500fa28e137db7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ae381b6c9dfab3c91500fa28e137db7">&#9670;&nbsp;</a></span>sbstropcorr()</h2>
+<a id="aea89c4c7a111d6907e2e683fc90b2f32" name="aea89c4c7a111d6907e2e683fc90b2f32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea89c4c7a111d6907e2e683fc90b2f32">&#9670;&nbsp;</a></span>sbstropcorr()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1345,7 +1865,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorEcef.html">VectorEcef</a> &amp;&#160;</td>
           <td class="paramname"><em>rRec</em>, </td>
         </tr>
         <tr>
@@ -1379,12 +1899,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4ae381b6c9dfab3c91500fa28e137db7_cgraph.svg" width="238" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aea89c4c7a111d6907e2e683fc90b2f32_cgraph.svg" width="292" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a4ae381b6c9dfab3c91500fa28e137db7_icgraph.svg" width="244" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aea89c4c7a111d6907e2e683fc90b2f32_icgraph.svg" width="238" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1417,18 +1937,18 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ad779b8fc6690a4089c1a6a0c56c972cf_cgraph.svg" width="306" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ad779b8fc6690a4089c1a6a0c56c972cf_cgraph.svg" width="380" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ad779b8fc6690a4089c1a6a0c56c972cf_icgraph.svg" width="560" height="156"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ad779b8fc6690a4089c1a6a0c56c972cf_icgraph.svg" width="422" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a80e3d976b8371ffec2003e91fbd86282" name="a80e3d976b8371ffec2003e91fbd86282"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80e3d976b8371ffec2003e91fbd86282">&#9670;&nbsp;</a></span>sppos()</h2>
+<a id="a8f5a2db6ac404b796c6130f71e439b96" name="a8f5a2db6ac404b796c6130f71e439b96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f5a2db6ac404b796c6130f71e439b96">&#9670;&nbsp;</a></span>sppos()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1442,14 +1962,20 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structSolution.html">Solution</a> &amp;&#160;</td>
-          <td class="paramname"><em>sol</em>&#160;</td>
+          <td class="paramname"><em>sol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>id</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1464,19 +1990,20 @@ Here is the caller graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace file to output to</td></tr>
     <tr><td class="paramname">obsList</td><td>List of observations for this epoch</td></tr>
-    <tr><td class="paramname">sol</td><td><a class="el" href="structSolution.html" title="Solution of user mode processing functinos.">Solution</a> object containing initial state and results </td></tr>
+    <tr><td class="paramname">sol</td><td><a class="el" href="structSolution.html" title="Solution of user mode processing functinos.">Solution</a> object containing initial state and results</td></tr>
+    <tr><td class="paramname">id</td><td>Id of receiver </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a80e3d976b8371ffec2003e91fbd86282_cgraph.svg" width="100%" height="510"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a8f5a2db6ac404b796c6130f71e439b96_cgraph.svg" width="630" height="228"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a80e3d976b8371ffec2003e91fbd86282_icgraph.svg" width="226" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a8f5a2db6ac404b796c6130f71e439b96_icgraph.svg" width="334" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1499,13 +2026,13 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_adbb209c5763e1986e5382dc2c030f28a_icgraph.svg" width="338" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_adbb209c5763e1986e5382dc2c030f28a_icgraph.svg" width="344" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a3db2ffced7ab37c4874c3a53fcb7953e" name="a3db2ffced7ab37c4874c3a53fcb7953e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3db2ffced7ab37c4874c3a53fcb7953e">&#9670;&nbsp;</a></span>stationPPP()</h2>
+<a id="aa6a7c175b1b4ea3c417b058d36edc96d" name="aa6a7c175b1b4ea3c417b058d36edc96d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6a7c175b1b4ea3c417b058d36edc96d">&#9670;&nbsp;</a></span>stationPPP()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1525,86 +2052,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
           <td class="paramname"><em>kfState</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a67e57d0b554c4361fc16211615b23835">KFMeasEntryList</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfMeasEntryList</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structgptgrid__t.html">gptgrid_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>gptg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>orography</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">netTrace</td><td>Trace to output to</td></tr>
-    <tr><td class="paramname">rec</td><td>Receiver to perform calculations for</td></tr>
-    <tr><td class="paramname">kfState</td><td>Kalman filter object containing the network state parameters</td></tr>
-    <tr><td class="paramname">kfMeasEntryList</td><td>List to append kf measurements to</td></tr>
-    <tr><td class="paramname">gptg</td><td>[in/out]</td></tr>
-    <tr><td class="paramname">orography</td><td>Pointer to orography maps </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a3db2ffced7ab37c4874c3a53fcb7953e_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a3db2ffced7ab37c4874c3a53fcb7953e_icgraph.svg" width="196" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ab255260e2ca2e89c21d280174f5a5a0b" name="ab255260e2ca2e89c21d280174f5a5a0b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab255260e2ca2e89c21d280174f5a5a0b">&#9670;&nbsp;</a></span>stationPseudo()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void stationPseudo </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
-          <td class="paramname"><em>netTrace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structStation.html">Station</a> &amp;&#160;</td>
-          <td class="paramname"><em>rec</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfState</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a67e57d0b554c4361fc16211615b23835">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
           <td class="paramname"><em>kfMeasEntryList</em>&#160;</td>
         </tr>
         <tr>
@@ -1619,33 +2073,165 @@ Here is the caller graph for this function:</div>
     <tr><td class="paramname">netTrace</td><td>Trace to output to</td></tr>
     <tr><td class="paramname">rec</td><td>Receiver to perform calculations for</td></tr>
     <tr><td class="paramname">kfState</td><td>Kalman filter object containing the network state parameters</td></tr>
-    <tr><td class="paramname">kfMeasEntryList</td><td>Pointer to append kf measurements to </td></tr>
+    <tr><td class="paramname">kfMeasEntryList</td><td>List to append kf measurements to </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ab255260e2ca2e89c21d280174f5a5a0b_cgraph.svg" width="380" height="443"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aa6a7c175b1b4ea3c417b058d36edc96d_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ab255260e2ca2e89c21d280174f5a5a0b_icgraph.svg" width="220" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_aa6a7c175b1b4ea3c417b058d36edc96d_icgraph.svg" width="196" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ad3feecafa11a2ea6ce4db54fba1b5a24" name="ad3feecafa11a2ea6ce4db54fba1b5a24"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad3feecafa11a2ea6ce4db54fba1b5a24">&#9670;&nbsp;</a></span>testeclipse()</h2>
+<a id="a3f089204cd56a92c8d6059dbd52c8118" name="a3f089204cd56a92c8d6059dbd52c8118"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f089204cd56a92c8d6059dbd52c8118">&#9670;&nbsp;</a></span>stationPseudoObs()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void testeclipse </td>
+          <td class="memname">void stationPseudoObs </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>netTrace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structStation.html">Station</a> &amp;&#160;</td>
+          <td class="paramname"><em>rec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeasEntryList</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;&#160;</td>
+          <td class="paramname"><em>stationMap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">MatrixXd *&#160;</td>
+          <td class="paramname"><em>R_ptr</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">netTrace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">rec</td><td>Receiver to perform calculations for //todo aaron, this isnt a rec anymore</td></tr>
+    <tr><td class="paramname">kfState</td><td>Kalman filter object containing the network state parameters</td></tr>
+    <tr><td class="paramname">kfMeasEntryList</td><td>List to append kf measurements to</td></tr>
+    <tr><td class="paramname">stationMap</td><td>Map of stations to retrieve receiver metadata from</td></tr>
+    <tr><td class="paramname">R_ptr</td><td>Optional pointer to measurement noise matrix </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a3f089204cd56a92c8d6059dbd52c8118_cgraph.svg" width="635" height="436"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a3f089204cd56a92c8d6059dbd52c8118_icgraph.svg" width="244" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8a0fd95f3ae58d8d033b52aa2811c60c" name="a8a0fd95f3ae58d8d033b52aa2811c60c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a0fd95f3ae58d8d033b52aa2811c60c">&#9670;&nbsp;</a></span>stationSlr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void stationSlr </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>netTrace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structStation.html">Station</a> &amp;&#160;</td>
+          <td class="paramname"><em>rec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfMeasEntryList</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">netTrace</td><td>Trace to output to</td></tr>
+    <tr><td class="paramname">rec</td><td>Receiver to perform calculations for</td></tr>
+    <tr><td class="paramname">kfState</td><td>Kalman filter object containing the network state parameters</td></tr>
+    <tr><td class="paramname">kfMeasEntryList</td><td>List to append kf measurements to </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a8a0fd95f3ae58d8d033b52aa2811c60c_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a8a0fd95f3ae58d8d033b52aa2811c60c_icgraph.svg" width="190" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a360c3ba909b48b37e45577a4f2cc0970" name="a360c3ba909b48b37e45577a4f2cc0970"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a360c3ba909b48b37e45577a4f2cc0970">&#9670;&nbsp;</a></span>testEclipse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void testEclipse </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structObsList.html">ObsList</a> &amp;&#160;</td>
           <td class="paramname"><em>obsList</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1656,18 +2242,13 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ad3feecafa11a2ea6ce4db54fba1b5a24_cgraph.svg" width="258" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ad3feecafa11a2ea6ce4db54fba1b5a24_icgraph.svg" width="367" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a360c3ba909b48b37e45577a4f2cc0970_cgraph.svg" width="267" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ac3b334c7b75e0dda650bd38b16a212f6" name="ac3b334c7b75e0dda650bd38b16a212f6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3b334c7b75e0dda650bd38b16a212f6">&#9670;&nbsp;</a></span>trop_model_prec()</h2>
+<a id="a7f621fb83d9d7edb2cde4d77ac8b17f0" name="a7f621fb83d9d7edb2cde4d77ac8b17f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f621fb83d9d7edb2cde4d77ac8b17f0">&#9670;&nbsp;</a></span>trop_model_prec()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1681,7 +2262,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
@@ -1718,12 +2299,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ac3b334c7b75e0dda650bd38b16a212f6_cgraph.svg" width="272" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a7f621fb83d9d7edb2cde4d77ac8b17f0_cgraph.svg" width="284" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_ac3b334c7b75e0dda650bd38b16a212f6_icgraph.svg" width="280" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ppp_8hpp_a7f621fb83d9d7edb2cde4d77ac8b17f0_icgraph.svg" width="274" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

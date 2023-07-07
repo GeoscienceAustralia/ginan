@@ -1,9 +1,7 @@
 <map id="/data/acs/ginan/src/cpp/common/ntripTrace.hpp" name="/data/acs/ginan/src/cpp/common/ntripTrace.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="362,5,569,47"/>
-<area shape="rect" id="node2" href="$ntripBroadcast_8hpp.html" title=" " alt="" coords="5,273,243,315"/>
-<area shape="rect" id="node3" href="$ntripSocket_8hpp.html" title=" " alt="" coords="38,95,253,136"/>
-<area shape="rect" id="node4" href="$streamNtrip_8hpp.html" title=" " alt="" coords="89,184,309,225"/>
-<area shape="rect" id="node5" href="$rtcmDecoder_8hpp.html" title=" " alt="" coords="277,95,504,136"/>
-<area shape="rect" id="node6" href="$streamRtcm_8hpp.html" title=" " alt="" coords="333,184,555,225"/>
-<area shape="rect" id="node7" href="$rtcmEncoder_8hpp.html" title=" " alt="" coords="579,184,803,225"/>
+<area shape="rect" id="node1" title=" " alt="" coords="211,5,418,47"/>
+<area shape="rect" id="node2" href="$ntripBroadcast_8hpp.html" title=" " alt="" coords="5,184,243,225"/>
+<area shape="rect" id="node3" href="$ntripSocket_8hpp.html" title=" " alt="" coords="90,95,305,136"/>
+<area shape="rect" id="node4" href="$ntripTrace_8cpp.html" title=" " alt="" coords="329,95,535,136"/>
+<area shape="rect" id="node5" href="$otherSSR_8hpp.html" title=" " alt="" coords="559,95,763,136"/>
 </map>

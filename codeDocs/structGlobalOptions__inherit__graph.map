@@ -1,4 +1,4 @@
 <map id="GlobalOptions" name="GlobalOptions">
-<area shape="rect" id="node1" title="Options for the general operation of the software." alt="" coords="5,5,241,963"/>
-<area shape="rect" id="node2" href="$structACSConfig.html" title="General options object to be used throughout the software." alt="" coords="11,1011,236,1499"/>
+<area shape="rect" id="node1" title="Options for the general operation of the software." alt="" coords="5,5,241,1329"/>
+<area shape="rect" id="node2" href="$structACSConfig.html" title="General options object to be used throughout the software." alt="" coords="11,1377,236,1909"/>
 </map>

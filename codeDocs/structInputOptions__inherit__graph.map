@@ -1,4 +1,4 @@
 <map id="InputOptions" name="InputOptions">
-<area shape="rect" id="node1" title="Input source filenames and directories." alt="" coords="45,5,191,361"/>
-<area shape="rect" id="node2" href="$structACSConfig.html" title="General options object to be used throughout the software." alt="" coords="5,409,231,897"/>
+<area shape="rect" id="node1" title="Input source filenames and directories." alt="" coords="35,5,201,493"/>
+<area shape="rect" id="node2" href="$structACSConfig.html" title="General options object to be used throughout the software." alt="" coords="5,541,231,1073"/>
 </map>

@@ -1,5 +1,4 @@
 <map id="outputRinexClocksBody" name="outputRinexClocksBody">
-<area shape="rect" id="node1" title=" " alt="" coords="5,31,183,57"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="231,5,329,32"/>
-<area shape="rect" id="node3" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="233,56,327,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,183,32"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="231,5,325,32"/>
 </map>

@@ -81,7 +81,7 @@ $(function() {
 <div class="dynheader">
 Collaboration diagram for OrbitInfo:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structOrbitInfo__coll__graph.svg" width="267" height="536"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structOrbitInfo__coll__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -92,12 +92,14 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a6ffa213601df8d5513face5683c9a665"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitInfo.html#a6ffa213601df8d5513face5683c9a665">ti</a> [2]</td></tr>
 <tr class="memdesc:a6ffa213601df8d5513face5683c9a665"><td class="mdescLeft">&#160;</td><td class="mdescRight">the ith epoch [MJD][sod]  <a href="structOrbitInfo.html#a6ffa213601df8d5513face5683c9a665">More...</a><br /></td></tr>
 <tr class="separator:a6ffa213601df8d5513face5683c9a665"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a439210a704a2445e124330bdd0e2e040"><td class="memItemLeft" align="right" valign="top"><a class="el" href="eigenIncluder_8hpp.html#aa5c3ed580f4bf0d7e2256d14b338fb15">Vector</a>&lt; double, 6 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitInfo.html#a439210a704a2445e124330bdd0e2e040">xcrf</a></td></tr>
-<tr class="memdesc:a439210a704a2445e124330bdd0e2e040"><td class="mdescLeft">&#160;</td><td class="mdescRight">icrf pos(m) and vel(m/s)  <a href="structOrbitInfo.html#a439210a704a2445e124330bdd0e2e040">More...</a><br /></td></tr>
-<tr class="separator:a439210a704a2445e124330bdd0e2e040"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e2c858fac17006ecb18b64a95f55890"><td class="memItemLeft" align="right" valign="top"><a class="el" href="eigenIncluder_8hpp.html#aa5c3ed580f4bf0d7e2256d14b338fb15">Vector</a>&lt; double, 6 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitInfo.html#a0e2c858fac17006ecb18b64a95f55890">xtrf</a></td></tr>
-<tr class="memdesc:a0e2c858fac17006ecb18b64a95f55890"><td class="mdescLeft">&#160;</td><td class="mdescRight">itrf pos(m) and vel(m/s)  <a href="structOrbitInfo.html#a0e2c858fac17006ecb18b64a95f55890">More...</a><br /></td></tr>
-<tr class="separator:a0e2c858fac17006ecb18b64a95f55890"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0833eb520ab06b87e9bd378c7522afa8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structVectorEci.html">VectorEci</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitInfo.html#a0833eb520ab06b87e9bd378c7522afa8">posEci</a></td></tr>
+<tr class="separator:a0833eb520ab06b87e9bd378c7522afa8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec9f779a695ae96595ce159625578a4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structVectorEci.html">VectorEci</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitInfo.html#aec9f779a695ae96595ce159625578a4f">velEci</a></td></tr>
+<tr class="separator:aec9f779a695ae96595ce159625578a4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56fbe17fb87d99f6f1252b93d36d3562"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structVectorEcef.html">VectorEcef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitInfo.html#a56fbe17fb87d99f6f1252b93d36d3562">posEcef</a></td></tr>
+<tr class="separator:a56fbe17fb87d99f6f1252b93d36d3562"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5df0306f21bca934e5e4899ba9551ce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structVectorEcef.html">VectorEcef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitInfo.html#aa5df0306f21bca934e5e4899ba9551ce">velEcef</a></td></tr>
+<tr class="separator:aa5df0306f21bca934e5e4899ba9551ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a55f04db4edebcd0934c25b5ff5313793"><td class="memItemLeft" align="right" valign="top">MatrixXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitInfo.html#a55f04db4edebcd0934c25b5ff5313793">partials</a></td></tr>
 <tr class="memdesc:a55f04db4edebcd0934c25b5ff5313793"><td class="mdescLeft">&#160;</td><td class="mdescRight">partial wrt initial state  <a href="structOrbitInfo.html#a55f04db4edebcd0934c25b5ff5313793">More...</a><br /></td></tr>
 <tr class="separator:a55f04db4edebcd0934c25b5ff5313793"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -116,6 +118,34 @@ Data Fields</h2></td></tr>
 </div><div class="memdoc">
 
 <p>partial wrt initial state </p>
+
+</div>
+</div>
+<a id="a56fbe17fb87d99f6f1252b93d36d3562" name="a56fbe17fb87d99f6f1252b93d36d3562"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56fbe17fb87d99f6f1252b93d36d3562">&#9670;&nbsp;</a></span>posEcef</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structVectorEcef.html">VectorEcef</a> OrbitInfo::posEcef</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0833eb520ab06b87e9bd378c7522afa8" name="a0833eb520ab06b87e9bd378c7522afa8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0833eb520ab06b87e9bd378c7522afa8">&#9670;&nbsp;</a></span>posEci</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structVectorEci.html">VectorEci</a> OrbitInfo::posEci</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -151,35 +181,31 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="a439210a704a2445e124330bdd0e2e040" name="a439210a704a2445e124330bdd0e2e040"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a439210a704a2445e124330bdd0e2e040">&#9670;&nbsp;</a></span>xcrf</h2>
+<a id="aa5df0306f21bca934e5e4899ba9551ce" name="aa5df0306f21bca934e5e4899ba9551ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5df0306f21bca934e5e4899ba9551ce">&#9670;&nbsp;</a></span>velEcef</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="eigenIncluder_8hpp.html#aa5c3ed580f4bf0d7e2256d14b338fb15">Vector</a>&lt;double, 6&gt; OrbitInfo::xcrf</td>
+          <td class="memname"><a class="el" href="structVectorEcef.html">VectorEcef</a> OrbitInfo::velEcef</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>icrf pos(m) and vel(m/s) </p>
-
 </div>
 </div>
-<a id="a0e2c858fac17006ecb18b64a95f55890" name="a0e2c858fac17006ecb18b64a95f55890"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0e2c858fac17006ecb18b64a95f55890">&#9670;&nbsp;</a></span>xtrf</h2>
+<a id="aec9f779a695ae96595ce159625578a4f" name="aec9f779a695ae96595ce159625578a4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec9f779a695ae96595ce159625578a4f">&#9670;&nbsp;</a></span>velEci</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="eigenIncluder_8hpp.html#aa5c3ed580f4bf0d7e2256d14b338fb15">Vector</a>&lt;double, 6&gt; OrbitInfo::xtrf</td>
+          <td class="memname"><a class="el" href="structVectorEci.html">VectorEci</a> OrbitInfo::velEci</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>itrf pos(m) and vel(m/s) </p>
 
 </div>
 </div>

@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title=" ">
+<g id="a_node1"><a xlink:title="satellite position and clock with ssr correction">
 <polygon fill="#bfbfbf" stroke="black" points="104,-19.5 104,-38.5 172,-38.5 172,-19.5 104,-19.5"/>
 <text text-anchor="middle" x="138" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">satpos_ssr</text>
 </a>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="ephemeris_8cpp.html#a4420d8c2f8feba3902348cb0b82f2056" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="ephemeris_8cpp.html#aefd46b6f7f1ff6f8bb1f56cab126b8fc" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="0,-38.5 0,-57.5 68,-57.5 68,-38.5 0,-38.5"/>
 <text text-anchor="middle" x="34" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">satpos_ssr</text>
 </a>
@@ -35,7 +35,7 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="ephemeris_8cpp.html#a00df4213eb6f901bcb5928f44a24bd4d" target="_top" xlink:title=" ">
+<g id="a_node3"><a xlink:href="ephemeris_8cpp.html#a7c3a943170776da84985c003ba8c8c9f" target="_top" xlink:title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg...">
 <polygon fill="white" stroke="red" points="9.5,-0.5 9.5,-19.5 58.5,-19.5 58.5,-0.5 9.5,-0.5"/>
 <text text-anchor="middle" x="34" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">satpos</text>
 </a>

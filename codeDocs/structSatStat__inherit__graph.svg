@@ -13,25 +13,25 @@
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title="Object containing persistant status parameters of individual satellites.">
-<polygon fill="#bfbfbf" stroke="black" points="44.5,-0.5 44.5,-211.5 142.5,-211.5 142.5,-0.5 44.5,-0.5"/>
+<polygon fill="#bfbfbf" stroke="black" points="37,-0.5 37,-211.5 150,-211.5 150,-0.5 37,-0.5"/>
 <text text-anchor="middle" x="93.5" y="-199.5" font-family="Helvetica,sans-Serif" font-size="10.00">SatStat</text>
-<polyline fill="none" stroke="black" points="44.5,-192.5 142.5,-192.5 "/>
-<text text-anchor="start" x="52.5" y="-180.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ phw</text>
-<text text-anchor="start" x="52.5" y="-169.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mapWet</text>
-<text text-anchor="start" x="52.5" y="-158.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mapWetGrads</text>
-<text text-anchor="start" x="52.5" y="-147.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ e</text>
-<text text-anchor="start" x="52.5" y="-136.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dIono</text>
-<text text-anchor="start" x="52.5" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sigmaIono</text>
-<text text-anchor="start" x="52.5" y="-114.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ azel</text>
-<text text-anchor="start" x="52.5" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ az</text>
-<text text-anchor="start" x="52.5" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ el</text>
-<text text-anchor="start" x="52.5" y="-81.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ @24</text>
-<text text-anchor="start" x="52.5" y="-70.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ nadir</text>
-<text text-anchor="start" x="52.5" y="-59.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sunDotSat</text>
-<text text-anchor="start" x="52.5" y="-48.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sunCrossSat</text>
-<text text-anchor="start" x="52.5" y="-37.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ slip</text>
-<text text-anchor="start" x="52.5" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sigStatMap</text>
-<polyline fill="none" stroke="black" points="44.5,-19.5 142.5,-19.5 "/>
+<polyline fill="none" stroke="black" points="37,-192.5 150,-192.5 "/>
+<text text-anchor="start" x="45" y="-180.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ phw</text>
+<text text-anchor="start" x="45" y="-169.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mapWet</text>
+<text text-anchor="start" x="45" y="-158.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ mapWetGrads</text>
+<text text-anchor="start" x="45" y="-147.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ e</text>
+<text text-anchor="start" x="45" y="-136.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ ionoOutageCount</text>
+<text text-anchor="start" x="45" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ dIono</text>
+<text text-anchor="start" x="45" y="-114.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sigmaIono</text>
+<text text-anchor="start" x="45" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ prevSTEC</text>
+<text text-anchor="start" x="45" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ nadir</text>
+<text text-anchor="start" x="45" y="-81.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ azel</text>
+<text text-anchor="start" x="45" y="-70.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ az</text>
+<text text-anchor="start" x="45" y="-59.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ el</text>
+<text text-anchor="start" x="45" y="-48.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ @41</text>
+<text text-anchor="start" x="45" y="-37.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ slip</text>
+<text text-anchor="start" x="45" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ sigStatMap</text>
+<polyline fill="none" stroke="black" points="37,-19.5 150,-19.5 "/>
 <text text-anchor="middle" x="93.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00"> </text>
 </a>
 </g>
@@ -39,7 +39,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="$structIonoStat.html" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structIonoStat.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="0,-265 0,-366 89,-366 89,-265 0,-265"/>
 <text text-anchor="middle" x="44.5" y="-354" font-family="Helvetica,sans-Serif" font-size="10.00">IonoStat</text>
 <polyline fill="none" stroke="black" points="0,-347 89,-347 "/>
@@ -61,7 +61,7 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="$structQC.html" xlink:title=" ">
+<g id="a_node3"><a xlink:href="structQC.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="107.5,-248.5 107.5,-382.5 177.5,-382.5 177.5,-248.5 107.5,-248.5"/>
 <text text-anchor="middle" x="142.5" y="-370.5" font-family="Helvetica,sans-Serif" font-size="10.00">QC</text>
 <polyline fill="none" stroke="black" points="107.5,-363.5 177.5,-363.5 "/>

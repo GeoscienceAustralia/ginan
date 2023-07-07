@@ -1,7 +1,10 @@
 <map id="trim" name="trim">
-<area shape="rect" id="node1" title=" " alt="" coords="208,81,257,108"/>
-<area shape="rect" id="node2" href="$sinex_8cpp.html#ade90173e39d6fd3da1b76fa092107ede" title=" " alt="" coords="5,5,160,32"/>
-<area shape="rect" id="node3" href="$sinex_8cpp.html#a3d3d66a353270215f4141338f0c3a82e" title=" " alt="" coords="5,56,160,83"/>
-<area shape="rect" id="node4" href="$sinex_8cpp.html#a605eed0153e2b306dee16c7c095dbb8c" title=" " alt="" coords="5,107,160,133"/>
-<area shape="rect" id="node5" href="$sinex_8cpp.html#a74b3213edcd9f9ac9e2d173fd5a97d42" title=" " alt="" coords="13,157,152,184"/>
+<area shape="rect" id="node1" title="Trims leading &amp; trailing whitespace." alt="" coords="208,157,257,184"/>
+<area shape="rect" id="node2" href="$cost_8cpp.html#a6fb9f6966f5c24817f83f4dd46ed354c" title="Outputs troposphere COST file." alt="" coords="36,5,129,32"/>
+<area shape="rect" id="node3" href="$orbex_8cpp.html#a70cc23de57bf5ae7065f885a917ee4cf" title="Read necessary information, e.g." alt="" coords="11,56,155,83"/>
+<area shape="rect" id="node4" href="$sinex_8cpp.html#ade90173e39d6fd3da1b76fa092107ede" title=" " alt="" coords="5,107,160,133"/>
+<area shape="rect" id="node5" href="$sinex_8cpp.html#a3d3d66a353270215f4141338f0c3a82e" title=" " alt="" coords="5,157,160,184"/>
+<area shape="rect" id="node6" href="$slrObs_8cpp.html#a15786adbb4dc583f63d95e8a0f35d999" title="Read sat ID file." alt="" coords="41,208,125,235"/>
+<area shape="rect" id="node7" href="$sinex_8cpp.html#a605eed0153e2b306dee16c7c095dbb8c" title=" " alt="" coords="5,259,160,285"/>
+<area shape="rect" id="node8" href="$geomagField_8cpp.html#ad1877a5076ce9da964052260c9330d92" title="Read the IGRF file Only support the latest generations of IGRF file from IGRF&#45;11." alt="" coords="41,309,124,336"/>
 </map>

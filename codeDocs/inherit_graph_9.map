@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structCeph.html" title="GPS/QZS CNAV/CNAV&#45;2 or BDS CNAV&#45;1/CNAV&#45;2/CNAV&#45;3 ephemeris." alt="" coords="5,5,60,32"/>
+<area shape="rect" id="node1" href="$structAzElMapData.html" title=" " alt="" coords="5,5,188,32"/>
+<area shape="rect" id="node2" href="$structPhaseCenterData.html" title=" " alt="" coords="236,5,371,32"/>
 </map>

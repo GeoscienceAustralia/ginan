@@ -22,7 +22,7 @@
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="algebra__old_8cpp.html#a446a2803e5eaeb996733dd8d73966f00" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="184,-38.5 184,-57.5 227,-57.5 227,-38.5 184,-38.5"/>
+<polygon fill="white" stroke="black" points="184,-38.5 184,-57.5 227,-57.5 227,-38.5 184,-38.5"/>
 <text text-anchor="middle" x="205.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">zeros</text>
 </a>
 </g>
@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M126.03,-37.39C146.76,-40.19 168.46,-43.13 183.77,-45.2"/>
 </g>
-<!-- Node5 -->
+<!-- Node3 -->
 <g id="node3" class="node">
-<title>Node5</title>
+<title>Node3</title>
 <g id="a_node3"><a xlink:href="sinex_8cpp.html#a5d4b582fbe641b956dec6621e592ac63" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="162,-0.5 162,-19.5 249,-19.5 249,-0.5 162,-0.5"/>
 <text text-anchor="middle" x="205.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">time_compare</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node5 -->
+<!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node5</title>
+<title>Node1&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M126.03,-20.61C138.09,-18.98 150.47,-17.31 161.74,-15.78"/>
 </g>
 </g>

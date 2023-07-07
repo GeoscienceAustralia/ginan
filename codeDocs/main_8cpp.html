@@ -83,58 +83,77 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a60ad6a96950219f3d22e4dc250945c92"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a60ad6a96950219f3d22e4dc250945c92">outputMqtt</a> (<a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:a60ad6a96950219f3d22e4dc250945c92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a044cd088d8a6d17451b655ea49b820f7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a044cd088d8a6d17451b655ea49b820f7">fileChanged</a> (string filename)</td></tr>
 <tr class="separator:a044cd088d8a6d17451b655ea49b820f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34804c3a0ffc29cad1548a9a3af91d45"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a34804c3a0ffc29cad1548a9a3af91d45">removeInvalidFiles</a> (vector&lt; string &gt; &amp;files)</td></tr>
 <tr class="separator:a34804c3a0ffc29cad1548a9a3af91d45"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32bd79fa27f816f5f13badbebe4e15b2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a32bd79fa27f816f5f13badbebe4e15b2">addStationDataFile</a> (string fileName, string fileType, string dataType)</td></tr>
-<tr class="memdesc:a32bd79fa27f816f5f13badbebe4e15b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a station object from a file.  <a href="main_8cpp.html#a32bd79fa27f816f5f13badbebe4e15b2">More...</a><br /></td></tr>
-<tr class="separator:a32bd79fa27f816f5f13badbebe4e15b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a414f34e8bd65aa4d83398bab54236157"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a414f34e8bd65aa4d83398bab54236157">reloadInputFiles</a> ()</td></tr>
-<tr class="separator:a414f34e8bd65aa4d83398bab54236157"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8e733f262ae293c04dc14f13f16525d8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a8e733f262ae293c04dc14f13f16525d8">configureUploadingStreams</a> ()</td></tr>
-<tr class="separator:a8e733f262ae293c04dc14f13f16525d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2d75b8e97c01e0fc332ddf680796fd21"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a2d75b8e97c01e0fc332ddf680796fd21">configureDownloadingStreams</a> ()</td></tr>
-<tr class="separator:a2d75b8e97c01e0fc332ddf680796fd21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a260404f91dd3104c4f794029943c96ab"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a260404f91dd3104c4f794029943c96ab">createNewTraceFile</a> (const string id, boost::posix_time::ptime logptime, string new_path_trace, string &amp;old_path_trace, bool outputHeader=false, bool outputConfig=false)</td></tr>
-<tr class="separator:a260404f91dd3104c4f794029943c96ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29d52cfc981619584262b20b497865db"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a29d52cfc981619584262b20b497865db">createTracefiles</a> (map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;stationMap, <a class="el" href="structNetwork.html">Network</a> &amp;net)</td></tr>
-<tr class="memdesc:a29d52cfc981619584262b20b497865db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create new empty trace files only when required when the filename is changed.  <a href="main_8cpp.html#a29d52cfc981619584262b20b497865db">More...</a><br /></td></tr>
-<tr class="separator:a29d52cfc981619584262b20b497865db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5cb00ded83c966f68284b841c381d1f0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a5cb00ded83c966f68284b841c381d1f0">avoidCollisions</a> (<a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap)</td></tr>
-<tr class="separator:a5cb00ded83c966f68284b841c381d1f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8f07d049a66dc863071e0d3248e31435"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a8f07d049a66dc863071e0d3248e31435">initialiseStation</a> (string id, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
 <tr class="separator:a8f07d049a66dc863071e0d3248e31435"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e63aa887c069bdb77cd28a88ad18562"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a7e63aa887c069bdb77cd28a88ad18562">mainOncePerEpochPerStation</a> (<a class="el" href="structStation.html">Station</a> &amp;rec, double *orog, <a class="el" href="structgptgrid__t.html">gptgrid_t</a> &amp;gptg, bool &amp;emptyEpoch)</td></tr>
-<tr class="memdesc:a7e63aa887c069bdb77cd28a88ad18562"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform operations for each station This function occurs in parallel with other stations - ensure that any operations on global maps do not create new entries, as that will destroy the map for other processes.  <a href="main_8cpp.html#a7e63aa887c069bdb77cd28a88ad18562">More...</a><br /></td></tr>
-<tr class="separator:a7e63aa887c069bdb77cd28a88ad18562"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a052aae1f895ebdbdaf816f70d9287e78"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a052aae1f895ebdbdaf816f70d9287e78">mainPerEpochPostProcessingAndOutputs</a> (<a class="el" href="structNetwork.html">Network</a> &amp;net, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap)</td></tr>
+<tr class="memitem:a54d210f60c2488eb2654eaf7a3bbf6c4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a54d210f60c2488eb2654eaf7a3bbf6c4">addStationData</a> (string stationId, vector&lt; string &gt; inputNames, string inputFormat, string dataType)</td></tr>
+<tr class="memdesc:a54d210f60c2488eb2654eaf7a3bbf6c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a station object from an input.  <a href="main_8cpp.html#a54d210f60c2488eb2654eaf7a3bbf6c4">More...</a><br /></td></tr>
+<tr class="separator:a54d210f60c2488eb2654eaf7a3bbf6c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a414f34e8bd65aa4d83398bab54236157"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a414f34e8bd65aa4d83398bab54236157">reloadInputFiles</a> ()</td></tr>
+<tr class="separator:a414f34e8bd65aa4d83398bab54236157"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebd26f0526ffc02d8d69675ad1988af2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#aebd26f0526ffc02d8d69675ad1988af2">setClockCodesForReceiver</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
+<tr class="memdesc:aebd26f0526ffc02d8d69675ad1988af2"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structSelect.html">Select</a> 2 clocks for receivers according to the available signals.  <a href="main_8cpp.html#aebd26f0526ffc02d8d69675ad1988af2">More...</a><br /></td></tr>
+<tr class="separator:aebd26f0526ffc02d8d69675ad1988af2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e733f262ae293c04dc14f13f16525d8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a8e733f262ae293c04dc14f13f16525d8">configureUploadingStreams</a> ()</td></tr>
+<tr class="separator:a8e733f262ae293c04dc14f13f16525d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a260404f91dd3104c4f794029943c96ab"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a260404f91dd3104c4f794029943c96ab">createNewTraceFile</a> (const string id, boost::posix_time::ptime logptime, string new_path_trace, string &amp;old_path_trace, bool outputHeader=false, bool outputConfig=false)</td></tr>
+<tr class="separator:a260404f91dd3104c4f794029943c96ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd3e80e328e3d4afed1001aa34ca9d16"><td class="memItemLeft" align="right" valign="top">boost::posix_time::ptime&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16">currentLogptime</a> ()</td></tr>
+<tr class="memdesc:abd3e80e328e3d4afed1001aa34ca9d16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns (posix) for current epoch.  <a href="main_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16">More...</a><br /></td></tr>
+<tr class="separator:abd3e80e328e3d4afed1001aa34ca9d16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2206cd179576b10f99dbe50e8e7ddc5a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a2206cd179576b10f99dbe50e8e7ddc5a">createDirectories</a> (boost::posix_time::ptime logptime)</td></tr>
+<tr class="memdesc:a2206cd179576b10f99dbe50e8e7ddc5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create directories if required.  <a href="main_8cpp.html#a2206cd179576b10f99dbe50e8e7ddc5a">More...</a><br /></td></tr>
+<tr class="separator:a2206cd179576b10f99dbe50e8e7ddc5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29d52cfc981619584262b20b497865db"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a29d52cfc981619584262b20b497865db">createTracefiles</a> (map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="structNetwork.html">Network</a> &amp;net)</td></tr>
+<tr class="memdesc:a29d52cfc981619584262b20b497865db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create new empty trace files only when required when the filename is changed.  <a href="main_8cpp.html#a29d52cfc981619584262b20b497865db">More...</a><br /></td></tr>
+<tr class="separator:a29d52cfc981619584262b20b497865db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cb00ded83c966f68284b841c381d1f0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a5cb00ded83c966f68284b841c381d1f0">avoidCollisions</a> (<a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
+<tr class="separator:a5cb00ded83c966f68284b841c381d1f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab77d7fcf500a5bd2bd66022986edada0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#ab77d7fcf500a5bd2bd66022986edada0">mainOncePerEpochPerStation</a> (<a class="el" href="structStation.html">Station</a> &amp;rec, <a class="el" href="structNetwork.html">Network</a> &amp;net, bool &amp;emptyEpoch)</td></tr>
+<tr class="memdesc:ab77d7fcf500a5bd2bd66022986edada0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform operations for each station This function occurs in parallel with other stations - ensure that any operations on global maps do not create new entries, as that will destroy the map for other processes.  <a href="main_8cpp.html#ab77d7fcf500a5bd2bd66022986edada0">More...</a><br /></td></tr>
+<tr class="separator:ab77d7fcf500a5bd2bd66022986edada0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff27912083f0b1f7faa7327c48930fed"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#aff27912083f0b1f7faa7327c48930fed">outputPredictedStates</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structNetwork.html">Network</a> &amp;net, <a class="el" href="structMongoOptions.html">MongoOptions</a> &amp;mongoOptions)</td></tr>
+<tr class="separator:aff27912083f0b1f7faa7327c48930fed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a052aae1f895ebdbdaf816f70d9287e78"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a052aae1f895ebdbdaf816f70d9287e78">mainPerEpochPostProcessingAndOutputs</a> (<a class="el" href="structNetwork.html">Network</a> &amp;net, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
 <tr class="separator:a052aae1f895ebdbdaf816f70d9287e78"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adec1174713b31a762011c372983df1e5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#adec1174713b31a762011c372983df1e5">mainOncePerEpoch</a> (<a class="el" href="structNetwork.html">Network</a> &amp;net, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap, <a class="el" href="structGTime.html">GTime</a> time)</td></tr>
+<tr class="memitem:a6c8573ceb67a86d932ae7861185b41b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a6c8573ceb67a86d932ae7861185b41b5">mainOncePerEpochPerSatellite</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat)</td></tr>
+<tr class="separator:a6c8573ceb67a86d932ae7861185b41b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adec1174713b31a762011c372983df1e5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#adec1174713b31a762011c372983df1e5">mainOncePerEpoch</a> (<a class="el" href="structNetwork.html">Network</a> &amp;net, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="structGTime.html">GTime</a> time)</td></tr>
 <tr class="separator:adec1174713b31a762011c372983df1e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93c49123b4afe8e199430439fd682acd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a93c49123b4afe8e199430439fd682acd">mainPostProcessing</a> (<a class="el" href="structNetwork.html">Network</a> &amp;net, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap)</td></tr>
+<tr class="memitem:a93c49123b4afe8e199430439fd682acd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a93c49123b4afe8e199430439fd682acd">mainPostProcessing</a> (<a class="el" href="structNetwork.html">Network</a> &amp;net, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
 <tr class="separator:a93c49123b4afe8e199430439fd682acd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> argc, char **argv)</td></tr>
-<tr class="separator:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c1eabb2ea9b242d8d9fd2c1795849e9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a2c1eabb2ea9b242d8d9fd2c1795849e9">ginan</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> argc, char **argv)</td></tr>
+<tr class="separator:a2c1eabb2ea9b242d8d9fd2c1795849e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a32bd79fa27f816f5f13badbebe4e15b2" name="a32bd79fa27f816f5f13badbebe4e15b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32bd79fa27f816f5f13badbebe4e15b2">&#9670;&nbsp;</a></span>addStationDataFile()</h2>
+<a id="a54d210f60c2488eb2654eaf7a3bbf6c4" name="a54d210f60c2488eb2654eaf7a3bbf6c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54d210f60c2488eb2654eaf7a3bbf6c4">&#9670;&nbsp;</a></span>addStationData()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void addStationDataFile </td>
+          <td class="memname">void addStationData </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>fileName</em>, </td>
+          <td class="paramname"><em>stationId</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">vector&lt; string &gt;&#160;</td>
+          <td class="paramname"><em>inputNames</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>fileType</em>, </td>
+          <td class="paramname"><em>inputFormat</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -150,11 +169,12 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Create a station object from a file. </p>
+<p>Create a station object from an input. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">fileName</td><td>Filename to create station from</td></tr>
-    <tr><td class="paramname">fileType</td><td>Type of data in file</td></tr>
+    <tr><td class="paramname">stationId</td><td>Id of station to add data for</td></tr>
+    <tr><td class="paramname">inputNames</td><td>Filename to create station from</td></tr>
+    <tr><td class="paramname">inputFormat</td><td>Type of data in file</td></tr>
     <tr><td class="paramname">dataType</td><td>Type of data </td></tr>
   </table>
   </dd>
@@ -162,12 +182,12 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a32bd79fa27f816f5f13badbebe4e15b2_cgraph.svg" width="378" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a54d210f60c2488eb2654eaf7a3bbf6c4_cgraph.svg" width="355" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a32bd79fa27f816f5f13badbebe4e15b2_icgraph.svg" width="330" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a54d210f60c2488eb2654eaf7a3bbf6c4_icgraph.svg" width="307" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -190,39 +210,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a5cb00ded83c966f68284b841c381d1f0_cgraph.svg" width="280" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a5cb00ded83c966f68284b841c381d1f0_cgraph.svg" width="280" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a5cb00ded83c966f68284b841c381d1f0_icgraph.svg" width="328" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a2d75b8e97c01e0fc332ddf680796fd21" name="a2d75b8e97c01e0fc332ddf680796fd21"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2d75b8e97c01e0fc332ddf680796fd21">&#9670;&nbsp;</a></span>configureDownloadingStreams()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void configureDownloadingStreams </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a2d75b8e97c01e0fc332ddf680796fd21_cgraph.svg" width="646" height="114"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a2d75b8e97c01e0fc332ddf680796fd21_icgraph.svg" width="532" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -244,7 +237,37 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a8e733f262ae293c04dc14f13f16525d8_icgraph.svg" width="512" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a8e733f262ae293c04dc14f13f16525d8_icgraph.svg" width="516" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2206cd179576b10f99dbe50e8e7ddc5a" name="a2206cd179576b10f99dbe50e8e7ddc5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2206cd179576b10f99dbe50e8e7ddc5a">&#9670;&nbsp;</a></span>createDirectories()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void createDirectories </td>
+          <td>(</td>
+          <td class="paramtype">boost::posix_time::ptime&#160;</td>
+          <td class="paramname"><em>logptime</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create directories if required. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a2206cd179576b10f99dbe50e8e7ddc5a_cgraph.svg" width="303" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a2206cd179576b10f99dbe50e8e7ddc5a_icgraph.svg" width="427" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -301,7 +324,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a260404f91dd3104c4f794029943c96ab_cgraph.svg" width="474" height="114"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a260404f91dd3104c4f794029943c96ab_cgraph.svg" width="523" height="164"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -341,12 +364,41 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a29d52cfc981619584262b20b497865db_cgraph.svg" width="551" height="270"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a29d52cfc981619584262b20b497865db_cgraph.svg" width="518" height="268"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a29d52cfc981619584262b20b497865db_icgraph.svg" width="436" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a29d52cfc981619584262b20b497865db_icgraph.svg" width="440" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="abd3e80e328e3d4afed1001aa34ca9d16" name="abd3e80e328e3d4afed1001aa34ca9d16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd3e80e328e3d4afed1001aa34ca9d16">&#9670;&nbsp;</a></span>currentLogptime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">boost::posix_time::ptime currentLogptime </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns (posix) for current epoch. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_abd3e80e328e3d4afed1001aa34ca9d16_cgraph.svg" width="323" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_abd3e80e328e3d4afed1001aa34ca9d16_icgraph.svg" width="422" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -375,6 +427,44 @@ Here is the call graph for this function:</div>
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a044cd088d8a6d17451b655ea49b820f7_icgraph.svg" width="284" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2c1eabb2ea9b242d8d9fd2c1795849e9" name="a2c1eabb2ea9b242d8d9fd2c1795849e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c1eabb2ea9b242d8d9fd2c1795849e9">&#9670;&nbsp;</a></span>ginan()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ginan </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>argc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>argv</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="main_8cpp_a2c1eabb2ea9b242d8d9fd2c1795849e9_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a2c1eabb2ea9b242d8d9fd2c1795849e9_icgraph.svg" width="172" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -412,40 +502,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a8f07d049a66dc863071e0d3248e31435_icgraph.svg" width="238" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a3c04138a5bfe5d72780bb7e82a18e627" name="a3c04138a5bfe5d72780bb7e82a18e627"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c04138a5bfe5d72780bb7e82a18e627">&#9670;&nbsp;</a></span>main()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> main </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>argc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char **&#160;</td>
-          <td class="paramname"><em>argv</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="main_8cpp_a3c04138a5bfe5d72780bb7e82a18e627_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a8f07d049a66dc863071e0d3248e31435_icgraph.svg" width="306" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -489,13 +546,57 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_adec1174713b31a762011c372983df1e5_icgraph.svg" width="262" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_adec1174713b31a762011c372983df1e5_icgraph.svg" width="266" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a7e63aa887c069bdb77cd28a88ad18562" name="a7e63aa887c069bdb77cd28a88ad18562"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e63aa887c069bdb77cd28a88ad18562">&#9670;&nbsp;</a></span>mainOncePerEpochPerStation()</h2>
+<a id="a6c8573ceb67a86d932ae7861185b41b5" name="a6c8573ceb67a86d932ae7861185b41b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c8573ceb67a86d932ae7861185b41b5">&#9670;&nbsp;</a></span>mainOncePerEpochPerSatellite()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mainOncePerEpochPerSatellite </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="main_8cpp_a6c8573ceb67a86d932ae7861185b41b5_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a6c8573ceb67a86d932ae7861185b41b5_icgraph.svg" width="430" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab77d7fcf500a5bd2bd66022986edada0" name="ab77d7fcf500a5bd2bd66022986edada0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab77d7fcf500a5bd2bd66022986edada0">&#9670;&nbsp;</a></span>mainOncePerEpochPerStation()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -509,14 +610,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>orog</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structgptgrid__t.html">gptgrid_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>gptg</em>, </td>
+          <td class="paramtype"><a class="el" href="structNetwork.html">Network</a> &amp;&#160;</td>
+          <td class="paramname"><em>net</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -537,12 +632,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="main_8cpp_a7e63aa887c069bdb77cd28a88ad18562_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="main_8cpp_ab77d7fcf500a5bd2bd66022986edada0_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a7e63aa887c069bdb77cd28a88ad18562_icgraph.svg" width="422" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_ab77d7fcf500a5bd2bd66022986edada0_icgraph.svg" width="422" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -618,7 +713,74 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a93c49123b4afe8e199430439fd682acd_icgraph.svg" width="267" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a93c49123b4afe8e199430439fd682acd_icgraph.svg" width="271" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a60ad6a96950219f3d22e4dc250945c92" name="a60ad6a96950219f3d22e4dc250945c92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60ad6a96950219f3d22e4dc250945c92">&#9670;&nbsp;</a></span>outputMqtt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void outputMqtt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a60ad6a96950219f3d22e4dc250945c92_cgraph.svg" width="332" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aff27912083f0b1f7faa7327c48930fed" name="aff27912083f0b1f7faa7327c48930fed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff27912083f0b1f7faa7327c48930fed">&#9670;&nbsp;</a></span>outputPredictedStates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void outputPredictedStates </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structNetwork.html">Network</a> &amp;&#160;</td>
+          <td class="paramname"><em>net</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structMongoOptions.html">MongoOptions</a> &amp;&#160;</td>
+          <td class="paramname"><em>mongoOptions</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_aff27912083f0b1f7faa7327c48930fed_cgraph.svg" width="406" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_aff27912083f0b1f7faa7327c48930fed_icgraph.svg" width="439" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -645,7 +807,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a414f34e8bd65aa4d83398bab54236157_icgraph.svg" width="435" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a414f34e8bd65aa4d83398bab54236157_icgraph.svg" width="439" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -674,6 +836,41 @@ Here is the call graph for this function:</div>
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_a34804c3a0ffc29cad1548a9a3af91d45_icgraph.svg" width="330" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aebd26f0526ffc02d8d69675ad1988af2" name="aebd26f0526ffc02d8d69675ad1988af2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebd26f0526ffc02d8d69675ad1988af2">&#9670;&nbsp;</a></span>setClockCodesForReceiver()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void setClockCodesForReceiver </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structStation.html">Station</a> &amp;&#160;</td>
+          <td class="paramname"><em>rec</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="structSelect.html">Select</a> 2 clocks for receivers according to the available signals. </p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="main_8cpp_aebd26f0526ffc02d8d69675ad1988af2_icgraph.svg" width="468" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -1,9 +1,12 @@
 <map id="RTS_Process" name="RTS_Process">
-<area shape="rect" id="node1" title=" " alt="" coords="5,107,109,133"/>
-<area shape="rect" id="node2" href="$algebraTrace_8cpp.html#aa526df463f08398d3cb422d191c56cfb" title="Returns the type of object that is located at the specified position in a file." alt="" coords="326,5,486,32"/>
-<area shape="rect" id="node3" href="$algebraTrace_8hpp.html#a11e5c6e06d30600e55dc2c71f015d0f3" title=" " alt="" coords="320,81,492,108"/>
-<area shape="rect" id="node4" href="$algebraTrace_8hpp.html#a912bbc3ba390c6b3a01f7cae26a53588" title="Output filter state to a file for later reading." alt="" coords="157,81,272,108"/>
-<area shape="rect" id="node5" href="$rtsSmoothing_8cpp.html#a6cf4aace63327cf45591794467688765" title=" " alt="" coords="344,233,468,260"/>
-<area shape="rect" id="node6" href="$mongoWrite_8cpp.html#af0d2caa39c2b605460f08f00827aa5d4" title=" " alt="" coords="323,183,489,209"/>
-<area shape="rect" id="node7" href="$rtsSmoothing_8cpp.html#a4e8aaa5b04173a1f1c784b486954de3a" title="Output filter states from a reversed binary trace file." alt="" coords="165,233,264,260"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,195,109,222"/>
+<area shape="rect" id="node2" href="$algebraTrace_8cpp.html#aa526df463f08398d3cb422d191c56cfb" title="Returns the type of object that is located at the specified position in a file." alt="" coords="414,44,574,71"/>
+<area shape="rect" id="node3" href="$algebraTrace_8hpp.html#a11e5c6e06d30600e55dc2c71f015d0f3" title=" " alt="" coords="408,162,580,188"/>
+<area shape="rect" id="node4" href="$algebraTrace_8hpp.html#a912bbc3ba390c6b3a01f7cae26a53588" title="Output filter state to a file for later reading." alt="" coords="201,78,316,104"/>
+<area shape="rect" id="node5" href="$structKFState.html#a791b21f6f17cbe61ce7ef5b67e111c6c" title=" " alt="" coords="166,129,351,170"/>
+<area shape="rect" id="node6" href="$eigenIncluder_8hpp.html#a7d8efeb46fa09383bc5deaa02d651997" title=" " alt="" coords="213,195,304,222"/>
+<area shape="rect" id="node7" href="$structKFState.html#ab62647d9653d975a58c08ea438761280" title=" " alt="" coords="157,246,360,272"/>
+<area shape="rect" id="node8" href="$rtsSmoothing_8cpp.html#a6cf4aace63327cf45591794467688765" title=" " alt="" coords="432,398,556,424"/>
+<area shape="rect" id="node9" href="$mongoWrite_8cpp.html#ab9a0b82ff1bd0f911e534f799b412932" title=" " alt="" coords="411,347,577,374"/>
+<area shape="rect" id="node10" href="$rtsSmoothing_8cpp.html#a4e8aaa5b04173a1f1c784b486954de3a" title="Output filter states from a reversed binary trace file." alt="" coords="209,398,308,424"/>
 </map>

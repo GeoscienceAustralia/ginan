@@ -1,42 +1,4 @@
 <map id="main" name="main">
-<area shape="rect" id="node1" title=" " alt="" coords="5,968,60,995"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ab8f1a6e67f2849dde405bf75d764ba0d" title=" " alt="" coords="181,5,268,32"/>
-<area shape="rect" id="node3" href="$testUtils_8cpp.html#a9bf11e78bc73b08db2412c0f6cfacbf8" title=" " alt="" coords="173,56,276,83"/>
-<area shape="rect" id="node4" href="$acsConfig_8cpp.html#a428af53af7dd917738fb5d204948f74f" title="Prepare the configuration of the program." alt="" coords="183,107,266,133"/>
-<area shape="rect" id="node5" href="$fileLog_8cpp.html#ad736ce5ac209fa50c96d9cbe517e1489" title=" " alt="" coords="179,157,270,184"/>
-<area shape="rect" id="node6" href="$structTestStack.html#a12c8c3bc534eac13a18d9fc38cf04ad1" title="Open and read test data files." alt="" coords="147,208,302,235"/>
-<area shape="rect" id="node7" href="$vmf3_8cpp.html#a0de652f4c1d9da6d38405aa808634c9b" title=" " alt="" coords="185,259,265,285"/>
-<area shape="rect" id="node8" href="$trop_8cpp.html#a98ff29b9f5c2aee1d3bd8390f7aa6477" title="read GPT grid file" alt="" coords="187,309,263,336"/>
-<area shape="rect" id="node9" href="$algebraTrace_8cpp.html#a7bc8fe7472c8d5a4db5561b722ab1087" title=" " alt="" coords="147,360,303,387"/>
-<area shape="rect" id="node10" href="$ionoModel_8cpp.html#a5888124cd40ab4208daf8ef4755dc162" title=" " alt="" coords="141,411,309,437"/>
-<area shape="rect" id="node11" href="$GinAR__main_8cpp.html#ae68f0d04a4be7a5163423b22108b8586" title="Loading configuration options from acsConfig." alt="" coords="155,461,294,488"/>
-<area shape="rect" id="node12" href="$ppp_8cpp.html#a968c51f5aa3843055150caa0aaf58dcb" title="Deweight worst measurement." alt="" coords="442,664,559,691"/>
-<area shape="rect" id="node13" href="$ppp_8cpp.html#a4ed443f460fefe8ce41ac2417d16efb2" title="Count worst measurement." alt="" coords="125,563,324,589"/>
-<area shape="rect" id="node14" href="$ppp_8cpp.html#aa0797b6f2a2f17b2fb86e99db808dea3" title="Deweight measurements attached to worst state." alt="" coords="434,867,567,893"/>
-<area shape="rect" id="node15" href="$mongo_8cpp.html#ae5331ad152c6df38001c3b955c533f8d" title=" " alt="" coords="455,1627,546,1653"/>
-<area shape="rect" id="node16" href="$rtsSmoothing_8cpp.html#a38ab8796647005faee38cdd21deaf19b" title=" " alt="" coords="449,1829,553,1856"/>
-<area shape="rect" id="node17" href="$algebraTrace_8cpp.html#ab2b012374e099550a5822ce95e120eaa" title=" " alt="" coords="139,765,310,792"/>
-<area shape="rect" id="node18" href="$biasSINEXread_8cpp.html#a8f9b3ddb1206caaccd29bf540cf64846" title="Initialise satellite DSBs between default signals, e.g." alt="" coords="153,816,296,843"/>
-<area shape="rect" id="node19" href="$main_8cpp.html#a414f34e8bd65aa4d83398bab54236157" title=" " alt="" coords="438,1373,563,1400"/>
-<area shape="rect" id="node20" href="$biasSINEXread_8cpp.html#a100d336742ac00f1a748f2d363401b32" title="Add default 0 values to DSBs between default signals, e.g." alt="" coords="421,1475,580,1501"/>
-<area shape="rect" id="node21" href="$structNtripSocket.html#ab1b05a4b0dd60eaebbd27a265c1fdefb" title=" " alt="" coords="135,968,315,995"/>
-<area shape="rect" id="node22" href="$main_8cpp.html#a2d75b8e97c01e0fc332ddf680796fd21" title=" " alt="" coords="389,1525,612,1552"/>
-<area shape="rect" id="node23" href="$main_8cpp.html#a8e733f262ae293c04dc14f13f16525d8" title=" " alt="" coords="399,1576,602,1603"/>
-<area shape="rect" id="node24" href="$main_8cpp.html#a8f07d049a66dc863071e0d3248e31435" title=" " alt="" coords="163,1120,287,1147"/>
-<area shape="rect" id="node25" href="$main_8cpp.html#a29d52cfc981619584262b20b497865db" title="Create new empty trace files only when required when the filename is changed." alt="" coords="437,1677,564,1704"/>
-<area shape="rect" id="node26" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="660,1500,780,1527"/>
-<area shape="rect" id="node27" href="$minimumConstraints_8cpp.html#a91e7c5f0512892cbb8ff736bb4fc35d7" title=" " alt="" coords="175,1221,275,1248"/>
-<area shape="rect" id="node28" href="$debug_8cpp.html#a4461dad047eef689e3b30b28bf034b8c" title=" " alt="" coords="181,1272,268,1299"/>
-<area shape="rect" id="node29" href="$acsQC_8cpp.html#a87aa50724c534eed1c0d4b99329a6d97" title=" " alt="" coords="182,1373,267,1400"/>
-<area shape="rect" id="node30" href="$structACSConfig.html#a7ddfbaf20a1c9181d73d0dabe92beace" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="414,1424,587,1451"/>
-<area shape="rect" id="node31" href="$structObsStream.html#a72abbf0503505bc3f1a2c45f0dd5ae95" title="Return a list of observations from the stream." alt="" coords="151,1475,299,1501"/>
-<area shape="rect" id="node32" href="$preprocessor_8cpp.html#a3d7c124759fb61d2e94ab3b85e108399" title=" " alt="" coords="171,1525,278,1552"/>
-<area shape="rect" id="node33" href="$structObsStream.html#a3b3648eec3b950447ed844f09589d20a" title="Remove some observations from memory." alt="" coords="151,1576,299,1603"/>
-<area shape="rect" id="node34" href="$structPseudoObsStream.html#a55786373f50f83b317a825b983a17610" title="Return a list of observations from the stream." alt="" coords="127,1627,322,1653"/>
-<area shape="rect" id="node35" href="$gTime_8cpp.html#abb00b59d1e35b7cc9e031a5faf536f9e" title=" " alt="" coords="185,1677,264,1704"/>
-<area shape="rect" id="node36" href="$gTime_8cpp.html#a2a318fa02e2d05aa22eabbcf1a537fcf" title="get current time in utc" alt="" coords="188,1728,261,1755"/>
-<area shape="rect" id="node37" href="$main_8cpp.html#adec1174713b31a762011c372983df1e5" title=" " alt="" coords="151,1779,299,1805"/>
-<area shape="rect" id="node38" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="181,1829,269,1856"/>
-<area shape="rect" id="node39" href="$structNtripBroadcaster.html#a784f7a01e9751eda81b74cad2932b1fd" title=" " alt="" coords="108,1880,341,1907"/>
-<area shape="rect" id="node40" href="$main_8cpp.html#a93c49123b4afe8e199430439fd682acd" title=" " alt="" coords="148,1931,301,1957"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,60,32"/>
+<area shape="rect" id="node2" href="$main_8cpp.html#a2c1eabb2ea9b242d8d9fd2c1795849e9" title=" " alt="" coords="108,5,167,32"/>
 </map>

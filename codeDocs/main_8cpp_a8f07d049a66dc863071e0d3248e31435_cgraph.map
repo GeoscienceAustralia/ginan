@@ -1,8 +1,8 @@
 <map id="initialiseStation" name="initialiseStation">
 <area shape="rect" id="node1" title=" " alt="" coords="5,107,129,133"/>
 <area shape="rect" id="node2" href="$rtkcmn_8cpp.html#ae6cbf1c54d1af0ec9df347f87ae3d63c" title=" " alt="" coords="217,5,288,32"/>
-<area shape="rect" id="node3" href="$ppp_8cpp.html#a0caa845727695a6c596b31259522975c" title=" " alt="" coords="185,56,321,83"/>
-<area shape="rect" id="node4" href="$ppp_8cpp.html#a968c51f5aa3843055150caa0aaf58dcb" title="Deweight worst measurement." alt="" coords="194,107,311,133"/>
-<area shape="rect" id="node5" href="$ppp_8cpp.html#aa0797b6f2a2f17b2fb86e99db808dea3" title="Deweight measurements attached to worst state." alt="" coords="186,157,319,184"/>
-<area shape="rect" id="node6" href="$ppp_8cpp.html#a4fef2ebf508f36c5033c1a2506fd0f27" title="Remove any states connected to a bad clock if it glitches." alt="" coords="177,208,328,235"/>
+<area shape="rect" id="node3" href="$ppp__callbacks_8cpp.html#a0caa845727695a6c596b31259522975c" title=" " alt="" coords="185,56,321,83"/>
+<area shape="rect" id="node4" href="$ppp__callbacks_8cpp.html#a968c51f5aa3843055150caa0aaf58dcb" title="Deweight worst measurement." alt="" coords="194,107,311,133"/>
+<area shape="rect" id="node5" href="$ppp__callbacks_8cpp.html#a1e3adabb954f5e009016d143450f37a1" title="Reject measurements attached to worst state using measurement reject callback list." alt="" coords="197,157,308,184"/>
+<area shape="rect" id="node6" href="$ppp__callbacks_8cpp.html#ad44c63f6ba0b2504f7228c7190afe9ab" title="Remove any states connected to a bad clock if it glitches." alt="" coords="177,208,328,235"/>
 </map>

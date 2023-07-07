@@ -1,5 +1,5 @@
 <map id="initialiseBiasSinex" name="initialiseBiasSinex">
 <area shape="rect" id="node1" title="Initialise satellite DSBs between default signals, e.g." alt="" coords="5,31,148,57"/>
 <area shape="rect" id="node2" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="207,5,302,32"/>
-<area shape="rect" id="node3" href="$biasSINEXread_8cpp.html#a6a51f9914e96ab2fec060c9463b86ae4" title="Push forward and reverse bias entry into the SINEXBiases map." alt="" coords="196,56,313,83"/>
+<area shape="rect" id="node3" href="$biasSINEXread_8cpp.html#aeeda4dd24974c674f01d3b17be379d7f" title="Push forward and reverse bias entry into the SINEXBiases map." alt="" coords="196,56,313,83"/>
 </map>

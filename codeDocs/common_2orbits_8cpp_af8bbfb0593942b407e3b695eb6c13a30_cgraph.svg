@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="118,-114.5 118,-133.5 189,-133.5 189,-114.5 118,-114.5"/>
 <text text-anchor="middle" x="153.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -35,8 +35,8 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="105,-76.5 105,-95.5 202,-95.5 202,-76.5 105,-76.5"/>
+<g id="a_node3"><a xlink:href="structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="105,-76.5 105,-95.5 202,-95.5 202,-76.5 105,-76.5"/>
 <text text-anchor="middle" x="153.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">GTime::to_string</text>
 </a>
 </g>
@@ -46,32 +46,32 @@
 <title>Node1&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M69.03,-72.44C80.1,-74.24 92.65,-76.28 104.58,-78.22"/>
 </g>
-<!-- Node6 -->
+<!-- Node4 -->
 <g id="node4" class="node">
-<title>Node6</title>
+<title>Node4</title>
 <g id="a_node4"><a xlink:href="structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" target="_top" xlink:title="Returns a std::string of this satellite&#39;s id.">
 <polygon fill="white" stroke="red" points="121,-38.5 121,-57.5 186,-57.5 186,-38.5 121,-38.5"/>
 <text text-anchor="middle" x="153.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">SatSys::id</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node6 -->
+<!-- Node1&#45;&gt;Node4 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node6</title>
+<title>Node1&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M69.03,-61.56C85.37,-58.9 104.91,-55.73 120.98,-53.12"/>
 </g>
-<!-- Node9 -->
+<!-- Node7 -->
 <g id="node5" class="node">
-<title>Node9</title>
-<g id="a_node5"><a xlink:href="preceph_8cpp.html#a3484687362aab309b89c125d59887180" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="123.5,-0.5 123.5,-19.5 183.5,-19.5 183.5,-0.5 123.5,-0.5"/>
-<text text-anchor="middle" x="153.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">interppol</text>
+<title>Node7</title>
+<g id="a_node5"><a xlink:href="ephPrecise_8cpp.html#a9a01152aef47228af7e3cfa035bd643d" target="_top" xlink:title="polynomial interpolation by Neville&#39;s algorithm">
+<polygon fill="white" stroke="black" points="118.5,-0.5 118.5,-19.5 188.5,-19.5 188.5,-0.5 118.5,-0.5"/>
+<text text-anchor="middle" x="153.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">interpolate</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node9 -->
+<!-- Node1&#45;&gt;Node7 -->
 <g id="edge4" class="edge">
-<title>Node1&#45;&gt;Node9</title>
+<title>Node1&#45;&gt;Node7</title>
 <path fill="none" stroke="midnightblue" d="M51.78,-57.37C65.69,-49.33 86.34,-37.79 105,-29 112.07,-25.67 119.89,-22.38 127.11,-19.5"/>
 </g>
 </g>

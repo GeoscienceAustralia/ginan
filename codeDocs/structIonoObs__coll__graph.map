@@ -1,3 +1,5 @@
 <map id="IonoObs" name="IonoObs">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,175,259"/>
+<area shape="rect" id="node1" title=" " alt="" coords="77,365,247,589"/>
+<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,5,148,303"/>
+<area shape="rect" id="node3" title=" " alt="" coords="172,115,323,193"/>
 </map>

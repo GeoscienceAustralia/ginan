@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="244,-104.5 244,-123.5 315,-123.5 315,-104.5 244,-104.5"/>
 <text text-anchor="middle" x="279.5" y="-111.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -46,32 +46,32 @@
 <title>Node1&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M65.41,-81.57C81.48,-89.27 104.68,-100.38 125,-110 131.46,-113.06 138.5,-116.37 144.88,-119.36"/>
 </g>
-<!-- Node12 -->
+<!-- Node10 -->
 <g id="node4" class="node">
-<title>Node12</title>
+<title>Node10</title>
 <g id="a_node4"><a xlink:href="GinARpivot_8cpp.html#a9ea97fd05df0f2f7129c1b1eebeb58b4" target="_top" xlink:title="Initilize end&#45;user AR pivot.">
 <polygon fill="white" stroke="black" points="125,-81.5 125,-100.5 208,-100.5 208,-81.5 125,-81.5"/>
 <text text-anchor="middle" x="166.5" y="-88.5" font-family="Helvetica,sans-Serif" font-size="10.00">init_usr_pivot</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node12 -->
+<!-- Node1&#45;&gt;Node10 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node12</title>
+<title>Node1&#45;&gt;Node10</title>
 <path fill="none" stroke="midnightblue" d="M89.16,-78.91C100.82,-80.76 113.37,-82.75 124.86,-84.57"/>
 </g>
-<!-- Node13 -->
+<!-- Node11 -->
 <g id="node5" class="node">
-<title>Node13</title>
+<title>Node11</title>
 <g id="a_node5"><a xlink:href="GinARpivot_8cpp.html#aa6bd501576fa27cf1dc55b457809b0e4" target="_top" xlink:title="Add ambiguity to pivot tree.">
 <polygon fill="white" stroke="black" points="247.5,-57.5 247.5,-76.5 311.5,-76.5 311.5,-57.5 247.5,-57.5"/>
 <text text-anchor="middle" x="279.5" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">Link_amb</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node13 -->
+<!-- Node1&#45;&gt;Node11 -->
 <g id="edge8" class="edge">
-<title>Node1&#45;&gt;Node13</title>
+<title>Node1&#45;&gt;Node11</title>
 <path fill="none" stroke="midnightblue" d="M60.3,-62.43C75.73,-53.07 100.98,-39.45 125,-34 160.98,-25.84 171.99,-25.99 208,-34 228.18,-38.49 249.42,-49.4 263.25,-57.45"/>
 </g>
 <!-- Node6 -->
@@ -88,33 +88,33 @@
 <title>Node1&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M57.01,-62.46C71.73,-50.85 98.52,-31.73 125,-23 165.51,-9.65 215.13,-7.89 246.78,-8.46"/>
 </g>
-<!-- Node14 -->
+<!-- Node12 -->
 <g id="node7" class="node">
-<title>Node14</title>
+<title>Node12</title>
 <g id="a_node7"><a xlink:href="GinARpivot_8cpp.html#a5ca2893293b83cb290b9f34e3355bd99" target="_top" xlink:title="Remove ambiguity from pivot tree.">
 <polygon fill="white" stroke="black" points="130.5,-43.5 130.5,-62.5 202.5,-62.5 202.5,-43.5 130.5,-43.5"/>
 <text text-anchor="middle" x="166.5" y="-50.5" font-family="Helvetica,sans-Serif" font-size="10.00">Unlnk_amb</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node14 -->
+<!-- Node1&#45;&gt;Node12 -->
 <g id="edge7" class="edge">
-<title>Node1&#45;&gt;Node14</title>
+<title>Node1&#45;&gt;Node12</title>
 <path fill="none" stroke="midnightblue" d="M89.16,-65.09C102.7,-62.94 117.44,-60.61 130.32,-58.57"/>
 </g>
-<!-- Node12&#45;&gt;Node2 -->
+<!-- Node10&#45;&gt;Node2 -->
 <g id="edge4" class="edge">
-<title>Node12&#45;&gt;Node2</title>
+<title>Node10&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M208.2,-99.43C219.83,-101.84 232.4,-104.45 243.65,-106.78"/>
 </g>
-<!-- Node12&#45;&gt;Node13 -->
+<!-- Node10&#45;&gt;Node11 -->
 <g id="edge5" class="edge">
-<title>Node12&#45;&gt;Node13</title>
+<title>Node10&#45;&gt;Node11</title>
 <path fill="none" stroke="midnightblue" d="M208.2,-82.2C221.07,-79.42 235.09,-76.39 247.19,-73.77"/>
 </g>
-<!-- Node12&#45;&gt;Node6 -->
+<!-- Node10&#45;&gt;Node6 -->
 <g id="edge6" class="edge">
-<title>Node12&#45;&gt;Node6</title>
+<title>Node10&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M190.81,-81.44C196.6,-78.69 202.67,-75.49 208,-72 232,-56.28 256.32,-32.87 269.18,-19.77"/>
 </g>
 </g>

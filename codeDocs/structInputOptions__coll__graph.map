@@ -1,5 +1,6 @@
 <map id="InputOptions" name="InputOptions">
-<area shape="rect" id="node1" title="Input source filenames and directories." alt="" coords="58,292,201,457"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,136,83"/>
-<area shape="rect" id="node3" title=" " alt="" coords="160,5,219,83"/>
+<area shape="rect" id="node1" title="Input source filenames and directories." alt="" coords="174,307,319,545"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,13,136,90"/>
+<area shape="rect" id="node3" title=" " alt="" coords="171,5,323,97"/>
+<area shape="rect" id="node4" title=" " alt="" coords="384,13,443,90"/>
 </map>

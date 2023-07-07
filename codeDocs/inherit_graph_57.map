@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classloadGrid.html" title="Implementation of the class to manage the tides." alt="" coords="5,5,83,32"/>
+<area shape="rect" id="node1" href="$structInt.html" title=" " alt="" coords="5,31,44,57"/>
+<area shape="rect" id="node2" href="$structBWeek.html" title=" " alt="" coords="93,5,161,32"/>
+<area shape="rect" id="node3" href="$structGWeek.html" title=" " alt="" coords="92,56,161,83"/>
 </map>

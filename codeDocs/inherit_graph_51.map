@@ -1,3 +1,23 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structKFMeas.html" title="Object to hold measurements, design matrices, and residuals for multiple observations." alt="" coords="5,5,80,32"/>
+<area shape="rect" id="node1" href="$structicdDecoder.html" title=" " alt="" coords="27,411,121,437"/>
+<area shape="rect" id="node2" href="$structUbxDecoder.html" title=" " alt="" coords="195,411,297,437"/>
+<area shape="rect" id="node3" href="$structUbxParser.html" title=" " alt="" coords="361,208,451,235"/>
+<area shape="rect" id="node4" href="$structNetworkStatistics.html" title=" " alt="" coords="5,613,143,640"/>
+<area shape="rect" id="node5" href="$structNtripSocket.html" title=" " alt="" coords="197,613,295,640"/>
+<area shape="rect" id="node6" href="$structNtripStream.html" title=" " alt="" coords="355,563,457,589"/>
+<area shape="rect" id="node7" href="$structNtripUploader.html" title=" " alt="" coords="349,613,463,640"/>
+<area shape="rect" id="node8" href="$structObsLister.html" title=" " alt="" coords="33,291,115,317"/>
+<area shape="rect" id="node9" href="$structRinexParser.html" title=" " alt="" coords="196,5,296,32"/>
+<area shape="rect" id="node10" href="$structRtcmDecoder.html" title=" " alt="" coords="191,107,301,133"/>
+<area shape="rect" id="node12" href="$structSinexParser.html" title=" " alt="" coords="197,259,295,285"/>
+<area shape="rect" id="node13" href="$structSlrParser.html" title="Interface for slr streams." alt="" coords="206,309,286,336"/>
+<area shape="rect" id="node14" href="$structSp3Parser.html" title=" " alt="" coords="203,360,289,387"/>
+<area shape="rect" id="node11" href="$structRtcmParser.html" title=" " alt="" coords="357,81,455,108"/>
+<area shape="rect" id="node15" href="$structPacketStatistics.html" title=" " alt="" coords="11,152,137,179"/>
+<area shape="rect" id="node16" href="$structParser.html" title=" " alt="" coords="43,215,105,241"/>
+<area shape="rect" id="node17" href="$structRtcmTrace.html" title=" " alt="" coords="29,461,119,488"/>
+<area shape="rect" id="node18" href="$structRtcmEncoder.html" title=" " alt="" coords="192,461,300,488"/>
+<area shape="rect" id="node19" href="$structStream.html" title=" " alt="" coords="39,537,109,564"/>
+<area shape="rect" id="node20" href="$structFileStream.html" title=" " alt="" coords="201,512,291,539"/>
+<area shape="rect" id="node21" href="$structSerialStream.html" title=" " alt="" coords="193,563,299,589"/>
 </map>

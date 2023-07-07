@@ -1,6 +1,8 @@
 <map id="Peph" name="Peph">
-<area shape="rect" id="node1" title="precise ephemeris" alt="" coords="206,468,289,604"/>
-<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,35,148,332"/>
-<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="172,5,323,361"/>
-<area shape="rect" id="node4" title=" " alt="" coords="347,145,427,222"/>
+<area shape="rect" id="node1" title="precise ephemeris" alt="" coords="343,800,416,877"/>
+<area shape="rect" id="node2" href="$structPclk.html" title="precise clock" alt="" coords="5,374,97,481"/>
+<area shape="rect" id="node3" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="121,279,264,576"/>
+<area shape="rect" id="node4" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="288,132,471,723"/>
+<area shape="rect" id="node5" href="$structVectorEcef.html" title=" " alt="" coords="495,352,613,503"/>
+<area shape="rect" id="node6" title=" " alt="" coords="567,5,647,83"/>
 </map>

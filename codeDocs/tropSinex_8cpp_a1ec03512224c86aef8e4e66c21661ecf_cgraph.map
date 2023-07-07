@@ -7,6 +7,6 @@
 <area shape="rect" id="node6" href="$tropSinex_8cpp.html#a4a0e58dc579e8bf6d843084b2218b06d" title="Set antenna calibration model data for SITE/ANTENNA block." alt="" coords="184,209,380,250"/>
 <area shape="rect" id="node7" href="$tropSinex_8cpp.html#a4a465038c77f0160662676189ddd43f3" title="Set troposphere solution data." alt="" coords="234,275,330,301"/>
 <area shape="rect" id="node8" href="$tropSinex_8cpp.html#a95b1f2181cb3285e229337473ca2948c" title="Set data for trop description block." alt="" coords="231,325,333,352"/>
-<area shape="rect" id="node9" href="$tropSinex_8cpp.html#ac3ac2e24c9eaa98dcd7252e3106626cb" title="Set marker name for file header." alt="" coords="201,376,363,403"/>
-<area shape="rect" id="node10" href="$tropSinex_8cpp.html#ab59eaf15f25fdbc2cdf51adbadfc9ad3" title="Write troposphere Sinex data to file." alt="" coords="205,427,359,453"/>
+<area shape="rect" id="node9" href="$tropSinex_8cpp.html#ac3ac2e24c9eaa98dcd7252e3106626cb" title="Reset comments to their default values." alt="" coords="201,376,363,403"/>
+<area shape="rect" id="node10" href="$tropSinex_8cpp.html#af9d3901b3a9964efc0c953a396f9e145" title="Write troposphere Sinex data to file." alt="" coords="205,427,359,453"/>
 </map>

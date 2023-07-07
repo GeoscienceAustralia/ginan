@@ -1,6 +1,5 @@
 <map id="parse_snx_receivers" name="parse_snx_receivers">
-<area shape="rect" id="node1" title=" " alt="" coords="5,56,160,83"/>
-<area shape="rect" id="node2" href="$sinex_8cpp.html#a06fabc81a2cc41dfee260450a527ad2d" title=" " alt="" coords="233,5,282,32"/>
-<area shape="rect" id="node3" href="$sinex_8cpp.html#a3f50113efa34c8e2781c4489b38a61be" title=" " alt="" coords="208,56,307,83"/>
-<area shape="rect" id="node4" href="$gTime_8cpp.html#a5a4c5275b1ae86b7791c04d141dc1f29" title=" " alt="" coords="216,107,299,133"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,31,160,57"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#a06fabc81a2cc41dfee260450a527ad2d" title="Trims leading &amp; trailing whitespace." alt="" coords="233,5,282,32"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#a5ed46782b3a26cc6d0a1a30e650be386" title=" " alt="" coords="208,56,307,83"/>
 </map>

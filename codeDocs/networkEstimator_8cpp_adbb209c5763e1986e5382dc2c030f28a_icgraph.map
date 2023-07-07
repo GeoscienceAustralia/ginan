@@ -1,4 +1,6 @@
 <map id="stationEopPartials" name="stationEopPartials">
-<area shape="rect" id="node1" title=" " alt="" coords="192,5,332,32"/>
-<area shape="rect" id="node2" href="$networkEstimator_8cpp.html#a36828506971a6b66c6e61db51197c9e1" title="Estimates parameters for a network of stations simultaneously." alt="" coords="5,5,144,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="199,56,339,83"/>
+<area shape="rect" id="node2" href="$networkEstimator_8cpp.html#a36828506971a6b66c6e61db51197c9e1" title="Estimates parameters for a network of stations simultaneously." alt="" coords="9,5,147,32"/>
+<area shape="rect" id="node3" href="$ppp__obs_8cpp.html#a46f08ecb654721e43ba50b37ab7919d0" title=" " alt="" coords="5,56,151,83"/>
+<area shape="rect" id="node4" href="$ppp__slr_8cpp.html#a21fafa3b27f000354dab5a5f7c052841" title="eops" alt="" coords="43,107,113,133"/>
 </map>

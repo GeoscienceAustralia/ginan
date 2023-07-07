@@ -1,4 +1,4 @@
 <map id="SatSys::getId" name="SatSys::getId">
-<area shape="rect" id="node1" title="Sets a 4 character c_string of this satellite&#39;s id." alt="" coords="5,5,112,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,112,32"/>
 <area shape="rect" id="node2" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="160,5,287,32"/>
 </map>

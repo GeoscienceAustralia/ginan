@@ -1,6 +1,5 @@
 <map id="PhaseCenterData" name="PhaseCenterData">
-<area shape="rect" id="node1" title=" " alt="" coords="90,204,225,399"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,64,83"/>
-<area shape="rect" id="node3" title=" " alt="" coords="89,5,226,83"/>
-<area shape="rect" id="node4" title=" " alt="" coords="251,5,472,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="101,277,236,384"/>
+<area shape="rect" id="node2" href="$structAzElMapData.html" title=" " alt="" coords="5,5,188,156"/>
+<area shape="rect" id="node3" title=" " alt="" coords="213,42,271,119"/>
 </map>

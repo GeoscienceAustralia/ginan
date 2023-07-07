@@ -21,10 +21,10 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="structNtripUploader.html#a0763f31214a177f3d9be2301138fd0e7" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structNtripUploader.html#a391d7d2c8f7b72a659bd35d8242fb30a" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="198,-0.5 198,-30.5 373,-30.5 373,-0.5 198,-0.5"/>
 <text text-anchor="start" x="206" y="-18.5" font-family="Helvetica,sans-Serif" font-size="10.00">NtripUploader::messageTimeout</text>
-<text text-anchor="middle" x="285.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">_hanlder</text>
+<text text-anchor="middle" x="285.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">_handler</text>
 </a>
 </g>
 </g>

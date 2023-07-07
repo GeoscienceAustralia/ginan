@@ -60,46 +60,46 @@
 <title>Node1&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M391.13,-70.59C379.26,-58.4 356.89,-37.98 333,-29.25 246.14,2.51 209.84,13.57 125,-23.25 88.86,-38.93 61.65,-80.04 50.73,-98.74"/>
 </g>
-<!-- Node14 -->
+<!-- Node11 -->
 <g id="node5" class="node">
-<title>Node14</title>
+<title>Node11</title>
 <g id="a_node5"><a xlink:href="GinARpivot_8cpp.html#a50a6ec448f33d1f09d19f2fb10e02299" target="_top" xlink:title="Reset receiver on network pivot.">
 <polygon fill="white" stroke="black" points="259,-127.75 259,-146.75 324,-146.75 324,-127.75 259,-127.75"/>
 <text text-anchor="middle" x="291.5" y="-134.75" font-family="Helvetica,sans-Serif" font-size="10.00">Reset_rec</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node14 -->
+<!-- Node1&#45;&gt;Node11 -->
 <g id="edge5" class="edge">
-<title>Node1&#45;&gt;Node14</title>
+<title>Node1&#45;&gt;Node11</title>
 <path fill="none" stroke="midnightblue" d="M381.76,-89.92C361.88,-100.46 330.25,-117.23 310.47,-127.72"/>
 </g>
-<!-- Node15 -->
+<!-- Node12 -->
 <g id="node6" class="node">
-<title>Node15</title>
+<title>Node12</title>
 <g id="a_node6"><a xlink:href="GinARpivot_8cpp.html#a9ea97fd05df0f2f7129c1b1eebeb58b4" target="_top" xlink:title="Initilize end&#45;user AR pivot.">
 <polygon fill="white" stroke="black" points="250,-51.75 250,-70.75 333,-70.75 333,-51.75 250,-51.75"/>
 <text text-anchor="middle" x="291.5" y="-58.75" font-family="Helvetica,sans-Serif" font-size="10.00">init_usr_pivot</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node15 -->
+<!-- Node1&#45;&gt;Node12 -->
 <g id="edge9" class="edge">
-<title>Node1&#45;&gt;Node15</title>
+<title>Node1&#45;&gt;Node12</title>
 <path fill="none" stroke="midnightblue" d="M368.91,-74.75C357.74,-72.78 344.99,-70.52 333.14,-68.43"/>
 </g>
-<!-- Node16 -->
+<!-- Node13 -->
 <g id="node7" class="node">
-<title>Node16</title>
+<title>Node13</title>
 <g id="a_node7"><a xlink:href="GinARpivot_8cpp.html#a82123e7131dcf632ddf6dc4baf239255" target="_top" xlink:title="Update User Pivot.">
 <polygon fill="white" stroke="red" points="125,-32.75 125,-51.75 214,-51.75 214,-32.75 125,-32.75"/>
 <text text-anchor="middle" x="169.5" y="-39.75" font-family="Helvetica,sans-Serif" font-size="10.00">updt_usr_pivot</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node16 -->
+<!-- Node1&#45;&gt;Node13 -->
 <g id="edge11" class="edge">
-<title>Node1&#45;&gt;Node16</title>
+<title>Node1&#45;&gt;Node13</title>
 <path fill="none" stroke="midnightblue" d="M387.53,-70.53C374.69,-61.18 353.69,-47.71 333,-42.25 293.72,-31.88 247.21,-33.18 214.04,-36.3"/>
 </g>
 <!-- Node2&#45;&gt;Node3 -->
@@ -117,19 +117,19 @@
 <title>Node3&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M147.91,-155.71C125.21,-145.18 88.89,-128.35 66.15,-117.82"/>
 </g>
-<!-- Node14&#45;&gt;Node3 -->
+<!-- Node11&#45;&gt;Node3 -->
 <g id="edge6" class="edge">
-<title>Node14&#45;&gt;Node3</title>
+<title>Node11&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M258.97,-144.6C244.39,-148.01 226.89,-152.09 211.31,-155.72"/>
 </g>
-<!-- Node14&#45;&gt;Node4 -->
+<!-- Node11&#45;&gt;Node4 -->
 <g id="edge7" class="edge">
-<title>Node14&#45;&gt;Node4</title>
+<title>Node11&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M266.11,-127.71C251.29,-122.39 231.84,-116.25 214,-113.25 172.01,-106.18 123.32,-105.53 89.11,-106.29"/>
 </g>
-<!-- Node15&#45;&gt;Node16 -->
+<!-- Node12&#45;&gt;Node13 -->
 <g id="edge10" class="edge">
-<title>Node15&#45;&gt;Node16</title>
+<title>Node12&#45;&gt;Node13</title>
 <path fill="none" stroke="midnightblue" d="M249.87,-54.81C238.45,-53.01 225.98,-51.03 214.37,-49.19"/>
 </g>
 </g>

@@ -1,8 +1,5 @@
 <map id="Model" name="Model">
-<area shape="rect" id="node1" title=" " alt="" coords="301,189,493,516"/>
-<area shape="rect" id="node2" href="$structModelRecPos.html" title=" " alt="" coords="5,20,115,97"/>
-<area shape="rect" id="node3" href="$structModelSatPos.html" title=" " alt="" coords="139,20,295,97"/>
-<area shape="rect" id="node4" href="$structModelClk.html" title=" " alt="" coords="319,20,475,97"/>
-<area shape="rect" id="node5" href="$structModelTrop.html" title="Options to set the tropospheric model used in calculations." alt="" coords="499,20,589,97"/>
-<area shape="rect" id="node6" href="$structModelTides.html" title=" " alt="" coords="613,5,709,112"/>
+<area shape="rect" id="node1" title=" " alt="" coords="9,189,209,443"/>
+<area shape="rect" id="node2" href="$structModelTrop.html" title="Options to set the tropospheric model used in calculations." alt="" coords="5,20,95,112"/>
+<area shape="rect" id="node3" href="$structModelTides.html" title=" " alt="" coords="119,5,215,127"/>
 </map>

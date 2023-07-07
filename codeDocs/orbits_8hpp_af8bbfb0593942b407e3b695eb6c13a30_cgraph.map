@@ -1,7 +1,7 @@
 <map id="orbPartials" name="orbPartials">
 <area shape="rect" id="node1" title=" " alt="" coords="5,81,97,108"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="163,5,257,32"/>
-<area shape="rect" id="node3" href="$structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" title=" " alt="" coords="145,56,275,83"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="163,5,257,32"/>
+<area shape="rect" id="node3" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="145,56,275,83"/>
 <area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="167,107,253,133"/>
-<area shape="rect" id="node5" href="$preceph_8cpp.html#a3484687362aab309b89c125d59887180" title=" " alt="" coords="170,157,250,184"/>
+<area shape="rect" id="node5" href="$ephPrecise_8cpp.html#a9a01152aef47228af7e3cfa035bd643d" title="polynomial interpolation by Neville&#39;s algorithm" alt="" coords="163,157,257,184"/>
 </map>

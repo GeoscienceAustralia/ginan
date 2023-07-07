@@ -1,5 +1,5 @@
 <map id="readsp3" name="readsp3">
-<area shape="rect" id="node1" title="read an epoch of data from an sp3 precise ephemeris file" alt="" coords="215,31,289,57"/>
-<area shape="rect" id="node2" href="$sp3_8cpp.html#a318ada9d3e4098983bc500ae3985f4e3" title=" " alt="" coords="29,5,143,32"/>
-<area shape="rect" id="node3" href="$structSP3Stream.html#a9cb52c380fbf42789ccdc2f3bfa7770e" title=" " alt="" coords="5,56,167,83"/>
+<area shape="rect" id="node1" title="read an epoch of data from an sp3 precise ephemeris file" alt="" coords="184,31,259,57"/>
+<area shape="rect" id="node2" href="$sp3_8cpp.html#a318ada9d3e4098983bc500ae3985f4e3" title=" " alt="" coords="13,5,128,32"/>
+<area shape="rect" id="node3" href="$structSp3Parser.html#aced4fed564e773d77fa436e9842e03ee" title=" " alt="" coords="5,56,136,83"/>
 </map>

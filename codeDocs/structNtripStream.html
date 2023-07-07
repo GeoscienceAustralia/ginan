@@ -72,8 +72,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-attribs">Data Fields</a>  </div>
+<a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle"><div class="title">NtripStream Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -94,13 +93,15 @@ Collaboration diagram for NtripStream:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aeb821b2c4050cc16c7ece01651d51724"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripStream.html#aeb821b2c4050cc16c7ece01651d51724">NtripStream</a> (const string &amp;url_str)</td></tr>
 <tr class="separator:aeb821b2c4050cc16c7ece01651d51724"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afab7dfd25c95b98eadfe937b7d37bb7f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripStream.html#afab7dfd25c95b98eadfe937b7d37bb7f">getData</a> ()</td></tr>
-<tr class="memdesc:afab7dfd25c95b98eadfe937b7d37bb7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve data from the stream and store it for later removal.  <a href="structNtripStream.html#afab7dfd25c95b98eadfe937b7d37bb7f">More...</a><br /></td></tr>
-<tr class="separator:afab7dfd25c95b98eadfe937b7d37bb7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5d99e1daae3868e84a342ce6cd6a20c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripStream.html#ab5d99e1daae3868e84a342ce6cd6a20c">getData</a> () override</td></tr>
+<tr class="memdesc:ab5d99e1daae3868e84a342ce6cd6a20c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve data from the stream and store it for later removal.  <a href="structNtripStream.html#ab5d99e1daae3868e84a342ce6cd6a20c">More...</a><br /></td></tr>
+<tr class="separator:ab5d99e1daae3868e84a342ce6cd6a20c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5271a75657d300027a72740f6b0ec7cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripStream.html#a5271a75657d300027a72740f6b0ec7cb">connected</a> () override</td></tr>
 <tr class="separator:a5271a75657d300027a72740f6b0ec7cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1df0f85486da8edf84e47265095d9d56"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripStream.html#a1df0f85486da8edf84e47265095d9d56">dataChunkDownloaded</a> (vector&lt; char &gt; dataChunk) override</td></tr>
-<tr class="separator:a1df0f85486da8edf84e47265095d9d56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e18fbd538025ef2ba7d1c6da752b286"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripStream.html#a5e18fbd538025ef2ba7d1c6da752b286">dataChunkDownloaded</a> (vector&lt; char &gt; &amp;dataChunk) override</td></tr>
+<tr class="separator:a5e18fbd538025ef2ba7d1c6da752b286"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecde76d25c3b67395e97e45b99dd07f8"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripStream.html#aecde76d25c3b67395e97e45b99dd07f8">~NtripStream</a> ()=default</td></tr>
+<tr class="separator:aecde76d25c3b67395e97e45b99dd07f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structNtripSocket"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structNtripSocket')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structNtripSocket.html">NtripSocket</a></td></tr>
 <tr class="memitem:a18dbab18eb33fc92977b2608555e22fe inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a18dbab18eb33fc92977b2608555e22fe">NtripSocket</a> (const string &amp;url_str)</td></tr>
 <tr class="separator:a18dbab18eb33fc92977b2608555e22fe inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -114,10 +115,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad994654acb49c4fd1ce8d0d2e6b64f9a inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af13e4ab3f0901d6f692a5f5d53ad347b inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#af13e4ab3f0901d6f692a5f5d53ad347b">logChunkError</a> ()</td></tr>
 <tr class="separator:af13e4ab3f0901d6f692a5f5d53ad347b inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4f527e848cbdc2705a10e83dd3b80c77 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a4f527e848cbdc2705a10e83dd3b80c77">printChunkHex</a> (vector&lt; char &gt; chunk)</td></tr>
-<tr class="separator:a4f527e848cbdc2705a10e83dd3b80c77 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe738554e426fe8399fda7d5a54831a9 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#afe738554e426fe8399fda7d5a54831a9">dataChunkDownloaded</a> (vector&lt; char &gt; dataChunk)</td></tr>
-<tr class="separator:afe738554e426fe8399fda7d5a54831a9 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fc9897e885328c6f3945d7f7b4633c8 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a0fc9897e885328c6f3945d7f7b4633c8">dataChunkDownloaded</a> (vector&lt; char &gt; &amp;dataChunk)</td></tr>
+<tr class="separator:a0fc9897e885328c6f3945d7f7b4633c8 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b63d150cc2dbfc6d9add01a2a4e5135 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a8b63d150cc2dbfc6d9add01a2a4e5135">readContentDownloaded</a> (vector&lt; char &gt; content)</td></tr>
 <tr class="separator:a8b63d150cc2dbfc6d9add01a2a4e5135 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb40c29b7c882ca44ea1ed836c50303a inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#adb40c29b7c882ca44ea1ed836c50303a">connected</a> ()</td></tr>
@@ -126,10 +125,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a78c8392664a94a36db0d32542c70dbd0 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4051a1aa10eb60dc86c9c3e66a898435 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a4051a1aa10eb60dc86c9c3e66a898435">networkLog</a> (string message)</td></tr>
 <tr class="separator:a4051a1aa10eb60dc86c9c3e66a898435 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb8d5e5130f60295c4bba3a29c4d3713 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#abb8d5e5130f60295c4bba3a29c4d3713">connectionError</a> (const <a class="el" href="ntripSocket_8hpp.html#abcde13a646ed975ad5cdbe88245ffb7a">boost::system::error_code</a> &amp;err, string operation)</td></tr>
-<tr class="separator:abb8d5e5130f60295c4bba3a29c4d3713 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5507bb420f27450ff959875c7313ae3 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#ab5507bb420f27450ff959875c7313ae3">serverResponse</a> (unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> status_code, string http_version)</td></tr>
-<tr class="separator:ab5507bb420f27450ff959875c7313ae3 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe216bcf3a1ed5577c910e17dd49d894 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#abe216bcf3a1ed5577c910e17dd49d894">connectionError</a> (const <a class="el" href="ntripSocket_8hpp.html#abcde13a646ed975ad5cdbe88245ffb7a">boost::system::error_code</a> &amp;err, string operation)</td></tr>
+<tr class="separator:abe216bcf3a1ed5577c910e17dd49d894 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af163f9911a2b7b58a2cf93a373eeab55 inherit pub_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#af163f9911a2b7b58a2cf93a373eeab55">serverResponse</a> (unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> status_code, string http_version)</td></tr>
+<tr class="separator:af163f9911a2b7b58a2cf93a373eeab55 inherit pub_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structNetworkStatistics"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structNetworkStatistics')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structNetworkStatistics.html">NetworkStatistics</a></td></tr>
 <tr class="memitem:a6355d0b3c27f8f95ad1b6646fa7333f8 inherit pub_methods_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a6355d0b3c27f8f95ad1b6646fa7333f8">getNetworkStatistics</a> (<a class="el" href="structGTime.html">GTime</a> now, string label)</td></tr>
 <tr class="separator:a6355d0b3c27f8f95ad1b6646fa7333f8 inherit pub_methods_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -143,29 +142,49 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae5b148edcc8d178932e524e789d7baed inherit pub_methods_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a260c3bc94773f9543be659c9d7db8fa8 inherit pub_methods_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a260c3bc94773f9543be659c9d7db8fa8">onErrorStatistics</a> (const <a class="el" href="ntripSocket_8hpp.html#abcde13a646ed975ad5cdbe88245ffb7a">boost::system::error_code</a> &amp;err, string operation)</td></tr>
 <tr class="separator:a260c3bc94773f9543be659c9d7db8fa8 inherit pub_methods_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_structSerialStream"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structSerialStream')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structSerialStream.html">SerialStream</a></td></tr>
+<tr class="memitem:a3fbc684cfb4fa0053b9e257f02635881 inherit pub_methods_structSerialStream"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#a3fbc684cfb4fa0053b9e257f02635881">SerialStream</a> ()</td></tr>
+<tr class="separator:a3fbc684cfb4fa0053b9e257f02635881 inherit pub_methods_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa59bcf4f8cd7dba9fcad92b1482a1341 inherit pub_methods_structSerialStream"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#aa59bcf4f8cd7dba9fcad92b1482a1341">SerialStream</a> (string <a class="el" href="structSerialStream.html#ae9e6197de00887124dca491898b576cc">path</a>)</td></tr>
+<tr class="separator:aa59bcf4f8cd7dba9fcad92b1482a1341 inherit pub_methods_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8157eef6f20b8b32b97ab73e9a256f6 inherit pub_methods_structSerialStream"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#af8157eef6f20b8b32b97ab73e9a256f6">openStream</a> ()</td></tr>
+<tr class="separator:af8157eef6f20b8b32b97ab73e9a256f6 inherit pub_methods_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ee9cf21c97d0534461a771d03ea4057 inherit pub_methods_structSerialStream"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#a1ee9cf21c97d0534461a771d03ea4057">getData</a> ()</td></tr>
+<tr class="separator:a1ee9cf21c97d0534461a771d03ea4057 inherit pub_methods_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a230ed90f7d1845cde60eafa64b3c7390 inherit pub_methods_structSerialStream"><td class="memItemLeft" align="right" valign="top">unique_ptr&lt; std::istream &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#a230ed90f7d1845cde60eafa64b3c7390">getIStream_ptr</a> () override</td></tr>
+<tr class="separator:a230ed90f7d1845cde60eafa64b3c7390 inherit pub_methods_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96406ba94cfea817d044a9f59f3694ef inherit pub_methods_structSerialStream"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#a96406ba94cfea817d044a9f59f3694ef">~SerialStream</a> ()</td></tr>
+<tr class="separator:a96406ba94cfea817d044a9f59f3694ef inherit pub_methods_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_structStream"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structStream')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structStream.html">Stream</a></td></tr>
+<tr class="memitem:a342bc7a0cdb87de848ccd050ab8bf457 inherit pub_methods_structStream"><td class="memItemLeft" align="right" valign="top">virtual unique_ptr&lt; std::istream &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structStream.html#a342bc7a0cdb87de848ccd050ab8bf457">getIStream_ptr</a> ()=0</td></tr>
+<tr class="separator:a342bc7a0cdb87de848ccd050ab8bf457 inherit pub_methods_structStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3038bf23a448a4b3e1a237a8925d7c6d inherit pub_methods_structStream"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structStream.html#a3038bf23a448a4b3e1a237a8925d7c6d">isDead</a> ()</td></tr>
+<tr class="memdesc:a3038bf23a448a4b3e1a237a8925d7c6d inherit pub_methods_structStream"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check to see if this stream has run out of data.  <a href="structStream.html#a3038bf23a448a4b3e1a237a8925d7c6d">More...</a><br /></td></tr>
+<tr class="separator:a3038bf23a448a4b3e1a237a8925d7c6d inherit pub_methods_structStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a171c8f6ab62e1f20ee50c4c38cb5f811 inherit pub_methods_structStream"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structStream.html#a171c8f6ab62e1f20ee50c4c38cb5f811">~Stream</a> ()=default</td></tr>
+<tr class="separator:a171c8f6ab62e1f20ee50c4c38cb5f811 inherit pub_methods_structStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
-Data Fields</h2></td></tr>
-<tr class="memitem:acce425aa33aa4c23d1d0c8c91b985368"><td class="memItemLeft" align="right" valign="top">vector&lt; char &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripStream.html#acce425aa33aa4c23d1d0c8c91b985368">receivedData</a></td></tr>
-<tr class="separator:acce425aa33aa4c23d1d0c8c91b985368"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_static_methods_structNtripSocket"><td colspan="2" onclick="javascript:toggleInherit('pub_static_methods_structNtripSocket')"><img src="closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="structNtripSocket.html">NtripSocket</a></td></tr>
+<tr class="memitem:a6ebc5997884c9c3e89ba91691881d99d inherit pub_static_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a6ebc5997884c9c3e89ba91691881d99d">runService</a> ()</td></tr>
+<tr class="separator:a6ebc5997884c9c3e89ba91691881d99d inherit pub_static_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1b05a4b0dd60eaebbd27a265c1fdefb inherit pub_static_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#ab1b05a4b0dd60eaebbd27a265c1fdefb">startClients</a> ()</td></tr>
+<tr class="separator:ab1b05a4b0dd60eaebbd27a265c1fdefb inherit pub_static_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_structNtripSocket"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structNtripSocket')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structNtripSocket.html">NtripSocket</a></td></tr>
 <tr class="memitem:a2277a35f1c0f45166206e9ec7362c60c inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structURL.html">URL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a2277a35f1c0f45166206e9ec7362c60c">url</a></td></tr>
 <tr class="separator:a2277a35f1c0f45166206e9ec7362c60c inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7af391a81f21819e3067f9f1a6e3a9c inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#ae7af391a81f21819e3067f9f1a6e3a9c">reconnectDelay</a> = 1</td></tr>
 <tr class="separator:ae7af391a81f21819e3067f9f1a6e3a9c inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9fd1a0b992e3beb46372fcb249965fdd inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9fd1a0b992e3beb46372fcb249965fdd">disconnectionCount</a> = 0</td></tr>
+<tr class="memitem:a9fd1a0b992e3beb46372fcb249965fdd inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9fd1a0b992e3beb46372fcb249965fdd">disconnectionCount</a> = 0</td></tr>
 <tr class="separator:a9fd1a0b992e3beb46372fcb249965fdd inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a532434245c029412f0eae733d4174161 inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a532434245c029412f0eae733d4174161">isConnected</a> = false</td></tr>
 <tr class="separator:a532434245c029412f0eae733d4174161 inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec29c6c42403c3177c9f81b38c2bd853 inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#aec29c6c42403c3177c9f81b38c2bd853">finishedReadingStream</a> = false</td></tr>
-<tr class="separator:aec29c6c42403c3177c9f81b38c2bd853 inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ff06e73f29b00de699adf6648686b26 inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9ff06e73f29b00de699adf6648686b26">chunked_message_length</a> = 0</td></tr>
-<tr class="separator:a9ff06e73f29b00de699adf6648686b26 inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f9719eec2572cd5f8bb58564933c9f7 inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a6f9719eec2572cd5f8bb58564933c9f7">numberErroredChunks</a> = 0</td></tr>
+<tr class="memitem:a6f9719eec2572cd5f8bb58564933c9f7 inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a6f9719eec2572cd5f8bb58564933c9f7">numberErroredChunks</a> = 0</td></tr>
 <tr class="separator:a6f9719eec2572cd5f8bb58564933c9f7 inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adae0f533c7488c9a71d9055c629babd5 inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#adae0f533c7488c9a71d9055c629babd5">logHttpSentReceived</a> = false</td></tr>
 <tr class="separator:adae0f533c7488c9a71d9055c629babd5 inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c03e29a441fc07bc9d48ab4700d3528 inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9c03e29a441fc07bc9d48ab4700d3528">content_length</a> = 0</td></tr>
+<tr class="memitem:a9c03e29a441fc07bc9d48ab4700d3528 inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9c03e29a441fc07bc9d48ab4700d3528">content_length</a> = 0</td></tr>
 <tr class="separator:a9c03e29a441fc07bc9d48ab4700d3528 inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab53df8fec2b66d754a5382077a6f83da inherit pub_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">B_asio::ssl::context&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#ab53df8fec2b66d754a5382077a6f83da">ssl_context</a></td></tr>
 <tr class="separator:ab53df8fec2b66d754a5382077a6f83da inherit pub_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -178,26 +197,28 @@ Data Fields</h2></td></tr>
 <tr class="separator:a39c81283c75634b6608e5f9cbde0155e inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a080afeba66e8262525d2b9f046a855ac inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a080afeba66e8262525d2b9f046a855ac">networkTraceFilename</a> = &quot;&quot;</td></tr>
 <tr class="separator:a080afeba66e8262525d2b9f046a855ac inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab31a544138efa949bf0b1f9a24f28761 inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#ab31a544138efa949bf0b1f9a24f28761">connectCount</a> = 0</td></tr>
+<tr class="memitem:ab31a544138efa949bf0b1f9a24f28761 inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#ab31a544138efa949bf0b1f9a24f28761">connectCount</a> = 0</td></tr>
 <tr class="separator:ab31a544138efa949bf0b1f9a24f28761 inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a94d64d3110b48edabf7fc0ed9ce83a6b inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a94d64d3110b48edabf7fc0ed9ce83a6b">disconnectCount</a> = 0</td></tr>
+<tr class="memitem:a94d64d3110b48edabf7fc0ed9ce83a6b inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a94d64d3110b48edabf7fc0ed9ce83a6b">disconnectCount</a> = 0</td></tr>
 <tr class="separator:a94d64d3110b48edabf7fc0ed9ce83a6b inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad4cf472cdae8640472dcaecaf15298aa inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#ad4cf472cdae8640472dcaecaf15298aa">chunksSent</a> = 0</td></tr>
+<tr class="memitem:ad4cf472cdae8640472dcaecaf15298aa inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#ad4cf472cdae8640472dcaecaf15298aa">chunksSent</a> = 0</td></tr>
 <tr class="separator:ad4cf472cdae8640472dcaecaf15298aa inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a448eb7d29b952866d0277551a89f04df inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a448eb7d29b952866d0277551a89f04df">chunksReceived</a> = 0</td></tr>
+<tr class="memitem:a448eb7d29b952866d0277551a89f04df inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a448eb7d29b952866d0277551a89f04df">chunksReceived</a> = 0</td></tr>
 <tr class="separator:a448eb7d29b952866d0277551a89f04df inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c29d03897059c650c1696fff25867f8 inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top">boost::posix_time::time_duration&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a8c29d03897059c650c1696fff25867f8">connectedDuration</a> = boost::posix_time::hours(0)</td></tr>
 <tr class="separator:a8c29d03897059c650c1696fff25867f8 inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a61cd1c508645dd32cb8088ade7374b87 inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top">boost::posix_time::time_duration&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a61cd1c508645dd32cb8088ade7374b87">disconnectedDuration</a> = boost::posix_time::hours(0)</td></tr>
 <tr class="separator:a61cd1c508645dd32cb8088ade7374b87 inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pub_static_methods_structNtripSocket"><td colspan="2" onclick="javascript:toggleInherit('pub_static_methods_structNtripSocket')"><img src="closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="structNtripSocket.html">NtripSocket</a></td></tr>
-<tr class="memitem:a6ebc5997884c9c3e89ba91691881d99d inherit pub_static_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a6ebc5997884c9c3e89ba91691881d99d">runService</a> ()</td></tr>
-<tr class="separator:a6ebc5997884c9c3e89ba91691881d99d inherit pub_static_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1b05a4b0dd60eaebbd27a265c1fdefb inherit pub_static_methods_structNtripSocket"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#ab1b05a4b0dd60eaebbd27a265c1fdefb">startClients</a> ()</td></tr>
-<tr class="separator:ab1b05a4b0dd60eaebbd27a265c1fdefb inherit pub_static_methods_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_structSerialStream"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structSerialStream')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structSerialStream.html">SerialStream</a></td></tr>
+<tr class="memitem:ae9e6197de00887124dca491898b576cc inherit pub_attribs_structSerialStream"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#ae9e6197de00887124dca491898b576cc">path</a></td></tr>
+<tr class="separator:ae9e6197de00887124dca491898b576cc inherit pub_attribs_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af66b0664e3b72e5192d45f54e407274a inherit pub_attribs_structSerialStream"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#af66b0664e3b72e5192d45f54e407274a">fileDescriptor</a> = -1</td></tr>
+<tr class="separator:af66b0664e3b72e5192d45f54e407274a inherit pub_attribs_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36c83729ed690325e9f9232faf30c1cb inherit pub_attribs_structSerialStream"><td class="memItemLeft" align="right" valign="top">vector&lt; char &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSerialStream.html#a36c83729ed690325e9f9232faf30c1cb">receivedData</a></td></tr>
+<tr class="separator:a36c83729ed690325e9f9232faf30c1cb inherit pub_attribs_structSerialStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_structStream"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structStream')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structStream.html">Stream</a></td></tr>
+<tr class="memitem:ab122ed55a13dfd4a06dd87edd2d08849 inherit pub_attribs_structStream"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structStream.html#ab122ed55a13dfd4a06dd87edd2d08849">sourceString</a></td></tr>
+<tr class="separator:ab122ed55a13dfd4a06dd87edd2d08849 inherit pub_attribs_structStream"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_static_attribs_structNtripSocket"><td colspan="2" onclick="javascript:toggleInherit('pub_static_attribs_structNtripSocket')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="structNtripSocket.html">NtripSocket</a></td></tr>
 <tr class="memitem:aa5ff07e596db2f5185eabc27513156ed inherit pub_static_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">static B_asio::io_service&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#aa5ff07e596db2f5185eabc27513156ed">io_service</a></td></tr>
 <tr class="separator:aa5ff07e596db2f5185eabc27513156ed inherit pub_static_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -223,6 +244,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a7a99343c4bc1efb637eb3f21edd6ac62 inherit pro_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a70f9ea821fcdf1ca45462ffa8a4a6387 inherit pro_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">boost::asio::streambuf&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a70f9ea821fcdf1ca45462ffa8a4a6387">downloadBuf</a></td></tr>
 <tr class="separator:a70f9ea821fcdf1ca45462ffa8a4a6387 inherit pro_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93f5f10f4bde03f0d8091828d42520af inherit pro_attribs_structNtripSocket"><td class="memItemLeft" align="right" valign="top">vector&lt; char &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a93f5f10f4bde03f0d8091828d42520af">receivedHttpData</a></td></tr>
+<tr class="separator:a93f5f10f4bde03f0d8091828d42520af inherit pro_attribs_structNtripSocket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aeb821b2c4050cc16c7ece01651d51724" name="aeb821b2c4050cc16c7ece01651d51724"></a>
@@ -253,6 +276,31 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="structNtripStream_aeb821b2c4050cc16c7ece01651d51724_cgraph.svg" width="403" height="112"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="aecde76d25c3b67395e97e45b99dd07f8" name="aecde76d25c3b67395e97e45b99dd07f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aecde76d25c3b67395e97e45b99dd07f8">&#9670;&nbsp;</a></span>~NtripStream()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual NtripStream::~NtripStream </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -289,8 +337,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a1df0f85486da8edf84e47265095d9d56" name="a1df0f85486da8edf84e47265095d9d56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1df0f85486da8edf84e47265095d9d56">&#9670;&nbsp;</a></span>dataChunkDownloaded()</h2>
+<a id="a5e18fbd538025ef2ba7d1c6da752b286" name="a5e18fbd538025ef2ba7d1c6da752b286"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e18fbd538025ef2ba7d1c6da752b286">&#9670;&nbsp;</a></span>dataChunkDownloaded()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -299,9 +347,9 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool NtripStream::dataChunkDownloaded </td>
+          <td class="memname">void NtripStream::dataChunkDownloaded </td>
           <td>(</td>
-          <td class="paramtype">vector&lt; char &gt;&#160;</td>
+          <td class="paramtype">vector&lt; char &gt; &amp;&#160;</td>
           <td class="paramname"><em>dataChunk</em></td><td>)</td>
           <td></td>
         </tr>
@@ -313,15 +361,18 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Reimplemented from <a class="el" href="structNtripSocket.html#afe738554e426fe8399fda7d5a54831a9">NtripSocket</a>.</p>
+<p>Reimplemented from <a class="el" href="structNtripSocket.html#a0fc9897e885328c6f3945d7f7b4633c8">NtripSocket</a>.</p>
 
 </div>
 </div>
-<a id="afab7dfd25c95b98eadfe937b7d37bb7f" name="afab7dfd25c95b98eadfe937b7d37bb7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afab7dfd25c95b98eadfe937b7d37bb7f">&#9670;&nbsp;</a></span>getData()</h2>
+<a id="ab5d99e1daae3868e84a342ce6cd6a20c" name="ab5d99e1daae3868e84a342ce6cd6a20c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5d99e1daae3868e84a342ce6cd6a20c">&#9670;&nbsp;</a></span>getData()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void NtripStream::getData </td>
@@ -330,29 +381,16 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Retrieve data from the stream and store it for later removal. </p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structNtripStream_afab7dfd25c95b98eadfe937b7d37bb7f_icgraph.svg" width="411" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
-</div>
-</div>
-<h2 class="groupheader">Field Documentation</h2>
-<a id="acce425aa33aa4c23d1d0c8c91b985368" name="acce425aa33aa4c23d1d0c8c91b985368"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acce425aa33aa4c23d1d0c8c91b985368">&#9670;&nbsp;</a></span>receivedData</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">vector&lt;char&gt; NtripStream::receivedData</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
+<p>Reimplemented from <a class="el" href="structSerialStream.html#a1ee9cf21c97d0534461a771d03ea4057">SerialStream</a>.</p>
 
 </div>
 </div>

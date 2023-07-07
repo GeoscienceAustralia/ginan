@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="ephemeris_8cpp.html#a00caab23439d951d25d874f5f01c204c" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="ephemeris_8cpp.html#a00caab23439d951d25d874f5f01c204c" target="_top" xlink:title="satellite position and clock with ssr correction">
 <polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 68,-19.5 68,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="34" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">satpos_ssr</text>
 </a>

@@ -1,9 +1,7 @@
 <map id="outputNavRinexGeph" name="outputNavRinexGeph">
-<area shape="rect" id="node1" title=" " alt="" coords="5,112,167,139"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="413,112,508,139"/>
-<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="247,36,333,63"/>
-<area shape="rect" id="node4" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="246,87,334,113"/>
-<area shape="rect" id="node5" href="$gTime_8cpp.html#a853f281ccd45b714eb3edb14259a982a" title=" " alt="" coords="251,137,329,164"/>
-<area shape="rect" id="node6" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="241,188,339,215"/>
-<area shape="rect" id="node7" href="$streamTrace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="215,239,365,265"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,54,167,80"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="413,54,508,80"/>
+<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="247,28,333,55"/>
+<area shape="rect" id="node4" href="$gTime_8cpp.html#a210bda8e07fa8a70ce6c79948e42efe0" title=" " alt="" coords="241,79,339,106"/>
+<area shape="rect" id="node5" href="$trace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="215,130,365,156"/>
 </map>

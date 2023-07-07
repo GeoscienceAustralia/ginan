@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="common_8cpp.html#afb03d815c5c9706c5e9b04a8edee7900" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="common_8cpp.html#afb03d815c5c9706c5e9b04a8edee7900" target="_top" xlink:title="extract signed bits from byte data args : unsigned char* buff I byte data int pos I bit position from...">
 <polygon fill="white" stroke="red" points="101,-0.5 101,-19.5 151,-19.5 151,-0.5 101,-0.5"/>
 <text text-anchor="middle" x="126" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">getbits</text>
 </a>

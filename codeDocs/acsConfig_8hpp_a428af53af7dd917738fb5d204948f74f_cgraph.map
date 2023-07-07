@@ -1,7 +1,9 @@
 <map id="configure" name="configure">
-<area shape="rect" id="node1" title="Prepare the configuration of the program." alt="" coords="5,81,88,108"/>
-<area shape="rect" id="node2" href="$structACSConfig.html#a7956bea37dde8338349a7a2971c530e6" title="Parse options to set acsConfig values." alt="" coords="136,5,271,32"/>
-<area shape="rect" id="node3" href="$structACSConfig.html#abfdda0f4ad8ee782bf0e2e0088ade882" title="Print out the configuration data that has been read in." alt="" coords="319,44,441,71"/>
-<area shape="rect" id="node4" href="$acsConfig_8cpp.html#a730af658b2d0567252d8a37b3982f2f3" title=" " alt="" coords="142,107,265,133"/>
-<area shape="rect" id="node5" href="$acsConfig_8cpp.html#aa470c1c369d2c030cdd6bd250a1ed375" title="Check that filename is valid and the file exists." alt="" coords="323,120,437,147"/>
+<area shape="rect" id="node1" title="Prepare the configuration of the program." alt="" coords="5,132,88,159"/>
+<area shape="rect" id="node2" href="$walkthrough_8cpp.html#a79b73e7112a20488bc4f7e48ebaf1510" title=" " alt="" coords="152,5,255,32"/>
+<area shape="rect" id="node3" href="$structACSConfig.html#a33ef8a76d552f3e0e34cb950f7b730ee" title="Parse options to set acsConfig values." alt="" coords="136,56,271,83"/>
+<area shape="rect" id="node4" href="$structACSConfig.html#abfdda0f4ad8ee782bf0e2e0088ade882" title="Print out the configuration data that has been read in." alt="" coords="319,56,441,83"/>
+<area shape="rect" id="node5" href="$acsConfig_8cpp.html#afadf60bfde1f0c5dda7d362c0804be3d" title=" " alt="" coords="345,107,415,133"/>
+<area shape="rect" id="node6" href="$acsConfig_8cpp.html#a730af658b2d0567252d8a37b3982f2f3" title=" " alt="" coords="142,208,265,235"/>
+<area shape="rect" id="node7" href="$acsConfig_8cpp.html#aa470c1c369d2c030cdd6bd250a1ed375" title="Check that filename is valid and the file exists." alt="" coords="323,233,437,260"/>
 </map>

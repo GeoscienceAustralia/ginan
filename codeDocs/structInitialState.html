@@ -86,7 +86,7 @@ $(function() {
 <div class="dynheader">
 Collaboration diagram for InitialState:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structInitialState__coll__graph.svg" width="106" height="162"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structInitialState__coll__graph.svg" width="136" height="302"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -100,7 +100,7 @@ Data Fields</h2></td></tr>
 <tr class="memdesc:ae68e3c98bcaccea1c426b8489d025c46"><td class="mdescLeft">&#160;</td><td class="mdescRight">State Covariance.  <a href="structInitialState.html#ae68e3c98bcaccea1c426b8489d025c46">More...</a><br /></td></tr>
 <tr class="separator:ae68e3c98bcaccea1c426b8489d025c46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad07364d6a7343806e3b22f464a42fcdb"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInitialState.html#ad07364d6a7343806e3b22f464a42fcdb">Q</a> = 0</td></tr>
-<tr class="memdesc:ad07364d6a7343806e3b22f464a42fcdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process Noise.  <a href="structInitialState.html#ad07364d6a7343806e3b22f464a42fcdb">More...</a><br /></td></tr>
+<tr class="memdesc:ad07364d6a7343806e3b22f464a42fcdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process Noise, -ve indicates infinite (throw away state)  <a href="structInitialState.html#ad07364d6a7343806e3b22f464a42fcdb">More...</a><br /></td></tr>
 <tr class="separator:ad07364d6a7343806e3b22f464a42fcdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa53319d91a5aac33bdacfc2a7d7cd279"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInitialState.html#aa53319d91a5aac33bdacfc2a7d7cd279">tau</a> = -1</td></tr>
 <tr class="memdesc:aa53319d91a5aac33bdacfc2a7d7cd279"><td class="mdescLeft">&#160;</td><td class="mdescRight">Correlation Time, default to -1 (inf) (Random Walk)  <a href="structInitialState.html#aa53319d91a5aac33bdacfc2a7d7cd279">More...</a><br /></td></tr>
@@ -108,8 +108,24 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a4d8d7a4d081e323a5830e87c5f75f604"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInitialState.html#a4d8d7a4d081e323a5830e87c5f75f604">mu</a> = 0</td></tr>
 <tr class="memdesc:a4d8d7a4d081e323a5830e87c5f75f604"><td class="mdescLeft">&#160;</td><td class="mdescRight">Desired Mean Value.  <a href="structInitialState.html#a4d8d7a4d081e323a5830e87c5f75f604">More...</a><br /></td></tr>
 <tr class="separator:a4d8d7a4d081e323a5830e87c5f75f604"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a702d54584d147232f8220d681dae2219"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInitialState.html#a702d54584d147232f8220d681dae2219">comment</a></td></tr>
+<tr class="separator:a702d54584d147232f8220d681dae2219"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Field Documentation</h2>
+<a id="a702d54584d147232f8220d681dae2219" name="a702d54584d147232f8220d681dae2219"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a702d54584d147232f8220d681dae2219">&#9670;&nbsp;</a></span>comment</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">string InitialState::comment</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a8da3d7248fdbf34a8669a052cfa7f079" name="a8da3d7248fdbf34a8669a052cfa7f079"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8da3d7248fdbf34a8669a052cfa7f079">&#9670;&nbsp;</a></span>estimate</h2>
 
@@ -168,7 +184,7 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Process Noise. </p>
+<p>Process Noise, -ve indicates infinite (throw away state) </p>
 
 </div>
 </div>

@@ -77,7 +77,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">observations.hpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -89,62 +89,118 @@ This graph shows which files directly or indirectly include this file:</div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structObservation.html">Observation</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRawSig.html">RawSig</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Raw observation data from a receiver for a single frequency.  <a href="structRawSig.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSig.html">Sig</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per signal data that is calculated from the raw signals.  <a href="structSig.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRawObs.html">RawObs</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Raw observation data from a receiver.  <a href="structRawObs.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIonoPP.html">IonoPP</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIonoObs.html">IonoObs</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structObs.html">Obs</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Observation, and data derived from it.  <a href="structObs.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGObsMeta.html">GObsMeta</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structObservation.html">Observation</a> metadata and data derived from it.  <a href="structGObsMeta.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPseudoObs.html">PseudoObs</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSatPos.html">SatPos</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Satellite position data - for determining and storing satellite positions/clocks.  <a href="structSatPos.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGObs.html">GObs</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Raw observation data from a receiver.  <a href="structGObs.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPObs.html">PObs</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structFObs.html">FObs</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structObsList.html">ObsList</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">List of observations for an epoch.  <a href="structObsList.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSatIdentity.html">SatIdentity</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCrdSession.html">CrdSession</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">SLR normal point data from a session within a CRD file.  <a href="structCrdSession.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structLObsMeta.html">LObsMeta</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structLObs.html">LObs</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:ac3764cf3d352807c2fa748e3e5871ea3"><td class="memItemLeft" align="right" valign="top">typedef vector&lt; <a class="el" href="structObs.html">Obs</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a></td></tr>
-<tr class="memdesc:ac3764cf3d352807c2fa748e3e5871ea3"><td class="mdescLeft">&#160;</td><td class="mdescRight">List of observations for an epoch.  <a href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">More...</a><br /></td></tr>
-<tr class="separator:ac3764cf3d352807c2fa748e3e5871ea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a15891e99111bc0d031a65b627dd8dbfb"><td class="memItemLeft" align="right" valign="top">typedef vector&lt; <a class="el" href="structPseudoObs.html">PseudoObs</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="observations_8hpp.html#a15891e99111bc0d031a65b627dd8dbfb">PseudoObsList</a></td></tr>
-<tr class="memdesc:a15891e99111bc0d031a65b627dd8dbfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">List of observations for an epoch.  <a href="observations_8hpp.html#a15891e99111bc0d031a65b627dd8dbfb">More...</a><br /></td></tr>
-<tr class="separator:a15891e99111bc0d031a65b627dd8dbfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a15786adbb4dc583f63d95e8a0f35d999"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="observations_8hpp.html#a15786adbb4dc583f63d95e8a0f35d999">readSatId</a> (string filepath)</td></tr>
+<tr class="memdesc:a15786adbb4dc583f63d95e8a0f35d999"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sat ID file.  <a href="observations_8hpp.html#a15786adbb4dc583f63d95e8a0f35d999">More...</a><br /></td></tr>
+<tr class="separator:a15786adbb4dc583f63d95e8a0f35d999"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae88361ee65bf03ef67183514b9d32fa5"><td class="memItemLeft" align="right" valign="top">vector&lt; <a class="el" href="structCrdSession.html">CrdSession</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="observations_8hpp.html#ae88361ee65bf03ef67183514b9d32fa5">readCrdFile</a> (string filepath)</td></tr>
+<tr class="memdesc:ae88361ee65bf03ef67183514b9d32fa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses a CRD file.  <a href="observations_8hpp.html#ae88361ee65bf03ef67183514b9d32fa5">More...</a><br /></td></tr>
+<tr class="separator:ae88361ee65bf03ef67183514b9d32fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="ac3764cf3d352807c2fa748e3e5871ea3" name="ac3764cf3d352807c2fa748e3e5871ea3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3764cf3d352807c2fa748e3e5871ea3">&#9670;&nbsp;</a></span>ObsList</h2>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="ae88361ee65bf03ef67183514b9d32fa5" name="ae88361ee65bf03ef67183514b9d32fa5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae88361ee65bf03ef67183514b9d32fa5">&#9670;&nbsp;</a></span>readCrdFile()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef vector&lt;<a class="el" href="structObs.html">Obs</a>&gt; <a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a></td>
+          <td class="memname">vector&lt; <a class="el" href="structCrdSession.html">CrdSession</a> &gt; readCrdFile </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>filepath</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>List of observations for an epoch. </p>
+<p>Parses a CRD file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filepath</td><td>Filepath to CRD file </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="observations_8hpp_ae88361ee65bf03ef67183514b9d32fa5_icgraph.svg" width="227" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="a15891e99111bc0d031a65b627dd8dbfb" name="a15891e99111bc0d031a65b627dd8dbfb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a15891e99111bc0d031a65b627dd8dbfb">&#9670;&nbsp;</a></span>PseudoObsList</h2>
+<a id="a15786adbb4dc583f63d95e8a0f35d999" name="a15786adbb4dc583f63d95e8a0f35d999"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15786adbb4dc583f63d95e8a0f35d999">&#9670;&nbsp;</a></span>readSatId()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef vector&lt;<a class="el" href="structPseudoObs.html">PseudoObs</a>&gt; <a class="el" href="observations_8hpp.html#a15891e99111bc0d031a65b627dd8dbfb">PseudoObsList</a></td>
+          <td class="memname">void readSatId </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>filepath</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>List of observations for an epoch. </p>
+<p>Read sat ID file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filepath</td><td>Filepath to sat ID file </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="observations_8hpp_a15786adbb4dc583f63d95e8a0f35d999_cgraph.svg" width="192" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="observations_8hpp_a15786adbb4dc583f63d95e8a0f35d999_icgraph.svg" width="268" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

@@ -1,7 +1,6 @@
 <map id="nmf" name="nmf">
-<area shape="rect" id="node1" title=" " alt="" coords="5,49,53,75"/>
-<area shape="rect" id="node2" href="$trop_8cpp.html#aee11659ecea14ca59feae2dbe9f160d5" title="coefficients multiplication" alt="" coords="233,23,284,50"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#aba1d9f999a27c10207609ef4ef76bd03" title=" " alt="" coords="101,23,185,50"/>
-<area shape="rect" id="node4" href="$corrections_8cpp.html#abae235364162e6df2195cc74a3d4277a" title=" " alt="" coords="110,74,177,101"/>
-<area shape="rect" id="node5" href="$corrections_8cpp.html#aeca34291cf162e0e9cc3f0251b514169" title=" " alt="" coords="115,125,171,151"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,31,53,57"/>
+<area shape="rect" id="node2" href="$trop_8cpp.html#aee11659ecea14ca59feae2dbe9f160d5" title="coefficients multiplication" alt="" coords="216,5,267,32"/>
+<area shape="rect" id="node3" href="$corrections_8cpp.html#abae235364162e6df2195cc74a3d4277a" title=" " alt="" coords="101,31,168,57"/>
+<area shape="rect" id="node4" href="$corrections_8cpp.html#aeca34291cf162e0e9cc3f0251b514169" title=" " alt="" coords="107,81,163,108"/>
 </map>

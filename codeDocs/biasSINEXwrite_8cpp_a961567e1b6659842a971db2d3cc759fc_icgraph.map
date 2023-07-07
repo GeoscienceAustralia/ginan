@@ -1,5 +1,5 @@
 <map id="biasType" name="biasType">
-<area shape="rect" id="node1" title="Determine if the bias is an OSB or DSB given observation codes." alt="" coords="193,31,272,57"/>
-<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#a4e4fe834c1dbcb6b4a41560de1d7432e" title="print bias SINEX data line" alt="" coords="5,5,145,32"/>
-<area shape="rect" id="node3" href="$biasSINEXwrite_8cpp.html#a3193a7ae3e27dfbd3caaaba922a113cb" title="Store bias output to write into bias SINEX files." alt="" coords="33,56,118,83"/>
+<area shape="rect" id="node1" title="Determine if the bias is an OSB or DSB given observation codes." alt="" coords="351,31,429,57"/>
+<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#adcabd7eefaca5c01cf305a80294e57a7" title="print bias SINEX data line" alt="" coords="172,5,303,32"/>
+<area shape="rect" id="node3" href="$biasSINEXwrite_8cpp.html#a975aa402cca9e4828c089e82bb68c5a6" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="5,31,124,57"/>
 </map>

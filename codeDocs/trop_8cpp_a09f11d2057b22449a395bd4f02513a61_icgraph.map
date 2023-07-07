@@ -1,7 +1,8 @@
 <map id="sign" name="sign">
-<area shape="rect" id="node1" title=" " alt="" coords="144,81,193,108"/>
-<area shape="rect" id="node2" href="$ppppp__ambres_8cpp.html#a1e7407c0fc2ada6fcd7f04ef2d24e572" title=" " alt="" coords="9,5,93,32"/>
-<area shape="rect" id="node3" href="$ppppp__obs_8cpp.html#a3db2ffced7ab37c4874c3a53fcb7953e" title=" " alt="" coords="5,56,96,83"/>
-<area shape="rect" id="node4" href="$lambda_8cpp.html#aa6373e942a90853229d95abeafbaa28b" title=" " alt="" coords="24,107,77,133"/>
-<area shape="rect" id="node5" href="$trop_8cpp.html#a080102fd2b8058490e933925884c4001" title=" " alt="" coords="25,157,76,184"/>
+<area shape="rect" id="node1" title=" " alt="" coords="220,107,269,133"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#ab401e4381f03bb13f4ad1000c230e5af" title="Smoothed yaw steering for GAL &amp; BDS." alt="" coords="33,5,145,32"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#aff27912083f0b1f7faa7327c48930fed" title=" " alt="" coords="5,56,172,83"/>
+<area shape="rect" id="node4" href="$ppp__obs_8cpp.html#a574a4c24df1a754d0b2b299c8111e29f" title=" " alt="" coords="35,107,142,133"/>
+<area shape="rect" id="node5" href="$lambda_8cpp.html#aa6373e942a90853229d95abeafbaa28b" title=" " alt="" coords="62,157,115,184"/>
+<area shape="rect" id="node6" href="$trop_8cpp.html#a080102fd2b8058490e933925884c4001" title=" " alt="" coords="63,208,114,235"/>
 </map>

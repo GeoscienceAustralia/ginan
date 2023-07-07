@@ -1,5 +1,6 @@
 <map id="GNSS_AR" name="GNSS_AR">
-<area shape="rect" id="node1" title="Ambiguity resolution function for Ginan." alt="" coords="172,31,255,57"/>
+<area shape="rect" id="node1" title="Ambiguity resolution function for Ginan." alt="" coords="172,56,255,83"/>
 <area shape="rect" id="node2" href="$GinARNLamb_8cpp.html#a150b7e4a892320cadb8bfd4c813a1aca" title="Update float ambiguity estimates." alt="" coords="9,5,121,32"/>
 <area shape="rect" id="node3" href="$GinARWLamb_8cpp.html#a6cfe77e4642a57d54c9204244cd403a0" title="Resolve wide&#45;lane ambiguities." alt="" coords="5,56,124,83"/>
+<area shape="rect" id="node4" href="$ppp__ambres_8cpp.html#af1cdd13433e600a199742087c8078181" title=" " alt="" coords="29,107,100,133"/>
 </map>

@@ -1,4 +1,4 @@
 <map id="writeTropHeader" name="writeTropHeader">
-<area shape="rect" id="node1" title="Write out trop sinex file header." alt="" coords="208,5,337,32"/>
-<area shape="rect" id="node2" href="$tropSinex_8cpp.html#ab59eaf15f25fdbc2cdf51adbadfc9ad3" title="Write troposphere Sinex data to file." alt="" coords="5,5,160,32"/>
+<area shape="rect" id="node1" title="Reset comments to their default values." alt="" coords="208,5,337,32"/>
+<area shape="rect" id="node2" href="$tropSinex_8cpp.html#af9d3901b3a9964efc0c953a396f9e145" title="Write troposphere Sinex data to file." alt="" coords="5,5,160,32"/>
 </map>

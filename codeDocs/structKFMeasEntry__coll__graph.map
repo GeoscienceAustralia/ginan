@@ -1,9 +1,8 @@
 <map id="KFMeasEntry" name="KFMeasEntry">
-<area shape="rect" id="node1" title="Object to hold an individual measurement." alt="" coords="486,945,629,1125"/>
-<area shape="rect" id="node2" href="$structKFState.html" title="Kalman filter object." alt="" coords="5,204,208,883"/>
-<area shape="rect" id="node3" title=" " alt="" coords="82,5,257,83"/>
-<area shape="rect" id="node4" title=" " alt="" coords="285,5,467,83"/>
-<area shape="rect" id="node5" href="$structObsKey.html" title=" " alt="" coords="591,483,734,604"/>
-<area shape="rect" id="node6" title=" " alt="" coords="759,497,905,589"/>
-<area shape="rect" id="node7" title=" " alt="" coords="929,505,1095,582"/>
+<area shape="rect" id="node1" title="Object to hold an individual measurement." alt="" coords="414,1048,557,1257"/>
+<area shape="rect" id="node2" href="$structKFState.html" title=" " alt="" coords="5,233,240,971"/>
+<area shape="rect" id="node3" href="$structKFKey.html" title="Keys used to interface with Kalman filter objects." alt="" coords="134,5,277,171"/>
+<area shape="rect" id="node4" title=" " alt="" coords="375,556,595,648"/>
+<area shape="rect" id="node5" title=" " alt="" coords="619,563,794,641"/>
+<area shape="rect" id="node6" title=" " alt="" coords="819,563,984,641"/>
 </map>

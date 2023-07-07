@@ -1,5 +1,5 @@
 <map id="removeUnmeasuredAmbiguities" name="removeUnmeasuredAmbiguities">
 <area shape="rect" id="node1" title="Remove ambiguity states from filter when they are not measured for an epoch." alt="" coords="5,31,239,57"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="322,5,417,32"/>
-<area shape="rect" id="node3" href="$structKFState.html#abdf1505bdab1895a280fd018979849f1" title="Remove a state from a kalman filter object." alt="" coords="287,56,452,83"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="322,5,417,32"/>
+<area shape="rect" id="node3" href="$structKFState.html#a28480b75cbb9f622f48a695f04000948" title="Remove a state from a kalman filter object." alt="" coords="287,56,452,83"/>
 </map>

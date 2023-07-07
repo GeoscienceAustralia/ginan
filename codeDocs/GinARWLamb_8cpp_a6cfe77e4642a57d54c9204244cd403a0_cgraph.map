@@ -1,15 +1,15 @@
 <map id="reslv_WLambg" name="reslv_WLambg">
 <area shape="rect" id="node1" title="Resolve wide&#45;lane ambiguities." alt="" coords="5,284,124,311"/>
 <area shape="rect" id="node2" href="$GNSSambres_8cpp.html#a5828fccde37f3654b3bd28203461dc8b" title="Ambiguity resolution function for Ginan." alt="" coords="237,5,319,32"/>
-<area shape="rect" id="node3" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="471,183,566,209"/>
-<area shape="rect" id="node4" href="$structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" title=" " alt="" coords="454,461,583,488"/>
+<area shape="rect" id="node3" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="471,183,566,209"/>
+<area shape="rect" id="node4" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="454,461,583,488"/>
 <area shape="rect" id="node5" href="$structKFState.html#a34fe78e0ab7a8f1d122ceabddc29b207" title="Clears and initialises the state transition matrix to identity at the beginning of an epoch." alt="" coords="432,360,605,387"/>
-<area shape="rect" id="node6" href="$structKFMeasEntry.html#a56ed46a7048dcd7e87e75eebc342dc7d" title="Adds the actual measurement value for this measurement." alt="" coords="192,208,364,235"/>
-<area shape="rect" id="node7" href="$structKFMeasEntry.html#a1054abe38550bcd614c1a3c1afe752ee" title="Adds the measurement noise entry for this measurement." alt="" coords="192,259,364,285"/>
-<area shape="rect" id="node8" href="$structKFMeasEntry.html#aa07d07ef75fccb307a91283ec47b38a8" title="Adds a design matrix entry for this measurement." alt="" coords="175,309,381,336"/>
-<area shape="rect" id="node9" href="$structKFState.html#a170d9c3a01bee9ec1f7264615b087c58" title="Add process noise and dynamics to filter object according to time gap." alt="" coords="189,360,367,387"/>
+<area shape="rect" id="node6" href="$structKFMeasEntry.html#a7d612c21a6d8f4367e273baf672e6cbd" title="Adds the actual measurement value for this measurement." alt="" coords="192,208,364,235"/>
+<area shape="rect" id="node7" href="$structKFMeasEntry.html#a58172784aeb65ed62d2b21ee570f4980" title="Adds the measurement noise entry for this measurement." alt="" coords="192,259,364,285"/>
+<area shape="rect" id="node8" href="$structKFMeasEntry.html#a5acb825be0bbd5c284f5922b2fa82242" title="Adds a design matrix entry for this measurement." alt="" coords="175,309,381,336"/>
+<area shape="rect" id="node9" href="$structKFState.html#a7f8e4b9291361c063cef8d9178f07707" title="Add process noise and dynamics to filter object according to time gap." alt="" coords="189,360,367,387"/>
 <area shape="rect" id="node10" href="$structKFState.html#a4422abfc2efdc898a2558d57be35e863" title="Combine a list of KFMeasEntrys into a single KFMeas object for used in the filter." alt="" coords="172,411,384,437"/>
-<area shape="rect" id="node11" href="$structKFState.html#a21a4858020ad706771efeea814d6c43f" title="Kalman filter operation." alt="" coords="197,461,359,488"/>
+<area shape="rect" id="node11" href="$structKFState.html#ae99b9a0b478d94b6cff9ba2328914178" title="Kalman filter operation." alt="" coords="197,461,359,488"/>
 <area shape="rect" id="node12" href="$structKFState.html#a0c84e911a5ea760fe728baec661e33f0" title="Output keys and states in human readable format." alt="" coords="196,512,360,539"/>
-<area shape="rect" id="node13" href="$structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="200,563,356,589"/>
+<area shape="rect" id="node13" href="$structKFState.html#a405c50a3085d8328e81dcd6786f775d3" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="200,563,356,589"/>
 </map>

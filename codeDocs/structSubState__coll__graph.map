@@ -1,4 +1,4 @@
 <map id="SubState" name="SubState">
-<area shape="rect" id="node1" title="Minimum viable kfState element object." alt="" coords="27,175,107,252"/>
-<area shape="rect" id="node2" href="$structKFKey.html" title="Keys used to interface with Kalman filter objects." alt="" coords="5,5,129,112"/>
+<area shape="rect" id="node1" title="Minimum viable kfState element object." alt="" coords="37,233,117,311"/>
+<area shape="rect" id="node2" href="$structKFKey.html" title="Keys used to interface with Kalman filter objects." alt="" coords="5,5,148,171"/>
 </map>

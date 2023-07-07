@@ -1,7 +1,7 @@
 <map id="ACSConfig" name="ACSConfig">
-<area shape="rect" id="node1" title="General options object to be used throughout the software." alt="" coords="336,1568,561,2056"/>
-<area shape="rect" id="node2" href="$structGlobalOptions.html" title="Options for the general operation of the software." alt="" coords="5,284,241,1241"/>
-<area shape="rect" id="node3" href="$structInputOptions.html" title="Input source filenames and directories." alt="" coords="266,585,413,941"/>
-<area shape="rect" id="node4" href="$structOutputOptions.html" title="Enabling and setting destiations of program outputs." alt="" coords="437,5,679,1520"/>
-<area shape="rect" id="node5" href="$structDebugOptions.html" title="Options to be used only for debugging new features." alt="" coords="703,695,845,831"/>
+<area shape="rect" id="node1" title="General options object to be used throughout the software." alt="" coords="349,2081,575,2613"/>
+<area shape="rect" id="node2" href="$structGlobalOptions.html" title="Options for the general operation of the software." alt="" coords="5,357,241,1681"/>
+<area shape="rect" id="node3" href="$structInputOptions.html" title="Input source filenames and directories." alt="" coords="265,775,432,1263"/>
+<area shape="rect" id="node4" href="$structOutputOptions.html" title="Enabling and setting destiations of program outputs." alt="" coords="456,5,695,2033"/>
+<area shape="rect" id="node5" href="$structDebugOptions.html" title="Options to be used only for debugging new features." alt="" coords="719,937,909,1102"/>
 </map>

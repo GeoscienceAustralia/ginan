@@ -1,6 +1,6 @@
 <map id="updt_usr_pivot" name="updt_usr_pivot">
 <area shape="rect" id="node1" title="Update User Pivot." alt="" coords="5,105,124,131"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="331,49,425,75"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="331,49,425,75"/>
 <area shape="rect" id="node3" href="$GinARWLamb_8cpp.html#a847f714757d3b9ed6d45bae0778972b0" title="Remove ambiguities and biases for systems, end user." alt="" coords="177,29,277,55"/>
 <area shape="rect" id="node4" href="$GinARpivot_8cpp.html#a9ea97fd05df0f2f7129c1b1eebeb58b4" title="Initilize end&#45;user AR pivot." alt="" coords="172,79,283,106"/>
 <area shape="rect" id="node5" href="$GinARpivot_8cpp.html#aa6bd501576fa27cf1dc55b457809b0e4" title="Add ambiguity to pivot tree." alt="" coords="335,111,421,138"/>

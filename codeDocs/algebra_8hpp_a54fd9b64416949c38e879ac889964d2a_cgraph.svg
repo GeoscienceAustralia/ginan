@@ -22,7 +22,7 @@
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="algebra__old_8cpp.html#a1d2c1ecab5b17dcc773fcd83c0b87b7e" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="178.5,-104.5 178.5,-123.5 214.5,-123.5 214.5,-104.5 178.5,-104.5"/>
+<polygon fill="white" stroke="black" points="178.5,-104.5 178.5,-123.5 214.5,-123.5 214.5,-104.5 178.5,-104.5"/>
 <text text-anchor="middle" x="196.5" y="-111.5" font-family="Helvetica,sans-Serif" font-size="10.00">mat</text>
 </a>
 </g>
@@ -32,56 +32,56 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M43.02,-72.58C77.39,-81.91 145.98,-100.55 178.12,-109.28"/>
 </g>
-<!-- Node4 -->
+<!-- Node3 -->
 <g id="node3" class="node">
-<title>Node4</title>
+<title>Node3</title>
 <g id="a_node3"><a xlink:href="algebra__old_8cpp.html#a50d2d9511da542d472f3390449fedf38" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="170,-57.5 170,-76.5 223,-76.5 223,-57.5 170,-57.5"/>
 <text text-anchor="middle" x="196.5" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">matcpy</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node4 -->
+<!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node4</title>
+<title>Node1&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M43.02,-67C74.71,-67 135.47,-67 169.95,-67"/>
 </g>
-<!-- Node5 -->
+<!-- Node4 -->
 <g id="node4" class="node">
-<title>Node5</title>
+<title>Node4</title>
 <g id="a_node4"><a xlink:href="algebra__old_8cpp.html#a4035d20f11b4bd8085e6b0f84f8c0764" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="81,-38.5 81,-57.5 132,-57.5 132,-38.5 81,-38.5"/>
 <text text-anchor="middle" x="106.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">matinv</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node5 -->
+<!-- Node1&#45;&gt;Node4 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node5</title>
+<title>Node1&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M43.02,-62.3C54.44,-59.69 68.75,-56.41 80.79,-53.66"/>
 </g>
-<!-- Node9 -->
+<!-- Node8 -->
 <g id="node5" class="node">
-<title>Node9</title>
+<title>Node8</title>
 <g id="a_node5"><a xlink:href="algebra__old_8cpp.html#adc33998911a24938042604ba1f8e6196" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="79,-0.5 79,-19.5 134,-19.5 134,-0.5 79,-0.5"/>
 <text text-anchor="middle" x="106.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">matmul</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node9 -->
+<!-- Node1&#45;&gt;Node8 -->
 <g id="edge6" class="edge">
-<title>Node1&#45;&gt;Node9</title>
+<title>Node1&#45;&gt;Node8</title>
 <path fill="none" stroke="midnightblue" d="M36.58,-57.33C51.93,-46.79 76.36,-30.01 91.63,-19.53"/>
 </g>
-<!-- Node5&#45;&gt;Node2 -->
+<!-- Node4&#45;&gt;Node2 -->
 <g id="edge4" class="edge">
-<title>Node5&#45;&gt;Node2</title>
+<title>Node4&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M120.48,-57.74C137.22,-70.29 166.13,-91.97 182.75,-104.44"/>
 </g>
-<!-- Node5&#45;&gt;Node4 -->
+<!-- Node4&#45;&gt;Node3 -->
 <g id="edge5" class="edge">
-<title>Node5&#45;&gt;Node4</title>
+<title>Node4&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M132.01,-53.29C143.81,-55.84 157.95,-58.89 169.89,-61.47"/>
 </g>
 </g>

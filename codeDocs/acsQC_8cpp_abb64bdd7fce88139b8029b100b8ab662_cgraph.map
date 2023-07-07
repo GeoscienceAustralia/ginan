@@ -1,10 +1,11 @@
 <map id="scdia" name="scdia">
-<area shape="rect" id="node1" title="Single channel detection–identification–adaptation (DIA) for integer cycle slips." alt="" coords="5,186,61,212"/>
-<area shape="rect" id="node2" href="$algebra__old_8cpp.html#acc2b857563b3c233a09fe2427965f7b2" title=" " alt="" coords="117,34,173,60"/>
-<area shape="rect" id="node3" href="$algebra__old_8cpp.html#adc33998911a24938042604ba1f8e6196" title=" " alt="" coords="239,34,312,60"/>
-<area shape="rect" id="node4" href="$algebra__old_8cpp.html#a50d2d9511da542d472f3390449fedf38" title=" " alt="" coords="371,110,441,136"/>
-<area shape="rect" id="node5" href="$algebra__old_8cpp.html#a4035d20f11b4bd8085e6b0f84f8c0764" title=" " alt="" coords="241,135,309,162"/>
-<area shape="rect" id="node6" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="228,287,323,314"/>
-<area shape="rect" id="node7" href="$algebra__old_8cpp.html#a56b19c4e307111fe68e1e2c1f57868a1" title=" " alt="" coords="115,236,175,263"/>
-<area shape="rect" id="node8" href="$lambda_8cpp.html#a364f9f201016e3baff0a9366158a823b" title=" " alt="" coords="109,287,180,314"/>
+<area shape="rect" id="node1" title="Single channel detection–identification–adaptation (DIA) for integer cycle slips." alt="" coords="5,183,61,209"/>
+<area shape="rect" id="node2" href="$algebra__old_8cpp.html#acc2b857563b3c233a09fe2427965f7b2" title=" " alt="" coords="120,5,176,32"/>
+<area shape="rect" id="node3" href="$algebra__old_8cpp.html#adc33998911a24938042604ba1f8e6196" title=" " alt="" coords="245,56,319,83"/>
+<area shape="rect" id="node4" href="$algebra__old_8cpp.html#a50d2d9511da542d472f3390449fedf38" title=" " alt="" coords="377,132,448,159"/>
+<area shape="rect" id="node5" href="$algebra__old_8cpp.html#a4035d20f11b4bd8085e6b0f84f8c0764" title=" " alt="" coords="248,157,316,184"/>
+<area shape="rect" id="node6" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="235,309,329,336"/>
+<area shape="rect" id="node7" href="$ppp_8cpp.html#add1aa65516313588ef8e125a7d748f51" title=" " alt="" coords="109,56,187,83"/>
+<area shape="rect" id="node8" href="$algebra__old_8cpp.html#a56b19c4e307111fe68e1e2c1f57868a1" title=" " alt="" coords="118,259,178,285"/>
+<area shape="rect" id="node9" href="$lambda_8cpp.html#a364f9f201016e3baff0a9366158a823b" title=" " alt="" coords="113,309,183,336"/>
 </map>

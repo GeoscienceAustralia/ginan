@@ -84,13 +84,13 @@ $(function() {
 <div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp__dep__incl.svg" width="100%" height="473"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp__dep__incl.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html">InputOptions</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input source filenames and directories.  <a href="structInputOptions.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structInput.html">Input</a> source filenames and directories.  <a href="structInputOptions.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIonexOptions.html">IonexOptions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -103,13 +103,8 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structTestOptions.html">TestOptions</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options for unit testing.  <a href="structTestOptions.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEnable.html">Enable</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structModelSatPos.html">ModelSatPos</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structModelClk.html">ModelClk</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structModelRecPos.html">ModelRecPos</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSlrOptions.html">SlrOptions</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options for processing SLR observations.  <a href="structSlrOptions.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structModelTides.html">ModelTides</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -126,8 +121,8 @@ Data Structures</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structFilterOptions.html">FilterOptions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkOptions.html">NetworkOptions</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options associated with the network processing mode of operation.  <a href="structNetworkOptions.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPPPOptions.html">PPPOptions</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options associated with the ppp processing mode of operation.  <a href="structPPPOptions.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIonosphericOptions.html">IonosphericOptions</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options associated with the ionospheric modelling processing mode of operation.  <a href="structIonosphericOptions.html#details">More...</a><br /></td></tr>
@@ -138,17 +133,19 @@ Data Structures</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structAmbROptions.html">AmbROptions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRinex23Conversion.html">Rinex23Conversion</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rinex 2 conversions for individual receivers.  <a href="structRinex23Conversion.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSatelliteOptions.html">SatelliteOptions</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options to be applied to kalman filter states for individual satellites.  <a href="structSatelliteOptions.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structReceiverOptions.html">ReceiverOptions</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options to be applied to kalman filter states for individual receivers.  <a href="structReceiverOptions.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structMinimumStationOptions.html">MinimumStationOptions</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Minimum constraint options for individual receivers.  <a href="structMinimumStationOptions.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structMinimumConstraintOptions.html">MinimumConstraintOptions</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options associated with the minimum constraints mode of operation.  <a href="structMinimumConstraintOptions.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structMongoOptions.html">MongoOptions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSsrOptions.html">SsrOptions</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options associated with SSR corrections and exporting RTCM messages.  <a href="structSsrOptions.html#details">More...</a><br /></td></tr>
@@ -157,10 +154,16 @@ Data Structures</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSSRMetaOpts.html">SSRMetaOpts</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmMsgTypeOpts.html">RtcmMsgTypeOpts</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSsrBroadcast.html">SsrBroadcast</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structForceModels.html">ForceModels</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options associated with orbital force models.  <a href="structForceModels.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkOptions.html">NetworkOptions</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOrbitPropagation.html">OrbitPropagation</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options associated with orbital force models.  <a href="structOrbitPropagation.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structYamlDefault.html">YamlDefault</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html">ACSConfig</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">General options object to be used throughout the software.  <a href="structACSConfig.html#details">More...</a><br /></td></tr>
@@ -168,6 +171,12 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:afbb4ad5e0459e2bb029f3e874ec566d5"><td class="memTemplParams" colspan="2">template&lt;typename BASE , typename COMP &gt; </td></tr>
+<tr class="memitem:afbb4ad5e0459e2bb029f3e874ec566d5"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="acsConfig_8hpp.html#afbb4ad5e0459e2bb029f3e874ec566d5">setInited</a> (BASE &amp;base, COMP &amp;comp, bool init=true)</td></tr>
+<tr class="separator:afbb4ad5e0459e2bb029f3e874ec566d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a719b79db064de4487f79e33a9b547f"><td class="memTemplParams" colspan="2">template&lt;typename BASE , typename COMP &gt; </td></tr>
+<tr class="memitem:a7a719b79db064de4487f79e33a9b547f"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="acsConfig_8hpp.html#a7a719b79db064de4487f79e33a9b547f">isInited</a> (const BASE &amp;base, const COMP &amp;comp)</td></tr>
+<tr class="separator:a7a719b79db064de4487f79e33a9b547f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb37795d2ca002b9a548a519efec4a44"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="acsConfig_8hpp.html#adb37795d2ca002b9a548a519efec4a44">replaceString</a> (string &amp;str, string subStr, string replacement, bool warn=true)</td></tr>
 <tr class="memdesc:adb37795d2ca002b9a548a519efec4a44"><td class="mdescLeft">&#160;</td><td class="mdescRight">search for and replace section of string  <a href="acsConfig_8hpp.html#adb37795d2ca002b9a548a519efec4a44">More...</a><br /></td></tr>
 <tr class="separator:adb37795d2ca002b9a548a519efec4a44"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -180,7 +189,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a2fb6a351dc0cac89305989af6ca205d5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="acsConfig_8hpp.html#a2fb6a351dc0cac89305989af6ca205d5">replaceTags</a> (string &amp;str)</td></tr>
 <tr class="memdesc:a2fb6a351dc0cac89305989af6ca205d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">String to replace macros within.  <a href="acsConfig_8hpp.html#a2fb6a351dc0cac89305989af6ca205d5">More...</a><br /></td></tr>
 <tr class="separator:a2fb6a351dc0cac89305989af6ca205d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a428af53af7dd917738fb5d204948f74f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="acsConfig_8hpp.html#a428af53af7dd917738fb5d204948f74f">configure</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> argc, char **argv)</td></tr>
+<tr class="memitem:a428af53af7dd917738fb5d204948f74f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="acsConfig_8hpp.html#a428af53af7dd917738fb5d204948f74f">configure</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> argc, char **argv)</td></tr>
 <tr class="memdesc:a428af53af7dd917738fb5d204948f74f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepare the configuration of the program.  <a href="acsConfig_8hpp.html#a428af53af7dd917738fb5d204948f74f">More...</a><br /></td></tr>
 <tr class="separator:a428af53af7dd917738fb5d204948f74f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab79fd5aa9643ece935405873f40ff370"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="acsConfig_8hpp.html#ab79fd5aa9643ece935405873f40ff370">checkValidFile</a> (string &amp;path, string description=&quot;&quot;)</td></tr>
@@ -242,7 +251,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">bool configure </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>argc</em>, </td>
         </tr>
         <tr>
@@ -270,12 +279,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a428af53af7dd917738fb5d204948f74f_cgraph.svg" width="447" height="162"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a428af53af7dd917738fb5d204948f74f_cgraph.svg" width="447" height="272"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a428af53af7dd917738fb5d204948f74f_icgraph.svg" width="196" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a428af53af7dd917738fb5d204948f74f_icgraph.svg" width="303" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -299,6 +308,41 @@ Here is the caller graph for this function:</div>
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a5566b10148341d277d15949c7669cfd5_icgraph.svg" width="310" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a7a719b79db064de4487f79e33a9b547f" name="a7a719b79db064de4487f79e33a9b547f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a719b79db064de4487f79e33a9b547f">&#9670;&nbsp;</a></span>isInited()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename BASE , typename COMP &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">bool isInited </td>
+          <td>(</td>
+          <td class="paramtype">const BASE &amp;&#160;</td>
+          <td class="paramname"><em>base</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const COMP &amp;&#160;</td>
+          <td class="paramname"><em>comp</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a7a719b79db064de4487f79e33a9b547f_icgraph.svg" width="344" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -374,7 +418,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_adb37795d2ca002b9a548a519efec4a44_icgraph.svg" width="646" height="308"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_adb37795d2ca002b9a548a519efec4a44_icgraph.svg" width="100%" height="502"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -397,7 +441,7 @@ Here is the caller graph for this function:</div>
 
 <p>String to replace macros within. </p>
 <p >String to replace macros within.</p>
-<p >Available replacements are "&lt;CONFIG&gt; &lt;USER&gt; &lt;PASS&gt; &lt;BRANCH&gt; &lt;HASH&gt;" </p>
+<p >Available replacements are "&lt;CONFIG&gt; &lt;USER&gt; &lt;PASS&gt; &lt;BRANCH&gt; &lt;HASH&gt; &lt;AGENCY&gt; &lt;SOFTWARE&gt;" </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">str</td><td>String to replace macros within </td></tr>
@@ -407,12 +451,53 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a2fb6a351dc0cac89305989af6ca205d5_cgraph.svg" width="266" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a2fb6a351dc0cac89305989af6ca205d5_cgraph.svg" width="300" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_a2fb6a351dc0cac89305989af6ca205d5_icgraph.svg" width="452" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="afbb4ad5e0459e2bb029f3e874ec566d5" name="afbb4ad5e0459e2bb029f3e874ec566d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbb4ad5e0459e2bb029f3e874ec566d5">&#9670;&nbsp;</a></span>setInited()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename BASE , typename COMP &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void setInited </td>
+          <td>(</td>
+          <td class="paramtype">BASE &amp;&#160;</td>
+          <td class="paramname"><em>base</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">COMP &amp;&#160;</td>
+          <td class="paramname"><em>comp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>init</em> = <code>true</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="acsConfig_8hpp_afbb4ad5e0459e2bb029f3e874ec566d5_icgraph.svg" width="100%" height="556"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>

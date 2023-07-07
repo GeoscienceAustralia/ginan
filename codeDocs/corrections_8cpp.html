@@ -83,25 +83,26 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a62c81439777b5986075d04b0d9a13082"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#a62c81439777b5986075d04b0d9a13082">ionmodel</a> (<a class="el" href="structGTime.html">GTime</a> t, const double *ion, const double *pos, const double *azel)</td></tr>
-<tr class="separator:a62c81439777b5986075d04b0d9a13082"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab57f26325023be49f35bd1c38e686469"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#ab57f26325023be49f35bd1c38e686469">ionmapf</a> (Vector3d &amp;rr, const double el)</td></tr>
-<tr class="separator:ab57f26325023be49f35bd1c38e686469"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae02bba98eee8c1a1c0862887116827a2"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#ae02bba98eee8c1a1c0862887116827a2">ionppp</a> (const double *pos, const double *azel, double re, double hion, double *posp)</td></tr>
-<tr class="separator:ae02bba98eee8c1a1c0862887116827a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a107b0c6a5655cfedf65b229de74e0b3d"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#a107b0c6a5655cfedf65b229de74e0b3d">tropmodel</a> (<a class="el" href="structGTime.html">GTime</a> time, const double *pos, const double *azel, double humi)</td></tr>
-<tr class="separator:a107b0c6a5655cfedf65b229de74e0b3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa38d01050a10a76e1eb6d0650cd9b31"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#afa38d01050a10a76e1eb6d0650cd9b31">tropacs</a> (const double *pos, const double *azel, double *map)</td></tr>
-<tr class="memdesc:afa38d01050a10a76e1eb6d0650cd9b31"><td class="mdescLeft">&#160;</td><td class="mdescRight">troposphere zhd for acs.  <a href="corrections_8cpp.html#afa38d01050a10a76e1eb6d0650cd9b31">More...</a><br /></td></tr>
-<tr class="separator:afa38d01050a10a76e1eb6d0650cd9b31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38a6828ef4cf649f656c7bb53a22f29a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#a38a6828ef4cf649f656c7bb53a22f29a">ionmodel</a> (<a class="el" href="structGTime.html">GTime</a> t, const double *ion, const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, const double *azel)</td></tr>
+<tr class="separator:a38a6828ef4cf649f656c7bb53a22f29a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8cc94c07c3e50e6ca1ac3b97dfa686d"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#ad8cc94c07c3e50e6ca1ac3b97dfa686d">ionmapf</a> (const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, const double *azel, E_IonoMapFn mapFn, double hion)</td></tr>
+<tr class="memdesc:ad8cc94c07c3e50e6ca1ac3b97dfa686d"><td class="mdescLeft">&#160;</td><td class="mdescRight">ionosphere mapping function  <a href="corrections_8cpp.html#ad8cc94c07c3e50e6ca1ac3b97dfa686d">More...</a><br /></td></tr>
+<tr class="separator:ad8cc94c07c3e50e6ca1ac3b97dfa686d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec9a97032eb54cc4407cb4a36dccdcb8"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#aec9a97032eb54cc4407cb4a36dccdcb8">ionppp</a> (const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, const double *azel, double re, double hion, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;posp)</td></tr>
+<tr class="separator:aec9a97032eb54cc4407cb4a36dccdcb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a75ba8a46d40e3ba48f24ae943ae47d"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#a3a75ba8a46d40e3ba48f24ae943ae47d">tropmodel</a> (<a class="el" href="structGTime.html">GTime</a> time, const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, const double *azel, double humi)</td></tr>
+<tr class="separator:a3a75ba8a46d40e3ba48f24ae943ae47d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae9756616580d8bedfd44e16f9aee7a4"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#aae9756616580d8bedfd44e16f9aee7a4">tropacs</a> (const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, const double *azel, double *map)</td></tr>
+<tr class="memdesc:aae9756616580d8bedfd44e16f9aee7a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">troposphere zhd for acs.  <a href="corrections_8cpp.html#aae9756616580d8bedfd44e16f9aee7a4">More...</a><br /></td></tr>
+<tr class="separator:aae9756616580d8bedfd44e16f9aee7a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abae235364162e6df2195cc74a3d4277a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#abae235364162e6df2195cc74a3d4277a">interpc</a> (const double <a class="el" href="trop_8cpp.html#aee11659ecea14ca59feae2dbe9f160d5">coef</a>[], double lat)</td></tr>
 <tr class="separator:abae235364162e6df2195cc74a3d4277a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeca34291cf162e0e9cc3f0251b514169"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#aeca34291cf162e0e9cc3f0251b514169">mapf</a> (double el, double a, double b, double c)</td></tr>
 <tr class="separator:aeca34291cf162e0e9cc3f0251b514169"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ea2641272a527a2a8f0ba726b99ccb1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#a2ea2641272a527a2a8f0ba726b99ccb1">nmf</a> (<a class="el" href="structGTime.html">GTime</a> time, const double pos[], const double azel[], double *mapfw)</td></tr>
-<tr class="separator:a2ea2641272a527a2a8f0ba726b99ccb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a096faf67cb27faed3c82bca26464a159"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#a096faf67cb27faed3c82bca26464a159">tropmapf</a> (<a class="el" href="structGTime.html">GTime</a> time, const double pos[], const double azel[], double *mapfw)</td></tr>
-<tr class="separator:a096faf67cb27faed3c82bca26464a159"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b2a203a5df36e8c1d9896c2e1e854e8"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#a2b2a203a5df36e8c1d9896c2e1e854e8">nmf</a> (<a class="el" href="structGTime.html">GTime</a> time, const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, const double azel[], double *mapfw)</td></tr>
+<tr class="separator:a2b2a203a5df36e8c1d9896c2e1e854e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad60f203d572ef764b996c14bc6dfd6a8"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="corrections_8cpp.html#ad60f203d572ef764b996c14bc6dfd6a8">tropmapf</a> (<a class="el" href="structGTime.html">GTime</a> time, const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, const double azel[], double *mapfw)</td></tr>
+<tr class="separator:ad60f203d572ef764b996c14bc6dfd6a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="abae235364162e6df2195cc74a3d4277a" name="abae235364162e6df2195cc74a3d4277a"></a>
@@ -142,8 +143,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ab57f26325023be49f35bd1c38e686469" name="ab57f26325023be49f35bd1c38e686469"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab57f26325023be49f35bd1c38e686469">&#9670;&nbsp;</a></span>ionmapf()</h2>
+<a id="ad8cc94c07c3e50e6ca1ac3b97dfa686d" name="ad8cc94c07c3e50e6ca1ac3b97dfa686d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8cc94c07c3e50e6ca1ac3b97dfa686d">&#9670;&nbsp;</a></span>ionmapf()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -151,14 +152,26 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">double ionmapf </td>
           <td>(</td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rr</em>, </td>
+          <td class="paramtype">const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>el</em>&#160;</td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>azel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_IonoMapFn&#160;</td>
+          <td class="paramname"><em>mapFn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>hion</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -167,16 +180,27 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>ionosphere mapping function </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>receiver position in geocentric spherical coordinates</td></tr>
+    <tr><td class="paramname">azel</td><td>satellite azimuth/elevation angle (rad)</td></tr>
+    <tr><td class="paramname">mapFn</td><td>model of mapping function</td></tr>
+    <tr><td class="paramname">hion</td><td>layer height (km) </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
-Here is the call graph for this function:</div>
+Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_ab57f26325023be49f35bd1c38e686469_cgraph.svg" width="216" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_ad8cc94c07c3e50e6ca1ac3b97dfa686d_icgraph.svg" width="238" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a62c81439777b5986075d04b0d9a13082" name="a62c81439777b5986075d04b0d9a13082"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a62c81439777b5986075d04b0d9a13082">&#9670;&nbsp;</a></span>ionmodel()</h2>
+<a id="a38a6828ef4cf649f656c7bb53a22f29a" name="a38a6828ef4cf649f656c7bb53a22f29a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38a6828ef4cf649f656c7bb53a22f29a">&#9670;&nbsp;</a></span>ionmodel()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -196,7 +220,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double *&#160;</td>
+          <td class="paramtype">const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
@@ -215,18 +239,18 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a62c81439777b5986075d04b0d9a13082_cgraph.svg" width="230" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a38a6828ef4cf649f656c7bb53a22f29a_cgraph.svg" width="258" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a62c81439777b5986075d04b0d9a13082_icgraph.svg" width="240" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a38a6828ef4cf649f656c7bb53a22f29a_icgraph.svg" width="232" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ae02bba98eee8c1a1c0862887116827a2" name="ae02bba98eee8c1a1c0862887116827a2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae02bba98eee8c1a1c0862887116827a2">&#9670;&nbsp;</a></span>ionppp()</h2>
+<a id="aec9a97032eb54cc4407cb4a36dccdcb8" name="aec9a97032eb54cc4407cb4a36dccdcb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec9a97032eb54cc4407cb4a36dccdcb8">&#9670;&nbsp;</a></span>ionppp()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -234,7 +258,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">double ionppp </td>
           <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
+          <td class="paramtype">const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
@@ -258,7 +282,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>posp</em>&#160;</td>
         </tr>
         <tr>
@@ -269,9 +293,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_aec9a97032eb54cc4407cb4a36dccdcb8_cgraph.svg" width="240" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_ae02bba98eee8c1a1c0862887116827a2_icgraph.svg" width="292" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_aec9a97032eb54cc4407cb4a36dccdcb8_icgraph.svg" width="292" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -321,8 +350,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a2ea2641272a527a2a8f0ba726b99ccb1" name="a2ea2641272a527a2a8f0ba726b99ccb1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ea2641272a527a2a8f0ba726b99ccb1">&#9670;&nbsp;</a></span>nmf()</h2>
+<a id="a2b2a203a5df36e8c1d9896c2e1e854e8" name="a2b2a203a5df36e8c1d9896c2e1e854e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b2a203a5df36e8c1d9896c2e1e854e8">&#9670;&nbsp;</a></span>nmf()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -336,8 +365,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>pos</em>[], </td>
+          <td class="paramtype">const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -361,18 +390,18 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a2ea2641272a527a2a8f0ba726b99ccb1_cgraph.svg" width="290" height="156"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a2b2a203a5df36e8c1d9896c2e1e854e8_cgraph.svg" width="344" height="218"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a2ea2641272a527a2a8f0ba726b99ccb1_icgraph.svg" width="190" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a2b2a203a5df36e8c1d9896c2e1e854e8_icgraph.svg" width="190" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="afa38d01050a10a76e1eb6d0650cd9b31" name="afa38d01050a10a76e1eb6d0650cd9b31"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa38d01050a10a76e1eb6d0650cd9b31">&#9670;&nbsp;</a></span>tropacs()</h2>
+<a id="aae9756616580d8bedfd44e16f9aee7a4" name="aae9756616580d8bedfd44e16f9aee7a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae9756616580d8bedfd44e16f9aee7a4">&#9670;&nbsp;</a></span>tropacs()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -380,7 +409,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">double tropacs </td>
           <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
+          <td class="paramtype">const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
@@ -414,15 +443,20 @@ Here is the caller graph for this function:</div>
   </dd>
 </dl>
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_aae9756616580d8bedfd44e16f9aee7a4_cgraph.svg" width="246" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_afa38d01050a10a76e1eb6d0650cd9b31_icgraph.svg" width="291" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_aae9756616580d8bedfd44e16f9aee7a4_icgraph.svg" width="284" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a096faf67cb27faed3c82bca26464a159" name="a096faf67cb27faed3c82bca26464a159"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a096faf67cb27faed3c82bca26464a159">&#9670;&nbsp;</a></span>tropmapf()</h2>
+<a id="ad60f203d572ef764b996c14bc6dfd6a8" name="ad60f203d572ef764b996c14bc6dfd6a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad60f203d572ef764b996c14bc6dfd6a8">&#9670;&nbsp;</a></span>tropmapf()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -436,8 +470,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>pos</em>[], </td>
+          <td class="paramtype">const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -461,18 +495,18 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a096faf67cb27faed3c82bca26464a159_cgraph.svg" width="190" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_ad60f203d572ef764b996c14bc6dfd6a8_cgraph.svg" width="354" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a096faf67cb27faed3c82bca26464a159_icgraph.svg" width="272" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_ad60f203d572ef764b996c14bc6dfd6a8_icgraph.svg" width="272" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a107b0c6a5655cfedf65b229de74e0b3d" name="a107b0c6a5655cfedf65b229de74e0b3d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a107b0c6a5655cfedf65b229de74e0b3d">&#9670;&nbsp;</a></span>tropmodel()</h2>
+<a id="a3a75ba8a46d40e3ba48f24ae943ae47d" name="a3a75ba8a46d40e3ba48f24ae943ae47d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a75ba8a46d40e3ba48f24ae943ae47d">&#9670;&nbsp;</a></span>tropmodel()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -486,7 +520,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double *&#160;</td>
+          <td class="paramtype">const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
@@ -509,9 +543,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a3a75ba8a46d40e3ba48f24ae943ae47d_cgraph.svg" width="264" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a107b0c6a5655cfedf65b229de74e0b3d_icgraph.svg" width="222" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="corrections_8cpp_a3a75ba8a46d40e3ba48f24ae943ae47d_icgraph.svg" width="222" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

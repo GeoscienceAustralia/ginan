@@ -93,29 +93,36 @@ Collaboration diagram for KFMeasEntry:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad60b511bde5bcddd37ca3fce3ff9a5ba"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#ad60b511bde5bcddd37ca3fce3ff9a5ba">KFMeasEntry</a> (<a class="el" href="structKFState.html">KFState</a> *<a class="el" href="structKFMeasEntry.html#a2582e132a44fda9f8d4684ef8aea3994">kfState_ptr</a>=nullptr, <a class="el" href="structObsKey.html">ObsKey</a> <a class="el" href="structKFMeasEntry.html#a5543f4c807d1de6dc0f867ccd5ee5dc3">obsKey</a>={})</td></tr>
-<tr class="separator:ad60b511bde5bcddd37ca3fce3ff9a5ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2bdc0920f865718cd72a0f056a13da7a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a2bdc0920f865718cd72a0f056a13da7a">addNoiseEntry</a> (<a class="el" href="structObsKey.html">ObsKey</a> <a class="el" href="structKFMeasEntry.html#a5543f4c807d1de6dc0f867ccd5ee5dc3">obsKey</a>, double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>, double variance)</td></tr>
-<tr class="memdesc:a2bdc0920f865718cd72a0f056a13da7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a noise element for this measurement.  <a href="structKFMeasEntry.html#a2bdc0920f865718cd72a0f056a13da7a">More...</a><br /></td></tr>
-<tr class="separator:a2bdc0920f865718cd72a0f056a13da7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa07d07ef75fccb307a91283ec47b38a8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#aa07d07ef75fccb307a91283ec47b38a8">addDsgnEntry</a> (<a class="el" href="structKFKey.html">KFKey</a> kfKey, double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>, <a class="el" href="structInitialState.html">InitialState</a> initialState={})</td></tr>
-<tr class="memdesc:aa07d07ef75fccb307a91283ec47b38a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a design matrix entry for this measurement.  <a href="structKFMeasEntry.html#aa07d07ef75fccb307a91283ec47b38a8">More...</a><br /></td></tr>
-<tr class="separator:aa07d07ef75fccb307a91283ec47b38a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1054abe38550bcd614c1a3c1afe752ee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a1054abe38550bcd614c1a3c1afe752ee">setNoise</a> (double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>)</td></tr>
-<tr class="memdesc:a1054abe38550bcd614c1a3c1afe752ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the measurement noise entry for this measurement.  <a href="structKFMeasEntry.html#a1054abe38550bcd614c1a3c1afe752ee">More...</a><br /></td></tr>
-<tr class="separator:a1054abe38550bcd614c1a3c1afe752ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56ed46a7048dcd7e87e75eebc342dc7d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a56ed46a7048dcd7e87e75eebc342dc7d">setValue</a> (double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>)</td></tr>
-<tr class="memdesc:a56ed46a7048dcd7e87e75eebc342dc7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the actual measurement value for this measurement.  <a href="structKFMeasEntry.html#a56ed46a7048dcd7e87e75eebc342dc7d">More...</a><br /></td></tr>
-<tr class="separator:a56ed46a7048dcd7e87e75eebc342dc7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a2241b60370da0d0d1a4c28250bb5b4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a4a2241b60370da0d0d1a4c28250bb5b4">setInnov</a> (double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>)</td></tr>
-<tr class="memdesc:a4a2241b60370da0d0d1a4c28250bb5b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the innovation value for this measurement.  <a href="structKFMeasEntry.html#a4a2241b60370da0d0d1a4c28250bb5b4">More...</a><br /></td></tr>
-<tr class="separator:a4a2241b60370da0d0d1a4c28250bb5b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ed6a4733d12c5d79713c52bdc33a00c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a5ed6a4733d12c5d79713c52bdc33a00c">KFMeasEntry</a> (<a class="el" href="structKFState.html">KFState</a> *<a class="el" href="structKFMeasEntry.html#a2582e132a44fda9f8d4684ef8aea3994">kfState_ptr</a>, <a class="el" href="structKFKey.html">KFKey</a> <a class="el" href="structKFMeasEntry.html#acf574b391641c98581af23796b3c158d">obsKey</a>={})</td></tr>
+<tr class="separator:a5ed6a4733d12c5d79713c52bdc33a00c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0491dfe6136dafccde8384d15421bec0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a0491dfe6136dafccde8384d15421bec0">KFMeasEntry</a> (const <a class="el" href="structKFState.html">KFState</a> *<a class="el" href="structKFMeasEntry.html#a88a9310b45c49c4034409feeeeda85b5">constKfState_ptr</a>, <a class="el" href="structKFKey.html">KFKey</a> <a class="el" href="structKFMeasEntry.html#acf574b391641c98581af23796b3c158d">obsKey</a>={})</td></tr>
+<tr class="separator:a0491dfe6136dafccde8384d15421bec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f26a155bd9b41a84a8c87cf5fe42142"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a4f26a155bd9b41a84a8c87cf5fe42142">KFMeasEntry</a> ()</td></tr>
+<tr class="separator:a4f26a155bd9b41a84a8c87cf5fe42142"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b34625115c46a7943e1ac8ffb7478e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a7b34625115c46a7943e1ac8ffb7478e9">addNoiseEntry</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey, const double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>, const double variance)</td></tr>
+<tr class="memdesc:a7b34625115c46a7943e1ac8ffb7478e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a noise element for this measurement.  <a href="structKFMeasEntry.html#a7b34625115c46a7943e1ac8ffb7478e9">More...</a><br /></td></tr>
+<tr class="separator:a7b34625115c46a7943e1ac8ffb7478e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5acb825be0bbd5c284f5922b2fa82242"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a5acb825be0bbd5c284f5922b2fa82242">addDsgnEntry</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey, const double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>, const <a class="el" href="structInitialState.html">InitialState</a> initialState={})</td></tr>
+<tr class="memdesc:a5acb825be0bbd5c284f5922b2fa82242"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a design matrix entry for this measurement.  <a href="structKFMeasEntry.html#a5acb825be0bbd5c284f5922b2fa82242">More...</a><br /></td></tr>
+<tr class="separator:a5acb825be0bbd5c284f5922b2fa82242"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58172784aeb65ed62d2b21ee570f4980"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a58172784aeb65ed62d2b21ee570f4980">setNoise</a> (const double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>)</td></tr>
+<tr class="memdesc:a58172784aeb65ed62d2b21ee570f4980"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the measurement noise entry for this measurement.  <a href="structKFMeasEntry.html#a58172784aeb65ed62d2b21ee570f4980">More...</a><br /></td></tr>
+<tr class="separator:a58172784aeb65ed62d2b21ee570f4980"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d612c21a6d8f4367e273baf672e6cbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a7d612c21a6d8f4367e273baf672e6cbd">setValue</a> (const double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>)</td></tr>
+<tr class="memdesc:a7d612c21a6d8f4367e273baf672e6cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the actual measurement value for this measurement.  <a href="structKFMeasEntry.html#a7d612c21a6d8f4367e273baf672e6cbd">More...</a><br /></td></tr>
+<tr class="separator:a7d612c21a6d8f4367e273baf672e6cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac15ff59e0acb09be8ed75ccee2411dd2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#ac15ff59e0acb09be8ed75ccee2411dd2">setInnov</a> (const double <a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a>)</td></tr>
+<tr class="memdesc:ac15ff59e0acb09be8ed75ccee2411dd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the innovation value for this measurement.  <a href="structKFMeasEntry.html#ac15ff59e0acb09be8ed75ccee2411dd2">More...</a><br /></td></tr>
+<tr class="separator:ac15ff59e0acb09be8ed75ccee2411dd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a2582e132a44fda9f8d4684ef8aea3994"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFState.html">KFState</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a2582e132a44fda9f8d4684ef8aea3994">kfState_ptr</a></td></tr>
+<tr class="memitem:a2582e132a44fda9f8d4684ef8aea3994"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFState.html">KFState</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a2582e132a44fda9f8d4684ef8aea3994">kfState_ptr</a> = nullptr</td></tr>
 <tr class="memdesc:a2582e132a44fda9f8d4684ef8aea3994"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to filter object that measurements are referencing.  <a href="structKFMeasEntry.html#a2582e132a44fda9f8d4684ef8aea3994">More...</a><br /></td></tr>
 <tr class="separator:a2582e132a44fda9f8d4684ef8aea3994"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88a9310b45c49c4034409feeeeda85b5"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structKFState.html">KFState</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a88a9310b45c49c4034409feeeeda85b5">constKfState_ptr</a> = nullptr</td></tr>
+<tr class="memdesc:a88a9310b45c49c4034409feeeeda85b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to filter object that measurements are referencing.  <a href="structKFMeasEntry.html#a88a9310b45c49c4034409feeeeda85b5">More...</a><br /></td></tr>
+<tr class="separator:a88a9310b45c49c4034409feeeeda85b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8273de15fab2130bc3dcfc12b957cd38"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">value</a> = 0</td></tr>
 <tr class="memdesc:a8273de15fab2130bc3dcfc12b957cd38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Value of measurement (for linear systems)  <a href="structKFMeasEntry.html#a8273de15fab2130bc3dcfc12b957cd38">More...</a><br /></td></tr>
 <tr class="separator:a8273de15fab2130bc3dcfc12b957cd38"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -125,21 +132,21 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a70d05f69877ea101fcb0707e296ce699"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a70d05f69877ea101fcb0707e296ce699">innov</a> = 0</td></tr>
 <tr class="memdesc:a70d05f69877ea101fcb0707e296ce699"><td class="mdescLeft">&#160;</td><td class="mdescRight">Innovation of measurement (for non-linear systems)  <a href="structKFMeasEntry.html#a70d05f69877ea101fcb0707e296ce699">More...</a><br /></td></tr>
 <tr class="separator:a70d05f69877ea101fcb0707e296ce699"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5543f4c807d1de6dc0f867ccd5ee5dc3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structObsKey.html">ObsKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a5543f4c807d1de6dc0f867ccd5ee5dc3">obsKey</a> = {}</td></tr>
-<tr class="memdesc:a5543f4c807d1de6dc0f867ccd5ee5dc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional labels to be used in output traces.  <a href="structKFMeasEntry.html#a5543f4c807d1de6dc0f867ccd5ee5dc3">More...</a><br /></td></tr>
-<tr class="separator:a5543f4c807d1de6dc0f867ccd5ee5dc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9053243ccd6f28aa54736002e8064707"><td class="memItemLeft" align="right" valign="top">list&lt; tuple&lt; string, double, string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a9053243ccd6f28aa54736002e8064707">componentList</a></td></tr>
-<tr class="separator:a9053243ccd6f28aa54736002e8064707"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf574b391641c98581af23796b3c158d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#acf574b391641c98581af23796b3c158d">obsKey</a> = {}</td></tr>
+<tr class="memdesc:acf574b391641c98581af23796b3c158d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional labels to be used in output traces.  <a href="structKFMeasEntry.html#acf574b391641c98581af23796b3c158d">More...</a><br /></td></tr>
+<tr class="separator:acf574b391641c98581af23796b3c158d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6aa89da9d8ad15d3ecfb52cd6ad7006"><td class="memItemLeft" align="right" valign="top">vector&lt; tuple&lt; E_Component, double, string, double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#ab6aa89da9d8ad15d3ecfb52cd6ad7006">componentList</a></td></tr>
+<tr class="separator:ab6aa89da9d8ad15d3ecfb52cd6ad7006"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb22e9ba2833d6024ecfd32880799f29"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#acb22e9ba2833d6024ecfd32880799f29">designEntryMap</a></td></tr>
 <tr class="separator:acb22e9ba2833d6024ecfd32880799f29"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa48b57cb84e561148377b04b1be83769"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structObsKey.html">ObsKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#aa48b57cb84e561148377b04b1be83769">noiseEntryMap</a></td></tr>
-<tr class="separator:aa48b57cb84e561148377b04b1be83769"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3df6c19a205445ee4f55421bbad65708"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#a3df6c19a205445ee4f55421bbad65708">noiseEntryMap</a></td></tr>
+<tr class="separator:a3df6c19a205445ee4f55421bbad65708"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf9467739f31e0a6297204143d849542"><td class="memItemLeft" align="right" valign="top">map&lt; string, void * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFMeasEntry.html#adf9467739f31e0a6297204143d849542">metaDataMap</a></td></tr>
 <tr class="separator:adf9467739f31e0a6297204143d849542"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ad60b511bde5bcddd37ca3fce3ff9a5ba" name="ad60b511bde5bcddd37ca3fce3ff9a5ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad60b511bde5bcddd37ca3fce3ff9a5ba">&#9670;&nbsp;</a></span>KFMeasEntry()</h2>
+<a id="a5ed6a4733d12c5d79713c52bdc33a00c" name="a5ed6a4733d12c5d79713c52bdc33a00c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ed6a4733d12c5d79713c52bdc33a00c">&#9670;&nbsp;</a></span>KFMeasEntry() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -151,12 +158,12 @@ Data Fields</h2></td></tr>
           <td class="memname">KFMeasEntry::KFMeasEntry </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> *&#160;</td>
-          <td class="paramname"><em>kfState_ptr</em> = <code>nullptr</code>, </td>
+          <td class="paramname"><em>kfState_ptr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structObsKey.html">ObsKey</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>obsKey</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
@@ -174,9 +181,8 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa07d07ef75fccb307a91283ec47b38a8" name="aa07d07ef75fccb307a91283ec47b38a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa07d07ef75fccb307a91283ec47b38a8">&#9670;&nbsp;</a></span>addDsgnEntry()</h2>
+<a id="a0491dfe6136dafccde8384d15421bec0" name="a0491dfe6136dafccde8384d15421bec0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0491dfe6136dafccde8384d15421bec0">&#9670;&nbsp;</a></span>KFMeasEntry() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -185,21 +191,83 @@ Data Fields</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool KFMeasEntry::addDsgnEntry </td>
+          <td class="memname">KFMeasEntry::KFMeasEntry </td>
           <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> *&#160;</td>
+          <td class="paramname"><em>constKfState_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>obsKey</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4f26a155bd9b41a84a8c87cf5fe42142" name="a4f26a155bd9b41a84a8c87cf5fe42142"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f26a155bd9b41a84a8c87cf5fe42142">&#9670;&nbsp;</a></span>KFMeasEntry() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">KFMeasEntry::KFMeasEntry </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a5acb825be0bbd5c284f5922b2fa82242" name="a5acb825be0bbd5c284f5922b2fa82242"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5acb825be0bbd5c284f5922b2fa82242">&#9670;&nbsp;</a></span>addDsgnEntry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFMeasEntry::addDsgnEntry </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>kfKey</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>value</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
           <td class="paramname"><em>initialState</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
@@ -227,13 +295,13 @@ Data Fields</h2></td></tr>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_aa07d07ef75fccb307a91283ec47b38a8_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a5acb825be0bbd5c284f5922b2fa82242_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
 </div>
-<a id="a2bdc0920f865718cd72a0f056a13da7a" name="a2bdc0920f865718cd72a0f056a13da7a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2bdc0920f865718cd72a0f056a13da7a">&#9670;&nbsp;</a></span>addNoiseEntry()</h2>
+<a id="a7b34625115c46a7943e1ac8ffb7478e9" name="a7b34625115c46a7943e1ac8ffb7478e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b34625115c46a7943e1ac8ffb7478e9">&#9670;&nbsp;</a></span>addNoiseEntry()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -244,19 +312,19 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void KFMeasEntry::addNoiseEntry </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structObsKey.html">ObsKey</a>&#160;</td>
-          <td class="paramname"><em>obsKey</em>, </td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>kfKey</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>value</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>variance</em>&#160;</td>
         </tr>
         <tr>
@@ -275,7 +343,7 @@ Here is the caller graph for this function:</div>
 <p>Adds a noise element for this measurement. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">obsKey</td><td>Key to determine the origin of the noise</td></tr>
+    <tr><td class="paramname">kfKey</td><td>Key to determine the origin of the noise</td></tr>
     <tr><td class="paramname">value</td><td>Noise entry matrix entry value</td></tr>
     <tr><td class="paramname">variance</td><td>Variance of noise element </td></tr>
   </table>
@@ -284,18 +352,18 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a2bdc0920f865718cd72a0f056a13da7a_cgraph.svg" width="466" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a7b34625115c46a7943e1ac8ffb7478e9_cgraph.svg" width="466" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a2bdc0920f865718cd72a0f056a13da7a_icgraph.svg" width="360" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a7b34625115c46a7943e1ac8ffb7478e9_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
 </div>
-<a id="a4a2241b60370da0d0d1a4c28250bb5b4" name="a4a2241b60370da0d0d1a4c28250bb5b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a2241b60370da0d0d1a4c28250bb5b4">&#9670;&nbsp;</a></span>setInnov()</h2>
+<a id="ac15ff59e0acb09be8ed75ccee2411dd2" name="ac15ff59e0acb09be8ed75ccee2411dd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac15ff59e0acb09be8ed75ccee2411dd2">&#9670;&nbsp;</a></span>setInnov()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -306,7 +374,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void KFMeasEntry::setInnov </td>
           <td>(</td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
@@ -328,13 +396,13 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a4a2241b60370da0d0d1a4c28250bb5b4_icgraph.svg" width="344" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_ac15ff59e0acb09be8ed75ccee2411dd2_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
 </div>
-<a id="a1054abe38550bcd614c1a3c1afe752ee" name="a1054abe38550bcd614c1a3c1afe752ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1054abe38550bcd614c1a3c1afe752ee">&#9670;&nbsp;</a></span>setNoise()</h2>
+<a id="a58172784aeb65ed62d2b21ee570f4980" name="a58172784aeb65ed62d2b21ee570f4980"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58172784aeb65ed62d2b21ee570f4980">&#9670;&nbsp;</a></span>setNoise()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -345,7 +413,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void KFMeasEntry::setNoise </td>
           <td>(</td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
@@ -367,13 +435,13 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a1054abe38550bcd614c1a3c1afe752ee_icgraph.svg" width="410" height="494"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a58172784aeb65ed62d2b21ee570f4980_icgraph.svg" width="410" height="544"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a56ed46a7048dcd7e87e75eebc342dc7d" name="a56ed46a7048dcd7e87e75eebc342dc7d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a56ed46a7048dcd7e87e75eebc342dc7d">&#9670;&nbsp;</a></span>setValue()</h2>
+<a id="a7d612c21a6d8f4367e273baf672e6cbd" name="a7d612c21a6d8f4367e273baf672e6cbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d612c21a6d8f4367e273baf672e6cbd">&#9670;&nbsp;</a></span>setValue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -384,7 +452,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void KFMeasEntry::setValue </td>
           <td>(</td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
@@ -406,23 +474,39 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a56ed46a7048dcd7e87e75eebc342dc7d_icgraph.svg" width="568" height="443"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFMeasEntry_a7d612c21a6d8f4367e273baf672e6cbd_icgraph.svg" width="568" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <h2 class="groupheader">Field Documentation</h2>
-<a id="a9053243ccd6f28aa54736002e8064707" name="a9053243ccd6f28aa54736002e8064707"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9053243ccd6f28aa54736002e8064707">&#9670;&nbsp;</a></span>componentList</h2>
+<a id="ab6aa89da9d8ad15d3ecfb52cd6ad7006" name="ab6aa89da9d8ad15d3ecfb52cd6ad7006"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6aa89da9d8ad15d3ecfb52cd6ad7006">&#9670;&nbsp;</a></span>componentList</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">list&lt;tuple&lt;string, double, string&gt; &gt; KFMeasEntry::componentList</td>
+          <td class="memname">vector&lt;tuple&lt;E_Component, double, string, double&gt; &gt; KFMeasEntry::componentList</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a88a9310b45c49c4034409feeeeda85b5" name="a88a9310b45c49c4034409feeeeda85b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88a9310b45c49c4034409feeeeda85b5">&#9670;&nbsp;</a></span>constKfState_ptr</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="structKFState.html">KFState</a>* KFMeasEntry::constKfState_ptr = nullptr</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Pointer to filter object that measurements are referencing. </p>
 
 </div>
 </div>
@@ -463,7 +547,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structKFState.html">KFState</a>* KFMeasEntry::kfState_ptr</td>
+          <td class="memname"><a class="el" href="structKFState.html">KFState</a>* KFMeasEntry::kfState_ptr = nullptr</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -502,28 +586,28 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="aa48b57cb84e561148377b04b1be83769" name="aa48b57cb84e561148377b04b1be83769"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa48b57cb84e561148377b04b1be83769">&#9670;&nbsp;</a></span>noiseEntryMap</h2>
+<a id="a3df6c19a205445ee4f55421bbad65708" name="a3df6c19a205445ee4f55421bbad65708"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3df6c19a205445ee4f55421bbad65708">&#9670;&nbsp;</a></span>noiseEntryMap</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;<a class="el" href="structObsKey.html">ObsKey</a>, double&gt; KFMeasEntry::noiseEntryMap</td>
+          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, double&gt; KFMeasEntry::noiseEntryMap</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a5543f4c807d1de6dc0f867ccd5ee5dc3" name="a5543f4c807d1de6dc0f867ccd5ee5dc3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5543f4c807d1de6dc0f867ccd5ee5dc3">&#9670;&nbsp;</a></span>obsKey</h2>
+<a id="acf574b391641c98581af23796b3c158d" name="acf574b391641c98581af23796b3c158d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf574b391641c98581af23796b3c158d">&#9670;&nbsp;</a></span>obsKey</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structObsKey.html">ObsKey</a> KFMeasEntry::obsKey = {}</td>
+          <td class="memname"><a class="el" href="structKFKey.html">KFKey</a> KFMeasEntry::obsKey = {}</td>
         </tr>
       </table>
 </div><div class="memdoc">

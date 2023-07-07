@@ -1,5 +1,6 @@
 <map id="KFState::combineKFMeasList" name="KFState::combineKFMeasList">
-<area shape="rect" id="node1" title="Combine a list of KFMeasEntrys into a single KFMeas object for used in the filter." alt="" coords="5,31,217,57"/>
-<area shape="rect" id="node2" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="283,5,403,32"/>
-<area shape="rect" id="node3" href="$structKFState.html#a5aeeee0f20df8cc8c4747c1b5b18212f" title="Finds the position in the KF state vector of particular states." alt="" coords="265,56,420,83"/>
+<area shape="rect" id="node1" title="Combine a list of KFMeasEntrys into a single KFMeas object for used in the filter." alt="" coords="5,56,217,83"/>
+<area shape="rect" id="node2" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="293,5,413,32"/>
+<area shape="rect" id="node3" href="$structKFState.html#a4280267023df2b302ea2880d373e9e00" title="Finds the position in the KF state vector of particular states." alt="" coords="275,56,430,83"/>
+<area shape="rect" id="node4" href="$structKFState.html#a4a3538a80306e9526559bb082b587e6c" title="Finds the position in the KF state vector of particular states." alt="" coords="265,107,440,133"/>
 </map>

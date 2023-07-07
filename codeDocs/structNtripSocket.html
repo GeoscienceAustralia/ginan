@@ -108,10 +108,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad994654acb49c4fd1ce8d0d2e6b64f9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af13e4ab3f0901d6f692a5f5d53ad347b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#af13e4ab3f0901d6f692a5f5d53ad347b">logChunkError</a> ()</td></tr>
 <tr class="separator:af13e4ab3f0901d6f692a5f5d53ad347b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4f527e848cbdc2705a10e83dd3b80c77"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a4f527e848cbdc2705a10e83dd3b80c77">printChunkHex</a> (vector&lt; char &gt; chunk)</td></tr>
-<tr class="separator:a4f527e848cbdc2705a10e83dd3b80c77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe738554e426fe8399fda7d5a54831a9"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#afe738554e426fe8399fda7d5a54831a9">dataChunkDownloaded</a> (vector&lt; char &gt; dataChunk)</td></tr>
-<tr class="separator:afe738554e426fe8399fda7d5a54831a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fc9897e885328c6f3945d7f7b4633c8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a0fc9897e885328c6f3945d7f7b4633c8">dataChunkDownloaded</a> (vector&lt; char &gt; &amp;dataChunk)</td></tr>
+<tr class="separator:a0fc9897e885328c6f3945d7f7b4633c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b63d150cc2dbfc6d9add01a2a4e5135"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a8b63d150cc2dbfc6d9add01a2a4e5135">readContentDownloaded</a> (vector&lt; char &gt; content)</td></tr>
 <tr class="separator:a8b63d150cc2dbfc6d9add01a2a4e5135"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb40c29b7c882ca44ea1ed836c50303a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#adb40c29b7c882ca44ea1ed836c50303a">connected</a> ()</td></tr>
@@ -120,10 +118,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a78c8392664a94a36db0d32542c70dbd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4051a1aa10eb60dc86c9c3e66a898435"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a4051a1aa10eb60dc86c9c3e66a898435">networkLog</a> (string message)</td></tr>
 <tr class="separator:a4051a1aa10eb60dc86c9c3e66a898435"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb8d5e5130f60295c4bba3a29c4d3713"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#abb8d5e5130f60295c4bba3a29c4d3713">connectionError</a> (const <a class="el" href="ntripSocket_8hpp.html#abcde13a646ed975ad5cdbe88245ffb7a">boost::system::error_code</a> &amp;err, string operation)</td></tr>
-<tr class="separator:abb8d5e5130f60295c4bba3a29c4d3713"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5507bb420f27450ff959875c7313ae3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#ab5507bb420f27450ff959875c7313ae3">serverResponse</a> (unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> status_code, string http_version)</td></tr>
-<tr class="separator:ab5507bb420f27450ff959875c7313ae3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe216bcf3a1ed5577c910e17dd49d894"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#abe216bcf3a1ed5577c910e17dd49d894">connectionError</a> (const <a class="el" href="ntripSocket_8hpp.html#abcde13a646ed975ad5cdbe88245ffb7a">boost::system::error_code</a> &amp;err, string operation)</td></tr>
+<tr class="separator:abe216bcf3a1ed5577c910e17dd49d894"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af163f9911a2b7b58a2cf93a373eeab55"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#af163f9911a2b7b58a2cf93a373eeab55">serverResponse</a> (unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> status_code, string http_version)</td></tr>
+<tr class="separator:af163f9911a2b7b58a2cf93a373eeab55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structNetworkStatistics"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structNetworkStatistics')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structNetworkStatistics.html">NetworkStatistics</a></td></tr>
 <tr class="memitem:a6355d0b3c27f8f95ad1b6646fa7333f8 inherit pub_methods_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a6355d0b3c27f8f95ad1b6646fa7333f8">getNetworkStatistics</a> (<a class="el" href="structGTime.html">GTime</a> now, string label)</td></tr>
 <tr class="separator:a6355d0b3c27f8f95ad1b6646fa7333f8 inherit pub_methods_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -151,19 +149,15 @@ Data Fields</h2></td></tr>
 <tr class="separator:a2277a35f1c0f45166206e9ec7362c60c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7af391a81f21819e3067f9f1a6e3a9c"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#ae7af391a81f21819e3067f9f1a6e3a9c">reconnectDelay</a> = 1</td></tr>
 <tr class="separator:ae7af391a81f21819e3067f9f1a6e3a9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9fd1a0b992e3beb46372fcb249965fdd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9fd1a0b992e3beb46372fcb249965fdd">disconnectionCount</a> = 0</td></tr>
+<tr class="memitem:a9fd1a0b992e3beb46372fcb249965fdd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9fd1a0b992e3beb46372fcb249965fdd">disconnectionCount</a> = 0</td></tr>
 <tr class="separator:a9fd1a0b992e3beb46372fcb249965fdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a532434245c029412f0eae733d4174161"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a532434245c029412f0eae733d4174161">isConnected</a> = false</td></tr>
 <tr class="separator:a532434245c029412f0eae733d4174161"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec29c6c42403c3177c9f81b38c2bd853"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#aec29c6c42403c3177c9f81b38c2bd853">finishedReadingStream</a> = false</td></tr>
-<tr class="separator:aec29c6c42403c3177c9f81b38c2bd853"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ff06e73f29b00de699adf6648686b26"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9ff06e73f29b00de699adf6648686b26">chunked_message_length</a> = 0</td></tr>
-<tr class="separator:a9ff06e73f29b00de699adf6648686b26"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f9719eec2572cd5f8bb58564933c9f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a6f9719eec2572cd5f8bb58564933c9f7">numberErroredChunks</a> = 0</td></tr>
+<tr class="memitem:a6f9719eec2572cd5f8bb58564933c9f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a6f9719eec2572cd5f8bb58564933c9f7">numberErroredChunks</a> = 0</td></tr>
 <tr class="separator:a6f9719eec2572cd5f8bb58564933c9f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adae0f533c7488c9a71d9055c629babd5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#adae0f533c7488c9a71d9055c629babd5">logHttpSentReceived</a> = false</td></tr>
 <tr class="separator:adae0f533c7488c9a71d9055c629babd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c03e29a441fc07bc9d48ab4700d3528"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9c03e29a441fc07bc9d48ab4700d3528">content_length</a> = 0</td></tr>
+<tr class="memitem:a9c03e29a441fc07bc9d48ab4700d3528"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a9c03e29a441fc07bc9d48ab4700d3528">content_length</a> = 0</td></tr>
 <tr class="separator:a9c03e29a441fc07bc9d48ab4700d3528"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab53df8fec2b66d754a5382077a6f83da"><td class="memItemLeft" align="right" valign="top">B_asio::ssl::context&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#ab53df8fec2b66d754a5382077a6f83da">ssl_context</a></td></tr>
 <tr class="separator:ab53df8fec2b66d754a5382077a6f83da"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -176,13 +170,13 @@ Data Fields</h2></td></tr>
 <tr class="separator:a39c81283c75634b6608e5f9cbde0155e inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a080afeba66e8262525d2b9f046a855ac inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a080afeba66e8262525d2b9f046a855ac">networkTraceFilename</a> = &quot;&quot;</td></tr>
 <tr class="separator:a080afeba66e8262525d2b9f046a855ac inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab31a544138efa949bf0b1f9a24f28761 inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#ab31a544138efa949bf0b1f9a24f28761">connectCount</a> = 0</td></tr>
+<tr class="memitem:ab31a544138efa949bf0b1f9a24f28761 inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#ab31a544138efa949bf0b1f9a24f28761">connectCount</a> = 0</td></tr>
 <tr class="separator:ab31a544138efa949bf0b1f9a24f28761 inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a94d64d3110b48edabf7fc0ed9ce83a6b inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a94d64d3110b48edabf7fc0ed9ce83a6b">disconnectCount</a> = 0</td></tr>
+<tr class="memitem:a94d64d3110b48edabf7fc0ed9ce83a6b inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a94d64d3110b48edabf7fc0ed9ce83a6b">disconnectCount</a> = 0</td></tr>
 <tr class="separator:a94d64d3110b48edabf7fc0ed9ce83a6b inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad4cf472cdae8640472dcaecaf15298aa inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#ad4cf472cdae8640472dcaecaf15298aa">chunksSent</a> = 0</td></tr>
+<tr class="memitem:ad4cf472cdae8640472dcaecaf15298aa inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#ad4cf472cdae8640472dcaecaf15298aa">chunksSent</a> = 0</td></tr>
 <tr class="separator:ad4cf472cdae8640472dcaecaf15298aa inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a448eb7d29b952866d0277551a89f04df inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a448eb7d29b952866d0277551a89f04df">chunksReceived</a> = 0</td></tr>
+<tr class="memitem:a448eb7d29b952866d0277551a89f04df inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a448eb7d29b952866d0277551a89f04df">chunksReceived</a> = 0</td></tr>
 <tr class="separator:a448eb7d29b952866d0277551a89f04df inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c29d03897059c650c1696fff25867f8 inherit pub_attribs_structNetworkStatistics"><td class="memItemLeft" align="right" valign="top">boost::posix_time::time_duration&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNetworkStatistics.html#a8c29d03897059c650c1696fff25867f8">connectedDuration</a> = boost::posix_time::hours(0)</td></tr>
 <tr class="separator:a8c29d03897059c650c1696fff25867f8 inherit pub_attribs_structNetworkStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -219,6 +213,8 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a7a99343c4bc1efb637eb3f21edd6ac62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a70f9ea821fcdf1ca45462ffa8a4a6387"><td class="memItemLeft" align="right" valign="top">boost::asio::streambuf&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a70f9ea821fcdf1ca45462ffa8a4a6387">downloadBuf</a></td></tr>
 <tr class="separator:a70f9ea821fcdf1ca45462ffa8a4a6387"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93f5f10f4bde03f0d8091828d42520af"><td class="memItemLeft" align="right" valign="top">vector&lt; char &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNtripSocket.html#a93f5f10f4bde03f0d8091828d42520af">receivedHttpData</a></td></tr>
+<tr class="separator:a93f5f10f4bde03f0d8091828d42520af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a18dbab18eb33fc92977b2608555e22fe" name="a18dbab18eb33fc92977b2608555e22fe"></a>
@@ -275,7 +271,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structNtripSocket_a07a5b9e92a7fa439e08136f69c882307_icgraph.svg" width="431" height="155"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structNtripSocket_a07a5b9e92a7fa439e08136f69c882307_icgraph.svg" width="427" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -307,8 +303,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="abb8d5e5130f60295c4bba3a29c4d3713" name="abb8d5e5130f60295c4bba3a29c4d3713"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abb8d5e5130f60295c4bba3a29c4d3713">&#9670;&nbsp;</a></span>connectionError()</h2>
+<a id="abe216bcf3a1ed5577c910e17dd49d894" name="abe216bcf3a1ed5577c910e17dd49d894"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe216bcf3a1ed5577c910e17dd49d894">&#9670;&nbsp;</a></span>connectionError()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -317,7 +313,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void NtripSocket::connectionError </td>
+          <td class="memname">void NtripSocket::connectionError </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="ntripSocket_8hpp.html#abcde13a646ed975ad5cdbe88245ffb7a">boost::system::error_code</a> &amp;&#160;</td>
           <td class="paramname"><em>err</em>, </td>
@@ -336,17 +332,20 @@ Here is the caller graph for this function:</div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Reimplemented in <a class="el" href="structNtripRtcmStream.html#a652396ef21268457d23bc96368655b51">NtripRtcmStream</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structNtripSocket_abe216bcf3a1ed5577c910e17dd49d894_cgraph.svg" width="395" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="afe738554e426fe8399fda7d5a54831a9" name="afe738554e426fe8399fda7d5a54831a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe738554e426fe8399fda7d5a54831a9">&#9670;&nbsp;</a></span>dataChunkDownloaded()</h2>
+<a id="a0fc9897e885328c6f3945d7f7b4633c8" name="a0fc9897e885328c6f3945d7f7b4633c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fc9897e885328c6f3945d7f7b4633c8">&#9670;&nbsp;</a></span>dataChunkDownloaded()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -355,9 +354,9 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual bool NtripSocket::dataChunkDownloaded </td>
+          <td class="memname">virtual void NtripSocket::dataChunkDownloaded </td>
           <td>(</td>
-          <td class="paramtype">vector&lt; char &gt;&#160;</td>
+          <td class="paramtype">vector&lt; char &gt; &amp;&#160;</td>
           <td class="paramname"><em>dataChunk</em></td><td>)</td>
           <td></td>
         </tr>
@@ -369,7 +368,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Reimplemented in <a class="el" href="structNtripStream.html#a1df0f85486da8edf84e47265095d9d56">NtripStream</a>.</p>
+<p>Reimplemented in <a class="el" href="structNtripStream.html#a5e18fbd538025ef2ba7d1c6da752b286">NtripStream</a>.</p>
 
 </div>
 </div>
@@ -425,7 +424,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structNtripSocket_a49354df68c2718d6b35ff1e090295979_icgraph.svg" width="456" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structNtripSocket_a49354df68c2718d6b35ff1e090295979_icgraph.svg" width="391" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -514,24 +513,6 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a4f527e848cbdc2705a10e83dd3b80c77" name="a4f527e848cbdc2705a10e83dd3b80c77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4f527e848cbdc2705a10e83dd3b80c77">&#9670;&nbsp;</a></span>printChunkHex()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void NtripSocket::printChunkHex </td>
-          <td>(</td>
-          <td class="paramtype">vector&lt; char &gt;&#160;</td>
-          <td class="paramname"><em>chunk</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a8b63d150cc2dbfc6d9add01a2a4e5135" name="a8b63d150cc2dbfc6d9add01a2a4e5135"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8b63d150cc2dbfc6d9add01a2a4e5135">&#9670;&nbsp;</a></span>readContentDownloaded()</h2>
 
@@ -588,8 +569,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ab5507bb420f27450ff959875c7313ae3" name="ab5507bb420f27450ff959875c7313ae3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5507bb420f27450ff959875c7313ae3">&#9670;&nbsp;</a></span>serverResponse()</h2>
+<a id="af163f9911a2b7b58a2cf93a373eeab55" name="af163f9911a2b7b58a2cf93a373eeab55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af163f9911a2b7b58a2cf93a373eeab55">&#9670;&nbsp;</a></span>serverResponse()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -598,9 +579,9 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void NtripSocket::serverResponse </td>
+          <td class="memname">void NtripSocket::serverResponse </td>
           <td>(</td>
-          <td class="paramtype">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>status_code</em>, </td>
         </tr>
         <tr>
@@ -617,12 +598,17 @@ Here is the caller graph for this function:</div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Reimplemented in <a class="el" href="structNtripRtcmStream.html#ade7b9db0533a5b92dc75beefcf70e469">NtripRtcmStream</a>, and <a class="el" href="structNtripUploader.html#a466ada70fe63a0d64e63bb58bb4ea5c0">NtripUploader</a>.</p>
+<p>Reimplemented in <a class="el" href="structNtripUploader.html#a466ada70fe63a0d64e63bb58bb4ea5c0">NtripUploader</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structNtripSocket_af163f9911a2b7b58a2cf93a373eeab55_cgraph.svg" width="398" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -653,11 +639,6 @@ Here is the caller graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="structNtripSocket_a17177dbe9c263d7af0eb2d01059d8ece_cgraph.svg" width="295" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structNtripSocket_a17177dbe9c263d7af0eb2d01059d8ece_icgraph.svg" width="386" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -787,20 +768,6 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a9ff06e73f29b00de699adf6648686b26" name="a9ff06e73f29b00de699adf6648686b26"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9ff06e73f29b00de699adf6648686b26">&#9670;&nbsp;</a></span>chunked_message_length</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> NtripSocket::chunked_message_length = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a9c03e29a441fc07bc9d48ab4700d3528" name="a9c03e29a441fc07bc9d48ab4700d3528"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9c03e29a441fc07bc9d48ab4700d3528">&#9670;&nbsp;</a></span>content_length</h2>
 
@@ -808,7 +775,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> NtripSocket::content_length = 0</td>
+          <td class="memname">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> NtripSocket::content_length = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -822,7 +789,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> NtripSocket::disconnectionCount = 0</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> NtripSocket::disconnectionCount = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -847,20 +814,6 @@ Here is the caller graph for this function:</div>
 <span class="mlabels"><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aec29c6c42403c3177c9f81b38c2bd853" name="aec29c6c42403c3177c9f81b38c2bd853"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec29c6c42403c3177c9f81b38c2bd853">&#9670;&nbsp;</a></span>finishedReadingStream</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NtripSocket::finishedReadingStream = false</td>
-        </tr>
-      </table>
 </div><div class="memdoc">
 
 </div>
@@ -922,9 +875,31 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> NtripSocket::numberErroredChunks = 0</td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> NtripSocket::numberErroredChunks = 0</td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a93f5f10f4bde03f0d8091828d42520af" name="a93f5f10f4bde03f0d8091828d42520af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93f5f10f4bde03f0d8091828d42520af">&#9670;&nbsp;</a></span>receivedHttpData</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">vector&lt;char&gt; NtripSocket::receivedHttpData</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

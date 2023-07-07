@@ -1,6 +1,6 @@
 <map id="StationLogs" name="StationLogs">
-<area shape="rect" id="node1" title=" " alt="" coords="213,439,327,545"/>
-<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,156,361"/>
-<area shape="rect" id="node3" title=" " alt="" coords="181,145,359,222"/>
-<area shape="rect" id="node4" title=" " alt="" coords="384,145,527,222"/>
+<area shape="rect" id="node1" title=" " alt="" coords="210,175,325,281"/>
+<area shape="rect" id="node2" href="$structPTime.html" title=" " alt="" coords="5,5,153,97"/>
+<area shape="rect" id="node3" title=" " alt="" coords="178,13,357,90"/>
+<area shape="rect" id="node4" title=" " alt="" coords="381,13,524,90"/>
 </map>

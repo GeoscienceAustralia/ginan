@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title="Update the accelerations applied to orbital elements during the interval between epochs.">
+<g id="a_node1"><a xlink:title="Prepare receiver clocks using spp values to minimise pre&#45;fit residuals.">
 <polygon fill="#bfbfbf" stroke="black" points="0,-57.5 0,-76.5 101,-76.5 101,-57.5 0,-57.5"/>
 <text text-anchor="middle" x="50.5" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">updateRecClocks</text>
 </a>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="streamTrace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="trace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="164.5,-114.5 164.5,-133.5 239.5,-133.5 239.5,-114.5 164.5,-114.5"/>
 <text text-anchor="middle" x="202" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">getTraceFile</text>
 </a>
@@ -35,7 +35,7 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="structACSConfig.html#a7ddfbaf20a1c9181d73d0dabe92beace" target="_top" xlink:title="Set receiver options for a specific receiver using a hierarchy of sources.">
+<g id="a_node3"><a xlink:href="structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" target="_top" xlink:title="Set receiver options for a specific receiver using a hierarchy of sources.">
 <polygon fill="white" stroke="red" points="137,-76.5 137,-95.5 267,-95.5 267,-76.5 137,-76.5"/>
 <text text-anchor="middle" x="202" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">ACSConfig::getRecOpts</text>
 </a>
@@ -46,32 +46,32 @@
 <title>Node1&#45;&gt;Node3</title>
 <path fill="none" stroke="midnightblue" d="M101.28,-73.33C112.66,-74.77 124.92,-76.33 136.81,-77.84"/>
 </g>
-<!-- Node11 -->
+<!-- Node15 -->
 <g id="node4" class="node">
-<title>Node11</title>
+<title>Node15</title>
 <g id="a_node4"><a xlink:href="algebra_8cpp.html#a304f0d512353a3c5a991c2439ea73287" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="139,-38.5 139,-57.5 265,-57.5 265,-38.5 139,-38.5"/>
 <text text-anchor="middle" x="202" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">initialStateFromConfig</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node11 -->
+<!-- Node1&#45;&gt;Node15 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node11</title>
+<title>Node1&#45;&gt;Node15</title>
 <path fill="none" stroke="midnightblue" d="M101.28,-60.67C113.34,-59.14 126.38,-57.48 138.93,-55.89"/>
 </g>
-<!-- Node12 -->
+<!-- Node16 -->
 <g id="node5" class="node">
-<title>Node12</title>
-<g id="a_node5"><a xlink:href="structKFState.html#ae544a260c4983f5a1b06f71ddad7338f" target="_top" xlink:title="Adds dynamics to a filter state by inserting off&#45;diagonal, non&#45;time dependent elements to transition ...">
+<title>Node16</title>
+<g id="a_node5"><a xlink:href="structKFState.html#aca3d8484dbabdecee93352e625c96ed1" target="_top" xlink:title="Adds dynamics to a filter state by inserting off&#45;diagonal, non&#45;time dependent elements to transition ...">
 <polygon fill="white" stroke="red" points="144.5,-0.5 144.5,-19.5 259.5,-19.5 259.5,-0.5 144.5,-0.5"/>
 <text text-anchor="middle" x="202" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::setKFTrans</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node12 -->
+<!-- Node1&#45;&gt;Node16 -->
 <g id="edge4" class="edge">
-<title>Node1&#45;&gt;Node12</title>
+<title>Node1&#45;&gt;Node16</title>
 <path fill="none" stroke="midnightblue" d="M71.24,-57.35C88.38,-49.18 113.99,-37.49 137,-29 146.24,-25.59 156.4,-22.35 165.85,-19.54"/>
 </g>
 </g>

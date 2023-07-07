@@ -30,68 +30,68 @@
 <!-- Node1&#45;&gt;Node2 -->
 <g id="edge1" class="edge">
 <title>Node1&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M274.06,-95.6C259.56,-107.93 232.8,-129.36 207,-143 200.2,-146.59 192.58,-149.76 185.27,-152.43"/>
+<path fill="none" stroke="midnightblue" d="M272.17,-95.52C257.04,-106.51 230.93,-124.78 207,-138 197.47,-143.27 186.56,-148.33 177.09,-152.43"/>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:href="acsConfig_8cpp.html#a428af53af7dd917738fb5d204948f74f" target="_top" xlink:title="Prepare the configuration of the program.">
-<polygon fill="white" stroke="red" points="0,-114.5 0,-133.5 62,-133.5 62,-114.5 0,-114.5"/>
-<text text-anchor="middle" x="31" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">configure</text>
+<polygon fill="white" stroke="red" points="0,-133.5 0,-152.5 62,-152.5 62,-133.5 0,-133.5"/>
+<text text-anchor="middle" x="31" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00">configure</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node3 -->
-<g id="edge4" class="edge">
-<title>Node1&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M242.72,-88.13C204.62,-90.56 147.18,-95.5 98,-105 85.71,-107.37 72.4,-111 60.97,-114.44"/>
-</g>
-<!-- Node5 -->
-<g id="node4" class="node">
-<title>Node5</title>
-<g id="a_node4"><a xlink:href="main_8cpp.html#a32bd79fa27f816f5f13badbebe4e15b2" target="_top" xlink:title="Create a station object from a file.">
-<polygon fill="white" stroke="red" points="98,-114.5 98,-133.5 207,-133.5 207,-114.5 98,-114.5"/>
-<text text-anchor="middle" x="152.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">addStationDataFile</text>
-</a>
-</g>
-</g>
-<!-- Node1&#45;&gt;Node5 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node5</title>
-<path fill="none" stroke="midnightblue" d="M251.82,-95.59C231.88,-101.35 206.6,-108.65 186.67,-114.41"/>
+<title>Node1&#45;&gt;Node3</title>
+<path fill="none" stroke="midnightblue" d="M246.56,-95.57C233.97,-98.65 219.9,-102.03 207,-105 156.25,-116.69 96.99,-129.35 62.09,-136.71"/>
 </g>
-<!-- Node8 -->
-<g id="node5" class="node">
-<title>Node8</title>
-<g id="a_node5"><a xlink:href="main_8cpp.html#a044cd088d8a6d17451b655ea49b820f7" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="115,-38.5 115,-57.5 190,-57.5 190,-38.5 115,-38.5"/>
-<text text-anchor="middle" x="152.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">fileChanged</text>
+<!-- Node6 -->
+<g id="node4" class="node">
+<title>Node6</title>
+<g id="a_node4"><a xlink:href="main_8cpp.html#a044cd088d8a6d17451b655ea49b820f7" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="115,-76.5 115,-95.5 190,-95.5 190,-76.5 115,-76.5"/>
+<text text-anchor="middle" x="152.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">fileChanged</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node8 -->
-<g id="edge5" class="edge">
-<title>Node1&#45;&gt;Node8</title>
-<path fill="none" stroke="midnightblue" d="M251.82,-76.41C231.88,-70.65 206.6,-63.35 186.67,-57.59"/>
+<!-- Node1&#45;&gt;Node6 -->
+<g id="edge4" class="edge">
+<title>Node1&#45;&gt;Node6</title>
+<path fill="none" stroke="midnightblue" d="M242.67,-86C225.7,-86 206.34,-86 190,-86"/>
 </g>
 <!-- Node9 -->
-<g id="node6" class="node">
+<g id="node5" class="node">
 <title>Node9</title>
-<g id="a_node6"><a xlink:href="main_8cpp.html#a34804c3a0ffc29cad1548a9a3af91d45" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="98,-0.5 98,-19.5 207,-19.5 207,-0.5 98,-0.5"/>
-<text text-anchor="middle" x="152.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">removeInvalidFiles</text>
+<g id="a_node5"><a xlink:href="main_8cpp.html#a34804c3a0ffc29cad1548a9a3af91d45" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="98,-38.5 98,-57.5 207,-57.5 207,-38.5 98,-38.5"/>
+<text text-anchor="middle" x="152.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">removeInvalidFiles</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node9 -->
-<g id="edge6" class="edge">
+<g id="edge5" class="edge">
 <title>Node1&#45;&gt;Node9</title>
+<path fill="none" stroke="midnightblue" d="M251.82,-76.41C231.88,-70.65 206.6,-63.35 186.67,-57.59"/>
+</g>
+<!-- Node10 -->
+<g id="node6" class="node">
+<title>Node10</title>
+<g id="a_node6"><a xlink:href="main_8cpp.html#a54d210f60c2488eb2654eaf7a3bbf6c4" target="_top" xlink:title="Create a station object from an input.">
+<polygon fill="white" stroke="red" points="106.5,-0.5 106.5,-19.5 198.5,-19.5 198.5,-0.5 106.5,-0.5"/>
+<text text-anchor="middle" x="152.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">addStationData</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node10 -->
+<g id="edge6" class="edge">
+<title>Node1&#45;&gt;Node10</title>
 <path fill="none" stroke="midnightblue" d="M274.06,-76.4C259.56,-64.07 232.8,-42.64 207,-29 200.2,-25.41 192.58,-22.24 185.27,-19.57"/>
 </g>
 <!-- Node2&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
 <title>Node2&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M121.35,-152.41C103.23,-146.65 80.26,-139.35 62.15,-133.59"/>
+<path fill="none" stroke="midnightblue" d="M106.32,-154.82C91.52,-152.46 75.44,-149.91 62.04,-147.78"/>
 </g>
 </g>
 </svg>

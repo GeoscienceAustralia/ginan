@@ -1,3 +1,4 @@
 <map id="SigStat" name="SigStat">
-<area shape="rect" id="node1" title="Object containing persistant status parameters of individual signals." alt="" coords="5,5,199,303"/>
+<area shape="rect" id="node1" title="Object containing persistant status parameters of individual signals." alt="" coords="5,233,167,384"/>
+<area shape="rect" id="node2" href="$unionSigStat_1_1SlipStat.html" title=" " alt="" coords="23,5,149,156"/>
 </map>

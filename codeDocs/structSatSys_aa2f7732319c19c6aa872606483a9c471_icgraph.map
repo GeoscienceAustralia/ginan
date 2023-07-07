@@ -1,4 +1,5 @@
 <map id="SatSys::setBlockType" name="SatSys::setBlockType">
-<area shape="rect" id="node1" title=" " alt="" coords="135,5,295,32"/>
-<area shape="rect" id="node2" href="$common_2orbits_8cpp.html#acb6ef72cfd9fedf32fed4c3e94c57ae6" title="read orbit file from POD" alt="" coords="5,5,87,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="276,31,436,57"/>
+<area shape="rect" id="node2" href="$main_8cpp.html#a6c8573ceb67a86d932ae7861185b41b5" title=" " alt="" coords="5,5,228,32"/>
+<area shape="rect" id="node3" href="$common_2orbits_8cpp.html#acb6ef72cfd9fedf32fed4c3e94c57ae6" title="read orbit file from POD" alt="" coords="76,56,157,83"/>
 </map>

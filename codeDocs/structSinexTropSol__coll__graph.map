@@ -1,5 +1,6 @@
 <map id="SinexTropSol" name="SinexTropSol">
-<area shape="rect" id="node1" title=" " alt="" coords="49,160,154,237"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,13,64,90"/>
-<area shape="rect" id="node3" title=" " alt="" coords="89,5,250,97"/>
+<area shape="rect" id="node1" title=" " alt="" coords="110,263,215,340"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,64,64,141"/>
+<area shape="rect" id="node3" href="$structUYds.html" title=" " alt="" coords="89,5,237,200"/>
+<area shape="rect" id="node4" title=" " alt="" coords="261,57,422,149"/>
 </map>

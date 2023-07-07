@@ -1,7 +1,7 @@
 <map id="lc_t" name="lc_t">
-<area shape="rect" id="node1" title=" " alt="" coords="323,453,369,531"/>
-<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,156,361"/>
-<area shape="rect" id="node3" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="180,35,323,332"/>
-<area shape="rect" id="node4" title=" " alt="" coords="347,145,534,222"/>
-<area shape="rect" id="node5" title=" " alt="" coords="559,137,749,229"/>
+<area shape="rect" id="node1" title=" " alt="" coords="355,688,401,765"/>
+<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,188,596"/>
+<area shape="rect" id="node3" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="212,152,355,449"/>
+<area shape="rect" id="node4" title=" " alt="" coords="379,262,566,339"/>
+<area shape="rect" id="node5" title=" " alt="" coords="591,255,781,347"/>
 </map>

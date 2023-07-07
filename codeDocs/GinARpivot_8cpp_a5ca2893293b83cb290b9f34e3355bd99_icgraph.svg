@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M124.71,-34.86C113.54,-36.71 101.06,-38.78 89.36,-40.72"/>
 </g>
-<!-- Node11 -->
+<!-- Node4 -->
 <g id="node3" class="node">
-<title>Node11</title>
+<title>Node4</title>
 <g id="a_node3"><a xlink:href="GinARpivot_8cpp.html#a00fa2ae3af0a9c725884d6b32254ace2" target="_top" xlink:title="Update network pivot.">
 <polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 89,-19.5 89,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="44.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">updt_net_pivot</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node11 -->
+<!-- Node1&#45;&gt;Node4 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node11</title>
+<title>Node1&#45;&gt;Node4</title>
 <path fill="none" stroke="midnightblue" d="M124.71,-23.14C113.54,-21.29 101.06,-19.22 89.36,-17.28"/>
 </g>
 </g>

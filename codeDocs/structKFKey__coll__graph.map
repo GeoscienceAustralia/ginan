@@ -1,5 +1,5 @@
 <map id="KFKey" name="KFKey">
-<area shape="rect" id="node1" title="Keys used to interface with Kalman filter objects." alt="" coords="135,520,259,627"/>
+<area shape="rect" id="node1" title="Keys used to interface with Kalman filter objects." alt="" coords="125,520,268,685"/>
 <area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,160,148,457"/>
 <area shape="rect" id="node3" title=" " alt="" coords="189,5,247,83"/>
 <area shape="rect" id="node4" href="$structStation.html" title="Object to maintain receiver station data." alt="" coords="298,255,429,362"/>

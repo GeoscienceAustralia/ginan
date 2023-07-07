@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title=" ">
+<g id="a_node1"><a xlink:title="satellite code to satellite system">
 <polygon fill="#bfbfbf" stroke="black" points="92,-0.5 92,-19.5 154,-19.5 154,-0.5 92,-0.5"/>
 <text text-anchor="middle" x="123" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">code2sys</text>
 </a>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="sp3_8cpp.html#a312f81af37fc5915220869ee56af6c91" target="_top" xlink:title="read an epoch of data from an sp3 precise ephemeris file">
+<g id="a_node2"><a xlink:href="sp3_8cpp.html#a02d321d95cd2020d9ad64a3abfba6216" target="_top" xlink:title="read an epoch of data from an sp3 precise ephemeris file">
 <polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 56,-19.5 56,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="28" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">readsp3</text>
 </a>

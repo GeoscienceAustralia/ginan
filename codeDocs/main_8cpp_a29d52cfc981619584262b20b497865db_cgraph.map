@@ -1,9 +1,9 @@
 <map id="createTracefiles" name="createTracefiles">
-<area shape="rect" id="node1" title="Create new empty trace files only when required when the filename is changed." alt="" coords="5,110,132,137"/>
-<area shape="rect" id="node2" href="$structGTime.html#a7ed28cc28b05a43069702e96295be269" title=" " alt="" coords="404,34,545,61"/>
-<area shape="rect" id="node3" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="208,34,328,61"/>
-<area shape="rect" id="node4" href="$acsConfig_8cpp.html#a75a34dc41e76a8680e3aa6d62ff4c800" title="Replace macros for times with numeric values." alt="" coords="420,136,529,162"/>
-<area shape="rect" id="node5" href="$main_8cpp.html#a260404f91dd3104c4f794029943c96ab" title=" " alt="" coords="193,136,343,162"/>
-<area shape="rect" id="node6" href="$algebraTrace_8hpp.html#a912bbc3ba390c6b3a01f7cae26a53588" title="Output filter state to a file for later reading." alt="" coords="211,186,325,213"/>
-<area shape="rect" id="node7" href="$rinexClkWrite_8cpp.html#ae105b449da2c0d5e0ce91380d3b6907b" title=" " alt="" coords="180,237,356,264"/>
+<area shape="rect" id="node1" title="Create new empty trace files only when required when the filename is changed." alt="" coords="5,132,132,159"/>
+<area shape="rect" id="node2" href="$main_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16" title="Returns (posix) for current epoch." alt="" coords="203,5,333,32"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a2206cd179576b10f99dbe50e8e7ddc5a" title="Create directories if required." alt="" coords="201,56,335,83"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a260404f91dd3104c4f794029943c96ab" title=" " alt="" coords="193,107,343,133"/>
+<area shape="rect" id="node5" href="$acsConfig_8cpp.html#a611c3086ccdeb877c19a6b1d603227a4" title="search for and replace section of string" alt="" coords="404,208,512,235"/>
+<area shape="rect" id="node6" href="$algebraTrace_8hpp.html#a912bbc3ba390c6b3a01f7cae26a53588" title="Output filter state to a file for later reading." alt="" coords="211,157,325,184"/>
+<area shape="rect" id="node7" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="180,208,356,235"/>
 </map>

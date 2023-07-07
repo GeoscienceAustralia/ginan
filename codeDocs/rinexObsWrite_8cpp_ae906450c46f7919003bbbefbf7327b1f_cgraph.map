@@ -1,8 +1,7 @@
 <map id="writeRinexObsHeader" name="writeRinexObsHeader">
-<area shape="rect" id="node1" title=" " alt="" coords="5,107,169,133"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#abb00b59d1e35b7cc9e031a5faf536f9e" title=" " alt="" coords="266,5,345,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a2a318fa02e2d05aa22eabbcf1a537fcf" title="get current time in utc" alt="" coords="269,56,342,83"/>
-<area shape="rect" id="node4" href="$gTime_8cpp.html#a016d7b64e67752afcd07e5074a3cc516" title=" " alt="" coords="267,107,344,133"/>
-<area shape="rect" id="node5" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="441,183,536,209"/>
-<area shape="rect" id="node6" href="$rinexObsWrite_8cpp.html#ab1a7a3d3255b546c3cea605eb2ea87cb" title=" " alt="" coords="217,208,393,235"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,169,108"/>
+<area shape="rect" id="node2" href="$gTime_8cpp.html#a54a930f8f70224e438c222c4e200905d" title=" " alt="" coords="268,5,343,32"/>
+<area shape="rect" id="node3" href="$structGTime.html#a014569457fd867977d0eeb73beef1518" title=" " alt="" coords="241,56,370,83"/>
+<area shape="rect" id="node4" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="441,132,536,159"/>
+<area shape="rect" id="node5" href="$rinexObsWrite_8cpp.html#ab1a7a3d3255b546c3cea605eb2ea87cb" title=" " alt="" coords="217,157,393,184"/>
 </map>

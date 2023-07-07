@@ -73,19 +73,18 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-attribs">Data Fields</a>  </div>
+<a href="#pub-attribs">Data Fields</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a>  </div>
   <div class="headertitle"><div class="title">KFState Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Kalman filter object.  
- <a href="structKFState.html#details">More...</a></p>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p >Kalman filter object. </p>
-<p >Contains most persistant parameters and values of state. Includes state vector, covariance, and process noise.</p>
-<p >This object performs all operations on the kalman filter to ensure that edge cases are included and state kept in a valid configuration. </p>
-</div>
 <p><code>#include &lt;algebra.hpp&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for KFState:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFState__inherit__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
 <div class="dynheader">
 Collaboration diagram for KFState:</div>
 <div class="dyncontent">
@@ -94,168 +93,247 @@ Collaboration diagram for KFState:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:ad4453c4df8b1dfd42c7faecdbd7be5b2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ad4453c4df8b1dfd42c7faecdbd7be5b2">KFState</a> (const <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:ad4453c4df8b1dfd42c7faecdbd7be5b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa97674fcbd7bfbe3953005548b068cfb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aa97674fcbd7bfbe3953005548b068cfb">KFState</a> ()</td></tr>
 <tr class="separator:aa97674fcbd7bfbe3953005548b068cfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbb409f9721d724b3b12e33c62a8beac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#adbb409f9721d724b3b12e33c62a8beac">operator=</a> (const <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:adbb409f9721d724b3b12e33c62a8beac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75048c8d7cdb1fe3c996e148bd526378"><td class="memTemplParams" colspan="2">template&lt;class ARCHIVE &gt; </td></tr>
+<tr class="memitem:a75048c8d7cdb1fe3c996e148bd526378"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structKFState.html#a75048c8d7cdb1fe3c996e148bd526378">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;version)</td></tr>
+<tr class="separator:a75048c8d7cdb1fe3c996e148bd526378"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34fe78e0ab7a8f1d122ceabddc29b207"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a34fe78e0ab7a8f1d122ceabddc29b207">initFilterEpoch</a> ()</td></tr>
 <tr class="memdesc:a34fe78e0ab7a8f1d122ceabddc29b207"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears and initialises the state transition matrix to identity at the beginning of an epoch.  <a href="structKFState.html#a34fe78e0ab7a8f1d122ceabddc29b207">More...</a><br /></td></tr>
 <tr class="separator:a34fe78e0ab7a8f1d122ceabddc29b207"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5aeeee0f20df8cc8c4747c1b5b18212f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a5aeeee0f20df8cc8c4747c1b5b18212f">getKFIndex</a> (<a class="el" href="structKFKey.html">KFKey</a> key)</td></tr>
-<tr class="memdesc:a5aeeee0f20df8cc8c4747c1b5b18212f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the position in the KF state vector of particular states.  <a href="structKFState.html#a5aeeee0f20df8cc8c4747c1b5b18212f">More...</a><br /></td></tr>
-<tr class="separator:a5aeeee0f20df8cc8c4747c1b5b18212f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a291ac2a8a4612b3575dbc864d43fa0f7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7">getKFValue</a> (<a class="el" href="structKFKey.html">KFKey</a> key, double &amp;value, double *variance=nullptr, double *adjustment_ptr=nullptr)</td></tr>
-<tr class="memdesc:a291ac2a8a4612b3575dbc864d43fa0f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the value and variance of a state within the kalman filter object.  <a href="structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7">More...</a><br /></td></tr>
-<tr class="separator:a291ac2a8a4612b3575dbc864d43fa0f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53a3ee5963d5561c2db0259d4f6cb663"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a53a3ee5963d5561c2db0259d4f6cb663">getKFSigma</a> (<a class="el" href="structKFKey.html">KFKey</a> key, double &amp;sigma)</td></tr>
-<tr class="memdesc:a53a3ee5963d5561c2db0259d4f6cb663"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the standard deviation of a state within the kalman filter object.  <a href="structKFState.html#a53a3ee5963d5561c2db0259d4f6cb663">More...</a><br /></td></tr>
-<tr class="separator:a53a3ee5963d5561c2db0259d4f6cb663"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa27fbd7603d376e9e67cb9c09ba7454"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#afa27fbd7603d376e9e67cb9c09ba7454">setKFValue</a> (<a class="el" href="structKFKey.html">KFKey</a> key, double value)</td></tr>
-<tr class="memdesc:afa27fbd7603d376e9e67cb9c09ba7454"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the value of a state within the kalman filter object.  <a href="structKFState.html#afa27fbd7603d376e9e67cb9c09ba7454">More...</a><br /></td></tr>
-<tr class="separator:afa27fbd7603d376e9e67cb9c09ba7454"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98639743564c805d97c3e87cd32e7ff1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a98639743564c805d97c3e87cd32e7ff1">setKFNoise</a> (<a class="el" href="structKFKey.html">KFKey</a> key, double value)</td></tr>
-<tr class="memdesc:a98639743564c805d97c3e87cd32e7ff1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the process noise of a state within the kalman filter object.  <a href="structKFState.html#a98639743564c805d97c3e87cd32e7ff1">More...</a><br /></td></tr>
-<tr class="separator:a98639743564c805d97c3e87cd32e7ff1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3808815eb5103a8d8f5514af130a0700"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a3808815eb5103a8d8f5514af130a0700">setKFTransRate</a> (<a class="el" href="structKFKey.html">KFKey</a> dest, <a class="el" href="structKFKey.html">KFKey</a> source, double value, <a class="el" href="structInitialState.html">InitialState</a> initialState={})</td></tr>
-<tr class="memdesc:a3808815eb5103a8d8f5514af130a0700"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds dynamics to a filter state by inserting off-diagonal, time dependent elements to transition matrix.  <a href="structKFState.html#a3808815eb5103a8d8f5514af130a0700">More...</a><br /></td></tr>
-<tr class="separator:a3808815eb5103a8d8f5514af130a0700"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae544a260c4983f5a1b06f71ddad7338f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae544a260c4983f5a1b06f71ddad7338f">setKFTrans</a> (<a class="el" href="structKFKey.html">KFKey</a> dest, <a class="el" href="structKFKey.html">KFKey</a> source, double value, <a class="el" href="structInitialState.html">InitialState</a> initialState={})</td></tr>
-<tr class="memdesc:ae544a260c4983f5a1b06f71ddad7338f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds dynamics to a filter state by inserting off-diagonal, non-time dependent elements to transition matrix.  <a href="structKFState.html#ae544a260c4983f5a1b06f71ddad7338f">More...</a><br /></td></tr>
-<tr class="separator:ae544a260c4983f5a1b06f71ddad7338f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d9dacd63c7fa70e7caf8fa3faee0c82"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a0d9dacd63c7fa70e7caf8fa3faee0c82">addKFState</a> (<a class="el" href="structKFKey.html">KFKey</a> kfKey, <a class="el" href="structInitialState.html">InitialState</a> initialState={})</td></tr>
-<tr class="memdesc:a0d9dacd63c7fa70e7caf8fa3faee0c82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to add a state to the filter object.  <a href="structKFState.html#a0d9dacd63c7fa70e7caf8fa3faee0c82">More...</a><br /></td></tr>
-<tr class="separator:a0d9dacd63c7fa70e7caf8fa3faee0c82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a61a59fc30911bc4ff2b7084b34af659e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a61a59fc30911bc4ff2b7084b34af659e">addNoiseElement</a> (<a class="el" href="structObsKey.html">ObsKey</a> obsKey, double variance)</td></tr>
-<tr class="memdesc:a61a59fc30911bc4ff2b7084b34af659e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to add a noise element.  <a href="structKFState.html#a61a59fc30911bc4ff2b7084b34af659e">More...</a><br /></td></tr>
-<tr class="separator:a61a59fc30911bc4ff2b7084b34af659e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abdf1505bdab1895a280fd018979849f1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#abdf1505bdab1895a280fd018979849f1">removeState</a> (<a class="el" href="structKFKey.html">KFKey</a> kfKey)</td></tr>
-<tr class="memdesc:abdf1505bdab1895a280fd018979849f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a state from a kalman filter object.  <a href="structKFState.html#abdf1505bdab1895a280fd018979849f1">More...</a><br /></td></tr>
-<tr class="separator:abdf1505bdab1895a280fd018979849f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a170d9c3a01bee9ec1f7264615b087c58"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a170d9c3a01bee9ec1f7264615b087c58">stateTransition</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> newTime)</td></tr>
-<tr class="memdesc:a170d9c3a01bee9ec1f7264615b087c58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add process noise and dynamics to filter object according to time gap.  <a href="structKFState.html#a170d9c3a01bee9ec1f7264615b087c58">More...</a><br /></td></tr>
-<tr class="separator:a170d9c3a01bee9ec1f7264615b087c58"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d84b2acc0006963bdea090daa78685a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a1d84b2acc0006963bdea090daa78685a">preFitSigmaCheck</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="structKFKey.html">KFKey</a> &amp;badStateKey, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;badMeasIndex, <a class="el" href="structKFStatistics.html">KFStatistics</a> &amp;statistics, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begH, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numH)</td></tr>
+<tr class="memitem:a4280267023df2b302ea2880d373e9e00"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a4280267023df2b302ea2880d373e9e00">getKFIndex</a> (const <a class="el" href="structKFKey.html">KFKey</a> key) const</td></tr>
+<tr class="memdesc:a4280267023df2b302ea2880d373e9e00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the position in the KF state vector of particular states.  <a href="structKFState.html#a4280267023df2b302ea2880d373e9e00">More...</a><br /></td></tr>
+<tr class="separator:a4280267023df2b302ea2880d373e9e00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a3538a80306e9526559bb082b587e6c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a4a3538a80306e9526559bb082b587e6c">getNoiseIndex</a> (const <a class="el" href="structKFKey.html">KFKey</a> key) const</td></tr>
+<tr class="memdesc:a4a3538a80306e9526559bb082b587e6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the position in the KF state vector of particular states.  <a href="structKFState.html#a4a3538a80306e9526559bb082b587e6c">More...</a><br /></td></tr>
+<tr class="separator:a4a3538a80306e9526559bb082b587e6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a405c50a3085d8328e81dcd6786f775d3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a405c50a3085d8328e81dcd6786f775d3">getKFValue</a> (const <a class="el" href="structKFKey.html">KFKey</a> key, double &amp;value, double *variance=nullptr, double *adjustment_ptr=nullptr) const</td></tr>
+<tr class="memdesc:a405c50a3085d8328e81dcd6786f775d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the value and variance of a state within the kalman filter object.  <a href="structKFState.html#a405c50a3085d8328e81dcd6786f775d3">More...</a><br /></td></tr>
+<tr class="separator:a405c50a3085d8328e81dcd6786f775d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a765a6e81d5496447499234a8ea8c3b46"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a765a6e81d5496447499234a8ea8c3b46">getKFSigma</a> (const <a class="el" href="structKFKey.html">KFKey</a> key, double &amp;sigma)</td></tr>
+<tr class="memdesc:a765a6e81d5496447499234a8ea8c3b46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the standard deviation of a state within the kalman filter object.  <a href="structKFState.html#a765a6e81d5496447499234a8ea8c3b46">More...</a><br /></td></tr>
+<tr class="separator:a765a6e81d5496447499234a8ea8c3b46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c82cf1d7079e1ed76c2a53667e74e71"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a1c82cf1d7079e1ed76c2a53667e74e71">setKFNoise</a> (const <a class="el" href="structKFKey.html">KFKey</a> key, double value)</td></tr>
+<tr class="memdesc:a1c82cf1d7079e1ed76c2a53667e74e71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the process noise of a state within the kalman filter object.  <a href="structKFState.html#a1c82cf1d7079e1ed76c2a53667e74e71">More...</a><br /></td></tr>
+<tr class="separator:a1c82cf1d7079e1ed76c2a53667e74e71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8713f4fe8effc58341d60afc0085f953"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a8713f4fe8effc58341d60afc0085f953">addKFState</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey, const <a class="el" href="structInitialState.html">InitialState</a> initialState={})</td></tr>
+<tr class="memdesc:a8713f4fe8effc58341d60afc0085f953"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to add a state to the filter object.  <a href="structKFState.html#a8713f4fe8effc58341d60afc0085f953">More...</a><br /></td></tr>
+<tr class="separator:a8713f4fe8effc58341d60afc0085f953"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af61c11042a105999c159c7461696eacf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#af61c11042a105999c159c7461696eacf">setExponentialNoise</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey, const <a class="el" href="structExponential.html">Exponential</a> exponential)</td></tr>
+<tr class="separator:af61c11042a105999c159c7461696eacf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac22e4d7ea8f3299c998dedbff1effb97"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ac22e4d7ea8f3299c998dedbff1effb97">setAccelerator</a> (const <a class="el" href="structKFKey.html">KFKey</a> element, const <a class="el" href="structKFKey.html">KFKey</a> dotElement, const <a class="el" href="structKFKey.html">KFKey</a> dotDotElement, const double value, const <a class="el" href="structInitialState.html">InitialState</a> initialState={})</td></tr>
+<tr class="separator:ac22e4d7ea8f3299c998dedbff1effb97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca3d8484dbabdecee93352e625c96ed1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aca3d8484dbabdecee93352e625c96ed1">setKFTrans</a> (const <a class="el" href="structKFKey.html">KFKey</a> dest, const <a class="el" href="structKFKey.html">KFKey</a> source, const double value, const <a class="el" href="structInitialState.html">InitialState</a> initialState={})</td></tr>
+<tr class="memdesc:aca3d8484dbabdecee93352e625c96ed1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds dynamics to a filter state by inserting off-diagonal, non-time dependent elements to transition matrix.  <a href="structKFState.html#aca3d8484dbabdecee93352e625c96ed1">More...</a><br /></td></tr>
+<tr class="separator:aca3d8484dbabdecee93352e625c96ed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33ad852c99520415337196b0c62f0909"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a33ad852c99520415337196b0c62f0909">setKFTransRate</a> (const <a class="el" href="structKFKey.html">KFKey</a> integral, const <a class="el" href="structKFKey.html">KFKey</a> rate, const double value, const <a class="el" href="structInitialState.html">InitialState</a> initialRateState={}, const <a class="el" href="structInitialState.html">InitialState</a> initialIntegralState={})</td></tr>
+<tr class="memdesc:a33ad852c99520415337196b0c62f0909"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds dynamics to a filter state by inserting off-diagonal, time dependent elements to transition matrix.  <a href="structKFState.html#a33ad852c99520415337196b0c62f0909">More...</a><br /></td></tr>
+<tr class="separator:a33ad852c99520415337196b0c62f0909"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99634b692dc64a2ba8bacfa8a03fd108"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a99634b692dc64a2ba8bacfa8a03fd108">addNoiseElement</a> (const <a class="el" href="structKFKey.html">KFKey</a> obsKey, const double variance)</td></tr>
+<tr class="memdesc:a99634b692dc64a2ba8bacfa8a03fd108"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to add a noise element.  <a href="structKFState.html#a99634b692dc64a2ba8bacfa8a03fd108">More...</a><br /></td></tr>
+<tr class="separator:a99634b692dc64a2ba8bacfa8a03fd108"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28480b75cbb9f622f48a695f04000948"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a28480b75cbb9f622f48a695f04000948">removeState</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey)</td></tr>
+<tr class="memdesc:a28480b75cbb9f622f48a695f04000948"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a state from a kalman filter object.  <a href="structKFState.html#a28480b75cbb9f622f48a695f04000948">More...</a><br /></td></tr>
+<tr class="separator:a28480b75cbb9f622f48a695f04000948"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39147cd7a377c055b8a78cdba7039897"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a39147cd7a377c055b8a78cdba7039897">noiseElementStateTransition</a> ()</td></tr>
+<tr class="separator:a39147cd7a377c055b8a78cdba7039897"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f8e4b9291361c063cef8d9178f07707"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a7f8e4b9291361c063cef8d9178f07707">stateTransition</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> newTime, MatrixXd *stm_ptr=nullptr)</td></tr>
+<tr class="memdesc:a7f8e4b9291361c063cef8d9178f07707"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add process noise and dynamics to filter object according to time gap.  <a href="structKFState.html#a7f8e4b9291361c063cef8d9178f07707">More...</a><br /></td></tr>
+<tr class="separator:a7f8e4b9291361c063cef8d9178f07707"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35b82ca74c6a6795abf1b6e919a4fec1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a35b82ca74c6a6795abf1b6e919a4fec1">manualStateTransition</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structGTime.html">GTime</a> newTime, MatrixXd &amp;stm, MatrixXd &amp;procNoise)</td></tr>
+<tr class="memdesc:a35b82ca74c6a6795abf1b6e919a4fec1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add process noise and dynamics to filter object manually.  <a href="structKFState.html#a35b82ca74c6a6795abf1b6e919a4fec1">More...</a><br /></td></tr>
+<tr class="separator:a35b82ca74c6a6795abf1b6e919a4fec1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d84b2acc0006963bdea090daa78685a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a1d84b2acc0006963bdea090daa78685a">preFitSigmaCheck</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="structKFKey.html">KFKey</a> &amp;badStateKey, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;badMeasIndex, <a class="el" href="structKFStatistics.html">KFStatistics</a> &amp;statistics, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begH, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numH)</td></tr>
 <tr class="memdesc:a1d84b2acc0006963bdea090daa78685a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare variances of measurements and pre-filtered states to detect unreasonable values Ref: Wang et al.  <a href="structKFState.html#a1d84b2acc0006963bdea090daa78685a">More...</a><br /></td></tr>
 <tr class="separator:a1d84b2acc0006963bdea090daa78685a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab4e5ed0ddc781d8b4db8de02af119cc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aab4e5ed0ddc781d8b4db8de02af119cc">postFitSigmaChecks</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, VectorXd &amp;xp, VectorXd &amp;<a class="el" href="structKFState.html#ae6474ab1ba2e677cb1b9c19712a8a4a0">dx</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> iteration, <a class="el" href="structKFKey.html">KFKey</a> &amp;badStateKey, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;badMeasIndex, <a class="el" href="structKFStatistics.html">KFStatistics</a> &amp;statistics, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begH, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numH)</td></tr>
-<tr class="memdesc:aab4e5ed0ddc781d8b4db8de02af119cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare variances of measurements and filtered states to detect unreasonable values.  <a href="structKFState.html#aab4e5ed0ddc781d8b4db8de02af119cc">More...</a><br /></td></tr>
-<tr class="separator:aab4e5ed0ddc781d8b4db8de02af119cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa963c92f094f4c0f9d43eea2661723dd"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aa963c92f094f4c0f9d43eea2661723dd">stateChiSquare</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, MatrixXd &amp;Pp, VectorXd &amp;<a class="el" href="structKFState.html#ae6474ab1ba2e677cb1b9c19712a8a4a0">dx</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begH, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numH)</td></tr>
+<tr class="memitem:a4d44be64e2f00e44b89fff30191a8953"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a4d44be64e2f00e44b89fff30191a8953">postFitSigmaChecks</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, VectorXd &amp;<a class="el" href="structKFState__.html#ad351713e5a39e74a53699487643fe942">dx</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> iteration, <a class="el" href="structKFKey.html">KFKey</a> &amp;badStateKey, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;badMeasIndex, <a class="el" href="structKFStatistics.html">KFStatistics</a> &amp;statistics, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begH, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numH)</td></tr>
+<tr class="memdesc:a4d44be64e2f00e44b89fff30191a8953"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare variances of measurements and filtered states to detect unreasonable values.  <a href="structKFState.html#a4d44be64e2f00e44b89fff30191a8953">More...</a><br /></td></tr>
+<tr class="separator:a4d44be64e2f00e44b89fff30191a8953"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa963c92f094f4c0f9d43eea2661723dd"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aa963c92f094f4c0f9d43eea2661723dd">stateChiSquare</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, MatrixXd &amp;Pp, VectorXd &amp;<a class="el" href="structKFState__.html#ad351713e5a39e74a53699487643fe942">dx</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begH, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numH)</td></tr>
 <tr class="memdesc:aa963c92f094f4c0f9d43eea2661723dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute Chi-square increment based on the change of fitting solution.  <a href="structKFState.html#aa963c92f094f4c0f9d43eea2661723dd">More...</a><br /></td></tr>
 <tr class="separator:aa963c92f094f4c0f9d43eea2661723dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a67bbec17e7e74bf5de0d83098281bfc0"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a67bbec17e7e74bf5de0d83098281bfc0">measChiSquare</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, VectorXd &amp;<a class="el" href="structKFState.html#ae6474ab1ba2e677cb1b9c19712a8a4a0">dx</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begH, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numH)</td></tr>
+<tr class="memitem:a67bbec17e7e74bf5de0d83098281bfc0"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a67bbec17e7e74bf5de0d83098281bfc0">measChiSquare</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, VectorXd &amp;<a class="el" href="structKFState__.html#ad351713e5a39e74a53699487643fe942">dx</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begH, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numH)</td></tr>
 <tr class="memdesc:a67bbec17e7e74bf5de0d83098281bfc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute Chi-square increment based on post-fit residuals.  <a href="structKFState.html#a67bbec17e7e74bf5de0d83098281bfc0">More...</a><br /></td></tr>
 <tr class="separator:a67bbec17e7e74bf5de0d83098281bfc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2280e82ccd3ebdefc388756580e5fad7"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a2280e82ccd3ebdefc388756580e5fad7">innovChiSquare</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numX, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begH, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numH)</td></tr>
+<tr class="memitem:a2280e82ccd3ebdefc388756580e5fad7"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a2280e82ccd3ebdefc388756580e5fad7">innovChiSquare</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numX, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begH, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numH)</td></tr>
 <tr class="memdesc:a2280e82ccd3ebdefc388756580e5fad7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute Chi-square increment based on pre-fit residuals (innovations)  <a href="structKFState.html#a2280e82ccd3ebdefc388756580e5fad7">More...</a><br /></td></tr>
 <tr class="separator:a2280e82ccd3ebdefc388756580e5fad7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b591c7386c7fb734067424a097ca118"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a5b591c7386c7fb734067424a097ca118">kFilter</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, VectorXd &amp;xp, MatrixXd &amp;Pp, VectorXd &amp;<a class="el" href="structKFState.html#ae6474ab1ba2e677cb1b9c19712a8a4a0">dx</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begX=0, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numX=-1, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begH=0, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numH=-1)</td></tr>
+<tr class="memitem:a5b591c7386c7fb734067424a097ca118"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a5b591c7386c7fb734067424a097ca118">kFilter</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, VectorXd &amp;xp, MatrixXd &amp;Pp, VectorXd &amp;<a class="el" href="structKFState__.html#ad351713e5a39e74a53699487643fe942">dx</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begX=0, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numX=-1, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begH=0, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numH=-1)</td></tr>
 <tr class="memdesc:a5b591c7386c7fb734067424a097ca118"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kalman filter.  <a href="structKFState.html#a5b591c7386c7fb734067424a097ca118">More...</a><br /></td></tr>
 <tr class="separator:a5b591c7386c7fb734067424a097ca118"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a326b2c602fc4aaa81c0342cb0333932f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a326b2c602fc4aaa81c0342cb0333932f">chiQC</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, VectorXd &amp;xp)</td></tr>
 <tr class="memdesc:a326b2c602fc4aaa81c0342cb0333932f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform chi squared quality control.  <a href="structKFState.html#a326b2c602fc4aaa81c0342cb0333932f">More...</a><br /></td></tr>
 <tr class="separator:a326b2c602fc4aaa81c0342cb0333932f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c84e911a5ea760fe728baec661e33f0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a0c84e911a5ea760fe728baec661e33f0">outputStates</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string suffix=&quot;&quot;, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> begX=0, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> numX=-1)</td></tr>
+<tr class="memitem:a0c84e911a5ea760fe728baec661e33f0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a0c84e911a5ea760fe728baec661e33f0">outputStates</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string <a class="el" href="structKFState__.html#a148e2c7b3b0804c0874722bccc34ce27">suffix</a>=&quot;&quot;, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> begX=0, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> numX=-1)</td></tr>
 <tr class="memdesc:a0c84e911a5ea760fe728baec661e33f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output keys and states in human readable format.  <a href="structKFState.html#a0c84e911a5ea760fe728baec661e33f0">More...</a><br /></td></tr>
 <tr class="separator:a0c84e911a5ea760fe728baec661e33f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a791b21f6f17cbe61ce7ef5b67e111c6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a791b21f6f17cbe61ce7ef5b67e111c6c">outputConditionNumber</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace)</td></tr>
+<tr class="separator:a791b21f6f17cbe61ce7ef5b67e111c6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab62647d9653d975a58c08ea438761280"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ab62647d9653d975a58c08ea438761280">outputCorrelations</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace)</td></tr>
 <tr class="separator:ab62647d9653d975a58c08ea438761280"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adfd3abb4d57396f7065a2b50dc4945c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#adfd3abb4d57396f7065a2b50dc4945c6">outputMeasurements</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;meas)</td></tr>
 <tr class="separator:adfd3abb4d57396f7065a2b50dc4945c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc93fe4d98f33b24037d09e712e8400a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#adc93fe4d98f33b24037d09e712e8400a">doStateRejectCallbacks</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="structKFKey.html">KFKey</a> &amp;badKey)</td></tr>
 <tr class="separator:adc93fe4d98f33b24037d09e712e8400a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6e89a4dca53b4c6f8a5eadb1f61dd5c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae6e89a4dca53b4c6f8a5eadb1f61dd5c">doMeasRejectCallbacks</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> badIndex)</td></tr>
+<tr class="memitem:ae6e89a4dca53b4c6f8a5eadb1f61dd5c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae6e89a4dca53b4c6f8a5eadb1f61dd5c">doMeasRejectCallbacks</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> badIndex)</td></tr>
 <tr class="separator:ae6e89a4dca53b4c6f8a5eadb1f61dd5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21a4858020ad706771efeea814d6c43f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a21a4858020ad706771efeea814d6c43f">filterKalman</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, bool innovReady=false, list&lt; <a class="el" href="structFilterChunk.html">FilterChunk</a> &gt; *filterChunkList_ptr=nullptr)</td></tr>
-<tr class="memdesc:a21a4858020ad706771efeea814d6c43f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kalman filter operation.  <a href="structKFState.html#a21a4858020ad706771efeea814d6c43f">More...</a><br /></td></tr>
-<tr class="separator:a21a4858020ad706771efeea814d6c43f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ff3b6f3177ec33bdd3e51dbcefa2a9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a5ff3b6f3177ec33bdd3e51dbcefa2a9d">filterLeastSquares</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas)</td></tr>
+<tr class="memitem:ae99b9a0b478d94b6cff9ba2328914178"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae99b9a0b478d94b6cff9ba2328914178">filterKalman</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, bool innovReady=false, vector&lt; <a class="el" href="structFilterChunk.html">FilterChunk</a> &gt; *filterChunkList_ptr=nullptr)</td></tr>
+<tr class="memdesc:ae99b9a0b478d94b6cff9ba2328914178"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kalman filter operation.  <a href="structKFState.html#ae99b9a0b478d94b6cff9ba2328914178">More...</a><br /></td></tr>
+<tr class="separator:ae99b9a0b478d94b6cff9ba2328914178"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ff3b6f3177ec33bdd3e51dbcefa2a9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a5ff3b6f3177ec33bdd3e51dbcefa2a9d">filterLeastSquares</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas)</td></tr>
 <tr class="memdesc:a5ff3b6f3177ec33bdd3e51dbcefa2a9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform least squares using the measurements in the <a class="el" href="structKFMeas.html" title="Object to hold measurements, design matrices, and residuals for multiple observations.">KFMeas</a> object.  <a href="structKFState.html#a5ff3b6f3177ec33bdd3e51dbcefa2a9d">More...</a><br /></td></tr>
 <tr class="separator:a5ff3b6f3177ec33bdd3e51dbcefa2a9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56a457141bb1f7f33cd473b008e27e92"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a56a457141bb1f7f33cd473b008e27e92">leastSquareInitStatesA</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, bool initCovars=false, VectorXd *<a class="el" href="structKFState.html#ae6474ab1ba2e677cb1b9c19712a8a4a0">dx</a>=nullptr, bool innovReady=false)</td></tr>
+<tr class="memitem:a56a457141bb1f7f33cd473b008e27e92"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a56a457141bb1f7f33cd473b008e27e92">leastSquareInitStatesA</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, bool initCovars=false, VectorXd *<a class="el" href="structKFState__.html#ad351713e5a39e74a53699487643fe942">dx</a>=nullptr, bool innovReady=false)</td></tr>
 <tr class="separator:a56a457141bb1f7f33cd473b008e27e92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae1fc274c403b77dc814ed90763b4dea1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae1fc274c403b77dc814ed90763b4dea1">leastSquareInitStates</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, bool initCovars=false, VectorXd *<a class="el" href="structKFState.html#ae6474ab1ba2e677cb1b9c19712a8a4a0">dx</a>=nullptr, bool innovReady=false)</td></tr>
+<tr class="memitem:ae1fc274c403b77dc814ed90763b4dea1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae1fc274c403b77dc814ed90763b4dea1">leastSquareInitStates</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFMeas.html">KFMeas</a> &amp;kfMeas, bool initCovars=false, VectorXd *<a class="el" href="structKFState__.html#ad351713e5a39e74a53699487643fe942">dx</a>=nullptr, bool innovReady=false)</td></tr>
 <tr class="memdesc:ae1fc274c403b77dc814ed90763b4dea1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Least squares estimator for new kalman filter states.  <a href="structKFState.html#ae1fc274c403b77dc814ed90763b4dea1">More...</a><br /></td></tr>
 <tr class="separator:ae1fc274c403b77dc814ed90763b4dea1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4422abfc2efdc898a2558d57be35e863"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFMeas.html">KFMeas</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a4422abfc2efdc898a2558d57be35e863">combineKFMeasList</a> (<a class="el" href="algebra_8hpp.html#a67e57d0b554c4361fc16211615b23835">KFMeasEntryList</a> &amp;kfEntryList, <a class="el" href="structGTime.html">GTime</a> measTime=<a class="el" href="structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e">GTime::noTime</a>(), MatrixXd *noiseMatrix_ptr=nullptr)</td></tr>
+<tr class="memitem:a4422abfc2efdc898a2558d57be35e863"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFMeas.html">KFMeas</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a4422abfc2efdc898a2558d57be35e863">combineKFMeasList</a> (<a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;kfEntryList, <a class="el" href="structGTime.html">GTime</a> measTime=<a class="el" href="structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e">GTime::noTime</a>(), MatrixXd *noiseMatrix_ptr=nullptr)</td></tr>
 <tr class="memdesc:a4422abfc2efdc898a2558d57be35e863"><td class="mdescLeft">&#160;</td><td class="mdescRight">Combine a list of KFMeasEntrys into a single <a class="el" href="structKFMeas.html" title="Object to hold measurements, design matrices, and residuals for multiple observations.">KFMeas</a> object for used in the filter.  <a href="structKFState.html#a4422abfc2efdc898a2558d57be35e863">More...</a><br /></td></tr>
 <tr class="separator:a4422abfc2efdc898a2558d57be35e863"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0311266efe03f5ee1077168c54c6dc56"><td class="memItemLeft" align="right" valign="top">VectorXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a0311266efe03f5ee1077168c54c6dc56">getSubState</a> (map&lt; <a class="el" href="structKFKey.html">KFKey</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &gt; &amp;kfKeyMap, MatrixXd *covarMat_ptr=nullptr, VectorXd *adjustVec_ptr=nullptr)</td></tr>
-<tr class="memdesc:a0311266efe03f5ee1077168c54c6dc56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a portion of the state vector by passing a list of keys.  <a href="structKFState.html#a0311266efe03f5ee1077168c54c6dc56">More...</a><br /></td></tr>
-<tr class="separator:a0311266efe03f5ee1077168c54c6dc56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c382a18272a685b261e23117e2e700b"><td class="memItemLeft" align="right" valign="top">VectorXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a1c382a18272a685b261e23117e2e700b">getSubState</a> (map&lt; <a class="el" href="structKFKey.html">KFKey</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt; &amp;kfKeyMap, MatrixXd *covarMat_ptr=nullptr, VectorXd *adjustVec_ptr=nullptr) const</td></tr>
+<tr class="memdesc:a1c382a18272a685b261e23117e2e700b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a portion of the state vector by passing a list of keys.  <a href="structKFState.html#a1c382a18272a685b261e23117e2e700b">More...</a><br /></td></tr>
+<tr class="separator:a1c382a18272a685b261e23117e2e700b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c8eaccb360214ba2a0b11df8c219f78"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a7c8eaccb360214ba2a0b11df8c219f78">getSubState</a> (map&lt; <a class="el" href="structKFKey.html">KFKey</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt; &amp;kfKeyMap, <a class="el" href="structKFState.html">KFState</a> &amp;kfState) const</td></tr>
+<tr class="memdesc:a7c8eaccb360214ba2a0b11df8c219f78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a portion of a state by passing in a list of keys.  <a href="structKFState.html#a7c8eaccb360214ba2a0b11df8c219f78">More...</a><br /></td></tr>
+<tr class="separator:a7c8eaccb360214ba2a0b11df8c219f78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3520818b9f2978ddaedd6d2d82a8e19f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a3520818b9f2978ddaedd6d2d82a8e19f">setExponentialNoise</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey, const <a class="el" href="structExponential.html">Exponential</a> exponential) const</td></tr>
+<tr class="separator:a3520818b9f2978ddaedd6d2d82a8e19f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8b676bff05dd924b84cc61b1f062c39"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aa8b676bff05dd924b84cc61b1f062c39">addNoiseElement</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey, const double variance) const</td></tr>
+<tr class="separator:aa8b676bff05dd924b84cc61b1f062c39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49e82997e11b2b1d44b162da52f86fc9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a49e82997e11b2b1d44b162da52f86fc9">addNoiseEntry</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey, const double value, const double variance) const</td></tr>
+<tr class="separator:a49e82997e11b2b1d44b162da52f86fc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae239a7d7953797ee266c3e2d3c5a7922"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae239a7d7953797ee266c3e2d3c5a7922">addKFState</a> (const <a class="el" href="structKFKey.html">KFKey</a> kfKey, const <a class="el" href="structInitialState.html">InitialState</a> initialState={}) const</td></tr>
+<tr class="separator:ae239a7d7953797ee266c3e2d3c5a7922"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bbc91e79af463c730ecf516b1c870d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a2bbc91e79af463c730ecf516b1c870d1">setKFTrans</a> (const <a class="el" href="structKFKey.html">KFKey</a> dest, const <a class="el" href="structKFKey.html">KFKey</a> source, const double value, const <a class="el" href="structInitialState.html">InitialState</a> initialState={}) const</td></tr>
+<tr class="separator:a2bbc91e79af463c730ecf516b1c870d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fd4c0e379530e778f0db661051206ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a4fd4c0e379530e778f0db661051206ac">setKFTransRate</a> (const <a class="el" href="structKFKey.html">KFKey</a> integral, const <a class="el" href="structKFKey.html">KFKey</a> rate, const double value, const <a class="el" href="structInitialState.html">InitialState</a> initialRateState={}, const <a class="el" href="structInitialState.html">InitialState</a> initialIntegralState={}) const</td></tr>
+<tr class="separator:a4fd4c0e379530e778f0db661051206ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a28012ad3ed4ee4ea8c207038473c3476"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a28012ad3ed4ee4ea8c207038473c3476">lsqRequired</a> = false</td></tr>
-<tr class="memdesc:a28012ad3ed4ee4ea8c207038473c3476"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uninitialised parameters require least squares calculation.  <a href="structKFState.html#a28012ad3ed4ee4ea8c207038473c3476">More...</a><br /></td></tr>
-<tr class="separator:a28012ad3ed4ee4ea8c207038473c3476"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9b12b89438e502e5214a6f5ed8d15b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ad9b12b89438e502e5214a6f5ed8d15b8">time</a> = {}</td></tr>
-<tr class="separator:ad9b12b89438e502e5214a6f5ed8d15b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2cbff285b047e7f76cb1d673578e8dc"><td class="memItemLeft" align="right" valign="top">VectorXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ad2cbff285b047e7f76cb1d673578e8dc">x</a></td></tr>
-<tr class="memdesc:ad2cbff285b047e7f76cb1d673578e8dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">State.  <a href="structKFState.html#ad2cbff285b047e7f76cb1d673578e8dc">More...</a><br /></td></tr>
-<tr class="separator:ad2cbff285b047e7f76cb1d673578e8dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a427d8e3739d777d49c7019a2e073098e"><td class="memItemLeft" align="right" valign="top">MatrixXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a427d8e3739d777d49c7019a2e073098e">Z</a></td></tr>
-<tr class="memdesc:a427d8e3739d777d49c7019a2e073098e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Permutation Matrix.  <a href="structKFState.html#a427d8e3739d777d49c7019a2e073098e">More...</a><br /></td></tr>
-<tr class="separator:a427d8e3739d777d49c7019a2e073098e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53f6cb50c08c443be7a9c3eae970995b"><td class="memItemLeft" align="right" valign="top">MatrixXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a53f6cb50c08c443be7a9c3eae970995b">P</a></td></tr>
-<tr class="memdesc:a53f6cb50c08c443be7a9c3eae970995b"><td class="mdescLeft">&#160;</td><td class="mdescRight">State Covariance.  <a href="structKFState.html#a53f6cb50c08c443be7a9c3eae970995b">More...</a><br /></td></tr>
-<tr class="separator:a53f6cb50c08c443be7a9c3eae970995b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6474ab1ba2e677cb1b9c19712a8a4a0"><td class="memItemLeft" align="right" valign="top">VectorXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae6474ab1ba2e677cb1b9c19712a8a4a0">dx</a></td></tr>
-<tr class="memdesc:ae6474ab1ba2e677cb1b9c19712a8a4a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Last filter update.  <a href="structKFState.html#ae6474ab1ba2e677cb1b9c19712a8a4a0">More...</a><br /></td></tr>
-<tr class="separator:ae6474ab1ba2e677cb1b9c19712a8a4a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a39a46677961a766c4606cfc8be870a"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, short <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a7a39a46677961a766c4606cfc8be870a">kfIndexMap</a></td></tr>
-<tr class="memdesc:a7a39a46677961a766c4606cfc8be870a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map from key to indexes of parameters in the state vector.  <a href="structKFState.html#a7a39a46677961a766c4606cfc8be870a">More...</a><br /></td></tr>
-<tr class="separator:a7a39a46677961a766c4606cfc8be870a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5eb6d2ea9a9bac3df09cbca7efb3f6fa"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a5eb6d2ea9a9bac3df09cbca7efb3f6fa">ZTransitionMap</a></td></tr>
-<tr class="separator:a5eb6d2ea9a9bac3df09cbca7efb3f6fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaba4c8ddf6bf30f6b41aa953ee29ef39"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aaba4c8ddf6bf30f6b41aa953ee29ef39">ZAdditionMap</a></td></tr>
-<tr class="separator:aaba4c8ddf6bf30f6b41aa953ee29ef39"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b86130556c8a8515490aaa281158d4d"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, map&lt; <a class="el" href="structKFKey.html">KFKey</a>, tuple&lt; double, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a3b86130556c8a8515490aaa281158d4d">stateTransitionMap</a></td></tr>
-<tr class="separator:a3b86130556c8a8515490aaa281158d4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7cabbde939ae558d0d00bc80a2cd9ee"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ab7cabbde939ae558d0d00bc80a2cd9ee">gaussMarkovTauMap</a></td></tr>
-<tr class="separator:ab7cabbde939ae558d0d00bc80a2cd9ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac877117bd5d0c08ac2728a58fced5692"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ac877117bd5d0c08ac2728a58fced5692">gaussMarkovMuMap</a></td></tr>
-<tr class="separator:ac877117bd5d0c08ac2728a58fced5692"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a368e12d0a4509e5a70200995a4bd11a5"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a368e12d0a4509e5a70200995a4bd11a5">procNoiseMap</a></td></tr>
-<tr class="separator:a368e12d0a4509e5a70200995a4bd11a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8ba1c43269c6615153ec99316398643"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae8ba1c43269c6615153ec99316398643">initNoiseMap</a></td></tr>
-<tr class="separator:ae8ba1c43269c6615153ec99316398643"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a44bf390cd7ba5adaeb1b523aa89edf52"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structObsKey.html">ObsKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a44bf390cd7ba5adaeb1b523aa89edf52">noiseElementMap</a></td></tr>
-<tr class="separator:a44bf390cd7ba5adaeb1b523aa89edf52"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae03cbc786033e20cfbc676321916a409"><td class="memItemLeft" align="right" valign="top">list&lt; <a class="el" href="algebra_8hpp.html#aa213346b625d4d6a15bfffab6f41a369">StateRejectCallback</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#ae03cbc786033e20cfbc676321916a409">stateRejectCallbacks</a></td></tr>
-<tr class="separator:ae03cbc786033e20cfbc676321916a409"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69cb96765ecab52e69d6b9413b076b1b"><td class="memItemLeft" align="right" valign="top">list&lt; <a class="el" href="algebra_8hpp.html#ab7af358f9a6503cf1b4a56f74741bc0b">MeasRejectCallback</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a69cb96765ecab52e69d6b9413b076b1b">measRejectCallbacks</a></td></tr>
-<tr class="separator:a69cb96765ecab52e69d6b9413b076b1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c5777f833bd7b356ff842e50b1bd5ef"><td class="memItemLeft" align="right" valign="top">map&lt; string, string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a7c5777f833bd7b356ff842e50b1bd5ef">metaDataMap</a></td></tr>
-<tr class="separator:a7c5777f833bd7b356ff842e50b1bd5ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aecc21936788110e90abb6d3f3e5e9f56"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aecc21936788110e90abb6d3f3e5e9f56">chiQCPass</a> = false</td></tr>
-<tr class="separator:aecc21936788110e90abb6d3f3e5e9f56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a029429e1d7a19eaa09440d574b31cb22"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a029429e1d7a19eaa09440d574b31cb22">sigma_check</a> = true</td></tr>
-<tr class="separator:a029429e1d7a19eaa09440d574b31cb22"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1404b816d6210e7662a2c6b26c8f41bf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a1404b816d6210e7662a2c6b26c8f41bf">w_test</a> = false</td></tr>
-<tr class="separator:a1404b816d6210e7662a2c6b26c8f41bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0139d9a6354c0efa5b10c35897f77d03"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a0139d9a6354c0efa5b10c35897f77d03">chi_square_test</a> = false</td></tr>
-<tr class="separator:a0139d9a6354c0efa5b10c35897f77d03"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a779e9de422cfd02c9ae5d03b3ddb25a4"><td class="memItemLeft" align="right" valign="top">E_ChiSqMode&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a779e9de422cfd02c9ae5d03b3ddb25a4">chi_square_mode</a> = <a class="el" href="enums_8h.html#ad272ec1f335d680e948c51dea39d3375">E_ChiSqMode::NONE</a></td></tr>
-<tr class="separator:a779e9de422cfd02c9ae5d03b3ddb25a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aedab7a027f62d5b448394853195cfbb1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aedab7a027f62d5b448394853195cfbb1">sigma_threshold</a> = 4</td></tr>
-<tr class="separator:aedab7a027f62d5b448394853195cfbb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af6ec60d6c2fd4478fe02b01974237ae9"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#af6ec60d6c2fd4478fe02b01974237ae9">id</a> = &quot;KFState&quot;</td></tr>
-<tr class="separator:af6ec60d6c2fd4478fe02b01974237ae9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af5f2d9a3723c2072d48328c41ce9ba2b"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#af5f2d9a3723c2072d48328c41ce9ba2b">rts_basename</a> = &quot;&quot;</td></tr>
-<tr class="separator:af5f2d9a3723c2072d48328c41ce9ba2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7886fd28e6ba3ad478c57ecbeeb76d86"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a7886fd28e6ba3ad478c57ecbeeb76d86">rts_lag</a> = 0</td></tr>
-<tr class="separator:a7886fd28e6ba3ad478c57ecbeeb76d86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa4cccc098437701d76b4779505e814d2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#aa4cccc098437701d76b4779505e814d2">max_filter_iter</a> = 1</td></tr>
-<tr class="separator:aa4cccc098437701d76b4779505e814d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2114979d33469a858ac8c45ca9ef111f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a2114979d33469a858ac8c45ca9ef111f">max_prefit_remv</a> = 0</td></tr>
-<tr class="separator:a2114979d33469a858ac8c45ca9ef111f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af080b1182830e20ccc682e3a042b712d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#af080b1182830e20ccc682e3a042b712d">output_residuals</a> = false</td></tr>
-<tr class="separator:af080b1182830e20ccc682e3a042b712d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a96fa8a68aa7dbf146ee90af47a975327"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a96fa8a68aa7dbf146ee90af47a975327">inverter</a> = E_Inverter::INV</td></tr>
-<tr class="separator:a96fa8a68aa7dbf146ee90af47a975327"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4cb10322eb91b84c372434607fc594be"><td class="memItemLeft" align="right" valign="top">mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#a4cb10322eb91b84c372434607fc594be">kfStateMutex</a></td></tr>
+<tr class="separator:a4cb10322eb91b84c372434607fc594be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_structKFState__"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structKFState__')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structKFState__.html">KFState_</a></td></tr>
+<tr class="memitem:a4a1ab30ba84bdbec01e54df663c4373b inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a4a1ab30ba84bdbec01e54df663c4373b">lsqRequired</a> = false</td></tr>
+<tr class="memdesc:a4a1ab30ba84bdbec01e54df663c4373b inherit pub_attribs_structKFState__"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uninitialised parameters require least squares calculation.  <a href="structKFState__.html#a4a1ab30ba84bdbec01e54df663c4373b">More...</a><br /></td></tr>
+<tr class="separator:a4a1ab30ba84bdbec01e54df663c4373b inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae096ffe1870ca5c7b596bb383059be2f inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#ae096ffe1870ca5c7b596bb383059be2f">time</a> = {}</td></tr>
+<tr class="separator:ae096ffe1870ca5c7b596bb383059be2f inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7441af61fc5af448709ac814a281f8b inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">VectorXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#af7441af61fc5af448709ac814a281f8b">x</a></td></tr>
+<tr class="memdesc:af7441af61fc5af448709ac814a281f8b inherit pub_attribs_structKFState__"><td class="mdescLeft">&#160;</td><td class="mdescRight">State.  <a href="structKFState__.html#af7441af61fc5af448709ac814a281f8b">More...</a><br /></td></tr>
+<tr class="separator:af7441af61fc5af448709ac814a281f8b inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b4beb190192f27177c9b039ddce6828 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">MatrixXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a1b4beb190192f27177c9b039ddce6828">P</a></td></tr>
+<tr class="memdesc:a1b4beb190192f27177c9b039ddce6828 inherit pub_attribs_structKFState__"><td class="mdescLeft">&#160;</td><td class="mdescRight">State Covariance.  <a href="structKFState__.html#a1b4beb190192f27177c9b039ddce6828">More...</a><br /></td></tr>
+<tr class="separator:a1b4beb190192f27177c9b039ddce6828 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad351713e5a39e74a53699487643fe942 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">VectorXd&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#ad351713e5a39e74a53699487643fe942">dx</a></td></tr>
+<tr class="memdesc:ad351713e5a39e74a53699487643fe942 inherit pub_attribs_structKFState__"><td class="mdescLeft">&#160;</td><td class="mdescRight">Last filter update.  <a href="structKFState__.html#ad351713e5a39e74a53699487643fe942">More...</a><br /></td></tr>
+<tr class="separator:ad351713e5a39e74a53699487643fe942 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a108abdf49982eb9a44abb487ea274921 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, short <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a108abdf49982eb9a44abb487ea274921">kfIndexMap</a></td></tr>
+<tr class="memdesc:a108abdf49982eb9a44abb487ea274921 inherit pub_attribs_structKFState__"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map from key to indexes of parameters in the state vector.  <a href="structKFState__.html#a108abdf49982eb9a44abb487ea274921">More...</a><br /></td></tr>
+<tr class="separator:a108abdf49982eb9a44abb487ea274921 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0cf78c0924fa783d717fe9f2cd0dd77 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, short <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#aa0cf78c0924fa783d717fe9f2cd0dd77">noiseIndexMap</a></td></tr>
+<tr class="memdesc:aa0cf78c0924fa783d717fe9f2cd0dd77 inherit pub_attribs_structKFState__"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map from key to indexes of parameters in the noise vector.  <a href="structKFState__.html#aa0cf78c0924fa783d717fe9f2cd0dd77">More...</a><br /></td></tr>
+<tr class="separator:aa0cf78c0924fa783d717fe9f2cd0dd77 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af59c7255383da9288915a488b683ad89 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, map&lt; <a class="el" href="structKFKey.html">KFKey</a>, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, double &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#af59c7255383da9288915a488b683ad89">stateTransitionMap</a></td></tr>
+<tr class="separator:af59c7255383da9288915a488b683ad89 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeea378e5a7803ca8c6aa1be262b3009a inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#aeea378e5a7803ca8c6aa1be262b3009a">gaussMarkovTauMap</a></td></tr>
+<tr class="separator:aeea378e5a7803ca8c6aa1be262b3009a inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d6dc15de4054b467de347745b35c9a0 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a4d6dc15de4054b467de347745b35c9a0">gaussMarkovMuMap</a></td></tr>
+<tr class="separator:a4d6dc15de4054b467de347745b35c9a0 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66f8fd5e3bbb0a521b7144da44d176ea inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a66f8fd5e3bbb0a521b7144da44d176ea">procNoiseMap</a></td></tr>
+<tr class="separator:a66f8fd5e3bbb0a521b7144da44d176ea inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59d8152ff5b2f269d8d0f99e02ff36a8 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a59d8152ff5b2f269d8d0f99e02ff36a8">initNoiseMap</a></td></tr>
+<tr class="separator:a59d8152ff5b2f269d8d0f99e02ff36a8 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cc22ef4857517f3d2769704201d5455 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a0cc22ef4857517f3d2769704201d5455">noiseElementMap</a></td></tr>
+<tr class="separator:a0cc22ef4857517f3d2769704201d5455 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acde3f1363fbe8eebbb40305c3b809926 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, <a class="el" href="structExponential.html">Exponential</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#acde3f1363fbe8eebbb40305c3b809926">exponentialNoiseMap</a></td></tr>
+<tr class="separator:acde3f1363fbe8eebbb40305c3b809926 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73c3e1a80dd4fe1d1eab7ac96d9c7d6d inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">vector&lt; <a class="el" href="algebra_8hpp.html#a61f258c9b39f89e25f08ae680d7f22bc">StateRejectCallback</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a73c3e1a80dd4fe1d1eab7ac96d9c7d6d">stateRejectCallbacks</a></td></tr>
+<tr class="separator:a73c3e1a80dd4fe1d1eab7ac96d9c7d6d inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a33545d54ef59565f7975bec8b051f9 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">vector&lt; <a class="el" href="algebra_8hpp.html#ab7af358f9a6503cf1b4a56f74741bc0b">MeasRejectCallback</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a1a33545d54ef59565f7975bec8b051f9">measRejectCallbacks</a></td></tr>
+<tr class="separator:a1a33545d54ef59565f7975bec8b051f9 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc34e6aba6ae1dac9501847bf64cfb57 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; string, string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#afc34e6aba6ae1dac9501847bf64cfb57">metaDataMap</a></td></tr>
+<tr class="separator:afc34e6aba6ae1dac9501847bf64cfb57 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6758e05fde45d17c8cde2314514621aa inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a6758e05fde45d17c8cde2314514621aa">chiQCPass</a> = false</td></tr>
+<tr class="separator:a6758e05fde45d17c8cde2314514621aa inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab520471ba3907962a72fb416f3d8b83 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#aab520471ba3907962a72fb416f3d8b83">chi</a> = 0</td></tr>
+<tr class="separator:aab520471ba3907962a72fb416f3d8b83 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9dc688a0525d42a934a65bc64752d39 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#ac9dc688a0525d42a934a65bc64752d39">dof</a> = 0</td></tr>
+<tr class="separator:ac9dc688a0525d42a934a65bc64752d39 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1455d6da3c750e47e30f4ae01cc94890 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a1455d6da3c750e47e30f4ae01cc94890">sigma_check</a> = true</td></tr>
+<tr class="separator:a1455d6da3c750e47e30f4ae01cc94890 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac59dc8007199b53d5d59ac85e005a584 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#ac59dc8007199b53d5d59ac85e005a584">w_test</a> = false</td></tr>
+<tr class="separator:ac59dc8007199b53d5d59ac85e005a584 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac196fb74257fe0f86dfeef87866c6e93 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#ac196fb74257fe0f86dfeef87866c6e93">chi_square_test</a> = false</td></tr>
+<tr class="separator:ac196fb74257fe0f86dfeef87866c6e93 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add436f7e1dba28bcc87106b3f7341601 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">E_ChiSqMode&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#add436f7e1dba28bcc87106b3f7341601">chi_square_mode</a> = <a class="el" href="enums_8h.html#a73aeaa6097657d473373a66998ffdbaa">E_ChiSqMode::NONE</a></td></tr>
+<tr class="separator:add436f7e1dba28bcc87106b3f7341601 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc5293dfd8ce1af45338132b58c6d451 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#acc5293dfd8ce1af45338132b58c6d451">sigma_threshold</a> = 4</td></tr>
+<tr class="separator:acc5293dfd8ce1af45338132b58c6d451 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeee900345e0a697b189060f6dabca199 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#aeee900345e0a697b189060f6dabca199">id</a> = &quot;KFState&quot;</td></tr>
+<tr class="separator:aeee900345e0a697b189060f6dabca199 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a148e2c7b3b0804c0874722bccc34ce27 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a148e2c7b3b0804c0874722bccc34ce27">suffix</a> = &quot;&quot;</td></tr>
+<tr class="separator:a148e2c7b3b0804c0874722bccc34ce27 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb866ecac679a8a5fa40f9a5c3a9eb86 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#afb866ecac679a8a5fa40f9a5c3a9eb86">rts_basename</a> = &quot;&quot;</td></tr>
+<tr class="separator:afb866ecac679a8a5fa40f9a5c3a9eb86 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3179466d177c531baa7b348cc5f5e0c0 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a3179466d177c531baa7b348cc5f5e0c0">rts_lag</a> = 0</td></tr>
+<tr class="separator:a3179466d177c531baa7b348cc5f5e0c0 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3daf09b5205b2bda8f2da96a8a51a9a6 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a3daf09b5205b2bda8f2da96a8a51a9a6">max_filter_iter</a> = 1</td></tr>
+<tr class="separator:a3daf09b5205b2bda8f2da96a8a51a9a6 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2953afbeb1b162baea975b6e752ea30 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#ab2953afbeb1b162baea975b6e752ea30">max_prefit_remv</a> = 0</td></tr>
+<tr class="separator:ab2953afbeb1b162baea975b6e752ea30 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa6d7c3fa5a3026d200d4bd99db3b1c3 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#aaa6d7c3fa5a3026d200d4bd99db3b1c3">output_residuals</a> = false</td></tr>
+<tr class="separator:aaa6d7c3fa5a3026d200d4bd99db3b1c3 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a749c4353e41e5e040842fb0695b84c27 inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a749c4353e41e5e040842fb0695b84c27">outputMongoMeasurements</a> = false</td></tr>
+<tr class="separator:a749c4353e41e5e040842fb0695b84c27 inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70dcee088fbf8c3fb782acb6e7aca2ce inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a70dcee088fbf8c3fb782acb6e7aca2ce">simulate_filter_only</a> = false</td></tr>
+<tr class="separator:a70dcee088fbf8c3fb782acb6e7aca2ce inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13dff547a05a4c4322d62018cf7bba1c inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">E_Inverter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a13dff547a05a4c4322d62018cf7bba1c">inverter</a> = <a class="el" href="enums_8h.html#a89f3f12f87802c31185f461bb3dbadee">E_Inverter::LDLT</a></td></tr>
+<tr class="separator:a13dff547a05a4c4322d62018cf7bba1c inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa002688f24ded50b9c127c80a15ca36a inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; string, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#aa002688f24ded50b9c127c80a15ca36a">statisticsMap</a></td></tr>
+<tr class="separator:aa002688f24ded50b9c127c80a15ca36a inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e3075149be5618b4a01916ef171ef0b inherit pub_attribs_structKFState__"><td class="memItemLeft" align="right" valign="top">map&lt; string, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState__.html#a5e3075149be5618b4a01916ef171ef0b">statisticsMapSum</a></td></tr>
+<tr class="separator:a5e3075149be5618b4a01916ef171ef0b inherit pub_attribs_structKFState__"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:af78dd98f020aa3e4c5214b3a9f07831c"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFState.html#af78dd98f020aa3e4c5214b3a9f07831c">oneKey</a> = {.type = <a class="el" href="enums_8h.html#aa184961ecbc16d0084e3a2f694e877bd">KF::ONE</a>}</td></tr>
+<tr class="separator:af78dd98f020aa3e4c5214b3a9f07831c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="ad4453c4df8b1dfd42c7faecdbd7be5b2" name="ad4453c4df8b1dfd42c7faecdbd7be5b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4453c4df8b1dfd42c7faecdbd7be5b2">&#9670;&nbsp;</a></span>KFState() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">KFState::KFState </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa97674fcbd7bfbe3953005548b068cfb" name="aa97674fcbd7bfbe3953005548b068cfb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa97674fcbd7bfbe3953005548b068cfb">&#9670;&nbsp;</a></span>KFState()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa97674fcbd7bfbe3953005548b068cfb">&#9670;&nbsp;</a></span>KFState() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -285,8 +363,8 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a0d9dacd63c7fa70e7caf8fa3faee0c82" name="a0d9dacd63c7fa70e7caf8fa3faee0c82"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d9dacd63c7fa70e7caf8fa3faee0c82">&#9670;&nbsp;</a></span>addKFState()</h2>
+<a id="a8713f4fe8effc58341d60afc0085f953" name="a8713f4fe8effc58341d60afc0085f953"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8713f4fe8effc58341d60afc0085f953">&#9670;&nbsp;</a></span>addKFState() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -294,13 +372,13 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">bool KFState::addKFState </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>kfKey</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
           <td class="paramname"><em>initialState</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
@@ -323,13 +401,85 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a0d9dacd63c7fa70e7caf8fa3faee0c82_icgraph.svg" width="398" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a8713f4fe8effc58341d60afc0085f953_icgraph.svg" width="570" height="374"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a61a59fc30911bc4ff2b7084b34af659e" name="a61a59fc30911bc4ff2b7084b34af659e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a61a59fc30911bc4ff2b7084b34af659e">&#9670;&nbsp;</a></span>addNoiseElement()</h2>
+<a id="ae239a7d7953797ee266c3e2d3c5a7922" name="ae239a7d7953797ee266c3e2d3c5a7922"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae239a7d7953797ee266c3e2d3c5a7922">&#9670;&nbsp;</a></span>addKFState() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool KFState::addKFState </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>kfKey</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramname"><em>initialState</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa8b676bff05dd924b84cc61b1f062c39" name="aa8b676bff05dd924b84cc61b1f062c39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8b676bff05dd924b84cc61b1f062c39">&#9670;&nbsp;</a></span>addNoiseElement() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::addNoiseElement </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>kfKey</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>variance</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a99634b692dc64a2ba8bacfa8a03fd108" name="a99634b692dc64a2ba8bacfa8a03fd108"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99634b692dc64a2ba8bacfa8a03fd108">&#9670;&nbsp;</a></span>addNoiseElement() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -337,13 +487,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void KFState::addNoiseElement </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structObsKey.html">ObsKey</a>&#160;</td>
-          <td class="paramname"><em>obsKey</em>, </td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>kfKey</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>variance</em>&#160;</td>
         </tr>
         <tr>
@@ -359,8 +509,50 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a61a59fc30911bc4ff2b7084b34af659e_icgraph.svg" width="466" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a99634b692dc64a2ba8bacfa8a03fd108_icgraph.svg" width="466" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a49e82997e11b2b1d44b162da52f86fc9" name="a49e82997e11b2b1d44b162da52f86fc9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49e82997e11b2b1d44b162da52f86fc9">&#9670;&nbsp;</a></span>addNoiseEntry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::addNoiseEntry </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>kfKey</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>variance</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -427,7 +619,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname"><a class="el" href="structKFMeas.html">KFMeas</a> KFState::combineKFMeasList </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a67e57d0b554c4361fc16211615b23835">KFMeasEntryList</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#a0de2ba4a7e746073293d851faf25622c">KFMeasEntryList</a> &amp;&#160;</td>
           <td class="paramname"><em>kfEntryList</em>, </td>
         </tr>
         <tr>
@@ -462,12 +654,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a4422abfc2efdc898a2558d57be35e863_cgraph.svg" width="426" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a4422abfc2efdc898a2558d57be35e863_cgraph.svg" width="446" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a4422abfc2efdc898a2558d57be35e863_icgraph.svg" width="608" height="595"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFState_a4422abfc2efdc898a2558d57be35e863_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -493,7 +685,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>badIndex</em>&#160;</td>
         </tr>
         <tr>
@@ -514,7 +706,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ae6e89a4dca53b4c6f8a5eadb1f61dd5c_icgraph.svg" width="458" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ae6e89a4dca53b4c6f8a5eadb1f61dd5c_icgraph.svg" width="458" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -566,14 +758,14 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a21a4858020ad706771efeea814d6c43f" name="a21a4858020ad706771efeea814d6c43f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a21a4858020ad706771efeea814d6c43f">&#9670;&nbsp;</a></span>filterKalman()</h2>
+<a id="ae99b9a0b478d94b6cff9ba2328914178" name="ae99b9a0b478d94b6cff9ba2328914178"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae99b9a0b478d94b6cff9ba2328914178">&#9670;&nbsp;</a></span>filterKalman()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFState::filterKalman </td>
+          <td class="memname">void KFState::filterKalman </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -593,7 +785,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">list&lt; <a class="el" href="structFilterChunk.html">FilterChunk</a> &gt; *&#160;</td>
+          <td class="paramtype">vector&lt; <a class="el" href="structFilterChunk.html">FilterChunk</a> &gt; *&#160;</td>
           <td class="paramname"><em>filterChunkList_ptr</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
@@ -617,12 +809,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a21a4858020ad706771efeea814d6c43f_cgraph.svg" width="458" height="595"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFState_ae99b9a0b478d94b6cff9ba2328914178_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a21a4858020ad706771efeea814d6c43f_icgraph.svg" width="400" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ae99b9a0b478d94b6cff9ba2328914178_icgraph.svg" width="532" height="595"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -634,7 +826,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFState::filterLeastSquares </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> KFState::filterLeastSquares </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -669,18 +861,18 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a5aeeee0f20df8cc8c4747c1b5b18212f" name="a5aeeee0f20df8cc8c4747c1b5b18212f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5aeeee0f20df8cc8c4747c1b5b18212f">&#9670;&nbsp;</a></span>getKFIndex()</h2>
+<a id="a4280267023df2b302ea2880d373e9e00" name="a4280267023df2b302ea2880d373e9e00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4280267023df2b302ea2880d373e9e00">&#9670;&nbsp;</a></span>getKFIndex()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFState::getKFIndex </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> KFState::getKFIndex </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>key</em></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -695,13 +887,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a5aeeee0f20df8cc8c4747c1b5b18212f_icgraph.svg" width="426" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a4280267023df2b302ea2880d373e9e00_icgraph.svg" width="426" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a53a3ee5963d5561c2db0259d4f6cb663" name="a53a3ee5963d5561c2db0259d4f6cb663"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53a3ee5963d5561c2db0259d4f6cb663">&#9670;&nbsp;</a></span>getKFSigma()</h2>
+<a id="a765a6e81d5496447499234a8ea8c3b46" name="a765a6e81d5496447499234a8ea8c3b46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a765a6e81d5496447499234a8ea8c3b46">&#9670;&nbsp;</a></span>getKFSigma()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -709,7 +901,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">bool KFState::getKFSigma </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>key</em>, </td>
         </tr>
         <tr>
@@ -737,13 +929,13 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a53a3ee5963d5561c2db0259d4f6cb663_icgraph.svg" width="350" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a765a6e81d5496447499234a8ea8c3b46_icgraph.svg" width="334" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a291ac2a8a4612b3575dbc864d43fa0f7" name="a291ac2a8a4612b3575dbc864d43fa0f7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a291ac2a8a4612b3575dbc864d43fa0f7">&#9670;&nbsp;</a></span>getKFValue()</h2>
+<a id="a405c50a3085d8328e81dcd6786f775d3" name="a405c50a3085d8328e81dcd6786f775d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a405c50a3085d8328e81dcd6786f775d3">&#9670;&nbsp;</a></span>getKFValue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -751,7 +943,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">bool KFState::getKFValue </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>key</em>, </td>
         </tr>
         <tr>
@@ -775,7 +967,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -793,13 +985,87 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFState_a291ac2a8a4612b3575dbc864d43fa0f7_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFState_a405c50a3085d8328e81dcd6786f775d3_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
 </div>
-<a id="a0311266efe03f5ee1077168c54c6dc56" name="a0311266efe03f5ee1077168c54c6dc56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0311266efe03f5ee1077168c54c6dc56">&#9670;&nbsp;</a></span>getSubState()</h2>
+<a id="a4a3538a80306e9526559bb082b587e6c" name="a4a3538a80306e9526559bb082b587e6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a3538a80306e9526559bb082b587e6c">&#9670;&nbsp;</a></span>getNoiseIndex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> KFState::getNoiseIndex </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Finds the position in the KF state vector of particular states. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>Key to search for in state </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a4a3538a80306e9526559bb082b587e6c_icgraph.svg" width="446" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a7c8eaccb360214ba2a0b11df8c219f78" name="a7c8eaccb360214ba2a0b11df8c219f78"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c8eaccb360214ba2a0b11df8c219f78">&#9670;&nbsp;</a></span>getSubState() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::getSubState </td>
+          <td>(</td>
+          <td class="paramtype">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>kfKeyMap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>subState</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get a portion of a state by passing in a list of keys. </p>
+<p >Only gets some aspects, as most aren't required </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kfKeyMap</td><td>List of keys to return within substate</td></tr>
+    <tr><td class="paramname">subState</td><td>Output state </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a7c8eaccb360214ba2a0b11df8c219f78_cgraph.svg" width="374" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a1c382a18272a685b261e23117e2e700b" name="a1c382a18272a685b261e23117e2e700b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c382a18272a685b261e23117e2e700b">&#9670;&nbsp;</a></span>getSubState() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -807,7 +1073,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">VectorXd KFState::getSubState </td>
           <td>(</td>
-          <td class="paramtype">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">map&lt; <a class="el" href="structKFKey.html">KFKey</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>kfKeyMap</em>, </td>
         </tr>
         <tr>
@@ -825,7 +1091,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -842,12 +1108,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a0311266efe03f5ee1077168c54c6dc56_cgraph.svg" width="374" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a1c382a18272a685b261e23117e2e700b_cgraph.svg" width="374" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a0311266efe03f5ee1077168c54c6dc56_icgraph.svg" width="322" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a1c382a18272a685b261e23117e2e700b_icgraph.svg" width="362" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -872,7 +1138,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a34fe78e0ab7a8f1d122ceabddc29b207_icgraph.svg" width="598" height="300"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a34fe78e0ab7a8f1d122ceabddc29b207_icgraph.svg" width="647" height="338"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -898,25 +1164,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begH</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numH</em>&#160;</td>
         </tr>
         <tr>
@@ -954,7 +1220,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFState::kFilter </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> KFState::kFilter </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -986,25 +1252,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begX</em> = <code>0</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numX</em> = <code>-1</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begH</em> = <code>0</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numH</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
@@ -1094,7 +1360,7 @@ Here is the caller graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace file for output</td></tr>
     <tr><td class="paramname">kfMeas</td><td>Measurement object</td></tr>
-    <tr><td class="paramname">initCovars</td><td>Option to also initialise off-diagonal covariance values</td></tr>
+    <tr><td class="paramname">initCovars</td><td><a class="el" href="structOption.html">Option</a> to also initialise off-diagonal covariance values</td></tr>
     <tr><td class="paramname">dx</td><td>Optional output of state deltas</td></tr>
     <tr><td class="paramname">innovReady</td><td>Perform conversion between V &amp; Y </td></tr>
   </table>
@@ -1108,7 +1374,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ae1fc274c403b77dc814ed90763b4dea1_icgraph.svg" width="575" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ae1fc274c403b77dc814ed90763b4dea1_icgraph.svg" width="575" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1160,7 +1426,7 @@ Here is the caller graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace file for output</td></tr>
     <tr><td class="paramname">kfMeas</td><td>Measurement object</td></tr>
-    <tr><td class="paramname">initCovars</td><td>Option to also initialise off-diagonal covariance values</td></tr>
+    <tr><td class="paramname">initCovars</td><td><a class="el" href="structOption.html">Option</a> to also initialise off-diagonal covariance values</td></tr>
     <tr><td class="paramname">dx</td><td>Optional output of state deltas</td></tr>
     <tr><td class="paramname">innovReady</td><td>Perform conversion between V &amp; Y </td></tr>
   </table>
@@ -1175,6 +1441,59 @@ Here is the call graph for this function:</div>
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a56a457141bb1f7f33cd473b008e27e92_icgraph.svg" width="284" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a35b82ca74c6a6795abf1b6e919a4fec1" name="a35b82ca74c6a6795abf1b6e919a4fec1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35b82ca74c6a6795abf1b6e919a4fec1">&#9670;&nbsp;</a></span>manualStateTransition()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::manualStateTransition </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>newTime</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">MatrixXd &amp;&#160;</td>
+          <td class="paramname"><em>F</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">MatrixXd &amp;&#160;</td>
+          <td class="paramname"><em>Q0</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add process noise and dynamics to filter object manually. </p>
+<p >BEWARE! Not recommended for ordinary use, likely to break things. Dont touch unless you really know what you're doing. Hint - you dont really know what you're doing </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a35b82ca74c6a6795abf1b6e919a4fec1_cgraph.svg" width="460" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a35b82ca74c6a6795abf1b6e919a4fec1_icgraph.svg" width="434" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1206,25 +1525,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begH</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numH</em>&#160;</td>
         </tr>
         <tr>
@@ -1256,6 +1575,82 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="a39147cd7a377c055b8a78cdba7039897" name="a39147cd7a377c055b8a78cdba7039897"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39147cd7a377c055b8a78cdba7039897">&#9670;&nbsp;</a></span>noiseElementStateTransition()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::noiseElementStateTransition </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a39147cd7a377c055b8a78cdba7039897_icgraph.svg" width="442" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adbb409f9721d724b3b12e33c62a8beac" name="adbb409f9721d724b3b12e33c62a8beac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbb409f9721d724b3b12e33c62a8beac">&#9670;&nbsp;</a></span>operator=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structKFState.html">KFState</a> &amp; KFState::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a791b21f6f17cbe61ce7ef5b67e111c6c" name="a791b21f6f17cbe61ce7ef5b67e111c6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a791b21f6f17cbe61ce7ef5b67e111c6c">&#9670;&nbsp;</a></span>outputConditionNumber()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::outputConditionNumber </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a791b21f6f17cbe61ce7ef5b67e111c6c_cgraph.svg" width="339" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a791b21f6f17cbe61ce7ef5b67e111c6c_icgraph.svg" width="348" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ab62647d9653d975a58c08ea438761280" name="ab62647d9653d975a58c08ea438761280"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab62647d9653d975a58c08ea438761280">&#9670;&nbsp;</a></span>outputCorrelations()</h2>
 
@@ -1274,7 +1669,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ab62647d9653d975a58c08ea438761280_cgraph.svg" width="396" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ab62647d9653d975a58c08ea438761280_cgraph.svg" width="412" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ab62647d9653d975a58c08ea438761280_icgraph.svg" width="372" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1307,7 +1707,12 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_adfd3abb4d57396f7065a2b50dc4945c6_cgraph.svg" width="374" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_adfd3abb4d57396f7065a2b50dc4945c6_cgraph.svg" width="430" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_adfd3abb4d57396f7065a2b50dc4945c6_icgraph.svg" width="390" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1333,13 +1738,13 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begX</em> = <code>0</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numX</em> = <code>-1</code>&#160;</td>
         </tr>
         <tr>
@@ -1373,8 +1778,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="aab4e5ed0ddc781d8b4db8de02af119cc" name="aab4e5ed0ddc781d8b4db8de02af119cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab4e5ed0ddc781d8b4db8de02af119cc">&#9670;&nbsp;</a></span>postFitSigmaChecks()</h2>
+<a id="a4d44be64e2f00e44b89fff30191a8953" name="a4d44be64e2f00e44b89fff30191a8953"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d44be64e2f00e44b89fff30191a8953">&#9670;&nbsp;</a></span>postFitSigmaChecks()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1395,18 +1800,12 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">VectorXd &amp;&#160;</td>
-          <td class="paramname"><em>xp</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">VectorXd &amp;&#160;</td>
           <td class="paramname"><em>dx</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>iteration</em>, </td>
         </tr>
         <tr>
@@ -1418,7 +1817,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
           <td class="paramname"><em>badMeasIndex</em>, </td>
         </tr>
         <tr>
@@ -1430,25 +1829,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begH</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numH</em>&#160;</td>
         </tr>
         <tr>
@@ -1464,7 +1863,6 @@ Here is the caller graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace file to output to</td></tr>
     <tr><td class="paramname">kfMeas</td><td>Measurements, noise, and design matrix</td></tr>
-    <tr><td class="paramname">xp</td><td>The post-filter state vector to compare with measurements</td></tr>
     <tr><td class="paramname">dx</td><td>The innovations from filtering to recalculate the deltas.</td></tr>
     <tr><td class="paramname">iteration</td><td>Number of iterations prior to this check</td></tr>
     <tr><td class="paramname">badStateKey</td><td>Key to the state that has worst ratio (only if worse than badMeasIndex)</td></tr>
@@ -1480,12 +1878,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_aab4e5ed0ddc781d8b4db8de02af119cc_cgraph.svg" width="436" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a4d44be64e2f00e44b89fff30191a8953_cgraph.svg" width="398" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_aab4e5ed0ddc781d8b4db8de02af119cc_icgraph.svg" width="434" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a4d44be64e2f00e44b89fff30191a8953_icgraph.svg" width="434" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1517,7 +1915,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
           <td class="paramname"><em>badMeasIndex</em>, </td>
         </tr>
         <tr>
@@ -1529,25 +1927,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begH</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numH</em>&#160;</td>
         </tr>
         <tr>
@@ -1582,8 +1980,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="abdf1505bdab1895a280fd018979849f1" name="abdf1505bdab1895a280fd018979849f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abdf1505bdab1895a280fd018979849f1">&#9670;&nbsp;</a></span>removeState()</h2>
+<a id="a28480b75cbb9f622f48a695f04000948" name="a28480b75cbb9f622f48a695f04000948"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28480b75cbb9f622f48a695f04000948">&#9670;&nbsp;</a></span>removeState()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1591,7 +1989,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void KFState::removeState </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>kfKey</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1608,13 +2006,176 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_abdf1505bdab1895a280fd018979849f1_icgraph.svg" width="458" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a28480b75cbb9f622f48a695f04000948_icgraph.svg" width="458" height="494"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a98639743564c805d97c3e87cd32e7ff1" name="a98639743564c805d97c3e87cd32e7ff1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a98639743564c805d97c3e87cd32e7ff1">&#9670;&nbsp;</a></span>setKFNoise()</h2>
+<a id="a75048c8d7cdb1fe3c996e148bd526378" name="a75048c8d7cdb1fe3c996e148bd526378"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a75048c8d7cdb1fe3c996e148bd526378">&#9670;&nbsp;</a></span>serialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class ARCHIVE &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::serialize </td>
+          <td>(</td>
+          <td class="paramtype">ARCHIVE &amp;&#160;</td>
+          <td class="paramname"><em>ar</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>version</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac22e4d7ea8f3299c998dedbff1effb97" name="ac22e4d7ea8f3299c998dedbff1effb97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac22e4d7ea8f3299c998dedbff1effb97">&#9670;&nbsp;</a></span>setAccelerator()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::setAccelerator </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>element</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>dotElement</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>dotDotElement</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramname"><em>initialState</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ac22e4d7ea8f3299c998dedbff1effb97_cgraph.svg" width="390" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ac22e4d7ea8f3299c998dedbff1effb97_icgraph.svg" width="344" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af61c11042a105999c159c7461696eacf" name="af61c11042a105999c159c7461696eacf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af61c11042a105999c159c7461696eacf">&#9670;&nbsp;</a></span>setExponentialNoise() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::setExponentialNoise </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>kfKey</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structExponential.html">Exponential</a>&#160;</td>
+          <td class="paramname"><em>exponential</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_af61c11042a105999c159c7461696eacf_icgraph.svg" width="420" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3520818b9f2978ddaedd6d2d82a8e19f" name="a3520818b9f2978ddaedd6d2d82a8e19f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3520818b9f2978ddaedd6d2d82a8e19f">&#9670;&nbsp;</a></span>setExponentialNoise() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::setExponentialNoise </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>kfKey</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structExponential.html">Exponential</a>&#160;</td>
+          <td class="paramname"><em>exponential</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1c82cf1d7079e1ed76c2a53667e74e71" name="a1c82cf1d7079e1ed76c2a53667e74e71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c82cf1d7079e1ed76c2a53667e74e71">&#9670;&nbsp;</a></span>setKFNoise()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1622,7 +2183,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">bool KFState::setKFNoise </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>kfKey</em>, </td>
         </tr>
         <tr>
@@ -1643,15 +2204,15 @@ Here is the caller graph for this function:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">kfKey</td><td>Key to search for in state</td></tr>
-    <tr><td class="paramname">value</td><td>Input value </td></tr>
+    <tr><td class="paramname">value</td><td><a class="el" href="structInput.html">Input</a> value </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ae544a260c4983f5a1b06f71ddad7338f" name="ae544a260c4983f5a1b06f71ddad7338f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae544a260c4983f5a1b06f71ddad7338f">&#9670;&nbsp;</a></span>setKFTrans()</h2>
+<a id="aca3d8484dbabdecee93352e625c96ed1" name="aca3d8484dbabdecee93352e625c96ed1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca3d8484dbabdecee93352e625c96ed1">&#9670;&nbsp;</a></span>setKFTrans() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1659,25 +2220,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void KFState::setKFTrans </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>dest</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
           <td class="paramname"><em>source</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>value</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
           <td class="paramname"><em>initialState</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
@@ -1693,26 +2254,74 @@ Here is the caller graph for this function:</div>
   <table class="params">
     <tr><td class="paramname">dest</td><td>Key to search for in state to change in transition</td></tr>
     <tr><td class="paramname">source</td><td>Key to search for in state as source</td></tr>
-    <tr><td class="paramname">value</td><td>Input value</td></tr>
-    <tr><td class="paramname">initialState</td><td>Initial state for rate state. </td></tr>
+    <tr><td class="paramname">value</td><td><a class="el" href="structInput.html">Input</a> value</td></tr>
+    <tr><td class="paramname">initialState</td><td>Initial state. </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ae544a260c4983f5a1b06f71ddad7338f_cgraph.svg" width="368" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_aca3d8484dbabdecee93352e625c96ed1_cgraph.svg" width="368" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_ae544a260c4983f5a1b06f71ddad7338f_icgraph.svg" width="347" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_aca3d8484dbabdecee93352e625c96ed1_icgraph.svg" width="347" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a3808815eb5103a8d8f5514af130a0700" name="a3808815eb5103a8d8f5514af130a0700"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3808815eb5103a8d8f5514af130a0700">&#9670;&nbsp;</a></span>setKFTransRate()</h2>
+<a id="a2bbc91e79af463c730ecf516b1c870d1" name="a2bbc91e79af463c730ecf516b1c870d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bbc91e79af463c730ecf516b1c870d1">&#9670;&nbsp;</a></span>setKFTrans() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFState::setKFTrans </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramname"><em>initialState</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a33ad852c99520415337196b0c62f0909" name="a33ad852c99520415337196b0c62f0909"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33ad852c99520415337196b0c62f0909">&#9670;&nbsp;</a></span>setKFTransRate() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1720,26 +2329,32 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void KFState::setKFTransRate </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
-          <td class="paramname"><em>dest</em>, </td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>integralKey</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
-          <td class="paramname"><em>source</em>, </td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>rateKey</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
+          <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>value</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
-          <td class="paramname"><em>initialState</em> = <code>{}</code>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramname"><em>initialRateState</em> = <code>{}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramname"><em>initialIntegralState</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1752,65 +2367,78 @@ Here is the caller graph for this function:</div>
 <p>Adds dynamics to a filter state by inserting off-diagonal, time dependent elements to transition matrix. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">dest</td><td>Key to search for in state to change in transition</td></tr>
-    <tr><td class="paramname">source</td><td>Key to search for in state as source</td></tr>
-    <tr><td class="paramname">value</td><td>Input value</td></tr>
-    <tr><td class="paramname">initialState</td><td>Initial state for rate state. </td></tr>
+    <tr><td class="paramname">integralKey</td><td>Key to search for in state to change in transition</td></tr>
+    <tr><td class="paramname">rateKey</td><td>Key to search for in state as source</td></tr>
+    <tr><td class="paramname">value</td><td><a class="el" href="structInput.html">Input</a> value</td></tr>
+    <tr><td class="paramname">initialRateState</td><td>Initial state for rate state.</td></tr>
+    <tr><td class="paramname">initialIntegralState</td><td>Initial state for the thing that is modified by the rate </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a3808815eb5103a8d8f5514af130a0700_cgraph.svg" width="398" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a33ad852c99520415337196b0c62f0909_cgraph.svg" width="398" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a3808815eb5103a8d8f5514af130a0700_icgraph.svg" width="380" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a33ad852c99520415337196b0c62f0909_icgraph.svg" width="380" height="443"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="afa27fbd7603d376e9e67cb9c09ba7454" name="afa27fbd7603d376e9e67cb9c09ba7454"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa27fbd7603d376e9e67cb9c09ba7454">&#9670;&nbsp;</a></span>setKFValue()</h2>
+<a id="a4fd4c0e379530e778f0db661051206ac" name="a4fd4c0e379530e778f0db661051206ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4fd4c0e379530e778f0db661051206ac">&#9670;&nbsp;</a></span>setKFTransRate() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool KFState::setKFValue </td>
+          <td class="memname">void KFState::setKFTransRate </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
-          <td class="paramname"><em>key</em>, </td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>integral</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>value</em>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structKFKey.html">KFKey</a>&#160;</td>
+          <td class="paramname"><em>rate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramname"><em>initialRateState</em> = <code>{}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structInitialState.html">InitialState</a>&#160;</td>
+          <td class="paramname"><em>initialIntegralState</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+          <td></td><td> const</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
-
-<p>Sets the value of a state within the kalman filter object. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">key</td><td>Key to search for in state</td></tr>
-    <tr><td class="paramname">value</td><td>Input value </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_afa27fbd7603d376e9e67cb9c09ba7454_icgraph.svg" width="348" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -1841,25 +2469,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numX</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>begH</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>numH</em>&#160;</td>
         </tr>
         <tr>
@@ -1891,8 +2519,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a170d9c3a01bee9ec1f7264615b087c58" name="a170d9c3a01bee9ec1f7264615b087c58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a170d9c3a01bee9ec1f7264615b087c58">&#9670;&nbsp;</a></span>stateTransition()</h2>
+<a id="a7f8e4b9291361c063cef8d9178f07707" name="a7f8e4b9291361c063cef8d9178f07707"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f8e4b9291361c063cef8d9178f07707">&#9670;&nbsp;</a></span>stateTransition()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1907,7 +2535,13 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>newTime</em>&#160;</td>
+          <td class="paramname"><em>newTime</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">MatrixXd *&#160;</td>
+          <td class="paramname"><em>stm_ptr</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1922,466 +2556,57 @@ Here is the caller graph for this function:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">trace</td><td>Trace file for output</td></tr>
-    <tr><td class="paramname">newTime</td><td>Time of update for process noise and dynamics (s) </td></tr>
+    <tr><td class="paramname">newTime</td><td>Time of update for process noise and dynamics (s)</td></tr>
+    <tr><td class="paramname">stm_ptr</td><td>Optional pointer to output state transition matrix </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a170d9c3a01bee9ec1f7264615b087c58_cgraph.svg" width="411" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a7f8e4b9291361c063cef8d9178f07707_cgraph.svg" width="442" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structKFState_a170d9c3a01bee9ec1f7264615b087c58_icgraph.svg" width="575" height="595"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structKFState_a7f8e4b9291361c063cef8d9178f07707_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
 </div>
 <h2 class="groupheader">Field Documentation</h2>
-<a id="a779e9de422cfd02c9ae5d03b3ddb25a4" name="a779e9de422cfd02c9ae5d03b3ddb25a4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a779e9de422cfd02c9ae5d03b3ddb25a4">&#9670;&nbsp;</a></span>chi_square_mode</h2>
+<a id="a4cb10322eb91b84c372434607fc594be" name="a4cb10322eb91b84c372434607fc594be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4cb10322eb91b84c372434607fc594be">&#9670;&nbsp;</a></span>kfStateMutex</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">E_ChiSqMode KFState::chi_square_mode = <a class="el" href="enums_8h.html#ad272ec1f335d680e948c51dea39d3375">E_ChiSqMode::NONE</a></td>
+          <td class="memname">mutex KFState::kfStateMutex</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a0139d9a6354c0efa5b10c35897f77d03" name="a0139d9a6354c0efa5b10c35897f77d03"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0139d9a6354c0efa5b10c35897f77d03">&#9670;&nbsp;</a></span>chi_square_test</h2>
+<a id="af78dd98f020aa3e4c5214b3a9f07831c" name="af78dd98f020aa3e4c5214b3a9f07831c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af78dd98f020aa3e4c5214b3a9f07831c">&#9670;&nbsp;</a></span>oneKey</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool KFState::chi_square_test = false</td>
+          <td class="memname">const <a class="el" href="structKFKey.html">KFKey</a> KFState::oneKey = {.type = <a class="el" href="enums_8h.html#aa184961ecbc16d0084e3a2f694e877bd">KF::ONE</a>}</td>
         </tr>
       </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aecc21936788110e90abb6d3f3e5e9f56" name="aecc21936788110e90abb6d3f3e5e9f56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aecc21936788110e90abb6d3f3e5e9f56">&#9670;&nbsp;</a></span>chiQCPass</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool KFState::chiQCPass = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae6474ab1ba2e677cb1b9c19712a8a4a0" name="ae6474ab1ba2e677cb1b9c19712a8a4a0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae6474ab1ba2e677cb1b9c19712a8a4a0">&#9670;&nbsp;</a></span>dx</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">VectorXd KFState::dx</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Last filter update. </p>
-
-</div>
-</div>
-<a id="ac877117bd5d0c08ac2728a58fced5692" name="ac877117bd5d0c08ac2728a58fced5692"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac877117bd5d0c08ac2728a58fced5692">&#9670;&nbsp;</a></span>gaussMarkovMuMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, double&gt; KFState::gaussMarkovMuMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab7cabbde939ae558d0d00bc80a2cd9ee" name="ab7cabbde939ae558d0d00bc80a2cd9ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7cabbde939ae558d0d00bc80a2cd9ee">&#9670;&nbsp;</a></span>gaussMarkovTauMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, double&gt; KFState::gaussMarkovTauMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af6ec60d6c2fd4478fe02b01974237ae9" name="af6ec60d6c2fd4478fe02b01974237ae9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af6ec60d6c2fd4478fe02b01974237ae9">&#9670;&nbsp;</a></span>id</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">string KFState::id = &quot;KFState&quot;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae8ba1c43269c6615153ec99316398643" name="ae8ba1c43269c6615153ec99316398643"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae8ba1c43269c6615153ec99316398643">&#9670;&nbsp;</a></span>initNoiseMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, double&gt; KFState::initNoiseMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a96fa8a68aa7dbf146ee90af47a975327" name="a96fa8a68aa7dbf146ee90af47a975327"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a96fa8a68aa7dbf146ee90af47a975327">&#9670;&nbsp;</a></span>inverter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFState::inverter = E_Inverter::INV</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7a39a46677961a766c4606cfc8be870a" name="a7a39a46677961a766c4606cfc8be870a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a39a46677961a766c4606cfc8be870a">&#9670;&nbsp;</a></span>kfIndexMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, short <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&gt; KFState::kfIndexMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Map from key to indexes of parameters in the state vector. </p>
-
-</div>
-</div>
-<a id="a28012ad3ed4ee4ea8c207038473c3476" name="a28012ad3ed4ee4ea8c207038473c3476"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a28012ad3ed4ee4ea8c207038473c3476">&#9670;&nbsp;</a></span>lsqRequired</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool KFState::lsqRequired = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Uninitialised parameters require least squares calculation. </p>
-
-</div>
-</div>
-<a id="aa4cccc098437701d76b4779505e814d2" name="aa4cccc098437701d76b4779505e814d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa4cccc098437701d76b4779505e814d2">&#9670;&nbsp;</a></span>max_filter_iter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFState::max_filter_iter = 1</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a2114979d33469a858ac8c45ca9ef111f" name="a2114979d33469a858ac8c45ca9ef111f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2114979d33469a858ac8c45ca9ef111f">&#9670;&nbsp;</a></span>max_prefit_remv</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFState::max_prefit_remv = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a69cb96765ecab52e69d6b9413b076b1b" name="a69cb96765ecab52e69d6b9413b076b1b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a69cb96765ecab52e69d6b9413b076b1b">&#9670;&nbsp;</a></span>measRejectCallbacks</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">list&lt;<a class="el" href="algebra_8hpp.html#ab7af358f9a6503cf1b4a56f74741bc0b">MeasRejectCallback</a>&gt; KFState::measRejectCallbacks</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7c5777f833bd7b356ff842e50b1bd5ef" name="a7c5777f833bd7b356ff842e50b1bd5ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7c5777f833bd7b356ff842e50b1bd5ef">&#9670;&nbsp;</a></span>metaDataMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;string, string&gt; KFState::metaDataMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a44bf390cd7ba5adaeb1b523aa89edf52" name="a44bf390cd7ba5adaeb1b523aa89edf52"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a44bf390cd7ba5adaeb1b523aa89edf52">&#9670;&nbsp;</a></span>noiseElementMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structObsKey.html">ObsKey</a>, double&gt; KFState::noiseElementMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af080b1182830e20ccc682e3a042b712d" name="af080b1182830e20ccc682e3a042b712d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af080b1182830e20ccc682e3a042b712d">&#9670;&nbsp;</a></span>output_residuals</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool KFState::output_residuals = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a53f6cb50c08c443be7a9c3eae970995b" name="a53f6cb50c08c443be7a9c3eae970995b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53f6cb50c08c443be7a9c3eae970995b">&#9670;&nbsp;</a></span>P</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">MatrixXd KFState::P</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>State Covariance. </p>
-
-</div>
-</div>
-<a id="a368e12d0a4509e5a70200995a4bd11a5" name="a368e12d0a4509e5a70200995a4bd11a5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a368e12d0a4509e5a70200995a4bd11a5">&#9670;&nbsp;</a></span>procNoiseMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, double&gt; KFState::procNoiseMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af5f2d9a3723c2072d48328c41ce9ba2b" name="af5f2d9a3723c2072d48328c41ce9ba2b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af5f2d9a3723c2072d48328c41ce9ba2b">&#9670;&nbsp;</a></span>rts_basename</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">string KFState::rts_basename = &quot;&quot;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7886fd28e6ba3ad478c57ecbeeb76d86" name="a7886fd28e6ba3ad478c57ecbeeb76d86"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7886fd28e6ba3ad478c57ecbeeb76d86">&#9670;&nbsp;</a></span>rts_lag</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFState::rts_lag = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a029429e1d7a19eaa09440d574b31cb22" name="a029429e1d7a19eaa09440d574b31cb22"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a029429e1d7a19eaa09440d574b31cb22">&#9670;&nbsp;</a></span>sigma_check</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool KFState::sigma_check = true</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aedab7a027f62d5b448394853195cfbb1" name="aedab7a027f62d5b448394853195cfbb1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aedab7a027f62d5b448394853195cfbb1">&#9670;&nbsp;</a></span>sigma_threshold</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double KFState::sigma_threshold = 4</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae03cbc786033e20cfbc676321916a409" name="ae03cbc786033e20cfbc676321916a409"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae03cbc786033e20cfbc676321916a409">&#9670;&nbsp;</a></span>stateRejectCallbacks</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">list&lt;<a class="el" href="algebra_8hpp.html#aa213346b625d4d6a15bfffab6f41a369">StateRejectCallback</a>&gt; KFState::stateRejectCallbacks</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3b86130556c8a8515490aaa281158d4d" name="a3b86130556c8a8515490aaa281158d4d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b86130556c8a8515490aaa281158d4d">&#9670;&nbsp;</a></span>stateTransitionMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, map&lt;<a class="el" href="structKFKey.html">KFKey</a>, tuple&lt;double, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&gt; &gt; &gt; KFState::stateTransitionMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad9b12b89438e502e5214a6f5ed8d15b8" name="ad9b12b89438e502e5214a6f5ed8d15b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad9b12b89438e502e5214a6f5ed8d15b8">&#9670;&nbsp;</a></span>time</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> KFState::time = {}</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a1404b816d6210e7662a2c6b26c8f41bf" name="a1404b816d6210e7662a2c6b26c8f41bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1404b816d6210e7662a2c6b26c8f41bf">&#9670;&nbsp;</a></span>w_test</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool KFState::w_test = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad2cbff285b047e7f76cb1d673578e8dc" name="ad2cbff285b047e7f76cb1d673578e8dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2cbff285b047e7f76cb1d673578e8dc">&#9670;&nbsp;</a></span>x</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">VectorXd KFState::x</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>State. </p>
-
-</div>
-</div>
-<a id="a427d8e3739d777d49c7019a2e073098e" name="a427d8e3739d777d49c7019a2e073098e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a427d8e3739d777d49c7019a2e073098e">&#9670;&nbsp;</a></span>Z</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">MatrixXd KFState::Z</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Permutation Matrix. </p>
-
-</div>
-</div>
-<a id="aaba4c8ddf6bf30f6b41aa953ee29ef39" name="aaba4c8ddf6bf30f6b41aa953ee29ef39"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaba4c8ddf6bf30f6b41aa953ee29ef39">&#9670;&nbsp;</a></span>ZAdditionMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, double&gt; KFState::ZAdditionMap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5eb6d2ea9a9bac3df09cbca7efb3f6fa" name="a5eb6d2ea9a9bac3df09cbca7efb3f6fa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5eb6d2ea9a9bac3df09cbca7efb3f6fa">&#9670;&nbsp;</a></span>ZTransitionMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;<a class="el" href="structKFKey.html">KFKey</a>, map&lt;<a class="el" href="structKFKey.html">KFKey</a>, double&gt; &gt; KFState::ZTransitionMap</td>
-        </tr>
-      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

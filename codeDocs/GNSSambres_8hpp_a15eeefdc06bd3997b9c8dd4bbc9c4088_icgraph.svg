@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M147.84,-33.31C136.87,-35.09 123.75,-37.21 110.93,-39.28"/>
 </g>
-<!-- Node6 -->
+<!-- Node7 -->
 <g id="node3" class="node">
-<title>Node6</title>
+<title>Node7</title>
 <g id="a_node3"><a xlink:href="GinAR__main_8cpp.html#a99547395860accf77f4d3dc4328cb139" target="_top" xlink:title="Ambiguity resolution on smoothed KF solutions.">
-<polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 112,-19.5 112,-0.5 0,-0.5"/>
+<polygon fill="white" stroke="black" points="0,-0.5 0,-19.5 112,-19.5 112,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="56" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">smoothdAmbigResl</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node6 -->
+<!-- Node1&#45;&gt;Node7 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node6</title>
+<title>Node1&#45;&gt;Node7</title>
 <path fill="none" stroke="midnightblue" d="M147.84,-24.69C137.27,-22.98 124.72,-20.95 112.36,-18.95"/>
 </g>
 </g>

@@ -35,16 +35,16 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="rinexClkWrite_8cpp.html#a28b150df3243b4be7af0d94240cedc50" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="14.5,-0.5 14.5,-19.5 94.5,-19.5 94.5,-0.5 14.5,-0.5"/>
-<text text-anchor="middle" x="54.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">outputClocks</text>
+<g id="a_node3"><a xlink:href="rinexClkWrite_8cpp.html#a0a40640c3fa338efbaba3da790b5957a" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="6.5,-0.5 6.5,-19.5 102.5,-19.5 102.5,-0.5 6.5,-0.5"/>
+<text text-anchor="middle" x="54.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">outputClocksSet</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
 <title>Node1&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M144.85,-21.87C128.2,-19.66 110.18,-17.27 94.71,-15.21"/>
+<path fill="none" stroke="midnightblue" d="M144.85,-21.87C131.06,-20.04 116.32,-18.08 102.87,-16.29"/>
 </g>
 </g>
 </svg>

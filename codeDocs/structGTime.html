@@ -89,13 +89,19 @@ $(function() {
 <div class="dynheader">
 Collaboration diagram for GTime:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime__coll__graph.svg" width="162" height="367"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structGTime__coll__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a64394968bbfdecbbeec4ba5134fdb682"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a64394968bbfdecbbeec4ba5134fdb682">to_string</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> n) const</td></tr>
-<tr class="separator:a64394968bbfdecbbeec4ba5134fdb682"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c3afec890ece4e0c1e56a8f66091736"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a9c3afec890ece4e0c1e56a8f66091736">GTime</a> (<a class="el" href="structGTow.html">GTow</a> tow, <a class="el" href="structGTime.html">GTime</a> nearTime)</td></tr>
+<tr class="separator:a9c3afec890ece4e0c1e56a8f66091736"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a250b532df1f7b6496ad7044152bd05e8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a250b532df1f7b6496ad7044152bd05e8">GTime</a> (<a class="el" href="structBTow.html">BTow</a> tow, <a class="el" href="structGTime.html">GTime</a> nearTime)</td></tr>
+<tr class="separator:a250b532df1f7b6496ad7044152bd05e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a573646cee5ee79c7d5498a09cbf66621"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a573646cee5ee79c7d5498a09cbf66621">GTime</a> (<a class="el" href="structRTod.html">RTod</a> tod, <a class="el" href="structGTime.html">GTime</a> nearTime)</td></tr>
+<tr class="separator:a573646cee5ee79c7d5498a09cbf66621"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98fdbaaec5a132a7e694f28b4f1907cb"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb">to_string</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> n=2) const</td></tr>
+<tr class="separator:a98fdbaaec5a132a7e694f28b4f1907cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a719d8fb17989a2279211738592d0f2f3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a719d8fb17989a2279211738592d0f2f3">operator==</a> (const <a class="el" href="structGTime.html">GTime</a> &amp;t2) const</td></tr>
 <tr class="separator:a719d8fb17989a2279211738592d0f2f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9692d1ffe1898e6f41aa0ae41c692e24"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a9692d1ffe1898e6f41aa0ae41c692e24">operator!=</a> (const <a class="el" href="structGTime.html">GTime</a> &amp;t2) const</td></tr>
@@ -104,33 +110,62 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a18a80e723dd94bcd8684d1ab5b9aa9b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8cfaf7b2ee82c445d1efee3c3c7be48"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#af8cfaf7b2ee82c445d1efee3c3c7be48">operator&gt;</a> (const <a class="el" href="structGTime.html">GTime</a> &amp;t2) const</td></tr>
 <tr class="separator:af8cfaf7b2ee82c445d1efee3c3c7be48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa87c0e3666c1dc9168191a5a479c5579"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#aa87c0e3666c1dc9168191a5a479c5579">operator&gt;=</a> (const <a class="el" href="structGTime.html">GTime</a> &amp;t2) const</td></tr>
+<tr class="separator:aa87c0e3666c1dc9168191a5a479c5579"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aadba3ef6ec9dc8719ac62371cae88869"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#aadba3ef6ec9dc8719ac62371cae88869">operator+</a> (const double t) const</td></tr>
 <tr class="separator:aadba3ef6ec9dc8719ac62371cae88869"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aadb27ede000d411b3bdda281ad91dc4e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#aadb27ede000d411b3bdda281ad91dc4e">operator+</a> (const <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> t) const</td></tr>
+<tr class="memitem:aadb27ede000d411b3bdda281ad91dc4e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#aadb27ede000d411b3bdda281ad91dc4e">operator+</a> (const <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> t) const</td></tr>
 <tr class="separator:aadb27ede000d411b3bdda281ad91dc4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb3fd61a8f6de85269842e3c3e3e9734"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#afb3fd61a8f6de85269842e3c3e3e9734">operator+=</a> (const double rhs)</td></tr>
 <tr class="separator:afb3fd61a8f6de85269842e3c3e3e9734"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e53ded0320f48ecfc000ec060790eca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a5e53ded0320f48ecfc000ec060790eca">operator-</a> (const <a class="el" href="structGTime.html">GTime</a> t) const</td></tr>
-<tr class="separator:a5e53ded0320f48ecfc000ec060790eca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a9d09b927a071f260f81667d5c3f6f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a1a9d09b927a071f260f81667d5c3f6f5">operator-=</a> (const double rhs)</td></tr>
+<tr class="separator:a1a9d09b927a071f260f81667d5c3f6f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b21254eb29156ba44a38c088e8ed230"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structDuration.html">Duration</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a4b21254eb29156ba44a38c088e8ed230">operator-</a> (const <a class="el" href="structGTime.html">GTime</a> t) const</td></tr>
+<tr class="separator:a4b21254eb29156ba44a38c088e8ed230"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af585a114736aeb75d3a4ba04ea6562cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#af585a114736aeb75d3a4ba04ea6562cf">operator-</a> (const double t) const</td></tr>
 <tr class="separator:af585a114736aeb75d3a4ba04ea6562cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09c02b01b0eac756180ff5e7b4dedb86"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a09c02b01b0eac756180ff5e7b4dedb86">operator double</a> () const</td></tr>
-<tr class="separator:a09c02b01b0eac756180ff5e7b4dedb86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae81b6d23e3f60ee0d3ddc977138c88a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#aae81b6d23e3f60ee0d3ddc977138c88a">operator++</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>)</td></tr>
+<tr class="memitem:aae81b6d23e3f60ee0d3ddc977138c88a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#aae81b6d23e3f60ee0d3ddc977138c88a">operator++</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>)</td></tr>
 <tr class="separator:aae81b6d23e3f60ee0d3ddc977138c88a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a9919350ed2806b0aefa37446c6b766"><td class="memItemLeft" align="right" valign="top">boost::posix_time::ptime&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a8a9919350ed2806b0aefa37446c6b766">to_ptime</a> ()</td></tr>
-<tr class="separator:a8a9919350ed2806b0aefa37446c6b766"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f855faa62cf2fc56948f04b648f765d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a2f855faa62cf2fc56948f04b648f765d">GTime</a> ()</td></tr>
 <tr class="separator:a2f855faa62cf2fc56948f04b648f765d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a66f81aada9388af9128b983b341b95"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a1a66f81aada9388af9128b983b341b95">GTime</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> t, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> s)</td></tr>
-<tr class="separator:a1a66f81aada9388af9128b983b341b95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2b319599b2d39e75a12a37cb9899e8d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#ab2b319599b2d39e75a12a37cb9899e8d">GTime</a> (boost::posix_time::ptime p_time)</td></tr>
-<tr class="separator:ab2b319599b2d39e75a12a37cb9899e8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea416117af4e9ea75f079fd4c0438d9f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#aea416117af4e9ea75f079fd4c0438d9f">GTime</a> (<a class="el" href="structGWeek.html">GWeek</a> gpsWeek, <a class="el" href="structGTow.html">GTow</a> tow)</td></tr>
+<tr class="separator:aea416117af4e9ea75f079fd4c0438d9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92de41880e3bdbe9001d8ca3dc88f300"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a92de41880e3bdbe9001d8ca3dc88f300">GTime</a> (<a class="el" href="structBWeek.html">BWeek</a> bdsWeek, <a class="el" href="structBTow.html">BTow</a> tow)</td></tr>
+<tr class="separator:a92de41880e3bdbe9001d8ca3dc88f300"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4afdf28d172945014358d7c4f643504"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#af4afdf28d172945014358d7c4f643504">GTime</a> (<a class="el" href="structMjDateTT.html">MjDateTT</a> mjdTT)</td></tr>
+<tr class="separator:af4afdf28d172945014358d7c4f643504"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd22f7f0ceb51d899e7f82a83d46c972"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#afd22f7f0ceb51d899e7f82a83d46c972">GTime</a> (<a class="el" href="structMjDateUtc.html">MjDateUtc</a> mjdUtc)</td></tr>
+<tr class="separator:afd22f7f0ceb51d899e7f82a83d46c972"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32ea86ede2591a63f86dca90df5d15d3"><td class="memTemplParams" colspan="2">template&lt;class ARCHIVE &gt; </td></tr>
-<tr class="memitem:a32ea86ede2591a63f86dca90df5d15d3"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structGTime.html#a32ea86ede2591a63f86dca90df5d15d3">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;version)</td></tr>
+<tr class="memitem:a32ea86ede2591a63f86dca90df5d15d3"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structGTime.html#a32ea86ede2591a63f86dca90df5d15d3">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;version)</td></tr>
 <tr class="separator:a32ea86ede2591a63f86dca90df5d15d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ed28cc28b05a43069702e96295be269"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a7ed28cc28b05a43069702e96295be269">roundTime</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> period) const</td></tr>
-<tr class="separator:a7ed28cc28b05a43069702e96295be269"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72505f23b2252f690f124c2eaf026f91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a72505f23b2252f690f124c2eaf026f91">floorTime</a> (double period) const</td></tr>
+<tr class="separator:a72505f23b2252f690f124c2eaf026f91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affff0f00d636211bbf24c3c794f89be9"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#affff0f00d636211bbf24c3c794f89be9">gregString</a> ()</td></tr>
+<tr class="memdesc:affff0f00d636211bbf24c3c794f89be9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <a class="el" href="structGTime.html" title="Time structure used throughout this software.">GTime</a> in "dd-mmm-yyyy hh:mm:ss" format.  <a href="structGTime.html#affff0f00d636211bbf24c3c794f89be9">More...</a><br /></td></tr>
+<tr class="separator:affff0f00d636211bbf24c3c794f89be9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7dedd753b50ec1772dd612ffc19495a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#af7dedd753b50ec1772dd612ffc19495a">operator long double</a> () const</td></tr>
+<tr class="separator:af7dedd753b50ec1772dd612ffc19495a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f97f8f8f2253326cd21335fb3b82a2d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a8f97f8f8f2253326cd21335fb3b82a2d">operator MjDateTT</a> () const</td></tr>
+<tr class="separator:a8f97f8f8f2253326cd21335fb3b82a2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39d82b443259fca967df7f428b26833c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a39d82b443259fca967df7f428b26833c">operator GEpoch</a> () const</td></tr>
+<tr class="separator:a39d82b443259fca967df7f428b26833c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb20d584fe4c323d1d48cc126214d5b5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#acb20d584fe4c323d1d48cc126214d5b5">operator UtcTime</a> () const</td></tr>
+<tr class="separator:acb20d584fe4c323d1d48cc126214d5b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6db5d36b744d836a0ac3b915c1a35374"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a6db5d36b744d836a0ac3b915c1a35374">operator GWeek</a> () const</td></tr>
+<tr class="separator:a6db5d36b744d836a0ac3b915c1a35374"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1c382fdfacba6418bb148bd4959fe0a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#af1c382fdfacba6418bb148bd4959fe0a">operator BWeek</a> () const</td></tr>
+<tr class="separator:af1c382fdfacba6418bb148bd4959fe0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7d017943694b0d08d0d2d9574ccd157"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#ae7d017943694b0d08d0d2d9574ccd157">operator GTow</a> () const</td></tr>
+<tr class="separator:ae7d017943694b0d08d0d2d9574ccd157"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7aac88445c26fe4f826e53e3763830a7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a7aac88445c26fe4f826e53e3763830a7">operator BTow</a> () const</td></tr>
+<tr class="separator:a7aac88445c26fe4f826e53e3763830a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f7b266829a1e861b4cf527c7545ea1b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a3f7b266829a1e861b4cf527c7545ea1b">operator PTime</a> () const</td></tr>
+<tr class="separator:a3f7b266829a1e861b4cf527c7545ea1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d5b0a885859c08e7a46e9fca5bfde9f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a0d5b0a885859c08e7a46e9fca5bfde9f">operator string</a> () const</td></tr>
+<tr class="separator:a0d5b0a885859c08e7a46e9fca5bfde9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a886316fc5568baa9724184d534532fa9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a886316fc5568baa9724184d534532fa9">operator RTod</a> () const</td></tr>
+<tr class="separator:a886316fc5568baa9724184d534532fa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -140,21 +175,111 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a54e641ae4028e6d952a7e5b62c605cec"><td class="memItemLeft" align="right" valign="top">time_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a54e641ae4028e6d952a7e5b62c605cec">time</a> = 0</td></tr>
-<tr class="memdesc:a54e641ae4028e6d952a7e5b62c605cec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time (s) expressed by standard time_t.  <a href="structGTime.html#a54e641ae4028e6d952a7e5b62c605cec">More...</a><br /></td></tr>
-<tr class="separator:a54e641ae4028e6d952a7e5b62c605cec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5d2e8e710b1853a666217bcd7a860af"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#aa5d2e8e710b1853a666217bcd7a860af">sec</a> = 0</td></tr>
-<tr class="memdesc:aa5d2e8e710b1853a666217bcd7a860af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fractions of second ( 0 &lt; sec &lt; 1 )  <a href="structGTime.html#aa5d2e8e710b1853a666217bcd7a860af">More...</a><br /></td></tr>
-<tr class="separator:aa5d2e8e710b1853a666217bcd7a860af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d84c3da37026e987ec335ecc5ccff4b"><td class="memItemLeft" align="right" valign="top">long double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a4d84c3da37026e987ec335ecc5ccff4b">bigTime</a> = 0</td></tr>
+<tr class="separator:a4d84c3da37026e987ec335ecc5ccff4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:a5cf6b8fb4a71c314ef1eac5c95c1f231"><td class="memItemLeft" align="right" valign="top">ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a5cf6b8fb4a71c314ef1eac5c95c1f231">operator&lt;&lt;</a> (ostream &amp;os, const <a class="el" href="structGTime.html">GTime</a> &amp;<a class="el" href="structGTime.html#a54e641ae4028e6d952a7e5b62c605cec">time</a>)</td></tr>
+<tr class="memitem:a5cf6b8fb4a71c314ef1eac5c95c1f231"><td class="memItemLeft" align="right" valign="top">ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGTime.html#a5cf6b8fb4a71c314ef1eac5c95c1f231">operator&lt;&lt;</a> (ostream &amp;os, const <a class="el" href="structGTime.html">GTime</a> &amp;time)</td></tr>
 <tr class="separator:a5cf6b8fb4a71c314ef1eac5c95c1f231"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a9c3afec890ece4e0c1e56a8f66091736" name="a9c3afec890ece4e0c1e56a8f66091736"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c3afec890ece4e0c1e56a8f66091736">&#9670;&nbsp;</a></span>GTime() <span class="overload">[1/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::GTime </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTow.html">GTow</a>&#160;</td>
+          <td class="paramname"><em>tow</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>nearTime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a9c3afec890ece4e0c1e56a8f66091736_cgraph.svg" width="276" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a250b532df1f7b6496ad7044152bd05e8" name="a250b532df1f7b6496ad7044152bd05e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a250b532df1f7b6496ad7044152bd05e8">&#9670;&nbsp;</a></span>GTime() <span class="overload">[2/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::GTime </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structBTow.html">BTow</a>&#160;</td>
+          <td class="paramname"><em>tow</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>nearTime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a250b532df1f7b6496ad7044152bd05e8_cgraph.svg" width="276" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a573646cee5ee79c7d5498a09cbf66621" name="a573646cee5ee79c7d5498a09cbf66621"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a573646cee5ee79c7d5498a09cbf66621">&#9670;&nbsp;</a></span>GTime() <span class="overload">[3/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::GTime </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structRTod.html">RTod</a>&#160;</td>
+          <td class="paramname"><em>tod</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>nearTime</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2f855faa62cf2fc56948f04b648f765d" name="a2f855faa62cf2fc56948f04b648f765d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2f855faa62cf2fc56948f04b648f765d">&#9670;&nbsp;</a></span>GTime() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f855faa62cf2fc56948f04b648f765d">&#9670;&nbsp;</a></span>GTime() <span class="overload">[4/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -178,26 +303,23 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a1a66f81aada9388af9128b983b341b95" name="a1a66f81aada9388af9128b983b341b95"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a66f81aada9388af9128b983b341b95">&#9670;&nbsp;</a></span>GTime() <span class="overload">[2/3]</span></h2>
+<a id="aea416117af4e9ea75f079fd4c0438d9f" name="aea416117af4e9ea75f079fd4c0438d9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea416117af4e9ea75f079fd4c0438d9f">&#9670;&nbsp;</a></span>GTime() <span class="overload">[5/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">GTime::GTime </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>t</em>, </td>
+          <td class="paramtype"><a class="el" href="structGWeek.html">GWeek</a>&#160;</td>
+          <td class="paramname"><em>gpsWeek</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>s</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structGTow.html">GTow</a>&#160;</td>
+          <td class="paramname"><em>tow</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -205,42 +327,127 @@ Friends</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ab2b319599b2d39e75a12a37cb9899e8d" name="ab2b319599b2d39e75a12a37cb9899e8d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2b319599b2d39e75a12a37cb9899e8d">&#9670;&nbsp;</a></span>GTime() <span class="overload">[3/3]</span></h2>
+<a id="a92de41880e3bdbe9001d8ca3dc88f300" name="a92de41880e3bdbe9001d8ca3dc88f300"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92de41880e3bdbe9001d8ca3dc88f300">&#9670;&nbsp;</a></span>GTime() <span class="overload">[6/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">GTime::GTime </td>
           <td>(</td>
-          <td class="paramtype">boost::posix_time::ptime&#160;</td>
-          <td class="paramname"><em>p_time</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structBWeek.html">BWeek</a>&#160;</td>
+          <td class="paramname"><em>bdsWeek</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="structBTow.html">BTow</a>&#160;</td>
+          <td class="paramname"><em>tow</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
 </div>
+<a id="af4afdf28d172945014358d7c4f643504" name="af4afdf28d172945014358d7c4f643504"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4afdf28d172945014358d7c4f643504">&#9670;&nbsp;</a></span>GTime() <span class="overload">[7/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::GTime </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structMjDateTT.html">MjDateTT</a>&#160;</td>
+          <td class="paramname"><em>mjdTT</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afd22f7f0ceb51d899e7f82a83d46c972" name="afd22f7f0ceb51d899e7f82a83d46c972"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd22f7f0ceb51d899e7f82a83d46c972">&#9670;&nbsp;</a></span>GTime() <span class="overload">[8/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::GTime </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structMjDateUtc.html">MjDateUtc</a>&#160;</td>
+          <td class="paramname"><em>mjdUtc</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_afd22f7f0ceb51d899e7f82a83d46c972_cgraph.svg" width="278" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a72505f23b2252f690f124c2eaf026f91" name="a72505f23b2252f690f124c2eaf026f91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72505f23b2252f690f124c2eaf026f91">&#9670;&nbsp;</a></span>floorTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> GTime::floorTime </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>period</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a72505f23b2252f690f124c2eaf026f91_icgraph.svg" width="563" height="262"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="affff0f00d636211bbf24c3c794f89be9" name="affff0f00d636211bbf24c3c794f89be9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affff0f00d636211bbf24c3c794f89be9">&#9670;&nbsp;</a></span>gregString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">string GTime::gregString </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns <a class="el" href="structGTime.html" title="Time structure used throughout this software.">GTime</a> in "dd-mmm-yyyy hh:mm:ss" format. </p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_affff0f00d636211bbf24c3c794f89be9_icgraph.svg" width="291" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="aaa8a379d11cd6c040a6bbe680c0e913e" name="aaa8a379d11cd6c040a6bbe680c0e913e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaa8a379d11cd6c040a6bbe680c0e913e">&#9670;&nbsp;</a></span>noTime()</h2>
 
@@ -273,28 +480,225 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a09c02b01b0eac756180ff5e7b4dedb86" name="a09c02b01b0eac756180ff5e7b4dedb86"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a09c02b01b0eac756180ff5e7b4dedb86">&#9670;&nbsp;</a></span>operator double()</h2>
+<a id="a7aac88445c26fe4f826e53e3763830a7" name="a7aac88445c26fe4f826e53e3763830a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7aac88445c26fe4f826e53e3763830a7">&#9670;&nbsp;</a></span>operator BTow()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">GTime::operator double </td>
+          <td class="memname">GTime::operator <a class="el" href="structBTow.html">BTow</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a7aac88445c26fe4f826e53e3763830a7_cgraph.svg" width="375" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af1c382fdfacba6418bb148bd4959fe0a" name="af1c382fdfacba6418bb148bd4959fe0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1c382fdfacba6418bb148bd4959fe0a">&#9670;&nbsp;</a></span>operator BWeek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator <a class="el" href="structBWeek.html">BWeek</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_af1c382fdfacba6418bb148bd4959fe0a_cgraph.svg" width="359" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a39d82b443259fca967df7f428b26833c" name="a39d82b443259fca967df7f428b26833c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39d82b443259fca967df7f428b26833c">&#9670;&nbsp;</a></span>operator GEpoch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator <a class="el" href="structGEpoch.html">GEpoch</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a39d82b443259fca967df7f428b26833c_cgraph.svg" width="338" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae7d017943694b0d08d0d2d9574ccd157" name="ae7d017943694b0d08d0d2d9574ccd157"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7d017943694b0d08d0d2d9574ccd157">&#9670;&nbsp;</a></span>operator GTow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator <a class="el" href="structGTow.html">GTow</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_ae7d017943694b0d08d0d2d9574ccd157_cgraph.svg" width="376" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a6db5d36b744d836a0ac3b915c1a35374" name="a6db5d36b744d836a0ac3b915c1a35374"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6db5d36b744d836a0ac3b915c1a35374">&#9670;&nbsp;</a></span>operator GWeek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator <a class="el" href="structGWeek.html">GWeek</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a6db5d36b744d836a0ac3b915c1a35374_cgraph.svg" width="360" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af7dedd753b50ec1772dd612ffc19495a" name="af7dedd753b50ec1772dd612ffc19495a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7dedd753b50ec1772dd612ffc19495a">&#9670;&nbsp;</a></span>operator long double()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator long double </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8f97f8f8f2253326cd21335fb3b82a2d" name="a8f97f8f8f2253326cd21335fb3b82a2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f97f8f8f2253326cd21335fb3b82a2d">&#9670;&nbsp;</a></span>operator MjDateTT()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator <a class="el" href="structMjDateTT.html">MjDateTT</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3f7b266829a1e861b4cf527c7545ea1b" name="a3f7b266829a1e861b4cf527c7545ea1b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f7b266829a1e861b4cf527c7545ea1b">&#9670;&nbsp;</a></span>operator PTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator <a class="el" href="structPTime.html">PTime</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a886316fc5568baa9724184d534532fa9" name="a886316fc5568baa9724184d534532fa9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a886316fc5568baa9724184d534532fa9">&#9670;&nbsp;</a></span>operator RTod()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator <a class="el" href="structRTod.html">RTod</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a886316fc5568baa9724184d534532fa9_cgraph.svg" width="372" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a0d5b0a885859c08e7a46e9fca5bfde9f" name="a0d5b0a885859c08e7a46e9fca5bfde9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d5b0a885859c08e7a46e9fca5bfde9f">&#9670;&nbsp;</a></span>operator string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator string </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acb20d584fe4c323d1d48cc126214d5b5" name="acb20d584fe4c323d1d48cc126214d5b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb20d584fe4c323d1d48cc126214d5b5">&#9670;&nbsp;</a></span>operator UtcTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">GTime::operator <a class="el" href="structUtcTime.html">UtcTime</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_acb20d584fe4c323d1d48cc126214d5b5_cgraph.svg" width="323" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -362,7 +766,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname"><a class="el" href="structGTime.html">GTime</a> GTime::operator+ </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>t</em></td><td>)</td>
           <td> const</td>
         </tr>
@@ -388,7 +792,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname"><a class="el" href="structGTime.html">GTime</a> &amp; GTime::operator++ </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -454,8 +858,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a5e53ded0320f48ecfc000ec060790eca" name="a5e53ded0320f48ecfc000ec060790eca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5e53ded0320f48ecfc000ec060790eca">&#9670;&nbsp;</a></span>operator-() <span class="overload">[2/2]</span></h2>
+<a id="a4b21254eb29156ba44a38c088e8ed230" name="a4b21254eb29156ba44a38c088e8ed230"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b21254eb29156ba44a38c088e8ed230">&#9670;&nbsp;</a></span>operator-() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -464,11 +868,37 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> GTime::operator- </td>
+          <td class="memname"><a class="el" href="structDuration.html">Duration</a> GTime::operator- </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>t</em></td><td>)</td>
           <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1a9d09b927a071f260f81667d5c3f6f5" name="a1a9d09b927a071f260f81667d5c3f6f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a9d09b927a071f260f81667d5c3f6f5">&#9670;&nbsp;</a></span>operator-=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> &amp; GTime::operator-= </td>
+          <td>(</td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>rhs</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
@@ -558,8 +988,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a7ed28cc28b05a43069702e96295be269" name="a7ed28cc28b05a43069702e96295be269"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ed28cc28b05a43069702e96295be269">&#9670;&nbsp;</a></span>roundTime()</h2>
+<a id="aa87c0e3666c1dc9168191a5a479c5579" name="aa87c0e3666c1dc9168191a5a479c5579"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa87c0e3666c1dc9168191a5a479c5579">&#9670;&nbsp;</a></span>operator&gt;=()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -568,10 +998,10 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> GTime::roundTime </td>
+          <td class="memname">bool GTime::operator&gt;= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>period</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="structGTime.html">GTime</a> &amp;&#160;</td>
+          <td class="paramname"><em>t2</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -581,11 +1011,6 @@ Here is the caller graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a7ed28cc28b05a43069702e96295be269_icgraph.svg" width="551" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -609,7 +1034,7 @@ template&lt;class ARCHIVE &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
+          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
           <td class="paramname"><em>version</em>&#160;</td>
         </tr>
         <tr>
@@ -627,63 +1052,25 @@ template&lt;class ARCHIVE &gt; </div>
 
 </div>
 </div>
-<a id="a8a9919350ed2806b0aefa37446c6b766" name="a8a9919350ed2806b0aefa37446c6b766"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a9919350ed2806b0aefa37446c6b766">&#9670;&nbsp;</a></span>to_ptime()</h2>
+<a id="a98fdbaaec5a132a7e694f28b4f1907cb" name="a98fdbaaec5a132a7e694f28b4f1907cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98fdbaaec5a132a7e694f28b4f1907cb">&#9670;&nbsp;</a></span>to_string()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">boost::posix_time::ptime GTime::to_ptime </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a64394968bbfdecbbeec4ba5134fdb682" name="a64394968bbfdecbbeec4ba5134fdb682"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64394968bbfdecbbeec4ba5134fdb682">&#9670;&nbsp;</a></span>to_string()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">string GTime::to_string </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>n</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>n</em> = <code>2</code></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structGTime_a64394968bbfdecbbeec4ba5134fdb682_cgraph.svg" width="266" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structGTime_a64394968bbfdecbbeec4ba5134fdb682_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structGTime_a98fdbaaec5a132a7e694f28b4f1907cb_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -726,40 +1113,23 @@ Here is the caller graph for this function:</div>
 </div>
 </div>
 <h2 class="groupheader">Field Documentation</h2>
-<a id="aa5d2e8e710b1853a666217bcd7a860af" name="aa5d2e8e710b1853a666217bcd7a860af"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa5d2e8e710b1853a666217bcd7a860af">&#9670;&nbsp;</a></span>sec</h2>
+<a id="a4d84c3da37026e987ec335ecc5ccff4b" name="a4d84c3da37026e987ec335ecc5ccff4b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d84c3da37026e987ec335ecc5ccff4b">&#9670;&nbsp;</a></span>bigTime</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double GTime::sec = 0</td>
+          <td class="memname">long double GTime::bigTime = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Fractions of second ( 0 &lt; sec &lt; 1 ) </p>
-
 </div>
 </div>
-<a id="a54e641ae4028e6d952a7e5b62c605cec" name="a54e641ae4028e6d952a7e5b62c605cec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a54e641ae4028e6d952a7e5b62c605cec">&#9670;&nbsp;</a></span>time</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">time_t GTime::time = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Time (s) expressed by standard time_t. </p>
-
-</div>
-</div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+<hr/>The documentation for this struct was generated from the following files:<ul>
 <li>/data/acs/ginan/src/cpp/common/<a class="el" href="gTime_8hpp.html">gTime.hpp</a></li>
+<li>/data/acs/ginan/src/cpp/common/<a class="el" href="gTime_8cpp.html">gTime.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

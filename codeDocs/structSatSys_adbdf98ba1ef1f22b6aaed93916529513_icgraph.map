@@ -1,7 +1,5 @@
 <map id="SatSys::getId" name="SatSys::getId">
-<area shape="rect" id="node1" title="Sets a 4 character c_string of this satellite&#39;s id." alt="" coords="293,56,400,83"/>
-<area shape="rect" id="node2" href="$brdc2sp3__main_8cpp.html#a4d3471358091d3a4ea528b47af119710" title=" " alt="" coords="5,56,111,83"/>
-<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="159,31,245,57"/>
-<area shape="rect" id="node4" href="$preceph_8cpp.html#a2768c950b4e9ca8de2eaa45e6ed10e87" title=" " alt="" coords="19,5,97,32"/>
-<area shape="rect" id="node5" href="$acsQC_8cpp.html#a099d227578f6d7896777651aca60fe1b" title="Cycle slip detection and repair." alt="" coords="159,81,245,108"/>
+<area shape="rect" id="node1" title=" " alt="" coords="140,31,247,57"/>
+<area shape="rect" id="node2" href="$acsQC_8cpp.html#a7b37fc255c80330a5497de5bee8f2dbb" title="Cycle slip detection and repair." alt="" coords="5,5,92,32"/>
+<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="5,56,92,83"/>
 </map>

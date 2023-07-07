@@ -1,11 +1,7 @@
 <map id="rinexNavHeader" name="rinexNavHeader">
-<area shape="rect" id="node1" title=" " alt="" coords="5,183,133,209"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#abb00b59d1e35b7cc9e031a5faf536f9e" title=" " alt="" coords="197,5,276,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a2a318fa02e2d05aa22eabbcf1a537fcf" title="get current time in utc" alt="" coords="200,56,273,83"/>
-<area shape="rect" id="node4" href="$gTime_8cpp.html#a016d7b64e67752afcd07e5074a3cc516" title=" " alt="" coords="198,107,275,133"/>
-<area shape="rect" id="node5" href="$rinexObsWrite_8cpp.html#a7392cc91a14f17ab70dd83c89365d9b2" title=" " alt="" coords="181,157,292,184"/>
-<area shape="rect" id="node6" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="189,208,284,235"/>
-<area shape="rect" id="node7" href="$gTime_8cpp.html#a043c97b6d22706c23f55a5d29563d7dd" title=" " alt="" coords="196,259,277,285"/>
-<area shape="rect" id="node8" href="$gTime_8cpp.html#a0f1c35b5babe507c5b320111c1e634b7" title=" " alt="" coords="197,309,276,336"/>
-<area shape="rect" id="node9" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="193,360,281,387"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,133,108"/>
+<area shape="rect" id="node2" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="215,5,289,32"/>
+<area shape="rect" id="node3" href="$structUtcTime.html#a9ffa79c5435ab388a72e9b10fe433a0e" title=" " alt="" coords="181,56,323,83"/>
+<area shape="rect" id="node4" href="$rinexObsWrite_8cpp.html#a7392cc91a14f17ab70dd83c89365d9b2" title=" " alt="" coords="197,107,307,133"/>
+<area shape="rect" id="node5" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="205,157,299,184"/>
 </map>

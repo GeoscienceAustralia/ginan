@@ -1,5 +1,5 @@
 <map id="mwnoise" name="mwnoise">
 <area shape="rect" id="node1" title="Melbourne&#45;Wenbunna (MW) measurement noise (m)" alt="" coords="140,31,221,57"/>
-<area shape="rect" id="node2" href="$acsQC_8cpp.html#ae52b478bb7d30e6aaf8f0e6b4e526681" title="Cycle slip detection and repair for dual&#45;frequency." alt="" coords="5,5,92,32"/>
-<area shape="rect" id="node3" href="$acsQC_8cpp.html#a50b9ebf4a56ec6edec979531b0515887" title="Cycle slip detection and repair for triple&#45;frequency." alt="" coords="5,56,92,83"/>
+<area shape="rect" id="node2" href="$acsQC_8cpp.html#a9a7675a515de2802ed917e9d32dd897d" title="Cycle slip detection for dual&#45;frequency." alt="" coords="5,5,92,32"/>
+<area shape="rect" id="node3" href="$acsQC_8cpp.html#a5278f59e23c92b2a1912d5dde5e2f809" title="Cycle slip detection and repair for triple&#45;frequency." alt="" coords="5,56,92,83"/>
 </map>

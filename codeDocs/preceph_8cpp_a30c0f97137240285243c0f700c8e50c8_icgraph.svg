@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title=" ">
+<g id="a_node1"><a xlink:title="Satellite position/clock by precise ephemeris/clock.">
 <polygon fill="#bfbfbf" stroke="black" points="100,-19.5 100,-38.5 164,-38.5 164,-19.5 100,-19.5"/>
 <text text-anchor="middle" x="132" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">peph2pos</text>
 </a>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="ephemeris_8cpp.html#a00df4213eb6f901bcb5928f44a24bd4d" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="ephemeris_8cpp.html#a377067d62bc6a5337983be131715b7d9" target="_top" xlink:title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg...">
 <polygon fill="white" stroke="red" points="7.5,-38.5 7.5,-57.5 56.5,-57.5 56.5,-38.5 7.5,-38.5"/>
 <text text-anchor="middle" x="32" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">satpos</text>
 </a>
@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M99.99,-35.01C85.97,-37.73 69.67,-40.89 56.66,-43.41"/>
 </g>
-<!-- Node22 -->
+<!-- Node26 -->
 <g id="node3" class="node">
-<title>Node22</title>
-<g id="a_node3"><a xlink:href="preceph_8cpp.html#a78ac1dbad6f8a0326ede73b9eb4822a4" target="_top" xlink:title=" ">
+<title>Node26</title>
+<g id="a_node3"><a xlink:href="preceph_8cpp.html#aa0869e4562a36994fd6916c7ee62ee11" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="0,-0.5 0,-19.5 64,-19.5 64,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="32" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">peph2pos</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node22 -->
+<!-- Node1&#45;&gt;Node26 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node22</title>
+<title>Node1&#45;&gt;Node26</title>
 <path fill="none" stroke="midnightblue" d="M99.99,-22.99C88.55,-20.77 75.59,-18.26 64.14,-16.04"/>
 </g>
 </g>

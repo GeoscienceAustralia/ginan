@@ -1,4 +1,4 @@
 <map id="QC" name="QC">
-<area shape="rect" id="node1" title=" " alt="" coords="24,5,117,185"/>
-<area shape="rect" id="node2" href="$structSatStat.html" title="Object containing persistant status parameters of individual satellites." alt="" coords="5,233,136,516"/>
+<area shape="rect" id="node1" title=" " alt="" coords="34,5,127,185"/>
+<area shape="rect" id="node2" href="$structSatStat.html" title="Object containing persistant status parameters of individual satellites." alt="" coords="5,233,156,516"/>
 </map>

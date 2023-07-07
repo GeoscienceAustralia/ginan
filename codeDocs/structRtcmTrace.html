@@ -78,7 +78,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;ntripTrace.hpp&gt;</code></p>
+<p><code>#include &lt;rtcmTrace.hpp&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for RtcmTrace:</div>
 <div class="dyncontent">
@@ -87,7 +87,7 @@ Inheritance diagram for RtcmTrace:</div>
 <div class="dynheader">
 Collaboration diagram for RtcmTrace:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace__coll__graph.svg" width="244" height="404"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace__coll__graph.svg" width="232" height="448"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -100,29 +100,39 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a65cbf41ebbb3789e02e8f6944e8b05f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b1c85cac6c9887a50ce3f059e4570bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a4b1c85cac6c9887a50ce3f059e4570bc">messageRtcmLog</a> (string message)</td></tr>
 <tr class="separator:a4b1c85cac6c9887a50ce3f059e4570bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25c52f06333981e0df71b16e325aa43c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a25c52f06333981e0df71b16e325aa43c">messageRtcmByteLog</a> (string message)</td></tr>
-<tr class="separator:a25c52f06333981e0df71b16e325aa43c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aca828f5d0ba4ea9799fd439c1683bcd4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#aca828f5d0ba4ea9799fd439c1683bcd4">outputSsrEphToJson</a> (const <a class="el" href="structSSREph.html">SSREph</a> &amp;ssrEph, const <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat)</td></tr>
-<tr class="separator:aca828f5d0ba4ea9799fd439c1683bcd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27e85a5d656b3490cb541958b44c6a67"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a27e85a5d656b3490cb541958b44c6a67">outputSsrClkToJson</a> (const <a class="el" href="structSSRClk.html">SSRClk</a> &amp;ssrClk, const <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat)</td></tr>
-<tr class="separator:a27e85a5d656b3490cb541958b44c6a67"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9905704371805f21ec802eb6b1956a55"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a9905704371805f21ec802eb6b1956a55">traceSsrEph</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSREph.html">SSREph</a> &amp;ssrEph)</td></tr>
-<tr class="separator:a9905704371805f21ec802eb6b1956a55"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae01a9f97c7b65df9afb2610a58f2b967"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#ae01a9f97c7b65df9afb2610a58f2b967">traceSsrClk</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSRClk.html">SSRClk</a> &amp;ssrClk)</td></tr>
-<tr class="separator:ae01a9f97c7b65df9afb2610a58f2b967"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e29763105f2e550eaa74be6aacbfaae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a1e29763105f2e550eaa74be6aacbfaae">traceSsrCodeB</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode mode, <a class="el" href="structSSRBias.html">SSRBias</a> &amp;ssrBias)</td></tr>
-<tr class="separator:a1e29763105f2e550eaa74be6aacbfaae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38ba4e7165a181b4cff99118dab1e012"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a38ba4e7165a181b4cff99118dab1e012">traceSsrPhasB</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode mode, <a class="el" href="structSSRBias.html">SSRBias</a> &amp;ssrBias)</td></tr>
-<tr class="separator:a38ba4e7165a181b4cff99118dab1e012"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a1c3b7cb0f2b3e1e694a6772e4206b1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a6a1c3b7cb0f2b3e1e694a6772e4206b1">traceBroEph</a> (<a class="el" href="structEph.html">Eph</a> &amp;eph, E_Sys sys)</td></tr>
-<tr class="separator:a6a1c3b7cb0f2b3e1e694a6772e4206b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab77b0368e1844bb77eb8a91845c35673"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#ab77b0368e1844bb77eb8a91845c35673">traceSsrEph</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSREph.html">SSREph</a> &amp;ssrEph)</td></tr>
+<tr class="separator:ab77b0368e1844bb77eb8a91845c35673"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77967bdcccaac67fdcd956d47da16055"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a77967bdcccaac67fdcd956d47da16055">traceSsrClk</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSRClk.html">SSRClk</a> &amp;ssrClk)</td></tr>
+<tr class="separator:a77967bdcccaac67fdcd956d47da16055"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9417bd4a22314d42e8064f78f12d26d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#aa9417bd4a22314d42e8064f78f12d26d">traceSsrUra</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSRUra.html">SSRUra</a> &amp;ssrUra)</td></tr>
+<tr class="separator:aa9417bd4a22314d42e8064f78f12d26d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72cc456a169363422bbdb71c4f12ab4f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a72cc456a169363422bbdb71c4f12ab4f">traceSsrHRClk</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSRHRClk.html">SSRHRClk</a> &amp;ssrHRClk)</td></tr>
+<tr class="separator:a72cc456a169363422bbdb71c4f12ab4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcf156ad1b35a69c33db080f609b6f16"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#abcf156ad1b35a69c33db080f609b6f16">traceSsrCodeBias</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode code, <a class="el" href="structSSRCodeBias.html">SSRCodeBias</a> &amp;ssrBias)</td></tr>
+<tr class="separator:abcf156ad1b35a69c33db080f609b6f16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab176960d2a094f050f187909b777d677"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#ab176960d2a094f050f187909b777d677">traceSsrPhasBias</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode code, <a class="el" href="structSSRPhasBias.html">SSRPhasBias</a> &amp;ssrBias)</td></tr>
+<tr class="separator:ab176960d2a094f050f187909b777d677"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e5a2d492060c59091840d96dfe07bb8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a2e5a2d492060c59091840d96dfe07bb8">traceTimestamp</a> (<a class="el" href="structGTime.html">GTime</a> time)</td></tr>
+<tr class="separator:a2e5a2d492060c59091840d96dfe07bb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7988263389150711e951a4df5f1dcdd1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1">traceBrdcEph</a> (RtcmMessageType messCode, <a class="el" href="structEph.html">Eph</a> &amp;eph)</td></tr>
+<tr class="memdesc:a7988263389150711e951a4df5f1dcdd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file.  <a href="structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1">More...</a><br /></td></tr>
+<tr class="separator:a7988263389150711e951a4df5f1dcdd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af164612e34a83d1452ef214af3736004"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#af164612e34a83d1452ef214af3736004">traceBrdcEph</a> (RtcmMessageType messCode, <a class="el" href="structGeph.html">Geph</a> &amp;geph)</td></tr>
+<tr class="memdesc:af164612e34a83d1452ef214af3736004"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write decoded/encoded GAL ephemeris messages to a json file.  <a href="structRtcmTrace.html#af164612e34a83d1452ef214af3736004">More...</a><br /></td></tr>
+<tr class="separator:af164612e34a83d1452ef214af3736004"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcc1eaba01587cf66fb1637b0969c161"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#abcc1eaba01587cf66fb1637b0969c161">traceMSM</a> (RtcmMessageType messCode, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSig.html">Sig</a> &amp;sig)</td></tr>
+<tr class="memdesc:abcc1eaba01587cf66fb1637b0969c161"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write msm message to a json file.  <a href="structRtcmTrace.html#abcc1eaba01587cf66fb1637b0969c161">More...</a><br /></td></tr>
+<tr class="separator:abcc1eaba01587cf66fb1637b0969c161"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad992e657cb98f1cd8eb87eaf2d11f912"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#ad992e657cb98f1cd8eb87eaf2d11f912">traceUnknown</a> ()</td></tr>
+<tr class="memdesc:ad992e657cb98f1cd8eb87eaf2d11f912"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write unknown message to a json file.  <a href="structRtcmTrace.html#ad992e657cb98f1cd8eb87eaf2d11f912">More...</a><br /></td></tr>
+<tr class="separator:ad992e657cb98f1cd8eb87eaf2d11f912"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
 <tr class="memitem:a9b3bb5dba531a34f034301b0722b0931"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a9b3bb5dba531a34f034301b0722b0931">rtcmTraceFilename</a> = &quot;&quot;</td></tr>
 <tr class="separator:a9b3bb5dba531a34f034301b0722b0931"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43b2961b42dbe83462def0c4d5bcf2c0"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a43b2961b42dbe83462def0c4d5bcf2c0">rtcmMountPoint</a></td></tr>
-<tr class="separator:a43b2961b42dbe83462def0c4d5bcf2c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2310436ae24f4092fb1e0167307ae151"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a2310436ae24f4092fb1e0167307ae151">rtcmMountpoint</a></td></tr>
+<tr class="separator:a2310436ae24f4092fb1e0167307ae151"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9eab3c33e937559abee2d16842cdb530" name="a9eab3c33e937559abee2d16842cdb530"></a>
@@ -188,32 +198,6 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="a25c52f06333981e0df71b16e325aa43c" name="a25c52f06333981e0df71b16e325aa43c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25c52f06333981e0df71b16e325aa43c">&#9670;&nbsp;</a></span>messageRtcmByteLog()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void RtcmTrace::messageRtcmByteLog </td>
-          <td>(</td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a4b1c85cac6c9887a50ce3f059e4570bc" name="a4b1c85cac6c9887a50ce3f059e4570bc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b1c85cac6c9887a50ce3f059e4570bc">&#9670;&nbsp;</a></span>messageRtcmLog()</h2>
 
@@ -238,9 +222,9 @@ Data Fields</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <div class="dynheader">
-Here is the caller graph for this function:</div>
+Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a4b1c85cac6c9887a50ce3f059e4570bc_icgraph.svg" width="458" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a4b1c85cac6c9887a50ce3f059e4570bc_cgraph.svg" width="348" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -268,102 +252,31 @@ Here is the caller graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a43de333946bf6415ccb695e73beceec2_cgraph.svg" width="308" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="a27e85a5d656b3490cb541958b44c6a67" name="a27e85a5d656b3490cb541958b44c6a67"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a27e85a5d656b3490cb541958b44c6a67">&#9670;&nbsp;</a></span>outputSsrClkToJson()</h2>
+<a id="a7988263389150711e951a4df5f1dcdd1" name="a7988263389150711e951a4df5f1dcdd1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7988263389150711e951a4df5f1dcdd1">&#9670;&nbsp;</a></span>traceBrdcEph() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void RtcmTrace::outputSsrClkToJson </td>
+          <td class="memname">void RtcmTrace::traceBrdcEph </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structSSRClk.html">SSRClk</a> &amp;&#160;</td>
-          <td class="paramname"><em>ssrClk</em>, </td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="structSatSys.html">SatSys</a> &amp;&#160;</td>
-          <td class="paramname"><em>Sat</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a27e85a5d656b3490cb541958b44c6a67_cgraph.svg" width="411" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a27e85a5d656b3490cb541958b44c6a67_icgraph.svg" width="503" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aca828f5d0ba4ea9799fd439c1683bcd4" name="aca828f5d0ba4ea9799fd439c1683bcd4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aca828f5d0ba4ea9799fd439c1683bcd4">&#9670;&nbsp;</a></span>outputSsrEphToJson()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void RtcmTrace::outputSsrEphToJson </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structSSREph.html">SSREph</a> &amp;&#160;</td>
-          <td class="paramname"><em>ssrEph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structSatSys.html">SatSys</a> &amp;&#160;</td>
-          <td class="paramname"><em>Sat</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_aca828f5d0ba4ea9799fd439c1683bcd4_cgraph.svg" width="415" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_aca828f5d0ba4ea9799fd439c1683bcd4_icgraph.svg" width="507" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a6a1c3b7cb0f2b3e1e694a6772e4206b1" name="a6a1c3b7cb0f2b3e1e694a6772e4206b1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6a1c3b7cb0f2b3e1e694a6772e4206b1">&#9670;&nbsp;</a></span>traceBroEph()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void RtcmTrace::traceBroEph </td>
-          <td>(</td>
           <td class="paramtype"><a class="el" href="structEph.html">Eph</a> &amp;&#160;</td>
-          <td class="paramname"><em>eph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Sys&#160;</td>
-          <td class="paramname"><em>sys</em>&#160;</td>
+          <td class="paramname"><em>eph</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -372,21 +285,110 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a6a1c3b7cb0f2b3e1e694a6772e4206b1_cgraph.svg" width="336" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a7988263389150711e951a4df5f1dcdd1_cgraph.svg" width="386" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a6a1c3b7cb0f2b3e1e694a6772e4206b1_icgraph.svg" width="472" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a7988263389150711e951a4df5f1dcdd1_icgraph.svg" width="479" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ae01a9f97c7b65df9afb2610a58f2b967" name="ae01a9f97c7b65df9afb2610a58f2b967"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae01a9f97c7b65df9afb2610a58f2b967">&#9670;&nbsp;</a></span>traceSsrClk()</h2>
+<a id="af164612e34a83d1452ef214af3736004" name="af164612e34a83d1452ef214af3736004"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af164612e34a83d1452ef214af3736004">&#9670;&nbsp;</a></span>traceBrdcEph() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RtcmTrace::traceBrdcEph </td>
+          <td>(</td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGeph.html">Geph</a> &amp;&#160;</td>
+          <td class="paramname"><em>geph</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write decoded/encoded GAL ephemeris messages to a json file. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_af164612e34a83d1452ef214af3736004_cgraph.svg" width="386" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="abcc1eaba01587cf66fb1637b0969c161" name="abcc1eaba01587cf66fb1637b0969c161"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abcc1eaba01587cf66fb1637b0969c161">&#9670;&nbsp;</a></span>traceMSM()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RtcmTrace::traceMSM </td>
+          <td>(</td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSig.html">Sig</a> &amp;&#160;</td>
+          <td class="paramname"><em>sig</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write msm message to a json file. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_abcc1eaba01587cf66fb1637b0969c161_cgraph.svg" width="352" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_abcc1eaba01587cf66fb1637b0969c161_icgraph.svg" width="420" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a77967bdcccaac67fdcd956d47da16055" name="a77967bdcccaac67fdcd956d47da16055"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77967bdcccaac67fdcd956d47da16055">&#9670;&nbsp;</a></span>traceSsrClk()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -394,6 +396,12 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void RtcmTrace::traceSsrClk </td>
           <td>(</td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
           <td class="paramname"><em>Sat</em>, </td>
         </tr>
@@ -410,18 +418,34 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a77967bdcccaac67fdcd956d47da16055_cgraph.svg" width="362" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a77967bdcccaac67fdcd956d47da16055_icgraph.svg" width="459" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="a1e29763105f2e550eaa74be6aacbfaae" name="a1e29763105f2e550eaa74be6aacbfaae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1e29763105f2e550eaa74be6aacbfaae">&#9670;&nbsp;</a></span>traceSsrCodeB()</h2>
+<a id="abcf156ad1b35a69c33db080f609b6f16" name="abcf156ad1b35a69c33db080f609b6f16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abcf156ad1b35a69c33db080f609b6f16">&#9670;&nbsp;</a></span>traceSsrCodeBias()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void RtcmTrace::traceSsrCodeB </td>
+          <td class="memname">void RtcmTrace::traceSsrCodeBias </td>
           <td>(</td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
           <td class="paramname"><em>Sat</em>, </td>
         </tr>
@@ -429,12 +453,12 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">E_ObsCode&#160;</td>
-          <td class="paramname"><em>mode</em>, </td>
+          <td class="paramname"><em>code</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structSSRBias.html">SSRBias</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structSSRCodeBias.html">SSRCodeBias</a> &amp;&#160;</td>
           <td class="paramname"><em>ssrBias</em>&#160;</td>
         </tr>
         <tr>
@@ -447,18 +471,18 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a1e29763105f2e550eaa74be6aacbfaae_cgraph.svg" width="352" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_abcf156ad1b35a69c33db080f609b6f16_cgraph.svg" width="402" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a1e29763105f2e550eaa74be6aacbfaae_icgraph.svg" width="470" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_abcf156ad1b35a69c33db080f609b6f16_icgraph.svg" width="488" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a9905704371805f21ec802eb6b1956a55" name="a9905704371805f21ec802eb6b1956a55"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9905704371805f21ec802eb6b1956a55">&#9670;&nbsp;</a></span>traceSsrEph()</h2>
+<a id="ab77b0368e1844bb77eb8a91845c35673" name="ab77b0368e1844bb77eb8a91845c35673"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab77b0368e1844bb77eb8a91845c35673">&#9670;&nbsp;</a></span>traceSsrEph()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -466,6 +490,12 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void RtcmTrace::traceSsrEph </td>
           <td>(</td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
           <td class="paramname"><em>Sat</em>, </td>
         </tr>
@@ -482,18 +512,78 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_ab77b0368e1844bb77eb8a91845c35673_cgraph.svg" width="364" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_ab77b0368e1844bb77eb8a91845c35673_icgraph.svg" width="462" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="a38ba4e7165a181b4cff99118dab1e012" name="a38ba4e7165a181b4cff99118dab1e012"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a38ba4e7165a181b4cff99118dab1e012">&#9670;&nbsp;</a></span>traceSsrPhasB()</h2>
+<a id="a72cc456a169363422bbdb71c4f12ab4f" name="a72cc456a169363422bbdb71c4f12ab4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72cc456a169363422bbdb71c4f12ab4f">&#9670;&nbsp;</a></span>traceSsrHRClk()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void RtcmTrace::traceSsrPhasB </td>
+          <td class="memname">void RtcmTrace::traceSsrHRClk </td>
           <td>(</td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSSRHRClk.html">SSRHRClk</a> &amp;&#160;</td>
+          <td class="paramname"><em>ssrHRClk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a72cc456a169363422bbdb71c4f12ab4f_cgraph.svg" width="380" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a72cc456a169363422bbdb71c4f12ab4f_icgraph.svg" width="478" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab176960d2a094f050f187909b777d677" name="ab176960d2a094f050f187909b777d677"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab176960d2a094f050f187909b777d677">&#9670;&nbsp;</a></span>traceSsrPhasBias()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RtcmTrace::traceSsrPhasBias </td>
+          <td>(</td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
           <td class="paramname"><em>Sat</em>, </td>
         </tr>
@@ -501,12 +591,12 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">E_ObsCode&#160;</td>
-          <td class="paramname"><em>mode</em>, </td>
+          <td class="paramname"><em>code</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structSSRBias.html">SSRBias</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structSSRPhasBias.html">SSRPhasBias</a> &amp;&#160;</td>
           <td class="paramname"><em>ssrBias</em>&#160;</td>
         </tr>
         <tr>
@@ -519,25 +609,116 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a38ba4e7165a181b4cff99118dab1e012_cgraph.svg" width="350" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_ab176960d2a094f050f187909b777d677_cgraph.svg" width="399" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a38ba4e7165a181b4cff99118dab1e012_icgraph.svg" width="474" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_ab176960d2a094f050f187909b777d677_icgraph.svg" width="492" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<h2 class="groupheader">Field Documentation</h2>
-<a id="a43b2961b42dbe83462def0c4d5bcf2c0" name="a43b2961b42dbe83462def0c4d5bcf2c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a43b2961b42dbe83462def0c4d5bcf2c0">&#9670;&nbsp;</a></span>rtcmMountPoint</h2>
+<a id="aa9417bd4a22314d42e8064f78f12d26d" name="aa9417bd4a22314d42e8064f78f12d26d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9417bd4a22314d42e8064f78f12d26d">&#9670;&nbsp;</a></span>traceSsrUra()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">string RtcmTrace::rtcmMountPoint</td>
+          <td class="memname">void RtcmTrace::traceSsrUra </td>
+          <td>(</td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>messCode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSSRUra.html">SSRUra</a> &amp;&#160;</td>
+          <td class="paramname"><em>ssrUra</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_aa9417bd4a22314d42e8064f78f12d26d_cgraph.svg" width="363" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_aa9417bd4a22314d42e8064f78f12d26d_icgraph.svg" width="440" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2e5a2d492060c59091840d96dfe07bb8" name="a2e5a2d492060c59091840d96dfe07bb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e5a2d492060c59091840d96dfe07bb8">&#9670;&nbsp;</a></span>traceTimestamp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RtcmTrace::traceTimestamp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_a2e5a2d492060c59091840d96dfe07bb8_icgraph.svg" width="539" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad992e657cb98f1cd8eb87eaf2d11f912" name="ad992e657cb98f1cd8eb87eaf2d11f912"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad992e657cb98f1cd8eb87eaf2d11f912">&#9670;&nbsp;</a></span>traceUnknown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RtcmTrace::traceUnknown </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write unknown message to a json file. </p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structRtcmTrace_ad992e657cb98f1cd8eb87eaf2d11f912_icgraph.svg" width="100%" height="404"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<h2 class="groupheader">Field Documentation</h2>
+<a id="a2310436ae24f4092fb1e0167307ae151" name="a2310436ae24f4092fb1e0167307ae151"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2310436ae24f4092fb1e0167307ae151">&#9670;&nbsp;</a></span>rtcmMountpoint</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">string RtcmTrace::rtcmMountpoint</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -559,8 +740,8 @@ Here is the caller graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following files:<ul>
-<li>/data/acs/ginan/src/cpp/common/<a class="el" href="ntripTrace_8hpp.html">ntripTrace.hpp</a></li>
-<li>/data/acs/ginan/src/cpp/common/<a class="el" href="ntripTrace_8cpp.html">ntripTrace.cpp</a></li>
+<li>/data/acs/ginan/src/cpp/common/<a class="el" href="rtcmTrace_8hpp.html">rtcmTrace.hpp</a></li>
+<li>/data/acs/ginan/src/cpp/common/<a class="el" href="rtcmTrace_8cpp.html">rtcmTrace.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

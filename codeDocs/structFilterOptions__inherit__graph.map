@@ -1,5 +1,5 @@
 <map id="FilterOptions" name="FilterOptions">
-<area shape="rect" id="node1" title=" " alt="" coords="127,5,285,259"/>
-<area shape="rect" id="node2" href="$structMinimumConstraintOptions.html" title="Options associated with the minimum constraints mode of operation." alt="" coords="5,314,207,465"/>
-<area shape="rect" id="node3" href="$structNetworkOptions.html" title="Options associated with the network processing mode of operation." alt="" coords="231,307,383,472"/>
+<area shape="rect" id="node1" title=" " alt="" coords="115,5,310,317"/>
+<area shape="rect" id="node2" href="$structMinimumConstraintOptions.html" title="Options associated with the minimum constraints mode of operation." alt="" coords="5,373,207,523"/>
+<area shape="rect" id="node3" href="$structPPPOptions.html" title="Options associated with the ppp processing mode of operation." alt="" coords="231,365,410,531"/>
 </map>

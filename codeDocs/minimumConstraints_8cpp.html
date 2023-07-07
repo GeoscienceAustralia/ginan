@@ -83,16 +83,16 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a57caa6625daa451bc374b5a315a3bce9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="minimumConstraints_8cpp.html#a57caa6625daa451bc374b5a315a3bce9">minSiteData</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfStateStations, string suffix=&quot;&quot;, map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, bool &gt; *usedMap_ptr=nullptr)</td></tr>
+<tr class="memitem:a57caa6625daa451bc374b5a315a3bce9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="minimumConstraints_8cpp.html#a57caa6625daa451bc374b5a315a3bce9">minSiteData</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfStateStations, string suffix=&quot;&quot;, map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, bool &gt; *usedMap_ptr=nullptr)</td></tr>
 <tr class="separator:a57caa6625daa451bc374b5a315a3bce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85e412176915fe538d691251614f877a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="minimumConstraints_8cpp.html#a85e412176915fe538d691251614f877a">mincon</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfStateStations)</td></tr>
-<tr class="separator:a85e412176915fe538d691251614f877a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91e7c5f0512892cbb8ff736bb4fc35d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFState.html">KFState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="minimumConstraints_8cpp.html#a91e7c5f0512892cbb8ff736bb4fc35d7">minconOnly</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap)</td></tr>
+<tr class="memitem:ab2bcd4f17ec253836699f41c2c330ee0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="minimumConstraints_8cpp.html#ab2bcd4f17ec253836699f41c2c330ee0">mincon</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfStateStations, bool commentSinex)</td></tr>
+<tr class="separator:ab2bcd4f17ec253836699f41c2c330ee0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91e7c5f0512892cbb8ff736bb4fc35d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKFState.html">KFState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="minimumConstraints_8cpp.html#a91e7c5f0512892cbb8ff736bb4fc35d7">minconOnly</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>)</td></tr>
 <tr class="separator:a91e7c5f0512892cbb8ff736bb4fc35d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a85e412176915fe538d691251614f877a" name="a85e412176915fe538d691251614f877a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85e412176915fe538d691251614f877a">&#9670;&nbsp;</a></span>mincon()</h2>
+<a id="ab2bcd4f17ec253836699f41c2c330ee0" name="ab2bcd4f17ec253836699f41c2c330ee0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2bcd4f17ec253836699f41c2c330ee0">&#9670;&nbsp;</a></span>mincon()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -107,7 +107,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
-          <td class="paramname"><em>kfStateStations</em>&#160;</td>
+          <td class="paramname"><em>kfStateStations</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>commentSinex</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -119,12 +125,12 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="minimumConstraints_8cpp_a85e412176915fe538d691251614f877a_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="minimumConstraints_8cpp_ab2bcd4f17ec253836699f41c2c330ee0_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="minimumConstraints_8cpp_a85e412176915fe538d691251614f877a_icgraph.svg" width="283" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="minimumConstraints_8cpp_ab2bcd4f17ec253836699f41c2c330ee0_icgraph.svg" width="343" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -162,7 +168,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="minimumConstraints_8cpp_a91e7c5f0512892cbb8ff736bb4fc35d7_icgraph.svg" width="214" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="minimumConstraints_8cpp_a91e7c5f0512892cbb8ff736bb4fc35d7_icgraph.svg" width="218" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -194,7 +200,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, bool &gt; *&#160;</td>
+          <td class="paramtype">map&lt; <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>, bool &gt; *&#160;</td>
           <td class="paramname"><em>usedMap_ptr</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
@@ -207,7 +213,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="minimumConstraints_8cpp_a57caa6625daa451bc374b5a315a3bce9_cgraph.svg" width="360" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="minimumConstraints_8cpp_a57caa6625daa451bc374b5a315a3bce9_cgraph.svg" width="322" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>

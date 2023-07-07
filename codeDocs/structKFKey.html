@@ -73,6 +73,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-attribs">Data Fields</a> &#124;
 <a href="#friends">Friends</a>  </div>
   <div class="headertitle"><div class="title">KFKey Struct Reference</div></div>
@@ -99,10 +100,22 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aebb0fbc31ec12b0979ec58ab092a6252"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92d45eb62ba86930f96f987bd186d6b2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#a92d45eb62ba86930f96f987bd186d6b2">operator&lt;</a> (const <a class="el" href="structKFKey.html">KFKey</a> &amp;b) const</td></tr>
 <tr class="separator:a92d45eb62ba86930f96f987bd186d6b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26c7d3e6867fc8382bc257b59a4c0012"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#a26c7d3e6867fc8382bc257b59a4c0012">operator string</a> () const</td></tr>
+<tr class="separator:a26c7d3e6867fc8382bc257b59a4c0012"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73d67a098d8a81c264ee6f8e68b3cf3a"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#a73d67a098d8a81c264ee6f8e68b3cf3a">commaString</a> () const</td></tr>
+<tr class="separator:a73d67a098d8a81c264ee6f8e68b3cf3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addfa28b3dd73b98e34f51936466ca146"><td class="memTemplParams" colspan="2">template&lt;class ARCHIVE &gt; </td></tr>
+<tr class="memitem:addfa28b3dd73b98e34f51936466ca146"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structKFKey.html#addfa28b3dd73b98e34f51936466ca146">serialize</a> (ARCHIVE &amp;ar, const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;version)</td></tr>
+<tr class="separator:addfa28b3dd73b98e34f51936466ca146"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:ab3ec437c948e525835dcb14e865968d7"><td class="memItemLeft" align="right" valign="top">static string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#ab3ec437c948e525835dcb14e865968d7">emptyString</a> ()</td></tr>
+<tr class="separator:ab3ec437c948e525835dcb14e865968d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:adc9689ba5c92678c0eb45fe8259687da"><td class="memItemLeft" align="right" valign="top">short <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#adc9689ba5c92678c0eb45fe8259687da">type</a> = 0</td></tr>
+<tr class="memitem:adc9689ba5c92678c0eb45fe8259687da"><td class="memItemLeft" align="right" valign="top">short <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#adc9689ba5c92678c0eb45fe8259687da">type</a> = 0</td></tr>
 <tr class="memdesc:adc9689ba5c92678c0eb45fe8259687da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Key type (From enum)  <a href="structKFKey.html#adc9689ba5c92678c0eb45fe8259687da">More...</a><br /></td></tr>
 <tr class="separator:adc9689ba5c92678c0eb45fe8259687da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aabc345b60587b1526dc3ba57a0e651db"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#aabc345b60587b1526dc3ba57a0e651db">Sat</a> = {}</td></tr>
@@ -111,7 +124,7 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a4bb7ea8344b499c73140881054d1a7a0"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#a4bb7ea8344b499c73140881054d1a7a0">str</a> = &quot;&quot;</td></tr>
 <tr class="memdesc:a4bb7ea8344b499c73140881054d1a7a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">String (receiver ID)  <a href="structKFKey.html#a4bb7ea8344b499c73140881054d1a7a0">More...</a><br /></td></tr>
 <tr class="separator:a4bb7ea8344b499c73140881054d1a7a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43fb91ea3ba5e62a8895eb0b0449644b"><td class="memItemLeft" align="right" valign="top">short <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#a43fb91ea3ba5e62a8895eb0b0449644b">num</a> = 0</td></tr>
+<tr class="memitem:a43fb91ea3ba5e62a8895eb0b0449644b"><td class="memItemLeft" align="right" valign="top">short <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#a43fb91ea3ba5e62a8895eb0b0449644b">num</a> = 0</td></tr>
 <tr class="memdesc:a43fb91ea3ba5e62a8895eb0b0449644b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subkey number (eg xyz =&gt; 0,1,2)  <a href="structKFKey.html#a43fb91ea3ba5e62a8895eb0b0449644b">More...</a><br /></td></tr>
 <tr class="separator:a43fb91ea3ba5e62a8895eb0b0449644b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01e288d537bc07abaa91e29fd3221c22"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structKFKey.html#a01e288d537bc07abaa91e29fd3221c22">comment</a> = &quot;&quot;</td></tr>
@@ -127,6 +140,96 @@ Friends</h2></td></tr>
 <tr class="separator:a03dae79dfd4a813312bd5b192ca23384"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a73d67a098d8a81c264ee6f8e68b3cf3a" name="a73d67a098d8a81c264ee6f8e68b3cf3a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73d67a098d8a81c264ee6f8e68b3cf3a">&#9670;&nbsp;</a></span>commaString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">string KFKey::commaString </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFKey_a73d67a098d8a81c264ee6f8e68b3cf3a_cgraph.svg" width="303" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab3ec437c948e525835dcb14e865968d7" name="ab3ec437c948e525835dcb14e865968d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3ec437c948e525835dcb14e865968d7">&#9670;&nbsp;</a></span>emptyString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static string KFKey::emptyString </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFKey_ab3ec437c948e525835dcb14e865968d7_icgraph.svg" width="430" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a26c7d3e6867fc8382bc257b59a4c0012" name="a26c7d3e6867fc8382bc257b59a4c0012"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26c7d3e6867fc8382bc257b59a4c0012">&#9670;&nbsp;</a></span>operator string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">KFKey::operator string </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structKFKey_a26c7d3e6867fc8382bc257b59a4c0012_cgraph.svg" width="312" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a92d45eb62ba86930f96f987bd186d6b2" name="a92d45eb62ba86930f96f987bd186d6b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a92d45eb62ba86930f96f987bd186d6b2">&#9670;&nbsp;</a></span>operator&lt;()</h2>
 
@@ -159,6 +262,44 @@ Friends</h2></td></tr>
           <td> const</td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="addfa28b3dd73b98e34f51936466ca146" name="addfa28b3dd73b98e34f51936466ca146"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#addfa28b3dd73b98e34f51936466ca146">&#9670;&nbsp;</a></span>serialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class ARCHIVE &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void KFKey::serialize </td>
+          <td>(</td>
+          <td class="paramtype">ARCHIVE &amp;&#160;</td>
+          <td class="paramname"><em>ar</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &amp;&#160;</td>
+          <td class="paramname"><em>version</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
@@ -224,7 +365,7 @@ Friends</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">short <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFKey::num = 0</td>
+          <td class="memname">short <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> KFKey::num = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -288,7 +429,7 @@ Friends</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">short <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> KFKey::type = 0</td>
+          <td class="memname">short <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> KFKey::type = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">

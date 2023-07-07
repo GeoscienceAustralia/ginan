@@ -1,7 +1,7 @@
 <map id="remov_WLrecv" name="remov_WLrecv">
 <area shape="rect" id="node1" title="Remove ambiguities and biases for receivers, network." alt="" coords="5,60,124,87"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="398,111,493,138"/>
-<area shape="rect" id="node3" href="$structKFState.html#abdf1505bdab1895a280fd018979849f1" title="Remove a state from a kalman filter object." alt="" coords="172,35,337,62"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="398,111,493,138"/>
+<area shape="rect" id="node3" href="$structKFState.html#a28480b75cbb9f622f48a695f04000948" title="Remove a state from a kalman filter object." alt="" coords="172,35,337,62"/>
 <area shape="rect" id="node4" href="$GinARWLamb_8cpp.html#aff0cccb14678a58071b729bac061e776" title="save Resolved WL ambiguities" alt="" coords="203,86,306,112"/>
 <area shape="rect" id="node5" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="385,60,505,87"/>
 </map>

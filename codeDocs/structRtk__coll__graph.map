@@ -1,8 +1,9 @@
 <map id="Rtk" name="Rtk">
-<area shape="rect" id="node1" title=" " alt="" coords="232,1085,376,1163"/>
-<area shape="rect" id="node2" href="$structKFState.html" title="Kalman filter object." alt="" coords="5,160,208,839"/>
-<area shape="rect" id="node4" href="$structSolution.html" title="Solution of user mode processing functinos." alt="" coords="161,916,255,1023"/>
-<area shape="rect" id="node3" title=" " alt="" coords="231,5,289,83"/>
-<area shape="rect" id="node5" title=" " alt="" coords="248,461,328,538"/>
-<area shape="rect" id="node6" title=" " alt="" coords="451,931,631,1008"/>
+<area shape="rect" id="node1" title=" " alt="" coords="353,1077,497,1155"/>
+<area shape="rect" id="node2" href="$structKFState.html" title=" " alt="" coords="5,5,240,743"/>
+<area shape="rect" id="node3" href="$structSolution.html" title="Solution of user mode processing functinos." alt="" coords="199,842,300,949"/>
+<area shape="rect" id="node4" title=" " alt="" coords="324,857,383,934"/>
+<area shape="rect" id="node5" title=" " alt="" coords="407,857,587,934"/>
+<area shape="rect" id="node6" href="$structVectorEnu.html" title=" " alt="" coords="611,805,725,985"/>
+<area shape="rect" id="node7" href="$structAttStatus.html" title="Persistent data for yaw model." alt="" coords="749,813,888,978"/>
 </map>

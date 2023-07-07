@@ -1,5 +1,5 @@
 <map id="Station" name="Station">
-<area shape="rect" id="node1" title="Object to maintain receiver station data." alt="" coords="73,219,205,457"/>
-<area shape="rect" id="node2" href="$structStationLogs.html" title=" " alt="" coords="5,5,120,171"/>
-<area shape="rect" id="node3" href="$structRtk.html" title=" " alt="" coords="144,5,288,171"/>
+<area shape="rect" id="node1" title="Object to maintain receiver station data." alt="" coords="72,248,205,560"/>
+<area shape="rect" id="node2" href="$structStationLogs.html" title=" " alt="" coords="5,20,120,185"/>
+<area shape="rect" id="node3" href="$structRtk.html" title=" " alt="" coords="144,5,288,200"/>
 </map>

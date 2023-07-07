@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="preceph_8cpp.html#a2e21e986800a930603c04dea42c199be" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="ephPrecise_8cpp.html#a7152f02ef77017fa75612ac13eeda408" target="_top" xlink:title="clock by precise clock">
 <polygon fill="white" stroke="red" points="143,-0.5 143,-19.5 198,-19.5 198,-0.5 143,-0.5"/>
 <text text-anchor="middle" x="170.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">pephclk</text>
 </a>

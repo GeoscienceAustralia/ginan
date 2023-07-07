@@ -81,7 +81,7 @@ $(function() {
 <div class="dynheader">
 Collaboration diagram for SsrInOptions:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structSsrInOptions__coll__graph.svg" width="198" height="103"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structSsrInOptions__coll__graph.svg" width="199" height="147"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -92,6 +92,14 @@ Data Fields</h2></td></tr>
 <tr class="memitem:a8d1292d3d99aefa831707fb48b0d003d"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSsrInOptions.html#a8d1292d3d99aefa831707fb48b0d003d">phase_bias_valid_time</a> = 30</td></tr>
 <tr class="memdesc:a8d1292d3d99aefa831707fb48b0d003d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Valid time period of SSR phase biases.  <a href="structSsrInOptions.html#a8d1292d3d99aefa831707fb48b0d003d">More...</a><br /></td></tr>
 <tr class="separator:a8d1292d3d99aefa831707fb48b0d003d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b625979185bb230937b3790ee098305"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSsrInOptions.html#a4b625979185bb230937b3790ee098305">global_vtec_valid_time</a> = 300</td></tr>
+<tr class="memdesc:a4b625979185bb230937b3790ee098305"><td class="mdescLeft">&#160;</td><td class="mdescRight">Valid time period of SSR global Ionospheres.  <a href="structSsrInOptions.html#a4b625979185bb230937b3790ee098305">More...</a><br /></td></tr>
+<tr class="separator:a4b625979185bb230937b3790ee098305"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62af80f0d7a5ef4484f48f95f9b4d4c6"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSsrInOptions.html#a62af80f0d7a5ef4484f48f95f9b4d4c6">local_stec_valid_time</a> = 120</td></tr>
+<tr class="memdesc:a62af80f0d7a5ef4484f48f95f9b4d4c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Valid time period of SSR local Ionospheres.  <a href="structSsrInOptions.html#a62af80f0d7a5ef4484f48f95f9b4d4c6">More...</a><br /></td></tr>
+<tr class="separator:a62af80f0d7a5ef4484f48f95f9b4d4c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a849092442ae80121aa1d593ebbafccbe"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSsrInOptions.html#a849092442ae80121aa1d593ebbafccbe">one_freq_phase_bias</a> = false</td></tr>
+<tr class="separator:a849092442ae80121aa1d593ebbafccbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Field Documentation</h2>
 <a id="a475cee705d74142de3075c0e3e0a00d6" name="a475cee705d74142de3075c0e3e0a00d6"></a>
@@ -107,6 +115,52 @@ Data Fields</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Valid time period of SSR code biases. </p>
+
+</div>
+</div>
+<a id="a4b625979185bb230937b3790ee098305" name="a4b625979185bb230937b3790ee098305"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b625979185bb230937b3790ee098305">&#9670;&nbsp;</a></span>global_vtec_valid_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double SsrInOptions::global_vtec_valid_time = 300</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Valid time period of SSR global Ionospheres. </p>
+
+</div>
+</div>
+<a id="a62af80f0d7a5ef4484f48f95f9b4d4c6" name="a62af80f0d7a5ef4484f48f95f9b4d4c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62af80f0d7a5ef4484f48f95f9b4d4c6">&#9670;&nbsp;</a></span>local_stec_valid_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double SsrInOptions::local_stec_valid_time = 120</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Valid time period of SSR local Ionospheres. </p>
+
+</div>
+</div>
+<a id="a849092442ae80121aa1d593ebbafccbe" name="a849092442ae80121aa1d593ebbafccbe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a849092442ae80121aa1d593ebbafccbe">&#9670;&nbsp;</a></span>one_freq_phase_bias</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool SsrInOptions::one_freq_phase_bias = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

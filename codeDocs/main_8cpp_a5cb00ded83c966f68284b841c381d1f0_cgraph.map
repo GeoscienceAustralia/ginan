@@ -1,7 +1,4 @@
 <map id="avoidCollisions" name="avoidCollisions">
-<area shape="rect" id="node1" title=" " alt="" coords="5,81,127,108"/>
-<area shape="rect" id="node2" href="$streamTrace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="175,5,275,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="175,56,274,83"/>
-<area shape="rect" id="node4" href="$gTime_8cpp.html#a282534ac1ef65d4844290ce80bf76fed" title="YMDHMS to Julian Day &#160;&#160;return : julian day." alt="" coords="175,107,274,133"/>
-<area shape="rect" id="node5" href="$vmf3_8cpp.html#a7b5e56ac28f7f16ddb29c02ab2f8a77c" title=" " alt="" coords="193,157,256,184"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,127,32"/>
+<area shape="rect" id="node2" href="$trace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="175,5,275,32"/>
 </map>

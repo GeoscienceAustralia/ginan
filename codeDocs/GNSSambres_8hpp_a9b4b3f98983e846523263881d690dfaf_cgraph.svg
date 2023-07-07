@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="294.5,-0.5 294.5,-19.5 365.5,-19.5 365.5,-0.5 294.5,-0.5"/>
 <text text-anchor="middle" x="330" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -35,7 +35,7 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="structKFState.html#abdf1505bdab1895a280fd018979849f1" target="_top" xlink:title="Remove a state from a kalman filter object.">
+<g id="a_node3"><a xlink:href="structKFState.html#a28480b75cbb9f622f48a695f04000948" target="_top" xlink:title="Remove a state from a kalman filter object.">
 <polygon fill="white" stroke="black" points="125,-57.5 125,-76.5 249,-76.5 249,-57.5 125,-57.5"/>
 <text text-anchor="middle" x="187" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">KFState::removeState</text>
 </a>

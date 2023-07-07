@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M68.11,-35.49C79.75,-37.76 92.7,-40.3 103.88,-42.49"/>
 </g>
-<!-- Node4 -->
+<!-- Node6 -->
 <g id="node3" class="node">
-<title>Node4</title>
+<title>Node6</title>
 <g id="a_node3"><a xlink:href="gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="104.5,-0.5 104.5,-19.5 161.5,-19.5 161.5,-0.5 104.5,-0.5"/>
 <text text-anchor="middle" x="133" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">str2num</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node4 -->
+<!-- Node1&#45;&gt;Node6 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node4</title>
+<title>Node1&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M68.11,-22.51C79.86,-20.21 92.94,-17.65 104.2,-15.45"/>
 </g>
 </g>

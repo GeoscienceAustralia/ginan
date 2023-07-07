@@ -83,50 +83,59 @@ $(function() {
 <div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp__dep__incl.svg" width="491" height="142"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp__dep__incl.svg" width="100%" height="406"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6696fabd7ada4e32de967797ffdc8bf4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="rtcmEncoder_8hpp.html#aec0b0fc5eb0814d41cc75dd6122b6b6e">SsrClkOutMap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a6696fabd7ada4e32de967797ffdc8bf4">mongoReadClocks</a> (<a class="el" href="structGTime.html">GTime</a> curTime, <a class="el" href="structSSRMeta.html">SSRMeta</a> ssrMeta, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> masterIod, E_Sys targetSys)</td></tr>
-<tr class="separator:a6696fabd7ada4e32de967797ffdc8bf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00e56c1f71ff2f2d123468c0846286c6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="rtcmEncoder_8hpp.html#aa423ddcbd3b8751901ca417439734f9d">SsrCBMap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a00e56c1f71ff2f2d123468c0846286c6">mongoReadCodeBias</a> (<a class="el" href="structGTime.html">GTime</a> curTime, <a class="el" href="structSSRMeta.html">SSRMeta</a> ssrMeta, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> masterIod, E_Sys targetSys)</td></tr>
-<tr class="separator:a00e56c1f71ff2f2d123468c0846286c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a03a22276552d8af1649b1472eef24b1e"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, <a class="el" href="structSSROut.html">SSROut</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a03a22276552d8af1649b1472eef24b1e">mongoReadSSRData</a> (<a class="el" href="structGTime.html">GTime</a> targetTime, <a class="el" href="structSSRMeta.html">SSRMeta</a> ssrMeta, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> masterIod, E_Sys targetSys)</td></tr>
-<tr class="separator:a03a22276552d8af1649b1472eef24b1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a565fc2514ef28b87ede8a8afcd89588f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="rtcmEncoder_8hpp.html#ab010b8a0cb921ce98043cb70e47f9c69">SsrPBMap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a565fc2514ef28b87ede8a8afcd89588f">mongoReadPhaseBias</a> (<a class="el" href="structGTime.html">GTime</a> curTime, <a class="el" href="structSSRMeta.html">SSRMeta</a> ssrMeta, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> masterIod, E_Sys targetSys)</td></tr>
-<tr class="separator:a565fc2514ef28b87ede8a8afcd89588f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65827d091750f0fd39be6a3644ff286a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a65827d091750f0fd39be6a3644ff286a">mongoReadLastClock</a> ()</td></tr>
+<tr class="separator:a65827d091750f0fd39be6a3644ff286a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25a89dedbcc39aa56dfb1eff65744154"><td class="memItemLeft" align="right" valign="top"><a class="el" href="rtcmEncoder_8hpp.html#a77f3aa05b5e22a562eb462900d11e8f7">SsrOutMap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a25a89dedbcc39aa56dfb1eff65744154">mongoReadOrbClk</a> (<a class="el" href="structGTime.html">GTime</a> referenceTime, <a class="el" href="structSSRMeta.html">SSRMeta</a> &amp;ssrMeta, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> masterIod, E_Sys targetSys)</td></tr>
+<tr class="memdesc:a25a89dedbcc39aa56dfb1eff65744154"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read orbits and clocks from <a class="el" href="structMongo.html">Mongo</a> DB.  <a href="mongoRead_8hpp.html#a25a89dedbcc39aa56dfb1eff65744154">More...</a><br /></td></tr>
+<tr class="separator:a25a89dedbcc39aa56dfb1eff65744154"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d4ac4dfd0b159e975bff9599afbb147"><td class="memItemLeft" align="right" valign="top"><a class="el" href="rtcmEncoder_8hpp.html#aa423ddcbd3b8751901ca417439734f9d">SsrCBMap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a7d4ac4dfd0b159e975bff9599afbb147">mongoReadCodeBias</a> (<a class="el" href="structSSRMeta.html">SSRMeta</a> &amp;ssrMeta, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> masterIod, E_Sys targetSys)</td></tr>
+<tr class="memdesc:a7d4ac4dfd0b159e975bff9599afbb147"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read code biases from <a class="el" href="structMongo.html">Mongo</a> DB.  <a href="mongoRead_8hpp.html#a7d4ac4dfd0b159e975bff9599afbb147">More...</a><br /></td></tr>
+<tr class="separator:a7d4ac4dfd0b159e975bff9599afbb147"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d89a7a6cae3e135ebc59b318cff9736"><td class="memItemLeft" align="right" valign="top"><a class="el" href="rtcmEncoder_8hpp.html#ab010b8a0cb921ce98043cb70e47f9c69">SsrPBMap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a1d89a7a6cae3e135ebc59b318cff9736">mongoReadPhaseBias</a> (<a class="el" href="structSSRMeta.html">SSRMeta</a> &amp;ssrMeta, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> masterIod, E_Sys targetSys)</td></tr>
+<tr class="memdesc:a1d89a7a6cae3e135ebc59b318cff9736"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read phase biases from <a class="el" href="structMongo.html">Mongo</a> DB.  <a href="mongoRead_8hpp.html#a1d89a7a6cae3e135ebc59b318cff9736">More...</a><br /></td></tr>
+<tr class="separator:a1d89a7a6cae3e135ebc59b318cff9736"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47bc6c2f524e5fe00e785ba8736f23c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structEph.html">Eph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a47bc6c2f524e5fe00e785ba8736f23c2">mongoReadEphemeris</a> (<a class="el" href="structGTime.html">GTime</a> targetTime, <a class="el" href="structSatSys.html">SatSys</a> Sat, RtcmMessageType rtcmMessCode)</td></tr>
+<tr class="memdesc:a47bc6c2f524e5fe00e785ba8736f23c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read GPS/GAL/BDS/QZS ephemeris from <a class="el" href="structMongo.html">Mongo</a> DB.  <a href="mongoRead_8hpp.html#a47bc6c2f524e5fe00e785ba8736f23c2">More...</a><br /></td></tr>
+<tr class="separator:a47bc6c2f524e5fe00e785ba8736f23c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4bcf3e799f3f61cb7ca9cbc1994557a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGeph.html">Geph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a4bcf3e799f3f61cb7ca9cbc1994557a8">mongoReadGloEphemeris</a> (<a class="el" href="structGTime.html">GTime</a> targetTime, <a class="el" href="structSatSys.html">SatSys</a> Sat)</td></tr>
+<tr class="memdesc:a4bcf3e799f3f61cb7ca9cbc1994557a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read GLO ephemeris from <a class="el" href="structMongo.html">Mongo</a> DB.  <a href="mongoRead_8hpp.html#a4bcf3e799f3f61cb7ca9cbc1994557a8">More...</a><br /></td></tr>
+<tr class="separator:a4bcf3e799f3f61cb7ca9cbc1994557a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fb6290e4dbb7b10fef8fe18781b3e4d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSSRAtm.html">SSRAtm</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a4fb6290e4dbb7b10fef8fe18781b3e4d">mongoReadIGSIonosphere</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSSRMeta.html">SSRMeta</a> ssrMeta, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> masterIod)</td></tr>
+<tr class="separator:a4fb6290e4dbb7b10fef8fe18781b3e4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a271c01b2ed830ba051072b57ec0f0924"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="eigenIncluder_8hpp.html#a7c92072ddd5d5d85e6840cb5637af311">Vector6d</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#a271c01b2ed830ba051072b57ec0f0924">mongoReadOrbits</a> (<a class="el" href="structGTime.html">GTime</a> time=<a class="el" href="structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e">GTime::noTime</a>(), <a class="el" href="structSatSys.html">SatSys</a> Sat=<a class="el" href="structSatSys.html">SatSys</a>(), bool remote=false)</td></tr>
+<tr class="separator:a271c01b2ed830ba051072b57ec0f0924"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:accd52c695e5891f031eee626e8141356"><td class="memItemLeft" align="right" valign="top">map&lt; string, map&lt; <a class="el" href="structGTime.html">GTime</a>, tuple&lt; double, double &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mongoRead_8hpp.html#accd52c695e5891f031eee626e8141356">mongoReadClocks</a> (<a class="el" href="structGTime.html">GTime</a> time=<a class="el" href="structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e">GTime::noTime</a>(), string str=&quot;&quot;, bool remote=false)</td></tr>
+<tr class="separator:accd52c695e5891f031eee626e8141356"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a6696fabd7ada4e32de967797ffdc8bf4" name="a6696fabd7ada4e32de967797ffdc8bf4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6696fabd7ada4e32de967797ffdc8bf4">&#9670;&nbsp;</a></span>mongoReadClocks()</h2>
+<a id="accd52c695e5891f031eee626e8141356" name="accd52c695e5891f031eee626e8141356"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#accd52c695e5891f031eee626e8141356">&#9670;&nbsp;</a></span>mongoReadClocks()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="rtcmEncoder_8hpp.html#aec0b0fc5eb0814d41cc75dd6122b6b6e">SsrClkOutMap</a> mongoReadClocks </td>
+          <td class="memname">map&lt; string, map&lt; <a class="el" href="structGTime.html">GTime</a>, tuple&lt; double, double &gt; &gt; &gt; mongoReadClocks </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>curTime</em>, </td>
+          <td class="paramname"><em>time</em> = <code><a class="el" href="structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e">GTime::noTime</a>()</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structSSRMeta.html">SSRMeta</a>&#160;</td>
-          <td class="paramname"><em>ssrMeta</em>, </td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>str</em> = <code>&quot;&quot;</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>masterIod</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Sys&#160;</td>
-          <td class="paramname"><em>targetSys</em>&#160;</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>remote</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -135,11 +144,21 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_accd52c695e5891f031eee626e8141356_cgraph.svg" width="322" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_accd52c695e5891f031eee626e8141356_icgraph.svg" width="348" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="a00e56c1f71ff2f2d123468c0846286c6" name="a00e56c1f71ff2f2d123468c0846286c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00e56c1f71ff2f2d123468c0846286c6">&#9670;&nbsp;</a></span>mongoReadCodeBias()</h2>
+<a id="a7d4ac4dfd0b159e975bff9599afbb147" name="a7d4ac4dfd0b159e975bff9599afbb147"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d4ac4dfd0b159e975bff9599afbb147">&#9670;&nbsp;</a></span>mongoReadCodeBias()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -147,19 +166,13 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="rtcmEncoder_8hpp.html#aa423ddcbd3b8751901ca417439734f9d">SsrCBMap</a> mongoReadCodeBias </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>curTime</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSSRMeta.html">SSRMeta</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="structSSRMeta.html">SSRMeta</a> &amp;&#160;</td>
           <td class="paramname"><em>ssrMeta</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>masterIod</em>, </td>
         </tr>
         <tr>
@@ -175,77 +188,37 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Read code biases from <a class="el" href="structMongo.html">Mongo</a> DB. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ssrMeta</td><td>SSR message metadata</td></tr>
+    <tr><td class="paramname">masterIod</td><td>IOD SSR</td></tr>
+    <tr><td class="paramname">targetSys</td><td>target system </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a00e56c1f71ff2f2d123468c0846286c6_cgraph.svg" width="350" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a7d4ac4dfd0b159e975bff9599afbb147_cgraph.svg" width="380" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a00e56c1f71ff2f2d123468c0846286c6_icgraph.svg" width="454" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a7d4ac4dfd0b159e975bff9599afbb147_icgraph.svg" width="454" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a565fc2514ef28b87ede8a8afcd89588f" name="a565fc2514ef28b87ede8a8afcd89588f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a565fc2514ef28b87ede8a8afcd89588f">&#9670;&nbsp;</a></span>mongoReadPhaseBias()</h2>
+<a id="a47bc6c2f524e5fe00e785ba8736f23c2" name="a47bc6c2f524e5fe00e785ba8736f23c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47bc6c2f524e5fe00e785ba8736f23c2">&#9670;&nbsp;</a></span>mongoReadEphemeris()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="rtcmEncoder_8hpp.html#ab010b8a0cb921ce98043cb70e47f9c69">SsrPBMap</a> mongoReadPhaseBias </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>curTime</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structSSRMeta.html">SSRMeta</a>&#160;</td>
-          <td class="paramname"><em>ssrMeta</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>masterIod</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">E_Sys&#160;</td>
-          <td class="paramname"><em>targetSys</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a565fc2514ef28b87ede8a8afcd89588f_cgraph.svg" width="320" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a565fc2514ef28b87ede8a8afcd89588f_icgraph.svg" width="459" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a03a22276552d8af1649b1472eef24b1e" name="a03a22276552d8af1649b1472eef24b1e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a03a22276552d8af1649b1472eef24b1e">&#9670;&nbsp;</a></span>mongoReadSSRData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, <a class="el" href="structSSROut.html">SSROut</a> &gt; mongoReadSSRData </td>
+          <td class="memname"><a class="el" href="structEph.html">Eph</a> mongoReadEphemeris </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>targetTime</em>, </td>
@@ -253,13 +226,175 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">RtcmMessageType&#160;</td>
+          <td class="paramname"><em>rtcmMessCode</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read GPS/GAL/BDS/QZS ephemeris from <a class="el" href="structMongo.html">Mongo</a> DB. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">targetTime</td><td>target system</td></tr>
+    <tr><td class="paramname">Sat</td><td>satellite to read ephemeris of</td></tr>
+    <tr><td class="paramname">rtcmMessCode</td><td>RTCM message code to read ephemeris of </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a47bc6c2f524e5fe00e785ba8736f23c2_cgraph.svg" width="315" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a47bc6c2f524e5fe00e785ba8736f23c2_icgraph.svg" width="462" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a4bcf3e799f3f61cb7ca9cbc1994557a8" name="a4bcf3e799f3f61cb7ca9cbc1994557a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4bcf3e799f3f61cb7ca9cbc1994557a8">&#9670;&nbsp;</a></span>mongoReadGloEphemeris()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structGeph.html">Geph</a> mongoReadGloEphemeris </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>targetTime</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read GLO ephemeris from <a class="el" href="structMongo.html">Mongo</a> DB. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">targetTime</td><td>target system</td></tr>
+    <tr><td class="paramname">Sat</td><td>satellite to read ephemeris of </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a4bcf3e799f3f61cb7ca9cbc1994557a8_cgraph.svg" width="336" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a4bcf3e799f3f61cb7ca9cbc1994557a8_icgraph.svg" width="483" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a4fb6290e4dbb7b10fef8fe18781b3e4d" name="a4fb6290e4dbb7b10fef8fe18781b3e4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4fb6290e4dbb7b10fef8fe18781b3e4d">&#9670;&nbsp;</a></span>mongoReadIGSIonosphere()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structSSRAtm.html">SSRAtm</a> mongoReadIGSIonosphere </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="structSSRMeta.html">SSRMeta</a>&#160;</td>
           <td class="paramname"><em>ssrMeta</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>masterIod</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a4fb6290e4dbb7b10fef8fe18781b3e4d_icgraph.svg" width="487" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a65827d091750f0fd39be6a3644ff286a" name="a65827d091750f0fd39be6a3644ff286a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65827d091750f0fd39be6a3644ff286a">&#9670;&nbsp;</a></span>mongoReadLastClock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> mongoReadLastClock </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a65827d091750f0fd39be6a3644ff286a_icgraph.svg" width="455" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a25a89dedbcc39aa56dfb1eff65744154" name="a25a89dedbcc39aa56dfb1eff65744154"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25a89dedbcc39aa56dfb1eff65744154">&#9670;&nbsp;</a></span>mongoReadOrbClk()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="rtcmEncoder_8hpp.html#a77f3aa05b5e22a562eb462900d11e8f7">SsrOutMap</a> mongoReadOrbClk </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>referenceTime</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSSRMeta.html">SSRMeta</a> &amp;&#160;</td>
+          <td class="paramname"><em>ssrMeta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>masterIod</em>, </td>
         </tr>
         <tr>
@@ -275,15 +410,124 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Read orbits and clocks from <a class="el" href="structMongo.html">Mongo</a> DB. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">referenceTime</td><td>reference time (t0) of SSR correction</td></tr>
+    <tr><td class="paramname">ssrMeta</td><td>SSR message metadata</td></tr>
+    <tr><td class="paramname">masterIod</td><td>IOD SSR</td></tr>
+    <tr><td class="paramname">targetSys</td><td>target system </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a03a22276552d8af1649b1472eef24b1e_cgraph.svg" width="310" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a25a89dedbcc39aa56dfb1eff65744154_cgraph.svg" width="298" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a03a22276552d8af1649b1472eef24b1e_icgraph.svg" width="448" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a25a89dedbcc39aa56dfb1eff65744154_icgraph.svg" width="436" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a271c01b2ed830ba051072b57ec0f0924" name="a271c01b2ed830ba051072b57ec0f0924"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a271c01b2ed830ba051072b57ec0f0924">&#9670;&nbsp;</a></span>mongoReadOrbits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="eigenIncluder_8hpp.html#a7c92072ddd5d5d85e6840cb5637af311">Vector6d</a> &gt; &gt; mongoReadOrbits </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em> = <code><a class="el" href="structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e">GTime::noTime</a>()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em> = <code><a class="el" href="structSatSys.html">SatSys</a>()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>remote</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a271c01b2ed830ba051072b57ec0f0924_cgraph.svg" width="318" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a271c01b2ed830ba051072b57ec0f0924_icgraph.svg" width="344" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a1d89a7a6cae3e135ebc59b318cff9736" name="a1d89a7a6cae3e135ebc59b318cff9736"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d89a7a6cae3e135ebc59b318cff9736">&#9670;&nbsp;</a></span>mongoReadPhaseBias()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="rtcmEncoder_8hpp.html#ab010b8a0cb921ce98043cb70e47f9c69">SsrPBMap</a> mongoReadPhaseBias </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSSRMeta.html">SSRMeta</a> &amp;&#160;</td>
+          <td class="paramname"><em>ssrMeta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>masterIod</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">E_Sys&#160;</td>
+          <td class="paramname"><em>targetSys</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read phase biases from <a class="el" href="structMongo.html">Mongo</a> DB. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ssrMeta</td><td>SSR message metadata</td></tr>
+    <tr><td class="paramname">masterIod</td><td>IOD SSR</td></tr>
+    <tr><td class="paramname">targetSys</td><td>target system </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a1d89a7a6cae3e135ebc59b318cff9736_cgraph.svg" width="386" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mongoRead_8hpp_a1d89a7a6cae3e135ebc59b318cff9736_icgraph.svg" width="459" height="76"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -12,7 +12,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title=" ">
+<g id="a_node1"><a xlink:title="read ionex dcb aux data">
 <polygon fill="#bfbfbf" stroke="black" points="0,-76.5 0,-95.5 83,-95.5 83,-76.5 0,-76.5"/>
 <text text-anchor="middle" x="41.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">readionexdcb</text>
 </a>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="biasSINEXread_8cpp.html#a67c1c7b63f5be7f1efbc0e06a3f581fc" target="_top" xlink:title="Convert observation code string to enum code.">
+<g id="a_node2"><a xlink:href="biasSINEXread_8cpp.html#a4bffe1ef2eba2828588d627449699cbe" target="_top" xlink:title="Convert observation code string to enum code.">
 <polygon fill="white" stroke="black" points="137,-152.5 137,-171.5 196,-171.5 196,-152.5 137,-152.5"/>
 <text text-anchor="middle" x="166.5" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">str2code</text>
 </a>
@@ -63,7 +63,7 @@
 <!-- Node7 -->
 <g id="node5" class="node">
 <title>Node7</title>
-<g id="a_node5"><a xlink:href="biasSINEXread_8cpp.html#a6a51f9914e96ab2fec060c9463b86ae4" target="_top" xlink:title="Push forward and reverse bias entry into the SINEXBiases map.">
+<g id="a_node5"><a xlink:href="biasSINEXread_8cpp.html#aeeda4dd24974c674f01d3b17be379d7f" target="_top" xlink:title="Push forward and reverse bias entry into the SINEXBiases map.">
 <polygon fill="white" stroke="red" points="122.5,-38.5 122.5,-57.5 210.5,-57.5 210.5,-38.5 122.5,-38.5"/>
 <text text-anchor="middle" x="166.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">pushBiasSinex</text>
 </a>

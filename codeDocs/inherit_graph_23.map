@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structERPValues.html" title=" " alt="" coords="5,5,96,32"/>
+<area shape="rect" id="node1" href="$structDebugOptions.html" title="Options to be used only for debugging new features." alt="" coords="6,5,121,32"/>
+<area shape="rect" id="node2" href="$structACSConfig.html" title="General options object to be used throughout the software." alt="" coords="169,81,260,108"/>
+<area shape="rect" id="node3" href="$structGlobalOptions.html" title="Options for the general operation of the software." alt="" coords="6,56,121,83"/>
+<area shape="rect" id="node4" href="$structInputOptions.html" title="Input source filenames and directories." alt="" coords="11,107,116,133"/>
+<area shape="rect" id="node5" href="$structOutputOptions.html" title="Enabling and setting destiations of program outputs." alt="" coords="5,157,121,184"/>
 </map>

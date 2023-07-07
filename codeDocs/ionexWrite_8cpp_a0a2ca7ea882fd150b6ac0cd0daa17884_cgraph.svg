@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="130,-38.5 130,-57.5 201,-57.5 201,-38.5 130,-38.5"/>
 <text text-anchor="middle" x="165.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -35,16 +35,16 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="gTime_8cpp.html#a2a318fa02e2d05aa22eabbcf1a537fcf" target="_top" xlink:title="get current time in utc">
-<polygon fill="white" stroke="red" points="138,-0.5 138,-19.5 193,-19.5 193,-0.5 138,-0.5"/>
-<text text-anchor="middle" x="165.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">timeget</text>
+<g id="a_node3"><a xlink:href="gTime_8cpp.html#a54a930f8f70224e438c222c4e200905d" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="137.5,-0.5 137.5,-19.5 193.5,-19.5 193.5,-0.5 137.5,-0.5"/>
+<text text-anchor="middle" x="165.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">timeGet</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
 <title>Node1&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M94.04,-21.49C108.93,-19.06 124.92,-16.45 137.9,-14.34"/>
+<path fill="none" stroke="midnightblue" d="M94.04,-21.49C108.67,-19.1 124.38,-16.54 137.24,-14.45"/>
 </g>
 </g>
 </svg>

@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structSinex__sat__snx__t.html" title=" " alt="" coords="5,5,132,32"/>
+<area shape="rect" id="node1" href="$structRawSig.html" title="Raw observation data from a receiver for a single frequency." alt="" coords="5,5,76,32"/>
+<area shape="rect" id="node2" href="$structSig.html" title="Per signal data that is calculated from the raw signals." alt="" coords="124,5,167,32"/>
 </map>

@@ -1,10 +1,9 @@
 <map id="replaceString" name="replaceString">
-<area shape="rect" id="node1" title="search for and replace section of string" alt="" coords="532,157,640,184"/>
-<area shape="rect" id="node2" href="$acsConfig_8cpp.html#a2fb6a351dc0cac89305989af6ca205d5" title="Replace macros for times with configured values." alt="" coords="331,5,429,32"/>
-<area shape="rect" id="node3" href="$structRtcmStream.html#a34a7a941dab214b7ff6b17e8a53eb55a" title=" " alt="" coords="288,56,472,83"/>
-<area shape="rect" id="node4" href="$acsConfig_8cpp.html#a75a34dc41e76a8680e3aa6d62ff4c800" title="Replace macros for times with numeric values." alt="" coords="325,107,435,133"/>
-<area shape="rect" id="node5" href="$main_8cpp.html#a260404f91dd3104c4f794029943c96ab" title=" " alt="" coords="42,132,191,159"/>
-<area shape="rect" id="node6" href="$rinexClkWrite_8cpp.html#ae105b449da2c0d5e0ce91380d3b6907b" title=" " alt="" coords="29,195,205,221"/>
-<area shape="rect" id="node7" href="$structRtcmStream.html#a6277b095600588cf534f5c8d846a7601" title=" " alt="" coords="276,208,484,235"/>
-<area shape="rect" id="node8" href="$main_8cpp.html#a2d75b8e97c01e0fc332ddf680796fd21" title=" " alt="" coords="5,271,228,297"/>
+<area shape="rect" id="node1" title="search for and replace section of string" alt="" coords="600,132,708,159"/>
+<area shape="rect" id="node2" href="$acsConfig_8cpp.html#a2fb6a351dc0cac89305989af6ca205d5" title="Replace macros for times with configured values." alt="" coords="429,5,527,32"/>
+<area shape="rect" id="node3" href="$acsConfig_8cpp.html#a75a34dc41e76a8680e3aa6d62ff4c800" title="Replace macros for times with numeric values." alt="" coords="423,56,533,83"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a260404f91dd3104c4f794029943c96ab" title=" " alt="" coords="193,107,343,133"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#a29d52cfc981619584262b20b497865db" title="Create new empty trace files only when required when the filename is changed." alt="" coords="5,157,132,184"/>
+<area shape="rect" id="node6" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="180,208,356,235"/>
+<area shape="rect" id="node7" href="$slrObs_8cpp.html#a8f4c7f3ebd17e93d03acee01f5e9862e" title="Outputs a tabular file with SLR observations in time&#45;order." alt="" coords="404,208,552,235"/>
 </map>

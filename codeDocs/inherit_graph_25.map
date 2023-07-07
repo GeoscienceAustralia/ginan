@@ -1,5 +1,6 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structFilterOptions.html" title=" " alt="" coords="5,31,109,57"/>
-<area shape="rect" id="node2" href="$structMinimumConstraintOptions.html" title="Options associated with the minimum constraints mode of operation." alt="" coords="157,5,359,32"/>
-<area shape="rect" id="node3" href="$structNetworkOptions.html" title="Options associated with the network processing mode of operation." alt="" coords="195,56,321,83"/>
+<area shape="rect" id="node1" href="$structDouble.html" title=" " alt="" coords="5,56,73,83"/>
+<area shape="rect" id="node2" href="$structBTow.html" title=" " alt="" coords="122,5,178,32"/>
+<area shape="rect" id="node3" href="$structGTow.html" title=" " alt="" coords="121,56,179,83"/>
+<area shape="rect" id="node4" href="$structRTod.html" title=" " alt="" coords="123,107,177,133"/>
 </map>

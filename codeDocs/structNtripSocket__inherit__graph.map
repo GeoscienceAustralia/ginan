@@ -1,7 +1,6 @@
 <map id="NtripSocket" name="NtripSocket">
-<area shape="rect" id="node1" title=" " alt="" coords="188,336,396,927"/>
-<area shape="rect" id="node3" href="$structNtripSourceTable.html" title=" " alt="" coords="5,1048,168,1169"/>
-<area shape="rect" id="node4" href="$structNtripStream.html" title=" " alt="" coords="193,1048,391,1169"/>
-<area shape="rect" id="node5" href="$structNtripUploader.html" title=" " alt="" coords="415,975,630,1243"/>
-<area shape="rect" id="node2" href="$structNetworkStatistics.html" title=" " alt="" coords="180,5,404,288"/>
+<area shape="rect" id="node1" title=" " alt="" coords="115,336,323,897"/>
+<area shape="rect" id="node3" href="$structNtripStream.html" title=" " alt="" coords="5,1019,204,1155"/>
+<area shape="rect" id="node4" href="$structNtripUploader.html" title=" " alt="" coords="228,945,443,1228"/>
+<area shape="rect" id="node2" href="$structNetworkStatistics.html" title=" " alt="" coords="107,5,331,288"/>
 </map>

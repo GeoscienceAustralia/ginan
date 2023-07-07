@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M127.26,-38.39C139.75,-40.26 152.29,-42.13 162.93,-43.73"/>
 </g>
-<!-- Node4 -->
+<!-- Node6 -->
 <g id="node3" class="node">
-<title>Node4</title>
+<title>Node6</title>
 <g id="a_node3"><a xlink:href="gTime_8cpp.html#a2a318fa02e2d05aa22eabbcf1a537fcf" target="_top" xlink:title="get current time in utc">
 <polygon fill="white" stroke="red" points="165,-0.5 165,-19.5 220,-19.5 220,-0.5 165,-0.5"/>
 <text text-anchor="middle" x="192.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">timeget</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node4 -->
+<!-- Node1&#45;&gt;Node6 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node4</title>
+<title>Node1&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M127.26,-19.61C140.5,-17.63 153.8,-15.64 164.82,-13.99"/>
 </g>
 </g>

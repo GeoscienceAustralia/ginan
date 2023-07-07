@@ -1,6 +1,5 @@
 <map id="obs2lcs" name="obs2lcs">
-<area shape="rect" id="node1" title="Function to prepare some predefined linear combinations from a list of observations." alt="" coords="5,43,76,69"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="239,5,327,32"/>
-<area shape="rect" id="node3" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="236,68,331,95"/>
-<area shape="rect" id="node4" href="$linearCombo_8cpp.html#aa1b18e5a14543945bb9c7929e8aa4fce" title="Function to prepare some predefined linear combinations from an observation." alt="" coords="124,93,188,120"/>
+<area shape="rect" id="node1" title="Function to prepare some predefined linear combinations from a list of observations." alt="" coords="5,5,76,32"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="236,5,331,32"/>
+<area shape="rect" id="node3" href="$linearCombo_8cpp.html#a0c10f0392343a1e3d46c30eea8db481f" title="Function to prepare some predefined linear combinations from an observation." alt="" coords="124,31,188,57"/>
 </map>

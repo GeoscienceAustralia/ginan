@@ -76,7 +76,6 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">ionoModel.hpp File Reference</div></div>
 </div><!--header-->
@@ -84,66 +83,103 @@ $(function() {
 <div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp__dep__incl.svg" width="100%" height="406"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp__dep__incl.svg" width="100%" height="417"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsinexbias__t.html">sinexbias_t</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIonModel.html">IonModel</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a5888124cd40ab4208daf8ef4755dc162"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a5888124cd40ab4208daf8ef4755dc162">config_ionosph_model</a> ()</td></tr>
-<tr class="separator:a5888124cd40ab4208daf8ef4755dc162"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3dce4bc6a3c8a98b9f14fd6804d330c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a3dce4bc6a3c8a98b9f14fd6804d330c3">update_receivr_measr</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
-<tr class="separator:a3dce4bc6a3c8a98b9f14fd6804d330c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f06f7dbce9c9ff7060c5a4ebc052a64"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a8f06f7dbce9c9ff7060c5a4ebc052a64">updateIonosphereModel</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string ionstecFilename, string ionexFilename, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;stationMap, <a class="el" href="structGTime.html">GTime</a> time)</td></tr>
+<tr class="memitem:a44cbc6538a20f23450d43b4e4735f54d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a44cbc6538a20f23450d43b4e4735f54d">configIonModel</a> ()</td></tr>
+<tr class="separator:a44cbc6538a20f23450d43b4e4735f54d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c49145d4a23afb2c28012e9e286107e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a3c49145d4a23afb2c28012e9e286107e">getSSRIono</a> (<a class="el" href="structGTime.html">GTime</a> time, Vector3d &amp;rRec, Vector3d &amp;rSat, double &amp;variance, <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat)</td></tr>
+<tr class="separator:a3c49145d4a23afb2c28012e9e286107e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1cb9ea2aa583c7c0745a8d788253889"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ae1cb9ea2aa583c7c0745a8d788253889">update_receivr_measr</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structStation.html">Station</a> &amp;rec)</td></tr>
+<tr class="separator:ae1cb9ea2aa583c7c0745a8d788253889"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2005a7695bfb7b9a595eb802265219d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a2005a7695bfb7b9a595eb802265219d7">ginan2IonoMeas</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="structKFState.html">KFState</a> &amp;measKFstate)</td></tr>
+<tr class="separator:a2005a7695bfb7b9a595eb802265219d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f06f7dbce9c9ff7060c5a4ebc052a64"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a8f06f7dbce9c9ff7060c5a4ebc052a64">updateIonosphereModel</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string ionstecFilename, string ionexFilename, <a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;<a class="el" href="main_8cpp.html#a8a7f2c2ef76478f7befb9e87f4758633">stationMap</a>, <a class="el" href="structGTime.html">GTime</a> time)</td></tr>
 <tr class="memdesc:a8f06f7dbce9c9ff7060c5a4ebc052a64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updating the ionosphere model parameters <br  />
  The ionosphere model should be initialized by calling 'config_ionosph_model' <br  />
  Ionosphere measurments from stations should be loaded using 'update_station_measr'.  <a href="ionoModel_8hpp.html#a8f06f7dbce9c9ff7060c5a4ebc052a64">More...</a><br /></td></tr>
 <tr class="separator:a8f06f7dbce9c9ff7060c5a4ebc052a64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2dce3acfc272e3bb630401afe55dfd57"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a2dce3acfc272e3bb630401afe55dfd57">ionexFileWrite</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string filename, <a class="el" href="structGTime.html">GTime</a> time, bool end=false)</td></tr>
-<tr class="separator:a2dce3acfc272e3bb630401afe55dfd57"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9d497d2460f1b6161754c7fbadea814"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ac9d497d2460f1b6161754c7fbadea814">writeReceiverMeasurements</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string filename, map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; stations, <a class="el" href="structGTime.html">GTime</a> time)</td></tr>
-<tr class="separator:ac9d497d2460f1b6161754c7fbadea814"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a809cb7c3f3a29817c991746e449a9320"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a809cb7c3f3a29817c991746e449a9320">configure_iono_model_sphhar</a> (void)</td></tr>
-<tr class="separator:a809cb7c3f3a29817c991746e449a9320"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32460ecb229f47f08516ff7a35f45f47"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a32460ecb229f47f08516ff7a35f45f47">Ipp_check_sphhar</a> (<a class="el" href="structGTime.html">GTime</a> time, double *Ion_pp)</td></tr>
-<tr class="separator:a32460ecb229f47f08516ff7a35f45f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa20b96a2395519ca97148bcba84e1e85"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#aa20b96a2395519ca97148bcba84e1e85">ion_coef_sphhar</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> ind, <a class="el" href="structObs.html">Obs</a> &amp;obs, bool slant=true)</td></tr>
-<tr class="separator:aa20b96a2395519ca97148bcba84e1e85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a41a6e504f87f80223e06f686c93eab8e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a41a6e504f87f80223e06f686c93eab8e">ionVtecSphhar</a> (<a class="el" href="structGTime.html">GTime</a> time, double *Ion_pp, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> layer, double &amp;vari, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
-<tr class="separator:a41a6e504f87f80223e06f686c93eab8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9253b7428bc4c4903bd59d5d68f243e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ab9253b7428bc4c4903bd59d5d68f243e">configure_iono_model_sphcap</a> (void)</td></tr>
-<tr class="separator:ab9253b7428bc4c4903bd59d5d68f243e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a906282f60e53b02995e06f9048079b78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a906282f60e53b02995e06f9048079b78">Ipp_check_sphcap</a> (<a class="el" href="structGTime.html">GTime</a> time, double *Ion_pp)</td></tr>
-<tr class="separator:a906282f60e53b02995e06f9048079b78"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a02900db521554f0773ae949a322071f3"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a02900db521554f0773ae949a322071f3">ion_coef_sphcap</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> ind, <a class="el" href="structObs.html">Obs</a> &amp;obs, bool slant=true)</td></tr>
-<tr class="separator:a02900db521554f0773ae949a322071f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a620486fd228e2133a32860533ca923c8"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a620486fd228e2133a32860533ca923c8">ionVtecSphcap</a> (<a class="el" href="structGTime.html">GTime</a> time, double *Ion_pp, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> layer, double &amp;vari, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
-<tr class="separator:a620486fd228e2133a32860533ca923c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80721a08ecb039ccf36b7d0fdfab575f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a80721a08ecb039ccf36b7d0fdfab575f">configure_iono_model_bsplin</a> (void)</td></tr>
-<tr class="separator:a80721a08ecb039ccf36b7d0fdfab575f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9279d53ea1351ca8e31451171ee0bd71"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a9279d53ea1351ca8e31451171ee0bd71">Ipp_check_bsplin</a> (<a class="el" href="structGTime.html">GTime</a> time, double *Ion_pp)</td></tr>
-<tr class="separator:a9279d53ea1351ca8e31451171ee0bd71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8150ab75d476458e3555ffeca35adf3a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a8150ab75d476458e3555ffeca35adf3a">ion_coef_bsplin</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> ind, <a class="el" href="structObs.html">Obs</a> &amp;obs, bool slant=true)</td></tr>
-<tr class="separator:a8150ab75d476458e3555ffeca35adf3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef570343aff2d9e50754ea4150ad4c29"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#aef570343aff2d9e50754ea4150ad4c29">ionVtecBsplin</a> (<a class="el" href="structGTime.html">GTime</a> time, double *Ion_pp, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> layer, double &amp;vari, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
-<tr class="memdesc:aef570343aff2d9e50754ea4150ad4c29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estimate Ionosphere VTEC using Ionospheric gridmaps Ion_pp I Ionosphere Piercing Point layer I Layer number vari O variance of VTEC.  <a href="ionoModel_8hpp.html#aef570343aff2d9e50754ea4150ad4c29">More...</a><br /></td></tr>
-<tr class="separator:aef570343aff2d9e50754ea4150ad4c29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f0f6db30db859a82f3e12712e1233da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a5f0f6db30db859a82f3e12712e1233da">ionosphereSsrUpdate</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:a5f0f6db30db859a82f3e12712e1233da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2b5a1e7749bbd86a20feb29b5713861"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ac2b5a1e7749bbd86a20feb29b5713861">overwriteIonoKF</a> (<a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:ac2b5a1e7749bbd86a20feb29b5713861"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32bbbf9ee3ced2d514f86219d598d6b6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a32bbbf9ee3ced2d514f86219d598d6b6">queryBiasDCB</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structSatSys.html">SatSys</a> Sat, string Rec, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> freq, double &amp;bias, double &amp;vari)</td></tr>
+<tr class="memdesc:a32bbbf9ee3ced2d514f86219d598d6b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estimate biases from Ionosphere modelling DCBs.  <a href="ionoModel_8hpp.html#a32bbbf9ee3ced2d514f86219d598d6b6">More...</a><br /></td></tr>
+<tr class="separator:a32bbbf9ee3ced2d514f86219d598d6b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a494d07108f834d3383fd299fc2ac3da5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a494d07108f834d3383fd299fc2ac3da5">ionexFileWrite</a> (string filename, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:a494d07108f834d3383fd299fc2ac3da5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52ea83d839caafd8dbeaeb78cd607271"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a52ea83d839caafd8dbeaeb78cd607271">writeReceiverMeasurements</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, string filename, map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;stations, <a class="el" href="structGTime.html">GTime</a> time)</td></tr>
+<tr class="separator:a52ea83d839caafd8dbeaeb78cd607271"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf1305d09e1001b88ffa391feb9c4aa5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#aaf1305d09e1001b88ffa391feb9c4aa5">configIonModelSphhar</a> ()</td></tr>
+<tr class="memdesc:aaf1305d09e1001b88ffa391feb9c4aa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">configures the spherical harmonics model.  <a href="ionoModel_8hpp.html#aaf1305d09e1001b88ffa391feb9c4aa5">More...</a><br /></td></tr>
+<tr class="separator:aaf1305d09e1001b88ffa391feb9c4aa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab87ec60257db51dd5d9d6cdc66cdd905"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ab87ec60257db51dd5d9d6cdc66cdd905">configIonModelSphcap</a> ()</td></tr>
+<tr class="memdesc:ab87ec60257db51dd5d9d6cdc66cdd905"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes Spherical caps Ionosphere model The following configursation parameters are used.  <a href="ionoModel_8hpp.html#ab87ec60257db51dd5d9d6cdc66cdd905">More...</a><br /></td></tr>
+<tr class="separator:ab87ec60257db51dd5d9d6cdc66cdd905"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d6710d2c096916cec5404de45e8ac96"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a9d6710d2c096916cec5404de45e8ac96">configIonModelBsplin</a> ()</td></tr>
+<tr class="memdesc:a9d6710d2c096916cec5404de45e8ac96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes grid map model The following configursation parameters are used.  <a href="ionoModel_8hpp.html#a9d6710d2c096916cec5404de45e8ac96">More...</a><br /></td></tr>
+<tr class="separator:a9d6710d2c096916cec5404de45e8ac96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae18f2e090bbfcf92f63d376ebbdab6c5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ae18f2e090bbfcf92f63d376ebbdab6c5">ippCheckSphhar</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;Ion_pp)</td></tr>
+<tr class="memdesc:ae18f2e090bbfcf92f63d376ebbdab6c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IPP: I Ionospheric piercing point to be updated  <a href="ionoModel_8hpp.html#ae18f2e090bbfcf92f63d376ebbdab6c5">More...</a><br /></td></tr>
+<tr class="separator:ae18f2e090bbfcf92f63d376ebbdab6c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab980c9f7c78418c59dfb7bb9512a2f1d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ab980c9f7c78418c59dfb7bb9512a2f1d">ippCheckSphcap</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;Ion_pp)</td></tr>
+<tr class="memdesc:ab980c9f7c78418c59dfb7bb9512a2f1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">transforms the Ionosphere Piercing Point and checks if it falls in area of coverage time: I time of observations (not used) IPP: I Ionospheric piercing point to be updated  <a href="ionoModel_8hpp.html#ab980c9f7c78418c59dfb7bb9512a2f1d">More...</a><br /></td></tr>
+<tr class="separator:ab980c9f7c78418c59dfb7bb9512a2f1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7002ebc4f104e21e0a2a24917ac32098"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a7002ebc4f104e21e0a2a24917ac32098">ippCheckBsplin</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;Ion_pp)</td></tr>
+<tr class="memdesc:a7002ebc4f104e21e0a2a24917ac32098"><td class="mdescLeft">&#160;</td><td class="mdescRight">checks if the Ionosphere Piercing Point falls in area of coverage time: I time of observations (not used) IPP: I Ionospheric piercing point to be updated  <a href="ionoModel_8hpp.html#a7002ebc4f104e21e0a2a24917ac32098">More...</a><br /></td></tr>
+<tr class="separator:a7002ebc4f104e21e0a2a24917ac32098"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac31d7924da8fd2419a7309ec952683bb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ac31d7924da8fd2419a7309ec952683bb">ippCheckLocal</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;Ion_pp)</td></tr>
+<tr class="memdesc:ac31d7924da8fd2419a7309ec952683bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the Ionosphere Piercing Point falls in area of coverage.  <a href="ionoModel_8hpp.html#ac31d7924da8fd2419a7309ec952683bb">More...</a><br /></td></tr>
+<tr class="separator:ac31d7924da8fd2419a7309ec952683bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f57c63171e00138161f32f27796216b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a5f57c63171e00138161f32f27796216b">ionModelCoef</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ind, <a class="el" href="structIonoObs.html">IonoObs</a> &amp;obs, bool slant=true)</td></tr>
+<tr class="separator:a5f57c63171e00138161f32f27796216b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75a450c608fbdd62881e03cb2f2f22ec"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a75a450c608fbdd62881e03cb2f2f22ec">ionCoefSphhar</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ind, <a class="el" href="structIonoObs.html">IonoObs</a> &amp;obs, bool slant=true)</td></tr>
+<tr class="memdesc:a75a450c608fbdd62881e03cb2f2f22ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluates spherical harmonics basis functions int ind I <br  />
+ obs I Ionosphere measurement struct latIPP - Latitude of Ionosphere Piercing Point lonIPP - Longitude of Ionosphere Piercing Point angIPP - Angular gain for Ionosphere Piercing Point.  <a href="ionoModel_8hpp.html#a75a450c608fbdd62881e03cb2f2f22ec">More...</a><br /></td></tr>
+<tr class="separator:a75a450c608fbdd62881e03cb2f2f22ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94f05a01d82696c400ff49c916c1aaa9"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a94f05a01d82696c400ff49c916c1aaa9">ionCoefSphcap</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ind, <a class="el" href="structIonoObs.html">IonoObs</a> &amp;obs, bool slant=true)</td></tr>
+<tr class="memdesc:a94f05a01d82696c400ff49c916c1aaa9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluates spherical cap harmonics basis functions int ind I Basis function number obs I Ionosphere measurement struct latIPP - Latitude of Ionosphere Piercing Point lonIPP - Longitude of Ionosphere Piercing Point angIPP - Angular gain for Ionosphere Piercing Point.  <a href="ionoModel_8hpp.html#a94f05a01d82696c400ff49c916c1aaa9">More...</a><br /></td></tr>
+<tr class="separator:a94f05a01d82696c400ff49c916c1aaa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf07972eea40c95e8b78bffa7c015aae"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#abf07972eea40c95e8b78bffa7c015aae">ionCoefBsplin</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ind, <a class="el" href="structIonoObs.html">IonoObs</a> &amp;obs, bool slant=true)</td></tr>
+<tr class="memdesc:abf07972eea40c95e8b78bffa7c015aae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluates B-splines basis functions int ind I Basis function number meas I Ionosphere measurement struct latIPP - Latitude of Ionosphere Piercing Point lonIPP - Longitude of Ionosphere Piercing Point angIPP - Angular gain for Ionosphere Piercing Point bool slant I state to delay gain; false: state to VTEC gain.  <a href="ionoModel_8hpp.html#abf07972eea40c95e8b78bffa7c015aae">More...</a><br /></td></tr>
+<tr class="separator:abf07972eea40c95e8b78bffa7c015aae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc75ea9aebc6eeec282be33f469bfee0"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#abc75ea9aebc6eeec282be33f469bfee0">ionCoefLocal</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ind, <a class="el" href="structIonoObs.html">IonoObs</a> &amp;obs)</td></tr>
+<tr class="memdesc:abc75ea9aebc6eeec282be33f469bfee0"><td class="mdescLeft">&#160;</td><td class="mdescRight">calcuates the partials of observations with respect to basis functions int ind I Basis function number meas I Ionosphere measurement struct latIPP - Latitude of Ionosphere Piercing Point lonIPP - Longitude of Ionosphere Piercing Point  <a href="ionoModel_8hpp.html#abc75ea9aebc6eeec282be33f469bfee0">More...</a><br /></td></tr>
+<tr class="separator:abc75ea9aebc6eeec282be33f469bfee0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0483a2a088fc3366fe6a7525c978d75"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ad0483a2a088fc3366fe6a7525c978d75">ionVtecSphhar</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;ionPP, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> layer, double &amp;vari, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="memdesc:ad0483a2a088fc3366fe6a7525c978d75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not useful for this one Ion_pp I Ionosphere Piercing Point layer I Layer number vari O variance of VTEC.  <a href="ionoModel_8hpp.html#ad0483a2a088fc3366fe6a7525c978d75">More...</a><br /></td></tr>
+<tr class="separator:ad0483a2a088fc3366fe6a7525c978d75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82326715df0da871208b2a5a8cc90007"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a82326715df0da871208b2a5a8cc90007">ionVtecSphcap</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;ionPP, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> layer, double &amp;vari, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="memdesc:a82326715df0da871208b2a5a8cc90007"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not useful for this one Ion_pp I Ionosphere Piercing Point layer I Layer number vari O variance of VTEC.  <a href="ionoModel_8hpp.html#a82326715df0da871208b2a5a8cc90007">More...</a><br /></td></tr>
+<tr class="separator:a82326715df0da871208b2a5a8cc90007"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8b69e53386db097895cdb35126f3c9a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#af8b69e53386db097895cdb35126f3c9a">ionVtecBsplin</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structVectorPos.html">VectorPos</a> &amp;ionPP, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> layer, double &amp;vari, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="memdesc:af8b69e53386db097895cdb35126f3c9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estimate Ionosphere VTEC using Ionospheric gridmaps Ion_pp I Ionosphere Piercing Point layer I Layer number vari O variance of VTEC returns: VETC at piercing point.  <a href="ionoModel_8hpp.html#af8b69e53386db097895cdb35126f3c9a">More...</a><br /></td></tr>
+<tr class="separator:af8b69e53386db097895cdb35126f3c9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a647350388a58e3ea86294f8b76ec539a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a647350388a58e3ea86294f8b76ec539a">ionOutputSphcal</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:a647350388a58e3ea86294f8b76ec539a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cbf18fb13afe8f7b3787785d9a13f64"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a3cbf18fb13afe8f7b3787785d9a13f64">ionOutputLocal</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace, <a class="el" href="structKFState.html">KFState</a> &amp;kfState)</td></tr>
+<tr class="separator:a3cbf18fb13afe8f7b3787785d9a13f64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a980b1b21ea0b8cc6c72fb465d866aeca"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a980b1b21ea0b8cc6c72fb465d866aeca">getIGSSSRIono</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSSRAtm.html">SSRAtm</a> &amp;ssrAtm, Vector3d &amp;rSat, Vector3d &amp;rRec, double &amp;iono, double &amp;var)</td></tr>
+<tr class="separator:a980b1b21ea0b8cc6c72fb465d866aeca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11b3a9b1f612a452b6abc10fb21e07f6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a11b3a9b1f612a452b6abc10fb21e07f6">getCmpSSRIono</a> (<a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSSRAtm.html">SSRAtm</a> &amp;ssrAtm, Vector3d &amp;rRec, double &amp;iono, double &amp;var, <a class="el" href="structSatSys.html">SatSys</a> Sat)</td></tr>
+<tr class="separator:a11b3a9b1f612a452b6abc10fb21e07f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6ec678f0d43ed0c5c85b96e2f62bd8f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#ae6ec678f0d43ed0c5c85b96e2f62bd8f">defineLocalIonoBasis</a> ()</td></tr>
+<tr class="separator:ae6ec678f0d43ed0c5c85b96e2f62bd8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a282d5c9ec6a568d224efddda6ea976c6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ionoModel_8hpp.html#a282d5c9ec6a568d224efddda6ea976c6">configLocalIonoFromFile</a> ()</td></tr>
+<tr class="memdesc:a282d5c9ec6a568d224efddda6ea976c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes local ionosphere maps Parameters are set from files indicated by nav.SSRAtmMap.AtmosRegions.  <a href="ionoModel_8hpp.html#a282d5c9ec6a568d224efddda6ea976c6">More...</a><br /></td></tr>
+<tr class="separator:a282d5c9ec6a568d224efddda6ea976c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a5888124cd40ab4208daf8ef4755dc162" name="a5888124cd40ab4208daf8ef4755dc162"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5888124cd40ab4208daf8ef4755dc162">&#9670;&nbsp;</a></span>config_ionosph_model()</h2>
+<a id="a44cbc6538a20f23450d43b4e4735f54d" name="a44cbc6538a20f23450d43b4e4735f54d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44cbc6538a20f23450d43b4e4735f54d">&#9670;&nbsp;</a></span>configIonModel()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> config_ionosph_model </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> configIonModel </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -153,77 +189,155 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a5888124cd40ab4208daf8ef4755dc162_cgraph.svg" width="394" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a44cbc6538a20f23450d43b4e4735f54d_cgraph.svg" width="351" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a5888124cd40ab4208daf8ef4755dc162_icgraph.svg" width="282" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a44cbc6538a20f23450d43b4e4735f54d_icgraph.svg" width="240" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a80721a08ecb039ccf36b7d0fdfab575f" name="a80721a08ecb039ccf36b7d0fdfab575f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80721a08ecb039ccf36b7d0fdfab575f">&#9670;&nbsp;</a></span>configure_iono_model_bsplin()</h2>
+<a id="a9d6710d2c096916cec5404de45e8ac96" name="a9d6710d2c096916cec5404de45e8ac96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d6710d2c096916cec5404de45e8ac96">&#9670;&nbsp;</a></span>configIonModelBsplin()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> configure_iono_model_bsplin </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> configIonModelBsplin </td>
           <td>(</td>
-          <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Initializes grid map model The following configursation parameters are used. </p>
+<ul>
+<li>acsConfig.ionFilterOpts.lat_center: latitude of map centre</li>
+<li>acsConfig.ionFilterOpts.lon_center: longitude of map centre</li>
+<li>acsConfig.ionFilterOpts.lat_width: latitude width of maps</li>
+<li>acsConfig.ionFilterOpts.lon_width: longitude width of maps</li>
+<li>acsConfig.ionFilterOpts.lat_res: latitude resolution of gridmap</li>
+<li>acsConfig.ionFilterOpts.lon_res: longitude resolution of gridmap </li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1"></a>
+-  acsConfig.ionFilterOpts.layer_heights: Ionosphere layer Heights</h2>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a80721a08ecb039ccf36b7d0fdfab575f_icgraph.svg" width="394" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a9d6710d2c096916cec5404de45e8ac96_icgraph.svg" width="344" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ab9253b7428bc4c4903bd59d5d68f243e" name="ab9253b7428bc4c4903bd59d5d68f243e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9253b7428bc4c4903bd59d5d68f243e">&#9670;&nbsp;</a></span>configure_iono_model_sphcap()</h2>
+<a id="ab87ec60257db51dd5d9d6cdc66cdd905" name="ab87ec60257db51dd5d9d6cdc66cdd905"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab87ec60257db51dd5d9d6cdc66cdd905">&#9670;&nbsp;</a></span>configIonModelSphcap()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> configure_iono_model_sphcap </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> configIonModelSphcap </td>
           <td>(</td>
-          <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Initializes Spherical caps Ionosphere model The following configursation parameters are used. </p>
+<ul>
+<li>acsConfig.ionoOpts.lat_center: latitude of map centre</li>
+<li>acsConfig.ionoOpts.lon_center: longitude of map centre</li>
+<li>acsConfig.ionoOpts.lat_width: latitude width of maps</li>
+<li>acsConfig.ionoOpts.lon_width: longitude width of maps</li>
+<li>acsConfig.ionoOpts.func_order: <a class="el" href="structLegendre.html">Legendre</a> function order </li>
+</ul>
+<h2><a class="anchor" id="autotoc_md16"></a>
+-  acsConfig.ionoOpts.layer_heights: Ionosphere layer Heights</h2>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ab9253b7428bc4c4903bd59d5d68f243e_cgraph.svg" width="495" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ab87ec60257db51dd5d9d6cdc66cdd905_cgraph.svg" width="498" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ab9253b7428bc4c4903bd59d5d68f243e_icgraph.svg" width="394" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ab87ec60257db51dd5d9d6cdc66cdd905_icgraph.svg" width="351" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a809cb7c3f3a29817c991746e449a9320" name="a809cb7c3f3a29817c991746e449a9320"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a809cb7c3f3a29817c991746e449a9320">&#9670;&nbsp;</a></span>configure_iono_model_sphhar()</h2>
+<a id="aaf1305d09e1001b88ffa391feb9c4aa5" name="aaf1305d09e1001b88ffa391feb9c4aa5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf1305d09e1001b88ffa391feb9c4aa5">&#9670;&nbsp;</a></span>configIonModelSphhar()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> configure_iono_model_sphhar </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> configIonModelSphhar </td>
           <td>(</td>
-          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>configures the spherical harmonics model. </p>
+<p >Specifically it initializes: shar_valid time validity of a rotation matrix (the rotation matrix will chase the sun position) Sph_Basis_list List of ionosphere basis time: I time of observations (to update the rotation matrix) IPP: I Ionospheric piercing point to be updated </p>
+<h2><a class="anchor" id="autotoc_md6"></a>
+Since the spherical harmonic model has global validity, the check always return 1</h2>
+<h2><a class="anchor" id="autotoc_md7"></a>
+Author: Ken Harima @ RMIT 29 July 2020</h2>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_aaf1305d09e1001b88ffa391feb9c4aa5_cgraph.svg" width="375" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_aaf1305d09e1001b88ffa391feb9c4aa5_icgraph.svg" width="348" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a282d5c9ec6a568d224efddda6ea976c6" name="a282d5c9ec6a568d224efddda6ea976c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a282d5c9ec6a568d224efddda6ea976c6">&#9670;&nbsp;</a></span>configLocalIonoFromFile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool configLocalIonoFromFile </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initializes local ionosphere maps Parameters are set from files indicated by nav.SSRAtmMap.AtmosRegions. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a282d5c9ec6a568d224efddda6ea976c6_cgraph.svg" width="398" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae6ec678f0d43ed0c5c85b96e2f62bd8f" name="ae6ec678f0d43ed0c5c85b96e2f62bd8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6ec678f0d43ed0c5c85b96e2f62bd8f">&#9670;&nbsp;</a></span>defineLocalIonoBasis()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> defineLocalIonoBasis </td>
+          <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -232,34 +346,52 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a809cb7c3f3a29817c991746e449a9320_icgraph.svg" width="394" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ae6ec678f0d43ed0c5c85b96e2f62bd8f_icgraph.svg" width="398" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a8150ab75d476458e3555ffeca35adf3a" name="a8150ab75d476458e3555ffeca35adf3a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8150ab75d476458e3555ffeca35adf3a">&#9670;&nbsp;</a></span>ion_coef_bsplin()</h2>
+<a id="a11b3a9b1f612a452b6abc10fb21e07f6" name="a11b3a9b1f612a452b6abc10fb21e07f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11b3a9b1f612a452b6abc10fb21e07f6">&#9670;&nbsp;</a></span>getCmpSSRIono()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double ion_coef_bsplin </td>
+          <td class="memname">bool getCmpSSRIono </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>ind</em>, </td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
+          <td class="paramtype"><a class="el" href="structSSRAtm.html">SSRAtm</a> &amp;&#160;</td>
+          <td class="paramname"><em>ssrAtm</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>slant</em> = <code>true</code>&#160;</td>
+          <td class="paramtype">Vector3d &amp;&#160;</td>
+          <td class="paramname"><em>rRec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>iono</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>var</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -268,37 +400,71 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">time</td><td>GPS time</td></tr>
+    <tr><td class="paramname">ssrAtm</td><td>SSR Atmospheric corrections</td></tr>
+    <tr><td class="paramname">rRec</td><td>receiver position</td></tr>
+    <tr><td class="paramname">iono</td><td>ionoapheric delay (in TECu)</td></tr>
+    <tr><td class="paramname">var</td><td>ionoapheric delay (in TECu^2)</td></tr>
+    <tr><td class="paramname">Sat</td><td>Satellite </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a11b3a9b1f612a452b6abc10fb21e07f6_cgraph.svg" width="300" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a8150ab75d476458e3555ffeca35adf3a_icgraph.svg" width="292" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a11b3a9b1f612a452b6abc10fb21e07f6_icgraph.svg" width="282" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a02900db521554f0773ae949a322071f3" name="a02900db521554f0773ae949a322071f3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a02900db521554f0773ae949a322071f3">&#9670;&nbsp;</a></span>ion_coef_sphcap()</h2>
+<a id="a980b1b21ea0b8cc6c72fb465d866aeca" name="a980b1b21ea0b8cc6c72fb465d866aeca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a980b1b21ea0b8cc6c72fb465d866aeca">&#9670;&nbsp;</a></span>getIGSSSRIono()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double ion_coef_sphcap </td>
+          <td class="memname">bool getIGSSSRIono </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>ind</em>, </td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
+          <td class="paramtype"><a class="el" href="structSSRAtm.html">SSRAtm</a> &amp;&#160;</td>
+          <td class="paramname"><em>ssrAtm</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>slant</em> = <code>true</code>&#160;</td>
+          <td class="paramtype">Vector3d &amp;&#160;</td>
+          <td class="paramname"><em>rSat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Vector3d &amp;&#160;</td>
+          <td class="paramname"><em>rRec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>iono</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>var</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -307,42 +473,65 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">time</td><td>time of ionosphere correction</td></tr>
+    <tr><td class="paramname">ssrAtm</td><td>SSR atmospheric correction</td></tr>
+    <tr><td class="paramname">rSat</td><td>Satellite position</td></tr>
+    <tr><td class="paramname">rRec</td><td>receiver position</td></tr>
+    <tr><td class="paramname">iono</td><td>Ionosphere delay (in TECu)</td></tr>
+    <tr><td class="paramname">var</td><td>Ionosphere variance </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a02900db521554f0773ae949a322071f3_cgraph.svg" width="328" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a980b1b21ea0b8cc6c72fb465d866aeca_cgraph.svg" width="292" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a02900db521554f0773ae949a322071f3_icgraph.svg" width="308" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a980b1b21ea0b8cc6c72fb465d866aeca_icgraph.svg" width="274" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="aa20b96a2395519ca97148bcba84e1e85" name="aa20b96a2395519ca97148bcba84e1e85"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa20b96a2395519ca97148bcba84e1e85">&#9670;&nbsp;</a></span>ion_coef_sphhar()</h2>
+<a id="a3c49145d4a23afb2c28012e9e286107e" name="a3c49145d4a23afb2c28012e9e286107e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c49145d4a23afb2c28012e9e286107e">&#9670;&nbsp;</a></span>getSSRIono()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double ion_coef_sphhar </td>
+          <td class="memname">double getSSRIono </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>ind</em>, </td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
-          <td class="paramname"><em>obs</em>, </td>
+          <td class="paramtype">Vector3d &amp;&#160;</td>
+          <td class="paramname"><em>rRec</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>slant</em> = <code>true</code>&#160;</td>
+          <td class="paramtype">Vector3d &amp;&#160;</td>
+          <td class="paramname"><em>rSat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>variance</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a> &amp;&#160;</td>
+          <td class="paramname"><em>Sat</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -351,27 +540,37 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">time</td><td>time of ionosphere correction</td></tr>
+    <tr><td class="paramname">rRec</td><td>receiver position</td></tr>
+    <tr><td class="paramname">rSat</td><td>Satellite position</td></tr>
+    <tr><td class="paramname">variance</td><td>Ionosphere variance</td></tr>
+    <tr><td class="paramname">Sat</td><td>Satellite </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_aa20b96a2395519ca97148bcba84e1e85_cgraph.svg" width="302" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a3c49145d4a23afb2c28012e9e286107e_cgraph.svg" width="282" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_aa20b96a2395519ca97148bcba84e1e85_icgraph.svg" width="303" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a3c49145d4a23afb2c28012e9e286107e_icgraph.svg" width="278" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a2dce3acfc272e3bb630401afe55dfd57" name="a2dce3acfc272e3bb630401afe55dfd57"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2dce3acfc272e3bb630401afe55dfd57">&#9670;&nbsp;</a></span>ionexFileWrite()</h2>
+<a id="a2005a7695bfb7b9a595eb802265219d7" name="a2005a7695bfb7b9a595eb802265219d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2005a7695bfb7b9a595eb802265219d7">&#9670;&nbsp;</a></span>ginan2IonoMeas()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> ionexFileWrite </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ginan2IonoMeas </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -379,6 +578,237 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="rtsSmoothing_8hpp.html#a7a02c7b4f740d8ade865389e11a1e9da">StationMap</a> &amp;&#160;</td>
+          <td class="paramname"><em>stationMap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>measKFstate</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>debug trace</td></tr>
+    <tr><td class="paramname">stationMap</td><td>List of stations containing observations for this epoch</td></tr>
+    <tr><td class="paramname">measKFstate</td><td>Kalman filter object containing the ionosphere estimates </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a2005a7695bfb7b9a595eb802265219d7_cgraph.svg" width="344" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a2005a7695bfb7b9a595eb802265219d7_icgraph.svg" width="235" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="abf07972eea40c95e8b78bffa7c015aae" name="abf07972eea40c95e8b78bffa7c015aae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf07972eea40c95e8b78bffa7c015aae">&#9670;&nbsp;</a></span>ionCoefBsplin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ionCoefBsplin </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>ind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIonoObs.html">IonoObs</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>slant</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Evaluates B-splines basis functions int ind I Basis function number meas I Ionosphere measurement struct latIPP - Latitude of Ionosphere Piercing Point lonIPP - Longitude of Ionosphere Piercing Point angIPP - Angular gain for Ionosphere Piercing Point bool slant I state to delay gain; false: state to VTEC gain. </p>
+<h2><a class="anchor" id="autotoc_md4"></a>
+BSPLINE_LATINT and BSPLINE_LONINT needs to be set before calling this function</h2>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_abf07972eea40c95e8b78bffa7c015aae_icgraph.svg" width="283" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="abc75ea9aebc6eeec282be33f469bfee0" name="abc75ea9aebc6eeec282be33f469bfee0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc75ea9aebc6eeec282be33f469bfee0">&#9670;&nbsp;</a></span>ionCoefLocal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ionCoefLocal </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>ind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIonoObs.html">IonoObs</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>calcuates the partials of observations with respect to basis functions int ind I Basis function number meas I Ionosphere measurement struct latIPP - Latitude of Ionosphere Piercing Point lonIPP - Longitude of Ionosphere Piercing Point </p>
+<h2><a class="anchor" id="autotoc_md5"></a>
+This function should be called after ippCheckLocal</h2>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_abc75ea9aebc6eeec282be33f469bfee0_icgraph.svg" width="292" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a94f05a01d82696c400ff49c916c1aaa9" name="a94f05a01d82696c400ff49c916c1aaa9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94f05a01d82696c400ff49c916c1aaa9">&#9670;&nbsp;</a></span>ionCoefSphcap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ionCoefSphcap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>ind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIonoObs.html">IonoObs</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>slant</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Evaluates spherical cap harmonics basis functions int ind I Basis function number obs I Ionosphere measurement struct latIPP - Latitude of Ionosphere Piercing Point lonIPP - Longitude of Ionosphere Piercing Point angIPP - Angular gain for Ionosphere Piercing Point. </p>
+<h2><a class="anchor" id="autotoc_md14"></a>
+bool slant      I       false: output coefficient for Vtec, true: output coefficient for delay</h2>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a94f05a01d82696c400ff49c916c1aaa9_cgraph.svg" width="316" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a94f05a01d82696c400ff49c916c1aaa9_icgraph.svg" width="296" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a75a450c608fbdd62881e03cb2f2f22ec" name="a75a450c608fbdd62881e03cb2f2f22ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a75a450c608fbdd62881e03cb2f2f22ec">&#9670;&nbsp;</a></span>ionCoefSphhar()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ionCoefSphhar </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>ind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIonoObs.html">IonoObs</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>slant</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Evaluates spherical harmonics basis functions int ind I <br  />
+ obs I Ionosphere measurement struct latIPP - Latitude of Ionosphere Piercing Point lonIPP - Longitude of Ionosphere Piercing Point angIPP - Angular gain for Ionosphere Piercing Point. </p>
+<h2><a class="anchor" id="autotoc_md10"></a>
+int slant       I       0: coefficient for VTEC, 1: coefficient for STEC</h2>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ind</td><td>Basis function number</td></tr>
+    <tr><td class="paramname">obs</td><td>Ionospheric observation metadata</td></tr>
+    <tr><td class="paramname">slant</td><td>apply slant factor, false: coefficient for VTEC, true: coefficient for STEC </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a75a450c608fbdd62881e03cb2f2f22ec_cgraph.svg" width="326" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a75a450c608fbdd62881e03cb2f2f22ec_icgraph.svg" width="292" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a494d07108f834d3383fd299fc2ac3da5" name="a494d07108f834d3383fd299fc2ac3da5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a494d07108f834d3383fd299fc2ac3da5">&#9670;&nbsp;</a></span>ionexFileWrite()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ionexFileWrite </td>
+          <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>filename</em>, </td>
         </tr>
@@ -391,8 +821,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>end</em> = <code>false</code>&#160;</td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -404,18 +834,176 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a2dce3acfc272e3bb630401afe55dfd57_cgraph.svg" width="447" height="106"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a494d07108f834d3383fd299fc2ac3da5_cgraph.svg" width="476" height="160"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a2dce3acfc272e3bb630401afe55dfd57_icgraph.svg" width="352" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a494d07108f834d3383fd299fc2ac3da5_icgraph.svg" width="387" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="aef570343aff2d9e50754ea4150ad4c29" name="aef570343aff2d9e50754ea4150ad4c29"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aef570343aff2d9e50754ea4150ad4c29">&#9670;&nbsp;</a></span>ionVtecBsplin()</h2>
+<a id="a5f57c63171e00138161f32f27796216b" name="a5f57c63171e00138161f32f27796216b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f57c63171e00138161f32f27796216b">&#9670;&nbsp;</a></span>ionModelCoef()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ionModelCoef </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>ind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIonoObs.html">IonoObs</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>slant</em> = <code>true</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a5f57c63171e00138161f32f27796216b_cgraph.svg" width="290" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a5f57c63171e00138161f32f27796216b_icgraph.svg" width="350" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5f0f6db30db859a82f3e12712e1233da" name="a5f0f6db30db859a82f3e12712e1233da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f0f6db30db859a82f3e12712e1233da">&#9670;&nbsp;</a></span>ionosphereSsrUpdate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ionosphereSsrUpdate </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a5f0f6db30db859a82f3e12712e1233da_cgraph.svg" width="492" height="106"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a5f0f6db30db859a82f3e12712e1233da_icgraph.svg" width="399" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3cbf18fb13afe8f7b3787785d9a13f64" name="a3cbf18fb13afe8f7b3787785d9a13f64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3cbf18fb13afe8f7b3787785d9a13f64">&#9670;&nbsp;</a></span>ionOutputLocal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ionOutputLocal </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a3cbf18fb13afe8f7b3787785d9a13f64_cgraph.svg" width="335" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a3cbf18fb13afe8f7b3787785d9a13f64_icgraph.svg" width="340" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a647350388a58e3ea86294f8b76ec539a" name="a647350388a58e3ea86294f8b76ec539a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a647350388a58e3ea86294f8b76ec539a">&#9670;&nbsp;</a></span>ionOutputSphcal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ionOutputSphcal </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a647350388a58e3ea86294f8b76ec539a_cgraph.svg" width="344" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a647350388a58e3ea86294f8b76ec539a_icgraph.svg" width="350" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af8b69e53386db097895cdb35126f3c9a" name="af8b69e53386db097895cdb35126f3c9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8b69e53386db097895cdb35126f3c9a">&#9670;&nbsp;</a></span>ionVtecBsplin()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -429,13 +1017,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>Ion_pp</em>, </td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>ionPP</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>layer</em>, </td>
         </tr>
         <tr>
@@ -458,24 +1046,22 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Estimate Ionosphere VTEC using Ionospheric gridmaps Ion_pp I Ionosphere Piercing Point layer I Layer number vari O variance of VTEC. </p>
-<h2><a class="anchor" id="autotoc_md1"></a>
-returns: VETC at piercing point</h2>
+<p>Estimate Ionosphere VTEC using Ionospheric gridmaps Ion_pp I Ionosphere Piercing Point layer I Layer number vari O variance of VTEC returns: VETC at piercing point. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_aef570343aff2d9e50754ea4150ad4c29_cgraph.svg" width="326" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_af8b69e53386db097895cdb35126f3c9a_cgraph.svg" width="326" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_aef570343aff2d9e50754ea4150ad4c29_icgraph.svg" width="240" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_af8b69e53386db097895cdb35126f3c9a_icgraph.svg" width="240" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a620486fd228e2133a32860533ca923c8" name="a620486fd228e2133a32860533ca923c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a620486fd228e2133a32860533ca923c8">&#9670;&nbsp;</a></span>ionVtecSphcap()</h2>
+<a id="a82326715df0da871208b2a5a8cc90007" name="a82326715df0da871208b2a5a8cc90007"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82326715df0da871208b2a5a8cc90007">&#9670;&nbsp;</a></span>ionVtecSphcap()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -489,20 +1075,20 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>Ion_pp</em>, </td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>ionPP</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>layer</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>vari</em>, </td>
+          <td class="paramname"><em>var</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -517,21 +1103,25 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not useful for this one Ion_pp I Ionosphere Piercing Point layer I Layer number vari O variance of VTEC. </p>
+<h2><a class="anchor" id="autotoc_md15"></a>
+returns: VETC at piercing point</h2>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a620486fd228e2133a32860533ca923c8_cgraph.svg" width="334" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a82326715df0da871208b2a5a8cc90007_cgraph.svg" width="334" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a620486fd228e2133a32860533ca923c8_icgraph.svg" width="248" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a82326715df0da871208b2a5a8cc90007_icgraph.svg" width="248" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a41a6e504f87f80223e06f686c93eab8e" name="a41a6e504f87f80223e06f686c93eab8e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a41a6e504f87f80223e06f686c93eab8e">&#9670;&nbsp;</a></span>ionVtecSphhar()</h2>
+<a id="ad0483a2a088fc3366fe6a7525c978d75" name="ad0483a2a088fc3366fe6a7525c978d75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0483a2a088fc3366fe6a7525c978d75">&#9670;&nbsp;</a></span>ionVtecSphhar()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -545,20 +1135,20 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>Ion_pp</em>, </td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>ionPP</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>layer</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>vari</em>, </td>
+          <td class="paramname"><em>var</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -573,27 +1163,31 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not useful for this one Ion_pp I Ionosphere Piercing Point layer I Layer number vari O variance of VTEC. </p>
+<h2><a class="anchor" id="autotoc_md11"></a>
+returns: VETC at piercing point</h2>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a41a6e504f87f80223e06f686c93eab8e_cgraph.svg" width="331" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ad0483a2a088fc3366fe6a7525c978d75_cgraph.svg" width="331" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a41a6e504f87f80223e06f686c93eab8e_icgraph.svg" width="246" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ad0483a2a088fc3366fe6a7525c978d75_icgraph.svg" width="246" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a9279d53ea1351ca8e31451171ee0bd71" name="a9279d53ea1351ca8e31451171ee0bd71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9279d53ea1351ca8e31451171ee0bd71">&#9670;&nbsp;</a></span>Ipp_check_bsplin()</h2>
+<a id="a7002ebc4f104e21e0a2a24917ac32098" name="a7002ebc4f104e21e0a2a24917ac32098"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7002ebc4f104e21e0a2a24917ac32098">&#9670;&nbsp;</a></span>ippCheckBsplin()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Ipp_check_bsplin </td>
+          <td class="memname">bool ippCheckBsplin </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>time</em>, </td>
@@ -601,7 +1195,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>Ion_pp</em>&#160;</td>
         </tr>
         <tr>
@@ -611,22 +1205,28 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>checks if the Ionosphere Piercing Point falls in area of coverage time: I time of observations (not used) IPP: I Ionospheric piercing point to be updated </p>
+<h2><a class="anchor" id="autotoc_md2"></a>
+returns 1 if the IPP is within the area of coverage</h2>
+<h2><a class="anchor" id="autotoc_md3"></a>
+Author: Ken Harima @ RMIT 04 August 2020</h2>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a9279d53ea1351ca8e31451171ee0bd71_icgraph.svg" width="303" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a7002ebc4f104e21e0a2a24917ac32098_icgraph.svg" width="292" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a906282f60e53b02995e06f9048079b78" name="a906282f60e53b02995e06f9048079b78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a906282f60e53b02995e06f9048079b78">&#9670;&nbsp;</a></span>Ipp_check_sphcap()</h2>
+<a id="ac31d7924da8fd2419a7309ec952683bb" name="ac31d7924da8fd2419a7309ec952683bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac31d7924da8fd2419a7309ec952683bb">&#9670;&nbsp;</a></span>ippCheckLocal()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Ipp_check_sphcap </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ippCheckLocal </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>time</em>, </td>
@@ -634,8 +1234,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>Ion_pp</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>ionPP</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -644,27 +1244,32 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a906282f60e53b02995e06f9048079b78_cgraph.svg" width="280" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+
+<p>Checks if the Ionosphere Piercing Point falls in area of coverage. </p>
+<p >Return the region ID containing the IPP, 0 if out of coverage </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">time</td><td>time of observations (not used)</td></tr>
+    <tr><td class="paramname">ionPP</td><td>Ionospheric piercing point to be updated </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a906282f60e53b02995e06f9048079b78_icgraph.svg" width="318" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ac31d7924da8fd2419a7309ec952683bb_icgraph.svg" width="270" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a32460ecb229f47f08516ff7a35f45f47" name="a32460ecb229f47f08516ff7a35f45f47"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32460ecb229f47f08516ff7a35f45f47">&#9670;&nbsp;</a></span>Ipp_check_sphhar()</h2>
+<a id="ab980c9f7c78418c59dfb7bb9512a2f1d" name="ab980c9f7c78418c59dfb7bb9512a2f1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab980c9f7c78418c59dfb7bb9512a2f1d">&#9670;&nbsp;</a></span>ippCheckSphcap()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> Ipp_check_sphhar </td>
+          <td class="memname">bool ippCheckSphcap </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
           <td class="paramname"><em>time</em>, </td>
@@ -672,8 +1277,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>Ion_pp</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>ionPP</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -682,27 +1287,175 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>transforms the Ionosphere Piercing Point and checks if it falls in area of coverage time: I time of observations (not used) IPP: I Ionospheric piercing point to be updated </p>
+<h2><a class="anchor" id="autotoc_md12"></a>
+returns 1 if the IPP is within the area of coverage</h2>
+<h2><a class="anchor" id="autotoc_md13"></a>
+Author: Ken Harima @ RMIT 01 August 2020</h2>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a32460ecb229f47f08516ff7a35f45f47_cgraph.svg" width="303" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ab980c9f7c78418c59dfb7bb9512a2f1d_cgraph.svg" width="430" height="158"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a32460ecb229f47f08516ff7a35f45f47_icgraph.svg" width="314" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ab980c9f7c78418c59dfb7bb9512a2f1d_icgraph.svg" width="307" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a3dce4bc6a3c8a98b9f14fd6804d330c3" name="a3dce4bc6a3c8a98b9f14fd6804d330c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3dce4bc6a3c8a98b9f14fd6804d330c3">&#9670;&nbsp;</a></span>update_receivr_measr()</h2>
+<a id="ae18f2e090bbfcf92f63d376ebbdab6c5" name="ae18f2e090bbfcf92f63d376ebbdab6c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae18f2e090bbfcf92f63d376ebbdab6c5">&#9670;&nbsp;</a></span>ippCheckSphhar()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> update_receivr_measr </td>
+          <td class="memname">bool ippCheckSphhar </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structGTime.html">GTime</a>&#160;</td>
+          <td class="paramname"><em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
+          <td class="paramname"><em>ionPP</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IPP: I Ionospheric piercing point to be updated </p>
+<h2><a class="anchor" id="autotoc_md8"></a>
+Since the spherical harmonic model has global validity, the check always return 1</h2>
+<h2><a class="anchor" id="autotoc_md9"></a>
+Author: Ken Harima @ RMIT 29 July 2020</h2>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ae18f2e090bbfcf92f63d376ebbdab6c5_cgraph.svg" width="470" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ae18f2e090bbfcf92f63d376ebbdab6c5_icgraph.svg" width="302" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ac2b5a1e7749bbd86a20feb29b5713861" name="ac2b5a1e7749bbd86a20feb29b5713861"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2b5a1e7749bbd86a20feb29b5713861">&#9670;&nbsp;</a></span>overwriteIonoKF()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool overwriteIonoKF </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structKFState.html">KFState</a> &amp;&#160;</td>
+          <td class="paramname"><em>kfState</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ac2b5a1e7749bbd86a20feb29b5713861_icgraph.svg" width="307" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a32bbbf9ee3ced2d514f86219d598d6b6" name="a32bbbf9ee3ced2d514f86219d598d6b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32bbbf9ee3ced2d514f86219d598d6b6">&#9670;&nbsp;</a></span>queryBiasDCB()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool queryBiasDCB </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
+          <td class="paramname"><em>trace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>Rec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td>
+          <td class="paramname"><em>freq</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>bias</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>vari</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Estimate biases from Ionosphere modelling DCBs. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trace</td><td>debug trace</td></tr>
+    <tr><td class="paramname">Sat</td><td>GNSS Satellite</td></tr>
+    <tr><td class="paramname">Rec</td><td>Receiver id</td></tr>
+    <tr><td class="paramname">freq</td><td>GNSS frequency index</td></tr>
+    <tr><td class="paramname">bias</td><td>Output bias value</td></tr>
+    <tr><td class="paramname">vari</td><td>Output bias variance </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a32bbbf9ee3ced2d514f86219d598d6b6_cgraph.svg" width="330" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a32bbbf9ee3ced2d514f86219d598d6b6_icgraph.svg" width="304" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae1cb9ea2aa583c7c0745a8d788253889" name="ae1cb9ea2aa583c7c0745a8d788253889"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae1cb9ea2aa583c7c0745a8d788253889">&#9670;&nbsp;</a></span>update_receivr_measr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void update_receivr_measr </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;&#160;</td>
           <td class="paramname"><em>trace</em>, </td>
@@ -723,12 +1476,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a3dce4bc6a3c8a98b9f14fd6804d330c3_cgraph.svg" width="331" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ae1cb9ea2aa583c7c0745a8d788253889_cgraph.svg" width="530" height="423"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a3dce4bc6a3c8a98b9f14fd6804d330c3_icgraph.svg" width="440" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_ae1cb9ea2aa583c7c0745a8d788253889_icgraph.svg" width="440" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -803,8 +1556,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ac9d497d2460f1b6161754c7fbadea814" name="ac9d497d2460f1b6161754c7fbadea814"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9d497d2460f1b6161754c7fbadea814">&#9670;&nbsp;</a></span>writeReceiverMeasurements()</h2>
+<a id="a52ea83d839caafd8dbeaeb78cd607271" name="a52ea83d839caafd8dbeaeb78cd607271"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a52ea83d839caafd8dbeaeb78cd607271">&#9670;&nbsp;</a></span>writeReceiverMeasurements()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -824,7 +1577,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">map&lt; string, <a class="el" href="structStation.html">Station</a> &gt;&#160;</td>
+          <td class="paramtype">map&lt; string, <a class="el" href="structStation.html">Station</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>stations</em>, </td>
         </tr>
         <tr>
@@ -840,6 +1593,16 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a52ea83d839caafd8dbeaeb78cd607271_cgraph.svg" width="363" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ionoModel_8hpp_a52ea83d839caafd8dbeaeb78cd607271_icgraph.svg" width="447" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

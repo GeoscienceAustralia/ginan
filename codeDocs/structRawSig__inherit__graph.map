@@ -1,4 +1,4 @@
 <map id="RawSig" name="RawSig">
-<area shape="rect" id="node1" title="Raw observation data from a receiver for a single frequency." alt="" coords="5,5,119,156"/>
-<area shape="rect" id="node2" href="$structSig.html" title="Per signal data that is calculated from the raw signals." alt="" coords="9,204,115,443"/>
+<area shape="rect" id="node1" title="Raw observation data from a receiver for a single frequency." alt="" coords="5,5,119,171"/>
+<area shape="rect" id="node2" href="$structSig.html" title="Per signal data that is calculated from the raw signals." alt="" coords="9,219,115,457"/>
 </map>

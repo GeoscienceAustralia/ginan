@@ -16,9 +16,9 @@
 <polygon fill="#bfbfbf" stroke="black" points="0,-0.5 0,-79.5 69,-79.5 69,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="34.5" y="-67.5" font-family="Helvetica,sans-Serif" font-size="10.00">Mongo</text>
 <polyline fill="none" stroke="black" points="0,-60.5 69,-60.5 "/>
-<text text-anchor="start" x="8" y="-48.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ instance</text>
-<text text-anchor="start" x="8" y="-37.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ uri</text>
-<text text-anchor="start" x="8" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ pool</text>
+<text text-anchor="start" x="8" y="-48.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ uri</text>
+<text text-anchor="start" x="8" y="-37.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ pool</text>
+<text text-anchor="start" x="8" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ instance</text>
 <polyline fill="none" stroke="black" points="0,-19.5 69,-19.5 "/>
 <text text-anchor="start" x="8" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ Mongo()</text>
 </a>

@@ -1,5 +1,5 @@
 <map id="crc24q" name="crc24q">
-<area shape="rect" id="node1" title=" " alt="" coords="252,35,317,61"/>
-<area shape="rect" id="node2" href="$structRtcmStream.html#a34a7a941dab214b7ff6b17e8a53eb55a" title=" " alt="" coords="13,5,197,32"/>
-<area shape="rect" id="node3" href="$structRtcmEncoder.html#a714186471ab96d85b1fac9d1a18789a0" title=" " alt="" coords="5,57,204,98"/>
+<area shape="rect" id="node1" title="crc&#45;24q parity compute crc&#45;24q parity for sbas, rtcm3 see reference [2] A.4.3.3 Parity" alt="" coords="252,42,317,69"/>
+<area shape="rect" id="node2" href="$structRtcmEncoder.html#a714186471ab96d85b1fac9d1a18789a0" title=" " alt="" coords="5,5,204,47"/>
+<area shape="rect" id="node3" href="$structRtcmParser.html#a6138840942a03f0a06ecb288ab412716" title=" " alt="" coords="34,71,175,98"/>
 </map>

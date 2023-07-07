@@ -1,5 +1,4 @@
 <map id="Ztrans_reduction" name="Ztrans_reduction">
-<area shape="rect" id="node1" title="Lambda decorrelation (trough Z transform)" alt="" coords="175,31,307,57"/>
-<area shape="rect" id="node2" href="$GNSSambres_8cpp.html#a0c81d8384a1295cd8a6371a9c9968325" title="Integer bootstrapping." alt="" coords="8,5,124,32"/>
-<area shape="rect" id="node3" href="$GNSSambres_8cpp.html#aab3dd27d035c545c6c854a6906616e79" title="Lambda algorithm and its variations (ILQ, Common set, BIE)" alt="" coords="5,56,127,83"/>
+<area shape="rect" id="node1" title="Lambda decorrelation (trough Z transform)" alt="" coords="175,5,307,32"/>
+<area shape="rect" id="node2" href="$GNSSambres_8cpp.html#aab3dd27d035c545c6c854a6906616e79" title="Lambda algorithm and its variations (ILQ, Common set, BIE)" alt="" coords="5,5,127,32"/>
 </map>

@@ -73,7 +73,8 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-attribs">Data Fields</a>  </div>
+<a href="#pub-attribs">Data Fields</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a>  </div>
   <div class="headertitle"><div class="title">ACSConfig Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -97,42 +98,43 @@ Collaboration diagram for ACSConfig:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad829bbeec8566a699e5dfefc7b8e6bd8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#ad829bbeec8566a699e5dfefc7b8e6bd8">recurseYaml</a> (YAML::Node node, string stack=&quot;&quot;)</td></tr>
-<tr class="separator:ad829bbeec8566a699e5dfefc7b8e6bd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7956bea37dde8338349a7a2971c530e6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a7956bea37dde8338349a7a2971c530e6">parse</a> (string filename, boost::program_options::variables_map &amp;vm)</td></tr>
-<tr class="memdesc:a7956bea37dde8338349a7a2971c530e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parse options to set acsConfig values.  <a href="structACSConfig.html#a7956bea37dde8338349a7a2971c530e6">More...</a><br /></td></tr>
-<tr class="separator:a7956bea37dde8338349a7a2971c530e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d997544595a000584326696d0a1b062"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a3d997544595a000584326696d0a1b062">recurseYaml</a> (YAML::Node node, string stack=&quot;&quot;, string aliasStack=&quot;&quot;)</td></tr>
+<tr class="separator:a3d997544595a000584326696d0a1b062"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33ef8a76d552f3e0e34cb950f7b730ee"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a33ef8a76d552f3e0e34cb950f7b730ee">parse</a> (vector&lt; string &gt; filenames, boost::program_options::variables_map &amp;vm)</td></tr>
+<tr class="memdesc:a33ef8a76d552f3e0e34cb950f7b730ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parse options to set acsConfig values.  <a href="structACSConfig.html#a33ef8a76d552f3e0e34cb950f7b730ee">More...</a><br /></td></tr>
+<tr class="separator:a33ef8a76d552f3e0e34cb950f7b730ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9621174580fe21c7e1ad3d3982044efd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a9621174580fe21c7e1ad3d3982044efd">parse</a> ()</td></tr>
 <tr class="separator:a9621174580fe21c7e1ad3d3982044efd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfdda0f4ad8ee782bf0e2e0088ade882"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#abfdda0f4ad8ee782bf0e2e0088ade882">info</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace)</td></tr>
 <tr class="memdesc:abfdda0f4ad8ee782bf0e2e0088ade882"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print out the configuration data that has been read in.  <a href="structACSConfig.html#abfdda0f4ad8ee782bf0e2e0088ade882">More...</a><br /></td></tr>
 <tr class="separator:abfdda0f4ad8ee782bf0e2e0088ade882"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adac4596adc23c4983de95cb42618ba37"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#adac4596adc23c4983de95cb42618ba37">outputDefaultConfiguration</a> ()</td></tr>
-<tr class="memdesc:adac4596adc23c4983de95cb42618ba37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Outputs default configuration and a configurator The default values, and descriptions of each parameter configured is output to the command line.  <a href="structACSConfig.html#adac4596adc23c4983de95cb42618ba37">More...</a><br /></td></tr>
-<tr class="separator:adac4596adc23c4983de95cb42618ba37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f893b7ab2412f42ef7a02423d755940"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSatelliteOptions.html">SatelliteOptions</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a9f893b7ab2412f42ef7a02423d755940">getSatOpts</a> (<a class="el" href="structSatSys.html">SatSys</a> &amp;Sat)</td></tr>
-<tr class="memdesc:a9f893b7ab2412f42ef7a02423d755940"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set satellite options for a specific satellite using a hierarchy of sources.  <a href="structACSConfig.html#a9f893b7ab2412f42ef7a02423d755940">More...</a><br /></td></tr>
-<tr class="separator:a9f893b7ab2412f42ef7a02423d755940"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ddfbaf20a1c9181d73d0dabe92beace"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structReceiverOptions.html">ReceiverOptions</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a7ddfbaf20a1c9181d73d0dabe92beace">getRecOpts</a> (string id)</td></tr>
-<tr class="memdesc:a7ddfbaf20a1c9181d73d0dabe92beace"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set receiver options for a specific receiver using a hierarchy of sources.  <a href="structACSConfig.html#a7ddfbaf20a1c9181d73d0dabe92beace">More...</a><br /></td></tr>
-<tr class="separator:a7ddfbaf20a1c9181d73d0dabe92beace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92bff361b02a9eb9de0296f29e7e1091"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structMinimumStationOptions.html">MinimumStationOptions</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a92bff361b02a9eb9de0296f29e7e1091">getMinConOpts</a> (string id)</td></tr>
-<tr class="memdesc:a92bff361b02a9eb9de0296f29e7e1091"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set minimum constraint options for a specific receiver using a hierarchy of sources.  <a href="structACSConfig.html#a92bff361b02a9eb9de0296f29e7e1091">More...</a><br /></td></tr>
-<tr class="separator:a92bff361b02a9eb9de0296f29e7e1091"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12622cd32773b55c6fb2717f998b25ed"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a12622cd32773b55c6fb2717f998b25ed">outputDefaultConfiguration</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> level)</td></tr>
+<tr class="memdesc:a12622cd32773b55c6fb2717f998b25ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Outputs default configuration and a configurator The default values, and descriptions of each parameter configured is output to the command line.  <a href="structACSConfig.html#a12622cd32773b55c6fb2717f998b25ed">More...</a><br /></td></tr>
+<tr class="separator:a12622cd32773b55c6fb2717f998b25ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeba33c340b4695e47f2d41bf97402400"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSatelliteOptions.html">SatelliteOptions</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#aeba33c340b4695e47f2d41bf97402400">getSatOpts</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, vector&lt; string &gt; suffixes={})</td></tr>
+<tr class="memdesc:aeba33c340b4695e47f2d41bf97402400"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set satellite options for a specific satellite using a hierarchy of sources.  <a href="structACSConfig.html#aeba33c340b4695e47f2d41bf97402400">More...</a><br /></td></tr>
+<tr class="separator:aeba33c340b4695e47f2d41bf97402400"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a883b2b26e906c5fa7469a81b05524b8d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structReceiverOptions.html">ReceiverOptions</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d">getRecOpts</a> (string id, vector&lt; string &gt; suffixes={})</td></tr>
+<tr class="memdesc:a883b2b26e906c5fa7469a81b05524b8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set receiver options for a specific receiver using a hierarchy of sources.  <a href="structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d">More...</a><br /></td></tr>
+<tr class="separator:a883b2b26e906c5fa7469a81b05524b8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structOutputOptions"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structOutputOptions')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structOutputOptions.html">OutputOptions</a></td></tr>
 <tr class="memitem:a4390b9c7539ce43211a7c8644c987ad3 inherit pub_methods_structOutputOptions"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a4390b9c7539ce43211a7c8644c987ad3">defaultOutputOptions</a> ()</td></tr>
 <tr class="separator:a4390b9c7539ce43211a7c8644c987ad3 inherit pub_methods_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a02c7e7acb5bd5eda6cf948054c27fffb"><td class="memItemLeft" align="right" valign="top">YAML::Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a02c7e7acb5bd5eda6cf948054c27fffb">yaml</a></td></tr>
-<tr class="separator:a02c7e7acb5bd5eda6cf948054c27fffb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d49fb176697cb76b7d8b1813704d1fb"><td class="memItemLeft" align="right" valign="top">map&lt; string, tuple&lt; string, string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a6d49fb176697cb76b7d8b1813704d1fb">yamlDefaults</a></td></tr>
-<tr class="separator:a6d49fb176697cb76b7d8b1813704d1fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41ca3b64a1522830af3f69d7ac6f6a3f"><td class="memItemLeft" align="right" valign="top">vector&lt; YAML::Node &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a41ca3b64a1522830af3f69d7ac6f6a3f">yamls</a></td></tr>
+<tr class="separator:a41ca3b64a1522830af3f69d7ac6f6a3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7c885ba83c72f51baf57d7d456a5b41"><td class="memItemLeft" align="right" valign="top">map&lt; string, <a class="el" href="structYamlDefault.html">YamlDefault</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#af7c885ba83c72f51baf57d7d456a5b41">yamlDefaults</a></td></tr>
+<tr class="separator:af7c885ba83c72f51baf57d7d456a5b41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0a383d34349604def5f7a2adf6222aa"><td class="memItemLeft" align="right" valign="top">map&lt; string, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#ab0a383d34349604def5f7a2adf6222aa">availableOptions</a></td></tr>
 <tr class="separator:ab0a383d34349604def5f7a2adf6222aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a954161eac413e9c59b92b8253a41a363"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a954161eac413e9c59b92b8253a41a363">configFilename</a></td></tr>
-<tr class="separator:a954161eac413e9c59b92b8253a41a363"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae53cb6a19624de4ae86fd2988b291534"><td class="memItemLeft" align="right" valign="top">mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#ae53cb6a19624de4ae86fd2988b291534">configMutex</a></td></tr>
+<tr class="separator:ae53cb6a19624de4ae86fd2988b291534"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03150e6b1fecf89bec0765347b788d7c"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a03150e6b1fecf89bec0765347b788d7c">configFilenames</a></td></tr>
+<tr class="separator:a03150e6b1fecf89bec0765347b788d7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3306c0dbb2be5182dd790ed0aecc1627"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a3306c0dbb2be5182dd790ed0aecc1627">includedFilenames</a></td></tr>
+<tr class="separator:a3306c0dbb2be5182dd790ed0aecc1627"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a12aa709e4159d453564013c13d770033"><td class="memItemLeft" align="right" valign="top">map&lt; string, time_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a12aa709e4159d453564013c13d770033">configModifyTimeMap</a></td></tr>
 <tr class="separator:a12aa709e4159d453564013c13d770033"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9284eaf352e45bb0f3d81b54cdd8da20"><td class="memItemLeft" align="right" valign="top">boost::program_options::variables_map&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a9284eaf352e45bb0f3d81b54cdd8da20">commandOpts</a></td></tr>
@@ -143,8 +145,8 @@ Data Fields</h2></td></tr>
 <tr class="separator:aad3b0f1f297eb4f392aed18849c98d61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a756763b843d5b4aac83f5bb9eaf05761"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIonosphericOptions.html">IonosphericOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a756763b843d5b4aac83f5bb9eaf05761">ionoOpts</a></td></tr>
 <tr class="separator:a756763b843d5b4aac83f5bb9eaf05761"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f1f48a15c4f8a8c80596880b1d40897"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structNetworkOptions.html">NetworkOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a0f1f48a15c4f8a8c80596880b1d40897">pppOpts</a></td></tr>
-<tr class="separator:a0f1f48a15c4f8a8c80596880b1d40897"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a284717a3ac3548b82371c9baff3543d2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structPPPOptions.html">PPPOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a284717a3ac3548b82371c9baff3543d2">pppOpts</a></td></tr>
+<tr class="separator:a284717a3ac3548b82371c9baff3543d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc5e60ceac1ff4c5169d34d0e805ce86"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structMinimumConstraintOptions.html">MinimumConstraintOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#afc5e60ceac1ff4c5169d34d0e805ce86">minCOpts</a></td></tr>
 <tr class="separator:afc5e60ceac1ff4c5169d34d0e805ce86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f523236c7d0f056e07cef4aa588a766"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structTestOptions.html">TestOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a6f523236c7d0f056e07cef4aa588a766">testOpts</a></td></tr>
@@ -157,25 +159,31 @@ Data Fields</h2></td></tr>
 <tr class="separator:aa81a2a18eaa576cd661429d8f2800ec3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a535c2b9eb256dc50cc41176d83868a87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSlipOptions.html">SlipOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a535c2b9eb256dc50cc41176d83868a87">excludeSlip</a></td></tr>
 <tr class="separator:a535c2b9eb256dc50cc41176d83868a87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7cebae78d58c651bbae9f61b6bd2181"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structForceModels.html">ForceModels</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#ab7cebae78d58c651bbae9f61b6bd2181">forceModels</a></td></tr>
-<tr class="separator:ab7cebae78d58c651bbae9f61b6bd2181"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f067733a077f98715b6f866c74a943d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSlipOptions.html">SlipOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a3f067733a077f98715b6f866c74a943d">resetOnSlip</a></td></tr>
+<tr class="separator:a3f067733a077f98715b6f866c74a943d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8fd98d62aad1a062e1402ad12d8ce81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structOrbitPropagation.html">OrbitPropagation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#af8fd98d62aad1a062e1402ad12d8ce81">orbitPropagation</a></td></tr>
+<tr class="separator:af8fd98d62aad1a062e1402ad12d8ce81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd10da45c67ca7cbf8326696faea0f94"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIonModelOptions.html">IonModelOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#afd10da45c67ca7cbf8326696faea0f94">ionModelOpts</a></td></tr>
 <tr class="separator:afd10da45c67ca7cbf8326696faea0f94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0aa84d5f89c986b49b902dc4490fca8b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structKalmanModel.html">KalmanModel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a0aa84d5f89c986b49b902dc4490fca8b">ion</a></td></tr>
-<tr class="separator:a0aa84d5f89c986b49b902dc4490fca8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1fae4eb075185d818c96c338d8e9e52"><td class="memItemLeft" align="right" valign="top">list&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#ad1fae4eb075185d818c96c338d8e9e52">rinexFiles</a></td></tr>
-<tr class="separator:ad1fae4eb075185d818c96c338d8e9e52"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f2b5f0006b392b0b100476ecdc5f062"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a8f2b5f0006b392b0b100476ecdc5f062">common_atmosphere</a> = false</td></tr>
-<tr class="separator:a8f2b5f0006b392b0b100476ecdc5f062"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22f34326d51345ea7abebbe29fa8f855"><td class="memItemLeft" align="right" valign="top">map&lt; string, <a class="el" href="structSsrBroadcast.html">SsrBroadcast</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a22f34326d51345ea7abebbe29fa8f855">uploadingStreamData</a></td></tr>
-<tr class="separator:a22f34326d51345ea7abebbe29fa8f855"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92c40ea77940feb0bd6273a5b1e011a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structNetworkOptions.html">NetworkOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a92c40ea77940feb0bd6273a5b1e011a9">netOpts</a></td></tr>
+<tr class="separator:a92c40ea77940feb0bd6273a5b1e011a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3dc72628c019b148f6322ef7916717d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSlrOptions.html">SlrOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a3dc72628c019b148f6322ef7916717d3">slrOpts</a></td></tr>
+<tr class="separator:a3dc72628c019b148f6322ef7916717d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5fb2e3c47136fd9fc55c2a437b06f04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structMongoOptions.html">MongoOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#af5fb2e3c47136fd9fc55c2a437b06f04">localMongo</a> = {.local = true}</td></tr>
+<tr class="separator:af5fb2e3c47136fd9fc55c2a437b06f04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3c9a7e3a9754815b2bdcd2044906529"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structMongoOptions.html">MongoOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#ac3c9a7e3a9754815b2bdcd2044906529">remoteMongo</a> = {.local = false}</td></tr>
+<tr class="separator:ac3c9a7e3a9754815b2bdcd2044906529"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_structGlobalOptions"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structGlobalOptions')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structGlobalOptions.html">GlobalOptions</a></td></tr>
 <tr class="memitem:a540e0338a4d6163e06ee0517f26fb353 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structModel.html">Model</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a540e0338a4d6163e06ee0517f26fb353">model</a></td></tr>
 <tr class="separator:a540e0338a4d6163e06ee0517f26fb353 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad580b088a8975ee03a90209e3d23f7e4 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ad580b088a8975ee03a90209e3d23f7e4">epoch_interval</a> = 1</td></tr>
 <tr class="separator:ad580b088a8975ee03a90209e3d23f7e4 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2b0f45e11c288e8bee3b36bab875c0f inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ad2b0f45e11c288e8bee3b36bab875c0f">max_epochs</a> = 0</td></tr>
+<tr class="memitem:ac14dece333f348b64775da190053b0eb inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ac14dece333f348b64775da190053b0eb">epoch_tolerance</a> = 0.5</td></tr>
+<tr class="separator:ac14dece333f348b64775da190053b0eb inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2b0f45e11c288e8bee3b36bab875c0f inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ad2b0f45e11c288e8bee3b36bab875c0f">max_epochs</a> = 0</td></tr>
 <tr class="separator:ad2b0f45e11c288e8bee3b36bab875c0f inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a0a97a4cbd02326c31bf0c57ddc2e77 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a0a0a97a4cbd02326c31bf0c57ddc2e77">leap_seconds</a> = -1</td></tr>
+<tr class="separator:a0a0a97a4cbd02326c31bf0c57ddc2e77 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82502f3062a70f66cebd44c4eb7cdbda inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">boost::posix_time::ptime&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a82502f3062a70f66cebd44c4eb7cdbda">start_epoch</a> { boost::posix_time::not_a_date_time }</td></tr>
 <tr class="separator:a82502f3062a70f66cebd44c4eb7cdbda inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79eece4163afdd9e1635a8ea2cd94af0 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">boost::posix_time::ptime&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a79eece4163afdd9e1635a8ea2cd94af0">end_epoch</a> { boost::posix_time::not_a_date_time }</td></tr>
@@ -186,14 +194,20 @@ Data Fields</h2></td></tr>
 <tr class="separator:a132882c0027d1226673367dd7d0aa6c9 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a875673f07179fee091e8fc0c4a5c1b58 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a875673f07179fee091e8fc0c4a5c1b58">analysis_center</a> = &quot;Geoscience Australia&quot;</td></tr>
 <tr class="separator:a875673f07179fee091e8fc0c4a5c1b58 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48fd61a6ddd89dc636959e5a7eefc91d inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a48fd61a6ddd89dc636959e5a7eefc91d">analysis_program</a> = &quot;AUSACS&quot;</td></tr>
+<tr class="memitem:a48fd61a6ddd89dc636959e5a7eefc91d inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a48fd61a6ddd89dc636959e5a7eefc91d">analysis_program</a> = &quot;Ginan&quot;</td></tr>
 <tr class="separator:a48fd61a6ddd89dc636959e5a7eefc91d inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a18294a00acfd2a9c04517c376d23eff0 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a18294a00acfd2a9c04517c376d23eff0">rinex_comment</a> = &quot;AUSNETWORK1&quot;</td></tr>
+<tr class="memitem:a8405947dae39b4f396ec9ab236318d50 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a8405947dae39b4f396ec9ab236318d50">analysis_program_version</a> = &quot;2.0&quot;</td></tr>
+<tr class="separator:a8405947dae39b4f396ec9ab236318d50 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acea90449d4cd98442fbb7bc46ca5b62c inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#acea90449d4cd98442fbb7bc46ca5b62c">ac_contact</a> = &quot;clientservices@ga.gov.au&quot;</td></tr>
+<tr class="separator:acea90449d4cd98442fbb7bc46ca5b62c inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18294a00acfd2a9c04517c376d23eff0 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a18294a00acfd2a9c04517c376d23eff0">rinex_comment</a> = &quot;Daily 30-sec observations from IGS stations&quot;</td></tr>
 <tr class="separator:a18294a00acfd2a9c04517c376d23eff0 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c19582a25171461f93330083204b0c2 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a7c19582a25171461f93330083204b0c2">reference_system</a> = &quot;igb14&quot;</td></tr>
 <tr class="separator:a7c19582a25171461f93330083204b0c2 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c1b0ae9c4446cc99ed75b13e3c447b1 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a2c1b0ae9c4446cc99ed75b13e3c447b1">time_system</a> = &quot;G&quot;</td></tr>
 <tr class="separator:a2c1b0ae9c4446cc99ed75b13e3c447b1 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5884caecb44af0d91920e6a9fed5f1d inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#af5884caecb44af0d91920e6a9fed5f1d">bias_time_system</a> = &quot;G&quot;</td></tr>
+<tr class="separator:af5884caecb44af0d91920e6a9fed5f1d inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42260fafad6f8065e8863be8f1090957 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a42260fafad6f8065e8863be8f1090957">ocean_tide_loading_model</a> = &quot;FES2004&quot;</td></tr>
 <tr class="separator:a42260fafad6f8065e8863be8f1090957 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada835ed4645ddcef152c317007dd4b87 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ada835ed4645ddcef152c317007dd4b87">atmospheric_tide_loading_model</a> = &quot;---&quot;</td></tr>
@@ -206,6 +220,8 @@ Data Fields</h2></td></tr>
 <tr class="separator:ab57b6cc4756d7009bb546871866a0636 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ae1cbc6d87be668fef7f100326db58c inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a2ae1cbc6d87be668fef7f100326db58c">process_preprocessor</a> = true</td></tr>
 <tr class="separator:a2ae1cbc6d87be668fef7f100326db58c inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa792f9e05db2ea35c4fe91520d6d50ee inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#aa792f9e05db2ea35c4fe91520d6d50ee">process_spp</a> = true</td></tr>
+<tr class="separator:aa792f9e05db2ea35c4fe91520d6d50ee inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a469356ebdb49d06b794807a986ba49d4 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a469356ebdb49d06b794807a986ba49d4">process_user</a> = false</td></tr>
 <tr class="separator:a469356ebdb49d06b794807a986ba49d4 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd6eb82c0ec9ec886c5c7bd86fdfb1dd inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#afd6eb82c0ec9ec886c5c7bd86fdfb1dd">process_network</a> = false</td></tr>
@@ -224,20 +240,22 @@ Data Fields</h2></td></tr>
 <tr class="separator:a2a6ea775cd943109ae70811175b8c01a inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a499e2adb04e2ea0984508a999d508a26 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a499e2adb04e2ea0984508a999d508a26">solve_amb_for</a></td></tr>
 <tr class="separator:a499e2adb04e2ea0984508a999d508a26 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1749a3068347119a29bb67744bc95b28 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, map&lt; <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>, bool &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a1749a3068347119a29bb67744bc95b28">process_freq</a></td></tr>
-<tr class="separator:a1749a3068347119a29bb67744bc95b28 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fdcfb9fdbcf0db5abc326e27b691dbd inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a6fdcfb9fdbcf0db5abc326e27b691dbd">process_meas</a> [<a class="el" href="enums_8h.html#afb3acbb8308f9097a77690267d0536e9a59933350da99129be75cf22783887b9a">NUM_MEAS_TYPES</a>] = {true, true}</td></tr>
 <tr class="separator:a6fdcfb9fdbcf0db5abc326e27b691dbd inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1831e0aa38ad4e3a266548d8ebcc51c4 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a1831e0aa38ad4e3a266548d8ebcc51c4">reject_eclipse</a></td></tr>
+<tr class="separator:a1831e0aa38ad4e3a266548d8ebcc51c4 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b0559cdd6e32638e4b35231109fcda9 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a8b0559cdd6e32638e4b35231109fcda9">elevation_mask</a> = 10 * <a class="el" href="constants_8hpp.html#a0a3cc1d5cde549e408f825ddd7f5853d">D2R</a></td></tr>
 <tr class="separator:a8b0559cdd6e32638e4b35231109fcda9 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a70d66b39107fe5b16193a2aa29863091 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a70d66b39107fe5b16193a2aa29863091">pivot_station</a> = &quot;&lt;AUTO&gt;&quot;</td></tr>
+<tr class="memitem:a70d66b39107fe5b16193a2aa29863091 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a70d66b39107fe5b16193a2aa29863091">pivot_station</a> = &quot;NO_PIVOT&quot;</td></tr>
 <tr class="separator:a70d66b39107fe5b16193a2aa29863091 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff8328fedf7d43a3df1ec9517fd52c9d inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#aff8328fedf7d43a3df1ec9517fd52c9d">reject_eclipse</a> = true</td></tr>
-<tr class="separator:aff8328fedf7d43a3df1ec9517fd52c9d inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbc397f169a76fbe611e08182d449361 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#acbc397f169a76fbe611e08182d449361">raim</a> = true</td></tr>
 <tr class="separator:acbc397f169a76fbe611e08182d449361 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a928786bfef472e00b2a1fc14c8ffc3 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a7a928786bfef472e00b2a1fc14c8ffc3">interpolate_rec_pco</a> = true</td></tr>
 <tr class="separator:a7a928786bfef472e00b2a1fc14c8ffc3 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c9b31cf924cb156b3987d7569dd0586 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a6c9b31cf924cb156b3987d7569dd0586">require_apriori_positions</a> = false</td></tr>
+<tr class="separator:a6c9b31cf924cb156b3987d7569dd0586 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecf7fd37451bb5a760bdb3ac866fade0 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#aecf7fd37451bb5a760bdb3ac866fade0">require_antenna_details</a> = false</td></tr>
+<tr class="separator:aecf7fd37451bb5a760bdb3ac866fade0 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34652527cc21fb70c27a53dfe5260e89 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a34652527cc21fb70c27a53dfe5260e89">thres_slip</a> = 0.05</td></tr>
 <tr class="separator:a34652527cc21fb70c27a53dfe5260e89 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1524c8107d733365e97b0f7d38496897 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a1524c8107d733365e97b0f7d38496897">mw_proc_noise</a> = 0</td></tr>
@@ -246,48 +264,88 @@ Data Fields</h2></td></tr>
 <tr class="separator:ad7a7ef9cdff8795b77aa4f5dc009d7ec inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a877786fef623b84afaa921e636ed98f2 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a877786fef623b84afaa921e636ed98f2">deweight_factor</a> = 100</td></tr>
 <tr class="separator:a877786fef623b84afaa921e636ed98f2 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a002502c68aeb11375754c0b3e976b7ec inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a002502c68aeb11375754c0b3e976b7ec">use_tgd_bias</a> = false</td></tr>
+<tr class="separator:a002502c68aeb11375754c0b3e976b7ec inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fc6b751bef9f803957e96bd2e78ff11 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a0fc6b751bef9f803957e96bd2e78ff11">orbit_pos_proc_noise</a> = 10</td></tr>
+<tr class="separator:a0fc6b751bef9f803957e96bd2e78ff11 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71aac407f9c1b5a45a4b01db52090f21 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a71aac407f9c1b5a45a4b01db52090f21">orbit_vel_proc_noise</a> = 5</td></tr>
+<tr class="separator:a71aac407f9c1b5a45a4b01db52090f21 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6842f12a9d008adb1b05dd97dcf4f75 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ad6842f12a9d008adb1b05dd97dcf4f75">orbit_vel_proc_noise_trail</a> = 1</td></tr>
+<tr class="separator:ad6842f12a9d008adb1b05dd97dcf4f75 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13c9e146b9094748e64bc88378329358 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a13c9e146b9094748e64bc88378329358">orbit_vel_proc_noise_trail_tau</a> = 0.05</td></tr>
+<tr class="separator:a13c9e146b9094748e64bc88378329358 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b0e562b3abc1a95ceb420c8dc7d0cbd inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a5b0e562b3abc1a95ceb420c8dc7d0cbd">wait_next_epoch</a> = 0</td></tr>
 <tr class="separator:a5b0e562b3abc1a95ceb420c8dc7d0cbd inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af3c835eabd14e81472872698461f7a66 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#af3c835eabd14e81472872698461f7a66">wait_all_stations</a> = 0</td></tr>
 <tr class="separator:af3c835eabd14e81472872698461f7a66 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8d3ea094a101c81cb9b392b9d4c2f30 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ad8d3ea094a101c81cb9b392b9d4c2f30">require_obs</a> = true</td></tr>
 <tr class="separator:ad8d3ea094a101c81cb9b392b9d4c2f30 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70a46e5ab65c3af8c0c403e9a4587ce3 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a70a46e5ab65c3af8c0c403e9a4587ce3">assign_closest_epoch</a> = false</td></tr>
+<tr class="separator:a70a46e5ab65c3af8c0c403e9a4587ce3 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8222d9feb6989bca9d027157523c95c inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ae8222d9feb6989bca9d027157523c95c">delete_old_ephemerides</a> = false</td></tr>
 <tr class="separator:ae8222d9feb6989bca9d027157523c95c inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3a9c1413e266f0ef628262a5ccbd81a inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ad3a9c1413e266f0ef628262a5ccbd81a">reinit_on_all_slips</a> = false</td></tr>
 <tr class="separator:ad3a9c1413e266f0ef628262a5ccbd81a inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7dc9012fcc1b1c194442b18619a93f7 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#af7dc9012fcc1b1c194442b18619a93f7">reinit_on_clock_error</a> = false</td></tr>
 <tr class="separator:af7dc9012fcc1b1c194442b18619a93f7 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b190a00e985deaf720097ea40d73ee1 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a5b190a00e985deaf720097ea40d73ee1">deweight_on_state_error</a> = false</td></tr>
-<tr class="separator:a5b190a00e985deaf720097ea40d73ee1 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a107edf39565c61d2a027b71ced69e96d inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a107edf39565c61d2a027b71ced69e96d">reject_on_state_error</a> = false</td></tr>
+<tr class="separator:a107edf39565c61d2a027b71ced69e96d inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34d34d4ffb3cbd495a037df4bf959801 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a34d34d4ffb3cbd495a037df4bf959801">joseph_stabilisation</a> = false</td></tr>
 <tr class="separator:a34d34d4ffb3cbd495a037df4bf959801 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af2faea8ccd73b1980a5e62233298bcab inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#af2faea8ccd73b1980a5e62233298bcab">validity_interval_factor</a> = 100</td></tr>
 <tr class="separator:af2faea8ccd73b1980a5e62233298bcab inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05d5f5a189ed4475bb5eb802e06a4727 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">list&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a05d5f5a189ed4475bb5eb802e06a4727">station_files</a></td></tr>
-<tr class="separator:a05d5f5a189ed4475bb5eb802e06a4727 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3dd20952941f4cc4b4bdf399cc2d0015 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">E_OffsetType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a3dd20952941f4cc4b4bdf399cc2d0015">ssr_input_antenna_offset</a> = <a class="el" href="enums_8h.html#a3eda18aac912766d82c82903ca48b6f7">E_OffsetType::UNSPECIFIED</a></td></tr>
+<tr class="memitem:a3dd20952941f4cc4b4bdf399cc2d0015 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">E_OffsetType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a3dd20952941f4cc4b4bdf399cc2d0015">ssr_input_antenna_offset</a> = <a class="el" href="enums_8h.html#ae4a60fd8b3e1ed744ce313fa47803c09">E_OffsetType::UNSPECIFIED</a></td></tr>
 <tr class="separator:a3dd20952941f4cc4b4bdf399cc2d0015 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0117276fc2b5d6db04601ba3343a1ab3 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a0117276fc2b5d6db04601ba3343a1ab3">if_antenna_phase_centre</a> = true</td></tr>
-<tr class="separator:a0117276fc2b5d6db04601ba3343a1ab3 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:affa19da747ad48ae0c3e2c821b6f180b inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, vector&lt; E_ObsCode &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#affa19da747ad48ae0c3e2c821b6f180b">code_priorities</a></td></tr>
 <tr class="separator:affa19da747ad48ae0c3e2c821b6f180b inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a702664a6c3f38fc3a2f71c0f9ff8a5 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, vector&lt; E_ObsCode &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a6a702664a6c3f38fc3a2f71c0f9ff8a5">zero_code_average</a></td></tr>
+<tr class="separator:a6a702664a6c3f38fc3a2f71c0f9ff8a5 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8ffd65c5e444a1c7c812fbd20025234 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, vector&lt; E_ObsCode &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#aa8ffd65c5e444a1c7c812fbd20025234">zero_phase_average</a></td></tr>
+<tr class="separator:aa8ffd65c5e444a1c7c812fbd20025234 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65bc53c70fdc73befd4dde57c6fa927d inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, E_NavMsgType &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a65bc53c70fdc73befd4dde57c6fa927d">used_nav_types</a></td></tr>
+<tr class="memdesc:a65bc53c70fdc73befd4dde57c6fa927d inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default observation codes on L1 for IF combination based satellite clocks.  <a href="structGlobalOptions.html#a65bc53c70fdc73befd4dde57c6fa927d">More...</a><br /></td></tr>
+<tr class="separator:a65bc53c70fdc73befd4dde57c6fa927d inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adad769ab7a9e56c9ff6cecb41b49b3e1 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_ObsCode &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#adad769ab7a9e56c9ff6cecb41b49b3e1">code_priorities_default</a></td></tr>
 <tr class="separator:adad769ab7a9e56c9ff6cecb41b49b3e1 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b0ff09cb13274dcf04c6e1f7c537c1a inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, E_ObsCode &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a9b0ff09cb13274dcf04c6e1f7c537c1a">clock_codesL1</a></td></tr>
-<tr class="memdesc:a9b0ff09cb13274dcf04c6e1f7c537c1a inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default observation codes on L1 for IF combination based satellite clocks.  <a href="structGlobalOptions.html#a9b0ff09cb13274dcf04c6e1f7c537c1a">More...</a><br /></td></tr>
+<tr class="memdesc:a9b0ff09cb13274dcf04c6e1f7c537c1a inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default observation codes on first frequency for IF combination based satellite clocks.  <a href="structGlobalOptions.html#a9b0ff09cb13274dcf04c6e1f7c537c1a">More...</a><br /></td></tr>
 <tr class="separator:a9b0ff09cb13274dcf04c6e1f7c537c1a inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77a213b2d975b2edc2e7e792c2be59c9 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, E_ObsCode &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a77a213b2d975b2edc2e7e792c2be59c9">clock_codesL2</a></td></tr>
-<tr class="memdesc:a77a213b2d975b2edc2e7e792c2be59c9 inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default observation codes on L2 for IF combination based satellite clocks.  <a href="structGlobalOptions.html#a77a213b2d975b2edc2e7e792c2be59c9">More...</a><br /></td></tr>
+<tr class="memdesc:a77a213b2d975b2edc2e7e792c2be59c9 inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default observation codes on second frequency for IF combination based satellite clocks.  <a href="structGlobalOptions.html#a77a213b2d975b2edc2e7e792c2be59c9">More...</a><br /></td></tr>
 <tr class="separator:a77a213b2d975b2edc2e7e792c2be59c9 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f333800b89ce0a463bb7cf9e69e8053 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a7f333800b89ce0a463bb7cf9e69e8053">dumb_sat_pco</a> = true</td></tr>
-<tr class="separator:a7f333800b89ce0a463bb7cf9e69e8053 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89b7448935c638da09afc0f78fde53a1 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a89b7448935c638da09afc0f78fde53a1">dumb_rec_pco</a> = false</td></tr>
-<tr class="separator:a89b7448935c638da09afc0f78fde53a1 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e28a45c498006150ae12fe9bf74e53f inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">E_Sys&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a3e28a45c498006150ae12fe9bf74e53f">receiver_reference_clk</a> = <a class="el" href="enums_8h.html#a73aeaa6097657d473373a66998ffdbaa">E_Sys::NONE</a></td></tr>
+<tr class="separator:a3e28a45c498006150ae12fe9bf74e53f inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af83c696807c85727763ec54d149719a7 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#af83c696807c85727763ec54d149719a7">fixed_phase_bias_var</a> = 0.01</td></tr>
+<tr class="separator:af83c696807c85727763ec54d149719a7 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57e56a0013da300d53481e29fcb8e897 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a57e56a0013da300d53481e29fcb8e897">sat_clk_definition</a> = false</td></tr>
+<tr class="separator:a57e56a0013da300d53481e29fcb8e897 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02101ad296b51ceacd22eaa5451f0b91 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a02101ad296b51ceacd22eaa5451f0b91">zero_receiver_dcb</a></td></tr>
+<tr class="memdesc:a02101ad296b51ceacd22eaa5451f0b91 inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">set receiver DCBs to 0  <a href="structGlobalOptions.html#a02101ad296b51ceacd22eaa5451f0b91">More...</a><br /></td></tr>
+<tr class="separator:a02101ad296b51ceacd22eaa5451f0b91 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03d700c5787fe4aae244a4556bd4a273 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a03d700c5787fe4aae244a4556bd4a273">zero_satellite_dcb</a></td></tr>
+<tr class="memdesc:a03d700c5787fe4aae244a4556bd4a273 inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">set satellite DCBs to 0  <a href="structGlobalOptions.html#a03d700c5787fe4aae244a4556bd4a273">More...</a><br /></td></tr>
+<tr class="separator:a03d700c5787fe4aae244a4556bd4a273 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6730d0416295fb177b3adaeafbc60392 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a6730d0416295fb177b3adaeafbc60392">one_phase_bias</a></td></tr>
+<tr class="memdesc:a6730d0416295fb177b3adaeafbc60392 inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">use common phase bias for frequency  <a href="structGlobalOptions.html#a6730d0416295fb177b3adaeafbc60392">More...</a><br /></td></tr>
+<tr class="separator:a6730d0416295fb177b3adaeafbc60392 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d94331be665e65cee460bbda5f11956 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a8d94331be665e65cee460bbda5f11956">receiver_amb_pivot</a></td></tr>
+<tr class="memdesc:a8d94331be665e65cee460bbda5f11956 inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">fix one ambiguity to eliminate rank deficiency  <a href="structGlobalOptions.html#a8d94331be665e65cee460bbda5f11956">More...</a><br /></td></tr>
+<tr class="separator:a8d94331be665e65cee460bbda5f11956 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1652995636502db388a72896a2b6cb78 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a1652995636502db388a72896a2b6cb78">network_amb_pivot</a></td></tr>
+<tr class="memdesc:a1652995636502db388a72896a2b6cb78 inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">fix ambiguities to eliminate network rank deficiencies  <a href="structGlobalOptions.html#a1652995636502db388a72896a2b6cb78">More...</a><br /></td></tr>
+<tr class="separator:a1652995636502db388a72896a2b6cb78 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70fbaecd6b36d3afe9fe9c0d81de6de3 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a70fbaecd6b36d3afe9fe9c0d81de6de3">use_for_iono_model</a></td></tr>
+<tr class="memdesc:a70fbaecd6b36d3afe9fe9c0d81de6de3 inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">use system for ionospheric modelling  <a href="structGlobalOptions.html#a70fbaecd6b36d3afe9fe9c0d81de6de3">More...</a><br /></td></tr>
+<tr class="separator:a70fbaecd6b36d3afe9fe9c0d81de6de3 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ec770be74a7b10c9e7a49e23810fc1b inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">map&lt; E_Sys, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a5ec770be74a7b10c9e7a49e23810fc1b">use_iono_corrections</a></td></tr>
+<tr class="memdesc:a5ec770be74a7b10c9e7a49e23810fc1b inherit pub_attribs_structGlobalOptions"><td class="mdescLeft">&#160;</td><td class="mdescRight">use system for ionospheric modelling  <a href="structGlobalOptions.html#a5ec770be74a7b10c9e7a49e23810fc1b">More...</a><br /></td></tr>
+<tr class="separator:a5ec770be74a7b10c9e7a49e23810fc1b inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaaf73dec7ee8b91f92a50fc41f2d19fd inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#aaaf73dec7ee8b91f92a50fc41f2d19fd">common_sat_pco</a> = false</td></tr>
+<tr class="separator:aaaf73dec7ee8b91f92a50fc41f2d19fd inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace3c2b584bb7cac376f0fab5f8a62c28 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ace3c2b584bb7cac376f0fab5f8a62c28">common_rec_pco</a> = false</td></tr>
+<tr class="separator:ace3c2b584bb7cac376f0fab5f8a62c28 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6a9974aac17b1b6d94d02b3b7d1d98eb inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a6a9974aac17b1b6d94d02b3b7d1d98eb">clock_wrap_threshold</a> = 0.05e-3</td></tr>
 <tr class="separator:a6a9974aac17b1b6d94d02b3b7d1d98eb inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae264bac808a6724d8d19485c92840e98 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#ae264bac808a6724d8d19485c92840e98">proc_noise_iono</a> = 0.001</td></tr>
-<tr class="separator:ae264bac808a6724d8d19485c92840e98 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7557718e7fd2f64532f3e691f52666c2 inherit pub_attribs_structGlobalOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structGlobalOptions.html#a7557718e7fd2f64532f3e691f52666c2">predefined_fail</a> = 0.001</td></tr>
 <tr class="separator:a7557718e7fd2f64532f3e691f52666c2 inherit pub_attribs_structGlobalOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_structInputOptions"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structInputOptions')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structInputOptions.html">InputOptions</a></td></tr>
@@ -305,6 +363,16 @@ Data Fields</h2></td></tr>
 <tr class="separator:a6639f86e9ee9f10af0e93b0333d44167 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a1ea2f9c1e99c635712e937eddae112 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a4a1ea2f9c1e99c635712e937eddae112">clk_files</a></td></tr>
 <tr class="separator:a4a1ea2f9c1e99c635712e937eddae112 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1dce580b8b0bf723e923cd806eebe495 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a1dce580b8b0bf723e923cd806eebe495">obx_files</a></td></tr>
+<tr class="separator:a1dce580b8b0bf723e923cd806eebe495 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58dea85bd8229295521c8f62251233f4 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a58dea85bd8229295521c8f62251233f4">sid_files</a></td></tr>
+<tr class="separator:a58dea85bd8229295521c8f62251233f4 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a993603ef6017f4ee70462dd7e7926bc1 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a993603ef6017f4ee70462dd7e7926bc1">com_files</a></td></tr>
+<tr class="separator:a993603ef6017f4ee70462dd7e7926bc1 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba2217b266cefb20010d97c61b2e64e7 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#aba2217b266cefb20010d97c61b2e64e7">crd_files</a></td></tr>
+<tr class="separator:aba2217b266cefb20010d97c61b2e64e7 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d1af6af99db1d6763515b7c9d3600e5 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a4d1af6af99db1d6763515b7c9d3600e5">vmf_files</a></td></tr>
+<tr class="separator:a4d1af6af99db1d6763515b7c9d3600e5 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87fae12fc59ec17023a8720044084a8a inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a87fae12fc59ec17023a8720044084a8a">erp_files</a></td></tr>
 <tr class="separator:a87fae12fc59ec17023a8720044084a8a inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e208b235b4fd03455468db220f72b04 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a1e208b235b4fd03455468db220f72b04">dcb_files</a></td></tr>
@@ -313,41 +381,61 @@ Data Fields</h2></td></tr>
 <tr class="separator:a0eda5ece7dfcd8fb031fcda156633ed7 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97cd55cbb6d9b1f679831f409e986075 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a97cd55cbb6d9b1f679831f409e986075">ion_files</a></td></tr>
 <tr class="separator:a97cd55cbb6d9b1f679831f409e986075 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7db4a208e07100cd93f2bcfd72991407 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a7db4a208e07100cd93f2bcfd72991407">rnx_files</a></td></tr>
-<tr class="separator:a7db4a208e07100cd93f2bcfd72991407 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c70f03cdf4b1badcf3df5a0b5c2c0a3 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a7c70f03cdf4b1badcf3df5a0b5c2c0a3">obs_rtcm_files</a></td></tr>
-<tr class="separator:a7c70f03cdf4b1badcf3df5a0b5c2c0a3 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91896156ad5e25da4b81b31ff34cdb74 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a91896156ad5e25da4b81b31ff34cdb74">nav_rtcm_files</a></td></tr>
-<tr class="separator:a91896156ad5e25da4b81b31ff34cdb74 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2fc0c9ad57cafaa8a0fc2d588f4a12d4 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a2fc0c9ad57cafaa8a0fc2d588f4a12d4">pseudoobs_files</a></td></tr>
-<tr class="separator:a2fc0c9ad57cafaa8a0fc2d588f4a12d4 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeaf49a528f8f24f41810db7a8f69aaf3 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#aeaf49a528f8f24f41810db7a8f69aaf3">igrf_files</a></td></tr>
+<tr class="separator:aeaf49a528f8f24f41810db7a8f69aaf3 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4ee42de3c06dbfccefa514b8caac16a inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#ac4ee42de3c06dbfccefa514b8caac16a">nav_rtcm_inputs</a></td></tr>
+<tr class="separator:ac4ee42de3c06dbfccefa514b8caac16a inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadc7bccd8b21b3e50a599be66dbc3d3b inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">map&lt; string, vector&lt; string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#aadc7bccd8b21b3e50a599be66dbc3d3b">rnx_inputs</a></td></tr>
+<tr class="separator:aadc7bccd8b21b3e50a599be66dbc3d3b inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a553c25ac8195a553a88cb297a9673102 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">map&lt; string, vector&lt; string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a553c25ac8195a553a88cb297a9673102">ubx_inputs</a></td></tr>
+<tr class="separator:a553c25ac8195a553a88cb297a9673102 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c33a7c8f4c8eda0712ee4b4b783e991 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">map&lt; string, vector&lt; string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a8c33a7c8f4c8eda0712ee4b4b783e991">obs_rtcm_inputs</a></td></tr>
+<tr class="separator:a8c33a7c8f4c8eda0712ee4b4b783e991 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfd10665e3b6fa15b73fca9100b502ac inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">map&lt; string, vector&lt; string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#acfd10665e3b6fa15b73fca9100b502ac">pseudo_sp3_inputs</a></td></tr>
+<tr class="separator:acfd10665e3b6fa15b73fca9100b502ac inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53dd3f3e75ccba025932450348cf8393 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">map&lt; string, vector&lt; string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a53dd3f3e75ccba025932450348cf8393">pseudo_snx_inputs</a></td></tr>
+<tr class="separator:a53dd3f3e75ccba025932450348cf8393 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e792a3b259c55dcabfe2198aa1dc2d9 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a1e792a3b259c55dcabfe2198aa1dc2d9">atm_reg_definitions</a></td></tr>
+<tr class="separator:a1e792a3b259c55dcabfe2198aa1dc2d9 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93a8833c82b6c380e28222eeebdecef9 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a93a8833c82b6c380e28222eeebdecef9">egm_files</a></td></tr>
 <tr class="separator:a93a8833c82b6c380e28222eeebdecef9 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ae79c0042e72a6063329122e2bc1ea4 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a0ae79c0042e72a6063329122e2bc1ea4">jpl_files</a></td></tr>
 <tr class="separator:a0ae79c0042e72a6063329122e2bc1ea4 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b54e02cd2dec857c8a82f5d3853f248 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#a6b54e02cd2dec857c8a82f5d3853f248">root_stations_dir</a> = &quot;./&quot;</td></tr>
-<tr class="separator:a6b54e02cd2dec857c8a82f5d3853f248 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5dcb8f8036a3a1bac5ee7fe6dd1b42c inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#aa5dcb8f8036a3a1bac5ee7fe6dd1b42c">tide_files</a></td></tr>
+<tr class="separator:aa5dcb8f8036a3a1bac5ee7fe6dd1b42c inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8f57709f34067b6b7e94200974d17bc inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#ab8f57709f34067b6b7e94200974d17bc">stream_user</a> = &quot;&quot;</td></tr>
 <tr class="separator:ab8f57709f34067b6b7e94200974d17bc inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb3ea8ba4d462ad2fc9384b61c04d3b1 inherit pub_attribs_structInputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structInputOptions.html#afb3ea8ba4d462ad2fc9384b61c04d3b1">stream_pass</a> = &quot;&quot;</td></tr>
 <tr class="separator:afb3ea8ba4d462ad2fc9384b61c04d3b1 inherit pub_attribs_structInputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_structOutputOptions"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structOutputOptions')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structOutputOptions.html">OutputOptions</a></td></tr>
-<tr class="memitem:a023686f1c77dde8e5e00accb0b4539e0 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a023686f1c77dde8e5e00accb0b4539e0">trace_level</a> = 0</td></tr>
-<tr class="separator:a023686f1c77dde8e5e00accb0b4539e0 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6202d278852d0fc3aeef4f08aa38ee31 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a6202d278852d0fc3aeef4f08aa38ee31">fatal_level</a> = 0</td></tr>
+<tr class="memitem:a6202d278852d0fc3aeef4f08aa38ee31 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a6202d278852d0fc3aeef4f08aa38ee31">fatal_level</a> = 0</td></tr>
 <tr class="separator:a6202d278852d0fc3aeef4f08aa38ee31 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af89110d2b222b3105810b82ebbbc6f6e inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af89110d2b222b3105810b82ebbbc6f6e">rotate_period</a> = 60*60*24</td></tr>
+<tr class="separator:af89110d2b222b3105810b82ebbbc6f6e inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a023686f1c77dde8e5e00accb0b4539e0 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a023686f1c77dde8e5e00accb0b4539e0">trace_level</a> = 0</td></tr>
+<tr class="separator:a023686f1c77dde8e5e00accb0b4539e0 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f6b3b0008cc6d59b879cdc2f0fdeff9 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a1f6b3b0008cc6d59b879cdc2f0fdeff9">output_station_trace</a> = false</td></tr>
 <tr class="separator:a1f6b3b0008cc6d59b879cdc2f0fdeff9 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3986176b3c4eaf9d70a0cc15b08c501 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab3986176b3c4eaf9d70a0cc15b08c501">output_network_trace</a> = false</td></tr>
 <tr class="separator:ab3986176b3c4eaf9d70a0cc15b08c501 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31b28030018d64c188b8c721915abb97 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a31b28030018d64c188b8c721915abb97">output_satellite_trace</a> = false</td></tr>
+<tr class="separator:a31b28030018d64c188b8c721915abb97 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3dcd29ce6cd7c8a59b50dc60ab2196c3 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a3dcd29ce6cd7c8a59b50dc60ab2196c3">output_json_trace</a> = false</td></tr>
+<tr class="separator:a3dcd29ce6cd7c8a59b50dc60ab2196c3 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04a9fc5b8ce4077c71d43ef90d5d14ff inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a04a9fc5b8ce4077c71d43ef90d5d14ff">trace_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a04a9fc5b8ce4077c71d43ef90d5d14ff inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af31ff0ed602caef58f9a41136297a2ea inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af31ff0ed602caef58f9a41136297a2ea">station_trace_filename</a> = &quot;&lt;STATION&gt;&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;.trace&quot;</td></tr>
+<tr class="memitem:af31ff0ed602caef58f9a41136297a2ea inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af31ff0ed602caef58f9a41136297a2ea">station_trace_filename</a> = &quot;&lt;STATION&gt;-&lt;LOGTIME&gt;.trace&quot;</td></tr>
 <tr class="separator:af31ff0ed602caef58f9a41136297a2ea inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05e6850eb6e8190c928ffcdcfea5d4fc inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a05e6850eb6e8190c928ffcdcfea5d4fc">network_trace_filename</a> = &quot;&lt;STATION&gt;&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;.trace&quot;</td></tr>
+<tr class="memitem:a05e6850eb6e8190c928ffcdcfea5d4fc inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a05e6850eb6e8190c928ffcdcfea5d4fc">network_trace_filename</a> = &quot;&lt;STATION&gt;-&lt;LOGTIME&gt;.trace&quot;</td></tr>
 <tr class="separator:a05e6850eb6e8190c928ffcdcfea5d4fc inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af89110d2b222b3105810b82ebbbc6f6e inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af89110d2b222b3105810b82ebbbc6f6e">rotate_period</a> = 60*60*24</td></tr>
-<tr class="separator:af89110d2b222b3105810b82ebbbc6f6e inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e9f373e3ee3d64eb9fc1b5670dac33f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a6e9f373e3ee3d64eb9fc1b5670dac33f">satellite_trace_filename</a> = &quot;&lt;STATION&gt;-&lt;LOGTIME&gt;.trace&quot;</td></tr>
+<tr class="separator:a6e9f373e3ee3d64eb9fc1b5670dac33f inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae790cd7763ba7d6c3b09635effad2a9f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ae790cd7763ba7d6c3b09635effad2a9f">record_raw_ubx</a> = false</td></tr>
+<tr class="separator:ae790cd7763ba7d6c3b09635effad2a9f inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46c5621ff025516a9afbeab2c3702d6f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a46c5621ff025516a9afbeab2c3702d6f">raw_ubx_directory</a> = &quot;./&quot;</td></tr>
+<tr class="separator:a46c5621ff025516a9afbeab2c3702d6f inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f6eac8eb975e1e1fe2909cbf0341e06 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a2f6eac8eb975e1e1fe2909cbf0341e06">raw_ubx_filename</a> = &quot;&lt;STATION&gt;-&lt;LOGTIME&gt;-OBS.rtcm&quot;</td></tr>
+<tr class="separator:a2f6eac8eb975e1e1fe2909cbf0341e06 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97e05e6b658cb4e412b9ef315854e29c inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a97e05e6b658cb4e412b9ef315854e29c">record_rtcm_obs</a> = false</td></tr>
 <tr class="separator:a97e05e6b658cb4e412b9ef315854e29c inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acdaf73a44d766df9d0375a4533d0e71a inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#acdaf73a44d766df9d0375a4533d0e71a">record_rtcm_nav</a> = false</td></tr>
@@ -356,21 +444,27 @@ Data Fields</h2></td></tr>
 <tr class="separator:ae116adb3d29f10719d31e300b88fc2d8 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10b635b4795323b05139b09252e16370 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a10b635b4795323b05139b09252e16370">rtcm_nav_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a10b635b4795323b05139b09252e16370 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a96dfc5061522b45a77f1104511d7cfe4 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a96dfc5061522b45a77f1104511d7cfe4">rtcm_obs_filename</a> = &quot;&lt;STATION&gt;&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;-OBS.rtcm3&quot;</td></tr>
+<tr class="memitem:a96dfc5061522b45a77f1104511d7cfe4 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a96dfc5061522b45a77f1104511d7cfe4">rtcm_obs_filename</a> = &quot;&lt;STATION&gt;-&lt;LOGTIME&gt;-OBS.rtcm&quot;</td></tr>
 <tr class="separator:a96dfc5061522b45a77f1104511d7cfe4 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53b0ac178f8f03082b8d4fb5631efba4 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a53b0ac178f8f03082b8d4fb5631efba4">rtcm_nav_filename</a> = &quot;&lt;STREAM&gt;&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;-NAV.rtcm3&quot;</td></tr>
+<tr class="memitem:a53b0ac178f8f03082b8d4fb5631efba4 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a53b0ac178f8f03082b8d4fb5631efba4">rtcm_nav_filename</a> = &quot;&lt;STREAM&gt;-&lt;LOGTIME&gt;-NAV.rtcm&quot;</td></tr>
 <tr class="separator:a53b0ac178f8f03082b8d4fb5631efba4 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a084319fcf346d8e6a2e0c13c1f917977 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a084319fcf346d8e6a2e0c13c1f917977">output_log</a> = false</td></tr>
 <tr class="separator:a084319fcf346d8e6a2e0c13c1f917977 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9183298e26d88da4699779675ee3506f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9183298e26d88da4699779675ee3506f">log_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a9183298e26d88da4699779675ee3506f inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef40c7aace4f90c415b16bbbfc877742 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aef40c7aace4f90c415b16bbbfc877742">log_filename</a> = &quot;log&lt;LOGTIME&gt;.json&quot;</td></tr>
+<tr class="memitem:aef40c7aace4f90c415b16bbbfc877742 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aef40c7aace4f90c415b16bbbfc877742">log_filename</a> = &quot;log-&lt;LOGTIME&gt;.json&quot;</td></tr>
 <tr class="separator:aef40c7aace4f90c415b16bbbfc877742 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7137e55443349511c7ab5d91d3de3bf3 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a7137e55443349511c7ab5d91d3de3bf3">output_ntrip_log</a> = false</td></tr>
+<tr class="separator:a7137e55443349511c7ab5d91d3de3bf3 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f6de1114c2334445d9cbef16408bdf2 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9f6de1114c2334445d9cbef16408bdf2">ntrip_log_directory</a> = &quot;./&quot;</td></tr>
+<tr class="separator:a9f6de1114c2334445d9cbef16408bdf2 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a242d32deed150001ebdecb7c32be53a3 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a242d32deed150001ebdecb7c32be53a3">ntrip_log_filename</a> = &quot;ntrip_log-&lt;LOGTIME&gt;.json&quot;</td></tr>
+<tr class="separator:a242d32deed150001ebdecb7c32be53a3 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a5c630f8365a0a71aa1ee3c2326fd1a inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a8a5c630f8365a0a71aa1ee3c2326fd1a">output_gpx</a> = false</td></tr>
 <tr class="separator:a8a5c630f8365a0a71aa1ee3c2326fd1a inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2159e6ad25fdbf7446775e79f999f463 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a2159e6ad25fdbf7446775e79f999f463">gpx_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a2159e6ad25fdbf7446775e79f999f463 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abbb31748a239dc16a5942e5ca39df2d7 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#abbb31748a239dc16a5942e5ca39df2d7">gpx_filename</a> = &quot;&lt;STATION&gt;.gpx&quot;</td></tr>
+<tr class="memitem:abbb31748a239dc16a5942e5ca39df2d7 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#abbb31748a239dc16a5942e5ca39df2d7">gpx_filename</a> = &quot;&lt;STATION&gt;-&lt;LOGTIME&gt;.gpx&quot;</td></tr>
 <tr class="separator:abbb31748a239dc16a5942e5ca39df2d7 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af25a74accff816e9563e28ad4fe4fc49 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af25a74accff816e9563e28ad4fe4fc49">output_residuals</a> = false</td></tr>
 <tr class="separator:af25a74accff816e9563e28ad4fe4fc49 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -378,35 +472,61 @@ Data Fields</h2></td></tr>
 <tr class="separator:a11e8e484d9da84de4a70e8c8a7cde408 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5cd84864967928b15d8daffee631e5d inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab5cd84864967928b15d8daffee631e5d">output_config</a> = false</td></tr>
 <tr class="separator:ab5cd84864967928b15d8daffee631e5d inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0614c080b3a3cd0a68abfc6fc3e1064 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab0614c080b3a3cd0a68abfc6fc3e1064">colorize_terminal</a> = true</td></tr>
+<tr class="separator:ab0614c080b3a3cd0a68abfc6fc3e1064 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a26bab53109aa315d288714a1c4682166 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a26bab53109aa315d288714a1c4682166">output_clocks</a> = false</td></tr>
 <tr class="separator:a26bab53109aa315d288714a1c4682166 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6009bbd7642c251b3cfc0f95d09649a6 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">E_Ephemeris&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a6009bbd7642c251b3cfc0f95d09649a6">clocks_receiver_source</a> = E_Ephemeris::KALMAN</td></tr>
-<tr class="separator:a6009bbd7642c251b3cfc0f95d09649a6 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a67c636e295560095a6cace739b5d1004 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">E_Ephemeris&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a67c636e295560095a6cace739b5d1004">clocks_satellite_source</a> = E_Ephemeris::KALMAN</td></tr>
-<tr class="separator:a67c636e295560095a6cace739b5d1004 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb93209699a284d0c01791fd3ceed9e2 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#abb93209699a284d0c01791fd3ceed9e2">clocks_receiver_sources</a> = {E_Source::KALMAN, E_Source::PRECISE, <a class="el" href="enums_8h.html#a60eb81252ea996efa61dbd9607b34fc4">E_Source::BROADCAST</a>}</td></tr>
+<tr class="separator:abb93209699a284d0c01791fd3ceed9e2 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a958601e02ccbf764d046bb2015e92174 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a958601e02ccbf764d046bb2015e92174">clocks_satellite_sources</a> = {E_Source::KALMAN, E_Source::PRECISE, <a class="el" href="enums_8h.html#a60eb81252ea996efa61dbd9607b34fc4">E_Source::BROADCAST</a>}</td></tr>
+<tr class="separator:a958601e02ccbf764d046bb2015e92174 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c4b009516dcfefb0e332abf98f6a677 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9c4b009516dcfefb0e332abf98f6a677">clocks_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a9c4b009516dcfefb0e332abf98f6a677 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a113172ffd60559ed582f4430c5d9e7b7 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a113172ffd60559ed582f4430c5d9e7b7">clocks_filename</a> = &quot;pea&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;_&lt;SYS&gt;.clk&quot;</td></tr>
+<tr class="memitem:a113172ffd60559ed582f4430c5d9e7b7 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a113172ffd60559ed582f4430c5d9e7b7">clocks_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;_&lt;SYS&gt;.clk&quot;</td></tr>
 <tr class="separator:a113172ffd60559ed582f4430c5d9e7b7 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd55dde10673c5238555133f7bcbf4b7 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#abd55dde10673c5238555133f7bcbf4b7">output_ar_clocks</a> = false</td></tr>
 <tr class="separator:abd55dde10673c5238555133f7bcbf4b7 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aabf4084cf62c1033ab1e8231abd8772a inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aabf4084cf62c1033ab1e8231abd8772a">output_orbits</a> = false</td></tr>
-<tr class="separator:aabf4084cf62c1033ab1e8231abd8772a inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa531e1ed0620db5a615c3bbf3c203278 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aa531e1ed0620db5a615c3bbf3c203278">output_orbit_velocities</a> = false</td></tr>
-<tr class="separator:aa531e1ed0620db5a615c3bbf3c203278 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a11049f39ea3a9645a97792423bbe11d0 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">E_Ephemeris&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a11049f39ea3a9645a97792423bbe11d0">orbits_data_source</a> = <a class="el" href="enums_8h.html#a9558680f5597c5119bed0018e9cc3d31">E_Ephemeris::BROADCAST</a></td></tr>
-<tr class="separator:a11049f39ea3a9645a97792423bbe11d0 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93740a4a59cfeb073fd0028bc9d67ea1 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a93740a4a59cfeb073fd0028bc9d67ea1">orbits_directory</a> = &quot;./&quot;</td></tr>
-<tr class="separator:a93740a4a59cfeb073fd0028bc9d67ea1 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a5f554dc3e55f856ae45e3ad2a491be inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a3a5f554dc3e55f856ae45e3ad2a491be">orbits_filename</a> = &quot;pea&lt;YYYY&gt;&lt;DDD&gt;_&lt;SYS&gt;.sp3&quot;</td></tr>
-<tr class="separator:a3a5f554dc3e55f856ae45e3ad2a491be inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa660aa2d63f6052c83838b0f3bec0bf1 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aa660aa2d63f6052c83838b0f3bec0bf1">output_sp3</a> = false</td></tr>
+<tr class="separator:aa660aa2d63f6052c83838b0f3bec0bf1 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14a7dd809c818e0e965601f16f0ea18d inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a14a7dd809c818e0e965601f16f0ea18d">output_predicted_orbits</a> = false</td></tr>
+<tr class="separator:a14a7dd809c818e0e965601f16f0ea18d inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1282c9bd3de9fc60923ff2264905673 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ac1282c9bd3de9fc60923ff2264905673">output_inertial_orbits</a> = false</td></tr>
+<tr class="separator:ac1282c9bd3de9fc60923ff2264905673 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa866d4a34817a78d9d79a7fd3ab077a0 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aa866d4a34817a78d9d79a7fd3ab077a0">output_sp3_velocities</a> = false</td></tr>
+<tr class="separator:aa866d4a34817a78d9d79a7fd3ab077a0 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6bfa006ba2ba5146dc560222badf6f7 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab6bfa006ba2ba5146dc560222badf6f7">sp3_orbit_sources</a> = {E_Source::KALMAN, E_Source::PRECISE, <a class="el" href="enums_8h.html#a60eb81252ea996efa61dbd9607b34fc4">E_Source::BROADCAST</a>}</td></tr>
+<tr class="separator:ab6bfa006ba2ba5146dc560222badf6f7 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03466f6ce36cc3c9797166a450e618d3 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a03466f6ce36cc3c9797166a450e618d3">sp3_clock_sources</a> = {E_Source::KALMAN, E_Source::PRECISE, <a class="el" href="enums_8h.html#a60eb81252ea996efa61dbd9607b34fc4">E_Source::BROADCAST</a>}</td></tr>
+<tr class="separator:a03466f6ce36cc3c9797166a450e618d3 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab146896d3e2e19487085c59a002cfa72 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab146896d3e2e19487085c59a002cfa72">sp3_output_interval</a> = 900</td></tr>
+<tr class="separator:ab146896d3e2e19487085c59a002cfa72 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5f815217ede4c04281c90611f07b710 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ad5f815217ede4c04281c90611f07b710">sp3_directory</a> = &quot;./&quot;</td></tr>
+<tr class="separator:ad5f815217ede4c04281c90611f07b710 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba6b77ea5f094a78167ee4c057a7d0e4 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aba6b77ea5f094a78167ee4c057a7d0e4">sp3_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;_&lt;SYS&gt;-Filt.sp3&quot;</td></tr>
+<tr class="separator:aba6b77ea5f094a78167ee4c057a7d0e4 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a1ad6b629dd0f2df1e1f0abd892fb83 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a0a1ad6b629dd0f2df1e1f0abd892fb83">predicted_sp3_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;_&lt;SYS&gt;-Prop.sp3&quot;</td></tr>
+<tr class="separator:a0a1ad6b629dd0f2df1e1f0abd892fb83 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44c7c5882db4a71b34a5668f9b88c473 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a44c7c5882db4a71b34a5668f9b88c473">output_orbex</a> = false</td></tr>
+<tr class="separator:a44c7c5882db4a71b34a5668f9b88c473 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafd056ce42d8f63444dfe353cf90fb23 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aafd056ce42d8f63444dfe353cf90fb23">orbex_orbit_sources</a> = {E_Source::KALMAN, E_Source::PRECISE, <a class="el" href="enums_8h.html#a60eb81252ea996efa61dbd9607b34fc4">E_Source::BROADCAST</a>}</td></tr>
+<tr class="separator:aafd056ce42d8f63444dfe353cf90fb23 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4a28eb192f98ad6d52f9c946fd1b00e inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab4a28eb192f98ad6d52f9c946fd1b00e">orbex_clock_sources</a> = {E_Source::KALMAN, E_Source::PRECISE, <a class="el" href="enums_8h.html#a60eb81252ea996efa61dbd9607b34fc4">E_Source::BROADCAST</a>}</td></tr>
+<tr class="separator:ab4a28eb192f98ad6d52f9c946fd1b00e inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c75877304b514ed26dd46bddc447931 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a6c75877304b514ed26dd46bddc447931">orbex_attitude_sources</a> = {E_Source::NOMINAL}</td></tr>
+<tr class="separator:a6c75877304b514ed26dd46bddc447931 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a283e5a61f173a3d7a6ed1409ea0a48a2 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a283e5a61f173a3d7a6ed1409ea0a48a2">orbex_directory</a> = &quot;./&quot;</td></tr>
+<tr class="separator:a283e5a61f173a3d7a6ed1409ea0a48a2 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64697ed92a9c3d20cc4f0f4c9bee0be9 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a64697ed92a9c3d20cc4f0f4c9bee0be9">orbex_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;_&lt;SYS&gt;.obx&quot;</td></tr>
+<tr class="separator:a64697ed92a9c3d20cc4f0f4c9bee0be9 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa60a78cc5c4bffb5eb20f8430dcffbc1 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aa60a78cc5c4bffb5eb20f8430dcffbc1">orbex_record_types</a> = { &quot;ATT&quot; }</td></tr>
+<tr class="separator:aa60a78cc5c4bffb5eb20f8430dcffbc1 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a180094fb3f3358600c0b49f4462e866b inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a180094fb3f3358600c0b49f4462e866b">split_sys</a> = false</td></tr>
 <tr class="separator:a180094fb3f3358600c0b49f4462e866b inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab6906bdc1163f87a9e6a8cdc4b37c499 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab6906bdc1163f87a9e6a8cdc4b37c499">output_rinex_obs</a> = false</td></tr>
 <tr class="separator:ab6906bdc1163f87a9e6a8cdc4b37c499 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03b0f110edadb2e36d12bb99ed9b350b inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a03b0f110edadb2e36d12bb99ed9b350b">rinex_obs_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a03b0f110edadb2e36d12bb99ed9b350b inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a885a1fb002483262f37c96de3198c469 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a885a1fb002483262f37c96de3198c469">rinex_obs_filename</a> = &quot;&lt;STATION&gt;_&lt;YYYY&gt;&lt;DDD&gt;_&lt;SYS&gt;.&lt;YY&gt;O&quot;</td></tr>
+<tr class="memitem:a885a1fb002483262f37c96de3198c469 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a885a1fb002483262f37c96de3198c469">rinex_obs_filename</a> = &quot;&lt;STATION&gt;-&lt;LOGTIME&gt;_&lt;SYS&gt;.&lt;YY&gt;O&quot;</td></tr>
 <tr class="separator:a885a1fb002483262f37c96de3198c469 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a315f81afaf6a8b1d392e68a14ae863a0 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a315f81afaf6a8b1d392e68a14ae863a0">rinex_obs_version</a> = 3.05</td></tr>
 <tr class="separator:a315f81afaf6a8b1d392e68a14ae863a0 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -422,13 +542,13 @@ Data Fields</h2></td></tr>
 <tr class="separator:a2e18f07d0710f9af8944dd632a56bd4c inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82ea337dd751c1f3917e081dec222ee9 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a82ea337dd751c1f3917e081dec222ee9">ppp_sol_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a82ea337dd751c1f3917e081dec222ee9 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3032c07451e1f4f72f10f57f89aba7f8 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a3032c07451e1f4f72f10f57f89aba7f8">ppp_sol_filename</a> = &quot;pea&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;.pppsol&quot;</td></tr>
+<tr class="memitem:a3032c07451e1f4f72f10f57f89aba7f8 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a3032c07451e1f4f72f10f57f89aba7f8">ppp_sol_filename</a> = &quot;&lt;STATION&gt;&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;.pppsol&quot;</td></tr>
 <tr class="separator:a3032c07451e1f4f72f10f57f89aba7f8 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7eb9ff834435b883962cf3600eb547af inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a7eb9ff834435b883962cf3600eb547af">output_ionex</a> = false</td></tr>
 <tr class="separator:a7eb9ff834435b883962cf3600eb547af inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86e171df6ba5f3a9f709dab6d9c577ec inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a86e171df6ba5f3a9f709dab6d9c577ec">ionex_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a86e171df6ba5f3a9f709dab6d9c577ec inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2a895ef73fb33842d1f303cd1250ae56 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a2a895ef73fb33842d1f303cd1250ae56">ionex_filename</a> = &quot;pea&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;.ionex&quot;</td></tr>
+<tr class="memitem:a2a895ef73fb33842d1f303cd1250ae56 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a2a895ef73fb33842d1f303cd1250ae56">ionex_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;.INX&quot;</td></tr>
 <tr class="separator:a2a895ef73fb33842d1f303cd1250ae56 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aefe1f7146d1c5b30225141c65f7aed9f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIonexOptions.html">IonexOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aefe1f7146d1c5b30225141c65f7aed9f">ionexGrid</a></td></tr>
 <tr class="separator:aefe1f7146d1c5b30225141c65f7aed9f inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -436,7 +556,7 @@ Data Fields</h2></td></tr>
 <tr class="separator:a804b64f154ddee62ff66764d14578f12 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adea69df7902904bcc0c950d45f4e56d8 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#adea69df7902904bcc0c950d45f4e56d8">rinex_nav_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:adea69df7902904bcc0c950d45f4e56d8 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2eddf2883d711b514726699863938e53 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a2eddf2883d711b514726699863938e53">rinex_nav_filename</a> = &quot;&lt;YYYY&gt;&lt;DDD&gt;_nav_&lt;SYS&gt;.rnx&quot;</td></tr>
+<tr class="memitem:a2eddf2883d711b514726699863938e53 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a2eddf2883d711b514726699863938e53">rinex_nav_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;_nav_&lt;SYS&gt;.rnx&quot;</td></tr>
 <tr class="separator:a2eddf2883d711b514726699863938e53 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd6e2cfbecbf66eedcdd21cfa898f7b3 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#afd6e2cfbecbf66eedcdd21cfa898f7b3">rinex_nav_version</a> = 3.05</td></tr>
 <tr class="separator:afd6e2cfbecbf66eedcdd21cfa898f7b3 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -444,91 +564,119 @@ Data Fields</h2></td></tr>
 <tr class="separator:a2cdc299e3c2fdaf3aa2b0cfd6f286c5d inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa59d55291f4f5b95251dbf5ccd46c0fb inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aa59d55291f4f5b95251dbf5ccd46c0fb">ionstec_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:aa59d55291f4f5b95251dbf5ccd46c0fb inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af73c535e27a15a3e5a5d3af34f808d55 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af73c535e27a15a3e5a5d3af34f808d55">ionstec_filename</a> = &quot;pea&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;.STEC&quot;</td></tr>
+<tr class="memitem:af73c535e27a15a3e5a5d3af34f808d55 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af73c535e27a15a3e5a5d3af34f808d55">ionstec_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;.STEC&quot;</td></tr>
 <tr class="separator:af73c535e27a15a3e5a5d3af34f808d55 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad422407f6c4e10823fe22befb25a1a38 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ad422407f6c4e10823fe22befb25a1a38">output_erp</a> = false</td></tr>
 <tr class="separator:ad422407f6c4e10823fe22befb25a1a38 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d67cf2f39771822f300528ee2df7641 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a5d67cf2f39771822f300528ee2df7641">erp_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a5d67cf2f39771822f300528ee2df7641 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9162609e2d9130cebaccabfba6d7ef81 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9162609e2d9130cebaccabfba6d7ef81">erp_filename</a> = &quot;pea.ERP&quot;</td></tr>
+<tr class="memitem:a9162609e2d9130cebaccabfba6d7ef81 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9162609e2d9130cebaccabfba6d7ef81">erp_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;.<a class="el" href="structERP.html">ERP</a>&quot;</td></tr>
 <tr class="separator:a9162609e2d9130cebaccabfba6d7ef81 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3d0b05792c20d212763624de73ba268 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ad3d0b05792c20d212763624de73ba268">output_bias_sinex</a> = false</td></tr>
 <tr class="separator:ad3d0b05792c20d212763624de73ba268 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b8acc29560eb4ceb242f9cf3bdb8f90 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a7b8acc29560eb4ceb242f9cf3bdb8f90">bias_sinex_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a7b8acc29560eb4ceb242f9cf3bdb8f90 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a76640f1fa0266aef12dbf2e3c34920ea inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a76640f1fa0266aef12dbf2e3c34920ea">bias_sinex_filename</a> = &quot;AUS0ACSRAP_&lt;YYYY&gt;&lt;DDD&gt;&lt;HH&gt;00_01D_30S_ABS.BIA&quot;</td></tr>
+<tr class="memitem:a76640f1fa0266aef12dbf2e3c34920ea inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a76640f1fa0266aef12dbf2e3c34920ea">bias_sinex_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;.BIA&quot;</td></tr>
 <tr class="separator:a76640f1fa0266aef12dbf2e3c34920ea inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea6b05a9e17bc120aed1c0f97fb49a93 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aea6b05a9e17bc120aed1c0f97fb49a93">output_sinex</a> = false</td></tr>
 <tr class="separator:aea6b05a9e17bc120aed1c0f97fb49a93 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7a30ed05906478c1c048602e26270b4 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af7a30ed05906478c1c048602e26270b4">sinex_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:af7a30ed05906478c1c048602e26270b4 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73585de662b7e21d692849d89e159282 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a73585de662b7e21d692849d89e159282">sinex_filename</a> = &quot;&lt;CONFIG&gt;&lt;WWWW&gt;&lt;D&gt;.snx&quot;</td></tr>
+<tr class="memitem:a73585de662b7e21d692849d89e159282 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a73585de662b7e21d692849d89e159282">sinex_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;.snx&quot;</td></tr>
 <tr class="separator:a73585de662b7e21d692849d89e159282 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abb6d51a172f8e60d1be9aa8efcad3527 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#abb6d51a172f8e60d1be9aa8efcad3527">output_trop_sinex</a> = false</td></tr>
 <tr class="separator:abb6d51a172f8e60d1be9aa8efcad3527 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6157c5700313d0a557d1184a7014116a inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">E_Ephemeris&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a6157c5700313d0a557d1184a7014116a">trop_data_source</a> = E_Ephemeris::KALMAN</td></tr>
-<tr class="separator:a6157c5700313d0a557d1184a7014116a inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9512d317fdee4972414e43d054400d09 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9512d317fdee4972414e43d054400d09">trop_sinex_data_sources</a> = {E_Source::KALMAN}</td></tr>
+<tr class="separator:a9512d317fdee4972414e43d054400d09 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01597e88031e0607b1116989528e6644 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a01597e88031e0607b1116989528e6644">trop_sinex_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a01597e88031e0607b1116989528e6644 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe69217d979410da71871b5b7a0c6e4a inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#afe69217d979410da71871b5b7a0c6e4a">trop_sinex_filename</a> = &quot;&lt;CONFIG&gt;&lt;WWWW&gt;&lt;D&gt;.tro&quot;</td></tr>
+<tr class="memitem:afe69217d979410da71871b5b7a0c6e4a inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#afe69217d979410da71871b5b7a0c6e4a">trop_sinex_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;.tro&quot;</td></tr>
 <tr class="separator:afe69217d979410da71871b5b7a0c6e4a inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf36ef8b97b197cffff741d49a686a4f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#abf36ef8b97b197cffff741d49a686a4f">trop_sinex_sol_type</a> = &quot;Solution parameters&quot;</td></tr>
+<tr class="separator:abf36ef8b97b197cffff741d49a686a4f inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6019cf0ed43a1fd4f2053903346fd820 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a6019cf0ed43a1fd4f2053903346fd820">trop_sinex_obs_code</a> = 'P'</td></tr>
+<tr class="separator:a6019cf0ed43a1fd4f2053903346fd820 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2292984fbd216326e9aa011390130342 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a2292984fbd216326e9aa011390130342">trop_sinex_const_code</a> = ' '</td></tr>
+<tr class="separator:a2292984fbd216326e9aa011390130342 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31ce39126e969d960d7c2be4087aff51 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a31ce39126e969d960d7c2be4087aff51">trop_sinex_version</a> = 2.0</td></tr>
+<tr class="separator:a31ce39126e969d960d7c2be4087aff51 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40d0abef2cd34b3e8285af3a7f88aef6 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a40d0abef2cd34b3e8285af3a7f88aef6">output_cost</a> = false</td></tr>
+<tr class="separator:a40d0abef2cd34b3e8285af3a7f88aef6 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1bf305a20c016fd65aad5cd5ef3e2141 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">vector&lt; E_Source &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a1bf305a20c016fd65aad5cd5ef3e2141">cost_data_sources</a> = {E_Source::KALMAN}</td></tr>
+<tr class="separator:a1bf305a20c016fd65aad5cd5ef3e2141 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad972126a42a2b5198300659bdb207b12 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ad972126a42a2b5198300659bdb207b12">cost_directory</a> = &quot;./&quot;</td></tr>
+<tr class="separator:ad972126a42a2b5198300659bdb207b12 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5cbc02abaf72b14007be6b22f065b0a inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ad5cbc02abaf72b14007be6b22f065b0a">cost_filename</a> = &quot;cost_s_t_&lt;LOGTIME&gt;_&lt;STATION&gt;_ga__.dat&quot;</td></tr>
+<tr class="separator:ad5cbc02abaf72b14007be6b22f065b0a inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab544eb44834aa6a79e53ef9ff5637979 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab544eb44834aa6a79e53ef9ff5637979">cost_time_interval</a> = 900</td></tr>
+<tr class="separator:ab544eb44834aa6a79e53ef9ff5637979 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaaa065206f386362628218a85fe71acc inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aaaa065206f386362628218a85fe71acc">cost_format</a> = &quot;COST-716 V2.2&quot;</td></tr>
+<tr class="separator:aaaa065206f386362628218a85fe71acc inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a603a640995949fbe2f33f760bb135d44 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a603a640995949fbe2f33f760bb135d44">cost_project</a> = &quot;GA-NRT&quot;</td></tr>
+<tr class="separator:a603a640995949fbe2f33f760bb135d44 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a979f47deae899911a22533fac86ca69f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a979f47deae899911a22533fac86ca69f">cost_status</a> = &quot;TEST&quot;</td></tr>
+<tr class="separator:a979f47deae899911a22533fac86ca69f inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a559a6b6fa6b7ca6f019691bcf4b07e17 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a559a6b6fa6b7ca6f019691bcf4b07e17">cost_centre</a> = &quot;GA__ Geoscience Aus&quot;</td></tr>
+<tr class="separator:a559a6b6fa6b7ca6f019691bcf4b07e17 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4481157e39dfa76fbc4050cbc706a786 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a4481157e39dfa76fbc4050cbc706a786">cost_method</a> = &quot;GINAN V2&quot;</td></tr>
+<tr class="separator:a4481157e39dfa76fbc4050cbc706a786 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a069aef77cbcecc80ae38532343fcfd27 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a069aef77cbcecc80ae38532343fcfd27">cost_orbit_type</a> = &quot;IGSPRE&quot;</td></tr>
+<tr class="separator:a069aef77cbcecc80ae38532343fcfd27 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf64634d1b452015e77c27cc764d4dda inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#adf64634d1b452015e77c27cc764d4dda">cost_met_source</a> = &quot;NONE&quot;</td></tr>
+<tr class="separator:adf64634d1b452015e77c27cc764d4dda inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46927987f3a2a2d059b28c224da9f4bb inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a46927987f3a2a2d059b28c224da9f4bb">output_persistance</a> = false</td></tr>
 <tr class="separator:a46927987f3a2a2d059b28c224da9f4bb inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0acf08a5849c9c16071d6317dd3eaa80 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a0acf08a5849c9c16071d6317dd3eaa80">input_persistance</a> = false</td></tr>
 <tr class="separator:a0acf08a5849c9c16071d6317dd3eaa80 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bbe9cb1e3c1e21cdcfcc76fd7d25e23 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a3bbe9cb1e3c1e21cdcfcc76fd7d25e23">persistance_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a3bbe9cb1e3c1e21cdcfcc76fd7d25e23 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:affcadde004caaaa0b44dec8524b37c13 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#affcadde004caaaa0b44dec8524b37c13">persistance_filename</a> = &quot;&lt;CONFIG&gt;&lt;WWWW&gt;&lt;D&gt;.persist&quot;</td></tr>
+<tr class="memitem:affcadde004caaaa0b44dec8524b37c13 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#affcadde004caaaa0b44dec8524b37c13">persistance_filename</a> = &quot;&lt;CONFIG&gt;.persist&quot;</td></tr>
 <tr class="separator:affcadde004caaaa0b44dec8524b37c13 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38fe8322edc7027d0da9a58df249f15e inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a38fe8322edc7027d0da9a58df249f15e">enable_mongo</a> = false</td></tr>
-<tr class="separator:a38fe8322edc7027d0da9a58df249f15e inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f0e1b610c16326bdff00c89123fd267 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9f0e1b610c16326bdff00c89123fd267">output_mongo_rtcm_messages</a> = false</td></tr>
-<tr class="separator:a9f0e1b610c16326bdff00c89123fd267 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad80c8130992aa6ecc93856db39171441 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ad80c8130992aa6ecc93856db39171441">output_mongo_measurements</a> = false</td></tr>
-<tr class="separator:ad80c8130992aa6ecc93856db39171441 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff9ff96a9adabb8639550bc99f700311 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aff9ff96a9adabb8639550bc99f700311">output_mongo_states</a> = false</td></tr>
-<tr class="separator:aff9ff96a9adabb8639550bc99f700311 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21b3887de33b0851eea3b77e273195bb inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a21b3887de33b0851eea3b77e273195bb">output_mongo_test_stats</a> = false</td></tr>
-<tr class="separator:a21b3887de33b0851eea3b77e273195bb inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5ee907f985716327f4eee3d4b95d7e3 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab5ee907f985716327f4eee3d4b95d7e3">output_intermediate_rts</a> = false</td></tr>
-<tr class="separator:ab5ee907f985716327f4eee3d4b95d7e3 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01b8431d7c3a56886f60e7bda2d4f5c4 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a01b8431d7c3a56886f60e7bda2d4f5c4">output_mongo_logs</a> = false</td></tr>
-<tr class="separator:a01b8431d7c3a56886f60e7bda2d4f5c4 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adde7b0eff79e9ab47b33827f6f8c6e68 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#adde7b0eff79e9ab47b33827f6f8c6e68">delete_mongo_history</a> = false</td></tr>
-<tr class="separator:adde7b0eff79e9ab47b33827f6f8c6e68 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac99212d4bb737db9f4b8e3dac0344ca9 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ac99212d4bb737db9f4b8e3dac0344ca9">mongo_rts_suffix</a> = &quot;~&quot;</td></tr>
-<tr class="separator:ac99212d4bb737db9f4b8e3dac0344ca9 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a353a6996254d947fcf152b6efee6c609 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a353a6996254d947fcf152b6efee6c609">mongo_uri</a> = &quot;mongodb://localhost:27017&quot;</td></tr>
-<tr class="separator:a353a6996254d947fcf152b6efee6c609 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af24b098ca14a552fbc510b8f581b1daf inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#af24b098ca14a552fbc510b8f581b1daf">mongo_suffix</a> = &quot;&quot;</td></tr>
-<tr class="separator:af24b098ca14a552fbc510b8f581b1daf inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ce80982621b46da72e8f9634b5b6978 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a6ce80982621b46da72e8f9634b5b6978">mongo_database</a> = &quot;&lt;CONFIG&gt;&quot;</td></tr>
-<tr class="separator:a6ce80982621b46da72e8f9634b5b6978 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a01e11d44c05dcf11275199d5a8add070 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a01e11d44c05dcf11275199d5a8add070">output_slr_obs</a> = false</td></tr>
+<tr class="separator:a01e11d44c05dcf11275199d5a8add070 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f750a62eb8725c5e064a8bbe51c0572 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9f750a62eb8725c5e064a8bbe51c0572">slr_obs_directory</a> = &quot;./&quot;</td></tr>
+<tr class="separator:a9f750a62eb8725c5e064a8bbe51c0572 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac34499de4acce3a6db1dac9e322fe0ad inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ac34499de4acce3a6db1dac9e322fe0ad">slr_obs_filename</a> = &quot;&lt;STATION&gt;.slr_obs&quot;</td></tr>
+<tr class="separator:ac34499de4acce3a6db1dac9e322fe0ad inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ca4d4ddc29182d225ac2145308bf9d9 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a8ca4d4ddc29182d225ac2145308bf9d9">output_orbit_ics</a> = false</td></tr>
+<tr class="separator:a8ca4d4ddc29182d225ac2145308bf9d9 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27429d40a945fd04924026d50c1e8e46 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a27429d40a945fd04924026d50c1e8e46">orbit_ics_directory</a> = &quot;./&quot;</td></tr>
+<tr class="separator:a27429d40a945fd04924026d50c1e8e46 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fdaed5ad3b0151fb84e8bee6ae5d83b inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a0fdaed5ad3b0151fb84e8bee6ae5d83b">orbit_ics_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;-orbits.yaml&quot;</td></tr>
+<tr class="separator:a0fdaed5ad3b0151fb84e8bee6ae5d83b inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a458cef9629a8c2e09a32ea356756cd63 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a458cef9629a8c2e09a32ea356756cd63">enable_binary_store</a> = false</td></tr>
+<tr class="separator:a458cef9629a8c2e09a32ea356756cd63 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bb97dacada96da318dea157219bf066 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a2bb97dacada96da318dea157219bf066">store_binary_states</a> = false</td></tr>
+<tr class="separator:a2bb97dacada96da318dea157219bf066 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ad4056b9c56bdab2829a12bfe6eaae1 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a8ad4056b9c56bdab2829a12bfe6eaae1">store_binary_measurements</a> = false</td></tr>
+<tr class="separator:a8ad4056b9c56bdab2829a12bfe6eaae1 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9bb1f8c7806e60e5950b90d113241e2 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab9bb1f8c7806e60e5950b90d113241e2">output_decoded_rtcm_json</a> = false</td></tr>
 <tr class="separator:ab9bb1f8c7806e60e5950b90d113241e2 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad842d00c5ed6f071567955826e23dfd2 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ad842d00c5ed6f071567955826e23dfd2">decoded_rtcm_json_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:ad842d00c5ed6f071567955826e23dfd2 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b7e766b08f0640b3b76829417fcea22 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a8b7e766b08f0640b3b76829417fcea22">decoded_rtcm_json_filename</a> = &quot;&lt;CONFIG&gt;_&lt;WWWW&gt;_&lt;D&gt;_decoded_rtcm.json&quot;</td></tr>
+<tr class="memitem:a8b7e766b08f0640b3b76829417fcea22 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a8b7e766b08f0640b3b76829417fcea22">decoded_rtcm_json_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;_rtcm_decoded.json&quot;</td></tr>
 <tr class="separator:a8b7e766b08f0640b3b76829417fcea22 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a386e79a35ece2134c927f0bc1bf65107 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a386e79a35ece2134c927f0bc1bf65107">output_encoded_rtcm_json</a> = false</td></tr>
 <tr class="separator:a386e79a35ece2134c927f0bc1bf65107 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78a30d043ba77fafb109b2b07a90bf88 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a78a30d043ba77fafb109b2b07a90bf88">encoded_rtcm_json_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:a78a30d043ba77fafb109b2b07a90bf88 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b1abbc0500a041676174708a9374658 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a0b1abbc0500a041676174708a9374658">encoded_rtcm_json_filename</a> = &quot;&lt;CONFIG&gt;_&lt;WWWW&gt;_&lt;D&gt;_encoded_rtcm.json&quot;</td></tr>
+<tr class="memitem:a0b1abbc0500a041676174708a9374658 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a0b1abbc0500a041676174708a9374658">encoded_rtcm_json_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;_rtcm_encoded.json&quot;</td></tr>
 <tr class="separator:a0b1abbc0500a041676174708a9374658 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e773fc2f13c9c96277bdd6545e68844 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a9e773fc2f13c9c96277bdd6545e68844">output_network_statistics_json</a> = false</td></tr>
 <tr class="separator:a9e773fc2f13c9c96277bdd6545e68844 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab445f32c1b478b2c6b932a5a9af1d033 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#ab445f32c1b478b2c6b932a5a9af1d033">network_statistics_json_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:ab445f32c1b478b2c6b932a5a9af1d033 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99c6c2355f18529a6c8fe41b876eca76 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a99c6c2355f18529a6c8fe41b876eca76">network_statistics_json_filename</a> = &quot;&lt;CONFIG&gt;_network_statistics.json&quot;</td></tr>
+<tr class="memitem:a99c6c2355f18529a6c8fe41b876eca76 inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a99c6c2355f18529a6c8fe41b876eca76">network_statistics_json_filename</a> = &quot;&lt;CONFIG&gt;-&lt;LOGTIME&gt;_network_statistics.json&quot;</td></tr>
 <tr class="separator:a99c6c2355f18529a6c8fe41b876eca76 inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a478f8d6edf3c5ccb9534a053df9e553f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a478f8d6edf3c5ccb9534a053df9e553f">test_filename</a> = &quot;testData&quot;</td></tr>
+<tr class="memitem:a478f8d6edf3c5ccb9534a053df9e553f inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#a478f8d6edf3c5ccb9534a053df9e553f">test_filename</a> = &quot;&lt;CONFIG&gt;-testData&quot;</td></tr>
 <tr class="separator:a478f8d6edf3c5ccb9534a053df9e553f inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec456101175f9a3d03d72014e692819b inherit pub_attribs_structOutputOptions"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structOutputOptions.html#aec456101175f9a3d03d72014e692819b">test_directory</a> = &quot;./&quot;</td></tr>
 <tr class="separator:aec456101175f9a3d03d72014e692819b inherit pub_attribs_structOutputOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_structDebugOptions"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structDebugOptions')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structDebugOptions.html">DebugOptions</a></td></tr>
-<tr class="memitem:aa5691b979f87f8684ad2125db687d581 inherit pub_attribs_structDebugOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structDebugOptions.html#aa5691b979f87f8684ad2125db687d581">csfreq</a> = 3</td></tr>
+<tr class="memitem:aa5691b979f87f8684ad2125db687d581 inherit pub_attribs_structDebugOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structDebugOptions.html#aa5691b979f87f8684ad2125db687d581">csfreq</a> = 3</td></tr>
 <tr class="separator:aa5691b979f87f8684ad2125db687d581 inherit pub_attribs_structDebugOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1738f54360f23574356b69060b9b00f3 inherit pub_attribs_structDebugOptions"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structDebugOptions.html#a1738f54360f23574356b69060b9b00f3">pseudo_pulses</a> = 0</td></tr>
+<tr class="separator:a1738f54360f23574356b69060b9b00f3 inherit pub_attribs_structDebugOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef5cb7e2789d413a8ab0d427307eeb47 inherit pub_attribs_structDebugOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structDebugOptions.html#aef5cb7e2789d413a8ab0d427307eeb47">mincon_only</a> = false</td></tr>
 <tr class="separator:aef5cb7e2789d413a8ab0d427307eeb47 inherit pub_attribs_structDebugOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a235480212c3e42761c39dd0ef30e3025 inherit pub_attribs_structDebugOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structDebugOptions.html#a235480212c3e42761c39dd0ef30e3025">check_plumbing</a> = false</td></tr>
@@ -537,46 +685,17 @@ Data Fields</h2></td></tr>
 <tr class="separator:a2b9753de5978c26e580377f12bc367a6 inherit pub_attribs_structDebugOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a367ce8a5dd968f55e1484bf18c17c484 inherit pub_attribs_structDebugOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structDebugOptions.html#a367ce8a5dd968f55e1484bf18c17c484">rts_only</a> = false</td></tr>
 <tr class="separator:a367ce8a5dd968f55e1484bf18c17c484 inherit pub_attribs_structDebugOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab587f8d1fa1c62321dd2bb2a752d47b5 inherit pub_attribs_structDebugOptions"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structDebugOptions.html#ab587f8d1fa1c62321dd2bb2a752d47b5">explain_measurements</a> = false</td></tr>
+<tr class="separator:ab587f8d1fa1c62321dd2bb2a752d47b5 inherit pub_attribs_structDebugOptions"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a2bcb0a22151c2d430614157c4bebafba"><td class="memItemLeft" align="right" valign="top">static map&lt; string, string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structACSConfig.html#a2bcb0a22151c2d430614157c4bebafba">docs</a></td></tr>
+<tr class="separator:a2bcb0a22151c2d430614157c4bebafba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a92bff361b02a9eb9de0296f29e7e1091" name="a92bff361b02a9eb9de0296f29e7e1091"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a92bff361b02a9eb9de0296f29e7e1091">&#9670;&nbsp;</a></span>getMinConOpts()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structMinimumStationOptions.html">MinimumStationOptions</a> &amp; ACSConfig::getMinConOpts </td>
-          <td>(</td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>id</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set minimum constraint options for a specific receiver using a hierarchy of sources. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">id</td><td>Receiver to search for options for </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a92bff361b02a9eb9de0296f29e7e1091_cgraph.svg" width="383" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a92bff361b02a9eb9de0296f29e7e1091_icgraph.svg" width="511" height="114"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a7ddfbaf20a1c9181d73d0dabe92beace" name="a7ddfbaf20a1c9181d73d0dabe92beace"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ddfbaf20a1c9181d73d0dabe92beace">&#9670;&nbsp;</a></span>getRecOpts()</h2>
+<a id="a883b2b26e906c5fa7469a81b05524b8d" name="a883b2b26e906c5fa7469a81b05524b8d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a883b2b26e906c5fa7469a81b05524b8d">&#9670;&nbsp;</a></span>getRecOpts()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -585,8 +704,18 @@ Here is the caller graph for this function:</div>
           <td class="memname"><a class="el" href="structReceiverOptions.html">ReceiverOptions</a> &amp; ACSConfig::getRecOpts </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>id</em></td><td>)</td>
+          <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">vector&lt; string &gt;&#160;</td>
+          <td class="paramname"><em>suffixes</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -594,25 +723,26 @@ Here is the caller graph for this function:</div>
 <p>Set receiver options for a specific receiver using a hierarchy of sources. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">id</td><td>Receiver to search for options for </td></tr>
+    <tr><td class="paramname">id</td><td>Receiver to search for options for</td></tr>
+    <tr><td class="paramname">suffixes</td><td>Optional suffix to get more specific versions </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a7ddfbaf20a1c9181d73d0dabe92beace_cgraph.svg" width="339" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structACSConfig_a883b2b26e906c5fa7469a81b05524b8d_cgraph.svg" width="100%" height="541"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structACSConfig_a7ddfbaf20a1c9181d73d0dabe92beace_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structACSConfig_a883b2b26e906c5fa7469a81b05524b8d_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
 </div>
-<a id="a9f893b7ab2412f42ef7a02423d755940" name="a9f893b7ab2412f42ef7a02423d755940"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f893b7ab2412f42ef7a02423d755940">&#9670;&nbsp;</a></span>getSatOpts()</h2>
+<a id="aeba33c340b4695e47f2d41bf97402400" name="aeba33c340b4695e47f2d41bf97402400"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeba33c340b4695e47f2d41bf97402400">&#9670;&nbsp;</a></span>getSatOpts()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -620,9 +750,19 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname"><a class="el" href="structSatelliteOptions.html">SatelliteOptions</a> &amp; ACSConfig::getSatOpts </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a> &amp;&#160;</td>
-          <td class="paramname"><em>Sat</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a>&#160;</td>
+          <td class="paramname"><em>Sat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">vector&lt; string &gt;&#160;</td>
+          <td class="paramname"><em>suffixes</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -630,19 +770,20 @@ Here is the caller graph for this function:</div>
 <p>Set satellite options for a specific satellite using a hierarchy of sources. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">Sat</td><td>Satellite to search for options for </td></tr>
+    <tr><td class="paramname">Sat</td><td>Satellite to search for options for</td></tr>
+    <tr><td class="paramname">suffixes</td><td>Optional suffix to get more specific versions </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a9f893b7ab2412f42ef7a02423d755940_cgraph.svg" width="368" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structACSConfig_aeba33c340b4695e47f2d41bf97402400_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a9f893b7ab2412f42ef7a02423d755940_icgraph.svg" width="404" height="443"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structACSConfig_aeba33c340b4695e47f2d41bf97402400_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -678,8 +819,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="adac4596adc23c4983de95cb42618ba37" name="adac4596adc23c4983de95cb42618ba37"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adac4596adc23c4983de95cb42618ba37">&#9670;&nbsp;</a></span>outputDefaultConfiguration()</h2>
+<a id="a12622cd32773b55c6fb2717f998b25ed" name="a12622cd32773b55c6fb2717f998b25ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12622cd32773b55c6fb2717f998b25ed">&#9670;&nbsp;</a></span>outputDefaultConfiguration()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -687,23 +828,24 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void ACSConfig::outputDefaultConfiguration </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>level</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Outputs default configuration and a configurator The default values, and descriptions of each parameter configured is output to the command line. </p>
-<p >A configurator is generated that can be used to edit the default configuration via interactive html scripts </p>
+<p ><a class="el" href="structA.html">A</a> configurator is generated that can be used to edit the default configuration via interactive html scripts </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_adac4596adc23c4983de95cb42618ba37_cgraph.svg" width="410" height="70"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a12622cd32773b55c6fb2717f998b25ed_cgraph.svg" width="595" height="95"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_adac4596adc23c4983de95cb42618ba37_icgraph.svg" width="382" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a12622cd32773b55c6fb2717f998b25ed_icgraph.svg" width="382" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -735,8 +877,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a7956bea37dde8338349a7a2971c530e6" name="a7956bea37dde8338349a7a2971c530e6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7956bea37dde8338349a7a2971c530e6">&#9670;&nbsp;</a></span>parse() <span class="overload">[2/2]</span></h2>
+<a id="a33ef8a76d552f3e0e34cb950f7b730ee" name="a33ef8a76d552f3e0e34cb950f7b730ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33ef8a76d552f3e0e34cb950f7b730ee">&#9670;&nbsp;</a></span>parse() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -744,8 +886,8 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">bool ACSConfig::parse </td>
           <td>(</td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>filename</em>, </td>
+          <td class="paramtype">vector&lt; string &gt;&#160;</td>
+          <td class="paramname"><em>filenames</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -765,7 +907,7 @@ Here is the caller graph for this function:</div>
 <p >Command line options will override any values set in config files, which will themselves override any program default values. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">filename</td><td>Path to yaml based config file</td></tr>
+    <tr><td class="paramname">filenames</td><td>Path to yaml based config file</td></tr>
     <tr><td class="paramname">newCommandOpts</td><td>Variable map object of command line options </td></tr>
   </table>
   </dd>
@@ -773,18 +915,18 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structACSConfig_a7956bea37dde8338349a7a2971c530e6_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structACSConfig_a33ef8a76d552f3e0e34cb950f7b730ee_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a7956bea37dde8338349a7a2971c530e6_icgraph.svg" width="342" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a33ef8a76d552f3e0e34cb950f7b730ee_icgraph.svg" width="342" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ad829bbeec8566a699e5dfefc7b8e6bd8" name="ad829bbeec8566a699e5dfefc7b8e6bd8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad829bbeec8566a699e5dfefc7b8e6bd8">&#9670;&nbsp;</a></span>recurseYaml()</h2>
+<a id="a3d997544595a000584326696d0a1b062" name="a3d997544595a000584326696d0a1b062"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d997544595a000584326696d0a1b062">&#9670;&nbsp;</a></span>recurseYaml()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -799,7 +941,13 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>stack</em> = <code>&quot;&quot;</code>&#160;</td>
+          <td class="paramname"><em>stack</em> = <code>&quot;&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>aliasStack</em> = <code>&quot;&quot;</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -811,12 +959,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_ad829bbeec8566a699e5dfefc7b8e6bd8_cgraph.svg" width="188" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a3d997544595a000584326696d0a1b062_cgraph.svg" width="188" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_ad829bbeec8566a699e5dfefc7b8e6bd8_icgraph.svg" width="371" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structACSConfig_a3d997544595a000584326696d0a1b062_icgraph.svg" width="371" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -864,28 +1012,14 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a8f2b5f0006b392b0b100476ecdc5f062" name="a8f2b5f0006b392b0b100476ecdc5f062"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8f2b5f0006b392b0b100476ecdc5f062">&#9670;&nbsp;</a></span>common_atmosphere</h2>
+<a id="a03150e6b1fecf89bec0765347b788d7c" name="a03150e6b1fecf89bec0765347b788d7c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03150e6b1fecf89bec0765347b788d7c">&#9670;&nbsp;</a></span>configFilenames</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool ACSConfig::common_atmosphere = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a954161eac413e9c59b92b8253a41a363" name="a954161eac413e9c59b92b8253a41a363"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a954161eac413e9c59b92b8253a41a363">&#9670;&nbsp;</a></span>configFilename</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">string ACSConfig::configFilename</td>
+          <td class="memname">vector&lt;string&gt; ACSConfig::configFilenames</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -906,6 +1040,42 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="ae53cb6a19624de4ae86fd2988b291534" name="ae53cb6a19624de4ae86fd2988b291534"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae53cb6a19624de4ae86fd2988b291534">&#9670;&nbsp;</a></span>configMutex</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">mutex ACSConfig::configMutex</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2bcb0a22151c2d430614157c4bebafba" name="a2bcb0a22151c2d430614157c4bebafba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bcb0a22151c2d430614157c4bebafba">&#9670;&nbsp;</a></span>docs</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">map&lt; string, string &gt; ACSConfig::docs</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a535c2b9eb256dc50cc41176d83868a87" name="a535c2b9eb256dc50cc41176d83868a87"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a535c2b9eb256dc50cc41176d83868a87">&#9670;&nbsp;</a></span>excludeSlip</h2>
 
@@ -920,28 +1090,14 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ab7cebae78d58c651bbae9f61b6bd2181" name="ab7cebae78d58c651bbae9f61b6bd2181"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7cebae78d58c651bbae9f61b6bd2181">&#9670;&nbsp;</a></span>forceModels</h2>
+<a id="a3306c0dbb2be5182dd790ed0aecc1627" name="a3306c0dbb2be5182dd790ed0aecc1627"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3306c0dbb2be5182dd790ed0aecc1627">&#9670;&nbsp;</a></span>includedFilenames</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structForceModels.html">ForceModels</a> ACSConfig::forceModels</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a0aa84d5f89c986b49b902dc4490fca8b" name="a0aa84d5f89c986b49b902dc4490fca8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0aa84d5f89c986b49b902dc4490fca8b">&#9670;&nbsp;</a></span>ion</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structKalmanModel.html">KalmanModel</a> ACSConfig::ion</td>
+          <td class="memname">vector&lt;string&gt; ACSConfig::includedFilenames</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -976,6 +1132,20 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="af5fb2e3c47136fd9fc55c2a437b06f04" name="af5fb2e3c47136fd9fc55c2a437b06f04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5fb2e3c47136fd9fc55c2a437b06f04">&#9670;&nbsp;</a></span>localMongo</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structMongoOptions.html">MongoOptions</a> ACSConfig::localMongo = {.local = true}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="afc5e60ceac1ff4c5169d34d0e805ce86" name="afc5e60ceac1ff4c5169d34d0e805ce86"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afc5e60ceac1ff4c5169d34d0e805ce86">&#9670;&nbsp;</a></span>minCOpts</h2>
 
@@ -990,14 +1160,42 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a0f1f48a15c4f8a8c80596880b1d40897" name="a0f1f48a15c4f8a8c80596880b1d40897"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f1f48a15c4f8a8c80596880b1d40897">&#9670;&nbsp;</a></span>pppOpts</h2>
+<a id="a92c40ea77940feb0bd6273a5b1e011a9" name="a92c40ea77940feb0bd6273a5b1e011a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92c40ea77940feb0bd6273a5b1e011a9">&#9670;&nbsp;</a></span>netOpts</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structNetworkOptions.html">NetworkOptions</a> ACSConfig::pppOpts</td>
+          <td class="memname"><a class="el" href="structNetworkOptions.html">NetworkOptions</a> ACSConfig::netOpts</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af8fd98d62aad1a062e1402ad12d8ce81" name="af8fd98d62aad1a062e1402ad12d8ce81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8fd98d62aad1a062e1402ad12d8ce81">&#9670;&nbsp;</a></span>orbitPropagation</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structOrbitPropagation.html">OrbitPropagation</a> ACSConfig::orbitPropagation</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a284717a3ac3548b82371c9baff3543d2" name="a284717a3ac3548b82371c9baff3543d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a284717a3ac3548b82371c9baff3543d2">&#9670;&nbsp;</a></span>pppOpts</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structPPPOptions.html">PPPOptions</a> ACSConfig::pppOpts</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1018,14 +1216,28 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ad1fae4eb075185d818c96c338d8e9e52" name="ad1fae4eb075185d818c96c338d8e9e52"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1fae4eb075185d818c96c338d8e9e52">&#9670;&nbsp;</a></span>rinexFiles</h2>
+<a id="ac3c9a7e3a9754815b2bdcd2044906529" name="ac3c9a7e3a9754815b2bdcd2044906529"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3c9a7e3a9754815b2bdcd2044906529">&#9670;&nbsp;</a></span>remoteMongo</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">list&lt;string&gt; ACSConfig::rinexFiles</td>
+          <td class="memname"><a class="el" href="structMongoOptions.html">MongoOptions</a> ACSConfig::remoteMongo = {.local = false}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3f067733a077f98715b6f866c74a943d" name="a3f067733a077f98715b6f866c74a943d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f067733a077f98715b6f866c74a943d">&#9670;&nbsp;</a></span>resetOnSlip</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structSlipOptions.html">SlipOptions</a> ACSConfig::resetOnSlip</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1040,6 +1252,20 @@ Here is the caller graph for this function:</div>
       <table class="memname">
         <tr>
           <td class="memname">map&lt;string, <a class="el" href="structSatelliteOptions.html">SatelliteOptions</a>&gt; ACSConfig::satOptsMap</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3dc72628c019b148f6322ef7916717d3" name="a3dc72628c019b148f6322ef7916717d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3dc72628c019b148f6322ef7916717d3">&#9670;&nbsp;</a></span>slrOpts</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structSlrOptions.html">SlrOptions</a> ACSConfig::slrOpts</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1088,42 +1314,28 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a22f34326d51345ea7abebbe29fa8f855" name="a22f34326d51345ea7abebbe29fa8f855"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a22f34326d51345ea7abebbe29fa8f855">&#9670;&nbsp;</a></span>uploadingStreamData</h2>
+<a id="af7c885ba83c72f51baf57d7d456a5b41" name="af7c885ba83c72f51baf57d7d456a5b41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7c885ba83c72f51baf57d7d456a5b41">&#9670;&nbsp;</a></span>yamlDefaults</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;string, <a class="el" href="structSsrBroadcast.html">SsrBroadcast</a>&gt; ACSConfig::uploadingStreamData</td>
+          <td class="memname">map&lt;string, <a class="el" href="structYamlDefault.html">YamlDefault</a>&gt; ACSConfig::yamlDefaults</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a02c7e7acb5bd5eda6cf948054c27fffb" name="a02c7e7acb5bd5eda6cf948054c27fffb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a02c7e7acb5bd5eda6cf948054c27fffb">&#9670;&nbsp;</a></span>yaml</h2>
+<a id="a41ca3b64a1522830af3f69d7ac6f6a3f" name="a41ca3b64a1522830af3f69d7ac6f6a3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41ca3b64a1522830af3f69d7ac6f6a3f">&#9670;&nbsp;</a></span>yamls</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">YAML::Node ACSConfig::yaml</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6d49fb176697cb76b7d8b1813704d1fb" name="a6d49fb176697cb76b7d8b1813704d1fb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d49fb176697cb76b7d8b1813704d1fb">&#9670;&nbsp;</a></span>yamlDefaults</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">map&lt;string, tuple&lt;string, string&gt; &gt; ACSConfig::yamlDefaults</td>
+          <td class="memname">vector&lt;YAML::Node&gt; ACSConfig::yamls</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1133,6 +1345,7 @@ Here is the caller graph for this function:</div>
 <hr/>The documentation for this struct was generated from the following files:<ul>
 <li>/data/acs/ginan/src/cpp/common/<a class="el" href="acsConfig_8hpp.html">acsConfig.hpp</a></li>
 <li>/data/acs/ginan/src/cpp/common/<a class="el" href="acsConfig_8cpp.html">acsConfig.cpp</a></li>
+<li>/data/acs/ginan/src/cpp/common/<a class="el" href="acsConfigDocs_8cpp.html">acsConfigDocs.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

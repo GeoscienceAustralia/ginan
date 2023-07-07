@@ -1,9 +1,8 @@
 <map id="pephpos" name="pephpos">
-<area shape="rect" id="node1" title=" " alt="" coords="5,108,83,135"/>
-<area shape="rect" id="node2" href="$structSatSys.html#adbdf98ba1ef1f22b6aaed93916529513" title="Sets a 4 character c_string of this satellite&#39;s id." alt="" coords="308,32,415,59"/>
-<area shape="rect" id="node3" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="148,32,243,59"/>
-<area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="152,83,239,110"/>
-<area shape="rect" id="node5" href="$structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" title=" " alt="" coords="131,134,260,160"/>
-<area shape="rect" id="node6" href="$preceph_8cpp.html#a3484687362aab309b89c125d59887180" title=" " alt="" coords="155,184,235,211"/>
-<area shape="rect" id="node7" href="$algebra__old_8cpp.html#abaa5d4a31df361116a9b2be552624cf9" title=" " alt="" coords="167,235,223,262"/>
+<area shape="rect" id="node1" title="satellite position by precise ephemeris" alt="" coords="5,107,83,133"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="148,5,243,32"/>
+<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="152,56,239,83"/>
+<area shape="rect" id="node4" href="$structGTime.html#a014569457fd867977d0eeb73beef1518" title=" " alt="" coords="131,107,260,133"/>
+<area shape="rect" id="node5" href="$preceph_8cpp.html#a9a01152aef47228af7e3cfa035bd643d" title="polynomial interpolation by Neville&#39;s algorithm" alt="" coords="149,157,242,184"/>
+<area shape="rect" id="node6" href="$algebra__old_8cpp.html#abaa5d4a31df361116a9b2be552624cf9" title=" " alt="" coords="167,208,223,235"/>
 </map>

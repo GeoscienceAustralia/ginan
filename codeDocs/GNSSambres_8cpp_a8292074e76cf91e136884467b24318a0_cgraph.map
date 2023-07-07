@@ -1,5 +1,5 @@
 <map id="simple_round" name="simple_round">
 <area shape="rect" id="node1" title="Simple integer Rounding." alt="" coords="5,31,116,57"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="164,5,259,32"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="164,5,259,32"/>
 <area shape="rect" id="node3" href="$GNSSambres_8cpp.html#a5897898a8b668f0a88c9ef857d44713f" title="Probability of error (assuming normal distribution)" alt="" coords="165,56,257,83"/>
 </map>

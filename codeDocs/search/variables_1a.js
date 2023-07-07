@@ -1,17 +1,19 @@
 var searchData=
 [
-  ['z_0',['Z',['../structKFState.html#a427d8e3739d777d49c7019a2e073098e',1,'KFState']]],
-  ['zadditionmap_1',['ZAdditionMap',['../structKFState.html#aaba4c8ddf6bf30f6b41aa953ee29ef39',1,'KFState']]],
-  ['zamb_5farchive_2',['ZAmb_archive',['../structGinAR__rec.html#aec1415fdc95e49b86b7fee24338912ab',1,'GinAR_rec']]],
-  ['zendelta_3',['zenDelta',['../structPhaseCenterData.html#aa0d2cdd9200066cfa64c44d70ed87d21',1,'PhaseCenterData']]],
-  ['zenstart_4',['zenStart',['../structPhaseCenterData.html#ac0b98cde6db7fedb8aa13b34854eadd0',1,'PhaseCenterData']]],
-  ['zenstop_5',['zenStop',['../structPhaseCenterData.html#a15f2efd0c8e6a90ca2c1a885858e9110',1,'PhaseCenterData']]],
-  ['zfix_6',['zfix',['../structGinAR__mtx.html#af076feb2cfd8868b3616091d92318527',1,'GinAR_mtx']]],
-  ['zflt_7',['zflt',['../structGinAR__mtx.html#a904e3050c448f7db8bacb23ae97900ed',1,'GinAR_mtx']]],
-  ['zhd_8',['zhd',['../structvmf3grid__t.html#a717c0def99b09fd46ddbfd1a5e624439',1,'vmf3grid_t']]],
-  ['ztransitionmap_9',['ZTransitionMap',['../structKFState.html#a5eb6d2ea9a9bac3df09cbca7efb3f6fa',1,'KFState']]],
-  ['ztrs_10',['Ztrs',['../structGinAR__mtx.html#acf4d30d17ef686302db0b60f7afd4e5c',1,'GinAR_mtx']]],
-  ['zwd_11',['zwd',['../structvmf3grid__t.html#a7d88cfd393c18e0e18f84fa61f941e2b',1,'vmf3grid_t']]],
-  ['zxy_12',['zxy',['../structSinex__satpc__t.html#ab2a0660e595d99e3d075ccaf54d5e2de',1,'Sinex_satpc_t::zxy()'],['../structSinex__sat__snx__t.html#a89f0f436ad0d41770c78b9eb7a88953c',1,'Sinex_sat_snx_t::zxy()']]],
-  ['zxy2_13',['zxy2',['../structSinex__satpc__t.html#afa695b0e873d05e18c832cf8fb9cbbe1',1,'Sinex_satpc_t']]]
+  ['z_5famb_0',['Z_AMB',['../enums_8h.html#af6785269cda719ba51eace47ba735177',1,'enums.h']]],
+  ['zamb_5farchive_1',['ZAmb_archive',['../structGinAR__rec.html#aec1415fdc95e49b86b7fee24338912ab',1,'GinAR_rec']]],
+  ['zendelta_2',['zenDelta',['../structAzElMapData.html#a5e1ae54d1f5a58741663e9fc392c9a85',1,'AzElMapData']]],
+  ['zenstart_3',['zenStart',['../structAzElMapData.html#a44be14cdf2d6d8aedf9c6082b4f4a2ed',1,'AzElMapData']]],
+  ['zenstop_4',['zenStop',['../structAzElMapData.html#ac02cd995cda04d515355499a55d2952f',1,'AzElMapData']]],
+  ['zero_5fcode_5faverage_5',['zero_code_average',['../structGlobalOptions.html#a6a702664a6c3f38fc3a2f71c0f9ff8a5',1,'GlobalOptions']]],
+  ['zero_5fphase_5faverage_6',['zero_phase_average',['../structGlobalOptions.html#aa8ffd65c5e444a1c7c812fbd20025234',1,'GlobalOptions']]],
+  ['zero_5freceiver_5fdcb_7',['zero_receiver_dcb',['../structGlobalOptions.html#a02101ad296b51ceacd22eaa5451f0b91',1,'GlobalOptions']]],
+  ['zero_5fsatellite_5fdcb_8',['zero_satellite_dcb',['../structGlobalOptions.html#a03d700c5787fe4aae244a4556bd4a273',1,'GlobalOptions']]],
+  ['zfix_9',['zfix',['../structGinAR__mtx.html#af076feb2cfd8868b3616091d92318527',1,'GinAR_mtx']]],
+  ['zflt_10',['zflt',['../structGinAR__mtx.html#a904e3050c448f7db8bacb23ae97900ed',1,'GinAR_mtx']]],
+  ['zhd_11',['zhd',['../structVmf3GridPoint.html#a5efacd62854abeb883f562a1a43ae0e5',1,'Vmf3GridPoint']]],
+  ['ztrs_12',['Ztrs',['../structGinAR__mtx.html#acf4d30d17ef686302db0b60f7afd4e5c',1,'GinAR_mtx']]],
+  ['zwd_13',['zwd',['../structVmf3GridPoint.html#a1da9c904743670ced98996a3d7c664b2',1,'Vmf3GridPoint']]],
+  ['zxy_14',['zxy',['../structSinex__satpc__t.html#ac0ca67697069fa0fc81dd1a04b33c966',1,'Sinex_satpc_t::zxy()'],['../structSinexSatSnx.html#a541b3491f5ef2dea6646d325984dc9f2',1,'SinexSatSnx::zxy()']]],
+  ['zxy2_15',['zxy2',['../structSinex__satpc__t.html#ab681af55b67fd8c675e02825dc06529f',1,'Sinex_satpc_t']]]
 ];

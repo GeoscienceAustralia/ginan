@@ -1,12 +1,9 @@
 <map id="outputNavRinexEph" name="outputNavRinexEph">
-<area shape="rect" id="node1" title=" " alt="" coords="5,190,156,217"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="403,89,497,115"/>
-<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="236,38,323,65"/>
-<area shape="rect" id="node4" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="230,89,329,115"/>
-<area shape="rect" id="node5" href="$gTime_8cpp.html#a0f1c35b5babe507c5b320111c1e634b7" title=" " alt="" coords="240,139,319,166"/>
-<area shape="rect" id="node6" href="$streamTrace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="204,190,355,217"/>
-<area shape="rect" id="node7" href="$common_8cpp.html#a47b796248ca1aabdfc761d61bb878142" title=" " alt="" coords="238,241,321,267"/>
-<area shape="rect" id="node8" href="$common_8cpp.html#a3e64e6b27352f5d683cfbfd28e9bc69a" title=" " alt="" coords="236,291,323,318"/>
-<area shape="rect" id="node9" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="235,342,323,369"/>
-<area shape="rect" id="node10" href="$gTime_8cpp.html#a043c97b6d22706c23f55a5d29563d7dd" title=" " alt="" coords="239,393,320,419"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,108,156,135"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="403,58,497,84"/>
+<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="236,32,323,59"/>
+<area shape="rect" id="node4" href="$gTime_8cpp.html#a210bda8e07fa8a70ce6c79948e42efe0" title=" " alt="" coords="230,83,329,110"/>
+<area shape="rect" id="node5" href="$trace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="204,134,355,160"/>
+<area shape="rect" id="node6" href="$common_8cpp.html#a3e64e6b27352f5d683cfbfd28e9bc69a" title="Galileo SISA index to SISA value (m) EUROPEAN GNSS (GALILEO) OPEN SERVICE SIGNAL&#45;IN&#45;SPACE INTERFACE C..." alt="" coords="236,184,323,211"/>
+<area shape="rect" id="node7" href="$common_8cpp.html#a47b796248ca1aabdfc761d61bb878142" title="URA index to URA value (m) GLOBAL POSITIONING SYSTEM STANDARD POSITIONING SERVICE SIGNAL SPECIFICATIO..." alt="" coords="238,235,321,262"/>
 </map>

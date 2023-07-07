@@ -1,5 +1,10 @@
 <map id="ReceiverOptions" name="ReceiverOptions">
-<area shape="rect" id="node1" title="Options to be applied to kalman filter states for individual receivers." alt="" coords="15,505,222,700"/>
-<area shape="rect" id="node2" href="$structKalmanModel.html" title="Options associated with kalman filter states." alt="" coords="5,204,117,281"/>
-<area shape="rect" id="node3" title=" " alt="" coords="57,5,194,83"/>
+<area shape="rect" id="node1" title="Options to be applied to kalman filter states for individual receivers." alt="" coords="379,491,539,891"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,204,64,281"/>
+<area shape="rect" id="node3" href="$structKalmanModel.html" title="Options associated with kalman filter states." alt="" coords="286,204,410,281"/>
+<area shape="rect" id="node4" title=" " alt="" coords="39,5,177,83"/>
+<area shape="rect" id="node5" title=" " alt="" coords="327,5,462,83"/>
+<area shape="rect" id="node6" href="$structRinex23Conversion.html" title="Rinex 2 conversions for individual receivers." alt="" coords="591,204,739,281"/>
+<area shape="rect" id="node7" title=" " alt="" coords="764,204,844,281"/>
+<area shape="rect" id="node8" title=" " alt="" coords="887,204,1039,281"/>
 </map>

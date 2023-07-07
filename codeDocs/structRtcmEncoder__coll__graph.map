@@ -1,5 +1,7 @@
 <map id="RtcmEncoder" name="RtcmEncoder">
-<area shape="rect" id="node1" title=" " alt="" coords="76,307,317,487"/>
-<area shape="rect" id="node2" href="$structRtcmTrace.html" title=" " alt="" coords="5,5,199,244"/>
-<area shape="rect" id="node3" title=" " alt="" coords="223,86,362,163"/>
+<area shape="rect" id="node1" title=" " alt="" coords="241,351,482,604"/>
+<area shape="rect" id="node2" href="$structRtcmTrace.html" title=" " alt="" coords="5,5,176,288"/>
+<area shape="rect" id="node3" title=" " alt="" coords="200,108,339,185"/>
+<area shape="rect" id="node4" title=" " alt="" coords="363,108,546,185"/>
+<area shape="rect" id="node5" title=" " alt="" coords="571,108,749,185"/>
 </map>

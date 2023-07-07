@@ -22,16 +22,16 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="tropSinex_8cpp.html#a2b411879ffbf816c3fac1aac04f9e2c5" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="14,-38.5 14,-57.5 102,-57.5 102,-38.5 14,-38.5"/>
-<text text-anchor="middle" x="58" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">setFileRefData</text>
+<g id="a_node2"><a xlink:href="tropSinex_8cpp.html#a7d4d797b1dca3898283e8b3d00b0e60f" target="_top" xlink:title="Output troposphere SINEX data.">
+<polygon fill="white" stroke="red" points="10.5,-38.5 10.5,-57.5 105.5,-57.5 105.5,-38.5 10.5,-38.5"/>
+<text text-anchor="middle" x="58" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">outputTropSinex</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node2 -->
 <g id="edge1" class="edge">
 <title>Node1&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M151.74,-36.29C135.33,-38.36 117.74,-40.58 102.34,-42.53"/>
+<path fill="none" stroke="midnightblue" d="M151.74,-36.29C136.49,-38.22 120.22,-40.27 105.64,-42.11"/>
 </g>
 <!-- Node12 -->
 <g id="node3" class="node">

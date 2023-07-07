@@ -1,5 +1,6 @@
 <map id="TestStack::checkMat" name="TestStack::checkMat">
-<area shape="rect" id="node1" title="Check matrix entries for invalid values." alt="" coords="5,31,160,57"/>
+<area shape="rect" id="node1" title="Check matrix entries for invalid values." alt="" coords="5,56,160,83"/>
 <area shape="rect" id="node2" href="$structTestStack.html#afbc78d5bcc032f03034721e763558313" title="Get the test stack as a string." alt="" coords="208,5,357,32"/>
-<area shape="rect" id="node3" href="$algebra__old_8cpp.html#a1d2c1ecab5b17dcc773fcd83c0b87b7e" title=" " alt="" coords="259,56,307,83"/>
+<area shape="rect" id="node3" href="$beast_8cpp.html#a1041b4dad6470c517fc27524af8f4648" title=" " alt="" coords="261,56,304,83"/>
+<area shape="rect" id="node4" href="$algebra__old_8cpp.html#a1d2c1ecab5b17dcc773fcd83c0b87b7e" title=" " alt="" coords="259,107,307,133"/>
 </map>

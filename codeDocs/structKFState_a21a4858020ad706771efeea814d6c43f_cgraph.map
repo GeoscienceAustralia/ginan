@@ -6,7 +6,7 @@
 <area shape="rect" id="node5" href="$structKFState.html#adc93fe4d98f33b24037d09e712e8400a" title=" " alt="" coords="217,157,451,184"/>
 <area shape="rect" id="node6" href="$structKFState.html#ae6e89a4dca53b4c6f8a5eadb1f61dd5c" title=" " alt="" coords="216,208,452,235"/>
 <area shape="rect" id="node7" href="$structKFState.html#a5b591c7386c7fb734067424a097ca118" title="Kalman filter." alt="" coords="273,259,395,285"/>
-<area shape="rect" id="node8" href="$structKFState.html#aab4e5ed0ddc781d8b4db8de02af119cc" title="Compare variances of measurements and filtered states to detect unreasonable values." alt="" coords="228,309,440,336"/>
+<area shape="rect" id="node8" href="$structKFState.html#a4d44be64e2f00e44b89fff30191a8953" title="Compare variances of measurements and filtered states to detect unreasonable values." alt="" coords="228,309,440,336"/>
 <area shape="rect" id="node9" href="$structKFState.html#a2280e82ccd3ebdefc388756580e5fad7" title="Compute Chi&#45;square increment based on pre&#45;fit residuals (innovations)" alt="" coords="243,360,425,387"/>
 <area shape="rect" id="node10" href="$structKFState.html#a67bbec17e7e74bf5de0d83098281bfc0" title="Compute Chi&#45;square increment based on post&#45;fit residuals." alt="" coords="243,411,425,437"/>
 <area shape="rect" id="node11" href="$structKFState.html#aa963c92f094f4c0f9d43eea2661723dd" title="Compute Chi&#45;square increment based on the change of fitting solution." alt="" coords="244,461,424,488"/>

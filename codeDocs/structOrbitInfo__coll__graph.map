@@ -1,5 +1,7 @@
 <map id="OrbitInfo" name="OrbitInfo">
-<area shape="rect" id="node1" title=" " alt="" coords="111,424,189,531"/>
-<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,156,361"/>
-<area shape="rect" id="node3" title=" " alt="" coords="180,145,261,222"/>
+<area shape="rect" id="node1" title=" " alt="" coords="299,673,377,751"/>
+<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,188,596"/>
+<area shape="rect" id="node3" href="$structVectorEci.html" title=" " alt="" coords="212,225,325,376"/>
+<area shape="rect" id="node4" href="$structVectorEcef.html" title=" " alt="" coords="350,225,467,376"/>
+<area shape="rect" id="node5" title=" " alt="" coords="492,262,573,339"/>
 </map>

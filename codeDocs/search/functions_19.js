@@ -1,5 +1,23 @@
 var searchData=
 [
-  ['zeros_0',['zeros',['../algebra_8hpp.html#a446a2803e5eaeb996733dd8d73966f00',1,'zeros(int n, int m):&#160;algebra_old.cpp'],['../algebra__old_8cpp.html#a446a2803e5eaeb996733dd8d73966f00',1,'zeros(int n, int m):&#160;algebra_old.cpp']]],
-  ['ztrans_5freduction_1',['Ztrans_reduction',['../GNSSambres_8cpp.html#a5499472ab2c3558fb4d2af6a3d896c36',1,'GNSSambres.cpp']]]
+  ['_7eblock_0',['~Block',['../structBlock.html#a19d1bd0e1cef6a865ed2745a2e648405',1,'Block']]],
+  ['_7efilestate_1',['~FileState',['../structFileState.html#a60db992e3f9fa28b65ddbce4d98950b3',1,'FileState']]],
+  ['_7efobs_2',['~FObs',['../structFObs.html#a3ff675dd0224536be90b16603010578e',1,'FObs']]],
+  ['_7egobs_3',['~GObs',['../structGObs.html#a0a97dfe37a413803e0247e4a333646e5',1,'GObs']]],
+  ['_7einstrument_4',['~Instrument',['../structInstrument.html#a4d7d6e5a2b05597c049a9e0ca3be3d5f',1,'Instrument']]],
+  ['_7eloadgrid_5',['~loadGrid',['../classloadGrid.html#a443d874a30fe5be49514a823630de1a1',1,'loadGrid']]],
+  ['_7eloading_6',['~loading',['../classloading.html#a022692db246eb4aceead553b50ed1fba',1,'loading']]],
+  ['_7elobs_7',['~LObs',['../structLObs.html#a955c2e398a55186bc2d22e2d745d1181',1,'LObs']]],
+  ['_7entripstream_8',['~NtripStream',['../structNtripStream.html#aecde76d25c3b67395e97e45b99dd07f8',1,'NtripStream']]],
+  ['_7eobservation_9',['~Observation',['../structObservation.html#a85db60ca944c433e81c64106c8875a21',1,'Observation']]],
+  ['_7eparser_10',['~Parser',['../structParser.html#a7721e35e285126b8a0edbd8482af0f0f',1,'Parser']]],
+  ['_7epobs_11',['~PObs',['../structPObs.html#af8d2db57031ed7db54d8a5dc5b8327c0',1,'PObs']]],
+  ['_7eserialstate_12',['~SerialState',['../structSerialState.html#aed2b6acef64368bb337e5af3afcd7b86',1,'SerialState']]],
+  ['_7eserialstream_13',['~SerialStream',['../structSerialStream.html#a96406ba94cfea817d044a9f59f3694ef',1,'SerialStream']]],
+  ['_7estream_14',['~Stream',['../structStream.html#a171c8f6ab62e1f20ee50c4c38cb5f811',1,'Stream']]],
+  ['_7estreamparser_15',['~StreamParser',['../structStreamParser.html#a9c3c4d02935cea923deb7f37df1d3fec',1,'StreamParser']]],
+  ['_7etempdisabler_16',['~TempDisabler',['../structTempDisabler.html#a36fef7c51f8319c9a5f4e6c184c99c76',1,'TempDisabler']]],
+  ['_7etempstreamdisabler_17',['~TempStreamDisabler',['../structTempStreamDisabler.html#ab33511e2276b7f57001281414a45094e',1,'TempStreamDisabler']]],
+  ['_7eteststack_18',['~TestStack',['../structTestStack.html#ae50ecf9acafd99ab0b8fbe956a100c48',1,'TestStack']]],
+  ['_7etide_19',['~tide',['../classtide.html#a2b3f0ea2f0eaba34a0e0a3b89b013e84',1,'tide']]]
 ];

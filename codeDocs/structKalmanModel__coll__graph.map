@@ -1,5 +1,7 @@
 <map id="KalmanModel" name="KalmanModel">
-<area shape="rect" id="node1" title="Options associated with kalman filter states." alt="" coords="94,204,206,281"/>
+<area shape="rect" id="node1" title="Options associated with kalman filter states." alt="" coords="240,204,364,281"/>
 <area shape="rect" id="node2" title=" " alt="" coords="5,5,143,83"/>
 <area shape="rect" id="node3" title=" " alt="" coords="167,5,288,83"/>
+<area shape="rect" id="node4" title=" " alt="" coords="313,5,443,83"/>
+<area shape="rect" id="node5" title=" " alt="" coords="468,5,603,83"/>
 </map>

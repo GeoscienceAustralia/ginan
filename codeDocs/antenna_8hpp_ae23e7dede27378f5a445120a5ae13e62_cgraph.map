@@ -1,5 +1,10 @@
 <map id="readantexf" name="readantexf">
-<area shape="rect" id="node1" title="Read antex file." alt="" coords="5,31,99,57"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#aa46173b9085096882d09e53d96e9dc41" title=" " alt="" coords="147,5,245,32"/>
-<area shape="rect" id="node3" href="$antenna_8cpp.html#a876f92d067355a61ef054f25b46ca1f9" title=" " alt="" coords="159,56,233,83"/>
+<area shape="rect" id="node1" title="Read antex file." alt="" coords="5,142,99,169"/>
+<area shape="rect" id="node2" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="353,16,473,42"/>
+<area shape="rect" id="node3" href="$gTime_8cpp.html#a42f524ddac7eb2f122e34df9a5a1f08f" title=" " alt="" coords="177,41,275,68"/>
+<area shape="rect" id="node4" href="$antenna_8cpp.html#a876f92d067355a61ef054f25b46ca1f9" title=" " alt="" coords="189,92,263,118"/>
+<area shape="rect" id="node5" href="$structVectorEnu.html#a6909ce4148ab35bce7d6333be89bad3d" title=" " alt="" coords="174,142,278,169"/>
+<area shape="rect" id="node6" href="$structVectorEnu.html#ae90c6dd0141c45c334e8df0f7a1eee4f" title=" " alt="" coords="174,193,278,220"/>
+<area shape="rect" id="node7" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="174,244,278,270"/>
+<area shape="rect" id="node8" href="$structSatSys.html#a60ae5bbbceb1c203cab6a6bc0d8e12df" title=" " alt="" coords="147,294,305,321"/>
 </map>

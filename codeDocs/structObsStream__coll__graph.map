@@ -1,6 +1,4 @@
 <map id="ObsStream" name="ObsStream">
-<area shape="rect" id="node1" title="Interface for streams that supply observations." alt="" coords="109,373,231,495"/>
-<area shape="rect" id="node2" href="$structRinexStation.html" title=" " alt="" coords="5,233,111,311"/>
-<area shape="rect" id="node3" title=" " alt="" coords="79,5,138,83"/>
-<area shape="rect" id="node4" title=" " alt="" coords="291,233,411,311"/>
+<area shape="rect" id="node1" title=" " alt="" coords="27,189,150,325"/>
+<area shape="rect" id="node2" href="$structStreamParser.html" title=" " alt="" coords="5,5,172,141"/>
 </map>

@@ -77,8 +77,8 @@
 <!-- Node9 -->
 <g id="node6" class="node">
 <title>Node9</title>
-<g id="a_node6"><a xlink:href="gTime_8cpp.html#aa46173b9085096882d09e53d96e9dc41" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="120,-0.5 120,-19.5 194,-19.5 194,-0.5 120,-0.5"/>
+<g id="a_node6"><a xlink:href="gTime_8cpp.html#a42f524ddac7eb2f122e34df9a5a1f08f" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="120,-0.5 120,-19.5 194,-19.5 194,-0.5 120,-0.5"/>
 <text text-anchor="middle" x="157" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">epoch2time</text>
 </a>
 </g>

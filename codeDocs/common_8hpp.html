@@ -91,83 +91,69 @@ This graph shows which files directly or indirectly include this file:</div>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structAverage.html">Average</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIteratorType.html">IteratorType&lt; OUTTYPE, INTYPE, VOIDTYPE &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An iterator that trys to cast elements to the desired type before using them.  <a href="structIteratorType.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structMapIteratorType.html">MapIteratorType&lt; OUTTYPE, INTYPE, KEYTYPE &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An iterator that trys to cast elements to the desired type before using them.  <a href="structMapIteratorType.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structTyper.html">Typer&lt; ITERATOR, TYPE, KEYTYPE, INTYPE &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An object just for templating the other functions without over-verbosity.  <a href="structTyper.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa2bd96a385b601a87749a42c1cda54f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#aa2bd96a385b601a87749a42c1cda54f9">lowPassFilter</a> (<a class="el" href="structAverage.html">Average</a> &amp;avg, double meas, double procNoise, double <a class="el" href="ppp_8hpp.html#af834f8e02e5b7507767354aa04f3bc7f">measVar</a>=1)</td></tr>
+<tr class="memitem:aa2bd96a385b601a87749a42c1cda54f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#aa2bd96a385b601a87749a42c1cda54f9">lowPassFilter</a> (<a class="el" href="structAverage.html">Average</a> &amp;avg, double meas, double procNoise, double measVar=1)</td></tr>
 <tr class="memdesc:aa2bd96a385b601a87749a42c1cda54f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Low pass filter values.  <a href="common_8hpp.html#aa2bd96a385b601a87749a42c1cda54f9">More...</a><br /></td></tr>
 <tr class="separator:aa2bd96a385b601a87749a42c1cda54f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afcfc8fbadfd57eaa5b29712f2db88c64"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#afcfc8fbadfd57eaa5b29712f2db88c64">ecef2enu</a> (const double *pos, const double *r, double *e)</td></tr>
-<tr class="separator:afcfc8fbadfd57eaa5b29712f2db88c64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1926e232cdab381c3ccfc8abca86b2a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a1926e232cdab381c3ccfc8abca86b2a8">enu2ecef</a> (const double *pos, const double *e, double *r)</td></tr>
-<tr class="separator:a1926e232cdab381c3ccfc8abca86b2a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59a54664edbf3bc2ebeb1f5e5e7a67d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a59a54664edbf3bc2ebeb1f5e5e7a67d0">xyz2enu</a> (const double *pos, double *E)</td></tr>
-<tr class="separator:a59a54664edbf3bc2ebeb1f5e5e7a67d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25c5026cf028a74677ace6902c93b8fa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a25c5026cf028a74677ace6902c93b8fa">enu2ecef</a> (const double *pos, const Vector3d &amp;e, Vector3d &amp;r)</td></tr>
-<tr class="separator:a25c5026cf028a74677ace6902c93b8fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05b074450ac06c7c61a632e128a73600"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a05b074450ac06c7c61a632e128a73600">eci2ecef</a> (const <a class="el" href="structGTime.html">GTime</a> tutc, <a class="el" href="structERPValues.html">ERPValues</a> &amp;erpv, Matrix3d &amp;U, double *gmst=nullptr, Matrix3d *dU=nullptr)</td></tr>
-<tr class="memdesc:a05b074450ac06c7c61a632e128a73600"><td class="mdescLeft">&#160;</td><td class="mdescRight">eci to ecef transformation matrix  <a href="common_8hpp.html#a05b074450ac06c7c61a632e128a73600">More...</a><br /></td></tr>
-<tr class="separator:a05b074450ac06c7c61a632e128a73600"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a470bf7b49dcb299ab533958252a1dfe0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a470bf7b49dcb299ab533958252a1dfe0">eci2ecef_sofa</a> (const double mjdUTC, IERS &amp;iers, Matrix3d &amp;U, Matrix3d &amp;dU)</td></tr>
-<tr class="memdesc:a470bf7b49dcb299ab533958252a1dfe0"><td class="mdescLeft">&#160;</td><td class="mdescRight">eci to ecef transformation matrix using the sofa library  <a href="common_8hpp.html#a470bf7b49dcb299ab533958252a1dfe0">More...</a><br /></td></tr>
-<tr class="separator:a470bf7b49dcb299ab533958252a1dfe0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acff32e24f536f55cf057586b5e157046"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#acff32e24f536f55cf057586b5e157046">eci2ecef_sofa</a> (const double mjdUTC, IERS &amp;iers, Vector3d &amp;rSat_eci, Vector3d &amp;vSat_eci, Vector3d &amp;rSat_ecef, Vector3d &amp;vSat_ecef)</td></tr>
-<tr class="memdesc:acff32e24f536f55cf057586b5e157046"><td class="mdescLeft">&#160;</td><td class="mdescRight">vector transformed from eci to ecef using the sofa library  <a href="common_8hpp.html#acff32e24f536f55cf057586b5e157046">More...</a><br /></td></tr>
-<tr class="separator:acff32e24f536f55cf057586b5e157046"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac2b6cc31f68b273128f1a15ff409b1e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ac2b6cc31f68b273128f1a15ff409b1e9">ecef2eci_sofa</a> (const double mjdUTC, IERS &amp;iers, Vector3d &amp;rSat_ecef, Vector3d &amp;vSat_ecef, Vector3d &amp;rSat_eci, Vector3d &amp;vSat_eci)</td></tr>
-<tr class="memdesc:ac2b6cc31f68b273128f1a15ff409b1e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">vector transformed from ecef to eci using the sofa library  <a href="common_8hpp.html#ac2b6cc31f68b273128f1a15ff409b1e9">More...</a><br /></td></tr>
-<tr class="separator:ac2b6cc31f68b273128f1a15ff409b1e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5255e5c7106736e4ed29286b5527a45c"><td class="memItemLeft" align="right" valign="top">Matrix3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a5255e5c7106736e4ed29286b5527a45c">R_x</a> (double Angle)</td></tr>
-<tr class="separator:a5255e5c7106736e4ed29286b5527a45c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5b8e9e2aeec5e3357661a1e840d71a6"><td class="memItemLeft" align="right" valign="top">Matrix3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ab5b8e9e2aeec5e3357661a1e840d71a6">R_y</a> (double Angle)</td></tr>
-<tr class="separator:ab5b8e9e2aeec5e3357661a1e840d71a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d989f256c8fd090835450fba7f85f55"><td class="memItemLeft" align="right" valign="top">Matrix3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a3d989f256c8fd090835450fba7f85f55">R_z</a> (double Angle)</td></tr>
-<tr class="separator:a3d989f256c8fd090835450fba7f85f55"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae91d83cf693cdc7e1efacbe4d8d9656e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e">ecef2pos</a> (const double *r, double *pos)</td></tr>
-<tr class="separator:ae91d83cf693cdc7e1efacbe4d8d9656e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2dbe5066095669b3c346f5aa121e4c05"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a2dbe5066095669b3c346f5aa121e4c05">ecef2pos</a> (Vector3d &amp;r, double *pos)</td></tr>
-<tr class="separator:a2dbe5066095669b3c346f5aa121e4c05"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af69d89b6d7834290bd7c181f828e652a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#af69d89b6d7834290bd7c181f828e652a">pos2ecef</a> (const double *pos, Vector3d &amp;r)</td></tr>
-<tr class="memdesc:af69d89b6d7834290bd7c181f828e652a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transform geodetic postion to ecef.  <a href="common_8hpp.html#af69d89b6d7834290bd7c181f828e652a">More...</a><br /></td></tr>
-<tr class="separator:af69d89b6d7834290bd7c181f828e652a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad96246b7344aed2150ca622b91214cb2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ad96246b7344aed2150ca622b91214cb2">wrapPlusMinusPi</a> (double &amp;angle)</td></tr>
+<tr class="memdesc:ad96246b7344aed2150ca622b91214cb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrap angle between (-pi, pi].  <a href="common_8hpp.html#ad96246b7344aed2150ca622b91214cb2">More...</a><br /></td></tr>
+<tr class="separator:ad96246b7344aed2150ca622b91214cb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab91cc987d7ae8b6c023a1c1004d54b75"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ab91cc987d7ae8b6c023a1c1004d54b75">wrap2Pi</a> (double &amp;angle)</td></tr>
+<tr class="memdesc:ab91cc987d7ae8b6c023a1c1004d54b75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrap angle between [0, 2pi)  <a href="common_8hpp.html#ab91cc987d7ae8b6c023a1c1004d54b75">More...</a><br /></td></tr>
+<tr class="separator:ab91cc987d7ae8b6c023a1c1004d54b75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52a667466317784c7a286f77b2ee9c3f"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a52a667466317784c7a286f77b2ee9c3f">geodist</a> (Vector3d &amp;rs, Vector3d &amp;rr, Vector3d &amp;e)</td></tr>
 <tr class="memdesc:a52a667466317784c7a286f77b2ee9c3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">geometric distance compute geometric distance and receiver-to-satellite unit vector notes : distance includes sagnac effect correction  <a href="common_8hpp.html#a52a667466317784c7a286f77b2ee9c3f">More...</a><br /></td></tr>
 <tr class="separator:a52a667466317784c7a286f77b2ee9c3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaab59d0f7176d2bfb38b0f1dfa7507a6"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#aaab59d0f7176d2bfb38b0f1dfa7507a6">sagnac</a> (Vector3d &amp;rSource, Vector3d &amp;rDest)</td></tr>
-<tr class="separator:aaab59d0f7176d2bfb38b0f1dfa7507a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ec5c9d8effd9f823bfe6f9e12e7583f"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a4ec5c9d8effd9f823bfe6f9e12e7583f">satazel</a> (const double *pos, const double *e, double *azel)</td></tr>
-<tr class="separator:a4ec5c9d8effd9f823bfe6f9e12e7583f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85a03123ae20efc3b06434f616140943"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a85a03123ae20efc3b06434f616140943">getbitu</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> pos, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> len)</td></tr>
-<tr class="separator:a85a03123ae20efc3b06434f616140943"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb03d815c5c9706c5e9b04a8edee7900"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#afb03d815c5c9706c5e9b04a8edee7900">getbits</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> pos, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> len)</td></tr>
-<tr class="separator:afb03d815c5c9706c5e9b04a8edee7900"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa6463f592ed6478626814466d3d02a5"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#aaa6463f592ed6478626814466d3d02a5">getbituInc</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;pos, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> len)</td></tr>
-<tr class="separator:aaa6463f592ed6478626814466d3d02a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a015a8a5120016e627bc810a59aa72948"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a015a8a5120016e627bc810a59aa72948">getbitsInc</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;pos, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> len)</td></tr>
-<tr class="separator:a015a8a5120016e627bc810a59aa72948"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad43a3bfc8b677201c75f03bea21c28f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ad43a3bfc8b677201c75f03bea21c28f7">setbitsInc</a> (unsigned char *buff, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> pos, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> len, const <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> var)</td></tr>
-<tr class="separator:ad43a3bfc8b677201c75f03bea21c28f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a134334c05194e24419b7ca2109349abe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a134334c05194e24419b7ca2109349abe">setbituInc</a> (unsigned char *buff, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> pos, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> len, const unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> var)</td></tr>
-<tr class="separator:a134334c05194e24419b7ca2109349abe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a143f5fa72a5c2aa56901ad78710eb4c2"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a143f5fa72a5c2aa56901ad78710eb4c2">crc24q</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> len)</td></tr>
+<tr class="memitem:a94c864828c4c3177cc471a9d355fe2f4"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a94c864828c4c3177cc471a9d355fe2f4">sagnac</a> (Vector3d &amp;rSource, Vector3d &amp;rDest, Vector3d vel=Vector3d::Zero())</td></tr>
+<tr class="separator:a94c864828c4c3177cc471a9d355fe2f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92e93b72fd75166d63c2e9424940af43"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a92e93b72fd75166d63c2e9424940af43">satazel</a> (const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;pos, const <a class="el" href="structVectorEcef.html">VectorEcef</a> &amp;e, double *azel)</td></tr>
+<tr class="memdesc:a92e93b72fd75166d63c2e9424940af43"><td class="mdescLeft">&#160;</td><td class="mdescRight">satellite azimuth/elevation angle  <a href="common_8hpp.html#a92e93b72fd75166d63c2e9424940af43">More...</a><br /></td></tr>
+<tr class="separator:a92e93b72fd75166d63c2e9424940af43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a143f5fa72a5c2aa56901ad78710eb4c2"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a143f5fa72a5c2aa56901ad78710eb4c2">crc24q</a> (const unsigned char *buff, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> len)</td></tr>
+<tr class="memdesc:a143f5fa72a5c2aa56901ad78710eb4c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">crc-24q parity compute crc-24q parity for sbas, rtcm3 see reference [2] A.4.3.3 Parity  <a href="common_8hpp.html#a143f5fa72a5c2aa56901ad78710eb4c2">More...</a><br /></td></tr>
 <tr class="separator:a143f5fa72a5c2aa56901ad78710eb4c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace313ca00b6a7cf1ca9f854f8bfaa6ef"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ace313ca00b6a7cf1ca9f854f8bfaa6ef">dops</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> ns, const double *azel, double elmin, double *dop)</td></tr>
+<tr class="memitem:ace313ca00b6a7cf1ca9f854f8bfaa6ef"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ace313ca00b6a7cf1ca9f854f8bfaa6ef">dops</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> ns, const double *azel, double elmin, double *dop)</td></tr>
 <tr class="separator:ace313ca00b6a7cf1ca9f854f8bfaa6ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6cbf1c54d1af0ec9df347f87ae3d63c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ae6cbf1c54d1af0ec9df347f87ae3d63c">readblq</a> (string file, const char *sta, double *otlDisplacement)</td></tr>
+<tr class="memitem:ae6cbf1c54d1af0ec9df347f87ae3d63c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ae6cbf1c54d1af0ec9df347f87ae3d63c">readblq</a> (string file, const char *sta, double *otlDisplacement)</td></tr>
 <tr class="separator:ae6cbf1c54d1af0ec9df347f87ae3d63c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29992caa1c89f158c4f771f5cc460143"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a29992caa1c89f158c4f771f5cc460143">satexclude</a> (<a class="el" href="structSatSys.html">SatSys</a> &amp;sat, <a class="el" href="enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806">E_Svh</a> svh)</td></tr>
-<tr class="separator:a29992caa1c89f158c4f771f5cc460143"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5455547b54ca04e3f6629ddd867b197d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a5455547b54ca04e3f6629ddd867b197d">sisaToSva</a> (double sisa)</td></tr>
+<tr class="memitem:aa87dbbd1e3df7962de3b926874da5526"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#aa87dbbd1e3df7962de3b926874da5526">satFreqs</a> (E_Sys sys, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> &amp;frq1, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> &amp;frq2, <a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> &amp;frq3)</td></tr>
+<tr class="separator:aa87dbbd1e3df7962de3b926874da5526"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5455547b54ca04e3f6629ddd867b197d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a5455547b54ca04e3f6629ddd867b197d">sisaToSva</a> (double sisa)</td></tr>
+<tr class="memdesc:a5455547b54ca04e3f6629ddd867b197d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Galileo SISA value (m) to SISA index.  <a href="common_8hpp.html#a5455547b54ca04e3f6629ddd867b197d">More...</a><br /></td></tr>
 <tr class="separator:a5455547b54ca04e3f6629ddd867b197d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e64e6b27352f5d683cfbfd28e9bc69a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a3e64e6b27352f5d683cfbfd28e9bc69a">svaToSisa</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> sva)</td></tr>
+<tr class="memitem:a3e64e6b27352f5d683cfbfd28e9bc69a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a3e64e6b27352f5d683cfbfd28e9bc69a">svaToSisa</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> sva)</td></tr>
+<tr class="memdesc:a3e64e6b27352f5d683cfbfd28e9bc69a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Galileo SISA index to SISA value (m) EUROPEAN GNSS (GALILEO) OPEN SERVICE SIGNAL-IN-SPACE INTERFACE CONTROL DOCUMENT Issue 2.0, January 2021 See Section, 5.1.12.  <a href="common_8hpp.html#a3e64e6b27352f5d683cfbfd28e9bc69a">More...</a><br /></td></tr>
 <tr class="separator:a3e64e6b27352f5d683cfbfd28e9bc69a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47b796248ca1aabdfc761d61bb878142"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a47b796248ca1aabdfc761d61bb878142">svaToUra</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> sva)</td></tr>
+<tr class="memitem:a96d3e41867e71358683d0395b85972af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a96d3e41867e71358683d0395b85972af">uraToSva</a> (double ura)</td></tr>
+<tr class="memdesc:a96d3e41867e71358683d0395b85972af"><td class="mdescLeft">&#160;</td><td class="mdescRight">URA value (m) to URA index.  <a href="common_8hpp.html#a96d3e41867e71358683d0395b85972af">More...</a><br /></td></tr>
+<tr class="separator:a96d3e41867e71358683d0395b85972af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47b796248ca1aabdfc761d61bb878142"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a47b796248ca1aabdfc761d61bb878142">svaToUra</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> sva)</td></tr>
+<tr class="memdesc:a47b796248ca1aabdfc761d61bb878142"><td class="mdescLeft">&#160;</td><td class="mdescRight">URA index to URA value (m) GLOBAL POSITIONING SYSTEM STANDARD POSITIONING SERVICE SIGNAL SPECIFICATION 2nd Ed, June 2,1995 see section - 2.5.3 User Range Accuracy.  <a href="common_8hpp.html#a47b796248ca1aabdfc761d61bb878142">More...</a><br /></td></tr>
 <tr class="separator:a47b796248ca1aabdfc761d61bb878142"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75a34dc41e76a8680e3aa6d62ff4c800"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a75a34dc41e76a8680e3aa6d62ff4c800">replaceTimes</a> (string &amp;str, boost::posix_time::ptime time_time)</td></tr>
 <tr class="memdesc:a75a34dc41e76a8680e3aa6d62ff4c800"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to use for replacements.  <a href="common_8hpp.html#a75a34dc41e76a8680e3aa6d62ff4c800">More...</a><br /></td></tr>
 <tr class="separator:a75a34dc41e76a8680e3aa6d62ff4c800"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8d22df7b58a50063804205a4bf0f00c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ae8d22df7b58a50063804205a4bf0f00c">updatenav</a> (<a class="el" href="structObs.html">Obs</a> &amp;obs)</td></tr>
-<tr class="separator:ae8d22df7b58a50063804205a4bf0f00c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ca8e19eeb0f6967a88a0de23c2744e3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a8ca8e19eeb0f6967a88a0de23c2744e3">updatenav</a> (<a class="el" href="structSatPos.html">SatPos</a> &amp;obs)</td></tr>
+<tr class="separator:a8ca8e19eeb0f6967a88a0de23c2744e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af93f8da5338ce6266dd2820933656503"><td class="memTemplParams" colspan="2">template&lt;typename OUT , typename ENTRY &gt; </td></tr>
+<tr class="memitem:af93f8da5338ce6266dd2820933656503"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structTyper.html">Typer</a>&lt; <a class="el" href="structIteratorType.html">IteratorType</a>, OUT, void, vector&lt; ENTRY &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="common_8hpp.html#af93f8da5338ce6266dd2820933656503">only</a> (vector&lt; ENTRY &gt; &amp;in)</td></tr>
+<tr class="memdesc:af93f8da5338ce6266dd2820933656503"><td class="mdescLeft">&#160;</td><td class="mdescRight">Use only a subset of a vector that can be cast to a desired type.  <a href="common_8hpp.html#af93f8da5338ce6266dd2820933656503">More...</a><br /></td></tr>
+<tr class="separator:af93f8da5338ce6266dd2820933656503"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a875d0f34ac76e49775252631e5b2dd9a"><td class="memTemplParams" colspan="2">template&lt;typename OUT , typename KEYTYPE , typename VALUE &gt; </td></tr>
+<tr class="memitem:a875d0f34ac76e49775252631e5b2dd9a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structTyper.html">Typer</a>&lt; <a class="el" href="structMapIteratorType.html">MapIteratorType</a>, OUT, KEYTYPE, multimap&lt; KEYTYPE, VALUE &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a875d0f34ac76e49775252631e5b2dd9a">only</a> (multimap&lt; KEYTYPE, VALUE &gt; &amp;in)</td></tr>
+<tr class="memdesc:a875d0f34ac76e49775252631e5b2dd9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Use only a subset of a map that can be cast to a desired type.  <a href="common_8hpp.html#a875d0f34ac76e49775252631e5b2dd9a">More...</a><br /></td></tr>
+<tr class="separator:a875d0f34ac76e49775252631e5b2dd9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a143f5fa72a5c2aa56901ad78710eb4c2" name="a143f5fa72a5c2aa56901ad78710eb4c2"></a>
@@ -177,7 +163,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> crc24q </td>
+          <td class="memname">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> crc24q </td>
           <td>(</td>
           <td class="paramtype">const unsigned char *&#160;</td>
           <td class="paramname"><em>buff</em>, </td>
@@ -185,7 +171,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>len</em>&#160;</td>
         </tr>
         <tr>
@@ -195,6 +181,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>crc-24q parity compute crc-24q parity for sbas, rtcm3 see reference [2] A.4.3.3 Parity </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>data</td></tr>
+    <tr><td class="paramname">len</td><td>data length (bytes) </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -212,7 +207,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void dops </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>ns</em>, </td>
         </tr>
         <tr>
@@ -244,458 +239,6 @@ Here is the caller graph for this function:</div>
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_ace313ca00b6a7cf1ca9f854f8bfaa6ef_icgraph.svg" width="215" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ac2b6cc31f68b273128f1a15ff409b1e9" name="ac2b6cc31f68b273128f1a15ff409b1e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac2b6cc31f68b273128f1a15ff409b1e9">&#9670;&nbsp;</a></span>ecef2eci_sofa()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ecef2eci_sofa </td>
-          <td>(</td>
-          <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>mjdUTC</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">IERS &amp;&#160;</td>
-          <td class="paramname"><em>iers</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat_ecef</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>vSat_ecef</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat_eci</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>vSat_eci</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>vector transformed from ecef to eci using the sofa library </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">mjdUTC</td><td>UTC, modified Julian date</td></tr>
-    <tr><td class="paramname">iers</td><td>IERS instance</td></tr>
-    <tr><td class="paramname">rSat_ecef</td><td>satellite state vector in ecef</td></tr>
-    <tr><td class="paramname">vSat_ecef</td><td>satellite state vector in ecef</td></tr>
-    <tr><td class="paramname">rSat_eci</td><td>satellite state vector in eci</td></tr>
-    <tr><td class="paramname">vSat_eci</td><td>satellite state vector in eci </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_ac2b6cc31f68b273128f1a15ff409b1e9_cgraph.svg" width="283" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="afcfc8fbadfd57eaa5b29712f2db88c64" name="afcfc8fbadfd57eaa5b29712f2db88c64"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afcfc8fbadfd57eaa5b29712f2db88c64">&#9670;&nbsp;</a></span>ecef2enu()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ecef2enu </td>
-          <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>r</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>e</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_afcfc8fbadfd57eaa5b29712f2db88c64_cgraph.svg" width="219" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_afcfc8fbadfd57eaa5b29712f2db88c64_icgraph.svg" width="283" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ae91d83cf693cdc7e1efacbe4d8d9656e" name="ae91d83cf693cdc7e1efacbe4d8d9656e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae91d83cf693cdc7e1efacbe4d8d9656e">&#9670;&nbsp;</a></span>ecef2pos() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ecef2pos </td>
-          <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>r</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>pos</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="common_8hpp_ae91d83cf693cdc7e1efacbe4d8d9656e_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-
-</div>
-</div>
-<a id="a2dbe5066095669b3c346f5aa121e4c05" name="a2dbe5066095669b3c346f5aa121e4c05"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2dbe5066095669b3c346f5aa121e4c05">&#9670;&nbsp;</a></span>ecef2pos() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ecef2pos </td>
-          <td>(</td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>r</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>pos</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a05b074450ac06c7c61a632e128a73600" name="a05b074450ac06c7c61a632e128a73600"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05b074450ac06c7c61a632e128a73600">&#9670;&nbsp;</a></span>eci2ecef()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void eci2ecef </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structGTime.html">GTime</a>&#160;</td>
-          <td class="paramname"><em>tutc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structERPValues.html">ERPValues</a> &amp;&#160;</td>
-          <td class="paramname"><em>erpv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Matrix3d &amp;&#160;</td>
-          <td class="paramname"><em>U</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>gmst</em> = <code>nullptr</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Matrix3d *&#160;</td>
-          <td class="paramname"><em>dU</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>eci to ecef transformation matrix </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">tutc</td><td>time in utc</td></tr>
-    <tr><td class="paramname">erpv</td><td>erp values {xp,yp,ut1_utc,lod} (rad,rad,s,s/d)</td></tr>
-    <tr><td class="paramname">U</td><td>eci to ecef transformation matrix (3 x 3)</td></tr>
-    <tr><td class="paramname">gmst</td><td>greenwich mean sidereal time (rad)</td></tr>
-    <tr><td class="paramname">dU</td><td>eci to ecef transformation matrix (3 x 3) </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a05b074450ac06c7c61a632e128a73600_cgraph.svg" width="386" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a05b074450ac06c7c61a632e128a73600_icgraph.svg" width="251" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a470bf7b49dcb299ab533958252a1dfe0" name="a470bf7b49dcb299ab533958252a1dfe0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a470bf7b49dcb299ab533958252a1dfe0">&#9670;&nbsp;</a></span>eci2ecef_sofa() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void eci2ecef_sofa </td>
-          <td>(</td>
-          <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>mjdUTC</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">IERS &amp;&#160;</td>
-          <td class="paramname"><em>iers</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Matrix3d &amp;&#160;</td>
-          <td class="paramname"><em>U</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Matrix3d &amp;&#160;</td>
-          <td class="paramname"><em>dU</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>eci to ecef transformation matrix using the sofa library </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">mjdUTC</td><td>UTC, modified Julian date</td></tr>
-    <tr><td class="paramname">iers</td><td>IERS instance</td></tr>
-    <tr><td class="paramname">U</td><td>eci to ecef transformation matrix (3 x 3)</td></tr>
-    <tr><td class="paramname">dU</td><td>eci to ecef transformation matrix (3 x 3) </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a470bf7b49dcb299ab533958252a1dfe0_icgraph.svg" width="283" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="acff32e24f536f55cf057586b5e157046" name="acff32e24f536f55cf057586b5e157046"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acff32e24f536f55cf057586b5e157046">&#9670;&nbsp;</a></span>eci2ecef_sofa() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void eci2ecef_sofa </td>
-          <td>(</td>
-          <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>mjdUTC</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">IERS &amp;&#160;</td>
-          <td class="paramname"><em>iers</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat_eci</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>vSat_eci</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rSat_ecef</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>vSat_ecef</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>vector transformed from eci to ecef using the sofa library </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">mjdUTC</td><td>UTC, modified Julian date</td></tr>
-    <tr><td class="paramname">iers</td><td>IERS instance</td></tr>
-    <tr><td class="paramname">rSat_eci</td><td>satellite state vector in eci</td></tr>
-    <tr><td class="paramname">vSat_eci</td><td>satellite state vector in eci</td></tr>
-    <tr><td class="paramname">rSat_ecef</td><td>satellite state vector in ecef</td></tr>
-    <tr><td class="paramname">vSat_ecef</td><td>satellite state vector in ecef </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_acff32e24f536f55cf057586b5e157046_cgraph.svg" width="283" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a1926e232cdab381c3ccfc8abca86b2a8" name="a1926e232cdab381c3ccfc8abca86b2a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1926e232cdab381c3ccfc8abca86b2a8">&#9670;&nbsp;</a></span>enu2ecef() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void enu2ecef </td>
-          <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>e</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>r</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a1926e232cdab381c3ccfc8abca86b2a8_cgraph.svg" width="219" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a1926e232cdab381c3ccfc8abca86b2a8_icgraph.svg" width="394" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a25c5026cf028a74677ace6902c93b8fa" name="a25c5026cf028a74677ace6902c93b8fa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25c5026cf028a74677ace6902c93b8fa">&#9670;&nbsp;</a></span>enu2ecef() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void enu2ecef </td>
-          <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>e</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>r</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a25c5026cf028a74677ace6902c93b8fa_cgraph.svg" width="224" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -749,178 +292,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a52a667466317784c7a286f77b2ee9c3f_icgraph.svg" width="250" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="afb03d815c5c9706c5e9b04a8edee7900" name="afb03d815c5c9706c5e9b04a8edee7900"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afb03d815c5c9706c5e9b04a8edee7900">&#9670;&nbsp;</a></span>getbits()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> getbits </td>
-          <td>(</td>
-          <td class="paramtype">const unsigned char *&#160;</td>
-          <td class="paramname"><em>buff</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>len</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_afb03d815c5c9706c5e9b04a8edee7900_cgraph.svg" width="194" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_afb03d815c5c9706c5e9b04a8edee7900_icgraph.svg" width="212" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a015a8a5120016e627bc810a59aa72948" name="a015a8a5120016e627bc810a59aa72948"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a015a8a5120016e627bc810a59aa72948">&#9670;&nbsp;</a></span>getbitsInc()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> getbitsInc </td>
-          <td>(</td>
-          <td class="paramtype">const unsigned char *&#160;</td>
-          <td class="paramname"><em>buff</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>len</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a015a8a5120016e627bc810a59aa72948_cgraph.svg" width="212" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a015a8a5120016e627bc810a59aa72948_icgraph.svg" width="380" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a85a03123ae20efc3b06434f616140943" name="a85a03123ae20efc3b06434f616140943"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85a03123ae20efc3b06434f616140943">&#9670;&nbsp;</a></span>getbitu()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> getbitu </td>
-          <td>(</td>
-          <td class="paramtype">const unsigned char *&#160;</td>
-          <td class="paramname"><em>buff</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>len</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a85a03123ae20efc3b06434f616140943_icgraph.svg" width="572" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aaa6463f592ed6478626814466d3d02a5" name="aaa6463f592ed6478626814466d3d02a5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa6463f592ed6478626814466d3d02a5">&#9670;&nbsp;</a></span>getbituInc()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> getbituInc </td>
-          <td>(</td>
-          <td class="paramtype">const unsigned char *&#160;</td>
-          <td class="paramname"><em>buff</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &amp;&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>len</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_aaa6463f592ed6478626814466d3d02a5_cgraph.svg" width="214" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_aaa6463f592ed6478626814466d3d02a5_icgraph.svg" width="612" height="307"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a52a667466317784c7a286f77b2ee9c3f_icgraph.svg" width="250" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -965,11 +337,6 @@ Here is the caller graph for this function:</div>
 
 <p>Low pass filter values. </p>
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_aa2bd96a385b601a87749a42c1cda54f9_cgraph.svg" width="246" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_aa2bd96a385b601a87749a42c1cda54f9_icgraph.svg" width="252" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
@@ -977,132 +344,47 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="af69d89b6d7834290bd7c181f828e652a" name="af69d89b6d7834290bd7c181f828e652a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af69d89b6d7834290bd7c181f828e652a">&#9670;&nbsp;</a></span>pos2ecef()</h2>
+<a id="a875d0f34ac76e49775252631e5b2dd9a" name="a875d0f34ac76e49775252631e5b2dd9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a875d0f34ac76e49775252631e5b2dd9a">&#9670;&nbsp;</a></span>only() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename OUT , typename KEYTYPE , typename VALUE &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">void pos2ecef </td>
+          <td class="memname"><a class="el" href="structTyper.html">Typer</a>&lt; <a class="el" href="structMapIteratorType.html">MapIteratorType</a>, OUT, KEYTYPE, multimap&lt; KEYTYPE, VALUE &gt; &gt; only </td>
           <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">multimap&lt; KEYTYPE, VALUE &gt; &amp;&#160;</td>
+          <td class="paramname"><em>in</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>r</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Transform geodetic postion to ecef. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">pos</td><td>geodetic position {lat,lon,h} (rad,m)</td></tr>
-    <tr><td class="paramname">r</td><td>ecef position {x,y,z} (m) </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_af69d89b6d7834290bd7c181f828e652a_icgraph.svg" width="280" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p>Use only a subset of a map that can be cast to a desired type. </p>
 
 </div>
 </div>
-<a id="a5255e5c7106736e4ed29286b5527a45c" name="a5255e5c7106736e4ed29286b5527a45c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5255e5c7106736e4ed29286b5527a45c">&#9670;&nbsp;</a></span>R_x()</h2>
+<a id="af93f8da5338ce6266dd2820933656503" name="af93f8da5338ce6266dd2820933656503"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af93f8da5338ce6266dd2820933656503">&#9670;&nbsp;</a></span>only() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename OUT , typename ENTRY &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">Matrix3d R_x </td>
+          <td class="memname"><a class="el" href="structTyper.html">Typer</a>&lt; <a class="el" href="structIteratorType.html">IteratorType</a>, OUT, void, vector&lt; ENTRY &gt; &gt; only </td>
           <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>Angle</em></td><td>)</td>
+          <td class="paramtype">vector&lt; ENTRY &gt; &amp;&#160;</td>
+          <td class="paramname"><em>in</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">Angle</td><td>Angle in radian </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a5255e5c7106736e4ed29286b5527a45c_icgraph.svg" width="183" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
-</div>
-</div>
-<a id="ab5b8e9e2aeec5e3357661a1e840d71a6" name="ab5b8e9e2aeec5e3357661a1e840d71a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5b8e9e2aeec5e3357661a1e840d71a6">&#9670;&nbsp;</a></span>R_y()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Matrix3d R_y </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>Angle</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">Angle</td><td>Angle in radian </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_ab5b8e9e2aeec5e3357661a1e840d71a6_icgraph.svg" width="183" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a3d989f256c8fd090835450fba7f85f55" name="a3d989f256c8fd090835450fba7f85f55"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d989f256c8fd090835450fba7f85f55">&#9670;&nbsp;</a></span>R_z()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Matrix3d R_z </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>Angle</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">Angle</td><td>Angle in radian </td></tr>
-  </table>
-  </dd>
-</dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a3d989f256c8fd090835450fba7f85f55_icgraph.svg" width="182" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p>Use only a subset of a vector that can be cast to a desired type. </p>
 
 </div>
 </div>
@@ -1113,7 +395,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> readblq </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> readblq </td>
           <td>(</td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>file</em>, </td>
@@ -1194,13 +476,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a75a34dc41e76a8680e3aa6d62ff4c800_icgraph.svg" width="519" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a75a34dc41e76a8680e3aa6d62ff4c800_icgraph.svg" width="344" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="aaab59d0f7176d2bfb38b0f1dfa7507a6" name="aaab59d0f7176d2bfb38b0f1dfa7507a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaab59d0f7176d2bfb38b0f1dfa7507a6">&#9670;&nbsp;</a></span>sagnac()</h2>
+<a id="a94c864828c4c3177cc471a9d355fe2f4" name="a94c864828c4c3177cc471a9d355fe2f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94c864828c4c3177cc471a9d355fe2f4">&#9670;&nbsp;</a></span>sagnac()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1215,7 +497,13 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">Vector3d &amp;&#160;</td>
-          <td class="paramname"><em>rDest</em>&#160;</td>
+          <td class="paramname"><em>rDest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Vector3d&#160;</td>
+          <td class="paramname"><em>vel</em> = <code>Vector3d::Zero()</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1227,13 +515,13 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_aaab59d0f7176d2bfb38b0f1dfa7507a6_icgraph.svg" width="218" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a94c864828c4c3177cc471a9d355fe2f4_icgraph.svg" width="220" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a4ec5c9d8effd9f823bfe6f9e12e7583f" name="a4ec5c9d8effd9f823bfe6f9e12e7583f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ec5c9d8effd9f823bfe6f9e12e7583f">&#9670;&nbsp;</a></span>satazel()</h2>
+<a id="a92e93b72fd75166d63c2e9424940af43" name="a92e93b72fd75166d63c2e9424940af43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92e93b72fd75166d63c2e9424940af43">&#9670;&nbsp;</a></span>satazel()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1241,13 +529,13 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">double satazel </td>
           <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
+          <td class="paramtype">const <a class="el" href="structVectorPos.html">VectorPos</a> &amp;&#160;</td>
           <td class="paramname"><em>pos</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double *&#160;</td>
+          <td class="paramtype">const <a class="el" href="structVectorEcef.html">VectorEcef</a> &amp;&#160;</td>
           <td class="paramname"><em>e</em>, </td>
         </tr>
         <tr>
@@ -1263,88 +551,58 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a4ec5c9d8effd9f823bfe6f9e12e7583f_cgraph.svg" width="211" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a4ec5c9d8effd9f823bfe6f9e12e7583f_icgraph.svg" width="203" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
-</div>
-</div>
-<a id="a29992caa1c89f158c4f771f5cc460143" name="a29992caa1c89f158c4f771f5cc460143"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a29992caa1c89f158c4f771f5cc460143">&#9670;&nbsp;</a></span>satexclude()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> satexclude </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structSatSys.html">SatSys</a> &amp;&#160;</td>
-          <td class="paramname"><em>sat</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#a492b5ea18dc26e5cdb5f4cc58c2ae806">E_Svh</a>&#160;</td>
-          <td class="paramname"><em>svh</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
+<p>satellite azimuth/elevation angle </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sat</td><td>Satellite</td></tr>
-    <tr><td class="paramname">svh</td><td>SV Health </td></tr>
+    <tr><td class="paramname">pos</td><td>geodetic position {lat,lon,h} (rad,m)</td></tr>
+    <tr><td class="paramname">e</td><td>receiver-to-satellilte unit vector (ecef)</td></tr>
+    <tr><td class="paramname">azel</td><td>azimuth/elevation {az,el} (rad) (nullptr: no output) </td></tr>
   </table>
   </dd>
 </dl>
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a92e93b72fd75166d63c2e9424940af43_cgraph.svg" width="244" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a29992caa1c89f158c4f771f5cc460143_icgraph.svg" width="272" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a92e93b72fd75166d63c2e9424940af43_icgraph.svg" width="243" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ad43a3bfc8b677201c75f03bea21c28f7" name="ad43a3bfc8b677201c75f03bea21c28f7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad43a3bfc8b677201c75f03bea21c28f7">&#9670;&nbsp;</a></span>setbitsInc()</h2>
+<a id="aa87dbbd1e3df7962de3b926874da5526" name="aa87dbbd1e3df7962de3b926874da5526"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa87dbbd1e3df7962de3b926874da5526">&#9670;&nbsp;</a></span>satFreqs()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> setbitsInc </td>
+          <td class="memname">bool satFreqs </td>
           <td>(</td>
-          <td class="paramtype">unsigned char *&#160;</td>
-          <td class="paramname"><em>buff</em>, </td>
+          <td class="paramtype">E_Sys&#160;</td>
+          <td class="paramname"><em>sys</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> &amp;&#160;</td>
+          <td class="paramname"><em>frq1</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>len</em>, </td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> &amp;&#160;</td>
+          <td class="paramname"><em>frq2</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>var</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> &amp;&#160;</td>
+          <td class="paramname"><em>frq3</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1354,64 +612,9 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_ad43a3bfc8b677201c75f03bea21c28f7_cgraph.svg" width="211" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_ad43a3bfc8b677201c75f03bea21c28f7_icgraph.svg" width="367" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a134334c05194e24419b7ca2109349abe" name="a134334c05194e24419b7ca2109349abe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a134334c05194e24419b7ca2109349abe">&#9670;&nbsp;</a></span>setbituInc()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> setbituInc </td>
-          <td>(</td>
-          <td class="paramtype">unsigned char *&#160;</td>
-          <td class="paramname"><em>buff</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>len</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>var</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a134334c05194e24419b7ca2109349abe_cgraph.svg" width="212" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a134334c05194e24419b7ca2109349abe_icgraph.svg" width="420" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="common_8hpp_aa87dbbd1e3df7962de3b926874da5526_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -1423,7 +626,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> sisaToSva </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> sisaToSva </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
           <td class="paramname"><em>sisa</em></td><td>)</td>
@@ -1431,6 +634,8 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Galileo SISA value (m) to SISA index. </p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -1448,16 +653,19 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">double svaToSisa </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>sva</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Galileo SISA index to SISA value (m) EUROPEAN GNSS (GALILEO) OPEN SERVICE SIGNAL-IN-SPACE INTERFACE CONTROL DOCUMENT Issue 2.0, January 2021 See Section, 5.1.12. </p>
+<p >Signal In Space Accuracy (SISA) </p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a3e64e6b27352f5d683cfbfd28e9bc69a_icgraph.svg" width="296" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a3e64e6b27352f5d683cfbfd28e9bc69a_icgraph.svg" width="380" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1471,22 +679,24 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">double svaToUra </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>sva</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>URA index to URA value (m) GLOBAL POSITIONING SYSTEM STANDARD POSITIONING SERVICE SIGNAL SPECIFICATION 2nd Ed, June 2,1995 see section - 2.5.3 User Range Accuracy. </p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a47b796248ca1aabdfc761d61bb878142_icgraph.svg" width="292" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a47b796248ca1aabdfc761d61bb878142_icgraph.svg" width="376" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ae8d22df7b58a50063804205a4bf0f00c" name="ae8d22df7b58a50063804205a4bf0f00c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae8d22df7b58a50063804205a4bf0f00c">&#9670;&nbsp;</a></span>updatenav()</h2>
+<a id="a8ca8e19eeb0f6967a88a0de23c2744e3" name="a8ca8e19eeb0f6967a88a0de23c2744e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ca8e19eeb0f6967a88a0de23c2744e3">&#9670;&nbsp;</a></span>updatenav()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1494,7 +704,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void updatenav </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structObs.html">Obs</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structSatPos.html">SatPos</a> &amp;&#160;</td>
           <td class="paramname"><em>obs</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1503,40 +713,94 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_ae8d22df7b58a50063804205a4bf0f00c_icgraph.svg" width="256" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a8ca8e19eeb0f6967a88a0de23c2744e3_icgraph.svg" width="256" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a59a54664edbf3bc2ebeb1f5e5e7a67d0" name="a59a54664edbf3bc2ebeb1f5e5e7a67d0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a59a54664edbf3bc2ebeb1f5e5e7a67d0">&#9670;&nbsp;</a></span>xyz2enu()</h2>
+<a id="a96d3e41867e71358683d0395b85972af" name="a96d3e41867e71358683d0395b85972af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96d3e41867e71358683d0395b85972af">&#9670;&nbsp;</a></span>uraToSva()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void xyz2enu </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> uraToSva </td>
           <td>(</td>
-          <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>ura</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>E</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>URA value (m) to URA index. </p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a59a54664edbf3bc2ebeb1f5e5e7a67d0_icgraph.svg" width="358" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_a96d3e41867e71358683d0395b85972af_icgraph.svg" width="242" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab91cc987d7ae8b6c023a1c1004d54b75" name="ab91cc987d7ae8b6c023a1c1004d54b75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab91cc987d7ae8b6c023a1c1004d54b75">&#9670;&nbsp;</a></span>wrap2Pi()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void wrap2Pi </td>
+          <td>(</td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>angle</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wrap angle between [0, 2pi) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">angle</td><td>Angle to wrap </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_ab91cc987d7ae8b6c023a1c1004d54b75_icgraph.svg" width="200" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad96246b7344aed2150ca622b91214cb2" name="ad96246b7344aed2150ca622b91214cb2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad96246b7344aed2150ca622b91214cb2">&#9670;&nbsp;</a></span>wrapPlusMinusPi()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void wrapPlusMinusPi </td>
+          <td>(</td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>angle</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wrap angle between (-pi, pi]. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">angle</td><td>Angle to wrap </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="common_8hpp_ad96246b7344aed2150ca622b91214cb2_icgraph.svg" width="488" height="420"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

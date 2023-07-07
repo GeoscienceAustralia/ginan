@@ -1,4 +1,6 @@
 <map id="replaceTags" name="replaceTags">
-<area shape="rect" id="node1" title="Replace macros for times with configured values." alt="" coords="5,5,104,32"/>
-<area shape="rect" id="node2" href="$acsConfig_8cpp.html#a611c3086ccdeb877c19a6b1d603227a4" title="search for and replace section of string" alt="" coords="152,5,260,32"/>
+<area shape="rect" id="node1" title="Replace macros for times with configured values." alt="" coords="5,56,104,83"/>
+<area shape="rect" id="node2" href="$acsConfig_8cpp.html#a611c3086ccdeb877c19a6b1d603227a4" title="search for and replace section of string" alt="" coords="169,5,277,32"/>
+<area shape="rect" id="node3" href="$peaCommitStrings_8cpp.html#a7fe65f9b3d5d39575ea3c8dcf9c4b4b6" title=" " alt="" coords="152,56,295,83"/>
+<area shape="rect" id="node4" href="$peaCommitStrings_8cpp.html#a11444291672859a3839fd1d2e715af43" title=" " alt="" coords="152,107,295,133"/>
 </map>

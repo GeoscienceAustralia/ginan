@@ -1,7 +1,8 @@
 <map id="getBiasSinex" name="getBiasSinex">
-<area shape="rect" id="node1" title="Search for hardware biases in phase and code." alt="" coords="5,81,112,108"/>
+<area shape="rect" id="node1" title="Search for hardware biases in phase and code." alt="" coords="5,107,112,133"/>
 <area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="180,5,267,32"/>
 <area shape="rect" id="node3" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="160,56,287,83"/>
-<area shape="rect" id="node4" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="176,107,271,133"/>
-<area shape="rect" id="node5" href="$biasSINEXread_8cpp.html#a4ccebd721f67990485d488f06eb69ab5" title="Search for hardware bias for given measurmenet type." alt="" coords="188,157,259,184"/>
+<area shape="rect" id="node4" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="176,107,271,133"/>
+<area shape="rect" id="node5" href="$constants_8cpp.html#aae430c4cbc58c8759813666dd50f8aed" title=" " alt="" coords="166,157,281,184"/>
+<area shape="rect" id="node6" href="$biasSINEXread_8cpp.html#a1d9356a6f6e580daae1ebf88822dd2e1" title="Search for hardware bias for given measurmenet type." alt="" coords="188,208,259,235"/>
 </map>

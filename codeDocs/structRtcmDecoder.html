@@ -72,6 +72,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-attribs">Data Fields</a> &#124;
@@ -92,34 +93,50 @@ Collaboration diagram for RtcmDecoder:</div>
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder__coll__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a3c27bc908a8ad265be1d7436b3932ac1"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1">E_ReturnType</a> { <a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1aeab60accf1083da57e0a58c594ce3655">UNSUPPORTED</a>
+, <a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1ae58fb63507dc62af7b93442c19bd90cd">OK</a>
+, <a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1a14bb5b9a8b8b9cfeeb0a95ebb41abb22">WAIT</a>
+, <a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1a160cfb2677c9484504b7e3bc8af06ba0">GOT_OBS</a>
+ }</td></tr>
+<tr class="separator:a3c27bc908a8ad265be1d7436b3932ac1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a1396a506d3b48a90a3c160f80a78173a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a1396a506d3b48a90a3c160f80a78173a">adjgpsweek</a> (<a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> week)</td></tr>
-<tr class="separator:a1396a506d3b48a90a3c160f80a78173a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30e1272fcf539706e94183c7835a36e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a30e1272fcf539706e94183c7835a36e0">tow2Time</a> (double tow)</td></tr>
-<tr class="separator:a30e1272fcf539706e94183c7835a36e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ab6d5d8cf33f0742a012d6cdd4e52ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a5ab6d5d8cf33f0742a012d6cdd4e52ae">getGpst</a> ()</td></tr>
-<tr class="separator:a5ab6d5d8cf33f0742a012d6cdd4e52ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a64ac779c6f793b094aeaab8c917dd1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a9a64ac779c6f793b094aeaab8c917dd1">adjGpsWeek</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> week)</td></tr>
+<tr class="memdesc:a9a64ac779c6f793b094aeaab8c917dd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">adjust GPS week number according to RTCM time  <a href="structRtcmDecoder.html#a9a64ac779c6f793b094aeaab8c917dd1">More...</a><br /></td></tr>
+<tr class="separator:a9a64ac779c6f793b094aeaab8c917dd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f27b2fcee11a1266301ca9abec7d70d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a3f27b2fcee11a1266301ca9abec7d70d">adjGstWeek</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> week)</td></tr>
+<tr class="memdesc:a3f27b2fcee11a1266301ca9abec7d70d"><td class="mdescLeft">&#160;</td><td class="mdescRight">adjust GST week number according to RTCM time  <a href="structRtcmDecoder.html#a3f27b2fcee11a1266301ca9abec7d70d">More...</a><br /></td></tr>
+<tr class="separator:a3f27b2fcee11a1266301ca9abec7d70d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9793312f3999d7f59d79ca5cbba95797"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a9793312f3999d7f59d79ca5cbba95797">adjBdtWeek</a> (<a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> week)</td></tr>
+<tr class="memdesc:a9793312f3999d7f59d79ca5cbba95797"><td class="mdescLeft">&#160;</td><td class="mdescRight">adjust BDT week number according to RTCM time  <a href="structRtcmDecoder.html#a9793312f3999d7f59d79ca5cbba95797">More...</a><br /></td></tr>
+<tr class="separator:a9793312f3999d7f59d79ca5cbba95797"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d3cb177d3e79308289e9b23b5c46bbc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a2d3cb177d3e79308289e9b23b5c46bbc">traceLatency</a> (<a class="el" href="structGTime.html">GTime</a> gpsTime)</td></tr>
 <tr class="separator:a2d3cb177d3e79308289e9b23b5c46bbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a096e662fdefec780c2235efd563b119f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a096e662fdefec780c2235efd563b119f">code_to_ftype</a> (E_Sys sys, E_ObsCode code)</td></tr>
-<tr class="separator:a096e662fdefec780c2235efd563b119f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01cfc1d44409b9a00a60a3e0086671d9"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; <a class="el" href="structSignalInfo.html">SignalInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a01cfc1d44409b9a00a60a3e0086671d9">get_signal_info</a> (E_Sys sys, uint8_t signal)</td></tr>
-<tr class="separator:a01cfc1d44409b9a00a60a3e0086671d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e061b150f360e6e69190f77b505198c"><td class="memItemLeft" align="right" valign="top">E_ObsCode&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a1e061b150f360e6e69190f77b505198c">signal_to_code</a> (E_Sys sys, uint8_t signal)</td></tr>
 <tr class="separator:a1e061b150f360e6e69190f77b505198c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac8a62e36b397dfb8333cd13b47b9b5de"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#ac8a62e36b397dfb8333cd13b47b9b5de">nowTime</a> ()</td></tr>
-<tr class="separator:ac8a62e36b397dfb8333cd13b47b9b5de"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6673aa5a16d7e997de9ce5e43fac7860"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a6673aa5a16d7e997de9ce5e43fac7860">decodeEphemeris</a> (uint8_t *data, unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> <a class="el" href="structRtcmDecoder.html#a16b9cbd625b354b77b46b093a638bdf3">message_length</a>)</td></tr>
-<tr class="separator:a6673aa5a16d7e997de9ce5e43fac7860"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a187d2bf36da0d4de61f4c603b203b09f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a187d2bf36da0d4de61f4c603b203b09f">decodeSSR</a> (uint8_t *data, unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> <a class="el" href="structRtcmDecoder.html#a16b9cbd625b354b77b46b093a638bdf3">message_length</a>)</td></tr>
-<tr class="separator:a187d2bf36da0d4de61f4c603b203b09f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd55ac9ab7db974b462c8671d899a120"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#acd55ac9ab7db974b462c8671d899a120">decodeCustomTimestamp</a> (uint8_t *data, unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> <a class="el" href="structRtcmDecoder.html#a16b9cbd625b354b77b46b093a638bdf3">message_length</a>)</td></tr>
-<tr class="separator:acd55ac9ab7db974b462c8671d899a120"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa4f10b765f29810a57a883a57625b1cc"><td class="memItemLeft" align="right" valign="top">E_RTCMSubmessage&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#aa4f10b765f29810a57a883a57625b1cc">decodeCustomId</a> (uint8_t *data, unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> <a class="el" href="structRtcmDecoder.html#a16b9cbd625b354b77b46b093a638bdf3">message_length</a>)</td></tr>
-<tr class="separator:aa4f10b765f29810a57a883a57625b1cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a255b1924964121ecb5ac55d1efc0cd64"><td class="memItemLeft" align="right" valign="top"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a255b1924964121ecb5ac55d1efc0cd64">decodeMSM7</a> (uint8_t *data, unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> <a class="el" href="structRtcmDecoder.html#a16b9cbd625b354b77b46b093a638bdf3">message_length</a>)</td></tr>
-<tr class="separator:a255b1924964121ecb5ac55d1efc0cd64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4dcc94b23423696a4e8025d8235a1b1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#af4dcc94b23423696a4e8025d8235a1b1">rtcmTime</a> ()</td></tr>
+<tr class="separator:af4dcc94b23423696a4e8025d8235a1b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a424082e15bbf15120f1fc5f0635b01b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9">decodeEphemeris</a> (vector&lt; unsigned char &gt; &amp;message)</td></tr>
+<tr class="memdesc:a424082e15bbf15120f1fc5f0635b01b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">decode RTCM navigation messages  <a href="structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9">More...</a><br /></td></tr>
+<tr class="separator:a424082e15bbf15120f1fc5f0635b01b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adae4ba7ddd9f744631b806a5d550fe39"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#adae4ba7ddd9f744631b806a5d550fe39">decodeSSR</a> (vector&lt; unsigned char &gt; &amp;message)</td></tr>
+<tr class="memdesc:adae4ba7ddd9f744631b806a5d550fe39"><td class="mdescLeft">&#160;</td><td class="mdescRight">decode RTCM SSR messages  <a href="structRtcmDecoder.html#adae4ba7ddd9f744631b806a5d550fe39">More...</a><br /></td></tr>
+<tr class="separator:adae4ba7ddd9f744631b806a5d550fe39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b237e2beacc8c8026156a2beb2dd964"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a1b237e2beacc8c8026156a2beb2dd964">decodeCustomTimestamp</a> (vector&lt; unsigned char &gt; &amp;message)</td></tr>
+<tr class="separator:a1b237e2beacc8c8026156a2beb2dd964"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15ca53eca1daaf05dd8788338eb17392"><td class="memItemLeft" align="right" valign="top">E_RTCMSubmessage&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a15ca53eca1daaf05dd8788338eb17392">decodeCustomId</a> (vector&lt; unsigned char &gt; &amp;message)</td></tr>
+<tr class="separator:a15ca53eca1daaf05dd8788338eb17392"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a794dff6b6cac1bb2f8dfa1b2e5bd6c61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structObsList.html">ObsList</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a794dff6b6cac1bb2f8dfa1b2e5bd6c61">decodeMSM</a> (vector&lt; unsigned char &gt; &amp;message)</td></tr>
+<tr class="separator:a794dff6b6cac1bb2f8dfa1b2e5bd6c61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dcc38e7fa87e8aef6ec17cc3626146a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a9dcc38e7fa87e8aef6ec17cc3626146a">recordFrame</a> (vector&lt; unsigned char &gt; &amp;data, unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> crcRead)</td></tr>
+<tr class="separator:a9dcc38e7fa87e8aef6ec17cc3626146a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b7993d7cc20610d8770c2f4d1e902d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1">E_ReturnType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a3b7993d7cc20610d8770c2f4d1e902d6">decodeCustom</a> (vector&lt; unsigned char &gt; &amp;message)</td></tr>
+<tr class="separator:a3b7993d7cc20610d8770c2f4d1e902d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba8cfbe6f75ebb1403de74f9b5a88187"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1">E_ReturnType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#aba8cfbe6f75ebb1403de74f9b5a88187">decode</a> (vector&lt; unsigned char &gt; &amp;message)</td></tr>
+<tr class="separator:aba8cfbe6f75ebb1403de74f9b5a88187"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structRtcmTrace"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structRtcmTrace')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structRtcmTrace.html">RtcmTrace</a></td></tr>
 <tr class="memitem:a9eab3c33e937559abee2d16842cdb530 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a9eab3c33e937559abee2d16842cdb530">RtcmTrace</a> (string mountpoint=&quot;&quot;, string filename=&quot;&quot;)</td></tr>
 <tr class="separator:a9eab3c33e937559abee2d16842cdb530 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -129,360 +146,244 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a65cbf41ebbb3789e02e8f6944e8b05f0 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b1c85cac6c9887a50ce3f059e4570bc inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a4b1c85cac6c9887a50ce3f059e4570bc">messageRtcmLog</a> (string message)</td></tr>
 <tr class="separator:a4b1c85cac6c9887a50ce3f059e4570bc inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25c52f06333981e0df71b16e325aa43c inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a25c52f06333981e0df71b16e325aa43c">messageRtcmByteLog</a> (string message)</td></tr>
-<tr class="separator:a25c52f06333981e0df71b16e325aa43c inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aca828f5d0ba4ea9799fd439c1683bcd4 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#aca828f5d0ba4ea9799fd439c1683bcd4">outputSsrEphToJson</a> (const <a class="el" href="structSSREph.html">SSREph</a> &amp;ssrEph, const <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat)</td></tr>
-<tr class="separator:aca828f5d0ba4ea9799fd439c1683bcd4 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27e85a5d656b3490cb541958b44c6a67 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a27e85a5d656b3490cb541958b44c6a67">outputSsrClkToJson</a> (const <a class="el" href="structSSRClk.html">SSRClk</a> &amp;ssrClk, const <a class="el" href="structSatSys.html">SatSys</a> &amp;Sat)</td></tr>
-<tr class="separator:a27e85a5d656b3490cb541958b44c6a67 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9905704371805f21ec802eb6b1956a55 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a9905704371805f21ec802eb6b1956a55">traceSsrEph</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSREph.html">SSREph</a> &amp;ssrEph)</td></tr>
-<tr class="separator:a9905704371805f21ec802eb6b1956a55 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae01a9f97c7b65df9afb2610a58f2b967 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#ae01a9f97c7b65df9afb2610a58f2b967">traceSsrClk</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSRClk.html">SSRClk</a> &amp;ssrClk)</td></tr>
-<tr class="separator:ae01a9f97c7b65df9afb2610a58f2b967 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e29763105f2e550eaa74be6aacbfaae inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a1e29763105f2e550eaa74be6aacbfaae">traceSsrCodeB</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode mode, <a class="el" href="structSSRBias.html">SSRBias</a> &amp;ssrBias)</td></tr>
-<tr class="separator:a1e29763105f2e550eaa74be6aacbfaae inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38ba4e7165a181b4cff99118dab1e012 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a38ba4e7165a181b4cff99118dab1e012">traceSsrPhasB</a> (<a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode mode, <a class="el" href="structSSRBias.html">SSRBias</a> &amp;ssrBias)</td></tr>
-<tr class="separator:a38ba4e7165a181b4cff99118dab1e012 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a1c3b7cb0f2b3e1e694a6772e4206b1 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a6a1c3b7cb0f2b3e1e694a6772e4206b1">traceBroEph</a> (<a class="el" href="structEph.html">Eph</a> &amp;eph, E_Sys sys)</td></tr>
-<tr class="separator:a6a1c3b7cb0f2b3e1e694a6772e4206b1 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_structRtcmStatistics"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structRtcmStatistics')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structRtcmStatistics.html">RtcmStatistics</a></td></tr>
-<tr class="memitem:a96ff2a4c53bbae9e88b8a1ee8e9deac9 inherit pub_methods_structRtcmStatistics"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmStatistics.html#a96ff2a4c53bbae9e88b8a1ee8e9deac9">printRtcmStatistics</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace)</td></tr>
-<tr class="separator:a96ff2a4c53bbae9e88b8a1ee8e9deac9 inherit pub_methods_structRtcmStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab77b0368e1844bb77eb8a91845c35673 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#ab77b0368e1844bb77eb8a91845c35673">traceSsrEph</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSREph.html">SSREph</a> &amp;ssrEph)</td></tr>
+<tr class="separator:ab77b0368e1844bb77eb8a91845c35673 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77967bdcccaac67fdcd956d47da16055 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a77967bdcccaac67fdcd956d47da16055">traceSsrClk</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSRClk.html">SSRClk</a> &amp;ssrClk)</td></tr>
+<tr class="separator:a77967bdcccaac67fdcd956d47da16055 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9417bd4a22314d42e8064f78f12d26d inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#aa9417bd4a22314d42e8064f78f12d26d">traceSsrUra</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSRUra.html">SSRUra</a> &amp;ssrUra)</td></tr>
+<tr class="separator:aa9417bd4a22314d42e8064f78f12d26d inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72cc456a169363422bbdb71c4f12ab4f inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a72cc456a169363422bbdb71c4f12ab4f">traceSsrHRClk</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSSRHRClk.html">SSRHRClk</a> &amp;ssrHRClk)</td></tr>
+<tr class="separator:a72cc456a169363422bbdb71c4f12ab4f inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcf156ad1b35a69c33db080f609b6f16 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#abcf156ad1b35a69c33db080f609b6f16">traceSsrCodeBias</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode code, <a class="el" href="structSSRCodeBias.html">SSRCodeBias</a> &amp;ssrBias)</td></tr>
+<tr class="separator:abcf156ad1b35a69c33db080f609b6f16 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab176960d2a094f050f187909b777d677 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#ab176960d2a094f050f187909b777d677">traceSsrPhasBias</a> (RtcmMessageType messCode, <a class="el" href="structSatSys.html">SatSys</a> Sat, E_ObsCode code, <a class="el" href="structSSRPhasBias.html">SSRPhasBias</a> &amp;ssrBias)</td></tr>
+<tr class="separator:ab176960d2a094f050f187909b777d677 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e5a2d492060c59091840d96dfe07bb8 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a2e5a2d492060c59091840d96dfe07bb8">traceTimestamp</a> (<a class="el" href="structGTime.html">GTime</a> time)</td></tr>
+<tr class="separator:a2e5a2d492060c59091840d96dfe07bb8 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7988263389150711e951a4df5f1dcdd1 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1">traceBrdcEph</a> (RtcmMessageType messCode, <a class="el" href="structEph.html">Eph</a> &amp;eph)</td></tr>
+<tr class="memdesc:a7988263389150711e951a4df5f1dcdd1 inherit pub_methods_structRtcmTrace"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file.  <a href="structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1">More...</a><br /></td></tr>
+<tr class="separator:a7988263389150711e951a4df5f1dcdd1 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af164612e34a83d1452ef214af3736004 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#af164612e34a83d1452ef214af3736004">traceBrdcEph</a> (RtcmMessageType messCode, <a class="el" href="structGeph.html">Geph</a> &amp;geph)</td></tr>
+<tr class="memdesc:af164612e34a83d1452ef214af3736004 inherit pub_methods_structRtcmTrace"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write decoded/encoded GAL ephemeris messages to a json file.  <a href="structRtcmTrace.html#af164612e34a83d1452ef214af3736004">More...</a><br /></td></tr>
+<tr class="separator:af164612e34a83d1452ef214af3736004 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcc1eaba01587cf66fb1637b0969c161 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#abcc1eaba01587cf66fb1637b0969c161">traceMSM</a> (RtcmMessageType messCode, <a class="el" href="structGTime.html">GTime</a> time, <a class="el" href="structSatSys.html">SatSys</a> Sat, <a class="el" href="structSig.html">Sig</a> &amp;sig)</td></tr>
+<tr class="memdesc:abcc1eaba01587cf66fb1637b0969c161 inherit pub_methods_structRtcmTrace"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write msm message to a json file.  <a href="structRtcmTrace.html#abcc1eaba01587cf66fb1637b0969c161">More...</a><br /></td></tr>
+<tr class="separator:abcc1eaba01587cf66fb1637b0969c161 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad992e657cb98f1cd8eb87eaf2d11f912 inherit pub_methods_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#ad992e657cb98f1cd8eb87eaf2d11f912">traceUnknown</a> ()</td></tr>
+<tr class="memdesc:ad992e657cb98f1cd8eb87eaf2d11f912 inherit pub_methods_structRtcmTrace"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write unknown message to a json file.  <a href="structRtcmTrace.html#ad992e657cb98f1cd8eb87eaf2d11f912">More...</a><br /></td></tr>
+<tr class="separator:ad992e657cb98f1cd8eb87eaf2d11f912 inherit pub_methods_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_structPacketStatistics"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structPacketStatistics')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="structPacketStatistics.html">PacketStatistics</a></td></tr>
+<tr class="memitem:a3f6805ace484bd0823a764c7b509dbc7 inherit pub_methods_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a3f6805ace484bd0823a764c7b509dbc7">printPacketStatistics</a> (<a class="el" href="algebra_8hpp.html#abb6d62693c3d47c2be1eaaf661cbf86c">Trace</a> &amp;trace)</td></tr>
+<tr class="separator:a3f6805ace484bd0823a764c7b509dbc7 inherit pub_methods_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a332885ac12f530a7fc8a15dfc81fe747 inherit pub_methods_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a332885ac12f530a7fc8a15dfc81fe747">checksumFailure</a> (string id=&quot;&quot;)</td></tr>
+<tr class="separator:a332885ac12f530a7fc8a15dfc81fe747 inherit pub_methods_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2718aa30f1f5cacbd389d6037a1c64a9 inherit pub_methods_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a2718aa30f1f5cacbd389d6037a1c64a9">checksumSuccess</a> (unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> crcRead=0)</td></tr>
+<tr class="separator:a2718aa30f1f5cacbd389d6037a1c64a9 inherit pub_methods_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a080db5e73adbd4447002c7b54f691f03 inherit pub_methods_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a080db5e73adbd4447002c7b54f691f03">nonFrameByteFound</a> (unsigned char c)</td></tr>
+<tr class="separator:a080db5e73adbd4447002c7b54f691f03 inherit pub_methods_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2f8d993a9d06c8241746a66e642e1ca inherit pub_methods_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#ac2f8d993a9d06c8241746a66e642e1ca">preambleFound</a> ()</td></tr>
+<tr class="separator:ac2f8d993a9d06c8241746a66e642e1ca inherit pub_methods_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2d07ceeb2c44d6392dfb3aac7af8f42 inherit pub_methods_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#ad2d07ceeb2c44d6392dfb3aac7af8f42">frameDecoded</a> ()</td></tr>
+<tr class="separator:ad2d07ceeb2c44d6392dfb3aac7af8f42 inherit pub_methods_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a16b9cbd625b354b77b46b093a638bdf3"><td class="memItemLeft" align="right" valign="top">static uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a16b9cbd625b354b77b46b093a638bdf3">message_length</a> (char header[2])</td></tr>
-<tr class="separator:a16b9cbd625b354b77b46b093a638bdf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a26525622756ebcbb60d90c2bf27ac899"><td class="memItemLeft" align="right" valign="top">static RtcmMessageType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a26525622756ebcbb60d90c2bf27ac899">message_type</a> (const uint8_t message[])</td></tr>
-<tr class="separator:a26525622756ebcbb60d90c2bf27ac899"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afabe8899e51d7c19c99a29c5f4c61c95"><td class="memItemLeft" align="right" valign="top">static uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#afabe8899e51d7c19c99a29c5f4c61c95">message_length</a> (char header[2])</td></tr>
+<tr class="separator:afabe8899e51d7c19c99a29c5f4c61c95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5af8de34bd2ccca5d17a9c024a09cce7"><td class="memItemLeft" align="right" valign="top">static RtcmMessageType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a5af8de34bd2ccca5d17a9c024a09cce7">message_type</a> (const uint8_t message[])</td></tr>
+<tr class="separator:a5af8de34bd2ccca5d17a9c024a09cce7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a725f7e23f596f26a7944335cddcfe0a1"><td class="memItemLeft" align="right" valign="top">map&lt; <a class="el" href="structSatSys.html">SatSys</a>, map&lt; E_ObsCode, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a725f7e23f596f26a7944335cddcfe0a1">MSM7_lock_time</a></td></tr>
-<tr class="separator:a725f7e23f596f26a7944335cddcfe0a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06137bfbf04dc2533dda9e1ade8f3e57"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a06137bfbf04dc2533dda9e1ade8f3e57">rtcm_UTC</a></td></tr>
-<tr class="separator:a06137bfbf04dc2533dda9e1ade8f3e57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ddda1f0221547156d539cfafbab9e7b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a4ddda1f0221547156d539cfafbab9e7b">lastTimeStamp</a></td></tr>
+<tr class="separator:a4ddda1f0221547156d539cfafbab9e7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a837e15ac2593d2470becc74cf5fb2231"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a837e15ac2593d2470becc74cf5fb2231">receivedTime</a></td></tr>
+<tr class="memdesc:a837e15ac2593d2470becc74cf5fb2231"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recent internal time from decoded rtcm messages.  <a href="structRtcmDecoder.html#a837e15ac2593d2470becc74cf5fb2231">More...</a><br /></td></tr>
+<tr class="separator:a837e15ac2593d2470becc74cf5fb2231"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7b0068e5503fbde9023b1dd0d010553"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structObsList.html">ObsList</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#ad7b0068e5503fbde9023b1dd0d010553">superObsList</a></td></tr>
+<tr class="memdesc:ad7b0068e5503fbde9023b1dd0d010553"><td class="mdescLeft">&#160;</td><td class="mdescRight">List to accumulate observations from smaller lists which share a common time.  <a href="structRtcmDecoder.html#ad7b0068e5503fbde9023b1dd0d010553">More...</a><br /></td></tr>
+<tr class="separator:ad7b0068e5503fbde9023b1dd0d010553"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac47198966d7c4b8f97fc62727b848730"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#ac47198966d7c4b8f97fc62727b848730">rtcmTimestampTime</a></td></tr>
+<tr class="separator:ac47198966d7c4b8f97fc62727b848730"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65febe7d641a0ebe8d91c61f1dd788c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGWeek.html">GWeek</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a65febe7d641a0ebe8d91c61f1dd788c2">rtcmWeek</a> = -1</td></tr>
+<tr class="separator:a65febe7d641a0ebe8d91c61f1dd788c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acde592cc91b6c1ea672335cd23624256"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#acde592cc91b6c1ea672335cd23624256">rtcm_filename</a></td></tr>
+<tr class="separator:acde592cc91b6c1ea672335cd23624256"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_structRtcmTrace"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structRtcmTrace')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structRtcmTrace.html">RtcmTrace</a></td></tr>
 <tr class="memitem:a9b3bb5dba531a34f034301b0722b0931 inherit pub_attribs_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a9b3bb5dba531a34f034301b0722b0931">rtcmTraceFilename</a> = &quot;&quot;</td></tr>
 <tr class="separator:a9b3bb5dba531a34f034301b0722b0931 inherit pub_attribs_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43b2961b42dbe83462def0c4d5bcf2c0 inherit pub_attribs_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a43b2961b42dbe83462def0c4d5bcf2c0">rtcmMountPoint</a></td></tr>
-<tr class="separator:a43b2961b42dbe83462def0c4d5bcf2c0 inherit pub_attribs_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_attribs_structRtcmStatistics"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structRtcmStatistics')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structRtcmStatistics.html">RtcmStatistics</a></td></tr>
-<tr class="memitem:ac00ea45d59515f18e89c71e999409297 inherit pub_attribs_structRtcmStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmStatistics.html#ac00ea45d59515f18e89c71e999409297">numPreambleFound</a> = 0</td></tr>
-<tr class="separator:ac00ea45d59515f18e89c71e999409297 inherit pub_attribs_structRtcmStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4aa4a3c7908046ed5f856f3d15c48aa4 inherit pub_attribs_structRtcmStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmStatistics.html#a4aa4a3c7908046ed5f856f3d15c48aa4">numFramesFailedCRC</a> = 0</td></tr>
-<tr class="separator:a4aa4a3c7908046ed5f856f3d15c48aa4 inherit pub_attribs_structRtcmStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c6dc00b964330bb5c2cb0a0dfd06011 inherit pub_attribs_structRtcmStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmStatistics.html#a7c6dc00b964330bb5c2cb0a0dfd06011">numFramesPassCRC</a> = 0</td></tr>
-<tr class="separator:a7c6dc00b964330bb5c2cb0a0dfd06011 inherit pub_attribs_structRtcmStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a177f0f6ef4b7abe0dd3a76604a40d9bb inherit pub_attribs_structRtcmStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmStatistics.html#a177f0f6ef4b7abe0dd3a76604a40d9bb">numFramesDecoded</a> = 0</td></tr>
-<tr class="separator:a177f0f6ef4b7abe0dd3a76604a40d9bb inherit pub_attribs_structRtcmStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8b2aa301ca78f80ef1d115e2c115419 inherit pub_attribs_structRtcmStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmStatistics.html#ab8b2aa301ca78f80ef1d115e2c115419">numNonMessBytes</a> = 0</td></tr>
-<tr class="separator:ab8b2aa301ca78f80ef1d115e2c115419 inherit pub_attribs_structRtcmStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a189b08ebfeb3b3a0145db3332cb7edb9 inherit pub_attribs_structRtcmStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmStatistics.html#a189b08ebfeb3b3a0145db3332cb7edb9">numMessagesLatency</a> = 0</td></tr>
-<tr class="separator:a189b08ebfeb3b3a0145db3332cb7edb9 inherit pub_attribs_structRtcmStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a481ec55ad0977cea4618cc2106743550 inherit pub_attribs_structRtcmStatistics"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmStatistics.html#a481ec55ad0977cea4618cc2106743550">totalLatency</a> = 0</td></tr>
-<tr class="separator:a481ec55ad0977cea4618cc2106743550 inherit pub_attribs_structRtcmStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2310436ae24f4092fb1e0167307ae151 inherit pub_attribs_structRtcmTrace"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmTrace.html#a2310436ae24f4092fb1e0167307ae151">rtcmMountpoint</a></td></tr>
+<tr class="separator:a2310436ae24f4092fb1e0167307ae151 inherit pub_attribs_structRtcmTrace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_structObsLister"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structObsLister')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structObsLister.html">ObsLister</a></td></tr>
+<tr class="memitem:a96e9cc4cdcc544a3eaf143d1805bb748 inherit pub_attribs_structObsLister"><td class="memItemLeft" align="right" valign="top">list&lt; <a class="el" href="structObsList.html">ObsList</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structObsLister.html#a96e9cc4cdcc544a3eaf143d1805bb748">obsListList</a></td></tr>
+<tr class="separator:a96e9cc4cdcc544a3eaf143d1805bb748 inherit pub_attribs_structObsLister"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_attribs_structPacketStatistics"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structPacketStatistics')"><img src="closed.png" alt="-"/>&#160;Data Fields inherited from <a class="el" href="structPacketStatistics.html">PacketStatistics</a></td></tr>
+<tr class="memitem:a1358b4740ddfb51881378b772e9de7c6 inherit pub_attribs_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a1358b4740ddfb51881378b772e9de7c6">numPreambleFound</a> = 0</td></tr>
+<tr class="separator:a1358b4740ddfb51881378b772e9de7c6 inherit pub_attribs_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cdf567957e9d631a617cd15e56843cc inherit pub_attribs_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a5cdf567957e9d631a617cd15e56843cc">numFramesFailedCRC</a> = 0</td></tr>
+<tr class="separator:a5cdf567957e9d631a617cd15e56843cc inherit pub_attribs_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab862df82dfd6a6edf82460b599d6f43c inherit pub_attribs_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#ab862df82dfd6a6edf82460b599d6f43c">numFramesPassCRC</a> = 0</td></tr>
+<tr class="separator:ab862df82dfd6a6edf82460b599d6f43c inherit pub_attribs_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4ab4d371e634bf8d05adda95685dc06 inherit pub_attribs_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#ae4ab4d371e634bf8d05adda95685dc06">numFramesDecoded</a> = 0</td></tr>
+<tr class="separator:ae4ab4d371e634bf8d05adda95685dc06 inherit pub_attribs_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a718ae1fe94241f8c9e18a3fd1304a3b2 inherit pub_attribs_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a718ae1fe94241f8c9e18a3fd1304a3b2">numNonMessBytes</a> = 0</td></tr>
+<tr class="separator:a718ae1fe94241f8c9e18a3fd1304a3b2 inherit pub_attribs_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a035c9fd442de9c87cabfa72e7c71437b inherit pub_attribs_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">long <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a035c9fd442de9c87cabfa72e7c71437b">numMessagesLatency</a> = 0</td></tr>
+<tr class="separator:a035c9fd442de9c87cabfa72e7c71437b inherit pub_attribs_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c616a9ada9e044f28138f7a2bb854da inherit pub_attribs_structPacketStatistics"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPacketStatistics.html#a9c616a9ada9e044f28138f7a2bb854da">totalLatency</a> = 0</td></tr>
+<tr class="separator:a9c616a9ada9e044f28138f7a2bb854da inherit pub_attribs_structPacketStatistics"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a3c33cf41994e4b32d2a6caa5cce9958d"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a3c33cf41994e4b32d2a6caa5cce9958d">updateInterval</a> [16]</td></tr>
+<tr class="memitem:a53ce49a88e3d156f3db7f9464d382ad8"><td class="memItemLeft" align="right" valign="top">static double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a53ce49a88e3d156f3db7f9464d382ad8">rtcmDeltaTime</a> = 0</td></tr>
+<tr class="memdesc:a53ce49a88e3d156f3db7f9464d382ad8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Common time used among all rtcmDecoders for delaying decoding when realtime is enabled.  <a href="structRtcmDecoder.html#a53ce49a88e3d156f3db7f9464d382ad8">More...</a><br /></td></tr>
+<tr class="separator:a53ce49a88e3d156f3db7f9464d382ad8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0a2906f871b31c8eb63020580ef3132"><td class="memItemLeft" align="right" valign="top">static map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#ad0a2906f871b31c8eb63020580ef3132">receivedTimeMap</a></td></tr>
+<tr class="separator:ad0a2906f871b31c8eb63020580ef3132"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c33cf41994e4b32d2a6caa5cce9958d"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRtcmDecoder.html#a3c33cf41994e4b32d2a6caa5cce9958d">updateInterval</a> [16]</td></tr>
 <tr class="separator:a3c33cf41994e4b32d2a6caa5cce9958d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="a1396a506d3b48a90a3c160f80a78173a" name="a1396a506d3b48a90a3c160f80a78173a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1396a506d3b48a90a3c160f80a78173a">&#9670;&nbsp;</a></span>adjgpsweek()</h2>
+<h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="a3c27bc908a8ad265be1d7436b3932ac1" name="a3c27bc908a8ad265be1d7436b3932ac1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c27bc908a8ad265be1d7436b3932ac1">&#9670;&nbsp;</a></span>E_ReturnType</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> RtcmDecoder::adjgpsweek </td>
+          <td class="memname">enum <a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1">RtcmDecoder::E_ReturnType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a3c27bc908a8ad265be1d7436b3932ac1aeab60accf1083da57e0a58c594ce3655" name="a3c27bc908a8ad265be1d7436b3932ac1aeab60accf1083da57e0a58c594ce3655"></a>UNSUPPORTED&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3c27bc908a8ad265be1d7436b3932ac1ae58fb63507dc62af7b93442c19bd90cd" name="a3c27bc908a8ad265be1d7436b3932ac1ae58fb63507dc62af7b93442c19bd90cd"></a>OK&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3c27bc908a8ad265be1d7436b3932ac1a14bb5b9a8b8b9cfeeb0a95ebb41abb22" name="a3c27bc908a8ad265be1d7436b3932ac1a14bb5b9a8b8b9cfeeb0a95ebb41abb22"></a>WAIT&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3c27bc908a8ad265be1d7436b3932ac1a160cfb2677c9484504b7e3bc8af06ba0" name="a3c27bc908a8ad265be1d7436b3932ac1a160cfb2677c9484504b7e3bc8af06ba0"></a>GOT_OBS&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a9793312f3999d7f59d79ca5cbba95797" name="a9793312f3999d7f59d79ca5cbba95797"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9793312f3999d7f59d79ca5cbba95797">&#9670;&nbsp;</a></span>adjBdtWeek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> RtcmDecoder::adjBdtWeek </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
           <td class="paramname"><em>week</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>adjust BDT week number according to RTCM time </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">week</td><td>not-adjusted BDT week number </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a1396a506d3b48a90a3c160f80a78173a_cgraph.svg" width="432" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a9793312f3999d7f59d79ca5cbba95797_cgraph.svg" width="436" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a1396a506d3b48a90a3c160f80a78173a_icgraph.svg" width="490" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a9793312f3999d7f59d79ca5cbba95797_icgraph.svg" width="491" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a096e662fdefec780c2235efd563b119f" name="a096e662fdefec780c2235efd563b119f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a096e662fdefec780c2235efd563b119f">&#9670;&nbsp;</a></span>code_to_ftype()</h2>
+<a id="a9a64ac779c6f793b094aeaab8c917dd1" name="a9a64ac779c6f793b094aeaab8c917dd1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a64ac779c6f793b094aeaab8c917dd1">&#9670;&nbsp;</a></span>adjGpsWeek()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="enums_8h.html#a9240641a390e2e6d9af3f3ea1ff045e9">E_FType</a> RtcmDecoder::code_to_ftype </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> RtcmDecoder::adjGpsWeek </td>
           <td>(</td>
-          <td class="paramtype">E_Sys&#160;</td>
-          <td class="paramname"><em>sys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>week</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">E_ObsCode&#160;</td>
-          <td class="paramname"><em>code</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a096e662fdefec780c2235efd563b119f_icgraph.svg" width="434" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
-</div>
-</div>
-<a id="aa4f10b765f29810a57a883a57625b1cc" name="aa4f10b765f29810a57a883a57625b1cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa4f10b765f29810a57a883a57625b1cc">&#9670;&nbsp;</a></span>decodeCustomId()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">E_RTCMSubmessage RtcmDecoder::decodeCustomId </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t *&#160;</td>
-          <td class="paramname"><em>data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>message_length</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
+<p>adjust GPS week number according to RTCM time </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">week</td><td>not-adjusted GPS week number </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_aa4f10b765f29810a57a883a57625b1cc_cgraph.svg" width="372" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a9a64ac779c6f793b094aeaab8c917dd1_cgraph.svg" width="439" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_aa4f10b765f29810a57a883a57625b1cc_icgraph.svg" width="470" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a9a64ac779c6f793b094aeaab8c917dd1_icgraph.svg" width="494" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="acd55ac9ab7db974b462c8671d899a120" name="acd55ac9ab7db974b462c8671d899a120"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd55ac9ab7db974b462c8671d899a120">&#9670;&nbsp;</a></span>decodeCustomTimestamp()</h2>
+<a id="a3f27b2fcee11a1266301ca9abec7d70d" name="a3f27b2fcee11a1266301ca9abec7d70d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f27b2fcee11a1266301ca9abec7d70d">&#9670;&nbsp;</a></span>adjGstWeek()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::decodeCustomTimestamp </td>
+          <td class="memname"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> RtcmDecoder::adjGstWeek </td>
           <td>(</td>
-          <td class="paramtype">uint8_t *&#160;</td>
-          <td class="paramname"><em>data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype"><a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>week</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>message_length</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>adjust GST week number according to RTCM time </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">week</td><td>not-adjusted GST week number </td></tr>
+  </table>
+  </dd>
+</dl>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_acd55ac9ab7db974b462c8671d899a120_cgraph.svg" width="360" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a3f27b2fcee11a1266301ca9abec7d70d_cgraph.svg" width="436" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_acd55ac9ab7db974b462c8671d899a120_icgraph.svg" width="458" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a3f27b2fcee11a1266301ca9abec7d70d_icgraph.svg" width="491" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a6673aa5a16d7e997de9ce5e43fac7860" name="a6673aa5a16d7e997de9ce5e43fac7860"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6673aa5a16d7e997de9ce5e43fac7860">&#9670;&nbsp;</a></span>decodeEphemeris()</h2>
+<a id="aba8cfbe6f75ebb1403de74f9b5a88187" name="aba8cfbe6f75ebb1403de74f9b5a88187"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba8cfbe6f75ebb1403de74f9b5a88187">&#9670;&nbsp;</a></span>decode()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void RtcmDecoder::decodeEphemeris </td>
+          <td class="memname"><a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1">RtcmDecoder::E_ReturnType</a> RtcmDecoder::decode </td>
           <td>(</td>
-          <td class="paramtype">uint8_t *&#160;</td>
-          <td class="paramname"><em>data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>message_length</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a6673aa5a16d7e997de9ce5e43fac7860_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a6673aa5a16d7e997de9ce5e43fac7860_icgraph.svg" width="478" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a255b1924964121ecb5ac55d1efc0cd64" name="a255b1924964121ecb5ac55d1efc0cd64"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a255b1924964121ecb5ac55d1efc0cd64">&#9670;&nbsp;</a></span>decodeMSM7()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="observations_8hpp.html#ac3764cf3d352807c2fa748e3e5871ea3">ObsList</a> RtcmDecoder::decodeMSM7 </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t *&#160;</td>
-          <td class="paramname"><em>data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>message_length</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a255b1924964121ecb5ac55d1efc0cd64_cgraph.svg" width="491" height="423"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a255b1924964121ecb5ac55d1efc0cd64_icgraph.svg" width="448" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a187d2bf36da0d4de61f4c603b203b09f" name="a187d2bf36da0d4de61f4c603b203b09f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a187d2bf36da0d4de61f4c603b203b09f">&#9670;&nbsp;</a></span>decodeSSR()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void RtcmDecoder::decodeSSR </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t *&#160;</td>
-          <td class="paramname"><em>data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td>
-          <td class="paramname"><em>message_length</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a187d2bf36da0d4de61f4c603b203b09f_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a187d2bf36da0d4de61f4c603b203b09f_icgraph.svg" width="434" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a01cfc1d44409b9a00a60a3e0086671d9" name="a01cfc1d44409b9a00a60a3e0086671d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01cfc1d44409b9a00a60a3e0086671d9">&#9670;&nbsp;</a></span>get_signal_info()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">boost::optional&lt; <a class="el" href="structSignalInfo.html">SignalInfo</a> &gt; RtcmDecoder::get_signal_info </td>
-          <td>(</td>
-          <td class="paramtype">E_Sys&#160;</td>
-          <td class="paramname"><em>sys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint8_t&#160;</td>
-          <td class="paramname"><em>signal</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a01cfc1d44409b9a00a60a3e0086671d9_icgraph.svg" width="434" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a5ab6d5d8cf33f0742a012d6cdd4e52ae" name="a5ab6d5d8cf33f0742a012d6cdd4e52ae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5ab6d5d8cf33f0742a012d6cdd4e52ae">&#9670;&nbsp;</a></span>getGpst()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::getGpst </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -490,18 +391,18 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a5ab6d5d8cf33f0742a012d6cdd4e52ae_cgraph.svg" width="307" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_aba8cfbe6f75ebb1403de74f9b5a88187_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a5ab6d5d8cf33f0742a012d6cdd4e52ae_icgraph.svg" width="463" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_aba8cfbe6f75ebb1403de74f9b5a88187_icgraph.svg" width="366" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a16b9cbd625b354b77b46b093a638bdf3" name="a16b9cbd625b354b77b46b093a638bdf3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a16b9cbd625b354b77b46b093a638bdf3">&#9670;&nbsp;</a></span>message_length()</h2>
+<a id="a3b7993d7cc20610d8770c2f4d1e902d6" name="a3b7993d7cc20610d8770c2f4d1e902d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b7993d7cc20610d8770c2f4d1e902d6">&#9670;&nbsp;</a></span>decodeCustom()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -510,7 +411,199 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint16_t RtcmDecoder::message_length </td>
+          <td class="memname"><a class="el" href="structRtcmDecoder.html#a3c27bc908a8ad265be1d7436b3932ac1">E_ReturnType</a> RtcmDecoder::decodeCustom </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a3b7993d7cc20610d8770c2f4d1e902d6_cgraph.svg" width="500" height="307"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a3b7993d7cc20610d8770c2f4d1e902d6_icgraph.svg" width="439" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a15ca53eca1daaf05dd8788338eb17392" name="a15ca53eca1daaf05dd8788338eb17392"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15ca53eca1daaf05dd8788338eb17392">&#9670;&nbsp;</a></span>decodeCustomId()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">E_RTCMSubmessage RtcmDecoder::decodeCustomId </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a15ca53eca1daaf05dd8788338eb17392_cgraph.svg" width="372" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a15ca53eca1daaf05dd8788338eb17392_icgraph.svg" width="500" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a1b237e2beacc8c8026156a2beb2dd964" name="a1b237e2beacc8c8026156a2beb2dd964"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b237e2beacc8c8026156a2beb2dd964">&#9670;&nbsp;</a></span>decodeCustomTimestamp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::decodeCustomTimestamp </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a1b237e2beacc8c8026156a2beb2dd964_cgraph.svg" width="360" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a1b237e2beacc8c8026156a2beb2dd964_icgraph.svg" width="488" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a424082e15bbf15120f1fc5f0635b01b9" name="a424082e15bbf15120f1fc5f0635b01b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a424082e15bbf15120f1fc5f0635b01b9">&#9670;&nbsp;</a></span>decodeEphemeris()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RtcmDecoder::decodeEphemeris </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>decode RTCM navigation messages </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>stream data </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a424082e15bbf15120f1fc5f0635b01b9_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a424082e15bbf15120f1fc5f0635b01b9_icgraph.svg" width="459" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a794dff6b6cac1bb2f8dfa1b2e5bd6c61" name="a794dff6b6cac1bb2f8dfa1b2e5bd6c61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a794dff6b6cac1bb2f8dfa1b2e5bd6c61">&#9670;&nbsp;</a></span>decodeMSM()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structObsList.html">ObsList</a> RtcmDecoder::decodeMSM </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a794dff6b6cac1bb2f8dfa1b2e5bd6c61_cgraph.svg" width="626" height="507"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a794dff6b6cac1bb2f8dfa1b2e5bd6c61_icgraph.svg" width="422" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adae4ba7ddd9f744631b806a5d550fe39" name="adae4ba7ddd9f744631b806a5d550fe39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adae4ba7ddd9f744631b806a5d550fe39">&#9670;&nbsp;</a></span>decodeSSR()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RtcmDecoder::decodeSSR </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>decode RTCM SSR messages </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>stream data </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_adae4ba7ddd9f744631b806a5d550fe39_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_adae4ba7ddd9f744631b806a5d550fe39_icgraph.svg" width="415" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="afabe8899e51d7c19c99a29c5f4c61c95" name="afabe8899e51d7c19c99a29c5f4c61c95"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afabe8899e51d7c19c99a29c5f4c61c95">&#9670;&nbsp;</a></span>message_length()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static uint16_t RtcmDecoder::message_length </td>
           <td>(</td>
           <td class="paramtype">char&#160;</td>
           <td class="paramname"><em>header</em>[2]</td><td>)</td>
@@ -523,21 +616,11 @@ Here is the caller graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a16b9cbd625b354b77b46b093a638bdf3_cgraph.svg" width="304" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a16b9cbd625b354b77b46b093a638bdf3_icgraph.svg" width="703" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
-<a id="a26525622756ebcbb60d90c2bf27ac899" name="a26525622756ebcbb60d90c2bf27ac899"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a26525622756ebcbb60d90c2bf27ac899">&#9670;&nbsp;</a></span>message_type()</h2>
+<a id="a5af8de34bd2ccca5d17a9c024a09cce7" name="a5af8de34bd2ccca5d17a9c024a09cce7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5af8de34bd2ccca5d17a9c024a09cce7">&#9670;&nbsp;</a></span>message_type()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -546,7 +629,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">RtcmMessageType RtcmDecoder::message_type </td>
+          <td class="memname">static RtcmMessageType RtcmDecoder::message_type </td>
           <td>(</td>
           <td class="paramtype">const uint8_t&#160;</td>
           <td class="paramname"><em>message</em>[]</td><td>)</td>
@@ -559,27 +642,63 @@ Here is the caller graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9dcc38e7fa87e8aef6ec17cc3626146a" name="a9dcc38e7fa87e8aef6ec17cc3626146a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dcc38e7fa87e8aef6ec17cc3626146a">&#9670;&nbsp;</a></span>recordFrame()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RtcmDecoder::recordFrame </td>
+          <td>(</td>
+          <td class="paramtype">vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td>
+          <td class="paramname"><em>crcRead</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a26525622756ebcbb60d90c2bf27ac899_cgraph.svg" width="340" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a9dcc38e7fa87e8aef6ec17cc3626146a_cgraph.svg" width="534" height="170"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a26525622756ebcbb60d90c2bf27ac899_icgraph.svg" width="456" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a9dcc38e7fa87e8aef6ec17cc3626146a_icgraph.svg" width="400" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ac8a62e36b397dfb8333cd13b47b9b5de" name="ac8a62e36b397dfb8333cd13b47b9b5de"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac8a62e36b397dfb8333cd13b47b9b5de">&#9670;&nbsp;</a></span>nowTime()</h2>
+<a id="af4dcc94b23423696a4e8025d8235a1b1" name="af4dcc94b23423696a4e8025d8235a1b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4dcc94b23423696a4e8025d8235a1b1">&#9670;&nbsp;</a></span>rtcmTime()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::nowTime </td>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::rtcmTime </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -589,12 +708,12 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_ac8a62e36b397dfb8333cd13b47b9b5de_cgraph.svg" width="356" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_af4dcc94b23423696a4e8025d8235a1b1_cgraph.svg" width="359" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_ac8a62e36b397dfb8333cd13b47b9b5de_icgraph.svg" width="432" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_af4dcc94b23423696a4e8025d8235a1b1_icgraph.svg" width="100%" height="536"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -625,42 +744,9 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a1e061b150f360e6e69190f77b505198c_cgraph.svg" width="434" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a1e061b150f360e6e69190f77b505198c_icgraph.svg" width="422" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a30e1272fcf539706e94183c7835a36e0" name="a30e1272fcf539706e94183c7835a36e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a30e1272fcf539706e94183c7835a36e0">&#9670;&nbsp;</a></span>tow2Time()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::tow2Time </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tow</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a30e1272fcf539706e94183c7835a36e0_cgraph.svg" width="419" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a30e1272fcf539706e94183c7835a36e0_icgraph.svg" width="447" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a1e061b150f360e6e69190f77b505198c_icgraph.svg" width="414" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -683,42 +769,148 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a2d3cb177d3e79308289e9b23b5c46bbc_cgraph.svg" width="431" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a2d3cb177d3e79308289e9b23b5c46bbc_cgraph.svg" width="336" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a2d3cb177d3e79308289e9b23b5c46bbc_icgraph.svg" width="467" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="structRtcmDecoder_a2d3cb177d3e79308289e9b23b5c46bbc_icgraph.svg" width="459" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <h2 class="groupheader">Field Documentation</h2>
-<a id="a725f7e23f596f26a7944335cddcfe0a1" name="a725f7e23f596f26a7944335cddcfe0a1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a725f7e23f596f26a7944335cddcfe0a1">&#9670;&nbsp;</a></span>MSM7_lock_time</h2>
+<a id="a4ddda1f0221547156d539cfafbab9e7b" name="a4ddda1f0221547156d539cfafbab9e7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ddda1f0221547156d539cfafbab9e7b">&#9670;&nbsp;</a></span>lastTimeStamp</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">map&lt;<a class="el" href="structSatSys.html">SatSys</a>, map&lt;E_ObsCode, <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&gt; &gt; RtcmDecoder::MSM7_lock_time</td>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::lastTimeStamp</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a06137bfbf04dc2533dda9e1ade8f3e57" name="a06137bfbf04dc2533dda9e1ade8f3e57"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a06137bfbf04dc2533dda9e1ade8f3e57">&#9670;&nbsp;</a></span>rtcm_UTC</h2>
+<a id="a837e15ac2593d2470becc74cf5fb2231" name="a837e15ac2593d2470becc74cf5fb2231"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a837e15ac2593d2470becc74cf5fb2231">&#9670;&nbsp;</a></span>receivedTime</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::rtcm_UTC</td>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::receivedTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Recent internal time from decoded rtcm messages. </p>
+
+</div>
+</div>
+<a id="ad0a2906f871b31c8eb63020580ef3132" name="ad0a2906f871b31c8eb63020580ef3132"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0a2906f871b31c8eb63020580ef3132">&#9670;&nbsp;</a></span>receivedTimeMap</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">map&lt; <a class="el" href="structGTime.html">GTime</a>, <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> &gt; RtcmDecoder::receivedTimeMap</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acde592cc91b6c1ea672335cd23624256" name="acde592cc91b6c1ea672335cd23624256"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acde592cc91b6c1ea672335cd23624256">&#9670;&nbsp;</a></span>rtcm_filename</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">string RtcmDecoder::rtcm_filename</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a53ce49a88e3d156f3db7f9464d382ad8" name="a53ce49a88e3d156f3db7f9464d382ad8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53ce49a88e3d156f3db7f9464d382ad8">&#9670;&nbsp;</a></span>rtcmDeltaTime</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double RtcmDecoder::rtcmDeltaTime = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Common time used among all rtcmDecoders for delaying decoding when realtime is enabled. </p>
+
+</div>
+</div>
+<a id="ac47198966d7c4b8f97fc62727b848730" name="ac47198966d7c4b8f97fc62727b848730"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac47198966d7c4b8f97fc62727b848730">&#9670;&nbsp;</a></span>rtcmTimestampTime</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structGTime.html">GTime</a> RtcmDecoder::rtcmTimestampTime</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a65febe7d641a0ebe8d91c61f1dd788c2" name="a65febe7d641a0ebe8d91c61f1dd788c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65febe7d641a0ebe8d91c61f1dd788c2">&#9670;&nbsp;</a></span>rtcmWeek</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structGWeek.html">GWeek</a> RtcmDecoder::rtcmWeek = -1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad7b0068e5503fbde9023b1dd0d010553" name="ad7b0068e5503fbde9023b1dd0d010553"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7b0068e5503fbde9023b1dd0d010553">&#9670;&nbsp;</a></span>superObsList</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structObsList.html">ObsList</a> RtcmDecoder::superObsList</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>List to accumulate observations from smaller lists which share a common time. </p>
 
 </div>
 </div>
@@ -732,7 +924,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> RtcmDecoder::updateInterval[16]</td>
+          <td class="memname">constexpr <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> RtcmDecoder::updateInterval[16]</td>
         </tr>
       </table>
   </td>

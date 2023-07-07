@@ -1,7 +1,6 @@
 <map id="correctRecClocks" name="correctRecClocks">
-<area shape="rect" id="node1" title="Check and correct clock jitter/wraparound." alt="" coords="5,81,140,108"/>
-<area shape="rect" id="node2" href="$structACSConfig.html#a7ddfbaf20a1c9181d73d0dabe92beace" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="188,5,361,32"/>
+<area shape="rect" id="node1" title="Check and correct clock jitter/wraparound." alt="" coords="5,56,140,83"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="188,5,361,32"/>
 <area shape="rect" id="node3" href="$algebra_8cpp.html#a304f0d512353a3c5a991c2439ea73287" title=" " alt="" coords="191,56,359,83"/>
-<area shape="rect" id="node4" href="$structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="197,107,353,133"/>
-<area shape="rect" id="node5" href="$structKFState.html#afa27fbd7603d376e9e67cb9c09ba7454" title="Sets the value of a state within the kalman filter object." alt="" coords="197,157,352,184"/>
+<area shape="rect" id="node4" href="$structKFState.html#aca3d8484dbabdecee93352e625c96ed1" title="Adds dynamics to a filter state by inserting off&#45;diagonal, non&#45;time dependent elements to transition ..." alt="" coords="198,107,351,133"/>
 </map>

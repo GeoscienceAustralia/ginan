@@ -1,4 +1,3 @@
 <map id="Pclk" name="Pclk">
-<area shape="rect" id="node1" title="precise clock" alt="" coords="44,424,117,531"/>
-<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,156,361"/>
+<area shape="rect" id="node1" title="precise clock" alt="" coords="5,5,97,112"/>
 </map>

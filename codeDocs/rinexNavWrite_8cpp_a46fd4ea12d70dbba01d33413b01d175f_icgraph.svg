@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M168.55,-36.07C154.87,-37.69 140.34,-39.4 126.7,-41.01"/>
 </g>
-<!-- Node6 -->
+<!-- Node7 -->
 <g id="node3" class="node">
-<title>Node6</title>
+<title>Node7</title>
 <g id="a_node3"><a xlink:href="rinexNavWrite_8cpp.html#a1a6ca76ef22ac52894735e4a6ee3c9ef" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 133,-19.5 133,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="66.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">outputNavRinexBodyAll</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node6 -->
+<!-- Node1&#45;&gt;Node7 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node6</title>
+<title>Node1&#45;&gt;Node7</title>
 <path fill="none" stroke="midnightblue" d="M168.55,-21.93C157.02,-20.56 144.88,-19.13 133.18,-17.75"/>
 </g>
 </g>

@@ -1,9 +1,9 @@
 <map id="GinAR_rec" name="GinAR_rec">
-<area shape="rect" id="node1" title=" " alt="" coords="515,931,604,1008"/>
-<area shape="rect" id="node2" title=" " alt="" coords="78,5,137,83"/>
-<area shape="rect" id="node6" href="$structKFState.html" title="Kalman filter object." alt="" coords="139,160,342,839"/>
-<area shape="rect" id="node3" title=" " alt="" coords="366,461,539,538"/>
-<area shape="rect" id="node4" title=" " alt="" coords="564,461,771,538"/>
-<area shape="rect" id="node5" title=" " alt="" coords="795,461,1006,538"/>
-<area shape="rect" id="node7" title=" " alt="" coords="1030,461,1110,538"/>
+<area shape="rect" id="node1" title=" " alt="" coords="461,835,550,912"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,335,64,413"/>
+<area shape="rect" id="node3" title=" " alt="" coords="88,335,261,413"/>
+<area shape="rect" id="node4" title=" " alt="" coords="286,335,493,413"/>
+<area shape="rect" id="node5" title=" " alt="" coords="517,335,728,413"/>
+<area shape="rect" id="node6" href="$structKFState.html" title=" " alt="" coords="752,5,987,743"/>
+<area shape="rect" id="node7" href="$structVectorEcef.html" title=" " alt="" coords="1011,299,1128,449"/>
 </map>

@@ -48,6 +48,15 @@ img.image-fluid {
     scroll-margin-top: 100px;
       margin-top: 1rem;
   }
+
+  h6
+  {
+    display:inline;
+  }
+  h6+p
+  {
+    display:inline;
+  }
   img
   {
 
@@ -59,6 +68,10 @@ img.image-fluid {
     background-color: rgb(250, 229, 212);
   }
 
+  blockquote > p
+  {
+    margin-bottom: 0;
+  }
   td, th
   {
     padding-left: 1em;

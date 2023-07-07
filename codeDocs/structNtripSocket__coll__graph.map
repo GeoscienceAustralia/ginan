@@ -1,6 +1,7 @@
 <map id="NtripSocket" name="NtripSocket">
-<area shape="rect" id="node1" title=" " alt="" coords="184,491,392,1037"/>
+<area shape="rect" id="node1" title=" " alt="" coords="243,491,451,993"/>
 <area shape="rect" id="node2" href="$structNetworkStatistics.html" title=" " alt="" coords="5,233,229,428"/>
 <area shape="rect" id="node3" title=" " alt="" coords="259,5,317,83"/>
-<area shape="rect" id="node4" href="$structURL.html" title=" " alt="" coords="427,285,533,377"/>
+<area shape="rect" id="node5" href="$structURL.html" title=" " alt="" coords="427,285,533,377"/>
+<area shape="rect" id="node4" title=" " alt="" coords="558,292,679,369"/>
 </map>

@@ -1,5 +1,5 @@
 <map id="decomposeTGDBias" name="decomposeTGDBias">
 <area shape="rect" id="node1" title="Convert GPS/QZS TGD into OSBs &amp; DSB." alt="" coords="288,31,441,57"/>
-<area shape="rect" id="node2" href="$structRtcmDecoder.html#a6673aa5a16d7e997de9ce5e43fac7860" title=" " alt="" coords="5,5,240,32"/>
-<area shape="rect" id="node3" href="$rinex_8cpp.html#ae3132fbeb0a7c18e3316f143ae063998" title="Decode ephemeris." alt="" coords="76,56,169,83"/>
+<area shape="rect" id="node2" href="$rinex_8cpp.html#a979e29d6c67b175b1c72c8a619e2c6fa" title="Decode ephemeris." alt="" coords="76,5,169,32"/>
+<area shape="rect" id="node3" href="$structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9" title="decode RTCM navigation messages" alt="" coords="5,56,240,83"/>
 </map>

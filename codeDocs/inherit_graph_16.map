@@ -1,3 +1,8 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structDeriv__OSB.html" title=" " alt="" coords="5,5,96,32"/>
+<area shape="rect" id="node1" href="$structBrdcEph.html" title=" " alt="" coords="11,107,86,133"/>
+<area shape="rect" id="node2" href="$structEph.html" title="GPS/QZS/GAL/BDS broadcast ephemeris." alt="" coords="145,56,191,83"/>
+<area shape="rect" id="node3" href="$structGeph.html" title="GLONASS broadcast ephemeris." alt="" coords="140,107,196,133"/>
+<area shape="rect" id="node4" href="$structSeph.html" title="SBAS ephemeris." alt="" coords="141,157,195,184"/>
+<area shape="rect" id="node5" href="$structKeplerEph.html" title=" " alt="" coords="5,31,92,57"/>
+<area shape="rect" id="node6" href="$structCeph.html" title="GPS/QZS CNAV/CNAV&#45;2 or BDS CNAV&#45;1/CNAV&#45;2/CNAV&#45;3 ephemeris." alt="" coords="141,5,195,32"/>
 </map>

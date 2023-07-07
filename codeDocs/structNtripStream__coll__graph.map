@@ -1,5 +1,5 @@
 <map id="NtripStream" name="NtripStream">
-<area shape="rect" id="node1" title=" " alt="" coords="105,615,303,736"/>
-<area shape="rect" id="node2" href="$structNtripSocket.html" title=" " alt="" coords="5,5,213,552"/>
-<area shape="rect" id="node3" title=" " alt="" coords="238,240,359,317"/>
+<area shape="rect" id="node1" title=" " alt="" coords="110,556,309,692"/>
+<area shape="rect" id="node2" href="$structNtripSocket.html" title=" " alt="" coords="5,5,213,508"/>
+<area shape="rect" id="node3" href="$structSerialStream.html" title=" " alt="" coords="237,181,381,332"/>
 </map>

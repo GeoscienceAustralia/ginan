@@ -2,5 +2,5 @@
 <area shape="rect" id="node1" title="Convert GAL BGDs into OSBs &amp; DSB." alt="" coords="5,56,160,83"/>
 <area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="228,5,315,32"/>
 <area shape="rect" id="node3" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="208,56,335,83"/>
-<area shape="rect" id="node4" href="$biasSINEXread_8cpp.html#a6a51f9914e96ab2fec060c9463b86ae4" title="Push forward and reverse bias entry into the SINEXBiases map." alt="" coords="213,107,330,133"/>
+<area shape="rect" id="node4" href="$biasSINEXread_8cpp.html#aeeda4dd24974c674f01d3b17be379d7f" title="Push forward and reverse bias entry into the SINEXBiases map." alt="" coords="213,107,330,133"/>
 </map>

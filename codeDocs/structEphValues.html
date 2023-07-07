@@ -81,14 +81,14 @@ $(function() {
 <div class="dynheader">
 Collaboration diagram for EphValues:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="structEphValues__coll__graph.svg" width="276" height="551"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="structEphValues__coll__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
 <tr class="memitem:a1e83e557fa92d85066893fc8d3bd1dcc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structGTime.html">GTime</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEphValues.html#a1e83e557fa92d85066893fc8d3bd1dcc">time</a></td></tr>
 <tr class="separator:a1e83e557fa92d85066893fc8d3bd1dcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e8d0dddc929bf8caa9c635c042902a9"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEphValues.html#a3e8d0dddc929bf8caa9c635c042902a9">iode</a> = 0</td></tr>
+<tr class="memitem:a3e8d0dddc929bf8caa9c635c042902a9"><td class="memItemLeft" align="right" valign="top">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEphValues.html#a3e8d0dddc929bf8caa9c635c042902a9">iode</a> = -1</td></tr>
 <tr class="separator:a3e8d0dddc929bf8caa9c635c042902a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3890ef8955fa3064453db3e2f3d4f08c"><td class="memItemLeft" align="right" valign="top">Vector3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEphValues.html#a3890ef8955fa3064453db3e2f3d4f08c">brdcPos</a> = Vector3d::Zero()</td></tr>
 <tr class="separator:a3890ef8955fa3064453db3e2f3d4f08c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -98,6 +98,8 @@ Data Fields</h2></td></tr>
 <tr class="separator:ae202e574383c65a5182ff689272aed98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5d833707c37a0188ebd928e0dd0ae35"><td class="memItemLeft" align="right" valign="top">Vector3d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEphValues.html#ad5d833707c37a0188ebd928e0dd0ae35">precVel</a> = Vector3d::Zero()</td></tr>
 <tr class="separator:ad5d833707c37a0188ebd928e0dd0ae35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc62258320900b1096136d8db4093f8a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEphValues.html#afc62258320900b1096136d8db4093f8a">ephVar</a> = 0</td></tr>
+<tr class="separator:afc62258320900b1096136d8db4093f8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Field Documentation</h2>
 <a id="a3890ef8955fa3064453db3e2f3d4f08c" name="a3890ef8955fa3064453db3e2f3d4f08c"></a>
@@ -128,6 +130,20 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a id="afc62258320900b1096136d8db4093f8a" name="afc62258320900b1096136d8db4093f8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc62258320900b1096136d8db4093f8a">&#9670;&nbsp;</a></span>ephVar</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double EphValues::ephVar = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a3e8d0dddc929bf8caa9c635c042902a9" name="a3e8d0dddc929bf8caa9c635c042902a9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3e8d0dddc929bf8caa9c635c042902a9">&#9670;&nbsp;</a></span>iode</h2>
 
@@ -135,7 +151,7 @@ Data Fields</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned <a class="el" href="enums_8h.html#ade2f519d3d05d0a2346c9bfdd05a01be">int</a> EphValues::iode = 0</td>
+          <td class="memname">unsigned <a class="el" href="enums_8h.html#abe24cd356c626087a377c9ade5e40cfc">int</a> EphValues::iode = -1</td>
         </tr>
       </table>
 </div><div class="memdoc">

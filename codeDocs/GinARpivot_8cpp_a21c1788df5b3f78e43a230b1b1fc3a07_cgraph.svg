@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="226,-76.5 226,-95.5 297,-95.5 297,-76.5 226,-76.5"/>
 <text text-anchor="middle" x="261.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">tracepdeex</text>
 </a>
@@ -60,18 +60,18 @@
 <title>Node1&#45;&gt;Node6</title>
 <path fill="none" stroke="midnightblue" d="M65.01,-61.61C76.16,-59.7 88.92,-57.51 100.89,-55.46"/>
 </g>
-<!-- Node13 -->
+<!-- Node11 -->
 <g id="node5" class="node">
-<title>Node13</title>
+<title>Node11</title>
 <g id="a_node5"><a xlink:href="GinARpivot_8cpp.html#aa6bd501576fa27cf1dc55b457809b0e4" target="_top" xlink:title="Add ambiguity to pivot tree.">
 <polygon fill="white" stroke="black" points="113.5,-0.5 113.5,-19.5 177.5,-19.5 177.5,-0.5 113.5,-0.5"/>
 <text text-anchor="middle" x="145.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Link_amb</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node13 -->
+<!-- Node1&#45;&gt;Node11 -->
 <g id="edge5" class="edge">
-<title>Node1&#45;&gt;Node13</title>
+<title>Node1&#45;&gt;Node11</title>
 <path fill="none" stroke="midnightblue" d="M49.35,-57.48C62.87,-49.5 82.95,-38 101,-29 107.49,-25.77 114.66,-22.51 121.27,-19.63"/>
 </g>
 <!-- Node6&#45;&gt;Node2 -->

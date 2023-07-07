@@ -1,8 +1,8 @@
 <map id="readionexdcb" name="readionexdcb">
-<area shape="rect" id="node1" title=" " alt="" coords="5,107,116,133"/>
-<area shape="rect" id="node2" href="$biasSINEXread_8cpp.html#a67c1c7b63f5be7f1efbc0e06a3f581fc" title="Convert observation code string to enum code." alt="" coords="188,5,267,32"/>
+<area shape="rect" id="node1" title="read ionex dcb aux data" alt="" coords="5,107,116,133"/>
+<area shape="rect" id="node2" href="$biasSINEXread_8cpp.html#a4bffe1ef2eba2828588d627449699cbe" title="Convert observation code string to enum code." alt="" coords="188,5,267,32"/>
 <area shape="rect" id="node3" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="189,56,265,83"/>
 <area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="184,107,271,133"/>
-<area shape="rect" id="node5" href="$biasSINEXread_8cpp.html#a6a51f9914e96ab2fec060c9463b86ae4" title="Push forward and reverse bias entry into the SINEXBiases map." alt="" coords="169,157,286,184"/>
+<area shape="rect" id="node5" href="$biasSINEXread_8cpp.html#aeeda4dd24974c674f01d3b17be379d7f" title="Push forward and reverse bias entry into the SINEXBiases map." alt="" coords="169,157,286,184"/>
 <area shape="rect" id="node6" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="164,208,291,235"/>
 </map>

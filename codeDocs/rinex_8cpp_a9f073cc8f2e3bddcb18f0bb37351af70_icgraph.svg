@@ -32,18 +32,18 @@
 <title>Node1&#45;&gt;Node2</title>
 <path fill="none" stroke="midnightblue" d="M111.96,-34.34C99.88,-36.6 85.71,-39.26 73.09,-41.62"/>
 </g>
-<!-- Node16 -->
+<!-- Node8 -->
 <g id="node3" class="node">
-<title>Node16</title>
+<title>Node8</title>
 <g id="a_node3"><a xlink:href="rinex_8cpp.html#a6613c8a15b270944e8f29ebf0357c3b0" target="_top" xlink:title="Decode geo ephemeris.">
 <polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 76,-19.5 76,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="38" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">decodeSeph</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node16 -->
+<!-- Node1&#45;&gt;Node8 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node16</title>
+<title>Node1&#45;&gt;Node8</title>
 <path fill="none" stroke="midnightblue" d="M111.96,-23.66C100.82,-21.57 87.9,-19.15 76.05,-16.94"/>
 </g>
 </g>

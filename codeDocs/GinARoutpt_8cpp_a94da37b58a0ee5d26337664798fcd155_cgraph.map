@@ -1,6 +1,5 @@
 <map id="gpggaout" name="gpggaout">
-<area shape="rect" id="node1" title="Output GPGGA or modified GPGGA messages." alt="" coords="5,56,88,83"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="165,5,263,32"/>
-<area shape="rect" id="node3" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="167,56,261,83"/>
-<area shape="rect" id="node4" href="$structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="136,107,292,133"/>
+<area shape="rect" id="node1" title="Output GPGGA or modified GPGGA messages." alt="" coords="5,31,88,57"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="167,5,261,32"/>
+<area shape="rect" id="node3" href="$structKFState.html#a405c50a3085d8328e81dcd6786f775d3" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="136,56,292,83"/>
 </map>

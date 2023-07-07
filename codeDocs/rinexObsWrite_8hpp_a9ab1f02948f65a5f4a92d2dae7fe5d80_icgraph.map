@@ -1,9 +1,11 @@
 <map id="getSysOutputFilenames" name="getSysOutputFilenames">
-<area shape="rect" id="node1" title=" " alt="" coords="441,132,617,159"/>
-<area shape="rect" id="node2" href="$rinexNavWrite_8cpp.html#afee81a93c5a36815f71f855f32c34608" title=" " alt="" coords="271,5,389,32"/>
-<area shape="rect" id="node3" href="$rinexObsWrite_8cpp.html#af7eadb428495fbb18290cca5f8aa774c" title=" " alt="" coords="271,56,389,83"/>
-<area shape="rect" id="node4" href="$rtsSmoothing_8cpp.html#a6cf4aace63327cf45591794467688765" title=" " alt="" coords="268,107,392,133"/>
-<area shape="rect" id="node5" href="$sp3Write_8cpp.html#a014c620b54545593c4cc4e8bd0b87b25" title=" " alt="" coords="286,157,374,184"/>
-<area shape="rect" id="node6" href="$main_8cpp.html#a052aae1f895ebdbdaf816f70d9287e78" title=" " alt="" coords="5,201,219,242"/>
-<area shape="rect" id="node7" href="$main_8cpp.html#a29d52cfc981619584262b20b497865db" title="Create new empty trace files only when required when the filename is changed." alt="" coords="267,208,393,235"/>
+<area shape="rect" id="node1" title=" " alt="" coords="461,183,637,209"/>
+<area shape="rect" id="node2" href="$orbexWrite_8cpp.html#a9dae866396592172c79fc0f3ff6d6ce4" title="Output ORBEX files." alt="" coords="289,5,391,32"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a052aae1f895ebdbdaf816f70d9287e78" title=" " alt="" coords="5,251,219,293"/>
+<area shape="rect" id="node4" href="$sp3Write_8cpp.html#a4b1d20154c3982bbbe24760f2a54c99a" title=" " alt="" coords="267,56,413,83"/>
+<area shape="rect" id="node5" href="$rinexNavWrite_8cpp.html#afee81a93c5a36815f71f855f32c34608" title=" " alt="" coords="281,107,399,133"/>
+<area shape="rect" id="node6" href="$rinexObsWrite_8cpp.html#ab670aa3a5c9514ee0611a095462c18aa" title=" " alt="" coords="281,157,399,184"/>
+<area shape="rect" id="node7" href="$rtsSmoothing_8cpp.html#a6cf4aace63327cf45591794467688765" title=" " alt="" coords="278,208,402,235"/>
+<area shape="rect" id="node8" href="$sp3Write_8cpp.html#a7924f6403903d59380eee3c198492f2c" title=" " alt="" coords="296,259,384,285"/>
+<area shape="rect" id="node9" href="$main_8cpp.html#a29d52cfc981619584262b20b497865db" title="Create new empty trace files only when required when the filename is changed." alt="" coords="277,309,403,336"/>
 </map>

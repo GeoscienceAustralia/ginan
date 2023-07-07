@@ -1,5 +1,7 @@
 <map id="OutputOptions" name="OutputOptions">
-<area shape="rect" id="node1" title="Enabling and setting destiations of program outputs." alt="" coords="30,380,271,1733"/>
+<area shape="rect" id="node1" title="Enabling and setting destiations of program outputs." alt="" coords="197,380,435,2100"/>
 <area shape="rect" id="node2" title=" " alt="" coords="5,49,64,127"/>
-<area shape="rect" id="node3" href="$structIonexOptions.html" title=" " alt="" coords="214,5,322,171"/>
+<area shape="rect" id="node3" title=" " alt="" coords="139,49,291,127"/>
+<area shape="rect" id="node4" title=" " alt="" coords="353,49,484,127"/>
+<area shape="rect" id="node5" href="$structIonexOptions.html" title=" " alt="" coords="539,5,647,171"/>
 </map>

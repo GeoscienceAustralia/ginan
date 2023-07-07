@@ -1,124 +1,35 @@
 
 
 # Orbit Modelling
+## Gravitational Accelerations
+Satellite propagation involves considering various gravitational accelerations that influence the motion of the satellite.
 
-## Gravitational Force Models
+### Central Force
+The central force arises from the gravitational attraction between the satellite and the central body around which it orbits. This force is responsible for keeping the satellite in a stable orbit and determines its trajectory.
 
-\begin{equation}
-\label{eq:newton_gravity}
-F=G\frac{m_1 m_2}{r^2}
-\end{equation}
+### 3rd Body Celestial Accelerations
+The third-body celestial accelerations come into play due to the gravitational pull of other celestial bodies. While the central force dominates the motion of the satellite, these additional accelerations, caused by the gravitational interaction with other nearby bodies like the Moon or Sun, contribute to perturbations in the satellite's orbit.
 
-## Non-Gravitational Force Models
+### Spherical Harmonics of the Gravity Field
+The spherical harmonics of the gravity field refer to the non-uniform distribution of mass within a celestial body, such as Earth. This non-uniformity causes variations in the gravitational acceleration experienced by the satellite at different points in its orbit.
 
-### Solar Radiation Force Models
-The magnitude of the SRP acting on the satellite depends on a wide range of parameters. 
-The distance to the Sun and the position of the satellite with respect to Earth and Sun (regarding possible eclipses) define the intensity of the incoming radiation.
-The geometry of the satellite, the optical properties of the external surfaces, and the actual orientation with respect to the Sun largely influence the orientation and magnitude of the evolving SRP. Therefore any SRP model depends on an accurate implementation of the satellite orbit, the attitude, and the geometric/physical properties of the satellite structure.
- 
-#### Cannonball
+### Ocean Tide
+The ocean tide effect is caused by the gravitational interaction between the satellite and Earth's ocean. As the ocean experiences tidal bulges due to the gravitational pull of the Moon and Sun, the resulting gravitational forces can have a small influence on the satellite's orbit.
 
-The most basic approach with regard to its analytic development is referred to as the cannonball model. The cannonball model provides a useful, first-order approximation. However, due to its homogeneous material properties and symmetrical shape approximation, we recommend its use as an apriori model, before estimation.
+### Solid Earth Tide
+Similar to the ocean tide, the solid Earth tide results from the gravitational interaction between the satellite and the solid Earth. The gravitational forces induced by the Earth's deformation due to the tidal effects of the Moon and Sun can cause subtle changes in the satellite's orbit.
 
-#### ECOM I
-The ECOM I model has been widely used for a cubic-like satellite and is formed by three unit vectors as defined in the following: 
-\begin{equation}
-e_d = r_{sun} - r_{sat} / |r_{sun} - r_{sat}|
-\end{equation}
-\begin{equation}
-e_y = r_z \times e_d / |r_z \times e_d|
-\end{equation}
-\begin{equation}
-e_b = e_d \times e_y 
-\end{equation}
+## Non-Gravitational Accelerations
+In addition to gravitational accelerations, non-gravitational accelerations significantly affect satellite propagation.
 
-Where 
-$e_d$ denotes the satellite-sun vector,
-$e_y$ denotes the vector along the axis of the solar panel, 
-$e_b$ is given by the right-hand rule of ed and ey.
-The total SRP acceleration $\ddot{r_{srp}}$ is expressed as 
+### Solar Radiation Pressure Acceleration (CannonBall)
+The solar radiation pressure acceleration, arises from the pressure exerted by sunlight on the satellite's surface. The momentum transfer from photons to the satellite creates a force that affects the satellite's trajectory. For this release, only the Cannon Ball model is implemented.
 
-\begin{equation}
-\ddot{r_{srp}} = D \cdot e_d + Y \cdot e_y + B \cdot e_b
-\end{equation}
-Where 
-$D$ denotes the total acceleration in ed,
-$Y$ denotes the total acceleration in ey, 
-$B$ denotes the total acceleration in eb.
-The D, Y and B can be expressed as 
-
-\begin{equation}
-D = D_0 + D_C \cdot cos \Delta u + D_S \cdot sin \Delta u
-\end{equation}
-\begin{equation}
-Y = Y_0 + Y_C \cdot cos \Delta u + Y_S \cdot sin \Delta u
-\end{equation}
-\begin{equation}
-B = B_0 + B_C \cdot cos \Delta u + B_S \cdot sin \Delta u
-\end{equation}
-
-Where
-$\Delta u$ denotes the argument of latitude of the satellite with respect to the Sun. 
-
-#### ECOM II
-The ECOM II model has been widely used for an elongate-like satellite and is also formed by ed, ey and eb. The parameters of the ECOM II are different from the ECOM I:  
-
-\begin{equation}
-\begin{split}
-D = D_0 &+ D_2C \cdot cos 2\Delta u + D_2S \cdot sin 2\Delta u \\  
-        &+ D_4C \cdot cos 4\Delta u + D_4S \cdot sin 4\Delta u
-\end{split}
-\end{equation}
-\begin{equation}
-Y = Y_0 
-\end{equation}
-\begin{equation}
-B = B_0 + B_C \cdot cos \Delta u + B_S \cdot sin \Delta u
-\end{equation}
-
-#### ECOM C
-The ECOM C model is resulted from the combination of ECOM I and ECOM II. The idea is to add the even periodic terms from the ECOM II to the ECOM I. This is because some Block types of satellites are sensitive to the even periodic terms in the SRP model and this ECOM C model might be potentially applied to multi-GNSS constellations. The parameters of the ECOM C are expressed as   
-
-\begin{equation}
-\begin{split}
-D = D_0 &+ D_C  \cdot cos  \Delta u + D_S  \cdot sin  \Delta u \\
-        &+ D_2C \cdot cos 2\Delta u + D_2S \cdot sin 2\Delta u \\
-        &+ D_4C \cdot cos 4\Delta u + D_4S \cdot sin 4\Delta u 
-\end{split}
-\end{equation}
-\begin{equation}
-Y = Y_0 + Y_C \cdot cos \Delta u + Y_S \cdot sin \Delta u
-\end{equation}
-\begin{equation}
-B = B_0 + B_C \cdot cos \Delta u + B_S \cdot sin \Delta u
-\end{equation}
-
-#### Box Wing
-The SRP effect also can be handled by a so-called box-wing model that takes satellite bus areas, solar panel area, satellite attitude and interactions between photons and optical properties. The box-wing model $\ddot{r}_{boxw}$ used for a flat surface of satellite bus with thermal effect can be expressed as
-\begin{equation}
-\ddot{r}_{boxw} = -(A \cdot S_0)/(M \cdot C) cos \theta  
-                   [(\alpha + \delta)(e_d+2/3 \cdot e_N) + 2\rho cos \theta \cdot e_N]  
-\end{equation}
-Where 
-$A$ denotes the cross-section area,
-$S_{0}$ denotes the solar irradince at 1 AU $(1367W/m^2)$, 
-$M$ denotes the mass of satellite,
-$C$ denotes the speed of light,
-$\alpha$ denotes the absorption coefficient,
-$\delta$ denotes the diffusion coefficient,
-$\rho$ denotes the reflection coefficient,
-$e_N$ denotes the normal vector of the surface,
-$cos \theta$ denotes the angle between the $e_d$ and $e_N$. 
-
-### Antenna Thrust
-The navigation antenna produces a re-bouncing acceleration when the signal is transmitted. This is called as antenna thrust, which generates a constant acceleration in the radial direction of satellite orbit and can be model as 
-$\ddot{r_{ant}} = W/(M \cdot C)$
-
-Where $W$ denotes the emitted power in watt.
+### Antenna thrust
+A GNSS satellite continuously emitting a RF signal has an acceleration generated due to the emission of the signal. 
 
 ### Albedo
-The earth radiation pressure (ERP), called albedo, also creates a small acceleration on navigation satellites. The ERP acceleration can be expressed as
-For satellite bus and solar panel mast
+The acceleartion due to the albedo occurs when sunlight reflects off the Earth's surface. This reflection imparts a force on the satellite, which can causes a change in its orbit.
 
 ## Transformation between Celestial and Terrestrial Reference Systems
 
