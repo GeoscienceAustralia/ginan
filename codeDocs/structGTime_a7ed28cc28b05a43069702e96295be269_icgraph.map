@@ -1,8 +1,0 @@
-<map id="GTime::roundTime" name="GTime::roundTime">
-<area shape="rect" id="node1" title=" " alt="" coords="511,107,652,133"/>
-<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#a975aa402cca9e4828c089e82bb68c5a6" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="315,5,434,32"/>
-<area shape="rect" id="node3" href="$rinex_8cpp.html#a30b3cdcd487d258c340534e7ddbde2e1" title="Decode glonass ephemeris." alt="" coords="323,56,426,83"/>
-<area shape="rect" id="node4" href="$rinexClkWrite_8cpp.html#ae105b449da2c0d5e0ce91380d3b6907b" title=" " alt="" coords="287,107,463,133"/>
-<area shape="rect" id="node5" href="$main_8cpp.html#a29d52cfc981619584262b20b497865db" title="Create new empty trace files only when required when the filename is changed." alt="" coords="112,157,239,184"/>
-<area shape="rect" id="node6" href="$main_8cpp.html#a2c1eabb2ea9b242d8d9fd2c1795849e9" title=" " alt="" coords="5,183,64,209"/>
-</map>

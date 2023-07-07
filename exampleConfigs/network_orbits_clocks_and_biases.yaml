@@ -1,0 +1,479 @@
+
+inputs:
+
+    pseudo_observations:
+        inputs_root:    products/
+        sp3_inputs: 
+        - IGS2R03FIN_20191980000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20192000000_01D_05M_ORB.SP3
+
+outputs:
+
+    root_directory:                 outputs/<CONFIG>/
+
+    trace:
+        output_stations:            true
+        output_satellites:          true
+        output_network:             true
+        level:                      3
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+
+    ppp_sol:                              
+        output:                     true        
+
+    ionex:
+        output:                     false
+
+    ionstec:
+        output:                     false
+
+    bias_sinex:
+        output:                     true
+        code_output_interval:       900.0
+        phase_output_interval:      900.0
+        output_rec_bias:            false
+
+    clocks:
+        output:                     true
+
+    sinex:
+        output:                     true
+
+    erp:
+        output:                     true
+
+    trop_sinex:
+        output:                     true
+        sources:                    [ KALMAN ]
+
+    sp3:
+        output:                     true                      
+        output_inertial:            false                         # (bool) Output the entries using inertial positions and velocities
+        output_interval:            300                           # (int) Update interval for sp3 records
+        output_velocities:          false                        
+        orbit_sources:              [ KALMAN ]                   
+        clock_sources:              [ KALMAN ]
+
+    log:
+        output:                     true        
+
+    orbit_ics:
+        output:                     true
+
+#mongo:
+    #enable:                         true
+    #database:                       <CONFIG>
+    #output_measurements:            true
+    #output_states:                  true
+    #output_components:              true
+    #output_rtcm_messages:           true
+    #output_test_stats:              true
+    #delete_history:                 true
+    #predict_states:                 true
+    #prediction_interval:            5
+    #interval_units:                 mins
+    #forward_prediction_duration:    1440       # 1 hour ahead
+    #reverse_prediction_duration:    1440     # 25 hours backwards
+    #duration_units:                 mins
+
+processing_options:
+    epoch_control:
+        #start_epoch:                2019-07-18 10:30:00
+        #end_epoch:                  2019-07-19 00:00:00
+        epoch_interval:             300
+        max_epochs:                 576 
+        wait_next_epoch:            3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+        wait_all_stations:          1
+        fatal_message_level:        1
+
+    process_modes:
+        ppp:                        true
+        
+    gnss_general:
+        elevation_mask:             10  #degrees
+        raim:                       true
+        error_model:                elevation_dependent     # {uniform,elevation_dependent}
+        rec_reference_system:       gps
+
+        sys_options:
+            gps:
+                process:                true
+                ambiguity_resolution:   false 
+                reject_eclipse:         false
+                clock_codes:            [ L1C, L2W ]
+                code_priorities:        [ L1C, L2W ]
+            #gal:
+            #    process:                true
+            #    ambiguity_resolution:   false
+            #    reject_eclipse:         false
+            #    code_priorities:        [ L1C, L5Q, L1X, L5X ]
+            # glo:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1P, L1C, L2P, L2C ]
+            # qzs:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1C, L2L, L2X ]
+
+    gnss_models:
+        troposphere:
+            model:                  gpt2      # vmf3 or gpt2 
+
+        ionospheric_component:
+            common_ionosphere:      true   # Code and Phase measurment share the same ionosphere
+            use_if_combo:           true
+
+    model_error_checking:
+        deweighting:
+            deweight_factor:        10000
+
+        ambiguities:
+            outage_reset_limit:     5
+            phase_reject_limit:     2
+            reinit_on_all_slips:    true     # (bool) Any detected slips cause removal and reinitialisation of ambiguities
+
+        clocks:
+            reinit_on_clock_error:  true                           # (bool) Any clock "state" errors cause removal and reinitialisation of the clocks and all associated ambiguities
+
+        cycle_slips:
+            exclude_on:
+                gf:                 true                            # (bool) Exclude measurements that fail GF  slip test in preprocessor
+                lli:                true                            # (bool) Exclude measurements that fail LLI slip test in preprocessor
+                mw:                 true                            # (bool) Exclude measurements that fail MW  slip test in preprocessor
+                scdia:              true                            # (bool) Exclude measurements that fail SCDIA    test in preprocessor
+
+            reset_on:
+                gf:                 true                            # (bool) Reset ambiguities if GF    test is detecting a slip
+                lli:                true                            # (bool) Reset ambiguities if LLI   test is detecting a slip
+                mw:                 true                            # (bool) Reset ambiguities if MW    test is detecting a slip
+                scdia:              true                            # (bool) Reset ambiguities if SCDIA test is detecting a slip
+
+            slip_threshold:         0.05
+
+            mw_proc_noise:          0
+
+    ambiguity_resolution:
+        elevation_mask:                 15
+        lambda_set_size:                200
+        narrow_lane:
+            mode:                       lambda_bie        # off, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+            success_rate_threshold:     0.99
+            solution_ratio_threshold:   30
+
+    filter_options:
+
+        outlier_screening:
+            max_filter_iterations:      20 
+            max_prefit_removals:        3 
+
+        rts:
+            enable:                     true
+            
+    minimum_constraints:
+        enable:                         true
+
+        once_per_epoch:                 false            # (bool) Perform minimum constraints on a temporary filter and output results once per epoch
+
+        translation:
+            estimated:                  [true]
+        rotation:
+            estimated:                  [true]
+        scale:
+            estimated:                  [false]
+
+        inverter:                       LDLT
+
+        #full_vcv:                       true
+        #scale_by_vcv:                   true
+        max_filter_iterations:          20
+        max_prefit_removals:            3              # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
+        outlier_screening:
+            chi_square_mode:            none             # (enum)  Chi-square test mode - innovation, measurement, state {NONE,INNOVATION,MEASUREMENT,STATE}
+            chi_square_test:            false            # (bool)  Enable Chi-square test
+            sigma_check:                true             # (bool)  Enable prefit and postfit sigma check
+            sigma_threshold:            3.000000         # (float) sigma threshold
+            w_test:                     false            # (bool)  Enable w-test
+
+        station_noise:
+            global:                     [0.005, 0.005, 0.01]
+
+    orbit_propagation:
+        central_force:                  true
+        planetary_perturbation:         true
+        indirect_J2:                    true
+        egm_field:                      true
+        solid_earth_tide:               true
+        ocean_tide:                     true
+        general_relativity:             true
+        pole_tide_ocean:                true
+        pole_tide_solid:                true
+        solar_pressure_radiation:       true
+        antenna_thrust:                 true
+        empirical_dyb:                  true 
+        albedo:                         true
+        
+        integrator_time_step:           60
+        sat_mass:                       1000
+        sat_area:                       15
+        srp_cr:                         1.75
+        degree_max:                     15
+
+        itrf_pseudoobs:                 true
+
+station_options:
+
+    USN7:
+        aliases:                    [PIVOT]
+    
+    global:
+        attitude:
+            sources:                [NOMINAL]   
+            
+    PIVOT:
+        clock:
+            enable:                 false
+
+        code_bias:
+            enable:                 false
+
+satellite_options:
+    global:
+        attitude:
+            sources:                [MODEL, NOMINAL]    
+
+        pos:
+            sources:                [KALMAN, PRECISE, BROADCAST]
+
+        clock:
+            sources:                [KALMAN, PRECISE, BROADCAST]
+
+estimation_parameters:
+
+    stations:
+        error_model:                elevation_dependent      
+        code_sigmas:                [0.4]
+        phase_sigmas:               [0.002]
+
+        global:
+        
+            pos:
+                estimated:          [true]
+                sigma:              [1]
+                proc_noise:         [0.0] 
+                proc_noise_dt:      second
+
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [10]
+                #proc_noise:         [100]
+
+            #clk_rate:
+            #    estimated:          [true]
+            #    sigma:              [10]
+            #    proc_noise:         [1e-9]
+
+            amb:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [0]
+                #proc_noise_dt:      day
+
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001]
+                proc_noise_dt:      second
+
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+                proc_noise_dt:      second
+        
+            ion_stec:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [-1]
+
+            phase_bias:
+                estimated:          [false]
+                sigma:              [10]
+                proc_noise:         [0]
+        
+            code_bias:
+                estimated:          [false]
+                sigma:              [20]
+                proc_noise:         [0]
+
+
+    satellites:
+    
+        pseudo_sigmas:             [1e6]                        # [floats] Standard deviation of pseudo measurmeents
+         
+        global:
+         
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [10]
+
+            #clk_rate:
+            #    estimated:          [true]
+            #    sigma:              [10]
+            #    proc_noise:         [1e-12]
+
+            phase_bias:
+                estimated:          [false]
+                sigma:              [10]
+                #proc_noise:         [0]
+
+            code_bias:
+                estimated:          [false]
+                sigma:              [100]
+                #proc_noise:         [0]            
+
+            orbit:                                           
+                estimated:          [true]                   
+                sigma:              [0.5, 0.5, 0.5, 0.001]
+                proc_noise:         [0, 0, 0, 1e-12, 1e-12, 1e-12]
+
+            srp_dyb_0:
+                estimated:          [true, true, true]
+                sigma:              [1e-8, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_1c: 
+                estimated:          [true, false, true]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_1s: 
+                estimated:          [true, false, true]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_2c:
+                estimated:          [true, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_2s:
+                estimated:          [true, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_3c:
+                estimated:          [false, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                apriori_val:        [0.0]
+                proc_noise:         [0]
+
+            srp_dyb_3s:
+                estimated:          [false, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_4c:
+                estimated:          [true, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_4s:
+                estimated:          [true, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]   
+        
+        GPS-IIF:
+            srp_dyb_0:
+                apriori_val: [-3.44e-08, -4.32e-11, 3.07e-10]
+            srp_dyb_1c: 
+                apriori_val: [+5.13e-10, 0, 6.85e-10]
+            srp_dyb_1s: 
+                apriori_val: [-4.86e-13, 0, 2.51e-10]
+            srp_dyb_2c: 
+                apriori_val: [-9.48e-10, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [+3.29e-10, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [+5.11e-10, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [+3.95e-10, 0, 0]
+        
+        GPS-IIR-B:
+            srp_dyb_0: 
+                apriori_val: [+7.97e-09, -8.94e-11, 2.25e-09]
+            srp_dyb_1c: 
+                apriori_val: [-2.97e-09, 0, -8.82e-10]
+            srp_dyb_1s: 
+                apriori_val: [+1.47e-11, 0, +4.28e-11]
+            srp_dyb_2c: 
+                apriori_val: [-8.06e-10, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [+7.33e-10, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [+2.50e-09, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [+4.37e-10, 0, 0]
+                
+        GPS-IIA:
+            srp_dyb_0: 
+                apriori_val: [+1.79e-09, 3.40e-11, 5.19e-12]
+            srp_dyb_1c: 
+                apriori_val: [-5.38e-13, 0, 1.93e-12]
+            srp_dyb_1s: 
+                apriori_val: [+2.15e-11, 0, 3.69e-13]
+            srp_dyb_2c: 
+                apriori_val: [-4.35e-12, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [+1.16e-13, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [-4.11e-13, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [+7.15e-14, 0, 0]
+
+        GPS-IIR-M:
+            srp_dyb_0: 
+                apriori_val: [+1.15e-08, 6.01e-10, 1.82e-09]
+            srp_dyb_1c: 
+                apriori_val: [-1.75e-09, 0, 1.33e-09]
+            srp_dyb_1s: 
+                apriori_val: [+5.01e-11, 0, 4.60e-10]
+            srp_dyb_2c: 
+                apriori_val: [-1.95e-09, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [-6.13e-10, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [+1.69e-09, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [-9.45e-10, 0, 0]
+
+        GPS-IIR-A:
+            srp_dyb_0: 
+                apriori_val: [+8.53e-09, 8.97e-10, 1.5e-09]
+            srp_dyb_1c: 
+                apriori_val: [-1.75e-09, 0, 8.02e-10]
+            srp_dyb_1s: 
+                apriori_val: [-6.16e-11, 0, 1.42e-10]
+            srp_dyb_2c: 
+                apriori_val: [-1.50e-09, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [+2.20e-10, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [+1.86e-09, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [-5.52e-11, 0, 0]
+
+    eop:
+        estimated:  [true]
+        sigma:      [10]
+
+    eop_rates:
+        estimated:  [true]
+        sigma:      [10]                             

@@ -1,0 +1,4 @@
+<map id="readIers14C04" name="readIers14C04">
+<area shape="rect" id="node1" title="read IERS C04 EOP products" alt="" coords="5,5,121,32"/>
+<area shape="rect" id="node2" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="169,5,289,32"/>
+</map>

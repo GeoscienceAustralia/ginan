@@ -1,0 +1,7 @@
+<map id="satPosPrecise" name="satPosPrecise">
+<area shape="rect" id="node1" title="Satellite position/clock by precise ephemeris/clock." alt="" coords="5,46,117,73"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="308,97,403,124"/>
+<area shape="rect" id="node3" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="291,148,420,174"/>
+<area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="312,46,399,73"/>
+<area shape="rect" id="node5" href="$ephPrecise_8cpp.html#a104000a7ff779640478d859f1e187ec9" title="satellite position by precise ephemeris" alt="" coords="165,122,243,149"/>
+</map>

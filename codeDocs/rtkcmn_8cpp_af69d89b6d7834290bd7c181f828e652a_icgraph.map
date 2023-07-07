@@ -1,6 +1,0 @@
-<map id="pos2ecef" name="pos2ecef">
-<area shape="rect" id="node1" title="Transform geodetic postion to ecef." alt="" coords="193,56,275,83"/>
-<area shape="rect" id="node2" href="$tropSinex_8cpp.html#a2fb8fe8aceac5caf6ff006e3bd6635d4" title="Write SITE/ID block." alt="" coords="16,5,135,32"/>
-<area shape="rect" id="node3" href="$ionoSpherical_8cpp.html#a32460ecb229f47f08516ff7a35f45f47" title=" " alt="" coords="6,56,145,83"/>
-<area shape="rect" id="node4" href="$ionoSphericalCaps_8cpp.html#a906282f60e53b02995e06f9048079b78" title=" " alt="" coords="5,107,145,133"/>
-</map>

@@ -1,0 +1,9 @@
+<map id="satazel" name="satazel">
+<area shape="rect" id="node1" title="satellite azimuth/elevation angle" alt="" coords="5,132,75,159"/>
+<area shape="rect" id="node2" href="$structVectorPos.html#a9517f77c95322d34dc896a88db4a804f" title=" " alt="" coords="123,5,239,32"/>
+<area shape="rect" id="node3" href="$coordinates_8cpp.html#a04048e2e965c36987a98fb8c4f04bea2" title=" " alt="" coords="139,56,222,83"/>
+<area shape="rect" id="node4" href="$algebra__old_8cpp.html#addee52380c690a50fa0048924c67bc92" title=" " alt="" coords="159,107,202,133"/>
+<area shape="rect" id="node5" href="$structVectorEnu.html#ae90c6dd0141c45c334e8df0f7a1eee4f" title=" " alt="" coords="129,157,233,184"/>
+<area shape="rect" id="node6" href="$structVectorEnu.html#a6909ce4148ab35bce7d6333be89bad3d" title=" " alt="" coords="129,208,233,235"/>
+<area shape="rect" id="node7" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="129,259,233,285"/>
+</map>

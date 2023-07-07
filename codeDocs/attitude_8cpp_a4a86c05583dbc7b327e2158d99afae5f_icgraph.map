@@ -1,0 +1,9 @@
+<map id="nominalYawGps" name="nominalYawGps">
+<area shape="rect" id="node1" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="311,132,436,159"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#aaba71c01b77e887c80e8dc69a8366d61" title="Yaw model for GPS sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="161,5,253,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#a72b1b0bdafc8daa3b75faa96049b514f" title="Yaw model for BDS&#45;3I/3M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="158,56,257,83"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a97974606e1ce768c7689466ef0a359ab" title="Yaw model for BDS&#45;2I/2M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="5,157,104,184"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#abdce260d1dd40f5c15f4003e87bafd3b" title="Yaw model for GAL FOC sats." alt="" coords="152,107,263,133"/>
+<area shape="rect" id="node6" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="163,157,252,184"/>
+<area shape="rect" id="node7" href="$attitude_8cpp.html#a3d99fe34c55c1e5e80b495aa7fb4a5dc" title="Yaw model for QZSS&#45;1 satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="158,208,257,235"/>
+</map>

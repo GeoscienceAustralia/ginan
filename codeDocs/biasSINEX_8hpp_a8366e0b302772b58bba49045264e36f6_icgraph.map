@@ -1,5 +1,0 @@
-<map id="outp_bias" name="outp_bias">
-<area shape="rect" id="node1" title="Store bias output to write into bias SINEX files." alt="" coords="232,31,317,57"/>
-<area shape="rect" id="node2" href="$GinARoutpt_8cpp.html#a2952ccee33c3cebafed9b014755ce986" title="Output phase biases." alt="" coords="57,5,133,32"/>
-<area shape="rect" id="node3" href="$ionoModel_8cpp.html#a2bdc3287aad0d2793f4ef6adbf389680" title="Updating the ionosphere model parameters &#160;&#160;The ionosphere model should be initialized by calling &#39;con..." alt="" coords="5,56,184,83"/>
-</map>

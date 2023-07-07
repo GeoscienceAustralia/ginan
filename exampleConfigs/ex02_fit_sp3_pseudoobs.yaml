@@ -1,0 +1,186 @@
+
+inputs:
+
+    root_directory: products/
+
+    atx_files:          [ igs20.atx                                          ]  
+    snx_files:          [ IGS1R03SNX_20191950000_07D_07D_CRD.SNX, tables/igs_satellite_metadata_2203_plus.snx  ]  
+    blq_files:          [ OLOAD_GO.BLQ                                       ]   
+    erp_files:          [ igs96p02.erp                                       ]
+    egm_files:          [ tables/EGM2008.gfc          ]  # Earth gravity model coefficients file
+    jpl_files:          [ tables/DE436.1950.2050      ]  # JPL planetary and lunar ephemerides file
+    tide_files:         [ tables/fes2014b_Cnm-Snm.dat ]
+    
+    satellite_data:
+        sp3_files:      
+        - IGS2R03FIN_20191980000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20192000000_01D_05M_ORB.SP3
+
+        
+    pseudo_observations:
+        inputs_root:    "products/"
+        sp3_inputs:  
+         - IGS2R03FIN_20191980000_01D_05M_ORB.SP3 
+         - IGS2R03FIN_20191990000_01D_05M_ORB.SP3 
+         - IGS2R03FIN_20192000000_01D_05M_ORB.SP3
+        
+
+outputs:
+
+    root_directory:             outputs/<CONFIG>/
+
+    trace:
+        output_stations:        true
+        output_network:         true
+        level:                  3
+        directory:              ./
+        station_filename:       <CONFIG>-<STATION>.TRACE
+        network_filename:       <STATION>.TRACE
+        output_residuals:       true
+        output_config:          true
+
+    orbit_ics:
+        output:                 true
+        directory:              icYamls
+
+    metadata:
+        config_description:     "ex02"
+
+mongo:
+    enable:                         true
+    output_measurements:            true
+    output_states:                  true
+    delete_history:                 true
+    predict_states:                 true
+    prediction_interval:            5
+    interval_units:                 mins
+    reverse_prediction_duration:    70
+    duration_units:                 hours
+        
+processing_options:
+
+    epoch_control:
+        #start_epoch:                2019-07-17 01:00:00
+        #end_epoch:                  2019-07-19 23:00:00
+        epoch_interval:             300          #seconds
+
+    process_modes:
+        preprocessor:           false
+        spp:                    false
+        ppp:                    true
+
+    gnss_general:
+        sys_options:
+            gps:
+                process:    true
+            gal:
+                #process:    true
+            glo:
+                #process:    true
+
+    orbit_propagation:
+        central_force:                  true
+        planetary_perturbation:         true
+        indirect_J2:                    true
+        egm_field:                      true
+        solid_earth_tide:               true
+        ocean_tide:                     true
+        general_relativity:             true
+        pole_tide_ocean:                true
+        pole_tide_solid:                true
+        solar_pressure_radiation:       true
+        antenna_thrust:                 true
+        empirical_dyb:                  true 
+        albedo:                         true
+
+        sat_mass:           1000
+        sat_area:           15
+        srp_cr:             1.50
+        degree_max:         15
+
+        itrf_pseudoobs:     true
+
+    filter_options:
+        #simulate_filter_only: true
+
+        outlier_screening:
+            sigma_check:            true        # (bool)  Enable prefit and postfit sigma check
+            chi_square_mode:        state       # (enum)  Chi-square test mode - innovation, measurement, state {none,innovation,measurement,state}
+            chi_square_test:        false       # (bool)  Enable Chi-square test
+            max_filter_iterations:  5
+            max_prefit_removals:    3           # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
+            sigma_threshold:        4           # (float) sigma threshold
+            w_test:                 false       # (bool)  Enable w-test
+
+        rts:
+            enable:                 true
+
+    model_error_checking:
+        deweighting:
+            deweight_factor:            1000      # (float) Factor to downweight the variance of measurements with statistically detected errors
+            reject_on_state_error:      true      # (bool) Any "state" errors cause deweighting of all measurements that reference the state
+            
+        orbit_errors:
+            orbit_pos_proc_noise:           4
+            orbit_vel_proc_noise:           1
+            orbit_vel_proc_noise_trail:     1
+            orbit_vel_proc_noise_trail_tau: 900
+            
+debug:
+    pseudo_pulses: 1
+    
+estimation_parameters:
+
+    satellites:
+    
+        pseudo_sigmas:             [1]
+        
+        #global:
+        G23:
+            orbit:
+                estimated:      [true]
+                sigma:          [1, 1, 1, 1000]
+                proc_noise:     [0]
+
+            srp_dyb_0:
+                comment:        [constant]
+                estimated:      [true, true, true]
+                sigma:          [1e-5, 1e-5, 1e-5]
+                proc_noise:     [0]
+            
+            srp_dyb_1c: 
+                comment:        [1 per rev cos]
+                estimated:      [true, true, true]
+                sigma:          [1e-6, 1e-6, 1e-6]
+                proc_noise:     [0]
+
+            srp_dyb_1s: 
+                comment:        [1 per rev sin]
+                estimated:      [true, true, true]
+                sigma:          [1e-6, 1e-6, 1e-6]
+                proc_noise:     [0]
+
+            srp_dyb_2c: 
+                comment:        [2 per rev cos]
+                estimated:      [true, false, false]
+                sigma:          [1e-6, 1e-6, 1e-6]
+                proc_noise:     [0]
+
+            srp_dyb_2s:
+                comment:        [2 per rev sin]
+                estimated:      [true, false, false]
+                sigma:          [1e-6, 1e-6, 1e-6]
+                proc_noise:     [0]
+
+            srp_dyb_4c: 
+                comment:        [4 per rev cos]
+                estimated:      [true, false, false]
+                sigma:          [1e-7, 1e-7, 1e-7]
+                proc_noise:     [0]
+
+            srp_dyb_4s:         
+                comment:        [4 per rev sin]
+                estimated:      [true, false, false]
+                sigma:          [1e-7, 1e-7, 1e-7]
+                proc_noise:     [0]

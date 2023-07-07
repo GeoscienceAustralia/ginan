@@ -1,0 +1,8 @@
+<map id="readErp" name="readErp">
+<area shape="rect" id="node1" title="read earth rotation parameters" alt="" coords="5,107,77,133"/>
+<area shape="rect" id="node2" href="$erp_8cpp.html#a65e5b05849c2712fe7fc84de6140b13f" title="read IERS final EOP products" alt="" coords="140,5,245,32"/>
+<area shape="rect" id="node3" href="$erp_8cpp.html#aea74a6a66f8dbe955856469da9df6a43" title="read IERS C04 EOP products" alt="" coords="135,56,251,83"/>
+<area shape="rect" id="node4" href="$erp_8cpp.html#a33c70b74bb73dd330fcbe0193762aa11" title="read IERS C04 EOP products" alt="" coords="135,107,251,133"/>
+<area shape="rect" id="node5" href="$erp_8cpp.html#a6693c4ce302638d8fb26901aae89eebd" title="read IGS ERP products" alt="" coords="147,157,238,184"/>
+<area shape="rect" id="node6" href="$erp_8cpp.html#a4d450703022d8769efa3e5df2f84b0e4" title="read IERS Bulletin&#45;A EOP products" alt="" coords="125,208,260,235"/>
+</map>

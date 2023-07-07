@@ -1,0 +1,24 @@
+<map id="satFreqs" name="satFreqs">
+<area shape="rect" id="node1" title=" " alt="" coords="515,512,592,539"/>
+<area shape="rect" id="node2" href="$acsQC_8cpp.html#a0d2d4fd45a0cdf961784d89cc132442e" title="Detect cycle slip by geometry free phase jump." alt="" coords="342,5,425,32"/>
+<area shape="rect" id="node3" href="$GinARoutpt_8cpp.html#a4a9a23daa35a468751d90cbf24933f77" title="Querry Ginan 1.0 AR algorithms for phase biases, it does not check for specific codes just carrier fr..." alt="" coords="321,56,445,83"/>
+<area shape="rect" id="node4" href="$ppp__network_8cpp.html#a1986299316c605c9c72b50a2f9c6c524" title="PPP observed&#45;minus&#45;computed." alt="" coords="346,107,421,133"/>
+<area shape="rect" id="node5" href="$acsQC_8cpp.html#a7b37fc255c80330a5497de5bee8f2dbb" title="Cycle slip detection and repair." alt="" coords="5,512,92,539"/>
+<area shape="rect" id="node6" href="$GinARNLamb_8cpp.html#a150b7e4a892320cadb8bfd4c813a1aca" title="Update float ambiguity estimates." alt="" coords="140,233,252,260"/>
+<area shape="rect" id="node7" href="$GinARNLamb_8cpp.html#ac4b99b950a4d40abefe99b35c1142570" title="Check Z&#45;transformed ambiguities and remove old entries." alt="" coords="343,259,423,285"/>
+<area shape="rect" id="node8" href="$GinAR__main_8cpp.html#a90ca3b7d9275de28b4517643f990ad39" title="Loading configuration options from acsConfig." alt="" coords="314,309,453,336"/>
+<area shape="rect" id="node9" href="$linearCombo_8cpp.html#a0c10f0392343a1e3d46c30eea8db481f" title="Function to prepare some predefined linear combinations from an observation." alt="" coords="351,360,415,387"/>
+<area shape="rect" id="node10" href="$acsQC_8cpp.html#a5278f59e23c92b2a1912d5dde5e2f809" title="Cycle slip detection and repair for triple&#45;frequency." alt="" coords="153,563,239,589"/>
+<area shape="rect" id="node11" href="$spp_8cpp.html#a969f0b76792e91191b8b397ee609ae91" title="Calculate pseudorange with code bias correction." alt="" coords="350,461,417,488"/>
+<area shape="rect" id="node12" href="$acsQC_8cpp.html#a9a7675a515de2802ed917e9d32dd897d" title="Cycle slip detection for dual&#45;frequency." alt="" coords="153,512,239,539"/>
+<area shape="rect" id="node13" href="$ephPrecise_8cpp.html#ac24a7ecc232807f046a15e914b5df57f" title="satellite antenna phase center offset in ecef" alt="" coords="341,563,425,589"/>
+<area shape="rect" id="node14" href="$ephemeris_8cpp.html#a86b1602f8ee3a6b7220b506825592953" title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg..." alt="" coords="163,740,229,767"/>
+<area shape="rect" id="node15" href="$acsQC_8cpp.html#a36663ab87649ee3624e072af7fec6409" title="Detect slip by Melbourne&#45;Wubbena linear combination jump." alt="" coords="337,613,430,640"/>
+<area shape="rect" id="node16" href="$GinARoutpt_8cpp.html#ac899b04de8df209c6b867571e95b26eb" title="Export AR Ionosphere measurments." alt="" coords="345,664,421,691"/>
+<area shape="rect" id="node17" href="$GinAR__main_8cpp.html#a48fa415df652066004129736fa989e44" title="Loading float ambiguity data from KF." alt="" coords="332,715,435,741"/>
+<area shape="rect" id="node18" href="$acsQC_8cpp.html#a501b956d22444b573a8867d87ad590d5" title="Single channel detection–identification–adaptation (DIA) for integer cycle slips." alt="" coords="355,765,411,792"/>
+<area shape="rect" id="node19" href="$GinAR__main_8cpp.html#a98a969d6cdd26958e34a6b36613987ac" title="Loading float ambiguity data from Observations (WL, cycle slip &amp; elevation)" alt="" coords="328,816,439,843"/>
+<area shape="rect" id="node20" href="$ionoMeas_8cpp.html#ae1cb9ea2aa583c7c0745a8d788253889" title=" " alt="" coords="300,917,467,944"/>
+<area shape="rect" id="node21" href="$ppp__user_8cpp.html#a123a4552194f4fd53016c9609a867d17" title=" " alt="" coords="335,968,431,995"/>
+<area shape="rect" id="node22" href="$ppp__user_8cpp.html#a36a79c2aba8e8ad20aa9616988ec3269" title=" " alt="" coords="154,993,238,1020"/>
+</map>

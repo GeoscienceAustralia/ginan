@@ -1,0 +1,4 @@
+<map id="writeClk" name="writeClk">
+<area shape="rect" id="node1" title="Write CLK or CRT records." alt="" coords="192,5,268,32"/>
+<area shape="rect" id="node2" href="$orbexWrite_8cpp.html#a56d2a92adc2482a87027c44038ce042e" title="Write EPHEMERIS/DATA block and update END_TIME line." alt="" coords="5,5,144,32"/>
+</map>

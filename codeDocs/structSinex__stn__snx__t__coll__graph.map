@@ -1,7 +1,0 @@
-<map id="Sinex_stn_snx_t" name="Sinex_stn_snx_t">
-<area shape="rect" id="node1" title=" " alt="" coords="169,747,295,1088"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,233,64,310"/>
-<area shape="rect" id="node3" href="$structUYds.html" title=" " alt="" coords="89,189,237,354"/>
-<area shape="rect" id="node4" title=" " alt="" coords="261,233,341,310"/>
-<area shape="rect" id="node5" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="366,5,549,537"/>
-</map>

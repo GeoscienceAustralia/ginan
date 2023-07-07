@@ -1,0 +1,12 @@
+<map id="wrapPlusMinusPi" name="wrapPlusMinusPi">
+<area shape="rect" id="node1" title="Wrap angle between (&#45;pi, pi]." alt="" coords="351,208,483,235"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#ae61f115d5d0990cf844b7843cf5812c7" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="164,5,303,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="171,56,296,83"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#aaba71c01b77e887c80e8dc69a8366d61" title="Yaw model for GPS sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="15,81,107,108"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#a72b1b0bdafc8daa3b75faa96049b514f" title="Yaw model for BDS&#45;3I/3M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="11,144,110,171"/>
+<area shape="rect" id="node6" href="$attitude_8cpp.html#abdce260d1dd40f5c15f4003e87bafd3b" title="Yaw model for GAL FOC sats." alt="" coords="5,220,116,247"/>
+<area shape="rect" id="node7" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="16,347,105,373"/>
+<area shape="rect" id="node8" href="$attitude_8cpp.html#a18338f781fea251d0f8b03666fde5b9e" title="Yaw model for GAL IOV sats." alt="" coords="179,157,288,184"/>
+<area shape="rect" id="node9" href="$attitude_8cpp.html#a7da34cb31c95554835b5872eabf41df1" title="Orbit normal yaw model Will set nominalYaw &amp; modelYaw to the orbit&#45;normal yaw (0 or PI) closest to th..." alt="" coords="177,309,290,336"/>
+<area shape="rect" id="node10" href="$attitude_8cpp.html#ae895bad3e9b1c1ce5b6ccadab478b787" title="Yaw model for QZSS&#45;2I &amp; QZSS&#45;2A satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="182,360,285,387"/>
+</map>

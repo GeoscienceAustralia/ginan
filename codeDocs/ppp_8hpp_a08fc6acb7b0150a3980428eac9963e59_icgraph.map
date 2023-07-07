@@ -1,0 +1,7 @@
+<map id="ionoModel" name="ionoModel">
+<area shape="rect" id="node1" title="ionospheric model" alt="" coords="156,81,247,108"/>
+<area shape="rect" id="node2" href="$ppp__obs_8cpp.html#a8e29305530493f14bc2ba370e2e5bbe7" title=" " alt="" coords="9,5,104,32"/>
+<area shape="rect" id="node3" href="$ppp__obs_8cpp.html#a24d244860e2a252d6ec88d97ea129b80" title="2nd order ionospheric correction See ref [1]" alt="" coords="5,56,108,83"/>
+<area shape="rect" id="node4" href="$ppp__obs_8cpp.html#ab0c8581c06e954be3a2aa2cf552d2d81" title="3rd order ionospheric correction See ref [1]" alt="" coords="5,107,108,133"/>
+<area shape="rect" id="node5" href="$ppp__user_8cpp.html#a70cbdeafd26c3c4a863baa1a23e760a8" title="precise point positioning" alt="" coords="26,157,87,184"/>
+</map>

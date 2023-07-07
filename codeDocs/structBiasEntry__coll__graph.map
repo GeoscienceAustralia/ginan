@@ -1,0 +1,6 @@
+<map id="BiasEntry" name="BiasEntry">
+<area shape="rect" id="node1" title=" " alt="" coords="183,673,301,853"/>
+<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,188,596"/>
+<area shape="rect" id="node3" title=" " alt="" coords="213,262,271,339"/>
+<area shape="rect" id="node4" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="296,152,439,449"/>
+</map>

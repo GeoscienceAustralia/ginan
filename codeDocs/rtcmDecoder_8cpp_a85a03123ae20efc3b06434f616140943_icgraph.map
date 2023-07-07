@@ -1,0 +1,13 @@
+<map id="getbitu" name="getbitu">
+<area shape="rect" id="node1" title="extract unsigned bits from byte data" alt="" coords="695,233,763,260"/>
+<area shape="rect" id="node2" href="$structicdDecoder.html#a2894c88d0d33da037b27729b3e62db56" title=" " alt="" coords="408,5,647,32"/>
+<area shape="rect" id="node3" href="$structRtcmDecoder.html#aba8cfbe6f75ebb1403de74f9b5a88187" title=" " alt="" coords="195,335,360,361"/>
+<area shape="rect" id="node4" href="$structRtcmParser.html#a6138840942a03f0a06ecb288ab412716" title=" " alt="" coords="5,399,147,425"/>
+<area shape="rect" id="node5" href="$prototypeCmpSSRDecode_8cpp.html#ae95243b422cec4bbb18768a30abc146e" title=" " alt="" coords="452,107,603,133"/>
+<area shape="rect" id="node6" href="$rtcmDecoder_8cpp.html#ad48f005e9a609843e1616f9267a27d29" title="extract unsigned bits from RTCM messages" alt="" coords="493,157,561,184"/>
+<area shape="rect" id="node7" href="$rtcmDecoder_8cpp.html#a2b4fecad74db6a33e3e755d5c55245ad" title="extract signed bits from byte data" alt="" coords="494,208,561,235"/>
+<area shape="rect" id="node8" href="$prototypeCmpSSRDecode_8cpp.html#a8167de7b2614ee14859e06539ffa465c" title=" " alt="" coords="452,259,603,285"/>
+<area shape="rect" id="node9" href="$rtcmDecoder_8cpp.html#aaa6463f592ed6478626814466d3d02a5" title="increasingly extract unsigned bits from byte data" alt="" coords="484,309,571,336"/>
+<area shape="rect" id="node10" href="$prototypeIgsSSRDecode_8cpp.html#aed3fb870a60e3542a8cb91bd20aad4f6" title=" " alt="" coords="471,360,584,387"/>
+<area shape="rect" id="node11" href="$rtcmDecoder_8cpp.html#a48a309e0f4832dd7f5025c0717c5c645" title="extract sign&#45;magnitude bits applied in GLO nav messages from byte data" alt="" coords="493,411,561,437"/>
+</map>

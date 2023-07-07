@@ -1,0 +1,9 @@
+<map id="updateOrbexBody" name="updateOrbexBody">
+<area shape="rect" id="node1" title="Write EPHEMERIS/DATA block and update END_TIME line." alt="" coords="5,132,144,159"/>
+<area shape="rect" id="node2" href="$orbexWrite_8cpp.html#a68acb232854e3173995f4c0441d7de70" title="Write ORBEX header lines and header blocks including FILE/DESCRIPTION and SATELLITE/ID_AND_DESCRIPTIO..." alt="" coords="192,5,333,32"/>
+<area shape="rect" id="node3" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="381,132,476,159"/>
+<area shape="rect" id="node4" href="$orbexWrite_8cpp.html#ae5689b6dcee2bf9a3967318fcb5e7194" title="Write PCS or VCS records." alt="" coords="218,107,307,133"/>
+<area shape="rect" id="node5" href="$orbexWrite_8cpp.html#af0b5f7f0ef2d31a92cb0d4ffb8a145a3" title="Write POS or VEL records." alt="" coords="227,157,299,184"/>
+<area shape="rect" id="node6" href="$orbexWrite_8cpp.html#a6eb80f815d27a7e96640b080efd0348e" title="Write CLK or CRT records." alt="" coords="225,208,301,235"/>
+<area shape="rect" id="node7" href="$orbexWrite_8cpp.html#aeeabfb0b149895e0f99a0078f66f3e86" title="Write ATT records." alt="" coords="225,259,300,285"/>
+</map>

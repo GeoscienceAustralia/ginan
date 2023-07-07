@@ -1,0 +1,4 @@
+<map id="satYaw" name="satYaw">
+<area shape="rect" id="node1" title="Calculates nominal &amp; model yaw Returns false if no modelled yaw available." alt="" coords="168,5,235,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4df4c941d10f377f53aaecc12b7bedb7" title="Update sat nominal/model yaws." alt="" coords="5,5,120,32"/>
+</map>

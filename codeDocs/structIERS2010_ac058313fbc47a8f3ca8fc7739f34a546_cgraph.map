@@ -1,0 +1,4 @@
+<map id="IERS2010::solidEarthTide1" name="IERS2010::solidEarthTide1">
+<area shape="rect" id="node1" title="Implementation of the first part of the solidEarth tides (Eq 6.6 and 6.7 IERS2010)" alt="" coords="5,5,196,32"/>
+<area shape="rect" id="node2" href="$structLegendre.html#a5a8d9f92b728272375c620f652f7ea36" title=" " alt="" coords="244,5,393,32"/>
+</map>

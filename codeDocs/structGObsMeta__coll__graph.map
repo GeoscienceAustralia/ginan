@@ -1,0 +1,5 @@
+<map id="GObsMeta" name="GObsMeta">
+<area shape="rect" id="node1" title="Observation metadata and data derived from it." alt="" coords="99,292,254,575"/>
+<area shape="rect" id="node2" href="$structIonoObs.html" title=" " alt="" coords="5,5,175,229"/>
+<area shape="rect" id="node3" href="$structStation.html" title="Object to maintain receiver station data." alt="" coords="199,64,330,171"/>
+</map>

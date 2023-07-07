@@ -1,5 +1,0 @@
-<map id="KFState::postFitSigmaChecks" name="KFState::postFitSigmaChecks">
-<area shape="rect" id="node1" title="Compare variances of measurements and filtered states to detect unreasonable values." alt="" coords="5,31,217,57"/>
-<area shape="rect" id="node2" href="$algebra_8cpp.html#a6ec6b537bc94eb558cc7baa9dd84c85f" title=" " alt="" coords="285,5,411,32"/>
-<area shape="rect" id="node3" href="$mongoWrite_8cpp.html#af0d2caa39c2b605460f08f00827aa5d4" title=" " alt="" coords="265,56,431,83"/>
-</map>

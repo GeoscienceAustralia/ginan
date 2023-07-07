@@ -1,7 +1,0 @@
-<map id="readrnx" name="readrnx">
-<area shape="rect" id="node1" title="Read rinex file." alt="" coords="5,81,77,108"/>
-<area shape="rect" id="node2" href="$rinex_8cpp.html#af51477471020f72c312825cdd4165640" title="Read rinex header." alt="" coords="133,5,213,32"/>
-<area shape="rect" id="node3" href="$rinex_8cpp.html#a7ac0513671bff5c91f961ebca3ae1673" title="Read rinex obs." alt="" coords="126,56,221,83"/>
-<area shape="rect" id="node4" href="$rinex_8cpp.html#a045f9195bb89cfcb58018ebacc367fcf" title="Read rinex nav/gnav/geo nav." alt="" coords="125,107,221,133"/>
-<area shape="rect" id="node5" href="$rinex_8cpp.html#a4a284b8fafe2b4b51d562ce5be276d84" title="Read rinex clock." alt="" coords="128,157,219,184"/>
-</map>

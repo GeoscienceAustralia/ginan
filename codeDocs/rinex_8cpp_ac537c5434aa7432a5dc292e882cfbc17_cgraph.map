@@ -1,0 +1,5 @@
+<map id="decodeSeph" name="decodeSeph">
+<area shape="rect" id="node1" title="Decode geo ephemeris." alt="" coords="5,31,107,57"/>
+<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="155,5,241,32"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#a96d3e41867e71358683d0395b85972af" title="URA value (m) to URA index." alt="" coords="157,56,239,83"/>
+</map>

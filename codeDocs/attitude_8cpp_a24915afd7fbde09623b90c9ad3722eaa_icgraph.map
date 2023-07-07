@@ -1,0 +1,4 @@
+<map id="basicRecAttitude" name="basicRecAttitude">
+<area shape="rect" id="node1" title="Nominal receiver attitude &#45; unit vectors of receiver&#45;fixed coordinates (ECEF) Orientation of receiver..." alt="" coords="115,5,247,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#aacbfbe9ac21bd3c953d5ea35d4e18937" title="Attitude of receiver." alt="" coords="5,5,67,32"/>
+</map>

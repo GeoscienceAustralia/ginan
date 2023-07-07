@@ -1,5 +1,0 @@
-<map id="uraindex" name="uraindex">
-<area shape="rect" id="node1" title="URA value (m) to ura index." alt="" coords="155,31,233,57"/>
-<area shape="rect" id="node2" href="$rinex_8cpp.html#ae3132fbeb0a7c18e3316f143ae063998" title="Decode ephemeris." alt="" coords="9,5,103,32"/>
-<area shape="rect" id="node3" href="$rinex_8cpp.html#a6613c8a15b270944e8f29ebf0357c3b0" title="Decode geo ephemeris." alt="" coords="5,56,107,83"/>
-</map>

@@ -1,6 +1,0 @@
-<map id="PseudoObsStream::getObs" name="PseudoObsStream::getObs">
-<area shape="rect" id="node1" title="Return a list of observations from the stream." alt="" coords="248,56,443,83"/>
-<area shape="rect" id="node2" href="$structFileSp3Stream.html#a4b899fc4f1abe6377ed31a396a2d0502" title="Return a list of observations from the stream." alt="" coords="18,5,187,32"/>
-<area shape="rect" id="node3" href="$structPseudoObsStream.html#af3d32af8a8136460f5c1e56f7096d97b" title="Return a list of observations from the stream, with a specified timestamp." alt="" coords="5,56,200,83"/>
-<area shape="rect" id="node4" href="$main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="75,107,130,133"/>
-</map>

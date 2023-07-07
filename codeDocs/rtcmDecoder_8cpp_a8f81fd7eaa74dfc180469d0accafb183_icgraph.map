@@ -1,0 +1,28 @@
+<map id="getbitsInc" name="getbitsInc">
+<area shape="rect" id="node1" title="increasingly extract signed bits from byte data" alt="" coords="539,613,625,640"/>
+<area shape="rect" id="node2" href="$prototypeCmpSSRDecode_8cpp.html#ace048d7980a00c12c1e3eb032bd84ba4" title="Compact SSR message type 11: regional satellite orbits and clock offsets." alt="" coords="285,5,450,32"/>
+<area shape="rect" id="node3" href="$prototypeCmpSSRDecode_8cpp.html#ac970344f44ddb64d2da4ad03da602aff" title="Compact SSR message type 3: global satellite clock offsets." alt="" coords="300,56,435,83"/>
+<area shape="rect" id="node4" href="$prototypeCmpSSRDecode_8cpp.html#a748da9d8349879a6bc5f6db45f7c956f" title="Compact SSR message type 4: global satellite code biases." alt="" coords="284,107,451,133"/>
+<area shape="rect" id="node5" href="$prototypeCmpSSRDecode_8cpp.html#a24b70c386a7f5677e3d35c05bf777cdf" title="Compact SSR message type 2: global satellite orbits." alt="" coords="302,157,433,184"/>
+<area shape="rect" id="node6" href="$prototypeIgsSSRDecode_8cpp.html#aceada2a0110bf7d459a3f1c94bffd19b" title=" " alt="" coords="289,208,446,235"/>
+<area shape="rect" id="node7" href="$prototypeIgsSSRDecode_8cpp.html#ab6cefeb3a0e33cc2695ae53181b52644" title=" " alt="" coords="289,259,446,285"/>
+<area shape="rect" id="node8" href="$prototypeCmpSSRDecode_8cpp.html#af63dc0e475127ce2f66843624cb1c517" title=" " alt="" coords="301,309,434,336"/>
+<area shape="rect" id="node9" href="$rtcmDecoder_8cpp.html#ac0235020c0ce59b7095c246bcb8496cb" title="increasingly extract signed bits from RTCM messages with scale factor/resolution applied" alt="" coords="307,360,428,387"/>
+<area shape="rect" id="node10" href="$structRtcmDecoder.html#adae4ba7ddd9f744631b806a5d550fe39" title="decode RTCM SSR messages" alt="" coords="5,411,196,437"/>
+<area shape="rect" id="node11" href="$rtcmDecoder_8cpp.html#ad8dd2031443a023c665ba918bcd91436" title="increasingly extract signed bits from RTCM messages" alt="" coords="324,411,411,437"/>
+<area shape="rect" id="node12" href="$structicdDecoder.html#a8fd3f8b00e4fd8825985953c268738ce" title=" " alt="" coords="244,512,491,539"/>
+<area shape="rect" id="node13" href="$prototypeCmpSSRDecode_8cpp.html#a14e5b4d036e32e9f4c7f745ef58aff65" title="Compact SSR message type 5: global satellite phase biases." alt="" coords="284,563,451,589"/>
+<area shape="rect" id="node14" href="$prototypeCmpSSRDecode_8cpp.html#ac998d34541cba9f24f6e2ea5306486c5" title="Combined code and phase bias (with potential regional biases)" alt="" coords="282,613,453,640"/>
+<area shape="rect" id="node15" href="$structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9" title="decode RTCM navigation messages" alt="" coords="250,664,485,691"/>
+<area shape="rect" id="node16" href="$structicdDecoder.html#aea659f71285c53546a37983124997094" title=" " alt="" coords="244,715,491,741"/>
+<area shape="rect" id="node17" href="$structicdDecoder.html#ae5462975b21725fb342edd335cd58b54" title=" " alt="" coords="244,765,491,792"/>
+<area shape="rect" id="node18" href="$prototypeCmpSSRDecode_8cpp.html#a875f686f84e153779ed2c1569fb2a940" title="Compact (polynomial based) salnt TEC maps." alt="" coords="285,816,450,843"/>
+<area shape="rect" id="node19" href="$prototypeCmpSSRDecode_8cpp.html#af636aecc8d99988671eba9ca7ec33408" title="Grid based Ionosphere and troposphere corrections." alt="" coords="286,867,449,893"/>
+<area shape="rect" id="node20" href="$prototypeCmpSSRDecode_8cpp.html#a9e1b653b96e1de42850205fa6a9618fa" title="Compact (polynomial based) atmospheric corrections." alt="" coords="281,917,454,944"/>
+<area shape="rect" id="node21" href="$prototypeIgsSSRDecode_8cpp.html#a91f3475d9c3dd88792324a011d597918" title=" " alt="" coords="289,968,446,995"/>
+<area shape="rect" id="node22" href="$prototypeIgsSSRDecode_8cpp.html#a763dadb437e94655b4c4ab05830c7efa" title=" " alt="" coords="289,1019,446,1045"/>
+<area shape="rect" id="node23" href="$prototypeIgsSSRDecode_8cpp.html#a5620a5359184703cf42d5a08c894b2e5" title=" " alt="" coords="289,1069,446,1096"/>
+<area shape="rect" id="node24" href="$prototypeIgsSSRDecode_8cpp.html#a3e3cd021dda475685751a829bc5d7283" title=" " alt="" coords="289,1120,446,1147"/>
+<area shape="rect" id="node25" href="$prototypeIgsSSRDecode_8cpp.html#a52483b82b940e41a9ecf30d3f7ac5609" title=" " alt="" coords="289,1171,446,1197"/>
+<area shape="rect" id="node26" href="$prototypeIgsSSRDecode_8cpp.html#abb805948265150eec95f44b3f7d6ad35" title=" " alt="" coords="289,1221,446,1248"/>
+</map>

@@ -1,9 +1,0 @@
-<map id="ACSConfig::getSatOpts" name="ACSConfig::getSatOpts">
-<area shape="rect" id="node1" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="5,132,176,159"/>
-<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="250,5,337,32"/>
-<area shape="rect" id="node3" href="$acsConfig_8cpp.html#a555e819507c7608d463fedb0616a95ff" title="Set an output from yaml object if found." alt="" coords="411,157,536,184"/>
-<area shape="rect" id="node4" href="$structSatSys.html#a099c890a6a613ec08f3260a51f0544f8" title=" " alt="" coords="226,107,361,133"/>
-<area shape="rect" id="node5" href="$structSatSys.html#a01de9e9cee76346f43550516bba9558e" title=" " alt="" coords="224,157,363,184"/>
-<area shape="rect" id="node6" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="245,208,342,235"/>
-<area shape="rect" id="node7" href="$acsConfig_8cpp.html#a93b507f5cfa7760051904a0a1863118a" title="Set satellite options from yaml." alt="" coords="240,259,347,285"/>
-</map>

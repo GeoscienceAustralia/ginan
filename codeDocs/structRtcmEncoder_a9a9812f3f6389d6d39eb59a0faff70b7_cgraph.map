@@ -1,0 +1,9 @@
+<map id="RtcmEncoder::encodeSsrOrbClk" name="RtcmEncoder::encodeSsrOrbClk">
+<area shape="rect" id="node1" title="encode orbit/clock messages" alt="" coords="5,132,232,159"/>
+<area shape="rect" id="node2" href="$structRtcmEncoder.html#a0faafc925ae0857559dd9a911cc3b90d" title="encode SSR header information" alt="" coords="280,5,511,32"/>
+<area shape="rect" id="node3" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="559,31,645,57"/>
+<area shape="rect" id="node4" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="353,107,438,133"/>
+<area shape="rect" id="node5" href="$structRtcmTrace.html#ab77b0368e1844bb77eb8a91845c35673" title=" " alt="" coords="307,157,483,184"/>
+<area shape="rect" id="node6" href="$structRtcmTrace.html#a77967bdcccaac67fdcd956d47da16055" title=" " alt="" coords="309,208,482,235"/>
+<area shape="rect" id="node7" href="$structRtcmTrace.html#a72cc456a169363422bbdb71c4f12ab4f" title=" " alt="" coords="299,259,491,285"/>
+</map>

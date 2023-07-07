@@ -1,0 +1,6 @@
+<map id="PObs" name="PObs">
+<area shape="rect" id="node1" title=" " alt="" coords="62,380,227,487"/>
+<area shape="rect" id="node2" href="$structObservation.html" title=" " alt="" coords="76,549,213,627"/>
+<area shape="rect" id="node3" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,5,148,303"/>
+<area shape="rect" id="node4" title=" " alt="" coords="173,115,253,193"/>
+</map>

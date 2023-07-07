@@ -1,5 +1,0 @@
-<map id="NavStream" name="NavStream">
-<area shape="rect" id="node1" title="Interface for objects that provide navigation data." alt="" coords="139,5,234,83"/>
-<area shape="rect" id="node2" href="$structRinexStream.html" title="Interface for rinex streams." alt="" coords="5,131,165,311"/>
-<area shape="rect" id="node3" href="$structRtcmStream.html" title=" " alt="" coords="190,138,386,303"/>
-</map>

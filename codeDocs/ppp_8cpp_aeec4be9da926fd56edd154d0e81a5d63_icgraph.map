@@ -1,4 +1,0 @@
-<map id="yaw_nominal" name="yaw_nominal">
-<area shape="rect" id="node1" title="Calculate nominal yaw&#45;angle." alt="" coords="129,5,239,32"/>
-<area shape="rect" id="node2" href="$ppp_8cpp.html#abaecccaca46b8c86195b9ee554091ef7" title="Satellite attitude model." alt="" coords="5,5,81,32"/>
-</map>

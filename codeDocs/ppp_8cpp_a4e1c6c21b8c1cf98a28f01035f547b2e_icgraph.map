@@ -1,4 +1,0 @@
-<map id="sat_yaw" name="sat_yaw">
-<area shape="rect" id="node1" title="Satellite attitude model." alt="" coords="151,5,227,32"/>
-<area shape="rect" id="node2" href="$ppp_8cpp.html#a16577502bd03c2d743d118a6993420d5" title="phase windup model" alt="" coords="5,5,103,32"/>
-</map>

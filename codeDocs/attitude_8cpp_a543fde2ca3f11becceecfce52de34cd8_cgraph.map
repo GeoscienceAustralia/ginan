@@ -1,0 +1,4 @@
+<map id="sunVisibility" name="sunVisibility">
+<area shape="rect" id="node1" title="Calculates fraction of Sun&#39;s disk visible by spacecraft 0 = full eclipse (umbra) 0 &lt; fraction &lt; 1 = p..." alt="" coords="5,5,108,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#af96be4b77aba19d9e97bb88050fb5a5e" title="Calculates proportion of circle 1 visible with overlapping circle 2." alt="" coords="156,5,287,32"/>
+</map>

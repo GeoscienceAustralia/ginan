@@ -1,0 +1,5 @@
+<map id="readSlrObs" name="readSlrObs">
+<area shape="rect" id="node1" title="Read one obs record from tabular slr obs file." alt="" coords="5,31,99,57"/>
+<area shape="rect" id="node2" href="$slrObs_8cpp.html#a4c3ed56472d893fdf8be7e463eaa3758" title="Converts from ILRS ID (condensed version of COSPAR ID) to COSPAR ID COSPAR ID to ILRS Satellite Ident..." alt="" coords="147,5,272,32"/>
+<area shape="rect" id="node3" href="$slrObs_8cpp.html#ad77fb0acc7b2f1cc833f9a9856d9f0d3" title="Converts from ILRS ID to SatSys object." alt="" coords="153,56,265,83"/>
+</map>

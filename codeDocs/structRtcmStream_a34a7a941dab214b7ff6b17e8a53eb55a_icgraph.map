@@ -1,7 +1,0 @@
-<map id="RtcmStream::parseRTCM" name="RtcmStream::parseRTCM">
-<area shape="rect" id="node1" title=" " alt="" coords="244,81,428,108"/>
-<area shape="rect" id="node2" href="$structNtripRtcmStream.html#a7ae2807fa53dc422270a34553e1f80c9" title="Return a list of observations from the stream." alt="" coords="6,5,195,32"/>
-<area shape="rect" id="node3" href="$structFileRtcmStream.html#aa2675b0e676825115c4b476941e7b53d" title=" " alt="" coords="11,56,191,83"/>
-<area shape="rect" id="node4" href="$structNtripRtcmStream.html#aa25d7e4eec397879e43cde5ac97e80bc" title=" " alt="" coords="5,107,196,133"/>
-<area shape="rect" id="node5" href="$structFileRtcmStream.html#a60fb40d30b75c23712ce49ff8b9655ab" title="Return a list of observations from the stream." alt="" coords="11,157,190,184"/>
-</map>

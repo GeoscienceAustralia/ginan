@@ -1,0 +1,5 @@
+<map id="getGeomagIntensity" name="getGeomagIntensity">
+<area shape="rect" id="node1" title="Compute the geomagnetic field components in geocentric local reference system at given time and posit..." alt="" coords="236,31,391,57"/>
+<area shape="rect" id="node2" href="$debug_8cpp.html#a25e72c6bf87e11fee70e99be7816a530" title=" " alt="" coords="50,5,143,32"/>
+<area shape="rect" id="node3" href="$geomagField_8cpp.html#a59c145bc8f2b7d8ca2fe761d1c093134" title="Compute the geomagnetic field components in ECEF reference system at given time and position." alt="" coords="5,56,188,83"/>
+</map>

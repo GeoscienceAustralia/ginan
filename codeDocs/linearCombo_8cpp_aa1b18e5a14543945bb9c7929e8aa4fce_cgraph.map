@@ -1,9 +1,0 @@
-<map id="obs2lc" name="obs2lc">
-<area shape="rect" id="node1" title="Function to prepare some predefined linear combinations from an observation." alt="" coords="5,132,69,159"/>
-<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="145,5,232,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="145,56,233,83"/>
-<area shape="rect" id="node4" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="141,107,236,133"/>
-<area shape="rect" id="node5" href="$linearCombo_8cpp.html#a41701e6aeffecf451235e8fb75aad602" title="Prepare a base object for linear combinations using observation data." alt="" coords="131,157,246,184"/>
-<area shape="rect" id="node6" href="$linearCombo_8cpp.html#afdd3451cef793c3574f718f2f79d9278" title="Create combinations between specific observation values." alt="" coords="159,208,218,235"/>
-<area shape="rect" id="node7" href="$structTestStack.html#aff20cea87ae5eee6108b33d022913707" title="Compare matrix against test dataset." alt="" coords="117,259,260,285"/>
-</map>

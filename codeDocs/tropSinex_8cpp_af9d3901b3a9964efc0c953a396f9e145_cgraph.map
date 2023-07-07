@@ -1,0 +1,12 @@
+<map id="writeTropSinexToFile" name="writeTropSinexToFile">
+<area shape="rect" id="node1" title="Write troposphere Sinex data to file." alt="" coords="5,208,160,235"/>
+<area shape="rect" id="node2" href="$tropSinex_8cpp.html#a05c9b0fc26ae1defbde4d314304f56b2" title="Reset comments to their default values." alt="" coords="221,5,350,32"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#a7801af81f70fa664ea5f0e671aef84e4" title=" " alt="" coords="208,56,363,83"/>
+<area shape="rect" id="node4" href="$tropSinex_8cpp.html#a219d3c5e4d7d71f3f485ff07b156347a" title="Write TROP/DESCRIPTION block." alt="" coords="228,107,343,133"/>
+<area shape="rect" id="node5" href="$tropSinex_8cpp.html#a1faee2ac53f3a75f110a3d3fadd79354" title="Write SITE/ID block." alt="" coords="226,157,345,184"/>
+<area shape="rect" id="node6" href="$tropSinex_8cpp.html#a96c1bb288a96f33068140504f3cffba8" title="Write SITE/RECEIVER block." alt="" coords="220,208,351,235"/>
+<area shape="rect" id="node7" href="$tropSinex_8cpp.html#ab96eace990c2340bc8e70036b29120c5" title="Write SITE/ANTENNA block." alt="" coords="221,259,350,285"/>
+<area shape="rect" id="node8" href="$tropSinex_8cpp.html#a6562277d9838a377bf4f369b133b50d2" title="Write SITE/ECCENTRICITY block." alt="" coords="221,309,350,336"/>
+<area shape="rect" id="node9" href="$tropSinex_8cpp.html#ac59c53ad4e1e989f56bb76e256e6d500" title="Write SITE/COORDINATES block." alt="" coords="213,360,358,387"/>
+<area shape="rect" id="node10" href="$tropSinex_8cpp.html#ae2adfa651c283b816f840a0727bd2340" title="Write TROP/SOLUTION block." alt="" coords="234,411,337,437"/>
+</map>

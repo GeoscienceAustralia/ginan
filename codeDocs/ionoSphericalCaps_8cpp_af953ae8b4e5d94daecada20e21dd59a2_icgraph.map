@@ -1,0 +1,5 @@
+<map id="ippCheckSphcap" name="ippCheckSphcap">
+<area shape="rect" id="node1" title="transforms the Ionosphere Piercing Point and checks if it falls in area of coverage time: I time of o..." alt="" coords="172,31,301,57"/>
+<area shape="rect" id="node2" href="$ionoMeas_8cpp.html#a2fca709584385c6d11cb9d64ff0dfd59" title=" " alt="" coords="17,5,112,32"/>
+<area shape="rect" id="node3" href="$ionoSphericalCaps_8cpp.html#a5e798eccc5cf6a6f5364aa0b085c7df0" title="Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not us..." alt="" coords="5,56,124,83"/>
+</map>

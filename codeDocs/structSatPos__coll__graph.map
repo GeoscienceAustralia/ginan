@@ -1,0 +1,8 @@
+<map id="SatPos" name="SatPos">
+<area shape="rect" id="node1" title="Satellite position data &#45; for determining and storing satellite positions/clocks." alt="" coords="219,579,406,1169"/>
+<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,219,148,516"/>
+<area shape="rect" id="node3" href="$structSatNav.html" title=" " alt="" coords="172,329,251,406"/>
+<area shape="rect" id="node4" href="$structVectorEci.html" title=" " alt="" coords="205,5,319,156"/>
+<area shape="rect" id="node5" href="$structSatStat.html" title="Object containing persistant status parameters of individual satellites." alt="" coords="412,241,563,494"/>
+<area shape="rect" id="node6" href="$structVectorEcef.html" title=" " alt="" coords="510,5,627,156"/>
+</map>

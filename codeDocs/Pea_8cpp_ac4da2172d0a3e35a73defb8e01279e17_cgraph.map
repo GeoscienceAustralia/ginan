@@ -1,9 +1,0 @@
-<map id="Pea" name="Pea">
-<area shape="rect" id="node1" title="Use available data to estimate unknown parameters of interest." alt="" coords="5,132,52,159"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#a3178f0dd16294eabf532179224546750" title="Read a .yaml formatted configuration file." alt="" coords="123,5,265,32"/>
-<area shape="rect" id="node3" href="$Pea_8cpp.html#ae0e7a9875ba11feed494742fbf80e727" title="Data files are checked for new data each epoch before processing commences." alt="" coords="147,56,241,83"/>
-<area shape="rect" id="node4" href="$Pea_8cpp.html#a62efde210cf198ea141ddbd2c4f83f9a" title="Perform simple quality control checks and positioning routines." alt="" coords="141,107,247,133"/>
-<area shape="rect" id="node5" href="$Pea_8cpp.html#a28bdee4d916aa4bfbb3418db80ea2a12" title="Use precise scientific models and corrections from analysis centers to produce the best possible para..." alt="" coords="100,157,288,184"/>
-<area shape="rect" id="node6" href="$Pea_8cpp.html#a1d397645890225674d425aa0f181e60a" title=" " alt="" coords="107,208,281,235"/>
-<area shape="rect" id="node7" href="$Pea_8cpp.html#a671e9878bcb252e4511c49e48067503c" title="Output results." alt="" coords="114,259,274,285"/>
-</map>

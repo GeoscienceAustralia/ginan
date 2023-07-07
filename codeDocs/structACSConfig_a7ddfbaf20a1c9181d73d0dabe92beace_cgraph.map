@@ -1,7 +1,0 @@
-<map id="ACSConfig::getRecOpts" name="ACSConfig::getRecOpts">
-<area shape="rect" id="node1" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="5,50,179,76"/>
-<area shape="rect" id="node2" href="$acsConfig_8cpp.html#a555e819507c7608d463fedb0616a95ff" title="Set an output from yaml object if found." alt="" coords="381,24,507,51"/>
-<area shape="rect" id="node3" href="$acsConfig_8cpp.html#a5d035c64332701c7ae41cbd84a93c379" title="Get an object within a hierarchy of yaml structure using a vector of nodes." alt="" coords="555,50,708,76"/>
-<area shape="rect" id="node4" href="$acsConfig_8cpp.html#a93b507f5cfa7760051904a0a1863118a" title="Set satellite options from yaml." alt="" coords="227,24,333,51"/>
-<area shape="rect" id="node5" href="$acsConfig_8cpp.html#af8cc58286736d1def9b2f581bb6b7185" title="Set an enum from yaml, decoding strings to ints." alt="" coords="383,126,505,152"/>
-</map>

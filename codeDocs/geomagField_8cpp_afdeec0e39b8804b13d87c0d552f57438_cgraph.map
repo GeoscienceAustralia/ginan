@@ -1,0 +1,5 @@
+<map id="getSHCoef" name="getSHCoef">
+<area shape="rect" id="node1" title="Calculate the SH coefficients at given epoch based on a piecewise linear model For years starting in ..." alt="" coords="5,31,96,57"/>
+<area shape="rect" id="node2" href="$geomagField_8cpp.html#a0a9caa8fcb5ab39e9a2a86d9840aef8e" title="Convert time to decimal year For example: 2019&#45;07&#45;18 00:00:00 &#45;&gt; 2019.54247." alt="" coords="158,5,259,32"/>
+<area shape="rect" id="node3" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="144,56,273,83"/>
+</map>

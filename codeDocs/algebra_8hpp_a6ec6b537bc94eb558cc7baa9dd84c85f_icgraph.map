@@ -1,5 +1,0 @@
-<map id="outputResiduals" name="outputResiduals">
-<area shape="rect" id="node1" title=" " alt="" coords="265,31,392,57"/>
-<area shape="rect" id="node2" href="$structKFState.html#aab4e5ed0ddc781d8b4db8de02af119cc" title="Compare variances of measurements and filtered states to detect unreasonable values." alt="" coords="5,5,217,32"/>
-<area shape="rect" id="node3" href="$rtsSmoothing_8cpp.html#a4e8aaa5b04173a1f1c784b486954de3a" title="Output filter states from a reversed binary trace file." alt="" coords="62,56,161,83"/>
-</map>

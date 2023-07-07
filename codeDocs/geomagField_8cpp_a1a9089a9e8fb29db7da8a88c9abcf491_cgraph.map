@@ -1,0 +1,10 @@
+<map id="getGeomagIntensity" name="getGeomagIntensity">
+<area shape="rect" id="node1" title="Compute the geomagnetic field components in geocentric local reference system at given time and posit..." alt="" coords="5,157,160,184"/>
+<area shape="rect" id="node2" href="$geomagField_8cpp.html#afdeec0e39b8804b13d87c0d552f57438" title="Calculate the SH coefficients at given epoch based on a piecewise linear model For years starting in ..." alt="" coords="237,5,328,32"/>
+<area shape="rect" id="node3" href="$structVectorPos.html#a63e862a389b3548bc5b4aedabd94540b" title=" " alt="" coords="227,56,339,83"/>
+<area shape="rect" id="node4" href="$structVectorPos.html#ab7ade23bd200ec4145eb389b58737dee" title=" " alt="" coords="225,107,340,133"/>
+<area shape="rect" id="node5" href="$structLegendre.html#a5a8d9f92b728272375c620f652f7ea36" title=" " alt="" coords="208,157,357,184"/>
+<area shape="rect" id="node6" href="$structVectorEnu.html#ae90c6dd0141c45c334e8df0f7a1eee4f" title=" " alt="" coords="231,208,335,235"/>
+<area shape="rect" id="node7" href="$structVectorEnu.html#a6909ce4148ab35bce7d6333be89bad3d" title=" " alt="" coords="231,259,335,285"/>
+<area shape="rect" id="node8" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="231,309,335,336"/>
+</map>

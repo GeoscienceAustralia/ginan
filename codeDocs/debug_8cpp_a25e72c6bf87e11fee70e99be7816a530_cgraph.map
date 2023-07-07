@@ -1,0 +1,6 @@
+<map id="debugIGRF" name="debugIGRF">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,99,83"/>
+<area shape="rect" id="node2" href="$utils_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="183,5,265,32"/>
+<area shape="rect" id="node3" href="$geomagField_8cpp.html#a1a9089a9e8fb29db7da8a88c9abcf491" title="Compute the geomagnetic field components in geocentric local reference system at given time and posit..." alt="" coords="147,56,301,83"/>
+<area shape="rect" id="node4" href="$geomagField_8cpp.html#a0a9caa8fcb5ab39e9a2a86d9840aef8e" title="Convert time to decimal year For example: 2019&#45;07&#45;18 00:00:00 &#45;&gt; 2019.54247." alt="" coords="173,107,275,133"/>
+</map>

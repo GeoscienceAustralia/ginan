@@ -1,7 +1,0 @@
-<map id="arbiaout" name="arbiaout">
-<area shape="rect" id="node1" title="Output phase biases." alt="" coords="5,17,81,44"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#abf196aa655d8ca10168c2301a68a8101" title=" " alt="" coords="266,81,354,108"/>
-<area shape="rect" id="node3" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="263,5,357,32"/>
-<area shape="rect" id="node4" href="$GinAR__main_8cpp.html#a970d7fea64de71970c5f7d85c109b244" title="Default frequencies for each system." alt="" coords="137,43,207,69"/>
-<area shape="rect" id="node5" href="$biasSINEXwrite_8cpp.html#a3193a7ae3e27dfbd3caaaba922a113cb" title="Store bias output to write into bias SINEX files." alt="" coords="129,93,215,120"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="sinex_time" name="sinex_time">
-<area shape="rect" id="node1" title="convert time to yds (doy in bias SINEX starts at 1)" alt="" coords="5,31,100,57"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#a7a747c44ca37f2ebe379fc4309d3cfba" title=" " alt="" coords="148,5,247,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#aa46173b9085096882d09e53d96e9dc41" title=" " alt="" coords="148,56,247,83"/>
-</map>

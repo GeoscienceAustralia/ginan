@@ -1,7 +1,0 @@
-<map id="satpos" name="satpos">
-<area shape="rect" id="node1" title=" " alt="" coords="203,81,268,108"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#acf14c43fc8c865aae63cb7408d64d0d5" title="satellite positions and clocks." alt="" coords="44,5,116,32"/>
-<area shape="rect" id="node3" href="$mongoWrite_8cpp.html#ac5399222f483050332a2571ebcbc5ba1" title=" " alt="" coords="13,56,147,83"/>
-<area shape="rect" id="node4" href="$rinexClkWrite_8cpp.html#a3f6744a347b111bb423bd32d27947654" title=" " alt="" coords="5,107,155,133"/>
-<area shape="rect" id="node5" href="$sp3Write_8cpp.html#a53c4eda35c9ccdfe9aa683fb0272c8c0" title=" " alt="" coords="19,157,141,184"/>
-</map>

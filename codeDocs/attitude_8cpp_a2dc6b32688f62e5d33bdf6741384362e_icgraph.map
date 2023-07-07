@@ -1,0 +1,5 @@
+<map id="antAtt" name="antAtt">
+<area shape="rect" id="node1" title="Calculates antenna attitude &#45; unit vectors of antenna&#45;fixed coordinates (ECEF)" alt="" coords="168,31,231,57"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4df4c941d10f377f53aaecc12b7bedb7" title="Update sat nominal/model yaws." alt="" coords="5,5,120,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#aacbfbe9ac21bd3c953d5ea35d4e18937" title="Attitude of receiver." alt="" coords="32,56,93,83"/>
+</map>

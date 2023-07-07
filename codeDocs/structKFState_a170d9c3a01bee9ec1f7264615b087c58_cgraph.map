@@ -1,7 +1,0 @@
-<map id="KFState::stateTransition" name="KFState::stateTransition">
-<area shape="rect" id="node1" title="Add process noise and dynamics to filter object according to time gap." alt="" coords="5,81,184,108"/>
-<area shape="rect" id="node2" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="259,5,379,32"/>
-<area shape="rect" id="node3" href="$structKFState.html#a5aeeee0f20df8cc8c4747c1b5b18212f" title="Finds the position in the KF state vector of particular states." alt="" coords="241,56,396,83"/>
-<area shape="rect" id="node4" href="$algebraTrace_8hpp.html#a912bbc3ba390c6b3a01f7cae26a53588" title="Output filter state to a file for later reading." alt="" coords="261,107,376,133"/>
-<area shape="rect" id="node5" href="$structKFState.html#a34fe78e0ab7a8f1d122ceabddc29b207" title="Clears and initialises the state transition matrix to identity at the beginning of an epoch." alt="" coords="232,157,405,184"/>
-</map>

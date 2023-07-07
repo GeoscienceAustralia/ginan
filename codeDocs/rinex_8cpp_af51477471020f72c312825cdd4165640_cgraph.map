@@ -1,8 +1,0 @@
-<map id="readrnxh" name="readrnxh">
-<area shape="rect" id="node1" title="Read rinex header." alt="" coords="5,81,85,108"/>
-<area shape="rect" id="node2" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="292,81,368,108"/>
-<area shape="rect" id="node3" href="$rinex_8cpp.html#a14aeff424f301ac2512155167d548348" title="Decode obs header." alt="" coords="137,30,240,57"/>
-<area shape="rect" id="node4" href="$rinex_8cpp.html#a98a2dc67757d3341b779c2d60a4f64e3" title="Decode nav header." alt="" coords="137,81,240,108"/>
-<area shape="rect" id="node5" href="$rinex_8cpp.html#ab0c8334faa319e55082962e09df62b0c" title="Decode gnav header." alt="" coords="133,132,244,158"/>
-<area shape="rect" id="node6" href="$rinex_8cpp.html#ad2d8f37738f720ba76e3354346fc4e17" title="Decode geo nav header." alt="" coords="133,182,244,209"/>
-</map>

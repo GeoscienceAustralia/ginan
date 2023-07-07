@@ -1,0 +1,7 @@
+<map id="writeSysSetOrbex" name="writeSysSetOrbex">
+<area shape="rect" id="node1" title="Retrieve satellite orbits, clocks and attitudes for all included systems and write out to an ORBEX fi..." alt="" coords="5,81,144,108"/>
+<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a42547b0f92028b6e6578ab807bf985f2" title=" " alt="" coords="231,5,292,32"/>
+<area shape="rect" id="node3" href="$ephemeris_8cpp.html#a86b1602f8ee3a6b7220b506825592953" title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg..." alt="" coords="229,56,294,83"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a771620f94dbfc7f482b3f6e2d3131710" title="Satellite attitude &#45; calculates attitude of satellite as a quaternion (ECEF) Also transforms coordina..." alt="" coords="225,107,298,133"/>
+<area shape="rect" id="node5" href="$orbexWrite_8cpp.html#a56d2a92adc2482a87027c44038ce042e" title="Write EPHEMERIS/DATA block and update END_TIME line." alt="" coords="192,157,331,184"/>
+</map>

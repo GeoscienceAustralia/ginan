@@ -1,0 +1,4 @@
+<map id="satYawBds2" name="satYawBds2">
+<area shape="rect" id="node1" title="Yaw model for BDS&#45;2I/2M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="120,5,219,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#afbb15500af25a5aabc6237b8e027c128" title="Calculates nominal &amp; model yaw Returns false if no modelled yaw available." alt="" coords="5,5,72,32"/>
+</map>

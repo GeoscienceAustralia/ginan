@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="$structNtripUploader.html#a898eb17a065327e8637abb7876c06bd9" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structNtripUploader.html#a898eb17a065327e8637abb7876c06bd9" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="0,-38.5 0,-57.5 141,-57.5 141,-38.5 0,-38.5"/>
 <text text-anchor="middle" x="70.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">NtripUploader::connected</text>
 </a>
@@ -35,7 +35,7 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="$structNtripStream.html#a5271a75657d300027a72740f6b0ec7cb" xlink:title=" ">
+<g id="a_node3"><a xlink:href="structNtripStream.html#a5271a75657d300027a72740f6b0ec7cb" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="4.5,-0.5 4.5,-19.5 136.5,-19.5 136.5,-0.5 4.5,-0.5"/>
 <text text-anchor="middle" x="70.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">NtripStream::connected</text>
 </a>

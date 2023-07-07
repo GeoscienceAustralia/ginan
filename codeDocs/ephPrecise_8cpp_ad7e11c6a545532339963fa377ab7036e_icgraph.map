@@ -1,0 +1,4 @@
+<map id="satPosPrecise" name="satPosPrecise">
+<area shape="rect" id="node1" title="Satellite position/clock by precise ephemeris/clock." alt="" coords="165,5,277,32"/>
+<area shape="rect" id="node2" href="$ephPrecise_8cpp.html#a02e4e036a78c3136f5c9215b2dd093f4" title=" " alt="" coords="5,5,117,32"/>
+</map>

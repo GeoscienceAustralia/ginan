@@ -1,5 +1,0 @@
-<map id="Least_Squares" name="Least_Squares">
-<area shape="rect" id="node1" title="Used to initialise unknown parameters." alt="" coords="235,31,351,57"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#adf55b0c67cb6a702a2873e7759e608b7" title="Used to combine measurements and apriori values to produce an &#39;optimal&#39; estimation of parameters." alt="" coords="41,5,151,32"/>
-<area shape="rect" id="node3" href="$Pea_8cpp.html#aea90df44dba5dfb10e593090b2f3236a" title="Use simple geometric and atmospheric models to estimate parameters." alt="" coords="5,56,187,83"/>
-</map>

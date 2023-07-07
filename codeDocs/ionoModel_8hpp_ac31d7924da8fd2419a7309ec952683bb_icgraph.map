@@ -1,0 +1,4 @@
+<map id="ippCheckLocal" name="ippCheckLocal">
+<area shape="rect" id="node1" title="Checks if the Ionosphere Piercing Point falls in area of coverage." alt="" coords="148,5,264,32"/>
+<area shape="rect" id="node2" href="$ionoMeas_8cpp.html#a2fca709584385c6d11cb9d64ff0dfd59" title=" " alt="" coords="5,5,100,32"/>
+</map>

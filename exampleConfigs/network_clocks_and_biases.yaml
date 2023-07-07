@@ -1,0 +1,304 @@
+
+outputs:
+
+    root_directory:         outputs/<CONFIG>/
+
+    trace:
+        output_stations:            true
+        output_network:             true
+        level:                      3
+        station_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+
+    ppp_sol:
+        output:                     true
+
+    ionex:
+        output:                     false
+        directory:                  ./
+        filename:                   AUSG<DDD>0.<YY>I
+
+    ionstec:
+        output:                     false
+        directory:                  ./
+        filename:                   IONEX.stec
+
+    bias_sinex:
+        output:                     true
+        output_rec_bias:            false
+        code_output_interval:       900
+        phase_output_interval:      900
+
+    clocks:
+        output:                     true
+        output_ar_clocks:           true
+
+    sinex:
+        output:                     true
+
+    erp:
+        output:                     true
+
+    trop_sinex:
+        output:                     true
+        sources:                    [KALMAN]
+
+processing_options:
+
+    epoch_control:
+        epoch_interval:             900
+        wait_next_epoch:            3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+        wait_all_stations:          1
+        fatal_message_level:        1
+
+    process_modes:
+        ppp:                        true
+
+    gnss_general:
+    
+        elevation_mask:                 10      # degrees
+        #rec_reference_system:           GPS
+        require_antenna_details:        true    # (bool)
+        require_apriori_positions:      false   # (bool)
+        #common_rec_pco:                 true
+        interpolate_rec_pco:            true
+        sys_options:
+            gps:
+                process:                true
+                ambiguity_resolution:   false     # Do not turn on AR if using ppp: - use_if_combo: true
+                reject_eclipse:         false
+                #zero_receiver_dcb:      true
+                #zero_satellite_dcb:     true
+                #network_amb_pivot:      true
+                clock_codes:            [ L1W, L2W ]
+                code_priorities:        [ L1W, L2W, L5Q ]
+
+            # gal:
+            #    process:                true
+            #    ambiguity_resolution:   false
+            #    reject_eclipse:         false
+            #    code_priorities:        [ L1C, L5Q, L1X, L5X ]
+
+            # glo:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1P, L1C, L2P, L2C ]
+            # qzs:
+
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1C, L2L, L2X ]
+
+    gnss_models:
+    
+        troposphere:
+            model:              vmf3   # gpt2
+
+        ionospheric_component:
+            common_ionosphere:  true   # Code and Phase measurment share the same ionosphere
+            use_if_combo:       false
+
+    model_error_checking:
+    
+        deweighting:
+            deweight_factor:            10000
+
+        ambiguities:
+            outage_reset_limit:          10
+            phase_reject_limit:          2
+            reinit_on_all_slips:         true     # (bool) Any detected slips cause removal and reinitialisation of ambiguities
+
+    #ambiguity_resolution:
+    #    elevation_mask:                 15
+    #    lambda_set_size:                200
+    #    narrow_lane:
+    #        mode:                       lambda_bie        # off, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+    #        success_rate_threshold:     0.99
+    #        solution_ratio_threshold:   30
+
+    filter_options:
+    
+        outlier_screening:
+            max_filter_iterations:      50
+            max_prefit_removals:        3
+            sigma_check:                true
+
+        rts:
+            enable:                     true
+
+    minimum_constraints:
+    
+        enable: true
+
+        once_per_epoch: false            # (bool) Perform minimum constraints on a temporary filter and output results once per epoch
+
+        translation:
+            estimated:  [true]
+            
+        rotation:
+            estimated:  [true]
+            
+        scale:
+            estimated:  [false]
+            #sigma:      [1]
+
+        #full_vcv:       true
+        #scale_by_vcv:   true
+        max_filter_iterations:              20
+        max_prefit_removals:                3              # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
+        outlier_screening:
+            chi_square_mode:                none            
+            chi_square_test:                false           
+            sigma_check:                    true            
+            sigma_threshold:                3               
+            w_test:                         false           
+
+        station_noise:
+            global: [0.01, 0.01, 0.01]
+
+            
+    
+satellite_options:
+
+    global:
+        attitude:
+            sources:            [MODEL]
+            
+station_options:
+
+    global:
+        attitude:
+            sources:            [NOMINAL]
+        
+    RAEG:
+        receiver_type:  "LEICA GR25"                
+        antenna_type:   "LEIAR20         NONE"      
+        eccentricity:   [0.0000,   0.0000,   0.5793]
+    DUMG:
+        receiver_type:  "LEICA GR25"                
+        antenna_type:   "LEIAR25.R4      LEIT"      
+        eccentricity:   [0.0003,  -0.0005,   0.4278]
+    GAMB:
+        receiver_type:  "TRIMBLE NETR9"             
+        antenna_type:   "TRM59800.00     NONE"      
+        eccentricity:   [0.0000,   0.0000,   0.0000]
+    GLPS:
+        receiver_type:  "JAVAD TRE_G3TH DELTA"      
+        antenna_type:   "ASH701945B_M    SCIT"      
+        eccentricity:   [0.0000,   0.0000,   0.0083]
+    KITG:
+        receiver_type:  "SEPT POLARX5"              
+        antenna_type:   "TRM59800.00     SCIS"      
+        eccentricity:   [0.0000,   0.0003,   2.0374]
+        
+    USN7:
+        aliases:        [PIVOT]
+        
+    AGGO:
+        aliases:        [ADD_CLOCK_RATES]
+
+    PIVOT:
+        clock:
+            enable: false
+
+        code_bias:
+            enable: false
+
+        phase_bias:
+            enable: false
+
+estimation_parameters:
+
+    stations:
+        error_model:        elevation_dependent      
+        code_sigmas:        [0.3, 0.3, 0.3, 12]
+        phase_sigmas:       [0.002, 0.002, 0.002, 12]
+
+        global:
+        
+            pos:
+                estimated:          [true]
+                sigma:              [1]
+                proc_noise:         [0]
+
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [10]
+
+            amb:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [0]
+
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001]
+
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+
+            ion_stec:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [2]
+
+            code_bias:
+                estimated:          [true]
+                sigma:              [20]
+                proc_noise:         [0]
+
+<<<<<<< HEAD
+            #GPS:
+            #    L2W:
+            #        amb:
+            #            estimated:      [false]
+            #            sigma:          [1e-8]
+            #            proc_noise:     [0]
+
+        ADD_CLOCK_RATES:
+            clk_rate:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [1e-8]
+=======
+>>>>>>> develop
+
+    satellites:
+    
+        global:
+        
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [1]
+
+            clk_rate:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [1e-9]
+
+            code_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
+
+        GPS:       
+                pco:
+                    estimated: [true]
+                    sigma:      [4]
+    eop:
+        estimated:  [true]
+        sigma:      [10]
+
+    eop_rates:
+        estimated:  [true]
+        sigma:      [10]

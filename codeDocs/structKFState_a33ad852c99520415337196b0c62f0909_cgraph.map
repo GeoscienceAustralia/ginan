@@ -1,0 +1,4 @@
+<map id="KFState::setKFTransRate" name="KFState::setKFTransRate">
+<area shape="rect" id="node1" title="Adds dynamics to a filter state by inserting off&#45;diagonal, time dependent elements to transition matr..." alt="" coords="5,5,188,32"/>
+<area shape="rect" id="node2" href="$structKFState.html#a8713f4fe8effc58341d60afc0085f953" title="Tries to add a state to the filter object." alt="" coords="236,5,392,32"/>
+</map>

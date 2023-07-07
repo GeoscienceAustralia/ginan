@@ -1,0 +1,6 @@
+<map id="satOrbitGeometry" name="satOrbitGeometry">
+<area shape="rect" id="node1" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="5,56,144,83"/>
+<area shape="rect" id="node2" href="$planets_8cpp.html#afa5d7098a27c088c2dae5e00aced234b" title=" " alt="" coords="201,5,315,32"/>
+<area shape="rect" id="node3" href="$algebra__old_8cpp.html#addee52380c690a50fa0048924c67bc92" title=" " alt="" coords="237,56,279,83"/>
+<area shape="rect" id="node4" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="192,107,324,133"/>
+</map>

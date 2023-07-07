@@ -1,5 +1,0 @@
-<map id="Configure_IF_GPS_User_Pea" name="Configure_IF_GPS_User_Pea">
-<area shape="rect" id="node1" title="Ionosphere&#45;free, post&#45;processed, gps&#45;only, user&#45;mode receiver positioning." alt="" coords="296,5,501,32"/>
-<area shape="rect" id="node2" href="$UseCases_8cpp.html#a0dde87ec2017655a0fcf93670fba08fd" title="End&#45;user processing scheme that provides precise results with intermediate receiver hardware and corr..." alt="" coords="113,5,248,32"/>
-<area shape="rect" id="node3" href="$Ginan_8cpp.html#a03d840aa275dfcc2babe6b2802985005" title="Ginan is a toolkit for processing GNSS measurements to produce precise positioning products." alt="" coords="5,5,65,32"/>
-</map>

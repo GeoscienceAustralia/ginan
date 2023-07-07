@@ -1,9 +1,0 @@
-<map id="Obs" name="Obs">
-<area shape="rect" id="node1" title="Observation, and data derived from it." alt="" coords="293,461,443,788"/>
-<area shape="rect" id="node2" href="$structRawObs.html" title="Raw observation data from a receiver." alt="" coords="5,233,80,311"/>
-<area shape="rect" id="node3" href="$structIonoObs.html" title=" " alt="" coords="105,145,274,399"/>
-<area shape="rect" id="node4" title=" " alt="" coords="304,5,384,83"/>
-<area shape="rect" id="node5" href="$structSatStat.html" title="Object containing persistant status parameters of individual satellites." alt="" coords="400,145,531,399"/>
-<area shape="rect" id="node6" href="$structSatNav.html" title=" " alt="" coords="555,233,634,311"/>
-<area shape="rect" id="node7" title=" " alt="" coords="664,233,723,311"/>
-</map>

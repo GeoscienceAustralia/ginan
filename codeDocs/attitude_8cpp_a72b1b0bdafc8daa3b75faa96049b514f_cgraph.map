@@ -1,0 +1,7 @@
+<map id="satYawBds3" name="satYawBds3">
+<area shape="rect" id="node1" title="Yaw model for BDS&#45;3I/3M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="5,81,104,108"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="152,5,277,32"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="325,31,457,57"/>
+<area shape="rect" id="node4" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="155,107,275,133"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#ab401e4381f03bb13f4ad1000c230e5af" title="Smoothed yaw steering for GAL &amp; BDS." alt="" coords="159,157,271,184"/>
+</map>

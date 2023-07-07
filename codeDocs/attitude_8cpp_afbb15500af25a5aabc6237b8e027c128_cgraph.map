@@ -1,0 +1,14 @@
+<map id="satYaw" name="satYaw">
+<area shape="rect" id="node1" title="Calculates nominal &amp; model yaw Returns false if no modelled yaw available." alt="" coords="5,259,72,285"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#ae61f115d5d0990cf844b7843cf5812c7" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="120,5,259,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#aaba71c01b77e887c80e8dc69a8366d61" title="Yaw model for GPS sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="143,56,235,83"/>
+<area shape="rect" id="node4" href="$structSatSys.html#a01de9e9cee76346f43550516bba9558e" title=" " alt="" coords="307,81,445,108"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#a18338f781fea251d0f8b03666fde5b9e" title="Yaw model for GAL IOV sats." alt="" coords="135,157,244,184"/>
+<area shape="rect" id="node6" href="$attitude_8cpp.html#abdce260d1dd40f5c15f4003e87bafd3b" title="Yaw model for GAL FOC sats." alt="" coords="134,208,245,235"/>
+<area shape="rect" id="node7" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="145,259,234,285"/>
+<area shape="rect" id="node8" href="$attitude_8cpp.html#a3d99fe34c55c1e5e80b495aa7fb4a5dc" title="Yaw model for QZSS&#45;1 satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="327,411,425,437"/>
+<area shape="rect" id="node9" href="$attitude_8cpp.html#a7da34cb31c95554835b5872eabf41df1" title="Orbit normal yaw model Will set nominalYaw &amp; modelYaw to the orbit&#45;normal yaw (0 or PI) closest to th..." alt="" coords="493,411,607,437"/>
+<area shape="rect" id="node10" href="$attitude_8cpp.html#ae895bad3e9b1c1ce5b6ccadab478b787" title="Yaw model for QZSS&#45;2I &amp; QZSS&#45;2A satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="138,411,241,437"/>
+<area shape="rect" id="node11" href="$attitude_8cpp.html#a97974606e1ce768c7689466ef0a359ab" title="Yaw model for BDS&#45;2I/2M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="140,461,239,488"/>
+<area shape="rect" id="node12" href="$attitude_8cpp.html#a72b1b0bdafc8daa3b75faa96049b514f" title="Yaw model for BDS&#45;3I/3M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="327,461,425,488"/>
+</map>

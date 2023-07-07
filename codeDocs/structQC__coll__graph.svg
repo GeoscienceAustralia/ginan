@@ -27,7 +27,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="$structAverage.html" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structAverage.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="0,-155 0,-223 56,-223 56,-155 0,-155"/>
 <text text-anchor="middle" x="28" y="-211" font-family="Helvetica,sans-Serif" font-size="10.00">Average</text>
 <polyline fill="none" stroke="black" points="0,-204 56,-204 "/>
@@ -48,7 +48,7 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="$structflt__t.html" xlink:title="Cycle slip repair filter.">
+<g id="a_node3"><a xlink:href="structflt__t.html" target="_top" xlink:title="Cycle slip repair filter.">
 <polygon fill="white" stroke="black" points="77,-138.5 77,-239.5 127,-239.5 127,-138.5 77,-138.5"/>
 <text text-anchor="middle" x="102" y="-227.5" font-family="Helvetica,sans-Serif" font-size="10.00">flt_t</text>
 <polyline fill="none" stroke="black" points="77,-220.5 127,-220.5 "/>
@@ -71,7 +71,7 @@
 <!-- Node4 -->
 <g id="node4" class="node">
 <title>Node4</title>
-<g id="a_node4"><a xlink:href="$structlc__t.html" xlink:title=" ">
+<g id="a_node4"><a xlink:href="structlc__t.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="116,-287.5 116,-344.5 150,-344.5 150,-287.5 116,-287.5"/>
 <text text-anchor="middle" x="133" y="-332.5" font-family="Helvetica,sans-Serif" font-size="10.00">lc_t</text>
 <polyline fill="none" stroke="red" points="116,-325.5 150,-325.5 "/>

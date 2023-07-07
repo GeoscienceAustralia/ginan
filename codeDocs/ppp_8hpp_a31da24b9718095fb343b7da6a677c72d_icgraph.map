@@ -1,5 +1,0 @@
-<map id="model_iono" name="model_iono">
-<area shape="rect" id="node1" title="ionospheric model" alt="" coords="148,31,247,57"/>
-<area shape="rect" id="node2" href="$ppp__user_8cpp.html#a70cbdeafd26c3c4a863baa1a23e760a8" title="precise point positioning" alt="" coords="22,5,83,32"/>
-<area shape="rect" id="node3" href="$ppppp__obs_8cpp.html#a8e29305530493f14bc2ba370e2e5bbe7" title=" " alt="" coords="5,56,100,83"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="setTropSols" name="setTropSols">
-<area shape="rect" id="node1" title="Set troposphere solution data." alt="" coords="5,31,101,57"/>
-<area shape="rect" id="node2" href="$tropSinex_8cpp.html#a46c251b82049d97d17fe992587395761" title="Set troposphere solution data from filter." alt="" coords="157,5,318,32"/>
-<area shape="rect" id="node3" href="$tropSinex_8cpp.html#a01609b567cee9fc597731f8a38b66e1c" title="Set troposphere solution header comment." alt="" coords="149,56,325,83"/>
-</map>

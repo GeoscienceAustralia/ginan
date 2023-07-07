@@ -1,0 +1,7 @@
+<map id="updateSatAtts" name="updateSatAtts">
+<area shape="rect" id="node1" title="Update sat nominal/model yaws." alt="" coords="5,81,120,108"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#aeba33c340b4695e47f2d41bf97402400" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="168,5,339,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#afbb15500af25a5aabc6237b8e027c128" title="Calculates nominal &amp; model yaw Returns false if no modelled yaw available." alt="" coords="220,56,287,83"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a9f0fa1f1a86bfae5e0569b3b9b37811e" title="Calculates satellite attitude &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns false if n..." alt="" coords="223,107,284,133"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#a2dc6b32688f62e5d33bdf6741384362e" title="Calculates antenna attitude &#45; unit vectors of antenna&#45;fixed coordinates (ECEF)" alt="" coords="222,157,285,184"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="satYawGalIov" name="satYawGalIov">
+<area shape="rect" id="node1" title="Yaw model for GAL IOV sats." alt="" coords="5,81,115,108"/>
+<area shape="rect" id="node2" href="$coordinates_8cpp.html#a6d65fc686fade9db8e953ae1ef13d929" title=" " alt="" coords="195,5,273,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#a0b7a315d68bfcf8c1bf8a1caf9cadd3a" title="Calculate nominal (ideal) sat yaw for GAL&#45;IOV sats." alt="" coords="163,56,305,83"/>
+<area shape="rect" id="node4" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="168,107,300,133"/>
+<area shape="rect" id="node5" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="174,157,294,184"/>
+</map>

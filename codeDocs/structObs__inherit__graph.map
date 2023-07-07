@@ -1,5 +1,0 @@
-<map id="Obs" name="Obs">
-<area shape="rect" id="node1" title="Observation, and data derived from it." alt="" coords="55,307,205,707"/>
-<area shape="rect" id="node2" href="$structRawObs.html" title="Raw observation data from a receiver." alt="" coords="5,71,100,193"/>
-<area shape="rect" id="node3" href="$structIonoObs.html" title=" " alt="" coords="124,5,293,259"/>
-</map>

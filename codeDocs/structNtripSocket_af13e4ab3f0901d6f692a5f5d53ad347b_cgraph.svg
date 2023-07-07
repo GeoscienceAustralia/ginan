@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="$structNtripSocket.html#a78c8392664a94a36db0d32542c70dbd0" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structNtripSocket.html#a78c8392664a94a36db0d32542c70dbd0" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="184,-0.5 184,-19.5 355,-19.5 355,-0.5 184,-0.5"/>
 <text text-anchor="middle" x="269.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">NtripSocket::messageChunkLog</text>
 </a>

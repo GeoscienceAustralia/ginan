@@ -1,5 +1,0 @@
-<map id="sunmoonpos" name="sunmoonpos">
-<area shape="rect" id="node1" title="get sun and moon position in ecef" alt="" coords="5,31,111,57"/>
-<area shape="rect" id="node2" href="$rtkcmn_8cpp.html#ae750d4c658ef6ae3e065e949878edcee" title=" " alt="" coords="159,5,289,32"/>
-<area shape="rect" id="node3" href="$rtkcmn_8cpp.html#a304b15df0b6ab1452fd1f31277dad490" title="eci to ecef transformation matrix" alt="" coords="185,56,263,83"/>
-</map>

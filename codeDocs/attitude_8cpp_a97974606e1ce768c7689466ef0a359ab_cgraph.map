@@ -1,0 +1,9 @@
+<map id="satYawBds2" name="satYawBds2">
+<area shape="rect" id="node1" title="Yaw model for BDS&#45;2I/2M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="5,109,104,136"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="343,33,468,60"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#a2427a868db0f0ab748d35d7fedaffb6d" title="Get attitude mode for sat." alt="" coords="152,33,295,60"/>
+<area shape="rect" id="node4" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="345,134,465,161"/>
+<area shape="rect" id="node5" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="175,84,272,110"/>
+<area shape="rect" id="node6" href="$attitude_8cpp.html#a72b1b0bdafc8daa3b75faa96049b514f" title="Yaw model for BDS&#45;3I/3M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="174,134,273,161"/>
+<area shape="rect" id="node7" href="$attitude_8cpp.html#a7da34cb31c95554835b5872eabf41df1" title="Orbit normal yaw model Will set nominalYaw &amp; modelYaw to the orbit&#45;normal yaw (0 or PI) closest to th..." alt="" coords="167,236,280,262"/>
+</map>

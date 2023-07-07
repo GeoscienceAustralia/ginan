@@ -1,4 +1,0 @@
-<map id="pushBiasSinex" name="pushBiasSinex">
-<area shape="rect" id="node1" title="Push forward and reverse bias entry into the SINEXBiases map." alt="" coords="5,5,123,32"/>
-<area shape="rect" id="node2" href="$biasSINEXread_8cpp.html#aacc54f565ff998a751941931278b6fd2" title="Decompose DSB or DCB into OSBs." alt="" coords="171,5,323,32"/>
-</map>

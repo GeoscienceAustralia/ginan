@@ -1,5 +1,0 @@
-<map id="RTCM_Streams" name="RTCM_Streams">
-<area shape="rect" id="node1" title="Provide GNSS observation data from low&#45;bandwidth binary streams." alt="" coords="189,31,309,57"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#ae0e7a9875ba11feed494742fbf80e727" title="Data files are checked for new data each epoch before processing commences." alt="" coords="27,5,120,32"/>
-<area shape="rect" id="node3" href="$Pea_8cpp.html#aa44936d50588dd350cf9b05d0e6090f1" title="Output results to standardised stream formats." alt="" coords="5,56,141,83"/>
-</map>

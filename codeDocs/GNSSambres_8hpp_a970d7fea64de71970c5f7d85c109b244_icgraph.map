@@ -1,8 +1,0 @@
-<map id="sys_frq" name="sys_frq">
-<area shape="rect" id="node1" title="Default frequencies for each system." alt="" coords="352,107,421,133"/>
-<area shape="rect" id="node2" href="$GinAR__main_8cpp.html#a98a969d6cdd26958e34a6b36613987ac" title="Loading float ambiguity data from Observations (WL, cycle slip &amp; elevation)" alt="" coords="179,5,290,32"/>
-<area shape="rect" id="node3" href="$GinAR__main_8cpp.html#a48fa415df652066004129736fa989e44" title="Loading float ambiguity data from KF." alt="" coords="183,56,286,83"/>
-<area shape="rect" id="node4" href="$GinAR__main_8cpp.html#ae68f0d04a4be7a5163423b22108b8586" title="Loading configuration options from acsConfig." alt="" coords="165,107,304,133"/>
-<area shape="rect" id="node5" href="$GinARNLamb_8cpp.html#ac4b99b950a4d40abefe99b35c1142570" title="Check Z&#45;transformed ambiguities and remove old entries." alt="" coords="195,157,275,184"/>
-<area shape="rect" id="node6" href="$GinARNLamb_8cpp.html#a150b7e4a892320cadb8bfd4c813a1aca" title="Update float ambiguity estimates." alt="" coords="5,183,117,209"/>
-</map>

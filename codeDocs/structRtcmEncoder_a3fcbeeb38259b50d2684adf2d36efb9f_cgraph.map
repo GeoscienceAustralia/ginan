@@ -1,0 +1,6 @@
+<map id="RtcmEncoder::encodeEphemeris" name="RtcmEncoder::encodeEphemeris">
+<area shape="rect" id="node1" title="encode GPS/GAL/BDS/QZS ephemeris messages" alt="" coords="5,56,237,83"/>
+<area shape="rect" id="node2" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="335,5,421,32"/>
+<area shape="rect" id="node3" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="335,56,421,83"/>
+<area shape="rect" id="node4" href="$structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1" title="Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file." alt="" coords="285,107,471,133"/>
+</map>

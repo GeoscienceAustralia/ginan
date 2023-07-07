@@ -1,7 +1,0 @@
-<map id="Ginan" name="Ginan">
-<area shape="rect" id="node1" title="Ginan is a toolkit for processing GNSS measurements to produce precise positioning products." alt="" coords="5,81,65,108"/>
-<area shape="rect" id="node2" href="$UseCases_8cpp.html#a6579a19d537a3786c0b5bd72cd85c8aa" title="Iterative process to estimate many products and corrections for distribution to end&#45;users." alt="" coords="113,5,267,32"/>
-<area shape="rect" id="node3" href="$UseCases_8cpp.html#ad1bd88747ef507e49ba27e266594e67a" title="Processing scheme that allows optimal processing of many parameters." alt="" coords="115,56,265,83"/>
-<area shape="rect" id="node4" href="$UseCases_8cpp.html#a0dde87ec2017655a0fcf93670fba08fd" title="End&#45;user processing scheme that provides precise results with intermediate receiver hardware and corr..." alt="" coords="123,107,257,133"/>
-<area shape="rect" id="node5" href="$UseCases_8cpp.html#a7e345d087ff3945346c5a17997a88d6c" title="End&#45;user processing scheme that provides precise results with low&#45;cost receiver hardware and correcti..." alt="" coords="120,157,260,184"/>
-</map>

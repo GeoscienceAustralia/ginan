@@ -1,6 +1,0 @@
-<map id="SinexBias" name="SinexBias">
-<area shape="rect" id="node1" title=" " alt="" coords="159,439,261,604"/>
-<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,156,361"/>
-<area shape="rect" id="node3" title=" " alt="" coords="181,145,239,222"/>
-<area shape="rect" id="node4" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="264,35,407,332"/>
-</map>

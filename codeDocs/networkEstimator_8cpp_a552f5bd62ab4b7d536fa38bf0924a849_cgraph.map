@@ -1,6 +1,0 @@
-<map id="removeBadAmbiguities" name="removeBadAmbiguities">
-<area shape="rect" id="node1" title="Remove ambiguity states from filter when they deemed old or bad This effectively reinitialises them o..." alt="" coords="5,56,180,83"/>
-<area shape="rect" id="node2" href="$structKFState.html#abdf1505bdab1895a280fd018979849f1" title="Remove a state from a kalman filter object." alt="" coords="232,5,397,32"/>
-<area shape="rect" id="node3" href="$algebra_8cpp.html#a304f0d512353a3c5a991c2439ea73287" title=" " alt="" coords="231,56,399,83"/>
-<area shape="rect" id="node4" href="$structACSConfig.html#a7ddfbaf20a1c9181d73d0dabe92beace" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="228,107,401,133"/>
-</map>

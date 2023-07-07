@@ -1,4 +1,0 @@
-<map id="eci2ecef_sofa" name="eci2ecef_sofa">
-<area shape="rect" id="node1" title="vector transformed from eci to ecef using the sofa library" alt="" coords="5,5,117,32"/>
-<area shape="rect" id="node2" href="$rtkcmn_8cpp.html#a470bf7b49dcb299ab533958252a1dfe0" title="eci to ecef transformation matrix using the sofa library" alt="" coords="165,5,277,32"/>
-</map>

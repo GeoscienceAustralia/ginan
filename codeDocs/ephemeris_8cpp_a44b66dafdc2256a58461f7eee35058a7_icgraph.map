@@ -1,5 +1,0 @@
-<map id="var_uraeph" name="var_uraeph">
-<area shape="rect" id="node1" title="variance by ura ephemeris (ref [1] 20.3.3.3.1.1)" alt="" coords="137,31,232,57"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a6f6719d14c7d9cf51d97ebecfc73f38a" title="broadcast ephemeris to satellite position and clock bias compute satellite position and clock bias wi..." alt="" coords="9,5,86,32"/>
-<area shape="rect" id="node3" href="$ephemeris_8cpp.html#af8554ab873b3d3cd9c605c5aff342549" title="sbas ephemeris to satellite position and clock bias &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;— compute satellite positio..." alt="" coords="5,56,89,83"/>
-</map>

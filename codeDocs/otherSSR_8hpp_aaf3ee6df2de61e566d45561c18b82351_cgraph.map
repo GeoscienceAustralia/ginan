@@ -1,0 +1,6 @@
+<map id="encodeIGS_COD" name="encodeIGS_COD">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,132,83"/>
+<area shape="rect" id="node2" href="$prototypeIgsSSREncode_8cpp.html#a8eb3060ddd2b575d9cfdb78bf62eef65" title=" " alt="" coords="180,5,315,32"/>
+<area shape="rect" id="node3" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="204,56,291,83"/>
+<area shape="rect" id="node4" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="205,107,290,133"/>
+</map>

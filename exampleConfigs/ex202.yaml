@@ -1,0 +1,12 @@
+
+inputs:
+    include_yamls:
+        - input_metadata.yaml
+        - input_streams_rover.yaml
+        - processing_rover.yaml
+        - mongo_outputs.yaml
+        - debug_trace.yaml
+    
+outputs:
+    metadata:
+        config_description:     "ex202"

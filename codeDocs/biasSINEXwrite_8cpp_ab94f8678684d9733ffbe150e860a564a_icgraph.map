@@ -1,0 +1,4 @@
+<map id="writeBSINEXHeader" name="writeBSINEXHeader">
+<area shape="rect" id="node1" title="Write bias SINEX head for the first time." alt="" coords="172,5,323,32"/>
+<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#a975aa402cca9e4828c089e82bb68c5a6" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="5,5,124,32"/>
+</map>

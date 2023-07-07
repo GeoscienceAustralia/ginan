@@ -1,0 +1,5 @@
+<map id="writeClk" name="writeClk">
+<area shape="rect" id="node1" title="Write CLK or CRT records." alt="" coords="5,31,81,57"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="129,5,224,32"/>
+<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="133,56,220,83"/>
+</map>

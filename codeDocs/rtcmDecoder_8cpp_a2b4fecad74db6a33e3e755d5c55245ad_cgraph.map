@@ -1,0 +1,4 @@
+<map id="getbits" name="getbits">
+<area shape="rect" id="node1" title="extract signed bits from byte data" alt="" coords="5,5,72,32"/>
+<area shape="rect" id="node2" href="$rtcmDecoder_8cpp.html#a85a03123ae20efc3b06434f616140943" title="extract unsigned bits from byte data" alt="" coords="120,5,188,32"/>
+</map>

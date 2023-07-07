@@ -1,9 +1,0 @@
-<map id="antPco" name="antPco">
-<area shape="rect" id="node1" title="fetch pco" alt="" coords="173,107,240,133"/>
-<area shape="rect" id="node2" href="$brdc2sp3__main_8cpp.html#a4d3471358091d3a4ea528b47af119710" title=" " alt="" coords="13,5,118,32"/>
-<area shape="rect" id="node3" href="$antenna_8cpp.html#ab4c16e775aff08f2d1e845bf7e3f0955" title=" " alt="" coords="14,56,117,83"/>
-<area shape="rect" id="node4" href="$preceph_8cpp.html#a1d1e6d2fb79dbf66390f5c68ca523e68" title="satellite antenna phase center offset in ecef" alt="" coords="23,107,107,133"/>
-<area shape="rect" id="node5" href="$ppp_8cpp.html#ab64566108038907ed6df48da876f33c3" title=" " alt="" coords="5,157,125,184"/>
-<area shape="rect" id="node6" href="$ppp__network_8cpp.html#a1986299316c605c9c72b50a2f9c6c524" title="PPP observed&#45;minus&#45;computed." alt="" coords="28,208,103,235"/>
-<area shape="rect" id="node7" href="$ppppp__obs_8cpp.html#a6d7e3b13ddbe34ab2c3e753817a8528e" title=" " alt="" coords="17,259,114,285"/>
-</map>

@@ -1,4 +1,0 @@
-<map id="PseudoObsStream::eatObs" name="PseudoObsStream::eatObs">
-<area shape="rect" id="node1" title="Remove some observations from memory." alt="" coords="248,5,443,32"/>
-<area shape="rect" id="node2" href="$structPseudoObsStream.html#af3d32af8a8136460f5c1e56f7096d97b" title="Return a list of observations from the stream, with a specified timestamp." alt="" coords="5,5,200,32"/>
-</map>

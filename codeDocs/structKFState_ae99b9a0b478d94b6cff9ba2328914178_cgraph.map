@@ -1,0 +1,17 @@
+<map id="KFState::filterKalman" name="KFState::filterKalman">
+<area shape="rect" id="node1" title="Kalman filter operation." alt="" coords="5,335,168,361"/>
+<area shape="rect" id="node2" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="274,5,394,32"/>
+<area shape="rect" id="node3" href="$algebraTrace_8hpp.html#a912bbc3ba390c6b3a01f7cae26a53588" title="Output filter state to a file for later reading." alt="" coords="277,56,391,83"/>
+<area shape="rect" id="node4" href="$structKFState.html#a1d84b2acc0006963bdea090daa78685a" title="Compare variances of measurements and pre&#45;filtered states to detect unreasonable values Ref: Wang et ..." alt="" coords="235,107,433,133"/>
+<area shape="rect" id="node5" href="$structKFState.html#adc93fe4d98f33b24037d09e712e8400a" title=" " alt="" coords="217,157,451,184"/>
+<area shape="rect" id="node6" href="$structKFState.html#ae6e89a4dca53b4c6f8a5eadb1f61dd5c" title=" " alt="" coords="216,208,452,235"/>
+<area shape="rect" id="node7" href="$structKFState.html#a5b591c7386c7fb734067424a097ca118" title="Kalman filter." alt="" coords="273,259,395,285"/>
+<area shape="rect" id="node8" href="$structKFState.html#a4d44be64e2f00e44b89fff30191a8953" title="Compare variances of measurements and filtered states to detect unreasonable values." alt="" coords="228,309,440,336"/>
+<area shape="rect" id="node9" href="$mongoWrite_8cpp.html#ab9a0b82ff1bd0f911e534f799b412932" title=" " alt="" coords="251,360,417,387"/>
+<area shape="rect" id="node10" href="$binaryStore_8cpp.html#a2caffe8120912dd06f1bdd252675232c" title=" " alt="" coords="275,411,393,437"/>
+<area shape="rect" id="node11" href="$structKFState.html#a2280e82ccd3ebdefc388756580e5fad7" title="Compute Chi&#45;square increment based on pre&#45;fit residuals (innovations)" alt="" coords="243,461,425,488"/>
+<area shape="rect" id="node12" href="$structKFState.html#a67bbec17e7e74bf5de0d83098281bfc0" title="Compute Chi&#45;square increment based on post&#45;fit residuals." alt="" coords="243,512,425,539"/>
+<area shape="rect" id="node13" href="$structKFState.html#aa963c92f094f4c0f9d43eea2661723dd" title="Compute Chi&#45;square increment based on the change of fitting solution." alt="" coords="244,563,424,589"/>
+<area shape="rect" id="node14" href="$mongoWrite_8cpp.html#a2b60515d35b3ad7ac783de1d8539495f" title=" " alt="" coords="275,613,393,640"/>
+<area shape="rect" id="node15" href="$structKFState.html#a34fe78e0ab7a8f1d122ceabddc29b207" title="Clears and initialises the state transition matrix to identity at the beginning of an epoch." alt="" coords="247,664,421,691"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="GTime::floorTime" name="GTime::floorTime">
+<area shape="rect" id="node1" title=" " alt="" coords="423,172,557,199"/>
+<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#a975aa402cca9e4828c089e82bb68c5a6" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="199,5,317,32"/>
+<area shape="rect" id="node3" href="$structNtripUploader.html#a391d7d2c8f7b72a659bd35d8242fb30a" title=" " alt="" coords="141,81,375,122"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16" title="Returns (posix) for current epoch." alt="" coords="193,147,323,173"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#a2c1eabb2ea9b242d8d9fd2c1795849e9" title=" " alt="" coords="20,160,79,187"/>
+<area shape="rect" id="node6" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="170,197,346,224"/>
+<area shape="rect" id="node7" href="$sp3Write_8cpp.html#aa684817008c29bcd43c77bdda90b8a31" title=" " alt="" coords="5,223,93,249"/>
+</map>

@@ -1,4 +1,0 @@
-<map id="eph2pos" name="eph2pos">
-<area shape="rect" id="node1" title="broadcast ephemeris to satellite position and clock bias compute satellite position and clock bias wi..." alt="" coords="5,5,83,32"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a44b66dafdc2256a58461f7eee35058a7" title="variance by ura ephemeris (ref [1] 20.3.3.3.1.1)" alt="" coords="131,5,225,32"/>
-</map>

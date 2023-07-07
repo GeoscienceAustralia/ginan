@@ -1,9 +1,0 @@
-<map id="Kalman_Filter" name="Kalman_Filter">
-<area shape="rect" id="node1" title="Used to combine measurements and apriori values to produce an &#39;optimal&#39; estimation of parameters." alt="" coords="5,132,116,159"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#a17fea86f907e0e24b9ae2aa96a06dde7" title=" " alt="" coords="173,5,346,32"/>
-<area shape="rect" id="node3" href="$Pea_8cpp.html#ab3ce5747982e6fa7dfe0940a1f81671a" title=" " alt="" coords="182,56,337,83"/>
-<area shape="rect" id="node4" href="$Pea_8cpp.html#a4cea7ab960b60a31d13d045ff37a132e" title="Used to initialise unknown parameters." alt="" coords="201,107,317,133"/>
-<area shape="rect" id="node5" href="$Pea_8cpp.html#a926ab7f1f1476c8d7d759cbff2865ea1" title=" " alt="" coords="189,157,330,184"/>
-<area shape="rect" id="node6" href="$Pea_8cpp.html#a061c22a37ccd8f90325b17a12eb0b00a" title=" " alt="" coords="164,208,355,235"/>
-<area shape="rect" id="node7" href="$Pea_8cpp.html#ad9e947fb3615521a29fb49a133dac5da" title=" " alt="" coords="204,259,315,285"/>
-</map>

@@ -1,6 +1,0 @@
-<map id="decodeGeph" name="decodeGeph">
-<area shape="rect" id="node1" title="Decode glonass ephemeris." alt="" coords="5,56,108,83"/>
-<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="183,5,270,32"/>
-<area shape="rect" id="node3" href="$structGTime.html#a7ed28cc28b05a43069702e96295be269" title=" " alt="" coords="156,56,297,83"/>
-<area shape="rect" id="node4" href="$gTime_8cpp.html#ad4d46b57a880857abd1826dacf374c77" title=" " alt="" coords="187,107,266,133"/>
-</map>

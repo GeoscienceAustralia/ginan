@@ -1,9 +1,0 @@
-<map id="LoadFromObs" name="LoadFromObs">
-<area shape="rect" id="node1" title="Loading float ambiguity data from Observations (WL, cycle slip &amp; elevation)" alt="" coords="5,132,116,159"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="202,5,297,32"/>
-<area shape="rect" id="node3" href="$structGTime.html#a64394968bbfdecbbeec4ba5134fdb682" title=" " alt="" coords="185,56,314,83"/>
-<area shape="rect" id="node4" href="$GinAR__main_8cpp.html#a970d7fea64de71970c5f7d85c109b244" title="Default frequencies for each system." alt="" coords="215,107,284,133"/>
-<area shape="rect" id="node5" href="$structACSConfig.html#a9f893b7ab2412f42ef7a02423d755940" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="164,157,335,184"/>
-<area shape="rect" id="node6" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="383,183,469,209"/>
-<area shape="rect" id="node7" href="$GinAR__main_8cpp.html#a676cd5ea061291498888f4a5bbf5a525" title=" " alt="" coords="198,259,301,285"/>
-</map>

@@ -1,0 +1,4 @@
+<map id="satAtt" name="satAtt">
+<area shape="rect" id="node1" title="Satellite attitude &#45; calculates unit vectors of satellite&#45;fixed coordinates (ECEF) Returns false if n..." alt="" coords="5,5,67,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a9f0fa1f1a86bfae5e0569b3b9b37811e" title="Calculates satellite attitude &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns false if n..." alt="" coords="115,5,176,32"/>
+</map>

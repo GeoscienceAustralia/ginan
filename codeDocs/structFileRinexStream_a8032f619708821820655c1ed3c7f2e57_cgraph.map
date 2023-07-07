@@ -1,6 +1,0 @@
-<map id="FileRinexStream::getObs" name="FileRinexStream::getObs">
-<area shape="rect" id="node1" title="Return a list of observations from the stream." alt="" coords="5,56,188,83"/>
-<area shape="rect" id="node2" href="$structACSFileStream.html#a58b8f25aa5bcdb840d16acf3f2d8ff8c" title=" " alt="" coords="242,5,421,32"/>
-<area shape="rect" id="node3" href="$structRinexStream.html#ac91107c36eef2e28dfe4e0b9a0a5ea1e" title=" " alt="" coords="236,56,427,83"/>
-<area shape="rect" id="node4" href="$structObsStream.html#a72abbf0503505bc3f1a2c45f0dd5ae95" title="Return a list of observations from the stream." alt="" coords="257,107,405,133"/>
-</map>

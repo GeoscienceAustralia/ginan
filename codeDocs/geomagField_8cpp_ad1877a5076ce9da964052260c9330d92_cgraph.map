@@ -1,0 +1,4 @@
+<map id="readIGRF" name="readIGRF">
+<area shape="rect" id="node1" title="Read the IGRF file Only support the latest generations of IGRF file from IGRF&#45;11." alt="" coords="5,5,88,32"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#a06fabc81a2cc41dfee260450a527ad2d" title="Trims leading &amp; trailing whitespace." alt="" coords="136,5,185,32"/>
+</map>

@@ -1,0 +1,3 @@
+<map id="MapIteratorType&lt; OUTTYPE, INTYPE, KEYTYPE &gt;" name="MapIteratorType&lt; OUTTYPE, INTYPE, KEYTYPE &gt;">
+<area shape="rect" id="node1" title="An iterator that trys to cast elements to the desired type before using them." alt="" coords="5,5,212,171"/>
+</map>

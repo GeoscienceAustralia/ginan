@@ -1,0 +1,6 @@
+<map id="writeBiasSinex" name="writeBiasSinex">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,124,83"/>
+<area shape="rect" id="node2" href="$ionoModel_8cpp.html#ac2b5a1e7749bbd86a20feb29b5713861" title=" " alt="" coords="175,5,304,32"/>
+<area shape="rect" id="node3" href="$ppp__ambres_8cpp.html#ab0d96b142a3eb7ded11951b7e1c80af1" title=" " alt="" coords="172,56,307,83"/>
+<area shape="rect" id="node4" href="$biasSINEXwrite_8cpp.html#a975aa402cca9e4828c089e82bb68c5a6" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="180,107,299,133"/>
+</map>

@@ -1,6 +1,0 @@
-<map id="sat_yaw" name="sat_yaw">
-<area shape="rect" id="node1" title="Satellite attitude model." alt="" coords="5,56,81,83"/>
-<area shape="rect" id="node2" href="$rtkcmn_8cpp.html#ac9a81e78329f3b0dafee87842d6c1027" title="get sun and moon position in ecef" alt="" coords="131,5,237,32"/>
-<area shape="rect" id="node3" href="$gTime_8cpp.html#a853f281ccd45b714eb3edb14259a982a" title=" " alt="" coords="145,56,223,83"/>
-<area shape="rect" id="node4" href="$ppp_8cpp.html#aeec4be9da926fd56edd154d0e81a5d63" title="Calculate nominal yaw&#45;angle." alt="" coords="129,107,239,133"/>
-</map>

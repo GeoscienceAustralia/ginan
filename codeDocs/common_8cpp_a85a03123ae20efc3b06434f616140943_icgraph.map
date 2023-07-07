@@ -1,9 +1,0 @@
-<map id="getbitu" name="getbitu">
-<area shape="rect" id="node1" title="extract unsigned bits from byte data args : unsigned char* buff I byte data int pos I bit position fr..." alt="" coords="543,132,611,159"/>
-<area shape="rect" id="node2" href="$common_8cpp.html#ad48f005e9a609843e1616f9267a27d29" title=" " alt="" coords="417,5,485,32"/>
-<area shape="rect" id="node3" href="$common_8cpp.html#afb03d815c5c9706c5e9b04a8edee7900" title="extract signed bits from byte data args : unsigned char* buff I byte data int pos I bit position from..." alt="" coords="418,56,485,83"/>
-<area shape="rect" id="node4" href="$common_8cpp.html#a48a309e0f4832dd7f5025c0717c5c645" title="extract sign&#45;magnitude bits applied in GLO nav messages args : unsigned char* buff I byte data int po..." alt="" coords="417,107,485,133"/>
-<area shape="rect" id="node5" href="$common_8cpp.html#aaa6463f592ed6478626814466d3d02a5" title=" " alt="" coords="408,157,495,184"/>
-<area shape="rect" id="node6" href="$structRtcmDecoder.html#aba8cfbe6f75ebb1403de74f9b5a88187" title=" " alt="" coords="195,208,360,235"/>
-<area shape="rect" id="node7" href="$structRtcmParser.html#a6138840942a03f0a06ecb288ab412716" title=" " alt="" coords="5,233,147,260"/>
-</map>

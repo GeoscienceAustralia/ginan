@@ -1,0 +1,180 @@
+# Adds satellite position estimation to Ginan network processing
+outputs:
+    root_directory:                 outputs/<CONFIG>/
+    sp3:
+        output:                     true
+        filename:                   GAA0GINRAP_<YYYY><DDD>0000_01D_05M_ORB.SP3                
+        output_inertial:            false                         # (bool) Output the entries using inertial positions and velocities
+        output_interval:            300                           # (int) Update interval for sp3 records
+        output_velocities:          false                        
+        orbit_sources:              [ KALMAN ]                   
+        clock_sources:              [ KALMAN ]
+
+processing_options:
+    epoch_control:
+        epoch_interval:             300
+        wait_next_epoch:            3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+    gnss_models:
+        sat_pos:
+            sources:                [KALMAN]
+
+    model_error_checking:
+        clocks:
+            reinit_on_clock_error:  true                           # (bool) Any clock "state" errors cause removal and reinitialisation of the clocks and all associated ambiguities
+            
+    orbit_propagation:
+        central_force:                  true
+        planetary_perturbation:         true
+        indirect_J2:                    true
+        egm_field:                      true
+        solid_earth_tide:               true
+        ocean_tide:                     true
+        general_relativity:             true
+        pole_tide_ocean:                true
+        pole_tide_solid:                true
+        solar_pressure_radiation:       true
+        antenna_thrust:                 true
+        empirical_dyb:                  true 
+        albedo:                         true
+        
+        integrator_time_step:           60
+        sat_mass:                       1000
+        sat_area:                       15
+        srp_cr:                         1.75
+        degree_max:                     15
+
+        itrf_pseudoobs:                 true
+
+estimation_parameters:
+    satellites:
+        global:
+            orbit:                                           
+                estimated:          [true]                   
+                sigma:              [0.5, 0.5, 0.5, 0.001]
+                proc_noise:         [0, 0, 0, 1e-12, 1e-12, 1e-12]
+
+            srp_dyb_0:
+                estimated:          [true, true, true]
+                sigma:              [1e-8, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_1c: 
+                estimated:          [true, false, true]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_1s: 
+                estimated:          [true, false, true]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_2c:
+                estimated:          [true, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_2s:
+                estimated:          [true, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_3c:
+                estimated:          [false, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                apriori_val:        [0.0]
+                proc_noise:         [0]
+
+            srp_dyb_3s:
+                estimated:          [false, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_4c:
+                estimated:          [true, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]
+
+            srp_dyb_4s:
+                estimated:          [true, false, false]
+                sigma:              [1e-9, 1e-9, 1e-9]
+                proc_noise:         [0]   
+        
+        GPS-IIF:
+            srp_dyb_0:
+                apriori_val: [-3.44e-08, -4.32e-11, 3.07e-10]
+            srp_dyb_1c: 
+                apriori_val: [+5.13e-10, 0, 6.85e-10]
+            srp_dyb_1s: 
+                apriori_val: [-4.86e-13, 0, 2.51e-10]
+            srp_dyb_2c: 
+                apriori_val: [-9.48e-10, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [+3.29e-10, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [+5.11e-10, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [+3.95e-10, 0, 0]
+        
+        GPS-IIR-B:
+            srp_dyb_0: 
+                apriori_val: [+7.97e-09, -8.94e-11, 2.25e-09]
+            srp_dyb_1c: 
+                apriori_val: [-2.97e-09, 0, -8.82e-10]
+            srp_dyb_1s: 
+                apriori_val: [+1.47e-11, 0, +4.28e-11]
+            srp_dyb_2c: 
+                apriori_val: [-8.06e-10, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [+7.33e-10, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [+2.50e-09, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [+4.37e-10, 0, 0]
+                
+        GPS-IIA:
+            srp_dyb_0: 
+                apriori_val: [+1.79e-09, 3.40e-11, 5.19e-12]
+            srp_dyb_1c: 
+                apriori_val: [-5.38e-13, 0, 1.93e-12]
+            srp_dyb_1s: 
+                apriori_val: [+2.15e-11, 0, 3.69e-13]
+            srp_dyb_2c: 
+                apriori_val: [-4.35e-12, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [+1.16e-13, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [-4.11e-13, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [+7.15e-14, 0, 0]
+
+        GPS-IIR-M:
+            srp_dyb_0: 
+                apriori_val: [+1.15e-08, 6.01e-10, 1.82e-09]
+            srp_dyb_1c: 
+                apriori_val: [-1.75e-09, 0, 1.33e-09]
+            srp_dyb_1s: 
+                apriori_val: [+5.01e-11, 0, 4.60e-10]
+            srp_dyb_2c: 
+                apriori_val: [-1.95e-09, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [-6.13e-10, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [+1.69e-09, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [-9.45e-10, 0, 0]
+
+        GPS-IIR-A:
+            srp_dyb_0: 
+                apriori_val: [+8.53e-09, 8.97e-10, 1.5e-09]
+            srp_dyb_1c: 
+                apriori_val: [-1.75e-09, 0, 8.02e-10]
+            srp_dyb_1s: 
+                apriori_val: [-6.16e-11, 0, 1.42e-10]
+            srp_dyb_2c: 
+                apriori_val: [-1.50e-09, 0, 0]
+            srp_dyb_2s: 
+                apriori_val: [+2.20e-10, 0, 0]
+            srp_dyb_4c: 
+                apriori_val: [+1.86e-09, 0, 0]
+            srp_dyb_4s: 
+                apriori_val: [-5.52e-11, 0, 0]

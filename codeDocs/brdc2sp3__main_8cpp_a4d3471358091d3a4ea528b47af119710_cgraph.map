@@ -1,6 +1,0 @@
-<map id="BS_satantoff" name="BS_satantoff">
-<area shape="rect" id="node1" title=" " alt="" coords="5,21,111,48"/>
-<area shape="rect" id="node2" href="$structSatSys.html#adbdf98ba1ef1f22b6aaed93916529513" title=" " alt="" coords="293,21,400,48"/>
-<area shape="rect" id="node3" href="$antenna_8cpp.html#af5ff8c140e828e46c7e9f72973064c13" title="fetch pco" alt="" coords="169,21,235,48"/>
-<area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="159,72,245,98"/>
-</map>

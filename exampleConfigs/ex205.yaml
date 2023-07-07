@@ -1,0 +1,31 @@
+
+inputs:
+    include_yamls:
+        - input_metadata.yaml
+        - input_files_network.yaml
+        - processing_network.yaml
+        - processing_network_orbits.yaml
+        - mongo_outputs.yaml
+        - debug_trace.yaml
+    
+    satellite_data:
+        nav_files: [ brdm1990.19p                               ]
+    
+outputs:
+    metadata:
+        config_description:     "ex205"
+
+processing_options:
+    gnss_models:
+        ionospheric_component2:
+            enable:             true
+        ionospheric_component3:
+            enable:             true
+    gnss_general:
+        common_sat_pco:         true
+        common_rec_pco:         true
+    filter_options:
+        rts:
+            enable:         true
+            directory:      ./    # WARNING: RTS Smoothing for network solutions may generate files of up to 1TB in size, 
+                                  # make sure there is enoough disk space for these files 

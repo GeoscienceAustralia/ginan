@@ -1,0 +1,4 @@
+<map id="satYawQzs2I" name="satYawQzs2I">
+<area shape="rect" id="node1" title="Yaw model for QZSS&#45;2I &amp; QZSS&#45;2A satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="120,5,223,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#afbb15500af25a5aabc6237b8e027c128" title="Calculates nominal &amp; model yaw Returns false if no modelled yaw available." alt="" coords="5,5,72,32"/>
+</map>

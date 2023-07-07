@@ -1,5 +1,0 @@
-<map id="arbiaout" name="arbiaout">
-<area shape="rect" id="node1" title="Output phase biases." alt="" coords="203,31,279,57"/>
-<area shape="rect" id="node2" href="$GinAR__main_8cpp.html#a5d80c7f56e03c96dc400839ceca50698" title="Ambiguity resolution for network solutions." alt="" coords="7,5,153,32"/>
-<area shape="rect" id="node3" href="$GinAR__main_8cpp.html#a99547395860accf77f4d3dc4328cb139" title="Ambiguity resolution on smoothed KF solutions." alt="" coords="5,56,155,83"/>
-</map>

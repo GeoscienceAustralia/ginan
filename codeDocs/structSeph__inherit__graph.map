@@ -1,0 +1,4 @@
+<map id="Seph" name="Seph">
+<area shape="rect" id="node1" title="SBAS ephemeris." alt="" coords="9,131,76,399"/>
+<area shape="rect" id="node2" href="$structBrdcEph.html" title=" " alt="" coords="5,5,80,83"/>
+</map>

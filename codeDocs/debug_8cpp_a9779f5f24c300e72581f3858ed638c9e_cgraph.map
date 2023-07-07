@@ -1,0 +1,8 @@
+<map id="debugAttitude" name="debugAttitude">
+<area shape="rect" id="node1" title=" " alt="" coords="5,84,120,111"/>
+<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="389,8,476,35"/>
+<area shape="rect" id="node3" href="$structACSConfig.html#aeba33c340b4695e47f2d41bf97402400" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="169,34,340,60"/>
+<area shape="rect" id="node4" href="$structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="168,84,341,111"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#aacbfbe9ac21bd3c953d5ea35d4e18937" title="Attitude of receiver." alt="" coords="224,135,285,162"/>
+<area shape="rect" id="node6" href="$planets_8cpp.html#afa5d7098a27c088c2dae5e00aced234b" title=" " alt="" coords="197,186,312,212"/>
+</map>

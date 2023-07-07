@@ -1,0 +1,5 @@
+<map id="gradMapFn" name="gradMapFn">
+<area shape="rect" id="node1" title="Returns gradient mapping function m_az(el) Valid for 0 &lt; el &lt; 0.9999 * PI/2; returns 0 otherwise Ref:..." alt="" coords="184,31,279,57"/>
+<area shape="rect" id="node2" href="$cost_8cpp.html#a6fb9f6966f5c24817f83f4dd46ed354c" title="Outputs troposphere COST file." alt="" coords="24,5,117,32"/>
+<area shape="rect" id="node3" href="$ppp_8cpp.html#a7f621fb83d9d7edb2cde4d77ac8b17f0" title=" " alt="" coords="5,56,136,83"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="ionDelay" name="ionDelay">
+<area shape="rect" id="node1" title="ionosphere delay by tec grid data" alt="" coords="116,5,196,32"/>
+<area shape="rect" id="node2" href="$ionex_8cpp.html#aeea424b674c466f7e7f4465f8cdd6e6b" title="ionosphere model by tec grid data Before calling the function, read tec grid data by calling readTec(..." alt="" coords="5,5,68,32"/>
+</map>

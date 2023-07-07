@@ -1,6 +1,0 @@
-<map id="ephclk" name="ephclk">
-<area shape="rect" id="node1" title=" " alt="" coords="5,56,71,83"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a7e4b61d7dfc9c94a976fa308b94e3125" title="broadcast ephemeris to satellite clock bias compute satellite clock bias with broadcast ephemeris (gp..." alt="" coords="123,5,196,32"/>
-<area shape="rect" id="node3" href="$ephemeris_8cpp.html#a54093d364e091d7941925c9a1089e276" title=" " alt="" coords="119,56,200,83"/>
-<area shape="rect" id="node4" href="$ephemeris_8cpp.html#a4067cb995409fce1b919bed224bf5644" title=" " alt="" coords="119,107,199,133"/>
-</map>

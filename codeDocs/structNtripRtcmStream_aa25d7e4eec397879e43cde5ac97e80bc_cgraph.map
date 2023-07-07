@@ -1,5 +1,0 @@
-<map id="NtripRtcmStream::getNav" name="NtripRtcmStream::getNav">
-<area shape="rect" id="node1" title=" " alt="" coords="5,31,196,57"/>
-<area shape="rect" id="node2" href="$structNtripStream.html#afab7dfd25c95b98eadfe937b7d37bb7f" title="Retrieve data from the stream and store it for later removal." alt="" coords="255,5,417,32"/>
-<area shape="rect" id="node3" href="$structRtcmStream.html#a34a7a941dab214b7ff6b17e8a53eb55a" title=" " alt="" coords="244,56,428,83"/>
-</map>

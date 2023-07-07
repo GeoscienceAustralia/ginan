@@ -1,7 +1,0 @@
-<map id="RinexStream" name="RinexStream">
-<area shape="rect" id="node1" title="Interface for rinex streams." alt="" coords="193,189,353,340"/>
-<area shape="rect" id="node2" href="$structObsStream.html" title="Interface for streams that supply observations." alt="" coords="5,5,128,127"/>
-<area shape="rect" id="node3" href="$structNavStream.html" title="Interface for objects that provide navigation data." alt="" coords="153,27,247,105"/>
-<area shape="rect" id="node4" title=" " alt="" coords="271,20,425,112"/>
-<area shape="rect" id="node5" title=" " alt="" coords="449,27,567,105"/>
-</map>

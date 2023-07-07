@@ -1,0 +1,5 @@
+<map id="currentLogptime" name="currentLogptime">
+<area shape="rect" id="node1" title="Returns (posix) for current epoch." alt="" coords="5,31,135,57"/>
+<area shape="rect" id="node2" href="$structGTime.html#a72505f23b2252f690f124c2eaf026f91" title=" " alt="" coords="183,5,317,32"/>
+<area shape="rect" id="node3" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="190,56,310,83"/>
+</map>

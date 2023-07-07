@@ -1,6 +1,0 @@
-<map id="model_phw" name="model_phw">
-<area shape="rect" id="node1" title="phase windup model" alt="" coords="5,56,103,83"/>
-<area shape="rect" id="node2" href="$ppp_8cpp.html#a4e1c6c21b8c1cf98a28f01035f547b2e" title="Satellite attitude model." alt="" coords="153,5,229,32"/>
-<area shape="rect" id="node3" href="$rtkcmn_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="151,56,232,83"/>
-<area shape="rect" id="node4" href="$rtkcmn_8cpp.html#a59a54664edbf3bc2ebeb1f5e5e7a67d0" title=" " alt="" coords="153,107,230,133"/>
-</map>

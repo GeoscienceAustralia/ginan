@@ -1,0 +1,5 @@
+<map id="uraToClassValue" name="uraToClassValue">
+<area shape="rect" id="node1" title="Convert SSR URA to URA_CLASS and URA_VALUE combination, with 3 Msb URA_CLASS and 3Lsb URA_VALUE." alt="" coords="260,31,389,57"/>
+<area shape="rect" id="node2" href="$structRtcmEncoder.html#a4fe1b66c1ca3051c79202253abf15099" title="encode URA messages" alt="" coords="5,5,212,32"/>
+<area shape="rect" id="node3" href="$prototypeIgsSSREncode_8cpp.html#abe906d6281cf96f532c4c915582eed18" title=" " alt="" coords="45,56,172,83"/>
+</map>

@@ -1,6 +1,0 @@
-<map id="PseudoObsStream::getObs" name="PseudoObsStream::getObs">
-<area shape="rect" id="node1" title="Return a list of observations from the stream, with a specified timestamp." alt="" coords="5,56,200,83"/>
-<area shape="rect" id="node2" href="$structPseudoObsStream.html#a55786373f50f83b317a825b983a17610" title="Return a list of observations from the stream." alt="" coords="248,5,443,32"/>
-<area shape="rect" id="node3" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="285,56,405,83"/>
-<area shape="rect" id="node4" href="$structPseudoObsStream.html#af29d5f033f67ae611e909f9e1df0ca0a" title="Remove some observations from memory." alt="" coords="248,107,443,133"/>
-</map>

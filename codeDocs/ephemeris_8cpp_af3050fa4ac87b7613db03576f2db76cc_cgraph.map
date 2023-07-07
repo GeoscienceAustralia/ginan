@@ -1,9 +1,0 @@
-<map id="ephpos" name="ephpos">
-<area shape="rect" id="node1" title=" " alt="" coords="5,132,75,159"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#af0638720e8bdddc345af44b14fbbfac8" title=" " alt="" coords="128,5,247,32"/>
-<area shape="rect" id="node3" href="$ephemeris_8cpp.html#a6f6719d14c7d9cf51d97ebecfc73f38a" title="broadcast ephemeris to satellite position and clock bias compute satellite position and clock bias wi..." alt="" coords="149,56,226,83"/>
-<area shape="rect" id="node4" href="$ephemeris_8cpp.html#aecb4df22f46995cce2eb340f5ea24635" title=" " alt="" coords="123,107,252,133"/>
-<area shape="rect" id="node5" href="$ephemeris_8cpp.html#a28411224dea3279a5d6884e8af04cdaa" title="glonass ephemeris to satellite position and clock bias." alt="" coords="145,157,230,184"/>
-<area shape="rect" id="node6" href="$ephemeris_8cpp.html#adc3c7e257ad1c48a66c3aca9caddf893" title=" " alt="" coords="124,208,251,235"/>
-<area shape="rect" id="node7" href="$ephemeris_8cpp.html#af8554ab873b3d3cd9c605c5aff342549" title="sbas ephemeris to satellite position and clock bias &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;— compute satellite positio..." alt="" coords="145,259,229,285"/>
-</map>

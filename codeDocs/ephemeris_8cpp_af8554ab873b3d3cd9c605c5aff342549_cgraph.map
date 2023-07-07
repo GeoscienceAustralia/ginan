@@ -1,4 +1,0 @@
-<map id="seph2pos" name="seph2pos">
-<area shape="rect" id="node1" title="sbas ephemeris to satellite position and clock bias &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;— compute satellite positio..." alt="" coords="5,5,89,32"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a44b66dafdc2256a58461f7eee35058a7" title="variance by ura ephemeris (ref [1] 20.3.3.3.1.1)" alt="" coords="137,5,232,32"/>
-</map>

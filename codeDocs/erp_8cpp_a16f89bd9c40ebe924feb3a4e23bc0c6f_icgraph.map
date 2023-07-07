@@ -1,9 +1,0 @@
-<map id="geterp" name="geterp">
-<area shape="rect" id="node1" title="Get earth rotation parameter values." alt="" coords="331,132,395,159"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#a899c87fb491d24967cff0dd77bf07d19" title=" " alt="" coords="156,5,271,32"/>
-<area shape="rect" id="node3" href="$erp_8cpp.html#a3426e4aadb744b593070c3c185c8141e" title="Get earth rotation parameter values." alt="" coords="181,56,245,83"/>
-<area shape="rect" id="node4" href="$networkEstimator_8cpp.html#a36828506971a6b66c6e61db51197c9e1" title="Estimates parameters for a network of stations simultaneously." alt="" coords="144,107,283,133"/>
-<area shape="rect" id="node5" href="$ppppp__obs_8cpp.html#a40300da12e618d247efb9edf1ffac7f3" title=" " alt="" coords="5,208,96,235"/>
-<area shape="rect" id="node6" href="$ppppp__pseudoobs_8cpp.html#a949a10f89de8232ebeb49ad5d912ba80" title=" " alt="" coords="151,208,275,235"/>
-<area shape="rect" id="node7" href="$tides_8cpp.html#a06a748fcdc85f91876652004958df6b0" title=" " alt="" coords="176,259,251,285"/>
-</map>

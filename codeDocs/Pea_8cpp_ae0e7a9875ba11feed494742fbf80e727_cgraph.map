@@ -1,8 +1,0 @@
-<map id="Input_Data" name="Input_Data">
-<area shape="rect" id="node1" title="Data files are checked for new data each epoch before processing commences." alt="" coords="5,107,99,133"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#a754b582a4856b9f33ac94e0cde9bc9ce" title="Provide satellite orbit data." alt="" coords="165,5,248,32"/>
-<area shape="rect" id="node3" href="$Pea_8cpp.html#a255f57bfce8ec366b7ac141b265805ba" title="Provide antenna phase center and offset data." alt="" coords="155,56,258,83"/>
-<area shape="rect" id="node4" href="$Pea_8cpp.html#a7a1a9d633f0be2af0ce76ee3b1c1de95" title="Provide receiver station coordinates and metadata." alt="" coords="158,107,255,133"/>
-<area shape="rect" id="node5" href="$Pea_8cpp.html#a63fa44db04dd974c2dd8788d60311634" title="Provide GNSS observation data from human&#45;readable files." alt="" coords="157,157,256,184"/>
-<area shape="rect" id="node6" href="$Pea_8cpp.html#aaad3a29a35aa54fade775bae5bad7213" title="Provide GNSS observation data from low&#45;bandwidth binary streams." alt="" coords="147,208,267,235"/>
-</map>

@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="$structNetworkStatistics.html#a57107ce6502c6bae7dbdc8b76384a442" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structNetworkStatistics.html#a57107ce6502c6bae7dbdc8b76384a442" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="167,-0.5 167,-30.5 307,-30.5 307,-0.5 167,-0.5"/>
 <text text-anchor="start" x="175" y="-18.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkStatistics::</text>
 <text text-anchor="middle" x="237" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">onDisconnectedStatistics</text>

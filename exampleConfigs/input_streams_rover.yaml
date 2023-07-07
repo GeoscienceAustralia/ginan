@@ -1,0 +1,53 @@
+# Set NTRIP streas as dta input for Ginan processing
+
+station_options:    # metadata from May 2023
+    ALIC:
+        receiver_type:  "SEPT POLARX5"                 # (string)
+        antenna_type:   "LEIAR25.R3      NONE"       # (string)
+        eccentricity:   [0.0000,   0.0000,   0.0015] # [floats]
+        apriori_position:   [-4052052.8638, 4212835.9618,-2545104.4038] # [floats]
+    MAW1:
+        receiver_type:  "SEPT POLARX5"               # (string)
+        antenna_type:   "AOAD/M_T        AUST"       # (string)
+        eccentricity:   [0.0000,   0.0000,   0.0035] # [floats]
+        apriori_position:   [ 1111287.2209, 2168911.1847,-5874493.6128] # [floats]
+    DARW:
+        receiver_type:  "SEPT POLARX5"                 # (string)
+        antenna_type:   "JAVRINGANT_DM   NONE"       # (string)
+        eccentricity:   [0.0000,   0.0000,   0.0000] # [floats]
+        apriori_position:   [-4091359.7273, 4684606.3705,-1408578.9291] # [floats]
+    STR2:
+        receiver_type:  "TRIMBLE ALLOY"              # (string)
+        antenna_type:   "LEIAR25.R3      NONE"       # (string)
+        eccentricity:   [0.0000,   0.0000,   0.0000] # [floats]
+        apriori_position:   [-4467075.3642, 2683011.8533,-3667006.8945] # [floats]
+
+inputs:
+
+    gnss_observations:
+        inputs_root:    "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+            - "ALIC00AUS0"  
+            - "MAW100ATA0"  
+            - "DARW00AUS0"  
+            - "STR200AUS0"  
+        
+    satellite_data:
+        inputs_root:    "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+            - "BCEP00BKG0"
+            - "SSRA00CNE0"
+            
+processing_options:
+    ssr_inputs:
+        ssr_antenna_offset: APC
+    epoch_control:
+        epoch_interval:         1
+        wait_all_stations:      1
+    gnss_general:   
+        error_model:        elevation_dependent
+        code_measurements:
+            sigmas:         [0.3]
+        phase_measurements:
+            sigmas:         [0.003]
+

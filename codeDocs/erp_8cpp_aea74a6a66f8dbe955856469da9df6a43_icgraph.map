@@ -1,0 +1,4 @@
+<map id="readIers20C04" name="readIers20C04">
+<area shape="rect" id="node1" title="read IERS C04 EOP products" alt="" coords="125,5,241,32"/>
+<area shape="rect" id="node2" href="$erp_8cpp.html#a76c420194b20727ba241223dad38241c" title="read earth rotation parameters" alt="" coords="5,5,77,32"/>
+</map>

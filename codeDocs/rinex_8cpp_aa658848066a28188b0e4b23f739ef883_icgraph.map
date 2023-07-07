@@ -1,6 +1,0 @@
-<map id="adjweek" name="adjweek">
-<area shape="rect" id="node1" title="Adjust time considering week handover." alt="" coords="156,56,233,83"/>
-<area shape="rect" id="node2" href="$rinex_8cpp.html#ae3132fbeb0a7c18e3316f143ae063998" title="Decode ephemeris." alt="" coords="10,5,103,32"/>
-<area shape="rect" id="node3" href="$rinex_8cpp.html#a6613c8a15b270944e8f29ebf0357c3b0" title="Decode geo ephemeris." alt="" coords="6,56,107,83"/>
-<area shape="rect" id="node4" href="$rinex_8cpp.html#a49860903ba3deda27374072016e16fbb" title="Decode CNVX ephemeris." alt="" coords="5,107,108,133"/>
-</map>

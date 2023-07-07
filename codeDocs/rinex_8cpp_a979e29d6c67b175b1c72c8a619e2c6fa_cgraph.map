@@ -1,0 +1,8 @@
+<map id="decodeEph" name="decodeEph">
+<area shape="rect" id="node1" title="Decode ephemeris." alt="" coords="5,86,99,112"/>
+<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="349,86,436,112"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#a96d3e41867e71358683d0395b85972af" title="URA value (m) to URA index." alt="" coords="183,35,265,62"/>
+<area shape="rect" id="node4" href="$biasSINEXread_8cpp.html#a4189b53abc056c39f46bd56d0032b546" title="Convert GPS/QZS TGD into OSBs &amp; DSB." alt="" coords="147,86,301,112"/>
+<area shape="rect" id="node5" href="$common_8cpp.html#a5455547b54ca04e3f6629ddd867b197d" title="Galileo SISA value (m) to SISA index." alt="" coords="181,136,267,163"/>
+<area shape="rect" id="node6" href="$biasSINEXread_8cpp.html#a063ba8fe35a80404ea27345b60592828" title="Convert GAL BGDs into OSBs &amp; DSB." alt="" coords="147,187,301,214"/>
+</map>

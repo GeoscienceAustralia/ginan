@@ -1,0 +1,11 @@
+<map id="writeBiasSinex" name="writeBiasSinex">
+<area shape="rect" id="node1" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="5,163,124,190"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="540,163,635,190"/>
+<area shape="rect" id="node3" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="183,36,312,63"/>
+<area shape="rect" id="node4" href="$structGTime.html#a72505f23b2252f690f124c2eaf026f91" title=" " alt="" coords="180,87,315,114"/>
+<area shape="rect" id="node5" href="$biasSINEXwrite_8cpp.html#ab94f8678684d9733ffbe150e860a564a" title="Write bias SINEX head for the first time." alt="" coords="172,138,323,164"/>
+<area shape="rect" id="node6" href="$biasSINEXwrite_8cpp.html#a986e047c2dd383adf5526d99e5c418c4" title="Update bias SINEX first line." alt="" coords="371,138,492,164"/>
+<area shape="rect" id="node7" href="$biasSINEXwrite_8cpp.html#abc8237c886f93fe5f584339ab0cbf81e" title="Store bias output to write into bias SINEX files." alt="" coords="178,188,317,215"/>
+<area shape="rect" id="node8" href="$biasSINEXwrite_8cpp.html#a961567e1b6659842a971db2d3cc759fc" title="Determine if the bias is an OSB or DSB given observation codes." alt="" coords="392,251,471,278"/>
+<area shape="rect" id="node9" href="$biasSINEXwrite_8cpp.html#adcabd7eefaca5c01cf305a80294e57a7" title="print bias SINEX data line" alt="" coords="182,340,313,367"/>
+</map>

@@ -1,0 +1,60 @@
+# Adds code bias estimation for triple frequency and new GPS L2 civilian signals
+# it also adds phase bias estimtion for all signals
+# it is recommnded that ambiguity resolution is included
+
+outputs:
+    bias_sinex:
+        phase_output_interval:       900.0
+
+estimation_parameters:
+    stations:
+        global:
+            phase_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
+        USN7:                                       # Signals on USN7: GPS L1W, L1C, L2W, L2L, L5Q; GAL L1C, L5Q, L7Q; GLO L1C, L1P, L2C, L2P; BDS L2I, L7I, L6I
+            phase_bias:
+                estimated:          [false]
+        CUSV:                                       # Signals on CUSV: GPS L1W, L1C, L2W, L2X, L5X; GAL L1X, L5X, L7X; GLO L1C, L1P, L2C, L2P; BDS L2I, L7I, L6I; QZS L1C, L2X, L5X
+            GPS:
+                L2X:
+                    code_bias:
+                        estimated:  [false]
+                    phase_bias:
+                        estimated:  [false]
+                L5X:
+                    code_bias:
+                        estimated:  [false]
+                    phase_bias:
+                        estimated:  [false]
+            GAL:
+                L1X:
+                    phase_bias:
+                        estimated:  [false]
+                L5X:
+                    phase_bias:
+                        estimated:  [false]
+                L7X:
+                    code_bias:
+                        estimated:  [false]
+                    phase_bias:
+                        estimated:  [false]        
+    satellites:
+        global:
+            phase_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0.0001]
+
+processing_options:
+    gnss_general:
+        sys_options:
+            gps:
+                network_amb_pivot:      true
+                # code_priorities:        [ L1W, L1C, L2W, L5Q ]
+                code_priorities:        [ L1W, L1C, L2W, L2L, L2X, L5Q, L5X ]
+            gal:
+                network_amb_pivot:      true
+                code_priorities:        [ L1C, L5Q, L7Q, L1X, L5X, L7X ]
+

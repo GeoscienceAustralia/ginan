@@ -1,6 +1,0 @@
-<map id="config_ionosph_model" name="config_ionosph_model">
-<area shape="rect" id="node1" title=" " alt="" coords="5,78,173,105"/>
-<area shape="rect" id="node2" href="$ionoSpherical_8cpp.html#ae30743175397f6d6e45cd7551ff27f31" title="configures the spherical harmonics model." alt="" coords="221,5,388,47"/>
-<area shape="rect" id="node3" href="$ionoSphericalCaps_8cpp.html#ae83f5600c7c410daf77287a331f37840" title=" " alt="" coords="221,71,388,112"/>
-<area shape="rect" id="node4" href="$ionoBSplines_8cpp.html#a80721a08ecb039ccf36b7d0fdfab575f" title=" " alt="" coords="221,136,388,177"/>
-</map>

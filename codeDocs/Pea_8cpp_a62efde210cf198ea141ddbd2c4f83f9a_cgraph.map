@@ -1,5 +1,0 @@
-<map id="Preprocessor" name="Preprocessor">
-<area shape="rect" id="node1" title="Perform simple quality control checks and positioning routines." alt="" coords="5,31,112,57"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#ade3caa55eadd5eed2db6cf13f8687377" title="Used to detect cycle slips between distinct sets of observations." alt="" coords="193,5,309,32"/>
-<area shape="rect" id="node3" href="$Pea_8cpp.html#aea90df44dba5dfb10e593090b2f3236a" title="Use simple geometric and atmospheric models to estimate parameters." alt="" coords="160,56,341,83"/>
-</map>

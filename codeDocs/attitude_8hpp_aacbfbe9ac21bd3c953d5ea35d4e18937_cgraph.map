@@ -1,0 +1,6 @@
+<map id="recAtt" name="recAtt">
+<area shape="rect" id="node1" title="Attitude of receiver." alt="" coords="5,56,67,83"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a24915afd7fbde09623b90c9ad3722eaa" title="Nominal receiver attitude &#45; unit vectors of receiver&#45;fixed coordinates (ECEF) Orientation of receiver..." alt="" coords="115,5,247,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#a5d6694425700677beb52b092488f177b" title="Retrieves precise attitude (from file) &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns f..." alt="" coords="120,56,241,83"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a2dc6b32688f62e5d33bdf6741384362e" title="Calculates antenna attitude &#45; unit vectors of antenna&#45;fixed coordinates (ECEF)" alt="" coords="149,107,212,133"/>
+</map>

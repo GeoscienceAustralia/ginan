@@ -1,0 +1,7 @@
+<map id="pseudoSatDCBPseudoObs" name="pseudoSatDCBPseudoObs">
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,196,108"/>
+<area shape="rect" id="node2" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="302,5,397,32"/>
+<area shape="rect" id="node3" href="$structKFMeasEntry.html#a5acb825be0bbd5c284f5922b2fa82242" title="Adds a design matrix entry for this measurement." alt="" coords="246,56,453,83"/>
+<area shape="rect" id="node4" href="$structKFMeasEntry.html#ac15ff59e0acb09be8ed75ccee2411dd2" title="Adds the innovation value for this measurement." alt="" coords="264,107,435,133"/>
+<area shape="rect" id="node5" href="$structKFMeasEntry.html#a7b34625115c46a7943e1ac8ffb7478e9" title="Adds a noise element for this measurement." alt="" coords="244,157,455,184"/>
+</map>

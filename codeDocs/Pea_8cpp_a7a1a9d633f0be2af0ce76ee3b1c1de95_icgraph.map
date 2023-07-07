@@ -1,5 +1,0 @@
-<map id="SINEX_Files" name="SINEX_Files">
-<area shape="rect" id="node1" title="Provide receiver station coordinates and metadata." alt="" coords="176,31,273,57"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#ae0e7a9875ba11feed494742fbf80e727" title="Data files are checked for new data each epoch before processing commences." alt="" coords="20,5,113,32"/>
-<area shape="rect" id="node3" href="$Pea_8cpp.html#a2daa16b42e5b83b381ec67e4dbc839a8" title="Output results to standardised file formats." alt="" coords="5,56,128,83"/>
-</map>

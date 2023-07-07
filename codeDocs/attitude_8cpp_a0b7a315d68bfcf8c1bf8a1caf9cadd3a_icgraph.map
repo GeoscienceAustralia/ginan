@@ -1,0 +1,4 @@
+<map id="nominalYawGalIov" name="nominalYawGalIov">
+<area shape="rect" id="node1" title="Calculate nominal (ideal) sat yaw for GAL&#45;IOV sats." alt="" coords="163,5,305,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a18338f781fea251d0f8b03666fde5b9e" title="Yaw model for GAL IOV sats." alt="" coords="5,5,115,32"/>
+</map>

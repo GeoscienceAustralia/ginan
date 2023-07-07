@@ -1,0 +1,6 @@
+<map id="sunVisibility" name="sunVisibility">
+<area shape="rect" id="node1" title="Calculates fraction of Sun&#39;s disk visible by spacecraft 0 = full eclipse (umbra) 0 &lt; fraction &lt; 1 = p..." alt="" coords="236,56,339,83"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#aaba71c01b77e887c80e8dc69a8366d61" title="Yaw model for GPS sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="51,5,143,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="52,56,141,83"/>
+<area shape="rect" id="node4" href="$structOrbitIntegrator.html#abc7ebc43b94db6f8908d4e71fd3aa683" title=" " alt="" coords="5,107,188,149"/>
+</map>

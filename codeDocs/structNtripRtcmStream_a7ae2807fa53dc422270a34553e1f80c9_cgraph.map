@@ -1,6 +1,0 @@
-<map id="NtripRtcmStream::getObs" name="NtripRtcmStream::getObs">
-<area shape="rect" id="node1" title="Return a list of observations from the stream." alt="" coords="5,56,195,83"/>
-<area shape="rect" id="node2" href="$structNtripStream.html#afab7dfd25c95b98eadfe937b7d37bb7f" title="Retrieve data from the stream and store it for later removal." alt="" coords="254,5,415,32"/>
-<area shape="rect" id="node3" href="$structRtcmStream.html#a34a7a941dab214b7ff6b17e8a53eb55a" title=" " alt="" coords="243,56,427,83"/>
-<area shape="rect" id="node4" href="$structObsStream.html#a72abbf0503505bc3f1a2c45f0dd5ae95" title="Return a list of observations from the stream." alt="" coords="261,107,409,133"/>
-</map>

@@ -1,0 +1,7 @@
+<map id="satYawQzs1" name="satYawQzs1">
+<area shape="rect" id="node1" title="Yaw model for QZSS&#45;1 satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="5,81,104,108"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="161,5,286,32"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#a2427a868db0f0ab748d35d7fedaffb6d" title="Get attitude mode for sat." alt="" coords="152,56,295,83"/>
+<area shape="rect" id="node4" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="175,107,272,133"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#a7da34cb31c95554835b5872eabf41df1" title="Orbit normal yaw model Will set nominalYaw &amp; modelYaw to the orbit&#45;normal yaw (0 or PI) closest to th..." alt="" coords="167,157,280,184"/>
+</map>

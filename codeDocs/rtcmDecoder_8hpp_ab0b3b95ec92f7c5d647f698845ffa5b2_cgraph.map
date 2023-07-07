@@ -1,0 +1,4 @@
+<map id="getbitgInc" name="getbitgInc">
+<area shape="rect" id="node1" title="increasingly extract sign&#45;magnitude bits applied in GLO nav messages from RTCM messages" alt="" coords="5,5,92,32"/>
+<area shape="rect" id="node2" href="$rtcmDecoder_8cpp.html#a33beca135638237503bffc4badf8fb94" title="increasingly extract sign&#45;magnitude bits applied in GLO nav messages from byte data" alt="" coords="140,5,227,32"/>
+</map>

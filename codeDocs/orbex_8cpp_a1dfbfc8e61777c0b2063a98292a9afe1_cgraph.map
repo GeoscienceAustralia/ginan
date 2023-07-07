@@ -1,0 +1,7 @@
+<map id="readOrbex" name="readOrbex">
+<area shape="rect" id="node1" title="Read an ORBEX file into navigation data struct." alt="" coords="5,81,96,108"/>
+<area shape="rect" id="node2" href="$orbex_8cpp.html#a22504f72305e51c2d74ec94b113744df" title="Read and check the two header lines from an orbex file." alt="" coords="147,5,285,32"/>
+<area shape="rect" id="node3" href="$orbex_8cpp.html#a70cc23de57bf5ae7065f885a917ee4cf" title="Read necessary information, e.g." alt="" coords="144,56,288,83"/>
+<area shape="rect" id="node4" href="$orbex_8cpp.html#a7faa45c2b48fe2c872381034e505d32b" title="Read SATELLITE/ID_AND_DESCRIPTION block." alt="" coords="155,107,277,133"/>
+<area shape="rect" id="node5" href="$orbex_8cpp.html#aee81025026cfd3a1c193d9eb64df2895" title="Read EPHEMERIS/DATA block." alt="" coords="159,157,273,184"/>
+</map>

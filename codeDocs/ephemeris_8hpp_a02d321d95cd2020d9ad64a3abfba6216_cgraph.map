@@ -1,0 +1,6 @@
+<map id="readsp3" name="readsp3">
+<area shape="rect" id="node1" title="read an epoch of data from an sp3 precise ephemeris file" alt="" coords="5,56,80,83"/>
+<area shape="rect" id="node2" href="$gTime_8cpp.html#a0080e8d8e9f572cc3a823740536abce4" title=" " alt="" coords="131,5,208,32"/>
+<area shape="rect" id="node3" href="$sp3_8cpp.html#aa6a1cc81baa057b53e2f3a644959a432" title="satellite code to satellite system" alt="" coords="128,56,211,83"/>
+<area shape="rect" id="node4" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="131,107,207,133"/>
+</map>

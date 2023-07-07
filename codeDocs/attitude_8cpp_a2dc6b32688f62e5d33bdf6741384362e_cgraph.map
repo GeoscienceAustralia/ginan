@@ -1,0 +1,4 @@
+<map id="antAtt" name="antAtt">
+<area shape="rect" id="node1" title="Calculates antenna attitude &#45; unit vectors of antenna&#45;fixed coordinates (ECEF)" alt="" coords="5,5,68,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a1a74c02f9b5272b79ed718d28dcc3429" title="Converts coords of frame A (expressed in frame G) into transformation matrix from A to G E...." alt="" coords="116,5,216,32"/>
+</map>

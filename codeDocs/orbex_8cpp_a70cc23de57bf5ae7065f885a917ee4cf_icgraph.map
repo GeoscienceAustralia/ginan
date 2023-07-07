@@ -1,0 +1,4 @@
+<map id="readOrbexFileDesc" name="readOrbexFileDesc">
+<area shape="rect" id="node1" title="Read necessary information, e.g." alt="" coords="144,5,288,32"/>
+<area shape="rect" id="node2" href="$orbex_8cpp.html#a1dfbfc8e61777c0b2063a98292a9afe1" title="Read an ORBEX file into navigation data struct." alt="" coords="5,5,96,32"/>
+</map>

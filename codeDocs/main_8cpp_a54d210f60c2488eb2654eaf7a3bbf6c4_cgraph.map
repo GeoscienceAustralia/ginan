@@ -1,0 +1,6 @@
+<map id="addStationData" name="addStationData">
+<area shape="rect" id="node1" title="Create a station object from an input." alt="" coords="5,56,128,83"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="176,5,349,32"/>
+<area shape="rect" id="node3" href="$acsConfig_8cpp.html#aa470c1c369d2c030cdd6bd250a1ed375" title="Check that filename is valid and the file exists." alt="" coords="205,56,320,83"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a8f07d049a66dc863071e0d3248e31435" title=" " alt="" coords="201,107,325,133"/>
+</map>

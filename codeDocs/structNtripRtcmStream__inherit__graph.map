@@ -1,5 +1,0 @@
-<map id="NtripRtcmStream" name="NtripRtcmStream">
-<area shape="rect" id="node1" title="Object that streams RTCM data from NTRIP castors." alt="" coords="135,219,295,384"/>
-<area shape="rect" id="node2" href="$structNtripStream.html" title=" " alt="" coords="5,27,204,149"/>
-<area shape="rect" id="node3" href="$structRtcmStream.html" title=" " alt="" coords="228,5,424,171"/>
-</map>

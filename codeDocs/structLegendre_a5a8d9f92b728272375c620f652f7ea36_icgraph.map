@@ -1,0 +1,7 @@
+<map id="Legendre::calculate" name="Legendre::calculate">
+<area shape="rect" id="node1" title=" " alt="" coords="244,81,393,108"/>
+<area shape="rect" id="node2" href="$geomagField_8cpp.html#a1a9089a9e8fb29db7da8a88c9abcf491" title="Compute the geomagnetic field components in geocentric local reference system at given time and posit..." alt="" coords="23,5,178,32"/>
+<area shape="rect" id="node3" href="$ionoSpherical_8cpp.html#a9544e921df2353d4a7035751642fd4a6" title="Evaluates spherical harmonics basis functions int ind I &#160;&#160;obs I Ionosphere measurement struct latIPP ..." alt="" coords="42,56,159,83"/>
+<area shape="rect" id="node4" href="$acceleration_8cpp.html#a7763d67d415adb2d384e16967acaa085" title="Compute the acceleration of due to a spherical harmonic field acting on the satellite." alt="" coords="59,107,142,133"/>
+<area shape="rect" id="node5" href="$structIERS2010.html#ac058313fbc47a8f3ca8fc7739f34a546" title="Implementation of the first part of the solidEarth tides (Eq 6.6 and 6.7 IERS2010)" alt="" coords="5,157,196,184"/>
+</map>

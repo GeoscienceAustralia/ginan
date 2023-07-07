@@ -1,0 +1,4 @@
+<map id="readCrdFile" name="readCrdFile">
+<area shape="rect" id="node1" title="Parses a CRD file." alt="" coords="127,5,221,32"/>
+<area shape="rect" id="node2" href="$slrObs_8cpp.html#a38ee0a5d01fed7dee3c29841ca02b54a" title="Extracts observations from a given CRD (.npt) file." alt="" coords="5,5,79,32"/>
+</map>

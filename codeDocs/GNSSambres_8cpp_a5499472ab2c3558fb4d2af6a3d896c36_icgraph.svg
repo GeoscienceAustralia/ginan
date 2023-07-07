@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="$GNSSambres_8cpp.html#aab3dd27d035c545c6c854a6906616e79" xlink:title="Lambda algorithm and its variations (ILQ, Common set, BIE)">
+<g id="a_node2"><a xlink:href="GNSSambres_8cpp.html#aab3dd27d035c545c6c854a6906616e79" target="_top" xlink:title="Lambda algorithm and its variations (ILQ, Common set, BIE)">
 <polygon fill="white" stroke="red" points="0,-0.5 0,-19.5 91,-19.5 91,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="45.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">lambda_search</text>
 </a>

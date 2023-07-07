@@ -1,0 +1,4 @@
+<map id="orbitNormalYaw" name="orbitNormalYaw">
+<area shape="rect" id="node1" title="Orbit&#45;normal mode yaw (always zero)" alt="" coords="167,5,292,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a7da34cb31c95554835b5872eabf41df1" title="Orbit normal yaw model Will set nominalYaw &amp; modelYaw to the orbit&#45;normal yaw (0 or PI) closest to th..." alt="" coords="5,5,119,32"/>
+</map>

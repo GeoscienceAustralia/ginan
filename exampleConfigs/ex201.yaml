@@ -1,0 +1,20 @@
+
+inputs:
+    include_yamls:
+        - input_metadata.yaml
+        - input_files_rover.yaml
+        - processing_rover.yaml
+        - mongo_outputs.yaml
+        - ambiguity_resolution.yaml
+        - debug_trace.yaml
+
+outputs:
+    metadata:
+        config_description:     "ex201"
+
+processing_options:
+    epoch_control:
+        max_epochs:         360
+    filter_options:
+        rts:
+            enable:         true

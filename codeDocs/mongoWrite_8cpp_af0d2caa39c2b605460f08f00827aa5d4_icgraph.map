@@ -1,6 +1,0 @@
-<map id="mongoMeasResiduals" name="mongoMeasResiduals">
-<area shape="rect" id="node1" title=" " alt="" coords="417,56,583,83"/>
-<area shape="rect" id="node2" href="$structKFState.html#aab4e5ed0ddc781d8b4db8de02af119cc" title="Compare variances of measurements and filtered states to detect unreasonable values." alt="" coords="157,5,369,32"/>
-<area shape="rect" id="node3" href="$rtsSmoothing_8cpp.html#a4e8aaa5b04173a1f1c784b486954de3a" title="Output filter states from a reversed binary trace file." alt="" coords="214,56,313,83"/>
-<area shape="rect" id="node4" href="$rtsSmoothing_8cpp.html#a38ab8796647005faee38cdd21deaf19b" title=" " alt="" coords="5,81,109,108"/>
-</map>

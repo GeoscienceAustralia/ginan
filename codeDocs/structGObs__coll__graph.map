@@ -1,0 +1,8 @@
+<map id="GObs" name="GObs">
+<area shape="rect" id="node1" title="Raw observation data from a receiver." alt="" coords="293,659,459,765"/>
+<area shape="rect" id="node2" href="$structObservation.html" title=" " alt="" coords="307,828,445,905"/>
+<area shape="rect" id="node3" href="$structGObsMeta.html" title="Observation metadata and data derived from it." alt="" coords="5,159,160,442"/>
+<area shape="rect" id="node4" href="$structSatPos.html" title="Satellite position data &#45; for determining and storing satellite positions/clocks." alt="" coords="184,5,371,596"/>
+<area shape="rect" id="node5" title=" " alt="" coords="395,262,557,339"/>
+<area shape="rect" id="node6" title=" " alt="" coords="581,255,728,347"/>
+</map>

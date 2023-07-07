@@ -1,0 +1,5 @@
+<map id="mongoReadOrbClk" name="mongoReadOrbClk">
+<area shape="rect" id="node1" title="Read orbits and clocks from Mongo DB." alt="" coords="5,31,149,57"/>
+<area shape="rect" id="node2" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="197,5,292,32"/>
+<area shape="rect" id="node3" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="197,56,292,83"/>
+</map>

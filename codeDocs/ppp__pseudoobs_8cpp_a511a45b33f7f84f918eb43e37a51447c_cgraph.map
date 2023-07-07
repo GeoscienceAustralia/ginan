@@ -1,0 +1,6 @@
+<map id="pseudoSatClockDefinition" name="pseudoSatClockDefinition">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,196,83"/>
+<area shape="rect" id="node2" href="$structKFMeasEntry.html#a5acb825be0bbd5c284f5922b2fa82242" title="Adds a design matrix entry for this measurement." alt="" coords="246,5,453,32"/>
+<area shape="rect" id="node3" href="$structKFMeasEntry.html#ac15ff59e0acb09be8ed75ccee2411dd2" title="Adds the innovation value for this measurement." alt="" coords="264,56,435,83"/>
+<area shape="rect" id="node4" href="$structKFMeasEntry.html#a7b34625115c46a7943e1ac8ffb7478e9" title="Adds a noise element for this measurement." alt="" coords="244,107,455,133"/>
+</map>

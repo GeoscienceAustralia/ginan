@@ -1,5 +1,0 @@
-<map id="FileSp3Stream" name="FileSp3Stream">
-<area shape="rect" id="node1" title="Object that streams RINEX data from a file." alt="" coords="91,175,231,325"/>
-<area shape="rect" id="node2" href="$structACSFileStream.html" title="Interface to be used for file streams." alt="" coords="5,13,148,119"/>
-<area shape="rect" id="node3" href="$structSP3Stream.html" title="Interface for rinex streams." alt="" coords="173,5,319,127"/>
-</map>

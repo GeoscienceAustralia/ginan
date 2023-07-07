@@ -1,0 +1,10 @@
+<map id="satYawGps" name="satYawGps">
+<area shape="rect" id="node1" title="Yaw model for GPS sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="5,157,97,184"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="168,5,293,32"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="364,31,496,57"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a543fde2ca3f11becceecfce52de34cd8" title="Calculates fraction of Sun&#39;s disk visible by spacecraft 0 = full eclipse (umbra) 0 &lt; fraction &lt; 1 = p..." alt="" coords="179,107,282,133"/>
+<area shape="rect" id="node5" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="171,157,291,184"/>
+<area shape="rect" id="node6" href="$structSatSys.html#a01de9e9cee76346f43550516bba9558e" title=" " alt="" coords="161,208,300,235"/>
+<area shape="rect" id="node7" href="$sinex_8cpp.html#aa047ec8b34506643b3e286d61d819a82" title="Get yaw rate sinex entry for sat." alt="" coords="145,259,316,285"/>
+<area shape="rect" id="node8" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="182,309,279,336"/>
+</map>

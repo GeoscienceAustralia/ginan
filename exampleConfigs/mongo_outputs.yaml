@@ -1,0 +1,12 @@
+
+mongo:
+    enable:                   true
+    uri:                      mongodb://127.0.0.1:27017
+    database:                 <CONFIG>
+    output_rtcm_messages:     true
+    output_states:            true
+    output_measurements:      true
+    output_test_stats:        true
+    delete_history:           true
+    suffix:                   ""
+    output_components:        false

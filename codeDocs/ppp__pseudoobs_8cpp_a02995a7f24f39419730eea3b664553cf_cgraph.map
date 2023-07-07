@@ -1,0 +1,8 @@
+<map id="ambgPseudoObs" name="ambgPseudoObs">
+<area shape="rect" id="node1" title=" " alt="" coords="5,107,136,133"/>
+<area shape="rect" id="node2" href="$structKFState.html#a405c50a3085d8328e81dcd6786f775d3" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="211,5,367,32"/>
+<area shape="rect" id="node3" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="242,56,337,83"/>
+<area shape="rect" id="node4" href="$structKFMeasEntry.html#a5acb825be0bbd5c284f5922b2fa82242" title="Adds a design matrix entry for this measurement." alt="" coords="186,107,393,133"/>
+<area shape="rect" id="node5" href="$structKFMeasEntry.html#ac15ff59e0acb09be8ed75ccee2411dd2" title="Adds the innovation value for this measurement." alt="" coords="204,157,375,184"/>
+<area shape="rect" id="node6" href="$structKFMeasEntry.html#a7b34625115c46a7943e1ac8ffb7478e9" title="Adds a noise element for this measurement." alt="" coords="184,208,395,235"/>
+</map>

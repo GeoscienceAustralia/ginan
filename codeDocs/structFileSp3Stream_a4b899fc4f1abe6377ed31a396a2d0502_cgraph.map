@@ -1,6 +1,0 @@
-<map id="FileSp3Stream::getObs" name="FileSp3Stream::getObs">
-<area shape="rect" id="node1" title="Return a list of observations from the stream." alt="" coords="5,56,175,83"/>
-<area shape="rect" id="node2" href="$structACSFileStream.html#a58b8f25aa5bcdb840d16acf3f2d8ff8c" title=" " alt="" coords="231,5,409,32"/>
-<area shape="rect" id="node3" href="$structSP3Stream.html#a9cb52c380fbf42789ccdc2f3bfa7770e" title=" " alt="" coords="239,56,401,83"/>
-<area shape="rect" id="node4" href="$structPseudoObsStream.html#a55786373f50f83b317a825b983a17610" title="Return a list of observations from the stream." alt="" coords="223,107,417,133"/>
-</map>

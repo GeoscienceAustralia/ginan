@@ -1,0 +1,6 @@
+<map id="rotBasisMat" name="rotBasisMat">
+<area shape="rect" id="node1" title="Converts coords of frame A (expressed in frame G) into transformation matrix from A to G E...." alt="" coords="127,56,227,83"/>
+<area shape="rect" id="node2" href="$antenna_8cpp.html#a28e3dcdc8c9fb5a3369931fb18833f26" title="find and interpolate antenna pcv" alt="" coords="9,5,75,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#a2dc6b32688f62e5d33bdf6741384362e" title="Calculates antenna attitude &#45; unit vectors of antenna&#45;fixed coordinates (ECEF)" alt="" coords="11,56,73,83"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a771620f94dbfc7f482b3f6e2d3131710" title="Satellite attitude &#45; calculates attitude of satellite as a quaternion (ECEF) Also transforms coordina..." alt="" coords="5,107,79,133"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="reflectorPCO" name="reflectorPCO">
+<area shape="rect" id="node1" title="Satellite retroreflector delta from CoM." alt="" coords="5,56,109,83"/>
+<area shape="rect" id="node2" href="$slrCom_8cpp.html#a5a02d80161a35a795bf71d867dc34158" title="Check if sat is spherical (i.e." alt="" coords="179,5,273,32"/>
+<area shape="rect" id="node3" href="$slrCom_8cpp.html#a18ca524aa6f6e5fa573fddb4d03f441b" title="Center of mass to laser retroreflector array offset for spherical satellites Dependent on look vector..." alt="" coords="157,56,295,83"/>
+<area shape="rect" id="node4" href="$slrCom_8cpp.html#ae1e900be3fbab7e36528208cfd3d451e" title="Center of mass to laser retroreflector array offset for GNSS satellites." alt="" coords="164,107,288,133"/>
+</map>

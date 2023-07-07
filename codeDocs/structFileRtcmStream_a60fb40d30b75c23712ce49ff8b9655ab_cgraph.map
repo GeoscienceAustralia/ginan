@@ -1,6 +1,0 @@
-<map id="FileRtcmStream::getObs" name="FileRtcmStream::getObs">
-<area shape="rect" id="node1" title="Return a list of observations from the stream." alt="" coords="5,56,184,83"/>
-<area shape="rect" id="node2" href="$structACSFileStream.html#a58b8f25aa5bcdb840d16acf3f2d8ff8c" title=" " alt="" coords="235,5,413,32"/>
-<area shape="rect" id="node3" href="$structRtcmStream.html#a34a7a941dab214b7ff6b17e8a53eb55a" title=" " alt="" coords="232,56,416,83"/>
-<area shape="rect" id="node4" href="$structObsStream.html#a72abbf0503505bc3f1a2c45f0dd5ae95" title="Return a list of observations from the stream." alt="" coords="250,107,398,133"/>
-</map>

@@ -1,0 +1,45 @@
+<map id="ginan" name="ginan">
+<area shape="rect" id="node1" title=" " alt="" coords="5,1044,64,1071"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ab8f1a6e67f2849dde405bf75d764ba0d" title=" " alt="" coords="185,5,272,32"/>
+<area shape="rect" id="node3" href="$peaCommitStrings_8cpp.html#a7fe65f9b3d5d39575ea3c8dcf9c4b4b6" title=" " alt="" coords="157,56,300,83"/>
+<area shape="rect" id="node4" href="$peaCommitStrings_8cpp.html#a7b85d404d14d148d2aee13c900420a07" title=" " alt="" coords="149,107,308,133"/>
+<area shape="rect" id="node5" href="$peaCommitStrings_8cpp.html#a053639acf9780e0ba8b4115c95b31e7b" title=" " alt="" coords="158,157,299,184"/>
+<area shape="rect" id="node6" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="191,208,266,235"/>
+<area shape="rect" id="node7" href="$testUtils_8cpp.html#a9bf11e78bc73b08db2412c0f6cfacbf8" title=" " alt="" coords="177,259,280,285"/>
+<area shape="rect" id="node8" href="$acsConfig_8cpp.html#a428af53af7dd917738fb5d204948f74f" title="Prepare the configuration of the program." alt="" coords="187,309,270,336"/>
+<area shape="rect" id="node9" href="$fileLog_8cpp.html#ad736ce5ac209fa50c96d9cbe517e1489" title=" " alt="" coords="183,360,274,387"/>
+<area shape="rect" id="node10" href="$structTestStack.html#a12c8c3bc534eac13a18d9fc38cf04ad1" title="Open and read test data files." alt="" coords="151,411,306,437"/>
+<area shape="rect" id="node11" href="$algebraTrace_8cpp.html#a7bc8fe7472c8d5a4db5561b722ab1087" title=" " alt="" coords="151,461,307,488"/>
+<area shape="rect" id="node12" href="$ionoModel_8cpp.html#a44cbc6538a20f23450d43b4e4735f54d" title=" " alt="" coords="167,512,290,539"/>
+<area shape="rect" id="node13" href="$GinAR__main_8cpp.html#a90ca3b7d9275de28b4517643f990ad39" title="Loading configuration options from acsConfig." alt="" coords="159,563,298,589"/>
+<area shape="rect" id="node14" href="$structACSConfig.html#aeba33c340b4695e47f2d41bf97402400" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="409,1829,580,1856"/>
+<area shape="rect" id="node15" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="668,1576,755,1603"/>
+<area shape="rect" id="node16" href="$ppp__callbacks_8cpp.html#a968c51f5aa3843055150caa0aaf58dcb" title="Deweight worst measurement." alt="" coords="170,715,287,741"/>
+<area shape="rect" id="node17" href="$ppp__callbacks_8cpp.html#a4ed443f460fefe8ce41ac2417d16efb2" title="Count worst measurement." alt="" coords="129,765,328,792"/>
+<area shape="rect" id="node18" href="$ppp__callbacks_8cpp.html#ab466671c931531ed84596c36f48242f3" title="Call state rejection functions when a measurement is a pseudo observation." alt="" coords="163,816,294,843"/>
+<area shape="rect" id="node19" href="$ppp__callbacks_8cpp.html#ac5fbd7b3caa896a0279ea7de032e5724" title=" " alt="" coords="421,867,568,893"/>
+<area shape="rect" id="node20" href="$ppp__callbacks_8cpp.html#a1e3adabb954f5e009016d143450f37a1" title="Reject measurements attached to worst state using measurement reject callback list." alt="" coords="173,867,284,893"/>
+<area shape="rect" id="node21" href="$mongo_8cpp.html#ae5331ad152c6df38001c3b955c533f8d" title=" " alt="" coords="449,1880,540,1907"/>
+<area shape="rect" id="node22" href="$mongoWrite_8cpp.html#a2f981fc9e6ef57b5cbe513cefe140004" title=" " alt="" coords="152,1019,305,1045"/>
+<area shape="rect" id="node23" href="$rtsSmoothing_8cpp.html#a38ab8796647005faee38cdd21deaf19b" title=" " alt="" coords="443,2032,547,2059"/>
+<area shape="rect" id="node24" href="$algebraTrace_8cpp.html#ab2b012374e099550a5822ce95e120eaa" title=" " alt="" coords="143,1120,314,1147"/>
+<area shape="rect" id="node25" href="$biasSINEXread_8cpp.html#a8f9b3ddb1206caaccd29bf540cf64846" title="Initialise satellite DSBs between default signals, e.g." alt="" coords="157,1171,300,1197"/>
+<area shape="rect" id="node26" href="$main_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16" title="Returns (posix) for current epoch." alt="" coords="647,1475,776,1501"/>
+<area shape="rect" id="node27" href="$structGTime.html#a72505f23b2252f690f124c2eaf026f91" title=" " alt="" coords="827,1551,961,1577"/>
+<area shape="rect" id="node28" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="834,1601,954,1628"/>
+<area shape="rect" id="node29" href="$main_8cpp.html#a2206cd179576b10f99dbe50e8e7ddc5a" title="Create directories if required." alt="" coords="644,1525,779,1552"/>
+<area shape="rect" id="node30" href="$main_8cpp.html#a414f34e8bd65aa4d83398bab54236157" title=" " alt="" coords="432,1348,557,1375"/>
+<area shape="rect" id="node31" href="$biasSINEXread_8cpp.html#a100d336742ac00f1a748f2d363401b32" title="Add default 0 values to DSBs between default signals, e.g." alt="" coords="415,1449,574,1476"/>
+<area shape="rect" id="node32" href="$structNtripSocket.html#ab1b05a4b0dd60eaebbd27a265c1fdefb" title=" " alt="" coords="139,1424,319,1451"/>
+<area shape="rect" id="node33" href="$main_8cpp.html#a8e733f262ae293c04dc14f13f16525d8" title=" " alt="" coords="393,1601,596,1628"/>
+<area shape="rect" id="node34" href="$main_8cpp.html#a29d52cfc981619584262b20b497865db" title="Create new empty trace files only when required when the filename is changed." alt="" coords="431,1525,558,1552"/>
+<area shape="rect" id="node35" href="$minimumConstraints_8cpp.html#a91e7c5f0512892cbb8ff736bb4fc35d7" title=" " alt="" coords="179,1576,279,1603"/>
+<area shape="rect" id="node36" href="$debug_8cpp.html#a4461dad047eef689e3b30b28bf034b8c" title=" " alt="" coords="185,1627,272,1653"/>
+<area shape="rect" id="node37" href="$trace_8hpp.html#a11d8bb0b71dca46dd29f27f595c70ddf" title=" " alt="" coords="445,1728,545,1755"/>
+<area shape="rect" id="node38" href="$structStreamParser.html#a78ac18a6adf2850103320c9e2f05fc2e" title=" " alt="" coords="151,1779,306,1805"/>
+<area shape="rect" id="node39" href="$structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="408,1779,581,1805"/>
+<area shape="rect" id="node40" href="$preprocessor_8cpp.html#a8e4cacbcb333a2d7c727677827a2546f" title=" " alt="" coords="175,1880,282,1907"/>
+<area shape="rect" id="node41" href="$main_8cpp.html#adec1174713b31a762011c372983df1e5" title=" " alt="" coords="155,1981,303,2008"/>
+<area shape="rect" id="node42" href="$structNtripBroadcaster.html#a784f7a01e9751eda81b74cad2932b1fd" title=" " alt="" coords="112,2032,345,2059"/>
+<area shape="rect" id="node43" href="$main_8cpp.html#a93c49123b4afe8e199430439fd682acd" title=" " alt="" coords="152,2083,305,2109"/>
+</map>

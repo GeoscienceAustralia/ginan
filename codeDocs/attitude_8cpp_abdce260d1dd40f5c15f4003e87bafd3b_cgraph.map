@@ -1,0 +1,7 @@
+<map id="satYawGalFoc" name="satYawGalFoc">
+<area shape="rect" id="node1" title="Yaw model for GAL FOC sats." alt="" coords="5,81,116,108"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="164,5,289,32"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="337,31,469,57"/>
+<area shape="rect" id="node4" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="167,107,287,133"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#ab401e4381f03bb13f4ad1000c230e5af" title="Smoothed yaw steering for GAL &amp; BDS." alt="" coords="171,157,283,184"/>
+</map>

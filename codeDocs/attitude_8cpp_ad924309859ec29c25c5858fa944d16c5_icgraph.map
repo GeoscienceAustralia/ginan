@@ -1,0 +1,4 @@
+<map id="yawToAttVecs" name="yawToAttVecs">
+<area shape="rect" id="node1" title="Calculates unit vectors of satellite&#45;fixed coordinates (ECEF) given yaw (assuming Z+ is facing toward..." alt="" coords="155,5,268,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#ae4ac48e32e26841def15a665acbf4c2e" title="Recalls satellite nominal/model attitude Returns false if attitude is invalid." alt="" coords="5,5,107,32"/>
+</map>

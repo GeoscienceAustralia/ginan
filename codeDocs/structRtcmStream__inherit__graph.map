@@ -1,8 +1,0 @@
-<map id="RtcmStream" name="RtcmStream">
-<area shape="rect" id="node1" title=" " alt="" coords="102,365,298,531"/>
-<area shape="rect" id="node5" href="$structFileRtcmStream.html" title="Object that streams RTCM data from a file." alt="" coords="35,593,186,729"/>
-<area shape="rect" id="node6" href="$structNtripRtcmStream.html" title="Object that streams RTCM data from NTRIP castors." alt="" coords="211,579,371,744"/>
-<area shape="rect" id="node2" href="$structObsStream.html" title="Interface for streams that supply observations." alt="" coords="5,79,128,244"/>
-<area shape="rect" id="node3" href="$structNavStream.html" title="Interface for objects that provide navigation data." alt="" coords="153,123,247,200"/>
-<area shape="rect" id="node4" href="$structRtcmDecoder.html" title=" " alt="" coords="271,5,489,317"/>
-</map>

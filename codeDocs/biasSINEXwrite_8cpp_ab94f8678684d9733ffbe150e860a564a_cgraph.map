@@ -1,0 +1,7 @@
+<map id="writeBSINEXHeader" name="writeBSINEXHeader">
+<area shape="rect" id="node1" title="Write bias SINEX head for the first time." alt="" coords="5,56,156,83"/>
+<area shape="rect" id="node2" href="$gTime_8cpp.html#a37bc65d232e726cdbc51122a8a8ec00e" title=" " alt="" coords="379,5,462,32"/>
+<area shape="rect" id="node3" href="$biasSINEXwrite_8cpp.html#a986e047c2dd383adf5526d99e5c418c4" title="Update bias SINEX first line." alt="" coords="204,31,325,57"/>
+<area shape="rect" id="node4" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="373,56,468,83"/>
+<area shape="rect" id="node5" href="$algebra__old_8cpp.html#a54fd9b64416949c38e879ac889964d2a" title=" " alt="" coords="236,132,293,159"/>
+</map>

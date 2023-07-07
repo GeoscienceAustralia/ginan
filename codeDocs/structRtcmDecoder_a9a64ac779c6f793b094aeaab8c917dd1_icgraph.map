@@ -1,0 +1,4 @@
+<map id="RtcmDecoder::adjGpsWeek" name="RtcmDecoder::adjGpsWeek">
+<area shape="rect" id="node1" title="adjust GPS week number according to RTCM time" alt="" coords="288,5,488,32"/>
+<area shape="rect" id="node2" href="$structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9" title="decode RTCM navigation messages" alt="" coords="5,5,240,32"/>
+</map>

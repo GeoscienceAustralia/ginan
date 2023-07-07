@@ -1,0 +1,5 @@
+<map id="getSnxSatMaxYawRate" name="getSnxSatMaxYawRate">
+<area shape="rect" id="node1" title="Get yaw rate sinex entry for sat." alt="" coords="145,31,316,57"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#aaba71c01b77e887c80e8dc69a8366d61" title="Yaw model for GPS sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="5,5,97,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="7,56,96,83"/>
+</map>

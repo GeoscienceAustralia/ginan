@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="$structNtripSocket.html#a6ebc5997884c9c3e89ba91691881d99d" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structNtripSocket.html#a6ebc5997884c9c3e89ba91691881d99d" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="171,-0.5 171,-19.5 302,-19.5 302,-0.5 171,-0.5"/>
 <text text-anchor="middle" x="236.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">NtripSocket::runService</text>
 </a>

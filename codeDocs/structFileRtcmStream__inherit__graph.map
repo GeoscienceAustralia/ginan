@@ -1,5 +1,0 @@
-<map id="FileRtcmStream" name="FileRtcmStream">
-<area shape="rect" id="node1" title="Object that streams RTCM data from a file." alt="" coords="97,219,248,355"/>
-<area shape="rect" id="node2" href="$structACSFileStream.html" title="Interface to be used for file streams." alt="" coords="5,27,148,149"/>
-<area shape="rect" id="node3" href="$structRtcmStream.html" title=" " alt="" coords="172,5,368,171"/>
-</map>

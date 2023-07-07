@@ -1,6 +1,0 @@
-<map id="Single_Point_Positioning" name="Single_Point_Positioning">
-<area shape="rect" id="node1" title="Use simple geometric and atmospheric models to estimate parameters." alt="" coords="5,56,187,83"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#a9704056a2f288e2750591c108a4aba24" title="Determine the contribution to pseudoranges from physical distances." alt="" coords="241,5,376,32"/>
-<area shape="rect" id="node3" href="$Pea_8cpp.html#a51e64a362a4f939c9842f328c075bbd1" title="Determine the contribution to pseudoranges from refractive delays due to the atmosphsere." alt="" coords="235,56,383,83"/>
-<area shape="rect" id="node4" href="$Pea_8cpp.html#a4cea7ab960b60a31d13d045ff37a132e" title="Used to initialise unknown parameters." alt="" coords="251,107,367,133"/>
-</map>

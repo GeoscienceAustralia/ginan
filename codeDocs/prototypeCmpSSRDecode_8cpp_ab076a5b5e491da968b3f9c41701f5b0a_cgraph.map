@@ -1,0 +1,6 @@
+<map id="decodeSSR_mask" name="decodeSSR_mask">
+<area shape="rect" id="node1" title="Compact SSR message type 1: satellite/code mask." alt="" coords="5,56,143,83"/>
+<area shape="rect" id="node2" href="$prototypeCmpSSRDecode_8cpp.html#a282774baece273841d915eca27bcc898" title=" " alt="" coords="191,5,337,32"/>
+<area shape="rect" id="node3" href="$rtcmDecoder_8cpp.html#aaa6463f592ed6478626814466d3d02a5" title="increasingly extract unsigned bits from byte data" alt="" coords="385,31,472,57"/>
+<area shape="rect" id="node4" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="217,107,311,133"/>
+</map>

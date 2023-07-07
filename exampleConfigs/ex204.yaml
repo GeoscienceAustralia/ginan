@@ -1,0 +1,30 @@
+
+inputs:
+    include_yamls:
+        - input_metadata.yaml
+        - input_files_network.yaml
+        - processing_network.yaml
+        - processing_network_biases.yaml
+        - mongo_outputs.yaml
+        - debug_trace.yaml
+    
+    erp_files:  [ IGS1R03SNX_20191950000_07D_01D_ERP.ERP        ]       
+    satellite_data:
+        nav_files: [ brdm1990.19p                               ]
+        sp3_files: [ IGS2R03FIN_20191990000_01D_05M_ORB.SP3     ]
+    
+outputs:
+    metadata:
+        config_description:     "ex204"
+
+processing_options:
+    epoch_control:
+        wait_next_epoch:        300
+    gnss_general:
+        common_sat_pco:         true
+        common_rec_pco:         true
+    filter_options:
+        rts:
+            enable:             true
+            directory:          ./    # WARNING: RTS Smoothing for network solutions may generate files of up to 1TB in size, 
+                                  # make sure there is enoough disk space for these files 

@@ -1,0 +1,10 @@
+<map id="satclk" name="satclk">
+<area shape="rect" id="node1" title=" " alt="" coords="5,132,67,159"/>
+<area shape="rect" id="node2" href="$trace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="308,5,403,32"/>
+<area shape="rect" id="node3" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="291,132,420,159"/>
+<area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="312,81,399,108"/>
+<area shape="rect" id="node5" href="$ephBroadcast_8cpp.html#ab1c1a98259589f6e077e68b8c70091b9" title=" " alt="" coords="115,132,243,159"/>
+<area shape="rect" id="node6" href="$ephPrecise_8cpp.html#a99b848b35a95f1521e4bfe1f222f8505" title=" " alt="" coords="123,183,234,209"/>
+<area shape="rect" id="node7" href="$ephKalman_8cpp.html#a55ae9cdfbdfbae347846acb116ed909e" title=" " alt="" coords="122,233,235,260"/>
+<area shape="rect" id="node8" href="$ephRemote_8cpp.html#afd0039b3e0c147e7bfa9719110c8d388" title=" " alt="" coords="121,284,236,311"/>
+</map>

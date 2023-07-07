@@ -1,7 +1,0 @@
-<map id="writeERPFromNetwork" name="writeERPFromNetwork">
-<area shape="rect" id="node1" title=" " alt="" coords="5,81,173,108"/>
-<area shape="rect" id="node2" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="239,5,359,32"/>
-<area shape="rect" id="node3" href="$structKFState.html#a405c50a3085d8328e81dcd6786f775d3" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="221,56,377,83"/>
-<area shape="rect" id="node4" href="$erp_8cpp.html#a2175e21177dd166ea05c60122d2b923f" title=" " alt="" coords="259,107,339,133"/>
-<area shape="rect" id="node5" href="$erp_8cpp.html#a1386bd18fe06158ac5f8c228bccec09b" title="Get earth rotation parameter values." alt="" coords="267,157,331,184"/>
-</map>

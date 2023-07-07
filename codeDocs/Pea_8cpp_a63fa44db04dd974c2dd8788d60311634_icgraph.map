@@ -1,4 +1,0 @@
-<map id="RINEX_Files" name="RINEX_Files">
-<area shape="rect" id="node1" title="Provide GNSS observation data from human&#45;readable files." alt="" coords="147,5,245,32"/>
-<area shape="rect" id="node2" href="$Pea_8cpp.html#ae0e7a9875ba11feed494742fbf80e727" title="Data files are checked for new data each epoch before processing commences." alt="" coords="5,5,99,32"/>
-</map>

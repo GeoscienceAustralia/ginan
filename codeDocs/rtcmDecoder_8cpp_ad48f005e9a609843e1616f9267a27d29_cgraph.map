@@ -1,0 +1,4 @@
+<map id="getbitu" name="getbitu">
+<area shape="rect" id="node1" title="extract unsigned bits from RTCM messages" alt="" coords="5,5,73,32"/>
+<area shape="rect" id="node2" href="$rtcmDecoder_8cpp.html#a85a03123ae20efc3b06434f616140943" title="extract unsigned bits from byte data" alt="" coords="121,5,189,32"/>
+</map>

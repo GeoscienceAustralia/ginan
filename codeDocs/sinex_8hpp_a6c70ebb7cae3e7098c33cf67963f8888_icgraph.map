@@ -1,0 +1,7 @@
+<map id="getStnSnx" name="getStnSnx">
+<area shape="rect" id="node1" title=" " alt="" coords="237,81,325,108"/>
+<area shape="rect" id="node2" href="$tropSinex_8cpp.html#a1faee2ac53f3a75f110a3d3fadd79354" title="Write SITE/ID block." alt="" coords="38,5,157,32"/>
+<area shape="rect" id="node3" href="$slrRec_8cpp.html#a652155f6d0a48ea8f090fbf91119d98c" title="Retrieve receiver a&#45;priori position &amp; eccentricity." alt="" coords="31,56,164,83"/>
+<area shape="rect" id="node4" href="$pea__snx_8cpp.html#a8e1c8eabbdcd632cd47f48b220ce3d25" title=" " alt="" coords="5,107,189,133"/>
+<area shape="rect" id="node5" href="$ppp__pseudoobs_8cpp.html#aa248470eac1bf78565ee912282a5894d" title=" " alt="" coords="28,157,167,184"/>
+</map>

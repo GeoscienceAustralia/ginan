@@ -1,0 +1,6 @@
+<map id="UbxDecoder::decodeSFRBX" name="UbxDecoder::decodeSFRBX">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,205,83"/>
+<area shape="rect" id="node2" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="325,5,411,32"/>
+<area shape="rect" id="node3" href="$ubxDecoder_8cpp.html#ac02d8aedf9378d8fbaf53472ec5debcf" title=" " alt="" coords="298,56,438,83"/>
+<area shape="rect" id="node4" href="$structUbxDecoder.html#a3edfc6fc421d31970881abd2f6db1f6d" title=" " alt="" coords="253,107,483,133"/>
+</map>

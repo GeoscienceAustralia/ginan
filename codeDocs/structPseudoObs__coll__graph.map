@@ -1,6 +1,0 @@
-<map id="PseudoObs" name="PseudoObs">
-<area shape="rect" id="node1" title=" " alt="" coords="204,439,299,516"/>
-<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,156,361"/>
-<area shape="rect" id="node3" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="180,35,323,332"/>
-<area shape="rect" id="node4" title=" " alt="" coords="347,145,427,222"/>
-</map>

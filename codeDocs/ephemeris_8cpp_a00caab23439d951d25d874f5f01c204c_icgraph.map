@@ -1,5 +1,0 @@
-<map id="satpos_ssr" name="satpos_ssr">
-<area shape="rect" id="node1" title="satellite position and clock with ssr correction" alt="" coords="144,31,235,57"/>
-<area shape="rect" id="node2" href="$ephemeris_8cpp.html#aefd46b6f7f1ff6f8bb1f56cab126b8fc" title=" " alt="" coords="5,5,96,32"/>
-<area shape="rect" id="node3" href="$ephemeris_8cpp.html#a7c3a943170776da84985c003ba8c8c9f" title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg..." alt="" coords="18,56,83,83"/>
-</map>

@@ -1,0 +1,4 @@
+<map id="mongoBrdcEph" name="mongoBrdcEph">
+<area shape="rect" id="node1" title="Write GPS/GAL/BDS/QZS ephemeris to Mongo DB." alt="" coords="288,5,408,32"/>
+<area shape="rect" id="node2" href="$structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9" title="decode RTCM navigation messages" alt="" coords="5,5,240,32"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="RtcmEncoder::encodeSsrUra" name="RtcmEncoder::encodeSsrUra">
+<area shape="rect" id="node1" title="encode URA messages" alt="" coords="5,81,212,108"/>
+<area shape="rect" id="node2" href="$structRtcmEncoder.html#a0faafc925ae0857559dd9a911cc3b90d" title="encode SSR header information" alt="" coords="260,5,491,32"/>
+<area shape="rect" id="node3" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="539,56,625,83"/>
+<area shape="rect" id="node4" href="$rtcmEncoder_8cpp.html#a8f864026b0c62e3310631919384eab44" title="Convert SSR URA to URA_CLASS and URA_VALUE combination, with 3 Msb URA_CLASS and 3Lsb URA_VALUE." alt="" coords="311,56,440,83"/>
+<area shape="rect" id="node5" href="$structRtcmTrace.html#aa9417bd4a22314d42e8064f78f12d26d" title=" " alt="" coords="288,157,463,184"/>
+</map>

@@ -1,6 +1,0 @@
-<map id="model_iono" name="model_iono">
-<area shape="rect" id="node1" title="ionospheric model" alt="" coords="5,56,104,83"/>
-<area shape="rect" id="node2" href="$ionex_8cpp.html#abd23ed48e711dd45a8a2f0ea0d2260d0" title="ionosphere model by tec grid data Before calling the function, read tec grid data by calling readtec(..." alt="" coords="180,5,243,32"/>
-<area shape="rect" id="node3" href="$ephemeris_8cpp.html#ad506cac35e66f4336a1e14217d7c60e5" title=" " alt="" coords="152,56,271,83"/>
-<area shape="rect" id="node4" href="$corrections_8cpp.html#a62c81439777b5986075d04b0d9a13082" title=" " alt="" coords="170,107,253,133"/>
-</map>

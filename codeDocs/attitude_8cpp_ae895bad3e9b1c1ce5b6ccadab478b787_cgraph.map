@@ -1,0 +1,6 @@
+<map id="satYawQzs2I" name="satYawQzs2I">
+<area shape="rect" id="node1" title="Yaw model for QZSS&#45;2I &amp; QZSS&#45;2A satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="5,56,108,83"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a3d99fe34c55c1e5e80b495aa7fb4a5dc" title="Yaw model for QZSS&#45;1 satellites Ref: https://qzss.go.jp/en/technical/qzssinfo/index...." alt="" coords="173,5,271,32"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="156,56,288,83"/>
+<area shape="rect" id="node4" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="162,107,282,133"/>
+</map>

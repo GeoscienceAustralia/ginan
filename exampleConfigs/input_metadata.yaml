@@ -1,0 +1,17 @@
+# Sets metadata files used for Ginan processing
+# WARNING: Station side metadata is missing from this file, set it as extra yaml inputs (for rovers), or include a station SINEX file
+
+inputs:
+
+    root_directory: products/
+    snx_files:  [ tables/igs_satellite_metadata_2219.snx ]
+    atx_files:  [ M20.ATX                           ]  
+    blq_files:  [ OLOAD_GO.BLQ                      ]  
+    egm_files:  [ tables/EGM2008.gfc                ]  
+    jpl_files:  [ tables/DE436.1950.2050            ]  
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat       ]
+    igrf_files: [ igrf13coeffs.txt                  ]
+    
+    troposphere:
+        gpt2grid_files:  gpt_25.grd
+

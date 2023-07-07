@@ -1,0 +1,14 @@
+<map id="setbitsInc" name="setbitsInc">
+<area shape="rect" id="node1" title="increasingly set signed bits to byte data" alt="" coords="285,259,371,285"/>
+<area shape="rect" id="node2" href="$structRtcmEncoder.html#a9a9812f3f6389d6d39eb59a0faff70b7" title="encode orbit/clock messages" alt="" coords="8,5,235,32"/>
+<area shape="rect" id="node3" href="$structRtcmEncoder.html#adaea4ff6e3c24a71716dd84ee0999fef" title="encode phase bias messages" alt="" coords="10,56,233,83"/>
+<area shape="rect" id="node4" href="$structRtcmEncoder.html#a18fe202e400a35f110954b78f93647ef" title="encode code bias messages" alt="" coords="13,107,229,133"/>
+<area shape="rect" id="node5" href="$structRtcmEncoder.html#a3fcbeeb38259b50d2684adf2d36efb9f" title="encode GPS/GAL/BDS/QZS ephemeris messages" alt="" coords="5,157,237,184"/>
+<area shape="rect" id="node6" href="$prototypeIgsSSREncode_8cpp.html#a5860e21c82b09ac4b4f9051c19ad626d" title=" " alt="" coords="58,208,185,235"/>
+<area shape="rect" id="node7" href="$prototypeIgsSSREncode_8cpp.html#aed2001951dab0df50a3e8890f6303240" title=" " alt="" coords="60,259,183,285"/>
+<area shape="rect" id="node8" href="$prototypeIgsSSREncode_8cpp.html#a0b52ed993dfc6fdce07c1047d9f7d228" title=" " alt="" coords="57,309,185,336"/>
+<area shape="rect" id="node9" href="$prototypeIgsSSREncode_8cpp.html#a72d4233d3708a4ab1551b1139e6afb27" title=" " alt="" coords="58,360,185,387"/>
+<area shape="rect" id="node10" href="$prototypeIgsSSREncode_8cpp.html#af3fc3638b16db1676d10fa1a4179860a" title=" " alt="" coords="58,411,185,437"/>
+<area shape="rect" id="node11" href="$prototypeIgsSSREncode_8cpp.html#a41fe2e1f1e8daaa5fb8158f1b7196681" title=" " alt="" coords="59,461,183,488"/>
+<area shape="rect" id="node12" href="$prototypeIgsSSREncode_8cpp.html#adf3f3613d64a13f4cdccccc258d29585" title=" " alt="" coords="58,512,185,539"/>
+</map>

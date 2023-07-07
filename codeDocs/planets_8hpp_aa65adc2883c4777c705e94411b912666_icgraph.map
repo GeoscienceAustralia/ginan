@@ -1,0 +1,9 @@
+<map id="planetPosEcef" name="planetPosEcef">
+<area shape="rect" id="node1" title=" " alt="" coords="192,132,307,159"/>
+<area shape="rect" id="node2" href="$GinAR__main_8cpp.html#a6b47f427a4e5ed5d14201c65ca17d49e" title=" " alt="" coords="23,5,126,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#ae61f115d5d0990cf844b7843cf5812c7" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="5,56,144,83"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a360c3ba909b48b37e45577a4f2cc0970" title="exclude meas of eclipsing satellite (block IIA)" alt="" coords="28,107,121,133"/>
+<area shape="rect" id="node5" href="$debug_8cpp.html#a9779f5f24c300e72581f3858ed638c9e" title=" " alt="" coords="17,157,132,184"/>
+<area shape="rect" id="node6" href="$ionoSpherical_8cpp.html#a5b7bfe4a5b9c8c410133e7e6efbfc753" title="rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IP..." alt="" coords="11,208,138,235"/>
+<area shape="rect" id="node7" href="$tides_8cpp.html#a76dbcd260bdab5954ea1d50cbe96b09f" title=" " alt="" coords="37,259,113,285"/>
+</map>

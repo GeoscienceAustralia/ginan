@@ -1,0 +1,8 @@
+<map id="readCrd" name="readCrd">
+<area shape="rect" id="node1" title="Extracts observations from a given CRD (.npt) file." alt="" coords="5,107,79,133"/>
+<area shape="rect" id="node2" href="$slrObs_8cpp.html#ae88361ee65bf03ef67183514b9d32fa5" title="Parses a CRD file." alt="" coords="147,5,241,32"/>
+<area shape="rect" id="node3" href="$slrObs_8cpp.html#a4c3ed56472d893fdf8be7e463eaa3758" title="Converts from ILRS ID (condensed version of COSPAR ID) to COSPAR ID COSPAR ID to ILRS Satellite Ident..." alt="" coords="131,56,257,83"/>
+<area shape="rect" id="node4" href="$slrObs_8cpp.html#ad77fb0acc7b2f1cc833f9a9856d9f0d3" title="Converts from ILRS ID to SatSys object." alt="" coords="138,107,250,133"/>
+<area shape="rect" id="node5" href="$gTime_8cpp.html#a42f524ddac7eb2f122e34df9a5a1f08f" title=" " alt="" coords="145,157,243,184"/>
+<area shape="rect" id="node6" href="$slrObs_8cpp.html#a96d2aadb029b3ba1169d6c631fa62b89" title="Convert seconds&#45;of&#45;day of an event and the start of the session encompassing the event to a GTime Ass..." alt="" coords="127,208,261,235"/>
+</map>

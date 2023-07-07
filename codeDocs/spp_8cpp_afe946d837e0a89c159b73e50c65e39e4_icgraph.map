@@ -1,5 +1,0 @@
-<map id="estpos" name="estpos">
-<area shape="rect" id="node1" title="Estimate receiver position and biases using code measurements." alt="" coords="241,31,307,57"/>
-<area shape="rect" id="node2" href="$spp_8cpp.html#a9d3fef1e4eab19407853f4c1a975263b" title="Receiver autonomous integrity monitoring (RAIM) failure detection and exclution." alt="" coords="113,5,193,32"/>
-<area shape="rect" id="node3" href="$spp_8cpp.html#a80e3d976b8371ffec2003e91fbd86282" title="Compute receiver position, velocity, clock bias by single&#45;point positioning with pseudorange observab..." alt="" coords="5,31,65,57"/>
-</map>

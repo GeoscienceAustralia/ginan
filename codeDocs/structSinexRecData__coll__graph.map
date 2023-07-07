@@ -1,0 +1,12 @@
+<map id="SinexRecData" name="SinexRecData">
+<area shape="rect" id="node1" title=" " alt="" coords="575,945,688,1023"/>
+<area shape="rect" id="node2" href="$structSinex__siteid__t.html" title=" " alt="" coords="5,475,119,670"/>
+<area shape="rect" id="node3" href="$structSinex__receiver__t.html" title=" " alt="" coords="143,527,274,619"/>
+<area shape="rect" id="node4" href="$structUYds.html" title=" " alt="" coords="365,5,513,200"/>
+<area shape="rect" id="node5" href="$structSinex__antenna__t.html" title=" " alt="" coords="298,527,429,619"/>
+<area shape="rect" id="node8" href="$structSinex__site__ecc__t.html" title=" " alt="" coords="453,527,583,619"/>
+<area shape="rect" id="node6" href="$structSinex__gps__phase__center__t.html" title=" " alt="" coords="701,534,895,611"/>
+<area shape="rect" id="node7" href="$structSinex__gal__phase__center__t.html" title=" " alt="" coords="920,534,1111,611"/>
+<area shape="rect" id="node9" href="$structVectorEcef.html" title=" " alt="" coords="1135,497,1253,648"/>
+<area shape="rect" id="node10" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="1277,277,1460,868"/>
+</map>

@@ -1,9 +1,0 @@
-<map id="sppos" name="sppos">
-<area shape="rect" id="node1" title="Compute receiver position, velocity, clock bias by single&#45;point positioning with pseudorange observab..." alt="" coords="5,121,65,148"/>
-<area shape="rect" id="node2" href="$streamTrace_8cpp.html#ae00e6addd3bdf3a7fd41a254eb9aec89" title=" " alt="" coords="547,70,641,97"/>
-<area shape="rect" id="node3" href="$spp_8cpp.html#afe946d837e0a89c159b73e50c65e39e4" title="Estimate receiver position and biases using code measurements." alt="" coords="353,45,419,72"/>
-<area shape="rect" id="node4" href="$structKFState.html#a291ac2a8a4612b3575dbc864d43fa0f7" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="516,146,672,173"/>
-<area shape="rect" id="node5" href="$spp_8cpp.html#a9d3fef1e4eab19407853f4c1a975263b" title="Receiver autonomous integrity monitoring (RAIM) failure detection and exclution." alt="" coords="145,96,225,122"/>
-<area shape="rect" id="node6" href="$structKFState.html#a0c84e911a5ea760fe728baec661e33f0" title="Output keys and states in human readable format." alt="" coords="304,146,468,173"/>
-<area shape="rect" id="node7" href="$structTestStack.html#aff20cea87ae5eee6108b33d022913707" title="Compare matrix against test dataset." alt="" coords="113,248,256,274"/>
-</map>

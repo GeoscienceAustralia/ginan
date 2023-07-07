@@ -1,0 +1,7 @@
+<map id="ippInRange" name="ippInRange">
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,100,108"/>
+<area shape="rect" id="node2" href="$ionoSpherical_8cpp.html#a5b7bfe4a5b9c8c410133e7e6efbfc753" title="rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IP..." alt="" coords="149,5,276,32"/>
+<area shape="rect" id="node3" href="$ionoSphericalCaps_8cpp.html#af953ae8b4e5d94daecada20e21dd59a2" title="transforms the Ionosphere Piercing Point and checks if it falls in area of coverage time: I time of o..." alt="" coords="148,56,277,83"/>
+<area shape="rect" id="node4" href="$ionoBSplines_8cpp.html#a7002ebc4f104e21e0a2a24917ac32098" title="checks if the Ionosphere Piercing Point falls in area of coverage time: I time of observations (not u..." alt="" coords="151,107,274,133"/>
+<area shape="rect" id="node5" href="$ionoLocalSTEC_8cpp.html#a79c2c9c09c182d233a7762862e60b900" title="Checks if the Ionosphere Piercing Point falls in area of coverage." alt="" coords="155,157,271,184"/>
+</map>

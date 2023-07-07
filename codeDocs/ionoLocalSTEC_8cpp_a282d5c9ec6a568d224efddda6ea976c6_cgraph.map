@@ -1,0 +1,4 @@
+<map id="configLocalIonoFromFile" name="configLocalIonoFromFile">
+<area shape="rect" id="node1" title="Initializes local ionosphere maps Parameters are set from files indicated by nav.SSRAtmMap...." alt="" coords="5,5,184,32"/>
+<area shape="rect" id="node2" href="$ionoLocalSTEC_8cpp.html#ae6ec678f0d43ed0c5c85b96e2f62bd8f" title=" " alt="" coords="232,5,392,32"/>
+</map>

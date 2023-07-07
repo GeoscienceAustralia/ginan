@@ -1,0 +1,4 @@
+<map id="addBiasEntry" name="addBiasEntry">
+<area shape="rect" id="node1" title="Adding/updating new bias entry." alt="" coords="192,5,300,32"/>
+<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#abc8237c886f93fe5f584339ab0cbf81e" title="Store bias output to write into bias SINEX files." alt="" coords="5,5,144,32"/>
+</map>

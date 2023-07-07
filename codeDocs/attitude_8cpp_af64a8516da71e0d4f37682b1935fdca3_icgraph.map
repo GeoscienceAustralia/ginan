@@ -1,0 +1,4 @@
+<map id="satYawGlo" name="satYawGlo">
+<area shape="rect" id="node1" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="120,5,209,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#afbb15500af25a5aabc6237b8e027c128" title="Calculates nominal &amp; model yaw Returns false if no modelled yaw available." alt="" coords="5,5,72,32"/>
+</map>

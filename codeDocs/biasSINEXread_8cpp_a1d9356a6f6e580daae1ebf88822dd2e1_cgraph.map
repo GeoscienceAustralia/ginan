@@ -1,0 +1,4 @@
+<map id="getBias" name="getBias">
+<area shape="rect" id="node1" title="Search for hardware bias for given measurmenet type." alt="" coords="5,29,76,56"/>
+<area shape="rect" id="node2" href="$biasSINEXread_8cpp.html#a3dde985df8b970e9d9a640c08868969b" title="Recurser of bias chaining, i.e." alt="" coords="124,29,231,56"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="writeOrbexHeader" name="writeOrbexHeader">
+<area shape="rect" id="node1" title="Write ORBEX header lines and header blocks including FILE/DESCRIPTION and SATELLITE/ID_AND_DESCRIPTIO..." alt="" coords="192,5,333,32"/>
+<area shape="rect" id="node2" href="$orbexWrite_8cpp.html#a56d2a92adc2482a87027c44038ce042e" title="Write EPHEMERIS/DATA block and update END_TIME line." alt="" coords="5,5,144,32"/>
+</map>

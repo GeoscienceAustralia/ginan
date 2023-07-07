@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="$structURL.html#adae16109d1271e374fae2d942cabeaab" xlink:title=" ">
+<g id="a_node2"><a xlink:href="structURL.html#adae16109d1271e374fae2d942cabeaab" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="144,-0.5 144,-19.5 213,-19.5 213,-0.5 144,-0.5"/>
 <text text-anchor="middle" x="178.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">URL::parse</text>
 </a>
