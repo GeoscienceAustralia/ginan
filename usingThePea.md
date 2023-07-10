@@ -32,6 +32,26 @@ Observation data forms the basis for operation of the software. Observations fro
 
 Observation data is synchronised by timestamp - when the main function requests data of a specific timestamp all data until that point is parsed (but may be discarded), before the observation data corresponding to that timestamp being used in processing.
 
+#### SSR Data Input
+
+State Space Representation (SSR) messages contain the values of different GNSS error components, such as satellite clocks & orbits, hardware biases and ionosphere delays. These SSR components can be applied to GNSS observations to correct their error components. Streams containing SSR messages are available via NTRIP casters, which enable performing PPP in real-time.
+
+The software can decode SSR messages for the following constellations:
+* GPS
+* GALILEO
+* GLONASS
+* BEIDOU
+* QZSS
+* SBS
+
+For each constellation, the following GNSS error components can be decoded and applied:
+* Satellite clocks
+* High-rate satellite clocks
+* Satellite orbits
+* Code & phase biases
+* User Range Accuracy (URA)
+
+
 #### Initialisation of Objects
 
 During the following stages of processing many receiver-specific objects may be created within global objects. To prevent thread collision in the global objects, the receiver-specific objects are created here sequentially.
@@ -117,6 +137,30 @@ In order for estimated and predicted values to be of use to end-users, they must
 Some parameters of interest are not directly estimated by the filter, but may be derived from estimates by secondary operations, which are performed in this section of the code.
 
 In this section, data is written to files or pushed to NTRIP casters and other data sinks.
+
+#### SSR message generation
+
+State Space Representation (SSR) messages contain data on different GNSS error components, such as satellite clocks and orbits.
+To generate an SSR message, error components are retrieved from a selection of several sources - such as the Kalman filter (estimated), precise product files, or even other input SSR streams.
+Then, messages are formed according to the RTCM 3 standard.
+Once ready, the SSR messages are then published to an NTRIP caster to be broadcast to multiple end-users.
+
+The software can generate SSR messages for the following constellations:
+* GPS
+* GALILEO
+* GLONASS
+* BEIDOU
+* QZSS
+* SBS
+
+For each constellation, the following GNSS error components can be generated:
+* Satellite clocks
+* High-rate satellite clocks
+* Satellite orbits
+* Code & phase biases
+* User Range Accuracy (URA)
+
+For further details on how SSR messages are used on the end-user side, see section `SSR Data Input`.
 
 
 ## Post-processing
