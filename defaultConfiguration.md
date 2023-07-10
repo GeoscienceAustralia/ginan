@@ -38,6 +38,14 @@ List of sources to use for clocks
 
 ---
 
+###### **`satellite_options:global:exclude:`**
+ `false `
+
+
+(bool) Exclude satellite from processing
+
+---
+
 ## station_options:
 
 ###### **`station_options:`**
@@ -917,6 +925,62 @@ Sources for SSR ionosphere
 
 
 Sources for SSR phase biases
+
+---
+
+###### **`processing_options:ssr_inputs:`**
+ ` `
+
+
+> This section specifies how State State Representation (SSR) corrections are applied after they are downloaded from an NTRIP caster.
+
+---
+
+###### **`processing_options:ssr_inputs:code_bias_validity_time:`**
+ `3600 `
+
+
+(double) Valid time period of SSR code biases
+
+---
+
+###### **`processing_options:ssr_inputs:global_vtec_valid_time:`**
+ `300 `
+
+
+(double) Valid time period of global VTEC maps
+
+---
+
+###### **`processing_options:ssr_inputs:local_stec_valid_time:`**
+ `120 `
+
+
+(double) Valid time period of local STEC corrections
+
+---
+
+###### **`processing_options:ssr_inputs:one_freq_phase_bias:`**
+ `false `
+
+
+(bool)   Used stream have one SSR phase bias per frequency
+
+---
+
+###### **`processing_options:ssr_inputs:phase_bias_validity_time:`**
+ `30 `
+
+
+(double) Valid time period of SSR phase biases
+
+---
+
+###### **`processing_options:ssr_inputs:ssr_antenna_offset:`**
+ [`E_OffsetType`](#e_offsettype) `UNSPECIFIED `
+
+
+Ephemeris type that is provided in the listed SSR stream, i.e. satellite antenna-phase-centre (APC) or centre-of-mass (COM). This information is listed in the NTRIP Caster's sourcetable {unspecified,apc,com}
 
 ---
 
@@ -2808,12 +2872,6 @@ List of observation codes to use in processing
 
 ---
 
-###### **`estimation_parameters:satellites:global:exclude:`**
- `false `
-
-
----
-
 ###### **`estimation_parameters:satellites:global:phase_sigmas:`**
  `[0] `
 
@@ -3347,12 +3405,6 @@ List of observation codes to use in processing
 
 
 [floats] Standard deviation of code measurements
-
----
-
-###### **`estimation_parameters:satellites:exclude:`**
- `false `
-
 
 ---
 
@@ -3952,12 +4004,6 @@ List of observation codes to use in processing
 
 ---
 
-###### **`estimation_parameters:stations:global:exclude:`**
- `false `
-
-
----
-
 ###### **`estimation_parameters:stations:ion_stec:`**
  ` `
 
@@ -4211,12 +4257,6 @@ List of observation codes to use in processing
 
 
 [floats] Standard deviation of phase measurmeents
-
----
-
-###### **`estimation_parameters:stations:exclude:`**
- `false `
-
 
 ---
 
@@ -5649,122 +5689,6 @@ For options:
 - [`estimation_parameters:satellites:G01:L1W:srp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesG01L1Wsrp_dyb_3sproc_noise_dt)
 - [`estimation_parameters:satellites:G01:L1W:srp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesG01L1Wsrp_dyb_4cproc_noise_dt)
 - [`estimation_parameters:satellites:G01:L1W:srp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesG01L1Wsrp_dyb_4sproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:clk:proc_noise_dt:`](#estimation_parameterssatellitesL2Wclkproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:clk_rate:proc_noise_dt:`](#estimation_parameterssatellitesL2Wclk_rateproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:pos:proc_noise_dt:`](#estimation_parameterssatellitesL2Wposproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:pos_rate:proc_noise_dt:`](#estimation_parameterssatellitesL2Wpos_rateproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:orb:proc_noise_dt:`](#estimation_parameterssatellitesL2Worbproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:pco:proc_noise_dt:`](#estimation_parameterssatellitesL2Wpcoproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:ant:proc_noise_dt:`](#estimation_parameterssatellitesL2Wantproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:orbit:proc_noise_dt:`](#estimation_parameterssatellitesL2Worbitproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:ion_model:proc_noise_dt:`](#estimation_parameterssatellitesL2Wion_modelproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:code_bias:proc_noise_dt:`](#estimation_parameterssatellitesL2Wcode_biasproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:phase_bias:proc_noise_dt:`](#estimation_parameterssatellitesL2Wphase_biasproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_0:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_0proc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_1c:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_1cproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_1s:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_1sproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_2c:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_2cproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_2s:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_2sproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_3c:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_3cproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_3sproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_4cproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:emp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesL2Wemp_dyb_4sproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_0:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_0proc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_1c:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_1cproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_1s:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_1sproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_2c:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_2cproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_2s:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_2sproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_3c:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_3cproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_3sproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_4cproc_noise_dt)
-- [`estimation_parameters:satellites:L2W:srp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesL2Wsrp_dyb_4sproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:clk:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wclkproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:clk_rate:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wclk_rateproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:pos:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wposproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:pos_rate:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wpos_rateproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:orb:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Worbproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:pco:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wpcoproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:ant:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wantproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:orbit:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Worbitproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:ion_model:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wion_modelproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:code_bias:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wcode_biasproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:phase_bias:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wphase_biasproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_0:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_0proc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_1c:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_1cproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_1s:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_1sproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_2c:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_2cproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_2s:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_2sproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_3c:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_3cproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_3sproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_4cproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:emp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wemp_dyb_4sproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_0:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_0proc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_1c:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_1cproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_1s:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_1sproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_2c:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_2cproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_2s:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_2sproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_3c:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_3cproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_3sproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_4cproc_noise_dt)
-- [`estimation_parameters:satellites:global:L2W:srp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesglobalL2Wsrp_dyb_4sproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:clk:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wclkproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:clk_rate:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wclk_rateproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:pos:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wposproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:pos_rate:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wpos_rateproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:orb:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Worbproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:pco:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wpcoproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:ant:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wantproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:orbit:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Worbitproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:ion_model:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wion_modelproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:code_bias:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wcode_biasproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:phase_bias:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wphase_biasproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_0:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_0proc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_1c:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_1cproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_1s:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_1sproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_2c:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_2cproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_2s:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_2sproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_3c:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_3cproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_3sproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_4cproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:emp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wemp_dyb_4sproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_0:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_0proc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_1c:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_1cproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_1s:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_1sproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_2c:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_2cproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_2s:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_2sproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_3c:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_3cproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_3sproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_4cproc_noise_dt)
-- [`estimation_parameters:satellites:GPS:L2W:srp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesGPSL2Wsrp_dyb_4sproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:clk:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wclkproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:clk_rate:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wclk_rateproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:pos:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wposproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:pos_rate:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wpos_rateproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:orb:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Worbproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:pco:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wpcoproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:ant:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wantproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:orbit:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Worbitproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:ion_model:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wion_modelproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:code_bias:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wcode_biasproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:phase_bias:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wphase_biasproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_0:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_0proc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_1c:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_1cproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_1s:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_1sproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_2c:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_2cproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_2s:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_2sproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_3c:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_3cproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_3sproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_4cproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:emp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wemp_dyb_4sproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_0:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_0proc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_1c:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_1cproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_1s:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_1sproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_2c:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_2cproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_2s:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_2sproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_3c:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_3cproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_3s:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_3sproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_4c:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_4cproc_noise_dt)
-- [`estimation_parameters:satellites:G01:L2W:srp_dyb_4s:proc_noise_dt:`](#estimation_parameterssatellitesG01L2Wsrp_dyb_4sproc_noise_dt)
 - [`estimation_parameters:stations:clk:proc_noise_dt:`](#estimation_parametersstationsclkproc_noise_dt)
 - [`estimation_parameters:stations:clk_rate:proc_noise_dt:`](#estimation_parametersstationsclk_rateproc_noise_dt)
 - [`estimation_parameters:stations:pos:proc_noise_dt:`](#estimation_parametersstationsposproc_noise_dt)
@@ -5892,15 +5816,6 @@ For options:
 - [`satellite_options:G01:L1W:pos:sources:`](#satellite_optionsG01L1Wpossources)
 - [`satellite_options:G01:L1W:clock:sources:`](#satellite_optionsG01L1Wclocksources)
 - [`satellite_options:G01:L1W:attitude:sources:`](#satellite_optionsG01L1Wattitudesources)
-- [`satellite_options:global:L2W:pos:sources:`](#satellite_optionsglobalL2Wpossources)
-- [`satellite_options:global:L2W:clock:sources:`](#satellite_optionsglobalL2Wclocksources)
-- [`satellite_options:global:L2W:attitude:sources:`](#satellite_optionsglobalL2Wattitudesources)
-- [`satellite_options:GPS:L2W:pos:sources:`](#satellite_optionsGPSL2Wpossources)
-- [`satellite_options:GPS:L2W:clock:sources:`](#satellite_optionsGPSL2Wclocksources)
-- [`satellite_options:GPS:L2W:attitude:sources:`](#satellite_optionsGPSL2Wattitudesources)
-- [`satellite_options:G01:L2W:pos:sources:`](#satellite_optionsG01L2Wpossources)
-- [`satellite_options:G01:L2W:clock:sources:`](#satellite_optionsG01L2Wclocksources)
-- [`satellite_options:G01:L2W:attitude:sources:`](#satellite_optionsG01L2Wattitudesources)
 - [`station_options:global:attitude:sources:`](#station_optionsglobalattitudesources)
 - [`station_options:global:attitude:sources:`](#station_optionsglobalattitudesources)
 - [`station_options:XMPL:attitude:sources:`](#station_optionsXMPLattitudesources)
