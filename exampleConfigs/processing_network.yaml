@@ -1,8 +1,8 @@
 # Basic network processing, estimates station positions, tropospheric delays for stations in the network
 # It also estimates satellite clocks and code biases for GPS and GAL  
-# WARNING: options for contraining the station positions are incomplete, 
-# WARNING: for POST-MISSION processing we recommend setting:    processing_options:filter_options:rts:enable:true
-# WARNING: for REAL-TIME processing we recommend setting:       processing_options:minimum_constraints:once_per_epoch:true
+# Warning: options for contraining the station positions are incomplete, 
+# Warning: for POST-MISSION processing we recommend setting:    processing_options:filter_options:rts:enable:true
+# Warning: for REAL-TIME processing we recommend setting:       processing_options:minimum_constraints:once_per_epoch:true
 
 outputs:
     root_directory:         outputs/<CONFIG>/

@@ -1,4 +1,0 @@
-<map id="sinex_time_text" name="sinex_time_text">
-<area shape="rect" id="node1" title="Convert time string in bias SINEX to gtime struct." alt="" coords="208,5,335,32"/>
-<area shape="rect" id="node2" href="$biasSINEXread_8cpp.html#afe3e2e7c8dbfe8bd5991dbbdac91ede2" title="Read data line in bias SINEX file." alt="" coords="5,5,160,32"/>
-</map>

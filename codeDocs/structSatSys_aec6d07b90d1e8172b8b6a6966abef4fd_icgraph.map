@@ -38,7 +38,7 @@
 <area shape="rect" id="node37" href="$GinARWLamb_8cpp.html#ae3a66820cbbd6fd7a6343ce1ba640958" title="Retrieve WL ambiguities from archive." alt="" coords="899,1424,1016,1451"/>
 <area shape="rect" id="node38" href="$GinARNLamb_8cpp.html#a150b7e4a892320cadb8bfd4c813a1aca" title="Update float ambiguity estimates." alt="" coords="629,1917,741,1944"/>
 <area shape="rect" id="node39" href="$rinex_8cpp.html#ac537c5434aa7432a5dc292e882cfbc17" title="Decode geo ephemeris." alt="" coords="907,1475,1008,1501"/>
-<area shape="rect" id="node40" href="$biasSINEXread_8cpp.html#afe3e2e7c8dbfe8bd5991dbbdac91ede2" title="Read data line in bias SINEX file." alt="" coords="880,1525,1035,1552"/>
+<area shape="rect" id="node40" href="$biasSINEXread_8cpp.html#a050f11d61007e2da4c08bd8fb459330c" title="Read data line in bias SINEX file." alt="" coords="880,1525,1035,1552"/>
 <area shape="rect" id="node41" href="$rinexNavWrite_8cpp.html#aa67df0b1827f3ff1c4da263aed385531" title=" " alt="" coords="882,1576,1033,1603"/>
 <area shape="rect" id="node42" href="$spp_8cpp.html#a969f0b76792e91191b8b397ee609ae91" title="Calculate pseudorange with code bias correction." alt="" coords="652,2133,719,2160"/>
 <area shape="rect" id="node43" href="$GinARWLamb_8cpp.html#aff0cccb14678a58071b729bac061e776" title="save Resolved WL ambiguities" alt="" coords="906,1677,1009,1704"/>

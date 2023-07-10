@@ -1,5 +1,5 @@
 # Activates ambiguity resolution in Ginan processing. 
-# WARNING: The lambda_bie is NOT recommended for network processing use the bootst option instead
+# Warning: The lambda_bie is NOT recommended for network processing use the bootst option instead
 
 processing_options:
     gnss_general:

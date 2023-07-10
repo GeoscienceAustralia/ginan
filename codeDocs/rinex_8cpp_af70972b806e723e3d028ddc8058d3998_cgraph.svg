@@ -21,44 +21,44 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" target="_top" xlink:title="Set receiver options for a specific receiver using a hierarchy of sources.">
-<polygon fill="white" stroke="red" points="114,-76.5 114,-95.5 244,-95.5 244,-76.5 114,-76.5"/>
-<text text-anchor="middle" x="179" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">ACSConfig::getRecOpts</text>
+<g id="a_node2"><a xlink:href="gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="150.5,-76.5 150.5,-95.5 207.5,-95.5 207.5,-76.5 150.5,-76.5"/>
+<text text-anchor="middle" x="179" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">str2num</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node2 -->
 <g id="edge1" class="edge">
 <title>Node1&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M74.82,-57.59C95.74,-63.35 122.27,-70.65 143.19,-76.41"/>
+<path fill="none" stroke="midnightblue" d="M74.82,-57.59C98.14,-64.01 128.42,-72.35 150.14,-78.33"/>
 </g>
-<!-- Node14 -->
+<!-- Node3 -->
 <g id="node3" class="node">
-<title>Node14</title>
-<g id="a_node3"><a xlink:href="gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="150.5,-38.5 150.5,-57.5 207.5,-57.5 207.5,-38.5 150.5,-38.5"/>
-<text text-anchor="middle" x="179" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">str2num</text>
+<title>Node3</title>
+<g id="a_node3"><a xlink:href="rinex_8cpp.html#a6376198348c1ba8648f5bbe2ee58e4ab" target="_top" xlink:title="Set string without tail space.">
+<polygon fill="white" stroke="black" points="157,-38.5 157,-57.5 201,-57.5 201,-38.5 157,-38.5"/>
+<text text-anchor="middle" x="179" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">setstr</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node14 -->
+<!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
-<title>Node1&#45;&gt;Node14</title>
-<path fill="none" stroke="midnightblue" d="M78.07,-48C100.89,-48 129.4,-48 150.12,-48"/>
+<title>Node1&#45;&gt;Node3</title>
+<path fill="none" stroke="midnightblue" d="M78.07,-48C103.44,-48 135.85,-48 156.76,-48"/>
 </g>
-<!-- Node15 -->
+<!-- Node4 -->
 <g id="node4" class="node">
-<title>Node15</title>
-<g id="a_node4"><a xlink:href="rinex_8cpp.html#a6376198348c1ba8648f5bbe2ee58e4ab" target="_top" xlink:title="Set string without tail space.">
-<polygon fill="white" stroke="black" points="157,-0.5 157,-19.5 201,-19.5 201,-0.5 157,-0.5"/>
-<text text-anchor="middle" x="179" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">setstr</text>
+<title>Node4</title>
+<g id="a_node4"><a xlink:href="structACSConfig.html#a883b2b26e906c5fa7469a81b05524b8d" target="_top" xlink:title="Set receiver options for a specific receiver using a hierarchy of sources.">
+<polygon fill="white" stroke="red" points="114,-0.5 114,-19.5 244,-19.5 244,-0.5 114,-0.5"/>
+<text text-anchor="middle" x="179" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">ACSConfig::getRecOpts</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node15 -->
+<!-- Node1&#45;&gt;Node4 -->
 <g id="edge3" class="edge">
-<title>Node1&#45;&gt;Node15</title>
-<path fill="none" stroke="midnightblue" d="M74.82,-38.41C100.69,-31.29 135.14,-21.8 156.95,-15.8"/>
+<title>Node1&#45;&gt;Node4</title>
+<path fill="none" stroke="midnightblue" d="M74.82,-38.41C95.74,-32.65 122.27,-25.35 143.19,-19.59"/>
 </g>
 </g>
 </svg>

@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['a_0',['a',['../structflt__t.html#a49faf0f3eb99b59fc8a055fbd27db8f8',1,'flt_t']]],
-  ['a_1',['A',['../structKeplerEph.html#a76ac61a6bba5e1343621e0f4ae67961d',1,'KeplerEph']]],
+  ['a_0',['A',['../structKeplerEph.html#a76ac61a6bba5e1343621e0f4ae67961d',1,'KeplerEph']]],
+  ['a_1',['a',['../structflt__t.html#a49faf0f3eb99b59fc8a055fbd27db8f8',1,'flt_t']]],
   ['a0_2',['A0',['../structSTO.html#a747675f1d28faf0121c3460011f88df5',1,'STO']]],
   ['a0_3',['a0',['../structION.html#a2e0555f943449954c48b3158fc72b689',1,'ION']]],
   ['a1_4',['A1',['../structSTO.html#a4d11c560e1007d190a07425ef2453a4e',1,'STO']]],

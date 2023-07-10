@@ -33,7 +33,7 @@ var searchData=
   ['re_5fwgs84_30',['RE_WGS84',['../constants_8hpp.html#a90142af6b0a5e801704a8ec655ecbd89',1,'RE_WGS84():&#160;constants.hpp'],['../utils_8cpp.html#a90142af6b0a5e801704a8ec655ecbd89',1,'RE_WGS84():&#160;utils.cpp']]],
   ['read_31',['read',['../classtide.html#a8730e505a0f6525c4351c3452f78d408',1,'tide::read()'],['../classloading.html#a62a0ab00d136c28d0563a931be829b79',1,'loading::read()'],['../classloadGrid.html#ab846a5cf0b57be20c1c371252f126a2a',1,'loadGrid::read()'],['../structCrdSession.html#a9fa758c28b1ba1742937688152a5bf44',1,'CrdSession::read()']]],
   ['read_5fbiassinex_5fhead_32',['read_biasSINEX_head',['../biasSINEXread_8cpp.html#a7bedabb30d7e162ea04c4027051041f6',1,'biasSINEXread.cpp']]],
-  ['read_5fbiassinex_5fline_33',['read_biasSINEX_line',['../biasSINEXread_8cpp.html#afe3e2e7c8dbfe8bd5991dbbdac91ede2',1,'biasSINEXread.cpp']]],
+  ['read_5fbiassinex_5fline_33',['read_biasSINEX_line',['../biasSINEXread_8cpp.html#a050f11d61007e2da4c08bd8fb459330c',1,'biasSINEXread.cpp']]],
   ['read_5fsnx_5fheader_34',['read_snx_header',['../sinex_8cpp.html#acfcfddfd4f0433118a40ffdaeed6c4d2',1,'sinex.cpp']]],
   ['readantexf_35',['readantexf',['../antenna_8hpp.html#ae23e7dede27378f5a445120a5ae13e62',1,'readantexf(string file, Navigation &amp;nav):&#160;antenna.cpp'],['../antenna_8cpp.html#ae23e7dede27378f5a445120a5ae13e62',1,'readantexf(string file, Navigation &amp;nav):&#160;antenna.cpp']]],
   ['readbiassinex_36',['readBiasSinex',['../biasSINEXread_8cpp.html#a9de856d6ae992fe8b154b1a7d847f057',1,'readBiasSinex(string &amp;filename):&#160;biasSINEXread.cpp'],['../biasSINEX_8hpp.html#aedb446346035b4bdd32d56aa7d5b4336',1,'readBiasSinex(string &amp;file):&#160;biasSINEXread.cpp']]],

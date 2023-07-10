@@ -1,5 +1,5 @@
 # Sets metadata files used for Ginan processing
-# WARNING: Station side metadata is missing from this file, set it as extra yaml inputs (for rovers), or include a station SINEX file
+# Warning: Station side metadata is missing from this file, set it as extra yaml inputs (for rovers), or include a station SINEX file
 
 inputs:
 
@@ -15,3 +15,16 @@ inputs:
     troposphere:
         gpt2grid_files:  gpt_25.grd
 
+
+satellite_options:
+    E05: { exclude: true }
+    E06: { exclude: true }
+    E10: { exclude: true }
+    E16: { exclude: true }
+    E17: { exclude: true }
+    E23: { exclude: true }
+    E28: { exclude: true }
+    E29: { exclude: true }
+    E32: { exclude: true }
+    E34: { exclude: true }
+    E35: { exclude: true }

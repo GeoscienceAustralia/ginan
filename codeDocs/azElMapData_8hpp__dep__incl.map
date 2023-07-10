@@ -1,5 +1,5 @@
-<map id="/data/acs/ginan/src/cpp/common/azElMapData.hpp" name="/data/acs/ginan/src/cpp/common/azElMapData.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="55,5,283,47"/>
-<area shape="rect" id="node2" href="$antenna_8hpp.html" title=" " alt="" coords="5,95,200,136"/>
-<area shape="rect" id="node3" href="$navigation_8hpp.html" title=" " alt="" coords="64,184,275,225"/>
+<map id="/data/staging/ginan/src/cpp/common/azElMapData.hpp" name="/data/staging/ginan/src/cpp/common/azElMapData.hpp">
+<area shape="rect" id="node1" title=" " alt="" coords="63,5,313,47"/>
+<area shape="rect" id="node2" href="$antenna_8hpp.html" title=" " alt="" coords="5,95,224,136"/>
+<area shape="rect" id="node3" href="$navigation_8hpp.html" title=" " alt="" coords="71,184,305,225"/>
 </map>

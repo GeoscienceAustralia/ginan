@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['d_0',['d',['../structFundamentalNutationArgs.html#a9bec7b804308bcefcab06ad1d493b300',1,'FundamentalNutationArgs']]],
-  ['d_1',['D',['../structRawSig.html#abf1ced902620e8d9a01374536f89d20c',1,'RawSig']]],
+  ['d_0',['D',['../structRawSig.html#abf1ced902620e8d9a01374536f89d20c',1,'RawSig']]],
+  ['d_1',['d',['../structFundamentalNutationArgs.html#a9bec7b804308bcefcab06ad1d493b300',1,'FundamentalNutationArgs']]],
   ['d00_2',['d00',['../structCrdSession.html#a0a0ca150847e45a0307011e65a6820d0',1,'CrdSession']]],
   ['d10_3',['d10',['../structCrdSession.html#aae80488987919561ee85f9d69718c651',1,'CrdSession']]],
   ['d11_4',['d11',['../structCrdSession.html#a32faad8217c082d3a48a38a2ed4689ee',1,'CrdSession']]],
@@ -177,8 +177,8 @@ var searchData=
   ['domeasrejectcallbacks_174',['doMeasRejectCallbacks',['../structKFState.html#ae6e89a4dca53b4c6f8a5eadb1f61dd5c',1,'KFState']]],
   ['domes_175',['domes',['../structSinex__siteid__t.html#af4501cfa0368f288962d3fde33cba447',1,'Sinex_siteid_t']]],
   ['donttest_176',['DontTest',['../structTestStack.html#afa0c969a530097e98c0c6432df181285',1,'TestStack']]],
-  ['doodson_177',['Doodson',['../structTidalWave.html#adce1132f37307747f1203cef2db310e2',1,'TidalWave']]],
-  ['doodson_178',['doodson',['../structIERS2010.html#a84f1f40ad1028ca517a66ed8905ebac7',1,'IERS2010']]],
+  ['doodson_177',['doodson',['../structIERS2010.html#a84f1f40ad1028ca517a66ed8905ebac7',1,'IERS2010']]],
+  ['doodson_178',['Doodson',['../structTidalWave.html#adce1132f37307747f1203cef2db310e2',1,'TidalWave']]],
   ['dop_179',['dop',['../structSolution.html#a4b46e32c4edc34d5322f3b840f8954aa',1,'Solution']]],
   ['dops_180',['dops',['../rtkcmn_8cpp.html#ace313ca00b6a7cf1ca9f854f8bfaa6ef',1,'dops(int ns, const double *azel, double elmin, double *dop):&#160;rtkcmn.cpp'],['../common_8hpp.html#ace313ca00b6a7cf1ca9f854f8bfaa6ef',1,'dops(int ns, const double *azel, double elmin, double *dop):&#160;rtkcmn.cpp']]],
   ['dosend_181',['doSend',['../classwebsocketsession.html#ae963f5723304e58237b50361ea62f0a6',1,'websocketsession']]],

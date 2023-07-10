@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['d_0',['D',['../structRawSig.html#abf1ced902620e8d9a01374536f89d20c',1,'RawSig']]],
-  ['d_1',['d',['../structFundamentalNutationArgs.html#a9bec7b804308bcefcab06ad1d493b300',1,'FundamentalNutationArgs']]],
+  ['d_0',['d',['../structFundamentalNutationArgs.html#a9bec7b804308bcefcab06ad1d493b300',1,'FundamentalNutationArgs']]],
+  ['d_1',['D',['../structRawSig.html#abf1ced902620e8d9a01374536f89d20c',1,'RawSig']]],
   ['d00_2',['d00',['../structCrdSession.html#a0a0ca150847e45a0307011e65a6820d0',1,'CrdSession']]],
   ['d10_3',['d10',['../structCrdSession.html#aae80488987919561ee85f9d69718c651',1,'CrdSession']]],
   ['d11_4',['d11',['../structCrdSession.html#a32faad8217c082d3a48a38a2ed4689ee',1,'CrdSession']]],

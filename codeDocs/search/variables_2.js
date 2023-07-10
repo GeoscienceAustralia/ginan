@@ -18,7 +18,7 @@ var searchData=
   ['bias_15',['bias',['../structBiasVar.html#a625d826b342d45dbc8ff7084e842c3a4',1,'BiasVar::bias()'],['../structBiasEntry.html#aaaf00cb54234824283eea9b52371ae17',1,'BiasEntry::bias()']]],
   ['bias_5fsinex_5fdirectory_16',['bias_sinex_directory',['../structOutputOptions.html#a7b8acc29560eb4ceb242f9cf3bdb8f90',1,'OutputOptions']]],
   ['bias_5fsinex_5ffilename_17',['bias_sinex_filename',['../structOutputOptions.html#a76640f1fa0266aef12dbf2e3c34920ea',1,'OutputOptions']]],
-  ['bias_5ftime_5fsystem_18',['bias_time_system',['../structGlobalOptions.html#af5884caecb44af0d91920e6a9fed5f1d',1,'GlobalOptions']]],
+  ['bias_5ftime_5fsystem_18',['bias_time_system',['../structOutputOptions.html#a2f14f5fcfd0c1439724f341f00e95527',1,'OutputOptions']]],
   ['bias_5fupdate_19',['bias_update',['../structGinAR__opt.html#aaf84a9d898076365618c7fb379d8433b',1,'GinAR_opt']]],
   ['biases_20',['biases',['../structSig.html#a9acb388d3c776d6f0873a6c6cdf82cd4',1,'Sig']]],
   ['bigtime_21',['bigTime',['../structPTime.html#a884f3ff198b9e4751faec017b899b32c',1,'PTime::bigTime()'],['../structUtcTime.html#a09b8635981fff84d67c880e4690b83f8',1,'UtcTime::bigTime()'],['../structGTime.html#a4d84c3da37026e987ec335ecc5ccff4b',1,'GTime::bigTime()'],['../structDuration.html#a6f46d86e694c8479e44c7f551715df3d',1,'Duration::bigTime()']]],
