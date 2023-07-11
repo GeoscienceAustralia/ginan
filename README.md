@@ -81,6 +81,10 @@ If using gcc verion 11 or about, the minimum version of libraries are:
 
 Scripts to install dependencies for Ubuntu 18.04/20.04, 22.04, Fedora 38 are available on the `scripts/installation` directory. Users on other system might need to have a look at the `scripts/installation/generic.md` file, which contains the major steps. 
 
+### Mongo
+
+Mongo databases are optionally used to store intermediate data for passing between processes and visualisation. If this functionality is desired please install and start the Mongo service.
+
 ### Python
 
 We use Python for automated process (download), postprocessing and visualisation. To use the developed tools, we recommand to use a virtual-environement (or Anaconda equivalent). A requirements file is available in the `scripts/` directory and can be run via
