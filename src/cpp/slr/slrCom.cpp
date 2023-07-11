@@ -180,7 +180,7 @@ VectorEcef satComOffGnss(
 	Vector3d ecc	= satSnx.ecc_ptrs[E_EccType::L_LRA]->ecc 
 					- satSnx.com;	
 
-	VectorEcef comOffset	= body2ecef(satNav.attStatus, ecc);	// todo Mark: check if attStatus available
+	VectorEcef comOffset	= body2ecef(satNav.attStatus, ecc);
 
 	return comOffset;
 }

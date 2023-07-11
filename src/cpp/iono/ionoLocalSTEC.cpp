@@ -9,11 +9,11 @@
 
 struct LocalBasis
 {
-	int regionID;					/* Atmospheric region ID */
-	SatSys Sat;						/* Satellite System */
-	int type;						/* parameter type: 0 polnomial, 1 gridpoint */
-	int index;						/* parameter index */
-	GTime lastUpdt;					/* last updated */
+	int		regionID;					/* Atmospheric region ID */
+	SatSys	Sat;						/* Satellite System */
+	int		type;						/* parameter type: 0 polnomial, 1 gridpoint */
+	int		index;						/* parameter index */
+	GTime	lastUpdt;					/* last updated */
 };
 
 map<int, LocalBasis>  localBasisMap;
@@ -44,7 +44,7 @@ int defineLocalIonoBasis()
 		}
 	}
 	
-	acsConfig.ionModelOpts.NBasis			= nbasis;
+	acsConfig.ionModelOpts.numBasis			= nbasis;
 	acsConfig.ionModelOpts.layer_heights.clear();
 	acsConfig.ionModelOpts.layer_heights[0]	= 0;							/* local ionosphere are mapped with respect to ground */
 	acsConfig.ionModelOpts.estimate_sat_dcb	= false;
@@ -260,13 +260,13 @@ int ippCheckLocal(
 
 	This function should be called after ippCheckLocal
 ----------------------------------------------------------------------------*/
-double ionCoefLocal(int ind, GObs& obs)
+double ionCoefLocal(int ind, IonoObs& obs)
 {
 	if (localBasisMap.find(ind) == localBasisMap.end())		return 0;
 	
 	LocalBasis& basis = localBasisMap[ind];
 	
-	if (obs.Sat != basis.Sat)								return 0;
+	if (obs.ionoSat != basis.Sat)							return 0;
 	
 	auto& atmReg = nav.ssrAtm.atmosRegionsMap[basis.regionID];
 	double recLat = obs.ippMap[0].lat;
@@ -307,7 +307,7 @@ double ionCoefLocal(int ind, GObs& obs)
 		if (dlat > atmReg.intLat || atmReg.intLat == 0)		return 0;
 		if (dlon > atmReg.intLon || atmReg.intLon == 0)		return 0;
 		
-		return (1-dlat/atmReg.intLat)*(1-dlon/atmReg.intLon);
+		return (1-dlat/atmReg.intLat)*(1-dlon/atmReg.intLon);		//todo aaorn use bilinear interpolation function?
 	}
 
 	return 0;

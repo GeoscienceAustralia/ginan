@@ -244,7 +244,8 @@ void mongoMeasSatStat(
 				<< "Sat"		<< obs.Sat.id()
 				<< "Series"		<< acsConfig.localMongo.suffix
 				<< "Azimuth"	<< satStat.az		* R2D		
-				<< "Elevation"	<< satStat.el		* R2D;
+				<< "Elevation"	<< satStat.el		* R2D		
+				<< "Nadir"		<< satStat.nadir	* R2D;
 
 		bsoncxx::document::value doc_val = doc << finalize;
 		bulk.append(mongocxx::model::insert_one(doc_val.view()));
@@ -374,7 +375,7 @@ void mongoMeasResiduals(
 				
 				for (auto& component : componentList)
 				{
-					auto& [comp, value, desc] = component;
+					auto& [comp, value, desc, var] = component;
 				
 					string label = name + " " + KF::_from_integral_unchecked(obsKey.type)._to_string() + " " + comp._to_string();
 					
@@ -1022,7 +1023,7 @@ void	prepareSsrStates(
 			if (atmGlob.layers.size()==0)
 				break;
 			
-			int nbasis=0;
+			int nbasis = 0;
 			for (auto& [hind, laydata]: atmGlob.layers)
 			for (auto& [bind, basdata]: laydata.sphHarmonic)
 			{
@@ -1031,11 +1032,11 @@ void	prepareSsrStates(
 				entry.timeMap	[SSR_EPOCH		]	= {atmGlob.time,			true};
 				entry.intMap	[SSR_ION_IND	]	= {nbasis++,				true};
 				
-				entry.intMap	[IGS_ION_HGT	]	= {basdata.hind,			false};
+				entry.intMap	[IGS_ION_HGT	]	= {basdata.layer,			false};
 		 		entry.intMap	[IGS_ION_DEG	]	= {basdata.degree,			false};
 		 		entry.intMap	[IGS_ION_ORD	]	= {basdata.order,			false};
-				entry.intMap	[IGS_ION_PAR	]	= {basdata.parity,			false};
-				entry.doubleMap	[IGS_ION_VAL	]	= {basdata.coeffc,			false};
+				entry.intMap	[IGS_ION_PAR	]	= {basdata.trigType,		false};
+				entry.doubleMap	[IGS_ION_VAL	]	= {basdata.value,			false};
 				
 				dbEntryList.push_back(entry);
 			}
@@ -1048,9 +1049,9 @@ void	prepareSsrStates(
 				entry.intMap	[IGS_ION_NLAY	]	= {atmGlob.numberLayers,	false};
 				entry.intMap	[IGS_ION_NBAS	]	= {nbasis,					false};
 				entry.doubleMap	[IGS_ION_QLTY	]	= {atmGlob.vtecQuality,		false};
-				for (auto& [hind, laydata]: atmGlob.layers)
+				for (auto& [layer, laydata]: atmGlob.layers)
 				{
-					string hghStr = "Height_"+std::to_string(hind);
+					string hghStr = "Height_"+std::to_string(layer);
 					entry.doubleMap	[hghStr		]	= {laydata.height,			false};
 				}
 				dbEntryList.push_back(entry);
@@ -1066,7 +1067,7 @@ void	outputMongoPredictions(
 	Trace&			trace,		///< Trace to output to
 	Orbits&			orbits,		///< Filter object to extract state elements from
 	GTime 			time,		///< Time of current epoch
-	MongoOptions&	config)
+	MongoOptions&	config)		///< Set of options for the mongo instance to be used
 {
 	vector<DBEntry>	dbEntryList;
 

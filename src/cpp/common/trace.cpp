@@ -42,7 +42,20 @@ void ConsoleLog::consume(
 		warned = true;
 	}
 	
-	std::cout << std::endl << logString << std::flush;
+	std::cout << std::endl;
+	if (acsConfig.colorize_terminal)
+	{
+		if (sev == boost::log::trivial::warning)	std::cout << "\x1B[1;93m";
+		if (sev == boost::log::trivial::error)		std::cout << "\x1B[101m";
+	}
+	std::cout << logString;
+	
+	if (acsConfig.colorize_terminal)
+	{
+		std::cout << "\x1B[0m";
+	}
+	
+	std::cout << std::flush;
 }
 
 
@@ -83,17 +96,20 @@ void tracepdeex(int level, FILE *fppde, const char *format, ...)
 
 
 void printHex(
-	Trace&			trace,
-	vector<char>	chunk)
+	Trace&					trace,
+	vector<unsigned char>&	chunk)
 {
-	trace << "\nHex Data : ";
+	trace << "\nHex Data : " << chunk.size();
 
 	for (int i = 0; i < chunk.size(); i++)
 	{
-		if (i % 10 == 0)
+		if (i % 40 == 0)
 			trace << std::endl;       
+		
+		if (i % 10 == 0)
+			trace << " ";       
 		char hex[3];
-		snprintf(hex, sizeof(hex),"%02x",(unsigned char) chunk[i]);
+		snprintf(hex, sizeof(hex),"%02x", chunk[i]);
 		tracepdeex(0, trace, "%s ", hex);
 	}
 	trace << std::endl; 

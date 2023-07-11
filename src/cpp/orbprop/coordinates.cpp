@@ -207,13 +207,26 @@ VectorEcef body2ecef(
 	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of body frame) in ecef frame
 	Vector3d&	rBody)		///< vector in body frame
 {
-	VectorEcef ecef;
+	Matrix3d R;
+	R << attStatus.eXBody, attStatus.eYBody, attStatus.eZBody;
 	
-	ecef	= rBody[0] * attStatus.eXBody
-			+ rBody[1] * attStatus.eYBody
-			+ rBody[2] * attStatus.eZBody;
-	
+	Vector3d ecef = R * rBody;
+			
 	return ecef;
+}
+
+/** transform vector in ecef frame to body
+*/
+Vector3d ecef2body(
+	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of body frame) in ecef frame
+	VectorEcef&	ecef)		///< vector in ecef frame
+{
+	Matrix3d R;
+	R << attStatus.eXBody, attStatus.eYBody, attStatus.eZBody;
+	
+	Vector3d body = R.transpose() * ecef;
+			
+	return body;
 }
 
 /** transform vector in antenna frame to ecef
@@ -222,13 +235,26 @@ VectorEcef antenna2ecef(
 	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of antenna frame) in ecef frame
 	Vector3d&	rAnt)		///< vector in antenna frame
 {
-	VectorEcef ecef;
+	Matrix3d R;
+	R << attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt;
 	
-	ecef	= rAnt[0] * attStatus.eXAnt
-			+ rAnt[1] * attStatus.eYAnt
-			+ rAnt[2] * attStatus.eZAnt;
-	
+	Vector3d ecef = R * rAnt;
+			
 	return ecef;
+}
+
+/** transform vector in ecef to antenna frame
+*/
+Vector3d ecef2antenna(
+	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of antenna frame) in ecef frame
+	VectorEcef&	ecef)		///< vector in ecef frame
+{
+	Matrix3d R;
+	R << attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt;
+	
+	Vector3d rAnt = R.transpose() * ecef;
+			
+	return rAnt;
 }
 
 Matrix3d ecef2rac(

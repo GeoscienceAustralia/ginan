@@ -172,12 +172,12 @@ struct SSRPhasBias : SSRBias
 
 struct SphComp
 {
-	int		hind;
-	int		order;
-	int		degree;
-	bool	parity;
-	double	coeffc;
-	double	variance;
+	int			layer;
+	int			order;
+	int			degree;
+	E_TrigType	trigType;
+	double		value;
+	double		variance;
 };
 
 struct SSRVTEClayer

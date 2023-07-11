@@ -1,0 +1,13 @@
+# Sets up the debug trace for Ginan processing
+ 
+outputs:
+    root_directory:         outputs/<CONFIG>/
+    trace:
+        level:                      2
+        output_stations:            true
+        output_network:             true
+        station_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true

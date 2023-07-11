@@ -87,9 +87,9 @@ int configIonModelBsplin()
 		}
 	}
 
-	acsConfig.ionModelOpts.NBasis = ind;
+	acsConfig.ionModelOpts.numBasis = ind;
 
-	for (int j = 0; j < acsConfig.ionModelOpts.NBasis; j++)
+	for (int j = 0; j < acsConfig.ionModelOpts.numBasis; j++)
 	{
 		Bsp_Basis& basis2 = Bsp_Basis_list[j];
 // 		fprintf(fp_iondebug, "GRD_BASIS %3d %2d %8.4f %8.4f ", j, basis2.hind, basis.latit * R2D, basis.longi * R2D);
@@ -132,7 +132,7 @@ bool ippCheckBsplin(GTime time, VectorPos& Ion_pp)
 
 	BSPLINE_LATINT and BSPLINE_LONINT needs to be set before calling this function
 ----------------------------------------------------------------------------*/
-double ionCoefBsplin(int ind, GObs& obs, bool slant)
+double ionCoefBsplin(int ind, IonoObs& obs, bool slant) 
 {
 	if (ind >= Bsp_Basis_list.size()) 
 		return 0;
@@ -167,7 +167,7 @@ double ionCoefBsplin(int ind, GObs& obs, bool slant)
 
 	if (slant)
 	{
-		out *= obs.ippMap[basis.hind].ang * obs.STECtoDELAY;
+		out *= obs.ippMap[basis.hind].slantFactor * obs.stecToDelay;
 	}
 
 	return out;
@@ -195,11 +195,11 @@ double ionVtecBsplin(
 
 	double iono = 0;
 	GObs tmpobs;
-	tmpobs.ippMap[layer].lat = ionPP.lat();
-	tmpobs.ippMap[layer].lon = ionPP.lon();
-	tmpobs.ippMap[layer].ang = 1;
+	tmpobs.ippMap[layer].lat			= ionPP.lat();
+	tmpobs.ippMap[layer].lon			= ionPP.lon();
+	tmpobs.ippMap[layer].slantFactor	= 1;
 
-	for (int ind = 0; ind < acsConfig.ionModelOpts.NBasis; ind++)
+	for (int ind = 0; ind < acsConfig.ionModelOpts.numBasis; ind++)
 	{
 		Bsp_Basis& basis = Bsp_Basis_list[ind];
 

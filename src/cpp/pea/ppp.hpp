@@ -127,6 +127,12 @@ bool deweightMeas(
 	KFMeas&		kfMeas,
 	int			index);
 
+bool pseudoMeasTest(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index);
+
 bool deweightStationMeas(
 	Trace&		trace,
 	KFState&	kfState,
@@ -153,29 +159,27 @@ bool resetPhaseSignalOutage(
 	KFMeas&		kfMeas,
 	int			index);
 
-bool deweightByState(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	KFKey&		kfKey);
-
-bool clockGlitchReaction(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	KFKey&		kfKey);
-
-bool orbitGlitchReaction(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	KFKey&		kfKey);
-
-bool orbitMeasReaction(
-	Trace&		trace,
-	KFState&	kfState,
+bool resetIonoSignalOutage(
 	KFMeas&		kfMeas,
 	int			index);
+
+bool rejectByState(
+			Trace&		trace,
+			KFState&	kfState,
+			KFMeas&		kfMeas,
+	const	KFKey&		kfKey);
+
+bool clockGlitchReaction(
+			Trace&		trace,
+			KFState&	kfState,
+			KFMeas&		kfMeas,
+	const	KFKey&		kfKey);
+
+bool orbitGlitchReaction(
+			Trace&		trace,
+			KFState&	kfState,
+			KFMeas&		kfMeas,
+	const	KFKey&		kfKey);
 
 
 
@@ -221,10 +225,6 @@ bool satQuat(
 	Quaterniond&		quat,
 	bool				origGal	= false);
 
-void satYaw(
-	GObs&		obs,
-	AttStatus&	attStatus);
-	
 int PPP_AR(
 	Trace&		trace,		
 	KFState&	kfState);

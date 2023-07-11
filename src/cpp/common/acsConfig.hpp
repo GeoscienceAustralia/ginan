@@ -167,6 +167,7 @@ struct OutputOptions
 	bool	output_residual_chain		= true;
 
 	bool	output_config	 			= false;
+	bool	colorize_terminal			= true;
 
 	bool				output_clocks 				= false;
 	vector<E_Source>	clocks_receiver_sources  	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
@@ -230,6 +231,7 @@ struct OutputOptions
 	bool				output_bias_sinex		= false;
 	string				bias_sinex_directory	= "./";
 	string				bias_sinex_filename		= "<CONFIG>-<LOGTIME>.BIA";
+	string				bias_time_system		= "G";
 
 	bool				output_sinex			= false;
 	string 				sinex_directory			= "./";
@@ -304,10 +306,12 @@ struct DebugOptions
 {
 	int		csfreq = 3;         /* cycle slip detection and repair frequency */
 	
-	bool	mincon_only			= false;
-	bool	check_plumbing		= false;
-	bool	retain_rts_files	= false;
-	bool	rts_only			= false;
+	int		pseudo_pulses			= 0;
+	bool	mincon_only				= false;
+	bool	check_plumbing			= false;
+	bool	retain_rts_files		= false;
+	bool	rts_only				= false;
+	bool	explain_measurements	= false;
 };
 
 /** Options for unit testing
@@ -329,25 +333,10 @@ struct SlrOptions
 	bool	process_slr					= false;
 };
 
-struct Enable
-{
-	bool enable = true;
-};
 
-struct ModelSatPos : Enable
+struct ModelTides
 {
-	vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
-};
-
-struct ModelClk : Enable
-{
-	vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};	
-};
-
-struct ModelRecPos : Enable{};
-
-struct ModelTides : Enable
-{
+	bool	enable		= true;
 	bool	solid		= true;
 	bool	otl			= true;
 	bool	pole		= true;
@@ -356,46 +345,20 @@ struct ModelTides : Enable
 
 /** Options to set the tropospheric model used in calculations
 */
-struct ModelTrop : Enable
+struct ModelTrop
 {
 	E_TropModel		model		= E_TropModel::VMF3;
-
+	bool			enable		= true;
 	string			orography;
 	string			gpt2grid;
 };	
 
-/** Options for modelling attitude
-*/
-struct ModelAtt : Enable
-{
-	vector<E_Source>	sources			= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
-	double				valid_var		= 0.01;
-	double				invalid_var		= 1;
-};
-
 struct Model
 {
-	ModelRecPos	rec_pos;
-	ModelSatPos	sat_pos;
-	ModelClk	sat_clock;
-	ModelClk	rec_clock;
 	ModelTrop	trop;
 	ModelTides	tides;
-	ModelAtt	sat_attitude;
-	ModelAtt	rec_attitude;
-	
+
 	bool range					= true;
-	
-	bool sat_code_bias			= true;
-	bool rec_code_bias			= true;
-	bool sat_phase_bias			= true;
-	bool rec_phase_bias			= true;
-	
-	bool rec_ant_delta			= true;
-	bool sat_pco				= true;
-	bool rec_pco				= true;
-	bool sat_pcv				= true;
-	bool rec_pcv				= true;
 	
 	bool relativity				= true;
 	bool relativity2			= true;
@@ -407,8 +370,6 @@ struct Model
 	bool ionospheric_component2	= false;
 	bool ionospheric_component3	= false;
 	bool eop					= true;
-
-	bool clock_definitions		= true;
 	bool ionospheric_model		= false;
 	
 	bool orbits					= true;
@@ -437,7 +398,6 @@ struct GlobalOptions
 	string	rinex_comment					= "Daily 30-sec observations from IGS stations";
 	string	reference_system				= "igb14";
 	string	time_system						= "G";
-	string	bias_time_system				= "G";
 	string	ocean_tide_loading_model		= "FES2004";
 	string	atmospheric_tide_loading_model	= "---";
 	string	geoid_model						= "EGM96";
@@ -474,7 +434,6 @@ struct GlobalOptions
 	double	max_gdop     	= 30;
 	double	deweight_factor	= 100;
 	
-	double	no_bias_sigma	= 20;
 	bool	use_tgd_bias	= false;
 	
 	double	orbit_pos_proc_noise			= 10;
@@ -492,7 +451,7 @@ struct GlobalOptions
 
 	bool	reinit_on_all_slips			= false;
 	bool	reinit_on_clock_error		= false;
-	bool	deweight_on_state_error		= false;
+	bool	reject_on_state_error		= false;
 
 	bool	joseph_stabilisation		= false;
 	double	validity_interval_factor	= 100;
@@ -501,7 +460,7 @@ struct GlobalOptions
 
 	map<E_Sys, vector<E_ObsCode>>	code_priorities;
 	map<E_Sys, vector<E_ObsCode>>	zero_code_average;
-	map<E_Sys, vector<E_ObsCode>>	zero_phas_average;
+	map<E_Sys, vector<E_ObsCode>>	zero_phase_average;
 	map<E_Sys, E_NavMsgType>		used_nav_types =				///< Default observation codes on L1 for IF combination based satellite clocks
 	{
 		{E_Sys::GPS, E_NavMsgType::LNAV},
@@ -660,9 +619,12 @@ struct IonosphericOptions
 	
 	double			pierce_point_layer_height		= 450;
 	double			mapping_function_layer_height	= 506.7;
-	bool			common_ionosphere			= true;
-	bool			use_if_combo				= false;
-	bool			auto_select_default_code	= false;
+	bool			common_ionosphere				= true;
+	bool			use_if_combo					= false;
+	bool			use_gf_combo					= false;
+	bool			auto_select_default_code		= false;
+	
+	double			iono_sigma_limit				= 1000;
 };
 
 struct SlipOptions
@@ -676,7 +638,7 @@ struct SlipOptions
 struct IonModelOptions
 {
 	E_IonoModel		model			= E_IonoModel::NONE;
-	int				NBasis;
+	int				numBasis;		///< not a directly configurable parameter
 	int				function_order;
 	int				function_degree;
 
@@ -690,7 +652,7 @@ struct IonModelOptions
 struct AmbROptions
 {
 	E_ARmode	WLmode			= E_ARmode::OFF;
-	E_ARmode	NLmode			= E_ARmode::OFF;
+	E_ARmode	mode			= E_ARmode::OFF;
 	int			lambda_set		= 2;
 	int			AR_max_itr		= 1;
 	double		min_el_AR		= 15;
@@ -705,166 +667,39 @@ struct AmbROptions
 	double	WLSatPrcNois = 0.0001;	///< Process noise for WL satellite biases
 	double	WLRecPrcNois = 0.001;	///< Process noise for WL station biases
 
-	double	NLsuccsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate NL
-	double	NLratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate NL
-	double	NLstarttime = 3600;		///< Time before starting to calculate (and output NL zmbiguities/biases)
+	double	succsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate NL
+	double	ratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate NL
 
 	double	code_output_interval  = 0;		///< Update interval for code  biases, 0: no output
 	double	phase_output_interval = 0;		///< Update interval for phase biases, 0: no output
 	bool	output_rec_bias		  = false;	///< Output receivr bias
-	
-	int reduction_limit = 5000;
 };
 
 /** Rinex 2 conversions for individual receivers
 */
 struct Rinex23Conversion
 {
-	map<E_Sys, map<E_ObsCode2, E_ObsCode>> codeConv = 
+	map<E_Sys, map<E_ObsCode2, E_ObsCode>> codeConv;
+	map<E_Sys, map<E_ObsCode2, E_ObsCode>> phasConv;
+	
+	Rinex23Conversion& operator +=(const Rinex23Conversion& rhs)
 	{
-		{E_Sys::GPS,{	
-						{E_ObsCode2::P1, E_ObsCode::L1W},
-						{E_ObsCode2::P2, E_ObsCode::L2W},
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C5, E_ObsCode::L5X},
-						{E_ObsCode2::L1, E_ObsCode::L1W},
-						{E_ObsCode2::L2, E_ObsCode::L2C},
-						{E_ObsCode2::L5, E_ObsCode::L5X}}
-		},
-						
-		{E_Sys::GAL,{	
-						{E_ObsCode2::P1, E_ObsCode::L1P},
-						{E_ObsCode2::P2, E_ObsCode::L2P},
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C5, E_ObsCode::L5I},
-						{E_ObsCode2::C7, E_ObsCode::L7Q},
-						{E_ObsCode2::C8, E_ObsCode::L8Q},
-						{E_ObsCode2::L1, E_ObsCode::L1C},
-						{E_ObsCode2::L2, E_ObsCode::L2P},
-						{E_ObsCode2::L5, E_ObsCode::L5I},
-						{E_ObsCode2::L7, E_ObsCode::L7Q},
-						{E_ObsCode2::L8, E_ObsCode::L8Q}}
-		},
-						
-		{E_Sys::GLO,{
-						{E_ObsCode2::P1, E_ObsCode::L1P},
-						{E_ObsCode2::P2, E_ObsCode::L2P},
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C3, E_ObsCode::L3Q},
-						{E_ObsCode2::C5, E_ObsCode::L5I},
-						{E_ObsCode2::L1, E_ObsCode::L1C},
-						{E_ObsCode2::L2, E_ObsCode::L2P},
-						{E_ObsCode2::L3, E_ObsCode::L3Q},
-						{E_ObsCode2::L5, E_ObsCode::L5I}}
-		},
-						
-		{E_Sys::BDS,{
-						{E_ObsCode2::C2, E_ObsCode::L2I},
-						{E_ObsCode2::C6, E_ObsCode::L6I},
-						{E_ObsCode2::C7, E_ObsCode::L7I},
-						{E_ObsCode2::C8, E_ObsCode::L8X},
-						{E_ObsCode2::L2, E_ObsCode::L2X},
-						{E_ObsCode2::L6, E_ObsCode::L6I},
-						{E_ObsCode2::L7, E_ObsCode::L7I},
-						{E_ObsCode2::L8, E_ObsCode::L8X}}
-		},
-						
-		{E_Sys::QZS,{	
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C5, E_ObsCode::L5I},
-						{E_ObsCode2::C6, E_ObsCode::L6X},
-						{E_ObsCode2::L1, E_ObsCode::L1C},
-						{E_ObsCode2::L2, E_ObsCode::L2C},
-						{E_ObsCode2::L5, E_ObsCode::L5I},
-						{E_ObsCode2::L6, E_ObsCode::L6X}}
-		},
-						
-		{E_Sys::SBS,{
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C5, E_ObsCode::L5I},
-						{E_ObsCode2::L1, E_ObsCode::L1C},
-						{E_ObsCode2::L2, E_ObsCode::L2C},
-						{E_ObsCode2::L5, E_ObsCode::L5I}}
+		for (auto& [sys, map23]		: rhs.codeConv)
+		for (auto& [code2, code3]	: map23)
+		{
+			if (code3 != +E_ObsCode::NONE)
+				codeConv[sys][code2] = code3;
 		}
-	};
-
-	map<E_Sys, map<E_ObsCode2, E_ObsCode>> phasConv =
-	{
-		{E_Sys::GPS,{	
-						{E_ObsCode2::P1, E_ObsCode::L1W},
-						{E_ObsCode2::P2, E_ObsCode::L2W},
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C5, E_ObsCode::L5X},
-						{E_ObsCode2::L1, E_ObsCode::L1W},
-						{E_ObsCode2::L2, E_ObsCode::L2C},
-						{E_ObsCode2::L5, E_ObsCode::L5X}}
-		},
-						
-		{E_Sys::GAL,{	
-						{E_ObsCode2::P1, E_ObsCode::L1P},
-						{E_ObsCode2::P2, E_ObsCode::L2P},
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C5, E_ObsCode::L5I},
-						{E_ObsCode2::C7, E_ObsCode::L7Q},
-						{E_ObsCode2::C8, E_ObsCode::L8Q},
-						{E_ObsCode2::L1, E_ObsCode::L1C},
-						{E_ObsCode2::L2, E_ObsCode::L2P},
-						{E_ObsCode2::L5, E_ObsCode::L5I},
-						{E_ObsCode2::L7, E_ObsCode::L7Q},
-						{E_ObsCode2::L8, E_ObsCode::L8Q}}
-		},
-						
-		{E_Sys::GLO,{
-						{E_ObsCode2::P1, E_ObsCode::L1P},
-						{E_ObsCode2::P2, E_ObsCode::L2P},
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C3, E_ObsCode::L3Q},
-						{E_ObsCode2::C5, E_ObsCode::L5I},
-						{E_ObsCode2::L1, E_ObsCode::L1C},
-						{E_ObsCode2::L2, E_ObsCode::L2P},
-						{E_ObsCode2::L3, E_ObsCode::L3Q},
-						{E_ObsCode2::L5, E_ObsCode::L5I}}
-		},
-						
-		{E_Sys::BDS,{
-						{E_ObsCode2::C2, E_ObsCode::L2I},
-						{E_ObsCode2::C6, E_ObsCode::L6I},
-						{E_ObsCode2::C7, E_ObsCode::L7I},
-						{E_ObsCode2::C8, E_ObsCode::L8X},
-						{E_ObsCode2::L2, E_ObsCode::L2I},
-						{E_ObsCode2::L6, E_ObsCode::L6I},
-						{E_ObsCode2::L7, E_ObsCode::L7I},
-						{E_ObsCode2::L8, E_ObsCode::L8X}}
-		},
-						
-		{E_Sys::QZS,{	
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C5, E_ObsCode::L5I},
-						{E_ObsCode2::C6, E_ObsCode::L6X},
-						{E_ObsCode2::L1, E_ObsCode::L1C},
-						{E_ObsCode2::L2, E_ObsCode::L2C},
-						{E_ObsCode2::L5, E_ObsCode::L5I},
-						{E_ObsCode2::L6, E_ObsCode::L6X}}
-		},
-						
-		{E_Sys::SBS,{
-						{E_ObsCode2::C1, E_ObsCode::L1C},
-						{E_ObsCode2::C2, E_ObsCode::L2C},
-						{E_ObsCode2::C5, E_ObsCode::L5I},
-						{E_ObsCode2::L1, E_ObsCode::L1C},
-						{E_ObsCode2::L2, E_ObsCode::L2C},
-						{E_ObsCode2::L5, E_ObsCode::L5I}}
+		
+		for (auto& [sys, map23]		: rhs.phasConv)
+		for (auto& [code2, code3]	: map23)
+		{
+			if (code3 != +E_ObsCode::NONE)
+				phasConv[sys][code2] = code3;
 		}
-	};
+		
+		return *this;
+	}
 };
 
 
@@ -873,6 +708,7 @@ struct Rinex23Conversion
 struct SatelliteOptions
 {
 	bool				_initialised	= false;
+	string				id;
                     	
 	KalmanModel			clk;
 	KalmanModel			clk_rate;
@@ -914,6 +750,41 @@ struct SatelliteOptions
                     	
 	Vector3d			antenna_boresight	= { 0,  0, +1};
 	Vector3d			antenna_azimuth		= { 0, +1,  0};
+	
+	struct
+	{
+		bool				enable				= true;
+		vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+	} sat_pos;
+
+	struct
+	{
+		bool				enable				= true;
+		vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};	
+	} sat_clock;
+	
+	struct 
+	{
+		bool				enable				= true;
+		vector<E_Source>	sources				= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
+	} sat_attitude;
+
+	struct
+	{
+		bool 	enable			= true;
+		double	default_bias	= 0;
+		double	undefined_sigma = 0;
+	} sat_code_bias;
+	
+	struct
+	{
+		bool	enable			= false;
+		double	default_bias	= 0;
+		double	undefined_sigma = 0;
+	} sat_phase_bias;
+	
+	bool		sat_pco				= true;
+	bool		sat_pcv				= true;
 	
 	SatelliteOptions& operator+=(
 		const SatelliteOptions& rhs)
@@ -959,6 +830,22 @@ struct SatelliteOptions
 		if (isInited(rhs, rhs.antenna_boresight		))	{ antenna_boresight	= rhs.antenna_boresight	;	setInited(*this, antenna_boresight	);	}
 		if (isInited(rhs, rhs.antenna_azimuth		))	{ antenna_azimuth	= rhs.antenna_azimuth	;	setInited(*this, antenna_azimuth	);	}
 		
+		
+		if (isInited(rhs, rhs.sat_pos.enable				))	{ sat_pos.enable				= rhs.sat_pos.enable				;	setInited(*this, sat_pos.enable					);	}
+		if (isInited(rhs, rhs.sat_pos.ephemeris_sources		))	{ sat_pos.ephemeris_sources		= rhs.sat_pos.ephemeris_sources		;	setInited(*this, sat_pos.ephemeris_sources		);	}
+		if (isInited(rhs, rhs.sat_clock.enable				))	{ sat_clock.enable				= rhs.sat_clock.enable				;	setInited(*this, sat_clock.enable				);	}
+		if (isInited(rhs, rhs.sat_clock.ephemeris_sources	))	{ sat_clock.ephemeris_sources	= rhs.sat_clock.ephemeris_sources	;	setInited(*this, sat_clock.ephemeris_sources	);	}
+		if (isInited(rhs, rhs.sat_attitude.enable			))	{ sat_attitude.enable			= rhs.sat_attitude.enable			;	setInited(*this, sat_attitude.enable			);	}
+		if (isInited(rhs, rhs.sat_attitude.sources			))	{ sat_attitude.sources			= rhs.sat_attitude.sources			;	setInited(*this, sat_attitude.sources			);	}
+		if (isInited(rhs, rhs.sat_code_bias.enable			))	{ sat_code_bias.enable			= rhs.sat_code_bias.enable			;	setInited(*this, sat_code_bias.enable			);	}
+		if (isInited(rhs, rhs.sat_code_bias.default_bias	))	{ sat_code_bias.default_bias	= rhs.sat_code_bias.default_bias	;	setInited(*this, sat_code_bias.default_bias		);	}
+		if (isInited(rhs, rhs.sat_code_bias.undefined_sigma	))	{ sat_code_bias.undefined_sigma	= rhs.sat_code_bias.undefined_sigma	;	setInited(*this, sat_code_bias.undefined_sigma	);	}
+		if (isInited(rhs, rhs.sat_phase_bias.enable			))	{ sat_phase_bias.enable			= rhs.sat_phase_bias.enable			;	setInited(*this, sat_phase_bias.enable			);	}
+		if (isInited(rhs, rhs.sat_phase_bias.default_bias	))	{ sat_phase_bias.default_bias	= rhs.sat_phase_bias.default_bias	;	setInited(*this, sat_phase_bias.default_bias	);	}
+		if (isInited(rhs, rhs.sat_phase_bias.undefined_sigma))	{ sat_phase_bias.undefined_sigma= rhs.sat_phase_bias.undefined_sigma;	setInited(*this, sat_phase_bias.undefined_sigma	);	}
+		if (isInited(rhs, rhs.sat_pco						))	{ sat_pco						= rhs.sat_pco						;	setInited(*this, sat_pco						);	}
+		if (isInited(rhs, rhs.sat_pcv						))	{ sat_pcv						= rhs.sat_pcv						;	setInited(*this, sat_pcv						);	}
+		
 		return *this;
 	}
 	
@@ -970,6 +857,7 @@ struct SatelliteOptions
 struct ReceiverOptions
 {
 	bool				_initialised	= false;
+	string				id;
                     	
 	KalmanModel			amb;
 	KalmanModel			pos;
@@ -998,7 +886,7 @@ struct ReceiverOptions
 	vector<double>		minConNoise			= {-1};
 	double				spp_sigma_scaling	= 1;
 	
-	Rinex23Conversion	rinex23Conv			;
+	Rinex23Conversion	rinex23Conv;
 	
 	Vector3d			apriori_pos			= Vector3d::Zero();
 	Vector3d			eccentricity		= Vector3d::Zero();
@@ -1007,6 +895,45 @@ struct ReceiverOptions
 	string				antenna_type		;
 	string				receiver_type		;
 	string				sat_id				;
+	
+	
+	
+	
+	struct
+	{
+		bool				enable				= true;
+		vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+	} rec_pos;
+	
+	struct
+	{
+		bool				enable				= true;
+		vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+	} rec_clock;
+	
+	struct 
+	{
+		bool				enable			= true;
+		vector<E_Source>	sources			= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
+	} rec_attitude;
+		
+	struct
+	{
+		bool	enable			= true;
+		double	default_bias	= 0;
+		double	undefined_sigma	= 0;
+	} rec_code_bias;
+		
+	struct
+	{
+		bool	enable			= false;
+		double	default_bias	= 0;
+		double	undefined_sigma	= 0;
+	} rec_phase_bias;
+	
+	bool rec_ant_delta			= true;
+	bool rec_pco				= true;
+	bool rec_pcv				= true;
 	
 	ReceiverOptions& operator+=(
 		const ReceiverOptions& rhs)
@@ -1030,6 +957,8 @@ struct ReceiverOptions
 		code_bias		+= rhs.code_bias;
 		phase_bias		+= rhs.phase_bias;
 		
+		rinex23Conv		+= rhs.rinex23Conv;
+		
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.error_model			))	{ error_model		= rhs.error_model		;	setInited(*this, error_model		);	}
 		if (isInited(rhs, rhs.code_sigmas			))	{ code_sigmas		= rhs.code_sigmas		;	setInited(*this, code_sigmas		);	}
@@ -1038,8 +967,6 @@ struct ReceiverOptions
 		if (isInited(rhs, rhs.minConNoise			))	{ minConNoise		= rhs.minConNoise		;	setInited(*this, minConNoise		);	}
 		if (isInited(rhs, rhs.spp_sigma_scaling		))	{ spp_sigma_scaling	= rhs.spp_sigma_scaling	;	setInited(*this, spp_sigma_scaling	);	}
 	
-		if (isInited(rhs, rhs.rinex23Conv			))	{ rinex23Conv		= rhs.rinex23Conv		;	setInited(*this, rinex23Conv		);	}
-	
 		if (isInited(rhs, rhs.apriori_pos			))	{ apriori_pos		= rhs.apriori_pos		;	setInited(*this, apriori_pos		);	}
 		if (isInited(rhs, rhs.eccentricity			))	{ eccentricity		= rhs.eccentricity		;	setInited(*this, eccentricity		);	}
 		if (isInited(rhs, rhs.antenna_boresight		))	{ antenna_boresight	= rhs.antenna_boresight	;	setInited(*this, antenna_boresight	);	}
@@ -1047,6 +974,23 @@ struct ReceiverOptions
 		if (isInited(rhs, rhs.antenna_type			))	{ antenna_type		= rhs.antenna_type		;	setInited(*this, antenna_type		);	}
 		if (isInited(rhs, rhs.receiver_type			))	{ receiver_type		= rhs.receiver_type		;	setInited(*this, receiver_type		);	}
 		if (isInited(rhs, rhs.sat_id				))	{ sat_id			= rhs.sat_id			;	setInited(*this, sat_id				);	}
+		
+		
+		if (isInited(rhs, rhs.rec_pos.enable				))	{ rec_pos.enable				= rhs.rec_pos.enable				;	setInited(*this, rec_pos.enable					);	}
+		if (isInited(rhs, rhs.rec_pos.ephemeris_sources		))	{ rec_pos.ephemeris_sources		= rhs.rec_pos.ephemeris_sources		;	setInited(*this, rec_pos.ephemeris_sources		);	}
+		if (isInited(rhs, rhs.rec_clock.enable				))	{ rec_clock.enable				= rhs.rec_clock.enable				;	setInited(*this, rec_clock.enable				);	}
+		if (isInited(rhs, rhs.rec_clock.ephemeris_sources	))	{ rec_clock.ephemeris_sources	= rhs.rec_clock.ephemeris_sources	;	setInited(*this, rec_clock.ephemeris_sources	);	}
+		if (isInited(rhs, rhs.rec_attitude.enable			))	{ rec_attitude.enable			= rhs.rec_attitude.enable			;	setInited(*this, rec_attitude.enable			);	}
+		if (isInited(rhs, rhs.rec_attitude.sources			))	{ rec_attitude.sources			= rhs.rec_attitude.sources			;	setInited(*this, rec_attitude.sources			);	}
+		if (isInited(rhs, rhs.rec_code_bias.enable			))	{ rec_code_bias.enable			= rhs.rec_code_bias.enable			;	setInited(*this, rec_code_bias.enable			);	}
+		if (isInited(rhs, rhs.rec_code_bias.default_bias	))	{ rec_code_bias.default_bias	= rhs.rec_code_bias.default_bias	;	setInited(*this, rec_code_bias.default_bias		);	}
+		if (isInited(rhs, rhs.rec_code_bias.undefined_sigma	))	{ rec_code_bias.undefined_sigma	= rhs.rec_code_bias.undefined_sigma	;	setInited(*this, rec_code_bias.undefined_sigma	);	}
+		if (isInited(rhs, rhs.rec_phase_bias.enable			))	{ rec_phase_bias.enable			= rhs.rec_phase_bias.enable			;	setInited(*this, rec_phase_bias.enable			);	}
+		if (isInited(rhs, rhs.rec_phase_bias.default_bias	))	{ rec_phase_bias.default_bias	= rhs.rec_phase_bias.default_bias	;	setInited(*this, rec_phase_bias.default_bias	);	}
+		if (isInited(rhs, rhs.rec_phase_bias.undefined_sigma))	{ rec_phase_bias.undefined_sigma= rhs.rec_phase_bias.undefined_sigma;	setInited(*this, rec_phase_bias.undefined_sigma	);	}
+		if (isInited(rhs, rhs.rec_ant_delta					))	{ rec_ant_delta					= rhs.rec_ant_delta					;	setInited(*this, rec_ant_delta					);	}
+		if (isInited(rhs, rhs.rec_pco						))	{ rec_pco						= rhs.rec_pco						;	setInited(*this, rec_pco						);	}
+		if (isInited(rhs, rhs.rec_pcv						))	{ rec_pcv						= rhs.rec_pcv						;	setInited(*this, rec_pcv						);	}
 		
 		return *this;
 	}
@@ -1195,6 +1139,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	mutex								configMutex;
 	
 	vector<string>										configFilenames;
+	vector<string>										includedFilenames;
 	map<string, time_t>									configModifyTimeMap;
 	boost::program_options::variables_map				commandOpts;
 	

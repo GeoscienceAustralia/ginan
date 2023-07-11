@@ -248,7 +248,7 @@ int validateDOP(
 	if	( dop[0] <= 0
 		||dop[0] > acsConfig.max_gdop)
 	{
-		BOOST_LOG_TRIVIAL(info) << "valsol(): gdop error gdop=" << dop[0];
+		BOOST_LOG_TRIVIAL(info) << "DOP Validation failed with gdop = " << dop[0] << " on " << obsList.front()->mount;
 		return 0;
 	}
 	return 1;
@@ -292,7 +292,7 @@ void printFailures(
 void removeUnmeasuredStates(
 	Trace&				trace,				///< Trace to output to
 	KFState&			kfState, 			///< Filter to remove states from
-	KFMeasEntryList&	kfMeasEntryList)
+	KFMeasEntryList&	kfMeasEntryList)	///< List of measurements for this filter iteration
 {
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
@@ -329,7 +329,7 @@ E_Solution estpos(
 	ObsList&	obsList,				///< List of observations for this epoch
 	Solution&	sol,					///< Solution object containing initial conditions and results
 	string		id,						///< Id of receiver
-	string		description = "SPP-")
+	string		description = "SPP-")	///< Description to prepend to clarify outputs
 {
 	int numMeas = 0;
 

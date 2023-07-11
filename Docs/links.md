@@ -5,6 +5,12 @@
 
 > Links to external websites do not constitute an endorsement or a recommendation of any material on those sites or of any third party products or services offered by, from or through those sites. It is the responsibility of the user to make their own decisions about the accuracy, currency, reliability and correctness of information contained in linked external websites.
 
+## Ginan Videos
+
+[Australian perspectives on the use of GNSS for tsunami warning. February 2023](https://www.youtube.com/watch?v=5HqYZKGeydw)
+
+[Ginan: Geoscience Australia's Positioning Toolkit. September 2021](https://www.youtube.com/watch?v=lzmF10mOLUA)
+
 ## Geoscience Australia
 
 [Positioning Australia](https://www.ga.gov.au/scientific-topics/positioning-navigation/positioning-australia)

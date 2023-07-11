@@ -29,7 +29,7 @@ bool overwriteIonoKF (
 	bool ionoKF = false;
 	
 	for (auto& [key, index] : kfState.kfIndexMap)
-	if (key.type == +KF::DCB)
+	if (key.type == +KF::CODE_BIAS)
 	{
 		ionoKF = true;
 		break;
@@ -78,9 +78,9 @@ int configIonModel()
 }
 
 double ionModelCoef(
-	int		ind,
-	GObs&	obs, 
-	bool	slant)
+	int			ind,
+	IonoObs&	obs, 
+	bool		slant)
 {
 	switch (acsConfig.ionModelOpts.model)
 	{
@@ -165,9 +165,9 @@ void updateIonosphereModel(
 		NMeaTot += nrec;
 	} 
 	
-	if (NMeaTot < (acsConfig.ionModelOpts.NBasis + NSatTot + NStaTot))
+	if (NMeaTot < (acsConfig.ionModelOpts.numBasis + NSatTot + NStaTot))
 	{
-		tracepdeex(2, trace,"#IONO_MOD Not enough Measurements %5d < %4d + %4d + %3d\n", NMeaTot, acsConfig.ionModelOpts.NBasis, NSatTot, NStaTot);
+		tracepdeex(2, trace,"#IONO_MOD Not enough Measurements %5d < %4d + %4d + %3d\n", NMeaTot, acsConfig.ionModelOpts.numBasis, NSatTot, NStaTot);
 		return;
 	}
 	
@@ -208,8 +208,8 @@ void updateIonosphereModel(
 		obsKey.str = rec.id;
 		
 		KFMeasEntry meas(&iono_KFState, obsKey);
-		meas.setValue(obs.STECsmth);
-		meas.setNoise(obs.STECsmvr);
+		meas.setValue(obs.stecVal);
+		meas.setNoise(obs.stecVar);
 		
 		/************ receiver DCB ************/        /* We may need to change this for multi-code solutions */
 		if (rec.id != ionRefRec[sys])
@@ -223,10 +223,10 @@ void updateIonosphereModel(
 				sat0.prn = 0;
 				
 				KFKey recDCBKey;
-				recDCBKey.type	= KF::DCB;
+				recDCBKey.type	= KF::CODE_BIAS;
 				recDCBKey.str	= rec.id;
 				recDCBKey.Sat	= sat0;
-				recDCBKey.num	= obs.STECcodeComb;
+				recDCBKey.num	= obs.stecCodeCombo;
 			
 				meas.addDsgnEntry(recDCBKey, 1, init);
 			}
@@ -239,20 +239,20 @@ void updateIonosphereModel(
 			if (init.estimate)
 			{
 				KFKey satDCBKey;
-				satDCBKey.type	= KF::DCB;
+				satDCBKey.type	= KF::CODE_BIAS;
 				satDCBKey.str	= "";
 				satDCBKey.Sat	= obs.Sat;
-				satDCBKey.num	= obs.STECcodeComb;
+				satDCBKey.num	= obs.stecCodeCombo;
 			
 				meas.addDsgnEntry(satDCBKey, 1, init);
 			}
 		}
 		
-		for (int i = 0; i < acsConfig.ionModelOpts.NBasis; i++)
+		for (int i = 0; i < acsConfig.ionModelOpts.numBasis; i++)
 		{
 			double coef = ionModelCoef(i, obs, true);
 			
-			if (coef==0)
+			if (coef == 0)
 				continue;
 			
 			KFKey ionModelKey;
@@ -264,14 +264,15 @@ void updateIonosphereModel(
 			meas.addDsgnEntry(ionModelKey, coef, ionModelInit);
 			
 			tracepdeex(5, trace,"#IONO_MOD %s %4d %9.5f %10.5f %8.5f %8.5f %12.5e %9.5f %12.5e\n",
-					((string)meas.obsKey).c_str(), i,
-					obs.ippMap[0].lat*R2D, 
-					obs.ippMap[0].lon*R2D, 
-					obs.ippMap[0].ang, 
-					obs.STECtoDELAY, 
+					((string)meas.obsKey).c_str(), 
+					i,
+					obs.ippMap[0].lat * R2D, 
+					obs.ippMap[0].lon * R2D, 
+					obs.ippMap[0].slantFactor, 
+					obs.stecToDelay, 
 					coef, 
-					obs.STECsmth,
-					obs.STECsmvr);
+					obs.stecVal,
+					obs.stecVar);
 		}
 		
 		kfMeasEntryList.push_back(meas);
@@ -344,14 +345,14 @@ bool queryBiasDCB(
 
 	bool pass = false;
 	for (auto& [key, index] : iono_KFState.kfIndexMap)
-	if	(  key.type == +KF::DCB
+	if	(  key.type == +KF::CODE_BIAS
 		&& key.Sat  == Sat
 		&& key.str  == Rec)
 	{
 		/* We need a way to select between GAL L1X-L5X and L1C-L5Q DCBs... */
 		pass = iono_KFState.getKFValue(key, dcbVal, &dcbVar);
-		if (pass)
-			break;
+
+		break;
 	}
 	
 	if (pass == false)

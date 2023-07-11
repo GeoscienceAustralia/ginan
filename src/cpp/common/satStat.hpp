@@ -85,10 +85,13 @@ struct SatStat : IonoStat, QC
 	VectorEcef	e;							///< Line-of-sight unit vector
 
 
+	int ionoOutageCount		= 0;			///< Count of epochs without measurements reffering to this satellite's ionosphere state
+	
 	double		dIono		= 0;			///< TD ionosphere residual
 	double		sigmaIono	= 0;			///< TD ionosphere residual noise
 	double		prevSTEC	= 0;
 
+	double		nadir		= 0;
 	union
 	{
 		double		azel[2] = {};			///< azimuth/elevation angles as array(rad)

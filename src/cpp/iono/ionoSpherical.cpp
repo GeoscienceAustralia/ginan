@@ -15,18 +15,15 @@ double ionSPHLastColatitude = -100;
 
 struct SphBasis
 {
-	int hind;					/* layer number */
-	int degree;					/* degree of the function */
-	int order;					/* order of the legendre function */
-	bool parity;				/* longitude function: false=cosine, true=sine */
+	int layer	= 0;					
+	int degree	= 0;					
+	int order	= 0;					
+	E_TrigType trigType;
 };
 
-map<int, SphBasis>  sphBasisMap;
-map<int, map<int, map<int, map<bool, int>>>>  sphBasisIndxMaps;
+map<int, SphBasis>									sphBasisMap;
+map<int, map<int, map<int, map<E_TrigType, int>>>>	sphBasisIndexMaps;
 
-Matrix3d sphRotMatrix;				/* Rotation matrix (to centre of map) */
-GTime	sphTime		= {};
-double	sphValid	= 10;
 
 /** configures the spherical harmonics model.
 Specifically it initializes:
@@ -40,11 +37,6 @@ Author: Ken Harima @ RMIT 29 July 2020
 -----------------------------------------------------*/
 int configIonModelSphhar()
 {
-	sphRotMatrix.setZero();
-
-	sphValid		= DTTOL;
-	sphTime.bigTime	= 0;
-
 	if		(acsConfig.ionModelOpts.function_degree == 0)										acsConfig.ionModelOpts.function_degree	= acsConfig.ionModelOpts.function_order;	
 	else if (acsConfig.ionModelOpts.function_order > acsConfig.ionModelOpts.function_degree)	acsConfig.ionModelOpts.function_order	= acsConfig.ionModelOpts.function_degree;
 	
@@ -64,25 +56,32 @@ int configIonModelSphhar()
 	for (int degree	= order;	degree	< acsConfig.ionModelOpts.function_degree;	degree++)
 	{
 		SphBasis basis;
-		basis.hind		= layer;
+		basis.layer		= layer;
 		basis.order		= order;
 		basis.degree	= degree;
-		basis.parity	= false;
 			
-		sphBasisIndxMaps[layer][degree][order][false] = ind;
-		sphBasisMap[ind] = basis;
-		ind++;
+// 		if (1)
+		{
+			basis.trigType	= E_TrigType::COS;
+			
+			sphBasisIndexMaps[layer][degree][order][basis.trigType]	= ind;
+			sphBasisMap[ind]										= basis;
+		
+			ind++;
+		}
 		
 		if (order > 0)
 		{
-			basis.parity = true;
-			sphBasisIndxMaps[layer][degree][order][true] = ind;
-			sphBasisMap[ind] = basis;
+			basis.trigType	= E_TrigType::SIN;
+			
+			sphBasisIndexMaps[layer][degree][order][basis.trigType]	= ind;
+			sphBasisMap[ind]										= basis;
+			
 			ind++;
 		}
 	}
 
-	acsConfig.ionModelOpts.NBasis = ind;
+	acsConfig.ionModelOpts.numBasis = ind;
 
 	return ind;
 }
@@ -98,12 +97,17 @@ bool ippCheckSphhar(
 	GTime		time, 
 	VectorPos&	ionPP)
 {
-	if 	(time.bigTime == 0) 
+	if 	(time == GTime::noTime()) 
 		return false;
 
 	if (acsConfig.ionModelOpts.use_rotation_mtx)
 	{
-		if	(  sphTime.bigTime == 0 
+		static Matrix3d	sphRotMatrix;				/* Rotation matrix (to centre of map) */
+		static GTime	sphTime;
+		
+		double	sphValid	= 10;
+		
+		if	(  sphTime == GTime::noTime()
 			|| fabs((time - sphTime).to_double()) > sphValid )
 		{
 			VectorEcef	rSun;
@@ -111,13 +115,14 @@ bool ippCheckSphhar(
 		
 			VectorPos sunpos = ecef2pos(rSun);
 
-			sphRotMatrix(0,0) =  cos(sunpos[0]) * cos(sunpos[1]);	sphRotMatrix(0,1) = -sin(sunpos[1]);	sphRotMatrix(0,2) = -sin(sunpos[0]) * cos(sunpos[1]);		
-			sphRotMatrix(1,0) =  cos(sunpos[0]) * sin(sunpos[1]);	sphRotMatrix(1,1) =  cos(sunpos[1]);	sphRotMatrix(1,2) = -sin(sunpos[0]) * sin(sunpos[1]);		
-			sphRotMatrix(2,0) =  sin(sunpos[0]);					sphRotMatrix(2,1) =  0;					sphRotMatrix(2,2) =  cos(sunpos[0]);
-
-			sphTime = time;
-		}
+			double lat = sunpos.lat();
+			double lon = sunpos.lon();
+			
+			sphRotMatrix	= Eigen::AngleAxisd(lon, Vector3d::UnitZ()) * Eigen::AngleAxisd(-lat, Vector3d::UnitY());
 		
+			sphTime			= time;
+		}
+
 		VectorPos pos;
 		pos.hgt() = ionPP.hgt();
 		pos.lon() = ionPP.lon();
@@ -133,8 +138,6 @@ bool ippCheckSphhar(
 	}
 	else
 	{
-		// int week;
-		// double tow = time2gpst(time,&week);
 		double tow = GTow(time);
 		
 		ionPP.lat() = ionPP.lat() - PI/2;
@@ -146,39 +149,18 @@ bool ippCheckSphhar(
 	return true;
 }
 
-/*-----------------------------------------------------
-P=leg(basis,lat) Returns the legendre polynimial evaluated at lat
-The basis contein the legendre polynomial at basis.legpoly
-latitude: argument (rad)
-Truncation is set up by the resolution parameter eps0
------------------------------------------------------
-Author: Ken Harima @ RMIT 20 May 2020
------------------------------------------------------*/
-// double legendre_poly(Sph_Basis& basis, double lat)
-// {
-// 	double sinlat = sin(lat);
-// 	double coslat = cos(lat);
-// 	double tot = 0;
-
-// 	for (auto& elem : basis.legpoly)
-// 	{
-// 		double sincmp = pow(sinlat, elem.sind);
-// 		double coscmp = pow(coslat, elem.cosd);
-// 		tot += elem.coef * sincmp * coscmp;
-// 	}
-
-// 	return tot;
-// }
-
-/** Evaluates spherical cap harmonics basis functions
-	int ind			I		Basis function number
+/** Evaluates spherical harmonics basis functions
+	int ind			I		
 	obs				I		Ionosphere measurement struct
 		latIPP				- Latitude of Ionosphere Piercing Point
 		lonIPP				- Longitude of Ionosphere Piercing Point
 		angIPP				- Angular gain for Ionosphere Piercing Point
 	int slant		I		0: coefficient for VTEC, 1: coefficient for STEC
 ----------------------------------------------------------------------------*/
-double ionCoefSphhar(int ind, GObs& obs, bool slant)
+double ionCoefSphhar(
+	int			ind,			///< Basis function number
+	IonoObs&	obs,			///< Ionospheric observation metadata	
+	bool		slant)			///< apply slant factor, false: coefficient for VTEC, true: coefficient for STEC
 {
 	if (ind >= sphBasisMap.size())
 		return 0;
@@ -191,22 +173,24 @@ double ionCoefSphhar(int ind, GObs& obs, bool slant)
 	if (basis.degree	> acsConfig.ionModelOpts.function_degree)
 		return 0;
 
-	double colat = obs.ippMap[basis.hind].lat;
+	double colat = obs.ippMap[basis.layer].lat;
 	
 	if (fabs(ionSPHLastColatitude - colat) > 0.01)
 		ionLeg.calculate(cos(colat));
 
-	double out = pow(-1,basis.order)*ionLeg.Pnm(basis.degree, basis.order);
-
-	if (basis.parity)	out *= sin(basis.order * obs.ippMap[basis.hind].lon);
-	else				out *= cos(basis.order * obs.ippMap[basis.hind].lon);
+	double coeff = pow(-1, basis.order) * ionLeg.Pnm(basis.degree, basis.order);
+	
+	double angle = basis.order * obs.ippMap[basis.layer].lon;
+	
+	if		(basis.trigType == +E_TrigType::SIN)		coeff *= sin(angle);
+	else if (basis.trigType == +E_TrigType::COS)		coeff *= cos(angle);
 
 	if (slant)
 	{
-		out *= obs.ippMap[basis.hind].ang;
+		coeff *= obs.ippMap[basis.layer].slantFactor;
 	}
 
-	return out;
+	return coeff;
 }
 
 /** Estimate Ionosphere VTEC using Spherical Cap Harmonic models
@@ -217,11 +201,11 @@ double ionCoefSphhar(int ind, GObs& obs, bool slant)
 returns: VETC at piercing point
 ----------------------------------------------------------------------------*/
 double ionVtecSphhar(
-	GTime time,
-	VectorPos& ionPP,
-	int layer,
-	double& vari,
-	KFState& kfState)
+	GTime		time,
+	VectorPos&	ionPP,
+	int			layer,
+	double&		var,
+	KFState&	kfState)
 {
 	VectorPos ionpp_cpy;
 
@@ -231,32 +215,34 @@ double ionVtecSphhar(
 
 	ippCheckSphhar(time, ionpp_cpy);
 
-	vari = 0;
+	var = 0;
+	
+	IonoObs tmpobs;
+	tmpobs.ippMap[layer].lat			= ionpp_cpy[0];
+	tmpobs.ippMap[layer].lon			= ionpp_cpy[1];
+	tmpobs.ippMap[layer].slantFactor	= 1;
+
 	double iono = 0;
-	GObs tmpobs;
-	tmpobs.ippMap[layer].lat = ionpp_cpy[0];
-	tmpobs.ippMap[layer].lon = ionpp_cpy[1];
-	tmpobs.ippMap[layer].ang = 1;
-
-	for (int ind = 0; ind < acsConfig.ionModelOpts.NBasis; ind++)
+	
+	for (int basisNum = 0; basisNum < acsConfig.ionModelOpts.numBasis; basisNum++)
 	{
-		auto& basis = sphBasisMap[ind];
+		auto& basis = sphBasisMap[basisNum];
 
-		if (basis.hind != layer) 
+		if (basis.layer != layer) 
 			continue;
 
-		double coef = ionCoefSphhar(ind, tmpobs, false);
+		double coef = ionCoefSphhar(basisNum, tmpobs, false);
 
-		KFKey keyC;
-		keyC.type	= KF::IONOSPHERIC;
-		keyC.num	= ind;
+		KFKey key;
+		key.type	= KF::IONOSPHERIC;
+		key.num		= basisNum;
 
-		double staval = 0;
-		double stastd = 0;
-		kfState.getKFValue(keyC, staval, &stastd);
+		double val = 0;
+		double std = 0;
+		kfState.getKFValue(key, val, &std);
 
-		iono += 	coef * staval;
-		vari += SQR(coef)* stastd;
+		iono	+= 		coef * val;
+		var		+= SQR(	coef)* std;
 	}
 
 	return iono;
@@ -275,55 +261,57 @@ void ionOutputSphcal(
 		atmGlob.layers[j].maxDegree	= acsConfig.ionModelOpts.function_degree;
 	}
 	
-	tracepdeex (4, trace, "\n#IONO_MODL  tow   indx hght order degr part    value       variance");
+	tracepdeex (4, trace, "\n#IONO_MODL  tow   indx hght order degr part     value       variance");
 	for (auto [key, index] : kfState.kfIndexMap)
 	{
 		if (key.type != KF::IONOSPHERIC)
 			continue;
 		
-		SphBasis basis		= sphBasisMap[key.num];
-		auto& iono_record	= atmGlob.layers[basis.hind].sphHarmonic[key.num];
-		iono_record.hind	= basis.hind;
-		iono_record.order	= basis.order;
-		iono_record.degree	= basis.degree;
-		iono_record.parity	= basis.parity;
+		SphBasis& basis		= sphBasisMap[key.num];
 		
-		double val;
-		double var;
-		kfState.getKFValue(key,val,&var);
-		iono_record.coeffc		= val;
-		iono_record.variance	= var;
+		auto& ionoRecord	= atmGlob.layers[basis.layer].sphHarmonic[key.num];
+		ionoRecord.layer	= basis.layer;
+		ionoRecord.order	= basis.order;
+		ionoRecord.degree	= basis.degree;
+		ionoRecord.trigType	= basis.trigType;
+		
+		kfState.getKFValue(key, ionoRecord.value, &ionoRecord.variance);
 		
 		GTow tow = kfState.time;
-		tracepdeex (4, trace, "\nIONO_MODL %6d %3d  %4.0f  %2d   %2d   %2d  %10.4f %12.5e",
-		         (int)tow, key.num, atmGlob.layers[basis.hind].height, 
-		         basis.order, basis.degree, basis.parity?1:0, val, sqrt(var));
-		
+		tracepdeex (4, trace, "\nIONO_MODL %6d %3d  %4.0f  %2d   %2d   %s  %10.4f %12.5e",
+					(int)tow, 
+					key.num, 
+					atmGlob.layers[basis.layer].height, 
+					basis.order, 
+					basis.degree, 
+					basis.trigType._to_string(), 
+					ionoRecord.value, 
+					sqrt(ionoRecord.variance));
 	}
 	tracepdeex (4, trace, "\n");
 	
-	atmGlob.time= kfState.time;
+	atmGlob.time = kfState.time;
 	
 	nav.ssrAtm.atmosGlobalMap[kfState.time] = atmGlob;
 }
 
 bool getEpcSsrIono(
-	GTime		time,		///< time of ionosphere correction
-	SSRAtmGlobal& atmGlob,	///< SSR atmospheric correction
-	Vector3d&	rSat,		///< Satellite position
-	Vector3d&	rRec,		///< receiver position
-	double& 	iono,		///< Ionosphere delay (in TECu)
-	double& 	vari)		///< Ionosphere variance
+	GTime			time,		///< time of ionosphere correction
+	SSRAtmGlobal&	atmGlob,	///< SSR atmospheric correction
+	Vector3d&		rSat,		///< Satellite position
+	Vector3d&		rRec,		///< receiver position
+	double& 		iono,		///< Ionosphere delay (in TECu)
+	double& 		var)		///< Ionosphere variance
 {
-	vari = -1;
-	iono =  0;
+	var		= 0;
+	iono	= 0;
 	
-	if (fabs((time - atmGlob.time).to_double())> acsConfig.ssrInOpts.global_vtec_valid_time)
+	if (fabs((time - atmGlob.time).to_double()) > acsConfig.ssrInOpts.global_vtec_valid_time)
 		return false;
 	
-	if (sphBasisIndxMaps.size() < atmGlob.layers.size())
+	if (sphBasisIndexMaps.size() < atmGlob.layers.size())
 	{
-		sphBasisIndxMaps.clear();
+		sphBasisIndexMaps.clear();
 		int maxdeg = 0;
 		int maxord = 0;
 		for (auto& [hind,atmLay]: atmGlob.layers)
@@ -346,32 +334,34 @@ bool getEpcSsrIono(
 	double r = geodist(rSat, rRec, e);
 	double azel[2];
 	satazel(pos, e, azel);
-			
-	double ivar	 = 0;
-	for (auto& [hind, atmLay]: atmGlob.layers)
+		
+	for (auto& [layer, atmLay]: atmGlob.layers)
 	{
 		VectorPos posp;
-		double angIPP = ionppp(pos, azel, RE_WGS84 / 1000, atmLay.height, posp);
+		double slantFactor = ionppp(pos, azel, RE_WGS84 / 1000, atmLay.height, posp);
 	
 		if (ippCheckSphhar(time, posp) == false)
 			return 0;
 		
 		GObs tmpobs;
-		tmpobs.ippMap[hind].lat = posp[0];
-		tmpobs.ippMap[hind].lon = posp[1];
-		tmpobs.ippMap[hind].ang = angIPP;
+		tmpobs.ippMap[layer].lat			= posp[0];
+		tmpobs.ippMap[layer].lon			= posp[1];
+		tmpobs.ippMap[layer].slantFactor	= slantFactor;
 		
-		for (auto& [ind,Harmn] : atmLay.sphHarmonic)
+		for (auto& [ind, harmonic] : atmLay.sphHarmonic)
 		{
-			int reindex = sphBasisIndxMaps[Harmn.hind][Harmn.degree][Harmn.order][Harmn.parity];
+			int reindex = sphBasisIndexMaps[harmonic.layer][harmonic.degree][harmonic.order][harmonic.trigType];
+			
 			double comp = ionCoefSphhar(reindex, tmpobs, true);
-			iono +=		comp	* Harmn.coeffc;
-			ivar += SQR(comp)	* Harmn.variance;
+			
+			iono	+=		comp	* harmonic.value;
+			var		+= SQR(	comp)	* harmonic.variance;
 		}
 	}
 	
-	vari = atmGlob.vtecQuality + ivar;
-	return iono;
+	var += atmGlob.vtecQuality;
+	
+	return iono;	//todo aaron, converting to bool
 }
 
 
@@ -383,12 +373,12 @@ bool getIGSSSRIono(
 	double& 	iono,	///< Ionosphere delay (in TECu)
 	double& 	var)	///< Ionosphere variance
 {
-	var = -1;
-	iono =  0;
+	var		= 0;
+	iono	= 0;
 	
 	auto it = ssrAtm.atmosGlobalMap.lower_bound(time);
 	if (it == ssrAtm.atmosGlobalMap.end())
-		return 0;
+		return false;
 
 	auto& [t0, ssrAtm0] = *it;
 	
@@ -411,17 +401,14 @@ bool getIGSSSRIono(
 		pass1		= getEpcSsrIono(t1, ssrAtm1, rRec, rSat, iono1, var1);
 		if (pass1)
 		{
-			// double tt	= (t1 - t0).to_double();
-			// a	= (time	- t0).to_double() / tt;
-			
 			a = (time - t0)/(t1 - t0);
 		}
 	}
 	
-	if (!pass0 && !pass1) {	var = -1;		return 0;}
-	if ( pass0 && !pass1) {	var = var0;		return iono0;}
-	if (!pass0 &&  pass1) {	var = var1;		return iono1;}
+	if (!pass0 && !pass1) {	var = -1;		return 0;		}
+	if ( pass0 && !pass1) {	var = var0;		return iono0;	}
+	if (!pass0 &&  pass1) {	var = var1;		return iono1;	}
 
 	var = var0		* SQR(1-a)	+ var1	* SQR(a);
-	return iono0	*	 (1-a)	+ iono1	*	  a;
+	return iono0	*	 (1-a)	+ iono1	*	  a;	//todo aaron, casting bad?
 }

@@ -31,6 +31,24 @@ bool readsp3(
 	double*			bfact);
 
 double	interpolate(const double *x, double *y, int n);
+
+/** polynomial interpolation by Neville's algorithm.
+ *  Sketchy formatting to only require +, * operators on TYPE
+ */
+template<typename TYPE>
+TYPE interpolate(
+	vector<double>&		x, 
+	vector<TYPE>&		y)
+{
+	for (int j = 1; j < x.size();		j++)
+	for (int i = 0; i < x.size() - j;	i++)
+	{
+		y[i] = (y[i] * x[i+j] + y[i+1] * x[i] * -1) * (1 / (x[i+j] - x[i]));
+	}
+
+	return y[0];
+}
+
 void	orb2sp3(Navigation& nav);
 
 

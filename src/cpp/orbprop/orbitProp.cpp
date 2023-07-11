@@ -33,7 +33,7 @@ void OrbitIntegrator::computeCommon(
 {
 	GTime		time = timeInit	+ dt;
 
-	ERPValues	erpv = geterp(nav.erp, time);
+	ERPValues	erpv = getErp(nav.erp, time);
 	
 	eci2ecef(time, erpv, eci2ecf, &deci2ecf);
 

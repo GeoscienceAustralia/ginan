@@ -407,7 +407,6 @@ double leapSeconds(
 	auto it = leapSecondMap.lower_bound(time);
 	if (it == leapSecondMap.end())
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error: leap seconds not available.";
 		return 0;
 	}
 

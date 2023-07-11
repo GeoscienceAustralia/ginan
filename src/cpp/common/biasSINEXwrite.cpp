@@ -248,10 +248,10 @@ int addBiasEntry(
 /** Store bias output to write into bias SINEX files
 */
 void updateBiasOutput(
-	Trace&		trace,			
+	Trace&		trace,			///< Trace to output to
 	GTime		time,			///< Time of bias update 
 	StationMap&	stationMap,		///< stations for which to output receiver biases
-	E_MeasType	measType)
+	E_MeasType	measType)		///< Type of measurement to find bias for
 {
 	int nstore = 0;
 	double bias;
@@ -481,8 +481,8 @@ bool queryBiasOutput(
 	
 	if (acsConfig.process_ppp)					/* Ginan 2.x	*/
 	{
-		double pppBias;
-		double pppVar;
+		double pppBias = 0;
+		double pppVar = 0;
 		
 		if (!queryBiasUC(trace, time, Sat, Rec, obsCode, pppBias, pppVar, type))
 			return false;
@@ -493,8 +493,8 @@ bool queryBiasOutput(
 	}
 	else if (acsConfig.process_network)			/* Ginan 1.x */
 	{
-		double extBias;
-		double extVar;
+		double extBias = 0;
+		double extVar = 0;
 		getBiasSinex(trace, time, Sat.id(), Sat, obsCode, type, extBias, extVar);
 		
 		bias		+= extBias;
@@ -504,10 +504,10 @@ bool queryBiasOutput(
 			tracepdeex(4,trace,"found a-priory");
 	
 		if	(  type == PHAS
-			&& acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
+			&& acsConfig.ambrOpts.mode != +E_ARmode::OFF)
 		{
-			double WLNLbias;
-			double WLNLvar;
+			double WLNLbias = 0;
+			double WLNLvar = 0;
 			
 			if (!queryBiasWLNL(trace, Sat, Rec, ftyp, WLNLbias, WLNLvar))
 				return false;
@@ -523,8 +523,8 @@ bool queryBiasOutput(
 	if	(  type == CODE
 		&& acsConfig.process_ionosphere)
 	{
-		double dcbBias;
-		double dcbVar;
+		double dcbBias = 0;
+		double dcbVar = 0;
 		
 		if (!queryBiasDCB(trace, Sat, Rec, ftyp, dcbBias, dcbVar))
 			return false;

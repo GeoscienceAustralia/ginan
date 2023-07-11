@@ -637,11 +637,13 @@ vector<uint8_t>  encodeIGS_ATM(
 		return buffer;
 	}
 	int bitLen = 83+ssrGlobAtm.numberLayers*16;
-	map<int,map<int,map<int,map<bool,double>>>> basisMaps;  // basis coefficients indexed by layer, degree, order and parity 
-	for (auto& [ilay,vteclay] : ssrGlobAtm.layers)
-	for (auto& [ibas,b] : vteclay.sphHarmonic)
+	
+	map<int, map<int, map<int, map<E_TrigType, double>>>> basisMaps;  // basis coefficients indexed by layer, degree, order and parity 
+	
+	for (auto& [ilay, vteclay]	: ssrGlobAtm.layers)
+	for (auto& [ibas, b]		: vteclay.sphHarmonic)
 	{
-		basisMaps[ilay][b.degree][b.order][b.parity] = b.coeffc;
+		basisMaps[ilay][b.degree][b.order][b.trigType] = b.value;
 		bitLen += 16*(SQR(b.degree+1) - (b.degree-b.order)*(b.degree-b.order+1));	//todo aaron, check should be +1,0?
 	}
 	
@@ -681,14 +683,14 @@ vector<uint8_t>  encodeIGS_ATM(
 		for (int m = 0; m < norder; m++)
 		for (int n = m; n < ndegre; n++)
 		{
-			int coefC = (int)round(basisMaps[ilay][n][m][true]/0.005);
+			int coefC = (int)round(basisMaps[ilay][n][m][E_TrigType::SIN]/0.005);
 			i = setbitsInc(buf,i,16, coefC);
 		}
 		
 		for (int m = 1; m < norder; m++)
 		for (int n = m; n < ndegre; n++)
 		{
-			int coefS = (int)round(basisMaps[ilay][n][m][false]/0.005);
+			int coefS = (int)round(basisMaps[ilay][n][m][E_TrigType::COS]/0.005);
 			i = setbitsInc(buf,i,16, coefS);
 		}
 	}

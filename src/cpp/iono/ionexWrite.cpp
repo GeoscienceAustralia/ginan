@@ -22,7 +22,7 @@ static int		ionex_lonres = 19;
 
 int last_ionex = -1;
 
-map<string,long> endLinePos;
+map<string, long> endLinePos;
 
 static int ionexMapIndex = 0;
 

@@ -223,9 +223,9 @@ bool ippCheckSphcap(
 	bool slant		I		false: output coefficient for Vtec, true: output coefficient for delay
 ----------------------------------------------------------------------------*/
 double ionCoefSphcap(
-	int		ind, 
-	GObs&	obs, 
-	bool	slant)
+	int			ind, 
+	IonoObs&	obs,
+	bool		slant)
 {
 	if (ind >= Scp_Basis_list.size()) 
 		return 0;
@@ -241,7 +241,7 @@ double ionCoefSphcap(
 
 	if (slant)
 	{
-		out *= obs.ippMap[basis.hind].ang * obs.STECtoDELAY;
+		out *= obs.ippMap[basis.hind].slantFactor * obs.stecToDelay;
 	}
 
 	return out;
@@ -270,11 +270,11 @@ double ionVtecSphcap(
 	var = 0;
 	double iono = 0;
 	GObs tmpobs;
-	tmpobs.ippMap[layer].lat = ionPP[0];
-	tmpobs.ippMap[layer].lon = ionPP[1];
-	tmpobs.ippMap[layer].ang = 1;
+	tmpobs.ippMap[layer].lat			= ionPP[0];
+	tmpobs.ippMap[layer].lon			= ionPP[1];
+	tmpobs.ippMap[layer].slantFactor	= 1;
 
-	for (int ind = 0; ind < acsConfig.ionModelOpts.NBasis; ind++)
+	for (int ind = 0; ind < acsConfig.ionModelOpts.numBasis; ind++)
 	{
 		Scp_Basis& basis = Scp_Basis_list[ind];
 
@@ -433,9 +433,9 @@ int configIonModelSphcap()
 		}
 	}
 
-	acsConfig.ionModelOpts.NBasis = ind;
+	acsConfig.ionModelOpts.numBasis = ind;
 
-	for (int j = 0; j < acsConfig.ionModelOpts.NBasis; j++)
+	for (int j = 0; j < acsConfig.ionModelOpts.numBasis; j++)
 	{
 		Scp_Basis& basis = Scp_Basis_list[j];
 // 		fprintf(fp_iondebug, "SCP_BASIS %3d %2d %2d %8.4f %1d ", j, basis.hind, basis.order, basis.degree, basis.parity);

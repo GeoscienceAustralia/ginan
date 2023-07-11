@@ -107,7 +107,7 @@ struct ObsStream : StreamParser
 		
 		return ObsList();
 	}
-	
+
 	/** Return a list of observations from the stream, with a specified timestamp.
 	* This function may be overridden by objects that use this interface
 	*/
@@ -115,39 +115,21 @@ struct ObsStream : StreamParser
 		GTime	time,			///< Timestamp to get observations for
 		double	delta = 0.5)	///< Acceptable tolerance around requested time
 	{
+		ObsList bigObsList = ObsList();
+		bool foundGoodObs = false;
 		while (1)
 		{
 			ObsList obsList = getObs();
-
-			if (obsList.empty())
-			{
-				obsWaitCode = E_ObsWaitCode::NO_DATA_WAIT;
-				return obsList;
-			}
 			
-			if (time == GTime::noTime())
-			{
-				obsWaitCode = E_ObsWaitCode::OK;
-				return obsList;
-			}
-
-			if		(obsList.front()->time < time - delta)
-			{
-				obsWaitCode = E_ObsWaitCode::EARLY_DATA;
-				return obsList;
-				
-			}
-			else if	(obsList.front()->time > time + delta)
-			{
-				obsWaitCode = E_ObsWaitCode::NO_DATA_EVER;
-				return ObsList();
-			}
-			else
-			{
-				obsWaitCode = E_ObsWaitCode::OK;
-				return obsList;
-			}
+			if		(time == GTime::noTime())				{	foundGoodObs = true;						eatObs();	bigObsList += obsList;	break;	}
+			else if	(obsList.empty())						{	obsWaitCode = E_ObsWaitCode::NO_DATA_WAIT;				bigObsList += obsList;	break;	}
+			else if	(obsList.front()->time	< time - delta)	{	obsWaitCode = E_ObsWaitCode::EARLY_DATA;	eatObs();	bigObsList += obsList;	break;	}
+			else if	(obsList.front()->time	> time + delta)	{	obsWaitCode = E_ObsWaitCode::NO_DATA_EVER;										break;	}
+			else											{	foundGoodObs = true;						eatObs();	bigObsList += obsList;			}
 		}
+		if		(foundGoodObs)									obsWaitCode = E_ObsWaitCode::OK;
+		else if	(obsWaitCode == +E_ObsWaitCode::NO_DATA_EVER)	return ObsList();
+		return bigObsList;
 	}
 	
 	/** Remove some observations from memory

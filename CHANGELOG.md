@@ -3,18 +3,59 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [2.1] 2023-07-04
+
+### Added
+Reduced dynamic (Pseudo Stochastic) pulse estimation implemented
+
+Higher(2nd/3rd) order ionosphere modelling
+
+Demonstration of LEO kinematic, reduced dynamic and dynamic orbit estimation
+
+Included pseudo-observation/contrainst to eliminate rank deficiencies in observation models
+
+### Changed
+Complete GNSS constelation attitude modelling implemented (GPS/GAL/GLO/BDS/QZS)
+
+Use case examples updated
+
+Python gnssanalysis tools updates
+
+Improved documentation
+
+Yaml config file updates
+
+### Fixed
+
+### Deprecated
+Ginan version 1 `user` and `network` modes
+
+### Removed
+
+### Security
+
+
 # [2.0.1] 2023-06-09
 ### Added
 ### Changed
 Unified User and Network operation modes (One Observation Model & Filter)
+
 More GNSS constellations – Full Multi-Constellation capability (Ex SBAS)
+
 Better internal frequency indexing (complete Multi-Frequency capability)
+
 UnDifferenced / UnCombined (UDUC) processing (v1 was Combined IF only)
+
 CPP integrated and coupled Precise Orbit Determination (POD) capability
+
 More robust data handling in filter cycle slip and outlier detection and removal
+
 Complete RTCM3 phase 1 and Phase 2 message decoding and encoding
+
 SLR data handling fully implemented
+
 Model & Performance improvements
+
 ### Fixed
 ### Deprecated
 ### Removed

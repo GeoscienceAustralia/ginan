@@ -49,7 +49,7 @@ outputs:
 processing_options:
 
     epoch_control:
-        epoch_interval:             60
+        epoch_interval:             900
         wait_next_epoch:            3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
         wait_all_stations:          1
         fatal_message_level:        1
@@ -60,20 +60,21 @@ processing_options:
     gnss_general:
     
         elevation_mask:                 10      # degrees
-        rec_reference_system:           GPS
+        #rec_reference_system:           GPS
         require_antenna_details:        true    # (bool)
         require_apriori_positions:      false   # (bool)
-
+        #common_rec_pco:                 true
+        interpolate_rec_pco:            true
         sys_options:
             gps:
                 process:                true
                 ambiguity_resolution:   false     # Do not turn on AR if using ppp: - use_if_combo: true
                 reject_eclipse:         false
-                zero_receiver_dcb:      true
+                #zero_receiver_dcb:      true
                 #zero_satellite_dcb:     true
-                network_amb_pivot:      true
+                #network_amb_pivot:      true
                 clock_codes:            [ L1W, L2W ]
-                code_priorities:        [ L1W, L1C, L2W ]
+                code_priorities:        [ L1W, L2W, L5Q ]
 
             # gal:
             #    process:                true
@@ -95,12 +96,6 @@ processing_options:
 
     gnss_models:
     
-        sat_attitude:
-            sources:            [MODEL]
-
-        rec_attitude:
-            sources:            [NOMINAL]
-
         troposphere:
             model:              vmf3   # gpt2
 
@@ -166,7 +161,20 @@ processing_options:
         station_noise:
             global: [0.01, 0.01, 0.01]
 
+            
+    
+satellite_options:
+
+    global:
+        attitude:
+            sources:            [MODEL]
+            
 station_options:
+
+    global:
+        attitude:
+            sources:            [NOMINAL]
+        
     RAEG:
         receiver_type:  "LEICA GR25"                
         antenna_type:   "LEIAR20         NONE"      
@@ -194,12 +202,22 @@ station_options:
     AGGO:
         aliases:        [ADD_CLOCK_RATES]
 
+    PIVOT:
+        clock:
+            enable: false
+
+        code_bias:
+            enable: false
+
+        phase_bias:
+            enable: false
+
 estimation_parameters:
 
     stations:
         error_model:        elevation_dependent      
-        code_sigmas:        [0.3]
-        phase_sigmas:       [0.002]
+        code_sigmas:        [0.3, 0.3, 0.3, 12]
+        phase_sigmas:       [0.002, 0.002, 0.002, 12]
 
         global:
         
@@ -215,7 +233,7 @@ estimation_parameters:
 
             amb:
                 estimated:          [true]
-                sigma:              [100]
+                sigma:              [1000]
                 proc_noise:         [0]
 
             trop:
@@ -233,16 +251,12 @@ estimation_parameters:
                 sigma:              [100]
                 proc_noise:         [2]
 
-            phase_bias:
-                estimated:          [true]
-                sigma:              [10]
-                proc_noise:         [0]
-
             code_bias:
                 estimated:          [true]
                 sigma:              [20]
                 proc_noise:         [0]
 
+<<<<<<< HEAD
             #GPS:
             #    L2W:
             #        amb:
@@ -250,21 +264,13 @@ estimation_parameters:
             #            sigma:          [1e-8]
             #            proc_noise:     [0]
 
-        PIVOT:
-            clk:
-                estimated:          [false]    # Set reference (pivot) station clock
-
-            code_bias:
-                estimated:          [false]
-
-            phase_bias:
-                estimated:          [false]
-
         ADD_CLOCK_RATES:
             clk_rate:
                 estimated:          [true]
                 sigma:              [10]
                 proc_noise:         [1e-8]
+=======
+>>>>>>> develop
 
     satellites:
     
@@ -280,28 +286,15 @@ estimation_parameters:
                 sigma:              [10]
                 proc_noise:         [1e-9]
 
-            phase_bias:
-                estimated:          [true]
-                sigma:              [10]
-                proc_noise:         [0]
-
             code_bias:
                 estimated:          [true]
                 sigma:              [10]
                 proc_noise:         [0]
 
-        GPS:
-            L1W:
-                code_bias:
-                    sigma:              [1e-8]      # this implements B(s,GPS-L1W)=0 
-                    process_noise:      [0]
-                    apriori_value:      [0]
-            L2W:
-                code_bias:
-                    sigma:              [1e-8]      # this implements B(s,GPS-L2W)=0 
-                    process_noise:      [0]
-                    apriori_value:      [0]            
-
+        GPS:       
+                pco:
+                    estimated: [true]
+                    sigma:      [4]
     eop:
         estimated:  [true]
         sigma:      [10]

@@ -140,8 +140,8 @@ SatGeom satOrbitGeometry(
 	beta		= asin(eNorm.dot(eSun));					//angle between sun and orbital plane
 
 	double E	= acos(eSat	.dot(ep));						//angle between sat and ascension node?
-	if (eSat.dot(eSun) <= 0)	mu = PI/2 - E;				//sat on dark side
-	else						mu = PI/2 + E;				//sat on noon side
+	if (eSat.dot(eSun) <= 0)	mu = PI / 2 - E;				//sat on dark side
+	else						mu = PI / 2 + E;				//sat on noon side
 	
 	wrapPlusMinusPi(beta);
 	wrapPlusMinusPi(mu);
@@ -150,16 +150,19 @@ SatGeom satOrbitGeometry(
 }
 
 /** Calculate nominal (ideal) sat yaw for GPS sats
+ * Returns result between (-PI, PI]
 */
 double nominalYawGps(
 	double	beta,		///< Sun elevation angle with respect to the orbital plane
 	double	mu)			///< Angle of sat from 'midnight' (when sat is at the furthest point from Sun in its orbit)
 {
-	if	( fabs(beta)	< 1E-12
-		&&fabs(mu)		< 1E-12)
+	if	( abs(beta)	< 1E-12
+		&&abs(mu)	< 1E-12)
 		return PI;
 
-	return atan2(-tan(beta), sin(mu)) + PI;
+	double yaw = atan2(-tan(beta), sin(mu)) + PI;
+	wrapPlusMinusPi(yaw);
+	return yaw;
 }
 
 /** Calculates proportion of circle 1 visible with overlapping circle 2
@@ -243,6 +246,7 @@ double sunVisibility(
 
 /** Yaw model for GPS sats
  * Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf
+ * Ref: https://igsac-cnes.cls.fr/documents/meeting/2021_04_28_Strasser_et_al_EGU21.pdf
  * Returns false if no modelled yaw available
 */
 bool satYawGps(
@@ -259,15 +263,12 @@ bool satYawGps(
 	double&		mu			= satGeom.mu;
 
 	// Nominal behaviour
-	attStatus.nominalYaw = nominalYawGps(beta, mu);							wrapPlusMinusPi(attStatus.nominalYaw);
-
-	// Midnight/noon turns
-	double reqDyaw	= attStatus.nominalYaw	- attStatus.modelYaw;			wrapPlusMinusPi(reqDyaw);
-	double dt		= (time - attStatus.modelYawTime).to_double();		
-	
-	double modelYawRate;
-	if (dt == 0)	modelYawRate = 0;
-	else			modelYawRate = reqDyaw / dt;
+	attStatus.nominalYaw = nominalYawGps(beta, mu);
+	double reqYawChange	= attStatus.nominalYaw	- attStatus.modelYaw;		wrapPlusMinusPi(reqYawChange);
+	double dt			= (time					- attStatus.modelYawTime).to_double();		
+	double reqYawRate;
+	if (dt == 0)	reqYawRate = 0;
+	else			reqYawRate = reqYawChange / dt;
 
 	// Eclipse
 	double fractionSunVisible = sunVisibility(rSat, rSun, rMoon);
@@ -276,21 +277,21 @@ bool satYawGps(
 		if (attStatus.modelYawTime == GTime::noTime()) // Check sat not mid-way through eclipse on startup
 			return false;
 
-		string bt = Sat.blockType().substr(0,7);
+		string bt = Sat.blockType().substr(0,7); // Not well modelled
 		if (bt == "GPS-IIA")
 			return false;
 		
-		if (bt == "GPS-IIF")
+		if (bt == "GPS-IIF") // Shadow constant yaw steering
 		{
-			if (attStatus.eclipseYawRate == 0) // start of eclipse
+			if (attStatus.eclipseYawRate == 0) // Start of eclipse
 			{
-				double eclipseMuRange		= 2 * abs(mu);
+				double eclipseYawRange		= 2 * abs(PI / 2 - abs(attStatus.nominalYaw)); // note: assumes not already at max yaw rate @ eclipse entry
+				double eclipseMuRange		= 2 * abs(mu); // from current pos to mirrored pos, reflected across noon
 				double muRate				= vSatPrime.norm() / rSat.norm();
 				double eclipseDuration		= eclipseMuRange / muRate;
-				double eclipseYawRange		= 2 * abs(PI/2 - abs(attStatus.nominalYaw)); // note: assumes not already at max yaw rate
-				attStatus.eclipseYawRate	= eclipseYawRange / eclipseDuration * SGN(modelYawRate);
+				attStatus.eclipseYawRate	= eclipseYawRange / eclipseDuration * SGN(reqYawRate);
 			}
-			modelYawRate = attStatus.eclipseYawRate;
+			reqYawRate = attStatus.eclipseYawRate;
 		}
 	}
 	else
@@ -298,14 +299,16 @@ bool satYawGps(
 		attStatus.eclipseYawRate = 0;
 	}
 
-	// Max yaw rate cap
+
+	// Catch up yaw steering
+	double modelYawRate = reqYawRate;
+
 	double maxYawRate = 0;
 	bool maxYawRateFound = getSnxSatMaxYawRate(Sat.svn(), time, maxYawRate);
-	maxYawRate *= SGN(modelYawRate);
 	if	( maxYawRateFound
-		&&abs(modelYawRate) > abs(maxYawRate))
+		&&abs(reqYawRate) > maxYawRate)
 	{
-		modelYawRate = maxYawRate;
+		modelYawRate = maxYawRate * SGN(reqYawRate);
 	}
 
 	attStatus.modelYaw	+= modelYawRate * dt;			wrapPlusMinusPi(attStatus.modelYaw);
@@ -327,24 +330,24 @@ Vector3d sunPosOrf(
 	return eSun;
 }
 
-/** Calculate nominal (ideal) sat yaw for GAL-IOV sats.
- * For use w/ ANTEX reference frame (+X axis pointing generally toward sun)
- * (Side-note: Approximates nominalYawGps() + PI)
+/** Calculate nominal (ideal) sat yaw for GAL-IOV sats. Follows original GAL convention.
+ * Roughly equal to nominalYawGps() + PI
  * Ref: https://www.gsc-europa.eu/support-to-developers/galileo-satellite-metadata#3.1
+ * Note: Reference equation is atan2(-x,-y), but this == nominalYawGps().
+ * 		Conversely, atan2(x,y) gives the desired value of nominalYawGps() + PI/2 so is used below.
 */
 double nominalYawGalIov(
-	Vector3d&	eSunRac)	///< Unit vector to Sun in local reference frame (RAC)
+	Vector3d&	eSunOrf)	///< Unit vector to Sun in Orbital reference frame {A,-C,-R}
 {
-	Vector3d eSunOrf; // Orbital reference frame
-	eSunOrf << eSunRac(1), -eSunRac(2), -eSunRac(0);
-	
 	return atan2(	eSunOrf(1) / sqrt(1 - SQR(eSunOrf(2))),
 					eSunOrf(0) / sqrt(1 - SQR(eSunOrf(2))));
 }
 
-/** Yaw model for GAL IOV sats
+/** Yaw model for GAL IOV sats. Follows original GAL convention.
+ * Returns false if no modelled yaw available.
+ * Aux Sun vector is not provided in [1], so is taken from [2]
  * Ref: https://www.gsc-europa.eu/support-to-developers/galileo-satellite-metadata#3.1
- * Returns false if no modelled yaw available
+ * Ref: https://github.com/groops-devs/groops/blob/main/source/programs/simulation/simulateStarCameraGnss.cpp
 */
 bool satYawGalIov(
 	SatSys&		Sat,			///< Satellite ID
@@ -360,40 +363,52 @@ bool satYawGalIov(
 
 	Vector3d eSunRac = ecef2rac(rSat, vSatPrime) * (rSun - rSat);
 	eSunRac.normalize();
-	attStatus.nominalYaw	= nominalYawGalIov(eSunRac);			wrapPlusMinusPi(attStatus.nominalYaw);
+	Vector3d eSunOrf; // Orbital reference frame
+	eSunOrf << eSunRac(1), -eSunRac(2), -eSunRac(0);
+	attStatus.nominalYaw	= nominalYawGalIov(eSunOrf);			wrapPlusMinusPi(attStatus.nominalYaw);
 	attStatus.modelYaw		= attStatus.nominalYaw;
 
 	// Midnight/noon turns
-	Vector3d eSunO = sunPosOrf(beta, mu); // note: this is approx. == eSunOrf - might be able to use eSunOrf directly?
 	double sinBetaX = sin(15 * D2R);
 	double sinBetaY = sin( 2 * D2R);
-	if	( abs(eSunO(0)) < sinBetaX
-		&&abs(eSunO(1)) < sinBetaY)
+	if	( abs(eSunOrf(0)) < sinBetaX
+		&&abs(eSunOrf(1)) < sinBetaY)
 	{
 		if (attStatus.modelYawTime == GTime::noTime()) // Check sat not mid-way through eclipse on startup
 			return false;
 
-		if (attStatus.sunDeltaAtSwitch == 0) // i.e. start of eclipse switchover period
-			attStatus.sunDeltaAtSwitch = SGN(eSunO(1));
+		if (attStatus.signAtSwitch == 0) // i.e. start of eclipse switchover period
+			attStatus.signAtSwitch = SGN(eSunOrf(1));
 
 		Vector3d eSunAux;
-		eSunAux(0) = eSunO(0);
-		eSunAux(1) = 0.5 * (sinBetaY * attStatus.sunDeltaAtSwitch + eSunO(1))
-					+0.5 * (sinBetaY * attStatus.sunDeltaAtSwitch - eSunO(1)) * cos((PI * abs(eSunO(0)))/sinBetaX);
-		eSunAux(2) = sqrt(1 - SQR(eSunO(0)) - SQR(eSunAux(1))) * SGN(eSunO(2));
-		
+		eSunAux(0) = eSunOrf(0);
+		eSunAux(1) = 0.5 * (sinBetaY * attStatus.signAtSwitch + eSunOrf(1))
+					+0.5 * (sinBetaY * attStatus.signAtSwitch - eSunOrf(1)) * cos(PI * abs(eSunOrf(0))/sinBetaX);
+		eSunAux(2) = sqrt(1 - SQR(eSunOrf(0)) - SQR(eSunAux(1))) * SGN(eSunOrf(2));
 		attStatus.modelYaw = nominalYawGalIov(eSunAux);
 	}
 	else
 	{
-		attStatus.sunDeltaAtSwitch = 0; // reset when exit eclipse switchover region
+		attStatus.signAtSwitch = 0; // reset when exit eclipse switchover region
 	}
 	return true;
 }
 
-/** Yaw model for GAL FOC sats
- * Ref: https://www.gsc-europa.eu/support-to-developers/galileo-satellite-metadata#3.1
+/** Smoothed yaw steering for GAL & BDS
+*/
+double smoothedYaw(
+	AttStatus&	attStatus,		///< Satellite yaw status
+	GTime		time,			///< Solution time
+	double 		tMax)			///< Maximum mnvr time
+{
+	double sign = SGN(attStatus.yawAtSwitch);
+	double tSinceSwitch = (time - attStatus.switchTime).to_double();
+	return PI / 2 * sign + (attStatus.yawAtSwitch - PI / 2 * sign) * cos(2 * PI / tMax * tSinceSwitch);
+}
+
+/** Yaw model for GAL FOC sats. Follows original GAL convention.
  * Returns false if no modelled yaw available
+ * Ref: https://www.gsc-europa.eu/support-to-developers/galileo-satellite-metadata#3.1
 */
 bool satYawGalFoc(
 	SatSys&		Sat,			///< Satellite ID
@@ -407,9 +422,7 @@ bool satYawGalFoc(
 	double&		beta	= satGeom.beta;
 	double&		mu		= satGeom.mu;
 
-	// Note: GAL +X axis points towards deep space but ANTEX ref frame follows GPS Block II/IIA 
-	// attitude convention where +X axis points towards Sun, so +PI rotation req'd for GAL
-	attStatus.nominalYaw	= nominalYawGps(beta, mu) + PI;			wrapPlusMinusPi(attStatus.nominalYaw);
+	attStatus.nominalYaw	= nominalYawGps(beta, mu) + PI;			wrapPlusMinusPi(attStatus.nominalYaw); // pi rotation req'd as GAL +X/+Y axes are GPS -X/-Y axes
 	attStatus.modelYaw		= attStatus.nominalYaw;
 
 	// Midnight/noon turns
@@ -433,16 +446,293 @@ bool satYawGalFoc(
 			attStatus.switchTime	= time;
 			attStatus.yawAtSwitch	= attStatus.nominalYaw;
 		}
-		
-		double tMod = (time - attStatus.switchTime).to_double();
-		double sign = SGN(attStatus.yawAtSwitch);
-		attStatus.modelYaw = 90 * D2R * sign + (attStatus.yawAtSwitch - 90 * D2R * sign) * cos(2 * PI/5656 * tMod);
+		attStatus.modelYaw = smoothedYaw(attStatus, time, 5656);
 	}
 	else
 	{
 		attStatus.switchTime	= {};
 		attStatus.yawAtSwitch	= 0;
 	}
+	return true;
+}
+
+/** Yaw model for GLONASS sats
+ * Returns false if no modelled yaw available
+ * Ref: https://igsac-cnes.cls.fr/documents/meeting/2021_04_28_Strasser_et_al_EGU21.pdf
+*/
+bool satYawGlo(
+	SatSys&		Sat,			///< Satellite ID
+	AttStatus&	attStatus,		///< Satellite att status
+	GTime		time,			///< Solution time
+	SatGeom&	satGeom)		///< Satellite geometry
+{
+	Vector3d&	rSat		= satGeom.rSat;
+	Vector3d&	vSatPrime	= satGeom.vSatPrime;
+	Vector3d&	rSun		= satGeom.rSun;
+	Vector3d&	rMoon		= satGeom.rMoon;
+	double&		beta		= satGeom.beta;
+	double&		mu			= satGeom.mu;
+
+	// Nominal behaviour
+	attStatus.nominalYaw = nominalYawGps(beta, mu);
+	double reqYaw = attStatus.nominalYaw;
+
+	// Eclipse turn - Shadow max yaw steering and stop
+	double fractionSunVisible = sunVisibility(rSat, rSun, rMoon);
+	if	(fractionSunVisible == 0)
+	{
+		if (attStatus.modelYawTime == GTime::noTime()) // Check sat not mid-way through eclipse on startup
+			return false;
+
+		if (attStatus.yawAtSwitch == 0)
+			attStatus.yawAtSwitch = attStatus.nominalYaw;
+		
+
+		reqYaw = PI - attStatus.yawAtSwitch;					wrapPlusMinusPi(reqYaw);
+	}
+	else
+	{
+		attStatus.yawAtSwitch = 0;
+	}
+
+	double reqYawChange	= reqYaw - attStatus.modelYaw;			wrapPlusMinusPi(reqYawChange);
+	double dt			= (time	 - attStatus.modelYawTime).to_double();		
+	double reqYawRate;
+	if (dt == 0)	reqYawRate = 0;
+	else			reqYawRate = reqYawChange / dt;
+	double modelYawRate = reqYawRate;
+
+	// Noon turn - Centered max yaw steering
+	double noonYawRate = 0;
+	if	( mu < -PI / 2
+		||mu >  PI / 2)
+	{
+		double yawRange		= 2 * abs(PI / 2 - abs(attStatus.nominalYaw));
+		double angleFromNoon	= PI - mu;		wrapPlusMinusPi(angleFromNoon);
+		double muRange		= 2 * abs(angleFromNoon); // from current pos to mirrored pos, reflected across noon
+		double muRate			= vSatPrime.norm() / rSat.norm();
+		double noonDuration		= muRange / muRate;
+		noonYawRate				= yawRange / noonDuration;
+
+		if (attStatus.signAtSwitch == 0) // i.e. start of eclipse
+		{
+			double targetYaw = SGN(attStatus.nominalYaw) * PI / 2;
+			attStatus.signAtSwitch = SGN(targetYaw - attStatus.nominalYaw); // req'd direction to yaw towards
+		}
+	}
+	else
+	{
+		attStatus.signAtSwitch = 0;
+	}
+
+	// Max yaw rate limit
+	double maxYawRate = 0;
+	bool maxYawRateFound = getSnxSatMaxYawRate(Sat.svn(), time, maxYawRate);
+
+	if (maxYawRateFound)
+	{
+		if (abs(reqYawRate)	 > maxYawRate)		modelYawRate = maxYawRate * SGN(reqYawRate);
+		if (abs(noonYawRate) > maxYawRate)		modelYawRate = maxYawRate * attStatus.signAtSwitch;
+	}
+
+	attStatus.modelYaw	+= modelYawRate * dt;				wrapPlusMinusPi(attStatus.modelYaw);
+	return true;
+}
+
+/** Orbit-normal mode yaw (always zero)
+*/
+double orbitNormalYaw()
+{
+	return 0;
+}
+
+/** Orbit normal yaw model
+ * Will set nominalYaw & modelYaw to the orbit-normal yaw (0 or PI) closest to the given nominal yaw.
+*/
+bool satYawOrbNor(
+	AttStatus&	attStatus,		///< Satellite att status
+	double		nominalYaw = 0)	///< Nominal yaw
+{
+	wrapPlusMinusPi(nominalYaw);
+	double offset = 0;
+	if (abs(nominalYaw) > PI / 2)
+		offset = PI;
+	attStatus.nominalYaw	= orbitNormalYaw() + offset;	wrapPlusMinusPi(attStatus.modelYaw);
+	attStatus.modelYaw		= orbitNormalYaw() + offset;	wrapPlusMinusPi(attStatus.modelYaw);
+	return true;
+}
+
+/** Yaw model for QZSS-1 satellites
+ * Ref: https://qzss.go.jp/en/technical/qzssinfo/index.html
+*/
+bool satYawQzs1(
+	SatSys&		Sat,						///< Satellite ID
+	AttStatus&	attStatus,					///< Satellite att status
+	GTime		time,						///< Solution time
+	SatGeom&	satGeom)					///< Satellite geometry
+{
+	double&		beta		= satGeom.beta;
+	double&		mu			= satGeom.mu;
+	attStatus.nominalYaw = nominalYawGps(beta, mu);
+	attStatus.modelYaw = attStatus.nominalYaw;
+
+	string attMode;
+	bool attModeFound = getSnxSatAttMode(Sat.svn(), time, attMode);
+	if (attMode.substr(0,2) == "ON")
+		satYawOrbNor(attStatus);
+
+	return attModeFound;
+}
+
+/** Yaw model for QZSS-2I & QZSS-2A satellites
+ * Ref: https://qzss.go.jp/en/technical/qzssinfo/index.html
+*/
+bool satYawQzs2I(
+	SatSys&		Sat,			///< Satellite ID
+	AttStatus&	attStatus,		///< Satellite att status
+	GTime		time,			///< Solution time
+	SatGeom&	satGeom)		///< Satellite geometry
+{
+	double oldModelYaw = attStatus.modelYaw;
+	bool modelYawValid = satYawQzs1(Sat, attStatus, time, satGeom);
+	attStatus.modelYaw = oldModelYaw;
+
+	// Centered max yaw steering around noon/midnight
+	Vector3d&	rSat		= satGeom.rSat;
+	Vector3d&	vSatPrime	= satGeom.vSatPrime;
+	double&		mu			= satGeom.mu;
+	double reqYawRange		= 2 * abs(PI / 2 - abs(attStatus.nominalYaw));
+	double angleFromMidnight= mu;					wrapPlusMinusPi(angleFromMidnight);
+	double angleFromNoon	= PI - mu;				wrapPlusMinusPi(angleFromNoon);
+	double muRange			= 2 * std::min(abs(angleFromMidnight), abs(angleFromNoon));		// from current pos to mirrored pos, reflected across noon/midnight
+	double muRate			= vSatPrime.norm() / rSat.norm();
+	double reqDuration		= muRange / muRate;
+	double reqYawRate		= reqYawRange / reqDuration;
+
+	double maxYawRate = 0.055 * D2R; // Ref: https://qzss.go.jp/en/technical/qzssinfo/khp0mf0000000wuf-att/spi-qzs2_c.pdf
+	if	( abs(reqYawRate) > maxYawRate
+		&&attStatus.modelYawTime != GTime::noTime())
+	{
+		if (attStatus.signAtSwitch == 0) // i.e. start of noon/midnight
+		{
+			double targetYaw = SGN(attStatus.nominalYaw) * PI / 2;
+			attStatus.signAtSwitch = SGN(targetYaw - attStatus.nominalYaw); // req'd direction to yaw towards
+		}
+		double modelYawRate = maxYawRate * attStatus.signAtSwitch;
+		double dt = (time - attStatus.modelYawTime).to_double();		
+		attStatus.modelYaw	+= modelYawRate * dt;			wrapPlusMinusPi(attStatus.modelYaw);
+	}
+	else
+	{
+		attStatus.signAtSwitch = 0;
+		attStatus.modelYaw = attStatus.nominalYaw;
+	}
+
+	return modelYawValid;
+}
+
+/** Yaw model for BDS-3I/3M satellites
+ * Ref: https://doi.org/10.1007/s10291-018-0783-1 https://doi.org/10.1017/S0373463318000103
+*/
+bool satYawBds3(
+	AttStatus&	attStatus,		///< Satellite att status
+	GTime		time,			///< Solution time
+	SatGeom&	satGeom,		///< Satellite geometry
+	double 		tMax)			///< Maximum mnvr time
+{
+	double&		beta		= satGeom.beta;
+	double&		mu			= satGeom.mu;
+	attStatus.nominalYaw = nominalYawGps(beta, mu);
+	attStatus.modelYaw = attStatus.nominalYaw;
+	double alpha = PI - mu;												wrapPlusMinusPi(alpha);
+	double beta0 = 3  * D2R;
+	if	( ( abs(beta)	<= beta0)
+		&&( abs(alpha)	<= 6 * D2R
+		  ||abs(mu)		<= 6 * D2R))
+	{
+		if	( alpha	== 0
+			||beta	== 0)
+		{
+			attStatus.modelYaw = nominalYawGps(SGN(beta) * beta0, mu);
+		}
+		else
+		{
+			if (attStatus.switchTime == GTime::noTime()) // start of switchover period
+			{
+				attStatus.switchTime	= time;
+				attStatus.yawAtSwitch	= attStatus.nominalYaw;
+			}
+			attStatus.modelYaw = smoothedYaw(attStatus, time, tMax);
+		}
+	}
+	else
+	{
+		attStatus.switchTime	= {};
+		attStatus.yawAtSwitch	= 0;
+	}
+	return true;
+}
+
+/** Yaw model for BDS-2I/2M satellites
+ * Ref: https://doi.org/10.1007/s10291-018-0783-1 https://doi.org/10.1017/S0373463318000103
+*/
+bool satYawBds2(
+	AttStatus&	attStatus,						///< Satellite att status
+	GTime		time,							///< Solution time
+	SatGeom&	satGeom,						///< Satellite geometry
+	double 		tMax,							///< Maximum mnvr time
+	SatSys&		Sat)							///< Satellite ID
+{
+	double&		beta		= satGeom.beta;
+	double&		mu			= satGeom.mu;
+	attStatus.nominalYaw = nominalYawGps(beta, mu);
+
+	// Beta-dependent smoothed yaw
+	string attMode;
+	bool attModeFound = getSnxSatAttMode(Sat.svn(), time, attMode);
+	if	( attModeFound
+		&&attMode.substr(0,7) == "BETA_SY")
+	{
+		return satYawBds3(attStatus, time, satGeom, tMax);
+	}
+
+	// Beta-dependent orbit-normal yaw
+	bool orbitNormalMode = false;
+	if (abs(beta) <= 4 * D2R)
+	{
+		if (PI - abs(attStatus.nominalYaw) < 5 * D2R)
+		{
+			orbitNormalMode = true;
+		}
+		else
+		{
+			// Check if next cycle has a qualifying yaw < 5deg & beta < 4deg
+			if (attStatus.prevBetaTime != GTime::noTime())
+			{
+				Vector3d&	rSat		= satGeom.rSat;
+				Vector3d&	vSatPrime	= satGeom.vSatPrime;
+
+				double muAtPeak		= PI / 2; // mu at the next PI yaw
+				if (muAtPeak < mu)
+					muAtPeak += 2 * PI;
+				double muRange		= muAtPeak - mu;
+				double muRate		= vSatPrime.norm() / rSat.norm();
+				double timeTillPeak	= muRange / muRate;
+				double betaRate		= (beta - attStatus.prevBeta) / (time - attStatus.prevBetaTime).to_double();
+				double betaAtPeak	= beta + betaRate * timeTillPeak;
+				if (abs(betaAtPeak) <= 4 * D2R)
+				{
+					orbitNormalMode = true;
+				}
+			}
+			attStatus.prevBeta		= beta;
+			attStatus.prevBetaTime	= time;
+		}
+	}
+
+	if (orbitNormalMode)	satYawOrbNor(attStatus, PI);
+	else					attStatus.modelYaw = attStatus.nominalYaw;
+	
 	return true;
 }
 
@@ -479,7 +769,6 @@ void satYaw(
 	AttStatus&	attStatus)		///< Satellite att status. Use a disposable copy if calling inside multithreaded code
 {
 	SatGeom satGeom = satOrbitGeometry(obs);
-
 	switch (obs.Sat.sys)
 	{
 		case E_Sys::GPS:
@@ -493,6 +782,31 @@ void satYaw(
 			if		(bt == "GAL-1")		attStatus.modelYawValid =	satYawGalIov(obs.Sat, attStatus, obs.time, satGeom);
 			else if (bt == "GAL-2")		attStatus.modelYawValid =	satYawGalFoc(obs.Sat, attStatus, obs.time, satGeom);
 			else						attStatus.modelYawValid =	satYawGalFoc(obs.Sat, attStatus, obs.time, satGeom);
+			break;
+		}
+		case E_Sys::GLO:
+		{	
+										attStatus.modelYawValid =	satYawGlo	(obs.Sat, attStatus, obs.time, satGeom);
+			break;
+		}
+		case E_Sys::QZS:
+		{	
+			string bt = obs.Sat.blockType().substr(0,6);
+			if		(bt == "QZS-1 ")	attStatus.modelYawValid = 	satYawQzs1	(obs.Sat, attStatus, obs.time, satGeom);
+			else if	(bt == "QZS-2G")	attStatus.modelYawValid = 	satYawOrbNor(attStatus							);
+			else						attStatus.modelYawValid = 	satYawQzs2I	(obs.Sat, attStatus, obs.time, satGeom);
+			break;
+		}
+		case E_Sys::BDS:
+		{	
+			string bt = obs.Sat.blockType().substr(0,6);
+			if		( bt == "BDS-2G"
+					||bt == "BDS-3G")	attStatus.modelYawValid =	satYawOrbNor(attStatus, PI						);
+			else if	( bt == "BDS-2I")	attStatus.modelYawValid =	satYawBds2	(attStatus, obs.time, satGeom, 5740, obs.Sat);
+			else if	( bt == "BDS-2M")	attStatus.modelYawValid =	satYawBds2	(attStatus, obs.time, satGeom, 3090, obs.Sat);
+			else if	( bt == "BDS-3I")	attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 5740	);
+			else if	( bt == "BDS-3M")	attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 3090	);
+			else						attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 5740	);
 			break;
 		}
 		default:
@@ -514,8 +828,8 @@ void satYaw(
 bool satAttModel(
 	Vector3d&	rSat,				///< Satellite position (ECEF)
 	Vector3d&	vSat,				///< Satellite velocity (ECEF)
-	AttStatus&	attStatus,			///< Attitude status
-	E_Source	source)				///< 
+	AttStatus&	attStatus,			///< Attitude status for orientation
+	E_Source	source)				///< Type of attitude model to return
 {
 	double yaw;
 	if (source == +E_Source::NOMINAL)	yaw = attStatus.nominalYaw;		//Nominal yaw only - no advanced noon/midnight turns
@@ -614,7 +928,7 @@ bool preciseAttitude(
 
 		Matrix3d body2Eci = eci2Body.transpose();
 
-		ERPValues erpv = geterp(nav.erp, time);
+		ERPValues erpv = getErp(nav.erp, time);
 
 		Matrix3d i2tMatrix	= Matrix3d::Identity();
 
@@ -675,16 +989,12 @@ bool satAtt(
 		}
 	}
 	
-	if	( origGal == false
+	if  ( origGal == false
 		&&Sat.sys == +E_Sys::GAL)
 	{
 		attStatus.eXBody *= -1;
 		attStatus.eYBody *= -1;
 	}
-
-
-	if (valid)		attStatus.var = acsConfig.model.sat_attitude.valid_var;
-	else			attStatus.var = acsConfig.model.sat_attitude.invalid_var;
 
 	return valid;
 }
@@ -737,10 +1047,12 @@ void updateSatAtts(
 {
 	auto& satNav	= *obs.satNav_ptr;
 	auto& attStatus = satNav.attStatus;
+	
+	auto& satOpts = acsConfig.getSatOpts(obs.Sat);
 
-	satYaw(obs, 										attStatus);
-	satAtt(obs, acsConfig.model.sat_attitude.sources,	attStatus);
-	antAtt(satNav.antBoresight, satNav.antAzimuth,		attStatus);
+	satYaw(obs, 									attStatus);
+	satAtt(obs, satOpts.sat_attitude.sources,		attStatus);
+	antAtt(satNav.antBoresight, satNav.antAzimuth,	attStatus);
 }
 
 
@@ -766,9 +1078,11 @@ bool basicRecAttitude(
 	return true;
 }
 
+/** Attitude of receiver
+ */
 void recAtt(
 	Station&			rec,				///< Receiver
-	GTime				time,
+	GTime				time,				///< Time
 	vector<E_Source>	attitudeTypes)		///< Attitude type
 {
 	auto& attStatus = rec.attStatus;

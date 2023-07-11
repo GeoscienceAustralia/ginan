@@ -1,0 +1,48 @@
+# Set four rinex files as input to rover processing 
+station_options:
+    ALIC:
+        receiver_type:  "LEICA GR25"                 # (string)
+        antenna_type:   "LEIAR25.R3      NONE"       # (string)
+        eccentricity:   [0.0000,   0.0000,   0.0015] # [floats]
+        apriori_position:   [-4052052.7254, 4212835.9872,-2545104.6139] # [floats]
+    COCO:
+        receiver_type:  "SEPT POLARXS"               # (string)
+        antenna_type:   "AOAD/M_T        NONE"       # (string)
+        eccentricity:   [0.0000,   0.0000,   0.0000] # [floats]
+        apriori_position:   [-741951.0562, 6190961.7216, -1337767.4032] # [floats]
+    LHAZ:
+        receiver_type:  "LEICA GR25"                 # (string)
+        antenna_type:   "LEIAR25.R4      LEIT"       # (string)
+        eccentricity:   [0.0000,   0.0000,   0.1330] # [floats]
+        apriori_position:   [-106942.1180, 5549269.7735, 3139215.2108] # [floats]
+    KZN2:
+        receiver_type:  "TRIMBLE NETR9"              # (string)
+        antenna_type:   "TRM59800.00     SCIS"       # (string)
+        eccentricity:   [0.0000,   0.0000,   0.0750] # [floats]
+        apriori_position:   [ 2352345.8201, 2717466.5769, 5251459.2269] # [floats]
+
+inputs:
+    root_directory: products/
+    erp_files:  [ IGS1R03SNX_20191950000_07D_01D_ERP.ERP        ]
+    satellite_data:
+        # nav_files: [ brdm1990.19p                               ]
+        clk_files: [ IGS2R03FIN_20191990000_01D_30S_CLK.CLK     ] 
+        bsx_files: [ IGS2R03FIN_20191990000_01D_01D_OSB.BIA     ] 
+        sp3_files: [ IGS2R03FIN_20191990000_01D_05M_ORB.SP3     ]
+    gnss_observations:
+        inputs_root: data/
+        rnx_inputs:
+            - "ALIC00AUS_R_20191990000_01D_30S_MO.rnx"
+            - "COCO00AUS_R_20191990000_01D_30S_MO.rnx"
+            - "LHAZ00CHN_R_20191990000_01D_30S_MO.rnx"
+            - "KZN200RUS_S_20191990000_01D_30S_MO.rnx"
+
+processing_options:
+    epoch_control:
+        epoch_interval:             30
+    gnss_general:   
+        error_model:        elevation_dependent
+        code_measurements:
+            sigmas:         [0.3]
+        phase_measurements:
+            sigmas:         [0.003]

@@ -555,9 +555,9 @@ void config_AmbigResl()
 	}
 	
 	defAR_NL		= defAR_WL;
-	defAR_NL.mode	= acsConfig.ambrOpts.NLmode;
-	defAR_NL.sucthr	= acsConfig.ambrOpts.NLsuccsThres;
-	defAR_NL.ratthr	= acsConfig.ambrOpts.NLratioThres;
+	defAR_NL.mode	= acsConfig.ambrOpts.mode;
+	defAR_NL.sucthr	= acsConfig.ambrOpts.succsThres;
+	defAR_NL.ratthr	= acsConfig.ambrOpts.ratioThres;
 }
 
 /** Ambiguity resolution for network solutions 
@@ -570,7 +570,7 @@ int  networkAmbigResl(
 	if ( acsConfig.ionoOpts.corr_mode != +E_IonoMode::IONO_FREE_LINEAR_COMBO )
 		acsConfig.ambrOpts.WLmode = E_ARmode::OFF;
 	
-	if ( acsConfig.ambrOpts.NLmode == +E_ARmode::OFF )		return 0;
+	if ( acsConfig.ambrOpts.mode == +E_ARmode::OFF )		return 0;
 	if ( defAR_WL.endu )									return 0;
 	
 	GTime time = kfState.time;
@@ -683,7 +683,7 @@ int  enduserAmbigResl(
 	if (acsConfig.ionoOpts.corr_mode != +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 		acsConfig.ambrOpts.WLmode = +E_ARmode::OFF;
 	
-	if (acsConfig.ambrOpts.NLmode == +E_ARmode::OFF )	return 0;
+	if (acsConfig.ambrOpts.mode == +E_ARmode::OFF )	return 0;
 	if (!defAR_WL.endu )								return 0;
 	if (obsList.empty())								return 0;
 	
@@ -766,7 +766,7 @@ int  enduserAmbigResl(
 int smoothdAmbigResl( 
 	KFState& kfState)		///< Smoothed Kf
 {
-	if (acsConfig.ambrOpts.NLmode == +E_ARmode::OFF)
+	if (acsConfig.ambrOpts.mode == +E_ARmode::OFF)
 		return 0;
 	
 	std::ofstream trace(acsConfig.config_description + "/RTS_AR_debug.trace",	std::ofstream::out | std::ofstream::app);

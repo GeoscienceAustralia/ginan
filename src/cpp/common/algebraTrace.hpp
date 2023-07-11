@@ -75,7 +75,7 @@ void spitFilterToFile(
 
 	if (!fileStream)
 	{
-		std::cout << std::endl << "Error opening algebra file " << filename <<  "for writing";
+		std::cout << std::endl << "Error opening algebra file '" << filename <<  "' for writing";
 		return;
 	}
 

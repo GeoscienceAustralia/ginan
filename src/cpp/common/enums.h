@@ -7,6 +7,7 @@ public:                                      \
 	Enum() = default;
 
 #define BETTER_ENUMS_MACRO_FILE "enum_macros.h"	//BETTER_ENUM Extended
+#include <cstdint>
 #include "enum.h"	//BETTER_ENUM
 
 typedef enum
@@ -125,6 +126,12 @@ BETTER_ENUM(KF,				short int,
 	
 	IONOSPHERIC,
 	IONO_STEC,
+	REC_PCO_X,
+	REC_PCO_Y,
+	REC_PCO_Z,
+	SAT_PCO_X,
+	SAT_PCO_Y,
+	SAT_PCO_Z,
 	
 	DCB,
 	
@@ -399,7 +406,8 @@ BETTER_ENUM(E_ObsCode2, int,
 	L5,
 	L6,
 	L7,
-	L8
+	L8,
+	LA
 )
 
 BETTER_ENUM(E_ARmode,	short int,

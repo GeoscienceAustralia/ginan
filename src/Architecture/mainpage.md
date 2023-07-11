@@ -2,28 +2,25 @@
 
 > For higher-level details of the Ginan project, visit the [main documentation](../index.html) pages.
 
-### Processing use cases
+## Sofware flow overview
 
-Find details about different ways of executing Ginan() and the processing that occurs within the Pea()
+### Ginan program entry point
 
-#### Configuration Examples
+The ginan() function contains the main processing loop, which initialises required objects and synchronises input operations.
 
-- Pea.Configuration.Examples
-- Pod.Configuration.Examples
+### Per-epoch processing functions
 
-#### Operational Usages
+The functions mainOncePerEpoch(), mainOncePerEpochPerStation(), and mainOncePerEpochPerSatellite() perform operations each epoch on enabled objects.
 
-- Ginan()
+### Main processing modes
 
-#### Processing Flow
-
-- Pea()
+The preprocessor(), sppos(), and PPP() functions perform the majority of the GNSS-specific processing and filtering, with stationPPP() implementing most of the gnss models.
 
 ### Key data structures used within the code include:
 
 #### Observations and their signals
 
-- Obs
+- GObs
 - Sig
 
 #### Receivers and Satellites

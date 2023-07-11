@@ -48,19 +48,13 @@ VectorEcef satAntOff(
 	AttStatus&			attStatus,
 	SatSys& 			Sat,
 	map<int, double>&	lamMap);
-	
-VectorEcef satAntOff(
-	Trace&				trace,
-	GTime				time,
-	AttStatus&			attStatus,
-	SatSys& 			Sat,
-	E_FType 			ft);
 
 Vector3d antPco(
 	string		id,
 	E_Sys		sys,
 	E_FType		ft,
 	GTime		time,
+	double&		var,
 	E_Radio		radio,
 	bool		interp = false);
 

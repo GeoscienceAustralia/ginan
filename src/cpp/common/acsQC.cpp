@@ -830,6 +830,13 @@ void clearSlips(
 			continue;
 		}
 		
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		
+		if (satOpts.exclude)
+		{
+			continue;
+		}
+		
 		for (auto& [sigKey, sigStat]	: obs.satStat_ptr->sigStatMap)
 		{
 			SatStat& satStat = *(obs.satStat_ptr);

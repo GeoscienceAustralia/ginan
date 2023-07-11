@@ -44,11 +44,11 @@ bool ippCheckSphcap(GTime time, VectorPos& Ion_pp);
 bool ippCheckBsplin(GTime time, VectorPos& Ion_pp);
 int  ippCheckLocal (GTime time, VectorPos& Ion_pp);
 
-double ionModelCoef (int ind, GObs&	obs, bool slant);
-double ionCoefSphhar(int ind, GObs& obs, bool slant = true);
-double ionCoefSphcap(int ind, GObs& obs, bool slant = true);
-double ionCoefBsplin(int ind, GObs& obs, bool slant = true);
-double ionCoefLocal (int ind, GObs& obs);
+double ionModelCoef (int ind, IonoObs& obs, bool slant = true);
+double ionCoefSphhar(int ind, IonoObs& obs, bool slant = true);
+double ionCoefSphcap(int ind, IonoObs& obs, bool slant = true);
+double ionCoefBsplin(int ind, IonoObs& obs, bool slant = true);
+double ionCoefLocal (int ind, IonoObs& obs);
 
 double ionVtecSphhar(GTime time, VectorPos& ionPP, int layer, double& vari, KFState& kfState);
 double ionVtecSphcap(GTime time, VectorPos& ionPP, int layer, double& vari, KFState& kfState);

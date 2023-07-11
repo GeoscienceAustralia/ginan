@@ -76,7 +76,7 @@ void applyUCAmbiguities(
 			measEntry.addDsgnEntry(mtrx.ambmap[j], Z(i,j), init);
 		}
 		
-		tracepdeex(4,trace,"= %+4.0f\n", zfix(i));
+		tracepdeex(4,trace,"= %+10.5f\n", zfix(i));
 		
 		measEntry.setInnov(residual);
 		
@@ -91,7 +91,7 @@ void applyUCAmbiguities(
 
 int PPP_AR(
 	Trace&		trace,		///< Debug trace
-	KFState&	kfState)	
+	KFState&	kfState)	///< Filter state
 {
 	Instrument	instrument(__FUNCTION__);
 		
@@ -99,7 +99,7 @@ int PPP_AR(
 	fixKFReady=false;
 	kfState_forAR = kfState;
 	
-	if (acsConfig.ambrOpts.NLmode == +E_ARmode::OFF)
+	if (acsConfig.ambrOpts.mode == +E_ARmode::OFF)
 	{
 		return 0;
 	}
@@ -118,10 +118,6 @@ int PPP_AR(
 			
 		indices.push_back(index);
 		ARmtx.ambmap[ind++]=key;
-		// if (acsConfig.ambrOpts.use_pivot!="NONE")
-		// 	nsat[key.str]++;
-		// if (acsConfig.ambrOpts.use_pivot=="NETWORK")
-		// 	nsta[key.Sat]++;
 	}
 	
 	if (ind<=0)
@@ -131,12 +127,12 @@ int PPP_AR(
 	ARmtx.Paflt = kfState.P(indices, indices);
 	
 	GinAR_opt ARopt;
-	ARopt.mode = acsConfig.ambrOpts.NLmode;
+	ARopt.mode = acsConfig.ambrOpts.mode;
 	if (ARopt.mode == +E_ARmode::ROUND
 	 || ARopt.mode == +E_ARmode::ITER_RND)
 		ARopt.mode = E_ARmode::BOOTST;
-	ARopt.sucthr = acsConfig.ambrOpts.NLsuccsThres;
-	ARopt.ratthr = acsConfig.ambrOpts.NLratioThres;
+	ARopt.sucthr = acsConfig.ambrOpts.succsThres;
+	ARopt.ratthr = acsConfig.ambrOpts.ratioThres;
 	ARopt.nset   = acsConfig.ambrOpts.lambda_set;
 	ARopt.nitr   = acsConfig.ambrOpts.AR_max_itr;
 	if (acsConfig.trace_level > 4) 
@@ -198,7 +194,7 @@ bool queryBiasUC(
 		
 		if (type == CODE)
 		{
-			if (!acsConfig.model.rec_code_bias)
+			if (!recOpts.rec_code_bias.enable)
 				return true;
 			
 			InitialState init = initialStateFromConfig(recOpts.code_bias);
@@ -215,7 +211,7 @@ bool queryBiasUC(
 		
 		if (type == PHAS)
 		{
-			if (!acsConfig.model.rec_phase_bias)
+			if (!recOpts.rec_phase_bias.enable)
 				return true;
 			
 			InitialState init = initialStateFromConfig(recOpts.phase_bias);
@@ -236,7 +232,7 @@ bool queryBiasUC(
 		
 		if (type == CODE)
 		{
-			if (!acsConfig.model.sat_code_bias)
+			if (!satOpts.sat_code_bias.enable)
 				return true;
 			
 			InitialState init = initialStateFromConfig(satOpts.code_bias);
@@ -256,7 +252,7 @@ bool queryBiasUC(
 		
 		if (type == PHAS)
 		{
-			if (!acsConfig.model.sat_phase_bias)
+			if (!satOpts.sat_phase_bias.enable)
 				return true;
 			
 			InitialState init = initialStateFromConfig(satOpts.phase_bias);

@@ -16,8 +16,11 @@ function diffex()
     echo $file
     if [ ${file: -3} = 'snx' ]
     then
-      diffutil -i $file ../inputData/solutions/$file -a $ATOL --passthrough
+      diffutil -i $file ../inputData/solutions/$file --passthrough -a $ATOL
       diffutil -i $file ../inputData/solutions/$file --passthrough
+    elif [ ${file: -8} = 'smoothed' ]
+    then
+      diffutil -i $file ../inputData/solutions/$file -a $ATOL
     else
       diffutil -i $file ../inputData/solutions/$file -a $ATOL
       diffutil -i $file ../inputData/solutions/$file

@@ -414,7 +414,7 @@ void outputMongoOrbits()
 		for (auto& [Sat,	timeMap]	: orbitMapMap)
 		for (auto& [time,	state]		: timeMap)
 		{
-			ERPValues erpv = geterp(nav.erp, time);
+			ERPValues erpv = getErp(nav.erp, time);
 
 			FrameSwapper frameSwapper(time, erpv);
 			

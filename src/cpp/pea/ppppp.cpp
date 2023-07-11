@@ -89,8 +89,6 @@ KFMeas makeIFLCs(
 {
 	Instrument instrument(__FUNCTION__);
 	
-	auto& recOpts = acsConfig.getRecOpts("");
-	
 	KFMeas newMeas;
 
 	vector<Triplet<double>> tripletList;
@@ -143,7 +141,7 @@ KFMeas makeIFLCs(
 		{
 			combinedMeas.componentLists[i_1].push_back(component);
 		}
-
+		
 		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i_1]);
 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i_1]);
 		
@@ -154,6 +152,110 @@ KFMeas makeIFLCs(
 	if (meas == 0)
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No IONO_STEC measurements found - 'use_if_combo' requires 'ion_stec' estimation to be enabled in the config file.";
+	}
+	
+	for (int i = 0; i < combinedMeas.obsKeys.size(); i++)
+	{
+		if (combinedMeas.metaDataMaps[i]["pseudoObs"] == (void*) false)
+		{
+			continue;
+		}
+		
+		//need to keep this measurement even if its not a valid ionospheric one, copy it over
+		
+		tripletList.push_back({meas, i, 1});
+		meas++;
+		
+		newMeas.obsKeys			.push_back(combinedMeas.obsKeys			[i]);
+		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i]);
+		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i]);
+	}
+	
+	SparseMatrix<double> F;
+	F = SparseMatrix<double>(meas, combinedMeas.V.rows());
+	F.setFromTriplets(tripletList.begin(), tripletList.end());
+	
+	newMeas.V		= F * combinedMeas.V;
+	newMeas.VV		= newMeas.V;
+	newMeas.H		= F * combinedMeas.H;
+	newMeas.R		= F * combinedMeas.R * F.transpose();
+	newMeas.time	= std::move(combinedMeas.time);
+	
+	return newMeas;
+}
+
+/** Replace individual measurements with linear combinations
+ */
+KFMeas makeGFLCs(
+	KFMeas&		combinedMeas,
+	KFState&	kfState)
+{
+	Instrument instrument(__FUNCTION__);
+	
+	KFMeas newMeas;
+
+	vector<Triplet<double>> tripletList;
+	int meas = 0;
+	
+	vector<Duo> duos = 
+	{
+		{&kfState.kfIndexMap,		&combinedMeas.H},
+		{&kfState.noiseIndexMap,	&combinedMeas.H_star}
+	};
+	
+	for (auto duo : duos)
+	for (auto& [kfKey, index] : *duo.indexMap_ptr)						{																if (kfKey.type != KF::IONO_STEC)	continue;
+	for (int i_2 = 0; i_2 < combinedMeas.obsKeys.size();	i_2++)		{	double coeff_2 = (*duo.designMatrix_ptr)(i_2, index);		if (coeff_2 == 0)					continue;	
+	for (int i_1 = 0; i_1 < i_2;							i_1++)		{	double coeff_1 = (*duo.designMatrix_ptr)(i_1, index);		if (coeff_1 == 0)					continue;
+	{
+		if (coeff_1 * coeff_2 < 0)								{	continue;	}
+		if (coeff_1	== coeff_2)									{	continue;	}	//dont combine if it will eliminate the entire measurement
+		
+		if (combinedMeas.metaDataMaps[i_1]["GFLCcombined"])		{	continue;	}
+		if (combinedMeas.metaDataMaps[i_2]["GFLCcombined"]) 	{	continue;	}
+		
+		//these measurements probably both share a common geometry, remove it.
+		
+		double scalar = 0.5;
+		
+		tripletList.push_back({meas, i_1, +1 * scalar});
+		tripletList.push_back({meas, i_2, -1 * scalar});
+		meas++;
+		
+		auto& obsKey_1 = combinedMeas.obsKeys[i_1];
+		auto& obsKey_2 = combinedMeas.obsKeys[i_2];
+		
+		auto newObsKey = obsKey_2;
+		
+		newObsKey.num += 100 * obsKey_1.num;			//100(1) + 1(2)
+		
+		newObsKey.comment = obsKey_1.comment + "-" + obsKey_2.comment;
+		
+		newMeas.obsKeys			.push_back(newObsKey);
+		
+		//copy metadata from the second to the first, then copy into the new measurement
+		for (auto& [id, value] : combinedMeas.metaDataMaps[i_2])
+		{
+			combinedMeas.metaDataMaps[i_1][id + "_alt"] = value;
+		}
+		
+		for (auto& component : combinedMeas.componentLists[i_2])
+		{
+			combinedMeas.componentLists[i_1].push_back(component);
+		}
+
+		combinedMeas.metaDataMaps[i_1]["explain"] = (void*) true;
+
+		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i_1]);
+		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i_1]);
+		
+		combinedMeas.metaDataMaps[i_1]["GFLCcombined"] = (void*) true;
+		combinedMeas.metaDataMaps[i_2]["GFLCcombined"] = (void*) true;
+	}}}}
+	
+	if (meas == 0)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No IONO_STEC measurements found - 'use_gf_combo' requires 'iono_stec' estimation to be enabled in the config file.";
 	}
 	
 	for (int i = 0; i < combinedMeas.obsKeys.size(); i++)
@@ -337,7 +439,7 @@ void updateRecClocks(
  */
 void updateAvgClocks(
 	Trace&			trace,			///< Trace to output to
-	GTime			time,
+	GTime			time,			///< Time
 	KFState&		kfState)		///< Kalman filter object containing the network state parameters
 {
 	double sum = 0;
@@ -682,6 +784,7 @@ void checkOrbits(
 
 
 
+
 void PPP(
 	Trace&			trace,			///< Trace to output to
 	StationMap&		stationMap,		///< List of stations containing observations for this epoch
@@ -791,10 +894,14 @@ void PPP(
 		combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, tsync, R_ptr);
 	}
 	
-	if (acsConfig.ionoOpts.use_if_combo)	{	combinedMeas = makeIFLCs	(combinedMeas, kfState);	}		
+	if (acsConfig.ionoOpts.use_gf_combo)	{	combinedMeas = makeGFLCs	(combinedMeas, kfState);	}
+	if (acsConfig.ionoOpts.use_if_combo)	{	combinedMeas = makeIFLCs	(combinedMeas, kfState);	}
 	if (acsConfig.pppOpts.use_rtk_combo)	{	combinedMeas = makeRTKLCs	(combinedMeas, kfState);	}
 	
-	explainMeasurements(trace, combinedMeas, kfState);
+	if (acsConfig.explain_measurements)
+	{
+		explainMeasurements(trace, combinedMeas, kfState);
+	}
 	
 	if (kfState.lsqRequired)
 	{

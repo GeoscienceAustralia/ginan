@@ -1,9 +1,0 @@
-
-inputs:
-    include_yamls:
-        - dynamic_user_rtk.yaml
-        - mongo_outputs.yaml
-    
-outputs:
-    metadata:
-        config_description:     "ex203"

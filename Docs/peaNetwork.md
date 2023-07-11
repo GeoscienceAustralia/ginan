@@ -18,5 +18,3 @@ PEA is designed to estimate the GNSS error parameters that cannot be precisely d
 * Relative carrier phase ambiguities
 
 In order to estimate the full range of parameters, the PEA will need to ingest GNSS observation data from a Global network of sufficient density. 
-
-With one exception (Ionosphere delay modelling using smoothed pseudorange), processing of network data is activated by setting `processing_options: process_modes: network: true`

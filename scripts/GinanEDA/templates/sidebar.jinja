@@ -1,0 +1,33 @@
+<nav id="sidebarMenu" class="col-md-2 col-lg-1 d-md-block bg-light sidebar collapse">
+  <div class="position-sticky pt-3 sidebar-sticky">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        {#  <a class="nav-link active" aria-current="page" href="#">  #}
+          {% if session['mongo_db'] is defined  %}
+          {% for db in session['mongo_db']%}
+          - {{ db }} <br>
+          {% endfor %}
+          {% endif %}
+        {# </a>  #}
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('eda.connect')}}">Connect</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('eda.measurements')}}">Measurements</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('eda.states')}}"> States </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('eda.clocks')}}"> Clock </a>
+      </li>
+      <li class="" nav-item">
+        <a class="nav-link" href="{{ url_for('eda.position') }}"> Position analysis </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('eda.config')}}">Config</a>
+      </li>
+    </ul>
+  </div>
+</nav>

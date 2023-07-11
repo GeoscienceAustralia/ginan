@@ -230,17 +230,13 @@ bool readOrbexEph(
 			string recType = line.substr(1,3);
 			if (recType == "ATT")
 			{
-				E_Sys sys = code2sys(buff[5]);
-				int prn = (int)str2num(buff, 6, 2);
-			
-				SatSys Sat(sys, prn);
-				if (!Sat)
-					continue;
-
+				string id = line.substr(5);
+				id = id.substr(0, id.find(' '));
+				
 				Att att 	= {};
 				att.time 	= time;
 				att.index	= index;
-				att.Sat		= Sat;
+				att.id		= id;
 				att.frame	= frame;
 
 				int nRec	= (int)str2num(buff, 22, 1);
@@ -257,14 +253,17 @@ bool readOrbexEph(
 				att.q.z() = str2num(buff, 84, 19);
 
 				att.q.normalize();
-				if (Sat.sys == +E_Sys::GAL)
+				
+				SatSys Sat(id.c_str());
+				if	( Sat
+					&&Sat.sys == +E_Sys::GAL)
 				{
 					// rotate from original GAL frame to ANTEX frame (180deg around local Z+) (https://www.gsc-europa.eu/support-to-developers/galileo-satellite-metadata#3.2)
 					Eigen::Quaterniond rotZ(0, 0, 0, 1);
 					att.q = rotZ * att.q;
 				}
 
-				nav.attMapMap[att.Sat][att.time] = att;
+				nav.attMapMap[att.id][att.time] = att;
 			}
 			// other record types to be added here, e.g.
 			/*

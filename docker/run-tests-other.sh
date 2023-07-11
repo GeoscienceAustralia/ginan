@@ -32,22 +32,22 @@ case $TEST_NUM in
     make_otl_blq --config ex51_otl_fes2014b_gb.yaml --code 'BRO1 50176M003' --location 122.2090 -18.0039 --output $DIR/bro1.blq
 
     export OMP_NUM_THREADS=2 #gets killed in the pipeline if not overridden
-    make_otl_blq --config ex51_otl_fes2014b_gb.yaml --input loading/sites_coastal50.csv --output $DIR/coastal50.blq
-    make_otl_blq --config ex51_otl_fes2014b_prem.yaml --input loading/sites_coastal50.csv --output $DIR/coastal50_PREM.blq
+    make_otl_blq --config ex51_otl_fes2014b_gb.yaml --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50.blq
+    make_otl_blq --config ex51_otl_fes2014b_prem.yaml --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50_PREM.blq
 
     results2s3 $DIR
      ../scripts/download_example_input_data.py --push $DIR --tag $TAG
      ../scripts/download_example_input_data.py $DIR --tag $OTHER
     ATOL=1.3E-2 # BRST has diff of 1.23E-2
     runAllAndDiffOnFailure diffex $DIR/*.blq
-    diffutil -i $DIR/coastal50_PREM.blq loading/blq/C50_FES2014b_PREM_CE.blq -a $ATOL
+    diffutil -i $DIR/coastal50_PREM.blq ../inputData/loading/blq/C50_FES2014b_PREM_CE.blq -a $ATOL
     ;;
   2)
     DIR="ex52"
     mkdir -p $DIR
-    interpolate_loading --grid loading/grids/oceantide.nc --code 'ALIC 50137M0014' --location 133.8855 -23.6701 --output $DIR/alic.blq
-    interpolate_loading --grid loading/grids/oceantide.nc --code 'BRO1 50176M003' --location 122.2090 -18.0039 --output $DIR/bro1.blq
-    interpolate_loading --grid loading/grids/oceantide.nc --input loading/sites_coastal50.csv --output $DIR/coastal50.blq
+    interpolate_loading --grid ../inputData/loading/grids/oceantide.nc --code 'ALIC 50137M0014' --location 133.8855 -23.6701 --output $DIR/alic.blq
+    interpolate_loading --grid ../inputData/loading/grids/oceantide.nc --code 'BRO1 50176M003' --location 122.2090 -18.0039 --output $DIR/bro1.blq
+    interpolate_loading --grid ../inputData/loading/grids/oceantide.nc --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50.blq
     results2s3 $DIR
      ../scripts/download_example_input_data.py --push $DIR --tag $TAG
      ../scripts/download_example_input_data.py $DIR --tag $OTHER
@@ -82,14 +82,6 @@ case $TEST_NUM in
      ../scripts/download_example_input_data.py $DIR --tag $OTHER
      runAllAndDiffOnFailure diffex $DIR/*.TRACE
     ;;
-  10)
-    pea --config ex42_gin2_pp_user_3freq.yaml
-    DIR="ex42"
-    results2s3 $DIR
-     ../scripts/download_example_input_data.py $DIR --tag $TAG --push
-     ../scripts/download_example_input_data.py $DIR --tag $OTHER
-     runAllAndDiffOnFailure diffex $DIR/*.TRACE
-    ;;
   8)
 	# up trace level in ex11 to level 5 and change name to ex44
 	pea -dex44 -l5 --config ex11_pea_pp_user_gps.yaml -v | tee pea44.out
@@ -104,7 +96,7 @@ case $TEST_NUM in
         echo "no indication of LSQ in use"
 		exit 1
 	else
-		echo "LSQ is deomnstrated"
+		echo "LSQ is demonstrated"
 	fi
     ;;
 esac

@@ -20,8 +20,6 @@
 
 #define PIVOT_MEAS_VARIANCE 	SQR(1E-5)
 
-map<SatSys, double> expNoiseMap;
-
 struct AvBiasMonitor
 {
 	int					numCode = 0;
@@ -134,7 +132,7 @@ void orbitPseudoObs(
 {	
 	GTime time = rec.obsList.front()->time;
 	
-	ERPValues erpv = geterp(nav.erp, time);
+	ERPValues erpv = getErp(nav.erp, time);
 	
 	FrameSwapper frameSwapper(time, erpv);
 	
@@ -192,7 +190,6 @@ void orbitPseudoObs(
 			satVelKeys[i].num	= i + 3;
 		}
 		
-	
 		for (int i = 0; i < 3; i++)
 		{
 			InitialState posInit = initialStateFromConfig(satOpts.orbit, i);
@@ -209,22 +206,6 @@ void orbitPseudoObs(
 				
 				if (posInit.x == 0)		posInit.x = rSatEci[i];
 				if (velInit.x == 0)		velInit.x = vSatEci[i];
-				
-				auto& expNoise = expNoiseMap[obs.Sat];
-				if (expNoise)
-				{
-					trace  
-					<< std::endl << "adding : " << expNoise << " to process noise for " << obs.Sat.id() << " \n";
-				}
-				
-				velInit.Q += 1e-20;
-				velInit.Q += expNoise;
-				
-				if (i == 2)
-				{
-					//shrink the exponential process noise the next time around	//todo aaron, need to copy to real obs
-					expNoise *= acsConfig.orbit_vel_proc_noise_trail_tau;
-				}
 				
 				bool newState = false;
 				newState |= kfState.addKFState(satPosKeys[i], posInit);
@@ -243,6 +224,8 @@ void orbitPseudoObs(
 				double omc	= rSatEci[i] 
 							- statePosEci[i];
 
+				
+							
 				kfMeasEntry.setInnov(omc);
 					
 				kfMeasEntry.obsKey.comment	= "ECI PseudoPos";
@@ -254,6 +237,15 @@ void orbitPseudoObs(
 				kfMeasEntry.addNoiseEntry(kfMeasEntry.obsKey, 1, SQR(satOpts.pseudo_sigmas[0]));
 				
 				kfMeasEntryList.push_back(kfMeasEntry);
+				
+				int epochsPerDay = 86400 / acsConfig.epoch_interval;
+				
+				if	(  acsConfig.pseudo_pulses
+					&& epoch % (epochsPerDay / acsConfig.pseudo_pulses) == 0)
+				{
+					kfState.setExponentialNoise(satPosKeys[i], {SQR(acsConfig.orbit_pos_proc_noise)});
+					kfState.setExponentialNoise(satVelKeys[i], {SQR(acsConfig.orbit_vel_proc_noise)});
+				}
 			}
 		}
 
@@ -284,7 +276,7 @@ void stationPseudoObs(
 			Station&			rec,				///< Receiver to perform calculations for                //todo aaron, this isnt a rec anymore
 	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
 			KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
-			StationMap&			stationMap,
+			StationMap&			stationMap,			///< Map of stations to retrieve receiver metadata from
 			MatrixXd*			R_ptr)				///< Optional pointer to measurement noise matrix
 {	
 	GTime time = rec.obsList.front()->time;
@@ -781,7 +773,7 @@ void pseudoAvSatCodeBias(COMMON_PSEUDO_ARGS)
 void pseudoAvSatPhaseBias(COMMON_PSEUDO_ARGS)
 {
 	for (auto& [sys, process]	: acsConfig.process_sys)
-	for (auto& code				: acsConfig.zero_phas_average[sys])
+	for (auto& code				: acsConfig.zero_phase_average[sys])
 	{
 		if (process == false)
 		{

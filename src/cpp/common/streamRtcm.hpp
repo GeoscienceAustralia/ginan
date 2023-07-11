@@ -82,12 +82,14 @@ struct RtcmParser : Parser, RtcmDecoder
 			{
 				checksumFailure(rtcmMountpoint);
 				
+// 				printHex(std::cout, data);
+				
 				inputStream.seekg(pos + 1);
 				
 				continue;
 			}
 			
-			checksumSuccess();
+			checksumSuccess(crcRead);
 
 			recordFrame(data, crcRead);
 			

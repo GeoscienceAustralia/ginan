@@ -94,9 +94,9 @@ struct Sig : RawSig
 
 struct IonoPP
 {
-	double lat = 0;
-	double lon = 0;
-	double ang = 0;
+	double lat			= 0;
+	double lon			= 0;
+	double slantFactor	= 1;
 };
 
 struct IonoObs
@@ -106,11 +106,13 @@ struct IonoObs
 		
 	}
 	
-	double STECtoDELAY;
+	double stecToDelay;
 	int    STECtype;
-	double STECsmth;
-	double STECsmvr;
-	int    STECcodeComb;
+	double stecVal;
+	double stecVar;
+	int    stecCodeCombo;
+	
+	SatSys ionoSat;	//todo aaron, remove when possible
 
 	map<int, IonoPP> ippMap;
 	
@@ -294,7 +296,16 @@ struct FObs : Observation
 };
 
 
-typedef vector<shared_ptr<Observation>>	ObsList;		///< List of observations for an epoch
+/** List of observations for an epoch
+*/
+struct ObsList : vector<shared_ptr<Observation>>
+{
+	ObsList& operator+=(const ObsList& right)
+	{
+		this->insert(this->end(), right.begin(), right.end());
+		return *this;
+	}
+};
 
 
 //========================================================================================================
@@ -387,7 +398,6 @@ struct LObsMeta
 	// Sat data
 	string			satName		= {};
 	int				ilrsId		= 0;
-	int				noradId		= 0;
 	string			cosparId	= {};
 };
 
@@ -432,21 +442,4 @@ struct LObs : Observation, LObsMeta, SatPos
 	
 	virtual ~LObs() = default;
 };
-
-typedef map<string, map<GTime, shared_ptr<LObs>>> SlrSiteObsMap; // indexed by Station ID
-
-extern SlrSiteObsMap slrSiteObsMap;
-
-void readCrd(
-	string filepath);
-
-void outputSortedSlrObsPerRec(
-	string		filepath,
-	ObsList&	slrObsList);
-
-vector<string> outputSortedSlrObs();
-
-int readSlrObs(
-	std::istream&	inputStream,
-	ObsList&		slrObsList);
 

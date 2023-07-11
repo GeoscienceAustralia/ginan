@@ -140,14 +140,14 @@ New line for braces.
 * Put `&&` and `||` at the beginning of lines when using multiple conditionals.
 * Always use curly braces when using multiple conditionals.
 
-.
-
-    if  ( ( testA  >  10)
-        &&( testB  == false
-          ||testC  == false))
-    {
-        //do something
-    }
+```
+if  ( ( testA  >  10)
+    &&( testB  == false
+      ||testC  == false))
+{
+    //do something
+}
+```
 
 ## Return Values
 
@@ -216,7 +216,7 @@ void function(
 * Limit use of abbreviations
 * For structs or classes, use `CamelCase` with capital start
 * For member variables, use `camelCase` with lowercase start
-* For config parameters, use `lowercase\_with\_underscores`
+* For config parameters, use `lowercase_with_underscores`
 * Use suffixes (`_ptr`, `_arr`, `Map`, `List` etc.) to describe the type of container for complex types.
 * Be sure to provide default values for member variables.
 * Use heirarchical objects where applicable.

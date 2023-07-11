@@ -230,8 +230,8 @@ struct icdDecoder
 	
 	/* decode gps/qzss navigation data frame */
 	int decodeGpsSubframe(
-		vector<unsigned char>&	data,		///< data[0-29]: 24 bits x 10 words=
-		Eph&					eph)
+		vector<unsigned char>&	data,		///< data[0-29]: 24 bits x 10 words
+		Eph&					eph)		///< output ephemeris
 	{
 		if (data.empty())
 		{

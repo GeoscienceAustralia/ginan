@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+{% include 'head.jinja' %}
+
+<body>
+
+  {% include 'navbar.jinja' %}
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-1">
+        {% include 'sidebar.jinja' %}
+      </div>
+
+      <div class="col-md-10">
+        <main class="px-md-1">
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">
+              {% block title %}
+              Dashboard
+              {% endblock %}
+            </h1>
+          </div>
+
+          {% block menuselection %}
+          {% endblock %}
+
+          {% if 'bokeh' == mode %}
+          {{ plot_div|indent(4)|safe }}
+          {% elif 'plotly' == mode %}
+          {{ graphJSON|safe }}
+          {% else %}
+          {{ message }}
+          {% endif %}
+
+          {% block data %}
+          {% endblock %}
+
+          {% if table_data or tableagg_data %}
+          <h2>Statistics</h2>
+          {% endif %}
+          {% if table_data %}
+          <div class="table-responsive">
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#tableCollapse"
+              aria-expanded="false" aria-controls="tableCollapse">
+              Individual Statistics
+            </button>
+            <div class="collapse" id="tableCollapse">
+              <table class="table table-striped table-sm">
+                <thead>
+                  <tr>
+                    <th>Observation</th>
+                    {% for header in table_headers %}
+                    <th>{{ header }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for obs, data in table_data.items() %}
+                  <tr>
+                    <td>{{ obs }}</td>
+                    {% for header in table_headers %}
+                    <td>{{ data.get(header, '') }}</td>
+                    {% endfor %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if tableagg_data %}
+          <br>
+          <div class="table-responsive">
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#tableAggCollapse"
+              aria-expanded="false" aria-controls="tableAggCollapse">
+              Aggregated Statistics
+            </button>
+            <div class="collapse" id="tableAggCollapse">
+              <table class="table table-striped table-sm">
+                <thead>
+                  <tr>
+                    <th>Observation</th>
+                    {% for header in tableagg_headers %}
+                    <th>{{ header }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for obs, data in tableagg_data.items() %}
+                  <tr>
+                    <td>{{ obs }}</td>
+                    {% for header in table_headers %}
+                    <td>{{ data.get(header, '') }}</td>
+                    {% endfor %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %}
+
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+
+
+  {% block scripts %}
+  {% endblock %}
+
+</body>
+
+</html>

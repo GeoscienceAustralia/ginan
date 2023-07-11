@@ -10,9 +10,6 @@ When set to end user mode, the PEA component of Ginan will process each station 
 * Ionospheric delay at the receiver location (not yet available)
 * Carrier phase ambiguities
 
-
-In order to use the PEA in end-user mode, the ` processing_options: process_modes: user` parameter needs to be set to `true`.
-
 The results of PEA run in end user mode are printed in the trace files.
 Station trace file outputs can be activated by setting the `outputs: trace: output_stations: true`
 The most commonly used outputs from the PEA used in end-user mode are expected to be: the receiver position, receiver velocity, receiver clocks and tropospheric delays.

@@ -1,0 +1,178 @@
+{% extends 'base.jinja'%}
+{# {% block header %}
+<h1>{% block title %} {{ plotingpage }} {% endblock %}</h1>
+{% endblock %} #}
+
+{% block title%}
+Measurements
+{% endblock %}
+{% block menuselection %}
+<form method="post" class="row g-5" role="form" onsubmit="return validateForm()">
+  <div class="col-lg-1">
+    <label for="type" class="form-label">Type:</label>
+    <br>
+    <select class="selectpicker form-control" name="type" id="type" data-container="body" data-live-search="true"
+      title="Select type">
+      {% for key_ in extra['plotType'] %}
+      {% if selection is defined and selection['plot']|length and key_ in selection['plot']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-lg-2">
+    <label for="series" class="form-label">Series:</label>
+    <br>
+    <select multiple class="selectpicker form-control" name="series" id="series" data-container="body"
+      data-live-search="true" title="Select series" data-hide-disabled="true" data-actions-box="true"
+      data-virtual-scroll="false">
+      {% for series_ in session['list_series'] %}
+      {% if selection is defined and selection['series']|length and series_ in selection['series']%}
+      <option value="{{series_}}" SELECTED>{{series_}}</option>"
+      {%else%}
+      <option value="{{series_}}">{{series_}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-lg-2">
+    <label for="sat" class="form-label">Satellite:</label>
+    <br>
+    <select multiple class="selectpicker form-control" name="sat" id="sat" data-container="body" data-live-search="true"
+      title="Select satellite" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false"> {% for
+      sat_ in session['list_sat'] %}
+      {% if selection is defined and selection['sat']|length and sat_ in selection['sat']%}
+      <option value="{{sat_}}" SELECTED>{{sat_}}</option>"
+      {%else%}
+      <option value="{{sat_}}">{{sat_}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-lg-2">
+    <label for="site" class="form-label">Site:</label>
+    <br>
+    <select multiple class="selectpicker form-control" name="site" id="site" data-container="body"
+      data-live-search="true" title="Select Site" data-hide-disabled="true" data-actions-box="true"
+      data-virtual-scroll="false">
+      {% for site_ in session['list_site'] %}
+      {% if selection is defined and selection['site']|length and site_ in selection['site']%}
+      <option value="{{site_}}" SELECTED>{{site_}}</option>"
+      {%else%}
+      <option value="{{site_}}">{{site_}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-lg-1">
+    <label for="xaxis" class="form-label">X-Axis:</label>
+    <br>
+    <select  class="selectpicker form-control" name="xaxis" id="xaxis" data-hide-disabled="true"
+      data-live-search="true">
+      {% for key_ in session['list_generic'] %}
+      {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+      <option data-divider="true"></option> <!-- Virtual separator -->
+      {% for key_ in session['list_geometry'] %}
+      {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+      <option data-divider="true"></option> <!-- Virtual separator -->
+      {% for key_ in session['list_measurements'] %}
+      {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-lg-1">
+    <label for="yaxis" class="form-label">Y-Axis:</label>
+    <br>
+    <select multiple class="selectpicker form-control" name="yaxis" id="yaxis" data-container="body"
+      data-live-search="true" title="Select series" data-hide-disabled="true" data-actions-box="true"
+      data-virtual-scroll="false">
+      {% for key_ in session['list_generic'] %}
+      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+      <option data-divider="true"></option> <!-- Virtual separator -->
+      {% for key_ in session['list_geometry'] %}
+      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+      <option data-divider="true"></option> <!-- Virtual separator -->
+
+      {% for key_ in session['list_measurements'] %}
+      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-lg-2">
+    <label for="exclude">Exclude first (min):</label>
+    <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" 
+    {% if selection is defined and  selection['exclude'] %}value="{{ selection['exclude'] }}"{% endif %}  
+    >
+    </div>
+  <input type="submit" value="PLOT">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script >
+function notSelectedValue(fieldId, missingField) {
+    var field = document.getElementById(fieldId);
+    var selectedIndex = field.selectedIndex;
+    console.log("selectedIndex: " + selectedIndex + " for fieldId: " + fieldId);
+    if (selectedIndex == -1) {
+      missingField.push(fieldId);
+    }
+  }
+  function validateForm() {
+    var missingField = []; // Array to store the empty fields
+    
+    // Check if a value is selected in each field
+    notSelectedValue('type', missingField);
+    notSelectedValue('series', missingField);
+    notSelectedValue('sat', missingField);
+    notSelectedValue('site', missingField);
+    notSelectedValue('xaxis', missingField);
+    notSelectedValue('yaxis', missingField);
+    console.log(missingField)
+    if (missingField.length > 0) {
+      var errorMessage = 'Please select a value in the following fields:\n\n';
+      for (var i = 0; i < missingField.length; i++) {
+        errorMessage += '- ' + missingField[i] + '\n';
+      }
+      alert(errorMessage);
+      return false; // Prevent form submission
+    }
+
+    return true; // Allow form submission
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+{% include 'head.jinja' %}
+
+<body>
+
+{% include 'navbar.jinja' %}
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3">
+      {% include 'sidebar.jinja' %}
+    </div>
+
+    <div class="col-md-9">
+      <main class="px-md-4">
+        <div class="chartjs-size-monitor">
+          <!-- Chart size monitor code here -->
+        </div>
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">Error 405</h1>
+            Not Allowed
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

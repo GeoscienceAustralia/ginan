@@ -309,7 +309,7 @@ OPTIMIZE_OUTPUT_SLICE  = NO
 # Note that for custom extensions you also need to set FILE_PATTERNS otherwise
 # the files are not read by doxygen.
 
-EXTENSION_MAPPING      = Examples=C
+EXTENSION_MAPPING      = Examples=md
 
 # If the MARKDOWN_SUPPORT tag is enabled then doxygen pre-processes all comments
 # according to the Markdown format, which allows for more readable
@@ -907,7 +907,8 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE					 = ../cpp/3rdparty/
-EXCLUDE					+= ../cpp/orbprop/
+# EXCLUDE					+= ../cpp/orbprop/
+# EXCLUDE					+= ../cpp/orbprop/
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

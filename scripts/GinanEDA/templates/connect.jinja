@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+{% include 'head.jinja' %}
+
+<body>
+
+    {% include 'navbar.jinja' %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3">
+                {% include 'sidebar.jinja' %}
+            </div>
+
+            <div class="col-md-9">
+                <main class="px-md-4">
+
+                    <h1>Connect to Database</h1>
+
+
+                    <form method="POST" role="form">
+                        {{ csrf_token }} <!-- Include CSRF token for form security -->
+                        <div>
+                            <label for="db_ip">Connect DB IP:</label>
+                            <input type="text" id="db_ip" name="db_ip" value="{{ db_ip }}">
+                            <label for="db_port"> Port:</label>
+                            <input type="number" id="db_port" name="db_port" default=27017 value="{{ db_port }}">
+                        </div>
+                        <div>Optional
+                            <div>
+                                <label for="db_username">Username:</label>
+                                <input type="text" id="db_username" name="db_username" value="{{ db_username }}">
+                            </div>
+                            <div>
+                                <label for="db_password">Password:</label>
+                                <input type="password" id="db_password" name="db_password" value="{{ db_password }}">
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" name="connect">Connect to DB</button>
+                        </div>
+
+                        {% if databases %}
+                        <div>
+                            <label for="dataset">Select Dataset in DB:</label>
+                            {# <select name="dataset" id="dataset" class="selectpicker"> #}
+                            <select multiple class="selectpicker form-control" name="dataset" id="dataset"  data-container="body" data-live-search="true" 
+                                    title="Select databases" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
+                                {% for database in databases %}
+                                <option value="{{ database }}">{{ database }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <button type="submit" name="load">Load DB</button>
+                        </div>
+                        {% endif %}
+                    </form>
+                    {% if message %}
+                    <div>
+                        {{ message }}
+                    </div>
+                    {% endif %}
+                </main>
+            </div>
+        </div>
+    </div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.bundle.min.js"></script>
+{# <script src="../dist/js/bootstrap-select.js"></script> #}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+
+
+
+</body>
+
+</html>
