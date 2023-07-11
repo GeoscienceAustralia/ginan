@@ -22,7 +22,7 @@ void NtripStream::getData()
 		}
 	
 // 		std::cout << "\nCHUNK";
-// 		printHex(std::cout, chunk);
+// 		printHex(std::cout, *(vector<unsigned char>*)&chunk);
 		
 		receivedData.insert(receivedData.end(), chunk.begin(), chunk.end());
 

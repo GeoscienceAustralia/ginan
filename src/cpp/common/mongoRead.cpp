@@ -750,18 +750,20 @@ SSRAtm mongoReadIGSIonosphere(
 	for (auto atmDoc : cursor2)
 	{
 		SphComp	sphComp;
-		sphComp.hind			= atmDoc[IGS_ION_HGT	].get_int32();
+		sphComp.layer			= atmDoc[IGS_ION_HGT	].get_int32();
 		sphComp.degree			= atmDoc[IGS_ION_DEG	].get_int32();
 		sphComp.order			= atmDoc[IGS_ION_ORD	].get_int32();
-		sphComp.parity			= atmDoc[IGS_ION_PAR	].get_int32();
+		int trigType			= atmDoc[IGS_ION_PAR	].get_int32();
 		
-		sphComp.coeffc			= atmDoc[IGS_ION_VAL	].get_double();
+		sphComp.trigType		= E_TrigType::_from_integral(trigType);
+		
+		sphComp.value			= atmDoc[IGS_ION_VAL	].get_double();
 		sphComp.variance		= 0;
 		
-		SSRVTEClayer& laydata	= atmGlob.layers[sphComp.hind];
+		SSRVTEClayer& laydata	= atmGlob.layers[sphComp.layer];
 		
-		laydata.sphHarmonic[maxBasis[sphComp.hind]] = sphComp;
-		maxBasis[sphComp.hind]++;
+		laydata.sphHarmonic[maxBasis[sphComp.layer]] = sphComp;
+		maxBasis[sphComp.layer]++;
 		
 		if (laydata.maxDegree	< sphComp.degree)			laydata.maxDegree	= sphComp.degree;
 		if (laydata.maxOrder	< sphComp.order)			laydata.maxOrder	= sphComp.order;

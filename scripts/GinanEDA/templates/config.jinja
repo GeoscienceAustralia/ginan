@@ -1,0 +1,43 @@
+{% extends 'base.jinja'%}
+
+{% block title%}
+Configuration Dump
+{% endblock%}
+
+{% block menuselection %}
+<form method="post" class="row g-5" role="form">
+<div class="col-lg-2">
+  <label for="series" class="form-label">Database:</label>
+  <br>
+  <select  class="selectpicker form-control" name="database" id="database" data-container="body"
+    data-live-search="true" title="Select series" data-hide-disabled="true" data-actions-box="true"
+    data-virtual-scroll="false">
+    {% for database_ in session['mongo_db'] %}
+    {% if selection is defined and selection['db']|length and database_ in selection['db']%}
+    <option value="{{database_}}" SELECTED>{{database_}}</option>"
+    {%else%}
+    <option value="{{database_}}">{{database_}}</option>"
+    {%endif%}
+    {% endfor %}
+  </select>
+    <input type="submit" value="Display">
+</div>
+</form>
+{% endblock %}
+
+{% block data %}
+{% if configuration is defined %}
+<ul>
+  {% for key, value in configuration.items() %}
+  <li><strong>{{ key }}</strong>:
+    {% if value is mapping %}
+    {% set nested_dict = value %}
+    {% include 'nested_dict.jinja'%}
+    {% else %}
+    {{ value }}
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

@@ -55,7 +55,7 @@ struct SerialState : SerialStateMembers, B_io::stream<B_io::basic_array_source<c
 		}
 		else if (pos >	0)
 		{
-			inputVector.erase(inputVector.begin(), inputVector.begin() + pos - 1);
+			inputVector.erase(inputVector.begin(), inputVector.begin() + pos);
 		}
 		else
 		{

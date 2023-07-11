@@ -1,0 +1,94 @@
+outputs:
+
+    root_directory:                 outputs/<CONFIG>/
+    ppp_sol:                              
+        output:                     true         
+        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.POS
+    gpx:
+        output:                     true
+        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.GPX
+
+estimation_parameters:
+    stations:
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [100] 
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [100]
+            amb:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [0]
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001]
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+            ion_stec:
+                estimated:          [true]
+                sigma:              [200]
+                proc_noise:         [10]
+            code_bias:
+                estimated:          [true]
+                sigma:              [20]
+                proc_noise:         [0]
+            phase_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
+
+processing_options:
+    process_modes:
+        ppp:                 true
+    gnss_general:
+        elevation_mask:                 10  #degrees
+        rec_reference_system:           GPS
+        sys_options:
+            gps:
+                process:                true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [ L1C, L2W ]
+            gal:
+                process:                true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [ L1C, L5Q, L1X, L5X ]
+    gnss_models:
+        troposphere:
+            model:              gpt2
+        ionospheric_component2:
+            enable:             true
+        ionospheric_component3:
+            enable:             true
+    filter_options:
+        outlier_screening:
+            max_filter_iterations:      5 
+            max_prefit_removals:        3 
+        station_chunking:
+            enable:                     true
+    model_error_checking:
+        deweighting:
+            deweight_factor:            1000
+        ambiguities:
+            outage_reset_limit:         5
+            phase_reject_limit:         2
+            reinit_on_all_slips:        true
+
+station_options:
+    global:
+        phase_bias:
+            enable:         true
+            
+satellite_options:
+    global:
+        phase_bias:
+            enable:         true
+   

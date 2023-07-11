@@ -1,10 +1,11 @@
 
 inputs:
     include_yamls:
-        - tiny_realtime_network.yaml
-        - static_user.yaml
+        - input_metadata.yaml
+        - input_streams_rover.yaml
+        - processing_rover.yaml
         - mongo_outputs.yaml
-        - example_inputs.yaml
+        - debug_trace.yaml
     
 outputs:
     metadata:

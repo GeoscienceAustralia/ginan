@@ -24,9 +24,9 @@ ATOL=1E-4
 
 case $TEST_NUM in
   1)
-    pod -y ex31_pod_fit_gps.yaml | tee pod.out
+    ../bin/pod -y ex31_pod_fit_gps.yaml | tee pod.out
     mv pod.out ex31/pod_fit
-    pea -y ex31_pea_pp_netw_gnss_orb_ar.yaml | tee pea.out
+    ../bin/pea -y ex31_pea_pp_netw_gnss_orb_ar.yaml | tee pea.out
     mv pea.out ex31/pea
     pod -y ex31_pod_ic_gps.yaml | tee pod.out
     mv pod.out ex31/pod_ic

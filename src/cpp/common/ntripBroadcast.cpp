@@ -242,7 +242,7 @@ void NtripUploader::messageTimeout_handler(
 				
 				if (acsConfig.trace_level > 5)
 				{
-					debugSSR(t0, targetTime, sys, ssrOutMap);
+// 					debugSSR(t0, targetTime, sys, ssrOutMap);
 					
 					if (write == false)
 					{

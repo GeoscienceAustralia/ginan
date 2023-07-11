@@ -216,7 +216,7 @@ struct Peph : Pclk
  */
 struct Att
 {
-	SatSys		Sat;	///< satellite number
+	string		id;
 	GTime		time;	///< time (GPST) 
 	int			index;	///< ephemeris index for multiple files 
 	E_ObxFrame	frame;

@@ -12,7 +12,6 @@
  */
 void satPossSlr(
 	Trace&				trace,				///< Trace to output to
-	GTime				teph,				///< time to select ephemeris (gpst)
 	ObsList&			slrObsList,			///< List of observations to complete with satellite positions
 	Navigation&			nav,				///< Navigation data
 	vector<E_Source>	ephTypes,			///< Source of ephemeris data
@@ -20,8 +19,6 @@ void satPossSlr(
 	E_Relativity		applyRelativity,	///< Option to apply relativistic correction to clock
 	const KFState*		kfState_ptr)		///< Optional pointer to a kalman filter to take values from
 {
-	//tracepde(3, trace, "%s: teph=%s n=%d ephType=%d\n", __FUNCTION__, teph.to_string(3).c_str(), slrObsList.size(), ephType);
-
 	for (auto& obs : only<LObs>(slrObsList))
 	{
 		if (obs.exclude)

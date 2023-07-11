@@ -142,6 +142,11 @@ void preprocessor(
 	
 	auto& obsList = rec.obsList;
 	
+	if (obsList.empty())
+	{
+		return;
+	}
+	
 	rec.sol.time = obsList.front()->time;
 	
 	PTime start_time;
@@ -164,6 +169,17 @@ void preprocessor(
 		
 		if (acsConfig.process_sys[obs.Sat.sys] == false)
 		{
+			obs.excludeSystem = true;
+			
+			continue;
+		}
+		
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		
+		if (satOpts.exclude)
+		{
+			obs.excludeConfig = true;
+			
 			continue;
 		}
 		
@@ -176,8 +192,6 @@ void preprocessor(
 		updatenav(obs);
 
 		obs.satStat_ptr = &rec.satStatMap[obs.Sat];
-
-		acsConfig.getSatOpts(obs.Sat);
 		
 		//ar stuff
 		{
@@ -223,7 +237,16 @@ void preprocessor(
 	outputObservations(trace, obsList);
 	
 	for (auto& obs : only<GObs>(obsList))
-		satPosClk(trace, rec.sol.time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
+	{
+		if (acsConfig.process_sys[obs.Sat.sys] == false)
+		{
+			continue;
+		}
+			
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		
+		satPosClk(trace, rec.sol.time, obs, nav, satOpts.sat_pos.ephemeris_sources, satOpts.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
+	}
 	
 	obsVariances(obsList);
 

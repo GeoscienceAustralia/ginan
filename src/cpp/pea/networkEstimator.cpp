@@ -176,11 +176,31 @@ void removeBadIonospheres(
 			continue;
 		}
 		
+		if (key.rec_ptr == nullptr)
+		{
+			continue;
+		}
+		
+		auto& rec		= *key.rec_ptr;
+		auto& satStat	= rec.satStatMap[key.Sat];
+		
+		if (satStat.ionoOutageCount >= acsConfig.pppOpts.outage_reset_limit)
+		{
+			satStat.ionoOutageCount = 0;
+			
+			trace << std::endl << "Ionosphere removed due to long outage: " << key;
+			
+			kfState.statisticsMap["Iono outage resets"]++;
+			
+			kfState.removeState(key);
+			continue;
+		}
+			
 		double state;
 		double variance;
 		kfState.getKFValue(key, state, &variance);
 		
-		if (variance > 10000)
+		if (variance > SQR(acsConfig.ionoOpts.iono_sigma_limit))
 		{
 			trace << std::endl << "Ionosphere removed due to high variance: " << key;
 			
@@ -196,6 +216,7 @@ void postFilterChecks(
 	{
 		resetPhaseSignalError	(kfMeas, i);
 		resetPhaseSignalOutage	(kfMeas, i);
+		resetIonoSignalOutage	(kfMeas, i);
 	}
 }
 
@@ -291,9 +312,13 @@ void incrementOutageCount(
 	//increment the outage count for all signals
 	for (auto& [id,		rec]		: stations)
 	for (auto& [Sat,	satStat]	: rec.satStatMap)
-	for (auto& [ft,		sigStat]	: satStat.sigStatMap)
 	{
-		sigStat.phaseOutageCount++;
+		for (auto& [ft,		sigStat]	: satStat.sigStatMap)
+		{
+			sigStat.phaseOutageCount++;
+		}
+		
+		satStat.ionoOutageCount++;
 	}
 }
 
@@ -611,8 +636,8 @@ void networkEstimator(
 			Vector3d eopPartials	= partialMatrix * satStat.e;
 
 			ERPValues erpv[2];
-			erpv[0] = geterp(nav.erp, time);
-			erpv[1] = geterp(nav.erp, time + 1);
+			erpv[0] = getErp(nav.erp, time);
+			erpv[1] = getErp(nav.erp, time + 1);
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -623,7 +648,8 @@ void networkEstimator(
 					continue;
 				}
 				
-				init.x = erpv[0].vals[i];
+				
+				init.x = *(&erpv[0].xp + i);
 				
 				if (i < 2)		init.x *= R2MAS;
 				else			init.x *= S2MTS;
@@ -644,8 +670,8 @@ void networkEstimator(
 						continue;
 					}
 
-					eopRateInit.x	= erpv[1].vals[i]
-									- erpv[0].vals[i];
+					eopRateInit.x	= *(&erpv[1].xp + i)
+									- *(&erpv[0].xp + i);
 							
 					if (i < 2)		eopRateInit.x *= R2MAS;
 					else			eopRateInit.x *= S2MTS;

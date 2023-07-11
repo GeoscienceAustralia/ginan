@@ -68,6 +68,7 @@ void cullOldSSRs(
 
 
 bool ssrPosDelta(
+	Trace&			trace,
 	GTime			time,
 	GTime			ephTime,
 	SatPos&			satPos,
@@ -120,14 +121,17 @@ bool ssrPosDelta(
 	{
 		satPos.failureSsrPosMag = true;
 			
-		tracepdeex(2, std::cout,"SSR pos correction too large : %s %s deph=%.1fm\n", time.to_string(0).c_str(), satPos.Sat.id().c_str(), dPos.norm());
+		tracepdeex(2, std::cout, "SSR pos correction too large : %s %s deph=%.1fm\n", time.to_string(0).c_str(), satPos.Sat.id().c_str(), dPos.norm());
 		return false;
 	}
+	
+	tracepdeex(5, trace, "\n%s %2d %2d %lf %s %s %lf", __FUNCTION__, iodPos, iodEph, tEph, validStart.to_string().c_str(), validStop.to_string().c_str(), dPos.norm());
 	
 	return true;
 }
 
 bool ssrClkDelta(
+	Trace&			trace,
 	GTime			time,
 	GTime			ephTime,
 	SatPos&			satPos,
@@ -197,6 +201,8 @@ bool ssrClkDelta(
 		tracepdeex(2, std::cout,"SSR clk correction too large : %s %s dclk=%.1f\n", time.to_string(0).c_str(), satPos.Sat.id().c_str(), dclk);
 		return 0;
 	}
+	
+	tracepdeex(5, trace, "\n%s %2d %2d %lf %s  %s %lf", __FUNCTION__, iodClk, 0, tClk, validStart.to_string().c_str(), validStop.to_string().c_str(), dclk);
 
 	return true;
 }
@@ -242,8 +248,8 @@ bool satPosSSR(
 		
 	while (true)
 	{
-		bool posDeltaPass = ssrPosDelta(time, ephTime, satPos, ssrMaps, dPos, iodPos, iodEph,	ephValidStart, ephValidStop);
-		bool clkDeltaPass = ssrClkDelta(time, ephTime, satPos, ssrMaps, dClk, iodClk,			clkValidStart, clkValidStop);
+		bool posDeltaPass = ssrPosDelta(trace, time, ephTime, satPos, ssrMaps, dPos, iodPos, iodEph,	ephValidStart, ephValidStop);
+		bool clkDeltaPass = ssrClkDelta(trace, time, ephTime, satPos, ssrMaps, dClk, iodClk,			clkValidStart, clkValidStop);
 
 		if	(  posDeltaPass == false
 			|| clkDeltaPass == false)
@@ -251,7 +257,7 @@ bool satPosSSR(
 			satPos.failureSSRFail = true;
 			
 			BOOST_LOG_TRIVIAL(warning)	<< "Warning: SSR Corrections not found for " << satPos.Sat.id();
-			trace						<< "Warning: SSR Corrections not found for " << satPos.Sat.id();
+			trace << std::endl			<< "Warning: SSR Corrections not found for " << satPos.Sat.id();
 		
 			return false;
 		}
@@ -259,8 +265,8 @@ bool satPosSSR(
 		if	( ephValidStart >= clkValidStop
 			||clkValidStart >= ephValidStop)
 		{
-			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Timing inconsistent for " << satPos.Sat.id() << " : " << ephValidStart.to_string(0) << "-" << ephValidStop.to_string(0) << " " << clkValidStart.to_string(0) << "-" << clkValidStop.to_string(0);
-			trace						<< "Warning: Timing inconsistent for " << satPos.Sat.id() << " : " << ephValidStart.to_string(0) << "-" << ephValidStop.to_string(0) << " " << clkValidStart.to_string(0) << "-" << clkValidStop.to_string(0);
+			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Timing inconsistent for " << satPos.Sat.id() << "   :   " << ephValidStart.to_string(0) << "  -  " << ephValidStop.to_string(0) << "   " << clkValidStart.to_string(0) << "  -  " << clkValidStop.to_string(0);
+			trace << std::endl			<< "Warning: Timing inconsistent for " << satPos.Sat.id() << "   :   " << ephValidStart.to_string(0) << "  -  " << ephValidStop.to_string(0) << "   " << clkValidStart.to_string(0) << "  -  " << clkValidStop.to_string(0);
 			
 			if (ephValidStart >= clkValidStop)		ephTime = clkValidStop - 0.5;
 			if (clkValidStart >= ephValidStop)		ephTime = ephValidStop - 0.5;
@@ -272,7 +278,7 @@ bool satPosSSR(
 			satPos.failureIodeConsistency = true;
 				
 			BOOST_LOG_TRIVIAL(warning)	<< "Warning: IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
-			trace						<< "Warning: IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
+			trace << std::endl			<< "Warning: IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
 			
 			return false;
 		}
@@ -294,14 +300,14 @@ bool satPosSSR(
 				else								ephTime = ephValidStart - 0.5;
 				
 				BOOST_LOG_TRIVIAL(warning)	<< "Warning: IODE BRDC not found for " << satPos.Sat.id() << " - adjusting ephTime";
-				trace						<< "Warning: IODE BRDC not found for " << satPos.Sat.id() << " - adjusting ephTime";
+				trace << std::endl			<< "Warning: IODE BRDC not found for " << satPos.Sat.id() << " - adjusting ephTime";
 				
 				continue;
 			}
 			satPos.failureBroadcastEph = true;
 					
-			BOOST_LOG_TRIVIAL(warning)	<< "warning: IODE BRDC not found for " << satPos.Sat.id();
-			trace						<< "warning: IODE BRDC not found for " << satPos.Sat.id();
+			BOOST_LOG_TRIVIAL(warning)	<< "Warning: IODE BRDC not found for " << satPos.Sat.id();
+			trace << std::endl			<< "Warning: IODE BRDC not found for " << satPos.Sat.id();
 		
 			return false;
 		}
@@ -309,7 +315,7 @@ bool satPosSSR(
 		break;
 	}
 	
-	tracepdeex(4, trace, "\nBRDCEPH %s    %s    %13.3f %13.3f %13.3f %11.3f ", time.to_string(6).c_str(), Sat.id().c_str(), rSat[0], rSat[1], rSat[2], 1e9*satClk);
+	tracepdeex(4, trace, "\nBRDCEPH %s    %s    %13.3f %13.3f %13.3f %11.3f %2d", time.to_string(6).c_str(), Sat.id().c_str(), rSat[0], rSat[1], rSat[2], 1e9*satClk, iodePos);
 	
 	Matrix3d rac2ecefMat = rac2ecef(rSat, satVel);
 	
@@ -336,7 +342,7 @@ bool satPosSSR(
 	
 	tracepdeex(3, trace, "\nSSR_EPH %s    %s    %13.3f %13.3f %13.3f %11.3f ", time.to_string(6).c_str(), Sat.id().c_str(), rSat[0], rSat[1], rSat[2], 1e9*satClk);
 	
-	tracepdeex(5, trace, "%s: %s sat=%s deph=%6.3f %6.3f %6.3f dclk=%6.3f var=%6.3f iode=%d clktimes:%s %s ephtimes%s %s\n",
+	tracepdeex(5, trace, "\n%s: %s sat=%s deph=%6.3f %6.3f %6.3f dclk=%6.3f var=%6.3f iode=%d clktimes:%s %s ephtimes%s %s\n",
 		__FUNCTION__, 
 		time.to_string(2).c_str(), 
 		Sat.id().c_str(), 

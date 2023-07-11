@@ -539,36 +539,45 @@ void decodeigsSSR_type8(
 	ssrAtmGlob.vtecQuality   = ssrHead.vtecQuality;
 	ssrAtmGlob.time			 = ssrHead.time;
 	
-	for (int hgt = 0; hgt < ssrHead.numLayers && i + 16 <= data.size() * 8; hgt++)
+	for (int layerNum = 0; layerNum < ssrHead.numLayers && i + 16 <= data.size() * 8; layerNum++)
 	{
-		ssrAtmGlob.layers[hgt].height		= getbituInc(data, i, 8)*10.0;
-		ssrAtmGlob.layers[hgt].maxDegree	= getbituInc(data, i, 4)+1;
-		ssrAtmGlob.layers[hgt].maxOrder		= getbituInc(data, i, 4)+1;
+		auto& layer = ssrAtmGlob.layers[layerNum];
+		
+		layer.height	= getbituInc(data, i, 8) * 10;
+		layer.maxDegree	= getbituInc(data, i, 4) + 1;
+		layer.maxOrder	= getbituInc(data, i, 4) + 1;
+		
 		int nind = 0;
-		for (int ord = 0;	ord < ssrAtmGlob.layers[hgt].maxOrder;	ord++)
-		for (int deg = ord;	deg < ssrAtmGlob.layers[hgt].maxDegree && i + 16 <= data.size() * 8;	deg++)
+		for (int ord = 0;	ord < layer.maxOrder;								ord++)
+		for (int deg = ord;	deg < layer.maxDegree && i + 16 <= data.size() * 8;	deg++)		//todo aaron duplicate size checks redundant?
 		{
-			ssrAtmGlob.layers[hgt].sphHarmonic[nind].hind = hgt;
-			auto& sphComp	= ssrAtmGlob.layers[hgt].sphHarmonic[nind];
-			sphComp.order	= ord;
-			sphComp.degree	= deg;
-			sphComp.parity	= true;
-			sphComp.coeffc	= getbitsInc(data, i, 16)*0.005;
+			layer.sphHarmonic[nind].layer = layerNum;
+			
+			auto& sphComp		= layer.sphHarmonic[nind];
+			sphComp.order		= ord;
+			sphComp.degree		= deg;
+			sphComp.trigType	= E_TrigType::SIN;
+			sphComp.value		= getbitsInc(data, i, 16) * 0.005;
+			
 			if ((i+16)>(data.size()*8))
 				return;
+			
 			nind++;
 		}
-		for (int ord = 1;	ord < ssrAtmGlob.layers[hgt].maxOrder;		ord++)
-		for (int deg = ord;	deg < ssrAtmGlob.layers[hgt].maxDegree && i + 16 <= data.size() * 8;	deg++)
+		for (int ord = 1;	ord < layer.maxOrder;								ord++)
+		for (int deg = ord;	deg < layer.maxDegree && i + 16 <= data.size() * 8;	deg++)
 		{
-			ssrAtmGlob.layers[hgt].sphHarmonic[nind].hind=hgt;
-			auto& sphComp	= ssrAtmGlob.layers[hgt].sphHarmonic[nind];
-			sphComp.order	= ord;
-			sphComp.degree	= deg;
-			sphComp.parity	= false;
-			sphComp.coeffc	= getbitsInc(data, i, 16)*0.005;
+			layer.sphHarmonic[nind].layer = layerNum;
+			
+			auto& sphComp		= layer.sphHarmonic[nind];
+			sphComp.order		= ord;
+			sphComp.degree		= deg;
+			sphComp.trigType	= E_TrigType::COS;
+			sphComp.value		= getbitsInc(data, i, 16) * 0.005;
+			
 			if ((i+16)>(data.size()*8))
 				return;
+			
 			nind++;
 		}
 	}
@@ -577,6 +586,7 @@ void decodeigsSSR_type8(
 		updateNavSSR();
 	
 	nav.ssrAtm.atmosGlobalMap[ssrAtmGlob.time] = ssrAtmGlob;
+	
 	return;		
 }
 

@@ -156,21 +156,6 @@ double interpolate(const double *x, double *y, int n)
 	return y[0];
 }
 
-/** polynomial interpolation by Neville's algorithm 
- */
-Vector3d interpolate(
-	vector<double>&		x, 
-	vector<Vector3d>&	y)
-{
-	for (int j = 1; j < x.size();		j++)
-	for (int i = 0; i < x.size() - j;	i++)
-	{
-		y[i] = (x[i+j] * y[i] - x[i] * y[i+1]) / (x[i+j] - x[i]);
-	}
-
-	return y[0];
-}
-
 /** satellite position by precise ephemeris
  */
 bool pephpos(
@@ -518,34 +503,15 @@ VectorEcef satAntOff(
 	double C2		= -1	/ (gamma - 1);
 
 	/* iono-free LC */
-	Vector3d pcoJ = antPco(Sat.id(), Sat.sys, j, time, E_Radio::TRANSMITTER);
-	Vector3d pcoK = antPco(Sat.id(), Sat.sys, k, time, E_Radio::TRANSMITTER);
+	double varDummy = 0;
+	Vector3d pcoJ = antPco(Sat.id(), Sat.sys, j, time, varDummy, E_Radio::TRANSMITTER);
+	Vector3d pcoK = antPco(Sat.id(), Sat.sys, k, time, varDummy, E_Radio::TRANSMITTER);
 
 	VectorEcef dant1 = body2ecef(attStatus, pcoJ);
 	VectorEcef dant2 = body2ecef(attStatus, pcoK);
 
 	dAnt	= C1 * dant1
 			+ C2 * dant2;
-	
-	return dAnt;
-}
-
-VectorEcef satAntOff(
-	Trace&				trace,			///< Trace file to output to
-	GTime				time,			///< Solution time
-	AttStatus&			attStatus,		///< attitude status
-	SatSys& 			Sat,			///< Satellite ID
-	E_FType 			ft)				///< Frequency
-{
-	tracepdeex(4, trace, "\n%s: time=%s\n", __FUNCTION__, time.to_string(3).c_str());
-
-	/* iono-free LC */
-	Vector3d pco = antPco(Sat.id(), Sat.sys, ft, time, E_Radio::TRANSMITTER);
-	
-	VectorEcef dAnt = body2ecef(attStatus, pco);
-	
-	tracepdeex(3, trace, "\n%s %s  pco  (enu)           = %14.4f %14.4f %14.4f", time.to_string().c_str(), Sat.id().c_str(), pco[1], pco[0], pco[2]);
-	tracepdeex(3, trace, "\n%s %s  pcoEcef              = %14.4f %14.4f %14.4f", time.to_string().c_str(), Sat.id().c_str(), dAnt[0], dAnt[1], dAnt[2]);
 	
 	return dAnt;
 }

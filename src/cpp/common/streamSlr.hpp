@@ -2,6 +2,7 @@
 #pragma once
 
 #include "streamObs.hpp"
+#include "slr.hpp"
 
 /** Interface for slr streams
 */

@@ -1,0 +1,12 @@
+<ul>
+  {% for key, value in nested_dict.items() %}
+  <li><strong>{{ key }}</strong>:
+    {% if value is mapping %}
+    {% set nested_dict = value %}
+    {% include 'nested_dict.jinja'%}
+    {% else %}
+    {{ value }}
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>

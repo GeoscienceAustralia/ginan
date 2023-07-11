@@ -12,19 +12,19 @@ The Ginan team have made a series of short videos to describe Ginan and help wit
 * [Ginan Video Tutorial - Docker Install](https://www.youtube.com/watch?v=uW1DcIbZk1g&list=PL0jP_ahe-BFnChGLpQmXYpHNFiRze4DZR&index=3)
 
 #### Installation: 
-The written notes on how to download and install supporting packages and the Ginan software are detailed [here](page.html?p=readme.md)
+The written notes on how to download and install supporting packages and the Ginan software are detailed [here](page.html?c=on&p=install.index)
 
 #### Development journey: 
 Ginan is actively being developed by the team at Geoscience Australia. The features and benefits of this latest release are described in the GitHub [CHANGELOG.md](https://github.com/GeoscienceAustralia/ginan/blob/main/CHANGELOG.md)
 
 #### Using Ginan: 
-Ginan is a feature rich software application with a number of operational modes to help you achieve specific outcomes. These modes are defined by configuration files in YAML format. The Ginan team have developed a series of configuration file examples to help you understand Ginan operations. Please refer to the documents [Using the PEA](page.html?p=peaUsage.index) and [Using the POD](page.html?p=podUsage.index)
+Ginan is a feature rich software application with a number of operational modes to help you achieve specific outcomes. These modes are defined by configuration files in YAML format. The Ginan team have developed a series of configuration file examples to help you understand Ginan operations. Please refer to the documents [Using Ginan](page.html?c=on&p=ginanUsage.index) 
 
 #### Ginan science: 
-Ginan employs a number of mathematical techniques to realise the GNSS theory that delivers precise point positioning. A summary (no equations) of these techniques is given in the Ginan [Technology Review](resources/GinanTechnology20220318v01.pdf). More detail (equations) is given in the Ginan [Science Manual](page.html?p=science.index).
+Ginan employs a number of mathematical techniques to realise the GNSS theory that delivers precise point positioning. A summary (no equations) of these techniques is given in the Ginan [Technology Review](resources/GinanTechnology20220318v01.pdf). More detail (equations) is given in the Ginan [Science Manual](page.html?c=on&p=science.index).
 
 #### Collaborate: 
-Being an open source project, Geoscience Australia is keen to collaborate with organisations around the world to further develop and enhance the Ginan toolkit. One of the easiest ways to get in touch with the team is to open an [issue](https://github.com/GeoscienceAustralia/ginan/issues) in GitHub. There is a Ginan [C++ coding standard](page.html?p=codingStandard.md) if you plan on working with the source code.
+Being an open source project, Geoscience Australia is keen to collaborate with organisations around the world to further develop and enhance the Ginan toolkit. One of the easiest ways to get in touch with the team is to open an [issue](https://github.com/GeoscienceAustralia/ginan/issues) in GitHub. There is a Ginan [C++ coding standard](page.html?c=on&p=codingStandard.md) if you plan on working with the source code.
 
 #### Licence: 
 Ginan is open source and is free for anybody to use. Is is under active development and testing. It is released under an [Apache 2.0 licence](https://www.apache.org/licenses/LICENSE-2.0). Please be aware of the clauses in that licence relating to warranty and liability.

@@ -545,6 +545,19 @@ struct SinexSatYawRate
 };
 
 /*
++SATELLITE/ATTITUDE_MODE
+*SVN_ DATE_TIME_START(UTC) END(UTC)___________ ATTITUDE_MODE
+ J001 2011-02-16 10:32:00  2011-04-20 07:40:00 ON       
+*/
+struct SinexSatAttMode
+{
+	string	svn;		///< SVN
+	GEpoch	start;		///< valid from (yyyy-mm-dd hh-mm-ss)
+	GEpoch	stop;		///< valid until (yyyy-mm-dd hh-mm-ss)
+	string	attMode;	///< attitude mode
+};
+
+/*
 +TROP/DESCRIPTION
 *_________KEYWORD_____________ __VALUE(S)_______________________________________
  ELEVATION CUTOFF ANGLE                             7
@@ -640,6 +653,7 @@ struct Sinex
 	list<Sinex_satcom_t>			list_satcoms;
 	list<Sinex_satecc_t>			list_sateccs;
 	map<string, map<GTime, SinexSatYawRate,		std::greater<GTime>>>	satYawRateMap;
+	map<string, map<GTime, SinexSatAttMode,		std::greater<GTime>>>	satAttModeMap;
 
 	/* VLBI - ignored for now */
 	list<Sinex_source_id_t>		list_source_ids;
@@ -786,6 +800,11 @@ bool getSnxSatMaxYawRate(
 bool getSnxSatBlockType(
 	string	svn,
 	string&	blockType);
+
+bool getSnxSatAttMode(
+	string	svn,
+	GTime&	time, 
+	string&	attMode);
 
 extern Sinex theSinex; // the one and only sinex object.
 

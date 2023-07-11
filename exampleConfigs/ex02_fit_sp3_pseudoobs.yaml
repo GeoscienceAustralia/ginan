@@ -42,6 +42,7 @@ outputs:
 
     orbit_ics:
         output:                 true
+        directory:              icYamls
 
     metadata:
         config_description:     "ex02"
@@ -60,8 +61,8 @@ mongo:
 processing_options:
 
     epoch_control:
-        start_epoch:                2019-07-17 01:00:00
-        end_epoch:                  2019-07-19 23:00:00
+        #start_epoch:                2019-07-17 01:00:00
+        #end_epoch:                  2019-07-19 23:00:00
         epoch_interval:             300          #seconds
 
     process_modes:
@@ -109,7 +110,7 @@ processing_options:
             chi_square_test:        false       # (bool)  Enable Chi-square test
             max_filter_iterations:  5
             max_prefit_removals:    3           # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
-            sigma_threshold:        250.0000    # (float) sigma threshold
+            sigma_threshold:        4           # (float) sigma threshold
             w_test:                 false       # (bool)  Enable w-test
 
         rts:
@@ -117,10 +118,18 @@ processing_options:
 
     model_error_checking:
         deweighting:
-            deweight_factor:	        1000.0    # (float) Factor to downweight the variance of measurements with statistically detected errors
-            deweight_on_state_error:	true      # (bool) Any "state" errors cause deweighting of all measurements that reference the state
-
-
+            deweight_factor:            1000      # (float) Factor to downweight the variance of measurements with statistically detected errors
+            reject_on_state_error:      true      # (bool) Any "state" errors cause deweighting of all measurements that reference the state
+            
+        orbit_errors:
+            orbit_pos_proc_noise:           4
+            orbit_vel_proc_noise:           1
+            orbit_vel_proc_noise_trail:     1
+            orbit_vel_proc_noise_trail_tau: 900
+            
+debug:
+    pseudo_pulses: 1
+    
 estimation_parameters:
 
     satellites:
@@ -128,7 +137,7 @@ estimation_parameters:
         pseudo_sigmas:             [1]
         
         #global:
-        G02:
+        G23:
             orbit:
                 estimated:      [true]
                 sigma:          [1, 1, 1, 1000]

@@ -100,8 +100,8 @@ bool satclk(
 
 		switch (ephType)
 		{
-			case E_Source::BROADCAST:	returnValue = satClkBroadcast	(trace, time, teph,		satPos,	nav			);	break;
-// 			case E_Source::SSR:			returnValue = satClkSSR			(trace, time, teph,		satPos, nav			);	break;
+			case E_Source::SSR:			//fallthrough
+ 			case E_Source::BROADCAST:	returnValue = satClkBroadcast	(trace, time, teph,		satPos, nav			);	break;
 			case E_Source::PRECISE:		returnValue = satClkPrecise		(trace, time, 			satPos,	nav			);	break;
 			case E_Source::KALMAN:		returnValue = satClkKalman		(trace, time, 			satPos,	kfState_ptr	);	break;
 			case E_Source::REMOTE:		returnValue = satClkRemote		(trace, time, 			satPos				);	break;
@@ -215,9 +215,19 @@ bool satpos(
 		}
 
 		Vector3d dAnt = Vector3d::Zero();
-		if (acsConfig.common_sat_pco)		dAnt = satAntOff(trace, time, attStatus, satPos.Sat, j);
-		else								dAnt = satAntOff(trace, time, attStatus, satPos.Sat, nav.satNavMap[satPos.Sat].lamMap);
-
+		if (acsConfig.common_sat_pco)
+		{
+			double varDummy = 0;
+			
+			Vector3d bodyPCO	= antPco(satPos.Sat.id(), satPos.Sat.sys, j, time, varDummy, E_Radio::TRANSMITTER);
+			
+			dAnt = body2ecef(attStatus, bodyPCO);
+		}
+		else
+		{
+			dAnt = satAntOff(trace, time, attStatus, satPos.Sat, nav.satNavMap[satPos.Sat].lamMap);
+		}
+		
 		satPos.rSat += dAnt * antennaScalar;	
 	}
 	

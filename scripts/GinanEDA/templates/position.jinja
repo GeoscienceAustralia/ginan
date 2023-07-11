@@ -1,0 +1,126 @@
+{% extends 'base.jinja'%}
+
+{% block title%}
+Positions
+{% endblock %}
+
+{% block menuselection %}
+<form method="post" class="row g-5" role="form" onsubmit="return validateForm()">
+  <div class="col-lg-1">
+    <label for="type" class="form-label">Type:</label>
+    <br>
+      <select class="selectpicker form-control" name="type" id="type" data-container="body" data-live-search="true"
+        title="Select type">
+
+    {% for key_ in extra['plotType'] %}
+    {% if selection is defined and extra['plotType']|length and key_ in selection['type']%}
+    <option value="{{key_}}" SELECTED>{{key_}}</option>"
+    {%else%}
+    <option value="{{key_}}">{{key_}}</option>"
+    {%endif%}
+    {% endfor %}
+  </select>
+</div>
+<div class="col-lg-2">
+  <label for="series" class="form-label">Series:</label>
+  <br>
+  <select  multiple class="selectpicker form-control" name="series" id="series" data-container="body"
+    data-live-search="true" title="Select series" data-hide-disabled="true" data-actions-box="true"
+    data-virtual-scroll="false">
+    {% for series_ in session['list_series'] %}
+    {% if selection is defined and selection['series']|length and series_ in selection['series']%}
+    <option value="{{series_}}" SELECTED>{{series_}}</option>"
+    {%else%}
+    <option value="{{series_}}">{{series_}}</option>"
+    {%endif%}
+    {% endfor %}
+  </select>
+</div>
+
+
+<div class="col-lg-2">
+  <label for="mode" class="form-label">Mode:</label>
+  <br>
+  <select  class="selectpicker form-control" name="mode" id="mode" data-container="body"
+    data-live-search="true" title="Select series" data-hide-disabled="true" data-actions-box="true"
+    data-virtual-scroll="false">
+    {% for mode in extra['posMode'] %}
+    {% if selection is defined and selection['mode']|length and mode in selection['mode']%}
+    <option value="{{mode}}" SELECTED>{{mode}}</option>"
+    {%else%}
+    <option value="{{mode}}">{{mode}}</option>"
+    {%endif%}
+    {% endfor %}
+  </select>
+</div>
+
+<div class="col-lg-2">
+  <label for="site" class="form-label">Site:</label>
+  <br>
+  <select multiple class="selectpicker form-control" name="site" id="site" data-container="body"
+    data-live-search="true" title="Select site" data-hide-disabled="true" data-actions-box="true"
+    data-virtual-scroll="false">
+    {% for site_ in session['list_site'] %}
+    {% if selection is defined and selection['site']|length and site_ in selection['site']%}
+    <option value="{{site_}}" SELECTED>{{site_}}</option>"
+    {%else%}
+    <option value="{{site_}}">{{site_}}</option>"
+    {%endif%}
+    {% endfor %}
+  </select>
+</div>
+
+<div class="col-lg-2">
+  <label for="exclude">Exclude first (min):</label>
+  <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" 
+  {% if selection is defined and  selection['exclude'] %}value="{{ selection['exclude'] }}"{% endif %}  
+  >
+</div>
+  <input type="submit" value="PLOT">
+</form>
+{% endblock %}
+
+
+{% block scripts %}
+<script >
+function notSelectedValue(fieldId, missingField) {
+    var field = document.getElementById(fieldId);
+    var selectedIndex = field.selectedIndex;
+    console.log("selectedIndex: " + selectedIndex + " for fieldId: " + fieldId);
+    // Check if the field is a single-selection dropdown
+    if (field.getAttribute('multiple') === null) {
+      // For single-selection dropdown, check if selectedIndex is 0 or -1
+      if (selectedIndex === 0 || selectedIndex === -1) {
+        missingField.push(fieldId);
+      }
+    } else {
+      // For multiple-selection dropdown, check if selectedIndex is -1
+      if (selectedIndex === -1) {
+        missingField.push(fieldId);
+      }
+    }
+  }
+  
+  function validateForm() {
+    var missingField = []; // Array to store the empty fields
+    
+    // Check if a value is selected in each field
+    notSelectedValue('type', missingField);
+    notSelectedValue('series_base', missingField);
+    notSelectedValue('series', missingField);
+    notSelectedValue('mode', missingField);
+    notSelectedValue('site', missingField);
+    console.log(missingField)
+    if (missingField.length > 0) {
+      var errorMessage = 'Please select a value in the following fields:\n\n';
+      for (var i = 0; i < missingField.length; i++) {
+        errorMessage += '- ' + missingField[i] + '\n';
+      }
+      alert(errorMessage);
+      return false; // Prevent form submission
+    }
+
+    return true; // Allow form submission
+  }
+</script>
+{% endblock %}

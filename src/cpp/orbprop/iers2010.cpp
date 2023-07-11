@@ -24,8 +24,8 @@
 const GTime time2010	= GEpoch{2010, E_Month::JAN, 1,		0,	0,	0};
 
 void IERS2010::PMGravi(
-	GTime	time, 
-	double	ut1_utc, 
+	GTime	time, 		///< Time
+	double	ut1_utc,	///< Input ut1_utc value
 	double&	x,			///< Polar motion in the x direction (micro arc seconds)  
 	double&	y,			///< Polar mothin in the y direction (micro arc seconds) 
 	double&	ut1,		///< ut1 variation (micro seconds)
@@ -285,8 +285,8 @@ void IERS2010::solidEarthTide1(
 
 
 void IERS2010::solidEarthTide2(
-	GTime		time,
-	double		ut1_utc,
+	GTime		time,			///< Time	
+	double		ut1_utc,		///< Input ut1_utc value
 	MatrixXd&	Cnm,			///< Effect of solidEarth Tides on C coefficient
 	MatrixXd&	Snm)			///< Effect of solidEarth Tides on S coefficient
 {

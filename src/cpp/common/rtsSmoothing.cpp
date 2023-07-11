@@ -59,7 +59,7 @@ void postRTSActions(
 	
 	if (acsConfig.output_erp)
 	{
-		writeERPFromNetwork(kfState.metaDataMap[ERP_FILENAME_STR + SMOOTHED_SUFFIX], kfState);
+		writeErpFromNetwork(kfState.metaDataMap[ERP_FILENAME_STR + SMOOTHED_SUFFIX], kfState);
 	}
 
 	if (acsConfig.output_bias_sinex)
@@ -153,7 +153,7 @@ void RTS_Output(
 		{
 			default:
 			{
-				std::cout << "UNEXPECTED RTS OUTPUT TYPE";
+				BOOST_LOG_TRIVIAL(error) << "UNEXPECTED RTS OUTPUT TYPE";
 				return;
 			}		
 			
@@ -162,7 +162,7 @@ void RTS_Output(
 				bool pass = getFilterObjectFromFile(type, metaDataMap, startPos, reversedStatesFilename);
 				if (pass == false)
 				{
-					std::cout << "BAD RTS OUTPUT read";
+					BOOST_LOG_TRIVIAL(error) << "BAD RTS OUTPUT read";
 					return;
 				}
 				
@@ -175,7 +175,7 @@ void RTS_Output(
 				bool pass = getFilterObjectFromFile(type, archiveMeas, startPos, reversedStatesFilename);
 				if (pass == false)
 				{
-					std::cout << "BAD RTS OUTPUT read";
+					BOOST_LOG_TRIVIAL(error) << "BAD RTS OUTPUT read";
 					return;
 				}
 				
@@ -183,7 +183,7 @@ void RTS_Output(
 				std::ofstream ofs(filename, std::ofstream::out | std::ofstream::app);
 				if (!ofs)
 				{
-					std::cout << "BAD RTS Write to " << filename;
+					BOOST_LOG_TRIVIAL(error) << "BAD RTS Write to " << filename;
 					break;
 				}
 				
@@ -204,19 +204,22 @@ void RTS_Output(
 				
 				if (pass == false)
 				{
-					std::cout << "BAD RTS OUTPUT READ";
+					BOOST_LOG_TRIVIAL(error) << "BAD RTS OUTPUT READ";
 					return;
 				}
 				
 				archiveKF.metaDataMap = metaDataMap;
 				
-				if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
+				if (acsConfig.ambrOpts.mode != +E_ARmode::OFF)
 				{
-					KFState ARRTScopy = archiveKF;
+					std::ofstream rtsTrace(archiveKF.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
+					PPP_AR(rtsTrace,archiveKF);
 					
-					smoothdAmbigResl(ARRTScopy);
-					
-					postRTSActions(true, ARRTScopy, stationMap_ptr);
+					KFState ARRTScopy;
+					if (copyFixedKF(ARRTScopy))
+						postRTSActions(true, ARRTScopy, stationMap_ptr);
+					else
+						postRTSActions(true, archiveKF, stationMap_ptr);
 				}
 				else
 				{
@@ -274,12 +277,12 @@ KFState RTS_Process(
 
 	long int startPos = -1;
 	double lag = 0;
-    std::cout << std::endl;
+	
 	while (lag != kfState.rts_lag)
 	{
 		E_SerialObject type = getFilterTypeFromFile(startPos, inputFile);
 
-		std::cout << "Found " << type._to_string() << std::endl;
+		BOOST_LOG_TRIVIAL(debug) << "Found " << type._to_string() << std::endl;
 		
 		if (type == +E_SerialObject::NONE)
 		{
@@ -290,7 +293,7 @@ KFState RTS_Process(
 		{	
 			default:
 			{
-				std::cout << "Unknown rts type" << std::endl;
+				BOOST_LOG_TRIVIAL(error) << "Error: Unknown rts type" << std::endl;
 				break;
 			}
 			case E_SerialObject::METADATA:
@@ -298,7 +301,7 @@ KFState RTS_Process(
 				bool pass = getFilterObjectFromFile(type, smoothedKF.metaDataMap, startPos, inputFile);
 				if (pass == false)
 				{
-					std::cout << "CREASS" << std::endl;
+					BOOST_LOG_TRIVIAL(debug) << "CREASS" << std::endl;
 					return KFState();
 				}
 				
@@ -481,11 +484,11 @@ KFState RTS_Process(
 					BOOST_LOG_TRIVIAL(warning) 
 					<< "Warning: RTS failed to find solution to invert system of equations, smoothed values may be bad " << fail1 << " " << fail2;
 					
-					std::cout << std::endl << "P-det: " << kalmanMinus.P.determinant();
+					BOOST_LOG_TRIVIAL(debug) << "P-det: " << kalmanMinus.P.determinant();
 					
 					kalmanMinus.outputConditionNumber(std::cout);
 					
-					std::cout << std::endl << "P:\n" << kalmanMinus.P.format(HeavyFmt);
+					BOOST_LOG_TRIVIAL(debug)  << "P:\n" << kalmanMinus.P.format(HeavyFmt);
 					kalmanMinus.outputCorrelations(std::cout);
 					std::cout << std::endl;
 					
@@ -509,7 +512,7 @@ KFState RTS_Process(
 				}
 				else
 				{
-					std::cout << "screwy" << std::endl;
+					BOOST_LOG_TRIVIAL(error)  << "RTScrewy" << std::endl;
 				}
 				
 				smoothedKF.kfIndexMap = kalmanPlus.kfIndexMap;

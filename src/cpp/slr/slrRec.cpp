@@ -8,6 +8,8 @@
 #include "sinex.hpp"
 #include "slr.hpp"
 
+map<string, vector<string>>						slrObsFiles;
+map<string, map<GTime, shared_ptr<LObs>>>		slrSiteObsMap;
 
 /** Calculates Water Vapour pressure (hPa)(mbar) using Buck's equation
  * Ref: https://en.wikipedia.org/wiki/Arden_Buck_equation

@@ -787,7 +787,7 @@ void rotationTest()
 		Matrix3d i2tMatrix	= Matrix3d::Identity();
 	
 		//convert to terrestrial
-		ERPValues erpv = geterp(nav.erp, time);
+		ERPValues erpv = getErp(nav.erp, time);
 		eci2ecef(time, erpv, i2tMatrix);
 		
 		MjDateUt1	mjDate	(time, erpv.ut1Utc);
@@ -821,7 +821,7 @@ void longDoubleTest()
 
 #include "rtcmEncoder.hpp"
 #include "ssr.hpp"
-
+/*
 void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap)
 {
 	int			iodPos;
@@ -902,7 +902,7 @@ void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap)
 					<< "\tprec[1]: "	<< std::setw(12)	<< ssrOut.clkInput.vals[1].precClk
 										<< std::endl;
 	}
-}
+}*/
 
 void reflector()
 {
@@ -1172,7 +1172,7 @@ void debugAttitude()
 
 		// satAntAtt(obs, satOpts.antenna_boresight, satOpts.antenna_azimuth, acsConfig.model.sat_attitude.source, attStatus, true);
 
-		recAtt(rec, obs.time, acsConfig.model.rec_attitude.sources);
+		recAtt(rec, obs.time, recOpts.rec_attitude.sources);
 		attStatus = rec.attStatus;
 
 		printf("%d %8.1f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t", 
@@ -1191,6 +1191,60 @@ void debugAttitude()
 				eSun.x(), eSun.y(), eSun.z());
 
 		obs.time += interval;
+	}
+}
+
+
+void debugErp()
+{
+	ERP	erp = nav.erp;
+
+	// Output all ERP data
+	std::cout << std::endl << "EOP reading:";
+	for (auto& erpMap : erp.erpMaps)
+	{
+		std::cout << std::endl;
+		for (auto& [time, erpv] : erpMap)
+		{
+			MjDateUtc	mjd = time;
+			std::cout	<< std::setprecision( 6)	<< std::fixed
+						<< "\t"						<< time.to_string(1)
+						<< " "	<< std::setw( 8)	<< mjd.val;
+			std::cout	<< std::setprecision( 6)	<< std::fixed
+						<< " "	<< std::setw( 9)	<< erpv.xp / AS2R
+						<< " "	<< std::setw( 9)	<< erpv.yp / AS2R;
+			std::cout	<< std::setprecision( 7)	<< std::fixed
+						<< " "	<< std::setw(10)	<< erpv.ut1Utc
+						<< " "	<< std::setw(10)	<< erpv.lod
+						<< " "						<< (erpv.isPredicted ? 'P' : ' ')
+								<< std::endl;
+
+			writeErp(acsConfig.erp_filename, erpv);
+		}
+	}
+
+	MjDateUtc mjd;
+	mjd.val = 60069;
+	GTime time = mjd;
+
+	std::cout << std::endl << "EOP interpolation/extrapolation:" << std::endl;
+	for (int i = 0; i < 60; i++)
+	{
+		time += S_IN_DAY/4;
+		ERPValues erpv = getErp(erp, time);
+
+		MjDateUtc	mjd = time;
+		std::cout	<< std::setprecision( 6)	<< std::fixed
+					<< "\t"						<< time.to_string(1)
+					<< " "	<< std::setw( 8)	<< mjd.val;
+		std::cout	<< std::setprecision( 6)	<< std::fixed
+					<< " "	<< std::setw( 9)	<< erpv.xp / AS2R
+					<< " "	<< std::setw( 9)	<< erpv.yp / AS2R;
+		std::cout	<< std::setprecision( 7)	<< std::fixed
+					<< " "	<< std::setw(10)	<< erpv.ut1Utc
+					<< " "	<< std::setw(10)	<< erpv.lod
+					<< " "						<< (erpv.isPredicted ? 'P' : ' ')
+							<< std::endl;
 	}
 }
 
@@ -1274,6 +1328,9 @@ void infiniteTest()
 
 void doDebugs()
 {
+	// debugErp();
+	// exit(0);;
+
 // 	infiniteTest();
 // 	exit(0);
 }

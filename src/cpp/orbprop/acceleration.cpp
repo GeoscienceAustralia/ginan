@@ -76,7 +76,7 @@ void Legendre::calculate(double x)
 Vector3d accelCentralForce(
 	const	Vector3d	observer, 		///< position of the oberserver 
 	const	double		GM,				///< value of GM of the acting force
-			Matrix3d*	dAdPos_ptr)
+			Matrix3d*	dAdPos_ptr)		///< Optional pointer to differential matrix
 {
 	Vector3d acc = -1 * GM * observer.normalized() / observer.squaredNorm();
 	
@@ -94,7 +94,7 @@ Vector3d accelSourcePoint(
 	const	Vector3d	sat,		///< Vector posiiong of the satellite w.r.t to the orbiting body
 	const	Vector3d	planet, 	///< Vector position of the planet w.r.t to the orbiting body
 	const	double		GM,			///< Constant GM of the acting body
-			Matrix3d*	dAdPos_ptr)
+			Matrix3d*	dAdPos_ptr)	///< Optional pointer to differential matrix
 {
 	Vector3d relativePosition = planet - sat;
 	Vector3d acc_sat 	= accelCentralForce(relativePosition,	GM, dAdPos_ptr);
@@ -104,13 +104,13 @@ Vector3d accelSourcePoint(
 }
 
 /** "The indirect J2 effect".
- *  @ref GOCE standards GO-TN-HPF-GS-0111
+ *  ref: GOCE standards GO-TN-HPF-GS-0111
  */
 Vector3d accelJ2(
 	const	double		C20, 			///< Value of the C20 
 	const	Matrix3d	eci2ecf,  		///< Rotation inertial to terestrila 
 			Vector3d	bodyPos,		///< Position of the planets 
-			double		GM)
+			double		GM)				///< Value of GM constant of the body in question
 {
 	Vector3d pos_ecef = eci2ecf * bodyPos;
 	
@@ -134,7 +134,7 @@ Vector3d accelSPH(
 	const MatrixXd	C, 			///< Matrix of the "C" spherical harmonic coefficient
 	const MatrixXd	S,			///< Matrix of the "S" spherical harmonic coefficient
 	const int		max_deg, 	///< Maximum degree use for the summation of the harmonics
-	const double	GM)			///< Value of GM of the body in question. 
+	const double	GM)			///< Value of GM constant of the body in question. 
 {
 	double R		= r.norm();
 	double sin_lat	= r.z() / R; // Is Cos colat too.

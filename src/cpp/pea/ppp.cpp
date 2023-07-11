@@ -190,8 +190,12 @@ void corr_meas(
 	
 	if (oldSchool)
 	{
-		sig.P_corr_m += - dAntSat - dAntRec - sig.biases[CODE];
-		sig.L_corr_m += - dAntSat - dAntRec - sig.biases[PHAS] - phw * lam;
+		sig.P_corr_m += - dAntSat - dAntRec;
+		sig.L_corr_m += - dAntSat - dAntRec;
+		
+		if (pass)				sig.P_corr_m += - sig.biases[CODE];
+		if (sig.phaseBias)		sig.L_corr_m += - sig.biases[PHAS] - phw * lam;
+		
 	}
 }
 
@@ -478,7 +482,8 @@ void pppCorrections(
 			auto& sigStat = satStat.sigStatMap[ft2string(ft)];
 		
 			/* receiver pco correction to the coordinates */
-			Vector3d pcoEnu	= antPco(rec.antennaId, obs.Sat.sys, ft, time, E_Radio::RECEIVER, acsConfig.interpolate_rec_pco);
+			double varDummy = 0;
+			Vector3d pcoEnu	= antPco(rec.antennaId, obs.Sat.sys, ft, time, varDummy, E_Radio::RECEIVER, acsConfig.interpolate_rec_pco);
 			
 			Vector3d dr2	= antenna2ecef(rec.attStatus, pcoEnu);
 
@@ -585,14 +590,21 @@ void outputApriori(
 	
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
-		KFKey kfKey;
-		kfKey.Sat	= Sat;
-		kfKey.type	= KF::SAT_CLOCK;
-			
-		if (acsConfig.process_sys[kfKey.Sat.sys] == false)
+		if (acsConfig.process_sys[Sat.sys] == false)
 		{
 			continue;
 		}
+			
+		auto& satOpts = acsConfig.getSatOpts(Sat);
+			
+		if (satOpts.exclude)
+		{
+			continue;
+		}
+		
+		KFKey kfKey;
+		kfKey.Sat	= Sat;
+		kfKey.type	= KF::SAT_CLOCK;
 		
 		double dtSat = 0;
 		int ret = pephclk(std::cout, tsync, kfKey.Sat.id(), nav, dtSat);
@@ -614,7 +626,7 @@ void outputApriori(
 	
 	aprioriState.stateTransition(nullStream, tsync);
 	
-	mongoStates(aprioriState, "apriori");
+	mongoStates(aprioriState, "_apriori");
 	storeStates(aprioriState, "apriori");
 }
 
@@ -625,6 +637,11 @@ void outputPPPSolution(
 	Station&	rec)
 {
 	VectorEcef&	snxPos		= rec.snx.pos;
+	
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
+	if (recOpts.apriori_pos.isZero() == false)
+		snxPos	= recOpts.apriori_pos;
+	
 	VectorEcef&	estPos		= rec.sol.pppRRec;
 	VectorEcef	diffEcef	= snxPos - estPos;
 	
@@ -699,372 +716,6 @@ void selectAprioriSource(
 		BOOST_LOG_TRIVIAL(warning)
 		<< "Warning: Apriori for " << rec.id << " is " << distance << "m from SPP estimate";
 	}
-}
-
-/** Deweight worst measurement
- */
-bool deweightMeas(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index)
-{
-	if (acsConfig.deweight_factor == 0)
-	{
-		return true;
-	}
-	
-	trace << std::endl << "Deweighting " << kfMeas.obsKeys[index] << std::endl;
-
-	kfState.statisticsMap["Meas deweight"]++;
-
-	kfMeas.R.row(index) *= acsConfig.deweight_factor;
-	kfMeas.R.col(index) *= acsConfig.deweight_factor;
-	
-	return true;
-}
-
-/** Deweight measurement and its relatives
- */
-bool deweightStationMeas(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index)
-{
-	string id = kfMeas.obsKeys[index].str;
-	
-	for (int i = 0; i < kfMeas.obsKeys.size(); i++)
-	{
-		auto& obsKey = kfMeas.obsKeys[i];
-		
-		if (obsKey.str != id)
-		{
-			continue;
-		}
-		
-		trace << std::endl << "Deweighting " << kfMeas.obsKeys[i] << std::endl;
-
-		kfState.statisticsMap["Station deweight"]++;
-
-		kfMeas.R.row(i) *= acsConfig.deweight_factor;
-		kfMeas.R.col(i) *= acsConfig.deweight_factor;
-		
-		map<string, void*>& metaDataMap = kfMeas.metaDataMaps[i];
-
-		bool* used_ptr = (bool*) metaDataMap["used_ptr"];
-		
-		if (used_ptr)
-		{
-			*used_ptr = false;	
-		}
-	}
-	return true;
-}
-
-/** Count worst measurement
- */
-bool incrementPhaseSignalError(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index)
-{
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
-
-	unsigned int* PhaseRejectCount_ptr = (unsigned int*) metaDataMap["phaseRejectCount"];
-
-	if (PhaseRejectCount_ptr == nullptr)
-	{
-		return true;
-	}
-
-	unsigned int&	phaseRejectCount	= *PhaseRejectCount_ptr;
-
-	//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
-	phaseRejectCount++;
-	metaDataMap["phaseRejectCount"] = nullptr;
-	
-	trace << std::endl << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
-	
-	return true;
-}
-
-bool countSignalErrors(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index)
-{
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
-
-	GObs* obs_ptr = (GObs*) metaDataMap["obs_ptr"];
-
-	if (obs_ptr == nullptr)
-	{
-		return true;
-	}
-
-	KFKey&		obsKey	= kfMeas.obsKeys[index];
-	GObs&		obs		= *obs_ptr;
-
-	if (obsKey.type == KF::PHAS_MEAS)
-	{
-		//this is a phase observation
-		obs.Sigs[(E_FType)obsKey.num].phaseError = true;
-	}
-
-	return true;
-}
-
-
-bool resetPhaseSignalError(
-	KFMeas&		kfMeas,
-	int			index)
-{
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
-
-	//these will have been set to null if there was an error after adding the measurement to the list
-	for (auto suffix : {"", "_alt"})
-	{
-		unsigned int* phaseRejectCount_ptr = (unsigned int*) metaDataMap[(string)"phaseRejectCount" + suffix];
-
-		if (phaseRejectCount_ptr == nullptr)
-		{
-			return true;
-		}
-
-		unsigned int&	phaseRejectCount	= *phaseRejectCount_ptr;
-
-		phaseRejectCount = 0;
-	}
-	
-	return true;
-}
-
-
-bool resetPhaseSignalOutage(
-	KFMeas&		kfMeas,
-	int			index)
-{
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
-
-	for (auto suffix : {"", "_alt"})
-	{
-		unsigned int* phaseOutageCount_ptr = (unsigned int*) metaDataMap[(string)"phaseOutageCount" + suffix];
-
-		if (phaseOutageCount_ptr == nullptr)
-		{
-			return true;
-		}
-
-		unsigned int&	phaseOutageCount	= *phaseOutageCount_ptr;
-		
-		phaseOutageCount = 0;
-	}
-	
-	return true;
-}
-
-/** Deweight measurements attached to worst state
- */
-bool deweightByState(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	KFKey&		kfKey)
-{
-	if (acsConfig.deweight_on_state_error == false)
-	{
-		return true;
-	}
-	
-	trace << std::endl << "Bad state detected " << kfKey << " - deweighting all referencing measurements" << std::endl;
-
-	kfState.statisticsMap["State deweight"]++;
-	
-	int stateIndex = kfState.getKFIndex(kfKey);
-	
-	for (int meas = 0; meas < kfMeas.H.rows(); meas++)
-	{
-		if (kfMeas.H(meas, stateIndex))
-		{
-			trace << "- Deweighting " << kfMeas.obsKeys[meas] << std::endl;
-			
-			kfMeas.R.row(meas) *= acsConfig.deweight_factor;
-			kfMeas.R.col(meas) *= acsConfig.deweight_factor;
-		}
-	}
-	
-	return true;
-}
-
-/** Remove any states connected to a bad clock if it glitches
- */
-bool clockGlitchReaction(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	KFKey&		kfKey)
-{
-	if	(  kfKey.type != KF::SAT_CLOCK
-		&& kfKey.type != KF::REC_SYS_BIAS)
-	{
-		return true;
-	}
-	
-	if (acsConfig.reinit_on_clock_error == false)
-	{
-		return true;
-	}
-	
-	trace << std::endl << "Bad clock detected " << kfKey << " - resetting linked states" << std::endl;
-
-	kfState.statisticsMap["Clock glitch"]++;
-	
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if	(  kfKey.type	== KF::SAT_CLOCK
-			&& kfKey.Sat	== key.Sat
-			&&( key	.type	== KF::AMBIGUITY
-			  ||key	.type	== KF::SAT_CLOCK))
-		{
-			//remove the satellite clock, and any ambiguities that are connected to it.
-			trace << "- Removing " << key << std::endl;
-			
-			kfState.removeState(key);
-		}
-		
-		if	(  kfKey.type	== KF::REC_SYS_BIAS
-			&& kfKey.str	== key.str
-			&&( key	.type	== KF::AMBIGUITY
-			  ||key	.type	== KF::REC_SYS_BIAS))
-		{
-			//remove the satellite clock, and any ambiguities that are connected to it.
-			trace << "- Removing " << key << std::endl;
-			
-			kfState.removeState(key);
-			
-			if (kfKey.rec_ptr)
-			{
-				//make sure receiver clock corrections get reset too.
-				trace << "- Resetting clock adjustment" << std::endl;
-				
-				auto& rec = *kfKey.rec_ptr;
-				
-				rec.sol.deltaDt_net_old[E_Sys::GPS] = 0;
-			}
-		}
-	}
-	
-	return true;
-}
-
-
-extern map<SatSys, double> expNoiseMap;
-
-bool orbitGlitchReaction(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	KFKey&		kfKey)
-{
-	if	( kfKey.type != KF::ORBIT)
-	{
-		return true;
-	}
-	
-	if	(  acsConfig.orbit_vel_proc_noise_trail	== 0
-		&& acsConfig.orbit_pos_proc_noise		== 0
-		&& acsConfig.orbit_vel_proc_noise		== 0)
-	{
-		return true;
-	}
-	
-	trace << std::endl << "Bad orbit state detected " << kfKey << " - adding process noise" << std::endl;
-
-	kfState.statisticsMap["Orbit deweight"]++;
-	
-	expNoiseMap[kfKey.Sat] = SQR(acsConfig.orbit_vel_proc_noise_trail);
-	
-	MatrixXd F = MatrixXd::Identity	(kfState.x.rows(), kfState.x.rows());
-	MatrixXd Q = MatrixXd::Zero		(kfState.x.rows(), kfState.x.rows());
-	
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if	(  key.type	== KF::ORBIT
-			&& key.str	== kfKey.str
-			&& key.Sat	== kfKey.Sat
-			&& key.num	<  3)
-		{
-			Q(index, index) = SQR(acsConfig.orbit_pos_proc_noise);
-		}
-		
-		if	(  key.type	== KF::SAT_POS_RATE
-			&& key.str	== kfKey.str
-			&& key.Sat	== kfKey.Sat
-			&& key.num	>= 3)
-		{
-			Q(index, index) = SQR(acsConfig.orbit_vel_proc_noise);
-		}
-	}
-	
-	kfState.manualStateTransition(trace, kfState.time, F, Q);
-	
-	return false;
-}
-
-bool orbitMeasReaction(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index)
-{
-	KFKey&		obsKey	= kfMeas.obsKeys[index];
-
-	if	( obsKey.type != KF::ORBIT)
-	{
-		return true;
-	}
-	
-	if	(  acsConfig.orbit_vel_proc_noise_trail	== 0
-		&& acsConfig.orbit_pos_proc_noise		== 0
-		&& acsConfig.orbit_vel_proc_noise		== 0)
-	{
-		return true;
-	}
-	
-	trace << std::endl << "Bad orbit measurement detected " << obsKey << " - adding process noise" << std::endl;
-
-	kfState.statisticsMap["Orbit meas reaction"]++;
-	
-	expNoiseMap[obsKey.Sat] = SQR(acsConfig.orbit_vel_proc_noise_trail);
-	
-	MatrixXd F = MatrixXd::Identity	(kfState.x.rows(), kfState.x.rows());
-	MatrixXd Q = MatrixXd::Zero		(kfState.x.rows(), kfState.x.rows());
-	
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if	(  key.type	== KF::ORBIT
-			&& key.str	== obsKey.str
-			&& key.Sat	== obsKey.Sat
-			&& key.num	<  3)
-		{
-			Q(index, index) = SQR(acsConfig.orbit_pos_proc_noise);
-		}
-		
-		if	(  key.type	== KF::ORBIT
-			&& key.str	== obsKey.str
-			&& key.Sat	== obsKey.Sat
-			&& key.num	>= 3)
-		{
-			Q(index, index) = SQR(acsConfig.orbit_vel_proc_noise);
-		}
-	}
-	
-	kfState.manualStateTransition(trace, kfState.time, F, Q);
-	
-	return false;
 }
 
 string ft2string(

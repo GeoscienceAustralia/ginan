@@ -148,8 +148,8 @@ int arionout(
 			if	(!kfState.getKFValue(key,val,&var)) 
 				continue;
 			
-			obs.STECsmth = val;
-			obs.STECsmvr = var;
+			obs.stecVal	= val;
+			obs.stecVar	= var;
 			obs.STECtype = 2;
 			nion++;
 		}
@@ -207,8 +207,8 @@ int arionout(
 			double s2 = SQR(c2);
 			double s3 = SQR(c3);
 			
-			obs.STECsmth = c1*(L1-L2) + c2*(wlamb + wlbias) + c3*val;
-			obs.STECsmvr = s1*(V2+V1) + s2*(        wlvari) + s3*val;
+			obs.stecVal = c1*(L1-L2) + c2*(wlamb + wlbias) + c3*val;
+			obs.stecVar = s1*(V2+V1) + s2*(        wlvari) + s3*val;
 			obs.STECtype = 2;
 			nion++;
 		}

@@ -74,8 +74,8 @@ std::ofstream getTraceFile(
 }
 
 void printHex(
-	Trace&			trace,
-	vector<char>	chunk);
+	Trace&					trace,
+	vector<unsigned char>&	chunk);
 
 void tracelevel(int level);
 void traceFormatedFloat(Trace& trace, double val, string formatStr);

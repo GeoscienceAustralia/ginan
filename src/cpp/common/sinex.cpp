@@ -3034,6 +3034,31 @@ void parseSinexSatYawRates(string& line)
 	}
 }
 
+void parseSinexSatAttMode(string& line)
+{
+	SinexSatAttMode entry;
+	entry.svn			= line.substr(1, 4);
+	int readCount = sscanf(line.c_str() + 6, "%4lf-%2lf-%2lf %2lf:%2lf:%2lf  %4lf-%2lf-%2lf %2lf:%2lf:%2lf ",
+						&entry.start[0],
+						&entry.start[1],
+						&entry.start[2],
+						&entry.start[3],
+						&entry.start[4],
+						&entry.start[5],
+						&entry.stop[0],
+						&entry.stop[1],
+						&entry.stop[2],
+						&entry.stop[3],
+						&entry.stop[4],
+						&entry.stop[5]);
+	entry.attMode = line.substr(47);
+
+	if (readCount == 12)
+	{
+		theSinex.satAttModeMap[entry.svn][entry.start] = entry;
+	}
+}
+
 void nullFunction(string& s)
 {
 	
@@ -3151,6 +3176,7 @@ int readSinex(
 			else if	(line == "+SATELLITE/PHASE_CENTER"			)	{ parseFunction = parse_snx_satellitePhaseCenters;	}
 			else if	(line == "+SATELLITE/ID"					)	{ parseFunction = parse_snx_satelliteIds;			}
 			else if	(line == "+SATELLITE/YAW_BIAS_RATE"			)	{ parseFunction = parseSinexSatYawRates;			}
+			else if	(line == "+SATELLITE/ATTITUDE_MODE"			)	{ parseFunction = parseSinexSatAttMode;				}
 			else
 			{
 				BOOST_LOG_TRIVIAL(error)
@@ -3931,3 +3957,26 @@ bool getSnxSatBlockType(
 	return true;
 }
 
+/** Get attitude mode for sat
+ */
+bool getSnxSatAttMode(
+	string	svn,
+	GTime&	time, 
+	string&	attMode)
+{
+	auto itr = theSinex.satAttModeMap[svn].lower_bound(time);
+	if (itr == theSinex.satAttModeMap[svn].end())
+		return false;
+
+	auto& [dummy, entry] = *itr;
+	attMode = entry.attMode;
+	GTime stop = entry.stop;
+
+	if	( stop != GTime::noTime()
+		&&stop < time)
+	{
+		return false;
+	}
+
+	return true;
+}

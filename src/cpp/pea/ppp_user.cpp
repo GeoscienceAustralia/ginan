@@ -372,7 +372,7 @@ E_Solution ppp_filter(
 	
 	pos = ecef2pos(x0);
 
-	recAtt(rec, obsTime, acsConfig.model.rec_attitude.sources);
+	recAtt(rec, obsTime, recOpts.rec_attitude.sources);
 	
 	Vector3d recAntVector = body2ecef(rec.attStatus, rec.antDelta);
 
@@ -705,32 +705,32 @@ E_Solution ppp_filter(
 
 			if (acsConfig.model.range)					codeComputed += sig.Range;
 			if (acsConfig.model.sagnac)					codeComputed += sagnac(obs.rSat, rRec);
-			if (acsConfig.model.rec_pco)				codeComputed -= sigStat.recPco;
-			if (acsConfig.model.rec_clock.enable)		codeComputed += C_dtRec;
-			if (acsConfig.model.sat_clock.enable)		codeComputed -= C_dtSat;
+			if (recOpts.rec_pco)						codeComputed -= sigStat.recPco;
+			if (recOpts.rec_clock.enable)				codeComputed += C_dtRec;
+			if (satOpts.sat_clock.enable)				codeComputed -= C_dtSat;
 			if (acsConfig.model.trop.enable)			codeComputed += dTrop;
 			if (acsConfig.model.ionospheric_component)	codeComputed += dIono * ionC;
 			if (0)										codeComputed += dcb;
-			if (acsConfig.model.sat_code_bias)			codeComputed += sig.biases[CODE];
-			if (acsConfig.model.rec_pcv)				codeComputed += sigStat.recPcv;
-			if (acsConfig.model.sat_pcv)				codeComputed += sigStat.satPcv;
-			if (acsConfig.model.rec_ant_delta)			codeComputed += recAntDelta;
+			if (satOpts.sat_code_bias.enable)			codeComputed += sig.biases[CODE];
+			if (recOpts.rec_pcv)						codeComputed += sigStat.recPcv;
+			if (satOpts.sat_pcv)						codeComputed += sigStat.satPcv;
+			if (recOpts.rec_ant_delta)					codeComputed += recAntDelta;
 
 			double phasComputed = 0;
 			
 			if (acsConfig.model.range)					phasComputed += sig.Range;
 			if (acsConfig.model.sagnac)					phasComputed += sagnac(obs.rSat, rRec);
-			if (acsConfig.model.rec_pco)				phasComputed -= sigStat.recPco;
-			if (acsConfig.model.rec_clock.enable)		phasComputed += C_dtRec;
-			if (acsConfig.model.sat_clock.enable)		phasComputed -= C_dtSat;
+			if (recOpts.rec_pco)						phasComputed -= sigStat.recPco;
+			if (recOpts.rec_clock.enable)				phasComputed += C_dtRec;
+			if (satOpts.sat_clock.enable)				phasComputed -= C_dtSat;
 			if (acsConfig.model.trop.enable)			phasComputed += dTrop;
 			if (acsConfig.model.ionospheric_component)	phasComputed -= dIono * ionC;
 			if (acsConfig.model.integer_ambiguity)		phasComputed += phaseBias;		
-			if (acsConfig.model.sat_phase_bias)			phasComputed += sig.biases[PHAS];
-			if (acsConfig.model.sat_pcv)				phasComputed += sigStat.satPcv;
-			if (acsConfig.model.rec_pcv)				phasComputed += sigStat.recPcv;
+			if (satOpts.sat_phase_bias.enable)			phasComputed += sig.biases[PHAS];
+			if (satOpts.sat_pcv)						phasComputed += sigStat.satPcv;
+			if (recOpts.rec_pcv)						phasComputed += sigStat.recPcv;
 			if (acsConfig.model.phase_windup)			phasComputed += satStat.phw * sigStat.lambda;
-			if (acsConfig.model.rec_ant_delta)			phasComputed += recAntDelta;
+			if (recOpts.rec_ant_delta)					phasComputed += recAntDelta;
 
 			double codeInnov	= codeMeasured - codeComputed;
 			double phasInnov	= phasMeasured - phasComputed;
@@ -1041,8 +1041,12 @@ void pppos(
 
 	// satellite positions and clocks
 	for (auto& obs : only<GObs>(obsList))
-		satPosClk(trace, obsList.front()->time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
-
+	{
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		
+		satPosClk(trace, obsList.front()->time, obs, nav, satOpts.sat_pos.ephemeris_sources, satOpts.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
+	}
+	
 	auto& pos = rec.pos;
 	
 	pos = ecef2pos(rec.sol.sppRRec);

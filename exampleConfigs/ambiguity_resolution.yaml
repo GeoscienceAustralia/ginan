@@ -1,0 +1,17 @@
+# Activates ambiguity resolution in Ginan processing. 
+# Warning: The lambda_bie is NOT recommended for network processing use the bootst option instead
+
+processing_options:
+    gnss_general:
+        sys_options:
+            gps:
+                ambiguity_resolution:   true
+            gal:
+                ambiguity_resolution:   true
+                
+    ambiguity_resolution:
+        elevation_mask:                 15
+        lambda_set_size:                200
+        mode:                           lambda_bie
+        success_rate_threshold:         0.99
+        solution_ratio_threshold:       30

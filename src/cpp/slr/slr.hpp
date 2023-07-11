@@ -54,7 +54,6 @@ void applyBiases(
 
 void satPossSlr(
 	Trace&				trace,				///< Trace to output to
-	GTime				teph,				///< time to select ephemeris (gpst)
 	ObsList&			slrObsList,			///< List of observations to complete with satellite positions
 	Navigation&			nav,				///< Navigation data
 	vector<E_Source>	ephTypes,			///< Source of ephemeris data
@@ -62,4 +61,20 @@ void satPossSlr(
 	E_Relativity		applyRelativity,	///< Option to apply relativistic correction to clock
 	const KFState*		kfState_ptr);		///< Optional pointer to a kalman filter to take values from
 
-extern SphericalComMap sphericalComMap;
+extern map<string, map<GTime, shared_ptr<LObs>>> slrSiteObsMap;
+
+void readCrd(
+	string filepath);
+
+void outputSortedSlrObsPerRec(
+	string		filepath,
+	ObsList&	slrObsList);
+
+map<string, vector<string>> outputSortedSlrObs();
+
+int readSlrObs(
+	std::istream&	inputStream,
+	ObsList&		slrObsList);
+
+extern map<string, vector<string>>	slrObsFiles;
+extern SphericalComMap				sphericalComMap;

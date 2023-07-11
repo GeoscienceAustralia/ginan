@@ -79,8 +79,6 @@ void decodeObsH(
 	const char *p;
 	char* buff	= &line[0];
 	char* label	= buff + 60;
-
-	auto& recOpts = acsConfig.getRecOpts(rec->id);
 	
 //	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": ver=" << ver;
 
@@ -255,6 +253,9 @@ void decodeObsH(
 				//save the type char before cleaning the string
 				char typeChar = obsCode2str[0];
 				
+
+				auto& recOpts = acsConfig.getRecOpts(rec->id);	//todo aaron, this rec isnt the proper one and id isnt initialised
+				
 				for (E_Sys sys : E_Sys::_values())
 				{
 					map<E_ObsCode2, E_ObsCode>* conversionMap_ptr;
@@ -272,11 +273,18 @@ void decodeObsH(
 					auto& conversionMap = *conversionMap_ptr;
 					
 					CodeType codeType;
-					E_ObsCode2	obsCode2	= E_ObsCode2::_from_string(obsCode2str);
-					E_ObsCode	obsCode		= conversionMap[obsCode2];
 					
-					codeType.code = obsCode;
-					codeType.type = typeChar;
+					try
+					{
+						E_ObsCode2	obsCode2	= E_ObsCode2::_from_string(obsCode2str);
+						E_ObsCode	obsCode		= conversionMap[obsCode2];
+						codeType.code = obsCode;
+						codeType.type = typeChar;
+					}
+					catch (...)
+					{
+						BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown code in rinex file: " << obsCode2str;
+					}
 					
 					sysCodeTypes[sys][i] = codeType;
 				}
@@ -1714,7 +1722,6 @@ int readRnxNav(
 	E_Sys			sys,			///< Satellite system
 	Navigation&		nav)			///< Navigation object
 {
-
 // 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": ver=" << ver << " sys=" << sys;
 
 	// read rinex navigation data body
@@ -1752,6 +1759,27 @@ int readRnxNav(
 				default: continue;
 			}
 		}
+	}
+
+	for (auto& [sys,	eopSysMap]	: nav.eopMap)
+	for (auto& [type,	eopList]	: eopSysMap)
+	{
+		map<GTime, ERPValues> erpMap;
+
+		for (auto& [time,	eop]	: eopList)
+		{
+			ERPValues erpv;
+			erpv.time	= eop.teop;
+			erpv.xp		= eop.xp;
+			erpv.yp		= eop.yp;
+			erpv.ut1Utc	= eop.dut1;
+			erpv.xpr	= eop.xpr;
+			erpv.ypr	= eop.ypr;
+			erpMap[erpv.time] = erpv;
+		}
+
+		if (!erpMap.empty())
+			nav.erp.erpMaps.push_back(erpMap);
 	}
 
 	return	( nav. ephMap.empty() == false

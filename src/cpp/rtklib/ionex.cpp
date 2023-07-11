@@ -575,14 +575,14 @@ int interpTec(
 /** ionosphere delay by tec grid data 
  */
 bool ionDelay(
-	GTime				time, 
-	const tec_t&		tec,
-	const VectorPos&	pos, 
-	const double*		azel,
+	GTime				time,	///< Time
+	const tec_t&		tec,	///< Input electron content data
+	const VectorPos&	pos,	///< Position of receiver
+	const double*		azel,	///< Azimuth and elevation of signal path
 	E_IonoMapFn			mapFn,	///< model of mapping function
 	E_IonoFrame			frame,	///< reference frame
-	double&				delay,
-	double&				var)
+	double&				delay,	///< Delay in meters
+	double&				var)	///< Variance
 {
 	// if (fdebug)
 	// 	fprintf(fdebug, "%s: time=%s pos=%.1f %.1f azel=%.1f %.1f\n", __FUNCTION__, time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D);

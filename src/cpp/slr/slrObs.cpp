@@ -14,16 +14,16 @@
 #include "constants.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
+#include "slr.hpp"
 
-using std::string;
-using std::cout;
-using std::endl;
 using std::ofstream;
+using std::string;
+using std::endl;
 
 using namespace boost::algorithm;
 
 constexpr int MIN_LINE_LEN_SATID	= 106;
-constexpr int MIN_LINE_LEN_SLROBS	= 172;
+constexpr int MIN_LINE_LEN_SLROBS	= 162;
 
 /** Read sat ID file
 */
@@ -33,12 +33,12 @@ void readSatId(
 	std::ifstream satIdFile(filepath);
 	if (!satIdFile)
 	{
-		cout << "Warning: could not read in satellite ID file " << filepath << endl;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: could not read in satellite ID file " << filepath;
 		return;
 	}
 
-	std::string line;
-	while(std::getline(satIdFile, line))
+	string line;
+	while (std::getline(satIdFile, line))
 	{
 		if	( line.size() < MIN_LINE_LEN_SATID
 			||line.at(0) == '#')
@@ -73,7 +73,7 @@ vector<CrdSession> readCrdFile(
 	char str[512];
 	FILE *str_in;
 
-	if ((str_in = fopen(filepath.c_str(), "r")) == nullptr)
+	if ((str_in = fopen(filepath.c_str(), "r")) == nullptr)		//todo aaron ew.
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Error: could not open file " << filepath;
@@ -161,8 +161,10 @@ string ilrsIdToCosparId(
 	double year = YY;
 	nearestYear(year);
 	int YYYY = (int)year;
+	
 	if (AA > 26)
 		BOOST_LOG_TRIVIAL(error) << "Error converting IlrsId to CosparId - AA = " << AA;
+	
 	char A = 'A' + AA - 1;
 	string XXXStr = std::to_string(XXX);
 	string XXXStrZeroPad = string(3 - XXXStr.length(), '0') + XXXStr;
@@ -244,7 +246,6 @@ void readCrd(
 
 		obsHeader.satName	= to_lower_copy((string)	crdSession.h3.target_name);	
 		obsHeader.ilrsId	=							crdSession.h3.ilrs_id;
-		obsHeader.noradId	=							crdSession.h3.norad;
 		obsHeader.cosparId		= ilrsIdToCosparId	(obsHeader.ilrsId);
 		obsHeader.Sat			= ilrsIdToSatSys	(obsHeader.ilrsId);
 		obsHeader.wavelength	= crdSession.c0.xmit_wavelength;
@@ -256,8 +257,8 @@ void readCrd(
 			||crdSession.h4.SC_sysdelay_app_ind		!= false
 			||crdSession.h4.range_type_ind			!= E_SlrRangeType::TWO_WAY)
 		{
-			BOOST_LOG_TRIVIAL(warning)
-			<< "Warning: unexpected H4 flags!";
+			BOOST_LOG_TRIVIAL(warning) << "Warning: unexpected H4 flags!";
+			
 			obsHeader.excludeBadFlags = true;
 		}
 		
@@ -349,21 +350,20 @@ void	outputSortedSlrObsPerRec(
 	ofstream 	filestream(filepath);
 	if (!filestream)
 		return;
-	filestream << "      Date       Time  Site_ID  CPD_ID   BigTime                    Sat_Name     ILRS_ID  NORAD_ID  PRN  2-Way_Measurement      Pressure  Temperature  Humidity  Wave_Length" << endl;
-	filestream << "                                         [s (GPS)]                                                                     [s]  [hPa (mbar)]          [K]       [%]         [nm]" << endl;
+	filestream << "      Date       Time  Site_ID  CPD_ID   BigTime                    Sat_Name     ILRS_ID  PRN  2-Way_Measurement      Pressure  Temperature  Humidity  Wave_Length" << endl;
+	filestream << "                                         [s (GPS)]                                                           [s]  [hPa (mbar)]          [K]       [%]         [nm]" << endl;
 
 	for (auto& [time, slrObs_ptr] : obsMap)
 	{
 		auto& obs = *slrObs_ptr;
 		
-		tracepdeex(0, filestream, "%s  %-7s %7d %27.12lf  %-11s %8d %9d %4s %18.12f %13.2f %12.2f %9.1f %12.3f\n",
+		tracepdeex(0, filestream, "%s  %-7s %7d %27.12lf  %-11s %8d %4s %18.12f %13.2f %12.2f %9.1f %12.3f\n",
 			obs.timeTx.to_string(1),
 			obs.recName,
 			obs.recCdpId,
 			obs.timeTx.bigTime,
 			obs.satName,
 			obs.ilrsId,
-			obs.noradId,
 			obs.Sat.id().c_str(),
 			obs.twoWayTimeOfFlight,
 			obs.pressure,
@@ -375,15 +375,19 @@ void	outputSortedSlrObsPerRec(
 
 /** Outputs a tabular file with SLR observations in time-order
 */
-vector<string> outputSortedSlrObs()
+map<string, vector<string>> outputSortedSlrObs()
 {
-	vector<string> slrObsFiles;
+	map<string, vector<string>> slrObsFiles;
+	
 	for (auto& [recId, slrObsList] : slrSiteObsMap)
 	{
-		string	filename	= acsConfig.slr_obs_filename;
-		replaceString(filename, "<STATION>", recId);		//todo aaron
+		string filename	= acsConfig.slr_obs_filename;
+		
+		replaceString(filename, "<STATION>", recId);
+		
 		outputSortedSlrObsPerRec(filename, slrObsList);
-		slrObsFiles.push_back(filename);
+		
+		slrObsFiles[recId].push_back(filename);
 	}
 	
 	return slrObsFiles;
@@ -405,6 +409,7 @@ int readSlrObs(
 	}
 
 	std::getline(inputStream, line);
+	
 	if (line.empty())
 		return 0;
 	
@@ -416,17 +421,16 @@ int readSlrObs(
 	}
 
 	LObs obs;
-	obs.recName				= 		line.substr( 23, 4);
-	obs.recCdpId			= stoi(	line.substr( 31, 7));
-	obs.timeTx.bigTime		= stod(	line.substr( 39,27));
-	obs.satName				= 		line.substr( 68,11);
-	obs.ilrsId				= stoi(	line.substr( 80, 8));
-	obs.noradId				= stoi(	line.substr( 89, 9));
-	obs.twoWayTimeOfFlight	= stod(	line.substr(104,18));
-	obs.pressure			= stod(	line.substr(123,13));
-	obs.temperature			= stod(	line.substr(137,12));
-	obs.humidity			= stod(	line.substr(150, 9)) / 100;
-	obs.wavelength			= stod(	line.substr(160,12));
+	obs.recName				= 		line.substr(23,		4);
+	obs.recCdpId			= stoi(	line.substr(31,		7));
+	obs.timeTx.bigTime		= stod(	line.substr(39,		27));
+	obs.satName				= 		line.substr(68,		11);
+	obs.ilrsId				= stoi(	line.substr(80,		8));
+	obs.twoWayTimeOfFlight	= stod(	line.substr(94,		18));
+	obs.pressure			= stod(	line.substr(113,	13));
+	obs.temperature			= stod(	line.substr(127,	12));
+	obs.humidity			= stod(	line.substr(140,	9)) / 100;
+	obs.wavelength			= stod(	line.substr(150,	12));
 
 	obs.cosparId			= ilrsIdToCosparId	(obs.ilrsId);
 	obs.Sat					= ilrsIdToSatSys	(obs.ilrsId);

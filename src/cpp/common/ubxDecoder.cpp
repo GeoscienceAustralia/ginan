@@ -160,7 +160,7 @@ void UbxDecoder::decodeEphFrames(
 void UbxDecoder::decodeSFRBX(
 	vector<unsigned char>& payload)
 {
-// 	std::cout << "Recieved SFRBX message" << std::endl;
+	std::cout << "Recieved SFRBX message" << std::endl;
 	int gnssId		= payload[0];
 	int satId		= payload[1];
 	int frameLen	= payload[4];

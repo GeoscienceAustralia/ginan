@@ -50,6 +50,8 @@ struct UbxDecoder : ObsLister, icdDecoder
 		unsigned char			id,
 		vector<unsigned char>&	payload)
 	{
+		printf("\nReceived ubx: 0x%02x : 0x%02x > %ld bytes", ubxClass, id, payload.size());
+		
 		switch (ubxClass)
 		{
 			default:				{								break;	}

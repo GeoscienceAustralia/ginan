@@ -59,6 +59,7 @@ struct PacketStatistics
 		message << "\n Number Passed CRC : "	<< numFramesPassCRC;
 		message << "\n Number Decoded    : "	<< numFramesDecoded;
 		message << "\n Number Preamble   : "	<< numPreambleFound;
+		message << "\n Number Unknown    : "	<< numNonMessBytes;
 		message << "\n";
 		
 		std::cout << message.str();
@@ -67,17 +68,22 @@ struct PacketStatistics
 	
 	
 // 	bool trigger = false;
-	void checksumSuccess()
+	void checksumSuccess(
+		unsigned int crcRead = 0)
 	{
 // 		std::cout << "Pass\n";
 		numFramesPassCRC++;
 		
+// 		printf("\n CRC pass: %02x %02x %02x", 
+// 			((char*)&crcRead)[2], 
+// 			((char*)&crcRead)[1], 
+// 			((char*)&crcRead)[0]);
 	}
 	
 	void nonFrameByteFound(
 		unsigned char c)
 	{
-// 		printf(".%02x", c);
+		printf(".%02x", c);
 		
 		numNonMessBytes++;
 // 		trigger = true;

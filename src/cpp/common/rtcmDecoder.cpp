@@ -220,7 +220,7 @@ void RtcmDecoder::decodeSSR(
 		t0				= GTime(GTow(referenceTime),	nearTime);
 	}
 
-// 	std::cout << "SSR message received: " << messCode << std::endl;
+//     std::cout << "SSR message received: " << messCode << std::endl;
 
 	unsigned int referenceDatum = 0;
 	if	( messTypeStr == "ORB_CORR"
@@ -406,7 +406,7 @@ void RtcmDecoder::decodeSSR(
 					entry.slpv	= 0;
 
 					pushBiasSinex(id, entry);
-					// BOOST_LOG_TRIVIAL(error) << "#RTCM_SSR CODBIA for " << Sat.id() << " rtcmCode: " << obsCode._to_string() << ": " << bias;
+					tracepdeex(6,std::cout, "\n#RTCM_SSR CODBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
 				}
 				
 				catch (std::exception& e)
@@ -487,6 +487,7 @@ void RtcmDecoder::decodeSSR(
 					entry.slpv	= 0;
 
 					pushBiasSinex(id, entry);
+					tracepdeex(6,std::cout, "\n#RTCM_SSR PHSBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
 					// BOOST_LOG_TRIVIAL(error) << "#RTCM_SSR PHSBIA for " << Sat.id() << " rtcmCode: " << obsCode._to_string() << ": " << bias;
 				}
 				catch (std::exception& e)
@@ -1359,9 +1360,7 @@ ObsList RtcmDecoder::decodeMSM(
 			continue;
 		}
 
-		tracepdeex(6,std::cout, "\n#RTCM_MSM PHASEMS %s %s %.4f ", cellSatellitemap[indx].id().c_str(), sig.code._to_string(), sig.L*CLIGHT/1000 );
 		sig.L += fine_phase_range;
-		tracepdeex(6,std::cout, "%.4e %.10e", fine_phase_range/scph, scph );
 	}
 
 	for (auto& [indx, signalPointer] : signalPointermap)

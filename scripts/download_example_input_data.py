@@ -136,7 +136,7 @@ def upload_example_input_data_tar(
         destpath_targz = example_output_data_path / tarname
         dest_url = base_url + "/" + tarname
         if not push_no_tar:
-            ga.gn_io.common.tar_comp(
+            ga.gn_io.common.tar_compress(
                 srcpath=example_output_data_path / directory,
                 destpath=destpath_targz,
                 reset_info=example_type,  # reset timestamp etc for examples only
@@ -216,7 +216,10 @@ def download_example_input_data_tar(
                 "skipping extraction step as '--skip_extract' provided, checksums the same and destination directory exists"
             )
         else:
-            ga.gn_io.common.tar_extr(srcpath=destpath_targz, destpath=destpath)
+            try:
+                ga.gn_io.common.tar_extract(srcpath=destpath_targz, destpath=destpath)
+            except Exception as e:
+                _logging.error(f"could not extract {destpath_targz} to {destpath} due to {e}")
 
 
 @_click.command()
@@ -278,10 +281,10 @@ def download_example_input_data(dirs, bucket, target, path, tag, skip_extract, s
             dirs += ("loading",)
         if data:
             dirs += ("data",)
-        if solutions or push or push_no_tar:
+        if solutions:
             dirs += tuple(EX_GLOB_DICT.keys())
         if not dirs:  # if nothing has been selected
-            dirs = ("products", "data")
+            dirs = ("products", "data") + tuple(EX_GLOB_DICT.keys())
 
     _logging.info(f"{dirs} selected")
 

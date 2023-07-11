@@ -118,6 +118,7 @@ Vector3d makeAntPco(
 	E_Sys		sys,
 	E_FType		ftx,
 	GTime		time,
+	double&		var,
 	E_Radio		radio)
 {
 	auto& pcoFreqMap = nav.pcoMap[id][sys];
@@ -142,7 +143,8 @@ Vector3d makeAntPco(
 					
 		double lam = CLIGHT / roughFrequency[ft];
 		
-		Vector3d pco = antPco(id, sys, ft, time, radio);
+		double var;
+		Vector3d pco = antPco(id, sys, ft, time, var, radio);
 		
 		if (pco.isZero())
 			continue;
@@ -161,6 +163,8 @@ Vector3d makeAntPco(
 
 	if (lam1 == 0)
 		return Vector3d::Zero();
+	
+	var = 0;
 	
 	if	(  lam2 == 0
 		|| lam1 == lam2)
@@ -183,12 +187,15 @@ Vector3d antPco(
 	E_Sys		sys,
 	E_FType		ft,
 	GTime		time,
+	double&		var,
 	E_Radio		radio,
 	bool		interp)
 {
 	auto it0 = nav.pcoMap.find(id);
 	if (it0 == nav.pcoMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id;
+		
 		return Vector3d::Zero();
 	}
 	
@@ -197,6 +204,8 @@ Vector3d antPco(
 	auto it1 = pcoSysFreqMap.find(sys);
 	if (it1 == pcoSysFreqMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys;
+		
 		return Vector3d::Zero();
 	}
 	
@@ -206,7 +215,9 @@ Vector3d antPco(
 	auto it2 = pcoFreqMap.find(ft);
 	if (it2 == pcoFreqMap.end())
 	{
-		if (interp) return makeAntPco(id, sys, ft, time, radio);
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys << " L" << ft;
+		
+		if (interp) return makeAntPco(id, sys, ft, time, var, radio);
 		else		return Vector3d::Zero();
 	}
 	
@@ -215,10 +226,13 @@ Vector3d antPco(
 	auto it3 = pcoTimeMap.lower_bound(time);
 	if (it3 == pcoTimeMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys << " L" << ft << " at " << time;
 		return Vector3d::Zero();
 	}
 	
 	auto& [dummy3, pco] = *it3;
+	
+	var = 0;
 	
 	if (radio == +E_Radio::TRANSMITTER)		return pco.satPco;
 	else									return pco.recPco;
@@ -227,12 +241,12 @@ Vector3d antPco(
 /** find and interpolate antenna pcv
 */
 double antPcv(
-	string		id,		///< antenna id
-	E_Sys		sys,	///< satellite system
-	E_FType		ft,		///< frequency
-	GTime		time,	///< time
-	AttStatus&	attStatus,
-	VectorEcef	e)
+	string		id,			///< antenna id
+	E_Sys		sys,		///< satellite system
+	E_FType		ft,			///< frequency
+	GTime		time,		///< time
+	AttStatus&	attStatus,	///< Orientation of antenna
+	VectorEcef	e)			///< Line of sight vector
 {
 	auto it0 = nav.pcvMap.find(id);
 	if (it0 == nav.pcvMap.end())

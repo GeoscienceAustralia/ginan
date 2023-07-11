@@ -257,6 +257,7 @@ void KFState::removeState(
 	procNoiseMap.			erase(kfKey);
 	gaussMarkovTauMap.		erase(kfKey);
 	gaussMarkovMuMap.		erase(kfKey);
+	exponentialNoiseMap.	erase(kfKey);
 }
 
 /** Tries to add a state to the filter object.
@@ -298,6 +299,12 @@ bool KFState::addKFState(
 	return true;
 }
 
+void KFState::setExponentialNoise(
+	const	KFKey			kfKey,
+	const	Exponential		exponential)
+{
+	exponentialNoiseMap[kfKey] = exponential;
+}
 
 
 /** Tries to add a noise element.
@@ -542,6 +549,48 @@ void KFState::stateTransition(
 		Q0(index, index) = value;
 	}
 
+	//add time dependent exponential process noise)
+	if	(tgap)
+	for (auto& [dest, exponential] : exponentialNoiseMap)
+	{
+		auto destIter = newKFIndexMap.find(dest);
+		if (destIter == newKFIndexMap.end())
+		{
+			std::cout << dest << " broke" << std::endl;
+			continue;
+		}
+		
+		auto& expNoise = exponential.value;
+		
+		if (expNoise > 0.01)
+		{
+			trace  
+			<< std::endl << "Adding : " << expNoise << " to process noise for " << dest << " \n";
+		}
+		
+		int destIndex	= destIter->second;
+
+		if	( (destIndex < 0)
+			||(destIndex >= Q0.rows()))
+		{
+			continue;
+		}
+		
+		Q0(destIndex, destIndex) += expNoise * tgap;
+	}
+	
+	//shrink time dependent exponential process noise
+	if (tgap)
+	for (auto& [dest, exponential] : exponentialNoiseMap)
+	{
+		auto& expNoise	= exponential.value;
+		auto& expTau	= exponential.tau;
+		
+		//shrink the exponential process noise the next time around
+		if (expTau)		expNoise *= exp(-tgap / expTau);
+		else			expNoise  = 0;
+	}
+	
 	//add time dependent process noise
 	if	(tgap)
 	for (auto& [dest,	map]	: stateTransitionMap)
@@ -1109,11 +1158,12 @@ int KFState::kFilter(
 	bool error = xp.segment(begX, numX).array().isNaN().any();
 	if (error)
 	{
+		std::cout << std::endl << "x:" << std::endl << x << std::endl;
 		std::cout << std::endl << "xp:" << std::endl << xp << std::endl;
 		std::cout << std::endl << "R :" << std::endl << R << std::endl;
-		std::cout << std::endl << "v :" << std::endl << v << std::endl;
 		std::cout << std::endl << "K :" << std::endl << K << std::endl;
 		std::cout << std::endl << "P :" << std::endl << P << std::endl;
+		std::cout << std::endl << "v :" << std::endl << v << std::endl;
 		std::cout << std::endl;
 		std::cout << "NAN found. Exiting...";
 		std::cout << std::endl;

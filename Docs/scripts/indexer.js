@@ -203,18 +203,47 @@ $.urlParam = function(name)
 {
 	var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
 	if (results==null) 
-  {
+    {
 		return null;
 	}
 	return decodeURI(results[1]) || 0;
 }
 
+function addIncludes(editedStuff)
+{
+    const regexp = /^(\\include) "(.+)"/gm;
+    const matches = editedStuff.matchAll(regexp);
+    
+    var i = 0;
+    var includes = [];
+
+    for (const match of matches) 
+    {
+        $.get(match[2], function(includeData, statusTxt)
+        {
+          if (statusTxt == "success")
+          {
+            includes[i] = includeData;
+            editedStuff = editedStuff.replace(match[0], "```\n" + includeData + "\n```");
+          }
+          if (statusTxt == "error")
+          {
+            alert("Error:");
+          }
+        });
+    }
+
+
+    return editedStuff;
+}
 
 function addMarkdown(chapterdata)
 {
                 var editedStuff = removeMath(chapterdata, '$');
 
-                var newEditedStuff = marked.parse(editedStuff);
+                var moreEditedStuff = addIncludes(editedStuff);
+
+                var newEditedStuff = marked.parse(moreEditedStuff);
 
                 newEditedStuff = replaceMath(newEditedStuff);
 
@@ -223,7 +252,7 @@ function addMarkdown(chapterdata)
 
 $(document).ready(function()
 {
-  var page = "home.md";
+  var page = "home.index";
   var chapters;
 	if ($.urlParam('p'))
 		page = $.urlParam('p');
@@ -273,8 +302,21 @@ $(document).ready(function()
   });
 
   MathJax.typeset();
+
+
+if ($.urlParam('c')=="on")
+{
   Toc.init({
     $nav: $("#myNavbar")
     // ...
   });
+}
+else
+{
+    $("#myNavbar").addClass("col-lg-2");
+    $("#myNavbar").removeClass("col-lg-3");
+    $("#myNavbar").removeClass("col-lg-4");
+    $("#myNavbar").css('visibility', 'hidden');
+}
+
 });

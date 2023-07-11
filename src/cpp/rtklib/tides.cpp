@@ -262,7 +262,7 @@ void tideDisp(
 
 	tracepdeex(3,trace,"\n\n%s: time=%s", __FUNCTION__, time.to_string(2).c_str());
 
-	ERPValues erpv = geterp(erp, time);
+	ERPValues erpv = getErp(erp, time);
 	
 	dr = Vector3d::Zero();
 

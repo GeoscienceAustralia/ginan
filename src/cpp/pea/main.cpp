@@ -93,7 +93,6 @@ Navigation				nav		= {};
 int						epoch	= 1;
 GTime					tsync	= GTime::noTime();
 map<int, SatIdentity>	satIdMap;
-SlrSiteObsMap			slrSiteObsMap;
 map<string, Station>	stationMap;
 
 void outputMqtt(KFState& kfState);
@@ -150,10 +149,72 @@ void removeInvalidFiles(
 	}
 }
 
+void initialiseStation(
+	string		id,
+	Station&	rec)
+{
+	if (rec.id.empty() == false)
+	{
+		//already initialised
+		return;
+	}
+	
+	BOOST_LOG_TRIVIAL(info)
+	<< "Initialising station " << id;
+
+	Instrument	instrument(__FUNCTION__);
+	
+	rec.id = id;
+
+	// Read the BLQ file
+	bool found = false;
+	for (auto& blqfile : acsConfig.blq_files)
+	{
+		found = readblq(blqfile, id.c_str(), rec.otlDisplacement);
+
+		if (found)
+		{
+			break;
+		}
+	}
+
+	if (found == false)
+	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: No BLQ for " << id;
+	}
+
+	if (acsConfig.process_user)
+	{
+		rec.pppState.id							= id;
+		rec.pppState.max_filter_iter			= acsConfig.pppOpts.max_filter_iter;
+		rec.pppState.max_prefit_remv			= acsConfig.pppOpts.max_prefit_remv;
+		rec.pppState.inverter					= acsConfig.pppOpts.inverter;
+		rec.pppState.sigma_threshold			= acsConfig.pppOpts.sigma_threshold;
+		rec.pppState.sigma_check				= acsConfig.pppOpts.sigma_check;
+		rec.pppState.w_test						= acsConfig.pppOpts.w_test;
+		rec.pppState.chi_square_test			= acsConfig.pppOpts.chi_square_test;
+		rec.pppState.chi_square_mode			= acsConfig.pppOpts.chi_square_mode;
+		rec.pppState.output_residuals			= acsConfig.output_residuals;
+		rec.pppState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
+
+		rec.pppState.measRejectCallbacks	.push_back(countSignalErrors);
+		rec.pppState.measRejectCallbacks	.push_back(deweightMeas);
+		rec.pppState.stateRejectCallbacks	.push_back(rejectByState);
+		rec.pppState.stateRejectCallbacks	.push_back(clockGlitchReaction);
+	}
+
+	if	( acsConfig.process_rts
+		&&acsConfig.pppOpts.rts_lag)
+	{
+		rec.pppState.rts_lag = acsConfig.pppOpts.rts_lag;
+	}
+}
+
 /** Create a station object from an input
 */
 void addStationData(
-	string			stationId,
+	string			stationId,			///< Id of station to add data for
 	vector<string>	inputNames,			///< Filename to create station from
 	string			inputFormat,		///< Type of data in file
 	string			dataType)			///< Type of data
@@ -230,9 +291,17 @@ void addStationData(
 		
 		shared_ptr<StreamParser> streamParser_ptr;
 			
-		if (dataType == "NAV")	streamParser_ptr = make_shared<StreamParser>(std::move(stream_ptr), std::move(parser_ptr));
-		else					streamParser_ptr = make_shared<ObsStream>	(std::move(stream_ptr), std::move(parser_ptr));
+		if		(dataType == "OBS")		streamParser_ptr = make_shared<ObsStream>	(std::move(stream_ptr), std::move(parser_ptr));
+		else if	(dataType == "PSEUDO")	streamParser_ptr = make_shared<ObsStream>	(std::move(stream_ptr), std::move(parser_ptr));
+		else							streamParser_ptr = make_shared<StreamParser>(std::move(stream_ptr), std::move(parser_ptr));
 				
+		if (dataType == "OBS")
+		{
+			auto& rec = stationMap[id];
+			
+			initialiseStation(id, rec);
+		}
+	
 		streamParser_ptr->stream.sourceString = inputName;
 		
 		streamParserMultimap.insert({id, std::move(streamParser_ptr)});
@@ -243,13 +312,6 @@ void addStationData(
 
 void reloadInputFiles()
 {
-	for (auto& [id, ubxinputs]			: acsConfig.ubx_inputs)			{	addStationData(id,		ubxinputs,					"UBX",		"OBS");			}
-	for (auto& [id, rnxinputs]			: acsConfig.rnx_inputs)			{	addStationData(id,		rnxinputs,					"RINEX",	"OBS");			}	
-	for (auto& [id, rtcminputs]			: acsConfig.obs_rtcm_inputs)	{	addStationData(id,		rtcminputs,					"RTCM",		"OBS");			}	
-	for (auto& [id, pseudosp3inputs]	: acsConfig.pseudo_sp3_inputs)	{	addStationData(id,		pseudosp3inputs,			"SP3",		"PSEUDO");		}
-	for (auto& [id, pseudosnxinputs]	: acsConfig.pseudo_snx_inputs)	{	addStationData(id,		pseudosnxinputs,			"SINEX",	"PSEUDO");		}
-																		{	addStationData("Nav",	acsConfig.nav_rtcm_inputs,	"RTCM",		"NAV");			}
-
 	removeInvalidFiles(acsConfig.atx_files);
 	for (auto& atxfile : acsConfig.atx_files)
 	{
@@ -269,20 +331,6 @@ void reloadInputFiles()
 
 			continue;
 		}
-	}
-
-	removeInvalidFiles(acsConfig.erp_files);
-	for (auto& erpfile : acsConfig.erp_files)
-	{
-		if (fileChanged(erpfile) == false)
-		{
-			continue;
-		}
-
-		BOOST_LOG_TRIVIAL(info)
-		<< "Loading ERP file " << erpfile;
-
-		readerp(erpfile, nav.erp);
 	}
 
 	removeInvalidFiles(acsConfig.orb_files);
@@ -356,6 +404,20 @@ void reloadInputFiles()
 		auto rinexStream = make_unique<StreamParser>(make_unique<FileStream>(navfile), make_unique<RinexParser>());
 		
 		rinexStream->parse();
+	}
+
+	removeInvalidFiles(acsConfig.erp_files);
+	for (auto& erpfile : acsConfig.erp_files)
+	{
+		if (fileChanged(erpfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading ERP file " << erpfile;
+
+		readErp(erpfile, nav.erp);
 	}
 
 	removeInvalidFiles(acsConfig.clk_files);
@@ -480,7 +542,7 @@ void reloadInputFiles()
 		}
 
 		BOOST_LOG_TRIVIAL(info)
-		<< "Loading ORO " << acsConfig.model.trop.orography;
+		<< "Loading ORO from " << acsConfig.model.trop.orography;
 		
 		readorog(acsConfig.model.trop.orography, nav.vmf3.orography);
 	}
@@ -530,11 +592,7 @@ void reloadInputFiles()
 	
 	if (acsConfig.output_slr_obs)
 	{
-		auto slrObsFiles = outputSortedSlrObs(); // CRD files need to be parsed before sorted .slr_obs files are exported
-		for (auto& slrObsFile : slrObsFiles)			
-		{	
-// 			addStationData(slrObsFile, "SLR", "OBS");	//todo aaron
-		}
+		slrObsFiles = outputSortedSlrObs(); // CRD files need to be parsed before sorted .slr_obs files are exported
 	}
 
 	removeInvalidFiles(acsConfig.com_files); // centre-of-mass data
@@ -576,7 +634,7 @@ void reloadInputFiles()
 		}
 
 		BOOST_LOG_TRIVIAL(info) 
-		<< "Loading tide file " << tidefile;
+		<< "Loading Tide file " << tidefile;
 
 		tide.filename	= tidefile;
 		tide.degMax		= acsConfig.orbitPropagation.degree_max;
@@ -603,11 +661,20 @@ void reloadInputFiles()
 			<< "Warning: JPL file had error code " << jpl_init_error_code();
 		}
 	}		
+	
+	for (auto& [id, slrinputs]			: slrObsFiles)					{	addStationData(id,		slrinputs,					"SLR",		"OBS");			}
+	for (auto& [id, ubxinputs]			: acsConfig.ubx_inputs)			{	addStationData(id,		ubxinputs,					"UBX",		"OBS");			}
+	for (auto& [id, rnxinputs]			: acsConfig.rnx_inputs)			{	addStationData(id,		rnxinputs,					"RINEX",	"OBS");			}	
+	for (auto& [id, rtcminputs]			: acsConfig.obs_rtcm_inputs)	{	addStationData(id,		rtcminputs,					"RTCM",		"OBS");			}	
+	for (auto& [id, pseudosp3inputs]	: acsConfig.pseudo_sp3_inputs)	{	addStationData(id,		pseudosp3inputs,			"SP3",		"PSEUDO");		}
+	for (auto& [id, pseudosnxinputs]	: acsConfig.pseudo_snx_inputs)	{	addStationData(id,		pseudosnxinputs,			"SINEX",	"PSEUDO");		}
+																		{	addStationData("Nav",	acsConfig.nav_rtcm_inputs,	"RTCM",		"NAV");			}
 }
 
 /** Select 2 clocks for receivers according to the available signals
  */
 void setClockCodesForReceiver(
+	Trace&		trace,
 	Station&	rec)
 {
 	map<E_Sys,map<E_ObsCode,int>> satsPerCode;
@@ -619,8 +686,11 @@ void setClockCodesForReceiver(
 		if (rec.recClockCodes.find(obs.Sat.sys) != rec.recClockCodes.end())
 			continue;
 		
-		for (auto&	[ft, Sig]	: obs.Sigs)
+		if	(  sig.L > 0
+			&& sig.P > 0)
+		{
 			satsPerCode[obs.Sat.sys][sig.code]++;
+		}
 	}
 	
 	for (auto&	[sys, codeList]	: satsPerCode)
@@ -647,6 +717,8 @@ void setClockCodesForReceiver(
 			
 			rec.recClockCodes[sys].first  = selectedCodes[0];
 			rec.recClockCodes[sys].second = selectedCodes[1];
+			
+			trace << std::endl << sys._to_string() << " receiver codes: " <<  selectedCodes[0]._to_string() << " " << selectedCodes[1]._to_string() << std::endl;
 			
 			break;
 		}
@@ -797,10 +869,11 @@ void createDirectories(
 								acsConfig.network_statistics_json_directory
 							})
 	{
+		replaceTimes(directory, logptime);
+		
 		if (directory == "./")	continue;
 		if (directory.empty())	continue;
 		
-		replaceTimes(directory, logptime);
 		bool created = boost::filesystem::create_directories(directory);
 		{
 			if (created)
@@ -1154,63 +1227,6 @@ void avoidCollisions(
 	}
 }
 
-void initialiseStation(
-	string		id,
-	Station&	rec)
-{
-	BOOST_LOG_TRIVIAL(debug)
-	<< "Initialising station " << id;
-
-	Instrument	instrument(__FUNCTION__);
-	
-	rec.id = id;
-
-	// Read the BLQ file
-	bool found = false;
-	for (auto& blqfile : acsConfig.blq_files)
-	{
-		found = readblq(blqfile, id.c_str(), rec.otlDisplacement);
-
-		if (found)
-		{
-			break;
-		}
-	}
-
-	if (found == false)
-	{
-		BOOST_LOG_TRIVIAL(warning)
-		<< "Warning: No BLQ for " << id;
-	}
-
-	if (acsConfig.process_user)
-	{
-		rec.pppState.id							= id;
-		rec.pppState.max_filter_iter			= acsConfig.pppOpts.max_filter_iter;
-		rec.pppState.max_prefit_remv			= acsConfig.pppOpts.max_prefit_remv;
-		rec.pppState.inverter					= acsConfig.pppOpts.inverter;
-		rec.pppState.sigma_threshold			= acsConfig.pppOpts.sigma_threshold;
-		rec.pppState.sigma_check				= acsConfig.pppOpts.sigma_check;
-		rec.pppState.w_test						= acsConfig.pppOpts.w_test;
-		rec.pppState.chi_square_test			= acsConfig.pppOpts.chi_square_test;
-		rec.pppState.chi_square_mode			= acsConfig.pppOpts.chi_square_mode;
-		rec.pppState.output_residuals			= acsConfig.output_residuals;
-		rec.pppState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
-
-		rec.pppState.measRejectCallbacks	.push_back(countSignalErrors);
-		rec.pppState.measRejectCallbacks	.push_back(deweightMeas);
-		rec.pppState.stateRejectCallbacks	.push_back(deweightByState);
-		rec.pppState.stateRejectCallbacks	.push_back(clockGlitchReaction);
-	}
-
-	if	( acsConfig.process_rts
-		&&acsConfig.pppOpts.rts_lag)
-	{
-		rec.pppState.rts_lag = acsConfig.pppOpts.rts_lag;
-	}
-}
-
-
 /** Perform operations for each station
  * This function occurs in parallel with other stations - ensure that any operations on global maps do not create new entries, as that will destroy the map for other processes.
  * Variables within the rec object are ok to use, but be aware that pointers from the within the receiver often point to global variables.
@@ -1244,7 +1260,7 @@ void mainOncePerEpochPerStation(
 	bool sppUsed;
 	selectAprioriSource(rec, sppUsed);
 	
-	setClockCodesForReceiver(rec);
+	setClockCodesForReceiver(trace, rec);
 	
 	if	( sppUsed
 		&&acsConfig.require_apriori_positions)
@@ -1304,7 +1320,7 @@ void mainOncePerEpochPerStation(
 	rec.antBoresight	= recOpts.antenna_boresight;
 	rec.antAzimuth		= recOpts.antenna_azimuth;
 	
-	recAtt(rec, tsync, acsConfig.model.rec_attitude.sources);
+	recAtt(rec, tsync, recOpts.rec_attitude.sources);
 
 	if (acsConfig.process_user)
 	{
@@ -1318,7 +1334,7 @@ void mainOncePerEpochPerStation(
 			rec.pppState.outputStates(trace);
 			pppoutstat(trace, rec.pppState, rec.id);
 			
-			if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
+			if (acsConfig.ambrOpts.mode != +E_ARmode::OFF)
 			{
 				TempDisabler td(rec.pppState.outputMongoMeasurements);
 				
@@ -1514,7 +1530,7 @@ void mainPerEpochPostProcessingAndOutputs(
 		
 		KF_ARcopy.outputMongoMeasurements = false;
 		
-		if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
+		if (acsConfig.ambrOpts.mode != +E_ARmode::OFF)
 		{
 			networkAmbigResl(netTrace, stationMap, KF_ARcopy);
 			
@@ -1558,7 +1574,7 @@ void mainPerEpochPostProcessingAndOutputs(
 		
 		if (acsConfig.output_erp)
 		{
-			writeERPFromNetwork(net.kfState.metaDataMap[ERP_FILENAME_STR], net.kfState);
+			writeErpFromNetwork(net.kfState.metaDataMap[ERP_FILENAME_STR], net.kfState);
 		}
 
 		if	(  acsConfig.process_rts
@@ -1579,14 +1595,14 @@ void mainPerEpochPostProcessingAndOutputs(
 		KFState KF_ARcopy;
 		
 		/* select ambiguity resolved KF */
-		if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
+		if (acsConfig.ambrOpts.mode != +E_ARmode::OFF)
 		{
 			if (copyFixedKF(KF_ARcopy))
 			{
 				tempAugmentedKF = KF_ARcopy;
 			}
 			
-			mongoStates(tempAugmentedKF, "AR");
+			mongoStates(tempAugmentedKF, "_AR");
 		}	
 			
 		
@@ -1605,12 +1621,12 @@ void mainPerEpochPostProcessingAndOutputs(
 			
 			mincon(netTrace, tempAugmentedKF);
 	
-			mongoStates(tempAugmentedKF, "MINCON");
+			mongoStates(tempAugmentedKF, "_mincon");
 		}
 		
 		if (acsConfig.output_erp)
 		{
-			writeERPFromNetwork(net.kfState.metaDataMap[ERP_FILENAME_STR], net.kfState);
+			writeErpFromNetwork(net.kfState.metaDataMap[ERP_FILENAME_STR], net.kfState);
 		}
 		
 		if (acsConfig.output_clocks)
@@ -1687,6 +1703,11 @@ void mainOncePerEpochPerSatellite(
 	auto& satNav 	= nav.satNavMap[Sat];
 	auto& satOpts	= acsConfig.getSatOpts(Sat);
 	
+	if (satOpts.exclude)
+	{
+		return;
+	}
+	
 	//get svn and block type if possible
 	if (Sat.svn().empty())
 	{
@@ -1731,13 +1752,13 @@ void mainOncePerEpochPerSatellite(
 	obs.time		= time;
 	obs.satNav_ptr	= &satNav;	
 	
-	bool pass =	satpos(nullStream, time, time, obs, acsConfig.model.sat_pos.ephemeris_sources, E_OffsetType::COM, nav);
+	bool pass =	satpos(nullStream, time, time, obs, satOpts.sat_pos.ephemeris_sources, E_OffsetType::COM, nav);
 	if (pass == false)
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << obs.Sat.id() << ".";
 	}
 	
-	ERPValues erpv = geterp(nav.erp, tsync);
+	ERPValues erpv = getErp(nav.erp, tsync);
 	
 	FrameSwapper frameSwapper(time, erpv);
 	
@@ -1812,12 +1833,12 @@ void mainOncePerEpoch(
 		<< "Warning: Epoch " << epoch << " has no observations";
 	}
 
-	mongoMeasSatStat(stationMap);
-
 	if (acsConfig.process_ppp)
 	{
 		PPP(netTrace, stationMap, net.kfState);
 	}
+
+	mongoMeasSatStat(stationMap);
 
 	if (acsConfig.output_rinex_nav)
 	{
@@ -1883,7 +1904,7 @@ void mainPostProcessing(
 		mincon(netTrace, net.kfState);
 	}
 	
-	if	(  acsConfig.ambrOpts.NLmode	!= +E_ARmode::OFF 
+	if	(  acsConfig.ambrOpts.mode	!= +E_ARmode::OFF 
 		&& acsConfig.ionoOpts.corr_mode	== +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 	{
 		dump_WLambg(netTrace);
@@ -2038,7 +2059,7 @@ int ginan(
 		}
 	}
 	
-	if (acsConfig.ambrOpts.NLmode != +E_ARmode::OFF)
+	if (acsConfig.ambrOpts.mode != +E_ARmode::OFF)
 	{
 		config_AmbigResl();
 	}
@@ -2051,7 +2072,7 @@ int ginan(
 								tuple<E_Sys, int>{E_Sys::LEO, NSATLEO},
 								tuple<E_Sys, int>{E_Sys::BDS, NSATBDS},
 								tuple<E_Sys, int>{E_Sys::SBS, NSATSBS}})
-	for (int prn = 1; prn < max; prn++)
+	for (int prn = 1; prn <= max; prn++)
 	{
 		SatSys Sat(sys, prn);
 		
@@ -2080,10 +2101,11 @@ int ginan(
 		net.kfState.simulate_filter_only	= acsConfig.pppOpts.simulate_filter_only;
 		net.kfState.output_residuals		= acsConfig.output_residuals;
 		net.kfState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
-		net.kfState.measRejectCallbacks	.push_back(orbitMeasReaction);
 		net.kfState.measRejectCallbacks	.push_back(deweightMeas);
 		net.kfState.measRejectCallbacks	.push_back(incrementPhaseSignalError);
-		net.kfState.stateRejectCallbacks.push_back(deweightByState);
+		net.kfState.measRejectCallbacks	.push_back(pseudoMeasTest);
+		
+		net.kfState.stateRejectCallbacks.push_back(rejectByState);
 		net.kfState.stateRejectCallbacks.push_back(orbitGlitchReaction);
 	}
 
@@ -2096,13 +2118,19 @@ int ginan(
 
 	if	(acsConfig.process_ionosphere)
 	{
-		iono_KFState.measRejectCallbacks.push_back(deweightMeas);
-		iono_KFState.stateRejectCallbacks.push_back(deweightByState);
+		iono_KFState.measRejectCallbacks	.push_back(deweightMeas);
+		iono_KFState.stateRejectCallbacks	.push_back(rejectByState);
 	}
 	//initialise mongo
 	mongoooo();
 	
+	for (auto once : {1})
 	{
+		if (acsConfig.yamls.empty())
+		{
+			continue;
+		}
+		
 		YAML::Emitter emitter;
 		emitter << YAML::DoubleQuoted << YAML::Flow << YAML::BeginSeq << acsConfig.yamls[0];
 	
@@ -2142,13 +2170,6 @@ int ginan(
 	NtripSocket::startClients();
 
 	configureUploadingStreams();
-	
-	for (auto& [id, obsStream] : only<ObsStream>(streamParserMultimap))
-	{
-		auto& rec = stationMap[id];
-		
-		initialiseStation(id, rec);
-	}
 
 	if (acsConfig.start_epoch.is_not_a_date_time() == false)
 	{
@@ -2335,10 +2356,10 @@ int ginan(
 
 						switch (obsStream.obsWaitCode)
 						{
-							case E_ObsWaitCode::EARLY_DATA:								preprocessor(net, rec);	obsStream.eatObs();	break;
-							case E_ObsWaitCode::OK:					moreData = false;	preprocessor(net, rec);	obsStream.eatObs();	break;
-							case E_ObsWaitCode::NO_DATA_WAIT:		moreData = false;												break;
-							case E_ObsWaitCode::NO_DATA_EVER:		moreData = false;												break;
+							case E_ObsWaitCode::EARLY_DATA:								preprocessor(net, rec);	break;
+							case E_ObsWaitCode::OK:					moreData = false;	preprocessor(net, rec);	break;
+							case E_ObsWaitCode::NO_DATA_WAIT:		moreData = false;							break;
+							case E_ObsWaitCode::NO_DATA_EVER:		moreData = false;							break;
 						}
 					}
 				}

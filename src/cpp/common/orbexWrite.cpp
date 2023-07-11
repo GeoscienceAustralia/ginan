@@ -417,7 +417,7 @@ void writeSysSetOrbex(
 				quat.z()	*= -1;
 			}
 	
-			entry.q	= quat.conjugate(); // satAtt() returns transformation from body to ECEF, but Orbex req's ECEF to body - i.e. quat.conjugate()
+			entry.q	= quat.conjugate(); // satQuat() returns transformation from body to ECEF, but Orbex req's ECEF to body - i.e. quat.conjugate()
 		}
 
 		if	( orbPass
@@ -433,7 +433,7 @@ void writeSysSetOrbex(
 /** Output ORBEX files
 */
 void outputOrbex(
-	string				filename,
+	string				filename,		///< File to write to
 	GTime				time,			///< Epoch time (GPST)
 	vector<E_Source>	orbDataSrcs,	///< Data source for satellite positions & velocities
 	vector<E_Source>	clkDataSrcs,	///< Data source for satellite clocks

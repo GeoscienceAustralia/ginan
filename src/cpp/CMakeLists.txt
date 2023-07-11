@@ -31,6 +31,7 @@ add_library(ginan_core
 		pea/ppppp.cpp
 		pea/ppp_obs.cpp
 		pea/ppp_ambres.cpp
+		pea/ppp_callbacks.cpp
 		pea/ppp_pseudoobs.cpp
 		pea/ppp_slr.cpp
 		pea/ppp_user.cpp

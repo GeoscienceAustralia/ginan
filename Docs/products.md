@@ -17,18 +17,22 @@ Ginan data files and live streams may be accessed via the Geoscience Australia d
 
 ---
 
-## Orbits and Clocks SP3
+## Orbits and Clocks - SP3
 
-To access the orbits and clocks SP3 file, please follow the access instructions above. Details on the SP3 file product can be found in this [datasheet](resources/datasheets/GA-SP3datasheet20220615v01.pdf).
+To access the orbits and clocks SP3 file, please follow the access instructions above. Details on the SP3 file product can be found in this [datasheet](resources/GA-SP3datasheet20230616v03.pdf).
 
-## Clocks CLK
+## Clocks - CLK
 
-To access the clocks CLK file, please follow the access instructions above. Details on the CLK file product can be found in this [datasheet](resources/datasheets/GA-CLKdatasheet20220615v01.pdf).
+To access the clocks CLK file, please follow the access instructions above. Details on the CLK file product can be found in this [datasheet](resources/GA-CLKdatasheet20230616v02.pdf).
 
-## CORS Position SINEX
+## Earth Rotation Parameters - ERP
 
-To access the CORS position SNX file, please follow the access instructions above. Details on the SNX file product can be found in this [datasheet](resources/datasheets/GA-SNXdatasheet20220615v01.pdf).
+To access the Earth rotation parameters ERP file, please follow the access instructions above. Details on the ERP file product can be found in this [datasheet](resources/GA-ERPdatasheet20230616v03.pdf).
 
-## RTCM SSR Correction Stream (1059, 1060)
+## CORS Position - SINEX
 
-To access the correction streams, please follow the access instructions above. Details on the stream product can be found in this [datasheet](resources/datasheets/GA-STREAMdatasheet20220615v01.pdf).
+To access the CORS position SNX file, please follow the access instructions above. Details on the SNX file product can be found in this [datasheet](resources/GA-SNXdatasheet20230616v02.pdf).
+
+## RTCM SSR Correction Stream - NTRIP (1059, 1060)
+
+To access the correction streams, please follow the access instructions above. Details on the stream product can be found in this [datasheet](resources/GA-STREAMdatasheet20220615v01.pdf).

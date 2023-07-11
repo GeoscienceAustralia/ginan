@@ -47,8 +47,12 @@ void pppomc(
 
 	// satellite positions and clocks
 	for (auto& obs : only<GObs>(obsList))
-		satPosClk(trace, time, obs, nav, acsConfig.model.sat_pos.ephemeris_sources, acsConfig.model.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
-
+	{
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		
+		satPosClk(trace, time, obs, nav, satOpts.sat_pos.ephemeris_sources, satOpts.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
+	}
+	
 	// earth tides correction
 	Vector3d dTide = Vector3d::Zero();
 	if (acsConfig.model.tides.enable)
@@ -181,7 +185,8 @@ void pppomc(
 			
 			rr2[ft] = rRec;
 
-			Vector3d	pcoEnu	= antPco(rec.antennaId,	obs.Sat.sys, ft, obs.time, E_Radio::RECEIVER);
+			double varDummy = 0;
+			Vector3d	pcoEnu	= antPco(rec.antennaId,	obs.Sat.sys, ft, obs.time, varDummy, E_Radio::RECEIVER);
 											//todo check map, continue if null
 			
 			VectorEcef	dr2		= antenna2ecef(rec.attStatus, pcoEnu);

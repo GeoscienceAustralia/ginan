@@ -66,15 +66,9 @@ string code2str(
 /** Convert time string in bias SINEX to gtime struct
 */
 GTime sinex_time_text(
-	string& line)		///< time system
+	string&		line,		///< line to read
+	E_TimeSys	tsys)		///< time system
 {
-	E_TimeSys tsys = E_TimeSys::NONE;
-	if		(acsConfig.bias_time_system == "G")		tsys = E_TimeSys::GPST;
-	else if	(acsConfig.bias_time_system == "C")		tsys = E_TimeSys::BDT;
-	else if	(acsConfig.bias_time_system == "R")		tsys = E_TimeSys::GLONASST;
-	else if	(acsConfig.bias_time_system == "UTC")	tsys = E_TimeSys::UTC;
-	else if	(acsConfig.bias_time_system == "TAI")	tsys = E_TimeSys::TAI;
-
 	double yds[3];
 	GTime time = {};
 	if (sscanf(line.c_str(), "%lf:%lf:%lf", &yds[0], &yds[1], &yds[2]) == 3)
@@ -336,13 +330,20 @@ void read_biasSINEX_head(
 /** Read data line in bias SINEX file
 */
 int read_biasSINEX_line(
-	char*		buff)	///< time system "UTC", "TAI", etc.
+	char*		buff,	///< Line to read
+	E_TimeSys	tsys)	///< time system "UTC", "TAI", etc.
 {
 	int size = strlen(buff);
 
 	if (size < 91)
 	{
 		fprintf(stderr, " Short bias line in SINEX file (%3d): %s\n", size, buff);
+		return 0;
+	}
+
+	if (tsys == +E_TimeSys::NONE)
+	{
+		fprintf(stderr, " Unkown time system for bias SINEX file: %s\n", tsys._to_string());
 		return 0;
 	}
 
@@ -415,8 +416,8 @@ int read_biasSINEX_line(
 	double lam1 = nav.satNavMap[lamSat].lamMap[ft1];
 
 	/* decoding start/end times */
-	entry.tini = sinex_time_text(startTime);
-	entry.tfin = sinex_time_text(endTime);
+	entry.tini = sinex_time_text(startTime,	tsys);
+	entry.tfin = sinex_time_text(endTime,	tsys);
 
 	/* decoding units */
 	double fact = 0;
@@ -496,6 +497,7 @@ bool readBiasSinex(
 {
 	int nbia = 0;
 	bool datasect = false;
+	E_TimeSys tsys = E_TimeSys::NONE;
 
 	std::ifstream inputStream(filename);
 	if (!inputStream)
@@ -503,8 +505,6 @@ bool readBiasSinex(
 		printf("Warning: could not find bias SINEX file %s \n", filename.c_str());
 		return false;
 	}
-
-	//fprintf(stdout,"\nReading bias SINEX file: %s \n",biasfile);
 
 	string line;
 	while (std::getline(inputStream, line))
@@ -516,21 +516,19 @@ bool readBiasSinex(
 
 		if (strstr(buff, "TIME_SYSTEM"))
 		{
-			string timeSystem(buff + 40,  1);
+			string timeSystem(buff + 41,  1);
 			if (timeSystem != " ")
 			{
-				if		( timeSystem == "G"
-						||timeSystem == "C"
-						||timeSystem == "R");	// nothing to do
-				else if	( timeSystem == "U")	timeSystem = "UTC";
-				else if	( timeSystem == "T")	timeSystem = "TAI";
+				if		(timeSystem == "G")		tsys = E_TimeSys::GPST;
+				else if	(timeSystem == "C")		tsys = E_TimeSys::BDT;
+				else if	(timeSystem == "R")		tsys = E_TimeSys::GLONASST;
+				else if	(timeSystem == "U")		tsys = E_TimeSys::UTC;
+				else if	(timeSystem == "T")		tsys = E_TimeSys::TAI;
 				else
 				{
 					BOOST_LOG_TRIVIAL(warning) << "Warning: unsupported time system: " << timeSystem;
 					return false;
 				}
-				
-				acsConfig.bias_time_system = timeSystem;
 			}
 		}
 		
@@ -582,7 +580,7 @@ bool readBiasSinex(
 		if	(  strstr(buff, " DSB ")
 			|| strstr(buff, " OSB "))
 		{
-			if (read_biasSINEX_line(buff) > 0)
+			if (read_biasSINEX_line(buff, tsys) > 0)
 				nbia++;
 		}
 	}
@@ -752,9 +750,6 @@ bool getBiasSinex(
 	double&			var)					///< Hardware bias variance
 {
 	const int lv = 3;
-
-	bias	= 0;
-	var		= SQR(acsConfig.no_bias_sigma);
 	
 	if (Sat.sys == +E_Sys::GLO)	id = id + ":" + Sat.id();
 	else						id = id + ":" + Sat.sysChar();
@@ -763,7 +758,7 @@ bool getBiasSinex(
 	if (measType == CODE)	type = "CODE";
 	if (measType == PHAS)	type = "PHAS";
 
-	tracepdeex(lv, trace, "\nReading bias for %s, %s %4s-%4s ...", id.c_str(), type.c_str(), obsCode1._to_string(), obsCode2._to_string());
+	tracepdeex(lv, trace, "\nReading %s bias for %6s, %4s-%4s ...", type.c_str(), id.c_str(), obsCode1._to_string(), obsCode2._to_string());
 
 	BiasEntry foundBias;
 
@@ -778,13 +773,13 @@ bool getBiasSinex(
 	bool pass = getBias(trace, time, id, measType, foundBias, obsCode1, obsCode2);
 	if (pass == false)
 	{
-		tracepdeex(lv, trace, " %s:   not found,            ", type.c_str());
+		tracepdeex(lv, trace, " Not found,          var: %5.1f", var);
 		return false;
 	}
 	
 	bias	= foundBias.bias;
 	var		= foundBias.var;
-	tracepdeex(lv, trace, " %s: %11.4f from %-6s,", type.c_str(), foundBias.bias, foundBias.source.c_str());
+	tracepdeex(lv, trace, " Found: %11.4f, var: %5.1f from %s", bias, var, foundBias.source.c_str());
 	
 	return true;
 }

@@ -122,28 +122,12 @@ processing_options:
             #     code_priorities:        [ L1C, L2L, L2X ]
 
     gnss_models:
-        rec_attitude:
-            invalid_var:            1                       # (double) Observation variance added when attitude is invalid
-            sources:                [NOMINAL]          # [E_Source] Attitude type (e.g. NOMINAL, MODEL, PRECISE)
-            valid_var:              0.01                        # (double) Observation variance added when attitude is valid
-
-        sat_attitude:
-            invalid_var:            1                       # (double) Observation variance added when attitude is invalid
-            sources:                [MODEL, NOMINAL]            # [E_Source] Attitude type
-            valid_var:              0.01                        # (double) Observation variance added when attitude is valid
-
         troposphere:
             model:                  gpt2      # vmf3 or gpt2 
 
         ionospheric_component:
             common_ionosphere:      true   # Code and Phase measurment share the same ionosphere
             use_if_combo:           true
-
-        sat_pos:
-            sources:                [KALMAN, PRECISE, BROADCAST]
-
-        sat_clock:
-            sources:                [KALMAN, PRECISE, BROADCAST]
 
     model_error_checking:
         deweighting:
@@ -245,12 +229,34 @@ processing_options:
 station_options:
 
     USN7:
-        aliases:                        [PIVOT]
-        
+        aliases:                    [PIVOT]
+    
+    global:
+        attitude:
+            sources:                [NOMINAL]   
+            
+    PIVOT:
+        clock:
+            enable:                 false
+
+        code_bias:
+            enable:                 false
+
+satellite_options:
+    global:
+        attitude:
+            sources:                [MODEL, NOMINAL]    
+
+        pos:
+            sources:                [KALMAN, PRECISE, BROADCAST]
+
+        clock:
+            sources:                [KALMAN, PRECISE, BROADCAST]
+
 estimation_parameters:
 
     stations:
-        error_model:                elevation_dependent         #uniform elevation_dependent
+        error_model:                elevation_dependent      
         code_sigmas:                [0.4]
         phase_sigmas:               [0.002]
 
@@ -306,12 +312,6 @@ estimation_parameters:
                 sigma:              [20]
                 proc_noise:         [0]
 
-        PIVOT:
-            clk:
-                estimated:          [false]    # Set reference (pivot) station clock
-
-            code_bias:
-                estimated:          [false]
 
     satellites:
     

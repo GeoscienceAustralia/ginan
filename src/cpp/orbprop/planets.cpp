@@ -20,7 +20,7 @@ std::mutex jplEphMutex;
 
 
 bool jplEphPos(
-	struct jpl_eph_data*	jplEph_ptr,
+	struct jpl_eph_data*	jplEph_ptr,			///< Pointer to jpl binary data
 	MjDateTT				mjdTT,				///< Julian_TT
 	E_ThirdBody     		thirdBody,			///< Star to Calculate the Velocity and Position
 	Vector3d&				pos,				///< Unit: m

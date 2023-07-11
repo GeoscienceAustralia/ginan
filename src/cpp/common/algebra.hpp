@@ -148,9 +148,9 @@ struct KFMeas
 	MatrixXd	H;							///< Design matrix between measurements and state
 	MatrixXd	H_star;						///< Design matrix between measurements and noise states
 
-	vector<KFKey>										obsKeys;					///< Optional labels for reporting when measurements are removed etc.
-	vector<map<string, void*>>							metaDataMaps;
-	vector<vector<tuple<E_Component, double, string>>>	componentLists;	
+	vector<KFKey>												obsKeys;					///< Optional labels for reporting when measurements are removed etc.
+	vector<map<string, void*>>									metaDataMaps;
+	vector<vector<tuple<E_Component, double, string, double>>>	componentLists;	
 	
 	void removeMeas(int index)
 	{
@@ -251,10 +251,14 @@ typedef std::ostream		Trace;
 typedef vector<KFMeas>		KFMeasList;
 typedef vector<KFMeasEntry>	KFMeasEntryList;
 
-typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, KFKey&	key);
-typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, int		index);
+typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, const	KFKey&	key);
+typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, 			int		index);
 
-
+struct Exponential
+{
+	double value	= 0;
+	double tau		= 0;
+};
 
 /** Kalman filter object.
 *
@@ -280,6 +284,7 @@ struct KFState_
 	map<KFKey, double>									procNoiseMap;
 	map<KFKey, double>									initNoiseMap;
 	map<KFKey, double>									noiseElementMap;
+	map<KFKey, Exponential>								exponentialNoiseMap;
 
 	vector<StateRejectCallback> 						stateRejectCallbacks;
 	vector<MeasRejectCallback> 							measRejectCallbacks;
@@ -401,6 +406,10 @@ struct KFState : KFState_
 	bool	addKFState(
 		const	KFKey			kfKey,
 		const	InitialState	initialState = {});
+	
+	void	setExponentialNoise(
+		const	KFKey			kfKey,
+		const	Exponential		exponential);
 
 	void setAccelerator(
 		const	KFKey			element,
@@ -574,6 +583,14 @@ struct KFState : KFState_
 		KFState&			kfState)					
 	const;
 
+	void setExponentialNoise(
+		const	KFKey			kfKey,
+		const	Exponential		exponential)
+	const
+	{
+		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setExponentialNoise	(kfKey, exponential);	
+	}
+
 	void addNoiseElement(
 		const	KFKey			kfKey,
 		const	double			variance)			
@@ -635,7 +652,7 @@ struct KFMeasEntry
 	double innov	= 0;			///< Innovation of measurement (for non-linear systems)
 	KFKey obsKey	= {};			///< Optional labels to be used in output traces
 
-	vector<tuple<E_Component, double, string>> componentList;
+	vector<tuple<E_Component, double, string, double>> componentList;
 
 	map<KFKey,	double>		designEntryMap;
 	map<KFKey,	double>		noiseEntryMap;
@@ -672,7 +689,7 @@ struct KFMeasEntry
 		const	double			variance)			///< Variance of noise element
 	{
 		if	( value		== 0
-			||variance	== 0)
+			||variance	<= 0)
 		{
 			return;
 		}

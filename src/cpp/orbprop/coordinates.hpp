@@ -76,9 +76,17 @@ VectorEcef	body2ecef(
 	AttStatus&	attStatus,
 	Vector3d&	rBody);
 
+Vector3d ecef2body(
+	AttStatus&	attStatus,
+	VectorEcef&	ecef);
+
 VectorEcef antenna2ecef(
 	AttStatus&	attStatus,
 	Vector3d&	rAnt);
+
+Vector3d ecef2antenna(
+	AttStatus&	attStatus,
+	VectorEcef&	ecef);
 
 struct FrameSwapper
 {
