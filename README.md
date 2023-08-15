@@ -7,6 +7,7 @@
 ## Overview
 
 Ginan is a processing package being developed to processes GNSS observations for geodetic applications.  
+Further in-depth documentation about its use may be found [here](https://geoscienceaustralia.github.io/ginan/)
 
 We currently support the processing of:
 
