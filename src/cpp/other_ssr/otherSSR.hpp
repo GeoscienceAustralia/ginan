@@ -2,19 +2,27 @@
 
 #pragma once
 
-#include "rtcmDecoder.hpp"
-#include "navigation.hpp"
-#include "ntripTrace.hpp"
-#include "acsConfig.hpp"
-#include "biasSINEX.hpp"
-#include "common.hpp"
+#include <vector>
+#include <map>
+
+using std::vector;
+using std::map;
+
 #include "gTime.hpp"
 #include "enums.h"
+
+struct SatSys;
+struct SSRUra;
+struct SSRAtm;
+struct SSROut;
+struct SSRPhasBias;
+struct SSRCodeBias;
 
 const int igsUpdateInterval[16] =
 {
 	1, 2, 5, 10, 15, 30, 60, 120, 240, 300, 600, 900, 1800, 3600, 7200, 10800
 };
+
 void decodecompactSSR(
 	vector<unsigned char>&	data,
 	GTime					now);
@@ -91,6 +99,6 @@ vector<uint8_t>  encodeIGS_URA(
 	bool						last);
 
 vector<uint8_t>  encodeIGS_ATM(
-	SSRAtm						ssrAtm,
+	SSRAtm&						ssrAtm,
 	bool						last);
 

@@ -6,31 +6,25 @@
 #include <math.h>    
 
 #include "eigenIncluder.hpp"
-#include "corrections.hpp"
 #include "coordinates.hpp"
 #include "ephPrecise.hpp"
 #include "navigation.hpp"
+#include "tropModels.hpp"
 #include "acsConfig.hpp"
-#include "testUtils.hpp"
 #include "constants.hpp"
-#include "biasSINEX.hpp"
+#include "ionModels.hpp"
+#include "station.hpp"
 #include "algebra.hpp"
 #include "satStat.hpp"
 #include "common.hpp"
+#include "biases.hpp"
 #include "trace.hpp"
 #include "enums.h"
 #include "ppp.hpp"
-#include "trop.h"
 
-
-#define MAXITR		10			///< max number of iteration for point pos 
 #define ERR_ION		7.0			///< ionospheric delay std (m) 
-#define ERR_TROP	3.0			///< tropspheric delay std (m) 
-#define ERR_SAAS	0.3			///< saastamoinen model error std (m) 
 #define ERR_BRDCI	0.5			///< broadcast iono model error factor 
 #define ERR_CBIAS	0.3			///< code bias error std (m) 
-#define REL_HUMI	0.7			///< relative humidity for saastamoinen model 
-
 
 /** Calculate pseudorange with code bias correction
 */
@@ -67,9 +61,16 @@ bool	prange(
 		return false;
 	}
 	
-	double B1	= 0; 
-	double var1	= 0;	 
-	getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, obs.Sigs[f_1].code, CODE, B1, var1);
+	//get a bias if the default invalid value is still present
+	double& B1		= obs.Sigs[f_1].biases	[CODE];
+	double& var1	= obs.Sigs[f_1].biasVars[CODE];
+	if (isnan(B1))
+	{
+		B1		= 0;
+		var1	= 0;
+		getBias(trace, obs.time, obs.Sat.id(), obs.Sat, obs.Sigs[f_1].code, CODE, B1, var1);
+	}
+	
 	double P1	= obs.Sigs[f_1].P - B1;
 
 	double PC = 0;
@@ -82,9 +83,17 @@ bool	prange(
 		}
 
 		double gamma= SQR(lam[f_2]) / SQR(lam[f_1]); /* f1^2/f2^2 */
-		double B2	= 0;
-		double var2 = 0;	
-		getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, obs.Sigs[f_2].code, CODE, B2, var2);
+		
+		double& B2		= obs.Sigs[f_2].biases	[CODE];
+		double& var2	= obs.Sigs[f_2].biasVars[CODE];
+		
+		if (isnan(B2))
+		{
+			B2		= 0;
+			var2	= 0;
+			getBias(trace, obs.time, obs.Sat.id(), obs.Sat, obs.Sigs[f_2].code, CODE, B2, var2);
+		}
+		
 		double P2	= obs.Sigs[f_2].P - B2;
 
 		/* iono-free combination */
@@ -102,7 +111,7 @@ bool	prange(
 		//get a bias if the default invalid value is still present
 		if (isnan(obs.Sigs[f_1].biases[CODE]))
 		{
-			bool pass = getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, obs.Sigs[f_1].code, E_ObsCode::NONE, CODE, obs.Sigs[f_1].biases[CODE], varP1);
+			bool pass = getBias(trace, obs.time, obs.Sat.id(), obs.Sat, obs.Sigs[f_1].code, CODE, obs.Sigs[f_1].biases[CODE], varP1);
 			if (pass == false)
 			{
 				BOOST_LOG_TRIVIAL(warning)
@@ -188,26 +197,7 @@ bool ionocorr(
 	return true;
 }
 
-/** Compute tropospheric corrections
-*/
-int tropcorr(
-	GTime		time,		///< Time
-	VectorPos&	pos,		///< Receiver position in LLH
-	double*		azel,		///< Azimuth and elevation
-	double&		trp,		///< Tropospheric value output
-	double&		var)		///< Tropospheric variance output
-{
-// 	trace(4, "tropcorr: time=%s opt=%d pos=%.3f %.3f azel=%.3f %.3f\n",
-// 			time.to_string(3).c_str(),
-// 			tropopt,
-// 			pos[0]*R2D,
-// 			pos[1]*R2D,
-// 			azel[0]*R2D,
-// 			azel[1]*R2D);
-	trp = tropmodel(time, pos, azel, REL_HUMI);
-	var = SQR(ERR_SAAS / (sin(azel[1]) + 0.1));
-	return 1;
-}
+
 
 /** Validate Dilution of Precision of solution
 */
@@ -339,11 +329,17 @@ E_Solution estpos(
 	}
 	
 	auto& kfState = sol.sppState;
-	kfState = KFState();		//reset to zero to prevent lock-in of bad positions
+	if (acsConfig.sppOpts.always_reinitialize)
+	{
+		kfState = KFState();		//reset to zero to prevent lock-in of bad positions
+	}
 	
 	int iter;
+	int removals = 0;
+	double adjustment = 10000;
+	
     tracepdeex (5, trace, "\n ---- STARTING SPP LSQ ----");
-	for (iter = 0; iter < MAXITR; iter++)
+	for (iter = 0; iter < acsConfig.sppOpts.max_lsq_iterations; iter++)
 	{
 		tracepdeex(5, trace, "\nSPP It: %d", iter);
 		kfState.initFilterEpoch();
@@ -390,9 +386,20 @@ E_Solution estpos(
 			
 // 			rSat += dtRec / CLIGHT * obs.satVel;
 			
-			// geometric distance/azimuth/elevation angle
 			double r = geodist(rSat, rRec, satStat.e);
 			int debuglvl = 2;
+
+			// psudorange with code bias correction
+			double range;
+			double vMeas;
+			double vBias;
+			int pass = prange(trace, obs, acsConfig.ionoOpts.corr_mode, range, vMeas, vBias);
+			if (pass == false)
+			{
+				obs.failurePrange = true;
+				
+				continue;
+			}
 			
 			if (r <= 0)
 			{
@@ -416,22 +423,11 @@ E_Solution estpos(
 				continue;
 			}
 
-			// psudorange with code bias correction
-			double range;
-			double vMeas;
-			double vBias;
-			int pass = prange(trace, obs, acsConfig.ionoOpts.corr_mode, range, vMeas, vBias);
-			if (pass == false)
-			{
-				obs.failurePrange = true;
-				
-				continue;
-			}
-
 			tracepdeex(debuglvl, trace, ", %14.3f", range);
 			
 			double el = satazel(pos, satStat.e, obs.satStat_ptr->azel);
-			if (el < acsConfig.elevation_mask)
+			if	(  el < acsConfig.elevation_mask
+				&& adjustment < 10000)
 			{
 				obs.failureElevation = true;
 				
@@ -461,17 +457,14 @@ E_Solution estpos(
 			tracepdeex(debuglvl, trace, ", %9.5f", dion);
 			
 			// tropospheric corrections
-			double dtrp;
 			double vtrp;
-			pass = tropcorr(obs.time, pos, obs.satStat_ptr->azel, dtrp, vtrp);
-			if (pass == false)
-			{
-				obs.failureTropcorr = true;
-				
-				tracepdeex(debuglvl, trace, " ... Trop fail");
-				continue;
-			}
-
+			double dryZTD;
+			double dryMap;
+			double wetZTD;
+			double wetMap;
+			
+			double dtrp = tropSAAS(obs.time, pos, obs.satStat_ptr->el, dryZTD, dryMap, wetZTD, wetMap, vtrp);
+			
 			tracepdeex(debuglvl, trace, ", %9.5f", dtrp);
 
 			// pseudorange residual
@@ -514,6 +507,8 @@ E_Solution estpos(
 			
 			codeMeas.setValue(res);
 			codeMeas.setNoise(var);
+			
+			codeMeas.metaDataMap["obs_ptr"] = (void*) &obs;
 
 			kfMeasEntryList.push_back(codeMeas);
 
@@ -531,9 +526,9 @@ E_Solution estpos(
 
 		//combine the measurement list into a single matrix
 		numMeas = kfMeasEntryList.size();
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
+		KFMeas kfMeas = kfState.combineKFMeasList(kfMeasEntryList);
 
-		if	( numMeas < combinedMeas.H.cols() - 1
+		if	( numMeas < kfMeas.H.cols() - 1
 			||numMeas == 0)
 		{
 			BOOST_LOG_TRIVIAL(info)
@@ -549,22 +544,53 @@ E_Solution estpos(
 		
 		
 		VectorXd dx;
-		kfState.leastSquareInitStates(trace, combinedMeas, true, &dx);
+		kfState.leastSquareInitStates(trace, kfMeas, true, &dx);
 
 		if (trace_level >= 4)
 		{
-			combinedMeas.V = combinedMeas.Y;
-			outputResiduals(trace, combinedMeas, iter, (string)"/" + description, 0, combinedMeas.H.rows());
+			kfMeas.V = kfMeas.Y;
+			outputResiduals(trace, kfMeas, iter, (string)"/" + description, 0, kfMeas.H.rows());
 		}
-		
-		tracepdeex(4, trace, "\nSPP dx: %15.4f\n", dx.norm());
-		if (dx.norm() < 1E-4)
+		adjustment = dx.norm();
+		tracepdeex(4, trace, "\nSPP dx: %15.4f\n", adjustment);
+		if (adjustment < 1E-4)
 		{
+			if	( acsConfig.sppOpts.sigma_check	
+				&&removals < acsConfig.sppOpts.max_removals)
+			{
+				//use 'array' for component-wise calculations
+				auto		measVariations		= kfMeas.Y.array().square();	//delta squared
+				
+				auto		measVariances		= kfMeas.R.diagonal().array();
+				
+				ArrayXd		measRatios			= measVariations	/ measVariances;
+							measRatios			= measRatios.isFinite()	.select(measRatios,		0);	
+
+				//if any are outside the expected values, flag an error
+				
+				Eigen::ArrayXd::Index measIndex;
+				
+	// 			std::cout << "\nmeasRatios\n" << measRatios;
+				
+				double maxMeasRatio		= measRatios	.maxCoeff(&measIndex);
+				
+				if	(maxMeasRatio > SQR(acsConfig.sppOpts.sigma_threshold))
+				{
+					trace << std::endl << "LARGE MEAS  ERROR OF " << maxMeasRatio << " AT " << measIndex << " : " << kfMeas.obsKeys[measIndex];
+					
+					GObs& badObs = *(GObs*) kfMeas.metaDataMaps[measIndex]["obs_ptr"];
+					
+					badObs.excludeOutlier = true;
+					continue;
+				}
+			}
+				
+			
 			double dtRec_m = 0;
 			kfState.getKFValue({KF::REC_SYS_BIAS, SatSys(E_Sys::GPS), id}, dtRec_m);
 			
 			sol.numMeas	= numMeas;
-			sol.time	= obsList.front()->time - dtRec_m / CLIGHT;
+			sol.sppTime	= obsList.front()->time - dtRec_m / CLIGHT;
 
 			double a = sqrt( kfState.P(1,1) + kfState.P(2,2) + kfState.P(3,3)	) * kfState.chi / kfState.dof;
 			double b = sqrt( kfState.P(4,4)										) * kfState.chi / kfState.dof;
@@ -596,7 +622,7 @@ E_Solution estpos(
 	}
     tracepdeex (5, trace, "\n ---- END OF SPP LSQ, iterations = %d ----", iter);
 
-	if (iter >= MAXITR)
+	if (iter >= acsConfig.sppOpts.max_lsq_iterations)
 	{
 		BOOST_LOG_TRIVIAL(debug) << "SPP failed to converge after " << iter << " iterations for " << id << " - " << description;
 	}
@@ -657,13 +683,13 @@ bool raim_fde(
 		
 		if (nvsat < 5)
 		{
-			tracepdeex(3, std::cout, "raim_fde: exsat=%s lack of satellites nvsat=%2d\n", testObs.Sat.id().c_str(), nvsat);
+			tracepdeex(3, std::cout, "%s: exsat=%s lack of satellites nvsat=%2d\n", __FUNCTION__, testObs.Sat.id().c_str(), nvsat);
 			continue;
 		}
 		
 		rms_e = sqrt(rms_e / nvsat);
 
-		tracepdeex(3, trace, "raim_fde: exsat=%s rms=%8.3f\n", testObs.Sat.id().c_str(), rms_e);
+		tracepdeex(3, trace, "%s: exsat=%s rms=%8.3f\n", __FUNCTION__, testObs.Sat.id().c_str(), rms_e);
 
 		if (rms_e > rms_min)
 			continue;
@@ -700,7 +726,7 @@ bool raim_fde(
 
 /** Compute receiver position, velocity, clock bias by single-point positioning with pseudorange observables
 */
-void sppos(
+void SPP(
 	Trace&		trace,			///< Trace file to output to
 	ObsList&	obsList,		///< List of observations for this epoch
 	Solution&	sol,			///< Solution object containing initial state and results
@@ -713,6 +739,18 @@ void sppos(
 		sol.status = E_Solution::NONE;
 	
 		return;
+	}
+
+	for (auto& obs : only<GObs>(obsList))
+	{
+		if (acsConfig.process_sys[obs.Sat.sys] == false)
+		{
+			continue;
+		}
+				
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		
+		satPosClk(trace, obs.time, obs, nav, satOpts.sat_pos.ephemeris_sources, satOpts.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
 	}
 
 	tracepdeex(3,trace,	"\n%s  : tobs=%s n=%zu", __FUNCTION__, obsList.front()->time.to_string(3).c_str(), obsList.size());

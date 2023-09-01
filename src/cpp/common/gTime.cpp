@@ -13,7 +13,6 @@ using std::ostream;
 #include "constants.hpp"
 #include "acsConfig.hpp"
 #include "gTime.hpp"
-#include "sinex.hpp"
 #include "enums.h"
 
 
@@ -343,46 +342,6 @@ GTime gpst2time(int week, double sec)
 	return t;
 }
 
-/* convert GTime struct to week and tow in gps time
-* args   : GTime t        I   GTime struct
-*          int    *week     IO  week number in gps time (nullptr: no output)
-* return : time of week in gps time (s)
-*/
-double time2gpst(GTime t, int *week)
-{
-	GTime t0 = GPS_t0;
-
-	auto sec = t.bigTime - t0.bigTime;
-	int w = (int)(sec / (86400*7));
-
-	if (week) 
-		*week = w;
-
-// 	return (double)sec - w * 86400 * 7 + t.bigTime;		//todo aaron broke this
-	return 0;
-}
-
-
-/* convert GTime struct to week and tow in beidou time (bdt)
-* args   : GTime t        I   GTime struct
-*          int    *week     IO  week number in bdt (nullptr: no output)
-* return : time of week in bdt (s)
-*/
-double time2bdt(GTime t, int *week)
-{
-	GTime t0 = BDS_t0;
-	
-	auto sec = t.bigTime - t0.bigTime;
-	int w = (int)(sec / (86400*7));
-
-	if (week) 
-		*week=w;
-	
-	return (double)(sec - w * 86400 * 7);
-}
-
-
-
 GTime timeGet()
 {
 	auto posixUtcNow	= boost::posix_time::microsec_clock::universal_time();
@@ -472,97 +431,6 @@ string GTime::to_string(
 	
 	return buff;
 }
-
-/* set precision
- */
-double setdigits(const double n)
-{
-	char str[128];
-	double m;
-
-	snprintf(str, sizeof(str),"%.4f",n);
-	sscanf(str,"%lf",&m);
-
-	return m;
-}
-
-/* Julian day to YMDHMS
-* args     :       const double jd         I       Julian day
-*                  double ep[6]            O       Y,M,D,H,M,S
-*/
-void jd2ymdhms(const double jd, double *ep)
-{
-	int b,c,d,e;
-	double t1,t2,i1;
-
-	modf(jd+0.5,&i1);
-	b=i1+1537;
-	modf((b-122.1)/365.25,&i1);
-	c=i1;
-	modf(365.25*c,&i1);
-	d=i1;
-	modf((b-d)/30.6001,&i1);
-	e=i1;
-
-	t1=(jd+0.5-floor(jd+0.5))*24*3600;
-
-	t2=modf(t1/3600,&ep[3]);            /* hour */
-	ep[2]=b-d-floor(30.6001*e);         /* day */
-	ep[1]=e-1-12*floor(e/14);           /* month */
-	ep[0]=c-4715-floor((7+ep[1])/10);   /* year */
-	t2=modf(t2*60,&ep[4]);              /* minute */
-	ep[5]=t2*60;                        /* second */
-	ep[5]=setdigits(ep[5]);
-
-	if (setdigits(ep[5])==60)
-	{
-		ep[5]=0;
-		ep[4]+=1;
-		if (ep[4]==60)
-		{
-			ep[4]=0;
-			ep[3]+=1;
-		}
-	}
-
-	return;
-}
-
-/** YMDHMS to Julian Day   
-* return   :       julian day
-*/
-double ymdhms2jd(
-	const double time[6])	///< civil date time [YMDHMS]
-{
-	double i;
-	double j;
-
-	double yr	= time[0];
-	double mon	= time[1];
-// 	double day	= time[2];
-	double hr	= time[3];
-	double min	= time[4];
-	double sec	= time[5];
-
-	if (yr<=0||yr>=2099) return 0;
-
-	if (mon>2)	{	i = yr;		j = mon;    	}
-	else		{	i = yr - 1;	j = mon + 12;	}
-
-	double day	= time[2]
-				+ hr	/ 24
-				+ min	/ 24 / 60
-				+ sec	/ secondsInDay;
-
-	double jd	= floor(365.25*i)
-				+ floor(30.6001*(j+1))
-				+ day
-				+ 1720981.5;
-
-// 	BOOST_LOG_TRIVIAL(debug) << "YMDH to JD: year=" << yr << " mon=" << mon << " day=" << day << " hour=" << hr << ", jd=" << jd;
-	return jd;
-};
-
 
 GTime::operator GEpoch() const
 {

@@ -18,7 +18,6 @@ using std::map;
 
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
-#include "corrections.hpp"
 #include "instrument.hpp"
 #include "mongoWrite.hpp"
 #include "navigation.hpp"
@@ -418,20 +417,6 @@ void updateRecClocks(
 		rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = rec.sol.dtRec_m[E_Sys::GPS];
 		
 		kfState.setKFTrans(clkKey, KFState::oneKey, C_dtRecAdj, init);		//todo aaron, change to rate?
-		
-// 		if (fabs(C_dtRecAdj) > 100000)
-// 		{
-// 			for (auto& [key, index] : kfState.kfIndexMap)
-// 			{
-// 				if	( key.type	!= KF::AMBIGUITY
-// 					||key.str	!= id)
-// 				{
-// 					continue;
-// 				}
-// 				
-// 				kfState.removeState(key);
-// 			}
-// 		}
 	}
 }
 
@@ -812,9 +797,9 @@ void PPP(
 		Instrument instrument("PPP stateTransition1");
 		
 		kfState.stateTransition(trace, tsync);
-	}
 	
-	kfState.outputStates(trace, "/PREDICTED");
+		kfState.outputStates(trace, "/PREDICTED");
+	}
 	
 	//prepare a map of lists of measurements for use below
 	map<string, KFMeasEntryList> stationKFEntryListMap;
@@ -834,12 +819,12 @@ void PPP(
 	{	
 		Instrument instrument("PPP obsOMC");
 	
+		BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << std::endl;
+	
 		//calculate the measurements for each station
 #		ifdef ENABLE_PARALLELISATION
-#		ifndef ENABLE_UNIT_TESTS
 			Eigen::setNbThreads(1);
 #			pragma omp parallel for
-#		endif
 #		endif
 		for (int i = 0; i < stationMap.size(); i++)
 		{
@@ -863,7 +848,6 @@ void PPP(
 		Eigen::setNbThreads(0);
 	}
 	
-	
 	//combine all lists of measurements into a single list
 	KFMeasEntryList kfMeasEntryList;
 	for (auto& [rec, stationKFEntryList]	: stationKFEntryListMap)
@@ -886,6 +870,8 @@ void PPP(
 		Instrument	instrument("PPP stateTransition2");
 		
 		kfState.stateTransition(trace, tsync);
+		
+// 		kfState.outputStates(trace, "/INITIALISED");
 	}
 
 	
@@ -906,12 +892,11 @@ void PPP(
 	if (kfState.lsqRequired)
 	{
 		kfState.lsqRequired = false;
-		std::cout << std::endl << "-------INITIALISING PPPPP USING LEAST SQUARES--------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "-------INITIALISING PPPPP USING LEAST SQUARES--------" << std::endl;
 
 		VectorXd dx;
  		kfState.leastSquareInitStatesA(trace, combinedMeas, false, &dx, true);
 		
-		trace << std::endl << "Least Squares Initialised States";
 		kfState.outputStates(trace, "/LSQ");
 	}
 	
@@ -920,7 +905,7 @@ void PPP(
 	
 	chunkFilter(trace, kfState, combinedMeas, stationMap, filterChunkList, traceList);
 	
-	std::cout << std::endl << " -------DOING PPPPP KALMAN FILTER --------" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << std::endl;
 
 	kfState.filterKalman(trace, combinedMeas, true, &filterChunkList);
 	
@@ -938,63 +923,7 @@ void PPP(
 		kfState.outputStates(*filterChunk.trace_ptr, "/PPP", filterChunk.begX, filterChunk.numX);
 	}
 	
-	kfState.outputStates			(trace, "/PPP");
-// 	kfState.outputConditionNumber	(trace);
-// 	kfState.outputCorrelations		(trace);
-	
-// 	lambdacalcs(kfState);
-	
-	KFState kfStatefixed = kfState;
-	
-	kfStatefixed.suffix = "AR";
-	
-	PPP_AR(trace, kfStatefixed);
-	
-	for (auto& [recId, rec] : stationMap)
-	{
-		double trop = 0;
-		kfStatefixed.getKFValue({KF::TROP, {}, recId,	0}, trop);	//todo aaron, needs to iterate
-				
-		for (short i = 0; i < 3; i++)
-		{
-			kfStatefixed.getKFValue({KF::REC_POS, 		{}, recId,	i},		rec.sol.pppRRec[i]);
-			kfStatefixed.getKFValue({KF::REC_POS_RATE,	{}, recId,	i},		rec.sol.pppVRec[i]);
-		}
-		
-		for (short i = 0; i < 3; i++)
-		{
-			kfStatefixed.getKFValue({KF::ORBIT, 		{}, recId,	i},		rec.sol.pppRRec[i]);		//todo aaron, this is eci
-			kfStatefixed.getKFValue({KF::ORBIT,			{}, recId,	i + 3},	rec.sol.pppVRec[i]);
-		}
-
-		GWeek	week	= kfState.time;
-		GTow	tow		= kfState.time;
-		
-		tracepdeex(2,trace,"#TROP_OUT, %4d, %s, %10.1f, %.4f\n", week, tow, recId, trop);
-		
-		if (acsConfig.output_ppp_sol)
-		{
-			outputPPPSolution(kfState.metaDataMap[SOL_FILENAME_STR + recId], rec);
-		}
-	}
-	
-	if	(  acsConfig.model.ionospheric_model
-		&& acsConfig.ssrOpts.ionosphere_sources.front() == +E_Source::KALMAN)
-	{
-		ionosphereSsrUpdate(trace, kfStatefixed);
-	}
-	
-	if (acsConfig.process_ionosphere)
-	{
-		ginan2IonoMeas(trace, stationMap, kfStatefixed);
-	}
-	
-	if (1)
-	{
-// 		KFState propagatedState = propagateUncertainty(trace, kfState);
-		
-// 		propagatedState.outputStates(trace, "/PROPAGATED");
-	}
+	kfState.outputStates(trace, "/PPP");
 }
 
 

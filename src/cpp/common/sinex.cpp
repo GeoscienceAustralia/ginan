@@ -527,7 +527,7 @@ void dedupe_sinex()
 }
 
 // TODO; What if we are reading a second file. What wins?
-int read_snx_header(std::ifstream& in)
+bool read_snx_header(std::ifstream& in)
 {
 	string s;
 
@@ -536,7 +536,7 @@ int read_snx_header(std::ifstream& in)
 	if (in.eof())
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error: empty file" << endl;
-		return 1;
+		return false;
 	}
 
 	// verify line contents
@@ -548,7 +548,7 @@ int read_snx_header(std::ifstream& in)
 	{
 		// error. not a sinex file
 		BOOST_LOG_TRIVIAL(error) << "Error: Not a sinex file" << endl;
-		return 2;
+		return false;
 	}
 
 	// remaining characters indiciate properties of the file
@@ -572,9 +572,9 @@ int read_snx_header(std::ifstream& in)
 						&theSinex.solution_end_date[0],
 						&theSinex.solution_end_date[1],
 						&theSinex.solution_end_date[2],
-						&theSinex.ObsCode,
+						&theSinex.obsCode,
 						&theSinex.numparam,
-						&theSinex.ConstCode,
+						&theSinex.constCode,
 						&solcontents[0],
 						&solcontents[1],
 						&solcontents[2],
@@ -586,7 +586,7 @@ int read_snx_header(std::ifstream& in)
 		{
 			// error, not enough parameters
 			BOOST_LOG_TRIVIAL(error) << "Error: Not enough parameters on header line (expected min 15), got " << readcount << endl;
-			return 3;
+			return false;
 		}
 
 		while (readcount < 21)
@@ -606,8 +606,7 @@ int read_snx_header(std::ifstream& in)
 		nearestYear(theSinex.solution_end_date[0]);
 	}
 
-	// Only one line for header - no sort required
-	return 0;
+	return true;
 }
 
 void updateSinexHeader(
@@ -618,6 +617,7 @@ void updateSinexHeader(
 	const char	obsCode,
 	const char	constCode,
 	string&		contents,
+	int			numParam,
 	double		sinexVer)
 {
 	Sinex_input_history_t siht;
@@ -626,8 +626,8 @@ void updateSinexHeader(
 	siht.fmt			= theSinex.ver;
 	siht.create_agency	= theSinex.create_agc;
 	siht.data_agency	= theSinex.data_agc;
-	siht.obs_tech		= theSinex.ObsCode;
-	siht.constraint		= theSinex.ConstCode;
+	siht.obs_tech		= theSinex.obsCode;
+	siht.constraint		= theSinex.constCode;
 	siht.num_estimates	= theSinex.numparam;
 	siht.contents		= theSinex.solcont;
 	siht.create_time	= theSinex.filedate;
@@ -649,12 +649,12 @@ void updateSinexHeader(
 	theSinex.solution_end_date		= soln_end;
 
 	if (obsCode		!= ' ')
-		theSinex.ObsCode = obsCode;
+		theSinex.obsCode	= obsCode;
 
-	if (constCode 	== ' ')
-		theSinex.ConstCode = constCode;
+	if (constCode 	!= ' ')
+		theSinex.constCode	= constCode;
 
-	theSinex.numparam = theSinex.kfState.x.rows()-1;
+	theSinex.numparam = numParam;
 }
 
 void write_snx_header(std::ofstream& out)
@@ -677,9 +677,9 @@ void write_snx_header(std::ofstream& out)
 			(int)theSinex.solution_end_date[0] % 100,
 			(int)theSinex.solution_end_date[1],
 			(int)theSinex.solution_end_date[2],
-			theSinex.ObsCode,
+			theSinex.obsCode,
 			theSinex.numparam,
-			theSinex.ConstCode);
+			theSinex.constCode);
 
 	i = 0;
 	c = theSinex.solcont[0];
@@ -949,7 +949,7 @@ void parse_snx_siteIds(string& s)
 	const char* p = s.c_str();
 	Sinex_siteid_t sst;
 
-	sst.sitecode	= s.substr(1, 4);
+	sst.sitecode	= trim(s.substr(1, 4));
 	sst.ptcode		= s.substr(6, 2);
 	sst.domes		= s.substr(9, 9);
 	sst.typecode 	= s[19];
@@ -1128,7 +1128,7 @@ void parse_snx_receivers(string& s)
 
 	Sinex_receiver_t srt;
 
-	srt.sitecode	= s.substr(1, 4);
+	srt.sitecode	= trim(s.substr(1, 4));
 	srt.ptcode		= s.substr(6, 2);
 	srt.solnid		= s.substr(9, 4);
 	srt.typecode	= s[14];
@@ -1205,7 +1205,7 @@ void parse_snx_antennas(string& s)
 	
 	Sinex_antenna_t ant;
 
-	ant.sitecode	= s.substr(1, 4);
+	ant.sitecode	= trim(s.substr(1, 4));
 	ant.ptcode		= s.substr(6, 2);
 	ant.solnnum		= s.substr(9, 4);
 	ant.typecode	= s[14];
@@ -1556,7 +1556,7 @@ void parse_snx_siteEccentricity(string& s)
 	const char* p = s.c_str();
 	Sinex_site_ecc_t sset;
 
-	sset.sitecode 	= s.substr(1, 4);
+	sset.sitecode 	= trim(s.substr(1, 4));	
 	sset.ptcode		= s.substr(6, 2);
 	sset.solnnum	= s.substr(9, 4);
 	sset.typecode	= s[14];
@@ -1650,7 +1650,7 @@ void parse_snx_epochs(string& s)
 	
 	Sinex_solepoch_t sst;
 
-	sst.sitecode	= s.substr(1, 4);
+	sst.sitecode	= trim(s.substr(1, 4));
 	sst.ptcode		= s.substr(6, 2);
 	sst.solnnum		= s.substr(9, 4);
 	sst.typecode	= s[14];
@@ -1837,13 +1837,15 @@ void parse_snx_solutionEstimates(string& s)
 	}
 }
 
-void write_snx_estimates_from_filter(ofstream& out)
+void write_snx_estimates_from_filter(
+	ofstream&	out,
+	KFState&	kfState)
 {
 	Block block(out, "SOLUTION/ESTIMATE");
 
 	write_as_comments(out, theSinex.blockComments[block.blockName]);
 
-	for (auto& [key, index] : theSinex.kfState.kfIndexMap)
+	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		if	(  key.type != KF::REC_POS
 			&& key.type != KF::REC_POS_RATE
@@ -1874,8 +1876,8 @@ void write_snx_estimates_from_filter(ofstream& out)
 				(int)theSinex.solution_end_date[2],
 				"m",
 				'9',	// TODO: replace with sst.constraint when fixed
-						theSinex.kfState.x(index),
-				sqrt(	theSinex.kfState.P(index,index)));
+						kfState.x(index),
+				sqrt(	kfState.P(index,index)));
 	}
 }
 
@@ -2133,19 +2135,6 @@ void write_snx_normal(ofstream& out, list<SinexRecData>* pstns = nullptr)
 	}
 }
 
-// Just use indices of row and col for the comparison
-int compare_matrix_entries(Sinex_solmatrix_t& left, Sinex_solmatrix_t& right)
-{
-	int comp;
-
-	if (left.row == right.row)
-		comp = left.col - right.col;
-	else
-		comp = left.row - right.row;
-
-	return (comp < 0);
-}
-
 matrix_type		mat_type;
 matrix_value	mat_value;
 
@@ -2200,7 +2189,8 @@ void parseSinexEstimateMatrix(
 }
 
 void write_snx_matrices_from_filter(
-	ofstream& out)
+	ofstream&	out,
+	KFState&	kfState)
 {
 	const char* type_strings	[MAX_MATRIX_TYPE];
 	const char* value_strings	[MAX_MATRIX_VALUE];
@@ -2214,7 +2204,7 @@ void write_snx_matrices_from_filter(
 	value_strings[INFORMATION]	= "INFO";
 
     // just check we have some values to play with first
-	if (theSinex.kfState.P.rows() == 0) 
+	if (kfState.P.rows() == 0) 
 		return;
 
 	for (auto& mt : {ESTIMATE})
@@ -2228,7 +2218,7 @@ void write_snx_matrices_from_filter(
 		
 		write_as_comments(out, theSinex.blockComments[block.blockName]);
 
-		MatrixXd& P = theSinex.kfState.P;
+		MatrixXd& P = kfState.P;
 
 		for (int i = 1; i <  P.rows();	i++)
 		for (int j = 1; j <= i;			   )
@@ -2265,7 +2255,7 @@ void parse_snx_dataHandling(string& s)
 {
 	Sinex_datahandling_t sdt;
 	
-	sdt.sitecode	= s.substr(1, 4);	//4 - CDP ID
+	sdt.sitecode	= trim(s.substr(1, 4));	//4 - CDP ID
 	sdt.ptcode		= s.substr(6, 2);	//2 - physical monument used at the site
 	sdt.unit		= s.substr(9, 4);	//4 - units of estimate
 	sdt.t			= s.substr(14, 1);	//1
@@ -2638,28 +2628,6 @@ void write_snx_satfreqchn(ofstream& out)
 	}
 }
 
-bool compare_satmass(Sinex_satmass_t& left, Sinex_satmass_t& right)
-{
-	// start by comparing SVN...
-	char	constleft	= left	.svn[0];
-	char    constright	= right	.svn[0];
-	int     nleft		= atoi(left	.svn.substr(1).c_str());
-	int     nright		= atoi(right.svn.substr(1).c_str());
-	int		result;
-
-	if (constleft == constright)
-		result = nleft - nright;
-	else
-		result = constleft - constright;
-
-	// then by start time if the same space vehicle
-	for (int i = 0; i < 3; i++)
-		if (result == 0)
-			result = left.start[i] - right.start[i];
-
-	return (result < 0);
-}
-
 void parse_snx_satelliteMass(string& s)
 {
 	Sinex_satmass_t	ssm;
@@ -2845,28 +2813,6 @@ void write_snx_satecc(ofstream& out)
 
 		out << line << endl;
 	}
-}
-
-bool compare_satpower(Sinex_satpower_t& left, Sinex_satpower_t& right)
-{
-	// start by comparing SVN...
-	char	constleft	= left.svn[0];
-	char    constright	= right.svn[0];
-	int     nleft		= atoi(left.svn.substr(1).c_str());
-	int     nright		= atoi(right.svn.substr(1).c_str());
-	int		result;
-
-	if (constleft == constright)
-		result = nleft - nright;
-	else
-		result = constleft - constright;
-
-	// then by start time if the same space vehicle
-	for (int i = 0; i < 3; i++)
-		if (result == 0)
-			result = left.start[i] - right.start[i];
-
-	return (result < 0);
 }
 
 void parse_snx_satellitePowers(string& s)
@@ -3064,7 +3010,7 @@ void nullFunction(string& s)
 	
 }
 
-int readSinex(
+bool readSinex(
 	string filepath, 
 	bool primary)
 {
@@ -3078,21 +3024,23 @@ int readSinex(
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Error opening sinex file" << filepath << endl;
-		return 1;
+		return false;
 	}
 
-	int failure = read_snx_header(filestream);
-	if (failure)
+	bool pass = read_snx_header(filestream);
+	if (pass == false)
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Error reading header line." << endl;
 
-		return failure;
+		return false;
 	}
 
 	void (*parseFunction)(string&) = nullFunction;
 	
 	string			closure = "";
+	
+	bool failure = false;
 	
 	while (filestream)
 	{
@@ -3107,7 +3055,7 @@ int readSinex(
 			BOOST_LOG_TRIVIAL(error)
 			<< "Error: Closure line not found before end." << endl;
 
-			failure = 1;
+			failure = true;
 			break;
 		}
 		else if (line[0] == '*')
@@ -3182,7 +3130,7 @@ int readSinex(
 				BOOST_LOG_TRIVIAL(error)
 				<< "Error: unknown header line: " << line << endl;
 
-				failure = 1;	
+				failure = true;	
 			}
 				
 // 			int 	i;
@@ -3193,7 +3141,7 @@ int readSinex(
 // 						BOOST_LOG_TRIVIAL(error)
 // 						<< "cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks." << endl;
 // 
-// 						failure = 1;
+// 						failure = true;
 // 						break;
 // 					}
 // 
@@ -3209,7 +3157,7 @@ int readSinex(
 // 						BOOST_LOG_TRIVIAL(error)
 // 						<< "cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks." << endl;
 // 
-// 						failure = 1;
+// 						failure = true;
 // 						break;
 // 					}
 // 
@@ -3259,7 +3207,7 @@ int readSinex(
 				BOOST_LOG_TRIVIAL(error)
 				<< "Error: line starting '%' met not final line" << endl << line << endl;
 
-				failure = 1;
+				failure = true;
 			}
 
 			break;
@@ -3283,19 +3231,20 @@ int readSinex(
 // 	theSinex.matrix_map[type][value].sort(compare_matrix_entries);
 	dedupe_sinex();
 
-	return failure;
+	return failure == false;
 }
 
 
-bool writeSinex(
+void writeSinex(
 	string						filepath,
+	KFState&					kfState,
 	map<string, Station>&		stationMap)
 {
-	ofstream 	filestream(filepath);
+	ofstream filestream(filepath);
 
 	if (!filestream)
 	{
-		return 1;
+		return;
 	}
 	
 	comments_override();
@@ -3318,14 +3267,14 @@ bool writeSinex(
 //	if (!theSinex.list_solepochs.				empty())	{	write_snx_epochs				(filestream);}
 //	if (!theSinex.list_statistics.				empty())	{	write_snx_statistics			(filestream);}
 //	if (!theSinex.estimates_map.				empty())		write_snx_estimates				(filestream);
-																write_snx_estimates_from_filter	(filestream);
+																write_snx_estimates_from_filter	(filestream, kfState);
 //	if (!theSinex.apriori_map.					empty())	{	write_snx_apriori				(filestream);}
 																write_snx_apriori_from_stations (filestream, stationMap);
 // 		if (!theSinex.list_normal_eqns.			empty())	{	write_snx_normal				(filestream);}
 
 	{
 // 																write_snx_matrices				(filestream, stationListPointer);
-																write_snx_matrices_from_filter	(filestream);
+																write_snx_matrices_from_filter	(filestream, kfState);
 	}
 	
 //	if (!theSinex.list_source_ids.				empty())	{	write_snx_sourceids				(filestream);}
@@ -3333,8 +3282,6 @@ bool writeSinex(
 //	if (!theSinex.list_precessions.				empty())	{	write_snx_precodes				(filestream);}
 	
 	filestream << "%ENDSNX" << endl;
-
-	return false;
 }
 
 
@@ -3463,21 +3410,6 @@ void sinex_add_files(
 
 		theSinex.inputFiles.push_back(sif);
 	}
-}
-
-int sinex_site_count()
-{
-	return theSinex.map_siteids.size();
-}
-
-int sinex_sat_count()
-{
-	int result = theSinex.satIdentityMap.size();
-
-	if (result == 0)
-		result = theSinex.list_satids.size();
-
-	return result;
 }
 
 void setRestrictiveEndTime(
@@ -3939,20 +3871,6 @@ bool getSnxSatMaxYawRate(
 
 	auto& [dummy, entry] = *itr;
 	maxYawRate = entry.maxYawRate;
-	
-	return true;
-}
-
-bool getSnxSatBlockType(
-	string	svn,
-	string&	blockType)
-{
-	auto itr = theSinex.satIdentityMap.find(svn);
-	if (itr == theSinex.satIdentityMap.end())
-		return false;
-
-	auto& [dummy, entry] = *itr;
-	blockType = entry.blocktype;
 	
 	return true;
 }

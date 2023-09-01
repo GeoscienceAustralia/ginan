@@ -3,12 +3,11 @@
 
 #include <iostream>
 
-#include "observations.hpp"
-#include "gTime.hpp"
 #include "enums.h"
 
 struct RinexStation;
 struct Navigation;
+struct ObsList;
 
 struct CodeType
 {
@@ -21,13 +20,11 @@ int readRnx(
 	char&							type,
 	ObsList&						obsList,
 	Navigation&						nav,
-	RinexStation*					sta,
+	RinexStation&					rnxRec,
 	double&							ver,
 	E_Sys&							sys,
 	E_TimeSys&						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes);
-
-
 
 string rinexSysDesc(
 	E_Sys sys);

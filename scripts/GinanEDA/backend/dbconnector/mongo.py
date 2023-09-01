@@ -1,5 +1,6 @@
 import logging
 from typing import List, Union
+import json
 
 from pymongo.mongo_client import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError
@@ -39,6 +40,25 @@ class MongoDB:
             raise ConnectionError("Failed to connect to MongoDB server") from err
 
     def get_content(self) -> None:
+        resp = self.mongo_client[self.mongo_db]["Measurements"].create_index(
+        [
+            ("Epoch", 1),
+            ("Site", 1),
+            ("Sat", 1)
+        ])
+
+        print("index response:", resp)
+
+        resp = self.mongo_client[self.mongo_db]["States"].create_index(
+        [
+            ("Epoch", 1),
+            ("Site", 1),
+            ("Sat", 1),
+            ("States", 1)
+        ])
+
+        print("index response:", resp)
+        
         for cursor in self.mongo_client[self.mongo_db]["Content"].find():
             self.mongo_content[cursor["type"]] = cursor["Values"]
         self.mongo_content["Geometry"] = []
@@ -126,6 +146,92 @@ class MongoDB:
         if not cursor.alive:
             raise ValueError("No data found")
         return list(cursor)
+
+    def get_arbitrary(
+        self, 
+        collection, 
+        match_thing, 
+        group_thing, 
+        xvalue, 
+        yvalue
+    ):
+
+        results = {}
+        xvalue = "val." + xvalue
+        yvalue = "val." + yvalue
+        matches = json.loads("{" + match_thing + "}")
+        groups  = json.loads("{" + group_thing + "}")
+        
+
+        groupObj = {"Epoch": "$Epoch"};
+        sortObj = {"_id.Epoch": 1};
+        matchObj = { "$or":[{xvalue : {"$exists":1}},{yvalue : {"$exists":1}}]};
+
+        for entry, val in groups.items():
+            groupObj[entry] = "$id." + entry;
+            sortObj["_id." + entry] = 1;
+
+        for entry, val in matches.items():
+            matchObj["id." + entry] = val;
+
+        print("groupObj")
+        print(groupObj)
+        print("sortObj")
+        print(sortObj)
+        print("matchObj")
+        print(matchObj)
+        print("xvalue")
+        print(xvalue)
+        print("yvalue")
+        print(yvalue)
+
+
+        logger.info("getting arbitrary data")
+
+        pipeline = []
+        pipeline.append({"$match":      matchObj})
+        pipeline.append(
+            {   
+                "$group":      
+                {
+                    "_id":      groupObj, 
+                    "x":        {"$addToSet":       "$" + xvalue    },  
+                    "y":        {"$addToSet":       "$" + yvalue    }, 
+                    "fields":   {"$mergeObjects":   "$id"           }
+                }
+            })
+        pipeline.append({"$sort":       sortObj})
+        pipeline.append({"$project":    {'_id.Epoch': 0}})
+
+        print("pipeline")
+        print(pipeline)
+
+        logger.info("getting data")
+
+        for cursor in self.mongo_client[self.mongo_db][collection].aggregate(pipeline):
+
+            if len(cursor["x"]) > 1 or len(cursor["y"]) > 1:
+                print(cursor)
+                print("excessFields")
+                print(cursor["fields"])
+
+                results["excessFields"] = []
+                for label, traceData in cursor["fields"].items():
+                    results["excessFields"].append(label)
+
+                print(results["excessFields"])
+                return results
+
+            if len(cursor["x"]) != 0 and len(cursor["y"]) != 0:
+
+                if str(cursor["_id"]) not in results:
+                    results[str(cursor["_id"])] = []
+
+                results[str(cursor["_id"])].append(cursor)
+
+                # print(cursor)
+
+        return results
 
     def get_data_to_measurement(
         self,

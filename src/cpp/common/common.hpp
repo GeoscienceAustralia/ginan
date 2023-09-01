@@ -29,14 +29,11 @@ struct Average
 	double	var		= 0;
 };
 
-
 void lowPassFilter(
 	Average&	avg,
 	double		meas,
 	double		procNoise,
 	double		measVar = 1);
-
-/* coordinates transformation */
 
 void wrapPlusMinusPi(
 	double&	angle);
@@ -61,7 +58,10 @@ unsigned int crc24q (const unsigned char *buff, int len);
 
 void dops(int ns, const double *azel, double elmin, double *dop);
 
-int  readblq(string file, const char *sta, double *otlDisplacement);
+bool readblq(
+	string		file, 
+	string		id,
+	double*		otlDisplacement);
 
 bool satFreqs(
 	E_Sys		sys,

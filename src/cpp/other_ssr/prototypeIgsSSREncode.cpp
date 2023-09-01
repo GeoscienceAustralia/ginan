@@ -1,5 +1,10 @@
 
+#include "rtcmEncoder.hpp"
+#include "navigation.hpp"
+#include "constants.hpp"
 #include "otherSSR.hpp"
+#include "satSys.hpp"
+#include "ssr.hpp"
 
 map<E_Sys, map<E_ObsCode, int>> igsSSRCode2Index
 {
@@ -617,7 +622,7 @@ vector<uint8_t>  encodeIGS_URA(
 
 
 vector<uint8_t>  encodeIGS_ATM(
-	SSRAtm						ssrAtm,
+	SSRAtm&						ssrAtm,
 	bool						last)
 {
 	vector<uint8_t> buffer;

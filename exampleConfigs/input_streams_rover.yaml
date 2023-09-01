@@ -36,7 +36,7 @@ inputs:
         inputs_root:    "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
         rtcm_inputs:
             - "BCEP00BKG0"
-            - "SSRA00CNE0"
+            - "SSRA00GFZ0"
             
 processing_options:
     ssr_inputs:
@@ -47,7 +47,22 @@ processing_options:
     gnss_general:   
         error_model:        elevation_dependent
         code_measurements:
-            sigmas:         [0.3]
+            sigmas:         [0.5]
         phase_measurements:
-            sigmas:         [0.003]
+            sigmas:         [0.005]
+
+satellite_options:
+    global:
+        pos:
+            enable:             true
+            sources:            [SSR]
+        clock:
+            enable:             true
+            sources:            [SSR]
+        code_bias:
+            enable:             true
+            undefined_sigma:    3
+        phase_bias:
+            enable:             true
+            undefined_sigma:    3
 

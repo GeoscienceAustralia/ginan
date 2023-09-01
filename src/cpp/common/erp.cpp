@@ -582,3 +582,27 @@ void readErp(
 
 	erp.erpMaps.push_back(erpMap);
 }
+
+Matrix3d stationEopPartials(
+	Vector3d&	rRec)
+{
+	//compute partials and convert to units of MxS
+
+	Matrix3d partials;
+	auto& X = rRec(0);
+	auto& Y = rRec(1);
+	auto& Z = rRec(2);
+	partials(0,0) = +Z * MAS2R;		//dx/dxp		= dx/dRotY
+	partials(0,1) =  0;				//dy/dxp		= dy/dRotY
+	partials(0,2) = -X * MAS2R;		//dz/dxp		= dz/dRotY
+
+	partials(1,0) =  0;				//dx/dyp		= dx/dRotX
+	partials(1,1) = -Z * MAS2R;		//dy/dyp		= dy/dRotX
+	partials(1,2) = +Y * MAS2R;		//dz/dyp		= dz/dRotX
+
+	partials(2,0) = +Y * MTS2R;		//dx/dut1		= dx/dRotZ
+	partials(2,1) = -X * MTS2R;		//dy/dut1		= dy/dRotZ
+	partials(2,2) =  0;				//dz/dut1		= dz/dRotZ
+
+	return partials;
+}

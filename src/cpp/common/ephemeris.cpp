@@ -2,7 +2,6 @@
 // #pragma GCC optimize ("O0")
 
 #include "eigenIncluder.hpp"
-#include "corrections.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
 #include "ephPrecise.hpp"
@@ -142,7 +141,7 @@ bool satpos(
 	
 	for (auto& ephType : ephTypes)
 	{	
-		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%d offsetType=%d", __FUNCTION__, time.to_string(3).c_str(), satPos.Sat.id().c_str(), ephType, offsetType);
+		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%s offsetType=%d", __FUNCTION__, time.to_string(3).c_str(), satPos.Sat.id().c_str(), ephType._to_string(), offsetType);
 
 		switch (ephType)
 		{
@@ -159,6 +158,9 @@ bool satpos(
 			continue;
 		}
 		
+		tracepdeex(4, trace, " - FOUND");
+
+		satPos.posTime		= time;
 		satPos.posSource	= ephType;
 		satPos.ephPosValid	= true;
 		
@@ -338,7 +340,7 @@ bool satPosClk(
 	
 	adjustRelativity(obs, applyRelativity);
 	
-	tracepdeex(4, trace, "\n%s sat=%s rs=%13.3f %13.3f %13.3f dtSat=%12.3f varPos=%7.3f varClk=%7.3f ephPosValid=%1X %s ephClkValid=%1X %s",
+	tracepdeex(3, trace, "\n%s sat=%s rs=%13.3f %13.3f %13.3f dtSat=%12.3f varPos=%7.3f varClk=%7.3f ephPosValid=%1X %s ephClkValid=%1X %s",
 			obs.time.to_string(6).c_str(),
 			obs.Sat.id().c_str(),
 			obs.rSat[0],

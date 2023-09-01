@@ -111,7 +111,7 @@ void OceanTide::setBeta(
 	GTime	time,
 	double	ut1_utc)
 {
-	FundamentalNutationArgs fundArgs(time, ut1_utc);
+	FundamentalArgs fundArgs(time, ut1_utc);
 	
 	Beta(0) = fundArgs.gmst - fundArgs.f - fundArgs.omega;
 	Beta(1) = fundArgs.f + fundArgs.omega;
@@ -129,8 +129,11 @@ void OceanTide::getSPH(
 	for (auto& wave : TidalWaves)
 	{
 		double thetaf = (dood * wave.Doodson).sum();
-		Cnm += ((wave.CnmP + wave.CnmM) * cos(thetaf) + (wave.SnmP + wave.SnmM) * sin(thetaf)) * 1e-11;
-		Snm += ((wave.SnmP - wave.SnmM) * cos(thetaf) - (wave.CnmP - wave.CnmM) * sin(thetaf)) * 1e-11;
+		double cosThetaf = cos(thetaf);
+		double sinThetaf = sin(thetaf);
+		
+		Cnm += ((wave.CnmP + wave.CnmM) * cosThetaf + (wave.SnmP + wave.SnmM) * sinThetaf) * 1e-11;
+		Snm += ((wave.SnmP - wave.SnmM) * cosThetaf - (wave.CnmP - wave.CnmM) * sinThetaf) * 1e-11;
 	}
 	Snm.col(0).setZero();
 	Snm.row(0).setZero();

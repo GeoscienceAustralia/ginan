@@ -13,7 +13,7 @@ outputs:
         output:                     true
         directory:                  ./
         filename:                   GAA0GINRAP_<YYYY><DDD><HH>00_01D_30S_CLK.CLK
-        output_ar_clocks:           true
+
     sinex:
         output:                     true
     erp:
@@ -119,7 +119,7 @@ processing_options:
         general_relativity:             true
         pole_tide_ocean:                true
         pole_tide_solid:                true
-        solar_pressure_radiation:       true
+        solar_radiation_pressure:       true
         antenna_thrust:                 true
         empirical_dyb:                  true #true/false => false/ecom/srf
         albedo:                         true

@@ -132,7 +132,6 @@ void tryAddRootToPath(
 		root += '/';
 	}
 	path = root + path;
-
 }
 
 /** Add a root to paths that are not already absolutely defined
@@ -159,6 +158,170 @@ void tryAddRootToPath(
 	}
 }
 
+void conditionalPrefix(
+	string	prefix,
+	string&	path,
+	bool	condition = true)
+{
+	if (condition == false)
+	{
+		return;
+	}
+	
+	if (path.empty())					{	return;	}
+	if (path.find(':') != string::npos)	{	return;	}
+	
+	if (path[0] == '~')
+	{
+		string HOME = std::getenv("HOME");
+		path.erase(0, 1);
+		path.insert(0, HOME);
+	}
+	if (boost::filesystem::path(path).is_absolute())
+	{
+		return;
+	}
+	
+	if (prefix.back() == '/')	path = prefix		+ path;
+	else						path = prefix + "/"	+ path;
+}
+
+void conditionalPrefix(
+	string			prefix,
+	vector<string>& paths,
+	bool			condition = true)
+{
+	for (auto& path : paths)
+	{
+		conditionalPrefix(prefix, path, condition);
+	}
+}
+
+void conditionalPrefix(
+	string							prefix,
+	map<string, vector<string>>&	paths,
+	bool							condition = true)
+{
+	for (auto& [id, path] : paths)
+	{
+		conditionalPrefix(prefix, path, condition);
+	}
+}
+
+/** search for and replace section of string
+*/
+bool replaceString(
+	string&	str,			///< String to search within
+	string	subStr, 		///< String to replace
+	string	replacement,	///< Replacement string
+	bool	warn)			///< Optional wanring about undefined values
+{
+	bool replaced = false;
+	while (true)
+	{
+		size_t index = str.find(subStr);
+		if (index == -1)
+			break;
+
+		if	(  replacement.empty()
+			&& warn)
+		{
+			BOOST_LOG_TRIVIAL(warning)
+			<< "Warning: " << subStr << " is used in config but is not defined, clearing...";
+			
+			str.clear();
+			return true;
+		}
+
+		str.erase	(index, subStr.size());
+		
+		if (replacement.back() == '/')	str.insert(index, replacement.substr(0, replacement.size() -1));
+		else							str.insert(index, replacement);
+		
+		replaced = true;
+	}
+	
+	return replaced;
+}
+
+/** Replace macros for times with configured values.
+* Available replacements are "<CONFIG> <USER> <PASS> <BRANCH> <HASH> <AGENCY> <SOFTWARE>"
+*/
+void replaceTags(
+	string&			str,		///< String to replace macros within
+	string			custom = "")
+{
+	replaceString(str, "<SAT_DATA_ROOT>",					acsConfig.sat_data_root);
+	replaceString(str, "<GNSS_OBS_ROOT>",					acsConfig.gnss_obs_root);
+	replaceString(str, "<PSEUDO_OBS_ROOT>",					acsConfig.pseudo_obs_root);
+	replaceString(str, "<HASH>",							ginanCommitHash());
+	replaceString(str, "<BRANCH>",							ginanBranchName());
+	replaceString(str, "<AGENCY>",							acsConfig.analysis_agency);
+	replaceString(str, "<SOFTWARE>",						acsConfig.analysis_program.substr(0,3));
+	replaceString(str, "<INPUTS_ROOT>",						acsConfig.inputs_root);
+	replaceString(str, "<TRACE_DIRECTORY>",					acsConfig.trace_directory);
+	replaceString(str, "<BIAS_SINEX_DIRECTORY>",			acsConfig.bias_sinex_directory);
+	replaceString(str, "<CLOCKS_DIRECTORY>",				acsConfig.clocks_directory);
+	replaceString(str, "<DECODED_RTCM_DIRECTORY>",			acsConfig.decoded_rtcm_json_directory);
+	replaceString(str, "<ENCODED_RTCM_DIRECTORY>",			acsConfig.encoded_rtcm_json_directory);
+	replaceString(str, "<ERP_DIRECTORY>",					acsConfig.erp_directory);
+	replaceString(str, "<IONEX_DIRECTORY>",					acsConfig.ionex_directory);
+	replaceString(str, "<IONSTEC_DIRECTORY>",				acsConfig.ionstec_directory);
+	replaceString(str, "<SINEX_DIRECTORY>",					acsConfig.sinex_directory);
+	replaceString(str, "<LOG_DIRECTORY>",					acsConfig.log_directory);
+	replaceString(str, "<GPX_DIRECTORY>",					acsConfig.gpx_directory);
+	replaceString(str, "<NTRIP_LOG_DIRECTORY>",				acsConfig.ntrip_log_directory);
+	replaceString(str, "<NETWORK_STATISTICS_DIRECTORY>",	acsConfig.network_statistics_json_directory);
+	replaceString(str, "<SP3_DIRECTORY>",					acsConfig.sp3_directory);
+	replaceString(str, "<ORBIT_ICS_DIRECTORY>",				acsConfig.orbit_ics_directory);
+	replaceString(str, "<ORBEX_DIRECTORY>",					acsConfig.orbex_directory);
+	replaceString(str, "<PPP_SOL_DIRECTORY>",				acsConfig.ppp_sol_directory);
+	replaceString(str, "<COST_DIRECTORY>",					acsConfig.cost_directory);
+	replaceString(str, "<RINEX_NAV_DIRECTORY>",				acsConfig.rinex_nav_directory);
+	replaceString(str, "<RINEX_OBS_DIRECTORY>",				acsConfig.rinex_obs_directory);
+	replaceString(str, "<RTCM_NAV_DIRECTORY>",				acsConfig.rtcm_nav_directory);
+	replaceString(str, "<RTCM_OBS_DIRECTORY>",				acsConfig.rtcm_obs_directory);
+	replaceString(str, "<UBX_DIRECTORY>",					acsConfig.raw_ubx_directory);
+	replaceString(str, "<SLR_OBS_DIRECTORY>",				acsConfig.slr_obs_directory);
+	replaceString(str, "<TROP_SINEX_DIRECTORY>",			acsConfig.trop_sinex_directory);
+	replaceString(str, "<OUTPUTS_ROOT>",					acsConfig.outputs_root);
+	replaceString(str, "<USER>",							acsConfig.stream_user);
+	replaceString(str, "<PASS>",							acsConfig.stream_pass);
+	replaceString(str, "<CONFIG>",							acsConfig.config_description);
+}
+
+void replaceTags(
+	vector<string>&		strs,
+	string				custom = "")
+{
+	for (auto& str : strs)
+	{
+		replaceTags(str);
+	}
+}
+
+void replaceTags(
+	map<string, vector<string>>&	strs,
+	string							custom = "")
+{
+	for (auto& [id, str] : strs)
+	{
+		replaceTags(str);
+	}
+}
+
+
+void tryPatchPaths(
+	string&			rootDir,
+	string&			fileDir,
+	string&			fileName)
+{
+	tryAddRootToPath(rootDir, fileDir);
+	tryAddRootToPath(fileDir, fileName);
+	
+	replaceTags(fileDir);
+	replaceTags(fileName);
+}
 bool checkGlob(
 	string str1,
 	string str2)
@@ -262,18 +425,6 @@ void globber(
 	{
 		globber(file);
 	}
-}
-
-void tryPatchPaths(
-	string&			rootDir,
-	string&			fileDir,
-	string&			fileName)
-{
-	tryAddRootToPath(rootDir, fileDir);
-	tryAddRootToPath(fileDir, fileName);
-	
-	replaceTags(fileDir);
-	replaceTags(fileName);
 }
 
 void dumpConfig(
@@ -707,7 +858,7 @@ void ACSConfig::outputDefaultConfiguration(
 
 void defaultConfigs()
 {
-	acsConfig.recOptsMap["global"].rinex23Conv.codeConv = 
+	acsConfig.recOptsMap["0"].rinex23Conv.codeConv = 
 	{
 		{E_Sys::GPS,{	
 						{E_ObsCode2::P1, E_ObsCode::L1W},
@@ -780,7 +931,7 @@ void defaultConfigs()
 		}
 	};
 
-	acsConfig.recOptsMap["global"].rinex23Conv.phasConv =
+	acsConfig.recOptsMap["0"].rinex23Conv.phasConv =
 	{
 		{E_Sys::GPS,{	
 						{E_ObsCode2::P1, E_ObsCode::L1W},
@@ -890,24 +1041,21 @@ bool configure(
 	("bsx_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Bias Sinex (BSX) files")
 	("ion_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Ionosphere (IONEX) files")
 	("igrf_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Geomagnetic field coefficients (IGRF) file")
-	("orb_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Orbits (POD) files")
 	("blq_files",				boost::program_options::value<vector<string>>()->multitoken(),	"BLQ (Ocean loading) files")
 	("erp_files",				boost::program_options::value<vector<string>>()->multitoken(),	"ERP files")
-// 	("rnx_inputs,r",			boost::program_options::value<vector<string>>()->multitoken(),	"RINEX station inputs")
-// 	("ubx_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"UBX station inputs")
-// 	("rtcm_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"RTCM station inputs")
+	("rnx_inputs,r",			boost::program_options::value<vector<string>>()->multitoken(),	"RINEX station inputs")
+	("ubx_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"UBX station inputs")
+	("rtcm_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"RTCM station inputs")
 	("egm_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Earth gravity model coefficients file")
 	("crd_files",				boost::program_options::value<vector<string>>()->multitoken(),	"SLR CRD file")
-// 	("slr_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"Tabular SLR OBS station file")
+	("slr_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"Tabular SLR OBS station file")
 	("jpl_files",				boost::program_options::value<vector<string>>()->multitoken(),	"JPL planetary and lunar ephemerides file")
-// 	("root_input_directory",	boost::program_options::value<string>(),						"Directory containg the input data")
-// 	("root_output_directory",	boost::program_options::value<string>(),						"Output directory")
+	("inputs_root",				boost::program_options::value<string>(),						"Root to apply to non-absolute input locations")
+	("outputs_root",			boost::program_options::value<string>(),						"Root to apply to non-absolute output locations")
 	("start_epoch",				boost::program_options::value<string>(),						"Start date/time")
 	("end_epoch",				boost::program_options::value<string>(),						"Stop date/time")
 // 	("run_rts_only",			boost::program_options::value<string>(),						"RTS filename (without _xxxxx suffix)")
 	("dump-config-only",																		"Dump the configuration and exit")
-// 	("input_persistance",																		"Begin with previously stored filter and navigation states")
-// 	("output_persistance",																		"Store filter and navigation states for restarting")
 	("walkthrough",																				"Run demonstration code interactively with commentary")
 	;
 
@@ -977,11 +1125,13 @@ bool configure(
 	valid &= checkValidFiles(acsConfig.ion_files,			"Ionosphere (IONEX file)");
 	valid &= checkValidFiles(acsConfig.igrf_files,			"geomagnetic field coefficients (IGRF file)");
 	valid &= checkValidFiles(acsConfig.atx_files, 			"antenna information (ANTEX file)");
-	valid &= checkValidFiles(acsConfig.orb_files, 			"orbit determination (pod file)");
 	valid &= checkValidFiles(acsConfig.egm_files, 			"Earth gravity model coefficients (egm file)");
 	valid &= checkValidFiles(acsConfig.jpl_files, 			"JPL planetary and lunar ephemerides (jpl file)");
 	valid &= checkValidFiles(acsConfig.tide_files, 			"Ocean tide file FES (tide file)");
-	valid &= checkValidFiles(acsConfig.sid_files, 			"satellite ID list");
+    valid &= checkValidFiles(acsConfig.cmc_files, 			"Center of Mass tide file corrections");
+    valid &= checkValidFiles(acsConfig.hfeop_files,			"Subdaily EOP variations");
+
+    valid &= checkValidFiles(acsConfig.sid_files, 			"satellite ID list");
 	valid &= checkValidFiles(acsConfig.com_files, 			"centre-of-mass (com file)");
 	valid &= checkValidFiles(acsConfig.crd_files, 			"SLR observation files (crd file)");
 	valid &= checkValidFile (acsConfig.model.trop.gpt2grid,	"grid");
@@ -1025,10 +1175,12 @@ void ACSConfig::info(
 	if (!erp_files				.empty())	{	ss << "\terp_files:   ";												for (auto& a : erp_files)		ss << a << " ";		ss << "\n";		}
 	if (!sp3_files				.empty())	{	ss << "\tsp3_files:   ";												for (auto& a : sp3_files)		ss << a << " ";		ss << "\n";		}
 	if (!obx_files				.empty())	{	ss << "\tobx_files:   ";												for (auto& a : obx_files)		ss << a << " ";		ss << "\n";		}
-	if (!orb_files				.empty())	{	ss << "\torb_files:   ";												for (auto& a : orb_files)		ss << a << " ";		ss << "\n";		}
 	if (!egm_files				.empty())	{	ss << "\tegm_files:   ";												for (auto& a : egm_files)		ss << a << " ";		ss << "\n";		}
  	if (!jpl_files				.empty())	{	ss << "\tjpl_files:   ";												for (auto& a : jpl_files)		ss << a << " ";		ss << "\n";		}
 	if (!tide_files				.empty())	{	ss << "\ttide_files:  ";												for (auto& a : tide_files)		ss << a << " ";		ss << "\n";		}
+    if (!cmc_files				.empty())	{	ss << "\tcmc_files:   ";							    				for (auto& a : cmc_files)		ss << a << " ";		ss << "\n";		}
+    if (!hfeop_files			.empty())	{	ss << "\thfeop_files: ";							    				for (auto& a : hfeop_files)		ss << a << " ";		ss << "\n";		}
+
 	if (!sid_files				.empty())	{	ss << "\tsid_files:   ";												for (auto& a : sid_files)		ss << a << " ";		ss << "\n";		}
 	if (!vmf_files				.empty())	{	ss << "\tvmf_files:   ";												for (auto& a : vmf_files)		ss << a << " ";		ss << "\n";		}
 	if (!com_files				.empty())	{	ss << "\tcom_files:   ";												for (auto& a : com_files)		ss << a << " ";		ss << "\n";		}
@@ -1041,7 +1193,6 @@ void ACSConfig::info(
 								
 	if (!model.trop.orography	.empty())		ss << "\torography:   " << model.trop.orography 	<< "\n";
 	if (!model.trop.gpt2grid	.empty())		ss << "\tgrid:        " << model.trop.gpt2grid 		<< "\n";
-	if (!test_filename			.empty())		ss << "\ttestfiles:   " << test_filename			<< "\n";
 												ss << "\n";
 
 	ss << "Outputs:\n";
@@ -1094,9 +1245,6 @@ void ACSConfig::info(
 	ss << "...End Configuration\n";
 	ss << "===============================\n";
 	ss << "\n";
-	
-	if (process_user)		BOOST_LOG_TRIVIAL(warning) << "Warning: 'process_modes: user:'    is being deprecated. Consider using ppp mode instead";
-	if (process_network)	BOOST_LOG_TRIVIAL(warning) << "Warning: 'process_modes: network:' is being deprecated. Consider using ppp mode instead";
 }
 
 void addAvailableOptions(
@@ -1313,6 +1461,7 @@ bool trySetEnumOpt(
 	try
 	{
 		value = optNode.template as<string>();
+// 		std::cout << stack << " was found\n";
 	}
 	catch (...) 
 	{
@@ -1424,28 +1573,28 @@ void trySetKalmanFromYaml(
 	}
 }
 
-void tryGetMappedList(
-	map<string, vector<string>>&	mappedList,
-	NodeStack&						yaml,
-	string							key,
-	string							comment = "")
+bool tryGetMappedList(
+	map<string, vector<string>>&			mappedList,
+	boost::program_options::variables_map&	commandOpts,	///< Command line object to search within
+	NodeStack&								yaml,
+	string									key,
+	string									prefix,
+	string									comment = "")
 {
 	auto [outStreamNode, outStreamString] = stringsToYamlObject(yaml, {key});
 
+	bool found = false;
+	
 	for (auto outLabelYaml : outStreamNode)
 	{
+		found = true;
+		
 		if (outLabelYaml.IsScalar())
 		{
 			string value = outLabelYaml.as<string>();
 			
-			int keyPos = 0;
-			int lastSlash = value.find_last_of('/');
+			conditionalPrefix(prefix, value);	
 			
-			if (lastSlash != string::npos)
-			{
-				keyPos = lastSlash + 1;
-			}
-		
 			mappedList["<AUTO>"].push_back(value);
 		}
 		if (outLabelYaml.IsMap())
@@ -1455,9 +1604,30 @@ void tryGetMappedList(
 				string key = it->first.as<string>();
 				
 				mappedList[key] = it->second.as<vector<string>>();
+				conditionalPrefix(prefix, mappedList[key]);
 			}
 		}
 	}
+	
+	vector<string> optsList;
+	found |= trySetFromOpts(optsList, commandOpts, {key});
+	
+	for (auto& value : optsList)
+	{
+		conditionalPrefix(prefix, value);
+		
+		if (std::find(mappedList["<AUTO>"].begin(), mappedList["<AUTO>"].end(), value) != mappedList["<AUTO>"].end())
+		{
+			continue;
+		}
+		
+		mappedList["<AUTO>"].push_back(value);
+	}
+	
+	
+	
+	
+	return found;
 }
 
 
@@ -1508,11 +1678,9 @@ void tryGetStreamFromYaml(
 		}
 	}
 	
-	trySetFromYaml(outStreamData.message_timeout,	outStreamsYaml, {"message_timeout"		});
 	trySetFromYaml(outStreamData.itrf_datum, 		outStreamsYaml, {"itrf_datum"			});
 	trySetFromYaml(outStreamData.provider_id, 		outStreamsYaml, {"provider_id"			});
 	trySetFromYaml(outStreamData.solution_id, 		outStreamsYaml, {"solution_id"			});
-	trySetFromYaml(outStreamData.master_iod, 		outStreamsYaml, {"master_iod"			});
 }
 
 /** Set satellite options from yaml
@@ -1524,15 +1692,15 @@ void getFromYaml(
 {
 	auto satNode = stringsToYamlObject(yamlBase, yamlNodeDescriptor);
 
+	trySetKalmanFromYaml(satOpts.clk,					satNode, "# clock",					"Clocks (duplicate)");
+	trySetKalmanFromYaml(satOpts.clk_rate,				satNode, "# clock_rate",			"Clock rates (duplicate)");
 	trySetKalmanFromYaml(satOpts.clk,					satNode, "! clk",					"Clocks");
 	trySetKalmanFromYaml(satOpts.clk_rate,				satNode, "! clk_rate",				"Clock rates");
 	trySetKalmanFromYaml(satOpts.pos,					satNode, "! pos",					"Position (prefer orbit)");
 	trySetKalmanFromYaml(satOpts.pos_rate,				satNode, "! pos_rate",				"Velocity (prefer orbit)");
-	trySetKalmanFromYaml(satOpts.orb,					satNode, "@ orb",					"Orbit corrections");
 	trySetKalmanFromYaml(satOpts.pco,					satNode, "pco",						"Phase Center Offsets (experimental)");
 	trySetKalmanFromYaml(satOpts.ant,					satNode, "ant",						"Antenna offsets (experimental)");
 	trySetKalmanFromYaml(satOpts.orbit,					satNode, "! orbit",					"Orbital state");
-	trySetKalmanFromYaml(satOpts.ion_model,				satNode, "@ ion_model",				"Ionosphere models");
 	trySetKalmanFromYaml(satOpts.code_bias,				satNode, "! code_bias",				"Code bias");
 	trySetKalmanFromYaml(satOpts.phase_bias,			satNode, "! phase_bias",			"Phase bias");
 	
@@ -1546,15 +1714,15 @@ void getFromYaml(
 	trySetKalmanFromYaml(satOpts.emp_dyb_4c,			satNode, "! emp_dyb_4c",			"Empirical accleration 4 per rev cosine term ");
 	trySetKalmanFromYaml(satOpts.emp_dyb_4s,			satNode, "! emp_dyb_4s",			"Empirical accleration 4 per rev sine term ");
 	                                                               
-	trySetKalmanFromYaml(satOpts.srp_dyb_0,				satNode, "! srp_dyb_0",				"Emprical Solar Radiation scaled bias ");
-	trySetKalmanFromYaml(satOpts.srp_dyb_1c,			satNode, "! srp_dyb_1c",			"Emprical Solar Radiation scaled 1 per rev cosine term ");
-	trySetKalmanFromYaml(satOpts.srp_dyb_1s,			satNode, "! srp_dyb_1s",			"Emprical Solar Radiation scaled 1 per rev sine term ");
-	trySetKalmanFromYaml(satOpts.srp_dyb_2c,			satNode, "! srp_dyb_2c",			"Emprical Solar Radiation scaled 2 per rev cosine term ");
-	trySetKalmanFromYaml(satOpts.srp_dyb_2s,			satNode, "! srp_dyb_2s",			"Emprical Solar Radiation scaled 2 per rev sine term ");
-	trySetKalmanFromYaml(satOpts.srp_dyb_3c,			satNode, "! srp_dyb_3c",			"Emprical Solar Radiation scaled 3 per rev cosine term ");
-	trySetKalmanFromYaml(satOpts.srp_dyb_3s,			satNode, "! srp_dyb_3s",			"Emprical Solar Radiation scaled 3 per rev sine term ");
-	trySetKalmanFromYaml(satOpts.srp_dyb_4c,			satNode, "! srp_dyb_4c",			"Emprical Solar Radiation scaled 4 per rev cosine term ");
-	trySetKalmanFromYaml(satOpts.srp_dyb_4s,			satNode, "! srp_dyb_4s",			"Emprical Solar Radiation scaled 4 per rev sine term ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_0,				satNode, "! emp_rtn_0",				"Empirical accleration bias ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_1c,			satNode, "! emp_rtn_1c",			"Empirical accleration 1 per rev cosine term ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_1s,			satNode, "! emp_rtn_1s",			"Empirical accleration 1 per rev sine term ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_2c,			satNode, "! emp_rtn_2c",			"Empirical accleration 2 per rev cosine term ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_2s,			satNode, "! emp_rtn_2s",			"Empirical accleration 2 per rev sine term ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_3c,			satNode, "! emp_rtn_3c",			"Empirical accleration 3 per rev cosine term ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_3s,			satNode, "! emp_rtn_3s",			"Empirical accleration 3 per rev sine term ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_4c,			satNode, "! emp_rtn_4c",			"Empirical accleration 4 per rev cosine term ");
+	trySetKalmanFromYaml(satOpts.emp_rtn_4s,			satNode, "! emp_rtn_4s",			"Empirical accleration 4 per rev sine term ");
 
 	setInited(satOpts,	satOpts.code_sigmas,	trySetFromYaml(satOpts.code_sigmas,		satNode, {"0!  code_sigmas"		},					"[floats] Standard deviation of code measurements"));
 	setInited(satOpts,	satOpts.phas_sigmas,	trySetFromYaml(satOpts.phas_sigmas,		satNode, {"0!  phase_sigmas"	},					"[floats] Standard deviation of phase measurmeents"));
@@ -1576,23 +1744,55 @@ void getFromYaml(
 {
 	auto recNode = stringsToYamlObject(yamlBase, yamlNodeDescriptor);
 
-	trySetKalmanFromYaml(recOpts.clk,						recNode, "! clk",					"Clocks");
-	trySetKalmanFromYaml(recOpts.clk_rate,					recNode, "! clk_rate",				"Clock rates");
-	trySetKalmanFromYaml(recOpts.pos,						recNode, "! pos",					"Position");
-	trySetKalmanFromYaml(recOpts.pos_rate,					recNode, "! pos_rate",				"Velocity");
-	trySetKalmanFromYaml(recOpts.heading,					recNode, "@ heading",				"Heading");
-	trySetKalmanFromYaml(recOpts.orbit,						recNode, "@ orbit",					"Orbital state");
-	trySetKalmanFromYaml(recOpts.strain_rate,				recNode, "@ strain_rate",			"Velocity (large gain, for geodetic timescales)");
-	trySetKalmanFromYaml(recOpts.amb,						recNode, "! amb",					"Integer phase ambiguities");
-	trySetKalmanFromYaml(recOpts.pco,						recNode, "pco",						"Phase Center Offsets (experimental)");
-	trySetKalmanFromYaml(recOpts.ant,						recNode, "ant",						"Antenna offsets (experimental)");
-	trySetKalmanFromYaml(recOpts.code_bias,					recNode, "! code_bias",				"Code bias");
-	trySetKalmanFromYaml(recOpts.phase_bias,				recNode, "! phase_bias",			"Phase bias");
-	trySetKalmanFromYaml(recOpts.ion_stec,					recNode, "! ion_stec",				"Ionospheric slant delay");
-	trySetKalmanFromYaml(recOpts.slr_range_bias,			recNode, "@ slr_range_bias",		"Satellite Laser Ranging range bias");
-	trySetKalmanFromYaml(recOpts.slr_time_bias,				recNode, "@ slr_time_bias",			"Satellite Laser Ranging time bias");
-	trySetKalmanFromYaml(recOpts.trop,						recNode, "! trop",					"Troposphere corrections");
-	trySetKalmanFromYaml(recOpts.trop_grads,				recNode, "! trop_grads",			"Troposphere gradients");
+	trySetKalmanFromYaml(recOpts.clk,					recNode, "! clk",					"Clocks");
+	trySetKalmanFromYaml(recOpts.clk_rate,				recNode, "! clk_rate",				"Clock rates");
+	trySetKalmanFromYaml(recOpts.pos,					recNode, "! pos",					"Position");
+	trySetKalmanFromYaml(recOpts.pos_rate,				recNode, "! pos_rate",				"Velocity");
+	trySetKalmanFromYaml(recOpts.heading,				recNode, "@ heading",				"Heading");
+	trySetKalmanFromYaml(recOpts.orbit,					recNode, "@ orbit",					"Orbital state");
+	trySetKalmanFromYaml(recOpts.strain_rate,			recNode, "@ strain_rate",			"Velocity (large gain, for geodetic timescales)");
+	trySetKalmanFromYaml(recOpts.amb,					recNode, "! amb",					"Integer phase ambiguities");
+	trySetKalmanFromYaml(recOpts.pco,					recNode, "pco",						"Phase Center Offsets (experimental)");
+	trySetKalmanFromYaml(recOpts.ant,					recNode, "ant",						"Antenna offsets (experimental)");
+	trySetKalmanFromYaml(recOpts.code_bias,				recNode, "! code_bias",				"Code bias");
+	trySetKalmanFromYaml(recOpts.phase_bias,			recNode, "! phase_bias",			"Phase bias");
+	trySetKalmanFromYaml(recOpts.ion_stec,				recNode, "! ion_stec",				"Ionospheric slant delay");
+	trySetKalmanFromYaml(recOpts.ion_model,				recNode, "! ion_model",				"Ionospheric mapping");
+	trySetKalmanFromYaml(recOpts.slr_range_bias,		recNode, "@ slr_range_bias",		"Satellite Laser Ranging range bias");
+	trySetKalmanFromYaml(recOpts.slr_time_bias,			recNode, "@ slr_time_bias",			"Satellite Laser Ranging time bias");
+	trySetKalmanFromYaml(recOpts.trop,					recNode, "! trop",					"Troposphere corrections");
+	trySetKalmanFromYaml(recOpts.trop_grads,			recNode, "! trop_grads",			"Troposphere gradients");
+	trySetKalmanFromYaml(recOpts.trop_maps,				recNode, "! trop_maps",				"Troposphere ZWD mapping");
+	
+	trySetKalmanFromYaml(recOpts.emp_dyb_0,				recNode, "! emp_dyb_0",				"Empirical accleration bias ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_1c,			recNode, "! emp_dyb_1c",			"Empirical accleration 1 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_1s,			recNode, "! emp_dyb_1s",			"Empirical accleration 1 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_2c,			recNode, "! emp_dyb_2c",			"Empirical accleration 2 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_2s,			recNode, "! emp_dyb_2s",			"Empirical accleration 2 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_3c,			recNode, "! emp_dyb_3c",			"Empirical accleration 3 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_3s,			recNode, "! emp_dyb_3s",			"Empirical accleration 3 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_4c,			recNode, "! emp_dyb_4c",			"Empirical accleration 4 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_4s,			recNode, "! emp_dyb_4s",			"Empirical accleration 4 per rev sine term ");
+                                
+	trySetKalmanFromYaml(recOpts.emp_dyb_0,				recNode, "! emp_dyb_0",				"Empirical accleration bias ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_1c,			recNode, "! emp_dyb_1c",			"Empirical accleration 1 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_1s,			recNode, "! emp_dyb_1s",			"Empirical accleration 1 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_2c,			recNode, "! emp_dyb_2c",			"Empirical accleration 2 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_2s,			recNode, "! emp_dyb_2s",			"Empirical accleration 2 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_3c,			recNode, "! emp_dyb_3c",			"Empirical accleration 3 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_3s,			recNode, "! emp_dyb_3s",			"Empirical accleration 3 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_4c,			recNode, "! emp_dyb_4c",			"Empirical accleration 4 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_dyb_4s,			recNode, "! emp_dyb_4s",			"Empirical accleration 4 per rev sine term ");
+
+	trySetKalmanFromYaml(recOpts.emp_rtn_0,				recNode, "! emp_rtn_0",				"Empirical accleration bias ");
+	trySetKalmanFromYaml(recOpts.emp_rtn_1c,			recNode, "! emp_rtn_1c",			"Empirical accleration 1 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_rtn_1s,			recNode, "! emp_rtn_1s",			"Empirical accleration 1 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_rtn_2c,			recNode, "! emp_rtn_2c",			"Empirical accleration 2 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_rtn_2s,			recNode, "! emp_rtn_2s",			"Empirical accleration 2 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_rtn_3c,			recNode, "! emp_rtn_3c",			"Empirical accleration 3 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_rtn_3s,			recNode, "! emp_rtn_3s",			"Empirical accleration 3 per rev sine term ");
+	trySetKalmanFromYaml(recOpts.emp_rtn_4c,			recNode, "! emp_rtn_4c",			"Empirical accleration 4 per rev cosine term ");
+	trySetKalmanFromYaml(recOpts.emp_rtn_4s,			recNode, "! emp_rtn_4s",			"Empirical accleration 4 per rev sine term ");
 
 	setInited(recOpts,	recOpts.error_model,		trySetEnumOpt	(recOpts.error_model,		recNode, {"0@ error_model"		}, E_NoiseModel::_from_string_nocase));
 	setInited(recOpts,	recOpts.spp_sigma_scaling,	trySetFromYaml	(recOpts.spp_sigma_scaling,	recNode, {"@ spp_sigma_scaling"	},					"(floats) Amount to scale sigmas for SPP"));
@@ -1700,6 +1900,8 @@ SatelliteOptions& ACSConfig::getSatOpts(
             {	auto vec = descriptorVec; vec.insert(vec.end(), {"! pos",			"@ sources"			});	setInited(aliasOpts,	aliasOpts.sat_pos.ephemeris_sources,	 	trySetEnumVec( aliasOpts.sat_pos.ephemeris_sources,	 		{yaml, ""}, vec, "List of sources to use for position"));							}; 
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"! clock",			"@ enable"			});	setInited(aliasOpts,	aliasOpts.sat_clock.enable,					trySetFromYaml(aliasOpts.sat_clock.enable,					{yaml, ""}, vec, "(bool) Enable modelling of clocks"));								};
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"! clock",			"! sources"			});	setInited(aliasOpts,	aliasOpts.sat_clock.ephemeris_sources, 		trySetEnumVec( aliasOpts.sat_clock.ephemeris_sources, 		{yaml, ""}, vec, "List of sources to use for clocks"));								};
+			{	auto vec = descriptorVec; vec.insert(vec.end(), {"# clk",			"# enable"			});	setInited(aliasOpts,	aliasOpts.sat_clock.enable,					trySetFromYaml(aliasOpts.sat_clock.enable,					{yaml, ""}, vec, "(bool) Enable modelling of clocks (duplicate)"));					};
+			{	auto vec = descriptorVec; vec.insert(vec.end(), {"# clk",			"# sources"			});	setInited(aliasOpts,	aliasOpts.sat_clock.ephemeris_sources, 		trySetEnumVec( aliasOpts.sat_clock.ephemeris_sources, 		{yaml, ""}, vec, "List of sources to use for clocks (duplicate)"));					};
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ code_bias",		"@ enable"			});	setInited(aliasOpts,	aliasOpts.sat_code_bias.enable,				trySetFromYaml(aliasOpts.sat_code_bias.enable,				{yaml, ""}, vec, "(bool) Enable modelling of code biases"));						};
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ phase_bias",	"@ enable"			});	setInited(aliasOpts,	aliasOpts.sat_phase_bias.enable,			trySetFromYaml(aliasOpts.sat_phase_bias.enable,				{yaml, ""}, vec, "(bool) Enable modelling of phase biases. Required for AR"));		};
             {	auto vec = descriptorVec; vec.insert(vec.end(), {"@ code_bias",		"@ default_bias"	});	setInited(aliasOpts,	aliasOpts.sat_code_bias.default_bias,		trySetFromYaml(aliasOpts.sat_code_bias.default_bias,		{yaml, ""}, vec, "(float) Bias to use when no code bias is found"));				};
@@ -1715,7 +1917,7 @@ SatelliteOptions& ACSConfig::getSatOpts(
 			{	auto vec = descriptorVec; vec.push_back("@ antenna_azimuth");		trySetFromYaml	(antenna_azimuth,			{yaml, ""}, vec,	"[floats] Antenna azimuth (North) in satellite body-fixed frame");	}
 			
 			if (antenna_boresight	.size()	== 3)	{	aliasOpts.antenna_boresight		= Vector3d(antenna_boresight.data());		setInited(aliasOpts,	aliasOpts.antenna_boresight);	}	
-			if (antenna_azimuth		.size()	== 3)	{	aliasOpts.antenna_azimuth		= Vector3d(antenna_azimuth	.data());		setInited(aliasOpts,	aliasOpts.antenna_azimuth);	}	
+			if (antenna_azimuth		.size()	== 3)	{	aliasOpts.antenna_azimuth		= Vector3d(antenna_azimuth	.data());		setInited(aliasOpts,	aliasOpts.antenna_azimuth);		}	
 		}
 		
 		satOpts += aliasOpts;
@@ -1817,9 +2019,13 @@ ReceiverOptions& ACSConfig::getRecOpts(
 				descriptorVec.push_back(suffixes[s]);
 			}
 
-			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ exclude"							});	setInited(aliasOpts,	aliasOpts.exclude,							trySetFromYaml(aliasOpts.exclude,						{yaml, ""}, vec, "(bool) Exclude receiver from processing"));						}                                                            
+			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ kill"								});	setInited(aliasOpts,	aliasOpts.kill,								trySetFromYaml(aliasOpts.kill,							{yaml, ""}, vec, "(bool) Remove receiver from future processing"));					}                                                            
+            {	auto vec = descriptorVec; vec.insert(vec.end(), {"@ exclude"							});	setInited(aliasOpts,	aliasOpts.exclude,							trySetFromYaml(aliasOpts.exclude,						{yaml, ""}, vec, "(bool) Exclude receiver from processing"));						}                                                            
             {	auto vec = descriptorVec; vec.insert(vec.end(), {"@ pos",			"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_pos.enable,					trySetFromYaml(aliasOpts.rec_pos.enable,				{yaml, ""}, vec, "(bool) Enable modelling of position"));							}                                                            
             {	auto vec = descriptorVec; vec.insert(vec.end(), {"@ clock",			"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_clock.enable,					trySetFromYaml(aliasOpts.rec_clock.enable,				{yaml, ""}, vec, "(bool) Enable modelling of clocks"));								}                                                            
+			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ clock",			"@ sources"			});	setInited(aliasOpts,	aliasOpts.rec_clock.ephemeris_sources, 		trySetEnumVec( aliasOpts.rec_clock.ephemeris_sources, 	{yaml, ""}, vec, "List of sources to use for clocks"));								}
+			{	auto vec = descriptorVec; vec.insert(vec.end(), {"# clk",			"# enable"			});	setInited(aliasOpts,	aliasOpts.rec_clock.enable,					trySetFromYaml(aliasOpts.rec_clock.enable,				{yaml, ""}, vec, "(bool) Enable modelling of clocks (duplicate)"));					}                                                            
+			{	auto vec = descriptorVec; vec.insert(vec.end(), {"# clk",			"# sources"			});	setInited(aliasOpts,	aliasOpts.rec_clock.ephemeris_sources, 		trySetEnumVec( aliasOpts.rec_clock.ephemeris_sources, 	{yaml, ""}, vec, "List of sources to use for clocks (duplicate)"));					}
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ code_bias",		"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_code_bias.enable,				trySetFromYaml(aliasOpts.rec_code_bias.enable,			{yaml, ""}, vec, "(bool) Enable modelling of code biases"));						}                                                            
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ phase_bias",	"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_phase_bias.enable,			trySetFromYaml(aliasOpts.rec_phase_bias.enable,			{yaml, ""}, vec, "(bool) Enable modelling of phase biases. Required for AR"));		}                                                            
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ code_bias",		"@ default_bias"	});	setInited(aliasOpts,	aliasOpts.rec_code_bias.default_bias,		trySetFromYaml(aliasOpts.rec_code_bias.default_bias,	{yaml, ""}, vec, "(float) Bias to use when no code bias is found"));				}                                                           
@@ -1830,7 +2036,7 @@ ReceiverOptions& ACSConfig::getRecOpts(
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ pco",			"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_pco,							trySetFromYaml(aliasOpts.rec_pco,						{yaml, ""}, vec, "(bool) Enable modelling of phase center offsets"));				}                                                            
 			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ pcv",			"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_pcv,							trySetFromYaml(aliasOpts.rec_pcv,						{yaml, ""}, vec, "(bool) Enable modelling of phase center variations"));			}                                                            
             {	auto vec = descriptorVec; vec.insert(vec.end(), {"@ attitude",		"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_attitude.enable,				trySetFromYaml(aliasOpts.rec_attitude.enable,			{yaml, ""}, vec, "(bool) Enables non-nominal attitude types"));						}                          
-			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ attitude",		"@ sources"			});	setInited(aliasOpts,	aliasOpts.rec_attitude.sources, 			trySetEnumVec( aliasOpts.rec_attitude.sources, 			{yaml, ""}, vec, "List of sourecs to use for attitudes"));				}                                           
+			{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ attitude",		"@ sources"			});	setInited(aliasOpts,	aliasOpts.rec_attitude.sources, 			trySetEnumVec( aliasOpts.rec_attitude.sources, 			{yaml, ""}, vec, "List of sourecs to use for attitudes"));							}                                           
 			
 			
 			{	auto vec = descriptorVec; vec.push_back("@ sat_id");				setInited(aliasOpts,	aliasOpts.sat_id,			trySetFromYaml	(aliasOpts.sat_id,			{yaml, ""}, vec,	"(string) Id for receivers that are also satellites"));						}
@@ -1855,9 +2061,9 @@ ReceiverOptions& ACSConfig::getRecOpts(
 				auto& rinex3Phas	= aliasOpts.rinex23Conv.phasConv[sys][obsCode2];                                                                                                                                                                                       
                                                                                                                                                                                                                                                                            
 				string sysName		= boost::algorithm::to_lower_copy((string) sys._to_string());                                                                                                                                                                          
-                                                                                                                                                                                                                                                                           
-				{	auto vec = descriptorVec; vec.push_back("@ rnx_code_conversions");	trySetEnumOpt(rinex3Code, stringsToYamlObject(	{yaml, ""}, vec), {sysName, obsCode2._to_string()}, E_ObsCode::_from_string_nocase);}                                              
-				{	auto vec = descriptorVec; vec.push_back("@ rnx_phase_conversions");	trySetEnumOpt(rinex3Phas, stringsToYamlObject(	{yaml, ""}, vec), {sysName, obsCode2._to_string()}, E_ObsCode::_from_string_nocase);}
+                                                                                                                                                                                                                                                                          
+				{	auto vec = descriptorVec;	vec.push_back("@ rnx_code_conversions");	trySetEnumOpt(rinex3Code, stringsToYamlObject(	{yaml, ""}, vec), {sysName, obsCode2._to_string()}, E_ObsCode::_from_string_nocase);}                                              
+				{	auto vec = descriptorVec;	vec.push_back("@ rnx_phase_conversions");	trySetEnumOpt(rinex3Phas, stringsToYamlObject(	{yaml, ""}, vec), {sysName, obsCode2._to_string()}, E_ObsCode::_from_string_nocase);}
 			}
 		}
 		
@@ -1889,55 +2095,6 @@ void trySetScaledFromYaml(
 	{
 		output = number;
 	}
-}
-
-/** search for and replace section of string
-*/
-bool replaceString(
-	string&	str,			///< String to search within
-	string	subStr, 		///< String to replace
-	string	replacement,	///< Replacement string
-	bool	warn)			///< Optional wanring about undefined values
-{
-	bool replaced = false;
-	while (true)
-	{
-		size_t index = str.find(subStr);
-		if (index == -1)
-			break;
-
-		if	(  replacement.empty()
-			&& warn)
-		{
-			BOOST_LOG_TRIVIAL(warning)
-			<< "Warning: " << subStr << " is used in config but is not defined, clearing...";
-			
-			str.clear();
-			return true;
-		}
-
-		str.erase	(index, subStr.size());
-		str.insert(index, replacement);
-		
-		replaced = true;
-	}
-	
-	return replaced;
-}
-
-/** Replace macros for times with configured values.
-* Available replacements are "<CONFIG> <USER> <PASS> <BRANCH> <HASH> <AGENCY> <SOFTWARE>"
-*/
-void replaceTags(
-	string&						str)		///< String to replace macros within
-{
-	replaceString(str, "<CONFIG>",		acsConfig.config_description);
-	replaceString(str, "<USER>",		acsConfig.stream_user);
-	replaceString(str, "<PASS>",		acsConfig.stream_pass);
-	replaceString(str, "<BRANCH>",		ginanBranchName());
-	replaceString(str, "<HASH>",		ginanCommitHash());
-	replaceString(str, "<AGENCY>",		acsConfig.analysis_agency);
-	replaceString(str, "<SOFTWARE>",	acsConfig.analysis_program.substr(0,3));
 }
 
 /** Replace macros for times with numeric values.
@@ -2004,24 +2161,6 @@ void replaceTimes(
 	{
 		//replacing with nothing here may cause issues - kill the entire string to prevent damage
 		str = "";
-	}
-}
-
-void replaceTags(
-	vector<string>& strs)
-{
-	for (auto& str : strs)
-	{
-		replaceTags(str);
-	}
-}
-
-void replaceTags(
-	map<string, vector<string>>& strs)
-{
-	for (auto& [id, str] : strs)
-	{
-		replaceTags(str);
 	}
 }
 
@@ -2168,9 +2307,6 @@ bool ACSConfig::parse(
 		code_priorities[sys] = code_priorities_default;
 	}
 
-	string root_output_directory	= "./";
-	string root_input_directory		= "./";
-
 	vector<string> yamlList;
 	
 	yamls.resize(filenames.size());
@@ -2285,7 +2421,7 @@ bool ACSConfig::parse(
 		{
 			auto outputs = stringsToYamlObject({yaml, ""}, {"1! outputs"}, docs["outputs"]);
 
-			trySetFromYaml(root_output_directory,			outputs, {"0! root_directory"			}, "(string) Directory that outputs will be placed in");
+			trySetFromYaml(outputs_root,			outputs, {"0! root_directory"			}, "(string) Directory that outputs will be placed in");
 
 			{
 				auto metadata = stringsToYamlObject(outputs, 		{"! metadata"}, "Options for setting metadata for inputs and outputs");
@@ -2314,19 +2450,19 @@ bool ACSConfig::parse(
 			{
 				auto trace = stringsToYamlObject(outputs, {"0! trace"}, docs["trace"]);
 
-				trySetFromYaml(output_station_trace,		trace, {"0! output_stations"		}, "(bool) Output trace files for individual stations processing");
-				trySetFromYaml(output_network_trace,		trace, {"0! output_network"			}, "(bool) Output trace files for complete network of stations, inclucing kalman filter results and statistics");
-				trySetFromYaml(output_satellite_trace,		trace, {"0! output_satellites"		}, "(bool) Output trace files for individual satellites processing");
-				trySetFromYaml(trace_directory,				trace, {"! directory"				}, "(string) Directory to output trace files to");
-				trySetFromYaml(satellite_trace_filename,	trace, {"1! satellite_filename"		}, "(string) Template filename for satellite trace files");
-				trySetFromYaml(station_trace_filename,		trace, {"1! station_filename"		}, "(string) Template filename for station trace files");
-				trySetFromYaml(network_trace_filename,		trace, {"1! network_filename"		}, "(string) Template filename for network trace files");
-				trySetFromAny(trace_level, commandOpts,		trace, {"! level"					}, "(int) Threshold level for printing messages (0-6). Increasing this increases the amount of data stored in all trace files");
+																					trySetFromYaml(output_station_trace,		trace, {"0! output_stations"		}, "(bool) Output trace files for individual stations processing");
+																					trySetFromYaml(output_network_trace,		trace, {"0! output_network"			}, "(bool) Output trace files for complete network of stations, inclucing kalman filter results and statistics");
+																					trySetFromYaml(output_satellite_trace,		trace, {"0! output_satellites"		}, "(bool) Output trace files for individual satellites processing");
+				conditionalPrefix("<OUTPUTS_ROOT>",		trace_directory,			trySetFromYaml(trace_directory,				trace, {"! directory"				}, "(string) Directory to output trace files to"));
+				conditionalPrefix("<TRACE_DIRECTORY>",	satellite_trace_filename,	trySetFromYaml(satellite_trace_filename,	trace, {"1! satellite_filename"		}, "(string) Template filename for satellite trace files"));
+				conditionalPrefix("<TRACE_DIRECTORY>",	station_trace_filename,		trySetFromYaml(station_trace_filename,		trace, {"1! station_filename"		}, "(string) Template filename for station trace files"));
+				conditionalPrefix("<TRACE_DIRECTORY>",	network_trace_filename,		trySetFromYaml(network_trace_filename,		trace, {"1! network_filename"		}, "(string) Template filename for network trace files"));
+																					trySetFromAny(trace_level, commandOpts,		trace, {"! level"					}, "(int) Threshold level for printing messages (0-6). Increasing this increases the amount of data stored in all trace files");
 
-				trySetFromYaml(output_residual_chain,		trace, {"! output_residual_chain"	}, "(bool) Output component-wise details for measurement residuals");
-				trySetFromYaml(output_residuals,			trace, {"! output_residuals"		}, "(bool) Output measurements and residuals");
-				trySetFromYaml(output_config,				trace, {"! output_config"			}, "(bool) Output configuration files to top of trace files");
-				trySetFromYaml(output_json_trace,			trace, {"@ output_json"				}, "(bool) Output json formatted trace files");
+																					trySetFromYaml(output_residual_chain,		trace, {"! output_residual_chain"	}, "(bool) Output component-wise details for measurement residuals");
+																					trySetFromYaml(output_residuals,			trace, {"! output_residuals"		}, "(bool) Output measurements and residuals");
+																					trySetFromYaml(output_config,				trace, {"! output_config"			}, "(bool) Output configuration files to top of trace files");
+																					trySetFromYaml(output_json_trace,			trace, {"@ output_json"				}, "(bool) Output json formatted trace files");
 			}
 
 			{
@@ -2338,145 +2474,144 @@ bool ACSConfig::parse(
 			{
 				auto bias_sinex = stringsToYamlObject(outputs, {"! bias_sinex"}, "Rinex formatted bias sinex files");
 
-				trySetFromYaml(output_bias_sinex,				bias_sinex, {"0! output"				}, "(bool) Output bias sinex files");
-				trySetFromYaml(bias_sinex_directory,			bias_sinex, {"@ directory"				}, "(string) Directory to output bias sinex files to");
-				trySetFromYaml(bias_sinex_filename,				bias_sinex, {"@ filename"				}, "(string) Template filename for bias sinex files");
-				trySetFromYaml(bias_time_system,				bias_sinex, {"@ bias_time_system"		}, "(string) Time system for bias SINEX \"G\", \"C\", \"R\", \"UTC\", \"TAI\"");
-				trySetFromYaml(ambrOpts.code_output_interval,	bias_sinex, {"@ code_output_interval"	}, "(double) Update interval for code  biases");
-				trySetFromYaml(ambrOpts.phase_output_interval,	bias_sinex, {"@ phase_output_interval"	}, "(double) Update interval for phase biases");
-				trySetFromYaml(ambrOpts.output_rec_bias,		bias_sinex, {"@ output_rec_bias"		}, "(bool) output receiver biases");
+																					trySetFromYaml(output_bias_sinex,				bias_sinex, {"0! output"				}, "(bool) Output bias sinex files");
+				conditionalPrefix("<OUTPUTS_ROOT>",			bias_sinex_directory,	trySetFromYaml(bias_sinex_directory,			bias_sinex, {"@ directory"				}, "(string) Directory to output bias sinex files to"));
+				conditionalPrefix("<BIAS_SINEX_DIRECTORY>",	bias_sinex_filename,	trySetFromYaml(bias_sinex_filename,				bias_sinex, {"@ filename"				}, "(string) Template filename for bias sinex files"));
+																					trySetFromYaml(bias_time_system,				bias_sinex, {"@ bias_time_system"		}, "(string) Time system for bias SINEX \"G\", \"C\", \"R\", \"UTC\", \"TAI\"");
+																					trySetFromYaml(ambrOpts.code_output_interval,	bias_sinex, {"@ code_output_interval"	}, "(double) Update interval for code  biases");
+																					trySetFromYaml(ambrOpts.phase_output_interval,	bias_sinex, {"@ phase_output_interval"	}, "(double) Update interval for phase biases");
+																					trySetFromYaml(ambrOpts.output_rec_bias,		bias_sinex, {"@ output_rec_bias"		}, "(bool) output receiver biases");
 			}
 
 			{
 				auto clocks = stringsToYamlObject(outputs, {"! clocks"}, "Rinex formatted clock files");
 
-				trySetFromYaml(output_clocks,				clocks, {"0! output"				}, "(bool) Output clock files");
-				trySetFromYaml(clocks_directory,			clocks, {"@ directory"				}, "(string) Directory to output clock files to");
-				trySetFromYaml(clocks_filename,				clocks, {"@ filename"				}, "(string) Template filename for clock files");
-				trySetFromYaml(output_ar_clocks,			clocks, {"@ output_ar_clocks"		}, "(bool) ");
-				trySetEnumVec (clocks_receiver_sources,		clocks, {"@ receiver_sources"		});
-				trySetEnumVec (clocks_satellite_sources,	clocks, {"@ satellite_sources"		});
+																			trySetFromYaml(output_clocks,				clocks, {"0! output"				}, "(bool) Output clock files");
+				conditionalPrefix("<OUTPUTS_ROOT>",		clocks_directory,	trySetFromYaml(clocks_directory,			clocks, {"@ directory"				}, "(string) Directory to output clock files to"));
+				conditionalPrefix("<CLOCKS_DIRECTORY>",	clocks_filename,	trySetFromYaml(clocks_filename,				clocks, {"@ filename"				}, "(string) Template filename for clock files"));
+																			trySetEnumVec (clocks_receiver_sources,		clocks, {"@ receiver_sources"		});
+																			trySetEnumVec (clocks_satellite_sources,	clocks, {"@ satellite_sources"		});
 			}
 
 			{
 				auto decoded_rtcm = stringsToYamlObject(outputs, {"@ decoded_rtcm"}, "RTCM messages that are received may be recorded to human-readable json files");
 
-				trySetFromYaml(output_decoded_rtcm_json,	decoded_rtcm, {"0@ output"		},	"(bool) Enable exporting decoded RTCM data to file");
-				trySetFromYaml(decoded_rtcm_json_directory,	decoded_rtcm, {"@ directory"	},	"(string) Directory to export decoded RTCM data");
-				trySetFromYaml(decoded_rtcm_json_filename,	decoded_rtcm, {"@ filename"		},	"(string) Decoded RTCM data filename");
+																								trySetFromYaml(output_decoded_rtcm_json,	decoded_rtcm, {"0@ output"		},	"(bool) Enable exporting decoded RTCM data to file");
+				conditionalPrefix("<OUTPUTS_ROOT>",				decoded_rtcm_json_directory,	trySetFromYaml(decoded_rtcm_json_directory,	decoded_rtcm, {"@ directory"	},	"(string) Directory to export decoded RTCM data"));
+				conditionalPrefix("<DECODED_RTCM_DIRECTORY>",	decoded_rtcm_json_filename,		trySetFromYaml(decoded_rtcm_json_filename,	decoded_rtcm, {"@ filename"		},	"(string) Decoded RTCM data filename"));
 			}
 
 			{
 				auto encoded_rtcm = stringsToYamlObject(outputs, {"@ encoded_rtcm"}, "RTCM messages that are encoded and transmitted may be recorded to human-readable json files");
 
-				trySetFromYaml(output_encoded_rtcm_json,	encoded_rtcm, {"0@ output"		},	"(bool) Enable exporting encoded RTCM data to file");
-				trySetFromYaml(encoded_rtcm_json_directory,	encoded_rtcm, {"@ directory"	},	"(string) Directory to export encoded RTCM data");
-				trySetFromYaml(encoded_rtcm_json_filename,	encoded_rtcm, {"@ filename"		},	"(string) Encoded RTCM data filename");
+																								trySetFromYaml(output_encoded_rtcm_json,	encoded_rtcm, {"0@ output"		},	"(bool) Enable exporting encoded RTCM data to file");
+				conditionalPrefix("<OUTPUTS_ROOT>",				encoded_rtcm_json_directory,	trySetFromYaml(encoded_rtcm_json_directory,	encoded_rtcm, {"@ directory"	},	"(string) Directory to export encoded RTCM data"));
+				conditionalPrefix("<ENCODED_RTCM_DIRECTORY>",	encoded_rtcm_json_filename,		trySetFromYaml(encoded_rtcm_json_filename,	encoded_rtcm, {"@ filename"		},	"(string) Encoded RTCM data filename"));
 			}
 
 			{
 				auto erp = stringsToYamlObject(outputs, {"! erp"}, "Earth rotation parameters can be output to file");
 
-				trySetFromYaml(output_erp,				erp, {"0! output"		}, "(bool) Enable exporting of erp data");
-				trySetFromYaml(erp_directory,			erp, {"@ directory"		}, "(string) Directory to export erp data files");
-				trySetFromYaml(erp_filename,			erp, {"@ filename"		}, "(string) ERP data output filename");
+																		trySetFromYaml(output_erp,				erp, {"0! output"		}, "(bool) Enable exporting of erp data");
+				conditionalPrefix("<OUTPUTS_ROOT>",		erp_directory,	trySetFromYaml(erp_directory,			erp, {"@ directory"		}, "(string) Directory to export erp data files"));
+				conditionalPrefix("<ERP_DIRECTORY>",	erp_filename,	trySetFromYaml(erp_filename,			erp, {"@ filename"		}, "(string) ERP data output filename"));
 			}
 
 			{
 				auto ionex = stringsToYamlObject(outputs, {"! ionex"}, "IONEX formatted ionospheric mapping and modelling outputs");
 
-				trySetFromYaml(output_ionex,			ionex, {"0! output"						}, "(bool) Enable exporting ionospheric model data");
-				trySetFromYaml(ionex_directory,			ionex, {"@ directory"					}, "(string) Directory to export ionex data");
-				trySetFromYaml(ionex_filename,			ionex, {"@ filename"					}, "(string) Ionex data filename");
-				trySetFromYaml(ionexGrid.lat_center,	ionex, {"@ grid", "@ lat_center"		}, "(float) Center lattitude for models");
-				trySetFromYaml(ionexGrid.lon_center,	ionex, {"@ grid", "@ lon_center"		}, "(float) Center longitude for models");
-				trySetFromYaml(ionexGrid.lat_width,		ionex, {"@ grid", "@ lat_width"			}, "(float) Total lattitudinal width of model");
-				trySetFromYaml(ionexGrid.lon_width,		ionex, {"@ grid", "@ lon_width"			}, "(float) Total longitudinal width of model");
-				trySetFromYaml(ionexGrid.lat_res,		ionex, {"@ grid", "@ lat_resolution"	}, "(float) Interval between lattitude outputs");
-				trySetFromYaml(ionexGrid.lon_res,		ionex, {"@ grid", "@ lon_resolution"	}, "(float) Interval between longitude outputs");
-				trySetFromYaml(ionexGrid.time_res,		ionex, {"@ grid", "@ time_resolution"	}, "(float) Interval between output epochs");
+																			trySetFromYaml(output_ionex,			ionex, {"0! output"						}, "(bool) Enable exporting ionospheric model data");
+				conditionalPrefix("<OUTPUTS_ROOT>",		ionex_directory,	trySetFromYaml(ionex_directory,			ionex, {"@ directory"					}, "(string) Directory to export ionex data"));
+				conditionalPrefix("<IONEX_DIRECTORY>",	ionex_filename,		trySetFromYaml(ionex_filename,			ionex, {"@ filename"					}, "(string) Ionex data filename"));
+																			trySetFromYaml(ionexGrid.lat_center,	ionex, {"@ grid", "@ lat_center"		}, "(float) Center lattitude for models");
+																			trySetFromYaml(ionexGrid.lon_center,	ionex, {"@ grid", "@ lon_center"		}, "(float) Center longitude for models");
+																			trySetFromYaml(ionexGrid.lat_width,		ionex, {"@ grid", "@ lat_width"			}, "(float) Total lattitudinal width of model");
+																			trySetFromYaml(ionexGrid.lon_width,		ionex, {"@ grid", "@ lon_width"			}, "(float) Total longitudinal width of model");
+																			trySetFromYaml(ionexGrid.lat_res,		ionex, {"@ grid", "@ lat_resolution"	}, "(float) Interval between lattitude outputs");
+																			trySetFromYaml(ionexGrid.lon_res,		ionex, {"@ grid", "@ lon_resolution"	}, "(float) Interval between longitude outputs");
+																			trySetFromYaml(ionexGrid.time_res,		ionex, {"@ grid", "@ time_resolution"	}, "(float) Interval between output epochs");
 			}
 
 			{
 				auto ionstec = stringsToYamlObject(outputs, {"! ionstec"});
 
-				trySetFromYaml(output_ionstec,			ionstec, {"0! output"		}, "(bool) ");
-				trySetFromYaml(ionstec_directory,		ionstec, {"@ directory"		});
-				trySetFromYaml(ionstec_filename,		ionstec, {"@ filename"		});
+																				trySetFromYaml(output_ionstec,			ionstec, {"0! output"		}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",			ionstec_directory,	trySetFromYaml(ionstec_directory,		ionstec, {"@ directory"		}));
+				conditionalPrefix("<IONSTEC_DIRECTORY>",	ionstec_filename,	trySetFromYaml(ionstec_filename,		ionstec, {"@ filename"		}));
 			}
 
 			{
 				auto sinex = stringsToYamlObject(outputs, {"! sinex"});
 
-				trySetFromYaml(output_sinex,			sinex, {"0! output"			}, "(bool) ");
-				trySetFromYaml(sinex_directory,			sinex, {"@ directory"		});
-				trySetFromYaml(sinex_filename,			sinex, {"@ filename"		});
+																			trySetFromYaml(output_sinex,			sinex, {"0! output"			}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",		sinex_directory,	trySetFromYaml(sinex_directory,			sinex, {"@ directory"		}));
+				conditionalPrefix("<SINEX_DIRECTORY>",	sinex_filename,		trySetFromYaml(sinex_filename,			sinex, {"@ filename"		}));
 			}
 
 			{
 				auto log = stringsToYamlObject(outputs, {"! log"}, "Log files store console output in files");
 
-				trySetFromYaml(output_log,		     	log, {"0! output"			}, "(bool) Enable console output logging");
-				trySetFromYaml(log_directory,			log, {"@ directory"			}, "(string) Log output directory");
-				trySetFromYaml(log_filename,			log, {"@ filename"			}, "(string) Log output filename");
-			}
-
-			{
-				auto ntrip_log = stringsToYamlObject(outputs, {"@ ntrip_log"});
-
-				trySetFromYaml(output_ntrip_log,		ntrip_log, {"0@ output"		}, "(bool) ");
-				trySetFromYaml(ntrip_log_directory,		ntrip_log, {"@ directory"	});
-				trySetFromYaml(ntrip_log_filename,		ntrip_log, {"@ filename"	});
+																			trySetFromYaml(output_log,				log, {"0! output"			}, "(bool) Enable console output logging");
+				conditionalPrefix("<OUTPUTS_ROOT>",		log_directory,		trySetFromYaml(log_directory,			log, {"@ directory"			}, "(string) Log output directory"));
+				conditionalPrefix("<LOG_DIRECTORY>",	log_filename,		trySetFromYaml(log_filename,			log, {"@ filename"			}, "(string) Log output filename"));
 			}
 
 			{
 				auto gpx = stringsToYamlObject(outputs, {"! gpx"}, "GPX files contain point data that may be easily viewed in GIS mapping software");
 
-				trySetFromYaml(output_gpx,		     	gpx, {"0! output"			}, "(bool) ");
-				trySetFromYaml(gpx_directory,			gpx, {"@ directory"			});
-				trySetFromYaml(gpx_filename,			gpx, {"@ filename"			});
+																			trySetFromYaml(output_gpx,		     	gpx, {"0! output"			}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",		gpx_directory,		trySetFromYaml(gpx_directory,			gpx, {"@ directory"			}));
+				conditionalPrefix("<GPX_DIRECTORY>",	gpx_filename,		trySetFromYaml(gpx_filename,			gpx, {"@ filename"			}));
+			}
+
+			{
+				auto ntrip_log = stringsToYamlObject(outputs, {"@ ntrip_log"});
+
+																					trySetFromYaml(output_ntrip_log,		ntrip_log, {"0@ output"		}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",			ntrip_log_directory,	trySetFromYaml(ntrip_log_directory,		ntrip_log, {"@ directory"	}));
+				conditionalPrefix("<NTRIP_LOG_DIRECTORY>",	ntrip_log_filename,		trySetFromYaml(ntrip_log_filename,		ntrip_log, {"@ filename"	}));
 			}
 
 			{
 				auto network_statistics = stringsToYamlObject(outputs, {"@ network_statistics"});
 
-				trySetFromYaml(output_network_statistics_json,		network_statistics, {"0@ output"	},	"(bool) Enable exporting network statistics data to file");
-				trySetFromYaml(network_statistics_json_directory,	network_statistics, {"@ directory"	},	"(string) Directory to export network statistics data");
-				trySetFromYaml(network_statistics_json_filename,	network_statistics, {"@ filename"	},	"(string) Network statistics data filename");
+																										trySetFromYaml(output_network_statistics_json,		network_statistics, {"0@ output"	},	"(bool) Enable exporting network statistics data to file");
+				conditionalPrefix("<OUTPUTS_ROOT>",					network_statistics_json_directory,	trySetFromYaml(network_statistics_json_directory,	network_statistics, {"@ directory"	},	"(string) Directory to export network statistics data"));
+				conditionalPrefix("<NETWORK_STATISTICS_DIRECTORY>",	network_statistics_json_filename,	trySetFromYaml(network_statistics_json_filename,	network_statistics, {"@ filename"	},	"(string) Network statistics data filename"));
 			}
 
 			{
 				auto sp3 = stringsToYamlObject(outputs, {"! sp3"}, "SP3 files contain orbital and clock data of satellites and receivers");
 
-				trySetFromYaml(output_sp3,					sp3, {"0! output"					}, "(bool) Enable SP3 file outputs");
-				trySetFromYaml(output_inertial_orbits, 		sp3, {"@ output_inertial"			}, "(bool) Output the entries using inertial positions and velocities");
-				trySetFromYaml(output_predicted_orbits,		sp3, {"0@ output_predicted_orbits"	}, "(bool) Enable prediction and outputting of orbits past the end of processing");
-				trySetFromYaml(output_sp3_velocities,		sp3, {"@ output_velocities"			}, "(bool) Output velocity data to sp3 file");
-				trySetFromYaml(sp3_directory,				sp3, {"@ directory"					}, "(string) Directory to store SP3 outputs");
-				trySetFromYaml(sp3_filename,				sp3, {"@ filename"					}, "(string) SP3 output filename");
-				trySetFromYaml(predicted_sp3_filename,		sp3, {"@ predicted_filename"		}, "(string) Filename for predicted SP3 outputs");
-				trySetEnumVec (sp3_clock_sources,			sp3, {"@ clock_sources"				}, "List of sources for clock data for SP3 outputs");
-				trySetEnumVec (sp3_orbit_sources,			sp3, {"@ orbit_sources"				}, "List of sources for orbit data for SP3 outputs");
-				trySetFromYaml(sp3_output_interval,			sp3, {"@ output_interval"			}, "(int) Update interval for sp3 records");
+																				trySetFromYaml(output_sp3,					sp3, {"0! output"					}, "(bool) Enable SP3 file outputs");
+																				trySetFromYaml(output_inertial_orbits, 		sp3, {"@ output_inertial"			}, "(bool) Output the entries using inertial positions and velocities");
+																				trySetFromYaml(output_predicted_orbits,		sp3, {"0@ output_predicted_orbits"	}, "(bool) Enable prediction and outputting of orbits past the end of processing");
+																				trySetFromYaml(output_sp3_velocities,		sp3, {"@ output_velocities"			}, "(bool) Output velocity data to sp3 file");
+				conditionalPrefix("<OUTPUTS_ROOT>",		sp3_directory,			trySetFromYaml(sp3_directory,				sp3, {"@ directory"					}, "(string) Directory to store SP3 outputs"));
+				conditionalPrefix("<SP3_DIRECTORY>",	sp3_filename,			trySetFromYaml(sp3_filename,				sp3, {"@ filename"					}, "(string) SP3 output filename"));
+				conditionalPrefix("<SP3_DIRECTORY>",	predicted_sp3_filename,	trySetFromYaml(predicted_sp3_filename,		sp3, {"@ predicted_filename"		}, "(string) Filename for predicted SP3 outputs"));
+																				trySetEnumVec (sp3_clock_sources,			sp3, {"@ clock_sources"				}, "List of sources for clock data for SP3 outputs");
+																				trySetEnumVec (sp3_orbit_sources,			sp3, {"@ orbit_sources"				}, "List of sources for orbit data for SP3 outputs");
+																				trySetFromYaml(sp3_output_interval,			sp3, {"@ output_interval"			}, "(int) Update interval for sp3 records");
 			}
 			
 			{
 				auto orbit_ics = stringsToYamlObject(outputs, {"@ orbit_ics"}, "Orbital parameters can be output in a yaml that Ginan can later use as an initial condition for futher processing.");
 				
-				trySetFromYaml(output_orbit_ics,	orbit_ics, {"@ output"		}, "(bool) Output orbital initial condition file");
-				trySetFromYaml(orbit_ics_filename,	orbit_ics, {"@ filename"	}, "(string) Output orbital initial condition filename");
-				trySetFromYaml(orbit_ics_directory,	orbit_ics, {"@ directory"	}, "(string) Output orbital initial condition directory");
+																					trySetFromYaml(output_orbit_ics,	orbit_ics, {"@ output"		}, "(bool) Output orbital initial condition file");
+				conditionalPrefix("<OUTPUTS_ROOT>",			orbit_ics_directory,	trySetFromYaml(orbit_ics_directory,	orbit_ics, {"@ directory"	}, "(string) Output orbital initial condition directory"));
+				conditionalPrefix("<ORBIT_ICS_DIRECTORY>",	orbit_ics_filename,		trySetFromYaml(orbit_ics_filename,	orbit_ics, {"@ filename"	}, "(string) Output orbital initial condition filename"));
 			}
 
 			{
 				auto orbex = stringsToYamlObject(outputs, {"@ orbex"});
 
-				trySetFromYaml(output_orbex,			orbex, {"0@ output"				}, "(bool) Output orbex file");
-				trySetFromYaml(orbex_directory,			orbex, {"@ directory"			}, "(string) Output orbex directory");
-				trySetFromYaml(orbex_filename,			orbex, {"@ filename"			}, "(string) Output orbex filename");
-				trySetEnumVec (orbex_orbit_sources,		orbex, {"@ orbit_sources" 		}, "Sources for orbex orbits");
-				trySetEnumVec (orbex_clock_sources,		orbex, {"@ clock_sources" 		}, "Sources for orbex clocks");
-				trySetEnumVec (orbex_attitude_sources,	orbex, {"@ attitude_sources" 	}, "Sources for orbex attitudes");
+																			trySetFromYaml(output_orbex,			orbex, {"0@ output"				}, "(bool) Output orbex file");
+				conditionalPrefix("<OUTPUTS_ROOT>",		orbex_directory,	trySetFromYaml(orbex_directory,			orbex, {"@ directory"			}, "(string) Output orbex directory"));
+				conditionalPrefix("<ORBEX_DIRECTORY>",	orbex_filename,		trySetFromYaml(orbex_filename,			orbex, {"@ filename"			}, "(string) Output orbex filename"));
+																			trySetEnumVec (orbex_orbit_sources,		orbex, {"@ orbit_sources" 		}, "Sources for orbex orbits");
+																			trySetEnumVec (orbex_clock_sources,		orbex, {"@ clock_sources" 		}, "Sources for orbex clocks");
+																			trySetEnumVec (orbex_attitude_sources,	orbex, {"@ attitude_sources" 	}, "Sources for orbex attitudes");
 
 				vector<string> recordTypeStrings;
 				bool found = trySetFromYaml(recordTypeStrings,	orbex, {"@ record_types"	}, "[string] List of record types to output to ORBEX file");
@@ -2502,93 +2637,93 @@ bool ACSConfig::parse(
 			{
 				auto ppp_sol = stringsToYamlObject(outputs, {"! ppp_sol"});
 
-				trySetFromYaml(output_ppp_sol,			ppp_sol, {"0! output"	}, "(bool) ");
-				trySetFromYaml(ppp_sol_directory,		ppp_sol, {"@ directory"	});
-				trySetFromYaml(ppp_sol_filename,		ppp_sol, {"@ filename"	});
+																				trySetFromYaml(output_ppp_sol,			ppp_sol, {"0! output"	}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",			ppp_sol_directory,	trySetFromYaml(ppp_sol_directory,		ppp_sol, {"@ directory"	}));
+				conditionalPrefix("<PPP_SOL_DIRECTORY>",	ppp_sol_filename,	trySetFromYaml(ppp_sol_filename,		ppp_sol, {"@ filename"	}));
 			}
 
 			{
 				auto cost = stringsToYamlObject(outputs, {"! cost"}, docs["cost"]);
 
-				trySetFromYaml(output_cost,			cost, {"0! output"			},	"(bool) Enable data exporting to troposphere COST file");
-				trySetEnumVec (cost_data_sources,	cost, {"@ sources" 			},	"Source for troposphere delay data - KALMAN, etc.");
-				trySetFromYaml(cost_directory,		cost, {"@ directory"		},	"(string) Directory to export troposphere COST file");
-				trySetFromYaml(cost_filename,		cost, {"@ filename"			},	"(string) Troposphere COST filename");
-				trySetFromYaml(cost_time_interval,	cost, {"@ time_interval"	},	"(int) Time interval between entries in troposphere COST file (sec)");
-				trySetFromYaml(cost_format,			cost, {"@ cost_format"		},	"(string) Format name & version number");
-				trySetFromYaml(cost_project,		cost, {"@ cost_project"		},	"(string) Project name");
-				trySetFromYaml(cost_status,			cost, {"@ cost_status"		},	"(string) File status");
-				trySetFromYaml(cost_centre,			cost, {"@ cost_centre"		},	"(string) Processing centre");
-				trySetFromYaml(cost_method,			cost, {"@ cost_method"		},	"(string) Processing method");
-				trySetFromYaml(cost_orbit_type,		cost, {"@ cost_orbit_type"	},	"(string) Orbit type");
-				trySetFromYaml(cost_met_source,		cost, {"@ cost_met_sources"	},	"(string) Source of met. data");
+																		trySetFromYaml(output_cost,			cost, {"0! output"			},	"(bool) Enable data exporting to troposphere COST file");
+																		trySetEnumVec (cost_data_sources,	cost, {"@ sources" 			},	"Source for troposphere delay data - KALMAN, etc.");
+				conditionalPrefix("<OUTPUTS_ROOT>",		cost_directory,	trySetFromYaml(cost_directory,		cost, {"@ directory"		},	"(string) Directory to export troposphere COST file"));
+				conditionalPrefix("<COST_DIRECTORY>",	cost_filename,	trySetFromYaml(cost_filename,		cost, {"@ filename"			},	"(string) Troposphere COST filename"));
+																		trySetFromYaml(cost_time_interval,	cost, {"@ time_interval"	},	"(int) Time interval between entries in troposphere COST file (sec)");
+																		trySetFromYaml(cost_format,			cost, {"@ cost_format"		},	"(string) Format name & version number");
+																		trySetFromYaml(cost_project,		cost, {"@ cost_project"		},	"(string) Project name");
+																		trySetFromYaml(cost_status,			cost, {"@ cost_status"		},	"(string) File status");
+																		trySetFromYaml(cost_centre,			cost, {"@ cost_centre"		},	"(string) Processing centre");
+																		trySetFromYaml(cost_method,			cost, {"@ cost_method"		},	"(string) Processing method");
+																		trySetFromYaml(cost_orbit_type,		cost, {"@ cost_orbit_type"	},	"(string) Orbit type");
+																		trySetFromYaml(cost_met_source,		cost, {"@ cost_met_sources"	},	"(string) Source of met. data");
 			}
 
 			{
 				auto rinex_nav = stringsToYamlObject(outputs, {"@ rinex_nav"});
 
-				trySetFromYaml(output_rinex_nav,		rinex_nav, {"0@ output"		}, "(bool) ");
-				trySetFromYaml(rinex_nav_directory,		rinex_nav, {"@ directory"	});
-				trySetFromYaml(rinex_nav_filename,		rinex_nav, {"@ filename"	});
-				trySetFromYaml(rinex_nav_version,		rinex_nav, {"@ version"		});
+																					trySetFromYaml(output_rinex_nav,		rinex_nav, {"0@ output"		}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",			rinex_nav_directory,	trySetFromYaml(rinex_nav_directory,		rinex_nav, {"@ directory"	}));
+				conditionalPrefix("<RINEX_NAV_DIRECTORY>",	rinex_nav_filename,		trySetFromYaml(rinex_nav_filename,		rinex_nav, {"@ filename"	}));
+																					trySetFromYaml(rinex_nav_version,		rinex_nav, {"@ version"		});
 			}
 
 			{
 				auto rinex_obs = stringsToYamlObject(outputs, {"@ rinex_obs"});
 
-				trySetFromYaml(output_rinex_obs,		rinex_obs, {"0@ output"					}, "(bool) ");
-				trySetFromYaml(rinex_obs_directory,		rinex_obs, {"@ directory"				});
-				trySetFromYaml(rinex_obs_print_C_code,	rinex_obs, {"@ output_pseudorange"		}, "(bool) ");
-				trySetFromYaml(rinex_obs_print_L_code,	rinex_obs, {"@ output_phase_range"		}, "(bool) ");
-				trySetFromYaml(rinex_obs_print_D_code,	rinex_obs, {"@ output_doppler"			}, "(bool) ");
-				trySetFromYaml(rinex_obs_print_S_code,	rinex_obs, {"@ output_signal_to_noise"	}, "(bool) ");
-				trySetFromYaml(rinex_obs_filename,		rinex_obs, {"@ filename"				});
-				trySetFromYaml(rinex_obs_version,		rinex_obs, {"@ version"					});
+																					trySetFromYaml(output_rinex_obs,		rinex_obs, {"0@ output"					}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",			rinex_obs_directory,	trySetFromYaml(rinex_obs_directory,		rinex_obs, {"@ directory"				}));
+				conditionalPrefix("<RINEX_OBS_DIRECTORY>",	rinex_obs_filename,		trySetFromYaml(rinex_obs_filename,		rinex_obs, {"@ filename"				}));
+																					trySetFromYaml(rinex_obs_print_C_code,	rinex_obs, {"@ output_pseudorange"		}, "(bool) ");
+																					trySetFromYaml(rinex_obs_print_L_code,	rinex_obs, {"@ output_phase_range"		}, "(bool) ");
+																					trySetFromYaml(rinex_obs_print_D_code,	rinex_obs, {"@ output_doppler"			}, "(bool) ");
+																					trySetFromYaml(rinex_obs_print_S_code,	rinex_obs, {"@ output_signal_to_noise"	}, "(bool) ");
+																					trySetFromYaml(rinex_obs_version,		rinex_obs, {"@ version"					});
 			}
 
 			{
 				auto rtcm_nav = stringsToYamlObject(outputs, {"@ rtcm_nav"});
 
-				trySetFromYaml(record_rtcm_nav,			rtcm_nav, {"0@ output"			}, "(bool) ");
-				trySetFromYaml(rtcm_nav_directory,		rtcm_nav, {"@ directory"		 	});
-				trySetFromYaml(rtcm_nav_filename,		rtcm_nav, {"@ filename"			});
+																				trySetFromYaml(record_rtcm_nav,			rtcm_nav, {"0@ output"			}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",			rtcm_nav_directory,	trySetFromYaml(rtcm_nav_directory,		rtcm_nav, {"@ directory"		}));
+				conditionalPrefix("<RTCM_NAV_DIRECTORY>",	rtcm_nav_filename,	trySetFromYaml(rtcm_nav_filename,		rtcm_nav, {"@ filename"			}));
 			}
 
 			{
 				auto rtcm_obs = stringsToYamlObject(outputs, {"@ rtcm_obs"});
 
-				trySetFromYaml(record_rtcm_obs,			rtcm_obs, {"0@ output"			}, "(bool) ");
-				trySetFromYaml(rtcm_obs_directory,		rtcm_obs, {"@ directory"		});
-				trySetFromYaml(rtcm_obs_filename,		rtcm_obs, {"@ filename"			});
+																				trySetFromYaml(record_rtcm_obs,			rtcm_obs, {"0@ output"			}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",			rtcm_obs_directory,	trySetFromYaml(rtcm_obs_directory,		rtcm_obs, {"@ directory"		}));
+				conditionalPrefix("<RTCM_OBS_DIRECTORY>",	rtcm_obs_filename,	trySetFromYaml(rtcm_obs_filename,		rtcm_obs, {"@ filename"			}));
 			}
 
 			{
 				auto raw_ubx = stringsToYamlObject(outputs, {"raw_ubx"});
 
-				trySetFromYaml(record_raw_ubx,			raw_ubx, {"0 output"			}, "(bool) ");
-				trySetFromYaml(raw_ubx_directory,		raw_ubx, {"directory"			});
-				trySetFromYaml(raw_ubx_filename,		raw_ubx, {"filename"			});
+																			trySetFromYaml(record_raw_ubx,			raw_ubx, {"0 output"			}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",		raw_ubx_directory,	trySetFromYaml(raw_ubx_directory,		raw_ubx, {"directory"			}));
+				conditionalPrefix("<UBX_DIRECTORY>",	raw_ubx_filename,	trySetFromYaml(raw_ubx_filename,		raw_ubx, {"filename"			}));
 			}
 
 			{
 				auto slr_obs = stringsToYamlObject(outputs, {"! slr_obs"}, docs["slr_obs"]);
 
-				trySetFromYaml(output_slr_obs,			slr_obs, {"0! output"			}, 	"(bool) Enable data exporting to tabular SLR obs file");
-				trySetFromYaml(slr_obs_directory,		slr_obs, {"@ directory"			}, 	"(string) Directory to export tabular SLR obs file");
-				trySetFromYaml(slr_obs_filename,		slr_obs, {"@ filename"			},	"(string) Tabular SLR obs filename");
+																				trySetFromYaml(output_slr_obs,			slr_obs, {"0! output"			}, 	"(bool) Enable data exporting to tabular SLR obs file");
+				conditionalPrefix("<OUTPUTS_ROOT>",			slr_obs_directory,	trySetFromYaml(slr_obs_directory,		slr_obs, {"@ directory"			}, 	"(string) Directory to export tabular SLR obs file"));
+				conditionalPrefix("<SLR_OBS_DIRECTORY>",	slr_obs_filename,	trySetFromYaml(slr_obs_filename,		slr_obs, {"@ filename"			},	"(string) Tabular SLR obs filename"));
 			}
 
 			{
 				auto trop_sinex = stringsToYamlObject(outputs, {"! trop_sinex"}, docs["trop_sinex"]);
 
-				trySetFromYaml(output_trop_sinex,		trop_sinex, {"0! output"		},	"(bool) Enable data exporting to troposphere SINEX file");
-				trySetEnumVec (trop_sinex_data_sources,	trop_sinex, {"@ sources"		},	"Source for troposphere delay data - KALMAN, etc.");
-				trySetFromYaml(trop_sinex_directory,	trop_sinex, {"@ directory"		},	"(string) Directory to export troposphere SINEX file");
-				trySetFromYaml(trop_sinex_filename,		trop_sinex, {"@ filename"		},	"(string) Troposphere SINEX filename");
-				trySetFromYaml(trop_sinex_sol_type,		trop_sinex, {"@ sol_type"		},	"(string) Troposphere SINEX solution type");
-				trySetFromYaml(trop_sinex_obs_code,		trop_sinex, {"@ obs_code"		},	"(string) Troposphere SINEX observation code");
-				trySetFromYaml(trop_sinex_const_code,	trop_sinex, {"@ const_code"		},	"(string) Troposphere SINEX const code");
-				trySetFromYaml(trop_sinex_version,		trop_sinex, {"@ version"		},	"(string) Troposphere SINEX version");
+																					trySetFromYaml(output_trop_sinex,		trop_sinex, {"0! output"		},	"(bool) Enable data exporting to troposphere SINEX file");
+																					trySetEnumVec (trop_sinex_data_sources,	trop_sinex, {"@ sources"		},	"Source for troposphere delay data - KALMAN, etc.");
+				conditionalPrefix("<OUTPUTS_ROOT>",			trop_sinex_directory,	trySetFromYaml(trop_sinex_directory,	trop_sinex, {"@ directory"		},	"(string) Directory to export troposphere SINEX file"));
+				conditionalPrefix("<TROP_SINEX_DIRECTORY>",	trop_sinex_filename,	trySetFromYaml(trop_sinex_filename,		trop_sinex, {"@ filename"		},	"(string) Troposphere SINEX filename"));
+																					trySetFromYaml(trop_sinex_sol_type,		trop_sinex, {"@ sol_type"		},	"(string) Troposphere SINEX solution type");
+																					trySetFromYaml(trop_sinex_obs_code,		trop_sinex, {"@ obs_code"		},	"(string) Troposphere SINEX observation code");
+																					trySetFromYaml(trop_sinex_const_code,	trop_sinex, {"@ const_code"		},	"(string) Troposphere SINEX const code");
+																					trySetFromYaml(trop_sinex_version,		trop_sinex, {"@ version"		},	"(string) Troposphere SINEX version");
 			}
 
 			{
@@ -2618,77 +2753,66 @@ bool ACSConfig::parse(
 		{
 			auto inputs	= stringsToYamlObject({yaml, ""},	{"0! inputs"}, docs["inputs"]);
 
-			string root_stream_url;
-			trySetFromAny(root_input_directory,	commandOpts,	inputs, {"0! root_directory"		}, "(string) Root path to be added to all other input files (unless they are absolute)");
-			trySetFromYaml(root_stream_url,						inputs,	{"0! root_stream_url"		}, "(string) Root url to be prepended to all other streams specified in this section. If the streams used have individually specified root urls, usernames, or passwords, this should not be used.");
+			trySetFromAny(inputs_root,					commandOpts,	inputs, {"0! inputs_root"			}, "(string) Root path to be added to all other input files (unless they are absolute)");
+			trySetFromAny(inputs_root,					commandOpts,	inputs, {"0! root_directory"		}, "(string) Root path to be added to all other input files (unless they are absolute)");
 			
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! atx_files"				}, "[string] List of atx files to use");	atx_files	.insert(atx_files	.end(), vec.begin(), vec.end()); }  	
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! snx_files"				}, "[string] List of snx files to use");	snx_files	.insert(snx_files	.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! blq_files"				}, "[string] List of blq files to use");	blq_files	.insert(blq_files	.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! erp_files"				}, "[string] List of erp files to use");	erp_files	.insert(erp_files	.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! ion_files"				}, "[string] List of ion files to use");	ion_files	.insert(ion_files	.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! igrf_files"				}, "[string] List of igrf files to use");	igrf_files	.insert(igrf_files	.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! egm_files"				}, "[string] List of egm files to use");	egm_files	.insert(egm_files	.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! jpl_files"				}, "[string] List of jpl files to use");	jpl_files	.insert(jpl_files	.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! tide_files"});														tide_files	.insert(tide_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! atx_files"				}, "[string] List of atx files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	atx_files	.insert(atx_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! snx_files"				}, "[string] List of snx files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	snx_files	.insert(snx_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! blq_files"				}, "[string] List of blq files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	blq_files	.insert(blq_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! erp_files"				}, "[string] List of erp files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	erp_files	.insert(erp_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! ion_files"				}, "[string] List of ion files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	ion_files	.insert(ion_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! igrf_files"				}, "[string] List of igrf files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	igrf_files	.insert(igrf_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! egm_files"				}, "[string] List of egm files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	egm_files	.insert(egm_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! jpl_files"				}, "[string] List of jpl files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	jpl_files	.insert(jpl_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! tide_files"				}, "[string] List of tide files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	tide_files	.insert(tide_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! cmc_files"				}, "[string] List of cmc files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	cmc_files	.insert(cmc_files	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, {"! hfeop_files"			}, "[string] List of hfeop files to use");		conditionalPrefix("<INPUTS_ROOT>", vec);	hfeop_files	.insert(hfeop_files	.end(), vec.begin(), vec.end()); }
 			
 			auto troposphere	= stringsToYamlObject(inputs,	{"0! troposphere"}, "Files specifying tropospheric model inputs");
-			{ vector<string> vec;	trySetFromYaml(vec,					troposphere, {"! vmf_files"				}, "[string] List of vmf files to use");						vmf_files			.insert(vmf_files			.end(), vec.begin(), vec.end()); }
-									trySetFromYaml(model.trop.orography,troposphere, {"! orography_files"		});
-									trySetFromYaml(model.trop.gpt2grid,	troposphere, {"! gpt2grid_files"		});
+			
+			{ vector<string> vec;	trySetFromYaml(vec,					troposphere, {"! vmf_files"				}, "[string] List of vmf files to use");	conditionalPrefix("<INPUTS_ROOT>", vec);	vmf_files	.insert(vmf_files	.end(), vec.begin(), vec.end()); }
+			
+			conditionalPrefix("<INPUTS_ROOT>", 	model.trop.orography,	trySetFromYaml(model.trop.orography,troposphere, {"! orography_files"		}));
+			conditionalPrefix("<INPUTS_ROOT>", 	model.trop.gpt2grid,	trySetFromYaml(model.trop.gpt2grid,	troposphere, {"! gpt2grid_files"		}));
 			
 			auto ionosphere		= stringsToYamlObject(inputs,	{"0! ionosphere"}, "Files specifying ionospheric model inputs");
-		    { vector<string> vec;	trySetFromYaml(vec,					ionosphere, {"@ atm_reg_definitions"	}, "[string] List of files to define regions for compact SSR");	atm_reg_definitions	.insert(atm_reg_definitions	.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny( vec,	commandOpts,	ionosphere, {"! ion_files"				}, "[string] List of IONEX files for VTEC input");             	ion_files			.insert(ion_files			.end(), vec.begin(), vec.end()); }
-
+		    { vector<string> vec;	trySetFromYaml(vec,					ionosphere, {"@ atm_reg_definitions"	}, "[string] List of files to define regions for compact SSR");	conditionalPrefix("<INPUTS_ROOT>", vec);	atm_reg_definitions	.insert(atm_reg_definitions	.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny( vec,	commandOpts,	ionosphere, {"! ion_files"				}, "[string] List of IONEX files for VTEC input");             	conditionalPrefix("<INPUTS_ROOT>", vec);	ion_files			.insert(ion_files			.end(), vec.begin(), vec.end()); }
 
 			{
 				auto gnss_data = stringsToYamlObject(inputs, {"1! gnss_observations"}, "Signal observation data from gnss receivers to be used as measurements");
 
-				string inputs_root = "./";
-				trySetFromAny(inputs_root,	commandOpts,	gnss_data,	{"0! inputs_root"	}, "(string) Root path to be added to all other gnss data inputs (unless they are absolute)");
+				conditionalPrefix("<INPUTS_ROOT>", gnss_obs_root,				trySetFromAny(gnss_obs_root,	commandOpts,	gnss_data,	{"0! inputs_root"	}, "(string) Root path to be added to all other gnss data inputs (unless they are absolute)"));
 
-				tryGetMappedList(rnx_inputs,			gnss_data,	{"! rnx_inputs"			}, "[string] List of rinex      inputs to use");
-				tryGetMappedList(ubx_inputs,			gnss_data,	{"ubx_inputs"			}, "[string] List of ubxfiles   inputs to use");
-				tryGetMappedList(obs_rtcm_inputs,		gnss_data,	{"! rtcm_inputs"		}, "[string] List of rtcmfiles  inputs to use for observations");
-
-				tryAddRootToPath(inputs_root, rnx_inputs);
-				tryAddRootToPath(inputs_root, ubx_inputs);
-				tryAddRootToPath(inputs_root, obs_rtcm_inputs);
+				tryGetMappedList(rnx_inputs,			commandOpts, gnss_data,	{"! rnx_inputs"			}, "<GNSS_OBS_ROOT>", "[string] List of rinex      inputs to use");
+				tryGetMappedList(ubx_inputs,			commandOpts, gnss_data,	{"# ubx_inputs"			}, "<GNSS_OBS_ROOT>", "[string] List of ubxfiles   inputs to use");
+				tryGetMappedList(obs_rtcm_inputs,		commandOpts, gnss_data,	{"! rtcm_inputs"		}, "<GNSS_OBS_ROOT>", "[string] List of rtcmfiles  inputs to use for observations");
 			}
 
 			{
 				auto pseudo_observation_data = stringsToYamlObject(inputs, {"! pseudo_observations"}, "Use data from pre-processed data products as observations. Useful for combining and comparing datasets");
 
-				string inputs_root = "./";
-				trySetFromYaml(inputs_root,	pseudo_observation_data,	{"0! inputs_root"		}, "(string) Root path to be added to all other pseudo obs data files (unless they are absolute)");
+				conditionalPrefix("<INPUTS_ROOT>", pseudo_obs_root,		trySetFromYaml(pseudo_obs_root,	pseudo_observation_data,	{"0! inputs_root"		}, "(string) Root path to be added to all other pseudo obs data files (unless they are absolute)"));
 
-				tryGetMappedList(pseudo_sp3_inputs,	pseudo_observation_data,	{"! sp3_inputs"			}, "[string] List of sp3 inputs to use for pseudoobservations");
-				tryGetMappedList(pseudo_snx_inputs,	pseudo_observation_data,	{"@ snx_inputs"			}, "[string] List of snx inputs to use for pseudoobservations");
-
-				tryAddRootToPath(inputs_root, pseudo_sp3_inputs);
-				tryAddRootToPath(inputs_root, pseudo_snx_inputs);
+				tryGetMappedList(pseudo_sp3_inputs,	commandOpts, pseudo_observation_data,	{"! sp3_inputs"			}, "<PSEUDO_OBS_ROOT>", "[string] List of sp3 inputs to use for pseudoobservations");
+				tryGetMappedList(pseudo_snx_inputs,	commandOpts, pseudo_observation_data,	{"@ snx_inputs"			}, "<PSEUDO_OBS_ROOT>", "[string] List of snx inputs to use for pseudoobservations");
 			}
 
 			{
 				auto satellite_data = stringsToYamlObject(inputs, {"0! satellite_data"});
 
-				string inputs_root = "./";
-				trySetFromYaml(inputs_root,	satellite_data,	{"0! inputs_root"		}, "(string) Root path to be added to all other satellite data files (unless they are absolute)");
+				conditionalPrefix("<INPUTS_ROOT>", gnss_obs_root,				trySetFromYaml(sat_data_root,	satellite_data,	{"0! inputs_root"		}, "(string) Root path to be added to all other satellite data files (unless they are absolute)"));
 
-				trySetFromAny(nav_files,				commandOpts,	satellite_data, {"! nav_files"			}, "[string] List of ephemeris  files to use");			
-				trySetFromAny(sp3_files,				commandOpts,	satellite_data, {"! sp3_files"			}, "[string] List of sp3        files to use");			
-				trySetFromAny(dcb_files,				commandOpts,	satellite_data, {"! dcb_files"			}, "[string] List of dcb        files to use");			
-				trySetFromAny(bsx_files,				commandOpts,	satellite_data, {"! bsx_files"			}, "[string] List of biassinex  files to use");			
-				trySetFromAny(clk_files,				commandOpts,	satellite_data, {"! clk_files"			}, "[string] List of clock      files to use");			
-				trySetFromAny(sid_files,				commandOpts, 	satellite_data, {"@ sid_files"			}, "[string] List of sat ID     files to use - from https://cddis.nasa.gov/sp3c_satlist.html/");
-				trySetFromAny(com_files,				commandOpts, 	satellite_data, {"@ com_files"			}, "[string] List of com        files to use - retroreflector offsets from centre-of-mass for spherical sats");
-				trySetFromAny(crd_files,				commandOpts, 	satellite_data, {"@ crd_files"			}, "[string] List of crd        files to use - SLR observation data");
-				trySetFromAny(obx_files,				commandOpts,	satellite_data, {"! obx_files"			}, "[string] List of orbex      files to use");			
-				trySetFromAny(orb_files,				commandOpts,	satellite_data, {"@ orb_files"			}, "[string] List of orbit(pod) files to use");			
-				trySetFromAny(nav_rtcm_inputs,			commandOpts,	satellite_data,	{"! rtcm_inputs"		}, "[string] List of rtcm       inputs to use for corrections");
-
-				tryAddRootToPath(inputs_root, nav_rtcm_inputs);
+				conditionalPrefix("<SAT_DATA_ROOT>", nav_files,			trySetFromAny(nav_files,				commandOpts,	satellite_data, {"! nav_files"			}, "[string] List of ephemeris  files to use"));			
+				conditionalPrefix("<SAT_DATA_ROOT>", sp3_files,			trySetFromAny(sp3_files,				commandOpts,	satellite_data, {"! sp3_files"			}, "[string] List of sp3        files to use"));			
+				conditionalPrefix("<SAT_DATA_ROOT>", dcb_files,			trySetFromAny(dcb_files,				commandOpts,	satellite_data, {"! dcb_files"			}, "[string] List of dcb        files to use"));			
+				conditionalPrefix("<SAT_DATA_ROOT>", bsx_files,			trySetFromAny(bsx_files,				commandOpts,	satellite_data, {"! bsx_files"			}, "[string] List of biassinex  files to use"));			
+				conditionalPrefix("<SAT_DATA_ROOT>", clk_files,			trySetFromAny(clk_files,				commandOpts,	satellite_data, {"! clk_files"			}, "[string] List of clock      files to use"));			
+				conditionalPrefix("<SAT_DATA_ROOT>", sid_files,			trySetFromAny(sid_files,				commandOpts, 	satellite_data, {"@ sid_files"			}, "[string] List of sat ID     files to use - from https://cddis.nasa.gov/sp3c_satlist.html/"));
+				conditionalPrefix("<SAT_DATA_ROOT>", com_files,			trySetFromAny(com_files,				commandOpts, 	satellite_data, {"@ com_files"			}, "[string] List of com        files to use - retroreflector offsets from centre-of-mass for spherical sats"));
+				conditionalPrefix("<SAT_DATA_ROOT>", crd_files,			trySetFromAny(crd_files,				commandOpts, 	satellite_data, {"@ crd_files"			}, "[string] List of crd        files to use - SLR observation data"));
+				conditionalPrefix("<SAT_DATA_ROOT>", obx_files,			trySetFromAny(obx_files,				commandOpts,	satellite_data, {"! obx_files"			}, "[string] List of orbex      files to use"));			
+				conditionalPrefix("<SAT_DATA_ROOT>", nav_rtcm_inputs,	trySetFromAny(nav_rtcm_inputs,			commandOpts,	satellite_data,	{"! rtcm_inputs"		}, "[string] List of rtcm       inputs to use for corrections"));
 			}
 		}
 
@@ -2704,6 +2828,7 @@ bool ACSConfig::parse(
 			trySetFromYaml	(require_antenna_details,					general, {"@ require_antenna_details" 	}, "(bool) Restrict processing to stations that have antenna details");
 			trySetFromYaml	(pivot_station,								general, {"@ pivot_station" 			}, "(string) Largely deprecated id of station to use for pivot constraints");
 			trySetFromYaml	(interpolate_rec_pco,						general, {"@ interpolate_rec_pco" 		}, "(bool) Interpolate other known pco values to find pco for unknown frequencies");
+			trySetFromYaml	(auto_fill_pco,								general, {"@ auto_fill_pco" 			}, "(bool) Use similar PCOs when requested values are not found");
 			trySetFromYaml	(max_gdop,									general, {"@ max_gdop"					}, "(float) Maximum dilution of precision before error is flagged");
 			trySetFromYaml	(raim,										general, {"@ raim"						}, "(bool) Enable Receiver Autonomous Integrity Monitoring. When SPP fails further SPP solutions are calculated with subsets of observations with the aim of eliminating a problem satellite");
 			trySetEnumOpt	(recOptsMap[""].error_model,				general, {"@ error_model"				}, E_NoiseModel::_from_string_nocase);
@@ -2849,6 +2974,7 @@ bool ACSConfig::parse(
 
 				if (wait_next_epoch < epoch_interval)
 					wait_next_epoch = epoch_interval + 0.01;
+				trySetFromYaml(sleep_milliseconds,					epoch_control, {std::to_string(i++) + "# sleep_milliseconds"	}, "(float) Time to sleep before checking for new data - lower numbers are associated with high idle cpu usage");
 				trySetFromYaml(wait_next_epoch,						epoch_control, {std::to_string(i++) + "@ wait_next_epoch"		}, "(float) Time to wait for next epochs data before skipping the epoch (will default to epoch_interval as an appropriate minimum value for realtime)");
 				trySetFromYaml(wait_all_stations,					epoch_control, {std::to_string(i++) + "@ wait_all_stations"		}, "(float) Time to wait from the reception of the first data of an epoch before skipping stations with data still unreceived");
 				trySetFromYaml(require_obs,							epoch_control, {std::to_string(i++) + "@ require_obs"			}, "(bool) Exit the program if no observation sources are available");
@@ -2883,7 +3009,6 @@ bool ACSConfig::parse(
 					trySetFromYaml(ionoOpts.common_ionosphere,				ionospheric_component, {"! common_ionosphere"				}, "(bool) Use the same ionosphere state for code and phase observations");
 					trySetFromYaml(ionoOpts.use_if_combo,					ionospheric_component, {"! use_if_combo"					}, "(bool) Combine 'uncombined' measurements to simulate an ionosphere-free solution");
 					trySetFromYaml(ionoOpts.use_gf_combo,					ionospheric_component, {"! use_gf_combo"					}, "(bool) Combine 'uncombined' measurements to simulate a geometry-free solution");
-					trySetFromYaml(ionoOpts.auto_select_default_code,		ionospheric_component, {"@ automatic_def_codes"				}, "(bool) Automatically detect/select default GNSS codes to estimate the Ionosphere");
 				}
 
 				{
@@ -2901,13 +3026,14 @@ bool ACSConfig::parse(
 				{
 					auto ionospheric_model = stringsToYamlObject(gnss_modelling, {"@ ionospheric_model"}, "Coherent ionosphere models can improve estimation of biases and allow use with single frequency receivers");
 
-					trySetFromYaml(process_ionosphere,				ionospheric_model, {"0@ enable"				}, "(bool) Compute ionosphere maps from a network of stations");
+					trySetFromYaml(model.ionospheric_model,			ionospheric_model, {"0@ enable"				}, "(bool) Compute ionosphere maps from a network of stations");
 					trySetEnumOpt( ionModelOpts.model, 				ionospheric_model, {"@ model" 				}, E_IonoModel::_from_string_nocase);
 					trySetFromYaml(ionModelOpts.function_order,		ionospheric_model, {"@ function_order"		}, "Maximum order  of Spherical harmonics for Ionospheric mapping");
 					trySetFromYaml(ionModelOpts.function_degree,	ionospheric_model, {"@ function_degree"		}, "Maximum degree of Spherical harmonics for Ionospheric mapping");
 					trySetFromYaml(ionModelOpts.estimate_sat_dcb,	ionospheric_model, {"@ estimate_sat_dcb"	}, "(bool) Estimate satellite dcb alongside Ionosphere models, should be false for local STEC");
 					trySetFromYaml(ionModelOpts.use_rotation_mtx,	ionospheric_model, {"@ use_rotation_mtx"	}, "(bool) Use 3D rotation matrix for spherical harmonics to maintain orientation toward the sun");
-
+					trySetFromYaml(ionModelOpts.basis_sigma_limit,	ionospheric_model, {"@ model_sigma_limit"	}, "(float) Ionosphere states are removed when their sigma exceeds this value");
+					
 					bool found = trySetFromYaml(ionModelOpts.layer_heights,		ionospheric_model, {"@ layer_heights"			}, "[floats] List of heights of ionosphere layers to estimate");
 					if (found)
 					for (auto& a : ionModelOpts.layer_heights)
@@ -2925,6 +3051,11 @@ bool ACSConfig::parse(
 				auto orbits = stringsToYamlObject(gnss_modelling, {"@ orbits"}, "Legacy orbital adjustment estimation code, largely deprecated");
 				{
 					trySetFromYaml(model.orbits,			orbits,			{"0@ enable" 		});
+				}
+
+				auto eop = stringsToYamlObject(gnss_modelling, {"@ eop"}, "Earth orientation parameters");
+				{
+					trySetFromYaml(model.eop,				eop,			{"0@ enable" 		});
 				}
 
 				trySetFromYaml(model.phase_windup,						gnss_modelling, {"@ phase_windup",		"enable"	}, "(bool) Model phase windup due to relative rotation of circularly polarised antennas");
@@ -2945,10 +3076,11 @@ bool ACSConfig::parse(
 				{
 					auto orbit_errors = stringsToYamlObject(model_error_checking, {"@ orbit_errors"}, "Orbital states that are not consistent with measurements may be reinitialised to allow for dynamic maneuvers");
 
-					trySetFromYaml(orbit_pos_proc_noise,			orbit_errors,	{"@ orbit_pos_proc_noise"			}, "(float) Sigma to apply to orbital position states as reinitialisation");
-					trySetFromYaml(orbit_vel_proc_noise,			orbit_errors,	{"@ orbit_vel_proc_noise"			}, "(float) Sigma to apply to orbital velocity states as reinitialisation");
-					trySetFromYaml(orbit_vel_proc_noise_trail,		orbit_errors,	{"@ orbit_vel_proc_noise_trail"		}, "(float) Initial sigma for exponentially decaying noise to apply for subsequent epochs as soft reinitialisation");
-					trySetFromYaml(orbit_vel_proc_noise_trail_tau,	orbit_errors,	{"@ orbit_vel_proc_noise_trail_tau"	}, "(float) Time constant for exponentially decauing noise");
+					trySetFromYaml(enable_orbit_proc_noise_impulses,	orbit_errors,	{"@ enable"							}, "(bool) Enable applying process noise impulses to orbits upon state errors");
+					trySetFromYaml(orbit_pos_proc_noise,				orbit_errors,	{"@ orbit_pos_proc_noise"			}, "(float) Sigma to apply to orbital position states as reinitialisation");
+					trySetFromYaml(orbit_vel_proc_noise,				orbit_errors,	{"@ orbit_vel_proc_noise"			}, "(float) Sigma to apply to orbital velocity states as reinitialisation");
+					trySetFromYaml(orbit_vel_proc_noise_trail,			orbit_errors,	{"@ orbit_vel_proc_noise_trail"		}, "(float) Initial sigma for exponentially decaying noise to apply for subsequent epochs as soft reinitialisation");
+					trySetFromYaml(orbit_vel_proc_noise_trail_tau,		orbit_errors,	{"@ orbit_vel_proc_noise_trail_tau"	}, "(float) Time constant for exponentially decauing noise");
 				}
 
 				{
@@ -2987,8 +3119,6 @@ bool ACSConfig::parse(
 			{
 				auto process_modes = stringsToYamlObject(processing_options, {"1 process_modes"}, "Aspects of the processing flow may be enabled and disabled according to desired type of solutions");
 			
-				trySetFromYaml(process_user,				process_modes, {"@ user"			}, "(bool) Compute position/clock/atmosphere at autonomous receiver location using UD/IF PPP");
-				trySetFromYaml(process_network,				process_modes, {"@ network"			}, "(bool) Compute GNSS corrections using UD/IF PPP on a CORS network");
 				trySetFromYaml(process_ionosphere,			process_modes, {"@ ionosphere"		}, "(bool) Compute Ionosphere models based on GNSS measurements");
 				trySetFromYaml(process_preprocessor,		process_modes, {"! preprocessor"	}, "(bool) Preprocessing and quality checks");
 				trySetFromYaml(process_spp,					process_modes, {"@ spp"				}, "(bool) Perform SPP on station data");
@@ -3018,7 +3148,12 @@ bool ACSConfig::parse(
 				trySetEnumOpt( minCOpts.chi_square_mode,		minimum_constraints,	{"@ outlier_screening", "@ chi_square_mode"		}, E_ChiSqMode::_from_string_nocase,	"(enum)  Chi-square test mode - innovation, measurement, state");
 				trySetFromYaml(minCOpts.sigma_threshold,		minimum_constraints,	{"@ outlier_screening", "@ sigma_threshold"		},										"(float) sigma threshold");
 			}
-
+			
+			auto preprocessor_options = stringsToYamlObject(processing_options, {"! preprocessor_options"}, "Configurations for the kalman filter and its sub processes");
+			{
+				trySetFromYaml(preprocess_all_data,			preprocessor_options,	{"preprocess_all_data"							});
+			}
+			
 			auto filter_options = stringsToYamlObject(processing_options, {"! filter_options"}, "Configurations for the kalman filter and its sub processes");
 			{
 				trySetFromYaml(joseph_stabilisation,			filter_options,	{"joseph_stabilisation"							});
@@ -3049,6 +3184,16 @@ bool ACSConfig::parse(
 				trySetFromYaml(pppOpts.output_intermediate_rts,	rts,				{"output_intermediates"		}, "(bool) Output best available smoothed states when performing fixed-lag rts (slow, use only when needed)");
 			}
 
+			auto spp_options = stringsToYamlObject(processing_options, {"! spp_options"}, "Configurations for the kalman filter and its sub processes");
+			{
+				trySetFromYaml(sppOpts.max_lsq_iterations,		spp_options,		{"! max_lsq_iterations"		},	"(int) Maximum number of iterations of least squares allowed for convergence");
+				trySetFromYaml(sppOpts.always_reinitialize,		spp_options,		{"! always_reinitialize"	},	"(bool) Reset SPP state to zero to avoid potential for lock-in of bad states");
+				
+				auto outlier_screening = stringsToYamlObject(filter_options, {"! outlier_screening"}, "Statistical checks allow for detection of outliers that exceed their confidence intervals.");
+				trySetFromYaml(sppOpts.sigma_check,				outlier_screening,	{"@ sigma_check"			},										"(bool)  Enable sigma check on residuals after convergence");
+				trySetFromYaml(sppOpts.sigma_threshold,			outlier_screening,	{"@ sigma_threshold"		},										"(float) sigma threshold");
+				trySetFromYaml(sppOpts.max_removals,			outlier_screening,	{"@ max_removals"			}, 										"(int) Maximum number of measurements to exclude");
+			}
 		}
 
 
@@ -3063,10 +3208,11 @@ bool ACSConfig::parse(
 			trySetFromYaml(orbitPropagation.general_relativity,			orbit_propagation, {"@ general_relativity"			}, "(bool) Model acceleration due general relativisty");
 			trySetFromYaml(orbitPropagation.pole_tide_ocean,			orbit_propagation, {"@ pole_tide_ocean"				}, "(bool) Model accelerations due to ocean pole tide (degree 2 only)");
 			trySetFromYaml(orbitPropagation.pole_tide_solid,			orbit_propagation, {"@ pole_tide_solid"				}, "(bool) Model accelerations due to solid pole tide (degree 2 only)");
-			trySetFromYaml(orbitPropagation.solar_pressure_radiation, 	orbit_propagation, {"@ solar_pressure_radiation"	}, "(bool) Model accelerations due to solar radiation pressure (Cannonball model)");
-			trySetFromYaml(orbitPropagation.empirical_dyb,				orbit_propagation, {"@ empirical_dyb"				}, "(bool) Model accelerations due to empirical accelerations along the D, Y, and B axis");
+			trySetFromYaml(orbitPropagation.solar_radiation_pressure, 	orbit_propagation, {"@ solar_radiation_pressure"	}, "(bool) Model accelerations due to solar radiation pressure (Cannonball model)");
+			trySetFromYaml(orbitPropagation.empirical,					orbit_propagation, {"@ empirical"					}, "(bool) Model accelerations due to empirical accelerations");
 			trySetFromYaml(orbitPropagation.antenna_thrust,				orbit_propagation, {"@ antenna_thrust"				}, "(bool) Model accelerations due to the emitted signal from the antenna");
 			trySetFromYaml(orbitPropagation.albedo, 					orbit_propagation, {"@ albedo"						}, "(bool) Model accelerations due to the albedo effect from Earth (Visible and Infra-red)");
+
 			trySetFromYaml(orbitPropagation.sat_mass,					orbit_propagation, {"@ sat_mass"					}, "(float) Satellite mass for use if not specified in the SINEX metadata file");
 			trySetFromYaml(orbitPropagation.sat_area, 					orbit_propagation, {"@ sat_area"					}, "(float) Satellite area for use in solar radiation and albedo calculations");
 			trySetFromYaml(orbitPropagation.sat_power, 					orbit_propagation, {"@ sat_power"					}, "(float) Transmission power use if not specified in the SINEX metadata file");
@@ -3074,16 +3220,14 @@ bool ACSConfig::parse(
 			trySetFromYaml(orbitPropagation.degree_max,					orbit_propagation, {"@ degree_max"					}, "(int) Maximum degree of spherical harmonics model");
 			trySetFromYaml(orbitPropagation.itrf_pseudoobs,				orbit_propagation, {"@ itrf_pseudoobs"				}, "(bool) Pseudo observations are provided in ITRF frame rather than standard ECEF SP3 files");
 			trySetFromYaml(orbitPropagation.integrator_time_step,		orbit_propagation, {"@ integrator_time_step"		}, "(float) Timestep for the integrator, must be smaller than the processing time step, might be adjusted if the processing time step isn't a integer number of time steps");
+
+			trySetFromYaml(orbitPropagation.empirical_dyb_eclipse,		orbit_propagation, {"@ empirical_dyb_eclipse"		}, "[bool] turn on/off the eclipse on each axis (D, Y, B)");
+			trySetFromYaml(orbitPropagation.empirical_rtn_eclipse,		orbit_propagation, {"@ empirical_rtn_eclipse"		}, "[bool] turn on/off the eclipse on each axis (R, T, N)");
+	
 		}
 					
-                                                      
+									
 // 		trySetFromYaml(split_sys,				outputs, { "split_sys"		});
-                                                      
-// 		trySetFromAny (output_persistance,		commandOpts, 	output_files, {"output_persistance"		});
-// 		trySetFromAny (input_persistance,		commandOpts,	output_files, {"input_persistance"		});
-// 		trySetFromYaml(persistance_directory,					output_files, {"persistance_directory"	});
-// 		trySetFromYaml(persistance_filename,					output_files, {"persistance_filename"	});
-
 
 		{
 			auto ambres_options = stringsToYamlObject(processing_options, {"@ ambiguity_resolution"});
@@ -3091,20 +3235,13 @@ bool ACSConfig::parse(
 			trySetFromYaml(ambrOpts.min_el_AR,			ambres_options, {"@ elevation_mask"				}, "Minimum satellite elevation to perform ambiguity resolution");
 			trySetFromYaml(ambrOpts.lambda_set,			ambres_options, {"@ lambda_set_size"			}, "Maximum numer of candidate sets to be used in lambda_alt2 and lambda_bie modes");
 			trySetFromYaml(ambrOpts.AR_max_itr,			ambres_options, {"@ max_rounding_iterations"	}, "Maximum number of rounding iterations performed in iter_rnd and bootst modes");
-			trySetFromYaml(ambrOpts.Max_Hold_epoc,		ambres_options, {"@ max_hold_epochs"			}, "Maximun number of epocs to hold ambiguities");
-			trySetFromYaml(ambrOpts.Max_Hold_time,		ambres_options, {"@ max_hold_time"				}, "Maximun amount of time (sec) to hold ambiguities");
-			
-			trySetEnumOpt( ambrOpts.WLmode,				ambres_options,	{"@ wide_lane", "@ mode" 						}, E_ARmode::_from_string_nocase);
-			trySetFromYaml(ambrOpts.WLsuccsThres,		ambres_options, {"@ wide_lane", "@ success_rate_threshold"		}, "Thresold for integer validation, success rate test. Used for Wide-lane ambiguities");
-			trySetFromYaml(ambrOpts.WLratioThres,		ambres_options,	{"@ wide_lane", "@ solution_ratio_threshold"	}, "Thresold for integer validation, distance ratio test. Used for Wide-lane ambiguities");
-			trySetFromYaml(ambrOpts.WLSatPrcNois,		ambres_options,	{"@ wide_lane", "@ process_noise_sat"			}, "WL bias process noise for satellite");
-			trySetFromYaml(ambrOpts.WLRecPrcNois,		ambres_options,	{"@ wide_lane", "@ process_noise_rec"			}, "WL bias process noise for receivers");
-			trySetFromYaml(ambrOpts.WL_filter_iter,		ambres_options, {"@ wide_lane", "@ filter_max_iterations"		}, "Same function as max_filter_iter, only used in Kalman filter to estimate Wide-lane bias/ambiguities");
-			trySetFromYaml(ambrOpts.WL_prefit_remv,		ambres_options, {"@ wide_lane", "@ filter_max_removals"			}, "Same function as max_prefit_removals, only used in Kalman filter to estimate Wide-lane bias/ambiguities");
 
 			trySetEnumOpt( ambrOpts.mode,				ambres_options,	{"@ mode" 						}, E_ARmode::_from_string_nocase);
 			trySetFromYaml(ambrOpts.succsThres,			ambres_options, {"@ success_rate_threshold"		}, "Thresold for integer validation, success rate test.");
 			trySetFromYaml(ambrOpts.ratioThres,			ambres_options, {"@ solution_ratio_threshold"	}, "Thresold for integer validation, distance ratio test.");
+			
+			trySetFromYaml(ambrOpts.once_per_epoch,		ambres_options,	{"@ once_per_epoch"				},	"(bool) Perform ambiguity resolution on a temporary filter and output results once per epoch");
+			trySetFromYaml(ambrOpts.fix_and_hold,		ambres_options,	{"@ fix_and_hold"				},	"(bool) Perform ambiguity resolution and commit results to the main processing filter");
 		}
 
 		{
@@ -3120,6 +3257,23 @@ bool ACSConfig::parse(
 			trySetFromYaml(ssrOpts.prediction_interval,		ssr_corrections, {"@ prediction_interval"		});
 			trySetFromYaml(ssrOpts.prediction_duration,		ssr_corrections, {"@ prediction_duration"		});
 			trySetFromYaml(ssrOpts.extrapolate_corrections,	ssr_corrections, {"@ extrapolate_corrections"	}, "(bool) ");
+		
+			{
+				auto atmosphere = stringsToYamlObject(ssr_corrections, {"! atmpospheric"}, docs["atmpospheric"]);
+
+				trySetFromYaml (ssrOpts.region_id, 			atmosphere, {"@ region_id" 				}, "Region ID for atmospheric corrections");
+				trySetFromYaml (ssrOpts.npoly_trop, 		atmosphere, {"@ npoly_trop" 			}, "Number of polynomial coefficient for SSR trop corrections");
+				trySetFromYaml (ssrOpts.npoly_iono, 		atmosphere, {"@ npoly_iono" 			}, "Number of polynomial coefficient for SSR STEC corrections");
+				trySetFromYaml (ssrOpts.grid_type, 			atmosphere, {"@ grid_type" 				}, "Grid type for gridded atmospheric corrections");
+				trySetFromYaml (ssrOpts.use_grid_iono, 		atmosphere, {"@ use_grid_iono" 			}, "Grid type for gridded atmospheric corrections");
+				trySetFromYaml (ssrOpts.use_grid_trop, 		atmosphere, {"@ use_grid_trop" 			}, "Grid type for gridded atmospheric corrections");
+				trySetFromYaml (ssrOpts.max_lat, 			atmosphere, {"@ max_lat" 				}, "Number of basis for SSR trop corrections");
+				trySetFromYaml (ssrOpts.min_lat, 			atmosphere, {"@ min_lat" 				}, "Number of basis for SSR trop corrections");
+				trySetFromYaml (ssrOpts.int_lat, 			atmosphere, {"@ int_lat" 				}, "Number of basis for SSR trop corrections");
+				trySetFromYaml (ssrOpts.max_lon, 			atmosphere, {"@ max_lon" 				}, "Number of basis for SSR trop corrections");
+				trySetFromYaml (ssrOpts.min_lon, 			atmosphere, {"@ min_lon" 				}, "Number of basis for SSR trop corrections");
+				trySetFromYaml (ssrOpts.int_lon, 			atmosphere, {"@ int_lon" 				}, "Number of basis for SSR trop corrections");
+			}
 		}
 
 		{
@@ -3161,6 +3315,7 @@ bool ACSConfig::parse(
 			trySetFromYaml(localMongo.database,						mongo, {"@ database"				}, "(string) ");
 			trySetFromYaml(localMongo.uri,							mongo, {"@ uri"						}, "(string) Location and port of the mongo database to connect to");
 			
+			trySetScaledFromYaml(localMongo.prediction_offset,				mongo, {"@ prediction_offset"			},	{"@ interval_units"	},	E_Period::_from_string_nocase);
 			trySetScaledFromYaml(localMongo.prediction_interval,			mongo, {"@ prediction_interval"			},	{"@ interval_units"	},	E_Period::_from_string_nocase);
 			trySetScaledFromYaml(localMongo.forward_prediction_duration,	mongo, {"@ forward_prediction_duration"	},	{"@ duration_units"	},	E_Period::_from_string_nocase);
 			trySetScaledFromYaml(localMongo.reverse_prediction_duration,	mongo, {"@ reverse_prediction_duration"	},	{"@ duration_units"	},	E_Period::_from_string_nocase);
@@ -3186,6 +3341,7 @@ bool ACSConfig::parse(
 			trySetFromYaml(remoteMongo.database,					mongo, {"@ database"					}, "(string) ");
 			trySetFromYaml(remoteMongo.uri,							mongo, {"@ uri"							}, "(string) Location and port of the mongo database to connect to");
 		
+			trySetScaledFromYaml(remoteMongo.prediction_offset,				mongo, {"@ prediction_offset"			},	{"@ interval_units"	},	E_Period::_from_string_nocase);
 			trySetScaledFromYaml(remoteMongo.prediction_interval,			mongo, {"@ prediction_interval"			},	{"@ interval_units"	},	E_Period::_from_string_nocase);
 			trySetScaledFromYaml(remoteMongo.forward_prediction_duration,	mongo, {"@ forward_prediction_duration"	},	{"@ duration_units"	},	E_Period::_from_string_nocase);
 			trySetScaledFromYaml(remoteMongo.reverse_prediction_duration,	mongo, {"@ reverse_prediction_duration"	},	{"@ duration_units"	},	E_Period::_from_string_nocase);
@@ -3194,120 +3350,84 @@ bool ACSConfig::parse(
 		{
 			auto debug = stringsToYamlObject({yaml, ""}, {"9 debug"}, "Debug options are designed for developers and should probably not be used by normal users");
 
-			trySetFromYaml(check_plumbing,			debug, {"check_plumbing"		}, "(bool) Debugging option to show sizes of objects in memory to detect leaks");
-			trySetFromYaml(explain_measurements,	debug, {"explain_measurements"	}, "(bool) Debugging option to show verbose measurement coefficients");
-			trySetFromYaml(retain_rts_files,		debug, {"retain_rts_files"		}, "(bool) Debugging option to keep rts files for post processing");
-			trySetFromYaml(rts_only,				debug, {"rts_only"				}, "(bool) Debugging option to only re-run rts from previous run");
-			trySetFromYaml(mincon_only,				debug, {"mincon_only"			}, "(bool) Debugging option to only save and re-run minimum constraints code");
-			trySetFromYaml(pseudo_pulses,			debug, {"pseudo_pulses"			}, "(bool) Debugging option to add this many bad measurements per day to force pseudo stochastic pulses in orbit estimates");
-
-			auto unit_tests = stringsToYamlObject(debug, {"unit_tests"}, "A unit-testing framework to ensure values are consistent between execution runs");
-			{
-				trySetFromYaml(testOpts.enable,			unit_tests, {"enable"			}, "(bool) Perform unit tests while processing");
-
-				trySetFromYaml(testOpts.output_pass,	unit_tests, {"output_pass"		}, "(bool) Output messages even when tests pass");
-				trySetFromYaml(testOpts.stop_on_fail,	unit_tests, {"stop_on_fail"		}, "(bool) Stop processing at point of first failure");
-				trySetFromYaml(testOpts.stop_on_done,	unit_tests, {"stop_on_done"		}, "(bool) Stop processing once all tests have completed");
-				trySetFromYaml(testOpts.output_errors,	unit_tests, {"output_errors"	}, "(bool) Output detailed comparisons for test errors");
-				trySetFromYaml(testOpts.absorb_errors,	unit_tests, {"absorb_errors"	}, "(bool) Use stored correct value when tests fail so that processing can continue as if the test had passed");
-
-				trySetFromYaml(test_directory,			unit_tests, {"directory"		});
-				trySetFromYaml(test_filename,			unit_tests, {"filename"			});
-			}
+			trySetFromYaml(instrument,					debug, {"instrument"				}, "(bool) Debugging option to show run times of functions");
+			trySetFromYaml(instrument_once_per_epoch,	debug, {"instrument_once_per_epoch"	}, "(bool) Debugging option to show run times of functions every epoch");
+			trySetFromYaml(check_plumbing,				debug, {"check_plumbing"			}, "(bool) Debugging option to show sizes of objects in memory to detect leaks");
+			trySetFromYaml(explain_measurements,		debug, {"explain_measurements"		}, "(bool) Debugging option to show verbose measurement coefficients");
+			trySetFromYaml(retain_rts_files,			debug, {"retain_rts_files"			}, "(bool) Debugging option to keep rts files for post processing");
+			trySetFromYaml(rts_only,					debug, {"rts_only"					}, "(bool) Debugging option to only re-run rts from previous run");
+			trySetFromYaml(mincon_only,					debug, {"mincon_only"				}, "(bool) Debugging option to only save and re-run minimum constraints code");
+			trySetFromYaml(pseudo_pulses,				debug, {"pseudo_pulses"				}, "(bool) Debugging option to add this many bad measurements per day to force pseudo stochastic pulses in orbit estimates");
 		}
 	}
 	
-	tryAddRootToPath(root_input_directory, vmf_files);				globber(vmf_files);
-	tryAddRootToPath(root_input_directory, atx_files);				globber(atx_files);
-	tryAddRootToPath(root_input_directory, snx_files);				globber(snx_files);
-	tryAddRootToPath(root_input_directory, blq_files);				globber(blq_files);
-	tryAddRootToPath(root_input_directory, erp_files);				globber(erp_files);
-	tryAddRootToPath(root_input_directory, ion_files);				globber(ion_files);
-	tryAddRootToPath(root_input_directory, nav_files);				globber(nav_files);
-	tryAddRootToPath(root_input_directory, sp3_files);				globber(sp3_files);
-	tryAddRootToPath(root_input_directory, dcb_files);				globber(dcb_files);
-	tryAddRootToPath(root_input_directory, bsx_files);				globber(bsx_files);
-	tryAddRootToPath(root_input_directory, igrf_files);				globber(igrf_files);
-	tryAddRootToPath(root_input_directory, clk_files);				globber(clk_files);
-	tryAddRootToPath(root_input_directory, obx_files);				globber(obx_files);
-	tryAddRootToPath(root_input_directory, orb_files);				globber(orb_files);
-	tryAddRootToPath(root_input_directory, sid_files);				globber(sid_files);
-	tryAddRootToPath(root_input_directory, com_files);				globber(com_files);
-	tryAddRootToPath(root_input_directory, crd_files);				globber(crd_files);
-	tryAddRootToPath(root_input_directory, egm_files);				globber(egm_files);
-	tryAddRootToPath(root_input_directory, jpl_files);				globber(jpl_files);
-	tryAddRootToPath(root_input_directory, tide_files);				globber(tide_files);
-
-																	globber(rnx_inputs);
-																	globber(ubx_inputs);
-																	globber(obs_rtcm_inputs);
-																	globber(nav_rtcm_inputs);
-																	globber(pseudo_sp3_inputs);
-																	globber(pseudo_snx_inputs);
-
-	tryAddRootToPath(root_input_directory, model.trop.orography);
-	tryAddRootToPath(root_input_directory, model.trop.gpt2grid);
-	
-	string revert_trace		= trace_directory;
-	string revert_sp3		= sp3_directory;
-	
-	tryPatchPaths(root_output_directory,	sp3_directory,							sp3_filename);			sp3_directory = revert_sp3;
-	tryPatchPaths(root_output_directory,	erp_directory,							erp_filename);
-	tryPatchPaths(root_output_directory,	gpx_directory,							gpx_filename);
-	tryPatchPaths(root_output_directory,	log_directory,							log_filename);
-	tryPatchPaths(root_output_directory,	cost_directory,							cost_filename);
-	tryPatchPaths(root_output_directory,	test_directory,							test_filename);
-	tryPatchPaths(root_output_directory,	sinex_directory,						sinex_filename);
-	tryPatchPaths(root_output_directory,	ionex_directory,						ionex_filename);
-	tryPatchPaths(root_output_directory,	orbex_directory,						orbex_filename);
-	tryPatchPaths(root_output_directory,	clocks_directory,						clocks_filename);
-	tryPatchPaths(root_output_directory,	slr_obs_directory,						slr_obs_filename);
-	tryPatchPaths(root_output_directory,	ionstec_directory,						ionstec_filename);
-	tryPatchPaths(root_output_directory,	ppp_sol_directory,						ppp_sol_filename);
-	tryPatchPaths(root_output_directory,	raw_ubx_directory,						raw_ubx_filename);
-	tryPatchPaths(root_output_directory,	rtcm_nav_directory,						rtcm_nav_filename);
-	tryPatchPaths(root_output_directory,	rtcm_obs_directory,						rtcm_obs_filename);
-	tryPatchPaths(root_output_directory,	orbit_ics_directory,					orbit_ics_filename);
-	tryPatchPaths(root_output_directory,	ntrip_log_directory,					ntrip_log_filename);
-	tryPatchPaths(root_output_directory,	rinex_obs_directory,					rinex_obs_filename);
-	tryPatchPaths(root_output_directory,	rinex_nav_directory,					rinex_nav_filename);
-	tryPatchPaths(root_output_directory,	sp3_directory,							predicted_sp3_filename);
-	tryPatchPaths(root_output_directory,	bias_sinex_directory,					bias_sinex_filename);
-	tryPatchPaths(root_output_directory,	trop_sinex_directory,					trop_sinex_filename);
-	tryPatchPaths(root_output_directory,	persistance_directory,					persistance_filename);
-	tryPatchPaths(root_output_directory,	pppOpts.rts_directory,					pppOpts.rts_filename);
-	tryPatchPaths(root_output_directory,	trace_directory,						satellite_trace_filename);	trace_directory = revert_trace;
-	tryPatchPaths(root_output_directory,	trace_directory,						station_trace_filename);	trace_directory = revert_trace;
-	tryPatchPaths(root_output_directory,	trace_directory,						network_trace_filename);
-	tryPatchPaths(root_output_directory,	decoded_rtcm_json_directory,			decoded_rtcm_json_filename);
-	tryPatchPaths(root_output_directory,	encoded_rtcm_json_directory,			encoded_rtcm_json_filename);
-	tryPatchPaths(root_output_directory,	network_statistics_json_directory,		network_statistics_json_filename);
-	
 	//Try to change all filenames to replace <YYYY> etc with other values.
-	replaceTags(nav_files);
-	replaceTags(orb_files);
-	replaceTags(sp3_files);
-	replaceTags(clk_files);
-	replaceTags(obx_files);
-	replaceTags(atx_files);
-	replaceTags(snx_files);
-	replaceTags(blq_files);
-	replaceTags(erp_files);
-	replaceTags(dcb_files);
-	replaceTags(bsx_files);
-	replaceTags(ion_files);
-	replaceTags(egm_files);
-	replaceTags(sid_files);
-	replaceTags(com_files);
-	replaceTags(crd_files);
-	replaceTags(jpl_files);
+	replaceTags(gnss_obs_root);
+	replaceTags(pseudo_obs_root);
+	replaceTags(sat_data_root);
 	
-	replaceTags(rnx_inputs);
-	replaceTags(ubx_inputs);
-	replaceTags(obs_rtcm_inputs);
-	replaceTags(nav_rtcm_inputs);
-	replaceTags(pseudo_sp3_inputs);
-	replaceTags(pseudo_snx_inputs);
+	replaceTags(vmf_files);				globber(vmf_files);
+	replaceTags(atx_files);				globber(atx_files);
+	replaceTags(snx_files);				globber(snx_files);
+	replaceTags(blq_files);				globber(blq_files);
+	replaceTags(erp_files);				globber(erp_files);
+	replaceTags(ion_files);				globber(ion_files);
+	replaceTags(nav_files);				globber(nav_files);
+	replaceTags(sp3_files);				globber(sp3_files);
+	replaceTags(dcb_files);				globber(dcb_files);
+	replaceTags(bsx_files);				globber(bsx_files);
+	replaceTags(igrf_files);			globber(igrf_files);
+	replaceTags(clk_files);				globber(clk_files);
+	replaceTags(obx_files);				globber(obx_files);
+	replaceTags(sid_files);				globber(sid_files);
+	replaceTags(com_files);				globber(com_files);
+	replaceTags(crd_files);				globber(crd_files);
+	replaceTags(egm_files);				globber(egm_files);
+	replaceTags(jpl_files);				globber(jpl_files);
+	replaceTags(tide_files);			globber(tide_files);
+    replaceTags(cmc_files);				globber(cmc_files);
+    replaceTags(hfeop_files);			globber(hfeop_files);
+
+	replaceTags(rnx_inputs);			globber(rnx_inputs);
+	replaceTags(ubx_inputs);			globber(ubx_inputs);                                                         	
+	replaceTags(obs_rtcm_inputs);		globber(obs_rtcm_inputs);
+	replaceTags(pseudo_sp3_inputs);		globber(pseudo_sp3_inputs);
+	replaceTags(pseudo_snx_inputs);		globber(pseudo_snx_inputs);
+	replaceTags(nav_rtcm_inputs);		globber(nav_rtcm_inputs);
+
+	replaceTags(model.trop.orography);
+	replaceTags(model.trop.gpt2grid);
+	
+	replaceTags(sp3_directory);							replaceTags(sp3_filename,						sp3_directory);						
+	replaceTags(erp_directory);							replaceTags(erp_filename,						erp_directory);						
+	replaceTags(gpx_directory);							replaceTags(gpx_filename,						gpx_directory);						
+	replaceTags(log_directory);							replaceTags(log_filename,						log_directory);						
+	replaceTags(cost_directory);						replaceTags(cost_filename,						cost_directory);					
+	replaceTags(sinex_directory);						replaceTags(sinex_filename,						sinex_directory);					
+	replaceTags(ionex_directory);						replaceTags(ionex_filename,						ionex_directory);					
+	replaceTags(orbex_directory);						replaceTags(orbex_filename,						orbex_directory);					
+	replaceTags(clocks_directory);						replaceTags(clocks_filename,					clocks_directory);					
+	replaceTags(slr_obs_directory);						replaceTags(slr_obs_filename,					slr_obs_directory);					
+	replaceTags(ionstec_directory);						replaceTags(ionstec_filename,					ionstec_directory);					
+	replaceTags(ppp_sol_directory);						replaceTags(ppp_sol_filename,					ppp_sol_directory);					
+	replaceTags(raw_ubx_directory);						replaceTags(raw_ubx_filename,					raw_ubx_directory);					
+	replaceTags(rtcm_nav_directory);					replaceTags(rtcm_nav_filename,					rtcm_nav_directory);				
+	replaceTags(rtcm_obs_directory);					replaceTags(rtcm_obs_filename,					rtcm_obs_directory);			
+	replaceTags(orbit_ics_directory);					replaceTags(orbit_ics_filename,					orbit_ics_directory);				
+	replaceTags(ntrip_log_directory);					replaceTags(ntrip_log_filename,					ntrip_log_directory);				
+	replaceTags(rinex_obs_directory);					replaceTags(rinex_obs_filename,					rinex_obs_directory);				
+	replaceTags(rinex_nav_directory);					replaceTags(rinex_nav_filename,					rinex_nav_directory);				
+	replaceTags(sp3_directory);							replaceTags(predicted_sp3_filename,				sp3_directory);						
+	replaceTags(bias_sinex_directory);					replaceTags(bias_sinex_filename,				bias_sinex_directory);				
+	replaceTags(trop_sinex_directory);					replaceTags(trop_sinex_filename,				trop_sinex_directory);				
+	replaceTags(pppOpts.rts_directory);					replaceTags(pppOpts.rts_filename,				pppOpts.rts_directory);				
+	replaceTags(trace_directory);						replaceTags(satellite_trace_filename,			trace_directory);					
+	replaceTags(trace_directory);						replaceTags(station_trace_filename,				trace_directory);					
+	replaceTags(trace_directory);						replaceTags(network_trace_filename,				trace_directory);					
+	replaceTags(decoded_rtcm_json_directory);			replaceTags(decoded_rtcm_json_filename,			decoded_rtcm_json_directory);		
+	replaceTags(encoded_rtcm_json_directory);			replaceTags(encoded_rtcm_json_filename,			encoded_rtcm_json_directory);		
+	replaceTags(network_statistics_json_directory);		replaceTags(network_statistics_json_filename,	network_statistics_json_directory);	
+
 	
 	replaceTags(localMongo.suffix);
 	replaceTags(localMongo.database);
@@ -3319,16 +3439,6 @@ bool ACSConfig::parse(
 	getSatOpts(dummySat, {"L1W"});
 	getRecOpts("global");
 	getRecOpts("XMPL");
-	
-	
-#	ifndef ENABLE_UNIT_TESTS
-	if (testOpts.enable)
-	{
-		std::cout << std::endl << "Error: Tests requested by config but this is a non-test binary."				<< std::endl;
-		std::cout << std::endl << "Tests can be enabled by building with $ cmake -DENABLE_UNIT_TESTS=ON .."		<< std::endl;
-		exit(1);
-	}
-#	endif
 
 	for (auto& yaml : yamls)
 	{

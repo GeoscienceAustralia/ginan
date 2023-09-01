@@ -56,18 +56,23 @@ void tracepdeex(int level, Trace& stream, string const& fmt, Arguments&&... args
 
 template<typename T>
 std::ofstream getTraceFile(
-	T& thing)
+	T&		thing,
+	bool	json = false)
 {
-	if (thing.traceFilename.empty())
+	string traceFilename;
+	if (json)		traceFilename = thing.jsonTraceFilename;
+	else 			traceFilename = thing.traceFilename;
+	
+	if (traceFilename.empty())
 	{
 		return std::ofstream();
 	}
 
-	std::ofstream trace(thing.traceFilename, std::ios::app);
+	std::ofstream trace(traceFilename, std::ios::app);
 	if (!trace)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error: Could not open trace file for " << thing.id << " at " << thing.traceFilename;
+		<< "Error: Could not open trace file for " << thing.id << " at " << traceFilename;
 	}
 
 	return trace;

@@ -2,6 +2,8 @@
 
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
+#include "navigation.hpp"
+#include "tropModels.hpp"
 #include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "station.hpp"
@@ -45,7 +47,7 @@ void writeTropHeader(
 				theSinex.solution_end_date[0],
 				theSinex.solution_end_date[1],
 				theSinex.solution_end_date[2],
-				theSinex.ObsCode,
+				theSinex.obsCode,
 				theSinex.markerName);
 }
 
@@ -467,10 +469,10 @@ void setTropSolFromFilter(
 				VectorEcef ecef = Vector3d(	coords[0],
 											coords[1],
 											coords[2]);	//todo aaron, why are these all arrays?
+				
 				VectorPos pos = ecef2pos(ecef);
 				
-				double azel[2] = {0,1}; // not used in zhd calc, but tropacs has el>0 requirement
-				double modelledZhd = tropacs(pos, azel);
+				double modelledZhd = tropDryZTD(acsConfig.model.trop.model, kfState.time, pos);
 				
 				entry.x	-= modelledZhd;
 			}
@@ -621,6 +623,8 @@ void outputTropSinex(
 									acsConfig.analysis_program_version,
 									true);
 
+	KFState sinexSubstate = mergeFilters({&kfState}, {KF::ONE, KF::REC_POS, KF::REC_POS_RATE, KF::TROP, KF::TROP_GRAD});
+	
 	PTime startTime;
 	startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);	
 	string dataAgc;
@@ -632,22 +636,24 @@ void outputTropSinex(
 						acsConfig.trop_sinex_obs_code,
 						acsConfig.trop_sinex_const_code,
 						contents,
+						sinexSubstate.x.rows() - 1,
 						acsConfig.trop_sinex_version);
-	replaceTimes(filename, acsConfig.start_epoch);
 	
-	for (auto& [key, index] : kfState.kfIndexMap)
+	for (auto& [key, index] : sinexSubstate.kfIndexMap)
 	{
 		if (key.type != KF::REC_POS)
 			continue;
 		
-		kfState.getKFValue(key, theSinex.tropSiteCoordMapMap[key.str][key.num]);
+		sinexSubstate.getKFValue(key, theSinex.tropSiteCoordMapMap[key.str][key.num]);
 	}
 	
 	setSiteAntCalib();
 	
-	setTropSol(kfState);
+	setTropSol(sinexSubstate);
 	
 	setDescription(isSmoothed);
+	
+	replaceTimes(filename, acsConfig.start_epoch);
 	
 	writeTropSinexToFile(filename, markerName);
 }

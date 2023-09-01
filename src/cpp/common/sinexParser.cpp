@@ -2,12 +2,13 @@
 // #pragma GCC optimize ("O0")
 
 #include "sinexParser.hpp"
+#include "station.hpp"
 
 #include <string>
 
 using std::string;
 
-extern map<string, Station> stationMap;
+extern StationMap stationMap;
 
 void SinexParser::parseSinexEstimates(
 	string& s)

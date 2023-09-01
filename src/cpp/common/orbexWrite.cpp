@@ -36,8 +36,6 @@ struct OrbexEntry
 	// other record types, e.g. correlation coefficients, to be added in the future
 };
 
-typedef map<int, OrbexEntry> OrbexSatList;	///< List of ORBEX data to print
-
 OrbexFileData orbexCombinedFileData;		///< Combined file editing information for ORBEX writing
 
 /** Write ORBEX header lines and header blocks including FILE/DESCRIPTION and SATELLITE/ID_AND_DESCRIPTION block
@@ -236,11 +234,11 @@ bool writeAtt(
 /** Write EPHEMERIS/DATA block and update END_TIME line
 */
 void updateOrbexBody(
-	string&				filename,		///< File path to output file
-	OrbexSatList&		entryList,		///< List of data to print
-	GTime				time,			///< Epoch time (GPST)
-	map<E_Sys, bool>&	outSys,			///< Systems to include in file
-	OrbexFileData&		outFileDat)		///< Current file editing information
+	string&					filename,		///< File path to output file
+	map<int, OrbexEntry>&	entryList,		///< List of data to print
+	GTime					time,			///< Epoch time (GPST)
+	map<E_Sys, bool>&		outSys,			///< Systems to include in file
+	OrbexFileData&			outFileDat)		///< Current file editing information
 {
 	GEpoch ep = time;
 
@@ -368,7 +366,7 @@ void writeSysSetOrbex(
 	vector<E_Source>	attDataSrcs,		///< Data source for satellite attitudes
 	KFState*			kfState_ptr)		///< Pointer to a kalman filter to take values from
 {
-	OrbexSatList entryList;
+	map<int, OrbexEntry> entryList;
 
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{

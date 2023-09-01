@@ -20,6 +20,7 @@
 #include "gTime.hpp"
 #include "sofa.h"
 
+HfOceanEop hfEop;
 
 const GTime time2010	= GEpoch{2010, E_Month::JAN, 1,		0,	0,	0};
 
@@ -75,7 +76,7 @@ void IERS2010::PMGravi(
 		2,	0,	 0,	0,  0, -1,  0.06, -0.04, -0.4, -0.8;
 
 
-	FundamentalNutationArgs fundArgs(time, ut1_utc);
+	FundamentalArgs fundArgs(time, ut1_utc);
 
 	x = 0;
 	y = 0;
@@ -89,16 +90,17 @@ void IERS2010::PMGravi(
 		y += sin(arg) * pnlib(8) + cos(arg)* pnlib(9);
 	}
 
-	// for (auto utlib : utLibration.rowwise())
-	// {
-	// 	double arg =  (utlib.segment(0,6) * fundArgs).sum() ;
-	// 	ut1 += sin(arg) * utlib(6) + cos(arg)* utlib(7);
-	// 	lod += sin(arg) * utlib(8) + cos(arg)* utlib(9);
+	 for (auto utlib : utLibration.rowwise())
+	 {
+	 	double arg =  (utlib.segment(0,6) * fundArgs).sum() ;
+	 	ut1 += sin(arg) * utlib(6) + cos(arg)* utlib(7);
+	 	lod += sin(arg) * utlib(8) + cos(arg)* utlib(9);
 
-	// }
+	 }
 
-	// x+= -3.8 * (mjd - MJD_j2000 ) /365.25;
-	// y+= -4.3 * (mjd - MJD_j2000 ) / 365.25;
+
+//	 x+= -3.8 * (time - MJD_j2000 ) / 365.25;
+//	 y+= -4.3 * (time - MJD_j2000 ) / 365.25;
 }
 
 void IERS2010::PMUTOcean(
@@ -186,7 +188,7 @@ void IERS2010::PMUTOcean(
 	y	= 0;
 	ut1	= 0;
 	
-	FundamentalNutationArgs fundArgs(time, ut1_utc);
+	FundamentalArgs fundArgs(time, ut1_utc);
 	for (auto pnlib : data.rowwise())
 	{
 		double arg =  (pnlib.segment(0, 6) * fundArgs).sum();
@@ -197,7 +199,7 @@ void IERS2010::PMUTOcean(
 }
 
 
-FundamentalNutationArgs::FundamentalNutationArgs(
+FundamentalArgs::FundamentalArgs(
 	GTime	time,
 	double	ut1_utc)
 :	gmst	{(*this)[0]},
@@ -220,7 +222,7 @@ Array6d IERS2010::doodson(
 	GTime	time,
 	double	ut1_utc)
 {
-	FundamentalNutationArgs fundArgs(time, ut1_utc);
+	FundamentalArgs fundArgs(time, ut1_utc);
 
 	Array6d Doodson;
 	Doodson(4) = -1 * fundArgs(5);
@@ -500,4 +502,53 @@ Vector3d IERS2010::relativity(
 	Vector3d acc3 = (1 + 2 * gamma) * (velEarth.cross((-1 * GMs * posEarth) / (SQR(CLIGHT) * pow(rsun, 3)))).cross(velSat);
 
 	return acc1 + acc2 + acc3;
+}
+
+
+
+
+
+void HfOceanEop::read() {
+    std::ifstream file(filename);
+    std::string line;
+
+    while (std::getline(file, line)) {
+        if (line[0] == '#') {
+            continue;
+        }
+        std::istringstream iss(line);
+        HfOceanEOPData data;
+        iss >> data.name;
+        for (int i = 0; i < 6; i++) {
+            iss >> data.mFundamentalArgs[i];
+        }
+        iss >> data.doodson;
+        iss >> data.period;
+        iss >> data.xSin;
+        iss >> data.xCos;
+        iss >> data.ySin;
+        iss >> data.yCos;
+        iss >> data.ut1Sin;
+        iss >> data.ut1Cos;
+        iss >> data.lodSin;
+        iss >> data.lodCos;
+        HfOcean_vector.push_back(data);
+    }
+    initialized=true;
+}
+
+void HfOceanEop::compute(Eigen::Array<double, 1, 6> fundamentalArgs, double& x, double& y, double& ut1, double& lod)
+{
+    x = 0.0;
+    y = 0.0;
+    ut1 = 0.0;
+    lod = 0.0;
+    for (auto & hfdata : HfOcean_vector)
+    {
+        double theta = (fundamentalArgs * hfdata.mFundamentalArgs).sum();
+        x += hfdata.xCos * std::cos(theta) + hfdata.xSin * std::sin(theta);
+        y += hfdata.yCos * std::cos(theta) + hfdata.ySin * std::sin(theta);
+        ut1 += hfdata.ut1Cos * std::cos(theta) + hfdata.ut1Sin * std::sin(theta);
+        lod += hfdata.lodCos * std::cos(theta) + hfdata.lodSin * std::sin(theta);
+    }
 }

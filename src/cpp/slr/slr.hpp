@@ -1,19 +1,23 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <map>
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "station.hpp"
-#include "gTime.hpp"
 #include "enums.h"
 
-
+using std::shared_ptr;
 using std::string;
 using std::map;
+
+struct VectorPos;
+struct Navigation;
+struct Station;
+struct ObsList;
+struct KFState;
+struct LObs;
+
 
 struct SphericalCom
 {

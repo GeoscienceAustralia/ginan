@@ -93,3 +93,12 @@ def get_data(db, collection, state, site, sat, series, yaxis, data, reshape_on=N
         except ValueError as err:
             current_app.logger.warning(err)
             pass
+
+
+def get_arbitrary(db, coll, match, group, datax, datay, reshape_on=None):
+   with MongoDB(session["mongo_ip"], data_base=db, port=session["mongo_port"]) as client:
+        try:
+            return client.get_arbitrary(coll, match, group, datax, datay)
+        except ValueError as err:
+            current_app.logger.warning(err)
+            pass

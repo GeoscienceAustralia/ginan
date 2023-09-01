@@ -10,9 +10,9 @@
 #include "GNSSambres.hpp"
 #include "orbitProp.hpp"
 #include "rtcmTrace.hpp"
-#include "biasSINEX.hpp"
 #include "acsConfig.hpp"
 #include "satStat.hpp"
+#include "biases.hpp"
 #include "common.hpp"
 #include "mongo.hpp"
 
@@ -726,7 +726,7 @@ void	prepareSsrStates(
 				bool	pass	= true;
 				
 				pass = true;
-				pass &= satclk(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_sources,						nav, &kfState);
+				pass &= satclk(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.clock_sources,							nav, &kfState);
 				pass &= satpos(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_sources, E_OffsetType::APC,	nav, &kfState);
 				if (obs.satClk == INVALID_CLOCK_VALUE)
 				{
@@ -815,7 +815,7 @@ void	prepareSsrStates(
 					{
 						double bias = 0;
 						double bvar = 0;
-						bool pass = getBiasSinex(trace, time, Sat.id(), Sat, obsCode, CODE, bias, bvar);
+						bool pass = getBias(trace, time, Sat.id(), Sat, obsCode, CODE, bias, bvar);
 						if (pass == false)
 						{
 							continue;
@@ -870,7 +870,7 @@ void	prepareSsrStates(
 					{
 						double bias = 0;
 						double bvar = 0;
-						bool pass = queryBiasOutput(trace, time, Sat,"", obsCode, bias, bvar, CODE);
+						bool pass = queryBiasOutput(trace, time, kfState, Sat,"", obsCode, bias, bvar, CODE);
 						if (pass == false)
 						{
 							continue;
@@ -902,7 +902,7 @@ void	prepareSsrStates(
 					{
 						double bias = 0;
 						double bvar = 0;
-						bool pass = getBiasSinex(trace, time, Sat.id(), Sat, obsCode, PHAS, bias, bvar);
+						bool pass = getBias(trace, time, Sat.id(), Sat, obsCode, PHAS, bias, bvar);
 						if (pass == false)
 						{
 							continue;
@@ -975,7 +975,7 @@ void	prepareSsrStates(
 					double bvar;
 				
 					for (auto& obsCode : acsConfig.code_priorities[sys])
-					if (queryBiasOutput(trace, time, Sat, "", obsCode, bias, bvar, PHAS))
+					if (queryBiasOutput(trace, time, kfState, Sat, "", obsCode, bias, bvar, PHAS))
 					{
 						DBEntry entry;
 						entry.stringMap	[SSR_DATA		]	= {SSR_PHAS_BIAS,			true};
@@ -1075,6 +1075,12 @@ void	outputMongoPredictions(
 	
 	for (auto& orbit : orbits)
 	{	
+		if	( orbit.pos.isZero()
+			&&orbit.vel.isZero())
+		{
+			continue;
+		}
+		
 		DBEntry entry;
 		entry.stringMap	[REMOTE_DATA		]	= {REMOTE_ORBIT,		true};
 		entry.stringMap	[REMOTE_SAT			]	= {orbit.Sat.id(),		true};
@@ -1083,6 +1089,7 @@ void	outputMongoPredictions(
 		entry.timeMap	[REMOTE_UPDATED		]	= {tsync,				false};
 		entry.vectorMap	[REMOTE_POS			]	= {orbit.pos,			false};
 		entry.vectorMap	[REMOTE_VEL			]	= {orbit.vel,			false};
+		entry.doubleMap	[REMOTE_VAR			]	= {orbit.posVar,		false};
 		
 		dbEntryList.push_back(entry);
 	}

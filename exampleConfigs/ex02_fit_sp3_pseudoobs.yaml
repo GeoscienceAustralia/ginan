@@ -58,6 +58,10 @@ mongo:
     reverse_prediction_duration:    70
     duration_units:                 hours
         
+satellite_options:
+    G04:
+        exclude: true
+        
 processing_options:
 
     epoch_control:
@@ -128,7 +132,7 @@ processing_options:
             orbit_vel_proc_noise_trail_tau: 900
             
 debug:
-    pseudo_pulses: 1
+    #pseudo_pulses: 1
     
 estimation_parameters:
 
@@ -141,7 +145,7 @@ estimation_parameters:
             orbit:
                 estimated:      [true]
                 sigma:          [1, 1, 1, 1000]
-                proc_noise:     [0]
+                proc_noise:     [0,0,0,0.001]
 
             srp_dyb_0:
                 comment:        [constant]

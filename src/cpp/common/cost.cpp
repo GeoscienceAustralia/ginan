@@ -4,15 +4,17 @@
 #include <boost/algorithm/string.hpp>
 
 #include "coordinates.hpp"
+#include "tropModels.hpp"
 #include "acsConfig.hpp"
+#include "station.hpp"
 #include "cost.hpp"
-#include "ppp.hpp"
 #include "EGM96.h"
+#include "ppp.hpp"
 
 
-static map<string, map<E_FilePos, int> >	filePosMap;
-static map<string, GTime>					startTimeMap;
-static map<string, int>						numSamplesMap;
+static map<string, map<E_FilePos, int>>	filePosMap;
+static map<string, GTime>				startTimeMap;
+static map<string, int>					numSamplesMap;
 
 
 /** Replaces first instance of string 'toReplace' with 'replaceWith' within 's'
@@ -31,12 +33,18 @@ bool replaceStr(
 /** Outputs troposphere COST file
 */
 void outputCost(
-	string		filename,		///< Filename
-	Station&	rec,			///< Receiver
-	GTime		time,			///< Time of solution
-	KFState&	kfState)		///< KF object containing positioning & trop solutions
+	string		filename,	///< Filename		
+	KFState&	kfState,	///< KF object containing positioning & trop solutions	
+	Station&	rec)		///< Receiver
 {
 	std::ofstream fout(filename, std::fstream::in | std::fstream::out);
+	if (!fout)
+	{
+		return;
+	}
+	
+	auto time = kfState.time;
+	
 	fout.seekp(0, fout.end);				// seek to end of file
 	bool firstWrite = (fout.tellp() == 0);	// file is empty if current position is 0
 
@@ -248,8 +256,8 @@ void outputCost(
 	{
 		ztd				= 		tropStates	[0];
 		ztdStd			= sqrt(	tropVars	[0]);
-		double azel[2]	= {0,1}; // tropacs requires el>0
-		double zhd		= tropacs(recPos, azel);
+		
+		double zhd		= tropDryZTD( acsConfig.model.trop.model,time,recPos);
 		zwd				= ztd - zhd;
 	}
 	

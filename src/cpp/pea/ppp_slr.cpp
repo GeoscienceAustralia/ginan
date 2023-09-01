@@ -2,15 +2,14 @@
 // #pragma GCC optimize ("O0")
 
 #include "eigenIncluder.hpp"
-#include "corrections.hpp"
 #include "coordinates.hpp"
 #include "instrument.hpp"
 #include "acsConfig.hpp"
-#include "biasSINEX.hpp"
 #include "antenna.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
+#include "biases.hpp"
 #include "gTime.hpp"
 #include "tides.hpp"
 #include "slr.hpp"
@@ -203,38 +202,6 @@ inline void recTimeBias(COMMON_PPP_ARGS)
 	measEntry.componentList.push_back({E_Component::REC_TIME_BIAS, recTimeBias, "+ recTimeBias", recTimeBiasVar}); 
 }
 
-/** Satellite orbit adjustments
- */
-inline void satOrbitAdjustment(COMMON_PPP_ARGS)
-{
-	if (satNav.satOrbit.numUnknowns != satNav.satPartialMat.rows())
-	{
-		return;
-	}
-	
-	for (int i = 0; i < satNav.satOrbit.numUnknowns; i++)
-	{
-		InitialState init	= initialStateFromConfig(satOpts.orb, i);
-		
-		if (init.estimate)
-		{
-			string name = satNav.satOrbit.parameterNames[i];
-			KFKey kfKey;
-			kfKey.type	= KF::ORBIT_PTS;
-			kfKey.Sat	= obs.Sat;
-			kfKey.str	= std::to_string(100 + i).substr(1) + "_" + name;
-			double adjustment = 0;
-			kfState.getKFValue(kfKey, adjustment);
-		
-			VectorXd orbitPartials = satNav.satPartialMat * satStat.e;
-			measEntry.addDsgnEntry(kfKey, orbitPartials(i) * 2, init);
-			
-			double computed = adjustment * orbitPartials(i);
-			measEntry.componentList.push_back({E_Component::ORBIT_PT, computed * 2, "+ 2*dOrb", -1});
-		}
-	}
-}
-
 /** eops
  */
 inline void slrEops(COMMON_PPP_ARGS)
@@ -321,20 +288,6 @@ void stationSlr(
 	ERPValues erpv = getErp(nav.erp, time);
 	
 	FrameSwapper frameSwapper(time, erpv);
-	
-	for (auto& [Sat, satNav] : nav.satNavMap)
-	{
-		if (acsConfig.process_sys[Sat.sys] == false)
-		{
-			continue;
-		}
-		
-		auto& satOpts = acsConfig.getSatOpts(Sat);
-		
-		if (satOpts.orb.estimate[0])
-			orbPartials(trace, time, Sat, satNav.satPartialMat);	
-	}
-
 	
 	for (auto& obs : only<LObs>(rec.obsList))
 	{
@@ -529,7 +482,6 @@ void stationSlr(
 		slrTroposphere		(COMMON_PPP_ARGS);
 		recRangeBias		(COMMON_PPP_ARGS);
 		recTimeBias			(COMMON_PPP_ARGS);
-		satOrbitAdjustment	(COMMON_PPP_ARGS);
 		slrEops				(COMMON_PPP_ARGS);
 
 		//Calculate residuals and form up the measurement

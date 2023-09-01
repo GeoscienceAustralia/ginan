@@ -9,10 +9,9 @@ using std::string;
 
 #include "algebra.hpp"
 
-struct Station;
-typedef map<string, Station> StationMap;
+struct StationMap;
 
-KFState RTS_Process(
+KFState rtsSmoothing(
 	KFState&	kfState, 
 	bool		write			= false,
 	StationMap*	stationMap_ptr	= nullptr);

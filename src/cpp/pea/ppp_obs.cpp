@@ -9,19 +9,20 @@
 
 
 #include "eigenIncluder.hpp"
-#include "corrections.hpp"
 #include "coordinates.hpp"
 #include "geomagField.hpp"
 #include "ephPrecise.hpp"
 #include "instrument.hpp"
+#include "tropModels.hpp"
 #include "acsConfig.hpp"
-#include "biasSINEX.hpp"
 #include "ionoModel.hpp"
 #include "orbitProp.hpp"
+#include "ionModels.hpp"
 #include "antenna.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
+#include "biases.hpp"
 #include "cache.hpp"
 #include "gTime.hpp"
 #include "tides.hpp"
@@ -37,6 +38,7 @@
 
 #define COMMON_PPP_ARGS											\
 	COMMON_ARG(			Trace&				)	trace,			\
+	COMMON_ARG(			Trace&				)	jsonTrace,		\
 	COMMON_ARG(			GObs&				)	obs,			\
 	COMMON_ARG(			Station&			)	rec,			\
 	COMMON_ARG(			SatSys&				)	Sat,			\
@@ -56,6 +58,7 @@
 	COMMON_ARG(			double&				)	rRecSat,		\
 	COMMON_ARG(			double&				)	lambda,			\
 	COMMON_ARG(			SatSys&				)	sysSat,			\
+	COMMON_ARG(			vector<ArbitraryKVP>)	baseKVPs,		\
 	COMMON_ARG(			VectorPos&			)	pos
 
 
@@ -270,6 +273,19 @@ inline void pppSatPCO(COMMON_PPP_ARGS)
 			variance = -1;
 		}
 	}
+	
+	baseKVPs.push_back({"data", __FUNCTION__});
+	
+	traceJson(1, jsonTrace, time, 
+		baseKVPs,
+		{
+			{"bodyLook[0]",	bodyLook[0]},
+			{"bodyLook[1]",	bodyLook[1]},
+			{"bodyLook[2]",	bodyLook[2]},
+			{"bodyPCO[0]",	bodyPCO[0]},
+			{"bodyPCO[1]",	bodyPCO[1]},
+			{"bodyPCO[2]",	bodyPCO[2]}
+		});
 	
 	double satPCODelta = bodyPCO.dot(bodyLook);
 	
@@ -592,7 +608,7 @@ inline void pppIonModel(COMMON_PPP_ARGS)
 	if (measType == CODE)		sign = +1;
 	else						sign = -1;  
 	
-	InitialState init = initialStateFromConfig(satOpts.ion_model);
+	InitialState init = initialStateFromConfig(recOpts.ion_model);
 			
 	if (init.estimate)
 	{				
@@ -602,11 +618,14 @@ inline void pppIonModel(COMMON_PPP_ARGS)
 			obs.ippMap[i].slantFactor	= ionppp(pos, satStat.azel, RE_WGS84 / 1000, acsConfig.ionModelOpts.layer_heights[i] / 1000, posp);
 			obs.ippMap[i].lat			= posp.lat();
 			obs.ippMap[i].lon			= posp.lon();
+			obs.ionoSat					= Sat;
 		}
+
+		tracepdeex(0, trace, "\n Iono Model : %.4f, %.4f     %s", obs.ippMap[0].lat*R2D , obs.ippMap[0].lon*R2D, Sat.id());
 
 		for (int i = 0; i < acsConfig.ionModelOpts.numBasis; i++)
 		{
-			double coeff = ionModelCoef(i, obs);
+			double coeff = ionModelCoef(trace, i, obs);
 			
 			if (coeff == 0)
 				continue;
@@ -614,12 +633,15 @@ inline void pppIonModel(COMMON_PPP_ARGS)
 			double value = 0;
 			
 			KFKey kfKey;
-			kfKey.type	= KF::IONOSPHERIC;
-			kfKey.num	= i;
+			kfKey.type		= KF::IONOSPHERIC;
+			kfKey.rec_ptr	= &rec;
+			kfKey.num		= i;
 			
 			bool pass = kfState.getKFValue(kfKey, value);
 			
 			ionosphere_m += sign * alpha * coeff * value;
+			
+			tracepdeex(0, trace, "\n     basis (%3d);  + %.4e x %.4e x %.4e = %.4e", i, alpha, coeff, value, ionosphere_m);
 			
 			measEntry.addDsgnEntry(kfKey, sign * alpha * coeff, init);
 		}
@@ -628,16 +650,57 @@ inline void pppIonModel(COMMON_PPP_ARGS)
 	}
 };
 
+inline void pppTropMap(COMMON_PPP_ARGS)
+{
+	double troposphere_m	= tropDryZTD(acsConfig.model.trop.model, kfState.time, pos);
+	
+	double		tropStates[3]	= {};
+	double		varTrop			= 0;
+	TropMapping	dTropDx;
+	
+	double modelTroposphere_m	= tropModel(trace, acsConfig.model.trop.model, time, pos,satStat.azel, tropStates, dTropDx, varTrop);
+	
+	InitialState init = initialStateFromConfig(recOpts.trop_maps);
+	
+	if (init.estimate)
+	{				
+		modelTroposphere_m = dTropDx.dryMap * tropDryZTD(acsConfig.model.trop.model, time, pos);
+	
+		for (int i = 0; i < acsConfig.ssrOpts.nbasis; i++)
+		{
+			double geoMap = tropModelCoef(i, pos);
+			if (geoMap == 0)
+				continue;
+			
+			KFKey kfKey;
+			kfKey.type	= KF::TROP_MODEL;
+			kfKey.num	= i;
+			
+			
+			double value=0;
+			bool pass = kfState.getKFValue(kfKey, value);
+			
+			modelTroposphere_m += geoMap * dTropDx.wetMap * value;
+			
+			tracepdeex(0, trace, "\n Trop Model (%3d);  + %.4e x %.4e = %.4e", i, geoMap * dTropDx.wetMap, value, modelTroposphere_m);
+			
+			measEntry.addDsgnEntry(kfKey, geoMap * dTropDx.wetMap, init);
+		}
+	}
+	measEntry.componentList.push_back({E_Component::TROPOSPHERE_MODEL, modelTroposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", -1});
+}
+
+
 inline void pppTrop(COMMON_PPP_ARGS)
 {
-	double tropStates[3]	= {};
-	double dTropDx[3]		= {};
-	double varTrop			= 0;
+	double		tropStates[3]	= {};
+	TropMapping	dTropDx;
+	double		varTrop			= 0;
 
 	double troposphere_m	= 0;
 	
 	string recStr;
-	if (acsConfig.pppOpts.common_atmosphere == false)
+// 	if (acsConfig.pppOpts.common_atmosphere == false)
 	{
 		recStr	= rec.id;
 	}
@@ -666,17 +729,11 @@ inline void pppTrop(COMMON_PPP_ARGS)
 		kfState.getKFValue(kfKey, tropStates[i+1]);
 	}
 	
-	if (tropStates[0] == 0)
-	{
-		tropStates[0] = sbstropcorr(time, rRec, PI/2);
-	}
-	
 	//calculate the trop values, variances, and gradients at the operating points
-	troposphere_m = trop_model_prec(time, pos, satStat.azel, tropStates, dTropDx, varTrop);
+	troposphere_m		= tropModel(trace, acsConfig.model.trop.model, time, pos, satStat.azel, tropStates, dTropDx, varTrop);
 	obs.tropSlant		= troposphere_m;
 	obs.tropSlantVar	= varTrop;
 		
-	
 	for (int i = 0; i < recOpts.trop.estimate.size(); i++)
 	{
 		InitialState init = initialStateFromConfig(recOpts.trop);
@@ -702,7 +759,7 @@ inline void pppTrop(COMMON_PPP_ARGS)
 		kfKey.num		= i;
 		kfKey.comment	= init.comment;
 		
-		measEntry.addDsgnEntry(kfKey, dTropDx[0], init);
+		measEntry.addDsgnEntry(kfKey, dTropDx.wetMap, init);
 		
 		varTrop = -1;
 	}
@@ -722,36 +779,11 @@ inline void pppTrop(COMMON_PPP_ARGS)
 		kfKey.num		= i;
 		kfKey.comment	= init.comment;
 		
-		measEntry.addDsgnEntry(kfKey, dTropDx[i+1], init);
+		if (i == 0)		measEntry.addDsgnEntry(kfKey, dTropDx.northMap,	init);
+		else			measEntry.addDsgnEntry(kfKey, dTropDx.eastMap,	init);
 	}
 	
-	measEntry.componentList.push_back({E_Component::TROPOSPHERE, troposphere_m, "+ " + std::to_string(dTropDx[0]) + ".T", varTrop});
-};
-
-inline void pppOrbits(COMMON_PPP_ARGS)
-{
-	VectorXd orbitPartials = satNav.satPartialMat * satStat.e;
-
-	if (satNav.satOrbit.numUnknowns == orbitPartials.rows())
-	for (int i = 0; i < satNav.satOrbit.numUnknowns; i++)
-	{
-		string name = satNav.satOrbit.parameterNames[i];
-		KFKey kfKey;
-		kfKey.type	= KF::ORBIT_PTS;
-		kfKey.Sat	= obs.Sat;
-		kfKey.str	= std::to_string(100 + i).substr(1) + "_" + name;
-
-		double adjustment;
-		
-		kfState.getKFValue(kfKey, adjustment);
-		
-		InitialState init	= initialStateFromConfig(satOpts.orb, i);
-		measEntry.addDsgnEntry(kfKey, orbitPartials(i), init);
-		
-		double computed = adjustment * orbitPartials(i);
-		
-		measEntry.componentList.push_back({E_Component::ORBIT_PT, computed, "+ dOrb", -1});
-	}
+	measEntry.componentList.push_back({E_Component::TROPOSPHERE, troposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", varTrop});
 };
 
 inline void pppPhaseWindup(COMMON_PPP_ARGS)
@@ -836,7 +868,7 @@ inline void pppRecPhasBias(COMMON_PPP_ARGS)
 {
 	double	recPhasBias		=  		recOpts.rec_phase_bias.default_bias;
 	double	recPhasBiasVar	= SQR(	recOpts.rec_phase_bias.undefined_sigma);
-	getBiasSinex(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
+	getBias(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
 		
 	KFKey kfKey;
 	kfKey.type		= KF::PHASE_BIAS;
@@ -875,7 +907,7 @@ inline void pppSatPhasBias(COMMON_PPP_ARGS)
 {
 	double	satPhasBias		=		satOpts.sat_phase_bias.default_bias;
 	double	satPhasBiasVar	= SQR(	satOpts.sat_phase_bias.undefined_sigma);
-	getBiasSinex(trace, time, Sat, Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
+	getBias(trace, time, Sat, Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
 		
 	KFKey kfKey;
 	kfKey.type		= KF::PHASE_BIAS;
@@ -911,7 +943,7 @@ inline void pppRecCodeBias(COMMON_PPP_ARGS)
 {
 	double	recCodeBias		= 		recOpts.rec_code_bias.default_bias;
 	double	recCodeBiasVar	= SQR(	recOpts.rec_code_bias.undefined_sigma);
-	getBiasSinex(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
+	getBias(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
 		
 	KFKey kfKey;
 	kfKey.type		= KF::CODE_BIAS;
@@ -950,7 +982,7 @@ inline void pppSatCodeBias(COMMON_PPP_ARGS)
 {
 	double	satCodeBias		=  		satOpts.sat_code_bias.default_bias;
 	double	satCodeBiasVar	= SQR(	satOpts.sat_code_bias.undefined_sigma);
-	getBiasSinex(trace, time, Sat, Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
+	getBias(trace, time, Sat, Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
 		
 	KFKey kfKey;
 	kfKey.type		= KF::CODE_BIAS;
@@ -1055,6 +1087,8 @@ void checkModels(
 	test("rec_code_bias",	recOpts.code_bias.	estimate[0], recOpts.rec_code_bias.	enable);
 	test("sat_phase_bias",	satOpts.phase_bias.	estimate[0], satOpts.sat_phase_bias.enable);
 	test("sat_code_bias",	satOpts.code_bias.	estimate[0], satOpts.sat_code_bias.	enable);
+	test("emp_dyb_0",		recOpts.emp_dyb_0.	estimate[0], acsConfig.orbitPropagation.empirical);
+	test("emp_dyb_0",		satOpts.emp_dyb_0.	estimate[0], acsConfig.orbitPropagation.empirical);
 }
 
 
@@ -1082,7 +1116,8 @@ void stationPPP(
 	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
 			KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
 {
-	auto trace = getTraceFile(rec);
+	auto trace		= getTraceFile(rec);
+	auto jsonTrace	= getTraceFile(rec, true);
 	
 // 	Instrument	instrument(__FUNCTION__ + rec.id);
 	
@@ -1116,20 +1151,6 @@ void stationPPP(
 	ERPValues erpv = getErp(nav.erp, time);
 	
 	FrameSwapper frameSwapper(time, erpv);
-	
-	for (auto& [Sat, satNav] : nav.satNavMap)
-	{
-		if (acsConfig.process_sys[Sat.sys] == false)
-		{
-			continue;
-		}
-		
-		auto& satOpts = acsConfig.getSatOpts(Sat);
-		
-		InitialState init	= initialStateFromConfig(satOpts.orb);
-		if (init.estimate)
-			orbPartials(trace, time, Sat, satNav.satPartialMat);	
-	}
 	
 	for (auto&	obs				: only<GObs>(rec.obsList))
 	for (auto&	[ft, sigList]	: obs.SigsLists)
@@ -1165,6 +1186,16 @@ void stationPPP(
 		tracepdeex(1, trace, "\nProcessing %s: ", measDescription);
 	
 		
+		
+		if	( obs.ephPosValid == false
+			||obs.ephClkValid == false
+			)
+		{
+			tracepdeex(2,trace, "\n%s excludeSvh", obs.Sat.id().c_str());
+			
+			obs.excludeSVH = true;
+		}
+		
 		if (obs.exclude)
 		{
 			if (obs.excludeBadSPP)		{	tracepdeex(5, std::cout, "\n%s excludeBadSPP",		obs.Sat.id().c_str());	continue;	}
@@ -1183,15 +1214,6 @@ void stationPPP(
 		SatStat&	satStat			= *obs.satStat_ptr;
 		SigStat&	sigStat			= satStat.sigStatMap[sigName];
 		SigStat&	preprocSigStat	= satStat.sigStatMap[ft2string(ft)];
-		
-// 		if	( obs.ephPosValid == false
-// 			||obs.ephClkValid == false
-// 			)
-		{
-// 			tracepdeex(2,trace, "\n%s excludeSvh", obs.Sat.id().c_str());
-			
-// 			obs.excludeSVH = true;
-		}
 		
 		if (acsConfig.excludeSlip.LLI	&& preprocSigStat.slip.LLI)		{	tracepdeex(2, trace, " - LLI slip excluded");	continue;   }
 		if (acsConfig.excludeSlip.GF	&& preprocSigStat.slip.GF)		{	tracepdeex(2, trace, " - GF slip excluded");	continue;   }
@@ -1222,7 +1244,12 @@ void stationPPP(
 		double		lambda		= obs.satNav_ptr->lamMap[ft];
 		auto		code		= sig.code;
 		
+		string recSatId;
+		if (recOpts.sat_id.empty())	recSatId		= rec.id;
+		else						recSatId		= (string)SatSys(recOpts.sat_id.c_str());
 
+		SatSys recSat(recSatId.c_str());
+		
 		double observed = 0;
 		if		(measType == CODE)		observed = sig.P;
 		else if	(measType == PHAS)		observed = sig.L * lambda;
@@ -1263,7 +1290,7 @@ void stationPPP(
 			obsKey.type		= measEntry.obsKey.type;
 			obsKey.num		= sig.code;
 			
-			double var;
+			double var = 0;
 			if		(measType == CODE)	{	var = sig.codeVar;	}
 			else if	(measType == PHAS)	{	var = sig.phasVar;	}
 			
@@ -1319,23 +1346,23 @@ void stationPPP(
 				
 				for (int i = 0; i < 3; i++)
 				{
-					InitialState posInit = initialStateFromConfig(recOpts.orbit,i);
-					InitialState velInit = initialStateFromConfig(recOpts.orbit,i + 3);
+					InitialState posInit = initialStateFromConfig(recOpts.orbit, i);
+					InitialState velInit = initialStateFromConfig(recOpts.orbit, i + 3);
 					
 					KFKey posKey;
 					posKey.type		= KF::ORBIT;
 					posKey.num		= i;
 					posKey.comment	= posInit.comment;
 					
-					if (recOpts.sat_id.empty())	posKey.str		= rec.id;
-					else						posKey.Sat		= SatSys(recOpts.sat_id.c_str());
+					if (recSat.prn)		posKey.Sat	= recSat;
+					else				posKey.str	= recSatId;
 					
 					KFKey velKey	= posKey;
 					velKey.num		= i + 3;
 					velKey.comment	= velInit.comment;
 					
 					
-					found |= kfState.getKFValue(posKey, rRec[i]);
+					found |= kfState.getKFValue(posKey, rRecInertial[i]);
 					
 					if (posInit.x == 0)			posInit.x = rRecInertial[i];
 					
@@ -1364,8 +1391,8 @@ void stationPPP(
 			bool found = false;
 			for (int i = 0; i < 3; i++)
 			{
-				InitialState posInit = initialStateFromConfig(satOpts.orbit,i);
-				InitialState velInit = initialStateFromConfig(satOpts.orbit,i + 3);
+				InitialState posInit = initialStateFromConfig(satOpts.orbit, i);
+				InitialState velInit = initialStateFromConfig(satOpts.orbit, i + 3);
 				
 				KFKey posKey;
 				posKey.type		= KF::ORBIT;
@@ -1428,6 +1455,13 @@ void stationPPP(
 		}
 		
 		
+		vector<ArbitraryKVP> baseKVPs =
+		{
+			{"Sat",		obs.Sat.id()		},
+			{"Rec",		obs.mount			},
+			{"Sig",		sigName				},
+			{"Type",	measType			} 
+		};
 		
 		//Add modelled adjustments and estimated parameter
 		if (1)
@@ -1468,6 +1502,7 @@ void stationPPP(
 			if (satOpts.sat_code_bias.enable)				{	Instrument inst("pppSatCodeBias");		pppSatCodeBias		(COMMON_PPP_ARGS);	}
 		}
 		
+	
 		addKFSatEMPStates(satOpts.emp_dyb_0,	kfState,	KF::EMP_DYB_0,	obs.Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_1c,	kfState,	KF::EMP_DYB_1C,	obs.Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_1s,	kfState,	KF::EMP_DYB_1S,	obs.Sat);
@@ -1478,21 +1513,47 @@ void stationPPP(
 		addKFSatEMPStates(satOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	obs.Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	obs.Sat);
 		
-		addKFSatEMPStates(satOpts.srp_dyb_0,	kfState,	KF::SRP_DYB_0,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_1c,	kfState,	KF::SRP_DYB_1C,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_1s,	kfState,	KF::SRP_DYB_1S,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_2c,	kfState,	KF::SRP_DYB_2C,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_2s,	kfState,	KF::SRP_DYB_2S,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_3c,	kfState,	KF::SRP_DYB_3C,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_3s,	kfState,	KF::SRP_DYB_3S,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_4c,	kfState,	KF::SRP_DYB_4C,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_4s,	kfState,	KF::SRP_DYB_4S,	obs.Sat);
-	
+		addKFSatEMPStates(satOpts.emp_rtn_0,	kfState,	KF::EMP_RTN_0,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_1c,	kfState,	KF::EMP_RTN_1C,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_1s,	kfState,	KF::EMP_RTN_1S,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_2c,	kfState,	KF::EMP_RTN_2C,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_2s,	kfState,	KF::EMP_RTN_2S,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_3c,	kfState,	KF::EMP_RTN_3C,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_3s,	kfState,	KF::EMP_RTN_3S,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_4c,	kfState,	KF::EMP_RTN_4C,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_4s,	kfState,	KF::EMP_RTN_4S,	obs.Sat);
+		
+		addKFSatEMPStates(recOpts.emp_dyb_0,	kfState,	KF::EMP_DYB_0,	recSatId);
+		addKFSatEMPStates(recOpts.emp_dyb_1c,	kfState,	KF::EMP_DYB_1C,	recSatId);
+		addKFSatEMPStates(recOpts.emp_dyb_1s,	kfState,	KF::EMP_DYB_1S,	recSatId);
+		addKFSatEMPStates(recOpts.emp_dyb_2c,	kfState,	KF::EMP_DYB_2C,	recSatId);
+		addKFSatEMPStates(recOpts.emp_dyb_2s,	kfState,	KF::EMP_DYB_2S,	recSatId);
+		addKFSatEMPStates(recOpts.emp_dyb_3c,	kfState,	KF::EMP_DYB_3C,	recSatId);
+		addKFSatEMPStates(recOpts.emp_dyb_3s,	kfState,	KF::EMP_DYB_3S,	recSatId);
+		addKFSatEMPStates(recOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	recSatId);
+		addKFSatEMPStates(recOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	recSatId);
+		
+		addKFSatEMPStates(recOpts.emp_rtn_0,	kfState,	KF::EMP_RTN_0,	recSatId);
+		addKFSatEMPStates(recOpts.emp_rtn_1c,	kfState,	KF::EMP_RTN_1C,	recSatId);
+		addKFSatEMPStates(recOpts.emp_rtn_1s,	kfState,	KF::EMP_RTN_1S,	recSatId);
+		addKFSatEMPStates(recOpts.emp_rtn_2c,	kfState,	KF::EMP_RTN_2C,	recSatId);
+		addKFSatEMPStates(recOpts.emp_rtn_2s,	kfState,	KF::EMP_RTN_2S,	recSatId);
+		addKFSatEMPStates(recOpts.emp_rtn_3c,	kfState,	KF::EMP_RTN_3C,	recSatId);
+		addKFSatEMPStates(recOpts.emp_rtn_3s,	kfState,	KF::EMP_RTN_3S,	recSatId);
+		addKFSatEMPStates(recOpts.emp_rtn_4c,	kfState,	KF::EMP_RTN_4C,	recSatId);
+		addKFSatEMPStates(recOpts.emp_rtn_4s,	kfState,	KF::EMP_RTN_4S,	recSatId);
+
 		//Calculate residuals and form up the measurement
 		
 		measEntry.componentList.push_back({E_Component::NET_RESIDUAL, 0, "", 0});
-		double residual			= 0;
+		double residual		= 0;
 		double residualVar	= 0;
+		
+		vector<ArbitraryKVP> valueKVPs;
+		
+		valueKVPs.push_back({"El",		satStat.el});
+		valueKVPs.push_back({"Az",		satStat.az});
+		valueKVPs.push_back({"Nadir",	satStat.nadir});
 		
 		for (auto& [component, componentVal, eq, var] : measEntry.componentList)
 		{
@@ -1517,7 +1578,15 @@ void stationPPP(
 				tracepdeex(0, trace, " -> %13.4f",	residual);
 				tracepdeex(3, trace, " ± %.2e ",	residualVar);
 			}
+			
+			valueKVPs.push_back({component._to_string(), componentVal});
 		}
+		
+		baseKVPs.push_back({"data", __FUNCTION__});
+		
+		traceJson(1, jsonTrace, time, 
+					baseKVPs,
+					valueKVPs);
 
 		if (1)
 		for (auto& [component, componentVal, eq, var] : measEntry.componentList)

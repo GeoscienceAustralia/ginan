@@ -3,7 +3,7 @@
 inputs:
     snx_files:  [ IGS1R03SNX_20191950000_07D_07D_CRD.SNX    ]
     gnss_observations:
-        inputs_root: data/
+        inputs_root: ../data/
         rnx_inputs:
             - "AREG*.rnx"
             - "ASCG*.rnx"
@@ -59,7 +59,6 @@ inputs:
             - "ZIM2*.rnx"
             - "CUSV*.rnx"
 
-            
 processing_options:
     epoch_control:
         epoch_interval:     30

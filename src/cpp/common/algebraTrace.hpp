@@ -2,6 +2,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <utility>
 #include <string>
 #include <vector>
@@ -19,10 +20,11 @@ using std::map;
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "navigation.hpp"
-#include "station.hpp"
-#include "algebra.hpp"
-#include "enum.h"
+#include "enums.h"
+
+
+struct StationMap;
+struct KFState;
 
 /** Types of objects that are stored in kalman filter binary archives
 */
@@ -148,18 +150,6 @@ E_SerialObject getFilterTypeFromFile(
 	string		filename);
 
 
-void inputPersistanceNav();
-
-void outputPersistanceNav();
-
-void inputPersistanceStates(
-	map<string, Station>&	stationMap,
-	KFState&				netKFState);
-
-void outputPersistanceStates(
-	map<string, Station>&	stationMap,
-	KFState&				netKFState);
-
 void tryPrepareFilterPointers(
-	KFState&		kfState, 
-	StationMap*		stationMap_ptr);
+	KFState&	kfState, 
+	StationMap*	stationMap_ptr);

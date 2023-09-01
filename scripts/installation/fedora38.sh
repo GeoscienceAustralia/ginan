@@ -61,8 +61,7 @@ $sudo_cmd dnf install --setopt=install_weak_deps=False -y \
     mongo-c-driver-devel \
     blas64.x86_64 \
     openblas-devel.x86_64 \
-    netcdf-cxx4-devel.x86_64 \
-    python3-pip
+    netcdf-cxx4-devel.x86_64
 
 echo "Creating build directory..."
 mkdir -p /tmp/build

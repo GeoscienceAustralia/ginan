@@ -8,6 +8,10 @@ using std::set;
 #include "satSys.hpp"
 #include "mongo.hpp"
 
+struct StationMap;
+struct KFMeas;
+struct Geph;
+struct Eph;
 
 struct TestStatistics
 {
@@ -52,9 +56,8 @@ void mongoBrdcEph(
 void mongoBrdcEph(
 	Geph&		geph);
 
-struct OrbitState;
 struct MongoOptions;
-
+struct OrbitState;
 typedef vector<OrbitState> Orbits;
 
 void	outputMongoPredictions(

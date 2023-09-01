@@ -1,16 +1,36 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "biasSINEX.hpp"
-#include "constants.hpp"
 #include "GNSSambres.hpp"
-#include "ppp.hpp"
+#include "constants.hpp"
 #include "ionoModel.hpp"
+#include "biases.hpp"
+#include "ppp.hpp"
 
 map<KFKey, map<int, BiasEntry>> SINEXBiases_out;
 long int	bottomOfFile = 0;
 double 		startTimeofFile[3];
 string		lastBiasSINEXFile = "";
+
+/** Convert enum observation code to code string
+*/
+string code2str(
+	E_ObsCode	code,		///< The input enum observation code
+	E_MeasType	measType)	///< Measurement type of this observation - CODE/PHAS
+{
+	if (code == +E_ObsCode::NONE)
+		return "";
+
+	string outstr = code._to_string();
+	
+	char head;
+	if (measType == PHAS)	head='L';	
+	if (measType == CODE)	head='C';
+	
+	outstr[0] = head;
+	
+	return outstr;
+}
 
 /** Determine if the bias is an OSB or DSB given observation codes
 */
@@ -250,6 +270,7 @@ int addBiasEntry(
 void updateBiasOutput(
 	Trace&		trace,			///< Trace to output to
 	GTime		time,			///< Time of bias update 
+	KFState&	kfState,		///< Filter state to take biases from
 	StationMap&	stationMap,		///< stations for which to output receiver biases
 	E_MeasType	measType)		///< Type of measurement to find bias for
 {
@@ -287,7 +308,7 @@ void updateBiasOutput(
 		
 		for (auto& Sat : sats)
 		for (auto& obsCode : acsConfig.code_priorities[sys])
-		if (queryBiasOutput(trace, time, Sat, "", obsCode, bias, bvar, measType))
+		if (queryBiasOutput(trace, time, kfState, Sat, "", obsCode, bias, bvar, measType))
 		{
 			key.Sat 	= Sat;
 			key.str 	= "";
@@ -314,7 +335,7 @@ void updateBiasOutput(
 	
 		for (auto& [id, rec] : stationMap)
 		for (auto& obsCode : acsConfig.code_priorities[sys])
-		if (queryBiasOutput(trace, time, sat0, id, obsCode, bias, bvar, measType))
+		if (queryBiasOutput(trace, time, kfState, sat0, id, obsCode, bias, bvar, measType))
 		{
 			key.Sat 	= sat0;
 			key.str 	= id;
@@ -330,9 +351,10 @@ void updateBiasOutput(
 /** Write stored bias output to SINEX file
  *  Return number of written biases (-1 if file not found)
 */
-int writeBiasSinex(
+void writeBiasSinex(
 	Trace&		trace,			///< Trace to output to
 	GTime		time,			///< Time of bias to write
+	KFState&	kfState,		///< Filter state to take biases from
 	string		biasfile,		///< File to write
 	StationMap&	stationMap)		///< stations for which to output receiver biases
 { 
@@ -342,13 +364,13 @@ int writeBiasSinex(
 	if (!outputStream)
 	{
 		tracepdeex(2, trace, "ERROR: cannot open bias SINEX output: %s\n", biasfile.c_str());
-		return -1;
+		return;
 	} 
 
 	if	(  acsConfig.ambrOpts.code_output_interval	<= 0
 		&& acsConfig.ambrOpts.phase_output_interval	<= 0)
 	{
-		return 0;
+		return;
 	}
 	
 	E_TimeSys tsys = E_TimeSys::NONE;
@@ -393,8 +415,8 @@ int writeBiasSinex(
 		lastBiasSINEXFile = biasfile;
 	}
 	
-	if (acsConfig.ambrOpts.code_output_interval		> 0) 		updateBiasOutput(trace, time, stationMap, CODE);
-	if (acsConfig.ambrOpts.phase_output_interval	> 0) 		updateBiasOutput(trace, time, stationMap, PHAS);
+	if (acsConfig.ambrOpts.code_output_interval		> 0) 		updateBiasOutput(trace, time, kfState, stationMap, CODE);
+	if (acsConfig.ambrOpts.phase_output_interval	> 0) 		updateBiasOutput(trace, time, kfState, stationMap, PHAS);
 	
 	int numbias=0;
 	for (auto& [key, biasMap] : SINEXBiases_out)
@@ -440,32 +462,17 @@ int writeBiasSinex(
 	
 	tracepdeex(0, outputStream, "-BIAS/SOLUTION\n%%=ENDBIA");
 	
-	return numbias;
+	return;
 }
 
-int writeBiasSinex(
-	Trace&		trace,			///< Trace to output to
-	GTime		time,			///< Time of bias to write
-	string		biasfile,		///< File to write
-	StationMap&	stationMap,		///< stations for which to output receiver biases
-	KFState&	kfState)		///< KF strunct from witch to extract bias estimations
-{
-	if (acsConfig.process_ppp && !overwriteIonoKF (kfState))
-		overwriteFixedKF(kfState);
-	
-	if (acsConfig.process_ionosphere && !overwriteIonoKF (kfState))
-		return 0;
-	
-	return writeBiasSinex(std::cout, time,	biasfile, stationMap);
-}
-
+extern KFState iono_KFState;	//todo aaron remove
 /** Find and combine biases from multiple sources: 
-bias inputs, WLNL biases from Ginan 1.0, UC biases from Ginan 2.0 
-and DCB from ionosphere modules
+bias inputs, UC biases and DCB from ionosphere modules
 */
 bool queryBiasOutput(
 	Trace&		trace, 
 	GTime		time,
+	KFState&	kfState,
 	SatSys		Sat,
 	string		Rec,
 	E_ObsCode	obsCode, 
@@ -473,63 +480,37 @@ bool queryBiasOutput(
 	double& 	variance,
 	E_MeasType	type)
 {
-	bias = 0;
-	variance = 0;
+	bias		= 0;
+	variance	= 0;
+	
 	E_FType ftyp = code2Freq[Sat.sys][obsCode];
 	
 	tracepdeex(3,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string(0).c_str());
 	
-	if (acsConfig.process_ppp)					/* Ginan 2.x	*/
+	if (acsConfig.process_ppp)
 	{
-		double pppBias = 0;
-		double pppVar = 0;
+		double pppBias	= 0;
+		double pppVar	= 0;
 		
-		if (!queryBiasUC(trace, time, Sat, Rec, obsCode, pppBias, pppVar, type))
+		if (!queryBiasUC(trace, time, kfState, Sat, Rec, obsCode, pppBias, pppVar, type))
 			return false;
 		
-		tracepdeex(4,trace,"found UC %.4f %.4e", bias, variance);
+		tracepdeex(4,trace, "found UC %.4f %.4e", bias, variance);
 		bias		+= pppBias;
 		variance	+= pppVar;
-	}
-	else if (acsConfig.process_network)			/* Ginan 1.x */
-	{
-		double extBias = 0;
-		double extVar = 0;
-		getBiasSinex(trace, time, Sat.id(), Sat, obsCode, type, extBias, extVar);
-		
-		bias		+= extBias;
-		variance	+= extVar;
-	
-		if (bias!=0)
-			tracepdeex(4,trace,"found a-priory");
-	
-		if	(  type == PHAS
-			&& acsConfig.ambrOpts.mode != +E_ARmode::OFF)
-		{
-			double WLNLbias = 0;
-			double WLNLvar = 0;
-			
-			if (!queryBiasWLNL(trace, Sat, Rec, ftyp, WLNLbias, WLNLvar))
-				return false;
-			
-			tracepdeex(4,trace," plus WLNL");
-			
-			bias		+= WLNLbias;
-			variance	+= WLNLvar;
-		}
 	}
 	
 	/* Ionosphere DCB */
 	if	(  type == CODE
 		&& acsConfig.process_ionosphere)
 	{
-		double dcbBias = 0;
-		double dcbVar = 0;
+		double dcbBias	= 0;
+		double dcbVar	= 0;
 		
-		if (!queryBiasDCB(trace, Sat, Rec, ftyp, dcbBias, dcbVar))
+		if (!queryBiasDCB(trace, iono_KFState, Sat, Rec, ftyp, dcbBias, dcbVar))
 			return false;
 		
-		tracepdeex(4,trace," plus DCB");
+		tracepdeex(4,trace, " plus DCB");
 		
 		bias		+= dcbBias;
 		variance	+= dcbVar;

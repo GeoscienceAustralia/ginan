@@ -238,21 +238,34 @@ struct InitialState
 	string	comment;
 };
 
+struct KFStatistics
+{
+	double averageRatio	= 0;
+	double sumOfSquares	= 0;
+};
+
 struct KFState;
 struct KalmanModel;
 struct KFMeasEntry;
-struct KFStatistics;
 
 InitialState initialStateFromConfig(
 	KalmanModel&	kalmanModel,
 	int				index = 0);
 
 typedef std::ostream		Trace;
-typedef vector<KFMeas>		KFMeasList;
-typedef vector<KFMeasEntry>	KFMeasEntryList;
 
-typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, const	KFKey&	key);
-typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, 			int		index);
+struct KFMeasList : vector<KFMeas>
+{
+	
+};
+
+struct KFMeasEntryList : vector<KFMeasEntry>
+{
+	
+};
+
+typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, const	KFKey&	key,	bool postFit);
+typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, 			int		index,	bool postFit);
 
 struct Exponential
 {
@@ -319,10 +332,6 @@ struct KFState_
 
 	map<string, int>	statisticsMap;
 	map<string, int>	statisticsMapSum;
-	
-// 	MatrixXd	Z;										///< Permutation Matrix
-// 	map<KFKey, map<KFKey, double>>						ZTransitionMap;
-// 	map<KFKey, double>									ZAdditionMap;
 };
 
 
@@ -399,10 +408,6 @@ struct KFState : KFState_
 		const	KFKey		key,
 				double&		sigma);
 
-	bool	setKFNoise(
-		const	KFKey		key,
-				double		value);
-	
 	bool	addKFState(
 		const	KFKey			kfKey,
 		const	InitialState	initialState = {});
@@ -536,22 +541,20 @@ struct KFState : KFState_
 	bool	doStateRejectCallbacks(
 		Trace&			trace,
 		KFMeas&			kfMeas,
-		KFKey&			badKey);
+		KFKey&			badKey,
+		bool			postFit);
 
 	bool	doMeasRejectCallbacks(
 		Trace&			trace,
 		KFMeas&			kfMeas,
-		int				badIndex);
+		int				badIndex,
+		bool			postFit);
 
 	void	filterKalman(
 		Trace&					trace,
 		KFMeas&					kfMeas,
 		bool					innovReady			= false,
 		vector<FilterChunk>*	filterChunkList_ptr	= nullptr);
-
-	int		filterLeastSquares(
-		Trace&			trace,
-		KFMeas&			kfMeas);
 
 	void	leastSquareInitStatesA(
 		Trace&			trace,
@@ -766,8 +769,8 @@ struct KFMeasEntry
 };
 
 KFState mergeFilters(
-	vector<KFState*>&	kfStatePointerList,
-	bool				includeTrop = false);
+	const vector<KFState*>&	kfStatePointerList,
+	const vector<KF>&		stateList);
 
 MatrixXi correlationMatrix(
 	MatrixXd& P);

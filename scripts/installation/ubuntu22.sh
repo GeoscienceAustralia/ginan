@@ -67,6 +67,7 @@ $sudo_cmd apt-get install --no-install-recommends --yes \
     libmongoc-dev \
     python3-pip \
 
+
 echo "Creating build directory..."
 mkdir -p /tmp/build
 cd /tmp/build

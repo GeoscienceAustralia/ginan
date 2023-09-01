@@ -2,6 +2,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "summary.hpp"
+#include "station.hpp"
 
 void outputStatistics(
 	Trace&				trace,
@@ -22,8 +23,8 @@ void outputStatistics(
 /** Output statistics from each station.
 * Including observation counts, slips, beginning and ending epochs*/
 void outputSummaries(
-	Trace&					trace,		///< Trace stream to output to
-	map<string, Station>&	stationMap)	///< Map of stations used throughout the program.
+	Trace&		trace,		///< Trace stream to output to
+	StationMap&	stationMap)	///< Map of stations used throughout the program.
 {
 	trace << std::endl << "--------------- SUMMARIES ------------------- " << std::endl;
 
@@ -68,5 +69,4 @@ void outputSummaries(
 		trace << std::endl << "GObs/Slips   : " << rec.obsCount / (rec.slipCount + 1);
 		trace << std::endl;
 	}
-	
 }

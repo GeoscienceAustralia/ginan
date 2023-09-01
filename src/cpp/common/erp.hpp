@@ -108,3 +108,7 @@ void writeErp(
 void writeErpFromNetwork(
 	string		filename,
 	KFState&	kfState);
+	
+
+Matrix3d stationEopPartials(
+	Vector3d&	rRec);

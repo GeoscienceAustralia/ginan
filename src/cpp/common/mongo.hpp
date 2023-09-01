@@ -20,19 +20,15 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <tuple>
 #include <map>
 
 
 using std::string;
 using std::vector;
 using std::deque;
+using std::tuple;
 using std::map;
-
-
-#include "networkEstimator.hpp"
-#include "observations.hpp"
-#include "station.hpp"
-#include "algebra.hpp"
 
 
 struct DBEntry
@@ -113,6 +109,7 @@ struct Mongo
 #define REMOTE_UPDATED		"Updated"
 #define REMOTE_POS			"Pos"
 #define REMOTE_VEL			"Vel"
+#define REMOTE_VAR			"Var"
 #define REMOTE_CLK			"Clk"
 #define REMOTE_CLK_DRIFT	"ClkRate"
 #define REMOTE_STR			"Str"

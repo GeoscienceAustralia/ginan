@@ -14,4 +14,4 @@ def register_routes(app):
     app.register_blueprint(eda_bp)
 
 
-from . import states, measurements, config, errorPages, position, clocks, dbConnection
+from . import states, measurements, config, errorPages, position, clocks, dbConnection, trace

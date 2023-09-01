@@ -8,6 +8,8 @@
 #include "trace.hpp"
 
 
+struct SatPos;
+
 const double ura_ssr[] =
 {
 	0,
@@ -208,7 +210,7 @@ struct SSRSTECData
 struct SSRTropData
 {
 	double acc;
-	map<int,double>	poly;
+	map<int,double>	polyDry;
 	map<int,double>	gridDry;
 	map<int,double>	gridWet;
 };
@@ -227,8 +229,11 @@ struct SSRAtmRegion
 	double maxLon		= 0;
 	double intLon		= 0;
 	
-	int tropPolySize	= 0;
-	int ionoPolySize	= 0;
+	int gridType		= -1;
+	int tropPolySize	= -1;
+	int ionoPolySize	= -1;
+	bool ionoGrid		= true;
+	bool tropGrid		= true;
 	
 				map<GTime,SSRTropData, std::greater<GTime>>		tropData;
 	map<SatSys,	map<GTime,SSRSTECData, std::greater<GTime>>>	stecData;
@@ -346,3 +351,5 @@ bool ssrClkDelta(
 	int&			iodClk,
 	GTime&			validStart,
 	GTime&			validStop);
+
+

@@ -3,16 +3,17 @@
 
 
 #include <fstream>
+#include <vector>
 #include <string>
 #include <list>
 #include <map>
 
+using std::vector;
 using std::string;
 using std::list;
 using std::map;
 
 #include "eigenIncluder.hpp"
-#include "algebra.hpp"
 #include "gTime.hpp"
 #include "enums.h"
 
@@ -598,21 +599,18 @@ struct SinexTropSol
 struct Sinex
 {
 	/* header block */
-	string	snxtype;    /* SINEX file type */
-	double	ver;        /* version */
-	string	create_agc;  /* file creation agency */
-	UYds	filedate; /* file create date as yr:doy:sod */
-	string	data_agc;   /* data source agency */
-	UYds	solution_start_date; // start date of solution 
+	string	snxtype;				/* SINEX file type */
+	double	ver;					/* version */
+	string	create_agc;				/* file creation agency */
+	UYds	filedate;				/* file create date as yr:doy:sod */
+	string	data_agc;				/* data source agency */
+	UYds	solution_start_date;	// start date of solution 
 	UYds	solution_end_date; 
-	char	ObsCode;    /* observation code */
-	int		numparam;         /* number of estimated parameters */
-	char	ConstCode;  /* constraint code */
-	string	solcont;    /* solution types S O E T C A */
+	char	obsCode;				/* observation code */
+	int		numparam;				/* number of estimated parameters */
+	char	constCode;				/* constraint code */
+	string	solcont;				/* solution types S O E T C A */
 	string	markerName;
-
-	KFState	kfState;
-
 	
 	map<string, list<string>>			blockComments;
 	list<string>						refstrings;
@@ -716,12 +714,16 @@ struct SinexSatSnx /* satellite meta data */
 void nearestYear(
 	double&	year);
 
-int readSinex(
+bool readSinex(
 	string	filepath,
 	bool	primary);
 
-bool  writeSinex(
+struct KFState;
+struct Station;
+
+void  writeSinex(
 	string					filepath,
+	KFState&				kfState,
 	map<string, Station>&	stationMap);
 
 struct SinexRecData;
@@ -764,6 +766,7 @@ void updateSinexHeader(
 	const char	obsCode,
 	const char	constCode,
 	string&		contents,
+	int			numParam,
 	double		sinexVer);
 
 void sinexPostProcessing(

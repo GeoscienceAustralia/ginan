@@ -12,7 +12,7 @@ Overall we are aiming to
 * Use short, descriptive variable names
 * Use aliases to reduce clutter.
 
-### Inconcise code - Not recommended
+### Unconcise code - Not recommended
 
 	//check first letter of satellite type against something
 
@@ -180,7 +180,7 @@ bool found = false;         //these have to be declared early so they can be use
 
 for (int i = 0; i < 10; i++)
 {
-    bool pass = someTestFunction();    //this pass variable isnt declared until it's used - good
+    bool pass = someTestFunction();    //this pass variable isn't declared until it's used - good
     if (pass)
     {
         type  = typeMap[i];
@@ -219,7 +219,7 @@ void function(
 * For config parameters, use `lowercase_with_underscores`
 * Use suffixes (`_ptr`, `_arr`, `Map`, `List` etc.) to describe the type of container for complex types.
 * Be sure to provide default values for member variables.
-* Use heirarchical objects where applicable.
+* Use hierarchical objects where applicable.
 
 ```
 struct SubStruct
@@ -256,7 +256,7 @@ if (acsConfig.some_parameter)
 * Do not use 'magic numbers', which require knowledge of other code fragments for comprehension. If a comment is required for explaining what a value means, the code should be rewritten with enums or defined constants. 
 * Do not append `.0` to integer valued doubles unless they are required.
 * Never use `free()`, `malloc()`, or `new` unless it cannot be avoided.
-* Threads create synchronisation issues, they should not be used unless manual synchronisation is never required.
+* Threads create synchronisation issues; they should not be used unless manual synchronisation is never required.
 
 ## Testing
 
@@ -397,7 +397,7 @@ Commonly used std containers may be included with `using`
 ## Code sequencing
 
 The software is to be kept largely sequential - using threads sparingly to limit the overhead of collision avoidance.
-Where possible tasks are completed in parallel using parallelisation libraries to take advantage of all cpu cores in multi-processor systems while still retaining a linear flow through the execution.
+Where possible tasks are completed in parallel using parallelisation libraries to take advantage of all CPU cores in multi-processor systems while still retaining a linear flow through the execution.
 
 Sections of the software that create and modify global objects, such as while reading ephemeris data, will be executed on a single core only. 
 This will ensure that collisions are avoided and the debugging of these functions is deterministic.

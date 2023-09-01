@@ -1,7 +1,7 @@
 
 # Default Configuration
 
-This document outlines the major configuration options available in ginan that are most applicable to general users. For more advanced configuration options and their defaults, use the `-Y <level>` option at the command line to view increasing levels of advanced configurations.
+This document outlines the major configuration options available in Ginan that are most applicable to general users. For more advanced configuration options and their defaults, use the `-Y <level>` option at the command line to view increasing levels of advanced configurations.
 ## satellite_options:
 
 ###### **`satellite_options:`**

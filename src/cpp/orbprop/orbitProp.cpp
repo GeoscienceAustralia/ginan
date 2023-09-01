@@ -6,6 +6,10 @@
 #include <deque>
 #include <map>
 
+#ifdef ENABLE_PARALLELISATION
+	#include "omp.h"
+#endif
+
 using boost::algorithm::to_lower;
 using std::deque;
 using std::map;
@@ -26,6 +30,15 @@ using bsoncxx::builder::stream::open_array;
 using bsoncxx::builder::stream::close_array;
 using bsoncxx::builder::stream::document;
 
+template<typename T>
+T queryVectorElement(
+	vector<T>&	vec, 
+	size_t		index) 
+{
+	if (index < vec.size())	{		return vec[index];		} 
+	else 					{		return vec.back();		}
+}
+
 
 
 void OrbitIntegrator::computeCommon(
@@ -41,23 +54,28 @@ void OrbitIntegrator::computeCommon(
 	{
 		jplEphPos(nav.jplEph_ptr, time, body, planetsPosMap[body], &planetsVelMap[body]);
 	}
-
+    Vector6d dood_arr = IERS2010::doodson(time, erpv.ut1Utc);
 	//Spherical Harmonics
 	if (propagationOptions.egm_field)
-	for (auto& once : {1})
-	{
-		if (egm.initialised == false)
-		{
-			BOOST_LOG_TRIVIAL(warning) << "Warning: EGM data not initialised, check for valid egm file.";
-			
-			break;
-		}
+        /// @todo seb not nice part.
+//	for (auto& once : {1})
+//	{
+//		if (egm.initialised == false)
+//		{
+//			BOOST_LOG_TRIVIAL(warning) << "Warning: EGM data not initialised, check for valid egm file.";
+//
+//			break;
+//		}
 		
 		Cnm = egm.gfctC;
 		Snm = egm.gfctS;
-
+        //QnD fix
+		Cnm_ocean = MatrixXd::Zero(Cnm.rows(), Cnm.cols());
+		Snm_ocean = MatrixXd::Zero(Snm.rows(), Snm.cols());
 		if (propagationOptions.solid_earth_tide)
 		{
+			Instrument instrument("Earth tide");
+			
 			MatrixXd Cnm_solid = MatrixXd::Zero(5, 5);
 			MatrixXd Snm_solid = MatrixXd::Zero(5, 5);
 
@@ -75,27 +93,33 @@ void OrbitIntegrator::computeCommon(
 
 		if (propagationOptions.pole_tide_ocean)
 		{
+			Instrument instrument("Ocean pole tide");
+			
 			IERS2010::poleOceanTide(time, erpv.xp, erpv.yp, Cnm, Snm);
 		}
 
 		if (propagationOptions.pole_tide_solid)
 		{
+			Instrument instrument("Solid tide");
+			
 			IERS2010::poleSolidEarthTide(time, erpv.xp, erpv.yp, Cnm, Snm);
 		}
 
 		if (propagationOptions.ocean_tide)
 		{
+			Instrument instrument("Ocean tide");
+			
 			Vector6d dood_arr = IERS2010::doodson(time, erpv.ut1Utc);
 
-			MatrixXd Cnm_ocean = MatrixXd::Zero(Cnm.rows(), Cnm.cols());
-			MatrixXd Snm_ocean = MatrixXd::Zero(Snm.rows(), Snm.cols());
+//			MatrixXd Cnm_ocean = MatrixXd::Zero(Cnm.rows(), Cnm.cols());
+//			MatrixXd Snm_ocean = MatrixXd::Zero(Snm.rows(), Snm.cols());
 
 			tide.getSPH(dood_arr, Cnm_ocean, Snm_ocean);
 
-			Cnm += Cnm_ocean;
-			Snm += Snm_ocean;
+//			Cnm += Cnm_ocean;
+//			Snm += Snm_ocean;
 		}
-	}
+//	}
 }
 
 
@@ -106,21 +130,23 @@ void OrbitIntegrator::computeAcceleration(
 			Matrix3d&	dAdVel,
 			MatrixXd&	dAdParam)
 {
-	Vector3d rsat = orbInit.pos;
-	Vector3d vsat = orbInit.vel;
+	Vector3d rSat = orbInit.pos;
+	Vector3d vSat = orbInit.vel;
 	
 	const double posOffset = 1e-3;
 	const double velOffset = 1e-6;
 
- 	const	Vector3d satToSun	= planetsPosMap[E_ThirdBody::SUN] - rsat;
- 	const	Vector3d ed 		= satToSun		.normalized();
- 	const	Vector3d er 		= rsat			.normalized();
- 	const	Vector3d ey 		= (ed.cross(er)).normalized();
- 	const	Vector3d eb			= ed.cross(ey);
+	const	Vector3d satToSun	= planetsPosMap[E_ThirdBody::SUN] - rSat;
+	const	Vector3d ed			= satToSun		.normalized();
+	const	Vector3d er			= rSat			.normalized();
+	const	Vector3d ey			= (ed.cross(er)).normalized();
+	const	Vector3d eb			= ed.cross(ey);
+	const	Vector3d en			= (er.cross(vSat)).normalized();
+	const	Vector3d et			= (en.cross(er)).normalized();
 
 	if (propagationOptions.central_force)
 	{
-		Vector3d accCF = accelCentralForce(rsat, GM_values[E_ThirdBody::EARTH], &dAdPos);
+		Vector3d accCF = accelCentralForce(rSat, GM_values[E_ThirdBody::EARTH], &dAdPos);
 	
 // 		orbInit.componentsMap[E_Component::CENTRAL_FORCE] = accCF.norm();
 		
@@ -135,7 +161,7 @@ void OrbitIntegrator::computeAcceleration(
 			continue;
 		}
 		
-		Vector3d accPlanet = accelSourcePoint(rsat, planetPos, GM_values[planet], &dAdPos);
+		Vector3d accPlanet = accelSourcePoint(rSat, planetPos, GM_values[planet], &dAdPos);
 	
 // 		orbInit.componentsMap[E_Component::PLANETARY_PERTURBATION] = accPlanet.norm();
 		
@@ -144,7 +170,7 @@ void OrbitIntegrator::computeAcceleration(
 
 	if (propagationOptions.egm_field)
 	{
-		Vector3d rsatE	= eci2ecf * rsat;
+		Vector3d rsatE	= eci2ecf * rSat;
 		Vector3d accSPH	= accelSPH(rsatE, Cnm, Snm, propagationOptions.degree_max, egm.earthGravityConstant);
 		
 		for (int i = 0; i < 3; i++)
@@ -163,11 +189,33 @@ void OrbitIntegrator::computeAcceleration(
 		acc += eci2ecf.transpose() * accSPH;
 	}
 
+	if (propagationOptions.ocean_tide)
+	{
+		Vector3d rsatE	= eci2ecf * rSat;
+		Vector3d accSPH	= accelSPH(rsatE, Cnm_ocean, Snm_ocean, propagationOptions.degree_max, egm.earthGravityConstant);
+
+		for (int i = 0; i < 3; i++)
+		{
+			Vector3d offset = Vector3d::Zero();
+			offset(i) = posOffset;
+
+			Vector3d posPerturbed = rsatE + offset;
+			Vector3d accPerturbed = accelSPH(posPerturbed, Cnm_ocean, Snm_ocean, propagationOptions.degree_max, egm.earthGravityConstant);
+
+			dAdPos.col(i) += eci2ecf.transpose() * (accPerturbed - accSPH) / posOffset;
+		}
+
+// 		orbInit.componentsMap[E_Component::EGM] = accSPH.norm();
+
+		acc += eci2ecf.transpose() * accSPH;
+	}
+
+
 	if (propagationOptions.indirect_J2)
 	for (const auto body : {E_ThirdBody::SUN, E_ThirdBody::MOON})
 	{
 		Vector3d accJ2 = accelJ2(Cnm(2,0), eci2ecf, planetsPosMap[body], GM_values[body]);
-	
+		
 // 		orbInit.componentsMap[E_Component::INDIRECT_J2] = accJ2.norm();
 		
 		acc += eci2ecf.transpose() * accJ2;
@@ -175,8 +223,8 @@ void OrbitIntegrator::computeAcceleration(
 
 	if (propagationOptions.general_relativity)
 	{
-		Vector3d accRel = IERS2010::relativity(		rsat,
-													vsat,
+		Vector3d accRel = IERS2010::relativity(		rSat,
+													vSat,
 													planetsPosMap[E_ThirdBody::SUN],
 													planetsVelMap[E_ThirdBody::SUN],
 													eci2ecf,
@@ -188,8 +236,8 @@ void OrbitIntegrator::computeAcceleration(
 			Vector3d acc_rel_part	= Vector3d::Zero();
 
 			offset(i) = posOffset;
-			acc_rel_part = IERS2010::relativity(	rsat + offset,
-													vsat,
+			acc_rel_part = IERS2010::relativity(	rSat + offset,
+													vSat,
 													planetsPosMap[E_ThirdBody::SUN],
 													planetsVelMap[E_ThirdBody::SUN],
 													eci2ecf,
@@ -198,8 +246,8 @@ void OrbitIntegrator::computeAcceleration(
 			dAdPos.col(i) += (acc_rel_part - accRel) / posOffset;
 
 			offset(i) = velOffset;
-			acc_rel_part = IERS2010::relativity(	rsat,
-													vsat + offset,
+			acc_rel_part = IERS2010::relativity(	rSat,
+													vSat + offset,
 													planetsPosMap[E_ThirdBody::SUN],
 													planetsVelMap[E_ThirdBody::SUN],
 													eci2ecf,
@@ -215,14 +263,14 @@ void OrbitIntegrator::computeAcceleration(
 
 	if (propagationOptions.antenna_thrust)
 	{
-		Vector3d accAnt = orbInit.satPower / (orbInit.satMass * CLIGHT) * rsat.normalized();
+		Vector3d accAnt = orbInit.satPower / (orbInit.satMass * CLIGHT) * rSat.normalized();
 
 		for (int i = 0; i < 3; i++)
 		{
 			Vector3d offset = Vector3d::Zero();
 			offset(i) = posOffset;
 
-			Vector3d acc_pert = orbInit.satPower / (orbInit.satMass * CLIGHT) * (rsat + offset).normalized();
+			Vector3d acc_pert = orbInit.satPower / (orbInit.satMass * CLIGHT) * (rSat + offset).normalized();
 
 			dAdPos.col(i) += (acc_pert - accAnt) / posOffset;
 		}
@@ -232,14 +280,14 @@ void OrbitIntegrator::computeAcceleration(
 		acc += accAnt;
 	}
 
-	if (propagationOptions.solar_pressure_radiation)
+	if (propagationOptions.solar_radiation_pressure)
 	{
 		double P0			= 4.56e-6;
 		double Cr			= propagationOptions.srp_cr;
 		double A			= propagationOptions.sat_area;
 		double m			= orbInit.satMass;
 
-		double eclipseFrac	= sunVisibility(rsat, planetsPosMap[E_ThirdBody::SUN], planetsPosMap[E_ThirdBody::MOON]);
+		double eclipseFrac	= sunVisibility(rSat, planetsPosMap[E_ThirdBody::SUN], planetsPosMap[E_ThirdBody::MOON]);
 		double scalar		= P0 * Cr * A / m * SQR(AU) * eclipseFrac / satToSun.squaredNorm();
 		double R			= satToSun.norm();
 
@@ -262,50 +310,52 @@ void OrbitIntegrator::computeAcceleration(
 		double Ae			= M_PI * SQR(RE_WGS84);
 		Vector3d rSun		= planetsPosMap[E_ThirdBody::SUN];
 
-		double E_IR 		= (1 - alpha) / (4 * PI) * Ae * E / rsat.squaredNorm();
+		double E_IR 		= (1 - alpha) / (4 * PI) * Ae * E / rSat.squaredNorm();
 
-		double cos_		= rsat.dot(rSun) / (rsat.norm() * rSun.norm());
+		double cos_		= rSat.dot(rSun) / (rSat.norm() * rSun.norm());
 		double phi		= acos(cos_);
 		double sin_		= sin(phi);
-		double E_Vis	= 2 * alpha / (3 * SQR(PI)) * Ae * E / rsat.squaredNorm() * ((PI - phi) * cos_ + sin_);
+		double E_Vis	= 2 * alpha / (3 * SQR(PI)) * Ae * E / rSat.squaredNorm() * ((PI - phi) * cos_ + sin_);
 	
-		Vector3d accAlbedo = A / m * (E_Vis + E_IR)  / CLIGHT * cBall * rsat.normalized();
+		Vector3d accAlbedo = A / m * (E_Vis + E_IR)  / CLIGHT * cBall * rSat.normalized();
 		
 // 		orbInit.componentsMap[E_Component::ALBEDO] = accAlbedo.norm();
 		
 		acc += accAlbedo;
 	}
 
-	if (propagationOptions.empirical_dyb)
+	if (propagationOptions.empirical)
 	{
 		double scalef		= SQR(AU) / satToSun.squaredNorm();
-		double eclipseFrac	= sunVisibility(rsat, planetsPosMap[E_ThirdBody::SUN], planetsPosMap[E_ThirdBody::MOON]);
+		double eclipseFrac	= sunVisibility(rSat, planetsPosMap[E_ThirdBody::SUN], planetsPosMap[E_ThirdBody::MOON]);
 
-		double srpScalar	= eclipseFrac * scalef;
-		
-		vector<Vector3d> axis = {ed, ey, eb};
+		// double srpScalar	= eclipseFrac * scalef;
+		// srpScale = scalef;
+        double scaling = 1e-9;
+		vector<Vector3d> axis = {ed*scalef, ey*scalef, eb*scalef, er, et, en};
+		for (auto & ax : axis)
+		{
+			ax *= scaling;
+		}
 
 		Vector3d& rSun = planetsPosMap[E_ThirdBody::SUN];
-		Vector3d z = (rsat	.cross(vsat))	.normalized();
+		Vector3d z = (rSat	.cross(vSat))	.normalized();
 		Vector3d y = (z		.cross(rSun))	.normalized();
 		Vector3d x = (y		.cross(z))		.normalized();
 
-		double du = atan2(rsat.transpose() * y, rsat.transpose() * x);
+		double du = atan2(rSat.transpose() * y, rSat.transpose() * x);
 
 		Vector3d accEmp = Vector3d::Zero();
 	
 		for (int i = 0; i < orbInit.empInput.size(); i++)
 		{
 			auto& empdata = orbInit.empInput[i];
-			
-			double scalar = 1;
-			
-			if (empdata.srpScaled)
+			double ecl = 1;
+			if (empdata.eclipsing)
 			{
-				scalar = srpScalar;
+				ecl = eclipseFrac;
 			}
-			
-			dAdParam.col(i) = axis[empdata.axisId] * scalar;
+			dAdParam.col(i) = axis[empdata.axisId] * ecl;
 			
 			if		(empdata.type == +E_TrigType::COS)		dAdParam.col(i) *= cos(empdata.deg * du);
 			else if	(empdata.type == +E_TrigType::SIN)		dAdParam.col(i) *= sin(empdata.deg * du);
@@ -326,6 +376,10 @@ void OrbitIntegrator::operator()(
 {
 	computeCommon(timeOffset);
 
+#	ifdef ENABLE_PARALLELISATION
+		Eigen::setNbThreads(1);
+#		pragma omp parallel for
+#	endif
 	for (int i = 0; i < orbInits.size(); i++)
 	{
 		Matrix6d A			= Matrix6d::Zero();
@@ -333,6 +387,11 @@ void OrbitIntegrator::operator()(
 	
 		auto& orbInit	= orbInits	[i];
 		auto& orbUpdate	= orbUpdates[i];
+		
+		if (orbInit.exclude)
+		{
+			continue;
+		}
 		
 		int nparam = orbInit.empnum;
 
@@ -373,6 +432,11 @@ void integrateOrbits(
 	double	dt			= dtRequested;
 	int		steps		= round(integrationPeriod / dt);
 	double	remainder	= fmod (integrationPeriod, dtRequested);
+	
+	if (steps == 0)
+	{
+		steps = 1;
+	}
 	
 	if (remainder != 0) 
 	{
@@ -454,6 +518,18 @@ Orbits prepareOrbits(
 		
 		orbits.emplace_back(OrbitState{.Sat = kfKey.Sat, .str = kfKey.str});
 	}
+	
+// 	std::cout << acsConfig.orbitPropagation.empirical_dyb_eclipse.size() << " " << acsConfig.orbitPropagation.empirical_rtn_eclipse.size() << "\n";
+	
+	vector<bool> eclipse;
+	for (int i = 0; i < 3; i++)
+	{
+		eclipse.push_back(queryVectorElement(acsConfig.orbitPropagation.empirical_dyb_eclipse, i));
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		eclipse.push_back(queryVectorElement(acsConfig.orbitPropagation.empirical_rtn_eclipse, i));
+	}
 
 	for (auto& orbit : orbits)
 	{
@@ -471,31 +547,39 @@ Orbits prepareOrbits(
 			
 			switch (subKey.type)
 			{
-				case KF::EMP_DYB_0:		{ orbit.empInput.emplace_back(EMP{false,	0, subKey.num, E_TrigType::CONSTANT,	subState.x(index)}); break;}
-				case KF::EMP_DYB_1C:	{ orbit.empInput.emplace_back(EMP{false,	1, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_DYB_1S:	{ orbit.empInput.emplace_back(EMP{false,	1, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_DYB_2C:	{ orbit.empInput.emplace_back(EMP{false,	2, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_DYB_2S:	{ orbit.empInput.emplace_back(EMP{false,	2, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_DYB_3C:	{ orbit.empInput.emplace_back(EMP{false,	3, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_DYB_3S:	{ orbit.empInput.emplace_back(EMP{false,	3, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_DYB_4C:	{ orbit.empInput.emplace_back(EMP{false,	4, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_DYB_4S:	{ orbit.empInput.emplace_back(EMP{false,	4, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_DYB_0:		{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num], 	0, subKey.num, E_TrigType::CONSTANT,	subState.x(index)}); break;}
+				case KF::EMP_DYB_1C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	1, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
+				case KF::EMP_DYB_1S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	1, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_DYB_2C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	2, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
+				case KF::EMP_DYB_2S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	2, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_DYB_3C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	3, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
+				case KF::EMP_DYB_3S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	3, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_DYB_4C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	4, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
+				case KF::EMP_DYB_4S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	4, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
 				
-				case KF::SRP_DYB_0:		{ orbit.empInput.emplace_back(EMP{true,		0, subKey.num, E_TrigType::CONSTANT,	subState.x(index)}); break;}
-				case KF::SRP_DYB_1C:	{ orbit.empInput.emplace_back(EMP{true,		1, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::SRP_DYB_1S:	{ orbit.empInput.emplace_back(EMP{true,		1, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::SRP_DYB_2C:	{ orbit.empInput.emplace_back(EMP{true,		2, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::SRP_DYB_2S:	{ orbit.empInput.emplace_back(EMP{true,		2, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::SRP_DYB_3C:	{ orbit.empInput.emplace_back(EMP{true,		3, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::SRP_DYB_3S:	{ orbit.empInput.emplace_back(EMP{true,		3, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::SRP_DYB_4C:	{ orbit.empInput.emplace_back(EMP{true,		4, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::SRP_DYB_4S:	{ orbit.empInput.emplace_back(EMP{true,		4, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_RTN_0:		{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	0, 3+subKey.num, E_TrigType::CONSTANT,	subState.x(index)}); break;}
+				case KF::EMP_RTN_1C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	1, 3+subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
+				case KF::EMP_RTN_1S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	1, 3+subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_RTN_2C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	2, 3+subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
+				case KF::EMP_RTN_2S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	2, 3+subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_RTN_3C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	3, 3+subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
+				case KF::EMP_RTN_3S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	3, 3+subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_RTN_4C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	4, 3+subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
+				case KF::EMP_RTN_4S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	4, 3+subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+
 				default:				{ break;}
 			}
 		}
 		
-		orbit.pos		= orbit.subState.x.head	(3);
-		orbit.vel		= orbit.subState.x.segment(3, 3);
+		orbit.pos		= orbit.subState.x.head		(3);
+		orbit.vel		= orbit.subState.x.segment	(3, 3);
+		
+		if (orbit.pos.isZero())
+		{
+			orbit.exclude = true;
+			continue;
+		}
+		
 		orbit.posVelSTM	= MatrixXd::Identity(6, orbit.subState.kfIndexMap.size());
 		
 		orbit.empnum	= orbit.empInput.size();
@@ -523,7 +607,6 @@ Orbits prepareOrbits(
 			
 			orbit.satMass = firstMass.mass;
 		}
-		
 	}
 
 	return orbits;
@@ -542,6 +625,11 @@ void applyOrbits(
 	
 	for (auto& orbit : orbits)
 	{
+		if (orbit.exclude)
+		{
+			continue;
+		}
+		
 		auto& subState = orbit.subState;
 		
 		Vector6d inertialState;
@@ -574,7 +662,7 @@ void applyOrbits(
 		//calculate the state error between the linearly transitioned filter state, and the orbit propagated states.
 		Vector6d deltaState			= inertialState 
 									- subState.x.head(6);
-		
+									
 		//We should ensure that the state transition is smooth, without bulk adjustments or 'setting' the state
 		//add per-time adjusting state transitions to implement an addition of the shortfall delta calculated above
 		Vector6d deltaStatePerSec	= deltaState / tgap;
@@ -611,6 +699,13 @@ void predictOrbits(
 	
 	Orbits orbits = prepareOrbits(trace, kfState);
 	
+	if (orbits.empty())
+	{
+		return;
+	}
+	
+	BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING ORBITS           --------" << std::endl;
+	
 	OrbitIntegrator integrator;
 	integrator.timeInit				= kfState.time;
 	integrator.propagationOptions	= acsConfig.orbitPropagation;
@@ -634,11 +729,15 @@ void addKFSatEMPStates(
 		
 		if (init.estimate)
 		{
+			
 			KFKey empKey;
 			empKey.type		= kfType;
-			empKey.Sat		= id.c_str();
 			empKey.num		= i;
 			empKey.comment	= init.comment;
+			
+			SatSys Sat = id.c_str();
+			if (Sat.prn)	empKey.Sat		= id.c_str();
+			else			empKey.str		= id;
 			
 			kfState.addKFState(empKey, init);
 		}
@@ -673,6 +772,16 @@ void outputOrbitConfig(
 				KF::EMP_DYB_3S,
 				KF::EMP_DYB_4C,
 				KF::EMP_DYB_4S,	
+
+				KF::EMP_RTN_0,
+				KF::EMP_RTN_1C,
+				KF::EMP_RTN_1S,
+				KF::EMP_RTN_2C,
+				KF::EMP_RTN_2S,
+				KF::EMP_RTN_3C,
+				KF::EMP_RTN_3S,
+				KF::EMP_RTN_4C,
+				KF::EMP_RTN_4S,	
 			})
 		{
 			int n = 3;

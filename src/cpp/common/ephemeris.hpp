@@ -535,3 +535,7 @@ bool satClkSSR(
 	GTime			teph,
 	SatPos&			satPos,
 	Navigation&		nav);
+
+double relativity1(
+	Vector3d&			rSat,
+	Vector3d&			satVel);

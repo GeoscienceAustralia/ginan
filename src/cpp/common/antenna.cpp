@@ -4,11 +4,15 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <fstream>
+
+using std::ifstream;
 
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
 #include "constants.hpp"
+#include "acsConfig.hpp"
 #include "antenna.hpp"
 #include "common.hpp"
 #include "enums.h"
@@ -201,32 +205,79 @@ Vector3d antPco(
 	
 	auto& [dummy0, pcoSysFreqMap] = *it0;
 	
-	auto it1 = pcoSysFreqMap.find(sys);
-	if (it1 == pcoSysFreqMap.end())
+	vector<E_Sys>	testSyss	= {sys};
+	vector<E_FType>	testFts		= {ft};
+	
+	if (acsConfig.auto_fill_pco)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys;
+		testSyss.push_back(E_Sys::GPS);
+		testFts	.push_back(F2);
+	}
 		
+	bool found = false;
+	
+	E_Sys foundTestSys;
+	for (auto testSys : testSyss)
+	{
+		auto it1 = pcoSysFreqMap.find(testSys);
+		if (it1 == pcoSysFreqMap.end())
+		{
+			BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << testSys;
+			
+			continue;
+		}
+		
+		foundTestSys	= testSys;
+		found			= true;
+		break;
+	}
+	
+	if (found == false)
+	{
 		return Vector3d::Zero();
 	}
 	
-	auto& [dummy1, pcoFreqMap] = *it1;
+	auto& pcoFreqMap = pcoSysFreqMap[foundTestSys];
 	
+	found = false;
 	
-	auto it2 = pcoFreqMap.find(ft);
-	if (it2 == pcoFreqMap.end())
+	E_FType foundTestFt;
+	for (auto testFt : testFts)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys << " L" << ft;
+		auto it2 = pcoFreqMap.find(testFt);
+		if (it2 == pcoFreqMap.end())
+		{
+			BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << foundTestSys << " L" << testFt;
+			
+			if (interp == false)
+				continue;
+			
+			Vector3d madePCO = makeAntPco(id, foundTestSys, testFt, time, var, radio);
+			
+			if (madePCO.isZero() == false)
+			{
+				return madePCO;
+			}
+			
+			continue;
+		}
 		
-		if (interp) return makeAntPco(id, sys, ft, time, var, radio);
-		else		return Vector3d::Zero();
+		foundTestFt	= testFt;
+		found		= true;
+		break;
 	}
 	
-	auto& [dummy2, pcoTimeMap] = *it2;
+	if (found == false)
+	{
+		return Vector3d::Zero();
+	}
+	
+	auto& pcoTimeMap = pcoFreqMap[foundTestFt];
 	
 	auto it3 = pcoTimeMap.lower_bound(time);
 	if (it3 == pcoTimeMap.end())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys << " L" << ft << " at " << time;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << foundTestSys << " L" << foundTestFt << " at " << time;
 		return Vector3d::Zero();
 	}
 	
@@ -407,42 +458,41 @@ map<string, E_FType> antexCodes =
 
 /** Read antex file
  */
-int readantexf(
-	string		file,
+void readantexf(
+	string		filepath,
 	Navigation&	nav)
 {
-	int offset;
-	int noazi_flag		= 0;
-	int num_azi_rd		= 0;
-	int new_antenna		= 0;
-	int irms			= 0;
+	bool	noazi_flag		= false;
+	int		num_azi_rd		= 0;
+	int		irms			= 0;
 
-	char tmp[10];
-	char *p;
-
-	FILE* fp = fopen(file.c_str(),"r");
-	if (fp == nullptr)
+	ifstream fileStream(filepath);
+	if (!fileStream)
 	{
-		BOOST_LOG_TRIVIAL(warning)
-		<< "Warning: ANTEX file opening error";
-
-		return 0;
+		BOOST_LOG_TRIVIAL(error)
+		<< "Error opening antex file" << filepath << std::endl;
+		return;
 	}
 
-	const PhaseCenterData pcv0 = {};
-	PhaseCenterData recPcv;
-	PhaseCenterData freqPcv;
-	VectorEnu	recPco;
-	Vector3d	satPco = Vector3d::Zero();
-	string		id;
-	GTime		time;
+	const PhaseCenterData	pcv0 = {};
+	PhaseCenterData			recPcv;
+	PhaseCenterData			freqPcv;
+	VectorEnu				recPco;
+	Vector3d				satPco = Vector3d::Zero();
+	string					id;
+	GTime					time;
 	
 	E_FType	ft	= FTYPE_NONE;
 	E_Sys	sys	= E_Sys::NONE;
 
-	char buff[512];
-	while (fgets(buff, sizeof(buff), fp))
+	while (fileStream)
 	{
+		string line;
+		
+		getline(fileStream, line);
+
+		char* buff = &line[0];
+	
 		char* comment = buff + 60;
 
 		if (irms) 
@@ -497,6 +547,7 @@ int readantexf(
 		
 		if (strstr(comment, "DAZI"))
 		{
+			char tmp[10];
 			strncpy(tmp,buff   ,8);		tmp[8] = '\0';
 			recPcv.aziDelta = atof(tmp);
 
@@ -532,6 +583,7 @@ int readantexf(
 		
 		if (strstr(comment, "ZEN1 / ZEN2 / DZEN"))
 		{
+			char tmp[10];
 			strncpy(tmp, buff,		8);	tmp[8] = '\0'; 	recPcv.zenStart	= atof(tmp);
 			strncpy(tmp, buff+8,	7);	tmp[8] = '\0'; 	recPcv.zenStop	= atof(tmp);
 			strncpy(tmp, buff+16,	7);	tmp[8] = '\0'; 	recPcv.zenDelta	= atof(tmp);
@@ -552,11 +604,10 @@ int readantexf(
 		
 		if (strstr(comment, "VALID FROM"))
 		{
-			char valid_from[44];
 			/* if (!str2time(buff,0,43,pcv.ts)) continue;*/
-			strncpy(valid_from, buff, 43);
-			valid_from[43] = '\0';
-			p = strtok(valid_from, " ");
+			char valid_from[44];
+			strncpy(valid_from, buff, 43);	valid_from[43] = '\0';
+			char* p = strtok(valid_from, " ");
 			int j = 0;
 			while (p != nullptr)
 			{
@@ -572,11 +623,10 @@ int readantexf(
 		
 		if (strstr(comment, "VALID UNTIL"))
 		{
-			char valid_until[44];
 			/* if (!str2time(buff,0,43,pcv.te)) continue;*/
-			strncpy(valid_until, buff   ,43);
-			valid_until[43] = '\0';
-			p = strtok(valid_until, " ");
+			char valid_until[44];
+			strncpy(valid_until, buff   ,43);	valid_until[43] = '\0';
+			char* p = strtok(valid_until, " ");
 			int j = 0;
 			while (p != nullptr)
 			{
@@ -610,7 +660,7 @@ int readantexf(
 		if (strstr(comment, "START OF FREQUENCY"))
 		{
 			num_azi_rd = 0;
-			noazi_flag = 0;
+			noazi_flag = false;
 
 			string antexFCode;
 			antexFCode.assign(&buff[3], 3);
@@ -625,7 +675,7 @@ int readantexf(
 		
 		if (strstr(comment, "END OF FREQUENCY"))
 		{	
-			noazi_flag	= 0;	
+			noazi_flag	= false;	
 			
 			nav.pcvMap[id][sys][ft][time]			= freqPcv;
 			nav.pcoMap[id][sys][ft][time].recPco	= recPco;
@@ -648,29 +698,28 @@ int readantexf(
 		{
 			for (int i = 0; i < recPcv.nz; i++)
 			{
-				offset = i * 8 + 8;
-				strncpy(tmp, buff + offset, 8);
-				tmp[8]='\0';
+				int offset = i * 8 + 8;
+				char tmp[10];
+				strncpy(tmp, buff + offset, 8);		tmp[8]='\0';
 				double pcv_val = atof(tmp);
 				freqPcv.elMap.push_back(pcv_val * 1e-3);
 			}
 			
-			noazi_flag = 1;
+			noazi_flag = true;
 			
 			continue;
 		}
 		
 		if	(  irms == 0
-			&& noazi_flag == 1)
+			&& noazi_flag)
 		{
-			strncpy(tmp, buff, 8);
-			tmp[8]='\0';
+			char tmp[10];
+			strncpy(tmp, buff, 8);			tmp[8]='\0';
 
 			for (int i = 0; i < recPcv.nz; i++)
 			{
-				offset = i * 8 + 8;
-				strncpy(tmp, buff + offset, 8);
-				tmp[8]='\0';
+				int offset = i * 8 + 8;
+				strncpy(tmp, buff + offset, 8);		tmp[8]='\0';
 				double pcv_val = atof(tmp);
 				freqPcv.azElMap[num_azi_rd].push_back(pcv_val * 1e-3);
 			}
@@ -679,8 +728,4 @@ int readantexf(
 			continue;
 		}
 	}
-
-	fclose(fp);
-
-	return 1;
 }

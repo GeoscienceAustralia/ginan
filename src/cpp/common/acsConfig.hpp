@@ -74,12 +74,16 @@ bool isInited(
 */
 struct InputOptions
 {
+	string			inputs_root		= ".";
+	string			gnss_obs_root	= "<INPUTS_ROOT>";
+	string			pseudo_obs_root	= "<INPUTS_ROOT>";
+	string			sat_data_root	= "<INPUTS_ROOT>";
+	
 	vector<string>	atx_files;
 	vector<string>	snx_files;
 	vector<string>	blq_files;
                        
 	vector<string>	nav_files;
-	vector<string>	orb_files;
 	vector<string>	sp3_files;
 	vector<string>	clk_files;
 	vector<string>	obx_files;
@@ -107,7 +111,9 @@ struct InputOptions
 	vector<string> egm_files;
 	vector<string> jpl_files;
 	vector<string> tide_files;
-	
+	vector<string> cmc_files;
+	vector<string> hfeop_files;
+
 	string stream_user			= "";
 	string stream_pass			= "";
 };
@@ -127,6 +133,8 @@ struct IonexOptions
 */
 struct OutputOptions
 {
+	string	outputs_root				= ".";
+	
 	int		fatal_level					= 0;
 	double	rotate_period				= 60*60*24;
 	
@@ -135,33 +143,33 @@ struct OutputOptions
 	bool	output_network_trace		= false;
 	bool	output_satellite_trace		= false;
 	bool	output_json_trace			= false;
-	string	trace_directory				= "./";
-	string	station_trace_filename		= "<STATION>-<LOGTIME>.trace";
-	string	network_trace_filename		= "<STATION>-<LOGTIME>.trace";
-	string	satellite_trace_filename	= "<STATION>-<LOGTIME>.trace";
+	string	trace_directory				= "<OUTPUTS_ROOT>";
+	string	station_trace_filename		= "<TRACE_DIRECTORY>/<STATION>-<LOGTIME>.trace";
+	string	network_trace_filename		= "<TRACE_DIRECTORY>/<STATION>-<LOGTIME>.trace";
+	string	satellite_trace_filename	= "<TRACE_DIRECTORY>/<STATION>-<LOGTIME>.trace";
 
 	bool	record_raw_ubx				= false;
-	string	raw_ubx_directory			= "./";
-	string	raw_ubx_filename			= "<STATION>-<LOGTIME>-OBS.rtcm";
+	string	raw_ubx_directory			= "<OUTPUTS_ROOT>";
+	string	raw_ubx_filename			= "<UBX_DIRECTORY>/<STATION>-<LOGTIME>-OBS.rtcm";
 
 	bool	record_rtcm_obs				= false;
 	bool	record_rtcm_nav				= false;
-	string	rtcm_obs_directory			= "./";
-	string	rtcm_nav_directory			= "./";
-	string  rtcm_obs_filename			= "<STATION>-<LOGTIME>-OBS.rtcm";
-	string  rtcm_nav_filename			= "<STREAM>-<LOGTIME>-NAV.rtcm";
+	string	rtcm_obs_directory			= "<OUTPUTS_ROOT>";
+	string	rtcm_nav_directory			= "<OUTPUTS_ROOT>";
+	string  rtcm_obs_filename			= "<RTCM_OBS_DIRECTORY>/<STATION>-<LOGTIME>-OBS.rtcm";
+	string  rtcm_nav_filename			= "<RTCM_NAV_DIRECTORY>/<STREAM>-<LOGTIME>-NAV.rtcm";
 
 	bool	output_log					= false;
-	string	log_directory	         	= "./";
-	string  log_filename				= "log-<LOGTIME>.json";
+	string	log_directory	         	= "<OUTPUTS_ROOT>";
+	string  log_filename				= "<LOG_DIRECTORY>/log-<LOGTIME>.json";
 
 	bool	output_ntrip_log			= false;
-	string	ntrip_log_directory			= "./";
-	string  ntrip_log_filename			= "ntrip_log-<LOGTIME>.json";
+	string	ntrip_log_directory			= "<OUTPUTS_ROOT>";
+	string  ntrip_log_filename			= "<NTRIP_LOG_DIRECTORY>/ntrip_log-<LOGTIME>.json";
 
 	bool	output_gpx					= false;
-	string	gpx_directory	         	= "./";
-	string  gpx_filename				= "<STATION>-<LOGTIME>.gpx";
+	string	gpx_directory	         	= "<OUTPUTS_ROOT>";
+	string  gpx_filename				= "<GPX_DIRECTORY>/<STATION>-<LOGTIME>.gpx";
 
 	bool	output_residuals 			= false;
 	bool	output_residual_chain		= true;
@@ -172,9 +180,8 @@ struct OutputOptions
 	bool				output_clocks 				= false;
 	vector<E_Source>	clocks_receiver_sources  	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>	clocks_satellite_sources 	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
-	string				clocks_directory			= "./";
-	string				clocks_filename				= "<CONFIG>-<LOGTIME>_<SYS>.clk";
-	bool				output_ar_clocks			= false;		//todo aaron this config sucks
+	string				clocks_directory			= "<OUTPUTS_ROOT>";
+	string				clocks_filename				= "<CLOCKS_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.clk";
 
 	bool				output_sp3 					= false;
 	bool				output_predicted_orbits 	= false;
@@ -183,23 +190,23 @@ struct OutputOptions
 	vector<E_Source>	sp3_orbit_sources 			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>	sp3_clock_sources 			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	int					sp3_output_interval			= 900;
-	string				sp3_directory				= "./";
-	string				sp3_filename				= "<CONFIG>-<LOGTIME>_<SYS>-Filt.sp3";
-	string				predicted_sp3_filename		= "<CONFIG>-<LOGTIME>_<SYS>-Prop.sp3";
+	string				sp3_directory				= "<OUTPUTS_ROOT>";
+	string				sp3_filename				= "<SP3_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>-Filt.sp3";
+	string				predicted_sp3_filename		= "<SP3_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>-Prop.sp3";
 	
 	bool				output_orbex 				= false;
 	vector<E_Source>	orbex_orbit_sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>	orbex_clock_sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>	orbex_attitude_sources 		= {E_Source::NOMINAL};
-	string				orbex_directory				= "./";
-	string				orbex_filename				= "<CONFIG>-<LOGTIME>_<SYS>.obx";
+	string				orbex_directory				= "<OUTPUTS_ROOT>";
+	string				orbex_filename				= "<ORBEX_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.obx";
 	vector<string>		orbex_record_types			= { "ATT" };
 
 	bool	split_sys					= false;
 
 	bool	output_rinex_obs			= false;
-	string	rinex_obs_directory			= "./";
-	string	rinex_obs_filename			= "<STATION>-<LOGTIME>_<SYS>.<YY>O";
+	string	rinex_obs_directory			= "<OUTPUTS_ROOT>";
+	string	rinex_obs_filename			= "<RINEX_OBS_DIRECTORY>/<STATION>-<LOGTIME>_<SYS>.<YY>O";
 	double	rinex_obs_version			= 3.05;
 	bool	rinex_obs_print_C_code		= true;
 	bool	rinex_obs_print_L_code		= true;
@@ -207,40 +214,40 @@ struct OutputOptions
 	bool	rinex_obs_print_S_code 		= true;
 	
 	bool	output_ppp_sol 				= false;
-	string	ppp_sol_directory			= "./";
-	string	ppp_sol_filename			= "<STATION><YYYY><DDD><HH>.pppsol";
+	string	ppp_sol_directory			= "<OUTPUTS_ROOT>";
+	string	ppp_sol_filename			= "<PPP_SOL_DIRECTORY>/<STATION><YYYY><DDD><HH>.pppsol";
 
 	bool	output_ionex 				= false;
-	string	ionex_directory				= "./";
-	string	ionex_filename				= "<CONFIG>-<LOGTIME>.INX";
+	string	ionex_directory				= "<OUTPUTS_ROOT>";
+	string	ionex_filename				= "<IONEX_DIRECTORY>/<CONFIG>-<LOGTIME>.INX";
 	IonexOptions	ionexGrid;
 
 	bool	output_rinex_nav			= false;
-	string	rinex_nav_directory			= "./";
-	string	rinex_nav_filename			= "<CONFIG>-<LOGTIME>_nav_<SYS>.rnx";
+	string	rinex_nav_directory			= "<OUTPUTS_ROOT>";
+	string	rinex_nav_filename			= "<RINEX_NAV_DIRECTORY>/<CONFIG>-<LOGTIME>_nav_<SYS>.rnx";
 	double	rinex_nav_version			= 3.05;
 
 	bool	output_ionstec				= false;
-	string	ionstec_directory			= "./";
-	string	ionstec_filename			= "<CONFIG>-<LOGTIME>.STEC";
+	string	ionstec_directory			= "<OUTPUTS_ROOT>";
+	string	ionstec_filename			= "<IONSTEC_DIRECTORY>/<CONFIG>-<LOGTIME>.STEC";
 
 	bool	output_erp						= false;
-	string	erp_directory					= "./";
-	string	erp_filename					= "<CONFIG>-<LOGTIME>.ERP";
+	string	erp_directory					= "<OUTPUTS_ROOT>";
+	string	erp_filename					= "<ERP_DIRECTORY>/<CONFIG>-<LOGTIME>.ERP";
 
 	bool				output_bias_sinex		= false;
-	string				bias_sinex_directory	= "./";
-	string				bias_sinex_filename		= "<CONFIG>-<LOGTIME>.BIA";
+	string				bias_sinex_directory	= "<OUTPUTS_ROOT>";
+	string				bias_sinex_filename		= "<BIAS_SINEX_DIRECTORY>/<CONFIG>-<LOGTIME>.BIA";
 	string				bias_time_system		= "G";
 
 	bool				output_sinex			= false;
-	string 				sinex_directory			= "./";
-	string				sinex_filename			= "<CONFIG>-<LOGTIME>.snx";
+	string 				sinex_directory			= "<OUTPUTS_ROOT>";
+	string				sinex_filename			= "<SINEX_DIRECTORY>/<CONFIG>-<LOGTIME>.snx";
 
 	bool				output_trop_sinex		= false;
 	vector<E_Source>	trop_sinex_data_sources	= {E_Source::KALMAN};
-	string				trop_sinex_directory	= "./";
-	string				trop_sinex_filename		= "<CONFIG>-<LOGTIME>.tro";
+	string				trop_sinex_directory	= "<OUTPUTS_ROOT>";
+	string				trop_sinex_filename		= "<TROP_SINEX_DIRECTORY>/<CONFIG>-<LOGTIME>.tro";
 	string				trop_sinex_sol_type		= "Solution parameters";
 	char				trop_sinex_obs_code		= 'P';
 	char				trop_sinex_const_code	= ' ';
@@ -249,8 +256,8 @@ struct OutputOptions
 
 	bool				output_cost			= false;
 	vector<E_Source>	cost_data_sources	= {E_Source::KALMAN};
-	string				cost_directory		= "./";
-	string				cost_filename		= "cost_s_t_<LOGTIME>_<STATION>_ga__.dat";
+	string				cost_directory		= "<OUTPUTS_ROOT>";
+	string				cost_filename		= "<COST_DIRECTORY>/cost_s_t_<LOGTIME>_<STATION>_ga__.dat";
 	int					cost_time_interval	= 900;
 	string				cost_format			= "COST-716 V2.2";
 	string				cost_project		= "GA-NRT";
@@ -260,19 +267,13 @@ struct OutputOptions
 	string				cost_orbit_type		= "IGSPRE";
 	string				cost_met_source		= "NONE";
 
-
-	bool	output_persistance			= false;
-	bool	input_persistance			= false;
-	string 	persistance_directory		= "./";
-	string	persistance_filename		= "<CONFIG>.persist";
-
 	bool	output_slr_obs				= false;
-	string 	slr_obs_directory			= "./";
-	string 	slr_obs_filename			= "<STATION>.slr_obs";
+	string 	slr_obs_directory			= "<OUTPUTS_ROOT>";
+	string 	slr_obs_filename			= "<SLR_OBS_DIRECTORY>/<STATION>.slr_obs";
 	
 	bool	output_orbit_ics			= false;
-	string	orbit_ics_directory			= "./";
-	string	orbit_ics_filename			= "<CONFIG>-<LOGTIME>-orbits.yaml";
+	string	orbit_ics_directory			= "<OUTPUTS_ROOT>";
+	string	orbit_ics_filename			= "<ORBIT_ICS_DIRECTORY>/<CONFIG>-<LOGTIME>-orbits.yaml";
 
 	
 	bool	enable_binary_store			= false;
@@ -285,19 +286,16 @@ struct OutputOptions
 	}
 
 	bool	output_decoded_rtcm_json	= false;
-	string 	decoded_rtcm_json_directory	= "./";
-	string	decoded_rtcm_json_filename	= "<CONFIG>-<LOGTIME>_rtcm_decoded.json";
+	string 	decoded_rtcm_json_directory	= "<OUTPUTS_ROOT>";
+	string	decoded_rtcm_json_filename	= "<DECODED_RTCM_DIRECTORY>/<CONFIG>-<LOGTIME>_rtcm_decoded.json";
 
 	bool	output_encoded_rtcm_json	= false;
-	string	encoded_rtcm_json_directory	= "./";
-	string	encoded_rtcm_json_filename	= "<CONFIG>-<LOGTIME>_rtcm_encoded.json";
+	string	encoded_rtcm_json_directory	= "<OUTPUTS_ROOT>";
+	string	encoded_rtcm_json_filename	= "<ENCODED_RTCM_DIRECTORY>/<CONFIG>-<LOGTIME>_rtcm_encoded.json";
 	
 	bool	output_network_statistics_json		= false;
-	string	network_statistics_json_directory	= "./";
-	string	network_statistics_json_filename	= "<CONFIG>-<LOGTIME>_network_statistics.json";
-	
-	string test_filename	= "<CONFIG>-testData";
-	string test_directory	= "./";
+	string	network_statistics_json_directory	= "<OUTPUTS_ROOT>";
+	string	network_statistics_json_filename	= "<NETWORK_STATISTICS_DIRECTORY>/<CONFIG>-<LOGTIME>_network_statistics.json";
 };
 
 /** Options to be used only for debugging new features
@@ -306,24 +304,14 @@ struct DebugOptions
 {
 	int		csfreq = 3;         /* cycle slip detection and repair frequency */
 	
-	int		pseudo_pulses			= 0;
-	bool	mincon_only				= false;
-	bool	check_plumbing			= false;
-	bool	retain_rts_files		= false;
-	bool	rts_only				= false;
-	bool	explain_measurements	= false;
-};
-
-/** Options for unit testing
-*/
-struct TestOptions
-{
-	bool	enable			= false;
-	bool	output_pass		= true;
-	bool	stop_on_fail	= false;
-	bool	stop_on_done	= false;
-	bool	output_errors	= false;
-	bool	absorb_errors	= false;
+	int		pseudo_pulses				= 0;
+	bool	instrument					= false;
+	bool    instrument_once_per_epoch	= false;
+	bool	mincon_only					= false;
+	bool	check_plumbing				= false;
+	bool	retain_rts_files			= false;
+	bool	rts_only					= false;
+	bool	explain_measurements		= false;
 };
 
 /** Options for processing SLR observations
@@ -347,7 +335,7 @@ struct ModelTides
 */
 struct ModelTrop
 {
-	E_TropModel		model		= E_TropModel::VMF3;
+	E_TropModel		model		= E_TropModel::STANDARD;
 	bool			enable		= true;
 	string			orography;
 	string			gpt2grid;
@@ -369,8 +357,9 @@ struct Model
 	bool ionospheric_component	= true;
 	bool ionospheric_component2	= false;
 	bool ionospheric_component3	= false;
-	bool eop					= true;
+	bool eop					= false;
 	bool ionospheric_model		= false;
+	bool tropospheric_map		= false;
 	
 	bool orbits					= true;
 };
@@ -381,10 +370,11 @@ struct GlobalOptions
 {
 	Model	model;
 	
-	double	epoch_interval	= 1;
-	double	epoch_tolerance	= 0.5;
-	int		max_epochs		= 0;
-	int		leap_seconds	= -1;
+	int		sleep_milliseconds	= 50;
+	double	epoch_interval		= 1;
+	double	epoch_tolerance		= 0.5;
+	int		max_epochs			= 0;
+	int		leap_seconds		= -1;
 
 	boost::posix_time::ptime start_epoch	{ boost::posix_time::not_a_date_time };
 	boost::posix_time::ptime end_epoch		{ boost::posix_time::not_a_date_time };
@@ -407,8 +397,6 @@ struct GlobalOptions
 
 	bool	process_preprocessor		= true;
 	bool	process_spp					= true;
-	bool	process_user				= false;
-	bool	process_network 			= false;
 	bool	process_minimum_constraints	= false;
 	bool	process_ionosphere			= false;
 	bool	process_rts					= false;
@@ -426,6 +414,7 @@ struct GlobalOptions
 
 	bool	raim						= true;
 	bool	interpolate_rec_pco			= true;
+	bool	auto_fill_pco				= false;
 	bool	require_apriori_positions	= false;
 	bool	require_antenna_details		= false;
 
@@ -436,25 +425,27 @@ struct GlobalOptions
 	
 	bool	use_tgd_bias	= false;
 	
-	double	orbit_pos_proc_noise			= 10;
-	double	orbit_vel_proc_noise			= 5;
-	double	orbit_vel_proc_noise_trail		= 1;
-	double	orbit_vel_proc_noise_trail_tau	= 0.05;
+	bool	enable_orbit_proc_noise_impulses	= false;
+	double	orbit_pos_proc_noise				= 10;
+	double	orbit_vel_proc_noise				= 5;
+	double	orbit_vel_proc_noise_trail			= 1;
+	double	orbit_vel_proc_noise_trail_tau		= 0.05;
 	
-
+	bool	preprocess_all_data			= true;
+	
 	double	wait_next_epoch				= 0;
 	double	wait_all_stations			= 0;
 	bool	require_obs					= true;
 	bool	assign_closest_epoch		= false;
 	
-	bool	delete_old_ephemerides  	= false;
+	bool	delete_old_ephemerides  	= true;
 
 	bool	reinit_on_all_slips			= false;
 	bool	reinit_on_clock_error		= false;
 	bool	reject_on_state_error		= false;
 
 	bool	joseph_stabilisation		= false;
-	double	validity_interval_factor	= 100;
+	double	validity_interval_factor	= 10;
 
 	E_OffsetType ssr_input_antenna_offset = E_OffsetType::UNSPECIFIED;
 
@@ -586,7 +577,7 @@ struct FilterOptions
 	int			max_prefit_remv 		= 2;
 	
 	string		rts_filename			= "Filter-<CONFIG>-<STATION>.rts";
-	string		rts_directory			= "./";
+	string		rts_directory			= "<OUTPUTS_ROOT>";
 	int			rts_lag					= -1;
 	string		rts_smoothed_suffix		= "_smoothed";
 	bool		output_intermediate_rts	= false;
@@ -610,6 +601,15 @@ struct PPPOptions : FilterOptions
 	int				chunk_size			= 0;
 };
 
+struct SPPOptions
+{
+	bool	always_reinitialize	= true;
+	int		max_lsq_iterations	= 12;
+	bool	sigma_check			= true;
+	int		sigma_threshold		= 4;
+	int		max_removals		= 2;
+};
+
 /** Options associated with the ionospheric modelling processing mode of operation
 */
 struct IonosphericOptions
@@ -622,8 +622,7 @@ struct IonosphericOptions
 	bool			common_ionosphere				= true;
 	bool			use_if_combo					= false;
 	bool			use_gf_combo					= false;
-	bool			auto_select_default_code		= false;
-	
+
 	double			iono_sigma_limit				= 1000;
 };
 
@@ -643,36 +642,29 @@ struct IonModelOptions
 	int				function_degree;
 
 	vector<double>	layer_heights;
-	bool			estimate_sat_dcb = true;
-	bool			use_rotation_mtx = false;
+	bool			estimate_sat_dcb  = true;
+	bool			use_rotation_mtx  = false;
+	double			basis_sigma_limit = 1000;
 
 	KalmanModel	ion;
 };
 
 struct AmbROptions
 {
-	E_ARmode	WLmode			= E_ARmode::OFF;
 	E_ARmode	mode			= E_ARmode::OFF;
 	int			lambda_set		= 2;
 	int			AR_max_itr		= 1;
 	double		min_el_AR		= 15;
-	int			Max_Hold_epoc	= 0;
-	double		Max_Hold_time	= 1200;
-
-	double	WLsuccsThres = 0.9999;
-	double	WLratioThres = 3;	
-	int		WL_filter_iter = 2;
-	int		WL_prefit_remv = 2;
 	
-	double	WLSatPrcNois = 0.0001;	///< Process noise for WL satellite biases
-	double	WLRecPrcNois = 0.001;	///< Process noise for WL station biases
-
 	double	succsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate NL
 	double	ratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate NL
 
-	double	code_output_interval  = 0;		///< Update interval for code  biases, 0: no output
-	double	phase_output_interval = 0;		///< Update interval for phase biases, 0: no output
-	bool	output_rec_bias		  = false;	///< Output receivr bias
+	double	code_output_interval	= 0;		///< Update interval for code  biases, 0: no output
+	double	phase_output_interval	= 0;		///< Update interval for phase biases, 0: no output
+	bool	output_rec_bias			= false;	///< Output receivr bias
+	
+	bool	once_per_epoch			= true;
+	bool	fix_and_hold			= false;
 };
 
 /** Rinex 2 conversions for individual receivers
@@ -715,12 +707,10 @@ struct SatelliteOptions
 	KalmanModel			orbit;
 	KalmanModel			pos;
 	KalmanModel			pos_rate;
-	KalmanModel			orb;
 	KalmanModel			pco;
 	KalmanModel			ant;
 	KalmanModel			code_bias;
 	KalmanModel			phase_bias;
-	KalmanModel			ion_model;
 	
 	KalmanModel			emp_dyb_0;
 	KalmanModel			emp_dyb_1c;
@@ -732,15 +722,16 @@ struct SatelliteOptions
 	KalmanModel			emp_dyb_4c;
 	KalmanModel			emp_dyb_4s;
 	
-	KalmanModel			srp_dyb_0;
-	KalmanModel			srp_dyb_1c;
-	KalmanModel			srp_dyb_1s;
-	KalmanModel			srp_dyb_2c;
-	KalmanModel			srp_dyb_2s;
-	KalmanModel			srp_dyb_3c;
-	KalmanModel			srp_dyb_3s;
-	KalmanModel			srp_dyb_4c;
-	KalmanModel			srp_dyb_4s;
+	KalmanModel			emp_rtn_0;
+	KalmanModel			emp_rtn_1c;
+	KalmanModel			emp_rtn_1s;
+	KalmanModel			emp_rtn_2c;
+	KalmanModel			emp_rtn_2s;
+	KalmanModel			emp_rtn_3c;
+	KalmanModel			emp_rtn_3s;
+	KalmanModel			emp_rtn_4c;
+	KalmanModel			emp_rtn_4s;
+
                     	
 	bool				exclude				= false;
 	vector<double>		code_sigmas			= {0};
@@ -794,12 +785,10 @@ struct SatelliteOptions
 		orbit		+= rhs.orbit;
 		pos			+= rhs.pos;
 		pos_rate	+= rhs.pos_rate;
-		orb			+= rhs.orb;
 		pco			+= rhs.pco;
 		ant			+= rhs.ant;
 		code_bias	+= rhs.code_bias;
 		phase_bias	+= rhs.phase_bias;
-		ion_model	+= rhs.ion_model;
 		
 		emp_dyb_0	+= rhs.emp_dyb_0;
 		emp_dyb_1c	+= rhs.emp_dyb_1c;
@@ -811,15 +800,16 @@ struct SatelliteOptions
 		emp_dyb_4c	+= rhs.emp_dyb_4c;
 		emp_dyb_4s	+= rhs.emp_dyb_4s;
 		
-		srp_dyb_0	+= rhs.srp_dyb_0;
-		srp_dyb_1c	+= rhs.srp_dyb_1c;
-		srp_dyb_1s	+= rhs.srp_dyb_1s;
-		srp_dyb_2c	+= rhs.srp_dyb_2c;
-		srp_dyb_2s	+= rhs.srp_dyb_2s;
-		srp_dyb_3c	+= rhs.srp_dyb_3c;
-		srp_dyb_3s	+= rhs.srp_dyb_3s;
-		srp_dyb_4c	+= rhs.srp_dyb_4c;
-		srp_dyb_4s	+= rhs.srp_dyb_4s;
+		emp_rtn_0	+= rhs.emp_rtn_0;
+		emp_rtn_1c	+= rhs.emp_rtn_1c;
+		emp_rtn_1s	+= rhs.emp_rtn_1s;
+		emp_rtn_2c	+= rhs.emp_rtn_2c;
+		emp_rtn_2s	+= rhs.emp_rtn_2s;
+		emp_rtn_3c	+= rhs.emp_rtn_3c;
+		emp_rtn_3s	+= rhs.emp_rtn_3s;
+		emp_rtn_4c	+= rhs.emp_rtn_4c;
+		emp_rtn_4s	+= rhs.emp_rtn_4s;
+
 		
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.code_sigmas			))	{ code_sigmas		= rhs.code_sigmas		;	setInited(*this, code_sigmas		);	}
@@ -873,11 +863,34 @@ struct ReceiverOptions
 	KalmanModel			pco;
 	KalmanModel			ant;
 	KalmanModel			ion_stec;
+	KalmanModel			ion_model;
 	KalmanModel			trop;
 	KalmanModel			trop_grads;
+	KalmanModel			trop_maps;
 	KalmanModel			code_bias;
 	KalmanModel			phase_bias;
+	
+	KalmanModel			emp_dyb_0;
+	KalmanModel			emp_dyb_1c;
+	KalmanModel			emp_dyb_1s;
+	KalmanModel			emp_dyb_2c;
+	KalmanModel			emp_dyb_2s;
+	KalmanModel			emp_dyb_3c;
+	KalmanModel			emp_dyb_3s;
+	KalmanModel			emp_dyb_4c;
+	KalmanModel			emp_dyb_4s;
+	
+	KalmanModel			emp_rtn_0;
+	KalmanModel			emp_rtn_1c;
+	KalmanModel			emp_rtn_1s;
+	KalmanModel			emp_rtn_2c;
+	KalmanModel			emp_rtn_2s;
+	KalmanModel			emp_rtn_3c;
+	KalmanModel			emp_rtn_3s;
+	KalmanModel			emp_rtn_4c;
+	KalmanModel			emp_rtn_4s;
 
+	bool				kill				= false;
 	bool				exclude				= false;
 	E_NoiseModel		error_model			= E_NoiseModel::ELEVATION_DEPENDENT;
 	vector<double>		code_sigmas			= {1};
@@ -952,13 +965,36 @@ struct ReceiverOptions
 		pco				+= rhs.pco;
 		ant				+= rhs.ant;
 		ion_stec		+= rhs.ion_stec;
+		ion_model		+= rhs.ion_model;
 		trop			+= rhs.trop;
 		trop_grads		+= rhs.trop_grads;
+		trop_maps		+= rhs.trop_maps;
 		code_bias		+= rhs.code_bias;
 		phase_bias		+= rhs.phase_bias;
 		
+		emp_dyb_0	+= rhs.emp_dyb_0;
+		emp_dyb_1c	+= rhs.emp_dyb_1c;
+		emp_dyb_1s	+= rhs.emp_dyb_1s;
+		emp_dyb_2c	+= rhs.emp_dyb_2c;
+		emp_dyb_2s	+= rhs.emp_dyb_2s;
+		emp_dyb_3c	+= rhs.emp_dyb_3c;
+		emp_dyb_3s	+= rhs.emp_dyb_3s;
+		emp_dyb_4c	+= rhs.emp_dyb_4c;
+		emp_dyb_4s	+= rhs.emp_dyb_4s;
+		
+		emp_rtn_0	+= rhs.emp_rtn_0;
+		emp_rtn_1c	+= rhs.emp_rtn_1c;
+		emp_rtn_1s	+= rhs.emp_rtn_1s;
+		emp_rtn_2c	+= rhs.emp_rtn_2c;
+		emp_rtn_2s	+= rhs.emp_rtn_2s;
+		emp_rtn_3c	+= rhs.emp_rtn_3c;
+		emp_rtn_3s	+= rhs.emp_rtn_3s;
+		emp_rtn_4c	+= rhs.emp_rtn_4c;
+		emp_rtn_4s	+= rhs.emp_rtn_4s;
+		
 		rinex23Conv		+= rhs.rinex23Conv;
 		
+		if (isInited(rhs, rhs.kill					))	{ kill				= rhs.kill				;	setInited(*this, kill				);	}
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.error_model			))	{ error_model		= rhs.error_model		;	setInited(*this, error_model		);	}
 		if (isInited(rhs, rhs.code_sigmas			))	{ code_sigmas		= rhs.code_sigmas		;	setInited(*this, code_sigmas		);	}
@@ -1028,10 +1064,13 @@ struct MongoOptions
 	string	uri								= "mongodb://localhost:27017";
 	string	suffix							= "";
 	string	database						= "<CONFIG>";
+	
 	bool	predict_states					= false;
+	double	prediction_offset				= 0;
 	double	prediction_interval				= 30;
 	double	forward_prediction_duration		= 300;
 	double	reverse_prediction_duration		= -1;
+	
 	double	min_cull_age					= 300;
 };
 
@@ -1049,6 +1088,22 @@ struct SsrOptions
 	vector<E_Source>	ionosphere_sources		= {E_Source::NONE};
 	// vector<E_Source> 		troposphere_sources		= E_Source::NONE;
 	E_SSROutTiming		output_timing			= E_SSROutTiming::GPS_TIME;
+	
+	int				region_id		= 1;
+	int 			npoly_trop		= -1;
+	int 			npoly_iono		= -1;
+	int 			grid_type		= -1;
+	bool			use_grid_iono	= true;
+	bool			use_grid_trop	= true;
+	double			max_lat			= 0;
+	double			min_lat			= 0;
+	double			int_lat			= 0;
+	double			max_lon			= 0;
+	double			min_lon			= 0;
+	double			int_lon			= 0;
+	                            	
+	int				ngrid			= 0;	//not configs?
+	int				nbasis			= 0;	//not configs?
 };
 
 struct SsrInOptions
@@ -1065,7 +1120,6 @@ struct SSRMetaOpts
 	bool	itrf_datum			= true;
 	int		provider_id			= 0;
 	int		solution_id			= 0;
-	int 	master_iod			= 10;
 };
 
 struct RtcmMsgTypeOpts
@@ -1080,7 +1134,6 @@ struct RtcmMsgTypeOpts
 
 struct SsrBroadcast : SSRMetaOpts
 {
-	int							message_timeout		= INT_MAX;
 	string						url;
 	
 	map<RtcmMessageType, RtcmMsgTypeOpts>	rtcmMsgOptsMap;	///< RTCM message type options
@@ -1105,10 +1158,13 @@ struct OrbitPropagation
 	bool			general_relativity				= true;
 	bool 			pole_tide_ocean					= true;
 	bool			pole_tide_solid					= true;
-	bool			solar_pressure_radiation		= false;
-	bool 			empirical_dyb					= false;
+	bool			solar_radiation_pressure		= false;
+	bool 			empirical						= false;
 	bool			antenna_thrust					= false;
 	bool 			albedo							= false;
+
+	vector<bool>	empirical_dyb_eclipse			= {true};
+	vector<bool> 	empirical_rtn_eclipse			= {false};
 
 	int				degree_max						= 12;
 	double 			sat_mass						= 1000;
@@ -1170,8 +1226,8 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 
 	IonosphericOptions			ionoOpts;
 	PPPOptions					pppOpts;
+	SPPOptions					sppOpts;
 	MinimumConstraintOptions	minCOpts;
-	TestOptions					testOpts;
 	SsrOptions					ssrOpts;
 	SsrInOptions				ssrInOpts;
 	AmbROptions					ambrOpts;
@@ -1197,9 +1253,6 @@ void removePath(
 void tryAddRootToPath(
 	string& root,		///< Root path
 	string& path);		///< Filename to prepend root path to
-
-void replaceTags(
-	string&						str);		///< String to replace macros within
 
 bool configure(
 	int		argc,

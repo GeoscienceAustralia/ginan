@@ -215,12 +215,7 @@ using std::map;
 extern map<E_Sys, map<E_ObsCode, E_FType>> code2Freq;
 extern map<E_FType, double> genericWavelength;
 
-#define Arcs        3600.0*180.0/PI     /* Arcseconds per radian */
-
 extern const unsigned int tbl_CRC24Q[];
-
-#define NUM_DAT_ORB_INTP 10 /* number of data for orbit interpolation */
-#define NUM_ORD_ORB_INTP 10 /* orders of orbit interpolation */
 
 const unsigned char RTCM_PREAMBLE = 0xD3;
 
@@ -231,4 +226,4 @@ extern const boost::bimap<E_ObsCode,int> mCodes_qzs;
 extern const boost::bimap<E_ObsCode,int> mCodes_bds;
 extern const boost::bimap<E_ObsCode,int> mCodes_sbs;
 
-extern E_ObsCode freq2CodeHax (E_Sys sys, E_FType ft);
+extern E_ObsCode freq2CodeHax(E_Sys sys, E_FType ft);

@@ -76,18 +76,12 @@ struct Sig : RawSig
 
 	}
 
-	bool	vsig		= 0;	///< Valid signal flag
-	bool	phaseError	= 0;	///< Valid signal flag
-	bool	phaseBias	= false;	///< Phase biases have been applied to this measurement
-	double	Range		= 0;	///< Corrected range
-	double	L_corr_m	= 0;	///< Corrected carrier phase (meters)
-	double	P_corr_m	= 0;	///< Corrected pseudorange (meters)
-	double	codeRes		= 0;	///< Residuals of code measurement
-	double	phasRes		= 0;	///< Residuals of phase measurement
-	double	codeVar		= 0;	///< Variance of code measurement
-	double	phasVar		= 0;	///< Variance of phase measurement
+	bool	phaseError	= 0;		///< Valid signal flag
+	double	codeVar		= 0;		///< Variance of code measurement
+	double	phasVar		= 0;		///< Variance of phase measurement
 	
-	double	biases[NUM_MEAS_TYPES] = {std::nan("")};
+	double	biases	[NUM_MEAS_TYPES] = {std::nan("")};
+	double	biasVars[NUM_MEAS_TYPES] = {};
 };
 
 
@@ -132,7 +126,6 @@ struct IonoObs
 //forward declarations for pointers below
 struct SatStat;
 struct SatNav;
-struct SatOrbit;
 struct Station;
 
 
@@ -183,6 +176,7 @@ struct SatPos
 
 	}
 
+	GTime		posTime;
 	SatSys		Sat				= {};				///> Satellite ID (system, prn)
 	SatNav*		satNav_ptr		= 0;				///< Pointer to a navigation object for this satellite
 	SatStat* 	satStat_ptr		= 0;				///< Pointer to a status object for this satellite

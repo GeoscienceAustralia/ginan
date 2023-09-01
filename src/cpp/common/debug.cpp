@@ -6,10 +6,9 @@
 #include <iostream>
 #include <random>
 
-#include "eigenIncluder.hpp"
-// #include "common.hpp"
 
 #include "minimumConstraints.hpp"
+#include "eigenIncluder.hpp"
 #include "rtsSmoothing.hpp"
 #include "observations.hpp"
 #include "algebraTrace.hpp"
@@ -18,7 +17,6 @@
 #include "acsConfig.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
-// #include "common.hpp"
 #include "debug.hpp"
 #include "sinex.hpp"
 #include "trace.hpp"
@@ -116,10 +114,10 @@ void minimumTest(
 // 				val +=  stationEntries.size()/1000.0;
 				meas.setValue(val);
 			
-// 				if (stationEntries.size() < 3)
-// 					meas.setNoise(5000);
-// 				else
-					meas.setNoise(100);
+				if (stationEntries.size() < 3)
+					meas.setNoise(5);
+				else
+					meas.setNoise(0.0001);
 					
 			
 				stationEntries.push_back(meas);
@@ -148,7 +146,7 @@ void minimumTest(
 		}
 	}
 
-	kfStateStations.P(3,3) = 400;
+// 	kfStateStations.P(3,3) = 0.4;
 	
 // 	kfStateStations.P(10,13) = 30;
 // 	kfStateStations.P(13,10) = 30;
@@ -193,6 +191,81 @@ void minimumTest(
 	kfStateStations.outputStates(trace);
 }
 
+void dualFilters()
+{
+	vector<double> positions;
+	
+	KFState kfState;
+	kfState.rts_basename = "therfe";
+	kfState.rts_lag = -1;
+	
+	InitialState posInit;
+	posInit.P = 100000000;
+	
+	InitialState velInit;
+	velInit.P = 100000000;
+	velInit.Q = 0.1;
+	GTime time;
+	time += 60;
+	
+	for (int i = 0; i < 20; i++)
+	{
+		double position = 0;
+		if (i < 10)			position = i * 1.0 + 5;
+		else 				position = i * 0.3 + 6;
+		
+		positions.push_back(position);
+		
+		KFMeasEntryList kfMeasEntryList;
+		
+		for (int j = 0; j < 1; j++)
+		{
+			KFKey posKey;
+			KFKey velKey;
+			
+			posKey.type	= KF::REC_POS;
+			velKey.type	= KF::REC_POS_RATE;
+			
+			posKey.num	= j;
+			velKey.num	= j;
+			
+			KFMeasEntry measEntry(&kfState);
+			
+			measEntry.addDsgnEntry(posKey,			1, posInit);
+			
+			kfState.setKFTransRate(posKey, velKey,	1, velInit);
+			
+			if (j == 1 && i >= 10)	continue;
+			if (j == 2 && i <  10)	continue;
+			
+			measEntry.setValue(position);
+			measEntry.setNoise(4);
+			
+			kfMeasEntryList.push_back(measEntry);
+		}
+		
+		kfState.output_residuals = true;
+		
+		kfState.stateTransition(std::cout, time);
+		
+		kfState.outputStates(std::cout, "predicted");
+	
+		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+		
+		kfState.filterKalman(std::cout, combinedMeas);
+		
+		kfState.outputStates(std::cout, "filtered");
+
+// 		if (acsConfig.output_mongo_states)
+// 		{
+// 			mongoStates(kfState);
+// 		}
+		
+		time++;
+	}	
+		
+	rtsSmoothing(kfState);
+}
 #if 0
 #include "sinex.hpp"
 #if 0
@@ -378,84 +451,9 @@ void rtsBump()
 		time++;
 	}	
 		
-	RTS_Process(kfState);
+	rtsSmoothing(kfState);
 }
 
-void dualFilters()
-{
-	vector<double> positions;
-	
-	KFState kfState;
-	kfState.rts_basename = "therfe";
-	kfState.rts_lag = -1;
-	
-	InitialState posInit;
-	posInit.P = 100000000;
-	
-	InitialState velInit;
-	velInit.P = 100000000;
-	velInit.Q = 0.1;
-	GTime time;
-	time += 60;
-	
-	for (int i = 0; i < 20; i++)
-	{
-		double position = 0;
-		if (i < 10)			position = i * 1.0 + 5;
-		else 				position = i * 0.3 + 6;
-		
-		positions.push_back(position);
-		
-		KFMeasEntryList kfMeasEntryList;
-		
-		for (int j = 0; j < 3; j++)
-		{
-			KFKey posKey;
-			KFKey velKey;
-			
-			posKey.type	= KF::REC_POS;
-			velKey.type	= KF::REC_POS_RATE;
-			
-			posKey.num	= j;
-			velKey.num	= j;
-			
-			KFMeasEntry measEntry(&kfState);
-			
-			measEntry.addDsgnEntry(posKey,			1, posInit);
-			
-			kfState.setKFTransRate(posKey, velKey,	1, velInit);
-			
-			if (j == 1 && i >= 10)	continue;
-			if (j == 2 && i <  10)	continue;
-			
-			measEntry.setValue(position);
-			measEntry.setNoise(4);
-			
-			kfMeasEntryList.push_back(measEntry);
-		}
-		
-		kfState.output_residuals = true;
-		
-		kfState.stateTransition(std::cout, time);
-		
-		kfState.outputStates(std::cout);
-	
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
-		
-		kfState.filterKalman(std::cout, combinedMeas);
-		
-		kfState.outputStates(std::cout);
-
-		if (acsConfig.output_mongo_states)
-		{
-			mongoStates(kfState);
-		}
-		
-		time++;
-	}	
-		
-	RTS_Process(kfState);
-}
 
 
 
@@ -1330,7 +1328,10 @@ void doDebugs()
 {
 	// debugErp();
 	// exit(0);;
-
+// 	dualFilters();
+// 	exit(0);
+// 	minimumTest(std::cout);
+// 	exit(0);
 // 	infiniteTest();
 // 	exit(0);
 }

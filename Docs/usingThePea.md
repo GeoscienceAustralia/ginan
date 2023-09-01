@@ -3,10 +3,10 @@
 
 The `pea` is in essence a configurable, robust, application-specific Kalman filter.
 
-* Kalman filters are known for being the optimal method for estimating parameters - in linear systems, and provided an accurate system model is avaiable.
+* Kalman filters are known for being the optimal method for estimating parameters - in linear systems, and provided an accurate system model is available.
 * The `pea` contains accurate system models and linearisation routines for satellite positioning.
 * It performs statistical monitoring and error checking, to ensure the robustness of results that is required for operational use, and
-* It has has an intuitive configuration, using heirarchical config files that allow you to tell the software precisely what and how to process gnss data.
+* It has an intuitive configuration, using hierarchical config files that allow you to tell the software precisely what and how to process GNSS data.
 
 The flow through the software is largely sequential, ensuring simplicity of understanding for developers and users alike. The major components of this flow are outlined below:
 
@@ -35,6 +35,7 @@ Observation data is synchronised by timestamp - when the main function requests 
 #### SSR Data Input
 
 State Space Representation (SSR) messages contain the values of different GNSS error components, such as satellite clocks & orbits, hardware biases and ionosphere delays. These SSR components can be applied to GNSS observations to correct their error components. Streams containing SSR messages are available via NTRIP casters, which enable performing PPP in real-time.
+Note that Ginan will allow the mixing of SSR streams, but users should not use SSR messages from inconsistent sources (e.g. orbits and clocks should be obtained from the same analysis centre).
 
 The software can decode SSR messages for the following constellations:
 * GPS
@@ -67,7 +68,7 @@ The preprocessor is run on input data to detect the anomalies and other metrics 
 
 ## Precise Point Positioning
 
-The largest component of the software, the PPP module ingests all of the data available, and applies scientific models to estimate and predict current and future parameters of interest.
+The largest component of the software, the PPP module ingests all data available, and applies scientific models to estimate and predict current and future parameters of interest.
 
 Version 1 of the GINAN toolkit satisfies many of the requirements for GNSS modelling, but has been achieved by incrementally adding features as they became available and as scientific models have been developed. Many of the components make assumptions about the outputs of previous computations performed in the software, and require care before adding or making changes to the code, or even setting configuration options.
 
@@ -298,8 +299,8 @@ On the top of the section are the estimates for satellite clock offset, code bia
 
 ### Ginan PPP_OUT files
 
-The `ppp_out` outputs Ginans proprietary position output format.
-The format of Ginans position output is as follows:
+The `ppp_out` outputs Ginan's proprietary position output format.
+The format of Ginan's position output is as follows:
 ```
 ...
 -FILE/RAW_CONFIG ex201.yaml
@@ -315,4 +316,4 @@ The format of Ginans position output is as follows:
 ...
 ```
 
-Each line on the bulk of the file contains, from left to right, the epoch time (in GPS time), the station/receiver name, the apriori position in ECEF, the estimated position in ECEF, the difference between apriori and estimated possition in ECEF and the difference in ENU.
+Each line on the bulk of the file contains, from left to right, the epoch time (in GPS time), the station/receiver name, the apriori position in ECEF, the estimated position in ECEF, the difference between apriori and estimated position in ECEF and the difference in ENU.

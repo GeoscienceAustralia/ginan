@@ -1,21 +1,9 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include "trace.hpp"
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "linearCombo.hpp"
-#include "navigation.hpp"
-#include "enums.h"
-
-#define     MAXIGSSTA   1
-#define     NTROP       2880        /* max daily trop solution number */
-#define     MAXSTR      32          /* max string length */
-
+struct ObsList;
 
 int lsqqc(
 	Trace&	trace,

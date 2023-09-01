@@ -23,8 +23,6 @@ add_library(ginan_core
 		pea/main.cpp
 		pea/minimumConstraints.cpp
 		pea/minimumConstraints.hpp
-		pea/networkEstimator.cpp
-		pea/networkEstimator.hpp
 		pea/peaCommitStrings.cpp
 		pea/pea_snx.cpp
 		pea/ppp.cpp
@@ -34,8 +32,6 @@ add_library(ginan_core
 		pea/ppp_callbacks.cpp
 		pea/ppp_pseudoobs.cpp
 		pea/ppp_slr.cpp
-		pea/ppp_user.cpp
-		pea/ppp_network.cpp
 		pea/ppp.hpp
 		pea/preprocessor.cpp
 		pea/spp.cpp
@@ -54,7 +50,7 @@ add_library(ginan_core
 		common/attitude.cpp
 		common/antenna.hpp
 		common/antenna.cpp
-		common/biasSINEX.hpp
+		common/biases.cpp
 		common/biasSINEXread.cpp
 		common/biasSINEXwrite.cpp
 		common/binaryStore.cpp
@@ -65,7 +61,6 @@ add_library(ginan_core
 		common/constants.cpp
 		common/cost.hpp
 		common/cost.cpp
-		common/corrections.cpp
 		common/debug.cpp
 		common/debug.hpp
 		common/eigenIncluder.hpp
@@ -88,6 +83,7 @@ add_library(ginan_core
 		common/icdDecoder.hpp
 		common/instrument.cpp
 		common/instrument.hpp
+		common/ionModels.cpp
 		common/linearCombo.cpp
 		common/linearCombo.hpp
 		#common/mqtt.cpp
@@ -138,7 +134,6 @@ add_library(ginan_core
 		common/trace.hpp
 		common/testUtils.cpp
 		common/testUtils.hpp
-		common/trigPosInterp.cpp
 		common/rinexClkWrite.cpp
 		common/rinexClkWrite.hpp
 		common/rinexNavWrite.cpp
@@ -148,6 +143,7 @@ add_library(ginan_core
 		common/ubxDecoder.cpp
 		common/ubxDecoder.hpp
 		common/walkthrough.cpp
+		common/localAtmosRegion.cpp
 
 		common/streamFile.hpp
 		common/streamNtrip.cpp
@@ -165,6 +161,7 @@ add_library(ginan_core
 		
 		iono/geomagField.hpp
 		iono/geomagField.cpp
+		iono/ionex.cpp
 		iono/ionoMeas.cpp
 		iono/ionoModel.cpp
 		iono/ionoModel.hpp
@@ -174,13 +171,15 @@ add_library(ginan_core
 		iono/ionexWrite.cpp
 		iono/ionoLocalSTEC.cpp
 
+		trop/tropModels.hpp
+		trop/tropModels.cpp
+		trop/tropSAAS.cpp
+		trop/tropSBAS.cpp
+		trop/tropGPT2.cpp
+		trop/tropVMF3.cpp
+
 		ambres/GNSSambres.hpp
 		ambres/GNSSambres.cpp
-		ambres/GinARpivot.cpp
-		ambres/GinARWLamb.cpp
-		ambres/GinARNLamb.cpp
-		ambres/GinAR_main.cpp
-		ambres/GinARoutpt.cpp
 		
 		slr/slrCom.cpp
 		slr/slrObs.cpp
@@ -199,20 +198,14 @@ add_library(ginan_core
 		orbprop/oceanTide.cpp
 		orbprop/orbitProp.cpp 
 		orbprop/staticField.cpp
+		orbprop/centerMassCorrections.cpp
 
-		rtklib/ionex.cpp
 		rtklib/lambda.cpp
 		rtklib/lambda.h
 		rtklib/rtkcmn.cpp
 		rtklib/tides.cpp
 		rtklib/tides.hpp
-		rtklib/trop.h
-		rtklib/trop.cpp
-		rtklib/vmf3.h
-		rtklib/vmf3.cpp
-		rtklib/wancorr.cpp
-		rtklib/wancorr.h
-		
+
 		common/acsConfig.hpp
 		common/acsConfig.cpp
 		common/acsConfigDocs.cpp
@@ -232,6 +225,7 @@ target_include_directories(ginan_core PUBLIC
 		slr
 		common
 		iono
+		trop
 		orbprop
 		pea
 		peaUploader
@@ -339,10 +333,6 @@ target_link_libraries(interpolate_loading PUBLIC
 if(OpenMP_CXX_FOUND)
 	target_link_libraries(make_otl_blq			PUBLIC OpenMP::OpenMP_CXX)
 	target_link_libraries(interpolate_loading	PUBLIC OpenMP::OpenMP_CXX)
-endif()
-
-if(ENABLE_UNIT_TESTS)
-	target_compile_definitions(ginan_core PRIVATE ENABLE_UNIT_TESTS=1)
 endif()
 
 if(ENABLE_PARALLELISATION)

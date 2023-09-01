@@ -11,10 +11,10 @@ using std::string;
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <bsoncxx/builder/basic/document.hpp>
 
-#include "observations.hpp"
 #include "satSys.hpp"
 #include "gTime.hpp"
 
+struct Sig;
 struct Eph;
 struct Geph;
 struct SSREph;

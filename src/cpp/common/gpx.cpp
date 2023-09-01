@@ -87,8 +87,8 @@ void writeGPXEntry(
 
 void writeGPX(
 	string		filename,
-	string		id,
-	KFState&	kfState)
+	KFState&	kfState,
+	string		id)
 {
 	std::ofstream output(filename, std::fstream::in | std::fstream::out);
 	if (!output)

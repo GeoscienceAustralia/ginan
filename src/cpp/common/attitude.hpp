@@ -33,7 +33,7 @@ struct AttStatus
 };
 
 struct Station;
-struct GObs;
+struct SatPos;
 
 void recAtt(
 	Station&			rec,
@@ -41,4 +41,4 @@ void recAtt(
 	vector<E_Source>	attitudeTypes);
 
 void updateSatAtts(
-	GObs&		obs);
+	SatPos&		satPos);

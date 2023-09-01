@@ -15,7 +15,8 @@ inputs:
     
     troposphere:
         gpt2grid_files:  gpt_25.grd
-
+        # vmf_files:   [ "grid5/*.H00","grid5/*.H06","grid5/*.H12","grid5/*.H18" ]
+        # orography_files:  orography_ell_5x5
 
 satellite_options:
     E05: { exclude: true }

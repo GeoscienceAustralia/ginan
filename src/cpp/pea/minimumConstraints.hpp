@@ -2,14 +2,12 @@
 
 #pragma once
 
-#include <map>
 
-using std::map;
-
-#include "station.hpp"
 #include "trace.hpp"
 
+struct StationMap;
 struct KFState;
+
 
 
 void mincon(

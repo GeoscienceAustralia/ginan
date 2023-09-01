@@ -41,7 +41,8 @@ SSRAtm mongoReadIGSIonosphere(
 map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 	GTime	time	= GTime::noTime(),
 	SatSys	Sat		= SatSys(),
-	bool	remote	= false);
+	bool	remote	= false,
+	double*	var_ptr	= nullptr);
 
 map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
 	GTime	time	= GTime::noTime(),

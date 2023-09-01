@@ -128,13 +128,13 @@ void traceJson(
 	if (level > trace_level)
 		return;
 	
-	if	( acsConfig.output_json_trace == false
-		&&acsConfig.localMongo.output_trace)
+	if	( acsConfig.output_json_trace		== false
+		&&acsConfig.localMongo.output_trace	== false)
 	{
 		return;
 	}
 	
-	string json = "{ \"time\":\"" + time + "\", \"id\":{";
+	string json = "{ \"Epoch\":\"" + time + "\", \"id\":{";
 	for (auto& thing : id)
 	{
 		json += "\"" + thing.name + "\":" + thing.value() + ",";

@@ -9,8 +9,6 @@
 
 #define STD_BRDCCLK		30.0				///< error of broadcast clock (m)
 
-#define NMAX			10
-
 #define J2_GLO			1.0826257E-3		///< 2nd zonal harmonic of geopot   ref [2]
 
 #define SIN_5			-0.0871557427476582	///< sin(-5.0 deg)
@@ -145,8 +143,6 @@ template<>	Geph*	seleph<Geph>(Trace& trace, GTime time, SatSys Sat,	E_NavMsgType
 template<>	Seph*	seleph<Seph>(Trace& trace, GTime time, SatSys Sat,	E_NavMsgType type, int iode,	Navigation& nav){	return selSatEphFromMap(trace, time, Sat, type,	iode,	nav.sephMap);	}
 template<>	ION*	seleph<ION>	(Trace& trace, GTime time, E_Sys sys,	E_NavMsgType type,				Navigation& nav){	return selSysEphFromMap(trace, time, sys, type,			nav.ionMap);	}
 template<>	EOP*	seleph<EOP>	(Trace& trace, GTime time, E_Sys sys,	E_NavMsgType type,				Navigation& nav){	return selSysEphFromMap(trace, time, sys, type,			nav.eopMap);	}
-
-
 
 
 

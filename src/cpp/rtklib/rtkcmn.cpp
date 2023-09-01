@@ -10,7 +10,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <array>
+
+using std::ifstream;
 
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
@@ -24,29 +25,35 @@
 
 /** read blq record 
  */
-int readblqrecord(
-	FILE *fp, 
-	double *otlDisplacement)
+bool readblqrecord(
+	ifstream&	fileStream, 
+	double*		otlDisplacement)
 {
-	double v[11];
-	char buff[256];
-	int i,n=0;
-
-	while (fgets(buff,sizeof(buff),fp))
+	int n = 0;
+	while (fileStream)
 	{
+		string line;
+		
+		getline(fileStream, line);
+
+		char* buff = &line[0];
+	
 		if (!strncmp(buff,"$$",2))
 			continue;
 		
+		double v[11];
 		if (sscanf(buff,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", v,v+1,v+2,v+3,v+4,v+5,v+6,v+7,v+8,v+9,v+10)<11)
 			continue;
 		
-		for (i=0;i<11;i++)
-			otlDisplacement[n+i*6]=v[i];
+		for (int i = 0; i < 11; i++)
+			otlDisplacement[n+i*6] = v[i];
 		
-		if (++n==6)
-			return 1;
+		n++;
+		
+		if (n == 6)
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 /* read blq ocean tide loading parameters --------------------------------------
@@ -56,48 +63,48 @@ int readblqrecord(
 *          double *odisp      O   ocean tide loading parameters
 * return : status (1:ok,0:file open error)
 *-----------------------------------------------------------------------------*/
-int readblq(
-	string file,
-	const char *sta, 
-	double *otlDisplacement)
+bool readblq(
+	string		filepath,
+	string		id,
+	double*		otlDisplacement)
 {
-	FILE *fp;
-	char buff[256],staname[32]="",name[32],*p;
-
-	/* station name to upper case */
-	sscanf(sta,"%16s",staname);
-	for (p=staname;(*p=(char)toupper((int)(*p)));p++) ;
-
-	if (!(fp=fopen(file.c_str(),"r")))
+	ifstream fileStream(filepath);
+	if (!fileStream)
 	{
-//         trace(2,"blq file open error: file=%s\n",file);
-		return 0;
+		BOOST_LOG_TRIVIAL(error)
+		<< "Error opening blq file" << filepath << std::endl;
+		return false;
 	}
 	
-	while (fgets(buff,sizeof(buff),fp))
+	while (fileStream)
 	{
+		string line;
+		
+		getline(fileStream, line);
+
+		char* buff = &line[0];
+	
 		if (!strncmp(buff,"$$",2)||strlen(buff)<2)
 			continue;
 
-		if (sscanf(buff+2,"%16s",name)<1)
+		char name[32];
+		if (sscanf(buff+2,"%16s", name)<1)
 			continue;
 		
-		for (p=name;(*p=(char)toupper((int)(*p)));p++)
+		for (char* p=name;(*p=(char)toupper((int)(*p)));p++)
 			;
 		
-		if (strcmp(name,staname))
+		if (strcmp(name,id.c_str()))
 			continue;
 
 		/* read blq record */
-		if (readblqrecord(fp,otlDisplacement))
+		if (readblqrecord(fileStream, otlDisplacement))
 		{
-			fclose(fp);
-			return 1;
+			return true;
 		}
 	}
-	fclose(fp);
 //     trace(2,"no otl parameters: sta=%s file=%s\n",sta,file);
-	return 0;
+	return false;
 }
 
 void updatenav(
@@ -272,7 +279,7 @@ void dops(
 	dop[3] = SQRT(							Q_inv(2,2)				);	/* VDOP */
 	
 //     {
-//         fprintf(stderr,"dops(): error could not calculate the inverse\n");
+//         fprintf(stderr,"%s: error could not calculate the inverse\n",__FUNCTION__);
 //     }
 }
 

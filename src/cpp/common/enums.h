@@ -2,8 +2,8 @@
 
 #pragma once
 
-#define BETTER_ENUMS_DEFAULT_CONSTRUCTOR(Enum) \
-public:                                      \
+#define BETTER_ENUMS_DEFAULT_CONSTRUCTOR(Enum)	\
+public:                                      	\
 	Enum() = default;
 
 #define BETTER_ENUMS_MACRO_FILE "enum_macros.h"	//BETTER_ENUM Extended
@@ -89,6 +89,15 @@ BETTER_ENUM(E_TrigType,		short int,
 			SIN)
 
 
+BETTER_ENUM(E_EmpAxis,		short int,
+			None,
+			D,
+			Y,
+			B,
+			R,
+			T,
+			N)
+
 BETTER_ENUM(KF,				short int,
 	NONE,
 	ONE,
@@ -119,10 +128,7 @@ BETTER_ENUM(KF,				short int,
 	
 	TROP,
 	TROP_GRAD,
-	
-	ORBIT_PTS,
-	SRP,
-	
+	TROP_MODEL,
 	
 	IONOSPHERIC,
 	IONO_STEC,
@@ -155,9 +161,7 @@ BETTER_ENUM(KF,				short int,
 	PHASE_BIAS,
 	
 	Z_AMB,
-	WL_MEAS,
-	WL_PIV,
-	
+
 	CODE_MEAS,
 	PHAS_MEAS,
 	
@@ -173,15 +177,17 @@ BETTER_ENUM(KF,				short int,
 	EMP_DYB_3S,
 	EMP_DYB_4C,
 	EMP_DYB_4S,
-	SRP_DYB_0,
-	SRP_DYB_1C,
-	SRP_DYB_1S,
-	SRP_DYB_2C,
-	SRP_DYB_2S,
-	SRP_DYB_3C,
-	SRP_DYB_3S,
-	SRP_DYB_4C,
-	SRP_DYB_4S,			LAST_ORBIT_STATE	= SRP_DYB_4S,
+
+	EMP_RTN_0,		
+	EMP_RTN_1C,
+	EMP_RTN_1S,
+	EMP_RTN_2C,
+	EMP_RTN_2S,
+	EMP_RTN_3C,
+	EMP_RTN_3S,
+	EMP_RTN_4C,
+	EMP_RTN_4S,
+	LAST_ORBIT_STATE	= EMP_RTN_4S,
 	
 	RANGE
 	
@@ -197,6 +203,10 @@ BETTER_ENUM(KEPLER,				short int,
 			M
 )
 
+BETTER_ENUM(E_BasisType,	short int,
+			POLYNOMIAL,
+			GRIDPOINT)
+
 BETTER_ENUM(E_Relativity,	short int,
 			OFF,
 			ON)
@@ -208,6 +218,8 @@ BETTER_ENUM(E_ChiSqMode,	int,
 			STATE)
 
 BETTER_ENUM(E_TropModel,		int,
+			STANDARD,
+			SBAS,
 			VMF3,
 			GPT2)
 
@@ -419,15 +431,6 @@ BETTER_ENUM(E_ARmode,	short int,
 			LAMBDA_ALT,
 			LAMBDA_AL2,
 			LAMBDA_BIE) 
-
-BETTER_ENUM(E_AmbTyp,	short int,
-			NONE,
-			NL12,
-			WL12,
-			WL23,
-			UCL1,
-			UCL2,
-			UCL3)
 
 BETTER_ENUM(E_NavRecType,	short int,
 			NONE,			///< NONE for unknown */
@@ -837,6 +840,7 @@ BETTER_ENUM(E_Component, short int,
 	REC_CODE_BIAS,
 	SAT_CODE_BIAS,
 	TROPOSPHERE,
+	TROPOSPHERE_MODEL,
 	EOP,
 	NET_RESIDUAL,
 	ORBIT_PT,

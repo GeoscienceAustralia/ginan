@@ -12,7 +12,6 @@
 #include "tides.hpp"
 #include "trace.hpp"
 #include "erp.hpp"
-#include "vmf3.h"
 
 #define AS2R        (D2R/3600.0)    /* arc sec to radian */
 #define GME         3.986004415E+14 /* earth gravitational constant */
@@ -31,7 +30,7 @@ void tide_pl(
 	const double H3 = 0.292;
 	const double L3 = 0.015;
 	
-//     trace(4,"tide_pl : pos=%.3f %.3f\n",pos.latDeg(),pos.lonDeg());
+//     trace(4,"%s : pos=%.3f %.3f\n",__FUNCTION__,pos.latDeg(),pos.lonDeg());
 	double r = rp.norm();
 	if (r == 0)
 		return;
@@ -79,7 +78,7 @@ void tideSolid(
 	double				gmst,
 	Vector3d&			dr)
 {
-//     trace(3,"tide_solid: pos=%.3f %.3f opt=%d\n",pos.latDeg(),pos.lonDeg(),opt);
+//     trace(3,"%s: pos=%.3f %.3f opt=%d\n",__FUNCTION__,pos.latDeg(),pos.lonDeg(),opt);
 
 	/* step1: time domain */
 	Vector3d eu;
@@ -134,7 +133,7 @@ void tideOLoad(GTime tut, const double *otlDisplacement, double *denu)
 	
 	const double ep1975[]={1975,1,1,0,0,0};
 
-//     trace(3,"tide_oload:\n");
+//     trace(3,"%s:\n",__FUNCTION__);
 
 	/* angular argument: see subroutine arg.f for reference [1] */
 	
@@ -170,7 +169,7 @@ void tideOLoad(GTime tut, const double *otlDisplacement, double *denu)
 	denu[1]=-dp[2];
 	denu[2]= dp[0];
 
-//     trace(5,"tide_oload: denu=%.3f %.3f %.3f\n",denu[0],denu[1],denu[2]);
+//     trace(5,"%s: denu=%.3f %.3f %.3f\n",__FUNCTION__,denu[0],denu[1],denu[2]);
 }
 
 /* iers mean pole (ref [7] eq.7.25)
@@ -206,7 +205,7 @@ void tidePole(
 	ERPValues&			erpv,
 	double*				denu)
 {
-//     trace(3,"tide_pole: pos=%.3f %.3f\n",pos[0]*R2D,pos[1]*R2D);
+//     trace(3,"%s: pos=%.3f %.3f\n",__FUNCTION__,pos[0]*R2D,pos[1]*R2D);
 
 	/* iers mean pole (mas) */
 	double xp_bar;
@@ -225,7 +224,7 @@ void tidePole(
 	denu[1]= -9E-3*cos(2*pos.lat())*(m1*cosl+m2*sinl); /* dn=-Stheta  (m) */
 	denu[2]=-33E-3*sin(2*pos.lat())*(m1*cosl+m2*sinl); /* du= Sr      (m) */
 
-//     trace(5,"tide_pole : denu=%.3f %.3f %.3f\n",denu[0],denu[1],denu[2]);
+//     trace(5,"%s : denu=%.3f %.3f %.3f\n",__FUNCTION__,denu[0],denu[1],denu[2]);
 }
 
 /* tidal displacement by earth tides
@@ -272,6 +271,8 @@ void tideDisp(
 	VectorPos pos;
 	pos.lat() = asin(recPos[2] / recPos.norm());		//todo aaron, use other function
 	pos.lon() = atan2(recPos[1], recPos[0]);
+	
+	
 	
 	double E[9];
 	pos2enu(pos,E);

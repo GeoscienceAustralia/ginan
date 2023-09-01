@@ -57,14 +57,9 @@ void postRTSActions(
 		kfState.outputStates(ofs, "/RTS");
 	}
 	
-	if (acsConfig.output_erp)
-	{
-		writeErpFromNetwork(kfState.metaDataMap[ERP_FILENAME_STR + SMOOTHED_SUFFIX], kfState);
-	}
-
 	if (acsConfig.output_bias_sinex)
 	{
-		writeBiasSinex(nullStream, kfState.time, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], *stationMap_ptr, kfState);
+		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], *stationMap_ptr);
 	}
 
 	if	(   acsConfig.output_clocks
@@ -77,54 +72,22 @@ void postRTSActions(
 		outputClocks			(kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, kfState2.time, kfState2, stationMap_ptr);
 	}
 	
-	if (acsConfig.output_orbex)
 	{
-		outputOrbex				(kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbex_orbit_sources, acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources, &kfState);
-	}
-	
-	if (acsConfig.output_sp3)
-	{
-		outputSp3				(kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.sp3_orbit_sources, acsConfig.sp3_clock_sources, &kfState);
-	}
-
-	if (acsConfig.output_trop_sinex)
-	{
-		outputTropSinex			(kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState, "MIX", true);
+		if (acsConfig.output_orbex)			{	outputOrbex			(kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbex_orbit_sources,	acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources,	&kfState);	}
+		if (acsConfig.output_sp3)			{	outputSp3			(kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.sp3_orbit_sources,		acsConfig.sp3_clock_sources,										&kfState);	}	
+		if (acsConfig.output_trop_sinex)	{	outputTropSinex		(kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState, "MIX", true);																							}	
+		if (acsConfig.output_ionex)			{	ionexFileWrite		(kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState);																											}		
+		if (acsConfig.output_erp)			{	writeErpFromNetwork	(kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState);																														}
+		if (acsConfig.output_ionstec)		{	writeSTECfromRTS 	(kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX], kfState);																														}
 	}
 
-	if (acsConfig.output_ionex)
-	{
-		ionexFileWrite			(kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState);
-	}
-	
-	if (acsConfig.output_gpx)
-	{
-		for (auto& [id, rec] : *stationMap_ptr)
-		{
-			writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], id, kfState);
-		}
-	}
-
-	if (acsConfig.output_ppp_sol)
-	{
-		for (auto& [id, rec] : *stationMap_ptr)
-		{
-			rec.sol.time = kfState.time;
-			for (short i = 0; i < 3; i++)
-				kfState.getKFValue({KF::REC_POS, 		{}, id,	i},		rec.sol.pppRRec[i]);
-			outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], rec);
-		}
-	}
-	
-	if (acsConfig.output_cost)
-	{
-		for (auto& [id, rec] : *stationMap_ptr)
-		{
-			outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], rec, kfState.time, kfState);
-		}
-	}
-
-// 	pppoutstat(ofs, archiveKF, true);
+	for (auto& [id, rec] : *stationMap_ptr)
+	{	
+		if (acsConfig.output_gpx)			{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	id);		}	
+		if (acsConfig.output_ppp_sol)		{	outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}			
+		if (acsConfig.output_cost)			{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
+		
+	}// 	outputPppNmea(ofs, archiveKF, true);
 }
 
 /** Output filter states from a reversed binary trace file
@@ -138,7 +101,7 @@ void RTS_Output(
 	long int startPos = -1;
 	
 	BOOST_LOG_TRIVIAL(info) 
-	<< "Outputting RTS products...";
+	<< "Outputting RTS products..." << std::endl;
 	
 	map<string, string> metaDataMap = kfState.metaDataMap;
 	
@@ -210,21 +173,18 @@ void RTS_Output(
 				
 				archiveKF.metaDataMap = metaDataMap;
 				
-				if (acsConfig.ambrOpts.mode != +E_ARmode::OFF)
+				if	(	acsConfig.ambrOpts.mode != +E_ARmode::OFF
+					&&	acsConfig.ambrOpts.once_per_epoch
+					&&	acsConfig.ambrOpts.fix_and_hold == false)		//this is to separate from already forward fixed and held? todo aaron
 				{
 					std::ofstream rtsTrace(archiveKF.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
-					PPP_AR(rtsTrace,archiveKF);
 					
-					KFState ARRTScopy;
-					if (copyFixedKF(ARRTScopy))
-						postRTSActions(true, ARRTScopy, stationMap_ptr);
-					else
-						postRTSActions(true, archiveKF, stationMap_ptr);
-				}
-				else
-				{
+					fixAndHoldAmbiguities(rtsTrace, archiveKF);	//this is already a copy, no need to copy again for fix_and_hold
+					
 					postRTSActions(true, archiveKF, stationMap_ptr);
 				}
+				
+				postRTSActions(true, archiveKF, stationMap_ptr);
 				
 				break;
 			}
@@ -234,6 +194,7 @@ void RTS_Output(
 		{
 			return;
 		}
+		
 		if (startPos < 0)
 		{
 			BOOST_LOG_TRIVIAL(error) 
@@ -244,7 +205,7 @@ void RTS_Output(
 	}
 }
 
-KFState RTS_Process(
+KFState rtsSmoothing(
 	KFState&	kfState,
 	bool		write,
 	StationMap*	stationMap_ptr)
@@ -277,6 +238,8 @@ KFState RTS_Process(
 
 	long int startPos = -1;
 	double lag = 0;
+	
+	GTime epochStartTime = timeGet();
 	
 	while (lag != kfState.rts_lag)
 	{
@@ -538,6 +501,19 @@ KFState RTS_Process(
 						mongoMeasResiduals(smoothedKF.time, measurements, "_rts");
 					}
 				}
+				
+				GTime epochStopTime = timeGet();
+				if (write)
+				{
+					int fractionalMilliseconds = (kalmanPlus.time.bigTime - (long int) kalmanPlus.time.bigTime) * 1000;
+					auto boostTime = boost::posix_time::from_time_t((time_t)((PTime)kalmanPlus.time).bigTime) + boost::posix_time::millisec(fractionalMilliseconds);
+				
+					BOOST_LOG_TRIVIAL(info)
+					<< "Processed epoch"
+					<< " - " << boostTime 
+					<< " (took " << (epochStopTime-epochStartTime) << ")";
+				}
+				epochStartTime = timeGet();
 				
 				break;
 			}

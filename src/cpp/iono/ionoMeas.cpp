@@ -3,10 +3,10 @@
 
 #include "observations.hpp"
 #include "coordinates.hpp"
-#include "corrections.hpp"
 #include "ionoModel.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
+#include "ionModels.hpp"
 #include "satStat.hpp"
 #include "station.hpp"
 #include "common.hpp"
@@ -15,15 +15,17 @@
 
 #define PHASE_BIAS_STD 0.05
 
-bool ippInRange(GTime time, VectorPos& Ion_pp)
+bool ippInRange(
+	GTime		time, 
+	VectorPos&	ionPP)
 {
 	switch (acsConfig.ionModelOpts.model)
 	{
 		case E_IonoModel::MEAS_OUT:				return true;
-		case E_IonoModel::SPHERICAL_HARMONICS:	return ippCheckSphhar(time,Ion_pp);
-		case E_IonoModel::SPHERICAL_CAPS:		return ippCheckSphcap(time,Ion_pp);
-		case E_IonoModel::BSPLINE:				return ippCheckBsplin(time,Ion_pp);
-		case E_IonoModel::LOCAL:				return ippCheckLocal (time,Ion_pp);
+		case E_IonoModel::SPHERICAL_HARMONICS:	return ippCheckSphhar(time, ionPP);
+		case E_IonoModel::SPHERICAL_CAPS:		return ippCheckSphcap(time, ionPP);
+		case E_IonoModel::BSPLINE:				return ippCheckBsplin(time, ionPP);
+		case E_IonoModel::LOCAL:				return ippCheckLocal (time, ionPP);
 		case E_IonoModel::NONE:					return false;
 	}
 	return false;
@@ -52,16 +54,17 @@ bool ippInRange(GTime time, VectorPos& Ion_pp)
 /*  - obs.STECsmth					Smoothed Ionosphere measurement								*/
 /*  - obs.STECsmvr					Variance of Smoothed Ionosphere measurement					*/
 
-void update_receivr_measr(
+void obsIonoData(
 	Trace&		trace, 
 	Station&	rec)
 {
+	if (rec.aprioriPos.isZero())
+		return;
 	
 	tracepdeex(4,trace,"\n---------------------- Ionospheric delay measurments -----------------------------\n");
 	tracepdeex(4,trace,"ION_MEAS sat    tow     RawGF meas  RawGF std.  GF_code_mea  GF_phas_mea  GF to TECu\n");
 
-	ObsList& obsList = rec.obsList;
-	for (auto& obs : only<GObs>(obsList))
+	for (auto& obs : only<GObs>(rec.obsList))
 	if (obs.satNav_ptr)
 	if (obs.satStat_ptr)
 	{
@@ -80,7 +83,7 @@ void update_receivr_measr(
 		E_FType frq1;
 		E_FType frq2;
 		E_FType frq3;
-		if (!satFreqs(obs.Sat.sys,frq1,frq2,frq3))
+		if (!satFreqs(obs.Sat.sys, frq1, frq2, frq3))
 			continue;
 		
 		S_LC lc		= getLC(obs, obs.satStat_ptr->lc_new, frq1, frq2);
@@ -149,7 +152,7 @@ void update_receivr_measr(
 			satStat.gf_amb	+= SmtG * (amb - satStat.gf_amb);
 			satStat.ambvar	 = SmtG * (varP);
 		}
-		obs.STECtype = 1;
+		obs.STECtype = 1;		//todo aaron magic numbers
 		obs.stecVal = (satStat.gf_amb + lc.GF_Phas_m)					/		obs.stecToDelay;
 		obs.stecVar =((satStat.ambvar + 2*varL) + SQR(PHASE_BIAS_STD))	/ SQR(	obs.stecToDelay);
 		
@@ -170,11 +173,85 @@ void update_receivr_measr(
 	}
 }
 
-void writeReceiverMeasurements(
-	Trace&					trace, 
-	string					filename,
-	map<string, Station>&	stations, 
-	GTime					time)
+void writeSTECfromRTS(		//todo aaron why is this special?
+	string			filename,
+	KFState&		kfState)
+{
+	GWeek	week	= kfState.time;
+	GTow	tow		= kfState.time;
+	
+	std::ofstream stecfile(filename, std::ofstream::app);
+	if (!stecfile)
+	{
+		return;
+	}
+	
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type != KF::IONO_STEC)
+			continue;
+	
+		double stecVal = 0;
+		double stecVar = 0;
+		
+		bool pass = kfState.getKFValue(key, stecVal, &stecVar);
+		
+		if (pass == false)
+			continue;
+		
+		if (stecVar > SQR(acsConfig.ionoOpts.iono_sigma_limit))
+			continue;
+		
+		GObs* obs_ptr = nullptr;
+		
+		if (key.rec_ptr)
+		{
+			auto& rec = *key.rec_ptr;
+			
+			for	(auto& obs : only<GObs>(rec.obsList))
+			{
+				if (key.Sat != obs.Sat)
+				{
+					continue;
+				}
+				
+				//found the observation for this ionosphere
+				obs_ptr = &obs;
+			}
+		}
+		
+		tracepdeex(0 ,stecfile, "IONO_MEA,%4d,%10.3f,%s,%s,%10.4f,%10.4e,4",
+				week, 
+				tow,
+				key.str.c_str(), 
+				key.Sat.id().c_str(), 
+				stecVal, 
+				stecVar);
+		
+		if (obs_ptr)
+		{
+			//use obs things here
+		}
+		
+		if (key.rec_ptr)
+		{
+			auto& rec = *key.rec_ptr;
+			VectorPos pos = ecef2pos(rec.aprioriPos);
+			
+			tracepdeex(0,stecfile, ",1,0,%8.4f,%8.4f,1.0",
+				pos.latDeg(), 
+				pos.lonDeg());
+		}
+		
+		tracepdeex(0, stecfile, "\n");
+	}
+}
+
+void writeIONStec(
+	Trace&						trace, 
+	string						filename,
+	map<string, Station>&		stations, 
+	GTime						time)
 {
 	GWeek	week	= time;
 	GTow	tow		= time;
@@ -184,8 +261,12 @@ void writeReceiverMeasurements(
 	tracepdeex(2, trace, "Writing Ionosphere measurements %5d %12.3f  %4d %2d ", week, tow, stations.size(), nlayer);
 
 	std::ofstream stecfile(filename, std::ofstream::app);
+	if (!stecfile)
+	{
+		return;
+	}
 
-	tracepdeex(0,stecfile,"#TYP_MEA,week,       tow,site,sat,  ion_meas,   ion_var,s,l");
+	tracepdeex(0, stecfile, "#TYP_MEA,week,       tow,site,sat,  ion_meas,   ion_var,s,l");
 
 	if (nlayer <= 0) 
 	{
@@ -194,75 +275,71 @@ void writeReceiverMeasurements(
 	else 
 	{
 		for (int j=  0; j < nlayer; j++) 
-			tracepdeex(0,stecfile,",     hei,  ipplat,  ipplon, slant_f");
+			tracepdeex(0, stecfile,",     hei,  ipplat,  ipplon, slant_f");
 		
-		tracepdeex(0,stecfile,"\n");
+		tracepdeex(0, stecfile,"\n");
 	}
 
 	int i = 0;
-	for (auto& [id, rec] : stations)
+	for (auto& [id, rec]	: stations)
+	for	(auto& obs			: only<GObs>(rec.obsList))
 	{
 		if (rec.obsList.size() < MIN_NSAT_STA) 
 			continue;
 
-		for	(auto& obs : only<GObs>(rec.obsList))
+		if (obs.ionExclude) 
+			continue;
+		
+		if (acsConfig.use_for_iono_model[obs.Sat.sys] == false)
+			continue;
+		
+		tracepdeex(0,stecfile,"IONO_MEA,%4d,%10.3f,%s,%s,%10.4f,%10.4e,%d,%d",
+			week, 
+			tow,
+			rec.id.c_str(), 
+			obs.Sat.id().c_str(), 
+			obs.stecVal, 
+			obs.stecVar, 
+			obs.STECtype, 
+			nlayer);
+		
+		if (nlayer <= 0)
 		{
-			if (obs.ionExclude) 
-				continue;
-			
-			if (acsConfig.use_for_iono_model[obs.Sat.sys] == false)
-				continue;
-			
-			tracepdeex(0,stecfile,"IONO_MEA,%4d,%10.3f,%s,%s,%10.4f,%10.4e,%d,%d",
-				week, 
-				tow,
-				rec.id.c_str(), 
-				obs.Sat.id().c_str(), 
-				obs.stecVal, 
-				obs.stecVar, 
-				obs.STECtype, 
-				nlayer);
-			
-			if (nlayer <= 0)
-			{
-				tracepdeex(0,stecfile,", %13.3f,%13.3f,%13.3f,%13.3f,%13.3f,%13.3f, %4d\n\n",
-					rec.aprioriPos[0],
-					rec.aprioriPos[1], 
-					rec.aprioriPos[2],
-					obs.rSat[0], 
-					obs.rSat[1], 
-					obs.rSat[2],
-					obs.stecCodeCombo);
-			
-				continue;
-			}
-			
-			for (int j = 0; j < nlayer; j++)
-			{
-				tracepdeex(0,stecfile, ",%8.0f,%8.3f,%8.3f,%8.3f",
-					acsConfig.ionModelOpts.layer_heights[j] / 1000,
-					obs.ippMap[j].lat * R2D, 
-					obs.ippMap[j].lon * R2D,
-					obs.ippMap[j].slantFactor);
-			}
-			
-			tracepdeex(0, stecfile, "\n");
-			i++;
+			tracepdeex(0,stecfile,", %13.3f,%13.3f,%13.3f,%13.3f,%13.3f,%13.3f, %4d\n\n",
+				rec.aprioriPos[0],
+				rec.aprioriPos[1], 
+				rec.aprioriPos[2],
+				obs.rSat[0], 
+				obs.rSat[1], 
+				obs.rSat[2],
+				obs.stecCodeCombo);
+		
+			continue;
 		}
+		
+		for (int j = 0; j < nlayer; j++)
+		{
+			tracepdeex(0, stecfile, ",%8.0f,%8.3f,%8.3f,%8.3f",
+				acsConfig.ionModelOpts.layer_heights[j] / 1000,
+				obs.ippMap[j].lat * R2D, 
+				obs.ippMap[j].lon * R2D,
+				obs.ippMap[j].slantFactor);
+		}
+		
+		tracepdeex(0, stecfile, "\n");
+		i++;
 	}
 	
 	tracepdeex(0, stecfile,"#---------------------------------------------------------------------------------------------------------\n");
 	tracepdeex(3, trace, "... %d entries written\n", i);
 }
 
-int  ginan2IonoMeas(
+void  obsIonoDataFromFilter(
 	Trace&			trace,			///< debug trace
-	StationMap&		stationMap, ///< List of stations containing observations for this epoch
+	StationMap&		stationMap, 	///< List of stations containing observations for this epoch
 	KFState&		measKFstate)	///< Kalman filter object containing the ionosphere estimates
 {
-	tracepdeex(3,trace,"\n Ginan 2.0 Ionosphere Function %s\n", measKFstate.time.to_string().c_str());
-	
-	int found = 0;
+	tracepdeex(3, trace,"\n%s %s\n", __FUNCTION__, measKFstate.time.to_string().c_str());
 	
 	for (auto& [id, rec] : stationMap)
 	for (auto& obs	: only<GObs>(rec.obsList))
@@ -279,18 +356,17 @@ int  ginan2IonoMeas(
 		if (obs.ionExclude)
 			continue;
 		
-		if (pass)
+		if	(  pass
+			&& stecVar < SQR(acsConfig.ionoOpts.iono_sigma_limit))
 		{
-			tracepdeex(4,trace,"    sTEC for %s %s found: %.4f -> %.4f\n", obs.Sat.id().c_str(), obs.mount.c_str(), obs.stecVal, obs.stecToDelay * stecVal);
+			tracepdeex(4, trace, "    sTEC for %s %s found: %.4f -> %.4f\n", obs.Sat.id().c_str(), obs.mount.c_str(), obs.stecVal, obs.stecToDelay * stecVal);
 			obs.stecVal = stecVal;
 			obs.stecVar = stecVar;
 			obs.STECtype = 3;
-			found++;
 		}
 		else
 		{
 			obs.ionExclude = 1;
 		}
 	}
-	return found;
 }

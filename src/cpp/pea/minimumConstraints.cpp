@@ -80,11 +80,6 @@ void minSiteData(
 		Vector3d aprioriPos = rec.minconApriori;
 
 		Vector3d statePos = filterPos;
-		if (acsConfig.process_network)
-		{
-			//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
-			statePos += aprioriPos;
-		}
 		
 		auto& pos = rec.pos;
 	
@@ -221,11 +216,6 @@ void mincon(
 			
 
 		Vector3d statePos = filterPos;
-		if (acsConfig.process_network)
-		{
-			//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
-			statePos += aprioriPos;
-		}
 		
 		Vector3d linearPos = aprioriPos;//+ filterPos;
 		
@@ -480,11 +470,6 @@ void mincon(
 			count++;
 
 			Vector3d statePos = filterPos;
-			if (acsConfig.process_network)
-			{
-				//filter states are corrections only, need to add to apriori to get vector arms for cross products etc.
-				statePos += aprioriPos;
-			}
 			
 			auto& pos = rec.pos;
 	

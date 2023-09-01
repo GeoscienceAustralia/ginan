@@ -27,13 +27,13 @@ using std::vector;
 
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
-#include "corrections.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
 #include "ephPrecise.hpp"
 #include "ephemeris.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
+#include "station.hpp"
 #include "planets.hpp"
 #include "satStat.hpp"
 #include "antenna.hpp"
@@ -107,12 +107,12 @@ struct SatGeom
 /** Calculates satellite orbit geometry - for use in calculating modelled yaw
  */
 SatGeom satOrbitGeometry(
-	GObs&		obs)			///< Observation
+	SatPos&		satPos)			///< Observation
 {
 	SatGeom satGeom;
-	satGeom.rSat = obs.rSat;
+	satGeom.rSat = satPos.rSat;
 	
-	Vector3d&	vSat		= obs.satVel;
+	Vector3d&	vSat		= satPos.satVel;
 
 	Vector3d&	rSat		= satGeom.rSat;
 	Vector3d&	vSatPrime	= satGeom.vSatPrime;
@@ -122,8 +122,8 @@ SatGeom satOrbitGeometry(
 	double&		beta		= satGeom.beta;
 	double&		mu			= satGeom.mu;
 
-	planetPosEcef(obs.time, E_ThirdBody::SUN,	rSun);
-	planetPosEcef(obs.time, E_ThirdBody::MOON,	rMoon);
+	planetPosEcef(satPos.posTime, E_ThirdBody::SUN,		rSun);
+	planetPosEcef(satPos.posTime, E_ThirdBody::MOON,	rMoon);
 	
 	vSatPrime = vSat;
 	vSatPrime[0] -= OMGE * rSat[1];
@@ -314,20 +314,6 @@ bool satYawGps(
 	attStatus.modelYaw	+= modelYawRate * dt;			wrapPlusMinusPi(attStatus.modelYaw);
 	
 	return true;
-}
-
-/** Calculate Sun position in Galileo orbital reference frame {Along, -Cross, -Radial}
- */
-Vector3d sunPosOrf(
-	double		beta,	///< Sun elevation angle with respect to the orbital plane
-	double		mu)		///< Angle of sat from 'midnight' (when sat is at the furthest point from Sun in its orbit)
-{
-	Vector3d eSun;
-	eSun(0) = -sin(mu + PI) * cos(beta);
-	eSun(1) = -sin(beta);
-	eSun(2) = -cos(mu + PI) * cos(beta);
-	
-	return eSun;
 }
 
 /** Calculate nominal (ideal) sat yaw for GAL-IOV sats. Follows original GAL convention.
@@ -677,11 +663,11 @@ bool satYawBds3(
  * Ref: https://doi.org/10.1007/s10291-018-0783-1 https://doi.org/10.1017/S0373463318000103
 */
 bool satYawBds2(
+	SatSys&		Sat,							///< Satellite ID
 	AttStatus&	attStatus,						///< Satellite att status
 	GTime		time,							///< Solution time
 	SatGeom&	satGeom,						///< Satellite geometry
-	double 		tMax,							///< Maximum mnvr time
-	SatSys&		Sat)							///< Satellite ID
+	double 		tMax)							///< Maximum mnvr time
 {
 	double&		beta		= satGeom.beta;
 	double&		mu			= satGeom.mu;
@@ -765,61 +751,65 @@ void yawToAttVecs(
  * Returns false if no modelled yaw available
 */
 void satYaw(
-	GObs&		obs,			///< Observation
+	SatPos&		satPos,			///< Observation
 	AttStatus&	attStatus)		///< Satellite att status. Use a disposable copy if calling inside multithreaded code
 {
-	SatGeom satGeom = satOrbitGeometry(obs);
-	switch (obs.Sat.sys)
+	SatGeom satGeom = satOrbitGeometry(satPos);
+	
+	SatSys	Sat		= satPos.Sat;
+	GTime	time	= satPos.posTime;
+	
+	switch (Sat.sys)
 	{
 		case E_Sys::GPS:
 		{	
-										attStatus.modelYawValid =	satYawGps	(obs.Sat, attStatus, obs.time, satGeom);
+										attStatus.modelYawValid =	satYawGps	(Sat, attStatus, time, satGeom);
 			break;
 		}
 		case E_Sys::GAL:
 		{
-			string bt = obs.Sat.blockType().substr(0,5);
-			if		(bt == "GAL-1")		attStatus.modelYawValid =	satYawGalIov(obs.Sat, attStatus, obs.time, satGeom);
-			else if (bt == "GAL-2")		attStatus.modelYawValid =	satYawGalFoc(obs.Sat, attStatus, obs.time, satGeom);
-			else						attStatus.modelYawValid =	satYawGalFoc(obs.Sat, attStatus, obs.time, satGeom);
+			string bt = Sat.blockType().substr(0,5);
+			if		(bt == "GAL-1")		attStatus.modelYawValid =	satYawGalIov(Sat, attStatus, time, satGeom);
+			else if (bt == "GAL-2")		attStatus.modelYawValid =	satYawGalFoc(Sat, attStatus, time, satGeom);
+			else						attStatus.modelYawValid =	satYawGalFoc(Sat, attStatus, time, satGeom);
 			break;
 		}
 		case E_Sys::GLO:
 		{	
-										attStatus.modelYawValid =	satYawGlo	(obs.Sat, attStatus, obs.time, satGeom);
+										attStatus.modelYawValid =	satYawGlo	(Sat, attStatus, time, satGeom);
 			break;
 		}
 		case E_Sys::QZS:
 		{	
-			string bt = obs.Sat.blockType().substr(0,6);
-			if		(bt == "QZS-1 ")	attStatus.modelYawValid = 	satYawQzs1	(obs.Sat, attStatus, obs.time, satGeom);
-			else if	(bt == "QZS-2G")	attStatus.modelYawValid = 	satYawOrbNor(attStatus							);
-			else						attStatus.modelYawValid = 	satYawQzs2I	(obs.Sat, attStatus, obs.time, satGeom);
+			string bt = Sat.blockType().substr(0,6);
+			if		(bt == "QZS-1 ")	attStatus.modelYawValid = 	satYawQzs1	(Sat,	attStatus, time, satGeom);
+			else if	(bt == "QZS-2G")	attStatus.modelYawValid = 	satYawOrbNor(		attStatus				);
+			else						attStatus.modelYawValid = 	satYawQzs2I	(Sat,	attStatus, time, satGeom);
 			break;
 		}
 		case E_Sys::BDS:
 		{	
-			string bt = obs.Sat.blockType().substr(0,6);
+			string bt = Sat.blockType().substr(0,6);
 			if		( bt == "BDS-2G"
-					||bt == "BDS-3G")	attStatus.modelYawValid =	satYawOrbNor(attStatus, PI						);
-			else if	( bt == "BDS-2I")	attStatus.modelYawValid =	satYawBds2	(attStatus, obs.time, satGeom, 5740, obs.Sat);
-			else if	( bt == "BDS-2M")	attStatus.modelYawValid =	satYawBds2	(attStatus, obs.time, satGeom, 3090, obs.Sat);
-			else if	( bt == "BDS-3I")	attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 5740	);
-			else if	( bt == "BDS-3M")	attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 3090	);
-			else						attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 5740	);
+					||bt == "BDS-3G")	attStatus.modelYawValid =	satYawOrbNor(attStatus, PI);
+			else if	( bt == "BDS-2I")	attStatus.modelYawValid =	satYawBds2	(Sat,	attStatus, time, satGeom, 5740);
+			else if	( bt == "BDS-2M")	attStatus.modelYawValid =	satYawBds2	(Sat,	attStatus, time, satGeom, 3090);
+			else if	( bt == "BDS-3I")	attStatus.modelYawValid =	satYawBds3	(		attStatus, time, satGeom, 5740);
+			else if	( bt == "BDS-3M")	attStatus.modelYawValid =	satYawBds3	(		attStatus, time, satGeom, 3090);
+			else						attStatus.modelYawValid =	satYawBds3	(		attStatus, time, satGeom, 5740);
 			break;
 		}
 		default:
 		{
-																	satYawGps	(obs.Sat, attStatus, obs.time, satGeom);
+																	satYawGps	(Sat, attStatus, time, satGeom);
 										attStatus.modelYawValid = false;
 			// BOOST_LOG_TRIVIAL(warning) << "Attitude model not implemented for " << obs.Sat.sys._to_string() << " in " << __FUNCTION__ << ", using GPS model";
 			break;
 		}
 	}
 	
-										attStatus.nominalYawTime	= obs.time;
-	if (attStatus.modelYawValid)		attStatus.modelYawTime		= obs.time;
+										attStatus.nominalYawTime	= time;
+	if (attStatus.modelYawValid)		attStatus.modelYawTime		= time;
 }
 
 /** Recalls satellite nominal/model attitude
@@ -1003,16 +993,16 @@ bool satAtt(
  * Returns false if no attitude available (usually due to eclipse)
 */
 bool satAtt(
-	GObs&				obs,				///< Observation data
+	SatPos&				satPos,				///< satellite position data
 	vector<E_Source>	attitudeTypes,		///< Attitude type
 	AttStatus&			attStatus,			///< Attitude status
 	bool				origGal = false)	///< Use original GAL frame of ref (rotate 180deg yaw from default GPS/antex) - affects GAL only
 {
 	return	satAtt(
-				obs.Sat,
-				obs.time,
-				obs.rSat,
-				obs.satVel,
+				satPos.Sat,
+				satPos.posTime,
+				satPos.rSat,
+				satPos.satVel,
 				attitudeTypes,
 				attStatus,
 				origGal);
@@ -1043,15 +1033,15 @@ bool satQuat(
  * Call outside of multithreading code
  */
 void updateSatAtts(
-	GObs&		obs)		///< observation
+	SatPos&		satPos)		///< observation
 {
-	auto& satNav	= *obs.satNav_ptr;
+	auto& satNav	= *satPos.satNav_ptr;
 	auto& attStatus = satNav.attStatus;
 	
-	auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+	auto& satOpts = acsConfig.getSatOpts(satPos.Sat);
 
-	satYaw(obs, 									attStatus);
-	satAtt(obs, satOpts.sat_attitude.sources,		attStatus);
+	satYaw(satPos, 									attStatus);
+	satAtt(satPos, satOpts.sat_attitude.sources,	attStatus);
 	antAtt(satNav.antBoresight, satNav.antAzimuth,	attStatus);
 }
 

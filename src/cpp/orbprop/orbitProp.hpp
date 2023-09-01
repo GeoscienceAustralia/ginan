@@ -10,6 +10,7 @@
 using std::vector;
 using std::map;
 
+#include "centerMassCorrections.hpp"
 #include "eigenIncluder.hpp"
 #include "staticField.hpp"
 #include "oceanTide.hpp"
@@ -24,9 +25,9 @@ using namespace boost::numeric::odeint;
 
 struct EMP
 {
-	bool		srpScaled	= false;
+	bool		eclipsing	= false;
 	int			deg			= 0;
-	int			axisId		= 0;
+	short int	axisId		= 0;
 	E_TrigType	type		= E_TrigType::CONSTANT;
 	double		value		= 0;
 };
@@ -39,6 +40,8 @@ struct OrbitState
 	double	satPower	= 0;
 	double	satArea		= 0;
 	
+	bool	exclude		= false;
+	
 	KFState	subState;
 	
 	vector<EMP> empInput;
@@ -49,6 +52,8 @@ struct OrbitState
 	Vector3d	pos;
 	Vector3d	vel;
 	MatrixXd	posVelSTM;
+	
+	double		posVar = 0;
 
 	OrbitState& operator+=(double rhs)
 	{
@@ -89,7 +94,6 @@ struct OrbitState
 		return newState;
 	}
 };
-
 
 typedef vector<OrbitState> Orbits;
 
@@ -151,7 +155,8 @@ struct OrbitIntegrator
 	
 	MatrixXd Cnm;
 	MatrixXd Snm;
-
+    MatrixXd Cnm_ocean;
+    MatrixXd Snm_ocean;
 	runge_kutta_fehlberg78<Orbits, double, Orbits, double, vector_space_algebra> odeIntegrator;
 	
 	void operator()(

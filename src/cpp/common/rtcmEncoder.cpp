@@ -4,6 +4,8 @@
 #include <boost/log/trivial.hpp>
 
 #include "rtcmEncoder.hpp"
+#include "navigation.hpp"
+#include "ephemeris.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
 
@@ -23,7 +25,7 @@ int uraToClassValue(double ura)
 void calculateSsrComb(
 	GTime 			referenceTime,
 	int 			udi,
-	SSRMeta 		ssrMeta,
+	SSRMeta& 		ssrMeta,
 	int 			masterIod,
 	SsrOutMap&		ssrOutMap)
 {

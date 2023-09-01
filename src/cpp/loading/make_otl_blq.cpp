@@ -33,7 +33,6 @@
 #include "input_otl.h"
 #include "load_functions.h"
 
-// #include "common.hpp"
 using namespace std;
 using namespace boost::timer;
 namespace po = boost::program_options;

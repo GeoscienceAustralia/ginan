@@ -16,7 +16,7 @@ using std::map;
 extern map<int,				E_Sys>		ubxSysMap;
 extern map<E_Sys, map<int,	E_ObsCode>>	ubxSysObsCodeMap;
 
-struct UbxDecoder : ObsLister, icdDecoder
+struct UbxDecoder : ObsLister, IcdDecoder
 {
 	string raw_ubx_filename;
 	
@@ -50,7 +50,7 @@ struct UbxDecoder : ObsLister, icdDecoder
 		unsigned char			id,
 		vector<unsigned char>&	payload)
 	{
-		printf("\nReceived ubx: 0x%02x : 0x%02x > %ld bytes", ubxClass, id, payload.size());
+// 		printf("\nReceived ubx: 0x%02x : 0x%02x > %ld bytes", ubxClass, id, payload.size());
 		
 		switch (ubxClass)
 		{

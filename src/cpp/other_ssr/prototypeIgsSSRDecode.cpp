@@ -1,7 +1,15 @@
 
+#include <utility>
+
+using std::pair;
+
+#include "rtcmDecoder.hpp"
+#include "navigation.hpp"
 #include "otherSSR.hpp"
+#include "biases.hpp"
 #include "gTime.hpp"
 #include "enums.h"
+#include "ssr.hpp"
 
 #define IGSSSRTRCLVL 4
 
@@ -102,7 +110,7 @@ map <SatSys, SSROut> igsSSRStorage;
 
 void updateNavSSR()
 {
-	for (auto& [Sat,ssrBlock] : igsSSRStorage)
+	for (auto& [Sat, ssrBlock] : igsSSRStorage)
 	{
 		auto& ssr = nav.satNavMap[Sat].receivedSSR;
 		

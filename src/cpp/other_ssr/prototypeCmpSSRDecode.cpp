@@ -1,19 +1,20 @@
 
-#include "otherSSR.hpp"
+#include "rtcmDecoder.hpp"
 #include "ionoModel.hpp"
+#include "otherSSR.hpp"
 
 int compactSSRIod = -1;
 GTime maskTime;
 
-map<int, map<int,SatSys>>					compactSSRSatlIndex;
-map<int, map<int,pair<SatSys,E_ObsCode>>>	compactSSRSignlIndex;
-map<int, map<int,SatSys>>					compactSSRIonoIndex;
+map<int, map<int, SatSys>>					compactSSRSatlIndex;
+map<int, map<int, pair<SatSys, E_ObsCode>>>	compactSSRSignlIndex;
+map<int, map<int, SatSys>>					compactSSRIonoIndex;
 
 map<int, map<SatSys, SSROut>> compactSSRStorage;
 SSRAtm compactSSRAtmStorage;
 
 vector<unsigned char> compactSSRServiceMessage;
-int lastServiceMessage=-1;
+int lastServiceMessage = -1;
 
 map<E_Sys, map<int, E_ObsCode>> compactSSRIndex2Code
 {
@@ -133,7 +134,7 @@ GTime toh2time(
 	return close + dtoh;
 }
 
-void decode_grid_info(
+void decodeGridInfo(
 	vector<unsigned char>&	data)
 {
 	int i=4;
@@ -239,6 +240,7 @@ void decode_grid_info(
 		}
 		
 	}
+	
 	if (updated)
 		defineLocalIonoBasis();
 }
@@ -249,7 +251,7 @@ void processServiceData(
 	int srvMessageType = getbitu(data,0,4);
 	switch (srvMessageType)
 	{
-		case 3:	decode_grid_info(data);		break;
+		case 3:	decodeGridInfo(data);		break;
 		default: tracepdeex(4, std::cout,"Unsupported compact SSR service message\n");
 	}
 }
@@ -260,9 +262,9 @@ int decodeSSR_header(
 	SSRMeta& ssrMeta,
 	bool mask)
 {
-	int i=16;
+	int i = 16;
 	if (mask)
-		ssrMeta.epochTime1s	= getbituInc(data,i,20);
+		ssrMeta.epochTime1s	= getbituInc(data,i,20);	//todo aaron these are same?
 	else
 		ssrMeta.epochTime1s	= getbituInc(data,i,20);	
 	ssrMeta.updateIntIndex	= getbituInc(data,i, 4);
@@ -844,17 +846,17 @@ void decodeSSR_comp_ATM(
 			return;
 		
 		int dry_Type								= getbituInc(data,i,2);
-		atmRegion.tropData[now].poly[0]				= getbitsInc(data,i,9) * 0.004 + 2.3;
+		atmRegion.tropData[now].polyDry[0]			= getbitsInc(data,i,9) * 0.004 + 2.3;
 		if (dry_Type>0)
 		{
 			if ((i+14)<data.size())
 				return;
 			
-			atmRegion.tropData[now].poly[1]			= getbitsInc(data,i,7) * 0.002;
-			atmRegion.tropData[now].poly[2]			= getbitsInc(data,i,7) * 0.002;
+			atmRegion.tropData[now].polyDry[1]		= getbitsInc(data,i,7) * 0.002;
+			atmRegion.tropData[now].polyDry[2]		= getbitsInc(data,i,7) * 0.002;
 		}
 		if (dry_Type>1)
-			atmRegion.tropData[now].poly[3]			= getbitsInc(data,i,7) * 0.001;
+			atmRegion.tropData[now].polyDry[3]		= getbitsInc(data,i,7) * 0.001;
 	}
 	if (tropType>1)
 	{

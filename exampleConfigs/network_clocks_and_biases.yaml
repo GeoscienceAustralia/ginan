@@ -34,7 +34,6 @@ outputs:
 
     clocks:
         output:                     true
-        output_ar_clocks:           true
 
     sinex:
         output:                     true

@@ -1,9 +1,11 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "observations.hpp"
 #include "coordinates.hpp"
 #include "constants.hpp"
 #include "iers2010.hpp"
+#include "station.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
 #include "slr.hpp"

@@ -6,9 +6,9 @@
 #include "rtcmDecoder.hpp"
 #include "streamRtcm.hpp"
 #include "mongoWrite.hpp"
-#include "biasSINEX.hpp"
 #include "acsConfig.hpp"
 #include "otherSSR.hpp"
+#include "biases.hpp"
 #include "gTime.hpp"
 #include "enums.h"
 
@@ -282,7 +282,7 @@ void RtcmDecoder::decodeSSR(
 			ssrEph.ddeph[1]		= getbitsInc(data, i, 19) * 0.004e-3;
 			ssrEph.ddeph[2]		= getbitsInc(data, i, 19) * 0.004e-3;
 
-			tracepdeex(6,std::cout, "\n#RTCM_SSR ORBITS %s %s %4d %10.3f %10.3f %10.3f %d ", Sat.id().c_str(),ssrEph.t0.to_string(2).c_str(), ssrEph.iode,ssrEph.deph[0],ssrEph.deph[1],ssrEph.deph[2], iod);
+			tracepdeex(5,std::cout, "\n#RTCM_SSR ORBITS %s %s %4d %10.3f %10.3f %10.3f %d ", Sat.id().c_str(),ssrEph.t0.to_string(2).c_str(), ssrEph.iode,ssrEph.deph[0],ssrEph.deph[1],ssrEph.deph[2], iod);
 			
 			ssr.ssrEph_map[receivedTime] = ssrEph;
 
@@ -306,7 +306,7 @@ void RtcmDecoder::decodeSSR(
 			ssrClk.dclk[1]		= getbitsInc(data, i, 21) * 0.001e-3;
 			ssrClk.dclk[2]		= getbitsInc(data, i, 27) * 0.00002e-3;
 
-			tracepdeex(6,std::cout, "\n#RTCM_SSR CLOCKS %s %s      %10.3f %10.3f %10.3f %d", Sat.id().c_str(),ssrClk.t0.to_string(2).c_str(), ssrClk.dclk[0],ssrClk.dclk[1],ssrClk.dclk[2], iod);
+			tracepdeex(5,std::cout, "\n#RTCM_SSR CLOCKS %s %s      %10.3f %10.3f %10.3f %d", Sat.id().c_str(),ssrClk.t0.to_string(2).c_str(), ssrClk.dclk[0],ssrClk.dclk[1],ssrClk.dclk[2], iod);
 			
 			ssr.ssrClk_map[receivedTime] = ssrClk;
 			
@@ -406,7 +406,7 @@ void RtcmDecoder::decodeSSR(
 					entry.slpv	= 0;
 
 					pushBiasSinex(id, entry);
-					tracepdeex(6,std::cout, "\n#RTCM_SSR CODBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
+					tracepdeex(5,std::cout, "\n#RTCM_SSR CODBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
 				}
 				
 				catch (std::exception& e)
@@ -487,8 +487,7 @@ void RtcmDecoder::decodeSSR(
 					entry.slpv	= 0;
 
 					pushBiasSinex(id, entry);
-					tracepdeex(6,std::cout, "\n#RTCM_SSR PHSBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
-					// BOOST_LOG_TRIVIAL(error) << "#RTCM_SSR PHSBIA for " << Sat.id() << " rtcmCode: " << obsCode._to_string() << ": " << bias;
+					tracepdeex(5,std::cout, "\n#RTCM_SSR PHSBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
 				}
 				catch (std::exception& e)
 				{
@@ -1460,7 +1459,6 @@ RtcmDecoder::E_ReturnType RtcmDecoder::decode(
 		default:											retVal =	E_ReturnType::UNSUPPORTED;	break;
 		
 		case +RtcmMessageType::CUSTOM:						retVal =	decodeCustom	(message);	break;
-
 		case +RtcmMessageType::GPS_EPHEMERIS:			//fallthrough
 		case +RtcmMessageType::GLO_EPHEMERIS:			//fallthrough
 		case +RtcmMessageType::BDS_EPHEMERIS:			//fallthrough

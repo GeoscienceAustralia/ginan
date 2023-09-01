@@ -94,7 +94,11 @@ bool satPosKalman(
 	
 	double dt = (time - kfState.time).to_double();
 	
-	satPos.rSatEciDt = propagateEllipse(trace, kfState.time, dt, rSat0, vSat0, satPos.rSat);
+	if	( rSat0.isZero() == false
+		&&vSat0.isZero() == false)
+	{
+		satPos.rSatEciDt = propagateEllipse(trace, kfState.time, dt, rSat0, vSat0, satPos.rSat);
+	}
 	
 	return true;
 }

@@ -315,6 +315,18 @@ bool satPosSSR(
 		break;
 	}
 	
+	traceJson(1, nullStream, time, 
+		{
+			{"data",	__FUNCTION__		},
+			{"Sat",		satPos.Sat.id()		} 
+		},
+		{
+			{"dPos[0]",	dPos[0]},
+			{"dPos[1]",	dPos[1]},
+			{"dPos[2]",	dPos[2]},
+			{"dClk",	dClk}
+		});
+	
 	tracepdeex(4, trace, "\nBRDCEPH %s    %s    %13.3f %13.3f %13.3f %11.3f %2d", time.to_string(6).c_str(), Sat.id().c_str(), rSat[0], rSat[1], rSat[2], 1e9*satClk, iodePos);
 	
 	Matrix3d rac2ecefMat = rac2ecef(rSat, satVel);

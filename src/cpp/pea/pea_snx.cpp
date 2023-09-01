@@ -1,11 +1,6 @@
 
 // #pragma GCC optimize ("O0")
 
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <sys/utsname.h>
-
 #include <boost/log/trivial.hpp>
 
 #include "eigenIncluder.hpp"
@@ -32,47 +27,7 @@ void sinexPostProcessing(
 	theSinex.acknowledgements.	clear();
 	theSinex.inputHistory.		clear();
 
-	// FIXME: network solution could be different?
-	// TODO: replace 0.1 with some auto generated variable or config file entry, should be current version in bitbucket
-	sinex_check_add_ga_reference("PPP Solution", "0.1", false);
-
-	{
-		vector<KFState*> kfStatePointers;
-
-		if (acsConfig.process_user)
-		for (auto& [key, rec] : stationMap)
-		{
-			kfStatePointers.push_back(&rec.pppState);
-		}
-		
-		KFState augmentedNetKFState;
-		if	( acsConfig.process_network
-			||acsConfig.process_ppp)
-		{
-			augmentedNetKFState = netKFState;
-			
-			if (acsConfig.process_network)
-			for (auto& [key, index] : augmentedNetKFState.kfIndexMap)
-			{
-				if (key.type != KF::REC_POS)
-				{
-					continue;
-				}
-				
-				auto& rRec = stationMap[key.str].aprioriPos(key.num);
-				
-				auto& state = augmentedNetKFState.x(index);
-				
-				//augment the correction state with the value from the sinex
-				state += rRec;
-			}
-
-			kfStatePointers.push_back(&augmentedNetKFState);
-		}
-
-		// push the covar matrix to the sinex object
-		theSinex.kfState = mergeFilters(kfStatePointers);
-	}
+	sinex_check_add_ga_reference("PPP Solution", "2.1", false);
 
 	// add in the files used to create the solution
 	for (auto& [id, ubxinput] : acsConfig.ubx_inputs)	{	sinex_add_files(acsConfig.analysis_agency, time, ubxinput,				"UBX");			}
@@ -95,13 +50,15 @@ void sinexPostProcessing(
 	PTime startTime;
 	startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);		//todo aaron, make these constructors for ptime.
 
-	updateSinexHeader(acsConfig.analysis_agency, data_agc, (GTime) startTime, time, obsCode, constCode, solcont, 2.02); //Change this if the sinex format gets updated
+	KFState sinexSubstate = mergeFilters({&netKFState}, {KF::ONE, KF::REC_POS, KF::REC_POS_RATE});
+	
+	updateSinexHeader(acsConfig.analysis_agency, data_agc, (GTime) startTime, time, obsCode, constCode, solcont, sinexSubstate.x.rows() - 1, 2.02); //Change this if the sinex format gets updated
 
 	string filename = acsConfig.sinex_filename;
 	
 	replaceTimes(filename, acsConfig.start_epoch);
 	
-	writeSinex(filename, stationMap);
+	writeSinex(filename, sinexSubstate, stationMap);
 }
 
 void sinexPerEpochPerStation(

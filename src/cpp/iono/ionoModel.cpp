@@ -1,45 +1,27 @@
 
 // #pragma GCC optimize ("O0")
 
-#include <map>
 #include <string>
+#include <map>
 
 using std::string;
 using std::map;
 
 #include "ionoModel.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
+#include "station.hpp"
+#include "algebra.hpp"
+#include "common.hpp"
 #include "enums.h"
 
 
 /* Global parameters */
-KFState				iono_KFState;
 map<E_Sys,string>	ionRefRec;
 
 #define		INIT_VAR_RDCB	100.0
 #define		INIT_VAR_SDCB	100.0
 #define		INIT_VAR_SCHP	100.0
-
-bool overwriteIonoKF (
-	KFState&	kfState)
-{
-	bool ionoKF = false;
-	
-	for (auto& [key, index] : kfState.kfIndexMap)
-	if (key.type == +KF::CODE_BIAS)
-	{
-		ionoKF = true;
-		break;
-	}
-	
-	if (ionoKF)
-		iono_KFState = kfState;
-		
-	return ionoKF;
-}
 
 void ionosphereSsrUpdate(
 	Trace&		trace,
@@ -47,8 +29,8 @@ void ionosphereSsrUpdate(
 {
 	switch (acsConfig.ionModelOpts.model)
 	{
-		case E_IonoModel::SPHERICAL_HARMONICS:	return ionOutputSphcal(trace,kfState);
-		case E_IonoModel::LOCAL:				return ionOutputLocal (trace,kfState);
+		case E_IonoModel::SPHERICAL_HARMONICS:	return ionOutputSphcal(trace, kfState);
+		case E_IonoModel::LOCAL:				return ionOutputLocal (trace, kfState);
 		case E_IonoModel::MEAS_OUT:				return;
 		case E_IonoModel::NONE:					return;
 	}
@@ -58,13 +40,6 @@ void ionosphereSsrUpdate(
 
 int configIonModel()
 {
-	iono_KFState.max_filter_iter			= acsConfig.pppOpts.max_filter_iter;
-	iono_KFState.max_prefit_remv			= acsConfig.pppOpts.max_prefit_remv;
-	iono_KFState.inverter					= acsConfig.pppOpts.inverter;
-	iono_KFState.output_residuals			= acsConfig.output_residuals;
-	iono_KFState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
-	iono_KFState.rts_basename				= "IONEX_RTS";
-		
 	switch (acsConfig.ionModelOpts.model)
 	{
 		case E_IonoModel::MEAS_OUT:				return 1;
@@ -78,16 +53,17 @@ int configIonModel()
 }
 
 double ionModelCoef(
+	Trace&		trace,
 	int			ind,
 	IonoObs&	obs, 
 	bool		slant)
 {
 	switch (acsConfig.ionModelOpts.model)
 	{
-		case E_IonoModel::SPHERICAL_HARMONICS:	return ionCoefSphhar(ind, obs, slant);
-		case E_IonoModel::SPHERICAL_CAPS:		return ionCoefSphcap(ind, obs, slant);
-		case E_IonoModel::BSPLINE:				return ionCoefBsplin(ind, obs, slant);
-		case E_IonoModel::LOCAL:				return ionCoefLocal (ind, obs);
+		case E_IonoModel::SPHERICAL_HARMONICS:	return ionCoefSphhar(		ind, obs, slant);
+		case E_IonoModel::SPHERICAL_CAPS:		return ionCoefSphcap(		ind, obs, slant);
+		case E_IonoModel::BSPLINE:				return ionCoefBsplin(		ind, obs, slant);
+		case E_IonoModel::LOCAL:				return ionCoefLocal (trace,	ind, obs);
 		default:								return 0;
 	}
 }
@@ -96,18 +72,14 @@ double ionModelCoef(
  * The ionosphere model should be initialized by calling 'config_ionosph_model'        
  * Ionosphere measurments from stations should be loaded using 'update_station_measr' 
  */
-void updateIonosphereModel(
+void filterIonosphere(
 	Trace&			trace,				///< Trace to output to
-	string			ionstecFilename,	///< Filename for ionstec outputs
-	string			ionexFilename,		///< Filename for ionex outputs
+	KFState&		kfState,			///< Filter state
 	StationMap&		stations,			///< List of pointers to stations to use
 	GTime 			time)				///< Time of this epoch
 {
 	if (acsConfig.ionModelOpts.model== +E_IonoModel::NONE) 
 		return;
-	
-	if (acsConfig.output_ionstec)
-		writeReceiverMeasurements(trace, ionstecFilename, stations, time);
 	
 	if (acsConfig.ionModelOpts.model== +E_IonoModel::MEAS_OUT) 
 		return; 
@@ -207,7 +179,7 @@ void updateIonosphereModel(
 		obsKey.Sat = obs.Sat;
 		obsKey.str = rec.id;
 		
-		KFMeasEntry meas(&iono_KFState, obsKey);
+		KFMeasEntry meas(&kfState, obsKey);
 		meas.setValue(obs.stecVal);
 		meas.setNoise(obs.stecVar);
 		
@@ -250,7 +222,7 @@ void updateIonosphereModel(
 		
 		for (int i = 0; i < acsConfig.ionModelOpts.numBasis; i++)
 		{
-			double coef = ionModelCoef(i, obs, true);
+			double coef = ionModelCoef(trace,i, obs, true);
 			
 			if (coef == 0)
 				continue;
@@ -279,34 +251,27 @@ void updateIonosphereModel(
 	}
 	
 	//add process noise to existing states as per their initialisations.
-	iono_KFState.stateTransition(trace, time);
+	kfState.stateTransition(trace, time);
 
 	//combine the measurement list into a single design matrix, measurement vector, and measurement noise vector
-	KFMeas combinedMeas = iono_KFState.combineKFMeasList(kfMeasEntryList);
+	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
 
 	//if there are uninitialised state values, estimate them using least squares
-	if (iono_KFState.lsqRequired)
+	if (kfState.lsqRequired)
 	{
-		iono_KFState.lsqRequired = false;
+		kfState.lsqRequired = false;
 		trace << std::endl << "-------INITIALISING IONO USING LEAST SQUARES--------" << std::endl;
 
-		iono_KFState.leastSquareInitStates(std::cout, combinedMeas, true);
+		kfState.leastSquareInitStates(std::cout, combinedMeas, true);
 	}
 	else
 	{
-		//perform kalman filtering
 		trace << std::endl << "------- DOING IONO KALMAN FILTER --------" << std::endl;
 
-		iono_KFState.filterKalman(trace, combinedMeas, false);
-// 		trace << std::endl << " ------- AFTER IONO KALMAN FILTER --------" << std::endl;
+		kfState.filterKalman(trace, combinedMeas, false);
 	}
 
-	iono_KFState.outputStates(trace, "/ION");
-	
-	MatrixXd atran = combinedMeas.H.transpose();
-	
-	if (acsConfig.ssrOpts.ionosphere_sources.front() == +E_Source::KALMAN)
-		ionosphereSsrUpdate(trace, iono_KFState);
+	kfState.outputStates(trace, "/ION");
 }
 
 
@@ -329,12 +294,13 @@ double getSSRIono(
 
 /** Estimate biases from Ionosphere modelling DCBs */ 
 bool queryBiasDCB(
-	Trace&	trace,	///< debug trace
-	SatSys	Sat,	///< GNSS Satellite
-	string	Rec,	///< Receiver id
-	E_FType	freq,	///< GNSS frequency index
-	double&	bias,	///< Output bias value
-	double&	var)	///< Output bias variance
+	Trace&		trace,		///< debug trace
+	KFState&	kfState,	///< Kalman filter to take biases from
+	SatSys		Sat,		///< GNSS Satellite
+	string		Rec,		///< Receiver id
+	E_FType		freq,		///< GNSS frequency index
+	double&		bias,		///< Output bias value
+	double&		var)		///< Output bias variance
 {
 	double lamb = nav.satNavMap[Sat].lamMap[freq];
 	if (lamb == 0)
@@ -344,13 +310,13 @@ bool queryBiasDCB(
 	double dcbVar;
 
 	bool pass = false;
-	for (auto& [key, index] : iono_KFState.kfIndexMap)
+	for (auto& [key, index] : kfState.kfIndexMap)
 	if	(  key.type == +KF::CODE_BIAS
 		&& key.Sat  == Sat
 		&& key.str  == Rec)
 	{
 		/* We need a way to select between GAL L1X-L5X and L1C-L5Q DCBs... */
-		pass = iono_KFState.getKFValue(key, dcbVal, &dcbVar);
+		pass = kfState.getKFValue(key, dcbVal, &dcbVar);
 
 		break;
 	}

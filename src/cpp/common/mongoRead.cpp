@@ -6,6 +6,7 @@
 using std::deque;
 
 #include "streamRtcm.hpp"
+#include "ephemeris.hpp"
 #include "acsConfig.hpp"
 #include "mongoRead.hpp"
 #include "common.hpp"
@@ -681,9 +682,9 @@ Geph mongoReadGloEphemeris(
 	
 	
 SSRAtm mongoReadIGSIonosphere(
-	GTime	time,
-	SSRMeta	ssrMeta,
-	int		masterIod)
+	GTime		time,
+	SSRMeta		ssrMeta,
+	int			masterIod)
 {
 	SSRAtm ssrAtm;
 	
@@ -779,7 +780,8 @@ SSRAtm mongoReadIGSIonosphere(
 map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 	GTime	time,
 	SatSys	Sat,
-	bool	remote)
+	bool	remote,
+	double*	var_ptr)
 {
 	map<SatSys, map<GTime, Vector6d>> predictedPosMap;
 	
@@ -794,10 +796,14 @@ map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 		return predictedPosMap;
 	}
 	
+	string database;
+	if (remote)	database = acsConfig.remoteMongo.database;
+	else		database = acsConfig.localMongo	.database;
+	
 	Mongo&						mongo	= *mongo_ptr;
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.remoteMongo.database];
+	mongocxx::database			db		= client[database];
 	mongocxx::collection		coll	= db[REMOTE_DATA_DB];
 	
 	b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
@@ -836,6 +842,11 @@ map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 			inertialState(i + 3) = doc[REMOTE_VEL + std::to_string(i)].get_double();
 		}
 		
+		if (var_ptr)
+		{
+			*var_ptr = doc[REMOTE_VAR].get_double();
+		}
+		
 		string sat = doc[REMOTE_SAT].get_utf8().value.to_string();
 		
 		SatSys Sat(sat.c_str());
@@ -864,10 +875,14 @@ map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
 		return predictedClkMap;
 	}
 	
+	string database;
+	if (remote)	database = acsConfig.remoteMongo.database;
+	else		database = acsConfig.localMongo	.database;
+	
 	Mongo&						mongo	= *mongo_ptr;
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.remoteMongo.database];
+	mongocxx::database			db		= client[database];
 	mongocxx::collection		coll	= db[REMOTE_DATA_DB];
 	
 	b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};

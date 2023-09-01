@@ -9,18 +9,11 @@
 *-----------------------------------------------------------------------------*/
 #include <boost/log/trivial.hpp>
 
-
-#include "corrections.hpp"
 #include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
-#include "biasSINEX.hpp"
+#include "biases.hpp"
 #include "common.hpp"
-
-
-#define VAR_NOTEC   SQR(30.0)   /* variance of no tec */
-#define MIN_EL      0.0         /* min elevation angle (rad) */
-#define MIN_HGT     -1000.0     /* min user height (m) */
 
 /* get index 
  */
@@ -28,7 +21,7 @@ int getindex(
 	double value, 
 	const double* range)
 {
-	if (range[2] == 0)												return 0;
+	if (range[2] == 0)												return  0;
 	if (range[1] > 0 && (value < range[0] || range[1] < value))		return -1;
 	if (range[1] < 0 && (value < range[1] || range[0] < value))		return -1;
 
@@ -49,7 +42,7 @@ int dataindex(
 	int i,
 	int j,
 	int k,
-	const int* ndata)
+	const int* ndata)		//todo aaron, convert to maps
 {
 	if	(  i < 0 || ndata[0] <= i
 		|| j < 0 || ndata[1] <= j
@@ -485,228 +478,4 @@ void readTec(
 
 	/* read ionex body */
 	readionexb(inputStream, lats, lons, hgts, rb, nexp, navi);
-}
-
-/** interpolate tec grid data 
- */
-int interpTec(
-	const	tec_t&		tec,
-			int			k, 
-	const	VectorPos&	posp,
-			double&		value,
-			double&		rms)
-{
-	tracepdeex(6,std::cout, "%s: k=%d posp=%.2f %.2f\n",__FUNCTION__, k, posp[0]*R2D, posp[1]*R2D);
-
-	value	= 0;
-	rms		= 0;
-
-	if	( tec.lats[2] == 0
-		||tec.lons[2] == 0)
-	{
-		return 0;
-	}
-
-	double dlat = posp.latDeg() - tec.lats[0];
-	double dlon = posp.lonDeg() - tec.lons[0];
-
-	if (tec.lons[2] > 0)	dlon -= floor( dlon / 360) * 360; /*  0<=dlon<360 */
-	else					dlon += floor(-dlon / 360) * 360; /* -360<dlon<=0 */
-
-	double a = dlat / tec.lats[2];
-	double b = dlon / tec.lons[2];
-	int i = (int) floor(a); 			a -= i;
-	int j = (int) floor(b); 			b -= j;
-
-	/* get gridded tec data */
-	double d[4] = {};
-	double r[4] = {};
-	for (int n = 0; n < 4; n++)
-	{
-		int index = dataindex(i + (n % 2), j + (n < 2 ? 0 : 1), k, tec.ndata);
-		if (index < 0)
-			continue;
-
-		auto& tecPoint = tec.tecPointVector[index];
-		
-		d[n] = tecPoint.data;
-		r[n] = tecPoint.rms;
-	}
-
-	if	(  d[0] > 0
-		&& d[1] > 0
-		&& d[2] > 0
-		&& d[3] > 0)
-	{
-		/* bilinear interpolation (inside of grid) */
-		value	= (1 - a) * (1 - b) * d[0] 		+ a * (1 - b) * d[1] 		+ (1 - a) * b * d[2] 		+ a * b * d[3];
-		rms		= (1 - a) * (1 - b) * r[0] 		+ a * (1 - b) * r[1] 		+ (1 - a) * b * r[2] 		+ a * b * r[3];
-
-		// if (fdebug)
-		tracepdeex(6,std::cout, "  gridpoints: %8.2f %8.2f %8.2f %8.2f -> %9.3f\n", d[0], d[1], d[2], d[3], value);
-	}
-	/* nearest-neighbour extrapolation (outside of grid) */
-	else if (a <=	0.5 && b <= 0.5 && d[0] > 0) 	{	value = d[0];		rms = r[0];		}
-	else if (a >	0.5 && b <= 0.5 && d[1] > 0) 	{	value = d[1];		rms = r[1];		}
-	else if (a <=	0.5 && b >	0.5 && d[2] > 0) 	{	value = d[2];		rms = r[2];		}
-	else if (a >	0.5 && b >	0.5 && d[3] > 0) 	{	value = d[3];		rms = r[3];		}
-	else
-	{
-		i = 0;
-
-		for (int n = 0; n < 4; n++)
-		if (d[n] > 0)
-		{
-			i++;
-			value	+= d[n];
-			rms		+= r[n];
-		}
-
-		if (i == 0)
-			return 0;
-
-		value	/= i;
-		rms		/= i;
-	}
-
-	return 1;
-}
-
-/** ionosphere delay by tec grid data 
- */
-bool ionDelay(
-	GTime				time,	///< Time
-	const tec_t&		tec,	///< Input electron content data
-	const VectorPos&	pos,	///< Position of receiver
-	const double*		azel,	///< Azimuth and elevation of signal path
-	E_IonoMapFn			mapFn,	///< model of mapping function
-	E_IonoFrame			frame,	///< reference frame
-	double&				delay,	///< Delay in meters
-	double&				var)	///< Variance
-{
-	// if (fdebug)
-	// 	fprintf(fdebug, "%s: time=%s pos=%.1f %.1f azel=%.1f %.1f\n", __FUNCTION__, time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D);
-
-	delay	= 0;
-	var		= 0;
-
-	for (int i = 0; i < tec.ndata[2]; i++)
-	{
-		double hion = tec.hgts[0] + tec.hgts[2] * i;
-
-		/* ionospheric pierce point position */
-		VectorPos posp;
-		ionppp(pos, azel, tec.rb, hion, posp);
-		double fs = ionmapf(pos, azel, mapFn, acsConfig.ionoOpts.mapping_function_layer_height);
-
-		if (frame == +E_IonoFrame::SUN_FIXED)
-		{
-			/* earth rotation correction (sun-fixed coordinate) */
-			posp[1] += 2 * PI * (time - tec.time).to_double() / 86400;
-		}
-
-		/* interpolate tec grid data */
-		double rms;
-		double vtec;
-		if (interpTec(tec, i, posp, vtec, rms) == false)
-			return false;
-
-		const double fact = TEC_CONSTANT / SQR(FREQ1); /* tecu->L1 iono (m) */
-		delay	+= fact * fs * vtec;
-		var		+= SQR(fact * fs * rms);
-	}
-
-	tracepdeex(6,std::cout, "%s: delay=%7.2f std=%6.2f\n",__FUNCTION__, delay, sqrt(var));
-
-	return true;
-}
-
-/** ionosphere model by tec grid data 
- * Before calling the function, read tec grid data by calling readTec()
-*          return ok with delay=0 and var=VAR_NOTEC if el < MIN_EL or h < MIN_HGT
-*/
-bool iontec(
-	GTime				time,	///< time (gpst)
-	const Navigation*	nav,	///< navigation data
-	const VectorPos&	pos,	///< receiver position {lat,lon,h} (rad,m)
-	const double*		azel,	///< azimuth/elevation angle {az,el} (rad)
-	E_IonoMapFn			mapFn,	///< model of mapping function
-	E_IonoFrame			frame,	///< reference frame
-	double&				delay,	///< ionospheric delay (L1) (m)
-	double&				var)	///< ionospheric dealy (L1) variance (m^2)
-{
-	// if (fdebug)
-	// 	fprintf(fdebug, "iontec  : time=%s pos=%.1f %.1f azel=%.1f %.1f nt=%ld\n", time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D, nav->tecList.size());
-
-	delay	= 0;
-	var		= VAR_NOTEC;
-
-	if	(  azel[1]		< MIN_EL
-		|| pos.hgt()	< MIN_HGT)
-	{
-		return true;
-	}
-
-	auto it = nav->tecMap.lower_bound(time);
-	if (it == nav->tecMap.end())
-	{
-		// if (fdebug)
-		// 	fprintf(fdebug, "%s: tec grid out of period\n", time.to_string(0).c_str());
-
-		return true;
-	}
-	
-	bool pass[2] = {};
-	double dels[2];
-	double vars[2];
-	
-	auto& [t0, tec0] = *it;
-	pass[0] = ionDelay(time, tec0, pos, azel, mapFn, frame, dels[0], vars[0]);
-		
-	if (it == nav->tecMap.begin())
-	{
-		delay	= dels[0];
-		var		= vars[0];
-		return pass[0];
-	}
-	
-	//go forward and get the next timestep if available
-	it--;
-	
-	auto& [t1, tec1] = *it;
-	pass[1] = ionDelay(time, tec1, pos, azel, mapFn, frame, dels[1], vars[1]);
-	
-
-	if	(  pass[0]
-		&& pass[1])
-	{
-		/* linear interpolation by time */
-		double tt	= (tec1.time	- tec0.time).to_double();
-		double a	= (time			- tec0.time).to_double() / tt;
-		
-		delay	= dels[0] * (1 - a) + dels[1] * a;
-		var		= vars[0] * (1 - a) + vars[1] * a;
-	}
-	else if (pass[0])   /* nearest-neighbour extrapolation by time */
-	{
-		delay	= dels[0];
-		var		= vars[0];
-	}
-	else if (pass[1])
-	{
-		delay	= dels[1];
-		var		= vars[1];
-	}
-	else
-	{
-		// if (fdebug)
-		// 	fprintf(fdebug, "%s: tec grid out of area pos=%6.2f %7.2f azel=%6.1f %5.1f\n",  time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D);
-
-		return false;
-	}
-
-	// if (fdebug)
-	// 	fprintf(fdebug, "iontec  : delay=%5.2f std=%5.2f\n", delay, sqrt(var));
-
-	return true;
 }

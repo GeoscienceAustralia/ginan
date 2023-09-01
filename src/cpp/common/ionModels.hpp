@@ -45,7 +45,3 @@ void readTec(
 	string				file, 
 	Navigation*			nav);
 
-double relativity1(
-	Vector3d&			rSat,
-	Vector3d&			satVel);
-

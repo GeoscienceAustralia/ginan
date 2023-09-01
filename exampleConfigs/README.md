@@ -9,15 +9,15 @@ achieve the configuration and processing outcome required.
 Currently included examples configurations with this release include:
 
 1) ex201.yaml
-Post Processed Static Receiver positioning usng dual frequency GPS and GAL 
+Post Processed Static Receiver positioning using dual frequency GPS and GAL 
 observations, using IGS REPRO3 final orbits clocks and biases. 
 
 2) ex202.yaml
-Real-Time Static Receiver positioning usng dual frequency GPS and GAL 
+Real-Time Static Receiver positioning using dual frequency GPS and GAL 
 observations, using the BKG SSRA00BKG0 correction stream
 
 3) ex203.yaml
-Post processed Real-Time Kinemeatic Receiver (RTK) positioning using tri 
+Post processed Real-Time Kinematic Receiver (RTK) positioning using tri 
 frequencyGPS, GAL and BDS recorded RTCM3 observation and correction streams. 
 The recorded correction stream is from SSRA03IGS0.
 

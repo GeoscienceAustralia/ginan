@@ -2,7 +2,7 @@
 
 # A Position on Earth
 
-> We take positions on Earth for granted but they rely on a series of well defined and maintained reference frames. This section introduces the reference frames that let us define a point on Earth in terms of latitude, longitude and height.
+> We take positions on Earth for granted but they rely on a series of well-defined and maintained reference frames. This section introduces the reference frames that let us define a point on Earth in terms of latitude, longitude and height.
 
 ![Position in an ever-moving, ever-changing Universe](images/PositionOnEarth-75pc.png)
 
@@ -18,7 +18,7 @@ Well fortunately for the vast majority of applications we only need to know wher
 
 *The International Celestial Reference Frame (ICRF). J2000.0 is a standard Julian equinox and epoch - January 1, 2000 at 12:00 TT.*
 
-The International Earth Rotation and Reference Systems Service (IERS) was created in 1988 to establish and maintain a Celestial Reference Frame, the ICRF. The ICRF is defined by the position of significant celestial objects. Perhaps the most important of these are the so called radio-loud quasars. These are super massive black holes at the centre of galaxies that radiate huge amounts of energy. A quasar typically emits radiation with a unique signature - a pattern across the radiation spectrum. These quasars, despite all the movement, appear as fixed points in the sky and thus as fixed reference points in the ICRF.
+The International Earth Rotation and Reference Systems Service (IERS) was created in 1988 to establish and maintain a Celestial Reference Frame, the ICRF. The ICRF is defined by the position of significant celestial objects. Perhaps the most important of these are the so-called radio-loud quasars. These are super massive black holes at the centre of galaxies that radiate huge amounts of energy. A quasar typically emits radiation with a unique signature - a pattern across the radiation spectrum. These quasars, despite all the movement, appear as fixed points in the sky and thus as fixed reference points in the ICRF.
 
 
 ## The International Terrestrial Reference Frame (ITRF)
@@ -31,7 +31,7 @@ The IERS also maintains the International Terrestrial Reference Frame, the ITRF.
 
 The relationship between the ICRF and ITRF is defined by Earth Observation Parameters (EOP).
 
-The Earth is not a perfect sphere. It's radius is bigger at the equator than it is at the poles. It also has lumpy gravity. If you ran an altimeter over Earth and plotted out all the points of equal gravity, the picture would look a bit like a potato. That said, a position in X, Y and Z coordinates can be converted to geographical coordinates (Longitude, Latitude and Height) using a geocentric datum.
+The Earth is not a perfect sphere. Its radius is bigger at the equator than it is at the poles. It also has lumpy gravity. If you ran an altimeter over Earth and plotted out all the points of equal gravity, the picture would look a bit like a potato. That said, a position in X, Y and Z coordinates can be converted to geographical coordinates (Longitude, Latitude and Height) using a geocentric datum.
 
 Given that Australia does move approximately 7 centimetres a year north north-east, it is important that Australia keeps track of where it is in the context of the ITRF. To this end Geoscience Australia maintains the geocentric datum GDA2020 and a suite of tools, models and resources as part of the Australian Geospatial Reference System.
 

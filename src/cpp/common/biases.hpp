@@ -9,7 +9,6 @@
 #include "gTime.hpp"
 #include "enums.h"
 
-
 #include <string>
 #include <array>
 #include <map>
@@ -19,6 +18,8 @@ using std::string;
 using std::array;
 using std::map;
 using std::set;
+
+struct StationMap;
 
 struct BiasEntry
 {
@@ -42,17 +43,16 @@ E_ObsCode str2code(
 	string&		input,
 	E_MeasType&	measType);
 
-string code2str(
-	E_ObsCode	code, 
-	E_MeasType	opt);
-
 void pushBiasSinex(
 	string		id,
 	BiasEntry	entry);
 
-void initialiseBiasSinex();
+void initialiseBias();
 
-void addDefaultBiasSinex();
+void addDefaultBias();
+
+void cullOldBiases(
+	GTime		time);
 
 bool decomposeDSBBias(
 	string		id,
@@ -70,18 +70,7 @@ bool decomposeBGDBias(
 bool readBiasSinex(
 	string& file);
 
-bool getBiasSinex(
-	Trace& 			trace,	
-	GTime			time,
-	string			id,
-	SatSys			sys,
-	E_ObsCode		obsCode1,
-	E_ObsCode		obsCode2,
-	E_MeasType		measType,
-	double&			bias,	
-	double&			var);
-
-bool getBiasSinex(
+bool getBias(
 	Trace& 			trace,
 	GTime			time,
 	string			id,
@@ -91,22 +80,17 @@ bool getBiasSinex(
 	double& 		bias,
 	double& 		var);
 
-int writeBiasSinex(
+void writeBiasSinex(
 	Trace&		trace,
 	GTime		time,
-	string		biasfile,
-	StationMap&	stationMap,
-	KFState&	kfState);
-
-int writeBiasSinex(
-	Trace&		trace,
-	GTime		time,
+	KFState&	kfState,	
 	string		biasfile,
 	StationMap&	stationMap);
 
 bool queryBiasOutput(
 	Trace&		trace, 
 	GTime		time,
+	KFState&	kfState,
 	SatSys		Sat,
 	string		Rec,
 	E_ObsCode	obsCode, 
@@ -114,4 +98,4 @@ bool queryBiasOutput(
 	double& 	variance,
 	E_MeasType	type);
 
-extern array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, BiasEntry, std::greater<GTime>>>>>, NUM_MEAS_TYPES> SINEXBiases;		///< Multi dimensional map, as SINEXBiases[measType][id][code1][code2][time]
+extern array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, BiasEntry, std::greater<GTime>>>>>, NUM_MEAS_TYPES> biasMaps;

@@ -2,6 +2,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "observations.hpp"
+#include "navigation.hpp"
 #include "instrument.hpp"
 #include "GNSSambres.hpp"
 #include "testUtils.hpp"
@@ -127,9 +128,12 @@ void recordSlips(
 
 void preprocessor(
 	Network&	net,
-	Station&	rec)
+	Station&	rec,
+	bool		realEpoch)
 {
-	if (acsConfig.process_preprocessor == false)
+	if	( (acsConfig.process_preprocessor == false)
+		||(acsConfig.preprocess_all_data == true	&& realEpoch == true)	
+		||(acsConfig.preprocess_all_data == false	&& realEpoch == false))
 	{
 		return;
 	}
@@ -147,8 +151,6 @@ void preprocessor(
 		return;
 	}
 	
-	rec.sol.time = obsList.front()->time;
-	
 	PTime start_time;
 	start_time.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
 
@@ -157,7 +159,7 @@ void preprocessor(
 	else										tol = 0.5;
 	
 	if	(  acsConfig.start_epoch.is_not_a_date_time() == false
-		&& rec.sol.time < (GTime) start_time - tol)
+		&& obsList.front()->time < (GTime) start_time - tol)
 	{
 		return;
 	}
@@ -192,22 +194,6 @@ void preprocessor(
 		updatenav(obs);
 
 		obs.satStat_ptr = &rec.satStatMap[obs.Sat];
-		
-		//ar stuff
-		{
-			if (acsConfig.process_network)	ARstations["NETWORK"].ID	= "NETWORK";
-			else							ARstations[rec.id].ID		= rec.id;
-			
-			sys_activ[rec.id];
-		
-			ARsatellites[obs.Sat];
-			
-			for (E_AmbTyp ambType : E_AmbTyp::_values())
-			{
-				elev_archive[{KF::AMBIGUITY, obs.Sat, obs.mount, ambType}];
-				slip_archive[{KF::AMBIGUITY, obs.Sat, obs.mount, ambType}];
-			}
-		} 
 	}
 
 	for (auto& obs : only<LObs>(obsList))
@@ -236,20 +222,6 @@ void preprocessor(
 	
 	outputObservations(trace, obsList);
 	
-	for (auto& obs : only<GObs>(obsList))
-	{
-		if (acsConfig.process_sys[obs.Sat.sys] == false)
-		{
-			continue;
-		}
-			
-		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
-		
-		satPosClk(trace, rec.sol.time, obs, nav, satOpts.sat_pos.ephemeris_sources, satOpts.sat_clock.ephemeris_sources, nullptr, E_OffsetType::APC);
-	}
-	
-	obsVariances(obsList);
-
 	/* linear combinations */
 	for (auto& obs : only<GObs>(obsList))
 	if (obs.satStat_ptr)

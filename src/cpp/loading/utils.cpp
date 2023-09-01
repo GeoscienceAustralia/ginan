@@ -52,12 +52,6 @@ double rad_to_deg(double rad)
 	return rad * 180/PI;
 };
 
-
-double deg_to_rad(double rad)
-{
-	return rad / 180*PI;
-};
-
 void calcDistanceBearing(float *lat1, float *lon1, float * lat2, float *lon2, double *dist, double *brng)
 {
 	double lat1_r = (double)  (*lat1 * PI/180.0);

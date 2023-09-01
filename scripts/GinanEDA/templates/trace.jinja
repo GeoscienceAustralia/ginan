@@ -1,0 +1,88 @@
+{% extends 'base.jinja'%}
+{# {% block header %}
+<h1>{% block title %} {{ plotingpage }} {% endblock %}</h1>
+{% endblock %} #}
+
+{% block title%}
+Trace
+{% endblock %}
+{% block menuselection %}
+<form method="post" class="row g-5" role="form" onsubmit="return validateForm()">
+  <div class="col-lg-1">
+    <label for="type" class="form-label">Type:</label>
+    <br>
+    <select class="selectpicker form-control" name="type" id="type" data-container="body" data-live-search="true"
+      title="Select type">
+      {% for key_ in extra['plotType'] %}
+      {% if selection is defined and selection['plot']|length and key_ in selection['plot']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-lg-2">
+    <label for="match">Match:</label>
+    <input type="text" class="form-control" id="match" name="match" placeholder="match" 
+    {% if selection is defined and  selection['match'] %}value="{{ selection['match'] }}"{% endif %}  
+    >
+    </div>
+  <div class="col-lg-2">
+    <label for="group">Group:</label>
+    <input type="text" class="form-control" id="group" name="group" placeholder="group" 
+    {% if selection is defined and  selection['group'] %}value="{{ selection['group'] }}"{% endif %}  
+    >
+    </div>
+  <div class="col-lg-2">
+    <label for="datax">DataX:</label>
+    <input type="text" class="form-control" id="datax" name="datax" placeholder="datax" 
+    {% if selection is defined and  selection['datax'] %}value="{{ selection['datax'] }}"{% endif %}  
+    >
+    </div>
+  <div class="col-lg-2">
+    <label for="datay">DataY:</label>
+    <input type="text" class="form-control" id="datay" name="datay" placeholder="datay" 
+    {% if selection is defined and  selection['datay'] %}value="{{ selection['datay'] }}"{% endif %}  
+    >
+    </div>
+  <input type="submit" value="PLOT">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script >
+function notSelectedValue(fieldId, missingField) {
+    var field = document.getElementById(fieldId);
+    var selectedIndex = field.selectedIndex;
+    console.log("selectedIndex: " + selectedIndex + " for fieldId: " + fieldId);
+    if (selectedIndex == -1) {
+      missingField.push(fieldId);
+    }
+  }
+  function validateForm() {
+    var missingField = []; // Array to store the empty fields
+    
+    // Check if a value is selected in each field
+    // notSelectedValue('type', missingField);
+    // notSelectedValue('series', missingField);
+    // notSelectedValue('sat', missingField);
+    // notSelectedValue('site', missingField);
+    // notSelectedValue('xaxis', missingField);
+    // notSelectedValue('yaxis', missingField);
+    console.log(missingField)
+    if (missingField.length > 0)
+    {
+      var errorMessage = 'Please select a value in the following fields:\n\n';
+      for (var i = 0; i < missingField.length; i++) 
+      {
+        errorMessage += '- ' + missingField[i] + '\n';
+      }
+      alert(errorMessage);
+      return false; // Prevent form submission
+    }
+
+    return true; // Allow form submission
+  }
+</script>
+{% endblock %}

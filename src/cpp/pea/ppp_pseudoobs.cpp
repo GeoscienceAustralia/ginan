@@ -75,7 +75,9 @@ void initPseudoObs(
 			InitialState posInit = initialStateFromConfig(satOpts.orbit, i);
 			InitialState velInit = initialStateFromConfig(satOpts.orbit, i + 3);
 			
-			if (posInit.estimate == false)
+			if	( posInit.estimate == false
+				||posInit.x == 0
+				||velInit.x == 0)
 			{
 				continue;
 			}
@@ -112,15 +114,15 @@ void initPseudoObs(
 		addKFSatEMPStates(satOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	Sat);
 		
-		addKFSatEMPStates(satOpts.srp_dyb_0,	kfState,	KF::SRP_DYB_0,	Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_1c,	kfState,	KF::SRP_DYB_1C,	Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_1s,	kfState,	KF::SRP_DYB_1S,	Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_2c,	kfState,	KF::SRP_DYB_2C,	Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_2s,	kfState,	KF::SRP_DYB_2S,	Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_3c,	kfState,	KF::SRP_DYB_3C,	Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_3s,	kfState,	KF::SRP_DYB_3S,	Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_4c,	kfState,	KF::SRP_DYB_4C,	Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_4s,	kfState,	KF::SRP_DYB_4S,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_0,	kfState,	KF::EMP_RTN_0,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_1c,	kfState,	KF::EMP_RTN_1C,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_1s,	kfState,	KF::EMP_RTN_1S,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_2c,	kfState,	KF::EMP_RTN_2C,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_2s,	kfState,	KF::EMP_RTN_2S,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_3c,	kfState,	KF::EMP_RTN_3C,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_3s,	kfState,	KF::EMP_RTN_3S,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_4c,	kfState,	KF::EMP_RTN_4C,	Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_4s,	kfState,	KF::EMP_RTN_4S,	Sat);	
 	}
 }
 
@@ -259,15 +261,15 @@ void orbitPseudoObs(
 		addKFSatEMPStates(satOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	obs.Sat);
 		addKFSatEMPStates(satOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	obs.Sat);
 		
-		addKFSatEMPStates(satOpts.srp_dyb_0,	kfState,	KF::SRP_DYB_0,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_1c,	kfState,	KF::SRP_DYB_1C,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_1s,	kfState,	KF::SRP_DYB_1S,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_2c,	kfState,	KF::SRP_DYB_2C,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_2s,	kfState,	KF::SRP_DYB_2S,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_3c,	kfState,	KF::SRP_DYB_3C,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_3s,	kfState,	KF::SRP_DYB_3S,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_4c,	kfState,	KF::SRP_DYB_4C,	obs.Sat);
-		addKFSatEMPStates(satOpts.srp_dyb_4s,	kfState,	KF::SRP_DYB_4S,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_0,	kfState,	KF::EMP_RTN_0,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_1c,	kfState,	KF::EMP_RTN_1C,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_1s,	kfState,	KF::EMP_RTN_1S,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_2c,	kfState,	KF::EMP_RTN_2C,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_2s,	kfState,	KF::EMP_RTN_2S,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_3c,	kfState,	KF::EMP_RTN_3C,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_3s,	kfState,	KF::EMP_RTN_3S,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_4c,	kfState,	KF::EMP_RTN_4C,	obs.Sat);
+		addKFSatEMPStates(satOpts.emp_rtn_4s,	kfState,	KF::EMP_RTN_4S,	obs.Sat);
 	}
 }
 

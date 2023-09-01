@@ -7,6 +7,7 @@
 #include "streamParser.hpp"
 #include "rtcmDecoder.hpp"
 #include "streamObs.hpp"
+#include "constants.hpp"
 
 
 #define CLEAN_UP_AND_RETURN_ON_FAILURE	\

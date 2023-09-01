@@ -213,7 +213,7 @@ processing_options:
         general_relativity:             true
         pole_tide_ocean:                true
         pole_tide_solid:                true
-        solar_pressure_radiation:       true
+        solar_radiation_pressure:       true
         antenna_thrust:                 true
         empirical_dyb:                  true 
         albedo:                         true
