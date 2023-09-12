@@ -248,8 +248,7 @@ bool replaceString(
 * Available replacements are "<CONFIG> <USER> <PASS> <BRANCH> <HASH> <AGENCY> <SOFTWARE>"
 */
 void replaceTags(
-	string&			str,		///< String to replace macros within
-	string			custom = "")
+	string& str)		///< String to replace macros within
 {
 	replaceString(str, "<SAT_DATA_ROOT>",					acsConfig.sat_data_root);
 	replaceString(str, "<GNSS_OBS_ROOT>",					acsConfig.gnss_obs_root);
@@ -284,6 +283,7 @@ void replaceTags(
 	replaceString(str, "<UBX_DIRECTORY>",					acsConfig.raw_ubx_directory);
 	replaceString(str, "<SLR_OBS_DIRECTORY>",				acsConfig.slr_obs_directory);
 	replaceString(str, "<TROP_SINEX_DIRECTORY>",			acsConfig.trop_sinex_directory);
+	replaceString(str, "<RTS_DIRECTORY>",					acsConfig.pppOpts.rts_directory);
 	replaceString(str, "<OUTPUTS_ROOT>",					acsConfig.outputs_root);
 	replaceString(str, "<USER>",							acsConfig.stream_user);
 	replaceString(str, "<PASS>",							acsConfig.stream_pass);
@@ -291,8 +291,7 @@ void replaceTags(
 }
 
 void replaceTags(
-	vector<string>&		strs,
-	string				custom = "")
+	vector<string>&		strs)
 {
 	for (auto& str : strs)
 	{
@@ -301,8 +300,7 @@ void replaceTags(
 }
 
 void replaceTags(
-	map<string, vector<string>>&	strs,
-	string							custom = "")
+	map<string, vector<string>>&	strs)
 {
 	for (auto& [id, str] : strs)
 	{
@@ -3175,13 +3173,13 @@ bool ACSConfig::parse(
 				trySetFromYaml(pppOpts.max_prefit_remv,			outlier_screening,	{"@ max_prefit_removals"	}, 										"(int) Maximum number of measurements to exclude using prefit checks before attempting to filter");
 			
 				auto rts = stringsToYamlObject(filter_options, {"! rts"}, "RTS allows reverse smoothing of estimates such that early estimates can make use of later data.");
-				trySetFromYaml(process_rts,						rts,				{"0!  enable"				}, "(bool) Perform backward smoothing of states to improve precision of earlier states");
-				trySetFromYaml(pppOpts.rts_lag,					rts,				{"1 lag"					}, "(int) Number of epochs to use in RTS smoothing. Negative numbers indicate full reverse smoothing.");
-				trySetFromYaml(pppOpts.rts_directory,			rts,				{"directory"				}, "(string) Directory for rts intermediate files");
-				trySetFromYaml(pppOpts.rts_filename,			rts,				{"filename"					}, "(string) Base filename for rts intermediate files");
-				trySetFromYaml(pppOpts.rts_smoothed_suffix,		rts,				{"suffix"					}, "(string) Suffix to be applied to smoothed versions of files");
-				trySetEnumOpt( pppOpts.rts_inverter, 			rts,				{"inverter" 				}, E_Inverter::_from_string_nocase, "Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
-				trySetFromYaml(pppOpts.output_intermediate_rts,	rts,				{"output_intermediates"		}, "(bool) Output best available smoothed states when performing fixed-lag rts (slow, use only when needed)");
+																				trySetFromYaml(process_rts,						rts,				{"0!  enable"				}, "(bool) Perform backward smoothing of states to improve precision of earlier states");
+																				trySetFromYaml(pppOpts.rts_lag,					rts,				{"1 lag"					}, "(int) Number of epochs to use in RTS smoothing. Negative numbers indicate full reverse smoothing.");
+				conditionalPrefix("<OUTPUTS_ROOT>",		pppOpts.rts_directory,	trySetFromYaml(pppOpts.rts_directory,			rts,				{"directory"				}, "(string) Directory for rts intermediate files"));
+				conditionalPrefix("<RTS_DIRECTORY>",	pppOpts.rts_filename,	trySetFromYaml(pppOpts.rts_filename,			rts,				{"filename"					}, "(string) Base filename for rts intermediate files"));
+																				trySetFromYaml(pppOpts.rts_smoothed_suffix,		rts,				{"suffix"					}, "(string) Suffix to be applied to smoothed versions of files");
+																				trySetEnumOpt( pppOpts.rts_inverter, 			rts,				{"inverter" 				}, E_Inverter::_from_string_nocase, "Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
+																				trySetFromYaml(pppOpts.output_intermediate_rts,	rts,				{"output_intermediates"		}, "(bool) Output best available smoothed states when performing fixed-lag rts (slow, use only when needed)");
 			}
 
 			auto spp_options = stringsToYamlObject(processing_options, {"! spp_options"}, "Configurations for the kalman filter and its sub processes");
@@ -3398,35 +3396,35 @@ bool ACSConfig::parse(
 	replaceTags(model.trop.orography);
 	replaceTags(model.trop.gpt2grid);
 	
-	replaceTags(sp3_directory);							replaceTags(sp3_filename,						sp3_directory);						
-	replaceTags(erp_directory);							replaceTags(erp_filename,						erp_directory);						
-	replaceTags(gpx_directory);							replaceTags(gpx_filename,						gpx_directory);						
-	replaceTags(log_directory);							replaceTags(log_filename,						log_directory);						
-	replaceTags(cost_directory);						replaceTags(cost_filename,						cost_directory);					
-	replaceTags(sinex_directory);						replaceTags(sinex_filename,						sinex_directory);					
-	replaceTags(ionex_directory);						replaceTags(ionex_filename,						ionex_directory);					
-	replaceTags(orbex_directory);						replaceTags(orbex_filename,						orbex_directory);					
-	replaceTags(clocks_directory);						replaceTags(clocks_filename,					clocks_directory);					
-	replaceTags(slr_obs_directory);						replaceTags(slr_obs_filename,					slr_obs_directory);					
-	replaceTags(ionstec_directory);						replaceTags(ionstec_filename,					ionstec_directory);					
-	replaceTags(ppp_sol_directory);						replaceTags(ppp_sol_filename,					ppp_sol_directory);					
-	replaceTags(raw_ubx_directory);						replaceTags(raw_ubx_filename,					raw_ubx_directory);					
-	replaceTags(rtcm_nav_directory);					replaceTags(rtcm_nav_filename,					rtcm_nav_directory);				
-	replaceTags(rtcm_obs_directory);					replaceTags(rtcm_obs_filename,					rtcm_obs_directory);			
-	replaceTags(orbit_ics_directory);					replaceTags(orbit_ics_filename,					orbit_ics_directory);				
-	replaceTags(ntrip_log_directory);					replaceTags(ntrip_log_filename,					ntrip_log_directory);				
-	replaceTags(rinex_obs_directory);					replaceTags(rinex_obs_filename,					rinex_obs_directory);				
-	replaceTags(rinex_nav_directory);					replaceTags(rinex_nav_filename,					rinex_nav_directory);				
-	replaceTags(sp3_directory);							replaceTags(predicted_sp3_filename,				sp3_directory);						
-	replaceTags(bias_sinex_directory);					replaceTags(bias_sinex_filename,				bias_sinex_directory);				
-	replaceTags(trop_sinex_directory);					replaceTags(trop_sinex_filename,				trop_sinex_directory);				
-	replaceTags(pppOpts.rts_directory);					replaceTags(pppOpts.rts_filename,				pppOpts.rts_directory);				
-	replaceTags(trace_directory);						replaceTags(satellite_trace_filename,			trace_directory);					
-	replaceTags(trace_directory);						replaceTags(station_trace_filename,				trace_directory);					
-	replaceTags(trace_directory);						replaceTags(network_trace_filename,				trace_directory);					
-	replaceTags(decoded_rtcm_json_directory);			replaceTags(decoded_rtcm_json_filename,			decoded_rtcm_json_directory);		
-	replaceTags(encoded_rtcm_json_directory);			replaceTags(encoded_rtcm_json_filename,			encoded_rtcm_json_directory);		
-	replaceTags(network_statistics_json_directory);		replaceTags(network_statistics_json_filename,	network_statistics_json_directory);	
+	replaceTags(sp3_directory);							replaceTags(sp3_filename);
+	replaceTags(erp_directory);							replaceTags(erp_filename);
+	replaceTags(gpx_directory);							replaceTags(gpx_filename);
+	replaceTags(log_directory);							replaceTags(log_filename);
+	replaceTags(cost_directory);						replaceTags(cost_filename);
+	replaceTags(sinex_directory);						replaceTags(sinex_filename);
+	replaceTags(ionex_directory);						replaceTags(ionex_filename);
+	replaceTags(orbex_directory);						replaceTags(orbex_filename);
+	replaceTags(clocks_directory);						replaceTags(clocks_filename);
+	replaceTags(slr_obs_directory);						replaceTags(slr_obs_filename);
+	replaceTags(ionstec_directory);						replaceTags(ionstec_filename);
+	replaceTags(ppp_sol_directory);						replaceTags(ppp_sol_filename);
+	replaceTags(raw_ubx_directory);						replaceTags(raw_ubx_filename);
+	replaceTags(rtcm_nav_directory);					replaceTags(rtcm_nav_filename);
+	replaceTags(rtcm_obs_directory);					replaceTags(rtcm_obs_filename);
+	replaceTags(orbit_ics_directory);					replaceTags(orbit_ics_filename);
+	replaceTags(ntrip_log_directory);					replaceTags(ntrip_log_filename);
+	replaceTags(rinex_obs_directory);					replaceTags(rinex_obs_filename);
+	replaceTags(rinex_nav_directory);					replaceTags(rinex_nav_filename);
+	replaceTags(bias_sinex_directory);					replaceTags(bias_sinex_filename);
+	replaceTags(trop_sinex_directory);					replaceTags(trop_sinex_filename);
+	replaceTags(pppOpts.rts_directory);					replaceTags(pppOpts.rts_filename);
+	replaceTags(sp3_directory);							replaceTags(predicted_sp3_filename);
+	replaceTags(trace_directory);						replaceTags(station_trace_filename);
+	replaceTags(trace_directory);						replaceTags(network_trace_filename);
+	replaceTags(trace_directory);						replaceTags(satellite_trace_filename);
+	replaceTags(decoded_rtcm_json_directory);			replaceTags(decoded_rtcm_json_filename);
+	replaceTags(encoded_rtcm_json_directory);			replaceTags(encoded_rtcm_json_filename);
+	replaceTags(network_statistics_json_directory);		replaceTags(network_statistics_json_filename);
 
 	
 	replaceTags(localMongo.suffix);

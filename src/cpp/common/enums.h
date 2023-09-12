@@ -767,12 +767,34 @@ BETTER_ENUM(E_UBXClass, short int,
 	CFG			= 0x06,
 	MON			= 0x0A,
 	AID			= 0x0B,
-	TIM			= 0x0D)
+	TIM			= 0x0D,
+	ESF			= 0x10)
+
+
 
 BETTER_ENUM(E_RXMId, short int,
 	SFRBX		= 0x13,
 	MEASX		= 0x14,
 	RAWX		= 0x15)
+
+BETTER_ENUM(E_ESFId, short int,
+	MEAS		= 0x02)
+
+BETTER_ENUM(E_MEASDataType, short int,
+	NONE		= 0,
+	GYRO_Z		= 5,
+	WHEEL_FL	= 6,
+	WHEEL_FR	= 7,
+	WHEEL_RL	= 8,
+	WHEEL_RR	= 9,
+	SPEED_TICK	= 10,
+	SPEED		= 11,
+	GYRO_TEMP	= 12,
+	GYRO_Y		= 13,
+	GYRO_X		= 14,
+	ACCL_X		= 16,
+	ACCL_Y		= 17,
+	ACCL_Z		= 18)
 
 BETTER_ENUM(E_Month, short int,
 	NONE,

@@ -94,6 +94,55 @@ void UbxDecoder::decodeRAWX(
 	obsListList.push_back(obsList);
 }
 
+
+void UbxDecoder::decodeMEAS(
+	vector<unsigned char>& payload)
+{
+			unsigned int	timeTag	= *((unsigned int*)			&payload[0]);
+	short	unsigned int	flags	= *((short unsigned int*)	&payload[4]);
+	short	unsigned int	id		= *((short unsigned int*)	&payload[6]);
+	
+	int numMeas = flags >> 11;
+	
+	std::cout << std::endl << "Recieved MEAS message has " << numMeas << " measurements" << std::endl;
+	
+	for (int i = 0; i < numMeas; i++)
+	{
+		unsigned int data			= *((unsigned int*)			&payload[8 + 4 * i]);
+		
+		data &= 0x3fffffff;
+		
+		unsigned int dataType	= data >> 24;
+		int dataField			= data &= 0x00ffffff;
+		
+		dataField <<= 8;	//get leading ones
+		dataField >>= 8;
+		
+		E_MEASDataType measDataType = E_MEASDataType::_from_integral(dataType);
+		
+		switch (measDataType)
+		{
+			default:	std::cout << std::endl << measDataType._to_string();	break;
+			case E_MEASDataType::GYRO_X:
+			case E_MEASDataType::GYRO_Y:
+			case E_MEASDataType::GYRO_Z:
+			{
+				double gyro = dataField * P2_12;
+				std::cout << std::endl << measDataType._to_string() << " : " << gyro;
+				break;
+			}
+			case E_MEASDataType::ACCL_X:
+			case E_MEASDataType::ACCL_Y:
+			case E_MEASDataType::ACCL_Z:
+			{
+				double accl = dataField * P2_10;
+				std::cout << std::endl << measDataType._to_string() << " : " << accl;
+				break;
+			}
+		}
+	}
+}
+
 signed int gpsBitSFromWord(
 	vector<int>&	words,
 	int				wordNum,

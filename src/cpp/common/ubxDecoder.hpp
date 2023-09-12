@@ -29,6 +29,9 @@ struct UbxDecoder : ObsLister, IcdDecoder
 	void decodeSFRBX(
 		vector<unsigned char>& payload);
 	
+	void decodeMEAS(
+		vector<unsigned char>& payload);
+	
 	void decodeRXM(
 		vector<unsigned char>&	payload,
 		unsigned char			id)
@@ -45,6 +48,21 @@ struct UbxDecoder : ObsLister, IcdDecoder
 		}
 	}
 	
+	void decodeESF(
+		vector<unsigned char>&	payload,
+		unsigned char			id)
+	{
+		printf("\nReceived ESF-0x%02x message", id);
+		switch (id)
+		{
+			default:
+			{
+				break;
+			}
+			case E_ESFId::MEAS:		{	decodeMEAS	(payload);	break;	}
+		}
+	}
+	
 	void decode(
 		unsigned char			ubxClass,
 		unsigned char			id,
@@ -56,6 +74,7 @@ struct UbxDecoder : ObsLister, IcdDecoder
 		{
 			default:				{								break;	}
 			case E_UBXClass::RXM:	{	decodeRXM(payload, id);		break;	}
+			case E_UBXClass::ESF:	{	decodeESF(payload, id);		break;	}
 		}
 	}
 	
