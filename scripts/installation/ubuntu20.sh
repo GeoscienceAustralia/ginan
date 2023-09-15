@@ -103,7 +103,7 @@ echo "Downloading, extracting, building, and installing MongoDB ..."
 cd /tmp
 wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | $sudo_cmd apt-key add -
 echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | $sudo_cmd tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | $sudo_cmd tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | $sudo_cmd tee -a /etc/apt/sources.list.d/mongodb-org-4.4.list
 $sudo_cmd apt update
 $sudo_cmd apt install -y mongodb-org
 
