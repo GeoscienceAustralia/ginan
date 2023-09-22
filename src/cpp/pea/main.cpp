@@ -27,7 +27,6 @@ using std::string;
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 
-
 #include "centerMassCorrections.hpp"
 #include "minimumConstraints.hpp"
 #include "peaCommitStrings.hpp"
@@ -35,6 +34,7 @@ using std::string;
 #include "rinexNavWrite.hpp"
 #include "rinexObsWrite.hpp"
 #include "rinexClkWrite.hpp"
+#include "oceanPoleTide.hpp"
 #include "algebraTrace.hpp"
 #include "rtsSmoothing.hpp"
 #include "preprocessor.hpp"
@@ -58,8 +58,8 @@ using std::string;
 #include "testUtils.hpp"
 #include "streamUbx.hpp"
 #include "streamSlr.hpp"
-#include "oceanTide.hpp"
 #include "streamSp3.hpp"
+#include "tideCoeff.hpp"
 #include "orbitProp.hpp"
 #include "ionoModel.hpp"
 #include "ionModels.hpp"
@@ -82,6 +82,7 @@ using std::string;
 #include "sinex.hpp"
 #include "cost.hpp"
 #include "enums.h"
+#include "aod.hpp"
 #include "ppp.hpp"
 #include "gpx.hpp"
 #include "slr.hpp"
@@ -185,7 +186,7 @@ void initialiseStation(
 }
 
 /** Create a station object from an input
-*/
+ */
 void addStationData(
 	string			stationId,			///< Id of station to add data for
 	vector<string>	inputNames,			///< Filename to create station from
@@ -558,53 +559,84 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info) 
 		<< "Loading EGM file " << egmfile;
 
-		egm.degMax		= acsConfig.orbitPropagation.degree_max;
-		
-		egm.readegm(egmfile);
+		egm.read(egmfile, acsConfig.orbitPropagation.degree_max);
 	}	
 
-	removeInvalidFiles(acsConfig.tide_files);
-	for (auto& tidefile : acsConfig.tide_files)
+	removeInvalidFiles(acsConfig.ocetide_files);
+	for (auto& tidefile : acsConfig.ocetide_files)
 	{
 		if (fileChanged(tidefile) == false)
 		{
 			continue;
 		}
 
-		BOOST_LOG_TRIVIAL(info) 
+		BOOST_LOG_TRIVIAL(info)
 		<< "Loading Tide file " << tidefile;
 
-		tide.filename	= tidefile;
-		tide.degMax		= acsConfig.orbitPropagation.degree_max;
+		oceTide.read(tidefile, acsConfig.orbitPropagation.degree_max);
+	}
+
+	removeInvalidFiles(acsConfig.atmtide_files);
+	for (auto& tidefile : acsConfig.atmtide_files)
+	{
+		if (fileChanged(tidefile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading Tide file " << tidefile;
+
+		atmTide.read(tidefile, acsConfig.orbitPropagation.degree_max);
+	}
+
+	removeInvalidFiles(acsConfig.cmc_files);
+	for (auto& cmcfile : acsConfig.cmc_files)
+	{
+		if (fileChanged(cmcfile) == false)
+		{
+			continue;
+		}
+		BOOST_LOG_TRIVIAL(info) << "Loading CMC file " << cmcfile;
+
+		cmc.read(cmcfile);
+	}
+
+	removeInvalidFiles(acsConfig.hfeop_files);
+	for (auto& hfeopfile : acsConfig.hfeop_files)
+	{
+		if (fileChanged(hfeopfile) == false)
+		{
+			continue;
+		}
+		BOOST_LOG_TRIVIAL(info) << "Loading HFEOP file " << hfeopfile;
+
+		hfEop.read(hfeopfile);
+	}
+
+	removeInvalidFiles(acsConfig.aod1b_files);
+	for (auto& aod1b_file : acsConfig.aod1b_files)
+	{
+		if (fileChanged(aod1b_file) == false)
+		{
+			continue;
+		}
+		BOOST_LOG_TRIVIAL(info) << "Loading AOD file " << aod1b_file;
+
+		aod.read(aod1b_file, acsConfig.orbitPropagation.degree_max);
+	}
+
+	removeInvalidFiles(acsConfig.poleocean_files);
+	for (auto& poleocean_file : acsConfig.poleocean_files)
+	{
+		if (fileChanged(poleocean_file) == false)
+		{
+			continue;
+		}
+		BOOST_LOG_TRIVIAL(info) << "Loading Pole Ocean Tide file " << poleocean_file;
 		
-		tide.readocetide();
-	}	
-
-    removeInvalidFiles(acsConfig.cmc_files);
-    for (auto& cmcfile : acsConfig.cmc_files)
-    {
-        if(fileChanged(cmcfile) == false)
-        {
-            continue;
-        }
-        BOOST_LOG_TRIVIAL(info) << "Loading CMC file " << cmcfile;
-
-        cmc.filename    = cmcfile;
-        cmc.readcmc();
-    }
-
-    removeInvalidFiles(acsConfig.hfeop_files);
-    for (auto& hfeopfile : acsConfig.hfeop_files)
-    {
-        if(fileChanged(hfeopfile) == false)
-        {
-            continue;
-        }
-        BOOST_LOG_TRIVIAL(info) << "Loading HFEOP file " << hfeopfile;
-
-        hfEop.filename    = hfeopfile;
-        hfEop.read();
-    }
+		oceanPoleTide.read(poleocean_file, acsConfig.orbitPropagation.degree_max);
+	}
 
 	removeInvalidFiles(acsConfig.jpl_files);
 	for (auto& jplfile : acsConfig.jpl_files)
@@ -728,7 +760,7 @@ void configureUploadingStreams()
 			it++;
 		}
 	}
-	
+
 	if	( acsConfig.process_ppp				== false
 		&&acsConfig.process_spp				== false
 		&&acsConfig.slrOpts.process_slr		== false
@@ -737,7 +769,7 @@ void configureUploadingStreams()
 	while (1)
 	{
 		BOOST_LOG_TRIVIAL(info) << "Running with no processing modes enabled";
-		
+
 		sleep_for(std::chrono::seconds(10));
 	}
 }
@@ -795,7 +827,7 @@ bool createNewTraceFile(
 }
 
 /** Returns (posix) for current epoch
-*/
+ */
 boost::posix_time::ptime currentLogptime()
 {
 	PTime logtime = tsync.floorTime(acsConfig.rotate_period);
@@ -927,13 +959,13 @@ void createTracefiles(
 			if (acsConfig.output_json_trace)
 			{
 				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.station_trace_filename + "_json"	+ suff,	rec.metaDataMap[JSON_FILENAME_STR			+ metaSuff]);
-								
+
 				if (suff.empty())
 				{
 					rec.jsonTraceFilename = rec.metaDataMap[JSON_FILENAME_STR];
 				}
 			}
-			
+
 			if (acsConfig.output_trop_sinex)
 			{
 				if (acsConfig.process_ppp)
@@ -971,7 +1003,7 @@ void createTracefiles(
 		{
 			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.network_trace_filename	+ suff,	net.kfState	.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
 			newTraceFile |= createNewTraceFile("IONO",	logptime,	acsConfig.network_trace_filename	+ suff,	iono_KFState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
-		
+
 			if (suff.empty())
 			{
 				net.traceFilename = net.kfState.metaDataMap[TRACE_FILENAME_STR];
@@ -1178,10 +1210,10 @@ void mainOncePerEpochPerStation(
 	auto trace = getTraceFile(rec);
 	
 	preprocessor(net, rec, true);
-	
+
 	//recalculate variances now that elevations are known due to satellite postions calculation above
 	obsVariances(rec.obsList);
-	
+
 	if (acsConfig.process_spp)
 	{
 		SPP(trace, rec.obsList, rec.sol, rec.id);
@@ -1209,7 +1241,7 @@ void mainOncePerEpochPerStation(
 		rec.invalid = true;
 		return;
 	}
-	
+
 	if	( rec.antennaId.empty()
 		&&acsConfig.require_antenna_details)
 	{
@@ -1221,7 +1253,7 @@ void mainOncePerEpochPerStation(
 	}
 	
 	emptyEpoch = false;
-	
+
 	BOOST_LOG_TRIVIAL(trace)
 	<< "Read " << rec.obsList.size()
 	<< " observations for station " << rec.id;
@@ -1258,9 +1290,9 @@ void mainOncePerEpochPerStation(
 	rec.antAzimuth		= recOpts.antenna_azimuth;
 	
 	recAtt(rec, tsync, recOpts.rec_attitude.sources);
-	
+
 	testEclipse(rec.obsList);
-	
+
 	if (acsConfig.output_rinex_obs)
 	{
 		writeRinexObs(rec.id, rec.snx, tsync, rec.obsList, acsConfig.rinex_obs_version);
@@ -1276,9 +1308,9 @@ void outputPredictedStates(
 	{
 		return;
 	}
-	
+
 	BOOST_LOG_TRIVIAL(info) << " ------- PREDICTING STATES            --------" << std::endl;
-		
+
 	tuple<double, double>	forward = {+1, mongoOptions.forward_prediction_duration};
 	tuple<double, double>	reverse = {-1, mongoOptions.reverse_prediction_duration};
 
@@ -1335,7 +1367,7 @@ void mainPerEpochPostProcessingAndOutputs(
 	auto netTrace = getTraceFile(net);
 
 	//todo aaron, check clocks output for switching on user mode
-	
+
 	if (acsConfig.process_ppp)
 	{
 		mongoStates(kfState);
@@ -1355,19 +1387,19 @@ void mainPerEpochPostProcessingAndOutputs(
 	{
 		ionosphereSsrUpdate(netTrace, kfState);
 	}
-	
+
 	if (acsConfig.process_ionosphere)
 	{
 		obsIonoDataFromFilter(netTrace, stationMap, kfState);
-		
+
 		filterIonosphere(netTrace, iono_KFState, stationMap, time);		//todo aaron pass in kfState
 	}
-	
-	
+
+
 	//todo aaron check trop sinex for ppp is implemented
-	
+
 	KFState tempAugmentedKF = kfState;
-	
+
 	if (acsConfig.process_ppp)
 	{
 		if	(  acsConfig.process_minimum_constraints
@@ -1402,20 +1434,20 @@ void mainPerEpochPostProcessingAndOutputs(
 		{
 			rtsSmoothing(net.kfState,	false, &stationMap);
 		}
-		
+
 		for (auto& [recId, rec] : stationMap)
 		{
 			auto trace = getTraceFile(rec);
-			
+
 			{
 				outputPppNmea(trace, kfState, rec.id);
 			}
-			
-			if (acsConfig.output_ppp_sol)	{	outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ recId], kfState,	rec);		}	
-			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);		}	
+
+			if (acsConfig.output_ppp_sol)	{	outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ recId], kfState,	rec);		}
+			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);		}
 			if (acsConfig.output_gpx)		{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ recId], kfState,	rec.id);	}
 		}
-		
+
 		outputStatistics(netTrace, net.kfState.statisticsMap, net.kfState.statisticsMapSum);
 	}
 	
@@ -1439,7 +1471,7 @@ void mainPerEpochPostProcessingAndOutputs(
 		if (acsConfig.process_ionosphere)			ionexFileWrite(kfState.metaDataMap[IONEX_FILENAME_STR], time, iono_KFState);
 		else										ionexFileWrite(kfState.metaDataMap[IONEX_FILENAME_STR], time, kfState);
 	}
-		
+
 	if (acsConfig.output_ionstec)
 	{
 		writeIONStec(netTrace, kfState.metaDataMap[IONSTEC_FILENAME_STR], stationMap, time);
@@ -1461,7 +1493,7 @@ void mainPerEpochPostProcessingAndOutputs(
 	prepareSsrStates		(netTrace, tempAugmentedKF, time);
 	
 	if (acsConfig.instrument_once_per_epoch)
-	{       
+	{
 		Instrument::printStatus(true);
 	}
 }
@@ -1520,12 +1552,12 @@ void mainOncePerEpochPerSatellite(
 	
 	satNav.antBoresight	= satOpts.antenna_boresight;
 	satNav.antAzimuth	= satOpts.antenna_azimuth;
-	
+
 	auto& satPos0 = satNav.satPos0;
 	
 	satPos0.Sat			= Sat;
 	satPos0.satNav_ptr	= &satNav;
-	
+
 	bool pass =	satpos(nullStream, time, time, satPos0, satOpts.sat_pos.ephemeris_sources, E_OffsetType::COM, nav);
 	if (pass == false)
 	{
@@ -1549,7 +1581,7 @@ void mainOncePerEpoch(
 	Network&		net,
 	StationMap&		stationMap,
 	GTime			time)
-{	
+{
 	avoidCollisions(stationMap);
 	
 	//reload any new or modified files
@@ -1558,7 +1590,7 @@ void mainOncePerEpoch(
 	addDefaultBias();
 	
 	createTracefiles(stationMap, net);
-	
+
 	
 	auto netTrace = getTraceFile(net);
 	
@@ -1575,7 +1607,7 @@ void mainOncePerEpoch(
 	}
 
 	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << std::endl;
-	
+
 	//do per-station pre processing
 	bool emptyEpoch = true;
 #	ifdef ENABLE_PARALLELISATION
@@ -1592,7 +1624,7 @@ void mainOncePerEpoch(
 	}
 	Eigen::setNbThreads(0);
 
-	
+
 	if	(emptyEpoch)
 	{
 		BOOST_LOG_TRIVIAL(warning)
@@ -1603,32 +1635,32 @@ void mainOncePerEpoch(
 	{
 		PPP(netTrace, stationMap, net.kfState);
 	}
-	
+
 	KFState* kfState_ptr;
-	
+
 	KFState tempKfState;
-	
+
 	if (acsConfig.ambrOpts.fix_and_hold)	{									kfState_ptr = &net.kfState;		}
 	else									{	tempKfState = net.kfState;		kfState_ptr = &tempKfState;		}
-	
+
 	auto& kfState = *kfState_ptr;
 	
 	mainPerEpochPostProcessingAndOutputs(net, stationMap, kfState, time);
-	
+
 	if (acsConfig.delete_old_ephemerides)
 	{
 		cullOldEphs		(time);
 		cullOldSSRs		(time);
 		cullOldBiases	(time);
 	}
-	
+
 	mongoCull(time);
 
 	if (acsConfig.check_plumbing)
 	{
 		plumber();
 	}
-	
+
 	callbacksOncePerEpoch();
 }
 
@@ -1649,12 +1681,12 @@ void mainPostProcessing(
 		BOOST_LOG_TRIVIAL(info)
 		<< std::endl
 		<< "---------------PERFORMING AMBIGUITY RESOLUTION ON NETWORK WITH FIX AND HOLD ------------- " << std::endl;
-		
+
 		fixAndHoldAmbiguities(netTrace, net.kfState);
-		
+
 		mongoStates(net.kfState);
 	}
-	
+
 	if	(	acsConfig.process_ppp
 		&&	acsConfig.process_minimum_constraints
 		&&	acsConfig.minCOpts.once_per_epoch == false)
@@ -1669,7 +1701,7 @@ void mainPostProcessing(
 		}
 			
 		mincon(netTrace, net.kfState);
-		
+
 		mongoStates(net.kfState);
 	}
 	
@@ -1779,7 +1811,7 @@ int ginan(
 			return EXIT_FAILURE;
 		}
 	}
-	
+
 	//prepare the satNavMap so that it at least has entries for everything
 	for (auto [sys, max] :	{	tuple<E_Sys, int>{E_Sys::GPS, NSATGPS},
 								tuple<E_Sys, int>{E_Sys::GLO, NSATGLO},
@@ -1832,7 +1864,7 @@ int ginan(
 		iono_KFState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
 		iono_KFState.rts_basename				= "IONEX_RTS";
 	}
-		
+
 
 	if	(  acsConfig.process_rts
 		&& acsConfig.pppOpts.rts_lag)
@@ -1899,7 +1931,7 @@ int ginan(
 	createTracefiles(stationMap, net);
 	
 	configAtmosRegions(stationMap);
-	
+
 	if (acsConfig.mincon_only)
 	{
 		minconOnly(std::cout, stationMap);
@@ -1913,7 +1945,7 @@ int ginan(
 	<< "Starting to process epochs...";
 	BOOST_LOG_TRIVIAL(info)
 	<< "Starting epoch #1";
-	
+
 	//============================================================================
 	// MAIN PROCESSING LOOP														//
 	//============================================================================
@@ -1946,7 +1978,7 @@ int ginan(
 			BOOST_LOG_TRIVIAL(info) << std::endl
 			<< "Starting epoch #" << epoch;
 		}
-		
+
 		for (auto& [id, rec] : stationMap)
 		{
 			rec.ready = false;
@@ -1982,13 +2014,13 @@ int ginan(
 
 			//load any changes from the config
 			bool newConfig = acsConfig.parse();
-			
+
 			//make any changes to streams.
 			if (newConfig)
 			{
 				configureUploadingStreams();
 			}
-			
+
 			//remove any dead streams
 			for (auto iter = streamParserMultimap.begin(); iter != streamParserMultimap.end(); )
 			{
@@ -1996,31 +2028,31 @@ int ginan(
 				auto& stream					= streamParser_ptr->stream;
 				
 				auto& recOpts = acsConfig.getRecOpts(id);
-				
+
 				if (recOpts.kill)
 				{
 					BOOST_LOG_TRIVIAL(info)
 					<< "Removing " << stream.sourceString << " due to kill config" << std::endl;
-					
+
 					for (auto& [key, index] : net.kfState.kfIndexMap)
 					{
 						if (key.str == id)
 						{
 							net.kfState.removeState(key);
-							
+
 							auto nodeHandler = net.kfState.kfIndexMap.extract(key);
 							nodeHandler.key().rec_ptr = nullptr;
 							net.kfState.kfIndexMap.insert(std::move(nodeHandler));
 						}
 					}
-					
+
 					stationMap.erase(id);
-					
+
 					iter = streamParserMultimap.erase(iter);
-					
+
 					continue;
 				}
-				
+
 				try
 				{
 					auto& obsStream	= dynamic_cast<ObsStream&>(*streamParser_ptr);
@@ -2037,17 +2069,17 @@ int ginan(
 				{
 					BOOST_LOG_TRIVIAL(info)
 					<< "No more data available on " << stream.sourceString << std::endl;
-					
+
 					//record as dead and erase
 					streamDOAMap[stream.sourceString] = true;
 
 					stationMap[id].obsList.clear();
-					
+
 					iter = streamParserMultimap.erase(iter);
-					
+
 					continue;
 				}
-				
+
 				iter++;
 			}
 

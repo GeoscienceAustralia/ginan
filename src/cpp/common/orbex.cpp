@@ -311,6 +311,8 @@ void  readOrbex(
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Orbex file open error " << filepath << std::endl;
+		
+		return;
 	}
 
 	// header lines - each ORBEX file must begin with the two header lines

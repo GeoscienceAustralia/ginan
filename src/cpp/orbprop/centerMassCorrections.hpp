@@ -2,20 +2,28 @@
 
 #include "eigenIncluder.hpp"
 
+#include <string>
+#include <map>
+
+using std::string;
+using std::map;
 
 
-struct centerMassCorrections {
-    centerMassCorrections(){};
-    std::map<std::string, Vector6d> data;
-    std::string filename;
-    bool initialized = false;
+struct CenterMassCorrections 
+{
+	map<string, Vector6d> data;
+	bool initialized = false;
 
-    void readcmc();
-    Vector3d estimate(Array6d dood);
+	void read(
+		const string& filename);
+	
+	Vector3d estimate(
+		Array6d& dood);
 
-    //Need to add the fundamental args to the cmc estimate function. QnD
-    std::map<std::string, Array6d> DoodsonNumbers;
+	//Need to add the fundamental args to the cmc estimate function. QnD
+	map<string, Array6d> doodsonNumbers;
 
 };
-extern centerMassCorrections cmc;
+
+extern CenterMassCorrections cmc;
 

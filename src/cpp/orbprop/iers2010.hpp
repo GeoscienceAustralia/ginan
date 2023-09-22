@@ -1,6 +1,10 @@
 
 #pragma once
 
+#include <vector>
+
+using std::vector;
+
 #include "eigenIncluder.hpp"
 #include "gTime.hpp"
 
@@ -18,31 +22,41 @@ struct FundamentalArgs : Array6d
 		double	ut1_utc);
 };
 
-struct HfOceanEOPData{
-    //Array of 6 value for the fundamental args
-    std::string name;
-    std::string doodson;
-    double period;
-    Eigen::Array<double, 1, 6> mFundamentalArgs;
-    double xCos;
-    double xSin;
-    double yCos;
-    double ySin;
-    double ut1Cos;
-    double ut1Sin;
-    double lodCos;
-    double lodSin;
+struct HfOceanEOPData
+{
+	//Array of 6 value for the fundamental args
+	string	name;
+	string	doodson;
+	double	period;
+	Array6d mFundamentalArgs;
+	double	xCos;
+	double	xSin;
+	double	yCos;
+	double	ySin;
+	double	ut1Cos;
+	double	ut1Sin;
+	double	lodCos;
+	double	lodSin;
 };
 
 
 struct HfOceanEop
 {
-    std::vector<HfOceanEOPData> HfOcean_vector;
-    std::string filename;
-    bool initialized{false};
-    void read();
-    void compute(Eigen::Array<double, 1, 6> fundamentalArgs, double& x, double& y, double& ut1, double& lod);
+	vector<HfOceanEOPData> HfOcean_vector;
+	string filename;
+	bool initialized = false;
+	
+	void read(
+		const string& filename);
+	
+	void compute(
+		Array6d&	fundamentalArgs,
+		double&		x,
+		double&		y,
+		double&		ut1,
+		double&		lod);
 };
+
 extern	HfOceanEop hfEop;
 
 
@@ -100,6 +114,11 @@ struct IERS2010
 		const	Vector3d&	velSun,
 		const	Matrix3d&	U,
 		const	Matrix3d&	dU);
+
+	static void meanPole(
+		const MjDateTT&	mjd, 
+		double&			xpv,
+		double&			ypv);
 };
 
 namespace iers2010

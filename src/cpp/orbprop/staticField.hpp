@@ -12,17 +12,9 @@ using std::string;
  */
 struct StaticField 
 {
-	StaticField()
-	{
-		
-	};
-	
-	StaticField(
-			string	filename,
-			int		degmax);
-	
-	void readegm(
-		string filename);
+	void read(
+		const string&	filename,
+		int				degMax);	
 	
 	void summary();
 	

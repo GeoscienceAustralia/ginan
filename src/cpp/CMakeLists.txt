@@ -191,14 +191,18 @@ add_library(ginan_core
 		other_ssr/prototypeCmpSSRDecode.cpp
 		other_ssr/prototypeIgsSSREncode.cpp
 		
+		orbprop/aod.cpp
+		orbprop/aod.hpp
 		orbprop/acceleration.cpp
 		orbprop/coordinates.cpp
 		orbprop/iers2010.cpp
 		orbprop/planets.cpp
-		orbprop/oceanTide.cpp
+		orbprop/tideCoeff.cpp
 		orbprop/orbitProp.cpp 
 		orbprop/staticField.cpp
 		orbprop/centerMassCorrections.cpp
+		orbprop/oceanPoleTide.cpp
+		orbprop/oceanPoleTide.hpp
 
 		rtklib/lambda.cpp
 		rtklib/lambda.h
@@ -209,7 +213,7 @@ add_library(ginan_core
 		common/acsConfig.hpp
 		common/acsConfig.cpp
 		common/acsConfigDocs.cpp
-		)
+)
 
 target_include_directories(ginan_core PUBLIC
 		3rdparty

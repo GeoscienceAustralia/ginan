@@ -167,7 +167,7 @@ List of sources to use for clocks
 
 ---
 
-###### **`inputs:tide_files:`**
+###### **`inputs:ocetide_files:`**
  `[] `
 
 

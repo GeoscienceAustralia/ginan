@@ -95,7 +95,7 @@ struct FrameSwapper
 	GTime		time0;
 	Matrix3d	i2t_mat;
 	Matrix3d	di2t_mat;
-    Vector3d translation;
+	Vector3d	translation = Vector3d::Zero();
 	FrameSwapper(
 				GTime		time,
 		const	ERPValues&	erpVal)
@@ -104,11 +104,9 @@ struct FrameSwapper
 		Instrument instrument(__FUNCTION__);
 		
 		eci2ecef(time, erpVal, i2t_mat, &di2t_mat);
-        Vector6d dood_arr = IERS2010::doodson(time, 0); //Will need to add erpval.ut1Utc later
-        if (cmc.initialized)
-            translation = cmc.estimate(dood_arr);
-        else
-            translation = Vector3d::Zero();
+		Array6d dood_arr = IERS2010::doodson(time, 0); //Will need to add erpval.ut1Utc later
+		if (cmc.initialized)
+			translation = cmc.estimate(dood_arr);
 	}
 	
 	FrameSwapper& operator = (FrameSwapper& in)

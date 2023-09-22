@@ -16,22 +16,12 @@ using std::vector;
 //todo aaron global
 StaticField egm;
 
-StaticField::StaticField(
-	string 		filename,
-	int 		degMax)
-	:	filename	(filename),
-		degMax		(degMax)
-{
-	readegm(filename);
-	summary();
-}
-
-
 /** Read the static gravity field
 * @todo include the time variable component of the gravity field.
 */
-void StaticField::readegm(
-	string filename)
+void StaticField::read(
+	const string&	filename,
+	int				degMax)
 {
 	if (filename.empty())
 	{
@@ -41,6 +31,9 @@ void StaticField::readegm(
 	std::ifstream infile(filename);
 	if (!infile)
 	{
+		BOOST_LOG_TRIVIAL(error)
+		<< "EGM file open error " << filename << std::endl;
+		
 		return;
 	}
 	

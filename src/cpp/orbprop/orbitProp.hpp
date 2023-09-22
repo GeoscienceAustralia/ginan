@@ -13,7 +13,7 @@ using std::map;
 #include "centerMassCorrections.hpp"
 #include "eigenIncluder.hpp"
 #include "staticField.hpp"
-#include "oceanTide.hpp"
+#include "tideCoeff.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
 #include "gTime.hpp"
@@ -155,8 +155,6 @@ struct OrbitIntegrator
 	
 	MatrixXd Cnm;
 	MatrixXd Snm;
-    MatrixXd Cnm_ocean;
-    MatrixXd Snm_ocean;
 	runge_kutta_fehlberg78<Orbits, double, Orbits, double, vector_space_algebra> odeIntegrator;
 	
 	void operator()(

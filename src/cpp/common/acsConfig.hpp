@@ -78,7 +78,7 @@ struct InputOptions
 	string			gnss_obs_root	= "<INPUTS_ROOT>";
 	string			pseudo_obs_root	= "<INPUTS_ROOT>";
 	string			sat_data_root	= "<INPUTS_ROOT>";
-	
+
 	vector<string>	atx_files;
 	vector<string>	snx_files;
 	vector<string>	blq_files;
@@ -110,9 +110,12 @@ struct InputOptions
 
 	vector<string> egm_files;
 	vector<string> jpl_files;
-	vector<string> tide_files;
+	vector<string> ocetide_files;
+	vector<string> atmtide_files;
 	vector<string> cmc_files;
 	vector<string> hfeop_files;
+	vector<string> aod1b_files;
+	vector<string> poleocean_files;
 
 	string stream_user			= "";
 	string stream_pass			= "";
@@ -134,7 +137,7 @@ struct IonexOptions
 struct OutputOptions
 {
 	string	outputs_root				= ".";
-	
+
 	int		fatal_level					= 0;
 	double	rotate_period				= 60*60*24;
 	
@@ -360,7 +363,7 @@ struct Model
 	bool eop					= false;
 	bool ionospheric_model		= false;
 	bool tropospheric_map		= false;
-	
+
 	bool orbits					= true;
 };
 
@@ -432,7 +435,7 @@ struct GlobalOptions
 	double	orbit_vel_proc_noise_trail_tau		= 0.05;
 	
 	bool	preprocess_all_data			= true;
-	
+
 	double	wait_next_epoch				= 0;
 	double	wait_all_stations			= 0;
 	bool	require_obs					= true;
@@ -655,14 +658,14 @@ struct AmbROptions
 	int			lambda_set		= 2;
 	int			AR_max_itr		= 1;
 	double		min_el_AR		= 15;
-	
+
 	double	succsThres = 0.9999;	///< Thresholds for ambiguity validation: succsess rate NL
 	double	ratioThres = 3;		///< Thresholds for ambiguity validation: succsess rate NL
 
 	double	code_output_interval	= 0;		///< Update interval for code  biases, 0: no output
 	double	phase_output_interval	= 0;		///< Update interval for phase biases, 0: no output
 	bool	output_rec_bias			= false;	///< Output receivr bias
-	
+
 	bool	once_per_epoch			= true;
 	bool	fix_and_hold			= false;
 };
@@ -721,7 +724,7 @@ struct SatelliteOptions
 	KalmanModel			emp_dyb_3s;
 	KalmanModel			emp_dyb_4c;
 	KalmanModel			emp_dyb_4s;
-	
+
 	KalmanModel			emp_rtn_0;
 	KalmanModel			emp_rtn_1c;
 	KalmanModel			emp_rtn_1s;
@@ -869,7 +872,7 @@ struct ReceiverOptions
 	KalmanModel			trop_maps;
 	KalmanModel			code_bias;
 	KalmanModel			phase_bias;
-	
+
 	KalmanModel			emp_dyb_0;
 	KalmanModel			emp_dyb_1c;
 	KalmanModel			emp_dyb_1s;
@@ -879,7 +882,7 @@ struct ReceiverOptions
 	KalmanModel			emp_dyb_3s;
 	KalmanModel			emp_dyb_4c;
 	KalmanModel			emp_dyb_4s;
-	
+
 	KalmanModel			emp_rtn_0;
 	KalmanModel			emp_rtn_1c;
 	KalmanModel			emp_rtn_1s;
@@ -981,7 +984,7 @@ struct ReceiverOptions
 		emp_dyb_3s	+= rhs.emp_dyb_3s;
 		emp_dyb_4c	+= rhs.emp_dyb_4c;
 		emp_dyb_4s	+= rhs.emp_dyb_4s;
-		
+
 		emp_rtn_0	+= rhs.emp_rtn_0;
 		emp_rtn_1c	+= rhs.emp_rtn_1c;
 		emp_rtn_1s	+= rhs.emp_rtn_1s;
@@ -991,7 +994,7 @@ struct ReceiverOptions
 		emp_rtn_3s	+= rhs.emp_rtn_3s;
 		emp_rtn_4c	+= rhs.emp_rtn_4c;
 		emp_rtn_4s	+= rhs.emp_rtn_4s;
-		
+
 		rinex23Conv		+= rhs.rinex23Conv;
 		
 		if (isInited(rhs, rhs.kill					))	{ kill				= rhs.kill				;	setInited(*this, kill				);	}
@@ -1064,13 +1067,13 @@ struct MongoOptions
 	string	uri								= "mongodb://localhost:27017";
 	string	suffix							= "";
 	string	database						= "<CONFIG>";
-	
+
 	bool	predict_states					= false;
 	double	prediction_offset				= 0;
 	double	prediction_interval				= 30;
 	double	forward_prediction_duration		= 300;
 	double	reverse_prediction_duration		= -1;
-	
+
 	double	min_cull_age					= 300;
 };
 
@@ -1088,7 +1091,7 @@ struct SsrOptions
 	vector<E_Source>	ionosphere_sources		= {E_Source::NONE};
 	// vector<E_Source> 		troposphere_sources		= E_Source::NONE;
 	E_SSROutTiming		output_timing			= E_SSROutTiming::GPS_TIME;
-	
+
 	int				region_id		= 1;
 	int 			npoly_trop		= -1;
 	int 			npoly_iono		= -1;
@@ -1101,7 +1104,7 @@ struct SsrOptions
 	double			max_lon			= 0;
 	double			min_lon			= 0;
 	double			int_lon			= 0;
-	                            	
+
 	int				ngrid			= 0;	//not configs?
 	int				nbasis			= 0;	//not configs?
 };
@@ -1155,23 +1158,25 @@ struct OrbitPropagation
 	bool			egm_field						= true;
 	bool			solid_earth_tide				= true;
 	bool			ocean_tide						= true;
+	bool			atm_tide						= true;
 	bool			general_relativity				= true;
-	bool 			pole_tide_ocean					= true;
+	bool			pole_tide_ocean					= true;
 	bool			pole_tide_solid					= true;
 	bool			solar_radiation_pressure		= false;
-	bool 			empirical						= false;
+	bool			empirical						= false;
 	bool			antenna_thrust					= false;
-	bool 			albedo							= false;
+	bool			albedo							= false;
+	bool			aod								= false;
 
 	vector<bool>	empirical_dyb_eclipse			= {true};
 	vector<bool> 	empirical_rtn_eclipse			= {false};
 
 	int				degree_max						= 12;
-	double 			sat_mass						= 1000;
-	double 			sat_area						= 20;
-	double 			sat_power						= 20;
+	double			sat_mass						= 1000;
+	double			sat_area						= 20;
+	double			sat_power						= 20;
 	double			srp_cr							= 1.25;
-	double 			integrator_time_step			= 60;
+	double			integrator_time_step			= 60;
 	bool			itrf_pseudoobs					= true;
 };
 
