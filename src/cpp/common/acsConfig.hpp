@@ -27,6 +27,7 @@ using std::array;
 using std::map;
 using std::set;
 
+#include "instrument.hpp"
 #include "satSys.hpp"
 #include "trace.hpp"
 #include "enums.h"
@@ -307,7 +308,6 @@ struct DebugOptions
 {
 	int		csfreq = 3;         /* cycle slip detection and repair frequency */
 	
-	int		pseudo_pulses				= 0;
 	bool	instrument					= false;
 	bool    instrument_once_per_epoch	= false;
 	bool	mincon_only					= false;
@@ -363,8 +363,6 @@ struct Model
 	bool eop					= false;
 	bool ionospheric_model		= false;
 	bool tropospheric_map		= false;
-
-	bool orbits					= true;
 };
 
 /** Options for the general operation of the software
@@ -414,10 +412,11 @@ struct GlobalOptions
 	double	elevation_mask	= 10 * D2R;
 		
 	string	pivot_station	= "NO_PIVOT";
+	string	pivot_satellite	= "NO_PIVOT";
 
 	bool	raim						= true;
 	bool	interpolate_rec_pco			= true;
-	bool	auto_fill_pco				= false;
+	bool	auto_fill_pco				= true;
 	bool	require_apriori_positions	= false;
 	bool	require_antenna_details		= false;
 
@@ -428,11 +427,6 @@ struct GlobalOptions
 	
 	bool	use_tgd_bias	= false;
 	
-	bool	enable_orbit_proc_noise_impulses	= false;
-	double	orbit_pos_proc_noise				= 10;
-	double	orbit_vel_proc_noise				= 5;
-	double	orbit_vel_proc_noise_trail			= 1;
-	double	orbit_vel_proc_noise_trail_tau		= 0.05;
 	
 	bool	preprocess_all_data			= true;
 
@@ -515,7 +509,9 @@ struct GlobalOptions
 	E_Sys  receiver_reference_clk = E_Sys::NONE;
 	double fixed_phase_bias_var   = 0.01;
 	
-	bool   sat_clk_definition     = false;
+	bool	sat_clk_definition			= false;
+	bool	minimise_sat_clock_offsets	= false;
+	
 	map<E_Sys, bool> zero_receiver_dcb;			///< set receiver DCBs to 0
 	map<E_Sys, bool> zero_satellite_dcb;		///< set satellite DCBs to 0
 	map<E_Sys, bool> one_phase_bias;			///< use common phase bias for frequency
@@ -575,6 +571,8 @@ struct FilterOptions
 	bool		simulate_filter_only	= false;
 	E_ChiSqMode	chi_square_mode			= E_ChiSqMode::NONE;
 	double		sigma_threshold			= 4;
+	
+	bool		assume_linearity		= false;
 
 	int			max_filter_iter 		= 2;
 	int			max_prefit_remv 		= 2;
@@ -584,6 +582,7 @@ struct FilterOptions
 	int			rts_lag					= -1;
 	string		rts_smoothed_suffix		= "_smoothed";
 	bool		output_intermediate_rts	= false;
+	bool		queue_rts_outputs		= false;
 	
 	E_Inverter	rts_inverter			= E_Inverter::LDLT;
 	E_Inverter	inverter				= E_Inverter::LDLT;
@@ -698,9 +697,114 @@ struct Rinex23Conversion
 };
 
 
+struct EmpOptions
+{
+	KalmanModel			emp_d_0;
+	KalmanModel			emp_d_1;
+	KalmanModel			emp_d_2;
+	KalmanModel			emp_d_3;
+	KalmanModel			emp_d_4;
+	
+	KalmanModel			emp_y_0;
+	KalmanModel			emp_y_1;
+	KalmanModel			emp_y_2;
+	KalmanModel			emp_y_3;
+	KalmanModel			emp_y_4;
+	
+	KalmanModel			emp_b_0;
+	KalmanModel			emp_b_1;
+	KalmanModel			emp_b_2;
+	KalmanModel			emp_b_3;
+	KalmanModel			emp_b_4;
+
+	KalmanModel			emp_r_0;
+	KalmanModel			emp_r_1;
+	KalmanModel			emp_r_2;
+	KalmanModel			emp_r_3;
+	KalmanModel			emp_r_4;
+
+	KalmanModel			emp_t_0;
+	KalmanModel			emp_t_1;
+	KalmanModel			emp_t_2;
+	KalmanModel			emp_t_3;
+	KalmanModel			emp_t_4;
+
+	KalmanModel			emp_n_0;
+	KalmanModel			emp_n_1;
+	KalmanModel			emp_n_2;
+	KalmanModel			emp_n_3;
+	KalmanModel			emp_n_4;
+
+	KalmanModel			emp_p_0;
+	KalmanModel			emp_p_1;
+	KalmanModel			emp_p_2;
+	KalmanModel			emp_p_3;
+	KalmanModel			emp_p_4;
+
+	KalmanModel			emp_q_0;
+	KalmanModel			emp_q_1;
+	KalmanModel			emp_q_2;
+	KalmanModel			emp_q_3;
+	KalmanModel			emp_q_4;
+	
+	EmpOptions& operator+=(
+		const EmpOptions& rhs)
+	{		
+		emp_d_0	+= rhs.emp_d_0;
+		emp_d_1	+= rhs.emp_d_1;
+		emp_d_2	+= rhs.emp_d_2;
+		emp_d_3	+= rhs.emp_d_3;
+		emp_d_4	+= rhs.emp_d_4;
+		
+		emp_y_0	+= rhs.emp_y_0;
+		emp_y_1	+= rhs.emp_y_1;
+		emp_y_2	+= rhs.emp_y_2;
+		emp_y_3	+= rhs.emp_y_3;
+		emp_y_4	+= rhs.emp_y_4;
+		
+		emp_b_0	+= rhs.emp_b_0;
+		emp_b_1	+= rhs.emp_b_1;
+		emp_b_2	+= rhs.emp_b_2;
+		emp_b_3	+= rhs.emp_b_3;
+		emp_b_4	+= rhs.emp_b_4;
+		
+		emp_r_0	+= rhs.emp_r_0;
+		emp_r_1	+= rhs.emp_r_1;
+		emp_r_2	+= rhs.emp_r_2;
+		emp_r_3	+= rhs.emp_r_3;
+		emp_r_4	+= rhs.emp_r_4;
+		
+		emp_t_0	+= rhs.emp_t_0;
+		emp_t_1	+= rhs.emp_t_1;
+		emp_t_2	+= rhs.emp_t_2;
+		emp_t_3	+= rhs.emp_t_3;
+		emp_t_4	+= rhs.emp_t_4;
+		
+		emp_n_0	+= rhs.emp_n_0;
+		emp_n_1	+= rhs.emp_n_1;
+		emp_n_2	+= rhs.emp_n_2;
+		emp_n_3	+= rhs.emp_n_3;
+		emp_n_4	+= rhs.emp_n_4;
+		
+		emp_p_0	+= rhs.emp_p_0;
+		emp_p_1	+= rhs.emp_p_1;
+		emp_p_2	+= rhs.emp_p_2;
+		emp_p_3	+= rhs.emp_p_3;
+		emp_p_4	+= rhs.emp_p_4;
+		
+		emp_q_0	+= rhs.emp_q_0;
+		emp_q_1	+= rhs.emp_q_1;
+		emp_q_2	+= rhs.emp_q_2;
+		emp_q_3	+= rhs.emp_q_3;
+		emp_q_4	+= rhs.emp_q_4;
+
+		return *this;
+	}
+};
+
 /** Options to be applied to kalman filter states for individual satellites
 */
-struct SatelliteOptions
+struct SatelliteOptions : EmpOptions
 {
 	bool				_initialised	= false;
 	string				id;
@@ -714,34 +818,14 @@ struct SatelliteOptions
 	KalmanModel			ant;
 	KalmanModel			code_bias;
 	KalmanModel			phase_bias;
-	
-	KalmanModel			emp_dyb_0;
-	KalmanModel			emp_dyb_1c;
-	KalmanModel			emp_dyb_1s;
-	KalmanModel			emp_dyb_2c;
-	KalmanModel			emp_dyb_2s;
-	KalmanModel			emp_dyb_3c;
-	KalmanModel			emp_dyb_3s;
-	KalmanModel			emp_dyb_4c;
-	KalmanModel			emp_dyb_4s;
 
-	KalmanModel			emp_rtn_0;
-	KalmanModel			emp_rtn_1c;
-	KalmanModel			emp_rtn_1s;
-	KalmanModel			emp_rtn_2c;
-	KalmanModel			emp_rtn_2s;
-	KalmanModel			emp_rtn_3c;
-	KalmanModel			emp_rtn_3s;
-	KalmanModel			emp_rtn_4c;
-	KalmanModel			emp_rtn_4s;
-
-                    	
 	bool				exclude				= false;
 	vector<double>		code_sigmas			= {0};
 	vector<double>		phas_sigmas			= {0};
 	vector<double>		pseudo_sigmas		= {100000};
 	vector<double>		laser_sigmas		= {0};
-                    	
+	vector<double>		minConNoise			= {-1};
+	
 	Vector3d			antenna_boresight	= { 0,  0, +1};
 	Vector3d			antenna_azimuth		= { 0, +1,  0};
 	
@@ -783,6 +867,8 @@ struct SatelliteOptions
 	SatelliteOptions& operator+=(
 		const SatelliteOptions& rhs)
 	{
+		Instrument	instrument(__FUNCTION__);
+	
 		clk			+= rhs.clk;
 		clk_rate	+= rhs.clk_rate;
 		orbit		+= rhs.orbit;
@@ -793,26 +879,7 @@ struct SatelliteOptions
 		code_bias	+= rhs.code_bias;
 		phase_bias	+= rhs.phase_bias;
 		
-		emp_dyb_0	+= rhs.emp_dyb_0;
-		emp_dyb_1c	+= rhs.emp_dyb_1c;
-		emp_dyb_1s	+= rhs.emp_dyb_1s;
-		emp_dyb_2c	+= rhs.emp_dyb_2c;
-		emp_dyb_2s	+= rhs.emp_dyb_2s;
-		emp_dyb_3c	+= rhs.emp_dyb_3c;
-		emp_dyb_3s	+= rhs.emp_dyb_3s;
-		emp_dyb_4c	+= rhs.emp_dyb_4c;
-		emp_dyb_4s	+= rhs.emp_dyb_4s;
-		
-		emp_rtn_0	+= rhs.emp_rtn_0;
-		emp_rtn_1c	+= rhs.emp_rtn_1c;
-		emp_rtn_1s	+= rhs.emp_rtn_1s;
-		emp_rtn_2c	+= rhs.emp_rtn_2c;
-		emp_rtn_2s	+= rhs.emp_rtn_2s;
-		emp_rtn_3c	+= rhs.emp_rtn_3c;
-		emp_rtn_3s	+= rhs.emp_rtn_3s;
-		emp_rtn_4c	+= rhs.emp_rtn_4c;
-		emp_rtn_4s	+= rhs.emp_rtn_4s;
-
+		EmpOptions::operator+=(rhs);
 		
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.code_sigmas			))	{ code_sigmas		= rhs.code_sigmas		;	setInited(*this, code_sigmas		);	}
@@ -847,7 +914,7 @@ struct SatelliteOptions
 
 /** Options to be applied to kalman filter states for individual receivers
 */
-struct ReceiverOptions
+struct ReceiverOptions : EmpOptions
 {
 	bool				_initialised	= false;
 	string				id;
@@ -872,26 +939,13 @@ struct ReceiverOptions
 	KalmanModel			trop_maps;
 	KalmanModel			code_bias;
 	KalmanModel			phase_bias;
-
-	KalmanModel			emp_dyb_0;
-	KalmanModel			emp_dyb_1c;
-	KalmanModel			emp_dyb_1s;
-	KalmanModel			emp_dyb_2c;
-	KalmanModel			emp_dyb_2s;
-	KalmanModel			emp_dyb_3c;
-	KalmanModel			emp_dyb_3s;
-	KalmanModel			emp_dyb_4c;
-	KalmanModel			emp_dyb_4s;
-
-	KalmanModel			emp_rtn_0;
-	KalmanModel			emp_rtn_1c;
-	KalmanModel			emp_rtn_1s;
-	KalmanModel			emp_rtn_2c;
-	KalmanModel			emp_rtn_2s;
-	KalmanModel			emp_rtn_3c;
-	KalmanModel			emp_rtn_3s;
-	KalmanModel			emp_rtn_4c;
-	KalmanModel			emp_rtn_4s;
+	
+	KalmanModel			quat;
+	KalmanModel			gyro_bias;
+	KalmanModel			accl_bias;
+	KalmanModel			gyro_scale;
+	KalmanModel			accl_scale;
+	KalmanModel			imu_offset;
 
 	bool				kill				= false;
 	bool				exclude				= false;
@@ -954,6 +1008,8 @@ struct ReceiverOptions
 	ReceiverOptions& operator+=(
 		const ReceiverOptions& rhs)
 	{
+		Instrument	instrument(__FUNCTION__);
+		
 		amb				+= rhs.amb;
 		pos				+= rhs.pos;
 		pos_rate		+= rhs.pos_rate;
@@ -974,26 +1030,15 @@ struct ReceiverOptions
 		trop_maps		+= rhs.trop_maps;
 		code_bias		+= rhs.code_bias;
 		phase_bias		+= rhs.phase_bias;
+	
+		quat			+= rhs.quat;
+		gyro_bias		+= rhs.gyro_bias;
+		accl_bias		+= rhs.accl_bias;
+		gyro_scale		+= rhs.gyro_scale;
+		accl_scale		+= rhs.accl_scale;
+		imu_offset		+= rhs.imu_offset;
 		
-		emp_dyb_0	+= rhs.emp_dyb_0;
-		emp_dyb_1c	+= rhs.emp_dyb_1c;
-		emp_dyb_1s	+= rhs.emp_dyb_1s;
-		emp_dyb_2c	+= rhs.emp_dyb_2c;
-		emp_dyb_2s	+= rhs.emp_dyb_2s;
-		emp_dyb_3c	+= rhs.emp_dyb_3c;
-		emp_dyb_3s	+= rhs.emp_dyb_3s;
-		emp_dyb_4c	+= rhs.emp_dyb_4c;
-		emp_dyb_4s	+= rhs.emp_dyb_4s;
-
-		emp_rtn_0	+= rhs.emp_rtn_0;
-		emp_rtn_1c	+= rhs.emp_rtn_1c;
-		emp_rtn_1s	+= rhs.emp_rtn_1s;
-		emp_rtn_2c	+= rhs.emp_rtn_2c;
-		emp_rtn_2s	+= rhs.emp_rtn_2s;
-		emp_rtn_3c	+= rhs.emp_rtn_3c;
-		emp_rtn_3s	+= rhs.emp_rtn_3s;
-		emp_rtn_4c	+= rhs.emp_rtn_4c;
-		emp_rtn_4s	+= rhs.emp_rtn_4s;
+		EmpOptions::operator+=(rhs);
 
 		rinex23Conv		+= rhs.rinex23Conv;
 		
@@ -1053,7 +1098,6 @@ struct MinimumConstraintOptions : FilterOptions
 struct MongoOptions
 {
 	bool	enable							= false;
-	bool	output_rtcm_messages			= false;
 	bool	output_measurements				= false;
 	bool	output_components				= false;
 	bool	output_states					= false;
@@ -1147,6 +1191,23 @@ struct NetworkOptions
 	map<string, SsrBroadcast>	uploadingStreamData;
 };
 
+struct OrbitErrors
+{
+	bool	enable						= false;
+	double	pos_proc_noise				= 10;
+	double	vel_proc_noise				= 5;
+	double	vel_proc_noise_trail		= 1;
+	double	vel_proc_noise_trail_tau	= 0.05;
+};
+
+struct PseudoPulses
+{
+	bool	enable			= false;
+	int		num_per_day		= 1;
+	
+	double	pos_proc_noise	= 10;
+	double	vel_proc_noise	= 5;
+};
 
 /** Options associated with orbital force models
 */
@@ -1178,6 +1239,7 @@ struct OrbitPropagation
 	double			srp_cr							= 1.25;
 	double			integrator_time_step			= 60;
 	bool			itrf_pseudoobs					= true;
+	
 };
 
 struct YamlDefault
@@ -1193,9 +1255,10 @@ struct YamlDefault
 */
 struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 {
-	vector<YAML::Node>			yamls;
-	map<string, YamlDefault>	yamlDefaults;
-	map<string, bool>			availableOptions;
+	vector<YAML::Node>				yamls;
+	map<string, YamlDefault>		yamlDefaults;
+	map<string, bool>				availableOptions;
+	map<string, map<string, bool>>	foundOptions;
 	
 	mutex								configMutex;
 	
@@ -1208,11 +1271,11 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	
 	void	recurseYaml(
 		YAML::Node	node, 
-		string		stack		= "",
-		string		aliasStack	= "");
+		const string&		stack		= "",
+		const string&		aliasStack	= "");
 
 	bool	parse(
-		vector<string>							filenames,
+		const vector<string>&					filenames,
 		boost::program_options::variables_map&	vm);
 
 	bool	parse();
@@ -1223,8 +1286,8 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	void	outputDefaultConfiguration(
 		int level);
 
-	SatelliteOptions&			getSatOpts				(SatSys	Sat,	vector<string> suffixes = {});
-	ReceiverOptions&			getRecOpts				(string	id,		vector<string> suffixes = {});
+	SatelliteOptions&			getSatOpts				(SatSys	Sat,	const vector<string>& suffixes = {});
+	ReceiverOptions&			getRecOpts				(string	id,		const vector<string>& suffixes = {});
 
 	map<string,		SatelliteOptions>	satOptsMap;
 	map<string,		ReceiverOptions>	recOptsMap;
@@ -1239,6 +1302,8 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	SlipOptions					excludeSlip;
 	SlipOptions					resetOnSlip;
 	OrbitPropagation			orbitPropagation;
+	PseudoPulses				pseudoPulses;
+	OrbitErrors					orbitErrors;
 	IonModelOptions				ionModelOpts;
 	NetworkOptions				netOpts;
 	SlrOptions					slrOpts;
@@ -1253,7 +1318,7 @@ bool replaceString(
 	bool	warn = true);
 
 void removePath(
-	string &filepath); 	// fully qualified file
+	string& filepath); 	// fully qualified file
 
 void tryAddRootToPath(
 	string& root,		///< Root path
@@ -1264,8 +1329,8 @@ bool configure(
 	char**	argv);
 
 bool checkValidFile(
-	string&	path,				///< Filename to check
-	string	description = "");	///< Description for error messages
+	const string&	path,				///< Filename to check
+	const string&	description = "");	///< Description for error messages
 
 void dumpConfig(
 	Trace& trace);

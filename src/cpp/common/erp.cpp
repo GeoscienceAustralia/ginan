@@ -469,45 +469,12 @@ void writeErp(
 			(int)	(erp.ypr			* 1E6 * R2AS));
 }
 
-void writeErpFromNetwork(
-	string		filename,
+/** Get earth rotation parameter values
+ */
+ERPValues getErpFromFilter(
 	KFState&	kfState)
 {
-	static GTime lastTime = GTime::noTime();
-	
-	if (abs((lastTime - kfState.time).to_double()) < 10)
-	{
-		//dont write duplicate lines (closer than 10s (4dp mjd))
-		return;
-	}
-	
-	lastTime = kfState.time;
-
 	ERPValues erpv;
-	erpv.time = kfState.time;
-	
-	bool found = false;
-	
-	KFKey kfKey;
-	
-	kfKey.type = KF::EOP;
-	kfKey.num = 0;		found |= kfState.getKFValue(kfKey,	erpv.xp,		&erpv.xpSigma		);			erpv.xp		*= MAS2R;		erpv.xpSigma		= sqrt(erpv.xpSigma)		* MAS2R;
-	kfKey.num = 1;		found |= kfState.getKFValue(kfKey,	erpv.yp,		&erpv.ypSigma		);			erpv.yp		*= MAS2R;		erpv.ypSigma		= sqrt(erpv.ypSigma)		* MAS2R; 
-	kfKey.num = 2;		found |= kfState.getKFValue(kfKey,	erpv.ut1Utc,	&erpv.ut1UtcSigma	);			erpv.ut1Utc	*= MTS2S;		erpv.ut1UtcSigma	= sqrt(erpv.ut1UtcSigma)	* MTS2S; 
-	
-	kfKey.type = KF::EOP_RATE;
-	kfKey.num = 0;		found |= kfState.getKFValue(kfKey,	erpv.xpr,		&erpv.xprSigma		);			erpv.xpr	*= MAS2R;		erpv.xprSigma		= sqrt(erpv.xprSigma)		* MAS2R; 
-	kfKey.num = 1;		found |= kfState.getKFValue(kfKey,	erpv.ypr,		&erpv.yprSigma		);			erpv.ypr	*= MAS2R;		erpv.yprSigma		= sqrt(erpv.yprSigma)		* MAS2R; 
-	kfKey.num = 2;		found |= kfState.getKFValue(kfKey,	erpv.lod,		&erpv.lodSigma		);			erpv.lod	*= MTS2S * -1;	erpv.lodSigma		= sqrt(erpv.lodSigma)		* MTS2S; //lod is negative for some reason
-	
-	if (found)
-	{
-		//using old method, enter and return
-		
-		writeErp(filename, erpv);
-		
-		return;
-	}
 	
 	ERPValues erpvs[2];
 	erpvs[0] = getErp(nav.erp, kfState.time);
@@ -515,8 +482,9 @@ void writeErpFromNetwork(
 	
 	erpv		= erpvs[0];
 	erpv.time	= kfState.time;
-	erpv.xpr	= erpvs[1].xp - erpvs[0].xp;	// per 1 second dt
-	erpv.ypr	= erpvs[1].yp - erpvs[0].yp;	// per 1 second dt
+	erpv.xpr	= erpvs[1].xp		- erpvs[0].xp;		// per 1 second dt
+	erpv.ypr	= erpvs[1].yp		- erpvs[0].yp;		// per 1 second dt
+	erpv.lod	= erpvs[1].ut1Utc	- erpvs[0].ut1Utc;	// per 1 second dt
 	
 	for (int i = 0; i < 3; i++)
 	{
@@ -541,11 +509,30 @@ void writeErpFromNetwork(
 			case 1:	erpv.yp		+= adjust		* MAS2R;		erpv.ypSigma		= sqrt(adjustVar)		* MAS2R;
 					erpv.ypr	+= rateAdjust	* MAS2R;		erpv.yprSigma		= sqrt(rateAdjustVar)	* MAS2R;	break;
 			case 2:	erpv.ut1Utc	+= adjust		* MTS2S;		erpv.ut1UtcSigma	= sqrt(adjustVar)		* MTS2S;
-					erpv.lod	+= rateAdjust	* MTS2S * -1;	erpv.lodSigma		= sqrt(rateAdjustVar)	* MTS2S;	break;	//lod is negative for some reason
+					erpv.lod	+= rateAdjust	* MTS2S;		erpv.lodSigma		= sqrt(rateAdjustVar)	* MTS2S;	break;
 			default:
 				break;
 		}
 	}
+	
+	return erpv;
+}
+
+void writeErpFromNetwork(
+	string		filename,
+	KFState&	kfState)
+{
+	static GTime lastTime = GTime::noTime();
+	
+	if (abs((lastTime - kfState.time).to_double()) < 10)
+	{
+		//dont write duplicate lines (closer than 10s (4dp mjd))
+		return;
+	}
+	
+	lastTime = kfState.time;
+	
+	ERPValues erpv = getErpFromFilter(kfState);
 		
 	writeErp(filename, erpv);
 }

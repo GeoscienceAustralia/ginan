@@ -150,12 +150,13 @@ struct IcdDecoder
 		return true;
 	}
 	
-	int decodeGpsHowWord(
+	bool decodeGpsHowWord(
 		vector<int>&	words,
 		Eph&			eph)
 	{
-		int howTow	= gpsBitUFromWord(words, 1, 1, 17) * 1.5;
-		return howTow;
+		eph.howTow	= gpsBitUFromWord(words, 1, 1, 17) * 6;
+		
+		return true;
 	}
 	
 	/* decode gps/qzss navigation data subframe 1 
@@ -167,23 +168,23 @@ struct IcdDecoder
 		decodeGpsTlmWord(words, eph);
 		decodeGpsHowWord(words, eph);
 		
-		int week	= gpsBitUFromWord(words, 3,		61,		10);          	//todo aaron, these all need scaling
-		eph.code	= gpsBitUFromWord(words, 3,		71,		2);      
-		eph.sva		= gpsBitUFromWord(words, 3,		73,		4);     
-		int svh		= gpsBitUFromWord(words, 3,		77,		6);      
-		int iodc_1	= gpsBitUFromWord(words, 3,		83,		2)	<< 8; 
+		eph.weekRollOver	= gpsBitUFromWord(words, 3,		61,		10);          	//todo aaron, these all need scaling
+		eph.code			= gpsBitUFromWord(words, 3,		71,		2);      
+		eph.sva				= gpsBitUFromWord(words, 3,		73,		4);     
+		int svh				= gpsBitUFromWord(words, 3,		77,		6);      
+		int iodc_1			= gpsBitUFromWord(words, 3,		83,		2)	<< 8; 
 		
-		eph.flag	= gpsBitUFromWord(words, 4,		91,		1);
+		eph.flag			= gpsBitUFromWord(words, 4,		91,		1);
 		
-		int tgd		= gpsBitSFromWord(words, 7,		197,	8);    
+		int tgd				= gpsBitSFromWord(words, 7,		197,	8);    
 		
-		int iodc_2	= gpsBitUFromWord(words, 8,		211,	8);      
-		eph.tocs	= gpsBitUFromWord(words, 8,		219,	16)	* (1 << 4); 
+		int iodc_2			= gpsBitUFromWord(words, 8,		211,	8);      
+		eph.tocs			= gpsBitUFromWord(words, 8,		219,	16)	* (1 << 4); 
 		
-		eph.f2		= gpsBitSFromWord(words, 9,		241,	8)	* P2_55; 
-		eph.f1		= gpsBitSFromWord(words, 9,		249,	16)	* P2_43;
+		eph.f2				= gpsBitSFromWord(words, 9,		241,	8)	* P2_55; 
+		eph.f1				= gpsBitSFromWord(words, 9,		249,	16)	* P2_43;
 		
-		eph.f0		= gpsBitSFromWord(words, 10,	271,	22)	* P2_31;
+		eph.f0				= gpsBitSFromWord(words, 10,	271,	22)	* P2_31;
 
 		eph.svh		= (E_Svh) svh;
 		eph.tgd[0]	= tgd == -128 ? 0 : tgd * P2_31; /* ref [4] */
@@ -195,10 +196,10 @@ struct IcdDecoder
 		{
 			GWeek nowWeek = nearTime;		
 			
-			int dWeeks		= nowWeek - week;
+			int dWeeks		= nowWeek - eph.weekRollOver;
 			int roundDWeeks	= (dWeeks + 512) / 1024 * 1024;
 			
-			eph.week	= week + roundDWeeks;
+			eph.week	= eph.weekRollOver + roundDWeeks;
 		}	
 		
 		return true;
@@ -213,29 +214,29 @@ struct IcdDecoder
 		decodeGpsTlmWord(words, eph);
 		decodeGpsHowWord(words, eph);
 		
-		eph.iode	= gpsBitUFromWord(words, 3,		61,		8);         
-		eph.crs		= gpsBitSFromWord(words, 3,		69,		16)	* P2_5; 
+		eph.iode				= gpsBitUFromWord(words, 3,		61,		8);         
+		eph.crs					= gpsBitSFromWord(words, 3,		69,		16)	* P2_5; 
 		
-		eph.deln	= gpsBitSFromWord(words, 4,		91,		16)	* P2_43 * SC2RAD; 
-		int M0_1	= gpsBitSFromWord(words, 4,		107,	8)	<< 24; 
+		eph.deln				= gpsBitSFromWord(words, 4,		91,		16)	* P2_43 * SC2RAD; 
+		int M0_1				= gpsBitSFromWord(words, 4,		107,	8)	<< 24; 
 		
-		unsigned int M0_2	= gpsBitUFromWord(words, 5,		121,	24); 
+		unsigned int M0_2		= gpsBitUFromWord(words, 5,		121,	24); 
 		
-		eph.cuc		= gpsBitSFromWord(words, 6,		151,	16)	* P2_29;
+		eph.cuc					= gpsBitSFromWord(words, 6,		151,	16)	* P2_29;
 		unsigned int e_1		= gpsBitUFromWord(words, 6,		167,	8)	<< 24;
 		
 		unsigned int e_2		= gpsBitUFromWord(words, 7,		181,	24);
 		
-		eph.cus		= gpsBitSFromWord(words, 8,		211,	16)	* P2_29;
+		eph.cus					= gpsBitSFromWord(words, 8,		211,	16)	* P2_29;
 		unsigned int sqrtA_1	= gpsBitUFromWord(words, 8,		227,	8)	<< 24;
 		
 		unsigned int sqrtA_2	= gpsBitUFromWord(words, 9,		241,	24);
 		
-		eph.toes	= gpsBitUFromWord(words, 10,	271,	16)	* (1 << 4);   
-		eph.fit		= gpsBitUFromWord(words, 10,	287,	1) ? 0 : 4; /* 0:4hr,1:>4hr */
-		int aodo	= gpsBitUFromWord(words, 10,	288,	5);   	//todo aaron
+		eph.toes				= gpsBitUFromWord(words, 10,	271,	16)	* (1 << 4);   
+		eph.fit					= gpsBitUFromWord(words, 10,	287,	1) ? 0 : 4; /* 0:4hr,1:>4hr */
+		int aodo				= gpsBitUFromWord(words, 10,	288,	5);   	//todo aaron
 
-		eph.sqrtA	= (sqrtA_1	| sqrtA_2)	* P2_19;
+		eph.sqrtA	= 		(sqrtA_1	| sqrtA_2)	* P2_19;
 		eph.M0		= 		(M0_1		| M0_2)		* P2_31 * SC2RAD;
 		eph.e		= 		(e_1		| e_2)		* P2_33;
 		eph.A		= SQR(eph.sqrtA);
@@ -250,27 +251,27 @@ struct IcdDecoder
 		Eph&			eph)
 	{
 		decodeGpsTlmWord(words, eph);
-		int howTow = decodeGpsHowWord(words, eph);
+		decodeGpsHowWord(words, eph);
 		
-		eph.cic		= gpsBitSFromWord(words, 3,		61,		16)	* P2_29;
+		eph.cic				= gpsBitSFromWord(words, 3,		61,		16)	* P2_29;
 		signed int OMG0_1	= gpsBitSFromWord(words, 3,		77,		8)	<< 24; 
 		
-		unsigned int OMG0_2	= gpsBitUFromWord(words, 4,		91,		24); 
+		signed int OMG0_2	= gpsBitUFromWord(words, 4,		91,		24); 
 		
-		eph.cis		= gpsBitSFromWord(words, 5,		121,	16)	* P2_29;
+		eph.cis				= gpsBitSFromWord(words, 5,		121,	16)	* P2_29;
 		signed int i0_1 	= gpsBitSFromWord(words, 5,		137,	8)	<< 24; 
 		
-		unsigned int i0_2 	= gpsBitUFromWord(words, 6,		151,	24); 
+		signed int i0_2 	= gpsBitUFromWord(words, 6,		151,	24); 
 		
-		eph.crc		= gpsBitSFromWord(words, 7,		181,	16)	* P2_5;
+		eph.crc				= gpsBitSFromWord(words, 7,		181,	16)	* P2_5;
 		signed int omg_1	= gpsBitSFromWord(words, 7,		197,	8)	<< 24; 
 		
-		unsigned int omg_2	= gpsBitUFromWord(words, 8,		211,	24); 
+		signed int omg_2	= gpsBitUFromWord(words, 8,		211,	24); 
 		
-		eph.OMGd	= gpsBitSFromWord(words, 9,		241,	24)	* P2_43 * SC2RAD; 
+		eph.OMGd			= gpsBitSFromWord(words, 9,		241,	24)	* P2_43 * SC2RAD; 
 		
-		int iode	= gpsBitUFromWord(words, 10,	271,	8);
-		eph.idot	= gpsBitSFromWord(words, 10,	279,	14)	* P2_43 * SC2RAD;
+		int iode			= gpsBitUFromWord(words, 10,	271,	8);
+		eph.idot			= gpsBitSFromWord(words, 10,	279,	14)	* P2_43 * SC2RAD;
 
 		eph.OMG0	= (OMG0_1	| OMG0_2)	* P2_31 * SC2RAD;
 		eph.i0		= (i0_1		| i0_2)		* P2_31 * SC2RAD;
@@ -283,15 +284,16 @@ struct IcdDecoder
 			return false;
 		}
 		
-		eph.ttm		= GTime(GWeek(eph.week), GTow(howTow));
-		eph.toe		= GTime(GTow(eph.toes), eph.ttm);
+		eph.ttm		= GTime(GWeek(eph.week), GTow(eph.howTow));
+		
 		eph.toc		= GTime(GTow(eph.tocs), eph.ttm);
+		eph.toe		= GTime(GTow(eph.toes), eph.toc);
 		
 		
-		std::cout << std::endl << eph.ttm;
-		std::cout << std::endl << eph.toe;
-		std::cout << std::endl << eph.toc;
-		std::cout << std::endl;
+// 		std::cout << std::endl << eph.ttm;
+// 		std::cout << std::endl << eph.toe;
+// 		std::cout << std::endl << eph.toc;
+// 		std::cout << std::endl;
 		
 		return true;
 	}

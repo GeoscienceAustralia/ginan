@@ -125,9 +125,7 @@ struct URL
 
 	static URL parse(string url)
 	{
-
-//      boost::regex re (R"(^((https?)://)?((\w):(\w)@)?([^\s:=/]+)(:(\d+)?)/(.*$))", boost::regex::extended);
-		boost::regex re (R"((https?)://(([^:@]+):([^@]+)@)?([^:@]+)(:(\d+))?(/.*)$)", boost::regex::extended);
+		boost::regex re (R"((https?)://((.+):(.+)@)?([^:@]+)(:(\d+))?(/.*)$)", boost::regex::extended);
 
 		boost::smatch matches;
 

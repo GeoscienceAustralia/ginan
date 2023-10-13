@@ -630,7 +630,7 @@ bool satPosBroadcast(
 		time, 
 		teph,
 		satPos.Sat, 
-		satPos.rSat, 
+		satPos.rSatApc, 
 		satPos.satVel,
 		satPos.posVar, 
 		satPos.ephPosValid,

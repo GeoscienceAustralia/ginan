@@ -50,12 +50,6 @@ void mongoTestStat(
 	KFState&			kfState,
 	TestStatistics&		statistics);
 
-void mongoBrdcEph(
-	Eph&		eph);
-
-void mongoBrdcEph(
-	Geph&		geph);
-
 struct MongoOptions;
 struct OrbitState;
 typedef vector<OrbitState> Orbits;

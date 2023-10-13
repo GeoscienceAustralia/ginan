@@ -1,7 +1,7 @@
 The folder contains example Ginan configuration files that showcase the various 
 capabilities of the Ginan software.
 The configuration files use the industry standard Yet Another Markup Language 
-(yaml)format.
+(yaml) format.
 
 Ginan is capable of accepting a single yaml file or multiple yaml files to 
 achieve the configuration and processing outcome required.
@@ -18,7 +18,7 @@ observations, using the BKG SSRA00BKG0 correction stream
 
 3) ex203.yaml
 Post processed Real-Time Kinematic Receiver (RTK) positioning using tri 
-frequencyGPS, GAL and BDS recorded RTCM3 observation and correction streams. 
+frequency GPS, GAL and BDS recorded RTCM3 observation and correction streams. 
 The recorded correction stream is from SSRA03IGS0.
 
 4) ex204.yaml 

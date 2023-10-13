@@ -328,21 +328,6 @@ void writeTropSiteEcc(
 	}
 }
 
-/** Set site coordinates from filter
- */
-void setTropSiteCoordsFromFilter(
-	KFState&				kfState)	///< KF state
-{
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if (key.type != KF::REC_POS)
-		{
-			continue;
-		}
-		kfState.getKFValue(key, theSinex.tropSiteCoordMapMap[key.str][key.num]);
-	}
-}
-
 /** Write SITE/COORDINATES block
  */
 void writeTropSiteCoord(

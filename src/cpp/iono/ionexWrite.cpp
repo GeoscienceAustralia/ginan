@@ -128,20 +128,20 @@ int writeIonexEpoch(
 
 			ipp[1] = (ionex_lonmin + ilon * ionex_loninc) * D2R;
 
-			double vari;
-			double iono = ionVtec(time, ipp, ihgt, vari, kfState) / pow(10, IONEX_NEXP);
+			double var = 0;
+			double iono = ionVtec(time, ipp, ihgt, var, kfState) / pow(10, IONEX_NEXP);
 
 			tracepdeex(5, std::cout, "IPP: %8.4f,%9.4f; layr: %1d; delay: %12.6f; var: %.4e\n",
 					ipp[0]*R2D,
 					ipp[1]*R2D,
 					ihgt,
 					iono,
-					vari);
+					var);
 
 			if (acsConfig.ionModelOpts.layer_heights.size() == 1) 
-				vari += SINGL_LAY_ERR;
+				var += SINGL_LAY_ERR;
 
-			double tecrms = vari / pow(10, 2 * IONEX_NEXP);
+			double tecrms = var / pow(10, 2 * IONEX_NEXP);
 
 			if	(  tecrms >  9999
 				|| tecrms <= 0 )

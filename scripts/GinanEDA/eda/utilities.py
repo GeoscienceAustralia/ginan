@@ -1,6 +1,7 @@
 from flask import render_template, current_app, session
 
 import numpy as np
+from plotly.subplots import make_subplots
 import plotly.graph_objs as go
 import plotly.io as pio
 
@@ -9,9 +10,10 @@ from backend.dbconnector.mongo import MongoDB
 
 extra = {}
 extra["plotType"] = ["Line", "Scatter", "QQ"]
+extra["filterType"] = ["None", "LPF", "HPF", "DIFF", "DIFF2"]
 extra["posMode"] = ["XYZ", "ENU"]
 extra["clockType"] = ["Site", "Satellite"]
-extra["stateField"] = ["x", "dx", "P"]
+extra["stateField"] = ["x", "dx", "sigma"]
 extra["preprocess"] = ["None", "Fit", "Detrend"]
 extra['degree'] = ["0", "1", "2"]
 
@@ -33,6 +35,25 @@ def generate_fig(trace):
         yaxis={"fixedrange":False, "tickformat":".3e", "showgrid":current_app.config["EDA_GRID"]},
         height=800,
         template=current_app.config["EDA_THEME"],
+    )
+    fig.layout.autosize = True
+    return pio.to_html(fig)
+
+def generate_figs(traces1, traces2):
+    fig = make_subplots(rows=2, cols=1,
+                    shared_xaxes=True,
+                    vertical_spacing=0.2
+                    )
+    for trace in traces1:
+        fig.add_trace(trace, row=1, col=1)
+    for trace in traces2:
+        fig.add_trace(trace, row=2, col=1)
+
+    fig.update_layout(
+        xaxis={"rangeslider":{"visible":True}, "showgrid":current_app.config["EDA_GRID"]},
+        yaxis={"fixedrange":False, "tickformat":".3e", "showgrid":current_app.config["EDA_GRID"]},
+        height=1200,        
+        # template=current_app.config["EDA_THEME"],
     )
     fig.layout.autosize = True
     return pio.to_html(fig)
@@ -75,6 +96,7 @@ def get_data(db, collection, state, site, sat, series, yaxis, data, reshape_on=N
     :param yaxis: Y axis name
     :return MeasurementArray: MeasurementArray object
     """
+    # print (session)
     with MongoDB(session["mongo_ip"], data_base=db, port=session["mongo_port"]) as client:
         try:
             for req in client.get_data(
@@ -95,10 +117,12 @@ def get_data(db, collection, state, site, sat, series, yaxis, data, reshape_on=N
             pass
 
 
-def get_arbitrary(db, coll, match, group, datax, datay, reshape_on=None):
+def get_arbitrary(db, coll, match, group, datay, reshape_on=None):
+   # print (session)
    with MongoDB(session["mongo_ip"], data_base=db, port=session["mongo_port"]) as client:
         try:
-            return client.get_arbitrary(coll, match, group, datax, datay)
+            return client.get_arbitrary(coll, match, group, datay)
         except ValueError as err:
+            print("thing")
             current_app.logger.warning(err)
             pass

@@ -860,9 +860,6 @@ void RtcmDecoder::decodeEphemeris(
 			
 		if (acsConfig.output_decoded_rtcm_json)
 			traceBrdcEph(messCode, eph);
-		
-		if (acsConfig.localMongo.output_rtcm_messages)
-			mongoBrdcEph(eph);
 	}
 	else if (sys == +E_Sys::GLO)
 	{
@@ -872,9 +869,6 @@ void RtcmDecoder::decodeEphemeris(
 		
 		if (acsConfig.output_decoded_rtcm_json)
 			traceBrdcEph(messCode, geph);
-		
-		if (acsConfig.localMongo.output_rtcm_messages)
-			mongoBrdcEph(geph);
 	}
 	else
 	{

@@ -13,32 +13,22 @@ bool satClkRemote(
 	GTime			time,
 	SatPos&			satPos)
 {
-	return false;
-// 	bool found = true;
-// 	
-// 	GTime t0;
-//  	t0.bigTime = (long int) (time.bigTime + 0.5);	// time tags in mongo will be rounded up to whole sec
-// 	
-// 	double 
-// 	Vector6d inertialState = mongoReadOrbit(t0, satPos.Sat);
-// 
-// 	if (inertialState.isZero())
-// 	{
-// 		return false;
-// 	}
-// 	
-// 	
-// 	auto& rSat0 = satPos.rSatEci0;
-// 	auto& vSat0 = satPos.vSatEci0;
-// 	
-// 	rSat0 = inertialState.head(3);
-// 	vSat0 = inertialState.tail(3);
-// 	
-// 	double dt = (time - t0).to_double();
-// 	
-// 	satPos.rSatEciDt = propagateEllipse(trace, t0, dt, rSat0, vSat0, satPos.rSat);
+	GTime t0;
+ 	t0.bigTime = (long int) (time.bigTime + 0.5);	// time tags in mongo will be rounded up to whole sec
 	
+	auto clocksMap = mongoReadClocks(t0, satPos.Sat, true);
+
+	if (clocksMap.empty())
+	{
+		return false;
+	}
 	
+	auto& [clock, drift] = clocksMap[satPos.Sat][t0];
+	
+	double dt = (time - t0).to_double();
+
+	satPos.satClk = clock + drift * dt;
+
 	return true;
 }
 
@@ -81,7 +71,7 @@ bool satPosRemote(
 	
 	double dt = (time - t0).to_double();
 	
-	satPos.rSatEciDt = propagateEllipse(trace, t0, dt, rSat0, vSat0, satPos.rSat);
+	satPos.rSatEciDt = propagateEllipse(trace, t0, dt, rSat0, vSat0, satPos.rSatCom);
 	
 	return true;
 }

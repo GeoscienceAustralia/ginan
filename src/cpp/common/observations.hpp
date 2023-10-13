@@ -71,7 +71,7 @@ struct Sig : RawSig
 
 	}
 
-	Sig(RawSig raw) : RawSig(raw)
+	Sig(RawSig& raw) : RawSig(raw)
 	{
 
 	}
@@ -184,7 +184,8 @@ struct SatPos
 	E_Source	posSource		= E_Source::NONE;
 	E_Source	clkSource		= E_Source::NONE;
 	
-	VectorEcef	rSat;								///< ECEF based vector of satellite
+	VectorEcef	rSatCom;							///< ECEF based vector of satellite
+	VectorEcef	rSatApc;							///< ECEF based vector of satellite
 	VectorEcef	satVel;								///< ECEF based vector of satellite velocity
 	VectorEci	rSatEciDt;							///< ECI  based vector of satellite          at transmission time
 	VectorEci	vSatEciDt;							///< ECI  based vector of satellite velocity at transmission time
@@ -216,7 +217,6 @@ struct SatPos
 			unsigned failureNoPseudorange	: 1;
 			unsigned failureIodeConsistency	: 1;
 			unsigned failureBroadcastEph	: 1;
-			unsigned failureSeleph			: 1;
 			unsigned failureSSRFail			: 1;
 			unsigned failureSsrPosEmpty		: 1;
 			unsigned failureSsrClkEmpty		: 1;
@@ -227,11 +227,10 @@ struct SatPos
 			unsigned failureSsrPosUdi		: 1;
 			unsigned failureSsrClkUdi		: 1;
 			unsigned failureGeodist			: 1;
+			unsigned failureRSat			: 1;
 			unsigned failureElevation		: 1;
-			unsigned failureSatexclude		: 1;
 			unsigned failurePrange			: 1;
 			unsigned failureIonocorr		: 1;
-			unsigned failureTropcorr		: 1;
 		};
 	};
 };

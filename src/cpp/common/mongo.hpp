@@ -100,6 +100,7 @@ struct Mongo
 #define SSR_PREC			"Prec"
 
 #define REMOTE_DATA_DB		"Remote"
+#define STATES_DB			"States"
 
 #define REMOTE_DATA			"Data"
 #define REMOTE_EPOCH		"Epoch"

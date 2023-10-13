@@ -682,9 +682,9 @@ Geph mongoReadGloEphemeris(
 	
 	
 SSRAtm mongoReadIGSIonosphere(
-	GTime		time,
-	SSRMeta		ssrMeta,
-	int			masterIod)
+			GTime		time,
+	const	SSRMeta&	ssrMeta,
+			int			masterIod)
 {
 	SSRAtm ssrAtm;
 	
@@ -775,6 +775,87 @@ SSRAtm mongoReadIGSIonosphere(
 	ssrAtm.atmosGlobalMap[atmGlob.time] = atmGlob;
 	
 	return ssrAtm;
+}
+
+KFState mongoReadFilter(
+	const	GTime&		time,
+	const	SatSys&		Sat,
+	const	string&		str,
+	const	vector<KF>&	types,
+			bool		remote)
+{
+	KFState kfState;
+	
+	Mongo* mongo_ptr;
+	
+	if (remote)	mongo_ptr = remoteMongo_ptr;
+	else		mongo_ptr = localMongo_ptr;
+	
+	if (mongo_ptr == nullptr)
+	{
+		MONGO_NOT_INITIALISED_MESSAGE;
+		return kfState;
+	}
+	
+	string database;
+	if (remote)	database = acsConfig.remoteMongo.database;
+	else		database = acsConfig.localMongo	.database;
+	
+	Mongo&						mongo	= *mongo_ptr;
+	auto 						c		= mongo.pool.acquire();
+	mongocxx::client&			client	= *c;
+	mongocxx::database			db		= client[database];
+	mongocxx::collection		coll	= db[REMOTE_DATA_DB];
+	
+	b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
+	
+	for (auto& type : types)
+	{
+		// Find the latest document according to t0_time.
+		auto docSys		= document{};
+		
+										docSys << REMOTE_DATA		<< type._to_string();
+		if (str.empty() == false)		docSys << REMOTE_STR		<< str;
+		if (Sat.prn)					docSys << REMOTE_SAT		<< Sat.id();
+		if (time != GTime::noTime())	docSys << REMOTE_EPOCH		<< btime;
+						
+		auto findOpts 	= mongocxx::options::find{};
+// 		if	( Sat.prn	!= 0
+// 			&&time		!= GTime::noTime())
+// 		{
+// 			findOpts.limit(1);
+// 		}
+			
+		auto cursor  	= coll.find(docSys.view(), findOpts);
+		
+		for (auto doc : cursor)
+		{
+	// 		PTime updated;
+	// 		auto tp					= doc[REMOTE_UPDATED		].get_date();
+	// 		updated.bigTime 		= std::chrono::system_clock::to_time_t(tp);
+			
+			PTime time;
+			auto tp2				= doc[REMOTE_EPOCH			].get_date();
+			time.bigTime			= std::chrono::system_clock::to_time_t(tp2);
+			
+			
+// 			Vector6d inertialState = Vector6d::Zero();
+			
+// 			for (int i = 0; i < 3; i++)
+			{
+// 				inertialState(i + 0) = doc[REMOTE_POS + std::to_string(i)].get_double();
+// 				inertialState(i + 3) = doc[REMOTE_VEL + std::to_string(i)].get_double();
+			}
+			
+			string sat = doc[REMOTE_SAT].get_utf8().value.to_string();
+			
+			SatSys Sat(sat.c_str());
+// 			
+// 			predictedPosMap[Sat][time] = inertialState;
+		}
+	}
+	
+	return kfState;
 }
 
 map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
@@ -926,4 +1007,120 @@ map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
 	}
 	
 	return predictedClkMap;
+}
+
+void mongoReadFilter(
+	KFState&				kfState,
+	GTime					time,
+	const vector<KF>&		types,
+	const string&			Sat,
+	const string&			str,
+	bool					remote)
+{
+	Mongo* mongo_ptr;
+	
+	if (remote)	mongo_ptr = remoteMongo_ptr;
+	else		mongo_ptr = localMongo_ptr;
+	
+	if (mongo_ptr == nullptr)
+	{
+		MONGO_NOT_INITIALISED_MESSAGE;
+		return;
+	}
+	
+	string database;
+	if (remote)	database = acsConfig.remoteMongo.database;
+	else		database = acsConfig.localMongo	.database;
+	
+	Mongo&						mongo	= *mongo_ptr;
+	auto 						c		= mongo.pool.acquire();
+	mongocxx::client&			client	= *c;
+	mongocxx::database			db		= client[database];
+	mongocxx::collection		coll	= db[STATES_DB];
+	
+	b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
+	
+	// Find the latest document according to t0_time.
+	auto docMatch		= document{};
+	auto docGroup		= document{};
+	
+	if (types.empty() == false)
+	{
+		auto array = docMatch << "$or" 
+								<< open_array;
+		
+		for (auto& type : types)
+		{
+			array	<< open_document
+						<< "State"	<< type._to_string()
+					<< close_document;
+		}
+		
+		array	<< close_array;
+	}
+									docMatch << "Series"		<< "";
+	if (str.empty() == false)		docMatch << "Site"			<< str;
+	if (Sat.empty() == false)		docMatch << "Sat"			<< Sat;
+	if (time != GTime::noTime())	docMatch << "Epoch"					//todo aaron, convert these to #defines
+												<< open_document
+													<< "$lte" << btime
+												<< close_document;
+		
+	docGroup	<< "_id"
+					<< open_document
+						<< "State"	<< "$State"
+						<< "Sat"	<< "$Sat"
+						<< "Site"	<< "$Site"
+					<< close_document
+				<< "x"		<< open_document << "$last" << "$x"		<< close_document
+				<< "sigma"	<< open_document << "$last" << "$sigma" << close_document
+				<< "Num"	<< open_document << "$last" << "$Num"	<< close_document;
+				
+	mongocxx::pipeline p;
+	p.match(docMatch.view());
+	p.group(docGroup.view());
+	
+// 	std::cout <<  std::endl << bsoncxx::to_json(docMatch);
+// 	std::cout <<  std::endl << bsoncxx::to_json(docGroup);
+	
+	auto cursor = coll.aggregate(p, mongocxx::options::aggregate{});
+	
+	int index = 1;
+	vector<double> x = {1};
+	vector<double> P = {0};
+	
+	for (auto doc : cursor)
+	{
+// 		std::cout <<  std::endl << bsoncxx::to_json(doc);
+		
+		KFKey kfKey;
+		kfKey.type	= KF::_from_string(	doc["_id"]["State"]	.get_utf8().value.to_string().c_str());
+		kfKey.Sat	= SatSys(			doc["_id"]["Sat"]	.get_utf8().value.to_string().c_str());
+		kfKey.str	= 					doc["_id"]["Site"]	.get_utf8().value.to_string();
+		
+		int i = 0;
+		for (auto thing : doc["Num"].get_array().value)
+		{
+			kfKey.num	= 		doc["Num"]	.get_array().value[i].get_int32();
+			
+			x.push_back(		doc["x"]	.get_array().value[i].get_double());
+			P.push_back(SQR(	doc["sigma"].get_array().value[i].get_double()));
+			
+			kfState.kfIndexMap[kfKey] = index;
+			index++;
+			i++;
+		}
+	}
+	
+	kfState.x	= VectorXd		(x.size());
+	kfState.dx	= VectorXd::Zero(x.size());
+	kfState.P	= MatrixXd::Zero(P.size(), P.size());
+	
+	for (int i = 0; i < x.size(); i++)
+	{
+		kfState.x(i)	= x[i];
+		kfState.P(i,i)	= P[i];
+	}
+	
+// 	kfState.outputStates(std::cout);
 }

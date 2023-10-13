@@ -99,9 +99,9 @@ struct Station : StationLogs, Rtk
 	bool				invalid	= false;
 	SinexRecData		snx;						///< Antenna information
 
-	map<string, string>	metaDataMap;
-	ObsList				obsList;					///< Observations available for this station at this epoch
-	string				id;							///< Unique name for this station (4 characters)
+	map<string, string>					metaDataMap;
+	ObsList								obsList;					///< Observations available for this station at this epoch
+	string								id;							///< Unique name for this station (4 characters)
 	
 	bool		primaryApriori	= false;
 	UYds		aprioriTime;

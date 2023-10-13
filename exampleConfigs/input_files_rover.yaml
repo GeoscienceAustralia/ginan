@@ -40,6 +40,7 @@ inputs:
 processing_options:
     epoch_control:
         epoch_interval:             30
+        wait_next_epoch:            3600
     gnss_general:   
         error_model:        elevation_dependent
         code_measurements:

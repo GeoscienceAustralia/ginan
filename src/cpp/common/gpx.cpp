@@ -61,27 +61,65 @@ void writeGPXEntry(
 	KFState&	kfState)
 {
 	VectorEcef xyz;
-	for (auto [kfKey, index] : kfState.kfIndexMap)
+	bool found = true;
+	for (int i = 0; i < 3; i++)
 	{
-		if	( kfKey.type	!= KF::REC_POS
-			||kfKey.str		!= id)
-		{
-			continue;
-		}
+		KFKey kfKey;
+		kfKey.type	= KF::REC_POS;
+		kfKey.str	= id;
+		kfKey.num	= i;
 		
-		kfState.getKFValue(kfKey, xyz[kfKey.num]);
+		found &= kfState.getKFValue(kfKey, xyz[i]);
+	}
+	
+	if (found == false)
+	{
+		return;
 	}
 	
 	VectorPos pos = ecef2pos(xyz);
 	
-	output << std::setprecision(10);
+	output << std::setprecision(11);
 	
-	output << "      <trkpt "
+	output 
+	<< "      <trkpt "
 	<< "lat='" << pos.latDeg() << "' "
 	<< "lon='" << pos.lonDeg() << "' "
 	<< ">"
-	<< "<ele>" << pos.hgt() << "</ele>"
-	<< "<time>" << boost::posix_time::from_time_t((time_t)((PTime)kfState.time).bigTime) << "</time>"
+	<< "<ele>" << pos.hgt() << "</ele>"	
+	<< "<time>" << boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t((time_t)((PTime)kfState.time).bigTime)) << "Z</time>"
+	<< "<extensions>";
+	
+	output
+	<< "<ginan:time>'" << kfState.time << "'</ginan:time>"
+	<< "<ginan:xyz>'" << xyz.transpose() << "'</ginan:xyz>";
+	
+	
+	Quaterniond quat;
+	found = true;
+	for (int i = 0; i < 4; i++)
+	{
+		KFKey kfKey;
+		kfKey.type	= KF::QUAT;
+		kfKey.str	= id;
+		kfKey.num	= i;
+		
+		if (i == 0)		found &= kfState.getKFValue(kfKey, quat.w());
+		if (i == 1)		found &= kfState.getKFValue(kfKey, quat.x());
+		if (i == 2)		found &= kfState.getKFValue(kfKey, quat.y());
+		if (i == 3)		found &= kfState.getKFValue(kfKey, quat.z());
+	}
+	
+	if (found)
+	{
+		output 
+		<< "<ginan:Ex>'" << (quat * Vector3d::UnitX()).transpose() << "'</ginan:Ex>"
+		<< "<ginan:Ey>'" << (quat * Vector3d::UnitY()).transpose() << "'</ginan:Ey>"
+		<< "<ginan:Ez>'" << (quat * Vector3d::UnitZ()).transpose() << "'</ginan:Ez>"
+		<< "<ginan:quat>" << quat << "</ginan:quat>";
+	}
+	output
+	<< "</extensions>"
 	<< "</trkpt>\n";
 }
 

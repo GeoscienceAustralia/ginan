@@ -92,17 +92,23 @@ bool inertial2Keplers(
 	//Compute the mean anomaly with help of Kepler’s Equation from the eccentric anomaly E and the eccentricity e
 	double M = E - e_ * sin(E);
 	
-// 	std::cout << std::endl << "n0 " << n0.transpose();
-// 	std::cout << "\te " << e.transpose();
-// 	std::cout << "\tn1 " << n1.transpose();
-// 	std::cout << "\tnu " << nu;
-// 	std::cout << "\tE " << E;
-// 	std::cout << "\tM " << M;
+	bool error = false;
+	if (isnan(nu))	{		std::cout << "nu is nan\n";		error = true;	}
+	if (isnan(e_))	{		std::cout << "e_ is nan\n";		error = true;	}
+	if (isnan(E))	{		std::cout << "E is nan\n";		error = true;	}
+	if (isnan(M))	{		std::cout << "M is nan\n";		error = true;	}	
 	
-	if (isnan(nu))	{		std::cout << "nu is nan\n";		return false;	}
-	if (isnan(e_))	{		std::cout << "e_ is nan\n";		return false;	}
-	if (isnan(E))	{		std::cout << "E is nan\n";		return false;	}
-	if (isnan(M))	{		std::cout << "M is nan\n";		return false;	}	
+	if (error)
+	{
+		std::cout << std::endl << "n0 " << n0.transpose();
+		std::cout << "\te " << e.transpose();
+		std::cout << "\tn1 " << n1.transpose();
+		std::cout << "\tnu " << nu;
+		std::cout << "\tE " << E;
+		std::cout << "\tM " << M;
+	
+		return false;
+	}
 	
 	keplers(KEPLER::LX)	= L_x;
 	keplers(KEPLER::LY)	= L_y;
@@ -309,7 +315,8 @@ VectorEci propagateEllipse(
 	double		dt, 
 	VectorEci&	rSat,
 	VectorEci&	vSat, 
-	VectorEcef&	ecef)
+	VectorEcef&	ecef,
+	VectorEcef* vSatEcef_ptr)
 {
 	ERPValues erpv = getErp(nav.erp, time);
 	
@@ -356,12 +363,24 @@ VectorEci propagateEllipse(
 	
 	keplers0[KEPLER::M] += 2 * PI * dt / T;
 	
-	VectorEci newPos = keplers2Inertial(trace, keplers0);
+	VectorEci newPos1 = keplers2Inertial(trace, keplers0);
+	
+	double dtVel = 1e-4;
+	
+	keplers0[KEPLER::M] += 2 * PI * dtVel / T;
+	
+	VectorEci velEci;
+	if (vSatEcef_ptr)
+	{
+		VectorEci newPos2 = keplers2Inertial(trace, keplers0);
+		
+		velEci = ((Vector3d) newPos2 - newPos1) / dtVel;
+	}
 	
 // 	std::cout << "\nrSatInertial:       " << 		newPos.transpose();
 	
-	ecef = frameSwapper(newPos);
+	ecef = frameSwapper(newPos1, &velEci, vSatEcef_ptr);
 	
-	return newPos;
+	return newPos1;
 }
 

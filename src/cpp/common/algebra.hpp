@@ -249,8 +249,8 @@ struct KalmanModel;
 struct KFMeasEntry;
 
 InitialState initialStateFromConfig(
-	KalmanModel&	kalmanModel,
-	int				index = 0);
+	const KalmanModel&	kalmanModel,
+	int					index = 0);
 
 typedef std::ostream		Trace;
 
@@ -286,6 +286,7 @@ struct KFState_
 	GTime		time = {};
 	VectorXd	x;										///< State
 	MatrixXd	P;										///< State Covariance
+	MatrixXd	Pp;										///< State Covariance update
 	VectorXd	dx;										///< Last filter update
 
 	map<KFKey, short int>								kfIndexMap;			///< Map from key to indexes of parameters in the state vector
@@ -308,6 +309,7 @@ struct KFState_
 	double		chi						= 0;
 	int			dof						= 0;
 
+	bool		assume_linearity		= false;
 	bool		sigma_check				= true;
 	bool		w_test					= false;
 	bool		chi_square_test			= false;
@@ -410,7 +412,7 @@ struct KFState : KFState_
 
 	bool	addKFState(
 		const	KFKey			kfKey,
-		const	InitialState	initialState = {});
+		const	InitialState&	initialState = {});
 	
 	void	setExponentialNoise(
 		const	KFKey			kfKey,
@@ -421,20 +423,20 @@ struct KFState : KFState_
 		const	KFKey			dotElement,
 		const	KFKey			dotDotElement,
 		const	double			value,
-		const	InitialState	initialState = {});
+		const	InitialState&	initialState = {});
 	
 	void	setKFTrans(
 		const	KFKey			dest,
 		const	KFKey			source,
 		const	double			value,
-		const	InitialState	initialState = {});
+		const	InitialState&	initialState = {});
 
 	void	setKFTransRate(
 		const	KFKey			integral,
 		const	KFKey			rate,
 		const	double			value,
-		const	InitialState	initialRateState		= {},
-		const	InitialState	initialIntegralState	= {});
+		const	InitialState&	initialRateState		= {},
+		const	InitialState&	initialIntegralState	= {});
 
 	void	addNoiseElement(
 		const	KFKey			obsKey,
@@ -506,7 +508,7 @@ struct KFState : KFState_
 		int			begH,
 		int			numH);
 
-	int	kFilter(
+	bool kFilter(
 		Trace&			trace,	
 		KFMeas&			kfMeas,	
 		VectorXd&		xp,   	
@@ -586,6 +588,10 @@ struct KFState : KFState_
 		KFState&			kfState)					
 	const;
 
+	KFState getSubState(
+		vector<KF>)					
+	const;
+
 	void setExponentialNoise(
 		const	KFKey			kfKey,
 		const	Exponential		exponential)
@@ -613,7 +619,7 @@ struct KFState : KFState_
 	
 	bool 	addKFState(
 		const	KFKey			kfKey,
-		const	InitialState	initialState = {})	
+		const	InitialState&	initialState = {})	
 	const
 	{
 		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	return	kfState.addKFState		(kfKey, initialState);	
@@ -623,7 +629,7 @@ struct KFState : KFState_
 		const	KFKey			dest,	
 		const	KFKey			source,
 		const	double			value,
-		const	InitialState	initialState = {})	
+		const	InitialState&	initialState = {})	
 	const
 	{	
 		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setKFTrans		(dest, source, value, initialState);
@@ -633,8 +639,8 @@ struct KFState : KFState_
 		const	KFKey			integral,
 		const	KFKey			rate,
 		const	double			value,
-		const	InitialState	initialRateState		= {},
-		const	InitialState	initialIntegralState	= {})	
+		const	InitialState&	initialRateState		= {},
+		const	InitialState&	initialIntegralState	= {})	
 	const
 	{		
 		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	kfState.setKFTransRate	(integral, rate, value, initialRateState, initialIntegralState);
@@ -658,6 +664,7 @@ struct KFMeasEntry
 	vector<tuple<E_Component, double, string, double>> componentList;
 
 	map<KFKey,	double>		designEntryMap;
+	map<KFKey,	double>		usedValueMap;
 	map<KFKey,	double>		noiseEntryMap;
 	map<string,	void*>		metaDataMap;
 
@@ -707,7 +714,7 @@ struct KFMeasEntry
 	void addDsgnEntry(
 		const	KFKey					kfKey,						///< Key to determine which state parameter is affected
 		const	double					value,						///< Design matrix entry value
-		const	InitialState			initialState	= {})		///< Initial conditions for new states
+		const	InitialState&			initialState	= {})		///< Initial conditions for new states
 	{
 		if (value == 0)
 		{
@@ -724,6 +731,7 @@ struct KFMeasEntry
 		if (kfState_ptr)		{	kfState_ptr		->addKFState(kfKey, initialState);		}
 		if (constKfState_ptr)	{	constKfState_ptr->addKFState(kfKey, initialState);		}
 
+		usedValueMap[kfKey] = initialState.x;
 		designEntryMap[kfKey] += value;
 	}
 

@@ -4,7 +4,10 @@
 inputs:
 
     root_directory: products/
-    snx_files:  [ tables/igs_satellite_metadata_2203_plus.snx ]
+    snx_files:  [ tables/igs_satellite_metadata_2203_plus.snx,
+                  tables/sat_yaw_bias_rate.snx,
+                  tables/qzss_yaw_modes.snx,
+                  tables/bds_yaw_modes.snx                      ]
     atx_files:  [ M20.ATX                           ]  
     blq_files:  [ OLOAD_GO.BLQ                      ]  
     egm_files:  [ tables/EGM2008.gfc                ]  

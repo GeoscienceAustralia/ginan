@@ -34,9 +34,9 @@ Geph mongoReadGloEphemeris(
 	SatSys			Sat);
 	
 SSRAtm mongoReadIGSIonosphere(
-	GTime	time,
-	SSRMeta	ssrMeta,
-	int		masterIod);
+			GTime		time,
+	const	SSRMeta&	ssrMeta,
+			int			masterIod);
 
 map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 	GTime	time	= GTime::noTime(),
@@ -48,3 +48,14 @@ map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
 	GTime	time	= GTime::noTime(),
 	string	str		= "",
 	bool	remote	= false);
+
+class KF;
+struct KFState;
+
+void mongoReadFilter(
+	KFState&				kfState,
+	GTime					time	= GTime::noTime(),
+	const vector<KF>&		types	= {},
+	const string&			Sat		= "",
+	const string&			str		= "",
+	bool					remote	= true);

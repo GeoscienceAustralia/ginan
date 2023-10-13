@@ -309,9 +309,9 @@ void writeIONStec(
 				rec.aprioriPos[0],
 				rec.aprioriPos[1], 
 				rec.aprioriPos[2],
-				obs.rSat[0], 
-				obs.rSat[1], 
-				obs.rSat[2],
+				obs.rSatCom[0], 
+				obs.rSatCom[1], 
+				obs.rSatCom[2],
 				obs.stecCodeCombo);
 		
 			continue;

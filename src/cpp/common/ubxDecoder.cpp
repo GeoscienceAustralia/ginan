@@ -2,6 +2,7 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "observations.hpp"
 #include "navigation.hpp"
 #include "ubxDecoder.hpp"
 #include "icdDecoder.hpp"
@@ -35,13 +36,24 @@ map<E_Sys, map<int, E_ObsCode>>	ubxSysObsCodeMap =
 	}
 };
 
+map<string, map<GTime, Vector3d,	std::greater<GTime>>>	UbxDecoder::gyroDataMaps;
+map<string, map<GTime, Vector3d,	std::greater<GTime>>>	UbxDecoder::acclDataMaps;
+map<string, map<GTime, double,		std::greater<GTime>>>	UbxDecoder::tempDataMaps;
+
 void UbxDecoder::decodeRAWX(
 	vector<unsigned char>& payload)
 {
+// 	std::cout << "Recieved RAWX message" << std::endl;
+	
 	double				rcvTow	= *((double*)				&payload[0]);
 	short unsigned	int	week	= *((short unsigned	int*)	&payload[8]);
-	short			int	leapS	= *((short			int*)	&payload[10]);
-					int	numMeas = 							 payload[11];
+	char				leapS	= *((char*)					&payload[10]);
+	unsigned char		numMeas = 							 payload[11];
+	
+	if (payload.size() != 16 + 32 * numMeas)
+	{
+		return;
+	}
 	
 // 	std::cout << std::endl << "Recieved RAWX message has " << numMeas << " measurements" << std::endl;
 	
@@ -79,7 +91,7 @@ void UbxDecoder::decodeRAWX(
 		obs.Sat		= Sat;
 		obs.time	= gpst2time(week, rcvTow);
 		
-// 		printf("meas %s %s %s %14.3lf %14.3lf\n", obs.time.to_string(4).c_str(), Sat.id().c_str(), obsCode._to_string(), pr, cp);
+		printf("meas %s %s %s %14.3lf %14.3lf\n", obs.time.to_string(4).c_str(), Sat.id().c_str(), obsCode._to_string(), pr, cp);
 		auto ft = code2Freq[sys][obsCode];
 		obs.SigsLists[ft].push_back(sig);
 	}
@@ -92,6 +104,9 @@ void UbxDecoder::decodeRAWX(
 	}
 	
 	obsListList.push_back(obsList);
+	
+	lastTimeTag	= 0;
+	lastTime	= gpst2time(week, rcvTow);
 }
 
 
@@ -104,7 +119,15 @@ void UbxDecoder::decodeMEAS(
 	
 	int numMeas = flags >> 11;
 	
-	std::cout << std::endl << "Recieved MEAS message has " << numMeas << " measurements" << std::endl;
+	//adjust time tags
+	if (lastTimeTag == 0)
+	{
+		lastTimeTag = timeTag;
+	}
+	
+	double timeOffset = ((signed int)(timeTag - lastTimeTag)) * 1e-3;
+	
+// 	std::cout << std::endl << "Recieved MEAS message has " << numMeas << " measurements at " << timeOffset << std::endl;
 	
 	for (int i = 0; i < numMeas; i++)
 	{
@@ -122,13 +145,25 @@ void UbxDecoder::decodeMEAS(
 		
 		switch (measDataType)
 		{
-			default:	std::cout << std::endl << measDataType._to_string();	break;
+			default:	
+			{
+// 				std::cout << std::endl << measDataType._to_string();	
+				break;	
+			}
 			case E_MEASDataType::GYRO_X:
 			case E_MEASDataType::GYRO_Y:
 			case E_MEASDataType::GYRO_Z:
 			{
 				double gyro = dataField * P2_12;
-				std::cout << std::endl << measDataType._to_string() << " : " << gyro;
+// 				std::cout << std::endl << measDataType._to_string() << " : " << gyro;
+				
+				int index = 0;
+				if		(measDataType == +E_MEASDataType::GYRO_X)	index = 0;		//ubx indices are dumb and not ordered
+				else if	(measDataType == +E_MEASDataType::GYRO_Y)	index = 1;
+				else if (measDataType == +E_MEASDataType::GYRO_Z)	index = 2;
+				
+				gyroDataMaps[recId][lastTime + timeOffset][index] = gyro;
+				
 				break;
 			}
 			case E_MEASDataType::ACCL_X:
@@ -136,7 +171,24 @@ void UbxDecoder::decodeMEAS(
 			case E_MEASDataType::ACCL_Z:
 			{
 				double accl = dataField * P2_10;
-				std::cout << std::endl << measDataType._to_string() << " : " << accl;
+// 				std::cout << std::endl << measDataType._to_string() << " : " << accl;
+				
+				int index = 0;
+				if		(measDataType == +E_MEASDataType::ACCL_X)	index = 0;
+				else if	(measDataType == +E_MEASDataType::ACCL_Y)	index = 1;
+				else if (measDataType == +E_MEASDataType::ACCL_Z)	index = 2;
+				
+				acclDataMaps[recId][lastTime + timeOffset][index] = accl;
+				
+				break;
+			}
+			case E_MEASDataType::GYRO_TEMP:
+			{
+				double temp = dataField * 1e-2;
+// 				std::cout << std::endl << measDataType._to_string() << " : " << temp;
+				
+				tempDataMaps[recId][lastTime + timeOffset] = temp;
+				
 				break;
 			}
 		}
@@ -187,10 +239,10 @@ void UbxDecoder::decodeEphFrames(
 	
 	if (pass)
 	{
-		std::cout << std::endl << "GPS subframe passed";
+		std::cout << std::endl << "*";
 		eph.Sat		= Sat;
 		eph.type	= E_NavMsgType::LNAV;
-// 		nav.ephMap[eph.Sat][eph.type][eph.toe] = eph;
+		nav.ephMap[eph.Sat][eph.type][eph.toe] = eph;
 		
 		
 		bsoncxx::builder::basic::document doc = {};
@@ -198,7 +250,7 @@ void UbxDecoder::decodeEphFrames(
 		traceBrdcEphBody(doc, eph);
 
 		std::cout << bsoncxx::to_json(doc) << std::endl;
-		
+// 		
 // 		if (acsConfig.output_decoded_rtcm_json)
 // 			traceBrdcEph(RtcmMessageType::GPS_EPHEMERIS, eph);
 // 		
@@ -211,6 +263,9 @@ void UbxDecoder::decodeSFRBX(
 	vector<unsigned char>& payload)
 {
 // 	std::cout << "Recieved SFRBX message" << std::endl;
+	if (payload.size() < 5)
+		return;
+	
 	int gnssId		= payload[0];
 	int satId		= payload[1];
 	int frameLen	= payload[4];

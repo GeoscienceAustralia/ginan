@@ -21,10 +21,12 @@ using std::map;
 #include "instrument.hpp"
 #include "mongoWrite.hpp"
 #include "navigation.hpp"
+#include "mongoRead.hpp"
 #include "orbitProp.hpp"
 #include "ionoModel.hpp"
 #include "acsConfig.hpp"
 #include "metaData.hpp"
+#include "posProp.hpp"
 #include "station.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
@@ -427,8 +429,10 @@ void updateAvgClocks(
 	GTime			time,			///< Time
 	KFState&		kfState)		///< Kalman filter object containing the network state parameters
 {
-	double sum = 0;
-	double num = 0;
+	if (acsConfig.minimise_sat_clock_offsets == false)
+	{
+		return;
+	}
 	
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
@@ -447,36 +451,14 @@ void updateAvgClocks(
 			continue;
 		}
 		
-		double brdcClk = satPos.satClk;
+		auto& satOpts = acsConfig.getSatOpts(key.Sat);
 		
-		double stateClk = kfState.x(index);
-	
-		double delta = brdcClk - stateClk;
+		InitialState init = initialStateFromConfig(satOpts.clk);
 		
-		sum += delta;
-		num++;
-	}
-	
-	if (num == 0)
-	{
-		return;
-	}
-	
-	double avg = sum / num;
-	
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if	( key.type != KF::SAT_CLOCK
-			&&key.type != KF::REC_CLOCK)
-		{
-			continue;
-		}
+		init.mu = satPos.satClk * CLIGHT;
 		
-		trace << std::endl
-		<< "Adjusting " << key.Sat.id() << key.str
-		<< " clock by " << avg;
-		
-		kfState.setKFTrans(key, KFState::oneKey, avg);	//todo aaron, this will interact poorly with receiver one?
+		//update the mu value
+		kfState.addKFState(key, init);
 	}
 }
 
@@ -592,10 +574,15 @@ KFState propagateUncertainty(
 			kfMeasEntryList.push_back(kfMeasEntry);
 		}
 	}
-	
-	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
 
 	KFState propagatedState;
+	
+	if (kfMeasEntryList.empty())
+	{
+		return propagatedState;
+	}
+	
+	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
 	
 	propagatedState.time	= kfState.time;
 	propagatedState.P		= combinedMeas.H * kfState.P * combinedMeas.H.transpose();
@@ -637,75 +624,71 @@ void chunkFilter(
 	map<string, int>	endX;
 	
 	//get all meas begs/ends for this type
-	for (int i = 0; i < combinedMeas.obsKeys.size(); i++)
+	for (int h = 0; h < combinedMeas.H.rows(); h++)
 	{
-		auto& obsKey = combinedMeas.obsKeys[i];
+		auto& obsKey = combinedMeas.obsKeys[h];
 		
 		string chunkId = obsKey.str;
 		
-		if (begH.find(chunkId) == begH.end())			{	begH[chunkId] = i;		}
-														{	endH[chunkId] = i;		}
-	}
-	
-	//get all state begs/ends for this type
-	for (auto& [kfKey, index] : kfState.kfIndexMap)
-	{
-		string chunkId = kfKey.str;
-		
-		if (begX.find(chunkId) == begX.end())			{	begX[chunkId] = index;	}
-														{	endX[chunkId] = index;	}
-	}
-	
-	tuple<map<string, int>&, map<string, int>&> measTuple	= {begH, endH};
-	tuple<map<string, int>&, map<string, int>&> stateTuple	= {begX, endX};
-	
-	//check for overlapping chunks for both matrices
-	for (auto& duo : {measTuple, stateTuple})
-	{
-		auto& [begMap, endMap] = duo;
-		
-		for (auto& [str, beg] : begMap)
+		if (begH.find(chunkId) == begH.end())			{	begH[chunkId] = h;		}
+														{	endH[chunkId] = h;		}
+														
+		for (int x = 0; x < kfState.x.rows(); x++)
+		if (combinedMeas.H(h, x))
 		{
-			auto& end = endMap[str];
-			
-			for (auto& [str2, beg2] : begMap)
-			{
-				if (str == str2)
-				{
-					continue;
-				}
-				
-				auto& end2 = endMap[str2];
-				
-				if	( (beg2 > beg && beg2 < end)		// 2 starts in the middle of beg,end
-					||(end2 > beg && end2 < end))		// 2 ends   in the middle of beg,end
-				{
-					BOOST_LOG_TRIVIAL(warning)
-					<< "Warning: Cannot chunk filter with current configuration - disabling.";
-					
-					acsConfig.pppOpts.station_chunking		= false;
-					return;
-				}
-			}
+			if (begX.find(chunkId) == begX.end())		{	begX[chunkId] = x;		}
+			if (x > endX[chunkId]) 						{	endX[chunkId] = x;		}
 		}
 	}
 	
+	bool chunkX = true;
+	
+	//check for overlapping x entries
+	for (auto& [str1, beg1]	: begX)
+	for (auto& [str2, beg2]	: begX)
+	{
+		auto& end1 = endX[str1];
+	
+		if (str1 == str2)
+		{
+			continue;
+		}
+		
+		auto& end2 = endX[str2];
+		
+		if	( (beg2 > beg1 && beg2 < end1)		// 2 starts in the middle of beg,end
+			||(end2 > beg1 && end2 < end1))		// 2 ends   in the middle of beg,end
+		{
+			chunkX = false;
+		}
+	}
 	
 	for (auto& [str, dummy] : begH)
 	{
 		FilterChunk filterChunk;
 		
-		auto& rec = stationMap[str];
+		if (str.empty() == false)
+		{
+			auto& rec = stationMap[str];
 		
-		traceList[str] = getTraceFile(rec);
+			traceList[str] = getTraceFile(rec);
 		
-		filterChunk.trace_ptr	= &traceList[str];
+			filterChunk.trace_ptr = &traceList[str];
+		}
+		else
+		{
+			filterChunk.trace_ptr = &trace;
+		}
 		
-		filterChunk.begH = begH[str];			filterChunk.numH = endH[str] - begH[str] + 1;
-		filterChunk.begX = begX[str];			filterChunk.numX = endX[str] - begX[str] + 1;
+// 		std::cout << std::endl << "Chunk : " << str << " " << begH[str] << " " << endH[str] << " " << begX[str] << " " << endX[str];
+							filterChunk.begH = begH[str];			filterChunk.numH = endH[str] - begH[str] + 1;
+		if (chunkX)		{	filterChunk.begX = begX[str];			filterChunk.numX = endX[str] - begX[str] + 1;		}
+		else			{	filterChunk.begX = 0;					filterChunk.numX = kfState.x.rows();				}
 		
 		filterChunkList.push_back(filterChunk);
 	}
+	
+	std::sort(filterChunkList.begin(), filterChunkList.end(), [](FilterChunk& a, FilterChunk& b) {return a.begH < b.begH;});
 	
 	if (acsConfig.pppOpts.chunk_size)
 	{
@@ -714,10 +697,10 @@ void chunkFilter(
 		vector<FilterChunk> newFilterChunkList;
 		FilterChunk	bigFilterChunk;
 		
-		int chunks		= filterChunkList.size() / acsConfig.pppOpts.chunk_size	+ 0.5;
+		int chunks		= (double) filterChunkList.size() / acsConfig.pppOpts.chunk_size	+ 0.5;
 		int chunkTarget = -1;
 		if (chunks)			
-			chunkTarget = filterChunkList.size() / chunks						+ 0.5;
+			chunkTarget = (double) filterChunkList.size() / chunks							+ 0.5;
 		
 		int count = 0;
 		for (auto& filterChunk : filterChunkList)
@@ -727,11 +710,15 @@ void chunkFilter(
 				bigFilterChunk = filterChunk;
 				bigFilterChunk.trace_ptr = &trace;
 			}
-			else
-			{
-				bigFilterChunk.numX += filterChunk.numX;
-				bigFilterChunk.numH += filterChunk.numH;
-			}
+			
+			int chunkEndX = filterChunk.begX + filterChunk.numX - 1;
+			int chunkEndH = filterChunk.begH + filterChunk.numH - 1;
+			
+			if (bigFilterChunk.begX							> filterChunk.begX)						{	bigFilterChunk.begX = filterChunk.begX;	}
+			if (bigFilterChunk.begH							> filterChunk.begH)						{	bigFilterChunk.begH = filterChunk.begH;	}
+			
+			if (bigFilterChunk.begX + bigFilterChunk.numX	< filterChunk.begX + filterChunk.numX)	{	bigFilterChunk.numX = chunkEndX - bigFilterChunk.begX + 1;	}
+			if (bigFilterChunk.begH + bigFilterChunk.numH	< filterChunk.begH + filterChunk.numH)	{	bigFilterChunk.numH = chunkEndH - bigFilterChunk.begH + 1;	}
 			
 			count++;
 			
@@ -751,6 +738,32 @@ void chunkFilter(
 	}
 }
 
+void updatePseudoPulses(
+	Trace&			trace,
+	KFState&		kfState)
+{
+	if (acsConfig.pseudoPulses.enable == false)
+	{
+		return;
+	}
+
+	int epochsPerDay = 86400 / acsConfig.epoch_interval;
+		
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type != KF::ORBIT)
+		{
+			continue;
+		}
+	
+		if	((epoch - 1) % (epochsPerDay / acsConfig.pseudoPulses.num_per_day) == 0)
+		{
+			if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(acsConfig.pseudoPulses.pos_proc_noise)});
+			else				kfState.setExponentialNoise(key, {SQR(acsConfig.pseudoPulses.vel_proc_noise)});
+		}	
+	}
+}
+
 void removeBadAmbiguities(
 	Trace&			trace,
 	KFState&		kfState,
@@ -766,9 +779,6 @@ void incrementOutageCount(
 void checkOrbits(
 	Trace&			trace,
 	KFState&		kfState);
-
-
-
 
 void PPP(
 	Trace&			trace,			///< Trace to output to
@@ -786,16 +796,16 @@ void PPP(
 		incrementOutageCount(stationMap);
 		
 		updateRecClocks(trace, stationMap,	kfState);
-// 		updateAvgClocks(trace, tsync,		kfState);
+		updateAvgClocks(trace, tsync,		kfState);
 		
-		//integrate orbits
-		predictOrbits(trace, kfState, tsync);
+		updatePseudoPulses(trace, kfState);
 	}
 	
 	//add process noise and dynamics to existing states as a prediction of current state
+	if (kfState.assume_linearity == false)
 	{
 		Instrument instrument("PPP stateTransition1");
-		
+	
 		kfState.stateTransition(trace, tsync);
 	
 		kfState.outputStates(trace, "/PREDICTED");
@@ -815,7 +825,10 @@ void PPP(
 // 		R_ptr = &R;
 	}
 	
-	map<SatSys,int> activeSatMap;
+	KFState remoteState;
+	
+	mongoReadFilter(remoteState, GTime::noTime(), {});
+	
 	{	
 		Instrument instrument("PPP obsOMC");
 	
@@ -841,7 +854,7 @@ void PPP(
 			auto& kfMeasEntryList = stationKFEntryListMap[rec.id];
 			
 			orbitPseudoObs	(trace,		rec, kfState, kfMeasEntryList);
-			stationPPP		(std::cout,	rec, kfState, kfMeasEntryList);
+			stationPPP		(std::cout,	rec, kfState, kfMeasEntryList,	remoteState);
 			stationSlr		(std::cout, rec, kfState, kfMeasEntryList);
 			stationPseudoObs(std::cout,	rec, kfState, kfMeasEntryList, stationMap, R_ptr);
 		}
@@ -860,10 +873,10 @@ void PPP(
 	ionoPseudoObs(trace, stationMap, kfState, kfMeasEntryList);
 	
 	//apply pseudoobs to states available from before
-	biasPseudoObs(trace, kfState, kfMeasEntryList);
-	ambgPseudoObs(trace, kfState, kfMeasEntryList);
-
-	initPseudoObs(trace, kfState, kfMeasEntryList);
+	biasPseudoObs			(trace, kfState, kfMeasEntryList);
+	ambgPseudoObs			(trace, kfState, kfMeasEntryList);
+	initPseudoObs			(trace, kfState, kfMeasEntryList);
+	satClockPivotPseudoObs	(trace, kfState, kfMeasEntryList);
 	
 	//use state transition to initialise new state elements
 	{
@@ -874,7 +887,7 @@ void PPP(
 // 		kfState.outputStates(trace, "/INITIALISED");
 	}
 
-	
+		 
 	KFMeas combinedMeas;
 	{
 		combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, tsync, R_ptr);
@@ -905,6 +918,7 @@ void PPP(
 	
 	chunkFilter(trace, kfState, combinedMeas, stationMap, filterChunkList, traceList);
 	
+	
 	BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << std::endl;
 
 	kfState.filterKalman(trace, combinedMeas, true, &filterChunkList);
@@ -924,6 +938,8 @@ void PPP(
 	}
 	
 	kfState.outputStates(trace, "/PPP");
+	
+// 	propagateUncertainty(trace, kfState).outputStates(trace, "/PIVOT");
 }
 
 

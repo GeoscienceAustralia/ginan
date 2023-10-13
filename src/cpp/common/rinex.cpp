@@ -3,11 +3,9 @@
 
 #include <boost/log/trivial.hpp>
 
-
 #include <string>
 
 using std::string;
-
 
 #include "rinexNavWrite.hpp"
 #include "navigation.hpp"
@@ -20,7 +18,6 @@ using std::string;
 #include "trace.hpp"
 #include "enum.h"
 
-#define MAXRNXLEN   (16*MAXOBSTYPE+4)   ///< max rinex record length
 #define MAXPOSHEAD  1024            	///< max head line position
 #define MINFREQ_GLO -7              	///< min frequency number glonass
 #define MAXFREQ_GLO 13              	///< max frequency number glonass

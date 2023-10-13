@@ -14,7 +14,7 @@ Trace
     <select class="selectpicker form-control" name="type" id="type" data-container="body" data-live-search="true"
       title="Select type">
       {% for key_ in extra['plotType'] %}
-      {% if selection is defined and selection['plot']|length and key_ in selection['plot']%}
+      {% if selection is defined and selection['type']|length and key_ in selection['type']%}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
@@ -22,16 +22,36 @@ Trace
       {% endfor %}
     </select>
   </div>
+  <div class="col-lg-1">
+    <label for="filter" class="form-label">Filter:</label>
+    <br>
+    <select class="selectpicker form-control" name="filter" id="filter" data-container="body" data-live-search="true"
+      title="Select Filter">
+      {% for key_ in extra['filterType'] %}
+      {% if selection is defined and selection['filter']|length and key_ in selection['filter']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-lg-1">
+    <label for="fCoeff">Coeff:</label>
+    <input type="text" class="form-control" id="fCoeff" name="fCoeff" placeholder="0.1" 
+    {% if selection is defined and  selection['fCoeff'] %}value="{{ selection['fCoeff']|e }}"{% endif %}  
+    >
+    </div>
   <div class="col-lg-2">
     <label for="match">Match:</label>
     <input type="text" class="form-control" id="match" name="match" placeholder="match" 
-    {% if selection is defined and  selection['match'] %}value="{{ selection['match'] }}"{% endif %}  
+    {% if selection is defined and  selection['match'] %}value="{{ selection['match']|e }}"{% endif %}  
     >
     </div>
   <div class="col-lg-2">
     <label for="group">Group:</label>
     <input type="text" class="form-control" id="group" name="group" placeholder="group" 
-    {% if selection is defined and  selection['group'] %}value="{{ selection['group'] }}"{% endif %}  
+    {% if selection is defined and  selection['group'] %}value="{{ selection['group']|e }}"{% endif %}  
     >
     </div>
   <div class="col-lg-2">

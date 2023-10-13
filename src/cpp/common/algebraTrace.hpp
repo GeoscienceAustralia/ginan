@@ -6,8 +6,11 @@
 #include <utility>
 #include <string>
 #include <vector>
+#include <memory>
 #include <map>
 
+using std::make_shared;
+using std::shared_ptr;
 using std::vector;
 using std::string;
 using std::pair;
@@ -63,16 +66,32 @@ using boost::serialization::serialize;
 using boost::archive::binary_oarchive;
 using boost::archive::binary_iarchive;
 
+
+void spitFilterToFileQueued(
+	shared_ptr<void>&	object_ptr,	
+	E_SerialObject		type,			
+	string				filename);	
+	
 /** Output filter state to a file for later reading.
  * Uses a binary archive which requires all of the relevant class members to have serialization functions written.
  * Output format is TypeId, ObjectData, NumBytes - this allows seeking backward from the end of the file to the beginning of each object.
 */
 template<class TYPE>
 void spitFilterToFile(
-	TYPE&			object,		///< Object to output
-	E_SerialObject	type,		///< Type of object
-	string			filename)	///< Path to file to output to
+	TYPE&			object,			///< Object to output
+	E_SerialObject	type,			///< Type of object
+	string			filename,		///< Path to file to output to
+	bool			queue = false)	///< Optionally queue outputs in a separate thread
 {
+	if (queue)
+	{
+		shared_ptr<void> copy_ptr = make_shared<TYPE>(object);
+		
+		spitFilterToFileQueued(copy_ptr, type, filename);
+	
+		return;
+	}
+	
 	std::fstream fileStream(filename, std::ifstream::binary | std::ifstream::out | std::ifstream::app);
 
 	if (!fileStream)
@@ -153,3 +172,5 @@ E_SerialObject getFilterTypeFromFile(
 void tryPrepareFilterPointers(
 	KFState&	kfState, 
 	StationMap*	stationMap_ptr);
+
+extern bool spitQueueRunning;

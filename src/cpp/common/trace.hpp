@@ -107,15 +107,16 @@ struct Block
 
 struct ArbitraryKVP
 {
-	string	name;
-	string	str;
-	double	num;
-	int		integer;
-	int		type = 0;
+	string		name;
+	string		str;
+	double		num;
+	long int	integer;
+	int			type = 0;
 	
 	ArbitraryKVP(string name, string	str)		: name {name}, str		{str		}	{	type = 0;	}
 	ArbitraryKVP(string name, double	num)		: name {name}, num		{num		}	{	type = 1;	}
 	ArbitraryKVP(string name, int		integer)	: name {name}, integer	{integer	}	{	type = 2;	}
+	ArbitraryKVP(string name, long int	integer)	: name {name}, integer	{integer	}	{	type = 2;	}
 	
 	string value()
 	{

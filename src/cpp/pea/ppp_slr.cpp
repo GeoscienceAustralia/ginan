@@ -85,8 +85,8 @@ inline void tideDelta(COMMON_PPP_ARGS)
 inline void slrRelativity(COMMON_PPP_ARGS)
 {
 	// secondary relativity effect (Shapiro effect)
-	double ln		= log((rSat.norm() + rRec.norm() + rRecSat)
-					/ (obs.rSat.norm() + rRec.norm() - rRecSat));
+	double ln		= log(	(rSat.norm() + rRec.norm() + rRecSat)
+					/ 		(rSat.norm() + rRec.norm() - rRecSat));
 	double dtRel2 	= 2 * MU * ln / CLIGHT / CLIGHT / CLIGHT;
 						
 	measEntry.componentList.push_back({E_Component::RELATIVITY2, dtRel2	* CLIGHT * 2, "+ rel2", 0});
@@ -202,47 +202,6 @@ inline void recTimeBias(COMMON_PPP_ARGS)
 	measEntry.componentList.push_back({E_Component::REC_TIME_BIAS, recTimeBias, "+ recTimeBias", recTimeBiasVar}); 
 }
 
-/** eops
- */
-inline void slrEops(COMMON_PPP_ARGS)
-{
-	Matrix3d partialMatrix	= stationEopPartials(rec.aprioriPos);
-	Vector3d eopPartials	= partialMatrix * satStat.e;
-
-	ERPValues erpv[2];
-	erpv[0] = getErp(nav.erp, time);
-	erpv[1] = getErp(nav.erp, time + 1);
-
-	vector<string> labels = {"_XP", "_YP", "_UT1"};
-
-	for (int i = 0; i < 3; i++)
-	{
-		InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop, i);
-		
-		double adjustment = 0;
-		
-		if (init.estimate)
-		{
-			KFKey kfKey;
-			kfKey.type	= KF::EOP;
-			kfKey.num	= i;
-			kfKey.str	= labels[i];
-
-			kfState.getKFValue(kfKey, adjustment);
-
-			init.x = *(&erpv[0].xp + i);
-			if (i < 2)		init.x *= R2MAS;
-			else			init.x *= S2MTS;
-			
-			measEntry.addDsgnEntry(kfKey,	eopPartials(i) * 2,				init);
-		}
-		
-		double computed = adjustment * eopPartials(i);
-		
-		measEntry.componentList.push_back({E_Component::EOP, computed * 2, "+ 2*eop", -1});
-	}
-}
-	
 
 	
 	
@@ -352,7 +311,7 @@ void stationSlr(
 		}
 		
 		//Calculate the basic range
-		geodist(obs.rSat, rec.aprioriPos, satStat.e);
+		geodist(obs.rSatCom, rec.aprioriPos, satStat.e);
 		Vector3d rRec = rec.aprioriPos;
 		{
 			for (int i = 0; i < 3; i++)
@@ -392,7 +351,7 @@ void stationSlr(
 		Vector3d rSat = Vector3d::Zero();
 		{
 			//initialise using ephemeris values if available
-			rSat					= obs.rSat;
+			rSat					= obs.rSatCom;
 			if (satOpts.pos.estimate[0])
 			{
 				VectorEci vSatInertial;
@@ -444,8 +403,8 @@ void stationSlr(
 						kfState.getKFValue(satVelKeys[i], vSatInertial[i]);
 						
 						init.x = vSatInertial[i];
-					
-						kfState.setKFTransRate(satPosKeys[i], satVelKeys[i],	1,	init);
+			
+						kfState.addKFState(satVelKeys[i], init);
 					}
 				}
 				
@@ -482,7 +441,7 @@ void stationSlr(
 		slrTroposphere		(COMMON_PPP_ARGS);
 		recRangeBias		(COMMON_PPP_ARGS);
 		recTimeBias			(COMMON_PPP_ARGS);
-		slrEops				(COMMON_PPP_ARGS);
+		//todo aaron replace eops
 
 		//Calculate residuals and form up the measurement
 		

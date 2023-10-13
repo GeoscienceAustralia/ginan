@@ -418,7 +418,6 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 
 			lastRegSsrEphMap[Sat] = ssrEph;
 
-			nav.satNavMap[Sat].transmittedSSR.ssrEph_map[ssrEph.t0] = ssrEph;
 			traceSsrEph(messCode, Sat, ssrEph);
 		}
 
@@ -445,7 +444,6 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 
 			lastRegSsrClkMap[Sat] = ssrClk;
 
-			nav.satNavMap[Sat].transmittedSSR.ssrClk_map[ssrClk.t0] = ssrClk;
 			traceSsrClk(messCode, Sat, ssrClk);
 		}
 
@@ -485,7 +483,6 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 
 			i = setbitsInc(buf, i, 22, ssrHRClk.hrclk	/ 0.1e-3);
 
-			nav.satNavMap[Sat].transmittedSSR.ssrHRClk_map[ssrHRClk.t0] = ssrHRClk;
 			traceSsrHRClk(messCode, Sat, ssrHRClk);
 		}
 	}
@@ -605,8 +602,6 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 			i = setbituInc(buf, i,  4, ssrPhaseCh.signalDisconCnt);
 			i = setbitsInc(buf, i, 20, bias);
 			
-			nav.satNavMap[Sat].transmittedSSR.ssrPhasBias_map[ssrPhasBias.t0] = ssrPhasBias;
-			
 			traceSsrPhasBias(messCode, Sat, obsCode, ssrPhasBias);  
 		}
 	} 
@@ -706,8 +701,6 @@ vector<uint8_t> RtcmEncoder::encodeSsrCode(
 
 			i = setbituInc(buf, i,  5, rtcmCode);
 			i = setbitsInc(buf, i, 14, bias);
-			
-			nav.satNavMap[Sat].transmittedSSR.ssrCodeBias_map[ssrCodeBias.t0] = ssrCodeBias;
 
 			traceSsrCodeBias(messCode, Sat, obsCode, ssrCodeBias);
 		}
@@ -785,8 +778,6 @@ vector<uint8_t> RtcmEncoder::encodeSsrUra(
 
 		i = setbituInc(buf, i, np, Sat.prn);
 		i = setbituInc(buf, i,  6, uraClassValue);
-		
-		nav.satNavMap[Sat].transmittedSSR.ssrUra_map[ssrUra.t0] = ssrUra;
 
 		traceSsrUra(messCode, Sat, ssrUra);
 	}

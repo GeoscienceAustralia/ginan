@@ -1,8 +1,13 @@
 
 // #pragma GCC optimize ("O0")
 
+#include <memory>
+#include <thread>
 #include <map>
 
+using std::this_thread::sleep_for;
+using std::make_shared;
+using std::shared_ptr;
 using std::map;
 
 #include <boost/log/trivial.hpp>
@@ -17,6 +22,7 @@ using std::map;
 #include "orbexWrite.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
+#include "orbitProp.hpp"
 #include "acsConfig.hpp"
 #include "testUtils.hpp"
 #include "constants.hpp"
@@ -60,6 +66,11 @@ void postRTSActions(
 	if (acsConfig.output_bias_sinex)
 	{
 		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], *stationMap_ptr);
+	}
+	
+	if (acsConfig.output_orbit_ics)
+	{
+		outputOrbitConfig(kfState, "_smoothed");
 	}
 
 	if	(   acsConfig.output_clocks
@@ -270,7 +281,7 @@ KFState rtsSmoothing(
 				
 				if (write)
 				{
-					spitFilterToFile(smoothedKF.metaDataMap,	E_SerialObject::METADATA, outputFile);
+					spitFilterToFile(smoothedKF.metaDataMap,	E_SerialObject::METADATA, outputFile, acsConfig.pppOpts.queue_rts_outputs);					
 				}
 				
 				break;
@@ -351,8 +362,8 @@ KFState rtsSmoothing(
 
 					if (write)
 					{
-						spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_SMOOTHED,	outputFile);
-						spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT,		outputFile);
+						spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_SMOOTHED,	outputFile, acsConfig.pppOpts.queue_rts_outputs);
+						spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT,		outputFile, acsConfig.pppOpts.queue_rts_outputs);
 					}
 
 					break;
@@ -482,8 +493,8 @@ KFState rtsSmoothing(
 
 				if (write)
 				{
-					spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_SMOOTHED,	outputFile);
-					spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT,		outputFile);
+					spitFilterToFile(smoothedKF,	E_SerialObject::FILTER_SMOOTHED,	outputFile, acsConfig.pppOpts.queue_rts_outputs);
+					spitFilterToFile(measurements,	E_SerialObject::MEASUREMENT,		outputFile, acsConfig.pppOpts.queue_rts_outputs);
 				}
 				else
 				{
@@ -527,6 +538,11 @@ KFState rtsSmoothing(
 	
 	if (write)
 	{
+		while (spitQueueRunning)
+		{
+			sleep_for(std::chrono::milliseconds(acsConfig.sleep_milliseconds));	
+		}
+		
 		RTS_Output(kfState, stationMap_ptr);
 	}
 

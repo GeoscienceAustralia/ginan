@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import click
-import json
 import yaml
 import pprint
 import collections
@@ -33,19 +32,23 @@ def compare_ginan_json(
     file0: str,
     file1: str):
 
-    with open(file0) as json_file:
-        data0 = yaml.safe_load(json_file)
-    with open(file1) as json_file:
-        data1 = yaml.safe_load(json_file)
+    try:
+        with open(file0) as json_file:
+            data0 = yaml.load(json_file, Loader=yaml.CLoader)
 
-    if not data0:
-        print("couldnt load " + file0 + " or it is empty")
-    else:
-        print("Loaded " + str(len(data0)) + " epochs from " + file0)
-    if not data1:
-        print("couldnt load " + file1 + " or it is empty")
-    else:
-        print("Loaded " + str(len(data1)) + " epochs from " + file1)
+            if not data0:
+                exit("Couldnt load " + file0 + " or it is empty")
+            else:
+                print("Loaded " + str(len(data0)) + " epochs from " + file0)
+        with open(file1) as json_file:
+            data1 = yaml.load(json_file, Loader=yaml.CLoader)
+
+            if not data1:
+                exit("Couldnt load " + file1 + " or it is empty")
+            else:
+                print("Loaded " + str(len(data1)) + " epochs from " + file1)
+    except:
+        exit("Couldnt load " + file0 + " or " + file1)
 
     print()
     
@@ -53,24 +56,47 @@ def compare_ginan_json(
     dict1 = collections.defaultdict(dict)
          
     for entry in data0:
-        dict0[entry["time"]][tuple(sorted(entry["id"].items()))] = entry["val"]
+        dict0[entry["Epoch"]][tuple(sorted(entry["id"].items()))] = entry["val"]
 
     for entry in data1:
-        dict1[entry["time"]][tuple(sorted(entry["id"].items()))] = entry["val"]
+        dict1[entry["Epoch"]][tuple(sorted(entry["id"].items()))] = entry["val"]
 
-    fail = False
-    for time in dict0:
-     for key in dict0[time]:
-      for k2 in dict0[time][key]:
-       v0 = dict0[time][key][k2]
-       v1 = dict1[time][key][k2]
+    fail = False    
+    for time, timeDict0  in dict0       .items():
+     try:   
+        timeDict1 = dict1[time]
+     except KeyError as k:
+                                                    fail = True
+                                                    print(time + ":    " 
+                                                        + " is not found. ")
+                                                    continue;
+     for key, keyDict0   in timeDict0   .items():
+      try:
+        keyDict1 = timeDict1[key]
+      except KeyError as k:
+                                                    fail = True
+                                                    print(time + ":    " 
+                                                        + bcolors.WARNING + convertTuple(key) + bcolors.ENDC 
+                                                        + " is not found. ")
+                                                    continue;
+      for k2, v0         in keyDict0    .items():
+       try:
+        v1 = keyDict1[k2]
+       except KeyError as k:
+                                                    fail = True
+                                                    print(time + ":    " 
+                                                        + bcolors.WARNING + convertTuple(key) + bcolors.ENDC 
+                                                        + " : " 
+                                                        + bcolors.WARNING + k2.ljust(15) + bcolors.ENDC
+                                                        + " is not found: " )
+                                                    continue;
        if v0 != v1:
             fail = True
             print(time + ":    " 
-                + bcolors.WARNING + k2.ljust(15) + bcolors.ENDC 
-                + " is different for key: " 
                 + bcolors.WARNING + convertTuple(key) + bcolors.ENDC 
                 + " : " 
+                + bcolors.WARNING + k2.ljust(15) + bcolors.ENDC 
+                + " is different: " 
                 + bcolors.OKBLUE + str(v0).ljust(20) + bcolors.ENDC 
                 + " -> " 
                 + bcolors.OKCYAN + str(v1).ljust(20) + bcolors.ENDC, end="")

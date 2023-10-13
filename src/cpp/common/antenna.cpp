@@ -198,7 +198,7 @@ Vector3d antPco(
 	auto it0 = nav.pcoMap.find(id);
 	if (it0 == nav.pcoMap.end())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for '" << id << "'";
 		
 		return Vector3d::Zero();
 	}
@@ -302,6 +302,7 @@ double antPcv(
 	auto it0 = nav.pcvMap.find(id);
 	if (it0 == nav.pcvMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for '" << id << "'";
 		return 0;
 	}
 	
@@ -310,6 +311,7 @@ double antPcv(
 	auto it1 = pcvSysFreqMap.find(sys);
 	if (it1 == pcvSysFreqMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for " << id << " for " << sys;
 		return 0;
 	}
 	
@@ -318,6 +320,7 @@ double antPcv(
 	auto it2 = pcvFreqMap.find(ft);
 	if (it2 == pcvFreqMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for " << id << " for " << sys << " L" << ft;
 		return 0;
 	}
 	
@@ -326,6 +329,7 @@ double antPcv(
 	auto it3 = pcvTimeMap.lower_bound(time);
 	if (it3 == pcvTimeMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for " << id << " for " << sys << " L" << ft << " at " << time;
 		return 0;
 	}
 	
@@ -354,7 +358,7 @@ double antPcv(
 	
 	/* select zenith angle range */
 	int zen_n;
-	for (zen_n = 1; zen_n < nz; zen_n++)
+	for (zen_n = 1; zen_n < nz - 1; zen_n++)
 	{
 		if ((zen1 + dzen * zen_n) >= zen)
 		{
@@ -389,6 +393,10 @@ double antPcv(
 			{
 				break;
 			}
+		}
+		if (az_n == naz)
+		{
+			az_n = 0;
 		}
 
 		double xa1 = dazi * (az_n -1);

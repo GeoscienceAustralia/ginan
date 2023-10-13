@@ -84,19 +84,20 @@ BETTER_ENUM(E_OffsetType,	short int,
 			COM)
 
 BETTER_ENUM(E_TrigType,		short int,
-			CONSTANT,
 			COS,
 			SIN)
 
 
 BETTER_ENUM(E_EmpAxis,		short int,
-			None,
+			NONE,
 			D,
 			Y,
 			B,
 			R,
 			T,
-			N)
+			N,
+			P,
+			Q)
 
 BETTER_ENUM(KF,				short int,
 	NONE,
@@ -112,9 +113,7 @@ BETTER_ENUM(KF,				short int,
 	
 	HEADING,
 	
-	SAT_POS,
-	SAT_POS_RATE,
-	
+	QUAT,
 	
 	REF_SYS_BIAS,
 	
@@ -141,8 +140,6 @@ BETTER_ENUM(KF,				short int,
 	
 	DCB,
 	
-	EOP,
-	EOP_RATE,
 	EOP_ADJUST,
 	EOP_RATE_ADJUST,
 	
@@ -167,30 +164,66 @@ BETTER_ENUM(KF,				short int,
 	
 	REFERENCE,
 	
-	ORBIT,				FIRST_ORBIT_STATE	= ORBIT,
-	EMP_DYB_0,		
-	EMP_DYB_1C,
-	EMP_DYB_1S,
-	EMP_DYB_2C,
-	EMP_DYB_2S,
-	EMP_DYB_3C,
-	EMP_DYB_3S,
-	EMP_DYB_4C,
-	EMP_DYB_4S,
+	BEGIN_ORBIT_STATES,
+		ORBIT,		
+		EMP_D_0,	
+		EMP_D_1,
+		EMP_D_2,
+		EMP_D_3,
+		EMP_D_4,
+		
+		EMP_Y_0,	
+		EMP_Y_1,
+		EMP_Y_2,
+		EMP_Y_3,
+		EMP_Y_4,
+		
+		EMP_B_0,	
+		EMP_B_1,
+		EMP_B_2,
+		EMP_B_3,
+		EMP_B_4,
 
-	EMP_RTN_0,		
-	EMP_RTN_1C,
-	EMP_RTN_1S,
-	EMP_RTN_2C,
-	EMP_RTN_2S,
-	EMP_RTN_3C,
-	EMP_RTN_3S,
-	EMP_RTN_4C,
-	EMP_RTN_4S,
-	LAST_ORBIT_STATE	= EMP_RTN_4S,
+		EMP_R_0,	
+		EMP_R_1,
+		EMP_R_2,
+		EMP_R_3,
+		EMP_R_4,
+		
+		EMP_T_0,	
+		EMP_T_1,
+		EMP_T_2,
+		EMP_T_3,
+		EMP_T_4,
+		
+		EMP_N_0,	
+		EMP_N_1,
+		EMP_N_2,
+		EMP_N_3,
+		EMP_N_4,	
+		
+		EMP_P_0,	
+		EMP_P_1,
+		EMP_P_2,
+		EMP_P_3,
+		EMP_P_4,
+		
+		EMP_Q_0,	
+		EMP_Q_1,
+		EMP_Q_2,
+		EMP_Q_3,
+		EMP_Q_4,
+	END_ORBIT_STATES,
+	
+	BEGIN_INERTIAL_STATES,
+		GYRO_BIAS,		
+		GYRO_SCALE,
+		ACCL_BIAS,
+		ACCL_SCALE,
+		IMU_OFFSET,	
+	END_INERTIAL_STATES,
 	
 	RANGE
-	
 )
 
 

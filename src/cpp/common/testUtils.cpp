@@ -9,6 +9,8 @@
 #include "acsConfig.hpp"
 #include "common.hpp"
 
+// #define PLUMBER 1
+
 void ErrorExit::consume(
 	boost::log::record_view																	const&	rec,
 	sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	log_string)

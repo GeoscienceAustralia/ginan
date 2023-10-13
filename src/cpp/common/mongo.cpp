@@ -69,6 +69,16 @@ void mongoooo()
 			{
 				db.drop();
 			}
+			
+			db[SSR_DB].create_index(
+					document{}
+						<< "Epoch"		<< 1
+						<< "Sat"		<< 1
+						<< "Type"		<< 1
+						<< "Data"		<< 1
+						<< "ObsCode"	<< 1
+						<< finalize,
+					{});	
 
 			if (config.output_logs)
 			{

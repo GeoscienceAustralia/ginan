@@ -95,8 +95,6 @@ void initPseudoObs(
 		
 			newState |= kfState.addKFState(satPosKey, posInit);
 			newState |= kfState.addKFState(satVelKey, velInit);
-			
-			kfState.setKFTransRate(satPosKey, satVelKey,	1,	velInit);
 		}
 
 		if (newState == false)
@@ -104,25 +102,7 @@ void initPseudoObs(
 			continue;
 		}
 		
-		addKFSatEMPStates(satOpts.emp_dyb_0,	kfState,	KF::EMP_DYB_0,	Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_1c,	kfState,	KF::EMP_DYB_1C,	Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_1s,	kfState,	KF::EMP_DYB_1S,	Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_2c,	kfState,	KF::EMP_DYB_2C,	Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_2s,	kfState,	KF::EMP_DYB_2S,	Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_3c,	kfState,	KF::EMP_DYB_3C,	Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_3s,	kfState,	KF::EMP_DYB_3S,	Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	Sat);
-		
-		addKFSatEMPStates(satOpts.emp_rtn_0,	kfState,	KF::EMP_RTN_0,	Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_1c,	kfState,	KF::EMP_RTN_1C,	Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_1s,	kfState,	KF::EMP_RTN_1S,	Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_2c,	kfState,	KF::EMP_RTN_2C,	Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_2s,	kfState,	KF::EMP_RTN_2S,	Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_3c,	kfState,	KF::EMP_RTN_3C,	Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_3s,	kfState,	KF::EMP_RTN_3S,	Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_4c,	kfState,	KF::EMP_RTN_4C,	Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_4s,	kfState,	KF::EMP_RTN_4S,	Sat);	
+		addEmpStates(satOpts, kfState, Sat);
 	}
 }
 
@@ -155,6 +135,9 @@ void orbitPseudoObs(
 		VectorEci rSatEci;
 		VectorEci vSatEci;
 		
+		KFKey eopKeys[3];
+		Matrix3d eopPartialMatrixEci = Matrix3d::Zero();
+		
 		if (acsConfig.orbitPropagation.itrf_pseudoobs)
 		{
 			if (obs.vel.isZero())
@@ -172,6 +155,34 @@ void orbitPseudoObs(
 			VectorEcef vSat = obs.vel;
 			
 			rSatEci	= frameSwapper(rSat, &vSat, &vSatEci);
+			
+			if (acsConfig.pppOpts.eop.estimate[0])
+			{
+				eopPartialMatrixEci = stationEopPartials(rSat) * frameSwapper.i2t_mat;
+
+				for (int xyz = 0; xyz < 3; xyz++)
+				for (int num = 0; num < 3; num++)
+				{
+					InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop, num);
+					
+					if (init.estimate == false)
+					{
+						continue;
+					}
+					
+					eopKeys[num].type		= KF::EOP_ADJUST;
+					eopKeys[num].num		= num;
+					eopKeys[num].comment	= eopComments[num];
+					
+					kfState.getKFValue(eopKeys[num], init.x);
+					
+					double component = init.x;
+					
+					double adjustment = eopPartialMatrixEci(num, xyz) * component;
+					
+					rSatEci(xyz) -= adjustment;
+				}
+			}
 		}
 		else
 		{
@@ -199,12 +210,10 @@ void orbitPseudoObs(
 			if (posInit.estimate)
 			{
 				VectorEci statePosEci = rSatEci;
-				VectorEci stateVelEci = vSatEci;
 				
 				KFMeasEntry kfMeasEntry(&kfState);
 					
 				kfState.getKFValue(satPosKeys[i], statePosEci[i]);
-				kfState.getKFValue(satVelKeys[i], stateVelEci[i]);
 				
 				if (posInit.x == 0)		posInit.x = rSatEci[i];
 				if (velInit.x == 0)		velInit.x = vSatEci[i];
@@ -219,14 +228,36 @@ void orbitPseudoObs(
 				}
 				
 				kfMeasEntry.addDsgnEntry(satPosKeys[i], 1, posInit);
+					
 				
+				for (int num = 0; num < 3; num++)
+				{
+					InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop, num);
 					
-				kfState.setKFTransRate(satPosKeys[i], satVelKeys[i],	1,	velInit);
+					if (init.estimate == false)
+					{
+						continue;
+					}
+
+					kfMeasEntry.addDsgnEntry(eopKeys[num],	eopPartialMatrixEci(num, i),				init);
 					
+					InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	num);
+										
+					if (eopRateInit.estimate == false)
+					{
+						continue;
+					}
+					
+					KFKey rateKey;
+					rateKey.type	= KF::EOP_RATE_ADJUST;
+					rateKey.num		= num;
+					rateKey.comment	= eopComments[num];
+
+					kfState.setKFTransRate(eopKeys[num], rateKey,	1/86400.0,	eopRateInit);
+				}
+				
 				double omc	= rSatEci[i] 
 							- statePosEci[i];
-
-				
 							
 				kfMeasEntry.setInnov(omc);
 					
@@ -239,37 +270,10 @@ void orbitPseudoObs(
 				kfMeasEntry.addNoiseEntry(kfMeasEntry.obsKey, 1, SQR(satOpts.pseudo_sigmas[0]));
 				
 				kfMeasEntryList.push_back(kfMeasEntry);
-				
-				int epochsPerDay = 86400 / acsConfig.epoch_interval;
-				
-				if	(  acsConfig.pseudo_pulses
-					&& epoch % (epochsPerDay / acsConfig.pseudo_pulses) == 0)
-				{
-					kfState.setExponentialNoise(satPosKeys[i], {SQR(acsConfig.orbit_pos_proc_noise)});
-					kfState.setExponentialNoise(satVelKeys[i], {SQR(acsConfig.orbit_vel_proc_noise)});
-				}
 			}
 		}
-
-		addKFSatEMPStates(satOpts.emp_dyb_0,	kfState,	KF::EMP_DYB_0,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_1c,	kfState,	KF::EMP_DYB_1C,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_1s,	kfState,	KF::EMP_DYB_1S,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_2c,	kfState,	KF::EMP_DYB_2C,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_2s,	kfState,	KF::EMP_DYB_2S,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_3c,	kfState,	KF::EMP_DYB_3C,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_3s,	kfState,	KF::EMP_DYB_3S,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_4c,	kfState,	KF::EMP_DYB_4C,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_dyb_4s,	kfState,	KF::EMP_DYB_4S,	obs.Sat);
-		
-		addKFSatEMPStates(satOpts.emp_rtn_0,	kfState,	KF::EMP_RTN_0,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_1c,	kfState,	KF::EMP_RTN_1C,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_1s,	kfState,	KF::EMP_RTN_1S,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_2c,	kfState,	KF::EMP_RTN_2C,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_2s,	kfState,	KF::EMP_RTN_2S,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_3c,	kfState,	KF::EMP_RTN_3C,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_3s,	kfState,	KF::EMP_RTN_3S,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_4c,	kfState,	KF::EMP_RTN_4C,	obs.Sat);
-		addKFSatEMPStates(satOpts.emp_rtn_4s,	kfState,	KF::EMP_RTN_4S,	obs.Sat);
+	
+		addEmpStates(satOpts, kfState, obs.Sat);
 	}
 }
 
@@ -475,11 +479,16 @@ void pseudoRecDcb(COMMON_PSEUDO_ARGS)
 		KFKey kfKey2 = key;
 		kfKey2.num = code2;
 
-		double bias1 = 0;
-		double bias2 = 0;
 		bool found = true;
-		found &= kfState.getKFValue(kfKey1, bias1);
-		found &= kfState.getKFValue(kfKey2, bias2);
+		
+		InitialState init1;
+		InitialState init2;
+		
+		found &= kfState.getKFValue(kfKey1, init1.x);
+		found &= kfState.getKFValue(kfKey2, init2.x);
+		
+		double bias1 = init1.x;
+		double bias2 = init2.x;
 		
 		if (found == false)
 			continue;
@@ -502,8 +511,8 @@ void pseudoRecDcb(COMMON_PSEUDO_ARGS)
 			measEntry.metaDataMap["pseudoObs"]	= (void*) true;
 //			measEntry.metaDataMap["explain"]	= (void*) true;
 			
-			measEntry.addDsgnEntry(kfKey1, +1);
-			measEntry.addDsgnEntry(kfKey2, -1);
+			measEntry.addDsgnEntry(kfKey1, +1, init1);
+			measEntry.addDsgnEntry(kfKey2, -1, init2);
 		
 			measEntry.setInnov(bias2 - bias1);
 			
@@ -541,8 +550,8 @@ void pseudoRecDcb(COMMON_PSEUDO_ARGS)
 			measEntry.metaDataMap["pseudoObs"]	= (void*) true;
 			measEntry.metaDataMap["explain"]	= (void*) true;
 		
-			measEntry.addDsgnEntry(kfKey1, C1);
-			measEntry.addDsgnEntry(kfKey2, C2);
+			measEntry.addDsgnEntry(kfKey1, C1, init1);
+			measEntry.addDsgnEntry(kfKey2, C2, init2);
 		
 			measEntry.setInnov(-C1 * bias1 - C2 * bias2);
 			
@@ -582,13 +591,18 @@ void pseudoSatClockDefinition(COMMON_PSEUDO_ARGS)
 		kfKey2.num = code2;
 		
 		double satClk	= 0;
-		double bias1	= 0;
-		double bias2	= 0;
 		
 		bool found = true;
+		
+		InitialState init1;
+		InitialState init2;
+		
 		found &= kfState.getKFValue(satKey, satClk);
-		found &= kfState.getKFValue(kfKey1, bias1);
-		found &= kfState.getKFValue(kfKey2, bias2);
+		found &= kfState.getKFValue(kfKey1, init1.x);
+		found &= kfState.getKFValue(kfKey2, init2.x);
+		
+		double bias1 = init1.x;
+		double bias2 = init2.x;
 		
 		if (found == false)
 			continue;
@@ -617,8 +631,8 @@ void pseudoSatClockDefinition(COMMON_PSEUDO_ARGS)
 		measEntry.metaDataMap["pseudoObs"]	= (void*) true;
 //		measEntry.metaDataMap["explain"]	= (void*) true;
 		
-		measEntry.addDsgnEntry(kfKey1, C1);
-		measEntry.addDsgnEntry(kfKey2, C2);
+		measEntry.addDsgnEntry(kfKey1, C1, init1);
+		measEntry.addDsgnEntry(kfKey2, C2, init2);
 		
 		measEntry.setInnov(-C1 * bias1 - C2 * bias2);
 			
@@ -639,24 +653,28 @@ void pseudoSatDCBPseudoObs(COMMON_PSEUDO_ARGS)
 			continue;
 		}
 		
-		KFKey key1;
-		key1.type	= KF::CODE_BIAS;
-		key1.num	= codi / 100;
+		KFKey kfKey1;
+		kfKey1.type	= KF::CODE_BIAS;
+		kfKey1.num	= codi / 100;
 		
-		KFKey key2;
-		key2.type	= KF::CODE_BIAS;
-		key2.num	= codi % 100;
+		KFKey kfKey2;
+		kfKey2.type	= KF::CODE_BIAS;
+		kfKey2.num	= codi % 100;
 		
 		for (auto& Sat : getSysSats(sys))
 		{
-			key1.Sat = Sat;
-			key2.Sat = Sat;
-			
-			double	bias1 = 0;
-			double	bias2 = 0;
+			kfKey1.Sat = Sat;
+			kfKey1.Sat = Sat;
 			bool	found = true;
-			found &= kfState.getKFValue(key1, bias1);
-			found &= kfState.getKFValue(key2, bias2);
+		
+			InitialState init1;
+			InitialState init2;
+			
+			found &= kfState.getKFValue(kfKey1, init1.x);
+			found &= kfState.getKFValue(kfKey2, init2.x);
+			
+			double	bias1 = init1.x;
+			double	bias2 = init2.x;
 			
 			if (found == false)
 				continue;
@@ -670,8 +688,8 @@ void pseudoSatDCBPseudoObs(COMMON_PSEUDO_ARGS)
 			measEntry.metaDataMap["pseudoObs"]	= (void*) true;
 //			measEntry.metaDataMap["explain"]	= (void*) true;
 		
-			measEntry.addDsgnEntry(key1, +1);
-			measEntry.addDsgnEntry(key2, -1);
+			measEntry.addDsgnEntry(kfKey1, +1, init1);
+			measEntry.addDsgnEntry(kfKey2, -1, init2);
 		
 			measEntry.setInnov(bias2 - bias1);
 			
@@ -714,8 +732,12 @@ void pseudoAvSatCodeBias(COMMON_PSEUDO_ARGS)
 		{
 			baseKey.Sat = Sat;
 			
-			double bias;
-			bool found = kfState.getKFValue(baseKey, bias);
+			InitialState init;
+			
+			bool found = kfState.getKFValue(baseKey, init.x);
+			
+			double bias = init.x;
+			
 			if (found == false)
 			{
 				avBias.sumCode -= avBias.pastCode[Sat];
@@ -742,7 +764,7 @@ void pseudoAvSatCodeBias(COMMON_PSEUDO_ARGS)
 			
 			currBiasMap[Sat] = bias;
 			
-			codeEntry.addDsgnEntry(baseKey, 1);
+			codeEntry.addDsgnEntry(baseKey, 1, init);
 		}
 		
 		tracepdeex(2, trace, "\n%.4f  -> %.4f\n", sumBias, avBias.sumCode);
@@ -803,8 +825,12 @@ void pseudoAvSatPhaseBias(COMMON_PSEUDO_ARGS)
 		{
 			baseKey.Sat = Sat;
 			
-			double bias;
-			bool found = kfState.getKFValue(baseKey, bias);
+			InitialState init;
+			
+			bool found = kfState.getKFValue(baseKey, init.x);
+			
+			double bias = init.x;
+			
 			if (found == false)
 			{
 				avBias.sumPhas -= avBias.pastPhas[Sat];
@@ -831,7 +857,7 @@ void pseudoAvSatPhaseBias(COMMON_PSEUDO_ARGS)
 			
 			currBiasMap[Sat] = bias;
 			
-			phasEntry.addDsgnEntry(baseKey, 1);
+			phasEntry.addDsgnEntry(baseKey, 1, init);
 		}
 		
 		tracepdeex(2, trace, "\n%.4f  -> %.4f\n", sumBias, avBias.sumPhas);
@@ -1021,14 +1047,17 @@ void ionoPseudoObs(				//todo aaron, move to model section
 		kfKey.Sat	= obs.Sat;
 		
 		double extvar;
-		double extion = getSSRIono(obs.time, rec.aprioriPos, obs.rSat, extvar, obs.Sat);
+		double extion = getSSRIono(obs.time, rec.aprioriPos, obs.rSatCom, extvar, obs.Sat);
 	
 		if (extvar <= 0)
 			continue;
 			
-		double kfion;	
+		InitialState init;
 		
-		bool found = kfState.getKFValue(kfKey, kfion);
+		bool found = kfState.getKFValue(kfKey, init.x);
+		
+		double kfion = init.x;
+		
 		if (found == false)
 			continue;
 		
@@ -1038,7 +1067,7 @@ void ionoPseudoObs(				//todo aaron, move to model section
  		measEntry.obsKey.Sat	= obs.Sat;
  		measEntry.obsKey.num	= 1;
 		
-		measEntry.addDsgnEntry(kfKey, +1);
+		measEntry.addDsgnEntry(kfKey, +1, init);
 		
 		measEntry.setInnov(extion - kfion);
 			
@@ -1048,5 +1077,46 @@ void ionoPseudoObs(				//todo aaron, move to model section
 		measEntry.addNoiseEntry(measEntry.obsKey, 1, extvar);
 		
 		kfMeasEntryList.push_back(measEntry);
+	}
+}
+
+void satClockPivotPseudoObs(		
+	Trace&				trace,
+	KFState&			kfState,			
+	KFMeasEntryList&	kfMeasEntryList)
+{
+	if (acsConfig.pivot_satellite == "NO_PIVOT")
+	{
+		return;
+	}
+	
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type != KF::SAT_CLOCK)
+		{
+			continue;
+		}
+		
+		if	( acsConfig.pivot_satellite != "<AUTO>"
+			&&key.Sat != SatSys(acsConfig.pivot_satellite.c_str()))
+		{
+			continue;
+		}
+		
+		KFMeasEntry measEntry(&kfState);
+ 		measEntry.obsKey.type		= KF::SAT_CLOCK;
+ 		measEntry.obsKey.Sat		= key.Sat;
+		
+		measEntry.addDsgnEntry(key, +1);
+		
+		measEntry.setInnov(0);
+			
+		measEntry.metaDataMap["pseudoObs"]	= (void*) true;
+		
+		measEntry.addNoiseEntry(measEntry.obsKey, 1, 1e-6);
+		
+		kfMeasEntryList.push_back(measEntry);
+		
+		break;
 	}
 }

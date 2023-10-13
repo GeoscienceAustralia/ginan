@@ -18,10 +18,12 @@ using std::map;
 #include "eigenIncluder.hpp"
 #include "acceleration.hpp"
 #include "coordinates.hpp"
+#include "staticField.hpp"
 #include "instrument.hpp"
 #include "navigation.hpp"
 #include "orbitProp.hpp"
 #include "constants.hpp"
+#include "tideCoeff.hpp"
 #include "iers2010.hpp"
 #include "planets.hpp"
 #include "mongo.hpp"
@@ -64,7 +66,7 @@ void OrbitIntegrator::computeCommon(
 	{
 		if (egm.initialised == false)
 		{
-			BOOST_LOG_TRIVIAL(warning) << "Warning: EGM data not initialised, check for valid egm file.";
+			BOOST_LOG_TRIVIAL(error) << "Error: EGM data not initialised, check for valid egm file.";
 
 			break;
 		}
@@ -178,12 +180,14 @@ void OrbitIntegrator::computeAcceleration(
 	const double velOffset = 1e-6;
 
 	const	Vector3d satToSun	= planetsPosMap[E_ThirdBody::SUN] - rSat;
-	const	Vector3d ed			= satToSun		.normalized();
-	const	Vector3d er			= rSat			.normalized();
-	const	Vector3d ey			= (ed.cross(er)).normalized();
-	const	Vector3d eb			= ed.cross(ey);
-	const	Vector3d en			= (er.cross(vSat)).normalized();
-	const	Vector3d et			= (en.cross(er)).normalized();
+	const	Vector3d ed			= satToSun						.normalized();
+	const	Vector3d er			= rSat							.normalized();
+	const	Vector3d ey			= ed.cross(er)					.normalized();
+	const	Vector3d eb			= ed.cross(ey)					.normalized();
+	const	Vector3d en			= er.cross(vSat)				.normalized();
+	const	Vector3d et			= en.cross(er)					.normalized();
+	const	Vector3d ep			= ed.cross(Vector3d::UnitZ())	.normalized();
+	const	Vector3d eq			= ed.cross(ep)					.normalized();
 
 	if (propagationOptions.central_force)
 	{
@@ -195,19 +199,19 @@ void OrbitIntegrator::computeAcceleration(
 	}
 
 	if (propagationOptions.planetary_perturbation)
-        for (const auto& [planet, planetPos] : planetsPosMap)
-        {
-            if (planet == +E_ThirdBody::EARTH)
-            {
-                continue;
-            }
+	for (const auto& [planet, planetPos] : planetsPosMap)
+	{
+		if (planet == +E_ThirdBody::EARTH)
+		{
+			continue;
+		}
 
-            Vector3d accPlanet = accelSourcePoint(rSat, planetPos, GM_values[planet], &dAdPos);
+		Vector3d accPlanet = accelSourcePoint(rSat, planetPos, GM_values[planet], &dAdPos);
 
-    // 		orbInit.componentsMap[E_Component::PLANETARY_PERTURBATION] = accPlanet.norm();
+// 		orbInit.componentsMap[E_Component::PLANETARY_PERTURBATION] = accPlanet.norm();
 
-            acc += accPlanet;
-        }
+		acc += accPlanet;
+	}
 
 	if (propagationOptions.egm_field)
 	{
@@ -232,15 +236,16 @@ void OrbitIntegrator::computeAcceleration(
 
 
 
-    if (propagationOptions.indirect_J2)
-        for (const auto body : {E_ThirdBody::SUN, E_ThirdBody::MOON})
-        {
-            Vector3d accJ2 = accelJ2(Cnm(2,0), eci2ecf, planetsPosMap[body], GM_values[body]);
+	if	( propagationOptions.egm_field
+		&&propagationOptions.indirect_J2)
+	for (const auto body : {E_ThirdBody::SUN, E_ThirdBody::MOON})
+	{
+		Vector3d accJ2 = accelJ2(Cnm(2,0), eci2ecf, planetsPosMap[body], GM_values[body]);
 
-    // 		orbInit.componentsMap[E_Component::INDIRECT_J2] = accJ2.norm();
+// 		orbInit.componentsMap[E_Component::INDIRECT_J2] = accJ2.norm();
 
-            acc += eci2ecf.transpose() * accJ2;
-        }
+		acc += eci2ecf.transpose() * accJ2;
+	}
 
 	if (propagationOptions.general_relativity)
 	{
@@ -350,21 +355,27 @@ void OrbitIntegrator::computeAcceleration(
 		double scalef		= SQR(AU) / satToSun.squaredNorm();
 		double eclipseFrac	= sunVisibility(rSat, planetsPosMap[E_ThirdBody::SUN], planetsPosMap[E_ThirdBody::MOON]);
 
-		// double srpScalar	= eclipseFrac * scalef;
-		// srpScale = scalef;
-        double scaling = 1e-9;
-		vector<Vector3d> axis = {ed*scalef, ey*scalef, eb*scalef, er, et, en};
-		for (auto & ax : axis)
+		double scaling = 1e-9;
+		
+		vector<Vector3d> axis = 
 		{
-			ax *= scaling;
-		}
+			Vector3d::Zero(),
+			ed * scaling * scalef,
+			ey * scaling * scalef,
+			eb * scaling * scalef,
+			er * scaling, 
+			et * scaling,
+			en * scaling,
+			ep * scaling,
+			eq * scaling 
+		};
 
 		Vector3d& rSun = planetsPosMap[E_ThirdBody::SUN];
 		Vector3d z = (rSat	.cross(vSat))	.normalized();
 		Vector3d y = (z		.cross(rSun))	.normalized();
 		Vector3d x = (y		.cross(z))		.normalized();
 
-		double du = atan2(rSat.transpose() * y, rSat.transpose() * x);
+		double du = atan2(rSat.dot(y), rSat.dot(x));
 
 		Vector3d accEmp = Vector3d::Zero();
 	
@@ -431,8 +442,9 @@ void OrbitIntegrator::operator()(
 		orbUpdate.vel			= acc;
 		orbUpdate.posVelSTM		= A * orbInit.posVelSTM;
 		
-      	orbUpdate.posVelSTM.bottomRightCorner(3, nparam) += dAdParam;
+		orbUpdate.posVelSTM.bottomRightCorner(3, nparam) += dAdParam;
 	}
+	Eigen::setNbThreads(0);
 };
 
 
@@ -507,8 +519,8 @@ KFState getOrbitFromState(
 			continue;
 		}
 		
-		if	(  kfKey.type >= KF::FIRST_ORBIT_STATE
-			&& kfKey.type <= KF::LAST_ORBIT_STATE)
+		if	(  kfKey.type >= KF::BEGIN_ORBIT_STATES
+			&& kfKey.type <= KF::END_ORBIT_STATES)
 		{
 			kfKeyMap[kfKey] = index;
 			index++;
@@ -566,27 +578,61 @@ Orbits prepareOrbits(
 				continue;
 			}
 			
+			E_TrigType trigType;
+			if		(subKey.num == 0)		trigType = E_TrigType::COS;
+			else							trigType = E_TrigType::SIN;
+			
+			double stateValue = subState.x(index);
+			
 			switch (subKey.type)
 			{
-				case KF::EMP_DYB_0:		{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num], 	0, subKey.num, E_TrigType::CONSTANT,	subState.x(index)}); break;}
-				case KF::EMP_DYB_1C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	1, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_DYB_1S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	1, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_DYB_2C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	2, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_DYB_2S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	2, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_DYB_3C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	3, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_DYB_3S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	3, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_DYB_4C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	4, subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_DYB_4S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num],	4, subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-
-				case KF::EMP_RTN_0:		{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	0, 3+subKey.num, E_TrigType::CONSTANT,	subState.x(index)}); break;}
-				case KF::EMP_RTN_1C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	1, 3+subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_RTN_1S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	1, 3+subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_RTN_2C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	2, 3+subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_RTN_2S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	2, 3+subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_RTN_3C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	3, 3+subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_RTN_3S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	3, 3+subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
-				case KF::EMP_RTN_4C:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	4, 3+subKey.num, E_TrigType::COS,			subState.x(index)}); break;}
-				case KF::EMP_RTN_4S:	{ orbit.empInput.emplace_back(EMP{eclipse[subKey.num+3],	4, 3+subKey.num, E_TrigType::SIN,			subState.x(index)}); break;}
+				case KF::EMP_D_0:		{ orbit.empInput.push_back({eclipse[0],	0, E_EmpAxis::D, trigType,	stateValue});	break;}
+				case KF::EMP_D_1:		{ orbit.empInput.push_back({eclipse[0],	1, E_EmpAxis::D, trigType,	stateValue});	break;}
+				case KF::EMP_D_2:		{ orbit.empInput.push_back({eclipse[0],	2, E_EmpAxis::D, trigType,	stateValue});	break;}
+				case KF::EMP_D_3:		{ orbit.empInput.push_back({eclipse[0],	3, E_EmpAxis::D, trigType,	stateValue});	break;}
+				case KF::EMP_D_4:		{ orbit.empInput.push_back({eclipse[0],	4, E_EmpAxis::D, trigType,	stateValue});	break;}
+				
+				case KF::EMP_Y_0:		{ orbit.empInput.push_back({eclipse[1],	0, E_EmpAxis::Y, trigType,	stateValue});	break;}
+				case KF::EMP_Y_1:		{ orbit.empInput.push_back({eclipse[1],	1, E_EmpAxis::Y, trigType,	stateValue});	break;}
+				case KF::EMP_Y_2:		{ orbit.empInput.push_back({eclipse[1],	2, E_EmpAxis::Y, trigType,	stateValue});	break;}
+				case KF::EMP_Y_3:		{ orbit.empInput.push_back({eclipse[1],	3, E_EmpAxis::Y, trigType,	stateValue});	break;}
+				case KF::EMP_Y_4:		{ orbit.empInput.push_back({eclipse[1],	4, E_EmpAxis::Y, trigType,	stateValue});	break;}
+				
+				case KF::EMP_B_0:		{ orbit.empInput.push_back({eclipse[2],	0, E_EmpAxis::B, trigType,	stateValue});	break;}
+				case KF::EMP_B_1:		{ orbit.empInput.push_back({eclipse[2],	1, E_EmpAxis::B, trigType,	stateValue});	break;}
+				case KF::EMP_B_2:		{ orbit.empInput.push_back({eclipse[2],	2, E_EmpAxis::B, trigType,	stateValue});	break;}
+				case KF::EMP_B_3:		{ orbit.empInput.push_back({eclipse[2],	3, E_EmpAxis::B, trigType,	stateValue});	break;}
+				case KF::EMP_B_4:		{ orbit.empInput.push_back({eclipse[2],	4, E_EmpAxis::B, trigType,	stateValue});	break;}
+				
+				case KF::EMP_R_0:		{ orbit.empInput.push_back({eclipse[3],	0, E_EmpAxis::R, trigType,	stateValue});	break;}
+				case KF::EMP_R_1:		{ orbit.empInput.push_back({eclipse[3],	1, E_EmpAxis::R, trigType,	stateValue});	break;}
+				case KF::EMP_R_2:		{ orbit.empInput.push_back({eclipse[3],	2, E_EmpAxis::R, trigType,	stateValue});	break;}
+				case KF::EMP_R_3:		{ orbit.empInput.push_back({eclipse[3],	3, E_EmpAxis::R, trigType,	stateValue});	break;}
+				case KF::EMP_R_4:		{ orbit.empInput.push_back({eclipse[3],	4, E_EmpAxis::R, trigType,	stateValue});	break;}
+				
+				case KF::EMP_T_0:		{ orbit.empInput.push_back({eclipse[4],	0, E_EmpAxis::T, trigType,	stateValue});	break;}
+				case KF::EMP_T_1:		{ orbit.empInput.push_back({eclipse[4],	1, E_EmpAxis::T, trigType,	stateValue});	break;}
+				case KF::EMP_T_2:		{ orbit.empInput.push_back({eclipse[4],	2, E_EmpAxis::T, trigType,	stateValue});	break;}
+				case KF::EMP_T_3:		{ orbit.empInput.push_back({eclipse[4],	3, E_EmpAxis::T, trigType,	stateValue});	break;}
+				case KF::EMP_T_4:		{ orbit.empInput.push_back({eclipse[4],	4, E_EmpAxis::T, trigType,	stateValue});	break;}
+				
+				case KF::EMP_N_0:		{ orbit.empInput.push_back({eclipse[5],	0, E_EmpAxis::N, trigType,	stateValue});	break;}
+				case KF::EMP_N_1:		{ orbit.empInput.push_back({eclipse[5],	1, E_EmpAxis::N, trigType,	stateValue});	break;}
+				case KF::EMP_N_2:		{ orbit.empInput.push_back({eclipse[5],	2, E_EmpAxis::N, trigType,	stateValue});	break;}
+				case KF::EMP_N_3:		{ orbit.empInput.push_back({eclipse[5],	3, E_EmpAxis::N, trigType,	stateValue});	break;}
+				case KF::EMP_N_4:		{ orbit.empInput.push_back({eclipse[5],	4, E_EmpAxis::N, trigType,	stateValue});	break;}
+				
+				case KF::EMP_P_0:		{ orbit.empInput.push_back({false,		0, E_EmpAxis::P, trigType,	stateValue});	break;}
+				case KF::EMP_P_1:		{ orbit.empInput.push_back({false,		1, E_EmpAxis::P, trigType,	stateValue});	break;}
+				case KF::EMP_P_2:		{ orbit.empInput.push_back({false,		2, E_EmpAxis::P, trigType,	stateValue});	break;}
+				case KF::EMP_P_3:		{ orbit.empInput.push_back({false,		3, E_EmpAxis::P, trigType,	stateValue});	break;}
+				case KF::EMP_P_4:		{ orbit.empInput.push_back({false,		4, E_EmpAxis::P, trigType,	stateValue});	break;}
+				
+				case KF::EMP_Q_0:		{ orbit.empInput.push_back({false,		0, E_EmpAxis::Q, trigType,	stateValue});	break;}
+				case KF::EMP_Q_1:		{ orbit.empInput.push_back({false,		1, E_EmpAxis::Q, trigType,	stateValue});	break;}
+				case KF::EMP_Q_2:		{ orbit.empInput.push_back({false,		2, E_EmpAxis::Q, trigType,	stateValue});	break;}
+				case KF::EMP_Q_3:		{ orbit.empInput.push_back({false,		3, E_EmpAxis::Q, trigType,	stateValue});	break;}
+				case KF::EMP_Q_4:		{ orbit.empInput.push_back({false,		4, E_EmpAxis::Q, trigType,	stateValue});	break;}
 				default:				{ break;}
 			}
 		}
@@ -706,7 +752,7 @@ void applyOrbits(
 void predictOrbits(
 	Trace&			trace,
 	const KFState&	kfState,
-	GTime           time)
+	GTime			time)
 {
 	Instrument instrument(__FUNCTION__);
 	
@@ -733,34 +779,101 @@ void predictOrbits(
 	integrateOrbits(integrator, orbits, tgap, acsConfig.orbitPropagation.integrator_time_step);
 
 	applyOrbits(trace, orbits, kfState, time, tgap);
+	
+	ERPValues erpv = getErp(nav.erp, time);
+	
+	FrameSwapper frameSwapper(time, erpv);
+
+	for (auto& orbit : orbits)
+	{
+		auto& satNav	= nav.satNavMap[orbit.Sat];
+		auto& satPos0	= satNav.satPos0;
+		
+		satPos0.posTime		= time;
+		satPos0.rSatEci0	= orbit.pos;
+		satPos0.vSatEci0	= orbit.vel;
+	}
 };
 
-
-
-void addKFSatEMPStates( 
-			KalmanModel&	model, 
+void addNilDesignStates( 
+	const	KalmanModel&	model, 
 	const	KFState&		kfState,
-			KF				kfType,
-			string			id)
+	const	KF&				kfType,
+			int				num,
+	const	string&			id)
 {
-	for (int i = 0; i < 3; i++)
-	{
+	for (int i = 0; i < num; i++)
+	{	
 		InitialState init = initialStateFromConfig(model, i);
 		
 		if (init.estimate)
 		{
-			KFKey empKey;
-			empKey.type		= kfType;
-			empKey.num		= i;
-			empKey.comment	= init.comment;
+			KFKey key;
+			key.type	= kfType;
+			key.num		= i;
+			key.comment	= init.comment;
 			
 			SatSys Sat = id.c_str();
-			if (Sat.prn)	empKey.Sat		= id.c_str();
-			else			empKey.str		= id;
+			if (Sat.prn)	key.Sat		= id.c_str();
+			else			key.str		= id;
 
-			kfState.addKFState(empKey, init);
+			kfState.addKFState(key, init);
 		}
 	}
+}
+
+void addEmpStates(
+	const EmpOptions&	satOpts,
+	const KFState&		kfState,
+	const string&		id)
+{
+	addNilDesignStates(satOpts.emp_d_0,		kfState,	KF::EMP_D_0,	1, id);
+	addNilDesignStates(satOpts.emp_d_1,		kfState,	KF::EMP_D_1,	2, id);
+	addNilDesignStates(satOpts.emp_d_2,		kfState,	KF::EMP_D_2,	2, id);
+	addNilDesignStates(satOpts.emp_d_3,		kfState,	KF::EMP_D_3,	2, id);
+	addNilDesignStates(satOpts.emp_d_4,		kfState,	KF::EMP_D_4,	2, id);
+	
+	addNilDesignStates(satOpts.emp_y_0,		kfState,	KF::EMP_Y_0,	1, id);
+	addNilDesignStates(satOpts.emp_y_1,		kfState,	KF::EMP_Y_1,	2, id);
+	addNilDesignStates(satOpts.emp_y_2,		kfState,	KF::EMP_Y_2,	2, id);
+	addNilDesignStates(satOpts.emp_y_3,		kfState,	KF::EMP_Y_3,	2, id);
+	addNilDesignStates(satOpts.emp_y_4,		kfState,	KF::EMP_Y_4,	2, id);
+	
+	addNilDesignStates(satOpts.emp_b_0,		kfState,	KF::EMP_B_0,	1, id);
+	addNilDesignStates(satOpts.emp_b_1,		kfState,	KF::EMP_B_1,	2, id);
+	addNilDesignStates(satOpts.emp_b_2,		kfState,	KF::EMP_B_2,	2, id);
+	addNilDesignStates(satOpts.emp_b_3,		kfState,	KF::EMP_B_3,	2, id);
+	addNilDesignStates(satOpts.emp_b_4,		kfState,	KF::EMP_B_4,	2, id);
+	
+	addNilDesignStates(satOpts.emp_r_0,		kfState,	KF::EMP_R_0,	1, id);
+	addNilDesignStates(satOpts.emp_r_1,		kfState,	KF::EMP_R_1,	2, id);
+	addNilDesignStates(satOpts.emp_r_2,		kfState,	KF::EMP_R_2,	2, id);
+	addNilDesignStates(satOpts.emp_r_3,		kfState,	KF::EMP_R_3,	2, id);
+	addNilDesignStates(satOpts.emp_r_4,		kfState,	KF::EMP_R_4,	2, id);
+	
+	addNilDesignStates(satOpts.emp_t_0,		kfState,	KF::EMP_T_0,	1, id);
+	addNilDesignStates(satOpts.emp_t_1,		kfState,	KF::EMP_T_1,	2, id);
+	addNilDesignStates(satOpts.emp_t_2,		kfState,	KF::EMP_T_2,	2, id);
+	addNilDesignStates(satOpts.emp_t_3,		kfState,	KF::EMP_T_3,	2, id);
+	addNilDesignStates(satOpts.emp_t_4,		kfState,	KF::EMP_T_4,	2, id);
+	
+	addNilDesignStates(satOpts.emp_n_0,		kfState,	KF::EMP_N_0,	1, id);
+	addNilDesignStates(satOpts.emp_n_1,		kfState,	KF::EMP_N_1,	2, id);
+	addNilDesignStates(satOpts.emp_n_2,		kfState,	KF::EMP_N_2,	2, id);
+	addNilDesignStates(satOpts.emp_n_3,		kfState,	KF::EMP_N_3,	2, id);
+	addNilDesignStates(satOpts.emp_n_4,		kfState,	KF::EMP_N_4,	2, id);
+	
+	addNilDesignStates(satOpts.emp_p_0,		kfState,	KF::EMP_P_0,	1, id);
+	addNilDesignStates(satOpts.emp_p_1,		kfState,	KF::EMP_P_1,	2, id);
+	addNilDesignStates(satOpts.emp_p_2,		kfState,	KF::EMP_P_2,	2, id);
+	addNilDesignStates(satOpts.emp_p_3,		kfState,	KF::EMP_P_3,	2, id);
+	addNilDesignStates(satOpts.emp_p_4,		kfState,	KF::EMP_P_4,	2, id);
+	
+	addNilDesignStates(satOpts.emp_q_0,		kfState,	KF::EMP_Q_0,	1, id);
+	addNilDesignStates(satOpts.emp_q_1,		kfState,	KF::EMP_Q_1,	2, id);
+	addNilDesignStates(satOpts.emp_q_2,		kfState,	KF::EMP_Q_2,	2, id);
+	addNilDesignStates(satOpts.emp_q_3,		kfState,	KF::EMP_Q_3,	2, id);
+	addNilDesignStates(satOpts.emp_q_4,		kfState,	KF::EMP_Q_4,	2, id);
 }
 
 void outputOrbitConfig(
@@ -782,28 +895,18 @@ void outputOrbitConfig(
 		for (KF type : 
 			{	
 				KF::ORBIT,
-				KF::EMP_DYB_0,
-				KF::EMP_DYB_1C,
-				KF::EMP_DYB_1S,
-				KF::EMP_DYB_2C,
-				KF::EMP_DYB_2S,
-				KF::EMP_DYB_3C,
-				KF::EMP_DYB_3S,
-				KF::EMP_DYB_4C,
-				KF::EMP_DYB_4S,	
-
-				KF::EMP_RTN_0,
-				KF::EMP_RTN_1C,
-				KF::EMP_RTN_1S,
-				KF::EMP_RTN_2C,
-				KF::EMP_RTN_2S,
-				KF::EMP_RTN_3C,
-				KF::EMP_RTN_3S,
-				KF::EMP_RTN_4C,
-				KF::EMP_RTN_4S,	
+	   
+				KF::EMP_D_0,	KF::EMP_D_1,	KF::EMP_D_2,	KF::EMP_D_3,	KF::EMP_D_4,
+				KF::EMP_Y_0,	KF::EMP_Y_1,	KF::EMP_Y_2,	KF::EMP_Y_3,	KF::EMP_Y_4,
+				KF::EMP_B_0,	KF::EMP_B_1,	KF::EMP_B_2,	KF::EMP_B_3,	KF::EMP_B_4,
+				KF::EMP_R_0,	KF::EMP_R_1,	KF::EMP_R_2,	KF::EMP_R_3,	KF::EMP_R_4,
+				KF::EMP_T_0,	KF::EMP_T_1,	KF::EMP_T_2,	KF::EMP_T_3,	KF::EMP_T_4,
+				KF::EMP_N_0,	KF::EMP_N_1,	KF::EMP_N_2,	KF::EMP_N_3,	KF::EMP_N_4,
+				KF::EMP_P_0,	KF::EMP_P_1,	KF::EMP_P_2,	KF::EMP_P_3,	KF::EMP_P_4,
+				KF::EMP_Q_0,	KF::EMP_Q_1,	KF::EMP_Q_2,	KF::EMP_Q_3,	KF::EMP_Q_4,
 			})
 		{
-			int n = 3;
+			int n = 2;
 			if (type == +KF::ORBIT)
 				n = 6;
 			
@@ -811,6 +914,7 @@ void outputOrbitConfig(
 			vector<double>	sigmaVec	(n);
 			deque<bool>		estimatedVec(n);
 			
+			bool anyFound = false;
 			for (int i = 0; i < n; i++)
 			{
 				KFKey kfKey = key;
@@ -821,9 +925,15 @@ void outputOrbitConfig(
 				double var = 0;
 				bool found = kfState.getKFValue(kfKey, val, &var);
 				
-				aprioriVec	[i]	= val;
-				sigmaVec	[i]	= sqrt(var);
-				estimatedVec[i]	= found;
+				aprioriVec	[i]	 = val;
+				sigmaVec	[i]	 = sqrt(var);
+				estimatedVec[i]	 = found;
+				anyFound		|= found;
+			}
+			
+			if (anyFound == false)
+			{
+				continue;
 			}
 			
 			document state;
@@ -851,7 +961,7 @@ void outputOrbitConfig(
 	
 	string filename = acsConfig.orbit_ics_filename + suffix;
 	
-	PTime logtime = tsync;
+	PTime logtime = kfState.time;
 	
 	boost::posix_time::ptime	logptime	= boost::posix_time::from_time_t((time_t)logtime.bigTime);
 	

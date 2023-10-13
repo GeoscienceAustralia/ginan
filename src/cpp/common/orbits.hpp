@@ -21,4 +21,5 @@ VectorEci propagateEllipse(
 			double		dt, 
 			VectorEci&	rSat,
 			VectorEci&	vSat, 
-			VectorEcef&	ecef);
+			VectorEcef&	ecef, 
+			VectorEcef*	vSatEcef_ptr = nullptr);

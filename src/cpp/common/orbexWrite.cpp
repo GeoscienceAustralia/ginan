@@ -391,7 +391,7 @@ void writeSysSetOrbex(
 		
 		if (orbPass)
 		{
-			entry.pos		= obs.rSat;
+			entry.pos		= obs.rSatCom;
 			entry.vel		= obs.satVel;
 			entry.clk		= obs.satClk	* 1E6;	// microsecond
 			entry.clkVel	= obs.satClkVel	* 1E9;	// nanosecond

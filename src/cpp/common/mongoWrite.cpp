@@ -48,7 +48,7 @@ b_date bDate(
 void mongoTestStat(
 	KFState&		kfState,
 	TestStatistics&	testStatistics)
-{
+{	
 	auto& mongo_ptr = localMongo_ptr;
 	
 	if (mongo_ptr == nullptr)
@@ -67,7 +67,7 @@ void mongoTestStat(
 	auto 						c		= mongo.pool.acquire();
 	mongocxx::client&			client	= *c;
 	mongocxx::database			db		= client[acsConfig.localMongo.database];
-	mongocxx::collection		coll	= db	["States"];
+	mongocxx::collection		coll	= db[STATES_DB];
 
 	mongocxx::options::bulk_write bulk_opts;
 	bulk_opts.ordered(false);
@@ -357,13 +357,13 @@ void mongoMeasResiduals(
 				
 				string name = commentString + std::to_string(obsKey.num);
 				
-				doc << name + "-Prefit"		<<	kfMeas.V	(i)	
-					<< name + "-Postfit"	<<	kfMeas.VV	(i)	
-					<< name + "-Variance"	<<	kfMeas.R	(i,i);
+				doc << name + "-Prefit"		<<			kfMeas.V	(i)	
+					<< name + "-Postfit"	<<			kfMeas.VV	(i)	
+					<< name + "-Sigma"		<<	sqrt(	kfMeas.R	(i,i));
 					
 				indexLabel[name + "-Prefit"]	= true;
 				indexLabel[name + "-Postfit"]	= true;
-				indexLabel[name + "-Variance"]	= true;
+				indexLabel[name + "-Sigma"]		= true;
 				
 				if	( config.output_components == false
 					||kfMeas.componentLists.empty())
@@ -461,6 +461,7 @@ void mongoStates(
 		auto 						c		= mongo.pool.acquire();
 		mongocxx::client&			client	= *c;
 		mongocxx::database			db		= client[config.database];
+		mongocxx::collection		coll	= db[STATES_DB];
 
 		mongocxx::options::update	options;
 		options.upsert(true);
@@ -468,7 +469,7 @@ void mongoStates(
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
 		
-		auto bulk = db["States"].create_bulk_write(bulk_opts);
+		auto bulk = coll.create_bulk_write(bulk_opts);
 
 		map<tuple<string, string, string>, vector<pair<int, int>>> lookup;
 		map<string, bool> indexSeries;
@@ -506,10 +507,10 @@ void mongoStates(
 			indexSat	[sat]						= true;
 			indexSite	[site]						= true;
 
-			auto	array_builder = doc << "x"		<< open_array;	for (auto &[i, num]: index)		array_builder << kfState.x	(i);	array_builder << close_array;
-					array_builder = doc << "dx"		<< open_array;	for (auto &[i, num]: index)		array_builder << kfState.dx	(i);	array_builder << close_array;
-					array_builder = doc << "P"		<< open_array;	for (auto &[i, num]: index)		array_builder << kfState.P	(i,i);	array_builder << close_array;
-					array_builder = doc << "Num"	<< open_array;	for (auto &[i, num]: index)		array_builder << num;				array_builder << close_array;
+			auto	array_builder = doc << "x"		<< open_array;	for (auto &[i, num]: index)		array_builder << 		kfState.x	(i);	array_builder << close_array;
+					array_builder = doc << "dx"		<< open_array;	for (auto &[i, num]: index)		array_builder << 		kfState.dx	(i);	array_builder << close_array;
+					array_builder = doc << "sigma"	<< open_array;	for (auto &[i, num]: index)		array_builder << sqrt(	kfState.P	(i,i));	array_builder << close_array;
+					array_builder = doc << "Num"	<< open_array;	for (auto &[i, num]: index)		array_builder << num;						array_builder << close_array;
 			
 			bsoncxx::document::value doc_val = doc << finalize;
 			
@@ -751,7 +752,7 @@ void	prepareSsrStates(
 					continue;
 				}
 				
-				Vector3d	precPos = obs.rSat;
+				Vector3d	precPos = obs.rSatApc;
 				Vector3d	precVel = obs.satVel;
 				double		posVar	= obs.posVar;
 				
@@ -769,7 +770,7 @@ void	prepareSsrStates(
 				int			iodeClk		= obs.iodeClk;
 				int			iodePos		= obs.iodePos;
 // 				int			iodcrc		= ?
-				Vector3d	brdcPos		= obs.rSat;
+				Vector3d	brdcPos		= obs.rSatApc;
 				Vector3d	brdcVel		= obs.satVel;
 				double		brdcClkVal	= obs.satClk * CLIGHT;
 				
@@ -1100,132 +1101,3 @@ void	outputMongoPredictions(
 	mongoOutput(dbEntryList, config, REMOTE_DATA_DB);
 }
 
-/** Write GPS/GAL/BDS/QZS ephemeris to Mongo DB
-*/
-void	mongoBrdcEph(
-	Eph&		eph)	///< GPS/GAL/BDS/QZS ephemeris to write
-{
-	auto& mongo_ptr = remoteMongo_ptr;
-	
-	if (mongo_ptr == nullptr)
-	{
-		MONGO_NOT_INITIALISED_MESSAGE;
-		
-		acsConfig.remoteMongo.output_rtcm_messages = false;
-		
-		return;
-	}
-
-	Instrument instrument(__FUNCTION__);
-
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.remoteMongo.database];
-	mongocxx::collection		coll	= db	["Ephemeris"];
-
-	mongocxx::options::update	options;
-	options.upsert(true);
-
-	mongocxx::options::bulk_write bulk_opts;
-	bulk_opts.ordered(false);
-
-	auto bulk = coll.create_bulk_write(bulk_opts);
-
-	bool update = false;
-
-	bsoncxx::builder::basic::document keyDoc = {};
-
-	// Note the Satellite id is not set in rinex correctly as we a mixing GNSS systems.
-	keyDoc.append(kvp("Sat",			eph.Sat.id()																		));
-	keyDoc.append(kvp("Type",			eph.type._to_string()																));
-	keyDoc.append(kvp("ToeGPST",		b_date {std::chrono::system_clock::from_time_t((time_t)((PTime)eph.toe).bigTime)}	));
-	keyDoc.append(kvp("TocGPST",		b_date {std::chrono::system_clock::from_time_t((time_t)((PTime)eph.toc).bigTime)}	));
-
-	bsoncxx::builder::basic::document valDoc = {};
-
-	traceBrdcEphBody(valDoc, eph);
-
-	mongocxx::model::update_one  mongo_req(
-		keyDoc.extract(),
-
-		document{}
-			<< "$set" << valDoc
-			<< finalize
-		);
-	
-	mongo_req.upsert(true);
-	bulk.append(mongo_req);
-	update = true;
-
-	if (update)
-	{
-		bulk.execute();
-	}
-}
-
-/** Write GLO ephemeris to Mongo DB
-*/
-void	mongoBrdcEph(
-	Geph&		geph)	///< GLO ephemeris to write
-{
-	auto& mongo_ptr = remoteMongo_ptr;
-	
-	if (mongo_ptr == nullptr)
-	{
-		MONGO_NOT_INITIALISED_MESSAGE;
-		
-		acsConfig.remoteMongo.output_rtcm_messages = false;
-		
-		return;
-	}
-
-	Instrument instrument(__FUNCTION__);
-
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.remoteMongo.database];
-	mongocxx::collection		coll	= db	["Ephemeris"];
-
-	mongocxx::options::update	options;
-	options.upsert(true);
-
-	mongocxx::options::bulk_write bulk_opts;
-	bulk_opts.ordered(false);
-
-	auto bulk = coll.create_bulk_write(bulk_opts);
-
-	bool update = false;
-
-	bsoncxx::builder::basic::document keyDoc = {};
-
-	// Note the Satellite id is not set in rinex correctly as we a mixing GNSS systems.
-	keyDoc.append(kvp("Sat",			geph.Sat.id()																		));
-	keyDoc.append(kvp("Type",			geph.type._to_string()																));
-	keyDoc.append(kvp("ToeGPST",		b_date {std::chrono::system_clock::from_time_t((time_t)((PTime)geph.toe).bigTime)}	));
-	keyDoc.append(kvp("TofGPST",		b_date {std::chrono::system_clock::from_time_t((time_t)((PTime)geph.tof).bigTime)}	));
-
-	bsoncxx::builder::basic::document valDoc = {};
-
-	traceBrdcEphBody(valDoc, geph);
-
-	mongocxx::model::update_one  mongo_req(
-		keyDoc.extract(),
-
-		document{}
-			<< "$set" << valDoc
-			<< finalize
-		);
-
-	mongo_req.upsert(true);
-	bulk.append(mongo_req);
-	update = true;
-
-	if (update)
-	{
-		bulk.execute();
-	}
-}

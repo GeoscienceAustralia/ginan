@@ -191,81 +191,6 @@ void minimumTest(
 	kfStateStations.outputStates(trace);
 }
 
-void dualFilters()
-{
-	vector<double> positions;
-	
-	KFState kfState;
-	kfState.rts_basename = "therfe";
-	kfState.rts_lag = -1;
-	
-	InitialState posInit;
-	posInit.P = 100000000;
-	
-	InitialState velInit;
-	velInit.P = 100000000;
-	velInit.Q = 0.1;
-	GTime time;
-	time += 60;
-	
-	for (int i = 0; i < 20; i++)
-	{
-		double position = 0;
-		if (i < 10)			position = i * 1.0 + 5;
-		else 				position = i * 0.3 + 6;
-		
-		positions.push_back(position);
-		
-		KFMeasEntryList kfMeasEntryList;
-		
-		for (int j = 0; j < 1; j++)
-		{
-			KFKey posKey;
-			KFKey velKey;
-			
-			posKey.type	= KF::REC_POS;
-			velKey.type	= KF::REC_POS_RATE;
-			
-			posKey.num	= j;
-			velKey.num	= j;
-			
-			KFMeasEntry measEntry(&kfState);
-			
-			measEntry.addDsgnEntry(posKey,			1, posInit);
-			
-			kfState.setKFTransRate(posKey, velKey,	1, velInit);
-			
-			if (j == 1 && i >= 10)	continue;
-			if (j == 2 && i <  10)	continue;
-			
-			measEntry.setValue(position);
-			measEntry.setNoise(4);
-			
-			kfMeasEntryList.push_back(measEntry);
-		}
-		
-		kfState.output_residuals = true;
-		
-		kfState.stateTransition(std::cout, time);
-		
-		kfState.outputStates(std::cout, "predicted");
-	
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
-		
-		kfState.filterKalman(std::cout, combinedMeas);
-		
-		kfState.outputStates(std::cout, "filtered");
-
-// 		if (acsConfig.output_mongo_states)
-// 		{
-// 			mongoStates(kfState);
-// 		}
-		
-		time++;
-	}	
-		
-	rtsSmoothing(kfState);
-}
 #if 0
 #include "sinex.hpp"
 #if 0
@@ -848,8 +773,6 @@ void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap)
 		dPos[0] = Vector3d::Zero();
 		dPos[1] = Vector3d::Zero();
 		
-		posDeltaPass[0] = ssrPosDelta(t0, ephTime, obs, obs.satNav_ptr->transmittedSSR,	dPos[0], iodPos, iodEph,	ephValidStart, ephValidStop);
-		clkDeltaPass[0] = ssrClkDelta(t0, ephTime, obs, obs.satNav_ptr->transmittedSSR,	dClk[0], iodClk,			clkValidStart, clkValidStop);
 		posDeltaPass[1] = ssrPosDelta(t0, ephTime, obs, obs.satNav_ptr->receivedSSR,	dPos[1], iodPos, iodEph,	ephValidStart, ephValidStop);
 		clkDeltaPass[1] = ssrClkDelta(t0, ephTime, obs, obs.satNav_ptr->receivedSSR,	dClk[1], iodClk,			clkValidStart, clkValidStop);
 		

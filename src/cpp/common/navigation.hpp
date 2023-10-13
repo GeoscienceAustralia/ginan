@@ -52,7 +52,6 @@ struct SatNav
 	double				wlbias;						///< wide-lane bias (cycle)
 	
 	SSRMaps				receivedSSR;				///< SSR corrections
-	SSRMaps				transmittedSSR;				///< SSR corrections
 	
 	VectorEci			aprioriPos;					///< Inertial satellite position at epoch time
 	

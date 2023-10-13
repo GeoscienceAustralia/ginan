@@ -3,8 +3,12 @@ inputs:
 
     root_directory: products/
 
-    atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snx_files: [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx ]  # SINEX file for meta data and initial position
+    atx_files: [ igs14_2045_plus.atx                            ]  # Antenna models for receivers and satellites in ANTEX format
+    snx_files: [  igs19P2062.snx,
+                  tables/igs_satellite_metadata_2203_plus.snx,
+                  tables/sat_yaw_bias_rate.snx,
+                  tables/qzss_yaw_modes.snx,
+                  tables/bds_yaw_modes.snx                      ]  # SINEX file for meta data and initial position
     
     satellite_data:
         nav_files: [ brdm1990.19p        ]  # broadcast navigation file

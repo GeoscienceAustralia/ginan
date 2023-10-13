@@ -499,7 +499,7 @@ bool satPosPrecise(
 		trace,
 		time,
 		satPos.Sat,
-		satPos.rSat,
+		satPos.rSatCom,
 		satPos.satVel,
 		satPos.posVar,
 		nav);

@@ -1,27 +1,445 @@
+# Sets metadata files used for Ginan processing
+# Warning: Station side metadata is missing from this file, set it as extra yaml inputs (for rovers), or include a station SINEX file
 
 inputs:
-    include_yamls:
-        - input_metadata.yaml
-        - input_files_network.yaml
-        # - processing_network.yaml
-        - processing_network_orbits.yaml
-        - mongo_outputs.yaml
-        - debug_trace.yaml
-    
+
     satellite_data:
         nav_files: [ brdm1990.19p                               ]
     
+    root_directory: products/
+    snx_files:  
+    - tables/igs_satellite_metadata_2203_plus.snx 
+    - IGS1R03SNX_20191950000_07D_07D_CRD.SNX    
+    atx_files:  [ M20.ATX                           ]  
+    blq_files:  [ OLOAD_GO.BLQ                      ]  
+    egm_files:  [ tables/EGM2008.gfc                ]  
+    jpl_files:  [ tables/DE436.1950.2050            ]  
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat       ]
+    igrf_files: [ igrf13coeffs.txt                  ]
+    erp_files:  [ tables/finals.data.iau2000.txt    ]
+    
+    troposphere:
+        gpt2grid_files:  gpt_25.grd
+        # vmf_files:   [ "grid5/*.H00","grid5/*.H06","grid5/*.H12","grid5/*.H18" ]
+        # orography_files:  orography_ell_5x5
+
+
+    pseudo_observations:
+        sp3_inputs:   
+        #- IGS2R03FIN_20191980000_01D_05M_ORB.SP3
+        #- IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+        #- IGS2R03FIN_20192000000_01D_05M_ORB.SP3
+        
+    gnss_observations:
+        inputs_root: ../data/
+        rnx_inputs:
+            - "AREG*.rnx"
+            - "ASCG*.rnx"
+            - "BAKE*.rnx"
+            - "CEDU*.rnx"
+            - "COCO*.rnx"
+            - "CPVG*.rnx"
+            - "DARW*.rnx"
+            - "DGAR*.rnx"
+            - "DJIG*.rnx"
+            - "DUMG*.rnx"
+            - "FAIR*.rnx"
+            - "GAMB*.rnx"
+            - "GLPS*.rnx"
+            - "HERS*.rnx"
+            - "HOB2*.rnx"
+            - "IISC*.rnx"
+            - "JFNG*.rnx"
+            #- "KARR*.rnx"
+            #- "KIRI*.rnx"
+            #- "KITG*.rnx"
+            #- "KOKV*.rnx"
+            #- "KRGG*.rnx"
+            ##- "KZN2*.rnx"
+            #- "LHAZ*.rnx"
+            #- "LMMF*.rnx"
+            #- "MAW1*.rnx"
+            #- "MBAR*.rnx"
+            #- "MCIL*.rnx"
+            #- "METG*.rnx"
+            #- "MGUE*.rnx"
+            #- "NICO*.rnx"
+            #- "NKLG*.rnx"
+            #- "OHI3*.rnx"
+            #- "OUS2*.rnx"
+            #- "POAL*.rnx"
+            #- "QUIN*.rnx"
+            #- "RAEG*.rnx"
+            #- "REYK*.rnx"
+            #- "RGDG*.rnx"
+            #- "SAMO*.rnx"
+            #- "SEY2*.rnx"
+            #- "SOLO*.rnx"
+            #- "STK2*.rnx"
+            #- "SUTM*.rnx"
+            #- "TONG*.rnx"
+            #- "TOPL*.rnx"
+            #- "TOW2*.rnx"
+            #- "ULAB*.rnx"
+            #- "URUM*.rnx"
+            #- "USN7*.rnx"
+            #- "VACS*.rnx"
+            #- "ZIM2*.rnx"
+            #- "CUSV*.rnx"
 outputs:
+    trace:
+        level:                      3
+        output_stations:            true
+        output_network:             true
+        station_filename:           <STATION><CONFIG>.TRACE
+        network_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+
+    
     metadata:
         config_description:     "ex205"
 
+    root_directory:                 outputs/<CONFIG>/
+    output_rotation:
+        period:                     1   # 6
+        period_units:               day # hours
+    bias_sinex:
+        output:                     true
+        code_output_interval:       86400.0
+        directory:                  ./
+        filename:                   GAA0GINRAP_<YYYY><DDD><HH>00_01D_01D_ABS.BIA
+        output_rec_bias:            false
+    clocks:
+        output:                     true
+        directory:                  ./
+        filename:                   GAA0GINRAP_<YYYY><DDD><HH>00_01D_30S_CLK.CLK
+
+    sinex:
+        output:                     true
+    erp:
+        output:                     true
+    trop_sinex:
+        output:                     true
+        sources:                    [ KALMAN ]
+        directory:                  ./
+        filename:                   <CONFIG>-<STATION><WWWW><D>.tro
+    sp3:
+        output:	                    true
+        directory:                  ./
+        filename:                   GAA0GINRAP_<YYYY><DDD><HH>00_01D_05M_ORB.SP3
+        output_inertial:            false                         	# (bool) Output the entries using inertial positions and velocities
+        output_interval:            300                           	# (int) Update interval for sp3 records
+        output_velocities:          false
+        orbit_sources:              [ KALMAN ]
+        clock_sources:              [ KALMAN ]
+
 processing_options:
+    process_modes:
+        ppp:                        true
+    epoch_control:
+        epoch_interval:             300
+        wait_next_epoch:            3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+        wait_all_stations:          1
+        fatal_message_level:        1
+    gnss_general:
+        minimise_sat_clock_offsets: true
+        elevation_mask:             10  #degrees
+        raim:                       true
+        rec_reference_system:       gps
+        sys_options:
+            gps:
+                process:                true
+                ambiguity_resolution:   false
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [ L1W, L1C, L2W ]
+            #gal:
+            #    process:                true
+            #    ambiguity_resolution:   false
+            #    reject_eclipse:         false
+            #    code_priorities:        [ L1C, L5Q, L1X, L5X ]
+            # glo:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1P, L1C, L2P, L2C ]
+            # qzs:
+            #     process:                true
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         true
+            #     code_priorities:        [ L1C, L2L, L2X ]
+
+    gnss_models:
+        troposphere:
+            model:                  gpt2
+        ionospheric_component:
+            enable:	                true
+
+    model_error_checking:
+        orbit_errors:
+          enable: true
+          orbit_pos_proc_noise:           100
+          orbit_vel_proc_noise:           1
+          orbit_vel_proc_noise_trail:     0.1
+          orbit_vel_proc_noise_trail_tau: 600
+        deweighting:
+            deweight_factor:        10000
+        ambiguities:
+            outage_reset_limit:     5
+            phase_reject_limit:     2
+            reinit_on_all_slips:    true     # (bool) Any detected slips cause removal and reinitialisation of ambiguities
+        clocks:
+            reinit_on_clock_error:  true                           # (bool) Any clock "state" errors cause removal and reinitialisation of the clocks and all associated ambiguities
+
     filter_options:
+        station_chunking:
+        
         rts:
             enable:         true
             directory:      ./    # WARNING: RTS Smoothing for network solutions may generate files of up to 1TB in size, make sure there is enoough disk space for these files
-            inverter:       LLT   
+            inverter:       LLT
 
+
+        outlier_screening:
+            max_filter_iterations:      20
+            max_prefit_removals:        3
+    minimum_constraints:
+        enable:                         true
+        once_per_epoch:                 false            # (bool) Perform minimum constraints on a temporary filter and output results once per epoch
+        translation:
+            estimated:                  [true]
+        rotation:
+            estimated:                  [true]
+        scale:
+            estimated:                  [false]
+        inverter:                       LDLT
+        max_filter_iterations:          20
+        max_prefit_removals:            3              # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
+        outlier_screening:
+            chi_square_mode:            none             # (enum)  Chi-square test mode - innovation, measurement, state {NONE,INNOVATION,MEASUREMENT,STATE}
+            chi_square_test:            false            # (bool)  Enable Chi-square test
+            sigma_check:                true             # (bool)  Enable prefit and postfit sigma check
+            sigma_threshold:            3.000000         # (float) sigma threshold
+            w_test:                     false            # (bool)  Enable w-test
+        station_noise:
+            global:                     [0.005, 0.005, 0.01]
+
+    orbit_propagation:
+        central_force:                  true
+        planetary_perturbation:         true
+        indirect_J2:                    true
+        egm_field:                      true
+        solid_earth_tide:               true
+        ocean_tide:                     true
+        general_relativity:             true
+        pole_tide_ocean:                true
+        pole_tide_solid:                true
+        solar_radiation_pressure:       true
+        antenna_thrust:                 true
+        empirical:                      true #true/false => false/ecom/srf
+        albedo:                         true
+        integrator_time_step:           60
+        sat_mass:                       1000
+        sat_area:                       15
+        srp_cr:                         1.75
+        degree_max:                     15
+
+        itrf_pseudoobs:                 true
+
+station_options:                                                 # Options to configure individual stations or global configs
+     global:
+         ant_delta:
+             enable:             true                            # (bool) Enable modelling of antenna eccentricities
+         attitude:
+             enable:             true                            # (bool) Enables non-nominal attitude types
+             sources:            [PRECISE, MODEL, NOMINAL]       # List of sourecs to use for attitudes
+         clock:
+             enable:             true                            # (bool) Enable modelling of clocks
+         pco:
+             enable:             true                            # (bool) Enable modelling of phase center offsets
+         pcv:
+             enable:             true                            # (bool) Enable modelling of phase center variations
+         code_bias:
+             default_bias:       0                               # (float) Bias to use when no code bias is found
+             enable:             true                            # (bool) Enable modelling of code biases
+             undefined_sigma:    0                               # (float) Uncertainty sigma to apply to default code biases
+         phase_bias:
+             default_bias:       0                               # (float) Bias to use when no phase bias is found
+             enable:             false                           # (bool) Enable modelling of phase biases
+             undefined_sigma:    0                               # (float) Uncertainty sigma to apply to default phase biases
+         pos:
+             enable:             true                            # (bool) Enable modelling of position
+
+estimation_parameters:
+
+    stations:
+        error_model:                elevation_dependent         #uniform elevation_dependent
+        code_sigmas:                [0.4]
+        phase_sigmas:               [0.002] # F0, F1, F2, F5, F6, F7, F8
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [1]
+                proc_noise:         [0.0]
+                proc_noise_dt:      second
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [10]
+                #proc_noise:         [100]
+            amb:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [0]
+                #proc_noise_dt:      day
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001]
+                proc_noise_dt:      second
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+                proc_noise_dt:      second
+            ion_stec:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [0.2]
+            code_bias:
+                estimated:          [true]
+                sigma:              [20]
+                proc_noise:         [0]
+        USN7:
+            clk:
+                #estimated:          [false]    # Set reference (pivot) station clock
+            code_bias:
+                #estimated:          [false]
+    satellites:
+        pseudo_sigmas:             [1e6]                        # [floats] Standard deviation of pseudo measurmeents
+        global:
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [10]
+                mu:                 [10000]
+            code_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
+            orbit:                                            # Orbital state
+                estimated:          [true]                    # [bools] Estimate state in kalman filter
+                sigma:              [30, 0.5, 0.5, 0.001]   # [floats] Apriori sigma values - if zero, will be initialised using least squares
+                proc_noise:         [0]
+                
+            emp_d_0: { estimated: [true], sigma: [1e6]}
+            emp_y_0: { estimated: [true], sigma: [1e6]}
+            emp_b_0: { estimated: [true], sigma: [1e6]}
+            
+            emp_d_1: { estimated: [true], sigma: [1e6]}
+           #emp_y_1: { estimated: [true], sigma: [1e6]}
+            emp_b_1: { estimated: [true], sigma: [1e6]}
+            
+            emp_d_2: { estimated: [true], sigma: [1e6]}
+           #emp_y_2: { estimated: [true], sigma: [1e6]}
+           #emp_b_2: { estimated: [true], sigma: [1e6]}
+           
+           #emp_d_3: { estimated: [true], sigma: [1e6]}
+           #emp_y_3: { estimated: [true], sigma: [1e6]}
+           #emp_b_3: { estimated: [true], sigma: [1e6]}
+           
+            emp_d_4: { estimated: [true], sigma: [1e6]}
+           #emp_y_4: { estimated: [true], sigma: [1e6]}
+           #emp_b_4: { estimated: [true], sigma: [1e6]}
+    GPS:
+      L1W:
+        code_bias:
+          apriori_val:
+          - 0
+          estimated:
+          - true
+          sigma:
+          - 1e-08
+      L2W:
+        code_bias:
+          apriori_val:
+          - 0
+          estimated:
+          - true
+          sigma:
+          - 1e-08
+        GPS:
+            L1W:
+                code_bias:
+                    sigma:              [1e-8]      # this implements B(s,GPS-L1W)=0
+                    process_noise:      [0]
+                    apriori_value:      [0]
+            L2W:
+                code_bias:
+                    sigma:              [1e-8]      # this implements B(s,GPS-L2W)=0
+                    process_noise:      [0]
+                    apriori_value:      [0]
+    eop:
+        estimated:  [true]
+        sigma:      [10]
+
+    eop_rates:
+        estimated:  [true]
+        sigma:      [10]
+
+mongo:
+    enable:                     true
+    uri:                        mongodb://127.0.0.1:27017
+    database:                   <CONFIG>
+    output_components:          true
+    output_states:              true
+    output_measurements:        true
+    output_test_stats:          true
+    delete_history:             true
+    suffix:                     ""
+# Sets up the debug trace for Ginan processing
+ 
 satellite_options:
+    global:
+        clock:
+            sources:            [KALMAN, PRECISE, BROADCAST] 
+            enable:             true                         
+        pos:  
+            enable:             true  
+            sources:            [KALMAN, PRECISE, BROADCAST] 
+        attitude:
+            enable:             true                         
+            sources:            [PRECISE, MODEL, NOMINAL]    
+        pco:
+            enable:             true                         
+        pcv:
+            enable:             true                         
+        code_bias:
+            default_bias:       0                            
+            enable:             true                         
+            undefined_sigma:    0                            
+        phase_bias:
+            default_bias:       0                            
+            enable:             false                        
+            undefined_sigma:    0                            
+
     G04:
         exclude:                true
+
+    E05: { exclude: true }
+    E06: { exclude: true }
+    E10: { exclude: true }
+    E16: { exclude: true }
+    E17: { exclude: true }
+    E23: { exclude: true }
+    E28: { exclude: true }
+    E29: { exclude: true }
+    E32: { exclude: true }
+    E34: { exclude: true }
+    E35: { exclude: true }
+# Sets 50 stations from a global network as inputs to processing_options 
+debug:
+  #instrument: true
+  #pseudo_pulses: 144

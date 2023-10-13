@@ -170,6 +170,8 @@ add_library(ginan_core
 		iono/ionoBSplines.cpp
 		iono/ionexWrite.cpp
 		iono/ionoLocalSTEC.cpp
+		
+		inertial/posProp.cpp
 
 		trop/tropModels.hpp
 		trop/tropModels.cpp
@@ -230,6 +232,7 @@ target_include_directories(ginan_core PUBLIC
 		common
 		iono
 		trop
+		inertial
 		orbprop
 		pea
 		peaUploader

@@ -152,39 +152,37 @@ class MongoDB:
         collection, 
         match_thing, 
         group_thing, 
-        xvalue, 
         yvalue
     ):
 
         results = {}
-        xvalue = "val." + xvalue
         yvalue = "val." + yvalue
         matches = json.loads("{" + match_thing + "}")
         groups  = json.loads("{" + group_thing + "}")
-        
 
         groupObj = {"Epoch": "$Epoch"};
         sortObj = {"_id.Epoch": 1};
-        matchObj = { "$or":[{xvalue : {"$exists":1}},{yvalue : {"$exists":1}}]};
+        matchObj = { yvalue : {"$exists":1}};
 
         for entry, val in groups.items():
             groupObj[entry] = "$id." + entry;
-            sortObj["_id." + entry] = 1;
+            # sortObj["_id." + entry] = 1;
 
         for entry, val in matches.items():
             matchObj["id." + entry] = val;
 
-        print("groupObj")
-        print(groupObj)
-        print("sortObj")
-        print(sortObj)
-        print("matchObj")
-        print(matchObj)
-        print("xvalue")
-        print(xvalue)
-        print("yvalue")
-        print(yvalue)
-
+        # print("self.mongo_db")
+        # print(self.mongo_db)
+        # print("collection")
+        # print(collection)
+        # print("groupObj")
+        # print(groupObj)
+        # print("sortObj")
+        # print(sortObj)
+        # print("matchObj")
+        # print(matchObj)
+        # print("yvalue")
+        # print(yvalue)
 
         logger.info("getting arbitrary data")
 
@@ -195,7 +193,7 @@ class MongoDB:
                 "$group":      
                 {
                     "_id":      groupObj, 
-                    "x":        {"$addToSet":       "$" + xvalue    },  
+                    "Epoch":    {"$first":          "$Epoch"        }, 
                     "y":        {"$addToSet":       "$" + yvalue    }, 
                     "fields":   {"$mergeObjects":   "$id"           }
                 }
@@ -208,9 +206,11 @@ class MongoDB:
 
         logger.info("getting data")
 
-        for cursor in self.mongo_client[self.mongo_db][collection].aggregate(pipeline):
+        for cursor in self.mongo_client[self.mongo_db][collection].aggregate(pipeline, allowDiskUse=True):
 
-            if len(cursor["x"]) > 1 or len(cursor["y"]) > 1:
+            # print(cursor)
+
+            if len(cursor["y"]) > 1:
                 print(cursor)
                 print("excessFields")
                 print(cursor["fields"])
@@ -222,7 +222,7 @@ class MongoDB:
                 print(results["excessFields"])
                 return results
 
-            if len(cursor["x"]) != 0 and len(cursor["y"]) != 0:
+            if len(cursor["y"]) != 0:
 
                 if str(cursor["_id"]) not in results:
                     results[str(cursor["_id"])] = []

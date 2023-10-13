@@ -10,16 +10,12 @@
 using std::vector;
 using std::map;
 
-#include "centerMassCorrections.hpp"
 #include "eigenIncluder.hpp"
-#include "staticField.hpp"
-#include "tideCoeff.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
 #include "gTime.hpp"
 #include "trace.hpp"
 #include "enums.h"
-#include "erp.hpp"
 
 using namespace boost::numeric::odeint;
 
@@ -27,8 +23,8 @@ struct EMP
 {
 	bool		eclipsing	= false;
 	int			deg			= 0;
-	short int	axisId		= 0;
-	E_TrigType	type		= E_TrigType::CONSTANT;
+	E_EmpAxis	axisId		= E_EmpAxis::NONE;
+	E_TrigType	type		= E_TrigType::COS;
 	double		value		= 0;
 };
 
@@ -193,11 +189,18 @@ void integrateOrbits(
 	double				integrationPeriod,
 	double 				dt);
 
-void addKFSatEMPStates( 
-			KalmanModel&	model, 
+
+void addEmpStates(
+	const	EmpOptions&		satOpts,
 	const	KFState&		kfState,
-			KF				kfType,
-			string			id);
+	const	string&			id);
+
+void addNilDesignStates( 
+	const	KalmanModel&	model, 
+	const	KFState&		kfState,
+	const	KF&				kfType,
+			int				num,
+	const	string&			id);
 
 void outputOrbitConfig(
 		KFState&	kfState,

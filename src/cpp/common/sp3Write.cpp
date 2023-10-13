@@ -18,6 +18,7 @@
 #include "station.hpp"
 #include "algebra.hpp"
 #include "enums.h"
+#include "erp.hpp"
 
 /* macro defintions */
 #define             VERSION             3.00
@@ -74,7 +75,7 @@ void writeSp3Header(
 			   mjdate,
 			   mjdate - floor(mjdate));
 
-	for (auto sys : {E_Sys::GPS, E_Sys::GLO, E_Sys::GAL, E_Sys::BDS})
+	for (auto sys : {E_Sys::GPS, E_Sys::GLO, E_Sys::GAL, E_Sys::BDS, E_Sys::LEO})
 	{
 		if (outSys[sys])	
 		for (auto Sat : getSysSats(sys))
@@ -322,6 +323,17 @@ void writeSysSetSp3(
 {
 	map<int, Sp3Entry> entryList;
 
+	ERPValues filterErpv;
+	if (kfState_ptr)
+	{
+		filterErpv = getErpFromFilter(*kfState_ptr);
+	}
+				
+	ERPValues erpv = getErp(nav.erp, time);
+
+	FrameSwapper frameSwapperUndo(time, erpv);
+	FrameSwapper frameSwapperRedo(time, filterErpv);
+	
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
 		if (outSys[Sat.sys] == false)
@@ -332,8 +344,8 @@ void writeSysSetSp3(
 		obs.Sat			= Sat;
 		obs.satNav_ptr	= &nav.satNavMap[Sat];
 
-		bool clkPass = satclk(nullStream, time, time, obs, sp3OrbitSrcs,					nav, kfState_ptr);
-		bool posPass = satpos(nullStream, time, time, obs, sp3ClockSrcs, E_OffsetType::COM,	nav, kfState_ptr);
+		bool clkPass = satclk(nullStream, time, time, obs, sp3ClockSrcs,					nav, kfState_ptr);
+		bool posPass = satpos(nullStream, time, time, obs, sp3OrbitSrcs, E_OffsetType::COM,	nav, kfState_ptr);
 		
 		if (posPass == false)
 		{
@@ -350,8 +362,20 @@ void writeSysSetSp3(
 		}
 		else
 		{
-			entry.satPos = obs.rSat;
-			entry.satVel = obs.satVel;
+			VectorEcef posEcef = obs.rSatCom;
+			VectorEcef velEcef = obs.satVel;
+			
+			if (filterErpv.time != GTime::noTime())
+			{
+				VectorEci velEci;
+				VectorEci posEci;
+				
+				posEci	= frameSwapperUndo(posEcef,	&velEcef,	&velEci);
+				posEcef = frameSwapperRedo(posEci,	&velEci,	&velEcef);
+			}
+			
+			entry.satPos = posEcef;
+			entry.satVel = velEcef;
 		}
 		
 		if (clkPass)

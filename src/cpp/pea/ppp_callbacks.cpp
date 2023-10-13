@@ -30,8 +30,8 @@ bool deweightMeas(
 	kfState.statisticsMap["Meas deweight"]++;
 	
 	char buff[64];
-	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%sfit",		key.str.c_str(),		postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
-	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%sfit",		key.Sat.id().c_str(),	postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
+	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.str.c_str(),		KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
+	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.Sat.id().c_str(),	KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 
 	kfMeas.R.row(index) *= acsConfig.deweight_factor;
 	kfMeas.R.col(index) *= acsConfig.deweight_factor;
@@ -340,7 +340,7 @@ bool orbitGlitchReaction(
 		return true;
 	}
 	
-	if (acsConfig.enable_orbit_proc_noise_impulses == false)
+	if (acsConfig.orbitErrors.enable == false)
 	{
 		return true;
 	}	
@@ -350,28 +350,28 @@ bool orbitGlitchReaction(
 	kfState.statisticsMap["Orbit state reject"]++;
 	
 	Exponential exponentialNoise;
-	exponentialNoise.tau	=		acsConfig.orbit_vel_proc_noise_trail_tau;
-	exponentialNoise.value	= SQR(	acsConfig.orbit_vel_proc_noise_trail);
+	exponentialNoise.tau	=		acsConfig.orbitErrors.vel_proc_noise_trail_tau;
+	exponentialNoise.value	= SQR(	acsConfig.orbitErrors.vel_proc_noise_trail);
 	
 	MatrixXd F = MatrixXd::Identity	(kfState.x.rows(), kfState.x.rows());
 	MatrixXd Q = MatrixXd::Zero		(kfState.x.rows(), kfState.x.rows());
 	
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
-		if	(  key.type	== KF::ORBIT
-			&& key.str	== kfKey.str
-			&& key.Sat	== kfKey.Sat
-			&& key.num	<  3)
+		if	(  key.type	!= KF::ORBIT
+			|| key.str	!= kfKey.str
+			|| key.Sat	!= kfKey.Sat)
 		{
-			Q(index, index) = SQR(acsConfig.orbit_pos_proc_noise);
+			continue;
 		}
 		
-		if	(  key.type	== KF::SAT_POS_RATE
-			&& key.str	== kfKey.str
-			&& key.Sat	== kfKey.Sat
-			&& key.num	>= 3)
+		if (key.num	< 3)
 		{
-			Q(index, index) = SQR(acsConfig.orbit_vel_proc_noise);
+			Q(index, index) = SQR(acsConfig.orbitErrors.pos_proc_noise);
+		}
+		else
+		{
+			Q(index, index) = SQR(acsConfig.orbitErrors.vel_proc_noise);
 	
 			kfState.setExponentialNoise(key, exponentialNoise);
 		}

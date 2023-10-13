@@ -13,7 +13,7 @@ void outputStatistics(
 	
 	for (auto& [str, count] : statisticsMap)
 	{
-		tracepdeex(0, trace, "! %-30s: %d\n", str.c_str(), count);
+		tracepdeex(0, trace, "! %-40s: %d\n", str.c_str(), count);
 		statisticsMapSum[str] += count;
 	}
 	

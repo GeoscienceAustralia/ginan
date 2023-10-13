@@ -127,6 +127,7 @@ void mincon(
 		if (type == +E_SerialObject::NONE)
 		{
 			std::cout << std::endl << "Writing backup point for minimum constraints to " << MINCONONLY_FILENAME; 
+			
 			spitFilterToFile(kfStateStations, E_SerialObject::FILTER_PLUS, MINCONONLY_FILENAME);
 		}
 	}
@@ -163,7 +164,9 @@ void mincon(
 	
 	for (auto& [key, index] : kfStateStations.kfIndexMap)
 	{
-		if (key.type != KF::REC_POS)
+		if	( key.type != KF::REC_POS
+// 			&&key.type != KF::ORBIT		//todo aaron, complete the mincon for orbits
+		)
 		{
 			//Add null measurement and continue, its needed for inverse later
 			KFMeasEntry meas(&kfStateTrans);
@@ -173,7 +176,8 @@ void mincon(
 			continue;
 		}
 
-		if (key.rec_ptr == nullptr)
+		if	( key.type		== +KF::REC_POS
+			&&key.rec_ptr	== nullptr)
 		{
 			BOOST_LOG_TRIVIAL(error)
 			<< "Error: rec_ptr is null during mincon";
@@ -405,7 +409,7 @@ void mincon(
 
 		if (kfState.rts_basename.empty() == false)
 		{
-			spitFilterToFile(kfState, E_SerialObject::FILTER_MINUS, kfState.rts_basename + FORWARD_SUFFIX);
+			spitFilterToFile(kfState, E_SerialObject::FILTER_MINUS, kfState.rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 		}
 
 		MatrixXd Pp = kfState.P;
@@ -430,7 +434,7 @@ void mincon(
 
 		if (kfState.rts_basename.empty() == false)
 		{
-			spitFilterToFile(kfState, E_SerialObject::FILTER_PLUS, kfState.rts_basename + FORWARD_SUFFIX);
+			spitFilterToFile(kfState, E_SerialObject::FILTER_PLUS, kfState.rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 		}
 	}
 	

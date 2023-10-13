@@ -289,8 +289,8 @@ struct Sinex_solestimate_t
 	char	constraint;
 	double	estimate;
 	double	stddev;
+	string	file;
 	
-	bool	primary;	///< First sinex file ever read is considered the primary source of apriori data, to be used for minimum constraints etc.
 	bool	used = false;
 };
 
@@ -598,6 +598,8 @@ struct SinexTropSol
 
 struct Sinex
 {
+	string currentFile;
+	
 	/* header block */
 	string	snxtype;				/* SINEX file type */
 	double	ver;					/* version */
@@ -631,8 +633,7 @@ struct Sinex
 	bool								epochs_have_bias;      
 	list<Sinex_solepoch_t>				list_solepochs;
 	list<Sinex_solstatistic_t>			list_statistics;
-	map<string, map<string, map<GTime, Sinex_solestimate_t, std::greater<GTime>>>>	map_estimates_primary;
-	map<string, map<string, map<GTime, Sinex_solestimate_t, std::greater<GTime>>>>	map_estimates;
+	map<string, map<string, map<GTime, Sinex_solestimate_t, std::greater<GTime>>>>	estimatesMap;
 	map<int, Sinex_solapriori_t>			apriori_map;
 	list<Sinex_solneq_t>				list_normal_eqns;
 	map<matrix_value,list<Sinex_solmatrix_t>>  matrix_map[MAX_MATRIX_TYPE];
@@ -665,8 +666,6 @@ struct Sinex
 		
 	};
 	
-	bool	primary = false;	///< Set true while a primary sinex file is being read.
-
 	// Troposphere Sinex data
 	map<string, int>				tropSiteCoordBodyFPosMap;
 	map<string, int>				tropSolFootFPosMap;
@@ -749,7 +748,7 @@ union GetSnxResult
 GetSnxResult getStnSnx	(string rec,	GTime time, SinexRecData&	snx);
 GetSnxResult getSatSnx	(string prn,	GTime time, SinexSatSnx&	snx);
 
-void	getRecBias	(string station,	UYds yds, map<char, double>& stn_bias);
+void	getRecBias	(string station,	const UYds& yds, map<char, double>& stn_bias);
 long int time_compare(UYds& left, UYds& right);
 void sinex_add_statistic(const string& what, const int		value);
 void sinex_add_statistic(const string& what, const double	value);

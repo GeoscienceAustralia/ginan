@@ -65,7 +65,7 @@ void testEclipse(
 			continue;
 		}
 
-		double r = obs.rSat.norm();
+		double r = obs.rSatCom.norm();
 		if (r <= 0)
 			continue;
 
@@ -74,7 +74,7 @@ void testEclipse(
 // 			continue;
 
 		/* sun-earth-satellite angle */
-		double cosa = obs.rSat.dot(esun) / r;
+		double cosa = obs.rSatCom.dot(esun) / r;
 		
 		if (cosa < -1)		cosa = -1;
 		if (cosa > +1)		cosa = +1;
@@ -110,7 +110,7 @@ SatGeom satOrbitGeometry(
 	SatPos&		satPos)			///< Observation
 {
 	SatGeom satGeom;
-	satGeom.rSat = satPos.rSat;
+	satGeom.rSat = satPos.rSatCom;
 	
 	Vector3d&	vSat		= satPos.satVel;
 
@@ -950,6 +950,52 @@ bool preciseAttitude(
 	return true;
 }
 
+bool kalmanAttitude(
+	string			id,					///< Satellite/receiver ID
+	GTime			time,				///< Solution time
+	AttStatus&		attStatus,			///< Attitude status
+	const KFState*	kfState_ptr)
+{
+	if (kfState_ptr == nullptr)
+	{
+		return false;
+	}
+	
+	auto& kfState = *kfState_ptr;
+	
+	bool found = true;
+	
+	Quaterniond quat;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		KFKey kfKey;
+		kfKey.type	= KF::QUAT;
+		kfKey.str	= id;
+		kfKey.num	= i;
+		
+		if (i == 0)		{	found &= kfState.getKFValue(kfKey, quat.w());	}
+		if (i == 1)		{	found &= kfState.getKFValue(kfKey, quat.x());	}
+		if (i == 2)		{	found &= kfState.getKFValue(kfKey, quat.y());	}
+		if (i == 3)		{	found &= kfState.getKFValue(kfKey, quat.z());	}
+	}
+	
+	if (found == false)
+	{
+		return false;
+	}
+	
+	quat.normalize();
+	
+	Matrix3d body2Ecef = quat.toRotationMatrix().transpose();
+	
+	attStatus.eXBody = body2Ecef.col(0);
+	attStatus.eYBody = body2Ecef.col(1);
+	attStatus.eZBody = body2Ecef.col(2);
+
+	return true;
+}
+
 /** Calculates satellite attitude - unit vectors of satellite-fixed coordinates (ECEF)
  * Returns false if no attitude available (e.g. due to eclipse, not found in file, etc.)
 */
@@ -1001,7 +1047,7 @@ bool satAtt(
 	return	satAtt(
 				satPos.Sat,
 				satPos.posTime,
-				satPos.rSat,
+				satPos.rSatCom,
 				satPos.satVel,
 				attitudeTypes,
 				attStatus,
@@ -1073,7 +1119,9 @@ bool basicRecAttitude(
 void recAtt(
 	Station&			rec,				///< Receiver
 	GTime				time,				///< Time
-	vector<E_Source>	attitudeTypes)		///< Attitude type
+	vector<E_Source>	attitudeTypes,		///< Attitude type
+	const KFState*		kfState_ptr,
+	const KFState*		remote_ptr)
 {
 	auto& attStatus = rec.attStatus;
 	
@@ -1084,8 +1132,10 @@ void recAtt(
 		{
 			default:	BOOST_LOG_TRIVIAL(error) << "Unknown attitudeType in " << __FUNCTION__ << ": " << attitudeType._to_string();
 			case E_Source::MODEL:	//fallthrough
-			case E_Source::NOMINAL:	{	valid = basicRecAttitude(rec,				attStatus);			break;	}
-			case E_Source::PRECISE:	{	valid = preciseAttitude	(rec.id,	time,	attStatus);			break;	}
+			case E_Source::NOMINAL:	{	valid = basicRecAttitude(rec,				attStatus);					break;	}
+			case E_Source::PRECISE:	{	valid = preciseAttitude	(rec.id,	time,	attStatus);					break;	}
+			case E_Source::KALMAN:	{	valid = kalmanAttitude	(rec.id,	time,	attStatus, kfState_ptr);	break;	}
+			case E_Source::REMOTE:	{	valid = kalmanAttitude	(rec.id,	time,	attStatus, remote_ptr);		break;	}
 		}
 		
 		if (valid)

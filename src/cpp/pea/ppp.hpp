@@ -37,7 +37,9 @@ void SPP(
 	Trace&		trace,
 	ObsList&	obsList,
 	Solution&	sol,
-	string		id);
+	string		id,
+	KFState*	kfState_ptr	= nullptr,
+	KFState*	remote_ptr	= nullptr);
 
 void testEclipse(
 	ObsList&	obsList);
@@ -164,7 +166,8 @@ void stationPPP(
 			Trace&				netTrace,		
 			Station&			rec,			
 	const	KFState&			kfState,		
-			KFMeasEntryList&	kfMeasEntryList);
+			KFMeasEntryList&	kfMeasEntryList,
+	const	KFState&			remoteState);
 
 
 void orbitPseudoObs(
@@ -228,4 +231,9 @@ void ionoPseudoObs (
 	Trace&				trace,
 	StationMap&			stations,	
 	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
+
+void satClockPivotPseudoObs(		
+	Trace&				trace,
+	KFState&			kfState,			
 	KFMeasEntryList&	kfMeasEntryList);

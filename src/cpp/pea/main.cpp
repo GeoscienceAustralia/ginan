@@ -67,6 +67,7 @@ using std::string;
 #include "sp3Write.hpp"
 #include "metaData.hpp"
 #include "attitude.hpp"
+#include "posProp.hpp"
 #include "station.hpp"
 #include "summary.hpp"
 #include "antenna.hpp"
@@ -253,7 +254,7 @@ void addStationData(
 		}
 		
 		if		(inputFormat == "RINEX")	{	parser_ptr = make_unique<RinexParser>	();	static_cast<RinexParser*>	(parser_ptr.get())->rnxRec.id		= id;			}
-		else if	(inputFormat == "UBX")		{	parser_ptr = make_unique<UbxParser>		();	}
+		else if	(inputFormat == "UBX")		{	parser_ptr = make_unique<UbxParser>		();	static_cast<UbxParser*>		(parser_ptr.get())->recId			= id;			}
 		else if (inputFormat == "RTCM")		{	parser_ptr = make_unique<RtcmParser>	();	static_cast<RtcmParser*>	(parser_ptr.get())->rtcmMountpoint	= mountpoint;	}
 		else if (inputFormat == "SP3")		{	parser_ptr = make_unique<Sp3Parser>		();	}
 		else if (inputFormat == "SINEX")	{	parser_ptr = make_unique<SinexParser>	();	}
@@ -970,7 +971,7 @@ void createTracefiles(
 			{
 				if (acsConfig.process_ppp)
 				{
-					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.trop_sinex_filename		+ suff,	net.kfState	.metaDataMap[TROP_FILENAME_STR			+ metaSuff]);
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.trop_sinex_filename		+ suff,	net.kfState	.metaDataMap[TROP_FILENAME_STR	+ id	+ metaSuff]);
 				}
 			}
 
@@ -1076,7 +1077,7 @@ void createTracefiles(
 		if	(  rts 
 			&& newTraceFile)
 		{
-			spitFilterToFile(net.kfState.metaDataMap,	E_SerialObject::METADATA, net.kfState.rts_basename + FORWARD_SUFFIX); 
+			spitFilterToFile(net.kfState.metaDataMap, E_SerialObject::METADATA, net.kfState.rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs); 
 		}
 	}
 	
@@ -1190,8 +1191,14 @@ void avoidCollisions(
 	for (auto& [id, rec] : stationMap)
 	{
 		//create sinex estimate maps
-		theSinex.map_estimates_primary	[id];
-		theSinex.map_estimates			[id];
+		theSinex.estimatesMap[id];
+		
+		auto& recOpts = acsConfig.getRecOpts(id);
+	
+		if (recOpts.sat_id.empty() == false)
+		{
+			auto& satNav = nav.satNavMap[recOpts.sat_id.c_str()];
+		}
 	}
 }
 
@@ -1216,7 +1223,7 @@ void mainOncePerEpochPerStation(
 
 	if (acsConfig.process_spp)
 	{
-		SPP(trace, rec.obsList, rec.sol, rec.id);
+		SPP(trace, rec.obsList, rec.sol, rec.id, &net.kfState, nullptr);
 	}
 	
 	if	(  rec.ready == false
@@ -1232,24 +1239,32 @@ void mainOncePerEpochPerStation(
 	
 	setClockCodesForReceiver(trace, rec);
 	
-	if	( sppUsed
-		&&acsConfig.require_apriori_positions)
+	if (sppUsed)
 	{
-		trace << std::endl			<< "Station " << rec.id << " rejected due to lack of apriori position";
-		BOOST_LOG_TRIVIAL(warning)	<< "Station " << rec.id << " rejected due to lack of apriori position";
+		if (acsConfig.require_apriori_positions)
+		{
+			trace << std::endl			<< "Warning: Station " << rec.id << " rejected due to lack of apriori position";
+			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Station " << rec.id << " rejected due to lack of apriori position";
+			
+			rec.invalid = true;
+			return;
+		}
 		
-		rec.invalid = true;
-		return;
+		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Apriori position not found for " << rec.id;
 	}
-
-	if	( rec.antennaId.empty()
-		&&acsConfig.require_antenna_details)
+	
+	if (rec.antennaId.empty())
 	{
-		trace << std::endl			<< "Station " << rec.id << " rejected due to lack of antenna details";
-		BOOST_LOG_TRIVIAL(warning)	<< "Station " << rec.id << " rejected due to lack of antenna details";
-		
-		rec.invalid = true;
-		return;
+		if (acsConfig.require_antenna_details)
+		{
+			trace << std::endl			<< "Warning: Station " << rec.id << " rejected due to lack of antenna details";
+			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Station " << rec.id << " rejected due to lack of antenna details";
+			
+			rec.invalid = true;
+			return;
+		}
+
+		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Antenna details not found for " << rec.id;
 	}
 	
 	emptyEpoch = false;
@@ -1285,7 +1300,7 @@ void mainOncePerEpochPerStation(
 	}
 
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
-	
+
 	rec.antBoresight	= recOpts.antenna_boresight;
 	rec.antAzimuth		= recOpts.antenna_azimuth;
 	
@@ -1545,7 +1560,7 @@ void mainOncePerEpochPerSatellite(
 		}		
 		
 		//reinitialise the options with the updated values
-		satOpts._initialised = false;
+		satOpts._initialised = false;		//todo aaron, this is insufficient since the opts are inherited from the other initialised ones per file which are not reset
 	}
 	
 	satOpts = acsConfig.getSatOpts(Sat);
@@ -1569,7 +1584,8 @@ void mainOncePerEpochPerSatellite(
 	
 	FrameSwapper frameSwapper(time, erpv);
 	
-	satPos0.rSatEci0 = frameSwapper(satPos0.rSat);
+// 	satPos0.rSatEci0	= frameSwapper(satPos0.rSatCom);		//dont uncomment this, does double propagation in spp
+// 	satPos0.posTime		= time;
 	
 	satNav.aprioriPos	= satPos0.rSatEci0;
 	
@@ -1597,6 +1613,10 @@ void mainOncePerEpoch(
 	//initialise mongo if not already done
 	mongoooo();
 
+	//integrate accelerations and early prepare satPos0 with propagated values
+	predictOrbits	(netTrace, net.kfState, time);
+	predictInertials(netTrace, net.kfState, time);
+
 	//try to get svns & block types of all used satellites
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
@@ -1605,7 +1625,7 @@ void mainOncePerEpoch(
 	
 		mainOncePerEpochPerSatellite(netTrace, time, Sat);
 	}
-
+	
 	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << std::endl;
 
 	//do per-station pre processing
@@ -1724,6 +1744,11 @@ void mainPostProcessing(
 	
 	if (acsConfig.process_rts)
 	{
+		while (spitQueueRunning)
+		{
+			sleep_for(std::chrono::milliseconds(acsConfig.sleep_milliseconds));	
+		}
+		
 		if	( acsConfig.process_ppp
 			&&acsConfig.pppOpts.rts_lag < 0)
 		{
@@ -1842,6 +1867,7 @@ int ginan(
 		net.kfState.max_prefit_remv				= acsConfig.pppOpts.max_prefit_remv;
 		net.kfState.inverter					= acsConfig.pppOpts.inverter;
 		net.kfState.sigma_check					= acsConfig.pppOpts.sigma_check;
+		net.kfState.assume_linearity			= acsConfig.pppOpts.assume_linearity;
 		net.kfState.sigma_threshold				= acsConfig.pppOpts.sigma_threshold;
 		net.kfState.w_test						= acsConfig.pppOpts.w_test;
 		net.kfState.chi_square_test				= acsConfig.pppOpts.chi_square_test;
@@ -1853,8 +1879,8 @@ int ginan(
 		net.kfState.measRejectCallbacks	.push_back(incrementPhaseSignalError);
 		net.kfState.measRejectCallbacks	.push_back(pseudoMeasTest);
 		
+		net.kfState.stateRejectCallbacks.push_back(orbitGlitchReaction);	//this goes before reject by state
 		net.kfState.stateRejectCallbacks.push_back(rejectByState);
-		net.kfState.stateRejectCallbacks.push_back(orbitGlitchReaction);
 	}
 	{
 		iono_KFState.max_filter_iter			= acsConfig.pppOpts.max_filter_iter;

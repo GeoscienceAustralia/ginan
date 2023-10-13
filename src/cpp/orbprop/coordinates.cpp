@@ -33,8 +33,8 @@ void eci2ecef(
 	double yp		= erpVal.yp;
 	double lod		= erpVal.lod;
 	double ut1_utc	= erpVal.ut1Utc;
-    double dx00 = 0.1725 * DMAS2R;
-    double dy00 = -0.2650 * DMAS2R;
+	double dx00 = 0.1725 * DMAS2R;
+	double dy00 = -0.2650 * DMAS2R;
 	IERS2010 iers;
 
 	double xp_pm	= 0;
@@ -44,19 +44,19 @@ void eci2ecef(
 	double xp_o		= 0;
 	double yp_o		= 0;
 	double ut1_o	= 0;
-    double lod_o    = 0;
+	double lod_o    = 0;
 	
 	iers.PMGravi	(time,	ut1_utc,	xp_pm,	yp_pm,	ut1_pm,	lod_pm);
-    FundamentalArgs fundArgs(time, ut1_utc);
+	FundamentalArgs fundArgs(time, ut1_utc);
 
-    if (hfEop.initialized)
-    {
-        hfEop.compute(fundArgs, xp_o, yp_o, ut1_o, lod_o);
-    }
-    else
-    {
-        iers.PMUTOcean	(time,	ut1_utc,	xp_o,	yp_o,	ut1_o); //, lod_pm);
-    }
+	if (hfEop.initialized)
+	{
+		hfEop.compute(fundArgs, xp_o, yp_o, ut1_o, lod_o);
+	}
+	else
+	{
+		iers.PMUTOcean	(time,	ut1_utc,	xp_o,	yp_o,	ut1_o); //, lod_pm);
+	}
 
 	double xp_ = xp + (xp_pm + xp_o) * 1e-6 * AS2R;
 	double yp_ = yp + (yp_pm + yp_o) * 1e-6 * AS2R;
@@ -78,7 +78,7 @@ void eci2ecef(
 	double S_iau = 0;
 	Sofa::iauXys(mjDateTT, X_iau, Y_iau, S_iau);
 	X_iau += dx00;
-    Y_iau += dy00;
+	Y_iau += dy00;
 	Matrix<double, 3, 3, Eigen::RowMajor> RC2I;	
 	Matrix<double, 3, 3, Eigen::RowMajor> RPOM;	
 	
@@ -184,7 +184,7 @@ void pos2enu(
 }
 
 /* transform ecef vector to local tangental coordinates
- */
+*/
 VectorEnu ecef2enu(
 	const	VectorPos&	pos,	///< geodetic position {lat,lon} (rad)
 	const	VectorEcef&	ecef)	///< vector in ecef coordinate {x,y,z}
@@ -231,13 +231,39 @@ VectorEcef body2ecef(
 */
 Vector3d ecef2body(
 	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of body frame) in ecef frame
-	VectorEcef&	ecef)		///< vector in ecef frame
+	VectorEcef&	ecef,		///< vector in ecef frame
+	MatrixXd*	dEdQ_ptr)
 {
 	Matrix3d R;
 	R << attStatus.eXBody, attStatus.eYBody, attStatus.eZBody;
 	
 	Vector3d body = R.transpose() * ecef;
 			
+	if (dEdQ_ptr)
+	{
+		MatrixXd& dEdQ = *dEdQ_ptr;
+		
+		dEdQ = MatrixXd(3,4);
+		
+		Quaterniond quat(R.transpose());
+		
+		for (int i = 0; i < 4; i++)
+		{
+			Quaterniond qCopy = quat;
+			double delta = 0.01;
+			
+			if (i == 0)			qCopy.w() += delta;
+			if (i == 1)			qCopy.x() += delta;
+			if (i == 2)			qCopy.y() += delta;
+			if (i == 3)			qCopy.z() += delta;
+			
+			qCopy.normalize();
+			
+			dEdQ.col(i) = ((qCopy * ecef) - body) / delta;
+		}
+		
+// 		std::cout << std::endl << dEdQ << std::endl;
+	}
 	return body;
 }
 
