@@ -89,7 +89,7 @@ echo "gpgcheck=1" >> /etc/yum.repos.d/mongodb-org-6.0.repo
 echo "enabled=1" >> /etc/yum.repos.d/mongodb-org-6.0.repo 
 echo "gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc" >> /etc/yum.repos.d/mongodb-org-6.0.repo
 
-RUN dnf install -y mongodb-org
+$sudo_cmd dnf install -y mongodb-org
 
 echo "Cleaning up mongo-cxx-driver files..."
 cd /tmp
