@@ -107,7 +107,7 @@ void minSiteData(
 				sqrt(enuCovariance(2,2)) * 1e3,
 				constraint.c_str());
 	}
-	trace << std::endl << "-Site Data" + suffix;
+	trace << std::endl << "-SITE/DATA" + suffix;
 }
 
 void mincon(
