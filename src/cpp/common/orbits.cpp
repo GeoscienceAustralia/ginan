@@ -324,7 +324,7 @@ VectorEci propagateEllipse(
 	
 	if (dt == 0)
 	{
-		ecef = frameSwapper(rSat);
+		ecef = frameSwapper(rSat, &vSat, vSatEcef_ptr);
 		
 		return rSat;
 	}
@@ -338,7 +338,7 @@ VectorEci propagateEllipse(
 		VectorEci newPos	= rSat
 							+ vSat * dt;
 							
-		ecef = frameSwapper(newPos);
+		ecef = frameSwapper(newPos, &vSat, vSatEcef_ptr);
 		
 		return newPos;
 	}
