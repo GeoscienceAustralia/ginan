@@ -5,6 +5,7 @@
 #include <map>
 
 using std::map;
+using std::static_pointer_cast;
 
 #include "eigenIncluder.hpp"
 
@@ -118,10 +119,10 @@ void spitQueuedToFile(
 		default:	std::cout << "ERROR: missing queued type " << spit.type;				break;
 		case E_SerialObject::FILTER_MINUS:		//fallthrough
 		case E_SerialObject::FILTER_PLUS:		//fallthrough
-		case E_SerialObject::FILTER_SMOOTHED:	{	auto&	kfState				= *static_pointer_cast<KFState>					(spit.ptr);	spitFilterToFile(kfState,			spit.type, spit.filename);	break;	}	
+		case E_SerialObject::FILTER_SMOOTHED:	{	auto&	kfState			= *static_pointer_cast<KFState>			(spit.ptr);	spitFilterToFile(kfState,		spit.type, spit.filename);	break;	}	
 		case E_SerialObject::TRANSITION_MATRIX:	{	auto&	transitionObject	= *static_pointer_cast<TransitionMatrixObject>	(spit.ptr);	spitFilterToFile(transitionObject,	spit.type, spit.filename);	break;	}	
-		case E_SerialObject::MEASUREMENT:		{	auto&	kfMeas				= *static_pointer_cast<KFMeas>					(spit.ptr);	spitFilterToFile(kfMeas,			spit.type, spit.filename);	break;	}		
-		case E_SerialObject::METADATA:			{	auto&	metatdata			= *static_pointer_cast<map<string, string>>		(spit.ptr);	spitFilterToFile(metatdata,			spit.type, spit.filename);	break;	}
+		case E_SerialObject::MEASUREMENT:	{	auto&	kfMeas			= *static_pointer_cast<KFMeas>			(spit.ptr);	spitFilterToFile(kfMeas,		spit.type, spit.filename);	break;	}		
+		case E_SerialObject::METADATA:		{	auto&	metatdata		= *static_pointer_cast<map<string, string>>	(spit.ptr);	spitFilterToFile(metatdata,		spit.type, spit.filename);	break;	}
 	}
 }
 
