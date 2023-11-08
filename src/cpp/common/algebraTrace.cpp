@@ -5,7 +5,6 @@
 #include <map>
 
 using std::map;
-using std::static_pointer_cast;
 
 #include "eigenIncluder.hpp"
 
@@ -21,6 +20,9 @@ using std::static_pointer_cast;
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/pointer_cast.hpp>
+
+using boost::static_pointer_cast;
 
 map<short int, string> idStringMap;
 map<string, short int> stringIdMap;
