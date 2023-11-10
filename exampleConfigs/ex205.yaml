@@ -5,19 +5,19 @@ inputs:
 
     satellite_data:
         nav_files: [ brdm1990.19p                               ]
-    
+
     root_directory: products/
-    snx_files:  
-    - tables/igs_satellite_metadata_2203_plus.snx 
-    - IGS1R03SNX_20191950000_07D_07D_CRD.SNX    
-    atx_files:  [ M20.ATX                           ]  
-    blq_files:  [ OLOAD_GO.BLQ                      ]  
-    egm_files:  [ tables/EGM2008.gfc                ]  
-    jpl_files:  [ tables/DE436.1950.2050            ]  
+    snx_files:
+    - tables/igs_satellite_metadata_2203_plus.snx
+    - IGS1R03SNX_20191950000_07D_07D_CRD.SNX
+    atx_files:  [ M20.ATX                           ]
+    blq_files:  [ OLOAD_GO.BLQ                      ]
+    egm_files:  [ tables/EGM2008.gfc                ]
+    jpl_files:  [ tables/DE436.1950.2050            ]
     tide_files: [ tables/fes2014b_Cnm-Snm.dat       ]
     igrf_files: [ igrf13coeffs.txt                  ]
     erp_files:  [ tables/finals.data.iau2000.txt    ]
-    
+
     troposphere:
         gpt2grid_files:  gpt_25.grd
         # vmf_files:   [ "grid5/*.H00","grid5/*.H06","grid5/*.H12","grid5/*.H18" ]
@@ -25,11 +25,11 @@ inputs:
 
 
     pseudo_observations:
-        sp3_inputs:   
+        sp3_inputs:
         #- IGS2R03FIN_20191980000_01D_05M_ORB.SP3
         #- IGS2R03FIN_20191990000_01D_05M_ORB.SP3
         #- IGS2R03FIN_20192000000_01D_05M_ORB.SP3
-        
+
     gnss_observations:
         inputs_root: ../data/
         rnx_inputs:
@@ -50,42 +50,42 @@ inputs:
             - "HOB2*.rnx"
             - "IISC*.rnx"
             - "JFNG*.rnx"
-            #- "KARR*.rnx"
-            #- "KIRI*.rnx"
-            #- "KITG*.rnx"
-            #- "KOKV*.rnx"
-            #- "KRGG*.rnx"
-            ##- "KZN2*.rnx"
-            #- "LHAZ*.rnx"
-            #- "LMMF*.rnx"
-            #- "MAW1*.rnx"
-            #- "MBAR*.rnx"
-            #- "MCIL*.rnx"
-            #- "METG*.rnx"
-            #- "MGUE*.rnx"
-            #- "NICO*.rnx"
-            #- "NKLG*.rnx"
-            #- "OHI3*.rnx"
-            #- "OUS2*.rnx"
-            #- "POAL*.rnx"
-            #- "QUIN*.rnx"
-            #- "RAEG*.rnx"
-            #- "REYK*.rnx"
-            #- "RGDG*.rnx"
-            #- "SAMO*.rnx"
-            #- "SEY2*.rnx"
-            #- "SOLO*.rnx"
-            #- "STK2*.rnx"
-            #- "SUTM*.rnx"
-            #- "TONG*.rnx"
-            #- "TOPL*.rnx"
-            #- "TOW2*.rnx"
-            #- "ULAB*.rnx"
-            #- "URUM*.rnx"
-            #- "USN7*.rnx"
-            #- "VACS*.rnx"
-            #- "ZIM2*.rnx"
-            #- "CUSV*.rnx"
+            - "KARR*.rnx"
+            - "KIRI*.rnx"
+            - "KITG*.rnx"
+            - "KOKV*.rnx"
+            - "KRGG*.rnx"
+            #- "KZN2*.rnx"
+            - "LHAZ*.rnx"
+            - "LMMF*.rnx"
+            - "MAW1*.rnx"
+            - "MBAR*.rnx"
+            - "MCIL*.rnx"
+            - "METG*.rnx"
+            - "MGUE*.rnx"
+            - "NICO*.rnx"
+            - "NKLG*.rnx"
+            - "OHI3*.rnx"
+            - "OUS2*.rnx"
+            - "POAL*.rnx"
+            - "QUIN*.rnx"
+            - "RAEG*.rnx"
+            - "REYK*.rnx"
+            - "RGDG*.rnx"
+            - "SAMO*.rnx"
+            - "SEY2*.rnx"
+            - "SOLO*.rnx"
+            - "STK2*.rnx"
+            - "SUTM*.rnx"
+            - "TONG*.rnx"
+            - "TOPL*.rnx"
+            - "TOW2*.rnx"
+            - "ULAB*.rnx"
+            - "URUM*.rnx"
+            - "USN7*.rnx"
+            - "VACS*.rnx"
+            - "ZIM2*.rnx"
+            - "CUSV*.rnx"
 outputs:
     trace:
         level:                      3
@@ -97,7 +97,7 @@ outputs:
         output_residual_chain:      true
         output_config:              true
 
-    
+
     metadata:
         config_description:     "ex205"
 
@@ -174,8 +174,8 @@ processing_options:
     gnss_models:
         troposphere:
             model:                  gpt2
-        ionospheric_component:
-            enable:	                true
+        eop:
+            enable:                 true
 
     model_error_checking:
         orbit_errors:
@@ -195,7 +195,7 @@ processing_options:
 
     filter_options:
         station_chunking:
-        
+
         rts:
             enable:         true
             directory:      ./    # WARNING: RTS Smoothing for network solutions may generate files of up to 1TB in size, make sure there is enoough disk space for these files
@@ -236,14 +236,11 @@ processing_options:
         general_relativity:             true
         pole_tide_ocean:                true
         pole_tide_solid:                true
-        solar_radiation_pressure:       true
+        solar_radiation_pressure:       boxwing
         antenna_thrust:                 true
         empirical:                      true #true/false => false/ecom/srf
         albedo:                         true
         integrator_time_step:           60
-        sat_mass:                       1000
-        sat_area:                       15
-        srp_cr:                         1.75
         degree_max:                     15
 
         itrf_pseudoobs:                 true
@@ -333,23 +330,23 @@ estimation_parameters:
                 estimated:          [true]                    # [bools] Estimate state in kalman filter
                 sigma:              [30, 0.5, 0.5, 0.001]   # [floats] Apriori sigma values - if zero, will be initialised using least squares
                 proc_noise:         [0]
-                
+
             emp_d_0: { estimated: [true], sigma: [1e6]}
             emp_y_0: { estimated: [true], sigma: [1e6]}
             emp_b_0: { estimated: [true], sigma: [1e6]}
-            
+
             emp_d_1: { estimated: [true], sigma: [1e6]}
            #emp_y_1: { estimated: [true], sigma: [1e6]}
             emp_b_1: { estimated: [true], sigma: [1e6]}
-            
+
             emp_d_2: { estimated: [true], sigma: [1e6]}
            #emp_y_2: { estimated: [true], sigma: [1e6]}
            #emp_b_2: { estimated: [true], sigma: [1e6]}
-           
+
            #emp_d_3: { estimated: [true], sigma: [1e6]}
            #emp_y_3: { estimated: [true], sigma: [1e6]}
            #emp_b_3: { estimated: [true], sigma: [1e6]}
-           
+
             emp_d_4: { estimated: [true], sigma: [1e6]}
            #emp_y_4: { estimated: [true], sigma: [1e6]}
            #emp_b_4: { estimated: [true], sigma: [1e6]}
@@ -400,30 +397,34 @@ mongo:
     delete_history:             true
     suffix:                     ""
 # Sets up the debug trace for Ginan processing
- 
+
 satellite_options:
     global:
+        mass:                       1000
+        area:                       15
+        srp_cr:                     1.75
+
         clock:
-            sources:            [KALMAN, PRECISE, BROADCAST] 
-            enable:             true                         
-        pos:  
-            enable:             true  
-            sources:            [KALMAN, PRECISE, BROADCAST] 
+            sources:            [KALMAN, PRECISE, BROADCAST]
+            enable:             true
+        pos:
+            enable:             true
+            sources:            [KALMAN, PRECISE, BROADCAST]
         attitude:
-            enable:             true                         
-            sources:            [PRECISE, MODEL, NOMINAL]    
+            enable:             true
+            sources:            [PRECISE, MODEL, NOMINAL]
         pco:
-            enable:             true                         
+            enable:             true
         pcv:
-            enable:             true                         
+            enable:             true
         code_bias:
-            default_bias:       0                            
-            enable:             true                         
-            undefined_sigma:    0                            
+            default_bias:       0
+            enable:             true
+            undefined_sigma:    0
         phase_bias:
-            default_bias:       0                            
-            enable:             false                        
-            undefined_sigma:    0                            
+            default_bias:       0
+            enable:             false
+            undefined_sigma:    0
 
     G04:
         exclude:                true
@@ -439,7 +440,7 @@ satellite_options:
     E32: { exclude: true }
     E34: { exclude: true }
     E35: { exclude: true }
-# Sets 50 stations from a global network as inputs to processing_options 
+# Sets 50 stations from a global network as inputs to processing_options
 debug:
   #instrument: true
   #pseudo_pulses: 144

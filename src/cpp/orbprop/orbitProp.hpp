@@ -35,20 +35,21 @@ struct OrbitState
 	double	satMass		= 0;
 	double	satPower	= 0;
 	double	satArea		= 0;
-	
+	double	srpCr		= 0;
+
 	bool	exclude		= false;
-	
+
 	KFState	subState;
-	
+
 	vector<EMP> empInput;
-	
+
 	map<E_Component, double>	componentsMap;
-	
+
 	int empnum	= 0;
 	Vector3d	pos;
 	Vector3d	vel;
 	MatrixXd	posVelSTM;
-	
+
 	double		posVar = 0;
 
 	OrbitState& operator+=(double rhs)
@@ -58,7 +59,7 @@ struct OrbitState
 		posVelSTM	= (posVelSTM.array() + rhs).matrix();
 		return *this;
 	}
-	
+
 	OrbitState& operator*=(double rhs)
 	{
 		pos			*= rhs;
@@ -66,14 +67,14 @@ struct OrbitState
 		posVelSTM	*= rhs;
 		return *this;
 	}
-	
+
 	OrbitState operator+(double rhs) const
 	{
 		OrbitState newState = *this;
 		newState += rhs;
 		return newState;
 	}
-	
+
 	OrbitState operator+(const OrbitState& rhs) const
 	{
 		OrbitState newState = *this;
@@ -82,7 +83,7 @@ struct OrbitState
 		newState.posVelSTM	+= rhs.posVelSTM;
 		return newState;
 	}
-	
+
 	OrbitState operator*(double rhs) const
 	{
 		OrbitState newState = *this;
@@ -94,7 +95,7 @@ struct OrbitState
 typedef vector<OrbitState> Orbits;
 
 inline OrbitState operator*(
-	const	double		lhs, 
+	const	double		lhs,
 	const	OrbitState&	rhs)
 {
 	return rhs * lhs;
@@ -113,7 +114,7 @@ inline Orbits operator+(
 }
 
 inline Orbits operator*(
-	const Orbits&	lhs, 
+	const Orbits&	lhs,
 	const double	rhs)
 {
 	Orbits newState = lhs;
@@ -125,7 +126,7 @@ inline Orbits operator*(
 }
 
 inline Orbits operator*(
-	const double rhs, 
+	const double rhs,
 	const Orbits& lhs)
 {
 	Orbits newState = lhs;
@@ -145,22 +146,22 @@ struct OrbitIntegrator
 	//Common parameter for all integrators.
 	Matrix3d eci2ecf;
 	Matrix3d deci2ecf;
-	
+
 	map<E_ThirdBody, Vector3dInit> planetsPosMap;
 	map<E_ThirdBody, Vector3dInit> planetsVelMap;
-	
+
 	MatrixXd Cnm;
 	MatrixXd Snm;
 	runge_kutta_fehlberg78<Orbits, double, Orbits, double, vector_space_algebra> odeIntegrator;
-	
+
 	void operator()(
-		const	Orbits&	orbInit, 
-				Orbits&	orbUpdate, 
+		const	Orbits&	orbInit,
+				Orbits&	orbUpdate,
 		const	double	mjdSec);
 
 	void computeCommon(
 		const	double	mjdinsec);
-	
+
 	void computeAcceleration(
 		const	OrbitState&	orbInit,
 				Vector3d&	acc,
@@ -195,8 +196,8 @@ void addEmpStates(
 	const	KFState&		kfState,
 	const	string&			id);
 
-void addNilDesignStates( 
-	const	KalmanModel&	model, 
+void addNilDesignStates(
+	const	KalmanModel&	model,
 	const	KFState&		kfState,
 	const	KF&				kfType,
 			int				num,

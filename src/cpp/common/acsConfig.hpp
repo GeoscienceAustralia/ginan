@@ -47,27 +47,27 @@ void setInited(
 	{
 		return;
 	}
-	
+
 	int offset = (char*)(&comp) - (char*)(&base);
-	
+
 	base.initialisedMap[offset] = true;
 }
-	
+
 template<typename BASE, typename COMP>
 bool isInited(
 	const	BASE&	base,
 	const	COMP&	comp)
 {
 	int offset = (char*)(&comp) - (char*)(&base);
-	
+
 	auto it = base.initialisedMap.find(offset);
 	if (it == base.initialisedMap.end())
 	{
 		return false;
 	}
-	
+
 	auto [dummy, inited] = *it;
-	
+
 	return inited;
 }
 
@@ -83,7 +83,7 @@ struct InputOptions
 	vector<string>	atx_files;
 	vector<string>	snx_files;
 	vector<string>	blq_files;
-                       
+
 	vector<string>	nav_files;
 	vector<string>	sp3_files;
 	vector<string>	clk_files;
@@ -92,24 +92,25 @@ struct InputOptions
 	vector<string>	com_files;
 	vector<string>	crd_files;
 	vector<string>	vmf_files;
-                       
+
 	vector<string>	erp_files;
 	vector<string>	dcb_files;
 	vector<string>	bsx_files;
 	vector<string>	ion_files;
 	vector<string>	igrf_files;
-	
+
 	vector<string>	nav_rtcm_inputs;
-	
+
 	map<string, vector<string>>	rnx_inputs;
 	map<string, vector<string>>	ubx_inputs;
 	map<string, vector<string>>	obs_rtcm_inputs;
 	map<string, vector<string>>	pseudo_sp3_inputs;
 	map<string, vector<string>>	pseudo_snx_inputs;
-	
+
 	vector<string> atm_reg_definitions;
 
 	vector<string> egm_files;
+	vector<string> boxwing_files;
 	vector<string> jpl_files;
 	vector<string> ocetide_files;
 	vector<string> atmtide_files;
@@ -141,15 +142,17 @@ struct OutputOptions
 
 	int		fatal_level					= 0;
 	double	rotate_period				= 60*60*24;
-	
+
 	int		trace_level					= 0;
 	bool	output_station_trace		= false;
 	bool	output_network_trace		= false;
+	bool	output_ionosphere_trace		= false;
 	bool	output_satellite_trace		= false;
 	bool	output_json_trace			= false;
 	string	trace_directory				= "<OUTPUTS_ROOT>";
 	string	station_trace_filename		= "<TRACE_DIRECTORY>/<STATION>-<LOGTIME>.trace";
 	string	network_trace_filename		= "<TRACE_DIRECTORY>/<STATION>-<LOGTIME>.trace";
+	string	ionosphere_trace_filename	= "<TRACE_DIRECTORY>/<STATION>-<LOGTIME>.trace";
 	string	satellite_trace_filename	= "<TRACE_DIRECTORY>/<STATION>-<LOGTIME>.trace";
 
 	bool	record_raw_ubx				= false;
@@ -197,7 +200,7 @@ struct OutputOptions
 	string				sp3_directory				= "<OUTPUTS_ROOT>";
 	string				sp3_filename				= "<SP3_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>-Filt.sp3";
 	string				predicted_sp3_filename		= "<SP3_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>-Prop.sp3";
-	
+
 	bool				output_orbex 				= false;
 	vector<E_Source>	orbex_orbit_sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>	orbex_clock_sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
@@ -216,7 +219,7 @@ struct OutputOptions
 	bool	rinex_obs_print_L_code		= true;
 	bool	rinex_obs_print_D_code	 	= true;
 	bool	rinex_obs_print_S_code 		= true;
-	
+
 	bool	output_ppp_sol 				= false;
 	string	ppp_sol_directory			= "<OUTPUTS_ROOT>";
 	string	ppp_sol_filename			= "<PPP_SOL_DIRECTORY>/<STATION><YYYY><DDD><HH>.pppsol";
@@ -274,12 +277,12 @@ struct OutputOptions
 	bool	output_slr_obs				= false;
 	string 	slr_obs_directory			= "<OUTPUTS_ROOT>";
 	string 	slr_obs_filename			= "<SLR_OBS_DIRECTORY>/<STATION>.slr_obs";
-	
+
 	bool	output_orbit_ics			= false;
 	string	orbit_ics_directory			= "<OUTPUTS_ROOT>";
 	string	orbit_ics_filename			= "<ORBIT_ICS_DIRECTORY>/<CONFIG>-<LOGTIME>-orbits.yaml";
 
-	
+
 	bool	enable_binary_store			= false;
 	bool	store_binary_states			= false;
 	bool	store_binary_measurements	= false;
@@ -296,7 +299,7 @@ struct OutputOptions
 	bool	output_encoded_rtcm_json	= false;
 	string	encoded_rtcm_json_directory	= "<OUTPUTS_ROOT>";
 	string	encoded_rtcm_json_filename	= "<ENCODED_RTCM_DIRECTORY>/<CONFIG>-<LOGTIME>_rtcm_encoded.json";
-	
+
 	bool	output_network_statistics_json		= false;
 	string	network_statistics_json_directory	= "<OUTPUTS_ROOT>";
 	string	network_statistics_json_filename	= "<NETWORK_STATISTICS_DIRECTORY>/<CONFIG>-<LOGTIME>_network_statistics.json";
@@ -307,7 +310,7 @@ struct OutputOptions
 struct DebugOptions
 {
 	int		csfreq = 3;         /* cycle slip detection and repair frequency */
-	
+
 	bool	instrument					= false;
 	bool    instrument_once_per_epoch	= false;
 	bool	mincon_only					= false;
@@ -342,7 +345,7 @@ struct ModelTrop
 	bool			enable		= true;
 	string			orography;
 	string			gpt2grid;
-};	
+};
 
 struct Model
 {
@@ -350,7 +353,7 @@ struct Model
 	ModelTides	tides;
 
 	bool range					= true;
-	
+
 	bool relativity				= true;
 	bool relativity2			= true;
 	bool sagnac					= true;
@@ -370,7 +373,7 @@ struct Model
 struct GlobalOptions
 {
 	Model	model;
-	
+
 	int		sleep_milliseconds	= 50;
 	double	epoch_interval		= 1;
 	double	epoch_tolerance		= 0.5;
@@ -410,7 +413,7 @@ struct GlobalOptions
 	map<E_Sys,	bool>				reject_eclipse;
 
 	double	elevation_mask	= 10 * D2R;
-		
+
 	string	pivot_station	= "NO_PIVOT";
 	string	pivot_satellite	= "NO_PIVOT";
 
@@ -424,17 +427,17 @@ struct GlobalOptions
 	double	mw_proc_noise	= 0;
 	double	max_gdop     	= 30;
 	double	deweight_factor	= 100;
-	
+
 	bool	use_tgd_bias	= false;
-	
-	
+
+
 	bool	preprocess_all_data			= true;
 
 	double	wait_next_epoch				= 0;
 	double	wait_all_stations			= 0;
 	bool	require_obs					= true;
 	bool	assign_closest_epoch		= false;
-	
+
 	bool	delete_old_ephemerides  	= true;
 
 	bool	reinit_on_all_slips			= false;
@@ -457,8 +460,8 @@ struct GlobalOptions
 		{E_Sys::BDS, E_NavMsgType::D1},
 		{E_Sys::QZS, E_NavMsgType::LNAV}
 	};
-	
-	vector<E_ObsCode> code_priorities_default = 
+
+	vector<E_ObsCode> code_priorities_default =
 	{
 		E_ObsCode::L1C,
 		E_ObsCode::L1P,
@@ -505,13 +508,13 @@ struct GlobalOptions
 		{E_Sys::QZS, E_ObsCode::L2L},
 		{E_Sys::SBS, E_ObsCode::L5I}
 	};
-	
+
 	E_Sys  receiver_reference_clk = E_Sys::NONE;
 	double fixed_phase_bias_var   = 0.01;
-	
+
 	bool	sat_clk_definition			= false;
 	bool	minimise_sat_clock_offsets	= false;
-	
+
 	map<E_Sys, bool> zero_receiver_dcb;			///< set receiver DCBs to 0
 	map<E_Sys, bool> zero_satellite_dcb;		///< set satellite DCBs to 0
 	map<E_Sys, bool> one_phase_bias;			///< use common phase bias for frequency
@@ -522,12 +525,12 @@ struct GlobalOptions
 
 	bool common_sat_pco	= false;
 	bool common_rec_pco	= false;
-	
-	
+
+
 	double clock_wrap_threshold = 0.05e-3;
 
 	//to be removed?
-	
+
 	double			predefined_fail		= 0.001;	/* pre-defined fail-rate (0.01,0.001) */
 };
 
@@ -542,7 +545,7 @@ struct KalmanModel
 	vector<double>	mu					= {0};
 	vector<bool>	estimate			= {false};
 	vector<string>	comment				= {""};
-	
+
 	KalmanModel& operator+=(
 		const KalmanModel& rhs)
 	{
@@ -553,10 +556,10 @@ struct KalmanModel
 		if (isInited(rhs, rhs.mu			))	{ mu			= rhs.mu			;	setInited(*this, mu			);	}
 		if (isInited(rhs, rhs.estimate		))	{ estimate		= rhs.estimate		;	setInited(*this, estimate	);	}
 		if (isInited(rhs, rhs.comment		))	{ comment		= rhs.comment		;	setInited(*this, comment	);	}
-		
+
 		return *this;
 	}
-	
+
 	map<int, bool>	initialisedMap;
 };
 
@@ -564,26 +567,26 @@ struct FilterOptions
 {
 	int			phase_reject_limit		= 10;
 	int			outage_reset_limit		= 10;
-	
+
 	bool		sigma_check				= true;
 	bool		w_test					= false;
 	bool		chi_square_test			= false;
 	bool		simulate_filter_only	= false;
 	E_ChiSqMode	chi_square_mode			= E_ChiSqMode::NONE;
 	double		sigma_threshold			= 4;
-	
+
 	bool		assume_linearity		= false;
 
 	int			max_filter_iter 		= 2;
 	int			max_prefit_remv 		= 2;
-	
+
 	string		rts_filename			= "Filter-<CONFIG>-<STATION>.rts";
 	string		rts_directory			= "<OUTPUTS_ROOT>";
 	int			rts_lag					= -1;
 	string		rts_smoothed_suffix		= "_smoothed";
 	bool		output_intermediate_rts	= false;
 	bool		queue_rts_outputs		= false;
-	
+
 	E_Inverter	rts_inverter			= E_Inverter::LDLT;
 	E_Inverter	inverter				= E_Inverter::LDLT;
 };
@@ -594,10 +597,10 @@ struct PPPOptions : FilterOptions
 {
 	KalmanModel		eop;
 	KalmanModel		eop_rates;
-	
+
 	bool			common_atmosphere	= false;
 	bool			use_rtk_combo		= false;
-	
+
 	bool			satellite_chunking	= false;
 	bool			station_chunking	= false;
 	int				chunk_size			= 0;
@@ -618,7 +621,7 @@ struct IonosphericOptions
 {
 	E_IonoMode 		corr_mode  			= E_IonoMode::IONO_FREE_LINEAR_COMBO;
 	E_IonoMapFn		mapping_function	= E_IonoMapFn::MSLM;
-	
+
 	double			pierce_point_layer_height		= 450;
 	double			mapping_function_layer_height	= 506.7;
 	bool			common_ionosphere				= true;
@@ -675,7 +678,7 @@ struct Rinex23Conversion
 {
 	map<E_Sys, map<E_ObsCode2, E_ObsCode>> codeConv;
 	map<E_Sys, map<E_ObsCode2, E_ObsCode>> phasConv;
-	
+
 	Rinex23Conversion& operator +=(const Rinex23Conversion& rhs)
 	{
 		for (auto& [sys, map23]		: rhs.codeConv)
@@ -684,18 +687,38 @@ struct Rinex23Conversion
 			if (code3 != +E_ObsCode::NONE)
 				codeConv[sys][code2] = code3;
 		}
-		
+
 		for (auto& [sys, map23]		: rhs.phasConv)
 		for (auto& [code2, code3]	: map23)
 		{
 			if (code3 != +E_ObsCode::NONE)
 				phasConv[sys][code2] = code3;
 		}
-		
+
 		return *this;
 	}
 };
 
+struct SrpOptions
+{
+	double			mass		= 1000;
+	double			area		= 20;
+	double			power		= 20;
+	double			srp_cr		= 1.25;
+
+	SrpOptions& operator+=(
+		const SrpOptions& rhs)
+	{
+		if (isInited(rhs, rhs.mass				))	{ mass			= rhs.mass			;	setInited(*this, mass			);	}
+		if (isInited(rhs, rhs.area				))	{ area			= rhs.area			;	setInited(*this, area			);	}
+		if (isInited(rhs, rhs.power				))	{ power			= rhs.power			;	setInited(*this, power			);	}
+		if (isInited(rhs, rhs.srp_cr			))	{ srp_cr		= rhs.srp_cr		;	setInited(*this, srp_cr			);	}
+
+		return *this;
+	}
+
+	map<int, bool>	initialisedMap;
+};
 
 struct EmpOptions
 {
@@ -704,13 +727,13 @@ struct EmpOptions
 	KalmanModel			emp_d_2;
 	KalmanModel			emp_d_3;
 	KalmanModel			emp_d_4;
-	
+
 	KalmanModel			emp_y_0;
 	KalmanModel			emp_y_1;
 	KalmanModel			emp_y_2;
 	KalmanModel			emp_y_3;
 	KalmanModel			emp_y_4;
-	
+
 	KalmanModel			emp_b_0;
 	KalmanModel			emp_b_1;
 	KalmanModel			emp_b_2;
@@ -746,52 +769,52 @@ struct EmpOptions
 	KalmanModel			emp_q_2;
 	KalmanModel			emp_q_3;
 	KalmanModel			emp_q_4;
-	
+
 	EmpOptions& operator+=(
 		const EmpOptions& rhs)
-	{		
+	{
 		emp_d_0	+= rhs.emp_d_0;
 		emp_d_1	+= rhs.emp_d_1;
 		emp_d_2	+= rhs.emp_d_2;
 		emp_d_3	+= rhs.emp_d_3;
 		emp_d_4	+= rhs.emp_d_4;
-		
+
 		emp_y_0	+= rhs.emp_y_0;
 		emp_y_1	+= rhs.emp_y_1;
 		emp_y_2	+= rhs.emp_y_2;
 		emp_y_3	+= rhs.emp_y_3;
 		emp_y_4	+= rhs.emp_y_4;
-		
+
 		emp_b_0	+= rhs.emp_b_0;
 		emp_b_1	+= rhs.emp_b_1;
 		emp_b_2	+= rhs.emp_b_2;
 		emp_b_3	+= rhs.emp_b_3;
 		emp_b_4	+= rhs.emp_b_4;
-		
+
 		emp_r_0	+= rhs.emp_r_0;
 		emp_r_1	+= rhs.emp_r_1;
 		emp_r_2	+= rhs.emp_r_2;
 		emp_r_3	+= rhs.emp_r_3;
 		emp_r_4	+= rhs.emp_r_4;
-		
+
 		emp_t_0	+= rhs.emp_t_0;
 		emp_t_1	+= rhs.emp_t_1;
 		emp_t_2	+= rhs.emp_t_2;
 		emp_t_3	+= rhs.emp_t_3;
 		emp_t_4	+= rhs.emp_t_4;
-		
+
 		emp_n_0	+= rhs.emp_n_0;
 		emp_n_1	+= rhs.emp_n_1;
 		emp_n_2	+= rhs.emp_n_2;
 		emp_n_3	+= rhs.emp_n_3;
 		emp_n_4	+= rhs.emp_n_4;
-		
+
 		emp_p_0	+= rhs.emp_p_0;
 		emp_p_1	+= rhs.emp_p_1;
 		emp_p_2	+= rhs.emp_p_2;
 		emp_p_3	+= rhs.emp_p_3;
 		emp_p_4	+= rhs.emp_p_4;
-		
+
 		emp_q_0	+= rhs.emp_q_0;
 		emp_q_1	+= rhs.emp_q_1;
 		emp_q_2	+= rhs.emp_q_2;
@@ -804,11 +827,11 @@ struct EmpOptions
 
 /** Options to be applied to kalman filter states for individual satellites
 */
-struct SatelliteOptions : EmpOptions
+struct SatelliteOptions : EmpOptions, SrpOptions
 {
 	bool				_initialised	= false;
 	string				id;
-                    	
+
 	KalmanModel			clk;
 	KalmanModel			clk_rate;
 	KalmanModel			orbit;
@@ -825,10 +848,10 @@ struct SatelliteOptions : EmpOptions
 	vector<double>		pseudo_sigmas		= {100000};
 	vector<double>		laser_sigmas		= {0};
 	vector<double>		minConNoise			= {-1};
-	
+
 	Vector3d			antenna_boresight	= { 0,  0, +1};
 	Vector3d			antenna_azimuth		= { 0, +1,  0};
-	
+
 	struct
 	{
 		bool				enable				= true;
@@ -838,13 +861,14 @@ struct SatelliteOptions : EmpOptions
 	struct
 	{
 		bool				enable				= true;
-		vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};	
+		vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	} sat_clock;
-	
-	struct 
+
+	struct
 	{
 		bool				enable				= true;
 		vector<E_Source>	sources				= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
+		double				model_dt			= 1;
 	} sat_attitude;
 
 	struct
@@ -853,22 +877,22 @@ struct SatelliteOptions : EmpOptions
 		double	default_bias	= 0;
 		double	undefined_sigma = 0;
 	} sat_code_bias;
-	
+
 	struct
 	{
 		bool	enable			= false;
 		double	default_bias	= 0;
 		double	undefined_sigma = 0;
 	} sat_phase_bias;
-	
+
 	bool		sat_pco				= true;
 	bool		sat_pcv				= true;
-	
+
 	SatelliteOptions& operator+=(
 		const SatelliteOptions& rhs)
 	{
 		Instrument	instrument(__FUNCTION__);
-	
+
 		clk			+= rhs.clk;
 		clk_rate	+= rhs.clk_rate;
 		orbit		+= rhs.orbit;
@@ -878,25 +902,27 @@ struct SatelliteOptions : EmpOptions
 		ant			+= rhs.ant;
 		code_bias	+= rhs.code_bias;
 		phase_bias	+= rhs.phase_bias;
-		
+
 		EmpOptions::operator+=(rhs);
-		
+		SrpOptions::operator+=(rhs);
+
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.code_sigmas			))	{ code_sigmas		= rhs.code_sigmas		;	setInited(*this, code_sigmas		);	}
 		if (isInited(rhs, rhs.phas_sigmas			))	{ phas_sigmas		= rhs.phas_sigmas		;	setInited(*this, phas_sigmas		);	}
 		if (isInited(rhs, rhs.pseudo_sigmas			))	{ pseudo_sigmas		= rhs.pseudo_sigmas		;	setInited(*this, pseudo_sigmas		);	}
 		if (isInited(rhs, rhs.laser_sigmas			))	{ laser_sigmas		= rhs.laser_sigmas		;	setInited(*this, laser_sigmas		);	}
-		
+
 		if (isInited(rhs, rhs.antenna_boresight		))	{ antenna_boresight	= rhs.antenna_boresight	;	setInited(*this, antenna_boresight	);	}
 		if (isInited(rhs, rhs.antenna_azimuth		))	{ antenna_azimuth	= rhs.antenna_azimuth	;	setInited(*this, antenna_azimuth	);	}
-		
-		
+
+
 		if (isInited(rhs, rhs.sat_pos.enable				))	{ sat_pos.enable				= rhs.sat_pos.enable				;	setInited(*this, sat_pos.enable					);	}
 		if (isInited(rhs, rhs.sat_pos.ephemeris_sources		))	{ sat_pos.ephemeris_sources		= rhs.sat_pos.ephemeris_sources		;	setInited(*this, sat_pos.ephemeris_sources		);	}
 		if (isInited(rhs, rhs.sat_clock.enable				))	{ sat_clock.enable				= rhs.sat_clock.enable				;	setInited(*this, sat_clock.enable				);	}
 		if (isInited(rhs, rhs.sat_clock.ephemeris_sources	))	{ sat_clock.ephemeris_sources	= rhs.sat_clock.ephemeris_sources	;	setInited(*this, sat_clock.ephemeris_sources	);	}
 		if (isInited(rhs, rhs.sat_attitude.enable			))	{ sat_attitude.enable			= rhs.sat_attitude.enable			;	setInited(*this, sat_attitude.enable			);	}
 		if (isInited(rhs, rhs.sat_attitude.sources			))	{ sat_attitude.sources			= rhs.sat_attitude.sources			;	setInited(*this, sat_attitude.sources			);	}
+		if (isInited(rhs, rhs.sat_attitude.model_dt			))	{ sat_attitude.model_dt			= rhs.sat_attitude.model_dt			;	setInited(*this, sat_attitude.model_dt			);	}
 		if (isInited(rhs, rhs.sat_code_bias.enable			))	{ sat_code_bias.enable			= rhs.sat_code_bias.enable			;	setInited(*this, sat_code_bias.enable			);	}
 		if (isInited(rhs, rhs.sat_code_bias.default_bias	))	{ sat_code_bias.default_bias	= rhs.sat_code_bias.default_bias	;	setInited(*this, sat_code_bias.default_bias		);	}
 		if (isInited(rhs, rhs.sat_code_bias.undefined_sigma	))	{ sat_code_bias.undefined_sigma	= rhs.sat_code_bias.undefined_sigma	;	setInited(*this, sat_code_bias.undefined_sigma	);	}
@@ -905,20 +931,20 @@ struct SatelliteOptions : EmpOptions
 		if (isInited(rhs, rhs.sat_phase_bias.undefined_sigma))	{ sat_phase_bias.undefined_sigma= rhs.sat_phase_bias.undefined_sigma;	setInited(*this, sat_phase_bias.undefined_sigma	);	}
 		if (isInited(rhs, rhs.sat_pco						))	{ sat_pco						= rhs.sat_pco						;	setInited(*this, sat_pco						);	}
 		if (isInited(rhs, rhs.sat_pcv						))	{ sat_pcv						= rhs.sat_pcv						;	setInited(*this, sat_pcv						);	}
-		
+
 		return *this;
 	}
-	
+
 	map<int, bool>	initialisedMap;
 };
 
 /** Options to be applied to kalman filter states for individual receivers
 */
-struct ReceiverOptions : EmpOptions
+struct ReceiverOptions : EmpOptions, SrpOptions
 {
 	bool				_initialised	= false;
 	string				id;
-                    	
+
 	KalmanModel			amb;
 	KalmanModel			pos;
 	KalmanModel			pos_rate;
@@ -939,7 +965,7 @@ struct ReceiverOptions : EmpOptions
 	KalmanModel			trop_maps;
 	KalmanModel			code_bias;
 	KalmanModel			phase_bias;
-	
+
 	KalmanModel			quat;
 	KalmanModel			gyro_bias;
 	KalmanModel			accl_bias;
@@ -955,9 +981,9 @@ struct ReceiverOptions : EmpOptions
 	vector<double>		laser_sigmas		= {0.5};
 	vector<double>		minConNoise			= {-1};
 	double				spp_sigma_scaling	= 1;
-	
+
 	Rinex23Conversion	rinex23Conv;
-	
+
 	Vector3d			apriori_pos			= Vector3d::Zero();
 	Vector3d			eccentricity		= Vector3d::Zero();
 	Vector3d			antenna_boresight	= { 0,  0, +1};
@@ -965,51 +991,51 @@ struct ReceiverOptions : EmpOptions
 	string				antenna_type		;
 	string				receiver_type		;
 	string				sat_id				;
-	
-	
-	
-	
+
+
+
+
 	struct
 	{
 		bool				enable				= true;
 		vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	} rec_pos;
-	
+
 	struct
 	{
 		bool				enable				= true;
 		vector<E_Source>	ephemeris_sources	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	} rec_clock;
-	
-	struct 
+
+	struct
 	{
 		bool				enable			= true;
 		vector<E_Source>	sources			= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
 	} rec_attitude;
-		
+
 	struct
 	{
 		bool	enable			= true;
 		double	default_bias	= 0;
 		double	undefined_sigma	= 0;
 	} rec_code_bias;
-		
+
 	struct
 	{
 		bool	enable			= false;
 		double	default_bias	= 0;
 		double	undefined_sigma	= 0;
 	} rec_phase_bias;
-	
+
 	bool rec_ant_delta			= true;
 	bool rec_pco				= true;
 	bool rec_pcv				= true;
-	
+
 	ReceiverOptions& operator+=(
 		const ReceiverOptions& rhs)
 	{
 		Instrument	instrument(__FUNCTION__);
-		
+
 		amb				+= rhs.amb;
 		pos				+= rhs.pos;
 		pos_rate		+= rhs.pos_rate;
@@ -1030,18 +1056,18 @@ struct ReceiverOptions : EmpOptions
 		trop_maps		+= rhs.trop_maps;
 		code_bias		+= rhs.code_bias;
 		phase_bias		+= rhs.phase_bias;
-	
+
 		quat			+= rhs.quat;
 		gyro_bias		+= rhs.gyro_bias;
 		accl_bias		+= rhs.accl_bias;
 		gyro_scale		+= rhs.gyro_scale;
 		accl_scale		+= rhs.accl_scale;
 		imu_offset		+= rhs.imu_offset;
-		
+
 		EmpOptions::operator+=(rhs);
 
 		rinex23Conv		+= rhs.rinex23Conv;
-		
+
 		if (isInited(rhs, rhs.kill					))	{ kill				= rhs.kill				;	setInited(*this, kill				);	}
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.error_model			))	{ error_model		= rhs.error_model		;	setInited(*this, error_model		);	}
@@ -1050,7 +1076,7 @@ struct ReceiverOptions : EmpOptions
 		if (isInited(rhs, rhs.laser_sigmas			))	{ laser_sigmas		= rhs.laser_sigmas		;	setInited(*this, laser_sigmas		);	}
 		if (isInited(rhs, rhs.minConNoise			))	{ minConNoise		= rhs.minConNoise		;	setInited(*this, minConNoise		);	}
 		if (isInited(rhs, rhs.spp_sigma_scaling		))	{ spp_sigma_scaling	= rhs.spp_sigma_scaling	;	setInited(*this, spp_sigma_scaling	);	}
-	
+
 		if (isInited(rhs, rhs.apriori_pos			))	{ apriori_pos		= rhs.apriori_pos		;	setInited(*this, apriori_pos		);	}
 		if (isInited(rhs, rhs.eccentricity			))	{ eccentricity		= rhs.eccentricity		;	setInited(*this, eccentricity		);	}
 		if (isInited(rhs, rhs.antenna_boresight		))	{ antenna_boresight	= rhs.antenna_boresight	;	setInited(*this, antenna_boresight	);	}
@@ -1058,8 +1084,8 @@ struct ReceiverOptions : EmpOptions
 		if (isInited(rhs, rhs.antenna_type			))	{ antenna_type		= rhs.antenna_type		;	setInited(*this, antenna_type		);	}
 		if (isInited(rhs, rhs.receiver_type			))	{ receiver_type		= rhs.receiver_type		;	setInited(*this, receiver_type		);	}
 		if (isInited(rhs, rhs.sat_id				))	{ sat_id			= rhs.sat_id			;	setInited(*this, sat_id				);	}
-		
-		
+
+
 		if (isInited(rhs, rhs.rec_pos.enable				))	{ rec_pos.enable				= rhs.rec_pos.enable				;	setInited(*this, rec_pos.enable					);	}
 		if (isInited(rhs, rhs.rec_pos.ephemeris_sources		))	{ rec_pos.ephemeris_sources		= rhs.rec_pos.ephemeris_sources		;	setInited(*this, rec_pos.ephemeris_sources		);	}
 		if (isInited(rhs, rhs.rec_clock.enable				))	{ rec_clock.enable				= rhs.rec_clock.enable				;	setInited(*this, rec_clock.enable				);	}
@@ -1075,10 +1101,10 @@ struct ReceiverOptions : EmpOptions
 		if (isInited(rhs, rhs.rec_ant_delta					))	{ rec_ant_delta					= rhs.rec_ant_delta					;	setInited(*this, rec_ant_delta					);	}
 		if (isInited(rhs, rhs.rec_pco						))	{ rec_pco						= rhs.rec_pco						;	setInited(*this, rec_pco						);	}
 		if (isInited(rhs, rhs.rec_pcv						))	{ rec_pcv						= rhs.rec_pcv						;	setInited(*this, rec_pcv						);	}
-		
+
 		return *this;
 	}
-	
+
 	map<int, bool>	initialisedMap;
 };
 
@@ -1182,7 +1208,7 @@ struct RtcmMsgTypeOpts
 struct SsrBroadcast : SSRMetaOpts
 {
 	string						url;
-	
+
 	map<RtcmMessageType, RtcmMsgTypeOpts>	rtcmMsgOptsMap;	///< RTCM message type options
 };
 
@@ -1204,7 +1230,7 @@ struct PseudoPulses
 {
 	bool	enable			= false;
 	int		num_per_day		= 1;
-	
+
 	double	pos_proc_noise	= 10;
 	double	vel_proc_noise	= 5;
 };
@@ -1212,18 +1238,18 @@ struct PseudoPulses
 /** Options associated with orbital force models
 */
 struct OrbitPropagation
-{  
+{
 	bool			central_force					= true;
 	bool			planetary_perturbation			= true;
 	bool			indirect_J2						= true;
 	bool			egm_field						= true;
 	bool			solid_earth_tide				= true;
 	bool			ocean_tide						= true;
-	bool			atm_tide						= true;
+	bool			atm_tide						= false;
 	bool			general_relativity				= true;
 	bool			pole_tide_ocean					= true;
 	bool			pole_tide_solid					= true;
-	bool			solar_radiation_pressure		= false;
+	E_SRPModels		solar_radiation_pressure		= E_SRPModels::NONE;
 	bool			empirical						= false;
 	bool			antenna_thrust					= false;
 	bool			albedo							= false;
@@ -1233,13 +1259,9 @@ struct OrbitPropagation
 	vector<bool> 	empirical_rtn_eclipse			= {false};
 
 	int				degree_max						= 12;
-	double			sat_mass						= 1000;
-	double			sat_area						= 20;
-	double			sat_power						= 20;
-	double			srp_cr							= 1.25;
 	double			integrator_time_step			= 60;
 	bool			itrf_pseudoobs					= true;
-	
+
 };
 
 struct YamlDefault
@@ -1259,18 +1281,18 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	map<string, YamlDefault>		yamlDefaults;
 	map<string, bool>				availableOptions;
 	map<string, map<string, bool>>	foundOptions;
-	
+
 	mutex								configMutex;
-	
+
 	vector<string>										configFilenames;
 	vector<string>										includedFilenames;
 	map<string, time_t>									configModifyTimeMap;
 	boost::program_options::variables_map				commandOpts;
-	
+
 	static map<string, string>			docs;
-	
+
 	void	recurseYaml(
-		YAML::Node	node, 
+		YAML::Node	node,
 		const string&		stack		= "",
 		const string&		aliasStack	= "");
 
@@ -1282,7 +1304,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 
 	void	info(
 		Trace& trace);
-	
+
 	void	outputDefaultConfiguration(
 		int level);
 

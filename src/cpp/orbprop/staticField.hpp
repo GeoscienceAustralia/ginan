@@ -15,10 +15,8 @@ struct StaticField
 	void read(
 		const string&	filename,
 		int				degMax);	
-	
-	void summary();
-	
-	void toZeroTide(bool);
+
+	void toTideFree();
 	
 	bool		initialised	= false;
 	string		filename;

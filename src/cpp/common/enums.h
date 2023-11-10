@@ -746,18 +746,10 @@ BETTER_ENUM(E_ObsWaitCode,	short int,
 		NO_DATA_WAIT,
 		NO_DATA_EVER)
 
-/* Options associated with solar radiation pressure models */
 BETTER_ENUM(E_SRPModels,	int,
+            NONE,
 			CANNONBALL,
-			BOXWING,
-			ECOM,
-			ECOM2)
-
-BETTER_ENUM(E_GravMdl, 		short int,
-			EGM08,
-			GGM03S,
-			GGM05S)
-
+			BOXWING)
 
 BETTER_ENUM(E_TidesMdl, 	short int,
 			ELASTIC,

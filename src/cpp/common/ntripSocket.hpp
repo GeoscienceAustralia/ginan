@@ -297,6 +297,6 @@ public:
 	static void startClients()
 	{
 		std::thread(NtripSocket::runService).detach();
-	}   
+	}
 };
 

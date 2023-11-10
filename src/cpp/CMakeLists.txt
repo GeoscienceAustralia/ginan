@@ -194,7 +194,7 @@ add_library(ginan_core
 		other_ssr/prototypeIgsSSREncode.cpp
 		
 		orbprop/aod.cpp
-		orbprop/aod.hpp
+		orbprop/boxwing.cpp
 		orbprop/acceleration.cpp
 		orbprop/coordinates.cpp
 		orbprop/iers2010.cpp
@@ -204,7 +204,6 @@ add_library(ginan_core
 		orbprop/staticField.cpp
 		orbprop/centerMassCorrections.cpp
 		orbprop/oceanPoleTide.cpp
-		orbprop/oceanPoleTide.hpp
 
 		rtklib/lambda.cpp
 		rtklib/lambda.h

@@ -45,3 +45,8 @@ void recAtt(
 
 void updateSatAtts(
 	SatPos&		satPos);
+
+
+void satYaw(
+        SatPos&		satPos,
+        AttStatus&	attStatus);

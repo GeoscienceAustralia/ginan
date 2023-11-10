@@ -120,20 +120,21 @@ processing_options:
         general_relativity:             true
         pole_tide_ocean:                true
         pole_tide_solid:                true
-        solar_radiation_pressure:       true
+        solar_radiation_pressure:       boxwing
         antenna_thrust:                 true
-        empirical:                      true 
+        empirical:                      true
         albedo:                         true
         integrator_time_step:           60
-        sat_mass:                       1000
-        sat_area:                       15
-        srp_cr:                         1.75
         degree_max:                     15
 
         itrf_pseudoobs:                 true
 
 satellite_options:                                  # Options to configure individual satellites, systems, or global configs
     global:
+        mass:                       1000
+        area:                       15
+        srp_cr:                     1.75
+
         clock:
             sources:            [KALMAN, PRECISE, BROADCAST]    # List of sources to use for clocks
             enable:             true                            # (bool) Enable modelling of clocks

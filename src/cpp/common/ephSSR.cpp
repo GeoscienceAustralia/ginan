@@ -319,7 +319,7 @@ bool satPosSSR(
 	
 	tracepdeex(4, trace, "\nBRDCEPH %s    %s    %13.3f %13.3f %13.3f %11.3f %2d", time.to_string(6).c_str(), Sat.id().c_str(), rSat0[0], rSat0[1], rSat0[2], 1e9*satClk0, iodePos);
 	
-	Matrix3d rac2ecefMat = rac2ecef(rSat, satVel);
+	Matrix3d rac2ecefMat = rac2ecef(rSat0, satVel);
 	
 	Vector3d dPosECEF = rac2ecefMat * dPos;
 	

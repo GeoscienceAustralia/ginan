@@ -25,7 +25,7 @@
 
 struct Sp3Entry
 {
-	SatSys 		sat;
+	SatSys 		Sat;
 	Vector3d	satPos		= Vector3d::Zero();				// Satellite position.
 	Vector3d	satVel		= Vector3d::Zero();				// Satellite velocity.
 	double	 	satClk		= INVALID_CLOCK_VALUE / 1e6;
@@ -37,9 +37,9 @@ struct Sp3Entry
 
 struct Sp3FileData
 {
-	set<SatSys> sats;
-	long 		numEpoch		= 0;
-	long 		numEpoch_pos	= 0;
+	map<SatSys, bool>	sats;
+	long 				numEpoch		= 0;
+	long 				numEpoch_pos	= 0;
 };
 
 map<string, Sp3FileData> sp3FileDataMap;
@@ -52,10 +52,10 @@ void writeSp3Header(
 	Sp3FileData&		sp3FileData)
 {
 	GEpoch ep = time;
-	
+
 	sp3FileData = {};
 	sp3FileData.numEpoch = 1;
-	
+
 	// note "#dV" for velocity and position.
 	if (acsConfig.output_sp3_velocities)		tracepdeex(0, sp3Stream, "#dV%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 	else										tracepdeex(0, sp3Stream, "#dP%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
@@ -77,22 +77,22 @@ void writeSp3Header(
 
 	for (auto sys : {E_Sys::GPS, E_Sys::GLO, E_Sys::GAL, E_Sys::BDS, E_Sys::LEO})
 	{
-		if (outSys[sys])	
+		if (outSys[sys])
 		for (auto Sat : getSysSats(sys))
 		{
 			auto satOpts = acsConfig.getSatOpts(Sat);
-			
+
 			if (satOpts.exclude)
 				continue;
-			
-			sp3FileData.sats.insert(Sat);
+
+			sp3FileData.sats[Sat] = true;
 		}
 	}
 
 	int lineNumber	= 1;
 	int lineEntries	= 0;
 	tracepdeex(0, sp3Stream, "+  %3d   ", sp3FileData.sats.size());
-	for (auto& sat : sp3FileData.sats)
+	for (auto& [Sat, enable] : sp3FileData.sats)
 	{
 		if (lineEntries	== 17)
 		{
@@ -101,16 +101,16 @@ void writeSp3Header(
 			lineEntries = 0;
 			lineNumber++;
 		}
-		tracepdeex(0, sp3Stream, "%3s", sat.id().c_str());
-		
+		tracepdeex(0, sp3Stream, "%3s", Sat.id().c_str());
+
 		lineEntries++;
 	}
 
-	while	( lineNumber	< 17 
+	while	( lineNumber	< 17
 			||lineEntries	< 17)
 	{
 		//keep adding entries and lines until we reach the minimum
-		
+
 		if (lineEntries	== 17)
 		{
 			//start a new line
@@ -119,16 +119,16 @@ void writeSp3Header(
 			lineNumber++;
 		}
 		tracepdeex(0, sp3Stream, "%3s", "0");
-		
+
 		lineEntries++;
 	}
 	tracepdeex(0, sp3Stream, "\n");
-	
+
 	// ++ line entries one per satellite sigma = 2^val in millimeters.
 	lineNumber	= 1;
 	lineEntries	= 0;
 	tracepdeex(0, sp3Stream, "++       ");
-	for (auto& sat : sp3FileData.sats)
+	for (auto& [Sat, enable] : sp3FileData.sats)
 	{
 		if (lineEntries == 17)
 		{
@@ -137,7 +137,7 @@ void writeSp3Header(
 			lineEntries = 0;
 		}
 
-		auto it = entryList.find(sat);
+		auto it = entryList.find(Sat);
 		if (it == entryList.end())
 		{
 			// Accuracy unknown.
@@ -146,7 +146,7 @@ void writeSp3Header(
 		else
 		{
 			auto& [key, entry] = *it;
-			
+
 			if (entry.sigma == 0)
 			{
 				// Accuracy unknown.
@@ -160,15 +160,15 @@ void writeSp3Header(
 				tracepdeex(0, sp3Stream, "%3.0f", val);
 			}
 		}
-		
+
 		lineEntries++;
 	}
 
-	while	( lineNumber	< 17 
+	while	( lineNumber	< 17
 			||lineEntries	< 17)
 	{
 		//keep adding entries and lines until we reach the minimum
-		
+
 		if (lineEntries	== 17)
 		{
 			//start a new line
@@ -177,16 +177,16 @@ void writeSp3Header(
 			lineNumber++;
 		}
 		tracepdeex(0, sp3Stream, "%3s", "0");
-		
+
 		lineEntries++;
 	}
 	tracepdeex(0, sp3Stream, "\n");
-	
+
 	char syschar = 0;
-	for (auto& sat : sp3FileData.sats)
+	for (auto& [Sat, enable] : sp3FileData.sats)
 	{
-		if (syschar == 0)					{			syschar = sat.sysChar();			continue;		}
-		if (syschar != sat.sysChar())		{			syschar = 'M';						break;			}
+		if (syschar == 0)					{			syschar = Sat.sysChar();			continue;		}
+		if (syschar != Sat.sysChar())		{			syschar = 'M';						break;			}
 	}
 	if (syschar == 0)
 	{
@@ -229,7 +229,7 @@ void updateSp3Body(
 	if (!sp3Stream)
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Error opening " << filename << " for SP3 file.";
-		
+
 		return;
 	}
 
@@ -238,7 +238,7 @@ void updateSp3Body(
 	long endFilePos = sp3Stream.tellp();
 
 	auto& sp3FileData = sp3FileDataMap[filename];
-	
+
 	if (endFilePos == 0)
 	{
 		writeSp3Header(sp3Stream, entryList, time, outSys, sp3FileData);
@@ -246,11 +246,11 @@ void updateSp3Body(
 	else
 	{
 		sp3FileData.numEpoch++;
-		
+
 		sp3Stream.seekp(sp3FileData.numEpoch_pos);
-		
+
 		tracepdeex(0, sp3Stream, "%7d", sp3FileData.numEpoch);
-		
+
 		//go back to end of file (minus "EOF\n")
 		sp3Stream.seekp(-4, std::ios::end);
 	}
@@ -260,20 +260,20 @@ void updateSp3Body(
 
 	// Note position is in kilometers and clock values microseconds.
 	// There need to be one entry per satellite in the header for correct file format.
-	for (auto& sat : sp3FileData.sats)
+	for (auto& [Sat, enable] : sp3FileData.sats)
 	{
-		auto it = entryList.find(sat);
+		auto it = entryList.find(Sat);
 		if (it != entryList.end())
-		{			
+		{
 			auto& [key, entry] = *it;
-			
+
 			char predictedChar;
 			if (entry.predicted)		predictedChar = 'P';
 			else						predictedChar = ' ';
-				
+
 			{
 				tracepdeex(0, sp3Stream, "P%s%14.6f%14.6f%14.6f%14.6f%19s%c\n",
-						entry.sat.id().c_str(),
+						entry.Sat.id().c_str(),
 						entry.satPos.x() / 1000,
 						entry.satPos.y() / 1000,
 						entry.satPos.z() / 1000,
@@ -281,11 +281,11 @@ void updateSp3Body(
 						"",
 						predictedChar);
 			}
-			
+
 			if (acsConfig.output_sp3_velocities)
 			{
 				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f%19s%c\n",
-						entry.sat.id().c_str(),
+						entry.Sat.id().c_str(),
 						entry.satVel.x(),
 						entry.satVel.y(),
 						entry.satVel.z(),
@@ -298,13 +298,13 @@ void updateSp3Body(
 		{
 			{
 				tracepdeex(0, sp3Stream, "P%s%14.6f%14.6f%14.6f%14.6f\n",
-						sat.id().c_str(), 0, 0, 0, NO_SP3_CLK);
+						Sat.id().c_str(), 0, 0, 0, NO_SP3_CLK);
 			}
-			
+
 			if (acsConfig.output_sp3_velocities)
 			{
 				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f\n",
-						sat.id().c_str(), 0, 0, 0, NO_SP3_CLK);
+						Sat.id().c_str(), 0, 0, 0, NO_SP3_CLK);
 			}
 		}
 	}
@@ -316,8 +316,8 @@ void writeSysSetSp3(
 	string				filename,
 	GTime				time,
 	map<E_Sys, bool>&	outSys,
-	vector<E_Source>	sp3OrbitSrcs,	
-	vector<E_Source>	sp3ClockSrcs,	
+	vector<E_Source>	sp3OrbitSrcs,
+	vector<E_Source>	sp3ClockSrcs,
 	KFState*			kfState_ptr,
 	bool				predicted)
 {
@@ -328,12 +328,12 @@ void writeSysSetSp3(
 	{
 		filterErpv = getErpFromFilter(*kfState_ptr);
 	}
-				
+
 	ERPValues erpv = getErp(nav.erp, time);
 
 	FrameSwapper frameSwapperUndo(time, erpv);
 	FrameSwapper frameSwapperRedo(time, filterErpv);
-	
+
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
 		if (outSys[Sat.sys] == false)
@@ -346,7 +346,7 @@ void writeSysSetSp3(
 
 		bool clkPass = satclk(nullStream, time, time, obs, sp3ClockSrcs,					nav, kfState_ptr);
 		bool posPass = satpos(nullStream, time, time, obs, sp3OrbitSrcs, E_OffsetType::COM,	nav, kfState_ptr);
-		
+
 		if (posPass == false)
 		{
 			BOOST_LOG_TRIVIAL(warning) << "Warning: Writing SP3 file, failed to get data for satellite " << Sat.id();
@@ -354,7 +354,7 @@ void writeSysSetSp3(
 		}
 
 		Sp3Entry entry;
-		entry.sat = Sat;
+		entry.Sat = Sat;
 		if (acsConfig.output_inertial_orbits)
 		{
 			entry.satPos = obs.rSatEci0;
@@ -364,20 +364,20 @@ void writeSysSetSp3(
 		{
 			VectorEcef posEcef = obs.rSatCom;
 			VectorEcef velEcef = obs.satVel;
-			
+
 			if (filterErpv.time != GTime::noTime())
 			{
 				VectorEci velEci;
 				VectorEci posEci;
-				
+
 				posEci	= frameSwapperUndo(posEcef,	&velEcef,	&velEci);
 				posEcef = frameSwapperRedo(posEci,	&velEci,	&velEcef);
 			}
-			
+
 			entry.satPos = posEcef;
 			entry.satVel = velEcef;
 		}
-		
+
 		if (clkPass)
 		{
 			entry.satClk	= obs.satClk;
@@ -388,7 +388,7 @@ void writeSysSetSp3(
 			entry.satClk	= INVALID_CLOCK_VALUE / 1e6;
 			entry.satClkVel	= INVALID_CLOCK_VALUE / 1e6;
 		}
-		
+
 		entry.sigma		= sqrt(obs.satClkVar);
 		entry.predicted	= predicted;
 
@@ -408,7 +408,7 @@ void outputSp3(
 	bool				predicted)
 {
 	time = time.floorTime(1);
-	
+
 	GTow tow = time;
 	if (int(tow) % acsConfig.sp3_output_interval != 0)
 		return;
@@ -424,12 +424,12 @@ void outputSp3(
 void outputMongoOrbits()
 {
 	map<GTime, map<int, Sp3Entry>> entryListMap;
-	
+
 	auto orbitMapMap = mongoReadOrbits();
 	auto clockMapMap = mongoReadClocks();
-	
+
 	map<E_Sys, bool> outSys;
-	
+
 	auto sysFilenames = getSysOutputFilenames(acsConfig.predicted_sp3_filename, tsync);
 
 	for (auto [filename, sysMap] : sysFilenames)
@@ -440,12 +440,12 @@ void outputMongoOrbits()
 			ERPValues erpv = getErp(nav.erp, time);
 
 			FrameSwapper frameSwapper(time, erpv);
-			
+
 			auto& entry = entryListMap[time][Sat];
-			
-			entry.sat		= Sat;
+
+			entry.Sat		= Sat;
 			entry.predicted	= true;
-			
+
 			if (acsConfig.output_inertial_orbits)
 			{
 				entry.satPos = state.head(3);
@@ -455,33 +455,33 @@ void outputMongoOrbits()
 			{
 				VectorEci rSat = (Vector3d) state.head(3);
 				VectorEci vSat = (Vector3d) state.tail(3);
-				
+
 				VectorEcef vSatEcef;
 				entry.satPos = frameSwapper(rSat, &vSat, &vSatEcef);
 				entry.satVel = vSatEcef;
 			}
-			
+
 			auto timeMapIt = clockMapMap.find(Sat.id());
 			if (timeMapIt == clockMapMap.end())
 			{
 				continue;
 			}
-			
+
 			auto& [dummy1, timeClkMap] = *timeMapIt;
-			
+
 			auto timeIt = timeClkMap.find(time);
 			if (timeIt == timeClkMap.end())
 			{
 				continue;
 			}
-			
+
 			auto& [dummy2, clockTuple]	= *timeIt;
 			auto& [clock, drift]		= clockTuple;
-			
+
 			entry.satClk	= clock;
 			entry.satClkVel	= drift;
 		}
-		
+
 		for (auto& [time, entryList] : entryListMap)
 		{
 			updateSp3Body(filename, entryList, time, sysMap);

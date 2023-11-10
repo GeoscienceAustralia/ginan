@@ -842,7 +842,7 @@ void clearSlips(
 		{
 			SatStat& satStat = *(obs.satStat_ptr);
 			
-			satStat.slip		= false;
+			satStat.slip		= false;		//todo aaron, is this used?
 			sigStat.slip.any	= 0;
 		}
 	}
@@ -854,6 +854,8 @@ void detectslips(
 	Trace&		trace,		///< Trace to output to
 	ObsList&	obsList)	///< List of observations to detect slips within
 {
+	Instrument instrument(__FUNCTION__);
+	
 	tracepdeex(2, trace, "\n   *-------- PDE cycle slip detection & repair --------*\n");
 	
 	detslp_ll(trace, obsList);

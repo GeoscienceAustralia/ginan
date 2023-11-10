@@ -155,7 +155,7 @@ void preprocessor(
 	start_time.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
 
 	double tol;
-	if (acsConfig.assign_closest_epoch)			tol = acsConfig.epoch_interval / 2;
+	if (acsConfig.assign_closest_epoch)			tol = acsConfig.epoch_interval / 2;		//todo aaron this should be the other tolerance?
 	else										tol = 0.5;
 	
 	if	(  acsConfig.start_epoch.is_not_a_date_time() == false
@@ -196,10 +196,8 @@ void preprocessor(
 		obs.satStat_ptr = &rec.satStatMap[obs.Sat];
 	}
 
-	for (auto& obs : only<LObs>(obsList))
+	for (auto& obs : only<LObs>(obsList))		//todo aaron merge these above below - lobs, gobs use satobs
 	{
-		//obs.mount = rec.id;
-		
 		if (acsConfig.process_sys[obs.Sat.sys] == false)
 		{
 			continue;

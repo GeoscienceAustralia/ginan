@@ -71,6 +71,7 @@ using std::string;
 #include "station.hpp"
 #include "summary.hpp"
 #include "antenna.hpp"
+#include "boxwing.hpp"
 #include "satStat.hpp"
 #include "fileLog.hpp"
 #include "jpl_eph.hpp"
@@ -626,7 +627,17 @@ void reloadInputFiles()
 
 		aod.read(aod1b_file, acsConfig.orbitPropagation.degree_max);
 	}
+//Boxwing to change later
+    for (auto& boxwing_file : acsConfig.boxwing_files)
+    {
+         if (fileChanged(boxwing_file) == false)
+          {
+                continue;
+          }
+          BOOST_LOG_TRIVIAL(info) << "Loading Boxwing file " << boxwing_file;
 
+          boxwing.read(boxwing_file);
+    }
 	removeInvalidFiles(acsConfig.poleocean_files);
 	for (auto& poleocean_file : acsConfig.poleocean_files)
 	{
@@ -1002,13 +1013,17 @@ void createTracefiles(
 		
 		if (acsConfig.output_network_trace)
 		{
-			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.network_trace_filename	+ suff,	net.kfState	.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
-			newTraceFile |= createNewTraceFile("IONO",	logptime,	acsConfig.network_trace_filename	+ suff,	iono_KFState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
-
+			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.network_trace_filename	+ suff,	net.kfState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
+			
 			if (suff.empty())
 			{
 				net.traceFilename = net.kfState.metaDataMap[TRACE_FILENAME_STR];
 			}
+		}
+		
+		if (acsConfig.output_ionosphere_trace)
+		{
+			newTraceFile |= createNewTraceFile("IONO",	logptime,	acsConfig.ionosphere_trace_filename	+ suff,	iono_KFState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
 		}
 
 		if (acsConfig.output_ionex)

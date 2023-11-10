@@ -482,9 +482,9 @@ ERPValues getErpFromFilter(
 	
 	erpv		= erpvs[0];
 	erpv.time	= kfState.time;
-	erpv.xpr	= erpvs[1].xp		- erpvs[0].xp;		// per 1 second dt
-	erpv.ypr	= erpvs[1].yp		- erpvs[0].yp;		// per 1 second dt
-	erpv.lod	= erpvs[1].ut1Utc	- erpvs[0].ut1Utc;	// per 1 second dt
+	erpv.xpr	= (erpvs[1].xp		- erpvs[0].xp);						// per 1 second dt
+	erpv.ypr	= (erpvs[1].yp		- erpvs[0].yp);						// per 1 second dt
+	erpv.lod	= (erpvs[1].ut1Utc	- erpvs[0].ut1Utc) * -secondsInDay;	// (dumb sign convention and scaling)
 	
 	for (int i = 0; i < 3; i++)
 	{
@@ -509,7 +509,7 @@ ERPValues getErpFromFilter(
 			case 1:	erpv.yp		+= adjust		* MAS2R;		erpv.ypSigma		= sqrt(adjustVar)		* MAS2R;
 					erpv.ypr	+= rateAdjust	* MAS2R;		erpv.yprSigma		= sqrt(rateAdjustVar)	* MAS2R;	break;
 			case 2:	erpv.ut1Utc	+= adjust		* MTS2S;		erpv.ut1UtcSigma	= sqrt(adjustVar)		* MTS2S;
-					erpv.lod	+= rateAdjust	* MTS2S;		erpv.lodSigma		= sqrt(rateAdjustVar)	* MTS2S;	break;
+					erpv.lod	-= rateAdjust	* MTS2S;		erpv.lodSigma		= sqrt(rateAdjustVar)	* MTS2S;	break;
 			default:
 				break;
 		}

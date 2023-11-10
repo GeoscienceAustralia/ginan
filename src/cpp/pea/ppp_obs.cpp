@@ -148,7 +148,8 @@ inline void pppSatClocks(COMMON_PPP_ARGS)
 		
 		satClk_m += init.x;
 		
-		measEntry.addDsgnEntry	(kfKey, -1, init);
+		measEntry.addDsgnEntry(kfKey, -1,									init);
+		measEntry.addDsgnEntry(kfKey, -obs.satVel.dot(satStat.e) / CLIGHT,	init);
 		
 		InitialState rateInit = initialStateFromConfig(satOpts.clk_rate, i);
 		
@@ -1478,10 +1479,11 @@ void stationPPP(
 			
 			VectorEci eSatInertial	= frameSwapper(satStat.e);
 			
-			measEntry.addDsgnEntry	(posKey,			+eSatInertial[i],				posInit);
-			
 			kfState.addKFState(velKey, velInit);
+			measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
+			measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
 		}
+		
 		
 		if (initialStateFromConfig(recOpts.quat).estimate)
 		{

@@ -197,7 +197,7 @@ void stationSlr(
 
 
 bool satQuat(
-	GObs&				obs,
+	SatPos&				satPos,
 	vector<E_Source>	attitudeTypes,
 	Quaterniond&		quat,
 	bool				origGal	= false);
