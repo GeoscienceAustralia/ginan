@@ -66,18 +66,24 @@ inline void tideDelta(COMMON_PPP_ARGS)
 	Vector3d tideVectorSum		= Vector3d::Zero();
 	Vector3d tideVectorSolid	= Vector3d::Zero();
 	Vector3d tideVectorOTL		= Vector3d::Zero();
-	Vector3d tideVectorPole		= Vector3d::Zero();
+	Vector3d tideVectorATL		= Vector3d::Zero();
+	Vector3d tideVectorSPole	= Vector3d::Zero();
+	Vector3d tideVectorOPole	= Vector3d::Zero();
 	
 	if	( acsConfig.model.tides.solid
 		||acsConfig.model.tides.otl
-		||acsConfig.model.tides.pole)
+		||acsConfig.model.tides.atl
+		||acsConfig.model.tides.spole
+		||acsConfig.model.tides.opole)
 	{
-		tideDisp(trace, time, rRec, nav.erp, rec.otlDisplacement, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorPole);
+		tideDisp(trace, time, rRec, nav.erp, rec.otlDisplacement, rec.atlDisplacement, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorATL, &tideVectorSPole, &tideVectorOPole);
 	}
 	
 	measEntry.componentList.push_back({E_Component::TIDES_SOLID,	-tideVectorSolid.dot(satStat.e) * 2, "- 2*E.dT1", 0});
 	measEntry.componentList.push_back({E_Component::TIDES_OTL,		-tideVectorOTL	.dot(satStat.e) * 2, "- 2*E.dT2", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_POLE,		-tideVectorPole	.dot(satStat.e) * 2, "- 2*E.dT3", 0});
+	measEntry.componentList.push_back({E_Component::TIDES_ATL,		-tideVectorOTL	.dot(satStat.e) * 2, "- 2*E.dT3", 0});
+	measEntry.componentList.push_back({E_Component::TIDES_SPOLE,	-tideVectorSPole.dot(satStat.e) * 2, "- 2*E.dT4", 0});
+	measEntry.componentList.push_back({E_Component::TIDES_OPOLE,	-tideVectorOPole.dot(satStat.e) * 2, "- 2*E.dT5", 0});
 }
 	
 /** Relativity corrections

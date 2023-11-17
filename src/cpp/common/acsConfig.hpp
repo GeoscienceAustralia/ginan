@@ -82,8 +82,10 @@ struct InputOptions
 
 	vector<string>	atx_files;
 	vector<string>	snx_files;
-	vector<string>	blq_files;
-
+	vector<string>	otl_blq_files;
+	vector<string>	atl_blq_files;
+	vector<string>	opole_files;
+                       
 	vector<string>	nav_files;
 	vector<string>	sp3_files;
 	vector<string>	clk_files;
@@ -333,7 +335,12 @@ struct ModelTides
 	bool	enable		= true;
 	bool	solid		= true;
 	bool	otl			= true;
-	bool	pole		= true;
+	bool	atl			= true;
+	bool	spole		= true;
+	bool	opole		= true;
+
+	vector<E_TidalComponent>	otl_blq_row_order	= {E_TidalComponent::UP, E_TidalComponent::WEST, E_TidalComponent::SOUTH};
+	vector<E_TidalComponent>	atl_blq_row_order	= {E_TidalComponent::UP, E_TidalComponent::NORTH, E_TidalComponent::EAST};
 };
 
 

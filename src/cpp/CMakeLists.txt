@@ -6,20 +6,28 @@ add_subdirectory(3rdparty/sofa)
 add_library(ginan_core
 		3rdparty/enum.h
 		3rdparty/EigenDenseBaseAddons.h
-		
+
 		3rdparty/jpl/jpl_eph.cpp
 		3rdparty/jpl/jpl_eph.hpp
-		3rdparty/jpl/jpl_int.hpp	
+		3rdparty/jpl/jpl_int.hpp
 
 		3rdparty/egm96/EGM96.c
 		3rdparty/egm96/EGM96.h
 		3rdparty/egm96/EGM96_data.h
 
-		3rdparty/slr/fcul_a.cpp
-		3rdparty/slr/fcul_zd_hpa.cpp
 		3rdparty/slr/read_crd.c
-		
-		
+
+		3rdparty/iers2010/ch9/fcul_a.cpp
+		3rdparty/iers2010/ch9/fcul_zd_hpa.cpp
+		3rdparty/iers2010/hardisp/admint.cpp
+		3rdparty/iers2010/hardisp/eval.cpp
+		3rdparty/iers2010/hardisp/hardisp_impl.cpp
+		3rdparty/iers2010/hardisp/recurs.cpp
+		3rdparty/iers2010/hardisp/shells.cpp
+		3rdparty/iers2010/hardisp/spline.cpp
+		3rdparty/iers2010/hardisp/tdfrph.cpp
+		3rdparty/iers2010/dehanttideinel/dehanttide_all.cpp
+
 		pea/main.cpp
 		pea/minimumConstraints.cpp
 		pea/minimumConstraints.hpp
@@ -35,7 +43,7 @@ add_library(ginan_core
 		pea/ppp.hpp
 		pea/preprocessor.cpp
 		pea/spp.cpp
-		
+
 		common/api.hpp
 		common/api.cpp
 		common/ntripBroadcast.cpp
@@ -124,7 +132,7 @@ add_library(ginan_core
 		common/tropSinex.cpp
 		common/sp3.cpp
 		common/sp3Write.cpp
-		common/sp3Write.hpp		
+		common/sp3Write.hpp
 		common/orbex.cpp
 		common/orbexWrite.hpp
 		common/orbexWrite.cpp
@@ -140,6 +148,8 @@ add_library(ginan_core
 		common/rinexNavWrite.hpp
 		common/rinexObsWrite.cpp
 		common/rinexObsWrite.hpp
+		common/tides.cpp
+		common/tides.hpp
 		common/ubxDecoder.cpp
 		common/ubxDecoder.hpp
 		common/walkthrough.cpp
@@ -158,7 +168,7 @@ add_library(ginan_core
 		common/streamUbx.hpp
 		common/streamParser.cpp
 		common/streamParser.hpp
-		
+
 		iono/geomagField.hpp
 		iono/geomagField.cpp
 		iono/ionex.cpp
@@ -170,7 +180,7 @@ add_library(ginan_core
 		iono/ionoBSplines.cpp
 		iono/ionexWrite.cpp
 		iono/ionoLocalSTEC.cpp
-		
+
 		inertial/posProp.cpp
 
 		trop/tropModels.hpp
@@ -182,17 +192,17 @@ add_library(ginan_core
 
 		ambres/GNSSambres.hpp
 		ambres/GNSSambres.cpp
-		
+
 		slr/slrCom.cpp
 		slr/slrObs.cpp
 		slr/slrSat.cpp
 		slr/slrRec.cpp
-		
+
 		other_ssr/otherSSR.hpp
 		other_ssr/prototypeIgsSSRDecode.cpp
 		other_ssr/prototypeCmpSSRDecode.cpp
 		other_ssr/prototypeIgsSSREncode.cpp
-		
+
 		orbprop/aod.cpp
 		orbprop/boxwing.cpp
 		orbprop/acceleration.cpp
@@ -200,7 +210,7 @@ add_library(ginan_core
 		orbprop/iers2010.cpp
 		orbprop/planets.cpp
 		orbprop/tideCoeff.cpp
-		orbprop/orbitProp.cpp 
+		orbprop/orbitProp.cpp
 		orbprop/staticField.cpp
 		orbprop/centerMassCorrections.cpp
 		orbprop/oceanPoleTide.cpp
@@ -208,8 +218,6 @@ add_library(ginan_core
 		rtklib/lambda.cpp
 		rtklib/lambda.h
 		rtklib/rtkcmn.cpp
-		rtklib/tides.cpp
-		rtklib/tides.hpp
 
 		common/acsConfig.hpp
 		common/acsConfig.cpp
@@ -219,13 +227,14 @@ add_library(ginan_core
 target_include_directories(ginan_core PUBLIC
 		3rdparty
 		3rdparty/egm96
+		3rdparty/iers2010
 		3rdparty/sofa/src
 		3rdparty/jpl
 		3rdparty/mqtt_cpp/
 		3rdparty/slr
-		
+
 		configurator
-		
+
 		ambres
 		slr
 		common
@@ -237,7 +246,7 @@ target_include_directories(ginan_core PUBLIC
 		peaUploader
 		rtklib
 		other_ssr
-		
+
 		${EIGEN3_INCLUDE_DIRS}
 		${LAPACK_INCLUDE_DIRS}
 		${OPENBLAS_INCLUDE_DIRS}
@@ -251,8 +260,8 @@ target_include_directories(ginan_core PUBLIC
 		"/usr/local/include/libmongoc-1.0"
 		"/usr/local/include/libbson-1.0"
 		"/usr/local/lib"
-		)		
-		
+		)
+
 target_compile_options(ginan_core PRIVATE -fpie)
 
 if(OpenMP_CXX_FOUND)
@@ -361,39 +370,39 @@ target_link_libraries(ginan_core PUBLIC
 						${OPENSSL_LIBRARIES}
 					)
 
-					
+
 add_executable(ginan
 	gui/ginan.cpp
 	gui/anode.cpp
 	gui/beast.cpp)
-	
+
 target_include_directories(ginan PUBLIC
 	3rdparty/beast/
 	)
-	
+
 target_link_libraries(ginan PRIVATE ginan_core)
-					
+
 add_executable(pea
 	pea.cpp)
-	
+
 target_include_directories(pea PUBLIC
 	)
-	
+
 target_link_libraries(pea PRIVATE ginan_core)
 
 
 add_custom_target(peas)
 
-add_dependencies(peas 
+add_dependencies(peas
 					pea
 					ginan
 					)
-					
-					
+
+
 if(BUILD_DOC)
 add_dependencies(peas
 					docs
 					)
 endif()
-				
-				
+
+

@@ -82,6 +82,7 @@ using std::string;
 #include "trace.hpp"
 #include "debug.hpp"
 #include "sinex.hpp"
+#include "tides.hpp"
 #include "cost.hpp"
 #include "enums.h"
 #include "aod.hpp"
@@ -168,22 +169,30 @@ void initialiseStation(
 	
 	rec.id = id;
 
-	// Read the BLQ file
+	// Read the OTL BLQ file
 	bool found = false;
-	for (auto& blqfile : acsConfig.blq_files)
+	for (auto& blqfile : acsConfig.otl_blq_files)
 	{
-		found = readblq(blqfile, id, rec.otlDisplacement);
-
-		if (found)
-		{
-			break;
-		}
+		found |= readBlq(blqfile, rec, E_LoadingType::OCEAN);		// last wins
 	}
 
 	if (found == false)
 	{
 		BOOST_LOG_TRIVIAL(warning)
-		<< "Warning: No BLQ for " << id;
+		<< "Warning: No OTL BLQ for " << id;
+	}
+
+	// Read the ATL BLQ file
+	found = false;
+	for (auto& blqfile : acsConfig.atl_blq_files)
+	{
+		found |= readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);	// last wins
+	}
+
+	if (found == false)
+	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: No ATL BLQ for " << id;
 	}
 }
 
@@ -501,7 +510,20 @@ void reloadInputFiles()
 		
 		readgrid(acsConfig.model.trop.gpt2grid);
 	}
-	
+
+	removeInvalidFiles(acsConfig.opole_files);
+	for (auto& optfile : acsConfig.opole_files)
+	{
+		if (fileChanged(optfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading Ocean Pole Tide file " << optfile;
+		
+		readOceanPoleCoeff(optfile);
+	}
 
 	removeInvalidFiles(acsConfig.sid_files); // satellite ID (sp3c code) data
 	for (auto& sidfile : acsConfig.sid_files)
@@ -627,7 +649,8 @@ void reloadInputFiles()
 
 		aod.read(aod1b_file, acsConfig.orbitPropagation.degree_max);
 	}
-//Boxwing to change later
+
+	//Boxwing to change later
     for (auto& boxwing_file : acsConfig.boxwing_files)
     {
          if (fileChanged(boxwing_file) == false)
@@ -638,6 +661,7 @@ void reloadInputFiles()
 
           boxwing.read(boxwing_file);
     }
+
 	removeInvalidFiles(acsConfig.poleocean_files);
 	for (auto& poleocean_file : acsConfig.poleocean_files)
 	{

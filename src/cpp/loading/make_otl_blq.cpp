@@ -59,6 +59,7 @@ void program_options(int argc, char * argv[], otl_input & input)
 			("help",			"This help message")
 			("quiet",			"Less output")
 			("verbose",			"More output")
+			("type",		po::value<std::string>(),	"loading type: (o) ocean loading, or (a) atmospheric loading")
 			("config",		po::value<std::string>(),	"Configuration file, This specifies the location of green function, and netcdf files for the ocean loading terms")
 			("location",	po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")
 			("xyz",			po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
@@ -79,8 +80,8 @@ void program_options(int argc, char * argv[], otl_input & input)
 	if (vm.count("help")) {
 		cout << "Usage: make_otl_blq [options]\n";
 		cout << desc << "\n\n";
-		cout << "Example: make_otl_blq --config otl.yaml --code 'ALIC 50137M0014' --location 133.8855 -23.6701 \n\n";
-		cout << "Example with input file: make_otl_blq --config otl.yaml --input station.csv\n";
+		cout << "Example: make_otl_blq --type o --config otl.yaml --code 'ALIC 50137M0014' --location 133.8855 -23.6701 \n\n";
+		cout << "Example with input file: make_otl_blq --type o --config otl.yaml --input station.csv\n";
 		cout << "                         Where station.csv contains station informations  \n";
 		cout << "                           format: station name, longitude, latitude\n\n";
 
@@ -88,6 +89,18 @@ void program_options(int argc, char * argv[], otl_input & input)
 	}
 
 	// Parser
+	if (vm.count("type"))
+	{
+		std::string type = vm["type"].as<std::string>();
+		if		(type == "o")	input.type = "Ocean";
+		else if	(type == "a")	input.type = "Atmospheric";
+		else					throw std::runtime_error("the argument for option '--type' is invalid - only 'o' (ocean loading) or 'a' (atmospheric loading) is accepted");
+	}
+	else
+	{
+		throw std::runtime_error("The required argument for option '--type' is missing");
+	}
+	
 	std::string config_f;
 	std::string code_f;
 	std::vector<float> location;
@@ -248,6 +261,7 @@ int main(int argc, char * argv[]) {
 			tideinfo[i].set_name(input.tide_file[i]);
 			tideinfo[i].read();
 
+			input.wave_names.push_back(tideinfo[i].get_wave_name());
 		}
 
 

@@ -6,6 +6,7 @@
  */
 
 #include "tide.h"
+#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <netcdf>
 using namespace std;
@@ -89,6 +90,12 @@ void tide::read(){
 		phase_var.getVar(&phase[0][0]);
 		bool test;
 		phase_var.getFillModeParameters(test,fillNan);
+
+		std::size_t pos1 = fileName.find_last_of("/");
+		pos1++;
+		std::size_t pos2 = fileName.find_last_of(".");
+		wave_name = fileName.substr(pos1, pos2 - pos1);
+		boost::to_upper(wave_name);
 
 		datafile.close();
 		//cout << "1600,400 => " << amplitude[1600][400] << "  n n  " << amplitude[400][1600] << "\n";

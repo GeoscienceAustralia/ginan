@@ -24,7 +24,7 @@ struct Solution
 	E_Solution			status;									///< solution status
 	int					numMeas			= 0;					///< number of valid satellites
 	KFState				sppState;								///< SPP filter object
-	double				dop[4];
+	double				dop[4];									///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
 	VectorEcef			sppRRec;								///< Position vector from spp
 };
 
@@ -54,6 +54,21 @@ struct StationLogs
 };
 
 
+/** Structure of ocean/atmospheric tide loading displacements in amplitude and phase
+*/
+struct TidalDisplacement
+{
+	VectorEnu	amplitude;
+	VectorEnu	phase;
+};
+
+/** Map of ocean/atmospheric tide loading displacements
+*/
+struct TideMap : map<E_TidalConstituent, TidalDisplacement>
+{
+
+};
+
 struct Rtk
 {
 	Solution					sol;								///< RTK solution
@@ -61,7 +76,8 @@ struct Rtk
 	string						receiverType;
 	string						antennaId;
 	map<SatSys, SatStat>		satStatMap;	
-	double						otlDisplacement[6*11] = {};			///< ocean tide loading parameters
+	TideMap						otlDisplacement;					///< ocean tide loading parameters
+	TideMap						atlDisplacement;					///< atmospheric tide loading parameters
 	VectorEnu					antDelta;							///< antenna delta {rov_e,rov_n,rov_u}
 	AttStatus					attStatus;
 };
@@ -122,7 +138,7 @@ struct Station : StationLogs, Rtk
 	map<E_Sys, pair<E_ObsCode,E_ObsCode>> recClockCodes;
 	map<SatSys, GTime> savedSlips;
 	
-	Cache<tuple<Vector3d, Vector3d, Vector3d>>		pppTideCache;
+	Cache<tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>> pppTideCache;
 };
 
 struct StationMap : map<string, Station>

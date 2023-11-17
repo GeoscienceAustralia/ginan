@@ -10,7 +10,7 @@ inputs:
     - tables/qzss_yaw_modes.snx,
     - tables/bds_yaw_modes.snx                        
                           
-    blq_files:          [ OLOAD_GO.BLQ                                      ]   
+    otl_blq_files:      [ OLOAD_GO.BLQ                                      ]   
     erp_files:          [ igs96p02.erp                                      ]
     egm_files:          [ tables/EGM2008.gfc                                ]  # Earth gravity model coefficients file
     jpl_files:          [ tables/DE436.1950.2050                            ]  # JPL planetary and lunar ephemerides file

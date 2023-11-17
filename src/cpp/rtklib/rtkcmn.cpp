@@ -4,14 +4,8 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#include <boost/log/trivial.hpp>
-
 #include <algorithm>
-#include <iostream>
-#include <fstream>
 #include <string>
-
-using std::ifstream;
 
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
@@ -19,93 +13,8 @@ using std::ifstream;
 #include "constants.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
-#include "trace.hpp"
 #include "enums.h"
 
-
-/** read blq record 
- */
-bool readblqrecord(
-	ifstream&	fileStream, 
-	double*		otlDisplacement)
-{
-	int n = 0;
-	while (fileStream)
-	{
-		string line;
-		
-		getline(fileStream, line);
-
-		char* buff = &line[0];
-	
-		if (!strncmp(buff,"$$",2))
-			continue;
-		
-		double v[11];
-		if (sscanf(buff,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", v,v+1,v+2,v+3,v+4,v+5,v+6,v+7,v+8,v+9,v+10)<11)
-			continue;
-		
-		for (int i = 0; i < 11; i++)
-			otlDisplacement[n+i*6] = v[i];
-		
-		n++;
-		
-		if (n == 6)
-			return true;
-	}
-	return false;
-}
-
-/* read blq ocean tide loading parameters --------------------------------------
-* read blq ocean tide loading parameters
-* args   : char   *file       I   BLQ ocean tide loading parameter file
-*          char   *sta        I   station name
-*          double *odisp      O   ocean tide loading parameters
-* return : status (1:ok,0:file open error)
-*-----------------------------------------------------------------------------*/
-bool readblq(
-	string		filepath,
-	string		id,
-	double*		otlDisplacement)
-{
-	ifstream fileStream(filepath);
-	if (!fileStream)
-	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening blq file" << filepath << std::endl;
-		return false;
-	}
-	
-	while (fileStream)
-	{
-		string line;
-		
-		getline(fileStream, line);
-
-		char* buff = &line[0];
-	
-		if (!strncmp(buff,"$$",2)||strlen(buff)<2)
-			continue;
-
-		char name[32];
-		if (sscanf(buff+2,"%16s", name)<1)
-			continue;
-		
-		for (char* p=name;(*p=(char)toupper((int)(*p)));p++)
-			;
-		
-		if (strcmp(name,id.c_str()))
-			continue;
-
-		/* read blq record */
-		if (readblqrecord(fileStream, otlDisplacement))
-		{
-			return true;
-		}
-	}
-//     trace(2,"no otl parameters: sta=%s file=%s\n",sta,file);
-	return false;
-}
 
 void updatenav(
 	SatPos& satPos)

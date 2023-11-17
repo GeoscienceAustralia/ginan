@@ -120,15 +120,3 @@ struct IERS2010
 		double&			xpv,
 		double&			ypv);
 };
-
-namespace iers2010
-{
-/// Compute the global total FCULa mapping function.
-double fcul_a(double, double, double, double) noexcept;
-/*
-/// Computes the global total FCULb mapping function.
-double fcul_b(double, double, double, double) noexcept;
-*/
-// Determine the total zenith delay following Mendes and Pavlis, 2004.
-int fcul_zd_hpa(double, double, double, double, double, double &, double &, double &) noexcept;
-};

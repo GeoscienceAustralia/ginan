@@ -347,26 +347,32 @@ inline void pppSatPCV(COMMON_PPP_ARGS)
 
 inline void pppTides(COMMON_PPP_ARGS)
 {
-	auto& [solid, otl, pole] = rec.pppTideCache.useCache([&]() -> tuple<Vector3d, Vector3d, Vector3d>
+	auto& [solid, otl, atl, spole, opole] = rec.pppTideCache.useCache([&]() -> tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>
 	{
 		Vector3d tideVectorSum		= Vector3d::Zero();
 		Vector3d tideVectorSolid	= Vector3d::Zero();
 		Vector3d tideVectorOTL		= Vector3d::Zero();
-		Vector3d tideVectorPole		= Vector3d::Zero();
+		Vector3d tideVectorATL		= Vector3d::Zero();
+		Vector3d tideVectorSPole	= Vector3d::Zero();
+		Vector3d tideVectorOPole	= Vector3d::Zero();
 		
 		if	( acsConfig.model.tides.solid
 			||acsConfig.model.tides.otl
-			||acsConfig.model.tides.pole)
+			||acsConfig.model.tides.atl
+			||acsConfig.model.tides.spole
+			||acsConfig.model.tides.opole)
 		{
-			tideDisp(trace, time, rRec, nav.erp, rec.otlDisplacement, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorPole);
+			tideDisp(trace, time, rRec, nav.erp, rec.otlDisplacement, rec.atlDisplacement, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorATL, &tideVectorSPole, &tideVectorOPole);
 		}
 		
-		return {tideVectorSolid, tideVectorOTL, tideVectorPole};
+		return {tideVectorSolid, tideVectorOTL, tideVectorATL, tideVectorSPole, tideVectorOPole};
 	});
 	
 	measEntry.componentList.push_back({E_Component::TIDES_SOLID,	-solid	.dot(satStat.e), "- E.dT1", 0});
 	measEntry.componentList.push_back({E_Component::TIDES_OTL,		-otl	.dot(satStat.e), "- E.dT2", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_POLE,		-pole	.dot(satStat.e), "- E.dT3", 0});
+	measEntry.componentList.push_back({E_Component::TIDES_ATL,		-atl	.dot(satStat.e), "- E.dT3", 0});
+	measEntry.componentList.push_back({E_Component::TIDES_SPOLE,	-spole	.dot(satStat.e), "- E.dT4", 0});
+	measEntry.componentList.push_back({E_Component::TIDES_OPOLE,	-opole	.dot(satStat.e), "- E.dT5", 0});
 };
 
 inline void pppRelativity(COMMON_PPP_ARGS)

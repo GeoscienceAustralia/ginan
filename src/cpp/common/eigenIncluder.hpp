@@ -91,6 +91,10 @@ struct VectorEnu : Vector3d
 		return *this;
 	}
 	
+	VectorEnu operator*(const double		rhs)	{		return Vector3d(((Vector3d)*this) * (			rhs));		}
+	VectorEnu operator-(const VectorEnu&	rhs)	{		return Vector3d(((Vector3d)*this) - ((Vector3d)	rhs));		}
+	VectorEnu operator+(const VectorEnu&	rhs)	{		return Vector3d(((Vector3d)*this) + ((Vector3d)	rhs));		}
+	
 	double& e()	{		return x();		}
 	double& n()	{		return y();		}
 	double& u()	{		return z();		}

@@ -1065,7 +1065,8 @@ bool satQuat(
 	bool				origGal)			///< Use original GAL frame of ref (rotate 180deg yaw from default GPS/antex) - affects GAL only
 {
 	auto& attStatus = satPos.satNav_ptr->attStatus;
-
+	
+	satYaw(satPos, attStatus);
 	bool pass = satAtt(satPos, attitudeTypes, attStatus, origGal);
 
 	Matrix3d body2Ecef = rotBasisMat(attStatus.eXBody, attStatus.eYBody, attStatus.eZBody);

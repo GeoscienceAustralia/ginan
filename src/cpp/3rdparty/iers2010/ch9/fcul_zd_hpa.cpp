@@ -1,5 +1,7 @@
-// From https://github.com/xanthospap/iers2010
 #include "iers2010.hpp"
+#ifdef USE_EXTERNAL_CONSTS
+#include "iersc.hpp"
+#endif
 
 /// @details  This function determines the total zenith delay following
 ///           (Mendes and Pavlis, 2004).
@@ -44,7 +46,7 @@ int iers2010::fcul_zd_hpa(double dlat, double dhgt, double pres, double wvp,
                           double lambda, double &f_ztd, double &f_zhd,
                           double &f_zwd) noexcept {
 #ifdef USE_EXTERNAL_CONSTS
-  constexpr double PI(DPI);
+  constexpr double PI(iers2010::DPI);
   // constexpr double C    (DC);
 #else
   constexpr double PI(3.14159265358979323846e0);
@@ -53,44 +55,44 @@ int iers2010::fcul_zd_hpa(double dlat, double dhgt, double pres, double wvp,
 #endif
 
   // CO2 content in ppm
-  constexpr double xc(375e0);
+  constexpr double xc = 375e0;
   // constant values to be used in Equation (20)
   // k1 and k3 are k1* and k3*
-  constexpr double k0(238.0185e0);
-  constexpr double k1(19990.975e0);
-  constexpr double k2(57.362e0);
-  constexpr double k3(579.55174e0);
+  constexpr double k0 = 238.0185e0;
+  constexpr double k1 = 19990.975e0;
+  constexpr double k2 = 57.362e0;
+  constexpr double k3 = 579.55174e0;
 
   // constant values to be used in Equation (32)
-  constexpr double w0(295.235e0);
-  constexpr double w1(2.6422e0);
-  constexpr double w2(-0.032380e0);
-  constexpr double w3(0.004028e0);
+  constexpr double w0 = 295.235e0;
+  constexpr double w1 = 2.6422e0;
+  constexpr double w2 = -0.032380e0;
+  constexpr double w3 = 0.004028e0;
 
   //  Wave number
-  const double sigma(1e0 / lambda);
+  const double sigma = 1e0 / lambda;
 
   // correction factor - Equation (24)
-  const double f(1e0 - 0.00266e0 * cos(2e0 * PI / 180e0 * dlat) -
-                 0.00028e-3 * dhgt);
+  const double f =
+      1e0 - 0.00266e0 * std::cos(2e0 * PI / 180e0 * dlat) - 0.00028e-3 * dhgt;
 
   // correction for CO2 content
-  const double corr(1e0 + 0.534e-6 * (xc - 450e0));
+  const double corr = 1e0 + 0.534e-6 * (xc - 450e0);
 
   // dispersion equation for the hydrostatic component - Equation (20)
-  const double sigma2(sigma * sigma);
-  const double fh(0.01e0 * corr *
-                  ((k1 * (k0 + sigma2)) / (pow((k0 - sigma2), 2)) +
-                   k3 * (k2 + sigma2) / (pow((k2 - sigma2), 2))));
+  const double sigma2 = sigma * sigma;
+  const double fh = 0.01e0 * corr *
+                    ((k1 * (k0 + sigma2)) / (std::pow((k0 - sigma2), 2)) +
+                     k3 * (k2 + sigma2) / (std::pow((k2 - sigma2), 2)));
 
   // computation of the hydrostatic component - Equation (26)
   // caution: pressure in hectoPascal units
   f_zhd = 2.416579e-3 * fh * pres / f;
 
   // dispersion equation for the non-hydrostatic component - Equation (32)
-  const double fnh(0.003101e0 *
-                   (w0 + 3e0 * w1 * sigma2 + 5e0 * w2 * (sigma2 * sigma2) +
-                    7e0 * w3 * pow(sigma, 6)));
+  const double fnh =
+      0.003101e0 * (w0 + 3e0 * w1 * sigma2 + 5e0 * w2 * (sigma2 * sigma2) +
+                    7e0 * w3 * std::pow(sigma, 6));
 
   // computation of the non-hydrostatic component - Equation (38)
   // caution: pressure in hectoPascal units

@@ -1040,11 +1040,12 @@ void debugIGRF()
 
 void debugAttitude()
 {
-	// // GPS
-	// SatSys Sat(E_Sys::GPS, 1);
+	// GPS
+	SatSys Sat(E_Sys::GPS, 1);
 	// GEpoch ep = {2019, 07, 18, 0, 0, 0};
-	// int nEpoch = 288;
-	// double interval = 300;
+	GEpoch ep = {2023, 8, 28, 0, 0, 0};
+	int nEpoch = 288;
+	double interval = 300;
 
 	// // GRACE C
 	// SatSys Sat(E_Sys::LEO, 65);
@@ -1065,53 +1066,66 @@ void debugAttitude()
 	// int nEpoch = 2261;
 	// double interval = 1;
 
-	// SPIRE
-	SatSys Sat(E_Sys::LEO, 99);
-	GEpoch ep = {2023, 01, 01, 9, 59, 46};
-	int nEpoch = 5853;
-	double interval = 1;
+	// // SPIRE
+	// SatSys Sat(E_Sys::LEO, 99);
+	// GEpoch ep = {2023, 01, 01, 9, 59, 46};
+	// int nEpoch = 5853;
+	// double interval = 1;
 
-	GObs obs;
-	obs.Sat = Sat;
-	obs.time = ep;
+	GTime time = ep;
+
+	SatPos satPos;
+	satPos.Sat = Sat;
 
 	Station rec;
 	rec.id = Sat.id();
 
 	auto& satOpts = acsConfig.getSatOpts(Sat);
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
+	
+	auto& satNav = nav.satNavMap[Sat];
+	satNav.antBoresight	= satOpts.antenna_boresight;
+	satNav.antAzimuth	= satOpts.antenna_azimuth;
+	satPos.satNav_ptr	= &satNav;
 
 	AttStatus attStatus = {};
+	VectorEcef rSat;
 	VectorEcef rSun;
 	VectorEcef eSun;
 
-	printf("\n");
-	for (int i=0; i<nEpoch/interval+50; i++)
+	printf("Debugging satellite attitude:\n");
+	for (int i=0; i<nEpoch; i++)
 	{
-		int	week = GWeek(obs.time);
-		double tow = GTow(obs.time);
+		int	week = GWeek(time);
+		double tow = GTow(time);
 
-		// satAntAtt(obs, satOpts.antenna_boresight, satOpts.antenna_azimuth, acsConfig.model.sat_attitude.source, attStatus, true);
+		// for GNSS satellites
+		satPos.posTime = time;
+		satpos(nullStream, time, time, satPos, satOpts.sat_pos.ephemeris_sources, E_OffsetType::COM, nav);
+		updateSatAtts(satPos);
+		rSat = satPos.rSatCom;
+		attStatus = satPos.satNav_ptr->attStatus;
 
-		recAtt(rec, obs.time, recOpts.rec_attitude.sources);
-		attStatus = rec.attStatus;
+		// // for LEO satellites
+		// recAtt(rec, time, recOpts.rec_attitude.sources);
+		// attStatus = rec.attStatus;
 
-		printf("%d %8.1f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t", 
+		planetPosEcef(time, E_ThirdBody::SUN, rSun);
+		eSun = rSun.normalized();
+
+		printf("%d %8.1f\t%13.3f %13.3f %13.3f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\t%9.6f %9.6f %9.6f\n", 
 				week, tow, 
+				rSat			.x(),	rSat			.y(),	rSat			.z(), 	// for GNSS satellites
+				// rec.pos			.x(),	rec.pos			.y(),	rec.pos			.z(), 	// (not ready) for LEO satellites
 				attStatus.eXBody.x(),	attStatus.eXBody.y(),	attStatus.eXBody.z(), 
 				attStatus.eYBody.x(),	attStatus.eYBody.y(),	attStatus.eYBody.z(), 
 				attStatus.eZBody.x(),	attStatus.eZBody.y(),	attStatus.eZBody.z(), 
 				attStatus.eXAnt	.x(),	attStatus.eXAnt	.y(),	attStatus.eXAnt	.z(), 
 				attStatus.eYAnt	.x(),	attStatus.eYAnt	.y(),	attStatus.eYAnt	.z(), 
-				attStatus.eZAnt	.x(),	attStatus.eZAnt	.y(),	attStatus.eZAnt	.z());
+				attStatus.eZAnt	.x(),	attStatus.eZAnt	.y(),	attStatus.eZAnt	.z(),
+				eSun			.x(),	eSun			.y(),	eSun			.z());
 
-		planetPosEcef(obs.time, E_ThirdBody::SUN, rSun);
-		eSun = rSun.normalized();
-
-		printf("%9.6f %9.6f %9.6f\n", 
-				eSun.x(), eSun.y(), eSun.z());
-
-		obs.time += interval;
+		time += interval;
 	}
 }
 
@@ -1166,6 +1180,634 @@ void debugErp()
 					<< " "	<< std::setw(10)	<< erpv.lod
 					<< " "						<< (erpv.isPredicted ? 'P' : ' ')
 							<< std::endl;
+	}
+}
+
+#include <fstream>
+#include "tides.hpp"
+
+using iers2010::hisp::ntin;
+
+void debugBlq()
+{
+	string id = "ALIC";
+
+	Station	rec;
+	rec.id = id;
+
+	for (auto& blqfile : acsConfig.otl_blq_files)
+	{
+		bool found = readBlq(blqfile, rec, E_LoadingType::OCEAN);
+	}
+
+	for (auto& blqfile : acsConfig.atl_blq_files)
+	{
+		bool found = readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);
+	}
+
+	std::cout << std::fixed;
+
+	std::cout << "\nDebugging OTL BLQ: " << rec.id << std::fixed << std::endl;
+	for (auto& [wave, disp] : rec.otlDisplacement)
+	{
+		std::cout << wave._to_string() << ":";
+		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(5) << std::setw(9) << disp.amplitude[i];
+		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(1) << std::setw(9) << disp.phase[i];
+		std::cout << std::endl;
+	}
+
+	std::cout << "\nDebugging ATL BLQ: " << rec.id << std::fixed << std::endl;
+	for (auto& [wave, disp] : rec.atlDisplacement)
+	{
+		std::cout << wave._to_string() << ":";
+		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(5) << std::setw(9) << disp.amplitude[i];
+		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(1) << std::setw(9) << disp.phase[i];
+		std::cout << std::endl;
+	}
+}
+
+map<string, map<double, VectorEnu>> readRefOtlDisp(string file)
+{
+	map<string, map<double, VectorEnu>> dispMap;
+
+	std::ifstream fileStream(file);
+	if (!fileStream)
+	{
+		return dispMap;
+	}
+
+	while (fileStream)
+	{
+		string line;
+		getline(fileStream, line);
+
+		if (line[0] == '*')
+			continue;
+		
+		char* buff = &line[0];
+
+		string		id = line.substr(0, 4);
+		char		dummy[5];
+		double		mjd;
+		double		v[3];
+		int found = sscanf(buff, "%4s %lf %lf %lf %lf", dummy, &mjd, &v[0], &v[1], &v[2]);
+
+		if (found != 5)
+			continue;
+		
+		VectorEnu denu;
+		denu[0] = -v[2];
+		denu[1] = -v[1];
+		denu[2] =  v[0];
+
+		dispMap[id][mjd] = denu;
+	}
+
+	return dispMap;
+}
+
+void debugTideOcean()
+{
+	std::cout << "\nDebugging OTL:" << std::endl;
+
+	string filename = "testData/oload.test";
+	auto dispRefMap = readRefOtlDisp(filename);
+
+	for (auto& [id, dispTimeMap] : dispRefMap)
+	{
+		Station rec;
+		rec.id = id;
+
+		for (auto& blqfile : acsConfig.otl_blq_files)
+		{
+			bool found = readBlq(blqfile, rec, E_LoadingType::OCEAN);
+		}
+
+		if (rec.otlDisplacement.empty())
+			return;
+
+		for (auto& [mjdval, denuRef] : dispTimeMap)
+		{
+			MjDateUtc mjdUtc;
+			mjdUtc.val = mjdval;
+
+			GTime time = GTime(mjdUtc);
+			ERPValues erpv = getErp(nav.erp, time);
+			MjDateUt1 mjdUt1(time, erpv.ut1Utc);
+
+			// VectorEnu denu = tideOceanLoad (std::cout, mjdUt1, rec.otlDisplacement);
+			VectorEnu denu = tideOceanLoadAdjusted(std::cout, time, mjdUt1, rec.otlDisplacement);
+			VectorEnu diff = denu - denuRef;
+
+			std::cout	<< std::setprecision( 7)	<< std::fixed
+						<< "\t"						<< id
+						<< "\t"						<< mjdUtc.to_double()
+						<< "\t"	<< std::setw(10)	<< denuRef.e()
+						<< "\t"	<< std::setw(10)	<< denuRef.n()
+						<< "\t"	<< std::setw(10)	<< denuRef.u()
+						<< "\t"	<< std::setw(10)	<< denu.e()
+						<< "\t"	<< std::setw(10)	<< denu.n()
+						<< "\t"	<< std::setw(10)	<< denu.u()
+						<< "\t"	<< std::setw(10)	<< diff.e()
+						<< "\t"	<< std::setw(10)	<< diff.n()
+						<< "\t"	<< std::setw(10)	<< diff.u()
+						<< std::endl;
+		}
+		std::cout << std::endl;
+	}
+}
+
+void debugHardisp()
+{
+	/// Read in ocean loading coefficients from stdin
+	std::cout << "\nDebugging OTL Hardisp:" << std::endl;
+
+	string filename = "testData/oload.test";
+	auto dispRefMap = readRefOtlDisp(filename);
+
+	for (auto& [id, dispTimeMap] : dispRefMap)
+	{
+		Station rec;
+		rec.id = id;
+
+		for (auto& blqfile : acsConfig.otl_blq_files)
+		{
+			bool found = readBlq(blqfile, rec, E_LoadingType::OCEAN);
+		}
+
+		if (rec.otlDisplacement.empty())
+			return;
+
+		for (auto& [mjdval, denuRef] : dispTimeMap)
+		{
+			MjDateUtc mjdUtc;
+			mjdUtc.val = mjdval;
+
+			GTime time = GTime(mjdUtc);
+
+			VectorEnu denu = tideOceanLoadHardisp(std::cout, time, rec.otlDisplacement);
+			VectorEnu diff = denu - denuRef;
+
+			std::cout	<< std::setprecision( 7)	<< std::fixed
+						<< "\t"						<< id
+						<< "\t"						<< mjdUtc.to_double()
+						<< "\t"	<< std::setw(10)	<< denuRef.e()
+						<< "\t"	<< std::setw(10)	<< denuRef.n()
+						<< "\t"	<< std::setw(10)	<< denuRef.u()
+						<< "\t"	<< std::setw(10)	<< denu.e()
+						<< "\t"	<< std::setw(10)	<< denu.n()
+						<< "\t"	<< std::setw(10)	<< denu.u()
+						<< "\t"	<< std::setw(10)	<< diff.e()
+						<< "\t"	<< std::setw(10)	<< diff.n()
+						<< "\t"	<< std::setw(10)	<< diff.u()
+						<< std::endl;
+		}
+		std::cout << std::endl;
+	}
+}
+
+map<double, VectorEnu> readRefAtlDisp(string file)
+{
+	map<double, VectorEnu> dispMap;
+
+	std::ifstream fileStream(file);
+	if (!fileStream)
+	{
+		return dispMap;
+	}
+
+	while (fileStream)
+	{
+		string line;
+		getline(fileStream, line);
+
+		if (line.substr(1, 2) == "$$")
+			continue;
+		
+		char* buff = &line[0];
+
+		char		dummy[5];
+		double		mjd;
+		double		v[3];
+		int found = sscanf(buff, "%lf %lf %lf %lf", &mjd, &v[0], &v[1], &v[2]);
+
+		if (found != 4)
+			continue;
+		
+		VectorEnu denu;
+		denu[0] = v[2] * 1E-3;
+		denu[1] = v[1] * 1E-3;
+		denu[2] = v[0] * 1E-3;
+
+		dispMap[mjd] = denu;
+	}
+
+	return dispMap;
+}
+
+map<string, map<double, VectorEnu>> readRefAplDisp(string file)
+{
+	map<string, map<double, VectorEnu>> dispMap;
+
+	std::ifstream fileStream(file);
+	if (!fileStream)
+	{
+		return dispMap;
+	}
+
+	while (fileStream)
+	{
+		string line;
+		getline(fileStream, line);
+
+		if (line[0] == '!')
+			continue;
+		
+		char* buff = &line[0];
+
+		string		id = line.substr(0, 4);
+		char		dummy[5];
+		double		mjd;
+		double		v[3];
+		int found = sscanf(buff, "%4s %lf %lf %lf %lf", dummy, &mjd, &v[0], &v[1], &v[2]);
+
+		if (found != 5)
+			continue;
+		
+		VectorEnu denu;
+		denu[0] = v[1];
+		denu[1] = v[2];
+		denu[2] = v[0];
+
+		dispMap[id][mjd] = denu;
+	}
+
+	return dispMap;
+}
+
+void debugTideAtmos()
+{
+	std::cout << "\nDebugging ATL:" << std::endl;
+
+	string id = "ALIC";
+	Station rec;
+	rec.id = id;
+
+	for (auto& blqfile : acsConfig.atl_blq_files)
+	{
+		bool found = readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);
+	}
+	
+	if (rec.atlDisplacement.empty())
+		return;
+
+	// Test 1 - single station, multiple days
+	string filename = "testData/grdintrp.dat";
+	auto dispRefMap = readRefAtlDisp(filename);
+
+	double mjdval = 58682;
+	for (auto& [mjdval, denuRef] : dispRefMap)
+	{
+		MjDateUt1 mjdUt1;
+		mjdUt1.val = mjdval;
+
+
+		VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, rec.atlDisplacement);
+		VectorEnu diff = denu - denuRef;
+
+		std::cout	<< std::setprecision( 7)	<< std::fixed
+					<< "\t"						<< id
+					<< "\t"						<< mjdUt1.to_double()
+					<< "\t"	<< std::setw(10)	<< denuRef.e()
+					<< "\t"	<< std::setw(10)	<< denuRef.n()
+					<< "\t"	<< std::setw(10)	<< denuRef.u()
+					<< "\t"	<< std::setw(10)	<< denu.e()
+					<< "\t"	<< std::setw(10)	<< denu.n()
+					<< "\t"	<< std::setw(10)	<< denu.u()
+					<< "\t"	<< std::setw(10)	<< diff.e()
+					<< "\t"	<< std::setw(10)	<< diff.n()
+					<< "\t"	<< std::setw(10)	<< diff.u()
+					<< std::endl;
+	}
+
+	// // Test 2 - single station, multiple days (one year)
+	// string filename = "testData/y2019.apl_g.txt";
+	// auto dispRefMap = readRefAplDisp(filename);
+
+	// auto dispTimeMap = dispRefMap[id];
+	// for (auto& [mjdval, denuRef] : dispTimeMap)
+	// {
+	// 	MjDateUt1 mjdUt1;
+	// 	mjdUt1.val = mjdval;
+
+	// 	VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, rec.atlDisplacement);
+	// 	VectorEnu diff = denu - denuRef;
+
+	// 	std::cout	<< std::setprecision( 7)	<< std::fixed
+	// 				<< "\t"						<< id
+	// 				<< "\t"						<< mjdUt1.to_double()
+	// 				<< "\t"	<< std::setw(10)	<< denuRef.e()
+	// 				<< "\t"	<< std::setw(10)	<< denuRef.n()
+	// 				<< "\t"	<< std::setw(10)	<< denuRef.u()
+	// 				<< "\t"	<< std::setw(10)	<< denu.e()
+	// 				<< "\t"	<< std::setw(10)	<< denu.n()
+	// 				<< "\t"	<< std::setw(10)	<< denu.u()
+	// 				<< "\t"	<< std::setw(10)	<< diff.e()
+	// 				<< "\t"	<< std::setw(10)	<< diff.n()
+	// 				<< "\t"	<< std::setw(10)	<< diff.u()
+	// 				<< std::endl;
+	// }
+
+	// // Test 3 - multiple stations, single day
+	// string filename = "testData/2019199.apl_g.txt";
+	// auto dispRefMap = readRefAplDisp(filename);
+
+	// for (auto& [id, dispTimeMap]	: dispRefMap)
+	// for (auto& [mjdval, denuRef]	: dispTimeMap)
+	// {
+	// 	Station rec;
+	// 	rec.id = id;
+
+	// 	for (auto& blqfile : acsConfig.atl_blq_files)
+	// 	{
+	// 		bool found = readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);
+	// 	}
+
+	// 	if (rec.atlDisplacement.empty())
+	// 		continue;
+
+	// 	MjDateUt1 mjdUt1;
+	// 	mjdUt1.val = mjdval;
+
+	// 	VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, rec.atlDisplacement);
+	// 	VectorEnu diff = denu - denuRef;
+
+	// 	std::cout	<< std::setprecision( 7)	<< std::fixed
+	// 				<< "\t"						<< id
+	// 				<< "\t"						<< mjdUt1.to_double()
+	// 				<< "\t"	<< std::setw(10)	<< denuRef.e()
+	// 				<< "\t"	<< std::setw(10)	<< denuRef.n()
+	// 				<< "\t"	<< std::setw(10)	<< denuRef.u()
+	// 				<< "\t"	<< std::setw(10)	<< denu.e()
+	// 				<< "\t"	<< std::setw(10)	<< denu.n()
+	// 				<< "\t"	<< std::setw(10)	<< denu.u()
+	// 				<< "\t"	<< std::setw(10)	<< diff.e()
+	// 				<< "\t"	<< std::setw(10)	<< diff.n()
+	// 				<< "\t"	<< std::setw(10)	<< diff.u()
+	// 				<< std::endl;
+	// }
+}
+
+void debugTideSolid()
+{
+	std::cout << "\nDebugging solid Earth tide:" << std::endl;
+
+	// Test cases from DEHANTTIDEINEL.F
+	// Note that the last test case should be incorrect
+	std::vector<GEpoch> ep =
+	{
+		{2009,  4, 13,  0,  0,  0},
+		{2012,  7, 13,  0,  0,  0},
+		{2015,  7, 15,  0,  0,  0},
+		{2017,  1, 15,  0,  0,  0},
+		{2019,  7, 18,  4, 59, 12}
+	};
+
+	std::vector<Vector3d> recPos =
+	{
+		{ 4075578.385,    931852.890,   4801570.154},
+		{ 1112189.660,  -4842955.026,   3985352.284},
+		{ 1112200.5696, -4842957.8511,  3985345.9122},
+		{ 1112152.8166, -4842857.5435,  3985496.1783},
+		{ 2587384.1007872052, -1043033.5652423096,  5716564.3449383173}
+	};
+			
+	std::vector<Vector3d> rSun =
+	{
+		{ 137859926952.0150,      54228127881.4350,      23509422341.6960},
+		{ -54537460436.2357,     130244288385.2790,      56463429031.5996},
+		{ 100210282451.6279,     103055630398.3160,      56855096480.4475},
+		{   8382471154.1312895,   10512408445.356153,    -5360583240.3763866},
+		{ -40911673203.204002,   135847503359.17343,     54660205331.259735}
+	};
+
+	std::vector<Vector3d> rMoon =
+	{
+		{-179996231.920342,     -312468450.131567,     -169288918.592160},
+		{ 300396716.912,         243238281.451,         120548075.939},
+		{ 369817604.4348,          1897917.5258,        120804980.8284},
+		{ 380934092.93550891,      2871428.1904491195,   79015680.553570181},
+		{ 202952994.54523405,   -319652979.70541549,   -135514223.45872557}
+	};
+
+	std::vector<Vector3d> dxyzRef =
+	{
+		{ 0.07700420357108125891,  0.06304056321824967613,  0.05516568152597246810},
+		{-0.02036831479592075833,  0.05658254776225972449, -0.07597679676871742227},
+		{ 0.00509570869172363845,  0.08286630259835287000, -0.06366349254041896170},
+		{ 0.00509570869172363840,  0.08286630259835287000, -0.06366349254041896200},
+		{-0.05560417990980600500,  0.02320056584074919900, -0.12297592439382479000}
+	};
+
+	for (int i = 0; i < 5; i++)
+	{
+		GTime time = epoch2time(ep[i].data(), E_TimeSys::UTC);
+
+		ERPValues erpv = getErp(nav.erp, time);
+		MjDateUt1 mjdUt1(time, erpv.ut1Utc);
+
+		VectorPos pos;
+		pos.lat() = asin(recPos[i].z() / recPos[i].norm());
+		pos.lon() = atan2(recPos[i].y(), recPos[i].x());
+
+		// Vector3d dxyz = tideSolidEarth(std::cout, time, mjdUt1, rSun[i], rMoon[i], pos);
+		Vector3d dxyz = tideSolidEarthDehant(std::cout, time, rSun[i], rMoon[i], recPos[i]);
+		Vector3d diff = dxyz - dxyzRef[i];
+
+		std::cout	<< std::setprecision( 7)	<< std::fixed
+					<< "\t"						<< mjdUt1.to_double()
+					<< "\t"	<< std::setw(10)	<< dxyzRef[i].x()
+					<< "\t"	<< std::setw(10)	<< dxyzRef[i].y()
+					<< "\t"	<< std::setw(10)	<< dxyzRef[i].z()
+					<< "\t"	<< std::setw(10)	<< dxyz.x()
+					<< "\t"	<< std::setw(10)	<< dxyz.y()
+					<< "\t"	<< std::setw(10)	<< dxyz.z()
+					<< "\t"	<< std::setw(10)	<< diff.x()
+					<< "\t"	<< std::setw(10)	<< diff.y()
+					<< "\t"	<< std::setw(10)	<< diff.z()
+					<< std::endl;
+	}
+}
+
+map<double, Vector3d> readRefSPoleDisp(string file)
+{
+	map<double, Vector3d> dispMap;
+
+	std::ifstream fileStream(file);
+	if (!fileStream)
+	{
+		return dispMap;
+	}
+
+	while (fileStream)
+	{
+		string line;
+		getline(fileStream, line);
+		
+		char* buff = &line[0];
+
+		double		mjd;
+		double		lat;
+		double		lon;
+		double		dr;
+		int found = sscanf(buff, "%lf,%lf,%lf,%lf", &mjd, &lat, &lon, &dr);
+
+		if (found != 4)
+			continue;
+		
+		Vector3d disp;
+		disp[0] = lat;
+		disp[1] = lon;
+		disp[2] = dr;
+
+		dispMap[mjd] = disp;
+	}
+
+	return dispMap;
+}
+
+void debugTideSolidPole()
+{
+	std::cout << "\nDebugging solid Earth pole tide:" << std::endl;
+
+	string filename = "testData/test_pole_tide.csv";
+	auto dispRefMap = readRefSPoleDisp(filename);
+
+	for (auto& [mjdval, dispRef] : dispRefMap)
+	{
+		VectorPos pos;
+		pos.lat() = dispRef(0) * D2R;
+		pos.lon() = dispRef(1) * D2R;
+
+		MjDateUtc mjdUtc;
+		mjdUtc.val = mjdval;
+		GTime time = GTime(mjdUtc);
+
+		ERPValues erpv = getErp(nav.erp, time);
+		MjDateUt1 mjdUt1(time, erpv.ut1Utc);
+
+		VectorEnu denu = tideSolidPole(std::cout, mjdUt1, pos, erpv);
+		double diff = denu.u() - dispRef(2);
+
+		std::cout	<< std::setprecision( 7)	<< std::fixed
+					<< "\t"						<< mjdUtc.to_double();
+		std::cout	<< std::setprecision( 7)	<< std::scientific
+					<< "\t"	<< std::setw(10)	<< dispRef(2)
+					<< "\t"	<< std::setw(10)	<< denu.u()
+					<< "\t"	<< std::setw(10)	<< diff
+					<< std::endl;
+	}
+}
+
+map<double, VectorEnu> readRefOPoleDisp(string file)
+{
+	map<double, VectorEnu> dispMap;
+
+	std::ifstream fileStream(file);
+	if (!fileStream)
+	{
+		return dispMap;
+	}
+
+	while (fileStream)
+	{
+		string line;
+		getline(fileStream, line);
+		
+		char* buff = &line[0];
+
+		double mjd;
+		double v[9];
+		int found = sscanf(buff, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &mjd, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8]);
+
+		if (found != 10)
+			continue;
+		
+		VectorEnu denu;
+		denu[0] = v[8];
+		denu[1] = v[7];
+		denu[2] = v[6];
+
+		dispMap[mjd] = denu;
+	}
+
+	return dispMap;
+}
+
+void debugTideOceanPole()
+{
+	std::cout << "\nDebugging ocean pole tide:" << std::endl;
+
+	string filename = acsConfig.inputs_root + "tables/opoleloadcoefcmcor.txt";
+	readOceanPoleCoeff(filename);
+
+	// // Grid retrieval test
+	// {
+	// 	MjDateUtc mjdUtc;
+	// 	mjdUtc.val = 52640;
+	// 	GTime time = GTime(mjdUtc);
+
+	// 	ERPValues erpv = getErp(nav.erp, time);
+	// 	MjDateUt1 mjdUt1(time, erpv.ut1Utc);
+
+	// 	vector<VectorPos> vecPos;
+	// 	VectorPos pos;
+	// 	pos.lat() = -90    * D2R;	pos.lon() =   0    * D2R;	vecPos.push_back(pos);
+	// 	pos.lat() = -89.85 * D2R;	pos.lon() = 180    * D2R;	vecPos.push_back(pos);
+	// 	pos.lat() = -89.85 * D2R;	pos.lon() = 359.85 * D2R;	vecPos.push_back(pos);
+	// 	pos.lat() =   0    * D2R;	pos.lon() =   0    * D2R;	vecPos.push_back(pos);
+	// 	pos.lat() =   0    * D2R;	pos.lon() = 180    * D2R;	vecPos.push_back(pos);
+	// 	pos.lat() =   0    * D2R;	pos.lon() = 359.85 * D2R;	vecPos.push_back(pos);
+	// 	pos.lat() = +89.85 * D2R;	pos.lon() =   0    * D2R;	vecPos.push_back(pos);
+	// 	pos.lat() = +89.75 * D2R;	pos.lon() = 180    * D2R;	vecPos.push_back(pos);
+	// 	pos.lat() = +90    * D2R;	pos.lon() = 359.85 * D2R;	vecPos.push_back(pos);
+
+	// 	for (auto& pos : vecPos)	VectorEnu denu = tideOceanPole(std::cout, mjdUt1, pos, erpv);
+	// }
+
+	// Test case in opoleloadcmcor.test, note that the mean pole model used is different from IERS 2010 Conventions
+	filename = "testData/opoleloadcmcor.test";
+	auto dispRefMap = readRefOPoleDisp(filename);
+
+	VectorPos pos;
+	pos.lat() = -43.75 * D2R;
+	pos.lon() = 232.25 * D2R;
+	for (auto& [mjdval, denuRef] : dispRefMap)
+	{
+		MjDateUtc mjdUtc;
+		mjdUtc.val = mjdval;
+		GTime time = GTime(mjdUtc);
+
+		ERPValues erpv = getErp(nav.erp, time);
+		// MjDateUt1 mjdUt1(time, erpv.ut1Utc);
+		MjDateUt1 mjdUt1(time, 0);
+
+		VectorEnu denu = tideOceanPole(std::cout, mjdUt1, pos, erpv);
+		VectorEnu diff = denu - denuRef;
+
+		std::cout	<< std::setprecision( 7)	<< std::fixed
+					<< "\t"						<< mjdUtc.to_double()
+					<< std::setprecision( 7)	<< std::scientific
+					<< "\t"	<< std::setw(10)	<< denuRef.e()
+					<< "\t"	<< std::setw(10)	<< denuRef.n()
+					<< "\t"	<< std::setw(10)	<< denuRef.u()
+					<< "\t"	<< std::setw(10)	<< denu.e()
+					<< "\t"	<< std::setw(10)	<< denu.n()
+					<< "\t"	<< std::setw(10)	<< denu.u()
+					<< "\t"	<< std::setw(10)	<< diff.e()
+					<< "\t"	<< std::setw(10)	<< diff.n()
+					<< "\t"	<< std::setw(10)	<< diff.u()
+					<< std::endl;
 	}
 }
 
@@ -1249,13 +1891,28 @@ void infiniteTest()
 
 void doDebugs()
 {
-	// debugErp();
-	// exit(0);;
+// 	debugErp();
+// 	exit(0);;
 // 	dualFilters();
 // 	exit(0);
 // 	minimumTest(std::cout);
 // 	exit(0);
 // 	infiniteTest();
+// 	exit(0);
+// 	debugBlq();
+// 	exit(0);
+// 	debugTideAtmos();
+// 	exit(0);
+// 	debugTideOcean();
+// 	exit(0);
+// 	debugHardisp();
+// 	exit(0);
+// 	debugTideSolid();
+// 	exit(0);
+// 	debugTideOceanPole();
+// 	exit(0);
+// 	debugTideSolidPole();
+// 	debugAttitude();
 // 	exit(0);
 }
 

@@ -427,7 +427,7 @@ void IERS2010::meanPole(
 	double&			xpv, 
 	double&			ypv) 
 {
-	double t = (double) (mjd.val - 55197) / 365.25;
+	double t = mjd.to_j2000() / 365.25;
 	xpv = 55.0	+ 1.677 * t;
 	ypv = 320.5	+ 3.460 * t;
 }

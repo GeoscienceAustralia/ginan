@@ -1039,7 +1039,9 @@ bool configure(
 	("bsx_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Bias Sinex (BSX) files")
 	("ion_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Ionosphere (IONEX) files")
 	("igrf_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Geomagnetic field coefficients (IGRF) file")
-	("blq_files",				boost::program_options::value<vector<string>>()->multitoken(),	"BLQ (Ocean loading) files")
+	("otl_blq_files",			boost::program_options::value<vector<string>>()->multitoken(),	"BLQ (Ocean tidal loading) files")
+	("atl_blq_files",			boost::program_options::value<vector<string>>()->multitoken(),	"BLQ (Atmospheric tidal loading) files")
+	("opole_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Ocean pole tide coffiecients file")
 	("erp_files",				boost::program_options::value<vector<string>>()->multitoken(),	"ERP files")
 	("rnx_inputs,r",			boost::program_options::value<vector<string>>()->multitoken(),	"RINEX station inputs")
 	("ubx_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"UBX station inputs")
@@ -1116,7 +1118,9 @@ bool configure(
 	valid &= checkValidFiles(acsConfig.sp3_files, 			"orbit");
 	valid &= checkValidFiles(acsConfig.clk_files,			"clock file (CLK file)");
 	valid &= checkValidFiles(acsConfig.obx_files, 			"orbex file (OBX file)");
-	valid &= checkValidFiles(acsConfig.blq_files, 			"ocean loading information (Blq file)");
+	valid &= checkValidFiles(acsConfig.otl_blq_files, 		"ocean loading information (Blq file)");
+	valid &= checkValidFiles(acsConfig.atl_blq_files, 		"atmospheric loading information (Blq file)");
+	valid &= checkValidFiles(acsConfig.opole_files,			"ocean pole tide coefficients");
 	valid &= checkValidFiles(acsConfig.erp_files,			"earth rotation parameter file (ERP file)");
 	valid &= checkValidFiles(acsConfig.dcb_files,			"code Biases file (DCB file)");
 	valid &= checkValidFiles(acsConfig.bsx_files,			"bias Sinex file (BSX file)");
@@ -1124,7 +1128,7 @@ bool configure(
 	valid &= checkValidFiles(acsConfig.igrf_files,			"geomagnetic field coefficients (IGRF file)");
 	valid &= checkValidFiles(acsConfig.atx_files, 			"antenna information (ANTEX file)");
 	valid &= checkValidFiles(acsConfig.egm_files, 			"Earth gravity model coefficients (egm file)");
-	valid &= checkValidFiles(acsConfig.boxwing_files, 			"Boxwing");
+	valid &= checkValidFiles(acsConfig.boxwing_files, 		"Satellite boxwing geometry files");
 	valid &= checkValidFiles(acsConfig.jpl_files, 			"JPL planetary and lunar ephemerides (jpl file)");
 	valid &= checkValidFiles(acsConfig.ocetide_files,		"Ocean tide file  (tide file)");
 	valid &= checkValidFiles(acsConfig.atmtide_files,		"Atmospheric tide file  (tide file)");
@@ -1164,40 +1168,42 @@ void ACSConfig::info(
 	ss << "Configuration...\n";
 	ss << "===============================\n";
 	ss << "Inputs:\n";
-	if (!nav_files				.empty())	{	ss << "\tnav_files:   ";												for (auto& a : nav_files)		ss << a << " ";		ss << "\n";		}
-	if (!snx_files				.empty())	{	ss << "\tsnx_files:   ";												for (auto& a : snx_files)		ss << a << " ";		ss << "\n";		}
-	if (!atx_files				.empty())	{	ss << "\tatx_files:   ";												for (auto& a : atx_files)		ss << a << " ";		ss << "\n";		}
-	if (!dcb_files				.empty())	{	ss << "\tdcb_files:   ";												for (auto& a : dcb_files)		ss << a << " ";		ss << "\n";		}
-	if (!clk_files				.empty())	{	ss << "\tclk_files:   ";												for (auto& a : clk_files)		ss << a << " ";		ss << "\n";		}
-	if (!bsx_files				.empty())	{	ss << "\tbsx_files:   ";												for (auto& a : bsx_files)		ss << a << " ";		ss << "\n";		}
-	if (!ion_files				.empty())	{	ss << "\tion_files:   ";												for (auto& a : ion_files)		ss << a << " ";		ss << "\n";		}
-	if (!igrf_files				.empty())	{	ss << "\tigrf_files:  ";												for (auto& a : igrf_files)		ss << a << " ";		ss << "\n";		}
-	if (!blq_files				.empty())	{	ss << "\tblq_files:   ";												for (auto& a : blq_files)		ss << a << " ";		ss << "\n";		}
-	if (!erp_files				.empty())	{	ss << "\terp_files:   ";												for (auto& a : erp_files)		ss << a << " ";		ss << "\n";		}
-	if (!sp3_files				.empty())	{	ss << "\tsp3_files:   ";												for (auto& a : sp3_files)		ss << a << " ";		ss << "\n";		}
-	if (!obx_files				.empty())	{	ss << "\tobx_files:   ";												for (auto& a : obx_files)		ss << a << " ";		ss << "\n";		}
-	if (!egm_files				.empty())	{	ss << "\tegm_files:   ";												for (auto& a : egm_files)		ss << a << " ";		ss << "\n";		}
-	if (!boxwing_files				.empty())	{	ss << "\tboxwing_files:   ";												for (auto& a : boxwing_files)		ss << a << " ";		ss << "\n";		}
+	if (!nav_files				.empty())	{	ss << "\tnav_files:       ";											for (auto& a : nav_files)		ss << a << " ";		ss << "\n";		}
+	if (!snx_files				.empty())	{	ss << "\tsnx_files:       ";											for (auto& a : snx_files)		ss << a << " ";		ss << "\n";		}
+	if (!atx_files				.empty())	{	ss << "\tatx_files:       ";											for (auto& a : atx_files)		ss << a << " ";		ss << "\n";		}
+	if (!dcb_files				.empty())	{	ss << "\tdcb_files:       ";											for (auto& a : dcb_files)		ss << a << " ";		ss << "\n";		}
+	if (!clk_files				.empty())	{	ss << "\tclk_files:       ";											for (auto& a : clk_files)		ss << a << " ";		ss << "\n";		}
+	if (!bsx_files				.empty())	{	ss << "\tbsx_files:       ";											for (auto& a : bsx_files)		ss << a << " ";		ss << "\n";		}
+	if (!ion_files				.empty())	{	ss << "\tion_files:       ";											for (auto& a : ion_files)		ss << a << " ";		ss << "\n";		}
+	if (!igrf_files				.empty())	{	ss << "\tigrf_files:      ";											for (auto& a : igrf_files)		ss << a << " ";		ss << "\n";		}
+	if (!otl_blq_files			.empty())	{	ss << "\totl_blq_files:   ";											for (auto& a : otl_blq_files)	ss << a << " ";		ss << "\n";		}
+	if (!atl_blq_files			.empty())	{	ss << "\tatl_blq_files:   ";											for (auto& a : atl_blq_files)	ss << a << " ";		ss << "\n";		}
+	if (!opole_files			.empty())	{	ss << "\topole_files:     ";											for (auto& a : opole_files)		ss << a << " ";		ss << "\n";		}
+	if (!erp_files				.empty())	{	ss << "\terp_files:       ";											for (auto& a : erp_files)		ss << a << " ";		ss << "\n";		}
+	if (!sp3_files				.empty())	{	ss << "\tsp3_files:       ";											for (auto& a : sp3_files)		ss << a << " ";		ss << "\n";		}
+	if (!obx_files				.empty())	{	ss << "\tobx_files:       ";											for (auto& a : obx_files)		ss << a << " ";		ss << "\n";		}
+	if (!egm_files				.empty())	{	ss << "\tegm_files:       ";											for (auto& a : egm_files)		ss << a << " ";		ss << "\n";		}
+	if (!boxwing_files			.empty())	{	ss << "\tboxwing_files:   ";											for (auto& a : boxwing_files)	ss << a << " ";		ss << "\n";		}
 
-	if (!jpl_files				.empty())	{	ss << "\tjpl_files:   ";												for (auto& a : jpl_files)		ss << a << " ";		ss << "\n";		}
-	if (!ocetide_files			.empty())	{	ss << "\tocetide_files:  ";												for (auto& a : ocetide_files)	ss << a << " ";		ss << "\n";		}
-	if (!atmtide_files			.empty())	{	ss << "\tatmtide_files:  ";												for (auto& a : atmtide_files)	ss << a << " ";		ss << "\n";		}
-	if (!cmc_files				.empty())	{	ss << "\tcmc_files:   ";												for (auto& a : cmc_files)		ss << a << " ";		ss << "\n";		}
-	if (!hfeop_files			.empty())	{	ss << "\thfeop_files: ";												for (auto& a : hfeop_files)		ss << a << " ";		ss << "\n";		}
-	if (!aod1b_files			.empty())	{	ss << "\taod1b_files: ";												for (auto& a : aod1b_files)		ss << a << " ";		ss << "\n";		}
+	if (!jpl_files				.empty())	{	ss << "\tjpl_files:       ";											for (auto& a : jpl_files)		ss << a << " ";		ss << "\n";		}
+	if (!ocetide_files			.empty())	{	ss << "\tocetide_files:   ";											for (auto& a : ocetide_files)	ss << a << " ";		ss << "\n";		}
+	if (!atmtide_files			.empty())	{	ss << "\tatmtide_files:   ";											for (auto& a : atmtide_files)	ss << a << " ";		ss << "\n";		}
+	if (!cmc_files				.empty())	{	ss << "\tcmc_files:       ";											for (auto& a : cmc_files)		ss << a << " ";		ss << "\n";		}
+	if (!hfeop_files			.empty())	{	ss << "\thfeop_files:     ";											for (auto& a : hfeop_files)		ss << a << " ";		ss << "\n";		}
+	if (!aod1b_files			.empty())	{	ss << "\taod1b_files:     ";											for (auto& a : aod1b_files)		ss << a << " ";		ss << "\n";		}
 	if (!poleocean_files		.empty())	{	ss << "\tpoleocean_files: ";											for (auto& a : poleocean_files)	ss << a << " ";		ss << "\n";		}
-	if (!sid_files				.empty())	{	ss << "\tsid_files:   ";												for (auto& a : sid_files)		ss << a << " ";		ss << "\n";		}
-	if (!vmf_files				.empty())	{	ss << "\tvmf_files:   ";												for (auto& a : vmf_files)		ss << a << " ";		ss << "\n";		}
-	if (!com_files				.empty())	{	ss << "\tcom_files:   ";												for (auto& a : com_files)		ss << a << " ";		ss << "\n";		}
-	if (!crd_files				.empty())	{	ss << "\tcrd_files:   ";												for (auto& a : crd_files)		ss << a << " ";		ss << "\n";		}
-	if (!nav_rtcm_inputs		.empty())	{	ss << "\trtcm_inputs: ";												for (auto& a : nav_rtcm_inputs)	ss << a << " ";		ss << "\n";		}
-	if (!rnx_inputs				.empty())	{	ss << "\trnx_inputs:  ";		for (auto& [z, A] : rnx_inputs)			for (auto& a : A)				ss << a << " ";		ss << "\n";		}
-	if (!pseudo_sp3_inputs		.empty())	{	ss << "\tsp3_inputs:  ";		for (auto& [z, A] : pseudo_sp3_inputs)	for (auto& a : A)				ss << a << " ";		ss << "\n";		}
-	if (!pseudo_snx_inputs		.empty())	{	ss << "\tsnx_inputs:  ";		for (auto& [z, A] : pseudo_snx_inputs)	for (auto& a : A)				ss << a << " ";		ss << "\n";		}
-	if (!obs_rtcm_inputs		.empty())	{	ss << "\trtcm_inputs: ";		for (auto& [z, A] : obs_rtcm_inputs)	for (auto& a : A)				ss << a << " ";		ss << "\n";		}
+	if (!sid_files				.empty())	{	ss << "\tsid_files:       ";											for (auto& a : sid_files)		ss << a << " ";		ss << "\n";		}
+	if (!vmf_files				.empty())	{	ss << "\tvmf_files:       ";											for (auto& a : vmf_files)		ss << a << " ";		ss << "\n";		}
+	if (!com_files				.empty())	{	ss << "\tcom_files:       ";											for (auto& a : com_files)		ss << a << " ";		ss << "\n";		}
+	if (!crd_files				.empty())	{	ss << "\tcrd_files:       ";											for (auto& a : crd_files)		ss << a << " ";		ss << "\n";		}
+	if (!nav_rtcm_inputs		.empty())	{	ss << "\trtcm_inputs:     ";											for (auto& a : nav_rtcm_inputs)	ss << a << " ";		ss << "\n";		}
+	if (!rnx_inputs				.empty())	{	ss << "\trnx_inputs:      ";	for (auto& [z, A] : rnx_inputs)			for (auto& a : A)				ss << a << " ";		ss << "\n";		}
+	if (!pseudo_sp3_inputs		.empty())	{	ss << "\tsp3_inputs:      ";	for (auto& [z, A] : pseudo_sp3_inputs)	for (auto& a : A)				ss << a << " ";		ss << "\n";		}
+	if (!pseudo_snx_inputs		.empty())	{	ss << "\tsnx_inputs:      ";	for (auto& [z, A] : pseudo_snx_inputs)	for (auto& a : A)				ss << a << " ";		ss << "\n";		}
+	if (!obs_rtcm_inputs		.empty())	{	ss << "\trtcm_inputs:     ";	for (auto& [z, A] : obs_rtcm_inputs)	for (auto& a : A)				ss << a << " ";		ss << "\n";		}
 
-	if (!model.trop.orography	.empty())		ss << "\torography:   " << model.trop.orography 	<< "\n";
-	if (!model.trop.gpt2grid	.empty())		ss << "\tgrid:        " << model.trop.gpt2grid 		<< "\n";
+	if (!model.trop.orography	.empty())		ss << "\torography:       " << model.trop.orography	<< "\n";
+	if (!model.trop.gpt2grid	.empty())		ss << "\tgrid:            " << model.trop.gpt2grid	<< "\n";
 												ss << "\n";
 
 	ss << "Outputs:\n";
@@ -2833,7 +2839,9 @@ bool ACSConfig::parse(
 
 			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs,			{"! atx_files"				}, "[string] List of atx files to use");						conditionalPrefix("<INPUTS_ROOT>", vec);	atx_files			.insert(atx_files			.end(), vec.begin(), vec.end()); }
 			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs,			{"! snx_files"				}, "[string] List of snx files to use");						conditionalPrefix("<INPUTS_ROOT>", vec);	snx_files			.insert(snx_files			.end(), vec.begin(), vec.end()); }
-			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs,			{"! blq_files"				}, "[string] List of blq files to use");						conditionalPrefix("<INPUTS_ROOT>", vec);	blq_files			.insert(blq_files			.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, 		{"! otl_blq_files"			}, "[string] List of otl blq files to use");					conditionalPrefix("<INPUTS_ROOT>", vec);	otl_blq_files		.insert(otl_blq_files		.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, 		{"! atl_blq_files"			}, "[string] List of atl blq files to use");					conditionalPrefix("<INPUTS_ROOT>", vec);	atl_blq_files		.insert(atl_blq_files		.end(), vec.begin(), vec.end()); }
+			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs, 		{"! opole_files"			}, "[string] List of opole files to use");						conditionalPrefix("<INPUTS_ROOT>", vec);	opole_files			.insert(opole_files			.end(), vec.begin(), vec.end()); }
 			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs,			{"! erp_files"				}, "[string] List of erp files to use");						conditionalPrefix("<INPUTS_ROOT>", vec);	erp_files			.insert(erp_files			.end(), vec.begin(), vec.end()); }
 			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs,			{"! ion_files"				}, "[string] List of ion files to use");						conditionalPrefix("<INPUTS_ROOT>", vec);	ion_files			.insert(ion_files			.end(), vec.begin(), vec.end()); }
 			{ vector<string> vec;	trySetFromAny(vec,	commandOpts,	inputs,			{"! igrf_files"				}, "[string] List of igrf files to use");						conditionalPrefix("<INPUTS_ROOT>", vec);	igrf_files			.insert(igrf_files			.end(), vec.begin(), vec.end()); }
@@ -3065,9 +3073,13 @@ bool ACSConfig::parse(
 				trySetFromYaml(model.range,								gnss_modelling, {"@ range",				"enable"	}, "(bool) Enable modelling of signal time of flight time due to range");
 
 				trySetFromYaml(model.tides.enable,						gnss_modelling, {"@ tides",				"@ enable"	}, "(bool) Enable modelling of tidal disaplacements");
-				trySetFromYaml(model.tides.solid,						gnss_modelling, {"@ tides",				"@ solid"	}, "(bool) Enable solid earth tides");
+				trySetFromYaml(model.tides.solid,						gnss_modelling, {"@ tides",				"@ solid"	}, "(bool) Enable solid Earth tides");
 				trySetFromYaml(model.tides.otl,							gnss_modelling, {"@ tides",				"@ otl"		}, "(bool) Enable ocean tide loading");
-				trySetFromYaml(model.tides.pole,						gnss_modelling, {"@ tides",				"@ pole"	}, "(bool) Enable pole tides");
+				trySetFromYaml(model.tides.atl,							gnss_modelling, {"@ tides",				"@ atl"		}, "(bool) Enable atmospheric tide loading");
+				trySetFromYaml(model.tides.spole,						gnss_modelling, {"@ tides",				"@ spole"	}, "(bool) Enable solid Earth pole tides");
+				trySetFromYaml(model.tides.opole,						gnss_modelling, {"@ tides",				"@ opole"	}, "(bool) Enable ocean pole tides");
+				trySetEnumVec (model.tides.otl_blq_row_order,			gnss_modelling, {"@ tides",				"@ otl_blq_row_order"	}, "(E_TidalComponent) Row order for amplitude and phase components in OTL BLQ files");
+				trySetEnumVec (model.tides.atl_blq_row_order,			gnss_modelling, {"@ tides",				"@ atl_blq_row_order"	}, "(E_TidalComponent) Row order for amplitude and phase components in ATL BLQ files");
 
 				trySetFromYaml(model.relativity,						gnss_modelling, {"@ relativity",		"@ enable"	}, "(bool) Enable modelling of relativistic effects");
 				trySetFromYaml(model.relativity2,						gnss_modelling, {"@ relativity2",		"@ enable"	}, "(bool) Enable modelling of secondary relativistic effects");
@@ -3447,7 +3459,9 @@ bool ACSConfig::parse(
 	replaceTags(vmf_files);				globber(vmf_files);
 	replaceTags(atx_files);				globber(atx_files);
 	replaceTags(snx_files);				globber(snx_files);
-	replaceTags(blq_files);				globber(blq_files);
+	replaceTags(otl_blq_files);			globber(otl_blq_files);
+	replaceTags(atl_blq_files);			globber(atl_blq_files);
+	replaceTags(opole_files);			globber(opole_files);
 	replaceTags(erp_files);				globber(erp_files);
 	replaceTags(ion_files);				globber(ion_files);
 	replaceTags(nav_files);				globber(nav_files);

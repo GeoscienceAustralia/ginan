@@ -58,11 +58,6 @@ unsigned int crc24q (const unsigned char *buff, int len);
 
 void dops(int ns, const double *azel, double elmin, double *dop);
 
-bool readblq(
-	string		file, 
-	string		id,
-	double*		otlDisplacement);
-
 bool satFreqs(
 	E_Sys		sys,
 	E_FType&	frq1,
