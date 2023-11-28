@@ -98,8 +98,8 @@ def generate_filenames(header: dict):
 
     clk_filename = generate_IGS_long_filename(
         analysis_center="IGS",
-        content_type="ORB",
-        format_type="SP3",
+        content_type="CLK",
+        format_type="CLK",
         start_epoch=start_date,
         timespan=timespan,
         solution_type="RAP",
