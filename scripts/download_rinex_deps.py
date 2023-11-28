@@ -120,7 +120,10 @@ def download_file_from_cddis(
         while not download_done and retries <= max_retries:
             try:
                 logging.info(f"Attempting Download of: {filename}")
-                check_n_download(filename, str(output_folder) + "/", ftps, uncomp=uncomp)
+                # TODO: Need to add .gz to all of the filenames, but no exceptions
+                # were raised by this method even though the files without ".gz" did not exist.
+                # Need to find this method and look at what it does
+                check_n_download(filename + ".gz", str(output_folder) + "/", ftps, uncomp=uncomp)
                 download_done = True
                 logging.info(f"Downloaded {filename}")
             except ftplib.all_errors as e:
