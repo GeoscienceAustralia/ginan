@@ -42,6 +42,8 @@ def download_rinex_deps(filepath: Path, target_dir: Path):
     
     filenames = generate_filenames(header)
 
+    # TODO: Find stations nearby
+
     download_queue = []
     for filename in filenames:
         fpath = target_dir / filename
