@@ -40,34 +40,35 @@ class MongoDB:
             raise ConnectionError("Failed to connect to MongoDB server") from err
 
     def get_content(self) -> None:
-        resp = self.mongo_client[self.mongo_db]["Measurements"].create_index(
-        [
-            ("Epoch", 1),
-            ("Site", 1),
-            ("Sat", 1)
-        ])
+        # Will need to find a better way for that, the EDA is readonly. addint the index with the EDA isn't a good idea. For large database it will take a long time
+        # resp = self.mongo_client[self.mongo_db]["Measurements"].create_index(
+        # [
+        #     ("Epoch", 1),
+        #     ("Site", 1),
+        #     ("Sat", 1)
+        # ])
+        #
+        # print("index response:", resp)
+        #
+        # resp = self.mongo_client[self.mongo_db]["States"].create_index(
+        # [
+        #     ("Epoch", 1),
+        #     ("Site", 1),
+        #     ("Sat", 1),
+        #     ("States", 1)
+        # ])
+        #
+        # print("index response:", resp)
 
-        print("index response:", resp)
-
-        resp = self.mongo_client[self.mongo_db]["States"].create_index(
-        [
-            ("Epoch", 1),
-            ("Site", 1),
-            ("Sat", 1),
-            ("States", 1)
-        ])
-
-        print("index response:", resp)
-        
         for cursor in self.mongo_client[self.mongo_db]["Content"].find():
             self.mongo_content[cursor["type"]] = cursor["Values"]
         self.mongo_content["Geometry"] = []
         geom = self.mongo_client[self.mongo_db]["Geometry"].find_one({})
         if "Measurements" in self.mongo_client[self.mongo_db].list_collection_names():
-            self.mongo_content["Has_measurements"]=  True 
+            self.mongo_content["Has_measurements"] = True
         else:
-            self.mongo_content["Has_measurements"] =  False
-            
+            self.mongo_content["Has_measurements"] = False
+
         if geom is None:
             logger.debug("Geometry not available")
             self.mongo_content["Geometry"] = ["Site", "Sat", "Epoch"]
@@ -75,7 +76,7 @@ class MongoDB:
             for i in geom:
                 if i != "_id":
                     self.mongo_content["Geometry"].append(i)
-                        
+
         self.mongo_content["states_fields"] = ["x", "dx", "P"]
 
     def get_list_db(self) -> List[str]:
@@ -128,17 +129,14 @@ class MongoDB:
                 }
             }
         )
+        if state is not None:
+            agg_pipeline[-1]["$group"]["_id"]["state"] = "$State"
+
         # for key in keys:
         #    agg_pipeline[-1]["$group"][key] = {"$push": f"${key}"}
         for key in keys:
             agg_pipeline[-1]["$group"][key] = {
-                "$push": {
-                    "$cond": [
-                        {"$eq": [{"$ifNull": [f"${key}", None]}, None]},
-                        float('nan'),
-                        f"${key}"
-                    ]
-                }
+                "$push": {"$cond": [{"$eq": [{"$ifNull": [f"${key}", None]}, None]}, float("nan"), f"${key}"]}
             }
         logger.info(agg_pipeline)
         cursor = self.mongo_client[self.mongo_db][collection].aggregate(agg_pipeline)
@@ -147,18 +145,11 @@ class MongoDB:
             raise ValueError("No data found")
         return list(cursor)
 
-    def get_arbitrary(
-        self, 
-        collection, 
-        match_thing, 
-        group_thing, 
-        yvalue
-    ):
-
+    def get_arbitrary(self, collection, match_thing, group_thing, xvalue, yvalue):
         results = {}
         yvalue = "val." + yvalue
         matches = json.loads("{" + match_thing + "}")
-        groups  = json.loads("{" + group_thing + "}")
+        groups = json.loads("{" + group_thing + "}")
 
         groupObj = {"Epoch": "$Epoch"};
         sortObj = {"_id.Epoch": 1};
@@ -169,7 +160,7 @@ class MongoDB:
             # sortObj["_id." + entry] = 1;
 
         for entry, val in matches.items():
-            matchObj["id." + entry] = val;
+            matchObj["id." + entry] = val
 
         # print("self.mongo_db")
         # print(self.mongo_db)
@@ -187,7 +178,7 @@ class MongoDB:
         logger.info("getting arbitrary data")
 
         pipeline = []
-        pipeline.append({"$match":      matchObj})
+        pipeline.append({"$match": matchObj})
         pipeline.append(
             {   
                 "$group":      
@@ -208,7 +199,6 @@ class MongoDB:
 
         for cursor in self.mongo_client[self.mongo_db][collection].aggregate(pipeline, allowDiskUse=True):
 
-            # print(cursor)
 
             if len(cursor["y"]) > 1:
                 print(cursor)

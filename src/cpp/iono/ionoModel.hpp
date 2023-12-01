@@ -1,49 +1,48 @@
 
 #pragma once
 
-#include "station.hpp"
 #include "biases.hpp"
 #include "gTime.hpp"
 
 #define STEC2DELAY  4.48397972589608
 
 
-#define MIN_NSAT_STA 		3 
+#define MIN_NSAT_REC 		3
 
+struct StationMap;
 
-int  configIonModel();
-
-double getSSRIono(GTime time, Vector3d& rRec, Vector3d& rSat, double& variance, SatSys& Sat);
+extern bool ionoConfigured;
 
 void obsIonoData(
-	Trace&		trace, 
+	Trace&		trace,
 	Station&	rec);
 
 void obsIonoDataFromFilter(
-	Trace&		trace, 
-	StationMap&	stationMap, 
+	Trace&		trace,
+	StationMap&	stationMap,
 	KFState&	measKFstate);
 
 void filterIonosphere(
-	Trace&			trace,		
+	Trace&			trace,
 	KFState&		kfState,
-	StationMap&		stations,		
-	GTime 			time);			
+	StationMap&		stations,
+	GTime 			time);
 
 void ionosphereSsrUpdate(Trace& trace, KFState& kfState);
 
 bool queryBiasDCB(
-	Trace&		trace,	
+	Trace&		trace,
 	KFState&	kfState,
-	SatSys		Sat,	
-	string		Rec,	
-	E_FType		freq,	
-	double&		bias,	
-	double&		var);	
+	SatSys		Sat,
+	string		Rec,
+	E_ObsCode	code,
+	double&		bias,
+	double&		var);
 
 bool ionexFileWrite(
-	string		filename, 
-	GTime		time, 
+	Trace&		trace,
+	string		filename,
+	GTime		time,
 	KFState&	kfState);
 
 
@@ -51,10 +50,12 @@ void writeIONStec(Trace& trace, string filename, map<string, Station>& stations,
 void writeSTECfromRTS(
 	string			filename,
 	KFState&		kFstate);
-	
-int configIonModelSphhar();
-int configIonModelSphcap();
-int configIonModelBsplin();
+
+bool configIonModel(	  Trace& trace);
+int  configIonModelSphhar(Trace& trace);
+int  configIonModelSphcap(Trace& trace);
+int  configIonModelBsplin(Trace& trace);
+int  configIonModelLocal_(Trace& trace);
 
 bool ippCheckSphhar(GTime time, VectorPos& Ion_pp);
 bool ippCheckSphcap(GTime time, VectorPos& Ion_pp);
@@ -62,24 +63,24 @@ bool ippCheckBsplin(GTime time, VectorPos& Ion_pp);
 bool ippCheckLocal (GTime time, VectorPos& Ion_pp);
 
 double ionModelCoef (Trace& trace, int ind, IonoObs& obs, bool slant = true);
-double ionCoefSphhar(int ind, IonoObs& obs, bool slant = true);
-double ionCoefSphcap(int ind, IonoObs& obs, bool slant = true);
-double ionCoefBsplin(int ind, IonoObs& obs, bool slant = true);
+double ionCoefSphhar(Trace& trace, int ind, IonoObs& obs, bool slant = true);
+double ionCoefSphcap(Trace& trace, int ind, IonoObs& obs, bool slant = true);
+double ionCoefBsplin(Trace& trace, int ind, IonoObs& obs, bool slant = true);
 double ionCoefLocal (Trace& trace, int ind, IonoObs& obs);
 
-double ionVtecSphhar(GTime time, VectorPos& ionPP, int layer, double& vari, KFState& kfState);
-double ionVtecSphcap(GTime time, VectorPos& ionPP, int layer, double& vari, KFState& kfState);
-double ionVtecBsplin(GTime time, VectorPos& ionPP, int layer, double& vari, KFState& kfState);
+double ionVtecSphhar(Trace& trace, GTime time, VectorPos& ionPP, int layer, double& var, KFState& kfState);
+double ionVtecSphcap(Trace& trace, GTime time, VectorPos& ionPP, int layer, double& var, KFState& kfState);
+double ionVtecBsplin(Trace& trace, GTime time, VectorPos& ionPP, int layer, double& var, KFState& kfState);
+
+int checkSSRRegion (VectorPos&	pos);
 
 void ionOutputSphcal(Trace& trace, KFState& kfState);
 void ionOutputLocal (Trace& trace, KFState& kfState);
 
-bool getIGSSSRIono(GTime time, SSRAtm& ssrAtm, Vector3d& rSat, Vector3d&	rRec, double& 	iono, double& var);
-bool getCmpSSRIono(GTime time, SSRAtm& ssrAtm, Vector3d& rRec,						double& iono, double& var, SatSys Sat);
+double	getSSRIono(   Trace& trace, GTime time,					Vector3d& rRec, AzEl& azel,					double& var, SatSys& Sat);
+bool	getIGSSSRIono(Trace& trace, GTime time, SSRAtm& ssrAtm,	Vector3d& rRec, AzEl& azel,	double& iono,	double& var);
+bool	getCmpSSRIono(Trace& trace, GTime time, SSRAtm& ssrAtm,	Vector3d& rRec,				double& iono,	double& var, SatSys  Sat);
 
-
-
-int defineLocalIonoBasis();
-bool configLocalIonoFromFile();
 bool configAtmosRegions(
-    map<string, Station>&		stationMap);
+	Trace&		trace,
+	StationMap& stationMap);

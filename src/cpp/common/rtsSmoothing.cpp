@@ -27,7 +27,7 @@ using std::map;
 #include "testUtils.hpp"
 #include "constants.hpp"
 #include "ionoModel.hpp"
-#include "sp3Write.cpp"
+#include "sp3Write.hpp"
 #include "metaData.hpp"
 #include "algebra.hpp"
 #include "sinex.hpp"
@@ -70,7 +70,8 @@ void postRTSActions(
 
 	if (acsConfig.output_bias_sinex)
 	{
-		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], *stationMap_ptr);
+		//todo aaron, this requires another ionospher kfState
+// 		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], *stationMap_ptr);
 	}
 
 	if (acsConfig.output_orbit_ics)
@@ -89,19 +90,19 @@ void postRTSActions(
 	}
 
 	{
-		if (acsConfig.output_orbex)			{	outputOrbex			(kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbex_orbit_sources,	acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources,	&kfState);	}
-		if (acsConfig.output_sp3)			{	outputSp3			(kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.sp3_orbit_sources,		acsConfig.sp3_clock_sources,										&kfState);	}
-		if (acsConfig.output_trop_sinex)	{	outputTropSinex		(kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState, "MIX", true);																							}
-		if (acsConfig.output_ionex)			{	ionexFileWrite		(kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState);																											}
-		if (acsConfig.output_erp)			{	writeErpFromNetwork	(kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState);																														}
-		if (acsConfig.output_ionstec)		{	writeSTECfromRTS 	(kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX], kfState);																														}
+		if (acsConfig.output_orbex)			{	outputOrbex			(				kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbex_orbit_sources,	acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources,	&kfState);	}
+		if (acsConfig.output_sp3)			{	outputSp3			(				kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.sp3_orbit_sources,		acsConfig.sp3_clock_sources,										&kfState);	}
+		if (acsConfig.output_trop_sinex)	{	outputTropSinex		(				kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState, "MIX", true);																							}
+		if (acsConfig.output_ionex)			{	ionexFileWrite		(nullStream,	kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState);																											}
+		if (acsConfig.output_erp)			{	writeErpFromNetwork	(				kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState);																														}
+		if (acsConfig.output_ionstec)		{	writeSTECfromRTS 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX], kfState);																														}
 	}
 
 	for (auto& [id, rec] : *stationMap_ptr)
 	{
-		if (acsConfig.output_gpx)			{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	id);		}
-		if (acsConfig.output_ppp_sol)		{	outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
-		if (acsConfig.output_cost)			{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
+		if (acsConfig.output_gpx)			{	writeGPX			(				kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	id);		}
+		if (acsConfig.output_ppp_sol)		{	outputPPPSolution	(				kfState.metaDataMap[SOL_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
+		if (acsConfig.output_cost)			{	outputCost			(				kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
 
 	}// 	outputPppNmea(ofs, archiveKF, true);
 }

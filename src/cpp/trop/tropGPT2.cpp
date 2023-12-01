@@ -22,16 +22,16 @@ struct GPTVals
  */
 struct GptGrid
 {
-			double	lat		= 0;		///< lat grid (degree) 
-			double	lon		= 0;		///< lon grid (degree) 
-	vector<	double>	pres;				///< pressure										a0 A1 B1 A2 B2 (pascal) 
-	vector<	double>	temp;				///< temperature									a0 A1 B1 A2 B2 (kelvin) 
-	vector<	double>	humid;				///< humidity										a0 A1 B1 A2 B2 (kg/kg) 
-	vector<	double>	tlaps;				///< elapse rate									a0 A1 B1 A2 B2 (kelvin/m) 
-	vector<	double>	ah;					///< hydrostatic	mapping function coefficient	a0 A1 B1 A2 B2 
-	vector<	double>	aw;					///< wet			mapping function coefficient	a0 A1 B1 A2 B2 
-			double	undu	= 0;		///< geoid undulation (m) 
-			double	hgt		= 0;		///< orthometric height (m) 
+			double	lat		= 0;		///< lat grid (degree)
+			double	lon		= 0;		///< lon grid (degree)
+	vector<	double>	pres;				///< pressure										a0 A1 B1 A2 B2 (pascal)
+	vector<	double>	temp;				///< temperature									a0 A1 B1 A2 B2 (kelvin)
+	vector<	double>	humid;				///< humidity										a0 A1 B1 A2 B2 (kg/kg)
+	vector<	double>	tlaps;				///< elapse rate									a0 A1 B1 A2 B2 (kelvin/m)
+	vector<	double>	ah;					///< hydrostatic	mapping function coefficient	a0 A1 B1 A2 B2
+	vector<	double>	aw;					///< wet			mapping function coefficient	a0 A1 B1 A2 B2
+			double	undu	= 0;		///< geoid undulation (m)
+			double	hgt		= 0;		///< orthometric height (m)
 };
 
 vector<GptGrid>		globalGPT2Grids			= {};		///< gpt grid information
@@ -43,7 +43,7 @@ bool				globalGPT2GridsReady	= false;	///< gpt grid information read
 *
 * return   :       1, 0, or -1
 * ---------------------------------------------------------------------------*/
-int sign(double x) 
+int sign(double x)
 {
 	if		(x >  0)	return +1;
 	else if	(x == 0)	return  0;
@@ -71,17 +71,17 @@ void vmf1(
 	double phh;
 	if (lat < 0)	{	phh = PI;	c11h = 0.007;	c10h = 0.002;	}	/* southern hemisphere */
 	else			{	phh = 0;	c11h = 0.005;	c10h = 0.001;	}	/* northern hemisphere */
-	
+
 	double bh		= 0.0029;
 	double ch		= c0h + ((cos(doy / 365.25 * 2*PI + phh) + 1) * c11h / 2 + c10h) * (1 - cos(lat));
 	dryMap = mapHerring(elev, ah, bh, ch);
-	
+
 	/* height correction */
 	double aht = 2.53e-5;
 	double bht = 5.49e-3;
 	double cht = 1.14e-3;
 	dryMap+= (1 / sin(elev) - mapHerring(elev, aht, bht, cht)) * hgt / 1000;
-	
+
 	/* wet mapping function */
 	double bw	= 0.00146;
 	double cw	= 0.04391;
@@ -104,21 +104,21 @@ void readgrid(
 		<< "Error opening gpt grid file" << filepath << std::endl;
 		return;
 	}
-	
+
 	while (fileStream)
 	{
 		string line;
-		
+
 		getline(fileStream, line);
 
 		char* buff = &line[0];
-	
+
 		/* ignore the first line */
 		if (strchr(buff,'%'))
 			continue;
 
 		int j = 0;
-		
+
 		/* loop over each line */
 		char* p = strtok(buff," ");
 		double val[40];
@@ -130,7 +130,7 @@ void readgrid(
 		}
 
 		GptGrid gptGridPoint;
-		
+
 		/* assign lat lon */
 		gptGridPoint.lat = val[0];
 		gptGridPoint.lon = val[1];
@@ -149,10 +149,10 @@ void readgrid(
 		/* assign undulation and height */
 		gptGridPoint.undu	= val[22];
 		gptGridPoint.hgt	= val[23];
-		
+
 		gptGrids.push_back(gptGridPoint);
 	}
-	
+
 	globalGPT2GridsReady = true;
 }
 
@@ -173,10 +173,10 @@ double coef(
 }
 
 double coefr(
-	double p1, 
-	double p2, 
-	double l1, 
-	double l2, 
+	double p1,
+	double p2,
+	double l1,
+	double l2,
 	double a[4])
 {
 	double r[2];
@@ -237,16 +237,16 @@ GPTVals gpt2(
 	}
 
 	GPTVals gptVals;
-	
+
 	if (bl == 0)
 	{
 		/* near the pole */
 		int i = index[0] - 1;
-		
+
 		auto& gptGridPoint = gptg[i];
 
 		gptVals.undulation = gptGridPoint.undu;
-		
+
 		double hgt = hell - gptVals.undulation;
 
 		/* pressure, temperature at the height of grid */
@@ -256,10 +256,10 @@ GPTVals gpt2(
 		double dt0	= coef(gptGridPoint.tlaps,	cosfy, sinfy, coshy, sinhy);
 
 		double con = GRAVITY * MOLARDRY / (UGAS * t0 * (1 + 0.6077 * q0));
-		
+
 		/* pressure in hPa */
 		gptVals.pressure	= (p0 * exp(-con * (hgt - gptGridPoint.hgt))) / 100;
-		
+
 		/* temperature at station height in celsius */
 		gptVals.temperature	= t0 + dt0 * (hgt - gptGridPoint.hgt) - ZEROC;
 		gptVals.deltaT		= dt0 * 1000;
@@ -295,9 +295,9 @@ GPTVals gpt2(
 		for (int k = 0; k < 4; k++)
 		{
 			auto& gptGridPointK = gptg[index[k]];
-			
+
 			undu[k] = gptGridPointK.undu;
-			
+
 			double hgt = hell - undu[k];
 
 			/* pressure, temperature at the height of the grid */
@@ -319,78 +319,37 @@ GPTVals gpt2(
 		double dnlon1 = fabs(dlon);
 		double dnlon2 = 1 - dnlon1;
 
-		gptVals.pressure	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, p); 
-		gptVals.temperature	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, t); 
+		gptVals.pressure	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, p);
+		gptVals.temperature	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, t);
 		gptVals.deltaT		= coefr(dnpod1, dnpod2, dnlon1, dnlon2, dt) * 1000;
 
 		/* humidity */
 		double tp			= coefr(dnpod1, dnpod2, dnlon1, dnlon2, q);
 		gptVals.waterVp	= tp * gptVals.pressure / (0.622 + 0.378 * tp);
 
-		gptVals.hydroCoef	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, ah);  
-		gptVals.wetCoef		= coefr(dnpod1, dnpod2, dnlon1, dnlon2, aw); 
-		gptVals.undulation	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, undu);   
+		gptVals.hydroCoef	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, ah);
+		gptVals.wetCoef		= coefr(dnpod1, dnpod2, dnlon1, dnlon2, aw);
+		gptVals.undulation	= coefr(dnpod1, dnpod2, dnlon1, dnlon2, undu);
 	}
-	
+
 	return gptVals;
-}
-
-
-/** emipirical troposphere mapping function
- */
-void tropemp(
-	const double	pres,	///< pressure (millibar)
-	const double	temp,	///< temperature (kelvin)
-	const double	ew,		///< water vp (millibar)
-	const double	el,	    ///< ele angle (rad)
-	double&			dryMap,	///< dry mapping function
-	double& 		wetMap)	///< wet mapping function
-{
-	/* parameters of dry mapping function */
-	double ah	= 0.1237 * pow(10, -2) 
-				+ 0.1316 * pow(10, -6) * (pres - 1000) 
-				+ 0.8057 * pow(10, -5) * sqrt(ew)
-				+ 0.1378 * pow(10, -5) * (temp - 288.15);
-			
-	double bh	= 0.3333 * pow(10, -2) 
-				+ 0.1946 * pow(10, -6) * (pres - 1000) 
-				+ 0.1747 * pow(10, -6) * sqrt(ew)
-				+ 0.1040 * pow(10, -6) * (temp - 288.15);
-			
-	double ch = 0.078;
-
-	/* parameters of wet mapping function */
-	double aw	= 0.5236 * pow(10, -3)
-				+ 0.2471 * pow(10, -6) * (pres - 1000)
-				- 0.1328 * pow(10, -4) * sqrt(ew) 
-				+ 0.1724 * pow(10, -6) * (temp - 288.15);
-			
-	double bw	= 0.1705 * pow(10, -2) 
-				+ 0.7384 * pow(10, -6) * (pres - 1000) 
-				+ 0.2147 * pow(10, -4) * sqrt(ew) 
-				+ 0.3767 * pow(10, -6) * (temp - 288.15);
-			
-	double cw	= 0.05917;
-
-	/* mapping function */
-	dryMap = mapHerring(el, ah, bh, ch);
-	wetMap = mapHerring(el, aw, bw, cw);
-	
-	return;
 }
 
 /** Troposphere zenith hydrastatic delay and mapping function.
  * gpt2 is used to get pressure, temperature, water vapor pressure and mapping function coefficients and then vmf1 is used to derive dry and wet mapping function.
  */
-double tropGPT2( 
+double tropGPT2(
+	Trace&		trace,
 	GTime		time,
 	VectorPos&	pos,
-	double		elev,
+	double		el,
 	double&		dryZTD,
 	double&		dryMap,
 	double&		wetZTD,
-	double&		wetMap)
+	double&		wetMap,
+	double&		var)
 {
+	var = -1;
 	MjDateTT mjd_= time;
 	double   mjd = mjd_.to_double();
 
@@ -398,38 +357,40 @@ double tropGPT2(
 	double lat = pos.lat();
 	double lon = pos.lon();
 	double hgt = pos.hgt();
-	
+
 	/* pressure, temperature, water vapor at station height */
 	double pres	= 1013.25 * pow((1 - 0.0000226 * hgt), 5.225);
 	double tp	= 15 - 6.5E-3 * hgt + ZEROC;
-	double ew	= 0.5 / 100 * exp(	- 37.2465 
-									+ 0.213166		* tp 
+	double ew	= 0.5 / 100 * exp(	- 37.2465
+									+ 0.213166		* tp
 									- 0.000256908	* tp * tp);
 	double gm	= 1 - 0.00266 * cos(2 * lat) - 0.00028 * hgt / 1E3;
 
-	if (globalGPT2GridsReady)
+	if (globalGPT2GridsReady == false)
 	{
-		/* use GPT2 model */
-		
-		/* get pressure and mapping coefficients from gpts */
-		GPTVals gptVals = gpt2(globalGPT2Grids, mjd, lat, lon, hgt);
-		
-		pres	= gptVals.pressure;
-		tp		= gptVals.temperature + ZEROC;    /* celcius to kelvin */
-		ew		= gptVals.waterVp;
+		return 0;
+	}
 
-		/* get mapping function */
-		vmf1(gptVals.hydroCoef, gptVals.wetCoef, mjd, lat, hgt, elev, dryMap, wetMap);
-	}
-	else
-	{
-		tropemp(pres, tp, ew, elev, dryMap, wetMap);
-	}
+	/* use GPT2 model */
+
+	/* get pressure and mapping coefficients from gpts */
+	GPTVals gptVals = gpt2(globalGPT2Grids, mjd, lat, lon, hgt);
+
+	pres	= gptVals.pressure;
+	tp		= gptVals.temperature + ZEROC;    /* celcius to kelvin */
+	ew		= gptVals.waterVp;
+
+	/* get mapping function */
+	vmf1(gptVals.hydroCoef, gptVals.wetCoef, mjd, lat, hgt, el, dryMap, wetMap);
 
 	/* zenith wet delay (m) */
 	dryZTD = 0.002277 * pres / gm;
 	wetZTD = 0.002277 * (1255 / tp + 0.05) * ew * (1 / gm);
 
-	return dryMap * dryZTD + wetMap * wetZTD;
+	var = 0;
+	double delay	= dryMap * dryZTD
+					+ wetMap * wetZTD;
+
+	return delay;
 }
 

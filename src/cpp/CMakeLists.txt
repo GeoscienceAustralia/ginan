@@ -67,6 +67,7 @@ add_library(ginan_core
 		common/common.cpp
 		common/constants.hpp
 		common/constants.cpp
+		common/customDecoder.cpp
 		common/cost.hpp
 		common/cost.cpp
 		common/debug.cpp
@@ -158,6 +159,8 @@ add_library(ginan_core
 		common/streamFile.hpp
 		common/streamNtrip.cpp
 		common/streamNtrip.hpp
+		common/streamCustom.cpp
+		common/streamCustom.hpp
 		common/streamObs.hpp
 		common/streamRinex.hpp
 		common/streamRtcm.hpp
@@ -189,6 +192,7 @@ add_library(ginan_core
 		trop/tropSBAS.cpp
 		trop/tropGPT2.cpp
 		trop/tropVMF3.cpp
+		trop/tropCSSR.cpp
 
 		ambres/GNSSambres.hpp
 		ambres/GNSSambres.cpp
@@ -200,6 +204,7 @@ add_library(ginan_core
 
 		other_ssr/otherSSR.hpp
 		other_ssr/prototypeIgsSSRDecode.cpp
+		other_ssr/prototypeCmpSSREncode.cpp
 		other_ssr/prototypeCmpSSRDecode.cpp
 		other_ssr/prototypeIgsSSREncode.cpp
 

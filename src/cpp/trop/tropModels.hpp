@@ -10,10 +10,11 @@
 #include "enums.h"
 
 #include <string>
+
 using std::string;
 
-#define 	ERR_TROP	3.0			///< tropspheric delay std (m) 
-#define     NGPT        2592                /* grid number */
+#define 	ERR_TROP	3.0			///< tropspheric delay std (m)
+#define     NGPT        2592		///< grid number
 
 struct TropMapping
 {
@@ -23,10 +24,16 @@ struct TropMapping
 	double dryMap	= 0;
 };
 
+struct TropStates
+{
+	double zenith	= 0;
+	double grads[2]	= {};
+};
+
 double mapHerring(
-	double el, 
-	double a, 
-	double b, 
+	double el,
+	double a,
+	double b,
 	double c);
 
 void readvmf3(
@@ -38,17 +45,8 @@ void readorog(
 void readgrid(
 	string			filepath);
 
-double tropSAAS( 
-	GTime			time,
-	VectorPos&		pos,
-	double			el,
-	double&			dryZTD,
-	double&			dryMap,
-	double&			wetZTD,
-	double&			wetMap,
-	double&			var);
-	
-double tropSBAS( 
+double tropSAAS(
+	Trace&			trace,
 	GTime			time,
 	VectorPos&		pos,
 	double			el,
@@ -58,51 +56,78 @@ double tropSBAS(
 	double&			wetMap,
 	double&			var);
 
-double tropVMF3( 
+double tropSBAS(
+	Trace&			trace,
 	GTime			time,
 	VectorPos&		pos,
 	double			el,
 	double&			dryZTD,
 	double&			dryMap,
 	double&			wetZTD,
-	double&			wetMap);
+	double&			wetMap,
+	double&			var);
 
-double tropGPT2( 
+double tropVMF3(
+	Trace&			trace,
 	GTime			time,
 	VectorPos&		pos,
 	double			el,
 	double&			dryZTD,
 	double&			dryMap,
 	double&			wetZTD,
-	double&			wetMap);
+	double&			wetMap,
+	double&			var);
+
+double tropGPT2(
+	Trace&			trace,
+	GTime			time,
+	VectorPos&		pos,
+	double			el,
+	double&			dryZTD,
+	double&			dryMap,
+	double&			wetZTD,
+	double&			wetMap,
+	double&			var);
+
+double tropCSSR(
+	Trace&			trace,
+	GTime			time,
+	VectorPos&		pos,
+	double			elv,
+	double&			dryZTD,
+	double&			dryMap,
+	double&			wetZTD,
+	double&			wetMap,
+	double&			var);
 
 double gradMapFn(
 	double			el);
 
 double tropModel(
-	Trace&			trace,
-	E_TropModel 	model,
-	GTime			time,
-	VectorPos&		pos,
-	double*			azel,
-	double*			tropStates,
-	TropMapping&	dTropDx,
-	double&			var);
+	Trace&					trace,
+	vector<E_TropModel> 	models,
+	GTime					time,
+	VectorPos&				pos,
+	AzEl&					azel,
+	TropStates&				tropStates,
+	TropMapping&			dTropDx,
+	double&					var);
 
 double tropDryZTD(
-	E_TropModel 	model,
-	GTime			time,
-	VectorPos&		pos);
+	Trace&					trace,
+	vector<E_TropModel> 	models,
+	GTime					time,
+	VectorPos&				pos);
 
 double tropModelCoef(
-	int ind, 
+	int ind,
 	VectorPos&		pos);
 
 void defineLocalTropBasis();
 
-double heightAdjustWet( 
+double heightAdjustWet(
 	double hgt);
 
-double heightAdjustDry( 
+double heightAdjustDry(
 	double hgt,
 	double lat);

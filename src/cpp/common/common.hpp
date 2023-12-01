@@ -22,6 +22,7 @@ using std::pair;
 
 struct SatSys;
 struct SatPos;
+struct AzEl;
 
 struct Average
 {
@@ -50,9 +51,9 @@ double sagnac(
 
 
 double satazel(
-	const	VectorPos&	pos, 
-	const	VectorEcef&	e, 
-			double*		azel);
+	const	VectorPos&	pos,
+	const	VectorEcef&	e,
+			AzEl&		azel);
 
 unsigned int crc24q (const unsigned char *buff, int len);
 
@@ -82,13 +83,13 @@ void updatenav(
  */
 template<
 	typename OUTTYPE,
-	typename INTYPE, 
+	typename INTYPE,
 	typename VOIDTYPE>
 struct IteratorType
 {
 	typename INTYPE::iterator	ptr_ptr;
 	typename INTYPE::iterator	endPtr_ptr;
-	
+
 	IteratorType(
 		typename INTYPE::iterator	startPtr_ptr,
 		typename INTYPE::iterator	endPtr_ptr)
@@ -98,25 +99,25 @@ struct IteratorType
 		ptr_ptr--;
 		incrementUntilGood();
 	}
-	
-	bool operator !=(IteratorType rhs) 
+
+	bool operator !=(IteratorType rhs)
 	{
 		return ptr_ptr != rhs.ptr_ptr;
 	}
-	
+
 	OUTTYPE& operator*()
 	{
 		return static_cast<OUTTYPE&>(**ptr_ptr);
 	}
-	
+
 	void incrementUntilGood()
 	{
 		while (1)
 		{
 			++ptr_ptr;
-			if (ptr_ptr == endPtr_ptr)				
+			if (ptr_ptr == endPtr_ptr)
 				return;
-			
+
 			try
 			{
 				(void) dynamic_cast<OUTTYPE&>(**ptr_ptr);
@@ -126,7 +127,7 @@ struct IteratorType
 			catch(...){}
 		}
 	}
-	
+
 	void operator++()
 	{
 		incrementUntilGood();
@@ -136,23 +137,23 @@ struct IteratorType
 /** An iterator that trys to cast elements to the desired type before using them
  */
 template<
-	typename OUTTYPE, 
-	typename INTYPE, 
+	typename OUTTYPE,
+	typename INTYPE,
 	typename KEYTYPE>
 struct MapIteratorType
 {
 	typename INTYPE::iterator	ptr_ptr;
 	typename INTYPE::iterator	endPtr_ptr;
-	
+
 	MapIteratorType(
 		typename INTYPE::iterator	startPtr_ptr,
 		typename INTYPE::iterator	endPtr_ptr)
 	:	ptr_ptr		(startPtr_ptr),
 		endPtr_ptr	(endPtr_ptr)
 	{
-		if (ptr_ptr == endPtr_ptr)					
+		if (ptr_ptr == endPtr_ptr)
 			return;
-		
+
 		try
 		{
 			(void) dynamic_cast<OUTTYPE&>(*ptr_ptr->second);
@@ -160,29 +161,29 @@ struct MapIteratorType
 			return;
 		}
 		catch(...){}
-		
+
 		incrementUntilGood();
 	}
-	
-	bool operator !=(MapIteratorType rhs) 
+
+	bool operator !=(MapIteratorType rhs)
 	{
 		return ptr_ptr != rhs.ptr_ptr;
 	}
-	
+
 	const pair<const KEYTYPE&, OUTTYPE&> operator*()
 	{
 		auto& thing = *ptr_ptr->second;
 		return {ptr_ptr->first, dynamic_cast<OUTTYPE&>(thing)};
 	}
-	
+
 	void incrementUntilGood()
 	{
 		while (1)
 		{
 			++ptr_ptr;
-			if (ptr_ptr == endPtr_ptr)					
+			if (ptr_ptr == endPtr_ptr)
 				return;
-			
+
 			try
 			{
 				(void) dynamic_cast<OUTTYPE&>(*ptr_ptr->second);
@@ -192,7 +193,7 @@ struct MapIteratorType
 			catch(...){}
 		}
 	}
-	
+
 	void operator++()
 	{
 		incrementUntilGood();
@@ -202,19 +203,19 @@ struct MapIteratorType
 /** An object just for templating the other functions without over-verbosity
  */
 template <
-	template<typename,typename,typename> typename	ITERATOR, 
+	template<typename,typename,typename> typename	ITERATOR,
 	typename										TYPE,
 	typename										KEYTYPE,
 	typename										INTYPE>
 struct Typer
 {
 	INTYPE& baseContainer;
-	
+
 	Typer(
 		INTYPE& baseContainer)
 	: baseContainer (baseContainer)
 	{
-		
+
 	}
 
 			ITERATOR<TYPE, INTYPE, KEYTYPE>		begin()			{ return ITERATOR<TYPE, INTYPE, KEYTYPE>(baseContainer.begin(),	baseContainer.end());	}
@@ -231,12 +232,12 @@ template<
 	typename ENTRY
 	>
 Typer<
-	IteratorType,	
-	OUT, 
-	void, 
-	vector<ENTRY>> 
+	IteratorType,
+	OUT,
+	void,
+	vector<ENTRY>>
 only(
-	vector<ENTRY>& in) 
+	vector<ENTRY>& in)
 {
 	return Typer<IteratorType,		OUT,	void,		vector<ENTRY>				>(in);
 }
@@ -245,16 +246,16 @@ only(
 /** Use only a subset of a map that can be cast to a desired type
  */
 template<
-	typename OUT, 
-	typename KEYTYPE, 
+	typename OUT,
+	typename KEYTYPE,
 	typename VALUE>
 Typer<
-	MapIteratorType,	
-	OUT, 
-	KEYTYPE, 
-	multimap<KEYTYPE, VALUE>> 
+	MapIteratorType,
+	OUT,
+	KEYTYPE,
+	multimap<KEYTYPE, VALUE>>
 only(
-	multimap<KEYTYPE, VALUE>& in) 
+	multimap<KEYTYPE, VALUE>& in)
 {
 	return Typer<MapIteratorType,	OUT,	KEYTYPE,	multimap<KEYTYPE, VALUE>	>(in);
 }

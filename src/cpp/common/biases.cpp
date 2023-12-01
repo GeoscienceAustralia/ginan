@@ -89,7 +89,7 @@ void pushBiasSinex(
 				[entry.cod1]
 				[entry.cod2]
 				[entry.tini] = entry;
-				
+
 	decomposeDSBBias(id, entry);
 
 	//create reverse bias and add to maps
@@ -328,6 +328,7 @@ bool biasRecurser(
 
 		auto& [dummy, timeBiasMap] = *it2;
 
+	
 		//find the last bias in that map that comes before the desired time
 		auto biasIt = timeBiasMap.lower_bound(time);
 		if (biasIt != timeBiasMap.end())

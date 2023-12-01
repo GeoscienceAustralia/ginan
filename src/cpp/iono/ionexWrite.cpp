@@ -27,6 +27,7 @@ map<string, long> endLinePos;
 static int ionexMapIndex = 0;
 
 double ionVtec(
+	Trace&		trace,
 	GTime		time,
 	VectorPos&	ionPP,
 	int			layer,
@@ -35,9 +36,9 @@ double ionVtec(
 {
 	switch (acsConfig.ionModelOpts.model)
 	{
-		case E_IonoModel::SPHERICAL_HARMONICS:		return ionVtecSphhar(time, ionPP, layer, vtecstd, kfState);
-		case E_IonoModel::SPHERICAL_CAPS:			return ionVtecSphcap(time, ionPP, layer, vtecstd, kfState);
-		case E_IonoModel::BSPLINE:					return ionVtecBsplin(time, ionPP, layer, vtecstd, kfState);
+		case E_IonoModel::SPHERICAL_HARMONICS:		return ionVtecSphhar(trace, time, ionPP, layer, vtecstd, kfState);
+		case E_IonoModel::SPHERICAL_CAPS:			return ionVtecSphcap(trace, time, ionPP, layer, vtecstd, kfState);
+		case E_IonoModel::BSPLINE:					return ionVtecBsplin(trace, time, ionPP, layer, vtecstd, kfState);
 		default:									return 0;
 	}
 }
@@ -58,7 +59,7 @@ bool writeIonexHead(
 	{
 		return false;
 	}
-	
+
 	double hght1 = acsConfig.ionModelOpts.layer_heights.front()	/ 1000;
 	double hght2 = acsConfig.ionModelOpts.layer_heights.back()	/ 1000;
 	double dhght = (hght2 - hght1) / (acsConfig.ionModelOpts.layer_heights.size() - 1);
@@ -78,11 +79,12 @@ bool writeIonexHead(
 	tracepdeex(0, ionex, "%6d%54sEXPONENT\n", IONEX_NEXP, "");
 	tracepdeex(0, ionex, "%-60s%s\n", acsConfig.rinex_comment.c_str(),												"COMMENT");
 	tracepdeex(0, ionex, "%60sEND OF HEADER\n\n", " ");
-	
+
 	return true;
 }
 
 int writeIonexEpoch(
+	Trace&		trace,
 	Trace&		ionex,
 	GTime		time,
 	KFState&	kfState)
@@ -90,16 +92,16 @@ int writeIonexEpoch(
 	GTow tow	= time;
 	int timeseg = floor(tow / acsConfig.ionexGrid.time_res);
 
-	if	(  last_ionex >= 0 
+	if	(  last_ionex >= 0
 		&& last_ionex == timeseg)
 	{
 		return 0;
 	}
-		
+
 	last_ionex = timeseg;
 
 	GEpoch ep = time;
-	tracepdeex(4, std::cout, "  ..Writing IONEX epoch:%6.0f%6.0f%6.0f%6.0f%6.0f%6.0f \n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
+	tracepdeex(4, trace, "  ..Writing IONEX epoch:%6.0f%6.0f%6.0f%6.0f%6.0f%6.0f \n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
 	tracepdeex(0, ionex, "%6d%54sSTART OF TEC MAP\n", ionexMapIndex, " ");
 	tracepdeex(0, ionex, "%6.0f%6.0f%6.0f%6.0f%6.0f%6.0f%24sEPOCH OF CURRENT MAP\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5], " ");
@@ -129,7 +131,7 @@ int writeIonexEpoch(
 			ipp[1] = (ionex_lonmin + ilon * ionex_loninc) * D2R;
 
 			double var = 0;
-			double iono = ionVtec(time, ipp, ihgt, var, kfState) / pow(10, IONEX_NEXP);
+			double iono = ionVtec(trace, time, ipp, ihgt, var, kfState) / pow(10, IONEX_NEXP);
 
 			tracepdeex(5, std::cout, "IPP: %8.4f,%9.4f; layr: %1d; delay: %12.6f; var: %.4e\n",
 					ipp[0]*R2D,
@@ -138,7 +140,7 @@ int writeIonexEpoch(
 					iono,
 					var);
 
-			if (acsConfig.ionModelOpts.layer_heights.size() == 1) 
+			if (acsConfig.ionModelOpts.layer_heights.size() == 1)
 				var += SINGL_LAY_ERR;
 
 			double tecrms = var / pow(10, 2 * IONEX_NEXP);
@@ -169,7 +171,7 @@ int writeIonexEpoch(
 	tracepdeex(0, ionex, "%6.0f%6.0f%6.0f%6.0f%6.0f%6.0f%24sEPOCH OF CURRENT MAP\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5], " ");
 
 	auto it = tecrmsList.begin();
-	
+
 	for (int ihgt = 0; ihgt < acsConfig.ionModelOpts.layer_heights.size();	ihgt++)
 	for (int ilat = 0; ilat < ionex_latres;									ilat++)
 	{
@@ -187,7 +189,7 @@ int writeIonexEpoch(
 
 			double tecrms = *it;
 			it++;
-			
+
 			tracepdeex(0, ionex, "%5.0f", tecrms);
 		}
 
@@ -200,6 +202,7 @@ int writeIonexEpoch(
 }
 
 bool ionexFileWrite(
+	Trace&		trace,
 	string		filename,
 	GTime		time,
 	KFState&	kfState)
@@ -217,7 +220,7 @@ bool ionexFileWrite(
 	if (sigma0 > 1) 											return false;
 
 	std::ofstream ionex(filename, std::fstream::in | std::fstream::out);
-	
+
 	ionex.seekp(0, std::ios::end);
 
 	long endFilePos = ionex.tellp();
@@ -225,18 +228,18 @@ bool ionexFileWrite(
 	if (endFilePos == 0)
 	{
 		writeIonexHead(ionex);
-		
+
 		endLinePos[filename] = ionex.tellp();
 	}
-	
+
 	ionex.seekp(endLinePos[filename]);
-	
-	writeIonexEpoch(ionex, time, kfState);
-	
+
+	writeIonexEpoch(trace, ionex, time, kfState);
+
 	endLinePos[filename] = ionex.tellp();
-	
+
 	tracepdeex(0, ionex, "%60sEND OF FILE\n", " ");
-	
+
 	return true;
 }
 

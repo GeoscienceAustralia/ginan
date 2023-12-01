@@ -34,7 +34,8 @@ void getmet(
 /* tropospheric delay correction -----------------------------------------------
 * compute sbas tropospheric delay correction (mops model)
 *-----------------------------------------------------------------------------*/
-double tropSBAS( 
+double tropSBAS(
+	Trace&		trace,
 	GTime		time,
 	VectorPos&	pos,
 	double		elev,

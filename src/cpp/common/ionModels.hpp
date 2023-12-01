@@ -13,35 +13,35 @@ using std::string;
 struct Navigation;
 
 double ionmodel(
-	GTime				t, 
-	const double*		ion, 
-	const VectorPos&	pos, 
-	const double*		azel);
+	GTime				t,
+	const double*		ion,
+	const VectorPos&	pos,
+	const AzEl&			azel);
 
 double ionmapf(
-	const VectorPos&	pos, 
-	const double*		azel, 
-	E_IonoMapFn			mapFn, 
+	const VectorPos&	pos,
+	const AzEl&			azel,
+	E_IonoMapFn			mapFn,
 	double				hion);
 
 double ionppp(
 	const VectorPos&	pos,
-	const double*		azel,
-	double				re, 
-	double				hion, 
+	const AzEl&			azel,
+	double				re,
+	double				hion,
 	VectorPos&			pppos);
 
 bool iontec(
 	GTime				time,
-	const Navigation*	nav, 
+	const Navigation*	nav,
 	const VectorPos&	pos,
-	const double*		azel,
+	const AzEl&			azel,
 	E_IonoMapFn			mapFn,
 	E_IonoFrame			frame,
-	double&				delay, 
+	double&				delay,
 	double&				var);
 
 void readTec(
-	string				file, 
+	string				file,
 	Navigation*			nav);
 

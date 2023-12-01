@@ -6,11 +6,11 @@
 #include "eigenIncluder.hpp"
 #include "gTime.hpp"
 #include "trace.hpp"
-
+#define SSR_UNAVAILABLE		-9999
 
 struct SatPos;
 
-const double ura_ssr[] =
+const double uraSsr[] =
 {
 	0,
 	0.25,
@@ -132,8 +132,8 @@ struct SSRHRClk
 
 struct BiasVar
 {
-	double		bias	= 0;				///< biases (m) 
-	double		var		= 0;				///< biases variance (m^2) 
+	double		bias	= 0;				///< biases (m)
+	double		var		= 0;				///< biases variance (m^2)
 };
 
 struct SSRBias
@@ -144,11 +144,12 @@ struct SSRBias
 	int				iod		= -1;
 	unsigned int	nbias	= 0;
 	map<E_ObsCode, BiasVar> obsCodeBiasMap;
+	map<int,double> ionDCBOffset;
 };
 
 struct SSRCodeBias : SSRBias
 {
-	//just inherit.
+
 };
 
 struct SSRPhase
@@ -201,49 +202,50 @@ struct SSRAtmGlobal
 
 struct SSRSTECData
 {
-	int 				iod = -1;
-	double				accr;
-	map<int,double>		poly;
-	map<int,double>		grid;
+	int 				iod		= -1;
+	double				sigma	= 0.1;				/* STEC maps accuracy in TECu */
+	map<int, double>	poly;						/* STEC polynomials in TECu (deg) */
+	map<int, double>	grid;						/* STEC gridmaps in TECu */
 };
 
 struct SSRTropData
 {
-	double acc;
-	map<int,double>	polyDry;
-	map<int,double>	gridDry;
-	map<int,double>	gridWet;
+	double				sigma = 0;
+	map<int, double>	polyDry;						/* ZHD in meters (deg) */
+	map<int, double>	gridDry;						/* ZHD in meters */
+	map<int, double>	gridWet;						/* ZWD in meters */
 };
 
 struct SSRAtmRegion
 {
-	int regionDefIOD = -1;
-	map<int, double>					gridLat;
-	map<int, double>					gridLon;
-	
-	double minLat		= 0;
-	double maxLat		= 0;
-	double intLat		= 0;
-	                	
-	double minLon		= 0;
-	double maxLon		= 0;
-	double intLon		= 0;
-	
-	int gridType		= -1;
-	int tropPolySize	= -1;
-	int ionoPolySize	= -1;
-	bool ionoGrid		= true;
-	bool tropGrid		= true;
-	
-				map<GTime,SSRTropData, std::greater<GTime>>		tropData;
-	map<SatSys,	map<GTime,SSRSTECData, std::greater<GTime>>>	stecData;
+	int regionDefIOD		= -1;
+	map<int, double>	gridLatDeg;
+	map<int, double>	gridLonDeg;
+
+	double	minLatDeg		= 0;
+	double	maxLatDeg		= 0;
+	double	intLatDeg		= 0;
+
+	double	minLonDeg		= 0;
+	double	maxLonDeg		= 0;
+	double	intLonDeg		= 0;
+
+	int		gridType		= -1;
+	int		tropPolySize	= -1;
+	int		ionoPolySize	= -1;
+	bool	ionoGrid		= false;
+	bool	tropGrid		= false;
+
+				map<GTime, SSRTropData, std::greater<GTime>>	tropData;
+	map<SatSys,	map<GTime, SSRSTECData, std::greater<GTime>>>	stecData;
+	GTime	stecUpdateTime;
 };
 
 struct SSRAtm
 {
-	SSRMeta					ssrMeta;
-	map<GTime,SSRAtmGlobal, std::greater<GTime>>	atmosGlobalMap;
-	map<int,SSRAtmRegion>							atmosRegionsMap;
+	SSRMeta											ssrMeta;
+	map<GTime,	SSRAtmGlobal, std::greater<GTime>>	atmosGlobalMap;
+	map<int,	SSRAtmRegion>						atmosRegionsMap;
 };
 
 struct EphValues
@@ -270,13 +272,13 @@ struct SSREphInput
 {
 	bool		valid = false;
 	EphValues	vals[2];
-};	
+};
 
 struct SSRClkInput
 {
 	bool		valid = false;
 	ClkValues	vals[2];
-};	
+};
 
 /* SSR correction type */
 struct SSRMaps
@@ -295,19 +297,19 @@ struct SSRMaps
 struct SSROut
 {
 	GTime			epochTime;
-	
+
 	SSRPhasBias		ssrPhasBias;
 	SSRCodeBias		ssrCodeBias;
-	
+
 	SSRClkInput		clkInput;
 	SSREphInput		ephInput;
-	
+
 	SSRClk			ssrClk;
 	SSREph			ssrEph;
-	
+
 	SSRHRClk		ssrHRClk;
 	SSRUra			ssrUra;
-	
+
 	bool ephUpdated		= false;
 	bool clkUpdated		= false;
 	bool hrclkUpdated	= false;
@@ -324,6 +326,7 @@ double ephVarToUra(double ephVar);
 void prepareSsrStates(
 	Trace&				trace,
 	KFState&			kfState,
+	KFState&			ionState,
 	GTime				time);
 
 void writeSsrOutToFile(
@@ -347,7 +350,7 @@ bool ssrClkDelta(
 	GTime			ephTime,
 	SatPos&			satPos,
 	const SSRMaps&	ssrMaps,
-	double&			dclk, 
+	double&			dclk,
 	int&			iodClk,
 	GTime&			validStart,
 	GTime&			validStop);

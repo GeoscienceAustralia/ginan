@@ -422,7 +422,7 @@ map<E_Sys, map<E_FType, E_ObsCode>> codeHax =
 
 	{	E_Sys::IRN,
 		{
-			{F5, E_ObsCode::L1A },
+			{F1, E_ObsCode::L1A },
 			{I9, E_ObsCode::L9A }
 		}
 	},
@@ -430,7 +430,7 @@ map<E_Sys, map<E_FType, E_ObsCode>> codeHax =
 	{	E_Sys::SBS,
 		{
 			{F1, E_ObsCode::L1C },
-			{F1, E_ObsCode::L5I }
+			{F5, E_ObsCode::L5I }
 		}
 	}
 };

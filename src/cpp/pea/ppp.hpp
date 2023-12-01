@@ -49,7 +49,7 @@ void pppCorrections(
 	ObsList&	obsList,
 	Vector3d&	rRec,
 	Station&	rec);
-	
+
 void PPP(
 	Trace&			trace,
 	StationMap&		stations,
@@ -63,7 +63,7 @@ void phaseWindup(
 int ionoModel(
 	GTime		time,
 	VectorPos&	pos,
-	double*		azel,
+	AzEl&		azel,
 	double		ionoState,
 	double&		dion,
 	double&		var);
@@ -77,12 +77,12 @@ void outputPPPSolution(
 	Station&	rec);
 
 void gpggaout(
-	string outfile, 
-	KFState& KfState, 
-	string recId, 
-	int solStat, 
-	int numSat, 
-	double hdop, 
+	string outfile,
+	KFState& KfState,
+	string recId,
+	int solStat,
+	int numSat,
+	double hdop,
 	bool lng);
 
 void selectAprioriSource(
@@ -163,37 +163,37 @@ bool orbitGlitchReaction(
 
 
 void stationPPP(
-			Trace&				netTrace,		
-			Station&			rec,			
-	const	KFState&			kfState,		
+			Trace&				netTrace,
+			Station&			rec,
+	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
 	const	KFState&			remoteState);
 
 
 void orbitPseudoObs(
-			Trace&				netTrace,			
-			Station&			rec,				
-	const	KFState&			kfState,			
-			KFMeasEntryList&	kfMeasEntryList);	
+			Trace&				netTrace,
+			Station&			rec,
+	const	KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList);
 
 void initPseudoObs(
-			Trace&				netTrace,			
-			KFState&			kfState,			
-			KFMeasEntryList&	kfMeasEntryList);	
+			Trace&				netTrace,
+			KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList);
 
 void stationPseudoObs(
-			Trace&				netTrace,			
-			Station&			rec,				
-	const	KFState&			kfState,			
+			Trace&				netTrace,
+			Station&			rec,
+	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
 			StationMap&			stationMap,
 			MatrixXd*			R_ptr = nullptr);
 
 void stationSlr(
-			Trace&				netTrace,		
-			Station&			rec,			
-	const	KFState&			kfState,		
-			KFMeasEntryList&	kfMeasEntryList);	
+			Trace&				netTrace,
+			Station&			rec,
+	const	KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList);
 
 
 bool satQuat(
@@ -203,18 +203,18 @@ bool satQuat(
 	bool				origGal	= false);
 
 void fixAndHoldAmbiguities(
-	Trace&		trace,		
+	Trace&		trace,
 	KFState&	kfState);
 
 bool queryBiasUC(
-	Trace&		trace,	
-	GTime		time,	
-	KFState&	kfState,	
-	SatSys		sat,		
-	string		rec,		
-	E_ObsCode	code,	
-	double&		bias,	
-	double&		vari,	
+	Trace&		trace,
+	GTime		time,
+	KFState&	kfState,
+	SatSys		sat,
+	string		rec,
+	E_ObsCode	code,
+	double&		bias,
+	double&		vari,
 	E_MeasType	typ);
 
 void biasPseudoObs(
@@ -227,13 +227,19 @@ void ambgPseudoObs(
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
 
-void ionoPseudoObs (
+void ionoPseudoObs(
 	Trace&				trace,
-	StationMap&			stations,	
+	StationMap&			stations,
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
 
-void satClockPivotPseudoObs(		
+void tropPseudoObs(
 	Trace&				trace,
-	KFState&			kfState,			
+	StationMap&			stations,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
+
+void satClockPivotPseudoObs(
+	Trace&				trace,
+	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);

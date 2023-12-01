@@ -28,6 +28,7 @@ struct RtcmTrace
 {
 	string	rtcmTraceFilename	= "";
 	string	rtcmMountpoint;	
+	bool qzssL6 = false;
 	
 	RtcmTrace(
 		string mountpoint	= "",

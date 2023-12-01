@@ -35,8 +35,8 @@ struct BiasEntry
 	string		name		= "";					///< receiver name for receiver bias
 	SatSys		Sat;								///< satellite prn for satellite bias / satellite system for receiver bias
 	string		source		= "X";
-	
-	long int	posInOutFile =-1;					///< Position this entry is written in biasSINEX file 
+
+	long int	posInOutFile =-1;					///< Position this entry is written in biasSINEX file
 };
 
 E_ObsCode str2code(
@@ -66,7 +66,7 @@ bool decomposeBGDBias(
 	SatSys		Sat,
 	double		bgd1,
 	double		bgd2);
-	
+
 bool readBiasSinex(
 	string& file);
 
@@ -83,18 +83,20 @@ bool getBias(
 void writeBiasSinex(
 	Trace&		trace,
 	GTime		time,
-	KFState&	kfState,	
+	KFState&	kfState,
+	KFState&	ionState,
 	string		biasfile,
 	StationMap&	stationMap);
 
 bool queryBiasOutput(
-	Trace&		trace, 
+	Trace&		trace,
 	GTime		time,
 	KFState&	kfState,
+	KFState&	ionState,
 	SatSys		Sat,
 	string		Rec,
-	E_ObsCode	obsCode, 
-	double& 	bias_out, 
+	E_ObsCode	obsCode,
+	double& 	bias_out,
 	double& 	variance,
 	E_MeasType	type);
 

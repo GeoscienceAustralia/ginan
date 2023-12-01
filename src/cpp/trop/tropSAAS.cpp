@@ -1,6 +1,6 @@
 #include "tropModels.hpp"
 
-#define ERR_SAAS	0.3			///< saastamoinen model error std (m) 
+#define ERR_SAAS	0.3			///< saastamoinen model error std (m)
 
 const double coefNMF[][5] =
 {
@@ -30,16 +30,16 @@ double interpc(const double coef[], double lat)
 /* troposphere model -----------------------------------------------------------
 * compute tropospheric delay by standard atmosphere (relative humidity of 0.7
 * 15 degrees of temperature at sea level) and saastamoinen model
-* Neill Mapping functions ia used for mapping 
+* Neill Mapping functions ia used for mapping
 * args   : gtime_t time     I   time
 *          double *pos      I   receiver position {lat,lon,h} (rad,m)
-*          double *azel     I   azimuth/elevation angle {az,el} (rad)
 * return : tropospheric delay (m)
 *-----------------------------------------------------------------------------*/
-double tropSAAS( 
+double tropSAAS(
+	Trace&		trace,
 	GTime		time,
 	VectorPos&	pos,
-	double		elv,
+	double		el,
 	double&		dryZTD,
 	double&		dryMap,
 	double&		wetZTD,
@@ -50,8 +50,8 @@ double tropSAAS(
 	double hgt = pos.hgt();
 
 	if	(hgt < -100
-		|| hgt > +20000
-		|| elv <  0)
+		|| hgt	> +20000
+		|| el	<  0)
 	{
 		dryMap = 0;
 		wetMap = 0;
@@ -60,7 +60,7 @@ double tropSAAS(
 		var = SQR(ERR_TROP);
 		return 0;
 	}
-	
+
 	UYds yds = time;
 	/* year from doy 28, added half a year for southern latitudes */
 	double y = (yds.doy - 28) / 365.25 + (lat < 0 ? 0.5 : 0);
@@ -75,18 +75,18 @@ double tropSAAS(
 		aw[i] = interpc(coefNMF[i + 6], lat);
 	}
 	/* height correction */
-	double dm = (1 / sin(elv) - mapHerring(elv, 2.53E-5, 5.49E-3, 1.14E-3)) * hgt / 1E3;
-	dryMap = mapHerring(elv, ah[0], ah[1], ah[2]) + dm;
-	wetMap = mapHerring(elv, aw[0], aw[1], aw[2]);
-	
+	double dm = (1 / sin(el) - mapHerring(el, 2.53E-5, 5.49E-3, 1.14E-3)) * hgt / 1E3;
+	dryMap = mapHerring(el, ah[0], ah[1], ah[2]) + dm;
+	wetMap = mapHerring(el, aw[0], aw[1], aw[2]);
+
 	double temp = 15 - 6.5E-3 * hgt + ZEROC;
 	double pres	= 1013.25 * pow(288.15 / temp, -5.255877);
 	double e = 6.108 * 0.7 * exp((17.15 * temp - 4684) / (temp - 38.45));
-	
+
 	dryZTD = 0.0022768 * pres / (1 - 0.00266 * cos(2 * pos.lat()) - 0.00028 * hgt / 1E3);
 	wetZTD = 0.002277 * (1255 / temp + 0.05) * e;
-	
-	var = SQR(ERR_SAAS / (sin(elv) + 0.1));
-	
-	return dryMap * dryZTD + wetMap * wetZTD;	
+
+	var = SQR(ERR_SAAS / (sin(el) + 0.1));
+
+	return dryMap * dryZTD + wetMap * wetZTD;
 }

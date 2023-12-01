@@ -102,9 +102,11 @@ struct InputOptions
 	vector<string>	igrf_files;
 
 	vector<string>	nav_rtcm_inputs;
+	vector<string>	qzs_rtcm_inputs;
 
 	map<string, vector<string>>	rnx_inputs;
 	map<string, vector<string>>	ubx_inputs;
+	map<string, vector<string>>	custom_inputs;
 	map<string, vector<string>>	obs_rtcm_inputs;
 	map<string, vector<string>>	pseudo_sp3_inputs;
 	map<string, vector<string>>	pseudo_snx_inputs;
@@ -161,6 +163,10 @@ struct OutputOptions
 	string	raw_ubx_directory			= "<OUTPUTS_ROOT>";
 	string	raw_ubx_filename			= "<UBX_DIRECTORY>/<STATION>-<LOGTIME>-OBS.rtcm";
 
+	bool	record_raw_custom			= false;
+	string	raw_custom_directory		= "<OUTPUTS_ROOT>";
+	string	raw_custom_filename			= "<CUSTOM_DIRECTORY>/<STATION>-<LOGTIME>-OBS.custom";
+
 	bool	record_rtcm_obs				= false;
 	bool	record_rtcm_nav				= false;
 	string	rtcm_obs_directory			= "<OUTPUTS_ROOT>";
@@ -169,7 +175,7 @@ struct OutputOptions
 	string  rtcm_nav_filename			= "<RTCM_NAV_DIRECTORY>/<STREAM>-<LOGTIME>-NAV.rtcm";
 
 	bool	output_log					= false;
-	string	log_directory	         	= "<OUTPUTS_ROOT>";
+	string	log_directory				= "<OUTPUTS_ROOT>";
 	string  log_filename				= "<LOG_DIRECTORY>/log-<LOGTIME>.json";
 
 	bool	output_ntrip_log			= false;
@@ -177,14 +183,15 @@ struct OutputOptions
 	string  ntrip_log_filename			= "<NTRIP_LOG_DIRECTORY>/ntrip_log-<LOGTIME>.json";
 
 	bool	output_gpx					= false;
-	string	gpx_directory	         	= "<OUTPUTS_ROOT>";
+	string	gpx_directory				= "<OUTPUTS_ROOT>";
 	string  gpx_filename				= "<GPX_DIRECTORY>/<STATION>-<LOGTIME>.gpx";
 
 	bool	output_residuals 			= false;
 	bool	output_residual_chain		= true;
 
-	bool	output_config	 			= false;
+	bool	output_config				= false;
 	bool	colorize_terminal			= true;
+	bool	warn_once					= true;
 
 	bool				output_clocks 				= false;
 	vector<E_Source>	clocks_receiver_sources  	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
@@ -530,9 +537,9 @@ struct GlobalOptions
 	map<E_Sys, bool> use_for_iono_model;		///< use system for ionospheric modelling
 	map<E_Sys, bool> use_iono_corrections;		///< use system for ionospheric modelling
 
-	bool common_sat_pco	= false;
-	bool common_rec_pco	= false;
-
+	bool common_sat_pco			= false;
+	bool common_rec_pco			= false;
+	bool use_trop_corrections	= false;
 
 	double clock_wrap_threshold = 0.05e-3;
 
@@ -851,7 +858,7 @@ struct SatelliteOptions : EmpOptions, SrpOptions
 
 	bool				exclude				= false;
 	vector<double>		code_sigmas			= {0};
-	vector<double>		phas_sigmas			= {0};
+	vector<double>		phase_sigmas		= {0};
 	vector<double>		pseudo_sigmas		= {100000};
 	vector<double>		laser_sigmas		= {0};
 	vector<double>		minConNoise			= {-1};
@@ -915,7 +922,7 @@ struct SatelliteOptions : EmpOptions, SrpOptions
 
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.code_sigmas			))	{ code_sigmas		= rhs.code_sigmas		;	setInited(*this, code_sigmas		);	}
-		if (isInited(rhs, rhs.phas_sigmas			))	{ phas_sigmas		= rhs.phas_sigmas		;	setInited(*this, phas_sigmas		);	}
+		if (isInited(rhs, rhs.phase_sigmas			))	{ phase_sigmas		= rhs.phase_sigmas		;	setInited(*this, phase_sigmas		);	}
 		if (isInited(rhs, rhs.pseudo_sigmas			))	{ pseudo_sigmas		= rhs.pseudo_sigmas		;	setInited(*this, pseudo_sigmas		);	}
 		if (isInited(rhs, rhs.laser_sigmas			))	{ laser_sigmas		= rhs.laser_sigmas		;	setInited(*this, laser_sigmas		);	}
 
@@ -984,7 +991,7 @@ struct ReceiverOptions : EmpOptions, SrpOptions
 	bool				exclude				= false;
 	E_NoiseModel		error_model			= E_NoiseModel::ELEVATION_DEPENDENT;
 	vector<double>		code_sigmas			= {1};
-	vector<double>		phas_sigmas			= {0.0015};
+	vector<double>		phase_sigmas		= {0.0015};
 	vector<double>		laser_sigmas		= {0.5};
 	vector<double>		minConNoise			= {-1};
 	double				spp_sigma_scaling	= 1;
@@ -1016,8 +1023,8 @@ struct ReceiverOptions : EmpOptions, SrpOptions
 
 	struct
 	{
-		bool				enable			= true;
-		vector<E_Source>	sources			= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
+		bool				enable				= true;
+		vector<E_Source>	sources				= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
 	} rec_attitude;
 
 	struct
@@ -1033,6 +1040,13 @@ struct ReceiverOptions : EmpOptions, SrpOptions
 		double	default_bias	= 0;
 		double	undefined_sigma	= 0;
 	} rec_phase_bias;
+
+	struct
+	{
+		bool				enable			= true;
+		vector<E_TropModel>	models			= {E_TropModel::VMF3, E_TropModel::GPT2, E_TropModel::STANDARD};
+	} rec_trop;
+
 
 	bool rec_ant_delta			= true;
 	bool rec_pco				= true;
@@ -1079,7 +1093,7 @@ struct ReceiverOptions : EmpOptions, SrpOptions
 		if (isInited(rhs, rhs.exclude				))	{ exclude			= rhs.exclude			;	setInited(*this, exclude			);	}
 		if (isInited(rhs, rhs.error_model			))	{ error_model		= rhs.error_model		;	setInited(*this, error_model		);	}
 		if (isInited(rhs, rhs.code_sigmas			))	{ code_sigmas		= rhs.code_sigmas		;	setInited(*this, code_sigmas		);	}
-		if (isInited(rhs, rhs.phas_sigmas			))	{ phas_sigmas		= rhs.phas_sigmas		;	setInited(*this, phas_sigmas		);	}
+		if (isInited(rhs, rhs.phase_sigmas			))	{ phase_sigmas		= rhs.phase_sigmas		;	setInited(*this, phase_sigmas		);	}
 		if (isInited(rhs, rhs.laser_sigmas			))	{ laser_sigmas		= rhs.laser_sigmas		;	setInited(*this, laser_sigmas		);	}
 		if (isInited(rhs, rhs.minConNoise			))	{ minConNoise		= rhs.minConNoise		;	setInited(*this, minConNoise		);	}
 		if (isInited(rhs, rhs.spp_sigma_scaling		))	{ spp_sigma_scaling	= rhs.spp_sigma_scaling	;	setInited(*this, spp_sigma_scaling	);	}
@@ -1108,6 +1122,8 @@ struct ReceiverOptions : EmpOptions, SrpOptions
 		if (isInited(rhs, rhs.rec_ant_delta					))	{ rec_ant_delta					= rhs.rec_ant_delta					;	setInited(*this, rec_ant_delta					);	}
 		if (isInited(rhs, rhs.rec_pco						))	{ rec_pco						= rhs.rec_pco						;	setInited(*this, rec_pco						);	}
 		if (isInited(rhs, rhs.rec_pcv						))	{ rec_pcv						= rhs.rec_pcv						;	setInited(*this, rec_pcv						);	}
+		if (isInited(rhs, rhs.rec_trop.enable				))	{ rec_trop.enable				= rhs.rec_trop.enable				;	setInited(*this, rec_trop.enable				);	}
+		if (isInited(rhs, rhs.rec_trop.models				))	{ rec_trop.models				= rhs.rec_trop.models				;	setInited(*this, rec_trop.models				);	}
 
 		return *this;
 	}
@@ -1165,11 +1181,15 @@ struct SsrOptions
 	vector<E_Source>	clock_sources			= {E_Source::KALMAN};
 	vector<E_Source>	code_bias_sources		= {E_Source::PRECISE};
 	vector<E_Source>	phase_bias_sources		= {E_Source::NONE};
-	vector<E_Source>	ionosphere_sources		= {E_Source::NONE};
-	// vector<E_Source> 		troposphere_sources		= E_Source::NONE;
+	vector<E_Source>	atmosphere_sources		= {E_Source::NONE};
 	E_SSROutTiming		output_timing			= E_SSROutTiming::GPS_TIME;
+	bool cmpssr_cell_mask						= false;
+	int  cmpssr_stec_format						= 3;
+	int  cmpssr_trop_format						= 1;
+	double				max_stec_sigma			= 1.0;
 
-	int				region_id		= 1;
+	int				region_id		= -1;
+	int				region_iod		= -1;
 	int 			npoly_trop		= -1;
 	int 			npoly_iono		= -1;
 	int 			grid_type		= -1;
@@ -1189,9 +1209,10 @@ struct SsrOptions
 struct SsrInOptions
 {
 	double			code_bias_valid_time	= 3600;		///< Valid time period of SSR code biases
-	double			phase_bias_valid_time	= 30;		///< Valid time period of SSR phase biases
+	double			phase_bias_valid_time	= 300;		///< Valid time period of SSR phase biases
 	double			global_vtec_valid_time	= 300;		///< Valid time period of SSR global Ionospheres
 	double			local_stec_valid_time	= 120;		///< Valid time period of SSR local Ionospheres
+	double			local_trop_valid_time	= 120;		///< Valid time period of SSR local Tropospheres
 	bool			one_freq_phase_bias		= false;
 };
 

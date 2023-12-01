@@ -38,6 +38,10 @@ SSRAtm mongoReadIGSIonosphere(
 	const	SSRMeta&	ssrMeta,
 			int			masterIod);
 
+SSRAtm mongoReadCmpAtmosphere(
+	GTime	time,
+	SSRMeta	ssrMeta);
+
 map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 	GTime	time	= GTime::noTime(),
 	SatSys	Sat		= SatSys(),

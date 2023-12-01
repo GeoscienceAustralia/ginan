@@ -1,9 +1,10 @@
 
 // #pragma GCC optimize ("O0")
 
+#include <unordered_map>
+#include <functional>
 #include <stdarg.h>
 #include <ctype.h>
-#include <unordered_map>
 
 using std::unordered_map;
 
@@ -26,22 +27,23 @@ void ConsoleLog::consume(
 	boost::log::record_view																	const&	rec,
 	sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	logString)
 {
-	static unordered_map<string, bool> warnedMap;
-	
+	static unordered_map<size_t, bool> warnedMap;
+
 	auto attrs = rec.attribute_values();
 	auto sev = attrs[boost::log::trivial::severity].get();
-	
-	if (sev == boost::log::trivial::warning)
+
+	if	(  sev == boost::log::trivial::warning
+		&& acsConfig.warn_once)
 	{
-		auto& warned = warnedMap[logString];
+		auto& warned = warnedMap[std::hash<string>{}(logString)];
 		if (warned)
 		{
 			return;
 		}
-		
+
 		warned = true;
 	}
-	
+
 	std::cout << std::endl;
 	if (acsConfig.colorize_terminal)
 	{
@@ -49,17 +51,17 @@ void ConsoleLog::consume(
 		if (sev == boost::log::trivial::error)		std::cout << "\x1B[101m";
 	}
 	std::cout << logString;
-	
+
 	if (acsConfig.colorize_terminal)
 	{
 		std::cout << "\x1B[0m";
 	}
-	
+
 	std::cout << std::flush;
 }
 
 
-int trace_level = 0;       ///< level of trace 
+int trace_level = 0;       ///< level of trace
 
 void tracelevel(int level)
 {
@@ -86,11 +88,11 @@ void tracepdeex(int level, FILE *fppde, const char *format, ...)
 
 	if (!fppde||level>trace_level)
 		return;
-	
-	va_start(ap,format); 
+
+	va_start(ap,format);
 		vfprintf(fppde,format,ap);
 	va_end(ap);
-	
+
 	fflush(fppde);
 }
 
@@ -104,15 +106,15 @@ void printHex(
 	for (int i = 0; i < chunk.size(); i++)
 	{
 		if (i % 40 == 0)
-			trace << std::endl;       
-		
+			trace << std::endl;
+
 		if (i % 10 == 0)
-			trace << " ";       
+			trace << " ";
 		char hex[3];
 		snprintf(hex, sizeof(hex),"%02x", chunk[i]);
 		tracepdeex(0, trace, "%s ", hex);
 	}
-	trace << std::endl; 
+	trace << std::endl;
 }
 
 
@@ -127,29 +129,29 @@ void traceJson(
 {
 	if (level > trace_level)
 		return;
-	
+
 	if	( acsConfig.output_json_trace		== false
 		&&acsConfig.localMongo.output_trace	== false)
 	{
 		return;
 	}
-	
+
 	string json = "{ \"Epoch\":\"" + time + "\", \"id\":{";
 	for (auto& thing : id)
 	{
 		json += "\"" + thing.name + "\":" + thing.value() + ",";
 	}
 	json = json.substr(0, json.length() - 1);
-	
+
 	json += "}, \"val\":{";
-	
+
 	for (auto& thing : val)
 	{
 		json += "\"" + thing.name + "\":" + thing.value() + ",";
 	}
 	json = json.substr(0, json.length() - 1);
 	json += "} }";
-	
+
 	if (acsConfig.output_json_trace)
 	{
 		trace << "\n - " + json;
@@ -159,4 +161,4 @@ void traceJson(
 		mongoTrace(json);
 	}
 }
-	
+

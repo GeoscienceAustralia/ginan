@@ -357,6 +357,8 @@ void writeSysSetSp3(
 		entry.Sat = Sat;
 		if (acsConfig.output_inertial_orbits)
 		{
+			obs.rSatEci0 = frameSwapperUndo(obs.rSatCom, &obs.satVel, &obs.vSatEci0);
+
 			entry.satPos = obs.rSatEci0;
 			entry.satVel = obs.vSatEci0;
 		}

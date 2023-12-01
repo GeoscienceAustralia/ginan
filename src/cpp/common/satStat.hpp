@@ -27,7 +27,7 @@ struct SigStat
 			unsigned SCDIA	: 1;	///< Slip detected DIA
 		};
 	};
-	
+
 	SlipStat savedSlip;
 	SlipStat slip;
 
@@ -37,7 +37,7 @@ struct SigStat
 	double recPco = 0;
 	double recPcv = 0;
 	double satPcv = 0;
-	
+
 	double lambda = 0;
 };
 
@@ -74,35 +74,30 @@ struct QC
 	lc_t		lc_new		= {};		///< lc information
 };
 
+struct AzEl
+{
+	double	az = 0;		///< azimuth angle (rad)
+	double	el = 0;		///< elevation angle (rad)
+};
 
 /** Object containing persistant status parameters of individual satellites
 */
-struct SatStat : IonoStat, QC
+struct SatStat : IonoStat, QC, AzEl
 {
 	double  	phw				= 0;		///< Phase windup (cycle)
 	double  	mapWet			= 0;		///< troposphere wet mapping function
 	double  	mapWetGrads[2]	= {};		///< troposphere wet mapping function
 	VectorEcef	e;							///< Line-of-sight unit vector
 
-
 	int ionoOutageCount		= 0;			///< Count of epochs without measurements reffering to this satellite's ionosphere state
-	
+
 	double		dIono		= 0;			///< TD ionosphere residual
 	double		sigmaIono	= 0;			///< TD ionosphere residual noise
 	double		prevSTEC	= 0;
 
 	double		nadir		= 0;
-	union
-	{
-		double		azel[2] = {};			///< azimuth/elevation angles as array(rad)
-		struct
-		{
-			double	az;						///< azimuth angle (rad)
-			double	el;						///< elevation angle (rad)
-		};
-	};
-	bool	slip		= false;
-	
+	bool		slip		= false;
+
 	map<string, SigStat>	sigStatMap;		///< Map for individual signal status for this SatStat object
 
 };

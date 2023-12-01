@@ -280,6 +280,7 @@ void replaceTags(
 	replaceString(str, "<RINEX_OBS_DIRECTORY>",				acsConfig.rinex_obs_directory);
 	replaceString(str, "<RTCM_NAV_DIRECTORY>",				acsConfig.rtcm_nav_directory);
 	replaceString(str, "<RTCM_OBS_DIRECTORY>",				acsConfig.rtcm_obs_directory);
+	replaceString(str, "<CUSTOM_DIRECTORY>",				acsConfig.raw_custom_directory);
 	replaceString(str, "<UBX_DIRECTORY>",					acsConfig.raw_ubx_directory);
 	replaceString(str, "<SLR_OBS_DIRECTORY>",				acsConfig.slr_obs_directory);
 	replaceString(str, "<TROP_SINEX_DIRECTORY>",			acsConfig.trop_sinex_directory);
@@ -1045,6 +1046,7 @@ bool configure(
 	("erp_files",				boost::program_options::value<vector<string>>()->multitoken(),	"ERP files")
 	("rnx_inputs,r",			boost::program_options::value<vector<string>>()->multitoken(),	"RINEX station inputs")
 	("ubx_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"UBX station inputs")
+	("custom_inputs",			boost::program_options::value<vector<string>>()->multitoken(),	"Custom station inputs")
 	("rtcm_inputs",				boost::program_options::value<vector<string>>()->multitoken(),	"RTCM station inputs")
 	("egm_files",				boost::program_options::value<vector<string>>()->multitoken(),	"Earth gravity model coefficients file")
 	("crd_files",				boost::program_options::value<vector<string>>()->multitoken(),	"SLR CRD file")
@@ -1192,11 +1194,13 @@ void ACSConfig::info(
 	if (!hfeop_files			.empty())	{	ss << "\thfeop_files:     ";											for (auto& a : hfeop_files)		ss << a << " ";		ss << "\n";		}
 	if (!aod1b_files			.empty())	{	ss << "\taod1b_files:     ";											for (auto& a : aod1b_files)		ss << a << " ";		ss << "\n";		}
 	if (!poleocean_files		.empty())	{	ss << "\tpoleocean_files: ";											for (auto& a : poleocean_files)	ss << a << " ";		ss << "\n";		}
+
 	if (!sid_files				.empty())	{	ss << "\tsid_files:       ";											for (auto& a : sid_files)		ss << a << " ";		ss << "\n";		}
 	if (!vmf_files				.empty())	{	ss << "\tvmf_files:       ";											for (auto& a : vmf_files)		ss << a << " ";		ss << "\n";		}
 	if (!com_files				.empty())	{	ss << "\tcom_files:       ";											for (auto& a : com_files)		ss << a << " ";		ss << "\n";		}
 	if (!crd_files				.empty())	{	ss << "\tcrd_files:       ";											for (auto& a : crd_files)		ss << a << " ";		ss << "\n";		}
 	if (!nav_rtcm_inputs		.empty())	{	ss << "\trtcm_inputs:     ";											for (auto& a : nav_rtcm_inputs)	ss << a << " ";		ss << "\n";		}
+	if (!qzs_rtcm_inputs		.empty())	{	ss << "\tqzl6_inputs:     ";											for (auto& a : qzs_rtcm_inputs)	ss << a << " ";		ss << "\n";		}
 	if (!rnx_inputs				.empty())	{	ss << "\trnx_inputs:      ";	for (auto& [z, A] : rnx_inputs)			for (auto& a : A)				ss << a << " ";		ss << "\n";		}
 	if (!pseudo_sp3_inputs		.empty())	{	ss << "\tsp3_inputs:      ";	for (auto& [z, A] : pseudo_sp3_inputs)	for (auto& a : A)				ss << a << " ";		ss << "\n";		}
 	if (!pseudo_snx_inputs		.empty())	{	ss << "\tsnx_inputs:      ";	for (auto& [z, A] : pseudo_snx_inputs)	for (auto& a : A)				ss << a << " ";		ss << "\n";		}
@@ -1805,7 +1809,7 @@ void getFromYaml(
 	getFromYaml((EmpOptions&)satOpts, satNode, yamlNodeDescriptor);
 
 	setInited(satOpts,	satOpts.code_sigmas,	trySetFromYaml(satOpts.code_sigmas,		satNode, {"0!  code_sigmas"		},					"[floats] Standard deviation of code measurements"));
-	setInited(satOpts,	satOpts.phas_sigmas,	trySetFromYaml(satOpts.phas_sigmas,		satNode, {"0!  phase_sigmas"	},					"[floats] Standard deviation of phase measurmeents"));
+	setInited(satOpts,	satOpts.phase_sigmas,	trySetFromYaml(satOpts.phase_sigmas,	satNode, {"0!  phase_sigmas"	},					"[floats] Standard deviation of phase measurmeents"));
 	setInited(satOpts,	satOpts.pseudo_sigmas,	trySetFromYaml(satOpts.pseudo_sigmas,	satNode, {"0@ pseudo_sigmas"	},					"[floats] Standard deviation of pseudo measurmeents"));
 	setInited(satOpts,	satOpts.laser_sigmas,	trySetFromYaml(satOpts.laser_sigmas,	satNode, {"0@ laser_sigmas"		},					"[floats] Standard deviation of SLR laser measurements"));
 
@@ -1857,7 +1861,7 @@ void getFromYaml(
 	setInited(recOpts,	recOpts.error_model,		trySetEnumOpt	(recOpts.error_model,		recNode, {"0@ error_model"		}, E_NoiseModel::_from_string_nocase));
 	setInited(recOpts,	recOpts.spp_sigma_scaling,	trySetFromYaml	(recOpts.spp_sigma_scaling,	recNode, {"@ spp_sigma_scaling"	},					"(floats) Amount to scale sigmas for SPP"));
 	setInited(recOpts,	recOpts.code_sigmas,		trySetFromYaml	(recOpts.code_sigmas,		recNode, {"0! code_sigmas"		},					"[floats] Standard deviation of code measurements"));
-	setInited(recOpts,	recOpts.phas_sigmas,		trySetFromYaml	(recOpts.phas_sigmas,		recNode, {"0! phase_sigmas"		},					"[floats] Standard deviation of phase measurmeents"));
+	setInited(recOpts,	recOpts.phase_sigmas,		trySetFromYaml	(recOpts.phase_sigmas,		recNode, {"0! phase_sigmas"		},					"[floats] Standard deviation of phase measurmeents"));
 	setInited(recOpts,	recOpts.laser_sigmas,		trySetFromYaml	(recOpts.laser_sigmas,		recNode, {"@ laser_sigmas"		},					"[floats] Standard deviation of SLR laser measurements"));
 }
 
@@ -2096,6 +2100,8 @@ ReceiverOptions& ACSConfig::getRecOpts(
 				{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ clock",			"@ sources"			});	setInited(aliasOpts,	aliasOpts.rec_clock.ephemeris_sources, 		trySetEnumVec( aliasOpts.rec_clock.ephemeris_sources, 	{yaml, ""}, vec, "List of sources to use for clocks"));								}
 				{	auto vec = descriptorVec; vec.insert(vec.end(), {"# clk",			"# enable"			});	setInited(aliasOpts,	aliasOpts.rec_clock.enable,					trySetFromYaml(aliasOpts.rec_clock.enable,				{yaml, ""}, vec, "(bool) Enable modelling of clocks (duplicate)"));					}
 				{	auto vec = descriptorVec; vec.insert(vec.end(), {"# clk",			"# sources"			});	setInited(aliasOpts,	aliasOpts.rec_clock.ephemeris_sources, 		trySetEnumVec( aliasOpts.rec_clock.ephemeris_sources, 	{yaml, ""}, vec, "List of sources to use for clocks (duplicate)"));					}
+				{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ trop",			"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_trop.enable,					trySetFromYaml(aliasOpts.rec_trop.enable,				{yaml, ""}, vec, "(bool) Enable modelling of troposphere"));						}
+				{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ trop",			"@ models"			});	setInited(aliasOpts,	aliasOpts.rec_trop.models, 					trySetEnumVec( aliasOpts.rec_trop.models, 				{yaml, ""}, vec, "List of sources to use for troposphere"));						}
 				{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ code_bias",		"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_code_bias.enable,				trySetFromYaml(aliasOpts.rec_code_bias.enable,			{yaml, ""}, vec, "(bool) Enable modelling of code biases"));						}
 				{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ phase_bias",	"@ enable"			});	setInited(aliasOpts,	aliasOpts.rec_phase_bias.enable,			trySetFromYaml(aliasOpts.rec_phase_bias.enable,			{yaml, ""}, vec, "(bool) Enable modelling of phase biases. Required for AR"));		}
 				{	auto vec = descriptorVec; vec.insert(vec.end(), {"@ code_bias",		"@ default_bias"	});	setInited(aliasOpts,	aliasOpts.rec_code_bias.default_bias,		trySetFromYaml(aliasOpts.rec_code_bias.default_bias,	{yaml, ""}, vec, "(float) Bias to use when no code bias is found"));				}
@@ -2523,6 +2529,7 @@ bool ACSConfig::parse(
 
 			{
 				trySetFromYaml(colorize_terminal,			outputs, {"@ colorize_terminal"			}, "(bool) Use ascii command codes to highlight warnings and errors");
+				trySetFromYaml(warn_once,					outputs, {"@ warn_once"					}, "(bool) Print warnings once only");
 			}
 
 			{
@@ -2530,11 +2537,13 @@ bool ACSConfig::parse(
 
 																					trySetFromYaml(output_station_trace,		trace, {"0! output_stations"		}, "(bool) Output trace files for individual stations processing");
 																					trySetFromYaml(output_network_trace,		trace, {"0! output_network"			}, "(bool) Output trace files for complete network of stations, inclucing kalman filter results and statistics");
+																					trySetFromYaml(output_ionosphere_trace,		trace, {"0! output_ionosphere"		}, "(bool) Output trace files for ionosphere processing, inclucing kalman filter results and statistics");
 																					trySetFromYaml(output_satellite_trace,		trace, {"0! output_satellites"		}, "(bool) Output trace files for individual satellites processing");
 				conditionalPrefix("<OUTPUTS_ROOT>",		trace_directory,			trySetFromYaml(trace_directory,				trace, {"! directory"				}, "(string) Directory to output trace files to"));
 				conditionalPrefix("<TRACE_DIRECTORY>",	satellite_trace_filename,	trySetFromYaml(satellite_trace_filename,	trace, {"1! satellite_filename"		}, "(string) Template filename for satellite trace files"));
 				conditionalPrefix("<TRACE_DIRECTORY>",	station_trace_filename,		trySetFromYaml(station_trace_filename,		trace, {"1! station_filename"		}, "(string) Template filename for station trace files"));
 				conditionalPrefix("<TRACE_DIRECTORY>",	network_trace_filename,		trySetFromYaml(network_trace_filename,		trace, {"1! network_filename"		}, "(string) Template filename for network trace files"));
+				conditionalPrefix("<TRACE_DIRECTORY>",	ionosphere_trace_filename,	trySetFromYaml(ionosphere_trace_filename,	trace, {"1! ionosphere_filename"	}, "(string) Template filename for ionosphere trace files"));
 																					trySetFromAny(trace_level, commandOpts,		trace, {"! level"					}, "(int) Threshold level for printing messages (0-6). Increasing this increases the amount of data stored in all trace files");
 
 																					trySetFromYaml(output_residual_chain,		trace, {"! output_residual_chain"	}, "(bool) Output component-wise details for measurement residuals");
@@ -2784,6 +2793,14 @@ bool ACSConfig::parse(
 			}
 
 			{
+				auto raw_custom = stringsToYamlObject(outputs, {"raw_custom"});
+
+																					trySetFromYaml(record_raw_custom,		raw_custom, {"0 output"			}, "(bool) ");
+				conditionalPrefix("<OUTPUTS_ROOT>",			raw_custom_directory,	trySetFromYaml(raw_custom_directory,	raw_custom, {"directory"		}));
+				conditionalPrefix("<CUSTOM_DIRECTORY>",		raw_custom_filename,	trySetFromYaml(raw_custom_filename,		raw_custom, {"filename"			}));
+			}
+
+			{
 				auto slr_obs = stringsToYamlObject(outputs, {"! slr_obs"}, docs["slr_obs"]);
 
 																				trySetFromYaml(output_slr_obs,			slr_obs, {"0! output"			}, 	"(bool) Enable data exporting to tabular SLR obs file");
@@ -2867,9 +2884,10 @@ bool ACSConfig::parse(
 
 				conditionalPrefix("<INPUTS_ROOT>", gnss_obs_root,				trySetFromAny(gnss_obs_root,	commandOpts,	gnss_data,	{"0! inputs_root"	}, "(string) Root path to be added to all other gnss data inputs (unless they are absolute)"));
 
-				tryGetMappedList(rnx_inputs,			commandOpts, gnss_data,	{"! rnx_inputs"			}, "<GNSS_OBS_ROOT>", "[string] List of rinex      inputs to use");
-				tryGetMappedList(ubx_inputs,			commandOpts, gnss_data,	{"# ubx_inputs"			}, "<GNSS_OBS_ROOT>", "[string] List of ubxfiles   inputs to use");
-				tryGetMappedList(obs_rtcm_inputs,		commandOpts, gnss_data,	{"! rtcm_inputs"		}, "<GNSS_OBS_ROOT>", "[string] List of rtcmfiles  inputs to use for observations");
+				tryGetMappedList(rnx_inputs,			commandOpts, gnss_data,	{"! rnx_inputs"			}, "<GNSS_OBS_ROOT>", "[string] List of rinex       inputs to use");
+				tryGetMappedList(ubx_inputs,			commandOpts, gnss_data,	{"# ubx_inputs"			}, "<GNSS_OBS_ROOT>", "[string] List of ubxfiles    inputs to use");
+				tryGetMappedList(custom_inputs,			commandOpts, gnss_data,	{"# custom_inputs"		}, "<GNSS_OBS_ROOT>", "[string] List of customfiles inputs to use");
+				tryGetMappedList(obs_rtcm_inputs,		commandOpts, gnss_data,	{"! rtcm_inputs"		}, "<GNSS_OBS_ROOT>", "[string] List of rtcmfiles   inputs to use for observations");
 			}
 
 			{
@@ -2884,7 +2902,7 @@ bool ACSConfig::parse(
 			{
 				auto satellite_data = stringsToYamlObject(inputs, {"0! satellite_data"});
 
-				conditionalPrefix("<INPUTS_ROOT>",	sat_data_root,		trySetFromYaml(sat_data_root,							satellite_data,	{"0! inputs_root"		}, "(string) Root path to be added to all other satellite data files (unless they are absolute)"));
+				conditionalPrefix("<INPUTS_ROOT>",	 sat_data_root,		trySetFromYaml(sat_data_root,							satellite_data,	{"0! inputs_root"		}, "(string) Root path to be added to all other satellite data files (unless they are absolute)"));
 				conditionalPrefix("<SAT_DATA_ROOT>", boxwing_files,		trySetFromAny(boxwing_files,			commandOpts,	satellite_data, {"! boxwing_files"		}, "[string] Satellite boxwing geometry files"));
 				conditionalPrefix("<SAT_DATA_ROOT>", nav_files,			trySetFromAny(nav_files,				commandOpts,	satellite_data, {"! nav_files"			}, "[string] List of ephemeris  files to use"));
 				conditionalPrefix("<SAT_DATA_ROOT>", sp3_files,			trySetFromAny(sp3_files,				commandOpts,	satellite_data, {"! sp3_files"			}, "[string] List of sp3        files to use"));
@@ -2896,6 +2914,7 @@ bool ACSConfig::parse(
 				conditionalPrefix("<SAT_DATA_ROOT>", crd_files,			trySetFromAny(crd_files,				commandOpts, 	satellite_data, {"@ crd_files"			}, "[string] List of crd        files to use - SLR observation data"));
 				conditionalPrefix("<SAT_DATA_ROOT>", obx_files,			trySetFromAny(obx_files,				commandOpts,	satellite_data, {"! obx_files"			}, "[string] List of orbex      files to use"));
 				conditionalPrefix("<SAT_DATA_ROOT>", nav_rtcm_inputs,	trySetFromAny(nav_rtcm_inputs,			commandOpts,	satellite_data,	{"! rtcm_inputs"		}, "[string] List of rtcm       inputs to use for corrections"));
+				conditionalPrefix("<SAT_DATA_ROOT>", qzs_rtcm_inputs,	trySetFromAny(qzs_rtcm_inputs,			commandOpts,	satellite_data,	{"! qzl6_inputs"		}, "[string] List of qzss L6    inputs to use for corrections"));
 			}
 		}
 
@@ -2923,12 +2942,14 @@ bool ACSConfig::parse(
 			trySetFromYaml	(common_sat_pco,							general, {"@ common_sat_pco"			}, "(bool) Use L1 satellite PCO values for all signals");
 			trySetFromYaml	(common_rec_pco,							general, {"@ common_rec_pco"			}, "(bool) Use L1 receiver PCO values for all signals");
 			trySetFromYaml	(leap_seconds,								general, {"@ gpst_utc_leap_seconds"		}, "(int) Difference between gps time and utc in leap seconds");
+			trySetFromYaml	(use_trop_corrections,						general, {"@ use_trop_corrections"		}, "(bool) Use external tropospheric corrections (from compact SSR)");
+
 
 			trySetFromYaml	(process_meas[CODE],						general, {"1@ code_measurements",		"process"	}, "(bool) Process code measurements");
 			trySetFromYaml	(recOptsMap[""].code_sigmas,				general, {"1@ code_measurements",		"sigmas"	}, "[floats] Sigmas for code observations");
 
 			trySetFromYaml	(process_meas[PHAS],						general, {"1@ phase_measurements",		"process"	}, "(bool) Process phase measurements");
-			trySetFromYaml	(recOptsMap[""].phas_sigmas,				general, {"1@ phase_measurements",		"sigmas"	}, "[floats] Sigmas for phase observations");		//todo aaron needed?
+			trySetFromYaml	(recOptsMap[""].phase_sigmas,				general, {"1@ phase_measurements",		"sigmas"	}, "[floats] Sigmas for phase observations");		//todo aaron needed?
 
 			trySetEnumOpt	(receiver_reference_clk,					general, {"@ rec_reference_system"		}, E_Sys::_from_string_nocase, "(String) Receiver will use this system as reference clock");
 			trySetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"		}, "(double) variance of phase bias to be considered fixed/binded");
@@ -3344,28 +3365,32 @@ bool ACSConfig::parse(
 			trySetEnumVec (ssrOpts.clock_sources, 			ssr_corrections, {"! clock_sources" 			}, "Sources for SSR clocks");
 			trySetEnumVec (ssrOpts.code_bias_sources, 		ssr_corrections, {"! code_bias_sources" 		}, "Sources for SSR code biases");
 			trySetEnumVec (ssrOpts.phase_bias_sources, 		ssr_corrections, {"! phase_bias_sources" 		}, "Sources for SSR phase biases");
-			trySetEnumVec (ssrOpts.ionosphere_sources, 		ssr_corrections, {"! ionosphere_sources" 		}, "Sources for SSR ionosphere");
-			// trySetEnumVec (ssrOpts.troposphere_sources, 		ssr_corrections, {"@ troposphere_sources" 		});
+			trySetEnumVec (ssrOpts.atmosphere_sources, 		ssr_corrections, {"! atmosphere_sources" 		}, "Sources for SSR ionosphere");
 			trySetEnumOpt (ssrOpts.output_timing, 			ssr_corrections, {"@ output_timing" 			}, E_SSROutTiming::_from_string_nocase);
 			trySetFromYaml(ssrOpts.prediction_interval,		ssr_corrections, {"@ prediction_interval"		});
 			trySetFromYaml(ssrOpts.prediction_duration,		ssr_corrections, {"@ prediction_duration"		});
 			trySetFromYaml(ssrOpts.extrapolate_corrections,	ssr_corrections, {"@ extrapolate_corrections"	}, "(bool) ");
+			trySetFromYaml(ssrOpts.cmpssr_cell_mask,		ssr_corrections, {"@ cmpssr_cell_mask"			}, "(bool) ");
+			trySetFromYaml(ssrOpts.max_stec_sigma,			ssr_corrections, {"@ max_stec_sigma"			}, "(double) ");
 
 			{
 				auto atmosphere = stringsToYamlObject(ssr_corrections, {"! atmpospheric"}, docs["atmpospheric"]);
 
-				trySetFromYaml (ssrOpts.region_id, 			atmosphere, {"@ region_id" 				}, "Region ID for atmospheric corrections");
+				trySetFromYaml (ssrOpts.region_id, 			atmosphere, {"@ region_id" 				}, "Region ID for atmospheric corrections (default: -1 for global)");
+				trySetFromYaml (ssrOpts.region_iod, 		atmosphere, {"@ region_iod" 			}, "Region IOD for atmospheric corrections (default: -1 for undefined)");
 				trySetFromYaml (ssrOpts.npoly_trop, 		atmosphere, {"@ npoly_trop" 			}, "Number of polynomial coefficient for SSR trop corrections");
 				trySetFromYaml (ssrOpts.npoly_iono, 		atmosphere, {"@ npoly_iono" 			}, "Number of polynomial coefficient for SSR STEC corrections");
-				trySetFromYaml (ssrOpts.grid_type, 			atmosphere, {"@ grid_type" 				}, "Grid type for gridded atmospheric corrections");
-				trySetFromYaml (ssrOpts.use_grid_iono, 		atmosphere, {"@ use_grid_iono" 			}, "Grid type for gridded atmospheric corrections");
-				trySetFromYaml (ssrOpts.use_grid_trop, 		atmosphere, {"@ use_grid_trop" 			}, "Grid type for gridded atmospheric corrections");
-				trySetFromYaml (ssrOpts.max_lat, 			atmosphere, {"@ max_lat" 				}, "Number of basis for SSR trop corrections");
-				trySetFromYaml (ssrOpts.min_lat, 			atmosphere, {"@ min_lat" 				}, "Number of basis for SSR trop corrections");
-				trySetFromYaml (ssrOpts.int_lat, 			atmosphere, {"@ int_lat" 				}, "Number of basis for SSR trop corrections");
-				trySetFromYaml (ssrOpts.max_lon, 			atmosphere, {"@ max_lon" 				}, "Number of basis for SSR trop corrections");
-				trySetFromYaml (ssrOpts.min_lon, 			atmosphere, {"@ min_lon" 				}, "Number of basis for SSR trop corrections");
-				trySetFromYaml (ssrOpts.int_lon, 			atmosphere, {"@ int_lon" 				}, "Number of basis for SSR trop corrections");
+				trySetFromYaml (ssrOpts.grid_type, 			atmosphere, {"@ grid_type" 				}, "");
+				trySetFromYaml (ssrOpts.use_grid_iono, 		atmosphere, {"@ use_grid_iono" 			}, "");
+				trySetFromYaml (ssrOpts.use_grid_trop, 		atmosphere, {"@ use_grid_trop" 			}, "");
+				trySetFromYaml (ssrOpts.max_lat, 			atmosphere, {"@ max_lat" 				}, "");
+				trySetFromYaml (ssrOpts.min_lat, 			atmosphere, {"@ min_lat" 				}, "");
+				trySetFromYaml (ssrOpts.int_lat, 			atmosphere, {"@ int_lat" 				}, "");
+				trySetFromYaml (ssrOpts.max_lon, 			atmosphere, {"@ max_lon" 				}, "");
+				trySetFromYaml (ssrOpts.min_lon, 			atmosphere, {"@ min_lon" 				}, "");
+				trySetFromYaml (ssrOpts.int_lon, 			atmosphere, {"@ int_lon" 				}, "");
+				trySetFromYaml (ssrOpts.cmpssr_stec_format,	atmosphere, {"@ cmpssr_stec_format"		}, "Format of STEC gridded corrections: 0:4bit(LSB=0.04) , 1:4bit(LSB=0.12), 2:5bit, 3:7bit, 4:16bit");
+				trySetFromYaml (ssrOpts.cmpssr_trop_format,	atmosphere, {"@ cmpssr_trop_format"		}, "Format of Trop. ZWD corrections: 0:8bit, 1:6bit");
 			}
 		}
 
@@ -3377,6 +3402,7 @@ bool ACSConfig::parse(
 			trySetFromYaml(ssrInOpts.one_freq_phase_bias,	ssr_inputs, {"! one_freq_phase_bias"		},	"(bool)   Used stream have one SSR phase bias per frequency");
 			trySetFromYaml(ssrInOpts.global_vtec_valid_time,ssr_inputs, {"! global_vtec_valid_time"		},	"(double) Valid time period of global VTEC maps");
 			trySetFromYaml(ssrInOpts.local_stec_valid_time,	ssr_inputs, {"! local_stec_valid_time"		},	"(double) Valid time period of local STEC corrections");
+			trySetFromYaml(ssrInOpts.local_trop_valid_time,	ssr_inputs, {"! local_trop_valid_time"		},	"(double) Valid time period of local Troposphere corrections");
 			trySetFromYaml(validity_interval_factor,		ssr_inputs, {"@ validity_interval_factor"	});
 			trySetEnumOpt(ssr_input_antenna_offset,			ssr_inputs,	{"! ssr_antenna_offset"			}, E_OffsetType::_from_string_nocase, "Ephemeris type that is provided in the listed SSR stream, i.e. satellite antenna-phase-centre (APC) or centre-of-mass (COM). This information is listed in the NTRIP Caster's sourcetable");
 		}
@@ -3485,11 +3511,15 @@ bool ACSConfig::parse(
 	replaceTags(poleocean_files);		globber(poleocean_files);
 
 	replaceTags(rnx_inputs);			globber(rnx_inputs);
+	replaceTags(custom_inputs);			globber(custom_inputs);
 	replaceTags(ubx_inputs);			globber(ubx_inputs);
 	replaceTags(obs_rtcm_inputs);		globber(obs_rtcm_inputs);
 	replaceTags(pseudo_sp3_inputs);		globber(pseudo_sp3_inputs);
 	replaceTags(pseudo_snx_inputs);		globber(pseudo_snx_inputs);
 	replaceTags(nav_rtcm_inputs);		globber(nav_rtcm_inputs);
+	replaceTags(qzs_rtcm_inputs);		globber(qzs_rtcm_inputs);
+
+	replaceTags(atm_reg_definitions);	globber(atm_reg_definitions);
 
 	replaceTags(model.trop.orography);
 	replaceTags(model.trop.gpt2grid);
@@ -3507,6 +3537,7 @@ bool ACSConfig::parse(
 	replaceTags(ionstec_directory);						replaceTags(ionstec_filename);
 	replaceTags(ppp_sol_directory);						replaceTags(ppp_sol_filename);
 	replaceTags(raw_ubx_directory);						replaceTags(raw_ubx_filename);
+	replaceTags(raw_custom_directory);					replaceTags(raw_custom_filename);
 	replaceTags(rtcm_nav_directory);					replaceTags(rtcm_nav_filename);
 	replaceTags(rtcm_obs_directory);					replaceTags(rtcm_obs_filename);
 	replaceTags(orbit_ics_directory);					replaceTags(orbit_ics_filename);
@@ -3520,6 +3551,7 @@ bool ACSConfig::parse(
 	replaceTags(trace_directory);						replaceTags(station_trace_filename);
 	replaceTags(trace_directory);						replaceTags(network_trace_filename);
 	replaceTags(trace_directory);						replaceTags(satellite_trace_filename);
+	replaceTags(trace_directory);						replaceTags(ionosphere_trace_filename);
 	replaceTags(decoded_rtcm_json_directory);			replaceTags(decoded_rtcm_json_filename);
 	replaceTags(encoded_rtcm_json_directory);			replaceTags(encoded_rtcm_json_filename);
 	replaceTags(network_statistics_json_directory);		replaceTags(network_statistics_json_filename);

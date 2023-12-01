@@ -25,7 +25,7 @@ vector<TropMapBasis>  tropBasisVec;
 void defineLocalTropBasis()
 {
 	tropBasisVec.clear();
-	
+
 	for (auto& [iatm, atmReg] : nav.ssrAtm.atmosRegionsMap)
 	{
 		for (int i = 0; i < atmReg.tropPolySize; i++)
@@ -34,50 +34,50 @@ void defineLocalTropBasis()
 			basis.regionID	= iatm;
 			basis.type		= E_BasisType::POLYNOMIAL;
 			basis.index		= i;
-			
+
 			tropBasisVec.push_back(basis);
 		}
-		
-		if	(  atmReg.gridType >= 0 
+
+		if	(  atmReg.gridType >= 0
 			&& atmReg.tropGrid)
-		for (auto& [igrid, latgrid] : atmReg.gridLat)
+		for (auto& [igrid, latgrid] : atmReg.gridLatDeg)
 		{
 			TropMapBasis basis;
 			basis.regionID	= iatm;
 			basis.type		= E_BasisType::GRIDPOINT;
 			basis.index		= igrid;
-			
+
 			tropBasisVec.push_back(basis);
 		}
 	}
-	
+
 	acsConfig.ssrOpts.nbasis = tropBasisVec.size();
 }
 
 double tropModelCoef(
-	int			ind, 
+	int			ind,
 	VectorPos&	pos)
 {
 	if (ind >= tropBasisVec.size())							return 0;
-	
+
 	auto& basis = tropBasisVec[ind];
-	
+
 	auto& atmReg = nav.ssrAtm.atmosRegionsMap[basis.regionID];
-	double recLat = pos[0];
-	double recLon = pos[1];
-	
-	if (recLat > atmReg.maxLat)								return 0;
-	if (recLat < atmReg.minLat)								return 0;
-	
-	double midLon = (atmReg.minLon + atmReg.maxLon)/2;
-	if		((recLon - midLon) >  PI)	recLon -= 2*PI;
-	else if	((recLon - midLon) < -PI)	recLon += 2*PI;
-		
-	if (recLon > atmReg.maxLon)								return 0;
-	if (recLon < atmReg.minLon)								return 0;
-	
-	double latdiff = recLat - atmReg.gridLat[0];
-	double londiff = recLon - atmReg.gridLon[0];
+	double recLatDeg = pos.latDeg();
+	double recLonDeg = pos.lonDeg();
+
+	if (recLatDeg > atmReg.maxLatDeg)						return 0;
+	if (recLatDeg < atmReg.minLatDeg)						return 0;
+
+	double midLonDeg = (atmReg.minLonDeg + atmReg.maxLonDeg) / 2;
+	if		((recLonDeg - midLonDeg) >  180)	recLonDeg -= 360;
+	else if	((recLonDeg - midLonDeg) < -180)	recLonDeg += 360;
+
+	if (recLonDeg > atmReg.maxLonDeg)						return 0;
+	if (recLonDeg < atmReg.minLonDeg)						return 0;
+
+	double latdiff = recLatDeg - atmReg.gridLatDeg[0];
+	double londiff = recLonDeg - atmReg.gridLonDeg[0];
 
 	switch (basis.type)
 	{
@@ -96,13 +96,13 @@ double tropModelCoef(
 		}
 		case E_BasisType::GRIDPOINT:
 		{
-			double dlat = fabs(recLat - atmReg.gridLat[basis.index]);
-			double dlon = fabs(recLon - atmReg.gridLon[basis.index]);
-			
-			if (dlat > atmReg.intLat || atmReg.intLat == 0)		return 0;
-			if (dlon > atmReg.intLon || atmReg.intLon == 0)		return 0;
-			
-			return (1 - dlat / atmReg.intLat) * (1 - dlon / atmReg.intLon);		//todo aaorn use bilinear interpolation function?
+			double dlatDeg = fabs(recLatDeg - atmReg.gridLatDeg[basis.index]);
+			double dlonDeg = fabs(recLonDeg - atmReg.gridLonDeg[basis.index]);
+
+			if (dlatDeg > atmReg.intLatDeg || atmReg.intLatDeg == 0)		return 0;
+			if (dlonDeg > atmReg.intLonDeg || atmReg.intLonDeg == 0)		return 0;
+
+			return (1 - dlatDeg / atmReg.intLatDeg) * (1 - dlonDeg / atmReg.intLonDeg);		//todo aaorn use bilinear interpolation function?
 		}
 		default:
 		{
@@ -141,88 +141,109 @@ double gradMapFn(
 
 
 double tropModel(
-	Trace&			trace,
-	E_TropModel 	model,
-	GTime			time,
-	VectorPos&		pos,
-	double*			azel,
-	double*			tropStates,
-	TropMapping&	dTropDx,
-	double&			var)
+	Trace&					trace,
+	vector<E_TropModel> 	models,
+	GTime					time,
+	VectorPos&				pos,
+	AzEl&					azel,
+	TropStates&				tropStates,
+	TropMapping&			dTropDx,
+	double&					var)
 {
 	double dryZTD;
 	double wetZTD;
-	var = SQR(0.1);
-	
-	tracepdeex(4, trace,"\n Troposphere Model %s %s  %d %d %d", time.to_string(0), model._to_string(), pos[0]*R2D, pos[1]*R2D, pos[2]);
-	switch (model)
+	var = -1;
+
+	for (auto& model : models)
 	{
-		case E_TropModel::STANDARD:	tropSAAS(time, pos, azel[1], dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap, var);	break;
-		case E_TropModel::SBAS:		tropSBAS(time, pos, azel[1], dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap, var);	break;
-		case E_TropModel::GPT2:		tropGPT2(time, pos, azel[1], dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap);		break;
-		case E_TropModel::VMF3:		tropVMF3(time, pos, azel[1], dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap);		break;
-		default: var=SQR(ERR_TROP);	return 0;
+		switch (model)
+		{
+			case E_TropModel::STANDARD:	tropSAAS(trace, time, pos, azel.el, dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap, var);	break;
+			case E_TropModel::SBAS:		tropSBAS(trace, time, pos, azel.el, dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap, var);	break;
+			case E_TropModel::GPT2:		tropGPT2(trace, time, pos, azel.el, dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap, var);	break;
+			case E_TropModel::VMF3:		tropVMF3(trace, time, pos, azel.el, dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap, var);	break;
+			case E_TropModel::CSSR:		tropCSSR(trace, time, pos, azel.el, dryZTD, dTropDx.dryMap, wetZTD, dTropDx.wetMap, var);	break;
+			default: return 0;
+		}
+
+		if (var < 0)
+			continue;
+
+		tracepdeex(2, trace,"\n Troposphere Model %s %s  %d %d %d", time.to_string(0), model._to_string(), pos.latDeg(), pos.lonDeg(), pos.hgt());
+
+		break;
 	}
-	
-	if (tropStates[0] == 0)	//initialization
+
+	//todo aaron var might still be < 0 if everything in models failed
+
+	if (tropStates.zenith == 0)	//initialization
 	{
-		tropStates[0] = dryZTD + wetZTD;
+		tropStates.zenith = dryZTD + wetZTD;
 	}
 	else
 	{
-		wetZTD = tropStates[0] - dryZTD;
+		wetZTD = tropStates.zenith - dryZTD;
 		var = 0;
 	}
-	
+
 	tracepdeex(4,trace,"  dry: %.4f x %.4f   wet: %.4f x %.4f", dTropDx.dryMap, dryZTD, dTropDx.wetMap, wetZTD);
-	
-	double gradMap = gradMapFn(azel[1]);
-	dTropDx.northMap	= gradMap * cos(azel[0]);
-	dTropDx.eastMap		= gradMap * sin(azel[0]);
-	
-	return 		dTropDx.dryMap		* dryZTD 
-			+	dTropDx.wetMap		* wetZTD 
-			+	dTropDx.northMap	* tropStates[1] 
-			+	dTropDx.eastMap		* tropStates[2];
+
+	double gradMap = gradMapFn(azel.el);
+	dTropDx.northMap	= gradMap * cos(azel.az);
+	dTropDx.eastMap		= gradMap * sin(azel.az);
+
+	return 		dTropDx.dryMap		* dryZTD
+			+	dTropDx.wetMap		* wetZTD
+			+	dTropDx.northMap	* tropStates.grads[0]
+			+	dTropDx.eastMap		* tropStates.grads[1];
 }
 
 double tropDryZTD(
-	E_TropModel 	model,
-	GTime			time,
-	VectorPos&		pos)
+	Trace&					trace,
+	vector<E_TropModel> 	models,
+	GTime					time,
+	VectorPos&				pos)
 {
 	double dryZTD;
 	double dryMap;
 	double wetZTD;
 	double wetMap;
-	double var;
-	switch (model)
+	double var = -1;
+	for (auto& model : models)
 	{
-		case E_TropModel::STANDARD:	tropSAAS( time,pos,PI/2, dryZTD, dryMap, wetZTD, wetMap, var);	break;
-		case E_TropModel::SBAS:		tropSBAS( time,pos,PI/2, dryZTD, dryMap, wetZTD, wetMap, var);	break;
-		case E_TropModel::GPT2:		tropGPT2( time,pos,PI/2, dryZTD, dryMap, wetZTD, wetMap);		break;
-		case E_TropModel::VMF3:		tropVMF3( time,pos,PI/2, dryZTD, dryMap, wetZTD, wetMap);		break;
-		default: return 0;
+		switch (model)
+		{
+			case E_TropModel::STANDARD:	tropSAAS(trace, time, pos, PI/2, dryZTD, dryMap, wetZTD, wetMap, var);	break;
+			case E_TropModel::SBAS:		tropSBAS(trace, time, pos, PI/2, dryZTD, dryMap, wetZTD, wetMap, var);	break;
+			case E_TropModel::GPT2:		tropGPT2(trace, time, pos, PI/2, dryZTD, dryMap, wetZTD, wetMap, var);	break;
+			case E_TropModel::VMF3:		tropVMF3(trace, time, pos, PI/2, dryZTD, dryMap, wetZTD, wetMap, var);	break;
+			default: return 0;
+		}
+
+		if (var >= 0)
+			break;
 	}
+
+	//todo aaron var might still be < 0 if everything in models failed
 	return dryZTD;
 }
 
-double heightAdjustWet( 
+double heightAdjustWet(
 	double hgt)
 {
 	double hgtKm	= hgt / 1E3;
 	double temp		= 288.15 - 6.5 * hgtKm;
 	double eScale	=  exp(0.9636 * hgtKm / (38.4154 - hgtKm));
-	
+
 	return  eScale * (1255 / temp + 0.05) / 4.40537;
 }
 
-double heightAdjustDry( 
+double heightAdjustDry(
 	double hgt,
 	double lat)
 {
 	double hgtKm	= hgt / 1E3;
 	double latScale	= 1 - 0.00266 * cos(2 * lat);
-	
+
 	return pow((1 - 0.0226 * hgtKm), 5.225) * latScale / (latScale - 0.00028 * hgtKm);
 }

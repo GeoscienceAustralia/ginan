@@ -10,7 +10,6 @@ from ..utilities import init_page, extra, generate_fig, generate_figs, aggregate
 from . import eda_bp
 
 
-
 @eda_bp.route("/advanced", methods=["GET", "POST"])
 def trace():
     if request.method == "POST":
@@ -31,7 +30,7 @@ def handle_post_request():
     form["datay"]   = form_data.get("datay")
 
     # current_app.logger.info(f"GET {form['plot']}, {form["selector1"]}, {form['selector2']}, {form['data1']}, {form['data2']}, exclude {form['exclude']} mintues" )
-    
+
     current_app.logger.info("Getting Connection")
     data = MeasurementArray()
     # for series in form["series"] :
@@ -41,13 +40,6 @@ def handle_post_request():
     data2 = get_arbitrary(db, "Trace", form["match"], form["group"], form["datay"])
 
     if len(data1) == 0:
-        return render_template(
-            "trace.jinja",
-            selection=form,
-            # content=client.mongo_content,
-            extra=extra,
-            message="Error getting data: No data")
-    if len(data2) == 0:
         return render_template(
             "trace.jinja",
             selection=form,
@@ -78,7 +70,6 @@ def handle_post_request():
     traces2 = []
     table = {}
     current_app.logger.warning("starting plots")
-
 
     for label, traceData in data1.items():
         # print("trace:" + label)
@@ -142,9 +133,7 @@ def handle_post_request():
             )
         )
 
-    current_app.logger.warning("end plots")       
-
-    print(form)
+    current_app.logger.warning("end plots")
 
     return render_template(
         "trace.jinja",

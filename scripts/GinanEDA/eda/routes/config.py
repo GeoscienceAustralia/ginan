@@ -14,11 +14,12 @@ def config():
         return init_page(template="config.jinja")
 
 
-
 def handle_post_request():
     form = request.form
     database = form.get("database")
     with MongoDB(session["mongo_ip"], data_base=database, port=session["mongo_port"]) as client:
         configuration = client.get_config()
-    configuration.pop('_id')
+    if configuration is None:
+        return render_template("config.jinja", message="No configuration found")
+    configuration.pop("_id")
     return render_template("config.jinja", configuration=configuration, selection=form)

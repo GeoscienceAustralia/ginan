@@ -16,19 +16,19 @@ struct Vmf3GridPoint
 		double data[10] = {};
 		struct
 		{
-			double lat;		// lat grid (degree) 
-			double lon;		// lon grid (degree) 
-			double ah;		// hydrostatic mapping coefficient 
-			double aw;		// wet mapping coefficient 
-			double zhd;		// zenith hydrastatic delay (m) 
-			double zwd;		// zenith wet delay 		
+			double lat;		// lat grid (degree)
+			double lon;		// lon grid (degree)
+			double ah;		// hydrostatic mapping coefficient
+			double aw;		// wet mapping coefficient
+			double zhd;		// zenith hydrastatic delay (m)
+			double zwd;		// zenith wet delay
 			double mfh;		// hydrostatic mapping function
 			double mfw;		// wet mapping function
-			double orog;	
+			double orog;
 			double index;	// index in the file, for use against orography files
 		};
 	};
-	
+
 	Vmf3GridPoint operator * (double d)
 	{
 		Vmf3GridPoint output = *this;
@@ -36,17 +36,17 @@ struct Vmf3GridPoint
 		{
 			output.data[i] *= d;
 		}
-		
+
 		return output;
 	}
-	
+
 	Vmf3GridPoint& operator += (const Vmf3GridPoint& d)
 	{
 		for (int i = 0; i < 9; i++)	//skip index
 		{
 			data[i] += d.data[i];
 		}
-		
+
 		return *this;
 	}
 };
@@ -820,7 +820,7 @@ void readorog(
 	string			filepath)		///< filename
 {
 	globalVMF3Struct.orography.clear();
-	
+
 	ifstream filestream(filepath);
 	if (!filestream)
 	{
@@ -828,18 +828,18 @@ void readorog(
 		<< "Error opening orography file" << filepath << std::endl;
 		return;
 	}
-	
+
 	while (filestream)
 	{
 		string line;
-		
+
 		getline(filestream, line);
-		
+
 		char* buff = &line[0];
 
 		double val;
 		int found = sscanf(buff, "%lf", &val);
-		
+
 		if (found)
 		{
 			globalVMF3Struct.orography.push_back(val);
@@ -847,7 +847,7 @@ void readorog(
 	}
 }
 
-/** read vmf3 grid 
+/** read vmf3 grid
  */
 void readvmf3(
 	string		filepath)			///< vmf3 grid file path
@@ -859,7 +859,7 @@ void readvmf3(
 		<< "Error opening vmf3 file" << filepath << std::endl;
 		return;
 	}
-	
+
 // 	int found = sscanf(file.c_str(), "
 /** update grid for epoch
 			sprintf(gfile, "%sVMF3_%4d%02d%02d.H%02d", dir, (int)ep1[0], (int)ep1[1], (int)ep1[2], (int)ep1[3]);
@@ -867,13 +867,13 @@ void readvmf3(
 
 	int index = 0;
 	GTime time = GTime::noTime();
-	
+
 	while (filestream)
 	{
 		string line;
-		
+
 		getline(filestream, line);
-		
+
 		char* buff = &line[0];
 
 		/* ignore the first line */
@@ -891,19 +891,19 @@ void readvmf3(
 			{
 				time = epoch;
 			}
-			
+
 			continue;
 		}
-		
+
 		if (time == GTime::noTime())
 		{
 			BOOST_LOG_TRIVIAL(error)
 			<< "Failed to get time from vmf file '" << filepath << "'";
 			return;
 		}
-		
+
 		Vmf3GridPoint gridPoint;
-		
+
 		int found = sscanf(buff, "%lf %lf %lf %lf %lf %lf",
 							&gridPoint.lat,
 							&gridPoint.lon,
@@ -911,10 +911,10 @@ void readvmf3(
 							&gridPoint.aw,
 							&gridPoint.zhd,
 							&gridPoint.zwd);
-		
+
 		gridPoint.index = index;
 		index++;
-		
+
 		if (found == 6)
 		{
 			globalVMF3Struct[time][gridPoint.lat][gridPoint.lon] = gridPoint;
@@ -947,7 +947,7 @@ void legenpoly(
 	double z = cos(PI / 2 - vmf3GP.lat * D2R);
 
 
-	vmat[0][0] = 1; 
+	vmat[0][0] = 1;
 	wmat[0][0] = 0;
 	vmat[1][0] = z * vmat[0][0];
 	wmat[1][0] = 0;
@@ -999,38 +999,38 @@ void legenpoly(
 	}
 
 	/* adding seasonal amplitudes */
-	double bh	= bhc[0] 
-				+ bhc[1] * cos(doy / 365.25 * 2*PI) 
+	double bh	= bhc[0]
+				+ bhc[1] * cos(doy / 365.25 * 2*PI)
 				+ bhc[2] * sin(doy / 365.25 * 2*PI)
-				+ bhc[3] * cos(doy / 365.25 * 4*PI) 
+				+ bhc[3] * cos(doy / 365.25 * 4*PI)
 				+ bhc[4] * sin(doy / 365.25 * 4*PI);
-			
-	double bw 	= bwc[0] 
-				+ bwc[1] * cos(doy / 365.25 * 2*PI) 
+
+	double bw 	= bwc[0]
+				+ bwc[1] * cos(doy / 365.25 * 2*PI)
 				+ bwc[2] * sin(doy / 365.25 * 2*PI)
-				+ bwc[3] * cos(doy / 365.25 * 4*PI) 
+				+ bwc[3] * cos(doy / 365.25 * 4*PI)
 				+ bwc[4] * sin(doy / 365.25 * 4*PI);
-			
-	double ch 	= chc[0] 
-				+ chc[1] * cos(doy / 365.25 * 2*PI) 
+
+	double ch 	= chc[0]
+				+ chc[1] * cos(doy / 365.25 * 2*PI)
 				+ chc[2] * sin(doy / 365.25 * 2*PI)
-				+ chc[3] * cos(doy / 365.25 * 4*PI) 
+				+ chc[3] * cos(doy / 365.25 * 4*PI)
 				+ chc[4] * sin(doy / 365.25 * 4*PI);
-			
-	double cw 	= cwc[0] 
-				+ cwc[1] * cos(doy / 365.25 * 2*PI) 
+
+	double cw 	= cwc[0]
+				+ cwc[1] * cos(doy / 365.25 * 2*PI)
 				+ cwc[2] * sin(doy / 365.25 * 2*PI)
-				+ cwc[3] * cos(doy / 365.25 * 4*PI) 
+				+ cwc[3] * cos(doy / 365.25 * 4*PI)
 				+ cwc[4] * sin(doy / 365.25 * 4*PI);
 
 
 	/* using a from the grid and calculate hydro and wet mapping factor */
 	double ah = vmf3GP.ah;
 	double aw = vmf3GP.aw;
-	
+
 	vmf3GP.mfh = (1 + (ah / (1 + bh / (1 + ch)))) / (sin(el) + (ah / (sin(el) + bh / (sin(el) + ch))));
 	vmf3GP.mfw = (1 + (aw / (1 + bw / (1 + cw)))) / (sin(el) + (aw / (sin(el) + bw / (sin(el) + cw))));
-	
+
 	double h1 = 1 / sin(el) - (1 + (a1 / (1 + b1 / (1 + c1)))) / (sin(el) + (a1 / (sin(el) + b1 / (sin(el) + c1))));
 	vmf3GP.mfh += h1 * hgt / 1000;
 }
@@ -1042,12 +1042,12 @@ vector<const VALTYPE*> getStraddle(
 	vector<double>&				fractions)
 {
 	vector<const VALTYPE*> outputs;
-	
+
 	auto it = straddleMap.lower_bound(inter);
 	if (it == straddleMap.end())
 	{
 		auto lastIt = straddleMap.rbegin();
-		
+
 		auto& [dummy, last] = *lastIt;
 		outputs.push_back(&last);		fractions.push_back(1);
 		outputs.push_back(&last);		fractions.push_back(0);
@@ -1063,54 +1063,57 @@ vector<const VALTYPE*> getStraddle(
 		auto& [inter2, out2] = *it;
 		it--;
 		auto& [inter1, out1] = *it;
-		
+
 		outputs.push_back(&out2);		fractions.push_back((inter - inter1) / (inter2 - inter1));
 		outputs.push_back(&out1);		fractions.push_back((inter - inter1) / (inter1 - inter2) + 1);
 	}
-	
+
 	return outputs;
 }
 
 /** vmf3
  */
-double tropVMF3( 
+double tropVMF3(
+	Trace&		trace,
 	GTime		time,
 	VectorPos&	pos,
 	double		el,
 	double&		dryZTD,
 	double&		dryMap,
 	double&		wetZTD,
-	double&		wetMap)
+	double&		wetMap,
+	double& 	var)
 {
+	var = -1;
 	if (globalVMF3Struct.empty())
 	{
 		return 0;
 	}
-	
+
 	double latd = pos.latDeg();
 	double lond = pos.lonDeg();
 	double hgt	= pos.hgt();
 
-	if (lond < 0) 
+	if (lond < 0)
 		lond += 360;
 
 	vector<double> fractionsa;
 	auto a = getStraddle(globalVMF3Struct, time, fractionsa);
-	
+
 	Vmf3GridPoint timePoint;
 	for (int i = 0; i < 2; i++)
 	{
 		vector<double> fractionsb;
 		auto& A = *a[i];
 		auto b = getStraddle(A, latd, fractionsb);
-		
+
 		Vmf3GridPoint latPoint;
 		for (int i = 0; i < 2; i++)
 		{
 			vector<double> fractionsc;
 			auto& B = *b[i];
 			auto c = getStraddle(B, lond, fractionsc);
-			
+
 			Vmf3GridPoint lonPoint;
 			for (int i = 0; i < 2; i++)
 			{
@@ -1118,7 +1121,7 @@ double tropVMF3(
 				{
 					vmf3GP.orog = globalVMF3Struct.orography[vmf3GP.index];
 				}
-				
+
 				lonPoint += vmf3GP * fractionsc[i];
 			}
 			latPoint += lonPoint * fractionsb[i];
@@ -1131,7 +1134,7 @@ double tropVMF3(
 		/* (a) zhd */
 		double thingA = (vmf3GP.zhd / 0.0022768) * (1 - 0.00266 * cos(2 * pos.lat()) - 0.28 * 1e-6 * vmf3GP.orog);
 		double thingB = pow((1 - 0.0000226 * (hgt - vmf3GP.orog)), 5.225);
-		
+
 		vmf3GP.zhd = 0.0022768 * thingA * thingB / (1 - 0.00266 * cos(2 * pos.lat()) - 0.28 * 1e-6 * hgt);
 
 		/* (b) zwd */
@@ -1139,18 +1142,21 @@ double tropVMF3(
 		vmf3GP.zwd *= scaler;
 
 		UYds yds = time;
-		
-		double doy	= yds.doy 
+
+		double doy	= yds.doy
 					+ yds.sod / 86400.0;
-		
+
 		/* legendre polynomials */
 		legenpoly(vmf3GP, doy, el, hgt);
 	}
-	
+
 	dryZTD = vmf3GP.zhd;
 	wetZTD = vmf3GP.zwd;
 	dryMap = vmf3GP.mfh;
 	wetMap = vmf3GP.mfw;
 
-	return dryMap*dryZTD + wetMap*wetZTD;
+	var = 0;
+	double delay	= dryMap * dryZTD
+					+ wetMap * wetZTD;
+	return delay;
 }

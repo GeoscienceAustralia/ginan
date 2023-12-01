@@ -43,7 +43,7 @@ double ionmodel(
 	GTime				t,
 	const double*		ion,
 	const VectorPos&	pos,
-	const double*		azel)
+	const AzEl&			azel)
 {
 	const double ion_default[] = /* 2004/1/1 */
 	{
@@ -52,7 +52,7 @@ double ionmodel(
 	};
 
 	if	( pos.hgt()	< -1000
-		||azel[1]	<= 0)
+		||azel.el	<= 0)
 	{
 		return 0;
 	}
@@ -64,15 +64,15 @@ double ionmodel(
 	}
 
 	/* earth centered angle (semi-circle) */
-	double psi = 0.0137 / (azel[1] / PI + 0.11) - 0.022;
+	double psi = 0.0137 / (azel.el / PI + 0.11) - 0.022;
 
 	/* subionospheric latitude/longitude (semi-circle) */
-	double phi = pos.lat() / PI + psi * cos(azel[0]);
+	double phi = pos.lat() / PI + psi * cos(azel.az);
 
 	if      (phi > +0.416)		phi = +0.416;
 	else if (phi < -0.416)		phi = -0.416;
 
-	double lam = pos.lon() / PI + psi * sin(azel[0]) / cos(phi * PI);
+	double lam = pos.lon() / PI + psi * sin(azel.az) / cos(phi * PI);
 
 	/* geomagnetic latitude (semi-circle) */
 	phi += 0.064 * cos((lam - 1.617) * PI);
@@ -84,7 +84,7 @@ double ionmodel(
 	tt -= floor(tt / 86400) * 86400; /* 0<=tt<86400 */
 
 	/* slant factor */
-	double f = 1 + 16 * pow(0.53 - azel[1] / PI, 3);
+	double f = 1 + 16 * pow(0.53 - azel.el / PI, 3);
 
 	/* ionospheric delay */
 	double amp = ion[0] + phi * (ion[1] + phi * (ion[2] + phi * ion[3]));
@@ -100,7 +100,7 @@ double ionmodel(
 */
 double ionmapf(
 	const VectorPos&	pos,	///< receiver position in geocentric spherical coordinates
-	const double*		azel,	///< satellite azimuth/elevation angle (rad)
+	const AzEl&			azel,	///< satellite azimuth/elevation angle (rad)
 	E_IonoMapFn			mapFn,	///< model of mapping function
 	double				hion)	///< layer height (km)
 {
@@ -110,10 +110,10 @@ double ionmapf(
 		case E_IonoMapFn::SLM:		// fallthrough
 		case E_IonoMapFn::MLM:							break;	// same to SLM but need to call the function multiple times
 		case E_IonoMapFn::MSLM:			alpha = 0.9782;	break;
-		case E_IonoMapFn::KLOBUCHAR:	return 1 + 16 * pow(0.53 - azel[1] / PI, 3);
+		case E_IonoMapFn::KLOBUCHAR:	return 1 + 16 * pow(0.53 - azel.el / PI, 3);
 	}
 
-	double rp = RE_MEAN / (RE_MEAN + hion) * sin(alpha * (PI / 2 - azel[1]));
+	double rp = RE_MEAN / (RE_MEAN + hion) * sin(alpha * (PI / 2 - azel.el));
 
 	return 1 / sqrt(1 - SQR(rp));
 }
@@ -129,28 +129,28 @@ double ionmapf(
 *          fixing bug on ref [2] A.4.4.10.1 A-22,23
 *-----------------------------------------------------------------------------*/
 double ionppp(
-	const VectorPos&	pos, 
-	const double*		azel, 
+	const VectorPos&	pos,
+	const AzEl&			azel,
 	double				re,
-	double				hion, 
+	double				hion,
 	VectorPos&			posp)
 {
 	double ri = re + hion;
-	double rp = re / ri * cos(azel[1]);
-	double ap = PI / 2 - azel[1] - asin(rp);
+	double rp = re / ri * cos(azel.el);
+	double ap = PI / 2 - azel.el - asin(rp);
 	double sinap = sin(ap);
 	double tanap = tan(ap);
-	double cosaz = cos(azel[0]);
+	double cosaz = cos(azel.az);
 	posp[0] = asin(sin(pos.lat()) * cos(ap) + cos(pos.lat()) * sinap * cosaz);
 
 	if	( (pos.lat() > +70 * D2R && +tanap * cosaz > tan(PI / 2 - pos.lat()))
 		||(pos.lat() < -70 * D2R && -tanap * cosaz > tan(PI / 2 + pos.lat())))
 	{
-		posp.lon() = pos.lon() + PI	- asin(sinap * sin(azel[0]) / cos(posp.lat()));	
-	}	
+		posp.lon() = pos.lon() + PI	- asin(sinap * sin(azel.az) / cos(posp.lat()));
+	}
 	else
-	{	
-		posp.lon() = pos.lon()		+ asin(sinap * sin(azel[0]) / cos(posp.lat()));	
+	{
+		posp.lon() = pos.lon()		+ asin(sinap * sin(azel.az) / cos(posp.lat()));
 	}
 
 	posp[2] = ri * 1000;	// geocentric radius
@@ -158,11 +158,11 @@ double ionppp(
 	return 1 / sqrt(1 - SQR(rp));
 }
 
-/** interpolate tec grid data 
+/** interpolate tec grid data
  */
 int interpTec(
 	const	tec_t&		tec,
-			int			k, 
+			int			k,
 	const	VectorPos&	posp,
 			double&		value,
 			double&		rms)
@@ -199,7 +199,7 @@ int interpTec(
 			continue;
 
 		auto& tecPoint = tec.tecPointVector[index];
-		
+
 		d[n] = tecPoint.data;
 		r[n] = tecPoint.rms;
 	}
@@ -243,13 +243,13 @@ int interpTec(
 	return 1;
 }
 
-/** ionosphere delay by tec grid data 
+/** ionosphere delay by tec grid data
  */
 bool ionDelay(
 	GTime				time,	///< Time
 	const tec_t&		tec,	///< Input electron content data
 	const VectorPos&	pos,	///< Position of receiver
-	const double*		azel,	///< Azimuth and elevation of signal path
+	const AzEl&			azel,	///< Azimuth and elevation of signal path
 	E_IonoMapFn			mapFn,	///< model of mapping function
 	E_IonoFrame			frame,	///< reference frame
 	double&				delay,	///< Delay in meters
@@ -293,7 +293,7 @@ bool ionDelay(
 }
 
 
-/** ionosphere model by tec grid data 
+/** ionosphere model by tec grid data
  * Before calling the function, read tec grid data by calling readTec()
 *          return ok with delay=0 and var=VAR_NOTEC if el < MIN_EL or h < MIN_HGT
 */
@@ -301,7 +301,7 @@ bool iontec(
 	GTime				time,	///< time (gpst)
 	const Navigation*	nav,	///< navigation data
 	const VectorPos&	pos,	///< receiver position {lat,lon,h} (rad,m)
-	const double*		azel,	///< azimuth/elevation angle {az,el} (rad)
+	const AzEl&			azel,	///< azimuth/elevation angle {az,el} (rad)
 	E_IonoMapFn			mapFn,	///< model of mapping function
 	E_IonoFrame			frame,	///< reference frame
 	double&				delay,	///< ionospheric delay (L1) (m)
@@ -313,7 +313,7 @@ bool iontec(
 	delay	= 0;
 	var		= VAR_NOTEC;
 
-	if	(  azel[1]		< MIN_EL
+	if	(  azel.el		< MIN_EL
 		|| pos.hgt()	< MIN_HGT)
 	{
 		return true;
@@ -327,27 +327,27 @@ bool iontec(
 
 		return true;
 	}
-	
+
 	bool pass[2] = {};
 	double dels[2];
 	double vars[2];
-	
+
 	auto& [t0, tec0] = *it;
 	pass[0] = ionDelay(time, tec0, pos, azel, mapFn, frame, dels[0], vars[0]);
-		
+
 	if (it == nav->tecMap.begin())
 	{
 		delay	= dels[0];
 		var		= vars[0];
 		return pass[0];
 	}
-	
+
 	//go forward and get the next timestep if available
 	it--;
-	
+
 	auto& [t1, tec1] = *it;
 	pass[1] = ionDelay(time, tec1, pos, azel, mapFn, frame, dels[1], vars[1]);
-	
+
 
 	if	(  pass[0]
 		&& pass[1])
@@ -355,7 +355,7 @@ bool iontec(
 		/* linear interpolation by time */
 		double tt	= (tec1.time	- tec0.time).to_double();
 		double a	= (time			- tec0.time).to_double() / tt;
-		
+
 		delay	= dels[0] * (1 - a) + dels[1] * a;
 		var		= vars[0] * (1 - a) + vars[1] * a;
 	}
@@ -389,7 +389,7 @@ bool iontec(
 int ionoModel(
 	GTime		time,
 	VectorPos&	pos,
-	double*		azel,
+	AzEl&		azel,
 	double		ionoState,
 	double&		dion,
 	double&		var)
@@ -410,11 +410,11 @@ int ionoModel(
 			E_NavMsgType	type	= defNavMsgType[sys];
 
 			auto ion_ptr = seleph<ION>(std::cout, time, sys, type, nav);
-			
+
 			double* vals = nullptr;
 			if (ion_ptr != nullptr)
 				vals = ion_ptr->vals;
-			
+
 			dion	= ionmodel(time, vals, pos, azel);
 			var		= SQR(dion * ERR_BRDCI);
 

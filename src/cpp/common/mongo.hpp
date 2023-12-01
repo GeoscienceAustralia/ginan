@@ -74,7 +74,11 @@ struct Mongo
 
 #define IGS_ION_META		"igsSSRMeta"
 #define IGS_ION_ENTRY		"igsSSREntry"
-
+#define IGS_ION_DCB			"igsSSRDCB"
+#define CMP_ATM_META		"cmpSSRMeta"
+#define CMP_ION_META		"cmpIonMeta"
+#define CMP_TRP_ENTRY		"cmpTrpEntry"
+#define CMP_ION_ENTRY		"cmpIonEntry"
 
 #define SSR_EPOCH			"Epoch"
 #define SSR_UPDATED			"Updated"
@@ -85,6 +89,7 @@ struct Mongo
 #define SSR_OBSCODE			"ObsCode"
 #define SSR_BIAS			"Bias"
 #define SSR_VAR				"Var"
+
 
 #define IGS_ION_NLAY		"ionoMetNlay"
 #define IGS_ION_NBAS		"ionoMetNbas"
