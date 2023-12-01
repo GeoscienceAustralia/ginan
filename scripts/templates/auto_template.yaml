@@ -1,0 +1,149 @@
+inputs:
+
+    # ginan/scripts directory needs to be mounted to /var in docker container
+    root_directory: /var/products
+    snx_files:  [  ]
+    atx_files:  [ igs14.atx                         ]  
+    blq_files:  [ OLOAD_GO.BLQ                      ]  
+    egm_files:  [ ]  
+    jpl_files:  [ ]  
+    tide_files: [ ]
+    igrf_files: [ ]
+    
+    troposphere:
+        gpt2grid_files:  gpt_25.grd
+
+    #erp_files:  [  IGS0OPSRAP_20233020000_01D_01D_ERP.ERP       ]
+    erp_files:  [  finals.data.iau2000.txt       ]
+    satellite_data:
+        clk_files: [  IGS0OPSRAP_20233020000_01D_05M_CLK.CLK    ] 
+        bsx_files: [      ] 
+        sp3_files: [  IGS0OPSRAP_20233020000_01D_15M_ORB.SP3    ]
+
+    gnss_observations:
+        inputs_root: /var/data
+        rnx_inputs:
+            - "*.rnx"
+            - "*.23o"
+
+station_options:
+    global:
+        phase_bias:
+            enable:         true
+    TEST:
+        receiver_type:  "TRIMBLE R10"                 # (string)
+        antenna_type:   "TRMR10          NONE"       # (string)
+        eccentricity:   [1.4269,   0.0000,   0.0000] # [floats]
+        apriori_position:   [-5015815.7300, 2619358.9161,-2933465.3598] # [floats]
+
+outputs:
+    metadata:
+        config_description:     "auto"
+    root_directory:         outputs/<CONFIG>/
+    trace:
+        level:                      2
+        output_stations:            true
+        output_network:             true
+        station_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+
+    ppp_sol:                              
+        output:                     true         
+        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.POS
+    gpx:
+        output:                     true
+        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.GPX
+    sinex:
+        output:                     true
+        filename:                   <YYYY><DDD><HH>_<CONFIG>.SNX
+
+estimation_parameters:
+    stations:
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [100] 
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [100]
+            amb:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [0]
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001]
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+            ion_stec:
+                estimated:          [true]
+                sigma:              [200]
+                proc_noise:         [10]
+            code_bias:
+                estimated:          [true]
+                sigma:              [20]
+                proc_noise:         [0]
+            phase_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
+
+processing_options:
+    process_modes:
+        ppp:                 true
+    gnss_general:
+        elevation_mask:                 10  #degrees
+        rec_reference_system:           GPS
+        sys_options:
+            gps:
+                ambiguity_resolution:   true
+                process:                true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [ L1C, L2W ]
+            gal:
+                ambiguity_resolution:   true
+                process:                true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [ L1C, L5Q, L1X, L5X ]
+    gnss_models:
+        troposphere:
+            model:              gpt2
+        ionospheric_component2:
+            enable:             true
+        ionospheric_component3:
+            enable:             true
+    filter_options:
+        outlier_screening:
+            max_filter_iterations:      5 
+            max_prefit_removals:        3 
+        station_chunking:
+            enable:                     true
+        rts:
+            enable:         true
+        
+    model_error_checking:
+        deweighting:
+            deweight_factor:            1000
+        ambiguities:
+            outage_reset_limit:         5
+            phase_reject_limit:         2
+            reinit_on_all_slips:        true
+    epoch_control:
+        max_epochs:         360
+
+
+            
+satellite_options:
+    global:
+        phase_bias:
+            enable:         true
