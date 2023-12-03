@@ -31,16 +31,16 @@ def ensure_folders(paths: [Path]) -> None:
 def download_all(target_dir) -> None:
     """Download required files for Ginan to run."""
     ensure_folders([target_dir])
-    download_atx()
-    download_blq()
-    download_trop_model()
+    download_atx(target_dir)
+    download_blq(target_dir)
+    download_trop_model(target_dir)
 
     # TODO: Could the following be exposed from peanpod like the ATX file etc?
     # Should have one script that is used to download these products
     # that is shared between examples and the autorun scripts
-    # TODO: download_egm()
-    # TODO: download_jpl()
-    # TODO: download_tides()
+    # TODO: download_egm(target_dir)
+    # TODO: download_jpl(target_dir)
+    # TODO: download_tides(target_dir)
 
 
 def download_atx(target_dir) -> None:
