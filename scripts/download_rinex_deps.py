@@ -39,7 +39,7 @@ def ftp_tls(url: str, **kwargs) -> None:
 
 def download_rinex_deps(filepath: Path, target_dir: Path):
     header = parse_v3_header(filepath)
-    
+
     filenames = generate_filenames(header)
 
     # TODO: Find stations nearby
@@ -52,14 +52,12 @@ def download_rinex_deps(filepath: Path, target_dir: Path):
         else:
             download_queue.append(filename)
 
-    gps_week = dt2gpswk(header['first_obs_time'])
+    gps_week = dt2gpswk(header["first_obs_time"])
 
     if download_queue:
         # Download from IGS
         download_multiple_files_from_cddis(
-            download_queue,        
-            ftp_folder=f"gnss/products/{gps_week}",
-            output_folder=target_dir
+            download_queue, ftp_folder=f"gnss/products/{gps_week}", output_folder=target_dir
         )
     else:
         logging.info(f"All files exist in target directory {target_dir}")
@@ -84,7 +82,7 @@ def generate_filenames(header: dict):
         timespan=timespan,
         solution_type="RAP",
         sampling_rate="01D",
-        project="OPS"
+        project="OPS",
     )
 
     sp3_filename = generate_IGS_long_filename(
@@ -95,7 +93,7 @@ def generate_filenames(header: dict):
         timespan=timespan,
         solution_type="RAP",
         sampling_rate="15M",
-        project="OPS"
+        project="OPS",
     )
 
     clk_filename = generate_IGS_long_filename(
@@ -106,7 +104,7 @@ def generate_filenames(header: dict):
         timespan=timespan,
         solution_type="RAP",
         sampling_rate="05M",
-        project="OPS"
+        project="OPS",
     )
 
     return [erp_filename, sp3_filename, clk_filename]
