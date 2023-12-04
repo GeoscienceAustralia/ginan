@@ -11,31 +11,26 @@ import georinex as gr
 from gnssanalysis.gn_datetime import GPSDate
 
 
-def parse_rinex(filepath: Path):
-    rnx = gr.load(filepath)
-    print(rnx)
-    return rnx
-
-
 def parse_v3_header(filepath: Path):
     header = gr.rinexheader(filepath)
     if int(header["version"]) != 3:
         raise NotImplementedError("Only RINEX v3 is currently supported")
 
     marker_name = header["MARKER NAME"].strip()
-    rec_num, rec_type, rec_version = parse_receiver(header)
+    # rec_type = parse_receiver(header)
+    rec_type = header["REC # / TYPE / VERS"].strip()
     antenna_type, antenna_dh, antenna_de, antenna_dn = parse_antenna(header)
     approx_x, approx_y, approx_z = parse_approx_position(header)
     first_obs_time = parse_first_obs_time(header)
-    last_obs_time = parse_last_obs_time(header)
+    # last_obs_time = parse_last_obs_time(header)
 
     return {
-        "name": marker_name,
-        "receiver": {"number": rec_num, "type": rec_type, "version": rec_version},
+        "marker_name": marker_name,
+        "receiver": {"number": "", "type": rec_type, "version": ""},
         "antenna": {"type": antenna_type, "deltas": {"height": antenna_dh, "east": antenna_de, "north": antenna_dn}},
         "approx_position": {"x": approx_x, "y": approx_y, "z": approx_z},
         "first_obs_time": first_obs_time,
-        "last_obs_time": last_obs_time,
+        # "last_obs_time": last_obs_time,
     }
 
 

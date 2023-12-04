@@ -16,8 +16,6 @@ import ftplib
 import logging
 import random
 
-from parse_rinex_header import parse_v3_header
-
 from gnssanalysis.filenames import generate_IGS_long_filename
 from gnssanalysis.gn_download import check_n_download
 from gnssanalysis.gn_datetime import dt2gpswk
@@ -37,9 +35,7 @@ def ftp_tls(url: str, **kwargs) -> None:
         ftps.quit()
 
 
-def download_rinex_deps(filepath: Path, target_dir: Path):
-    header = parse_v3_header(filepath)
-
+def download(header: dict, target_dir: Path):
     filenames = generate_filenames(header)
 
     # TODO: Find stations nearby

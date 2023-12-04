@@ -1,64 +1,207 @@
 inputs:
 
-    # ginan/scripts directory needs to be mounted to /var in docker container
-    root_directory: /var/products
-    snx_files:  [  ]
-    atx_files:  [ igs14.atx                         ]  
-    blq_files:  [ OLOAD_GO.BLQ                      ]  
-    egm_files:  [ ]  
-    jpl_files:  [ ]  
-    tide_files: [ ]
-    igrf_files: [ ]
-    
-    troposphere:
-        gpt2grid_files:  gpt_25.grd
+    root_directory: "."
 
-    #erp_files:  [  IGS0OPSRAP_20233020000_01D_01D_ERP.ERP       ]
-    erp_files:  [  finals.data.iau2000.txt       ]
+    atx_files:  [ ../../inputData/products/igs20.atx                    ] # required
+    blq_files:  [ ../../inputData/products/OLOAD_GO.BLQ                 ] # required if ocean loading is applied
+    egm_files:  [ ../../inputData/products/tables/EGM2008.gfc                  ] # Earth gravity model coefficients file
+    jpl_files:  [ ../../inputData/products/tables/DE436.1950.2050              ]
+    tide_files: [ ../../inputData/products/tables/fes2014b_Cnm-Snm.dat         ]
+    igrf_files: [ ../../inputData/products/igrf13coeffs.txt             ]
+    erp_files:  [ ../../inputData/products/tables/finals.data.iau2000.txt      ]
+    snx_files:  [ "./downloads/*.SNX" ]
+
+    troposphere:
+        gpt2grid_files:  ../../inputData/products/gpt_25.grd
+
     satellite_data:
-        clk_files: [  IGS0OPSRAP_20233020000_01D_05M_CLK.CLK    ] 
-        bsx_files: [      ] 
-        sp3_files: [  IGS0OPSRAP_20233020000_01D_15M_ORB.SP3    ]
+        clk_files: [ "./downloads/*.CLK"     ]
+        bsx_files: [ "./downloads/*.BIA"     ]
+        sp3_files: [ "./downloads/*.SP3"     ]
 
     gnss_observations:
-        inputs_root: /var/data
+        inputs_root: ./data/
         rnx_inputs:
             - "*.rnx"
-            - "*.23o"
 
-station_options:
-    global:
-        phase_bias:
-            enable:         true
-    TEST:
-        receiver_type:  "TRIMBLE R10"                 # (string)
-        antenna_type:   "TRMR10          NONE"       # (string)
-        eccentricity:   [1.4269,   0.0000,   0.0000] # [floats]
-        apriori_position:   [-5015815.7300, 2619358.9161,-2933465.3598] # [floats]
 
 outputs:
+
     metadata:
-        config_description:     "auto"
-    root_directory:         outputs/<CONFIG>/
+        config_description: "auto"
+
+    root_directory:         ./outputs/
+
+    ppp_sol:
+        output:             true
+        filename:           <CONFIG>.POS # <STATION><YYYY><DDD><HH>_<CONFIG>
+
+    # gpx:
+    #     output:             false
+    #     filename:           <CONFIG>.GPX # <STATION><YYYY><DDD><HH>_<CONFIG>
+
     trace:
         level:                      2
         output_stations:            true
         output_network:             true
-        station_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
-        network_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        station_filename:           <CONFIG>.TRACE # <STATION>_<YYYY><DDD><HH>
+        network_filename:           <CONFIG>_NETWORK.TRACE # <STATION>_<YYYY><DDD><HH>
         output_residuals:           true
         output_residual_chain:      true
         output_config:              true
 
-    ppp_sol:                              
-        output:                     true         
-        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.POS
-    gpx:
-        output:                     true
-        filename:                   <STATION><YYYY><DDD><HH>_<CONFIG>.GPX
-    sinex:
-        output:                     true
-        filename:                   <YYYY><DDD><HH>_<CONFIG>.SNX
+    sinex: {filename: <YYYY><DDD><HH>_<CONFIG>.SNX, output: true}
+
+    # log:
+    #     output:                     false
+        # directory:                  ./logs/
+        # filename:                   log<LOGTIME>.json
+
+
+satellite_options:
+
+    global:
+        phase_bias:
+            enable: false
+
+    # Exclude satellites
+    # E05: { exclude: true }
+    # E06: { exclude: true }
+
+
+station_options:
+
+    global:
+        phase_bias:
+            enable: false
+
+    # ALIC:
+    #     receiver_type:  "LEICA GR25"                 # (string)
+    #     antenna_type:   "LEIAR25.R3      NONE"       # (string)
+    #     eccentricity:   [0.0000,   0.0000,   0.0015] # [floats]
+    #     apriori_position:   [-4052052.7254, 4212835.9872,-2545104.6139] # [floats]
+    #     aliases:        [PIVOT] # set as pivot station
+
+
+processing_options:
+
+    process_modes:
+        ppp: true
+
+    epoch_control:
+        # start_epoch:     2023-06-01 00:00:00
+        # end_epoch:       2023-06-01 23:59:30
+        epoch_interval:  30  #seconds
+        wait_next_epoch: 3600 #seconds (make large for post-processing)
+        # max_epochs:      360
+
+    filter_options:
+        outlier_screening:
+            max_filter_iterations: 10
+            max_prefit_removals:   3
+            # sigma_check:           true
+
+        station_chunking:
+            enable: false
+
+        rts: # Rauch-Tung-Striebel (RTS) backwards smoothing
+            enable: false
+
+    model_error_checking:
+        deweighting:
+            deweight_factor:     1000 # Downweighting bad observations
+        cycle_slips:
+            slip_threshold:      0.05
+        ambiguities:
+            outage_reset_limit:  5 # Wait for 5 consecutive missing epoch of data before reseting ambiguity
+            phase_reject_limit:  2 # Reset ambiguity after 2 large fractional residuals are found (replaces phase_reject_count:)
+            reinit_on_all_slips: true # (bool) Any detected slips cause removal and reinitialisation of ambiguities
+
+    gnss_general:
+        elevation_mask:            15 #degrees
+        error_model:               elevation_dependent
+        code_measurements:
+            sigmas:                [0.3]
+        phase_measurements:
+            sigmas:                [0.003]
+
+        rec_reference_system:      GPS
+
+        # pivot_station:             "<AUTO>"
+        # require_antenna_details:   true  # (bool)
+        # require_apriori_positions: false # (bool)
+        # raim:                      true
+        # max_gdop:                  30
+
+        auto_fill_pco: true
+
+        sys_options:
+            gps:
+                process:                true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                # clock_codes:            [ L1W, L2W ]
+                code_priorities:        [L1C, L2X]
+                ambiguity_resolution:   true
+            gal:
+                process:                false
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [L1C, L2X]
+                ambiguity_resolution:   false
+            qzs:
+                process:                false
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [L1C, L2X]
+                ambiguity_resolution:   false
+            bds:
+                process:                false
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [L1C, L2X]
+                ambiguity_resolution:   false
+            glo:
+                process:                false
+                ambiguity_resolution:   false
+                reject_eclipse:         true
+                code_priorities:        [L1C, L2X]
+
+    gnss_models:
+        troposphere:
+            model: gpt2 # vmf3
+
+        ionospheric_component:
+            enable:            true
+            common_ionosphere: true # Code and Phase measurment share the same ionosphere
+            use_if_combo:      false # if IF-combination
+
+        # tides:
+        #     enable:            true
+        #     otl:               true
+        #     pole:              true
+        #     solid:             true
+
+        # orbits:
+        #     enable:            true
+
+    # Warning: The lambda_bie is NOT recommended for network processing
+    # use the bootst option instead
+    ambiguity_resolution:
+        elevation_mask:                 15
+        lambda_set_size:                200
+        mode:                           lambda_bie
+        success_rate_threshold:         0.99
+        solution_ratio_threshold:       30
+        # max_hold_epochs:                0 # Maximun number of epocs to hold ambiguities
+        # max_hold_time:                  1200.000000 # Maximun amount of time (sec) to hold ambiguities
+        # max_rounding_iterations:        1
+        # narrow_lane:
+        #     mode:                       OFF
+        #     proc_start:                 3600.000000
+        #     solution_ratio_threshold:   3.000000
+        #     success_rate_threshold:     0.999900
+
 
 estimation_parameters:
     stations:
@@ -66,11 +209,23 @@ estimation_parameters:
             pos:
                 estimated:          [true]
                 sigma:              [100]
-                proc_noise:         [100] 
+                proc_noise:         [100]
+            # pos_rate:                       # Velocity
+            #     estimated:          [false] # [bools] Estimate state in kalman filter
+            #     sigma:              [0]     # [floats] Apriori sigma values - if zero, will be initialised using least squares
+            #     proc_noise:         [0]     # [floats] Process noise sigmas
+            #     proc_noise_dt:      SECOND  # (enum) Time unit for process noise - sqrt_sec, sqrt_day etc
+            #     apriori_val:        [0]     # [floats] Apriori state values
+            #     mu:                 [0]     # [floats] Desired mean value for gauss markov states
+            #     tau:                [-1]    # [floats] Correlation times for gauss markov noise, defaults to -1 -> inf (Random Walk)
             clk:
                 estimated:          [true]
                 sigma:              [1000]
                 proc_noise:         [100]
+            clk_rate:
+                estimated:          [false]
+                sigma:              [0.005]
+                proc_noise:         [1e-4]
             amb:
                 estimated:          [true]
                 sigma:              [1000]
@@ -86,64 +241,25 @@ estimation_parameters:
             ion_stec:
                 estimated:          [true]
                 sigma:              [200]
-                proc_noise:         [10]
+                proc_noise:         [10] # -1
             code_bias:
-                estimated:          [true]
+                estimated:          [true] # false
                 sigma:              [20]
                 proc_noise:         [0]
             phase_bias:
-                estimated:          [true]
+                estimated:          [false]
                 sigma:              [10]
                 proc_noise:         [0]
 
-processing_options:
-    process_modes:
-        ppp:                 true
-    gnss_general:
-        elevation_mask:                 10  #degrees
-        rec_reference_system:           GPS
-        sys_options:
-            gps:
-                ambiguity_resolution:   true
-                process:                true
-                reject_eclipse:         false
-                zero_receiver_dcb:      true
-                code_priorities:        [ L1C, L2W ]
-            gal:
-                ambiguity_resolution:   true
-                process:                true
-                reject_eclipse:         false
-                zero_receiver_dcb:      true
-                code_priorities:        [ L1C, L5Q, L1X, L5X ]
-    gnss_models:
-        troposphere:
-            model:              gpt2
-        ionospheric_component2:
-            enable:             true
-        ionospheric_component3:
-            enable:             true
-    filter_options:
-        outlier_screening:
-            max_filter_iterations:      5 
-            max_prefit_removals:        3 
-        station_chunking:
-            enable:                     true
-        rts:
-            enable:         true
-        
-    model_error_checking:
-        deweighting:
-            deweight_factor:            1000
-        ambiguities:
-            outage_reset_limit:         5
-            phase_reject_limit:         2
-            reinit_on_all_slips:        true
-    epoch_control:
-        max_epochs:         360
 
-
-            
-satellite_options:
-    global:
-        phase_bias:
-            enable:         true
+mongo: # optional
+    enable:                   false
+    # uri:                      mongodb://127.0.0.1:27017
+    # database:                 <CONFIG>
+    # output_rtcm_messages:     true
+    # output_components:        true
+    # output_states:            true
+    # output_measurements:      true
+    # output_test_stats:        true
+    # delete_history:           true
+    # suffix:                   ""
