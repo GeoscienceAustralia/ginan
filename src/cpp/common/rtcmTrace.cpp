@@ -453,50 +453,55 @@ void	traceBrdcEphBody(
 	bsoncxx::builder::basic::document&	doc,
 	Eph&								eph)
 {
-	doc.append(kvp("WeekDecoded",	eph.weekRollOver		));
-	doc.append(kvp("WeekAdjusted",	eph.week				));
-	doc.append(kvp("ToeSecOfWeek",	eph.toes				));
-	doc.append(kvp("TocSecOfWeek",	eph.tocs				));
+	doc.append(kvp("Sat",			eph.Sat.id()			));
+	doc.append(kvp("weekRollOver",	eph.weekRollOver		));
+	doc.append(kvp("week",			eph.week				));
+	doc.append(kvp("toes",			eph.toes				));
+	doc.append(kvp("tocs",			eph.tocs				));
+	doc.append(kvp("howTow",		eph.howTow				));
+	doc.append(kvp("toe",			eph.toe.to_string()		));
+	doc.append(kvp("toc",			eph.toc.to_string()		));
+	doc.append(kvp("ttm",			eph.ttm.to_string()		));
 
-	doc.append(kvp("AODE",			eph.aode	));
-	doc.append(kvp("AODC",			eph.aodc	));
-	doc.append(kvp("IODE",			eph.iode	));
-	doc.append(kvp("IODC",			eph.iodc	));
+	doc.append(kvp("aode",			eph.aode	));
+	doc.append(kvp("aodc",			eph.aodc	));
+	doc.append(kvp("iode",			eph.iode	));
+	doc.append(kvp("iodc",			eph.iodc	));
 
 	doc.append(kvp("f0",			eph.f0		));
 	doc.append(kvp("f1",			eph.f1		));
 	doc.append(kvp("f2",			eph.f2		));
 
-	doc.append(kvp("SqrtA",			eph.sqrtA	));
+	doc.append(kvp("sqrtA",			eph.sqrtA	));
 	doc.append(kvp("A",				eph.A		));
 	doc.append(kvp("e",				eph.e		));
 	doc.append(kvp("i0",			eph.i0		));
-	doc.append(kvp("iDot",			eph.idot	));
+	doc.append(kvp("idot",			eph.idot	));
 	doc.append(kvp("omg",			eph.omg		));
 	doc.append(kvp("OMG0",			eph.OMG0	));
-	doc.append(kvp("OMGDot",		eph.OMGd	));
+	doc.append(kvp("OMGd",			eph.OMGd	));
 	doc.append(kvp("M0",			eph.M0		));
-	doc.append(kvp("DeltaN",		eph.deln	));
-	doc.append(kvp("Crc",			eph.crc		));
-	doc.append(kvp("Crs",			eph.crs		));
-	doc.append(kvp("Cic",			eph.cic		));
-	doc.append(kvp("Cis",			eph.cis		));
-	doc.append(kvp("Cuc",			eph.cuc		));
-	doc.append(kvp("Cus",			eph.cus		));
+	doc.append(kvp("deln",			eph.deln	));
+	doc.append(kvp("crc",			eph.crc		));
+	doc.append(kvp("crs",			eph.crs		));
+	doc.append(kvp("cic",			eph.cic		));
+	doc.append(kvp("cis",			eph.cis		));
+	doc.append(kvp("cuc",			eph.cuc		));
+	doc.append(kvp("cus",			eph.cus		));
 
-	doc.append(kvp("TGD0",			eph.tgd[0]	));
-	doc.append(kvp("TGD1",			eph.tgd[1]	));	// GPS/QZS no tgd[1]
-	doc.append(kvp("URAIndex",		eph.sva		));
+	doc.append(kvp("tgd0",			eph.tgd[0]	));
+	doc.append(kvp("tgd1",			eph.tgd[1]	));	// GPS/QZS no tgd[1]
+	doc.append(kvp("sva",			eph.sva		));
 	
 	if	( eph.Sat.sys == +E_Sys::GPS
 		||eph.Sat.sys == +E_Sys::QZS)
 	{
-		doc.append(kvp("URA",				eph.ura[0]	));
-		doc.append(kvp("SVHealth",			eph.svh		));
-		doc.append(kvp("CodeOnL2",			eph.code	));
-		doc.append(kvp("L2PDataFlag",		eph.flag	));	// QZS no flag
-		doc.append(kvp("FitFlag",			eph.fitFlag	));
-		doc.append(kvp("FitInterval",		eph.fit		));
+		doc.append(kvp("ura",				eph.ura[0]	));
+		doc.append(kvp("svh",				eph.svh		));
+		doc.append(kvp("code",				eph.code	));
+		doc.append(kvp("flag",				eph.flag	));	// QZS no flag
+		doc.append(kvp("fitFlag",			eph.fitFlag	));
+		doc.append(kvp("fit",				eph.fit		));
 	}
 	else if (eph.Sat.sys == +E_Sys::GAL)
 	{

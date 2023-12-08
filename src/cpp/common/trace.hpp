@@ -56,18 +56,23 @@ void tracepdeex(int level, Trace& stream, string const& fmt, Arguments&&... args
 
 template<typename T>
 std::ofstream getTraceFile(
-	T& thing)
+	T&		thing,
+	bool	json = false)
 {
-	if (thing.traceFilename.empty())
+	string traceFilename;
+	if (json)		traceFilename = thing.jsonTraceFilename;
+	else 			traceFilename = thing.traceFilename;
+	
+	if (traceFilename.empty())
 	{
 		return std::ofstream();
 	}
 
-	std::ofstream trace(thing.traceFilename, std::ios::app);
+	std::ofstream trace(traceFilename, std::ios::app);
 	if (!trace)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error: Could not open trace file for " << thing.id << " at " << thing.traceFilename;
+		<< "Error: Could not open trace file for " << thing.id << " at " << traceFilename;
 	}
 
 	return trace;
@@ -102,15 +107,16 @@ struct Block
 
 struct ArbitraryKVP
 {
-	string	name;
-	string	str;
-	double	num;
-	int		integer;
-	int		type = 0;
+	string		name;
+	string		str;
+	double		num;
+	long int	integer;
+	int			type = 0;
 	
 	ArbitraryKVP(string name, string	str)		: name {name}, str		{str		}	{	type = 0;	}
 	ArbitraryKVP(string name, double	num)		: name {name}, num		{num		}	{	type = 1;	}
 	ArbitraryKVP(string name, int		integer)	: name {name}, integer	{integer	}	{	type = 2;	}
+	ArbitraryKVP(string name, long int	integer)	: name {name}, integer	{integer	}	{	type = 2;	}
 	
 	string value()
 	{

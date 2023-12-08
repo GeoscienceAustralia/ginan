@@ -157,26 +157,6 @@ void getKalmanRecClks(
 	}
 }
 
-
-void getKalmanRecClks(
-	ClockList&		clkValList,
-	ClockEntry&		referenceRec,
-	StationMap*		stationMap_ptr)
-{
-	if (stationMap_ptr == nullptr)
-	{
-		return;
-	}
-	
-	auto& stationMap = *stationMap_ptr;
-	
-	for (auto& [id, rec] : stationMap)
-	{
-		ClockEntry dummyRefRec;
-		getKalmanRecClks(clkValList, dummyRefRec, rec.pppState);
-	}
-}
-
 void getPreciseRecClks(
 	ClockList&  	clkValList,
 	StationMap*		stationMap_ptr,

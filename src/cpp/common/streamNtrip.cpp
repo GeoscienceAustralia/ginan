@@ -1,6 +1,12 @@
 
 // #pragma GCC optimize ("O0")
 
+#include <mutex>
+
+using std::lock_guard;
+using std::mutex;
+
+
 #include "streamNtrip.hpp"
 #include "trace.hpp"
 

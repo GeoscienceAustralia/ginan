@@ -4,6 +4,8 @@
 #include <boost/log/trivial.hpp>
 
 #include "rtcmEncoder.hpp"
+#include "navigation.hpp"
+#include "ephemeris.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
 
@@ -14,7 +16,7 @@ int uraToClassValue(double ura)
 	int uraClassValue = 0;
 
 	for (uraClassValue = 0; uraClassValue < 64; uraClassValue++)
-		if (ura_ssr[uraClassValue] >= ura)
+		if (uraSsr[uraClassValue] >= ura)
 			break;
 
 	return uraClassValue;
@@ -23,11 +25,11 @@ int uraToClassValue(double ura)
 void calculateSsrComb(
 	GTime 			referenceTime,
 	int 			udi,
-	SSRMeta 		ssrMeta,
+	SSRMeta& 		ssrMeta,
 	int 			masterIod,
 	SsrOutMap&		ssrOutMap)
 {
-	if (ssrOutMap.empty())	
+	if (ssrOutMap.empty())
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No suitable Ephemeris data available.";
 		return;
@@ -43,13 +45,13 @@ void calculateSsrComb(
 			tracepdeex(3, std::cout, "IODE mismatch between clock and ephemeris for %s\n", Sat.id().c_str());
 			continue;
 		}
-		
+
 		auto& ssrEph		= ssrOut.ssrEph;
 		auto& ssrClk		= ssrOut.ssrClk;
 		auto& ssrUra		= ssrOut.ssrUra;
 		auto& ssrEphInput	= ssrOut.ephInput;
 		auto& ssrClkInput	= ssrOut.clkInput;
-		
+
 		ssrEph.t0 			= referenceTime;
 		ssrClk.t0 			= referenceTime;
 		ssrUra.t0 			= referenceTime;
@@ -59,18 +61,18 @@ void calculateSsrComb(
 		ssrEph.iod			= masterIod;
 		ssrClk.iod			= masterIod;
 		ssrUra.iod			= masterIod;
-		
+
 		ssrEph.ssrMeta		= ssrMeta;
 		ssrClk.ssrMeta		= ssrMeta;
 		ssrUra.ssrMeta		= ssrMeta;
 
 		ssrEph.iode			= ssrEphInput.vals[0].iode;
 		// ssrEph.iodcrc		= ??
-		
+
 		double		clkCorrections[2];
 		Vector3d	posCorrections[2];
 		double		uras[2];
-		
+
 		for (int i = 0; i < 2; i++)
 		{
 			posCorrections[i]	= ssrEphInput.vals[i].brdcPos
@@ -79,48 +81,53 @@ void calculateSsrComb(
 								- ssrClkInput.vals[i].precClk;
 			uras[i]				= ephVarToUra(ssrEphInput.vals[i].ephVar);
 		}
-		
+
 		if (acsConfig.ssrOpts.extrapolate_corrections)	// todo Eugene: check if ura can be interpolated
 		{
 			Vector3d	diffRAC[2];
 			double		diffClock[2];
 			double		uraSsr[2];
-		
+
 			for (int dt : {0, 1})
 			{
 				double		ephRatio	= (ssrEph.t0 + dt - ssrEphInput.vals[0].time).to_double() / (ssrEphInput.vals[1].time - ssrEphInput.vals[0].time).to_double();
 				double		clkRatio	= (ssrClk.t0 + dt - ssrClkInput.vals[0].time).to_double() / (ssrClkInput.vals[1].time - ssrClkInput.vals[0].time).to_double();
-			
+
 				Vector3d	posCorrection	= posCorrections[0] 			+ ephRatio	* (posCorrections[1]			- posCorrections[0]);
 				double		clkCorrection	= clkCorrections[0]				+ clkRatio	* (clkCorrections[1]			- clkCorrections[0]);
 				double		ura				= uras[0] 						+ ephRatio	* (uras[1]						- uras[0]);
-			
+
 				Vector3d	satPosition		= ssrEphInput.vals[0].brdcPos	+ ephRatio	* (ssrEphInput.vals[1].brdcPos	- ssrEphInput.vals[0].brdcPos);
 				Vector3d	satVelocity		= ssrEphInput.vals[0].brdcVel	+ ephRatio	* (ssrEphInput.vals[1].brdcVel	- ssrEphInput.vals[0].brdcVel);
-			
+
 				Vector3d	diffRac			= ecef2rac(satPosition, satVelocity) * posCorrection;
-			
+
 				diffRAC		[dt]	= diffRac;
 				diffClock	[dt]	= -clkCorrection;
 				uraSsr		[dt]	= ura;
 			}
-			
-			ssrEph. deph	= diffRAC[0]; 
+
+			ssrEph. deph	= diffRAC[0];
 			ssrEph.ddeph	= diffRAC[1] - diffRAC[0];
-	
+
 			ssrClk.dclk[0]	= diffClock[0];
 			ssrClk.dclk[1]	= 0; //diffClock[1] - diffClock[0];
 			ssrClk.dclk[2]	= 0;	// set to zero (not used)
 
 			ssrUra.ura		= uraSsr[0];
+			
+			tracepdeex (6,std::cout,"\n   RTCM_intp_Clk  %s %s %8.3f", referenceTime.to_string(0), Sat.id().c_str(), ssrClk.dclk[0]);
+			
 		}
 		else
 		{
 			ssrEph.deph		= ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) * posCorrections[1];
 			ssrClk.dclk[0]	= -clkCorrections[1];
 			ssrUra.ura		= uras[1];
+			tracepdeex (6,std::cout,"\n   RTCM_last_Clk  %s %s %8.4f", referenceTime.to_string(0), Sat.id().c_str(), ssrClk.dclk[0]);
+			tracepdeex (6,std::cout,"\n   RTCM_last_Eph  %s %s %8.4f %8.4f %8.4f", referenceTime.to_string(0), Sat.id().c_str(), ssrEph.deph[0], ssrEph.deph[1], ssrEph.deph[2]);
 		}
-		
+
 		//adjust all clock corrections so that they remain within the bounds of the outputs
 		E_Sys sys = Sat.sys;
 		if (commonClockOffsetsMap[sys][0] == 0)
@@ -138,7 +145,7 @@ void calculateSsrComb(
 		ssrClk.dclk[0] -= commonClockOffsetsMap[sys][0];
 		ssrClk.dclk[1] -= commonClockOffsetsMap[sys][1];
 	}
-}	
+}
 
 
 int RtcmEncoder::getUdiIndex(int udi)
@@ -150,9 +157,9 @@ int RtcmEncoder::getUdiIndex(int udi)
 			return i;
 		}
 	}
-	
-	BOOST_LOG_TRIVIAL(error) << "Error: udi is not valid :" << udi << ").";	
-	
+
+	BOOST_LOG_TRIVIAL(error) << "Error: udi is not valid :" << udi << ").";
+
 	return -1;
 }
 
@@ -171,7 +178,7 @@ bool RtcmEncoder::encodeWriteMessageToBuffer(
 {
 	int i = 0;
 	int messLength = buffer.size();
-	
+
 	if (buffer.empty())
 	{
 		return false;
@@ -179,15 +186,15 @@ bool RtcmEncoder::encodeWriteMessageToBuffer(
 
 	if (messLength > 1023)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error: message length exceeds the limit.";	
+		BOOST_LOG_TRIVIAL(error) << "Error: message length exceeds the limit.";
 		return false;
 	}
-	
+
 // 	unsigned char nbuf[messLength+6];
 	vector<uint8_t> newbuffer(messLength + 6);
 	unsigned char* nbuf	= newbuffer.data();
 	unsigned char* buf	= buffer.data();
-	
+
 	i = setbituInc(nbuf, i,  8, RTCM_PREAMBLE);
 	i = setbituInc(nbuf, i,  6, 0);
 	i = setbituInc(nbuf, i, 10, messLength);
@@ -197,7 +204,7 @@ bool RtcmEncoder::encodeWriteMessageToBuffer(
 
 	const unsigned char* bCrcBuf = (const unsigned char *)nbuf;
 	unsigned int crcCalc = crc24q(bCrcBuf, sizeof(char) * (messLength + 3));
-	
+
 	unsigned char* bCrcCalc = (unsigned char*)&crcCalc;
 	unsigned int b1 = 0;
 	unsigned int b2 = 0;
@@ -208,9 +215,9 @@ bool RtcmEncoder::encodeWriteMessageToBuffer(
 	i = setbituInc(nbuf, i, 8, b3);
 	i = setbituInc(nbuf, i, 8, b2);
 	i = setbituInc(nbuf, i, 8, b1);
-	
+
 	data.insert(data.end(), &nbuf[0], &nbuf[messLength + 6]);
-	
+
 	return true;
 }
 
@@ -220,9 +227,9 @@ vector<uint8_t> RtcmEncoder::encodeTimeStampRTCM()
 	// Custom message code, for crcsi maximum length 4096 bits or 512 bytes.
 	unsigned int messCode = +RtcmMessageType::CUSTOM;
 	unsigned int messType = +E_RTCMSubmessage::TIMESTAMP;
-	
+
 	GTime now = timeGet();
-	
+
 	int i = 0;
 	int byteLen = 11;
 	vector<uint8_t> buffer(byteLen);
@@ -231,15 +238,15 @@ vector<uint8_t> RtcmEncoder::encodeTimeStampRTCM()
 	i = setbituInc(buf, i, 12,	messCode);
 	i = setbituInc(buf, i, 8,	messType);
 	i = setbituInc(buf, i, 4,	reserved);
-	
+
 	long int milliseconds = now.bigTime * 1000;
-	
+
 	unsigned int chunk;
 	chunk = milliseconds;	i = setbituInc(buf, i, 32,	chunk);		milliseconds >>= 32;
 	chunk = milliseconds;	i = setbituInc(buf, i, 32,	chunk);
-	
+
 	traceTimestamp(now);
-	
+
 	return buffer;
 }
 
@@ -314,7 +321,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 	{
 		return vector<uint8_t>();
 	}
-	
+
 	auto& [Sat, ssrOut]		= *ssrOutMap.begin();
 	auto& ssrEph			= ssrOut.ssrEph;
 	auto& ssrMeta			= ssrEph.ssrMeta;
@@ -373,7 +380,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 	int i = 0;
 	// Write the header information.
 	i = encodeSsrHeader(buf, Sat.sys, messCode, ssrMeta, ssrEph.iod);
-	
+
 	for (auto& [Sat, ssrOut] : ssrOutMap)
 	{
 		auto& ssrEph = ssrOut.ssrEph;
@@ -406,7 +413,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 		{
 			i = setbituInc(buf, i, nj, ssrEph.iodcrc);
 			i = setbituInc(buf, i, ni, ssrEph.iode);
-			
+
 			i = setbitsInc(buf, i, 22, deph[0]);
 			i = setbitsInc(buf, i, 20, deph[1]);
 			i = setbitsInc(buf, i, 20, deph[2]);
@@ -416,7 +423,6 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 
 			lastRegSsrEphMap[Sat] = ssrEph;
 
-			nav.satNavMap[Sat].transmittedSSR.ssrEph_map[ssrEph.t0] = ssrEph;
 			traceSsrEph(messCode, Sat, ssrEph);
 		}
 
@@ -436,14 +442,13 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 			{
 				return vector<uint8_t>();
 			}
-			
+
 			i = setbitsInc(buf, i, 22, dclk[0]);
 			i = setbitsInc(buf, i, 21, dclk[1]);
 			i = setbitsInc(buf, i, 27, dclk[2]);
 
 			lastRegSsrClkMap[Sat] = ssrClk;
 
-			nav.satNavMap[Sat].transmittedSSR.ssrClk_map[ssrClk.t0] = ssrClk;
 			traceSsrClk(messCode, Sat, ssrClk);
 		}
 
@@ -462,7 +467,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 			{
 				return vector<uint8_t>();
 			}
-			
+
 			try
 			{
 				auto& lastRegSsrClk = lastRegSsrClkMap.at(Sat);
@@ -483,19 +488,18 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 
 			i = setbitsInc(buf, i, 22, ssrHRClk.hrclk	/ 0.1e-3);
 
-			nav.satNavMap[Sat].transmittedSSR.ssrHRClk_map[ssrHRClk.t0] = ssrHRClk;
 			traceSsrHRClk(messCode, Sat, ssrHRClk);
 		}
 	}
-	
+
 	int bitl = byteLen * 8 - i;
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Orbit/Clock.\n";
 		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
-	i = setbituInc(buf, i, bitl, 0); 
-	
+	i = setbituInc(buf, i, bitl, 0);
+
 	return buffer;
 }
 
@@ -520,11 +524,11 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 	{
 		return vector<uint8_t>();
 	}
-	
+
 	auto& [Sat, ssrPhasBias]	= *ssrPBMap.begin();
 	auto& ssrMeta				= ssrPhasBias.ssrMeta;
 	ssrMeta.numSats				= numSats;
-	
+
 	int np = 0;
 	switch (Sat.sys)
 	{
@@ -550,7 +554,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 		case RtcmMessageType::SBS_SSR_PHASE_BIAS:	bitLen = 69 + numSats * 28 + totalNumBias * 32;		break;
 		default:	return vector<uint8_t>();
 	}
-	
+
 	int byteLen = ceil(bitLen / 8.0);
 	vector<uint8_t> buffer(byteLen);
 	unsigned char* buf = buffer.data();
@@ -560,13 +564,13 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 	int dispBiasConistInd	= ssrPhasBias.ssrPhase.dispBiasConistInd;
 	int MWConistInd			= ssrPhasBias.ssrPhase.MWConistInd;
 	i = encodeSsrHeader(buf, Sat.sys, messCode, ssrMeta, ssrPhasBias.iod, dispBiasConistInd, MWConistInd);
-	
+
 	for (auto& [Sat, ssrPhasBias] : ssrPBMap)
 	{
 		ssrPhasBias.udi		= updateInterval[ssrMeta.updateIntIndex];	// for rtcmTrace (debugging)
 
 		SSRPhase ssrPhase = ssrPhasBias.ssrPhase;
-		
+
 		unsigned int nbias	= ssrPhasBias.obsCodeBiasMap.size();
 		int yawAngle		= (int)round(ssrPhase.yawAngle	*  256	/ SC2RAD);
 		int yawRate			= (int)round(ssrPhase.yawRate	* 8192	/ SC2RAD);
@@ -575,16 +579,16 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 		i = setbituInc(buf, i,  5, nbias);
 		i = setbituInc(buf, i,  9, yawAngle);
 		i = setbitsInc(buf, i,  8, yawRate);
-		
+
 		for (auto& [obsCode, entry] : ssrPhasBias.obsCodeBiasMap)
 		{
 			SSRPhaseCh ssrPhaseCh = ssrPhasBias.ssrPhaseChs[obsCode];
-			
+
 			//BOOST_LOG_TRIVIAL(debug) << "Phase, obsCode : " << obsCode << std::endl;
 			//BOOST_LOG_TRIVIAL(debug) << "E_sys         : " << sys << std::endl;
 			//BOOST_LOG_TRIVIAL(debug) << "mCodes_gps.size() : " << mCodes_gps.size() << std::endl;
 			//print_map( mCodes_gps.left, " E_ObsCode <--> RTCM ", BOOST_LOG_TRIVIAL(debug) );
-			
+
 			int rtcmCode = 0;
 			if		(Sat.sys == +E_Sys::GPS)	{	rtcmCode = mCodes_gps.left.at(obsCode);	}	//todo aaron, crash heaven, needs else, try
 			else if (Sat.sys == +E_Sys::GLO)	{	rtcmCode = mCodes_glo.left.at(obsCode);	}
@@ -592,9 +596,9 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 			else if (Sat.sys == +E_Sys::QZS)	{	rtcmCode = mCodes_qzs.left.at(obsCode);	}
 			else if (Sat.sys == +E_Sys::BDS)	{	rtcmCode = mCodes_bds.left.at(obsCode);	}
 			else if (Sat.sys == +E_Sys::SBS)	{	rtcmCode = mCodes_sbs.left.at(obsCode);	}
-			
+
 			//BOOST_LOG_TRIVIAL(debug) << "rtcmCode      : " << rtcmCode << std::endl;
-			
+
 			int bias = (int)round(entry.bias / 0.0001);
 
 			i = setbituInc(buf, i,  5, rtcmCode);
@@ -602,22 +606,20 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 			i = setbituInc(buf, i,  2, ssrPhaseCh.signalWLIntInd);
 			i = setbituInc(buf, i,  4, ssrPhaseCh.signalDisconCnt);
 			i = setbitsInc(buf, i, 20, bias);
-			
-			nav.satNavMap[Sat].transmittedSSR.ssrPhasBias_map[ssrPhasBias.t0] = ssrPhasBias;
-			
-			traceSsrPhasBias(messCode, Sat, obsCode, ssrPhasBias);  
+
+			traceSsrPhasBias(messCode, Sat, obsCode, ssrPhasBias);
 		}
-	} 
-	
+	}
+
 	int bitl = byteLen * 8 - i;
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
 		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
-	
+
 	i = setbituInc(buf, i, bitl, 0);
-	
+
 	return buffer;
 }
 
@@ -626,13 +628,13 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 vector<uint8_t> RtcmEncoder::encodeSsrCode(
 	SsrCBMap&		ssrCBMap,				///< code biases to encode
 	RtcmMessageType	messCode)				///< RTCM message code to encode ephemeris of
-{	
+{
 	int numSats = ssrCBMap.size();
 	if (numSats == 0)
 	{
 		return vector<uint8_t>();
 	}
-	
+
 	int totalNumBias = 0;
 	for (auto& [Sat, ssrCodeBias] : ssrCBMap)
 	{
@@ -689,7 +691,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrCode(
 
 		i = setbituInc(buf, i, np, Sat.prn);
 		i = setbituInc(buf, i,  5, nbias);
-		
+
 		for (auto& [obsCode, entry] : ssrCodeBias.obsCodeBiasMap)
 		{
 			int rtcmCode = 0;
@@ -704,13 +706,11 @@ vector<uint8_t> RtcmEncoder::encodeSsrCode(
 
 			i = setbituInc(buf, i,  5, rtcmCode);
 			i = setbitsInc(buf, i, 14, bias);
-			
-			nav.satNavMap[Sat].transmittedSSR.ssrCodeBias_map[ssrCodeBias.t0] = ssrCodeBias;
 
 			traceSsrCodeBias(messCode, Sat, obsCode, ssrCodeBias);
 		}
 	}
-	
+
 	int bitl = byteLen * 8 - i;
 	if (bitl > 7)
 	{
@@ -718,7 +718,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrCode(
 		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
 	i = setbituInc(buf, i, bitl, 0);
-	
+
 	return buffer;
 }
 
@@ -733,12 +733,12 @@ vector<uint8_t> RtcmEncoder::encodeSsrUra(
 	{
 		return vector<uint8_t>();
 	}
-	
+
 	auto& [Sat, ssrOut]		= *ssrOutMap.begin();
 	auto& ssrUra			= ssrOut.ssrUra;
 	auto& ssrMeta			= ssrUra.ssrMeta;
 	ssrMeta.numSats			= numSats;
-	
+
 	int np = 0;
 	switch (Sat.sys)
 	{
@@ -772,7 +772,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrUra(
 	int i = 0;
 	// Write the header information.
 	i = encodeSsrHeader(buf, Sat.sys, messCode, ssrMeta, ssrUra.iod);
-	
+
 	for (auto& [Sat, ssrOut] : ssrOutMap)
 	{
 		auto& ssrUra = ssrOut.ssrUra;
@@ -783,20 +783,18 @@ vector<uint8_t> RtcmEncoder::encodeSsrUra(
 
 		i = setbituInc(buf, i, np, Sat.prn);
 		i = setbituInc(buf, i,  6, uraClassValue);
-		
-		nav.satNavMap[Sat].transmittedSSR.ssrUra_map[ssrUra.t0] = ssrUra;
 
 		traceSsrUra(messCode, Sat, ssrUra);
 	}
-	
+
 	int bitl = byteLen * 8 - i;
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR URA.\n";
 		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
 	}
-	i = setbituInc(buf, i, bitl, 0); 
-	
+	i = setbituInc(buf, i, bitl, 0);
+
 	return buffer;
 }
 
@@ -1055,7 +1053,7 @@ vector<uint8_t> RtcmEncoder::encodeEphemeris(
 			i = setbituInc(buf, i,  1, eph.e1_dvs);
 		}
 	}
-	
+
 	int bitl = byteLen * 8 - i;
 	if (bitl > 7)
 	{
@@ -1066,7 +1064,7 @@ vector<uint8_t> RtcmEncoder::encodeEphemeris(
 
 	if (acsConfig.output_encoded_rtcm_json)
 		traceBrdcEph(messCode, eph);
-		
+
 	return buffer;
 }
 
@@ -1145,7 +1143,7 @@ vector<uint8_t> RtcmEncoder::encodeEphemeris(
 
 	if (acsConfig.output_encoded_rtcm_json)
 		traceBrdcEph(messCode, geph);
-	
+
 	return buffer;
 }
 
@@ -1159,21 +1157,22 @@ void setbitu(
 	unsigned int	value)			///< value to set
 {
 	unsigned int mask=1u<<(len-1);
-	
+
 	if	( len <= 0
 		||len >  32)
 	{
 		return;
 	}
-	
+
 	unsigned long int invalid = (1ul<<len);
-	
+
 	if (value >= invalid)
 	{
-		std::cout << "Warning: " << __FUNCTION__ << " has data outside range\n";
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: " << __FUNCTION__ << " has data outside range\n";
 	}
-	
-	for (int i = pos; i < pos+len; i++, mask >>= 1) 
+
+	for (int i = pos; i < pos+len; i++, mask >>= 1)
 	{
 		if (value&mask)	buff[i/8] |=  (1u<<(7-i%8));
 		else			buff[i/8] &= ~(1u<<(7-i%8));
@@ -1189,23 +1188,23 @@ void setbits(
 	int				value)	///< value to set
 {
 	unsigned int mask = 1u<<(len-1);
-	
+
 	if	( len <= 0
 		||len >  32)
 	{
 		return;
 	}
-	
+
 	long int invalid = (1ul<<(len-1));
-	
+
 	if	( +value >= invalid
 		||-value >= invalid)
 	{
-		std::cout << "Warning: " << __FUNCTION__ << " has data outside range, setting invalid\n";
+		BOOST_LOG_TRIVIAL(warning) << "Warning: " << __FUNCTION__ << " has data outside range, setting invalid\n";
 		value = -invalid;
 	}
-	
-	for (int i = pos; i < pos+len; i++, mask >>= 1) 
+
+	for (int i = pos; i < pos+len; i++, mask >>= 1)
 	{
 		if (value&mask)	buff[i/8] |=  (1u<<(7-i%8));
 		else			buff[i/8] &= ~(1u<<(7-i%8));
@@ -1219,7 +1218,7 @@ int setbituInc(
 	int				pos,	///< bit position from start of data (bits)
 	int				len,	///< bit length (bits) (len<=32)
 	unsigned int	value)	///< value to set
-{   
+{
 	setbitu(buff, pos, len, value);
 	return pos + len;
 }

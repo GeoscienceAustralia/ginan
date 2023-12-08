@@ -3,7 +3,7 @@
 
 /** \file
 * ###References:
-* 
+*
 * 1.  D.D.McCarthy, IERS Technical Note 21, IERS Conventions 1996, July 1996
 * 2.  D.D.McCarthy and G.Petit, IERS Technical Note 32, IERS Conventions 2003, November 2003
 * 3.  D.A.Vallado, Fundamentals of Astrodynamics and Applications 2nd ed, Space Technology Library, 2004
@@ -27,13 +27,13 @@ using std::vector;
 
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
-#include "corrections.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
 #include "ephPrecise.hpp"
 #include "ephemeris.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
+#include "station.hpp"
 #include "planets.hpp"
 #include "satStat.hpp"
 #include "antenna.hpp"
@@ -52,7 +52,7 @@ void testEclipse(
 	/* unit vector of sun direction (ecef) */
 	VectorEcef rsun;
 	planetPosEcef(obsList.front()->time, E_ThirdBody::SUN, rsun);
-	
+
 	Vector3d esun = rsun.normalized();
 
 	for (auto& obs : only<GObs>(obsList))
@@ -65,7 +65,7 @@ void testEclipse(
 			continue;
 		}
 
-		double r = obs.rSat.norm();
+		double r = obs.rSatCom.norm();
 		if (r <= 0)
 			continue;
 
@@ -74,11 +74,11 @@ void testEclipse(
 // 			continue;
 
 		/* sun-earth-satellite angle */
-		double cosa = obs.rSat.dot(esun) / r;
-		
+		double cosa = obs.rSatCom.dot(esun) / r;
+
 		if (cosa < -1)		cosa = -1;
 		if (cosa > +1)		cosa = +1;
-		
+
 		double ang = acos(cosa);
 
 		/* test eclipse */
@@ -107,12 +107,12 @@ struct SatGeom
 /** Calculates satellite orbit geometry - for use in calculating modelled yaw
  */
 SatGeom satOrbitGeometry(
-	GObs&		obs)			///< Observation
+	SatPos&		satPos)			///< Observation
 {
 	SatGeom satGeom;
-	satGeom.rSat = obs.rSat;
-	
-	Vector3d&	vSat		= obs.satVel;
+	satGeom.rSat = satPos.rSatCom;
+
+	Vector3d&	vSat		= satPos.satVel;
 
 	Vector3d&	rSat		= satGeom.rSat;
 	Vector3d&	vSatPrime	= satGeom.vSatPrime;
@@ -122,9 +122,9 @@ SatGeom satOrbitGeometry(
 	double&		beta		= satGeom.beta;
 	double&		mu			= satGeom.mu;
 
-	planetPosEcef(obs.time, E_ThirdBody::SUN,	rSun);
-	planetPosEcef(obs.time, E_ThirdBody::MOON,	rMoon);
-	
+	planetPosEcef(satPos.posTime, E_ThirdBody::SUN,		rSun);
+	planetPosEcef(satPos.posTime, E_ThirdBody::MOON,	rMoon);
+
 	vSatPrime = vSat;
 	vSatPrime[0] -= OMGE * rSat[1];
 	vSatPrime[1] += OMGE * rSat[0];
@@ -142,10 +142,10 @@ SatGeom satOrbitGeometry(
 	double E	= acos(eSat	.dot(ep));						//angle between sat and ascension node?
 	if (eSat.dot(eSun) <= 0)	mu = PI / 2 - E;				//sat on dark side
 	else						mu = PI / 2 + E;				//sat on noon side
-	
+
 	wrapPlusMinusPi(beta);
 	wrapPlusMinusPi(mu);
-	
+
 	return satGeom;
 }
 
@@ -182,7 +182,7 @@ double circleAreaVisible(
 		double smallerR = std::min(r1, r2);
         intersection = PI * SQR(smallerR);
 	}
-	else // partial overlap		
+	else // partial overlap
 	{
 		double area1 = PI * SQR(r1);
 		double area2 = PI * SQR(r2);
@@ -192,7 +192,7 @@ double circleAreaVisible(
 		intersection	= SQR(r1) * acos(d1 / r1) - d1 * sqrt(SQR(r1) - SQR(d1))
 						+ SQR(r2) * acos(d2 / r2) - d2 * sqrt(SQR(r2) - SQR(d2)); // Ref: https://diego.assencio.com/?index=8d6ca3d82151bad815f78addf9b5c1c6
 	}
-	
+
 	double area1 = PI * SQR(r1);
 	return (area1 - intersection) / area1;
 }
@@ -265,7 +265,7 @@ bool satYawGps(
 	// Nominal behaviour
 	attStatus.nominalYaw = nominalYawGps(beta, mu);
 	double reqYawChange	= attStatus.nominalYaw	- attStatus.modelYaw;		wrapPlusMinusPi(reqYawChange);
-	double dt			= (time					- attStatus.modelYawTime).to_double();		
+	double dt			= (time					- attStatus.modelYawTime).to_double();
 	double reqYawRate;
 	if (dt == 0)	reqYawRate = 0;
 	else			reqYawRate = reqYawChange / dt;
@@ -280,7 +280,7 @@ bool satYawGps(
 		string bt = Sat.blockType().substr(0,7); // Not well modelled
 		if (bt == "GPS-IIA")
 			return false;
-		
+
 		if (bt == "GPS-IIF") // Shadow constant yaw steering
 		{
 			if (attStatus.eclipseYawRate == 0) // Start of eclipse
@@ -312,22 +312,8 @@ bool satYawGps(
 	}
 
 	attStatus.modelYaw	+= modelYawRate * dt;			wrapPlusMinusPi(attStatus.modelYaw);
-	
-	return true;
-}
 
-/** Calculate Sun position in Galileo orbital reference frame {Along, -Cross, -Radial}
- */
-Vector3d sunPosOrf(
-	double		beta,	///< Sun elevation angle with respect to the orbital plane
-	double		mu)		///< Angle of sat from 'midnight' (when sat is at the furthest point from Sun in its orbit)
-{
-	Vector3d eSun;
-	eSun(0) = -sin(mu + PI) * cos(beta);
-	eSun(1) = -sin(beta);
-	eSun(2) = -cos(mu + PI) * cos(beta);
-	
-	return eSun;
+	return true;
 }
 
 /** Calculate nominal (ideal) sat yaw for GAL-IOV sats. Follows original GAL convention.
@@ -430,11 +416,11 @@ bool satYawGalFoc(
 	Vector3d eSat = rSat.normalized();
 	Vector3d x = eNorm.cross(eSun);
 	Vector3d y = eNorm.cross(x);
-	
+
 	double colinearAngle;
 	if (eSat.dot(y) >= 0)		colinearAngle = 	 acos(eSat.dot(y));
 	else						colinearAngle = PI - acos(eSat.dot(y));
-	
+
 	if	( beta			< 4.1 * D2R
 		&&colinearAngle	< 10  * D2R)
 	{
@@ -486,7 +472,7 @@ bool satYawGlo(
 
 		if (attStatus.yawAtSwitch == 0)
 			attStatus.yawAtSwitch = attStatus.nominalYaw;
-		
+
 
 		reqYaw = PI - attStatus.yawAtSwitch;					wrapPlusMinusPi(reqYaw);
 	}
@@ -496,7 +482,7 @@ bool satYawGlo(
 	}
 
 	double reqYawChange	= reqYaw - attStatus.modelYaw;			wrapPlusMinusPi(reqYawChange);
-	double dt			= (time	 - attStatus.modelYawTime).to_double();		
+	double dt			= (time	 - attStatus.modelYawTime).to_double();
 	double reqYawRate;
 	if (dt == 0)	reqYawRate = 0;
 	else			reqYawRate = reqYawChange / dt;
@@ -619,7 +605,7 @@ bool satYawQzs2I(
 			attStatus.signAtSwitch = SGN(targetYaw - attStatus.nominalYaw); // req'd direction to yaw towards
 		}
 		double modelYawRate = maxYawRate * attStatus.signAtSwitch;
-		double dt = (time - attStatus.modelYawTime).to_double();		
+		double dt = (time - attStatus.modelYawTime).to_double();
 		attStatus.modelYaw	+= modelYawRate * dt;			wrapPlusMinusPi(attStatus.modelYaw);
 	}
 	else
@@ -677,11 +663,11 @@ bool satYawBds3(
  * Ref: https://doi.org/10.1007/s10291-018-0783-1 https://doi.org/10.1017/S0373463318000103
 */
 bool satYawBds2(
+	SatSys&		Sat,							///< Satellite ID
 	AttStatus&	attStatus,						///< Satellite att status
 	GTime		time,							///< Solution time
 	SatGeom&	satGeom,						///< Satellite geometry
-	double 		tMax,							///< Maximum mnvr time
-	SatSys&		Sat)							///< Satellite ID
+	double 		tMax)							///< Maximum mnvr time
 {
 	double&		beta		= satGeom.beta;
 	double&		mu			= satGeom.mu;
@@ -732,7 +718,7 @@ bool satYawBds2(
 
 	if (orbitNormalMode)	satYawOrbNor(attStatus, PI);
 	else					attStatus.modelYaw = attStatus.nominalYaw;
-	
+
 	return true;
 }
 
@@ -753,7 +739,7 @@ void yawToAttVecs(
 	Vector3d en		= n.	normalized();
 	Vector3d eSat	= rSat.	normalized();
 	Vector3d ex = en.cross(eSat);
-	
+
 	double cosy = cos(yaw);
 	double siny = sin(yaw);
 	eXSat = siny * en - cosy * ex;
@@ -765,61 +751,65 @@ void yawToAttVecs(
  * Returns false if no modelled yaw available
 */
 void satYaw(
-	GObs&		obs,			///< Observation
+	SatPos&		satPos,			///< Observation
 	AttStatus&	attStatus)		///< Satellite att status. Use a disposable copy if calling inside multithreaded code
 {
-	SatGeom satGeom = satOrbitGeometry(obs);
-	switch (obs.Sat.sys)
+	SatGeom satGeom = satOrbitGeometry(satPos);
+
+	SatSys	Sat		= satPos.Sat;
+	GTime	time	= satPos.posTime;
+
+	switch (Sat.sys)
 	{
 		case E_Sys::GPS:
-		{	
-										attStatus.modelYawValid =	satYawGps	(obs.Sat, attStatus, obs.time, satGeom);
+		{
+										attStatus.modelYawValid =	satYawGps	(Sat, attStatus, time, satGeom);
 			break;
 		}
 		case E_Sys::GAL:
 		{
-			string bt = obs.Sat.blockType().substr(0,5);
-			if		(bt == "GAL-1")		attStatus.modelYawValid =	satYawGalIov(obs.Sat, attStatus, obs.time, satGeom);
-			else if (bt == "GAL-2")		attStatus.modelYawValid =	satYawGalFoc(obs.Sat, attStatus, obs.time, satGeom);
-			else						attStatus.modelYawValid =	satYawGalFoc(obs.Sat, attStatus, obs.time, satGeom);
+			string bt = Sat.blockType().substr(0,5);
+			if		(bt == "GAL-1")		attStatus.modelYawValid =	satYawGalIov(Sat, attStatus, time, satGeom);
+			else if (bt == "GAL-2")		attStatus.modelYawValid =	satYawGalFoc(Sat, attStatus, time, satGeom);
+			else						attStatus.modelYawValid =	satYawGalFoc(Sat, attStatus, time, satGeom);
 			break;
 		}
 		case E_Sys::GLO:
-		{	
-										attStatus.modelYawValid =	satYawGlo	(obs.Sat, attStatus, obs.time, satGeom);
+		{
+										attStatus.modelYawValid =	satYawGlo	(Sat, attStatus, time, satGeom);
 			break;
 		}
 		case E_Sys::QZS:
-		{	
-			string bt = obs.Sat.blockType().substr(0,6);
-			if		(bt == "QZS-1 ")	attStatus.modelYawValid = 	satYawQzs1	(obs.Sat, attStatus, obs.time, satGeom);
-			else if	(bt == "QZS-2G")	attStatus.modelYawValid = 	satYawOrbNor(attStatus							);
-			else						attStatus.modelYawValid = 	satYawQzs2I	(obs.Sat, attStatus, obs.time, satGeom);
+		{
+			string bt = Sat.blockType().substr(0,6);
+			if		(bt == "QZS-1 ")	attStatus.modelYawValid = 	satYawQzs1	(Sat,	attStatus, time, satGeom);
+			else if	(bt == "QZS-2G")	attStatus.modelYawValid = 	satYawOrbNor(		attStatus				);
+			else						attStatus.modelYawValid = 	satYawQzs2I	(Sat,	attStatus, time, satGeom);
 			break;
 		}
 		case E_Sys::BDS:
-		{	
-			string bt = obs.Sat.blockType().substr(0,6);
+		{
+			string bt = Sat.blockType().substr(0,6);
 			if		( bt == "BDS-2G"
-					||bt == "BDS-3G")	attStatus.modelYawValid =	satYawOrbNor(attStatus, PI						);
-			else if	( bt == "BDS-2I")	attStatus.modelYawValid =	satYawBds2	(attStatus, obs.time, satGeom, 5740, obs.Sat);
-			else if	( bt == "BDS-2M")	attStatus.modelYawValid =	satYawBds2	(attStatus, obs.time, satGeom, 3090, obs.Sat);
-			else if	( bt == "BDS-3I")	attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 5740	);
-			else if	( bt == "BDS-3M")	attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 3090	);
-			else						attStatus.modelYawValid =	satYawBds3	(attStatus, obs.time, satGeom, 5740	);
+					||bt == "BDS-3G")	attStatus.modelYawValid =	satYawOrbNor(attStatus, PI);
+			else if	( bt == "BDS-2I")	attStatus.modelYawValid =	satYawBds2	(Sat,	attStatus, time, satGeom, 5740);
+			else if	( bt == "BDS-2M")	attStatus.modelYawValid =	satYawBds2	(Sat,	attStatus, time, satGeom, 3090);
+			else if	( bt == "BDS-3I")	attStatus.modelYawValid =	satYawBds3	(		attStatus, time, satGeom, 5740);
+			else if	( bt == "BDS-3M")	attStatus.modelYawValid =	satYawBds3	(		attStatus, time, satGeom, 3090);
+			else						attStatus.modelYawValid =	satYawBds3	(		attStatus, time, satGeom, 5740);
 			break;
 		}
 		default:
 		{
-																	satYawGps	(obs.Sat, attStatus, obs.time, satGeom);
+																	satYawGps	(Sat, attStatus, time, satGeom);
 										attStatus.modelYawValid = false;
 			// BOOST_LOG_TRIVIAL(warning) << "Attitude model not implemented for " << obs.Sat.sys._to_string() << " in " << __FUNCTION__ << ", using GPS model";
 			break;
 		}
 	}
-	
-										attStatus.nominalYawTime	= obs.time;
-	if (attStatus.modelYawValid)		attStatus.modelYawTime		= obs.time;
+
+										attStatus.nominalYawTime	= time;
+	if (attStatus.modelYawValid)		attStatus.modelYawTime		= time;
 }
 
 /** Recalls satellite nominal/model attitude
@@ -843,7 +833,7 @@ bool satAttModel(
 	}
 
 	yawToAttVecs(rSat, vSat, yaw, attStatus.eXBody, attStatus.eYBody, attStatus.eZBody);
-	
+
 	return pass;
 }
 
@@ -860,7 +850,7 @@ Matrix3d rotBasisMat(
 	rot.col(0) = eX;
 	rot.col(1) = eY;
 	rot.col(2) = eZ;
-	
+
 	return rot;
 }
 
@@ -915,15 +905,15 @@ bool preciseAttitude(
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Insufficient precise attitude data to perform slerp in " << __FUNCTION__;
-		
+
 		return false;
 	}
-	
+
 	Quaterniond	quatNow = quat1.slerp(frac, quat2);
-	
+
 	Matrix3d body2Ecef;
 	if		(entry1.frame == +E_ObxFrame::ECI)
-	{    
+	{
 		Matrix3d eci2Body = quatNow.toRotationMatrix();
 
 		Matrix3d body2Eci = eci2Body.transpose();
@@ -939,7 +929,7 @@ bool preciseAttitude(
 	else if	(entry1.frame == +E_ObxFrame::ECEF)
 	{
 		Matrix3d ecef2Body = quatNow.toRotationMatrix();
-		
+
 		body2Ecef = ecef2Body.transpose();
 	}
 	else if	(entry1.frame == +E_ObxFrame::BCRS)
@@ -952,6 +942,52 @@ bool preciseAttitude(
 		<< "Unknown frame type in " << __FUNCTION__ << ": " << entry1.frame._to_string();
 		return false;
 	}
+
+	attStatus.eXBody = body2Ecef.col(0);
+	attStatus.eYBody = body2Ecef.col(1);
+	attStatus.eZBody = body2Ecef.col(2);
+
+	return true;
+}
+
+bool kalmanAttitude(
+	string			id,					///< Satellite/receiver ID
+	GTime			time,				///< Solution time
+	AttStatus&		attStatus,			///< Attitude status
+	const KFState*	kfState_ptr)
+{
+	if (kfState_ptr == nullptr)
+	{
+		return false;
+	}
+
+	auto& kfState = *kfState_ptr;
+
+	bool found = true;
+
+	Quaterniond quat;
+
+	for (int i = 0; i < 4; i++)
+	{
+		KFKey kfKey;
+		kfKey.type	= KF::QUAT;
+		kfKey.str	= id;
+		kfKey.num	= i;
+
+		if (i == 0)		{	found &= kfState.getKFValue(kfKey, quat.w());	}
+		if (i == 1)		{	found &= kfState.getKFValue(kfKey, quat.x());	}
+		if (i == 2)		{	found &= kfState.getKFValue(kfKey, quat.y());	}
+		if (i == 3)		{	found &= kfState.getKFValue(kfKey, quat.z());	}
+	}
+
+	if (found == false)
+	{
+		return false;
+	}
+
+	quat.normalize();
+
+	Matrix3d body2Ecef = quat.toRotationMatrix().transpose();
 
 	attStatus.eXBody = body2Ecef.col(0);
 	attStatus.eYBody = body2Ecef.col(1);
@@ -982,13 +1018,13 @@ bool satAtt(
 			case E_Source::MODEL:	{	valid = satAttModel	 	(			rSat, vSat,	attStatus, E_Source::MODEL);	break;	}
 			case E_Source::PRECISE:	{	valid = preciseAttitude	(Sat, time,				attStatus);						break;	}
 		}
-		
+
 		if (valid)
 		{
 			break;
 		}
 	}
-	
+
 	if  ( origGal == false
 		&&Sat.sys == +E_Sys::GAL)
 	{
@@ -1003,16 +1039,16 @@ bool satAtt(
  * Returns false if no attitude available (usually due to eclipse)
 */
 bool satAtt(
-	GObs&				obs,				///< Observation data
+	SatPos&				satPos,				///< satellite position data
 	vector<E_Source>	attitudeTypes,		///< Attitude type
 	AttStatus&			attStatus,			///< Attitude status
 	bool				origGal = false)	///< Use original GAL frame of ref (rotate 180deg yaw from default GPS/antex) - affects GAL only
 {
 	return	satAtt(
-				obs.Sat,
-				obs.time,
-				obs.rSat,
-				obs.satVel,
+				satPos.Sat,
+				satPos.posTime,
+				satPos.rSatCom,
+				satPos.satVel,
 				attitudeTypes,
 				attStatus,
 				origGal);
@@ -1023,36 +1059,71 @@ bool satAtt(
 * Returns false if no attitude available (usually due to eclipse)
 */
 bool satQuat(
-	GObs&				obs,				///< observation
+	SatPos&				satPos,				///< observation
 	vector<E_Source>	attitudeTypes,		///< Attitude type
 	Quaterniond&		quat,				///< Rotation of satellite from ECEF
 	bool				origGal)			///< Use original GAL frame of ref (rotate 180deg yaw from default GPS/antex) - affects GAL only
 {
-	auto& attStatus = obs.satNav_ptr->attStatus;
+	auto& attStatus = satPos.satNav_ptr->attStatus;
 	
-	bool pass = satAtt(obs, attitudeTypes, attStatus, origGal);
+	satYaw(satPos, attStatus);
+	bool pass = satAtt(satPos, attitudeTypes, attStatus, origGal);
 
 	Matrix3d body2Ecef = rotBasisMat(attStatus.eXBody, attStatus.eYBody, attStatus.eZBody);
-	
+
 	quat = Quaterniond(body2Ecef);
 
 	return pass;
 }
 
 /** Update sat nominal/model yaws.
- * Call outside of multithreading code
+ * Call outside of multithreading code that may reference the same satellite in different threads
  */
 void updateSatAtts(
-	GObs&		obs)		///< observation
+	SatPos&		satPos)		///< observation
 {
-	auto& satNav	= *obs.satNav_ptr;
-	auto& attStatus = satNav.attStatus;
-	
-	auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+	auto& satNav		= *satPos.satNav_ptr;
+	auto& attStatus		= satNav.attStatus;
+	auto& satOpts		= acsConfig.getSatOpts(satPos.Sat);
+	auto& targetTime	= satPos.posTime;
 
-	satYaw(obs, 									attStatus);
-	satAtt(obs, satOpts.sat_attitude.sources,		attStatus);
-	antAtt(satNav.antBoresight, satNav.antAzimuth,	attStatus);
+	GTime currYawTime = attStatus.modelYawTime;
+	if (currYawTime == GTime::noTime())
+	{
+		currYawTime = targetTime;
+	}
+
+	if (targetTime < currYawTime)
+	{
+		//the target is in the past, all the models are designed to propagate forwards, so we're out of luck.
+		return;
+	}
+
+	//get position at previously calculated (current) yaw time (go back in time)
+	SatPos currSatPos = satPos;
+	currSatPos.rSatCom += satPos.satVel * (currYawTime - targetTime).to_double();
+	currSatPos.posTime = currYawTime;
+
+	// Step through time from previous update until satpos time
+	while (true)
+	{
+		currYawTime += satOpts.sat_attitude.model_dt;
+
+		if (currYawTime > targetTime)
+			currYawTime = targetTime;
+
+		//get new position and time at this step
+		currSatPos.rSatCom += satPos.satVel * (currYawTime - currSatPos.posTime).to_double();
+		currSatPos.posTime = currYawTime;
+
+		//calculate attitudes
+		satYaw(currSatPos, 									attStatus);
+		satAtt(currSatPos, satOpts.sat_attitude.sources,	attStatus);
+		antAtt(satNav.antBoresight, satNav.antAzimuth,		attStatus);
+
+		if (currYawTime == targetTime)
+			break;
+	}
 }
 
 
@@ -1067,14 +1138,14 @@ bool basicRecAttitude(
 	AttStatus&	attStatus)			///< Attitude status
 {
 	VectorPos pos = ecef2pos(rec.sol.sppRRec);
-	
+
 	Matrix3d E;
 	pos2enu(pos, E.data());
 
 	attStatus.eXBody = E.row(0);	// x = east
 	attStatus.eYBody = E.row(1);	// y = north
 	attStatus.eZBody = E.row(2);	// z = up
-	
+
 	return true;
 }
 
@@ -1083,10 +1154,12 @@ bool basicRecAttitude(
 void recAtt(
 	Station&			rec,				///< Receiver
 	GTime				time,				///< Time
-	vector<E_Source>	attitudeTypes)		///< Attitude type
+	vector<E_Source>	attitudeTypes,		///< Attitude type
+	const KFState*		kfState_ptr,
+	const KFState*		remote_ptr)
 {
 	auto& attStatus = rec.attStatus;
-	
+
 	bool valid = false;
 	for (auto& attitudeType : attitudeTypes)
 	{
@@ -1094,16 +1167,18 @@ void recAtt(
 		{
 			default:	BOOST_LOG_TRIVIAL(error) << "Unknown attitudeType in " << __FUNCTION__ << ": " << attitudeType._to_string();
 			case E_Source::MODEL:	//fallthrough
-			case E_Source::NOMINAL:	{	valid = basicRecAttitude(rec,				attStatus);			break;	}
-			case E_Source::PRECISE:	{	valid = preciseAttitude	(rec.id,	time,	attStatus);			break;	}
+			case E_Source::NOMINAL:	{	valid = basicRecAttitude(rec,				attStatus);					break;	}
+			case E_Source::PRECISE:	{	valid = preciseAttitude	(rec.id,	time,	attStatus);					break;	}
+			case E_Source::KALMAN:	{	valid = kalmanAttitude	(rec.id,	time,	attStatus, kfState_ptr);	break;	}
+			case E_Source::REMOTE:	{	valid = kalmanAttitude	(rec.id,	time,	attStatus, remote_ptr);		break;	}
 		}
-		
+
 		if (valid)
 		{
 			break;
 		}
 	}
-	
+
 	antAtt(rec.antBoresight, rec.antAzimuth, attStatus);
 }
 
@@ -1118,39 +1193,39 @@ void phaseWindup(
 	Vector3d& eXSat = attStatus.eXAnt;
 	Vector3d& eYSat = attStatus.eYAnt;
 	Vector3d& eZSat = attStatus.eZAnt;
-	
+
 	Vector3d& eXRec = rec.attStatus.eXAnt;
 	Vector3d& eYRec = rec.attStatus.eYAnt;
 	Vector3d& eZRec = rec.attStatus.eZAnt;
-	
+
 	/* unit vector satellite to receiver */
 	Vector3d look = obs.satStat_ptr->e;
-	
+
 	//Get axis of rotation between antenna boresight and look vector
 	Vector3d recAxis	= +1 *	eZRec	.cross(look)	.normalized();
 	Vector3d satAxis	= -1 *	eZSat	.cross(look)	.normalized();
-	
+
 	//We dont need 1,2 for the first axis, because they are common
-	
+
 	//Get another unit vector to finish the boresight, axis, coordinate set
 	Vector3d recQuad1	= +1 *	eZRec	.cross(recAxis)	.normalized();
 	Vector3d satQuad1	= -1 *	eZSat	.cross(satAxis)	.normalized();
-	
+
 	//Get another unit vector to finish the look vector, axis, coordinate set
 	Vector3d recQuad2	= 		look	.cross(recAxis)	.normalized();
 	Vector3d satQuad2	= 		look	.cross(satAxis)	.normalized();
-	
+
 	//Apply a zero-twist rotation to the antenna to align it with the look vector.
 	//Get projection of x axis on coordinate set1, then apply to coordinate set 2
 	Vector3d recXnew	= eXRec.dot(recAxis) * recAxis		+ eXRec.dot(recQuad1) * recQuad2;
 	Vector3d recYnew	= eYRec.dot(recAxis) * recAxis		+ eYRec.dot(recQuad1) * recQuad2;
-						
+
 	Vector3d satXnew	= eXSat.dot(satAxis) * satAxis		+ eXSat.dot(satQuad1) * satQuad2;
 	Vector3d satYnew	= eYSat.dot(satAxis) * satAxis		+ eYSat.dot(satQuad1) * satQuad2;
-	
+
 	//Get angle offset by looking at receiver's new components alignment with satellite's new x component
 	double angleOffset	= atan2(satXnew.dot(recYnew), -satYnew.dot(recYnew));
-	
+
 	//Convert to a fraction of cycles (apply an offset to match old code)
 	double phaseFraction = angleOffset / (2 * PI) - 0.25;
 

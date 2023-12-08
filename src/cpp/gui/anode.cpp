@@ -117,8 +117,8 @@ void callback0()
 }
 
 string nonNumericStack(
-	string			stack,
-	string&			cut,
+	const string&	stack,
+	string			cut,
 	bool			colon = true);
 
 #include "acsConfig.hpp"

@@ -16,10 +16,8 @@ using std::map;
 
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
-#include "corrections.hpp"
 #include "navigation.hpp"
 #include "ephPrecise.hpp"
-#include "biasSINEX.hpp"
 #include "constants.hpp"
 #include "mongoRead.hpp"
 #include "ephemeris.hpp"
@@ -27,6 +25,7 @@ using std::map;
 #include "algebra.hpp"
 #include "planets.hpp"
 #include "common.hpp"
+#include "biases.hpp"
 #include "gTime.hpp"
 #include "trace.hpp"
 #include "enums.h"
@@ -75,7 +74,7 @@ int readdcb(
 		double cbias	= str2num(buff,26,9);
 		double rms		= str2num(buff,38,9);
 
-		entry.bias = cbias   * 1E-9 * CLIGHT; /* ns -> m */ //todo aaron, this looks like it had issues to begin with
+		entry.bias = cbias   * 1E-9 * CLIGHT; /* ns -> m */
 		entry.var  = SQR(rms * 1E-9 * CLIGHT);
 
 		SatSys Sat(str1);
@@ -269,103 +268,6 @@ bool pephpos(
 		*vare = SQR(std);
 	}
 
-	return true;
-}
-
-bool mongopos(
-	GTime		time,
-	SatSys		Sat,
-	Vector3d&	rSat)
-{
-//     trace(4,"%s : time=%s sat=%s\n",__FUNCTION__, time.to_string(3).c_str(),Sat.id().c_str());
-
-	rSat = Vector3d::Zero();
-	
-	auto mongoMap = mongoReadOrbits(time, Sat);
-	
-	if (mongoMap.empty())
-	{
-		tracepdeex(3, std::cout, "\nLooking for mongo position, but no mongom ephemerides found for %s", Sat.id().c_str());
-		return false;
-	}
-
-	auto& timeMap = mongoMap[Sat];
-	
-	auto firstTime	= timeMap.begin()	->first;
-	auto lastTime	= timeMap.rbegin()	->first;
-	
-	if	( (timeMap.size()	< NMAX + 1)
-		||(time	< firstTime	- MAXDTE)
-		||(time	> lastTime	+ MAXDTE))
-	{
-        tracepdeex(3, std::cout, "\nNo mongo ephemeris for %s at %s, ephemerides cover %s to %s",
-				   Sat.id()					.c_str(), 
-				   time		.to_string(0)	.c_str(),
-				   firstTime.to_string(0)	.c_str(),
-				   lastTime	.to_string(0)	.c_str());
-		return false;
-	}
-
-// 	//search for the ephemeris in the map
-
-	auto peph_it = timeMap.lower_bound(time);
-	if (peph_it == timeMap.end())
-	{
-		peph_it--;
-	}
-
-	auto middle0 = peph_it;
-
-	//go forward a few steps to make sure we're far from the end of the map.
-	for (int i = 0; i < NMAX/2; i++)
-	{
-		peph_it++;
-		if (peph_it == timeMap.end())
-		{
-			break;
-		}
-	}
-
-	//go backward a few steps to make sure we're far from the beginning of the map
-	for (int i = 0; i <= NMAX; i++)
-	{
-		peph_it--;
-		if (peph_it == timeMap.begin())
-		{
-			break;
-		}
-	}
-
-	auto begin = peph_it;
-
-	vector<double>		t(NMAX+1);
-	vector<Vector3d>	p(NMAX+1);
-	double c[2];
-	double s[3];
-	
-	for (auto T : t)
-	{
-		std::cout << std::endl << T;
-	}
-	
-	//get interpolation parameters and check all ephemerides have values.
-	peph_it = begin;
-	for (int i = 0; i <= NMAX; i++, peph_it++)
-	{
-		auto& [ephTime, state] = *peph_it;
-		
-		if (state.isZero())
-		{
-//             trace(3,"prec ephem outage %s sat=%s\n",time.to_string().c_str(), Sat.id().c_str());
-			return false;
-		}
-
-		t[i] = (ephTime - time).to_double();
-		p[i] = state.head(3);
-	}
-
-	rSat = interpolate(t, p);
-	
 	return true;
 }
 
@@ -597,7 +499,7 @@ bool satPosPrecise(
 		trace,
 		time,
 		satPos.Sat,
-		satPos.rSat,
+		satPos.rSatCom,
 		satPos.satVel,
 		satPos.posVar,
 		nav);

@@ -13,7 +13,7 @@ outputs:
         output:                     true
         directory:                  ./
         filename:                   GAA0GINRAP_<YYYY><DDD><HH>00_01D_30S_CLK.CLK
-        output_ar_clocks:           true
+
     sinex:
         output:                     true
     erp:
@@ -42,6 +42,7 @@ processing_options:
         wait_all_stations:          1
         fatal_message_level:        1
     gnss_general:
+        #minimise_sat_clock_offsets: true
         elevation_mask:             10  #degrees
         raim:                       true
         rec_reference_system:       gps
@@ -119,20 +120,21 @@ processing_options:
         general_relativity:             true
         pole_tide_ocean:                true
         pole_tide_solid:                true
-        solar_pressure_radiation:       true
+        solar_radiation_pressure:       boxwing
         antenna_thrust:                 true
-        empirical_dyb:                  true #true/false => false/ecom/srf
+        empirical:                      true
         albedo:                         true
         integrator_time_step:           60
-        sat_mass:                       1000
-        sat_area:                       15
-        srp_cr:                         1.75
         degree_max:                     15
 
         itrf_pseudoobs:                 true
 
 satellite_options:                                  # Options to configure individual satellites, systems, or global configs
     global:
+        mass:                       1000
+        area:                       15
+        srp_cr:                     1.75
+
         clock:
             sources:            [KALMAN, PRECISE, BROADCAST]    # List of sources to use for clocks
             enable:             true                            # (bool) Enable modelling of clocks
@@ -220,11 +222,6 @@ estimation_parameters:
                 estimated:          [true]
                 sigma:              [20]
                 proc_noise:         [0]
-        USN7:
-            clk:
-                estimated:          [false]    # Set reference (pivot) station clock
-            code_bias:
-                estimated:          [false]
     satellites:
         pseudo_sigmas:             [1e6]                        # [floats] Standard deviation of pseudo measurmeents
         global:
@@ -232,134 +229,233 @@ estimation_parameters:
                 estimated:          [true]
                 sigma:              [1000]
                 proc_noise:         [10]
+                mu:                 [10000]
             code_bias:
                 estimated:          [true]
                 sigma:              [10]
                 proc_noise:         [0]
             orbit:                                            # Orbital state
                 estimated:          [true]                    # [bools] Estimate state in kalman filter
-                sigma:              [0.5, 0.5, 0.5, 0.001]   # [floats] Apriori sigma values - if zero, will be initialised using least squares
+                sigma:              [30, 0.5, 0.5, 0.001]   # [floats] Apriori sigma values - if zero, will be initialised using least squares
                 proc_noise:         [0]
-            srp_dyb_0:
+            emp_dyb_0:
                 estimated:          [true, true, true]
                 sigma:              [1e-8, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
-            srp_dyb_1c: #1 per rev cos
+            emp_dyb_1c: #1 per rev cos
                 estimated:          [true, false, true]
                 sigma:              [1e-9, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
-            srp_dyb_1s: #1 per rev sin
+            emp_dyb_1s: #1 per rev sin
                 estimated:          [true, false, true]
                 sigma:              [1e-9, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
-            srp_dyb_2c: #1 per rev cos
+            emp_dyb_2c: #1 per rev cos
                 estimated:          [true, false, false]
                 sigma:              [1e-9, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
-            srp_dyb_2s: #1 per rev sin
+            emp_dyb_2s: #1 per rev sin
                 estimated:          [true, false, false]
                 sigma:              [1e-9, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
-            srp_dyb_3c: #1 per rev cos
+            emp_dyb_3c: #1 per rev cos
                 estimated:          [false, false, false]
                 sigma:              [1e-9, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
-            srp_dyb_3s: #1 per rev sin
+            emp_dyb_3s: #1 per rev sin
                 estimated:          [false, false, false]
                 sigma:              [1e-9, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
-            srp_dyb_4c: #1 per rev cos
+            emp_dyb_4c: #1 per rev cos
                 estimated:          [true, false, false]
                 sigma:              [1e-9, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
-            srp_dyb_4s: #1 per rev sin
+            emp_dyb_4s: #1 per rev sin
                 estimated:          [true, false, false]
                 sigma:              [1e-9, 1e-9, 1e-9]
                 apriori_val:        [0.0]
                 proc_noise:         [0]
         GPS-IIA:
-            srp_dyb_0:
-                apriori_val: [+3.6476e-08, -8.6715e-10, -1.1070e-09]
-            srp_dyb_1c:
-                apriori_val: [2.3015e-09, 0.0, 4.9846e-10]
-            srp_dyb_1s:
-                apriori_val: [8.2564e-11, 0.0, 1.4100e-09]
-            srp_dyb_2c:
-                apriori_val: [2.6432e-10, 0.0, 0.0]
-            srp_dyb_2s:
-                apriori_val: [-1.4925e-09, 0.0, 0.0]
-            srp_dyb_4c:
-                apriori_val: [1.5456e-09, 0.0, 0.0]
-            srp_dyb_4s:
-                apriori_val: [3.8351e-10, 0.0, 0.0]
-        GPS-IIR-A:
-            srp_dyb_0:
-                apriori_val: [+8.53e-09, 8.97e-10, 1.5e-09]
-            srp_dyb_1c:
-                apriori_val: [-1.75e-09, 0, 8.02e-10]
-            srp_dyb_1s:
-                apriori_val: [-6.16e-11, 0, 1.42e-10]
-            srp_dyb_2c:
-                apriori_val: [-1.50e-09, 0, 0]
-            srp_dyb_2s:
-                apriori_val: [+2.20e-10, 0, 0]
-            srp_dyb_4c:
-                apriori_val: [+1.86e-09, 0, 0]
-            srp_dyb_4s:
-                apriori_val: [-5.52e-11, 0, 0]
-        GPS-IIR-B:
-            srp_dyb_0:
-                apriori_val: [+7.97e-09, -8.94e-11, 2.25e-09]
-            srp_dyb_1c:
-                apriori_val: [-2.97e-09, 0, -8.82e-10]
-            srp_dyb_1s:
-                apriori_val: [+1.47e-11, 0, +4.28e-11]
-            srp_dyb_2c:
-                apriori_val: [-8.06e-10, 0, 0]
-            srp_dyb_2s:
-                apriori_val: [+7.33e-10, 0, 0]
-            srp_dyb_4c:
-                apriori_val: [+2.50e-09, 0, 0]
-            srp_dyb_4s:
-                apriori_val: [+4.37e-10, 0, 0]
-        GPS-IIR-M:
-            srp_dyb_0:
-                apriori_val: [+1.15e-08, 6.01e-10, 1.82e-09]
-            srp_dyb_1c:
-                apriori_val: [-1.75e-09, 0, 1.33e-09]
-            srp_dyb_1s:
-                apriori_val: [+5.01e-11, 0, 4.60e-10]
-            srp_dyb_2c:
-                apriori_val: [-1.95e-09, 0, 0]
-            srp_dyb_2s:
-                apriori_val: [-6.13e-10, 0, 0]
-            srp_dyb_4c:
-                apriori_val: [+1.69e-09, 0, 0]
-            srp_dyb_4s:
-                apriori_val: [-9.45e-10, 0, 0]
+            emp_dyb_0:
+                apriori_val:
+                - 36.476
+                - -0.86715
+                - -1.107
+            emp_dyb_1c:
+                apriori_val:
+                - 2.3015
+                - 0.0
+                - 0.49846
+            emp_dyb_1s:
+                apriori_val:
+                - 0.082564
+                - 0.0
+                - 1.41
+            emp_dyb_2c:
+                apriori_val:
+                - 0.26432
+                - 0.0
+                - 0.0
+            emp_dyb_2s:
+                apriori_val:
+                - -1.4925
+                - 0.0
+                - 0.0
         GPS-IIF:
-            srp_dyb_0:
-                apriori_val: [-3.44e-08, -4.32e-11, 3.07e-10]
-            srp_dyb_1c:
-                apriori_val: [+5.13e-10, 0, 6.85e-10]
-            srp_dyb_1s:
-                apriori_val: [-4.86e-13, 0, 2.51e-10]
-            srp_dyb_2c:
-                apriori_val: [-9.48e-10, 0, 0]
-            srp_dyb_2s:
-                apriori_val: [+3.29e-10, 0, 0]
-            srp_dyb_4c:
-                apriori_val: [+5.11e-10, 0, 0]
-            srp_dyb_4s:
-                apriori_val: [+3.95e-10, 0, 0]
+            emp_dyb_0:
+                apriori_val:
+                - -34.4
+                - -0.0432
+                - 0.307
+            emp_dyb_1c:
+                apriori_val:
+                - 0.513
+                - 0
+                - 0.685
+            emp_dyb_1s:
+                apriori_val:
+                - -0.000486
+                - 0
+                - 0.251
+            emp_dyb_2c:
+                apriori_val:
+                - -0.948
+                - 0
+                - 0
+            emp_dyb_2s:
+                apriori_val:
+                - 0.329
+                - 0
+                - 0
+        GPS-IIR-A:
+            emp_dyb_0:
+                apriori_val:
+                - 8.53
+                - 0.897
+                - 1.5
+            emp_dyb_1c:
+                apriori_val:
+                - -1.75
+                - 0
+                - 0.802
+            emp_dyb_1s:
+                apriori_val:
+                - -0.0616
+                - 0
+                - 0.142
+            emp_dyb_2c:
+                apriori_val:
+                - -1.5
+                - 0
+                - 0
+            emp_dyb_2s:
+                apriori_val:
+                - 0.22
+                - 0
+                - 0
+        GPS-IIR-B:
+            emp_dyb_0:
+                apriori_val:
+                - 7.97
+                - -0.0894
+                - 2.25
+            emp_dyb_1c:
+                apriori_val:
+                - -2.97
+                - 0
+                - -0.882
+            emp_dyb_1s:
+                apriori_val:
+                - 0.0147
+                - 0
+                - 0.0428
+            emp_dyb_2c:
+                apriori_val:
+                - -0.806
+                - 0
+                - 0
+            emp_dyb_2s:
+                apriori_val:
+                - 0.733
+                - 0
+                - 0
+        GPS-IIR-M:
+            emp_dyb_0:
+                apriori_val:
+                - 11.5
+                - 0.601
+                - 1.82
+            emp_dyb_1c:
+                apriori_val:
+                - -1.75
+                - 0
+                - 1.33
+            emp_dyb_1s:
+                apriori_val:
+                - 0.0501
+                - 0
+                - 0.46
+            emp_dyb_2c:
+                apriori_val:
+                - -1.95
+                - 0
+                - 0
+            emp_dyb_2s:
+                apriori_val:
+                - -0.613
+                - 0
+                - 0
+        GPS-IIIA:
+            emp_dyb_0:
+                apriori_val:
+                - 40.0
+                - 0
+                - 0
+            emp_dyb_1c:
+                apriori_val:
+                - 0
+                - 0
+                - 0
+            emp_dyb_1s:
+                apriori_val:
+                - 0
+                - 0
+                - 0
+            emp_dyb_2c:
+                apriori_val:
+                - 0
+                - 0
+                - 0
+            emp_dyb_2s:
+                apriori_val:
+                - 0
+                - 0
+                - 0
+    GPS:
+      L1W:
+        code_bias:
+          apriori_val:
+          - 0
+          estimated:
+          - true
+          sigma:
+          - 1e-08
+      L2W:
+        code_bias:
+          apriori_val:
+          - 0
+          estimated:
+          - true
+          sigma:
+          - 1e-08
         GPS:
             L1W:
                 code_bias:

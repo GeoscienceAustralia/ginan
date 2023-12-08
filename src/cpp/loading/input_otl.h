@@ -9,6 +9,7 @@
 
 #include  "boost_ma_type.h"
 struct otl_input {
+	std::string type;
 	std::string green;
 	std::string output_blq_file;
 	std::vector<std::string> tide_file;

@@ -34,7 +34,6 @@ outputs:
 
     clocks:
         output:                     true
-        output_ar_clocks:           true
 
     sinex:
         output:                     true
@@ -256,7 +255,6 @@ estimation_parameters:
                 sigma:              [20]
                 proc_noise:         [0]
 
-<<<<<<< HEAD
             #GPS:
             #    L2W:
             #        amb:
@@ -269,8 +267,6 @@ estimation_parameters:
                 estimated:          [true]
                 sigma:              [10]
                 proc_noise:         [1e-8]
-=======
->>>>>>> develop
 
     satellites:
     

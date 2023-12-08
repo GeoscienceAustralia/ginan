@@ -30,10 +30,15 @@ using Eigen::Matrix;
 using Eigen::MatrixXd;
 using Eigen::Matrix2d;
 using Eigen::Matrix3d;
+using Eigen::Matrix4d;
 using Eigen::VectorXd;
 using Array6d	= Eigen::Array<double, 1, 6>;
 using Vector6d	= Eigen::Vector<double, 6>;
 using Matrix6d	= Eigen::Matrix<double, 6, 6>;
+using Array10d	= Eigen::Array<double, 1, 10>;
+using Vector10d	= Eigen::Vector<double, 10>;
+using Matrix10d	= Eigen::Matrix<double, 10, 10>;
+using Eigen::Vector4d;
 using Eigen::Vector3d;
 using Eigen::Vector2d;
 using Eigen::MatrixXi;
@@ -85,6 +90,10 @@ struct VectorEnu : Vector3d
 
 		return *this;
 	}
+	
+	VectorEnu operator*(const double		rhs)	{		return Vector3d(((Vector3d)*this) * (			rhs));		}
+	VectorEnu operator-(const VectorEnu&	rhs)	{		return Vector3d(((Vector3d)*this) - ((Vector3d)	rhs));		}
+	VectorEnu operator+(const VectorEnu&	rhs)	{		return Vector3d(((Vector3d)*this) + ((Vector3d)	rhs));		}
 	
 	double& e()	{		return x();		}
 	double& n()	{		return y();		}

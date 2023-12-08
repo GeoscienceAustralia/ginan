@@ -29,7 +29,7 @@ The solar radiation pressure acceleration, arises from the pressure exerted by s
 A GNSS satellite continuously emitting a RF signal has an acceleration generated due to the emission of the signal. 
 
 ### Albedo
-The acceleartion due to the albedo occurs when sunlight reflects off the Earth's surface. This reflection imparts a force on the satellite, which can causes a change in its orbit.
+The acceleration due to the albedo occurs when sunlight reflects off the Earth's surface. This reflection imparts a force on the satellite, which can causes a change in its orbit.
 
 ## Transformation between Celestial and Terrestrial Reference Systems
 

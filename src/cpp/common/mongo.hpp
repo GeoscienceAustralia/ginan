@@ -20,19 +20,15 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <tuple>
 #include <map>
 
 
 using std::string;
 using std::vector;
 using std::deque;
+using std::tuple;
 using std::map;
-
-
-#include "networkEstimator.hpp"
-#include "observations.hpp"
-#include "station.hpp"
-#include "algebra.hpp"
 
 
 struct DBEntry
@@ -78,7 +74,11 @@ struct Mongo
 
 #define IGS_ION_META		"igsSSRMeta"
 #define IGS_ION_ENTRY		"igsSSREntry"
-
+#define IGS_ION_DCB			"igsSSRDCB"
+#define CMP_ATM_META		"cmpSSRMeta"
+#define CMP_ION_META		"cmpIonMeta"
+#define CMP_TRP_ENTRY		"cmpTrpEntry"
+#define CMP_ION_ENTRY		"cmpIonEntry"
 
 #define SSR_EPOCH			"Epoch"
 #define SSR_UPDATED			"Updated"
@@ -89,6 +89,7 @@ struct Mongo
 #define SSR_OBSCODE			"ObsCode"
 #define SSR_BIAS			"Bias"
 #define SSR_VAR				"Var"
+
 
 #define IGS_ION_NLAY		"ionoMetNlay"
 #define IGS_ION_NBAS		"ionoMetNbas"
@@ -104,6 +105,7 @@ struct Mongo
 #define SSR_PREC			"Prec"
 
 #define REMOTE_DATA_DB		"Remote"
+#define STATES_DB			"States"
 
 #define REMOTE_DATA			"Data"
 #define REMOTE_EPOCH		"Epoch"
@@ -113,6 +115,7 @@ struct Mongo
 #define REMOTE_UPDATED		"Updated"
 #define REMOTE_POS			"Pos"
 #define REMOTE_VEL			"Vel"
+#define REMOTE_VAR			"Var"
 #define REMOTE_CLK			"Clk"
 #define REMOTE_CLK_DRIFT	"ClkRate"
 #define REMOTE_STR			"Str"

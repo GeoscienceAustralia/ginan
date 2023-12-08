@@ -16,28 +16,106 @@
 #include "eigenIncluder.hpp"
 #include "instrument.hpp"
 #include "GNSSambres.hpp"
-#include "biasSINEX.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
+#include "biases.hpp"
 #include "common.hpp"
 #include "trace.hpp"
 
-KFState kfState_forAR;
+static bool filterError = false;
 
-bool	fixKFReady = false;
+bool recordFilterError(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index,
+	bool		postFit)
+{
+	filterError = true;
+
+	return true;
+}
+
+bool applyBestIntegerAmbiguity(
+	Trace&		trace,		///< Debug trace
+	KFState&	kfState)	///< Reference to Kalman filter containing float solutions
+{
+	KFKey	bestKey;
+	double	smallestVar = 1e10;
+	
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type != KF::AMBIGUITY)
+		{
+			continue;
+		}
+		
+		double var = kfState.P(index, index);
+		
+		if	( var > smallestVar
+			||var < FIXED_AMB_VAR * 5)
+		{
+			continue;
+		}
+		
+		smallestVar	= var;
+		bestKey		= key;
+	}
+	
+	if (bestKey.type == KF::NONE)
+	{
+		return false;
+	}
+	
+	KFMeasEntryList kfMeasEntryList;
+
+	int index = kfState.kfIndexMap[bestKey];
+	
+	double closest = round(kfState.x(index));
+		
+	KFMeasEntry measEntry(&kfState);
+		
+	measEntry.obsKey = bestKey;
+		
+	measEntry.addDsgnEntry(bestKey, 1);
+	
+	measEntry.setValue(closest);
+	measEntry.setNoise(FIXED_AMB_VAR);
+		
+	kfMeasEntryList.push_back(measEntry);
+	
+	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, kfState.time);
+	
+	filterError = false;
+	kfState.measRejectCallbacks.push_back(recordFilterError);
+	{
+		kfState.filterKalman(trace, combinedMeas);
+	}
+	kfState.measRejectCallbacks.pop_back();
+	
+	if (filterError)
+	{
+		return false;
+	}
+	
+	kfState.outputStates(trace, "/FIX_SINGLE_AMBIGUITY");
+	
+	return true;
+}
+
 
 void applyUCAmbiguities(
-	Trace& trace,		///< Debug trace
-	KFState& kfState,	///< Reference to Kalman filter containing float solutions
-	GinAR_mtx& mtrx)	///< Reference to structure containing fixed ambiguities and Z transformations
+	Trace&		trace,		///< Debug trace
+	KFState&	kfState,	///< Reference to Kalman filter containing float solutions
+	GinAR_mtx&	mtrx)		///< Reference to structure containing fixed ambiguities and Z transformations
 {
 	int nz = mtrx.zfix.size();
 	int nx = mtrx.ambmap.size();
 	
-	tracepdeex(1,trace,"   %d out of %d ambiguities resolved, applying...\n",nz,nx);
+	tracepdeex(1, trace, "   %d out of %d ambiguities resolved, applying...\n", nz, nx);
 	
-	MatrixXd Z    = mtrx.Ztrs;
-	VectorXd zfix = mtrx.zfix;
+	MatrixXd Z		= mtrx.Ztrs;
+	VectorXd zfix	= mtrx.zfix;
 	
 	if (AR_VERBO)
 	{
@@ -47,21 +125,28 @@ void applyUCAmbiguities(
 	
 	KFMeasEntryList kfMeasEntryList;
 
-	for (int i=0; i<nz; i++)
+	for (int i = 0; i < nz; i++)
 	{
 		double residual = zfix(i);
 		
 		KFMeasEntry measEntry(&kfState);
+		
 		measEntry.obsKey.type = KF::Z_AMB;
 		measEntry.obsKey.num  = i;
+		
 		measEntry.addNoiseEntry(measEntry.obsKey, 1, FIXED_AMB_VAR);
 		
-		tracepdeex(4,trace,"      Applying:  ");
+		tracepdeex(4, trace, "      Applying:  ");
 		
-		for (int j=0; j<nx; j++)
-		if (Z(i,j)!=0)
+		for (int j = 0; j < nx; j++)
 		{
-			double ambiguity=0;
+			if (Z(i,j) == 0)
+			{
+				continue;
+			}
+		
+			double ambiguity = 0;
+			
 			KFKey key = mtrx.ambmap[j];
 			kfState.getKFValue(key, ambiguity);
 			
@@ -76,7 +161,7 @@ void applyUCAmbiguities(
 			measEntry.addDsgnEntry(mtrx.ambmap[j], Z(i,j), init);
 		}
 		
-		tracepdeex(4,trace,"= %+10.5f\n", zfix(i));
+		tracepdeex(4, trace, "= %+10.5f\n", zfix(i));
 		
 		measEntry.setInnov(residual);
 		
@@ -84,92 +169,91 @@ void applyUCAmbiguities(
 	}
 
 	kfState.noiseElementStateTransition();
+	
 	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, kfState.time);
+	
 	kfState.filterKalman(trace, combinedMeas, true);
-	kfState.outputStates(trace);
+	
+	kfState.outputStates(trace, "/APPLY_UC_AMBIGUITIES");
 }
 
-int PPP_AR(
+void fixAndHoldAmbiguities(
 	Trace&		trace,		///< Debug trace
 	KFState&	kfState)	///< Filter state
 {
 	Instrument	instrument(__FUNCTION__);
 		
-	tracepdeex(3,trace,"Ginan 2.0 AR: %s\n",kfState.time.to_string(2));
-	fixKFReady=false;
-	kfState_forAR = kfState;
+	tracepdeex(3, trace, "%s: %s\n", __FUNCTION__, kfState.time.to_string(2));
 	
 	if (acsConfig.ambrOpts.mode == +E_ARmode::OFF)
 	{
-		return 0;
+		return;
 	}
 	
 	GinAR_mtx ARmtx;
-	map<string,int> nsat;		// number of satellites visible by station
-	map<SatSys,int> nsta;		// number of stations visible by satellite
+	map<string, int> nsat;		// number of satellites visible by station
+	map<SatSys, int> nsta;		// number of stations visible by satellite
 	
-	int ind=0;
+	int ind = 0;
 	vector<int> indices;
 	for (auto& [key, index] : kfState.kfIndexMap)
-	if (key.type == KF::AMBIGUITY)
 	{
-		if (!acsConfig.solve_amb_for[key.Sat.sys])
+		if (key.type != KF::AMBIGUITY)
+		{
 			continue;
+		}
+	
+		if (acsConfig.solve_amb_for[key.Sat.sys] == false)
+		{
+			continue;
+		}
 			
 		indices.push_back(index);
-		ARmtx.ambmap[ind++]=key;
+		
+		ARmtx.ambmap[ind] = key;
+		ind++;
 	}
 	
-	if (ind<=0)
-		return 0;
+	if (ind == 0)
+		return;
 	
-	ARmtx.aflt  = kfState.x(indices);
-	ARmtx.Paflt = kfState.P(indices, indices);
+	ARmtx.aflt	= kfState.x(indices);
+	ARmtx.Paflt	= kfState.P(indices, indices);
 	
 	GinAR_opt ARopt;
-	ARopt.mode = acsConfig.ambrOpts.mode;
-	if (ARopt.mode == +E_ARmode::ROUND
-	 || ARopt.mode == +E_ARmode::ITER_RND)
-		ARopt.mode = E_ARmode::BOOTST;
-	ARopt.sucthr = acsConfig.ambrOpts.succsThres;
-	ARopt.ratthr = acsConfig.ambrOpts.ratioThres;
-	ARopt.nset   = acsConfig.ambrOpts.lambda_set;
-	ARopt.nitr   = acsConfig.ambrOpts.AR_max_itr;
-	if (acsConfig.trace_level > 4) 
-		AR_VERBO=true;
+	ARopt.mode		= acsConfig.ambrOpts.mode;
+	ARopt.sucthr	= acsConfig.ambrOpts.succsThres;
+	ARopt.ratthr	= acsConfig.ambrOpts.ratioThres;
+	ARopt.nset		= acsConfig.ambrOpts.lambda_set;
+	ARopt.nitr		= acsConfig.ambrOpts.AR_max_itr;
 	
-	/* Resolve ambiguities */
-	int nfix = GNSS_AR (trace, ARmtx, ARopt);
-	if (nfix>0)
+	if (acsConfig.trace_level > 4) 
+		AR_VERBO = true;
+	
+	// Resolve and apply ambiguities
+	int nfix = GNSS_AR(trace, ARmtx, ARopt);
+	if (nfix > 0)
 	{
-		applyUCAmbiguities (trace, kfState, ARmtx);
-		fixKFReady = true;
+		applyUCAmbiguities(trace, kfState, ARmtx);
 	}
 	
-	kfState_forAR = kfState;
-	kfState_forAR.rts_basename = kfState.rts_basename + "_AR";
-	
-	return nfix;
+	while (0)
+	{
+		bool applied = applyBestIntegerAmbiguity(trace, kfState);
+		
+		if (applied == false)
+		{
+			break;
+		}
+	}
 }
 
-bool copyFixedKF(KFState& fixed)
-{
-	fixed = kfState_forAR;
-	
-	/* add additional readiness check here if needed */
-	
-	return fixKFReady;
-}
 
-void overwriteFixedKF(
-	KFState& kfState)
-{
-	kfState_forAR = kfState;
-}
 
 bool queryBiasUC(
 	Trace&		trace,		///< debug stream 
 	GTime		time,		///< time of biases
+	KFState&	kfState,	///< filter state to take biases from
 	SatSys		Sat,		///< satellite (for receiver biases, sat.sys needs to be set to the appropriate system, and sat.prn must be 0)
 	string		rec,		///< receiver  (for satellite biases nees to be "")
 	E_ObsCode	code,		///< signal code
@@ -194,36 +278,37 @@ bool queryBiasUC(
 		
 		if (type == CODE)
 		{
-			if (!recOpts.rec_code_bias.enable)
+			if (recOpts.rec_code_bias.enable == false)
 				return true;
 			
 			InitialState init = initialStateFromConfig(recOpts.code_bias);
 			if (init.estimate == false)
 			{
-				getBiasSinex(trace, time, rec, Sat, code, CODE, bias, var);
+				getBias(trace, time, rec, Sat, code, CODE, bias, var);
 				return true;
 			}
 			
 			kfKey.type	= KF::CODE_BIAS;
 			
-			return kfState_forAR.getKFValue(kfKey,bias, &var);
+			return kfState.getKFValue(kfKey, bias, &var);
 		}
 		
 		if (type == PHAS)
 		{
-			if (!recOpts.rec_phase_bias.enable)
+			if (recOpts.rec_phase_bias.enable == false)
 				return true;
 			
 			InitialState init = initialStateFromConfig(recOpts.phase_bias);
 			if (init.estimate == false)
 			{
-				getBiasSinex(trace, time, rec, Sat, code, PHAS, bias, var);
+				getBias(trace, time, rec, Sat, code, PHAS, bias, var);
+				
 				return true;
 			}
 			
 			kfKey.type	= KF::PHASE_BIAS;
 			
-			return kfState_forAR.getKFValue(kfKey, bias, &var);
+			return kfState.getKFValue(kfKey, bias, &var);
 		}
 	}
 	else if (rec.empty())
@@ -238,34 +323,34 @@ bool queryBiasUC(
 			InitialState init = initialStateFromConfig(satOpts.code_bias);
 			if (init.estimate == false)
 			{
-				getBiasSinex(trace, time, Sat.id(), Sat, code, CODE, bias, var);
+				getBias(trace, time, Sat.id(), Sat, code, CODE, bias, var);
 				return true;
 			}
 			
 			kfKey.type	= KF::CODE_BIAS;
-			string keyStr = kfKey;
-			bool pass = kfState_forAR.getKFValue(kfKey, bias, &var);
-			tracepdeex(5,trace,"\n Searching UC %s - %s", keyStr.c_str(), pass?"found":"not found");
+			bool pass = kfState.getKFValue(kfKey, bias, &var);
+			
+			tracepdeex(5,trace,"\n Searching UC %s - %s", ((string)kfKey).c_str(), pass?"found":"not found");
 			
 			return pass;
 		}
 		
 		if (type == PHAS)
 		{
-			if (!satOpts.sat_phase_bias.enable)
+			if (satOpts.sat_phase_bias.enable == false)
 				return true;
 			
 			InitialState init = initialStateFromConfig(satOpts.phase_bias);
 			if (init.estimate == false)
 			{
-				getBiasSinex(trace, time, Sat.id(), Sat, code, PHAS, bias, var);
+				getBias(trace, time, Sat.id(), Sat, code, PHAS, bias, var);
 				return true;
 			}
 			
 			kfKey.type	= KF::PHASE_BIAS;
-			string keyStr = kfKey;
-			bool pass = kfState_forAR.getKFValue(kfKey, bias, &var);
-			tracepdeex(5,trace,"\n Searching UC %s - %s", keyStr.c_str(), pass?"found":"not found");
+			bool pass = kfState.getKFValue(kfKey, bias, &var);
+			
+			tracepdeex(5,trace,"\n Searching UC %s - %s", ((string)kfKey).c_str(), pass?"found":"not found");
 			
 			return pass;
 		}

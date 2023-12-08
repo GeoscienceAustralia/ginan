@@ -25,50 +25,54 @@ def handle_post_request() -> str:
     """
     current_app.logger.info("Entering request")
     form_data = request.form
-    form = {}
-    form["type"] = form_data.get("type")
-    form["series"] = form_data.getlist("series")
-    form["sat"] = form_data.getlist("sat")
-    form["site"] = form_data.getlist("site")
-    form["state"] = form_data.getlist("state")
-    form["xaxis"] = "Epoch"
-    form["yaxis"] = form_data.getlist("yaxis")
-    form["exclude"] = form_data.get("exclude")
-    form["process"] = form_data.get("process")
-    form["degree"] = form_data.get("degree")
+    form = {
+        "type": form_data.get("type"),
+        "series": form_data.getlist("series"),
+        "sat": form_data.getlist("sat"),
+        "site": form_data.getlist("site"),
+        "state": form_data.getlist("state"),
+        "xaxis": form_data.get("xaxis"),
+        "yaxis": form_data.getlist("yaxis"),
+        "exclude": form_data.get("exclude"),
+        "exclude_tail": form_data.get("exclude_tail"),
+        "process": form_data.get("process"),
+        "degree": form_data.get("degree"),
+    }
+
     if form["exclude"] == "":
         form["exclude"] = 0
     else:
         form["exclude"] = int(form["exclude"])
 
+    if form["exclude_tail"] == "":
+        form["exclude_tail"] = 0
+    else:
+        form["exclude_tail"] = int(form["exclude_tail"])
+
     current_app.logger.info(
         f"GET {form['type']}, {form['series']}, {form['sat']}, {form['site']}, {form['state']}, {form['xaxis']}, {form['yaxis']}, "
-        f"{form['yaxis']+[form['xaxis']]}, exclude {form['exclude']} mintues"
+        f"{form['yaxis']+[form['xaxis']]}, exclude {form['exclude']} minutes"
     )
-    
-    data = MeasurementArray()
 
-    for series in form["series"] :
+    data = MeasurementArray()
+    data2 = MeasurementArray()
+    for series in form["series"]:
         db_, series_ = series.split("\\")
-        get_data(db_, "States", form["state"], form["site"], form["sat"], [series_], form["yaxis"] + [form["xaxis"]] + ["Num"], data, reshape_on="Num")
-        # with MongoDB(session["mongo_ip"], data_base=db_, port=session["mongo_port"]) as client:
-        #     try:
-        #         for req in client.get_data(
-        #         "States",
-        #         form["state"],
-        #         form["site"],
-        #         form["sat"],
-        #         [series_],
-        #         form["yaxis"] + [form["xaxis"]] + ["Num"],
-        #         ): 
-        #             try:
-        #                 data.append(Measurements.from_dictionary(req, reshape_on="Num", database=db_))     
-        #             except ValueError as err:
-        #                 current_app.logger.warning(err)
-        #                 continue   
-        #     except ValueError as err:
-        #         current_app.logger.error(err)
-        #         continue
+        get_data(
+            db_,
+            "States",
+            form["state"],
+            form["site"],
+            form["sat"],
+            [series_],
+            form["yaxis"] + [form["xaxis"]] + ["Num"],
+            data,
+            reshape_on="Num",
+            exclude=form["xaxis"],
+        )
+        if any([yaxis in session["list_geometry"] for yaxis in form["yaxis"] + [form["xaxis"]]]):
+            get_data(db_, "Geometry", None, form["site"], form["sat"], [""], [form["xaxis"]], data2)
+
     if len(data.arr) == 0:
         return render_template(
             "states.jinja",
@@ -76,9 +80,11 @@ def handle_post_request() -> str:
             extra=extra,
             message="Error getting data: No data",
         )
+
+    data.merge(data2)
     data.sort()
     data.find_minmax()
-    data.adjust_slice(minutes_min=form["exclude"], minutes_max=None)
+    data.adjust_slice(minutes_min=form["exclude"], minutes_max=form["exclude_tail"])
     trace = []
     mode = "markers" if form["type"] == "Scatter" else "lines"
     table = {}
@@ -88,30 +94,38 @@ def handle_post_request() -> str:
     if form["process"] == "Fit":
         for _data in data:
             _data.polyfit(degree=int(form["degree"]))
-    
+
     data.get_stats()
     for _data in data:
         for _yaxis in _data.data:
-            _data.id["state"] = _yaxis
-            if np.isnan(_data.data[_yaxis][_data.subset]).any():
-                current_app.logger.warning(f"Nan detected for {_data.id}")
-                current_app.logger.warning(np.argwhere(np.isnan(_data.data[_yaxis][_data.subset])))
-            trace.append(
-                go.Scatter(
-                    x=_data.epoch[_data.subset],
-                    y=_data.data[_yaxis][_data.subset],
-                    mode=mode,
-                    name=f"{_data.id}",
-                    hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>" + "%{y:.4e%}<br>" + f"{_data.id}",
+            if _yaxis != form["xaxis"]:
+                _data.id["state"] = _yaxis
+                if form["xaxis"] == "Epoch":
+                    _x = _data.epoch[_data.subset]
+                    x_hover_template = "%{x|%Y-%m-%d %H:%M:%S}<br>"
+                else:
+                    _x = _data.data[form["xaxis"]][_data.subset]
+                    x_hover_template = "%{x}<br>"
+                if np.isnan(_data.data[_yaxis][_data.subset]).any():
+                    current_app.logger.warning(f"Nan detected for {_data.id}")
+                    current_app.logger.warning(np.argwhere(np.isnan(_data.data[_yaxis][_data.subset])))
+                trace.append(
+                    go.Scatter(
+                        x=_x,
+                        y=_data.data[_yaxis][_data.subset],
+                        mode=mode,
+                        name=f"{_data.id}",
+                        hovertemplate=x_hover_template,
+                    )
                 )
-            )
-            table[f"{_data.id}"] =  {"mean": _data.info[_yaxis]["mean"],
-                                        "RMS": _data.info[_yaxis]["rms"]}
-            if any(keyword in form["process"] for keyword in ["Detrend", "Fit"]):
-                table[f"{_data.id}"]["Fit"] = np.array2string(_data.info["Fit"][_yaxis][::-1], precision=2, separator=", ")
-                
+                table[f"{_data.id}"] = {"mean": _data.info[_yaxis]["mean"], "RMS": _data.info[_yaxis]["rms"]}
+                if any(keyword in form["process"] for keyword in ["Detrend", "Fit"]):
+                    table[f"{_data.id}"]["Fit"] = np.array2string(
+                        _data.info["Fit"][_yaxis][::-1], precision=2, separator=", "
+                    )
+
     table_agg = aggregate_stats(data)
-     
+
     return render_template(
         "states.jinja",
         # content=client.mongo_content,

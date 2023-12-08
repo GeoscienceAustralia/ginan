@@ -51,7 +51,7 @@ using ssl_socket	= ssl::stream<tcp::socket>;
 #define ERROR_OUTPUT_RECONNECT_AND_RETURN 																						\
 {																																\
 	onErrorStatistics(err, __FUNCTION__);																						\
-	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << " in " << __FUNCTION__ << " for " << url.sanitised() << "\n";	\
+	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << " in " << __FUNCTION__ << " for " << url.sanitised();				\
 																																\
 	if (err != boost::asio::error::operation_aborted)																			\
 		delayed_reconnect();        																							\
@@ -125,9 +125,7 @@ struct URL
 
 	static URL parse(string url)
 	{
-
-//      boost::regex re (R"(^((https?)://)?((\w):(\w)@)?([^\s:=/]+)(:(\d+)?)/(.*$))", boost::regex::extended);
-		boost::regex re (R"((https?)://(([^:@]+):([^@]+)@)?([^:@]+)(:(\d+))?(/.*)$)", boost::regex::extended);
+		boost::regex re (R"((https?)://((.+):(.+)@)?([^:@]+)(:(\d+))?(/.*)$)", boost::regex::extended);
 
 		boost::smatch matches;
 
@@ -299,6 +297,6 @@ public:
 	static void startClients()
 	{
 		std::thread(NtripSocket::runService).detach();
-	}   
+	}
 };
 

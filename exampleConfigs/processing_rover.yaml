@@ -64,10 +64,7 @@ processing_options:
     gnss_models:
         troposphere:
             model:              gpt2
-        ionospheric_component2:
-            enable:             true
-        ionospheric_component3:
-            enable:             true
+            # model:              vmf3
     filter_options:
         outlier_screening:
             max_filter_iterations:      5 
@@ -82,13 +79,3 @@ processing_options:
             phase_reject_limit:         2
             reinit_on_all_slips:        true
 
-station_options:
-    global:
-        phase_bias:
-            enable:         true
-            
-satellite_options:
-    global:
-        phase_bias:
-            enable:         true
-   

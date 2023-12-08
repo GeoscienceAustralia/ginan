@@ -6,7 +6,8 @@ struct Station;
 
 void preprocessor(
 	Network&	net,
-	Station&	rec);
+	Station&	rec,
+	bool		realEpoch = false);
 
 void obsVariances(
 	ObsList& obsList);

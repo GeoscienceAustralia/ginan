@@ -1,0 +1,473 @@
+GPS-I:
+    - normal: [1.0, 0.0, 0.0]
+      type: 0.0
+      area: 2.047
+      reflexionVisible: 0.434
+      diffusionVisible: 0.134
+      absorptionVisible: 0.432
+      hasThermalReemission: 1.0
+    - normal: [-1.0, 0.0, 0.0]
+      type: 0.0
+      area: 2.047
+      other: broken
+      reflexionVisible: falsfe
+      diffusionVisible: 0.134
+      absorptionVisible: 0.432
+      hasThermalReemission: 1.0
+    - normal: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 2.275
+      reflexionVisible: 0.461
+      diffusionVisible: 0.146
+      absorptionVisible: 0.393
+      hasThermalReemission: 1.0
+    - normal: [0.0, -1.0, 0.0]
+      type: 0.0
+      area: 2.275
+      reflexionVisible: 0.461
+      diffusionVisible: 0.146
+      absorptionVisible: 0.393
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      type: 0.0
+      area: 1.51
+      reflexionVisible: 0.645
+      diffusionVisible: 0.215
+      absorptionVisible: 0.14
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, -1.0]
+      type: 0.0
+      area: 1.51
+      reflexionVisible: 0.372
+      diffusionVisible: 0.093
+      absorptionVisible: 0.535
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 6.053
+      reflexionVisible: 0.236
+      diffusionVisible: 0.042
+      absorptionVisible: 0.722
+      hasThermalReemission: 0.0
+    - normal: [0.0, 0.0, -1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 6.053
+      reflexionVisible: 0.236
+      diffusionVisible: 0.042
+      absorptionVisible: 0.722
+      hasThermalReemission: 0.0
+GPS-II:
+    - normal: [1.0, 0.0, 0.0]
+      type: 0.0
+      area: 2.719
+      reflexionVisible: 0.1
+      diffusionVisible: 0.4
+      absorptionVisible: 0.5
+      hasThermalReemission: 1.0
+    - normal: [-1.0, 0.0, 0.0]
+      type: 0.0
+      area: 2.719
+      reflexionVisible: 0.1
+      diffusionVisible: 0.4
+      absorptionVisible: 0.5
+      hasThermalReemission: 1.0
+    - normal: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 3.383
+      reflexionVisible: 0.098
+      diffusionVisible: 0.391
+      absorptionVisible: 0.511
+      hasThermalReemission: 1.0
+    - normal: [0.0, -1.0, 0.0]
+      type: 0.0
+      area: 3.383
+      reflexionVisible: 0.098
+      diffusionVisible: 0.391
+      absorptionVisible: 0.511
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      type: 0.0
+      area: 2.881
+      reflexionVisible: 0.112
+      diffusionVisible: 0.448
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, -1.0]
+      type: 0.0
+      area: 2.881
+      reflexionVisible: 0.083
+      diffusionVisible: 0.335
+      absorptionVisible: 0.582
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 11.851
+      reflexionVisible: 0.197
+      diffusionVisible: 0.057
+      absorptionVisible: 0.746
+      hasThermalReemission: 0.0
+    - normal: [0.0, 0.0, -1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 11.851
+      reflexionVisible: 0.197
+      diffusionVisible: 0.057
+      absorptionVisible: 0.746
+      hasThermalReemission: 0.0
+GPS-IIA:
+    - normal: [1.0, 0.0, 0.0]
+      type: 0.0
+      area: 2.719
+      reflexionVisible: 0.1
+      diffusionVisible: 0.4
+      absorptionVisible: 0.5
+      hasThermalReemission: 1.0
+    - normal: [-1.0, 0.0, 0.0]
+      type: 0.0
+      area: 2.719
+      reflexionVisible: 0.1
+      diffusionVisible: 0.4
+      absorptionVisible: 0.5
+      hasThermalReemission: 1.0
+    - normal: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 3.383
+      reflexionVisible: 0.098
+      diffusionVisible: 0.391
+      absorptionVisible: 0.511
+      hasThermalReemission: 1.0
+    - normal: [0.0, -1.0, 0.0]
+      type: 0.0
+      area: 3.383
+      reflexionVisible: 0.098
+      diffusionVisible: 0.391
+      absorptionVisible: 0.511
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      type: 0.0
+      area: 2.881
+      reflexionVisible: 0.112
+      diffusionVisible: 0.448
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, -1.0]
+      type: 0.0
+      area: 2.881
+      reflexionVisible: 0.083
+      diffusionVisible: 0.335
+      absorptionVisible: 0.582
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 11.851
+      reflexionVisible: 0.197
+      diffusionVisible: 0.057
+      absorptionVisible: 0.746
+      hasThermalReemission: 0.0
+    - normal: [0.0, 0.0, -1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 11.851
+      reflexionVisible: 0.197
+      diffusionVisible: 0.057
+      absorptionVisible: 0.746
+      hasThermalReemission: 0.0
+GPS-IIR-M:
+    - normal: [1.0, 0.0, 0.0]
+      type: 0.0
+      area: 4.11
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [-1.0, 0.0, 0.0]
+      type: 0.0
+      area: 4.11
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 4.46
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, -1.0, 0.0]
+      type: 0.0
+      area: 4.46
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      type: 0.0
+      area: 4.25
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, -1.0]
+      type: 0.0
+      area: 4.25
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 13.92
+      reflexionVisible: 0.249
+      diffusionVisible: 0.044
+      absorptionVisible: 0.707
+      hasThermalReemission: 0.0
+    - normal: [0.0, 0.0, -1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 13.92
+      reflexionVisible: 0.249
+      diffusionVisible: 0.044
+      absorptionVisible: 0.707
+      hasThermalReemission: 0.0
+GPS-IIR-A:
+    - normal: [1.0, 0.0, 0.0]
+      type: 0.0
+      area: 4.11
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [-1.0, 0.0, 0.0]
+      type: 0.0
+      area: 4.11
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 4.46
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, -1.0, 0.0]
+      type: 0.0
+      area: 4.46
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      type: 0.0
+      area: 4.25
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, -1.0]
+      type: 0.0
+      area: 4.25
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 13.92
+      reflexionVisible: 0.249
+      diffusionVisible: 0.044
+      absorptionVisible: 0.707
+      hasThermalReemission: 0.0
+    - normal: [0.0, 0.0, -1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 13.92
+      reflexionVisible: 0.249
+      diffusionVisible: 0.044
+      absorptionVisible: 0.707
+      hasThermalReemission: 0.0
+GPS-IIR-B:
+    - normal: [1.0, 0.0, 0.0]
+      type: 0.0
+      area: 4.11
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [-1.0, 0.0, 0.0]
+      type: 0.0
+      area: 4.11
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 4.46
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, -1.0, 0.0]
+      type: 0.0
+      area: 4.46
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      type: 0.0
+      area: 4.25
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, -1.0]
+      type: 0.0
+      area: 4.25
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 13.92
+      reflexionVisible: 0.249
+      diffusionVisible: 0.044
+      absorptionVisible: 0.707
+      hasThermalReemission: 0.0
+    - normal: [0.0, 0.0, -1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 13.92
+      reflexionVisible: 0.249
+      diffusionVisible: 0.044
+      absorptionVisible: 0.707
+      hasThermalReemission: 0.0
+GPS-IIF:
+    - normal: [1.0, 0.0, 0.0]
+      type: 0.0
+      area: 5.72
+      reflexionVisible: 0.112
+      diffusionVisible: 0.448
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [-1.0, 0.0, 0.0]
+      type: 0.0
+      area: 5.72
+      reflexionVisible: 0.112
+      diffusionVisible: 0.448
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 7.01
+      reflexionVisible: 0.112
+      diffusionVisible: 0.448
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, -1.0, 0.0]
+      type: 0.0
+      area: 7.01
+      reflexionVisible: 0.112
+      diffusionVisible: 0.448
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      type: 0.0
+      area: 5.4
+      reflexionVisible: 0.112
+      diffusionVisible: 0.448
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, -1.0]
+      type: 0.0
+      area: 5.4
+      reflexionVisible: 0.0
+      diffusionVisible: 0.0
+      absorptionVisible: 1.0
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 22.25
+      reflexionVisible: 0.195
+      diffusionVisible: 0.035
+      absorptionVisible: 0.77
+      hasThermalReemission: 0.0
+    - normal: [0.0, 0.0, -1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 22.25
+      reflexionVisible: 0.195
+      diffusionVisible: 0.035
+      absorptionVisible: 0.77
+      hasThermalReemission: 0.0
+GPS-IIIA:
+    - normal: [1.0, 0.0, 0.0]
+      type: 0.0
+      area: 7.56
+      reflexionVisible: 0.1
+      diffusionVisible: 0.46
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [-1.0, 0.0, 0.0]
+      type: 0.0
+      area: 7.56
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 9.24
+      reflexionVisible: 0.1
+      diffusionVisible: 0.46
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, -1.0, 0.0]
+      type: 0.0
+      area: 9.24
+      reflexionVisible: 0.1
+      diffusionVisible: 0.46
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      type: 0.0
+      area: 3.96
+      reflexionVisible: 0.1
+      diffusionVisible: 0.46
+      absorptionVisible: 0.44
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, -1.0]
+      type: 0.0
+      area: 3.96
+      reflexionVisible: 0.0
+      diffusionVisible: 0.06
+      absorptionVisible: 0.94
+      hasThermalReemission: 1.0
+    - normal: [0.0, 0.0, 1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 28.2
+      reflexionVisible: 0.08
+      diffusionVisible: 0.0
+      absorptionVisible: 0.92
+      hasThermalReemission: 0.0
+    - normal: [0.0, 0.0, -1.0]
+      rotationAxis: [0.0, 1.0, 0.0]
+      type: 0.0
+      area: 28.2
+      reflexionVisible: 0.08
+      diffusionVisible: 0.0
+      absorptionVisible: 0.92
+      hasThermalReemission: 0.0

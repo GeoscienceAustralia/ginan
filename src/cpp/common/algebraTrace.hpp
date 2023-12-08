@@ -2,11 +2,15 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <utility>
 #include <string>
 #include <vector>
+#include <memory>
 #include <map>
 
+using std::make_shared;
+using std::shared_ptr;
 using std::vector;
 using std::string;
 using std::pair;
@@ -19,10 +23,11 @@ using std::map;
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "navigation.hpp"
-#include "station.hpp"
-#include "algebra.hpp"
-#include "enum.h"
+#include "enums.h"
+
+
+struct StationMap;
+struct KFState;
 
 /** Types of objects that are stored in kalman filter binary archives
 */
@@ -61,16 +66,32 @@ using boost::serialization::serialize;
 using boost::archive::binary_oarchive;
 using boost::archive::binary_iarchive;
 
+
+void spitFilterToFileQueued(
+	shared_ptr<void>&	object_ptr,	
+	E_SerialObject		type,			
+	string				filename);	
+	
 /** Output filter state to a file for later reading.
  * Uses a binary archive which requires all of the relevant class members to have serialization functions written.
  * Output format is TypeId, ObjectData, NumBytes - this allows seeking backward from the end of the file to the beginning of each object.
 */
 template<class TYPE>
 void spitFilterToFile(
-	TYPE&			object,		///< Object to output
-	E_SerialObject	type,		///< Type of object
-	string			filename)	///< Path to file to output to
+	TYPE&			object,			///< Object to output
+	E_SerialObject	type,			///< Type of object
+	string			filename,		///< Path to file to output to
+	bool			queue = false)	///< Optionally queue outputs in a separate thread
 {
+	if (queue)
+	{
+		shared_ptr<void> copy_ptr = make_shared<TYPE>(object);
+		
+		spitFilterToFileQueued(copy_ptr, type, filename);
+	
+		return;
+	}
+	
 	std::fstream fileStream(filename, std::ifstream::binary | std::ifstream::out | std::ifstream::app);
 
 	if (!fileStream)
@@ -148,18 +169,8 @@ E_SerialObject getFilterTypeFromFile(
 	string		filename);
 
 
-void inputPersistanceNav();
-
-void outputPersistanceNav();
-
-void inputPersistanceStates(
-	map<string, Station>&	stationMap,
-	KFState&				netKFState);
-
-void outputPersistanceStates(
-	map<string, Station>&	stationMap,
-	KFState&				netKFState);
-
 void tryPrepareFilterPointers(
-	KFState&		kfState, 
-	StationMap*		stationMap_ptr);
+	KFState&	kfState, 
+	StationMap*	stationMap_ptr);
+
+extern bool spitQueueRunning;

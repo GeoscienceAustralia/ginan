@@ -2,20 +2,20 @@
 #pragma once
 
 #include "eigenIncluder.hpp"
+#include "observations.hpp"
 #include "attitude.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
 #include "cache.hpp"
 #include "gTime.hpp"
 #include "ppp.hpp"
-#include "vmf3.h"
 
 /** Solution of user mode processing functinos
 */
 struct Solution
 {
 	/* solution type */
-	GTime				time;       							///< time (GPST)
+	GTime				sppTime;       							///< time (GPST)
 	map<E_Sys, double>	dtRec_m; 								///< receiver clock bias to time systems (m)
 	map<E_Sys, double>	dtRec_m_ppp_old; 						///< previous receiver clock bias to time systems (m)
 	map<E_Sys, double>	dtRec_m_pppp_old; 						///< previous receiver clock bias to time systems (m)
@@ -24,10 +24,8 @@ struct Solution
 	E_Solution			status;									///< solution status
 	int					numMeas			= 0;					///< number of valid satellites
 	KFState				sppState;								///< SPP filter object
-	double				dop[4];
+	double				dop[4];									///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
 	VectorEcef			sppRRec;								///< Position vector from spp
-	VectorEcef			pppRRec;								///< Position vector from ppp
-	VectorEcef			pppVRec;								///< Velocity vector from ppp
 };
 
 struct RinexStation
@@ -56,15 +54,30 @@ struct StationLogs
 };
 
 
+/** Structure of ocean/atmospheric tide loading displacements in amplitude and phase
+*/
+struct TidalDisplacement
+{
+	VectorEnu	amplitude;
+	VectorEnu	phase;
+};
+
+/** Map of ocean/atmospheric tide loading displacements
+*/
+struct TideMap : map<E_TidalConstituent, TidalDisplacement>
+{
+
+};
+
 struct Rtk
 {
-	KFState						pppState;
 	Solution					sol;								///< RTK solution
 	string						antennaType;
 	string						receiverType;
 	string						antennaId;
 	map<SatSys, SatStat>		satStatMap;	
-	double						otlDisplacement[6*11] = {};			///< ocean tide loading parameters
+	TideMap						otlDisplacement;					///< ocean tide loading parameters
+	TideMap						atlDisplacement;					///< atmospheric tide loading parameters
 	VectorEnu					antDelta;							///< antenna delta {rov_e,rov_n,rov_u}
 	AttStatus					attStatus;
 };
@@ -102,8 +115,9 @@ struct Station : StationLogs, Rtk
 	bool				invalid	= false;
 	SinexRecData		snx;						///< Antenna information
 
-	ObsList				obsList;					///< Observations available for this station at this epoch
-	string				id;							///< Unique name for this station (4 characters)
+	map<string, string>					metaDataMap;
+	ObsList								obsList;					///< Observations available for this station at this epoch
+	string								id;							///< Unique name for this station (4 characters)
 	
 	bool		primaryApriori	= false;
 	UYds		aprioriTime;
@@ -119,19 +133,23 @@ struct Station : StationLogs, Rtk
 	Vector3d	antAzimuth		= {0,1,0};
 	
 	string		traceFilename;
+	string		jsonTraceFilename;
 	
 	map<E_Sys, pair<E_ObsCode,E_ObsCode>> recClockCodes;
 	map<SatSys, GTime> savedSlips;
 	
-	Cache<tuple<Vector3d, Vector3d, Vector3d>>		pppTideCache;
+	Cache<tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>> pppTideCache;
 };
 
-using StationMap	= map<string, Station>;		///< Map of all stations
-
+struct StationMap : map<string, Station>
+{
+	
+};
 
 struct Network
 {
 	string traceFilename;
+	string jsonTraceFilename;
 	string id				= "Network";
 	
 	KFState kfState			= {};

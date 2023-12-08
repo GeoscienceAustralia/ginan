@@ -210,6 +210,36 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 			{E_ObsCode::L5Q,	F5	},
 			{E_ObsCode::L5X,	F5	}
 		}
+	},
+	
+    {	E_Sys::LEO,
+		{
+			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::L1C,	F1	},
+			{E_ObsCode::L1S,	F1	},
+			{E_ObsCode::L1L,	F1	},
+			{E_ObsCode::L1X,	F1	},
+			{E_ObsCode::L1P,	F1	},
+			{E_ObsCode::L1W,	F1	},
+			{E_ObsCode::L1Y,	F1	},
+			{E_ObsCode::L1M,	F1	},
+			{E_ObsCode::L1N,	F1	},
+
+			{E_ObsCode::L2C,	F2	},
+			{E_ObsCode::L2D,	F2	},
+			{E_ObsCode::L2S,	F2	},
+			{E_ObsCode::L2L,	F2	},
+			{E_ObsCode::L2X,	F2	},
+			{E_ObsCode::L2P,	F2	},
+			{E_ObsCode::L2W,	F2	},
+			{E_ObsCode::L2Y,	F2	},
+			{E_ObsCode::L2M,	F2	},
+			{E_ObsCode::L2N,	F2	},
+
+			{E_ObsCode::L5I,	F5	},
+			{E_ObsCode::L5Q,	F5	},
+			{E_ObsCode::L5X,	F5	}
+		}
 	}
 };
 
@@ -392,7 +422,7 @@ map<E_Sys, map<E_FType, E_ObsCode>> codeHax =
 
 	{	E_Sys::IRN,
 		{
-			{F5, E_ObsCode::L1A },
+			{F1, E_ObsCode::L1A },
 			{I9, E_ObsCode::L9A }
 		}
 	},
@@ -400,7 +430,7 @@ map<E_Sys, map<E_FType, E_ObsCode>> codeHax =
 	{	E_Sys::SBS,
 		{
 			{F1, E_ObsCode::L1C },
-			{F1, E_ObsCode::L5I }
+			{F5, E_ObsCode::L5I }
 		}
 	}
 };

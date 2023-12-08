@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <thread>
 #include <map>
 
 using std::map;
@@ -8,7 +9,6 @@ using std::map;
 #include "eigenIncluder.hpp"
 
 #include "algebraTrace.hpp"
-#include "navigation.hpp"
 #include "constants.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
@@ -19,6 +19,7 @@ using std::map;
 #include <boost/serialization/binary_object.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/log/trivial.hpp>
 
 map<short int, string> idStringMap;
 map<string, short int> stringIdMap;
@@ -66,138 +67,6 @@ E_SerialObject getFilterTypeFromFile(
 	return type;
 }
 
-void outputPersistanceNav()
-{
-	string navFilename = acsConfig.persistance_filename + "_nav";
-
-	std::fstream fileStream(navFilename, std::ifstream::binary | std::ifstream::out | std::ifstream::app);
-
-	if (!fileStream)
-	{
-		std::cout << std::endl << "Error opening persistance file " << navFilename <<  " for writing";
-		return;
-	}
-
-	binary_oarchive serial(fileStream, 1);	//no header
-
-	serialize(serial, nav);
-}
-
-void inputPersistanceNav()
-{
-	string navFilename = acsConfig.persistance_filename + "_nav";
-
-	std::fstream fileStream(navFilename, std::ifstream::binary | std::ifstream::in);
-
-	if (!fileStream)
-	{
-		std::cout << std::endl << "Error opening persistance file " << navFilename <<  " for input";
-		return;
-	}
-
-	binary_iarchive serial(fileStream, 1); //no header
-
-	serialize(serial, nav);
-}
-
-void outputPersistanceStates(
-	map<string, Station>&	stationMap,
-	KFState&				netKFState)
-{
-	string stateFilename	= acsConfig.persistance_filename + "_states";
-
-	std::fstream fileStream(stateFilename, std::ifstream::binary | std::ifstream::out | std::ifstream::app);
-
-	if (!fileStream)
-	{
-		std::cout << std::endl << "Error opening persistance file " << stateFilename <<  " for writing";
-		return;
-	}
-
-	binary_oarchive serial(fileStream, 1);	//no header
-
-	serial & netKFState;
-
-	int stationMapSize = stationMap.size();
-	serial & stationMapSize;
-
-	for (auto& [id, rec] : stationMap)
-	{
-		string tempId = id;
-		serial & tempId;
-		serial & rec.pppState;
-	}
-}
-
-void inputPersistanceStates(
-	map<string, Station>&	stationMap,
-	KFState&				netKFState)
-{
-	string stateFilename	= acsConfig.persistance_filename + "_states";
-
-	std::fstream fileStream(stateFilename, std::ifstream::binary | std::ifstream::in);
-
-	if (!fileStream)
-	{
-		std::cout << std::endl << "Error opening persistance file " << stateFilename <<  " for input";
-		return;
-	}
-
-	binary_iarchive serial(fileStream, 1); //no header
-
-	{
-		KFState kfState;
-		serial & kfState;
-
-		KFState& destKFState = netKFState;
-
-		destKFState.time		= kfState.time;
-		destKFState.x			= kfState.x;
-		destKFState.P			= kfState.P;
-		destKFState.kfIndexMap	= kfState.kfIndexMap;
-
-		//fix up the station pointers
-		{
-			map<KFKey, short int> newKFIndexMap;
-
-			for (auto& [kfKey, index] : destKFState.kfIndexMap)
-			{
-				KFKey newKey = kfKey;
-				string receiverId = kfKey.str;
-				if (receiverId.empty() == false)
-				{
-					//get the appropriate station from the station map;
-					newKey.rec_ptr = &stationMap[receiverId];
-				}
-
-				newKFIndexMap[newKey] = index;
-			}
-			destKFState.kfIndexMap = newKFIndexMap;
-		}
-	}
-
-	int stationMapSize;
-	serial & stationMapSize;
-
-	for (int i = 0; i < stationMapSize; i++)
-	{
-		string tempId;
-		serial & tempId;
-
-		KFState kfState;
-		serial & kfState;
-
-		KFState& destKFState = stationMap[tempId].pppState;
-
-		destKFState.time		= kfState.time;
-		destKFState.x			= kfState.x;
-		destKFState.P			= kfState.P;
-		destKFState.kfIndexMap	= kfState.kfIndexMap;
-	}
-}
-
-
-
 void tryPrepareFilterPointers(
 	KFState&		kfState, 
 	StationMap*		stationMap_ptr)
@@ -229,4 +98,90 @@ void tryPrepareFilterPointers(
 	}
 	
 	kfState.kfIndexMap = replacementKFIndexMap;
+}
+
+struct QueuedSpit
+{
+	shared_ptr<void>	ptr;
+	E_SerialObject		type;
+	string				filename;
+	bool				valid		= false;
+	bool				available	= false;
+};
+
+
+void spitQueuedToFile(
+	QueuedSpit& spit)
+{
+	switch (spit.type)
+	{
+		default:	std::cout << "ERROR: missing queued type " << spit.type;				break;
+		case E_SerialObject::FILTER_MINUS:		//fallthrough
+		case E_SerialObject::FILTER_PLUS:		//fallthrough
+		case E_SerialObject::FILTER_SMOOTHED:	{	auto&	kfState				= *static_pointer_cast<KFState>					(spit.ptr);	spitFilterToFile(kfState,			spit.type, spit.filename);	break;	}	
+		case E_SerialObject::TRANSITION_MATRIX:	{	auto&	transitionObject	= *static_pointer_cast<TransitionMatrixObject>	(spit.ptr);	spitFilterToFile(transitionObject,	spit.type, spit.filename);	break;	}	
+		case E_SerialObject::MEASUREMENT:		{	auto&	kfMeas				= *static_pointer_cast<KFMeas>					(spit.ptr);	spitFilterToFile(kfMeas,			spit.type, spit.filename);	break;	}		
+		case E_SerialObject::METADATA:			{	auto&	metatdata			= *static_pointer_cast<map<string, string>>		(spit.ptr);	spitFilterToFile(metatdata,			spit.type, spit.filename);	break;	}
+	}
+}
+
+list<QueuedSpit>	spitQueue;
+std::mutex			spitQueueMutex;
+bool				spitQueueRunning = false;
+
+void spitQueueRun()
+{
+	BOOST_LOG_TRIVIAL(debug) << "Running trace thread";
+	
+	while (1)
+	{
+		QueuedSpit* spit_ptr;
+		
+		{
+			lock_guard<mutex> guard(spitQueueMutex);
+			
+			if (spitQueue.empty())
+			{
+				break;
+			}
+			
+			BOOST_LOG_TRIVIAL(debug) << "Queue has " << spitQueue.size() << " entries to go";
+			
+			spit_ptr = &spitQueue.front();
+		}
+		
+		spitQueuedToFile(*spit_ptr);
+		
+		{
+			lock_guard<mutex> guard(spitQueueMutex);
+			
+			spitQueue.pop_front();
+		}
+	}
+	
+	lock_guard<mutex> guard(spitQueueMutex);
+	spitQueueRunning = false;
+}
+
+void spitFilterToFileQueued(
+	shared_ptr<void>&	object_ptr,		///< Object to output
+	E_SerialObject		type,			///< Type of object
+	string				filename)		///< Path to file to output to
+{
+	QueuedSpit spit;
+	
+	spit.ptr 		= object_ptr;
+	spit.type		= type;
+	spit.filename	= filename;
+	
+	lock_guard<mutex> guard(spitQueueMutex);
+	
+	spitQueue.push_back(std::move(spit));
+	
+	if (spitQueueRunning == false)
+	{
+		spitQueueRunning = true;
+		
+		std::thread(spitQueueRun).detach();
+	}
 }

@@ -74,7 +74,7 @@ bool findAntenna(
 	E_FType				ft,
 	PhaseCenterData**	pcd_ptr_ptr = nullptr);
 
-int readantexf(
+void readantexf(
 	string		file, 
 	Navigation&	nav);
 

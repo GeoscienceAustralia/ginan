@@ -83,7 +83,7 @@ struct PacketStatistics
 	void nonFrameByteFound(
 		unsigned char c)
 	{
-		printf(".%02x", c);
+// 		printf(".%02x", c);
 		
 		numNonMessBytes++;
 // 		trigger = true;

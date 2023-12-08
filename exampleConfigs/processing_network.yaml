@@ -64,7 +64,7 @@ estimation_parameters:
                 estimated:          [true]
                 sigma:              [20]
                 proc_noise:         [0]
-        USN7:                                       # Signals on USN7: GPS L1W, L1C, L2W, L2L, L5Q; GAL L1C, L5Q, L7Q; GLO L1C, L1P, L2C, L2P; BDS L2I, L7I, L6I
+        PIVOT:                                       # Signals on USN7: GPS L1W, L1C, L2W, L2L, L5Q; GAL L1C, L5Q, L7Q; GLO L1C, L1P, L2C, L2P; BDS L2I, L7I, L6I
             clk:
                 estimated:          [false]
             code_bias:
@@ -83,6 +83,7 @@ estimation_parameters:
                 estimated:          [true]
                 sigma:              [1000]
                 proc_noise:         [10]
+                tau:                [60]
 
             clk_rate:
                 estimated:          [true]
@@ -136,6 +137,9 @@ processing_options:
         require_antenna_details:        true    # (bool)
         raim:                           true
         rec_reference_system:           gps
+        pivot_station:                  USN7
+        pivot_satellite:                <AUTO>
+        minimise_sat_clock_offsets:     true
         sys_options:
             gps:
                 process:                true

@@ -3,24 +3,21 @@
 
 #include <boost/log/trivial.hpp>
 
-
 #include <string>
 
 using std::string;
 
-
 #include "rinexNavWrite.hpp"
 #include "navigation.hpp"
-#include "biasSINEX.hpp"
 #include "constants.hpp"
 #include "station.hpp"
 #include "common.hpp"
+#include "biases.hpp"
 #include "gTime.hpp"
 #include "rinex.hpp"
 #include "trace.hpp"
 #include "enum.h"
 
-#define MAXRNXLEN   (16*MAXOBSTYPE+4)   ///< max rinex record length
 #define MAXPOSHEAD  1024            	///< max head line position
 #define MINFREQ_GLO -7              	///< min frequency number glonass
 #define MAXFREQ_GLO 13              	///< max frequency number glonass
@@ -71,7 +68,7 @@ void decodeObsH(
 	E_TimeSys&						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	Navigation&						nav,
-	RinexStation*					rec)
+	RinexStation&					rnxRec)
 {
 	double del[3];
 	int prn;
@@ -84,56 +81,46 @@ void decodeObsH(
 
 	if      (strstr(label, "MARKER NAME"         ))
 	{
-		if (rec)
+		if (rnxRec.id.empty())
 		{
-			rec->id				.assign(buff,		60);
+			rnxRec.id				.assign(buff,		4);
 		}
 	}
 	else if (strstr(label, "MARKER NUMBER"       ))
 	{
-		if (rec) 
-		{
-			rec->marker			.assign(buff,		20);
-		}
+		rnxRec.marker			.assign(buff,		20);
+		
 	}
 //     else if (strstr(label,"MARKER TYPE"         )) ; // ver.3
 //     else if (strstr(label,"OBSERVER / AGENCY"   )) ;
 	else if (strstr(label, "REC # / TYPE / VERS" ))
 	{
-		if (rec)
-		{
-			rec->recSerial		.assign(buff,		20);
-			rec->recType		.assign(buff + 20,	20);
-			rec->recFWVersion	.assign(buff + 40,	20);
-		}
+		rnxRec.recSerial	.assign(buff,		20);
+		rnxRec.recType		.assign(buff + 20,	20);
+		rnxRec.recFWVersion	.assign(buff + 40,	20);
+		
 	}
 	else if (strstr(label, "ANT # / TYPE"        ))
 	{
-		if (rec)
-		{
-			rec->antSerial		.assign(buff,		20);
-			rec->antDesc		.assign(buff + 20,	20);
-		}
+		rnxRec.antSerial	.assign(buff,		20);
+		rnxRec.antDesc		.assign(buff + 20,	20);
+		
 	}
 	else if (strstr(label, "APPROX POSITION XYZ" ))
 	{
-		if (rec)
-		{
-			for (int i = 0, j = 0; i < 3; i++, j += 14)
-				rec->pos[i] = str2num(buff, j, 14);
-		}
+		for (int i = 0, j = 0; i < 3; i++, j += 14)
+			rnxRec.pos[i] = str2num(buff, j, 14);
+		
 	}
 	else if (strstr(label, "ANTENNA: DELTA H/E/N"))
 	{
-		if (rec)
-		{
-			for (int i = 0, j = 0; i < 3; i++, j += 14)
-				del[i] = str2num(buff, j, 14);
+		for (int i = 0, j = 0; i < 3; i++, j += 14)
+			del[i] = str2num(buff, j, 14);
 
-			rec->del[2] = del[0]; // h
-			rec->del[0] = del[1]; // e
-			rec->del[1] = del[2]; // n
-		}
+		rnxRec.del[2] = del[0]; // h
+		rnxRec.del[0] = del[1]; // e
+		rnxRec.del[1] = del[2]; // n
+		
 	}
 //     else if (strstr(label,"ANTENNA: DELTA X/Y/Z")) ; // opt ver.3
 //     else if (strstr(label,"ANTENNA: PHASECENTER")) ; // opt ver.3
@@ -254,7 +241,7 @@ void decodeObsH(
 				char typeChar = obsCode2str[0];
 				
 
-				auto& recOpts = acsConfig.getRecOpts(rec->id);	//todo aaron, this rec isnt the proper one and id isnt initialised
+				auto& recOpts = acsConfig.getRecOpts(rnxRec.id);
 				
 				for (E_Sys sys : E_Sys::_values())
 				{
@@ -545,7 +532,7 @@ int readRnxH(
 	E_TimeSys&						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	Navigation&						nav,
-	RinexStation*					rec)
+	RinexStation&					rnxRec)
 {
 	string	line;
 	int 	i		= 0;
@@ -641,7 +628,7 @@ int readRnxH(
 						auto obs2 = E_ObsCode2	::_from_string_nocase(r2);
 						auto obs3 = E_ObsCode	::_from_string_nocase(r3);
 						
-						auto& recOpts = acsConfig.getRecOpts(rec->id);
+						auto& recOpts = acsConfig.getRecOpts(rnxRec.id);
 
 						auto& codeMap = recOpts.rinex23Conv.codeConv[sys];
 						auto& phasMap = recOpts.rinex23Conv.phasConv[sys];
@@ -679,7 +666,7 @@ int readRnxH(
 		// file type
 		switch (type)
 		{            
-			case 'O': decodeObsH(inputStream, line, ver, tsys, sysCodeTypes, nav, rec); break;
+			case 'O': decodeObsH(inputStream, line, ver, tsys, sysCodeTypes, nav, rnxRec); break;
 			case 'N': decodeNavH			(  line, sys,        nav); break; // GPS (ver.2) or mixed (ver.3)
 			case 'G': decodeGnavH			(  line,             nav); break;
 			case 'H': decodeHnavH			(  line,             nav); break;
@@ -960,7 +947,7 @@ int readRnxObs(
 	E_TimeSys						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	ObsList&						obsList,
-	RinexStation*					sta)
+	RinexStation&					rnxRec)
 {
 	int flag = 0;
 	int stat = 0;
@@ -1550,16 +1537,16 @@ int decodeIon(
 */
 int readRnxNavB(
 	std::istream& 	inputStream,	///< Input stream to read
-	double		ver,				///< RINEX version
-	E_Sys		sys,				///< Satellite system
-	E_EphType&	type,				///< Ephemeris type (output)
-	Eph&		eph,				///< GPS Ephemeris
-	Geph&		geph,				///< Glonass ephemeris
-	Seph&		seph,				///< Geo ephemeris
-	Ceph&		ceph,				///< CNVX ephemeris
-	STO&		sto,				///< System time offset data
-	EOP&		eop,				///< EOP data
-	ION&		ion)				///< Ionosphere data
+	double			ver,			///< RINEX version
+	E_Sys			sys,			///< Satellite system
+	E_EphType&		type,			///< Ephemeris type (output)
+	Eph&			eph,			///< GPS Ephemeris
+	Geph&			geph,			///< Glonass ephemeris
+	Seph&			seph,			///< Geo ephemeris
+	Ceph&			ceph,			///< CNVX ephemeris
+	STO&			sto,			///< System time offset data
+	EOP&			eop,			///< EOP data
+	ION&			ion)			///< Ionosphere data
 {
 	GTime toc;
 	vector<double> data;
@@ -1864,25 +1851,23 @@ int readRnx(
 	char&							type,
 	ObsList&						obsList,
 	Navigation&						nav,
-	RinexStation*					sta,
+	RinexStation&					rnxRec,
 	double&							ver,
 	E_Sys&							sys,
 	E_TimeSys&						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes)
 {
-// 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": flag=" << flag << " index=" << index;
-
-	// read rinex header if at beginning of file
 	if (inputStream.tellg() == 0)
 	{
-		readRnxH(inputStream, ver, type, sys, tsys, sysCodeTypes, nav, sta);
+		// read rinex header if at beginning of file
+		readRnxH(inputStream, ver, type, sys, tsys, sysCodeTypes, nav, rnxRec);
 	}
 
 	// read rinex body
 	switch (type)
 	{
-		case 'O': return readRnxObs(inputStream, ver, tsys, sysCodeTypes, obsList, sta);
-		case 'N': return readRnxNav(inputStream, ver, sys       ,	nav);
+		case 'O': return readRnxObs(inputStream, ver, tsys, sysCodeTypes, obsList, rnxRec);
+		case 'N': return readRnxNav(inputStream, ver, sys,			nav);
 		case 'G': return readRnxNav(inputStream, ver, E_Sys::GLO, 	nav);
 		case 'H': return readRnxNav(inputStream, ver, E_Sys::SBS, 	nav);
 		case 'J': return readRnxNav(inputStream, ver, E_Sys::QZS, 	nav); // extension

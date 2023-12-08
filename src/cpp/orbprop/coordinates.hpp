@@ -1,10 +1,12 @@
 
 #pragma once
 
+#include "centerMassCorrections.hpp"
 #include "eigenIncluder.hpp"
 #include "instrument.hpp"
 #include "constants.hpp"
 #include "attitude.hpp"
+#include "iers2010.hpp"
 #include "gTime.hpp"
 #include "sofam.h"
 #include "sofa.h"
@@ -78,7 +80,8 @@ VectorEcef	body2ecef(
 
 Vector3d ecef2body(
 	AttStatus&	attStatus,
-	VectorEcef&	ecef);
+	VectorEcef&	ecef,
+	MatrixXd*	dEdQ_ptr = nullptr);
 
 VectorEcef antenna2ecef(
 	AttStatus&	attStatus,
@@ -91,17 +94,24 @@ Vector3d ecef2antenna(
 struct FrameSwapper
 {
 	GTime		time0;
-	Matrix3d	i2t_mat;
+	Matrix3d	 i2t_mat;
 	Matrix3d	di2t_mat;
-	
+	Vector3d	translation = Vector3d::Zero();
 	FrameSwapper(
 				GTime		time,
 		const	ERPValues&	erpVal)
 	:	time0 {time}
 	{
-		Instrument instrument("Instrument");
+		Instrument instrument(__FUNCTION__);
 		
 		eci2ecef(time, erpVal, i2t_mat, &di2t_mat);
+		
+		if (cmc.initialized)	
+		{	
+			Array6d dood_arr = IERS2010::doodson(time, 0); //Will need to add erpval.ut1Utc later
+			
+			translation = cmc.estimate(dood_arr);	
+		}
 	}
 	
 	FrameSwapper& operator = (FrameSwapper& in)
@@ -129,7 +139,7 @@ struct FrameSwapper
 					+ di2t_mat * rEci;
 		}
 		
-		return (Vector3d) (i2t_mat				* rEci);		
+		return (Vector3d) (i2t_mat	* rEci + translation);
 	}
 	
 	VectorEci	operator()(
@@ -149,7 +159,7 @@ struct FrameSwapper
 					+ di2t_mat.transpose() * rEcef;
 		}
 		
-		return (Vector3d) (i2t_mat.transpose()	* rEcef);	
+		return (Vector3d) (i2t_mat.transpose()	* ((Vector3d)rEcef - translation));
 	}
 	
 	VectorEci	operator()(

@@ -18,6 +18,7 @@ using std::pair;
 #include "observations.hpp"
 #include "instrument.hpp"
 #include "acsConfig.hpp"
+#include "station.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
 #include "trace.hpp"

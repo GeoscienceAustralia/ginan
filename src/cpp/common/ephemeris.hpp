@@ -71,6 +71,7 @@ struct Eph : BrdcEph, KeplerEph
 	int		week;		///< GPS/QZS: gps week, GAL:gps week (i.e. galileo week + 1024), BDS: beidou week
 	int		code = 0;	///< GPS/QZS: code on L2, GAL: data source
 	int		flag = 0;	///< GPS L2 P data flag
+	int		howTow;		///< Hand over word time
 	GTime	toc;		///< time of clock
 	GTime	toe;		///< time of ephemeris
 	GTime	ttm;		///< transmission time
@@ -400,7 +401,8 @@ bool satclk(
 	SatPos&				satPos,
 	vector<E_Source>	ephTypes,
 	Navigation&			nav,
-	const KFState*		kfState_ptr		= nullptr);
+	const KFState*		kfState_ptr		= nullptr,
+	const KFState*		remote_ptr		= nullptr);
 
 bool satpos(
 	Trace&				trace,
@@ -410,7 +412,8 @@ bool satpos(
 	vector<E_Source>	ephTypes,
 	E_OffsetType		offsetType,
 	Navigation&			nav,
-	const KFState*		kfState_ptr		= nullptr);
+	const KFState*		kfState_ptr		= nullptr,
+	const KFState*		remote_ptr		= nullptr);
 
 bool satPosClk(
 	Trace&				trace,
@@ -420,6 +423,7 @@ bool satPosClk(
 	vector<E_Source>	posSources,
 	vector<E_Source>	clkSources,
 	const KFState*		kfState_ptr		= nullptr,
+	const KFState*		remote_ptr		= nullptr,
 	E_OffsetType		offsetType		= E_OffsetType::COM,
 	E_Relativity		applyRelativity	= E_Relativity::ON);
 
@@ -535,3 +539,7 @@ bool satClkSSR(
 	GTime			teph,
 	SatPos&			satPos,
 	Navigation&		nav);
+
+double relativity1(
+	Vector3d&			rSat,
+	Vector3d&			satVel);

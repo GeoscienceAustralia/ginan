@@ -61,40 +61,61 @@ bool satPosKalman(
 	SatPos&			satPos,
 	const KFState*	kfState_ptr)
 {
-	if (kfState_ptr == nullptr)
+	VectorEci	rSat0;
+	VectorEci	vSat0;
+	GTime		t0;
+	
+	auto& satNav = nav.satNavMap[satPos.Sat];
+	
+	if	( satNav.satPos0.rSatEci0.isZero() == false
+		&&satNav.satPos0.vSatEci0.isZero() == false
+		&&satNav.satPos0.posTime != GTime::noTime())
 	{
-		return false;
+		rSat0	= satNav.satPos0.rSatEci0;
+		vSat0	= satNav.satPos0.vSatEci0;
+		t0		= satNav.satPos0.posTime;
 	}
-	
-	auto& kfState = *kfState_ptr;
-	
-	bool found = true;
-	
-	auto& rSat0 = satPos.rSatEci0;
-	auto& vSat0 = satPos.vSatEci0;
-	
-	//get orbit things from the state
-	for (int i = 0; i < 3; i++)
+// 	else
 	{
-		KFKey kfKey;
-		kfKey.type	= KF::ORBIT;
-		kfKey.Sat	= satPos.Sat;
-		
-		kfKey.num	= i;
-		found &= kfState.getKFValue(kfKey, rSat0(i));
-		
-		kfKey.num	= i + 3;
-		found &= kfState.getKFValue(kfKey, vSat0(i));
-		
-		if (found == false)
+		if (kfState_ptr == nullptr)
 		{
 			return false;
 		}
+		
+		auto& kfState = *kfState_ptr;
+		
+		bool found = true;
+	
+		//get orbit things from the state
+		for (int i = 0; i < 3; i++)
+		{
+			KFKey kfKey;
+			kfKey.type	= KF::ORBIT;
+			kfKey.Sat	= satPos.Sat;
+			
+			kfKey.num	= i;
+			found &= kfState.getKFValue(kfKey, rSat0(i));
+			
+			kfKey.num	= i + 3;
+			found &= kfState.getKFValue(kfKey, vSat0(i));
+			
+			if (found == false)
+			{
+				return false;
+			}
+		}
+	
+		t0 = kfState.time;
 	}
+		
+		
+	double dt = (time - t0).to_double();
 	
-	double dt = (time - kfState.time).to_double();
-	
-	satPos.rSatEciDt = propagateEllipse(trace, kfState.time, dt, rSat0, vSat0, satPos.rSat);
+	if	( rSat0.isZero() == false
+		&&vSat0.isZero() == false)
+	{
+		satPos.rSatEciDt = propagateEllipse(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel);
+	}
 	
 	return true;
 }

@@ -19,7 +19,7 @@ outputs:
 
 processing_options:
     epoch_control:
-        wait_next_epoch:        300
+        wait_next_epoch:        3600
     gnss_general:
         common_sat_pco:         true
         common_rec_pco:         true
@@ -28,3 +28,4 @@ processing_options:
             enable:             true
             directory:          ./    # WARNING: RTS Smoothing for network solutions may generate files of up to 1TB in size, 
                                   # make sure there is enoough disk space for these files 
+

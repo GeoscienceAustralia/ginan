@@ -350,24 +350,3 @@ void readSp3ToNav(
 		pephList.clear();
 	}
 }
-
-
-void orb2sp3(
-	Navigation& nav)
-{
-	for (auto& [Sat,	satNav]		: nav.satNavMap)
-	for (auto& [time,	orbitInfo]	: satNav.satOrbit.orbitInfoMap)
-	{
-		Peph peph = {};
-
-		peph.index			= 0;
-		peph.time			= time;
-		peph.Sat			= Sat;
-
-		/* copy itrf coordinates */
-		peph.pos	= orbitInfo.posEcef;
-		peph.posStd	= Vector3d::Ones() * 0.1;//default value for POD orbits precision
-
-		nav.pephMap[Sat.id()][time] = peph;
-	}
-}

@@ -8,7 +8,7 @@ Single frequency receivers needs to be provided with ionosphere delay informatio
 GNSS receivers that track signals from multiple carriers with different frequencies, can estimate and or cancel ionospheric delays, but the process of jointly estimating the ionospheric delay and carrier phase ambiguity means it requires up to a few hours for the solutions to converge to centimetre-level precision.
 
 ## Ionosphere measurements
-Ginan uses uncombined measurements to estimate most GNSS error parameters, which requires estimation or modelling of ionospheric delays. When multiple frequency signals are available these measurements may be combined or filtered to form a estimates of ionospheric delays.
+Ginan uses uncombined measurements to estimate most GNSS error parameters, which requires estimation or modelling of ionospheric delays. When multiple frequency signals are available these measurements may be combined or filtered to form an estimate of ionospheric delays.
 
 Two types of ionosphere measurements can be used in Ginan for ionosphere delay mapping.
 The *Smoothed pseudorange* geometry free measurements are calculated directly from GNSS measurements, independent from the main GNSS processing.

@@ -138,6 +138,13 @@ Measurements
     {% if selection is defined and  selection['exclude'] %}value="{{ selection['exclude'] }}"{% endif %}  
     >
     </div>
+
+      <div class="col-lg-2">
+        <label for="exclude">Exclude last (min):</label>
+        <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail"
+        {% if selection is defined and  selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}"{% endif %}
+        >
+        </div>
   <input type="submit" value="PLOT">
 </form>
 {% endblock %}

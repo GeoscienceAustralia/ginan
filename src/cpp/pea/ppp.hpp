@@ -18,7 +18,7 @@ struct Vmf3;
 struct gptgrid_t;
 struct AttStatus;
 struct PhaseCenterData;
-using StationMap = map<string, Station>;
+struct StationMap;
 
 
 
@@ -28,28 +28,18 @@ void removeUnmeasuredAmbiguities(
 	KFState&			kfState,
 	map<KFKey, bool>	measuredStates);
 
-void pppos(
-	Trace&		trace,
-	ObsList&	obsList,
-	Station&	rec);
-
-void pppoutstat(
+void outputPppNmea(
 	Trace&		trace,
 	KFState&	kfState,
 	string		id);
 
-void pppomc(
-	Trace&			trace,
-	ObsList&		obsList,
-	gptgrid_t&		gptg,
-	Station&		rec,			
-	Vmf3&			vmf3);		
-
-void sppos(
+void SPP(
 	Trace&		trace,
 	ObsList&	obsList,
 	Solution&	sol,
-	string		id);
+	string		id,
+	KFState*	kfState_ptr	= nullptr,
+	KFState*	remote_ptr	= nullptr);
 
 void testEclipse(
 	ObsList&	obsList);
@@ -59,60 +49,41 @@ void pppCorrections(
 	ObsList&	obsList,
 	Vector3d&	rRec,
 	Station&	rec);
-	
+
 void PPP(
 	Trace&			trace,
 	StationMap&		stations,
 	KFState&		kfState);
-
-void corr_meas(
-	Trace&		trace,
-	GObs&		obs,
-	E_FType		ft,
-	double		dAntRec,
-	double		dAntSat,
-	double		phw,
-	bool		oldSchool = true);
-
-double sbstropcorr(
-	GTime			time,
-	VectorEcef&		rRec,
-	double			el,
-	double*			var = nullptr);
 
 void phaseWindup(
 	GObs&		obs,
 	Station&	rec,
 	double&		phw);
 
-double gradMapFn(
-	double		el);
-
-double trop_model_prec(
-	GTime		time,
-	VectorPos&	pos,
-	double*		azel,
-	double*		tropStates,
-	double*		dTropDx,
-	double&		var);
-
 int ionoModel(
 	GTime		time,
 	VectorPos&	pos,
-	double*		azel,
+	AzEl&		azel,
 	double		ionoState,
 	double&		dion,
 	double&		var);
-
-void outputDeltaClocks(
-	StationMap& stationMap);
 
 void outputApriori(
 	StationMap& stationMap);
 
 void outputPPPSolution(
 	string		filename,
+	KFState&	kfState,
 	Station&	rec);
+
+void gpggaout(
+	string outfile,
+	KFState& KfState,
+	string recId,
+	int solStat,
+	int numSat,
+	double hdop,
+	bool lng);
 
 void selectAprioriSource(
 	Station&	rec,
@@ -125,31 +96,36 @@ bool deweightMeas(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index);
+	int			index,
+	bool		postFit);
 
 bool pseudoMeasTest(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index);
+	int			index,
+	bool		postFit);
 
 bool deweightStationMeas(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index);
+	int			index,
+	bool		postFit);
 
 bool countSignalErrors(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index);
+	int			index,
+	bool		postFit);
 
 bool incrementPhaseSignalError(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index);
+	int			index,
+	bool		postFit);
 
 bool resetPhaseSignalError(
 	KFMeas&		kfMeas,
@@ -167,82 +143,78 @@ bool rejectByState(
 			Trace&		trace,
 			KFState&	kfState,
 			KFMeas&		kfMeas,
-	const	KFKey&		kfKey);
+	const	KFKey&		kfKey,
+			bool		postFit);
 
 bool clockGlitchReaction(
 			Trace&		trace,
 			KFState&	kfState,
 			KFMeas&		kfMeas,
-	const	KFKey&		kfKey);
+	const	KFKey&		kfKey,
+			bool		postFit);
 
 bool orbitGlitchReaction(
 			Trace&		trace,
 			KFState&	kfState,
 			KFMeas&		kfMeas,
-	const	KFKey&		kfKey);
+	const	KFKey&		kfKey,
+			bool		postFit);
 
 
 
 void stationPPP(
-			Trace&				netTrace,		
-			Station&			rec,			
-	const	KFState&			kfState,		
-			KFMeasEntryList&	kfMeasEntryList);
+			Trace&				netTrace,
+			Station&			rec,
+	const	KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList,
+	const	KFState&			remoteState);
 
 
 void orbitPseudoObs(
-			Trace&				netTrace,			
-			Station&			rec,				
-	const	KFState&			kfState,			
-			KFMeasEntryList&	kfMeasEntryList);	
+			Trace&				netTrace,
+			Station&			rec,
+	const	KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList);
 
 void initPseudoObs(
-			Trace&				netTrace,			
-			KFState&			kfState,			
-			KFMeasEntryList&	kfMeasEntryList);	
+			Trace&				netTrace,
+			KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList);
 
 void stationPseudoObs(
-			Trace&				netTrace,			
-			Station&			rec,				
-	const	KFState&			kfState,			
+			Trace&				netTrace,
+			Station&			rec,
+	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
 			StationMap&			stationMap,
 			MatrixXd*			R_ptr = nullptr);
 
 void stationSlr(
-			Trace&				netTrace,		
-			Station&			rec,			
-	const	KFState&			kfState,		
-			KFMeasEntryList&	kfMeasEntryList);		
-
-Matrix3d stationEopPartials(
-	Vector3d&	rRec);
+			Trace&				netTrace,
+			Station&			rec,
+	const	KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList);
 
 
 bool satQuat(
-	GObs&				obs,
+	SatPos&				satPos,
 	vector<E_Source>	attitudeTypes,
 	Quaterniond&		quat,
 	bool				origGal	= false);
 
-int PPP_AR(
-	Trace&		trace,		
+void fixAndHoldAmbiguities(
+	Trace&		trace,
 	KFState&	kfState);
 
-bool copyFixedKF(
-	KFState& fixed);
-
-void overwriteFixedKF(
-	KFState& kfState);
-
 bool queryBiasUC(
-	Trace&		trace,	
-	GTime		time,		
-	SatSys		sat,		
-	string		rec,		
-	E_ObsCode	code,	
-	double&		bias,	
-	double&		vari,	
+	Trace&		trace,
+	GTime		time,
+	KFState&	kfState,
+	SatSys		sat,
+	string		rec,
+	E_ObsCode	code,
+	double&		bias,
+	double&		vari,
 	E_MeasType	typ);
 
 void biasPseudoObs(
@@ -255,8 +227,19 @@ void ambgPseudoObs(
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
 
-void ionoPseudoObs (
+void ionoPseudoObs(
 	Trace&				trace,
-	StationMap&			stations,	
+	StationMap&			stations,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
+
+void tropPseudoObs(
+	Trace&				trace,
+	StationMap&			stations,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
+
+void satClockPivotPseudoObs(
+	Trace&				trace,
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);

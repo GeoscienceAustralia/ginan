@@ -39,6 +39,8 @@ public:
 	double * get_in_ptr_end(){return in_phase.origin()+in_phase.num_elements();};
 	double * get_out_ptr_end(){return out_phase.origin()+out_phase.num_elements();};
 
+	std::string get_wave_name(){return wave_name;};
+
 private:
 	std::string fileName;
 	size_t nLon;

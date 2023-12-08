@@ -16,6 +16,7 @@
 #include "sinex.hpp"
 #include "slr.hpp"
 
+using std::ifstream;
 using std::ofstream;
 using std::string;
 using std::endl;
@@ -70,20 +71,26 @@ vector<CrdSession> readCrdFile(
 	string	filepath)	///< Filepath to CRD file
 {
 	vector<CrdSession> crdSessions; // One CrdSession per session (pass); May be multiple passes per file
-	char str[512];
-	FILE *str_in;
 
-	if ((str_in = fopen(filepath.c_str(), "r")) == nullptr)		//todo aaron ew.
+	ifstream fileStream(filepath);
+	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error: could not open file " << filepath;
+		<< "Error opening crd file " << filepath << std::endl;
 		
 		return crdSessions;
 	}
 
 	CrdSession crdSession;
-	while (fgets(str, 512, str_in) != nullptr)
+	
+	while (fileStream)
 	{
+		string line;
+		
+		getline(fileStream, line);
+
+		char* str = &line[0];
+	
 		string recordType = str;
 		recordType = recordType.substr(0,2);
 		
@@ -137,6 +144,7 @@ vector<CrdSession> readCrdFile(
 		else
 			++it;
 	}
+	
 	return crdSessions;
 }
 

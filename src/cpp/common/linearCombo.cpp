@@ -1,7 +1,10 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "observations.hpp"
 #include "linearCombo.hpp"
+#include "navigation.hpp"
+#include "instrument.hpp"
 #include "testUtils.hpp"
 #include "satStat.hpp"
 #include "debug.hpp"
@@ -251,6 +254,8 @@ void obs2lcs(
 	Trace&		trace,		///< Trace to output to
 	ObsList&	obsList)	///< List of bservation to prepare combinations for
 {
+	Instrument instrument(__FUNCTION__);
+	
 	int lv = 3;
 
 	if (obsList.empty())

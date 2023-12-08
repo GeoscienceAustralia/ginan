@@ -278,6 +278,15 @@ struct GTime
 		return gTime;
 	}
 	
+	GTime operator +(const Duration duration) const
+	{
+		GTime gTime = *this;
+		
+		gTime.bigTime += duration.bigTime;
+		
+		return gTime;
+	}
+	
 	GTime& operator+=(const double rhs)
 	{
 		*this = *this + rhs;
@@ -302,6 +311,13 @@ struct GTime
 	{
 		GTime time = *this + (-t);
 		return time;
+	}
+
+	GTime operator -(const Duration duration) const
+	{
+		GTime gTime = *this;
+		gTime.bigTime -= duration.bigTime;
+		return gTime;
 	}
 
 	

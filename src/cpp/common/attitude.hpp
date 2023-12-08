@@ -33,12 +33,20 @@ struct AttStatus
 };
 
 struct Station;
-struct GObs;
+struct KFState;
+struct SatPos;
 
 void recAtt(
-	Station&			rec,
-	GTime				time,
-	vector<E_Source>	attitudeTypes);
+			Station&			rec,
+			GTime				time,
+			vector<E_Source>	attitudeTypes,
+	const	KFState*			kfState_ptr	= nullptr,
+	const	KFState*			remote_ptr	= nullptr);
 
 void updateSatAtts(
-	GObs&		obs);
+	SatPos&		satPos);
+
+
+void satYaw(
+        SatPos&		satPos,
+        AttStatus&	attStatus);

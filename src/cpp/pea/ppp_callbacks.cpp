@@ -15,16 +15,23 @@ bool deweightMeas(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index)
+	int			index,
+	bool		postFit)
 {
 	if (acsConfig.deweight_factor == 0)
 	{
 		return true;
 	}
 	
-	trace << std::endl << "Deweighting " << kfMeas.obsKeys[index] << std::endl;
+	auto& key = kfMeas.obsKeys[index];
+	
+	trace << std::endl << "Deweighting " << key << std::endl;
 
 	kfState.statisticsMap["Meas deweight"]++;
+	
+	char buff[64];
+	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.str.c_str(),		KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
+	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.Sat.id().c_str(),	KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 
 	kfMeas.R.row(index) *= acsConfig.deweight_factor;
 	kfMeas.R.col(index) *= acsConfig.deweight_factor;
@@ -38,7 +45,8 @@ bool pseudoMeasTest(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index)
+	int			index,
+	bool		postFit)
 {
 	if (kfMeas.metaDataMaps[index]["pseudoObs"] == (void*) false)
 	{
@@ -50,7 +58,7 @@ bool pseudoMeasTest(
 		if	( kfMeas.H(index, state)
 			&&key.type == KF::ORBIT)
 		{
-			orbitGlitchReaction(trace, kfState, kfMeas, key);
+			orbitGlitchReaction(trace, kfState, kfMeas, key, postFit);
 		}
 	}
 	
@@ -63,22 +71,26 @@ bool deweightStationMeas(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index)
+	int			index,
+	bool		postFit)
 {
 	string id = kfMeas.obsKeys[index].str;
 	
 	for (int i = 0; i < kfMeas.obsKeys.size(); i++)
 	{
-		auto& obsKey = kfMeas.obsKeys[i];
+		auto& key = kfMeas.obsKeys[i];
 		
-		if (obsKey.str != id)
+		if (key.str != id)
 		{
 			continue;
 		}
 		
-		trace << std::endl << "Deweighting " << kfMeas.obsKeys[i] << std::endl;
+		trace << std::endl << "Deweighting " << key << std::endl;
 
 		kfState.statisticsMap["Station deweight"]++;
+	
+		char buff[64];
+		snprintf(buff, sizeof(buff), "Station Deweight-%4s-%sfit", key.str.c_str(),	postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 
 		kfMeas.R.row(i) *= acsConfig.deweight_factor;
 		kfMeas.R.col(i) *= acsConfig.deweight_factor;
@@ -101,7 +113,8 @@ bool incrementPhaseSignalError(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index)
+	int			index,
+	bool		postFit)
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
@@ -123,7 +136,7 @@ bool incrementPhaseSignalError(
 	return true;
 }
 
-bool countSignalErrors(
+bool countSignalErrors(		//todo aaron, this is orphaned
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
@@ -228,7 +241,8 @@ bool rejectByState(
 			Trace&		trace,
 			KFState&	kfState,
 			KFMeas&		kfMeas,
-	const	KFKey&		kfKey)
+	const	KFKey&		kfKey,
+			bool		postFit)
 {
 	if (acsConfig.reject_on_state_error == false)
 	{
@@ -245,7 +259,7 @@ bool rejectByState(
 	{
 		if (kfMeas.H(meas, stateIndex))
 		{
-			kfState.doMeasRejectCallbacks(trace, kfMeas, meas);
+			kfState.doMeasRejectCallbacks(trace, kfMeas, meas, postFit);
 		}
 	}
 	
@@ -318,40 +332,46 @@ bool orbitGlitchReaction(
 			Trace&		trace,
 			KFState&	kfState,
 			KFMeas&		kfMeas,
-	const	KFKey&		kfKey)
+	const	KFKey&		kfKey,
+			bool		postFit)
 {
 	if (kfKey.type != KF::ORBIT)
 	{
 		return true;
 	}
 	
+	if (acsConfig.orbitErrors.enable == false)
+	{
+		return true;
+	}	
+	
 	trace << std::endl << "Bad orbit state detected " << kfKey;
 
 	kfState.statisticsMap["Orbit state reject"]++;
 	
 	Exponential exponentialNoise;
-	exponentialNoise.tau	=		acsConfig.orbit_vel_proc_noise_trail_tau;
-	exponentialNoise.value	= SQR(	acsConfig.orbit_vel_proc_noise_trail);
+	exponentialNoise.tau	=		acsConfig.orbitErrors.vel_proc_noise_trail_tau;
+	exponentialNoise.value	= SQR(	acsConfig.orbitErrors.vel_proc_noise_trail);
 	
 	MatrixXd F = MatrixXd::Identity	(kfState.x.rows(), kfState.x.rows());
 	MatrixXd Q = MatrixXd::Zero		(kfState.x.rows(), kfState.x.rows());
 	
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
-		if	(  key.type	== KF::ORBIT
-			&& key.str	== kfKey.str
-			&& key.Sat	== kfKey.Sat
-			&& key.num	<  3)
+		if	(  key.type	!= KF::ORBIT
+			|| key.str	!= kfKey.str
+			|| key.Sat	!= kfKey.Sat)
 		{
-			Q(index, index) = SQR(acsConfig.orbit_pos_proc_noise);
+			continue;
 		}
 		
-		if	(  key.type	== KF::SAT_POS_RATE
-			&& key.str	== kfKey.str
-			&& key.Sat	== kfKey.Sat
-			&& key.num	>= 3)
+		if (key.num	< 3)
 		{
-			Q(index, index) = SQR(acsConfig.orbit_vel_proc_noise);
+			Q(index, index) = SQR(acsConfig.orbitErrors.pos_proc_noise);
+		}
+		else
+		{
+			Q(index, index) = SQR(acsConfig.orbitErrors.vel_proc_noise);
 	
 			kfState.setExponentialNoise(key, exponentialNoise);
 		}
