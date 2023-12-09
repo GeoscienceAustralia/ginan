@@ -22,7 +22,7 @@ def parse_v3_header(filepath: Path):
     antenna_type, antenna_dh, antenna_de, antenna_dn = parse_antenna(header)
     approx_x, approx_y, approx_z = parse_approx_position(header)
     first_obs_time = parse_first_obs_time(header)
-    # last_obs_time = parse_last_obs_time(header)
+    last_obs_time = parse_last_obs_time(header)
 
     return {
         "marker_name": marker_name,
@@ -30,7 +30,7 @@ def parse_v3_header(filepath: Path):
         "antenna": {"type": antenna_type, "deltas": {"height": antenna_dh, "east": antenna_de, "north": antenna_dn}},
         "approx_position": {"x": approx_x, "y": approx_y, "z": approx_z},
         "first_obs_time": first_obs_time,
-        # "last_obs_time": last_obs_time,
+        "last_obs_time": last_obs_time,
     }
 
 
@@ -58,7 +58,7 @@ def parse_approx_position(header: dict) -> (float, float, float):
     return x, y, z
 
 
-def parse_obs_time(time: str) -> str:
+def parse_obs_time(time: str) -> datetime:
     # 'TIME OF FIRST OBS': '  2023    10    29     6    13   30.0000000     GPS         '
     # Remove extra whitespace and GPS suffix '2023 10 29 6 13 30.0000000'
     epoch = " ".join(time.strip().split()[:6])

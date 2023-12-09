@@ -7,7 +7,7 @@
 """
 import concurrent.futures
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from itertools import repeat
 from pathlib import Path
 from time import sleep
@@ -35,6 +35,7 @@ def ftp_tls(url: str, **kwargs) -> None:
         ftps.quit()
 
 
+# TODO: Could we use gnssanalysis.gn_download.download_prod?
 def download(header: dict, target_dir: Path):
     filenames = generate_filenames(header)
 
@@ -48,6 +49,7 @@ def download(header: dict, target_dir: Path):
         else:
             download_queue.append(filename)
 
+    # TODO: Handle rinex files that are split over two gps weeks
     gps_week = dt2gpswk(header["first_obs_time"])
 
     if download_queue:
@@ -59,51 +61,61 @@ def download(header: dict, target_dir: Path):
         logging.info(f"All files exist in target directory {target_dir}")
 
 
+def daterange(start_date, end_date):
+    for i in range(int((end_date - start_date).days) + 1):
+        yield start_date + timedelta(i)
+
+
 def generate_filenames(header: dict):
-    # TODO: Eventually iterate through each GPS day between start and
-    # end epochs in the file. To start with, only process the first GPS day
-    # in the file.
+    # TODO: CORS files won't have an end date - need to handle this eventually
     start_epoch = header["first_obs_time"]
-    start_date = datetime(start_epoch.year, start_epoch.month, start_epoch.day, 0, 0, 0)
+    last_epoch = header["last_obs_time"]
+    start_date = date(start_epoch.year, start_epoch.month, start_epoch.day)
+    end_date = date(last_epoch.year, last_epoch.month, last_epoch.day)
+
+    # Download 01D files
     timespan = timedelta(days=1)
 
-    # TODO: Just download RAP products for now, eventually
-    # do best available: FIN, RAP or ULT depending on what
-    # is available
-    erp_filename = generate_IGS_long_filename(
-        analysis_center="IGS",
-        content_type="ERP",
-        format_type="ERP",
-        start_epoch=start_date,
-        timespan=timespan,
-        solution_type="RAP",
-        sampling_rate="01D",
-        project="OPS",
-    )
+    filenames = []
+    for d in daterange(start_date, end_date):
+        # TODO: Just download RAP products for now, eventually
+        # do best available: FIN, RAP or ULT depending on what
+        # is available
+        erp_filename = generate_IGS_long_filename(
+            analysis_center="IGS",
+            content_type="ERP",
+            format_type="ERP",
+            start_epoch=d,
+            timespan=timespan,
+            solution_type="RAP",
+            sampling_rate="01D",
+            project="OPS",
+        )
 
-    sp3_filename = generate_IGS_long_filename(
-        analysis_center="IGS",
-        content_type="ORB",
-        format_type="SP3",
-        start_epoch=start_date,
-        timespan=timespan,
-        solution_type="RAP",
-        sampling_rate="15M",
-        project="OPS",
-    )
+        sp3_filename = generate_IGS_long_filename(
+            analysis_center="IGS",
+            content_type="ORB",
+            format_type="SP3",
+            start_epoch=d,
+            timespan=timespan,
+            solution_type="RAP",
+            sampling_rate="15M",
+            project="OPS",
+        )
 
-    clk_filename = generate_IGS_long_filename(
-        analysis_center="IGS",
-        content_type="CLK",
-        format_type="CLK",
-        start_epoch=start_date,
-        timespan=timespan,
-        solution_type="RAP",
-        sampling_rate="05M",
-        project="OPS",
-    )
+        clk_filename = generate_IGS_long_filename(
+            analysis_center="IGS",
+            content_type="CLK",
+            format_type="CLK",
+            start_epoch=d,
+            timespan=timespan,
+            solution_type="RAP",
+            sampling_rate="05M",
+            project="OPS",
+        )
+        filenames += [erp_filename, sp3_filename, clk_filename]
 
-    return [erp_filename, sp3_filename, clk_filename]
+    return filenames
 
 
 def download_file_from_cddis(
