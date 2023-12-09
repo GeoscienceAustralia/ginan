@@ -209,7 +209,7 @@ estimation_parameters:
             pos:
                 estimated:          [true]
                 sigma:              [100]
-                proc_noise:         [100]
+                proc_noise:         [0]
             # pos_rate:                       # Velocity
             #     estimated:          [false] # [bools] Estimate state in kalman filter
             #     sigma:              [0]     # [floats] Apriori sigma values - if zero, will be initialised using least squares
