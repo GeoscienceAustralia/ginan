@@ -7,7 +7,7 @@
     Precondition: It is assumed that the ginan/inputData/products directory
     has been downloaded from S3 using python3 s3_filehandler.py -p
 """
-import os
+import shutil
 from pathlib import Path
 
 import download_rinex_deps
@@ -15,12 +15,16 @@ import download_rinex_deps
 from auto_generate_yaml import write_nested_dict_value
 from parse_rinex_header import parse_v3_header
 
+import click
 import ruamel
 
 
 def main(config_name: str, rinex_path: Path, target_dir: Path):
     download_dir = target_dir / "downloads"
-    ensure_folders([target_dir, download_dir])
+    data_dir = target_dir / "data"
+    ensure_folders([target_dir, download_dir, data_dir])
+
+    shutil.copy(rinex_path, data_dir)
 
     header = parse_v3_header(rinex_path)
 
@@ -80,13 +84,30 @@ def ensure_folders(paths: [Path]) -> None:
             path.mkdir(parents=True)
 
 
-# TODO: two arguments - config name and path to rinex file
-# - config folder will be created in ginan/workspace/<config>
-# - rinex will be copied to config folder
-if __name__ == "__main__":
-    filename = "PSMA.rnx"
-    config_name = "PSMA"
-    config_dir = Path("./workspace") / config_name
-
-    rinex_path = Path(config_dir) / "data" / filename
+@click.command()
+@click.option(
+    "--rinex-path",
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to RINEX v3 file for a static session",
+)
+@click.option(
+    "--target-dir",
+    required=False,
+    type=click.Path(path_type=Path),
+    help="Directory to store the config directory",
+    default="workspace",
+)
+@click.option(
+    "--config-name",
+    required=False,
+    help="Name of the directory which will store the config and files",
+    default="network",
+)
+def cli(rinex_path: Path, target_dir: Path, config_name: str):
+    config_dir = target_dir / config_name
     main(config_name, rinex_path, config_dir)
+
+
+if __name__ == "__main__":
+    cli()
