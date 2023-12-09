@@ -12,8 +12,10 @@ from pathlib import Path
 
 import download_rinex_deps
 
-from auto_generate_yaml import out_pea_yaml
+from auto_generate_yaml import write_nested_dict_value
 from parse_rinex_header import parse_v3_header
+
+import ruamel
 
 
 def main(config_name: str, rinex_path: Path, target_dir: Path):
@@ -46,22 +48,25 @@ def create_station_overrides(rinex_header: dict) -> [tuple]:
 
 def write_yaml(target_dir, config_name="auto", overrides=[]):
     scripts = Path(__file__).resolve().parent
+    template_path = scripts / "templates/auto_template.yaml"
 
-    out_pea_yaml(
-        config_name=config_name,
-        start_epoch="",
-        end_epoch="",
-        template_path=scripts / "templates/auto_template.yaml",
-        product_dir=target_dir,  # / 'products',
-        data_dir=target_dir,  # / 'data'
-        pea_out_dir=target_dir,  # / 'outputs',
-        config_out_dir=target_dir,
-        relative_to_dir=None,
-        trop_model="gpt2",
-        trop_dir=None,
-        enable_mongo=False,
-        overrides=overrides,
-    )
+    target = target_dir / f"{config_name}_{template_path.stem}.yaml"
+
+    # Read in the template
+    with open(template_path, "r", encoding="utf-8") as f:
+        yaml = ruamel.yaml.YAML(typ="safe", pure=True)
+        template = yaml.load(f)
+
+    for override in overrides:
+        write_nested_dict_value(template, override[0], override[1])
+
+    # Write this configuration out
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "w", encoding="utf-8") as out_f:
+        yaml = ruamel.yaml.YAML(typ="safe", pure=True)
+        yaml.indent(mapping=2)
+        yaml.default_flow_style = False
+        yaml.dump(data=template, stream=out_f)
 
 
 def ensure_folders(paths: [Path]) -> None:
