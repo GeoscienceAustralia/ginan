@@ -50,7 +50,7 @@ outputs:
         output_residual_chain:      true
         output_config:              true
 
-    sinex: {filename: <YYYY><DDD><HH>_<CONFIG>.SNX, output: true}
+    sinex: {filename: <CONFIG>.SNX, output: true}
 
     # log:
     #     output:                     false
