@@ -33,7 +33,7 @@ def main(config_name: str, rinex_path: Path, target_dir: Path):
 
 
 def create_station_overrides(rinex_header: dict) -> [tuple]:
-    four_char_id = rinex_header["marker_name"][:4]
+    four_char_id = rinex_header["marker_name"][-4:]
 
     apriori_position = list(rinex_header["approx_position"].values())
     eccentricity = list(rinex_header["antenna"]["deltas"].values())
@@ -48,7 +48,7 @@ def create_station_overrides(rinex_header: dict) -> [tuple]:
 
 def write_yaml(target_dir, config_name="auto", overrides=[]):
     scripts = Path(__file__).resolve().parent
-    template_path = scripts / "templates/auto_template.yaml"
+    template_path = scripts / "templates" / "auto_template.yaml"
 
     target = target_dir / f"{config_name}_{template_path.stem}.yaml"
 
