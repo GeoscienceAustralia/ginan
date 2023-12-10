@@ -1,5 +1,5 @@
 """
-This script parses the necessary info from a RINEX v3 obs file header
+This script parses the necessary info from a RINEX v3 obs file
 to determine what needs to be downloaded for Ginan to be able to run.
 """
 from datetime import datetime, timedelta, date
@@ -8,6 +8,7 @@ from typing import Tuple
 import re
 
 import georinex as gr
+import xarray
 from gnssanalysis.gn_datetime import GPSDate
 
 
@@ -15,6 +16,11 @@ def parse_v3_header(filepath: Path):
     header = gr.rinexheader(filepath)
     if int(header["version"]) != 3:
         raise NotImplementedError("Only RINEX v3 is currently supported")
+
+    # Load observations to determine which signals have been observed
+    # by the receiver for each gnss system (GPS, Galileo etc)
+    obs = gr.load(filepath)
+    sys_signals = get_signals_per_system(obs)
 
     marker_name = header["MARKER NAME"].strip()
     # rec_type = parse_receiver(header)
@@ -24,14 +30,16 @@ def parse_v3_header(filepath: Path):
     first_obs_time = parse_first_obs_time(header)
     last_obs_time = parse_last_obs_time(header)
 
-    return {
+    header = {
         "marker_name": marker_name,
         "receiver": {"number": "", "type": rec_type, "version": ""},
         "antenna": {"type": antenna_type, "deltas": {"height": antenna_dh, "east": antenna_de, "north": antenna_dn}},
         "approx_position": {"x": approx_x, "y": approx_y, "z": approx_z},
         "first_obs_time": first_obs_time,
         "last_obs_time": last_obs_time,
+        "sys_signals": sys_signals,
     }
+    return header
 
 
 def parse_receiver(header: dict) -> Tuple[str, str, str]:
@@ -78,3 +86,27 @@ def parse_last_obs_time(header: str) -> str:
     time = header["TIME OF LAST OBS"]
     last_obs_time = parse_obs_time(time)
     return last_obs_time
+
+
+def get_signals_per_system(obs: xarray.Dataset) -> dict:
+    """Find all of the signals observed by the receiver for each system.
+    The RINEX header has this information, but it cannot be trusted.
+    For example, Victoria submits their CORS data to GA with all signals in the header,
+    even if there are no observations.
+    """
+    # TODO: There is probably cleaner a way to do this with xarray groupby
+    signals = {}
+    GNSS_SYSTEMS = {"G": "gps", "R": "glo", "S": "sbas", "C": "bds", "E": "gal", "J": "qzs"}
+    for syschar, sys in GNSS_SYSTEMS.items():
+        sys_index = obs.sv.to_index().str.startswith(syschar)
+        sys_data = obs.isel(sv=sys_index)
+
+        sys_signals = set()
+        for signal in sys_data.keys():
+            sv_signal = sys_data[signal]
+            has_data = sv_signal.notnull().any()
+            if has_data:
+                sys_signals.add(signal)
+
+        signals[sys] = sys_signals
+    return signals

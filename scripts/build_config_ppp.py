@@ -32,7 +32,8 @@ def main(config_name: str, rinex_path: Path, target_dir: Path):
 
     station_overrides = create_station_overrides(header)
     outputs_overrides = [(["outputs", "metadata", "config_description"], config_name)]
-    overrides = station_overrides + outputs_overrides
+    code_priorities_overrides = create_code_priorities_overrides(header)
+    overrides = station_overrides + outputs_overrides + code_priorities_overrides
     write_yaml(target_dir, config_name=config_name, overrides=overrides)
 
 
@@ -46,6 +47,15 @@ def create_station_overrides(rinex_header: dict) -> [tuple]:
         (["station_options", four_char_id, "apriori_position"], apriori_position),
         (["station_options", four_char_id, "eccentricity"], eccentricity),
         (["station_options", four_char_id, "receiver_type"], rinex_header["receiver"]["type"]),
+    ]
+    return overrides
+
+
+def create_code_priorities_overrides(rinex_header: dict) -> [tuple]:
+    phase_signals = get_phase_signals_per_system(rinex_header["sys_signals"])
+    overrides = [
+        (["processing_options", "gnss_general", "sys_options", sys, "code_priorities"], list(code_priorities))
+        for sys, code_priorities in phase_signals.items()
     ]
     return overrides
 
@@ -71,6 +81,14 @@ def write_yaml(target_dir, config_name="auto", overrides=[]):
         yaml.indent(mapping=2)
         yaml.default_flow_style = False
         yaml.dump(data=template, stream=out_f)
+
+
+def get_phase_signals_per_system(sys_signals: dict) -> dict:
+    PHASE_PREFIX = "L"
+    filtered_sys_signals = {
+        sys: {str(s) for s in signals if s.startswith(PHASE_PREFIX)} for sys, signals in sys_signals.items() if signals
+    }
+    return filtered_sys_signals
 
 
 def ensure_folders(paths: [Path]) -> None:
