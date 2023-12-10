@@ -24,7 +24,7 @@ def main(config_name: str, rinex_path: Path, target_dir: Path):
     data_dir = target_dir / "data"
     ensure_folders([target_dir, download_dir, data_dir])
 
-    shutil.copy(rinex_path, data_dir)
+    shutil.copy(rinex_path, data_dir / f"{rinex_path.stem}.rnx")
 
     header = parse_v3_header(rinex_path)
 
