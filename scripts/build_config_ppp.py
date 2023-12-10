@@ -24,22 +24,26 @@ def main(config_name: str, rinex_path: Path, target_dir: Path):
     data_dir = target_dir / "data"
     ensure_folders([target_dir, download_dir, data_dir])
 
-    shutil.copy(rinex_path, data_dir / f"{rinex_path.stem}.rnx")
+    new_rinex_path = data_dir / f"{rinex_path.stem}.rnx"
+    shutil.copy(rinex_path, new_rinex_path)
 
     header = parse_v3_header(rinex_path)
 
+    # Rename the rinex file to RXXX.rnx, where XXX are the last 3 characters of the marker name.
+    # TODO: The pea does not allow station names of 4 digits eg. 7369 - but it would be good if it did.
+    four_char_id = f"R{header['marker_name'][-3:]}"
+    shutil.move(new_rinex_path, data_dir / f"{four_char_id}.rnx")
+
     download_rinex_deps.download(header, download_dir)
 
-    station_overrides = create_station_overrides(header)
+    station_overrides = create_station_overrides(header, four_char_id)
     outputs_overrides = [(["outputs", "metadata", "config_description"], config_name)]
     code_priorities_overrides = create_code_priorities_overrides(header)
     overrides = station_overrides + outputs_overrides + code_priorities_overrides
     write_yaml(target_dir, config_name=config_name, overrides=overrides)
 
 
-def create_station_overrides(rinex_header: dict) -> [tuple]:
-    four_char_id = rinex_header["marker_name"][-4:]
-
+def create_station_overrides(rinex_header: dict, four_char_id) -> [tuple]:
     apriori_position = list(rinex_header["approx_position"].values())
     eccentricity = list(rinex_header["antenna"]["deltas"].values())
     overrides = [
