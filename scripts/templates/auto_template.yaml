@@ -16,7 +16,7 @@ inputs:
 
     satellite_data:
         clk_files: [ "./downloads/*.CLK"     ]
-        bsx_files: [ "./downloads/*.BIA"     ]
+        bsx_files: [ "./downloads/*.BSX"     ]
         sp3_files: [ "./downloads/*.SP3"     ]
 
     gnss_observations:
@@ -62,7 +62,7 @@ satellite_options:
 
     global:
         phase_bias:
-            enable: false
+            enable: true
 
     # Exclude satellites
     # E05: { exclude: true }
@@ -73,7 +73,7 @@ station_options:
 
     global:
         phase_bias:
-            enable: false
+            enable: true
 
     # ALIC:
     #     receiver_type:  "LEICA GR25"                 # (string)
@@ -247,7 +247,7 @@ estimation_parameters:
                 sigma:              [20]
                 proc_noise:         [0]
             phase_bias:
-                estimated:          [false]
+                estimated:          [true]
                 sigma:              [10]
                 proc_noise:         [0]
 
