@@ -45,12 +45,17 @@ def main(config_name: str, rinex_path: Path, target_dir: Path):
 
 def create_station_overrides(rinex_header: dict, four_char_id) -> [tuple]:
     apriori_position = list(rinex_header["approx_position"].values())
-    eccentricity = list(rinex_header["antenna"]["deltas"].values())
+
+    # ENU instead of UNE in SINEX
+    antenna_deltas = rinex_header["antenna"]["deltas"]
+    eccentricity_offset = [antenna_deltas["east"], antenna_deltas["north"], antenna_deltas["height"]]
+    eccentricity = {"enable": True, "offset": eccentricity_offset}
+
     overrides = [
-        (["station_options", four_char_id, "antenna_type"], rinex_header["antenna"]["type"]),
-        (["station_options", four_char_id, "apriori_position"], apriori_position),
-        (["station_options", four_char_id, "eccentricity"], eccentricity),
-        (["station_options", four_char_id, "receiver_type"], rinex_header["receiver"]["type"]),
+        (["receiver_options", four_char_id, "antenna_type"], rinex_header["antenna"]["type"]),
+        (["receiver_options", four_char_id, "apriori_position"], apriori_position),
+        (["receiver_options", four_char_id, "models", "eccentricity"], eccentricity),
+        (["receiver_options", four_char_id, "receiver_type"], rinex_header["receiver"]["type"]),
     ]
     return overrides
 

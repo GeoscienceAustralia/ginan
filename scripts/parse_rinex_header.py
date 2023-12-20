@@ -33,7 +33,7 @@ def parse_v3_header(filepath: Path):
     header = {
         "marker_name": marker_name,
         "receiver": {"number": "", "type": rec_type, "version": ""},
-        "antenna": {"type": antenna_type, "deltas": {"height": antenna_dh, "east": antenna_de, "north": antenna_dn}},
+        "antenna": {"type": antenna_type, "deltas": {"height": antenna_dh, "north": antenna_dn, "east": antenna_de}},
         "approx_position": {"x": approx_x, "y": approx_y, "z": approx_z},
         "first_obs_time": first_obs_time,
         "last_obs_time": last_obs_time,
