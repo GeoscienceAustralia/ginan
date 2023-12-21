@@ -50,13 +50,13 @@ void program_options(int argc, char * argv[], otl_input & input)
 			("help", 			"This help message")
 			("quiet", 			"Less output")
 			("verbose", 		"More output")
+			("type",		po::value<std::string>(),	"loading type: (o) ocean loading, or (a) atmospheric loading")
 			("grid", 	 	po::value<std::string>(),	"Loading grid netCDF file")
 			("location", 	po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")
-			("xyz",        po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
-			("code",     	po::value<std::string>(), "Station Code with or without DOMES number (ALIC 50137M0014)")
+			("xyz",         po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
+			("code",     	po::value<std::string>(), 	"Station Code with or without DOMES number (ALIC 50137M0014)")
 			("input",		po::value<std::string>(),	"input file containing list of stations CSV format name, lon, lat")
 			("output",		po::value<std::string>(),	"Output BLQ file")
-
 			;
 
 	po::variables_map vm;
@@ -70,8 +70,8 @@ void program_options(int argc, char * argv[], otl_input & input)
 	if (vm.count("help")) {
 		cout << "Usage: interpolate_loading [options]\n";
 		cout << desc << "\n\n";
-		cout << "Example: interpolate_loading --grid /<path_to>/oceantide.nc --code 'ALIC 50137M0014' --location 133.8855 -23.6701 \n\n";
-		cout << "Example with input file: interpolate_loading --grid /<path_to>/oceantide.nc --input station.csv\n";
+		cout << "Example: interpolate_loading --type o --grid /<path_to>/oceantide.nc --code 'ALIC 50137M0014' --location 133.8855 -23.6701 \n\n";
+		cout << "Example with input file: interpolate_loading --type o --grid /<path_to>/oceantide.nc --input station.csv\n";
 		cout << "                         Where station.csv contains station informations  \n";
 		cout << "                           format: station name, longitude, latitude\n\n";
 		cout << "  The file oceantide.nc contains the precalculated ocean tide loads\n";
@@ -80,6 +80,18 @@ void program_options(int argc, char * argv[], otl_input & input)
 	}
 
 	// Parser
+	if (vm.count("type"))
+	{
+		std::string type = vm["type"].as<std::string>();
+		if		(type == "o")	input.type = "Ocean";
+		else if	(type == "a")	input.type = "Atmospheric";
+		else					throw std::runtime_error("the argument for option '--type' is invalid - only 'o' (ocean loading) or 'a' (atmospheric loading) is accepted");
+	}
+	else
+	{
+		throw std::runtime_error("The required argument for option '--type' is missing");
+	}
+	
 	std::string config_f;
 	std::string code_f;
 	std::vector<float> location;

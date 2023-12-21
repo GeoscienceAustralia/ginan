@@ -21,14 +21,14 @@ struct PhaseCenterData : AzElMapData<double>
 {
 	/* antenna parameter type */
 	E_FType	ft;
-	string	type;					///< antenna type 
-	string	code;					///< serial number or satellite code 
-	string	svn;					///< SVN in satellites 
-	string	cospar;					///< Cospar code satellites 
-	string	calibModel;				///< name of the antenna calibration model 
+	string	type;					///< antenna type
+	string	code;					///< serial number or satellite code
+	string	svn;					///< SVN in satellites
+	string	cospar;					///< Cospar code satellites
+	string	calibModel;				///< name of the antenna calibration model
 
-	double tf[6];					///< valid from YMDHMS 
-	double tu[6];					///< valid until YMDHMS 
+	double tf[6];					///< valid from YMDHMS
+	double tu[6];					///< valid until YMDHMS
 };
 
 struct PhaseCenterOffset
@@ -64,7 +64,9 @@ double antPcv(
 	E_FType		ft,
 	GTime		time,
 	AttStatus&	attStatus,
-	VectorEcef	e);
+	VectorEcef	e,
+	double*		az_ptr	= nullptr,
+	double*		zen_ptr	= nullptr);
 
 bool findAntenna(
 	string				code,
@@ -74,8 +76,8 @@ bool findAntenna(
 	E_FType				ft,
 	PhaseCenterData**	pcd_ptr_ptr = nullptr);
 
-int readantexf(
-	string		file, 
+void readantexf(
+	string		file,
 	Navigation&	nav);
 
 void radome2none(

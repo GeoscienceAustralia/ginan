@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Ginan
+Comment=Analysis Center Software
+Exec=pea
+Icon=favicon-128
+GenericName=Ginan
+Categories=Utility

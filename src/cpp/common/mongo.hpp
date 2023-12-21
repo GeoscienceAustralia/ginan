@@ -20,19 +20,16 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <tuple>
+#include <array>
 #include <map>
 
 
 using std::string;
 using std::vector;
 using std::deque;
+using std::tuple;
 using std::map;
-
-
-#include "networkEstimator.hpp"
-#include "observations.hpp"
-#include "station.hpp"
-#include "algebra.hpp"
 
 
 struct DBEntry
@@ -40,10 +37,10 @@ struct DBEntry
 	map<string, tuple<string,			bool>>		stringMap;
 	map<string, tuple<GTime,			bool>>		timeMap;
 	map<string, tuple<double,			bool>>		doubleMap;
-	map<string, tuple<int,				bool>>		intMap;	
-	map<string, tuple<Vector3d,			bool>>		vectorMap;	
-	map<string, tuple<vector<double>,	bool>>		doubleArrayMap;	
-	map<string, tuple<deque<bool>,		bool>>		boolArrayMap;	
+	map<string, tuple<int,				bool>>		intMap;
+	map<string, tuple<Vector3d,			bool>>		vectorMap;
+	map<string, tuple<vector<double>,	bool>>		doubleArrayMap;
+	map<string, tuple<deque<bool>,		bool>>		boolArrayMap;
 };
 
 using bsoncxx::builder::stream::close_array;
@@ -61,6 +58,7 @@ struct Mongo
 	static mongocxx::instance		instance; 	// This should be done only once.
 	mongocxx::uri					uri;
 	mongocxx::pool					pool;
+	string							database;
 
 	Mongo(string uriString) : uri{uriString}, pool{uri}
 	{
@@ -78,7 +76,11 @@ struct Mongo
 
 #define IGS_ION_META		"igsSSRMeta"
 #define IGS_ION_ENTRY		"igsSSREntry"
-
+#define IGS_ION_DCB			"igsSSRDCB"
+#define CMP_ATM_META		"cmpSSRMeta"
+#define CMP_ION_META		"cmpIonMeta"
+#define CMP_TRP_ENTRY		"cmpTrpEntry"
+#define CMP_ION_ENTRY		"cmpIonEntry"
 
 #define SSR_EPOCH			"Epoch"
 #define SSR_UPDATED			"Updated"
@@ -89,6 +91,7 @@ struct Mongo
 #define SSR_OBSCODE			"ObsCode"
 #define SSR_BIAS			"Bias"
 #define SSR_VAR				"Var"
+
 
 #define IGS_ION_NLAY		"ionoMetNlay"
 #define IGS_ION_NBAS		"ionoMetNbas"
@@ -104,6 +107,7 @@ struct Mongo
 #define SSR_PREC			"Prec"
 
 #define REMOTE_DATA_DB		"Remote"
+#define STATES_DB			"States"
 
 #define REMOTE_DATA			"Data"
 #define REMOTE_EPOCH		"Epoch"
@@ -113,6 +117,7 @@ struct Mongo
 #define REMOTE_UPDATED		"Updated"
 #define REMOTE_POS			"Pos"
 #define REMOTE_VEL			"Vel"
+#define REMOTE_VAR			"Var"
 #define REMOTE_CLK			"Clk"
 #define REMOTE_CLK_DRIFT	"ClkRate"
 #define REMOTE_STR			"Str"
@@ -127,12 +132,21 @@ struct MongoLogSinkBackend : public sinks::basic_formatted_sink_backend<char, si
 
 void mongoooo();
 
+vector<E_Mongo> mongoInstances(
+	E_Mongo		selection);
+
+bool startNewMongoDb(
+	const string&				id,
+	boost::posix_time::ptime	logptime,
+	string  					new_database,
+	E_Mongo						instance);
+
 document entryToDocument(
 	DBEntry&	entry,
 	bool		type);
 
-extern Mongo*	localMongo_ptr;
-extern Mongo*	remoteMongo_ptr;
+
+extern array<Mongo*, 3>	mongo_ptr_arr;
 
 
 #define MONGO_NOT_INITIALISED_MESSAGE BOOST_LOG_TRIVIAL(warning)	<< "Mongo actions requested but mongo is not available - check it is enabled and connected correctly"

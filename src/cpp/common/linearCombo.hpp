@@ -5,16 +5,15 @@
 
 using std::map;
 
-#include "observations.hpp"
 #include "satSys.hpp"
 #include "gTime.hpp"
 #include "trace.hpp"
 #include "enums.h"
 
 
-typedef struct
+struct S_LC
 {
-	bool	valid;
+	bool	valid = false;
 
 	double	GF_Phas_m;
 	double	GF_Code_m;
@@ -39,9 +38,9 @@ typedef struct
 	double	lam_B;
 	double	lam_WL;
 	double	lam_NL;
-} S_LC;
+};
 
-typedef struct
+struct lc_t
 {
 	GTime	time;       			///< receiver sampling time (GPST) */
 	SatSys	Sat;
@@ -51,10 +50,13 @@ typedef struct
 	map<E_FType, double> mp;		///< Multipath info (m)
 
 	map<std::pair<E_FType, E_FType>, S_LC> lcMap;	///< interfrequency linear combination parameters
-} lc_t;
+};
 
 //forward declarations
 struct Navigation;
+struct ObsList;
+struct GObs;
+
 
 S_LC	getLC(double L_A, double L_B, double P_A, double P_B, double lamA, double lamB, double* c1_out, double* c2_out);
 S_LC&	getLC(lc_t& lcBase, E_FType fA, E_FType fB);

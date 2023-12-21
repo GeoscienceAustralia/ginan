@@ -1,0 +1,228 @@
+# Post-processing PPP example GPS+GAL
+
+inputs:
+    root_directory:         products/
+    snx_files:              [ tables/igs_satellite_metadata_2203_plus.snx,
+                              IGS1R03SNX_20191950000_07D_07D_CRD.SNX        ]
+    atx_files:              [ M20.ATX                                       ]
+    otl_blq_files:          [ OLOAD_GO.test.BLQ                             ]
+    atl_blq_files:          [ ALOAD_GO.test.BLQ                             ]
+    opole_files:            [ tables/opoleloadcoefcmcor.txt                 ]
+    egm_files:              [ tables/EGM2008.gfc                            ]
+    jpl_files:              [ tables/DE436.1950.2050                        ]
+    tide_files:             [ tables/fes2014b_Cnm-Snm.dat                   ]
+    igrf_files:             [ tables/igrf13coeffs.txt                       ]
+    erp_files:              [ tables/finals.data.iau2000.txt                ]
+
+    satellite_data:
+        # nav_files:          [ brdm1990.19p                                  ]
+        clk_files:          [ IGS2R03FIN_20191990000_01D_30S_CLK.CLK        ]
+        bsx_files:          [ IGS2R03FIN_20191990000_01D_01D_OSB.BIA        ]
+        sp3_files:          [ IGS2R03FIN_20191990000_01D_05M_ORB.SP3        ]
+
+    troposphere:
+        gpt2grid_files:     gpt_25.grd
+
+    gnss_observations:
+        inputs_root:        ../data/
+        rnx_inputs:
+            - ALIC00AUS_R_20191990000_01D_30S_MO.rnx
+            - REYK00ISL_R_20191990000_01D_30S_MO.rnx
+            # - COCO00AUS_R_20191990000_01D_30S_MO.rnx
+            # - LHAZ00CHN_R_20191990000_01D_30S_MO.rnx
+            # - KZN200RUS_S_20191990000_01D_30S_MO.rnx
+
+outputs:
+    metadata:
+        config_description:             "tideDebug"
+
+    root_directory:                     outputs/<CONFIG>/
+
+    trace:
+        level:                          3
+        output_stations:                true
+        output_network:                 true
+        station_filename:               <STATION>_<YYYY><DDD><HH>.TRACE
+        network_filename:               <STATION>_<YYYY><DDD><HH>.TRACE
+        output_residuals:               true
+        output_residual_chain:          true
+        output_config:                  true
+
+    ppp_sol:
+        output:                         true
+        filename:                       <STATION><YYYY><DDD><HH>_<CONFIG>.POS
+
+    gpx:
+        output:                         true
+        filename:                       <STATION><YYYY><DDD><HH>_<CONFIG>.GPX
+
+mongo:
+    enable:                             true
+    uri:                                mongodb://127.0.0.1:27017
+    database:                           <CONFIG>
+    output_rtcm_messages:               true
+    output_components:                  true
+    output_states:                      true
+    output_measurements:                true
+    output_test_stats:                  true
+    delete_history:                     true
+    suffix:                             ""
+
+satellite_options:
+    global:
+        phase_bias:
+            enable:                     true
+
+    E05:
+        exclude:                        true
+    E06:
+        exclude:                        true
+    E10:
+        exclude:                        true
+    E16:
+        exclude:                        true
+    E17:
+        exclude:                        true
+    E23:
+        exclude:                        true
+    E28:
+        exclude:                        true
+    E29:
+        exclude:                        true
+    E32:
+        exclude:                        true
+    E34:
+        exclude:                        true
+    E35:
+        exclude:                        true
+
+station_options:
+    global:
+        phase_bias:
+            enable:                     true
+
+    ALIC:
+        receiver_type:                  "LEICA GR25"
+        antenna_type:                   "LEIAR25.R3      NONE"
+        eccentricity:                   [        0.0000,        0.0000,        0.0015   ]
+        # apriori_position:               [ -4052051.7670,  4212836.2150, -2545106.0270   ]
+    REYK:
+        receiver_type:                  "LEICA GR50"
+        antenna_type:                   "LEIAR25.R4      LEIT"
+        eccentricity:                   [        0.0000,        0.0000,        0.0635   ]
+        # apriori_position:               [ -4052051.7670,  4212836.2150, -2545106.0270   ]
+    # COCO:
+    #     receiver_type:                  "SEPT POLARXS"
+    #     antenna_type:                   "AOAD/M_T        NONE"
+    #     eccentricity:                   [        0.0000,        0.0000,        0.0040   ]
+    #     # apriori_position:               [  -741949.8528,  6190961.6634, -1337768.7328   ]
+    # LHAZ:
+    #     receiver_type:                  "LEICA GR25"
+    #     antenna_type:                   "LEIAR25.R4      LEIT"
+    #     eccentricity:                   [        0.0000,        0.0000,        0.1330   ]
+    # #     apriori_position:               [  -106943.5000,  5549296.1400,  3139212.6000   ]
+    # KZN2:
+    #     receiver_type:                  "TRIMBLE NETR9"
+    #     antenna_type:                   "TRM59800.00     SCIS"
+    #     eccentricity:                   [        0.0000,        0.0000,        0.0750   ]
+    # #     apriori_position:               [  2352345.7000,  2717466.1000,  5251458.5000   ]
+
+processing_options:
+    epoch_control:
+        max_epochs:                     2880
+        epoch_interval:                 30
+
+    process_modes:
+        ppp:                            true
+
+    gnss_general:
+        error_model:                    ELEVATION_DEPENDENT
+        code_measurements:
+            sigmas:                     [ 0.3   ]
+        phase_measurements:
+            sigmas:                     [ 0.003 ]
+        elevation_mask:                 10
+        rec_reference_system:           GPS
+        sys_options:
+            gps:
+                process:                true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [ L1C, L2W  ]
+                ambiguity_resolution:   true
+            gal:
+                process:                true
+                reject_eclipse:         false
+                zero_receiver_dcb:      true
+                code_priorities:        [ L1C, L5Q, L1X, L5X    ]
+                ambiguity_resolution:   true
+
+    gnss_models:
+        eop:
+            enable:                     true
+        troposphere:
+            model:                      GPT2
+        ionospheric_component2:
+            enable:                     true
+        ionospheric_component3:
+            enable:                     true
+
+    filter_options:
+        outlier_screening:
+            max_filter_iterations:      5
+            max_prefit_removals:        3
+        station_chunking:
+            enable:                     true
+        rts:
+            enable:                     true
+
+    model_error_checking:
+        deweighting:
+            deweight_factor:            1000
+        ambiguities:
+            outage_reset_limit:         5
+            phase_reject_limit:         2
+            reinit_on_all_slips:        true
+
+    ambiguity_resolution:
+        elevation_mask:                 15
+        lambda_set_size:                200
+        mode:                           LAMBDA_BIE
+        success_rate_threshold:         0.99
+        solution_ratio_threshold:       30
+
+estimation_parameters:
+    stations:
+        global:
+            pos:
+                estimated:              [ true      ]
+                sigma:                  [ 100       ]
+                proc_noise:             [ 100       ]
+            clk:
+                estimated:              [ true      ]
+                sigma:                  [ 1000      ]
+                proc_noise:             [ 100       ]
+            amb:
+                estimated:              [ true      ]
+                sigma:                  [ 1000      ]
+                proc_noise:             [ 0         ]
+            trop:
+                estimated:              [ true      ]
+                sigma:                  [ 0.3       ]
+                proc_noise:             [ 0.0001    ]
+            trop_grads:
+                estimated:              [ true      ]
+                sigma:                  [ 0.03      ]
+                proc_noise:             [ 1.0E-6    ]
+            ion_stec:
+                estimated:              [ true      ]
+                sigma:                  [ 200       ]
+                proc_noise:             [ 10        ]
+            code_bias:
+                estimated:              [ true      ]
+                sigma:                  [ 20        ]
+                proc_noise:             [ 0         ]
+            phase_bias:
+                estimated:              [ true      ]
+                sigma:                  [ 10        ]
+                proc_noise:             [ 0         ]

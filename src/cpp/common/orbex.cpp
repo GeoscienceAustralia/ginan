@@ -6,6 +6,7 @@ using std::string;
 using std::ifstream;
 using std::ofstream;
 
+#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
@@ -45,7 +46,7 @@ int readOrbexHeader(
 		BOOST_LOG_TRIVIAL(error) << "Not an Orbex file" << std::endl;
 		return 2;
 	}
-	
+
 	char* buff = &line[0];
 	ver = str2num(buff, 8, 5);
 
@@ -62,6 +63,7 @@ int readOrbexHeader(
 }
 
 /** Read necessary information, e.g. time system & frame type, from the FILE/DESCRIPTION block
+* Note: Only TIME_SYSTEM and FRAME_TYPE are read currently
 */
 bool readOrbexFileDesc(
 	ifstream&	fileStream,	///< Stream to read content from
@@ -74,20 +76,25 @@ bool readOrbexFileDesc(
 	while (fileStream)
 	{
 		string line;
-		
+
 		getline(fileStream, line);
-	
+
 		if (line[0] == ' ')
 		{
-			if (line.substr(1, 11) == "TIME_SYSTEM")
+			vector<string> split;
+			boost::trim(line);
+			boost::algorithm::split(split, line, boost::algorithm::is_space(), boost::token_compress_on);
+
+			if (split[0] == "TIME_SYSTEM")
 			{
-				string timeSysStr = line.substr(21, 3);
+				string timeSysStr = split[1];
+
 				if		(timeSysStr == "GPS")	tsys = E_TimeSys::GPST;
 				else if	(timeSysStr == "UTC")	tsys = E_TimeSys::UTC;
 				else if	(timeSysStr == "TAI")	tsys = E_TimeSys::TAI;
 				else if	(timeSysStr == "GAL")	tsys = E_TimeSys::GST;
 				else if	(timeSysStr == "GLO")	tsys = E_TimeSys::GLONASST;
-				else if	(timeSysStr == "TT ")	tsys = E_TimeSys::TT;
+				else if	(timeSysStr == "TT" )	tsys = E_TimeSys::TT;
 				else
 				{
 					BOOST_LOG_TRIVIAL(error)
@@ -104,10 +111,9 @@ bool readOrbexFileDesc(
 					return false;
 				}
 			}
-			else if (line.substr(1, 10) == "FRAME_TYPE")
+			else if (split[0] == "FRAME_TYPE")
 			{
-				string frameTypeStr = line.substr(21, 20);
-				boost::trim(frameTypeStr);
+				string frameTypeStr = split[1];
 
 				try
 				{
@@ -150,6 +156,7 @@ bool readOrbexFileDesc(
 }
 
 /** Read SATELLITE/ID_AND_DESCRIPTION block
+* Note: This function is currently not fully implemented, satellite ID's are read from EPHEMERIS/DATA block
 */
 bool readOrbexSatId(
 	ifstream&	fileStream)	///< Stream to read content from
@@ -157,9 +164,9 @@ bool readOrbexSatId(
 	while (fileStream)
 	{
 		string line;
-		
+
 		getline(fileStream, line);
-	
+
 		if (line[0] == '-')
 		{
 			// end of block
@@ -182,6 +189,7 @@ bool readOrbexSatId(
 }
 
 /** Read EPHEMERIS/DATA block
+* Note: Only ATT record type is supported currently
 */
 bool readOrbexEph(
 	ifstream&	fileStream,						///< Stream to read content from
@@ -194,15 +202,15 @@ bool readOrbexEph(
 
 	static int index = 0; // keep track of file number
 	index++;
-	
+
 	while (fileStream)
 	{
 		string line;
-		
+
 		getline(fileStream, line);
 
 		char* buff = &line[0];
-	
+
 		if	( line[0] == '#'
 			&&line[1] == '#')
 		{
@@ -232,7 +240,7 @@ bool readOrbexEph(
 			{
 				string id = line.substr(5);
 				id = id.substr(0, id.find(' '));
-				
+
 				Att att 	= {};
 				att.time 	= time;
 				att.index	= index;
@@ -246,22 +254,28 @@ bool readOrbexEph(
 					<< "Invalid number of data columns: " << nRec << std::endl;
 					return false;
 				}
-				
-				att.q.w() = str2num(buff, 24, 19);
-				att.q.x() = str2num(buff, 44, 19);
-				att.q.y() = str2num(buff, 64, 19);
-				att.q.z() = str2num(buff, 84, 19);
+
+				double val[4];
+				int found = sscanf(buff+24, "%lf %lf %lf %lf", &val[0], &val[1], &val[2], &val[3]);
+
+				if (found < 4)
+				{
+					continue;
+				}
+
+				att.q.w() = val[0];
+				att.q.x() = val[1];
+				att.q.y() = val[2];
+				att.q.z() = val[3];
+
+				if (abs(att.q.norm() - 1) > 1E-6)
+				{
+					BOOST_LOG_TRIVIAL(warning)
+					<< "The quaternion is not approximately unit norm" << std::endl;
+					continue;
+				}
 
 				att.q.normalize();
-				
-				SatSys Sat(id.c_str());
-				if	( Sat
-					&&Sat.sys == +E_Sys::GAL)
-				{
-					// rotate from original GAL frame to ANTEX frame (180deg around local Z+) (https://www.gsc-europa.eu/support-to-developers/galileo-satellite-metadata#3.2)
-					Eigen::Quaterniond rotZ(0, 0, 0, 1);
-					att.q = rotZ * att.q;
-				}
 
 				nav.attMapMap[att.id][att.time] = att;
 			}
@@ -311,6 +325,8 @@ void  readOrbex(
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Orbex file open error " << filepath << std::endl;
+
+		return;
 	}
 
 	// header lines - each ORBEX file must begin with the two header lines
@@ -347,7 +363,7 @@ void  readOrbex(
 		else if (line == "+SATELLITE/ID_AND_DESCRIPTION")	pass = readOrbexSatId	(fileStream						);
 		else if (line == "+EPHEMERIS/DATA")					pass = readOrbexEph		(fileStream, nav,	tsys, frame	);
 		else if (line == "%END_ORBEX")						return; // end of file
-		
+
 		if (pass == false)
 		{
 			BOOST_LOG_TRIVIAL(error)
@@ -355,6 +371,4 @@ void  readOrbex(
 			return;
 		}
 	}
-
-	return;
 }

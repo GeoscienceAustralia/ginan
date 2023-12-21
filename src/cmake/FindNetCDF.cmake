@@ -42,7 +42,7 @@ find_library (NETCDF_LIBRARIES_C
 mark_as_advanced(NETCDF_LIBRARIES_C)
 
 if ((NOT NETCDF_LIBRARIES_C) OR (NOT NETCDF_INCLUDES))
-  message(STATUS "Trying to find NetCDF using LD_LIBRARY_PATH (we're desperate)...")
+  message(STATUS "Trying to find NetCDF using LD_LIBRARY_PATH (we're desperate)....")
 
   file(TO_CMAKE_PATH "$ENV{LD_LIBRARY_PATH}" LD_LIBRARY_PATH)
 

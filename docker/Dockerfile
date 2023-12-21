@@ -13,5 +13,5 @@ RUN mkdir -p src/build \
 
 ENV PATH "/ginan/bin:${PATH}"
 # Update gnssanalysis version for the pipeline here if needed.
-RUN pip3 install gnssanalysis==0.0.37
+RUN pip3 install gnssanalysis==0.0.42
 

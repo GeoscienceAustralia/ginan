@@ -15,7 +15,7 @@ struct RinexParser : Parser, ObsLister
 	E_TimeSys						time_system;
 	map<E_Sys, map<int, CodeType>>	sysCodeTypes;
 	ObsList							tempObsList;
-	RinexStation					rnxStation = {};
+	RinexStation					rnxRec = {};
 	
 	void parse(
 		std::istream& inputStream)
@@ -30,7 +30,7 @@ struct RinexParser : Parser, ObsLister
 		while   (  stat <= 0
 				&& inputStream)
 		{
-			stat = readRnx(inputStream, ctype, tempObsList, nav, &rnxStation,	version, nav_system, time_system, sysCodeTypes);
+			stat = readRnx(inputStream, ctype, tempObsList, nav, rnxRec, version, nav_system, time_system, sysCodeTypes);
 		}
 
 		if (tempObsList.size() > 0)

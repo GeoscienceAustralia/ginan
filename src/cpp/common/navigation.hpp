@@ -14,9 +14,9 @@ using std::string;
 using std::map;
 using std::set;
 
-
 #include "azElMapData.hpp"
 #include "ephemeris.hpp"
+#include "attitude.hpp"
 #include "antenna.hpp"
 #include "orbits.hpp"
 #include "satSys.hpp"
@@ -25,8 +25,6 @@ using std::set;
 #include "enums.h"
 #include "ssr.hpp"
 #include "erp.hpp"
-#include "trop.h"
-#include "vmf3.h"
 
 #define MAXDTE      900.0           /* max time difference to ephem time (s) */
 
@@ -54,23 +52,21 @@ struct SatNav
 	double				wlbias;						///< wide-lane bias (cycle)
 	
 	SSRMaps				receivedSSR;				///< SSR corrections
-	SSRMaps				transmittedSSR;				///< SSR corrections
-	
-	SatOrbit			satOrbit	 	= {};
 	
 	VectorEci			aprioriPos;					///< Inertial satellite position at epoch time
 	
 	BrdcEph*			eph_ptr			= nullptr;
-	
-	MatrixXd			satPartialMat;				///< Partial derivative matrices for orbits
 
 	AttStatus			attStatus		= {};		///< Persistent data for attitude model
 	
 	string				id;
 	string				traceFilename;
+	string				jsonTraceFilename;
 	
 	Vector3d			antBoresight	= {0,0,1};
 	Vector3d			antAzimuth		= {0,1,0};
+	
+	SatPos				satPos0;
 };
 
 /** navigation data type
@@ -102,7 +98,6 @@ struct Navigation
 	map<SatSys,		SatNav>																								satNavMap;
 	SSRAtm			ssrAtm;
 	
-	Vmf3	vmf3;
 	ERP		erp;						/* earth rotation parameters */
 	int		leaps	= -1;				/* leap seconds (s) */
 	char	glo_fcn[NSATGLO+1];			/* glonass frequency channel number + 8 */
@@ -111,8 +106,6 @@ struct Navigation
 	
 	struct jpl_eph_data*			jplEph_ptr = nullptr;
 	vector<string>					podInfoList;
-
-	gptgrid_t		gptg	= {};			///< gpt grid information 
 
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
@@ -136,5 +129,3 @@ namespace boost::serialization
 extern map<E_Sys, E_NavMsgType> defNavMsgType;
 
 extern	Navigation	nav;
-
-

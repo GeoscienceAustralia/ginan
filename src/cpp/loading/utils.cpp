@@ -13,8 +13,6 @@ using namespace std;
 #define RE_WGS84    6378137.0           /* earth semimajor axis (WGS84) (m) */
 #define FE_WGS84    (1.0/298.257223563) /* earth flattening (WGS84) */
 
-const double PI = atan(1.0)*4;
-
 
 /* transform ecef to geodetic postion ------------------------------------------
 * Copied from RTKLIB 
@@ -46,17 +44,6 @@ void ecef2pos(const double *r, double* pos)
 	pos[2]=sqrt(r2+z*z)-v;
 }
 
-
-double rad_to_deg(double rad)
-{
-	return rad * 180/PI;
-};
-
-
-double deg_to_rad(double rad)
-{
-	return rad / 180*PI;
-};
 
 void calcDistanceBearing(float *lat1, float *lon1, float * lat2, float *lon2, double *dist, double *brng)
 {

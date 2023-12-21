@@ -1,7 +1,7 @@
 
 # Kalman Filtering
 
-The Kalman filter is an algorithm that processes observation data over time to produce precise estimates of unknown parameters that may not be directly observable. Named after Rudolf E.Kálmán, the great success of the Kalman filter is due to its small computational requirement, elegant recursive properties, and its status as the optimal estimator for one-dimensional linear systems with Gaussian error statistics.
+The Kalman filter is an algorithm that processes observation data over time to produce precise estimates of unknown parameters that may not be directly observable. Named after Rudolf E. Kálmán, the great success of the Kalman filter is due to its small computational requirement, elegant recursive properties, and its status as the optimal estimator for one-dimensional linear systems with Gaussian error statistics.
 Kalman filtering is used in a wide range of applications include global positioning system receivers, control systems, smoothing the output from laptop trackpads, and many more.
 The PEA and POD software utilities are fundamentally an application-specific Kalman filter that takes observations (namely, GNSS signals) and fuses them together to provide robust estimates of parameters of interest.
 

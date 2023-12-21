@@ -9,9 +9,9 @@
 #define AMB_RANG		10
 
 bool 	AR_VERBO = false;
-
+double  FIXED_AMB_VAR = 1e-8;
 /** Probability of error (assuming normal distribution) */
-double round_perr (
+double round_perr(
 	double dx,		///< Distance between value and mean
 	double var)		///< Variance
 {
@@ -48,7 +48,7 @@ int simple_round(
 
 	double ratthr = 1 / (opt.ratthr + 1);
 	double sucthr = 1 - pow(opt.sucthr, 1.0 / namb);
-	tracepdeex(ARTRCLVL+1, trace, "\n#ARES_RND Using integer rounding ... %.4e  %.4f", sucthr, ratthr);
+	tracepdeex(4, trace, "\n#ARES_RND Using integer rounding ... %.4e  %.4f", sucthr, ratthr);
 
 	vector <int> zind;
 	vector <int> xind;
@@ -83,7 +83,7 @@ int simple_round(
 int interat_round(
 	Trace& trace,		///< Debug trace
 	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
-	GinAR_opt opt)		///< Object containing processing options
+	GinAR_opt& opt)		///< Object containing processing options
 {
 	MatrixXd P = mtrx.Paflt;
 	VectorXd x = mtrx.aflt;
@@ -304,7 +304,7 @@ int Ztrans_reduction(
 int integer_bootst(
 	Trace& trace,		///< Debug trace
 	GinAR_mtx& mtrx,	///< Reference to structure containing float values and covariance
-	GinAR_opt opt)		///< Object containing processing options
+	GinAR_opt& opt)		///< Object containing processing options
 {
 	LDLT<MatrixXd> ldlt_;
 	ldlt_.compute(mtrx.Paflt);
@@ -353,7 +353,7 @@ int integer_bootst(
 		trace << std::endl << "Pz=" << std::endl << Pz						<< std::endl;
 	}
 
-	int nfix = interat_round (trace, mtrx2, opt);
+	int nfix = interat_round(trace, mtrx2, opt);
 
 	mtrx.Ztrs = mtrx2.Ztrs * Zt;
 	mtrx.zfix = mtrx2.zfix;
@@ -592,7 +592,7 @@ int GNSS_AR(
 	switch (opt.mode)
 	{
 		case E_ARmode::OFF:					return 0;
-		case E_ARmode::ROUND:				return simple_round	(trace, mtrx, opt);
+		case E_ARmode::ROUND:				return simple_round		(trace, mtrx, opt);
 		case E_ARmode::ITER_RND:			return interat_round	(trace, mtrx, opt);
 		case E_ARmode::BOOTST:				return integer_bootst	(trace, mtrx, opt);
 		case E_ARmode::LAMBDA:				return lambda_search	(trace, mtrx, opt);

@@ -102,7 +102,7 @@ where $R_B$ is the earths geomagnetic field at the signal ionosphere piercing po
  I_{r}^{s'} = -\frac{40.3 10^{16}}{f^{2}} STEC_r^s - \frac{3763.5 * 10^{16} \lambda_f (R_B \cdot e_r^s)}{f^{2}}STEC_r^s - \frac{812.37519 * 10^{16}}{f^{4}} I3_{r}^{s}(STEC_r^{s})
 \end{equation}
 
-The way each of the three components is hadled can be sert separately:
+The way each of the three components is handled can be set separately:
 * Set to zero
 * Estimate it as a deterministic value from an external $STEC_r^s$ source
 * Estimate $STEC_r^s$, in this case third order component $I3_{r}^s(STEC_r^s)$ is linearized around an a-priori value. Slant TEC $STEC_r^s$ can be estimated as a random walk variable, or a first order Gauss-Markov process.
@@ -139,7 +139,7 @@ Four biases: code/phase on satellite/receiver side exist for each signal (define
 Ideally the PPP algorithm will seek to separate and estimate these biases. However the system of observation defined above is rank deficient, and thus additional constrains need to be applied to properly solve. 
 In the case of Ginan processing a number of pseudo-observations are available for this purpose. 
 
-**Receiver reference constellation**: when selecting a GNSS system $q$ as receiver reference, the ionosphere-free combination of receiver code biases for two signals (with diferent carrier frequencies) is set to 0:
+**Receiver reference constellation**: when selecting a GNSS system $q$ as receiver reference, the ionosphere-free combination of receiver code biases for two signals (with different carrier frequencies) is set to 0:
 \begin{equation}
 \frac{f_1^2}{f_1^2 - f_2^2} d_{r,c1}^q -  \frac{f_2^2}{f_1^2 - f_2^2} d_{r,c2}^q= 0.
 \end{equation} 
@@ -148,29 +148,29 @@ This synchronises the receiver clock with the reference GNSS constellation. It i
 **Zero receiver DCB**: when this option is on the receiver code biases for two signals, with different carrier frequencies, tracked by the receiver will set to be equal. This pseudo-observation can be used to eliminate the rank deficiency that comes from the correlation between ionosphere delays and Differential code biases. This pseudo-observation should not be used in conjunction with ionosphere mapping.   
 
 **Receiver ambiguity pivot**: when this option is on the one ambiguity per signal in the receiver is set to an arbitrary number (selected as to minimise the receiver phase bias). 
-This elimnates the rank deficiency produced by the correlation between ambiguities and receiver phase biases.
-This pseudo-observation is meant to be used in end user processng where satellite phase biases are assumed to be known.
+This eliminates the rank deficiency produced by the correlation between ambiguities and receiver phase biases.
+This pseudo-observation is meant to be used in end user processing where satellite phase biases are assumed to be known.
 
 **Satellite clock definition**: when this option is on the ionosphere-free combination of receiver code biases for two signals (defined by the ``clock_codes`` parameter, signals with different carrier frequencies must be selected) is set to 0:
 \begin{equation}
 \frac{f_1^2}{f_1^2 - f_2^2} d_{c1}^s -  \frac{f_2^2}{f_1^2 - f_2^2} d_{c2}^s= 0.
 \end{equation} 
-This pseudo-observation can be used to eliminate the rank deficiency comming from the correlation between satellite clock and satellite code biases. It also allows the satellite clock estimate to align with established standards, or to adjust the clock to specific users. 
+This pseudo-observation can be used to eliminate the rank deficiency coming from the correlation between satellite clock and satellite code biases. It also allows the satellite clock estimate to align with established standards, or to adjust the clock to specific users. 
 
 **Zero satellite DCB**: when this option is on the satellite code biases for two signals tracked by the receiver with different carrier frequencies will set to be equal. 
 As is the case for receiver DCB, this pseudo-observation responds to ionosphere-DCB rank deficiency and should not be used in conjunction with ionosphere mapping
 Note that the code are selected from those tracked by receivers, this is because the ionosphere measurements will be biased by DCBs of signals used to track the signal. 
-Use of this pseudo-observation is only recomended for constellations for wich different receivers may track completely different sets of signals (e.g. Galileo and Beidou). 
+Use of this pseudo-observation is only recommended for constellations for which different receivers may track completely different sets of signals (e.g. Galileo and Beidou). 
 For other constellations we recommend explicitly setting the satellite code bias for two signals to 0.
 
 **Common satellite phase bias**: when this option is on the satellite phase bias for signals using the same carrier frequency will be considered equal $b_{c1}^s = b_{c2}^s$
 
-**Zero code average**: when this option is on the average of satellite code biases for a constellation will be set to 0. This pseudo-observation eliminates the rank deficieny caused by correlation between satelite and receiver biases. 
-Although this rank deficiency can also ve solved by setting the code biases of a pivot station or satellite to zero, this pseudo-observation can be a substitute when there are no reliable stations in the network.  
+**Zero code average**: when this option is on the average of satellite code biases for a constellation will be set to 0. This pseudo-observation eliminates the rank deficiency caused by correlation between satellite and receiver biases. 
+Although this rank deficiency can also be solved by setting the code biases of a pivot station or satellite to zero, this pseudo-observation can be a substitute when there are no reliable stations in the network.  
 
 **Zero phase average**: when this option is on the average of satellite phase biases for a constellation will be set to 0.  
 
-**Network ambiguity pivot**: when this option is on a set of ambiguites is set to arbitrary integers.
+**Network ambiguity pivot**: when this option is on a set of ambiguities is set to arbitrary integers.
 A minimum set of ambiguities is selected to eliminate the rank deficiency produced by correlation between ambiguities, satellite phase biases and receiver phase biases.
 These pseudo-observations require setting the phase biases for a receiver or satellite to 0.
 
@@ -180,7 +180,7 @@ Aside from the biases described above, the Ginan software accounts for a number 
 
 Solid tide corrections can be applied when estimating the position of static stations. These corrections can include the effect of polar motion and ocean loading.
 
-Relativitistic effects on satellite clock are estimated according to the GPS interface control document. 
+Relativistic effects on satellite clock are estimated according to the GPS interface control document. 
 
 Relative phase windup effects are estimated from standard satellite attitude models.  
 

@@ -1,9 +1,6 @@
 
 #pragma once
 
-// Needed as StationMap is a kind of typedef.
-#include "station.hpp"
-
 #include <vector>
 #include <string>
 #include <map>
@@ -15,6 +12,7 @@ using std::map;
 #include "enums.h"
 
 struct GTime;
+struct ReceiverMap;
 class E_Source;
 
 void outputClocks(
@@ -23,4 +21,4 @@ void outputClocks(
 	vector<E_Source>	clkDataSatSrcs,
 	GTime&				time,
 	KFState&			kfState,
-	StationMap*			stationMap_ptr = nullptr);
+	ReceiverMap*			receiverMap_ptr = nullptr);

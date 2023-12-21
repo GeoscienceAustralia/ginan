@@ -12,21 +12,11 @@ using std::string;
  */
 struct StaticField 
 {
-	StaticField()
-	{
-		
-	};
-	
-	StaticField(
-			string	filename,
-			int		degmax);
-	
-	void readegm(
-		string filename);
-	
-	void summary();
-	
-	void toZeroTide(bool);
+	void read(
+		const string&	filename,
+		int				degMax);	
+
+	void toTideFree();
 	
 	bool		initialised	= false;
 	string		filename;

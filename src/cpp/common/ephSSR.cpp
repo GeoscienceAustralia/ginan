@@ -218,7 +218,7 @@ bool satPosSSR(
 {
 	SSRMaps&		ssrMaps		= satPos.satNav_ptr->receivedSSR;
 	SatSys&			Sat			= satPos.Sat;
-	Vector3d&		rSat		= satPos.rSat;
+	Vector3d&		rSat		= satPos.rSatCom;
 	Vector3d&		satVel		= satPos.satVel;
 	double&			satClk		= satPos.satClk;
 	double&			satClkVel	= satPos.satClkVel;
@@ -240,7 +240,9 @@ bool satPosSSR(
 	GTime		ephValidStop;
 	GTime		clkValidStart;
 	GTime		clkValidStop;
+	Vector3d	rSat0;
 	Vector3d	dPos;
+	double		satClk0;
 	double		dClk;
 	GTime		ephTime = time;
 	
@@ -287,8 +289,8 @@ bool satPosSSR(
 		iodeClk = iodEph;
 		
 		bool pass = true;
-		pass &= satPosBroadcast(trace, time, teph, Sat, rSat,	satVel,		posVar, ephPosValid, iodePos, nav);
-		pass &= satClkBroadcast(trace, time, teph, Sat, satClk,	satClkVel,	clkVar, ephClkValid, iodeClk, nav);
+		pass &= satPosBroadcast(trace, time, teph, Sat, rSat0,		satVel,		posVar, ephPosValid, iodePos, nav);
+		pass &= satClkBroadcast(trace, time, teph, Sat, satClk0,	satClkVel,	clkVar, ephClkValid, iodeClk, nav);
 		
 		if (pass == false)
 		{
@@ -315,16 +317,16 @@ bool satPosSSR(
 		break;
 	}
 	
-	tracepdeex(4, trace, "\nBRDCEPH %s    %s    %13.3f %13.3f %13.3f %11.3f %2d", time.to_string(6).c_str(), Sat.id().c_str(), rSat[0], rSat[1], rSat[2], 1e9*satClk, iodePos);
+	tracepdeex(4, trace, "\nBRDCEPH %s    %s    %13.3f %13.3f %13.3f %11.3f %2d", time.to_string(6).c_str(), Sat.id().c_str(), rSat0[0], rSat0[1], rSat0[2], 1e9*satClk0, iodePos);
 	
-	Matrix3d rac2ecefMat = rac2ecef(rSat, satVel);
+	Matrix3d rac2ecefMat = rac2ecef(rSat0, satVel);
 	
 	Vector3d dPosECEF = rac2ecefMat * dPos;
 	
-	rSat -= dPosECEF;
+	rSat = rSat0 - dPosECEF;
 
 	/* t_corr = t_sv - (dtSat(brdc) + dClk(ssr) / CLIGHT) (ref [10] eq.3.12-7) */
-	satClk += dClk / CLIGHT;
+	satClk = satClk0 + dClk / CLIGHT;
 
 	/* variance by ssr ura */
 	double ura = -1;
@@ -357,5 +359,34 @@ bool satPosSSR(
 		ephValidStart	.to_string(0).c_str(), 
 		ephValidStop	.to_string(0).c_str());
 
+	
+	if (round(time.bigTime) == time.bigTime)
+	{
+		traceJson(1, nullStream, time, 
+			{
+				{"data",	__FUNCTION__		},
+				{"Sat",		satPos.Sat.id()		} 
+			},
+			{
+				{"rSat0[0]",		rSat0[0]},
+				{"rSat0[1]",		rSat0[1]},
+				{"rSat0[2]",		rSat0[2]},
+				{"rSat[0]",			rSat[0]},
+				{"rSat[1]",			rSat[1]},
+				{"rSat[2]",			rSat[2]},
+				{"dPos[0]",			dPos[0]},
+				{"dPos[1]",			dPos[1]},
+				{"dPos[2]",			dPos[2]},
+				{"satClk0",			satClk0},
+				{"satClk",			satClk},
+				{"dClk",			dClk},
+				{"iode",			iodEph},
+				{"iodClk",			iodClk},
+				{"iodPos",			iodPos},
+				{"clkValidStart",	(long int)clkValidStart.bigTime},
+				{"ephValidStart",	(long int)ephValidStart.bigTime}
+			});
+	}
+	
 	return true;
 }

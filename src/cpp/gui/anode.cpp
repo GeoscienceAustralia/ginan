@@ -32,12 +32,12 @@ map<string, shared_ptr<ANode>>	ANode::anodeIdMap;
 map<string, string>	stringMap;
 
 	ostream& operator<<(
-		ostream&	out, 
+		ostream&	out,
 		ANode&		anode)
 	{
 		return anode.shift(out);
 	}
-	
+
 	ANode& ANode::operator << (string content)
 	{
 		if (childless)
@@ -50,7 +50,7 @@ map<string, string>	stringMap;
 		}
 		return *this;
 	}
-	
+
 list<string> outQueue;
 list<string> msgQueue;
 mutex outMutex;
@@ -90,7 +90,7 @@ struct GooeySinkBackend : public sinks::basic_formatted_sink_backend<char, sinks
 		doc.append(kvp("content",			log_string.c_str()	));
 		{
 			lock_guard<mutex> guard(outMutex);
-			
+
 			msgQueue.push_back(bsoncxx::to_json(doc));
 		}
 	}
@@ -99,12 +99,12 @@ struct GooeySinkBackend : public sinks::basic_formatted_sink_backend<char, sinks
 void callback0()
 {
 	static bool once = true;
-	
+
 	if (once == false)
 	{
 		return;
 	}
-	
+
 	// Construct the sink
 	using GooeyLogSink = sinks::synchronous_sink<GooeySinkBackend>;
 
@@ -112,12 +112,12 @@ void callback0()
 
 	// Register the sink in the logging core
 	boost::log::core::get()->add_sink(gooeyLogSink);
-	
+
 	once = false;
 }
 
 string nonNumericStack(
-	string			stack,
+	const string&	stack,
 	string&			cut,
 	bool			colon = true);
 
@@ -130,24 +130,24 @@ void callback2()
 // 	config->parent = "body";
 // 	config->Class("pageTab");
 	config->addChild<H1>("configHeader") << "Configuration";
-	
+
 	auto it = acsConfig.yamlDefaults.begin();
 	while (it != acsConfig.yamlDefaults.end())
 	{
 		auto& [stack, defaultVals] = *it;
 		it++;
-	
+
 		auto& gotValue	= defaultVals.foundValue;
 		auto& comment	= defaultVals.comment;
-		
+
 		//split the name into tokens so that ordering numerals can be removed
 		size_t pos_start = 0;
 		size_t pos_end;
-		
+
 		string token;
 		string flatStack = "";
 		//find each part of the stack for this entry and make a list of them
-		while ((pos_end = stack.find(":", pos_start)) != string::npos) 
+		while ((pos_end = stack.find(":", pos_start)) != string::npos)
 		{
 			token = stack.substr(pos_start, pos_end - pos_start);
 			pos_start = pos_end + 1;
@@ -155,35 +155,35 @@ void callback2()
 			token = nonNumericStack(token, dummy);
 			flatStack += token;
 		}
-	
+
 // 		if (token == "outputs:")
 // 		{
 // 			break;
 // 		}
 		string root = flatStack.substr(0, flatStack.size() - token.size());
-		
+
 		string parentString = "configTab_";
 		if (root.empty() == false)
 		{
 			parentString = root + "_";
 		}
-		
+
 		auto& parent = ANode::anodeIdMap[parentString];
 		auto& element	= parent->addChild<Div>()
 							.Class("element");
-		
-							
+
+
 		auto& modified = element.addChild<Input>(flatStack)
 			.attr("type", "checkbox");
-			
+
 		if (defaultVals.found)
 		{
 			modified.attr("checked", "true");
 		}
-		
+
 		auto& ident = element.addChild<Div>()
 			.Class("ident");
-		
+
 		bool nextIsChild = false;
 		if (it != acsConfig.yamlDefaults.end())
 		{
@@ -194,22 +194,22 @@ void callback2()
 			}
 		}
 		if (nextIsChild)	ident.Class("bold");
-		
+
 		ident << token;
-		
+
 		if (nextIsChild)	ident << " ⯆";
-			
-		
+
+
 		if (comment.empty() == false)
 		{
 			ident.addChild<Span>()
 				.Class("tooltiptext") << "# " + comment;
 		}
-		
+
 		if (nextIsChild)
 			element.addChild<Div>(flatStack + "_")
 				.Class("contents");
-			
+
 // 		if (firstChild)
 // 		{
 // 			//finalise the child section
@@ -218,7 +218,7 @@ void callback2()
 // 		else
 		{
 			//this has no children, output the default value of this parameter instead - according to its commented parameter type
-			
+
 			for (auto once : {1})
 			{
 				//booleans
@@ -226,18 +226,18 @@ void callback2()
 				{
 					auto& boolSelect = element.addChild<Select>()
 									.attr("class", "value");
-									
+
 					{auto& a = boolSelect.addChild<Option>().attr("value", "true")	<< "true";		if (gotValue == "1")	a.attr("selected",	"true");}
 					{auto& a = boolSelect.addChild<Option>().attr("value", "false")	<< "false";		if (gotValue == "0")	a.attr("selected",	"true");}
 					{auto& a = boolSelect.addChild<Option>().attr("value", "1")		<< "true";								a.attr("hidden",	"true");}
 					{auto& a = boolSelect.addChild<Option>().attr("value", "0")		<< "false";								a.attr("hidden",	"true");}
-				
+
 					break;
 				}
-				
+
 				auto begin	= comment.find('{');
 				auto end	= comment.find('}', begin);
-				
+
 				//enums
 				if	( begin != string::npos
 					&&end	!= string::npos)
@@ -245,29 +245,29 @@ void callback2()
 					string enums = comment.substr(begin + 1, end - begin - 1);
 					size_t pos_start = 0;
 					size_t pos_end;
-				
+
 					auto& boolSelect = element.addChild<Select>()
 									.attr("class", "value");
-									
-					
+
+
 					//find each part of the stack for this entry and make a list of them
-					while ((pos_end = enums.find(',', pos_start)) != string::npos) 
+					while ((pos_end = enums.find(',', pos_start)) != string::npos)
 					{
 						string token = enums.substr(pos_start, pos_end - pos_start);
 						pos_start = pos_end + 1;
-						
+
 						auto& a = boolSelect.addChild<Option>().attr("value", token)	<< token;
 						if (boost::algorithm::to_lower_copy(gotValue) == token)	a.attr("selected", "true");
 					}
 					//get last one
 					string token = enums.substr(pos_start);
-						
+
 					auto& a = boolSelect.addChild<Option>().attr("value", token)	<< token;
 					if (boost::algorithm::to_lower_copy(gotValue) == token)	a.attr("selected", "true");
-					
+
 					break;
 				}
-				
+
 				//general parameters
 				{
 					element.addChild<Input>()
@@ -278,14 +278,14 @@ void callback2()
 			}
 		}
 	}
-	
+
 	{
 		ofstream out("config.html");
-	
+
 // 		std::cout << *script << std::endl;
 		out << *config;
 	}
-	
+
 // 	config->mapify(stringMap);
 // 	config->stringify(stringList);
 }
@@ -299,29 +299,29 @@ void callback1()
 		return;
 	}
 	stringList.clear();	//todo aaron, wait for done before doing this function
-	
+
 // 	std::cout << "callback"<<std::endl;
 	if (sendFlag == false)
 	{
 		return;
 	}
 	sendFlag = false;
-	
+
 	{
 		//prevent sending same data over and over if the last set hasnt been sent
-		lock_guard<mutex> guard(outMutex);	
+		lock_guard<mutex> guard(outMutex);
 		outQueue.clear();
 	}
-	
+
 	lock_guard<mutex> lock(subscribedMapMutex);
-	
-	for (auto& [subscription, val] : subscribedMap)	
+
+	for (auto& [subscription, val] : subscribedMap)
 	{
 		if (val == false)
 		{
 			continue;
 		}
-		
+
 		bsoncxx::builder::basic::document doc = {};
 		doc.append(kvp("send",				"DATA"			));
 		doc.append(kvp("name",				subscription	));
@@ -335,14 +335,14 @@ void callback1()
 		{
 			for (auto& [time, val] : *(anyPtrMap[macsAreDumb]))	subArr.append(val);
 		}));
-		
+
 		{
 			lock_guard<mutex> guard(outMutex);
-			
+
 			outQueue.push_back(bsoncxx::to_json(doc));
 		}
-	}	
-	
+	}
+
 	for (auto& [thing, thang] : generalDataMap)
 	for (auto& [thong, theng] : thang)
 	for (auto& [thung, thyng] : theng)
@@ -352,22 +352,22 @@ void callback1()
 		{
 			continue;
 		}
-		
-		
-		
+
+
+
 		string id = "," + thing + "," + thong.commaString() + "," + thung._to_string() + ",";
-		
+
 		to_lower(id);
-		
+
 		bsoncxx::builder::basic::document doc = {};
 		doc.append(kvp("send",				"POS"		));
 		doc.append(kvp("name",				thong.str + thing	));
-		
-		
+
+
 		auto a = thing;
 		auto b = thong;
 		auto c = thung;
-		
+
 		doc.append(kvp("coords", [&](sub_array subArr)
 		{
 			for (int i = 1; i >= 0; i--)
@@ -378,48 +378,48 @@ void callback1()
 				subArr.append(val);
 			}
 		}));
-		
+
 		{
 			lock_guard<mutex> guard(outMutex);
-			
+
 			outQueue.push_back(bsoncxx::to_json(doc));
 		}
 	}
-		
-	
-	
-	
+
+
+
+
 // 	outStream
 // 		boost::beast::ostream(sendBuffer) << "{ \"name\": \"" << subscription << "\", \"x\": [" << ssx.str() << "], \"y\": [" << ssy.str() << "], \"type\": \"scatter\" }";
 // 		std::cout << "sending " << sendBuffer.size() << " bytes" << std::endl;
-// 			
-// 		ws_.async_write(sendBuffer.data(), beast::bind_front_handler(&websocketsession::on_write, shared_from_this()));	
+//
+// 		ws_.async_write(sendBuffer.data(), beast::bind_front_handler(&websocketsession::on_write, shared_from_this()));
 
-	
+
 	auto html = make_shared<Html>("html");
 	auto& bb = html->addChild<Body>("body");
 	auto& header = bb.addChild<Div>("headerDiv");
 	{
 		header.addChild<Img>()
 			.attr("src", "GinanLogo60.png");
-	
+
 		header.addChild<H3>() << "Ginan";
-		
-		
-		header.addChild<A>().attr("href", "javascript:openTab('wizardTab'	);") << "Wizard";		
-		header.addChild<A>().attr("href", "javascript:openTab('consoleTab'	);") << "Console";			
-		header.addChild<A>().attr("href", "javascript:openTab('configTab'	);") << "Config";		
-		header.addChild<A>().attr("href", "javascript:openTab('mapTab'		);") << "Map";			
-		header.addChild<A>().attr("href", "javascript:openTab('plotsTab'	);") << "Plots";	
-		
+
+
+		header.addChild<A>().attr("href", "javascript:openTab('wizardTab'	);") << "Wizard";
+		header.addChild<A>().attr("href", "javascript:openTab('consoleTab'	);") << "Console";
+		header.addChild<A>().attr("href", "javascript:openTab('configTab'	);") << "Config";
+		header.addChild<A>().attr("href", "javascript:openTab('mapTab'		);") << "Map";
+		header.addChild<A>().attr("href", "javascript:openTab('plotsTab'	);") << "Plots";
+
 	}
-	
+
 	auto& wizardTab		= bb.addChild<Div>("wizardTab")	.Class("pageTab");
 	auto& consoleTab	= bb.addChild<Div>("consoleTab").Class("pageTab");
 	auto& configTab		= bb.addChild<Div>("configTab")	.Class("pageTab");
 	auto& mapTab		= bb.addChild<Div>("mapTab")	.Class("pageTab");
 	auto& plotsTab		= bb.addChild<Div>("plotsTab")	.Class("pageTab");
-		
+
 	{
 		wizardTab.addChild<H1>() << "Wizard";
 		auto& button = wizardTab.addChild<Label>() << "Go";
@@ -427,25 +427,25 @@ void callback1()
 			.attr("type", "checkbox")
 			.attach(click);
 	}
-		
+
 	{
 		auto& consoleLinks = consoleTab.addChild<Div>();
 		consoleLinks.addChild<A>().attr("href", "javascript:toggleConsoleSev(4);").style("background-color:pink;		border: var(--sev4border);"	) << "Errors";
 		consoleLinks.addChild<A>().attr("href", "javascript:toggleConsoleSev(3);").style("background-color:gold;		border: var(--sev3border);"	) << "Warnings";
 		consoleLinks.addChild<A>().attr("href", "javascript:toggleConsoleSev(2);").style("background-color:whitesmoke;	border: var(--sev2border);"	) << "Info";
-		consoleLinks.addChild<A>().attr("href", "javascript:toggleConsoleSev(1);").style("background-color:lightblue;	border: var(--sev1border);"	) << "Debug";		
-		
+		consoleLinks.addChild<A>().attr("href", "javascript:toggleConsoleSev(1);").style("background-color:lightblue;	border: var(--sev1border);"	) << "Debug";
+
 		consoleTab.addChild<Div>("Console");
 	}
-	
+
 	{
 	}
-		
-	
-		
+
+
+
 	{
 		auto& map = mapTab.addChild<Div>("map");
-		
+
 // 	<div class="map-overlay top">
 // 		<div class="map-overlay-inner">
 // 			<input id="slider" type="range" min="0" max="1000" step="1" value="1000">
@@ -460,77 +460,77 @@ void callback1()
 // 	</div>
 
 	}
-	
-	
+
+
 	{
-		
+
 		auto& scroller = plotsTab.addChild<Div>("scroller")
 			.style("overflow: auto;")
 			.style("max-height: 100vh;");
-			
+
 		plotsTab.addChild<Div>	("plot")
 			.attr("ondrop", "drop(event)")
 			.attr("ondragover", "allowDrop(event)");
-		
-			
+
+
 		{
 			scroller.addChild<Input>("filter").attr("type", "text");
 			scroller.addChild<Div>	("filters");
-			
+
 			auto& bothPlots = scroller.addChild<Div>("bothPlots");
-			
+
 			auto& availableDiv = bothPlots.addChild<Div>();
 			auto& removableDiv = bothPlots.addChild<Div>();
-			
+
 			removableDiv.addChild<Div> ("removeAll")
 				.attr("onclick", "removeAll()") << "Remove all";
-				
+
 			removableDiv.addChild<Ul>	("plotted");
-				
-			
+
+
 			availableDiv.addChild<Div> ("addAll")
 				.attr("onclick", "addAll()") << "Add all";
-			
+
 			auto& list = availableDiv.addChild<Ul>("plots");
 			for (auto& [thing, thang] : generalDataMap)
 			for (auto& [thong, theng] : thang)
 			for (auto& [thung, thyng] : theng)
 			{
 				string id = "," + thing + "," + thong.commaString() + "," + thung._to_string() + ",";
-				
+
 				to_lower(id);
-				
+
 				list.addChild<Li>(id)
 					.attr("draggable", "true")
 					.attr("ondragstart", "drag(event)")
 					<< id;
-				
+
 				anyPtrMap[id] = &thyng;
 			}
-			
+
 			scroller.addChild<Script>()
 				.onAppend("") << R"(
-				
+
 	// 			console.log("test");
-				document.getElementById("filter").addEventListener("input", function() 
+				document.getElementById("filter").addEventListener("input", function()
 				{
 					var filterString = document.getElementById("filter").value;
-					
+
 					const tokens = filterString.split(" ");
 	// 				console.log(filterString);
-					
-					
+
+
 					for (child of document.getElementById("plots").children)
 					{
 						child.style.display = "inherit";
 					}
-					
+
 					for (token of tokens)
 					for (child of document.getElementById("plots").children)
 					{
 						if (token == "")
 							continue;
-						
+
 						if (token[0] == "-")
 						{
 							if (child.innerHTML.match(token.substring(1)))		child.style.display = "none";
@@ -544,14 +544,14 @@ void callback1()
 					getFilters();
 				});
 			)";
-			
+
 		}
 	}
 
 	auto style = make_shared<Content>();
-	
+
 	*style << R"(
-		:root 
+		:root
 		{
 			--sev4vis: block;
 			--sev3vis: block;
@@ -568,8 +568,8 @@ void callback1()
 			margin: 5px;
 			line-height: 1.5;
 			padding: 2px;
-		}	
-		
+		}
+
 		#body
 		{
 			display: flex;
@@ -579,13 +579,13 @@ void callback1()
 			height:100vh;
 			overflow:hidden;
 		}
-		
+
 		#content
 		{
 			display: grid;
 // 			grid-template-columns: 1fr 3fr;
 		}
-		
+
 		.sev4
 		{
 			display: var(--sev4vis);
@@ -616,16 +616,16 @@ void callback1()
 			font-family: mono;
 			color:black;
 			max-height:80vh;
-		}	
-		
+		}
+
 		#scroller
 		{
 			height:100vh;
 			overflow:scroll;
-		}	
-		
+		}
+
 		#headerDiv
-		{ 
+		{
 			background-color: #f8f9fa !important;
 			color: rgba(0,0,0,0.6);
 			margin-top:0.5em;
@@ -634,15 +634,15 @@ void callback1()
 			margin-left:auto;
 			margin-right:auto;
 			text-align:center;
-		}	
-		
+		}
+
 		.pageTab
 		{
 			display:none;
 			flex-direction:column;
 			flex:1 1 auto;
 		}
-				
+
 		#wizardTab
 		{
 			display:flex;
@@ -651,18 +651,18 @@ void callback1()
 		{
 			flex-grow:1;
 		}
-		
+
 		.bold
 		{
 			font-weight:bold;
 		}
-		
+
 #consoleTab a
 {
 	display:inline-block;
 	padding: 0.5em;
 	margin: 0.5em;
-	
+
 }
 		#plotsTab
 		{
@@ -673,24 +673,24 @@ void callback1()
 			overflow:scroll;
 			flex-direction:column;
 		}
-		
+
 		*
 		{
 			box-sizing: border-box;
 		}
-		
+
 		#bothPlots
 		{
 			display:flex;
 			flex-direction:row;
 		}
-		
+
 #headerDiv > *
 {
 	vertical-align:middle;
 	margin:1em;
 }
-		a, a:hover, a:visited, a:active 
+		a, a:hover, a:visited, a:active
 		{
   color: inherit;
   text-decoration: none;
@@ -699,8 +699,8 @@ void callback1()
 		{
 			display:inline-block;
 		}
-	
-		#map 
+
+		#map
 		{
 			width: 100%;
 			height:100%;
@@ -725,7 +725,7 @@ void callback1()
 			left: 20px;
 			top: 10px;
 		}
-		
+
 		.map-overlay {
 			font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
 			position: absolute;
@@ -736,7 +736,7 @@ void callback1()
 			box-sizing: border-box;
 			background-color: transparent;
 		}
-	
+
 		.map-overlay .map-overlay-inner {
 			background-color: transparent;
 			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -744,19 +744,19 @@ void callback1()
 			padding: 10px;
 			margin-bottom: 10px;
 		}
-		
+
 		.map-overlay h2 {
 			line-height: 24px;
 			display: block;
 			margin: 0 0 10px;
 		}
-		
+
 		.map-overlay .legend .bar {
 			height: 10px;
 			width: 100%;
 			background: linear-gradient(to right, #fca107, #7f3121);
 		}
-		
+
 		.map-overlay input {
 			background-color: transparent;
 			display: inline-block;
@@ -765,7 +765,7 @@ void callback1()
 			margin: 0;
 			cursor: ew-resize;
 		}
-		
+
 		#configTab input
 		{
 		// display: inline-block;
@@ -851,29 +851,29 @@ void callback1()
   }
 
 		)";
-	
+
 	html->addChild<Meta>()
 		.attr("name", "viewport")
 		.attr("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
-	
+
 	html->addChild<Link>()
 		.attr("rel", "stylesheet")
 		.attr("href", "https://api.mapbox.com/mapbox-gl-js/v0.42.1/mapbox-gl.css");
 	html->addChild<Link>()
 		.attr("rel", "stylesheet")
 		.attr("href", "pea.css");
-		
+
 	html->addChild<Script>()	.attr("src", "https://api.mapbox.com/mapbox-gl-js/v0.42.1/mapbox-gl.js");
 	html->addChild<Script>()	.attr("src", "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.js");
 	html->addChild<Script>()	.attr("src", "https://unpkg.com/mqtt/dist/mqtt.min.js");
 	html->addChild<Script>()	.attr("src", "https://cdn.plot.ly/plotly-2.16.1.min.js");
 	html->addChild<Script>()	.attr("src", "pea.js");
 	html->addChild<Script>()	.attr("src", "map.js");
-	
+
 	auto script = make_shared<Content>();
-	
+
 	*script << R"script(
-	
+
 	var getFilters = function()
 	{
 		var filters = new Set();
@@ -884,20 +884,20 @@ void callback1()
 			{
 				continue;
 			}
-		
+
 			if (child.style.display != "none")
 				filters.add("," + token + ",");
-		}	
-		
+		}
+
 		document.getElementById("filters").replaceChildren();
 		for (filter of Array.from(filters).sort())
 		{
 			if (filter == "")
 				continue;
-			
+
 			var button = document.createElement("span");
 			button.textContent = " " + filter + " ";
-			
+
 			button.addEventListener("click", function(ev)
 			{
 				console.log(ev);
@@ -905,18 +905,18 @@ void callback1()
 				filterText.value += ev.target.textContent;
 				filterText.dispatchEvent(new CustomEvent("input", {}));
 			});
-			
+
 			document.getElementById("filters").appendChild(button);
 		}
 	}
-		
+
 	getFilters();
 	// get the references of the page elements.
 	var listMsgs		= document.getElementById('msgs');
 	var socketStatus	= document.getElementById('status');
 
 	console.log("some script");
-	
+
 	load("config.html", document.getElementById("configTab"));
 
 	var f = function(data)
@@ -924,36 +924,36 @@ void callback1()
 		if (data.send == "CONS")
 		{
 			var p = document.createElement("p");
-			
+
 			p.appendChild(document.createTextNode(data.content));
 			p.classList.add("sev" + data.level);
 
 			document.getElementById("Console").appendChild(p);
-			
+
 			return;
 		}
-		
+
 		if (data.send == "DATA")
 		{
 			var average = data.y.reduce((a, b) => (a + b)) / data.y.length;
 // 			data.y = data.y.map(y => y - average);
-			
+
 			document.getElementById("plot").data = document.getElementById("plot").data || [];
-			
+
 			// add a single trace to an existing graphDiv
-			
+
 			var found = null;
-			
+
 			for (var [index, trace] of document.getElementById("plot").data.entries())
 			{
 				if (trace.name == data.name)
 				{
 					found = index;
-				}	
+				}
 			}
-			
-			
-			
+
+
+
 			if (found)
 			{
 				console.log("updating");
@@ -965,8 +965,8 @@ void callback1()
 				console.log("new");
 				Plotly.addTraces("plot", data);
 			}
-			
-			
+
+
 			Array.from(document.getElementsByClassName("legendtext")).forEach(function(el)
 			{
 				if (el.getAttribute("draggable") == null)
@@ -974,7 +974,7 @@ void callback1()
 					el.setAttribute("draggable", "true");
 					var name = el.textContent;
 					console.log(name);
-					
+
 					el.addEventListener("dragstart", function(ev)
 					{
 						ev.dataTransfer.setData("text", name);
@@ -983,21 +983,21 @@ void callback1()
 			})
 		}
 	};
-	
+
 	socketCallbacks.push(f);
 
-	
-	function allowDrop(ev) 
+
+	function allowDrop(ev)
 	{
 		ev.preventDefault();
 	}
 
-	function drag(ev) 
+	function drag(ev)
 	{
 		ev.dataTransfer.setData("text", ev.target.id);
 	}
 
-	function drop(ev) 
+	function drop(ev)
 	{
 		ev.preventDefault();
 		var data = ev.dataTransfer.getData("text");
@@ -1005,7 +1005,7 @@ void callback1()
 		socket.send("+" + data);
 		console.log(data);
 	}
-	
+
 	function openTab(name)
 	{
 		Array.from(document.getElementsByClassName("pageTab")).forEach(function(el)
@@ -1016,16 +1016,16 @@ void callback1()
 		map.resize();
 		Plotly.Plots.resize("plot");
 	}
-	
+
 	function remove(ev)
 	{
-	
+
 	}
-	
+
 	function removeAll()
 	{
 		var i = 0;
-		
+
 		while (i < document.getElementById("plotted").childNodes.length)
 		{
 			var child = document.getElementById("plotted").childNodes[i];
@@ -1040,18 +1040,18 @@ void callback1()
 			}
 		}
 	}
-	
+
 	function addAll()
 	{
 		var ev = {};
 		ev.preventDefault = function(){};
-		
+
 		var i = 0;
-		
+
 		while (i < document.getElementById("plots").childNodes.length)
 		{
 			var child = document.getElementById("plots").childNodes[i];
-		
+
 			if (child.style.display != "none")
 			{
 				ev.dataTransfer = {};
@@ -1062,7 +1062,7 @@ void callback1()
 			i++;
 		}
 	}
-	
+
 	function toggleConsoleSev(level)
 	{
 		var display = window.getComputedStyle(document.documentElement).getPropertyValue("--sev" + level + "vis");
@@ -1077,7 +1077,7 @@ void callback1()
 			document.documentElement.style.setProperty("--sev" + level + "border", "2px solid");
 		}
 	}
-	
+
 	var initFunc = function()
 	{
 		if (typeof Plotly == 'undefined')
@@ -1095,101 +1095,101 @@ void callback1()
 			setTimeout(initFunc, 10);
 			return;
 		}
-		
+
 		Plotly.newPlot('plot');
-		
+
 		mapInit();
 	}
 	initFunc();
-	
+
 	)script";
-	
-		
-		
-	
+
+
+
+
 	auto gScript = make_shared<Content>();
-	
+
 	*gScript << R"script(
-	
+
 	var socketCallbacks = [];
 	var socket;
-	
-	function onChangeNum(e) 
+
+	function onChangeNum(e)
 	{
 		var val = this.value;
-		
+
 		if (val == "on")	val = 1;
 		if (val == "off")	val = 0;
-		
+
 		var thing = "%" + this.id + "%" + val;
 		socket.send(thing);
 	}
-	
+
 	window.onload = function init()
 	{
-		
+
 		socket = new WebSocket('ws://localhost:8082');
-		
+
 // 		socket.open();
-		socket.onopen = function(event) 
+		socket.onopen = function(event)
 		{
 			console.log("open");
 // 			socketStatus.innerHTML = 'Connected to: ' + event.currentTarget.URL;
 // 			socketStatus.className = 'open';
-		
-// 			socket.send("test"); 
+
+// 			socket.send("test");
 			setInterval(function() {socket.send("")}, 1000);
 		};
-		
-		socket.onerror = function(error) 
+
+		socket.onerror = function(error)
 		{
 			console.log('WebSocket error: ' + error);
 		};
-		
-		socket.onclose = function(event) 
+
+		socket.onclose = function(event)
 		{
 // 			socketStatus.innerHTML = 'Disconnected from the WebSocket.';
 // 			socketStatus.className = 'closed';
 		};
-		
-		socket.onmessage = function(event) 
+
+		socket.onmessage = function(event)
 		{
 			var msg = event.data;
-			
+
 // 			console.log(msg);
-			
+
 			var data = JSON.parse(msg);
-			
+
 			if (data.avail)
 			{
 // 				console.log("DOM " + data);
-				
+
 				if (document.getElementById(data.avail))
 				{
 // 					console.log("already have " + data.avail);
 					return;
 				}
-								
-				socket.send("?" + data.avail); 
+
+				socket.send("?" + data.avail);
 				return;
 			}
-			
+
 			if (data.send == "DOM")
 			{
 // 				console.log("DOM " + data);
-				
-				
+
+
 				if (document.getElementById(data.id))
 					return;
-				
+
 				if (data.parent == null)
 					return;
-				
+
 				var parent = document.getElementById(data.parent);
 // 				if (parent == null)
 // 					return;
-				
-				
+
+
 				var newElement;
 				if (data.type == null)
 				{
@@ -1200,93 +1200,93 @@ void callback1()
 				if (data.content)
 					newElement.appendChild(document.createTextNode(data.content));
 				parent.appendChild(newElement);
-				
+
 				if (data.attr)
 				for (const [attr, val] of Object.entries(data.attr))
 				{
 					document.getElementById(data.id).setAttribute(attr, val);
-				}	
-				
+				}
+
 				if (data.numeric)
 				{
 					document.getElementById(data.id).addEventListener("change", onChangeNum);
 				}
-				
+
 				if (data.style)
-				{	
+				{
 					document.getElementById(data.id).style.cssText = data.style;
 				}
-				
+
 				if (data.class)
-				{	
+				{
 					const classes = data.class.split(" ");
-				
+
 					for (Class of classes)
 					{
 						if (Class == "")
 							continue;
 						document.getElementById(data.id).classList.add(Class);
 					}
-				}	
-				
+				}
+
 // 				console.log("added have " + data.id + " to " + data.parent);
 				return;
 			}
-			
+
 			for (callback of socketCallbacks)
 			{
 				callback(data);
 			}
 		}
 	}
-	
+
 	function load(url, element)
 	{
 		fetch(url)
-			.then(response => response.text())  
-			.then(html => 
+			.then(response => response.text())
+			.then(html =>
 			{
 				// console.log(html);
 				element.innerHTML = html;
 			})
 	}
 		)script";
-	
+
 	auto gTemplate = make_shared<Html>("html");
-	
+
 	gTemplate->addChild<Script>()
-		.attr("src", "app.js"); 
-	
+		.attr("src", "app.js");
+
 	gTemplate->addChild<Body>("body");
-	
+
 	{
 		ofstream out("index.html");
-	
+
 // 		std::cout << *html << std::endl;
 		out << *gTemplate;
 	}
 	{
 		ofstream out("app.js");
-	
+
 // 		std::cout << *script << std::endl;
 		out << *gScript;
 	}
 	{
 		ofstream out("pea.js");
-	
+
 // 		std::cout << *script << std::endl;
 		out << *script;
 	}
 	{
 		ofstream out("pea.css");
-	
+
 // 		std::cout << *script << std::endl;
 		out << *style;
 	}
-	
+
 	html->mapify(stringMap);
 	html->stringify(stringList);
-	
+
 
 	for (auto& [str, content] : stringList)
 	{
@@ -1294,23 +1294,23 @@ void callback1()
 // 		if (requestedMap[str])
 // 		{
 // 			requestedMap[str] = false;
-// 			
+//
 // 			lock_guard<mutex> guard(outMutex);
-// 			
+//
 // 			outQueue.push_back(content);
 // 		}
 // 		else
 		{
 			bsoncxx::builder::basic::document doc = {};
 			doc.append(kvp("avail",	 str));
-			
+
 			{
-				
+
 				lock_guard<mutex> guard(outMutex);
-				
+
 				outQueue.push_back(bsoncxx::to_json(doc));
 			}
 		}
 	}
-		
+
 }

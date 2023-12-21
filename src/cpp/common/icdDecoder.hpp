@@ -2,10 +2,24 @@
 #pragma once
 
 #include "rtcmDecoder.hpp"
+#include "ephemeris.hpp"
 
-struct icdDecoder
+
+signed int gpsBitSFromWord(
+	vector<int>&	words,
+	int				word,
+	int				offset,
+	int				len);
+
+unsigned int gpsBitUFromWord(
+	vector<int>&	words,
+	int				word,
+	int				offset,
+	int				len);
+
+struct IcdDecoder
 {
-	map<SatSys, map<int, vector<unsigned char>>>	subframeMap;
+	map<SatSys, map<int, vector<int>>>	subframeMap;
 	
 	/* decode Galileo I/NAV ephemeris ----------------------------------------------
 	* decode Galileo I/NAV (ref [5] 4.3)
@@ -129,59 +143,103 @@ struct icdDecoder
 // 		return 1;
 // 	}
 	
+	bool decodeGpsTlmWord(
+		vector<int>&	words,
+		Eph&			eph)
+	{
+		return true;
+	}
+	
+	bool decodeGpsHowWord(
+		vector<int>&	words,
+		Eph&			eph)
+	{
+		eph.howTow	= gpsBitUFromWord(words, 1, 1, 17) * 6;
+		
+		return true;
+	}
+	
 	/* decode gps/qzss navigation data subframe 1 
 	 */
 	bool decodeGPSSubframe1(
-		vector<unsigned char>&	data,
-		Eph&					eph)
+		vector<int>&	words,
+		Eph&			eph)
 	{
-		int i = 24;
-
-		double tow	= getbituInc(data, i, 17) * 6.0;     				i = 48;
-		int week	= getbituInc(data, i, 10);     
-		eph.code	= getbituInc(data, i, 2);      
-		eph.sva		= getbituInc(data, i, 4);     
-		int svh		= getbituInc(data, i, 6);      
-		int iodc0	= getbituInc(data, i, 2);      
-		eph.flag	= getbituInc(data, i, 1);    					  	i += 87;
-		int tgd		= getbitsInc(data, i, 8);      
-		int iodc1	= getbituInc(data, i, 8);      
-		double toc	= getbituInc(data, i, 16) * 16.0; 
-		eph.f2		= getbitsInc(data, i, 8) * P2_55; 
-		eph.f1		= getbitsInc(data, i, 16) * P2_43;
-		eph.f0		= getbitsInc(data, i, 22) * P2_31;
+		decodeGpsTlmWord(words, eph);
+		decodeGpsHowWord(words, eph);
+		
+		eph.weekRollOver	= gpsBitUFromWord(words, 3,		61,		10);          	//todo aaron, these all need scaling
+		eph.code			= gpsBitUFromWord(words, 3,		71,		2);      
+		eph.sva				= gpsBitUFromWord(words, 3,		73,		4);     
+		int svh				= gpsBitUFromWord(words, 3,		77,		6);      
+		int iodc_1			= gpsBitUFromWord(words, 3,		83,		2)	<< 8; 
+		
+		eph.flag			= gpsBitUFromWord(words, 4,		91,		1);
+		
+		int tgd				= gpsBitSFromWord(words, 7,		197,	8);    
+		
+		int iodc_2			= gpsBitUFromWord(words, 8,		211,	8);      
+		eph.tocs			= gpsBitUFromWord(words, 8,		219,	16)	* (1 << 4); 
+		
+		eph.f2				= gpsBitSFromWord(words, 9,		241,	8)	* P2_55; 
+		eph.f1				= gpsBitSFromWord(words, 9,		249,	16)	* P2_43;
+		
+		eph.f0				= gpsBitSFromWord(words, 10,	271,	22)	* P2_31;
 
 		eph.svh		= (E_Svh) svh;
-		eph.tgd[0]	= tgd == -128 ? 0.0 : tgd * P2_31; /* ref [4] */
-		eph.iodc	= (iodc0 << 8) + iodc1;
-// 		eph.week	= adjgpsweek(week); /* week of tow */	//todo aaron
-// 		eph.ttm		= gpst2time(eph.week, tow);
-// 		eph.toc		= gpst2time(eph.week, toc);
-
+		eph.tgd[0]	= tgd == -128 ? 0 : tgd * P2_31; /* ref [4] */
+		eph.iodc	= iodc_1 | iodc_2;
+		
+		GTime nearTime	= timeGet();		//todo aaron rtcmTime()
+		
+		//adjgpsweek()
+		{
+			GWeek nowWeek = nearTime;		
+			
+			int dWeeks		= nowWeek - eph.weekRollOver;
+			int roundDWeeks	= (dWeeks + 512) / 1024 * 1024;
+			
+			eph.week	= eph.weekRollOver + roundDWeeks;
+		}	
+		
 		return true;
 	}
 	
 	/* decode gps/qzss navigation data subframe 2 
 	 */
 	bool decodeGPSSubframe2(
-		vector<unsigned char>&	data,
-		Eph&					eph)
+		vector<int>&	words,
+		Eph&			eph)
 	{
-		double sqrtA;
-		int i = 48;
+		decodeGpsTlmWord(words, eph);
+		decodeGpsHowWord(words, eph);
+		
+		eph.iode				= gpsBitUFromWord(words, 3,		61,		8);         
+		eph.crs					= gpsBitSFromWord(words, 3,		69,		16)	* P2_5; 
+		
+		eph.deln				= gpsBitSFromWord(words, 4,		91,		16)	* P2_43 * SC2RAD; 
+		int M0_1				= gpsBitSFromWord(words, 4,		107,	8)	<< 24; 
+		
+		unsigned int M0_2		= gpsBitUFromWord(words, 5,		121,	24); 
+		
+		eph.cuc					= gpsBitSFromWord(words, 6,		151,	16)	* P2_29;
+		unsigned int e_1		= gpsBitUFromWord(words, 6,		167,	8)	<< 24;
+		
+		unsigned int e_2		= gpsBitUFromWord(words, 7,		181,	24);
+		
+		eph.cus					= gpsBitSFromWord(words, 8,		211,	16)	* P2_29;
+		unsigned int sqrtA_1	= gpsBitUFromWord(words, 8,		227,	8)	<< 24;
+		
+		unsigned int sqrtA_2	= gpsBitUFromWord(words, 9,		241,	24);
+		
+		eph.toes				= gpsBitUFromWord(words, 10,	271,	16)	* (1 << 4);   
+		eph.fit					= gpsBitUFromWord(words, 10,	287,	1) ? 0 : 4; /* 0:4hr,1:>4hr */
+		int aodo				= gpsBitUFromWord(words, 10,	288,	5);   	//todo aaron
 
-		eph.iode	= getbituInc(data, i, 8);         
-		eph.crs		= getbitsInc(data, i, 16) * P2_5; 
-		eph.deln	= getbitsInc(data, i, 16) * P2_43 * SC2RAD; 
-		eph.M0		= getbitsInc(data, i, 32) * P2_31 * SC2RAD; 
-		eph.cuc		= getbitsInc(data, i, 16) * P2_29;
-		eph.e		= getbituInc(data, i, 32) * P2_33;
-		eph.cus		= getbitsInc(data, i, 16) * P2_29;
-		sqrtA		= getbituInc(data, i, 32) * P2_19;
-		eph.toes	= getbituInc(data, i, 16) * 16.0;   
-		eph.fit		= getbituInc(data, i, 1) ? 0.0 : 4.0; /* 0:4hr,1:>4hr */
-
-		eph.A		= SQR(sqrtA);
+		eph.sqrtA	= 		(sqrtA_1	| sqrtA_2)	* P2_19;
+		eph.M0		= 		(M0_1		| M0_2)		* P2_31 * SC2RAD;
+		eph.e		= 		(e_1		| e_2)		* P2_33;
+		eph.A		= SQR(eph.sqrtA);
 
 		return true;
 	}
@@ -189,66 +247,75 @@ struct icdDecoder
 	/* decode gps/qzss navigation data subframe 3
 	 */
 	bool decodeGPSSubframe3(
-		vector<unsigned char>&	data,	
-		Eph&					eph)
+		vector<int>&	words,	
+		Eph&			eph)
 	{
-		int i = 48;
+		decodeGpsTlmWord(words, eph);
+		decodeGpsHowWord(words, eph);
+		
+		eph.cic				= gpsBitSFromWord(words, 3,		61,		16)	* P2_29;
+		signed int OMG0_1	= gpsBitSFromWord(words, 3,		77,		8)	<< 24; 
+		
+		signed int OMG0_2	= gpsBitUFromWord(words, 4,		91,		24); 
+		
+		eph.cis				= gpsBitSFromWord(words, 5,		121,	16)	* P2_29;
+		signed int i0_1 	= gpsBitSFromWord(words, 5,		137,	8)	<< 24; 
+		
+		signed int i0_2 	= gpsBitUFromWord(words, 6,		151,	24); 
+		
+		eph.crc				= gpsBitSFromWord(words, 7,		181,	16)	* P2_5;
+		signed int omg_1	= gpsBitSFromWord(words, 7,		197,	8)	<< 24; 
+		
+		signed int omg_2	= gpsBitUFromWord(words, 8,		211,	24); 
+		
+		eph.OMGd			= gpsBitSFromWord(words, 9,		241,	24)	* P2_43 * SC2RAD; 
+		
+		int iode			= gpsBitUFromWord(words, 10,	271,	8);
+		eph.idot			= gpsBitSFromWord(words, 10,	279,	14)	* P2_43 * SC2RAD;
 
-		eph.cic		= getbitsInc(data, i, 16) * P2_29;        
-		eph.OMG0	= getbitsInc(data, i, 32) * P2_31 * SC2RAD; 
-		eph.cis		= getbitsInc(data, i, 16) * P2_29;       
-		eph.i0 		= getbitsInc(data, i, 32) * P2_31 * SC2RAD; 
-		eph.crc		= getbitsInc(data, i, 16) * P2_5;       
-		eph.omg		= getbitsInc(data, i, 32) * P2_31 * SC2RAD; 
-		eph.OMGd	= getbitsInc(data, i, 24) * P2_43 * SC2RAD; 
-		int iode	= getbituInc(data, i, 8);             
-		eph.idot	= getbitsInc(data, i, 14) * P2_43 * SC2RAD;
-
+		eph.OMG0	= (OMG0_1	| OMG0_2)	* P2_31 * SC2RAD;
+		eph.i0		= (i0_1		| i0_2)		* P2_31 * SC2RAD;
+		eph.omg		= (omg_1	| omg_2)	* P2_31 * SC2RAD;
+		
 		/* check iode and iodc consistency */
-		if	(  iode != eph.iode 
+		if	(  iode !=  eph.iode 
 			|| iode != (eph.iodc & 0xFF))
 		{
 			return false;
 		}
 		
-		/* adjustment for week handover */
-		// double tow		= time2gpst(eph.ttm, &eph.week);
-		// double toc		= time2gpst(eph.toc);
-		double tow  = GTow(eph.ttm);
-		double toc  = GTow(eph.toc);
-		eph.week	= GWeek(eph.ttm);
+		eph.ttm		= GTime(GWeek(eph.week), GTow(eph.howTow));
 		
-		if		(eph.toes < tow - 302400.0) {eph.week++; tow -= 604800.0;}
-		else if	(eph.toes > tow + 302400.0) {eph.week--; tow += 604800.0;}
+		eph.toc		= GTime(GTow(eph.tocs), eph.ttm);
+		eph.toe		= GTime(GTow(eph.toes), eph.toc);
 		
-		eph.toe = gpst2time(eph.week, eph.toes);
-		eph.toc = gpst2time(eph.week, toc);
-		eph.ttm = gpst2time(eph.week, tow);
-
+		
+// 		std::cout << std::endl << eph.ttm;
+// 		std::cout << std::endl << eph.toe;
+// 		std::cout << std::endl << eph.toc;
+// 		std::cout << std::endl;
+		
 		return true;
 	}
 	
 	/* decode gps/qzss navigation data frame */
-	int decodeGpsSubframe(
-		vector<unsigned char>&	data,		///< data[0-29]: 24 bits x 10 words
-		Eph&					eph)		///< output ephemeris
+	bool decodeGpsSubframe(
+		vector<int>&	words,		///< words[0-29]: 30 bits x 10 words
+		Eph&			eph)		///< output ephemeris
 	{
-		if (data.empty())
+		if (words.size() < 10)
 		{
-			return 0;
+			return false;
 		}
 		
-		int id = getbitu(data, 43, 3); /* subframe id */
-
-// 		trace(3, "decodefrm: id=%d\n", id);
+		int id	= gpsBitUFromWord(words, 2,		20,		3);  
 
 		switch (id)
 		{
-			case 1: return decodeGPSSubframe1(data, eph);
-			case 2: return decodeGPSSubframe2(data, eph);
-			case 3: return decodeGPSSubframe3(data, eph);
+			case 1: return decodeGPSSubframe1(words, eph);
+			case 2: return decodeGPSSubframe2(words, eph);
+			case 3: return decodeGPSSubframe3(words, eph);
 		}
-		return 0;
+		return false;
 	}
-
 };

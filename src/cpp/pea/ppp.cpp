@@ -5,7 +5,7 @@
 * Precise point positioning
 *
 * ###References:
-* 
+*
 * 1.  D.D.McCarthy, IERS Technical Note 21, IERS Conventions 1996, July 1996
 * 2.  D.D.McCarthy and G.Petit, IERS Technical Note 32, IERS Conventions 2003, November 2003
 * 3.  D.A.Vallado, Fundamentals of Astrodynamics and Applications 2nd ed, Space Technology Library, 2004
@@ -23,6 +23,7 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <iostream>
 #include <vector>
 
 using std::vector;
@@ -30,9 +31,9 @@ using std::vector;
 
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
+#include "algebraTrace.hpp"
 #include "coordinates.hpp"
 #include "linearCombo.hpp"
-#include "corrections.hpp"
 #include "binaryStore.hpp"
 #include "ephPrecise.hpp"
 #include "navigation.hpp"
@@ -41,545 +42,60 @@ using std::vector;
 #include "testUtils.hpp"
 #include "ephemeris.hpp"
 #include "acsConfig.hpp"
-#include "biasSINEX.hpp"
 #include "constants.hpp"
+#include "receiver.hpp"
 #include "satStat.hpp"
-#include "station.hpp"
 #include "algebra.hpp"
 #include "planets.hpp"
 #include "antenna.hpp"
+#include "biases.hpp"
+#include "orbits.hpp"
 #include "common.hpp"
-#include "wancorr.h"
+#include "gTime.hpp"
 #include "tides.hpp"
 #include "trace.hpp"
 #include "enums.h"
 #include "ppp.hpp"
-#include "vmf3.h"
-#include "trop.h"
-
-
-#define VAR_IONO    	SQR(60.0)       // init variance iono-delay
-#define VAR_IONEX   	SQR(0.0)
-#define ERR_BRDCI   	0.5             // broadcast iono model error factor
-
-/** get meterological parameters
-*/
-void getmet(
-	double	lat,
-	double*	met)
-{
-	const double metprm[][10] = /* lat=15,30,45,60,75 */
-	{
-		{1013.25, 299.65, 26.31, 6.30E-3, 2.77,  0.00, 0.00, 0.00, 0.00E-3, 0.00},
-		{1017.25, 294.15, 21.79, 6.05E-3, 3.15, -3.75, 7.00, 8.85, 0.25E-3, 0.33},
-		{1015.75, 283.15, 11.66, 5.58E-3, 2.57, -2.25, 11.00, 7.24, 0.32E-3, 0.46},
-		{1011.75, 272.15, 6.78, 5.39E-3, 1.81, -1.75, 15.00, 5.36, 0.81E-3, 0.74},
-		{1013.00, 263.65, 4.11, 4.53E-3, 1.55, -0.50, 14.50, 3.39, 0.62E-3, 0.30}
-	};
-
-	lat = fabs(lat);
-
-	if      (lat <= 15) for (int i = 0; i < 10; i++) met[i] = metprm[0][i];
-	else if (lat >= 75) for (int i = 0; i < 10; i++) met[i] = metprm[4][i];
-	else
-	{
-		int j = (int)(lat / 15);
-		double a = (lat - j * 15) / 15.0;
-
-		for (int i = 0; i < 10; i++)
-		{
-			met[i] = (1 - a) * metprm[j - 1][i] + a * metprm[j][i];
-		}
-	}
-}
-
-
-/* tropospheric delay correction -----------------------------------------------
-* compute sbas tropospheric delay correction (mops model)
-* args   : gtime_t time     I   time
-*          double   *pos    I   receiver position {lat,lon,height} (rad/m)
-*          double   *azel   I   satellite azimuth/elavation (rad)
-*          double   *var    O   variance of troposphric error (m^2)
-* return : slant tropospheric delay (m)
-*-----------------------------------------------------------------------------*/
-double sbstropcorr(
-	GTime			time,			///< Time
-	VectorEcef&		rRec,			///< Receiver position (ECEF)
-	double			el,				///< Satellite elevation
-	double*			var)			///< Optional variance output
-{
-	VectorPos pos = ecef2pos(rRec);
-	const double k1	= 77.604;
-	const double k2	= 382000;
-	const double rd	= 287.054;
-	const double gm	= 9.784;
-	const double g	= 9.80665;
-
-// 	trace(4, "sbstropcorr: pos=%.3f %.3f azel=%.3f\n",
-// 			pos.latDeg(),
-// 			pos.lonDeg(),
-// 			el*R2D);
-
-	if	( pos.hgt()	< -100
-		||pos.hgt()	> +10000
-		||el		<= 0)
-	{
-		if (var)
-			*var = 0;
-
-		return 0;
-	}
-
-	double met[10];
-	getmet(pos.latDeg(), met);
-
-	UYds yds = time;
-	double c = cos(2 * PI * (yds.doy - (pos.lat() >= 0 ? 28 : 211)) / 365.25);
-	for (int i = 0; i < 5; i++)
-	{
-		met[i] -= met[i + 5] * c;
-	}
-	double zh = 1E-6 * k1 * rd * met[0] / gm;
-	double zw = 1E-6 * k2 * rd / (gm * (met[4] + 1) - met[3] * rd) * met[2] / met[1];
-
-	double h = pos.hgt();
-	zh *= pow(1 - met[3] * h / met[1], g / (rd * met[3]));
-	zw *= pow(1 - met[3] * h / met[1], (met[4] + 1) * g / (rd * met[3]) - 1);
-
-	double sinel = sin(el);
-	double m = 1.001 / sqrt(0.002001 + sinel * sinel);
-	if (var)
-		*var = SQR(0.12 * m);
-	return (zh + zw) * m;
-}
-
-/** Antenna corrected measurement
-*/
-void corr_meas(
-	Trace&		trace,		///< Trace file to output to
-	GObs&		obs,		///< Observation to correct measurements of
-	E_FType		ft,			///< Frequency type to correct
-	double		dAntRec,	///< Delta for antenna offset of receiver
-	double		dAntSat,	///< Delta for antenna offset of satellite
-	double		phw,		///< Phase wind up
-	bool		oldSchool)	///< Option to apply 'corrections' here, rather than where they should be
-{
-	Instrument	instrument(__FUNCTION__);
-
-	Sig& sig = obs.Sigs[ft];
-
-	double lam = obs.satNav_ptr->lamMap[ft];
-	
-	if	(  lam		== 0 
-		|| sig.L	== 0 
-		|| sig.P	== 0)
-	{
-		return;
-	}
-	
-	double bvar[2] = {};
-	
-	bool pass;
-	pass			= getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, CODE, sig.biases[CODE], bvar[CODE]);
-	sig.phaseBias	= getBiasSinex(trace, obs.time, obs.Sat.id(), obs.Sat, sig.code, PHAS, sig.biases[PHAS], bvar[PHAS]);
-	
-	tracepdeex(3, trace, "\n%s %sL%d biases for %3s      = %14.4f %14.4f", obs.time.to_string().c_str(), obs.Sat.id().c_str(), ft, sig.code._to_string(), sig.biases[CODE], sig.biases[PHAS]);
-			
-	sig.P_corr_m = sig.P;
-	sig.L_corr_m = sig.L * lam;
-	
-	if (oldSchool)
-	{
-		sig.P_corr_m += - dAntSat - dAntRec;
-		sig.L_corr_m += - dAntSat - dAntRec;
-		
-		if (pass)				sig.P_corr_m += - sig.biases[CODE];
-		if (sig.phaseBias)		sig.L_corr_m += - sig.biases[PHAS] - phw * lam;
-		
-	}
-}
-
-/** Returns gradient mapping function m_az(el)
-* Valid for 0 < el < 0.9999 * PI/2; returns 0 otherwise
-* Ref: https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/97JB01739
-*/
-double gradMapFn(
-	double	el)		///< Elevation (rad)
-{
-	if	( el < 0
-		||el > 0.9999 * PI/2)
-	{
-		return 0;
-	}
-
-	double c = 0.0031;
-	return 1 / (sin(el) * tan(el) + c);
-}
-
-/* precise tropospheric model */
-double trop_model_prec(
-	GTime		time,
-	VectorPos&	pos,
-	double*		azel,
-	double*		tropStates,
-	double*		dTropDx,
-	double&		var)
-{
-	double map[2] = {};
-
-	/* zenith hydrostatic delay */
-	double zhd = tropacs(pos, azel, map);
-	double zwd = tropStates[0] - zhd;
-	
-	if	( acsConfig.process_user
-		||acsConfig.process_ppp)
-	{
-		/* mapping function */
-		double m_w;
-		double m_h = tropmapf(time, pos, azel, &m_w);
-
-		double& az = azel[0];
-		double& el = azel[1];
-		
-		double m_az = gradMapFn(el);
-		
-		double grad_n = m_az * cos(az);
-		double grad_e = m_az * sin(az);
-
-		var			= SQR(0.01);		//todo aaron, move this somewhere else, should use trop state variance?
-		
-		double value	= m_h		* zhd
-						+ m_w		* zwd
-						+ grad_n	* tropStates[1]
-						+ grad_e	* tropStates[2];
-						
-		dTropDx[0] = m_w;
-		dTropDx[1] = grad_n;
-		dTropDx[2] = grad_e;
-		
-		return value;
-	}
-	else
-	{
-		/* wet mapping function */
-		dTropDx[0]	= map[1];
-		var			= SQR(0.01);
-
-		return map[0] * zhd;
-	}
-}
-
-/** ionospheric model
- */
-int ionoModel(
-	GTime		time,
-	VectorPos&	pos,
-	double*		azel,
-	double		ionoState,
-	double&		dion,
-	double&		var)
-{
-	switch (acsConfig.ionoOpts.corr_mode)
-	{
-		case E_IonoMode::TOTAL_ELECTRON_CONTENT:
-		{
-			int pass = iontec(time, &nav, pos, azel, acsConfig.ionoOpts.mapping_function, E_IonoFrame::SUN_FIXED, dion, var);
-			if (pass)	var +=	VAR_IONEX;			// adding some extra errors to reflect modelling errors
-			else		var =	VAR_IONO;
-
-			return pass;
-		}
-		case E_IonoMode::BROADCAST:	// only GPS Klobuchar model implemented
-		{
-			E_Sys			sys		= E_Sys::GPS;
-			E_NavMsgType	type	= defNavMsgType[sys];
-
-			auto ion_ptr = seleph<ION>(std::cout, time, sys, type, nav);
-			
-			double* vals = nullptr;
-			if (ion_ptr != nullptr)
-				vals = ion_ptr->vals;
-			
-			dion	= ionmodel(time, vals, pos, azel);
-			var		= SQR(dion * ERR_BRDCI);
-
-			return 1;
-		}
-		case E_IonoMode::ESTIMATE:
-		{
-			dion	= ionoState;
-			var		= 0;
-
-			return 1;
-		}
-		case E_IonoMode::IONO_FREE_LINEAR_COMBO:
-		{
-			dion	= 0;
-			var		= 0;
-
-			return 1;
-		}
-		default:
-		{
-			return 0;
-		}
-	}
-}
-
-void combinator(
-	GObs& obs)
-{
-	auto&	satStat	= *obs.satStat_ptr;
-	auto&	lam		= obs.satNav_ptr->lamMap;
-	
-	E_FType ft1;
-	if (obs.Sat.sys == +E_Sys::GLO)			ft1 = G1;
-	else									ft1 = F1;
-	
-	for (E_FType ft : {F2, F5})
-	{
-		E_FType ft2;
-		if (obs.Sat.sys == +E_Sys::GLO && ft == F2)		ft2 = G2;
-		else											ft2 = ft;
-		
-		if (obs.Sat.sys == +E_Sys::GLO && ft == F5)	
-			continue;
-		 
-		/* iono-free LC */
-		Sig sig1 = obs.Sigs[ft1];
-		Sig sig2 = obs.Sigs[ft2];
-
-		if	( lam[ft1] == 0
-			||lam[ft2] == 0)
-		{
-			continue;
-		}
-		
-		if	( (sig1.L_corr_m == 0)
-			||(sig1.P_corr_m == 0)
-			||(sig2.L_corr_m == 0)
-			||(sig2.P_corr_m == 0))
-		{
-			continue;
-		}
-
-		double c1;
-		double c2;
-		S_LC lc = getLC(sig1.L_corr_m,	sig2.L_corr_m,
-						sig1.P_corr_m,	sig2.P_corr_m,
-						lam[ft1],		lam[ft2],
-						&c1, 			&c2);
-
-		if (lc.valid == false)
-		{
-			continue;
-		}
-
-		Sig lcSig = {};
-		lcSig.L_corr_m = lc.IF_Phas_m;
-		lcSig.P_corr_m = lc.IF_Code_m;
-
-		E_FType newType;
-		switch (ft)
-		{
-			case F2: newType = FTYPE_IF12;	break;
-			case F5: newType = FTYPE_IF15;	break;
-			default: continue;
-		}
-		
-		auto& sigStat_ = satStat.sigStatMap[ft2string(newType)];
-		auto& sigStat1 = satStat.sigStatMap[ft2string(ft1)];
-		auto& sigStat2 = satStat.sigStatMap[ft2string(ft2)];
-		
-		//update distance measurement for iflc
-		lcSig.Range	= sig1.Range * c1
-					- sig2.Range * c2;
-
-		sigStat_.lambda	= sigStat1.lambda * c1
-						- sigStat2.lambda * c2; 
-
-		sigStat_.satPcv	= sigStat1.satPcv * c1
-						- sigStat2.satPcv * c2; 
-
-		sigStat_.recPcv	= sigStat1.recPcv * c1
-						- sigStat2.recPcv * c2; 
-
-		sigStat_.recPco	= sigStat1.recPco * c1
-						- sigStat2.recPco * c2; 
-
-		
-		lcSig.biases[CODE]	= sig1.biases[CODE] * c1
-							- sig2.biases[CODE] * c2;
-	
-		lcSig.biases[PHAS]	= sig1.biases[PHAS] * c1
-							- sig2.biases[PHAS] * c2;
-
-		lcSig.codeVar	= POW4(lam[ft1]) * sig1.codeVar / SQR(SQR(lam[ft1]) - SQR(lam[ft2]))
-						+ POW4(lam[ft2]) * sig2.codeVar / SQR(SQR(lam[ft1]) - SQR(lam[ft2]));
-
-		lcSig.phasVar 	= POW4(lam[ft1]) * sig1.phasVar / SQR(SQR(lam[ft1]) - SQR(lam[ft2]))
-						+ POW4(lam[ft2]) * sig2.phasVar / SQR(SQR(lam[ft1]) - SQR(lam[ft2]));
-
-		obs.Sigs[newType] = lcSig;
-
-		sigStat_.slip.any	= sigStat1.slip.any | sigStat2.slip.any;
-	}
-}
-
-void pppCorrections(
-	Trace&		trace,
-	ObsList&	obsList,
-	Vector3d&	rRec,
-	Station&	rec)
-{
-	int lv = 3;
-
-	GTime time = obsList.front()->time;
-
-	string timeString = time.to_string();
-	
-	auto& pos = rec.pos;
-	
-	pos = ecef2pos(rRec);
-
-	tracepdeex(3,trace, "\n%-10s: n=%d", __FUNCTION__, obsList.size());
-
-	for (auto& obs : only<GObs>(obsList))
-	{
-		if (obs.exclude)
-		{
-			continue;
-		}
-
-		SatStat&	satStat	= *obs.satStat_ptr;
-		SatNav&		satNav	= *obs.satNav_ptr;
-
-		double r = geodist(obs.rSat, rRec, satStat.e);
-		
-		if 	( r <= 0
-			||satStat.el < acsConfig.elevation_mask)
-		{
-			obs.excludeElevation = true;
-			continue;
-		}
-
-		if	( obs.ephPosValid == false
-// 			||obs.ephClkValid == false
-			)
-		{
-			obs.excludeSVH = true;
-			continue;
-		}
-
-		// phase windup model
-		if (acsConfig.model.phase_windup)
-		{ 
-			phaseWindup(obs, rec, satStat.phw);
-		}
-		
-		for (auto& [ft, sig] : obs.Sigs)
-		{
-			auto& sigStat = satStat.sigStatMap[ft2string(ft)];
-		
-			/* receiver pco correction to the coordinates */
-			double varDummy = 0;
-			Vector3d pcoEnu	= antPco(rec.antennaId, obs.Sat.sys, ft, time, varDummy, E_Radio::RECEIVER, acsConfig.interpolate_rec_pco);
-			
-			Vector3d dr2	= antenna2ecef(rec.attStatus, pcoEnu);
-
-			sigStat.recPco 	= dr2.dot(satStat.e);
-
-			sig.Range = (obs.rSat - rRec).norm();
-
-			sigStat.satPcv = antPcv(obs.Sat.id(),	obs.Sat.sys, ft, time, satNav.attStatus,	satStat.e * -1);
-			sigStat.recPcv = antPcv(rec.antennaId,	obs.Sat.sys, ft, time, rec.attStatus,		satStat.e * +1);
-			
-			// corrected phase and code measurements
-			tracepdeex(lv, trace, "\n*---------------------------------------------------*");
-			corr_meas(trace, obs, ft, sigStat.recPcv, sigStat.satPcv, satStat.phw, false);
-
-			tracepdeex(lv, trace, "\n%s %sL%d satpcv              = %14.4f",				timeString.c_str(), obs.Sat.id().c_str(), ft, sigStat.satPcv);
-			tracepdeex(lv, trace, "\n%s %sL%d recpcv              = %14.4f",				timeString.c_str(), obs.Sat.id().c_str(), ft, sigStat.recPcv);
-
-			tracepdeex(lv, trace, "\n%s %sL%d az, el              = %14.4f %14.4f",			timeString.c_str(), obs.Sat.id().c_str(), ft, satStat.az*R2D, satStat.el*R2D);
-			tracepdeex(lv, trace, "\n%s %sL%d phw(cycle)          = %14.4f",				timeString.c_str(), obs.Sat.id().c_str(), ft, satStat.phw);
-			tracepdeex(lv, trace, "\n%s %sL%d rSat+pco            = %14.4f %14.4f %14.4f",	timeString.c_str(), obs.Sat.id().c_str(), ft, obs.rSat[0], obs.rSat[1], obs.rSat[2]);
-			tracepdeex(lv, trace, "\n%s %sL%d dist                = %14.4f",				timeString.c_str(), obs.Sat.id().c_str(), ft, r);
-		}
-
-		if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
-			combinator(obs);
-	}
-}
-
-void outputDeltaClocks(
-	StationMap& stationMap)
-{
-	KFState aprioriState;
-	
-	for (auto& [id,		rec]	: stationMap)
-	for (auto& [kfKey,	index]	: rec.pppState.kfIndexMap)
-	{
-		if (kfKey.type != KF::REC_CLOCK)
-		{
-			continue;
-		}
-		
-		double c_dtRecEst = 0;
-		rec.pppState.getKFValue(kfKey, c_dtRecEst);
-		
-		double dtRecPrec = 0;
-		int ret = pephclk(std::cout, tsync, id, nav, dtRecPrec);
-		if (ret == 1)
-		{
-			double c_dtRecPrec = CLIGHT * dtRecPrec;
-			aprioriState.addKFState(kfKey, {.x = c_dtRecEst - c_dtRecPrec});
-		}
-	}
-	
-	aprioriState.stateTransition(nullStream, tsync);
-	
-	mongoStates(aprioriState, "_delta");
-}
+#include "erp.hpp"
+#include "slr.hpp"
 
 void outputApriori(
-	StationMap& stationMap)
+	ReceiverMap& receiverMap)
 {
-	if	(  acsConfig.localMongo	.output_states	== false
-		&& acsConfig.remoteMongo.output_states	== false
+	if	(  acsConfig.mongoOpts.output_states    == +E_Mongo::NONE
 		&& acsConfig.store_binary_states		== false)
 	{
 		return;
 	}
-	
+
 	KFState aprioriState;
-	for (auto& [id, rec] : stationMap)
+	for (auto& [id, rec] : receiverMap)
 	{
 		KFKey kfKey;
 		kfKey.str	= id;
 		kfKey.type	= KF::REC_POS;
-		
+
 		for (int i = 0; i < 3; i++)
 		{
 			kfKey.num = i;
 			double apriori = rec.aprioriPos[i];
-			
+
 			if (apriori == 0)
 			{
 				continue;
 			}
-			
+
 			aprioriState.addKFState(kfKey, {.x = apriori});
 		}
 	}
-	
-	for (auto& [id, rec] : stationMap)
+
+	for (auto& [id, rec] : receiverMap)
 	{
 		KFKey kfKey;
 		kfKey.str	= id;
 		kfKey.Sat	= SatSys(E_Sys::GPS);
 		kfKey.type	= KF::REC_CLOCK;
-			
+
 		double dtRec = 0;
 		int ret = pephclk(std::cout, tsync, id, nav, dtRec);
 		if (ret == 1)
@@ -587,103 +103,181 @@ void outputApriori(
 			aprioriState.addKFState(kfKey, {.x = CLIGHT * dtRec});
 		}
 	}
-	
+
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
 		if (acsConfig.process_sys[Sat.sys] == false)
 		{
 			continue;
 		}
-			
+
 		auto& satOpts = acsConfig.getSatOpts(Sat);
-			
+
 		if (satOpts.exclude)
 		{
 			continue;
 		}
-		
+
 		KFKey kfKey;
 		kfKey.Sat	= Sat;
 		kfKey.type	= KF::SAT_CLOCK;
-		
+
 		double dtSat = 0;
 		int ret = pephclk(std::cout, tsync, kfKey.Sat.id(), nav, dtSat);
 		if (ret == 1)
 		{
 			aprioriState.addKFState(kfKey, {.x = CLIGHT * dtSat});
 		}
-		
+
 		for (int i = 0; i < 3; i++)
 		{
 			KFKey kfKey;
 			kfKey.Sat	= Sat;
 			kfKey.num	= i;
 			kfKey.type	= KF::ORBIT;
-			
+
 			aprioriState.addKFState(kfKey, {.x = satNav.aprioriPos(i)});
 		}
 	}
-	
+
 	aprioriState.stateTransition(nullStream, tsync);
-	
-	mongoStates(aprioriState, "_apriori");
+
+	mongoStates(aprioriState,
+				{
+					.suffix		= "_apriori",
+					.instances	= acsConfig.mongoOpts.output_states,
+					.queue		= acsConfig.mongoOpts.queue_outputs
+				});
+
 	storeStates(aprioriState, "apriori");
 }
 
 /** Compare estimated station position with benchmark in SINEX file
  */
-void outputPPPSolution(
-	string		filename,
-	Station&	rec)
-{
-	VectorEcef&	snxPos		= rec.snx.pos;
-	
-	auto& recOpts = acsConfig.getRecOpts(rec.id);
-	if (recOpts.apriori_pos.isZero() == false)
-		snxPos	= recOpts.apriori_pos;
-	
-	VectorEcef&	estPos		= rec.sol.pppRRec;
-	VectorEcef	diffEcef	= snxPos - estPos;
-	
-	auto& pos = rec.pos;
-	
-	pos = ecef2pos(snxPos);
-	
-	VectorEnu diffEnu = ecef2enu(pos, diffEcef);
+// void outputPPPSolution(
+// 	string		filename,
+// 	KFState&	kfState,
+// 	Receiver&	rec)
+// {
+// 	VectorEcef&	snxPos		= rec.snx.pos;
+//
+// 	auto& recOpts = acsConfig.getRecOpts(rec.id);
+//
+// 	if (recOpts.apriori_pos.isZero() == false)
+// 		snxPos	= recOpts.apriori_pos;
+//
+// 	ERPValues erpv = getErp(nav.erp, kfState.time);
+//
+// 	FrameSwapper frameSwapper(kfState.time, erpv);
+//
+// 	VectorEcef pppRRec;
+// 	VectorEcef pppVRec;
+//
+// 	for (short i = 0; i < 3; i++)
+// 	{
+// 		kfState.getKFValue({KF::REC_POS, 		{}, rec.id,	i},		pppRRec[i]);
+// 		kfState.getKFValue({KF::REC_POS_RATE,	{}, rec.id,	i},		pppVRec[i]);
+// 	}
+//
+// 	VectorEci pppVRecEci;
+// 	VectorEci pppRRecEci = frameSwapper(pppRRec, &pppVRec, &pppVRecEci);
+//
+// 	for (short i = 0; i < 3; i++)
+// 	{
+// 		kfState.getKFValue({KF::ORBIT, 			{}, rec.id,	i},		pppRRecEci[i]);
+// 		kfState.getKFValue({KF::ORBIT,			{}, rec.id,	i + 3},	pppVRecEci[i]);
+// 	}
+//
+// 	pppRRec = frameSwapper(pppRRecEci, &pppVRecEci, &pppVRec);
+//
+// 	VectorEcef	diffEcef	= snxPos - pppRRec;
+//
+// 	auto& pos = rec.pos;
+//
+// 	pos = ecef2pos(snxPos);
+//
+// 	VectorEnu diffEnu = ecef2enu(pos, diffEcef);
+//
+// 	std::ofstream fout(filename, std::ios::out | std::ios::app);
+//
+// 	if (!fout)
+// 	{
+// 		BOOST_LOG_TRIVIAL(warning)
+// 		<< "Warning: Could not open trace file for PPP solution at \"" << filename << "\"";
+//
+// 		return;
+// 	}
+//
+// 	if (fout.tellp() == 0)
+// 	{
+// 		tracepdeex(1, fout, "  Date       UTC time  Sta.   A priori X    A priori Y    A priori Z    Estimated X   Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
+// 	}
+//
+// 	fout << kfState.time.to_string(2) << " ";
+// 	fout << rec.id << " ";
+// 	fout << std::fixed << std::setprecision(4);
+// 	fout << snxPos.transpose() << "  ";
+// 	fout << pppRRec.transpose() << "  ";
+// 	fout << diffEcef.transpose() << "  ";
+// 	fout << diffEnu.transpose() << "  ";
+// 	fout << std::endl;
+// }
 
-	std::ofstream fout(filename, std::ios::out | std::ios::app);
-	
-	if (!fout)
-	{
-		BOOST_LOG_TRIVIAL(warning)
-		<< "Warning: Could not open trace file for PPP solution at \"" << filename << "\"";
-		
-		return;
-	}
-	
-	if (fout.tellp() == 0)
-	{
-		tracepdeex(1,fout,"  Date       UTC time  Sta.   A priori X    A priori Y    A priori Z    Estimated X   Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
-	}
-
-	fout << rec.sol.time.to_string(2) << " ";
-	fout << rec.id << " ";
-	fout << std::fixed << std::setprecision(4);
-	fout << snxPos.transpose() << "  ";
-	fout << estPos.transpose() << "  ";
-	fout << diffEcef.transpose() << "  ";
-	fout << diffEnu.transpose() << "  ";
-	fout << std::endl;
-}
+/** Output GPGGA or modified GPGGA messages
+ */
+// void gpggaout(
+// 	string		outfile,		///< File name to output GGA message
+// 	KFState&	kfState,		///< KF containing the positioning solution
+// 	string		recId,			///< Receiver ID
+// 	int 		solStat,		///< Solution quiality (2: ambiguity float, 5: ambiguity fix)
+// 	int			numSat,			///< Number of satellites
+// 	double      hdop,			///< Horizontal DOP
+// 	bool		lng)			///< Modified GPGGA format (false: GPGGA format according to NMEA 0183)
+// {
+// 	GEpoch ep = kfState.time;
+//
+// 	std::ofstream fpar(outfile, std::ios::out | std::ios::app);
+//
+// 	if (fpar.tellp() == 0)
+// 		tracepdeex(1,fpar,"!GPGGA, UTC time, Latitude, N/S, Longitude, E/W, State, # Sat, HDOP, Height, , Geoid,\n");
+//
+// 	VectorEcef ecef;
+// 	for (short i = 0; i < 3; i++)
+// 		kfState.getKFValue({KF::REC_POS,		{}, recId,	i}, ecef[i]);
+//
+// 	VectorPos pos = ecef2pos(ecef);
+//
+// 	double latint = floor(fabs(pos.latDeg()));
+// 	double lonint = floor(fabs(pos.lonDeg()));
+//
+// 	double latv = latint*100 + (fabs(pos.latDeg()) - latint)*60;
+// 	double lonv = lonint*100 + (fabs(pos.lonDeg()) - lonint)*60;
+// 	char   latc = pos.latDeg()>0?'N':'S';
+// 	char   lonc = pos.lonDeg()>0?'E':'W';
+//
+// 	if (lng)
+// 	{
+// 		tracepdeex(1,fpar,"$GPGGALONG,%02.0f%02.0f%05.2f,",ep[3],ep[4],ep[5]);
+// 		tracepdeex(1,fpar,"%012.7f,%c,%013.7f,%c,",	latv,latc, lonv,lonc);
+// 		tracepdeex(1,fpar,"%1d,%02d,%3.1f,%09.3f",	solStat, numSat, hdop,pos.hgt());
+// 	}
+// 	else
+// 	{
+// 		tracepdeex(1,fpar,"$GPGGA,%02.0f%02.0f%05.2f,",ep[3],ep[4],ep[5]);
+// 		tracepdeex(1,fpar,"%09.4f,%c,%010.4f,%c,",	latv,latc, lonv,lonc);
+// 		tracepdeex(1,fpar,"%1d,%02d,%3.1f,%08.2f",	solStat, numSat, hdop,pos.hgt());
+// 	}
+// 	tracepdeex(1,fpar,",M,0.0,M,,,\n");
+// }
 
 void selectAprioriSource(
-	Station&	rec,
+	Receiver&	rec,
 	bool&		sppUsed)
 {
 	sppUsed = false;
-	
+
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
-	
+
 	if (recOpts.apriori_pos.isZero() == false)
 	{
 		rec.aprioriPos		= recOpts.apriori_pos;
@@ -699,17 +293,17 @@ void selectAprioriSource(
 	}
 	else
 	{
-		rec.aprioriTime = rec.sol.time;
+		rec.aprioriTime = rec.sol.sppTime;
 		rec.aprioriPos	= rec.sol.sppRRec;
-		
+
 		sppUsed			= true;
 	}
-	
-	Vector3d delta	= rec.aprioriPos 
+
+	Vector3d delta	= rec.aprioriPos
 					- rec.sol.sppRRec;
-	
+
 	double distance = delta.norm();
-	
+
 	if	( distance > 20
 		&&rec.sol.sppRRec.norm() > 0)
 	{
@@ -724,3 +318,362 @@ string ft2string(
 	return "F" + std::to_string(ft);
 }
 
+/** Remove ambiguity states from filter when they deemed old or bad
+ * This effectively reinitialises them on the following epoch as a new state, and can be used for simple
+ * resolution of cycle-slips
+ */
+void removeBadAmbiguities(
+	Trace&			trace,			///< Trace to output to
+	KFState&		kfState, 		///< Filter to remove states from
+	ReceiverMap&		receiverMap)		///< List of stations containing observations for this epoch
+{
+	for (auto [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type != KF::AMBIGUITY)
+		{
+			continue;
+		}
+
+		if (key.rec_ptr == nullptr)
+		{
+			continue;
+		}
+
+		auto& rec		= *key.rec_ptr;
+		auto& satStat	= rec.satStatMap[key.Sat];
+
+		string	preprocSigName;
+		string	sigName;
+
+		if	(acsConfig.process_ppp)
+		{
+			E_ObsCode	obsCode	= E_ObsCode::_from_integral(key.num);
+			E_FType		ft		= code2Freq[key.Sat.sys][obsCode];
+
+			preprocSigName	= ft2string(ft);
+			sigName			= obsCode._to_string();
+		}
+		else
+		{
+			E_FType ft = (E_FType) key.num;
+
+			preprocSigName	= ft2string(ft);
+			sigName			= preprocSigName;
+		}
+
+		auto& sigStat			= satStat.sigStatMap[sigName];
+		auto& preprocSigStat	= satStat.sigStatMap[preprocSigName];
+
+		if (sigStat.phaseOutageCount >= acsConfig.ambErrors.outage_reset_limit)
+		{
+			sigStat.phaseOutageCount = 0;
+
+			trace << std::endl << "Phase ambiguity removed due to long outage: " <<	sigName	<< " " << key;
+
+			kfState.statisticsMap["Phase outage resets"]++;
+
+			char buff[64];
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-OUTAGE",	key.str.c_str());				kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-OUTAGE",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.str.c_str());				kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+
+			kfState.removeState(key);
+			continue;
+		}
+
+		if (sigStat.phaseRejectCount >= acsConfig.ambErrors.phase_reject_limit)
+		{
+			sigStat.phaseRejectCount = 0;
+
+			trace << std::endl << "Phase ambiguity removed due to high reject count: " <<	sigName	<< " " 	<< key;
+
+			kfState.statisticsMap["Phase reject resets"]++;
+
+			char buff[64];
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-REJECT",	key.str.c_str());				kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-REJECT",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.str.c_str());				kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+
+			kfState.removeState(key);
+
+			InitialState init = initialStateFromConfig(acsConfig.getRecOpts("").ion_stec);
+
+			if (init.estimate == false)
+			{
+				KFKey kfKey = key;
+				for (kfKey.num = 0; kfKey.num < NUM_FTYPES; kfKey.num++)
+				{
+					kfState.removeState(kfKey);
+					continue;
+				}
+			}
+		}
+
+		//reset slipping signals
+		if 	(  preprocSigStat.savedSlip.any
+			&& (  (acsConfig.ambErrors.resetOnSlip.LLI		&& preprocSigStat.savedSlip.LLI)
+				||(acsConfig.ambErrors.resetOnSlip.GF		&& preprocSigStat.savedSlip.GF)
+				||(acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)
+				||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)))
+		{
+			trace << std::endl << "Phase ambiguity removed due cycle slip detection: "	<< key;
+
+			kfState.statisticsMap["Cycle slip resets"]++;
+
+			char buff[64];
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-PREPROC",	key.str.c_str());				kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-PREPROC",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.str.c_str());				kfState.statisticsMap[buff]++;
+			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+
+			kfState.removeState(key);
+		}
+
+		//for ionosphere free, need to reset all connected singals
+		if	(acsConfig.ionoOpts.use_if_combo)
+		for (auto& [sigNam, sigStat] : satStat.sigStatMap)
+		{
+			if	(sigStat.savedSlip.any
+				&&( (  acsConfig.ambErrors.resetOnSlip.LLI		&& sigStat.savedSlip.LLI)
+					||(acsConfig.ambErrors.resetOnSlip.GF		&& sigStat.savedSlip.GF)
+					||(acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)
+					||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)))
+			{
+				trace << std::endl << "Phase ambiguity removed due cycle slip detection: "	<< key;
+
+				kfState.statisticsMap["Cycle slip resets*"]++;
+
+				char buff[64];
+				snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-PREPROC",	key.str.c_str());				kfState.statisticsMap[buff]++;
+				snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-PREPROC",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+				snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.str.c_str());				kfState.statisticsMap[buff]++;
+				snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+
+				kfState.removeState(key);
+			}
+		}
+	}
+
+	for (auto& [id,		rec]		: receiverMap)
+	for (auto& [sat,	satStat]	: rec.satStatMap)
+	for (auto& [sig,	sigStat]	: satStat.sigStatMap)
+	{
+		sigStat.savedSlip.any = false;
+	}
+}
+
+/** Remove ambiguity states from filter when they deemed old or bad
+ * This effectively reinitialises them on the following epoch as a new state, and can be used for simple
+ * resolution of cycle-slips
+ */
+void removeBadIonospheres(
+	Trace&				trace,				///< Trace to output to
+	KFState&			kfState) 			///< Filter to remove states from
+{
+	for (auto [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type == KF::IONOSPHERIC)
+		{
+			double state;
+			double variance;
+			kfState.getKFValue(key, state, &variance);
+
+			auto& recOpts = acsConfig.getRecOpts(key.str);
+
+			if (variance > SQR(recOpts.iono_sigma_limit))
+			{
+				trace << std::endl << "Ionosphere removed due to high variance: " << key;
+
+				kfState.removeState(key);
+			}
+			if (key.rec_ptr == nullptr)
+			{
+				auto& rec		= *key.rec_ptr;
+				auto& satStat	= rec.satStatMap[key.Sat];
+
+				if (satStat.ionoOutageCount >= acsConfig.ionErrors.outage_reset_limit)
+					kfState.removeState(key);
+			}
+
+			continue;
+		}
+
+		if (key.type != KF::IONO_STEC)
+		{
+			continue;
+		}
+
+		if (key.rec_ptr == nullptr)
+		{
+			continue;
+		}
+
+		auto& rec		= *key.rec_ptr;
+		auto& satStat	= rec.satStatMap[key.Sat];
+		auto& recOpts	= acsConfig.getRecOpts(key.str);
+
+		if (satStat.ionoOutageCount >= acsConfig.ionErrors.outage_reset_limit)
+		{
+			satStat.ionoOutageCount = 0;
+
+			trace << std::endl << "Ionosphere removed due to long outage: " << key;
+
+			kfState.statisticsMap["Iono outage resets"]++;
+
+			kfState.removeState(key);
+			continue;
+		}
+
+		double state;
+		double variance;
+		kfState.getKFValue(key, state, &variance);
+
+		if (variance > SQR(recOpts.iono_sigma_limit))
+		{
+			trace << std::endl << "Ionosphere removed due to high variance: " << key;
+
+			kfState.removeState(key);
+		}
+	}
+}
+
+void postFilterChecks(
+	KFMeas&	kfMeas)
+{
+	for (int i = 0; i < kfMeas.V.rows(); i++)
+	{
+		resetPhaseSignalError	(kfMeas, i);
+		resetPhaseSignalOutage	(kfMeas, i);
+		resetIonoSignalOutage	(kfMeas, i);
+	}
+}
+
+void incrementOutageCount(
+	ReceiverMap&		stations)
+{
+	//increment the outage count for all signals
+	for (auto& [id,		rec]		: stations)
+	for (auto& [Sat,	satStat]	: rec.satStatMap)
+	{
+		for (auto& [ft,		sigStat]	: satStat.sigStatMap)
+		{
+			sigStat.phaseOutageCount++;
+		}
+
+		satStat.ionoOutageCount++;
+	}
+}
+
+/* write solution status for PPP
+*/
+void outputPppNmea(
+	Trace&		trace,
+	KFState&	kfState,
+	string		id)
+{
+	GWeek	week	= kfState.time;
+	GTow	tow		= kfState.time;
+
+	Block block(trace, "NMEA");
+
+	for (auto& [kfKey, index] : kfState.kfIndexMap)
+	{
+		KFKey key = kfKey;
+		if	( key.type	== KF::REC_POS
+			&&key.num	== 0
+			&&key.str	== id)
+		{
+			double x[3]	= {};
+			double v[3]	= {};
+
+			for (key.num = 0; key.num < 3; key.num++)
+			{
+				kfState.getKFValue(key, x[key.num], &v[key.num]);
+			}
+			tracepdeex(0, trace, "$POS,%d,%.3f,%.4f,%.4f,%.4f,%.7f,%.7f,%.7f\n",
+						week,
+						tow,
+						x[0],
+						x[1],
+						x[2],
+						sqrt(v[0]),
+						sqrt(v[1]),
+						sqrt(v[2]));
+		}
+
+// 		if (key.type == KF::PHASE_BIAS)
+// 		{
+// 			double phase_bias		= 0;
+// 			double phase_biasVar	= 0;
+// 			kfState.getKFValue(key, phase_bias, &phase_biasVar);
+// 			tracepdeex(1, trace, "$AMB,%d,%.3f,%d,%s,%d,%.4f,%.7f\n",
+// 						week,
+// 						tow,
+// 						solStat,
+// 						key.Sat.id().c_str(),
+// 						key.num,
+// 						phase_bias,
+// 						sqrt(phase_biasVar));
+// 		}
+
+		if	( key.type	== KF::TROP	//todo aaron needs iteration
+			&&key.str	== id)
+		{
+			string grad = "";
+			double trop		= 0;
+			double tropVar	= 0;
+			if (key.num == 1)	grad = "_N";
+			if (key.num == 2)	grad = "_E";
+			kfState.getKFValue(key, trop, &tropVar);
+			tracepdeex(0, trace, "$TROP%s,%d,%.3f,%f,%.7f\n",
+					grad.c_str(),
+					week,
+					tow,
+					trop,
+					sqrt(tropVar));
+		}
+
+		if	( key.type	== KF::REC_SYS_BIAS
+			&&key.Sat	== SatSys(E_Sys::GPS)
+			&&key.str	== id)
+		{
+			double rClkGPS		= 0;
+			double rClkGLO		= 0;
+			double rClkGAL		= 0;
+			double rClkBDS		= 0;
+			double GPSclkVar	= 0;
+			double GLOclkVar	= 0;
+			double GALclkVar	= 0;
+			double BDSclkVar	= 0;
+
+			key.Sat	= SatSys(E_Sys::GPS);			kfState.getKFValue(key, rClkGPS, &GPSclkVar);
+			key.Sat = SatSys(E_Sys::GLO);			kfState.getKFValue(key, rClkGLO, &GLOclkVar);
+			key.Sat = SatSys(E_Sys::GAL);			kfState.getKFValue(key, rClkGAL, &GALclkVar);
+			key.Sat = SatSys(E_Sys::BDS);			kfState.getKFValue(key, rClkBDS, &BDSclkVar);
+
+			tracepdeex(0, trace, "$CLK,%d,%.3f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
+					week,
+					tow,
+					rClkGPS			* 1E9 / CLIGHT,
+					rClkGLO			* 1E9 / CLIGHT,
+					rClkGAL			* 1E9 / CLIGHT,
+					rClkBDS			* 1E9 / CLIGHT,
+					sqrt(GPSclkVar)	* 1E9 / CLIGHT,
+					sqrt(GLOclkVar)	* 1E9 / CLIGHT,
+					sqrt(GALclkVar)	* 1E9 / CLIGHT,
+					sqrt(BDSclkVar)	* 1E9 / CLIGHT);
+		}
+	}
+//
+// 	/* receiver velocity and acceleration */
+// 	{
+// 		ecef2pos(rtk->sol.rr, pos);
+// 		ecef2enu(pos, rtk->xx + 3, vel);
+// 		ecef2enu(pos, rtk->xx + 6, acc);
+// 		p += sprintf(p, "$VELACC,%d,%.3f,%d,%.4f,%.4f,%.4f,%.5f,%.5f,%.5f,%.4f,%.4f,"
+// 		             "%.4f,%.5f,%.5f,%.5f\n", week, tow, rtk->sol.stat, vel[0], vel[1],
+// 		             vel[2], acc[0], acc[1], acc[2], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+// 	}
+}

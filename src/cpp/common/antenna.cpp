@@ -4,11 +4,15 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <fstream>
+
+using std::ifstream;
 
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
 #include "constants.hpp"
+#include "acsConfig.hpp"
 #include "antenna.hpp"
 #include "common.hpp"
 #include "enums.h"
@@ -63,47 +67,47 @@ bool findAntenna(
 	{
 		return false;
 	}
-	
+
 	auto& [dummyCode, pcvSysFreqMap] = *it0;
-	
+
 	auto it1 = pcvSysFreqMap.find(sys);
 	if (it1 == pcvSysFreqMap.end())
 	{
 		return false;
 	}
-	
+
 	auto& [dummySys, pcvFreqMap] = *it1;
-	
+
 	auto it2 = pcvFreqMap.find(ft);
 	if (it2 == pcvFreqMap.end())
 	{
 		return false;
 	}
-	
+
 	auto& [dummy2, pcvTimeMap] = *it2;
-	
+
 	auto it3 = pcvTimeMap.lower_bound(time);
 	if (it3 == pcvTimeMap.end())
 	{
 		//just use the first chronologically, (last when sorted as they are) instead
 		auto it4 = pcvTimeMap.rbegin();
-		
+
 		auto& [dummyTime, pcd] = *it4;
-		
+
 		if (pcd_ptr_ptr)
 			*pcd_ptr_ptr = &pcd;
-		
+
 		return true;
 	}
-	
+
 	auto& [dummyTime, pcd] = *it3;
-		
+
 	if (pcd_ptr_ptr)
 		*pcd_ptr_ptr = &pcd;
-	
+
 	return true;
 }
-	
+
 /** linearly interpolate
  */
 template<typename TYPE>
@@ -122,56 +126,56 @@ Vector3d makeAntPco(
 	E_Radio		radio)
 {
 	auto& pcoFreqMap = nav.pcoMap[id][sys];
-	
+
 	if (pcoFreqMap.empty())
 		return Vector3d::Zero();
-			
+
 	if (roughFrequency.find(ftx) == roughFrequency.end())
 		return Vector3d::Zero();
-	
+
 	double lamX = CLIGHT / roughFrequency[ftx];
-			
+
 	Vector3d	pco1 = Vector3d::Zero();
 	Vector3d	pco2 = Vector3d::Zero();
 	double		lam1 = 0;
 	double		lam2 = 0;
-	
+
 	for (auto& [ft, pcoFreq] : pcoFreqMap)
 	{
 		if (roughFrequency.find(ft) == roughFrequency.end())
 			continue;
-					
+
 		double lam = CLIGHT / roughFrequency[ft];
-		
+
 		double var;
 		Vector3d pco = antPco(id, sys, ft, time, var, radio);
-		
+
 		if (pco.isZero())
 			continue;
-				
-		if		(lam1 == 0)							{	lam1 = lam;		pco1 = pco;	}	
+
+		if		(lam1 == 0)							{	lam1 = lam;		pco1 = pco;	}
 		else if	(lam2 == 0)							{	lam2 = lam;		pco2 = pco;	}
 		else
 		{
 			double close1 = fabs(lam1 - lamX) - fabs(lam - lamX);
 			double close2 = fabs(lam2 - lamX) - fabs(lam - lamX);
-			
-			if (close1 > close2	&& close1 > 0)		{	lam1 = lam;		pco1 = pco;	}		
+
+			if (close1 > close2	&& close1 > 0)		{	lam1 = lam;		pco1 = pco;	}
 			if (close2 > close1 && close2 > 0)		{	lam2 = lam;		pco2 = pco;	}
 		}
 	}
 
 	if (lam1 == 0)
 		return Vector3d::Zero();
-	
+
 	var = 0;
-	
+
 	if	(  lam2 == 0
 		|| lam1 == lam2)
 	{
 		return pco1;
 	}
-	
+
 	double k32 = (lamX-lam2)/(lam1-lam2);
 	double k31 = (lamX-lam1)/(lam1-lam2);
 
@@ -194,46 +198,93 @@ Vector3d antPco(
 	auto it0 = nav.pcoMap.find(id);
 	if (it0 == nav.pcoMap.end())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id;
-		
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for '" << id << "'";
+
 		return Vector3d::Zero();
 	}
-	
+
 	auto& [dummy0, pcoSysFreqMap] = *it0;
-	
-	auto it1 = pcoSysFreqMap.find(sys);
-	if (it1 == pcoSysFreqMap.end())
+
+	vector<E_Sys>	testSyss	= {sys};
+	vector<E_FType>	testFts		= {ft};
+
+	if (acsConfig.auto_fill_pco)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys;
-		
+		testSyss.push_back(E_Sys::GPS);
+		testFts	.push_back(F2);
+	}
+
+	bool found = false;
+
+	E_Sys foundTestSys;
+	for (auto testSys : testSyss)
+	{
+		auto it1 = pcoSysFreqMap.find(testSys);
+		if (it1 == pcoSysFreqMap.end())
+		{
+			BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << testSys;
+
+			continue;
+		}
+
+		foundTestSys	= testSys;
+		found			= true;
+		break;
+	}
+
+	if (found == false)
+	{
 		return Vector3d::Zero();
 	}
-	
-	auto& [dummy1, pcoFreqMap] = *it1;
-	
-	
-	auto it2 = pcoFreqMap.find(ft);
-	if (it2 == pcoFreqMap.end())
+
+	auto& pcoFreqMap = pcoSysFreqMap[foundTestSys];
+
+	found = false;
+
+	E_FType foundTestFt;
+	for (auto testFt : testFts)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys << " L" << ft;
-		
-		if (interp) return makeAntPco(id, sys, ft, time, var, radio);
-		else		return Vector3d::Zero();
+		auto it2 = pcoFreqMap.find(testFt);
+		if (it2 == pcoFreqMap.end())
+		{
+			BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << foundTestSys << " L" << testFt;
+
+			if (interp == false)
+				continue;
+
+			Vector3d madePCO = makeAntPco(id, foundTestSys, testFt, time, var, radio);
+
+			if (madePCO.isZero() == false)
+			{
+				return madePCO;
+			}
+
+			continue;
+		}
+
+		foundTestFt	= testFt;
+		found		= true;
+		break;
 	}
-	
-	auto& [dummy2, pcoTimeMap] = *it2;
-	
+
+	if (found == false)
+	{
+		return Vector3d::Zero();
+	}
+
+	auto& pcoTimeMap = pcoFreqMap[foundTestFt];
+
 	auto it3 = pcoTimeMap.lower_bound(time);
 	if (it3 == pcoTimeMap.end())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << sys << " L" << ft << " at " << time;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << foundTestSys << " L" << foundTestFt << " at " << time;
 		return Vector3d::Zero();
 	}
-	
+
 	auto& [dummy3, pco] = *it3;
-	
+
 	var = 0;
-	
+
 	if (radio == +E_Radio::TRANSMITTER)		return pco.satPco;
 	else									return pco.recPco;
 }
@@ -246,40 +297,61 @@ double antPcv(
 	E_FType		ft,			///< frequency
 	GTime		time,		///< time
 	AttStatus&	attStatus,	///< Orientation of antenna
-	VectorEcef	e)			///< Line of sight vector
+	VectorEcef	e,			///< Line of sight vector
+	double*		az_ptr,		///< Optional pointer to output antenna frame azimuth in degrees
+	double*		zen_ptr)	///< Optional pointer to output antenna frame zenith in degrees
 {
+	// Rotate relative look vector into local frame
+	Matrix3d ant2Ecef = rotBasisMat(attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt);
+
+	Vector3d localLook = ant2Ecef.transpose() * e;
+
+	double az		= atan2(localLook(0), localLook(1));
+	double zen		= acos(localLook.z()) * R2D;
+
+	wrap2Pi(az);
+
+	az *= R2D;
+
+	if (az_ptr)			*az_ptr		= az;
+	if (zen_ptr)		*zen_ptr	= zen;
+
 	auto it0 = nav.pcvMap.find(id);
 	if (it0 == nav.pcvMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for '" << id << "'";
 		return 0;
 	}
-	
+
 	auto& [dummy0, pcvSysFreqMap] = *it0;
 
 	auto it1 = pcvSysFreqMap.find(sys);
 	if (it1 == pcvSysFreqMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for " << id << " for " << sys;
 		return 0;
 	}
-	
+
 	auto& [dummy1, pcvFreqMap] = *it1;
 
 	auto it2 = pcvFreqMap.find(ft);
 	if (it2 == pcvFreqMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for " << id << " for " << sys << " L" << ft;
 		return 0;
 	}
-	
+
 	auto& [dummy2, pcvTimeMap] = *it2;
-	
+
 	auto it3 = pcvTimeMap.lower_bound(time);
 	if (it3 == pcvTimeMap.end())
 	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for " << id << " for " << sys << " L" << ft << " at " << time;
 		return 0;
 	}
-	
+
 	auto& [dummy3, pcd] = *it3;
-	
+
 	auto& pcvMap1D = pcd.elMap;
 	auto& pcvMap2D = pcd.azElMap;
 
@@ -288,22 +360,10 @@ double antPcv(
 	double	zen1	= pcd.zenStart;
 	double	dzen	= pcd.zenDelta;
 	double	dazi	= pcd.aziDelta;
-	
-	// Rotate relative look vector into local frame
-	Matrix3d ant2Ecef = rotBasisMat(attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt);
-	
-	Vector3d localLook = ant2Ecef.transpose() * e;
 
-	double az		= atan2(localLook(0), localLook(1));
-	double zen		= acos(localLook.z()) * R2D;
-	
-	wrap2Pi(az);
-
-	az *= R2D;
-	
 	/* select zenith angle range */
 	int zen_n;
-	for (zen_n = 1; zen_n < nz; zen_n++)
+	for (zen_n = 1; zen_n < nz - 1; zen_n++)
 	{
 		if ((zen1 + dzen * zen_n) >= zen)
 		{
@@ -314,13 +374,13 @@ double antPcv(
 	double xz1 = zen1 + dzen * (zen_n - 1);
 	double xz2 = zen1 + dzen * (zen_n);
 
-	
+
 	double	pcv;
-	
+
 	if	( naz	== 0
 		||az	== 0)
 	{
-		// linear interpolate receiver pcv - non azimuth-dependent 
+		// linear interpolate receiver pcv - non azimuth-dependent
 
 		double	yz1 = pcvMap1D[zen_n - 1];		// lower bound
 		double	yz2 = pcvMap1D[zen_n];			// upper bound
@@ -328,8 +388,8 @@ double antPcv(
 	}
 	else
 	{
-		// bilinear interpolate receiver pcv - azimuth-dependent 
-		
+		// bilinear interpolate receiver pcv - azimuth-dependent
+
 		// select azimuth angle range */
 		int az_n;
 		for (az_n = 1; az_n < naz; az_n++)
@@ -339,12 +399,16 @@ double antPcv(
 				break;
 			}
 		}
+		if (az_n == naz)
+		{
+			az_n = 0;
+		}
 
 		double xa1 = dazi * (az_n -1);
 		double xa2 = dazi * (az_n);
 
 		double yz3 = pcvMap2D[az_n-1]	[zen_n-1];		double yz1 = pcvMap2D[az_n-1]	[zen_n];
-		double yz4 = pcvMap2D[az_n]		[zen_n-1];		double yz2 = pcvMap2D[az_n]		[zen_n];          
+		double yz4 = pcvMap2D[az_n]		[zen_n-1];		double yz2 = pcvMap2D[az_n]		[zen_n];
 
 		// linear interpolation along zenith angle
 		double ya1	= interp(xz1, xz2, yz3, yz1, zen);
@@ -371,7 +435,7 @@ void radome2none(
 		printf("\n*** ERROR radome2none(): string length is less then 20 characters received %ld characters\n",length);
 		return;
 	}
-	
+
 	antenna_type.replace(length - 4, 4, "NONE");
 }
 
@@ -407,57 +471,56 @@ map<string, E_FType> antexCodes =
 
 /** Read antex file
  */
-int readantexf(
-	string		file,
+void readantexf(
+	string		filepath,
 	Navigation&	nav)
 {
-	int offset;
-	int noazi_flag		= 0;
-	int num_azi_rd		= 0;
-	int new_antenna		= 0;
-	int irms			= 0;
+	bool	noazi_flag		= false;
+	int		num_azi_rd		= 0;
+	int		irms			= 0;
 
-	char tmp[10];
-	char *p;
-
-	FILE* fp = fopen(file.c_str(),"r");
-	if (fp == nullptr)
+	ifstream fileStream(filepath);
+	if (!fileStream)
 	{
-		BOOST_LOG_TRIVIAL(warning)
-		<< "Warning: ANTEX file opening error";
-
-		return 0;
+		BOOST_LOG_TRIVIAL(error)
+		<< "Error opening antex file" << filepath << std::endl;
+		return;
 	}
 
-	const PhaseCenterData pcv0 = {};
-	PhaseCenterData recPcv;
-	PhaseCenterData freqPcv;
-	VectorEnu	recPco;
-	Vector3d	satPco = Vector3d::Zero();
-	string		id;
-	GTime		time;
-	
+	const PhaseCenterData	pcv0 = {};
+	PhaseCenterData			recPcv;
+	PhaseCenterData			freqPcv;
+	VectorEnu				recPco;
+	Vector3d				satPco = Vector3d::Zero();
+	string					id;
+	GTime					time;
+
 	E_FType	ft	= FTYPE_NONE;
 	E_Sys	sys	= E_Sys::NONE;
 
-	char buff[512];
-	while (fgets(buff, sizeof(buff), fp))
+	while (fileStream)
 	{
+		string line;
+
+		getline(fileStream, line);
+
+		char* buff = &line[0];
+
 		char* comment = buff + 60;
 
-		if (irms) 
+		if (irms)
 			continue;
-		
+
 		// Read in the ANTEX header information
-		
+
 		if (strlen(buff) < 60 )								{	continue;	}
 		if (strstr(comment, "ANTEX VERSION / SYST"))		{	continue;	}
 		if (strstr(comment, "PCV TYPE / REFANT")) 			{	continue;	}
 		if (strstr(comment, "COMMENT")) 					{	continue;	}
 		if (strstr(comment, "END OF HEADER"))				{	continue;	}
-		
+
 		// Read in specific Antenna information now
-		
+
 		if (strstr(comment, "START OF ANTENNA"))
 		{
 			recPcv	= pcv0;
@@ -466,16 +529,16 @@ int readantexf(
 			satPco	= Vector3d::Zero();
 			id		= "";
 			time	= GTime::noTime();
-			
+
 			continue;
 		}
 // 		if (strstr(comment, "END OF ANTENNA"))
 // 		{
 // 			GTime time = epoch2time(recPcv.tf);
-// 			
+//
 // 			continue;
 // 		}
-		
+
 
 		if (strstr(comment, "METH / BY / # / DATE"))
 		{
@@ -491,72 +554,73 @@ int readantexf(
 // 			num_calibrated = atoi(tmp);
 // 			strncpy(cal_date,	buff + 50,	10);
 // 			cal_date[9] = '\0';
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "DAZI"))
 		{
+			char tmp[10];
 			strncpy(tmp,buff   ,8);		tmp[8] = '\0';
 			recPcv.aziDelta = atof(tmp);
 
 			if (recPcv.aziDelta < 0.0001)	recPcv.naz = 0;
 			else							recPcv.naz = (360 / recPcv.aziDelta) + 1;
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "SINEX CODE"))
 		{
 			recPcv.calibModel	.assign(buff,		10);
 			continue;
 		}
-		
+
 		if (strstr(comment, "TYPE / SERIAL NO"))
 		{
 			recPcv.type		.assign(buff,		20);
 			recPcv.code		.assign(buff+20,	20);
 			recPcv.svn		.assign(buff+40,	4);
 			recPcv.cospar	.assign(buff+50,	10);
-			
+
 			// stack antenna pco and pcv
 			string satId = recPcv.code;
 			if (satId.find_first_not_of(' ') == satId.npos)		{ id = recPcv.type;	}
 			else												{ id = recPcv.code;	}
-		
+
 			boost::trim_right(id);
 			boost::trim_right(recPcv.type);
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "ZEN1 / ZEN2 / DZEN"))
 		{
+			char tmp[10];
 			strncpy(tmp, buff,		8);	tmp[8] = '\0'; 	recPcv.zenStart	= atof(tmp);
 			strncpy(tmp, buff+8,	7);	tmp[8] = '\0'; 	recPcv.zenStop	= atof(tmp);
 			strncpy(tmp, buff+16,	7);	tmp[8] = '\0'; 	recPcv.zenDelta	= atof(tmp);
 
 			recPcv.nz = (recPcv.zenStop - recPcv.zenStart) / recPcv.zenDelta + 1 ;
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "# OF FREQUENCIES"))
 		{
 //			strncpy(tmp, buff,		8);
-// 			tmp[8] = '\0'; 	
+// 			tmp[8] = '\0';
 // 			pcv.nf		= atoi(tmp);
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "VALID FROM"))
 		{
-			char valid_from[44];
 			/* if (!str2time(buff,0,43,pcv.ts)) continue;*/
-			strncpy(valid_from, buff, 43);
-			valid_from[43] = '\0';
-			p = strtok(valid_from, " ");
+			char valid_from[44];
+			strncpy(valid_from, buff, 43);	valid_from[43] = '\0';
+			char* p = strtok(valid_from, " ");
 			int j = 0;
 			while (p != nullptr)
 			{
@@ -564,19 +628,18 @@ int readantexf(
 				p = strtok(nullptr, " ");
 				j++;
 			}
-			
+
 			time = epoch2time(recPcv.tf);
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "VALID UNTIL"))
 		{
-			char valid_until[44];
 			/* if (!str2time(buff,0,43,pcv.te)) continue;*/
-			strncpy(valid_until, buff   ,43);
-			valid_until[43] = '\0';
-			p = strtok(valid_until, " ");
+			char valid_until[44];
+			strncpy(valid_until, buff   ,43);	valid_until[43] = '\0';
+			char* p = strtok(valid_until, " ");
 			int j = 0;
 			while (p != nullptr)
 			{
@@ -584,10 +647,10 @@ int readantexf(
 				p = strtok(nullptr, " ");
 				j++;
 			}
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "NORTH / EAST / UP"))	// "NORTH / EAST / UP" for receiver and "X / Y / Z" for satellite
 		{
 			double neu[3];
@@ -599,88 +662,83 @@ int readantexf(
 			recPco.n() = neu[0];
 			recPco.e() = neu[1];
 			recPco.u() = neu[2];
-			
+
 			satPco.x() = neu[0];
 			satPco.y() = neu[1];
 			satPco.z() = neu[2];
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "START OF FREQUENCY"))
 		{
 			num_azi_rd = 0;
-			noazi_flag = 0;
+			noazi_flag = false;
 
 			string antexFCode;
 			antexFCode.assign(&buff[3], 3);
 
 			sys	= SatSys::sysFromChar(antexFCode[0]);
 			ft	= antexCodes[antexFCode];
-			
+
 			freqPcv = recPcv;
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "END OF FREQUENCY"))
-		{	
-			noazi_flag	= 0;	
-			
+		{
+			noazi_flag	= false;
+
 			nav.pcvMap[id][sys][ft][time]			= freqPcv;
 			nav.pcoMap[id][sys][ft][time].recPco	= recPco;
 			nav.pcoMap[id][sys][ft][time].satPco	= satPco;
-			
+
 			if (id.size() <= 3) // filters out non-PRNS e.g. "3S-02-TSADM     NONE"
 			{
 				nav.svnMap[SatSys(id.c_str())][time]	= recPcv.svn;
 				nav.blocktypeMap[recPcv.svn]			= recPcv.type;
 			}
-			
+
 			continue;
 		}
-		
+
 		if (strstr(comment, "START OF FREQ RMS"))	{	irms	= 1;	continue;	}
 		if (strstr(comment, "END OF FREQ RMS"))		{	irms	= 0;	continue;	}
-		
-		if	(  irms == 0 
+
+		if	(  irms == 0
 			&& strstr(buff, "NOAZI"))
 		{
 			for (int i = 0; i < recPcv.nz; i++)
 			{
-				offset = i * 8 + 8;
-				strncpy(tmp, buff + offset, 8);
-				tmp[8]='\0';
+				int offset = i * 8 + 8;
+				char tmp[10];
+				strncpy(tmp, buff + offset, 8);		tmp[8]='\0';
 				double pcv_val = atof(tmp);
 				freqPcv.elMap.push_back(pcv_val * 1e-3);
 			}
-			
-			noazi_flag = 1;
-			
+
+			noazi_flag = true;
+
 			continue;
 		}
-		
+
 		if	(  irms == 0
-			&& noazi_flag == 1)
+			&& noazi_flag)
 		{
-			strncpy(tmp, buff, 8);
-			tmp[8]='\0';
+			char tmp[10];
+			strncpy(tmp, buff, 8);			tmp[8]='\0';
 
 			for (int i = 0; i < recPcv.nz; i++)
 			{
-				offset = i * 8 + 8;
-				strncpy(tmp, buff + offset, 8);
-				tmp[8]='\0';
+				int offset = i * 8 + 8;
+				strncpy(tmp, buff + offset, 8);		tmp[8]='\0';
 				double pcv_val = atof(tmp);
 				freqPcv.azElMap[num_azi_rd].push_back(pcv_val * 1e-3);
 			}
 			num_azi_rd++;
-			
+
 			continue;
 		}
 	}
-
-	fclose(fp);
-
-	return 1;
 }

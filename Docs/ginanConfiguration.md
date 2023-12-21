@@ -23,9 +23,9 @@ Once all edits have been made, clicking the `Generate yaml` button will produce 
 
 ## YAML Syntax
 
-The YAML format allows for heirarchical, self descriptive configurations of parameters, and has a straightforward syntax.
+The YAML format allows for hierarchical, self descriptive configurations of parameters, and has a straightforward syntax.
 
-White-space (indentation) is used to specify heirarchies, with each level typically indented with 4 space characters.
+White-space (indentation) is used to specify hierarchies, with each level typically indented with 4 space characters.
 
 Square brackets `[ ]` are used for parameters that accept a list of options. In cases where the `pea` expects multiple list values, it will typically use the last list value for all remaining components.
 
@@ -62,7 +62,7 @@ If trace file rotation is configured for 1 hour, the `<LOGTIME>` wildcard will b
 
 # Helper Configurations
 
-As of June 2023, the number of possible options available to ginan surpasses 3000.
+As of June 2023, the number of possible options available to Ginan surpasses 3000.
 This documents seeks to illustrate the use some of these options through the use of specific examples.
 These configurations provide starting points for configuring desired processing modes.
 
@@ -78,7 +78,7 @@ Each of the modules contain detailed information of one aspect of Ginan processi
 ## Debug Trace and Outputs
 
 For the examples in this document, the scenario specific outputs have been included in files describing the processing options.
-Sensible outputs are closely linked to processing options and thus should be revisited after modifiying the processing configuration.
+Sensible outputs are closely linked to processing options and thus should be revisited after modifying the processing configuration.
 
 The file path passed to `outputs:root_directory` will be added as a prefix to all output files, including those on other yaml files. 
 
@@ -94,7 +94,7 @@ The examples described in this document have file-based trace files configured i
 Debug traces are text files which output information about the internal workings of the Ginan processing.
 Its intended use is to help detect and correct potential errors in the input data or processing methods.
 
-The level of information in a trace file can be controled using the `outputs:trace:level` parameter. The higher the number (up to 6) the more verbose the information written to the trace files.
+The level of information in a trace file can be controlled using the `outputs:trace:level` parameter. The higher the number (up to 6) the more verbose the information written to the trace files.
 There are two types of trace file, station trace files which can be enable using the `outputs:trace:output_stations` option, and outputs debugging information on a file defined by the `outputs:trace:station_filename` parameter, and the network trace file enabled using the `outputs:trace:output_network` option with `outputs:trace:network_filename` as outputs.
 
 The user can enable certain types of data included to be included in trace files. 
@@ -106,22 +106,22 @@ More discussion of trace files is available [here](page.html?c=on&p=ginanUsage.i
 
 ### Mongo Outputs
 
-The `mongo_outputs.yaml` file configures outpus to the mongo database.
+The `mongo_outputs.yaml` file configures outputs to the mongo database.
 
 \include "exampleConfigs/mongo_outputs.yaml"
 
 Ginan makes use of Mongo databases as part of its operations. The main uses of Mongo databases in Ginan are as a data sharing mechanism for real-time network solutions and, as is the case of the examples in this text, as a way of monitoring the inputs and processing of Ginan.
 
-Use of mongo databases are enable by using the `mongo:enable` option, the database used is defined by `mongo:database` and `mongo:suffix`. The database location is using the `mongo:uri` option. 
+Use of mongo databases are enabled by using the `mongo:enable` option, the database used is defined by `mongo:database` and `mongo:suffix`. The database location is using the `mongo:uri` option. 
 
-When enabled, mongo will write a varaety of types of data into the specified database.
+When enabled, mongo will write a variety of types of data into the specified database.
 For monitoring purposes the following data can be written to Mongo databases:
 * By setting `output_rtcm_messages` to true, RTCM messages (both received and transmitted) are archived in the database
 * By setting `output_states` to true, the state of estimated parameters are archived in the mongo database
 * By setting `output_measurements` to true, pre-fit and post-fit residuals are archived in the mongo database
 * By setting `output_test_stats` to true, statistics (like average and RMS) of residuals are estimated and included in the database
 
-Data archived into the database can be visualized using the EDA API inluded with Ginan. A detailed description on how to visualize can be found on the [GinanEDA](page.html?c=on&p=scripts.index#ginaneda) section of this manual.
+Data archived into the database can be visualized using the EDA API included with Ginan. A detailed description on how to visualize can be found on the [GinanEDA](page.html?c=on&p=scripts.index#ginaneda) section of this manual.
 
 Although not included in the `mongo_outputs.yaml` file, if `mongo:output_ssr_precursors` is enabled parameters needed for the calculation of SSR messages will be loaded into the designated mongo database. 
 From here a Ginan instance (the one writing to the file or another that uses the results from the first one) can read the solutions, and assemble SSR messages.
@@ -163,7 +163,7 @@ in this case, changing `phase_output_interval` from its default of 0 to 900 seco
 
 ### Metadata input files
 
-The `input_metadata.yaml` file describes all of the auxillary data and metadata inputs for a run of Ginan. 
+The `input_metadata.yaml` file describes all of the auxiliary data and metadata inputs for a run of Ginan. 
 Metadata is data that are expected to remain constant/valid over a long period of time. 
 
 \include "exampleConfigs/input_metadata.yaml"
@@ -174,11 +174,11 @@ Included here are:
 
 * **Earth tide description :** `fes2004_Cnm_Snm.dat` descrives global ocean tide loading (spherical harmonics up to order-degree 50) models, while `OLOAD_GO.BLQ` describes precise ocean tide loading parameters for specific locations (indexed by CORS station names). Earth tide models are used to adjust station-rover positions.
 
-* **Gravity effects :** `EGM2008.gfc` describes the earth gravity field (spherical harmonics up to order-degree 15) and `DE436.1950.2050` describes the position of celestial bodies. Both files are used to estimate the combined gravity field actingo on a satellite. Gravity field estimate is mainly used in satellite position estimation.
+* **Gravity effects :** `EGM2008.gfc` describes the earth gravity field (spherical harmonics up to order-degree 15) and `DE436.1950.2050` describes the position of celestial bodies. Both files are used to estimate the combined gravity field acting on a satellite. Gravity field estimate is mainly used in satellite position estimation.
 
-* **Geomagnetic fields :** `igrf13coeffs.txt` describes earth's geomagnetic field near earth (spherical harmonics up to order-degree 13). State of the geomagnetic field is used on the estimation of higher order components of Ionosphereic delay on GNSS signals.
+* **Geomagnetic fields :** `igrf13coeffs.txt` describes earth's geomagnetic field near earth (spherical harmonics up to order-degree 13). State of the geomagnetic field is used on the estimation of higher order components of Ionospheric delay on GNSS signals.
 
-* **Tropospheric model :** `gpt_25.grd` contains global atmospheric pressure and temperature values ($5^o \times 5^o$ gridmaps) as well as hydrostatic and wet mapping coefficients for trpospheric delay modelling. Two tropospheric delay models are supported by Ginan: The GPT2 model, supported by this file, and the VMF3 model, which require it own set of files.  
+* **Tropospheric model :** `gpt_25.grd` contains global atmospheric pressure and temperature values ($5^o \times 5^o$ gridmaps) as well as hydrostatic and wet mapping coefficients for tropospheric delay modelling. Two tropospheric delay models are supported by Ginan: The GPT2 model, supported by this file, and the VMF3 model, which require it own set of files.  
 
 The file path defined in `inputs:root_directory` will be added as a prefix to ALL files (including those defined in other yaml files). 
 Some of the files described here are used for orbit determination and thus not necessary for the presented examples, however including then will not affect Ginan processing. 
@@ -187,7 +187,7 @@ Some of the files described here are used for orbit determination and thus not n
 
 While metadata inputs contain slowly changing parameters that are expected requirements for a large variety of scenarios others are more specific.
 
-The `input_streams_rover.yaml` file demonstrates a configuration specific to rover with realtime inputs.
+The `input_streams_rover.yaml` file demonstrates a configuration specific to rover with real-time inputs.
 
 \include "exampleConfigs/input_streams_rover.yaml"
  
@@ -195,7 +195,7 @@ This configuration file is roughly divided into 3 sections, the `station_options
 
 The `station_options` section contains metadata for each GNSS receiver used in this test.
 Four CORS are used as receivers for the purposes of this example.
-The metadata included is self explanatory.
+The metadata included is self-explanatory.
 Only `antenna_type`, which is used to select PCO and PCV values from the ANTEX file, is strictly necessary.
 Here, `apriori_position` is included in the example for demonstration purposes, but is not expected in the case of moving receivers. 
 
@@ -229,7 +229,7 @@ Supported options include:
 * BROADCAST output data from broadcast ephemeris files or streams
 * SSR: calculate values by adding SSR corrections (from streams or recorded files) to broadcast ephemeris
 
-Ginan can combine outputs from multiple sources. For example, the default configuration of `output:clocks:satelite_sources` is `[KALMAN,PRECISE,BROADCAST]`, in this case Ginan will output estimates from kalman filter where it can, inputs from precise ephemeris files for satellites it cant find estimates for and finally from broadcast ephemeris as last resort.
+Ginan can combine outputs from multiple sources. For example, the default configuration of `output:clocks:satelite_sources` is `[KALMAN,PRECISE,BROADCAST]`, in this case Ginan will output estimates from Kalman filter where it can, inputs from precise ephemeris files for satellites it can't find estimates for and finally from broadcast ephemeris as last resort.
 
 
 The `ssr_antenna_offset` option clarifies the reference point the SSR satellite position corresponds to. 
@@ -239,7 +239,7 @@ The `epoch_interval` option defines the rate at which the input data will be pro
 This option can be overwritten by later yaml files, if set higher than the input data interval Ginan will skip epochs to match the desired data rate.
 
 The `wait_all_stations` option instructs Ginan to wait for the set amount of seconds to data from all receivers to arrive.
-This parameters needs to be set to the maximum difference in latency between data streams.
+These parameters needs to be set to the maximum difference in latency between data streams.
 If GNSS observation from a stream fails to arrive within the specified time the receiver will be excluded from processing.
 
 The `error_model` option describes the behaviour of unmodelled errors expected in the GNSS observations. 
@@ -273,7 +273,7 @@ processing_options:
         phase_measurements:
             sigmas:         [0.003]
 ```
-The example decribes a CORS network from which the network solutions will be estimated.
+The example describes a CORS network from which the network solutions will be estimated.
 
 The CORS network contains more than 50 stations, thus setting the receiver metadata through a `station_options` section is not practical; Instead a SINEX file is used to input the station metadata. 
 The file pointed at by `snx_files` option is expected to contain the station location, receiver, and antenna type for each station in the network.
@@ -325,7 +325,7 @@ The basic outputs from a network solutions are as follows:
 ### Real-time rover
 
 The `process_rover.yaml` file contains the basic configurations required to estimate rover positions from the input data.
-Aside from the `outputs` setion described above, configuration parameters can be divided into two sections. 
+Aside from the `outputs` section described above, configuration parameters can be divided into two sections. 
 The `estimation_parameters` section which describe WHAT parameters are estimated. The `processing_options` describe details on HOW the parameters are processed.
 
 The `estimation_parameters` section of `process_rover.yaml` will contain only receiver or station side parameters:
@@ -385,7 +385,7 @@ Every parameter estimated by the Kalman filter is treated as a stochastic proces
 The configuration options in this section help set aspects of this model. 
 `apriori_val` (default: 0) and `sigma` (default: Inf) sets the initial conditions.
 `tau` (default: Inf) and `mu` (default: 0) sets $\tau$ and $\mu$ respectively.
-`proc_noise` (default: 0) set the standard deviation for w(t) (considered a zero mean gausian noise process).
+`proc_noise` (default: 0) set the standard deviation for w(t) (considered a zero mean Gaussian noise process).
 As they are set in the `process_rover.yaml` file (`tau` and `mu` at default values) the parameters are defined as a random walk process.
 
 The `processing_options` is in itself divided into a variety of subsections.
@@ -432,11 +432,11 @@ processing_options:
 
 `process_modes` is a fundamental setting that control over all processing settings, `ppp` needs to be set to `true` in order to enable Ginan 2 processing
 
-The `gnss_general` subsection controls general aspects of gnss processsing.
-On the input files descrived above, it set the expected noise levels of GNSS measurements
+The `gnss_general` subsection controls general aspects of GNSS processing.
+On the input files described above, it set the expected noise levels of GNSS measurements
 In this file it controls which GNSS measurements to use.
  
-How each GNSS constellation is handled is descrived in `sys_options`. 
+How each GNSS constellation is handled is described in `sys_options`. 
 The `process` option enables/disables the use of each constellation. Supported constellations are GPS, GLONASS, Galileo, Beidou and QZSS.
 
 The signal list in `code_priorities` will govern if and how the GNSS signals are used, with signals not on the list not being used. 
@@ -445,9 +445,9 @@ By setting `reject_eclipse` to `true` eclipsing satellites can be excluded from 
 In addition to GNSS signals, parameters constraints or pseudo-observations can be added to the process. 
 
 The receiver clock will be considered to correspond the constellation specified by `rec_reference_system`.
-This is acieved by selecting two pseudoranges in the reference constellation and setting the ionosphere-free combination of receiver code bias to zero.
+This is achieved by selecting two pseudoranges in the reference constellation and setting the ionosphere-free combination of receiver code bias to zero.
 
-Another pseudo-observation `zero_receiver_dcb` sets the difference betwee two receiver code biases for the specified constellation to zero.
+Another pseudo-observation `zero_receiver_dcb` sets the difference between two receiver code biases for the specified constellation to zero.
 The two codes to be constrained are selected from tracked signals, according to the `code_priorities` list.
 
 The `gnss_models` controls various physical models applied to Ginan processing. The models include Earth tides, relativistic effects, ionospheric and tropospheric delays and phase windup.
@@ -460,7 +460,7 @@ Possible settings includes the type of numerical inverter, the outlier detection
 Also included in the `process_rover.yaml` file is the `station_chunking` option. 
 This option, to be used when processing multiple rovers, separates the filtering process by station thus reducing computational complexity of the solution.
 
-The `model_error_checking` configures the hanlding of outliers detected by the Kalman filter. 
+The `model_error_checking` configures the handling of outliers detected by the Kalman filter. 
 
 The `epoch_control` subsection, used in input yaml files, controls which epochs to process and which to skip. 
 
@@ -475,7 +475,7 @@ As with rover processing, the network processing files have the `estimation_para
 The `stations` part of `estimation_parameters` is similar to the rover case (with phase_bias in a separate file).
 However it does contain additional constraints to eliminate rank deficiencies in the GNSS observation model.
 
-The examples in `process_network.yaml` illustrate how the estimation parameters can be set for individual stations (as is the case for `USN7`) or even signals whitin the station (as with CUSV).
+The examples in `process_network.yaml` illustrate how the estimation parameters can be set for individual stations (as is the case for `USN7`) or even signals within the station (as with CUSV).
 
 ```
 ...
@@ -552,12 +552,12 @@ In addition, the network solution estimates the Earth Orientation Parameters (`e
 There are few differences in the `process_options` section between `process_network.yaml` and the rover case. 
 
 The number of signals in the `code_priorities` list is different to reflect the fact that different stations/receivers track a different set of codes. Some station track Galileo L1C and L5Q while others track the L1X-L5X pair, so both pairs should be tracked.
-Some receivers do not track L1W thus the L1C needs to be added to use thee receivers in network processing.
+Some receivers do not track L1W thus the L1C needs to be added to use these receivers in network processing.
 
 The `zero_receiver_dcb` sets the differential satellite code biase of the L1C-L5Q and L1X-L5X pairs to zero.
 Finally the minimum constraints aligns the reference frame of the Ginan solution with an existing one (determined by the station position on the SINEX file). 
-Of particular note here is that unless the `once_per_epoch` option is set to `true`, aligment of reference frames happens after the last epoch of processing.
-This means that results from other epochs are in an unconstrained reference frame. If alignment with a standard refernce is required `once_per_epoch` needs to be set to true.
+Of particular note here is that unless the `once_per_epoch` option is set to `true`, alignment of reference frames happens after the last epoch of processing.
+This means that results from other epochs are in an unconstrained reference frame. If alignment with a standard reference is required `once_per_epoch` needs to be set to true.
 
 `process_network_bias.yaml` expands the network solutions to include more signals and to estimate phase biases.
 ```
@@ -579,7 +579,7 @@ The former can be activated by expanding the `code_priorities` list.
 The latter is enabled in the `outputs` and `estimation_parameters` section. 
 
 Including phase bias estimation leads to additional rank deficiencies.
-The `receiver_amb_pivot` enables a series of contraints (fixing a minimum numbr of ambiguities to integer values) to eliminate such deficiencies.
+The `receiver_amb_pivot` enables a series of constraints (fixing a minimum number of ambiguities to integer values) to eliminate such deficiencies.
 
 The `minimum_constraints` subsection configures the alignment of estimated solutions with a standard reference frame.
 
@@ -597,7 +597,7 @@ These examples demonstrate basic use cases, combining several smaller configurat
 \include "exampleConfigs/ex201.yaml"
 
 
-## Ex202 - Basic realtime Rover Position
+## Ex202 - Basic real-time Rover Position
 
 The `ex202.yaml` example illustrates the real time estimation of rover positions. 
 
@@ -618,7 +618,7 @@ Unlike in the case of `ex202.yaml` the additional satellite data is included on 
 
 This allows switching from a network solution that require precise orbits as inputs, to a solution that estimates precise orbits (see `ex205.yaml`).
 
-The `erp_files` contains Earth Rotation/orientation Parameters which often times accompanies the precise orbits contained in `sp3_files`.
+The `erp_files` contains Earth Rotation/orientation Parameters which often accompanies the precise orbits contained in `sp3_files`.
 
 ## Ex205 - Network Solution: Orbits and Clocks
 

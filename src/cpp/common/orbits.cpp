@@ -29,475 +29,8 @@ using std::string;
 #include "enums.h"
 
 
-/* split a string data into data -----------------------------------------------
-* args     :       char *p        			I       string pointer
-*        			double *data            O       stored data
-* ---------------------------------------------------------------------------*/
-void strspt(char* p, double* data)
-{
-	int j = 0;
-
-	char* q = strtok(p, " ");
-
-	while (q)
-	{
-		sscanf(q, "%lf", &data[j]);
-		j++;
-		q = strtok(nullptr, " ");
-	}
-
-	return;
-}
-
-/** read orbit file from POD
- */
-int readorbit(
-	string		file)			///< POD filename to read
-{
-	FILE* fp = fopen(file.c_str(), "r");
-
-	if (fp == nullptr)
-	{
-		BOOST_LOG_TRIVIAL(error) << "Error: opening " << file << " failed";
-		return 0;
-	}
-	
-	char 	buff[5120];
-	char*	p = nullptr;
-	double	data[128];
-	
-	while (fgets(buff, sizeof(buff), fp))
-	{
-		if	(  strstr(buff, "#INFO ")			== buff
-			|| strstr(buff, "#INFO_ERP ")		== buff)	{		nav.podInfoList.push_back(((string) "#POD") + (buff + 1));			continue;	}
-		if	(  strstr(buff, "#IC_PULSE_INFO ")	== buff)	{		nav.podInfoList.push_back(((string) "#"   ) + (buff + 1));			continue;	}
-		
-// 		if (strstr(buff, "Epoch Start")				&& (p = strrchr(buff, ':'))) 	{	sscanf(p + 1, "%lf %lf",	&orbpod.startEpoch[0],	&orbpod.startEpoch[1]);		continue;}
-// 		if (strstr(buff, "Epoch End")				&& (p = strrchr(buff, ':')))	{	sscanf(p + 1, "%lf %lf",	&orbpod.endEpoch[0],	&orbpod.endEpoch[1]);		continue;}
-// 		if (strstr(buff, "Tabular interval")		&& (p = strrchr(buff, ':'))) 	{	sscanf(p + 1, "%d",			&orbpod.nint);										continue;}
-// 		if (strstr(buff, "Number of Satellites")	&& (p = strrchr(buff, ':')))	{	sscanf(p + 1, "%d",			&orbpod.numSats);									continue;}
-// 		
-// 		if (strstr(buff, "Number of Epochs")		&& (p = strrchr(buff, ':')))
-// 		{
-// 			sscanf(p + 1, "%d", &orbpod.numEpochs);
-// 
-// 			/* check whether ts, te and nint agree with ne */
-// 			if	(  orbpod.startEpoch[0]	!= 0
-// 				&& orbpod.endEpoch[0]	!= 0
-// 				&& orbpod.nint			!= 0
-// 				)
-// 			{
-// 				int calculatedEpochs =	( orbpod.endEpoch	[0]	* 86400	+ orbpod.endEpoch	[1]
-// 										- orbpod.startEpoch	[0]	* 86400	- orbpod.startEpoch	[1]) / orbpod.nint + 1;
-// 
-// 				if (calculatedEpochs != orbpod.numEpochs)
-// 				{
-// 					BOOST_LOG_TRIVIAL(warning) 
-// 					<< "Warning: epoch number "	<< calculatedEpochs
-// 					<< " doesn't match ne="		<< orbpod.numEpochs
-// 					<< ", ts=" 					<< orbpod.startEpoch[0]
-// 					<< ", te="					<< orbpod.endEpoch[0]
-// 					<< " and tint="				<< orbpod.nint
-// 					;
-// 				}
-// 			}
-// 			
-// 			continue;
-// 		}
-		
-		/* check GPS initial condition */
-		if (strstr(buff, "#IC_INFO "))
-		{
-			vector<string> tokens;
-
-			char* delimiters = " \r\n";
-			char* token_ptr = strtok(buff, delimiters);
-			while (token_ptr != nullptr)
-			{
-				tokens.push_back(token_ptr);
-				token_ptr = strtok(nullptr, delimiters);
-			}
-
-			SatSys Sat;
-			for (int i = 0; i < tokens.size(); i++)
-			{
-				auto token = tokens[i];
-				if (token == "PRN:")
-				{
-					Sat = SatSys(tokens[i+1].c_str());
-					continue;
-				}
-
-				if (token == "SVN:")
-				{
-					string svn = tokens[i+1];
-					Sat.setSvn(svn);
-					continue;
-				}
-
-				if (token == "BLK_TYP:")
-				{
-					string blockType = tokens[i+1];
-					Sat.setBlockType(blockType);
-					continue;
-				}
-
-				if (token == "SRP:")
-				{
-					auto& satOrbit = nav.satNavMap[Sat].satOrbit;
-					satOrbit.srpModel[0] = tokens[i+1];
-					satOrbit.srpModel[1] = tokens[i+2];
-					continue;
-				}
-
-				if (token == "MASS:")
-				{
-					auto& satOrbit = nav.satNavMap[Sat].satOrbit;
-					satOrbit.mass = stoi(tokens[i+1]);
-					continue;
-				}
-
-				if (token == "Nparam:")
-				{
-					auto& satOrbit = nav.satNavMap[Sat].satOrbit;
-					satOrbit.numUnknowns = stoi(tokens[i+1]);
-
-					for (int j = 0; j < satOrbit.numUnknowns; j++)
-					{
-						if (i + 3 + j > tokens.size())
-						{
-							printf("\nError loading orbit parameters\n");
-							return 0;
-						}
-						satOrbit.parameterNames.push_back(tokens[i + 3 + j]);
-					}
-				}
-			}
-
-			continue;
-		}
-
-		if (strstr(buff, "#IC_XYZ  "))
-		{
-			SatSys Sat = SatSys(buff + 9);
-
-			SatOrbit&		satOrbit		= nav.satNavMap[Sat].satOrbit;
-			InitialOrbit&	initialOrbit	= satOrbit.initialOrbit;
-
-			initialOrbit.initialConds.resize(satOrbit.numUnknowns);
-
-			p = strrchr(buff, 'F');
-			p++;
-			strspt(p, data);
-
-			for (int j = 0; j < 2;						j++)	initialOrbit.t0[j]				= data[j];
-			for (int j = 0; j < satOrbit.numUnknowns;	j++)	initialOrbit.initialConds[j]	= data[j + 2];
-
-			continue;
-		}
-
-		if (strstr(buff, "End_of_Header"))
-		{
-			continue;
-		}
-
-		if	(  buff[0] == 'G'
-			|| buff[0] == 'R'
-			|| buff[0] == 'C'
-			|| buff[0] == 'E'
-			|| buff[0] == 'J'
-			|| buff[0] == 'L')
-		{
-			SatSys Sat = SatSys(buff);
-			auto& satOrbit = nav.satNavMap[Sat].satOrbit;
-
-			p = buff + 5;
-			strspt(p, data);
-
-			OrbitInfo orbitInfo;
-			for (int j = 0; j < 2; j++)
-			{
-				/* MJD and sec of day */
-				orbitInfo.ti[j] = data[j];
-			}
-
-			orbitInfo.ti[0] += orbitInfo.ti[1] / 24 / 3600;
-
-			double ep[6];
-			jd2ymdhms(orbitInfo.ti[0] + JD2MJD, ep);	//todo aaron, remove this and the function
-
-			orbitInfo.time		= epoch2time(ep);
-
-			orbitInfo.partials.resize(satOrbit.numUnknowns, 3);
-
-			for (int j = 0; j < 3; j++)
-			{
-				/* pos, vel and their partials */
-				orbitInfo.posEci [j] = data[j + 2];
-				orbitInfo.velEci [j] = data[j + 2 + 3];
-				orbitInfo.posEcef[j] = data[j + 8];
-				orbitInfo.velEcef[j] = data[j + 8 + 3];
-			}
-
-			int k = 0;
-			for (int i = 0; i < satOrbit.numUnknowns;	i++)
-			for (int j = 0; j < 3; 						j++)
-			{
-				orbitInfo.partials(i,j)	= data[14 + k];
-				k++;
-			}
-
-			satOrbit.orbitInfoMap[orbitInfo.time] = orbitInfo;
-		}
-	}
-	
-	fclose(fp);
-
-	return 1;
-}
-
-
-/** Output orbit file compatible with the pod
- */
-void outputOrbit(
-	KFState&	kfState)
-{
-	if (acsConfig.orb_files.empty())
-	{
-		return;
-	}
-
-	std::ofstream orbitFile(acsConfig.orb_files.front() + "_pea");
-	if (!orbitFile)
-	{
-		BOOST_LOG_TRIVIAL(error) << "Error: output orbit file opening error!\n";
-		return;
-	}
-
-	MjDateTT mjd = kfState.time;
-	
-	GTime endTime = timeGet();
-
-	tracepdeex(0, orbitFile, "#INFO    Orbit estimated by PEA\n");
-	tracepdeex(0, orbitFile, "#INFO    Generated from: PEA (v%s) at %s\n", ginanCommitVersion(), endTime.to_string().c_str());
-	
-	for (auto& str : nav.podInfoList)
-	{
-		tracepdeex(0, orbitFile, "%s", str.c_str());
-	}
-	
-	{
-		double eopAdjustments[3]	= {};
-		double eopVariances[3]		= {};
-
-		bool pass = true;
-		for (short i = 0; i < 3; i++)
-		{
-			KFKey eopKey;
-			eopKey.type	= KF::EOP;
-			eopKey.num	= i;
-			pass &= kfState.getKFValue(eopKey, eopAdjustments[i], &eopVariances[i]);
-		}
-
-		tracepdeex(0, orbitFile, "#ERP_d0         MJD XP(arcsec)     YP(arcsec)     UT1-UTC(sec):    ");
-		if (pass == false)		{	tracepdeex(0, orbitFile, " ----> UNESTIMATED <---- \n");																							}	
-		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd.to_double(), eopAdjustments[0] / 1000, eopAdjustments[1] / 1000, eopAdjustments[2] / 1000);		}
-
-		tracepdeex(0, orbitFile, "#ERP_sigma      MJD XP(arcsec)     YP(arcsec)     UT1-UTC(sec):    ");
-		if (pass == false)		{	tracepdeex(0, orbitFile, " ----> UNESTIMATED <---- \n");																										}	
-		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd.to_double(), sqrt(eopVariances[0]) / 1000, sqrt(eopVariances[1]) / 1000, sqrt(eopVariances[2]) / 1000);		}
-	}
-	
-	{
-		double eopRateAdjustments[3]	= {};
-		double eopRateVariances[3]		= {};
-
-		bool pass = true;
-		for (int i = 0; i < 3; i++)
-		{
-			KFKey eopKey;
-			eopKey.type	= KF::EOP_RATE;
-			eopKey.num	= i;
-			pass &= kfState.getKFValue(eopKey, eopRateAdjustments[i], &eopRateVariances[i]);
-		}
-		
-		tracepdeex(0, orbitFile, "#ERP_RATE_d0    MJD XP(arcsec/day) YP(arcsec/day) UT1-UTC(sec/day):");
-		if (pass == false)		{	tracepdeex(0, orbitFile, " ----> UNESTIMATED <---- \n");																										}	
-		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd.to_double(), eopRateAdjustments[0] / 1000, eopRateAdjustments[1] / 1000, eopRateAdjustments[2] / 1000);		}
-
-		tracepdeex(0, orbitFile, "#ERP_RATE_sigma MJD XP(arcsec/day) YP(arcsec/day) UT1-UTC(sec/day):");
-		if (pass == false)		{	tracepdeex(0, orbitFile, " ----> UNESTIMATED <---- \n");																													}	
-		else					{	tracepdeex(0, orbitFile, " %.6f %26.16e %26.16e %26.16e\n", mjd.to_double(), sqrt(eopRateVariances[0]) / 1000, sqrt(eopRateVariances[1]) / 1000, sqrt(eopRateVariances[2]) / 1000);		}
-	}
-
-	tracepdeex(0, orbitFile, "#INFO    Satellite ICS:\n");
-
-	for (auto& [Sat, satNav] : nav.satNavMap)
-	{
-		auto& satOrbit = satNav.satOrbit;
-		
-		if (acsConfig.process_sys[Sat.sys] == false)
-		{
-			continue;
-		}
-
-		auto sat = Sat;
-		auto& satOpts = acsConfig.getSatOpts(sat);
-
-		vector<double> adjustments(satOrbit.numUnknowns, 0);
-
-		bool pass = true;
-		for (short i = 0; i < satOrbit.numUnknowns; i++)
-		{
-			//get relevant states from kfState
-
-			string name = satOrbit.parameterNames[i];
-			KFKey kfKey = {.type = KF::ORBIT_PTS, .Sat = Sat, .num = i, .comment = name};
-
-			pass &= kfState.getKFValue(kfKey, adjustments[i]);
-		}
-
-		if (pass == false)
-		{
-			tracepdeex(0, orbitFile, "#IC_INFO PRN: %s SVN: %s ----> UNHEALTHY <---- \n",
-				Sat.id()			.c_str(),
-				Sat.svn()			.c_str());
-		}
-
-		auto& initial = satOrbit.initialOrbit;
-
-		tracepdeex(0, orbitFile, "#IC_INFO PRN: %s SVN: %s BLK_TYP: %-10s MASS: %10.4f SRP: %6s %6s Nparam:  %d -",
-				Sat.id()			.c_str(),
-				Sat.svn()			.c_str(),
-				Sat.blockType()		.c_str(),
-				satOrbit.mass,
-				satOrbit.srpModel[0].c_str(),
-				satOrbit.srpModel[1].c_str(),
-				satOrbit.numUnknowns);
-
-		for (int i = 0; i < satOrbit.numUnknowns; i++)
-		{
-			tracepdeex(0, orbitFile, " %s", satOrbit.parameterNames[i].c_str());
-		}
-		tracepdeex(0, orbitFile, "\n");
-
-		/* output adjustments */
-		tracepdeex(0, orbitFile, "#IC_dXYZ      %s %s %-10s         %14d %14.6f",
-				Sat.id()			.c_str(),
-				Sat.svn()			.c_str(),
-				Sat.blockType()		.c_str(),
-				(int)	initial.t0[0],
-						initial.t0[1]);
-
-		for (int j = 0; j < satOrbit.numUnknowns; j++)
-		{
-			tracepdeex(0, orbitFile, " %26.16e ", adjustments[j]);
-		}
-		tracepdeex(0, orbitFile, "\n");
-
-		/* output adjustments */
-		tracepdeex(0, orbitFile, "#IC_XYZ_APR   %s %s %-10s         %14d %14.6f",
-				Sat.id()			.c_str(),
-				Sat.svn()			.c_str(),
-				Sat.blockType()		.c_str(),
-				(int)	initial.t0[0],
-						initial.t0[1]);
-
-		for (int j = 0; j < satOrbit.numUnknowns; j++)
-		{
-			InitialState init = initialStateFromConfig(satOpts.orb, j);
-			tracepdeex(0, orbitFile, " %10.5e ", init.P);
-		}
-		tracepdeex(0, orbitFile, "\n");
-
-		/* output adjusted ICs */
-		tracepdeex(0, orbitFile, "#IC_XYZ       %s %s %-10s ICRF    %14d %14.6f",
-				Sat.id()			.c_str(),
-				Sat.svn()			.c_str(),
-				Sat.blockType()		.c_str(),
-				(int)	initial.t0[0],
-						initial.t0[1]);
-
-		for (int j = 0; j < satOrbit.numUnknowns; j++)
-		{
-			tracepdeex(0, orbitFile, " %26.16e ",  adjustments[j] + initial.initialConds[j]);
-		}
-		tracepdeex(0, orbitFile, "\n");
-	}
-}
-
-int orbPartials(
-	Trace&		trace,
-	GTime		time,
-	SatSys		Sat,
-	MatrixXd&	interpPartials)
-{
-#define INTERPCOUNT (2)
-#define FORWARDCOUNT	((INTERPCOUNT -0)/2)
-#define REVERSECOUNT	((INTERPCOUNT -1)/2)
-	
-	interpPartials = Vector3d::Zero().transpose();
-	
-	SatOrbit&	satOrbit		= nav.satNavMap[Sat].satOrbit;
-	auto&		orbitInfoMap	= satOrbit.orbitInfoMap;
-	
-	if	(orbitInfoMap.size() < INTERPCOUNT)
-	{
-		tracepdeex(1, trace, "not enough orbits %s sat=%s\n",	time.to_string(0).c_str(), Sat.id().c_str());
-		return 0;
-	}
-
-	if	(  time - orbitInfoMap.begin()	->first	> +MAXDTE
-		|| time - orbitInfoMap.rbegin()	->first	< -MAXDTE)
-	{
-		tracepdeex(1, trace, "no orbit %s sat=%s\n",			time.to_string(0).c_str(), Sat.id().c_str());
-		return 0;
-	}
-
-	interpPartials.resize(satOrbit.numUnknowns, 3);
-	
-	//prepare max, min, and start iterators, all some distance from the ends of the list (map)
-	auto min_it		= orbitInfoMap.begin();						std::advance(min_it,	+FORWARDCOUNT);
-	auto max_it		= orbitInfoMap.end();						std::advance(max_it,	-(REVERSECOUNT+1));	//+1 to escape end()
-	auto start_it	= orbitInfoMap.lower_bound(time);
-
-	//clip start to the min/max iterators - so it doesnt walk past the ends while advancing
-	if (start_it->first > min_it->first)	start_it = min_it;
-	if (start_it->first < max_it->first)	start_it = max_it;
-
-	std::advance(start_it,	REVERSECOUNT);
-	
-// 	printf("time : %ld\nmin  : %ld\nmax  : %ld\nstart: %ld\n", time.time, min_it->first.time, max_it->first.time, start_it->first.time);
-
-	for (int row = 0; row < satOrbit.numUnknowns;	row++)
-	for (int col = 0; col < 3;						col++)
-	{
-		auto orbit_it = start_it;
-
-		//get interpolation parameters
-		double p[INTERPCOUNT];
-		double t[INTERPCOUNT];
-
-		for (int i = 0; i < INTERPCOUNT; i++, orbit_it--)
-		{
-			OrbitInfo& orbit = orbit_it->second;
-
-			t[i] = (orbit.time - time).to_double();
-			p[i] = orbit.partials(row, col);
-		}
-
-		interpPartials(row, col) = interpolate(t, p, INTERPCOUNT);
-	}
-
-	return 1;
-}
-
-
-
-
 #define RTOL_KEPLER			1E-14		///< relative tolerance for Kepler equation
 #define MAX_ITER_KEPLER		30			///< max number of iteration of Kelpler
-
 
 
 bool inertial2Keplers(
@@ -559,17 +92,23 @@ bool inertial2Keplers(
 	//Compute the mean anomaly with help of Kepler’s Equation from the eccentric anomaly E and the eccentricity e
 	double M = E - e_ * sin(E);
 	
-// 	std::cout << std::endl << "n0 " << n0.transpose();
-// 	std::cout << "\te " << e.transpose();
-// 	std::cout << "\tn1 " << n1.transpose();
-// 	std::cout << "\tnu " << nu;
-// 	std::cout << "\tE " << E;
-// 	std::cout << "\tM " << M;
+	bool error = false;
+	if (isnan(nu))	{		std::cout << "nu is nan\n";		error = true;	}
+	if (isnan(e_))	{		std::cout << "e_ is nan\n";		error = true;	}
+	if (isnan(E))	{		std::cout << "E is nan\n";		error = true;	}
+	if (isnan(M))	{		std::cout << "M is nan\n";		error = true;	}	
 	
-	if (isnan(nu))	{		std::cout << "nu is nan\n";		return false;	}
-	if (isnan(e_))	{		std::cout << "e_ is nan\n";		return false;	}
-	if (isnan(E))	{		std::cout << "E is nan\n";		return false;	}
-	if (isnan(M))	{		std::cout << "M is nan\n";		return false;	}	
+	if (error)
+	{
+		std::cout << std::endl << "n0 " << n0.transpose();
+		std::cout << "\te " << e.transpose();
+		std::cout << "\tn1 " << n1.transpose();
+		std::cout << "\tnu " << nu;
+		std::cout << "\tE " << E;
+		std::cout << "\tM " << M;
+	
+		return false;
+	}
 	
 	keplers(KEPLER::LX)	= L_x;
 	keplers(KEPLER::LY)	= L_y;
@@ -776,7 +315,8 @@ VectorEci propagateEllipse(
 	double		dt, 
 	VectorEci&	rSat,
 	VectorEci&	vSat, 
-	VectorEcef&	ecef)
+	VectorEcef&	ecef,
+	VectorEcef* vSatEcef_ptr)
 {
 	ERPValues erpv = getErp(nav.erp, time);
 	
@@ -784,7 +324,7 @@ VectorEci propagateEllipse(
 	
 	if (dt == 0)
 	{
-		ecef = frameSwapper(rSat);
+		ecef = frameSwapper(rSat, &vSat, vSatEcef_ptr);
 		
 		return rSat;
 	}
@@ -798,7 +338,7 @@ VectorEci propagateEllipse(
 		VectorEci newPos	= rSat
 							+ vSat * dt;
 							
-		ecef = frameSwapper(newPos);
+		ecef = frameSwapper(newPos, &vSat, vSatEcef_ptr);
 		
 		return newPos;
 	}
@@ -823,12 +363,24 @@ VectorEci propagateEllipse(
 	
 	keplers0[KEPLER::M] += 2 * PI * dt / T;
 	
-	VectorEci newPos = keplers2Inertial(trace, keplers0);
+	VectorEci newPos1 = keplers2Inertial(trace, keplers0);
+	
+	double dtVel = 1e-4;
+	
+	keplers0[KEPLER::M] += 2 * PI * dtVel / T;
+	
+	VectorEci velEci;
+	if (vSatEcef_ptr)
+	{
+		VectorEci newPos2 = keplers2Inertial(trace, keplers0);
+		
+		velEci = ((Vector3d) newPos2 - newPos1) / dtVel;
+	}
 	
 // 	std::cout << "\nrSatInertial:       " << 		newPos.transpose();
 	
-	ecef = frameSwapper(newPos);
+	ecef = frameSwapper(newPos1, &velEci, vSatEcef_ptr);
 	
-	return newPos;
+	return newPos1;
 }
 

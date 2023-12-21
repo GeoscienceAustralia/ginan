@@ -1,6 +1,6 @@
 /*!
  * Functions to compute the load
- * @author S‚bastien Allgeyer
+ * @author Sï¿½bastien Allgeyer
  * @date 5/3/21
  *
  */
@@ -90,78 +90,125 @@ void write_BLQ(otl_input *input, int mode)
 {
 	std::ofstream out ;
 	out.open(input->output_blq_file);
-	out << "$$ OUTPUT OF CODENAME\n";
+
+	out << "$$ " << input->type << " loading displacement\n";
+	out << "$$\n";
+	out << "$$ OUTPUT OF interpolate_loading\n";
 	out << "$$ Processed " << input->tide_file.size() << " tides\n";
-	for (unsigned int i=0; i< input->tide_file.size(); i++ )
-		out << "$$	TF: " << input->tide_file[i] <<"\n";
-	out << "$$ Wave Names:\n";
-	for (unsigned int i=0; i< input->wave_names.size(); i++ )
-		out << "$$	WN: " << input->wave_names[i] <<"\n";
-	for (unsigned int i=0; i< input->code.size(); i++) {
-		out <<"  " << input->code[i] <<"\n";
-		out << "$$ " <<input->code[i] <<"                    RADI TANG  lon/lat: " <<input->lon[i] << " " << input->lat[i] << "\n";
-		out.setf(std::ios::fixed);
-		out << std::setprecision(5) ;
+	for (unsigned int i = 0; i < input->tide_file.size(); i++ )
+		out << "$$    - " << input->tide_file[i] << "\n";
+	out << "$$\n";
+	out << "$$ COLUMN ORDER:";
+	for (unsigned int i = 0; i < input->wave_names.size(); i++ )
+		out << " " << std::setw(3) << input->wave_names[i];
+	out << "\n";
+	out << "$$\n";
+	out << "$$ ROW ORDER:\n";
+	out << "$$ AMPLITUDES (m)\n";
+	out << "$$   RADIAL\n";
+	out << "$$   TANGENTL    EW\n";
+	out << "$$   TANGENTL    NS\n";
+	out << "$$ PHASES (degrees)\n";
+	out << "$$   RADIAL\n";
+	out << "$$   TANGENTL    EW\n";
+	out << "$$   TANGENTL    NS\n";
+	out << "$$\n";
+	out << "$$ CMC:  NO   (corr.tide centre of mass)\n";
+	out << "$$\n";
+	out << "$$ END HEADER\n";
+	out << "$$\n";
+
+	for (unsigned int i = 0; i < input->code.size(); i++)
+	{
+		out << std::fixed << std::setprecision(4);
+		out << "  " << input->code[i] << "\n";
+		out << "$$ " << input->code[i] << "                    RADI TANG  lon/lat: " << std::setw(9) << input->lon[i] << " " << std::setw(9) << input->lat[i] << "\n";
+
 		// write Amplitudes
-		for (int i_dir = 0; i_dir< 3; i_dir++)
+		for (int i_dir = 0; i_dir < 3; i_dir++)
 		{
-			for (int it = 0; it < input->wave_names.size() ; it++)  // Will need to write nwaves
-				out << " " << std::setprecision(5)<< std::setw(8) <<  std::abs(input->out_disp[i][it][i_dir]) << " ";
+			for (int it = 0; it < input->wave_names.size(); it++)  // Will need to write nwaves
+				out << " " << std::setprecision(7) << std::setw(10) << std::abs(input->out_disp[i][it][i_dir]) << " ";
 			out << "\n";
 		}
-		// Now write the angles. 
-		for (int i_dir = 0; i_dir< 3; i_dir++)
+
+		// Now write the phases
+		for (int i_dir = 0; i_dir < 3; i_dir++)
 		{
-			for (int it = 0; it < input->wave_names.size() ; it++)  // Will need to write nwaves
-				out << " " << std::setprecision(1) << std::setw(8)  << std::arg(input->out_disp[i][it][i_dir]) * 180 / M_PI << " ";
+			for (int it = 0; it < input->wave_names.size(); it++)  // Will need to write nwaves
+				out << " " << std::setprecision(4) << std::setw(10) << std::arg(input->out_disp[i][it][i_dir]) * R2D << " ";
 			out << "\n";
-		}	
+		}
 	}
+
 	out << "$$ END TABLE\n";
 	out.close();
 }
 
 void write_BLQ(otl_input *input)
 {
-	FILE * fp = fopen(input->output_blq_file.c_str(),"w");
-	fprintf(fp,"$$ OUTPUT OF make_otl_blq\n");
-	fprintf(fp,"$$ Processed %li tides\n",input->tide_file.size());
-	for (unsigned int i=0; i < input->tide_file.size(); i++)
-		fprintf(fp,"$$    - %s\n",input->tide_file[i].c_str());
-	fprintf(fp,"$$ Green function used is %s\n",input->green.c_str());
+	std::ofstream out ;
+	out.open(input->output_blq_file);
 
-	for (unsigned int i=0; i< input->code.size(); i++) 
+	out << "$$ " << input->type << " loading displacement\n";
+	out << "$$\n";
+	out << "$$ OUTPUT OF make_otl_blq\n";
+	out << "$$ Processed " << input->tide_file.size() << " tides\n";
+	for (unsigned int i = 0; i < input->tide_file.size(); i++ )
+		out << "$$    - " << input->tide_file[i] << "\n";
+	out << "$$\n";
+	out << "$$ Green function used is " << input->green << "\n";
+	out << "$$\n";
+	out << "$$ COLUMN ORDER:";
+	for (unsigned int i = 0; i < input->wave_names.size(); i++ )
+		out << " " << std::setw(3) << input->wave_names[i];
+	out << "\n";
+	out << "$$\n";
+	out << "$$ ROW ORDER:\n";
+	out << "$$ AMPLITUDES (m)\n";
+	out << "$$   RADIAL\n";
+	out << "$$   TANGENTL    EW\n";
+	out << "$$   TANGENTL    NS\n";
+	out << "$$ PHASES (degrees)\n";
+	out << "$$   RADIAL\n";
+	out << "$$   TANGENTL    EW\n";
+	out << "$$   TANGENTL    NS\n";
+	out << "$$\n";
+	out << "$$ CMC:  NO   (corr.tide centre of mass)\n";
+	out << "$$\n";
+	out << "$$ END HEADER\n";
+	out << "$$\n";
+
+	for (unsigned int i = 0; i < input->code.size(); i++)
 	{
-		fprintf(fp, "  %s\n", input->code[i].c_str());
-		fprintf(fp, "$$ %s                    RADI TANG  lon/lat: %f %f\n", input->code[i].c_str(), input->lon[i],
-				input->lat[i]);
-		for (int it = 0; it < input->tide_file.size(); it++)
-			fprintf(fp, " % 1.5f ", sqrt(input->dispZ_out[i][it] * input->dispZ_out[i][it] +
-										 input->dispZ_in[i][it] * input->dispZ_in[i][it]));
-		fprintf(fp, "\n");
-		for (int it = 0; it < input->tide_file.size(); it++)
-			fprintf(fp, " % 1.5f ", sqrt(input->dispEW_out[i][it] * input->dispEW_out[i][it] +
-										 input->dispEW_in[i][it] * input->dispEW_in[i][it]));
-		fprintf(fp, "\n");
-		for (int it = 0; it < input->tide_file.size(); it++)
-			fprintf(fp, " % 1.5f ", sqrt(input->dispNS_out[i][it] * input->dispNS_out[i][it] +
-										 input->dispNS_in[i][it] * input->dispNS_in[i][it]));
-		fprintf(fp, "\n");
+		out << std::fixed << std::setprecision(4);
+		out << "  " << input->code[i] << "\n";
+		out << "$$ " << input->code[i] << "                    RADI TANG  lon/lat: " << std::setw(9) << input->lon[i] << " " << std::setw(9) << input->lat[i] << "\n";
 
+		// write Amplitudes
+		for (int it = 0; it < input->tide_file.size(); it++)
+			out << " " << std::setprecision(5) << std::setw(8) << sqrt(SQR(input->dispZ_out [i][it]) + SQR(input->dispZ_in [i][it])) << " ";
+		out << "\n";
+		for (int it = 0; it < input->tide_file.size(); it++)
+			out << " " << std::setprecision(5) << std::setw(8) << sqrt(SQR(input->dispEW_out[i][it]) + SQR(input->dispEW_in[i][it])) << " ";
+		out << "\n";
+		for (int it = 0; it < input->tide_file.size(); it++)
+			out << " " << std::setprecision(5) << std::setw(8) << sqrt(SQR(input->dispNS_out[i][it]) + SQR(input->dispNS_in[i][it])) << " ";
+		out << "\n";
 
 		for (int it = 0; it < input->tide_file.size(); it++)
-			fprintf(fp, " %8.1f ", rad_to_deg(atan2(input->dispZ_out[i][it], input->dispZ_in[i][it])));
-		fprintf(fp, "\n");
+			out << " " << std::setprecision(1) << std::setw(8) << atan2(input->dispZ_out [i][it], input->dispZ_in [i][it]) * R2D << " ";
+		out << "\n";
 		for (int it = 0; it < input->tide_file.size(); it++)
-			fprintf(fp, " %8.1f ", rad_to_deg(atan2(input->dispEW_out[i][it], input->dispEW_in[i][it])));
-		fprintf(fp, "\n");
+			out << " " << std::setprecision(1) << std::setw(8) << atan2(input->dispEW_out[i][it], input->dispEW_in[i][it]) * R2D << " ";
+		out << "\n";
 		for (int it = 0; it < input->tide_file.size(); it++)
-			fprintf(fp, " %8.1f ", rad_to_deg(atan2(input->dispNS_out[i][it], input->dispNS_in[i][it])));
-		fprintf(fp, "\n");
-
+			out << " " << std::setprecision(1) << std::setw(8) << atan2(input->dispNS_out[i][it], input->dispNS_in[i][it]) * R2D << " ";
+		out << "\n";
 	}
-	fprintf(fp, "$$ END TABLE\n");
-	fclose(fp);
+
+	out << "$$ END TABLE\n";
+	out.close();
 }
 
 

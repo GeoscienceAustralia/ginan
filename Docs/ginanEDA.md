@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 Before the GinanEDA can be used for visualisation, Ginan must be configured to write output into a MondoDB.
 
-Refer to the the MongoDB setup instructions in the `readme` *MongoDB (PEA, optional)* section describing howto install, configure and start mongodb for your system.
+Refer to the the MongoDB setup instructions in the `readme` *MongoDB (PEA, optional)* section describing how to install, configure and start MongoDB for your system.
 
 ## Configuring Ginan
 
@@ -32,9 +32,9 @@ This is done by configuring the `mongo:` section in the Ginan YAML configuration
 
 Refer to the [Configuring Ginan](page.html?c=on&p=ginanConfiguration.md) section of the documentation for details on the possible configuration options
 
-## How to run the GinaEDA
+## How to run the GinanEDA
 
-To start the GinaEDA enter the command line.
+To start the GinanEDA enter the command line.
 
 ```
 python3 scripts/GinanEDA/index.py
@@ -69,7 +69,7 @@ Click on the `Connect to DB` and then the `Select databases` tabs to see a list 
 
 Click on the database you wish to load for visualisation and then click `Load DB`
 
-The database names are configured in the ginan yaml configuration file using the `database: my_ginan_db` option.
+The database names are configured in the Ginan yaml configuration file using the `database: my_ginan_db` option.
 
 #### Measuremenets
 

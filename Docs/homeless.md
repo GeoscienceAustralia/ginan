@@ -15,7 +15,7 @@ This can be used to read data that has been saved from a stream for later testin
 
 #### Real-time processing:
 
-To process data in real-time you will need to set up the location, username annd password for the caster that you will be obtaining the input data streams from in the configuration file.
+To process data in real-time you will need to set up the location, username and password for the caster that you will be obtaining the input data streams from in the configuration file.
 
 The pea supports obtaining streams from casters that use NTRIP 2.0 over http and https.
 
