@@ -46,7 +46,7 @@ int readOrbexHeader(
 		BOOST_LOG_TRIVIAL(error) << "Not an Orbex file" << std::endl;
 		return 2;
 	}
-	
+
 	char* buff = &line[0];
 	ver = str2num(buff, 8, 5);
 
@@ -76,9 +76,9 @@ bool readOrbexFileDesc(
 	while (fileStream)
 	{
 		string line;
-		
+
 		getline(fileStream, line);
-	
+
 		if (line[0] == ' ')
 		{
 			vector<string> split;
@@ -164,9 +164,9 @@ bool readOrbexSatId(
 	while (fileStream)
 	{
 		string line;
-		
+
 		getline(fileStream, line);
-	
+
 		if (line[0] == '-')
 		{
 			// end of block
@@ -202,15 +202,15 @@ bool readOrbexEph(
 
 	static int index = 0; // keep track of file number
 	index++;
-	
+
 	while (fileStream)
 	{
 		string line;
-		
+
 		getline(fileStream, line);
 
 		char* buff = &line[0];
-	
+
 		if	( line[0] == '#'
 			&&line[1] == '#')
 		{
@@ -240,7 +240,7 @@ bool readOrbexEph(
 			{
 				string id = line.substr(5);
 				id = id.substr(0, id.find(' '));
-				
+
 				Att att 	= {};
 				att.time 	= time;
 				att.index	= index;
@@ -254,7 +254,7 @@ bool readOrbexEph(
 					<< "Invalid number of data columns: " << nRec << std::endl;
 					return false;
 				}
-				
+
 				double val[4];
 				int found = sscanf(buff+24, "%lf %lf %lf %lf", &val[0], &val[1], &val[2], &val[3]);
 
@@ -262,7 +262,7 @@ bool readOrbexEph(
 				{
 					continue;
 				}
-				
+
 				att.q.w() = val[0];
 				att.q.x() = val[1];
 				att.q.y() = val[2];
@@ -276,15 +276,6 @@ bool readOrbexEph(
 				}
 
 				att.q.normalize();
-				
-				SatSys Sat(id.c_str());
-				if	( Sat
-					&&Sat.sys == +E_Sys::GAL)
-				{
-					// rotate from original GAL frame to ANTEX frame (180deg around local Z+) (https://www.gsc-europa.eu/support-to-developers/galileo-satellite-metadata#3.2)
-					Eigen::Quaterniond rotZ(0, 0, 0, 1);
-					att.q = rotZ * att.q;
-				}
 
 				nav.attMapMap[att.id][att.time] = att;
 			}
@@ -334,7 +325,7 @@ void  readOrbex(
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Orbex file open error " << filepath << std::endl;
-		
+
 		return;
 	}
 
@@ -372,7 +363,7 @@ void  readOrbex(
 		else if (line == "+SATELLITE/ID_AND_DESCRIPTION")	pass = readOrbexSatId	(fileStream						);
 		else if (line == "+EPHEMERIS/DATA")					pass = readOrbexEph		(fileStream, nav,	tsys, frame	);
 		else if (line == "%END_ORBEX")						return; // end of file
-		
+
 		if (pass == false)
 		{
 			BOOST_LOG_TRIVIAL(error)
@@ -380,6 +371,4 @@ void  readOrbex(
 			return;
 		}
 	}
-
-	return;
 }

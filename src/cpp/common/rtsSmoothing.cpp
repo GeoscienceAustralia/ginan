@@ -37,20 +37,20 @@ using std::map;
 
 
 void postRTSActions(
-	bool		final,				///< This is a final answer, not intermediate - output to files
-	KFState&	kfState,			///< State to get filter traces from
-	StationMap*	stationMap_ptr)		///< Pointer to map of stations
+	bool		final,			///< This is a final answer, not intermediate - output to files
+	KFState&	kfState,		///< State to get filter traces from
+	ReceiverMap&	receiverMap)		///< map of stations
 {
 	if	( final
 		||acsConfig.pppOpts.output_intermediate_rts)
 	{
-		mongoStates(kfState, "_rts");
+		mongoStates(kfState, {.suffix = "_rts", .instances = acsConfig.mongoOpts.output_states});
 	}
 
 	if	( final
 		||acsConfig.pppOpts.output_intermediate_rts)
 	{
-		storeStates(kfState, "rts");
+		storeStates(kfState, "_rts");
 	}
 
 	if (final == false)
@@ -71,7 +71,7 @@ void postRTSActions(
 	if (acsConfig.output_bias_sinex)
 	{
 		//todo aaron, this requires another ionospher kfState
-// 		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], *stationMap_ptr);
+// 		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], receiverMap);
 	}
 
 	if (acsConfig.output_orbit_ics)
@@ -84,9 +84,9 @@ void postRTSActions(
 		  ||acsConfig.clocks_satellite_sources.front()	== +E_Source::KALMAN))
 	{
 		auto kfState2 = kfState;	//todo aaron, delete this after fixing something else, tryPrepareFilterPointers damages the state
-		tryPrepareFilterPointers(kfState2, stationMap_ptr);
+		tryPrepareFilterPointers(kfState2, receiverMap);
 
-		outputClocks			(kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, kfState2.time, kfState2, stationMap_ptr);
+												outputClocks		(kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, kfState2.time, kfState2, &receiverMap);
 	}
 
 	{
@@ -98,20 +98,18 @@ void postRTSActions(
 		if (acsConfig.output_ionstec)		{	writeSTECfromRTS 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX], kfState);																														}
 	}
 
-	for (auto& [id, rec] : *stationMap_ptr)
+	for (auto& [id, rec] : receiverMap)
 	{
 		if (acsConfig.output_gpx)			{	writeGPX			(				kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	id);		}
-		if (acsConfig.output_ppp_sol)		{	outputPPPSolution	(				kfState.metaDataMap[SOL_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
 		if (acsConfig.output_cost)			{	outputCost			(				kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
-
-	}// 	outputPppNmea(ofs, archiveKF, true);
+	}
 }
 
 /** Output filter states from a reversed binary trace file
 */
 void RTS_Output(
 	KFState&	kfState,			///< State to get filter traces from
-	StationMap*	stationMap_ptr)		///< Pointer to map of stations
+	ReceiverMap&	receiverMap)		///< map of stations
 {
 	string reversedStatesFilename = kfState.rts_basename + BACKWARD_SUFFIX;
 
@@ -172,7 +170,7 @@ void RTS_Output(
 				{
 					outputResiduals(ofs, archiveMeas, -1, "/RTS", 0, archiveMeas.obsKeys.size());
 
-					mongoMeasResiduals(archiveMeas.time, archiveMeas, "_rts");
+					mongoMeasResiduals(archiveMeas.time, archiveMeas, acsConfig.mongoOpts.queue_outputs, "_rts");
 				}
 
 				break;
@@ -199,10 +197,10 @@ void RTS_Output(
 
 					fixAndHoldAmbiguities(rtsTrace, archiveKF);	//this is already a copy, no need to copy again for fix_and_hold
 
-					postRTSActions(true, archiveKF, stationMap_ptr);
+					postRTSActions(true, archiveKF, receiverMap);
 				}
 
-				postRTSActions(true, archiveKF, stationMap_ptr);
+				postRTSActions(true, archiveKF, receiverMap);
 
 				break;
 			}
@@ -225,17 +223,19 @@ void RTS_Output(
 
 KFState rtsSmoothing(
 	KFState&	kfState,
-	bool		write,
-	StationMap*	stationMap_ptr)
+	ReceiverMap&	receiverMap,
+	bool		write)
 {
 	if (kfState.rts_lag == 0)
 	{
 		return KFState();
 	}
 
-	if (stationMap_ptr)
-		for (auto& [id, rec] : *stationMap_ptr)
-			rec.obsList.clear();
+	for (auto& [id, rec] : receiverMap)
+		rec.obsList.clear();
+
+	for (auto& [dummy, satNav] : nav.satNavMap)
+		satNav.attStatus = {};
 
 	MatrixXd transitionMatrix;
 
@@ -472,7 +472,7 @@ KFState rtsSmoothing(
 
 					kalmanMinus.outputConditionNumber(std::cout);
 
-					BOOST_LOG_TRIVIAL(debug)  << "P:\n" << kalmanMinus.P.format(HeavyFmt);
+					BOOST_LOG_TRIVIAL(debug)  << "P:\n" << kalmanMinus.P.format(heavyFmt);
 					kalmanMinus.outputCorrelations(std::cout);
 					std::cout << std::endl;
 
@@ -522,11 +522,11 @@ KFState rtsSmoothing(
 					}
 
 // 					smoothedKF.metaDataMap = kfState.metaDataMap;	//todo aaron check this
-					postRTSActions(final, smoothedKF, stationMap_ptr);
+					postRTSActions(final, smoothedKF, receiverMap);
 
 					if (acsConfig.pppOpts.output_intermediate_rts)
 					{
-						mongoMeasResiduals(smoothedKF.time, measurements, "_rts");
+						mongoMeasResiduals(smoothedKF.time, measurements, acsConfig.mongoOpts.queue_outputs, "_rts");
 					}
 				}
 
@@ -560,7 +560,7 @@ KFState rtsSmoothing(
 			sleep_for(std::chrono::milliseconds(acsConfig.sleep_milliseconds));
 		}
 
-		RTS_Output(kfState, stationMap_ptr);
+		RTS_Output(kfState, receiverMap);
 	}
 
 	if (lag == kfState.rts_lag)

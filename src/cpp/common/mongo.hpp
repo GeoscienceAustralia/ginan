@@ -21,6 +21,7 @@
 #include <vector>
 #include <deque>
 #include <tuple>
+#include <array>
 #include <map>
 
 
@@ -36,10 +37,10 @@ struct DBEntry
 	map<string, tuple<string,			bool>>		stringMap;
 	map<string, tuple<GTime,			bool>>		timeMap;
 	map<string, tuple<double,			bool>>		doubleMap;
-	map<string, tuple<int,				bool>>		intMap;	
-	map<string, tuple<Vector3d,			bool>>		vectorMap;	
-	map<string, tuple<vector<double>,	bool>>		doubleArrayMap;	
-	map<string, tuple<deque<bool>,		bool>>		boolArrayMap;	
+	map<string, tuple<int,				bool>>		intMap;
+	map<string, tuple<Vector3d,			bool>>		vectorMap;
+	map<string, tuple<vector<double>,	bool>>		doubleArrayMap;
+	map<string, tuple<deque<bool>,		bool>>		boolArrayMap;
 };
 
 using bsoncxx::builder::stream::close_array;
@@ -57,6 +58,7 @@ struct Mongo
 	static mongocxx::instance		instance; 	// This should be done only once.
 	mongocxx::uri					uri;
 	mongocxx::pool					pool;
+	string							database;
 
 	Mongo(string uriString) : uri{uriString}, pool{uri}
 	{
@@ -130,12 +132,21 @@ struct MongoLogSinkBackend : public sinks::basic_formatted_sink_backend<char, si
 
 void mongoooo();
 
+vector<E_Mongo> mongoInstances(
+	E_Mongo		selection);
+
+bool startNewMongoDb(
+	const string&				id,
+	boost::posix_time::ptime	logptime,
+	string  					new_database,
+	E_Mongo						instance);
+
 document entryToDocument(
 	DBEntry&	entry,
 	bool		type);
 
-extern Mongo*	localMongo_ptr;
-extern Mongo*	remoteMongo_ptr;
+
+extern array<Mongo*, 3>	mongo_ptr_arr;
 
 
 #define MONGO_NOT_INITIALISED_MESSAGE BOOST_LOG_TRIVIAL(warning)	<< "Mongo actions requested but mongo is not available - check it is enabled and connected correctly"

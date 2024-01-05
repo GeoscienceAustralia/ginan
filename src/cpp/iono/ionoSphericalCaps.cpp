@@ -305,8 +305,8 @@ double ionVtecSphcap(
 int configIonModelSphcap(
 	Trace& trace)
 {
-	double latc = acsConfig.ionexGrid.lat_center	* D2R;
-	double lonc = acsConfig.ionexGrid.lon_center	* D2R;
+	double latc = acsConfig.ionexGrid.lat_centre	* D2R;
+	double lonc = acsConfig.ionexGrid.lon_centre	* D2R;
 	double latw = acsConfig.ionexGrid.lat_width		* D2R / 2;
 	double lonw = acsConfig.ionexGrid.lon_width		* D2R / 2;
 	scapRotMat[0] =  sin(latc) * cos(lonc);

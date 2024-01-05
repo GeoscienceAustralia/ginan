@@ -63,6 +63,7 @@ double tropModelCoef(
 	auto& basis = tropBasisVec[ind];
 
 	auto& atmReg = nav.ssrAtm.atmosRegionsMap[basis.regionID];
+
 	double recLatDeg = pos.latDeg();
 	double recLonDeg = pos.lonDeg();
 
@@ -83,14 +84,14 @@ double tropModelCoef(
 	{
 		case E_BasisType::POLYNOMIAL:
 		{
-			switch (basis.index)	//todo aaron magic numbers
+			switch (basis.index)
 			{
-				case 0: 	return 1;
-				case 1: 	return latdiff;
-				case 2: 	return londiff;
-				case 3: 	return latdiff * londiff;
-				case 4: 	return latdiff * latdiff;
-				case 5: 	return londiff * londiff;
+				case E_PolyType::CONSTANT: 	return 1;
+				case E_PolyType::LAT: 		return latdiff;
+				case E_PolyType::LON: 		return londiff;
+				case E_PolyType::LAT_LON: 	return latdiff * londiff;
+				case E_PolyType::LAT_SQRD: 	return latdiff * latdiff;
+				case E_PolyType::LON_SQRD: 	return londiff * londiff;
 				default:	return 0;
 			}
 		}

@@ -24,12 +24,13 @@ using std::ifstream;
 
 #include "coordinates.hpp"
 #include "ephPrecise.hpp"
+#include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
 #include "iers2010.hpp"
+#include "receiver.hpp"
 #include "planets.hpp"
 #include "algebra.hpp"
-#include "station.hpp"
 #include "common.hpp"
 #include "tides.hpp"
 #include "trace.hpp"
@@ -119,7 +120,7 @@ bool readBlqRecord(
 */
 bool readBlq(
 	string			file,		///< BLQ ocean tide loading parameter file
-	Station&		rec,		///< Station
+	Receiver&		rec,		///< Receiver
 	E_LoadingType	type)		///< Type of loading (ocean, atmospheric)
 {
 	ifstream fileStream(file);
@@ -130,12 +131,17 @@ bool readBlq(
 
 		return false;
 	}
+	
+	vector<E_TidalConstituent>	waveList;
+	
+	if		(type == +E_LoadingType::OCEAN)			{	waveList = acsConfig.otl_blq_col_order;	}
+	else if	(type == +E_LoadingType::ATMOSPHERIC)	{	waveList = acsConfig.atl_blq_col_order;	}
 
 	// station ID to upper case
 	string id = rec.id;
 	boost::to_upper(id);
 
-	vector<E_TidalConstituent>	waveList;
+	bool columnOrderFound = false;
 	while (fileStream)
 	{
 		string line;
@@ -150,8 +156,23 @@ bool readBlq(
 			vector<string> waveNames;
 			boost::split(waveNames, str, boost::is_any_of(" "), boost::token_compress_on);
 
-			for (int i = 0; i < waveNames.size(); i++)
-				waveList.push_back(E_TidalConstituent::_from_string(waveNames[i].c_str()));
+			waveList.clear();
+			
+			for (auto& waveName : waveNames)
+			{
+				try
+				{
+					E_TidalConstituent constituent = E_TidalConstituent::_from_string(waveName.c_str());
+					waveList.push_back(constituent);
+				}
+				catch (...)
+				{
+					BOOST_LOG_TRIVIAL(warning)
+					<< "Warning: Unknown tidal constituent in BLQ file header: " << waveName << std::endl;
+				}
+			}
+
+			columnOrderFound = true;
 
 			continue;
 		}
@@ -161,14 +182,20 @@ bool readBlq(
 			continue;
 		}
 
+		if (!columnOrderFound)
+		{
+			BOOST_LOG_TRIVIAL(warning)
+			<< "Warning: Column order information not found in BLQ file header, (default) config is used" << std::endl;
+		}
+
 		string name = line.substr(2, 4);
 		boost::to_upper(name);
 		if (name != id)
 			continue;
 
 		// read BLQ record for the station
-		if		(type == +E_LoadingType::OCEAN)			{	auto componentList = acsConfig.model.tides.otl_blq_row_order;	return readBlqRecord(fileStream, waveList, componentList, rec.otlDisplacement);		}
-		else if	(type == +E_LoadingType::ATMOSPHERIC)	{	auto componentList = acsConfig.model.tides.atl_blq_row_order;	return readBlqRecord(fileStream, waveList, componentList, rec.atlDisplacement);		}
+		if		(type == +E_LoadingType::OCEAN)			{	auto componentList = acsConfig.otl_blq_row_order;	return readBlqRecord(fileStream, waveList, componentList, rec.otlDisplacement);		}
+		else if	(type == +E_LoadingType::ATMOSPHERIC)	{	auto componentList = acsConfig.atl_blq_row_order;	return readBlqRecord(fileStream, waveList, componentList, rec.atlDisplacement);		}
 		else
 		{
 			BOOST_LOG_TRIVIAL(error)
@@ -179,7 +206,7 @@ bool readBlq(
 	}
 
 	BOOST_LOG_TRIVIAL(error)
-	<< __FUNCTION__ << ": no otl parameters: sta=" << id << ", file=" << file << std::endl;
+	<< __FUNCTION__ << ": no otl parameters: sta=" << rec.id << ", file=" << file << std::endl;
 
 	return false;
 }
@@ -350,7 +377,7 @@ Vector3d tideSolidEarthDehant(
 	GTime				time,		///< GPS time
 	const Vector3d&		rsun,		///< Sun position vector in ECEF (m)
 	const Vector3d&		rmoon,		///< Moon position vector in ECEF (m)
-	const Vector3d&		recPos)		///< Station position in ECEF (m)
+	const Vector3d&		recPos)		///< Receiver position in ECEF (m)
 {
 	tracepdeex(4, trace, "\n%s:\n", __FUNCTION__);
 
@@ -696,8 +723,8 @@ VectorEnu tideOceanPole(
 
 	if (oceanPoleGrid.grid.empty())
 	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Ocean pole tide coefficients not available" << std::endl;
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Ocean pole tide coefficients not available" << std::endl;
 
 		return VectorEnu();
 	}
@@ -779,10 +806,8 @@ VectorEnu tideOceanPole(
 void tideDisp(
 	Trace&			trace,				///< Trace to output to
 	GTime			time,				///< GPS time
-	Vector3d&		recPos,				///< Station position in ECEF (m)
-	ERP&			erp,				///< ERP list
-	TideMap&		otlDisplacement,	///< Map of ocean tide loading displacements
-	TideMap&		atlDisplacement,	///< Map of atmospheric tide loading displacements
+	Receiver&		rec,				///< Receiver
+	Vector3d&		recPos,				///< Receiver position in ECEF (m)
 	Vector3d&		dr,					///< Total displacement by Earth tides in ECEF (m)
 	Vector3d*		solid_ptr,			///< Pointer of displacement by solid Earth tide
 	Vector3d*		otl_ptr,			///< Pointer of displacement by ocean tide
@@ -796,7 +821,7 @@ void tideDisp(
 
 	tracepdeex(lv, trace, "\n\n%s: time=%s", __FUNCTION__, time.to_string(2).c_str());
 
-	ERPValues erpv = getErp(erp, time);
+	ERPValues erpv = getErp(nav.erp, time);
 
 	MjDateUt1 mjdUt1(time, erpv.ut1Utc);
 
@@ -807,7 +832,9 @@ void tideDisp(
 
 	VectorPos pos = ecef2pos(recPos);
 
-	if (acsConfig.model.tides.solid)
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
+
+	if (recOpts.tideModels.solid)
 	{
 		// solid Earth tides
 
@@ -828,13 +855,13 @@ void tideDisp(
 
 		tracepdeex(lv, trace,"\n%s   SOLID        %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
 	}
-
-	if	( acsConfig.model.tides.otl
-		&&otlDisplacement.empty() == false)
+	
+	if	( recOpts.tideModels.otl
+		&&rec.otlDisplacement.empty() == false)
 	{
 		// ocean tide loading
 
-		VectorEnu	denu	= tideOceanLoadHardisp(trace, time, otlDisplacement);
+		VectorEnu	denu	= tideOceanLoadHardisp(trace, time, rec.otlDisplacement);
 		Vector3d	drt		= (Vector3d)enu2ecef(pos, denu);
 
 		dr += drt;
@@ -847,12 +874,12 @@ void tideDisp(
 		tracepdeex(lv, trace, "\n%s   OCEAN       %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
 	}
 
-	if	( acsConfig.model.tides.atl
-		&&atlDisplacement.empty() == false)
+	if	( recOpts.tideModels.atl
+		&&rec.atlDisplacement.empty() == false)
 	{
 		// atmospheric tide loading
 
-		VectorEnu	denu	= tideAtmosLoad(trace, mjdUt1, atlDisplacement);
+		VectorEnu	denu	= tideAtmosLoad(trace, mjdUt1, rec.atlDisplacement);
 		Vector3d	drt		= (Vector3d)enu2ecef(pos, denu);
 
 		dr += drt;
@@ -865,7 +892,7 @@ void tideDisp(
 		tracepdeex(lv, trace, "\n%s   ATMOSPHERIC %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
 	}
 
-	if 	(acsConfig.model.tides.spole)
+	if (recOpts.tideModels.spole)
 	{
 		// solid Earth pole tide
 
@@ -882,7 +909,7 @@ void tideDisp(
 		tracepdeex(lv, trace, "\n%s   SOLID POLE  %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
 	}
 
-	if (acsConfig.model.tides.opole)
+	if (recOpts.tideModels.opole)
 	{
 		// ocean pole tide
 

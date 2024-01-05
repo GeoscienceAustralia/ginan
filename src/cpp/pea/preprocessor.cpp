@@ -8,7 +8,7 @@
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "satStat.hpp"
 #include "trace.hpp"
 #include "sinex.hpp"
@@ -21,7 +21,7 @@ void outputObservations(
 	ObsList&	obsList)
 {
 	for (auto& obs : only<GObs>(obsList))
-	for (auto& [ft, sigs] : obs.SigsLists)
+	for (auto& [ft, sigs] : obs.sigsLists)
 	for (auto& sig : sigs)
 	{
 		if (obs.exclude)
@@ -32,8 +32,6 @@ void outputObservations(
 		tracepdeex(4, trace, "\n%s %5s %5s %14.4f %14.4f", obs.time.to_string(2).c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sig.L, sig.P);
 	}
 }
-
-
 
 void obsVariances(
 	ObsList& obsList)
@@ -50,43 +48,47 @@ void obsVariances(
 		if (el == 0)
 			el = PI/8;
 
-		double elevationScaling = 1;
+		double recElScaling = 1;
 		switch (recOpts.error_model)
 		{
-			case E_NoiseModel::UNIFORM:					{	elevationScaling = 1;				break;	}
-			case E_NoiseModel::ELEVATION_DEPENDENT:		{	elevationScaling = 1 / sin(el);		break;	}
+			case E_NoiseModel::UNIFORM:					{	recElScaling = 1;				break;	}
+			case E_NoiseModel::ELEVATION_DEPENDENT:		{	recElScaling = 1 / sin(el);		break;	}
 		}
 
-		auto freqSigma = [elevationScaling](int ft, vector<double>& sigmasVec)
+		double satElScaling = 1;
+		switch (satOpts.error_model)
 		{
-			//get the sigma for this frequency, (or the last one in the list)
-			if (ft >= sigmasVec.size())
-				ft =  sigmasVec.size() - 1;
-
-			double sigmaCode = sigmasVec[ft];
-
-			sigmaCode *= elevationScaling;
-
-			return SQR(sigmaCode);
-		};
-
-		for (auto& [ft, Sig]	: obs.Sigs)
-		{
-			Sig.codeVar = 0;
-			Sig.phasVar = 0;
-
-			Sig.codeVar += freqSigma(ft, recOpts.code_sigmas);			Sig.codeVar += freqSigma(ft, satOpts.code_sigmas);
-			Sig.phasVar += freqSigma(ft, recOpts.phase_sigmas);			Sig.phasVar += freqSigma(ft, satOpts.phase_sigmas);
+			case E_NoiseModel::UNIFORM:					{	satElScaling = 1;				break;	}
+			case E_NoiseModel::ELEVATION_DEPENDENT:		{	satElScaling = 1 / sin(el);		break;	}
 		}
 
-		for (auto& [ft, sigList] : obs.SigsLists)
-		for (auto& Sig : sigList)
+		for (auto& [ft, sig]	: obs.sigs)
 		{
-			Sig.codeVar = 0;
-			Sig.phasVar = 0;
+			string sigName = sig.code._to_string();
 
-			Sig.codeVar += freqSigma(ft, recOpts.code_sigmas);			Sig.codeVar += freqSigma(ft, satOpts.code_sigmas);
-			Sig.phasVar += freqSigma(ft, recOpts.phase_sigmas);			Sig.phasVar += freqSigma(ft, satOpts.phase_sigmas);
+			auto& satOpts = acsConfig.getSatOpts(obs.Sat,	{sigName});
+			auto& recOpts = acsConfig.getRecOpts(obs.mount,	{obs.Sat.sys._to_string(), sigName});
+
+			sig.codeVar = 0;
+			sig.phasVar = 0;
+
+			sig.codeVar += SQR(recElScaling * recOpts.code_sigma);			sig.codeVar += SQR(satElScaling * satOpts.code_sigma);
+			sig.phasVar += SQR(recElScaling * recOpts.phase_sigma);			sig.phasVar += SQR(satElScaling * satOpts.phase_sigma);
+		}
+
+		for (auto& [ft, sigList] : obs.sigsLists)
+		for (auto& sig : sigList)
+		{
+			string sigName = sig.code._to_string();
+
+			auto& satOpts = acsConfig.getSatOpts(obs.Sat,	{sigName});
+			auto& recOpts = acsConfig.getRecOpts(obs.mount,	{obs.Sat.sys._to_string(), sigName});
+
+			sig.codeVar = 0;
+			sig.phasVar = 0;
+
+			sig.codeVar += SQR(recElScaling * recOpts.code_sigma);			sig.codeVar += SQR(satElScaling * satOpts.code_sigma);
+			sig.phasVar += SQR(recElScaling * recOpts.phase_sigma);			sig.phasVar += SQR(satElScaling * satOpts.phase_sigma);
 		}
 	}
 }
@@ -104,19 +106,19 @@ void excludeUnprocessed(
 }
 
 void recordSlips(
-	Station&	rec)
+	Receiver&	rec)
 {
 	for (auto& obs			: only<GObs>(rec.obsList))
-	for (auto& [ft, sig]	: obs.Sigs)
+	for (auto& [ft, sig]	: obs.sigs)
 	if  (obs.satStat_ptr)
 	{
 		SigStat& sigStat = obs.satStat_ptr->sigStatMap[ft2string(ft)];
 
 		if	(	sigStat.slip.any
-			&&( (acsConfig.excludeSlip.LLI		&& sigStat.slip.LLI)
-			  ||(acsConfig.excludeSlip.GF		&& sigStat.slip.GF)
-			  ||(acsConfig.excludeSlip.MW		&& sigStat.slip.MW)
-			  ||(acsConfig.excludeSlip.SCDIA	&& sigStat.slip.SCDIA)))
+			&&( (acsConfig.exclude.LLI		&& sigStat.slip.LLI)
+			  ||(acsConfig.exclude.GF		&& sigStat.slip.GF)
+			  ||(acsConfig.exclude.MW		&& sigStat.slip.MW)
+			  ||(acsConfig.exclude.SCDIA	&& sigStat.slip.SCDIA)))
 		{
 			rec.savedSlips[obs.Sat] = obs.time;
 		}
@@ -125,12 +127,12 @@ void recordSlips(
 
 void preprocessor(
 	Network&	net,
-	Station&	rec,
+	Receiver&	rec,
 	bool		realEpoch)
 {
 	if	( (acsConfig.process_preprocessor == false)
-		||(acsConfig.preprocess_all_data == true	&& realEpoch == true)
-		||(acsConfig.preprocess_all_data == false	&& realEpoch == false))
+		||(acsConfig.preprocOpts.preprocess_all_data == true	&& realEpoch == true)
+		||(acsConfig.preprocOpts.preprocess_all_data == false	&& realEpoch == false))
 	{
 		return;
 	}
@@ -231,7 +233,7 @@ void preprocessor(
 	recordSlips(rec);
 
 	for (auto& obs			: only<GObs>(obsList))
-	for (auto& [ft, Sig]	: obs.Sigs)
+	for (auto& [ft, Sig]	: obs.sigs)
 	if  (obs.satStat_ptr)
 	{
 		if (obs.satStat_ptr->sigStatMap[ft2string(ft)].slip.any)

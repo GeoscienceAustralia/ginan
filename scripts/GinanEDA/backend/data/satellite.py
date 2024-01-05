@@ -16,6 +16,7 @@ class Satellite:
         self.mongodb: mongo.MongoDB = mongodb
 
         self.time: npt.ArrayLike = np.empty(0, dtype="datetime64[us]")
+        self.statetime: npt.ArrayLike = np.empty(0, dtype="datetime64[us]")
         self.pos: npt.ArrayLike = np.empty(0)
         self.vel: npt.ArrayLike = np.empty(0)
         self.residual: npt.ArrayLike = np.empty(0)
@@ -26,14 +27,12 @@ class Satellite:
     @classmethod
     def process(cls, mongodb: mongo.MongoDB, sat: str = "", series: str = "", mode: str = "") -> "Satellite":
         s = cls(mongodb, sat, series)
+        s.get_postfit()
+        s.get_state()
+        s.match_time()
         if mode == "Residual RTN":
-            s.get_postfit()
-            s.get_state()
             s.get_rac()
             s.mode = mode
-        else:
-            s.get_postfit()
-            s.get_state()
         return s
 
     def to_measurement(self) -> Measurements:
@@ -77,6 +76,7 @@ class Satellite:
         )
         self.pos = np.empty((3, len(data[0]["t"])))
         self.vel = np.empty((3, len(data[0]["t"])))
+        self.statetime = np.asarray(data[0]["t"], dtype="datetime64[us]")
         data = np.asarray(data[0]["x"])
         self.pos = data[:, :3]
         self.vel = data[:, 3:]
@@ -100,3 +100,11 @@ class Satellite:
         self.rac[:, 1] = (a * self.residual).sum(axis=1)
         self.rac[:, 2] = (c * self.residual).sum(axis=1)
         return self.get_rms(use_rac=True)
+
+    def match_time(self):
+        _, in_time, in_state = np.intersect1d(self.time, self.statetime, return_indices=True)
+        self.time = self.time[in_time]
+        self.residual = self.residual[in_time]
+        self.pos = self.pos[in_state]
+        self.vel = self.vel[in_state]
+        self.statetime = self.statetime[in_state]

@@ -293,7 +293,7 @@ void ionOutputSphcal(
 						sqrt(ionoRecord.variance));
 		}
 
-		if (key.type == KF::DCB)
+		if (key.type == KF::CODE_BIAS)
 		{
 			if (key.num <= 100)
 				continue;

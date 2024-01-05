@@ -8,7 +8,7 @@ using std::set;
 #include "satSys.hpp"
 #include "mongo.hpp"
 
-struct StationMap;
+struct ReceiverMap;
 struct KFMeas;
 struct Geph;
 struct Eph;
@@ -29,36 +29,50 @@ struct TestStatistics
 void mongoMeasResiduals(
 	GTime				time,
 	KFMeas&				kfMeas,
+	bool				queue	= false,
 	string				suffix	= "",
 	int					beg		= 0,
 	int					num		= -1);
 
 void mongoTrace(
-	string		json);
+	string				json,
+	bool				queue = false);
 
 void mongoOutputConfig(
 	string& config);
 
+struct MongoStatesOptions
+{
+	string			suffix		= "";
+	string			collection	= STATES_DB;
+	E_Mongo			instances;
+	bool			force		= false;
+	bool			upsert		= false;
+	bool			queue		= false;
+	bool			index		= true;
+};
+
 void mongoStates(
 	KFState&			kfState,
-	string				suffix = "");
+	MongoStatesOptions	opts = {});
 
 void mongoMeasSatStat(
-	StationMap&			stationMap);
+	ReceiverMap&			receiverMap);
 
 void mongoTestStat(
 	KFState&			kfState,
 	TestStatistics&		statistics);
+
 
 struct MongoOptions;
 struct OrbitState;
 typedef vector<OrbitState> Orbits;
 
 void	outputMongoPredictions(
-	Trace&			trace,		
-	Orbits&			orbits,		
+	Trace&			trace,
+	Orbits&			orbits,
 	GTime 			time,
-	MongoOptions&	config);	
+	MongoOptions&	config);
 
 void mongoCull(
 	GTime time);

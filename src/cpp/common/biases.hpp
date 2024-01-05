@@ -19,7 +19,7 @@ using std::array;
 using std::map;
 using std::set;
 
-struct StationMap;
+struct ReceiverMap;
 
 struct BiasEntry
 {
@@ -43,7 +43,7 @@ E_ObsCode str2code(
 	string&		input,
 	E_MeasType&	measType);
 
-void pushBiasSinex(
+void pushBiasEntry(
 	string		id,
 	BiasEntry	entry);
 
@@ -78,15 +78,16 @@ bool getBias(
 	E_ObsCode 		obsCode1,
 	E_MeasType		measType,
 	double& 		bias,
-	double& 		var);
+	double& 		var,
+	KFState*		kfState_ptr = nullptr);
 
 void writeBiasSinex(
-	Trace&		trace,
-	GTime		time,
-	KFState&	kfState,
-	KFState&	ionState,
-	string		biasfile,
-	StationMap&	stationMap);
+	Trace&			trace,
+	GTime			time,
+	KFState&		kfState,
+	KFState&		ionState,
+	string			biasfile,
+	ReceiverMap&	receiverMap);
 
 bool queryBiasOutput(
 	Trace&		trace,
@@ -99,5 +100,8 @@ bool queryBiasOutput(
 	double& 	bias_out,
 	double& 	variance,
 	E_MeasType	type);
+
+void loadStateBiases(
+	KFState&	kfState);
 
 extern array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, BiasEntry, std::greater<GTime>>>>>, NUM_MEAS_TYPES> biasMaps;

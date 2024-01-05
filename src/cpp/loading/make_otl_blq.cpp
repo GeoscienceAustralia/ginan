@@ -39,13 +39,15 @@ namespace po = boost::program_options;
 
 const int THREAD_COUNT = 8;
 
-void expand_path (std::string & path)
+void expand_path(
+	string& path)
 {
-	if (path[0] == '~')
+	char* home = std::getenv("HOME");
+	if	(path[0] == '~'
+		&&home)
 	{
-		std::string env_h = std::getenv("HOME");
 		path.erase(0, 1);
-		path.insert(0, env_h);
+		path.insert(0, home);
 	}
 }
 
@@ -100,7 +102,7 @@ void program_options(int argc, char * argv[], otl_input & input)
 	{
 		throw std::runtime_error("The required argument for option '--type' is missing");
 	}
-	
+
 	std::string config_f;
 	std::string code_f;
 	std::vector<float> location;
@@ -112,7 +114,7 @@ void program_options(int argc, char * argv[], otl_input & input)
 	if (vm.count("location")) {
 		location = vm["location"].as<std::vector<float>>();
 		if (is_ecef)
-		{ 
+		{
 			/// \todo Need to have a check if there is 3 values in the vector.
 			input.xyz_coords.push_back(location);
 

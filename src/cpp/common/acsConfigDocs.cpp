@@ -2,9 +2,9 @@
 #include "acsConfig.hpp"
 
 
-map<string, string> ACSConfig::docs = 
+map<string, string> ACSConfig::docs =
 {
-	
+
 { "outputs", R"config(Specifies options to enable outputs and specify file locations.
 
 Each section typically contains an option to `output` the filetype, and a `directory` to place the files named `filename`, along with any ancillary options.
@@ -16,8 +16,8 @@ Each section typically contains an option to `output` the filetype, and a `direc
 { "gnss_observations", R"config(This section specifies the sources of observation data to be used in positioning.
 
 
-There are numerous ways that the `pea` can access GNSS observations to process. 
-You can specify individual files to process, set it up so that it will search a particular directory, or you can use a command line flag `--rnx <rnxfilename>` to add an additional file to process. 
+There are numerous ways that the `pea` can access GNSS observations to process.
+You can specify individual files to process, set it up so that it will search a particular directory, or you can use a command line flag `--rnx <rnxfilename>` to add an additional file to process.
 
 The data should be uncompressed rinex (gunzipped, and not in hatanaka format), or RTCM3 formatted binary data.
 
@@ -30,13 +30,13 @@ It may consist of RINEX files, or RTCM streams or files, which are specified as 
 		rnx_files:
 			- "ALIC*.rnx"
 			- "BAKO*.rnx"
-			
+
 		#rtcm_files:
 		#	- "*-OBS.rtcm3"
 
 		#streams:
-		# - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0"  
-```     
+		# - "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/ALIC00AUS0"
+```
 
 The first 4 characters of the filename are used as the receiver ID.
 
@@ -59,7 +59,7 @@ If multiple files are supplied with the same ID, they are all processed in seque
 { "trop_sinex",			"Troposphere SINEX files are used to export troposhere products, such as ZTD and delay gradients."},
 { "slr_obs",			"SLR_OBS files are used as temporary files to arrange SLR observations by time. SLR observations are taken from CRD files, which are not strictly in time-order)."},
 { "slr_options",		"This section controls how Satellite Laser Ranging (SLR) observations are handled."},
-{ "ssr_corrections",	"This section specifies how State State Representation (SSR) corrections are calculated before being published to an NTRIP caster."},
-{ "ssr_inputs",			"This section specifies how State State Representation (SSR) corrections are applied after they are downloaded from an NTRIP caster."},
+{ "ssr_outputs",		"This section specifies how State State Representation (SSR) corrections are calculated before being published to an NTRIP caster."},
+{ "rtcm_inputs",		"This section specifies how State State Representation (SSR) corrections are applied after they are downloaded from an NTRIP caster."},
 
 };

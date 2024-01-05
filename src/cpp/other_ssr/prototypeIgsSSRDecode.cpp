@@ -237,7 +237,7 @@ void updateNavSSR()
 				entry.slop	=  0;
 				entry.slpv	=  0;
 
-				pushBiasSinex(id, entry);
+				pushBiasEntry(id, entry);
 				tracepdeex(IGSSSRTRCLVL,std::cout, "%s %9.4f; ", code._to_string(), biasSSR.bias);
 			}
 
@@ -268,7 +268,7 @@ void updateNavSSR()
 				entry.slop	=  0;
 				entry.slpv	=  0;
 
-				pushBiasSinex(id, entry);
+				pushBiasEntry(id, entry);
 				tracepdeex(IGSSSRTRCLVL,std::cout, "%s %9.4f; ", code._to_string(), biasSSR.bias);
 			}
 
@@ -277,7 +277,6 @@ void updateNavSSR()
 				ssr.ssrPhasBias_map[ssrBlock.ssrPhasBias.t0] = ssrBlock.ssrPhasBias;
 			}
 		}
-
 
 		if (ssrBlock.uraUpdated)
 		if (ssr.ssrUra_map.find(ssrBlock.ssrUra.t0) == ssr.ssrUra_map.end())
@@ -307,16 +306,16 @@ int decodeigsSSR_header(
 	ssrMeta.provider			= getbituInc(data, i, 16);
 	ssrMeta.solution			= getbituInc(data, i, 4);
 
-	if (opt==1)
+	if (opt == 1)
 		ssrMeta.referenceDatum	= getbituInc(data, i, 1);
 
-	if (opt==2)
+	if (opt == 2)
 	{
 		ssrHead.dispBiasConsis	= getbituInc(data, i, 1);
 		ssrHead.mwConsis		= getbituInc(data, i, 1);
 	}
 
-	if (opt==3)
+	if (opt == 3)
 	{
 		ssrHead.vtecQuality		= getbituInc(data, i, 9)*0.05;
 		ssrHead.numLayers		= getbituInc(data, i, 2)+1;
@@ -657,6 +656,7 @@ void decodeigsSSR_type8(
 	GTime					now)
 {
 	SSRHeader ssrHead;
+
 	int i = decodeigsSSR_header(data, now, 3, ssrHead);
 
 	if (ssrHead.ssrMeta.receivedTime > igsSSRlastTime)

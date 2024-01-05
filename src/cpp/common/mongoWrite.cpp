@@ -23,6 +23,8 @@
 
 #include <bsoncxx/json.hpp>
 
+#include <thread>
+
 using bsoncxx::builder::stream::close_array;
 using bsoncxx::builder::stream::close_document;
 using bsoncxx::builder::stream::document;
@@ -33,6 +35,91 @@ using bsoncxx::builder::basic::kvp;
 using bsoncxx::types::b_date;
 
 using std::make_pair;
+
+struct QueuedMongo
+{
+	KFState				kfState;
+	KFMeas				kfMeas;
+	vector<DBEntry>		dbEntryList;
+
+	E_MongoType			mongoType;
+	vector<E_Mongo>		instances;
+	MongoStatesOptions	mongoStatesOpts;
+
+	string				suffix;
+
+	GTime				time;
+};
+
+void mongoOutput(
+	vector<DBEntry>&	dbEntryList,
+	bool				queue,
+	vector<E_Mongo>		instances,
+	string				collection);
+
+list<QueuedMongo>	mongoQueue;
+std::mutex			mongoQueueMutex;
+bool				mongoQueueRunning = false;
+
+void mongoQueueRun()
+{
+	BOOST_LOG_TRIVIAL(debug) << "Running mongo queue thread";
+
+	while (1)
+	{
+		QueuedMongo* object_ptr;
+
+		//use pointer and braces to limit guard scope
+		{
+			lock_guard<mutex> guard(mongoQueueMutex);
+
+			if (mongoQueue.empty())
+			{
+				break;
+			}
+
+			BOOST_LOG_TRIVIAL(debug) << "Mongo queue has " << mongoQueue.size() << " entries to go";
+
+			object_ptr = &mongoQueue.front();
+		}
+
+		auto& object = *object_ptr;
+
+		switch (object.mongoType)
+		{
+			case E_MongoType::STATES:			mongoStates			(						object.kfState,	object.mongoStatesOpts);									break;
+			case E_MongoType::RESIDUALS:		mongoMeasResiduals	(object.time,			object.kfMeas,				false,						object.suffix);		break;
+			case E_MongoType::TRACE:			mongoTrace			(object.suffix,										false);											break;
+			case E_MongoType::LIST:				mongoOutput			(object.dbEntryList,								false, object.instances,	object.suffix);		break;
+		}
+
+		{
+			lock_guard<mutex> guard(mongoQueueMutex);
+
+			mongoQueue.pop_front();
+		}
+	}
+
+	lock_guard<mutex> guard(mongoQueueMutex);
+	mongoQueueRunning = false;
+}
+
+void queueMongo(
+	QueuedMongo& object)		///< Object to output
+{
+	BOOST_LOG_TRIVIAL(debug) << "Queueing mongo: " << object.mongoType;
+
+	lock_guard<mutex> guard(mongoQueueMutex);
+
+	mongoQueue.push_back(std::move(object));
+
+	if (mongoQueueRunning == false)
+	{
+		mongoQueueRunning = true;
+
+		std::thread(mongoQueueRun).detach();
+	}
+}
 
 b_date bDate(
 	GTime time)
@@ -50,32 +137,14 @@ void mongoTestStat(
 	KFState&		kfState,
 	TestStatistics&	testStatistics)
 {
-	auto& mongo_ptr = localMongo_ptr;
+	auto instances = mongoInstances(acsConfig.mongoOpts.output_test_stats);
 
-	if (mongo_ptr == nullptr)
+	if (instances.empty())
 	{
-		MONGO_NOT_INITIALISED_MESSAGE;
-
-		acsConfig.localMongo.output_test_stats = false;
-
 		return;
 	}
 
 	Instrument instrument(__FUNCTION__);
-
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.localMongo.database];
-	mongocxx::collection		coll	= db[STATES_DB];
-
-	mongocxx::options::bulk_write bulk_opts;
-	bulk_opts.ordered(false);
-
-	auto bulk = coll.create_bulk_write(bulk_opts);
-
-	bool update = false;
 
 	map<string, double> entries;
 	entries["StatsSumOfSquaresPre"		] = testStatistics.sumOfSquaresPre;
@@ -87,217 +156,259 @@ void mongoTestStat(
 	entries["StatsDegreeOfFreedom"		] = testStatistics.dof;
 	entries["StatsChiSquarePerDOF"		] = testStatistics.chiSqPerDof;
 
-	for (auto& [state, value] : entries)
+	for (auto instance : instances)
 	{
-		bsoncxx::builder::stream::document doc{};
-		doc	<< "Epoch"		<< bDate(kfState.time)
-			<< "Site"		<< kfState.id		+ acsConfig.localMongo.suffix
-			<< "Sat"		<< ""				+ acsConfig.localMongo.suffix
-			<< "State"		<< state
-			<< "x"			<< value;
+		Mongo* mongo_ptr = mongo_ptr_arr[instance];
 
-		bsoncxx::document::value doc_val = doc << finalize;
-		bulk.append(mongocxx::model::insert_one(doc_val.view()));
-		update = true;
-	}
+		if (mongo_ptr == nullptr)
+			continue;
 
-	if (update)
-	{
-		bulk.execute();
+		auto& mongo		= *mongo_ptr;
+		auto& config	= acsConfig.mongoOpts[instance];
+
+		auto 						c		= mongo.pool.acquire();
+		mongocxx::client&			client	= *c;
+		mongocxx::database			db		= client[mongo.database];
+		mongocxx::collection		coll	= db[STATES_DB];
+
+		mongocxx::options::bulk_write bulk_opts;
+		bulk_opts.ordered(false);
+
+		auto bulk = coll.create_bulk_write(bulk_opts);
+
+		bool update = false;
+
+		for (auto& [state, value] : entries)
+		{
+			bsoncxx::builder::stream::document doc{};
+			doc	<< "Epoch"		<< bDate(kfState.time)
+				<< "Site"		<< kfState.id		+ config.suffix
+				<< "Sat"		<< ""				+ config.suffix
+				<< "State"		<< state
+				<< "x"			<< value;
+
+			bsoncxx::document::value doc_val = doc << finalize;
+			bulk.append(mongocxx::model::insert_one(doc_val.view()));
+			update = true;
+		}
+
+		if (update)
+		{
+			bulk.execute();
+		}
 	}
 }
 
 void mongoTrace(
-	string json)
+	string	json,
+	bool	queue)
 {
-	auto& mongo_ptr = localMongo_ptr;
-
-	if (mongo_ptr == nullptr)
+	auto instances = mongoInstances(acsConfig.mongoOpts.output_trace);
+	if (instances.empty())
 	{
-		MONGO_NOT_INITIALISED_MESSAGE;
+		return;
+	}
 
-		acsConfig.localMongo.output_trace = false;
+	if (queue)
+	{
+		QueuedMongo queueEntry;
+		queueEntry.suffix		= json;
+		queueEntry.mongoType	= E_MongoType::TRACE;
+
+		queueMongo(queueEntry);
 
 		return;
 	}
 
 	Instrument instrument(__FUNCTION__);
 
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.localMongo.database];
-
-
-	string collectionName = "Trace";
-
-	mongocxx::collection		coll	= db[collectionName];
-
-	mongocxx::options::bulk_write bulk_opts;
-	bulk_opts.ordered(false);
-
-	auto bulk = coll.create_bulk_write(bulk_opts);
-
-	bool update = false;
-
-	auto doc = bsoncxx::from_json(json);
-
-	bulk.append(mongocxx::model::insert_one(doc.view()));
-
-	bulk.execute();
-}
-
-void mongoOutputConfig(
-	string& config)
-{
-	auto& mongo_ptr = localMongo_ptr;
-
-	if (mongo_ptr == nullptr)
+	for (auto instance : instances)
 	{
-		MONGO_NOT_INITIALISED_MESSAGE;
+		Mongo* mongo_ptr = mongo_ptr_arr[instance];
 
-		return;
-	}
+		if (mongo_ptr == nullptr)
+			continue;
 
-	Instrument instrument(__FUNCTION__);
+		auto& mongo = *mongo_ptr;
 
-	Mongo& mongo = *mongo_ptr;
+		string collectionName = "Trace";
+		auto 						c		= mongo.pool.acquire();
+		mongocxx::client&			client	= *c;
+		mongocxx::database			db		= client[mongo.database];
+		mongocxx::collection		coll	= db[collectionName];
 
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.localMongo.database];
+		mongocxx::options::bulk_write bulk_opts;
+		bulk_opts.ordered(false);
 
+		auto bulk = coll.create_bulk_write(bulk_opts);
 
-	string collectionName = "Config";
-
-	mongocxx::collection		coll	= db[collectionName];
-
-	mongocxx::options::bulk_write bulk_opts;
-	bulk_opts.ordered(false);
-
-	auto bulk = coll.create_bulk_write(bulk_opts);
-
-	bool update = false;
-
-	try
-	{
-		auto doc = bsoncxx::from_json(config);
+		auto doc = bsoncxx::from_json(json);
 
 		bulk.append(mongocxx::model::insert_one(doc.view()));
 
 		bulk.execute();
 	}
-	catch (...)
+}
+
+void mongoOutputConfig(
+	string& config)
+{
+	auto instances = mongoInstances(acsConfig.mongoOpts.output_config);
+	if (instances.empty())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Could not output config to mongo, likely due to empty entries in yaml.";
+		return;
+	}
+
+	Instrument instrument(__FUNCTION__);
+
+	for (auto instance : instances)
+	{
+		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+
+		if (mongo_ptr == nullptr)
+			continue;
+
+		auto& mongo = *mongo_ptr;
+
+		auto 						c		= mongo.pool.acquire();
+		mongocxx::client&			client	= *c;
+		mongocxx::database			db		= client[mongo.database];
+
+		string collectionName = "Config";
+
+		mongocxx::collection		coll	= db[collectionName];
+
+		mongocxx::options::bulk_write bulk_opts;
+		bulk_opts.ordered(false);
+
+		auto bulk = coll.create_bulk_write(bulk_opts);
+
+		bool update = false;
+
+		try
+		{
+			auto doc = bsoncxx::from_json(config);
+
+			bulk.append(mongocxx::model::insert_one(doc.view()));
+
+			bulk.execute();
+		}
+		catch (...)
+		{
+			BOOST_LOG_TRIVIAL(warning) << "Warning: Could not output config to mongo, likely due to empty entries in yaml.";
+		}
 	}
 }
 
 void mongoMeasSatStat(
-	StationMap& stationMap)
+	ReceiverMap& receiverMap)
 {
-	auto& mongo_ptr = localMongo_ptr;
-
-	if (mongo_ptr == nullptr)
+	auto instances = mongoInstances(acsConfig.mongoOpts.output_measurements);
+	if (instances.empty())
 	{
-		MONGO_NOT_INITIALISED_MESSAGE;
+		return;
+	}
 
-		acsConfig.localMongo.output_measurements = false;
+	Instrument instrument(__FUNCTION__);
+
+	for (auto instance : instances)
+	{
+		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+
+		if (mongo_ptr == nullptr)
+			continue;
+
+		auto& mongo		= *mongo_ptr;
+		auto& config	= acsConfig.mongoOpts[instance];
+
+		auto 						c		= mongo.pool.acquire();
+		mongocxx::client&			client	= *c;
+		mongocxx::database			db		= client[mongo.database];
+
+		string collectionName = "Geometry";
+
+		mongocxx::collection		coll	= db[collectionName];
+
+		mongocxx::options::bulk_write bulk_opts;
+		bulk_opts.ordered(false);
+
+		auto bulk = coll.create_bulk_write(bulk_opts);
+
+		bool update = false;
+
+		for (auto& [id, rec] : receiverMap)
+		for (auto& obs : only<GObs>(rec.obsList))
+		{
+			if (obs.exclude)
+				continue;
+
+			if (obs.satStat_ptr == nullptr)
+				continue;
+
+			SatStat& satStat = *obs.satStat_ptr;
+
+			bsoncxx::builder::stream::document doc{};
+			doc		<< "Epoch"		<< bDate(tsync)
+					<< "Site"		<< obs.mount
+					<< "Sat"		<< obs.Sat.id()
+					<< "Series"		<< config.suffix
+					<< "Azimuth"	<< satStat.az		* R2D
+					<< "Elevation"	<< satStat.el		* R2D
+					<< "Nadir"		<< satStat.nadir	* R2D;
+
+			bsoncxx::document::value doc_val = doc << finalize;
+			bulk.append(mongocxx::model::insert_one(doc_val.view()));
+			update = true;
+		}
+
+		if (update)
+			bulk.execute();
+	}
+}
+
+void mongoMeasResiduals(
+	GTime				time,
+	KFMeas&				kfMeas,
+	bool				queue,
+	string				suffix,
+	int					beg,
+	int					num)
+{
+	auto instances = mongoInstances(acsConfig.mongoOpts.output_measurements);
+
+	if (instances.empty())
+	{
+		return;
+	}
+
+	if (queue)
+	{
+		QueuedMongo queueEntry;
+		queueEntry.kfMeas		= kfMeas;
+		queueEntry.suffix		= suffix;
+		queueEntry.time			= time;
+		queueEntry.mongoType	= E_MongoType::RESIDUALS;
+
+		queueMongo(queueEntry);
 
 		return;
 	}
 
 	Instrument instrument(__FUNCTION__);
 
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[acsConfig.localMongo.database];
-
-
-	string collectionName = "Geometry";
-
-	mongocxx::collection		coll	= db[collectionName];
-
-	mongocxx::options::bulk_write bulk_opts;
-	bulk_opts.ordered(false);
-
-	auto bulk = coll.create_bulk_write(bulk_opts);
-
-	bool update = false;
-
-	for (auto& [id, rec] : stationMap)
-	for (auto& obs : only<GObs>(rec.obsList))
+	for (auto instance : instances)
 	{
-		if (obs.exclude)
-			continue;
-
-		if (obs.satStat_ptr == nullptr)
-			continue;
-
-		SatStat& satStat = *obs.satStat_ptr;
-
-		bsoncxx::builder::stream::document doc{};
-		doc		<< "Epoch"		<< bDate(tsync)
-				<< "Site"		<< obs.mount
-				<< "Sat"		<< obs.Sat.id()
-				<< "Series"		<< acsConfig.localMongo.suffix
-				<< "Azimuth"	<< satStat.az		* R2D
-				<< "Elevation"	<< satStat.el		* R2D
-				<< "Nadir"		<< satStat.nadir	* R2D;
-
-		bsoncxx::document::value doc_val = doc << finalize;
-		bulk.append(mongocxx::model::insert_one(doc_val.view()));
-		update = true;
-	}
-
-	if (update)
-		bulk.execute();
-}
-
-
-
-void mongoMeasResiduals(
-	GTime				time,
-	KFMeas&				kfMeas,
-	string				suffix,
-	int					beg,
-	int					num)
-{
-	Instrument instrument(__FUNCTION__);
-
-	for (auto mongo_ptr_ptr : {&localMongo_ptr, &remoteMongo_ptr})
-	{
-		auto& mongo_ptr = *mongo_ptr_ptr;
-
-		MongoOptions*	config_ptr;
-		if (mongo_ptr_ptr == &localMongo_ptr)		config_ptr = &acsConfig.localMongo;
-		else										config_ptr = &acsConfig.remoteMongo;
-
-		auto& config = *config_ptr;
-
-		if (config.output_measurements == false)
-		{
-			continue;
-		}
+		Mongo* mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
-		{
-			MONGO_NOT_INITIALISED_MESSAGE;
-
-			config.output_measurements = false;
-
 			continue;
-		}
 
-		Mongo& mongo = *mongo_ptr;
+		auto& mongo		= *mongo_ptr;
+		auto& config	= acsConfig.mongoOpts[instance];
 
 		auto 						c		= mongo.pool.acquire();
 		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[config.database];
-
+		mongocxx::database			db		= client[mongo.database];
 
 		string collectionName = "Measurements";
 
@@ -332,7 +443,7 @@ void mongoMeasResiduals(
 
 			string name = commentString + std::to_string(obsKey.num);
 
-			lookup[make_tuple(obsKey.str, obsKey.Sat.id())].push_back(i);
+			lookup[{obsKey.str, obsKey.Sat.id()}].push_back(i);
 		}
 
 		for (auto& [description, index] : lookup)
@@ -366,19 +477,19 @@ void mongoMeasResiduals(
 				indexLabel[name + "-Postfit"]	= true;
 				indexLabel[name + "-Sigma"]		= true;
 
-				if	( config.output_components == false
-					||kfMeas.componentLists.empty())
+				if	( /*config.output_components == false
+					||*/kfMeas.componentsMaps.empty())		//todo aaron
 				{
 					continue;
 				}
 
-				auto& componentList = kfMeas.componentLists[i];
+				auto& componentsMap = kfMeas.componentsMaps[i];
 
-				for (auto& component : componentList)
+				for (auto& [component, details] : componentsMap)
 				{
-					auto& [comp, value, desc, var] = component;
+					auto& [value, desc, var] = details;
 
-					string label = name + " " + KF::_from_integral_unchecked(obsKey.type)._to_string() + " " + comp._to_string();
+					string label = name + " " + KF::_from_integral_unchecked(obsKey.type)._to_string() + " " + component._to_string();
 
 					doc << label << value;
 
@@ -427,52 +538,55 @@ void mongoMeasResiduals(
 
 void mongoStates(
 	KFState&			kfState,
-	string				suffix)
+	MongoStatesOptions	opts)
 {
+	auto instances = mongoInstances(opts.instances);
+
+	if (instances.empty())
+	{
+		return;
+	}
+
+	if (opts.queue)
+	{
+		opts.queue = false;
+
+		QueuedMongo queueEntry;
+		queueEntry.kfState			= kfState;
+		queueEntry.mongoType		= E_MongoType::STATES;
+		queueEntry.mongoStatesOpts	= opts;
+
+		queueMongo(queueEntry);
+
+		return;
+	}
+
 	Instrument instrument(__FUNCTION__);
 
-	for (auto mongo_ptr_ptr : {&localMongo_ptr, &remoteMongo_ptr})
+	for (auto instance : instances)
 	{
-		auto& mongo_ptr = *mongo_ptr_ptr;
-
-		MongoOptions*	config_ptr;
-		if (mongo_ptr_ptr == &localMongo_ptr)		config_ptr = &acsConfig.localMongo;
-		else										config_ptr = &acsConfig.remoteMongo;
-
-		auto& config = *config_ptr;
-
-		if (config.output_states == false)
-		{
-			continue;
-		}
+		Mongo* mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
-		{
-			MONGO_NOT_INITIALISED_MESSAGE;
+			continue;
 
-			config.output_states = false;
-
-			return;
-		}
-
-		Instrument instrument(__FUNCTION__);
-
-		Mongo& mongo = *mongo_ptr;
+		auto& mongo		= *mongo_ptr;
+		auto& config	= acsConfig.mongoOpts[instance];
 
 		auto 						c		= mongo.pool.acquire();
 		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[config.database];
-		mongocxx::collection		coll	= db[STATES_DB];
+		mongocxx::database			db		= client[mongo.database];
+		mongocxx::collection		coll	= db[opts.collection];
 
-		mongocxx::options::update	options;
-		options.upsert(true);
+		//todo aaron, need upsert for predicted states as per opts.upsert
 
 		mongocxx::options::bulk_write bulk_opts;
+
 		bulk_opts.ordered(false);
 
 		auto bulk = coll.create_bulk_write(bulk_opts);
 
-		map<tuple<string, string, string>, vector<pair<int, int>>> lookup;
+		map<tuple<string, string, string>, vector<tuple<int, int>>> lookup;
 		map<string, bool> indexSeries;
 		map<string, bool> indexState;
 		map<string, bool> indexSite;
@@ -485,33 +599,33 @@ void mongoStates(
 				continue;
 			}
 
-			lookup[make_tuple(key.str, key.Sat.id(), KF::_from_integral_unchecked(key.type)._to_string())].push_back(make_pair(index, key.num));
+			lookup[{key.str, key.Sat.id(), KF::_from_integral_unchecked(key.type)._to_string()}].push_back({index, key.num});
 		}
 
 		vector<bsoncxx::document::value> documents;
 
 		bool update = false;
 
-		for (auto &[description, index] : lookup)
+		for (auto& [description, index] : lookup)
 		{
-			auto &[site, sat, state] = description;
+			auto& [site, sat, state] = description;
 
 			bsoncxx::builder::stream::document doc{};
 			doc		<< "Epoch"		<< bDate(kfState.time)
 					<< "Site"		<< site
 					<< "Sat"		<< sat
 					<< "State"		<< state
-					<< "Series"		<< config.suffix + suffix;
+					<< "Series"		<< config.suffix + opts.suffix;
 
-			indexSeries	[config.suffix + suffix]	= true;
-			indexState	[state]						= true;
-			indexSat	[sat]						= true;
-			indexSite	[site]						= true;
+			indexSeries	[config.suffix + opts.suffix]	= true;
+			indexState	[state]							= true;
+			indexSat	[sat]							= true;
+			indexSite	[site]							= true;
 
-			auto	array_builder = doc << "x"		<< open_array;	for (auto &[i, num]: index)		array_builder << 		kfState.x	(i);	array_builder << close_array;
-					array_builder = doc << "dx"		<< open_array;	for (auto &[i, num]: index)		array_builder << 		kfState.dx	(i);	array_builder << close_array;
-					array_builder = doc << "sigma"	<< open_array;	for (auto &[i, num]: index)		array_builder << sqrt(	kfState.P	(i,i));	array_builder << close_array;
-					array_builder = doc << "Num"	<< open_array;	for (auto &[i, num]: index)		array_builder << num;						array_builder << close_array;
+			auto	array_builder = doc << "x"		<< open_array;	for (auto& [i, num]: index)		array_builder << 		kfState.x	(i);	array_builder << close_array;
+					array_builder = doc << "dx"		<< open_array;	for (auto& [i, num]: index)		array_builder << 		kfState.dx	(i);	array_builder << close_array;
+					array_builder = doc << "sigma"	<< open_array;	for (auto& [i, num]: index)		array_builder << sqrt(	kfState.P	(i,i));	array_builder << close_array;
+					array_builder = doc << "Num"	<< open_array;	for (auto& [i, num]: index)		array_builder << num;						array_builder << close_array;
 
 			bsoncxx::document::value doc_val = doc << finalize;
 
@@ -526,6 +640,9 @@ void mongoStates(
 
 			auto addIndices = [&](string name, map<string, bool> index)
 			{
+				mongocxx::options::update		options;
+				options.upsert(true);
+
 				auto eachDoc = document{};
 
 				auto arrayDoc = eachDoc << "$each" << open_array;
@@ -541,10 +658,13 @@ void mongoStates(
 				db["Content"].update_one(findDoc.view(), updateDoc.view(), options);
 			};
 
-			addIndices("Series",indexSeries);
-			addIndices("State",	indexState);
-			addIndices("Site",	indexSite);
-			addIndices("Sat",	indexSat);
+			if (opts.index)
+			{
+				addIndices("Series",indexSeries);
+				addIndices("State",	indexState);
+				addIndices("Site",	indexSite);
+				addIndices("Sat",	indexSat);
+			}
 		}
 	}
 }
@@ -553,32 +673,25 @@ void mongoStates(
 void mongoCull(
 	GTime time)
 {
-	for (auto mongo_ptr_ptr : {&localMongo_ptr, &remoteMongo_ptr})
+	auto instances = mongoInstances(acsConfig.mongoOpts.cull_history);
+	if (instances.empty())
 	{
-		auto& mongo_ptr = *mongo_ptr_ptr;
+		return;
+	}
 
-		MongoOptions*	config_ptr;
-		if (mongo_ptr_ptr == &localMongo_ptr)		config_ptr = &acsConfig.localMongo;
-		else										config_ptr = &acsConfig.remoteMongo;
-
-		auto& config = *config_ptr;
-
-		if (config.cull_history == false)
-		{
-			continue;
-		}
+	for (auto instance : instances)
+	{
+		Mongo* mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
-		{
-			MONGO_NOT_INITIALISED_MESSAGE;
-			return;
-		}
+			continue;
 
-		Mongo& mongo = *mongo_ptr;
+		auto& mongo		= *mongo_ptr;
+		auto& config	= acsConfig.mongoOpts[instance];
 
 		auto 						c		= mongo.pool.acquire();
 		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[config.database];
+		mongocxx::database			db		= client[mongo.database];
 
 		for (auto collection: {SSR_DB, REMOTE_DATA_DB})
 		{
@@ -586,7 +699,7 @@ void mongoCull(
 
 			using bsoncxx::builder::basic::kvp;
 
-			b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)(time - config.min_cull_age)).bigTime)};
+			b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)(time - acsConfig.mongoOpts.min_cull_age)).bigTime)};
 
 			// Remove all documents that match a condition.
 			auto docSys		= document{}	<< SSR_EPOCH
@@ -621,60 +734,71 @@ document entryToDocument(
 
 void mongoOutput(
 	vector<DBEntry>&	dbEntryList,
-	MongoOptions&		config,
+	bool				queue,
+	vector<E_Mongo>		instances,
 	string				collection)
 {
-	Mongo* mongo_ptr;
-
-	if (config.local)		mongo_ptr = localMongo_ptr;
-	else					mongo_ptr = remoteMongo_ptr;
-
-	if (mongo_ptr == nullptr)
+	if (queue)
 	{
-		MONGO_NOT_INITIALISED_MESSAGE;
+		QueuedMongo queueEntry;
+		queueEntry.dbEntryList		= dbEntryList;
+		queueEntry.instances		= instances;
+		queueEntry.suffix			= collection;
+		queueEntry.mongoType		= E_MongoType::LIST;
+
+		queueMongo(queueEntry);
+
 		return;
 	}
 
-	Mongo& mongo = *mongo_ptr;
-
-	auto 						c		= mongo.pool.acquire();
-	mongocxx::client&			client	= *c;
-	mongocxx::database			db		= client[config.database];
-	mongocxx::collection		coll	= db[collection];
-
-	mongocxx::options::update	options;
-	options.upsert(true);
-
-	mongocxx::options::bulk_write bulk_opts;
-	bulk_opts.ordered(false);
-
-	auto bulk = coll.create_bulk_write(bulk_opts);
-
-	bool update = false;
-
-	using bsoncxx::builder::basic::kvp;
-
-	for (auto& entry : dbEntryList)
+	for (auto instance : instances)
 	{
-		// builder::document builds an empty BSON document
-		auto keys = entryToDocument(entry, true);
-		auto vals = entryToDocument(entry, false);
+		Mongo* mongo_ptr = mongo_ptr_arr[instance];
 
-		bsoncxx::builder::basic::document Vals = {};
+		if (mongo_ptr == nullptr)
+			continue;
 
-		Vals.append(kvp("$set", vals));
+		auto& mongo = *mongo_ptr;
 
-// 		std::cout << "\n" << bsoncxx::to_json(keys.view()) << bsoncxx::to_json(Vals.view()) << "\n";
+		auto 						c		= mongo.pool.acquire();
+		mongocxx::client&			client	= *c;
+		mongocxx::database			db		= client[mongo.database];
+		mongocxx::collection		coll	= db[collection];
 
-		mongocxx::model::update_one  mongo_req{keys.view(), Vals.view()};
+		mongocxx::options::update	options;
+		options.upsert(true);
 
-		update = true;
-		mongo_req.upsert(true);
-		bulk.append(mongo_req);
+		mongocxx::options::bulk_write bulk_opts;
+		bulk_opts.ordered(false);
+
+		auto bulk = coll.create_bulk_write(bulk_opts);
+
+		bool update = false;
+
+		using bsoncxx::builder::basic::kvp;
+
+		for (auto& entry : dbEntryList)
+		{
+			// builder::document builds an empty BSON document
+			auto keys = entryToDocument(entry, true);
+			auto vals = entryToDocument(entry, false);
+
+			bsoncxx::builder::basic::document Vals = {};
+
+			Vals.append(kvp("$set", vals));
+
+	// 		std::cout << "\n" << bsoncxx::to_json(keys.view()) << bsoncxx::to_json(Vals.view()) << "\n";
+
+			mongocxx::model::update_one  mongo_req{keys.view(), Vals.view()};
+
+			update = true;
+			mongo_req.upsert(true);
+			bulk.append(mongo_req);
+		}
+
+		if (update)
+			bulk.execute();
 	}
-
-	if (update)
-		bulk.execute();
 }
 
 /** Write states generating SSR corrections to Mongo DB
@@ -685,8 +809,9 @@ void	prepareSsrStates(
 	KFState&			ionState,		///< Filter object to extract state elements from
 	GTime 				time)			///< Time of current epoch
 {
-	if	( acsConfig.localMongo.	output_ssr_precursors == false
-		&&acsConfig.remoteMongo.output_ssr_precursors == false)
+	auto instances = mongoInstances(acsConfig.mongoOpts.output_ssr_precursors);
+
+	if (instances.empty())
 	{
 		return;
 	}
@@ -730,7 +855,7 @@ void	prepareSsrStates(
 
 				pass = true;
 				pass &= satclk(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.clock_sources,							nav, &kfState);
-				pass &= satpos(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_sources, E_OffsetType::APC,	nav, &kfState);
+				pass &= satpos(nullStream, pTime, pTime, obs, acsConfig.ssrOpts.ephemeris_sources, E_OffsetType::APC,	nav, &kfState);			//todo aaron, ssra streams expect common_sat_pco to be true
 				if (obs.satClk == INVALID_CLOCK_VALUE)
 				{
 					pass = false;
@@ -1008,7 +1133,6 @@ void	prepareSsrStates(
 		}
 	}
 
-
 	E_Source atmSource = acsConfig.ssrOpts.atmosphere_sources.front();
 	switch (atmSource)
 	{
@@ -1071,7 +1195,7 @@ void	prepareSsrStates(
 			}
 
 			// CMP SSR Atmosphere
-			for (auto& [regInd,regData] : nav.ssrAtm.atmosRegionsMap)
+			for (auto& [regInd, regData] : nav.ssrAtm.atmosRegionsMap)
 			{
 				GTime stecTime = regData.stecUpdateTime;
 				map<int, SatSys> stecFound;
@@ -1220,13 +1344,12 @@ void	prepareSsrStates(
 		}
 	}
 
-	if (acsConfig.localMongo.	output_ssr_precursors)		mongoOutput(dbEntryList, acsConfig.localMongo,	SSR_DB);
-	if (acsConfig.remoteMongo.	output_ssr_precursors)		mongoOutput(dbEntryList, acsConfig.remoteMongo,	SSR_DB);
+	mongoOutput(dbEntryList, acsConfig.mongoOpts.queue_outputs, instances,	SSR_DB);
 }
 
-void	outputMongoPredictions(
+void outputMongoPredictions(
 	Trace&			trace,		///< Trace to output to
-	Orbits&			orbits,		///< Filter object to extract state elements from
+	Orbits&			orbits,		///< Orbits object to extract state elements from
 	GTime 			time,		///< Time of current epoch
 	MongoOptions&	config)		///< Set of options for the mongo instance to be used
 {
@@ -1257,7 +1380,7 @@ void	outputMongoPredictions(
 
 	BOOST_LOG_TRIVIAL(debug)
 	<< "Writing to mongo\n";
-
-	mongoOutput(dbEntryList, config, REMOTE_DATA_DB);
+	//todo aaron
+// 	mongoOutput(dbEntryList, acsConfig.mongoOpts.queue_outputs, config, REMOTE_DATA_DB);
 }
 

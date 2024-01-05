@@ -32,7 +32,7 @@ Eph mongoReadEphemeris(
 Geph mongoReadGloEphemeris(
 	GTime			targetTime,
 	SatSys			Sat);
-	
+
 SSRAtm mongoReadIGSIonosphere(
 			GTime		time,
 	const	SSRMeta&	ssrMeta,
@@ -61,5 +61,4 @@ void mongoReadFilter(
 	GTime					time	= GTime::noTime(),
 	const vector<KF>&		types	= {},
 	const string&			Sat		= "",
-	const string&			str		= "",
-	bool					remote	= true);
+	const string&			str		= "");

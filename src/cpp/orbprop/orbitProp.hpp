@@ -21,21 +21,17 @@ using namespace boost::numeric::odeint;
 
 struct EMP
 {
-	bool		eclipsing	= false;
-	int			deg			= 0;
-	E_EmpAxis	axisId		= E_EmpAxis::NONE;
-	E_TrigType	type		= E_TrigType::COS;
-	double		value		= 0;
+	bool		scaleEclipse	= false;
+	int			deg				= 0;
+	E_EmpAxis	axisId			= E_EmpAxis::NONE;
+	E_TrigType	type			= E_TrigType::COS;
+	double		value			= 0;
 };
 
-struct OrbitState
+struct OrbitState : OrbitOptions
 {
 	SatSys	Sat;
 	string	str;
-	double	satMass		= 0;
-	double	satPower	= 0;
-	double	satArea		= 0;
-	double	srpCr		= 0;
 
 	bool	exclude		= false;
 
@@ -43,13 +39,19 @@ struct OrbitState
 
 	vector<EMP> empInput;
 
-	map<E_Component, double>	componentsMap;
+	mutable map<E_Component, double>	componentsMap;
 
-	int empnum	= 0;
+	int numEmp		= 0;
+	int numParam	= 0;
 	Vector3d	pos;
 	Vector3d	vel;
 	MatrixXd	posVelSTM;
 
+	AttStatus	attStatus;
+	Vector3d	gyroBias	= Vector3d::Zero();
+	Vector3d	acclBias	= Vector3d::Zero();
+	Vector3d	gyroScale	= Vector3d::Ones();
+	Vector3d	acclScale	= Vector3d::Ones();
 	double		posVar = 0;
 
 	OrbitState& operator+=(double rhs)
@@ -141,11 +143,9 @@ inline Orbits operator*(
 struct OrbitIntegrator
 {
 	GTime						timeInit;
-	OrbitPropagation  			propagationOptions;
 
-	//Common parameter for all integrators.
-	Matrix3d eci2ecf;
-	Matrix3d deci2ecf;
+	Matrix3d		eci2ecf;
+	Matrix3d		deci2ecf;
 
 	map<E_ThirdBody, Vector3dInit> planetsPosMap;
 	map<E_ThirdBody, Vector3dInit> planetsVelMap;
@@ -160,14 +160,15 @@ struct OrbitIntegrator
 		const	double	mjdSec);
 
 	void computeCommon(
-		const	double	mjdinsec);
+		const	GTime	time);
 
 	void computeAcceleration(
 		const	OrbitState&	orbInit,
 				Vector3d&	acc,
 				Matrix3d&	dAdPos,
 				Matrix3d&	dAdVel,
-				MatrixXd&	dAdParam);
+				MatrixXd&	dAdParam,
+		const	GTime		time);
 };
 
 KFState getOrbitFromState(
@@ -192,7 +193,7 @@ void integrateOrbits(
 
 
 void addEmpStates(
-	const	EmpOptions&		satOpts,
+	const	EmpKalmans&		satOpts,
 	const	KFState&		kfState,
 	const	string&			id);
 

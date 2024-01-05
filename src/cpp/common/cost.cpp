@@ -6,7 +6,7 @@
 #include "coordinates.hpp"
 #include "tropModels.hpp"
 #include "acsConfig.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "trace.hpp"
 #include "cost.hpp"
 #include "EGM96.h"
@@ -36,13 +36,15 @@ bool replaceStr(
 void outputCost(
 	string		filename,	///< Filename
 	KFState&	kfState,	///< KF object containing positioning & trop solutions
-	Station&	rec)		///< Receiver
+	Receiver&	rec)		///< Receiver
 {
 	std::ofstream fout(filename, std::fstream::in | std::fstream::out);
 	if (!fout)
 	{
 		return;
 	}
+
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
 
 	auto time = kfState.time;
 
@@ -159,7 +161,7 @@ void outputCost(
 	} pcdh;									///< Product Confidence Data - Header
 	pcdh.isRealTime		= isRealTime;
 	pcdh.climate		= false;
-	pcdh.otl			= acsConfig.model.tides.otl;
+	pcdh.otl			= recOpts.tideModels.otl;
 	pcdh.atc			= false;
 	pcdh.localMetData	= false;
 	pcdh.centredTime	= false;
@@ -260,8 +262,7 @@ void outputCost(
 		ztd				= 		tropStates	[0];
 		ztdStd			= sqrt(	tropVars	[0]);
 
-		auto& recOpts = acsConfig.getRecOpts(rec.id);
-		double zhd		= tropDryZTD(nullStream, recOpts.rec_trop.models, time, recPos);
+		double zhd		= tropDryZTD(nullStream, recOpts.tropModel.models, time, recPos);
 		zwd				= ztd - zhd;
 	}
 

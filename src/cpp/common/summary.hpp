@@ -7,7 +7,7 @@ using std::map;
 
 #include "trace.hpp"
 
-struct StationMap;
+struct ReceiverMap;
 
 void outputStatistics(
 	Trace&					trace,
@@ -16,4 +16,4 @@ void outputStatistics(
 
 void outputSummaries(
 	Trace&		trace,	
-	StationMap&	stationMap);
+	ReceiverMap&	receiverMap);

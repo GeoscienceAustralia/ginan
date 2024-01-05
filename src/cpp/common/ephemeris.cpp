@@ -105,7 +105,6 @@ bool satclk(
 			case E_Source::PRECISE:		returnValue = satClkPrecise		(trace, time, 			satPos,	nav			);	break;
 			case E_Source::KALMAN:		returnValue = satClkKalman		(trace, time, 			satPos,	kfState_ptr	);	break;
 			case E_Source::REMOTE:		returnValue = satClkKalman		(trace, time, 			satPos,	remote_ptr	);	break;
-// 			case E_Source::REMOTE:		returnValue = satClkRemote		(trace, time, 			satPos				);	break;
 			default:					continue;
 		}
 
@@ -158,8 +157,7 @@ bool satpos(
 			case E_Source::SSR:			returnValue = satPosSSR			(trace, time, teph,		satPos, nav				);	break;
 			case E_Source::PRECISE:		returnValue = satPosPrecise		(trace, time, 			satPos, nav				);	break;
 			case E_Source::KALMAN:		returnValue = satPosKalman		(trace, time, 			satPos,	kfState_ptr		);	break;
-// 			case E_Source::REMOTE:		returnValue = satPosKalman		(trace, time, 			satPos,	remote_ptr		);	break;
-			case E_Source::REMOTE:		returnValue = satPosRemote		(trace, time, 			satPos					);	break;
+			case E_Source::REMOTE:		returnValue = satPosKalman		(trace, time, 			satPos,	remote_ptr		);	break;
 			default:					satPos.ephPosValid = false;	return false;
 		}
 
@@ -175,7 +173,6 @@ bool satpos(
 			case E_Source::PRECISE:		satPos.rSatApc = satPos.rSatCom;	break;
 			case E_Source::KALMAN:		satPos.rSatApc = satPos.rSatCom;	break;
 			case E_Source::REMOTE:		satPos.rSatApc = satPos.rSatCom;	break;
-// 			case E_Source::REMOTE:		satPos.rSatApc = satPos.rSatCom;	break;
 		}
 
 		tracepdeex(4, trace, " - FOUND");
@@ -307,7 +304,7 @@ bool satPosClk(
 
 	double pr = 0;
 
-	for (auto& [a, sig] : obs.Sigs)
+	for (auto& [a, sig] : obs.sigs)
 	{
 		if (sig.P == 0)
 			continue;
@@ -334,7 +331,7 @@ bool satPosClk(
 
 	bool pass;
 
-	pass = satclk(trace, time, teph, obs, clkSources,				nav,	kfState_ptr);
+	pass = satclk(trace, time, teph, obs, clkSources,				nav,	kfState_ptr, remote_ptr);
 
 	if (pass == false)
 	{
@@ -349,7 +346,7 @@ bool satPosClk(
 	time -= obs.satClk;	// Eugene: what if using ssr?
 
 	// satellite position and clock at transmission time
-	pass = satpos(trace, time, teph, obs, posSources, offsetType,	nav,	kfState_ptr);
+	pass = satpos(trace, time, teph, obs, posSources, offsetType,	nav,	kfState_ptr, remote_ptr);
 
 	if (pass == false)
 	{

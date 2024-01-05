@@ -24,26 +24,26 @@ struct InertialState
 {
 	SatSys	Sat;
 	string	str;
-	
+
 	bool	exclude		= false;
-	
+
 	KFState	subState;
-	
+
 // 	vector<EMP> empInput;
-	
+
 	map<E_Component, double>	componentsMap;
-	
+
 	int numParams	= 0;
 	Vector3d	pos			= Vector3d::Zero();
 	Vector3d	vel			= Vector3d::Zero();
 	Vector4d	quat		= Vector4d::Zero();
 	MatrixXd	posVelQuatSTM;
-	
+
 	Vector3d	gyroBias	= Vector3d::Zero();
 	Vector3d	acclBias	= Vector3d::Zero();
 	Vector3d	gyroScale	= Vector3d::Ones();
 	Vector3d	acclScale	= Vector3d::Ones();
-	
+
 	double		posVar = 0;
 
 	InertialState& operator+=(double rhs)
@@ -54,7 +54,7 @@ struct InertialState
 		posVelQuatSTM	= (posVelQuatSTM.array() + rhs).matrix();
 		return *this;
 	}
-	
+
 	InertialState& operator*=(double rhs)
 	{
 		pos				*= rhs;
@@ -63,14 +63,14 @@ struct InertialState
 		posVelQuatSTM	*= rhs;
 		return *this;
 	}
-	
+
 	InertialState operator+(double rhs) const
 	{
 		InertialState newState = *this;
 		newState += rhs;
 		return newState;
 	}
-	
+
 	InertialState operator+(const InertialState& rhs) const
 	{
 		InertialState newState = *this;
@@ -80,7 +80,7 @@ struct InertialState
 		newState.posVelQuatSTM	+= rhs.posVelQuatSTM;
 		return newState;
 	}
-	
+
 	InertialState operator*(double rhs) const
 	{
 		InertialState newState = *this;
@@ -92,7 +92,7 @@ struct InertialState
 typedef vector<InertialState> Inertials;
 
 inline InertialState operator*(
-	const	double		lhs, 
+	const	double		lhs,
 	const	InertialState&	rhs)
 {
 	return rhs * lhs;
@@ -111,7 +111,7 @@ inline Inertials operator+(
 }
 
 inline Inertials operator*(
-	const Inertials&	lhs, 
+	const Inertials&	lhs,
 	const double	rhs)
 {
 	Inertials newState = lhs;
@@ -123,7 +123,7 @@ inline Inertials operator*(
 }
 
 inline Inertials operator*(
-	const double		rhs, 
+	const double		rhs,
 	const Inertials&	lhs)
 {
 	Inertials newState = lhs;
@@ -141,10 +141,10 @@ struct InertialIntegrator
 // 	InertialPropagation  		propagationOptions;
 
 	runge_kutta_fehlberg78<Inertials, double, Inertials, double, vector_space_algebra> odeIntegrator;
-	
+
 	void operator()(
-		const	Inertials&	inertialInit, 
-				Inertials&	inertialUpdate, 
+		const	Inertials&	inertialInit,
+				Inertials&	inertialUpdate,
 		const	double	mjdSec);
 
 	void computeDeltaInertial(

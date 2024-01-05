@@ -4,6 +4,11 @@
 add_subdirectory(3rdparty/sofa)
 
 add_library(ginan_core
+
+		common/acsConfig.hpp
+		common/acsConfig.cpp
+		common/acsConfigDocs.cpp
+
 		3rdparty/enum.h
 		3rdparty/EigenDenseBaseAddons.h
 
@@ -56,6 +61,8 @@ add_library(ginan_core
 		common/algebraTrace.cpp
 		common/algebraTrace.hpp
 		common/attitude.cpp
+		common/compare.cpp
+		common/compare.hpp
 		common/antenna.hpp
 		common/antenna.cpp
 		common/biases.cpp
@@ -78,7 +85,6 @@ add_library(ginan_core
 		common/ephBroadcast.cpp
 		common/ephKalman.cpp
 		common/ephPrecise.cpp
-		common/ephRemote.cpp
 		common/ephSSR.cpp
 		common/enums.h
 		common/erp.cpp
@@ -96,12 +102,6 @@ add_library(ginan_core
 		common/linearCombo.cpp
 		common/linearCombo.hpp
 		#common/mqtt.cpp
-		common/mongo.cpp
-		common/mongo.hpp
-		common/mongoRead.cpp
-		common/mongoRead.hpp
-		common/mongoWrite.cpp
-		common/mongoWrite.hpp
 		common/navigation.hpp
 		common/observations.hpp
 		common/ntripSocket.cpp
@@ -111,6 +111,8 @@ add_library(ginan_core
 		common/orbits.cpp
 		common/orbits.hpp
 		common/packetStatistics.hpp
+		common/receiver.cpp
+		common/receiver.cpp
 		common/rinex.cpp
 		common/rinex.hpp
 		common/rtsSmoothing.cpp
@@ -129,7 +131,6 @@ add_library(ginan_core
 		common/sinex.cpp
 		common/sinexParser.cpp
 		common/sinexParser.hpp
-		common/station.cpp
 		common/tropSinex.cpp
 		common/sp3.cpp
 		common/sp3Write.cpp
@@ -138,7 +139,6 @@ add_library(ginan_core
 		common/orbexWrite.hpp
 		common/orbexWrite.cpp
 		common/ssr.hpp
-		common/station.hpp
 		common/trace.cpp
 		common/trace.hpp
 		common/testUtils.cpp
@@ -224,9 +224,12 @@ add_library(ginan_core
 		rtklib/lambda.h
 		rtklib/rtkcmn.cpp
 
-		common/acsConfig.hpp
-		common/acsConfig.cpp
-		common/acsConfigDocs.cpp
+		common/mongo.cpp
+		common/mongo.hpp
+		common/mongoRead.cpp
+		common/mongoRead.hpp
+		common/mongoWrite.cpp
+		common/mongoWrite.hpp
 )
 
 target_include_directories(ginan_core PUBLIC

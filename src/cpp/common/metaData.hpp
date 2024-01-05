@@ -15,7 +15,6 @@ using std::string;
 #define JSON_FILENAME_STR		((string)"jsonFilename")
 #define TROP_FILENAME_STR		((string)"tropFilename")
 #define COST_FILENAME_STR		((string)"costFilename")
-#define SOL_FILENAME_STR		((string)"solutionFilename")
 #define IONEX_FILENAME_STR		((string)"ionexFilename")
 #define IONSTEC_FILENAME_STR	((string)"ionstecFilename")
 #define ION_FILENAME_STR		((string)"ionFilename")

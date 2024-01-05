@@ -12,8 +12,8 @@
 
 #include "eigenIncluder.hpp"
 #include "navigation.hpp"
+#include "receiver.hpp"
 #include "algebra.hpp"
-#include "station.hpp"
 #include "gTime.hpp"
 #include "sinex.hpp"
 #include "trace.hpp"
@@ -511,7 +511,6 @@ void dedupe_sinex()
 	dedupeB(theSinex.list_sitedata);
 	dedupeB(theSinex.list_gps_pcs);
 	dedupeB(theSinex.list_gal_pcs);
-	dedupeB(theSinex.list_solepochs);
 	dedupeB(theSinex.list_normal_eqns);
 
 	for (matrix_type	t = ESTIMATE;		t < MAX_MATRIX_TYPE;	t = static_cast<matrix_type>	(static_cast<int>(t) + 1))
@@ -702,7 +701,9 @@ void parseReference(string& s)
 	theSinex.refstrings.push_back(s);
 }
 
-void write_as_comments(ofstream& out, list<string>& comments)
+void write_as_comments(
+	Trace&			out,
+	list<string>&	comments)
 {
 	for (auto& comment : comments)
 	{
@@ -1691,7 +1692,8 @@ void parseEpochs(string& s)
 	}
 }
 
-void write_snx_epochs(ofstream& out, list<SinexRecData>* pstns)
+void write_snx_epochs(
+	Trace& out)
 {
 	string blockName;
 	if (theSinex.epochs_have_bias)		blockName = "BIAS/EPOCHS";
@@ -1701,17 +1703,12 @@ void write_snx_epochs(ofstream& out, list<SinexRecData>* pstns)
 
 	write_as_comments(out, theSinex.blockComments[block.blockName]);
 
-	for (auto& solepoch : theSinex.list_solepochs)
+	for (auto& [id, sst] : theSinex.solEpochMap)
 	{
-		Sinex_solepoch_t& sst = solepoch;
-		bool doit = false;
-		char line[81];
-
-
-		snprintf(line, sizeof(line), " %4s %2s %4s %c %2.2d:%3.3d:%5.5d %2.2d:%3.3d:%5.5d %2.2d:%3.3d:%5.5d",
+		tracepdeex(0, out, " %4s %2s %4s %c %2.2d:%3.3d:%5.5d %2.2d:%3.3d:%5.5d %2.2d:%3.3d:%5.5d",
 					sst.sitecode.c_str(),
-					sst.ptcode.c_str(),
-					sst.solnnum.c_str(),
+					sst.ptcode	.c_str(),
+					sst.solnnum	.c_str(),
 					sst.typecode,
 					(int)sst.start[0] % 100,
 					(int)sst.start[1],
@@ -1722,23 +1719,6 @@ void write_snx_epochs(ofstream& out, list<SinexRecData>* pstns)
 					(int)sst.mean[0] % 100,
 					(int)sst.mean[1],
 					(int)sst.mean[2]);
-
-		if (pstns == nullptr)
-			doit = true;
-		else
-		{
-			for (auto& stn : *pstns)
-			{
-				if (sst.sitecode.compare(stn.id_ptr->sitecode) == 0)
-				{
-					doit = true;
-					break;
-				}
-			}
-		}
-
-		if (doit)
-			out << line << endl;
 	}
 }
 
@@ -2025,14 +2005,14 @@ void write_snx_apriori(ofstream& out, list<SinexRecData>* pstns = nullptr)
 
 void write_snx_apriori_from_stations(
 	ofstream& out,
-	map<string, Station>&		stationMap)
+	map<string, Receiver>&		receiverMap)
 {
 	Block block(out, "SOLUTION/APRIORI");
 
 	write_as_comments(out, theSinex.blockComments[block.blockName]);
 
 	int index = 1;
-	for (auto& [id, rec] : stationMap)
+	for (auto& [id, rec] : receiverMap)
 	{
 		if (rec.invalid)
 		{
@@ -2472,7 +2452,7 @@ void parseSatelliteIdentifiers(string& s)
 	sst.svn			= s.substr(1, 4);
 	sst.cospar		= s.substr(6, 9);
 	sst.category	= atoi(s.substr(16, 6).c_str());
-	sst.blocktype	= s.substr(23, 15);
+	sst.blocktype	= trim(s.substr(23, 15));
 	sst.comment		= s.substr(39);
 
 	theSinex.satIdentityMap[sst.svn] = sst;
@@ -3227,7 +3207,6 @@ bool readSinex(
 
 	theSinex.list_satpcs.		sort(compare_satpc);
 	theSinex.list_sateccs.		sort(compare_satecc);
-	theSinex.list_solepochs.	sort(compare_site_epochs);
 	theSinex.list_sitedata.		sort(compare_sitedata);
 	theSinex.list_gps_pcs.		sort(compare_gps_pc);
 	theSinex.list_satids.		sort(compare_satids);
@@ -3246,7 +3225,7 @@ bool readSinex(
 void writeSinex(
 	string						filepath,
 	KFState&					kfState,
-	map<string, Station>&		stationMap)
+	map<string, Receiver>&		receiverMap)
 {
 	ofstream filestream(filepath);
 
@@ -3272,12 +3251,12 @@ void writeSinex(
 //	if (!theSinex.list_gps_pcs.					empty())	{	write_snx_gps_pcs				(filestream);}
 //	if (!theSinex.list_gal_pcs.					empty())	{	write_snx_gal_pcs				(filestream);}
 	if (!theSinex.map_eccentricities.			empty())	{	write_snx_site_eccs				(filestream);}
-//	if (!theSinex.list_solepochs.				empty())	{	write_snx_epochs				(filestream);}
+	if (!theSinex.solEpochMap.					empty())	{	write_snx_epochs				(filestream);}
 //	if (!theSinex.list_statistics.				empty())	{	write_snx_statistics			(filestream);}
 //	if (!theSinex.estimates_map.				empty())		write_snx_estimates				(filestream);
 																write_snx_estimates_from_filter	(filestream, kfState);
 //	if (!theSinex.apriori_map.					empty())	{	write_snx_apriori				(filestream);}
-																write_snx_apriori_from_stations (filestream, stationMap);
+																write_snx_apriori_from_stations (filestream, receiverMap);
 // 		if (!theSinex.list_normal_eqns.			empty())	{	write_snx_normal				(filestream);}
 
 	{
@@ -3805,8 +3784,8 @@ void getRecBias(
 			// Data to be excluded:
 			case 'X': // Exclude/delete data
 			case 'N': // unreliable station, should not be used in routine processing
-			case 'Q': // Station with data in quarantine, not to be used in official products
-			case 'V': // Station with not validated coordinates, not solving for biases
+			case 'Q': // Receiver with data in quarantine, not to be used in official products
+			case 'V': // Receiver with not validated coordinates, not solving for biases
 				excludeFlag = true;
 				break;
 		}

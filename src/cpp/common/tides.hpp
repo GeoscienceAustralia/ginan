@@ -37,7 +37,7 @@ struct OceanPoleGrid
 
 bool readBlq(
 	string			file,
-	Station&		rec,
+	Receiver&		rec,
 	E_LoadingType	type);
 
 bool readOceanPoleCoeff(
@@ -82,22 +82,20 @@ VectorEnu tideAtmosLoad(
 VectorEnu tideSolidPole(
 	Trace&				trace,
 	MjDateUt1			mjdUt1,
-	const VectorPos&	pos, 
+	const VectorPos&	pos,
 	ERPValues&			erpv);
 
 VectorEnu tideOceanPole(
 	Trace&				trace,
 	MjDateUt1			mjdUt1,
-	const VectorPos&	pos, 
+	const VectorPos&	pos,
 	ERPValues&			erpv);
 
 void tideDisp(
 	Trace&			trace,
 	GTime			time,
+	Receiver&		rec,
 	Vector3d&		recPos,
-	ERP&			erp,
-	TideMap&		otlDisplacement,
-	TideMap&		atlDisplacement,
 	Vector3d&		dr,
 	Vector3d*		solid_ptr	= nullptr,
 	Vector3d*		olt_ptr		= nullptr,

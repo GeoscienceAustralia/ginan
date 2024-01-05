@@ -14,6 +14,7 @@ using std::list;
 using std::map;
 
 #include "eigenIncluder.hpp"
+#include "trace.hpp"
 #include "gTime.hpp"
 #include "enums.h"
 
@@ -48,7 +49,7 @@ struct Sinex_input_history_t
 struct Sinex_input_file_t
 {
 	string	agency; // 3
-	UYds	yds; 
+	UYds	yds;
 	string	file; // 29 - name of file
 	string	description; // 32 - description of file
 };
@@ -247,8 +248,8 @@ struct Sinex_solepoch_t
 	string	solnnum;
 	char	typecode;
 	UYds	start;
-	UYds	end;  
-	UYds	mean; 
+	UYds	end;
+	UYds	mean;
 };
 
 /*
@@ -259,7 +260,7 @@ struct Sinex_solstatistic_t
 {
 	string name;
 	short  etype; // 0 = int, 1 = double
-	union 
+	union
 	{
 		int		ival;
 		double	dval;
@@ -290,7 +291,7 @@ struct Sinex_solestimate_t
 	double	estimate;
 	double	stddev;
 	string	file;
-	
+
 	bool	used = false;
 };
 
@@ -354,10 +355,10 @@ struct Sinex_solmatrix_t
 /*
 +SOLUTION/DATA_HANDLING
 *CODE PT UNIT T _DATA_START_ __DATA_END__ M __E-VALUE___ STD_DEV _E-RATE__ CMNTS
- 7090 -- ms   A 09:344:31560 09:345:70200 T      0.90920                        
+ 7090 -- ms   A 09:344:31560 09:345:70200 T      0.90920
  7840 -- %    A 95:358:00000 95:358:86400 H     -20.00                     HER
- 7080 -- mB   A 95:065:00000 96:026:00000 P        -2.10                        
- 1873 -- mm   A 95:001:00000 00:001:00000 R      -270.00         
+ 7080 -- mB   A 95:065:00000 96:026:00000 P        -2.10
+ 1873 -- mm   A 95:001:00000 00:001:00000 R      -270.00
 */
 //=============================================================================
 struct Sinex_datahandling_t
@@ -451,7 +452,7 @@ struct Sinex_satprn_t
 struct Sinex_satfreqchn_t
 {
 	string svn; // 4
-	UYds start; 
+	UYds start;
 	UYds stop;
 	int channel;
 	string comment; // 40?
@@ -465,7 +466,7 @@ struct Sinex_satfreqchn_t
 struct Sinex_satmass_t
 {
 	string svn; // 4
-	UYds start; 
+	UYds start;
 	UYds stop;
 	double mass; // kg
 	string comment; // 40
@@ -479,8 +480,8 @@ struct Sinex_satmass_t
 struct Sinex_satcom_t
 {
 	string svn; // 4
-	UYds start; 
-	UYds stop; 
+	UYds start;
+	UYds stop;
 	Vector3d com; //x/y/z (metres)
 	string comment; // 40
 };
@@ -488,14 +489,14 @@ struct Sinex_satcom_t
 /*
 +SATELLITE/ECCENTRICITY
 *SVN_ Equipment___________ T ____X_[m] ____Y_[m] ____Z_[m] Comment___________________________
- G001 BLOCK I              P    0.0000    0.0000    0.0000 GPS-I; [EG02]		
+ G001 BLOCK I              P    0.0000    0.0000    0.0000 GPS-I; [EG02]
 */
 struct Sinex_satecc_t
 {
 	string		svn;		// 4
 	string		equip;		//  20
 	char		type;		// L or P - both can exist for the same satellite
-	VectorEnu	ecc;		
+	VectorEnu	ecc;
 	string		comment;	// 40
 };
 
@@ -548,7 +549,7 @@ struct SinexSatYawRate
 /*
 +SATELLITE/ATTITUDE_MODE
 *SVN_ DATE_TIME_START(UTC) END(UTC)___________ ATTITUDE_MODE
- J001 2011-02-16 10:32:00  2011-04-20 07:40:00 ON       
+ J001 2011-02-16 10:32:00  2011-04-20 07:40:00 ON
 */
 struct SinexSatAttMode
 {
@@ -564,7 +565,7 @@ struct SinexSatAttMode
  ELEVATION CUTOFF ANGLE                             7
  SAMPLING INTERVAL                                300
  SAMPLING TROP                                    300
- TROP MAPPING FUNCTION         WET GMF               
+ TROP MAPPING FUNCTION         WET GMF
  SOLUTION_FIELDS_1             TROTOT STDDEV TGNTOT STDDEV TGETOT STDDEV
 */
 struct SinexTropDesc
@@ -599,21 +600,21 @@ struct SinexTropSol
 struct Sinex
 {
 	string currentFile;
-	
+
 	/* header block */
 	string	snxtype;				/* SINEX file type */
 	double	ver;					/* version */
 	string	create_agc;				/* file creation agency */
 	UYds	filedate;				/* file create date as yr:doy:sod */
 	string	data_agc;				/* data source agency */
-	UYds	solution_start_date;	// start date of solution 
-	UYds	solution_end_date; 
+	UYds	solution_start_date;	// start date of solution
+	UYds	solution_end_date;
 	char	obsCode;				/* observation code */
 	int		numparam;				/* number of estimated parameters */
 	char	constCode;				/* constraint code */
 	string	solcont;				/* solution types S O E T C A */
 	string	markerName;
-	
+
 	map<string, list<string>>			blockComments;
 	list<string>						refstrings;
 	list<Sinex_input_history_t>       	inputHistory;
@@ -630,8 +631,9 @@ struct Sinex
 	list<Sinex_gal_phase_center_t>    	list_gal_pcs;
 
 	/* solution stuff - tied to sites */
-	bool								epochs_have_bias;      
-	list<Sinex_solepoch_t>				list_solepochs;
+	bool								epochs_have_bias;
+	map<string, Sinex_solepoch_t>		solEpochMap;
+// 	list<Sinex_solepoch_t>				list_solepochs;
 	list<Sinex_solstatistic_t>			list_statistics;
 	map<string, map<string, map<GTime, Sinex_solestimate_t, std::greater<GTime>>>>	estimatesMap;
 	map<int, Sinex_solapriori_t>			apriori_map;
@@ -643,10 +645,10 @@ struct Sinex
 	list<Sinex_satpc_t>				list_satpcs;
 	list<Sinex_satid_t>				list_satids;
 	map<string, SinexSatIdentity>	satIdentityMap;
-	
+
 	map<string, map<GTime, Sinex_satmass_t>>	map_satmasses;
 	map<string, map<GTime, Sinex_satpower_t>>	map_satpowers;
-	
+
 	list<Sinex_satprn_t>			list_satprns;
 	list<Sinex_satfreqchn_t>		list_satfreqchns;
 	list<Sinex_satcom_t>			list_satcoms;
@@ -660,12 +662,12 @@ struct Sinex
 	list<Sinex_precode_t>		list_precessions;
 
 	// constructor
-	Sinex(bool t = false) 
+	Sinex(bool t = false)
 	: epochs_have_bias(t)
 	{
-		
+
 	};
-	
+
 	// Troposphere Sinex data
 	map<string, int>				tropSiteCoordBodyFPosMap;
 	map<string, int>				tropSolFootFPosMap;
@@ -692,7 +694,7 @@ struct SinexSatSnx /* satellite meta data */
 	string 		svn;
 	string		prn;
 	SinexSatIdentity*	id_ptr		= &dummySinexSatIdentity;
-	Sinex_satecc_t*		ecc_ptrs[2]	={&dummySinexSatEcc, &dummySinexSatEcc}; 
+	Sinex_satecc_t*		ecc_ptrs[2]	={&dummySinexSatEcc, &dummySinexSatEcc};
 	double 		mass;				/* kg */
 	int			channel;			/* GLONASS ONLY */
 	Vector3d	com;				/* centre of mass offsets (m) */
@@ -705,8 +707,8 @@ struct SinexSatSnx /* satellite meta data */
 	char		pctype;
 	char		pcmodel;
 
-	UYds		start;		
-	UYds		stop;	
+	UYds		start;
+	UYds		stop;
 };
 
 
@@ -718,12 +720,12 @@ bool readSinex(
 	bool	primary);
 
 struct KFState;
-struct Station;
+struct Receiver;
 
 void  writeSinex(
 	string					filepath,
 	KFState&				kfState,
-	map<string, Station>&	stationMap);
+	map<string, Receiver>&	receiverMap);
 
 struct SinexRecData;
 
@@ -770,12 +772,12 @@ void updateSinexHeader(
 
 void sinexPostProcessing(
 	GTime					time,
-	map<string, Station>&	stationMap,
+	map<string, Receiver>&	receiverMap,
 	KFState&				netKFState);
 
 void sinexPerEpochPerStation(
 	GTime		time,
-	Station&	rec);
+	Receiver&	rec);
 
 
 // Trop sinex
@@ -788,7 +790,7 @@ void outputTropSinex(
 
 // snx.cpp fns used in tropSinex.cpp
 void write_as_comments(
-	std::ofstream&	out,
+	Trace&			out,
 	list<string>&	comments);
 
 void write_snx_reference(
@@ -796,7 +798,7 @@ void write_snx_reference(
 
 bool getSnxSatMaxYawRate(
 	string	prn,
-	GTime&	time, 
+	GTime&	time,
 	double&	maxYawRate);
 
 bool getSnxSatBlockType(
@@ -805,12 +807,12 @@ bool getSnxSatBlockType(
 
 bool getSnxSatAttMode(
 	string	svn,
-	GTime&	time, 
+	GTime&	time,
 	string&	attMode);
 
 extern Sinex theSinex; // the one and only sinex object.
 
-void getStationsFromSinex(
-	map<string, Station>&	stationMap,
+void getReceiversFromSinex(
+	map<string, Receiver>&	receiverMap,
 	KFState&				kfState);
 

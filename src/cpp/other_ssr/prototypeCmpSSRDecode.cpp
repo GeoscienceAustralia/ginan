@@ -244,7 +244,7 @@ void copySSRBlock (
 			entry.slop	=  0;
 			entry.slpv	=  0;
 
-			pushBiasSinex(id, entry);
+			pushBiasEntry(id, entry);
 			tracepdeex(CMPSSRTRCLVL+1,std::cout, "%s %9.4f; ", code._to_string(), biasSSR.bias);
 		}
 
@@ -277,7 +277,7 @@ void copySSRBlock (
 			entry.slpv	=  0;
 
 			tracepdeex(CMPSSRTRCLVL+1,std::cout, "%s %9.4f; ", code._to_string(), biasSSR.bias);
-			pushBiasSinex(id, entry);
+			pushBiasEntry(id, entry);
 		}
 
 		if  ( ssr.ssrPhasBias_map.find(entry.tini) == ssr.ssrPhasBias_map.end())

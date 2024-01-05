@@ -52,7 +52,7 @@ GTime sinex_time_text(
 	{
 		time = yds2time(yds, tsys);
 	}
-	
+
 	return time;
 }
 
@@ -110,7 +110,7 @@ int read_biasSINEX_line(
 	{
 		return 0;
 	}
-	
+
 	string id;
 	if (name != "    ")
 	{
@@ -138,12 +138,12 @@ int read_biasSINEX_line(
 		//no valid identifier
 		return 0;
 	}
-	
+
 	E_MeasType dummy;
 	entry.cod1 = str2code(cod1str, entry.measType);
 	entry.cod2 = str2code(cod2str, dummy);
 
-	
+
 	SatSys lamSat = Sat;
 	if (lamSat.prn == 0)
 	{
@@ -208,7 +208,7 @@ int read_biasSINEX_line(
 			Sat.prn	= prn;
 			id = entry.name + ":" + Sat.id();
 			// entry.Sat = Sat;
-			pushBiasSinex(id, entry);
+			pushBiasEntry(id, entry);
 		}
 	}
 	else if	( Sat.sys == +E_Sys::GLO
@@ -216,13 +216,13 @@ int read_biasSINEX_line(
 	{
 		// this can be a receiver or satellite
 		id = id + ":" + Sat.id();
-		pushBiasSinex(id, entry);
+		pushBiasEntry(id, entry);
 	}
 	else
 	{
 		// this can be a receiver or satellite
 		id = id + ":" + Sat.sysChar();
-		pushBiasSinex(id, entry);
+		pushBiasEntry(id, entry);
 	}
 
 	return 1;
@@ -269,7 +269,7 @@ bool readBiasSinex(
 				}
 			}
 		}
-		
+
 		if (strstr(buff, "%=BIA"))
 		{
 			read_biasSINEX_head(buff);

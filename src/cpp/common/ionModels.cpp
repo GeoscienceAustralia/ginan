@@ -246,14 +246,15 @@ int interpTec(
 /** ionosphere delay by tec grid data
  */
 bool ionDelay(
-	GTime				time,	///< Time
-	const tec_t&		tec,	///< Input electron content data
-	const VectorPos&	pos,	///< Position of receiver
-	const AzEl&			azel,	///< Azimuth and elevation of signal path
-	E_IonoMapFn			mapFn,	///< model of mapping function
-	E_IonoFrame			frame,	///< reference frame
-	double&				delay,	///< Delay in meters
-	double&				var)	///< Variance
+	GTime				time,			///< Time
+	const tec_t&		tec,			///< Input electron content data
+	const VectorPos&	pos,			///< Position of receiver
+	const AzEl&			azel,			///< Azimuth and elevation of signal path
+	E_IonoMapFn			mapFn,			///< model of mapping function
+	double				layerHeight,	///< Mapping function layer height
+	E_IonoFrame			frame,			///< reference frame
+	double&				delay,			///< Delay in meters
+	double&				var)			///< Variance
 {
 	// if (fdebug)
 	// 	fprintf(fdebug, "%s: time=%s pos=%.1f %.1f azel=%.1f %.1f\n", __FUNCTION__, time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D);
@@ -268,7 +269,7 @@ bool ionDelay(
 		/* ionospheric pierce point position */
 		VectorPos posp;
 		ionppp(pos, azel, tec.rb, hion, posp);
-		double fs = ionmapf(pos, azel, mapFn, acsConfig.ionoOpts.mapping_function_layer_height);
+		double fs = ionmapf(pos, azel, mapFn, layerHeight);
 
 		if (frame == +E_IonoFrame::SUN_FIXED)
 		{
@@ -298,14 +299,15 @@ bool ionDelay(
 *          return ok with delay=0 and var=VAR_NOTEC if el < MIN_EL or h < MIN_HGT
 */
 bool iontec(
-	GTime				time,	///< time (gpst)
-	const Navigation*	nav,	///< navigation data
-	const VectorPos&	pos,	///< receiver position {lat,lon,h} (rad,m)
-	const AzEl&			azel,	///< azimuth/elevation angle {az,el} (rad)
-	E_IonoMapFn			mapFn,	///< model of mapping function
-	E_IonoFrame			frame,	///< reference frame
-	double&				delay,	///< ionospheric delay (L1) (m)
-	double&				var)	///< ionospheric dealy (L1) variance (m^2)
+	GTime				time,			///< time (gpst)
+	const Navigation*	nav,			///< navigation data
+	const VectorPos&	pos,			///< receiver position {lat,lon,h} (rad,m)
+	const AzEl&			azel,			///< azimuth/elevation angle {az,el} (rad)
+	E_IonoMapFn			mapFn,			///< model of mapping function
+	double				layerHeight,	///< Mapping function layer height
+	E_IonoFrame			frame,			///< reference frame
+	double&				delay,			///< ionospheric delay (L1) (m)
+	double&				var)			///< ionospheric dealy (L1) variance (m^2)
 {
 	// if (fdebug)
 	// 	fprintf(fdebug, "iontec  : time=%s pos=%.1f %.1f azel=%.1f %.1f nt=%ld\n", time.to_string(0).c_str(), pos[0]*R2D, pos[1]*R2D, azel[0]*R2D, azel[1]*R2D, nav->tecList.size());
@@ -333,7 +335,7 @@ bool iontec(
 	double vars[2];
 
 	auto& [t0, tec0] = *it;
-	pass[0] = ionDelay(time, tec0, pos, azel, mapFn, frame, dels[0], vars[0]);
+	pass[0] = ionDelay(time, tec0, pos, azel, mapFn, layerHeight, frame, dels[0], vars[0]);
 
 	if (it == nav->tecMap.begin())
 	{
@@ -346,7 +348,7 @@ bool iontec(
 	it--;
 
 	auto& [t1, tec1] = *it;
-	pass[1] = ionDelay(time, tec1, pos, azel, mapFn, frame, dels[1], vars[1]);
+	pass[1] = ionDelay(time, tec1, pos, azel, mapFn, layerHeight, frame, dels[1], vars[1]);
 
 
 	if	(  pass[0]
@@ -390,6 +392,8 @@ int ionoModel(
 	GTime		time,
 	VectorPos&	pos,
 	AzEl&		azel,
+	E_IonoMapFn	mapFn,
+	double		layerHeight,
 	double		ionoState,
 	double&		dion,
 	double&		var)
@@ -398,7 +402,7 @@ int ionoModel(
 	{
 		case E_IonoMode::TOTAL_ELECTRON_CONTENT:
 		{
-			int pass = iontec(time, &nav, pos, azel, acsConfig.ionoOpts.mapping_function, E_IonoFrame::SUN_FIXED, dion, var);
+			int pass = iontec(time, &nav, pos, azel, mapFn, layerHeight, E_IonoFrame::SUN_FIXED, dion, var);
 			if (pass)	var +=	VAR_IONEX;			// adding some extra errors to reflect modelling errors
 			else		var =	VAR_IONO;
 

@@ -62,7 +62,7 @@ std::ofstream getTraceFile(
 	string traceFilename;
 	if (json)		traceFilename = thing.jsonTraceFilename;
 	else 			traceFilename = thing.traceFilename;
-	
+
 	if (traceFilename.empty())
 	{
 		return std::ofstream();
@@ -89,7 +89,7 @@ struct Block
 {
 	Trace& trace;
 	string blockName;
-	
+
 	Block(
 		Trace& trace,
 		string blockName)
@@ -98,7 +98,7 @@ struct Block
 	{
 		trace << std::endl << "+" << blockName << std::endl;
 	}
-	
+
 	~Block()
 	{
 		trace << "-" << blockName << std::endl;
@@ -112,12 +112,12 @@ struct ArbitraryKVP
 	double		num;
 	long int	integer;
 	int			type = 0;
-	
+
 	ArbitraryKVP(string name, string	str)		: name {name}, str		{str		}	{	type = 0;	}
 	ArbitraryKVP(string name, double	num)		: name {name}, num		{num		}	{	type = 1;	}
 	ArbitraryKVP(string name, int		integer)	: name {name}, integer	{integer	}	{	type = 2;	}
 	ArbitraryKVP(string name, long int	integer)	: name {name}, integer	{integer	}	{	type = 2;	}
-	
+
 	string value()
 	{
 		if		(type == 0)		return "\"" + str + "\"";
@@ -133,3 +133,12 @@ void traceJson(
 	string					time,
 	vector<ArbitraryKVP>	id,
 	vector<ArbitraryKVP>	val);
+
+
+bool createNewTraceFile(
+	const string				id,
+	boost::posix_time::ptime	logptime,
+	string  					new_path_trace,
+	string& 					old_path_trace,
+	bool						outputHeader = false,
+	bool						outputConfig = false);

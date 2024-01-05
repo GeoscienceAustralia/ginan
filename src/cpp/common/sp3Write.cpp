@@ -15,7 +15,7 @@
 #include "constants.hpp"
 #include "mongoRead.hpp"
 #include "sp3Write.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "algebra.hpp"
 #include "enums.h"
 #include "erp.hpp"

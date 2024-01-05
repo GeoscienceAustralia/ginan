@@ -7,12 +7,11 @@
 using std::map;
 
 #include "eigenIncluder.hpp"
-
 #include "algebraTrace.hpp"
 #include "constants.hpp"
 #include "acsConfig.hpp"
+#include "receiver.hpp"
 #include "algebra.hpp"
-#include "station.hpp"
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -68,35 +67,35 @@ E_SerialObject getFilterTypeFromFile(
 }
 
 void tryPrepareFilterPointers(
-	KFState&		kfState, 
-	StationMap*		stationMap_ptr)
+	KFState&		kfState,
+	ReceiverMap&	receiverMap)
 {
-	if (stationMap_ptr == nullptr)
-	{
-		return;
-	}
-	
-	auto& stationMap = *stationMap_ptr;
-	
 	map<KFKey, short> replacementKFIndexMap;
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		KFKey kfKey = key;
 		
+		if (kfKey.type == +KF::REC_POS)
+		{
+			//make sure all rec pos are associated with receivers
+			receiverMap[kfKey.str].id = kfKey.str;
+		}
+
 		if	(  kfKey.rec_ptr == nullptr
 			&& kfKey.str.empty() == false)
 		{
-			auto it = stationMap.find(kfKey.str);
-			if (it != stationMap.end())
+			auto it = receiverMap.find(kfKey.str);
+			if (it != receiverMap.end())
 			{
 				auto& [id, station]	= *it;
-				kfKey.rec_ptr	= &station;
+
+				kfKey.rec_ptr = &station;
 			}
 		}
-		
+
 		replacementKFIndexMap[kfKey] = index;
 	}
-	
+
 	kfState.kfIndexMap = replacementKFIndexMap;
 }
 
@@ -118,10 +117,10 @@ void spitQueuedToFile(
 		default:	std::cout << "ERROR: missing queued type " << spit.type;				break;
 		case E_SerialObject::FILTER_MINUS:		//fallthrough
 		case E_SerialObject::FILTER_PLUS:		//fallthrough
-		case E_SerialObject::FILTER_SMOOTHED:	{	auto&	kfState				= *static_pointer_cast<KFState>					(spit.ptr);	spitFilterToFile(kfState,			spit.type, spit.filename);	break;	}	
-		case E_SerialObject::TRANSITION_MATRIX:	{	auto&	transitionObject	= *static_pointer_cast<TransitionMatrixObject>	(spit.ptr);	spitFilterToFile(transitionObject,	spit.type, spit.filename);	break;	}	
-		case E_SerialObject::MEASUREMENT:		{	auto&	kfMeas				= *static_pointer_cast<KFMeas>					(spit.ptr);	spitFilterToFile(kfMeas,			spit.type, spit.filename);	break;	}		
-		case E_SerialObject::METADATA:			{	auto&	metatdata			= *static_pointer_cast<map<string, string>>		(spit.ptr);	spitFilterToFile(metatdata,			spit.type, spit.filename);	break;	}
+		case E_SerialObject::FILTER_SMOOTHED:	{	auto&	kfState				= *std::static_pointer_cast<KFState>				(spit.ptr);	spitFilterToFile(kfState,			spit.type, spit.filename);	break;	}
+		case E_SerialObject::TRANSITION_MATRIX:	{	auto&	transitionObject	= *std::static_pointer_cast<TransitionMatrixObject>	(spit.ptr);	spitFilterToFile(transitionObject,	spit.type, spit.filename);	break;	}
+		case E_SerialObject::MEASUREMENT:		{	auto&	kfMeas				= *std::static_pointer_cast<KFMeas>					(spit.ptr);	spitFilterToFile(kfMeas,			spit.type, spit.filename);	break;	}
+		case E_SerialObject::METADATA:			{	auto&	metatdata			= *std::static_pointer_cast<map<string, string>>	(spit.ptr);	spitFilterToFile(metatdata,			spit.type, spit.filename);	break;	}
 	}
 }
 
@@ -131,34 +130,35 @@ bool				spitQueueRunning = false;
 
 void spitQueueRun()
 {
-	BOOST_LOG_TRIVIAL(debug) << "Running trace thread";
-	
+	BOOST_LOG_TRIVIAL(debug) << "Running rts queue thread";
+
 	while (1)
 	{
 		QueuedSpit* spit_ptr;
-		
+
+		//use pointer and braces to limit guard scope
 		{
 			lock_guard<mutex> guard(spitQueueMutex);
-			
+
 			if (spitQueue.empty())
 			{
 				break;
 			}
-			
-			BOOST_LOG_TRIVIAL(debug) << "Queue has " << spitQueue.size() << " entries to go";
-			
+
+			BOOST_LOG_TRIVIAL(debug) << "RTS queue has " << spitQueue.size() << " entries to go";
+
 			spit_ptr = &spitQueue.front();
 		}
-		
+
 		spitQueuedToFile(*spit_ptr);
-		
+
 		{
 			lock_guard<mutex> guard(spitQueueMutex);
-			
+
 			spitQueue.pop_front();
 		}
 	}
-	
+
 	lock_guard<mutex> guard(spitQueueMutex);
 	spitQueueRunning = false;
 }
@@ -169,19 +169,19 @@ void spitFilterToFileQueued(
 	string				filename)		///< Path to file to output to
 {
 	QueuedSpit spit;
-	
+
 	spit.ptr 		= object_ptr;
 	spit.type		= type;
 	spit.filename	= filename;
-	
+
 	lock_guard<mutex> guard(spitQueueMutex);
-	
+
 	spitQueue.push_back(std::move(spit));
-	
+
 	if (spitQueueRunning == false)
 	{
 		spitQueueRunning = true;
-		
+
 		std::thread(spitQueueRun).detach();
 	}
 }

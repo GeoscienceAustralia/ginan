@@ -12,7 +12,7 @@ using std::map;
 #include "enums.h"
 
 struct GTime;
-struct StationMap;
+struct ReceiverMap;
 class E_Source;
 
 void outputClocks(
@@ -21,4 +21,4 @@ void outputClocks(
 	vector<E_Source>	clkDataSatSrcs,
 	GTime&				time,
 	KFState&			kfState,
-	StationMap*			stationMap_ptr = nullptr);
+	ReceiverMap*			receiverMap_ptr = nullptr);

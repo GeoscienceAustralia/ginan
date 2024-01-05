@@ -297,8 +297,25 @@ double antPcv(
 	E_FType		ft,			///< frequency
 	GTime		time,		///< time
 	AttStatus&	attStatus,	///< Orientation of antenna
-	VectorEcef	e)			///< Line of sight vector
+	VectorEcef	e,			///< Line of sight vector
+	double*		az_ptr,		///< Optional pointer to output antenna frame azimuth in degrees
+	double*		zen_ptr)	///< Optional pointer to output antenna frame zenith in degrees
 {
+	// Rotate relative look vector into local frame
+	Matrix3d ant2Ecef = rotBasisMat(attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt);
+
+	Vector3d localLook = ant2Ecef.transpose() * e;
+
+	double az		= atan2(localLook(0), localLook(1));
+	double zen		= acos(localLook.z()) * R2D;
+
+	wrap2Pi(az);
+
+	az *= R2D;
+
+	if (az_ptr)			*az_ptr		= az;
+	if (zen_ptr)		*zen_ptr	= zen;
+
 	auto it0 = nav.pcvMap.find(id);
 	if (it0 == nav.pcvMap.end())
 	{
@@ -343,18 +360,6 @@ double antPcv(
 	double	zen1	= pcd.zenStart;
 	double	dzen	= pcd.zenDelta;
 	double	dazi	= pcd.aziDelta;
-
-	// Rotate relative look vector into local frame
-	Matrix3d ant2Ecef = rotBasisMat(attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt);
-
-	Vector3d localLook = ant2Ecef.transpose() * e;
-
-	double az		= atan2(localLook(0), localLook(1));
-	double zen		= acos(localLook.z()) * R2D;
-
-	wrap2Pi(az);
-
-	az *= R2D;
 
 	/* select zenith angle range */
 	int zen_n;
