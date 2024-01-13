@@ -13,7 +13,7 @@ from pathlib import Path
 import download_rinex_deps
 
 from auto_generate_yaml import write_nested_dict_value
-from parse_rinex_header import parse_v3_header
+from parse_rinex_header import parse_v3_header, RinexHeader
 
 import click
 import ruamel
@@ -29,39 +29,34 @@ def main(config_name: str, rinex_path: Path, target_dir: Path):
 
     header = parse_v3_header(rinex_path)
 
-    # Rename the rinex file to RXXX.rnx, where XXX are the last 3 characters of the marker name.
     # TODO: The pea does not allow station names of 4 digits eg. 7369 - but it would be good if it did.
-    four_char_id = f"R{header['marker_name'][-3:]}"
-    shutil.move(new_rinex_path, data_dir / f"{four_char_id}.rnx")
+    # For now, create an alias
+    station_alias = header.get_station_alias()
+    shutil.move(new_rinex_path, data_dir / f"{station_alias}.rnx")
 
     download_rinex_deps.download(header, download_dir)
 
-    station_overrides = create_station_overrides(header, four_char_id)
+    station_overrides = create_station_overrides(header, station_alias)
     outputs_overrides = [(["outputs", "metadata", "config_description"], config_name)]
     code_priorities_overrides = create_code_priorities_overrides(header)
     overrides = station_overrides + outputs_overrides + code_priorities_overrides
     write_yaml(target_dir, config_name=config_name, overrides=overrides)
 
 
-def create_station_overrides(rinex_header: dict, four_char_id) -> [tuple]:
-    apriori_position = list(rinex_header["approx_position"].values())
-
-    # ENU instead of UNE in SINEX
-    antenna_deltas = rinex_header["antenna"]["deltas"]
-    eccentricity_offset = [antenna_deltas["east"], antenna_deltas["north"], antenna_deltas["height"]]
-    eccentricity = {"enable": True, "offset": eccentricity_offset}
+def create_station_overrides(rinex_header: RinexHeader, station_alias: str) -> [tuple]:
+    eccentricity = {"enable": True, "offset": rinex_header.antenna.get_eccentricity()}
 
     overrides = [
-        (["receiver_options", four_char_id, "antenna_type"], rinex_header["antenna"]["type"]),
-        (["receiver_options", four_char_id, "apriori_position"], apriori_position),
-        (["receiver_options", four_char_id, "models", "eccentricity"], eccentricity),
-        (["receiver_options", four_char_id, "receiver_type"], rinex_header["receiver"]["type"]),
+        (["receiver_options", station_alias, "antenna_type"], rinex_header.antenna.type),
+        (["receiver_options", station_alias, "apriori_position"], rinex_header.approx_position.get_apriori_position()),
+        (["receiver_options", station_alias, "models", "eccentricity"], eccentricity),
+        (["receiver_options", station_alias, "receiver_type"], rinex_header.receiver.type),
     ]
     return overrides
 
 
-def create_code_priorities_overrides(rinex_header: dict) -> [tuple]:
-    phase_signals = get_phase_signals_per_system(rinex_header["sys_signals"])
+def create_code_priorities_overrides(rinex_header: RinexHeader) -> [tuple]:
+    phase_signals = get_phase_signals_per_system(rinex_header.sys_signals)
     overrides = [
         (["processing_options", "gnss_general", "sys_options", sys, "code_priorities"], list(code_priorities))
         for sys, code_priorities in phase_signals.items()
@@ -93,6 +88,7 @@ def write_yaml(target_dir, config_name="auto", overrides=[]):
 
 
 def get_phase_signals_per_system(sys_signals: dict) -> dict:
+    """Get all of the carrier phase signals (start with L), grouped by system (GPS, GLONASS etc)"""
     PHASE_PREFIX = "L"
     filtered_sys_signals = {
         sys: {str(s) for s in signals if s.startswith(PHASE_PREFIX)} for sys, signals in sys_signals.items() if signals

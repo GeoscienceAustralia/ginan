@@ -11,6 +11,7 @@ from datetime import date, timedelta
 from itertools import repeat
 from pathlib import Path
 from time import sleep
+from parse_rinex_header import RinexHeader
 
 import ftplib
 import logging
@@ -29,14 +30,14 @@ logging.getLogger().setLevel(logging.INFO)
 def ftp_tls(url: str, **kwargs) -> None:
     kwargs.setdefault("timeout", 30)
     with ftplib.FTP_TLS(url, **kwargs) as ftps:
-        ftps.login()
+        ftps.login(user="anonymous", passwd="andrew.cleland3@gmail.com")
         ftps.prot_p()
         yield ftps
         ftps.quit()
 
 
 # TODO: Could we use gnssanalysis.gn_download.download_prod?
-def download(header: dict, target_dir: Path):
+def download(header: RinexHeader, target_dir: Path):
     filenames = generate_filenames(header)
 
     # TODO: Find stations nearby
@@ -50,7 +51,7 @@ def download(header: dict, target_dir: Path):
             download_queue.append(filename)
 
     # TODO: Handle rinex files that are split over two gps weeks
-    gps_week = dt2gpswk(header["first_obs_time"])
+    gps_week = dt2gpswk(header.first_obs_time)
 
     if download_queue:
         # Download from IGS
@@ -66,10 +67,10 @@ def daterange(start_date, end_date):
         yield start_date + timedelta(i)
 
 
-def generate_filenames(header: dict):
+def generate_filenames(header: RinexHeader):
     # TODO: CORS files won't have an end date - need to handle this eventually
-    start_epoch = header["first_obs_time"]
-    last_epoch = header["last_obs_time"]
+    start_epoch = header.first_obs_time
+    last_epoch = header.last_obs_time
     start_date = date(start_epoch.year, start_epoch.month, start_epoch.day)
     end_date = date(last_epoch.year, last_epoch.month, last_epoch.day)
 
@@ -119,7 +120,7 @@ def generate_filenames(header: dict):
 
 
 def download_file_from_cddis(
-    filename: str, ftp_folder: str, output_folder: Path, max_retries: int = 3, uncomp: bool = True
+    filename: str, ftp_folder: str, output_folder: Path, max_retries: int = 5, uncomp: bool = True
 ) -> None:
     with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
         ftps.cwd(ftp_folder)
