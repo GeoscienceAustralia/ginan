@@ -18,7 +18,13 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, date
 
 from gnssanalysis.gn_datetime import GPSDate, gpswkD2dt
-from gnssanalysis.gn_download import check_n_download, check_n_download_url, check_file_present
+from gnssanalysis.filenames import generate_sampling_rate, generate_content_type
+from gnssanalysis.gn_download import (
+    check_n_download,
+    check_n_download_url,
+    check_file_present,
+    long_filename_cddis_cutoff,
+)
 
 API_URL = "https://data.gnss.ga.gov.au/api"
 
@@ -103,77 +109,6 @@ def generate_long_filename(
         f"{content_type}.{format_type}"
     )
     return result
-
-
-def generate_content_type(file_ext: str, analysis_center: str) -> str:
-    """
-    IGS files following the long filename convention require a content specifier
-    Given the file extension, generate the content specifier
-    """
-    file_ext = file_ext.upper()
-    file_ext_dict = {
-        "ERP": "ERP",
-        "SP3": "ORB",
-        "CLK": "CLK",
-        "OBX": "ATT",
-        "TRO": "TRO",
-        "SNX": "CRD",
-        "BIA": {"ESA": "BIA", None: "OSB"},
-    }
-    content_type = file_ext_dict.get(file_ext)
-    # If result is still dictionary, use analysis_center to determine content_type
-    if isinstance(content_type, dict):
-        content_type = content_type.get(analysis_center, content_type.get(None))
-    return content_type
-
-
-def generate_sampling_rate(file_ext: str, analysis_center: str, solution_type: str) -> str:
-    """
-    IGS files following the long filename convention require a content specifier
-    Given the file extension, generate the content specifier
-    """
-    file_ext = file_ext.upper()
-    sampling_rates = {
-        "ERP": {
-            ("COD"): {"FIN": "12H", "RAP": "01D", "ERP": "01D"},
-            (): "01D",
-        },
-        "BIA": "01D",
-        "SP3": {
-            ("COD", "GFZ", "GRG", "IAC", "JAX", "MIT", "WUM"): "05M",
-            ("ESA"): {"FIN": "05M", "RAP": "15M", None: "15M"},
-            (): "15M",
-        },
-        "CLK": {
-            ("EMR", "MIT", "SHA", "USN"): "05M",
-            ("ESA", "GFZ", "GRG", "IGS"): {"FIN": "30S", "RAP": "05M", None: "30S"}, # DZ: IGS FIN has 30S CLK
-            (): "30S",
-        },
-        "OBX": {"GRG": "05M", None: "30S"},
-        "TRO": {"JPL": "30S", None: "01H"},
-        "SNX": "01D",
-    }
-    if file_ext in sampling_rates:
-        file_rates = sampling_rates[file_ext]
-        if isinstance(file_rates, dict):
-            center_rates_found = False
-            for key in file_rates:
-                if analysis_center in key:
-                    center_rates = file_rates.get(key, file_rates.get(()))
-                    center_rates_found = True
-                    break
-                # else:
-                #     return file_rates.get(())
-            if not center_rates_found: # DZ: bug fix
-                return file_rates.get(())
-            if isinstance(center_rates, dict):
-                return center_rates.get(solution_type, center_rates.get(None))
-            else:
-                return center_rates
-        else:
-            return file_rates
-    else:
-        return "01D"
 
 
 def generate_product_filename(
@@ -275,11 +210,11 @@ def download_product_from_cddis(
     provided the download directory (download_dir)
     """
     # DZ: Download the correct IGS FIN ERP files
-    if file_ext == "ERP" and analysis_center == "IGS" and solution_type == "FIN": # get the correct start_epoch
+    if file_ext == "ERP" and analysis_center == "IGS" and solution_type == "FIN":  # get the correct start_epoch
         start_epoch = GPSDate(str(start_epoch))
         start_epoch = gpswkD2dt(f"{start_epoch.gpswk}0")
         timespan = timedelta(days=7)
-    
+
     logging.info(f"Attempting CDDIS Product download - {file_ext}")
     logging.info(f"Start Epoch - {start_epoch}")
     logging.info(f"End Epoch - {end_epoch}")
@@ -343,7 +278,7 @@ def download_product_from_cddis(
 
         # DZ: avoid downloading the first file again if it already exists
         reference_start -= timedelta(hours=24)
-        
+
         count = 0
         remain = end_epoch - reference_start
         while remain.total_seconds() > timespan.total_seconds():
@@ -433,7 +368,7 @@ def download_brdc(
         reference_dt = start_epoch - timedelta(days=1)
         while (end_epoch - reference_dt).total_seconds() > 0:
             doy = reference_dt.strftime("%j")
-            brdc_compfile = f"BRDC00IGS_R_{reference_dt.year}{doy}0000_01D_MN.rnx.gz" # DZ: download MN file
+            brdc_compfile = f"BRDC00IGS_R_{reference_dt.year}{doy}0000_01D_MN.rnx.gz"  # DZ: download MN file
             if check_file_present(brdc_compfile, str(download_dir)):
                 logging.info(f"File {brdc_compfile} already present in {download_dir}")
             else:
@@ -658,18 +593,6 @@ def download_files_from_gnss_data(
     logging.info(f"Not downloaded / missing: {list(missing_stations)}")
 
 
-def long_filename_cddis_cutoff(epoch: datetime) -> bool:
-    """
-    Simple function that determines whether long filenames should be expected on the CDDIS server
-    """
-    # Long filename cut-off:
-    long_filename_cutoff = datetime(2022, 11, 27)
-    if epoch >= long_filename_cutoff:
-        return True
-    else:
-        return False
-
-
 def auto_download(
     target_dir: Path,
     preset: str,
@@ -789,7 +712,7 @@ def auto_download(
                 start_epoch=start_epoch,
                 end_epoch=end_epoch,
                 file_ext="SNX",
-                limit=None, # DZ: removed limit for downloading files of multiple days
+                limit=None,  # DZ: removed limit for downloading files of multiple days
                 long_filename=long_filename,
                 analysis_center="IGS",
                 solution_type="SNX",
@@ -963,10 +886,10 @@ def auto_download_main(
         station_list
     except NameError:
         station_list = None
-    
+
     if not station_list == None:
         station_list = station_list.split(",")
-    
+
     print(most_recent)
 
     auto_download(
@@ -990,7 +913,7 @@ def auto_download_main(
         rinex_data_dir,
         trop_dir,
         solution_type,
-        project_type, # DZ: add project_type option
+        project_type,  # DZ: add project_type option
         rinex_file_period,
         bia_ac,
         datetime_format,
