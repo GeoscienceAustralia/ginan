@@ -36,11 +36,17 @@ def main(config_name: str, rinex_path: Path, target_dir: Path):
 
     download_rinex_deps.download(header, download_dir)
 
+    overrides = create_overrides(header, station_alias, config_name)
+    yaml_path = write_yaml(target_dir, config_name=config_name, overrides=overrides)
+    return yaml_path
+
+
+def create_overrides(header: RinexHeader, station_alias: str, config_name: str) -> [tuple]:
     station_overrides = create_station_overrides(header, station_alias)
     outputs_overrides = [(["outputs", "metadata", "config_description"], config_name)]
     code_priorities_overrides = create_code_priorities_overrides(header)
     overrides = station_overrides + outputs_overrides + code_priorities_overrides
-    write_yaml(target_dir, config_name=config_name, overrides=overrides)
+    return overrides
 
 
 def create_station_overrides(rinex_header: RinexHeader, station_alias: str) -> [tuple]:
@@ -85,6 +91,8 @@ def write_yaml(target_dir, config_name="auto", overrides=[]):
         yaml.indent(mapping=2)
         yaml.default_flow_style = False
         yaml.dump(data=template, stream=out_f)
+
+    return target
 
 
 def get_phase_signals_per_system(sys_signals: dict) -> dict:
