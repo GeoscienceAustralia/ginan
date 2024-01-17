@@ -5,8 +5,8 @@
 #include "coordinates.hpp"
 #include "instrument.hpp"
 #include "acsConfig.hpp"
+#include "receiver.hpp"
 #include "antenna.hpp"
-#include "station.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
 #include "biases.hpp"
@@ -39,7 +39,7 @@ using std::endl;
 	COMMON_ARG(			Vector3d&			)	rSat,			\
 	COMMON_ARG(			double&				)	rRecSat,		\
 	COMMON_ARG(			VectorPos&			)	pos,			\
-	COMMON_ARG(			Station&			)	rec,			\
+	COMMON_ARG(			Receiver&			)	rec,			\
 	COMMON_ARG(const	KFState&			)	kfState,		\
 	COMMON_ARG(			KFMeasEntry&		)	measEntry
 
@@ -56,7 +56,7 @@ inline void reflectorPCO(COMMON_PPP_ARGS)
 
 	double satReflectorDelta = satReflectorCom.dot(satStat.e);
 
-	measEntry.componentList.push_back({E_Component::SAT_REFLECTOR_DELTA, satReflectorDelta * 2, "+ 2*satRefl", 0});
+	measEntry.componentsMap[E_Component::SAT_REFLECTOR_DELTA] = {satReflectorDelta * 2, "+ 2*satRefl", 0};
 }
 
 /** Tide delta
@@ -70,20 +70,20 @@ inline void tideDelta(COMMON_PPP_ARGS)
 	Vector3d tideVectorSPole	= Vector3d::Zero();
 	Vector3d tideVectorOPole	= Vector3d::Zero();
 
-	if	( acsConfig.model.tides.solid
-		||acsConfig.model.tides.otl
-		||acsConfig.model.tides.atl
-		||acsConfig.model.tides.spole
-		||acsConfig.model.tides.opole)
+	if	( recOpts.tideModels.solid
+		||recOpts.tideModels.otl
+		||recOpts.tideModels.atl
+		||recOpts.tideModels.spole
+		||recOpts.tideModels.opole)
 	{
-		tideDisp(trace, time, rRec, nav.erp, rec.otlDisplacement, rec.atlDisplacement, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorATL, &tideVectorSPole, &tideVectorOPole);
+		tideDisp(trace, time, rec, rRec, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorATL, &tideVectorSPole, &tideVectorOPole);
 	}
 
-	measEntry.componentList.push_back({E_Component::TIDES_SOLID,	-tideVectorSolid.dot(satStat.e) * 2, "- 2*E.dT1", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_OTL,		-tideVectorOTL	.dot(satStat.e) * 2, "- 2*E.dT2", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_ATL,		-tideVectorOTL	.dot(satStat.e) * 2, "- 2*E.dT3", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_SPOLE,	-tideVectorSPole.dot(satStat.e) * 2, "- 2*E.dT4", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_OPOLE,	-tideVectorOPole.dot(satStat.e) * 2, "- 2*E.dT5", 0});
+	measEntry.componentsMap[E_Component::TIDES_SOLID	] = {-tideVectorSolid	.dot(satStat.e) * 2, "- 2*E.dT1", 0};
+	measEntry.componentsMap[E_Component::TIDES_OTL		] = {-tideVectorOTL		.dot(satStat.e) * 2, "- 2*E.dT2", 0};
+	measEntry.componentsMap[E_Component::TIDES_ATL		] = {-tideVectorOTL		.dot(satStat.e) * 2, "- 2*E.dT3", 0};
+	measEntry.componentsMap[E_Component::TIDES_SPOLE	] = {-tideVectorSPole	.dot(satStat.e) * 2, "- 2*E.dT4", 0};
+	measEntry.componentsMap[E_Component::TIDES_OPOLE	] = {-tideVectorOPole	.dot(satStat.e) * 2, "- 2*E.dT5", 0};
 }
 
 /** Relativity corrections
@@ -95,7 +95,7 @@ inline void slrRelativity(COMMON_PPP_ARGS)
 					/ 		(rSat.norm() + rRec.norm() - rRecSat));
 	double dtRel2 	= 2 * MU * ln / CLIGHT / CLIGHT / CLIGHT;
 
-	measEntry.componentList.push_back({E_Component::RELATIVITY2, dtRel2	* CLIGHT * 2, "+ rel2", 0});
+	measEntry.componentsMap[E_Component::RELATIVITY2] = {dtRel2	* CLIGHT * 2, "+ rel2", 0};
 }
 
 /** Sagnac effect
@@ -105,7 +105,7 @@ inline void slrSagnac(COMMON_PPP_ARGS)
 	double dSagnacOut	= sagnac(rSat, rRec);
 	double dSagnacIn	= sagnac(rRec, rSat);	//todo aaron, is it that simple? look at area
 
-	measEntry.componentList.push_back({E_Component::SAGNAC, dSagnacOut + dSagnacIn, "+ sag", 0});
+	measEntry.componentsMap[E_Component::SAGNAC] = {dSagnacOut + dSagnacIn, "+ sag", 0};
 }
 
 /** Tropospheric delay
@@ -134,7 +134,7 @@ inline void slrTroposphere(COMMON_PPP_ARGS)
 		varTrop = -1;
 	}
 
-	measEntry.componentList.push_back({E_Component::TROPOSPHERE, troposphere_m * 2, "+ 2*" + std::to_string(dTropDx[0]) + ".T", varTrop});
+	measEntry.componentsMap[E_Component::TROPOSPHERE] = {troposphere_m * 2, "+ 2*" + std::to_string(dTropDx[0]) + ".T", varTrop};
 }
 
 inline void slrRecAntDelta(COMMON_PPP_ARGS)
@@ -143,7 +143,7 @@ inline void slrRecAntDelta(COMMON_PPP_ARGS)
 
 	double recAntDelta = -recAntVector.dot(satStat.e);
 
-	measEntry.componentList.push_back({E_Component::REC_ANTENNA_DELTA, recAntDelta * 2, "+ 2*E.dR_r", 0});
+	measEntry.componentsMap[E_Component::REC_ANTENNA_DELTA] = {recAntDelta * 2, "+ 2*E.dR_r", 0};
 };
 
 /** Rec range bias
@@ -173,7 +173,7 @@ inline void recRangeBias(COMMON_PPP_ARGS)
 		recRangeBiasVar = -1;
 	}
 
-	measEntry.componentList.push_back({E_Component::REC_RANGE_BIAS, recRangeBias, "+ recRangeBias", recRangeBiasVar});
+	measEntry.componentsMap[E_Component::REC_RANGE_BIAS] = {recRangeBias, "+ recRangeBias", recRangeBiasVar};
 }
 
 /** Rec time bias
@@ -205,7 +205,7 @@ inline void recTimeBias(COMMON_PPP_ARGS)
 		recTimeBiasVar = -1;
 	}
 
-	measEntry.componentList.push_back({E_Component::REC_TIME_BIAS, recTimeBias, "+ recTimeBias", recTimeBiasVar});
+	measEntry.componentsMap[E_Component::REC_TIME_BIAS] = {recTimeBias, "+ recTimeBias", recTimeBiasVar};
 }
 
 
@@ -224,9 +224,9 @@ inline void recTimeBias(COMMON_PPP_ARGS)
 #undef	COMMON_ARG
 #define	COMMON_ARG(type)
 
-void stationSlr(
-			Trace&				netTrace,			///< Trace to output to
-			Station&			rec,				///< Receiver to perform calculations for
+void receiverSlr(
+			Trace&				pppTrace,			///< Trace to output to
+			Receiver&			rec,				///< Receiver to perform calculations for
 	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
 			KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
 {
@@ -303,11 +303,11 @@ void stationSlr(
 			obsKey.Sat		= obs.Sat;
 			obsKey.comment	= measEntry.obsKey.comment;
 
-			double var = SQR(recOpts.laser_sigmas[0]);
+			double var = SQR(recOpts.laser_sigma);
 
 			measEntry.addNoiseEntry(obsKey, 1, var);
 
-			measEntry.componentList.push_back({E_Component::OBSERVED, -observed, "- obs", var});
+			measEntry.componentsMap[E_Component::OBSERVED] = {-observed, "- obs", var};
 		}
 
 		if (acsConfig.output_residual_chain)
@@ -347,7 +347,7 @@ void stationSlr(
 
 		satazel(pos, satStat.e, satStat);
 
-		if (satStat.el < acsConfig.elevation_mask)
+		if (satStat.el < recOpts.elevation_mask_deg * D2R)
 		{
 			obs.excludeElevation = true;
 			return;
@@ -434,7 +434,7 @@ void stationSlr(
 		//Range
 		double rRecSat = (rSat - rRec).norm();
 		{
-			measEntry.componentList.push_back({E_Component::RANGE, rRecSat * 2, "+ range", 0});
+			measEntry.componentsMap[E_Component::RANGE] = {rRecSat * 2, "+ range", 0};
 		}
 
 		//Add modelled adjustments and estimated parameter
@@ -451,10 +451,13 @@ void stationSlr(
 
 		//Calculate residuals and form up the measurement
 
-		measEntry.componentList.push_back({E_Component::NET_RESIDUAL, 0, "", 0});
+		measEntry.componentsMap[E_Component::NET_RESIDUAL] = {0, "", 0};
+
 		double residual = 0;
-		for (auto& [component, componentVal, eq, var] : measEntry.componentList)
+		for (auto& [component, details] : measEntry.componentsMap)
 		{
+			auto& [componentVal, eq, var] = details;
+
 			residual -= componentVal;
 
 			if (acsConfig.output_residual_chain)
@@ -473,8 +476,10 @@ void stationSlr(
 		{
 			trace << std::endl << std::endl << "0 =";
 
-			for (auto& [componentName, componentVal, eq, var] : measEntry.componentList)
+			for (auto& [component, details] : measEntry.componentsMap)
 			{
+				auto& [componentVal, eq, var] = details;
+
 				tracepdeex(0, trace, " %s", eq.c_str());
 			}
 		}

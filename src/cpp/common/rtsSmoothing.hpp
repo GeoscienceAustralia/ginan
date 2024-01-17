@@ -9,11 +9,11 @@ using std::string;
 
 #include "algebra.hpp"
 
-struct StationMap;
+struct ReceiverMap;
 
 KFState rtsSmoothing(
-	KFState&	kfState, 
-	bool		write			= false,
-	StationMap*	stationMap_ptr	= nullptr);
+	KFState&	kfState,
+	ReceiverMap&	receiverMap,
+	bool		write		= false);
 
 

@@ -9,23 +9,23 @@
 
 #define MIN_NSAT_REC 		3
 
-struct StationMap;
+struct ReceiverMap;
 
 extern bool ionoConfigured;
 
 void obsIonoData(
 	Trace&		trace,
-	Station&	rec);
+	Receiver&	rec);
 
 void obsIonoDataFromFilter(
-	Trace&		trace,
-	StationMap&	stationMap,
-	KFState&	measKFstate);
+	Trace&			trace,
+	ReceiverMap&	receiverMap,
+	KFState&		measKFstate);
 
 void filterIonosphere(
 	Trace&			trace,
 	KFState&		kfState,
-	StationMap&		stations,
+	ReceiverMap&	receiverMap,
 	GTime 			time);
 
 void ionosphereSsrUpdate(Trace& trace, KFState& kfState);
@@ -46,7 +46,7 @@ bool ionexFileWrite(
 	KFState&	kfState);
 
 
-void writeIONStec(Trace& trace, string filename, map<string, Station>& stations, GTime time);
+void writeIONStec(Trace& trace, string filename, map<string, Receiver>& receiverMap, GTime time);
 void writeSTECfromRTS(
 	string			filename,
 	KFState&		kFstate);
@@ -82,5 +82,5 @@ bool	getIGSSSRIono(Trace& trace, GTime time, SSRAtm& ssrAtm,	Vector3d& rRec, AzE
 bool	getCmpSSRIono(Trace& trace, GTime time, SSRAtm& ssrAtm,	Vector3d& rRec,				double& iono,	double& var, SatSys  Sat);
 
 bool configAtmosRegions(
-	Trace&		trace,
-	StationMap& stationMap);
+	Trace&				trace,
+	ReceiverMap&		receiverMap);

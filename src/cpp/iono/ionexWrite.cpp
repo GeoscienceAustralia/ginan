@@ -52,8 +52,8 @@ bool writeIonexHead(
 	ionex_loninc = acsConfig.ionexGrid.lon_res;
 	ionex_latres = floor(acsConfig.ionexGrid.lat_width / ionex_latinc) + 1;
 	ionex_lonres = floor(acsConfig.ionexGrid.lon_width / ionex_loninc) + 1;
-	ionex_latmin = acsConfig.ionexGrid.lat_center - ionex_latinc * (ionex_latres - 1) / 2;
-	ionex_lonmin = acsConfig.ionexGrid.lon_center - ionex_loninc * (ionex_lonres - 1) / 2;
+	ionex_latmin = acsConfig.ionexGrid.lat_centre - ionex_latinc * (ionex_latres - 1) / 2;
+	ionex_lonmin = acsConfig.ionexGrid.lon_centre - ionex_loninc * (ionex_lonres - 1) / 2;
 
 	if (acsConfig.ionModelOpts.layer_heights.empty())
 	{
@@ -67,10 +67,12 @@ bool writeIonexHead(
 	if (acsConfig.ionModelOpts.layer_heights.size() == 1)
 		dhght = 0;
 
+	auto& recOpts = acsConfig.getRecOpts("global");
+
 	tracepdeex(0, ionex, "%8.1f%12s%-20s%-20.20sIONEX VERSION / TYPE\n", 1.1, " ", "I", "GNS");
-	tracepdeex(0, ionex, "%-20s%-20s%-20.20sPGM / RUN BY / DATE\n", acsConfig.analysis_program.c_str(), acsConfig.analysis_center.c_str(), timeGet().to_string(0).c_str());
+	tracepdeex(0, ionex, "%-20s%-20s%-20.20sPGM / RUN BY / DATE\n", acsConfig.analysis_program.c_str(), acsConfig.analysis_centre.c_str(), timeGet().to_string(0).c_str());
 	tracepdeex(0, ionex, "  %4s%54sMAPPING FUNCTION\n", "COSZ", "");
-	tracepdeex(0, ionex, "%8.1f%52sELEVATION CUTOFF\n", acsConfig.elevation_mask * R2D, " ");
+	tracepdeex(0, ionex, "%8.1f%52sELEVATION CUTOFF\n", recOpts.elevation_mask_deg, " ");
 	tracepdeex(0, ionex, "%8.1f%52sBASE RADIUS\n", RE_WGS84 / 1000.0, " ");
 	tracepdeex(0, ionex, "%6d%54sMAP DIMENSION\n", acsConfig.ionModelOpts.layer_heights.size() > 1 ? 3 : 2, " ");
 	tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%40sHGT1 / HGT2 / DHGT\n",			hght1,			hght2,			dhght, " ");

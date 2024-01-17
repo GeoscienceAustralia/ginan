@@ -1,105 +1,129 @@
 R"HTMLTEMPLATE(
 
 <html>
-  <head><title>Ginan YAML Inspector</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<head><title>Ginan YAML Inspector</title>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 
-    <style>
+	<style>
 
-      input
-      {
-       // display: inline-block;
-        font-family: monospace;
-      }
+	input
+	{
+	// display: inline-block;
+		font-family: monospace;
+	}
 
-      body
-      {
-        font-family: monospace;
-      }
+	body
+	{
+		font-family: monospace;
+	}
 
 .ident {
-  position: relative;
-  display: inline-block;
-  border-bottom: 1px dotted black;
+position: relative;
+display: inline-block;
+border-bottom: 1px dotted black;
+}
+
+.level2, .level3, .level4
+{
+	display: none;
+}
+
+/* make it clear something is unintentionally hidden (on some browsers) */
+.level2:has(.level1), .level3:has(.level2, .level1)
+{
+/*	display: block;
+	font-size: larger;*/
 }
 
 .ident .tooltiptext {
-  visibility: hidden;
-  width: 50vw;
-  background-color: teal;
-  color: #fff;
-  text-align: left;
-  border-radius: 6px;
-  padding: 5px;
-  position: absolute;
-  z-index: 1;
-  top: -5px;
-  left: 110%;
+visibility: hidden;
+width: 50vw;
+background-color: teal;
+color: #fff;
+text-align: left;
+border-radius: 6px;
+padding: 5px;
+position: absolute;
+z-index: 1;
+top: -5px;
+left: 110%;
 }
 
 .ident .tooltiptext::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent teal transparent transparent;
+content: "";
+position: absolute;
+top: 50%;
+right: 100%;
+margin-top: -5px;
+border-width: 5px;
+border-style: solid;
+border-color: transparent teal transparent transparent;
 }
 .ident:hover .tooltiptext {
-  visibility: visible;
+visibility: visible;
 }
 
 
 input[type=text]
 {
-  border: none;
-  width: 70vw;
+border: none;
+width: 70vw;
 }
 .contents
 {
-  margin-left: 2em;
+margin-left: 2em;
 }
 
 
 .value
 {
-  display: inline-block;
-    -webkit-user-modify: read-write;
-    -moz-user-modify: read-write;
-    user-modify: read-write;
+display: inline-block;
+	-webkit-user-modify: read-write;
+	-moz-user-modify: read-write;
+	user-modify: read-write;
 }
-  input:not(:checked) ~ div
-  {
-    color: grey;
-  }
-  input:not(:checked) ~ input
-  {
-    pointer-events:none;
-    color: grey;
-  }
-  input:not(:checked) ~ .contents
-  {
-    display: none;
-  }
+input:not(:checked) ~ div
+{
+	color: grey;
+}
+input:not(:checked) ~ input
+{
+	pointer-events:none;
+	color: grey;
+}
+input:not(:checked) ~ select
+{
+	pointer-events:none;
+	color: grey;
+}
+input:not(:checked) ~ .contents
+{
+	display: none;
+}
 
 
-  input:not(:checked) + div::before
-  {
-    content:  "#";
-  }
+input:not(:checked) + div::before
+{
+	content:  "#";
+}
 
 
-    </style>
+	</style>
 
-  </head>
-  <body>
+</head>
+<body>
 
-    <h1>Ginan YAML Inspector</h1>
-    <p>Use the checkboxes to enable editing and modification of options.
-    <p>Existing yaml files and their configuration can be loaded by importing them below.
+	<h1>Ginan YAML Inspector</h1>
+	<p>Use the checkboxes to enable editing and modification of options.
+	<p>Existing yaml files and their configuration can be loaded by importing them below.
+	<p>
+		<select id="configLevel" class="value">
+			<option value="1" selected>Basic</option>
+			<option value="2">Intermediate</option>
+			<option value="3">Advanced</option>
+			<option value="4">Debug</option>
+		</select>
 
-    
+
 )HTMLTEMPLATE"

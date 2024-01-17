@@ -36,23 +36,23 @@ struct Tide
 {
 	string				filename;
 	int					degMax;
-	
+
 	vector<TidalWave>	tidalWaves;
 	Vector6d			beta;
 
 	void read(
 		const string&	filename,
 		int				degMax);
-	
+
 	void setBeta(
 		GTime	time,
 		double	ut1_utc = 0);
 
 	void getSPH(
-		Array6d&	beta, 
-		MatrixXd&	Cnm, 
+		Array6d&	beta,
+		MatrixXd&	Cnm,
 		MatrixXd&	Snm);
 };
 
-extern Tide oceTide;
-extern Tide atmTide;
+extern Tide oceanTide;
+extern Tide atmosphericTide;

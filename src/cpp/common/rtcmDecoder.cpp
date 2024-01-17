@@ -405,7 +405,7 @@ void RtcmDecoder::decodeSSR(
 					entry.slop	= 0;
 					entry.slpv	= 0;
 
-					pushBiasSinex(id, entry);
+					pushBiasEntry(id, entry);
 					tracepdeex(5,std::cout, "\n#RTCM_SSR CODBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
 				}
 
@@ -486,7 +486,7 @@ void RtcmDecoder::decodeSSR(
 					entry.slop	= 0;
 					entry.slpv	= 0;
 
-					pushBiasSinex(id, entry);
+					pushBiasEntry(id, entry);
 					tracepdeex(5,std::cout, "\n#RTCM_SSR PHSBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
 				}
 				catch (std::exception& e)
@@ -1179,6 +1179,8 @@ ObsList RtcmDecoder::decodeMSM(
 
 		obsList.push_back((shared_ptr<GObs>)obs);
 
+// 		std::cout << obs.time << " " << obs.Sat.id() << std::endl;
+
 		nsat++;
 	}
 
@@ -1228,9 +1230,9 @@ ObsList RtcmDecoder::decodeMSM(
 			BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << "messageNumber=" << messageNumber;
 		}
 
-		obs.SigsLists[ft].push_back(sig);
+		obs.sigsLists[ft].push_back(sig);
 
-		Sig* pointer = &obs.SigsLists[ft].back();
+		Sig* pointer = &obs.sigsLists[ft].back();
 		signalPointermap[ncell] = pointer;
 		cellSatellitemap[ncell] = obs.Sat;
 		ncell++;
@@ -1253,7 +1255,7 @@ ObsList RtcmDecoder::decodeMSM(
 			continue;
 		}
 
-		for (auto& [ft, sigList]	: obs.SigsLists)
+		for (auto& [ft, sigList]	: obs.sigsLists)
 		for (auto& sig				: sigList)
 		{
 			sig.P = ms_rough_range;
@@ -1299,7 +1301,7 @@ ObsList RtcmDecoder::decodeMSM(
 	{
 		int rough_range_modulo		= getbituInc(data, i,	10);
 
-		for (auto& [ft, sigList]	: obs.SigsLists)
+		for (auto& [ft, sigList]	: obs.sigsLists)
 		for (auto& sig				: sigList)
 		{
 			sig.P += rough_range_modulo * P2_10;
@@ -1317,7 +1319,7 @@ ObsList RtcmDecoder::decodeMSM(
 			continue;
 		}
 
-		for (auto& [ft, sigList]	: obs.SigsLists)
+		for (auto& [ft, sigList]	: obs.sigsLists)
 		for (auto& sig				: sigList)
 		{
 			sig.D = rough_doppler;
@@ -1407,7 +1409,7 @@ ObsList RtcmDecoder::decodeMSM(
 
 	//convert millisecond or m/s measurements to meters or cycles or Hz
 	for (auto& obs				: only<GObs>(obsList))
-	for (auto& [ft, sigList]	: obs.SigsLists)
+	for (auto& [ft, sigList]	: obs.sigsLists)
 	for (auto& sig				: sigList)
 	{
 		double freqcy = carrierFrequency[ft];
@@ -1447,6 +1449,8 @@ E_ReturnType RtcmDecoder::decode(
 	E_ReturnType retVal = E_ReturnType::OK;
 
 	int messageNumber			= getbitu(message, 0, 12);
+
+// 	std::cout << std::endl << "Received " << RtcmMessageType::_from_integral(messageNumber)._to_string();
 
 	switch (messageNumber)
 	{

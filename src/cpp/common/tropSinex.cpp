@@ -6,7 +6,7 @@
 #include "tropModels.hpp"
 #include "instrument.hpp"
 #include "acsConfig.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "common.hpp"
 #include "trace.hpp"
 #include "gTime.hpp"
@@ -61,16 +61,18 @@ void setDescription(
 	if (isSmoothed)			tropEstMethod = "Smoother";
 	else 					tropEstMethod = "Filter";
 
+	auto& recOpts = acsConfig.getRecOpts("global");
+
 	theSinex.tropDesc.strings	["TROPO MODELING METHOD"]		= tropEstMethod;
 	theSinex.tropDesc.strings	["TIME SYSTEM"]					= acsConfig.time_system;
 	theSinex.tropDesc.strings	["OCEAN TIDE LOADING MODEL"]	= acsConfig.ocean_tide_loading_model;
 	theSinex.tropDesc.strings	["ATMOSPH TIDE LOADING MODEL"]	= acsConfig.atmospheric_tide_loading_model;
 	theSinex.tropDesc.strings	["GEOID MODEL"]					= acsConfig.geoid_model;
 	theSinex.tropDesc.ints		["TROPO SAMPLING INTERVAL"]		= acsConfig.epoch_interval;
-	theSinex.tropDesc.strings	["A PRIORI TROPOSPHERE"]		= acsConfig.model.trop.model._to_string();
-	theSinex.tropDesc.strings	["TROPO MAPPING FUNCTION"]		= acsConfig.model.trop.model._to_string();
+	theSinex.tropDesc.strings	["A PRIORI TROPOSPHERE"]		= recOpts.tropModel.models.front()._to_string();
+	theSinex.tropDesc.strings	["TROPO MAPPING FUNCTION"]		= recOpts.tropModel.models.front()._to_string();
 	theSinex.tropDesc.strings	["GRADS MAPPING FUNCTION"]		= acsConfig.gradient_mapping_function;
-	theSinex.tropDesc.ints		["ELEVATION CUTOFF ANGLE"]		= acsConfig.elevation_mask*R2D;
+	theSinex.tropDesc.ints		["ELEVATION CUTOFF ANGLE"]		= recOpts.elevation_mask_deg;
 	theSinex.tropDesc.vecStrings["TROPO PARAMETER NAMES"].clear();
 	theSinex.tropDesc.vecStrings["TROPO PARAMETER UNITS"].clear();
 	theSinex.tropDesc.vecStrings["TROPO PARAMETER WIDTH"].clear();
@@ -152,7 +154,7 @@ void writeTropSiteId(
 
 		auto result = getStnSnx(id, theSinex.solution_start_date, stationSinex);
 
-		if (result.failureSiteId)			continue;	// Station not found in sinex file
+		if (result.failureSiteId)			continue;	// Receiver not found in sinex file
 		if (result.failureEstimate)			continue;	// Position not found in sinex file		//todo aaron, remove this, use other function
 
 		VectorEnu&	antdel	= stationSinex.ecc_ptr->ecc;
@@ -423,6 +425,8 @@ void setTropSolFromFilter(
 										{	tropSumMap[id][typeWet].x += x;		tropSumMap[id][typeWet].var = newVar;	}
 	}
 
+	auto& recOpts = acsConfig.getRecOpts("global");
+
 	// Store accumulated trop values for writing out later
 	for (auto& [id, entries] : tropSumMap)
 	{
@@ -458,8 +462,7 @@ void setTropSolFromFilter(
 
 				VectorPos pos = ecef2pos(ecef);
 
-				auto& recOpts = acsConfig.getRecOpts(id);
-				double modelledZhd = tropDryZTD(nullStream, recOpts.rec_trop.models, kfState.time, pos);
+				double modelledZhd = tropDryZTD(nullStream, recOpts.tropModel.models, kfState.time, pos);
 
 				entry.x	-= modelledZhd;
 			}

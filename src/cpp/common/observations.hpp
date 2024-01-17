@@ -76,7 +76,6 @@ struct Sig : RawSig
 
 	}
 
-	bool	phaseError	= 0;		///< Valid signal flag
 	double	codeVar		= 0;		///< Variance of code measurement
 	double	phasVar		= 0;		///< Variance of phase measurement
 
@@ -100,11 +99,11 @@ struct IonoObs
 
 	}
 
-	double stecToDelay;
-	int    STECtype;
-	double stecVal;
-	double stecVar;
-	int    stecCodeCombo;
+	double	stecToDelay;
+	int		STECtype;
+	double	stecVal;
+	double	stecVar;
+	int		stecCodeCombo;
 
 	SatSys ionoSat;	//todo aaron, remove when possible
 
@@ -126,7 +125,7 @@ struct IonoObs
 //forward declarations for pointers below
 struct SatStat;
 struct SatNav;
-struct Station;
+struct Receiver;
 
 
 
@@ -141,7 +140,7 @@ struct GObsMeta : IonoObs
 
 	}
 
-	Station*	rec_ptr			= nullptr;
+	Receiver*	rec_ptr			= nullptr;
 
 	double 		rescode_v		= 0;				///< Residuals of code
 	double		tropSlant		= 0;				///< Troposphere slant delay
@@ -156,8 +155,6 @@ struct GObsMeta : IonoObs
 			unsigned excludeElevation		: 1;
 			unsigned excludeEclipse			: 1;
 			unsigned excludeSystem			: 1;
-			unsigned excludeSlip			: 1;
-			unsigned excludeTrop			: 1;
 			unsigned excludeOutlier			: 1;
 			unsigned excludeBadSPP			: 1;
 			unsigned excludeConfig			: 1;
@@ -239,8 +236,8 @@ struct SatPos
 */
 struct GObs : Observation, GObsMeta, SatPos
 {
-	map<E_FType, Sig>				Sigs;		///> Map of signals available in this observation (one per frequency only)
-	map<E_FType, list<Sig>>			SigsLists;	///> Map of all signals available in this observation (may include multiple per frequency, eg L1X, L1C)
+	map<E_FType, Sig>				sigs;		///> Map of signals available in this observation (one per frequency only)
+	map<E_FType, list<Sig>>			sigsLists;	///> Map of all signals available in this observation (may include multiple per frequency, eg L1X, L1C)
 
 	operator shared_ptr<GObs>()
 	{

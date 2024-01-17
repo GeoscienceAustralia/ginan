@@ -43,8 +43,8 @@ int configIonModelBsplin(
 		return 0;
 	}
 
-	BSPLINE_LAT_CENTRE		= acsConfig.ionexGrid.lat_center;
-	BSPLINE_LON_CENTRE		= acsConfig.ionexGrid.lon_center;
+	BSPLINE_LAT_CENTRE		= acsConfig.ionexGrid.lat_centre;
+	BSPLINE_LON_CENTRE		= acsConfig.ionexGrid.lon_centre;
 	BSPLINE_LAT_INTERVAL	= acsConfig.ionexGrid.lat_res;
 	BSPLINE_LON_INTERVAL	= acsConfig.ionexGrid.lon_res;
 

@@ -2,7 +2,7 @@
 // #pragma GCC optimize ("O0")
 
 #include <algorithm>
-#include <math.h>    
+#include <math.h>
 
 #include "instrument.hpp"
 #include "testUtils.hpp"
@@ -31,7 +31,7 @@ void ErrorExit::consume(
 	if (logLevel <= acsConfig.fatal_level)
 	{
 		std::cout << std::endl << "Message met fatal_message_level condition for exit.\nExiting...\n\n";
-		exit(1);
+		exit(0);
 	}
 }
 
@@ -58,16 +58,16 @@ size_t bucket = 0;
 #include "navigation.hpp"
 #include "streamRtcm.hpp"
 #include "acsConfig.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "biases.hpp"
 
-extern StationMap	stationMap;
+extern ReceiverMap	receiverMap;
 
 static void* plumber_hook(size_t size, const void* caller);
 static void* plumber_hook(size_t size, const void* caller)
 {
 	void*	result;
-	
+
 	/* Restore all old hooks */
 	/* Call recursively */
 	__malloc_hook		= 0;
@@ -77,7 +77,7 @@ static void* plumber_hook(size_t size, const void* caller)
 	__malloc_hook		= plumber_hook;
 
 	bucket += size;
-	
+
 	return result;
 }
 
@@ -87,13 +87,13 @@ size_t plumberTest(T& t)
 {
 	//begin plumbing
 	bucket = 0;
-		
+
 	__malloc_hook	= plumber_hook;
 	{
 		T newT = t;
 	}
 	__malloc_hook	= 0;
-	
+
 	return bucket;
 }
 
@@ -103,18 +103,18 @@ void plumber()
 {
 #ifdef PLUMBER
 	static map<string, size_t>	plumberMap;
-	
+
 	size_t New;
 	string v;
-	
-	printf("Checking plumbing:\n");	
+
+	printf("Checking plumbing:\n");
 	for (auto& [id, satNav] : nav.satNavMap)
 	{
 		v = id.id();			New = plumberTest(satNav						);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 	}
 
 	v = "biasMaps";				New = plumberTest(biasMaps						);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
-	v = "stationMap";			New = plumberTest(stationMap					);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+	v = "receiverMap";			New = plumberTest(receiverMap					);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 	v = "nav";					New = plumberTest(nav							);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 // 	v = "ephMap";				New = plumberTest(nav.ephMap					);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 // 	v = "gephMap";				New = plumberTest(nav.gephMap					);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
@@ -131,7 +131,7 @@ void plumber()
 	v = "yamls";				New = plumberTest(acsConfig.yamls				);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 	v = "ionoOpts";				New = plumberTest(acsConfig.ionoOpts			);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 	v = "pppOpts";				New = plumberTest(acsConfig.pppOpts				);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
-	v = "minCOpts";				New = plumberTest(acsConfig.minCOpts			);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
+	v = "minconOpts";				New = plumberTest(acsConfig.minconOpts			);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 	v = "localMongo";			New = plumberTest(acsConfig.localMongo			);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 	v = "remoteMongo";			New = plumberTest(acsConfig.remoteMongo			);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;
 	v = "slrOpts";				New = plumberTest(acsConfig.slrOpts				);	printf("%15s has %15ld drops added, %15ld in bucket\n", v.c_str(), (New - plumberMap[v]), New); 	plumberMap[v] = New;

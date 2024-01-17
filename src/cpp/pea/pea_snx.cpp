@@ -6,21 +6,21 @@
 #include "eigenIncluder.hpp"
 #include "navigation.hpp"
 #include "acsConfig.hpp"
+#include "receiver.hpp"
 #include "algebra.hpp"
-#include "station.hpp"
 #include "gTime.hpp"
 #include "sinex.hpp"
 
 void getStationsFromSinex(
-	map<string, Station>&	stationMap,
+	map<string, Receiver>&	receiverMap,
 	KFState&				kfState)
 {
-	
+
 }
 
 void sinexPostProcessing(
 	GTime						time,
-	map<string, Station>&		stationMap,
+	map<string, Receiver>&		receiverMap,
 	KFState&					netKFState)
 {
 	theSinex.inputFiles.		clear();
@@ -51,20 +51,33 @@ void sinexPostProcessing(
 	startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);		//todo aaron, make these constructors for ptime.
 
 	KFState sinexSubstate = mergeFilters({&netKFState}, {KF::ONE, KF::REC_POS, KF::REC_POS_RATE});
-	
+
 	updateSinexHeader(acsConfig.analysis_agency, data_agc, (GTime) startTime, time, obsCode, constCode, solcont, sinexSubstate.x.rows() - 1, 2.02); //Change this if the sinex format gets updated
 
 	string filename = acsConfig.sinex_filename;
-	
+
 	replaceTimes(filename, acsConfig.start_epoch);
-	
-	writeSinex(filename, sinexSubstate, stationMap);
+
+	writeSinex(filename, sinexSubstate, receiverMap);
 }
 
 void sinexPerEpochPerStation(
 	GTime		time,
-	Station&	rec)
+	Receiver&	rec)
 {
+	{
+		auto& solEpoch = theSinex.solEpochMap[rec.id];
+
+		solEpoch.sitecode 	= rec.id;
+		solEpoch.typecode	= '-';
+		solEpoch.ptcode		= "A";
+		solEpoch.solnnum	= "0";
+		if ((GTime) solEpoch.start == GTime::noTime())		solEpoch.start	= time;
+															solEpoch.end	= time;
+															solEpoch.mean	= (GTime) solEpoch.start
+																			+ ((GTime)solEpoch.end - (GTime)solEpoch.start).to_double() / 2;
+	}
+
 	// check the station data for currency. If later that the end time, refresh Sinex data
 	UYds yds = time;
 	UYds defaultStop(-1,-1,-1);
@@ -75,21 +88,21 @@ void sinexPerEpochPerStation(
 		//already have valid data
 		return;
 	}
-	
+
 	auto result = getStnSnx(rec.id, time, rec.snx);
 
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
-	
-	if (rec.antDelta	.isZero())		rec.antDelta		= recOpts.eccentricity;
+
+	if (rec.antDelta	.isZero())		rec.antDelta		= recOpts.eccentricityModel.eccentricity;
 	if (rec.antennaType	.empty())		rec.antennaType		= recOpts.antenna_type;
 	if (rec.receiverType.empty())		rec.receiverType	= recOpts.receiver_type;
-	
+
 	if (rec.antDelta	.isZero())		rec.antDelta		= rec.snx.ecc_ptr->ecc;
 	if (rec.antennaType	.empty())		rec.antennaType		= rec.snx.ant_ptr->type;
 	if (rec.receiverType.empty())		rec.receiverType	= rec.snx.rec_ptr->type;
-	
+
 	auto trace = getTraceFile(rec);
-	
+
 	// Initialise the receiver antenna information
 	for (bool once : {1})
 	{
@@ -141,15 +154,15 @@ void sinexPerEpochPerStation(
 		&&recOpts.apriori_pos.isZero())
 	{
 		BOOST_LOG_TRIVIAL(warning)
-		<< "Station " << rec.id << " position not found in sinex or yaml files";
+		<< "Receiver " << rec.id << " position not found in sinex or yaml files";
 
 		return; // No current station position estimate!
 	}
-	
+
 	if (result.failureSiteId)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Station " << rec.id << " not found in sinex file";
+		<< "Receiver " << rec.id << " not found in sinex file";
 
 		return;
 	}

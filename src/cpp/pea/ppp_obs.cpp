@@ -1,5 +1,5 @@
 
-// #pragma GCC optimize ("O0")
+#pragma GCC optimize ("O0")
 
 /** References
 * 1. M.Fritsche, R.Dietrich, C.Knöfel, A.Rülke, S.Vey, M.Rothacher & P.Steigenberger, Impact of higher‐order ionospheric terms on GPS estimates. Geophysical research letters, 2005.
@@ -18,9 +18,9 @@
 #include "ionoModel.hpp"
 #include "orbitProp.hpp"
 #include "ionModels.hpp"
+#include "receiver.hpp"
 #include "posProp.hpp"
 #include "antenna.hpp"
-#include "station.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
 #include "biases.hpp"
@@ -31,36 +31,63 @@
 
 
 
+struct AutoSender
+{
+	int		level = 0;
+	Trace&	trace;
+	GTime	time;
+
+	vector<ArbitraryKVP> baseKVPs;
+	vector<ArbitraryKVP> valueKVPs;
+
+	AutoSender(
+		int		level,
+		Trace&	trace,
+		GTime	time)
+	:	level	{level},
+		trace	{trace},
+		time	{time}
+	{
+
+	}
+
+	~AutoSender()
+	{
+		traceJson(level, trace, time, baseKVPs, valueKVPs);
+	}
+};
+
+
 //this hideousness is a horrible hack to make this code compile on macs.
 //blame apple for this. look what they've made me do...
 
 //this will ust copy and paste the types and variable names for now, this is undefined later to remove the type names to pass in the parameters in the same order
 #define COMMON_ARG(type)    type
 
-#define COMMON_PPP_ARGS											\
-	COMMON_ARG(			Trace&				)	trace,			\
-	COMMON_ARG(			Trace&				)	jsonTrace,		\
-	COMMON_ARG(			GObs&				)	obs,			\
-	COMMON_ARG(			Station&			)	rec,			\
-	COMMON_ARG(			SatSys&				)	Sat,			\
-	COMMON_ARG(			Sig&				)	sig,			\
-	COMMON_ARG(			string&				)	sigName,		\
-	COMMON_ARG(const	E_FType&			)	ft,				\
-	COMMON_ARG(			E_MeasType&			)	measType,		\
-	COMMON_ARG(			GTime&				)	time,			\
-	COMMON_ARG(			SatStat&			)	satStat,		\
-	COMMON_ARG(			SatNav&				)	satNav,			\
-	COMMON_ARG(			ReceiverOptions&	)	recOpts,		\
-	COMMON_ARG(			SatelliteOptions&	)	satOpts,		\
-	COMMON_ARG(const	KFState&			)	kfState,		\
-	COMMON_ARG(const	KFState&			)	remoteKF,		\
-	COMMON_ARG(			KFMeasEntry&		)	measEntry,		\
-	COMMON_ARG(			VectorEcef&			)	rRec,			\
-	COMMON_ARG(			VectorEcef&			)	rSat,			\
-	COMMON_ARG(			double&				)	rRecSat,		\
-	COMMON_ARG(			double&				)	lambda,			\
-	COMMON_ARG(			SatSys&				)	sysSat,			\
-	COMMON_ARG(			vector<ArbitraryKVP>)	baseKVPs,		\
+#define COMMON_PPP_ARGS												\
+	COMMON_ARG(			Trace&				)	trace,				\
+	COMMON_ARG(			Trace&				)	jsonTrace,			\
+	COMMON_ARG(			GObs&				)	obs,				\
+	COMMON_ARG(			Receiver&			)	rec,				\
+	COMMON_ARG(			SatSys&				)	Sat,				\
+	COMMON_ARG(			Sig&				)	sig,				\
+	COMMON_ARG(			string&				)	sigName,			\
+	COMMON_ARG(const	E_FType&			)	ft,					\
+	COMMON_ARG(			E_MeasType&			)	measType,			\
+	COMMON_ARG(			GTime&				)	time,				\
+	COMMON_ARG(			SatStat&			)	satStat,			\
+	COMMON_ARG(			SatNav&				)	satNav,				\
+	COMMON_ARG(			ReceiverOptions&	)	recOpts,			\
+	COMMON_ARG(			SatelliteOptions&	)	satOpts,			\
+	COMMON_ARG(const	KFState&			)	kfState,			\
+	COMMON_ARG(const	KFState&			)	remoteKF,			\
+	COMMON_ARG(			KFMeasEntry&		)	measEntry,			\
+	COMMON_ARG(			VectorEcef&			)	rRec,				\
+	COMMON_ARG(			VectorEcef&			)	rSat,				\
+	COMMON_ARG(			double&				)	rRecSat,			\
+	COMMON_ARG(			double&				)	lambda,				\
+	COMMON_ARG(			SatSys&				)	sysSat,				\
+	COMMON_ARG(			AutoSender&			)	autoSenderTemplate,	\
 	COMMON_ARG(			VectorPos&			)	pos
 
 
@@ -114,7 +141,7 @@ inline void pppRecClocks(COMMON_PPP_ARGS)
 		dtRecVar = -1;
 	}
 
-	measEntry.componentList.push_back({E_Component::REC_CLOCK, recClk_m, "+ Cdt_r", dtRecVar});
+	measEntry.componentsMap[E_Component::REC_CLOCK] = {recClk_m, "+ Cdt_r", dtRecVar};
 };
 
 
@@ -164,7 +191,7 @@ inline void pppSatClocks(COMMON_PPP_ARGS)
 		satClkVar = -1;
 	}
 
-	measEntry.componentList.push_back({E_Component::SAT_CLOCK, -satClk_m, "- Cdt_s", satClkVar});
+	measEntry.componentsMap[E_Component::SAT_CLOCK] = {-satClk_m, "- Cdt_s", satClkVar};
 };
 
 inline void pppRecAntDelta(COMMON_PPP_ARGS)
@@ -173,7 +200,7 @@ inline void pppRecAntDelta(COMMON_PPP_ARGS)
 
 	double recAntDelta = -recAntVector.dot(satStat.e);
 
-	measEntry.componentList.push_back({E_Component::REC_ANTENNA_DELTA, recAntDelta, "- E.dR_r", 0});
+	measEntry.componentsMap[E_Component::REC_ANTENNA_DELTA] = {recAntDelta, "- E.dR_r", 0};
 };
 
 
@@ -191,7 +218,7 @@ inline void pppRecPCO(COMMON_PPP_ARGS)
 
 	double variance = 0;
 	MatrixXd dEdQ;
-	if (initialStateFromConfig(recOpts.quat).estimate)
+	if (initialStateFromConfig(recOpts.orientation).estimate)
 		dEdQ = MatrixXd::Zero(3,4);
 
 	Vector3d bodyPCO	= antPco(rec.antennaId, Sat.sys, recAtxFt, time, variance, E_Radio::RECEIVER, acsConfig.interpolate_rec_pco);
@@ -227,13 +254,13 @@ inline void pppRecPCO(COMMON_PPP_ARGS)
 		}
 	}
 
-	if (initialStateFromConfig(recOpts.quat).estimate)
+	if (initialStateFromConfig(recOpts.orientation).estimate)
 	for (int i = 0; i < 4; i++)
 	{
-		InitialState init = initialStateFromConfig(recOpts.quat, i);
+		InitialState init = initialStateFromConfig(recOpts.orientation, i);
 
 		KFKey kfKey;
-		kfKey.type	= KF::QUAT;
+		kfKey.type	= KF::ORIENTATION;
 		kfKey.str	= rec.id;
 		kfKey.num	= i;
 
@@ -243,7 +270,7 @@ inline void pppRecPCO(COMMON_PPP_ARGS)
 
 	double recPCODelta = -bodyPCO.dot(bodyLook);
 
-	measEntry.componentList.push_back({E_Component::REC_PCO, recPCODelta, "- E.PCO_r", variance});
+	measEntry.componentsMap[E_Component::REC_PCO] = {recPCODelta, "- E.PCO_r", variance};
 };
 
 inline void pppSatPCO(COMMON_PPP_ARGS)
@@ -294,22 +321,22 @@ inline void pppSatPCO(COMMON_PPP_ARGS)
 		}
 	}
 
-	baseKVPs.push_back({"data", __FUNCTION__});
+	AutoSender autoSender = autoSenderTemplate;
 
-	traceJson(1, jsonTrace, time,
-		baseKVPs,
-		{
-			{"bodyLook[0]",	bodyLook[0]},
-			{"bodyLook[1]",	bodyLook[1]},
-			{"bodyLook[2]",	bodyLook[2]},
-			{"bodyPCO[0]",	bodyPCO[0]},
-			{"bodyPCO[1]",	bodyPCO[1]},
-			{"bodyPCO[2]",	bodyPCO[2]}
-		});
+	autoSender.baseKVPs.push_back({"data", __FUNCTION__});
+	autoSender.valueKVPs =
+	{
+		{"bodyLook[0]",	bodyLook[0]},
+		{"bodyLook[1]",	bodyLook[1]},
+		{"bodyLook[2]",	bodyLook[2]},
+		{"bodyPCO[0]",	bodyPCO[0]},
+		{"bodyPCO[1]",	bodyPCO[1]},
+		{"bodyPCO[2]",	bodyPCO[2]}
+	};
 
 	double satPCODelta = bodyPCO.dot(bodyLook);
 
-	measEntry.componentList.push_back({E_Component::SAT_PCO, satPCODelta, "+ E.PCO_s", variance});
+	measEntry.componentsMap[E_Component::SAT_PCO] = {satPCODelta, "+ E.PCO_s", variance};
 
 };
 
@@ -324,9 +351,53 @@ inline void pppRecPCV(COMMON_PPP_ARGS)
 		else								recAtxFt = F1;
 	}
 
-	double recPCVDelta = antPcv(rec.antennaId,	Sat.sys, recAtxFt, time, rec.attStatus,		satStat.e * +1);
+	double az	= 0;
+	double zen	= 0;
+	double recPCVDelta = antPcv(rec.antennaId,	Sat.sys, recAtxFt, time, rec.attStatus,		satStat.e * +1, &az, &zen);
 
-	measEntry.componentList.push_back({E_Component::REC_PCV, recPCVDelta, "+ PCV_r", 0});
+	InitialState init = initialStateFromConfig(recOpts.pcv);
+
+	if (init.estimate)
+	{
+		init.x		= recPCVDelta;
+		recPCVDelta	= 0;
+
+		double az_delta = 5;
+		double el_delta = 5;
+
+		double azFrac = az	/ az_delta;
+		double elFrac = zen	/ el_delta;
+
+		KFKey kfKey;
+		kfKey.type	= KF::REC_PCV;
+		kfKey.str	= rec.id;
+
+		for (auto iAz : {0, 1})
+		for (auto iEl : {0, 1})
+		{
+			int indexAz = ((int) (azFrac + iAz)) * az_delta;
+			int indexEl = ((int) (elFrac + iEl)) * el_delta;
+
+			if (indexAz > 360)		indexAz -= 360;
+			if (indexEl > 90)		indexEl = 90;
+
+			kfKey.num	= 10000	* indexAz
+						+ 100	* indexEl
+						+ 1		* recAtxFt;
+
+			double scalar = 1;
+			if (iAz)		scalar *= azFrac - (int) azFrac;		else	scalar *= ((int) (azFrac + 1)) - azFrac;
+			if (iEl)		scalar *= elFrac - (int) elFrac;		else	scalar *= ((int) (elFrac + 1)) - elFrac;
+
+			kfState.getKFValue(kfKey, init.x);
+
+			recPCVDelta += scalar * init.x;
+
+			measEntry.addDsgnEntry(kfKey, scalar, init);
+		}
+	}
+
+	measEntry.componentsMap[E_Component::REC_PCV] = {recPCVDelta, "+ PCV_r", 0};
 };
 
 inline void pppSatPCV(COMMON_PPP_ARGS)
@@ -342,7 +413,7 @@ inline void pppSatPCV(COMMON_PPP_ARGS)
 
 	double satPCVDelta = antPcv(Sat.id(),		Sat.sys, satAtxFt, time, satNav.attStatus,	satStat.e * -1);
 
-	measEntry.componentList.push_back({E_Component::SAT_PCV, satPCVDelta, "+ PCV_s", 0});
+	measEntry.componentsMap[E_Component::SAT_PCV] = {satPCVDelta, "+ PCV_s", 0};
 };
 
 inline void pppTides(COMMON_PPP_ARGS)
@@ -356,23 +427,23 @@ inline void pppTides(COMMON_PPP_ARGS)
 		Vector3d tideVectorSPole	= Vector3d::Zero();
 		Vector3d tideVectorOPole	= Vector3d::Zero();
 
-		if	( acsConfig.model.tides.solid
-			||acsConfig.model.tides.otl
-			||acsConfig.model.tides.atl
-			||acsConfig.model.tides.spole
-			||acsConfig.model.tides.opole)
+		if	( recOpts.tideModels.solid
+			||recOpts.tideModels.otl
+			||recOpts.tideModels.atl
+			||recOpts.tideModels.spole
+			||recOpts.tideModels.opole)
 		{
-			tideDisp(trace, time, rRec, nav.erp, rec.otlDisplacement, rec.atlDisplacement, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorATL, &tideVectorSPole, &tideVectorOPole);
+			tideDisp(trace, time, rec, rRec, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorATL, &tideVectorSPole, &tideVectorOPole);
 		}
 
 		return {tideVectorSolid, tideVectorOTL, tideVectorATL, tideVectorSPole, tideVectorOPole};
 	});
 
-	measEntry.componentList.push_back({E_Component::TIDES_SOLID,	-solid	.dot(satStat.e), "- E.dT1", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_OTL,		-otl	.dot(satStat.e), "- E.dT2", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_ATL,		-atl	.dot(satStat.e), "- E.dT3", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_SPOLE,	-spole	.dot(satStat.e), "- E.dT4", 0});
-	measEntry.componentList.push_back({E_Component::TIDES_OPOLE,	-opole	.dot(satStat.e), "- E.dT5", 0});
+	measEntry.componentsMap[E_Component::TIDES_SOLID	] = {-solid	.dot(satStat.e), "- E.dT1", 0};
+	measEntry.componentsMap[E_Component::TIDES_OTL		] = {-otl	.dot(satStat.e), "- E.dT2", 0};
+	measEntry.componentsMap[E_Component::TIDES_ATL		] = {-atl	.dot(satStat.e), "- E.dT3", 0};
+	measEntry.componentsMap[E_Component::TIDES_SPOLE	] = {-spole	.dot(satStat.e), "- E.dT4", 0};
+	measEntry.componentsMap[E_Component::TIDES_OPOLE	] = {-opole	.dot(satStat.e), "- E.dT5", 0};
 };
 
 inline void pppRelativity(COMMON_PPP_ARGS)
@@ -380,7 +451,7 @@ inline void pppRelativity(COMMON_PPP_ARGS)
 	/* note that relativity effect to estimate sat clock */
 	double dtRel1	= relativity1(rSat, obs.satVel);
 
-	measEntry.componentList.push_back({E_Component::RELATIVITY1, dtRel1	* CLIGHT, "+ rel1", 0});
+	measEntry.componentsMap[E_Component::RELATIVITY1] = {dtRel1	* CLIGHT, "+ rel1", 0};
 };
 
 inline void pppRelativity2(COMMON_PPP_ARGS)
@@ -390,14 +461,14 @@ inline void pppRelativity2(COMMON_PPP_ARGS)
 						/	(rSat.norm() + rRec.norm() - rRecSat));
 	double dtRel2 	= 2 * MU * ln / CLIGHT / CLIGHT / CLIGHT;
 
-	measEntry.componentList.push_back({E_Component::RELATIVITY2, dtRel2	* CLIGHT, "+ rel2", 0});
+	measEntry.componentsMap[E_Component::RELATIVITY2] = {dtRel2	* CLIGHT, "+ rel2", 0};
 };
 
 inline void pppSagnac(COMMON_PPP_ARGS)
 {
 	double dSagnac = sagnac(rSat, rRec);
 
-	measEntry.componentList.push_back({E_Component::SAGNAC, dSagnac, "+ sag", 0});
+	measEntry.componentsMap[E_Component::SAGNAC] = {dSagnac, "+ sag", 0};
 };
 
 inline void pppIonStec(COMMON_PPP_ARGS)
@@ -419,7 +490,7 @@ inline void pppIonStec(COMMON_PPP_ARGS)
 	{
 		double diono	= 0;
 		double dummy	= 0;
-		bool pass = ionoModel(time, pos, satStat, dummy, diono, varIono);
+		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, recOpts.mapping_function_layer_height, dummy, diono, varIono);
 		if (pass)
 		{
 			double ionC = SQR(lambda / obs.satNav_ptr->lamMap[F1]);
@@ -464,7 +535,7 @@ inline void pppIonStec(COMMON_PPP_ARGS)
 		varIono = -1;
 	}
 
-	measEntry.componentList.push_back({E_Component::IONOSPHERIC_COMPONENT, ionosphere_m, "+ " + std::to_string(factor * alpha) + ".I", varIono});
+	measEntry.componentsMap[E_Component::IONOSPHERIC_COMPONENT] = {ionosphere_m, "+ " + std::to_string(factor * alpha) + ".I", varIono};
 };
 
 /** 2nd order ionospheric correction
@@ -482,7 +553,7 @@ inline void pppIonStec2(COMMON_PPP_ARGS)
 	else						factor = -1 / 2.0;
 
 	VectorPos posp;
-	ionppp(pos, satStat, RE_MEAN / 1000, acsConfig.ionoOpts.pierce_point_layer_height, posp);
+	ionppp(pos, satStat, RE_MEAN / 1000, recOpts.geomagnetic_field_height, posp);
 
 	Vector3d rB = getGeomagIntensityEcef(time, posp) * 1E-9;	// nTesla -> Tesla
 
@@ -521,14 +592,14 @@ inline void pppIonStec2(COMMON_PPP_ARGS)
 
 		ionosphere_m = factor * alpha * ionosphere_stec;
 
-		measEntry.componentList.push_back({E_Component::IONOSPHERIC_COMPONENT1, ionosphere_m, "", 0});
+		measEntry.componentsMap[E_Component::IONOSPHERIC_COMPONENT1] = {ionosphere_m, "", 0};
 		//component will be added in primary ionospheric model <- F this
 	}
 	else
 	{
 		double diono	= 0;
 		double dummy	= 0;
-		bool pass = ionoModel(time, pos, satStat, dummy, diono, varIono);
+		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, recOpts.mapping_function_layer_height, dummy, diono, varIono);
 		if (pass)
 		{
 			double stec = diono * SQR(FREQ1) / TEC_CONSTANT;	// restore STEC
@@ -536,7 +607,7 @@ inline void pppIonStec2(COMMON_PPP_ARGS)
 			ionosphere_m = factor * alpha * stec;
 		}
 
-		measEntry.componentList.push_back({E_Component::IONOSPHERIC_COMPONENT1, ionosphere_m, "", 0});
+		measEntry.componentsMap[E_Component::IONOSPHERIC_COMPONENT1] = {ionosphere_m, "", 0};
 	}
 };
 
@@ -556,9 +627,9 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 
 	E_IonoMapFn mapFn;
 	if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::BROADCAST)		mapFn = E_IonoMapFn::KLOBUCHAR;
-	else															mapFn = acsConfig.ionoOpts.mapping_function;
+	else															mapFn = recOpts.mapping_function;
 
-	double fs = ionmapf(pos, satStat, mapFn, acsConfig.ionoOpts.mapping_function_layer_height);
+	double fs = ionmapf(pos, satStat, mapFn, recOpts.mapping_function_layer_height);
 
 	//calculate the ionosphere values, variances, and gradients at the operating points
 
@@ -599,14 +670,14 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 		measEntry.addDsgnEntry(kfKey, factor * alpha * (2 * nMax + 0.3e12 / 3.17) * 0.66, init);
 
 		ionosphere_m = factor * alpha * nMax * 0.66 * ionosphere_stec;
-		measEntry.componentList.push_back({E_Component::IONOSPHERIC_COMPONENT2, ionosphere_m, "", 0});
+		measEntry.componentsMap[E_Component::IONOSPHERIC_COMPONENT2] = {ionosphere_m, "", 0};
 		//component will be added in primary ionospheric model  <- F this
 	}
 	else
 	{
 		double diono	= 0;
 		double dummy	= 0;
-		bool pass = ionoModel(time, pos, satStat, dummy, diono, varIono);
+		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, recOpts.mapping_function_layer_height, dummy, diono, varIono);
 		if (pass)
 		{
 			double stec = diono * SQR(FREQ1) / TEC_CONSTANT;	// restore STEC
@@ -621,7 +692,7 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 			ionosphere_m = factor * alpha * nMax * 0.66 * stec;
 		}
 
-		measEntry.componentList.push_back({E_Component::IONOSPHERIC_COMPONENT2, ionosphere_m, "", 0});
+		measEntry.componentsMap[E_Component::IONOSPHERIC_COMPONENT2] = {ionosphere_m, "", 0};
 	}
 };
 
@@ -680,25 +751,25 @@ inline void pppIonModel(COMMON_PPP_ARGS)
 			measEntry.addDsgnEntry(kfKey, sign * alpha * coeff, init);
 		}
 
-		measEntry.componentList.push_back({E_Component::IONOSPHERIC_MODEL, ionosphere_m, "+ " + std::to_string(sign * alpha) + ".I", -1});
+		measEntry.componentsMap[E_Component::IONOSPHERIC_MODEL] = {ionosphere_m, "+ " + std::to_string(sign * alpha) + ".I", -1};
 	}
 };
 
 inline void pppTropMap(COMMON_PPP_ARGS)
 {
-	double troposphere_m	= tropDryZTD(trace, recOpts.rec_trop.models, kfState.time, pos);
+	double troposphere_m	= tropDryZTD(trace, recOpts.tropModel.models, kfState.time, pos);
 
 	double		varTrop			= 0;
 	TropStates	tropStates;					//todo aaron unused?
 	TropMapping	dTropDx;
 
-	double modelTroposphere_m	= tropModel(trace, recOpts.rec_trop.models, time, pos, satStat, tropStates, dTropDx, varTrop);
+	double modelTroposphere_m	= tropModel(trace, recOpts.tropModel.models, time, pos, satStat, tropStates, dTropDx, varTrop);
 
 	InitialState init = initialStateFromConfig(recOpts.trop_maps);
 
 	if (init.estimate)
 	{
-		modelTroposphere_m = dTropDx.dryMap * tropDryZTD(trace, recOpts.rec_trop.models, time, pos);
+		modelTroposphere_m = dTropDx.dryMap * tropDryZTD(trace, recOpts.tropModel.models, time, pos);
 
 		for (int i = 0; i < acsConfig.ssrOpts.nbasis; i++)
 		{
@@ -721,7 +792,8 @@ inline void pppTropMap(COMMON_PPP_ARGS)
 			measEntry.addDsgnEntry(kfKey, geoMap * dTropDx.wetMap, init);
 		}
 	}
-	measEntry.componentList.push_back({E_Component::TROPOSPHERE_MODEL, modelTroposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", -1});
+
+	measEntry.componentsMap[E_Component::TROPOSPHERE_MODEL] = {modelTroposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", -1};
 }
 
 
@@ -764,7 +836,7 @@ inline void pppTrop(COMMON_PPP_ARGS)
 	}
 
 	//calculate the trop values, variances, and gradients at the operating points
-	troposphere_m		= tropModel(trace, recOpts.rec_trop.models, time, pos, satStat, tropStates, dTropDx, varTrop);
+	troposphere_m		= tropModel(trace, recOpts.tropModel.models, time, pos, satStat, tropStates, dTropDx, varTrop);
 	obs.tropSlant		= troposphere_m;
 	obs.tropSlantVar	= varTrop;
 
@@ -819,50 +891,36 @@ inline void pppTrop(COMMON_PPP_ARGS)
 		else			measEntry.addDsgnEntry(kfKey, dTropDx.eastMap,	init);
 	}
 
-	measEntry.componentList.push_back({E_Component::TROPOSPHERE, troposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", varTrop});
+	measEntry.componentsMap[E_Component::TROPOSPHERE] = {troposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", varTrop};
 };
 
-inline void pppPhaseWindup(COMMON_PPP_ARGS)
+inline void pppRecPhaseWindup(COMMON_PPP_ARGS)
 {
 	phaseWindup(obs, rec, satStat.phw);
 
 	double phaseWindup_m = satStat.phw * lambda;
 
-	measEntry.componentList.push_back({E_Component::PHASE_WIND_UP, phaseWindup_m, "+ phi", 0});
+	AutoSender autoSender = autoSenderTemplate;
+	autoSender.valueKVPs.push_back({"satStat-phw",	satStat.phw});
+
+	measEntry.componentsMap[E_Component::PHASE_WIND_UP] = {phaseWindup_m, "+ phi", 0};
 };
 
-inline void pppHeading(COMMON_PPP_ARGS)
+inline void pppSatPhaseWindup(COMMON_PPP_ARGS)
 {
-	double headingWindup_m = 0;
-
-	InitialState init		= initialStateFromConfig(recOpts.heading);
-
-	if (init.estimate == false)
-	{
-		return;
-	}
-
-	{
-		KFKey kfKey;
-		kfKey.type		= KF::HEADING;
-		kfKey.str		= rec.id;
-		kfKey.comment	= init.comment;
-
-		double angleOffset;
-
-		kfState.getKFValue(kfKey, angleOffset);
-
-		headingWindup_m = angleOffset * lambda / (2*PI);
-
-		measEntry.addDsgnEntry(kfKey, lambda / (2*PI), init);
-
-		measEntry.componentList.push_back({E_Component::HEADING, headingWindup_m, "", -1});
-	}
-}
+// 	phaseWindup(obs, rec, satStat.phw);
+//
+// 	double phaseWindup_m = satStat.phw * lambda;
+//
+// 	AutoSender autoSender = autoSenderTemplate;
+// 	autoSender.valueKVPs.push_back({"satStat-phw",	satStat.phw});
+//
+// 	measEntry.componentsMap[E_Component::PHASE_WIND_UP] = {phaseWindup_m, "+ phi", 0};
+};
 
 inline void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 {
-	InitialState init		= initialStateFromConfig(recOpts.amb);
+	InitialState init		= initialStateFromConfig(recOpts.ambiguity);
 
 	if (init.estimate == false)
 	{
@@ -901,13 +959,13 @@ inline void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 		measEntry.addDsgnEntry(kfKey, lambda, init);
 	}
 
-	measEntry.componentList.push_back({E_Component::PHASE_AMBIGUITY, ambiguity_m, "+ " + std::to_string(lambda) + ".N", -1});
+	measEntry.componentsMap[E_Component::PHASE_AMBIGUITY] = {ambiguity_m, "+ " + std::to_string(lambda) + ".N", -1};
 };
 
 inline void pppRecPhasBias(COMMON_PPP_ARGS)
 {
-	double	recPhasBias		=  		recOpts.rec_phase_bias.default_bias;
-	double	recPhasBiasVar	= SQR(	recOpts.rec_phase_bias.undefined_sigma);
+	double	recPhasBias		=  		recOpts.phaseBiasModel.default_bias;
+	double	recPhasBiasVar	= SQR(	recOpts.phaseBiasModel.undefined_sigma);
 	getBias(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
 
 	KFKey kfKey;
@@ -935,20 +993,20 @@ inline void pppRecPhasBias(COMMON_PPP_ARGS)
 
 		recPhasBias = init.x;
 
-		measEntry.addDsgnEntry	(kfKey, 1, init);
+		measEntry.addDsgnEntry(kfKey, 1, init);
 
 		recPhasBiasVar = -1;
 	}
 
 	measEntry.addNoiseEntry(kfKey, 1, recPhasBiasVar);
 
-	measEntry.componentList.push_back({E_Component::REC_PHASE_BIAS, recPhasBias, "+ b_" + std::to_string(ft) + "r", recPhasBiasVar});
+	measEntry.componentsMap[E_Component::REC_PHASE_BIAS] = {recPhasBias, "+ b_" + std::to_string(ft) + "r", recPhasBiasVar};
 };
 
 inline void pppSatPhasBias(COMMON_PPP_ARGS)
 {
-	double	satPhasBias		=		satOpts.sat_phase_bias.default_bias;
-	double	satPhasBiasVar	= SQR(	satOpts.sat_phase_bias.undefined_sigma);
+	double	satPhasBias		=		satOpts.phaseBiasModel.default_bias;
+	double	satPhasBiasVar	= SQR(	satOpts.phaseBiasModel.undefined_sigma);
 	getBias(trace, time, Sat, Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
 
 	KFKey kfKey;
@@ -972,21 +1030,21 @@ inline void pppSatPhasBias(COMMON_PPP_ARGS)
 
 		satPhasBias = init.x;
 
-		measEntry.addDsgnEntry	(kfKey, 1, init);
+		measEntry.addDsgnEntry(kfKey, 1, init);
 
 		satPhasBiasVar = -1;
 	}
 
 	measEntry.addNoiseEntry(kfKey, 1, satPhasBiasVar);
 
-	measEntry.componentList.push_back({E_Component::SAT_PHASE_BIAS, satPhasBias, "+ b_" + std::to_string(ft) + "s", satPhasBiasVar});
+	measEntry.componentsMap[E_Component::SAT_PHASE_BIAS] = {satPhasBias, "+ b_" + std::to_string(ft) + "s", satPhasBiasVar};
 };
 
 
 inline void pppRecCodeBias(COMMON_PPP_ARGS)
 {
-	double	recCodeBias		= 		recOpts.rec_code_bias.default_bias;
-	double	recCodeBiasVar	= SQR(	recOpts.rec_code_bias.undefined_sigma);
+	double	recCodeBias		= 		recOpts.codeBiasModel.default_bias;
+	double	recCodeBiasVar	= SQR(	recOpts.codeBiasModel.undefined_sigma);
 	getBias(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
 
 	KFKey kfKey;
@@ -1012,6 +1070,40 @@ inline void pppRecCodeBias(COMMON_PPP_ARGS)
 
 		kfState.getKFValue(kfKey, init.x);
 
+		auto& recSysOpts = acsConfig.getRecOpts(rec.id, {sysSat.sys._to_string()});
+
+		auto thisIt = std::find		(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), sig.code);
+		auto autoIt = std::find		(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), +E_ObsCode::AUTO);
+		auto freqIt = std::find_if	(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), [&](E_ObsCode code)
+		{
+			return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code];
+		});
+
+		bool foundCode = thisIt != recSysOpts.clock_codes.end();
+		bool foundAuto = autoIt != recSysOpts.clock_codes.end();
+		bool foundFreq = freqIt != recSysOpts.clock_codes.end();
+
+		if	( foundAuto
+			&&foundFreq)
+		{
+			//this frequency is already used in the clock codes, dont use again
+			foundAuto = false;
+		}
+
+		if	( foundCode
+			||foundAuto)
+		{
+			//set the bias to zero, and dont let it change
+			init.x = 0;
+			init.P = 0;
+			init.Q = 0;
+
+			if (foundCode == false)
+			{
+				*autoIt = sig.code;
+			}
+		}
+
 		recCodeBias = init.x;
 
 		measEntry.addDsgnEntry	(kfKey, 1, init);
@@ -1021,13 +1113,13 @@ inline void pppRecCodeBias(COMMON_PPP_ARGS)
 
 	measEntry.addNoiseEntry(kfKey, 1, recCodeBiasVar);
 
-	measEntry.componentList.push_back({E_Component::REC_CODE_BIAS, recCodeBias, "+ d_" + std::to_string(ft) + "r", recCodeBiasVar});
+	measEntry.componentsMap[E_Component::REC_CODE_BIAS] = {recCodeBias, "+ d_" + std::to_string(ft) + "r", recCodeBiasVar};
 };
 
 inline void pppSatCodeBias(COMMON_PPP_ARGS)
 {
-	double	satCodeBias		=  		satOpts.sat_code_bias.default_bias;
-	double	satCodeBiasVar	= SQR(	satOpts.sat_code_bias.undefined_sigma);
+	double	satCodeBias		=  		satOpts.codeBiasModel.default_bias;
+	double	satCodeBiasVar	= SQR(	satOpts.codeBiasModel.undefined_sigma);
 	getBias(trace, time, Sat, Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
 
 	KFKey kfKey;
@@ -1051,6 +1143,40 @@ inline void pppSatCodeBias(COMMON_PPP_ARGS)
 
 		kfState.getKFValue(kfKey, init.x);
 
+		auto& satSysOpts = acsConfig.getSatOpts(obs.Sat);
+
+		auto thisIt = std::find		(satSysOpts.clock_codes.begin(), satSysOpts.clock_codes.end(), sig.code);
+		auto autoIt = std::find		(satSysOpts.clock_codes.begin(), satSysOpts.clock_codes.end(), +E_ObsCode::AUTO);
+		auto freqIt = std::find_if	(satSysOpts.clock_codes.begin(), satSysOpts.clock_codes.end(), [&](E_ObsCode code)
+		{
+			return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code];
+		});
+
+		bool foundCode = thisIt != satSysOpts.clock_codes.end();
+		bool foundAuto = autoIt != satSysOpts.clock_codes.end();
+		bool foundFreq = freqIt != satSysOpts.clock_codes.end();
+
+		if	( foundAuto
+			&&foundFreq)
+		{
+			//this frequency is already used in the clock codes, dont use again
+			foundAuto = false;
+		}
+
+		if	( foundCode
+			||foundAuto)
+		{
+			//set the bias to zero, and dont let it change
+			init.x = 0;
+			init.P = 0;
+			init.Q = 0;
+
+			if (foundCode == false)
+			{
+				*autoIt = sig.code;
+			}
+		}
+
 		satCodeBias = init.x;
 
 		measEntry.addDsgnEntry	(kfKey, 1, init);
@@ -1060,7 +1186,7 @@ inline void pppSatCodeBias(COMMON_PPP_ARGS)
 
 	measEntry.addNoiseEntry(kfKey, 1, satCodeBiasVar);
 
-	measEntry.componentList.push_back({E_Component::SAT_CODE_BIAS, satCodeBias, "+ d_" + std::to_string(ft) + "s", satCodeBiasVar});
+	measEntry.componentsMap[E_Component::SAT_CODE_BIAS] = {satCodeBias, "+ d_" + std::to_string(ft) + "s", satCodeBiasVar};
 };
 
 inline void pppEopAdjustment(COMMON_PPP_ARGS)
@@ -1112,7 +1238,7 @@ inline void pppEopAdjustment(COMMON_PPP_ARGS)
 		kfState.setKFTransRate(kfKey, rateKey,	1/86400.0,	eopRateInit);
 	}
 
-	measEntry.componentList.push_back({E_Component::EOP, adjustment, "+ eop", -1});
+	measEntry.componentsMap[E_Component::EOP] = {adjustment, "+ eop", -1};
 }
 
 
@@ -1132,16 +1258,12 @@ void checkModels(
 		}
 	};
 
-	test("rec_phase_bias",	recOpts.phase_bias.	estimate[0], recOpts.rec_phase_bias.enable);
-	test("rec_code_bias",	recOpts.code_bias.	estimate[0], recOpts.rec_code_bias.	enable);
-	test("sat_phase_bias",	satOpts.phase_bias.	estimate[0], satOpts.sat_phase_bias.enable);
-	test("sat_code_bias",	satOpts.code_bias.	estimate[0], satOpts.sat_code_bias.	enable);
-	test("emp_d_0",			recOpts.emp_d_0.	estimate[0], acsConfig.orbitPropagation.empirical);
-	test("emp_d_0",			satOpts.emp_d_0.	estimate[0], acsConfig.orbitPropagation.empirical);
+	test("rec_phase_bias",	recOpts.phase_bias.	estimate[0], recOpts.phaseBiasModel.enable);
+	test("rec_code_bias",	recOpts.code_bias.	estimate[0], recOpts.codeBiasModel.	enable);
+	test("sat_phase_bias",	satOpts.phase_bias.	estimate[0], satOpts.phaseBiasModel.enable);
+	test("sat_code_bias",	satOpts.code_bias.	estimate[0], satOpts.codeBiasModel.	enable);
+	test("emp_d_0",			satOpts.emp_d_0.	estimate[0], satOpts.empirical);
 }
-
-
-
 
 
 
@@ -1159,9 +1281,9 @@ void checkModels(
 #define	COMMON_ARG(type)
 
 
-void stationPPP(
-			Trace&				netTrace,			///< Trace to output to
-			Station&			rec,				///< Receiver to perform calculations for
+void receiverPPP(
+			Trace&				pppTrace,			///< Trace to output to
+			Receiver&			rec,				///< Receiver to perform calculations for
 	const	KFState&			kfState,			///< Kalman filter object containing the state parameters
 			KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
 	const	KFState&			remoteKF)			///< Kalman filter object containing remote filter values
@@ -1195,7 +1317,7 @@ void stationPPP(
 
 		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
 
-		satPosClk(trace, time, obs, nav, satOpts.sat_pos.ephemeris_sources, satOpts.sat_clock.ephemeris_sources, &kfState, nullptr, E_OffsetType::COM, E_Relativity::OFF);
+		satPosClk(trace, time, obs, nav, satOpts.posModel.sources, satOpts.clockModel.sources, &kfState, nullptr, E_OffsetType::COM, E_Relativity::OFF);
 
 		traceJson(1, jsonTrace, time,
 		{
@@ -1216,12 +1338,23 @@ void stationPPP(
 	FrameSwapper frameSwapper(time, erpv);
 
 	for (auto&	obs				: only<GObs>(rec.obsList))
-	for (auto&	[ft, sigList]	: obs.SigsLists)
+	for (auto&	[ft, sigList]	: obs.sigsLists)
 	for (auto&	sig				: sigList)
 	for (auto	measType		: {PHAS, CODE})
 	{
-		char measDescription[64];
+		string		sigName			= sig.code._to_string();
 
+		AutoSender autoSenderTemplate(1, jsonTrace, time);
+
+		autoSenderTemplate.baseKVPs =
+		{
+			{"Sat",		obs.Sat.id()		},
+			{"Rec",		obs.mount			},
+			{"Sig",		sigName				},
+			{"Type",	(long int) measType	}
+		};
+
+		char measDescription[64];
 		snprintf(measDescription, sizeof(measDescription), "%s %s %s", obs.Sat.id().c_str(), sig.code._to_string(), (measType == PHAS) ? "L" : "P");
 
 		if (acsConfig.process_sys[obs.Sat.sys] == false)
@@ -1236,19 +1369,8 @@ void stationPPP(
 			continue;
 		}
 
-		auto& sysCodes = acsConfig.code_priorities[obs.Sat.sys];
-
-		auto prioritityIt = std::find(sysCodes.begin(), sysCodes.end(), sig.code);
-		if (prioritityIt == sysCodes.end())
-		{
-			tracepdeex(4, trace, "\n%s - Code type skipped", measDescription);
-			continue;
-		}
-
 		tracepdeex(1, trace, "\n\n----------------------------------------------------");
 		tracepdeex(1, trace, "\nProcessing %s: ", measDescription);
-
-
 
 		if	( obs.ephPosValid == false
 			||obs.ephClkValid == false
@@ -1261,42 +1383,30 @@ void stationPPP(
 
 		if (obs.exclude)
 		{
-			if (obs.excludeBadSPP)		{	tracepdeex(5, std::cout, "\n%s excludeBadSPP",		obs.Sat.id().c_str());	continue;	}
-			if (obs.excludeConfig)		{	tracepdeex(5, std::cout, "\n%s excludeConfig",		obs.Sat.id().c_str());	continue;	}
-			if (obs.excludeEclipse)		{	tracepdeex(5, std::cout, "\n%s excludeEclipse",		obs.Sat.id().c_str());	continue;	}
-			if (obs.excludeElevation)	{	tracepdeex(5, std::cout, "\n%s excludeElevation",	obs.Sat.id().c_str());	continue;	}
-			if (obs.excludeOutlier)		{	tracepdeex(5, std::cout, "\n%s excludeOutlier",		obs.Sat.id().c_str());	continue;	}
-			if (obs.excludeSlip)		{	tracepdeex(5, std::cout, "\n%s excludeSlip",		obs.Sat.id().c_str());	continue;	}
-			if (obs.excludeSystem)		{	tracepdeex(5, std::cout, "\n%s excludeSystem",		obs.Sat.id().c_str());	continue;	}
-			if (obs.excludeSVH)			{	tracepdeex(5, std::cout, "\n%s excludeSVH",			obs.Sat.id().c_str());	continue;	}
-			if (obs.excludeTrop)		{	tracepdeex(5, std::cout, "\n%s excludeTrop",		obs.Sat.id().c_str());	continue;	}
+			if (acsConfig.exclude.bad_spp	&& obs.excludeBadSPP)			{	tracepdeex(5, trace, " - excludeBadSPP");		autoSenderTemplate.valueKVPs.push_back({"exclude-bad_spp",		true}); continue;	}
+			if (acsConfig.exclude.config	&& obs.excludeConfig)			{	tracepdeex(5, trace, " - excludeConfig");		autoSenderTemplate.valueKVPs.push_back({"exclude-config",		true}); continue;	}
+			if (acsConfig.exclude.eclipse	&& obs.excludeEclipse)			{	tracepdeex(5, trace, " - excludeEclipse");		autoSenderTemplate.valueKVPs.push_back({"exclude-eclipse",		true}); continue;	}
+			if (acsConfig.exclude.elevation	&& obs.excludeElevation)		{	tracepdeex(5, trace, " - excludeElevation");	autoSenderTemplate.valueKVPs.push_back({"exclude-elevation",	true}); continue;	}
+			if (acsConfig.exclude.outlier	&& obs.excludeOutlier)			{	tracepdeex(5, trace, " - excludeOutlier");		autoSenderTemplate.valueKVPs.push_back({"exclude-outlier",		true}); continue;	}
+			if (acsConfig.exclude.system	&& obs.excludeSystem)			{	tracepdeex(5, trace, " - excludeSystem");		autoSenderTemplate.valueKVPs.push_back({"exclude-system",		true}); continue;	}
+			if (acsConfig.exclude.svh		&& obs.excludeSVH)				{	tracepdeex(5, trace, " - excludeSVH");			autoSenderTemplate.valueKVPs.push_back({"exclude-svh",			true}); continue;	}
 		}
 
-		string		sigName			= sig.code._to_string();
 		SatNav&		satNav			= *obs.satNav_ptr;
 		SatStat&	satStat			= *obs.satStat_ptr;
 		SigStat&	sigStat			= satStat.sigStatMap[sigName];
 		SigStat&	preprocSigStat	= satStat.sigStatMap[ft2string(ft)];
 
-		if (acsConfig.excludeSlip.LLI	&& preprocSigStat.slip.LLI)		{	tracepdeex(2, trace, " - LLI slip excluded");	continue;   }
-		if (acsConfig.excludeSlip.GF	&& preprocSigStat.slip.GF)		{	tracepdeex(2, trace, " - GF slip excluded");	continue;   }
-		if (acsConfig.excludeSlip.MW	&& preprocSigStat.slip.MW)		{	tracepdeex(2, trace, " - MW slip excluded");	continue;   }
-		if (acsConfig.excludeSlip.SCDIA	&& preprocSigStat.slip.SCDIA)	{	tracepdeex(2, trace, " - SCDIA slip excluded");	continue;   }
+		if (preprocSigStat.slip.any)
+		{
+			if (acsConfig.exclude.LLI		&& preprocSigStat.slip.LLI)		{	tracepdeex(2, trace, " - LLI slip excluded");	autoSenderTemplate.valueKVPs.push_back({"excludeSlip-LLI",		true}); continue;	}
+			if (acsConfig.exclude.GF		&& preprocSigStat.slip.GF)		{	tracepdeex(2, trace, " - GF slip excluded");	autoSenderTemplate.valueKVPs.push_back({"excludeSlip-GF",		true}); continue;	}
+			if (acsConfig.exclude.MW		&& preprocSigStat.slip.MW)		{	tracepdeex(2, trace, " - MW slip excluded");	autoSenderTemplate.valueKVPs.push_back({"excludeSlip-MW",		true}); continue;	}
+			if (acsConfig.exclude.SCDIA		&& preprocSigStat.slip.SCDIA)	{	tracepdeex(2, trace, " - SCDIA slip excluded");	autoSenderTemplate.valueKVPs.push_back({"excludeSlip-SCDIA",	true}); continue;	}
+		}
 
 		auto& satOpts = acsConfig.getSatOpts(obs.Sat,	{sigName});
 		auto& recOpts = acsConfig.getRecOpts(rec.id,	{obs.Sat.sys._to_string(), sigName});
-
-		if (satOpts.exclude)
-		{
-			tracepdeex(2,trace, "\n%s excludeSatOpts",			obs.Sat.id().c_str());
-			continue;
-		}
-
-		if (recOpts.exclude)
-		{
-			tracepdeex(2,trace,"\n%s excludeRecOpts",			obs.Sat.id().c_str());
-			continue;
-		}
 
 		checkModels(recOpts, satOpts);
 
@@ -1358,7 +1468,7 @@ void stationPPP(
 
 			measEntry.addNoiseEntry(obsKey, 1, var);
 
-			measEntry.componentList.push_back({E_Component::OBSERVED, -observed, "- Phi", var});
+			measEntry.componentsMap[E_Component::OBSERVED] = {-observed, "- Phi", var};
 		}
 
 		//Calculate the basic range
@@ -1370,17 +1480,19 @@ void stationPPP(
 			{
 				InitialState init = initialStateFromConfig(recOpts.pos, i);
 
-				if (init.estimate == false)
-				{
-					continue;
-				}
-
 				KFKey kfKey;
 				kfKey.type		= KF::REC_POS;
 				kfKey.str		= rec.id;
 				kfKey.num		= i;
 				kfKey.rec_ptr	= &rec;
 				kfKey.comment	= init.comment;
+
+				if (init.estimate == false)
+				{
+					remoteKF.getKFValue(kfKey, rRec[i]);		//todo aaron this would be nice if it came from a function instead
+
+					continue;
+				}
 
 				kfState.getKFValue(kfKey, rRec[i]);
 
@@ -1439,6 +1551,8 @@ void stationPPP(
 				{
 					rRec = frameSwapper(rRecInertial);
 				}
+
+				addEmpStates(recOpts, kfState, recSatId);
 			}
 		}
 
@@ -1476,7 +1590,7 @@ void stationPPP(
 				SatPos satPos0 = obs;
 
 				//use this to avoid adding the dt component of position
-				bool pass = satpos(trace, time, time, satPos0, satOpts.sat_pos.ephemeris_sources, E_OffsetType::COM, nav, &kfState);
+				bool pass = satpos(trace, time, time, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav, &kfState);
 
 				obs.rSatEci0 = frameSwapper(satPos0.rSatCom, &satPos0.satVel, &obs.vSatEci0);
 			}
@@ -1485,13 +1599,14 @@ void stationPPP(
 
 			VectorEci eSatInertial	= frameSwapper(satStat.e);
 
-			kfState.addKFState(velKey, velInit);
 			measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
 			measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
+
+			addEmpStates(satOpts, kfState, Sat);
 		}
 
 
-		if (initialStateFromConfig(recOpts.quat).estimate)
+		if (initialStateFromConfig(recOpts.orientation).estimate)
 		{
 			Matrix3d body2Ecef = rotBasisMat(rec.attStatus.eXBody, rec.attStatus.eYBody, rec.attStatus.eZBody);
 
@@ -1503,10 +1618,10 @@ void stationPPP(
 
 			for (int i = 0; i < 4; i++)
 			{
-				InitialState init = initialStateFromConfig(recOpts.quat, i);
+				InitialState init = initialStateFromConfig(recOpts.orientation, i);
 
 				KFKey kfKey;
-				kfKey.type	= KF::QUAT;
+				kfKey.type	= KF::ORIENTATION;
 				kfKey.str	= rec.id;
 				kfKey.num	= i;
 
@@ -1525,7 +1640,6 @@ void stationPPP(
 		tracepdeex(4, trace, "\n%s rSatEci0   : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.rSatEci0	.x(),	obs.rSatEci0	.y(),	obs.rSatEci0	.z());
 
 
-
 		//Range
 
 
@@ -1538,9 +1652,9 @@ void stationPPP(
 //
 // 		rRecSat = (obs.rSatEciDt - rRecEci).norm();
 
-		if (acsConfig.model.range)
+		if (recOpts.range)
 		{
-			measEntry.componentList.push_back({E_Component::RANGE, rRecSat, "+ rho", 0});
+			measEntry.componentsMap[E_Component::RANGE] = {rRecSat, "+ rho", 0};
 		}
 
 		if (acsConfig.output_residual_chain)
@@ -1549,79 +1663,70 @@ void stationPPP(
 			tracepdeex(0, trace, "\nMeasurement for %s %s\n", ((string) measEntry.obsKey).c_str(), sig.code._to_string());
 		}
 
-
-		vector<ArbitraryKVP> baseKVPs =
-		{
-			{"Sat",		obs.Sat.id()		},
-			{"Rec",		obs.mount			},
-			{"Sig",		sigName				},
-			{"Type",	(long int) measType	}
-		};
-
 		//Add modelled adjustments and estimated parameter
 		{
-			if (recOpts.rec_clock.enable)					{	Instrument inst("pppRecClocks");		pppRecClocks		(COMMON_PPP_ARGS);	}
-			if (satOpts.sat_clock.enable)					{	Instrument inst("pppSatClocks");		pppSatClocks		(COMMON_PPP_ARGS);	}
-			if (recOpts.rec_ant_delta)						{	Instrument inst("pppRecAntDelta");		pppRecAntDelta		(COMMON_PPP_ARGS);	}
-	// 		if (acsConfig.model.sat_ant_delta)				{	Instrument inst("pppSatAntDelta");		pppSatAntDelta		(COMMON_PPP_ARGS);	}
-			if (recOpts.rec_pco)							{	Instrument inst("pppRecPCO");			pppRecPCO			(COMMON_PPP_ARGS);	}
-			if (satOpts.sat_pco)							{	Instrument inst("pppSatPCO");			pppSatPCO			(COMMON_PPP_ARGS);	}
-			if (recOpts.rec_pcv)							{	Instrument inst("pppRecPCV");			pppRecPCV			(COMMON_PPP_ARGS);	}
-			if (satOpts.sat_pcv)							{	Instrument inst("pppSatPCV");			pppSatPCV			(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.tides.enable)				{	Instrument inst("pppTides");			pppTides			(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.relativity)					{	Instrument inst("pppRelativity");		pppRelativity		(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.relativity2)				{	Instrument inst("pppRelativity2");		pppRelativity2		(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.sagnac)						{	Instrument inst("pppSagnac");			pppSagnac			(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.ionospheric_component)		{	Instrument inst("pppIonStec");			pppIonStec			(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.ionospheric_component2)		{	Instrument inst("pppIonStec2");			pppIonStec2			(COMMON_PPP_ARGS);  }
-			if (acsConfig.model.ionospheric_component3)		{	Instrument inst("pppIonStec3");			pppIonStec3			(COMMON_PPP_ARGS);  }
-			if (acsConfig.model.ionospheric_model)			{	Instrument inst("pppIonModel");			pppIonModel			(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.trop.enable)				{	Instrument inst("pppTrop");				pppTrop				(COMMON_PPP_ARGS);	}
-// 			if (acsConfig.model.orbits)						{	Instrument inst("pppOrbits");			pppOrbits			(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.eop)						{	Instrument inst("pppEopAdjustment");	pppEopAdjustment	(COMMON_PPP_ARGS);  }
+			if (recOpts.clockModel.enable)			{	Instrument inst("pppRecClocks");		pppRecClocks		(COMMON_PPP_ARGS);	}
+			if (satOpts.clockModel.enable)			{	Instrument inst("pppSatClocks");		pppSatClocks		(COMMON_PPP_ARGS);	}
+			if (recOpts.eccentricityModel.enable)	{	Instrument inst("pppRecAntDelta");		pppRecAntDelta		(COMMON_PPP_ARGS);	}
+	// 		if (acsConfig.model.sat_ant_delta)		{	Instrument inst("pppSatAntDelta");		pppSatAntDelta		(COMMON_PPP_ARGS);	}
+			if (recOpts.pcoModel.enable)			{	Instrument inst("pppRecPCO");			pppRecPCO			(COMMON_PPP_ARGS);	}
+			if (satOpts.pcoModel.enable)			{	Instrument inst("pppSatPCO");			pppSatPCO			(COMMON_PPP_ARGS);	}
+			if (recOpts.pcvModel.enable)			{	Instrument inst("pppRecPCV");			pppRecPCV			(COMMON_PPP_ARGS);	}
+			if (satOpts.pcvModel.enable)			{	Instrument inst("pppSatPCV");			pppSatPCV			(COMMON_PPP_ARGS);	}
+			if (recOpts.tideModels.enable)			{	Instrument inst("pppTides");			pppTides			(COMMON_PPP_ARGS);	}
+			if (recOpts.relativity)					{	Instrument inst("pppRelativity");		pppRelativity		(COMMON_PPP_ARGS);	}
+			if (recOpts.relativity2)				{	Instrument inst("pppRelativity2");		pppRelativity2		(COMMON_PPP_ARGS);	}
+			if (recOpts.sagnac)						{	Instrument inst("pppSagnac");			pppSagnac			(COMMON_PPP_ARGS);	}
+			if (recOpts.ionospheric_component)		{	Instrument inst("pppIonStec");			pppIonStec			(COMMON_PPP_ARGS);	}
+			if (recOpts.ionospheric_component2)		{	Instrument inst("pppIonStec2");			pppIonStec2			(COMMON_PPP_ARGS);  }
+			if (recOpts.ionospheric_component3)		{	Instrument inst("pppIonStec3");			pppIonStec3			(COMMON_PPP_ARGS);  }
+			if (recOpts.ionospheric_model)			{	Instrument inst("pppIonModel");			pppIonModel			(COMMON_PPP_ARGS);	}
+			if (recOpts.tropModel.enable)			{	Instrument inst("pppTrop");				pppTrop				(COMMON_PPP_ARGS);	}
+// 			if (recOpts.orbits)						{	Instrument inst("pppOrbits");			pppOrbits			(COMMON_PPP_ARGS);	}
+			if (recOpts.eop)						{	Instrument inst("pppEopAdjustment");	pppEopAdjustment	(COMMON_PPP_ARGS);  }
 		}
 
 		if (measType == PHAS)
 		{
-			if (acsConfig.model.phase_windup)				{	Instrument inst("pppPhaseWindup");		pppPhaseWindup		(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.integer_ambiguity)			{	Instrument inst("pppIntegerAmbiguity");	pppIntegerAmbiguity	(COMMON_PPP_ARGS);	}
-			if (recOpts.rec_phase_bias.enable)				{	Instrument inst("pppRecPhasBias");		pppRecPhasBias		(COMMON_PPP_ARGS);	}
-			if (satOpts.sat_phase_bias.enable)				{	Instrument inst("pppSatPhasBias");		pppSatPhasBias		(COMMON_PPP_ARGS);	}
-			if (acsConfig.model.heading)					{	Instrument inst("pppHeading");			pppHeading			(COMMON_PPP_ARGS);  }
+			if (recOpts.phaseWindupModel.enable)	{	Instrument inst("pppRecPhaseWindup");	pppRecPhaseWindup	(COMMON_PPP_ARGS);	}
+			if (satOpts.phaseWindupModel.enable)	{	Instrument inst("pppSatPhaseWindup");	pppSatPhaseWindup	(COMMON_PPP_ARGS);	}
+			if (recOpts.integer_ambiguity)			{	Instrument inst("pppIntegerAmbiguity");	pppIntegerAmbiguity	(COMMON_PPP_ARGS);	}
+			if (recOpts.phaseBiasModel.enable)		{	Instrument inst("pppRecPhasBias");		pppRecPhasBias		(COMMON_PPP_ARGS);	}
+			if (satOpts.phaseBiasModel.enable)		{	Instrument inst("pppSatPhasBias");		pppSatPhasBias		(COMMON_PPP_ARGS);	}
 		}
 
 		if (measType == CODE)
 		{
-			if (recOpts.rec_code_bias.enable)				{	Instrument inst("pppRecCodeBias");		pppRecCodeBias		(COMMON_PPP_ARGS);	}
-			if (satOpts.sat_code_bias.enable)				{	Instrument inst("pppSatCodeBias");		pppSatCodeBias		(COMMON_PPP_ARGS);	}
+			if (recOpts.codeBiasModel.enable)		{	Instrument inst("pppRecCodeBias");		pppRecCodeBias		(COMMON_PPP_ARGS);	}
+			if (satOpts.codeBiasModel.enable)		{	Instrument inst("pppSatCodeBias");		pppSatCodeBias		(COMMON_PPP_ARGS);	}
 		}
 
-		addEmpStates(recOpts, kfState, recSatId);
-		addEmpStates(satOpts, kfState, Sat);
-
-		addNilDesignStates(recOpts.gyro_bias,	kfState,	KF::GYRO_BIAS,	3, recSatId);
-		addNilDesignStates(recOpts.accl_bias,	kfState,	KF::ACCL_BIAS,	3, recSatId);
-		addNilDesignStates(recOpts.gyro_scale,	kfState,	KF::GYRO_SCALE,	3, recSatId);
-		addNilDesignStates(recOpts.accl_scale,	kfState,	KF::ACCL_SCALE,	3, recSatId);
-		addNilDesignStates(recOpts.imu_offset,	kfState,	KF::IMU_OFFSET,	3, recSatId);
+		addNilDesignStates(recOpts.gyro_bias,			kfState,	KF::GYRO_BIAS,	3, recSatId);
+		addNilDesignStates(recOpts.accelerometer_bias,	kfState,	KF::ACCL_BIAS,	3, recSatId);
+		addNilDesignStates(recOpts.gyro_scale,			kfState,	KF::GYRO_SCALE,	3, recSatId);
+		addNilDesignStates(recOpts.accelerometer_scale,	kfState,	KF::ACCL_SCALE,	3, recSatId);
+		addNilDesignStates(recOpts.imu_offset,			kfState,	KF::IMU_OFFSET,	3, recSatId);
 
 		//Calculate residuals and form up the measurement
 
-		measEntry.componentList.push_back({E_Component::NET_RESIDUAL, 0, "", 0});
+		measEntry.componentsMap[E_Component::NET_RESIDUAL] = {0, "", 0};
 		double residual		= 0;
 		double residualVar	= 0;
 
-		vector<ArbitraryKVP> valueKVPs;
+		AutoSender autoSender = autoSenderTemplate;
+		autoSender.baseKVPs	.push_back({"data", __FUNCTION__});
 
-		valueKVPs.push_back({"rRec[0]",	rRec[0]});
-		valueKVPs.push_back({"rRec[1]",	rRec[1]});
-		valueKVPs.push_back({"rRec[2]",	rRec[2]});
-		valueKVPs.push_back({"El",		satStat.el});
-		valueKVPs.push_back({"Az",		satStat.az});
-		valueKVPs.push_back({"Nadir",	satStat.nadir});
+		autoSender.valueKVPs.push_back({"rRec[0]",	rRec[0]});
+		autoSender.valueKVPs.push_back({"rRec[1]",	rRec[1]});
+		autoSender.valueKVPs.push_back({"rRec[2]",	rRec[2]});
+		autoSender.valueKVPs.push_back({"El",		satStat.el});
+		autoSender.valueKVPs.push_back({"Az",		satStat.az});
+		autoSender.valueKVPs.push_back({"Nadir",	satStat.nadir});
 
-		for (auto& [component, componentVal, eq, var] : measEntry.componentList)
+		for (auto& [component, details] : measEntry.componentsMap)
 		{
+			auto& [componentVal, eq, var] = details;
+
 			residual -= componentVal;
 
 			if (var > 0)
@@ -1632,7 +1737,7 @@ void stationPPP(
 			if (acsConfig.output_residual_chain)
 			{
 				tracepdeex(0, trace, "\n");
-				tracepdeex(4, trace, "%s",		time.to_string());
+				tracepdeex(4, trace, "%s",		time.to_string().c_str());
 				tracepdeex(3, trace, "%30s",	((string)measEntry.obsKey).c_str());
 				tracepdeex(0, trace, " %-21s %+14.4f", component._to_string(), -componentVal);
 
@@ -1643,19 +1748,15 @@ void stationPPP(
 				tracepdeex(0, trace, " -> %13.4f",	residual);
 				tracepdeex(3, trace, " ± %.2e ",	residualVar);
 
-				valueKVPs.push_back({component._to_string(), componentVal});
+				autoSender.valueKVPs.push_back({component._to_string(), componentVal});
 			}
 		}
 
-		baseKVPs.push_back({"data", __FUNCTION__});
-
-		traceJson(1, jsonTrace, time,
-					baseKVPs,
-					valueKVPs);
-
 		if (1)
-		for (auto& [component, componentVal, eq, var] : measEntry.componentList)
+		for (auto& [component, details] : measEntry.componentsMap)
 		{
+			auto& [componentVal, eq, var] = details;
+
 			if (var > 100)
 			{
 				BOOST_LOG_TRIVIAL(warning)
@@ -1672,8 +1773,10 @@ void stationPPP(
 		{
 			trace << std::endl << std::endl << "0 =";
 
-			for (auto& [componentName, componentVal, eq, var] : measEntry.componentList)
+			for (auto& [component, details] : measEntry.componentsMap)
 			{
+				auto& [componentVal, eq, var] = details;
+
 				tracepdeex(0, trace, " %s", eq.c_str());
 			}
 		}

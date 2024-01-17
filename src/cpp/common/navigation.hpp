@@ -61,6 +61,7 @@ struct SatNav
 	
 	string				id;
 	string				traceFilename;
+	string				jsonTraceFilename;
 	
 	Vector3d			antBoresight	= {0,0,1};
 	Vector3d			antAzimuth		= {0,1,0};

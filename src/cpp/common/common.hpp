@@ -30,6 +30,11 @@ struct Average
 	double	var		= 0;
 };
 
+struct descope
+{
+	//used to temporarily prevent accessing things that shouldnt be by throwing compiler errors
+};
+
 void lowPassFilter(
 	Average&	avg,
 	double		meas,

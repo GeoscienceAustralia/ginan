@@ -21,7 +21,7 @@ using std::map;
 #include "constants.hpp"
 #include "mongoRead.hpp"
 #include "ephemeris.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "algebra.hpp"
 #include "planets.hpp"
 #include "common.hpp"
@@ -36,7 +36,7 @@ using std::map;
 #define EXTERR_EPH	5E-7			/* extrapolation error for ephem (m/s^2) */
 
 /** read dcb parameters file
- */
+*/
 int readdcb(
 	string	file)
 {
@@ -66,7 +66,7 @@ int readdcb(
 
 		char str1[32] = "";
 		char str2[32] = "";
-		
+
 		if	( type.empty()
 			||sscanf(buff,"%31s %31s", str1, str2) < 1)
 			continue;
@@ -121,7 +121,7 @@ int readdcb(
 				Sat.prn	= prn;
 				id = entry.name + ":" + Sat.id();
 				// entry.Sat = Sat;
-				pushBiasSinex(id, entry);
+				pushBiasEntry(id, entry);
 			}
 		}
 		else if	( Sat.sys == +E_Sys::GLO
@@ -129,21 +129,21 @@ int readdcb(
 		{
 			// this can be a receiver or satellite
 			id = id + ":" + Sat.id();
-			pushBiasSinex(id, entry);
+			pushBiasEntry(id, entry);
 		}
 		else
 		{
 			// this can be a receiver or satellite
 			id = id + ":" + Sat.sysChar();
-			pushBiasSinex(id, entry);
+			pushBiasEntry(id, entry);
 		}
 	}
 
 	return 1;
 }
 
-/** polynomial interpolation by Neville's algorithm 
- */
+/** polynomial interpolation by Neville's algorithm
+*/
 double interpolate(const double *x, double *y, int n)
 {
 	for (int j=1; j < n;		j++)
@@ -156,7 +156,7 @@ double interpolate(const double *x, double *y, int n)
 }
 
 /** satellite position by precise ephemeris
- */
+*/
 bool pephpos(
 	Trace&		trace,
 	GTime		time,
@@ -172,32 +172,32 @@ bool pephpos(
 	if (nav.pephMap.empty())
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: Looking for precise positions, but no precise ephemerides found";
-		
+
 		return false;
 	}
-	
+
 	auto it = nav.pephMap.find(Sat.id());
 	if (it == nav.pephMap.end())
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: Looking for precise position, but no precise ephemerides found for " << Sat.id();
-		
+
 		return false;
 	}
-	
+
 	auto& [id, pephMap] = *it;
 
 	auto firstTime	= pephMap.begin()	->first;
 	auto lastTime	= pephMap.rbegin()	->first;
-	
+
 	if	( (pephMap.size()	< NMAX + 1)
 		||(time	< firstTime	- MAXDTE)
 		||(time	> lastTime	+ MAXDTE))
 	{
-        tracepdeex(3, std::cout, "\nNo precise ephemeris for %s at %s, ephemerides cover %s to %s",
-				   Sat.id()					.c_str(), 
-				   time		.to_string(0)	.c_str(),
-				   firstTime.to_string(0)	.c_str(),
-				   lastTime	.to_string(0)	.c_str());
+		tracepdeex(3, std::cout, "\nNo precise ephemeris for %s at %s, ephemerides cover %s to %s",
+				Sat.id()					.c_str(),
+				time		.to_string(0)	.c_str(),
+				firstTime	.to_string(0)	.c_str(),
+				lastTime	.to_string(0)	.c_str());
 		return false;
 	}
 
@@ -237,7 +237,7 @@ bool pephpos(
 	vector<Vector3d>	p(NMAX+1);
 	double c[2];
 	double s[3];
-	
+
 	//get interpolation parameters and check all ephemerides have values.
 	peph_it = begin;
 	for (int i = 0; i <= NMAX; i++, peph_it++)
@@ -250,16 +250,16 @@ bool pephpos(
 		}
 
 		auto& pos = peph.pos;
-		
+
 		t[i] = (peph.time - time).to_double();
 		p[i] = pos;
 	}
 
 	rSat = interpolate(t, p);
-	
+
 	if (vare)
 	{
-		double std = middle0->second.posStd.norm();	
+		double std = middle0->second.posStd.norm();
 
 		/* extrapolation error for orbit */
 		if      (t[0   ] > 0) std += EXTERR_EPH * SQR(t[0   ]) / 2;		//todo aaron, needs straigtening as below?
@@ -286,16 +286,16 @@ bool pclkMapClk(
 	{
 		return false;
 	}
-	
+
 	auto& [key, pclkMap] = *it;
-	
+
 	if	( (pclkMap.size() < 2)
 		||(time	< pclkMap.begin()	->first - MAXDTE)
 		||(time	> pclkMap.rbegin()	->first + MAXDTE))
 	{
 		BOOST_LOG_TRIVIAL(debug) << "no prec clock " << time.to_string() << " for " << id;
 
-		return false;	
+		return false;
 	}
 
 	auto pclk_it = pclkMap.lower_bound(time);
@@ -314,7 +314,7 @@ bool pclkMapClk(
 
 	auto& [time0, middle0] = *middle0_it;
 	auto& [time1, middle1] = *middle1_it;
-	
+
 	//linear interpolation
 	double t[2];
 	double c[2];
@@ -325,28 +325,28 @@ bool pclkMapClk(
 
 	bool use0 = true;
 	bool use1 = true;
-	
+
 	if (c[0] == INVALID_CLOCK_VALUE)		{	use0 = false;	}
 	if (c[1] == INVALID_CLOCK_VALUE)		{	use1 = false;	}
 	if (t[0] <= 0)							{	use1 = false;	}
 	if (t[1] >= 0)							{	use0 = false;	}
-	
+
 	if	(  use0 == false
 		&& use1 == false)
 	{
 		BOOST_LOG_TRIVIAL(debug) << "Precise clock outage " << time.to_string() << " for " << id;
 
 		clk = 0;
-		
+
 		return false;
 	}
-	
+
 	double std = 0;
-	
-	if		(use0 && use1)	{	clk = (c[1] * t[0] - c[0] * t[1]) / (t[0] - t[1]);		double inv0 = 1 / middle0.clkStd	* CLIGHT + EXTERR_CLK * fabs(t[0]);	
-																						double inv1 = 1 / middle1.clkStd	* CLIGHT + EXTERR_CLK * fabs(t[1]);	
-																						std			= 1 / (inv0 + inv1);											}	
-	else if (use0)			{	clk = c[0];												std			= middle0.clkStd		* CLIGHT + EXTERR_CLK * fabs(t[0]);		}	
+
+	if		(use0 && use1)	{	clk = (c[1] * t[0] - c[0] * t[1]) / (t[0] - t[1]);		double inv0 = 1 / middle0.clkStd	* CLIGHT + EXTERR_CLK * fabs(t[0]);
+																						double inv1 = 1 / middle1.clkStd	* CLIGHT + EXTERR_CLK * fabs(t[1]);
+																						std			= 1 / (inv0 + inv1);											}
+	else if (use0)			{	clk = c[0];												std			= middle0.clkStd		* CLIGHT + EXTERR_CLK * fabs(t[0]);		}
 	else if (use1)			{	clk = c[1];												std			= middle1.clkStd		* CLIGHT + EXTERR_CLK * fabs(t[1]);		}
 
 	if (varc)
@@ -356,7 +356,7 @@ bool pclkMapClk(
 }
 
 /** clock by precise clock
- */
+*/
 bool pephclk(
 	Trace&		trace,
 	GTime		time,
@@ -366,16 +366,16 @@ bool pephclk(
 	double*		varc)
 {
 //	BOOST_LOG_TRIVIAL(debug) << "pephclk : time=" << time.to_string(3) << " id=" << id;
-	
+
 	bool pass;
 	pass = pclkMapClk(trace, time, id, nav, clk, varc, nav.pclkMap);		if (pass)	return true;
 	pass = pclkMapClk(trace, time, id, nav, clk, varc, nav.pephMap);		if (pass)	return true;
-	
+
 	return false;
 }
 
 /** satellite antenna phase center offset in ecef
- */
+*/
 VectorEcef satAntOff(
 	Trace&				trace,			///< Trace file to output to
 	GTime				time,			///< Solution time
@@ -384,7 +384,7 @@ VectorEcef satAntOff(
 	map<int, double>&	lamMap)			///< Lambda (wavelengths) map
 {
 	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
-	
+
 	VectorEcef dAnt;
 
 	E_FType j;
@@ -393,14 +393,14 @@ VectorEcef satAntOff(
 	E_Sys sys = Sat.sys;
 	if (!satFreqs(sys,j,k,l))
 			return dAnt;
-	
+
 	if 	( lamMap[j] == 0
 		||lamMap[k] == 0)
 	{
 		return dAnt;
 	}
 
-	double gamma	= SQR(lamMap[k]) / SQR(lamMap[j]);	
+	double gamma	= SQR(lamMap[k]) / SQR(lamMap[j]);
 	double C1		= gamma	/ (gamma - 1);
 	double C2		= -1	/ (gamma - 1);
 
@@ -414,7 +414,7 @@ VectorEcef satAntOff(
 
 	dAnt	= C1 * dant1
 			+ C2 * dant2;
-	
+
 	return dAnt;
 }
 
@@ -429,33 +429,33 @@ bool satClkPrecise(
 {
 	clk		= 0;
 	clkVel	= 0;
-		
+
 	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
-	
+
 	double tt = 1E-3;
-	
+
 	double clk2 = 0;
-	
+
 	bool pass	=	pephclk(trace, time,		Sat, nav,	clk,		&clkVar)
 				&&	pephclk(trace, time + tt,	Sat, nav,	clk2);
 
 	if 	(  pass	== false
 		|| clk	== INVALID_CLOCK_VALUE)
-	{	
+	{
 		tracepdeex(4, trace, " - pephclk failed");
 		clk = 0;
-		
+
 		return false;
 	}
 
 	clkVel	= (clk2 - clk) / tt;
-	
+
 	return true;
 }
-	
+
 
 /** Satellite position/clock by precise ephemeris/clock
- */
+*/
 bool satPosPrecise(
 	Trace&		trace,
 	GTime		time,
@@ -467,25 +467,25 @@ bool satPosPrecise(
 {
 	rSat	= Vector3d::Zero();
 	satVel	= Vector3d::Zero();
-	
+
 	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
-	
+
 	double tt = 1E-3;
 
 	Vector3d rSat2 = Vector3d::Zero();
-	
+
 	bool pass	=	pephpos(trace, time,		Sat, nav, rSat,		&ephVar)
 				&&	pephpos(trace, time + tt,	Sat, nav, rSat2);
-					
+
 	if 	(pass == false)
 	{
 		tracepdeex(4, trace, " - pephpos failed");
-		
+
 		return false;
 	}
-	
+
 	satVel = (rSat2 - rSat) / tt;
-	
+
 	return true;
 }
 

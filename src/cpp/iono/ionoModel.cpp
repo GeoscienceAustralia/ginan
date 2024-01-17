@@ -10,7 +10,7 @@ using std::map;
 #include "ionoModel.hpp"
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "algebra.hpp"
 #include "common.hpp"
 #include "enums.h"
@@ -42,18 +42,15 @@ void ionosphereSsrUpdate(
 bool configIonModel(
 	Trace&		trace)
 {
-	int ret = 0;
 	switch (acsConfig.ionModelOpts.model)
 	{
-		case E_IonoModel::MEAS_OUT:				ret = 1;							break;
-		case E_IonoModel::SPHERICAL_HARMONICS:	ret = configIonModelSphhar(trace);	break;
-		case E_IonoModel::SPHERICAL_CAPS:		ret = configIonModelSphcap(trace);	break;
-		case E_IonoModel::BSPLINE:				ret = configIonModelBsplin(trace);	break;
-		case E_IonoModel::LOCAL:				ret = configIonModelLocal_(trace);	break;
-		case E_IonoModel::NONE:					ret = 0;							break;
+		case E_IonoModel::MEAS_OUT:				return true;
+		case E_IonoModel::SPHERICAL_HARMONICS:	return configIonModelSphhar(trace);
+		case E_IonoModel::SPHERICAL_CAPS:		return configIonModelSphcap(trace);
+		case E_IonoModel::BSPLINE:				return configIonModelBsplin(trace);
+		case E_IonoModel::LOCAL:				return configIonModelLocal_(trace);
+		default:								return false;
 	}
-
-	return ret!=0;
 }
 
 double ionModelCoef(
@@ -79,19 +76,19 @@ double ionModelCoef(
 void filterIonosphere(
 	Trace&			trace,				///< Trace to output to
 	KFState&		kfState,			///< Filter state
-	StationMap&		stations,			///< List of pointers to stations to use
+	ReceiverMap&	receiverMap,		///< List of pointers to stations to use
 	GTime 			time)				///< Time of this epoch
 {
 	if (!ionoConfigured)
-		ionoConfigured = configIonModel (trace);
+		ionoConfigured = configIonModel(trace);
 
 	if (!ionoConfigured)
 		return;
 
-	if (acsConfig.ionModelOpts.model== +E_IonoModel::NONE)
+	if (acsConfig.ionModelOpts.model == +E_IonoModel::NONE)
 		return;
 
-	if (acsConfig.ionModelOpts.model== +E_IonoModel::MEAS_OUT)
+	if (acsConfig.ionModelOpts.model == +E_IonoModel::MEAS_OUT)
 		return;
 
 	tracepdeex(2, trace,"UPDATE IONO MODEL ... %s\n", time.to_string().c_str());
@@ -101,7 +98,7 @@ void filterIonosphere(
 	map<E_Sys, string>				maxCountRec;
 	map<E_Sys, int>					satCount;
 
-	for (auto& [id, rec] : stations)
+	for (auto& [id, rec] : receiverMap)
 	{
 		map<E_Sys, int> satcnt;
 		for (auto& obs 		: only<GObs>(rec.obsList))
@@ -123,7 +120,7 @@ void filterIonosphere(
 
 			stationList[rec.id][sys] += nsat;
 
-			if (rec.id == acsConfig.pivot_station)		nsat = 999;
+			if (rec.id == acsConfig.pivot_receiver)		nsat = 999;
 			if (rec.id == ionRefRec[sys])				nsat = 9999;
 
 			if (satCount[sys] < nsat)
@@ -184,7 +181,7 @@ void filterIonosphere(
 
 	map <E_Sys,int> mainObsCombo;
 	for (auto& [sys,pivt] : ionRefRec)
-	for (auto& obs		  : only<GObs>(stations[pivt].obsList))
+	for (auto& obs		  : only<GObs>(receiverMap[pivt].obsList))
 	{
 		if (obs.Sat.sys != sys) continue;
 
@@ -196,26 +193,26 @@ void filterIonosphere(
 	{
 		if (key.type != KF::IONOSPHERIC)
 			continue;
-			
+
 		if (ionStateOutage[index]++ > 3)
 			kfState.removeState(key);
 	}
-	
+
 	//add measurements and create design matrix entries
 	KFMeasEntryList kfMeasEntryList;
 
-	for (auto& [id, rec]	: stations)
+	for (auto& [id, rec]	: receiverMap)
 	for (auto& obs			: only<GObs>(rec.obsList))
 	{
 		E_Sys sys = obs.Sat.sys;
 
+		auto& recOpts = acsConfig.getRecOpts(id);
+		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+
 		if (obs.ionExclude)											{	continue;	}
 		if (obs.STECtype <= 0)										{	continue;	}
 		if (stationList[rec.id][sys] < MIN_NSAT_REC)				{	continue;	}
-		if (obs.stecVar > SQR(acsConfig.ionoOpts.iono_sigma_limit)) {	continue;	}
-
-		auto& recOpts = acsConfig.getRecOpts(id);
-		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+		if (obs.stecVar > SQR(recOpts.iono_sigma_limit)) 			{	continue;	}
 
 		/************ Ionosphere Measurements ************/
 		KFKey obsKey;
@@ -232,7 +229,7 @@ void filterIonosphere(
 		sat0.prn = 0;
 
 		KFKey recDCBKey;
-		recDCBKey.type	= KF::DCB;
+		recDCBKey.type	= KF::CODE_BIAS;
 		recDCBKey.str	= rec.id;
 		recDCBKey.Sat	= sat0;
 		recDCBKey.num	= obs.stecCodeCombo;
@@ -245,14 +242,13 @@ void filterIonosphere(
 			meas.addDsgnEntry(recDCBKey, 1, init);
 
 		/************ satellite DCB ************/        /* We may need to change this for multi-code solutions */
-		if (acsConfig.ionModelOpts.estimate_sat_dcb
+		if (acsConfig.ionModelOpts.estimate_sat_dcb		///todo aaron, ew..
 		|| mainObsCombo[sys] != obs.stecCodeCombo)
 		{
 			InitialState init = initialStateFromConfig(satOpts.code_bias);
 
 			KFKey satDCBKey;
-			satDCBKey.type	= KF::DCB;
-			satDCBKey.str	= "";
+			satDCBKey.type	= KF::CODE_BIAS;
 			satDCBKey.Sat	= obs.Sat;
 			satDCBKey.num	= obs.stecCodeCombo;
 
@@ -269,11 +265,11 @@ void filterIonosphere(
 				continue;
 
 			ionStateOutage[i] = 0;
-			
+
 			KFKey ionModelKey;
 			ionModelKey.type	= KF::IONOSPHERIC;
 			ionModelKey.num		= i;
-			
+
 			InitialState ionModelInit = initialStateFromConfig(acsConfig.ionModelOpts.ion);
 
 			meas.addDsgnEntry(ionModelKey, coef, ionModelInit);
@@ -339,16 +335,16 @@ double getSSRIono(
 
 map<E_ObsCode,int> galSigGroups =
 {
-	{E_ObsCode::L1C,1},
-	{E_ObsCode::L1X,2},
-	{E_ObsCode::L5Q,1},
-	{E_ObsCode::L5X,2},
-	{E_ObsCode::L7Q,1},
-	{E_ObsCode::L7X,2},
-	{E_ObsCode::L8Q,1},
-	{E_ObsCode::L8X,2},
-	{E_ObsCode::L6C,1},
-	{E_ObsCode::L6X,2}
+	{E_ObsCode::L1C, 1},
+	{E_ObsCode::L1X, 2},
+	{E_ObsCode::L5Q, 1},
+	{E_ObsCode::L5X, 2},
+	{E_ObsCode::L7Q, 1},
+	{E_ObsCode::L7X, 2},
+	{E_ObsCode::L8Q, 1},
+	{E_ObsCode::L8X, 2},
+	{E_ObsCode::L6C, 1},
+	{E_ObsCode::L6X, 2}
 };
 
 bool galCodeMatch(
@@ -386,7 +382,7 @@ bool queryBiasDCB(
 	bool pass = false;
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
-		if (key.type != +KF::DCB)			continue;
+		if (key.type != +KF::CODE_BIAS)		continue;
 		if (key.Sat  != Sat)				continue;
 		if (key.str  != Rec)				continue;
 		if (Sat.sys  == +E_Sys::GAL

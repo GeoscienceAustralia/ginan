@@ -7,7 +7,7 @@
 #include "biases.hpp"
 #include "ppp.hpp"
 
-map<KFKey, map<int, BiasEntry>> SINEXBiases_out;
+map<KFKey, map<int, BiasEntry>> sinexBiases_out;
 long int	bottomOfFile = 0;
 double 		startTimeofFile[3];
 string		lastBiasSINEXFile = "";
@@ -79,7 +79,7 @@ void writeBSINEXHeader(
 
 	tracepdeex(0, trace, "*-------------------------------------------------------------------------------\n");
 	tracepdeex(0, trace, "+FILE/REFERENCE\n");
-	tracepdeex(0, trace, " DESCRIPTION       %s, %s\n",acsConfig.analysis_agency.c_str(), acsConfig.analysis_center.c_str());
+	tracepdeex(0, trace, " DESCRIPTION       %s, %s\n",acsConfig.analysis_agency.c_str(), acsConfig.analysis_centre.c_str());
 	tracepdeex(0, trace, " OUTPUT            OSB estimates for day %3d, %4d\n", startTimeofFile[1], startTimeofFile[0]);
 	tracepdeex(0, trace, " CONTACT           %s\n", acsConfig.ac_contact.c_str());
 	tracepdeex(0, trace, " SOFTWARE          %s\n", acsConfig.analysis_program.c_str());
@@ -98,9 +98,9 @@ void writeBSINEXHeader(
 	E_Sys refConst = acsConfig.receiver_reference_clk;
 	tracepdeex(0, trace, " RECEIVER_CLOCK_REFERENCE_GNSS           %c\n", refConst._to_string()[0]);
 
-	for (auto& [sys,solve] : acsConfig.solve_amb_for)
+	for (auto& [sys, solve] : acsConfig.solve_amb_for)
 	{
-		if (!solve)
+		if (solve == false)
 			continue;
 
 		char sysChar;
@@ -114,9 +114,9 @@ void writeBSINEXHeader(
 			default:			continue;
 		}
 
-		E_ObsCode code1= acsConfig.clock_codesL1[sys];
-		E_ObsCode code2= acsConfig.clock_codesL2[sys];
-		tracepdeex(0, trace, " SATELLITE_CLOCK_REFERENCE_OBSERVABLES   %c  %s  %s\n", sysChar,code1._to_string(),code2._to_string());
+// 		E_ObsCode code1= acsConfig.clock_codesL1[sys];
+// 		E_ObsCode code2= acsConfig.clock_codesL2[sys];
+// 		tracepdeex(0, trace, " SATELLITE_CLOCK_REFERENCE_OBSERVABLES   %c  %s  %s\n", sysChar,code1._to_string(),code2._to_string());
 	}
 	tracepdeex(0, trace, "-BIAS/DESCRIPTION\n");
 
@@ -216,7 +216,7 @@ int addBiasEntry(
 	double		bias,
 	double		var)
 {
-	auto& biasMap = SINEXBiases_out[kfKey];
+	auto& biasMap = sinexBiases_out[kfKey];
 	int found = -1;
 
 	for (auto& [ind, bias] : biasMap)
@@ -268,12 +268,12 @@ int addBiasEntry(
 /** Store bias output to write into bias SINEX files
 */
 void updateBiasOutput(
-	Trace&		trace,			///< Trace to output to
-	GTime		time,			///< Time of bias update
-	KFState&	kfState,		///< Filter state to take biases from
-	KFState&	ionState,		///< Filter state to take biases from
-	StationMap&	stationMap,		///< stations for which to output receiver biases
-	E_MeasType	measType)		///< Type of measurement to find bias for
+	Trace&			trace,			///< Trace to output to
+	GTime			time,			///< Time of bias update
+	KFState&		kfState,		///< Filter state to take biases from
+	KFState&		ionState,		///< Filter state to take biases from
+	ReceiverMap&	receiverMap,		///< stations for which to output receiver biases
+	E_MeasType		measType)		///< Type of measurement to find bias for
 {
 	int nstore = 0;
 	double bias;
@@ -317,13 +317,13 @@ void updateBiasOutput(
 
 			if (bias != 0)
 				addBiasEntry( trace, tini, tfin, key, measType, bias, bvar);
-			else if (key.type == KF::CODE_BIAS
-				 && (obsCode == acsConfig.clock_codesL1[Sat.sys]
-				  || obsCode == acsConfig.clock_codesL2[Sat.sys]))
-			{
-				bvar = 1e-12;
-				addBiasEntry( trace, tini, tfin, key, measType, bias, bvar);
-			}
+// 			else if (key.type == KF::CODE_BIAS
+// 				 && (obsCode == acsConfig.clock_codesL1[Sat.sys]
+// 				  || obsCode == acsConfig.clock_codesL2[Sat.sys]))
+// 			{
+// 				bvar = 1e-12;
+// 				addBiasEntry( trace, tini, tfin, key, measType, bias, bvar);
+// 			}
 
 		}
 
@@ -334,7 +334,7 @@ void updateBiasOutput(
 		sat0.sys = sys;
 		sat0.prn = 0;
 
-		for (auto& [id, rec] : stationMap)
+		for (auto& [id, rec] : receiverMap)
 		for (auto& obsCode : acsConfig.code_priorities[sys])
 		if (queryBiasOutput(trace, time, kfState, ionState, sat0, id, obsCode, bias, bvar, measType))
 		{
@@ -353,12 +353,12 @@ void updateBiasOutput(
  *  Return number of written biases (-1 if file not found)
 */
 void writeBiasSinex(
-	Trace&		trace,			///< Trace to output to
-	GTime		time,			///< Time of bias to write
-	KFState&	kfState,		///< Filter state to take biases from
-	KFState&	ionState,		///< Filter state to take biases from
-	string		biasfile,		///< File to write
-	StationMap&	stationMap)		///< stations for which to output receiver biases
+	Trace&			trace,			///< Trace to output to
+	GTime			time,			///< Time of bias to write
+	KFState&		kfState,		///< Filter state to take biases from
+	KFState&		ionState,		///< Filter state to take biases from
+	string			biasfile,		///< File to write
+	ReceiverMap&	receiverMap)		///< stations for which to output receiver biases
 {
 	tracepdeex(3,trace,"Writing bias SINEX into: %s %s\n", biasfile.c_str(), time.to_string(0).c_str());
 
@@ -410,18 +410,18 @@ void writeBiasSinex(
 
 		GTime time0 = time.floorTime((int)updt1);
 
-		SINEXBiases_out.clear();
+		sinexBiases_out.clear();
 
 		writeBSINEXHeader(time0, tsys, outputStream, updt2);
 
 		lastBiasSINEXFile = biasfile;
 	}
 
-	if (acsConfig.ambrOpts.code_output_interval		> 0) 		updateBiasOutput(trace, time, kfState, ionState, stationMap, CODE);
-	if (acsConfig.ambrOpts.phase_output_interval	> 0) 		updateBiasOutput(trace, time, kfState, ionState, stationMap, PHAS);
+	if (acsConfig.ambrOpts.code_output_interval		> 0) 		updateBiasOutput(trace, time, kfState, ionState, receiverMap, CODE);
+	if (acsConfig.ambrOpts.phase_output_interval	> 0) 		updateBiasOutput(trace, time, kfState, ionState, receiverMap, PHAS);
 
 	int numbias=0;
-	for (auto& [key, biasMap] : SINEXBiases_out)
+	for (auto& [key, biasMap] : sinexBiases_out)
 	for (auto& [ind, bias]	 : biasMap)
 	{
 		if	(biasType(bias.cod1, bias.cod2) != "OSB")
@@ -432,7 +432,7 @@ void writeBiasSinex(
 
 	updateFirstLine(time, tsys, outputStream, numbias);
 
-	for (auto& [Key, biasMap] : SINEXBiases_out)
+	for (auto& [Key, biasMap] : sinexBiases_out)
 	for (auto& [ind, bias]    : biasMap)
 	{
 		if ((time-bias.tfin) > DTTOL)
@@ -446,7 +446,7 @@ void writeBiasSinex(
 		writeBSINEXLine(time, tsys, bias, outputStream);
 	}
 
-	for (auto& [Key, biasMap] : SINEXBiases_out)
+	for (auto& [Key, biasMap] : sinexBiases_out)
 	for (auto& [ind, bias]    : biasMap)
 	{
 		if ((time-bias.tfin) > DTTOL)
@@ -485,9 +485,9 @@ bool queryBiasOutput(
 	bias		= 0;
 	variance	= 0;
 
-	bool found = false;
-
 	tracepdeex(3,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string(0).c_str());
+
+	bool found = false;
 
 	if (getBias(trace, time, Rec, Sat, obsCode, type, bias, variance))
 	{
@@ -498,12 +498,12 @@ bool queryBiasOutput(
 	if (acsConfig.process_ppp)
 	if (queryBiasUC(trace, time, kfState, Sat, Rec, obsCode, bias, variance, type))
 	{
-		found = true;
 		tracepdeex(4,trace, "found UC %.4f %.4e", bias, variance);
+		found = true;
 	}
 
 	/* Ionosphere DCB */
-	if	(acsConfig.process_ionosphere)
+	if (acsConfig.process_ionosphere)
 	{
 		double dcbBias	= 0;
 		double dcbVar	= 0;

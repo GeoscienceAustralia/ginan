@@ -13,7 +13,7 @@ using std::map;
 
 struct VectorPos;
 struct Navigation;
-struct Station;
+struct Receiver;
 struct ObsList;
 struct KFState;
 struct LObs;
@@ -46,7 +46,7 @@ double getWaterVapPressure(
 
 void getRecPosApriori(
 	LObs&		obs,
-	Station&	rec);
+	Receiver&	rec);
 
 double getTropDelay(
 	LObs&		obs,

@@ -79,9 +79,9 @@ void StaticField::read(
 			double C;
 			double S;
 			double sigC;
-			double sigS;
+			double sigs;
 			string key;
-			iss >> key >> n >> m >> C >> S >> sigC >> sigS ;
+			iss >> key >> n >> m >> C >> S >> sigC >> sigs ;
 			if (n <= degMax)
 			{
 				maxDegreeRead = std::max(maxDegreeRead, n);

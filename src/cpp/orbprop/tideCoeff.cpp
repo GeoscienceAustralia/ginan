@@ -17,38 +17,38 @@ using std::vector;
 #include "iers2010.hpp"
 #include "sofa.h"
 
-Tide oceTide;
-Tide atmTide;
+Tide oceanTide;
+Tide atmosphericTide;
 
 void Tide::read(
 	const string&	filename,
 	int				degMax)
 {
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " Reading tide";
-	
+
 	if (filename.empty())
 	{
 		return;
 	}
-	
+
 	std::ifstream infile(filename);
 	if (!infile)
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Tide file open error " << filename << std::endl;
-		
+
 		return;
 	}
-	
+
 	string line;
 	// Skip the 4 lines of header
 	for (int i = 0; i < 4; i++)
 		std::getline(infile, line);
-	
+
 	while (std::getline(infile, line))
 	{
 		std::istringstream iss(line);
-		
+
 		string wave_;
 		string doodson_;
 		int n_;
@@ -72,7 +72,7 @@ void Tide::read(
 					isnew = false;
 				}
 			}
-			
+
 			if (isnew)
 			{
 				tidalWaves.push_back(TidalWave(wave_, doodson_, degMax));
@@ -94,25 +94,25 @@ void Tide::read(
 }
 
 TidalWave::TidalWave(
-	string	name, 
-	string	darw, 
-	int		degmax) 
+	string	name,
+	string	darw,
+	int		degmax)
 :	waveName(name)
 {
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " Creating new wave " << waveName << " degmax " << degmax;
-	
+
 	size_t dot = darw.find(".");
-	
-	doodson = Array6d::Zero();	
+
+	doodson = Array6d::Zero();
 	if (darw.length() >= 7)			doodson(0) = std::stoi(darw.substr(dot - 3, 1));
 	if (darw.length() >= 6)			doodson(1) = std::stoi(darw.substr(dot - 2, 1));
 	if (darw.length() >= 5)			doodson(2) = std::stoi(darw.substr(dot - 1, 1));
 									doodson(3) = std::stoi(darw.substr(dot + 1, 1));
 									doodson(4) = std::stoi(darw.substr(dot + 2, 1));
 									doodson(5) = std::stoi(darw.substr(dot + 3, 1));
-		
+
 	for (int i = 1; i < 6; i++)		doodson(i) -= 5;
-	
+
 	CnmM = MatrixXd::Zero(degmax + 1, degmax + 1);
 	CnmP = MatrixXd::Zero(degmax + 1, degmax + 1);
 	SnmM = MatrixXd::Zero(degmax + 1, degmax + 1);
@@ -126,8 +126,8 @@ void Tide::setBeta(
 	double	ut1_utc)
 {
 	FundamentalArgs fundArgs(time, ut1_utc);
-	
-	beta(0) = fundArgs.gmst - fundArgs.f - fundArgs.omega;
+
+	beta(0) = fundArgs.gmst - fundArgs.f - fundArgs.omega;		//todo aaron, swap with doodson?
 	beta(1) = fundArgs.f + fundArgs.omega;
 	beta(2) = beta(1) - fundArgs.d;
 	beta(3) = beta(1) - fundArgs.l;
@@ -136,8 +136,8 @@ void Tide::setBeta(
 }
 
 void Tide::getSPH(
-	Array6d&	dood, 
-	MatrixXd&	Cnm, 
+	Array6d&	dood,
+	MatrixXd&	Cnm,
 	MatrixXd&	Snm)
 {
 	for (auto& wave : tidalWaves)

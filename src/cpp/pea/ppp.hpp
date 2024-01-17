@@ -12,13 +12,13 @@ using std::map;
 #include "gTime.hpp"
 
 //forward declarations
-struct Station;
+struct Receiver;
 struct Solution;
 struct Vmf3;
 struct gptgrid_t;
 struct AttStatus;
 struct PhaseCenterData;
-struct StationMap;
+struct ReceiverMap;
 
 
 
@@ -48,45 +48,48 @@ void pppCorrections(
 	Trace&		trace,
 	ObsList&	obsList,
 	Vector3d&	rRec,
-	Station&	rec);
+	Receiver&	rec);
 
 void PPP(
 	Trace&			trace,
-	StationMap&		stations,
-	KFState&		kfState);
+	ReceiverMap&	receiverMap,
+	KFState&		kfState,
+	KFState&		remoteState);
 
 void phaseWindup(
 	GObs&		obs,
-	Station&	rec,
+	Receiver&	rec,
 	double&		phw);
 
 int ionoModel(
 	GTime		time,
 	VectorPos&	pos,
 	AzEl&		azel,
+	E_IonoMapFn	mapFn,
+	double		layerHeight,
 	double		ionoState,
 	double&		dion,
 	double&		var);
 
 void outputApriori(
-	StationMap& stationMap);
+	ReceiverMap& receiverMap);
 
-void outputPPPSolution(
-	string		filename,
-	KFState&	kfState,
-	Station&	rec);
-
-void gpggaout(
-	string outfile,
-	KFState& KfState,
-	string recId,
-	int solStat,
-	int numSat,
-	double hdop,
-	bool lng);
+// void outputPPPSolution(
+// 	string		filename,
+// 	KFState&	kfState,
+// 	Receiver&	rec);
+//
+// void gpggaout(
+// 	string outfile,
+// 	KFState& KfState,
+// 	string recId,
+// 	int solStat,
+// 	int numSat,
+// 	double hdop,
+// 	bool lng);
 
 void selectAprioriSource(
-	Station&	rec,
+	Receiver&	rec,
 	bool&		sppUsed);
 
 void postFilterChecks(
@@ -162,36 +165,36 @@ bool orbitGlitchReaction(
 
 
 
-void stationPPP(
-			Trace&				netTrace,
-			Station&			rec,
+void receiverPPP(
+			Trace&				pppTrace,
+			Receiver&			rec,
 	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
 	const	KFState&			remoteState);
 
 
 void orbitPseudoObs(
-			Trace&				netTrace,
-			Station&			rec,
+			Trace&				pppTrace,
+			Receiver&			rec,
 	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList);
 
 void initPseudoObs(
-			Trace&				netTrace,
+			Trace&				pppTrace,
 			KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList);
 
-void stationPseudoObs(
-			Trace&				netTrace,
-			Station&			rec,
+void receiverPseudoObs(
+			Trace&				pppTrace,
+			Receiver&			rec,
 	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
-			StationMap&			stationMap,
+			ReceiverMap&			receiverMap,
 			MatrixXd*			R_ptr = nullptr);
 
-void stationSlr(
-			Trace&				netTrace,
-			Station&			rec,
+void receiverSlr(
+			Trace&				pppTrace,
+			Receiver&			rec,
 	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList);
 
@@ -199,8 +202,7 @@ void stationSlr(
 bool satQuat(
 	SatPos&				satPos,
 	vector<E_Source>	attitudeTypes,
-	Quaterniond&		quat,
-	bool				origGal	= false);
+	Quaterniond&		quat);
 
 void fixAndHoldAmbiguities(
 	Trace&		trace,
@@ -217,7 +219,7 @@ bool queryBiasUC(
 	double&		vari,
 	E_MeasType	typ);
 
-void biasPseudoObs(
+void pseudoRecDcb(
 	Trace&				trace,
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
@@ -229,13 +231,13 @@ void ambgPseudoObs(
 
 void ionoPseudoObs(
 	Trace&				trace,
-	StationMap&			stations,
+	ReceiverMap&		receiverMap,
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
 
 void tropPseudoObs(
 	Trace&				trace,
-	StationMap&			stations,
+	ReceiverMap&		receiverMap,
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
 

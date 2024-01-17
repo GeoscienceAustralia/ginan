@@ -128,7 +128,7 @@ void write_BLQ(otl_input *input, int mode)
 		for (int i_dir = 0; i_dir < 3; i_dir++)
 		{
 			for (int it = 0; it < input->wave_names.size(); it++)  // Will need to write nwaves
-				out << " " << std::setprecision(5) << std::setw(8) << std::abs(input->out_disp[i][it][i_dir]) << " ";
+				out << " " << std::setprecision(7) << std::setw(10) << std::abs(input->out_disp[i][it][i_dir]) << " ";
 			out << "\n";
 		}
 
@@ -136,7 +136,7 @@ void write_BLQ(otl_input *input, int mode)
 		for (int i_dir = 0; i_dir < 3; i_dir++)
 		{
 			for (int it = 0; it < input->wave_names.size(); it++)  // Will need to write nwaves
-				out << " " << std::setprecision(1) << std::setw(8) << std::arg(input->out_disp[i][it][i_dir]) * R2D << " ";
+				out << " " << std::setprecision(4) << std::setw(10) << std::arg(input->out_disp[i][it][i_dir]) * R2D << " ";
 			out << "\n";
 		}
 	}

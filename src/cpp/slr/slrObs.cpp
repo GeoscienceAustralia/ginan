@@ -77,26 +77,26 @@ vector<CrdSession> readCrdFile(
 	{
 		BOOST_LOG_TRIVIAL(error)
 		<< "Error opening crd file " << filepath << std::endl;
-		
+
 		return crdSessions;
 	}
 
 	CrdSession crdSession;
-	
+
 	while (fileStream)
 	{
 		string line;
-		
+
 		getline(fileStream, line);
 
 		char* str = &line[0];
-	
+
 		string recordType = str;
 		recordType = recordType.substr(0,2);
-		
+
 		for (auto& c: recordType)
 			c = toupper((unsigned char)c);
-		
+
 		if		(recordType ==	"H1") {	CrdH1	h1;		read_h1(str, &h1);	crdSession.h1			= h1;	crdSession.readH1 = true;	}
 		else if	(recordType ==	"H2") {	CrdH2	h2;		read_h2(str, &h2);	crdSession.h2			= h2;	crdSession.readH2 = true;	}
 		else if	(recordType ==	"H3") {	CrdH3	h3;		read_h3(str, &h3);	crdSession.h3			= h3;	crdSession.readH3 = true;	}
@@ -144,7 +144,7 @@ vector<CrdSession> readCrdFile(
 		else
 			++it;
 	}
-	
+
 	return crdSessions;
 }
 
@@ -160,7 +160,7 @@ ILRS Satellite Identification Format: (YYXXXAA), based on the COSPAR ID
 	AA is the numeric sequence number within a launch
 */
 string ilrsIdToCosparId(
-	int	ilrsId)	///< Filepath to 
+	int	ilrsId)	///< Filepath to
 {
 	string YYXXXAA = std::to_string(ilrsId);
 	int YY	= stoi(YYXXXAA.substr(0,2));
@@ -169,10 +169,10 @@ string ilrsIdToCosparId(
 	double year = YY;
 	nearestYear(year);
 	int YYYY = (int)year;
-	
+
 	if (AA > 26)
 		BOOST_LOG_TRIVIAL(error) << "Error converting IlrsId to CosparId - AA = " << AA;
-	
+
 	char A = 'A' + AA - 1;
 	string XXXStr = std::to_string(XXX);
 	string XXXStrZeroPad = string(3 - XXXStr.length(), '0') + XXXStr;
@@ -204,12 +204,12 @@ GTime sessionSod2Time(
 	GTime	startSession)			///< session start time
 {
 	UYds startYds = startSession;
-	
+
 	double delta = eventSod - startYds.sod;
-	
+
 	if (delta > +secondsInDay / 2)	delta -= secondsInDay;
 	if (delta < -secondsInDay / 2)	delta += secondsInDay;
-	
+
 	GTime recordTime = startSession + delta;
 
 	return recordTime;
@@ -227,13 +227,13 @@ SatSys ilrsIdToSatSys(
 		BOOST_LOG_TRIVIAL(error) << "Error - SatId not found in ilrsIdToSatSys(): " << ilrsId;
 		return Sat;
 	}
-	
+
 	auto& [dummy, satData] = *it;
-	
+
 	string satId	= satData.satId;
-	
+
 	Sat = SatSys(satData.satId.c_str());
-	
+
 	return Sat;
 }
 
@@ -249,10 +249,10 @@ void readCrd(
 	for (auto& crdSession : crdSessions)
 	{
 		LObs obsHeader;
-		obsHeader.recName	= to_upper_copy((string)	crdSession.h2.stn_name);		
+		obsHeader.recName	= to_upper_copy((string)	crdSession.h2.stn_name);
 		obsHeader.recCdpId	=							crdSession.h2.cdp_pad_id;
 
-		obsHeader.satName	= to_lower_copy((string)	crdSession.h3.target_name);	
+		obsHeader.satName	= to_lower_copy((string)	crdSession.h3.target_name);
 		obsHeader.ilrsId	=							crdSession.h3.ilrs_id;
 		obsHeader.cosparId		= ilrsIdToCosparId	(obsHeader.ilrsId);
 		obsHeader.Sat			= ilrsIdToSatSys	(obsHeader.ilrsId);
@@ -266,33 +266,33 @@ void readCrd(
 			||crdSession.h4.range_type_ind			!= E_SlrRangeType::TWO_WAY)
 		{
 			BOOST_LOG_TRIVIAL(warning) << "Warning: unexpected H4 flags!";
-			
+
 			obsHeader.excludeBadFlags = true;
 		}
-		
+
 		if (crdSession.h4.data_qual_alert_ind != 0)
 			obsHeader.excludeAlert = true;
 
 		double startEp[6] =
-		{	
+		{
 			crdSession.h4.start_year,
 			crdSession.h4.start_mon,
 			crdSession.h4.start_day,
 			crdSession.h4.start_hour,
 			crdSession.h4.start_min,
-			crdSession.h4.start_sec 
+			crdSession.h4.start_sec
 		};
-		
+
 		double endEp[6] =
-		{		
+		{
 			crdSession.h4.end_year,
 			crdSession.h4.end_mon,
 			crdSession.h4.end_day,
 			crdSession.h4.end_hour,
 			crdSession.h4.end_min,
-			crdSession.h4.end_sec 
+			crdSession.h4.end_sec
 		};
-		
+
 		GTime startSession	= epoch2time(startEp,	E_TimeSys::UTC);
 		GTime endSession	= epoch2time(endEp,		E_TimeSys::UTC);
 
@@ -343,7 +343,7 @@ void readCrd(
 					<< "Warning: Unexpected epoch event found: " << obs.epochEvent << ", discarding";
 					continue;
 			}
-			
+
 			slrSiteObsMap[obs.recName][obs.timeTx] = (shared_ptr<LObs>)obs;
 		}
 	}
@@ -364,7 +364,7 @@ void	outputSortedSlrObsPerRec(
 	for (auto& [time, slrObs_ptr] : obsMap)
 	{
 		auto& obs = *slrObs_ptr;
-		
+
 		tracepdeex(0, filestream, "%s  %-7s %7d %27.12lf  %-11s %8d %4s %18.12f %13.2f %12.2f %9.1f %12.3f\n",
 			obs.timeTx.to_string(1),
 			obs.recName,
@@ -386,22 +386,22 @@ void	outputSortedSlrObsPerRec(
 map<string, vector<string>> outputSortedSlrObs()
 {
 	map<string, vector<string>> slrObsFiles;
-	
+
 	for (auto& [recId, slrObsList] : slrSiteObsMap)
 	{
 		string filename	= acsConfig.slr_obs_filename;
-		
-		replaceString(filename, "<STATION>", recId);
-		
+
+		replaceString(filename, "<RECEIVER>", recId);
+
 		outputSortedSlrObsPerRec(filename, slrObsList);
-		
+
 		slrObsFiles[recId].push_back(filename);
 	}
-	
+
 	return slrObsFiles;
 }
 
-/** Read one obs record from tabular slr obs file 
+/** Read one obs record from tabular slr obs file
 */
 int readSlrObs(
 	std::istream&	inputStream,	///< File input stream
@@ -417,10 +417,10 @@ int readSlrObs(
 	}
 
 	std::getline(inputStream, line);
-	
+
 	if (line.empty())
 		return 0;
-	
+
 	if (line.size() < MIN_LINE_LEN_SLROBS)
 	{
 		BOOST_LOG_TRIVIAL(warning)
@@ -443,8 +443,8 @@ int readSlrObs(
 	obs.cosparId			= ilrsIdToCosparId	(obs.ilrsId);
 	obs.Sat					= ilrsIdToSatSys	(obs.ilrsId);
 	obs.time				= obs.timeTx + obs.twoWayTimeOfFlight / 2;
-	
+
 	obsList.push_back((shared_ptr<LObs>)obs);
-	
+
 	return 1;
 }

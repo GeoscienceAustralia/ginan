@@ -89,22 +89,22 @@ if (BUILD_DOC)
 			WORKING_DIRECTORY	${CMAKE_CURRENT_SOURCE_DIR}/build
 			COMMENT				"Generating API documentation with Doxygen"
 			VERBATIM )
-		
+
 		add_custom_target(generateConfigMd
 			COMMAND 			pea -Y 1
 			COMMAND				mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/../Docs
 			COMMAND				cp defaultConfiguration.md ${CMAKE_CURRENT_SOURCE_DIR}/../Docs
 			COMMENT				"Generating config markdown file"
 			VERBATIM )
-		
+
 		add_dependencies(docs
 			generateConfigMd)
-		
+
 		list(APPEND CTEST_CUSTOM_WARNING_EXCEPTION
 		".*warning: ignoring loop annotation.*"
 		".*warning: .*Consider increasing DOT_GRAPH_MAX_NODES."
 		)
-		
+
 	else (DOXYGEN_FOUND)
 
 		message("Doxygen need to be installed to generate the doxygen documentation, disabling")
@@ -130,7 +130,7 @@ find_package(OpenSSL REQUIRED)
 
 #set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time filesystem system thread program_options serialization timer)
+find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer)
 
 find_package(Eigen3 3.3.0)
 include_directories(${EIGEN3_INCLUDE_DIRS})
@@ -146,7 +146,7 @@ find_package(NetCDF		REQUIRED)
 # find_package(netCDFCxx REQUIRED)
 
 set(OPENBLAS_USE_STATIC_LIBS ON)
-set(BLA_VENDOR OpenBLAS)
+set(BLA_VENDOR FlexiBLAS)
 
 find_package(BLAS)
 if(BLAS_FOUND)
@@ -155,7 +155,7 @@ if(BLAS_FOUND)
 else()
 	set (BLA_VENDOR "")
 	find_package(LAPACK REQUIRED)
-	find_package(BLAS   REQUIRED)  
+	find_package(BLAS   REQUIRED)
 	message(STATUS "Found LAPACK and BLAS")
 endif()
 
@@ -255,7 +255,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h.in ${CMAKE
 
 add_subdirectory(cpp)
 
-					 
+
 message(STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 message(STATUS "CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
@@ -269,4 +269,4 @@ macro(print_all_variables)
 	message(STATUS "print_all_variables------------------------------------------}")
 endmacro()
 
-#print_all_variables()
+print_all_variables()

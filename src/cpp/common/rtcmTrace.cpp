@@ -10,7 +10,7 @@
 
 using bsoncxx::builder::basic::kvp;
 
-map<RtcmMessageType, E_Sys> rtcmMessageSystemMap = 
+map<RtcmMessageType, E_Sys> rtcmMessageSystemMap =
 {
 	{RtcmMessageType::GPS_EPHEMERIS			, E_Sys::GPS},
 	{RtcmMessageType::GLO_EPHEMERIS			, E_Sys::GLO},
@@ -101,7 +101,7 @@ void RtcmTrace::traceSsrEph(
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	GTime	nearTime		= timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
@@ -149,7 +149,7 @@ void RtcmTrace::traceSsrClk(
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	GTime	nearTime		= timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
@@ -172,7 +172,7 @@ void RtcmTrace::traceSsrClk(
 	doc.append(kvp("DeltaClockC0",				ssrClk.dclk[0]									));
 	doc.append(kvp("DeltaClockC1",				ssrClk.dclk[1]									));
 	doc.append(kvp("DeltaClockC2",				ssrClk.dclk[2]									));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -192,7 +192,7 @@ void RtcmTrace::traceSsrUra(
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	GTime	nearTime		= timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
@@ -232,7 +232,7 @@ void RtcmTrace::traceSsrHRClk(
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	GTime	nearTime		= timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
@@ -252,7 +252,7 @@ void RtcmTrace::traceSsrHRClk(
 	doc.append(kvp("SSRSolutionID",				(int)SsrHRClk.ssrMeta.solution					));
 	doc.append(kvp("Sat",						Sat.id()										));
 	doc.append(kvp("HighRateClockCorr",			SsrHRClk.hrclk									));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -273,7 +273,7 @@ void RtcmTrace::traceSsrCodeBias(
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	GTime	nearTime		= timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
@@ -294,7 +294,7 @@ void RtcmTrace::traceSsrCodeBias(
 	doc.append(kvp("Sat",						Sat.id()										));
 	doc.append(kvp("Code",						code._to_string()								));
 	doc.append(kvp("Bias",						ssrBias.obsCodeBiasMap[code].bias				));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -315,7 +315,7 @@ void RtcmTrace::traceSsrPhasBias(
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	GTime	nearTime		= timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
@@ -343,7 +343,7 @@ void RtcmTrace::traceSsrPhasBias(
 	doc.append(kvp("SignalsWLIntegerIndicator",	(int)ssrBias.ssrPhaseChs[code].signalWLIntInd	));
 	doc.append(kvp("SignalDiscontinuityCount",	(int)ssrBias.ssrPhaseChs[code].signalDisconCnt	));
 	doc.append(kvp("Bias",						ssrBias.obsCodeBiasMap[code].bias				));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -367,7 +367,7 @@ void RtcmTrace::traceTimestamp(
 	doc.append(kvp("Mountpoint",	rtcmMountpoint				));
 	doc.append(kvp("time",			(string)time				));
 	doc.append(kvp("ticks",			(double)time.bigTime		));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -388,9 +388,9 @@ void RtcmTrace::traceBrdcEph(	//todo aaron, template this for gps/glo?
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	bsoncxx::builder::basic::document doc = {};
-	
+
 	GTime	nearTime		= timeGet();
 
 	// Note the Satellite id is not set in rinex correctly as we a mixing GNSS systems.
@@ -399,12 +399,11 @@ void RtcmTrace::traceBrdcEph(	//todo aaron, template this for gps/glo?
 	doc.append(kvp("MessageNumber",			messCode._to_integral()	));
 	doc.append(kvp("MessageType",			messCode._to_string()	));
 	doc.append(kvp("ReceivedSentTimeGPST",	nearTime.to_string(1)	));
-	doc.append(kvp("Sat",					eph.Sat.id()			));
 	doc.append(kvp("Type",					eph.type._to_string()	));
 
 	doc.append(kvp("ToeGPST",				eph.toe.to_string(1)	));
 	doc.append(kvp("TocGPST",				eph.toc.to_string(1)	));
-	
+
 	traceBrdcEphBody(doc, eph);
 
 	fout << bsoncxx::to_json(doc) << std::endl;
@@ -427,11 +426,11 @@ void RtcmTrace::traceBrdcEph(
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	bsoncxx::builder::basic::document doc = {};
-	
+
 	GTime	nearTime		= timeGet();
-	
+
 	// Note the Satellite id is not set in rinex correctly as we a mixing GNSS systems.
 	doc.append(kvp("type",					"brdcEph"				));
 	doc.append(kvp("Mountpoint",			rtcmMountpoint			));
@@ -492,7 +491,7 @@ void	traceBrdcEphBody(
 	doc.append(kvp("tgd0",			eph.tgd[0]	));
 	doc.append(kvp("tgd1",			eph.tgd[1]	));	// GPS/QZS no tgd[1]
 	doc.append(kvp("sva",			eph.sva		));
-	
+
 	if	( eph.Sat.sys == +E_Sys::GPS
 		||eph.Sat.sys == +E_Sys::QZS)
 	{
@@ -577,7 +576,7 @@ void writeSsrOutToFile(
 	// Header
 	out << "epochNum" 			<< "\t";
 	out << "satId" 				<< "\t";
-	
+
 // 	out << "SSREph.canExport"	<< "\t";
 	out << "SSREph.t0"			<< "\t";
 	out << "SSREph.udi"			<< "\t";
@@ -597,7 +596,7 @@ void writeSsrOutToFile(
 	out << "SSRClk.dclk[0]"		<< "\t";
 	out << "SSRClk.dclk[1]"		<< "\t";
 	out << "SSRClk.dclk[2]"		<< "\t";
-	
+
 	out << "SSRBias.t0_code"	<< "\t";
 	out << "SSRBias.t0_phas"	<< "\t";
 	out << "SSRBias.udi_code"	<< "\t";
@@ -640,7 +639,7 @@ void writeSsrOutToFile(
 		out << ssrOut.ssrClk.dclk[0]	<< "\t";
 		out << ssrOut.ssrClk.dclk[1]	<< "\t";
 		out << ssrOut.ssrClk.dclk[2]	<< "\t";
-		
+
 		out << ssrOut.ssrCodeBias.t0			<< "\t";
 		out << ssrOut.ssrPhasBias.t0			<< "\t";
 		out << ssrOut.ssrCodeBias.udi			<< "\t";
@@ -681,9 +680,9 @@ void RtcmTrace::traceMSM(
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	GTime	nearTime		= timeGet();
-	
+
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("type",						"MSM"											));
 	doc.append(kvp("Mountpoint",				rtcmMountpoint									));
@@ -719,7 +718,7 @@ void RtcmTrace::traceUnknown()
 		std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("type",					"?"			));
 

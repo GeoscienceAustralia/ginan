@@ -37,6 +37,7 @@ bool iontec(
 	const VectorPos&	pos,
 	const AzEl&			azel,
 	E_IonoMapFn			mapFn,
+	double				layerHeight,
 	E_IonoFrame			frame,
 	double&				delay,
 	double&				var);

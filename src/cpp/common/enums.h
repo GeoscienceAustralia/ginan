@@ -30,11 +30,6 @@ typedef enum
 	B3 = 23,		//  1268.52  MHz: BDS B3
 	I9 = 39,		//  2492.028 MHz: IRN S9
 	NUM_FTYPES,
-
-	/* Combined signals */
-	FTYPE_IF12 = 102,
-	FTYPE_IF15 = 105,
-	FTYPE_IF25 = 205
 } E_FType;
 
 typedef enum
@@ -78,6 +73,46 @@ BETTER_ENUM(E_Sys,			short int,
 			IMS,
 			COMB)
 
+BETTER_ENUM(E_Block,	short int,
+			UNKNOWN,
+			GPS_I,
+			GPS_II,
+			GPS_IIA,
+			GPS_IIR_A,
+			GPS_IIR_B,
+			GPS_IIR_M,
+			GPS_IIF,
+			GPS_IIIA,
+			GLO_M,
+			GLO,
+			GLO_K1A,
+			GLO_K1B,
+			GLO_K2,
+			GLO_MP,		// GLO-M+
+			GAL_0A,
+			GAL_0B,
+			GAL_1,
+			GAL_2,
+			BDS_2M,
+			BDS_2G,
+			BDS_2I,
+			BDS_3SI_SECM,
+			BDS_3SM_CAST,
+			BDS_3SI_CAST,
+			BDS_3SM_SECM,
+			BDS_3M_CAST,
+			BDS_3M_SECM_A,
+			BDS_3G,
+			BDS_3I,
+			BDS_3M_SECM_B,
+			QZS_1,
+			QZS_2I,
+			QZS_2G,
+			QZS_2A,
+			IRS_1I,
+			IRS_1G,
+			IRS_2G)
+
 BETTER_ENUM(E_OffsetType,	short int,
 			UNSPECIFIED,
 			APC,
@@ -113,7 +148,7 @@ BETTER_ENUM(KF,				short int,
 
 	HEADING,
 
-	QUAT,
+	ORIENTATION,
 
 	REF_SYS_BIAS,
 
@@ -138,7 +173,7 @@ BETTER_ENUM(KF,				short int,
 	SAT_PCO_Y,
 	SAT_PCO_Z,
 
-	DCB,
+	REC_PCV,
 
 	EOP_ADJUST,
 	EOP_RATE_ADJUST,
@@ -151,6 +186,7 @@ BETTER_ENUM(KF,				short int,
 	XFORM_XLATE,
 	XFORM_RTATE,
 	XFORM_SCALE,
+	XFORM_DELAY,
 
 
 	AMBIGUITY,
@@ -235,6 +271,14 @@ BETTER_ENUM(KEPLER,				short int,
 			EV,
 			M
 )
+
+BETTER_ENUM(E_PolyType,	short int,
+			CONSTANT,
+			LAT,
+			LON,
+			LAT_LON,
+			LAT_SQRD,
+			LON_SQRD)
 
 BETTER_ENUM(E_BasisType,	short int,
 			POLYNOMIAL,
@@ -349,6 +393,14 @@ BETTER_ENUM(E_Inverter, int,
 			JACOBISVD,
 			FULLPIVLU,		FIRST_UNSUPPORTED = FULLPIVLU,
 			FULLPIVHQR)
+
+BETTER_ENUM(E_MongoType, int,
+	NONE,
+	STATES,
+	RESIDUALS,
+	TRACE,
+	LIST)
+
 
 BETTER_ENUM(E_ObsDesc, int,
 	C,					// Code / Pseudorange
@@ -744,6 +796,17 @@ BETTER_ENUM(E_Source, short int,
 		MODEL,
 		REMOTE)
 
+BETTER_ENUM(E_OrbexRecord, short int,
+		PCS,
+		VCS,
+		CPC,
+		CVC,
+		POS,
+		VEL,
+		CLK,
+		CRT,
+		ATT)
+
 BETTER_ENUM(E_RTCMSubmessage,	short int,
 		TIMESTAMP = 1
 )
@@ -765,12 +828,12 @@ BETTER_ENUM(E_ObsWaitCode,	short int,
 		NO_DATA_WAIT,
 		NO_DATA_EVER)
 
-BETTER_ENUM(E_SRPModels,	int,
+BETTER_ENUM(E_SRPModel,	int,
 			NONE,
 			CANNONBALL,
 			BOXWING)
 
-BETTER_ENUM(E_TidesMdl, 	short int,
+BETTER_ENUM(E_TidesModel, 	short int,
 			ELASTIC,
 			ANELASTIC)
 
@@ -919,7 +982,8 @@ BETTER_ENUM(E_Component, short int,
 	EMPIRICAL,
 	GENERAL_RELATIVITY,
 	EGM,
-	SRP,
+	SRP_CANNONBALL,
+	SRP_BOXWING,
 	ANTENNA_THRUST,
 	PLANETARY_PERTURBATION)
 
@@ -958,3 +1022,15 @@ BETTER_ENUM(E_TidalComponent,	short int,
 			SOUTH,
 			UP,
 			DOWN)
+
+BETTER_ENUM(E_Mongo,	short int,
+			NONE,
+			PRIMARY,
+			SECONDARY,
+			BOTH)
+
+BETTER_ENUM(E_Mincon,	short int,
+			PSEUDO_OBS,
+			WEIGHT_MATRIX,
+			VARIANCE_INVERSE,
+			COVARIANCE_INVERSE)

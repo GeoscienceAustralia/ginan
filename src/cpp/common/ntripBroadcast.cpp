@@ -108,7 +108,7 @@ void NtripUploader::messageTimeout_handler(
 	GTime	latestTime;
 
 	if		(acsConfig.ssrOpts.output_timing == +E_SSROutTiming::GPS_TIME) 					latestTime = timeGet();
-	else if (acsConfig.ssrOpts.output_timing == +E_SSROutTiming::LATEST_CLOCK_ESTIMATE)		latestTime = mongoReadLastClock();
+// 	else if (acsConfig.ssrOpts.output_timing == +E_SSROutTiming::LATEST_CLOCK_ESTIMATE)		latestTime = mongoReadLastClock();		//todo aaron
 
 	if (latestTime == GTime::noTime())
 		return;

@@ -27,14 +27,14 @@ void initialiseBias()
 	{
 		auto sats = getSysSats(sys);
 		if (acsConfig.process_sys[sys])
-		for (auto Sat : sats) 
+		for (auto Sat : sats)
 		{
 			string id	= Sat.id() + ":" + Sat.sysChar();
 			entry.Sat	= Sat;
-			entry.cod1	= acsConfig.clock_codesL1[sys];
-			entry.cod2	= acsConfig.clock_codesL2[sys];
-			
-			pushBiasSinex(id, entry);
+// 			entry.cod1	= acsConfig.clock_codesL1[sys];
+// 			entry.cod2	= acsConfig.clock_codesL2[sys];
+
+			pushBiasEntry(id, entry);
 		}
 	}
 }
@@ -50,36 +50,69 @@ void addDefaultBias()
 
 	for (auto& [id, obsObsBiasMap] : biasMaps[entry.measType])
 	{
-		// get Sat and receiver name from the first entry in the CODE bias map 
+		// get Sat and receiver name from the first entry in the CODE bias map
 		auto obsBiasMap	= obsObsBiasMap	.begin()->second;
 		auto biasMap	= obsBiasMap	.begin()->second;
 		auto bias		= biasMap		.begin()->second;
 
 		entry.Sat		= bias.Sat;
 		entry.name		= bias.name;
-		entry.cod1		= acsConfig.clock_codesL1[bias.Sat.sys];
-		entry.cod2		= acsConfig.clock_codesL2[bias.Sat.sys];
+// 		entry.cod1		= acsConfig.clock_codesL1[bias.Sat.sys];
+// 		entry.cod2		= acsConfig.clock_codesL2[bias.Sat.sys];
 		entry.source	= "def1";
-		
-// 		pushBiasSinex(id, entry);	//todo aaron, disabled
+
+// 		pushBiasEntry(id, entry);	//todo aaron, disabled
 	}
-	
+
 	for (auto& Sat : getSysSats(E_Sys::GPS))
 	{
 		entry.cod1		= E_ObsCode::L1W;
 		entry.cod2		= E_ObsCode::L1C;
 		entry.Sat		= Sat;
 		entry.source	= "def2";
-		
+
 		string id	= Sat.id() + ":" + Sat.sysChar();
 
-		pushBiasSinex(id, entry);
+		pushBiasEntry(id, entry);
+	}
+}
+
+void loadStateBiases(
+	KFState&	kfState)
+{
+	for (auto& [kfKey, index] : kfState.kfIndexMap)
+	{
+		if	( kfKey.type != +KF::CODE_BIAS
+			&&kfKey.type != +KF::PHASE_BIAS)
+		{
+			continue;
+		}
+
+		BiasEntry entry;
+		if (kfKey.type == +KF::CODE_BIAS)		entry.measType = CODE;
+		if (kfKey.type == +KF::PHASE_BIAS)		entry.measType = PHAS;
+
+		entry.tini		= kfState.time;
+		entry.cod1		= E_ObsCode::_from_integral(kfKey.num);
+		entry.bias		= kfState.x(index);
+		entry.var		= kfState.P(index,index);
+		entry.name		= kfKey.str;
+		entry.Sat		= kfKey.Sat;
+		entry.source	= "KALMAN";
+
+		string id;
+		if (entry.name.empty() == false)	id = entry.name;
+		else								id = entry.Sat.id();
+		id.push_back(':');
+		id.push_back(entry.Sat.sysChar());
+
+		pushBiasEntry(id, entry);
 	}
 }
 
 /** Push forward and reverse bias entry into biasMaps
 */
-void pushBiasSinex(
+void pushBiasEntry(
 	string		id,			///< Device ID
 	BiasEntry	entry)		///< Bias entry to push into biasMaps
 {
@@ -105,7 +138,7 @@ void pushBiasSinex(
 				[entry.cod1]
 				[entry.cod2]
 				[entry.tini] = entry;
-				
+
 	decomposeDSBBias(id, entry);
 }
 
@@ -118,14 +151,14 @@ void cullOldBiases(
 	for (auto& [dummy3, code2BiasMap]	: code1BiasMap)
 	{
 		auto foundIt = code2BiasMap.lower_bound(time);
-		
+
 		if (foundIt == code2BiasMap.end())
 		{
 			continue;
 		}
-		
+
 		foundIt++;
-		
+
 		//delete all before this found one (after since its reversed ordering)
 		code2BiasMap.erase(foundIt, code2BiasMap.end());
 	}
@@ -138,42 +171,47 @@ bool decomposeDSBBias(
 	BiasEntry&	DSB)		///< DSB to be decomposed
 {
 	auto& Sat = DSB.Sat;
-	
-	if	( DSB.cod1 != acsConfig.clock_codesL1[Sat.sys]
-		||DSB.cod2 != acsConfig.clock_codesL2[Sat.sys])
-	{
-		return false;
-	}
+
+// 	if	( DSB.cod1 != acsConfig.clock_codesL1[Sat.sys]
+// 		||DSB.cod2 != acsConfig.clock_codesL2[Sat.sys])
+// 	{
+// 		return false;
+// 	}
 
 	E_FType ft1 = code2Freq[Sat.sys][DSB.cod1];
 	E_FType ft2 = code2Freq[Sat.sys][DSB.cod2];
 	double lam1	= genericWavelength[ft1];
 	double lam2	= genericWavelength[ft2];
-	
+
 	if	(  lam1 == 0
 		|| lam2 == 0)
 	{
 		return false;
 	}
-	
+
+	if (lam1 == lam2)
+	{
+		return false;
+	}
+
 	double c2	= -SQR(lam1) / (SQR(lam2) - SQR(lam1));
 	double c1	= c2 - 1;
 
 	BiasEntry entry = DSB;
 	entry.cod2		= E_ObsCode::NONE;
 	entry.source	+= "*";
-	
+
 	entry.cod1		= DSB.cod1;
 	entry.bias		=     c2  * DSB.bias;
 	entry.var		= SQR(c2) * DSB.var;
-	
-	pushBiasSinex(id, entry);
-	
+
+	pushBiasEntry(id, entry);
+
 	entry.cod1		= DSB.cod2;
 	entry.bias		=     c1  * DSB.bias;
 	entry.var		= SQR(c1) * DSB.var;
-	
-	pushBiasSinex(id, entry);
+
+	pushBiasEntry(id, entry);
 
 	return true;
 }
@@ -185,7 +223,7 @@ bool decomposeTGDBias(
 	double		tgd)	///< GPS or QZS TGD to be decomposed
 {
 	auto sys = Sat.sys;
-	
+
 	E_ObsCode cod1 = E_ObsCode::NONE;
 	E_ObsCode cod2 = E_ObsCode::NONE;
 	if		(sys == +E_Sys::GPS)		{	cod1 = E_ObsCode::L1W;	cod2 = E_ObsCode::L2W;	}
@@ -195,7 +233,7 @@ bool decomposeTGDBias(
 	string	id		= Sat.id() + ":" + Sat.sysChar();
 	double	bias	= tgd * CLIGHT;
 	double	gamma	= SQR(FREQ1) / SQR(FREQ2);
-	
+
 	BiasEntry entry;
 	entry.tini.bigTime	= 1;
 	entry.measType		= CODE;
@@ -209,7 +247,7 @@ bool decomposeTGDBias(
 	entry.var		= 0;
 	entry.source	= "tgd";
 
-	pushBiasSinex(id, entry);
+	pushBiasEntry(id, entry);
 
 	return true;
 }
@@ -230,7 +268,7 @@ bool decomposeBGDBias(
 	double	bgdE1E5b	= bgd2 * CLIGHT;
 	double	gammaE1E5a	= SQR(FREQ1) / SQR(FREQ5);
 	double	gammaE1E5b	= SQR(FREQ1) / SQR(FREQ7);
-		
+
 	BiasEntry entry;
 	entry.tini.bigTime	= 1;
 	entry.measType		= CODE;
@@ -244,7 +282,7 @@ bool decomposeBGDBias(
 	entry.bias		= bgdE1E5a;
 	entry.var		= 0;
 
-	pushBiasSinex(id, entry);		//todo aaron, check which of these match the clock_codes and only create those.
+	pushBiasEntry(id, entry);		//todo aaron, check which of these match the clock_codes and only create those.
 
 	//covert BGD E5a/E1 to C5Q-IF OSB
 	entry.cod1		= cod2;
@@ -252,7 +290,7 @@ bool decomposeBGDBias(
 	entry.bias		= bgdE1E5a * gammaE1E5a;
 	entry.var		= 0;
 
-	pushBiasSinex(id, entry);
+	pushBiasEntry(id, entry);
 
 	//covert BGD E5b/E1 to C7Q-IF OSB
 	entry.cod1		= cod3;
@@ -260,7 +298,7 @@ bool decomposeBGDBias(
 	entry.bias		= bgdE1E5a - bgdE1E5b * (1 - gammaE1E5b);
 	entry.var		= 0;
 
-	pushBiasSinex(id, entry);
+	pushBiasEntry(id, entry);
 
 	//covert BGD E5b/E1 to C1C-C7Q DSB
 	entry.cod1		= cod1;
@@ -268,7 +306,7 @@ bool decomposeBGDBias(
 	entry.bias		= bgdE1E5b * (1 - gammaE1E5b);
 	entry.var		= 0;
 
-	pushBiasSinex(id, entry);
+	pushBiasEntry(id, entry);
 
 	return true;
 }
@@ -305,7 +343,7 @@ bool biasRecurser(
 	const	E_ObsCode&		obsCode2,			///< Secondary code of observation to find biases for
 	const	map<E_ObsCode,
 			map<E_ObsCode,
-			map<GTime, 
+			map<GTime,
 				BiasEntry, std::greater<GTime>>>>& obsObsBiasMap,	///< Bias map for given measrement type & device, as obsObsBiasMap[code1][code2][time]
 			set<E_ObsCode>&	checkedObscodes)	///< A list of all checked observation codes
 {
@@ -433,22 +471,10 @@ bool getBias(
 	E_ObsCode 		obsCode1,				///< Base code of observation to find biases for
 	E_MeasType		measType,				///< Type of bias to retreive (code/phase)
 	double&			bias,					///< Hardware bias
-	double&			var)					///< Hardware bias variance
+	double&			var,					///< Hardware bias variance
+	KFState*		kfState_ptr)			///< Optional filter to search for biases
 {
-	const int lv = 3;
-	
 	E_ObsCode obsCode2 = E_ObsCode::NONE;
-	
-	if (Sat.sys == +E_Sys::GLO)	id = id + ":" + Sat.id();
-	else						id = id + ":" + Sat.sysChar();
-	
-	string type;
-	if (measType == CODE)	type = "CODE";
-	if (measType == PHAS)	type = "PHAS";
-
-	tracepdeex(lv, trace, "\nReading %s bias for %6s, %4s-%4s ...", type.c_str(), id.c_str(), obsCode1._to_string(), obsCode2._to_string());
-
-	BiasEntry foundBias;
 
 	if	(  acsConfig.ssrInOpts.one_freq_phase_bias
 		&& measType == PHAS)
@@ -457,17 +483,50 @@ bool getBias(
 
 		obsCode1 = freq2CodeHax(Sat.sys, freq);
 	}
-	 
+
+	if (kfState_ptr)
+	{
+		auto& kfState = *kfState_ptr;
+
+		KFKey kfKey;
+		if (measType == CODE)	kfKey.type		= KF::CODE_BIAS;
+		if (measType == PHAS)	kfKey.type		= KF::PHASE_BIAS;
+
+// 		kfKey.str		= id;
+// 		kfKey.Sat		= SatSys(Sat.sys);
+		kfKey.Sat		= Sat;
+		kfKey.num		= obsCode1;
+
+		bool found = kfState.getKFValue(kfKey, bias, &var);
+
+		if (found)
+		{
+			return true;
+		}
+	}
+
+	if (Sat.sys == +E_Sys::GLO)	id = id + ":" + Sat.id();
+	else						id = id + ":" + Sat.sysChar();
+
+	string type;
+	if (measType == CODE)	type = "CODE";
+	if (measType == PHAS)	type = "PHAS";
+
+	tracepdeex(3, trace, "\nReading %s bias for %6s, %4s-%4s ...", type.c_str(), id.c_str(), obsCode1._to_string(), obsCode2._to_string());
+
+	BiasEntry foundBias;
 	bool pass = getBiasEntry(trace, time, id, measType, foundBias, obsCode1, obsCode2);
 	if (pass == false)
 	{
-		tracepdeex(lv, trace, " Not found,          var: %5.1f", var);
+		tracepdeex(3, trace, " Not found,          var: %5.1f", var);
 		return false;
 	}
-	
+
 	bias	= foundBias.bias;
 	var		= foundBias.var;
-	tracepdeex(lv, trace, " Found: %11.4f, var: %5.1f from %s", bias, var, foundBias.source.c_str());
-	
+	tracepdeex(3, trace, " Found: %11.4f, var: %5.1f from %s", bias, var, foundBias.source.c_str());
+
 	return true;
 }
+
+

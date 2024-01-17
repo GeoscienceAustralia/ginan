@@ -2,6 +2,7 @@
 // #pragma GCC optimize ("O0")
 
 #include <sys/time.h>
+#include <filesystem>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -25,7 +26,6 @@ using std::string;
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/filesystem.hpp>
 
 #include "centerMassCorrections.hpp"
 #include "minimumConstraints.hpp"
@@ -55,6 +55,7 @@ using std::string;
 #include "streamRtcm.hpp"
 #include "tropModels.hpp"
 #include "ephPrecise.hpp"
+#include "mongoRead.hpp"
 #include "acsConfig.hpp"
 #include "testUtils.hpp"
 #include "streamUbx.hpp"
@@ -68,11 +69,10 @@ using std::string;
 #include "sp3Write.hpp"
 #include "metaData.hpp"
 #include "attitude.hpp"
+#include "receiver.hpp"
 #include "posProp.hpp"
-#include "station.hpp"
 #include "summary.hpp"
 #include "antenna.hpp"
-#include "boxwing.hpp"
 #include "satStat.hpp"
 #include "fileLog.hpp"
 #include "jpl_eph.hpp"
@@ -96,7 +96,7 @@ Navigation				nav		= {};
 int						epoch	= 1;
 GTime					tsync	= GTime::noTime();
 map<int, SatIdentity>	satIdMap;
-StationMap				stationMap;
+ReceiverMap				receiverMap;
 
 void outputMqtt(KFState& kfState);
 
@@ -109,7 +109,16 @@ bool fileChanged(
 		return false;
 	}
 
-	auto modifyTime = boost::filesystem::last_write_time(filename);
+	std::filesystem::file_time_type modifyTime;
+	try
+	{
+		modifyTime = std::filesystem::last_write_time(filename);
+	}
+	catch (...)
+	{
+		//failed despite just checking it exists.. sometimes happens apparently
+		return false;
+	}
 
 	auto it = acsConfig.configModifyTimeMap.find(filename);
 	if (it == acsConfig.configModifyTimeMap.end())
@@ -154,7 +163,7 @@ void removeInvalidFiles(
 
 void initialiseStation(
 	string		id,
-	Station&	rec)
+	Receiver&	rec)
 {
 	if (rec.id.empty() == false)
 	{
@@ -171,9 +180,9 @@ void initialiseStation(
 
 	// Read the OTL BLQ file
 	bool found = false;
-	for (auto& blqfile : acsConfig.otl_blq_files)
+	for (auto& blqfile : acsConfig.ocean_tide_loading_blq_files)
 	{
-		found |= readBlq(blqfile, rec, E_LoadingType::OCEAN);		// last wins
+		found |= readBlq(blqfile, rec, E_LoadingType::OCEAN);
 	}
 
 	if (found == false)
@@ -184,9 +193,9 @@ void initialiseStation(
 
 	// Read the ATL BLQ file
 	found = false;
-	for (auto& blqfile : acsConfig.atl_blq_files)
+	for (auto& blqfile : acsConfig.atmos_tide_loading_blq_files)
 	{
-		found |= readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);	// last wins
+		found |= readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);
 	}
 
 	if (found == false)
@@ -197,7 +206,7 @@ void initialiseStation(
 }
 
 /** Create a station object from an input
- */
+*/
 void addStationData(
 	string			stationId,			///< Id of station to add data for
 	vector<string>	inputNames,			///< Filename to create station from
@@ -284,7 +293,7 @@ void addStationData(
 
 		if (dataType == "OBS")
 		{
-			auto& rec = stationMap[id];
+			auto& rec = receiverMap[id];
 
 			initialiseStation(id, rec);
 		}
@@ -324,7 +333,7 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info)
 		<< "Loading SP3 file " << sp3file;
 
-		readSp3ToNav(sp3file, &nav, 0);
+		readSp3ToNav(sp3file, nav, 0);
 	}
 
 	removeInvalidFiles(acsConfig.obx_files);
@@ -484,36 +493,36 @@ void reloadInputFiles()
 		readvmf3(vmffile);
 	}
 
-	if (acsConfig.model.trop.orography.empty() == false)
-	for (auto once : {1})
+	removeInvalidFiles(acsConfig.orography_files);
+	for (auto& orographyfile : acsConfig.orography_files)
 	{
-		if (fileChanged(acsConfig.model.trop.orography) == false)
+		if (fileChanged(orographyfile) == false)
 		{
 			continue;
 		}
 
 		BOOST_LOG_TRIVIAL(info)
-		<< "Loading ORO from " << acsConfig.model.trop.orography;
+		<< "Loading ORO from " << orographyfile;
 
-		readorog(acsConfig.model.trop.orography);
+		readorog(orographyfile);
 	}
 
-	if (acsConfig.model.trop.gpt2grid.empty() == false)
-	for (auto once : {1})
+	removeInvalidFiles(acsConfig.gpt2grid_files);
+	for (auto& gpt2gridfile : acsConfig.gpt2grid_files)
 	{
-		if (fileChanged(acsConfig.model.trop.gpt2grid) == false)
+		if (fileChanged(gpt2gridfile) == false)
 		{
 			continue;
 		}
 
 		BOOST_LOG_TRIVIAL(info)
-		<< "Loading GPT file " << acsConfig.model.trop.gpt2grid;
+		<< "Loading GPT file " << gpt2gridfile;
 
-		readgrid(acsConfig.model.trop.gpt2grid);
+		readgrid(gpt2gridfile);
 	}
 
-	removeInvalidFiles(acsConfig.opole_files);
-	for (auto& optfile : acsConfig.opole_files)
+	removeInvalidFiles(acsConfig.ocean_pole_tide_loading_files);
+	for (auto& optfile : acsConfig.ocean_pole_tide_loading_files)
 	{
 		if (fileChanged(optfile) == false)
 		{
@@ -584,11 +593,11 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info)
 		<< "Loading EGM file " << egmfile;
 
-		egm.read(egmfile, acsConfig.orbitPropagation.degree_max);
+		egm.read(egmfile, acsConfig.propagationOptions.egm_degree);
 	}
 
-	removeInvalidFiles(acsConfig.ocetide_files);
-	for (auto& tidefile : acsConfig.ocetide_files)
+	removeInvalidFiles(acsConfig.ocean_tide_potential_files);
+	for (auto& tidefile : acsConfig.ocean_tide_potential_files)
 	{
 		if (fileChanged(tidefile) == false)
 		{
@@ -598,11 +607,11 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info)
 		<< "Loading Tide file " << tidefile;
 
-		oceTide.read(tidefile, acsConfig.orbitPropagation.degree_max);
+		oceanTide.read(tidefile, acsConfig.propagationOptions.egm_degree);
 	}
 
-	removeInvalidFiles(acsConfig.atmtide_files);
-	for (auto& tidefile : acsConfig.atmtide_files)
+	removeInvalidFiles(acsConfig.atmos_tide_potential_files);
+	for (auto& tidefile : acsConfig.atmos_tide_potential_files)
 	{
 		if (fileChanged(tidefile) == false)
 		{
@@ -612,7 +621,7 @@ void reloadInputFiles()
 		BOOST_LOG_TRIVIAL(info)
 		<< "Loading Tide file " << tidefile;
 
-		atmTide.read(tidefile, acsConfig.orbitPropagation.degree_max);
+		atmosphericTide.read(tidefile, acsConfig.propagationOptions.egm_degree);
 	}
 
 	removeInvalidFiles(acsConfig.cmc_files);
@@ -639,8 +648,8 @@ void reloadInputFiles()
 		hfEop.read(hfeopfile);
 	}
 
-	removeInvalidFiles(acsConfig.aod1b_files);
-	for (auto& aod1b_file : acsConfig.aod1b_files)
+	removeInvalidFiles(acsConfig.atmos_oceean_dealiasing_files);
+	for (auto& aod1b_file : acsConfig.atmos_oceean_dealiasing_files)
 	{
 		if (fileChanged(aod1b_file) == false)
 		{
@@ -648,23 +657,11 @@ void reloadInputFiles()
 		}
 		BOOST_LOG_TRIVIAL(info) << "Loading AOD file " << aod1b_file;
 
-		aod.read(aod1b_file, acsConfig.orbitPropagation.degree_max);
+		aod.read(aod1b_file, acsConfig.propagationOptions.egm_degree);
 	}
 
-	//Boxwing to change later
-    for (auto& boxwing_file : acsConfig.boxwing_files)
-    {
-         if (fileChanged(boxwing_file) == false)
-          {
-                continue;
-          }
-          BOOST_LOG_TRIVIAL(info) << "Loading Boxwing file " << boxwing_file;
-
-          boxwing.read(boxwing_file);
-    }
-
-	removeInvalidFiles(acsConfig.poleocean_files);
-	for (auto& poleocean_file : acsConfig.poleocean_files)
+	removeInvalidFiles(acsConfig.ocean_pole_tide_potential_files);
+	for (auto& poleocean_file : acsConfig.ocean_pole_tide_potential_files)
 	{
 		if (fileChanged(poleocean_file) == false)
 		{
@@ -672,11 +669,11 @@ void reloadInputFiles()
 		}
 		BOOST_LOG_TRIVIAL(info) << "Loading Pole Ocean Tide file " << poleocean_file;
 
-		oceanPoleTide.read(poleocean_file, acsConfig.orbitPropagation.degree_max);
+		oceanPoleTide.read(poleocean_file, acsConfig.propagationOptions.egm_degree);
 	}
 
-	removeInvalidFiles(acsConfig.jpl_files);
-	for (auto& jplfile : acsConfig.jpl_files)
+	removeInvalidFiles(acsConfig.planetary_ephemeris_files);
+	for (auto& jplfile : acsConfig.planetary_ephemeris_files)
 	{
 		if (fileChanged(jplfile) == false)
 		{
@@ -684,14 +681,14 @@ void reloadInputFiles()
 		}
 
 		BOOST_LOG_TRIVIAL(info)
-		<< "Loading JPL file " << jplfile;
+		<< "Loading planetary ephemeris file " << jplfile;
 
 		nav.jplEph_ptr = (struct jpl_eph_data*) jpl_init_ephemeris(jplfile.c_str(), nullptr, nullptr);          // a Pointer to The jpl_eph_data Structure
 
 		if (jpl_init_error_code())
 		{
 			BOOST_LOG_TRIVIAL(warning)
-			<< "Warning: JPL file had error code " << jpl_init_error_code();
+			<< "Warning: planetary ephemeris file had error code " << jpl_init_error_code();
 		}
 	}
 
@@ -704,60 +701,6 @@ void reloadInputFiles()
 	for (auto& [id, pseudosnxinputs]	: acsConfig.pseudo_snx_inputs)	{	addStationData(id,		pseudosnxinputs,			"SINEX",	"PSEUDO");		}
 																		{	addStationData("Nav",	acsConfig.nav_rtcm_inputs,	"RTCM",		"NAV");			}
 																		{	addStationData("QZSL6",	acsConfig.qzs_rtcm_inputs,	"RTCM",		"NAV");			}
-}
-
-/** Select 2 clocks for receivers according to the available signals
- */
-void setClockCodesForReceiver(
-	Trace&		trace,
-	Station&	rec)
-{
-	map<E_Sys,map<E_ObsCode,int>> satsPerCode;
-
-	for (auto&	obs				: only<GObs>(rec.obsList))
-	for (auto&	[ft, sigList]	: obs.SigsLists)
-	for (auto&	sig				: sigList)
-	{
-		if (rec.recClockCodes.find(obs.Sat.sys) != rec.recClockCodes.end())
-			continue;
-
-		if	(  sig.L > 0
-			&& sig.P > 0)
-		{
-			satsPerCode[obs.Sat.sys][sig.code]++;
-		}
-	}
-
-	for (auto&	[sys, codeList]	: satsPerCode)
-	{
-		vector<E_ObsCode> selectedCodes;
-		for (auto& code : acsConfig.code_priorities[sys])
-		{
-			if (codeList.find(code) == codeList.end())
-				continue;
-
-			if (codeList[code] < 4)		// minimum number for spp
-				continue;
-
-			if	(  selectedCodes.size() == 1
-				&& code2Freq[sys][code] == code2Freq[sys][selectedCodes[0]])
-			{
-				continue;
-			}
-
-			selectedCodes.push_back(code);
-
-			if (selectedCodes.size() < 2)
-				continue;
-
-			rec.recClockCodes[sys].first  = selectedCodes[0];
-			rec.recClockCodes[sys].second = selectedCodes[1];
-
-			trace << std::endl << sys._to_string() << " receiver codes: " <<  selectedCodes[0]._to_string() << " " << selectedCodes[1]._to_string() << std::endl;
-
-			break;
-		}
-	}
 }
 
 void configureUploadingStreams()
@@ -813,75 +756,9 @@ void configureUploadingStreams()
 	}
 }
 
-bool createNewTraceFile(
-	const string				id,
-	boost::posix_time::ptime	logptime,
-	string  					new_path_trace,
-	string& 					old_path_trace,
-	bool						outputHeader = false,
-	bool						outputConfig = false)
-{
-	replaceString(new_path_trace, "<STATION>", id);
-	replaceTimes (new_path_trace, logptime);
-
-	// Create the trace file if its a new filename, otherwise, keep the old one
-	if	( new_path_trace == old_path_trace
-		||new_path_trace.empty())
-	{
-		//the filename is the same, keep using the old ones
-		return false;
-	}
-
-	old_path_trace = new_path_trace;
-
-	BOOST_LOG_TRIVIAL(debug)
-	<< "Creating new file for " << id << " at " << old_path_trace;
-
-	std::ofstream trace(old_path_trace);
-	if (!trace)
-	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Error: Could not create file for " << id << " at " << old_path_trace;
-
-		return false;
-	}
-
-	// Trace file head
-	if (outputHeader)
-	{
-		trace << "station    : " << id << std::endl;
-		trace << "start_epoch: " << acsConfig.start_epoch			<< std::endl;
-		trace << "end_epoch  : " << acsConfig.end_epoch				<< std::endl;
-		trace << "trace_level: " << acsConfig.trace_level			<< std::endl;
-		trace << "pea_version: " << ginanCommitVersion()			<< std::endl;
-// 		trace << "rts_lag    : " << acsConfig.pppOpts.rts_lag		<< std::endl;
-	}
-
-	if (outputConfig)
-	{
-		dumpConfig(trace);
-	}
-
-	return true;
-}
-
-/** Returns (posix) for current epoch
- */
-boost::posix_time::ptime currentLogptime()
-{
-	PTime logtime = tsync.floorTime(acsConfig.rotate_period);
-
-	boost::posix_time::ptime	logptime	= boost::posix_time::from_time_t((time_t)logtime.bigTime);
-
-	if ((GTime)logtime == GTime::noTime())
-	{
-		logptime = boost::posix_time::not_a_date_time;
-	}
-	return logptime;
-}
 
 /** Create directories if required
- */
+*/
 void createDirectories(
 	boost::posix_time::ptime	logptime)
 {
@@ -899,12 +776,12 @@ void createDirectories(
 								acsConfig.clocks_directory,
 								acsConfig.slr_obs_directory,
 								acsConfig.ionstec_directory,
-								acsConfig.ppp_sol_directory,
 								acsConfig.rtcm_nav_directory,
 								acsConfig.rtcm_obs_directory,
 								acsConfig.orbit_ics_directory,
 								acsConfig.rinex_obs_directory,
 								acsConfig.rinex_nav_directory,
+								acsConfig.raw_custom_directory,
 								acsConfig.trop_sinex_directory,
 								acsConfig.bias_sinex_directory,
 								acsConfig.pppOpts.rts_directory,
@@ -921,13 +798,7 @@ void createDirectories(
 
 		try
 		{
-			bool created = boost::filesystem::create_directories(directory);
-			{
-				if (created)
-				{
-					created = false;
-				}
-			}
+			std::filesystem::create_directories(directory);
 		}
 		catch (...)
 		{
@@ -939,20 +810,23 @@ void createDirectories(
 map<string, string> fileNames;
 
 /** Create new empty trace files only when required when the filename is changed
- */
+*/
 void createTracefiles(
-	map<string, Station>&	stationMap,
-	Network&				net,
+	map<string, Receiver>&	receiverMap,
+	Network&				pppNet,
 	Network&				ionNet)
 {
 	boost::posix_time::ptime logptime = currentLogptime();
 	createDirectories(logptime);
 
+	startNewMongoDb("PRIMARY",		logptime,	acsConfig.mongoOpts[E_Mongo::PRIMARY]	.database,	E_Mongo::PRIMARY);
+	startNewMongoDb("SECONDARY",	logptime,	acsConfig.mongoOpts[E_Mongo::SECONDARY]	.database,	E_Mongo::SECONDARY);
+
 	for (auto rts : {false, true})
 	{
 		if	(	rts
 			&&(	acsConfig.process_rts		== false
-			  ||acsConfig.pppOpts.rts_lag	== 0))
+			||acsConfig.pppOpts.rts_lag	== 0))
 		{
 			continue;
 		}
@@ -968,14 +842,14 @@ void createTracefiles(
 
 			if (acsConfig.process_ppp)
 			{
-				bool newTraceFile = createNewTraceFile(net.id,		boost::posix_time::not_a_date_time,	acsConfig.pppOpts.rts_filename,		net.kfState.rts_basename);
+				bool newTraceFile = createNewTraceFile(pppNet.id,	boost::posix_time::not_a_date_time,	acsConfig.pppOpts.rts_filename,		pppNet.kfState.rts_basename);
 
 				if (newTraceFile)
 				{
 	// 				std::cout << std::endl << "new trace file";
-					std::remove((net.kfState.rts_basename					).c_str());
-					std::remove((net.kfState.rts_basename + FORWARD_SUFFIX	).c_str());
-					std::remove((net.kfState.rts_basename + BACKWARD_SUFFIX	).c_str());
+					std::remove((pppNet.kfState.rts_basename					).c_str());
+					std::remove((pppNet.kfState.rts_basename + FORWARD_SUFFIX	).c_str());
+					std::remove((pppNet.kfState.rts_basename + BACKWARD_SUFFIX	).c_str());
 				}
 			}
 
@@ -1000,15 +874,15 @@ void createTracefiles(
 			if	(  acsConfig.output_satellite_trace
 				&& suff.empty())
 			{
-				newTraceFile |= createNewTraceFile(Sat,			logptime,	acsConfig.satellite_trace_filename		+ suff,	satNav.traceFilename,												true,	acsConfig.output_config);
+				newTraceFile |= createNewTraceFile(Sat,			logptime,	acsConfig.satellite_trace_filename		+ suff,	satNav.traceFilename,										true,	acsConfig.output_config);
 			}
 		}
 
-		for (auto& [id, rec] : stationMap)
+		for (auto& [id, rec] : receiverMap)
 		{
-			if (acsConfig.output_station_trace)
+			if (acsConfig.output_receiver_trace)
 			{
-				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.station_trace_filename	+ suff,	rec.metaDataMap[TRACE_FILENAME_STR			+ metaSuff],	true,	acsConfig.output_config);
+				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.receiver_trace_filename	+ suff,	rec.metaDataMap[TRACE_FILENAME_STR			+ metaSuff],	true,	acsConfig.output_config);
 
 				if (suff.empty())
 				{
@@ -1018,7 +892,7 @@ void createTracefiles(
 
 			if (acsConfig.output_json_trace)
 			{
-				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.station_trace_filename + "_json"	+ suff,	rec.metaDataMap[JSON_FILENAME_STR			+ metaSuff]);
+				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.receiver_trace_filename + "_json"	+ suff,	rec.metaDataMap[JSON_FILENAME_STR			+ metaSuff]);
 
 				if (suff.empty())
 				{
@@ -1030,7 +904,7 @@ void createTracefiles(
 			{
 				if (acsConfig.process_ppp)
 				{
-					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.trop_sinex_filename		+ suff,	net.kfState	.metaDataMap[TROP_FILENAME_STR	+ id	+ metaSuff]);
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.trop_sinex_filename		+ suff,	pppNet.kfState	.metaDataMap[TROP_FILENAME_STR	+ id	+ metaSuff]);
 				}
 			}
 
@@ -1038,15 +912,7 @@ void createTracefiles(
 			{
 				if (acsConfig.process_ppp)
 				{
-					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.cost_filename				+ suff,	net.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
-				}
-			}
-
-			if (acsConfig.output_ppp_sol)
-			{
-				if (acsConfig.process_ppp)
-				{
-					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.ppp_sol_filename			+ suff,	net.kfState	.metaDataMap[SOL_FILENAME_STR	+ id	+ metaSuff],	true,	acsConfig.output_config);
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.cost_filename				+ suff,	pppNet.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
 				}
 			}
 
@@ -1054,18 +920,18 @@ void createTracefiles(
 			{
 				if (acsConfig.process_ppp)
 				{
-					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	net.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
+					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	pppNet.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
 				}
 			}
 		}
 
 		if (acsConfig.output_network_trace)
 		{
-			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.network_trace_filename	+ suff,	net.kfState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
+			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	acsConfig.network_trace_filename	+ suff,	pppNet.kfState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
 
 			if (suff.empty())
 			{
-				net.traceFilename = net.kfState.metaDataMap[TRACE_FILENAME_STR];
+				pppNet.traceFilename = pppNet.kfState.metaDataMap[TRACE_FILENAME_STR];
 			}
 		}
 
@@ -1081,29 +947,29 @@ void createTracefiles(
 
 		if (acsConfig.output_ionex)
 		{
-			newTraceFile |= createNewTraceFile("",		logptime,	acsConfig.ionex_filename			+ suff,	net.kfState.metaDataMap[IONEX_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ionex_filename			+ suff,	pppNet.kfState.metaDataMap[IONEX_FILENAME_STR		+ metaSuff]);
 		}
 
 		if (acsConfig.output_ionstec)
 		{
-			newTraceFile |= createNewTraceFile("",		logptime,	acsConfig.ionstec_filename			+ suff,	net.kfState.metaDataMap[IONSTEC_FILENAME_STR	+ metaSuff]);
+			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ionstec_filename			+ suff,	pppNet.kfState.metaDataMap[IONSTEC_FILENAME_STR	+ metaSuff]);
 		}
 
 		if	(  acsConfig.output_trop_sinex
 			&& acsConfig.process_ppp)
 		{
-			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.trop_sinex_filename		+ suff,	net.kfState.metaDataMap[TROP_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	acsConfig.trop_sinex_filename		+ suff,	pppNet.kfState.metaDataMap[TROP_FILENAME_STR		+ metaSuff]);
 		}
 
 		if (acsConfig.output_bias_sinex)
 		{
-			newTraceFile |= createNewTraceFile(net.id, 	logptime,	acsConfig.bias_sinex_filename		+ suff,	net		.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
-			newTraceFile |= createNewTraceFile(net.id, 	logptime,	acsConfig.bias_sinex_filename		+ suff,	ionNet	.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id, 	logptime,	acsConfig.bias_sinex_filename		+ suff,	pppNet.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id, 	logptime,	acsConfig.bias_sinex_filename		+ suff,	ionNet.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
 		}
 
 		if (acsConfig.output_erp)
 		{
-			newTraceFile |= createNewTraceFile(net.id,	logptime,	acsConfig.erp_filename				+ suff,	net.kfState.metaDataMap[ERP_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	acsConfig.erp_filename				+ suff,	pppNet.kfState.metaDataMap[ERP_FILENAME_STR		+ metaSuff]);
 		}
 
 		if (acsConfig.output_clocks)
@@ -1112,10 +978,10 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.clocks_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(net.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
+				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
 			}
 
-			net.kfState.metaDataMap[CLK_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
+			pppNet.kfState.metaDataMap[CLK_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
 		}
 
 		if (acsConfig.output_sp3)
@@ -1124,10 +990,10 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.sp3_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(net.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
+				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
 			}
 
-			net.kfState.metaDataMap[SP3_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
+			pppNet.kfState.metaDataMap[SP3_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
 		}
 
 		if (acsConfig.output_orbex)
@@ -1136,16 +1002,16 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.orbex_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(net.id,	logptime,	filename + suff,				fileNames[filename + metaSuff],					false,	false);
+				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
 			}
 
-			net.kfState.metaDataMap[ORBEX_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
+			pppNet.kfState.metaDataMap[ORBEX_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
 		}
 
 		if	(  rts
 			&& newTraceFile)
 		{
-			spitFilterToFile(net.kfState.metaDataMap, E_SerialObject::METADATA, net.kfState.rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
+			spitFilterToFile(pppNet.kfState.metaDataMap, E_SerialObject::METADATA, pppNet.kfState.rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 		}
 	}
 
@@ -1174,7 +1040,7 @@ void createTracefiles(
 	}
 
 	if (acsConfig.output_rinex_obs)
-	for (auto& [id, rec] : stationMap)
+	for (auto& [id, rec] : receiverMap)
 	{
 		auto filenameMap = getSysOutputFilenames(acsConfig.rinex_obs_filename,	tsync, true, id);
 		for (auto& [filename, dummy] : filenameMap)
@@ -1263,17 +1129,18 @@ void createTracefiles(
 }
 
 void avoidCollisions(
-	StationMap&		stationMap)
+	ReceiverMap&		receiverMap)
 {
-	for (auto& [id, rec] : stationMap)
+	for (auto& [id, rec] : receiverMap)
 	{
 		auto trace = getTraceFile(rec);
 	}
 
-	for (auto& [id, rec] : stationMap)
+	for (auto& [id, rec] : receiverMap)
 	{
 		//create sinex estimate maps
-		theSinex.estimatesMap[id];
+		theSinex.estimatesMap	[id];
+		theSinex.solEpochMap	[id];
 
 		auto& recOpts = acsConfig.getRecOpts(id);
 
@@ -1285,14 +1152,15 @@ void avoidCollisions(
 }
 
 /** Perform operations for each station
- * This function occurs in parallel with other stations - ensure that any operations on global maps do not create new entries, as that will destroy the map for other processes.
- * Variables within the rec object are ok to use, but be aware that pointers from the within the receiver often point to global variables.
- * Prepare global maps by accessing the desired elements before calling this function.
- */
+* This function occurs in parallel with other stations - ensure that any operations on global maps do not create new entries, as that will destroy the map for other processes.
+* Variables within the rec object are ok to use, but be aware that pointers from the within the receiver often point to global variables.
+* Prepare global maps by accessing the desired elements before calling this function.
+*/
 void mainOncePerEpochPerStation(
-	Station&	rec,
+	Receiver&	rec,
 	Network&	net,
-	bool&		emptyEpoch)
+	bool&		emptyEpoch,
+	KFState&	remoteState)
 {
 	Instrument instrument(__FUNCTION__);
 
@@ -1305,7 +1173,7 @@ void mainOncePerEpochPerStation(
 
 	if (acsConfig.process_spp)
 	{
-		SPP(trace, rec.obsList, rec.sol, rec.id, &net.kfState, nullptr);
+		SPP(trace, rec.obsList, rec.sol, rec.id, &net.kfState, &remoteState);
 	}
 
 	if	(  rec.ready == false
@@ -1319,14 +1187,12 @@ void mainOncePerEpochPerStation(
 	bool sppUsed;
 	selectAprioriSource(rec, sppUsed);
 
-	setClockCodesForReceiver(trace, rec);
-
 	if (sppUsed)
 	{
 		if (acsConfig.require_apriori_positions)
 		{
-			trace << std::endl			<< "Warning: Station " << rec.id << " rejected due to lack of apriori position";
-			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Station " << rec.id << " rejected due to lack of apriori position";
+			trace << std::endl			<< "Warning: Receiver " << rec.id << " rejected due to lack of apriori position";
+			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Receiver " << rec.id << " rejected due to lack of apriori position";
 
 			rec.invalid = true;
 			return;
@@ -1339,9 +1205,8 @@ void mainOncePerEpochPerStation(
 	{
 		if (acsConfig.require_antenna_details)
 		{
-			trace << std::endl			<< "Warning: Station " << rec.id << " rejected due to lack of antenna details";
-			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Station " << rec.id << " rejected due to lack of antenna details";
-
+			trace << std::endl			<< "Warning: Receiver " << rec.id << " rejected due to lack of antenna details";
+			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Receiver " << rec.id << " rejected due to lack of antenna details";
 			rec.invalid = true;
 			return;
 		}
@@ -1364,7 +1229,7 @@ void mainOncePerEpochPerStation(
 		rec.obsCount += rec.obsList.size();
 
 		for (auto& obs				: only<GObs>(rec.obsList))
-		for (auto& [ft, sigList]	: obs.SigsLists)
+		for (auto& [ft, sigList]	: obs.sigsLists)
 		for (auto& sig				: sigList)
 		{
 			rec.codeCount[sig.code]++;
@@ -1386,7 +1251,7 @@ void mainOncePerEpochPerStation(
 	rec.antBoresight	= recOpts.antenna_boresight;
 	rec.antAzimuth		= recOpts.antenna_azimuth;
 
-	recAtt(rec, tsync, recOpts.rec_attitude.sources);
+	recAtt(rec, tsync, recOpts.attitudeModel.sources);
 
 	testEclipse(rec.obsList);
 
@@ -1398,18 +1263,23 @@ void mainOncePerEpochPerStation(
 
 void outputPredictedStates(
 	Trace&			trace,
-	Network&		net,
-	MongoOptions&	mongoOptions)
+	KFState&		kfState)
 {
-	if (mongoOptions.predict_states == false)
+	if (acsConfig.mongoOpts.output_predictions == +E_Mongo::NONE)
 	{
 		return;
 	}
 
 	BOOST_LOG_TRIVIAL(info) << " ------- PREDICTING STATES            --------" << std::endl;
 
-	tuple<double, double>	forward = {+1, mongoOptions.forward_prediction_duration};
-	tuple<double, double>	reverse = {-1, mongoOptions.reverse_prediction_duration};
+	tuple<double, double>	forward = {+1, acsConfig.mongoOpts.forward_prediction_duration};
+	tuple<double, double>	reverse = {-1, acsConfig.mongoOpts.reverse_prediction_duration};
+
+	MongoStatesOptions mongoStatesOpts;
+	mongoStatesOpts.force		= true;
+	mongoStatesOpts.queue		= acsConfig.mongoOpts.queue_outputs;
+	mongoStatesOpts.index		= false;
+	mongoStatesOpts.instances	= acsConfig.mongoOpts.output_predictions;
 
 	for (auto& duo : {forward, reverse})
 	{
@@ -1420,34 +1290,78 @@ void outputPredictedStates(
 			continue;
 		}
 
-		Orbits orbits = prepareOrbits(trace, net.kfState);
+		GTime	startTime	= tsync + acsConfig.mongoOpts.prediction_offset;
+		GTime	stopTime	= tsync + acsConfig.mongoOpts.prediction_offset + sign * duration;
+		double	timeDelta	= sign * acsConfig.mongoOpts.prediction_interval;
 
-		if (orbits.empty())
 		{
-			continue;
+			KFState subState = kfState.getSubState({KF::REC_POS, KF::CODE_BIAS, KF::PHASE_BIAS});
+
+			mongoStates(subState, mongoStatesOpts);
 		}
 
-		GTime orbitsTime	= tsync;
-		GTime stopTime		= tsync + sign * duration;
-
-		for (GTime time = tsync + mongoOptions.prediction_offset; sign * (time - stopTime).to_double() <= 0; time += sign * mongoOptions.prediction_interval)
+		//predict orbits
+		for (auto& once : {1})
 		{
-			OrbitIntegrator integrator;
-			integrator.timeInit				= orbitsTime;
-			integrator.propagationOptions	= acsConfig.orbitPropagation;
+			Orbits orbits = prepareOrbits(trace, kfState);
 
-			double tgap = (time - orbitsTime).to_double();
-
-			integrateOrbits(integrator, orbits, tgap, acsConfig.orbitPropagation.integrator_time_step);
-
-			orbitsTime = time;
-
-			outputMongoPredictions(trace, orbits, time, mongoOptions);
-
-			if	(acsConfig.output_orbit_ics)
-			for (auto& orbit : orbits)
+			if (orbits.empty())
 			{
-				outputOrbitConfig(orbit.subState, "_prop");
+				continue;
+			}
+
+			GTime orbitsTime = tsync;
+
+			for (GTime time = startTime; sign * (time - stopTime).to_double() <= 0; time += timeDelta)
+			{
+				OrbitIntegrator integrator;
+				integrator.timeInit				= orbitsTime;
+
+				double tgap = (time - orbitsTime).to_double();
+
+				integrateOrbits(integrator, orbits, tgap, acsConfig.propagationOptions.integrator_time_step);
+
+				orbitsTime = time;
+
+				std::cout << std::endl << "Propagated to " << time.to_string();
+
+				KFState mongoState;
+				mongoState.time = time;
+				int s = 6 * orbits.size();
+				mongoState.x	.resize(s);
+				mongoState.dx	.resize(s);
+				mongoState.P	.resize(s, s);
+
+				int index = 0;
+				for (int o = 0; o < orbits.size(); o++)
+				{
+					auto& orbit = orbits[o];
+
+					for (auto& [key, i] : orbit.subState.kfIndexMap)
+					{
+						if (key.type != KF::ORBIT)
+						{
+							continue;
+						}
+
+						if (key.num < 3)	mongoState.x(index)			= orbit.pos(i);
+						else				mongoState.x(index)			= orbit.vel(i-3);
+
+											mongoState.P(index,	index)	= orbit.posVelSTM(i, i);
+
+						mongoState.kfIndexMap[key] = index;
+						index++;
+					}
+
+// 					if	(acsConfig.output_orbit_ics)
+// 					{
+// 						outputOrbitConfig(orbit.subState, "_prop");			//this wont work for predictions, substate isnt updated,
+// 					}
+				}
+
+				mongoStates(mongoState, mongoStatesOpts);
+
+// 				outputMongoPredictions(trace, orbits, time, mongoOptions);
 			}
 		}
 	}
@@ -1456,7 +1370,7 @@ void outputPredictedStates(
 void mainPerEpochPostProcessingAndOutputs(
 	Network&		pppNet,
 	Network&		ionNet,
-	StationMap&		stationMap,
+	ReceiverMap&	receiverMap,
 	KFState&		kfState,
 	KFState&		ionState,
 	GTime			time)
@@ -1470,7 +1384,11 @@ void mainPerEpochPostProcessingAndOutputs(
 
 	if (acsConfig.process_ppp)
 	{
-		mongoStates(kfState);
+		mongoStates(kfState,
+					{
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
 	}
 
 	if	(	acsConfig.process_ppp
@@ -1479,10 +1397,15 @@ void mainPerEpochPostProcessingAndOutputs(
 	{
 		fixAndHoldAmbiguities(pppTrace, kfState);
 
-		mongoStates(kfState, "_AR");
+		mongoStates(kfState,
+					{
+						.suffix		= "_AR",
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
 	}
 
-	if	(  acsConfig.model.ionospheric_model
+	if	(  acsConfig.ionModelOpts.model
 		&& acsConfig.ssrOpts.atmosphere_sources.front() == +E_Source::KALMAN)
 	{
 		ionosphereSsrUpdate(ionTrace, kfState);
@@ -1490,14 +1413,14 @@ void mainPerEpochPostProcessingAndOutputs(
 
 	if (acsConfig.process_ionosphere)
 	{
-		obsIonoDataFromFilter(ionTrace, stationMap, kfState);
+		obsIonoDataFromFilter(ionTrace, receiverMap, kfState);
 
-		ionNet.kfState.output_residuals = true;
-		filterIonosphere(ionTrace, ionNet.kfState, stationMap, time);
-		ionNet.kfState.output_residuals = false;
+		filterIonosphere(ionTrace, ionNet.kfState, receiverMap, time);
 
 		if (acsConfig.ssrOpts.atmosphere_sources.front() == +E_Source::KALMAN)
+		{
 			ionosphereSsrUpdate(ionTrace, ionNet.kfState);
+		}
 	}
 
 	//todo aaron check trop sinex for ppp is implemented
@@ -1507,20 +1430,29 @@ void mainPerEpochPostProcessingAndOutputs(
 	if (acsConfig.process_ppp)
 	{
 		if	(  acsConfig.process_minimum_constraints
-			&& acsConfig.minCOpts.once_per_epoch)
+			&& acsConfig.minconOpts.once_per_epoch)
 		{
-			BOOST_LOG_TRIVIAL(info)
-			<< std::endl
-			<< " ------- PERFORMING MIN-CONSTRAINTS   --------" << std::endl;
+			BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << std::endl;
 
-			for (auto& [id, rec] : stationMap)
+			for (auto& [id, rec] : receiverMap)
 			{
 				rec.minconApriori = rec.aprioriPos;
 			}
 
-			mincon(pppTrace, tempAugmentedKF);
+			MinconStatistics minconStatistics;
 
-			mongoStates(tempAugmentedKF, "_mincon");
+			mincon(pppTrace, tempAugmentedKF, &minconStatistics);				//todo aaron, orbits apriori need etting
+
+			tempAugmentedKF.outputStates(pppTrace, "/CONSTRAINED");
+
+			outputMinconStatistics(pppTrace, minconStatistics);
+
+			mongoStates(tempAugmentedKF,
+						{
+							.suffix		= "_mincon",
+							.instances	= acsConfig.mongoOpts.output_states,
+							.queue		= acsConfig.mongoOpts.queue_outputs
+						});
 		}
 
 		if (acsConfig.output_erp)
@@ -1530,16 +1462,16 @@ void mainPerEpochPostProcessingAndOutputs(
 
 		if (acsConfig.output_clocks)
 		{
-			outputClocks(acsConfig.clocks_filename, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, time, tempAugmentedKF, &stationMap);
+			outputClocks(acsConfig.clocks_filename, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, time, tempAugmentedKF, &receiverMap);
 		}
 
 		if	(  acsConfig.process_rts
 			&& acsConfig.pppOpts.rts_lag > 0)
 		{
-			rtsSmoothing(pppNet.kfState,	false, &stationMap);
+			rtsSmoothing(pppNet.kfState, receiverMap);
 		}
 
-		for (auto& [recId, rec] : stationMap)
+		for (auto& [recId, rec] : receiverMap)
 		{
 			auto trace = getTraceFile(rec);
 
@@ -1547,7 +1479,7 @@ void mainPerEpochPostProcessingAndOutputs(
 				outputPppNmea(trace, kfState, rec.id);
 			}
 
-			if (acsConfig.output_ppp_sol)	{	outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ recId], kfState,	rec);		}
+// 			if (acsConfig.output_ppp_sol)	{	outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ recId], kfState,	rec);		}
 			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);		}
 			if (acsConfig.output_gpx)		{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ recId], kfState,	rec.id);	}
 		}
@@ -1578,12 +1510,12 @@ void mainPerEpochPostProcessingAndOutputs(
 
 	if (acsConfig.output_ionstec)
 	{
-		writeIONStec(pppTrace, kfState.metaDataMap[IONSTEC_FILENAME_STR], stationMap, time);
+		writeIONStec(pppTrace, kfState.metaDataMap[IONSTEC_FILENAME_STR], receiverMap, time);
 	}
 
 	if (acsConfig.output_bias_sinex)
 	{
-		writeBiasSinex(pppTrace, time, kfState, ionState, kfState.metaDataMap[BSX_FILENAME_STR], stationMap);
+		writeBiasSinex(pppTrace, time, kfState, ionState, kfState.metaDataMap[BSX_FILENAME_STR], receiverMap);
 	}
 
 	if (acsConfig.output_orbit_ics)
@@ -1591,10 +1523,10 @@ void mainPerEpochPostProcessingAndOutputs(
 		outputOrbitConfig(kfState);
 	}
 
-	mongoMeasSatStat		(stationMap);
-	outputApriori			(stationMap);
-	outputPredictedStates	(pppTrace, pppNet, acsConfig.remoteMongo);
-	prepareSsrStates		(pppTrace, tempAugmentedKF, ionNet.kfState, time);
+	mongoMeasSatStat		(receiverMap);
+	outputApriori			(receiverMap);
+	outputPredictedStates	(pppTrace, tempAugmentedKF);
+	prepareSsrStates		(pppTrace, tempAugmentedKF, ionState, time);
 
 	if (acsConfig.instrument_once_per_epoch)
 	{
@@ -1662,7 +1594,7 @@ void mainOncePerEpochPerSatellite(
 	satPos0.Sat			= Sat;
 	satPos0.satNav_ptr	= &satNav;
 
-	bool pass =	satpos(nullStream, time, time, satPos0, satOpts.sat_pos.ephemeris_sources, E_OffsetType::COM, nav);
+	bool pass =	satpos(nullStream, time, time, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav);
 	if (pass == false)
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";
@@ -1685,27 +1617,26 @@ void mainOncePerEpochPerSatellite(
 void mainOncePerEpoch(
 	Network&		pppNet,
 	Network&		ionNet,
-	StationMap&		stationMap,
+	ReceiverMap&	receiverMap,
 	GTime			time)
 {
-	avoidCollisions(stationMap);
+	avoidCollisions(receiverMap);
 
 	//reload any new or modified files
 	reloadInputFiles();
 
 	addDefaultBias();
 
-	createTracefiles(stationMap, pppNet, ionNet);
+	createTracefiles(receiverMap, pppNet, ionNet);
 
-
-	auto netTrace = getTraceFile(pppNet);
+	auto pppTrace = getTraceFile(pppNet);
 
 	//initialise mongo if not already done
 	mongoooo();
 
 	//integrate accelerations and early prepare satPos0 with propagated values
-	predictOrbits	(netTrace, pppNet.kfState, time);
-	predictInertials(netTrace, pppNet.kfState, time);
+	predictOrbits	(pppTrace, pppNet.kfState, time);
+	predictInertials(pppTrace, pppNet.kfState, time);
 
 	//try to get svns & block types of all used satellites
 	for (auto& [Sat, satNav] : nav.satNavMap)
@@ -1713,10 +1644,24 @@ void mainOncePerEpoch(
 		if (acsConfig.process_sys[Sat.sys] == false)
 			continue;
 
-		mainOncePerEpochPerSatellite(netTrace, time, Sat);
+		mainOncePerEpochPerSatellite(pppTrace, time, Sat);
 	}
 
 	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << std::endl;
+
+	KFState remoteState;
+	if (acsConfig.mongoOpts.use_predictions)
+	{
+		vector<KF> remoteTypes;					//todo aaron, may modify this to get only desired states, but recOpts configs determine those per sat/station...
+		remoteTypes.push_back(KF::ORBIT);
+		remoteTypes.push_back(KF::REC_POS);
+		remoteTypes.push_back(KF::CODE_BIAS);
+		remoteTypes.push_back(KF::PHASE_BIAS);
+
+		mongoReadFilter(remoteState, time, remoteTypes);
+
+		loadStateBiases(remoteState);
+	}
 
 	//do per-station pre processing
 	bool emptyEpoch = true;
@@ -1724,13 +1669,13 @@ void mainOncePerEpoch(
 		Eigen::setNbThreads(1);
 #		pragma omp parallel for
 #	endif
-	for (int i = 0; i < stationMap.size(); i++)
+	for (int i = 0; i < receiverMap.size(); i++)
 	{
-		auto rec_ptr_iterator = stationMap.begin();
+		auto rec_ptr_iterator = receiverMap.begin();
 		std::advance(rec_ptr_iterator, i);
 
 		auto& [id, rec] = *rec_ptr_iterator;
-		mainOncePerEpochPerStation(rec, pppNet, emptyEpoch);
+		mainOncePerEpochPerStation(rec, pppNet, emptyEpoch, remoteState);
 	}
 	Eigen::setNbThreads(0);
 
@@ -1743,7 +1688,7 @@ void mainOncePerEpoch(
 
 	if (acsConfig.process_ppp)
 	{
-		PPP(netTrace, stationMap, pppNet.kfState);
+		PPP(pppTrace, receiverMap, pppNet.kfState, remoteState);
 	}
 
 	KFState* kfState_ptr;
@@ -1755,7 +1700,7 @@ void mainOncePerEpoch(
 
 	auto& kfState = *kfState_ptr;
 
-	mainPerEpochPostProcessingAndOutputs(pppNet, ionNet, stationMap, kfState, ionNet.kfState, time);
+	mainPerEpochPostProcessingAndOutputs(pppNet, ionNet, receiverMap, kfState, ionNet.kfState, time);
 
 	if (acsConfig.delete_old_ephemerides)
 	{
@@ -1775,14 +1720,14 @@ void mainOncePerEpoch(
 }
 
 void mainPostProcessing(
-	Network&	pppNet,
-	Network&	ionNet,
-	StationMap&	stationMap)
+	Network&		pppNet,
+	Network&		ionNet,
+	ReceiverMap&	receiverMap)
 {
 	BOOST_LOG_TRIVIAL(info)
 	<< "Post processing... ";
 
-	auto netTrace = getTraceFile(pppNet);
+	auto pppTrace = getTraceFile(pppNet);
 
 	if	( 	acsConfig.process_ppp
 		&&	acsConfig.ambrOpts.mode != +E_ARmode::OFF
@@ -1793,32 +1738,67 @@ void mainPostProcessing(
 		<< std::endl
 		<< "---------------PERFORMING AMBIGUITY RESOLUTION ON NETWORK WITH FIX AND HOLD ------------- " << std::endl;
 
-		fixAndHoldAmbiguities(netTrace, pppNet.kfState);
+		fixAndHoldAmbiguities(pppTrace, pppNet.kfState);
 
-		mongoStates(pppNet.kfState);
+		mongoStates(pppNet.kfState,
+					{
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
 	}
 
 	if	(	acsConfig.process_ppp
 		&&	acsConfig.process_minimum_constraints
-		&&	acsConfig.minCOpts.once_per_epoch == false)
+		&&	acsConfig.minconOpts.once_per_epoch == false)
 	{
-		BOOST_LOG_TRIVIAL(info)
-		<< std::endl
-		<< "---------------PROCESSING NETWORK WITH MINIMUM CONSTRAINTS ------------- " << std::endl;
+		BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << std::endl;
 
-		for (auto& [id, rec] : stationMap)
+		for (auto& [id, rec] : receiverMap)
 		{
 			rec.minconApriori = rec.aprioriPos;
 		}
 
-		mincon(netTrace, pppNet.kfState);
+		{
+			ERPValues erpv = getErp(nav.erp, pppNet.kfState.time);
 
-		mongoStates(pppNet.kfState);
+			FrameSwapper frameSwapper(pppNet.kfState.time, erpv);
+
+			for (auto& [Sat, satNav] : nav.satNavMap)
+			{
+				SatPos satPos;
+
+				satPos.Sat			= Sat;
+				satPos.satNav_ptr	= &satNav;
+
+				bool pass =	satpos(nullStream, pppNet.kfState.time, pppNet.kfState.time, satPos, {E_Source::PRECISE, E_Source::BROADCAST}, E_OffsetType::COM, nav);
+				if (pass == false)
+				{
+					BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos.Sat.id() << ".";
+					return;
+				}
+
+				satNav.aprioriPos = frameSwapper(satPos.rSatCom);
+			}
+		}
+
+		MinconStatistics minconStatistics;
+
+		mincon(pppTrace, pppNet.kfState, &minconStatistics);
+
+		pppNet.kfState.outputStates(pppTrace, "/CONSTRAINED");
+
+		outputMinconStatistics(pppTrace, minconStatistics);
+
+		mongoStates(pppNet.kfState,
+					{
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
 	}
 
 	if (acsConfig.output_sinex)
 	{
-		sinexPostProcessing(tsync, stationMap, pppNet.kfState);
+		sinexPostProcessing(tsync, receiverMap, pppNet.kfState);
 	}
 
 	if (acsConfig.process_ppp)
@@ -1826,7 +1806,7 @@ void mainPostProcessing(
 // 		outputMqtt	(pppNet.kfState);
 	}
 
-	outputPredictedStates(netTrace, pppNet, acsConfig.localMongo);
+	outputPredictedStates(pppTrace, pppNet.kfState);
 
 	if (acsConfig.output_predicted_orbits)
 	{
@@ -1847,7 +1827,7 @@ void mainPostProcessing(
 			<< std::endl
 			<< "---------------PROCESSING PPP WITH RTS--------------------- " << std::endl;
 
-			rtsSmoothing(pppNet.kfState,		true, &stationMap);
+			rtsSmoothing(pppNet.kfState, receiverMap, true);
 		}
 
 		if	( acsConfig.process_ionosphere
@@ -1857,15 +1837,15 @@ void mainPostProcessing(
 			<< std::endl
 			<< "---------------PROCESSING IONOSPHERE WITH RTS------------------ " << std::endl;
 
-			rtsSmoothing(ionNet.kfState,		true, &stationMap);
+			rtsSmoothing(ionNet.kfState, receiverMap, true);
 		}
 	}
 
 	Instrument::printStatus();
 
-	outputSummaries(netTrace, stationMap);
+	outputSummaries(pppTrace, receiverMap);
 
-	outputStatistics(netTrace, pppNet.kfState.statisticsMapSum, pppNet.kfState.statisticsMapSum);
+	outputStatistics(pppTrace, pppNet.kfState.statisticsMapSum, pppNet.kfState.statisticsMapSum);
 }
 
 int ginan(
@@ -1909,12 +1889,8 @@ int ginan(
 	<< " omp threads";
 #endif
 
-
-
 	BOOST_LOG_TRIVIAL(info)
 	<< "Logging with trace level:" << acsConfig.trace_level << std::endl << std::endl;
-
-	tracelevel(acsConfig.trace_level);
 
 	//prepare the satNavMap so that it at least has entries for everything
 	for (auto [sys, max] :	{	tuple<E_Sys, int>{E_Sys::GPS, NSATGPS},
@@ -1941,37 +1917,30 @@ int ginan(
 
 	Network pppNet;
 	{
-		pppNet.kfState.id						= "PPP";
-		pppNet.kfState.max_filter_iter			= acsConfig.pppOpts.max_filter_iter;
-		pppNet.kfState.max_prefit_remv			= acsConfig.pppOpts.max_prefit_remv;
-		pppNet.kfState.inverter					= acsConfig.pppOpts.inverter;
-		pppNet.kfState.sigma_check				= acsConfig.pppOpts.sigma_check;
-		pppNet.kfState.assume_linearity			= acsConfig.pppOpts.assume_linearity;
-		pppNet.kfState.sigma_threshold			= acsConfig.pppOpts.sigma_threshold;
-		pppNet.kfState.w_test					= acsConfig.pppOpts.w_test;
-		pppNet.kfState.chi_square_test			= acsConfig.pppOpts.chi_square_test;
-		pppNet.kfState.chi_square_mode			= acsConfig.pppOpts.chi_square_mode;
-		pppNet.kfState.simulate_filter_only		= acsConfig.pppOpts.simulate_filter_only;
+		pppNet.kfState.FilterOptions::operator=(acsConfig.pppOpts);
+		pppNet.kfState.id						= "Net";
 		pppNet.kfState.output_residuals			= acsConfig.output_residuals;
-		pppNet.kfState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
+		pppNet.kfState.outputMongoMeasurements	= acsConfig.mongoOpts.output_measurements;
+
 		pppNet.kfState.measRejectCallbacks	.push_back(deweightMeas);
 		pppNet.kfState.measRejectCallbacks	.push_back(incrementPhaseSignalError);
 		pppNet.kfState.measRejectCallbacks	.push_back(pseudoMeasTest);
 
-		pppNet.kfState.stateRejectCallbacks.push_back(orbitGlitchReaction);	//this goes before reject by state
-		pppNet.kfState.stateRejectCallbacks.push_back(rejectByState);
+		pppNet.kfState.stateRejectCallbacks	.push_back(orbitGlitchReaction);	//this goes before reject by state
+		pppNet.kfState.stateRejectCallbacks	.push_back(rejectByState);
 	}
 
 	Network ionNet;
 	if (acsConfig.process_ionosphere)
 	{
+		ionNet.kfState.FilterOptions::operator=(acsConfig.ionModelOpts);
 		ionNet.kfState.id						= "ION";
-		ionNet.kfState.max_filter_iter			= acsConfig.pppOpts.max_filter_iter;
-		ionNet.kfState.max_prefit_remv			= acsConfig.pppOpts.max_prefit_remv;
-		ionNet.kfState.inverter					= acsConfig.pppOpts.inverter;
 		ionNet.kfState.output_residuals			= acsConfig.output_residuals;
-		ionNet.kfState.outputMongoMeasurements	= acsConfig.localMongo.output_measurements;
+		ionNet.kfState.outputMongoMeasurements	= acsConfig.mongoOpts.output_measurements;
+		ionNet.kfState.rts_basename				= "IONEX_RTS";
+
 		ionNet.kfState.measRejectCallbacks	.push_back(deweightMeas);
+
 		ionNet.kfState.stateRejectCallbacks	.push_back(rejectByState);
 	}
 
@@ -2006,7 +1975,7 @@ int ginan(
 		pppNet.kfState.rts_lag = 4000;
 		pppNet.kfState.rts_basename = acsConfig.pppOpts.rts_filename;
 
-		rtsSmoothing(pppNet.kfState);
+		rtsSmoothing(pppNet.kfState, receiverMap);
 
 		exit(0);
 	}
@@ -2032,13 +2001,13 @@ int ginan(
 		tsync = startTime;
 	}
 
-	createTracefiles(stationMap, pppNet, ionNet);
+	createTracefiles(receiverMap, pppNet, ionNet);
 
-	configAtmosRegions(std::cout, stationMap);
+	configAtmosRegions(std::cout, receiverMap);
 
 	if (acsConfig.mincon_only)
 	{
-		minconOnly(std::cout, stationMap);
+		minconOnly(std::cout, receiverMap);
 	}
 
 	doDebugs();
@@ -2075,7 +2044,7 @@ int ginan(
 
 		// Calculate the time at which we will stop waiting for data to come in for this epoch
 		auto breakTime	= nextNominalLoopStartTime
-						+ std::chrono::milliseconds((int)(acsConfig.wait_all_stations	* 1000));
+						+ std::chrono::milliseconds((int)(acsConfig.wait_all_receivers	* 1000));
 
 		if (loopEpochs)
 		{
@@ -2083,7 +2052,7 @@ int ginan(
 			<< "Starting epoch #" << epoch;
 		}
 
-		for (auto& [id, rec] : stationMap)
+		for (auto& [id, rec] : receiverMap)
 		{
 			rec.ready = false;
 
@@ -2094,10 +2063,10 @@ int ginan(
 		}
 
 		{
-			auto netTrace	= getTraceFile(pppNet);
+			auto pppTrace	= getTraceFile(pppNet);
 
-			netTrace	<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
-			netTrace	<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
+			pppTrace	<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
+			pppTrace	<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
 		}
 
 		//get observations from streams (allow some delay between stations, and retry, to ensure all messages for the epoch have arrived)
@@ -2107,7 +2076,7 @@ int ginan(
 		bool				atLeastOnce	= true;
 		while	(   atLeastOnce
 				||( repeat
-				  &&system_clock::now() < breakTime))
+				&&system_clock::now() < breakTime))
 		{
 			atLeastOnce = false;
 
@@ -2150,7 +2119,7 @@ int ginan(
 						}
 					}
 
-					stationMap.erase(id);
+					receiverMap.erase(id);
 
 					iter = streamParserMultimap.erase(iter);
 
@@ -2177,7 +2146,7 @@ int ginan(
 					//record as dead and erase
 					streamDOAMap[stream.sourceString] = true;
 
-					stationMap[id].obsList.clear();
+					receiverMap[id].obsList.clear();
 
 					iter = streamParserMultimap.erase(iter);
 
@@ -2239,7 +2208,7 @@ int ginan(
 					continue;
 				}
 
-				auto& rec = stationMap[id];
+				auto& rec = receiverMap[id];
 
 				//try to get some data (again)
 				if (rec.ready == false)
@@ -2296,8 +2265,8 @@ int ginan(
 					//only shorten waiting periods, never extend
 					auto now = system_clock::now();
 
-					auto alternateBreakTime = now + std::chrono::milliseconds((int)(acsConfig.wait_all_stations	* 1000));
-					auto alternateStartTime = now + std::chrono::milliseconds((int)(acsConfig.wait_next_epoch	* 1000));
+					auto alternateBreakTime = now + std::chrono::milliseconds((int)(acsConfig.wait_all_receivers	* 1000));
+					auto alternateStartTime = now + std::chrono::milliseconds((int)(acsConfig.wait_next_epoch		* 1000));
 
 					if (alternateBreakTime < breakTime)						{	breakTime					= alternateBreakTime;	}
 					if (alternateStartTime < nextNominalLoopStartTime)		{	nextNominalLoopStartTime	= alternateStartTime;	}
@@ -2325,7 +2294,7 @@ int ginan(
 
 		GTime epochStartTime	= timeGet();
 		{
-			mainOncePerEpoch(pppNet, ionNet, stationMap, tsync);
+			mainOncePerEpoch(pppNet, ionNet, receiverMap, tsync);
 		}
 		GTime epochStopTime		= timeGet();
 
@@ -2369,7 +2338,7 @@ int ginan(
 
 		// Calculate how many loops need to be skipped based on when the next loop was supposed to begin
 		auto loopStopTime		= system_clock::now();
-		auto loopExcessDuration = loopStopTime - (nextNominalLoopStartTime + std::chrono::milliseconds((int)(acsConfig.wait_all_stations * 1000)));
+		auto loopExcessDuration = loopStopTime - (nextNominalLoopStartTime + std::chrono::milliseconds((int)(acsConfig.wait_all_receivers * 1000)));
 		int excessLoops			= loopExcessDuration / std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
 
 		if (excessLoops < 0)		{	excessLoops = 0;	}
@@ -2404,7 +2373,7 @@ int ginan(
 	<< std::endl
 	<< "Finalising streams and post processing...";
 
-	mainPostProcessing(pppNet, ionNet, stationMap);
+	mainPostProcessing(pppNet, ionNet, receiverMap);
 
 	GTime peaStopTime = timeGet();
 	BOOST_LOG_TRIVIAL(info)

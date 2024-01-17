@@ -4,7 +4,7 @@
 #include "navigation.hpp"
 #include "ionoModel.hpp"
 #include "acsConfig.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 
 
 #define DEFAULT_LAT_INTERVAL 2.5
@@ -14,27 +14,27 @@ int checkSSRRegion(
 	VectorPos&	pos)
 {
 	int ssrAtmRegion = -1;
-	
+
 	if (pos[2] < -1000)
 		return -1;
 	if (nav.ssrAtm.atmosRegionsMap.empty())
 		return -1;
-	
+
 	// tracepdeex(4,std::cout,"\n    Checking SSR regions %.4f %.4f... ", pos[0]*R2D, pos[1]*R2D);
-	
+
 	for (auto& [regId, regData] : nav.ssrAtm.atmosRegionsMap)
 	{
 		if (pos[0] > regData.maxLatDeg)	continue;
 		if (pos[0] < regData.minLatDeg)	continue;
-		
+
 		double midLon = (regData.minLonDeg + regData.maxLonDeg)/2;
 		double staLon = pos[1];
 		if      ((staLon - midLon)> 180)	staLon -= 360;
 		else if ((staLon - midLon)<-180)	staLon += 360;
-		
+
 		if (staLon > regData.maxLonDeg)	continue;
 		if (staLon < regData.minLonDeg)	continue;
-		
+
 		// tracepdeex(4,std::cout," region = %d", regId);
 		return regId;
 	}
@@ -48,6 +48,7 @@ int checkSSRRegion(
 bool configAtmosRegion_File()
 {
 	auto& regMaps = nav.ssrAtm.atmosRegionsMap;
+
 	regMaps.clear();
 
 	for (auto& regionFile : acsConfig.atm_reg_definitions)
@@ -104,7 +105,7 @@ bool configAtmosRegion_File()
 				strncpy(tmp,buff+20, 5); tmp[ 5] = '\0';		int tropGrid = atoi(tmp);
 				strncpy(tmp,buff+40, 5); tmp[ 5] = '\0';		int ionoGrid = atoi(tmp);
 				// std::cout << "    Configuring SSRATM:  Gridtype " << gridType << std::endl;
-				
+
 				regMaps[regID].gridType = gridType;
 				regMaps[regID].ionoGrid = (ionoGrid==1)?true:false;
 				regMaps[regID].tropGrid = (tropGrid==1)?true:false;
@@ -195,12 +196,12 @@ bool configAtmosRegion_File()
 			{
 				strncpy(tmp,buff   ,10); tmp[10] = '\0';	regMaps[regID].gridLatDeg[nind] = atof(tmp);
 				strncpy(tmp,buff+20,10); tmp[10] = '\0';	regMaps[regID].gridLonDeg[nind] = atof(tmp);
-				
+
 				if ( (regMaps[regID].gridLatDeg[nind] + 0.1) > regMaps[regID].maxLatDeg)				regMaps[regID].maxLatDeg = regMaps[regID].gridLatDeg[nind] + 0.1;
 				if ( (regMaps[regID].gridLonDeg[nind] + 0.1) > regMaps[regID].maxLonDeg)				regMaps[regID].maxLonDeg = regMaps[regID].gridLonDeg[nind] + 0.1;
 				if ( (regMaps[regID].gridLatDeg[nind] - 0.1) < regMaps[regID].minLatDeg)				regMaps[regID].minLatDeg = regMaps[regID].gridLatDeg[nind] - 0.1;
 				if ( (regMaps[regID].gridLonDeg[nind] - 0.1) < regMaps[regID].minLonDeg)				regMaps[regID].minLonDeg = regMaps[regID].gridLonDeg[nind] - 0.1;
-				
+
 				nind++;
 			}
 
@@ -234,13 +235,14 @@ bool configAtmosRegion_File()
 
 	defineLocalTropBasis();
 
-	return !regMaps.empty();
+	bool pass = (regMaps.empty() == false);
+	return pass;
 }
 
 
 bool configAtmosRegions(
-	Trace&		trace,
-	StationMap& stationMap)
+	Trace&			trace,
+	ReceiverMap&	receiverMap)
 {
 	if (acsConfig.atm_reg_definitions.empty() == false)
 		return configAtmosRegion_File();
@@ -262,8 +264,8 @@ bool configAtmosRegions(
 
 	bool coordFromRec = false;
 	if	(  acsConfig.ssrOpts.grid_type == 0
-		|| acsConfig.ssrOpts.max_lat <= acsConfig.ssrOpts.min_lat
-		|| acsConfig.ssrOpts.max_lon <= acsConfig.ssrOpts.min_lon)
+		|| acsConfig.ssrOpts.lat_max <= acsConfig.ssrOpts.lat_min
+		|| acsConfig.ssrOpts.lon_max <= acsConfig.ssrOpts.lon_min)
 	{
 		coordFromRec = true;
 	}
@@ -299,7 +301,7 @@ bool configAtmosRegions(
 	int ngrid = 0;
 	if (coordFromRec)
 	{
-		for (auto& [id,rec] : stationMap)
+		for (auto& [id,rec] : receiverMap)
 		{
 			VectorEcef&	snxPos		= rec.snx.pos;
 
@@ -340,16 +342,16 @@ bool configAtmosRegions(
 		atmRegion.maxLonDeg += 0.001;
 	}
 
-	if (acsConfig.ssrOpts.max_lat > acsConfig.ssrOpts.min_lat)
+	if (acsConfig.ssrOpts.lat_max > acsConfig.ssrOpts.lat_min)
 	{
-		atmRegion.minLatDeg = acsConfig.ssrOpts.min_lat;
-		atmRegion.maxLatDeg = acsConfig.ssrOpts.max_lat;
+		atmRegion.minLatDeg = acsConfig.ssrOpts.lat_min;
+		atmRegion.maxLatDeg = acsConfig.ssrOpts.lat_max;
 	}
 
-	if (acsConfig.ssrOpts.max_lon > acsConfig.ssrOpts.min_lon)
+	if (acsConfig.ssrOpts.lon_max > acsConfig.ssrOpts.lon_min)
 	{
-		atmRegion.minLonDeg = acsConfig.ssrOpts.min_lon;
-		atmRegion.maxLonDeg = acsConfig.ssrOpts.max_lon;
+		atmRegion.minLonDeg = acsConfig.ssrOpts.lon_min;
+		atmRegion.maxLonDeg = acsConfig.ssrOpts.lon_max;
 	}
 
 	if (acsConfig.ssrOpts.grid_type < 0)
@@ -368,10 +370,11 @@ bool configAtmosRegions(
 
 		int nIntLat;
 		int nIntLon;
-		if (acsConfig.ssrOpts.int_lat > 0)	{	atmRegion.intLatDeg = acsConfig.ssrOpts.int_lat;						nIntLat  = floor ((atmRegion.maxLatDeg - atmRegion.minLatDeg) / atmRegion.intLatDeg) + 1;	}
+		if (acsConfig.ssrOpts.lat_int > 0)	{	atmRegion.intLatDeg = acsConfig.ssrOpts.lat_int;						nIntLat  = floor ((atmRegion.maxLatDeg - atmRegion.minLatDeg) / atmRegion.intLatDeg) + 1;	}
 		else								{	atmRegion.intLatDeg = atmRegion.maxLatDeg - atmRegion.minLatDeg;		nIntLat  = 1;																				}
-		if (acsConfig.ssrOpts.int_lon > 0)	{	atmRegion.intLonDeg = acsConfig.ssrOpts.int_lon;						nIntLon  = floor ((atmRegion.maxLonDeg - atmRegion.minLonDeg) / atmRegion.intLonDeg) + 1;	}
+		if (acsConfig.ssrOpts.lon_int > 0)	{	atmRegion.intLonDeg = acsConfig.ssrOpts.lon_int;						nIntLon  = floor ((atmRegion.maxLonDeg - atmRegion.minLonDeg) / atmRegion.intLonDeg) + 1;	}
 		else								{	atmRegion.intLonDeg = atmRegion.maxLonDeg - atmRegion.minLonDeg;		nIntLon  = 1;																				}
+
 
 		ngrid = 0;
 		if (acsConfig.ssrOpts.grid_type == 1)

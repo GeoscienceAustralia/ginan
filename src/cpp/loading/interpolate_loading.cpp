@@ -71,7 +71,7 @@ void program_options(int argc, char * argv[], otl_input & input)
 		cout << "Usage: interpolate_loading [options]\n";
 		cout << desc << "\n\n";
 		cout << "Example: interpolate_loading --type o --grid /<path_to>/oceantide.nc --code 'ALIC 50137M0014' --location 133.8855 -23.6701 \n\n";
-		cout << "Example with input file: interpolate_loading -type o --grid /<path_to>/oceantide.nc --input station.csv\n";
+		cout << "Example with input file: interpolate_loading --type o --grid /<path_to>/oceantide.nc --input station.csv\n";
 		cout << "                         Where station.csv contains station informations  \n";
 		cout << "                           format: station name, longitude, latitude\n\n";
 		cout << "  The file oceantide.nc contains the precalculated ocean tide loads\n";

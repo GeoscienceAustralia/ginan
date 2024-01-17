@@ -32,7 +32,7 @@ struct OrbexEntry
 	double		clkStd		= NO_CLK_STD;					///< Satellite clock (picosecond)
 	double		clkVelStd	= NO_CLK_STD;					///< Satellite clock-rate std (femtosecond/s)
 	Quaterniond	q			= {0, 0, 0, 0};					///< Satellite attitude in quaternions
-	
+
 	// other record types, e.g. correlation coefficients, to be added in the future
 };
 
@@ -47,7 +47,7 @@ void writeOrbexHeader(
 	OrbexFileData&		outFileDat)		///< File editing information for ORBEX writing
 {
 	GEpoch ep = time;
-	
+
 	tracepdeex(0, orbexStream, "%%=ORBEX %5.2f\n", ORBEX_VER);
 	tracepdeex(0, orbexStream, "%%%%\n");
 
@@ -70,7 +70,7 @@ void writeOrbexHeader(
 	tracepdeex(0, orbexStream, " LIST_OF_REC_TYPES  ");
 	for (auto& recType : acsConfig.orbex_record_types)
 	{
-		tracepdeex(0, orbexStream, " %s", recType);
+		tracepdeex(0, orbexStream, " %s", recType._to_string());
 	}
 	tracepdeex(0, orbexStream, "\n");
 
@@ -93,8 +93,8 @@ void writeOrbexHeader(
 	{
 		tracepdeex(0, orbexStream, "*   \n");	// placeholders for satellite list
 	}
-	
-	// optional blocks to be added in the future (not yet available in existing ORBEX files) 
+
+	// optional blocks to be added in the future (not yet available in existing ORBEX files)
 }
 
 /** Write PCS or VCS records
@@ -102,27 +102,15 @@ void writeOrbexHeader(
 bool writePVCS(
 	std::fstream& 		orbexStream,	///< Output stream
 	OrbexEntry&			entry,			///< ORBEX entry to write out
-	string				recType)		///< Record type
+	E_OrbexRecord		recType)		///< Record type
 {
 	Vector3d	pv		= Vector3d::Zero();	// satellite position or velocity
 	Vector3d	pvStd	= Vector3d::Zero();	// satellite position or velocity std
 	double		clk		= 0;				// satellite clock or clock-rate
 	double		clkStd	= 0;				// satellite clock or clock-rate std
 
-	if		(recType == "PCS")
-	{
-		pv		= entry.pos;
-		pvStd	= entry.posStd;
-		clk		= entry.clk;
-		clkStd	= entry.clkStd;
-	}
-	else if	(recType == "VCS")
-	{
-		pv		= entry.vel;
-		pvStd	= entry.velStd;
-		clk		= entry.clkVel;
-		clkStd	= entry.clkVelStd;
-	}
+	if		(recType == +E_OrbexRecord::PCS)		{	pv = entry.pos;		pvStd = entry.posStd;	clk = entry.clk;		clkStd	= entry.clkStd;		}
+	else if	(recType == +E_OrbexRecord::VCS)		{	pv = entry.vel;		pvStd = entry.velStd;	clk = entry.clkVel;		clkStd	= entry.clkVelStd;	}
 	else
 	{
 		return false;
@@ -152,7 +140,7 @@ bool writePVCS(
 			pvStd.y(),
 			pvStd.z(),
 			clkStd);
-		
+
 	return true;
 }
 
@@ -161,15 +149,22 @@ bool writePVCS(
 bool writePV(
 	std::fstream& 		orbexStream,	///< Output stream
 	OrbexEntry&			entry,			///< ORBEX entry to write out
-	string				recType)		///< Record type
+	E_OrbexRecord		recType)		///< Record type
 {
 	Vector3d	pv		= Vector3d::Zero();	// satellite position or velocity
 
-	if		(recType == "POS")	pv = entry.pos;
-	else if	(recType == "VEL")	pv = entry.vel;
-	else						return false;
-	if (pv.isZero())			return false; // skip if no position entries
-	
+	if		(recType == +E_OrbexRecord::POS)		pv = entry.pos;
+	else if	(recType == +E_OrbexRecord::VEL)		pv = entry.vel;
+	else
+	{
+		return false;
+	}
+
+	if (pv.isZero())
+	{
+		return false; // skip if no position entries
+	}
+
 	int nRec = 3;
 	tracepdeex(0, orbexStream, " %s %s              %d %16.4f %16.4f %16.4f\n",
 			recType,
@@ -178,7 +173,7 @@ bool writePV(
 			pv.x(),
 			pv.y(),
 			pv.z());
-	
+
 	return true;
 }
 
@@ -187,13 +182,16 @@ bool writePV(
 bool writeClk(
 	std::fstream& 		orbexStream,	///< Output stream
 	OrbexEntry&			entry,			///< ORBEX entry to write out
-	string				recType)		///< Record type
+	E_OrbexRecord		recType)		///< Record type
 {
 	double		clk		= 0;				// satellite clock or clock-rate
 
-	if		(recType == "CLK")	clk = entry.clk;
-	else if (recType == "CRT")	clk = entry.clkVel;
-	else						return false;
+	if		(recType == +E_OrbexRecord::CLK)		clk = entry.clk;
+	else if (recType == +E_OrbexRecord::CRT)		clk = entry.clkVel;
+	else
+	{
+		return false;
+	}
 
 	if (fabs(clk) > NO_CLK)
 		return false;
@@ -204,7 +202,7 @@ bool writeClk(
 			entry.Sat.id().c_str(),
 			nRec,
 			clk);
-	
+
 	return true;
 }
 
@@ -213,10 +211,10 @@ bool writeClk(
 bool writeAtt(
 	std::fstream& 		orbexStream,	///< Output stream
 	OrbexEntry&			entry,			///< ORBEX entry to write out
-	string				recType)		///< Record type
+	E_OrbexRecord		recType)		///< Record type
 {
-	if (recType != "ATT")		return false;
-	if (entry.q.norm() == 0)	return false;
+	if (recType != +E_OrbexRecord::ATT)		return false;
+	if (entry.q.norm() == 0)				return false;
 
 	int nRec = 4;
 	tracepdeex(0, orbexStream, " %s %s              %d %19.16f %19.16f %19.16f %19.16f\n",
@@ -227,7 +225,7 @@ bool writeAtt(
 			entry.q.x(),
 			entry.q.y(),
 			entry.q.z());
-		
+
 	return true;
 }
 
@@ -279,9 +277,9 @@ void updateOrbexBody(
 	else
 	{
 		orbexStream.seekp(outFileDat.headerTimePos);
-		
+
 		tracepdeex(0, orbexStream, " END_TIME            %4.0f %2.0f %2.0f %2.0f %2.0f %15.12f\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
-		
+
 		orbexStream.seekp(outFileDat.endDataPos);
 	}
 
@@ -301,31 +299,17 @@ void updateOrbexBody(
 		auto& [key, entry] = *it;
 		isIncluded = false;
 		for (auto& recType : acsConfig.orbex_record_types)
+		switch (recType)
 		{
-			if		( recType == "PCS"
-					||recType == "VCS")
-			{
-				isIncluded |= writePVCS(orbexStream, entry, recType);
-			}
-			else if	( recType == "CPC"
-					||recType == "CVC")
-			{
-				// to be added if needed in the future
-			}
-			else if	( recType == "POS"
-					||recType == "VEL")
-			{
-				isIncluded |= writePV (orbexStream, entry, recType);
-			}
-			else if	( recType == "CLK"
-					||recType == "CRT")
-			{
-				isIncluded |= writeClk(orbexStream, entry, recType);
-			}
-			else if	(recType == "ATT")
-			{
-				isIncluded |= writeAtt(orbexStream, entry, recType);
-			}
+			case E_OrbexRecord::PCS:	{	isIncluded |= writePVCS	(orbexStream, entry, recType);	break;	}
+			case E_OrbexRecord::VCS:	{	isIncluded |= writePVCS	(orbexStream, entry, recType);	break;	}
+			case E_OrbexRecord::CPC:	{															break;	}	// to be added if needed in the future
+			case E_OrbexRecord::CVC:	{															break;	}	// to be added if needed in the future
+			case E_OrbexRecord::POS:	{	isIncluded |= writePV	(orbexStream, entry, recType);	break;	}
+			case E_OrbexRecord::VEL:	{	isIncluded |= writePV	(orbexStream, entry, recType);	break;	}
+			case E_OrbexRecord::CLK:	{	isIncluded |= writeClk	(orbexStream, entry, recType);	break;	}
+			case E_OrbexRecord::CRT:	{	isIncluded |= writeClk	(orbexStream, entry, recType);	break;	}
+			case E_OrbexRecord::ATT:	{	isIncluded |= writeAtt	(orbexStream, entry, recType);	break;	}
 		}
 
 		if (isIncluded)
@@ -388,7 +372,7 @@ void writeSysSetOrbex(
 		bool orbPass = true;
 		orbPass &= satclk(nullStream, time, time, obs, clkDataSrcs,						nav, kfState_ptr);
 		orbPass &= satpos(nullStream, time, time, obs, orbDataSrcs, E_OffsetType::COM,	nav, kfState_ptr);
-		
+
 		if (orbPass)
 		{
 			entry.pos		= obs.rSatCom;
@@ -396,15 +380,16 @@ void writeSysSetOrbex(
 			entry.clk		= obs.satClk	* 1E6;	// microsecond
 			entry.clkVel	= obs.satClkVel	* 1E9;	// nanosecond
 		}
-		
+
 		// satellite attitude
 		bool attPass = false;
 		Quaterniond quat;
 		if (orbPass)
 		{
-			attPass = satQuat(obs, attDataSrcs, quat, true);
+			updateSatYaw(obs, obs.satNav_ptr->attStatus);
+			attPass = satQuat(obs, attDataSrcs, quat);
 		}
-		
+
 		if (attPass)
 		{
 			if (quat.w() < 0) // convention to have +ve w
@@ -414,7 +399,7 @@ void writeSysSetOrbex(
 				quat.y()	*= -1;
 				quat.z()	*= -1;
 			}
-	
+
 			entry.q	= quat.conjugate(); // satQuat() returns transformation from body to ECEF, but Orbex req's ECEF to body - i.e. quat.conjugate()
 		}
 

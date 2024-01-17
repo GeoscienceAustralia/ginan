@@ -16,6 +16,7 @@ using std::string;
 using std::pair;
 using std::map;
 
+#include <boost/log/trivial.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/binary_object.hpp>
@@ -26,7 +27,7 @@ using std::map;
 #include "enums.h"
 
 
-struct StationMap;
+struct ReceiverMap;
 struct KFState;
 
 /** Types of objects that are stored in kalman filter binary archives
@@ -48,7 +49,7 @@ struct TransitionMatrixObject
 	map<pair<int, int>, double>		forwardTransitionMap;
 	int								rows;
 	int								cols;
-	
+
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
 	{
@@ -60,7 +61,7 @@ struct TransitionMatrixObject
 
 extern map<short int, string> idStringMap;
 extern map<string, short int> stringIdMap;
-	
+
 
 using boost::serialization::serialize;
 using boost::archive::binary_oarchive;
@@ -68,10 +69,10 @@ using boost::archive::binary_iarchive;
 
 
 void spitFilterToFileQueued(
-	shared_ptr<void>&	object_ptr,	
-	E_SerialObject		type,			
-	string				filename);	
-	
+	shared_ptr<void>&	object_ptr,
+	E_SerialObject		type,
+	string				filename);
+
 /** Output filter state to a file for later reading.
  * Uses a binary archive which requires all of the relevant class members to have serialization functions written.
  * Output format is TypeId, ObjectData, NumBytes - this allows seeking backward from the end of the file to the beginning of each object.
@@ -86,33 +87,40 @@ void spitFilterToFile(
 	if (queue)
 	{
 		shared_ptr<void> copy_ptr = make_shared<TYPE>(object);
-		
+
 		spitFilterToFileQueued(copy_ptr, type, filename);
-	
+
 		return;
 	}
-	
-	std::fstream fileStream(filename, std::ifstream::binary | std::ifstream::out | std::ifstream::app);
 
-	if (!fileStream)
+	try
 	{
-		std::cout << std::endl << "Error opening algebra file '" << filename <<  "' for writing";
-		return;
+		std::fstream fileStream(filename, std::ifstream::binary | std::ifstream::out | std::ifstream::app);
+
+		if (!fileStream)
+		{
+			std::cout << std::endl << "Error opening algebra file '" << filename <<  "' for writing";
+			return;
+		}
+
+	// 	std::cout << "RTS - writing " << type._to_string() << " to file " << filename << "\n";
+
+		binary_oarchive serial(fileStream, 1);	//no header
+
+		long int pos = fileStream.tellp();
+
+		int type_int = type;
+		serial & type_int;
+		serial & object;
+
+		long int end = fileStream.tellp();
+		long int delta = end - pos;
+		serial & delta;
 	}
-
-// 	std::cout << "RTS - writing " << type._to_string() << " to file " << filename << "\n";
-	
-	binary_oarchive serial(fileStream, 1);	//no header
-
-	long int pos = fileStream.tellp();
-
-	int type_int = type;
-	serial & type_int;
-	serial & object;
-
-	long int end = fileStream.tellp();
-	long int delta = end - pos;
-	serial & delta;
+	catch (...)
+	{
+		BOOST_LOG_TRIVIAL(error) << "Error: Writing to " << filename << " failed, drive may be full";
+	}
 }
 
 /* Retrieve an object from an archive
@@ -170,7 +178,7 @@ E_SerialObject getFilterTypeFromFile(
 
 
 void tryPrepareFilterPointers(
-	KFState&	kfState, 
-	StationMap*	stationMap_ptr);
+	KFState&		kfState,
+	ReceiverMap&	receiverMap);
 
 extern bool spitQueueRunning;

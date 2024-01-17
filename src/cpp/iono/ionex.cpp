@@ -15,10 +15,10 @@
 #include "biases.hpp"
 #include "common.hpp"
 
-/* get index 
+/* get index
  */
 int getindex(
-	double value, 
+	double value,
 	const double* range)
 {
 	if (range[2] == 0)												return  0;
@@ -28,7 +28,7 @@ int getindex(
 	return (int) floor((value - range[0]) / range[2] + 0.5);
 }
 
-/* get number of items 
+/* get number of items
  */
 int nitem(
 	const double* range)
@@ -54,7 +54,7 @@ int dataindex(
 	return i + ndata[0] * (j + ndata[1] * k);
 }
 
-/** read ionex dcb aux data 
+/** read ionex dcb aux data
  */
 void readionexdcb(
 	std::ifstream& in,
@@ -130,7 +130,7 @@ void readionexdcb(
 					continue;
 				}
 			}
-			
+
 			if (Sat)
 			{
 				entry.bias =     str2num(buff,  6, 10) * CLIGHT * 1E-9;
@@ -146,7 +146,7 @@ void readionexdcb(
 
 				continue;
 			}
-			
+
 			//fallthrough to after the ifs
 		}
 		else if (strstr(label, "STATION / BIAS / RMS") == label)
@@ -194,7 +194,7 @@ void readionexdcb(
 
 				continue;
 			}
-			
+
 			//fallthrough to after the ifs
 		}
 		else if (strstr(label, "END OF AUX DATA") == label)
@@ -203,7 +203,7 @@ void readionexdcb(
 			continue;
 
 		entry.name = id;
-		
+
 		if	( Sat.sys == +E_Sys::GLO
 			&&Sat.prn == 0)
 		{
@@ -214,7 +214,7 @@ void readionexdcb(
 				Sat.prn	= prn;
 				id = entry.name + ":" + Sat.id();
 				// entry.Sat = Sat;
-				pushBiasSinex(id, entry);
+				pushBiasEntry(id, entry);
 			}
 		}
 		else if	( Sat.sys == +E_Sys::GLO
@@ -222,25 +222,25 @@ void readionexdcb(
 		{
 			// this can be a receiver or satellite
 			id = id + ":" + Sat.id();
-			pushBiasSinex(id, entry);
+			pushBiasEntry(id, entry);
 		}
 		else
 		{
 			// this can be a receiver or satellite
 			id = id + ":" + Sat.sysChar();
-			pushBiasSinex(id, entry);
+			pushBiasEntry(id, entry);
 		}
 	}
 }
 
-/* read ionex header 
+/* read ionex header
  */
 double readionexh(
 	std::ifstream& in,
-	double* lats, 
-	double* lons, 
-	double* hgts, 
-	double& rb, 
+	double* lats,
+	double* lons,
+	double* hgts,
+	double& rb,
 	double& nexp,
 	Navigation* navi)
 {
@@ -348,7 +348,7 @@ int readionexb(
 		{
 			type = 1;
 			time.bigTime = 0;
-			
+
 		}
 		else if (strstr(label, "END OF TEC MAP")		== label)
 		{
@@ -378,7 +378,7 @@ int readionexb(
 			}
 
 			auto& epochTec = navi->tecMap[time];
-			
+
 			if (type == 1)
 			{
 				epochTec.time		= time;
@@ -395,7 +395,7 @@ int readionexb(
 				}
 
 				epochTec.tecPointVector.resize(epochTec.ndata[0] * epochTec.ndata[1] * epochTec.ndata[2]);
-				
+
 				std::fill(epochTec.tecPointVector.begin(), epochTec.tecPointVector.end(), TECPoint{});
 			}
 		}
@@ -415,7 +415,7 @@ int readionexb(
 			int n = nitem(lon);
 
 			auto& epochTec = navi->tecMap[time];
-			
+
 			for (int m = 0; m < n; m++)
 			{
 				if	(  m % 16 == 0
@@ -429,7 +429,7 @@ int readionexb(
 				int index = dataindex(i, j, k, epochTec.ndata);
 				if (index  < 0)
 					continue;
-				
+
 				double x = str2num(buff, m % 16 * 5, 5);
 				if (x == 9999)
 					continue;

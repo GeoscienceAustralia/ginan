@@ -5,7 +5,7 @@
 #include "coordinates.hpp"
 #include "constants.hpp"
 #include "iers2010.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
 #include "slr.hpp"
@@ -32,19 +32,19 @@ double getWaterVapPressure(
 */
 void getRecPosApriori(//todo aaron, remove this, use other function
 	LObs&		obs,	///< SLR observation
-	Station&	rec)	///< Receiver
+	Receiver&	rec)	///< Receiver
 {
 	assert(obs.recCdpId >= 1000); //if fails, need to consider zero-padding in sinex files
 
 	SinexRecData snx;
 	auto result = getStnSnx(std::to_string(obs.recCdpId), obs.time, snx);
-	if (result.failureSiteId)		{	BOOST_LOG_TRIVIAL(error) << "Station " << obs.recCdpId << " not found in sinex file";				obs.excludeSinex		= true;		return;	}
-	if (result.failureEccentricity)	{	BOOST_LOG_TRIVIAL(error) << "Station " << obs.recCdpId << " eccentricity not found in sinex file";	obs.excludeEccentricity	= true;		return;	}
-	if (result.failureEstimate)		{	BOOST_LOG_TRIVIAL(error) << "Station " << obs.recCdpId << " position not found in sinex file";		obs.excludeSinexPos		= true;		return;	}
+	if (result.failureSiteId)		{	BOOST_LOG_TRIVIAL(error) << "Receiver " << obs.recCdpId << " not found in sinex file";				obs.excludeSinex		= true;		return;	}
+	if (result.failureEccentricity)	{	BOOST_LOG_TRIVIAL(error) << "Receiver " << obs.recCdpId << " eccentricity not found in sinex file";	obs.excludeEccentricity	= true;		return;	}
+	if (result.failureEstimate)		{	BOOST_LOG_TRIVIAL(error) << "Receiver " << obs.recCdpId << " position not found in sinex file";		obs.excludeSinexPos		= true;		return;	}
 	if (snx.ecc_ptr->rs != "UNE")
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error: Station eccentricity referency system != UNE: " << snx.ecc_ptr->rs;	//todo aaron, this needs duplication elsewhere, rs unchecked
+		<< "Error: Receiver eccentricity referency system != UNE: " << snx.ecc_ptr->rs;	//todo aaron, this needs duplication elsewhere, rs unchecked
 	}
 
 	rec.aprioriPos = snx.pos;
@@ -68,7 +68,7 @@ void getRecPosApriori(//todo aaron, remove this, use other function
 	else
 	{
 		BOOST_LOG_TRIVIAL(warning)
-		<< "Error: Station eccentricity referency system != UNE: " << eccEntry.rs;
+		<< "Error: Receiver eccentricity referency system != UNE: " << eccEntry.rs;
 	}
 }
 
