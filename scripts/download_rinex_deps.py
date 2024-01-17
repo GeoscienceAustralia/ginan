@@ -11,12 +11,12 @@ from parse_rinex_header import RinexHeader
 
 import logging
 
-from gnssanalysis.gn_download import download_prod
+from gnssanalysis.gn_download import ftp_tls_cddis, download_prod
 from gnssanalysis.gn_datetime import dt2gpswk
 
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] %(levelname)s: %(message)s")
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 def download(header: RinexHeader, target_dir: Path) -> dict:
@@ -34,8 +34,16 @@ def download(header: RinexHeader, target_dir: Path) -> dict:
 
     # gnssanalysis expects strings for directories
     dwn_dir = str(target_dir)
-    f_dict = download_prod(dates, dwn_dir, ac="igs", f_type=["sp3", "clk"], dwn_src="cddis", f_dict=True)
-    return f_dict
+
+    with ftp_tls_cddis() as ftps:
+        daily_files = download_prod(
+            dates, dwn_dir, ac="igs", f_type=["sp3", "clk"], dwn_src="cddis", f_dict=True, ftps=ftps
+        )
+        weekly_files = download_prod(
+            dates, dwn_dir, ac="igs", f_type=["erp"], wkly_file=True, dwn_src="cddis", f_dict=True, ftps=ftps
+        )
+
+    return daily_files, weekly_files
 
 
 def daterange(start_date, end_date):

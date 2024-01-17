@@ -14,7 +14,6 @@ from copy import deepcopy
 import concurrent.futures
 from itertools import repeat
 from urllib.parse import urlparse
-from contextlib import contextmanager
 from datetime import datetime, timedelta, date
 
 from gnssanalysis.gn_datetime import GPSDate, gpswkD2dt
@@ -24,19 +23,10 @@ from gnssanalysis.gn_download import (
     check_n_download_url,
     check_file_present,
     long_filename_cddis_cutoff,
+    ftp_tls,
 )
 
 API_URL = "https://data.gnss.ga.gov.au/api"
-
-
-@contextmanager
-def ftp_tls(url: str, **kwargs) -> None:
-    kwargs.setdefault("timeout", 30)
-    with ftplib.FTP_TLS(url, **kwargs) as ftps:
-        ftps.login()
-        ftps.prot_p()
-        yield ftps
-        ftps.quit()
 
 
 def configure_logging(verbose: bool) -> None:
