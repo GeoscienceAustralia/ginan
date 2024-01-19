@@ -53,6 +53,12 @@ struct AutoSender
 
 	~AutoSender()
 	{
+		if	( baseKVPs	.empty()
+			||valueKVPs	.empty())
+		{
+			return;
+		}
+
 		traceJson(level, trace, time, baseKVPs, valueKVPs);
 	}
 };
@@ -331,7 +337,9 @@ inline void pppSatPCO(COMMON_PPP_ARGS)
 		{"bodyLook[2]",	bodyLook[2]},
 		{"bodyPCO[0]",	bodyPCO[0]},
 		{"bodyPCO[1]",	bodyPCO[1]},
-		{"bodyPCO[2]",	bodyPCO[2]}
+		{"bodyPCO[2]",	bodyPCO[2]},
+		{"nominalYaw",	attStatus.nominalYaw},
+		{"modelYaw",	attStatus.modelYaw}
 	};
 
 	double satPCODelta = bodyPCO.dot(bodyLook);
@@ -1344,7 +1352,7 @@ void receiverPPP(
 	{
 		string		sigName			= sig.code._to_string();
 
-		AutoSender autoSenderTemplate(1, jsonTrace, time);
+		AutoSender autoSenderTemplate (1, jsonTrace, time);
 
 		autoSenderTemplate.baseKVPs =
 		{
@@ -1383,13 +1391,15 @@ void receiverPPP(
 
 		if (obs.exclude)
 		{
-			if (acsConfig.exclude.bad_spp	&& obs.excludeBadSPP)			{	tracepdeex(5, trace, " - excludeBadSPP");		autoSenderTemplate.valueKVPs.push_back({"exclude-bad_spp",		true}); continue;	}
-			if (acsConfig.exclude.config	&& obs.excludeConfig)			{	tracepdeex(5, trace, " - excludeConfig");		autoSenderTemplate.valueKVPs.push_back({"exclude-config",		true}); continue;	}
-			if (acsConfig.exclude.eclipse	&& obs.excludeEclipse)			{	tracepdeex(5, trace, " - excludeEclipse");		autoSenderTemplate.valueKVPs.push_back({"exclude-eclipse",		true}); continue;	}
-			if (acsConfig.exclude.elevation	&& obs.excludeElevation)		{	tracepdeex(5, trace, " - excludeElevation");	autoSenderTemplate.valueKVPs.push_back({"exclude-elevation",	true}); continue;	}
-			if (acsConfig.exclude.outlier	&& obs.excludeOutlier)			{	tracepdeex(5, trace, " - excludeOutlier");		autoSenderTemplate.valueKVPs.push_back({"exclude-outlier",		true}); continue;	}
-			if (acsConfig.exclude.system	&& obs.excludeSystem)			{	tracepdeex(5, trace, " - excludeSystem");		autoSenderTemplate.valueKVPs.push_back({"exclude-system",		true}); continue;	}
-			if (acsConfig.exclude.svh		&& obs.excludeSVH)				{	tracepdeex(5, trace, " - excludeSVH");			autoSenderTemplate.valueKVPs.push_back({"exclude-svh",			true}); continue;	}
+			auto& asKVPs = autoSenderTemplate.valueKVPs;
+
+			if (acsConfig.exclude.bad_spp	&& obs.excludeBadSPP)			{	tracepdeex(5, trace, " - excludeBadSPP");		asKVPs.push_back({"exclude", "bad_spp"	});		continue;	}
+			if (acsConfig.exclude.config	&& obs.excludeConfig)			{	tracepdeex(5, trace, " - excludeConfig");		asKVPs.push_back({"exclude", "config"	});		continue;	}
+			if (acsConfig.exclude.eclipse	&& obs.excludeEclipse)			{	tracepdeex(5, trace, " - excludeEclipse");		asKVPs.push_back({"exclude", "eclipse"	});		continue;	}
+			if (acsConfig.exclude.elevation	&& obs.excludeElevation)		{	tracepdeex(5, trace, " - excludeElevation");	asKVPs.push_back({"exclude", "elevation"});		continue;	}
+			if (acsConfig.exclude.outlier	&& obs.excludeOutlier)			{	tracepdeex(5, trace, " - excludeOutlier");		asKVPs.push_back({"exclude", "outlier"	});		continue;	}
+			if (acsConfig.exclude.system	&& obs.excludeSystem)			{	tracepdeex(5, trace, " - excludeSystem");		asKVPs.push_back({"exclude", "system"	});		continue;	}
+			if (acsConfig.exclude.svh		&& obs.excludeSVH)				{	tracepdeex(5, trace, " - excludeSVH");			asKVPs.push_back({"exclude", "svh"		});		continue;	}
 		}
 
 		SatNav&		satNav			= *obs.satNav_ptr;
@@ -1399,10 +1409,12 @@ void receiverPPP(
 
 		if (preprocSigStat.slip.any)
 		{
-			if (acsConfig.exclude.LLI		&& preprocSigStat.slip.LLI)		{	tracepdeex(2, trace, " - LLI slip excluded");	autoSenderTemplate.valueKVPs.push_back({"excludeSlip-LLI",		true}); continue;	}
-			if (acsConfig.exclude.GF		&& preprocSigStat.slip.GF)		{	tracepdeex(2, trace, " - GF slip excluded");	autoSenderTemplate.valueKVPs.push_back({"excludeSlip-GF",		true}); continue;	}
-			if (acsConfig.exclude.MW		&& preprocSigStat.slip.MW)		{	tracepdeex(2, trace, " - MW slip excluded");	autoSenderTemplate.valueKVPs.push_back({"excludeSlip-MW",		true}); continue;	}
-			if (acsConfig.exclude.SCDIA		&& preprocSigStat.slip.SCDIA)	{	tracepdeex(2, trace, " - SCDIA slip excluded");	autoSenderTemplate.valueKVPs.push_back({"excludeSlip-SCDIA",	true}); continue;	}
+			auto& asKVPs = autoSenderTemplate.valueKVPs;
+
+			if (acsConfig.exclude.LLI		&& preprocSigStat.slip.LLI)		{	tracepdeex(2, trace, " - LLI slip excluded");	asKVPs.push_back({"excludeSlip","LLI"	});		continue;	}
+			if (acsConfig.exclude.GF		&& preprocSigStat.slip.GF)		{	tracepdeex(2, trace, " - GF slip excluded");	asKVPs.push_back({"excludeSlip","GF"	});		continue;	}
+			if (acsConfig.exclude.MW		&& preprocSigStat.slip.MW)		{	tracepdeex(2, trace, " - MW slip excluded");	asKVPs.push_back({"excludeSlip","MW"	});		continue;	}
+			if (acsConfig.exclude.SCDIA		&& preprocSigStat.slip.SCDIA)	{	tracepdeex(2, trace, " - SCDIA slip excluded");	asKVPs.push_back({"excludeSlip","SCDIA"	});		continue;	}
 		}
 
 		auto& satOpts = acsConfig.getSatOpts(obs.Sat,	{sigName});

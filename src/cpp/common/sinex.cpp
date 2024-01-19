@@ -3590,16 +3590,20 @@ GetSnxResult getStnSnx(
 			estimate_ptr = &est_Rit->second;
 			refEpoch = est_Rit->first;
 		}
-		estimate_ptr->used = true;
+
+		auto& estimate = *estimate_ptr;
+
+		estimate.used = true;
 
 		if		(type.substr(0,3) == "STA")
 		{
-			recSnx.pos(i)	= estimate_ptr->estimate;
+			recSnx.pos(i)	= 		estimate.estimate;
+			recSnx.var(i)	= SQR(	estimate.stddev);
 			recSnx.refEpoch= refEpoch;
 		}
 		else if	(type.substr(0,3) == "VEL")
 		{
-			recSnx.vel(i)	= estimate_ptr->estimate;
+			recSnx.vel(i)	= estimate.estimate;
 		}
 	}
 

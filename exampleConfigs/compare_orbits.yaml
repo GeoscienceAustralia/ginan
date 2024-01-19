@@ -24,8 +24,7 @@ outputs:
 
 satellite_options:
     global:
-        mincon_noise:               [0.01]
-    # G04:                            { mincon_noise: [-1] }
+        mincon_scale_apriori_var:     0.01
 
 
 processing_options:

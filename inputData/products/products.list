@@ -62,7 +62,6 @@
 ./P1C11906_RINEX.DCB
 ./orography_ell_5x5
 ./M20.ATX
-./products.list
 ./ilrsa.orb.lageos1.201128.v70.sp3
 ./IGS1R03SNX_20191950000_07D_01D_ERP.ERP
 ./gag20624.sp3
@@ -110,10 +109,6 @@
 ./IGS2R03FIN_20191980000_01D_05M_ORB.SP3
 ./P1C1.DCB
 ./COD0R03FIN_20191990000_01D_01D_OSB.BIA
-./orb_partials/gag20624_orbits_partials.out.ecom2.mgex
-./orb_partials/gag20624_orbits_partials.out.ecom2_pea
-./orb_partials/gag20624_orbits_partials.out.ecom2
-./orb_partials/orb_pea.out
 ./IGS2R03FIN_20191990000_01D_01D_OSB.BIA
 ./igs20010.sp3
 ./code_monthly.bia

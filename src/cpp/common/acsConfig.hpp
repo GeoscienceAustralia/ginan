@@ -111,7 +111,7 @@ struct InputOptions
 	vector<E_TidalComponent>	atl_blq_row_order	= {E_TidalComponent::UP,	E_TidalComponent::EAST,		E_TidalComponent::NORTH};
 	vector<E_TidalComponent>	otl_blq_row_order	= {E_TidalComponent::UP,	E_TidalComponent::WEST,		E_TidalComponent::SOUTH};
 
-	vector<E_TidalConstituent>	atl_blq_col_order = 
+	vector<E_TidalConstituent>	atl_blq_col_order =
 	{
 		E_TidalConstituent::S1,
 		E_TidalConstituent::S2
@@ -909,33 +909,35 @@ struct ReceiverKalmans : CommonKalmans, InertialKalmans, EmpKalmans
 
 struct CommonOptions
 {
-	bool					exclude				= false;
-	double					pseudo_sigma		= 100000;
-	double					laser_sigma			= 0.5;
+	bool					exclude						= false;
+	double					pseudo_sigma				= 100000;
+	double					laser_sigma					= 0.5;
 
-	vector<E_ObsCode>		clock_codes			= {};
-	vector<double>			minConNoise			= {-1};
+	vector<E_ObsCode>		clock_codes					= {};
+	vector<double>			apriori_variance_enu		= {};
+	double					mincon_scale_apriori_var	= 1;
+	double					mincon_scale_filter_var		= 0;
 
-	Vector3d				antenna_boresight	= { 0,  0, +1};
-	Vector3d				antenna_azimuth		= { 0, +1,  0};
+	Vector3d				antenna_boresight		= { 0,  0, +1};
+	Vector3d				antenna_azimuth			= { 0, +1,  0};
 
 	struct
 	{
-		bool				enable				= true;
-		vector<E_Source>	sources				= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+		bool				enable			= true;
+		vector<E_Source>	sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	} posModel;
 
 	struct
 	{
-		bool				enable				= true;
-		vector<E_Source>	sources				= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+		bool				enable			= true;
+		vector<E_Source>	sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	} clockModel;
 
 	struct
 	{
-		bool				enable				= true;
-		vector<E_Source>	sources				= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
-		double				model_dt			= 1;
+		bool				enable			= true;
+		vector<E_Source>	sources			= {E_Source::PRECISE, E_Source::MODEL, E_Source::NOMINAL};
+		double				model_dt		= 1;
 	} attitudeModel;
 
 	struct
@@ -954,17 +956,17 @@ struct CommonOptions
 
 	struct
 	{
-		bool 				enable				= true;
+		bool 				enable			= true;
 	} pcoModel;
 
 	struct
 	{
-		bool 				enable				= true;
+		bool 				enable			= true;
 	} pcvModel;
 
 	struct
 	{
-		bool 				enable				= true;
+		bool 				enable			= true;
 	} phaseWindupModel;
 
 	CommonOptions& operator+=(
@@ -1074,13 +1076,13 @@ struct ReceiverOptions : ReceiverKalmans, CommonOptions
 
 	Rinex23Conversion	rinex23Conv;
 
-	bool				kill				= false;
-	vector<E_ObsCode>	zero_dcb_codes		= {};
-	Vector3d			apriori_pos			= Vector3d::Zero();
-	string				antenna_type		;
-	string				receiver_type		;
-	string				sat_id				;
-	double				elevation_mask_deg	= 10;
+	bool				kill					= false;
+	vector<E_ObsCode>	zero_dcb_codes			= {};
+	Vector3d			apriori_pos				= Vector3d::Zero();
+	string				antenna_type			;
+	string				receiver_type			;
+	string				sat_id					;
+	double				elevation_mask_deg		= 10;
 
 	struct
 	{
@@ -1155,7 +1157,6 @@ struct MinimumConstraintOptions : FilterOptions
 
 	bool			once_per_epoch			= false;
 	bool			full_vcv				= false;
-	bool			scale_by_vcv			= false;
 	bool			constrain_orbits		= true;
 	bool			transform_unweighted	= true;
 

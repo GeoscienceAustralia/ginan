@@ -1360,6 +1360,7 @@ bool preciseAttitude(
 	else if	(entry1.frame == +E_ObxFrame::BCRS)
 	{
 		// Eugene to implement
+		body2Ecef = Matrix3d::Identity();
 	}
 	else
 	{

@@ -44,15 +44,14 @@ def generate_fig(trace):
     fig.layout.autosize = True
     return pio.to_html(fig)
 
-def generate_figs(traces1, traces2):
-    fig = make_subplots(rows=2, cols=1,
+def generate_figs(traces):
+    fig = make_subplots(rows=max(1,len(traces)), cols=1,
                     shared_xaxes=True,
                     vertical_spacing=0.2
                     )
-    for trace in traces1:
-        fig.add_trace(trace, row=1, col=1)
-    for trace in traces2:
-        fig.add_trace(trace, row=2, col=1)
+    for i in range( len(traces)):
+        for trace in traces[i]:
+            fig.add_trace(trace, row=i + 1, col=1)
 
     fig.update_layout(
         xaxis={"rangeslider":{"visible":True}, "showgrid":current_app.config["EDA_GRID"]},
@@ -121,12 +120,33 @@ def get_data(db, collection, state, site, sat, series, yaxis, data, reshape_on=N
             current_app.logger.warning(err)
             pass
 
+def get_keys_from_sub(ip, port, db, coll, element):
+    with MongoDB(ip, data_base=db, port=port) as client:
+        try:
+            return client.get_keys_from_sub(coll, element)
+        except ValueError as err:
+            print("thing1")
+            current_app.logger.warning(err)
+            pass
 
-def get_arbitrary(db, coll, match, group, datax, datay, reshape_on=None):
-    with MongoDB(session["mongo_ip"], data_base=db, port=session["mongo_port"]) as client:
+
+def get_arbitrary(ip, port, db, coll, match, group, datay, reshape_on=None):
+    with MongoDB(ip, data_base=db, port=port) as client:
         try:
             return client.get_arbitrary(coll, match, group, datay)
         except ValueError as err:
-            print("thing")
+            print("thing2")
+            print(match)
+            print(group)
+            current_app.logger.warning(err)
+            pass
+
+
+def get_distinct_vals(ip, port, db, coll, element, reshape_on=None):
+    with MongoDB(ip, data_base=db, port=port) as client:
+        try:
+            return client.get_distinct_vals(coll, element)
+        except ValueError as err:
+            print("thing3")
             current_app.logger.warning(err)
             pass

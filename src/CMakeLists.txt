@@ -31,6 +31,8 @@ set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-misleading-indentation")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-truncation")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-extern-c-compat")
 set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-zero-length")
+set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-array-bounds")
+set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-restrict")
 
 #set(CMAKE_CXX_FLAGS 					"${CMAKE_CXX_FLAGS} -save-temps")
 #set(CMAKE_CXX_FLAGS 					"${CMAKE_CXX_FLAGS} -M")
