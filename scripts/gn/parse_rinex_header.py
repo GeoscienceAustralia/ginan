@@ -52,7 +52,7 @@ class RinexHeader(NamedTuple):
     antenna: Antenna
     approx_position: ApproxPosition
     first_obs_time: datetime
-    last_obs_time: datetime
+    last_obs_time: Optional[datetime]
     sys_signals: Dict[str, str]
 
     def get_station_alias(self):

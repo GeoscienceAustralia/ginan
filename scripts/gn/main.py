@@ -9,14 +9,13 @@
 """
 import shutil
 from pathlib import Path
+from collections.abc import Iterable
 
-import download_rinex_deps
-
-from auto_generate_yaml import write_nested_dict_value
+import download_rinex_deps as download_rinex_deps
 from parse_rinex_header import parse_v3_header, RinexHeader
 
 import click
-import ruamel
+import ruamel.yaml
 
 
 def main(config_name: str, rinex_path: Path, target_dir: Path):
@@ -95,6 +94,26 @@ def write_yaml(target_dir, config_name="auto", overrides=[]):
     return target
 
 
+def write_nested_dict_value(nested_dict, nested_keys: Iterable, value):
+    """
+    Safely write a value into a series of nested dictionaries, making intermediate layers where required
+
+    :param nested_dict: The nested dictionaries (configuration map) to write to
+    :param nested_keys: An Iterable containing the sequence of keys to follow to store the value
+    :param value: The value to store in the nested dictionary
+    :returns: value
+    """
+    head_key, *tail_keys = nested_keys
+    if not tail_keys:
+        # Base case, no more layers to go down, store our value here
+        nested_dict[head_key] = value
+        return value
+    # Need to recurse down a level, but if the next level doesn't already exist we need to create it first
+    if head_key not in nested_dict:
+        nested_dict[head_key] = {}
+    return write_nested_dict_value(nested_dict[head_key], tail_keys, value)
+
+
 def get_phase_signals_per_system(sys_signals: dict) -> dict:
     """Get all of the carrier phase signals (start with L), grouped by system (GPS, GLONASS etc)"""
     PHASE_PREFIX = "L"
@@ -136,6 +155,7 @@ def ensure_folders(paths: [Path]) -> None:
     default="network",
 )
 def cli(rinex_path: Path, target_dir: Path, config_name: str):
+    """A collection of tools for Ginan"""
     config_dir = target_dir / config_name
     main(config_name, rinex_path, config_dir)
 
