@@ -11,33 +11,11 @@ import shutil
 from pathlib import Path
 from collections.abc import Iterable
 
-import download_rinex_deps as download_rinex_deps
-from parse_rinex_header import parse_v3_header, RinexHeader
+from .download_rinex_deps import download
+from .parse_rinex_header import parse_v3_header, RinexHeader
 
 import click
 import ruamel.yaml
-
-
-def main(config_name: str, rinex_path: Path, target_dir: Path):
-    download_dir = target_dir / "downloads"
-    data_dir = target_dir / "data"
-    ensure_folders([target_dir, download_dir, data_dir])
-
-    new_rinex_path = data_dir / f"{rinex_path.stem}.rnx"
-    shutil.copy(rinex_path, new_rinex_path)
-
-    header = parse_v3_header(rinex_path)
-
-    # TODO: The pea does not allow station names of 4 digits eg. 7369 - but it would be good if it did.
-    # For now, create an alias
-    station_alias = header.get_station_alias()
-    shutil.move(new_rinex_path, data_dir / f"{station_alias}.rnx")
-
-    download_rinex_deps.download(header, download_dir)
-
-    overrides = create_overrides(header, station_alias, config_name)
-    yaml_path = write_yaml(target_dir, config_name=config_name, overrides=overrides)
-    return yaml_path
 
 
 def create_overrides(header: RinexHeader, station_alias: str, config_name: str) -> [tuple]:
@@ -69,7 +47,7 @@ def create_code_priorities_overrides(rinex_header: RinexHeader) -> [tuple]:
     return overrides
 
 
-def write_yaml(target_dir, config_name="auto", overrides=[]):
+def write_yaml(target_dir: Path, config_name="auto", overrides=[]):
     scripts = Path(__file__).resolve().parent
     template_path = scripts / "templates" / "auto_template.yaml"
 
@@ -134,31 +112,49 @@ def ensure_folders(paths: [Path]) -> None:
             path.mkdir(parents=True)
 
 
-@click.command()
-@click.option(
-    "--rinex-path",
-    required=True,
-    type=click.Path(exists=True, path_type=Path),
-    help="Path to RINEX v3 file for a static session",
-)
-@click.option(
-    "--target-dir",
-    required=False,
-    type=click.Path(path_type=Path),
-    help="Directory to store the config directory",
-    default="workspace",
-)
-@click.option(
-    "--config-name",
-    required=False,
-    help="Name of the directory which will store the config and files",
-    default="network",
-)
-def cli(rinex_path: Path, target_dir: Path, config_name: str):
-    """A collection of tools for Ginan"""
-    config_dir = target_dir / config_name
-    main(config_name, rinex_path, config_dir)
+@click.group()
+def gn():
+    """
+    CLI program for GNSS processing.
+    """
+    pass
 
 
-if __name__ == "__main__":
-    cli()
+@gn.command()
+@click.option("--ppp", is_flag=True, help="Use Precise Point Positioning (PPP).")
+@click.option("--static", is_flag=True, help="Use static mode.")
+@click.option("--rinex-path", type=click.Path(exists=True), help="Path to RINEX file.")
+@click.option("--target-dir", type=click.Path(), help="Path to output folder.", default="workspace", required=False)
+@click.option("--config-name", type=str, help="Name for the configuration.", default="network", required=False)
+def prep(ppp: bool, static: bool, rinex_path: Path, target_dir: Path, config_name: str):
+    """
+    Download required IGS products and generate template YAML.
+    """
+    if ppp and static:
+        rinex_path = Path(rinex_path)
+        target_dir = Path(target_dir) / config_name
+        download_dir = target_dir / "downloads"
+        data_dir = target_dir / "data"
+        ensure_folders([target_dir, download_dir, data_dir])
+
+        # Make a copy of the rinex file in the target directory
+        new_rinex_path = data_dir / f"{rinex_path.stem}.rnx"
+        shutil.copy(rinex_path, new_rinex_path)
+
+        header = parse_v3_header(rinex_path)
+
+        # TODO: The pea does not allow station names of 4 digits eg. 7369 - but it would be good if it did.
+        # For now, create an alias and rename the copy
+        station_alias = header.get_station_alias()
+        shutil.move(new_rinex_path, data_dir / f"{station_alias}.rnx")
+
+        download(header, download_dir)
+
+        overrides = create_overrides(header, station_alias, config_name)
+        yaml_path = write_yaml(target_dir, config_name=config_name, overrides=overrides)
+        return yaml_path
+    else:
+        raise NotImplementedError(
+            "Only static ppp is supported through this interface - include --static --ppp"
+            "You could modify an example template to run other configurations with pea"
+        )

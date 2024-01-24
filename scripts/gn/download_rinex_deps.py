@@ -7,7 +7,7 @@
 """
 from datetime import date, timedelta
 from pathlib import Path
-from parse_rinex_header import RinexHeader
+from .parse_rinex_header import RinexHeader
 
 import logging
 
