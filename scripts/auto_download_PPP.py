@@ -20,7 +20,6 @@ from gnssanalysis.gn_download import (
     download_file_from_cddis,
     check_n_download_url,
     check_file_present,
-    long_filename_cddis_cutoff,
     ftp_tls,
     download_multiple_files_from_cddis,
 )
@@ -548,6 +547,18 @@ def download_files_from_gnss_data(
     stations_downloaded = set([filename[:4] for filename in files_downloaded])
     missing_stations = set(station_list) - stations_downloaded
     logging.info(f"Not downloaded / missing: {list(missing_stations)}")
+
+
+def long_filename_cddis_cutoff(epoch: datetime) -> bool:
+    """
+    Simple function that determines whether long filenames should be expected on the CDDIS server
+    """
+    # Long filename cut-off:
+    long_filename_cutoff = datetime(2022, 11, 27)
+    if epoch >= long_filename_cutoff:
+        return True
+    else:
+        return False
 
 
 def auto_download(
