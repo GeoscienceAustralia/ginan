@@ -11,7 +11,8 @@ from parse_rinex_header import RinexHeader
 
 import logging
 
-from gnssanalysis.gn_download import ftp_tls_cddis, download_prod
+from gnssanalysis.filenames import generate_IGS_long_filename
+from gnssanalysis.gn_download import download_multiple_files_from_cddis
 from gnssanalysis.gn_datetime import dt2gpswk
 
 
@@ -27,25 +28,69 @@ def download(header: RinexHeader, target_dir: Path) -> dict:
     # TODO: CORS files won't have an end date - need to handle this eventually
     end_date = date(last_epoch.year, last_epoch.month, last_epoch.day)
 
-    dates = list(daterange(start_date, end_date))
-
-    # TODO: Handle rinex files that are split over two gps weeks
-    gps_week = dt2gpswk(header.first_obs_time)
-
-    # gnssanalysis expects strings for directories
-    dwn_dir = str(target_dir)
-
-    with ftp_tls_cddis() as ftps:
-        daily_files = download_prod(
-            dates, dwn_dir, ac="igs", f_type=["sp3", "clk"], dwn_src="cddis", f_dict=True, ftps=ftps
-        )
-        weekly_files = download_prod(
-            dates, dwn_dir, ac="igs", f_type=["erp"], wkly_file=True, dwn_src="cddis", f_dict=True, ftps=ftps
-        )
-
-    return daily_files, weekly_files
+    _download_static_dependencies(start_date, end_date, target_dir)
 
 
-def daterange(start_date, end_date):
+def _download_static_dependencies(start_date: date, end_date: date, target_dir: Path):
+    for date in daterange(start_date, end_date):
+        files = _get_static_long_filenames(date)
+
+        gps_week = dt2gpswk(date)
+        ftp_folder = f"gnss/products/{gps_week}"
+
+        download_multiple_files_from_cddis(files, ftp_folder, target_dir)
+
+
+def _get_static_long_filenames(date: date) -> [str]:
+    # TODO: Support more than just IGS FIN products
+
+    # Weekly files
+    week = timedelta(7)
+
+    def _first_day_of_week(date: date):
+        return date + timedelta(days=-(date.weekday() + 1))
+
+    first_day_of_week = _first_day_of_week(date)
+    erp_filename = generate_IGS_long_filename(
+        analysis_center="IGS",
+        content_type="ERP",
+        format_type="ERP",
+        start_epoch=first_day_of_week,
+        timespan=week,
+        solution_type="FIN",
+        sampling_rate="01D",
+        project="OPS",
+    )
+
+    # Daily files
+    day = timedelta(1)
+    sp3_filename = generate_IGS_long_filename(
+        analysis_center="IGS",
+        content_type="ORB",
+        format_type="SP3",
+        start_epoch=date,
+        timespan=day,
+        solution_type="FIN",
+        sampling_rate="15M",
+        project="OPS",
+    )
+
+    clk_filename = generate_IGS_long_filename(
+        analysis_center="IGS",
+        content_type="CLK",
+        format_type="CLK",
+        start_epoch=date,
+        timespan=day,
+        solution_type="FIN",
+        sampling_rate="05M",
+        project="OPS",
+    )
+
+    files = [erp_filename, sp3_filename, clk_filename]
+    compressed_files = [f + ".gz" for f in files]
+    return compressed_files
+
+
+def daterange(start_date: date, end_date: date = None):
     for i in range(int((end_date - start_date).days) + 1):
         yield start_date + timedelta(i)
