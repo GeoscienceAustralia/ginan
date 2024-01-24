@@ -11,19 +11,18 @@ from time import sleep
 from pathlib import Path
 from typing import Tuple
 from copy import deepcopy
-import concurrent.futures
-from itertools import repeat
 from urllib.parse import urlparse
 from datetime import datetime, timedelta, date
 
 from gnssanalysis.gn_datetime import GPSDate, gpswkD2dt
 from gnssanalysis.filenames import generate_sampling_rate, generate_content_type
 from gnssanalysis.gn_download import (
-    check_n_download,
+    download_file_from_cddis,
     check_n_download_url,
     check_file_present,
     long_filename_cddis_cutoff,
     ftp_tls,
+    download_multiple_files_from_cddis,
 )
 
 API_URL = "https://data.gnss.ga.gov.au/api"
@@ -148,38 +147,6 @@ def generate_product_filename(
             hour = f"{reference_start.hour:02}"
             product_filename = f"igu{gps_date.gpswkD}_{hour}.{file_ext}.Z"
     return product_filename, gps_date, reference_start
-
-
-def download_file_from_cddis(
-    filename: str, ftp_folder: str, output_folder: Path, max_retries: int = 3, uncomp: bool = True
-) -> None:
-    with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
-        ftps.cwd(ftp_folder)
-        retries = 0
-        download_done = False
-        while not download_done and retries <= max_retries:
-            try:
-                logging.info(f"Attempting Download of: {filename}")
-                check_n_download(filename, str(output_folder) + "/", ftps, uncomp=uncomp)
-                download_done = True
-                logging.info(f"Downloaded {filename}")
-            except ftplib.all_errors as e:
-                retries += 1
-                if retries > max_retries:
-                    logging.warning(f"Failed to download {filename} and reached maximum retry count ({max_retries}).")
-                    if (output_folder / filename).is_file():
-                        (output_folder / filename).unlink()
-                    raise e
-
-                logging.debug(f"Received an error ({e}) while try to download {filename}, retrying({retries}).")
-                # Add some backoff time (exponential random as it appears to be contention based?)
-                sleep(random.uniform(0.0, 2.0**retries))
-
-
-def download_multiple_files_from_cddis(files: list, ftp_folder: str, output_folder: Path) -> None:
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Wrap this in a list to force iteration of results and so get the first exception if any were raised
-        list(executor.map(download_file_from_cddis, files, repeat(ftp_folder), repeat(output_folder)))
 
 
 def download_product_from_cddis(
