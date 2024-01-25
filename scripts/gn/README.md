@@ -13,8 +13,17 @@ Also ensure you have run `python3 scripts/s3_filehandler.py -d -p` to populate t
 The following command `prep` can be used to download the required IGS products and generate the required yaml
 for Ginan to be able to determine a static position from a RINEX file.
 
+From your ginan root directory run the following command:
+
 ```
 gn prep --ppp --static --rinex-path=path/to/rinex --config-name=test
+```
+
+Once this has been run, a new folder called `workspace/test` will be available. This is where all of the IGS products and generated template are stored.
+
+```
+cd workspace/test
+pea --config test_auto_template.yaml
 ```
 
 **Note**: This command is a work in progress and currently only supports a narrow use case:
