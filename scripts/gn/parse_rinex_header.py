@@ -110,7 +110,8 @@ def _parse_receiver(header: dict) -> Tuple[str, str, str]:
     return rec_num, rec_type, rec_version
 
 
-def _parse_antenna(header: dict) -> Tuple[str, str, str, str]:
+def _parse_antenna(header: dict) -> Tuple[str, float, float, float]:
+    """Parses antenna type and eccentricity (deltas) from header"""
     antenna_type = header["ANT # / TYPE"].strip()
 
     # These are the eccentricities to put in the station config for Ginan
@@ -120,12 +121,17 @@ def _parse_antenna(header: dict) -> Tuple[str, str, str, str]:
 
 
 def _parse_approx_position(header: dict) -> (float, float, float):
+    """Parses APPROX POSITION XYZ from header
+
+    :returns x, y, z as floats
+    """
     # -5015815.7300  2619358.9161 -2933465.3598
     x, y, z = (float(i) for i in header["APPROX POSITION XYZ"].strip().split())
     return x, y, z
 
 
 def _parse_obs_time(time: str) -> datetime:
+    """Given a time string from rinex header, parses YmdHMS"""
     # 'TIME OF FIRST OBS': '  2023    10    29     6    13   30.0000000     GPS         '
     # Remove extra whitespace and GPS suffix '2023 10 29 6 13 30.0000000'
     epoch = " ".join(time.strip().split()[:6])
@@ -135,13 +141,21 @@ def _parse_obs_time(time: str) -> datetime:
     return obs_time
 
 
-def _parse_first_obs_time(header: str) -> datetime:
+def _parse_first_obs_time(header: dict) -> datetime:
+    """Parse TIME OF FIRST OBS from header
+
+    :returns datetime
+    """
     time = header["TIME OF FIRST OBS"]
     first_obs_time = _parse_obs_time(time)
     return first_obs_time
 
 
-def _parse_last_obs_time(header: str) -> datetime:
+def _parse_last_obs_time(header: dict) -> datetime:
+    """Parse TIME OF LAST OBS from header
+
+    :returns datetime
+    """
     time = header["TIME OF LAST OBS"]
     last_obs_time = _parse_obs_time(time)
     return last_obs_time
@@ -152,7 +166,7 @@ def _get_signals_per_system(obs: xarray.Dataset) -> dict:
     where the systems are GPS, GLONASS etc.
     The RINEX header has this information, but it cannot be trusted.
     For example, Victoria submits their CORS data to GA with all signals in the header,
-    even if there are no observations.
+    even if there are no observations associated with a signal.
     Pull it out of the observations themselves.
     """
     # TODO: There is probably cleaner a way to do this with xarray groupby

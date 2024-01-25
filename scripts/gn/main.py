@@ -20,6 +20,18 @@ import ruamel.yaml
 
 
 def create_overrides(header: RinexHeader, station_alias: str, config_name: str) -> [tuple]:
+    """Determines a set of changes to be made to the template yaml.
+
+    - Adds station specific information
+    - Adds config name
+    - Adds code priorities that are specific to the rinex file
+
+    :param header: RinexHeader object that has been parsed from the input file
+    :param station_alias: Four character alias for a station
+    :param config_name: Name of the output folder
+
+    :returns list of tuples where key is list of str to key into yaml, and value is what to replace the val with
+    """
     station_overrides = create_station_overrides(header, station_alias)
     outputs_overrides = [(["outputs", "metadata", "config_description"], config_name)]
     code_priorities_overrides = create_code_priorities_overrides(header)
@@ -28,6 +40,13 @@ def create_overrides(header: RinexHeader, station_alias: str, config_name: str) 
 
 
 def create_station_overrides(rinex_header: RinexHeader, station_alias: str) -> [tuple]:
+    """Determines the yaml overrides that are required for the specific station in the rinex.
+
+    :param rinex_header: RinexHeader object that has been parsed from the input file
+    :param station_alias: Four character alias for a station
+
+    :returns list of tuples where key is list of str to key into yaml, and value is what to replace the val with
+    """
     eccentricity = {"enable": True, "offset": rinex_header.antenna.get_eccentricity()}
 
     overrides = [
@@ -40,6 +59,12 @@ def create_station_overrides(rinex_header: RinexHeader, station_alias: str) -> [
 
 
 def create_code_priorities_overrides(rinex_header: RinexHeader) -> [tuple]:
+    """Determines the yaml overrides that are required for the specific codes in the file.
+
+    :param rinex_header: RinexHeader object that has been parsed from the input file
+
+    :returns list of tuples where key is list of str to key into yaml, and value is what to replace the val with
+    """
     phase_signals = get_phase_signals_per_system(rinex_header.sys_signals)
     overrides = [
         (["processing_options", "gnss_general", "sys_options", sys, "code_priorities"], list(code_priorities))
@@ -48,7 +73,16 @@ def create_code_priorities_overrides(rinex_header: RinexHeader) -> [tuple]:
     return overrides
 
 
-def write_yaml(target_dir: Path, config_name="auto", overrides=[]):
+def write_yaml(target_dir: Path, config_name: str = "auto", overrides: [tuple] = []):
+    """Overrides the yaml template with overrides and writes the file
+    to the target directory.
+
+    :param target_dir: Directory to write the file to
+    :param config_name: Name to include in the yaml file name
+    :param overrides: A list of tuples which overwrite parts of the template file
+
+    :returns Path to the output yaml file
+    """
     scripts = Path(__file__).resolve().parent
     template_path = scripts / "templates" / "auto_template.yaml"
 

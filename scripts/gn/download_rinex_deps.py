@@ -9,18 +9,18 @@ from datetime import date, timedelta
 from pathlib import Path
 from .parse_rinex_header import RinexHeader
 
-import logging
-
 from gnssanalysis.filenames import generate_IGS_long_filename
 from gnssanalysis.gn_download import download_multiple_files_from_cddis
 from gnssanalysis.gn_datetime import dt2gpswk
 
 
-logging.basicConfig(format="%(asctime)s [%(funcName)s] %(levelname)s: %(message)s")
-logging.getLogger().setLevel(logging.DEBUG)
+def download(header: RinexHeader, target_dir: Path) -> None:
+    """Using information from the given header, downloads the required
+    files for Ginan to be able to run in PPP static mode.
 
-
-def download(header: RinexHeader, target_dir: Path) -> dict:
+    :param header: Parsed header from the input rinex file
+    :param target_dir: Path to the target directory
+    """
     start_epoch = header.first_obs_time
     last_epoch = header.last_obs_time
     start_date = date(start_epoch.year, start_epoch.month, start_epoch.day)
@@ -32,6 +32,12 @@ def download(header: RinexHeader, target_dir: Path) -> dict:
 
 
 def _download_static_dependencies(start_date: date, end_date: date, target_dir: Path):
+    """Downloads dependencies from IGS for static ppp between start date and end date.
+
+    :param start_date: First date to download for
+    :param end_date: Last date to download for
+    :param target_dir: Target directory to download files to
+    """
     for date in daterange(start_date, end_date):
         files = _get_static_long_filenames(date)
 
@@ -42,6 +48,12 @@ def _download_static_dependencies(start_date: date, end_date: date, target_dir: 
 
 
 def _get_static_long_filenames(date: date) -> [str]:
+    """Deterimines the long filenames for sp3, erp and clk files for a given date,
+    which will allow ginan to run ppp static.
+
+    :param date: Date to determine filenames for
+    :returns [str] of filenames
+    """
     # TODO: Support more than just IGS FIN products
 
     # Weekly files
@@ -92,5 +104,6 @@ def _get_static_long_filenames(date: date) -> [str]:
 
 
 def daterange(start_date: date, end_date: date = None):
+    """Generator for dates between start and end"""
     for i in range(int((end_date - start_date).days) + 1):
         yield start_date + timedelta(i)
