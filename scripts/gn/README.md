@@ -16,17 +16,19 @@ for Ginan to be able to determine a static position from a RINEX file.
 From your ginan root directory run the following command:
 
 ```
-gn prep --ppp --static --rinex-path=path/to/rinex --config-name=test
+gn prep --ppp --static --rinex-path=path/to/rinex --workspace-name=test
 ```
 
-Once this has been run, a new folder called `workspace/test` will be available. This is where all of the IGS products and generated template are stored.
+Once this has been run, a new folder called `workspace/test` will be available. This is where all of the IGS products and generated yaml config are stored.
 
 ```
 cd workspace/test
 pea --config test_auto_template.yaml
 ```
 
-**Note**: This command is a work in progress and currently only supports a narrow use case:
+One the pea has finished running, open up the sinex file in the `workspace/test/outputs` folder to see the estimated position in the `SOLUTION/ESTIMATE` block.
+
+**Note**: This command is a work in progress and currently only supports recent files that you would submit to AUSPOS and state government for inclusion in the national adjustment:
 
 * Only handles RINEX v3
 * Only works for RINEX files that were collected >2 weeks ago (just requires FIN products)
@@ -37,3 +39,6 @@ pea --config test_auto_template.yaml
 
 The prep command will be enhanced over time to support a wider range of use cases.
 
+### Known issues
+
+* Sometimes downloads from the CDDIS ftp repository will time out. If this happens, try running the command again.

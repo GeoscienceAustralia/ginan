@@ -19,7 +19,7 @@ import click
 import ruamel.yaml
 
 
-def create_overrides(header: RinexHeader, station_alias: str, config_name: str) -> [tuple]:
+def create_overrides(header: RinexHeader, station_alias: str, workspace_name: str) -> [tuple]:
     """Determines a set of changes to be made to the template yaml.
 
     - Adds station specific information
@@ -28,12 +28,12 @@ def create_overrides(header: RinexHeader, station_alias: str, config_name: str) 
 
     :param header: RinexHeader object that has been parsed from the input file
     :param station_alias: Four character alias for a station
-    :param config_name: Name of the output folder
+    :param workspace_name: Override for the config_description
 
     :returns list of tuples where key is list of str to key into yaml, and value is what to replace the val with
     """
     station_overrides = create_station_overrides(header, station_alias)
-    outputs_overrides = [(["outputs", "metadata", "config_description"], config_name)]
+    outputs_overrides = [(["outputs", "metadata", "config_description"], workspace_name)]
     code_priorities_overrides = create_code_priorities_overrides(header)
     overrides = station_overrides + outputs_overrides + code_priorities_overrides
     return overrides
@@ -73,12 +73,12 @@ def create_code_priorities_overrides(rinex_header: RinexHeader) -> [tuple]:
     return overrides
 
 
-def write_yaml(target_dir: Path, config_name: str = "auto", overrides: [tuple] = []):
+def write_yaml(target_dir: Path, workspace_name: str = "auto", overrides: [tuple] = []):
     """Overrides the yaml template with overrides and writes the file
     to the target directory.
 
     :param target_dir: Directory to write the file to
-    :param config_name: Name to include in the yaml file name
+    :param workspace_name: Name to include in the yaml file name
     :param overrides: A list of tuples which overwrite parts of the template file
 
     :returns Path to the output yaml file
@@ -86,7 +86,7 @@ def write_yaml(target_dir: Path, config_name: str = "auto", overrides: [tuple] =
     scripts = Path(__file__).resolve().parent
     template_path = scripts / "templates" / "auto_template.yaml"
 
-    target = target_dir / f"{config_name}_{template_path.stem}.yaml"
+    target = target_dir / f"{workspace_name}_{template_path.stem}.yaml"
 
     # Read in the template
     with open(template_path, "r", encoding="utf-8") as f:
@@ -165,15 +165,17 @@ def cli(log_level):
 @click.option("--ppp", is_flag=True, help="Use Precise Point Positioning (PPP).")
 @click.option("--static", is_flag=True, help="Use static mode.")
 @click.option("--rinex-path", type=click.Path(exists=True), help="Path to RINEX file.")
-@click.option("--target-dir", type=click.Path(), help="Path to output folder.", default="workspace", required=False)
-@click.option("--config-name", type=str, help="Name for the configuration.", default="network", required=False)
-def prep(ppp: bool, static: bool, rinex_path: Path, target_dir: Path, config_name: str):
+@click.option(
+    "--workspace-root", type=click.Path(), help="Path to store workspaces", default="workspace", required=False
+)
+@click.option("--workspace-name", type=str, help="Name for the workspace", default="network", required=False)
+def prep(ppp: bool, static: bool, rinex_path: Path, workspace_root: Path, workspace_name: str):
     """
     Downloads required IGS products and generates template YAML
     """
     if ppp and static:
         rinex_path = Path(rinex_path)
-        target_dir = Path(target_dir) / config_name
+        target_dir = Path(workspace_root) / workspace_name
         download_dir = target_dir / "downloads"
         data_dir = target_dir / "data"
         ensure_folders([target_dir, download_dir, data_dir])
@@ -195,8 +197,8 @@ def prep(ppp: bool, static: bool, rinex_path: Path, target_dir: Path, config_nam
         logging.info("Downloads complete")
 
         logging.info("Generating yaml config file")
-        overrides = create_overrides(header, station_alias, config_name)
-        yaml_path = write_yaml(target_dir, config_name=config_name, overrides=overrides)
+        overrides = create_overrides(header, station_alias, workspace_name)
+        yaml_path = write_yaml(target_dir, workspace_name=workspace_name, overrides=overrides)
 
         logging.info("Ready to run the pea...")
         return yaml_path
