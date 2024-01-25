@@ -913,7 +913,6 @@ def auto_download_main(
     data_source,
     verbose,
 ):
-
     auto_download(
         target_dir,
         preset,
@@ -945,4 +944,3 @@ def auto_download_main(
 
 if __name__ == "__main__":
     auto_download_main()
-
