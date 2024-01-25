@@ -299,6 +299,34 @@ void selectAprioriSource(
 		sppUsed			= true;
 	}
 
+	if (recOpts.apriori_variance_enu.empty() == false)
+	{
+		Matrix3d enuNoise = Matrix3d::Zero();
+		for (int i = 0; i < 3; i++)
+		{
+			int j = i;
+
+			if (j >= recOpts.apriori_variance_enu.size())
+				j = recOpts.apriori_variance_enu.size() - 1;
+
+			enuNoise(i,i) = recOpts.apriori_variance_enu[j];
+		}
+
+		VectorPos pos = ecef2pos(rec.aprioriPos);
+
+		Matrix3d E;
+		pos2enu(pos, E.data());
+
+		Matrix3d varianceXYZ = E.transpose()	* enuNoise * E;
+
+
+		rec.aprioriVar 		= varianceXYZ;
+	}
+	else
+	{
+		rec.aprioriVar		= rec.snx.var.asDiagonal();
+	}
+
 	Vector3d delta	= rec.aprioriPos
 					- rec.sol.sppRRec;
 

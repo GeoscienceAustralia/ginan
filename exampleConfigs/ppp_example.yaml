@@ -10,13 +10,13 @@ inputs:
 
     troposphere:
         gpt2grid_files: [ gpt_25.grd ]
-    
+
     tides:
         ocean_tide_loading_blq_files:   [ OLOAD_GO.BLQ                  ] # required if ocean loading is applied
         atmos_tide_loading_blq_files:   [ ALOAD_GO.BLQ                  ] # required if atmospheric tide loading is applied
         ocean_pole_tide_loading_files:  [ tables/opoleloadcoefcmcor.txt ] # required if ocean pole tide loading is applied
         ocean_tide_potential_files:     [ tables/fes2014b_Cnm-Snm.dat   ]
-    
+
     snx_files:
     # - "*.SNX" # use a wild card to include all files matching the description in the directory
     - tables/igs_satellite_metadata_2203_plus.snx
@@ -45,6 +45,7 @@ inputs:
         - ALIC00AUS_R_20191990000_01D_30S_MO.rnx
         - DARW00AUS_R_20191990000_01D_30S_MO.rnx
         - HOB200AUS_R_20191990000_01D_30S_MO.rnx
+        - "M*.rnx"
 
 
 outputs:
@@ -67,7 +68,7 @@ outputs:
         output_residuals:      true
         output_residual_chain: true
         output_config:         true
-    
+
     # log:
     #     output:                false
     #     directory:             ./logs/
@@ -104,7 +105,7 @@ receiver_options:
             troposphere:         # Tropospheric modelling accounts for delays due to refraction of light in water vapour
                 enable: true
                 models: [ gpt2 ] # List of models to use for troposphere [standard,sbas,vmf3,gpt2,cssr]
-            tides:    
+            tides:
                 atl:    true     # Enable atmospheric tide loading
                 enable: true     # Enable modelling of tidal disaplacements
                 opole:  true     # Enable ocean pole tides
@@ -164,7 +165,7 @@ processing_options:
             mw_process_noise:    0    # Process noise applied to filtered Melbourne-Wubenna measurements to detect cycle slips
             slip_threshold:   0.05 # Value used to determine when a slip has occurred
         preprocess_all_data:  true
-    
+
     spp:
         # always_reinitialise: false # Reset SPP state to zero to avoid potential for lock-in of bad states
         max_lsq_iterations:  12    # Maximum number of iterations of least squares allowed for convergence
@@ -193,7 +194,7 @@ processing_options:
             use_gf_combo:                  false                  # Combine 'uncombined' measurements to simulate a geometry-free solution
             use_if_combo:                  false                  # Combine 'uncombined' measurements to simulate an ionosphere-free solution
 
-        chunking:    
+        chunking:
             by_receiver:           false # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
             by_satellite:          false # Split large filter and measurement matrices blockwise by satellite ID to improve processing speed
             size:                  0
@@ -230,7 +231,7 @@ processing_options:
         # once_per_epoch:            true   # Perform ambiguity resolution on a temporary filter and output results once per epoch
         # solution_ratio_threshold:  3      # Thresold for integer validation, distance ratio test
         # success_rate_threshold:    0.9999 # Thresold for integer validation, success rate test
-    
+
     minimum_constraints:
         enable: false
 
@@ -303,7 +304,7 @@ mongo:                   # Mongo is a database used to store results and interme
     primary_uri:         mongodb://localhost:27017   # Location and port of the mongo database to connect to
     primary_database:    <CONFIG>
     primary_suffix:      ""                          # Suffix to append to database elements to make distinctions between runs for comparison
-    # secondary_database:  <CONFIG> 
+    # secondary_database:  <CONFIG>
     # secondary_suffix:    ""                          # Suffix to append to database elements to make distinctions between runs for comparison
     # secondary_uri:       mongodb://localhost:27017   # Location and port of the mongo database to connect to
     # output_config:       NONE                        # Output config {none,primary,secondary,both}
@@ -312,3 +313,4 @@ mongo:                   # Mongo is a database used to store results and interme
     output_measurements: primary                     # Output measurements and their residuals {none,primary,secondary,both}
     output_test_stats:   primary                     # Output test statistics {none,primary,secondary,both}
     delete_history:      primary                     # Drop the collection in the database at the beginning of the run to only show fresh data {none,primary,secondary,both}
+    output_trace:        primary

@@ -145,11 +145,43 @@ class MongoDB:
             raise ValueError("No data found")
         return list(cursor)
 
-    def get_arbitrary(self, collection, match_thing, group_thing, xvalue, yvalue):
+
+    def get_keys_from_sub(self, collection, element):
+
+        logger.info("getting keys in " + element)
+        pipeline = [
+            {"$project":
+                {
+                    "arrayofkeyvalue": { "$objectToArray": "$" + element }
+                }
+            },
+            {"$unwind": "$arrayofkeyvalue"},
+            {"$group":
+                {
+                    "_id": "null",
+                    "allkeys": { "$addToSet": "$arrayofkeyvalue.k" }
+                }
+            }]
+
+        for cursor in self.mongo_client[self.mongo_db][collection].aggregate(pipeline, allowDiskUse=True):
+            print(cursor)
+
+        return cursor["allkeys"]
+
+    def get_distinct_vals(self, collection, element):
+        logger.info("getting distinct values for " + element)
+
+        distinct = self.mongo_client[self.mongo_db][collection].distinct(element)
+
+        return distinct
+
+    def get_arbitrary(self, collection, match_thing, group_thing, yvalue):
         results = {}
         yvalue = "val." + yvalue
         matches = json.loads("{" + match_thing + "}")
+        print("matches" + group_thing)
         groups = json.loads("{" + group_thing + "}")
+        print("groups")
 
         groupObj = {"Epoch": "$Epoch"};
         sortObj = {"_id.Epoch": 1};
@@ -201,7 +233,7 @@ class MongoDB:
 
 
             if len(cursor["y"]) > 1:
-                print(cursor)
+                # print(cursor)
                 print("excessFields")
                 print(cursor["fields"])
 

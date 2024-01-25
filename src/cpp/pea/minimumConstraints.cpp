@@ -258,9 +258,10 @@ void mincon(
 			continue;
 		}
 
-		vector<double>*	minConNoise_ptr = nullptr;
-		Vector3d		aprioriPos = Vector3d::Zero();
-		string			str;
+		Vector3d	aprioriPos	= Vector3d::Zero();
+		Matrix3d	aprioriVar	= Matrix3d::Zero();
+		Matrix3d	filterVar	= Matrix3d::Zero();
+		string		str;
 
 		if (key.type == +KF::REC_POS)
 		{
@@ -272,14 +273,13 @@ void mincon(
 				continue;
 			}
 
-			auto& rec = *key.rec_ptr;
+			auto& rec		= *key.rec_ptr;
+			auto& recOpts	= acsConfig.getRecOpts(rec.id);
 
-			aprioriPos	= rec.minconApriori;
-			str			= rec.id;
-
-			auto& recOpts = acsConfig.getRecOpts(rec.id);
-
-			minConNoise_ptr = &recOpts.minConNoise;
+			aprioriPos		= rec.minconApriori;
+			aprioriVar		= rec.aprioriVar								* recOpts.mincon_scale_apriori_var;
+			filterVar		= kfStateStations.P.block(index, index, 3, 3)	* recOpts.mincon_scale_filter_var;
+			str				= rec.id;
 
 			hasStations = true;
 		}
@@ -293,34 +293,29 @@ void mincon(
 				continue;
 			}
 
-			aprioriPos	= satNav.aprioriPos;
-			str			= key.Sat.id();
-
 			auto& satOpts = acsConfig.getSatOpts(key.Sat);
 
-			minConNoise_ptr = &satOpts.minConNoise;
+			aprioriPos		= satNav.aprioriPos;
+			aprioriVar		= Matrix3d::Identity()							* satOpts.mincon_scale_apriori_var;
+			filterVar		= kfStateStations.P.block(index, index, 3, 3)	* satOpts.mincon_scale_filter_var;
+			str				= key.Sat.id();
 
 			hasSatellites = true;
 		}
 
 		bool used = true;
 
-		if (minConNoise_ptr == nullptr)
-		{
-			zeroAndPush();
-			continue;
-		}
 
-		auto& minConNoise = *minConNoise_ptr;
+		MatrixXd noise = aprioriVar + filterVar;
 
-		if	( minConNoise[0] <= 0
+		if	( aprioriVar(0,0) <= 0
 			&&acsConfig.minconOpts.transform_unweighted == false)
 		{
 			zeroAndPush();
 			continue;
 		}
 
-		if	( minConNoise[0] <= 0
+		if	( aprioriVar(0,0) <= 0
 			||aprioriPos.isZero())
 		{
 			R.row(index).setZero();
@@ -334,6 +329,8 @@ void mincon(
 			//deal with all position dimensions at same time when (num == 0)
 			continue;
 		}
+
+		BOOST_LOG_TRIVIAL(debug) << std::endl << str << "Noises" << std::endl << aprioriVar << std::endl << filterVar;
 
 		//get all of the position elements for this thing
 		Vector3d	filterPos = Vector3d::Zero();
@@ -385,32 +382,6 @@ void mincon(
 
 		Vector3d deltaR = filterPos - aprioriPos;
 
-		Vector3d enuNoise;
-		for (int i = 0; i < 3; i++)
-		{
-			int j = i;
-
-			if (j >= minConNoise.size())
-				j = minConNoise.size() - 1;
-
-			enuNoise(i) = minConNoise[j];		//todo aaron use sebastiens function
-		}
-
-		MatrixXd oldVarianceXYZ;
-		if (acsConfig.minconOpts.scale_by_vcv)	oldVarianceXYZ = kfStateStations.P.block(index, index, 3, 3);
-		else									oldVarianceXYZ = Matrix3d::Identity();
-
-		VectorPos pos = ecef2pos(aprioriPos);
-
-		Matrix3d E;
-		pos2enu(pos, E.data());
-
-		Matrix3d S = enuNoise.asDiagonal();
-
-		Matrix3d oldVarianceENU = E				* oldVarianceXYZ * E.transpose();
-		Matrix3d newVarianceENU = S				* oldVarianceENU * S.transpose();
-		Matrix3d newVarianceXYZ = E.transpose()	* newVarianceENU * E;
-
 		if (acsConfig.minconOpts.full_vcv == false)
 		{
 			R.middleRows(index, 3).setZero();
@@ -420,7 +391,7 @@ void mincon(
 		if	(  acsConfig.minconOpts.full_vcv == false
 			&& used)
 		{
-			R.block(index, index, 3, 3) = newVarianceXYZ;
+			R.block(index, index, 3, 3) = noise;
 		}
 
 		for (short xyz = 0; xyz < 3; xyz++)
@@ -633,7 +604,7 @@ void mincon(
 							validP.push_back(index);
 						}
 					}
-					
+
 					MatrixXd inverse = kfStateStations.P(validP, validP).inverse();
 
 					int row = 0;
@@ -647,7 +618,7 @@ void mincon(
 						}
 						row++;
 					}
-					
+
 					break;
 				}
 			}

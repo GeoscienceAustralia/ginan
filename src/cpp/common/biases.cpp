@@ -29,7 +29,7 @@ void initialiseBias()
 		if (acsConfig.process_sys[sys])
 		for (auto Sat : sats)
 		{
-			string id	= Sat.id() + ":" + Sat.sysChar();
+			string id	= Sat.id() + ":" + string(1,Sat.sysChar());
 			entry.Sat	= Sat;
 // 			entry.cod1	= acsConfig.clock_codesL1[sys];
 // 			entry.cod2	= acsConfig.clock_codesL2[sys];
@@ -366,7 +366,7 @@ bool biasRecurser(
 
 		auto& [dummy, timeBiasMap] = *it2;
 
-	
+
 		//find the last bias in that map that comes before the desired time
 		auto biasIt = timeBiasMap.lower_bound(time);
 		if (biasIt != timeBiasMap.end())

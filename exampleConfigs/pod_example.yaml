@@ -13,13 +13,13 @@ inputs:
 
     troposphere:
         gpt2grid_files: [ gpt_25.grd ]
-    
+
     tides:
         ocean_tide_loading_blq_files:   [ OLOAD_GO.BLQ                  ] # required if ocean loading is applied
         atmos_tide_loading_blq_files:   [ ALOAD_GO.BLQ                  ] # required if atmospheric tide loading is applied
         ocean_pole_tide_loading_files:  [ tables/opoleloadcoefcmcor.txt ] # required if ocean pole tide loading is applied
         ocean_tide_potential_files:     [ tables/fes2014b_Cnm-Snm.dat   ]
-    
+
     snx_files:
     # - "*.SNX" # use a wild card to include all files matching the description in the directory
     - tables/igs_satellite_metadata_2203_plus.snx
@@ -100,7 +100,7 @@ outputs:
         output_residual_chain:      true
         output_config:              true
 
-    network_statistics:           
+    network_statistics:
         output:                     true                             # (bool) Enable exporting network statistics data to file
         directory:                  ./                          # (string) Directory to export network statistics data
         filename:                   <CONFIG>_network_statistics.json # (string) Network statistics data filename
@@ -113,13 +113,13 @@ outputs:
         directory:                  ./
         filename:                   <CONFIG>_<YYYY><DDD><HH>.SNX
 
-    sp3:                                      
-        output:                     true                  
+    sp3:
+        output:                     true
         filename:                   <CONFIG>_<YYYY><DDD><HH>.SP3
         output_interval:            300 # (int) Update interval for sp3 records
 
     clocks:
-        output:                     true 
+        output:                     true
         directory:                  ./
         filename:                   <CONFIG>_<YYYY><DDD><HH>.CLK
 
@@ -162,7 +162,7 @@ satellite_options:
                 enable:                    false
                 default_bias:              0
                 undefined_sigma:           0
-        
+
         orbit_propagation: # Enable specific orbit propagation models
             area:                          15                   # Satellite area for use in solar radiation and albedo calculations
             mass:                          1000                 # Satellite mass for use if not specified in the SINEX metadata file
@@ -194,6 +194,10 @@ receiver_options:                                                 # Options to c
         code_sigma:                 0.4
         phase_sigma:                0.002 # F0, F1, F2, F5, F6, F7, F8
         clock_codes:                [AUTO, AUTO]
+
+        apriori_variance_enu:       [1, 1, 10]
+        mincon_scale_apriori_var:   1
+        mincon_scale_filter_var:    0
 
         models:
             eccentricity:
@@ -394,4 +398,5 @@ mongo:
 
 
 debug:
+    # output_mincon: true
     # mincon_only:    true
