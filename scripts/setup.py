@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
-            "gn=gn.main:gn",
+            "gn=gn.main:cli",
         ],
     },
 )

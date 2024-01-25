@@ -7,6 +7,7 @@
     Precondition: It is assumed that the ginan/inputData/products directory
     has been downloaded from S3 using python3 s3_filehandler.py -p
 """
+import logging
 import shutil
 from pathlib import Path
 from collections.abc import Iterable
@@ -113,14 +114,20 @@ def ensure_folders(paths: [Path]) -> None:
 
 
 @click.group()
-def gn():
-    """
-    CLI program for GNSS processing.
-    """
-    pass
+@click.option(
+    "--log-level",
+    type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
+    default="INFO",
+    help="Set the logging level.",
+)
+def cli(log_level):
+    """A collection of tools to prepare Ginan for processing"""
+    # Set up logging based on the provided log level
+    root_logger = logging.getLogger()
+    root_logger.setLevel(getattr(logging, log_level))
 
 
-@gn.command()
+@cli.command()
 @click.option("--ppp", is_flag=True, help="Use Precise Point Positioning (PPP).")
 @click.option("--static", is_flag=True, help="Use static mode.")
 @click.option("--rinex-path", type=click.Path(exists=True), help="Path to RINEX file.")
@@ -128,7 +135,7 @@ def gn():
 @click.option("--config-name", type=str, help="Name for the configuration.", default="network", required=False)
 def prep(ppp: bool, static: bool, rinex_path: Path, target_dir: Path, config_name: str):
     """
-    Download required IGS products and generate template YAML.
+    Downloads required IGS products and generates template YAML
     """
     if ppp and static:
         rinex_path = Path(rinex_path)
@@ -141,6 +148,7 @@ def prep(ppp: bool, static: bool, rinex_path: Path, target_dir: Path, config_nam
         new_rinex_path = data_dir / f"{rinex_path.stem}.rnx"
         shutil.copy(rinex_path, new_rinex_path)
 
+        logging.info("Parsing rinex file")
         header = parse_v3_header(rinex_path)
 
         # TODO: The pea does not allow station names of 4 digits eg. 7369 - but it would be good if it did.
@@ -148,10 +156,15 @@ def prep(ppp: bool, static: bool, rinex_path: Path, target_dir: Path, config_nam
         station_alias = header.get_station_alias()
         shutil.move(new_rinex_path, data_dir / f"{station_alias}.rnx")
 
+        logging.info("Downloading required files from IGS CDDIS...")
         download(header, download_dir)
+        logging.info("Downloads complete")
 
+        logging.info("Generating yaml config file")
         overrides = create_overrides(header, station_alias, config_name)
         yaml_path = write_yaml(target_dir, config_name=config_name, overrides=overrides)
+
+        logging.info("Ready to run the pea...")
         return yaml_path
     else:
         raise NotImplementedError(
