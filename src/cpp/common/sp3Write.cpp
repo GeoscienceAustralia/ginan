@@ -272,24 +272,28 @@ void updateSp3Body(
 			else						predictedChar = ' ';
 
 			{
-				tracepdeex(0, sp3Stream, "P%s%14.6f%14.6f%14.6f%14.6f%19s%c\n",
+				tracepdeex(0, sp3Stream, "P%s%14.6f%14.6f%14.6f%14.6f%15s%c%3s%c\n",
 						entry.Sat.id().c_str(),
 						entry.satPos.x() / 1000,
 						entry.satPos.y() / 1000,
 						entry.satPos.z() / 1000,
 						entry.satClk * 1e6,
 						"",
+						predictedChar,
+						"",
 						predictedChar);
 			}
 
 			if (acsConfig.output_sp3_velocities)
 			{
-				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f%19s%c\n",
+				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f%15s%c%3s%c\n",
 						entry.Sat.id().c_str(),
 						entry.satVel.x(),
 						entry.satVel.y(),
 						entry.satVel.z(),
 						entry.satClkVel * 1e6,
+						"",
+						predictedChar,
 						"",
 						predictedChar);
 			}

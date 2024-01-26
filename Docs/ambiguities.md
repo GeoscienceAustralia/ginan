@@ -19,7 +19,7 @@ As with any integer estimation process the ambiguity resolution for GNSS signals
 * The validity of integer ambiguities is tested using statistical tests.
 * Ambiguity states are constrained to the resolved ambiguity
 
-Ginan can be set to solve ambiguities in GPS, Galileo, Beidou and QZSS measurements. Ambiguity resolution are not supported for the GLONASS FDMA signals.
+Ginan can be set to solve ambiguities in GPS, Galileo, Beidou and QZSS measurements. Ambiguity resolution is not supported for the GLONASS FDMA signals.
 
 
 ## Real-valued ambiguity estimation
@@ -50,7 +50,7 @@ A_{r1,r2,  c}^{s1,s2} = A_{r1,c}^{s1} - A_{r1,c}^{s2} - A_{r2,c}^{s1} - A_{r2,c}
 Ginan forms these combinations by using the LAMBDA Z-transform/decorrelation, thus only algorithms using the Z-transform are effective in ambiguity resolution without using pivots.
  
 For end user processing, where the satellite phase bias $b_{c}^{s1}$ is known, a **receiver ambiguity pivot** can be applied to separate the receiver phase bias from the ambiguities.
-By setting the ambiguity for one satellite $s1$ to an arbitrary values $\tilde{z_{r,c}^{s1}}$ the receiver phase bias will be se to 
+By setting the ambiguity for one satellite $s1$ to an arbitrary value $\tilde{z_{r,c}^{s1}}$ the receiver phase bias will be se to 
 $\tilde{b_{r,c}^q}=b_{r,c}^q+\lambda_{f} (\tilde{z_{r,c}^{s1}}-z_{r,c}^{s1})$.
 This in turn will make other ambiguity estimate into solvable integers:
 \begin{equation}
@@ -70,7 +70,7 @@ The **network ambiguity pivot** performs a similar function for network processi
 	1. If the phase bias for satellite $b_{c}^{s}$ is defined but the receiver phase bias $b_{r,c}^q$ is not, define $b_{r,c}^q$ by setting $z_{r,c}^{s}$ to an arbitrary value
 1. Repeat until all phase biases are defined 
 
-Using the ambiguity pivots allows real-value estimate of ambiguity to become close to integer values and thus use ambiguity resolution techniques without Z-transform/decorrelation 
+Using the ambiguity pivots allows real-value ambiguity estimates to become close to integer values and thus use ambiguity resolution techniques without Z-transform/decorrelation.
 
 ## Integer ambiguity estimation and validation
 Once the real-valued ambiguity estimates have been calculated, they can be solved into integers. Ginan implements various methods for to perform ambiguity resolution, namely:
@@ -132,7 +132,7 @@ l''_{kj} = l_{kj} - n_{ij}l_{ki} \forall k \ge i
 by choosing $n_{ij}$ such that $|l''_{kj}|<0.5$, the correlation between transformed ambiguities $z''$ are minimized 
 The `bootst` method applies the same process as `iter_rnd` on the transformed ambiguities $z''$.
 
-The lambda methods on the other hand use a iterative fix and adjust process to select a set of ambiguities with minimum distance to the real-valued estimates.
+The lambda methods on the other hand use an iterative fix and adjust process to select a set of ambiguities with minimum distance to the real-valued estimates.
 The $R_{thres}$ and $S_{thres}$ thresholds are used in different ways. First the success rate threshold $S_{thres}$ is used to discard ambiguities that has too high an uncertainty to resolve.
 The reduction process used for lambda algorithms use a reordering process alongside the de-correlation which tends to order the $z''$ ambiguity in descending order of variance.
 Relying on this, the last $J$ ambiguities are selected for resolutions, with $J$ selected in such a way as to fulfill 
@@ -147,10 +147,10 @@ The potential integer set candidates ${\bf \hat{z''}_k}$ candidates are selected
 where ${\bf \hat{z''}_0}$ is the integer set at minimum (weighted) distance from the real-valued estimate ${\bf z''}$.
 There is also a maximum number of candidate sets set by the user.
 
-The difference between lambda methods  implemented in Ginan is the ambiguity validation/selection process. 
+The difference between lambda methods implemented in Ginan is the ambiguity validation/selection process. 
 - The `lambda` method does not make further selection (beyond the application of $S_{thres}$), it returns the full ${\bf \hat{z''}_0}$ set as resolved ambiguities.
-- The `lambda_alt` method perform full ambiguity validation, it return ${\bf \hat{z''}_0}$ if and only if there are no alternative set that passes the $R_{thres}$ test.
-- The `lambda_al2` method perform partial ambiguity validation, it returns only integer ambiguities that have common values among all candidates ${\bf \hat{z''}_k}$
+- The `lambda_alt` method performs full ambiguity validation, it returns ${\bf \hat{z''}_0}$ if and only if there is no alternative set that passes the $R_{thres}$ test.
+- The `lambda_al2` method performs partial ambiguity validation, it returns only integer ambiguities that have common values among all candidates ${\bf \hat{z''}_k}$
 - The `lambda_bie` method returns a weighted sum of all candidate sets candidates ${\bf \hat{z''}_k}$:
 \begin{equation}
 {\bf z''_{bie}}=\sum_k (\frac {exp^{-0.5{\|{\bf z''}-{\bf \hat{z''}_k}\|}^2}}{\sum_k exp^{-0.5{\|{\bf z''}-{\bf \hat{z''}_k}\|}^2}}{\bf \hat{z''}_k})

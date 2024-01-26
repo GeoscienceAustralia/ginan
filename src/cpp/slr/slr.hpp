@@ -40,15 +40,11 @@ VectorEcef satComOffSphere(
 VectorEcef satComOffGnss(
 	LObs&	obs);
 
-double getWaterVapPressure(
-	double	temperature,
-	double	humidity); // This function used in slrDataStructs.cpp
-
 void getRecPosApriori(
 	LObs&		obs,
 	Receiver&	rec);
 
-double getTropDelay(
+double laserTropDelay(
 	LObs&		obs,
 	VectorPos&	pos,
 	double		elevation);
@@ -57,13 +53,13 @@ void applyBiases(
 	LObs&	obs);
 
 void satPossSlr(
-	Trace&				trace,				///< Trace to output to
-	ObsList&			slrObsList,			///< List of observations to complete with satellite positions
-	Navigation&			nav,				///< Navigation data
-	vector<E_Source>	ephTypes,			///< Source of ephemeris data
-	E_OffsetType		offsetType,			///< Point of satellite to output position of
-	E_Relativity		applyRelativity,	///< Option to apply relativistic correction to clock
-	const KFState*		kfState_ptr);		///< Optional pointer to a kalman filter to take values from
+	Trace&				trace,
+	ObsList&			slrObsList,
+	Navigation&			nav,
+	vector<E_Source>	ephTypes,
+	E_OffsetType		offsetType,
+	E_Relativity		applyRelativity,
+	const KFState*		kfState_ptr);
 
 extern map<string, map<GTime, shared_ptr<LObs>>> slrSiteObsMap;
 

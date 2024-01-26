@@ -116,7 +116,7 @@ inline void slrTroposphere(COMMON_PPP_ARGS)
 	double dTropDx[3]		= {};
 	double varTrop			= 0;
 
-	double troposphere_m = getTropDelay(obs, pos, satStat.el);
+	double troposphere_m = laserTropDelay(obs, pos, satStat.el);
 	//calculate the trop values, variances, and gradients at the operating points
 
 	InitialState init = initialStateFromConfig(recOpts.trop);

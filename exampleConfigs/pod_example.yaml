@@ -226,25 +226,27 @@ receiver_options:                                                 # Options to c
 processing_options:
 
     process_modes:
-        preprocessor:                 true
-        spp:                          true
-        ppp:                          true
-        ionosphere:                   false
+        preprocessor:                   true
+        spp:                            true
+        ppp:                            true
 
     epoch_control:
-        epoch_interval:               300
-        wait_next_epoch:              3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
-        wait_all_receivers:           1
+        epoch_interval:                 300
+        wait_next_epoch:                3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+        wait_all_receivers:             1
+        # start_epoch:                    2019-07-18 23:55:00
+        # end_epoch:                      2019-07-19 00:05:00
+        # require_obs:                    false
 
     gnss_general:
-        rec_reference_system:         gps
-        minimise_sat_clock_offsets:   true
+        rec_reference_system:           gps
+        minimise_sat_clock_offsets:     true
         sys_options:
             gps:
-                process:              true
-                ambiguity_resolution: false
-                reject_eclipse:       false
-                code_priorities:      [ L1W, L1C, L2W ]
+                process:                true
+                ambiguity_resolution:   false
+                reject_eclipse:         false
+                code_priorities:        [ L1W, L1C, L2W ]
             # gal:
             #     process:                true
             #     ambiguity_resolution:   false

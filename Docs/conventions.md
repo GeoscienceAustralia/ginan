@@ -39,6 +39,7 @@ In this manual we will be adhering to the following conventions:
 |$\rho_i^j$  | Geometric distance between satellite and receiver|
 |$L_i^j$  | Carrier phase observable (times c) [m]|
 |$P_i^j$ |  Pseudo range observable [m]|
+|$\psi$ |  Satellite yaw [rad]|
  
 
 Example: for an undifferenced, uncombined float solution, the linearized observation equations for pseudorange and phase observations from satellite $s$ to receiver $r$ can be described as:

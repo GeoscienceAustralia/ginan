@@ -74,7 +74,7 @@ void getRecPosApriori(//todo aaron, remove this, use other function
 
 /** Calculate trop delay on SLR observation
 */
-double getTropDelay(
+double laserTropDelay(
 	LObs&		obs,		///< SLR observation
 	VectorPos&	pos,		///< Receiver position
 	double		el)	///< Elevation of sat

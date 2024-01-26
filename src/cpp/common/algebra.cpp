@@ -311,23 +311,7 @@ void KFState::manualStateTransition(
 	//output the state transition matrix to a trace file (used by RTS smoother)
 	if (rts_basename.empty() == false)
 	{
-
-		TransitionMatrixObject transitionMatrixObject;
-		transitionMatrixObject.rows = F.rows();
-		transitionMatrixObject.cols = F.cols();
-
-		for (int row = 0; row < F.rows(); row++)
-		for (int col = 0; col < F.cols(); col++)
-		{
-			double transition = F(row,col);;
-
-			if (transition == 0)
-			{
-				continue;
-			}
-
-			transitionMatrixObject.forwardTransitionMap[{row, col}] = transition;
-		}
+		TransitionMatrixObject transitionMatrixObject = F;
 
 		spitFilterToFile(transitionMatrixObject,	E_SerialObject::TRANSITION_MATRIX,	rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 	}
@@ -631,22 +615,7 @@ void KFState::stateTransition(
 	//output the state transition matrix to a trace file (used by RTS smoother)
 	if (rts_basename.empty() == false)
 	{
-		TransitionMatrixObject transitionMatrixObject;
-		transitionMatrixObject.rows = F.rows();
-		transitionMatrixObject.cols = F.cols();
-
-		for (int k = 0; k < F.outerSize(); ++k)
-		for (Eigen::SparseMatrix<double>::InnerIterator it(F, k); it; ++it)
-		{
-			double transition = it.value();
-
-			if (transition == 0)
-			{
-				continue;
-			}
-
-			transitionMatrixObject.forwardTransitionMap[{it.row(), it.col()}] = transition;
-		}
+		TransitionMatrixObject transitionMatrixObject = F;
 
 		spitFilterToFile(transitionMatrixObject,	E_SerialObject::TRANSITION_MATRIX,	rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 	}

@@ -1373,7 +1373,8 @@ void mainPerEpochPostProcessingAndOutputs(
 	ReceiverMap&	receiverMap,
 	KFState&		kfState,
 	KFState&		ionState,
-	GTime			time)
+	GTime			time,
+	bool			emptyEpoch)
 {
 // 	Instrument	instrument(__FUNCTION__);
 
@@ -1494,7 +1495,7 @@ void mainPerEpochPostProcessingAndOutputs(
 
 	if (acsConfig.output_sp3)
 	{
-		outputSp3(acsConfig.sp3_filename, time, acsConfig.sp3_orbit_sources, acsConfig.sp3_clock_sources, &tempAugmentedKF);
+		outputSp3(acsConfig.sp3_filename, time, acsConfig.sp3_orbit_sources, acsConfig.sp3_clock_sources, &tempAugmentedKF, emptyEpoch);
 	}
 
 	if (acsConfig.output_orbex)
@@ -1700,7 +1701,7 @@ void mainOncePerEpoch(
 
 	auto& kfState = *kfState_ptr;
 
-	mainPerEpochPostProcessingAndOutputs(pppNet, ionNet, receiverMap, kfState, ionNet.kfState, time);
+	mainPerEpochPostProcessingAndOutputs(pppNet, ionNet, receiverMap, kfState, ionNet.kfState, time, emptyEpoch);
 
 	if (acsConfig.delete_old_ephemerides)
 	{
@@ -1774,7 +1775,7 @@ void mainPostProcessing(
 				if (pass == false)
 				{
 					BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos.Sat.id() << ".";
-					return;
+					continue;
 				}
 
 				satNav.aprioriPos = frameSwapper(satPos.rSatCom);

@@ -265,7 +265,7 @@ void pseudoRecDcb(
 {
 	string doneRec;
 	SatSys doneSat;
-	
+
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		if (key.type != KF::CODE_BIAS)
@@ -286,76 +286,78 @@ void pseudoRecDcb(
 		{
 			continue;
 		}
-		
+
 		auto sys = key.Sat.sys;
-		
+
 		doneRec = key.str;
 		doneSat = key.Sat;
-		
+
 		auto& recSysOpts = acsConfig.getRecOpts(rec.id, {sys._to_string()});
-		
+
 		if (recSysOpts.zero_dcb_codes.size() != 2)
 		{
 			continue;
 		}
-		
+
 		auto& firstCode		= recSysOpts.zero_dcb_codes[0];
 		auto& secondCode	= recSysOpts.zero_dcb_codes[1];
-		
+
 		list<KFKey> codeBiasKeys;
-	
+
 		auto it = kfState.kfIndexMap.find(key);
-		
+
 		KFKey testKey;
-		while	(testKey = it->first,	  testKey.type	== +KF::CODE_BIAS
-										&&testKey.str	== rec.id)
+		while	(  it != kfState.kfIndexMap.end()
+				&& (testKey = it->first, true)
+				&& testKey.type	== +KF::CODE_BIAS
+				&& testKey.str	== rec.id)
 		{
 			codeBiasKeys.push_back(testKey);
 			++it;
 		}
-		
+
 		if	( firstCode		== +E_ObsCode::AUTO
 			||secondCode	== +E_ObsCode::AUTO)
 		{
 			//get all available codes in priority order to resolve the autos
-			
-		
+
+
 			codeBiasKeys.sort([sys](KFKey& a, KFKey& b)
 				{
 					auto& code_priorities = acsConfig.code_priorities[sys];
-					
+
 					auto iterA = std::find(code_priorities.begin(), code_priorities.end(), E_ObsCode::_from_integral(a.num));
 					auto iterB = std::find(code_priorities.begin(), code_priorities.end(), E_ObsCode::_from_integral(b.num));
 
 					if (iterA < iterB)	return true;
 					else				return false;
 				});
-			
+
 			for (auto& code_ptr : {&firstCode, &secondCode})
 			{
 				auto& code = *code_ptr;
-				
+
 				if (code != +E_ObsCode::AUTO)
 				{
 					continue;
 				}
-				
+
 				//need to replace this code with the first one found in the sorted code_priorities
-				
+
 				for (auto& codeBiasKey : codeBiasKeys)
 				{
 					E_ObsCode keyCode = E_ObsCode::_from_integral(codeBiasKey.num);
-					
+
 					if (code2Freq[sys][keyCode] == code2Freq[sys][firstCode])
 					{
 						//would duplicate frequency, skip. (also works for auto in firstCode)
 						continue;
 					}
-					
+
 					code = keyCode;
-					
+
 					BOOST_LOG_TRIVIAL(debug) << "Setting zero_dcb_code for " << key.str << " " << sys._to_string() << " to " << code;
-					
+
 					break;
 				}
 			}
@@ -363,7 +365,7 @@ void pseudoRecDcb(
 
 		KFKey key1 = key;	key1.num = firstCode;
 		KFKey key2 = key;	key2.num = secondCode;
-				
+
 		if	( std::find(codeBiasKeys.begin(), codeBiasKeys.end(), key1)	== codeBiasKeys.end()
 			||std::find(codeBiasKeys.begin(), codeBiasKeys.end(), key2)	== codeBiasKeys.end())
 		{

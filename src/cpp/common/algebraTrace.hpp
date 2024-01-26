@@ -57,6 +57,65 @@ struct TransitionMatrixObject
 		ar & rows;
 		ar & cols;
 	}
+
+	TransitionMatrixObject()
+	{
+
+	}
+
+	TransitionMatrixObject(
+		const MatrixXd& rhs)
+	{
+		forwardTransitionMap.clear();
+		rows = rhs.rows();
+		cols = rhs.cols();
+
+		for (int row = 0; row < rhs.rows(); row++)
+		for (int col = 0; col < rhs.cols(); col++)
+		{
+			double transition = rhs(row,col);
+
+			if (transition == 0)
+			{
+				continue;
+			}
+
+			forwardTransitionMap[{row, col}] = transition;
+		}
+	}
+
+	TransitionMatrixObject(
+		const SparseMatrix<double>& rhs)
+	{
+		forwardTransitionMap.clear();
+		rows = rhs.rows();
+		cols = rhs.cols();
+
+		for (int k = 0; k < rhs.outerSize(); ++k)
+		for (Eigen::SparseMatrix<double>::InnerIterator it(rhs, k); it; ++it)
+		{
+			double transition = it.value();
+
+			if (transition == 0)
+			{
+				continue;
+			}
+
+			forwardTransitionMap[{it.row(), it.col()}] = transition;
+		}
+	}
+
+	MatrixXd asMatrix()
+	{
+		MatrixXd transition = MatrixXd::Zero(rows, cols);
+
+		for (auto& [keyPair, value] : forwardTransitionMap)
+		{
+			transition(keyPair.first, keyPair.second) = value;
+		}
+
+		return transition;
+	}
 };
 
 extern map<short int, string> idStringMap;

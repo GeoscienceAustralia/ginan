@@ -56,7 +56,7 @@ In these equations:
 | $b_{c}^s$ 	| satellite ionosphere-free phase bias (m)																		|
 | $\lambda_{f}$ | the signal wavelength for carrier frequency $f$(m)															|
 | $z_{r,c}^S$	| carrier phase ambiguity (cycle)																				|
-| $\phi^s_{r,f}$| Deterministic corrections (PCO,PCV,phase windup, etc.)														|
+| $\phi^s_{r,f}$| Deterministic corrections (PCO, PCV, phase windup, etc.)														|
 
 High accuracy GNSS position estimation requires precise estimation of the geometric distance  $\rho_{r}^s$. The effect of other parameters in the observation equations need to be eliminated either by modelling/estimating or, in the case of ionosphere delays, by using linear combinations.
  
@@ -64,8 +64,8 @@ For PPP processing, the geometric distance  $\rho_{r}^s$ is linearized around a-
 \begin{equation} \label{eq:rho_mean}
 \rho_{r}^{s} = \sqrt{X^{s-} - X_r^-}+\Delta X^{s} - \Delta X_r
 \end{equation}
-where $X^{s-}$ is the a-priory satellite position with respect to the earth centre and $X_r^-$ the receiver/station position.
-The satellite position can be assumed known, and read from external sources, or estimated from the GNSS measurements. When estimated by Ginan, the a-priori satellite position is defined as a function of initial satellite position, initial satellite velocity and up to 15 solar radiation pressure parameters as explained in [Orbit Modelling](#orbit-modelling) . Then the each satellite position component is linearized with respect to the orbit parameters.
+where $X^{s-}$ is the a-priori satellite position with respect to the Earth centre and $X_r^-$ the receiver/station position.
+The satellite position can be assumed known, and read from external sources, or estimated from the GNSS measurements. When estimated by Ginan, the a-priori satellite position is defined as a function of initial satellite position, initial satellite velocity and up to 15 solar radiation pressure parameters as explained in [Orbit Modelling](#orbit-modelling). Then each satellite position component is linearized with respect to the orbit parameters.
 \begin{equation} \label{eq:sat_pos_linear}
 \Delta X^{s} = - \dot {e_{rec}} {\sum{ \frac{\partial X^{s} } {\partial OP_{i} } \Delta OP_{i} }}
 \end{equation}
@@ -75,12 +75,12 @@ The station/receiver position can be assumed known (and read from a SINEX file),
 \begin{equation} \label{eq:rec_pos_linear}
 \Delta X_r =  \dot {e_{rec}} { \Delta X_r }
 \end{equation} 
-$\Delta X_r$ is the difference between the estimated and the a-priori value of $X_r$. The SPP is calculated each epoch by applying iterative least squares on pseudorange measurements (SPP is initialised at the centre of earth and updated for each of up to a 10 iterations).
+$\Delta X_r$ is the difference between the estimated and the a-priori value of $X_r$. The SPP is calculated each epoch by applying iterative least squares on pseudorange measurements (SPP is initialised at the centre of Earth and updated for each of up to a 10 iterations).
 
 Satellite clock offsets can be assumed known, and obtained from external sources, or estimated as a random walk variable. the receiver clock is modelled as a random walk variable.
 
 ## Troposphere modelling
-The tropospheric delays are separated into two components: the hydrostatic delay (dependent on temperature and pressure), and the wet delay (dependent also on humidity). Each component can be expressed as the product of a zenith delay and an elevation based mapping. 
+The tropospheric delays are separated into two components: the hydrostatic delay (dependent on temperature and pressure), and the wet delay (dependent also on humidity). Each component can be expressed as the product of a zenith delay and an elevation-based mapping. 
 \begin{equation}
  \tau_r^s = m_{H}(\theta_{el,r}^s) \tau_{ZHD,r} +  m_{W}(\theta_{el,r}^s) \tau_{ZWD,r} 
 \end{equation}
@@ -97,7 +97,7 @@ The raw ionosphere delay seem by a GNSS signal is modelled as the sum of up to t
  \begin{equation}
  I_{r}^{s'} = \frac{40.3 10^{16}}{f^{2}} STEC_r^s + \frac{7527 * 10^{16} \lambda_f (R_B \cdot e_r^s)}{f^{2}}STEC_r^s + \frac{2437.12557 * 10^{16}}{f^{4}} I3_{r}^{s}(STEC_r^{s})
 \end{equation}
-where $R_B$ is the earths geomagnetic field at the signal ionosphere piercing point, and $e_r^s$ is the normilized satellite-receiver vector. For carrier phase:
+where $R_B$ is the Earth's geomagnetic field at the signal ionosphere piercing point, and $e_r^s$ is the normalized satellite-receiver vector. For carrier phase:
  \begin{equation}
  I_{r}^{s'} = -\frac{40.3 10^{16}}{f^{2}} STEC_r^s - \frac{3763.5 * 10^{16} \lambda_f (R_B \cdot e_r^s)}{f^{2}}STEC_r^s - \frac{812.37519 * 10^{16}}{f^{4}} I3_{r}^{s}(STEC_r^{s})
 \end{equation}
@@ -113,7 +113,7 @@ In addition to the raw components, estimation of ionosphere maps can also be inc
 \end{equation}
 in this case the ionosphere modelling coefficients $k_{Ion}(i)$ should be estimated as a random walk variable, while a first order Gauss-Markov model would suit the slant TEC residuals $STEC_r^s$.
 
-It is also possible to set the Ginan to use **ionosphere-free linear combinations** of measurements. When doing so, Ginan forms the following ionosphere-free combinations from any two signals (with diffferent frequencies $C1$ and $C2$) used by the receiver.
+It is also possible to set the Ginan to use **ionosphere-free linear combinations** of measurements. When doing so, Ginan forms the following ionosphere-free combinations from any two signals (with different frequencies $C1$ and $C2$) used by the receiver.
 \begin{equation}
  P_{r,IF}^{s} = \mu_{C2} P_{r,C1} - \mu_{C1} P_{r,C2} 
 \end{equation}

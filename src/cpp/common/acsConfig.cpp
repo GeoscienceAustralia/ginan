@@ -992,11 +992,13 @@ void ACSConfig::info(
 	if (output_ionosphere_trace)			{	ss << "\tionosphere trace filename:     " << ionosphere_trace_filename 			<< "\n"; }
 	if (output_clocks)						{	ss << "\tclocks filename:               " << clocks_filename 					<< "\n"; }
 	if (output_ionex)						{	ss << "\tionex filename:                " << ionex_filename 					<< "\n"; }
+	if (output_sinex)						{	ss << "\tsinex filename:                " << sinex_filename 					<< "\n"; }
 	if (output_ionstec)						{	ss << "\tionstec filename:              " << ionstec_filename 					<< "\n"; }
 	if (output_bias_sinex)					{	ss << "\tbias sinex filename:           " << bias_sinex_filename				<< "\n"; }
 	if (output_cost)						{	ss << "\tcost filename:                 " << cost_filename						<< "\n"; }
 	if (output_trop_sinex)					{	ss << "\ttrop sinex filename:           " << trop_sinex_filename				<< "\n"; }
 	if (output_gpx)							{	ss << "\tgpx filename:                  " << gpx_filename						<< "\n"; }
+	if (output_sp3)							{	ss << "\tsp3 filename:                  " << sp3_filename						<< "\n"; }
 	if (output_decoded_rtcm_json)			{	ss << "\tdecoded rtcm json filename:    " << decoded_rtcm_json_filename			<< "\n"; }
 	if (output_encoded_rtcm_json)			{	ss << "\tencoded rtcm json filename:    " << encoded_rtcm_json_filename			<< "\n"; }
 

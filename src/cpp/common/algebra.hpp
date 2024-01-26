@@ -399,7 +399,34 @@ struct KFState : KFState_
 		ar & time;
 		ar & x;
 		ar & dx;
-		ar & P;
+
+		double num;
+		int rows = P.rows();
+		ar & rows;
+
+		if (ARCHIVE::is_saving::value)
+		{
+			for (int i = 0; i <  P.rows();	i++)
+			for (int j = 0; j <= i;			j++)
+			{
+				num = P(i,j);
+
+				ar & num;
+			}
+		}
+		else
+		{
+			P = MatrixXd(rows,rows);
+
+			for (int i = 0; i <  P.rows();	i++)
+			for (int j = 0; j <= i;			j++)
+			{
+				ar & num;
+
+				P(i,j) = num;
+				P(j,i) = num;
+			}
+		}
 	}
 
 	void	initFilterEpoch();

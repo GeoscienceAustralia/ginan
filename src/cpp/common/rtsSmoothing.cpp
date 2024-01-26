@@ -315,17 +315,7 @@ KFState rtsSmoothing(
 					return KFState();
 				}
 
-//				std::cout << "Setting transition matrix " << transistionMatrixObject.rows << std::endl;
-
-// 				transitionMatrix = MatrixXd::Zero(transistionMatrixObject.rows, transistionMatrixObject.cols);
-
-				MatrixXd transition = MatrixXd::Zero(transistionMatrixObject.rows, transistionMatrixObject.cols);
-				for (auto& [keyPair, value] : transistionMatrixObject.forwardTransitionMap)
-				{
-					transition(keyPair.first, keyPair.second) = value;
-				}
-
-				transitionMatrix = (transitionMatrix * transition).eval();
+				transitionMatrix = (transitionMatrix * transistionMatrixObject.asMatrix()).eval();
 
 				break;
 			}
