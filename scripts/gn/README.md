@@ -4,7 +4,17 @@ This is a collection of tools to help you prepare your own data to run with Gina
 
 ## Getting started
 
-Ensure you have created a virtual environment in the `scripts` folder and installed the `requirements.txt`.
+Ensure you have created a virtual environment in the `scripts` folder and installed the `requirements.txt`. See [here](https://docs.python.org/3/library/venv.html) for more information.
+
+```
+cd /path/to/ginan/scripts
+
+# Create a new virtualenv
+python -m venv env
+
+# Install requirements
+pip install -r requirements.txt
+```
 
 Also ensure you have run `python3 scripts/s3_filehandler.py -d -p` to populate the `inputData` folder with the constants that `pea` depends on.
 
