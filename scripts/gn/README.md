@@ -45,7 +45,7 @@ One the pea has finished running, open up the sinex file in the `workspace/test/
 * Only works on RINEX files collected after 2022-11-27 (long filenames started on CDDIS)
 * Only handles a single RINEX file at a time
 * Only handle downloads from CDDIS
-* Recommendation to use RINEX files with >6 hours of data. The generated yaml configuration has ambiguity resolution is turned off, so while pea will still run with a shorter observation session, the results may be well off.
+* Recommendation to use RINEX files with >6 hours of data. The generated yaml configuration has ambiguity resolution turned off, so while pea will still run with a shorter observation session, the results may be much less accurate.
 
 The prep command will be enhanced over time to support a wider range of use cases.
 

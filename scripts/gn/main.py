@@ -204,6 +204,6 @@ def prep(ppp: bool, static: bool, rinex_path: Path, workspace_root: Path, worksp
         return yaml_path
     else:
         raise NotImplementedError(
-            "Only static ppp is supported through this interface - include --static --ppp"
+            "Only static ppp is supported through this interface - include --static --ppp "
             "You could modify an example template to run other configurations with pea"
         )
