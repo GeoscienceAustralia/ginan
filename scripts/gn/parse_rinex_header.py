@@ -15,12 +15,6 @@ import xarray
 GNSS_SYSTEMS = {"G": "gps", "R": "glo", "S": "sbas", "C": "bds", "E": "gal", "J": "qzs"}
 
 
-class Receiver(NamedTuple):
-    number: str
-    type: str
-    version: str
-
-
 class AntennaDeltas(NamedTuple):
     height: float
     north: float
@@ -48,7 +42,6 @@ class ApproxPosition(NamedTuple):
 
 class RinexHeader(NamedTuple):
     marker_name: str
-    receiver: Receiver
     antenna: Antenna
     approx_position: ApproxPosition
     first_obs_time: datetime
@@ -77,37 +70,23 @@ def parse_v3_header(filepath: Path) -> RinexHeader:
 
     marker_name = header["MARKER NAME"].strip()
 
-    # TODO: Handle the case when not all the fields are given - can't unpack 3 fields when there are only two values
-    # rec_type = _parse_receiver(header)
-    rec_type = header["REC # / TYPE / VERS"].strip()
     antenna_type, antenna_dh, antenna_de, antenna_dn = _parse_antenna(header)
     approx_x, approx_y, approx_z = _parse_approx_position(header)
     first_obs_time = _parse_first_obs_time(header)
     last_obs_time = _parse_last_obs_time(header)
 
-    receiver = Receiver(number="", type=rec_type, version="")
     antenna_deltas = AntennaDeltas(height=antenna_dh, north=antenna_dn, east=antenna_de)
     antenna = Antenna(type=antenna_type, deltas=antenna_deltas)
     approx_position = ApproxPosition(x=approx_x, y=approx_y, z=approx_z)
 
     return RinexHeader(
         marker_name=marker_name,
-        receiver=receiver,
         antenna=antenna,
         approx_position=approx_position,
         first_obs_time=first_obs_time,
         last_obs_time=last_obs_time,
         sys_signals=sys_signals,
     )
-
-
-def _parse_receiver(header: dict) -> Tuple[str, str, str]:
-    # Receiver
-    receiver = header["REC # / TYPE / VERS"].strip()
-
-    # Split on multiple spaces because there could be spaces in receiver type
-    rec_num, rec_type, rec_version = re.split(r"\s{2,}", receiver)
-    return rec_num, rec_type, rec_version
 
 
 def _parse_antenna(header: dict) -> Tuple[str, float, float, float]:

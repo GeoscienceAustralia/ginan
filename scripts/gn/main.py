@@ -53,7 +53,6 @@ def create_station_overrides(rinex_header: RinexHeader, station_alias: str) -> [
         (["receiver_options", station_alias, "antenna_type"], rinex_header.antenna.type),
         (["receiver_options", station_alias, "apriori_position"], rinex_header.approx_position.get_apriori_position()),
         (["receiver_options", station_alias, "models", "eccentricity"], eccentricity),
-        (["receiver_options", station_alias, "receiver_type"], rinex_header.receiver.type),
     ]
     return overrides
 
