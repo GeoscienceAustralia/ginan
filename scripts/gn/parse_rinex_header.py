@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Tuple, NamedTuple, Optional, Dict
 import re
 
-import georinex as gr
+import georinex
 import xarray
 
 # Mappings from character code to Ginan name
@@ -66,13 +66,13 @@ class RinexHeader(NamedTuple):
 
 
 def parse_v3_header(filepath: Path) -> RinexHeader:
-    header = gr.rinexheader(filepath)
+    header = georinex.rinexheader(filepath)
     if int(header["version"]) != 3:
         raise NotImplementedError("Only RINEX v3 is currently supported")
 
     # Load observations to determine which signals have been observed
     # by the receiver for each gnss system (GPS, Galileo etc)
-    obs = gr.load(filepath)
+    obs = georinex.load(filepath)
     sys_signals = _get_signals_per_system(obs)
 
     marker_name = header["MARKER NAME"].strip()
