@@ -13,7 +13,7 @@ cd /path/to/ginan/scripts
 python -m venv env
 
 # Activate the virtualenv
-. env/bin/activate
+source env/bin/activate
 
 # Install requirements
 pip install -r requirements.txt
