@@ -12,8 +12,14 @@ cd /path/to/ginan/scripts
 # Create a new virtualenv
 python -m venv env
 
+# Activate the virtualenv
+. env/bin/activate
+
 # Install requirements
 pip install -r requirements.txt
+
+# Install gn
+pip install .
 ```
 
 Also ensure you have run `python3 scripts/s3_filehandler.py -d -p` to populate the `inputData` folder with the constants that `pea` depends on.
