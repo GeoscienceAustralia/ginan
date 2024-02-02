@@ -27,20 +27,19 @@ using std::map;
 
 struct ClockEntry
 {
-	string			id		= "";		// Either station of satellite.
-	string			monid	= "";		// Monument identification, receiver.
-	Vector3d		recPos	= {};		// Receiver position.
-	double	 		clock	= 0;		// Mean clock delta reference.
-	double	 		sigma	= 0;		// Standard deviation.
-	bool	 		isRec	= true;		// If true is receiver clock data.
-	vector<int>		clkIndices;
+	string		id		= "";		// Either station of satellite.
+	string		monid	= "";		// Monument identification, receiver.
+	Vector3d	recPos	= {};		// Receiver position.
+	double	 	clock	= 0;		// Mean clock delta reference.
+	double	 	sigma	= 0;		// Standard deviation.
+	bool	 	isRec	= true;		// If true is receiver clock data.
 };
 
 typedef std::vector<ClockEntry> ClockList;
 
 void outputRinexClocksBody(
 	string&		filename,	    ///< Path to output file.
-	ClockList&	clkEntryList,	   ///< List of data to print.
+	ClockList&	clkList,	    ///< List of data to print.
 	GTime&		time)		    ///< Epoch time.
 {
 	std::ofstream clockFile(filename, std::ofstream::app);
@@ -53,15 +52,15 @@ void outputRinexClocksBody(
 
 	GEpoch ep = time;
 
-	for (auto& clkEntry : clkEntryList)
+	for (auto& clkVal : clkList)
 	{
 		string dataType;
-		if (clkEntry.isRec)	dataType = "AR";	// Result for receiver clock.
+		if (clkVal.isRec)	dataType = "AR";	// Result for receiver clock.
 		else				dataType = "AS";	// Result for satellite clock.
 
 		int numData = 2; // Number of data values is 2, clock and sigma.
 		tracepdeex(0,clockFile,"%2s %-4s %4d%3d%3d%3d%3d%10.6f%3d   %19.12E %19.12E\n",
-			dataType.c_str(), clkEntry.id.c_str(),
+			dataType.c_str(), clkVal.id.c_str(),
 			(int) ep[0],
 			(int) ep[1],
 			(int) ep[2],
@@ -69,22 +68,19 @@ void outputRinexClocksBody(
 			(int) ep[4],
 				ep[5],
 			numData,
-			clkEntry.clock,
-			clkEntry.sigma);
+			clkVal.clock,
+			clkVal.sigma);
 	}
 }
 
 void getKalmanSatClks(
-	ClockList&			clkEntryList,
+	ClockList&			clkValList,
 	map<E_Sys, bool>&	outSys,
 	KFState&			kfState)
 {
-	map<string, ClockEntry> clockEntries;
-
-	for (auto& [key, index] : kfState.kfIndexMap)
+	for (auto& [key,index] : kfState.kfIndexMap)
 	{
-		if	( key.type				!= KF::SAT_CLOCK
-			||outSys[key.Sat.sys]	== false)
+		if (key.type != KF::SAT_CLOCK)
 		{
 			continue;
 		}
@@ -93,29 +89,24 @@ void getKalmanSatClks(
 		double variance	= 0;
 		kfState.getKFValue(key, clk, &variance);
 
-		ClockEntry& clkEntry = clockEntries[key.Sat.id()];
-		clkEntry.id		= key.Sat.id();
-		clkEntry.isRec	= false;
+		if (!outSys[key.Sat.sys])
+			continue;
 
-		clkEntry.clkIndices.push_back(index);
-	}
+		ClockEntry clkVal;
+		clkVal.id		= key.Sat.id();
+		clkVal.clock	= clk / CLIGHT;
+		clkVal.sigma	= sqrt(variance) / CLIGHT;
+		clkVal.isRec	= false;
 
-	for (auto& [id, clkEntry] : clockEntries)
-	{
-		clkEntry.clock = 		kfState.x(clkEntry.clkIndices						).sum()		/ CLIGHT;
-		clkEntry.sigma = sqrt(	kfState.P(clkEntry.clkIndices, clkEntry.clkIndices	).sum())	/ CLIGHT;
-
-		clkEntryList.push_back(clkEntry);
+		clkValList.push_back(clkVal);
 	}
 }
 
 void getKalmanRecClks(
-	ClockList&	clkEntryList,
+	ClockList&	clkValList,
 	ClockEntry&	referenceRec,
 	KFState& 	kfState)
 {
-	map<string, ClockEntry> clockEntries;
-
 	SatSys firstSys;
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
@@ -130,11 +121,11 @@ void getKalmanRecClks(
 			double variance	= 0;
 			kfState.getKFValue(key, clk, &variance);
 
-			ClockEntry& clkEntry = clockEntries[key.str];
-			clkEntry.id		= key.str;
-			clkEntry.isRec	= true;
-
-			clkEntry.clkIndices.push_back(index);
+			ClockEntry clkVal;
+			clkVal.id		= key.str;
+			clkVal.clock	= clk / CLIGHT;
+			clkVal.sigma	= sqrt(variance) / CLIGHT;
+			clkVal.isRec	= true;
 
 			if (key.rec_ptr == nullptr)
 			{
@@ -143,9 +134,11 @@ void getKalmanRecClks(
 			}
 			else
 			{
-				clkEntry.monid	= key.rec_ptr->snx.id_ptr->domes;
-				clkEntry.recPos	= key.rec_ptr->snx.pos;
+				clkVal.monid  = key.rec_ptr->snx.id_ptr->domes;
+				clkVal.recPos = key.rec_ptr->snx.pos;
 			}
+
+			clkValList.push_back(clkVal);
 		}
 
 		if	(  key.type		== KF::REC_SYS_BIAS
@@ -162,19 +155,11 @@ void getKalmanRecClks(
 			}
 		}
 	}
-
-	for (auto& [id, clkEntry] : clockEntries)
-	{
-		clkEntry.clock = 		kfState.x(clkEntry.clkIndices						).sum()		/ CLIGHT;
-		clkEntry.sigma = sqrt(	kfState.P(clkEntry.clkIndices, clkEntry.clkIndices	).sum())	/ CLIGHT;
-
-		clkEntryList.push_back(clkEntry);
-	}
 }
 
 void getPreciseRecClks(
-	ClockList&  	clkEntryList,
-	ReceiverMap*	receiverMap_ptr,
+	ClockList&  	clkValList,
+	ReceiverMap*		receiverMap_ptr,
 	GTime& 			time)
 {
 	if (receiverMap_ptr == nullptr)
@@ -198,20 +183,20 @@ void getPreciseRecClks(
 			continue;
 		}
 
-		ClockEntry clkEntry;
-		clkEntry.id		= rec.id;
-		clkEntry.clock	= dt;
-		clkEntry.sigma	= sqrt(variance);
-		clkEntry.isRec	= true;
-		clkEntry.monid	= rec.snx.id_ptr->domes;
-		clkEntry.recPos	= rec.snx.pos;
+		ClockEntry clkVal;
+		clkVal.id		= rec.id;
+		clkVal.clock	= dt;
+		clkVal.sigma	= sqrt(variance);
+		clkVal.isRec	= true;
+		clkVal.monid	= rec.snx.id_ptr->domes;
+		clkVal.recPos	= rec.snx.pos;
 
-		clkEntryList.push_back(clkEntry);
+		clkValList.push_back(clkVal);
 	}
 }
 
 void getSatClksFromEph(
-	ClockList&  		clkEntryList,
+	ClockList&  		clkValList,
 	GTime& 				time,
 	map<E_Sys, bool>&	outSys,
 	vector<E_Source>	ephType)
@@ -238,19 +223,19 @@ void getSatClksFromEph(
 			continue;
 		}
 
-		ClockEntry clkEntry;
-		clkEntry.id		= Sat.id();
-		clkEntry.clock	= obs.satClk;
-		clkEntry.sigma	= sqrt(obs.satClkVar);
-		clkEntry.isRec	= false;
+		ClockEntry clkVal;
+		clkVal.id		= Sat.id();
+		clkVal.clock	= obs.satClk;
+		clkVal.sigma	= sqrt(obs.satClkVar);
+		clkVal.isRec	= false;
 
-		clkEntryList.push_back(clkEntry);
+		clkValList.push_back(clkVal);
 	}
 }
 
 void outputRinexClocksHeader(
 	string&				filename,			///< Path of tile to output to
-	ClockList&			clkEntryList,		///< List of clock values to output
+	ClockList&			clkValList,			///< List of clock values to output
 	ClockEntry&			referenceRec,		///< Entry for the reference receiver
 	map<E_Sys, bool>&	sysMap,				///< Options to enable outputting of specific systems
 	GTime				time)				///< Epoch time
@@ -274,12 +259,12 @@ void outputRinexClocksHeader(
 
 	string clkRefStation = referenceRec.id;
 
-	int numRecs = 0;
-	for (auto clkEntry : clkEntryList)
+	int num_recs = 0;
+	for (auto clkVal : clkValList)
 	{
-		if (clkEntry.isRec)
+		if (clkVal.isRec)
 		{
-			numRecs++;
+			num_recs++;
 		}
 	}
 
@@ -313,28 +298,28 @@ void outputRinexClocksHeader(
 
 	// Note clkRefStation can be a zero length string.
 	tracepdeex(0,clockFile,"%-4s %-20s%35s%s\n", "", clkRefStation.c_str(),"",										"ANALYSIS CLK REF");
-	tracepdeex(0,clockFile,"%6d    %-50s%s\n", numRecs, "IGS14",													"# OF SOLN STA / TRF");
+	tracepdeex(0,clockFile,"%6d    %-50s%s\n", num_recs, "IGS14",													"# OF SOLN STA / TRF");
 	// MM This line causes the clock combination software to crash to removing
 	//tracepdeex(0,clockFile,"%-60s%s\n",acsConfig.rinex_comment,												"COMMENT");
 
 	/* output receiver id and coordinates */
 
-	for (auto& clkEntry : clkEntryList)
+	for (auto& clkVal : clkValList)
 	{
-		if (clkEntry.isRec == false)
+		if (clkVal.isRec == false)
 		{
 			continue;
 		}
 
-		string idStr  = clkEntry.id		.substr(0,4);
-		string monuid = clkEntry.monid	.substr(0,20);
+		string idStr  = clkVal.id	.substr(0,4);
+		string monuid = clkVal.monid.substr(0,20);
 
 		tracepdeex(0,clockFile,"%-4s ",idStr.c_str());
 		tracepdeex(0,clockFile,"%-20s",monuid.c_str());
 		tracepdeex(0,clockFile,"%11.0f %11.0f %11.0f%s\n",
-				clkEntry.recPos(0) * 1000,
-				clkEntry.recPos(1) * 1000,
-				clkEntry.recPos(2) * 1000,
+				clkVal.recPos(0) * 1000,
+				clkVal.recPos(1) * 1000,
+				clkVal.recPos(2) * 1000,
 				"SOLN STA NAME / NUM");
 	}
 
@@ -354,7 +339,7 @@ void outputRinexClocksHeader(
 	if (sysMap[E_Sys::GAL])	for (int prn = 1; prn <= NSATGAL; prn++)	{k++;	SatSys s(E_Sys::GAL,prn);	tracepdeex(0,clockFile,"%3s ",	s.id().c_str());	if (k % 15 == 0) tracepdeex(0,clockFile,"%s\n","PRN LIST");}
 	if (sysMap[E_Sys::BDS])	for (int prn = 1; prn <= NSATBDS; prn++)	{k++;	SatSys s(E_Sys::BDS,prn);	tracepdeex(0,clockFile,"%3s ",	s.id().c_str());	if (k % 15 == 0) tracepdeex(0,clockFile,"%s\n","PRN LIST");}
 	if (sysMap[E_Sys::QZS])	for (int prn = 1; prn <= NSATQZS; prn++)	{k++;	SatSys s(E_Sys::QZS,prn);	tracepdeex(0,clockFile,"%3s ",	s.id().c_str());	if (k % 15 == 0) tracepdeex(0,clockFile,"%s\n","PRN LIST");}
-	/*finish the line*/						while (k % 15 != 0)					{k++;						tracepdeex(0,clockFile,"%3s ",	"");				if (k % 15 == 0) tracepdeex(0,clockFile,"%s\n","PRN LIST");}
+	/*finish the line*/						while (k % 15 != 0)					{k++;								tracepdeex(0,clockFile,"%3s ",	"");				if (k % 15 == 0) tracepdeex(0,clockFile,"%s\n","PRN LIST");}
 
 	tracepdeex(0,clockFile,"%-60s%s\n","","END OF HEADER");
 }
@@ -367,34 +352,34 @@ void outputClocksSet(
 	GTime&				time,
 	map<E_Sys, bool>&	outSys,
 	KFState&			kfState,
-	ReceiverMap*		receiverMap_ptr)
+	ReceiverMap*			receiverMap_ptr)
 {
-	ClockList	clkEntryList;
-	ClockEntry	referenceRec;
+	ClockList  clkValList;
+	ClockEntry referenceRec;
 	referenceRec.isRec = false;
 
 	switch (clkDataSatSrcs.front())		//todo aaron, remove this function
 	{
 		case +E_Source::NONE:																				break;
-		case +E_Source::KALMAN:				getKalmanSatClks(clkEntryList, outSys, kfState);				break;
+		case +E_Source::KALMAN:				getKalmanSatClks(clkValList, outSys, kfState);					break;
 		case +E_Source::PRECISE:			//fallthrough
 		case +E_Source::BROADCAST:			//fallthrough
-		case +E_Source::SSR:				getSatClksFromEph(clkEntryList, time, outSys, clkDataSatSrcs);	break;
+		case +E_Source::SSR:				getSatClksFromEph(clkValList, time, outSys, clkDataSatSrcs);	break;
 		default:	BOOST_LOG_TRIVIAL(error) << "Error: Unknown / Undefined clock data source.";			return;
 	}
 
 	switch (clkDataRecSrcs.front())
 	{
 		case +E_Source::NONE:																			break;
-		case +E_Source::KALMAN:				getKalmanRecClks(clkEntryList, referenceRec, kfState);		break;
-		case +E_Source::PRECISE:			getPreciseRecClks(clkEntryList, receiverMap_ptr, time);		break;
+		case +E_Source::KALMAN:				getKalmanRecClks(clkValList, referenceRec, kfState);		break;
+		case +E_Source::PRECISE:			getPreciseRecClks(clkValList, receiverMap_ptr, time);		break;
 		case +E_Source::SSR:				//fallthrough
 		case +E_Source::BROADCAST:			//fallthrough
 		default:	BOOST_LOG_TRIVIAL(error) << "Error: Printing receiver clocks for " << clkDataRecSrcs.front()._to_string() << " not implemented.";	return;
 	}
 
-	outputRinexClocksHeader	(filename, clkEntryList, referenceRec, outSys, time);
-	outputRinexClocksBody	(filename, clkEntryList, time);
+	outputRinexClocksHeader(filename, clkValList, referenceRec, outSys, time);
+	outputRinexClocksBody(filename, clkValList, time);
 }
 
 map<string, map<E_Sys, bool>> getSysOutputFilenames(
@@ -453,7 +438,7 @@ void outputClocks(
 	vector<E_Source>	clkDataSatSrcs,
 	GTime&				time,
 	KFState&			kfState,
-	ReceiverMap*		receiverMap_ptr)
+	ReceiverMap*			receiverMap_ptr)
 {
 	auto filenameSysMap = getSysOutputFilenames(filename, time);
 

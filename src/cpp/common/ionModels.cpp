@@ -388,18 +388,17 @@ bool iontec(
 
 /** ionospheric model
  */
-bool ionoModel(
-	GTime&		time,
+int ionoModel(
+	GTime		time,
 	VectorPos&	pos,
 	AzEl&		azel,
 	E_IonoMapFn	mapFn,
-	E_IonoMode	mode,
 	double		layerHeight,
 	double		ionoState,
 	double&		dion,
 	double&		var)
 {
-	switch (mode)
+	switch (acsConfig.ionoOpts.corr_mode)
 	{
 		case E_IonoMode::TOTAL_ELECTRON_CONTENT:
 		{
@@ -414,7 +413,7 @@ bool ionoModel(
 			E_Sys			sys		= E_Sys::GPS;
 			E_NavMsgType	type	= defNavMsgType[sys];
 
-			auto ion_ptr = seleph<ION>(nullStream, time, sys, type, nav);
+			auto ion_ptr = seleph<ION>(std::cout, time, sys, type, nav);
 
 			double* vals = nullptr;
 			if (ion_ptr != nullptr)
@@ -423,25 +422,25 @@ bool ionoModel(
 			dion	= ionmodel(time, vals, pos, azel);
 			var		= SQR(dion * ERR_BRDCI);
 
-			return true;
+			return 1;
 		}
 		case E_IonoMode::ESTIMATE:
 		{
 			dion	= ionoState;
 			var		= 0;
 
-			return true;
+			return 1;
 		}
 		case E_IonoMode::IONO_FREE_LINEAR_COMBO:
 		{
 			dion	= 0;
 			var		= 0;
 
-			return true;
+			return 1;
 		}
 		default:
 		{
-			return false;
+			return 0;
 		}
 	}
 }

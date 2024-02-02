@@ -122,8 +122,6 @@ struct Receiver : ReceiverLogs, Rtk
 
 	bool		primaryApriori	= false;
 	UYds		aprioriTime;
-	double		aprioriClk		= 0;
-	double		aprioriClkVar	= 0;
 	Vector3d	aprioriPos		= Vector3d::Zero();		///< station position (ecef) (m)
 	Matrix3d	aprioriVar		= Matrix3d::Zero();
 	Vector3d	minconApriori	= Vector3d::Zero();

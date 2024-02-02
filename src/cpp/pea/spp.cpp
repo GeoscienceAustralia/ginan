@@ -424,7 +424,7 @@ E_Solution estpos(
 			double range;
 			double vMeas;
 			double vBias;
-			int pass = prange(trace, obs, acsConfig.sppOpts.iono_mode, range, vMeas, vBias, kfState_ptr);
+			int pass = prange(trace, obs, acsConfig.ionoOpts.corr_mode, range, vMeas, vBias, kfState_ptr);
 			if (pass == false)
 			{
 				obs.failurePrange = true;
@@ -478,7 +478,7 @@ E_Solution estpos(
 			// ionospheric corrections
 			double dion;
 			double vion;
-			pass = ionocorr(obs.time, pos, *obs.satStat_ptr, acsConfig.sppOpts.iono_mode, dion, vion);
+			pass = ionocorr(obs.time, pos, *obs.satStat_ptr, acsConfig.ionoOpts.corr_mode, dion, vion);
 			if (pass == false)
 			{
 				obs.failureIonocorr = true;
@@ -526,7 +526,7 @@ E_Solution estpos(
 			}
 
 			// error variance
-			if (acsConfig.sppOpts.iono_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
+			if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
 				vMeas *= 3;
 
 			double var	= vMeas

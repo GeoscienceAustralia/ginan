@@ -95,7 +95,7 @@ void postRTSActions(
 		if (acsConfig.output_trop_sinex)	{	outputTropSinex		(				kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState, "MIX", true);																							}
 		if (acsConfig.output_ionex)			{	ionexFileWrite		(nullStream,	kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState);																											}
 		if (acsConfig.output_erp)			{	writeErpFromNetwork	(				kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState);																														}
-		if (acsConfig.output_ionstec)		{	writeIonStec	 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX], kfState);																														}
+		if (acsConfig.output_ionstec)		{	writeSTECfromRTS 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX], kfState);																														}
 	}
 
 	for (auto& [id, rec] : receiverMap)

@@ -9,6 +9,7 @@ using std::map;
 
 #include "algebra.hpp"
 #include "satStat.hpp"
+#include "gTime.hpp"
 
 //forward declarations
 struct Receiver;
@@ -18,7 +19,6 @@ struct gptgrid_t;
 struct AttStatus;
 struct PhaseCenterData;
 struct ReceiverMap;
-struct GTime;
 
 
 
@@ -62,11 +62,10 @@ void phaseWindup(
 	double&		phw);
 
 int ionoModel(
-	GTime&		time,
+	GTime		time,
 	VectorPos&	pos,
 	AzEl&		azel,
 	E_IonoMapFn	mapFn,
-	E_IonoMode	mode,
 	double		layerHeight,
 	double		ionoState,
 	double&		dion,
@@ -91,7 +90,6 @@ void outputApriori(
 
 void selectAprioriSource(
 	Receiver&	rec,
-	GTime&		time,
 	bool&		sppUsed);
 
 void postFilterChecks(
@@ -247,7 +245,3 @@ void satClockPivotPseudoObs(
 	Trace&				trace,
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
-
-KFState propagateUncertainty(
-	Trace&			trace,
-	KFState&		kfState);

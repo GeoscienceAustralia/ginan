@@ -4,19 +4,10 @@
 #include <algorithm>
 #include <math.h>
 
-#define BOOST_STACKTRACE_USE_ADDR2LINE
-#include <boost/stacktrace.hpp>
-
-
 #include "instrument.hpp"
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
 #include "common.hpp"
-
-void stacktrace()
-{
-	BOOST_LOG_TRIVIAL(debug) << boost::stacktrace::stacktrace();
-}
 
 // #define PLUMBER 1
 

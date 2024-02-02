@@ -1,7 +1,7 @@
 
 inputs:
 
-    include_yamls: [ products/tables/boxwing.yaml ] # required if using boxwing model
+    include_yamls: [ boxwing.yaml ] # required if using boxwing model
 
     inputs_root: ./products/
 
@@ -94,8 +94,8 @@ outputs:
         level:                      3
         output_receivers:           true
         output_network:             true
-        receiver_filename:          <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
-        network_filename:           <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        receiver_filename:          <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
         output_residuals:           true
         output_residual_chain:      true
         output_config:              true
@@ -239,8 +239,8 @@ processing_options:
         # require_obs:                    false
 
     gnss_general:
-        rec_reference_system:         gps
-        minimise_sat_clock_offsets:   true
+        rec_reference_system:           gps
+        minimise_sat_clock_offsets:     true
         sys_options:
             gps:
                 process:                true

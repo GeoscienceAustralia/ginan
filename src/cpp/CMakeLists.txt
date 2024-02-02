@@ -376,8 +376,6 @@ target_link_libraries(ginan_core PUBLIC
 						${BLAS_LIBRARY_DIRS}
 						${OPENSSL_LIBRARY_DIRS}
 						${OPENSSL_LIBRARIES}
-						dl
-						backtrace
 					)
 
 
@@ -394,8 +392,6 @@ target_link_libraries(ginan PRIVATE ginan_core)
 
 add_executable(pea
 	pea.cpp)
-
-set_property(TARGET pea PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 
 target_include_directories(pea PUBLIC
 	)

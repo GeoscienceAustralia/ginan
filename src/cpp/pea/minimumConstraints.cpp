@@ -1,5 +1,5 @@
 
-// #pragma GCC optimize ("O0")
+#pragma GCC optimize ("O0")
 
 #include <iostream>
 #include <vector>
@@ -912,7 +912,7 @@ KFState minconOnly(
 		sinexPerEpochPerStation(time, rec);
 
 		bool dummy;
-		selectAprioriSource(rec, time, dummy);
+		selectAprioriSource(rec, dummy);
 
 		rec.minconApriori = rec.aprioriPos;
 	}

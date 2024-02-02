@@ -1,5 +1,5 @@
 
-// #pragma GCC optimize ("O0")
+#pragma GCC optimize ("O0")
 
 /** References
 * 1. M.Fritsche, R.Dietrich, C.Knöfel, A.Rülke, S.Vey, M.Rothacher & P.Steigenberger, Impact of higher‐order ionospheric terms on GPS estimates. Geophysical research letters, 2005.
@@ -11,6 +11,7 @@
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
 #include "geomagField.hpp"
+#include "ephPrecise.hpp"
 #include "instrument.hpp"
 #include "tropModels.hpp"
 #include "acsConfig.hpp"
@@ -98,8 +99,12 @@ struct AutoSender
 
 inline void pppRecClocks(COMMON_PPP_ARGS)
 {
-	double	recClk_m	= rec.aprioriClk;
-	double	dtRecVar	= rec.aprioriClkVar;
+	double	dtRecVar	= 0;
+	double	dtRec		= 0;
+	pephclk(trace, time, rec.id, nav, dtRec, &dtRecVar);		//todo aaron, wrong clock here
+
+	double	recClk_m	= dtRec * CLIGHT;
+	dtRecVar			*= SQR(CLIGHT);		//todo aaron do we want to use these override variances?
 
 	for (int i = 0; i < recOpts.clk.estimate.size(); i++)
 	{
@@ -493,7 +498,7 @@ inline void pppIonStec(COMMON_PPP_ARGS)
 	{
 		double diono	= 0;
 		double dummy	= 0;
-		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, acsConfig.pppOpts.ionoOpts.corr_mode, recOpts.mapping_function_layer_height, dummy, diono, varIono);
+		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, recOpts.mapping_function_layer_height, dummy, diono, varIono);
 		if (pass)
 		{
 			double ionC = SQR(lambda / obs.satNav_ptr->lamMap[F1]);
@@ -522,7 +527,7 @@ inline void pppIonStec(COMMON_PPP_ARGS)
 		kfKey.rec_ptr	= &rec;
 		kfKey.comment	= init.comment;
 
-		if (acsConfig.pppOpts.ionoOpts.common_ionosphere == false)
+		if (acsConfig.ionoOpts.common_ionosphere == false)
 			kfKey.num = measType;
 
 		init.x = ionosphereStec;
@@ -584,7 +589,7 @@ inline void pppIonStec2(COMMON_PPP_ARGS)
 		kfKey.rec_ptr	= &rec;
 		kfKey.comment	= init.comment;
 
-		if (acsConfig.pppOpts.ionoOpts.common_ionosphere == false)
+		if (acsConfig.ionoOpts.common_ionosphere == false)
 			kfKey.num = measType;
 
 		measEntry.addDsgnEntry(kfKey, factor * alpha, init);
@@ -602,7 +607,7 @@ inline void pppIonStec2(COMMON_PPP_ARGS)
 	{
 		double diono	= 0;
 		double dummy	= 0;
-		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, acsConfig.pppOpts.ionoOpts.corr_mode, recOpts.mapping_function_layer_height, dummy, diono, varIono);
+		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, recOpts.mapping_function_layer_height, dummy, diono, varIono);
 		if (pass)
 		{
 			double stec = diono * SQR(FREQ1) / TEC_CONSTANT;	// restore STEC
@@ -629,8 +634,8 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 	else						factor = -1 / 3.0;
 
 	E_IonoMapFn mapFn;
-	if (acsConfig.pppOpts.ionoOpts.corr_mode == +E_IonoMode::BROADCAST)		mapFn = E_IonoMapFn::KLOBUCHAR;
-	else																	mapFn = recOpts.mapping_function;
+	if (acsConfig.ionoOpts.corr_mode == +E_IonoMode::BROADCAST)		mapFn = E_IonoMapFn::KLOBUCHAR;
+	else															mapFn = recOpts.mapping_function;
 
 	double fs = ionmapf(pos, satStat, mapFn, recOpts.mapping_function_layer_height);
 
@@ -656,7 +661,7 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 		kfKey.rec_ptr	= &rec;
 		kfKey.comment	= init.comment;
 
-		if (acsConfig.pppOpts.ionoOpts.common_ionosphere == false)
+		if (acsConfig.ionoOpts.common_ionosphere == false)
 			kfKey.num = measType;
 
 		kfState.getKFValue(kfKey, init.x);
@@ -680,7 +685,7 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 	{
 		double diono	= 0;
 		double dummy	= 0;
-		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, acsConfig.pppOpts.ionoOpts.corr_mode, recOpts.mapping_function_layer_height, dummy, diono, varIono);
+		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, recOpts.mapping_function_layer_height, dummy, diono, varIono);
 		if (pass)
 		{
 			double stec = diono * SQR(FREQ1) / TEC_CONSTANT;	// restore STEC

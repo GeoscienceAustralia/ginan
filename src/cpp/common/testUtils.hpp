@@ -19,13 +19,11 @@ struct ErrorExit : public sinks::basic_formatted_sink_backend<char, sinks::synch
 
 void exitOnErrors();
 
-void stacktrace();
-
 struct TempDisabler
 {
 	bool	oldVal = false;
 	bool*	bool_ptr;
-
+	
 	TempDisabler(
 		bool& disable)
 	{
@@ -33,7 +31,7 @@ struct TempDisabler
 		disable		= false;
 		bool_ptr	= &disable;
 	}
-
+	
 	~TempDisabler()
 	{
 		*bool_ptr = oldVal;

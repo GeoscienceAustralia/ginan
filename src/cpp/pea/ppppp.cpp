@@ -541,55 +541,6 @@ void updateRecClocks(
 	}
 }
 
-/** Prepare stec values clocks to minimise residuals to klobuchar model
- */
-void updateAvgIonosphere(
-	Trace&			trace,			///< Trace to output to
-	GTime			time,			///< Time
-	KFState&		kfState)		///< Kalman filter object containing the network state parameters
-{
-	if (acsConfig.minimise_ionosphere_offsets == false)
-	{
-		return;
-	}
-
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if (key.type != KF::IONO_STEC)
-		{
-			continue;
-		}
-
-		if (key.rec_ptr == nullptr)
-		{
-			continue;
-		}
-
-		auto& rec = *key.rec_ptr;
-
-		auto& satStat	= rec.satStatMap[key.Sat];
-		auto& satNav	= nav.satNavMap[key.Sat];
-		auto& recOpts	= acsConfig.getRecOpts(rec.id);
-
-		double diono	= 0;
-		double dummy	= 0;
-		double dummy2	= 0;
-		bool pass = ionoModel(time, rec.pos, satStat, E_IonoMapFn::KLOBUCHAR, E_IonoMode::BROADCAST, 0, dummy, diono, dummy2);
-		if (pass == false)
-		{
-			continue;
-		}
-
-		double alpha = 40.3e16 / SQR(CLIGHT / satNav.lamMap[F1]);
-
-		double ionosphereStec = diono / alpha;
-
-		//update the mu value but dont use the state thing - it will re-add it after its deleted
-		// kfState.addKFState(key, init);
-		kfState.gaussMarkovMuMap[key] = ionosphereStec;
-	}
-}
-
 /** Prepare Satellite clocks to minimise residuals to broadcast clocks
  */
 void updateAvgClocks(
@@ -638,47 +589,57 @@ KFState propagateUncertainty(
 
 	KFMeasEntryList kfMeasEntryList;
 
-	map<KFKey, KFMeasEntry> kfMeasEntryMap;
+	KFKey pivotKey;
 
-	string pivotRec = acsConfig.pivot_receiver;
+	if	(  acsConfig.pivot_receiver.empty()	== false
+		&& acsConfig.pivot_receiver			!= "<AUTO>"
+		&& acsConfig.pivot_receiver			!= "NO_PIVOT")
+	{
+		pivotKey.type	= KF::REC_CLOCK;
+		pivotKey.str	= acsConfig.pivot_receiver;
+	}
 
 // 	if (0)
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
-		if	( key.type != KF::REC_CLOCK
-			&&key.type != KF::SAT_CLOCK
-			&&key.type != KF::REC_CLOCK_RATE
-			&&key.type != KF::SAT_CLOCK_RATE)
+		if (key.type != KF::REC_CLOCK)
 		{
 			continue;
 		}
 
-		if	( pivotRec	== "<AUTO>"
-			&&key.type 		== KF::REC_CLOCK
-			&&key.num		== 0)
+		if (pivotKey.str.empty())
 		{
-			pivotRec = key;
+			pivotKey = key;
 		}
 
-		auto subKey = key;
-		subKey.num = 0;
-
-		auto& kfMeasEntry = kfMeasEntryMap[subKey];
-
-		kfMeasEntry.addDsgnEntry(key, +1);
-
-		string newComment = kfMeasEntry.obsKey.comment;
-		if (newComment.empty())
+		KFMeasEntry kfMeasEntry;
+		if (pivotKey.str != key.str)
 		{
-			newComment += "=>";
+			kfMeasEntry.addDsgnEntry(key,		+1);
+			kfMeasEntry.addDsgnEntry(pivotKey,	-1);
 		}
-		newComment += " + [" + key.commaString() + "]";
 
-		kfMeasEntry.obsKey = subKey;
+		kfMeasEntry.obsKey.str = key.str + "-" + pivotKey.str;
 
-		kfMeasEntry.obsKey.comment = newComment;
+		kfMeasEntryList.push_back(kfMeasEntry);
 	}
 
+// 	if (0)
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type != KF::SAT_CLOCK)
+		{
+			continue;
+		}
+
+		KFMeasEntry kfMeasEntry;
+		kfMeasEntry.addDsgnEntry(key,		+1);
+		kfMeasEntry.addDsgnEntry(pivotKey,	-1);
+
+		kfMeasEntry.obsKey.str = " " + key.Sat.id() + "-" + pivotKey.str;
+
+		kfMeasEntryList.push_back(kfMeasEntry);
+	}
 
 	if (0)
 	for (int i = 1; i < kfState.kfIndexMap.size();	i++)
@@ -714,50 +675,23 @@ KFState propagateUncertainty(
 		}
 
 		{
-		// 	auto& kfMeasEntry = kfMeasEntryMap[key.str + key.Sat.id()];
-		// 	kfMeasEntry.addDsgnEntry(keyi,	-60.0/600);
-		// 	kfMeasEntry.addDsgnEntry(keyj,	+77.0/600);
-  //
-		// 	kfMeasEntry.obsKey.str = keyi.str + " " + keyi.Sat.id() + "C";
-		// }
-		// {
-		// 	auto& kfMeasEntry = kfMeasEntryMap[key.str + key.Sat.id()];
-		// 	kfMeasEntry.addDsgnEntry(keyi,	+60);
-		// 	kfMeasEntry.addDsgnEntry(keyj,	-77);
-  //
-		// 	kfMeasEntry.obsKey.str = keyi.str + " " + keyi.Sat.id() + "D";
-		}
-	}
+			KFMeasEntry kfMeasEntry;
+			kfMeasEntry.addDsgnEntry(keyi,	-60.0/600);
+			kfMeasEntry.addDsgnEntry(keyj,	+77.0/600);
 
-	for (auto& [id, entry] : kfMeasEntryMap)
-	{
-		if (pivotRec != "NO_PIVOT")
-		for (auto& [pivotKey, pivotEntry] : kfState.kfIndexMap)
+			kfMeasEntry.obsKey.str = keyi.str + " " + keyi.Sat.id() + "C";
+
+			kfMeasEntryList.push_back(kfMeasEntry);
+		}
 		{
-			if	( pivotKey.type != KF::REC_CLOCK
-				&&pivotKey.type != KF::REC_CLOCK_RATE)
-			{
-				continue;
-			}
+			KFMeasEntry kfMeasEntry;
+			kfMeasEntry.addDsgnEntry(keyi,	+60);
+			kfMeasEntry.addDsgnEntry(keyj,	-77);
 
-			if (pivotKey.str != pivotRec)
-			{
-				continue;
-			}
+			kfMeasEntry.obsKey.str = keyi.str + " " + keyi.Sat.id() + "D";
 
-			if	(  pivotKey.type	== KF::REC_CLOCK
-				&& id.type			!= KF::REC_CLOCK
-				&& id.type			!= KF::SAT_CLOCK)
-			{
-				continue;
-			}
-
-			entry.addDsgnEntry(pivotKey, -1);
-
-			entry.obsKey.comment += " - [" + pivotKey.commaString() + "]";
+			kfMeasEntryList.push_back(kfMeasEntry);
 		}
-
-		kfMeasEntryList.push_back(entry);
 	}
 
 	KFState propagatedState;
@@ -779,7 +713,11 @@ KFState propagateUncertainty(
 	int i = 0;
 	for (auto& obsKey : combinedMeas.obsKeys)
 	{
-		propagatedState.kfIndexMap[obsKey] = i;
+		KFKey kfKey;
+		kfKey.type	= KF::CALC;
+		kfKey.str	= obsKey.str;
+
+		propagatedState.kfIndexMap[kfKey] = i;
 		i++;
 	}
 
@@ -978,10 +916,10 @@ void PPP(
 
 		incrementOutageCount(receiverMap);
 
-		updateRecClocks		(trace, receiverMap,			kfState);
-		updateAvgClocks		(trace, 				tsync,	kfState);
-		updateAvgIonosphere	(trace,					tsync,	kfState);
-		updatePseudoPulses	(trace,							kfState);
+		updateRecClocks(trace, receiverMap,			kfState);
+		updateAvgClocks(trace, 				tsync,	kfState);
+
+		updatePseudoPulses(trace, kfState);
 	}
 
 	//add process noise and dynamics to existing states as a prediction of current state
@@ -1044,7 +982,7 @@ void PPP(
 			receiverSlr			(std::cout, rec,	constKfState, kfMeasEntryList);
 			receiverPseudoObs	(std::cout,	rec,	constKfState, kfMeasEntryList, receiverMap, R_ptr);
 
-			if (acsConfig.pppOpts.ionoOpts.use_if_combo)	makeIFLCs(trace, constKfState, kfMeasEntryList);
+			if (acsConfig.ionoOpts.use_if_combo)	makeIFLCs(trace, constKfState, kfMeasEntryList);
 		}
 		Eigen::setNbThreads(0);
 	}
@@ -1086,9 +1024,9 @@ void PPP(
 		combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, tsync, R_ptr);
 	}
 
-	if (acsConfig.pppOpts.ionoOpts	.use_gf_combo)	{	combinedMeas = makeGFLCs	(combinedMeas, kfState);	}
-// 	if (acsConfig.pppOpts.ionoOpts	.use_if_combo)	{	combinedMeas = makeIFLCs	(combinedMeas, kfState);	}
-	if (acsConfig.pppOpts			.use_rtk_combo)	{	combinedMeas = makeRTKLCs	(combinedMeas, kfState);	}
+	if (acsConfig.ionoOpts.use_gf_combo)	{	combinedMeas = makeGFLCs	(combinedMeas, kfState);	}
+// 	if (acsConfig.ionoOpts.use_if_combo)	{	combinedMeas = makeIFLCs	(combinedMeas, kfState);	}
+	if (acsConfig.pppOpts.use_rtk_combo)	{	combinedMeas = makeRTKLCs	(combinedMeas, kfState);	}
 
 	if (acsConfig.explain_measurements)
 	{

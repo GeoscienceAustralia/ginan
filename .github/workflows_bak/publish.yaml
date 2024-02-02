@@ -5,7 +5,7 @@ name: Documentation
 # events but only for the master branch
 on:
   push:
-    branches: [ develop-weekly ]
+    branches: [ main ]
 
 jobs:
   build-documentation:
@@ -16,8 +16,8 @@ jobs:
 
     - name: Create folders
       run: |
-        rm Docs/readme.md
-        cp README.md Docs/readme.md
+        rm Docs/markdown/readme.md
+        cp README.md Docs/markdown/readme.md
         mkdir -p src/build
     
     # Build the HTML documentation
@@ -36,4 +36,4 @@ jobs:
         enable_jekyll: false
         allow_empty_commit: false
         force_orphan: true
-        publish_branch: gh-pages-staging
+        publish_branch: gh-pages 
