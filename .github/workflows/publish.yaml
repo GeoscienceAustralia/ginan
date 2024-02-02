@@ -12,29 +12,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
 
-    - name: Create folders
+    - name: Generate config markdown doc from appimage
+      uses: actions/checkout@v4
+      with:
+        ref: weekly-develop-appimage
+      run: |
+        ./Ginan-x86_64.AppImage -Y 3
+        mkdir Docs
+        mv defaultConfiguration.md Docs
+
+    - name: Checkout the updated branch
+      uses: actions/checkout@v4
+
+    - name: Create folders and move readme
       run: |
         cp README.md Docs/readme.md
         mkdir -p src/build
-    
-    # Build the HTML documentation
-    - name: Doxygen Action
+
+    - name: Build doxygen docs from code
       uses: mattnotmitt/doxygen-action@v1.1.0
       with:
           doxyfile-path: ../doc_templates/Doxyfile.in
           working-directory: ./src/build
 
-    - name: Generate config docs
-      run: |
-        git checkout weekly-develop-appimage -- Ginan-x86_64.AppImage
-        ./Ginan-x86_64.AppImage -Y 3
-        mv defaultConfiguration.md Docs
-        rm Ginan-x86_64.AppImage
-    
-    # Deploy the HTML documentation to GitHub Pages
-    - name: GH Pages Deployment
+    - name: Deploy the HTML documentation to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
