@@ -8,6 +8,7 @@
 from datetime import date, timedelta
 from pathlib import Path
 from .parse_rinex_header import RinexHeader
+import pandas as pd
 
 from gnssanalysis.filenames import generate_IGS_long_filename
 from gnssanalysis.gn_download import download_multiple_files_from_cddis
@@ -21,13 +22,8 @@ def download(header: RinexHeader, target_dir: Path) -> None:
     :param header: Parsed header from the input rinex file
     :param target_dir: Path to the target directory
     """
-    start_epoch = header.first_obs_time
-    last_epoch = header.last_obs_time
-    start_date = date(start_epoch.year, start_epoch.month, start_epoch.day)
-
-    # TODO: CORS files won't have an end date - need to handle this eventually
-    end_date = date(last_epoch.year, last_epoch.month, last_epoch.day)
-
+    start_date = pd.to_datetime(header.first_obs_time).date()
+    end_date = pd.to_datetime(header.last_obs_time).date()
     _download_static_dependencies(start_date, end_date, target_dir)
 
 

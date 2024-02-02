@@ -3,10 +3,9 @@ This script parses info from a RINEX v3 obs file. This info is used
 downstream to:
 - determine what needs to be downloaded for Ginan to be able to run.
 """
-from datetime import datetime, timedelta, date
+from datetime import datetime
 from pathlib import Path
 from typing import Tuple, NamedTuple, Optional, Dict
-import re
 
 import georinex
 import xarray
@@ -66,14 +65,16 @@ def parse_v3_header(filepath: Path) -> RinexHeader:
     # Load observations to determine which signals have been observed
     # by the receiver for each gnss system (GPS, Galileo etc)
     obs = georinex.load(filepath)
+
+    first_datetime = obs["time"].min().values
+    last_datetime = obs["time"].max().values
+
     sys_signals = _get_signals_per_system(obs)
 
     marker_name = header["MARKER NAME"].strip()
 
     antenna_type, antenna_dh, antenna_de, antenna_dn = _parse_antenna(header)
     approx_x, approx_y, approx_z = _parse_approx_position(header)
-    first_obs_time = _parse_first_obs_time(header)
-    last_obs_time = _parse_last_obs_time(header)
 
     antenna_deltas = AntennaDeltas(height=antenna_dh, north=antenna_dn, east=antenna_de)
     antenna = Antenna(type=antenna_type, deltas=antenna_deltas)
@@ -83,8 +84,8 @@ def parse_v3_header(filepath: Path) -> RinexHeader:
         marker_name=marker_name,
         antenna=antenna,
         approx_position=approx_position,
-        first_obs_time=first_obs_time,
-        last_obs_time=last_obs_time,
+        first_obs_time=first_datetime,
+        last_obs_time=last_datetime,
         sys_signals=sys_signals,
     )
 
@@ -107,37 +108,6 @@ def _parse_approx_position(header: dict) -> (float, float, float):
     # -5015815.7300  2619358.9161 -2933465.3598
     x, y, z = (float(i) for i in header["APPROX POSITION XYZ"].strip().split())
     return x, y, z
-
-
-def _parse_obs_time(time: str) -> datetime:
-    """Given a time string from rinex header, parses YmdHMS"""
-    # 'TIME OF FIRST OBS': '  2023    10    29     6    13   30.0000000     GPS         '
-    # Remove extra whitespace and GPS suffix '2023 10 29 6 13 30.0000000'
-    epoch = " ".join(time.strip().split()[:6])
-    # Trim off the last digit in micro seconds - strptime only allows 6 decimals
-    epoch = epoch[:-1]
-    obs_time = datetime.strptime(epoch, "%Y %m %d %H %M %S.%f")
-    return obs_time
-
-
-def _parse_first_obs_time(header: dict) -> datetime:
-    """Parse TIME OF FIRST OBS from header
-
-    :returns datetime
-    """
-    time = header["TIME OF FIRST OBS"]
-    first_obs_time = _parse_obs_time(time)
-    return first_obs_time
-
-
-def _parse_last_obs_time(header: dict) -> datetime:
-    """Parse TIME OF LAST OBS from header
-
-    :returns datetime
-    """
-    time = header["TIME OF LAST OBS"]
-    last_obs_time = _parse_obs_time(time)
-    return last_obs_time
 
 
 def _get_signals_per_system(obs: xarray.Dataset) -> dict:
