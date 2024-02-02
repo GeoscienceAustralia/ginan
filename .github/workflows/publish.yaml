@@ -16,8 +16,8 @@ jobs:
 
     - name: Create folders
       run: |
-        rm Docs/markdown/readme.md
-        cp README.md Docs/markdown/readme.md
+        rm Docs/readme.md
+        cp README.md Docs/readme.md
         mkdir -p src/build
     
     # Build the HTML documentation
