@@ -109,9 +109,9 @@ struct ArbitraryKVP
 {
 	string		name;
 	string		str;
-	double		num;
-	long int	integer;
-	int			type = 0;
+	double		num		= 0;
+	long int	integer	= 0;
+	int			type	= 0;
 
 	ArbitraryKVP(string name, string	str)		: name {name}, str		{str		}	{	type = 0;	}
 	ArbitraryKVP(string name, double	num)		: name {name}, num		{num		}	{	type = 1;	}
@@ -120,6 +120,11 @@ struct ArbitraryKVP
 
 	string value()
 	{
+		if (isnan(num))
+		{
+			num = -1;
+		}
+
 		if		(type == 0)		return "\"" + str + "\"";
 		else if	(type == 1)		return std::to_string(num);
 		else if	(type == 2)		return std::to_string(integer);

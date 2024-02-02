@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, date
 
 from gnssanalysis.gn_datetime import GPSDate, gpswkD2dt
-from gnssanalysis.gn_download import check_n_download, check_n_download_url, check_file_present
+from gnssanalysis.gn_download import check_n_download, check_n_download_url, check_file_present, decompress_file
 
 API_URL = "https://data.gnss.ga.gov.au/api"
 
@@ -146,7 +146,7 @@ def generate_sampling_rate(file_ext: str, analysis_center: str, solution_type: s
         },
         "CLK": {
             ("EMR", "MIT", "SHA", "USN"): "05M",
-            ("ESA", "GFZ", "GRG", "IGS"): {"FIN": "30S", "RAP": "05M", None: "30S"}, # DZ: IGS FIN has 30S CLK
+            ("ESA", "GFZ", "GRG", "IGS"): {"FIN": "30S", "RAP": "05M", None: "30S"},  # DZ: IGS FIN has 30S CLK
             (): "30S",
         },
         "OBX": {"GRG": "05M", None: "30S"},
@@ -164,7 +164,7 @@ def generate_sampling_rate(file_ext: str, analysis_center: str, solution_type: s
                     break
                 # else:
                 #     return file_rates.get(())
-            if not center_rates_found: # DZ: bug fix
+            if not center_rates_found:  # DZ: bug fix
                 return file_rates.get(())
             if isinstance(center_rates, dict):
                 return center_rates.get(solution_type, center_rates.get(None))
@@ -275,11 +275,11 @@ def download_product_from_cddis(
     provided the download directory (download_dir)
     """
     # DZ: Download the correct IGS FIN ERP files
-    if file_ext == "ERP" and analysis_center == "IGS" and solution_type == "FIN": # get the correct start_epoch
+    if file_ext == "ERP" and analysis_center == "IGS" and solution_type == "FIN":  # get the correct start_epoch
         start_epoch = GPSDate(str(start_epoch))
         start_epoch = gpswkD2dt(f"{start_epoch.gpswk}0")
         timespan = timedelta(days=7)
-    
+
     logging.info(f"Attempting CDDIS Product download - {file_ext}")
     logging.info(f"Start Epoch - {start_epoch}")
     logging.info(f"End Epoch - {end_epoch}")
@@ -340,10 +340,9 @@ def download_product_from_cddis(
         #     output_folder=download_dir,
         # )
         # count = 1
-
         # DZ: avoid downloading the first file again if it already exists
         reference_start -= timedelta(hours=24)
-        
+
         count = 0
         remain = end_epoch - reference_start
         while remain.total_seconds() > timespan.total_seconds():
@@ -378,7 +377,7 @@ def download_product_from_cddis(
 
 def download_atx(download_dir: Path, long_filename: bool = False) -> None:
     """
-    Download the ATX, BLQ, GPT-2 files necessary for running the PEA
+    Download the ATX file necessary for running the PEA
     provided the download directory (download_dir) and FTP_TLS client object (ftps)
     """
 
@@ -394,15 +393,19 @@ def download_atx(download_dir: Path, long_filename: bool = False) -> None:
         check_n_download_url(url, str(download_dir))
 
 
-def download_blq(download_dir: Path) -> None:
+def download_atmosphere_loading_model(download_dir: Path) -> None:
     """
-    Download the BLQ file necessary for running the PEA
+    Download the Atmospheric loading BLQ file necessary for running the PPP example
     provided the download directory (download_dir)
     """
-    url = "https://peanpod.s3-ap-southeast-2.amazonaws.com/pea/examples/EX03/products/OLOAD_GO.BLQ"
-    logging.info(f"Downloading BLQ file")
-    check_n_download_url(url, str(download_dir))
-    logging.info(f"BLQ file present in {download_dir}")
+    url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/ALOAD_GO.BLQ.gz"
+    filename = download_dir / "ALOAD_GO.BLQ.gz"
+    if (filename.parent / filename.stem).is_file():
+        logging.info(f"ALOAD file already present in {download_dir}")
+    else:
+        logging.info(f"Downloading Atmospheric Tide Loading Model - ALOAD file")
+        check_n_download_url(url, str(download_dir))
+        decompress_file(filename, delete_after_decompression=True)
 
 
 def download_brdc(
@@ -433,7 +436,7 @@ def download_brdc(
         reference_dt = start_epoch - timedelta(days=1)
         while (end_epoch - reference_dt).total_seconds() > 0:
             doy = reference_dt.strftime("%j")
-            brdc_compfile = f"BRDC00IGS_R_{reference_dt.year}{doy}0000_01D_MN.rnx.gz" # DZ: download MN file
+            brdc_compfile = f"BRDC00IGS_R_{reference_dt.year}{doy}0000_01D_MN.rnx.gz"  # DZ: download MN file
             if check_file_present(brdc_compfile, str(download_dir)):
                 logging.info(f"File {brdc_compfile} already present in {download_dir}")
             else:
@@ -445,6 +448,103 @@ def download_brdc(
             reference_dt += timedelta(days=1)
 
 
+def download_geomagnetic_model(download_dir: Path, model: str = "igrf13") -> None:
+    """
+    Download the International Geomagnetic Reference Field model file necessary for running the PPP example
+    provided the download directory (download_dir)
+    Default: IGRF13 coefficients
+    """
+    if model == "igrf13":
+        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/igrf13coeffs.txt.gz"
+    filename = download_dir / "igrf13coeffs.txt.gz"
+    if (filename.parent / filename.stem).is_file():
+        logging.info(f"IGRF13 file already present in {download_dir}")
+    else:
+        logging.info(f"Downloading Geomagnetic Field coefficients - IGRF13 file")
+        check_n_download_url(url, str(download_dir))
+        decompress_file(filename, delete_after_decompression=True)
+
+
+def download_geopotential_model(download_dir: Path, model: str = "egm2008") -> None:
+    """
+    Download the Geopotential model file/s necessary for running the PPP example
+    provided the download directory (download_dir)
+    Default: EGM2008
+    """
+    if model == "egm2008":
+        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/EGM2008.gfc.gz"
+    filename = download_dir / "EGM2008.gfc.gz"
+    if (filename.parent / filename.stem).is_file():
+        logging.info(f"EGM2008 file already present in {download_dir}")
+    else:
+        logging.info(f"Downloading Geopotential Model - EGM2008 file")
+        check_n_download_url(url, str(download_dir))
+        decompress_file(filename, delete_after_decompression=True)
+
+
+def download_ocean_loading_model(download_dir: Path) -> None:
+    """
+    Download the Ocean Loading BLQ file necessary for running the PPP example
+    provided the download directory (download_dir)
+    """
+    url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/OLOAD_GO.BLQ.gz"
+    filename = download_dir / "OLOAD_GO.BLQ.gz"
+    if (filename.parent / filename.stem).is_file():
+        logging.info(f"OLOAD file already present in {download_dir}")
+    else:
+        logging.info(f"Downloading Ocean Tide Loading Model - OLOAD_GO.BLQ file")
+        check_n_download_url(url, str(download_dir))
+        decompress_file(filename, delete_after_decompression=True)
+
+
+def download_ocean_pole_tide_file(download_dir: Path) -> None:
+    """
+    Download the Ocean Pole Tide Loading coefficients file necessary for running the PPP example
+    provided the download directory (download_dir)
+    """
+    url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/opoleloadcoefcmcor.txt.gz"
+    filename = download_dir / "opoleloadcoefcmcor.txt.gz"
+    if (filename.parent / filename.stem).is_file():
+        logging.info(f"Ocean Pole Tide file already present in {download_dir}")
+    else:
+        logging.info(f"Downloading Ocean Pole Tide Loading Coefficients - opoleloadcoefcmcor.txt file")
+        check_n_download_url(url, str(download_dir))
+        decompress_file(filename, delete_after_decompression=True)
+
+
+def download_ocean_tide_potential_model(download_dir: Path, model: str = "fes2014b") -> None:
+    """
+    Download the Ocean Tide Potential Model file necessary for running the PPP example
+    provided the download directory (download_dir)
+    """
+    if model == "fes2014b":
+        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/fes2014b_Cnm-Snm.dat.gz"
+        filename = download_dir / "fes2014b_Cnm-Snm.dat.gz"
+    if (filename.parent / filename.stem).is_file():
+        logging.info(f"Ocean Tide Potential file already present in {download_dir}")
+    else:
+        logging.info(f"Downloading Ocean Tide Potential Model file - es2014b_Cnm-Snm.dat file")
+        check_n_download_url(url, str(download_dir))
+        decompress_file(filename, delete_after_decompression=True)
+
+
+def download_planetary_ephemerides_file(download_dir: Path, ephem_file: str = "DE436.1950.2050") -> None:
+    """
+    Download the Planetary Ephemerides file necessary for running the PPP example
+    provided the download directory (download_dir)
+    Default: DE436.1950.2050
+    """
+    if ephem_file == "DE436.1950.2050":
+        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/DE436.1950.2050.gz"
+        filename = download_dir / "DE436.1950.2050.gz"
+    if (filename.parent / filename.stem).is_file():
+        logging.info(f"{filename.stem} file already present in {download_dir}")
+    else:
+        logging.info(f"Downloading Planetary Ephemerides - {filename.stem} file")
+        check_n_download_url(url, str(download_dir))
+        decompress_file(filename, delete_after_decompression=True)
+
+
 def download_trop_model(download_dir: Path, model: str = "gpt2") -> None:
     """
     Download the relevant troposphere model file/s necessary for running the PEA
@@ -452,9 +552,81 @@ def download_trop_model(download_dir: Path, model: str = "gpt2") -> None:
     Default is GPT 2.5
     """
     if model == "gpt2":
-        url = "https://peanpod.s3-ap-southeast-2.amazonaws.com/pea/examples/EX03/products/gpt_25.grd"
-        check_n_download_url(url, str(download_dir))
-        logging.info(f"Troposphere Model files - GPT 2.5 - present in {download_dir}")
+        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/gpt_25.grd.gz"
+        filename = download_dir / "gpt_25.grd.gz"
+        if (filename.parent / filename.stem).is_file():
+            logging.info(f"{filename.stem} file already present in {download_dir}")
+        else:
+            logging.info(f"Downloading Troposphere Model file - {filename.stem}")
+            check_n_download_url(url, str(download_dir))
+            decompress_file(filename, delete_after_decompression=True)
+
+
+def download_iau2000_file(download_dir: Path, start_epoch: datetime):
+    """
+    Download relevant IAU2000 file from CDDIS or IERS based on start_epoch of data
+    """
+    # Download most recent daily IAU2000 file if running for a session within the past week
+    if datetime.now() - start_epoch < timedelta(weeks=1):
+        url = "https://datacenter.iers.org/products/eop/rapid/daily/finals2000A.daily"
+        target = "finals.data.iau2000.txt"
+        cddis_filename = "finals2000A.daily"
+        logging.info("Attempting Download of finals2000A.daily file")
+    # Otherwise download the IAU2000 file dating back to 1992
+    else:
+        url = "https://datacenter.iers.org/products/eop/rapid/standard/finals2000A.data"
+        target = "finals.data.iau2000.txt"
+        cddis_filename = "finals2000A.data"
+        logging.info("Attempting Download of finals2000A.data file")
+    # Define output_file
+    output_file = download_dir / target
+    # Check if it exists; if not, download
+    if output_file.is_file():
+        logging.info(f"{target} already present in {download_dir}")
+    else:
+        try:
+            logging.info("Downloading IAU2000 file from CDDIS")
+            download_file_from_cddis(filename=cddis_filename, ftp_folder="products/iers", output_folder=download_dir)
+            (download_dir / cddis_filename).rename(output_file)
+        except:
+            logging.info("Failed CDDIS download - trying IERS")
+            check_n_download_url(url, dwndir=str(download_dir), filename=target)
+
+
+def download_satellite_metadata_snx(download_dir: Path):
+    """
+    Download the most recent IGS satellite metadata file
+    """
+    url = "https://files.igs.org/pub/station/general/igs_satellite_metadata.snx"
+    target = "igs_satellite_metadata.snx"
+    output_file = download_dir / target
+    # If file not already present in dwndir, download
+    if output_file.is_file():
+        logging.info(f"{target} already present in {download_dir}")
+    else:
+        logging.info("Downloading IGS satellite metadata file from igs.org")
+        check_n_download_url(url, dwndir=str(download_dir), filename=target)
+
+
+def download_yaw_files(download_dir: Path):
+    """
+    Download yaw rate / bias files
+    """
+    ensure_folders([download_dir])
+    urls = [
+        "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/bds_yaw_modes.snx.gz",
+        "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/qzss_yaw_modes.snx.gz",
+        "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/sat_yaw_bias_rate.snx.gz",
+    ]
+    targets = ["bds_yaw_modes.snx.gz", "qzss_yaw_modes.snx.gz", "sat_yaw_bias_rate.snx.gz"]
+    for url, target in zip(urls, targets):
+        output_file = download_dir / target
+        if (download_dir / output_file.stem).is_file():
+            logging.info(f"{target} already present in {download_dir}")
+        else:
+            logging.info(f"Downloading {target}")
+            check_n_download_url(url, dwndir=str(download_dir), filename=target)
+            decompress_file(output_file, delete_after_decompression=True)
 
 
 def download_most_recent_cddis_file(
@@ -551,6 +723,9 @@ def search_for_most_recent_file(
 
 
 def available_stations_at_cddis(start_epoch: datetime, end_epoch: datetime) -> list:
+    """
+    Produce a list of the available daily IGS station observation file for the given time period (start to end epoch)
+    """
     with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
         avail_list = []
 
@@ -679,7 +854,15 @@ def auto_download(
     most_recent: bool,
     analysis_center: str,
     atx: bool,
-    blq: bool,
+    aload: bool,
+    igrf: bool,
+    egm: bool,
+    oload: bool,
+    opole: bool,
+    fes: bool,
+    planet: bool,
+    sat_meta: bool,
+    yaw: bool,
     snx: bool,
     nav: bool,
     sp3: bool,
@@ -690,10 +873,12 @@ def auto_download(
     product_dir: Path,
     rinex_data_dir: Path,
     trop_dir: Path,
+    model_dir: Path,
     solution_type: str,
     project_type: str,
     rinex_file_period: str,
     bia_ac: str,
+    iau2000: bool,
     datetime_format: str,
     data_source: str,
     verbose: bool,
@@ -704,22 +889,28 @@ def auto_download(
     if preset == "real-time":
         most_recent = True
         atx = True
-        blq = True
+        oload = True
         trop_model = "gpt2"
         snx = True
+        sat_meta = True
+        yaw = True
 
     if preset == "igs-station":
-        # station_list = station_list.split(",")
         atx = True
-        blq = True
+        oload = True
+        aload = True
+        igrf = True
+        opole = True
+        planet = True
         trop_model = "gpt2"
         snx = True
+        sat_meta = True
+        yaw = True
         nav = True
         sp3 = True
         erp = True
-        if solution_type == "RAP":
-            clk = True
-            bia = True
+        clk = True
+        bia = True
 
     if solution_type in ["FIN", "RAP"]:
         timespan = timedelta(days=1)
@@ -741,20 +932,19 @@ def auto_download(
     if not rinex_data_dir:
         rinex_data_dir = target_dir
     if not trop_dir:
-        trop_dir = target_dir
-
+        trop_dir = product_dir / "tables"
+    if not model_dir:
+        model_dir = product_dir / "tables"
     if not rinex_file_period:
         rinex_file_period = "01D"
 
     # Ensure the directories exist:
-    dir_list = [product_dir, rinex_data_dir, trop_dir, target_dir]
+    dir_list = [target_dir, product_dir, rinex_data_dir, trop_dir, model_dir]
     ensure_folders(dir_list)
 
     # Assign variables based on flags
     if gpt2:
         trop_model = "gpt2"
-    else:
-        trop_model = None
     if most_recent:
         start_gpsdate = GPSDate("today")
         long_filename = long_filename_cddis_cutoff(epoch=datetime.today())
@@ -762,10 +952,26 @@ def auto_download(
     # Download products based on flags
     if atx:
         download_atx(download_dir=product_dir, long_filename=long_filename)
-    if blq:
-        download_blq(download_dir=product_dir)
+    if oload:
+        download_ocean_loading_model(download_dir=model_dir)
+    if aload:
+        download_atmosphere_loading_model(download_dir=model_dir)
+    if igrf:
+        download_geomagnetic_model(download_dir=model_dir)
+    if egm:
+        download_geopotential_model(download_dir=model_dir)
+    if opole:
+        download_ocean_pole_tide_file(download_dir=model_dir)
+    if fes:
+        download_ocean_tide_potential_model(download_dir=model_dir)
+    if planet:
+        download_planetary_ephemerides_file(download_dir=model_dir)
     if trop_model:
         download_trop_model(download_dir=trop_dir, model=trop_model)
+    if sat_meta:
+        download_satellite_metadata_snx(download_dir=product_dir)
+    if yaw:
+        download_yaw_files(download_dir=model_dir)
     if nav:
         # if data_source == "cddis":
         download_brdc(download_dir=product_dir, start_epoch=start_epoch, end_epoch=end_epoch, source=data_source)
@@ -789,7 +995,7 @@ def auto_download(
                 start_epoch=start_epoch,
                 end_epoch=end_epoch,
                 file_ext="SNX",
-                limit=None, # DZ: removed limit for downloading files of multiple days
+                limit=None,  # DZ: removed limit for downloading files of multiple days
                 long_filename=long_filename,
                 analysis_center="IGS",
                 solution_type="SNX",
@@ -819,21 +1025,26 @@ def auto_download(
             timespan=timespan,
         )
     if erp:
-        download_product_from_cddis(
-            download_dir=product_dir,
-            start_epoch=start_epoch,
-            end_epoch=end_epoch,
-            file_ext="ERP",
-            limit=None,
-            long_filename=long_filename,
-            analysis_center=analysis_center,
-            solution_type=solution_type,
-            project_type=project_type,
-            sampling_rate=generate_sampling_rate(
-                file_ext="ERP", analysis_center=analysis_center, solution_type=solution_type
-            ),
-            timespan=timespan,
-        )
+        if iau2000:
+            # If IAU2000 option is chosen, download IAU2000 data file for Earth rotation parameters
+            download_iau2000_file(download_dir=product_dir, start_epoch=start_epoch)
+        else:
+            # Otherwise, download the ERP file
+            download_product_from_cddis(
+                download_dir=product_dir,
+                start_epoch=start_epoch,
+                end_epoch=end_epoch,
+                file_ext="ERP",
+                limit=None,
+                long_filename=long_filename,
+                analysis_center=analysis_center,
+                solution_type=solution_type,
+                project_type=project_type,
+                sampling_rate=generate_sampling_rate(
+                    file_ext="ERP", analysis_center=analysis_center, solution_type=solution_type
+                ),
+                timespan=timespan,
+            )
     if clk:
         download_product_from_cddis(
             download_dir=product_dir,
@@ -880,16 +1091,22 @@ def auto_download(
 @click.command()
 @click.option("--target-dir", required=True, help="Directory to place file downloads", type=Path)
 @click.option("--preset", help="Choose from: manual, real-time, igs-station", default="manual", type=str)
-@click.option(
-    "--station-list", help="If igs-station option chosen, provide comma-separated list of IGS stations", type=str
-)
+@click.option("--station-list", help="If preset=igs-station, provide comma-separated list of IGS stations", type=str)
 @click.option("--start-datetime", help="Start of date-time period to download files for", type=str)
 @click.option("--end-datetime", help="End of date-time period to download files for", type=str)
 @click.option("--most-recent", help="Set to download latest version of files", default=False, is_flag=True)
 @click.option("--analysis-center", help="Analysis center of files to download", default="IGS", type=str)
 @click.option("--atx", help="Flag to Download ATX file", default=False, is_flag=True)
-@click.option("--blq", help="Flag to Download BLQ file", default=False, is_flag=True)
-@click.option("--snx", help="Flag to Download SNX / SSC file", default=False, is_flag=True)
+@click.option("--aload", help="Flag to Download Atmospheric Loading file", default=False, is_flag=True)
+@click.option("--igrf", help="Flag to Download IGRF13 file", default=False, is_flag=True)
+@click.option("--egm", help="Flag to Download EGM2008 file", default=False, is_flag=True)
+@click.option("--oload", help="Flag to Download Ocean Tide Loading file", default=False, is_flag=True)
+@click.option("--opole", help="Flag to Download Ocean Pole Tide Coefficients", default=False, is_flag=True)
+@click.option("--fes", help="Flag to Download FES2014b Ocean Potential File", default=False, is_flag=True)
+@click.option("--planet", help="Flag to Download Planetary Ephemerides: DE436.1950.2050", default=False, is_flag=True)
+@click.option("--sat-meta", help="Flag to Download Satellite Metadata SNX", default=False, is_flag=True)
+@click.option("--yaw", help="Flag to Download Satellite Yaw files", default=False, is_flag=True)
+@click.option("--snx", help="Flag to Download Station Position SNX / SSC file", default=False, is_flag=True)
 @click.option("--nav", help="Flag to Download navigation / broadcast file/s", default=False, is_flag=True)
 @click.option("--sp3", help="Flag to Download SP3 file/s", default=False, is_flag=True)
 @click.option("--erp", help="Flag to Download ERP file/s", default=False, is_flag=True)
@@ -899,6 +1116,7 @@ def auto_download(
 @click.option("--product-dir", help="Directory to Download product files. Default: target-dir", type=Path)
 @click.option("--rinex-data-dir", help="Directory to Download RINEX data file/s. Default: target-dir", type=Path)
 @click.option("--trop-dir", help="Directory to Download troposphere model file/s. Default: target-dir", type=Path)
+@click.option("--model-dir", help="Directory to Download static model files. Default: product-dir / tables", type=Path)
 @click.option(
     "--solution-type",
     help="The solution type of products to download from CDDIS. 'RAP': rapid, or 'ULT': ultra-rapid. Default: RAP",
@@ -924,6 +1142,13 @@ def auto_download(
     default="%Y-%m-%d_%H:%M:%S",
     type=str,
 )
+@click.option("--iau2000", help="Flag to download IAU2000 file for ERP. Default: True", default=True, type=bool)
+@click.option(
+    "--datetime-format",
+    help="Format of input datetime string. Default: %Y-%m-%d_%H:%M:%S",
+    default="%Y-%m-%d_%H:%M:%S",
+    type=str,
+)
 @click.option(
     "--data-source",
     help="Source of data for Broadcast files: CDDIS or gnss-data. Default: gnss-data",
@@ -940,7 +1165,15 @@ def auto_download_main(
     most_recent,
     analysis_center,
     atx,
-    blq,
+    aload,
+    igrf,
+    egm,
+    oload,
+    opole,
+    fes,
+    planet,
+    sat_meta,
+    yaw,
     snx,
     nav,
     sp3,
@@ -951,10 +1184,12 @@ def auto_download_main(
     product_dir,
     rinex_data_dir,
     trop_dir,
+    model_dir,
     solution_type,
     project_type,
     rinex_file_period,
     bia_ac,
+    iau2000,
     datetime_format,
     data_source,
     verbose,
@@ -963,12 +1198,8 @@ def auto_download_main(
         station_list
     except NameError:
         station_list = None
-    
     if not station_list == None:
         station_list = station_list.split(",")
-    
-    print(most_recent)
-
     auto_download(
         target_dir,
         preset,
@@ -978,7 +1209,15 @@ def auto_download_main(
         most_recent,
         analysis_center,
         atx,
-        blq,
+        aload,
+        igrf,
+        egm,
+        oload,
+        opole,
+        fes,
+        planet,
+        sat_meta,
+        yaw,
         snx,
         nav,
         sp3,
@@ -989,10 +1228,12 @@ def auto_download_main(
         product_dir,
         rinex_data_dir,
         trop_dir,
+        model_dir,
         solution_type,
-        project_type, # DZ: add project_type option
+        project_type,  # DZ: add project_type option
         rinex_file_period,
         bia_ac,
+        iau2000,
         datetime_format,
         data_source,
         verbose,

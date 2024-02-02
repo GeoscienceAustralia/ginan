@@ -1,5 +1,5 @@
 
-#pragma GCC optimize ("O0")
+// #pragma GCC optimize ("O0")
 
 #include <filesystem>
 #include <iostream>
@@ -185,7 +185,6 @@ bool replaceString(
 }
 
 /** Replace macros for times with configured values.
-* Available replacements are "<CONFIG> <USER> <PASS> <BRANCH> <HASH> <AGENCY> <SOFTWARE>"
 */
 void replaceTags(
 	string& str)		///< String to replace macros within
@@ -200,7 +199,7 @@ void replaceTags(
 					replaceString(str, "<HASH>",							ginanCommitHash());
 					replaceString(str, "<BRANCH>",							ginanBranchName());
 					replaceString(str, "<AGENCY>",							acsConfig.analysis_agency);
-					replaceString(str, "<SOFTWARE>",						acsConfig.analysis_program.substr(0,3));
+					replaceString(str, "<SOFTWARE>",						acsConfig.analysis_software.substr(0,3));
 					replaceString(str, "<INPUTS_ROOT>",						acsConfig.inputs_root);
 					replaceString(str, "<TRACE_DIRECTORY>",					acsConfig.trace_directory);
 					replaceString(str, "<BIAS_SINEX_DIRECTORY>",			acsConfig.bias_sinex_directory);
@@ -2264,7 +2263,10 @@ ReceiverOptions& ACSConfig::getRecOpts(
 
 	aliases.push_back("! global");
 
-	//todo aaron add alias for receiver hardware type
+	for (auto& alias : customAliasesMap[id])
+	{
+		aliases.push_back(alias);
+	}
 
 	for (int i = 0; i < yamls.size(); i++)
 	{
@@ -2900,8 +2902,8 @@ bool ACSConfig::parse(
 				tryGetFromYaml(analysis_agency,						metadata, {"@ analysis_agency"					}, "Agency for output files headers");
 				tryGetFromYaml(analysis_centre,						metadata, {"@ analysis_centre"					}, "Analysis centre for output files headers");
 				tryGetFromYaml(ac_contact,							metadata, {"@ ac_contact"						}, "Contact person for output files headers");
-				tryGetFromYaml(analysis_program,					metadata, {"@ analysis_program"					}, "Program for output files headers");
-				tryGetFromYaml(analysis_program_version,			metadata, {"@ analysis_program_version"			}, "Version for output files headers");
+				tryGetFromYaml(analysis_software,					metadata, {"@ analysis_software"				}, "Program for output files headers");
+				tryGetFromYaml(analysis_software_version,			metadata, {"@ analysis_software_version"		}, "Version for output files headers");
 				tryGetFromYaml(rinex_comment,						metadata, {"@ rinex_comment"					}, "Comment for output files headers");
 				tryGetFromYaml(reference_system,					metadata, {"@ reference_system"					}, "Terrestrial Reference System Code");
 				tryGetFromYaml(time_system,							metadata, {"@ time_system"						}, "Time system - e.g. \"G\", \"UTC\"");
@@ -3367,26 +3369,27 @@ bool ACSConfig::parse(
 			{
 				auto general = stringsToYamlObject(processing_options, {"0! gnss_general"}, "Options to specify the processing of gnss observations");
 
-				tryGetFromYaml	(require_apriori_positions,					general, {"@ require_apriori_positions" }, "Restrict processing to receivers that have apriori positions available");
-				tryGetFromYaml	(require_antenna_details,					general, {"@ require_antenna_details" 	}, "Restrict processing to receivers that have antenna details");
-				tryGetFromYaml	(pivot_receiver,							general, {"@ pivot_receiver" 			}, "Largely deprecated id of receiver to use for pivot constraints");
-				tryGetFromYaml	(pivot_satellite,							general, {"@ pivot_satellite" 			}, "Largely deprecated id of satellite to use for pivot constraints");
-				tryGetFromYaml	(interpolate_rec_pco,						general, {"@ interpolate_rec_pco" 		}, "Interpolate other known pco values to find pco for unknown frequencies");
-				tryGetFromYaml	(auto_fill_pco,								general, {"@ auto_fill_pco" 			}, "Use similar PCOs when requested values are not found");
-				tryGetFromYaml	(pppOpts.common_atmosphere,					general, {"@ common_atmosphere"			});
-				tryGetFromYaml	(pppOpts.use_rtk_combo,						general, {"@ use_rtk_combo"				}, "Combine applicable observations to simulate an rtk solution");
-				tryGetFromYaml	(delete_old_ephemerides,					general, {"@ delete_old_ephemerides"	}, "Remove old ephemerides that have accumulated over time from before far before the currently processing epoch");
-				tryGetFromYaml	(use_tgd_bias,								general, {"@ use_tgd_bias"				}, "Use TGD/BGD bias from ephemeris, DO NOT turn on unless using Klobuchar/NeQuick Ionospheres");
-				tryGetFromYaml	(common_sat_pco,							general, {"@ common_sat_pco"			}, "Use L1 satellite PCO values for all signals");
-				tryGetFromYaml	(common_rec_pco,							general, {"@ common_rec_pco"			}, "Use L1 receiver PCO values for all signals");
-				tryGetFromYaml	(leap_seconds,								general, {"@ gpst_utc_leap_seconds"		}, "Difference between gps time and utc in leap seconds");
+				tryGetFromYaml	(require_apriori_positions,					general, {"@ require_apriori_positions" 	}, "Restrict processing to receivers that have apriori positions available");
+				tryGetFromYaml	(require_antenna_details,					general, {"@ require_antenna_details" 		}, "Restrict processing to receivers that have antenna details");
+				tryGetFromYaml	(pivot_receiver,							general, {"@ pivot_receiver" 				}, "Largely deprecated id of receiver to use for pivot constraints");
+				tryGetFromYaml	(pivot_satellite,							general, {"@ pivot_satellite" 				}, "Largely deprecated id of satellite to use for pivot constraints");
+				tryGetFromYaml	(interpolate_rec_pco,						general, {"@ interpolate_rec_pco" 			}, "Interpolate other known pco values to find pco for unknown frequencies");
+				tryGetFromYaml	(auto_fill_pco,								general, {"@ auto_fill_pco" 				}, "Use similar PCOs when requested values are not found");
+				tryGetFromYaml	(pppOpts.common_atmosphere,					general, {"@ common_atmosphere"				});
+				tryGetFromYaml	(pppOpts.use_rtk_combo,						general, {"@ use_rtk_combo"					}, "Combine applicable observations to simulate an rtk solution");
+				tryGetFromYaml	(delete_old_ephemerides,					general, {"@ delete_old_ephemerides"		}, "Remove old ephemerides that have accumulated over time from before far before the currently processing epoch");
+				tryGetFromYaml	(use_tgd_bias,								general, {"@ use_tgd_bias"					}, "Use TGD/BGD bias from ephemeris, DO NOT turn on unless using Klobuchar/NeQuick Ionospheres");
+				tryGetFromYaml	(common_sat_pco,							general, {"@ common_sat_pco"				}, "Use L1 satellite PCO values for all signals");
+				tryGetFromYaml	(common_rec_pco,							general, {"@ common_rec_pco"				}, "Use L1 receiver PCO values for all signals");
+				tryGetFromYaml	(leap_seconds,								general, {"@ gpst_utc_leap_seconds"			}, "Difference between gps time and utc in leap seconds");
 
 				tryGetFromYaml	(process_meas[CODE],						general, {"1@ code_measurements",		"process"	}, "Process code measurements");
 				tryGetFromYaml	(process_meas[PHAS],						general, {"1@ phase_measurements",		"process"	}, "Process phase measurements");
 
-				tryGetEnumOpt	(receiver_reference_clk,					general, {"@ rec_reference_system"		}, "Receiver will use this system as reference clock");
-				tryGetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"		}, "Variance of phase bias to be considered fixed/binded");
-				tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"}, "Apply gauss-markov mu values to satellites to minimise offsets with respect to broadcast values ");
+				tryGetEnumOpt	(receiver_reference_clk,					general, {"@ rec_reference_system"			}, "Receiver will use this system as reference clock");
+				tryGetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"			}, "Variance of phase bias to be considered fixed/binded");
+				tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"	}, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
+				tryGetFromYaml	(minimise_ionosphere_offsets,				general, {"@ minimise_ionosphere_offsets"	}, "Apply gauss-markov mu values to stec values to minimise offsets with respect to klobuchar values");
 
 				for (int i = E_Sys::GPS; i < E_Sys::SUPPORTED; i++)
 				{
@@ -3594,10 +3597,10 @@ bool ACSConfig::parse(
 				{
 					auto ionospheric_components = stringsToYamlObject(ppp_filter, {"! ionospheric_components"}, "Slant ionospheric components");
 
-					tryGetEnumOpt( ionoOpts.corr_mode, 						ionospheric_components, {"@ corr_mode" 						});
-					tryGetFromYaml(ionoOpts.common_ionosphere,				ionospheric_components, {"! common_ionosphere"				}, "Use the same ionosphere state for code and phase observations");
-					tryGetFromYaml(ionoOpts.use_if_combo,					ionospheric_components, {"! use_if_combo"					}, "Combine 'uncombined' measurements to simulate an ionosphere-free solution");
-					tryGetFromYaml(ionoOpts.use_gf_combo,					ionospheric_components, {"! use_gf_combo"					}, "Combine 'uncombined' measurements to simulate a geometry-free solution");
+					tryGetEnumOpt( pppOpts.ionoOpts.corr_mode, 				ionospheric_components, {"@ corr_mode" 						});
+					tryGetFromYaml(pppOpts.ionoOpts.common_ionosphere,		ionospheric_components, {"! common_ionosphere"				}, "Use the same ionosphere state for code and phase observations");
+					tryGetFromYaml(pppOpts.ionoOpts.use_if_combo,			ionospheric_components, {"! use_if_combo"					}, "Combine 'uncombined' measurements to simulate an ionosphere-free solution");
+					tryGetFromYaml(pppOpts.ionoOpts.use_gf_combo,			ionospheric_components, {"! use_gf_combo"					}, "Combine 'uncombined' measurements to simulate a geometry-free solution");
 				}
 
 				getFilterOptions(ppp_filter, pppOpts);
@@ -3632,6 +3635,7 @@ bool ACSConfig::parse(
 				tryGetFromYaml(sppOpts.max_lsq_iterations,		spp,		{"! max_lsq_iterations"		},	"Maximum number of iterations of least squares allowed for convergence");
 				tryGetFromYaml(sppOpts.sigma_scaling,			spp,		{"! sigma_scaling"			},	"Scale applied to measurement noise for spp");
 				tryGetFromYaml(sppOpts.always_reinitialise,		spp,		{"@ always_reinitialise"	},	"Reset SPP state to zero to avoid potential for lock-in of bad states");
+				tryGetEnumOpt( sppOpts.iono_mode, 				spp,		{"@ iono_mode" 				});
 
 				auto outlier_screening = stringsToYamlObject(spp, {"! outlier_screening"}, "Statistical checks allow for detection of outliers that exceed their confidence intervals.");
 

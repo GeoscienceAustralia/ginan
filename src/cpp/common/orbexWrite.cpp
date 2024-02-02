@@ -53,7 +53,7 @@ void writeOrbexHeader(
 
 	tracepdeex(0, orbexStream, "+FILE/DESCRIPTION\n");
 	tracepdeex(0, orbexStream, " DESCRIPTION         %s\n", "Satellite attitude quaternions");
-	tracepdeex(0, orbexStream, " CREATED_BY          %s %s\n", acsConfig.analysis_agency.c_str(), acsConfig.analysis_program.c_str());
+	tracepdeex(0, orbexStream, " CREATED_BY          %s %s\n", acsConfig.analysis_agency.c_str(), acsConfig.analysis_software.c_str());
 	tracepdeex(0, orbexStream, " CREATION_DATE       %s\n", timeGet().to_string(0).c_str());
 	tracepdeex(0, orbexStream, " INPUT_DATA          %s\n", "");
 	tracepdeex(0, orbexStream, " CONTACT             %s\n", "npi@ga.gov.au");

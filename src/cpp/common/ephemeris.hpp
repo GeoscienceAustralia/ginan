@@ -63,7 +63,7 @@ struct Eph : BrdcEph, KeplerEph
 	E_NavMsgType	type = E_NavMsgType::NONE;	///< message type
 	SatSys	Sat;		///< satellite number
 	int		iode = -1;	///< GPS/QZS: IODE, GAL: IODnav
-	int		iodc = -1;	///< IODC
+	int		iodc = 0;	///< IODC
 	int		aode;		///< BDS AODE
 	int		aodc;		///< BDS AODC
 	int		sva;		///< SV accuracy (URA index)

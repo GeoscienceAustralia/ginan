@@ -1,7 +1,10 @@
 
 // #pragma GCC optimize ("O0")
 
+#include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+
+using boost::algorithm::to_lower_copy;
 
 #include "eigenIncluder.hpp"
 #include "navigation.hpp"
@@ -100,6 +103,23 @@ void sinexPerEpochPerStation(
 	if (rec.antDelta	.isZero())		rec.antDelta		= rec.snx.ecc_ptr->ecc;
 	if (rec.antennaType	.empty())		rec.antennaType		= rec.snx.ant_ptr->type;
 	if (rec.receiverType.empty())		rec.receiverType	= rec.snx.rec_ptr->type;
+
+	if (rec.receiverType.empty() == false)
+	{
+		string receiverType = to_lower_copy(rec.receiverType);
+		receiverType = receiverType.substr(0, receiverType.find(" "));
+
+		auto [it, inserted] = acsConfig.customAliasesMap[rec.id].insert(receiverType);
+		if (inserted)
+		{
+			auto& baseRecOpts = acsConfig.getRecOpts((string) "_" + rec.id);
+
+			for (auto& [id, inheritor] : baseRecOpts.inheritors)
+			{
+				inheritor->_initialised = false;
+			}
+		}
+	}
 
 	auto trace = getTraceFile(rec);
 

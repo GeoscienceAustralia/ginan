@@ -18,6 +18,7 @@
 
 void outputObservations(
 	Trace&		trace,
+	Trace&		jsonTrace,
 	ObsList&	obsList)
 {
 	for (auto& obs : only<GObs>(obsList))
@@ -30,6 +31,21 @@ void outputObservations(
 		}
 
 		tracepdeex(4, trace, "\n%s %5s %5s %14.4f %14.4f", obs.time.to_string(2).c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sig.L, sig.P);
+
+		traceJson(4, jsonTrace, obs.time, 
+		{
+			{"data", __FUNCTION__},
+			{"Sat", obs.Sat.id()},
+			{"Rec", obs.mount},
+			{"Sig", sig.code._to_string()}
+		},
+		{
+			{"SNR", sig.snr},
+			// {"L", sig.L},
+			// {"P", sig.P},
+			// {"D", sig.D},
+			// {"LLI", sig.lli},
+		});
 	}
 }
 
@@ -139,7 +155,8 @@ void preprocessor(
 
 	Instrument instrument(__FUNCTION__);
 
-	auto trace = getTraceFile(rec);
+	auto trace		= getTraceFile(rec);
+	auto jsonTrace	= getTraceFile(rec, true);
 
 	acsConfig.getRecOpts(rec.id);
 
@@ -217,7 +234,7 @@ void preprocessor(
 
 	excludeUnprocessed(obsList);
 
-	outputObservations(trace, obsList);
+	outputObservations(trace, jsonTrace, obsList);
 
 	/* linear combinations */
 	for (auto& obs : only<GObs>(obsList))

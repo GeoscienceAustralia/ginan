@@ -24,7 +24,7 @@ Refer to the the MongoDB setup instructions in the `readme` *MongoDB (PEA, optio
 
 ## Configuring Ginan
 
-To use the GinanEDA, Ginan needs to be configured to output some information into the MongoDB. 
+To use the GinanEDA, Ginan needs to be configured to output some information into the MongoDB.
 
 This is done by configuring the `mongo:` section in the Ginan YAML configuration file
 
@@ -63,9 +63,9 @@ In the column to the left are the options for loading data from the MongoDB and 
 
 #### Connect
 
-The Connect tab brings up the connection page that enables you to select the database from MongoDB that you want to explore. 
+The Connect tab brings up the connection page that enables you to select the database from MongoDB that you want to explore.
 
-Click on the `Connect to DB` and then the `Select databases` tabs to see a list of the databases names available for exploration. 
+Click on the `Connect to DB` and then the `Select databases` tabs to see a list of the databases names available for exploration.
 
 Click on the database you wish to load for visualisation and then click `Load DB`
 
@@ -91,3 +91,6 @@ The `Position Analysis` tab brings up the page that enables you to analyse the q
 
 The Config tab brings up a page that renders the Ginan input configuration file that was used in the processing.
 
+#### Advanced
+
+An unlinked `/advanced` tab is available to create plots with varying degrees of complexity. It requires mongo trace outputs to be enabled, and may require some understanding of mongo request structure to operate effectively.

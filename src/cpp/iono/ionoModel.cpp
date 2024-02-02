@@ -210,7 +210,7 @@ void filterIonosphere(
 		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
 
 		if (obs.ionExclude)											{	continue;	}
-		if (obs.STECtype <= 0)										{	continue;	}
+		if (obs.stecType <= 0)										{	continue;	}
 		if (stationList[rec.id][sys] < MIN_NSAT_REC)				{	continue;	}
 		if (obs.stecVar > SQR(recOpts.iono_sigma_limit)) 			{	continue;	}
 

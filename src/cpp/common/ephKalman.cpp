@@ -26,22 +26,42 @@ bool satClkKalman(
 	double clk = 0;
 	double vel = 0;
 
-	//get orbit things from the state
+	//get clocks from the state
 	KFKey kfKey;
-	kfKey.type	= KF::SAT_CLOCK;
 	kfKey.Sat	= satPos.Sat;
 
-	bool found = true;
-	found &= kfState.getKFValue(kfKey, clk);
+	bool anyFound = false;
+	while (1)
+	{
+		double thisClk = 0;
+		double thisVel = 0;
 
-	if (found == false)
+		kfKey.type	= KF::SAT_CLOCK;
+
+		bool found = true;
+		found &= kfState.getKFValue(kfKey, thisClk);
+
+		if (found == false)
+		{
+			break;
+		}
+
+		anyFound = true;
+
+		kfKey.type	= KF::SAT_CLOCK_RATE;
+
+		found &= kfState.getKFValue(kfKey, thisVel);
+
+		kfKey.num++;
+
+		clk += thisClk;
+		vel += thisVel;
+	}
+
+	if (anyFound == false)
 	{
 		return false;
 	}
-
-	kfKey.type	= KF::SAT_CLOCK_RATE;
-
-	found &= kfState.getKFValue(kfKey, vel);
 
 	double dt = (time - kfState.time).to_double();
 
@@ -53,7 +73,7 @@ bool satClkKalman(
 
 	satPos.satClkVel	= vel;
 
-	return true;
+	return anyFound;
 }
 
 bool satPosKalman(

@@ -23,7 +23,7 @@ Similar to the ocean tide, the solid Earth tide results from the gravitational i
 In addition to gravitational accelerations, non-gravitational accelerations significantly affect satellite propagation.
 
 ### Solar Radiation Pressure Acceleration (CannonBall)
-The solar radiation pressure acceleration arises from the pressure exerted by sunlight on the satellite's surface. The momentum transfer from photons to the satellite creates a force that affects the satellite's trajectory. For this release, only the Cannon Ball model is implemented.
+The solar radiation pressure acceleration arises from the pressure exerted by sunlight on the satellite's surface. The momentum transfer from photons to the satellite creates a force that affects the satellite's trajectory. Two model are implemented, the classical cannonball model which assume the satellite being a ball of specified area, mass and reflection properties and the boxwing model which describe the satellite with a mass and multiple panels of given area and reflection, diffusion and absorption coefficients in the visible wavelength band.
 
 ### Antenna thrust
 A GNSS satellite continuously emitting a RF signal has an acceleration generated due to the emission of the signal. 

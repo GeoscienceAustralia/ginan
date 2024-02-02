@@ -70,7 +70,7 @@ bool writeIonexHead(
 	auto& recOpts = acsConfig.getRecOpts("global");
 
 	tracepdeex(0, ionex, "%8.1f%12s%-20s%-20.20sIONEX VERSION / TYPE\n", 1.1, " ", "I", "GNS");
-	tracepdeex(0, ionex, "%-20s%-20s%-20.20sPGM / RUN BY / DATE\n", acsConfig.analysis_program.c_str(), acsConfig.analysis_centre.c_str(), timeGet().to_string(0).c_str());
+	tracepdeex(0, ionex, "%-20s%-20s%-20.20sPGM / RUN BY / DATE\n", acsConfig.analysis_software.c_str(), acsConfig.analysis_centre.c_str(), timeGet().to_string(0).c_str());
 	tracepdeex(0, ionex, "  %4s%54sMAPPING FUNCTION\n", "COSZ", "");
 	tracepdeex(0, ionex, "%8.1f%52sELEVATION CUTOFF\n", recOpts.elevation_mask_deg, " ");
 	tracepdeex(0, ionex, "%8.1f%52sBASE RADIUS\n", RE_WGS84 / 1000.0, " ");

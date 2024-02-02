@@ -3,23 +3,21 @@ inputs:
     inputs_root: ./products/
 
     atx_files:  [ igs20.atx                             ] # required
-    egm_files:  [ tables/EGM2008.gfc                    ] # Earth gravity model coefficients file
     igrf_files: [ tables/igrf13coeffs.txt               ]
-    erp_files:  [ tables/finals.data.iau2000.txt        ]
+    erp_files:  [ finals.data.iau2000.txt               ]
     planetary_ephemeris_files: [ tables/DE436.1950.2050 ]
 
     troposphere:
-        gpt2grid_files: [ gpt_25.grd ]
+        gpt2grid_files: [ tables/gpt_25.grd ]
 
     tides:
-        ocean_tide_loading_blq_files:   [ OLOAD_GO.BLQ                  ] # required if ocean loading is applied
-        atmos_tide_loading_blq_files:   [ ALOAD_GO.BLQ                  ] # required if atmospheric tide loading is applied
+        ocean_tide_loading_blq_files:   [ tables/OLOAD_GO.BLQ                  ] # required if ocean loading is applied
+        atmos_tide_loading_blq_files:   [ tables/ALOAD_GO.BLQ                  ] # required if atmospheric tide loading is applied
         ocean_pole_tide_loading_files:  [ tables/opoleloadcoefcmcor.txt ] # required if ocean pole tide loading is applied
-        ocean_tide_potential_files:     [ tables/fes2014b_Cnm-Snm.dat   ]
 
     snx_files:
     # - "*.SNX" # use a wild card to include all files matching the description in the directory
-    - tables/igs_satellite_metadata_2203_plus.snx
+    - igs_satellite_metadata.snx
     - tables/sat_yaw_bias_rate.snx
     - tables/qzss_yaw_modes.snx
     - tables/bds_yaw_modes.snx
@@ -57,14 +55,14 @@ outputs:
 
     gpx:
         output:                true
-        filename:              <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.GPX
+        filename:              <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.GPX
 
     trace:
         level:                 2
         output_receivers:      true
         output_network:        true
-        receiver_filename:     <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
-        network_filename:      <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
+        receiver_filename:     <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        network_filename:      <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
         output_residuals:      true
         output_residual_chain: true
         output_config:         true
@@ -81,7 +79,6 @@ satellite_options:
         error_model:    ELEVATION_DEPENDENT #  {uniform,elevation_dependent}
         code_sigma:     0                   # Standard deviation of code measurements
         phase_sigma:    0                   # Standard deviation of phase measurmeents
-        # mincon_noise:   [-1]                # Sigma applied for weighting in mincon transformation estimation
         models:
             phase_bias:
                 enable: false
@@ -99,6 +96,8 @@ receiver_options:
         error_model:    ELEVATION_DEPENDENT # {uniform,elevation_dependent}
         code_sigma:     0.3      # Standard deviation of code measurements, m
         phase_sigma:    0.003    # Standard deviation of phase measurmeents, m
+        clock_codes:    [AUTO, AUTO]
+        zero_dcb_codes: [AUTO, AUTO]
         models:
             phase_bias:
                 enable: false
@@ -112,7 +111,6 @@ receiver_options:
                 otl:    true     # Enable ocean tide loading
                 solid:  true     # Enable solid Earth tides
                 spole:  true     # Enable solid Earth pole tides
-
     # ALIC:
     #     receiver_type:    "LEICA GR25"                 # (string)
     #     antenna_type:     "LEIAR25.R3      NONE"       # (string)
@@ -142,23 +140,17 @@ processing_options:
 
     gnss_general:
         rec_reference_system:      GPS
-
         sys_options:
             gps:
                 process:                true
                 reject_eclipse:         false
                 # clock_codes:            [ L1W, L2W ]
                 code_priorities:        [ L1W, L1C, L2W ]
-                ambiguity_resolution:   false
-                network_amb_pivot:      false # Constrain: set of ambiguities, to eliminate network rank deficiencies
-                receiver_amb_pivot:     false # Constrain: set of ambiguities, to eliminate receiver rank deficiencies
+
             gal:
                 process:                true
                 reject_eclipse:         false
                 code_priorities:        [ L1C, L5Q, L1X, L5X ]
-                ambiguity_resolution:   false
-                network_amb_pivot:      false
-                receiver_amb_pivot:     false
 
     preprocessor:                  # Configurations for the kalman filter and its sub processes
         cycle_slips:               # Cycle slips may be detected by the preprocessor and measurements rejected or ambiguities reinitialised
@@ -221,20 +213,6 @@ processing_options:
                 mw:                true  # MW test
                 scdia:             true  # SCDIA test
 
-    # Warning: lambda_bie is NOT recommended for network processing, use bootst option instead
-    ambiguity_resolution:
-        mode:                      OFF    #  {off,round,iter_rnd,bootst,lambda,lambda_alt,lambda_al2,lambda_bie}
-        # elevation_mask:            15
-        # fix_and_hold:              false  # Perform ambiguity resolution and commit results to the main processing filter
-        # lambda_set_size:           2      # Maximum numer of candidate sets to be used in lambda_alt2 and lambda_bie modes
-        # max_rounding_iterations:   1      # Maximum number of rounding iterations performed in iter_rnd and bootst modes
-        # once_per_epoch:            true   # Perform ambiguity resolution on a temporary filter and output results once per epoch
-        # solution_ratio_threshold:  3      # Thresold for integer validation, distance ratio test
-        # success_rate_threshold:    0.9999 # Thresold for integer validation, success rate test
-
-    minimum_constraints:
-        enable: false
-
 
 estimation_parameters:
     global_models:
@@ -256,7 +234,7 @@ estimation_parameters:
             pos:
                 estimated:          [true]
                 sigma:              [100]
-                process_noise:      [100]
+                process_noise:      [30]
             pos_rate:                       # Velocity
                 estimated:          [false] # [bools] Estimate state in kalman filter
                 sigma:              [0]     # [floats] Apriori sigma values - if zero, will be initialised using least squares

@@ -310,7 +310,7 @@ class Measurements:
                 self.info[key]["rms"] = np.sqrt(np.mean(self.data[key][self.subset][mask] ** 2))
                 self.info[key]["sumsqr"] = np.sum(self.data[key][self.subset][mask] ** 2)
                 logger.debug(f"{self.id}: {self.info[key]}")
-            except:
+            except Exception:
                 logger.debug("data not a number")
 
     def compute_qq(self):
@@ -336,12 +336,13 @@ class Measurements:
         if tmin is None:
             first_index = 0
         else:
-            first_index = np.argmax(self.epoch >= tmin)
+            first_index = np.searchsorted(self.epoch, tmin, side='left')
         if tmax is None:
-            last_index = len(self.epoch) - 1
+            last_index = len(self.epoch)
         else:
-            last_index = np.argmin(self.epoch <= tmax) - 1
-        self.subset = slice(first_index, last_index + 1)
+            last_index = np.searchsorted(self.epoch, tmax, side='right')
+        self.subset = slice(first_index, last_index)
+
 
     def trim(self) -> None:
         """
@@ -399,7 +400,7 @@ class MeasurementArray:
             for other_data in other.arr:
                 if data.id["sat"] == other_data.id["sat"] and data.id["site"] == other_data.id["site"]:
                     logger.debug(
-                        "Matching",
+                        "Matching %s %s %s %s",
                         data.id,
                         other_data.id,
                         data.id["sat"] == other_data.id["sat"],
@@ -426,8 +427,8 @@ class MeasurementArray:
         for data in data_lst:
             try:
                 temporary_loader.append(Measurements.from_dictionary(data))
-            except:
-                logger.info("skyping this one")
+            except Exception:
+                logger.info("skipping this one")
         return temporary_loader
 
     def find_minmax(self):
@@ -437,7 +438,7 @@ class MeasurementArray:
         try:
             self.tmin = min(obj.epoch[0] for obj in self.arr)
             self.tmax = max(obj.epoch[-1] for obj in self.arr)
-        except:
+        except Exception:
             self.tmin = None
             self.tmax = None
 

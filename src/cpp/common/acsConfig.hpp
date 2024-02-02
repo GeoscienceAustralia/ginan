@@ -429,8 +429,8 @@ struct GlobalOptions
 	string	config_description				= "Pea";
 	string	analysis_agency					= "GAA";
 	string	analysis_centre					= "Geoscience Australia";
-	string	analysis_program				= "Ginan";
-	string	analysis_program_version		= "2.0";
+	string	analysis_software				= "Ginan";
+	string	analysis_software_version		= "3.0";
 	string	ac_contact						= "clientservices@ga.gov.au";
 	string	rinex_comment					= "Daily 30-sec observations from IGS stations";
 	string	reference_system				= "igb14";
@@ -521,6 +521,7 @@ struct GlobalOptions
 	double fixed_phase_bias_var   = 0.01;
 
 	bool	minimise_sat_clock_offsets	= false;
+	bool	minimise_ionosphere_offsets	= false;
 
 	map<E_Sys, bool> receiver_amb_pivot;		///< fix one ambiguity to eliminate rank deficiency
 	map<E_Sys, bool> network_amb_pivot;			///< fix ambiguities to eliminate network rank deficiencies
@@ -599,12 +600,26 @@ struct FilterOptions : RtsOptions
 	PostfitOptions	postfitOpts;
 };
 
+/** Options associated with the ionospheric modelling processing mode of operation
+*/
+struct IonosphericOptions
+{
+	E_IonoMode 		corr_mode  		= E_IonoMode::BROADCAST;
+
+	bool			common_ionosphere				= true;
+	bool			use_if_combo					= false;
+	bool			use_gf_combo					= false;
+
+};
+
 /** Options associated with the ppp processing mode of operation
 */
 struct PppOptions : FilterOptions
 {
-	KalmanModel		eop;
-	KalmanModel		eop_rates;
+	KalmanModel				eop;
+	KalmanModel				eop_rates;
+
+	IonosphericOptions		ionoOpts;
 
 	bool			common_atmosphere	= false;
 	bool			use_rtk_combo		= false;
@@ -616,23 +631,13 @@ struct PppOptions : FilterOptions
 
 struct SppOptions : FilterOptions
 {
-	bool	always_reinitialise	= false;
-	int		max_lsq_iterations	= 12;
-	double	max_gdop			= 30;
-	double	sigma_scaling		= 1;
-	bool	raim				= true;
-};
+	bool		always_reinitialise	= false;
+	int			max_lsq_iterations	= 12;
+	double		max_gdop			= 30;
+	double		sigma_scaling		= 1;
+	bool		raim				= true;
 
-/** Options associated with the ionospheric modelling processing mode of operation
-*/
-struct IonosphericOptions
-{
-	E_IonoMode 		corr_mode  			= E_IonoMode::IONO_FREE_LINEAR_COMBO;
-
-	bool			common_ionosphere				= true;
-	bool			use_if_combo					= false;
-	bool			use_gf_combo					= false;
-
+	E_IonoMode 	iono_mode  			= E_IonoMode::IONO_FREE_LINEAR_COMBO;
 };
 
 struct IonModelOptions : FilterOptions
@@ -1296,6 +1301,9 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 
 	mutex							configMutex;
 
+
+	map<string, set<string>>		customAliasesMap;
+
 	vector<string>										configFilenames;
 	vector<string>										includedFilenames;
 	map<string, std::filesystem::file_time_type>		configModifyTimeMap;
@@ -1330,7 +1338,6 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	PreprocOptions				preprocOpts;
 	MinimumConstraintOptions	minconOpts;
 	SsrInOptions				ssrInOpts;
-	IonosphericOptions			ionoOpts;
 	AmbROptions					ambrOpts;
 	SsrOptions					ssrOpts;
 	PppOptions					pppOpts;

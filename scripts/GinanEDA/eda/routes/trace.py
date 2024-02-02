@@ -15,20 +15,14 @@ from . import eda_bp
 @eda_bp.route("/advanced", methods=["GET", "POST"])
 def trace():
 
-    print(request.cookies)
-    traceFormData   = json.loads(request.cookies["traceFormData"])
-    mongoIdData     = json.loads(request.cookies["mongoIdData"])
-    mongoValData    = json.loads(request.cookies["mongoValData"])
-    mongoIdKeyVals  = json.loads(request.cookies["mongoIdKeyVals"])
+    traceFormData   = json.loads(request.cookies.get("traceFormData", "null"))
+    mongoIdData     = json.loads(request.cookies.get("mongoIdData", "null"))
+    mongoValData    = json.loads(request.cookies.get("mongoValData", "null"))
+    mongoIdKeyVals  = json.loads(request.cookies.get("mongoIdKeyVals", "null"))
+
 
     if request.method == "POST":
         return handle_post_request()
-    # print("traceFormData")
-    # print(traceFormData)
-    # print("mongoIdData")
-    # print(mongoIdData)
-    # print("mongoValData")
-    # print(mongoValData)
 
     return render_template(
         "trace.jinja",
@@ -39,8 +33,6 @@ def trace():
         mongoIdData=mongoIdData,
         mongoValData=mongoValData,
         mongoIdKeyVals=mongoIdKeyVals)
-
-    init_page(template="trace.jinja")
 
 
 def handle_post_request():
@@ -79,10 +71,10 @@ def handle_post_request():
     # print(matchh)
     # print(group)
 
-    traceFormData   = json.loads(request.cookies["traceFormData"])
-    mongoIdData     = json.loads(request.cookies["mongoIdData"])
-    mongoValData    = json.loads(request.cookies["mongoValData"])
-    mongoIdKeyVals  = json.loads(request.cookies["mongoIdKeyVals"])
+    traceFormData   = json.loads(request.cookies.get("traceFormData", "null"))
+    mongoIdData     = json.loads(request.cookies.get("mongoIdData", "null"))
+    mongoValData    = json.loads(request.cookies.get("mongoValData", "null"))
+    mongoIdKeyVals  = json.loads(request.cookies.get("mongoIdKeyVals", "null"))
 
 
     traces = []

@@ -3,6 +3,9 @@ cmake_policy(SET CMP0063 NEW)
 
 project(ginan)
 
+include(CheckPIESupported)
+check_pie_supported()
+
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../../lib")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../../lib")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../../bin")
@@ -50,6 +53,15 @@ else ()
 	option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    ON)
 	option(ENABLE_OPTIMISATION      "ENABLE_OPTIMISATION"       ON)
 endif ()
+
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+	message(STATUS "Setting ccache            on")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE	ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK		ccache) # Less useful to do it for linking, see edit2
+else()
+	message(STATUS "Setting ccache            off")
+endif(CCACHE_FOUND)
 
 
 if(ENABLE_OPTIMISATION)
@@ -132,7 +144,7 @@ find_package(OpenSSL REQUIRED)
 
 #set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer)
+find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer stacktrace_addr2line stacktrace_backtrace)
 
 find_package(Eigen3 3.3.0)
 include_directories(${EIGEN3_INCLUDE_DIRS})
@@ -271,4 +283,4 @@ macro(print_all_variables)
 	message(STATUS "print_all_variables------------------------------------------}")
 endmacro()
 
-print_all_variables()
+# print_all_variables()

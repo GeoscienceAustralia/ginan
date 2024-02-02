@@ -35,7 +35,7 @@ double svaToUra(int sva)
 		ura = pow(2, (double)sva - 2.0);
 	else
 		ura = -1;
-	
+
 	return ura;
 }
 
@@ -93,12 +93,12 @@ unsigned int crc24q(
 	int						len)	///< data length (bytes)
 {
 //	trace(4,"%s: len=%d\n",__FUNCTION__, len);
-	
+
 	unsigned int crc = 0;
 
-	for (int i = 0; i < len; i++) 
+	for (int i = 0; i < len; i++)
 		crc = ((crc<<8) & 0xFFFFFF) ^ tbl_CRC24Q[(crc >> 16) ^ buff[i]];
-	
+
 	return crc;
 }
 

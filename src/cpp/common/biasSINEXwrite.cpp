@@ -82,7 +82,7 @@ void writeBSINEXHeader(
 	tracepdeex(0, trace, " DESCRIPTION       %s, %s\n",acsConfig.analysis_agency.c_str(), acsConfig.analysis_centre.c_str());
 	tracepdeex(0, trace, " OUTPUT            OSB estimates for day %3d, %4d\n", startTimeofFile[1], startTimeofFile[0]);
 	tracepdeex(0, trace, " CONTACT           %s\n", acsConfig.ac_contact.c_str());
-	tracepdeex(0, trace, " SOFTWARE          %s\n", acsConfig.analysis_program.c_str());
+	tracepdeex(0, trace, " SOFTWARE          %s\n", acsConfig.analysis_software.c_str());
 	tracepdeex(0, trace, " INPUT             %s\n", acsConfig.rinex_comment.c_str());
 	tracepdeex(0, trace, "-FILE/REFERENCE\n");
 

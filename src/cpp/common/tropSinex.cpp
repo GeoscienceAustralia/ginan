@@ -610,7 +610,7 @@ void outputTropSinex(
 {
 	theSinex.markerName = markerName.substr(0,4);
 	sinex_check_add_ga_reference(	acsConfig.trop_sinex_sol_type,
-									acsConfig.analysis_program_version,
+									acsConfig.analysis_software_version,
 									true);
 
 	KFState sinexSubstate = mergeFilters({&kfState}, {KF::ONE, KF::REC_POS, KF::REC_POS_RATE, KF::TROP, KF::TROP_GRAD});

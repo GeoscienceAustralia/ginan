@@ -1,5 +1,5 @@
 
-#pragma GCC optimize ("O0")
+// #pragma GCC optimize ("O0")
 
 
 #include "minimumConstraints.hpp"
@@ -314,6 +314,10 @@ void pseudoRecDcb(
 		{
 			codeBiasKeys.push_back(testKey);
 			++it;
+			if (it == kfState.kfIndexMap.end())
+			{
+				break;
+			}
 		}
 
 		if	( firstCode		== +E_ObsCode::AUTO
