@@ -16,7 +16,7 @@ jobs:
     - name: Get appimage to generate config docs
       uses: actions/checkout@v4
       with:
-        ref: weekly-develop-appimage
+        ref: develop-weekly-appimage
 
     - name: Generate config markdown doc from appimage
       run: |
