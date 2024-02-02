@@ -45,9 +45,7 @@ bool ionexFileWrite(
 	GTime		time,
 	KFState&	kfState);
 
-
-void writeIONStec(Trace& trace, string filename, map<string, Receiver>& receiverMap, GTime time);
-void writeSTECfromRTS(
+void writeIonStec(
 	string			filename,
 	KFState&		kFstate);
 

@@ -100,7 +100,7 @@ struct IonoObs
 	}
 
 	double	stecToDelay;
-	int		STECtype;
+	int		stecType	= 0;
 	double	stecVal;
 	double	stecVar;
 	int		stecCodeCombo;

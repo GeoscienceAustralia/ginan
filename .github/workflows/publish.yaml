@@ -5,7 +5,7 @@ name: Documentation
 # events but only for the master branch
 on:
   push:
-    branches: [ main ]
+    branches: [ develop-weekly ]
 
 jobs:
   build-documentation:
@@ -16,8 +16,7 @@ jobs:
 
     - name: Create folders
       run: |
-        rm Docs/markdown/readme.md
-        cp README.md Docs/markdown/readme.md
+        cp README.md Docs/readme.md
         mkdir -p src/build
     
     # Build the HTML documentation
@@ -26,6 +25,14 @@ jobs:
       with:
           doxyfile-path: ../doc_templates/Doxyfile.in
           working-directory: ./src/build
+
+    - name: Generate config docs
+      run: |
+        cd src/build
+        cmake ../
+        make docs
+        cd ../../
+        rm -rf src/build
     
     # Deploy the HTML documentation to GitHub Pages
     - name: GH Pages Deployment
@@ -36,4 +43,4 @@ jobs:
         enable_jekyll: false
         allow_empty_commit: false
         force_orphan: true
-        publish_branch: gh-pages 
+        publish_branch: gh-pages-staging

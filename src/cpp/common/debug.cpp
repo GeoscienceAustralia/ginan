@@ -2018,8 +2018,76 @@ void getAccData()
 	}
 }
 
+#include "gMap.hpp"
+
+GMap<double, double,std::greater<double>> 	testa;
+map	<double, double,std::greater<double>> 	test2a;
+GMap<double, double> 						test;
+map	<double, double> 						test2;
+
+void testt()
+{
+	for (int i = 0; i < 20; i++)
+	{
+		testa[i] = i;
+		test2a[i] = i;
+		test[i] = i;
+		test2[i] = i;
+	}
+
+
+	std::cout << std::endl;
+	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
+	{
+		std::cout  << " " << i;
+	}
+	std::cout << std::endl;
+
+
+	std::cout << std::endl;
+	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
+	{
+		std::cout << std::endl << std::endl << "testing for : " << i;
+		auto it = test.lower_bound(i);
+		if (it != test.end())
+		std::cout  << " " << it->first;
+	}
+	std::cout << std::endl;
+
+
+	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
+	{
+		std::cout << std::endl << std::endl << "testing for : " << i;
+		auto it = test2.lower_bound(i);
+		if (it != test2.end())
+		std::cout  << " " << it->first;
+	}
+	std::cout << std::endl;
+
+
+	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
+	{
+		std::cout << std::endl << std::endl << "testing for : " << i;
+		auto it = testa.lower_bound(i);
+		if (it != testa.end())
+		std::cout  << " " << it->first;
+	}
+	std::cout << std::endl;
+
+
+	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
+	{
+		std::cout << std::endl << std::endl << "testing for : " << i;
+		auto it = test2a.lower_bound(i);
+		if (it != test2a.end())
+		std::cout  << " " << it->first;
+	}
+	std::cout << std::endl;
+
+}
 void doDebugs()
 {
+	// testt();
 // 	minimumTest(std::cout);
 // 	exit(0);
 }

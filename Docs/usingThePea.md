@@ -211,7 +211,6 @@ In addition to trace files, the `pea` is capable of outputting most of the file-
 * YAML files
 * GPX files - an XML format for interchange of GPS data (waypoints, routes, and tracks) used by Google Earth among other software. (https://www.topografix.com/GPX/1/1/)
 * JSON files
-* Ginan PPP_OUT files
 
 ### Station Trace files
 

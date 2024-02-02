@@ -1,4 +1,4 @@
- 
+
 # Resources - documents and presentations
 
 ![A library of information](images/LibraryBooksStrip.png)
@@ -16,6 +16,8 @@
 ***
 
 ## Ginan user stories
+
+> [![](images/AIMSThumb.png) A demonstration showing Ginan on air and sea drones at AIMS Reefworks. August 2023.](resources/GinanAIMSCaseStudy.pdf)
 
 > [![](images/Locate23_S_McClusky_frontpage101X57.jpg) Open-source Precise Point Positioning (PPP) with Ginan v2 - Simon McClusky, from Locate 23, 11 May 2023.](resources/Locate23_S_McClusky_final.pdf)
 

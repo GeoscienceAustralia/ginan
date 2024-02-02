@@ -39,6 +39,7 @@ using std::vector;
 #include "navigation.hpp"
 #include "instrument.hpp"
 #include "mongoWrite.hpp"
+#include "ephPrecise.hpp"
 #include "testUtils.hpp"
 #include "ephemeris.hpp"
 #include "acsConfig.hpp"
@@ -272,6 +273,7 @@ void outputApriori(
 
 void selectAprioriSource(
 	Receiver&	rec,
+	GTime&		time,
 	bool&		sppUsed)
 {
 	sppUsed = false;
@@ -297,6 +299,22 @@ void selectAprioriSource(
 		rec.aprioriPos	= rec.sol.sppRRec;
 
 		sppUsed			= true;
+	}
+
+	auto trace = getTraceFile(rec);
+
+	double	dtRec		= 0;
+	double	dtRecVar	= 0;
+	bool pass = pephclk(trace, time, rec.id, nav, dtRec, &dtRecVar);
+	if (pass)
+	{
+		rec.aprioriClk		= dtRec		*		CLIGHT;
+		rec.aprioriClkVar	= dtRecVar	* SQR(	CLIGHT);
+	}
+	else
+	{
+		rec.aprioriClk		= rec.sol.dtRec_m[E_Sys::GPS];
+		rec.aprioriClkVar	= SQR(30);
 	}
 
 	if (recOpts.apriori_variance_enu.empty() == false)
@@ -385,7 +403,7 @@ void removeBadAmbiguities(
 		{
 			E_FType ft = (E_FType) key.num;
 
-			preprocSigName	= ft2string(ft);
+			preprocSigName	= ft2string(ft);		//todo aaron, is this redundant now that network is gone?
 			sigName			= preprocSigName;
 		}
 
@@ -460,7 +478,7 @@ void removeBadAmbiguities(
 		}
 
 		//for ionosphere free, need to reset all connected singals
-		if	(acsConfig.ionoOpts.use_if_combo)
+		if	(acsConfig.pppOpts.ionoOpts.use_if_combo)
 		for (auto& [sigNam, sigStat] : satStat.sigStatMap)
 		{
 			if	(sigStat.savedSlip.any

@@ -900,28 +900,14 @@ void createTracefiles(
 				}
 			}
 
-			if (acsConfig.output_trop_sinex)
-			{
-				if (acsConfig.process_ppp)
-				{
-					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.trop_sinex_filename		+ suff,	pppNet.kfState	.metaDataMap[TROP_FILENAME_STR	+ id	+ metaSuff]);
-				}
-			}
-
 			if (acsConfig.output_cost)
 			{
-				if (acsConfig.process_ppp)
-				{
-					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.cost_filename				+ suff,	pppNet.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
-				}
+				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.cost_filename				+ suff,	pppNet.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
 			}
 
 			if (acsConfig.output_gpx)
 			{
-				if (acsConfig.process_ppp)
-				{
-					newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	pppNet.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
-				}
+				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	pppNet.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
 			}
 		}
 
@@ -947,7 +933,7 @@ void createTracefiles(
 
 		if (acsConfig.output_ionex)
 		{
-			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ionex_filename			+ suff,	pppNet.kfState.metaDataMap[IONEX_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ionex_filename			+ suff,	pppNet.kfState.metaDataMap[IONEX_FILENAME_STR	+ metaSuff]);
 		}
 
 		if (acsConfig.output_ionstec)
@@ -955,10 +941,9 @@ void createTracefiles(
 			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ionstec_filename			+ suff,	pppNet.kfState.metaDataMap[IONSTEC_FILENAME_STR	+ metaSuff]);
 		}
 
-		if	(  acsConfig.output_trop_sinex
-			&& acsConfig.process_ppp)
+		if (acsConfig.output_trop_sinex)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	acsConfig.trop_sinex_filename		+ suff,	pppNet.kfState.metaDataMap[TROP_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	acsConfig.trop_sinex_filename		+ suff,	pppNet.kfState.metaDataMap[TROP_FILENAME_STR	+ metaSuff]);
 		}
 
 		if (acsConfig.output_bias_sinex)
@@ -1185,7 +1170,7 @@ void mainOncePerEpochPerStation(
 	}
 
 	bool sppUsed;
-	selectAprioriSource(rec, sppUsed);
+	selectAprioriSource(rec, tsync, sppUsed);
 
 	if (sppUsed)
 	{
@@ -1466,11 +1451,17 @@ void mainPerEpochPostProcessingAndOutputs(
 			outputClocks(acsConfig.clocks_filename, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, time, tempAugmentedKF, &receiverMap);
 		}
 
+		if (acsConfig.output_trop_sinex)
+		{
+			outputTropSinex(kfState.metaDataMap[TROP_FILENAME_STR], kfState.time, kfState, "MIX");
+		}
+
 		if	(  acsConfig.process_rts
 			&& acsConfig.pppOpts.rts_lag > 0)
 		{
 			rtsSmoothing(pppNet.kfState, receiverMap);
 		}
+
 
 		for (auto& [recId, rec] : receiverMap)
 		{
@@ -1480,7 +1471,6 @@ void mainPerEpochPostProcessingAndOutputs(
 				outputPppNmea(trace, kfState, rec.id);
 			}
 
-// 			if (acsConfig.output_ppp_sol)	{	outputPPPSolution	(kfState.metaDataMap[SOL_FILENAME_STR	+ recId], kfState,	rec);		}
 			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);		}
 			if (acsConfig.output_gpx)		{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ recId], kfState,	rec.id);	}
 		}
@@ -1498,6 +1488,7 @@ void mainPerEpochPostProcessingAndOutputs(
 		outputSp3(acsConfig.sp3_filename, time, acsConfig.sp3_orbit_sources, acsConfig.sp3_clock_sources, &tempAugmentedKF, emptyEpoch);
 	}
 
+
 	if (acsConfig.output_orbex)
 	{
 		outputOrbex(acsConfig.orbex_filename, time, acsConfig.orbex_orbit_sources, acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources, &kfState);
@@ -1511,7 +1502,7 @@ void mainPerEpochPostProcessingAndOutputs(
 
 	if (acsConfig.output_ionstec)
 	{
-		writeIONStec(pppTrace, kfState.metaDataMap[IONSTEC_FILENAME_STR], receiverMap, time);
+		writeIonStec(kfState.metaDataMap[IONSTEC_FILENAME_STR], kfState);
 	}
 
 	if (acsConfig.output_bias_sinex)

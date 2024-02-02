@@ -47,7 +47,7 @@ For options that include a list of files, e.g. `snx_files`, entries from differe
 ## Wildcard Tags
 Output filenames can include wildcards wrapped in `< >` brackets to allow more generic names to be used. While processing, these tags are replaced with details gathered from processing, and allows for automatic generation of, for example, hourly output files.
 
-#### `<CONFIG>`, `<AGENCY>, `<SOFTWARE>`
+#### `<CONFIG>`, `<AGENCY>`, `<SOFTWARE>`
 These are replaced with the `config_description`, `analysis_agency` and `analysis_software` values entered in the yaml file or at the command line
 #### `<USER>`, `<PASS>`
 These are replaced with the username and password passed at the command line
@@ -108,7 +108,7 @@ There are two types of trace file, receiver trace files which can be enable usin
 
 Details about the computation of estimated ranges and other preprocessing are listed in the receiver trace files, while the details of the combination of those parameters in the kalman filter are recorded in the network trace file.
 
-The primary filtered output of the pea can be seen in detail in the network trace's STATES blocks.
+The primary filtered output of the pea can be seen in detail in the network trace's `STATES` blocks, with the details of filter input data and residuals in the `RESIDUALS` blocks.
 
 The user can enable certain types of data included to be included in trace files.
 The `output_residuals` option will enable the output of pre-fit and post-fit residual into the network trace file.
