@@ -28,11 +28,10 @@ jobs:
 
     - name: Generate config docs
       run: |
-        cd src/build
-        cmake ../
-        make docs
-        cd ../../
-        rm -rf src/build
+        git checkout weekly-develop-appimage -- Ginan-x86_64.AppImage
+        ./Ginan-x86_64.AppImage -Y 3
+        mv defaultConfiguration.md Docs
+        rm Ginan-x86_64.AppImage
     
     # Deploy the HTML documentation to GitHub Pages
     - name: GH Pages Deployment
