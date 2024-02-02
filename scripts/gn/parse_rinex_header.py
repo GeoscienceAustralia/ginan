@@ -6,6 +6,7 @@ downstream to:
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple, NamedTuple, Optional, Dict
+import re
 
 import georinex
 import xarray
@@ -92,7 +93,33 @@ def parse_v3_header(filepath: Path) -> RinexHeader:
 
 def _parse_antenna(header: dict) -> Tuple[str, float, float, float]:
     """Parses antenna type and eccentricity (deltas) from header"""
-    antenna_type = header["ANT # / TYPE"].strip()
+    antenna = header["ANT # / TYPE"]
+
+    # Regular expression to match the string according to the new requirements
+    # ^(\S+?)\s{2,}(.*) is the pattern used
+    #
+    # ^         - Asserts position at the start of the string.
+    # (\S+?)    - Captures a group of one or more non-whitespace characters (non-greedy):
+    #             \S matches any character that is not a whitespace character.
+    #             +? ensures that it matches as few characters as possible, stopping at the first
+    #               instance of the subsequent pattern (significant whitespace).
+    # \s{2,}    - Matches at least two whitespace characters:
+    #             \s matches any whitespace character (spaces, tabs, etc.).
+    #             {2,} means two or more times, indicating "significant whitespace" that acts as a delimiter.
+    # (.*)      - Captures the rest of the string after the significant whitespace:
+    #             . matches any character (except for line terminators).
+    #             * means zero or more times, capturing everything till the end of the string.
+    #
+    # This pattern looks for any initial text (non-greedy), followed by significant whitespace,
+    # then captures the rest of the string as the second part.
+    match = re.match(r"^(\S+?)\s{2,}(.*)", antenna)
+
+    if match:
+        antenna_number = match.group(1)  # Captures the optional first part
+        antenna_type = match.group(2).strip()  # Captures the second part after significant whitespace
+    else:
+        antenna_number = None
+        antenna_type = antenna.strip()  # If no match, the whole line is considered as antenna_type
 
     # These are the eccentricities to put in the station config for Ginan
     antenna_deltas = header["ANTENNA: DELTA H/E/N"].strip()
