@@ -27,11 +27,17 @@ jobs:
 
     - name: Checkout the updated branch
       uses: actions/checkout@v4
+      with:
+        clean: false
 
     - name: Create folders and move readme
       run: |
         cp README.md Docs/readme.md
         mkdir -p src/build
+
+    - name: List everything as debug
+      run: |
+        find
 
     - name: Build doxygen docs from code
       uses: mattnotmitt/doxygen-action@v1.1.0
