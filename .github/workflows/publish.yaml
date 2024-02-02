@@ -20,6 +20,7 @@ jobs:
 
     - name: Generate config markdown doc from appimage
       run: |
+        sudo apt-get install fuse
         ./Ginan-x86_64.AppImage -Y 3
         mkdir Docs
         mv defaultConfiguration.md Docs
