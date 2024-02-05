@@ -7,9 +7,10 @@
 
 #pragma once
 
-double rad_to_deg(double rad);
-
-double deg_to_rad(double rad);
+#define SQR(x)  ((x)*(x))
+#define PI      3.141592653589793238462643383279502884197169399375105820974
+#define D2R     (PI/180.0)      /* deg to rad */
+#define R2D     (180.0/PI)      /* rad to deg */
 
 void calcDistanceBearing(float *lat1, float *lon1, float * lat2, float *lon2, double *dist, double *brng);
 

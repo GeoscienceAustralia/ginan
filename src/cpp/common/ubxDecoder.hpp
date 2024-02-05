@@ -11,13 +11,23 @@ using std::map;
 
 #include "icdDecoder.hpp"
 #include "streamObs.hpp"
+#include "gTime.hpp"
 #include "enums.h"
 
 extern map<int,				E_Sys>		ubxSysMap;
 extern map<E_Sys, map<int,	E_ObsCode>>	ubxSysObsCodeMap;
 
-struct UbxDecoder : ObsLister, icdDecoder
+struct UbxDecoder : ObsLister, IcdDecoder
 {
+	static 			map<string, map<GTime, Vector3d,	std::greater<GTime>>>	gyroDataMaps;
+	static 			map<string, map<GTime, Vector3d,	std::greater<GTime>>>	acclDataMaps;
+	static 			map<string, map<GTime, double,		std::greater<GTime>>>	tempDataMaps;
+	
+	unsigned int	lastTimeTag = 0;
+	GTime			lastTime;
+	
+	string			recId;
+	
 	string raw_ubx_filename;
 	
 	void decodeEphFrames(
@@ -27,6 +37,9 @@ struct UbxDecoder : ObsLister, icdDecoder
 		vector<unsigned char>& payload);
 	
 	void decodeSFRBX(
+		vector<unsigned char>& payload);
+	
+	void decodeMEAS(
 		vector<unsigned char>& payload);
 	
 	void decodeRXM(
@@ -45,17 +58,33 @@ struct UbxDecoder : ObsLister, icdDecoder
 		}
 	}
 	
+	void decodeESF(
+		vector<unsigned char>&	payload,
+		unsigned char			id)
+	{
+// 		printf("\nReceived ESF-0x%02x message", id);
+		switch (id)
+		{
+			default:
+			{
+				break;
+			}
+			case E_ESFId::MEAS:		{	decodeMEAS	(payload);	break;	}
+		}
+	}
+	
 	void decode(
 		unsigned char			ubxClass,
 		unsigned char			id,
 		vector<unsigned char>&	payload)
 	{
-		printf("\nReceived ubx: 0x%02x : 0x%02x > %ld bytes", ubxClass, id, payload.size());
+// 		printf("\nReceived ubx: 0x%02x : 0x%02x > %ld bytes", ubxClass, id, payload.size());
 		
 		switch (ubxClass)
 		{
 			default:				{								break;	}
 			case E_UBXClass::RXM:	{	decodeRXM(payload, id);		break;	}
+			case E_UBXClass::ESF:	{	decodeESF(payload, id);		break;	}
 		}
 	}
 	

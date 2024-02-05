@@ -1,124 +1,140 @@
 R"HTMLTEMPLATE(
 
-<p>    
-    <input type="file" name="inputfile" id="inputfile">
+<p>
+	<input type="file" name="inputfile" id="inputfile">
 
-    <br><button id="generate">Generate yaml</button> 
-        <button id="create">Save file</button> 
+	<br><button id="generate">Generate yaml</button>
+		<button id="create">Save file</button>
 
-    <br><textarea id="textbox" rows="40" cols="200" disabled>generated yaml file</textarea> 
-    
-  </body>
+	<br><textarea id="textbox" rows="40" cols="200" disabled>generated yaml file</textarea>
 
-    <script>
+</body>
+
+	<script>
 (function ()
-    {
-        var textFile = null,
-        makeTextFile = function (text)
-            {
-                var data = new Blob([text], {type: 'text/plain'});
-                // If we are replacing a previously generated file we need to
-                // manually revoke the object URL to avoid memory leaks.
-                if (textFile !== null) 
-                {
-                    window.URL.revokeObjectURL(textFile);
-                }
-                textFile = window.URL.createObjectURL(data);
-                return textFile;
-            };
+	{
+		var textFile = null,
+		makeTextFile = function (text)
+			{
+				var data = new Blob([text], {type: 'text/plain'});
+				// If we are replacing a previously generated file we need to
+				// manually revoke the object URL to avoid memory leaks.
+				if (textFile !== null)
+				{
+					window.URL.revokeObjectURL(textFile);
+				}
+				textFile = window.URL.createObjectURL(data);
+				return textFile;
+			};
 
-        var create      = document.getElementById('create');
-        var textbox     = document.getElementById('textbox');
-        var generate    = document.getElementById('generate');
-        var inputfile   = document.getElementById('inputfile');
+		var create      = document.getElementById('create');
+		var textbox     = document.getElementById('textbox');
+		var generate    = document.getElementById('generate');
+		var inputfile   = document.getElementById('inputfile');
+		var configLevel = document.getElementById('configLevel');
 
-        generate.addEventListener('click', function()
-            {
-                var yaml = "";
-                var checked = $("input:checked + .ident");
+		configLevel.addEventListener('change', function()
+			{
+				let level = $("#configLevel").val();
 
-                checked.each(function(index, item)
-                    {
-                        var hidden = $(item).parents(":hidden");
-                        if (hidden.length)
-                            return;
+				console.log("edit" + level)
+				if (level >= 1)     $(".level1").css("display", "block");
+				else                $(".level1").css("display", "none");
+				if (level >= 2)     $(".level2").css("display", "block");
+				else                $(".level2").css("display", "none");
+				if (level >= 3)     $(".level3").css("display", "block");
+				else                $(".level3").css("display", "none");
+			});
 
-                        var string = $(item).attr("data-indent") + item.textContent.split(/[\s\r\n]+/)[0] + " ";
-                     
-                        var values = $(item).siblings(".value");
-                        if ($(values).length)
-                        {
-                            // var bits = values[0].value;
-                            string += values[0].value;
-                        }
+		$("#configLevel").val(1);
 
-                        yaml += string + "\n";
-                        console.log(string);
-                    });
+		generate.addEventListener('click', function()
+			{
+				var yaml = "";
+				var checked = $("input:checked + .ident");
 
-                $("textarea").val(yaml);
-            }, false);
+				checked.each(function(index, item)
+					{
+						var hidden = $(item).parents(":hidden");
+						if (hidden.length)
+							return;
 
-        create.addEventListener('click', function () 
-            {
-                var link = document.createElement('a');
-                link.setAttribute('download', 'output.yaml');
-                link.href = makeTextFile(textbox.value);
-                document.body.appendChild(link);
+						var string = $(item).attr("data-indent") + item.textContent.split(/[\s\r\n]+/)[0] + " ";
 
-                // wait for the link to be added to the document
-                window.requestAnimationFrame(function () 
-                    {
-                        var event = new MouseEvent('click');
-                        link.dispatchEvent(event);
-                        document.body.removeChild(link);
-                    });
-            }, false);
+						var values = $(item).siblings(".value");
+						if ($(values).length)
+						{
+							// var bits = values[0].value;
+							string += values[0].value;
+						}
 
-        inputfile.addEventListener('change', function()
-            {
-                var fr = new FileReader();
-                fr.onload = function()
-                    {
-                        var doc;
-                        // Get document, or throw exception on error
-                        try 
-                        {
-                            doc = jsyaml.load(fr.result);
-                        }
-                        catch (e) 
-                        {
+						yaml += string + "\n";
+						console.log(string);
+					});
 
-                        }
+				$("textarea").val(yaml);
+			}, false);
 
-                        const isObject = val => val && typeof val === 'object' && !Array.isArray(val);
+		create.addEventListener('click', function ()
+			{
+				var link = document.createElement('a');
+				link.setAttribute('download', 'output.yaml');
+				link.href = makeTextFile(textbox.value);
+				document.body.appendChild(link);
 
-                        const paths = (obj = {}, head = '', depth = "") =>
-                        {
-                            Object.entries(obj).reduce((product, [key, value]) => 
-                            {
-                                let fullPath = head + key + ":";
-                                $("#" + CSS.escape(fullPath)).prop( "checked", true );
-                                if (isObject(value))
-                                {
-                                    paths(value, fullPath, depth + "    ");
-                                }
-                                else
-                                {
-                                    $("#" + CSS.escape(fullPath)).siblings(".value").val((Array.isArray(value) ? "[" : "") + value + (Array.isArray(value) ? "]" : ""));
-                                }
-                            }, []);
-                        }
+				// wait for the link to be added to the document
+				window.requestAnimationFrame(function ()
+					{
+						var event = new MouseEvent('click');
+						link.dispatchEvent(event);
+						document.body.removeChild(link);
+					});
+			}, false);
 
-                        paths(doc);
-                    }
-                  
-                fr.readAsText(this.files[0]);
-            });
+		inputfile.addEventListener('change', function()
+			{
+				var fr = new FileReader();
+				fr.onload = function()
+					{
+						var doc;
+						// Get document, or throw exception on error
+						try
+						{
+							doc = jsyaml.load(fr.result);
+						}
+						catch (e)
+						{
 
-    })();
+						}
 
-    </script>
+						const isObject = val => val && typeof val === 'object' && !Array.isArray(val);
+
+						const paths = (obj = {}, head = '', depth = "") =>
+						{
+							Object.entries(obj).reduce((product, [key, value]) =>
+							{
+								let fullPath = head + key + ":";
+								$("#" + CSS.escape(fullPath)).prop( "checked", true );
+								if (isObject(value))
+								{
+									paths(value, fullPath, depth + "    ");
+								}
+								else
+								{
+									$("#" + CSS.escape(fullPath)).siblings(".value").val((Array.isArray(value) ? "[" : "") + value + (Array.isArray(value) ? "]" : ""));
+								}
+							}, []);
+						}
+
+						paths(doc);
+					}
+
+				fr.readAsText(this.files[0]);
+			});
+
+	})();
+
+	</script>
 </html>
 
 )HTMLTEMPLATE"

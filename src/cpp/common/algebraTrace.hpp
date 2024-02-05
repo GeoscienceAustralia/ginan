@@ -2,16 +2,21 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <utility>
 #include <string>
 #include <vector>
+#include <memory>
 #include <map>
 
+using std::make_shared;
+using std::shared_ptr;
 using std::vector;
 using std::string;
 using std::pair;
 using std::map;
 
+#include <boost/log/trivial.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/binary_object.hpp>
@@ -19,10 +24,11 @@ using std::map;
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "navigation.hpp"
-#include "station.hpp"
-#include "algebra.hpp"
-#include "enum.h"
+#include "enums.h"
+
+
+struct ReceiverMap;
+struct KFState;
 
 /** Types of objects that are stored in kalman filter binary archives
 */
@@ -43,7 +49,7 @@ struct TransitionMatrixObject
 	map<pair<int, int>, double>		forwardTransitionMap;
 	int								rows;
 	int								cols;
-	
+
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
 	{
@@ -51,15 +57,80 @@ struct TransitionMatrixObject
 		ar & rows;
 		ar & cols;
 	}
+
+	TransitionMatrixObject()
+	{
+
+	}
+
+	TransitionMatrixObject(
+		const MatrixXd& rhs)
+	{
+		forwardTransitionMap.clear();
+		rows = rhs.rows();
+		cols = rhs.cols();
+
+		for (int row = 0; row < rhs.rows(); row++)
+		for (int col = 0; col < rhs.cols(); col++)
+		{
+			double transition = rhs(row,col);
+
+			if (transition == 0)
+			{
+				continue;
+			}
+
+			forwardTransitionMap[{row, col}] = transition;
+		}
+	}
+
+	TransitionMatrixObject(
+		const SparseMatrix<double>& rhs)
+	{
+		forwardTransitionMap.clear();
+		rows = rhs.rows();
+		cols = rhs.cols();
+
+		for (int k = 0; k < rhs.outerSize(); ++k)
+		for (Eigen::SparseMatrix<double>::InnerIterator it(rhs, k); it; ++it)
+		{
+			double transition = it.value();
+
+			if (transition == 0)
+			{
+				continue;
+			}
+
+			forwardTransitionMap[{it.row(), it.col()}] = transition;
+		}
+	}
+
+	MatrixXd asMatrix()
+	{
+		MatrixXd transition = MatrixXd::Zero(rows, cols);
+
+		for (auto& [keyPair, value] : forwardTransitionMap)
+		{
+			transition(keyPair.first, keyPair.second) = value;
+		}
+
+		return transition;
+	}
 };
 
 extern map<short int, string> idStringMap;
 extern map<string, short int> stringIdMap;
-	
+
 
 using boost::serialization::serialize;
 using boost::archive::binary_oarchive;
 using boost::archive::binary_iarchive;
+
+
+void spitFilterToFileQueued(
+	shared_ptr<void>&	object_ptr,
+	E_SerialObject		type,
+	string				filename);
 
 /** Output filter state to a file for later reading.
  * Uses a binary archive which requires all of the relevant class members to have serialization functions written.
@@ -67,31 +138,48 @@ using boost::archive::binary_iarchive;
 */
 template<class TYPE>
 void spitFilterToFile(
-	TYPE&			object,		///< Object to output
-	E_SerialObject	type,		///< Type of object
-	string			filename)	///< Path to file to output to
+	TYPE&			object,			///< Object to output
+	E_SerialObject	type,			///< Type of object
+	string			filename,		///< Path to file to output to
+	bool			queue = false)	///< Optionally queue outputs in a separate thread
 {
-	std::fstream fileStream(filename, std::ifstream::binary | std::ifstream::out | std::ifstream::app);
-
-	if (!fileStream)
+	if (queue)
 	{
-		std::cout << std::endl << "Error opening algebra file '" << filename <<  "' for writing";
+		shared_ptr<void> copy_ptr = make_shared<TYPE>(object);
+
+		spitFilterToFileQueued(copy_ptr, type, filename);
+
 		return;
 	}
 
-// 	std::cout << "RTS - writing " << type._to_string() << " to file " << filename << "\n";
-	
-	binary_oarchive serial(fileStream, 1);	//no header
+	try
+	{
+		std::fstream fileStream(filename, std::ifstream::binary | std::ifstream::out | std::ifstream::app);
 
-	long int pos = fileStream.tellp();
+		if (!fileStream)
+		{
+			std::cout << std::endl << "Error opening algebra file '" << filename <<  "' for writing";
+			return;
+		}
 
-	int type_int = type;
-	serial & type_int;
-	serial & object;
+	// 	std::cout << "RTS - writing " << type._to_string() << " to file " << filename << "\n";
 
-	long int end = fileStream.tellp();
-	long int delta = end - pos;
-	serial & delta;
+		binary_oarchive serial(fileStream, 1);	//no header
+
+		long int pos = fileStream.tellp();
+
+		int type_int = type;
+		serial & type_int;
+		serial & object;
+
+		long int end = fileStream.tellp();
+		long int delta = end - pos;
+		serial & delta;
+	}
+	catch (...)
+	{
+		BOOST_LOG_TRIVIAL(error) << "Error: Writing to " << filename << " failed, drive may be full";
+	}
 }
 
 /* Retrieve an object from an archive
@@ -148,18 +236,8 @@ E_SerialObject getFilterTypeFromFile(
 	string		filename);
 
 
-void inputPersistanceNav();
-
-void outputPersistanceNav();
-
-void inputPersistanceStates(
-	map<string, Station>&	stationMap,
-	KFState&				netKFState);
-
-void outputPersistanceStates(
-	map<string, Station>&	stationMap,
-	KFState&				netKFState);
-
 void tryPrepareFilterPointers(
-	KFState&		kfState, 
-	StationMap*		stationMap_ptr);
+	KFState&		kfState,
+	ReceiverMap&	receiverMap);
+
+extern bool spitQueueRunning;

@@ -1,12 +1,10 @@
 
 #pragma once
 
-#include "observations.hpp"
-#include "navigation.hpp"
 #include "rtcmTrace.hpp"
-#include "common.hpp"
 #include "satSys.hpp"
 #include "enums.h"
+#include "ssr.hpp"
 
 
 using std::pair;
@@ -23,7 +21,7 @@ typedef map<SatSys, SSROut> 				SsrOutMap;
 void calculateSsrComb(
 	GTime 			referenceTime,
 	int 			udi,
-	SSRMeta 		ssrMeta,
+	SSRMeta& 		ssrMeta,
 	int 			masterIod,
 	SsrOutMap&		ssrOutMap);
 

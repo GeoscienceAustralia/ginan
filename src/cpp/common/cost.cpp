@@ -4,39 +4,50 @@
 #include <boost/algorithm/string.hpp>
 
 #include "coordinates.hpp"
+#include "tropModels.hpp"
 #include "acsConfig.hpp"
+#include "receiver.hpp"
+#include "trace.hpp"
 #include "cost.hpp"
-#include "ppp.hpp"
 #include "EGM96.h"
+#include "ppp.hpp"
 
 
-static map<string, map<E_FilePos, int> >	filePosMap;
-static map<string, GTime>					startTimeMap;
-static map<string, int>						numSamplesMap;
+static map<string, map<E_FilePos, int>>	filePosMap;
+static map<string, GTime>				startTimeMap;
+static map<string, int>					numSamplesMap;
 
 
 /** Replaces first instance of string 'toReplace' with 'replaceWith' within 's'
 */
 bool replaceStr(
-    string&	s,				///< String to modify
-    string	toReplace,		///< String to replace
-    string	replaceWith)	///< String to replace with
+	string&	s,				///< String to modify
+	string	toReplace,		///< String to replace
+	string	replaceWith)	///< String to replace with
 {
-    std::size_t pos = s.find(toReplace);
-    if (pos == string::npos) return false;
-    s.replace(pos, toReplace.length(), replaceWith);
+	std::size_t pos = s.find(toReplace);
+	if (pos == string::npos) return false;
+	s.replace(pos, toReplace.length(), replaceWith);
 	return true;
 }
 
 /** Outputs troposphere COST file
 */
 void outputCost(
-	string		filename,		///< Filename
-	Station&	rec,			///< Receiver
-	GTime		time,			///< Time of solution
-	KFState&	kfState)		///< KF object containing positioning & trop solutions
+	string		filename,	///< Filename
+	KFState&	kfState,	///< KF object containing positioning & trop solutions
+	Receiver&	rec)		///< Receiver
 {
 	std::ofstream fout(filename, std::fstream::in | std::fstream::out);
+	if (!fout)
+	{
+		return;
+	}
+
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
+
+	auto time = kfState.time;
+
 	fout.seekp(0, fout.end);				// seek to end of file
 	bool firstWrite = (fout.tellp() == 0);	// file is empty if current position is 0
 
@@ -55,11 +66,11 @@ void outputCost(
 
 		string locationName = rec.snx.id_ptr->desc;
 		boost::trim(locationName);
-		
+
 		bool commaReplaced = replaceStr(locationName, ", ", " (");
 		if (commaReplaced)
 			locationName.push_back(')');
-		
+
 		tracepdeex(0, fout, "%-4s %-9s           %-60s\n",
 			rec.snx.id_ptr->sitecode	.c_str(),					// Rec ID
 			rec.snx.id_ptr->domes		.c_str(),					// DOMES ID
@@ -80,20 +91,20 @@ void outputCost(
 	{
 		kfFound &= kfState.getKFValue({KF::REC_POS, {}, rec.id, i}, recPosEcef(i));
 	}
-	
+
 	if (kfFound == false)
 	{
 		recPosEcef = rec.aprioriPos;
 	}
-	
+
 	VectorEcef	eccEcef = body2ecef(rec.attStatus, rec.snx.ecc_ptr->ecc);
 	VectorPos	recPos	= ecef2pos(recPosEcef + eccEcef);
-	
+
 	if (recPos[1] < 0)
 		recPos[1] += 2 * PI;
-	
+
 	double geoidOffset = egm96_compute_altitude_offset(recPos.latDeg(), recPos.lonDeg());
-	
+
 	tracepdeex(0, fout, "%12.6lf%12.6lf%12.3lf%12.3lf%12.3lf\n",
 		recPos.latDeg(),
 		recPos.lonDeg(),
@@ -103,7 +114,7 @@ void outputCost(
 
 	if (firstWrite)
 		tracepdeex(0, fout, "%-20s     ", time.gregString().c_str());	// Time of first sample
-	
+
 	if (firstWrite)	filePosMap[filename][E_FilePos::CURR_TIME] = fout.tellp();
 	fout.seekp(		filePosMap[filename][E_FilePos::CURR_TIME]);
 	tracepdeex(0, fout, "%-20s\n", time.gregString().c_str());	// Time of processing
@@ -115,7 +126,7 @@ void outputCost(
 			acsConfig.cost_method,						// Processing method
 			acsConfig.cost_orbit_type,					// Orbit type
 			acsConfig.cost_met_source);					// Source of met. data
-		
+
 		tracepdeex(0, fout, "%5d%5d",
 			acsConfig.cost_time_interval / 60,			// Nominal time increment between data samples (min)
 			acsConfig.cost_time_interval / 60);			// Batch updating interval (min)
@@ -127,7 +138,7 @@ void outputCost(
 
 	if (firstWrite)	filePosMap[filename][E_FilePos::PCDH]			= fout.tellp();
 	fout.seekp(		filePosMap[filename][E_FilePos::PCDH]);
-	
+
 	bool isRealTime = (acsConfig.obs_rtcm_inputs.size() > 0);
 
 	union
@@ -150,7 +161,7 @@ void outputCost(
 	} pcdh;									///< Product Confidence Data - Header
 	pcdh.isRealTime		= isRealTime;
 	pcdh.climate		= false;
-	pcdh.otl			= acsConfig.model.tides.otl;
+	pcdh.otl			= recOpts.tideModels.otl;
 	pcdh.atc			= false;
 	pcdh.localMetData	= false;
 	pcdh.centredTime	= false;
@@ -158,24 +169,25 @@ void outputCost(
 	pcdh.gloUsed		= acsConfig.process_sys[E_Sys::GLO];
 	pcdh.galUsed		= acsConfig.process_sys[E_Sys::GAL];
 	pcdh.invalid		= false;
+
 	tracepdeex(0, fout, "%08x\n", (uint32_t)pcdh.all);	// Product confidence data - header
 
 	auto& numSamplesPos = filePosMap[filename][E_FilePos::NUM_SAMPLES];
-	
-	if (firstWrite)	
+
+	if (firstWrite)
 		numSamplesPos = fout.tellp();
-	
+
 	fout.seekp(numSamplesPos);
-	
+
 	numSamplesMap[filename]++;
-	
-	tracepdeex(0, fout, "%4d\n", numSamplesMap[filename]);		// Number of data samples
+
+	tracepdeex(0, fout, "%4d\n", numSamplesMap[filename]);
 
 
 	// Body
 	if (firstWrite == false)
 		fout.seekp(filePosMap[filename][E_FilePos::FOOTER]);
-	
+
 
 	int obsCount = 0;
 	for (auto& obs : only<GObs>(rec.obsList))
@@ -185,6 +197,7 @@ void outputCost(
 		{
 			continue;
 		}
+
 		obsCount++;
 	}
 
@@ -200,7 +213,7 @@ void outputCost(
 			unsigned invalid		: 1;	///< PCDD is missing or invalid
 		};
 	} pcdd;									///< Product Confidence Data - Data
-	
+
 	pcdd.numSats		= std::min(obsCount, 31);
 	pcdd.obsMetData		= false;
 	pcdd.ztdPoorQuality	= false;
@@ -209,7 +222,7 @@ void outputCost(
 	double	tropStates[3]	= {};
 	double	tropVars  [3]	= {};
 	bool	tropFound [3]	= {};
-	
+
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		if	( key.type != KF::TROP
@@ -217,20 +230,20 @@ void outputCost(
 		{
 			continue;
 		}
-		
+
 		if	( acsConfig.pppOpts.common_atmosphere	== false
 			&&key.str								!= rec.id)
 		{
 			continue;
 		}
-		
+
 		double state	= kfState.x(index);
 		double var		= kfState.P(index,index);
-		
+
 		int num;
 		if (key.type == KF::TROP)		num = 0;
 		else							num = key.num + 1;
-			
+
 		tropFound	[num] =  true;
 		tropStates	[num] += state;
 		tropVars	[num] += var;
@@ -248,16 +261,16 @@ void outputCost(
 	{
 		ztd				= 		tropStates	[0];
 		ztdStd			= sqrt(	tropVars	[0]);
-		double azel[2]	= {0,1}; // tropacs requires el>0
-		double zhd		= tropacs(recPos, azel);
+
+		double zhd		= tropDryZTD(nullStream, recOpts.tropModel.models, time, recPos);
 		zwd				= ztd - zhd;
 	}
-	
+
 	double gradM	= gradMapFn(30 * D2R);
-	
+
 	if (tropFound[1])	{	nsGrad = gradM * tropStates[1];		nsGradStd = sqrt(tropVars[1]);	}
 	if (tropFound[2])	{	ewGrad = gradM * tropStates[2];		ewGradStd = sqrt(tropVars[2]);	}
-	
+
 	GEpoch epoch = time;
 	tracepdeex(0, fout, " %02d %02d %02d %08x%7.1lf%7.1lf%7.1lf%7.1lf%7.1lf%7.1lf%7.1lf%7.2lf%7.2lf%7.2lf%7.2lf%8.3lf\n",
 		(int)epoch.hour,								// Timestamp (hr)
@@ -287,18 +300,18 @@ void outputCost(
 		{
 			continue;
 		}
-		
+
 		SatStat& satStat = *obs.satStat_ptr;
 
 		tracepdeex(0, fout, "%-4s%7.1lf%7.1lf%7.1lf%7.1lf\n",
 			obs.Sat.id().c_str(),						// Sat ID
 			obs.tropSlant			* 1000,				// Total slant delay (mm)
 			sqrt(obs.tropSlantVar)	* 1000,				// Total slant delay std-dev (mm)
-			satStat.azel[0] * R2D,						// Slant azi angle (CW from true North) 
-			satStat.azel[1] * R2D);						// Slant ele angle (from local horizon)
+			satStat.az * R2D,							// Slant azi angle (CW from true North)
+			satStat.el * R2D);							// Slant ele angle (from local horizon)
 	}
 
 	filePosMap[filename][E_FilePos::FOOTER] = fout.tellp();
-	
+
 	tracepdeex(0, fout, "----------------------------------------------------------------------------------------------------\n");
 }

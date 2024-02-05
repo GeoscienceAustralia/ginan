@@ -1,0 +1,278 @@
+inputs:
+
+    root_directory: products/
+
+    atx_files: [ igs20.atx ]  # Antenna models for receivers and satellites in ANTEX format
+    snx_files: 
+    - ../otherProducts/LEO_Cube.snx
+    - tables/igs_satellite_metadata_2203_plus.snx 
+    otl_blq_files: [ OLOAD_GO.BLQ        ]  # ocean loading is applied
+    atl_blq_files:  [ ALOAD_GO.BLQ                      ]
+    opole_files:    [ tables/opoleloadcoefcmcor.txt     ]
+    #erp_files: [ ../otherProducts/COD0OPSFIN_20230010000_01D_01D_ERP.ERP]
+    erp_files: [ tables/finals.data.iau2000.txt]
+    
+    egm_files:  [ tables/EGM2008.gfc         ]  # Earth gravity model coefficients file
+    jpl_files:  [ tables/DE436.1950.2050     ]  # JPL planetary and lunar ephemerides file
+    tide_files: [ tables/fes2014b_Cnm-Snm.dat]
+    
+    satellite_data:
+        inputs_root: ../otherProducts/
+        nav_files: [ ../otherProducts/brdc0010.23n     ]  # broadcast navigation file
+        sp3_files: [ ../otherProducts/COD0OPSFIN_20230010000_01D_05M_ORB.SP3 ] # satellite orbit files in SP3 format
+        clk_files: [ ../otherProducts/COD0OPSFIN_20230010000_01D_05S_CLK.CLK] # satellite clock files in RNX CLK format
+        #bsx_files: [ ../spire/products/IAR230020_V01.BIA ] # daily signal biases files
+        bsx_files: [ ../otherProducts/IAR230010_V01.BIA] # daily signal biases files
+        obx_files:
+            - "../otherProducts/conjugated/leoAtt_2023.001.099.00.OBX"
+            - "../otherProducts/conjugated/leoAtt_2023.001.099.01.OBX"
+            - "../otherProducts/conjugated/leoAtt_2023.001.099.02.OBX"
+            - "../otherProducts/conjugated/leoAtt_2023.001.099.03.OBX"
+            - "../otherProducts/conjugated/leoAtt_2023.001.099.06.OBX"
+            #- "../spire/leoAtt_nrt_2023_001_OBX_conj/leoAtt_2023.001.099.07.OBX"
+            #- "../spire/leoAtt_nrt_2023_001_OBX_conj/leoAtt_2023.001.099.21.OBX"
+            #- "../spire/leoAtt_nrt_2023_001_OBX_conj/leoAtt_2023.001.099.22.OBX"
+        
+    gnss_observations:
+        inputs_root: ../otherData/
+        rnx_inputs:
+            - L99:
+                #- "podCrx_2023.001.099.00.00.rnx"
+                - "podCrx_2023.001.099.01.00.rnx"
+                #- "podCrx_2023.001.099.02.00.rnx"
+                #- "podCrx_2023.001.099.03.00.rnx" 
+                #- "podCrx_2023.001.099.06.00.rnx"
+                #- "podCrx_2023.001.099.07.00.rnx"
+                #- "podCrx_2023.001.099.21.00.rnx"
+                #- "podCrx_2023.001.099.22.00.rnx"
+                                                            
+outputs:
+
+    root_directory:          outputs/<CONFIG>/<YYYY><DDD><HH>
+
+    trace:
+        output_stations:            true
+        output_network:             true                                         
+        level:                      5
+        directory:                  ./
+        station_filename:           <STATION>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <STATION>_<YYYY><DDD><HH>.SUM
+        output_residuals:           true
+        output_config:              true                                
+    
+    metadata:
+        config_description:             spirePOD
+        analysis_agency:                GAA
+        analysis_center:                Geoscience Australia
+        analysis_program:               AUSACS
+        rinex_comment:                  AUSNETWORK1
+
+mongo:                                                    # Mongo is a database used to store results and intermediate values for later analysis and inter-process communication
+     enable:              true                            # (bool) Enable and connect to mongo database
+     database:            "<CONFIG>"                      # (string)
+     delete_history:      true                          # (bool) Drop the collection in the database at the beginning of the run to only show fresh data
+     output_components:   true                            # (bool) Output components of measurements
+     output_measurements: true                            # (bool) Output measurements and their residuals
+     output_states:       true                            # (bool) Output states
+     output_logs:         false                           # (bool) Output console trace and warnings to mongo with timestamps and other metadata
+     output_test_stats:   false                           # (bool) Output test statistics
+     output_trace:        false                           # (bool) Output trace
+     suffix:              ""                         # (string) Suffix to append to database elements to make distinctions between runs for comparison
+     uri:                 "mongodb://localhost:27017"     # (string) Location and port of the mongo database to connect to
+
+#debug:
+    #unit_tests:
+        #stop_on_done:   true
+        #output_pass:    true
+
+satellite_options:
+    
+    global:
+        antenna_boresight:  [ 0,  0, +1]
+        antenna_azimuth:    [ 0, +1,  0]
+
+station_options:
+    
+    global:
+        rnx_code_conversions:
+            gps:
+                C1:    L1C
+                C2:    L2L
+        rnx_phase_conversions:
+            gps:
+                L1:    L1C
+                L2:    L2L
+
+        antenna_boresight:  [0, 0, -1]
+        antenna_azimuth:    [+1,  0,  0]
+        sat_id: "L99"
+
+    L99:
+        receiver_type:  "LEMUR"                       # (string)
+        antenna_type:   "LEMUR (POD)     NONE"        # (string)
+        #eccentricity:   [0.0024,  -0.0047,   -0.1631] # [floats]
+        eccentricity:   [ -0.0047, 0.0024,  -0.1631] # [floats]
+        #apriori_position:   []                       # [floats]
+
+processing_options:
+
+    epoch_control:
+        start_epoch:                2023-01-01 00:18:42
+        end_epoch:                  2023-01-01 23:59:59
+        epoch_interval:             1          #seconds
+        wait_next_epoch:            3600
+        
+
+    process_modes:
+        preprocessor:           true
+        ppp:                    true
+        
+    gnss_general:   
+        elevation_mask:         1
+        error_model:            elevation_dependent
+        raim:                   true 
+        max_gdop:               100
+        rec_reference_system:   gps
+
+        sys_options:
+            gps:
+                process:                true
+                ambiguity_resolution:   false
+                reject_eclipse:         true
+                #zero_receiver_dcb:      true 
+                code_priorities: [ L1C, L2L ]
+
+    orbit_propagation:
+        central_force:                  true
+        planetary_perturbation:         true
+        indirect_J2:                    true
+        egm_field:                      true
+        solid_earth_tide:               true
+        ocean_tide:                     true
+        general_relativity:             true
+        pole_tide_ocean:                true
+        pole_tide_solid:                true
+        solar_radiation_pressure:       true
+        integrator_time_step:           0.5
+        sat_mass:                       6.5
+        sat_area:                       0.5
+        srp_cr:                         1.25
+        sat_power:                      20                    # (float) Transmission power use if not specified in the SINEX metadata file
+        degree_max:                     30
+
+        #itrf_pseudoobs:                 true
+
+    model_error_checking:
+        ambiguities:
+            reinit_on_all_slips:        true
+
+        cycle_slips:                                    # Cycle slips may be detected by the preprocessor and measurements rejected or ambiguities reinitialised
+             exclude_on:
+                 gf:     true                            # (bool) Exclude measurements that fail GF  slip test in preprocessor
+                 lli:    true                            # (bool) Exclude measurements that fail LLI slip test in preprocessor
+                 mw:     true                            # (bool) Exclude measurements that fail MW  slip test in preprocessor
+                 scdia:  true                            # (bool) Exclude measurements that fail SCDIA    test in preprocessor
+
+             reset_on:
+                 gf:     true                            # (bool) Reset ambiguities if GF    test is detecting a slip
+                 lli:    true                            # (bool) Reset ambiguities if LLI   test is detecting a slip
+                 mw:     true                            # (bool) Reset ambiguities if MW    test is detecting a slip
+                 scdia:  true                           # (bool) Reset ambiguities if SCDIA test is detecting a slip
+
+             slip_threshold: 0.05                            # (float) Value used to determine when a slip has occurred
+             mw_proc_noise:  0                               # (float) Process noise applied to filtered Melbourne-Wubenna measurements to detect cycle slips
+
+        orbit_errors:                                    # Orbital states that are not consistent with measurements may be reinitialised to allow for dynamic maneuvers
+             enable:                         false
+             orbit_pos_proc_noise:           0           # (float) Sigma to apply to orbital position states as reinitialisation
+             orbit_vel_proc_noise:           10         # (float) Sigma to apply to orbital velocity states as reinitialisation
+             orbit_vel_proc_noise_trail:     1           # (float) Initial sigma for exponentially decaying noise to apply for subsequent epochs as soft reinitialisation
+             orbit_vel_proc_noise_trail_tau: 0.1           # (float) Time constant for exponentially decauing noise
+        #orbit_errors:                                    # Orbital states that are not consistent with measurements may be reinitialised to allow for dynamic maneuvers
+        #     orbit_pos_proc_noise:           10          # (float) Sigma to apply to orbital position states as reinitialisation
+        #     orbit_vel_proc_noise:           5           # (float) Sigma to apply to orbital velocity states as reinitialisation
+        #     orbit_vel_proc_noise_trail:     1           # (float) Initial sigma for exponentially decaying noise to apply for subsequent epochs as soft reinitialisation
+        #     orbit_vel_proc_noise_trail_tau: 0.05        # (float) Time constant for exponentially decauing noise
+
+    gnss_models:
+        troposphere:
+            enable: false
+        tides:
+            enable: false  
+        
+        ionospheric_component: 
+            enable:             true
+            #corr_mode:          iono_free_linear_combo # estimate, iono_free_linear_combo
+            iono_sigma_limit:   10000000   
+            common_ionosphere:  true   # Code and Phase measurment share the same ionosphere
+            use_if_combo:       true
+
+    #ambiguity_resolution:
+
+        #elevation_mask:            15
+
+        #wide_lane:
+            #mode:                       iter_rnd        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+            #success_rate_threshold:     0.999
+            #solution_ratio_threshold:   3
+            #process_noise_sat:          0.00001
+            #process_noise_rec:          0.0001
+
+        #narrow_lane:
+            #mode:                       lambda_bie        # AR mode for WL: off, round, iter_rnd, bootst, lambda, lambda_alt, lambda_al2, lambda_bie
+            #success_rate_threshold:     0
+            #solution_ratio_threshold:   30
+
+        #lambda_set_size:                200
+        #max_hold_epochs:                0
+        #max_rounding_iterations:        5
+    
+    filter_options:
+        outlier_screening:
+            max_filter_iterations: 10 
+            chi_square_mode:       NONE                 # (enum)  Chi-square test mode - innovation, measurement, state {none,innovation,measurement,state}
+            chi_square_test:       false                # (bool)  Enable Chi-square test
+            max_prefit_removals:   0                    # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
+            #sigma_check:           false                 # (bool)  Enable prefit and postfit sigma check
+            sigma_threshold:       5                    # (float) sigma threshold
+            w_test:                false                # (bool)  Enable w-test
+
+            
+        inverter:                   LDLT         #LLT LDLT INV
+
+estimation_parameters:
+
+    stations:
+        #error_model:        uniform         #uniform elevation_dependent
+        code_sigmas:        [0.5]
+        phase_sigmas:       [0.005]
+        spp_sigma_scaling:  4 
+
+        orbit:
+            estimated:          [true]
+            sigma:              [50, 50, 50, 5000, 5000, 5000]
+            proc_noise:         [0, 0, 0, 0.01]
+
+        #pos:
+            #estimated:          [true]
+            #sigma:              [100]
+     
+        #pos_rate:  
+            #estimated:          [true]
+            #sigma:              [5000]
+            #proc_noise:         [10]
+   
+        clk:
+            estimated:          [true]
+            sigma:              [1000]
+            proc_noise:         [10]
+
+        amb:
+            estimated:          [true]
+            sigma:              [1000]
+            proc_noise:         [0]
+
+        ion_stec:
+            estimated:          [true]
+            sigma:              [400]
+            proc_noise:         [30]

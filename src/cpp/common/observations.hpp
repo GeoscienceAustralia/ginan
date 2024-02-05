@@ -33,9 +33,9 @@ struct Observation
 {
 	GTime	 	time	= {};       		///> Receiver sampling time (GPST)
 	string 		mount	= "";				///< ID of the receiver that generated the observation
-	
+
 	virtual ~Observation() = default;
-	
+
 protected:
 	GObs*	gObs_ptr = nullptr;
 	PObs*	pObs_ptr = nullptr;
@@ -55,7 +55,7 @@ struct RawSig
 	double			snr		= 0;				///< Signal to Noise ratio (dB-Hz)
 
 	bool			invalid	= false;
-	
+
 	bool operator < (const RawSig& b) const
 	{
 		return (code < b.code);
@@ -71,31 +71,24 @@ struct Sig : RawSig
 
 	}
 
-	Sig(RawSig raw) : RawSig(raw)
+	Sig(RawSig& raw) : RawSig(raw)
 	{
 
 	}
 
-	bool	vsig		= 0;	///< Valid signal flag
-	bool	phaseError	= 0;	///< Valid signal flag
-	bool	phaseBias	= false;	///< Phase biases have been applied to this measurement
-	double	Range		= 0;	///< Corrected range
-	double	L_corr_m	= 0;	///< Corrected carrier phase (meters)
-	double	P_corr_m	= 0;	///< Corrected pseudorange (meters)
-	double	codeRes		= 0;	///< Residuals of code measurement
-	double	phasRes		= 0;	///< Residuals of phase measurement
-	double	codeVar		= 0;	///< Variance of code measurement
-	double	phasVar		= 0;	///< Variance of phase measurement
-	
-	double	biases[NUM_MEAS_TYPES] = {std::nan("")};
+	double	codeVar		= 0;		///< Variance of code measurement
+	double	phasVar		= 0;		///< Variance of phase measurement
+
+	double	biases	[NUM_MEAS_TYPES] = {std::nan("")};
+	double	biasVars[NUM_MEAS_TYPES] = {};
 };
 
 
 
 struct IonoPP
 {
-	double lat			= 0;
-	double lon			= 0;
+	double latDeg		= 0;
+	double lonDeg		= 0;
 	double slantFactor	= 1;
 };
 
@@ -103,19 +96,19 @@ struct IonoObs
 {
 	IonoObs() : ionExclude(0)
 	{
-		
+
 	}
-	
-	double stecToDelay;
-	int    STECtype;
-	double stecVal;
-	double stecVar;
-	int    stecCodeCombo;
-	
+
+	double	stecToDelay;
+	int		stecType	= 0;
+	double	stecVal;
+	double	stecVar;
+	int		stecCodeCombo;
+
 	SatSys ionoSat;	//todo aaron, remove when possible
 
 	map<int, IonoPP> ippMap;
-	
+
 	union
 	{
 		unsigned int ionExclude;
@@ -132,8 +125,7 @@ struct IonoObs
 //forward declarations for pointers below
 struct SatStat;
 struct SatNav;
-struct SatOrbit;
-struct Station;
+struct Receiver;
 
 
 
@@ -147,14 +139,14 @@ struct GObsMeta : IonoObs
 	{
 
 	}
-	
-	Station*	rec_ptr			= nullptr;
-	
+
+	Receiver*	rec_ptr			= nullptr;
+
 	double 		rescode_v		= 0;				///< Residuals of code
 	double		tropSlant		= 0;				///< Troposphere slant delay
 	double		tropSlantVar	= 0;				///< Troposphere slant delay variance
-	
-	
+
+
 	union
 	{
 		const unsigned int exclude = 0;
@@ -163,8 +155,6 @@ struct GObsMeta : IonoObs
 			unsigned excludeElevation		: 1;
 			unsigned excludeEclipse			: 1;
 			unsigned excludeSystem			: 1;
-			unsigned excludeSlip			: 1;
-			unsigned excludeTrop			: 1;
 			unsigned excludeOutlier			: 1;
 			unsigned excludeBadSPP			: 1;
 			unsigned excludeConfig			: 1;
@@ -183,14 +173,16 @@ struct SatPos
 
 	}
 
+	GTime		posTime;
 	SatSys		Sat				= {};				///> Satellite ID (system, prn)
 	SatNav*		satNav_ptr		= 0;				///< Pointer to a navigation object for this satellite
 	SatStat* 	satStat_ptr		= 0;				///< Pointer to a status object for this satellite
 
 	E_Source	posSource		= E_Source::NONE;
 	E_Source	clkSource		= E_Source::NONE;
-	
-	VectorEcef	rSat;								///< ECEF based vector of satellite
+
+	VectorEcef	rSatCom;							///< ECEF based vector of satellite
+	VectorEcef	rSatApc;							///< ECEF based vector of satellite
 	VectorEcef	satVel;								///< ECEF based vector of satellite velocity
 	VectorEci	rSatEciDt;							///< ECI  based vector of satellite          at transmission time
 	VectorEci	vSatEciDt;							///< ECI  based vector of satellite velocity at transmission time
@@ -198,11 +190,11 @@ struct SatPos
 	VectorEci	vSatEci0;							///< ECI  based vector of satellite velocity at nominal epoch
 
 	double		posVar			= 0;				///< Variance of ephemeris derived values
-	
+
 	double		satClk			= 0;
 	double		satClkVel		= 0;
 	double		satClkVar		= 0;
-	
+
 	int 		iodeClk			= -1;				///< Issue of data ephemeris
 	int 		iodePos			= -1;				///< Issue of data ephemeris
 	bool		ephPosValid		= false;
@@ -210,7 +202,7 @@ struct SatPos
 	bool		vsat			= 0;				///< Valid satellite flag
 
 	double		tof				= 0;				///< Estimated time of flight
-	
+
 	union
 	{
 		const unsigned int failure = 0;
@@ -222,7 +214,6 @@ struct SatPos
 			unsigned failureNoPseudorange	: 1;
 			unsigned failureIodeConsistency	: 1;
 			unsigned failureBroadcastEph	: 1;
-			unsigned failureSeleph			: 1;
 			unsigned failureSSRFail			: 1;
 			unsigned failureSsrPosEmpty		: 1;
 			unsigned failureSsrClkEmpty		: 1;
@@ -233,11 +224,10 @@ struct SatPos
 			unsigned failureSsrPosUdi		: 1;
 			unsigned failureSsrClkUdi		: 1;
 			unsigned failureGeodist			: 1;
+			unsigned failureRSat			: 1;
 			unsigned failureElevation		: 1;
-			unsigned failureSatexclude		: 1;
 			unsigned failurePrange			: 1;
 			unsigned failureIonocorr		: 1;
-			unsigned failureTropcorr		: 1;
 		};
 	};
 };
@@ -246,18 +236,18 @@ struct SatPos
 */
 struct GObs : Observation, GObsMeta, SatPos
 {
-	map<E_FType, Sig>				Sigs;		///> Map of signals available in this observation (one per frequency only)
-	map<E_FType, list<Sig>>			SigsLists;	///> Map of all signals available in this observation (may include multiple per frequency, eg L1X, L1C)
-	
+	map<E_FType, Sig>				sigs;		///> Map of signals available in this observation (one per frequency only)
+	map<E_FType, list<Sig>>			sigsLists;	///> Map of all signals available in this observation (may include multiple per frequency, eg L1X, L1C)
+
 	operator shared_ptr<GObs>()
 	{
 		auto pointer = make_shared<GObs>(*this);
-		
+
 		pointer->gObs_ptr = pointer.get();
-		
+
 		return pointer;
 	}
-	
+
 	virtual ~GObs() = default;
 };
 
@@ -266,32 +256,32 @@ struct PObs : Observation
 	SatSys		Sat		= {};				///> Satellite ID (system, prn)
 	Vector3d	pos		= Vector3d::Zero();
 	Vector3d	vel		= Vector3d::Zero();
-	
+
 	operator shared_ptr<PObs>()
 	{
 		auto pointer = make_shared<PObs>(*this);
-		
+
 		pointer->pObs_ptr = pointer.get();
-		
+
 		return pointer;
 	}
-	
+
 	virtual ~PObs() = default;
 };
 
 struct FObs : Observation
 {
 	KFState obsState;
-	
+
 	operator shared_ptr<FObs>()
 	{
 		auto pointer = make_shared<FObs>(*this);
-		
+
 		pointer->fObs_ptr = pointer.get();
-		
+
 		return pointer;
 	}
-	
+
 	virtual ~FObs() = default;
 };
 
@@ -311,11 +301,11 @@ struct ObsList : vector<shared_ptr<Observation>>
 //========================================================================================================
 /*
 #Mission Name            SP3c Code  ILRS ID    NORAD     Altitude [km] Inclination [deg]   Tracking Status
-#                        (PRN)                           From       To                                    
+#                        (PRN)                           From       To
  GPS-MET                 L02        9501703    23547      740      740            69.900               Off
 */
 //========================================================================================================
-struct SatIdentity 
+struct SatIdentity
 {
 	string	satName;	// Mission Name
 	string	satId;		// SP3c Code (PRN)
@@ -407,7 +397,7 @@ struct LObs : Observation, LObsMeta, SatPos
 	E_CrdEpochEvent	epochEvent			= E_CrdEpochEvent::NONE;
 	GTime			timeTx				= {};
 	double			twoWayTimeOfFlight	= 0;
-	
+
 	union
 	{
 		const unsigned int exclude = 0;
@@ -430,16 +420,16 @@ struct LObs : Observation, LObsMeta, SatPos
 	double			humidity			= 0; //0.00-1.00
 	double			wavelength			= 0; //nm
 	double			ephVar				= 0;
-	
+
 	operator shared_ptr<LObs>()
 	{
 		auto pointer = make_shared<LObs>(*this);
-		
+
 		pointer->lObs_ptr = pointer.get();
-		
+
 		return pointer;
 	}
-	
+
 	virtual ~LObs() = default;
 };
 

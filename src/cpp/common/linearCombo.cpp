@@ -1,7 +1,10 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "observations.hpp"
 #include "linearCombo.hpp"
+#include "navigation.hpp"
+#include "instrument.hpp"
 #include "testUtils.hpp"
 #include "satStat.hpp"
 #include "debug.hpp"
@@ -130,8 +133,8 @@ S_LC& getLC(
 		if (lcBase.L_m[f] == 0)
 		{
 			//no L measurement, try to get from observation
-			lcBase.L_m[f]	= obs.Sigs[f].L * obs.satNav_ptr->lamMap[f];
-			lcBase.P[f]		= obs.Sigs[f].P;
+			lcBase.L_m[f]	= obs.sigs[f].L * obs.satNav_ptr->lamMap[f];
+			lcBase.P[f]		= obs.sigs[f].P;
 		}
 		if (lcBase.L_m[f] == 0)
 		{
@@ -176,7 +179,7 @@ void lcPrepareBase(
 	lcBase.time	= obs.time;
 	lcBase.Sat	= obs.Sat;
 
-	for (auto& [ft, sig] : obs.Sigs)
+	for (auto& [ft, sig] : obs.sigs)
 	{
 		auto& satStat = *obs.satStat_ptr;
 		auto& sigStat = satStat.sigStatMap[ft2string(ft)];
@@ -251,6 +254,8 @@ void obs2lcs(
 	Trace&		trace,		///< Trace to output to
 	ObsList&	obsList)	///< List of bservation to prepare combinations for
 {
+	Instrument instrument(__FUNCTION__);
+	
 	int lv = 3;
 
 	if (obsList.empty())

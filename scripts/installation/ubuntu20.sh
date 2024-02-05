@@ -32,7 +32,7 @@ echo "Updating package repositories..."
 $sudo_cmd apt update -y
 
 echo "Installing dependencies..."
-$sudo_cmd apt-get install --no-install-recommends --yes git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools  openssh-server cmake make libssl-dev wget sudo python3 python3-pip software-properties-common libnetcdf-dev libnetcdf-c++4-dev gpg-agent
+$sudo_cmd apt-get install --no-install-recommends --yes git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools  openssh-server cmake make libssl-dev wget sudo python3 python3-pip software-properties-common libnetcdf-dev libnetcdf-c++4-dev gpg-agent 
 
 $sudo_cmd add-apt-repository ppa:ubuntu-toolchain-r/test -y
 
@@ -103,7 +103,7 @@ echo "Downloading, extracting, building, and installing MongoDB ..."
 cd /tmp
 wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | $sudo_cmd apt-key add -
 echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | $sudo_cmd tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | $sudo_cmd tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | $sudo_cmd tee -a /etc/apt/sources.list.d/mongodb-org-4.4.list
 $sudo_cmd apt update
 $sudo_cmd apt install -y mongodb-org
 

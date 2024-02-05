@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <iostream> 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -16,7 +16,6 @@ using std::vector;
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 #include <boost/format.hpp>
 #include <boost/regex.hpp>
@@ -50,14 +49,17 @@ using ssl_socket	= ssl::stream<tcp::socket>;
 
 #define ERROR_OUTPUT_RECONNECT_AND_RETURN 																						\
 {																																\
+	string message = err.message();																								\
+	std::erase(message, '\r');																									\
+	std::erase(message, '\n');																									\
 	onErrorStatistics(err, __FUNCTION__);																						\
-	BOOST_LOG_TRIVIAL(error) << "Error: " << err.message() << " in " << __FUNCTION__ << " for " << url.sanitised() << "\n";	\
+	BOOST_LOG_TRIVIAL(error) << "Error: NTRIP - " << message << " in " << __FUNCTION__ << " for " << url.sanitised();			\
 																																\
 	if (err != boost::asio::error::operation_aborted)																			\
-		delayed_reconnect();        																							\
+		delayed_reconnect();																									\
 																																\
 	return;																														\
-}																																
+}
 
 
 struct Base64
@@ -125,9 +127,7 @@ struct URL
 
 	static URL parse(string url)
 	{
-
-//      boost::regex re (R"(^((https?)://)?((\w):(\w)@)?([^\s:=/]+)(:(\d+)?)/(.*$))", boost::regex::extended);
-		boost::regex re (R"((https?)://(([^:@]+):([^@]+)@)?([^:@]+)(:(\d+))?(/.*)$)", boost::regex::extended);
+		boost::regex re (R"((https?)://((.+):(.+)@)?([^:@]+)(:(\d+))?(/.*)$)", boost::regex::extended);
 
 		boost::smatch matches;
 
@@ -142,7 +142,7 @@ struct URL
 
 		BOOST_LOG_TRIVIAL(debug)
 		<< "protocol=["     << matches[1]
-		
+
 		<< "] username=["   << matches[3]
 		<< "] password=["   << matches[4]
 		<< "] host=["       << matches[5]
@@ -154,20 +154,20 @@ struct URL
 		out.url = url;
 
 		string protocol	= matches[1];
-		
+
 		out.user		= matches[3];
 		out.pass		= matches[4];
 		out.host		= matches[5];
 		out.port_str	= matches[7];
 		out.path		= matches[8];
 
-		out.protocol    = protocol.     empty() ? "http"    : protocol;
+		out.protocol	= protocol.empty() ? "http"    : protocol;
 		if (out.port_str.empty())
 		{
 			if (out.protocol == "https")    out.port_str = "443";
 			else                            out.port_str = "2101";
 		}
-		out.port        = std::stoi(out.port_str);
+		out.port		= std::stoi(out.port_str);
 
 		return out;
 	}
@@ -185,108 +185,108 @@ protected:
 	tcp::socket*					socket_ptr;
 	std::shared_ptr<ssl_socket>		_sslsocket;
 	std::shared_ptr<tcp::resolver>	_resolver;
-	
+
 	string request_string;
 	string response_string;
-	
+
 	boost::asio::deadline_timer		timer;
-	
+
 	boost::asio::streambuf			request;
 	boost::asio::streambuf			downloadBuf;
-	
+
 	vector<char>					receivedHttpData;
 
 public:
 	URL		url;
-	
+
 	double	reconnectDelay		= 1;
 	int		disconnectionCount	= 0;
 	bool	isConnected			= false;
-	
-	int				numberErroredChunks		= 0; 
+
+	int				numberErroredChunks		= 0;
 	bool			logHttpSentReceived		= false;
-	
+
 	unsigned int content_length = 0;
-	
-	NtripSocket(const string& url_str) : 
+
+	NtripSocket(const string& url_str) :
 		timer(io_service),
 		ssl_context(ssl::context::sslv23_client)
 	{
-		url			= URL::parse(url_str);	
-		streamName	= url.path;
-	} 
-
-	void setUrl(const string& url_str)
-	{		
 		url			= URL::parse(url_str);
 		streamName	= url.path;
 	}
-	
+
+	void setUrl(const string& url_str)
+	{
+		url			= URL::parse(url_str);
+		streamName	= url.path;
+	}
+
 	void connect();
 	void disconnect();
 
-	
+
 	void start_read(bool chunked);
 
-protected:        
+protected:
 	void delayed_reconnect();
-	
+
 private:
 	// These functions manage the connection using the boost service and
 	// asyncronous function calls.
 	void resolve_handler			(const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator);
 	void connect_handler			(const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator);
-	void sslhandshake_handler		(const boost::system::error_code& err); 
+	void sslhandshake_handler		(const boost::system::error_code& err);
 	void write_request_handler		(const boost::system::error_code& err);
-	void request_response_handler	(const boost::system::error_code& err);    
-	void reconnect_timer_handler	(const boost::system::error_code& err); 
-	void timeout_handler			(const boost::system::error_code& err); 
-	
+	void request_response_handler	(const boost::system::error_code& err);
+	void reconnect_timer_handler	(const boost::system::error_code& err);
+	void timeout_handler			(const boost::system::error_code& err);
+
 	void read_handler_content		(const boost::system::error_code& err);
 	void read_handler_chunked		(const boost::system::error_code& err);
 
-public:    
-	void logChunkError(); 
-	
-	
+public:
+	void logChunkError();
+
+
 	//content from a stream has been received - process it in virtual functions from other classes
 	virtual void dataChunkDownloaded(
 		vector<char>& dataChunk)
 	{
 	}
-	
+
 	//content from a one-shot request has been received - process it in virtual functions from other classes
 	virtual void readContentDownloaded(
 		vector<char> content)
 	{
-		
+
 	}
-	
+
 	virtual void connected()
 	{
-		
+
 	}
-	
+
 	virtual void messageChunkLog(
 		string message)
 	{
-		
+
 	}
-	
+
 	virtual void networkLog(
 		string message)
 	{
-		
-	} 
-	
+
+	}
+
 	virtual void connectionError(
-		const boost::system::error_code&	err, 
+		const boost::system::error_code&	err,
 		string								operation);
-	
+
 	virtual void serverResponse(
-		unsigned int	status_code, 
+		unsigned int	status_code,
 		string			http_version);
-	
+
 	B_asio::ssl::context ssl_context;
 
 	static B_asio::io_service io_service;
@@ -295,10 +295,10 @@ public:
 		B_asio::io_service::work work(io_service);
 		io_service.run();
 	}
-	
+
 	static void startClients()
 	{
 		std::thread(NtripSocket::runService).detach();
-	}   
+	}
 };
 

@@ -1,15 +1,17 @@
 
 // #pragma GCC optimize ("O0")
 
+#include <unordered_map>
+#include <functional>
 #include <stdarg.h>
 #include <ctype.h>
-#include <unordered_map>
 
 using std::unordered_map;
 
 #include <boost/iostreams/stream.hpp>
 #include <boost/format.hpp>
 
+#include "peaCommitStrings.hpp"
 #include "observations.hpp"
 #include "navigation.hpp"
 #include "constants.hpp"
@@ -26,40 +28,41 @@ void ConsoleLog::consume(
 	boost::log::record_view																	const&	rec,
 	sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	logString)
 {
-	static unordered_map<string, bool> warnedMap;
-	
+	static unordered_map<size_t, bool> warnedMap;
+
 	auto attrs = rec.attribute_values();
 	auto sev = attrs[boost::log::trivial::severity].get();
-	
-	if (sev == boost::log::trivial::warning)
+
+	if	(  sev == boost::log::trivial::warning
+		&& acsConfig.warn_once)
 	{
-		auto& warned = warnedMap[logString];
+		auto& warned = warnedMap[std::hash<string>{}(logString)];
 		if (warned)
 		{
 			return;
 		}
-		
+
 		warned = true;
 	}
-	
+
 	std::cout << std::endl;
-	if (acsConfig.colorize_terminal)
+	if (acsConfig.colourise_terminal)
 	{
 		if (sev == boost::log::trivial::warning)	std::cout << "\x1B[1;93m";
 		if (sev == boost::log::trivial::error)		std::cout << "\x1B[101m";
 	}
 	std::cout << logString;
-	
-	if (acsConfig.colorize_terminal)
+
+	if (acsConfig.colourise_terminal)
 	{
 		std::cout << "\x1B[0m";
 	}
-	
+
 	std::cout << std::flush;
 }
 
 
-int trace_level = 0;       ///< level of trace 
+int trace_level = 0;       ///< level of trace
 
 void tracelevel(int level)
 {
@@ -86,11 +89,11 @@ void tracepdeex(int level, FILE *fppde, const char *format, ...)
 
 	if (!fppde||level>trace_level)
 		return;
-	
-	va_start(ap,format); 
+
+	va_start(ap,format);
 		vfprintf(fppde,format,ap);
 	va_end(ap);
-	
+
 	fflush(fppde);
 }
 
@@ -104,19 +107,19 @@ void printHex(
 	for (int i = 0; i < chunk.size(); i++)
 	{
 		if (i % 40 == 0)
-			trace << std::endl;       
-		
+			trace << std::endl;
+
 		if (i % 10 == 0)
-			trace << " ";       
+			trace << " ";
 		char hex[3];
 		snprintf(hex, sizeof(hex),"%02x", chunk[i]);
 		tracepdeex(0, trace, "%s ", hex);
 	}
-	trace << std::endl; 
+	trace << std::endl;
 }
 
 
-void mongoTrace(string);
+void mongoTrace(string, bool);
 
 void traceJson(
 	int						level,
@@ -127,36 +130,87 @@ void traceJson(
 {
 	if (level > trace_level)
 		return;
-	
-	if	( acsConfig.output_json_trace == false
-		&&acsConfig.localMongo.output_trace)
+
+	if	( acsConfig.output_json_trace		== false
+		&&acsConfig.mongoOpts.output_trace	== false)
 	{
 		return;
 	}
-	
-	string json = "{ \"time\":\"" + time + "\", \"id\":{";
+
+	string json = "{ \"Epoch\":\"" + time + "\", \"id\":{";
 	for (auto& thing : id)
 	{
 		json += "\"" + thing.name + "\":" + thing.value() + ",";
 	}
 	json = json.substr(0, json.length() - 1);
-	
+
 	json += "}, \"val\":{";
-	
+
 	for (auto& thing : val)
 	{
 		json += "\"" + thing.name + "\":" + thing.value() + ",";
 	}
 	json = json.substr(0, json.length() - 1);
 	json += "} }";
-	
+
 	if (acsConfig.output_json_trace)
 	{
 		trace << "\n - " + json;
 	}
-	if (acsConfig.localMongo.output_trace)
+	if (acsConfig.mongoOpts.output_trace)
 	{
-		mongoTrace(json);
+		mongoTrace(json, acsConfig.mongoOpts.queue_outputs);
 	}
 }
-	
+
+bool createNewTraceFile(
+	const string				id,
+	boost::posix_time::ptime	logptime,
+	string  					new_path_trace,
+	string& 					old_path_trace,
+	bool						outputHeader,
+	bool						outputConfig)
+{
+	replaceString(new_path_trace, "<RECEIVER>", id);
+	replaceTimes (new_path_trace, logptime);
+
+	// Create the trace file if its a new filename, otherwise, keep the old one
+	if	( new_path_trace == old_path_trace
+		||new_path_trace.empty())
+	{
+		//the filename is the same, keep using the old ones
+		return false;
+	}
+
+	old_path_trace = new_path_trace;
+
+	BOOST_LOG_TRIVIAL(debug)
+	<< "Creating new file for " << id << " at " << old_path_trace;
+
+	std::ofstream trace(old_path_trace);
+	if (!trace)
+	{
+		BOOST_LOG_TRIVIAL(error)
+		<< "Error: Could not create file for " << id << " at " << old_path_trace;
+
+		return false;
+	}
+
+	// Trace file head
+	if (outputHeader)
+	{
+		trace << "station    : " << id << std::endl;
+		trace << "start_epoch: " << acsConfig.start_epoch			<< std::endl;
+		trace << "end_epoch  : " << acsConfig.end_epoch				<< std::endl;
+		trace << "trace_level: " << acsConfig.trace_level			<< std::endl;
+		trace << "pea_version: " << ginanCommitVersion()			<< std::endl;
+// 		trace << "rts_lag    : " << acsConfig.pppOpts.rts_lag		<< std::endl;
+	}
+
+	if (outputConfig)
+	{
+		dumpConfig(trace);
+	}
+
+	return true;
+}

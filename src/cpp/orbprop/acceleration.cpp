@@ -133,7 +133,7 @@ Vector3d accelSPH(
 	const Vector3d	r,			///< Vector of the position of the satelite (ECEF)
 	const MatrixXd	C, 			///< Matrix of the "C" spherical harmonic coefficient
 	const MatrixXd	S,			///< Matrix of the "S" spherical harmonic coefficient
-	const int		max_deg, 	///< Maximum degree use for the summation of the harmonics
+	const int		max_deg, 	///< Maximum degree use for the summation of the harmonics	//todo aaron, limit this to max found in file/struct
 	const double	GM)			///< Value of GM constant of the body in question. 
 {
 	double R		= r.norm();

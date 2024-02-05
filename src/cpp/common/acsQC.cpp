@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "observations.hpp"
+#include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "testUtils.hpp"
 #include "constants.hpp"
@@ -30,43 +31,43 @@ bool satFreqs(
 {
 	bool ft1Ready = false;
 	bool ft2Ready = false;
-	
+
 	//Add defaults in case someone forgets to initialise them...
 	ft1 = F1;
 	ft2 = F2;
 	ft3 = F5;
-	
+
 	if (acsConfig.code_priorities.find(sys) == acsConfig.code_priorities.end())
 		return false;
-	
+
 	for (auto& code : acsConfig.code_priorities[sys])
 	{
 		E_FType ft = code2Freq[sys][code];
-		
-		if (ft1Ready == false)		
-		{		
-			ft1 = ft;			ft1Ready = true;		
-			continue;	
-		}
-		
-		if (ft == ft1)		
-			continue;		
-		
-		if (ft2Ready == false)	
-		{		
-			ft2 = ft;			ft2Ready = true;		
-			continue;		
-		}
-		
-		if (ft == ft2)	
+
+		if (ft1Ready == false)
+		{
+			ft1 = ft;			ft1Ready = true;
 			continue;
-								
-		{		
-			ft3 = ft;		
-			break;	
+		}
+
+		if (ft == ft1)
+			continue;
+
+		if (ft2Ready == false)
+		{
+			ft2 = ft;			ft2Ready = true;
+			continue;
+		}
+
+		if (ft == ft2)
+			continue;
+
+		{
+			ft3 = ft;
+			break;
 		}
 	}
-	
+
 	return true;
 }
 /** Detect cycle slip by reported loss of lock
@@ -78,9 +79,9 @@ void detslp_ll(
 	tracepdeex(5, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
 
 // 	auto begin_iter = boost::make_filter_iterator([]
-	
+
 	for (auto& obs			: only<GObs>(obsList))
-	for (auto& [ft, sig]	: obs.Sigs)
+	for (auto& [ft, sig]	: obs.sigs)
 	{
 		if (obs.exclude)
 		{
@@ -115,14 +116,14 @@ void detslp_gf(
 		{
 			continue;
 		}
-		
+
 		E_FType	frq1;
 		E_FType	frq2;
 		E_FType frq3;
 		bool pass = satFreqs(obs.Sat.sys, frq1, frq2, frq3);
 		if (pass == false)
 			continue;
-			
+
 		S_LC& lc = getLC(obs.satStat_ptr->lc_new, frq1, frq2);
 
 		double gf1 = lc.GF_Phas_m;
@@ -142,7 +143,7 @@ void detslp_gf(
 
 		tracepdeex(5, trace, "\n%s: sat=%s gf0=%f gf1=%f", __FUNCTION__, obs.Sat.id().c_str(), gf0, gf1);
 
-		if (fabs(gf1 - gf0) > acsConfig.thres_slip)
+		if (fabs(gf1 - gf0) > acsConfig.preprocOpts.slip_threshold)
 		{
 			tracepdeex(3, trace, "\n%s: slip detected: sat=%s gf0=%f gf1=%f", __FUNCTION__, obs.Sat.id().c_str(), gf0, gf1);
 
@@ -168,7 +169,7 @@ void detslp_mw(
 		{
 			continue;
 		}
-		
+
 		E_FType	frq1;
 		E_FType	frq2;
 		E_FType frq3;
@@ -235,7 +236,7 @@ void scdia(
 {
 	if (nf == 0)
 		return;
-	
+
 	E_FType	frq1;
 	E_FType	frq2;
 	E_FType frq3;
@@ -244,51 +245,51 @@ void scdia(
 	{
 		return;
 	}
-	
+
 	lc_t* lc_pre_ptr;
-	
+
 	if (filterMode == +E_FilterMode::LSQ)	lc_pre_ptr = &satStat.		lc_pre;
 	else									lc_pre_ptr = &satStat.flt.	lc_pre;
 	if (nf == 1)							lc_pre_ptr = &satStat.flt.	lc_pre;
-	
+
 	auto& lc_pre = *lc_pre_ptr;
-	
+
 	/* single frequency not supported in current PDE */
 	if (nf == 1)
 	{
 		return;
 	}
-	
+
 	E_FType freqs[3] = {frq1, frq2, frq3};
-	
+
 	/* m-rows measurements, n-cols unknowns */
 	int m = 2 * nf + 1;
 	int n = 2 + nf;
 	VectorXd Z = VectorXd::Zero		(m);
 	MatrixXd R = MatrixXd::Identity	(m, m);
 	MatrixXd H = MatrixXd::Zero		(m, n);
-	
+
 	double	lam1	= lam[frq1];
 	int		i		= 0;
-	
+
 	//phase and code
 	for (int f = 0; f < nf; f++)
 	{
 		E_FType	frqX = freqs[f];
 		double	lamX = lam[frqX];
-		
-		Z[i]	= lc	.L_m[frqX] 
+
+		Z[i]	= lc	.L_m[frqX]
 				- lc_pre.L_m[frqX];		R(i,i) = 1 / (2 * SQR(sigmaPhase));		H(i,0)		= 1;
-																				H(i,1)		= -SQR(lamX) / SQR(lam1);	
-																				H(i,2 + f)	= lamX;							i++;	
-																								
-		Z[i]	= lc	.P  [frqX]	
+																				H(i,1)		= -SQR(lamX) / SQR(lam1);
+																				H(i,2 + f)	= lamX;							i++;
+
+		Z[i]	= lc	.P  [frqX]
 				- lc_pre.P	[frqX];		R(i,i) = 1 / (2 * SQR(sigmaCode));		H(i,0)		= 1;
 																				H(i,1)		= +SQR(lamX) / SQR(lam1);		i++;
 	}
-	
+
 	//ionosphere
-	{		
+	{
 		Z[i] = satStat.dIono;			R(i,i) = 1 / SQR(satStat.sigmaIono);	H(i,1)		= 1;							i++;
 	}
 
@@ -301,17 +302,17 @@ void scdia(
 	{
 		return;
 	}
-	
+
 					satStat.sigStatMap[ft2string(frq1)].slip.		SCDIA = true;
 					satStat.sigStatMap[ft2string(frq2)].slip.		SCDIA = true;
 	if (nf == 3)	satStat.sigStatMap[ft2string(frq3)].slip.		SCDIA = true;
 					satStat.sigStatMap[ft2string(frq1)].savedSlip.	SCDIA = true;
 					satStat.sigStatMap[ft2string(frq2)].savedSlip.	SCDIA = true;
 	if (nf == 3)	satStat.sigStatMap[ft2string(frq3)].savedSlip.	SCDIA = true;
-	
+
 	VectorXd xp	= VectorXd::Zero(n);
 	MatrixXd Pp	= MatrixXd::Zero(n, n);
-	
+
 	if (filterMode == +E_FilterMode::LSQ)
 	{
 		MatrixXd N		= MatrixXd::Zero	(n, m);
@@ -333,17 +334,17 @@ void scdia(
 	else
 	{
 		satStat.flt.ne++;
-		if (satStat.flt.ne < 2)	
+		if (satStat.flt.ne < 2)
 		{
 			satStat.flt.slip	= 0;
 			satStat.flt.ne		= 0;
-			
+
 			return;
 		}
 
 		VectorXd x		= VectorXd::Zero	(n);
 		matcpy(x.data() + 2, satStat.flt.a, 1, nf);
-		
+
 		/* time update */
 		MatrixXd Px = MatrixXd::Zero(n, n);
 		for (int i = 0; i < nf; i++)
@@ -352,15 +353,15 @@ void scdia(
 
 		Px.data()[0]		= 1E6;
 		Px.data()[1 + n]	= 1E6;
-		
+
 		/* measurement-prediction */
 		matmul("NN", m, 1, n, -1, H.data(), x.data(), 1, Z.data());
-		
+
 		/* transpose of desgin matrix */
 		MatrixXd I		= MatrixXd::Identity(m, m);
 		MatrixXd H1		= MatrixXd::Zero	(n, m);
 		matmul("TN", n, m, m, +1, H.data(), I.data(), 0, H1.data());
-		
+
 		/* measurement update */
 		if (!matinv(R.data(), m))
 			filter_(x.data(), Px.data(), H1.data(), Z.data(), R.data(), n, m, xp.data(), Pp.data());
@@ -387,7 +388,7 @@ void scdia(
 	MatrixXd F	= MatrixXd::Zero(nf, 2);
 	double s[2];
 	lambda(trace, nf, 2, a.data(), Qa.data(), F.data(), s, acsConfig.predefined_fail, pass);
-	
+
 	if (filterMode == +E_FilterMode::LSQ)
 	{
 		/* least-squares */
@@ -400,7 +401,7 @@ void scdia(
 			tracepdeex(2, trace, "fixed ");
 			for (int i = 0; i < 3; i++)
 				satStat.amb[i] = ROUND(F.data()[i]);
-			
+
 			for (auto& [key, sigStat] : satStat.sigStatMap)
 			{
 				sigStat.slip.SCDIA = true;
@@ -440,7 +441,9 @@ void cycleslip2(
 {
 	GWeek	week	= lcBase.time;
 	GTow	tow		= lcBase.time;
-	
+
+	auto& recOpts = acsConfig.getRecOpts(obs.mount);
+
 	double dt	= (lcBase.time - satStat.lc_pre.time).to_double();
 
 	if	( dt < 20
@@ -469,7 +472,7 @@ void cycleslip2(
 	}
 
 	auto sys = lcBase.Sat.sys;
-		
+
 	E_FType	frq1;
 	E_FType	frq2;
 	E_FType frq3;
@@ -478,7 +481,7 @@ void cycleslip2(
 	{
 		return;
 	}
-	
+
 	auto&	lam = obs.satNav_ptr->lamMap;
 
 	double lam1 = lam[frq1];
@@ -490,8 +493,8 @@ void cycleslip2(
 	double coef = SQR(lam2) / SQR(lam1) - 1;
 
 	/* elevation dependent noise */
-	double sigmaCode	= sqrt(obs.Sigs.begin()->second.codeVar);
-	double sigmaPhase	= sqrt(obs.Sigs.begin()->second.phasVar);
+	double sigmaCode	= sqrt(obs.sigs.begin()->second.codeVar);
+	double sigmaPhase	= sqrt(obs.sigs.begin()->second.phasVar);
 
 	double sigmaGF = 2 * sigmaPhase;
 
@@ -502,8 +505,8 @@ void cycleslip2(
 
 	/* averaged MW measurement and noise */
 	double fNw;
-	if (acsConfig.mw_proc_noise)	{	fNw = lcNew.MW_c - satStat.mwSlip.mean;	}	
-	else							{	fNw = lcNew.MW_c - lcPre.MW_c;			}	/* Eq (6) in TN */
+	if (acsConfig.preprocOpts.mw_proc_noise)	{	fNw = lcNew.MW_c - satStat.mwSlip.mean;	}
+	else										{	fNw = lcNew.MW_c - lcPre.MW_c;			}	/* Eq (6) in TN */
 
 	/* clock jump */
 	if (fabs(fNw * lamw) > 10e-3 * CLIGHT)
@@ -518,7 +521,7 @@ void cycleslip2(
 			week, tow, lcBase.Sat.id().c_str(), satStat.el * R2D, lamw, deltaGF, fNw, sigmaGF);
 
 	/* cycle slip detection */
-	if (satStat.el >= acsConfig.elevation_mask)
+	if (satStat.el >= recOpts.elevation_mask_deg * D2R)
 	{
 		scdia(trace, satStat, lcBase, lam, sigmaPhase, sigmaCode, 2, sys, E_FilterMode::LSQ);
 	}
@@ -542,7 +545,9 @@ void cycleslip3(
 {
 	GWeek	week	= lc.time;
 	GTow	tow		= lc.time;
-	
+
+	auto& recOpts = acsConfig.getRecOpts(obs.mount);
+
 	double dt	= (lc.time - satStat.lc_pre.time).to_double();
 
 	/* small interval */
@@ -575,20 +580,20 @@ void cycleslip3(
 	bool pass = satFreqs(obs.Sat.sys, frq1, frq2, frq3);
 	if (pass == false)
 		return;
-	
+
 	auto&	lam = obs.satNav_ptr->lamMap;
 	double lam1 = lam[frq1];
 	double lam2 = lam[frq2];
 	double lam5 = lam[frq3];
-	
+
 	/* TD MW noise (m) */
 	double lamew = lam2 * lam5 / (lam5 - lam2);
 	if (lamew < 0)
 		lamew *= -1;
 
 	/* elevation dependent noise */
-	double sigmaCode	= sqrt(obs.Sigs.begin()->second.codeVar);
-	double sigmaPhase	= sqrt(obs.Sigs.begin()->second.phasVar);
+	double sigmaCode	= sqrt(obs.sigs.begin()->second.codeVar);
+	double sigmaPhase	= sqrt(obs.sigs.begin()->second.phasVar);
 
 	double mwNoise12 = mwnoise(sigmaCode, sigmaPhase, lam1, lam2);
 	double mwNoise15 = mwnoise(sigmaCode, sigmaPhase, lam1, lam5);
@@ -603,8 +608,8 @@ void cycleslip3(
 	/* averaged EMW measurement and noise */
 	double fNew;
 // 	double sigmaEMW;
-	if (acsConfig.mw_proc_noise)	{	fNew = lc25new.MW_c - satStat.emwSlip.mean;		}	
-	else							{	fNew = lc25new.MW_c - lc25pre.MW_c; 			}	/* Eq (13) in TN */
+	if (acsConfig.preprocOpts.mw_proc_noise)	{	fNew = lc25new.MW_c - satStat.emwSlip.mean;		}
+	else										{	fNew = lc25new.MW_c - lc25pre.MW_c; 			}	/* Eq (13) in TN */
 
 	double deltaGF25	= lc25new.GF_Phas_m
 						- lc25pre.GF_Phas_m;
@@ -627,19 +632,19 @@ void cycleslip3(
 	double	lamw = lam1 * lam2 / (lam2 - lam1);
 
 	double	coef = SQR(lam2) / SQR(lam1) - 1;	// ionosphere coefficient for L1 & LX
-	
+
 	/* averaged MW measurement and noise */
 	double	fNw;
-	if (acsConfig.mw_proc_noise)		{	fNw = lcNew.MW_c - satStat.mwSlip.mean;	}	
-	else								{	fNw = lcNew.MW_c - lcPre.MW_c;			} /* Eq (6) in TN */	
+	if (acsConfig.preprocOpts.mw_proc_noise)		{	fNw = lcNew.MW_c - satStat.mwSlip.mean;	}
+	else											{	fNw = lcNew.MW_c - lcPre.MW_c;			} /* Eq (6) in TN */
 
 	double	deltaGF	= lcNew.GF_Phas_m
 					- lcPre.GF_Phas_m;
-			
+
 	tracepdeex(2, trace, "\nPDE-CS GPST TRIP  %4d %8.1f %4s %5.2f %5.3f %8.4f %7.4f %8.4f        %6.2f %8.4f %7.4f ", week,
 			tow, lc.Sat.id().c_str(), satStat.el * R2D, lamw, deltaGF, fNw, sigmaGF, lamew, deltaGF25, fNew);
 
-	if (satStat.el >= acsConfig.elevation_mask)
+	if (satStat.el >= recOpts.elevation_mask_deg * D2R)
 	{
 		scdia(trace, satStat, lc, lam, sigmaPhase, sigmaCode, 3, sys, E_FilterMode::LSQ);
 	}
@@ -665,16 +670,18 @@ void detectslip(
 {
 	bool dualFreq = false;
 	E_Sys sys = lc_new.Sat.sys;
-	
+
 	char id[32];
 	lc_new.Sat.getId(id);
 
 	GWeek	week	= lc_new.time;
 	GTow	tow		= lc_new.time;
 
+	auto& recOpts = acsConfig.getRecOpts(obs.mount);
+
 	if (acsConfig.process_sys[sys] == false)
 		return;
-	
+
 	E_FType	frq1;
 	E_FType	frq2;
 	E_FType frq3;
@@ -683,33 +690,25 @@ void detectslip(
 	{
 		return;
 	}
-	
+
 	/* first epoch or large gap or low elevation */			//todo aaron initialisation stuff, remove
 	if  (  satStat.lc_pre.time.bigTime == 0
-		|| satStat.el	< acsConfig.elevation_mask
+		|| satStat.el	< recOpts.elevation_mask_deg * D2R
 		|| lc_new.time	> lc_old.time + PDEGAP)
 	{
 		satStat.mwSlip	= {};
 		satStat.emwSlip	= {};
 
-		if (lc_new.time	> lc_old.time + PDEGAP)				tracepdeex(1, trace, "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --time gap --", 					week, tow, id, satStat.el * R2D);
-		if (satStat.el	< acsConfig.elevation_mask)			tracepdeex(1, trace, "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --low_elevation --", 				week, tow, id, satStat.el * R2D);
-		if (satStat.el	> acsConfig.elevation_mask)			tracepdeex(1, trace, "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --satStat.lc_pre.time.time --",	week, tow, id, satStat.el * R2D);
+		if (lc_new.time	> lc_old.time + PDEGAP)					tracepdeex(1, trace, "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --time gap --", 					week, tow, id, satStat.el * R2D);
+		if (satStat.el	< recOpts.elevation_mask_deg * D2R)		tracepdeex(1, trace, "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --low_elevation --", 				week, tow, id, satStat.el * R2D);
+		else													tracepdeex(1, trace, "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --satStat.lc_pre.time.time --",	week, tow, id, satStat.el * R2D);
 
 		return;
 	}
 
-	if  ( acsConfig.csfreq == 3
-		&&lc_new.L_m[frq1] != 0
+	if  ( lc_new.L_m[frq1] != 0
 		&&lc_new.L_m[frq2] != 0
 		&&lc_new.L_m[frq3] == 0)
-	{
-		dualFreq = true;
-	}
-
-	if  ( acsConfig.csfreq != 3
-		&&lc_new.L_m[frq1] != 0
-		&&lc_new.L_m[frq2] != 0)
 	{
 		dualFreq = true;
 	}
@@ -725,7 +724,7 @@ void detectslip(
 			&&satStat.sigStatMap[ft2string(frq2)].slip.any == 0)
 		{
 			S_LC& lc12 = getLC(lc_new, frq1, frq2);
-			lowPassFilter(satStat.mwSlip, lc12.MW_c, acsConfig.mw_proc_noise);
+			lowPassFilter(satStat.mwSlip, lc12.MW_c, acsConfig.preprocOpts.mw_proc_noise);
 		}
 		else
 		{
@@ -749,7 +748,7 @@ void detectslip(
 			&&satStat.sigStatMap[ft2string(frq2)].slip.any == 0)
 		{
 			S_LC& lc12 = getLC(lc_new, frq1, frq2);
-			lowPassFilter(satStat.mwSlip, lc12.MW_c, acsConfig.mw_proc_noise);
+			lowPassFilter(satStat.mwSlip, lc12.MW_c, acsConfig.preprocOpts.mw_proc_noise);
 		}
 		else
 		{
@@ -785,7 +784,7 @@ void detectslip(
 			&&satStat.sigStatMap[ft2string(frq3)].slip.any == 0)
 		{
 			S_LC& lc25 = getLC(lc_new, frq2, frq3);
-			lowPassFilter(satStat.emwSlip, lc25.MW_c, acsConfig.mw_proc_noise);
+			lowPassFilter(satStat.emwSlip, lc25.MW_c, acsConfig.preprocOpts.mw_proc_noise);
 		}
 		else
 		{
@@ -829,19 +828,19 @@ void clearSlips(
 		{
 			continue;
 		}
-		
+
 		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
-		
+
 		if (satOpts.exclude)
 		{
 			continue;
 		}
-		
+
 		for (auto& [sigKey, sigStat]	: obs.satStat_ptr->sigStatMap)
 		{
 			SatStat& satStat = *(obs.satStat_ptr);
-			
-			satStat.slip		= false;
+
+			satStat.slip		= false;		//todo aaron, is this used?
 			sigStat.slip.any	= 0;
 		}
 	}
@@ -853,12 +852,14 @@ void detectslips(
 	Trace&		trace,		///< Trace to output to
 	ObsList&	obsList)	///< List of observations to detect slips within
 {
+	Instrument instrument(__FUNCTION__);
+
 	tracepdeex(2, trace, "\n   *-------- PDE cycle slip detection & repair --------*\n");
-	
+
 	detslp_ll(trace, obsList);
 	detslp_gf(trace, obsList);
 	detslp_mw(trace, obsList);
-	
+
 	tracepdeex(2, trace, "\nPDE-CS GPST       week      sec  prn   el   lamw     gf12    mw12    siggf  sigmw  lamew     gf25    mw25               LC                   N1   N2   N5\n");
 
 	for (auto& obs : only<GObs>(obsList))
@@ -869,13 +870,13 @@ void detectslips(
 		}
 
 		SatStat& satStat = *(obs.satStat_ptr);
-		
+
 		detectslip(trace, satStat, satStat.lc_new, satStat.lc_pre, obs);
-		
-		for (auto& [ft, sig] : obs.Sigs)
+
+		for (auto& [ft, sig] : obs.sigs)
 		{
 			auto& sigStat = obs.satStat_ptr->sigStatMap[ft2string(ft)];
-			
+
 			if (sigStat.slip.any)
 			{
 				satStat.slip = true;

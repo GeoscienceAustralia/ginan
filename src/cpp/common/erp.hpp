@@ -17,7 +17,7 @@ constexpr char eopComments[][16] = {"XP (MAS)", "YP (MAS)", "UT1(MTS)"};
 /** earth rotation parameter data type 
  */
 struct ERPValues
-{        
+{
 	GTime time;
 	
 	double xp			= 0;		///< pole offset (rad) 
@@ -108,3 +108,9 @@ void writeErp(
 void writeErpFromNetwork(
 	string		filename,
 	KFState&	kfState);
+
+ERPValues getErpFromFilter(
+	KFState&	kfState);
+	
+Matrix3d stationEopPartials(
+	Vector3d&	rRec);

@@ -102,6 +102,7 @@ struct SerialStream : Stream
 			
 			receivedData.resize(receivedData.size() + reserve);
 			
+			
 			int n = read(fileDescriptor, &receivedData[oldSize], reserve);
 			
 			receivedData.resize(oldSize + n);

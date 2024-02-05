@@ -2,10 +2,8 @@
 #pragma once
 
 #include <string>
-#include <set>
 
 using std::string;
-using std::set;
 
 #include "rinexClkWrite.hpp"
 

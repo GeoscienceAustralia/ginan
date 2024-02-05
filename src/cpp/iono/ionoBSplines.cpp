@@ -4,22 +4,21 @@
 #include "common.hpp"
 #include "acsConfig.hpp"
 
-struct Bsp_Basis
+struct BspBasis
 {
-	int hind;						/* layer number */
-	double latit;					/* latitude */
-	double longi;					/* longitude */
+	int ind;						/* layer number */
+	double latDeg;					/* latitude */
+	double lonDeg;					/* longitude */
 };
 
-map<int, Bsp_Basis>  Bsp_Basis_list;
+map<int, BspBasis> bspBasisMap;
 
-static double BSPLINE_LATCEN = 0;
-static double BSPLINE_LONCEN = 0;
-static double BSPLINE_LATWID = 0;
-static double BSPLINE_LONWID = 0;
-static double BSPLINE_LATINT = 0;
-static double BSPLINE_LONINT = 0;
-
+static double BSPLINE_LAT_CENTRE	= 0;
+static double BSPLINE_LON_CENTRE	= 0;
+static double BSPLINE_LAT_WIDTH		= 0;
+static double BSPLINE_LON_WIDTH		= 0;
+static double BSPLINE_LAT_INTERVAL	= 0;
+static double BSPLINE_LON_INTERVAL	= 0;
 
 /** Initializes grid map model
 	The following configursation parameters are used
@@ -31,8 +30,10 @@ static double BSPLINE_LONINT = 0;
 	-  acsConfig.ionFilterOpts.lon_res:		  longitude resolution of gridmap
 	-  acsConfig.ionFilterOpts.layer_heights: Ionosphere layer Heights
 ----------------------------------------------------------------------------*/
-int configIonModelBsplin()
+int configIonModelBsplin(
+	Trace& trace)
 {
+	bspBasisMap.clear();
 	if	(  acsConfig.ionexGrid.lat_width > 180
 		|| acsConfig.ionexGrid.lat_width < 0
 		|| acsConfig.ionexGrid.lon_width > 360
@@ -42,59 +43,56 @@ int configIonModelBsplin()
 		return 0;
 	}
 
-	BSPLINE_LATCEN = acsConfig.ionexGrid.lat_center	* D2R;
-	BSPLINE_LONCEN = acsConfig.ionexGrid.lon_center	* D2R;
-	BSPLINE_LATINT = acsConfig.ionexGrid.lat_res	* D2R;
-	BSPLINE_LONINT = acsConfig.ionexGrid.lon_res	* D2R;
+	BSPLINE_LAT_CENTRE		= acsConfig.ionexGrid.lat_centre;
+	BSPLINE_LON_CENTRE		= acsConfig.ionexGrid.lon_centre;
+	BSPLINE_LAT_INTERVAL	= acsConfig.ionexGrid.lat_res;
+	BSPLINE_LON_INTERVAL	= acsConfig.ionexGrid.lon_res;
 
 	int latnum = (int)(acsConfig.ionexGrid.lat_width / acsConfig.ionexGrid.lat_res) + 1;
 	int lonnum = (int)(acsConfig.ionexGrid.lon_width / acsConfig.ionexGrid.lon_res) + 1;
 
-	BSPLINE_LATWID = BSPLINE_LATINT * (latnum - 1) / 2;
-	BSPLINE_LONWID = BSPLINE_LONINT * (lonnum - 1) / 2;
+	BSPLINE_LAT_WIDTH = BSPLINE_LAT_INTERVAL * (latnum - 1) / 2;
+	BSPLINE_LON_WIDTH = BSPLINE_LON_INTERVAL * (lonnum - 1) / 2;
 
-	double latmin = BSPLINE_LATCEN - BSPLINE_LATWID;
+	double latmin = BSPLINE_LAT_CENTRE - BSPLINE_LAT_WIDTH;
+	double lonmin = BSPLINE_LON_CENTRE - BSPLINE_LON_WIDTH;
 
-	if ((latmin < -PI / 2) || ((BSPLINE_LATCEN + BSPLINE_LATWID) > PI / 2))
+	if	( (latmin < -90)
+		||((BSPLINE_LAT_CENTRE + BSPLINE_LAT_WIDTH) > 90))
 	{
 		std::cout << "Gridmap model does not work on polar regions, select other mapping methods";
 		return 0;
 	}
 
-	double lonmin = BSPLINE_LONCEN - BSPLINE_LONWID;
 
-	Bsp_Basis basis;
+	BspBasis basis;
 	int ind = 0;
 
-	for (int lay = 0; lay < acsConfig.ionModelOpts.layer_heights.size(); lay++)
+	for (int layN = 0; layN < acsConfig.ionModelOpts.layer_heights.size();	layN++)
+	for (int latN = 0; latN < latnum;										latN++)
+	for (int lonN = 0; lonN < lonnum;										lonN++)
 	{
-		basis.hind = lay;
+		basis.ind		= layN;
+		basis.latDeg	= latmin + latN * BSPLINE_LAT_INTERVAL;
+		double lonmap	= lonmin + lonN * BSPLINE_LON_INTERVAL;
 
-		for (int lat = 0; lat < latnum; lat++)
-		{
-			basis.latit = latmin + lat * BSPLINE_LATINT;
+		if (lonmap < -180)		lonmap += 360;
+		if (lonmap >  180)		lonmap -= 360;
 
-			for (int lon = 0; lon < lonnum; lon++)
-			{
-				double lonmap = lonmin + lon * BSPLINE_LONINT;
+		basis.lonDeg	= lonmap;
 
-				if (lonmap < -PI)	lonmap += 2 * PI;
-				if (lonmap >  PI)	lonmap -= 2 * PI;
-
-				basis.longi = lonmap;
-				Bsp_Basis_list[ind++] = basis;
-			}
-		}
+		bspBasisMap[ind] = basis;
+		ind++;
 	}
 
 	acsConfig.ionModelOpts.numBasis = ind;
 
-	for (int j = 0; j < acsConfig.ionModelOpts.numBasis; j++)
-	{
-		Bsp_Basis& basis2 = Bsp_Basis_list[j];
-// 		fprintf(fp_iondebug, "GRD_BASIS %3d %2d %8.4f %8.4f ", j, basis2.hind, basis.latit * R2D, basis.longi * R2D);
-// 		fprintf(fp_iondebug, "\n");
-	}
+	tracepdeex(2,trace, "\nIONO_BASIS ind lay latitude longitude");
+
+	for (auto& [j, basis2] : bspBasisMap)
+		tracepdeex(2, trace, "\nIONO_BASIS %3d %3d %8.4f %8.4f ", j, basis.ind, basis.latDeg, basis.lonDeg);
+
+	tracepdeex(2,trace, "\n");
 
 	return ind;
 }
@@ -108,15 +106,15 @@ Author: Ken Harima @ RMIT 04 August 2020
 -----------------------------------------------------*/
 bool ippCheckBsplin(GTime time, VectorPos& Ion_pp)
 {
-	if (fabs(BSPLINE_LATCEN - Ion_pp[0]) > BSPLINE_LATWID) 
+	if (fabs(BSPLINE_LAT_CENTRE - Ion_pp.latDeg()) > BSPLINE_LAT_WIDTH)
 		return false;
 
-	double londiff = BSPLINE_LONCEN - Ion_pp[1];
+	double londiff = BSPLINE_LON_CENTRE - Ion_pp.lonDeg();
 
-	if (londiff < -PI)	londiff += 2 * PI;
-	if (londiff >  PI)	londiff -= 2 * PI;
+	if (londiff < -180)		londiff += 360;
+	if (londiff >  180)		londiff -= 360;
 
-	if (fabs(londiff) > BSPLINE_LONWID)
+	if (fabs(londiff) > BSPLINE_LON_WIDTH)
 		return false;
 
 	return true;
@@ -132,34 +130,38 @@ bool ippCheckBsplin(GTime time, VectorPos& Ion_pp)
 
 	BSPLINE_LATINT and BSPLINE_LONINT needs to be set before calling this function
 ----------------------------------------------------------------------------*/
-double ionCoefBsplin(int ind, IonoObs& obs, bool slant) 
+double ionCoefBsplin(
+	Trace&		trace,
+	int			ind,
+	IonoObs&	obs,
+	bool		slant)
 {
-	if (ind >= Bsp_Basis_list.size()) 
+	if (ind >= bspBasisMap.size())
 		return 0;
 
-	Bsp_Basis& basis = Bsp_Basis_list[ind];
+	auto& basis = bspBasisMap[ind];
 
-	double latdiff = (obs.ippMap[basis.hind].lat - basis.latit) / BSPLINE_LATINT;
+	double latdiff = (obs.ippMap[basis.ind].latDeg - basis.latDeg) / BSPLINE_LAT_INTERVAL;
 
-	if	(  latdiff <= -1 
-		|| latdiff >= +1) 
+	if	(  latdiff <= -1
+		|| latdiff >= +1)
 	{
 		return 0;
 	}
-	
-	double londiff = (obs.ippMap[basis.hind].lon - basis.longi);
 
-	if (londiff < -PI)	londiff += 2 * PI;
-	if (londiff >  PI)	londiff -= 2 * PI;
+	double londiff = (obs.ippMap[basis.ind].lonDeg - basis.lonDeg);
 
-	londiff /= BSPLINE_LATINT;
+	if (londiff < -180)		londiff += 360;
+	if (londiff >  180)		londiff -= 360;
 
-	if	(  londiff <= -1 
+	londiff /= BSPLINE_LAT_INTERVAL;
+
+	if	(  londiff <= -1
 		|| londiff >= +1)
 	{
 		return 0;
 	}
-	
+
 	double out = latdiff < 0 ? (1 + latdiff) : (1 - latdiff);
 
 	if (londiff < 0)		out *= 1 + londiff;
@@ -167,7 +169,7 @@ double ionCoefBsplin(int ind, IonoObs& obs, bool slant)
 
 	if (slant)
 	{
-		out *= obs.ippMap[basis.hind].slantFactor * obs.stecToDelay;
+		out *= obs.ippMap[basis.ind].slantFactor * obs.stecToDelay;
 	}
 
 	return out;
@@ -180,14 +182,15 @@ double ionCoefBsplin(int ind, IonoObs& obs, bool slant)
 returns: VETC at piercing point
 */
 double ionVtecBsplin(
+	Trace&		trace,
 	GTime		time,
 	VectorPos&	ionPP,
 	int			layer,
-	double&		vari,
+	double&		var,
 	KFState&	kfState)
 {
-	vari = 0;
-	
+	var = 0;
+
 	if (ippCheckBsplin(time, ionPP) == false)
 	{
 		return 0;
@@ -195,29 +198,29 @@ double ionVtecBsplin(
 
 	double iono = 0;
 	GObs tmpobs;
-	tmpobs.ippMap[layer].lat			= ionPP.lat();
-	tmpobs.ippMap[layer].lon			= ionPP.lon();
+	tmpobs.ippMap[layer].latDeg			= ionPP.latDeg();
+	tmpobs.ippMap[layer].lonDeg			= ionPP.lonDeg();
 	tmpobs.ippMap[layer].slantFactor	= 1;
 
 	for (int ind = 0; ind < acsConfig.ionModelOpts.numBasis; ind++)
 	{
-		Bsp_Basis& basis = Bsp_Basis_list[ind];
+		auto& basis = bspBasisMap[ind];
 
-		if (basis.hind != layer) 
+		if (basis.ind != layer)
 			continue;
 
-		double coef = ionCoefBsplin(ind, tmpobs, false);
+		double coef = ionCoefBsplin(trace, ind, tmpobs, false);
 
 		KFKey keyC;
 		keyC.type	= KF::IONOSPHERIC;
 		keyC.num	= ind;
 
-		double staval = 0;
-		double stastd = 0;
-		kfState.getKFValue(keyC, staval, &stastd);
+		double kfval = 0;
+		double kfvar = 0;
+		kfState.getKFValue(keyC, kfval, &kfvar);
 
-		iono += 	coef * staval;
-		vari += SQR(coef * stastd);
+		iono += 	coef	* kfval;
+		var += SQR(coef)	* kfvar;
 	}
 
 	return iono;

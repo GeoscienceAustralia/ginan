@@ -32,18 +32,33 @@ Eph mongoReadEphemeris(
 Geph mongoReadGloEphemeris(
 	GTime			targetTime,
 	SatSys			Sat);
-	
+
 SSRAtm mongoReadIGSIonosphere(
+			GTime		time,
+	const	SSRMeta&	ssrMeta,
+			int			masterIod);
+
+SSRAtm mongoReadCmpAtmosphere(
 	GTime	time,
-	SSRMeta	ssrMeta,
-	int		masterIod);
+	SSRMeta	ssrMeta);
 
 map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 	GTime	time	= GTime::noTime(),
 	SatSys	Sat		= SatSys(),
-	bool	remote	= false);
+	bool	remote	= false,
+	double*	var_ptr	= nullptr);
 
 map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
 	GTime	time	= GTime::noTime(),
 	string	str		= "",
 	bool	remote	= false);
+
+class KF;
+struct KFState;
+
+void mongoReadFilter(
+	KFState&				kfState,
+	GTime					time	= GTime::noTime(),
+	const vector<KF>&		types	= {},
+	const string&			Sat		= "",
+	const string&			str		= "");

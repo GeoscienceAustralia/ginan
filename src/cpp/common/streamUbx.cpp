@@ -75,6 +75,11 @@ void UbxParser::parse(
 		recordFrame(ubxClass, id, payload, crcRead);
 		
 		decode(ubxClass, id, payload);
+		
+		if (obsListList.size() > 2)
+		{
+			return;
+		}
 	}
 	inputStream.clear();
 }

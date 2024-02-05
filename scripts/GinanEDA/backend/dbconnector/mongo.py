@@ -1,5 +1,6 @@
 import logging
 from typing import List, Union
+import json
 
 from pymongo.mongo_client import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError
@@ -39,15 +40,35 @@ class MongoDB:
             raise ConnectionError("Failed to connect to MongoDB server") from err
 
     def get_content(self) -> None:
+        # Will need to find a better way for that, the EDA is readonly. addint the index with the EDA isn't a good idea. For large database it will take a long time
+        # resp = self.mongo_client[self.mongo_db]["Measurements"].create_index(
+        # [
+        #     ("Epoch", 1),
+        #     ("Site", 1),
+        #     ("Sat", 1)
+        # ])
+        #
+        # print("index response:", resp)
+        #
+        # resp = self.mongo_client[self.mongo_db]["States"].create_index(
+        # [
+        #     ("Epoch", 1),
+        #     ("Site", 1),
+        #     ("Sat", 1),
+        #     ("States", 1)
+        # ])
+        #
+        # print("index response:", resp)
+
         for cursor in self.mongo_client[self.mongo_db]["Content"].find():
             self.mongo_content[cursor["type"]] = cursor["Values"]
         self.mongo_content["Geometry"] = []
         geom = self.mongo_client[self.mongo_db]["Geometry"].find_one({})
         if "Measurements" in self.mongo_client[self.mongo_db].list_collection_names():
-            self.mongo_content["Has_measurements"]=  True 
+            self.mongo_content["Has_measurements"] = True
         else:
-            self.mongo_content["Has_measurements"] =  False
-            
+            self.mongo_content["Has_measurements"] = False
+
         if geom is None:
             logger.debug("Geometry not available")
             self.mongo_content["Geometry"] = ["Site", "Sat", "Epoch"]
@@ -55,7 +76,7 @@ class MongoDB:
             for i in geom:
                 if i != "_id":
                     self.mongo_content["Geometry"].append(i)
-                        
+
         self.mongo_content["states_fields"] = ["x", "dx", "P"]
 
     def get_list_db(self) -> List[str]:
@@ -108,17 +129,14 @@ class MongoDB:
                 }
             }
         )
+        if state is not None:
+            agg_pipeline[-1]["$group"]["_id"]["state"] = "$State"
+
         # for key in keys:
         #    agg_pipeline[-1]["$group"][key] = {"$push": f"${key}"}
         for key in keys:
             agg_pipeline[-1]["$group"][key] = {
-                "$push": {
-                    "$cond": [
-                        {"$eq": [{"$ifNull": [f"${key}", None]}, None]},
-                        float('nan'),
-                        f"${key}"
-                    ]
-                }
+                "$push": {"$cond": [{"$eq": [{"$ifNull": [f"${key}", None]}, None]}, float("nan"), f"${key}"]}
             }
         logger.info(agg_pipeline)
         cursor = self.mongo_client[self.mongo_db][collection].aggregate(agg_pipeline)
@@ -126,6 +144,116 @@ class MongoDB:
         if not cursor.alive:
             raise ValueError("No data found")
         return list(cursor)
+
+
+    def get_keys_from_sub(self, collection, element):
+
+        logger.info("getting keys in " + element)
+        pipeline = [
+            {"$project":
+                {
+                    "arrayofkeyvalue": { "$objectToArray": "$" + element }
+                }
+            },
+            {"$unwind": "$arrayofkeyvalue"},
+            {"$group":
+                {
+                    "_id": "null",
+                    "allkeys": { "$addToSet": "$arrayofkeyvalue.k" }
+                }
+            }]
+
+        for cursor in self.mongo_client[self.mongo_db][collection].aggregate(pipeline, allowDiskUse=True):
+            print(cursor)
+
+        return cursor["allkeys"]
+
+    def get_distinct_vals(self, collection, element):
+        logger.info("getting distinct values for " + element)
+
+        distinct = self.mongo_client[self.mongo_db][collection].distinct(element)
+
+        return distinct
+
+    def get_arbitrary(self, collection, match_thing, group_thing, yvalue):
+        results = {}
+        yvalue = "val." + yvalue
+        matches = json.loads("{" + match_thing + "}")
+        print("matches" + group_thing)
+        groups = json.loads("{" + group_thing + "}")
+        print("groups")
+
+        groupObj = {"Epoch": "$Epoch"};
+        sortObj = {"_id.Epoch": 1};
+        matchObj = { yvalue : {"$exists":1}};
+
+        for entry, val in groups.items():
+            groupObj[entry] = "$id." + entry;
+            # sortObj["_id." + entry] = 1;
+
+        for entry, val in matches.items():
+            matchObj["id." + entry] = val
+
+        # print("self.mongo_db")
+        # print(self.mongo_db)
+        # print("collection")
+        # print(collection)
+        # print("groupObj")
+        # print(groupObj)
+        # print("sortObj")
+        # print(sortObj)
+        # print("matchObj")
+        # print(matchObj)
+        # print("yvalue")
+        # print(yvalue)
+
+        logger.info("getting arbitrary data")
+
+        pipeline = []
+        pipeline.append({"$match": matchObj})
+        pipeline.append(
+            {   
+                "$group":      
+                {
+                    "_id":      groupObj, 
+                    "Epoch":    {"$first":          "$Epoch"        }, 
+                    "y":        {"$addToSet":       "$" + yvalue    }, 
+                    "fields":   {"$mergeObjects":   "$id"           }
+                }
+            })
+        pipeline.append({"$sort":       sortObj})
+        pipeline.append({"$project":    {'_id.Epoch': 0}})
+
+        print("pipeline")
+        print(pipeline)
+
+        logger.info("getting data")
+
+        for cursor in self.mongo_client[self.mongo_db][collection].aggregate(pipeline, allowDiskUse=True):
+
+
+            if len(cursor["y"]) > 1:
+                # print(cursor)
+                print("excessFields")
+                print(cursor["fields"])
+
+                results["excessFields"] = []
+                for label, traceData in cursor["fields"].items():
+                    results["excessFields"].append(label)
+
+                print(results["excessFields"])
+                return results
+
+            if len(cursor["y"]) != 0:
+
+                if str(cursor["_id"]) not in results:
+                    results[str(cursor["_id"])] = []
+
+                results[str(cursor["_id"])].append(cursor)
+
+                # print(cursor)
+
+        return results
 
     def get_data_to_measurement(
         self,

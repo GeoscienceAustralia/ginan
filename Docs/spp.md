@@ -93,7 +93,7 @@ PRN codes are designed to be very orthogonal to one another. That means that cod
 
 In CDMA, each message bit (like a bit of the navigation message) is subdivided into a number of short intervals called chips. Each satellite is assigned a unique 1,023 bit chip sequence which is its PRN code. To transmit 1 bit (of the navigation message), a satellite sends its chip sequence. To transmit a 0 bit, it sends the one's complement of its chip sequence. For example, if satellite A is assigned the chip sequence 00011011, it sends a 1 bit by sending 00011011 and a 0 bit by sending 11100100.
 
-For GPS, the navigation message is sent at the very sedate rate of 50 bits per second. The rate at which the chips are sent (the chipping rate) is 1.023 mega bits per second. This means that a chip (PRN code) is transmitted in a millisecond.
+For GPS, the navigation message is sent at the very sedate rate of 50 bits per second. The rate at which the chips are sent (the chipping rate) is 1.023 megabits per second. This means that a chip (PRN code) is transmitted in a millisecond.
 
 Putting it another way, the PRN code is like a key. Receivers have all the keys and compare incoming messages with locally generated codes (keys). There is a timestamp on each chip of the PRN code. So PRN codes from the satellite have satellite atomic clock generated time stamps and the receiver have internally generated time stamps.
 
@@ -123,7 +123,7 @@ That sounds pretty good. However, the actual performance you experience depends 
 
 The other signals and codes broadcast by GNSS satellites can improve that accuracy. Now there are also augmentation systems available which send additional signals that greatly improve accuracy and often carry signal integrity information. Some of these are available to the general public and some are not.
 
-Ginan is concerned with a technique called Precise Point Positioning (PPP). PPP aims to be able to compensate for many sources of error and so greatly increase position accuracy - from meters to a few centimeters. 
+Ginan is concerned with a technique called Precise Point Positioning (PPP). PPP aims to be able to compensate for many sources of error and so greatly increase position accuracy - from metres to a few centimetres. 
 
 ## Resources
 

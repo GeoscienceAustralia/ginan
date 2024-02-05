@@ -2,12 +2,11 @@
 
 # Ginan: Software toolkit and service
 
-#### `Ginan v2.1.0`
+#### `Ginan v3.0.0`
 
 ## Overview
 
-Ginan is a processing package being developed to processes GNSS observations for geodetic applications.  
-Further in-depth documentation about its use may be found [here](https://geoscienceaustralia.github.io/ginan/)
+Ginan is a processing package being developed to process GNSS observations for geodetic applications.
 
 We currently support the processing of:
 
@@ -32,15 +31,31 @@ We are actively developing Ginan to have the following capabilities and features
 * Model Ocean Tide Loading (OTL) displacements.
 
 The software consists of three main components:
-* Network Parameter Estimation Algorithm (PEA) 
+* Network Parameter Estimation Algorithm (PEA)
 * Precise Orbit Determination (POD), and
 * Various scripts for combination and analysis of solutions
+
+## Using Ginan with an AppImage
+
+You can quickly download a precompiled binary of Ginan's pea from the `develop-weekly-appimage` branch of github.
+
+    git clone -b develop-weekly-appimage --depth 1 --single-branch https://github.com/GeoscienceAustralia/ginan.git
+
+This contains no python scripts or example data, but is possible to run immediately on linux and windows systems as simply as:
+
+    ginan/Ginan-x86_64.AppImage
+
+or on windows:
+
+    wsl --install -d ubuntu
+    ginan/Ginan-x86_64.AppImage
+
 
 ## Using Ginan with Docker
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v2.1.0 bash
+    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v3.0.0 bash
 
 This command connects the `${host_data_folder}` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
@@ -66,13 +81,13 @@ If instead you wish to build Ginan from source, there are several software depen
 
 * C/C++ and Fortran compiler. We use and recommend [gcc, g++, and gfortran](https://gcc.gnu.org)
 * BLAS and LAPACK linear algebra libraries. We use and recommend [OpenBlas](https://www.openblas.net/) as this contains both libraries required
-* CMAKE     >  3.0 
+* CMAKE     >  3.0
 * YAML      >  0.6
 * Boost     >= 1.73 (tested on 1.73). On Ubuntu 22.04 which uses gcc-11, you need Boost >= 1.74.0
 * MongoDB
 * Mongo_C   >= 1.71.1
-* Mongo_cxx >= 3.6.0 
-* Eigen3    >  3.4 
+* Mongo_cxx >= 3.6.0
+* Eigen3    >  3.4
 * netCDF4
 * Python    >= 3.7
 
@@ -80,11 +95,7 @@ If using gcc verion 11 or about, the minimum version of libraries are:
 * Boost     >= 1.74.0
 * Mongo_cxx =  3.7.0
 
-Scripts to install dependencies for Ubuntu 18.04/20.04, 22.04, Fedora 38 are available on the `scripts/installation` directory. Users on other system might need to have a look at the `scripts/installation/generic.md` file, which contains the major steps. 
-
-### Mongo
-
-Mongo databases are optionally used to store intermediate data for passing between processes and visualisation. If this functionality is desired please install and start the Mongo service.
+Scripts to install dependencies for Ubuntu 18.04/20.04, 22.04, Fedora 38 are available on the `scripts/installation` directory. Users on other system might need to have a look at the `scripts/installation/generic.md` file, which contains the major steps.
 
 ### Python
 
@@ -101,16 +112,16 @@ From the Ginan git root directory:
 mkdir -p src/build
 
 cd src/build
-cmake ../ 
-```    
+cmake ../
+```
 
 To build every package simply run `make` or `make -jX` , where X is a number of parallel threads you want to use for the compilation:
 
 ```bash
 make -j2
-```    
+```
 
-Alternatively, to build only a specific package (`pea`, `pod`, `make_otl_blq`, `interpolate_loading`), run as below:
+Alternatively, to build only a specific package (`pea`, `make_otl_blq`, `interpolate_loading`), run as below:
 
 ```bash
 make pea -j2
@@ -120,15 +131,15 @@ This should create executables in the `bin` directory of Ginan.
 
 Check to see if you can execute the PEA from the exampleConfigs directory
 
-```
+```bash
 cd ../../exampleConfigs
 
 ../bin/pea --help
-```    
+```
 
 and you should see something similar to:
 ```
-PEA starting... (main ginan-v2.1.0 from Fri Jun 30 15:15:22 2023)
+PEA starting... (main ginan-v3.0.0 from Mon Feb 05 15:15:22 2024)
 
 Options:
   -h [ --help ]                    Help
@@ -139,73 +150,77 @@ Options:
            .
            .
   --dump-config-only               Dump the configuration and exit
-  --walkthrough                    Run demonstration code interactively with 
+  --walkthrough                    Run demonstration code interactively with
                                    commentary
 
 PEA finished
 ```
 
 
-Then download all of the example data using the python script provided:
+Then download all of the example data using the scripts and filelists provided. From the Ginan git root directory:
 
 ```bash
-python3 scripts/s3_filehandler.py -d -p
-```   
+cd inputData/data
+./getData.sh
+cd ../products
+./getProducts.sh
+```
 
 ### Directory Structure
 
-Upon installation, thie ginan directory should have the following structure:
+Upon installation, the `ginan` directory should have the following structure:
 
     ginan/
-    ├── README.md           ! General README information
-    ├── LICENSE.md          ! Software License information
-    ├── ChangeLOG.md        ! Release Chnage history
-    ├── aws/                ! Amazon Web Services config
-    ├── bin/                ! Binary executables directory*
-    ├── Docs/               ! Documentation directory
-    ├── inputData/          ! Input data for examples **
-    │   ├── data/           ! example dataset (rinex files)**
-    │   └── products/       ! example products and aux files**
-    ├── exampleConfigs      ! Example configuration files
-    │   └── Ex20x.yaml      ! 
-    ├── lib/                ! Compiled objectlibrary directory*
-    ├── scripts/            ! Auxillary Python and Shell scripts and libraries
-    └── src/                ! Source code directory
-        ├── cpp/            ! Ginan source code
-        ├── cmake/   
+    ├── README.md               ! General README information
+    ├── LICENSE.md              ! Software License information
+    ├── ChangeLOG.md            ! Release Change history
+    ├── aws/                    ! Amazon Web Services config
+    ├── bin/                    ! Binary executables directory*
+    ├── Docs/                   ! Documentation directory
+    ├── inputData/              ! Input data for examples
+    │   ├── data/               ! Example dataset (rinex files)**
+    │   └── products/           ! Example products and aux files**
+    ├── exampleConfigs          ! Example configuration files
+    │   ├── ppp_example.yaml    ! Basic user-mode example
+    │   └── pod_example.yaml    ! Basic network-mode example
+    ├── lib/                    ! Compiled object library directory*
+    ├── scripts/                ! Auxiliary Python and Shell scripts and libraries
+    └── src/                    ! Source code directory
+        ├── cpp/                ! Ginan source code
+        ├── cmake/
         ├── doc_templates/
-        ├── build/          ! Cmake build directory*
+        ├── build/              ! Cmake build directory*
         └── CMakeLists.txt
 
 *\*created during installation process*
 
-*\*\*created by `s3_filehandler.py` script*
+*\*\* contents retrieved with getData.sh, getProducts.sh scripts*
 
 
 ## Documentation
 
-Ginan documentation consists of two parts: these documents, and separate doxygen-generated documentation that shows the actual code infrastructure.
+Ginan documentation consists of two parts: these documents, and separate Doxygen-generated documentation that shows the actual code infrastructure.
 It can be found [here](codeDocs/index.html), or generated manually as below.
 
 ### Doxygen
 
 The Doxygen documentation for Ginan requires `doxygen` and `graphviz`. If not already installed, type as follows:
 
-```
+```bash
 sudo apt -y install doxygen graphviz
-```    
+```
 
 On success, proceed to the build directory and call make with `docs` target:
 
-```
+```bash
 cd ../src/build
 
 cmake ../
 
 make docs
-```    
+```
 
-The documentation can then be found at `Docs/codeDocs/index.html`. 
+The documentation can then be found at `Docs/codeDocs/index.html`.
 
 Note that documentation is also generated automatically if `make` is called without arguments and `doxygen` and `graphviz` dependencies are satisfied.
 
@@ -215,25 +230,25 @@ Congratulations! You are now ready to trial the examples from the `exampleConfig
 
 The paths are relative to the `exampleConfigs` directory and hence all the examples must be run from the `exampleConfigs` directory.
 
-NB Examples may be configured to use mongoDB. If you have not installed it, please set `mongo: enable` to false in the pea config files.
+NB: Examples may be configured to use mongoDB. If you have not installed it, please set `mongo: enable` to false in the pea config files.
 
 To run the first example of the PEA:
 
-```
+```bash
 cd ../exampleConfigs
 
-../bin/pea --config ex201.yaml
-```    
+../bin/pea --config ppp_example.yaml
+```
 
-This should create `outputs/ex201` directory with various `*.trace` files, which contain details about stations processing, a `Network*.trace` file, which contains the results of kalman filtering, and other auxiliary output files as configured in the yamls. 
+This should create `outputs/ppp_example` directory with various `*.trace` files, which contain details about stations processing, a `Network*.trace` file, which contains the results of Kalman filtering, and other auxiliary output files as configured in the yamls.
 
-You can remove the need for path specification to the executable by using the symlink within `exampleConfigs`, or by adding Ginan's bin directory to `~/.bachrc` file:
+You can remove the need for path specification to the executable by using the symlink within `exampleConfigs`, or by adding Ginan's bin directory to `~/.bashrc` file:
 ```
 PATH="path_to_ginan_bin:$PATH"
 ```
 
 ## Scripts
-In addition to the ginan binaries, [scripts](scripts.index) are available to assist with downloading input files, and viewing and comparing generated outputs.
+In addition to the Ginan binaries, [scripts](scripts.index) are available to assist with downloading input files, and viewing and comparing generated outputs.
 
 
 ### Acknowledgements:
@@ -245,4 +260,4 @@ We have used routines obtained from EGM96, released under the zlib license, thes
 
 We have used routines obtained from SOFA, released under the SOFA license, these routines have been preserved in the folder `cpp/src/3rdparty/egm96` The original source code from SOFA can be obtained from https://www.iausofa.org/.
 
-We have used routines obtained from project Pluto, released under the GPL-3 license, these routines have been preserved in the folder `cpp/src/3rdparty/jplephem` The original source code from jpl ephem  can be obtained from https://github.com/Bill-Gray/jpl_eph.
+We have used routines obtained from project Pluto, released under the GPL-3 license, these routines have been preserved in the folder `cpp/src/3rdparty/jplephem` The original source code from jpl ephem can be obtained from https://github.com/Bill-Gray/jpl_eph.

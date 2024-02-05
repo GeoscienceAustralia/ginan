@@ -20,6 +20,7 @@
 #include "gTime.hpp"
 #include "sofa.h"
 
+HfOceanEop hfEop;
 
 const GTime time2010	= GEpoch{2010, E_Month::JAN, 1,		0,	0,	0};
 
@@ -31,23 +32,8 @@ void IERS2010::PMGravi(
 	double&	ut1,		///< ut1 variation (micro seconds)
 	double&	lod)		///< lod variation (micro seconds)
 {	
-	Eigen::Array<double,25,10> pmLibration; /** Tab5.1a IERS 2010 */
-	pmLibration << 
-	0,  0, 0,  0,  0, -1,     0.0,   0.6,   -0.1,   -0.1,
-	0, -1, 0,  1,  0,  2,     1.5,   0.0,   -0.2,    0.1,
-	0, -1, 0,  1,  0,  1,   -28.5,  -0.2,    3.4,   -3.9,
-	0, -1, 0,  1,  0,  0,    -4.7,  -0.1,    0.6,   -0.9,
-	0,  1, 1, -1,  0,  0,    -0.7,   0.2,   -0.2,   -0.7,
-	0,  1, 1, -1,  0, -1,     1.0,   0.3,   -0.3,    1.0,
-	0,  0, 0,  1, -1,  1,     1.2,   0.2,   -0.2,    1.4,
-	0,  1, 0,  1, -2,  1,     1.3,   0.4,   -0.2,    2.9,
-	0,  0, 0,  1,  0,  2,    -0.1,  -0.2,    0.0,   -1.7,
-	0,  0, 0,  1,  0,  1,     0.9,   4.0,   -0.1,   32.4,
-	0,  0, 0,  1,  0,  0,     0.1,   0.6,    0.0,    5.1,
-	0, -1, 0,  1,  2,  1,     0.0,   0.1,    0.0,    0.6,
-	0,  1, 0,  1,  0,  1,    -0.1,   0.3,    0.0,    2.7,
-	0,  0, 0,  3,  0,  3,    -0.1,   0.1,    0.0,    0.9,
-	0,  0, 0,  3,  0,  2,    -0.1,   0.1,    0.0,    0.6,
+	Eigen::Array<double,10,10> pmLibration; /** Tab5.1a IERS 2010, keeping only short periods */
+	pmLibration <<
 
 	1, -1, 0, -2,  0, -1,  -0.4,   0.3,   -0.3,   -0.4,
 	1, -1, 0, -2,  0, -2,  -2.3,   1.3,   -1.3,   -2.3,
@@ -75,7 +61,7 @@ void IERS2010::PMGravi(
 		2,	0,	 0,	0,  0, -1,  0.06, -0.04, -0.4, -0.8;
 
 
-	FundamentalNutationArgs fundArgs(time, ut1_utc);
+	FundamentalArgs fundArgs(time, ut1_utc);
 
 	x = 0;
 	y = 0;
@@ -89,16 +75,13 @@ void IERS2010::PMGravi(
 		y += sin(arg) * pnlib(8) + cos(arg)* pnlib(9);
 	}
 
-	// for (auto utlib : utLibration.rowwise())
-	// {
-	// 	double arg =  (utlib.segment(0,6) * fundArgs).sum() ;
-	// 	ut1 += sin(arg) * utlib(6) + cos(arg)* utlib(7);
-	// 	lod += sin(arg) * utlib(8) + cos(arg)* utlib(9);
+	for (auto utlib : utLibration.rowwise())
+	{
+		double arg =  (utlib.segment(0,6) * fundArgs).sum() ;
+		ut1 += sin(arg) * utlib(6) + cos(arg)* utlib(7);
+		lod += sin(arg) * utlib(8) + cos(arg)* utlib(9);
 
-	// }
-
-	// x+= -3.8 * (mjd - MJD_j2000 ) /365.25;
-	// y+= -4.3 * (mjd - MJD_j2000 ) / 365.25;
+	}
 }
 
 void IERS2010::PMUTOcean(
@@ -186,7 +169,7 @@ void IERS2010::PMUTOcean(
 	y	= 0;
 	ut1	= 0;
 	
-	FundamentalNutationArgs fundArgs(time, ut1_utc);
+	FundamentalArgs fundArgs(time, ut1_utc);
 	for (auto pnlib : data.rowwise())
 	{
 		double arg =  (pnlib.segment(0, 6) * fundArgs).sum();
@@ -197,7 +180,7 @@ void IERS2010::PMUTOcean(
 }
 
 
-FundamentalNutationArgs::FundamentalNutationArgs(
+FundamentalArgs::FundamentalArgs(
 	GTime	time,
 	double	ut1_utc)
 :	gmst	{(*this)[0]},
@@ -220,10 +203,10 @@ Array6d IERS2010::doodson(
 	GTime	time,
 	double	ut1_utc)
 {
-	FundamentalNutationArgs fundArgs(time, ut1_utc);
+	FundamentalArgs fundArgs(time, ut1_utc);	
 
 	Array6d Doodson;
-	Doodson(4) = -1 * fundArgs(5);
+	Doodson(4) = -1 * fundArgs(5);	//todo aaron, change to use named parameters, remove setBeta function
 	Doodson(1) = fundArgs(3) + fundArgs(5);
 	Doodson(0) = fundArgs(0) - Doodson(1); 
 	Doodson(2) = Doodson(1) - fundArgs(4);
@@ -410,20 +393,9 @@ void IERS2010::poleSolidEarthTide(
 	MatrixXd&		Cnm, 
 	MatrixXd&		Snm)
 {
-	double t = (double) (mjd.val - 55197) / 365.25;
-	
 	double xpv;
 	double ypv;
-	if ((GTime) mjd < time2010)
-	{
-		xpv = 55.974  + 1.8243 * t + 0.18413 * t * t + 0.007024 * t * t * t;
-		ypv = 346.346 + 1.7896 * t - 0.10729 * t * t - 0.000908 * t * t * t;
-	}
-	else
-	{
-		xpv = 23.513  + 7.6141 * t;
-		ypv = 358.891 - 0.6287 * t;
-	}
+	meanPole(mjd, xpv, ypv);
 	
 	double m1 = +(xp / AS2R - xpv / 1000);
 	double m2 = -(yp / AS2R - ypv / 1000);
@@ -439,24 +411,25 @@ void IERS2010::poleOceanTide(
 	MatrixXd&		Cnm, 
 	MatrixXd&		Snm)
 {
-	double t = (double) (mjd.val - 55197) / 365.25;
-
 	double xpv;
 	double ypv;
-	if ((GTime) mjd < time2010)
-	{
-		xpv = 55.974  + 1.8243 * t + 0.18413 * t * t + 0.007024 * t * t * t;
-		ypv = 346.346 + 1.7896 * t - 0.10729 * t * t - 0.000908 * t * t * t;
-	}
-	else
-	{
-		xpv = 23.513  + 7.6141 * t ;
-		ypv = 358.891 - 0.6287 * t ;
-	}
+	meanPole(mjd, xpv, ypv);
+
 	double m1 = +(xp / AS2R - xpv / 1000);
 	double m2 = -(yp / AS2R - ypv / 1000);
 	Cnm(2, 1) += -2.1778e-10 * (m1 - 0.01724 * m2);
 	Snm(2, 1) += -1.7232e-10 * (m2 - 0.03365 * m1);
+}
+
+
+void IERS2010::meanPole(
+	const MjDateTT&	mjd, 
+	double&			xpv, 
+	double&			ypv) 
+{
+	double t = mjd.to_j2000() / 365.25;
+	xpv = 55.0	+ 1.677 * t;
+	ypv = 320.5	+ 3.460 * t;
 }
 
 
@@ -500,4 +473,75 @@ Vector3d IERS2010::relativity(
 	Vector3d acc3 = (1 + 2 * gamma) * (velEarth.cross((-1 * GMs * posEarth) / (SQR(CLIGHT) * pow(rsun, 3)))).cross(velSat);
 
 	return acc1 + acc2 + acc3;
+}
+
+
+void HfOceanEop::read(
+	const string& filename) 
+{
+	std::ifstream file(filename);
+	
+	if (!file)
+	{
+		BOOST_LOG_TRIVIAL(error)
+		<< "HF Ocean eop file open error " << filename << std::endl;
+		
+		return;
+	}
+	
+	string line;
+
+	while (std::getline(file, line))
+	{
+		if (line[0] == '#')
+		{
+			continue;
+		}
+		
+		std::istringstream iss(line);
+		HfOceanEOPData data;
+		iss >> data.name;
+		for (int i = 0; i < 6; i++) 
+		{
+			iss >> data.mFundamentalArgs[i];
+		}
+		
+		iss >> data.doodson;
+		iss >> data.period;
+		iss >> data.xSin;
+		iss >> data.xCos;
+		iss >> data.ySin;
+		iss >> data.yCos;
+		iss >> data.ut1Sin;
+		iss >> data.ut1Cos;
+		iss >> data.lodSin;
+		iss >> data.lodCos;
+		
+		HfOcean_vector.push_back(data);
+	}
+	
+	initialized = true;
+}
+
+void HfOceanEop::compute(
+	Array6d&	fundamentalArgs,
+	double&		x, 
+	double&		y,
+	double&		ut1,
+	double&		lod)
+{
+	x	= 0;
+	y	= 0;
+	ut1	= 0;
+	lod	= 0;
+	
+	for (auto& hfdata : HfOcean_vector)
+	{
+		double theta = (fundamentalArgs * hfdata.mFundamentalArgs).sum();
+		
+		x		+= hfdata.xCos		* cos(theta) + hfdata.xSin		* sin(theta);
+		y		+= hfdata.yCos		* cos(theta) + hfdata.ySin		* sin(theta);
+		ut1		+= hfdata.ut1Cos	* cos(theta) + hfdata.ut1Sin	* sin(theta);
+		lod		+= hfdata.lodCos	* cos(theta) + hfdata.lodSin	* sin(theta);
+	}
 }

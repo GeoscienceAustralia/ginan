@@ -3,10 +3,10 @@
 
 The `pea` is in essence a configurable, robust, application-specific Kalman filter.
 
-* Kalman filters are known for being the optimal method for estimating parameters - in linear systems, and provided an accurate system model is avaiable.
+* Kalman filters are known for being the optimal method for estimating parameters - in linear systems, and provided an accurate system model is available.
 * The `pea` contains accurate system models and linearisation routines for satellite positioning.
 * It performs statistical monitoring and error checking, to ensure the robustness of results that is required for operational use, and
-* It has has an intuitive configuration, using heirarchical config files that allow you to tell the software precisely what and how to process gnss data.
+* It has an intuitive configuration, using hierarchical config files that allow you to tell the software precisely what and how to process GNSS data.
 
 The flow through the software is largely sequential, ensuring simplicity of understanding for developers and users alike. The major components of this flow are outlined below:
 
@@ -35,6 +35,7 @@ Observation data is synchronised by timestamp - when the main function requests 
 #### SSR Data Input
 
 State Space Representation (SSR) messages contain the values of different GNSS error components, such as satellite clocks & orbits, hardware biases and ionosphere delays. These SSR components can be applied to GNSS observations to correct their error components. Streams containing SSR messages are available via NTRIP casters, which enable performing PPP in real-time.
+Note that Ginan will allow the mixing of SSR streams, but users should not use SSR messages from inconsistent sources (e.g. orbits and clocks should be obtained from the same analysis centre).
 
 The software can decode SSR messages for the following constellations:
 * GPS
@@ -67,7 +68,7 @@ The preprocessor is run on input data to detect the anomalies and other metrics 
 
 ## Precise Point Positioning
 
-The largest component of the software, the PPP module ingests all of the data available, and applies scientific models to estimate and predict current and future parameters of interest.
+The largest component of the software, the PPP module ingests all data available, and applies scientific models to estimate and predict current and future parameters of interest.
 
 Version 1 of the GINAN toolkit satisfies many of the requirements for GNSS modelling, but has been achieved by incrementally adding features as they became available and as scientific models have been developed. Many of the components make assumptions about the outputs of previous computations performed in the software, and require care before adding or making changes to the code, or even setting configuration options.
 
@@ -210,7 +211,6 @@ In addition to trace files, the `pea` is capable of outputting most of the file-
 * YAML files
 * GPX files - an XML format for interchange of GPS data (waypoints, routes, and tracks) used by Google Earth among other software. (https://www.topografix.com/GPX/1/1/)
 * JSON files
-* Ginan PPP_OUT files
 
 ### Station Trace files
 
@@ -247,8 +247,8 @@ Measurement for  CODE_MEAS       G31    NNOR       20 L2W
  NET_RESIDUAL                 -0.0000 ->       -1.5754
  ...
  ```
- 
-In this example the pre-fit residual is calculated for L2W code measurement of satellite G31 in station NNOR. 
+
+In this example the pre-fit residual is calculated for L2W code measurement of satellite G31 in station NNOR.
 The modelled/estimated value of various effects (geometric range, clock offsets, antenna characteristics, tide and relativistic effects, atmospheric delays, etc) are presented.
 This allows to look for anomalous values on modelled/estimated parameters applied to the GNSS observation model.
 
@@ -258,8 +258,8 @@ The network trace files contain outputs relevant to the whole network. For examp
 ```
 ...
 *    2019-07-18 00:05:30              PHASE_BIAS            G31  20        -0.2396864         88.58950070                   L2W
-*    2019-07-18 00:05:30               SAT_CLOCK            G32   0       303.8257442         33.42697170                   
-*    2019-07-18 00:05:30          SAT_CLOCK_RATE            G32   0         0.0045856          0.00333322                   
+*    2019-07-18 00:05:30               SAT_CLOCK            G32   0       303.8257442         33.42697170
+*    2019-07-18 00:05:30          SAT_CLOCK_RATE            G32   0         0.0045856          0.00333322
 *    2019-07-18 00:05:30               CODE_BIAS            G32   1         0.0307764          0.01959992                   L1C
 *    2019-07-18 00:05:30               CODE_BIAS            G32   3        -3.216e-17          1.0000e-16                   L1W
 *    2019-07-18 00:05:30               CODE_BIAS            G32  20         3.101e-17          1.0000e-16                   L2W
@@ -268,13 +268,13 @@ The network trace files contain outputs relevant to the whole network. For examp
 *    2019-07-18 00:05:30              PHASE_BIAS            G32   3         0.3273932         94.38893807                   L1W
 *    2019-07-18 00:05:30              PHASE_BIAS            G32  20         0.9557970         90.18794887                   L2W
 *    2019-07-18 00:05:30              PHASE_BIAS            G32  25        -0.0154065         93.53419260                   L5Q
-*    2019-07-18 00:05:30                 REC_POS     AREG         0   1942816.6390803          0.11138497                   
-*    2019-07-18 00:05:30                 REC_POS     AREG         1  -5804077.1997447          0.31250347                   
-*    2019-07-18 00:05:30                 REC_POS     AREG         2  -1796884.3863768          0.07612933                   
-*    2019-07-18 00:05:30               REC_CLOCK     AREG         0     -8133.8558767       3000.65388827                   
-*    2019-07-18 00:05:30                    TROP     AREG         0         1.8534086          0.01375931                   
-*    2019-07-18 00:05:30               TROP_GRAD     AREG         0        -0.0062538          0.00027328                   
-*    2019-07-18 00:05:30               TROP_GRAD     AREG         1        -0.0022097          0.00072508                   
+*    2019-07-18 00:05:30                 REC_POS     AREG         0   1942816.6390803          0.11138497
+*    2019-07-18 00:05:30                 REC_POS     AREG         1  -5804077.1997447          0.31250347
+*    2019-07-18 00:05:30                 REC_POS     AREG         2  -1796884.3863768          0.07612933
+*    2019-07-18 00:05:30               REC_CLOCK     AREG         0     -8133.8558767       3000.65388827
+*    2019-07-18 00:05:30                    TROP     AREG         0         1.8534086          0.01375931
+*    2019-07-18 00:05:30               TROP_GRAD     AREG         0        -0.0062538          0.00027328
+*    2019-07-18 00:05:30               TROP_GRAD     AREG         1        -0.0022097          0.00072508
 *    2019-07-18 00:05:30               CODE_BIAS     AREG   G--   1         0.0077985          0.01470148                   L1C
 *    2019-07-18 00:05:30               CODE_BIAS     AREG   G--   3        -3.533e-10          3.0034e-07                   L1W
 *    2019-07-18 00:05:30               CODE_BIAS     AREG   G--  20        -5.338e-10          3.0075e-07                   L2W
@@ -283,36 +283,15 @@ The network trace files contain outputs relevant to the whole network. For examp
 *    2019-07-18 00:05:30              PHASE_BIAS     AREG   G--   3         0.4936798         93.49109304                   L1W
 *    2019-07-18 00:05:30              PHASE_BIAS     AREG   G--  20         0.7138144         93.49006419                   L2W
 *    2019-07-18 00:05:30              PHASE_BIAS     AREG   G--  25         0.6556864         97.10528922                   L5Q
-*    2019-07-18 00:05:30               IONO_STEC     AREG   G02   0       -36.2661645        121.59989594                   
+*    2019-07-18 00:05:30               IONO_STEC     AREG   G02   0       -36.2661645        121.59989594
 *    2019-07-18 00:05:30               AMBIGUITY     AREG   G02   1        -9.2027480       4988.17927778                   L1C
 *    2019-07-18 00:05:30               AMBIGUITY     AREG   G02   3        -6.5010596       5121.40868346                   L1W
 *    2019-07-18 00:05:30               AMBIGUITY     AREG   G02  20       -11.3644227       3043.48150056                   L2W
-*    2019-07-18 00:05:30               IONO_STEC     AREG   G12   0       -21.3198438        121.60048193                   
+*    2019-07-18 00:05:30               IONO_STEC     AREG   G12   0       -21.3198438        121.60048193
 *    2019-07-18 00:05:30               AMBIGUITY     AREG   G12   1        19.4419675       4988.28296914                   L1C
 *    2019-07-18 00:05:30               AMBIGUITY     AREG   G12   3        22.5097301       5121.65630355                   L1W
-... 
+...
 ```
 
 The example above contains (from left to right) the epoch (GPS time), the state name, the station and satellite/constellation if relevant, an index number, the value of the estimated state and its variance.
-On the top of the section are the estimates for satellite clock offset, code bias and phase bias for GPS satellites. At the bottom the estimated station parameters: positions, clock offsets, troposphere, hardware biases, ionosphere delays and carrier phase ambiguities for the AREG station. 
-
-### Ginan PPP_OUT files
-
-The `ppp_out` outputs Ginans proprietary position output format.
-The format of Ginans position output is as follows:
-```
-...
--FILE/RAW_CONFIG ex201.yaml
-2019-07-18 00:00:00.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052052.6747  4212837.0628 -2545104.0993  -0.0423 -1.0818 -0.5087   0.7804 -0.7672 -0.4830  
-2019-07-18 00:00:30.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052052.5220  4212836.6464 -2545104.0855  -0.1950 -0.6655 -0.5225   0.6018 -0.6168 -0.1057  
-2019-07-18 00:01:00.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052052.4875  4212836.3258 -2545104.0685  -0.2294 -0.3449 -0.5395   0.4045 -0.5301  0.1346  
-2019-07-18 00:01:30.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052052.7767  4212836.2938 -2545104.3220   0.0598 -0.3128 -0.2860   0.1738 -0.3691 -0.1296  
-2019-07-18 00:02:00.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052053.1333  4212836.3964 -2545104.5919   0.4164 -0.4155 -0.0160  -0.0121 -0.2508 -0.5322  
-2019-07-18 00:02:30.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052053.3348  4212836.4331 -2545104.6877   0.6179 -0.4522  0.0798  -0.1318 -0.2298 -0.7228  
-2019-07-18 00:03:00.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052053.3753  4212836.4132 -2545104.7395   0.6583 -0.4323  0.1316  -0.1748 -0.1878 -0.7562  
-2019-07-18 00:03:30.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052053.1616  4212836.3498 -2545104.7107   0.4446 -0.3689  0.1027  -0.0647 -0.1364 -0.5670  
-2019-07-18 00:04:00.00 ALIC -4052052.7169  4212835.9809 -2545104.6080  -4052053.2056  4212836.4648 -2545104.7807   0.4886 -0.4839  0.1727  -0.0167 -0.1178 -0.6990  
-...
-```
-
-Each line on the bulk of the file contains, from left to right, the epoch time (in GPS time), the station/receiver name, the apriori position in ECEF, the estimated position in ECEF, the difference between apriori and estimated possition in ECEF and the difference in ENU.
+On the top of the section are the estimates for satellite clock offset, code bias and phase bias for GPS satellites. At the bottom the estimated station parameters: positions, clock offsets, troposphere, hardware biases, ionosphere delays and carrier phase ambiguities for the AREG station.

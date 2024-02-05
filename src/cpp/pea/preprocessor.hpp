@@ -2,11 +2,12 @@
 #pragma once
 
 struct Network;
-struct Station;
+struct Receiver;
 
 void preprocessor(
 	Network&	net,
-	Station&	rec);
+	Receiver&	rec,
+	bool		realEpoch = false);
 
 void obsVariances(
 	ObsList& obsList);

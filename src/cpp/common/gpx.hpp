@@ -1,9 +1,7 @@
 
 #pragma once
 
-
-
 void writeGPX(
 	string		filename,
-	string		id,
-	KFState&	kfState);
+	KFState&	kfState,
+	string		id);

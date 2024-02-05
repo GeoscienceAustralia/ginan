@@ -3,13 +3,12 @@
 #include "gTime.hpp"
 
 struct KFState;
-struct Station;
+struct Receiver;
 
 using std::string;
 
 void outputCost(
 	string		filename,
-	Station&	rec,
-	GTime		time,
-	KFState&	kfState);
+	KFState&	kfState,
+	Receiver&	rec);
 

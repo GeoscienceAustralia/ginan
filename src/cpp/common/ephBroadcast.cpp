@@ -9,8 +9,6 @@
 
 #define STD_BRDCCLK		30.0				///< error of broadcast clock (m)
 
-#define NMAX			10
-
 #define J2_GLO			1.0826257E-3		///< 2nd zonal harmonic of geopot   ref [2]
 
 #define SIN_5			-0.0871557427476582	///< sin(-5.0 deg)
@@ -35,7 +33,7 @@ double var_uraeph(
 	{
 		2.4, 3.4, 4.85, 6.85, 9.65, 13.65, 24.0, 48.0, 96.0, 192.0, 384.0, 768.0, 1536.0, 3072.0, 6144.0
 	};
-	
+
 	return ura < 0 || 15 <= ura ? SQR(6144.0) : SQR(ura_value[ura]);
 }
 
@@ -43,11 +41,11 @@ double var_uraeph(
 */
 template<typename EPHTYPE>
 EPHTYPE* selSysEphFromMap(
-	Trace&																		trace,
-	GTime																		time, 
-	E_Sys																		sys, 
-	E_NavMsgType																type,
-	map<E_Sys, map<E_NavMsgType,	map<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
+	Trace&																			trace,
+	GTime																			time,
+	E_Sys																			sys,
+	E_NavMsgType																	type,
+	map<E_Sys, map<E_NavMsgType,	GMap<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
 {
 //	trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
 
@@ -63,9 +61,9 @@ EPHTYPE* selSysEphFromMap(
 		}
 		return nullptr;
 	}
-	
+
 	auto& [ephTime, eph] = *it;
-	
+
 	return &eph;
 }
 
@@ -74,11 +72,11 @@ EPHTYPE* selSysEphFromMap(
 template<typename EPHTYPE>
 EPHTYPE* selSatEphFromMap(
 	Trace&																		trace,
-	GTime																		time, 
-	SatSys																		Sat, 
+	GTime																		time,
+	SatSys																		Sat,
 	E_NavMsgType																type,
-	int&																		iode, 
-	map<SatSys, map<E_NavMsgType,	map<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
+	int&																		iode,
+	map<SatSys, map<E_NavMsgType,	GMap<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
 {
 //	trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
 
@@ -104,15 +102,15 @@ EPHTYPE* selSatEphFromMap(
 			{
 				continue;
 			}
-			
+
 			return &eph;
 		}
-	
+
 		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s with iode=%3d", time.to_string(0).c_str(), Sat.id().c_str(), iode);
-		
+
 		return nullptr;
 	}
-	
+
 	auto it = satEphMap.lower_bound(time + tmax);
 	if (it == satEphMap.end())
 	{
@@ -121,21 +119,21 @@ EPHTYPE* selSatEphFromMap(
 		{
 			tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string(0).c_str());
 		}
-		
+
 		return nullptr;
 	}
-	
+
 	auto& [ephTime, eph] = *it;
-	
+
 	if (fabs((eph.toe - time).to_double()) > tmax)
 	{
 		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE-", time.to_string(0).c_str(), Sat.id().c_str());
-	
+
 		return nullptr;
 	}
-	
+
 	iode = eph.iode;
-	
+
 	return &eph;
 }
 
@@ -148,13 +146,11 @@ template<>	EOP*	seleph<EOP>	(Trace& trace, GTime time, E_Sys sys,	E_NavMsgType t
 
 
 
-
-
-/** glonass orbit differential equations 
+/** glonass orbit differential equations
  */
 void deq(
-	const	double* x, 
-			double* xdot, 
+	const	double* x,
+			double* xdot,
 	Vector3d& acc)
 {
 	double r2	= dot(x, x, 3);
@@ -169,7 +165,7 @@ void deq(
 		xdot[3] = 0;
 		xdot[4] = 0;
 		xdot[5] = 0;
-		
+
 		return;
 	}
 
@@ -177,11 +173,11 @@ void deq(
 	double a = 1.5 * J2_GLO * MU_GLO * SQR(RE_GLO) / r2 / r3;	/* 3/2*J2*mu*Ae^2/r^5 */
 	double b = 5.0 * SQR(x[2]) / r2;							/* 5*z^2/r^2 */
 	double c = -MU_GLO / r3 - a * (1 - b);						/* -mu/r^3-a(1-b) */
-	
+
 	xdot[0] = x[3];
 	xdot[1] = x[4];
 	xdot[2] = x[5];
-	
+
 	xdot[3] = (c + omg2) * x[0] + 2 * OMGE_GLO * x[4] + acc[0];
 	xdot[4] = (c + omg2) * x[1] - 2 * OMGE_GLO * x[3] + acc[1];
 	xdot[5] = (c - 2 * a) * x[2] + acc[2];
@@ -189,8 +185,8 @@ void deq(
 
 /* glonass position and velocity by numerical integration --------------------*/
 void glorbit(
-	double t, 
-	double* x, 
+	double t,
+	double* x,
 	Vector3d& acc)
 {
 	double k1[6];
@@ -216,7 +212,7 @@ void glorbit(
 
 
 
-/** broadcast ephemeris to satellite clock bias 
+/** broadcast ephemeris to satellite clock bias
 * compute satellite clock bias with broadcast ephemeris (gps, galileo, qzss)
 * satellite clock does not include relativity correction and tdg
 */
@@ -224,12 +220,12 @@ double eph2Clk(GTime time, Eph& eph,	int recurse = 0)
 {
 	double t = (time - eph.toe).to_double();					t -= recurse ? eph2Clk(time - t, eph,	recurse - 1) : 0;
 
-	return 	+ eph.f0 
-			+ eph.f1		* t		
+	return 	+ eph.f0
+			+ eph.f1		* t
 			+ eph.f2		* t * t;
 }
 
-/** glonass ephemeris to satellite clock bias 
+/** glonass ephemeris to satellite clock bias
  * satellite clock includes relativity correction
  */
 double eph2Clk(GTime time, Geph& geph,	int recurse = 0)
@@ -240,7 +236,7 @@ double eph2Clk(GTime time, Geph& geph,	int recurse = 0)
 			+ geph.gammaN	* t;
 }
 
-/** sbas ephemeris to satellite clock bias 
+/** sbas ephemeris to satellite clock bias
 */
 double eph2Clk(GTime time, Seph& seph,	int recurse = 0)
 {
@@ -254,7 +250,7 @@ double eph2Clk(GTime time, Seph& seph,	int recurse = 0)
 
 
 
-/** broadcast ephemeris to satellite position and clock bias 
+/** broadcast ephemeris to satellite position and clock bias
 * compute satellite position and clock bias with broadcast ephemeris (gps, galileo, qzss)
 * satellite clock includes relativity correction without code bias (tgd or bgd)
 */
@@ -269,10 +265,10 @@ void eph2Pos(
 	if (eph.A <= 0)
 	{
 		rSat 	= Vector3d::Zero();
-		
+
 		if (var_ptr)
 			*var_ptr = 0;
-			
+
 		return;
 	}
 
@@ -315,7 +311,7 @@ void eph2Pos(
 	double r	= eph.A * (1 - eph.e * cosE);
 	double i	= eph.i0
 				+ eph.idot * tk;
-				
+
 	double sin2u = sin(2 * u);
 	double cos2u = cos(2 * u);
 
@@ -335,17 +331,17 @@ void eph2Pos(
 		double O	= eph.OMG0
 					+ eph.OMGd * tk
 					- omge * eph.toes;
-					
+
 		double sinO = sin(O);
 		double cosO = cos(O);
-		
+
 		double xg = x * cosO - y * cosi * sinO;
 		double yg = x * sinO + y * cosi * cosO;
 		double zg = y * sin(i);
-		
+
 		double sino = sin(omge * tk);
 		double coso = cos(omge * tk);
-		
+
 		rSat[0] = +xg * coso	+ yg * sino * COS_5	+ zg * sino * SIN_5;
 		rSat[1] = -xg * sino	+ yg * coso * COS_5	+ zg * coso * SIN_5;
 		rSat[2] = -yg * SIN_5						+ zg * COS_5;
@@ -355,10 +351,10 @@ void eph2Pos(
 		double O	=  eph.OMG0
 					+ (eph.OMGd - omge) * tk
 					- omge * eph.toes;
-						
+
 		double sinO = sin(O);
 		double cosO = cos(O);
-		
+
 		rSat[0] = x * cosO - y * cosi * sinO;
 		rSat[1] = x * sinO + y * cosi * cosO;
 		rSat[2] = y * sin(i);
@@ -453,7 +449,7 @@ bool satClkBroadcast(
 	double		tt = 1E-3;
 
 	ephVar = SQR(STD_BRDCCLK);
-	
+
 //	trace(4, "%s: time=%s sat=%2d iode=%d\n",__FUNCTION__,time.to_string(3).c_str(),obs.Sat,iode);
 
 	int sys = Sat.sys;
@@ -461,7 +457,7 @@ bool satClkBroadcast(
 	ephClkValid = false;
 
 	auto type = acsConfig.used_nav_types[Sat.sys];
-	
+
 	auto eph_ptr = seleph<TYPE>(trace, teph, Sat, type, iode, nav);
 
 	if (eph_ptr == nullptr)
@@ -469,19 +465,19 @@ bool satClkBroadcast(
 		tracepdeex(2,trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string(2));
 		return false;
 	}
-	
+
 	auto& eph = *eph_ptr;
 
 	satClk	= eph2Clk(time, 		eph);
 	satClk1	= eph2Clk(time + tt,	eph);
-	
+
 	if (eph.svh == E_Svh::SVH_OK)
 	{
 		ephClkValid = true;
 	}
-	
+
 	iode	= eph.iode;
-	
+
 	/* satellite velocity and clock drift by differential approx */
 	satClkVel = (satClk1 - satClk) / tt;
 
@@ -513,7 +509,7 @@ bool satPosBroadcast(
 	int sys = Sat.sys;
 
 	auto type = acsConfig.used_nav_types[Sat.sys];
-	
+
 	auto eph_ptr = seleph<TYPE>(trace, teph, Sat, type, iode, nav);
 
 	if (eph_ptr == nullptr)
@@ -521,17 +517,17 @@ bool satPosBroadcast(
 		tracepdeex(2,trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string(2));
 		return false;
 	}
-	
+
 	auto& eph = *eph_ptr;
 
 	eph2Pos(time, 		eph, 	rSat, 		&ephVar);
 	eph2Pos(time + tt,	eph, 	rSat_1);
-	
+
 	if (eph.svh == E_Svh::SVH_OK)
 	{
 		ephPosValid = true;
 	}
-	
+
 	iode	= eph.iode;
 
 	/* satellite velocity and clock drift by differential approx */
@@ -557,7 +553,7 @@ bool satClkBroadcast(
 	int sys = Sat.sys;
 
 	ephClkValid = false;
-	
+
 	if		(  sys == +E_Sys::GPS
 			|| sys == +E_Sys::GAL
 			|| sys == +E_Sys::QZS
@@ -605,15 +601,15 @@ bool satClkBroadcast(
 	int				iode)
 {
 	satPos.iodeClk = iode;
-	
+
 	return satClkBroadcast(
 		trace,
-		time, 
+		time,
 		teph,
-		satPos.Sat, 
+		satPos.Sat,
 		satPos.satClk,
 		satPos.satClkVel,
-		satPos.satClkVar, 
+		satPos.satClkVar,
 		satPos.ephClkValid,
 		satPos.iodeClk,
 		nav);
@@ -628,15 +624,15 @@ bool satPosBroadcast(
 	int				iode)
 {
 	satPos.iodePos = iode;
-	
+
 	return satPosBroadcast(
 		trace,
-		time, 
+		time,
 		teph,
-		satPos.Sat, 
-		satPos.rSat, 
+		satPos.Sat,
+		satPos.rSatApc,
 		satPos.satVel,
-		satPos.posVar, 
+		satPos.posVar,
 		satPos.ephPosValid,
 		satPos.iodePos,
 		nav);

@@ -19,14 +19,14 @@ struct Peph;
 int readdcb(string file);
 
 void readSp3ToNav(
-	string&		file, 
-	Navigation*	nav, 
+	string&		file,
+	Navigation&	nav,
 	int			opt);
 
 bool readsp3(
-	std::istream&	fileStream, 
-	vector<Peph>&	pephList,	
-	int				opt,		
+	std::istream&	fileStream,
+	vector<Peph>&	pephList,
+	int				opt,
 	E_TimeSys&		tsys,
 	double*			bfact);
 
@@ -37,7 +37,7 @@ double	interpolate(const double *x, double *y, int n);
  */
 template<typename TYPE>
 TYPE interpolate(
-	vector<double>&		x, 
+	vector<double>&		x,
 	vector<TYPE>&		y)
 {
 	for (int j = 1; j < x.size();		j++)
@@ -48,21 +48,6 @@ TYPE interpolate(
 
 	return y[0];
 }
-
-void	orb2sp3(Navigation& nav);
-
-
-bool pephPos(
-	Trace&		trace,
-	GTime		time,
-	SatPos&		satPos,
-	Navigation&	nav);
-
-bool pephClk(
-	Trace&		trace,
-	GTime		time,
-	SatPos&		satPos,
-	Navigation&	nav);
 
 bool pephclk(
 	Trace&		trace,

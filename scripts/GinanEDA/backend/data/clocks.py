@@ -61,14 +61,13 @@ class Clocks:
                 data["x"] = common_data1 - common_data2
                 data["x"] -= np.nanmean(data["x"])
                 datats = Measurements(
-                        epoch=common_time,
-                        data=data,
-                        identifier=comparison.id,
-                    )
+                    epoch=common_time,
+                    data=data,
+                    identifier=comparison.id,
+                )
                 if datats.mask_outliers():
                     datats.data["x"] -= np.nanmean(datats.data["x"])
                 result.append(datats)
-                
 
         common_time = np.unique(np.concatenate([_result.epoch for _result in result]))
         data = np.full((len(common_time), len(result.arr)), np.nan, dtype="float64")

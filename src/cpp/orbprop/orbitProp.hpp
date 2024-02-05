@@ -11,44 +11,48 @@ using std::vector;
 using std::map;
 
 #include "eigenIncluder.hpp"
-#include "staticField.hpp"
-#include "oceanTide.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
 #include "gTime.hpp"
 #include "trace.hpp"
 #include "enums.h"
-#include "erp.hpp"
 
 using namespace boost::numeric::odeint;
 
 struct EMP
 {
-	bool		srpScaled	= false;
-	int			deg			= 0;
-	int			axisId		= 0;
-	E_TrigType	type		= E_TrigType::CONSTANT;
-	double		value		= 0;
+	bool		scaleEclipse	= false;
+	int			deg				= 0;
+	E_EmpAxis	axisId			= E_EmpAxis::NONE;
+	E_TrigType	type			= E_TrigType::COS;
+	double		value			= 0;
 };
 
-struct OrbitState
+struct OrbitState : OrbitOptions
 {
 	SatSys	Sat;
 	string	str;
-	double	satMass		= 0;
-	double	satPower	= 0;
-	double	satArea		= 0;
-	
+
+	bool	exclude		= false;
+
 	KFState	subState;
-	
+
 	vector<EMP> empInput;
-	
-	map<E_Component, double>	componentsMap;
-	
-	int empnum	= 0;
+
+	mutable map<E_Component, double>	componentsMap;
+
+	int numEmp		= 0;
+	int numParam	= 0;
 	Vector3d	pos;
 	Vector3d	vel;
 	MatrixXd	posVelSTM;
+
+	AttStatus	attStatus;
+	Vector3d	gyroBias	= Vector3d::Zero();
+	Vector3d	acclBias	= Vector3d::Zero();
+	Vector3d	gyroScale	= Vector3d::Ones();
+	Vector3d	acclScale	= Vector3d::Ones();
+	double		posVar = 0;
 
 	OrbitState& operator+=(double rhs)
 	{
@@ -57,7 +61,7 @@ struct OrbitState
 		posVelSTM	= (posVelSTM.array() + rhs).matrix();
 		return *this;
 	}
-	
+
 	OrbitState& operator*=(double rhs)
 	{
 		pos			*= rhs;
@@ -65,14 +69,14 @@ struct OrbitState
 		posVelSTM	*= rhs;
 		return *this;
 	}
-	
+
 	OrbitState operator+(double rhs) const
 	{
 		OrbitState newState = *this;
 		newState += rhs;
 		return newState;
 	}
-	
+
 	OrbitState operator+(const OrbitState& rhs) const
 	{
 		OrbitState newState = *this;
@@ -81,7 +85,7 @@ struct OrbitState
 		newState.posVelSTM	+= rhs.posVelSTM;
 		return newState;
 	}
-	
+
 	OrbitState operator*(double rhs) const
 	{
 		OrbitState newState = *this;
@@ -90,11 +94,10 @@ struct OrbitState
 	}
 };
 
-
 typedef vector<OrbitState> Orbits;
 
 inline OrbitState operator*(
-	const	double		lhs, 
+	const	double		lhs,
 	const	OrbitState&	rhs)
 {
 	return rhs * lhs;
@@ -113,7 +116,7 @@ inline Orbits operator+(
 }
 
 inline Orbits operator*(
-	const Orbits&	lhs, 
+	const Orbits&	lhs,
 	const double	rhs)
 {
 	Orbits newState = lhs;
@@ -125,7 +128,7 @@ inline Orbits operator*(
 }
 
 inline Orbits operator*(
-	const double rhs, 
+	const double rhs,
 	const Orbits& lhs)
 {
 	Orbits newState = lhs;
@@ -140,34 +143,32 @@ inline Orbits operator*(
 struct OrbitIntegrator
 {
 	GTime						timeInit;
-	OrbitPropagation  			propagationOptions;
 
-	//Common parameter for all integrators.
-	Matrix3d eci2ecf;
-	Matrix3d deci2ecf;
-	
+	Matrix3d		eci2ecf;
+	Matrix3d		deci2ecf;
+
 	map<E_ThirdBody, Vector3dInit> planetsPosMap;
 	map<E_ThirdBody, Vector3dInit> planetsVelMap;
-	
+
 	MatrixXd Cnm;
 	MatrixXd Snm;
-
 	runge_kutta_fehlberg78<Orbits, double, Orbits, double, vector_space_algebra> odeIntegrator;
-	
+
 	void operator()(
-		const	Orbits&	orbInit, 
-				Orbits&	orbUpdate, 
+		const	Orbits&	orbInit,
+				Orbits&	orbUpdate,
 		const	double	mjdSec);
 
 	void computeCommon(
-		const	double	mjdinsec);
-	
+		const	GTime	time);
+
 	void computeAcceleration(
 		const	OrbitState&	orbInit,
 				Vector3d&	acc,
 				Matrix3d&	dAdPos,
 				Matrix3d&	dAdVel,
-				MatrixXd&	dAdParam);
+				MatrixXd&	dAdParam,
+		const	GTime		time);
 };
 
 KFState getOrbitFromState(
@@ -190,11 +191,18 @@ void integrateOrbits(
 	double				integrationPeriod,
 	double 				dt);
 
-void addKFSatEMPStates( 
-			KalmanModel&	model, 
+
+void addEmpStates(
+	const	EmpKalmans&		satOpts,
 	const	KFState&		kfState,
-			KF				kfType,
-			string			id);
+	const	string&			id);
+
+void addNilDesignStates(
+	const	KalmanModel&	model,
+	const	KFState&		kfState,
+	const	KF&				kfType,
+			int				num,
+	const	string&			id);
 
 void outputOrbitConfig(
 		KFState&	kfState,

@@ -1,6 +1,3 @@
-
-// #pragma GCC optimize ("O0")
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -19,7 +16,6 @@
 #include "enums.h"
 #include "slr.hpp"
 
-using std::string;
 using namespace boost::algorithm;
 
 constexpr int MIN_LINE_LEN = 64;

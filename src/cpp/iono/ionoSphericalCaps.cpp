@@ -10,17 +10,18 @@
 #define LEG_EPSILON1 (1.e-7) // Legendre function degree accuracy
 #define SQR(x)  ((x)*(x))
 
-struct Scp_Basis
+struct ScpBasis
 {
-	int hind;						/* layer number */
-	int order;						/* order of the legendre function */
-	double degree;					/* degree of the function */
-	bool parity;					/* longitude function: false=cosine, true=sine */
+	int		ind;						/* layer number */
+	int		order;						/* order of the legendre function */
+	double	degree;					/* degree of the function */
+	bool	parity;					/* longitude function: false=cosine, true=sine */
 };
 
-map<int, Scp_Basis>  Scp_Basis_list;
-double scap_rotmtx[9] = {};
-double scap_maxlat = PI / 2;
+map<int, ScpBasis>  scpBasisMap;
+
+double scapRotMat[9]	= {};
+double scapMaxLatDeg	= 90;
 
 /*-----------------------------------------------------
 P=leg(m,n,x) Returns the legendre function @ x
@@ -37,7 +38,7 @@ double legendre_function(int m, double n, double x)
 	double eps = 10 * LEG_EPSILON0;
 	int j = 1;
 
-	if (m == 0) 
+	if (m == 0)
 		A = 1;
 	else
 	{
@@ -62,15 +63,12 @@ double legendre_function(int m, double n, double x)
 	return (P);
 }
 
-/*-----------------------------------------------------
-dP=dleg(m,n,x) Returns the derivative of the legendre function @ x
+/*Returns the derivative of the legendre function @ x
+dP=dleg(m,n,x)
 m: order
 n: degree
 x: argument (rad)
-Truncation is set up by the resolution parameter eps0
----------------------------------------------------------------------
-Author: German Olivares @ GA 17 January 2019
----------------------------------------------------------------------*/
+Truncation is set up by the resolution parameter eps0*/
 double legendre_derivatv(int m, double n, double x)
 {
 	double A, Kmn, dP, P, Ptmp, dPtmp;
@@ -150,12 +148,12 @@ double bisection(int m, double* ntmp, double x, int nu)
 
 	for (step = 0, err = fabs(Pd); step < LEG_ITER_NUM; step++)
 	{
-		if (err < LEG_EPSILON0) 
+		if (err < LEG_EPSILON0)
 			break;
 
-		if ( Pa * Pd < 0 ) 
+		if ( Pa * Pd < 0 )
 			b = d;
-		else 
+		else
 			a = d;
 
 		d = (a + b) / 2;
@@ -179,36 +177,30 @@ double bisection(int m, double* ntmp, double x, int nu)
 	return (d);
 }
 
-/** transforms the Ionosphere
-Piercing Point and checks if it falls in area of coverage
+/** transforms the Ionosphere Piercing Point and checks if it falls in area of coverage
 time:  		I 		time of observations (not used)
-IPP: 			I 		Ionospheric piercing point to be updated
-returns 1 if the IPP is within the area of coverage
------------------------------------------------------
-Author: Ken Harima @ RMIT 01 August 2020
------------------------------------------------------*/
+IPP: 		I 		Ionospheric piercing point to be updated
+returns 1 if the IPP is within the area of coverage */
 bool ippCheckSphcap(
-	GTime		time, 
+	GTime		time,
 	VectorPos&	ionPP)
 {
-	VectorPos pos;
-	pos[0] = ionPP[0];
-	pos[1] = ionPP[1];
-	pos[2] = acsConfig.ionModelOpts.layer_heights[0];
-	
-	VectorEcef	rpp = pos2ecef(pos);
-	
+	VectorPos pos = ionPP;
+	pos.hgt() = acsConfig.ionModelOpts.layer_heights[0];
+
+	VectorEcef rpp = pos2ecef(pos);
+
 	VectorEcef rrot;
-	matmul("NN", 3, 1, 3, 1, scap_rotmtx, rpp.data(), 0, rrot.data());
-	
+	matmul("NN", 3, 1, 3, 1, scapRotMat, rpp.data(), 0, rrot.data());
+
 	pos = ecef2pos(rrot);
 
-	ionPP[0] = PI / 2 - pos.lat();			/* colatitude for spherical harmonic caps */
+	ionPP.lat() = PI / 2 - pos.lat();			/* colatitude for spherical harmonic caps */
 
-	if (ionPP[0] > scap_maxlat) 
+	if (ionPP.latDeg() > scapMaxLatDeg)
 		return false;
 
-	ionPP[1] = pos[1];
+	ionPP.lon() = pos.lon();
 
 	return true;
 }
@@ -223,25 +215,26 @@ bool ippCheckSphcap(
 	bool slant		I		false: output coefficient for Vtec, true: output coefficient for delay
 ----------------------------------------------------------------------------*/
 double ionCoefSphcap(
-	int			ind, 
+	Trace&		trace,
+	int			ind,
 	IonoObs&	obs,
 	bool		slant)
 {
-	if (ind >= Scp_Basis_list.size()) 
+	if (ind >= scpBasisMap.size())
 		return 0;
 
-	Scp_Basis& basis = Scp_Basis_list[ind];
+	auto& basis = scpBasisMap[ind];
 
-	double legr	= legendre_function(basis.order, basis.degree, obs.ippMap[basis.hind].lat);		// Legendre function
+	double legr	= legendre_function(basis.order, basis.degree, obs.ippMap[basis.ind].latDeg * D2R);		// Legendre function
 
 	double out;
 
-	if (basis.parity)	out = legr * sin(basis.order * obs.ippMap[basis.hind].lon);
-	else				out = legr * cos(basis.order * obs.ippMap[basis.hind].lon);
+	if (basis.parity)	out = legr * sin(basis.order * obs.ippMap[basis.ind].lonDeg * D2R);		//todo aaron use enum
+	else				out = legr * cos(basis.order * obs.ippMap[basis.ind].lonDeg * D2R);
 
 	if (slant)
 	{
-		out *= obs.ippMap[basis.hind].slantFactor * obs.stecToDelay;
+		out *= obs.ippMap[basis.ind].slantFactor * obs.stecToDelay;
 	}
 
 	return out;
@@ -255,11 +248,12 @@ double ionCoefSphcap(
 returns: VETC at piercing point
 ----------------------------------------------------------------------------*/
 double ionVtecSphcap(
-    GTime		time,
-    VectorPos&	ionPP,
-    int			layer,
-    double&		var,
-    KFState&	kfState)
+	Trace&		trace,
+	GTime		time,
+	VectorPos&	ionPP,
+	int			layer,
+	double&		var,
+	KFState&	kfState)
 {
 	if (ippCheckSphcap(time, ionPP) == false)
 	{
@@ -270,29 +264,29 @@ double ionVtecSphcap(
 	var = 0;
 	double iono = 0;
 	GObs tmpobs;
-	tmpobs.ippMap[layer].lat			= ionPP[0];
-	tmpobs.ippMap[layer].lon			= ionPP[1];
+	tmpobs.ippMap[layer].latDeg			= ionPP.latDeg();
+	tmpobs.ippMap[layer].lonDeg			= ionPP.lonDeg();
 	tmpobs.ippMap[layer].slantFactor	= 1;
 
 	for (int ind = 0; ind < acsConfig.ionModelOpts.numBasis; ind++)
 	{
-		Scp_Basis& basis = Scp_Basis_list[ind];
+		auto& basis = scpBasisMap[ind];
 
-		if (basis.hind != layer)
+		if (basis.ind != layer)
 			continue;
 
-		double coef = ionCoefSphcap(ind, tmpobs, false);
+		double coef = ionCoefSphcap(trace, ind, tmpobs, false);
 
-		KFKey keyC;
-		keyC.type	= KF::IONOSPHERIC;
-		keyC.num	= ind;
+		KFKey key;
+		key.type	= KF::IONOSPHERIC;
+		key.num	= ind;
 
-		double staval = 0;
-		double stastd = 0;
-		kfState.getKFValue(keyC, staval, &stastd);
+		double val		= 0;
+		double kfvar	= 0;
+		kfState.getKFValue(key, val, &kfvar);
 
-		iono	+= 		coef * staval;
-		var		+= SQR( coef * stastd);
+		iono	+= 		coef	* val;
+		var		+= SQR( coef)	* kfvar;
 	}
 
 	return iono;
@@ -308,37 +302,39 @@ double ionVtecSphcap(
 	-  acsConfig.ionoOpts.func_order:	  Legendre function order
 	-  acsConfig.ionoOpts.layer_heights: Ionosphere layer Heights
 ----------------------------------------------------------------------------*/
-int configIonModelSphcap()
+int configIonModelSphcap(
+	Trace& trace)
 {
-	double latc = acsConfig.ionexGrid.lat_center	* D2R;
-	double lonc = acsConfig.ionexGrid.lon_center	* D2R;
+	double latc = acsConfig.ionexGrid.lat_centre	* D2R;
+	double lonc = acsConfig.ionexGrid.lon_centre	* D2R;
 	double latw = acsConfig.ionexGrid.lat_width		* D2R / 2;
 	double lonw = acsConfig.ionexGrid.lon_width		* D2R / 2;
-	scap_rotmtx[0] =  sin(latc) * cos(lonc);
-	scap_rotmtx[1] =  sin(latc) * sin(lonc);
-	scap_rotmtx[2] = -cos(latc);
-	scap_rotmtx[3] = -sin(lonc);
-	scap_rotmtx[4] =  cos(lonc);
-	scap_rotmtx[5] =  0;
-	scap_rotmtx[6] =  cos(latc) * cos(lonc);
-	scap_rotmtx[7] =  cos(latc) * sin(lonc);
-	scap_rotmtx[8] =  sin(latc);
-	scap_maxlat = acos(cos(latc) * cos(latc + latw) * (cos(lonw) - 1) + cos(latw));
+	scapRotMat[0] =  sin(latc) * cos(lonc);
+	scapRotMat[1] =  sin(latc) * sin(lonc);
+	scapRotMat[2] = -cos(latc);
+	scapRotMat[3] = -sin(lonc);
+	scapRotMat[4] =  cos(lonc);
+	scapRotMat[5] =  0;
+	scapRotMat[6] =  cos(latc) * cos(lonc);
+	scapRotMat[7] =  cos(latc) * sin(lonc);
+	scapRotMat[8] =  sin(latc);
+	scapMaxLatDeg = acos(cos(latc) * cos(latc + latw) * (cos(lonw) - 1) + cos(latw));
 
-	if	(  scap_maxlat > 0.45 * PI 
-		&& scap_maxlat > 0.5 * PI) 
+	if	(  scapMaxLatDeg > 0.45	* 180
+		&& scapMaxLatDeg > 0.5	* 180)
 	{
-		scap_maxlat = PI / 2;
+		scapMaxLatDeg = 90;
 	}
-	
+
 	int Kmax = acsConfig.ionModelOpts.function_order;
 	int nlay = acsConfig.ionModelOpts.layer_heights.size();
 	int ind = 0;
-	Scp_Basis basis;
+
+	ScpBasis basis;
 
 	for (int lay = 0; lay < nlay; lay++)
 	{
-		basis.hind = lay;
+		basis.ind = lay;
 
 		for (int m = 0; m <= Kmax; m++)
 		{
@@ -350,17 +346,17 @@ int configIonModelSphcap()
 			{
 				double nk = 0;
 
-				if (scap_maxlat == PI / 2) 
+				if (scapMaxLatDeg == 90)
 					nk = k;
-				else if (k == 0) 
+				else if (k == 0)
 					nk = 0;
 				else if ((k - m) % 2)
 				{
 					while (1)
 					{
 						nodd[1] = nodd[0] + 0.5;
-						double p1 = legendre_function(m, nodd[0], scap_maxlat);
-						double p2 = legendre_function(m, nodd[1], scap_maxlat);
+						double p1 = legendre_function(m, nodd[0], scapMaxLatDeg);
+						double p2 = legendre_function(m, nodd[1], scapMaxLatDeg);
 
 						if (fabs(p1) < LEG_EPSILON0)
 						{
@@ -377,13 +373,13 @@ int configIonModelSphcap()
 
 						if ((p1 * p2) < 0)
 						{
-							nk = bisection(m, nodd, scap_maxlat, k);
+							nk = bisection(m, nodd, scapMaxLatDeg, k);
 
 							if (fabs(nk - m) < LEG_EPSILON1) nk = 1.0 * m;
 
 							nodd[0] = nk + 0.1;
 						}
-						else 
+						else
 							nodd[0] = nodd[1];
 					}
 				}
@@ -392,8 +388,8 @@ int configIonModelSphcap()
 					while (1)
 					{
 						neve[1] = neve[0] + 0.5;
-						double p1 = legendre_derivatv(m, neve[0], scap_maxlat);
-						double p2 = legendre_derivatv(m, neve[1], scap_maxlat);
+						double p1 = legendre_derivatv(m, neve[0], scapMaxLatDeg);
+						double p2 = legendre_derivatv(m, neve[1], scapMaxLatDeg);
 
 						if (fabs(p1) < LEG_EPSILON0)
 						{
@@ -410,7 +406,7 @@ int configIonModelSphcap()
 
 						if ((p1 * p2) < 0)
 						{
-							nk = bisection(m, neve, scap_maxlat, k);
+							nk = bisection(m, neve, scapMaxLatDeg, k);
 
 							if (fabs(nk - m) < LEG_EPSILON1) nk = 1.0 * m;
 
@@ -421,26 +417,31 @@ int configIonModelSphcap()
 				}
 
 				basis.degree = nk;
-				basis.parity = false;
-				Scp_Basis_list[ind++] = basis;
+
+				{
+					basis.parity		= false;
+					scpBasisMap[ind]	= basis;
+					ind++;
+				}
 
 				if (m > 0)
 				{
-					basis.parity = true;
-					Scp_Basis_list[ind++] = basis;
+					basis.parity		= true;
+					scpBasisMap[ind]	= basis;
+					ind++;
 				}
 			}
 		}
 	}
 
-	acsConfig.ionModelOpts.numBasis = ind;
+	acsConfig.ionModelOpts.numBasis = scpBasisMap.size();
 
-	for (int j = 0; j < acsConfig.ionModelOpts.numBasis; j++)
-	{
-		Scp_Basis& basis = Scp_Basis_list[j];
-// 		fprintf(fp_iondebug, "SCP_BASIS %3d %2d %2d %8.4f %1d ", j, basis.hind, basis.order, basis.degree, basis.parity);
-// 		fprintf(fp_iondebug, "\n");
-	}
+	tracepdeex(2,trace, "\nIONO_BASIS ind lay ord   deg    par");
+
+	for (auto& [j,basis] : scpBasisMap)
+		tracepdeex(2,trace, "\nIONO_BASIS %3d %3d %3d %8.4f %1d ", j, basis.ind, basis.order, basis.degree, basis.parity);
+
+	tracepdeex(2,trace, "\n");
 
 	return ind;
 }

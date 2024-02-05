@@ -46,16 +46,16 @@ bool readsp3(
 	//keep track of file number
 	static int index = 0;
 	index++;
-	
-	
+
+
 	int hashCount	= 0;
 	int cCount		= 0;
 	int fCount		= 0;
-	
+
 	bool epochFound = false;
 	string line;
 	while (fileStream)
-	{	
+	{
 		//return early when an epoch is complete
 		int peek = fileStream.peek();
 		if	(  peek == '*'
@@ -63,35 +63,35 @@ bool readsp3(
 		{
 			return true;
 		}
-		
+
 		getline(fileStream, line);
-		
+
 		char* buff = &line[0];
-		
+
 		if (buff[0] == '*')
 		{
 			//epoch line
 			epochFound = true;
-			
+
 			bool error = str2time(buff, 3, 28, time, tsys);
 			if (error)
 			{
 				printf("\nInvalid epoch line in sp3 file %s\n", line.c_str());
 				return false;
 			}
-			
+
 			continue;
 		}
-		
+
 		if (buff[0] == 'P')
 		{
 			//position line
 			bool pred_p = false;
 			bool pred_c = false;
-			
+
 			E_Sys sys = code2sys(buff[1]);
 			int prn = (int)str2num(buff, 2, 2);
-			
+
 			SatSys Sat(sys, prn);
 			if (!Sat)
 				continue;
@@ -107,7 +107,7 @@ bool readsp3(
 				pred_c = strlen(buff)>=76 && buff[75]=='P';
 				pred_p = strlen(buff)>=80 && buff[79]=='P';
 			}
-			
+
 			//positions/rates
 			for (int j = 0; j < 3; j++)
 			{
@@ -119,7 +119,7 @@ bool readsp3(
 				double std = str2num(buff,61	+ j * 3,	2);
 
 				if (buff[0]=='P')
-				{ 
+				{
 					/* position */
 					if	( val != 0)
 					{
@@ -129,7 +129,7 @@ bool readsp3(
 					{
 						valid = false;
 					}
-					
+
 					double base = bfact[0];
 					if	(  base	> 0
 						&& std	> 0)
@@ -144,7 +144,7 @@ bool readsp3(
 // 					{
 // 						peph.vel[j] = val * 0.1;
 // 					}
-// 					
+//
 // 					double base = bfact[j < 3 ? 0 : 1];
 // 					if	(  base	> 0
 // 						&& std	> 0)
@@ -153,7 +153,7 @@ bool readsp3(
 // 					}
 				}
 			}
-			
+
 			//clocks / rates
 			for (int j = 3; j < 4; j++)
 			{
@@ -167,7 +167,7 @@ bool readsp3(
 				double std = str2num(buff,61	+ j * 3,	3);
 
 				if (buff[0] == 'P')
-				{ 
+				{
 					/* clock */
 					if	( val != 0
 						&&checkValue != " 999999")
@@ -179,7 +179,7 @@ bool readsp3(
 						peph.clk = INVALID_CLOCK_VALUE;
 // 						valid = false;	//allow clocks to be invalid
 					}
-					
+
 					double base = bfact[1];
 					if	(  base	> 0
 						&& std	> 0)
@@ -195,7 +195,7 @@ bool readsp3(
 // 					{
 // 						peph.dCk = val * 1E-10;
 // 					}
-// 					
+//
 // 					double base = bfact[j < 3 ? 0 : 1];
 // 					if	(  base	> 0
 // 						&& std	> 0)
@@ -204,12 +204,12 @@ bool readsp3(
 // 					}
 				}
 			}
-			
+
 			if (valid)
 			{
 				pephList.push_back(peph);
 			}
-			
+
 			continue;
 		}
 		/*
@@ -227,36 +227,36 @@ bool readsp3(
 		if (buff[0] == '#')
 		{
 			hashCount++;
-			
-			if (hashCount == 1) 
+
+			if (hashCount == 1)
 			{
 				//first line is time and type
 // 				type = buff[2];
 				int error = str2time(buff, 3, 28, time);	// time system unknown at beginning but does not matter
-				if (error) 
+				if (error)
 					return false;
-				
+
 				continue;
 			}
 		}
-		
+
 		string twoChars = line.substr(0,2);
-		
+
 // 		if (twoChars == "+ ")
 // 		{
 //			plusCount++;
 // 			//number and list of satellites included in the file - information only, sat ids are included in epoch lines..
-// 			if (lineNum == 2) 
+// 			if (lineNum == 2)
 // 			{
 // 				ns = (int)str2num(buff,4,2);
 // 			}
-// 			for (int j = 0; j < 17 && k < ns; j++) 
+// 			for (int j = 0; j < 17 && k < ns; j++)
 // 			{
 // 				E_Sys sys=code2sys(buff[9+3*j]);
-// 				
+//
 // 				int prn = (int)str2num(buff,10+3*j,2);
-// 				
-// 				if (k < MAXSAT) 
+//
+// 				if (k < MAXSAT)
 // 					sats[k++] = SatSys(sys, prn);
 // 			}
 //			continue;
@@ -264,18 +264,18 @@ bool readsp3(
 
 // 		if (twoChars == "++")
 // 		{
-// 			pplusCount++;	
+// 			pplusCount++;
 // 			continue;
 // 		}
 
 		if (twoChars == "%c")
 		{
 			cCount++;
-			
+
 			if (cCount == 1)
 			{
 				string timeSysStr = line.substr(9, 3);
-				
+
 				if		(timeSysStr == "GPS")	tsys = E_TimeSys::GPST;
 				else if	(timeSysStr == "GLO")	tsys = E_TimeSys::GLONASST;
 				else if	(timeSysStr == "GAL")	tsys = E_TimeSys::GST;
@@ -300,11 +300,11 @@ bool readsp3(
 			}
 			continue;
 		}
-		
+
 		if (twoChars == "%f")
 		{
 			fCount++;
-			
+
 			if (fCount == 1)
 			{
 				bfact[0] = str2num(buff, 3,10);
@@ -312,22 +312,22 @@ bool readsp3(
 			}
 			continue;
 		}
-		
+
 		if (line.substr(0,3) == "EOF")
 		{
 			//all done
 			return true;
 		}
 	}
-	
+
 // 	printf("\nDidnt find eof in sp3 file\n");
 	return false;
 }
 
 
 void readSp3ToNav(
-	string&		file, 
-	Navigation*	nav, 
+	string&		file,
+	Navigation&	nav,
 	int			opt)
 {
 	std::ifstream fileStream(file);
@@ -335,9 +335,9 @@ void readSp3ToNav(
 	{
 		printf("\nSp3 file open error %s\n", file.c_str());
 	}
-	
+
 	vector<Peph>	pephList;
-	
+
 	E_TimeSys	tsys	= E_TimeSys::NONE;
 	double	bfact[2]	= {};
 	while (readsp3(fileStream, pephList, opt, tsys, bfact))
@@ -345,29 +345,8 @@ void readSp3ToNav(
 		//keep reading until it fails
 		for (auto& peph : pephList)
 		{
-			nav->pephMap[peph.Sat.id()][peph.time] = peph;
+			nav.pephMap[peph.Sat.id()][peph.time] = peph;
 		}
 		pephList.clear();
-	}
-}
-
-
-void orb2sp3(
-	Navigation& nav)
-{
-	for (auto& [Sat,	satNav]		: nav.satNavMap)
-	for (auto& [time,	orbitInfo]	: satNav.satOrbit.orbitInfoMap)
-	{
-		Peph peph = {};
-
-		peph.index			= 0;
-		peph.time			= time;
-		peph.Sat			= Sat;
-
-		/* copy itrf coordinates */
-		peph.pos	= orbitInfo.posEcef;
-		peph.posStd	= Vector3d::Ones() * 0.1;//default value for POD orbits precision
-
-		nav.pephMap[Sat.id()][time] = peph;
 	}
 }

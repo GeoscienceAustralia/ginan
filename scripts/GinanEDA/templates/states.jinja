@@ -74,7 +74,7 @@ States
   <div class="col-lg-1">
     <label for="state" class="form-label">State:</label>
     <br>
-      <select class="selectpicker form-control" name="state" id="state" data-hide-disabled="true"
+      <select multiple class="selectpicker form-control" name="state" id="state" data-hide-disabled="true"
         data-live-search="true" title="Select state">
 
         {% for key_ in session['list_state'] %}
@@ -86,6 +86,28 @@ States
         {% endfor %}
       </select>
   </div>
+    <div class="col-lg-1">
+      <label for="xaxis" class="form-label">X-Axis:</label>
+      <br>
+      <select  class="selectpicker form-control" name="xaxis" id="xaxis" data-hide-disabled="true"
+        data-live-search="true">
+        {% for key_ in session['list_generic'] %}
+        {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis']%}
+        <option value="{{key_}}" SELECTED>{{key_}}</option>"
+        {%else%}
+        <option value="{{key_}}">{{key_}}</option>"
+        {%endif%}
+        {% endfor %}
+        <option data-divider="true"></option> <!-- Virtual separator -->
+        {% for key_ in session['list_geometry'] %}
+        {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis']%}
+        <option value="{{key_}}" SELECTED>{{key_}}</option>"
+        {%else%}
+        <option value="{{key_}}">{{key_}}</option>"
+        {%endif%}
+        {% endfor %}
+      </select>
+    </div>
   <div class="col-lg-1">
     <label for="yaxis" class="form-label">Y-Axis:</label>
     <br>
@@ -135,7 +157,12 @@ States
   {% if selection is defined and  selection['exclude'] %}value="{{ selection['exclude'] }}"{% endif %}  
   >
   </div>
-
+  <div class="col-lg-2">
+    <label for="exclude">Exclude last (min):</label>
+  <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail"
+  {% if selection is defined and  selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}"{% endif %}
+  >
+  </div>
   <input type="submit" value="PLOT">
 </form>
 {% endblock %}

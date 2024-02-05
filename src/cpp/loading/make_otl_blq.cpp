@@ -33,20 +33,21 @@
 #include "input_otl.h"
 #include "load_functions.h"
 
-// #include "common.hpp"
 using namespace std;
 using namespace boost::timer;
 namespace po = boost::program_options;
 
 const int THREAD_COUNT = 8;
 
-void expand_path (std::string & path)
+void expand_path(
+	string& path)
 {
-	if (path[0] == '~')
+	char* home = std::getenv("HOME");
+	if	(path[0] == '~'
+		&&home)
 	{
-		std::string env_h = std::getenv("HOME");
 		path.erase(0, 1);
-		path.insert(0, env_h);
+		path.insert(0, home);
 	}
 }
 
@@ -60,6 +61,7 @@ void program_options(int argc, char * argv[], otl_input & input)
 			("help",			"This help message")
 			("quiet",			"Less output")
 			("verbose",			"More output")
+			("type",		po::value<std::string>(),	"loading type: (o) ocean loading, or (a) atmospheric loading")
 			("config",		po::value<std::string>(),	"Configuration file, This specifies the location of green function, and netcdf files for the ocean loading terms")
 			("location",	po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")
 			("xyz",			po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
@@ -80,8 +82,8 @@ void program_options(int argc, char * argv[], otl_input & input)
 	if (vm.count("help")) {
 		cout << "Usage: make_otl_blq [options]\n";
 		cout << desc << "\n\n";
-		cout << "Example: make_otl_blq --config otl.yaml --code 'ALIC 50137M0014' --location 133.8855 -23.6701 \n\n";
-		cout << "Example with input file: make_otl_blq --config otl.yaml --input station.csv\n";
+		cout << "Example: make_otl_blq --type o --config otl.yaml --code 'ALIC 50137M0014' --location 133.8855 -23.6701 \n\n";
+		cout << "Example with input file: make_otl_blq --type o --config otl.yaml --input station.csv\n";
 		cout << "                         Where station.csv contains station informations  \n";
 		cout << "                           format: station name, longitude, latitude\n\n";
 
@@ -89,6 +91,18 @@ void program_options(int argc, char * argv[], otl_input & input)
 	}
 
 	// Parser
+	if (vm.count("type"))
+	{
+		std::string type = vm["type"].as<std::string>();
+		if		(type == "o")	input.type = "Ocean";
+		else if	(type == "a")	input.type = "Atmospheric";
+		else					throw std::runtime_error("the argument for option '--type' is invalid - only 'o' (ocean loading) or 'a' (atmospheric loading) is accepted");
+	}
+	else
+	{
+		throw std::runtime_error("The required argument for option '--type' is missing");
+	}
+
 	std::string config_f;
 	std::string code_f;
 	std::vector<float> location;
@@ -100,7 +114,7 @@ void program_options(int argc, char * argv[], otl_input & input)
 	if (vm.count("location")) {
 		location = vm["location"].as<std::vector<float>>();
 		if (is_ecef)
-		{ 
+		{
 			/// \todo Need to have a check if there is 3 values in the vector.
 			input.xyz_coords.push_back(location);
 
@@ -249,6 +263,7 @@ int main(int argc, char * argv[]) {
 			tideinfo[i].set_name(input.tide_file[i]);
 			tideinfo[i].read();
 
+			input.wave_names.push_back(tideinfo[i].get_wave_name());
 		}
 
 

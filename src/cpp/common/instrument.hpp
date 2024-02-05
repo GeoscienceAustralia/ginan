@@ -10,20 +10,23 @@ using std::map;
 
 struct Instrument
 {
-	static map<string, size_t>		timeMap;
-	static map<string, size_t>		callMap;
+	static map<string, long int>	cpuMap;
+	static map<string, long int>	timeMap;
+	static map<string, long int>	callMap;
 	
 	bool print = false;
 
-	size_t	start;
-	string	description;
+	long int	start;
+	long int	start_cpu;
+	string		description;
 	
 	Instrument(
-		string	desc, 
-		bool	print = false);
+		const string&	desc, 
+		bool			print = false);
 
 	~Instrument();
 
-	static void printStatus();
+	static void printStatus(
+		bool			clear = false);
 };
 

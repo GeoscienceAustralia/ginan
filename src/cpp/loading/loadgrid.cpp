@@ -11,6 +11,7 @@
 #include <boost/math/interpolators/cardinal_cubic_b_spline.hpp>
 #include <boost/algorithm/string/classification.hpp> 
 #include <boost/algorithm/string/split.hpp> 
+#include <boost/algorithm/string.hpp>
 
 
 using namespace std;
@@ -52,6 +53,7 @@ void loadGrid::read(){
 		std::string test;
 		//test.resize(2);
 		attr.getValues(test);
+		boost::to_upper(test);
 		
 		std::vector<std::string> words;
 		boost::split(wave_names, test, boost::is_any_of(", "), boost::token_compress_on);
