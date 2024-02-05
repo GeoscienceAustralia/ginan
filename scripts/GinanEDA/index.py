@@ -5,6 +5,7 @@ from flask import Flask, g
 
 from eda.routes import register_routes
 
+
 def create_app():
     app = Flask(__name__, template_folder="templates/")
     app.secret_key = secrets.token_hex(16)
@@ -27,8 +28,8 @@ def create_app():
 
     return app
 
-app=create_app()
+
+app = create_app()
 
 if __name__ == "__main__":
     app.run()
-    

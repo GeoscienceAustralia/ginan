@@ -23,7 +23,6 @@ using std::map;
 #include <boost/iostreams/stream.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
 #include <boost/regex.hpp>
@@ -61,25 +60,25 @@ using std::make_unique;
 struct Stream
 {
 	string sourceString;
-	
+
 	virtual unique_ptr<std::istream> getIStream_ptr() = 0;
-	
+
 	/** Check to see if this stream has run out of data
 	*/
 	virtual bool isDead()
 	{
 		return false;
 	}
-	
+
 	virtual ~Stream() = default;
 };
 
 struct Parser
 {
 	virtual void parse(std::istream& inputStream) = 0;
-	
+
 	virtual string parserType() = 0;
-	
+
 	virtual ~Parser() = default;
 };
 
@@ -91,14 +90,14 @@ struct StreamParser
 private:
 	unique_ptr<Stream>	stream_ptr;
 	unique_ptr<Parser>	parser_ptr;
-	
+
 	//for debugging access only
 	SerialStream*		serialStream_ptr;
-	
+
 public:
 	Stream&	stream;
 	Parser&	parser;
-	
+
 	StreamParser(
 		unique_ptr<Stream> stream_ptr,
 		unique_ptr<Parser> parser_ptr)
@@ -114,20 +113,20 @@ public:
 	{
 		return stream;
 	}
-	
+
 	operator Parser&()
 	{
 		return parser;
 	}
-	
+
 	void parse()
 	{
 // 		BOOST_LOG_TRIVIAL(debug) << "parsing " << stream.sourceString << " as " << parser.parserType() << std::endl;
-		
+
 		auto iStream_ptr = stream.getIStream_ptr();
 		parser.parse(*iStream_ptr);
 	}
-	
+
 	virtual ~StreamParser() = default;
 };
 

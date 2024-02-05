@@ -61,8 +61,7 @@ $sudo_cmd dnf install --setopt=install_weak_deps=False -y \
     mongo-c-driver-devel \
     blas64.x86_64 \
     openblas-devel.x86_64 \
-    netcdf-cxx4-devel.x86_64 \
-    python3-pip
+    netcdf-cxx4-devel.x86_64
 
 echo "Creating build directory..."
 mkdir -p /tmp/build
@@ -82,14 +81,14 @@ rm -rf *
 echo "Installation of Mongodb"
 
 
-echo "[mongodb-org-6.0]" > /etc/yum.repos.d/mongodb-org-6.0.repo 
-echo "name=MongoDB Repository" >> /etc/yum.repos.d/mongodb-org-6.0.repo 
-echo "baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/6.0/x86_64/" >> /etc/yum.repos.d/mongodb-org-6.0.repo 
-echo "gpgcheck=1" >> /etc/yum.repos.d/mongodb-org-6.0.repo 
-echo "enabled=1" >> /etc/yum.repos.d/mongodb-org-6.0.repo 
-echo "gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc" >> /etc/yum.repos.d/mongodb-org-6.0.repo
-
-RUN dnf install -y mongodb-org
+echo "[mongodb-org-6.0]" | $sudo_cmd tee  /etc/yum.repos.d/mongodb-org-6.0.repo
+echo "name=MongoDB Repository" | $sudo_cmd tee  -a /etc/yum.repos.d/mongodb-org-6.0.repo
+echo "baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/6.0/x86_64/" | $sudo_cmd tee  -a /etc/yum.repos.d/mongodb-org-6.0.repo
+echo "gpgcheck=1" | $sudo_cmd tee  -a /etc/yum.repos.d/mongodb-org-6.0.repo
+echo "enabled=1" | $sudo_cmd tee  -a /etc/yum.repos.d/mongodb-org-6.0.repo
+echo "gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc" | $sudo_cmd tee -a  /etc/yum.repos.d/mongodb-org-6.0.repo
+$sudo_cmd dnf update -y
+$sudo_cmd dnf install -y mongodb-org
 
 echo "Cleaning up mongo-cxx-driver files..."
 cd /tmp

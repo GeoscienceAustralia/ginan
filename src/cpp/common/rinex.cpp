@@ -3,24 +3,21 @@
 
 #include <boost/log/trivial.hpp>
 
-
 #include <string>
 
 using std::string;
 
-
 #include "rinexNavWrite.hpp"
 #include "navigation.hpp"
-#include "biasSINEX.hpp"
 #include "constants.hpp"
-#include "station.hpp"
+#include "receiver.hpp"
 #include "common.hpp"
+#include "biases.hpp"
 #include "gTime.hpp"
 #include "rinex.hpp"
 #include "trace.hpp"
 #include "enum.h"
 
-#define MAXRNXLEN   (16*MAXOBSTYPE+4)   ///< max rinex record length
 #define MAXPOSHEAD  1024            	///< max head line position
 #define MINFREQ_GLO -7              	///< min frequency number glonass
 #define MAXFREQ_GLO 13              	///< max frequency number glonass
@@ -71,7 +68,7 @@ void decodeObsH(
 	E_TimeSys&						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	Navigation&						nav,
-	RinexStation*					rec)
+	RinexStation&					rnxRec)
 {
 	double del[3];
 	int prn;
@@ -79,61 +76,51 @@ void decodeObsH(
 	const char *p;
 	char* buff	= &line[0];
 	char* label	= buff + 60;
-	
+
 //	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": ver=" << ver;
 
 	if      (strstr(label, "MARKER NAME"         ))
 	{
-		if (rec)
+		if (rnxRec.id.empty())
 		{
-			rec->id				.assign(buff,		60);
+			rnxRec.id				.assign(buff,		4);
 		}
 	}
 	else if (strstr(label, "MARKER NUMBER"       ))
 	{
-		if (rec) 
-		{
-			rec->marker			.assign(buff,		20);
-		}
+		rnxRec.marker			.assign(buff,		20);
+
 	}
 //     else if (strstr(label,"MARKER TYPE"         )) ; // ver.3
 //     else if (strstr(label,"OBSERVER / AGENCY"   )) ;
 	else if (strstr(label, "REC # / TYPE / VERS" ))
 	{
-		if (rec)
-		{
-			rec->recSerial		.assign(buff,		20);
-			rec->recType		.assign(buff + 20,	20);
-			rec->recFWVersion	.assign(buff + 40,	20);
-		}
+		rnxRec.recSerial	.assign(buff,		20);
+		rnxRec.recType		.assign(buff + 20,	20);
+		rnxRec.recFWVersion	.assign(buff + 40,	20);
+
 	}
 	else if (strstr(label, "ANT # / TYPE"        ))
 	{
-		if (rec)
-		{
-			rec->antSerial		.assign(buff,		20);
-			rec->antDesc		.assign(buff + 20,	20);
-		}
+		rnxRec.antSerial	.assign(buff,		20);
+		rnxRec.antDesc		.assign(buff + 20,	20);
+
 	}
 	else if (strstr(label, "APPROX POSITION XYZ" ))
 	{
-		if (rec)
-		{
-			for (int i = 0, j = 0; i < 3; i++, j += 14)
-				rec->pos[i] = str2num(buff, j, 14);
-		}
+		for (int i = 0, j = 0; i < 3; i++, j += 14)
+			rnxRec.pos[i] = str2num(buff, j, 14);
+
 	}
 	else if (strstr(label, "ANTENNA: DELTA H/E/N"))
 	{
-		if (rec)
-		{
-			for (int i = 0, j = 0; i < 3; i++, j += 14)
-				del[i] = str2num(buff, j, 14);
+		for (int i = 0, j = 0; i < 3; i++, j += 14)
+			del[i] = str2num(buff, j, 14);
 
-			rec->del[2] = del[0]; // h
-			rec->del[0] = del[1]; // e
-			rec->del[1] = del[2]; // n
-		}
+		rnxRec.del[2] = del[0]; // h
+		rnxRec.del[0] = del[1]; // e
+		rnxRec.del[1] = del[2]; // n
+
 	}
 //     else if (strstr(label,"ANTENNA: DELTA X/Y/Z")) ; // opt ver.3
 //     else if (strstr(label,"ANTENNA: PHASECENTER")) ; // opt ver.3
@@ -227,11 +214,11 @@ void decodeObsH(
 	}
 //     else if (strstr(label,"WAVELENGTH FACT L1/2")) ; // opt ver.2
 	else if (strstr(label, "# / TYPES OF OBSERV" ))
-	{ 
+	{
 		// ver.2
 
 		int n = (int)str2num(buff, 0, 6);
-		
+
 		for (int i = 0, j = 10; i < n; i++, j += 6)
 		{
 			if (j > 58)
@@ -239,9 +226,9 @@ void decodeObsH(
 				//go onto new line
 				if (!std::getline(inputStream, line))
 					break;
-				
+
 				buff = (char*) line.c_str();
-				
+
 				j = 10;
 			}
 
@@ -252,28 +239,28 @@ void decodeObsH(
 
 				//save the type char before cleaning the string
 				char typeChar = obsCode2str[0];
-				
 
-				auto& recOpts = acsConfig.getRecOpts(rec->id);	//todo aaron, this rec isnt the proper one and id isnt initialised
-				
+
 				for (E_Sys sys : E_Sys::_values())
 				{
+					auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).id()});
+
 					map<E_ObsCode2, E_ObsCode>* conversionMap_ptr;
 					if	( typeChar != 'C'
 						&&typeChar != 'P')
 					{
 						obsCode2str[0] = 'L';
-						conversionMap_ptr = &recOpts.rinex23Conv.phasConv[sys];  // ie use Phase Conversions for phase, doppler etc.
+						conversionMap_ptr = &recOpts.rinex23Conv.phasConv;  // ie use Phase Conversions for phase, doppler etc.
 					}
 					else
 					{
-						conversionMap_ptr = &recOpts.rinex23Conv.codeConv[sys]; 
+						conversionMap_ptr = &recOpts.rinex23Conv.codeConv;
 					}
-					
+
 					auto& conversionMap = *conversionMap_ptr;
-					
+
 					CodeType codeType;
-					
+
 					try
 					{
 						E_ObsCode2	obsCode2	= E_ObsCode2::_from_string(obsCode2str);
@@ -285,7 +272,7 @@ void decodeObsH(
 					{
 						BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown code in rinex file: " << obsCode2str;
 					}
-					
+
 					sysCodeTypes[sys][i] = codeType;
 				}
 			}
@@ -545,7 +532,7 @@ int readRnxH(
 	E_TimeSys&						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	Navigation&						nav,
-	RinexStation*					rec)
+	RinexStation&					rnxRec)
 {
 	string	line;
 	int 	i		= 0;
@@ -611,7 +598,7 @@ int readRnxH(
 		else if (strstr(label, "PGM / RUN BY / DATE"))
 			continue;
 		else if (strstr(label, "COMMENT"))
-		{ 
+		{
 			// read cnes wl satellite fractional bias
 			if	( strstr(buff, "WIDELANE SATELLITE FRACTIONAL BIASES")
 				||strstr(buff, "WIDELANE SATELLITE FRACTIONNAL BIASES"))
@@ -621,37 +608,37 @@ int readRnxH(
 			if (strstr(buff, "->"))
 			{
 				//may be a conversion line, test
-				
+
 				char sysChar;
 				char r3[4] = {};
 				char r2[3] = {};
 				char comment[81];
 				int num = sscanf(buff, " %c %3c -> %2c %80s", &sysChar, r3, r2, comment);
-				
-				
+
+
 				if	( num == 4
 					&&(string)comment == "COMMENT")
 				{
 					try
 					{
 						E_Sys sys = SatSys::sysFromChar(sysChar);
-						
+
 						char code = r3[0];
 						r3[0] = 'L';
 						auto obs2 = E_ObsCode2	::_from_string_nocase(r2);
 						auto obs3 = E_ObsCode	::_from_string_nocase(r3);
-						
-						auto& recOpts = acsConfig.getRecOpts(rec->id);
 
-						auto& codeMap = recOpts.rinex23Conv.codeConv[sys];
-						auto& phasMap = recOpts.rinex23Conv.phasConv[sys];
-						
+						auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).id()});
+
+						auto& codeMap = recOpts.rinex23Conv.codeConv;
+						auto& phasMap = recOpts.rinex23Conv.phasConv;
+
 						if (r2[0] == 'C' || r2[0] == 'P')		codeMap[obs2] = obs3;
 						else									phasMap[obs2] = obs3;
 					}
 					catch (...)
 					{
-						
+
 					}
 				}
 			}
@@ -678,8 +665,8 @@ int readRnxH(
 		}
 		// file type
 		switch (type)
-		{            
-			case 'O': decodeObsH(inputStream, line, ver, tsys, sysCodeTypes, nav, rec); break;
+		{
+			case 'O': decodeObsH(inputStream, line, ver, tsys, sysCodeTypes, nav, rnxRec); break;
 			case 'N': decodeNavH			(  line, sys,        nav); break; // GPS (ver.2) or mixed (ver.3)
 			case 'G': decodeGnavH			(  line,             nav); break;
 			case 'H': decodeHnavH			(  line,             nav); break;
@@ -710,7 +697,7 @@ int decodeObsEpoch(
 	vector<SatSys>&		sats)
 {
 	int n = 0;
-	char* buff = &line[0]; 
+	char* buff = &line[0];
 
 // 	BOOST_LOG_TRIVIAL(debug)	<< __FUNCTION__ << ": ver=" << ver;
 
@@ -735,7 +722,7 @@ int decodeObsEpoch(
 		{
 			BOOST_LOG_TRIVIAL(debug)
 			<< "rinex obs invalid epoch: epoch=" << buff;
-			
+
 			return 0;
 		}
 
@@ -751,7 +738,7 @@ int decodeObsEpoch(
 
 				j = 32;
 			}
-			
+
 			char id[4] = {};
 			strncpy(id, buff + j, 3);
 			sats.push_back(SatSys(id));
@@ -847,8 +834,8 @@ int decodeObsData(
 		E_FType ft = code2Freq[obs.Sat.sys][codeType.code];
 
 		RawSig* rawSig = nullptr;
-		auto& sigList = obs.SigsLists[ft];
-		
+		auto& sigList = obs.sigsLists[ft];
+
 		for (auto& sig : sigList)
 		{
 			if (sig.code == codeType.code)
@@ -857,7 +844,7 @@ int decodeObsData(
 				break;
 			}
 		}
-		
+
 		if (rawSig == nullptr)
 		{
 			RawSig raw;
@@ -870,7 +857,7 @@ int decodeObsData(
 		double val = str2num(buff, j,		14);
 		double lli = str2num(buff, j + 14,	1);
 		lli = (unsigned char) lli & 0x03;
-		
+
 		RawSig& sig = *rawSig;
 		if (val)
 		switch (codeType.type)
@@ -919,7 +906,7 @@ int readRnxObsB(
 			if (nSats <= 0)
 			{
 				continue;
-			} 
+			}
 		}
 		else if (line[0] == '>')
 		{
@@ -944,7 +931,7 @@ int readRnxObsB(
 		}
 
 		i++;
-		
+
 		if (i > nSats)
 			return obsList.size();
 	}
@@ -960,7 +947,7 @@ int readRnxObs(
 	E_TimeSys						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	ObsList&						obsList,
-	RinexStation*					sta)
+	RinexStation&					rnxRec)
 {
 	int flag = 0;
 	int stat = 0;
@@ -999,7 +986,7 @@ int decodeEph(
 
 		return 0;
 	}
-	
+
 	eph.type	= defNavMsgType[Sat.sys];
 	eph.Sat		= Sat;
 	eph.toc		= toc;
@@ -1040,10 +1027,10 @@ int decodeEph(
 		eph.flag	=(int)		data[22];	// GPS: L2 P data flag
 
 		eph.tgd[0]	= data[25];		// TGD
-		
+
 		if		(sys == +E_Sys::GPS)	{	eph.fit		= data[28];										}	// fit interval in hours for GPS
 		else if	(sys == +E_Sys::QZS)	{	eph.fitFlag	= data[28];		eph.fit	= eph.fitFlag?0.0:2.0;	}	// fit interval flag for QZS
-		
+
 		if (acsConfig.use_tgd_bias)
 			decomposeTGDBias(Sat, eph.tgd[0]);
 	}
@@ -1073,10 +1060,10 @@ int decodeEph(
 										// bit     6: E5b DVS
 										// bit   7-8: E5b HS
 		eph.sva		=sisaToSva(data[23]);
-		
+
 		eph.tgd[0]=   data[25];		// BGD E5a/E1
 		eph.tgd[1]=   data[26];		// BGD E5b/E1
-		
+
 		if (acsConfig.use_tgd_bias)
 			decomposeBGDBias(Sat, eph.tgd[0], eph.tgd[1]);
 	}
@@ -1159,7 +1146,7 @@ int decodeGeph(
 		geph.vel[i] = data[4 + i*4] * 1E3;
 		geph.acc[i] = data[5 + i*4] * 1E3;
 	}
-	
+
 	geph.svh = (E_Svh)	data[6];
 	geph.frq = (int)	data[10];
 	geph.age = (int)	data[14];
@@ -1300,19 +1287,19 @@ int decodeCeph(
 		ceph.toe	= ceph.toc;
 		ceph.toes	= GTow(ceph.toe);
 
-		ceph.ura[0]	= data[21];  
-		ceph.ura[1]	= data[22];  
-		ceph.ura[2]	= data[26];  
-		ceph.ura[3]	= data[23];  
+		ceph.ura[0]	= data[21];
+		ceph.ura[1]	= data[22];
+		ceph.ura[2]	= data[26];
+		ceph.ura[3]	= data[23];
 
 		ceph.svh	= (E_Svh)data[24];	// sv health
 
 		ceph.tgd[0]	= data[25];  	// TGD
 
-		ceph.isc[0]	= data[27];  
-		ceph.isc[1]	= data[28];  
-		ceph.isc[2]	= data[29];  
-		ceph.isc[3]	= data[30];  
+		ceph.isc[0]	= data[27];
+		ceph.isc[1]	= data[28];
+		ceph.isc[2]	= data[29];
+		ceph.isc[3]	= data[30];
 
 		if		(type == +E_NavMsgType::CNAV)
 		{
@@ -1322,8 +1309,8 @@ int decodeCeph(
 		}
 		else if (type == +E_NavMsgType::CNV2)
 		{
-			ceph.isc[4] = data[31];  
-			ceph.isc[5] = data[32];  
+			ceph.isc[4] = data[31];
+			ceph.isc[5] = data[32];
 
 			ceph.ttms	= data[35];
 			ceph.ttm	= GTime(GTow(ceph.ttms), ceph.toc);
@@ -1339,21 +1326,21 @@ int decodeCeph(
 
 		ceph.orb = E_SatType::_from_integral(data[21]);
 
-		ceph.sis[0]	= data[23];  
-		ceph.sis[1]	= data[24];  
-		ceph.sis[2]	= data[25];  
-		ceph.sis[3]	= data[26];  
+		ceph.sis[0]	= data[23];
+		ceph.sis[1]	= data[24];
+		ceph.sis[2]	= data[25];
+		ceph.sis[3]	= data[26];
 
 		if  ( type == +E_NavMsgType::CNV1
 			||type == +E_NavMsgType::CNV2)
 		{
-			ceph.isc[0]	= data[27];  
-			ceph.isc[1]	= data[28];  
+			ceph.isc[0]	= data[27];
+			ceph.isc[1]	= data[28];
 
 			ceph.tgd[0]	= data[29];  	// TGD_B1Cp
 			ceph.tgd[1]	= data[30];  	// TGD_B2ap
 
-			ceph.sis[4]	= data[31];  
+			ceph.sis[4]	= data[31];
 
 			ceph.svh 	= (E_Svh)data[32];	// sv health
 			ceph.flag	= (int)data[33];  	// integrity flag
@@ -1365,7 +1352,7 @@ int decodeCeph(
 		}
 		else if (type == +E_NavMsgType::CNV3)
 		{
-			ceph.sis[4]	= data[27];  
+			ceph.sis[4]	= data[27];
 			ceph.svh	= (E_Svh)data[28];	// sv health
 			ceph.flag	= (int)data[29];  	// integrity flag
 			ceph.tgd[2]	= data[30];  	// TGD_B2ap
@@ -1550,16 +1537,16 @@ int decodeIon(
 */
 int readRnxNavB(
 	std::istream& 	inputStream,	///< Input stream to read
-	double		ver,				///< RINEX version
-	E_Sys		sys,				///< Satellite system
-	E_EphType&	type,				///< Ephemeris type (output)
-	Eph&		eph,				///< GPS Ephemeris
-	Geph&		geph,				///< Glonass ephemeris
-	Seph&		seph,				///< Geo ephemeris
-	Ceph&		ceph,				///< CNVX ephemeris
-	STO&		sto,				///< System time offset data
-	EOP&		eop,				///< EOP data
-	ION&		ion)				///< Ionosphere data
+	double			ver,			///< RINEX version
+	E_Sys			sys,			///< Satellite system
+	E_EphType&		type,			///< Ephemeris type (output)
+	Eph&			eph,			///< GPS Ephemeris
+	Geph&			geph,			///< Glonass ephemeris
+	Seph&			seph,			///< Geo ephemeris
+	Ceph&			ceph,			///< CNVX ephemeris
+	STO&			sto,			///< System time offset data
+	EOP&			eop,			///< EOP data
+	ION&			ion)			///< Ionosphere data
 {
 	GTime toc;
 	vector<double> data;
@@ -1735,7 +1722,7 @@ int readRnxNav(
 		STO			sto		= {};
 		EOP			eop		= {};
 		ION			ion		= {};
-		
+
 		E_EphType	type;
 
 		int stat = readRnxNavB(inputStream, ver, sys, type, eph, geph, seph, ceph, sto, eop, ion);
@@ -1804,7 +1791,7 @@ int readRnxClk(
 	index++;
 	string line;
 
-	typedef struct 
+	typedef struct
 	{
 		short offset;
 		short length;
@@ -1864,25 +1851,23 @@ int readRnx(
 	char&							type,
 	ObsList&						obsList,
 	Navigation&						nav,
-	RinexStation*					sta,
+	RinexStation&					rnxRec,
 	double&							ver,
 	E_Sys&							sys,
 	E_TimeSys&						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes)
 {
-// 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": flag=" << flag << " index=" << index;
-
-	// read rinex header if at beginning of file
 	if (inputStream.tellg() == 0)
 	{
-		readRnxH(inputStream, ver, type, sys, tsys, sysCodeTypes, nav, sta);
+		// read rinex header if at beginning of file
+		readRnxH(inputStream, ver, type, sys, tsys, sysCodeTypes, nav, rnxRec);
 	}
 
 	// read rinex body
 	switch (type)
 	{
-		case 'O': return readRnxObs(inputStream, ver, tsys, sysCodeTypes, obsList, sta);
-		case 'N': return readRnxNav(inputStream, ver, sys       ,	nav);
+		case 'O': return readRnxObs(inputStream, ver, tsys, sysCodeTypes, obsList, rnxRec);
+		case 'N': return readRnxNav(inputStream, ver, sys,			nav);
 		case 'G': return readRnxNav(inputStream, ver, E_Sys::GLO, 	nav);
 		case 'H': return readRnxNav(inputStream, ver, E_Sys::SBS, 	nav);
 		case 'J': return readRnxNav(inputStream, ver, E_Sys::QZS, 	nav); // extension

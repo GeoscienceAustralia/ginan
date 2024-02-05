@@ -1,55 +1,70 @@
-
 inputs:
 
-    root_directory: products/
+    inputs_root: products/
 
-    atx_files: [ igs14_2045_plus.atx ]  # Antenna models for receivers and satellites in ANTEX format
-    snx_files: [ igs19P2062.snx, tables/igs_satellite_metadata_2203_plus.snx ]  # SINEX file for meta data and initial position
+    atx_files: # Antenna models for receivers and satellites in ANTEX format
+    - igs14_2045_plus.atx
+    snx_files: # SINEX files for meta data and initial position
+    - igs19P2062.snx
+    - tables/igs_satellite_metadata_2203_plus.snx
+    - tables/sat_yaw_bias_rate.snx
+    - tables/qzss_yaw_modes.snx
+    - tables/bds_yaw_modes.snx
     
     satellite_data:
-        nav_files: [ brdm1990.19p        ]  # broadcast navigation file
+        nav_files: # broadcast navigation files
+        - brdm1990.19p
+
 
 outputs:
 
-    root_directory:             outputs/<CONFIG>/
+    outputs_root:            outputs/<CONFIG>/
+
+    metadata:
+        config_description:  brdc2sp3
+        analysis_agency:     GAA
+        analysis_centre:     Geoscience Australia
+        analysis_program:    AUSACS
+        rinex_comment:       AUSNETWORK1
 
     sp3:
-        output:             true
-        output_interval:    900
-        output_velocities:  true
-        #output_inertial:    true
-        
-    metadata:
-        config_description:     brdc2sp3
-        analysis_agency:        GAA
-        analysis_center:        Geoscience Australia
-        analysis_program:       AUSACS
-        rinex_comment:          AUSNETWORK1
-    
+        output:              true
+        filename:            <CONFIG>-<YYYY><DDD><HH>-<SYS>.sp3
+        output_interval:     900
+        output_velocities:   true
+        # output_inertial:     true
+
+
+satellite_options:
+
+    global:
+        models:
+            attitude:
+                enable:      true
+                sources:     [ MODEL ]
+
+
+receiver_options:
+
+    global:
+        elevation_mask:      7    # degrees
+
+
 processing_options:
 
-    epoch_control:
-        start_epoch:                2019-07-18 00:00:00
-        end_epoch:                  2019-07-19 00:00:00
-        epoch_interval:             900          #seconds
-
     process_modes:
-        preprocessor:           false
+        preprocessor:        false
+
+    epoch_control:
+        start_epoch:         2019-07-18 00:00:00
+        end_epoch:           2019-07-18 23:45:00
+        epoch_interval:      900  # seconds
+        require_obs:         false
 
     gnss_general:
-        
-        elevation_mask:     7   #degrees
-    
-        raim:               true
-
-        max_gdop:   30
         sys_options:
-            gps: { process:    true}
-            gal: { process:    true}
-            glo: { process:    true}
-            bds: { process:    true}
-    
-    gnss_models:
-        sat_attitude:
-            sources:         [model]
-        
+            gps: { process:  true }
+            gal: { process:  true }
+            glo: { process:  true }
+            bds: { process:  true }
+            qzs: { process:  true }

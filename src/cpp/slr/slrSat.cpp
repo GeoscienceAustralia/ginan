@@ -1,7 +1,7 @@
 
-// #pragma GCC optimize ("O0")
-
+#include "observations.hpp"
 #include "ephPrecise.hpp"
+#include "ephemeris.hpp"
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
 #include "common.hpp"
@@ -22,25 +22,12 @@ void satPossSlr(
 	for (auto& obs : only<LObs>(slrObsList))
 	{
 		if (obs.exclude)
-		{
 			continue;
-		}
 
 		satpos(trace, obs.time, obs.time, obs, ephTypes, offsetType, nav, kfState_ptr);
 		
 		if (obs.ephPosValid == false)
-		{
-			std::cout << "warning: obs.ephPosValid == false" << std::endl;
-		}
-		
-		//tracepde(4, trace, "%s sat=%s rs=%13.3f %13.3f %13.3f var=%7.3f svh=%02X\n",
-		//		obs.timeBn.to_string(6).c_str(),
-		//		obs.Sat.id().c_str(),
-		//		obs.rSat[0],
-		//		obs.rSat[1],
-		//		obs.rSat[2],
-		//		obs.ephVar,
-		//		obs.svh);
+			BOOST_LOG_TRIVIAL(warning) << "Warning: Invalid position for " << obs.Sat.id() << " in " << __FUNCTION__;
 	}
 }
 

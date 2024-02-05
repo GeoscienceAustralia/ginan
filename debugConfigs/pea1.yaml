@@ -1,0 +1,1053 @@
+
+outputs:
+    metadata:
+        config_description:         "PEA1"
+        
+    root_directory:                 outputs/<CONFIG>/
+    
+    trace:
+        level:                      3
+        output_stations:            true
+        output_network:             true
+        network_filename:           <CONFIG>-Network.trace
+        station_filename:           <CONFIG>-<STATION>.trace
+        #output_residuals:           true
+        #output_residual_chain:      true
+        output_config:              false
+        
+    bias_sinex:
+        #output:                     true
+        
+    clocks:
+        #output:                     true
+        
+    sinex:
+        output:                     true
+        
+    erp:
+        #output:                     true
+        
+    log:                          
+        #output:                     true
+        
+    trop_sinex:
+        #output:                     true
+    sp3:
+        #output:                     true
+        #directory:                  ./
+        #filename:                   GAA0GINRAP_<YYYY><DDD><HH>00_01D_05M_ORB.SP3
+        #output_inertial:            false                         	# (bool) Output the entries using inertial positions and velocities
+        #output_interval:            300                           	# (int) Update interval for sp3 records
+        #output_velocities:          false
+        #orbit_sources:              [ KALMAN ]
+        #clock_sources:              [ KALMAN ]
+
+    streams:
+        #root_url: "${OUTPUT_STREAMS__STREAM_ROOT}"
+        #labels:
+            #- GAA1
+        #GAA1:
+            #url: "${OUTPUT_STREAMS__MOUNTPOINT_PREFIX}$${OUTPUT_STREAM_NUMBER}"
+            #messages:
+                #rtcm_1060: {udi: 10}
+                #rtcm_1059: {udi: 10}
+                
+mongo:
+    #enable:                         true
+    uri:                            mongodb://127.0.0.1:27017
+    database:                       <CONFIG>
+    #output_rtcm_messages:           true
+    #output_components:              true
+    output_states:                  true
+    #output_measurements:            true
+    #output_test_stats:              true
+    output_trace:                   true
+    delete_history:                 true
+    suffix:                         ""
+    predict_states:                 false
+
+remote_mongo:
+    enable:                         true
+    uri:                            mongodb://127.0.0.1:27017
+    database:                       "MULTI-GINAN"
+    predict_states:                 true
+    prediction_interval:            2
+    prediction_offset:              20
+    interval_units:                 seconds
+    forward_prediction_duration:    20
+    duration_units:                 seconds
+    delete_history:                 true
+    cull_history:                   true
+ 
+         
+
+    
+estimation_parameters:
+
+  eop:
+    estimated:
+    - true
+    sigma:
+    - 30
+  eop_rates:
+    estimated:
+    - true
+    sigma:
+    - 30
+  satellites:
+    global:
+      clk:
+        estimated:
+        - true
+        proc_noise:
+        - 1
+        sigma:
+        - 1000
+      clk_rate:
+        estimated:
+        - false
+        proc_noise:
+        - 1e-06
+        sigma:
+        - 0.005
+      code_bias:
+        estimated:
+        - true
+        proc_noise:
+        - 0
+        sigma:
+        - 10
+      orbit:
+        estimated:
+        - true
+        proc_noise:
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        - 0
+        sigma:
+        - 0.5
+        - 0.5
+        - 0.5
+        - 0.001
+      emp_dyb_0:
+        estimated:
+        - true
+        - true
+        - true
+        proc_noise:
+        - 0
+        sigma:
+        - 30
+        - 1
+        - 1
+      emp_dyb_1c:
+        estimated:
+        - true
+        - false
+        - true
+        proc_noise:
+        - 0
+        sigma:
+        - 1
+        - 1
+        - 1
+      emp_dyb_1s:
+        estimated:
+        - true
+        - false
+        - true
+        proc_noise:
+        - 0
+        sigma:
+        - 1
+        - 1
+        - 1
+      emp_dyb_2c:
+        estimated:
+        - true
+        - false
+        - false
+        proc_noise:
+        - 0
+        sigma:
+        - 1
+        - 1
+        - 1
+      emp_dyb_2s:
+        estimated:
+        - true
+        - false
+        - false
+        proc_noise:
+        - 0
+        sigma:
+        - 1
+        - 1
+        - 1
+      emp_dyb_3c:
+        apriori_val:
+        - 0.0
+        estimated:
+        - false
+        - false
+        - false
+        proc_noise:
+        - 0
+        sigma:
+        - 1
+        - 1
+        - 1
+      emp_dyb_3s:
+        estimated:
+        - false
+        - false
+        - false
+        proc_noise:
+        - 0
+        sigma:
+        - 1
+        - 1
+        - 1
+      emp_dyb_4c:
+        estimated:
+        - true
+        - false
+        - false
+        proc_noise:
+        - 0
+        sigma:
+        - 1
+        - 1
+        - 1
+      emp_dyb_4s:
+        estimated:
+        - true
+        - false
+        - false
+        proc_noise:
+        - 0
+        sigma:
+        - 1
+        - 1
+        - 1
+    GPS:
+      L1W:
+        code_bias:
+          apriori_val:
+          - 0
+          estimated:
+          - true
+          sigma:
+          - 1e-08
+      L2W:
+        code_bias:
+          apriori_val:
+          - 0
+          estimated:
+          - true
+          sigma:
+          - 1e-08
+  stations:
+    global:
+      amb:
+        estimated:
+        - true
+        proc_noise:
+        - 0
+        sigma:
+        - 5000
+      clk:
+        estimated:
+        - true
+        proc_noise:
+        - 100.0
+        sigma:
+        - 1000
+      clk_rate:
+        estimated:
+        - false
+        proc_noise:
+        - 0.0001
+        sigma:
+        - 0.005
+      code_bias:
+        estimated:
+        - true
+        proc_noise:
+        - 0
+        sigma:
+        - 10
+      code_sigmas:
+      - 0.5
+      error_model: elevation_dependent
+      ion_stec:
+        estimated:
+        - true
+        proc_noise:
+        - 1.0
+        sigma:
+        - 1000
+      phase_sigmas:
+      - 0.005
+      pos:
+        estimated:
+        - true
+        proc_noise:
+        - 0
+        sigma:
+        - 2.0
+      trop:
+        estimated:
+        - true
+        proc_noise:
+        - 8.3333e-05
+        sigma:
+        - 0.3
+      trop_grads:
+        estimated:
+        - true
+        proc_noise:
+        - 3.6e-06
+        sigma:
+        - 0.01
+    #PIVOT:
+    UNSA:
+      clk:
+        estimated:
+        - false
+      code_bias:
+        estimated:
+        - false        
+inputs:
+    root_directory:   products/
+    atx_files:      [ igs20.atx,M20.ATX                 ] 
+    otl_blq_files:  [ OLOAD_GO.BLQ                      ]
+    atl_blq_files:  [ ALOAD_GO.BLQ                      ]
+    opole_files:    [ tables/opoleloadcoefcmcor.txt     ]
+    erp_files:      
+    - igu.erp         
+    - IGS0OPSULT_20232420000_02D_01D_ERP.ERP
+    - IGS0OPSULT_20232400000_02D_01D_ERP.ERP
+    - IGS0OPSULT_20232410000_02D_01D_ERP.ERP
+    egm_files:      [ tables/EGM2008.gfc                ]  
+    egm_files:
+    - goco05s.gfc
+    jpl_files:      [ tables/DE436.1950.2050            ]  
+    tide_files:     [ tables/fes2014b_Cnm-Snm.dat       ]
+    igrf_files:     [ tables/igrf13coeffs.txt           ]
+    #erp_files:      [ tables/finals.data.iau2000.txt    ]
+    snx_files:      
+    - IGS1R03SNX_20191950000_07D_07D_CRD.SNX
+    - IGS0OPSSNX_20230220000_07D_07D_CRD.SNX
+    #- meta.snx
+    - tables/igs_satellite_metadata_2203_plus.snx   
+
+    satellite_data:
+        inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+            - BCEP00BKG0
+        
+    gnss_observations:
+        inputs_root: ../data/
+        rnx_inputs:
+        #- MCM400ATA_R_20232420000_01D_30S_MO.rnx
+            - "*.rnx"
+        #inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        #rtcm_inputs:
+            #- ALIC00AUS0
+            #- ANDA00AUS0
+            #- ARMC00AUS0
+            #- ARUB00AUS0
+            #- BALA00AUS0
+            #- BBOO00AUS0
+            #- BDLE00AUS0
+            #- BDVL00AUS0
+            #- BEEC00AUS0
+            #- BMAN00AUS0
+            #- BNDY00AUS0
+            #- BRLA00AUS0
+            #- BRO100AUS0
+            #- BROC00AUS0
+            #- BULA00AUS0
+            #- BUR200AUS0
+            #- BURA00AUS0
+            #- CAS100ATA0
+            #- CBLA00AUS0
+            #- CCPL00AUS0
+            #- CEDU00AUS0
+            #- CNVN00AUS0
+            #- CTWR00AUS0
+            #- COCO00AUS0
+            #- COEN00AUS0
+            #- COOB00AUS0
+            #- COOL00AUS0
+            #- DARH00AUS0
+            #- DARW00AUS0
+            #- DAV100ATA0
+            #- DGEE00AUS0
+            #- DERB00AUS0
+            #- DIRA00AUS0
+            #- DODA00AUS0
+            #- EDS100AUS0
+            #- EDSV00AUS0
+            #- ERMG00AUS0
+            #- ESPA00AUS0
+            #- EXMT00AUS0
+            #- FLND00AUS0
+            #- FROY00AUS0
+            ##- GDAM00AUS0
+            #- GGT100AUS0
+            #- GGTN00AUS0
+            #- GROT00AUS0
+            #- HNIS00AUS0
+            #- HOB200AUS0
+            #- HUGH00AUS0
+            #- HYDN00AUS0
+            #- IGWD00AUS0
+            #- ILKA00AUS0
+            #- IMKA00AUS0
+            #- JAB200AUS0
+            #- JERV00AUS0
+            #- JLCK00AUS0
+            #- KALG00AUS0
+            #- KARR00AUS0
+            #- KAT100AUS0
+            #- KAT200AUS0
+            #- KELN00AUS0
+            #- KGIS00AUS0
+            #- KILK00AUS0
+            #- KMAN00AUS0
+            #- KNDH00AUS0
+            #- KOWN00AUS0
+            #- KUNU00AUS0
+            #- LAMB00AUS0
+            #- LARR00AUS0
+            #- LAVE00AUS0
+            #- LIAW00AUS0
+            #- LONA00AUS0
+            #- LORD00AUS0
+            #- LURA00AUS0
+            #- MAC100AUS0
+            #- MAIN00AUS0
+            #- MAW100ATA0
+            #- MCHL00AUS0
+            #- MEDO00AUS0
+            #- MILD00AUS0
+            
+    troposphere:
+        gpt2grid_files:  gpt_25.grd
+
+    
+    gnss_observations:
+        inputs_root: ../data/
+    jpl_files:
+    - DE436.1950.2050
+    root_directory: products/
+    satellite_data:
+        #bsx_files:
+        #- code_monthly.bia
+        #inputs_root: ./products
+        nav_files:
+        - brdc2420.23n
+        - brdc2400.23n
+        - brdc2410.23n
+        sp3_files:
+        - IGS0OPSULT_20232410000_02D_15M_ORB.SP3
+    snx_files:
+    - igs_satellite_metadata.snx
+    - meta.snx
+    - IGS0OPSSNX_20232250000_07D_07D_CRD.SNX
+    tide_files:
+    - fes2004_Cnm-Snm.dat
+    troposphere:
+        gpt2grid_files: gpt_25.grd
+processing_options:
+<<<<<<< HEAD
+=======
+        
+    epoch_control:
+        require_obs:        false
+        epoch_interval:             2
+        #wait_next_epoch:            3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+        wait_all_stations:          1
+        #fatal_message_level:        1
+
+    process_modes:
+        ppp:                        true
+
+    gnss_general:
+        rec_reference_system:       gps
+        sys_options:
+            gps:
+                process: true
+                reject_eclipse: false
+                code_priorities: 
+                    - L1C
+                    #- L1W
+                    - L2W
+                    #- L5Q
+                    #- L5X
+                ambiguity_resolution:   false
+                zero_receiver_dcb:      true
+            gal:
+                #process: true
+                reject_eclipse: false
+                code_priorities: 
+                    - L1C
+                    #- L1W
+                    #- L2W
+                    - L5Q
+                    #- L5X
+
+        elevation_mask: 10
+        raim: true
+        pivot_station:          "ALIC"
+        interpolate_rec_pco:    false
+        auto_fill_pco:          true
+        max_gdop: 30
+
+>>>>>>> assumeLinear
+    gnss_models:
+        troposphere:
+            model:                  gpt2
+        ionospheric_component:
+            enable:                 true
+            use_if_combo:           true
+
+    model_error_checking:   
+        deweighting:
+            deweight_factor:        10000
+            reject_on_state_error: true
+        ambiguities:                  
+            outage_reset_limit:     5
+            phase_reject_limit:     2
+            reinit_on_all_slips:    true     # (bool) Any detected slips cause removal and reinitialisation of ambiguities
+        clocks:
+            reinit_on_clock_error:  true                           # (bool) Any clock "state" errors cause removal and reinitialisation of the clocks and all associated ambiguities
+
+        cycle_slips:
+            slip_threshold: 0.05
+    preprocessor_options:
+        preprocess_all_data:        false
+        
+    filter_options:
+        outlier_screening:
+            max_filter_iterations:      20
+            max_prefit_removals:        3
+        rts:
+            enable: false
+        #assume_linearity:               true
+        
+    minimum_constraints:
+        enable:                         true
+        once_per_epoch:                 false            # (bool) Perform minimum constraints on a temporary filter and output results once per epoch
+        translation:
+            estimated:                  [true]
+        rotation:
+            estimated:                  [true]
+        scale:
+            estimated:                  [false]
+        inverter:                       LDLT
+        max_filter_iterations:          20
+        max_prefit_removals:            3              # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
+        outlier_screening:
+            chi_square_mode:            none             # (enum)  Chi-square test mode - innovation, measurement, state {NONE,INNOVATION,MEASUREMENT,STATE}
+            chi_square_test:            false            # (bool)  Enable Chi-square test
+            sigma_check:                true             # (bool)  Enable prefit and postfit sigma check
+            sigma_threshold:            3.000000         # (float) sigma threshold
+            w_test:                     false            # (bool)  Enable w-test
+        station_noise:
+            global:                     [0.005, 0.005, 0.01]
+
+    epoch_control:
+        epoch_interval: 300
+    filter_options:
+        inverter: LLT
+        outlier_screening:
+        max_filter_iterations: 50
+        max_prefit_removals: 5
+    gnss_general:
+        rec_reference_system: GPS
+        elevation_mask: 15
+        error_model: elevation_dependent
+        max_gdop: 30
+        #pivot_station: <AUTO>
+        raim: true
+        sys_options:
+        gps:
+            ambiguity_resolution: false
+            code_priorities:
+            - L1W
+            - L1C
+            - L2W
+            process: true
+            reject_eclipse: false
+            zero_receiver_dcb: true
+    gnss_models:
+        ionospheric_component:
+        enable:                 true
+        common_ionosphere:      true   # Code and Phase measurment share the same ionosphere
+        use_if_combo:           false    
+        corr_mode:              IONO_FREE_LINEAR_COMBO
+        orbits:
+        enable: true
+        eop:
+        enable: true
+    minimum_constraints:
+        once_per_epoch:                 false   
+        enable: true
+        rotation:
+        estimated:
+        - true
+        scale:
+        estimated:
+        - true
+        station_noise:
+        ABMF:
+        - 0.01
+        ALBH:
+        - 0.01
+        ALIC:
+        - 0.01
+        AREQ:
+        - 0.01
+        CAS1:
+        - 0.01
+        CHPI:
+        - 0.01
+        CHUR:
+        - 0.01
+        CUSV:
+        - 0.01
+        DAEJ:
+        - 0.01
+        DARW:
+        - 0.01
+        DAV1:
+        - 0.01
+        DGAR:
+        - 0.01
+        FAIR:
+        - 0.01
+        FALK:
+        - 0.01
+        FLIN:
+        - 0.01
+        GLPS:
+        - 0.01
+        HOB2:
+        - 0.01
+        IISC:
+        - 0.01
+        KIRI:
+        - 0.01
+        KIT3:
+        - 0.01
+        KOKV:
+        - 0.01
+        LAUT:
+        - 0.01
+        LPGS:
+        - 0.01
+        MAC1:
+        - 0.01
+        MATE:
+        - 0.01
+        MAW1:
+        - 0.01
+        MBAR:
+        - 0.01
+        MCM4:
+        - 0.01
+        MOBS:
+        - 0.01
+        PIE1:
+        - 0.01
+        POL2:
+        - 0.01
+        QAQ1:
+        - 0.01
+        RIO2:
+        - 0.01
+        SANT:
+        - 0.01
+        SCH2:
+        - 0.01
+        SCOR:
+        - 0.01
+        STHL:
+        - 0.01
+        STJO:
+        - 0.01
+        SUTM:
+        - 0.01
+        THU2:
+        - 0.01
+        TID1:
+        - 0.01
+        TOW2:
+        - 0.01
+        UNSA:
+        - 0.01
+        VACS:
+        - 0.01
+        WHIT:
+        - 0.01
+        XMIS:
+        - 0.01
+        YAR2:
+        - 0.01
+        YELL:
+        - 0.01
+        translation:
+        estimated:
+        - true
+    model_error_checking:
+        ambiguities:
+        outage_reset_limit: 10
+        phase_reject_limit: 2
+        reinit_on_all_slips: true
+        cycle_slips:
+        slip_threshold: 0.05
+        clocks:
+        reinit_on_clock_error: false  
+        deweighting:
+        deweight_factor: 10000
+        reject_on_state_error: true
+    orbit_propagation:
+<<<<<<< HEAD
+        albedo: true
+        antenna_thrust: true
+        central_force: true
+        degree_max: 15
+        egm_field: true
+        empirical: true
+        empirical_dyb_eclipse: [true]
+        general_relativity: true
+        indirect_J2: true
+        integrator_time_step: 60
+        itrf_pseudoobs: true
+        #ocean_tide: true    #quite slow
+        planetary_perturbation: true
+        pole_tide_ocean: true
+        pole_tide_solid: true
+        sat_area: 15
+        sat_mass: 1000
+        solar_radiation_pressure: true
+        solid_earth_tide: true
+        srp_cr: 1.75
+    process_modes:
+        ppp: true
+        preprocessor: true
+        spp: true
+=======
+        central_force:                  true
+        planetary_perturbation:         true
+        indirect_J2:                    true
+        egm_field:                      true
+        solid_earth_tide:               true
+        #ocean_tide:                     true    #quite slow
+        general_relativity:             true
+        pole_tide_ocean:                true
+        pole_tide_solid:                true
+        solar_radiation_pressure:       true
+        antenna_thrust:                 true
+        empirical:                      true #true/false => false/ecom/srf
+        albedo:                         true
+        integrator_time_step:           60
+        sat_mass:                       1000
+        sat_area:                       15
+        srp_cr:                         1.75
+        degree_max:                     15
+
+        itrf_pseudoobs:                 true
+
+>>>>>>> assumeLinear
+
+satellite_options:
+    E05: { exclude: true }
+    E06: { exclude: true }
+    E10: { exclude: true }
+    E16: { exclude: true }
+    E17: { exclude: true }
+    E23: { exclude: true }
+    E28: { exclude: true }
+    E29: { exclude: true }
+    E32: { exclude: true }
+    E34: { exclude: true }
+    E35: { exclude: true }
+    G04: { exclude: true }
+    G01:
+        exclude: true
+    G28:
+        exclude: true
+    
+    global:
+        clock:
+            sources:            [KALMAN, PRECISE, BROADCAST]   
+            enable:             true                           
+        pos:
+            sources:            [KALMAN, PRECISE, BROADCAST]   
+        attitude:
+            enable:             true                           
+            sources:            [PRECISE, MODEL, NOMINAL]      
+        pco:
+            enable:             true                           
+        pcv:
+            enable:             true                           
+        code_bias:
+            default_bias:       0                              
+            enable:             true                           
+            undefined_sigma:    0                              
+        phase_bias:
+            default_bias:       0                              
+            enable:             false                          
+            undefined_sigma:    0                              
+                                            
+
+station_options:                                               
+     global:
+         ant_delta:
+             enable:             true                          
+         attitude:
+             enable:             true                          
+             sources:            [PRECISE, MODEL, NOMINAL]     
+         clock:
+             enable:             true                          
+         pco:
+             enable:             true                          
+         pcv:
+             enable:             true                          
+         code_bias:
+             default_bias:       0                             
+             enable:             true                          
+             undefined_sigma:    0                         
+         phase_bias:
+             default_bias:       0                         
+             enable:             false                     
+             undefined_sigma:    0                         
+         pos:
+             enable:             true                      
+
+<<<<<<< HEAD
+station_options:                                        
+  global:
+    ant_delta:
+      enable:             true                          
+    attitude:
+      enable:             true                          
+      sources:
+      - PRECISE
+      - MODEL
+      - NOMINAL
+    clock:
+      enable:             true                   
+    pco:
+      enable:             true                   
+    pcv:
+      enable:             true                   
+    code_bias:
+      default_bias:       0                      
+      enable:             true                   
+      undefined_sigma:    0                      
+    phase_bias:
+      default_bias:       0                      
+      enable:             false                  
+      undefined_sigma:    0                      
+    pos:
+      enable:             true                   
+=======
+estimation_parameters:
+
+    stations:
+        error_model:                elevation_dependent       
+        code_sigmas:                [0.4]
+        phase_sigmas:               [0.002]
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [1]
+                proc_noise:         [0.001]
+                proc_noise_dt:      day
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [10]
+            amb:
+                estimated:          [true]
+                sigma:              [100]
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                proc_noise:         [0.0001]
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                proc_noise:         [1.0E-6]
+            ion_stec:
+                estimated:          [true]
+                sigma:              [100]
+                proc_noise:         [0.2]
+            code_bias:
+                estimated:          [true]
+                sigma:              [20]
+        PIVOT:
+            clk:
+                estimated:          [false] 
+            code_bias:
+                estimated:          [false]
+    satellites:
+        pseudo_sigmas:             [1e6]    
+        global:
+            clk:
+                estimated:          [true]
+                sigma:              [1000]
+                proc_noise:         [10]
+            code_bias:
+                estimated:          [true]
+                sigma:              [10]
+                proc_noise:         [0]
+            orbit:                                         
+                estimated:          [true]                 
+                sigma:              [0.5, 0.5, 0.5, 0.001] 
+                proc_noise:         [0]
+            emp_dyb_0:
+                estimated:          [true, true, true]
+                sigma:              [1e-8, 1e-9, 1e-9]
+                apriori_val:        [0]
+                proc_noise:         [0]
+            #emp_dyb_1c:
+                #estimated:          [true, false, true]
+                #sigma:              [1e-9, 1e-9, 1e-9]
+                #apriori_val:        [0.0]
+                #proc_noise:         [0]
+            #emp_dyb_1s:
+                #estimated:          [true, false, true]
+                #sigma:              [1e-9, 1e-9, 1e-9]
+                #apriori_val:        [0.0]
+                #proc_noise:         [0]
+            #emp_dyb_2c:
+                #estimated:          [true, false, false]
+                #sigma:              [1e-9, 1e-9, 1e-9]
+                #apriori_val:        [0.0]
+                #proc_noise:         [0]
+            #emp_dyb_2s:
+                #estimated:          [true, false, false]
+                #sigma:              [1e-9, 1e-9, 1e-9]
+                #apriori_val:        [0.0]
+                #proc_noise:         [0]
+            #emp_dyb_3c:
+                #estimated:          [false, false, false]
+                #sigma:              [1e-9, 1e-9, 1e-9]
+                #apriori_val:        [0.0]
+                #proc_noise:         [0]
+            #emp_dyb_3s:
+                #estimated:          [false, false, false]
+                #sigma:              [1e-9, 1e-9, 1e-9]
+                #apriori_val:        [0.0]
+                #proc_noise:         [0]
+            #emp_dyb_4c: 
+                #estimated:          [true, false, false]
+                #sigma:              [1e-9, 1e-9, 1e-9]
+                #apriori_val:        [0.0]
+                #proc_noise:         [0]
+            #emp_dyb_4s:
+                #estimated:          [true, false, false]
+                #sigma:              [1e-9, 1e-9, 1e-9]
+                #apriori_val:        [0.0]
+                #proc_noise:         [0]
+        GPS-IIA:
+            emp_dyb_0:
+                apriori_val: [+3.6476e-08, -8.6715e-10, -1.1070e-09]
+            emp_dyb_1c:
+                apriori_val: [2.3015e-09, 0.0, 4.9846e-10]
+            emp_dyb_1s:
+                apriori_val: [8.2564e-11, 0.0, 1.4100e-09]
+            emp_dyb_2c:
+                apriori_val: [2.6432e-10, 0.0, 0.0]
+            emp_dyb_2s:
+                apriori_val: [-1.4925e-09, 0.0, 0.0]
+            emp_dyb_4c:
+                apriori_val: [1.5456e-09, 0.0, 0.0]
+            emp_dyb_4s:
+                apriori_val: [3.8351e-10, 0.0, 0.0]
+        GPS-IIR-A:
+            emp_dyb_0:
+                apriori_val: [+8.53e-09, 8.97e-10, 1.5e-09]
+            emp_dyb_1c:
+                apriori_val: [-1.75e-09, 0, 8.02e-10]
+            emp_dyb_1s:
+                apriori_val: [-6.16e-11, 0, 1.42e-10]
+            emp_dyb_2c:
+                apriori_val: [-1.50e-09, 0, 0]
+            emp_dyb_2s:
+                apriori_val: [+2.20e-10, 0, 0]
+            emp_dyb_4c:
+                apriori_val: [+1.86e-09, 0, 0]
+            emp_dyb_4s:
+                apriori_val: [-5.52e-11, 0, 0]
+        GPS-IIR-B:
+            emp_dyb_0:
+                apriori_val: [+7.97e-09, -8.94e-11, 2.25e-09]
+            emp_dyb_1c:
+                apriori_val: [-2.97e-09, 0, -8.82e-10]
+            emp_dyb_1s:
+                apriori_val: [+1.47e-11, 0, +4.28e-11]
+            emp_dyb_2c:
+                apriori_val: [-8.06e-10, 0, 0]
+            emp_dyb_2s:
+                apriori_val: [+7.33e-10, 0, 0]
+            emp_dyb_4c:
+                apriori_val: [+2.50e-09, 0, 0]
+            emp_dyb_4s:
+                apriori_val: [+4.37e-10, 0, 0]
+        GPS-IIR-M:
+            emp_dyb_0:
+                apriori_val: [+1.15e-08, 6.01e-10, 1.82e-09]
+            emp_dyb_1c:
+                apriori_val: [-1.75e-09, 0, 1.33e-09]
+            emp_dyb_1s:
+                apriori_val: [+5.01e-11, 0, 4.60e-10]
+            emp_dyb_2c:
+                apriori_val: [-1.95e-09, 0, 0]
+            emp_dyb_2s:
+                apriori_val: [-6.13e-10, 0, 0]
+            emp_dyb_4c:
+                apriori_val: [+1.69e-09, 0, 0]
+            emp_dyb_4s:
+                apriori_val: [-9.45e-10, 0, 0]
+        GPS-IIF:
+            emp_dyb_0:
+                apriori_val: [-3.44e-08, -4.32e-11, 3.07e-10]
+            emp_dyb_1c:
+                apriori_val: [+5.13e-10, 0, 6.85e-10]
+            emp_dyb_1s:
+                apriori_val: [-4.86e-13, 0, 2.51e-10]
+            emp_dyb_2c:
+                apriori_val: [-9.48e-10, 0, 0]
+            emp_dyb_2s:
+                apriori_val: [+3.29e-10, 0, 0]
+            emp_dyb_4c:
+                apriori_val: [+5.11e-10, 0, 0]
+            emp_dyb_4s:
+                apriori_val: [+3.95e-10, 0, 0]
+        GPS:
+            L1W:
+                code_bias:
+                    sigma:              [1e-8]      # this implements B(s,GPS-L1W)=0
+                    process_noise:      [0]
+                    apriori_value:      [0]
+            L2W:
+                code_bias:
+                    sigma:              [1e-8]      # this implements B(s,GPS-L2W)=0
+                    process_noise:      [0]
+                    apriori_value:      [0]
+    eop:
+        #estimated:  [true]
+        sigma:      [10]
+>>>>>>> assumeLinear
+
+

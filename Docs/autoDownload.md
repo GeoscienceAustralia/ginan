@@ -3,7 +3,7 @@
 
 The auto download script available in the `scripts` directory is a python tool that will automatically download various inputs needed to run Ginan
 
-The detailed feautures of each option can be found by changing to the `scripts` directory and running
+The detailed features of each option can be found by changing to the `scripts` directory and running
 
     python3 auto_download_PPP.py --help
 

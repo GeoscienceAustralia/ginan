@@ -1,0 +1,53 @@
+
+inputs:
+    include_yamls:
+        - rt_net_ppp_orbits_large.yaml
+outputs:
+    metadata:
+        config_description: rt_net_ppp_clocks
+    trace:
+        level:                  5
+satellite_options:
+    global:
+        attitude:
+            sources: [ MODEL, NOMINAL ]
+        clock:
+            sources: [ KALMAN, BROADCAST ]
+        pos:
+            sources: [ REMOTE ]
+processing_options:
+    epoch_control:
+        epoch_interval:      5
+        wait_all_stations:   2
+    gnss_general:
+        rec_reference_system:               none
+        minimise_sat_clock_offsets:         true
+        minimise_rec_bias_offsets:          false
+        sys_options:
+            gps:
+                process:                true
+            gal:
+                process:                false
+    gnss_models:
+        ionospheric_component:
+            use_if_combo: true
+    minimum_constraints:
+        enable: false
+
+remote_mongo:
+    use_predictions:    true
+    predict_states:     false
+estimation_parameters:
+    stations:
+        global:
+            pos:
+                estimated:      [false]
+    satellites:
+        global:
+            code_bias:
+                estimated:      [false]
+            orbit:
+                estimated:      [false]
+debug:
+    #instrument:                 true
+    #instrument_once_per_epoch:  true

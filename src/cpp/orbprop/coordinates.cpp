@@ -33,7 +33,8 @@ void eci2ecef(
 	double yp		= erpVal.yp;
 	double lod		= erpVal.lod;
 	double ut1_utc	= erpVal.ut1Utc;
-
+	double dx00 = 0.1725 * DMAS2R;
+	double dy00 = -0.2650 * DMAS2R;
 	IERS2010 iers;
 
 	double xp_pm	= 0;
@@ -43,22 +44,32 @@ void eci2ecef(
 	double xp_o		= 0;
 	double yp_o		= 0;
 	double ut1_o	= 0;
-	
+	double lod_o    = 0;
+
 	iers.PMGravi	(time,	ut1_utc,	xp_pm,	yp_pm,	ut1_pm,	lod_pm);
-	iers.PMUTOcean	(time,	ut1_utc,	xp_o,	yp_o,	ut1_o); //, lod_pm);
+	FundamentalArgs fundArgs(time, ut1_utc);
+
+	if (hfEop.initialized)
+	{
+		hfEop.compute(fundArgs, xp_o, yp_o, ut1_o, lod_o);
+	}
+	else
+	{
+		iers.PMUTOcean	(time,	ut1_utc,	xp_o,	yp_o,	ut1_o); //, lod_pm);
+	}
 
 	double xp_ = xp + (xp_pm + xp_o) * 1e-6 * AS2R;
 	double yp_ = yp + (yp_pm + yp_o) * 1e-6 * AS2R;
-	
+
 	ut1_utc	+= (ut1_pm + ut1_o)	* 1e-6;
 	lod		+= lod_pm			* 1e-6;
-	
+
 	MjDateUt1	mjDateUt1	(time, ut1_utc);
 	MjDateTT	mjDateTT	(time);
-	
+
 	double sp	= Sofa::iauSp	(mjDateTT);
 	double era	= Sofa::iauEra	(mjDateUt1);
-	
+
 	Matrix3d theta;
 	theta = Eigen::AngleAxisd(-era, Vector3d::UnitZ());
 
@@ -66,10 +77,11 @@ void eci2ecef(
 	double Y_iau = 0;
 	double S_iau = 0;
 	Sofa::iauXys(mjDateTT, X_iau, Y_iau, S_iau);
-	
-	Matrix<double, 3, 3, Eigen::RowMajor> RC2I;	
-	Matrix<double, 3, 3, Eigen::RowMajor> RPOM;	
-	
+	X_iau += dx00;
+	Y_iau += dy00;
+	Matrix<double, 3, 3, Eigen::RowMajor> RC2I;
+	Matrix<double, 3, 3, Eigen::RowMajor> RPOM;
+
 	iauC2ixys	(X_iau,	Y_iau,	S_iau,	(double(*)[3]) &RC2I(0,0));
 	iauPom00	(xp_,	yp_,	sp,		(double(*)[3]) &RPOM(0,0));
 
@@ -80,26 +92,26 @@ void eci2ecef(
 		Matrix3d matS = Matrix3d::Zero();
 		matS (0, 1) = +1;
 		matS (1, 0) = -1; // Derivative of Earth rotation
-	
+
 		double omega = OMGE;                       /**@todo add length of day component*/
 		Matrix3d matdTheta = omega * matS * theta; // matrix [1/s]
 
 		*dU_ptr = RPOM * matdTheta * RC2I;
 	}
-	
+
 	if (xFormData_ptr)
 	{
 		auto& xFormData = *xFormData_ptr;
-		
-		xFormData.xp_pm		= xp_pm; 
-		xFormData.yp_pm		= yp_pm; 
+
+		xFormData.xp_pm		= xp_pm;
+		xFormData.yp_pm		= yp_pm;
 		xFormData.ut1_pm	= ut1_pm;
 		xFormData.lod_pm	= lod_pm;
-		xFormData.xp_o		= xp_o;  
-		xFormData.yp_o		= yp_o;  
-		xFormData.ut1_o		= ut1_o; 
-		xFormData.sp		= sp;    
-		xFormData.era		= era;   
+		xFormData.xp_o		= xp_o;
+		xFormData.yp_o		= yp_o;
+		xFormData.ut1_o		= ut1_o;
+		xFormData.sp		= sp;
+		xFormData.era		= era;
 	}
 }
 
@@ -119,7 +131,7 @@ VectorEcef pos2ecef(
 	ecef[0] = (v		+pos.hgt())	* cosp * cosl;
 	ecef[1] = (v		+pos.hgt())	* cosp * sinl;
 	ecef[2] = (v*(1-e2)	+pos.hgt())	* sinp;
-	
+
 	return ecef;
 }
 
@@ -143,17 +155,17 @@ VectorPos ecef2pos(
 		v		= RE_WGS84 / sqrt(1 - e2 * SQR(sinp));
 		z		= r[2] + v * e2 * sinp;
 	}
-	
+
 	VectorPos pos;
-	
+
 	pos.lat() = r2 > 1E-12 ? atan(z/sqrt(r2)) : (r[2] > 0 ? PI/2: -PI/2);
 	pos.lon() = r2 > 1E-12 ? atan2(r[1],r[0]) : 0;
 	pos.hgt() = sqrt(r2 + SQR(z)) - v;
-	
+
 	return pos;
 }
 
-/* ecef to local coordinate transfromation matrix 
+/* ecef to local coordinate transfromation matrix
 * args   : double *pos      I   geodetic position {lat,lon} (rad)
 *          double *E        O   ecef to local coord transformation matrix (3x3)
 * notes  : matirix stored by column-major order (fortran convention)*/
@@ -172,16 +184,16 @@ void pos2enu(
 }
 
 /* transform ecef vector to local tangental coordinates
- */
+*/
 VectorEnu ecef2enu(
 	const	VectorPos&	pos,	///< geodetic position {lat,lon} (rad)
 	const	VectorEcef&	ecef)	///< vector in ecef coordinate {x,y,z}
 {
 	Matrix3d E;
 	pos2enu(pos, E.data());
-	
+
 	VectorEnu enu = (Vector3d) (E * ecef);
-	
+
 	return enu;
 // 	std::cout << "e\n" << e.transpose() << std::endl;
 }
@@ -194,9 +206,9 @@ VectorEcef enu2ecef(
 {
 	Matrix3d E;
 	pos2enu(pos, E.data());
-	
+
 	VectorEcef ecef = (Vector3d)(E.transpose() * enu);
-	
+
 	return ecef;
 // 	std::cout << "E\n" << E << std::endl;
 }
@@ -204,14 +216,14 @@ VectorEcef enu2ecef(
 /** transform vector in body frame to ecef
 */
 VectorEcef body2ecef(
-	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of body frame) in ecef frame
-	Vector3d&	rBody)		///< vector in body frame
+	const	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of body frame) in ecef frame
+	const	Vector3d&	rBody)		///< vector in body frame
 {
 	Matrix3d R;
 	R << attStatus.eXBody, attStatus.eYBody, attStatus.eZBody;
-	
+
 	Vector3d ecef = R * rBody;
-			
+
 	return ecef;
 }
 
@@ -219,42 +231,40 @@ VectorEcef body2ecef(
 */
 Vector3d ecef2body(
 	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of body frame) in ecef frame
-	VectorEcef&	ecef)		///< vector in ecef frame
+	VectorEcef&	ecef,		///< vector in ecef frame
+	MatrixXd*	dEdQ_ptr)
 {
 	Matrix3d R;
 	R << attStatus.eXBody, attStatus.eYBody, attStatus.eZBody;
-	
+
 	Vector3d body = R.transpose() * ecef;
-			
+
+	if (dEdQ_ptr)
+	{
+		MatrixXd& dEdQ = *dEdQ_ptr;
+
+		dEdQ = MatrixXd(3,4);
+
+		Quaterniond quat(R.transpose());
+
+		for (int i = 0; i < 4; i++)
+		{
+			Quaterniond qCopy = quat;
+			double delta = 0.01;
+
+			if (i == 0)			qCopy.w() += delta;
+			if (i == 1)			qCopy.x() += delta;
+			if (i == 2)			qCopy.y() += delta;
+			if (i == 3)			qCopy.z() += delta;
+
+			qCopy.normalize();
+
+			dEdQ.col(i) = ((qCopy * ecef) - body) / delta;
+		}
+
+// 		std::cout << std::endl << dEdQ << std::endl;
+	}
 	return body;
-}
-
-/** transform vector in antenna frame to ecef
-*/
-VectorEcef antenna2ecef(
-	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of antenna frame) in ecef frame
-	Vector3d&	rAnt)		///< vector in antenna frame
-{
-	Matrix3d R;
-	R << attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt;
-	
-	Vector3d ecef = R * rAnt;
-			
-	return ecef;
-}
-
-/** transform vector in ecef to antenna frame
-*/
-Vector3d ecef2antenna(
-	AttStatus&	attStatus,	///< attitude (unit vectors of the axes of antenna frame) in ecef frame
-	VectorEcef&	ecef)		///< vector in ecef frame
-{
-	Matrix3d R;
-	R << attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt;
-	
-	Vector3d rAnt = R.transpose() * ecef;
-			
-	return rAnt;
 }
 
 Matrix3d ecef2rac(

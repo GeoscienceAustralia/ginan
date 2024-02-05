@@ -5,8 +5,9 @@
 
 using std::map;
 
-#include "station.hpp"
 #include "trace.hpp"
+
+struct ReceiverMap;
 
 void outputStatistics(
 	Trace&					trace,
@@ -14,5 +15,5 @@ void outputStatistics(
 	map<string, int>&		statisticsMapSum);
 
 void outputSummaries(
-	Trace&					trace,	
-	map<string, Station>&	stationMap);
+	Trace&		trace,	
+	ReceiverMap&	receiverMap);

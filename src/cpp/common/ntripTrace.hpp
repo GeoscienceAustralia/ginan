@@ -1,8 +1,8 @@
-#ifndef ACS_RTCM_TRACE
-#define ACS_RTCM_TRACE
 
-#include "navigation.hpp"
+#pragma once
+
 #include "satSys.hpp"
+#include "gTime.hpp"
 #include "enums.h"
 
 #include <iostream>
@@ -49,5 +49,3 @@ struct NetworkStatistics
 		string 								operation);
 };
 
-
-#endif

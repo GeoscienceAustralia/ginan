@@ -16,7 +16,7 @@ using std::string;
 struct FileLog : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {
 	static string path_log;
-	// The function consumes the log records that come from the frontend
+	
 	void consume(
 		boost::log::record_view																	const&	rec,
 		sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	log_string);

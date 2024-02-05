@@ -20,7 +20,7 @@ Receiver position results are preceded by the `$POS` label and thus, in Linux, c
 
     grep "$POS" <path_to_trace_file>
 
-the output line for the for receiver position will have comma separated fields with the following format:
+the output line for the receiver position will have comma separated fields with the following format:
 
     $POS, 2166, 278015.000, -4052053.0060, 4212836.8682, -2545105.0796, 0.0245227, 0.0231919, 0.0163678
 

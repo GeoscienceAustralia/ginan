@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 #include <limits>
-#include <math.h>  
-#include <mutex>  
+#include <math.h>
+#include <mutex>
 #include <tuple>
 #include <map>
 
@@ -23,13 +23,14 @@ using std::hash;
 using std::pair;
 using std::map;
 
+#include "acsConfig.hpp"
 #include "satSys.hpp"
 #include "gTime.hpp"
 #include "trace.hpp"
 
 
 //forward declaration
-struct Station;
+struct Receiver;
 
 /** Keys used to interface with Kalman filter objects.
 * These have parameters to separate states of different 'type', for different 'Sat's, with different receiver id 'str's and may have a different 'num' (eg xyz->0,1,2)
@@ -41,13 +42,13 @@ struct KFKey
 	short int	type	= 0;			///< Key type (From enum)
 	SatSys		Sat		= {};			///< Satellite
 	string		str		= "";			///< String (receiver ID)
-	short int 	num		= 0;			///< Subkey number (eg xyz => 0,1,2)
+	int 		num		= 0;			///< Subkey number (eg xyz => 0,1,2)
 	string		comment	= "";			///< Optional comment
-	Station*	rec_ptr	= 0;			///< Pointer to station object for dereferencing
-	
+	Receiver*	rec_ptr	= 0;			///< Pointer to station object for dereferencing
+
 	bool operator ==	(const KFKey& b) const;
 	bool operator <		(const KFKey& b) const;
-	
+
 	static string emptyString()
 	{
 		KFKey key;
@@ -57,23 +58,23 @@ struct KFKey
 			if (c != '\t')
 				c = ' ';
 		}
-		
+
 		return str;
 	}
-	
+
 	operator string() const
 	{
 		char buff[100];
-		snprintf(buff, sizeof(buff), "%10s\t%4s\t%4s\t%5d", KF::_from_integral(type)._to_string(), Sat.id().c_str(), str.c_str(), num); 
+		snprintf(buff, sizeof(buff), "%10s\t%4s\t%4s\t%5d", KF::_from_integral(type)._to_string(), Sat.id().c_str(), str.c_str(), num);
 		string str = buff;
 
 		return str;
 	}
-	
+
 	string commaString() const
 	{
 		char buff[100];
-		snprintf(buff, sizeof(buff), "%s,%s,%s,%d", KF::_from_integral(type)._to_string(), Sat.id().c_str(), str.c_str(), num); 
+		snprintf(buff, sizeof(buff), "%s,%s,%s,%d", KF::_from_integral(type)._to_string(), Sat.id().c_str(), str.c_str(), num);
 		string str = buff;
 		to_lower(str);
 
@@ -84,10 +85,10 @@ struct KFKey
 	{
 		string str = kfKey;
 		os << str;
-		
+
 		return os;
 	}
-	
+
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
 	{
@@ -96,7 +97,7 @@ struct KFKey
 		ar & num;
 		ar & type;
 		ar & comment;
-    }
+	}
 
 };
 
@@ -135,6 +136,31 @@ struct SubState
 	double				x;			///< Value for this state
 };
 
+
+struct ComponentsDetails
+{
+	double	value	= 0;
+	string	eq;					//not valid after combinations
+	double	var		= 0;
+
+
+	ComponentsDetails& operator+=(const ComponentsDetails& rhs)
+	{
+		value	+=	rhs.value;
+		var		+=	rhs.var;
+		return *this;
+	}
+
+	ComponentsDetails operator*(double rhs)
+	{
+		ComponentsDetails newDetails = *this;
+		newDetails.value	*= rhs;
+		newDetails.var		*= rhs;
+		newDetails.var		*= rhs;
+		return newDetails;
+	}
+};
+
 /** Object to hold measurements, design matrices, and residuals for multiple observations
 */
 struct KFMeas
@@ -148,10 +174,10 @@ struct KFMeas
 	MatrixXd	H;							///< Design matrix between measurements and state
 	MatrixXd	H_star;						///< Design matrix between measurements and noise states
 
-	vector<KFKey>												obsKeys;					///< Optional labels for reporting when measurements are removed etc.
-	vector<map<string, void*>>									metaDataMaps;
-	vector<vector<tuple<E_Component, double, string, double>>>	componentLists;	
-	
+	vector<KFKey>									obsKeys;					///< Optional labels for reporting when measurements are removed etc.
+	vector<map<string, void*>>						metaDataMaps;
+	vector<map<E_Component, ComponentsDetails>>		componentsMaps;
+
 	void removeMeas(int index)
 	{
 		vector<int> keepIndices;
@@ -173,7 +199,7 @@ struct KFMeas
 		H		= ( H		(keepIndices, all)			).eval();
 		H_star	= ( H_star	(keepIndices, all)			).eval();
 	}
-	
+
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
 	{
@@ -181,16 +207,16 @@ struct KFMeas
 		int cols = H.cols();
 		ar & rows;
 		ar & cols;
-		
-		if (ARCHIVE::is_saving::value) 
+
+		if (ARCHIVE::is_saving::value)
 		{
 			//just wrote this, we are writing
 			map<pair<int, int>, double>	H2;
-			
+
 			ar & obsKeys;
 			ar & time;
 			ar & VV;
-			
+
 			for (int i = 0; i < rows; i++)
 			for (int j = 0; j < cols; j++)
 			{
@@ -200,23 +226,23 @@ struct KFMeas
 					H2[{i,j}] = value;
 				}
 			}
-			
+
 			ar & H2;
 		}
 		else
 		{
 			//we're reading
 			map<pair<int, int>, double>	H2;
-			
+
 			ar & obsKeys;
 			ar & time;
 			ar & VV;
 			ar & H2;
-			
+
 			H = MatrixXd::Zero(rows,cols);
 			R = MatrixXd::Zero(rows,rows);
 			V = VectorXd::Zero(rows);
-			
+
 			for (auto & [index, value] : H2)
 			{
 				H(index.first, index.second) = value;
@@ -231,28 +257,41 @@ struct InitialState
 {
 	double	estimate	= false;
 	double	x			= 0;	///< State value
-	double	P			= 0;	///< State Covariance
+	double	P			= -1;	///< State Covariance
 	double	Q			= 0;	///< Process Noise, -ve indicates infinite (throw away state)
 	double	tau			= -1;	///< Correlation Time, default to -1 (inf) (Random Walk)
 	double	mu			= 0;	///< Desired Mean Value
 	string	comment;
 };
 
+struct KFStatistics
+{
+	double averageRatio	= 0;
+	double sumOfSquares	= 0;
+};
+
 struct KFState;
 struct KalmanModel;
 struct KFMeasEntry;
-struct KFStatistics;
 
 InitialState initialStateFromConfig(
-	KalmanModel&	kalmanModel,
-	int				index = 0);
+	const KalmanModel&	kalmanModel,
+	int					index = 0);
 
 typedef std::ostream		Trace;
-typedef vector<KFMeas>		KFMeasList;
-typedef vector<KFMeasEntry>	KFMeasEntryList;
 
-typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, const	KFKey&	key);
-typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, 			int		index);
+struct KFMeasList : vector<KFMeas>
+{
+
+};
+
+struct KFMeasEntryList : vector<KFMeasEntry>
+{
+
+};
+
+typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, const	KFKey&	key,	bool postFit);
+typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, 			int		index,	bool postFit);
 
 struct Exponential
 {
@@ -266,13 +305,14 @@ struct Exponential
 *
 * This object performs all operations on the kalman filter to ensure that edge cases are included and state kept in a valid configuration.
 */
-struct KFState_
+struct KFState_ : FilterOptions
 {
 	bool		lsqRequired		= false;				///< Uninitialised parameters require least squares calculation
 
 	GTime		time = {};
 	VectorXd	x;										///< State
 	MatrixXd	P;										///< State Covariance
+	MatrixXd	Pp;										///< State Covariance update
 	VectorXd	dx;										///< Last filter update
 
 	map<KFKey, short int>								kfIndexMap;			///< Map from key to indexes of parameters in the state vector
@@ -288,59 +328,43 @@ struct KFState_
 
 	vector<StateRejectCallback> 						stateRejectCallbacks;
 	vector<MeasRejectCallback> 							measRejectCallbacks;
-		
+
 	map<string, string>									metaDataMap;
 
 	bool		chiQCPass				= false;
 	double		chi						= 0;
 	int			dof						= 0;
 
-	bool		sigma_check				= true;
-	bool		w_test					= false;
-	bool		chi_square_test			= false;
-	E_ChiSqMode	chi_square_mode			= E_ChiSqMode::NONE;
-	double		sigma_threshold			= 4;
-
 	string		id						= "KFState";
-	
+
 	string		suffix					= "";
-	
+
 	string		rts_basename			= "";
 	int			rts_lag					= 0;
 
-	int			max_filter_iter			= 1;
-	int			max_prefit_remv			= 0;
-
 	bool		output_residuals		= false;
 	bool		outputMongoMeasurements	= false;
-	bool		simulate_filter_only	= false;
-
-	E_Inverter	inverter				= E_Inverter::LDLT;
 
 	map<string, int>	statisticsMap;
 	map<string, int>	statisticsMapSum;
-	
-// 	MatrixXd	Z;										///< Permutation Matrix
-// 	map<KFKey, map<KFKey, double>>						ZTransitionMap;
-// 	map<KFKey, double>									ZAdditionMap;
 };
 
 
 struct KFState : KFState_
 {
 	mutex kfStateMutex;
-	
+
 	static const KFKey oneKey;
-	
+
 	KFState(
-		const KFState &kfState) 
-	:	KFState_		(kfState),	
-		kfStateMutex	()		
+		const KFState &kfState)
+	:	KFState_		(kfState),
+		kfStateMutex	()
 	{
 		//dont use same rts file unless explicitly copied
 		rts_basename.clear();
 	}
-	
+
 	KFState()
 	{
 		//initialise all filter state objects with a ONE element for later use.
@@ -350,23 +374,23 @@ struct KFState : KFState_
 		dx			= VectorXd	::Zero(1);
 
 		kfIndexMap[oneKey]	= 0;
-		
+
 		initFilterEpoch();
 	}
-	
+
 	KFState& operator=(
 		const KFState& kfState)
-    {
+	{
 		KFState_* thisKfState_ = (KFState_*)this;
 		KFState_* thatKfState_ = (KFState_*)&kfState;
-		
+
 		*thisKfState_ = *thatKfState_;
-		
+
 		//dont use same rts file unless explicitly copied
 		rts_basename.clear();
-		
-        return *this;
-    }
+
+		return *this;
+	}
 
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
@@ -375,69 +399,92 @@ struct KFState : KFState_
 		ar & time;
 		ar & x;
 		ar & dx;
-		ar & P;
+
+		double num;
+		int rows = P.rows();
+		ar & rows;
+
+		if (ARCHIVE::is_saving::value)
+		{
+			for (int i = 0; i <  P.rows();	i++)
+			for (int j = 0; j <= i;			j++)
+			{
+				num = P(i,j);
+
+				ar & num;
+			}
+		}
+		else
+		{
+			P = MatrixXd(rows,rows);
+
+			for (int i = 0; i <  P.rows();	i++)
+			for (int j = 0; j <= i;			j++)
+			{
+				ar & num;
+
+				P(i,j) = num;
+				P(j,i) = num;
+			}
+		}
 	}
-	
+
 	void	initFilterEpoch();
 
 	int		getKFIndex(
-		const	KFKey		key)
+		const	KFKey&		key)
 	const;
 
 	int		getNoiseIndex(
-		const	KFKey		key)
+		const	KFKey&		key)
 	const;
 
 	bool	getKFValue(
-		const	KFKey		key,
+		const	KFKey&		key,
 				double&		value,
 				double*		variance		= nullptr,
 				double*		adjustment_ptr	= nullptr)
 	const;
 
 	bool	getKFSigma(
-		const	KFKey		key,
+		const	KFKey&		key,
 				double&		sigma);
 
-	bool	setKFNoise(
-		const	KFKey		key,
-				double		value);
-	
 	bool	addKFState(
-		const	KFKey			kfKey,
-		const	InitialState	initialState = {});
-	
+		const	KFKey&			kfKey,
+		const	InitialState&	initialState = {});
+
 	void	setExponentialNoise(
-		const	KFKey			kfKey,
+		const	KFKey&			kfKey,
 		const	Exponential		exponential);
 
 	void setAccelerator(
-		const	KFKey			element,
-		const	KFKey			dotElement,
-		const	KFKey			dotDotElement,
+		const	KFKey&			element,
+		const	KFKey&			dotElement,
+		const	KFKey&			dotDotElement,
 		const	double			value,
-		const	InitialState	initialState = {});
-	
+		const	InitialState&	initialState = {});
+
 	void	setKFTrans(
-		const	KFKey			dest,
-		const	KFKey			source,
+		const	KFKey&			dest,
+		const	KFKey&			source,
 		const	double			value,
-		const	InitialState	initialState = {});
+		const	InitialState&	initialState = {});
 
 	void	setKFTransRate(
-		const	KFKey			integral,
-		const	KFKey			rate,
+		const	KFKey&			integral,
+		const	KFKey&			rate,
 		const	double			value,
-		const	InitialState	initialRateState		= {},
-		const	InitialState	initialIntegralState	= {});
+		const	InitialState&	initialRateState		= {},
+		const	InitialState&	initialIntegralState	= {});
 
 	void	addNoiseElement(
-		const	KFKey			obsKey,
+		const	KFKey&			obsKey,
 		const	double			variance);
 
 	void	removeState(
-		const	KFKey kfKey);
-	
+		const	KFKey&			kfKey);
+
 	void	noiseElementStateTransition();
 
 	void	stateTransition(
@@ -452,8 +499,8 @@ struct KFState : KFState_
 		MatrixXd&	procNoise);
 
 	void	preFitSigmaCheck(
-		Trace&			trace,	
-		KFMeas&			kfMeas,	
+		Trace&			trace,
+		KFMeas&			kfMeas,
 		KFKey&			badStateKey,
 		int&			badMeasIndex,
 		KFStatistics&	statistics,
@@ -494,19 +541,19 @@ struct KFState : KFState_
 		int			numH);
 
 	double innovChiSquare(
-		Trace&		trace,	
-		KFMeas&		kfMeas,	
+		Trace&		trace,
+		KFMeas&		kfMeas,
 		int			begX,
 		int			numX,
 		int			begH,
 		int			numH);
 
-	int	kFilter(
-		Trace&			trace,	
-		KFMeas&			kfMeas,	
-		VectorXd&		xp,   	
-		MatrixXd&		Pp,   	
-		VectorXd&		dx,		
+	bool kFilter(
+		Trace&			trace,
+		KFMeas&			kfMeas,
+		VectorXd&		xp,
+		MatrixXd&		Pp,
+		VectorXd&		dx,
 		int				begX	=  0,
 		int				numX	= -1,
 		int				begH	=  0,
@@ -522,12 +569,12 @@ struct KFState : KFState_
 		string			suffix	= "",
 		int				begX	=  0,
 		int				numX 	= -1);
-	
+
 	void outputConditionNumber(
 		Trace&		trace);
-	
+
 	void	outputCorrelations(
-		Trace&		trace);	
+		Trace&		trace);
 
 	void	outputMeasurements(
 		Trace&		trace,
@@ -536,29 +583,20 @@ struct KFState : KFState_
 	bool	doStateRejectCallbacks(
 		Trace&			trace,
 		KFMeas&			kfMeas,
-		KFKey&			badKey);
+		KFKey&			badKey,
+		bool			postFit);
 
 	bool	doMeasRejectCallbacks(
 		Trace&			trace,
 		KFMeas&			kfMeas,
-		int				badIndex);
+		int				badIndex,
+		bool			postFit);
 
 	void	filterKalman(
 		Trace&					trace,
 		KFMeas&					kfMeas,
 		bool					innovReady			= false,
 		vector<FilterChunk>*	filterChunkList_ptr	= nullptr);
-
-	int		filterLeastSquares(
-		Trace&			trace,
-		KFMeas&			kfMeas);
-
-	void	leastSquareInitStatesA(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		bool			initCovars	= false,
-		VectorXd*		dx			= nullptr,
-		bool			innovReady	= false);
 
 	void	leastSquareInitStates(
 		Trace&			trace,
@@ -580,60 +618,71 @@ struct KFState : KFState_
 
 	void getSubState(
 		map<KFKey, int>&	kfKeyMap,
-		KFState&			kfState)					
+		KFState&			kfState)
 	const;
 
+	KFState getSubState(
+		vector<KF>)
+	const;
+
+	void	removeState(
+		const	KFKey&			kfKey)
+	const
+	{
+		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.removeState		(kfKey);
+	}
+
 	void setExponentialNoise(
-		const	KFKey			kfKey,
+		const	KFKey&			kfKey,
 		const	Exponential		exponential)
 	const
 	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setExponentialNoise	(kfKey, exponential);	
+		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setExponentialNoise	(kfKey, exponential);
 	}
 
 	void addNoiseElement(
-		const	KFKey			kfKey,
-		const	double			variance)			
+		const	KFKey&			kfKey,
+		const	double			variance)
 	const
 	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.addNoiseElement	(kfKey, variance);	
+		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.addNoiseElement	(kfKey, variance);
 	}
-	
+
 	void addNoiseEntry(
-		const	KFKey			kfKey,		
-		const	double			value,		
-		const	double			variance)			
+		const	KFKey&			kfKey,
+		const	double			value,
+		const	double			variance)
 	const
 	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.addNoiseEntry	(kfKey, value, variance);	
-	}	
-	
+		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.addNoiseEntry	(kfKey, value, variance);
+	}
+
 	bool 	addKFState(
-		const	KFKey			kfKey,
-		const	InitialState	initialState = {})	
+		const	KFKey&			kfKey,
+		const	InitialState&	initialState = {})
 	const
 	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	return	kfState.addKFState		(kfKey, initialState);	
-	}	
-	
+		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	return	kfState.addKFState		(kfKey, initialState);
+	}
+
 	void	setKFTrans(
-		const	KFKey			dest,	
-		const	KFKey			source,
+		const	KFKey&			dest,
+		const	KFKey&			source,
 		const	double			value,
-		const	InitialState	initialState = {})	
+		const	InitialState&	initialState = {})
 	const
-	{	
+	{
 		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setKFTrans		(dest, source, value, initialState);
-	}	
-	
+	}
+
 	void	setKFTransRate(
-		const	KFKey			integral,
-		const	KFKey			rate,
+		const	KFKey&			integral,
+		const	KFKey&			rate,
 		const	double			value,
-		const	InitialState	initialRateState		= {},
-		const	InitialState	initialIntegralState	= {})	
+		const	InitialState&	initialRateState		= {},
+		const	InitialState&	initialIntegralState	= {})
 	const
-	{		
+	{
 		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	kfState.setKFTransRate	(integral, rate, value, initialRateState, initialIntegralState);
 	}
 };
@@ -646,15 +695,17 @@ struct KFMeasEntry
 {
 			KFState*					kfState_ptr			= nullptr;			///< Pointer to filter object that measurements are referencing
 	const	KFState*					constKfState_ptr	= nullptr;			///< Pointer to filter object that measurements are referencing
-	
+
+	double valid	= true;			///< Optional parameter to invalidate a measurement (to avoid needing to delete it and reshuffle a vector)
 	double value	= 0;			///< Value of measurement (for linear systems)
 	double noise	= 0;			///< Noise of measurement
 	double innov	= 0;			///< Innovation of measurement (for non-linear systems)
 	KFKey obsKey	= {};			///< Optional labels to be used in output traces
 
-	vector<tuple<E_Component, double, string, double>> componentList;
+	map<E_Component, ComponentsDetails> componentsMap;
 
 	map<KFKey,	double>		designEntryMap;
+	map<KFKey,	double>		usedValueMap;
 	map<KFKey,	double>		noiseEntryMap;
 	map<string,	void*>		metaDataMap;
 
@@ -678,7 +729,7 @@ struct KFMeasEntry
 
 	KFMeasEntry()
 	{
-		
+
 	}
 
 	/** Adds a noise element for this measurement
@@ -702,15 +753,15 @@ struct KFMeasEntry
 	/** Adds a design matrix entry for this measurement
 	*/
 	void addDsgnEntry(
-		const	KFKey					kfKey,						///< Key to determine which state parameter is affected
+		const	KFKey&					kfKey,						///< Key to determine which state parameter is affected
 		const	double					value,						///< Design matrix entry value
-		const	InitialState			initialState	= {})		///< Initial conditions for new states
+		const	InitialState&			initialState	= {})		///< Initial conditions for new states
 	{
 		if (value == 0)
 		{
 			return;
 		}
-		
+
 		if (initialState.Q < 0)
 		{
 			addNoiseEntry(kfKey, value, initialState.P);
@@ -721,6 +772,7 @@ struct KFMeasEntry
 		if (kfState_ptr)		{	kfState_ptr		->addKFState(kfKey, initialState);		}
 		if (constKfState_ptr)	{	constKfState_ptr->addKFState(kfKey, initialState);		}
 
+		usedValueMap[kfKey] = initialState.x;
 		designEntryMap[kfKey] += value;
 	}
 
@@ -766,19 +818,19 @@ struct KFMeasEntry
 };
 
 KFState mergeFilters(
-	vector<KFState*>&	kfStatePointerList,
-	bool				includeTrop = false);
+	const vector<KFState*>&	kfStatePointerList,
+	const vector<KF>&		stateList);
 
 MatrixXi correlationMatrix(
 	MatrixXd& P);
 
 void outputResiduals(
-	Trace&			trace,     
-	KFMeas&			kfMeas,		
-	int				iteration,	
+	Trace&			trace,
+	KFMeas&			kfMeas,
+	int				iteration,
 	string			suffix,
-	int				begH,		
-	int				numH);		
+	int				begH,
+	int				numH);
 
 
 bool isPositiveSemiDefinite(

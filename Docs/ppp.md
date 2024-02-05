@@ -53,7 +53,7 @@ PPP uses an Ionosphere model to make an adjustment for the effect of the Ionosph
 1. Ion temperature,
 1. Ion composition.
 
-The value of parameters vary by time of day, time period of the current Solar Cycle, Sun spot activity, latitude, longitude and height.
+The value of parameters vary by time of day, time period of the current Solar Cycle, Sunspot activity, latitude, longitude and height.
 
 The Troposphere contains the bulk of the Earth’s atmosphere and all its weather. It starts at the Earth’s surface and extends upwards to an altitude of 18 km.
 
@@ -82,7 +82,7 @@ With PPP there are two main activities:
 1. The construction and operation of the correction models to produce position correction data,
 1. The combination of that correction data with GNSS observable signals to calculate a position - typically with an accuracy of a few centimetres.
 
-The trick to being able to create high quality corrections is having access to reliable, sometimes independently sourced data that supports the use of algorithms which can deliver answers to our questions. For example, we have a GNSS receiver fixed to a point on the Earth. We know very accurately the position of that receiver because we have verified its position using GNSS-independent means. We know the receiver's physical dimensions, we have good data on its biases (electronics). Co-located with the receiver is a barometer that gives us an indication of the air pressure at the site which can be used to estimate the dry component of the Troposphere. The site is free from obstructions that could cause multipath interference. When that receiver records signals from a GNSS satellite we can look up a lot of data on that satellite. Also we are not constrained to the C/A code signals. Our receiver lets us observe the actual carrier wave signal. Suddenly we have a lot of data to answer questions like:
+The trick to being able to create high quality corrections is having access to reliable, sometimes independently sourced data that supports the use of algorithms which can deliver answers to our questions. For example, we have a GNSS receiver fixed to a point on the Earth. We know very accurately the position of that receiver because we have verified its position using GNSS-independent means. We know the receiver's physical dimensions and we have good data on its biases (electronics). Co-located with the receiver is a barometer that gives us an indication of the air pressure at the site which can be used to estimate the dry component of the Troposphere. The site is free from obstructions that could cause multipath interference. When that receiver records signals from a GNSS satellite we can look up a lot of data on that satellite. Also we are not constrained to the C/A code signals. Our receiver lets us observe the actual carrier wave signal. Suddenly we have a lot of data to answer questions like:
 
 * Is the satellite where it says it is?
 * Does it look like its clock is drifting?

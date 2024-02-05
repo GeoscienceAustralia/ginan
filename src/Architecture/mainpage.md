@@ -14,7 +14,7 @@ The functions mainOncePerEpoch(), mainOncePerEpochPerStation(), and mainOncePerE
 
 ### Main processing modes
 
-The preprocessor(), sppos(), and PPP() functions perform the majority of the GNSS-specific processing and filtering, with stationPPP() implementing most of the gnss models.
+The preprocessor(), SPP(), and PPP() functions perform the majority of the GNSS-specific processing and filtering, with stationPPP() implementing most of the gnss models.
 
 ### Key data structures used within the code include:
 

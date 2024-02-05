@@ -5,30 +5,47 @@ name: Documentation
 # events but only for the master branch
 on:
   push:
-    branches: [ main ]
+    branches: [ develop-weekly ]
 
 jobs:
   build-documentation:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
 
-    - name: Create folders
+    - name: Get appimage to generate config docs
+      uses: actions/checkout@v4
+      with:
+        ref: develop-weekly-appimage
+
+    - name: Generate config markdown doc from appimage
       run: |
-        rm Docs/markdown/readme.md
-        cp README.md Docs/markdown/readme.md
+        sudo apt-get install fuse
+        ./Ginan-x86_64.AppImage -Y 3
+        mkdir Docs
+        mv defaultConfiguration.md Docs
+
+    - name: Checkout the updated branch
+      uses: actions/checkout@v3
+      with:
+        clean: false
+
+    - name: Create folders and move readme
+      run: |
+        cp README.md Docs/readme.md
         mkdir -p src/build
-    
-    # Build the HTML documentation
-    - name: Doxygen Action
+
+    - name: List everything as debug
+      run: |
+        find
+
+    - name: Build doxygen docs from code
       uses: mattnotmitt/doxygen-action@v1.1.0
       with:
           doxyfile-path: ../doc_templates/Doxyfile.in
           working-directory: ./src/build
-    
-    # Deploy the HTML documentation to GitHub Pages
-    - name: GH Pages Deployment
+
+    - name: Deploy the HTML documentation to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -36,4 +53,4 @@ jobs:
         enable_jekyll: false
         allow_empty_commit: false
         force_orphan: true
-        publish_branch: gh-pages 
+        publish_branch: gh-pages-staging

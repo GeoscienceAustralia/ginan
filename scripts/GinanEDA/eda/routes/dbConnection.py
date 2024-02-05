@@ -1,4 +1,4 @@
-from flask import  render_template, request, session
+from flask import render_template, request, session
 from flask import current_app
 
 from pymongo.errors import ServerSelectionTimeoutError
@@ -101,7 +101,7 @@ def handle_load_request(form_data):
     mesurements = []
     geometry = []
     state = []
-    for database  in db_name:
+    for database in db_name:
         with MongoDB(connect_db_ip, port=db_port, data_base=database) as client:
             databases = client.get_list_db()
             client.get_content()
@@ -110,7 +110,7 @@ def handle_load_request(form_data):
             message.append(f"connected to {database}:  has {nsat} satellites and {nsite} sites")
             site += client.mongo_content["Site"]
             sat += client.mongo_content["Sat"]
-            series += [ f"{database}\{series}" for series in client.mongo_content["Series"]]
+            series += [f"{database}\{series}" for series in client.mongo_content["Series"]]
             if client.mongo_content["Has_measurements"]:
                 mesurements += client.mongo_content["Measurements"]
             geometry += client.mongo_content["Geometry"]
@@ -121,14 +121,13 @@ def handle_load_request(form_data):
     session["list_site"] = sorted(set(site))
     session["list_series"] = sorted(set(series))
     session["list_generic"] = ["Epoch", "Sat", "Site", "Series"]
-    session["list_geometry"] = sorted(set(geometry)) 
-    #remove list_generic from list_geometry
+    session["list_geometry"] = sorted(set(geometry))
+    # remove list_generic from list_geometry
     session["list_geometry"] = [item for item in session["list_geometry"] if item not in session["list_generic"]]
-    
+
     if client.mongo_content["Has_measurements"]:
         session["list_measurements"] = sorted(set(mesurements))
 
-    
     session["list_state"] = sorted(set(state))
     return render_template(
         "connect.jinja",

@@ -18,6 +18,7 @@ using std::pair;
 #include "observations.hpp"
 #include "instrument.hpp"
 #include "acsConfig.hpp"
+#include "receiver.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
 #include "trace.hpp"
@@ -27,7 +28,7 @@ struct RinexOutput
 	string sysDesc;
 	long headerObsPos	= 0;
 	long headerTimePos	= 0;
-	
+
 	map<E_Sys, vector<pair<E_ObsCode, E_ObsDesc>>> codesPerSys;
 };
 
@@ -40,14 +41,14 @@ string rinexSysDesc(
 	switch (sys)
 	{
 		case E_Sys::COMB:	//fallthrough
-		case E_Sys::NONE:	return "M: Mixed";		
-		case E_Sys::GPS:	return "G: GPS";		
-		case E_Sys::GLO:	return "R: GLONASS";	
-		case E_Sys::GAL:	return "E: Galileo";	
-		case E_Sys::QZS:	return "J: QZSS";		
-		case E_Sys::BDS:	return "C: BDS";		
+		case E_Sys::NONE:	return "M: Mixed";
+		case E_Sys::GPS:	return "G: GPS";
+		case E_Sys::GLO:	return "R: GLONASS";
+		case E_Sys::GAL:	return "E: Galileo";
+		case E_Sys::QZS:	return "J: QZSS";
+		case E_Sys::BDS:	return "C: BDS";
 			//case E_Sys::LEO:	return 'L';
-		case E_Sys::IRN:	return "I: IRNSS";		
+		case E_Sys::IRN:	return "I: IRNSS";
 		case E_Sys::SBS:	return "S: SBAS payload";
 		default:
 			BOOST_LOG_TRIVIAL(error) << "Error writing RINEX Navigation header unsupported system type.";
@@ -132,7 +133,7 @@ void updateRinexObsHeader(
 		string timeSysStr = "GPS"; // PEA internal time is GPS.
 
 		GEpoch ep = firstObsTime;
-		
+
 		tracepdeex(0, rinexStream, "%10.3f%50s%-20s\n",
 			acsConfig.epoch_interval,
 			"",
@@ -149,7 +150,7 @@ void updateRinexObsHeader(
 			"TIME OF FIRST OBS");
 
 		rinexOutput.headerTimePos = rinexStream.tellp();
-		
+
 		//output dummy entry to be overwritten
 		tracepdeex(0, rinexStream, "  %04.0f%6.0f%6.0f%6.0f%6.0f%13.7f     %-12s%-20s\n",
 			ep[0],
@@ -210,7 +211,7 @@ void writeRinexObsHeader(
 
 	tracepdeex(0, rinexStream, "%-20.20s%-40.40s%-20s\n",
 		"",
-		acsConfig.analysis_center,
+		acsConfig.analysis_centre,
 		"OBSERVER / AGENCY");
 
 	tracepdeex(0, rinexStream, "%-20.20s%-20.20s%-20.20s%-20s\n",
@@ -279,10 +280,10 @@ void writeRinexObsBody(
 		{
 			continue;
 		}
-		
+
 		count++;
 	}
-	
+
 	// flag epoch flag (0:ok,1:power failure,>1:event flag)
 	int		flag = 0;
 	tracepdeex(0, rinexStream, "> %04.0f %02.0f %02.0f %02.0f %02.0f%11.7f  %d%3d%21s\n",
@@ -302,7 +303,7 @@ void writeRinexObsBody(
 		{
 			continue;
 		}
-		
+
 		tracepdeex(0, rinexStream, "%s", obs.Sat.id().c_str());
 
 		auto& obsCodeDesc = fileData.codesPerSys[obs.Sat.sys];
@@ -314,7 +315,7 @@ void writeRinexObsBody(
 
 			bool foundObsPair = false;
 
-			for (auto& [ftype, sigList] : obs.SigsLists)
+			for (auto& [ftype, sigList] : obs.sigsLists)
 			for (auto& sig : sigList)
 			{
 				if (sig.code != obsCode)
@@ -372,7 +373,7 @@ void writeRinexObsBody(
 	}
 }
 
-bool updateRinexObsOutput(			
+bool updateRinexObsOutput(
 	RinexOutput&		rinexOutput,	///< Information for writing file.
 	ObsList&			obsList,		///< List of observation data
 	map<E_Sys, bool>	sysMap)			///< Options to enable outputting specific systems
@@ -381,7 +382,7 @@ bool updateRinexObsOutput(
 	for (auto& obs : only<GObs>(obsList))
 	{
 		E_Sys sys = obs.Sat.sys;
-		
+
 		if (sysMap[sys] == false)
 		{
 			continue;
@@ -389,22 +390,22 @@ bool updateRinexObsOutput(
 
 		auto& codes = rinexOutput.codesPerSys[sys];
 
-		for (auto& [ftype, sigsList] : obs.SigsLists)
+		for (auto& [ftype, sigsList] : obs.sigsLists)
 		for (auto& sig : sigsList)
 		{
 			if (sig.code == +E_ObsCode::NONE)
 				continue;
-			
+
 			pair<E_ObsCode, E_ObsDesc> codePair;
 			auto& [code, type] = codePair;
-			
+
 			code = sig.code;
-			
+
 			code = sig.code;
-			type = E_ObsDesc::C;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.P 	!= 0	&&acsConfig.rinex_obs_print_C_code)		{	foundNew = true;	codes.push_back(codePair);	}	
-			type = E_ObsDesc::L;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.L		!= 0	&&acsConfig.rinex_obs_print_L_code)		{	foundNew = true;	codes.push_back(codePair);	}		
-			type = E_ObsDesc::D;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.D		!= 0	&&acsConfig.rinex_obs_print_D_code)		{	foundNew = true;	codes.push_back(codePair);	}		
-			type = E_ObsDesc::S;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.snr	!= 0	&&acsConfig.rinex_obs_print_S_code)		{	foundNew = true;	codes.push_back(codePair);	}	
+			type = E_ObsDesc::C;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.P 	!= 0	&&acsConfig.rinex_obs_print_C_code)		{	foundNew = true;	codes.push_back(codePair);	}
+			type = E_ObsDesc::L;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.L		!= 0	&&acsConfig.rinex_obs_print_L_code)		{	foundNew = true;	codes.push_back(codePair);	}
+			type = E_ObsDesc::D;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.D		!= 0	&&acsConfig.rinex_obs_print_D_code)		{	foundNew = true;	codes.push_back(codePair);	}
+			type = E_ObsDesc::S;	if (std::find(codes.begin(), codes.end(), codePair) == codes.end()	&&sig.snr	!= 0	&&acsConfig.rinex_obs_print_S_code)		{	foundNew = true;	codes.push_back(codePair);	}
 		}
 
 		if (codes.size() == 0)
@@ -433,10 +434,10 @@ void writeRinexObsFile(
 	if (endFilePos == 0)
 	{
 		fileData = {};
-		
+
 		if (sysMap.size() == 1)		fileData.sysDesc = rinexSysDesc(sysMap.begin()->first);
 		else						fileData.sysDesc = rinexSysDesc(E_Sys::COMB);
-		
+
 		updateRinexObsOutput(fileData, obsList, sysMap);
 		writeRinexObsHeader(fileData, snx, rinexStream, time, rnxver);
 	}
@@ -459,15 +460,15 @@ void writeRinexObs(
 	const double	rnxver)
 {
 	Instrument instrument(__FUNCTION__);
-	
+
 	string filename = acsConfig.rinex_obs_filename;
-	
+
 	auto filenameSysMap = getSysOutputFilenames(filename, time, true, id);
-	
+
 	for (auto [filename, sysMap] : filenameSysMap)
 	{
 		auto& fileData = filenameObsFileDataMap[filename];
-		
+
 		writeRinexObsFile(fileData, snx, filename, obsList, time, sysMap, rnxver);
 	}
 }

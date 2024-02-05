@@ -47,7 +47,6 @@ struct SatSys
 		string 	svn;
 	};
 
-#define SBAS_CHAR 's'
 	/** Returns the character used as a prefix for this system.
 	*/
 	char sysChar()	const
@@ -61,7 +60,7 @@ struct SatSys
 			case E_Sys::BDS:	return 'C';
 			case E_Sys::LEO:	return 'L';
 			case E_Sys::IRN:	return 'I';
-			case E_Sys::SBS:	return SBAS_CHAR;
+			case E_Sys::SBS:	return 'S';
 			default:			return '-';
 		}
 	}

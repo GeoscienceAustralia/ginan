@@ -1,0 +1,277 @@
+{% extends 'base.jinja'%}
+{# {% block header %}
+<h1>{% block title %} {{ plotingpage }} {% endblock %}</h1>
+{% endblock %} #}
+
+{% block title%}
+Advanced Trace
+{% endblock %}
+{% block menuselection %}
+
+<style>
+[data-tooltip]:hover::after {
+  display: block;
+  position: absolute;
+  content: attr(data-tooltip);
+  border: 1px solid black;
+  background: #eee;
+  padding: .25em;
+}
+</style>
+
+
+<div class="row">
+<div class="col-lg-2">
+<form method="post" class="row g-5" role="form" onsubmit="return validateForm()">
+
+  <div class="col-lg-12">
+    <label for="fIP">IP:</label>
+    <input type="text" class="form-control" id="fId" name="ip" placeholder="127.0.0.1"
+    {% if selection is defined and selection['ip'] %}
+      value="{{ selection['ip']|e }}"
+    {%else%}
+      value="127.0.0.1"
+    {%endif%}
+    >
+    </div>
+  <div class="col-lg-12">
+    <label for="fDB">DB:</label>
+    <input type="text" class="form-control" id="fCoeff" name="db" placeholder="ppp_example"
+    {% if selection is defined and  selection['db'] %}value="{{ selection['db']|e }}"{% endif %}
+    >
+    </div>
+
+  <div class="col-lg-6">
+    <label for="type" class="form-label">Type:</label>
+    <br>
+    <select class="selectpicker form-control" name="type" id="type" data-container="body" data-live-search="true"
+      title="Select type">
+      {% for key_ in extra['plotType'] %}
+      {% if selection is defined and selection['type']|length and key_ in selection['type']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-lg-6">
+    <label for="fPort">Port:</label>
+    <input type="text" class="form-control" id="fPort" name="port" placeholder="27017"
+    {% if selection is defined and selection['port'] %}
+      value="{{ selection['port']|e }}"
+    {%else%}
+      value="27017"
+    {%endif%}
+    >
+    </div>
+  <div class="col-lg-6">
+    <label for="filter" class="form-label">Filter:</label>
+    <br>
+    <select class="selectpicker form-control" name="filter" id="filter" data-container="body" data-live-search="true"
+      title="Select Filter">
+      {% for key_ in extra['filterType'] %}
+      {% if selection is defined and selection['filter']|length and key_ in selection['filter']%}
+      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {%else%}
+      <option value="{{key_}}">{{key_}}</option>
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-lg-6">
+    <label for="fCoeff">Coeff:</label>
+    <input type="text" class="form-control" id="fCoeff" name="fCoeff" placeholder="0.1"
+    {% if selection is defined and  selection['fCoeff'] %}value="{{ selection['fCoeff']|e }}"{% endif %}
+    >
+    </div>
+
+
+
+  <input class="col-lg-6" type="submit" name="update" value="Update">
+  <input class="col-lg-6" type="submit" name="plot"   value="Plot">
+
+
+  <div class="col-lg-12">
+    <label for="xaxis" class="form-label">X-Axis:</label>
+    <br>
+      <select class="selectpicker form-control" name="xaxis" id="xaxis" data-container="body" data-live-search="true" title="Select xaxis" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
+
+        {% if selection is not defined%}
+          <option value="Epoch" SELECTED> Epoch </option>"
+          <option value="y">              y     </option>"
+        {%else%}
+
+          {% for value in ["y", "Epoch"] %}
+              {% if selection['xaxis'] == value %}
+                <option value="{{value}}" SELECTED> {{value}}</option>"
+              {%else%}
+                <option value="{{value}}">          {{value}}</option>"
+              {%endif%}
+          {% endfor %}
+        {%endif%}
+
+        {% if mongoIdData is defined and mongoIdData is iterable%}
+          {% for value in mongoIdData %}
+            {% if selection is not defined%}
+              <option value="_{{value}}"> {{value}}</option>"
+            {%else%}
+
+              {% if selection['xaxis']|length and value in selection['xaxis']%}
+                <option value="_{{value}}" SELECTED> {{value}}</option>"
+              {%else%}
+                <option value="_{{value}}">          {{value}}</option>"
+              {%endif%}
+            {%endif%}
+          {% endfor %}
+        {%endif%}
+      </select>
+  </div>
+
+  <div class="col-lg-12">
+    <label for="yaxis" class="form-label">Y-Axis:</label>
+    <br>
+      <select class="selectpicker form-control" name="yaxis" id="yaxis" data-container="body" data-live-search="true" title="Select yaxis" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
+
+        {% if selection is not defined%}
+          <option value="y" SELECTED>y    </option>
+          <option value="Epoch"     >Epoch</option>
+        {%else%}
+
+          {% for value in ["y", "Epoch"] %}
+              {% if selection['yaxis'] == value %}
+                <option value="{{value}}" SELECTED> {{value}}</option>
+              {%else%}
+                <option value="{{value}}">          {{value}}</option>
+              {%endif%}
+          {% endfor %}
+        {%endif%}
+
+        {% if mongoIdData is defined and mongoIdData is iterable%}
+          {% for value in mongoIdData %}
+            {% if selection is not defined%}
+              <option value="_{{value}}"> {{value}}</option>"
+            {%else%}
+
+              {% if selection['yaxis']|length and value in selection['yaxis']%}
+                <option value="_{{value}}" SELECTED> {{value}}</option>"
+              {%else%}
+                <option value="_{{value}}">          {{value}}</option>"
+              {%endif%}
+            {%endif%}
+          {% endfor %}
+        {%endif%}
+      </select>
+  </div>
+
+  <div class="col-lg-12">
+    <label for="datax" class="form-label">Data:</label>
+    <br>
+      <select multiple class="selectpicker form-control" name="datax" id="datax" data-container="body" data-live-search="true" title="Select data1" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
+
+        {% if mongoValData is defined and mongoValData is iterable%}
+          {% for value in mongoValData %}
+            {% if selection is defined and selection['datax']|length and value in selection['datax']%}
+              <option value="{{value}}" SELECTED> {{value}}</option>
+            {%else%}
+              <option value="{{value}}">          {{value}}</option>
+            {%endif%}
+          {% endfor %}
+        {%endif%}
+
+      </select>
+  </div>
+
+
+  Match
+  <div class="col-lg-12">
+
+    {% if mongoIdData is defined and mongoIdData is iterable%}
+      {% for key in mongoIdData %}
+
+        <label for="match--{{key}}" data-tooltip="{% if mongoIdKeyVals is defined and mongoIdKeyVals[key] is defined and mongoIdKeyVals[key] is iterable %}
+          {%for value in mongoIdKeyVals[key] %}
+            {{value}}
+
+
+          {% endfor %}
+        {%endif%}">{{key}}:</label>
+        <input type="text" class="form-control" id="match--{{key}}" name="match--{{key}}" placeholder="match--{{key}}"
+        {% if selection is defined and selection['match--' + key] %}value="{{ selection['match--' + key]|e }}"{% endif %}
+        >
+      {% endfor %}
+    {%endif%}
+
+
+
+    </div>
+
+  <div class="col-lg-12">
+    <label for="group" class="form-label">Group:</label>
+    <br>
+      <select multiple class="selectpicker form-control" name="group" id="group" data-container="body" data-live-search="true" title="Select groups" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
+
+        {% if mongoIdData is defined and mongoIdData is iterable%}
+          {% for value in mongoIdData %}
+            {% if selection is not defined%}
+              <option value="{{value}}" SELECTED> {{value}}</option>
+            {%else%}
+
+              {% if selection['group']|length and value in selection['group']%}
+                <option value="{{value}}" SELECTED> {{value}}</option>
+              {%else%}
+                <option value="{{value}}">          {{value}}</option>
+              {%endif%}
+            {%endif%}
+          {% endfor %}
+        {%endif%}
+
+      </select>
+  </div>
+
+
+</form>
+</div>
+<div class="col-lg-10">
+  {{ graphJSON|safe }}
+</div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script >
+function notSelectedValue(fieldId, missingField) {
+    var field = document.getElementById(fieldId);
+    var selectedIndex = field.selectedIndex;
+    console.log("selectedIndex: " + selectedIndex + " for fieldId: " + fieldId);
+    if (selectedIndex == -1) {
+      missingField.push(fieldId);
+    }
+  }
+  function validateForm() {
+    var missingField = []; // Array to store the empty fields
+
+    // Check if a value is selected in each field
+    // notSelectedValue('type', missingField);
+    // notSelectedValue('series', missingField);
+    // notSelectedValue('sat', missingField);
+    // notSelectedValue('site', missingField);
+    // notSelectedValue('xaxis', missingField);
+    // notSelectedValue('yaxis', missingField);
+    console.log(missingField)
+    if (missingField.length > 0)
+    {
+      var errorMessage = 'Please select a value in the following fields:\n\n';
+      for (var i = 0; i < missingField.length; i++)
+      {
+        errorMessage += '- ' + missingField[i] + '\n';
+      }
+      alert(errorMessage);
+      return false; // Prevent form submission
+    }
+
+    return true; // Allow form submission
+  }
+</script>
+{% endblock %}

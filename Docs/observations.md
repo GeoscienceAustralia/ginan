@@ -56,7 +56,7 @@ In these equations:
 | $b_{c}^s$ 	| satellite ionosphere-free phase bias (m)																		|
 | $\lambda_{f}$ | the signal wavelength for carrier frequency $f$(m)															|
 | $z_{r,c}^S$	| carrier phase ambiguity (cycle)																				|
-| $\phi^s_{r,f}$| Deterministic corrections (PCO,PCV,phase windup, etc.)														|
+| $\phi^s_{r,f}$| Deterministic corrections (PCO, PCV, phase windup, etc.)														|
 
 High accuracy GNSS position estimation requires precise estimation of the geometric distance  $\rho_{r}^s$. The effect of other parameters in the observation equations need to be eliminated either by modelling/estimating or, in the case of ionosphere delays, by using linear combinations.
  
@@ -64,8 +64,8 @@ For PPP processing, the geometric distance  $\rho_{r}^s$ is linearized around a-
 \begin{equation} \label{eq:rho_mean}
 \rho_{r}^{s} = \sqrt{X^{s-} - X_r^-}+\Delta X^{s} - \Delta X_r
 \end{equation}
-where $X^{s-}$ is the a-priory satellite position with respect to the earth centre and $X_r^-$ the receiver/station position.
-The satellite position can be assumed known, and read from external sources, or estimated from the GNSS measurements. When estimated by Ginan, the a-priori satellite position is defined as a function of initial satellite position, initial satellite velocity and up to 15 solar radiation pressure parameters as explained in [Orbit Modelling](#orbit-modelling) . Then the each satellite position component is linearized with respect to the orbit parameters.
+where $X^{s-}$ is the a-priori satellite position with respect to the Earth centre and $X_r^-$ the receiver/station position.
+The satellite position can be assumed known, and read from external sources, or estimated from the GNSS measurements. When estimated by Ginan, the a-priori satellite position is defined as a function of initial satellite position, initial satellite velocity and up to 15 solar radiation pressure parameters as explained in [Orbit Modelling](#orbit-modelling). Then each satellite position component is linearized with respect to the orbit parameters.
 \begin{equation} \label{eq:sat_pos_linear}
 \Delta X^{s} = - \dot {e_{rec}} {\sum{ \frac{\partial X^{s} } {\partial OP_{i} } \Delta OP_{i} }}
 \end{equation}
@@ -75,12 +75,12 @@ The station/receiver position can be assumed known (and read from a SINEX file),
 \begin{equation} \label{eq:rec_pos_linear}
 \Delta X_r =  \dot {e_{rec}} { \Delta X_r }
 \end{equation} 
-$\Delta X_r$ is the difference between the estimated and the a-priori value of $X_r$. The SPP is calculated each epoch by applying iterative least squares on pseudorange measurements (SPP is initialised at the centre of earth and updated for each of up to a 10 iterations).
+$\Delta X_r$ is the difference between the estimated and the a-priori value of $X_r$. The SPP is calculated each epoch by applying iterative least squares on pseudorange measurements (SPP is initialised at the centre of Earth and updated for each of up to a 10 iterations).
 
 Satellite clock offsets can be assumed known, and obtained from external sources, or estimated as a random walk variable. the receiver clock is modelled as a random walk variable.
 
 ## Troposphere modelling
-The tropospheric delays are separated into two components: the hydrostatic delay (dependent on temperature and pressure), and the wet delay (dependent also on humidity). Each component can be expressed as the product of a zenith delay and an elevation based mapping. 
+The tropospheric delays are separated into two components: the hydrostatic delay (dependent on temperature and pressure), and the wet delay (dependent also on humidity). Each component can be expressed as the product of a zenith delay and an elevation-based mapping. 
 \begin{equation}
  \tau_r^s = m_{H}(\theta_{el,r}^s) \tau_{ZHD,r} +  m_{W}(\theta_{el,r}^s) \tau_{ZWD,r} 
 \end{equation}
@@ -97,12 +97,12 @@ The raw ionosphere delay seem by a GNSS signal is modelled as the sum of up to t
  \begin{equation}
  I_{r}^{s'} = \frac{40.3 10^{16}}{f^{2}} STEC_r^s + \frac{7527 * 10^{16} \lambda_f (R_B \cdot e_r^s)}{f^{2}}STEC_r^s + \frac{2437.12557 * 10^{16}}{f^{4}} I3_{r}^{s}(STEC_r^{s})
 \end{equation}
-where $R_B$ is the earths geomagnetic field at the signal ionosphere piercing point, and $e_r^s$ is the normilized satellite-receiver vector. For carrier phase:
+where $R_B$ is the Earth's geomagnetic field at the signal ionosphere piercing point, and $e_r^s$ is the normalized satellite-receiver vector. For carrier phase:
  \begin{equation}
  I_{r}^{s'} = -\frac{40.3 10^{16}}{f^{2}} STEC_r^s - \frac{3763.5 * 10^{16} \lambda_f (R_B \cdot e_r^s)}{f^{2}}STEC_r^s - \frac{812.37519 * 10^{16}}{f^{4}} I3_{r}^{s}(STEC_r^{s})
 \end{equation}
 
-The way each of the three components is hadled can be sert separately:
+The way each of the three components is handled can be set separately:
 * Set to zero
 * Estimate it as a deterministic value from an external $STEC_r^s$ source
 * Estimate $STEC_r^s$, in this case third order component $I3_{r}^s(STEC_r^s)$ is linearized around an a-priori value. Slant TEC $STEC_r^s$ can be estimated as a random walk variable, or a first order Gauss-Markov process.
@@ -113,7 +113,7 @@ In addition to the raw components, estimation of ionosphere maps can also be inc
 \end{equation}
 in this case the ionosphere modelling coefficients $k_{Ion}(i)$ should be estimated as a random walk variable, while a first order Gauss-Markov model would suit the slant TEC residuals $STEC_r^s$.
 
-It is also possible to set the Ginan to use **ionosphere-free linear combinations** of measurements. When doing so, Ginan forms the following ionosphere-free combinations from any two signals (with diffferent frequencies $C1$ and $C2$) used by the receiver.
+It is also possible to set the Ginan to use **ionosphere-free linear combinations** of measurements. When doing so, Ginan forms the following ionosphere-free combinations from any two signals (with different frequencies $C1$ and $C2$) used by the receiver.
 \begin{equation}
  P_{r,IF}^{s} = \mu_{C2} P_{r,C1} - \mu_{C1} P_{r,C2} 
 \end{equation}
@@ -139,7 +139,7 @@ Four biases: code/phase on satellite/receiver side exist for each signal (define
 Ideally the PPP algorithm will seek to separate and estimate these biases. However the system of observation defined above is rank deficient, and thus additional constrains need to be applied to properly solve. 
 In the case of Ginan processing a number of pseudo-observations are available for this purpose. 
 
-**Receiver reference constellation**: when selecting a GNSS system $q$ as receiver reference, the ionosphere-free combination of receiver code biases for two signals (with diferent carrier frequencies) is set to 0:
+**Receiver reference constellation**: when selecting a GNSS system $q$ as receiver reference, the ionosphere-free combination of receiver code biases for two signals (with different carrier frequencies) is set to 0:
 \begin{equation}
 \frac{f_1^2}{f_1^2 - f_2^2} d_{r,c1}^q -  \frac{f_2^2}{f_1^2 - f_2^2} d_{r,c2}^q= 0.
 \end{equation} 
@@ -148,29 +148,29 @@ This synchronises the receiver clock with the reference GNSS constellation. It i
 **Zero receiver DCB**: when this option is on the receiver code biases for two signals, with different carrier frequencies, tracked by the receiver will set to be equal. This pseudo-observation can be used to eliminate the rank deficiency that comes from the correlation between ionosphere delays and Differential code biases. This pseudo-observation should not be used in conjunction with ionosphere mapping.   
 
 **Receiver ambiguity pivot**: when this option is on the one ambiguity per signal in the receiver is set to an arbitrary number (selected as to minimise the receiver phase bias). 
-This elimnates the rank deficiency produced by the correlation between ambiguities and receiver phase biases.
-This pseudo-observation is meant to be used in end user processng where satellite phase biases are assumed to be known.
+This eliminates the rank deficiency produced by the correlation between ambiguities and receiver phase biases.
+This pseudo-observation is meant to be used in end user processing where satellite phase biases are assumed to be known.
 
 **Satellite clock definition**: when this option is on the ionosphere-free combination of receiver code biases for two signals (defined by the ``clock_codes`` parameter, signals with different carrier frequencies must be selected) is set to 0:
 \begin{equation}
 \frac{f_1^2}{f_1^2 - f_2^2} d_{c1}^s -  \frac{f_2^2}{f_1^2 - f_2^2} d_{c2}^s= 0.
 \end{equation} 
-This pseudo-observation can be used to eliminate the rank deficiency comming from the correlation between satellite clock and satellite code biases. It also allows the satellite clock estimate to align with established standards, or to adjust the clock to specific users. 
+This pseudo-observation can be used to eliminate the rank deficiency coming from the correlation between satellite clock and satellite code biases. It also allows the satellite clock estimate to align with established standards, or to adjust the clock to specific users. 
 
 **Zero satellite DCB**: when this option is on the satellite code biases for two signals tracked by the receiver with different carrier frequencies will set to be equal. 
 As is the case for receiver DCB, this pseudo-observation responds to ionosphere-DCB rank deficiency and should not be used in conjunction with ionosphere mapping
 Note that the code are selected from those tracked by receivers, this is because the ionosphere measurements will be biased by DCBs of signals used to track the signal. 
-Use of this pseudo-observation is only recomended for constellations for wich different receivers may track completely different sets of signals (e.g. Galileo and Beidou). 
+Use of this pseudo-observation is only recommended for constellations for which different receivers may track completely different sets of signals (e.g. Galileo and Beidou). 
 For other constellations we recommend explicitly setting the satellite code bias for two signals to 0.
 
 **Common satellite phase bias**: when this option is on the satellite phase bias for signals using the same carrier frequency will be considered equal $b_{c1}^s = b_{c2}^s$
 
-**Zero code average**: when this option is on the average of satellite code biases for a constellation will be set to 0. This pseudo-observation eliminates the rank deficieny caused by correlation between satelite and receiver biases. 
-Although this rank deficiency can also ve solved by setting the code biases of a pivot station or satellite to zero, this pseudo-observation can be a substitute when there are no reliable stations in the network.  
+**Zero code average**: when this option is on the average of satellite code biases for a constellation will be set to 0. This pseudo-observation eliminates the rank deficiency caused by correlation between satellite and receiver biases. 
+Although this rank deficiency can also be solved by setting the code biases of a pivot station or satellite to zero, this pseudo-observation can be a substitute when there are no reliable stations in the network.  
 
 **Zero phase average**: when this option is on the average of satellite phase biases for a constellation will be set to 0.  
 
-**Network ambiguity pivot**: when this option is on a set of ambiguites is set to arbitrary integers.
+**Network ambiguity pivot**: when this option is on a set of ambiguities is set to arbitrary integers.
 A minimum set of ambiguities is selected to eliminate the rank deficiency produced by correlation between ambiguities, satellite phase biases and receiver phase biases.
 These pseudo-observations require setting the phase biases for a receiver or satellite to 0.
 
@@ -180,7 +180,7 @@ Aside from the biases described above, the Ginan software accounts for a number 
 
 Solid tide corrections can be applied when estimating the position of static stations. These corrections can include the effect of polar motion and ocean loading.
 
-Relativitistic effects on satellite clock are estimated according to the GPS interface control document. 
+Relativistic effects on satellite clock are estimated according to the GPS interface control document. 
 
 Relative phase windup effects are estimated from standard satellite attitude models.  
 
