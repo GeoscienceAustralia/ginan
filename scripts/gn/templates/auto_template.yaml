@@ -35,9 +35,9 @@ outputs:
 
     outputs_root:              ./outputs/
 
-    # gpx:
-    #     output:                true
-    #     filename:              <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.GPX
+    gpx:
+        output:                true
+        filename:              <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.GPX
 
     trace:
         level:                 2
