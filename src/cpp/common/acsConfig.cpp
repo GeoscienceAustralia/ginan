@@ -1576,9 +1576,9 @@ CommonOptions& CommonOptions::operator+=(
 	initDebug++;	initIfNeeded(*this, rhs, laser_sigma					);
 	initDebug++;
 	initDebug++;	initIfNeeded(*this, rhs, clock_codes					);
-	initDebug++;	initIfNeeded(*this, rhs, apriori_variance_enu			);
-	initDebug++;	initIfNeeded(*this, rhs, mincon_scale_apriori_var		);
-	initDebug++;	initIfNeeded(*this, rhs, mincon_scale_filter_var		);
+	initDebug++;	initIfNeeded(*this, rhs, apriori_sigma_enu				);
+	initDebug++;	initIfNeeded(*this, rhs, mincon_scale_apriori_sigma		);
+	initDebug++;	initIfNeeded(*this, rhs, mincon_scale_filter_sigma		);
 	initDebug++;
 	initDebug++;	initIfNeeded(*this, rhs, antenna_boresight				);
 	initDebug++;	initIfNeeded(*this, rhs, antenna_azimuth				);
@@ -1686,7 +1686,6 @@ ReceiverOptions& ReceiverOptions::operator+=(
 	initDebug++;	initIfNeeded(*this, rhs,	kill							);
 	initDebug++;	initIfNeeded(*this, rhs,	zero_dcb_codes					);
 	initDebug++;	initIfNeeded(*this, rhs,	apriori_pos						);
-	initDebug++;	initIfNeeded(*this, rhs,	apriori_variance_enu			);
 	initDebug++;	initIfNeeded(*this, rhs,	antenna_type					);
 	initDebug++;	initIfNeeded(*this, rhs,	receiver_type					);
 	initDebug++;	initIfNeeded(*this, rhs,	sat_id							);
@@ -1979,9 +1978,9 @@ void getOptionsFromYaml(
 	}{	auto& thing = comOpts.pseudo_sigma					;	setInited(comOpts,	thing,	tryGetFromYaml	(thing,	comNode,	{"0@ pseudo_sigma"						}, "Standard deviation of pseudo measurmeents"));
 	}{	auto& thing = comOpts.laser_sigma					;	setInited(comOpts,	thing,	tryGetFromYaml	(thing,	comNode,	{"0@ laser_sigma"						}, "Standard deviation of SLR laser measurements"));
 	}{	auto& thing = comOpts.clock_codes					;	setInited(comOpts,	thing,	tryGetEnumVec	(thing,	comNode,	{"3@ clock_codes"						}, "Codes for IF combination based clocks"));
-	}{	auto& thing = comOpts.apriori_variance_enu			;	setInited(comOpts,	thing,	tryGetFromYaml	(thing,	comNode,	{"4@ apriori_variance_enu"				}, "Sigma applied for weighting in mincon transformation estimation. (Lower is stronger weighting, Negative is unweighted, ENU separation unsupported for satellites)"));
-	}{	auto& thing = comOpts.mincon_scale_apriori_var		;	setInited(comOpts,	thing,	tryGetFromYaml	(thing,	comNode,	{"4@ mincon_scale_apriori_var"			}, "Scale applied to apriori variances while weighting in mincon transformation estimation"));
-	}{	auto& thing = comOpts.mincon_scale_filter_var		;	setInited(comOpts,	thing,	tryGetFromYaml	(thing,	comNode,	{"4@ mincon_scale_filter_var"			}, "Scale applied to filter variances while weighting in mincon transformation estimation"));
+	}{	auto& thing = comOpts.apriori_sigma_enu				;	setInited(comOpts,	thing,	tryGetFromYaml	(thing,	comNode,	{"4@ apriori_sigma_enu"					}, "Sigma applied for weighting in mincon transformation estimation. (Lower is stronger weighting, Negative is unweighted, ENU separation unsupported for satellites)"));
+	}{	auto& thing = comOpts.mincon_scale_apriori_sigma	;	setInited(comOpts,	thing,	tryGetFromYaml	(thing,	comNode,	{"4@ mincon_scale_apriori_sigma"		}, "Scale applied to apriori sigmas while weighting in mincon transformation estimation"));
+	}{	auto& thing = comOpts.mincon_scale_filter_sigma		;	setInited(comOpts,	thing,	tryGetFromYaml	(thing,	comNode,	{"4@ mincon_scale_filter_sigma"			}, "Scale applied to filter sigmas while weighting in mincon transformation estimation"));
 
 	}{	auto& thing = antenna_boresight						;								tryGetFromYaml	(thing,	comNode,	{"@ antenna_boresight"					}, "Antenna boresight (Up) in satellite body-fixed frame");
 	}{	auto& thing = antenna_azimuth						;								tryGetFromYaml	(thing,	comNode,	{"@ antenna_azimuth"					}, "Antenna azimuth (North) in satellite body-fixed frame");
@@ -2060,7 +2059,6 @@ void getOptionsFromYaml(
 	}{	auto& thing = recOpts.kill							;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	recNode,	{"0@ kill"										}, "Remove receiver from future processing"));
 	}{	auto& thing = recOpts.zero_dcb_codes				;	setInited(recOpts,	thing,	tryGetEnumVec	(thing,	recNode,	{"3@ zero_dcb_codes"							}));
 	}{	auto& thing = apriori_pos							;								tryGetFromYaml	(thing,	recNode,	{"4@ apriori_position"							}, "Apriori position in XYZ ECEF frame");
-	}{	auto& thing = recOpts.apriori_variance_enu			;								tryGetFromYaml	(thing,	recNode,	{"4@ apriori_variance_enu"						}, "Apriori variance in ENU ECEF frame");
 	}{	auto& thing = recOpts.antenna_type					;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	recNode,	{"4@ antenna_type"								}, "Antenna type and radome in 20 character string as per sinex"));
 	}{	auto& thing = recOpts.receiver_type					;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	recNode,	{"4@ receiver_type"								}, "Type of gnss receiver hardware"));
 	}{	auto& thing = recOpts.sat_id						;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	recNode,	{"4@ sat_id"									}, "Id for receivers that are also satellites"));

@@ -919,9 +919,9 @@ struct CommonOptions
 	double					laser_sigma					= 0.5;
 
 	vector<E_ObsCode>		clock_codes					= {};
-	vector<double>			apriori_variance_enu		= {};
-	double					mincon_scale_apriori_var	= 1;
-	double					mincon_scale_filter_var		= 0;
+	vector<double>			apriori_sigma_enu			= {};
+	double					mincon_scale_apriori_sigma	= 1;
+	double					mincon_scale_filter_sigma	= 0;
 
 	Vector3d				antenna_boresight		= { 0,  0, +1};
 	Vector3d				antenna_azimuth			= { 0, +1,  0};

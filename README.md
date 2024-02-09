@@ -2,7 +2,7 @@
 
 # Ginan: Software toolkit and service
 
-#### `Ginan v2.1.0`
+#### `Ginan v3.0.0`
 
 ## Overview
 
@@ -35,11 +35,27 @@ The software consists of three main components:
 * Precise Orbit Determination (POD), and
 * Various scripts for combination and analysis of solutions
 
+## Using Ginan with an AppImage
+
+You can quickly download a precompiled binary of Ginan's pea from the `develop-weekly-appimage` branch of github.
+
+    git clone -b develop-weekly-appimage --depth 1 --single-branch https://github.com/GeoscienceAustralia/ginan.git
+
+This contains no python scripts or example data, but is possible to run immediately on linux and windows systems as simply as:
+
+    ginan/Ginan-x86_64.AppImage
+
+or on windows:
+
+    wsl --install -d ubuntu
+    ginan/Ginan-x86_64.AppImage
+
+
 ## Using Ginan with Docker
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v2.1.0 bash
+    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v3.0.0 bash
 
 This command connects the `${host_data_folder}` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
@@ -105,7 +121,7 @@ To build every package simply run `make` or `make -jX` , where X is a number of 
 make -j2
 ```
 
-Alternatively, to build only a specific package (`pea`, `pod`, `make_otl_blq`, `interpolate_loading`), run as below:
+Alternatively, to build only a specific package (`pea`, `make_otl_blq`, `interpolate_loading`), run as below:
 
 ```bash
 make pea -j2
@@ -123,7 +139,7 @@ cd ../../exampleConfigs
 
 and you should see something similar to:
 ```
-PEA starting... (main ginan-v2.1.0 from Fri Jun 30 15:15:22 2023)
+PEA starting... (main ginan-v3.0.0 from Mon Feb 05 15:15:22 2024)
 
 Options:
   -h [ --help ]                    Help
@@ -141,10 +157,13 @@ PEA finished
 ```
 
 
-Then download all of the example data using the python script provided. From the Ginan git root directory:
+Then download all of the example data using the scripts and filelists provided. From the Ginan git root directory:
 
 ```bash
-python3 scripts/s3_filehandler.py -d -p
+cd inputData/data
+./getData.sh
+cd ../products
+./getProducts.sh
 ```
 
 ### Directory Structure
@@ -152,29 +171,30 @@ python3 scripts/s3_filehandler.py -d -p
 Upon installation, the `ginan` directory should have the following structure:
 
     ginan/
-    ├── README.md           ! General README information
-    ├── LICENSE.md          ! Software License information
-    ├── ChangeLOG.md        ! Release Change history
-    ├── aws/                ! Amazon Web Services config
-    ├── bin/                ! Binary executables directory*
-    ├── Docs/               ! Documentation directory
-    ├── inputData/          ! Input data for examples **
-    │   ├── data/           ! Example dataset (rinex files)**
-    │   └── products/       ! Example products and aux files**
-    ├── exampleConfigs      ! Example configuration files
-    │   └── Ex20x.yaml      !
-    ├── lib/                ! Compiled object library directory*
-    ├── scripts/            ! Auxiliary Python and Shell scripts and libraries
-    └── src/                ! Source code directory
-        ├── cpp/            ! Ginan source code
+    ├── README.md               ! General README information
+    ├── LICENSE.md              ! Software License information
+    ├── ChangeLOG.md            ! Release Change history
+    ├── aws/                    ! Amazon Web Services config
+    ├── bin/                    ! Binary executables directory*
+    ├── Docs/                   ! Documentation directory
+    ├── inputData/              ! Input data for examples
+    │   ├── data/               ! Example dataset (rinex files)**
+    │   └── products/           ! Example products and aux files**
+    ├── exampleConfigs          ! Example configuration files
+    │   ├── ppp_example.yaml    ! Basic user-mode example
+    │   └── pod_example.yaml    ! Basic network-mode example
+    ├── lib/                    ! Compiled object library directory*
+    ├── scripts/                ! Auxiliary Python and Shell scripts and libraries
+    └── src/                    ! Source code directory
+        ├── cpp/                ! Ginan source code
         ├── cmake/
         ├── doc_templates/
-        ├── build/          ! Cmake build directory*
+        ├── build/              ! Cmake build directory*
         └── CMakeLists.txt
 
 *\*created during installation process*
 
-*\*\*created by `s3_filehandler.py` script*
+*\*\* contents retrieved with getData.sh, getProducts.sh scripts*
 
 
 ## Documentation
@@ -217,10 +237,10 @@ To run the first example of the PEA:
 ```bash
 cd ../exampleConfigs
 
-../bin/pea --config ex201.yaml
+../bin/pea --config ppp_example.yaml
 ```
 
-This should create `outputs/ex201` directory with various `*.trace` files, which contain details about stations processing, a `Network*.trace` file, which contains the results of Kalman filtering, and other auxiliary output files as configured in the yamls.
+This should create `outputs/ppp_example` directory with various `*.trace` files, which contain details about stations processing, a `Network*.trace` file, which contains the results of Kalman filtering, and other auxiliary output files as configured in the yamls.
 
 You can remove the need for path specification to the executable by using the symlink within `exampleConfigs`, or by adding Ginan's bin directory to `~/.bashrc` file:
 ```

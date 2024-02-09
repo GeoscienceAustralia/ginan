@@ -1261,11 +1261,12 @@ void checkModels(
 		}
 	};
 
-	test("rec_phase_bias",	recOpts.phase_bias.	estimate[0], recOpts.phaseBiasModel.enable);
-	test("rec_code_bias",	recOpts.code_bias.	estimate[0], recOpts.codeBiasModel.	enable);
-	test("sat_phase_bias",	satOpts.phase_bias.	estimate[0], satOpts.phaseBiasModel.enable);
-	test("sat_code_bias",	satOpts.code_bias.	estimate[0], satOpts.codeBiasModel.	enable);
-	test("emp_d_0",			satOpts.emp_d_0.	estimate[0], satOpts.empirical);
+	test("eop",				acsConfig.pppOpts.eop.	estimate[0], recOpts.eop);
+	test("rec_phase_bias",	recOpts.phase_bias.		estimate[0], recOpts.phaseBiasModel.enable);
+	test("rec_code_bias",	recOpts.code_bias.		estimate[0], recOpts.codeBiasModel.	enable);
+	test("sat_phase_bias",	satOpts.phase_bias.		estimate[0], satOpts.phaseBiasModel.enable);
+	test("sat_code_bias",	satOpts.code_bias.		estimate[0], satOpts.codeBiasModel.	enable);
+	test("emp_d_0",			satOpts.emp_d_0.		estimate[0], satOpts.empirical);
 }
 
 

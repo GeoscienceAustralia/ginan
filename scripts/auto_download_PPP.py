@@ -17,8 +17,7 @@ from urllib.parse import urlparse
 from contextlib import contextmanager
 from datetime import datetime, timedelta, date
 
-from gnssanalysis.gn_datetime import GPSDate, gpswkD2dt
-from gnssanalysis.gn_download import check_n_download, check_n_download_url, check_file_present, decompress_file
+from gn_functions import GPSDate, gpswkD2dt, check_n_download, check_n_download_url, check_file_present, decompress_file
 
 API_URL = "https://data.gnss.ga.gov.au/api"
 

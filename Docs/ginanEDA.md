@@ -87,10 +87,15 @@ The `Clock` tab brings up the page that enables you to analyse the quality of th
 
 The `Position Analysis` tab brings up the page that enables you to analyse the quality of the estimated receiver `position` states estimated in the Ginan processing run.
 
+### Orbit Analysis
+
+The `Orbit Analysis` tab brings up a page that allows plotting of the difference between the estimated orbits and the precise orbits given in the  `inputs: pseudo_observations: sp3_inputs:` section in the config file. The orbit differences can be plotted in either the ECI XYZ or RTN coordinates frames.
+
 #### Config
 
-The Config tab brings up a page that renders the Ginan input configuration file that was used in the processing.
+The `Config` tab brings up a page that renders the Ginan input configuration file that was used in the processing.
+
 
 #### Advanced
 
-An unlinked `/advanced` tab is available to create plots with varying degrees of complexity. It requires mongo trace outputs to be enabled, and may require some understanding of mongo request structure to operate effectively.
+An unlinked `/advanced` tab is available to create plots with varying degrees of complexity. It requires mongo trace outputs to be enabled, and requires some understanding of mongo request structure to operate effectively.

@@ -1,3 +1,4 @@
+./boxwing.yaml
 ./CAS0MGXRAP_20191990000_01D_01D_DCB.BSX
 ./COD0MGXFIN_20191990000_01D_05M_ORB.SP3
 ./COD0R03FIN_20191990000_01D_01D_ERP.ERP
@@ -282,6 +283,7 @@
 ./slr/orbits/lageos1/ilrsa.orb.lageos1.190720.v71.sp3
 ./slr/sp3c-satlist.txt
 ./tables/ALOAD_GO.BLQ
+./tables/boxwing.yaml
 ./tables/DE405.1950.2050
 ./tables/DE436.1950.2050
 ./tables/EGM2008.gfc

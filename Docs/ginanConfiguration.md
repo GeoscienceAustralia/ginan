@@ -7,7 +7,7 @@ The PEA processing engine uses YAML files for configuration of all processing op
 
 To aid in the creating and editing of configuration files, the `pea` is capable of generating a tool for inspecting and outputting yaml files.
 
-Running `./pea -Y 4` will create the `GinanYamlInspector.html` file, which can be opened in a web browser. It will also output the default configuration values used in `pea` in a yaml-compatible format.
+Running `./pea -Y 4` will create the [GinanYamlInspector.html](GinanYamlInspector.html) file in the local directory, which can be opened in a web browser. It will also output the default configuration values used in `pea` in a yaml-compatible format.
 The numeric parameter can be changed to show more or less advanced configurations.
 
 To edit a template configuration file, click the `choose file` button, and load an existing yaml file.

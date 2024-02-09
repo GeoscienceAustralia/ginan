@@ -317,17 +317,17 @@ void selectAprioriSource(
 		rec.aprioriClkVar	= SQR(30);
 	}
 
-	if (recOpts.apriori_variance_enu.empty() == false)
+	if (recOpts.apriori_sigma_enu.empty() == false)
 	{
 		Matrix3d enuNoise = Matrix3d::Zero();
 		for (int i = 0; i < 3; i++)
 		{
 			int j = i;
 
-			if (j >= recOpts.apriori_variance_enu.size())
-				j = recOpts.apriori_variance_enu.size() - 1;
+			if (j >= recOpts.apriori_sigma_enu.size())
+				j = recOpts.apriori_sigma_enu.size() - 1;
 
-			enuNoise(i,i) = recOpts.apriori_variance_enu[j];
+			enuNoise(i,i) = SQR(recOpts.apriori_sigma_enu[j]);
 		}
 
 		VectorPos pos = ecef2pos(rec.aprioriPos);

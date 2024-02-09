@@ -277,8 +277,8 @@ void mincon(
 			auto& recOpts	= acsConfig.getRecOpts(rec.id);
 
 			aprioriPos		= rec.minconApriori;
-			aprioriVar		= rec.aprioriVar								* recOpts.mincon_scale_apriori_var;
-			filterVar		= kfStateStations.P.block(index, index, 3, 3)	* recOpts.mincon_scale_filter_var;
+			aprioriVar		= rec.aprioriVar								* SQR(recOpts.mincon_scale_apriori_sigma);
+			filterVar		= kfStateStations.P.block(index, index, 3, 3)	* SQR(recOpts.mincon_scale_filter_sigma);
 			str				= rec.id;
 
 			hasStations = true;
@@ -296,8 +296,8 @@ void mincon(
 			auto& satOpts = acsConfig.getSatOpts(key.Sat);
 
 			aprioriPos		= satNav.aprioriPos;
-			aprioriVar		= Matrix3d::Identity()							* satOpts.mincon_scale_apriori_var;
-			filterVar		= kfStateStations.P.block(index, index, 3, 3)	* satOpts.mincon_scale_filter_var;
+			aprioriVar		= Matrix3d::Identity()							* SQR(satOpts.mincon_scale_apriori_sigma);
+			filterVar		= kfStateStations.P.block(index, index, 3, 3)	* SQR(satOpts.mincon_scale_filter_sigma);
 			str				= key.Sat.id();
 
 			hasSatellites = true;

@@ -3,6 +3,41 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [3.0] 2024-02-05
+
+### Added
+IERS 2010 standard tide models implemeted and validated including:
+- Solid Earth (SE) Tide, 
+- SE Pole Tide, 
+- Ocean Tide Loading (OTL) 
+- Ocean Pole Tide
+- Atmosphere Tide Loading (ATL)
+
+Compact SSR standard correction output encoding/decoding implemented
+
+### Changed
+Reorganisation of the YAML configuration file to make it more logical
+
+Improved Satellite attitude models implemented for (GPS/GAL/GLO/BDS/QZS)
+
+Improved Receiver (antenna) attitude model implemented
+
+New standard IERS linear mean pole model implemented
+
+Use case examples updated
+
+EDA improvements
+
+Improved documentation
+
+### Fixed
+
+### Deprecated
+
+### Removed
+
+### Security
+
 # [2.1] 2023-07-04
 
 ### Added
