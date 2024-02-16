@@ -5,7 +5,9 @@
     These include the Earth Rotation Parameter file (ERP), the orbit
     file (SP3) and the clock file (CLK).
 """
-from datetime import date, timedelta
+
+from datetime import date as _date
+from datetime import timedelta
 from pathlib import Path
 from .parse_rinex_header import RinexHeader
 import pandas as pd
@@ -27,7 +29,7 @@ def download(header: RinexHeader, target_dir: Path) -> None:
     _download_static_dependencies(start_date, end_date, target_dir)
 
 
-def _download_static_dependencies(start_date: date, end_date: date, target_dir: Path):
+def _download_static_dependencies(start_date: _date, end_date: _date, target_dir: Path):
     """Downloads dependencies from IGS for static ppp between start date and end date.
 
     :param start_date: First date to download for
@@ -43,7 +45,7 @@ def _download_static_dependencies(start_date: date, end_date: date, target_dir: 
         download_multiple_files_from_cddis(files, ftp_folder, target_dir)
 
 
-def _get_static_long_filenames(date: date) -> [str]:
+def _get_static_long_filenames(date: _date) -> [str]:
     """Deterimines the long filenames for sp3, erp and clk files for a given date,
     which will allow ginan to run ppp static.
 
@@ -55,7 +57,7 @@ def _get_static_long_filenames(date: date) -> [str]:
     # Weekly files
     week = timedelta(7)
 
-    def _first_day_of_week(date: date):
+    def _first_day_of_week(date: _date):
         return date + timedelta(days=-(date.weekday() + 1))
 
     first_day_of_week = _first_day_of_week(date)
@@ -99,7 +101,7 @@ def _get_static_long_filenames(date: date) -> [str]:
     return compressed_files
 
 
-def daterange(start_date: date, end_date: date = None):
+def daterange(start_date: _date, end_date: _date = None):
     """Generator for dates between start and end"""
     for i in range(int((end_date - start_date).days) + 1):
         yield start_date + timedelta(i)

@@ -6,6 +6,19 @@
 
 ***
 
+## Ginan Workshop Tutorial - IGNSS 2024 
+
+> [![](images/GinanWorkshopS.png) Slides from the Ginan Workshop hosted at the IGNSS 2024 conference.](resources/Ginan_Workshop_Slides_-_IGNSS_2024.pdf)
+
+> [![](images/GinanWorkshop1.png) Set Up Guide for the Ginan Workshop.](resources/Ginan_Workshop_1_Set-up_Guide_-_IGNSS_2024_-_6_Feb.pdf)
+
+> [![](images/GinanWorkshop2.png) Guide outlining how to run Ginan in the Workshop Tutorial.](resources/Ginan_Workshop_2_Running_Ginan_-_IGNSS_2024_-_6_Feb.pdf)
+
+> [![](images/GinanWorkshopD.png) Guide for those using Docker to run Ginan.](resources/Ginan_Workshop_Docker_Guide_-_IGNSS_2024_-_6_Feb.pdf)
+
+
+***
+
 ## Ginan presentations
 
 > [![](images/GinanProjectOverviewFrontSlide20210902v01.png) The Ginan project overview presentation from September 2022.](resources/GinanProjectOverview202209v01.pdf)
