@@ -377,7 +377,6 @@ target_link_libraries(ginan_core PUBLIC
 						${OPENSSL_LIBRARY_DIRS}
 						${OPENSSL_LIBRARIES}
 						dl
-						backtrace
 					)
 
 

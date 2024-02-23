@@ -45,7 +45,7 @@ EPHTYPE* selSysEphFromMap(
 	GTime																			time,
 	E_Sys																			sys,
 	E_NavMsgType																	type,
-	map<E_Sys, map<E_NavMsgType,	GMap<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
+	map<E_Sys, map<E_NavMsgType,	map<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
 {
 //	trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
 
@@ -76,7 +76,7 @@ EPHTYPE* selSatEphFromMap(
 	SatSys																		Sat,
 	E_NavMsgType																type,
 	int&																		iode,
-	map<SatSys, map<E_NavMsgType,	GMap<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
+	map<SatSys, map<E_NavMsgType,	map<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
 {
 //	trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
 

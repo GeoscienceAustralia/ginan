@@ -168,6 +168,16 @@ void minOrbitData(
 	}
 }
 
+void zeroAndPush(int index, MatrixXd& R, KFState& kfStateTrans, KFMeasEntryList& measList)
+{
+	R.row(index).setZero();
+	R.col(index).setZero();
+
+	// Add null measurement and continue, it's needed for inverse later
+	KFMeasEntry meas(&kfStateTrans);
+	measList.push_back(meas);
+}
+
 void mincon(
 	Trace&				trace,
 	KFState&			kfStateStations,
@@ -233,20 +243,10 @@ void mincon(
 
 	for (auto& [key, index] : kfStateStations.kfIndexMap)
 	{
-		auto zeroAndPush = [&]()
-		{
-			R.row(index).setZero();
-			R.col(index).setZero();
 
-			//Add null measurement and continue, its needed for inverse later,
-			KFMeasEntry meas(&kfStateTrans);
-			measList.push_back(meas);
-		};
-
-		if	( key.type != KF::REC_POS
-			&&key.type != KF::ORBIT)
+		if (key.type != KF::REC_POS && key.type != KF::ORBIT)
 		{
-			zeroAndPush();
+			zeroAndPush(index, R, kfStateTrans, measList);
 			continue;
 		}
 
@@ -254,7 +254,7 @@ void mincon(
 			&&( key.num >= 3
 			  ||acsConfig.minconOpts.constrain_orbits == false))
 		{
-			zeroAndPush();
+			zeroAndPush(index, R, kfStateTrans, measList);
 			continue;
 		}
 
@@ -289,7 +289,7 @@ void mincon(
 
 			if (satNav.aprioriPos.isZero())
 			{
-				zeroAndPush();
+				zeroAndPush(index, R, kfStateTrans, measList);
 				continue;
 			}
 
@@ -311,7 +311,7 @@ void mincon(
 		if	( aprioriVar(0,0) <= 0
 			&&acsConfig.minconOpts.transform_unweighted == false)
 		{
-			zeroAndPush();
+			zeroAndPush(index, R, kfStateTrans, measList);
 			continue;
 		}
 

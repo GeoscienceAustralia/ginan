@@ -112,7 +112,7 @@ class S3Client:
         logger.info(f"Uploading {source} to {bucket} ... {destination}")
         checksum = self.compute_checksum(source)
         metadata = {"md5checksum": checksum}
-        self.s3.upload_file(source, bucket, destination, ExtraArgs={"Metadata": metadata})
+        self.s3.upload_file(source, bucket, destination, ExtraArgs={"Metadata": metadata, "ACL":"public-read"})
         logger.info(" -> Upload completed")
         
 # #### below is to be moved in the DataTransfer class

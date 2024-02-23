@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8...3.22)
 cmake_policy(SET CMP0063 NEW)
-
+list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/openblas")
 project(ginan)
 
 include(CheckPIESupported)
@@ -144,7 +144,7 @@ find_package(OpenSSL REQUIRED)
 
 #set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer stacktrace_addr2line stacktrace_backtrace)
+find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer stacktrace_addr2line)
 
 find_package(Eigen3 3.3.0)
 include_directories(${EIGEN3_INCLUDE_DIRS})
@@ -159,8 +159,8 @@ find_package(NetCDF		REQUIRED)
 # message(STATUS "...NETCDF_C++ >>>>>>   ${NETCDF_LIBRARIES_CXX} ${NETCDF_INCLUDES_CXX}" )
 # find_package(netCDFCxx REQUIRED)
 
-set(OPENBLAS_USE_STATIC_LIBS ON)
-set(BLA_VENDOR FlexiBLAS)
+# set(OPENBLAS_USE_STATIC_LIBS ON)
+set(BLA_VENDOR open)
 
 find_package(BLAS)
 if(BLAS_FOUND)

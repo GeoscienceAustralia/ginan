@@ -19,16 +19,16 @@ using std::ofstream;
 
 /** Reset comments to their default values
  */
-// void resetCommentsToDefault()
-// {
-// 	if (!theSinex.tropDesc.				isEmpty)	{theSinex.tropDescCommentList.		clear(); 	theSinex.tropDescCommentList.		push_back("*_________KEYWORD_____________ __VALUE(S)_______________________________________");}								// TROP/DESCRIPTION
-// 	if (!theSinex.map_siteids.			empty())	{theSinex.tropSiteIdCommentList.	clear();	theSinex.tropSiteIdCommentList.		push_back("*STATION__ PT __DOMES__ T _STATION_DESCRIPTION__ _LONGITUDE _LATITUDE_ _HGT_ELI_ HGT_GEOID");}					// SITE/ID
-// 	if (!theSinex.map_receivers.		empty())	{theSinex.tropSiteRecCommentList.	clear(); 	theSinex.tropSiteRecCommentList.	push_back("*STATION__ PT SOLN T DATA_START____ DATA_END______ DESCRIPTION_________ S/N_________________ FIRMWARE___");}		// SITE/RECEIVER
-// 	if (!theSinex.map_antennas.			empty())	{theSinex.tropSiteAntCommentList.	clear(); 	theSinex.tropSiteAntCommentList.	push_back("*STATION__ PT SOLN T DATA_START____ DATA_END______ DESCRIPTION_________ S/N_________________ PCV_MODEL_");}		// SITE/ANTENNA
-// 	if (!theSinex.map_eccentricities.	empty())	{theSinex.tropSiteEccCommentList.	clear(); 	theSinex.tropSiteEccCommentList.	push_back("*                                                      _UP_____ _NORTH__ _EAST___");
-// 																									theSinex.tropSiteEccCommentList.	push_back("*STATION__ PT SOLN T DATA_START____ DATA_END______ REF _MARKER->ARP(m)____________");}							// SITE/ECCENTRICITY
-// 	if (!theSinex.tropSiteCoordMapMap.	empty())	{theSinex.tropSiteCoordCommentList.clear();		theSinex.tropSiteCoordCommentList.	push_back("*STATION__ PT SOLN T __DATA_START__ __DATA_END____ __STA_X_____ __STA_Y_____ __STA_Z_____ SYSTEM REMRK");}		// SITE/COORDINATES
-// }
+void resetCommentsToDefault()
+{
+	if (!theSinex.tropDesc				.isEmpty)	{theSinex.blockComments["TROP/DESCRIPTION"]	.clear(); 	theSinex.blockComments["TROP/DESCRIPTION"]	.push_back("*_________KEYWORD_____________ __VALUE(S)_______________________________________");}
+	if (!theSinex.map_siteids			.empty())	{theSinex.blockComments["SITE/ID"]			.clear();	theSinex.blockComments["SITE/ID"]			.push_back("*STATION__ PT __DOMES__ T _STATION_DESCRIPTION__ _LONGITUDE _LATITUDE_ _HGT_ELI_ HGT_GEOID");}
+	if (!theSinex.map_receivers			.empty())	{theSinex.blockComments["SITE/RECEIVER"]	.clear(); 	theSinex.blockComments["SITE/RECEIVER"]		.push_back("*STATION__ PT SOLN T DATA_START____ DATA_END______ DESCRIPTION_________ S/N_________________ FIRMWARE___");}
+	if (!theSinex.map_antennas			.empty())	{theSinex.blockComments["SITE/ANTENNA"]		.clear(); 	theSinex.blockComments["SITE/ANTENNA"]		.push_back("*STATION__ PT SOLN T DATA_START____ DATA_END______ DESCRIPTION_________ S/N_________________ PCV_MODEL_");}
+	if (!theSinex.map_eccentricities	.empty())	{theSinex.blockComments["SITE/ECCENTRICITY"].clear(); 	theSinex.blockComments["SITE/ECCENTRICITY"]	.push_back("*                                                      _UP_____ _NORTH__ _EAST___");
+																											theSinex.blockComments["SITE/ECCENTRICITY"]	.push_back("*STATION__ PT SOLN T DATA_START____ DATA_END______ REF _MARKER->ARP(m)____________");}
+	if (!theSinex.tropSiteCoordMapMap	.empty())	{theSinex.blockComments["SITE/COORDINATES"]	.clear();	theSinex.blockComments["SITE/COORDINATES"]	.push_back("*STATION__ PT SOLN T __DATA_START__ __DATA_END____ __STA_X_____ __STA_Y_____ __STA_Z_____ SYSTEM REMRK");}
+}
 
 /** Write out trop sinex file header
  */
@@ -487,8 +487,8 @@ void setTropSolCommentList()
 		headerFields << " " << std::setw(entry.width) << entry.type;
 	}
 
-// 	theSinex.tropSolCommentList.clear();
-// 	theSinex.tropSolCommentList.push_back("*STATION__ ____EPOCH_____" + headerFields.str());
+ 	theSinex.blockComments["TROP/SOLUTION"].clear();
+ 	theSinex.blockComments["TROP/SOLUTION"].push_back("*STATION__ ____EPOCH_____" + headerFields.str());
 }
 
 /** Set troposphere solution data
@@ -644,6 +644,8 @@ void outputTropSinex(
 	setDescription(isSmoothed);
 
 	replaceTimes(filename, acsConfig.start_epoch);
+
+	resetCommentsToDefault();
 
 	writeTropSinexToFile(filename, markerName);
 }

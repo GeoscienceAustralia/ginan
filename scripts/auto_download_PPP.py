@@ -944,8 +944,11 @@ def auto_download(
     # Assign variables based on flags
     if gpt2:
         trop_model = "gpt2"
+    else:
+        trop_model = None
     if most_recent:
         start_gpsdate = GPSDate("today")
+        start_epoch = datetime.now()
         long_filename = long_filename_cddis_cutoff(epoch=datetime.today())
 
     # Download products based on flags

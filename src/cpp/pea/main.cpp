@@ -1877,7 +1877,7 @@ int ginan(
 
 #ifdef ENABLE_PARALLELISATION
 	BOOST_LOG_TRIVIAL(info)
-	<< "Threading with max " << omp_get_thread_limit()
+	<< "Threading with max " << omp_get_num_threads()
 	<< " omp threads";
 #endif
 

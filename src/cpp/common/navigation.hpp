@@ -74,22 +74,22 @@ struct SatNav
 struct Navigation
 {
 	//these are interpolated between, dont need greater
-	map<string,							GMap<GTime, Peph>> 														pephMap;	///< precise ephemeris
-	map<string,							GMap<GTime, Pclk>> 														pclkMap;	///< precise clock
-	map<string,							GMap<GTime, Att>>													 	attMapMap;	///< attitudes
+	map<string,							map<GTime, Peph>> 														pephMap;	///< precise ephemeris
+	map<string,							map<GTime, Pclk>> 														pclkMap;	///< precise clock
+	map<string,							map<GTime, Att>>													 	attMapMap;	///< attitudes
 
 	map<string,												map<GTime, AzElMapData<Vector3d>,	std::greater<GTime>>>	dragMap;
 	map<string,												map<GTime, AzElMapData<Vector3d>,	std::greater<GTime>>>	reflectorMap;
 	map<string, 	map<E_Sys,			map<E_FType, 		map<GTime, PhaseCenterOffset,		std::greater<GTime>>>>>	pcoMap;
 	map<string, 	map<E_Sys,			map<E_FType, 		map<GTime, PhaseCenterData,			std::greater<GTime>>>>>	pcvMap;
 
-	map<SatSys,		map<E_NavMsgType,	GMap<GTime, Eph,										std::greater<GTime>>>>	ephMap;			///< GPS/QZS/GAL/BDS ephemeris
-	map<SatSys,		map<E_NavMsgType,	GMap<GTime, Geph,										std::greater<GTime>>>>	gephMap;		///< GLONASS ephemeris
-	map<SatSys,		map<E_NavMsgType,	GMap<GTime, Seph,										std::greater<GTime>>>>	sephMap;		///< SBAS ephemeris
-	map<SatSys,		map<E_NavMsgType,	GMap<GTime, Ceph,										std::greater<GTime>>>>	cephMap;		///< GPS/QZS/BDS CNVX ephemeris
-	map<E_Sys,		map<E_NavMsgType,	GMap<GTime, ION,										std::greater<GTime>>>>	ionMap;			///< ION messages
-	map<E_StoCode,	map<E_NavMsgType,	GMap<GTime, STO,										std::greater<GTime>>>>	stoMap;			///< STO messages
-	map<E_Sys,		map<E_NavMsgType,	GMap<GTime, EOP,										std::greater<GTime>>>>	eopMap;			///< EOP messages
+	map<SatSys,		map<E_NavMsgType,	map<GTime, Eph,										std::greater<GTime>>>>	ephMap;			///< GPS/QZS/GAL/BDS ephemeris
+	map<SatSys,		map<E_NavMsgType,	map<GTime, Geph,										std::greater<GTime>>>>	gephMap;		///< GLONASS ephemeris
+	map<SatSys,		map<E_NavMsgType,	map<GTime, Seph,										std::greater<GTime>>>>	sephMap;		///< SBAS ephemeris
+	map<SatSys,		map<E_NavMsgType,	map<GTime, Ceph,										std::greater<GTime>>>>	cephMap;		///< GPS/QZS/BDS CNVX ephemeris
+	map<E_Sys,		map<E_NavMsgType,	map<GTime, ION,										std::greater<GTime>>>>	ionMap;			///< ION messages
+	map<E_StoCode,	map<E_NavMsgType,	map<GTime, STO,										std::greater<GTime>>>>	stoMap;			///< STO messages
+	map<E_Sys,		map<E_NavMsgType,	map<GTime, EOP,										std::greater<GTime>>>>	eopMap;			///< EOP messages
 	map<GTime,		tec_t,																		std::greater<GTime>>	tecMap;			///< tec grid data
 	map<SatSys,		map<GTime, string,															std::greater<GTime>>>	svnMap;			///< Sat SVNs
 
