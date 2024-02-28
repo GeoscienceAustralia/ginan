@@ -35,6 +35,58 @@ The software consists of three main components:
 * Precise Orbit Determination (POD), and
 * Various scripts for combination and analysis of solutions
 
+
+## Getting started
+
+You can quickly download a ready-to-run Ginan environment using docker by running:
+
+    mkdir ginan-data
+    docker run -it -v ginan-data:/data gnssanalysis/ginan:v3.0.0 bash
+
+This command connects the `ginan-data` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
+
+You will need to have [docker](https://docs.docker.com/get-docker/) installed to use this method.
+
+To verify you have the Ginan executables available once at the Ginan command line, run:
+
+    pea --help
+
+
+### Download example dependencies
+
+Download all of the example data using the scripts and filelists provided. From `/ginan`:
+
+```bash
+cd inputData/data
+./getData.sh
+cd ../products
+./getProducts.sh
+```
+
+### Ready!
+
+Congratulations! You are now ready to trial the examples from the `exampleConfigs` directory. See Ginan's manual for detailed explanation of each example. Note that examples have relative paths to files in them and rely on the presence of `products` and `data` directories inside the `inputData` directory.
+
+The paths are relative to the `exampleConfigs` directory and hence all the examples must be run from the `exampleConfigs` directory.
+
+To run the first example of the PEA:
+
+```bash
+cd /ginan/exampleConfigs
+pea --config ppp_example.yaml
+```
+
+This should create `outputs/ppp_example` directory with various `*.trace` files, which contain details about stations processing, a `Network*.trace` file, which contains the results of Kalman filtering, and other auxiliary output files as configured in the yamls.
+
+
+### Python tools
+
+We use Python for automated process (download), postprocessing and visualisation. To use the developed tools, we recommrnd to use a virtual environment (or Anaconda equivalent). A requirements file is available in the `scripts/` directory and can be run via
+
+```python
+pip3 install -r requirements.txt
+```
+
 ## Using Ginan with an AppImage
 
 You can quickly download a precompiled binary of Ginan's pea from the `develop-weekly-appimage` branch of github.
@@ -51,22 +103,8 @@ or on windows:
     ginan/Ginan-x86_64.AppImage
 
 
-## Using Ginan with Docker
+## Installing from source
 
-You can quickly download a ready-to-run Ginan environment using docker by running:
-
-    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v3.0.0 bash
-
-This command connects the `${host_data_folder}` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
-
-You will need to have [docker](https://docs.docker.com/get-docker/) installed to use this method.
-
-To verify you have the Ginan executables available once at the Ginan command line, run:
-
-    pea --help
-
-
-## Installation from source
 ### Supported Platforms
 
 Ginan is supported and tested on the following platforms
@@ -97,14 +135,8 @@ If using gcc verion 11 or about, the minimum version of libraries are:
 
 Scripts to install dependencies for Ubuntu 18.04/20.04, 22.04, Fedora 38 are available on the `scripts/installation` directory. Users on other system might need to have a look at the `scripts/installation/generic.md` file, which contains the major steps.
 
-### Python
-
-We use Python for automated process (download), postprocessing and visualisation. To use the developed tools, we recommand to use a virtual-environement (or Anaconda equivalent). A requirements file is available in the `scripts/` directory and can be run via
-```python
-pip3 install -r requirements.txt
-```
-
 ### Build
+
 Prepare a directory to build in - it's better practice to keep this separated from the source code.
 From the Ginan git root directory:
 
@@ -225,33 +257,8 @@ The documentation can then be found at `Docs/codeDocs/index.html`.
 Note that documentation is also generated automatically if `make` is called without arguments and `doxygen` and `graphviz` dependencies are satisfied.
 
 
-## Ready!
-Congratulations! You are now ready to trial the examples from the `exampleConfigs` directory. See Ginan's manual for detailed explanation of each example. Note that examples have relative paths to files in them and rely on the presence of `products` and `data` directories inside the `inputData` directory. Make sure you've run `s3_filehandler.py` from the Build step of these instructions.
+### Acknowledgements
 
-The paths are relative to the `exampleConfigs` directory and hence all the examples must be run from the `exampleConfigs` directory.
-
-NB: Examples may be configured to use mongoDB. If you have not installed it, please set `mongo: enable` to false in the pea config files.
-
-To run the first example of the PEA:
-
-```bash
-cd ../exampleConfigs
-
-../bin/pea --config ppp_example.yaml
-```
-
-This should create `outputs/ppp_example` directory with various `*.trace` files, which contain details about stations processing, a `Network*.trace` file, which contains the results of Kalman filtering, and other auxiliary output files as configured in the yamls.
-
-You can remove the need for path specification to the executable by using the symlink within `exampleConfigs`, or by adding Ginan's bin directory to `~/.bashrc` file:
-```
-PATH="path_to_ginan_bin:$PATH"
-```
-
-## Scripts
-In addition to the Ginan binaries, [scripts](scripts.index) are available to assist with downloading input files, and viewing and comparing generated outputs.
-
-
-### Acknowledgements:
 We have used routines obtained from RTKLIB, released under a BSD-2 license, these routines have been preserved with modifications in the folder `cpp/src/rtklib`. The original source code from RTKLib can be obtained from https://github.com/tomojitakasu/RTKLIB.
 
 We have used routines obtained from Better Enums, released under the BSD-2 license, these routines have been preserved in the folder `cpp/src/3rdparty` The original source code from Better Enums can be obtained from http://github.com/aantron/better-enums.
