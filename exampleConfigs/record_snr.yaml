@@ -43,7 +43,7 @@ processing_options:
         process: true
     
 mongo:
-  enable: primary
+  enable: none
   output_trace: primary
   output_config: primary
   primary_uri: "mongodb://localhost:27017"

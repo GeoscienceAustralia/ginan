@@ -185,7 +185,7 @@ estimation_parameters:
 
 mongo:                   # Mongo is a database used to store results and intermediate values for later analysis and inter-process communication
 
-    enable:              primary                     # Enable and connect to mongo database {none,primary,secondary,both}
+    enable:              none                     # Enable and connect to mongo database {none,primary,secondary,both}
     primary_uri:         mongodb://localhost:27017   # Location and port of the mongo database to connect to
     primary_database:    <CONFIG>
     output_components:   primary                     # Output components of measurements {none,primary,secondary,both}
