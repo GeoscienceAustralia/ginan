@@ -26,7 +26,11 @@ def position() -> str:
 def handle_post_request() -> str:
     current_app.logger.info("Entering request")
     form_data = request.form
-    form = {"type": form_data.get("type"), "series": form_data.getlist("series"), "exclude": form_data.get("exclude")}
+    form = {
+        "type": form_data.get("type"),
+        "series": form_data.getlist("series"),
+        "exclude": form_data.get("exclude"),
+    }
     if form["exclude"] == "":
         form["exclude"] = 0
     else:
@@ -82,7 +86,9 @@ def handle_post_request() -> str:
         position_vector.rotate_enu()
     position_vector.data.sort()
     position_vector.data.find_minmax()
-    position_vector.data.adjust_slice(minutes_min=form["exclude"], minutes_max=form["exclude_tail"])
+    position_vector.data.adjust_slice(
+        minutes_min=form["exclude"], minutes_max=form["exclude_tail"]
+    )
     position_vector.data.get_stats()
     trace = []
     table = {}
@@ -96,10 +102,15 @@ def handle_post_request() -> str:
                     y=_data.data[_yaxis][_data.subset],
                     mode=type,
                     name=f"{_data.id}",
-                    hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>" + "%{y:.4e%}<br>" + f"{_data.id}",
+                    hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>"
+                    + "%{y:.4e%}<br>"
+                    + f"{_data.id}",
                 )
             )
-            table[f"{_data.id}"] = {"mean": _data.info[_yaxis]["mean"], "RMS": _data.info[_yaxis]["rms"]}
+            table[f"{_data.id}"] = {
+                "mean": _data.info[_yaxis]["mean"],
+                "RMS": _data.info[_yaxis]["rms"],
+            }
     fig = go.Figure(data=trace)
     fig.update_layout(
         xaxis=dict(rangeslider={"visible": True}),

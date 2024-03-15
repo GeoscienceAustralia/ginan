@@ -67,37 +67,34 @@ void mongoQueueRun()
 
 	while (1)
 	{
-		QueuedMongo* object_ptr;
-
-		//use pointer and braces to limit guard scope
+		list<QueuedMongo> localQueue;
+		//Guarding while we splice the shared queue to the local queue, which should be quick
 		{
 			lock_guard<mutex> guard(mongoQueueMutex);
-
+			// We break when the queue is empty so the thread ends and we stop burning cycles
+			// It will be restarted when more messages come in
 			if (mongoQueue.empty())
 			{
 				break;
 			}
 
-			BOOST_LOG_TRIVIAL(debug) << "Mongo queue has " << mongoQueue.size() << " entries to go";
-
-			object_ptr = &mongoQueue.front();
+			BOOST_LOG_TRIVIAL(debug) << "Mongo Queue: Splicing " << mongoQueue.size() << " entries for processing";
+			localQueue.splice(localQueue.end(), mongoQueue);
 		}
+		BOOST_LOG_TRIVIAL(debug) << "Mongo Queue: Processing " << localQueue.size() << " entries";
 
-		auto& object = *object_ptr;
-
-		switch (object.mongoType)
+		vector<string> traceJsons;
+		for (auto& object : localQueue)
 		{
-			case E_MongoType::STATES:			mongoStates			(						object.kfState,	object.mongoStatesOpts);									break;
-			case E_MongoType::RESIDUALS:		mongoMeasResiduals	(object.time,			object.kfMeas,				false,						object.suffix);		break;
-			case E_MongoType::TRACE:			mongoTrace			(object.suffix,										false);											break;
-			case E_MongoType::LIST:				mongoOutput			(object.dbEntryList,								false, object.instances,	object.suffix);		break;
+			switch (object.mongoType)
+			{
+				case E_MongoType::STATES:			mongoStates			(						object.kfState,	object.mongoStatesOpts);									break;
+				case E_MongoType::RESIDUALS:		mongoMeasResiduals	(object.time,			object.kfMeas,				false,						object.suffix);		break;
+				case E_MongoType::TRACE:			traceJsons.push_back(std::move(object.suffix));																				break;
+				case E_MongoType::LIST:				mongoOutput			(object.dbEntryList,								false, object.instances,	object.suffix);		break;
+			}
 		}
-
-		{
-			lock_guard<mutex> guard(mongoQueueMutex);
-
-			mongoQueue.pop_front();
-		}
+		mongoTrace(traceJsons, false);
 	}
 
 	lock_guard<mutex> guard(mongoQueueMutex);
@@ -158,18 +155,14 @@ void mongoTestStat(
 
 	for (auto instance : instances)
 	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+		auto mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo		= *mongo_ptr;
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[STATES_DB];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, STATES_DB);
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -200,8 +193,9 @@ void mongoTestStat(
 }
 
 void mongoTrace(
-	string	json,
-	bool	queue)
+	const vector<string>&	jsons,
+	bool					queue
+)
 {
 	auto instances = mongoInstances(acsConfig.mongoOpts.output_trace);
 	if (instances.empty())
@@ -211,12 +205,14 @@ void mongoTrace(
 
 	if (queue)
 	{
-		QueuedMongo queueEntry;
-		queueEntry.suffix		= json;
-		queueEntry.mongoType	= E_MongoType::TRACE;
+		for (auto& json : jsons)
+		{
+			QueuedMongo queueEntry;
+			queueEntry.suffix		= json;
+			queueEntry.mongoType	= E_MongoType::TRACE;
 
-		queueMongo(queueEntry);
-
+			queueMongo(queueEntry);
+		}
 		return;
 	}
 
@@ -224,27 +220,21 @@ void mongoTrace(
 
 	for (auto instance : instances)
 	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+		auto mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		string collectionName = "Trace";
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[collectionName];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Trace");
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
 
 		auto bulk = coll.create_bulk_write(bulk_opts);
-
-		auto doc = bsoncxx::from_json(json);
-
-		bulk.append(mongocxx::model::insert_one(doc.view()));
+		for (auto& json : jsons)
+		{
+			bulk.append(mongocxx::model::insert_one(bsoncxx::from_json(json)));
+		}
 
 		bulk.execute();
 	}
@@ -263,20 +253,12 @@ void mongoOutputConfig(
 
 	for (auto instance : instances)
 	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+		auto mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-
-		string collectionName = "Config";
-
-		mongocxx::collection		coll	= db[collectionName];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Config");
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -313,21 +295,14 @@ void mongoMeasSatStat(
 
 	for (auto instance : instances)
 	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+		auto mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo		= *mongo_ptr;
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-
-		string collectionName = "Geometry";
-
-		mongocxx::collection		coll	= db[collectionName];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Geometry");
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -398,21 +373,15 @@ void mongoMeasResiduals(
 
 	for (auto instance : instances)
 	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+		auto mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo		= *mongo_ptr;
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-
-		string collectionName = "Measurements";
-
-		mongocxx::collection		coll	= db[collectionName];
+		mongocxx::database		db		= getMongoDatabase(*mongo_ptr);
+		mongocxx::collection	coll	= db["Measurements"];
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -565,18 +534,15 @@ void mongoStates(
 
 	for (auto instance : instances)
 	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+		auto mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo		= *mongo_ptr;
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[opts.collection];
+		mongocxx::database		db		= getMongoDatabase(*mongo_ptr);
+		mongocxx::collection	coll	= db[opts.collection];
 
 		//todo aaron, need upsert for predicted states as per opts.upsert
 
@@ -686,18 +652,13 @@ void mongoCull(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo		= *mongo_ptr;
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
+		mongocxx::database db = getMongoDatabase(*mongo_ptr);
 
 		for (auto collection: {SSR_DB, REMOTE_DATA_DB})
 		{
-			mongocxx::collection		coll	= db[collection];
-
-			using bsoncxx::builder::basic::kvp;
+			mongocxx::collection coll = db[collection];
 
 			b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)(time - acsConfig.mongoOpts.min_cull_age)).bigTime)};
 
@@ -774,8 +735,6 @@ void mongoOutput(
 		auto bulk = coll.create_bulk_write(bulk_opts);
 
 		bool update = false;
-
-		using bsoncxx::builder::basic::kvp;
 
 		for (auto& entry : dbEntryList)
 		{

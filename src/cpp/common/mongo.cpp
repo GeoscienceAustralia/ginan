@@ -39,7 +39,7 @@ vector<E_Mongo> mongoInstances(
 void newMongoDatabase(
 	E_Mongo		instance)
 {
-	auto& mongo_ptr	= mongo_ptr_arr[instance];
+	auto mongo_ptr	= mongo_ptr_arr[instance];
 
 	if (mongo_ptr == nullptr)
 	{
@@ -50,9 +50,7 @@ void newMongoDatabase(
 	auto& mongo		= *mongo_ptr;
 	auto& config	= acsConfig.mongoOpts[instance];
 
-	auto c = mongo.pool.acquire();
-	mongocxx::client&		client	= *c;
-	mongocxx::database		db		= client[mongo.database];
+	mongocxx::database	db	= getMongoDatabase(mongo);
 
 	BOOST_LOG_TRIVIAL(info)  << "Mongo connecting to database : " << mongo.database << " @ " << config.uri;
 	try
@@ -155,17 +153,12 @@ void MongoLogSinkBackend::consume(
 {
 	for (auto instance : {E_Mongo::PRIMARY, E_Mongo::SECONDARY})
 	{
-		auto& mongo_ptr = mongo_ptr_arr[instance];
+		auto mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db	["Console"];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Console");
 
 		//add a azimuth to a chunk
 		coll.insert_one(
@@ -175,4 +168,19 @@ void MongoLogSinkBackend::consume(
 				<< finalize
 			);
 	}
+}
+
+mongocxx::database getMongoDatabase(
+	Mongo& mongo)
+{
+	auto c = mongo.pool.acquire();
+	return c->database(mongo.database);
+}
+
+mongocxx::collection getMongoCollection(
+	Mongo& mongo,
+	bsoncxx::string::view_or_value collection)
+{
+	auto database = getMongoDatabase(mongo);
+	return database[collection];
 }

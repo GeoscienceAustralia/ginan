@@ -487,8 +487,8 @@ void setTropSolCommentList()
 		headerFields << " " << std::setw(entry.width) << entry.type;
 	}
 
- 	theSinex.blockComments["TROP/SOLUTION"].clear();
- 	theSinex.blockComments["TROP/SOLUTION"].push_back("*STATION__ ____EPOCH_____" + headerFields.str());
+	theSinex.blockComments["TROP/SOLUTION"].clear();
+	theSinex.blockComments["TROP/SOLUTION"].push_back("*STATION__ ____EPOCH_____" + headerFields.str());
 }
 
 /** Set troposphere solution data

@@ -29,6 +29,8 @@ inputs:
 
     satellite_data:
         nav_files: [ brdm1990.19p ]
+        clk_files:  [ IGS2R03FIN_20191990000_01D_30S_CLK.CLK      ]
+
 
     gnss_observations:
         gnss_observations_root: ../data/

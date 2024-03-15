@@ -8,6 +8,7 @@
 
 #include "eigenIncluder.hpp"
 
+#include <unordered_map>
 #include <filesystem>
 #include <chrono>
 #include <memory>
@@ -19,6 +20,7 @@
 #include <map>
 #include <set>
 
+using std::unordered_map;
 using std::vector;
 using std::string;
 using std::tuple;
@@ -520,6 +522,7 @@ struct GlobalOptions
 	E_Sys  receiver_reference_clk = E_Sys::NONE;
 	double fixed_phase_bias_var   = 0.01;
 
+	bool	adjust_rec_clocks_by_spp	= true;
 	bool	minimise_sat_clock_offsets	= false;
 	bool	minimise_ionosphere_offsets	= false;
 
@@ -1296,7 +1299,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 {
 	vector<YAML::Node>				yamls;
 	map<string, YamlDefault>		yamlDefaults;
-	map<string, bool>				availableOptions;
+	map<string, bool>				availableOptions	= {{"yamlFilename:", true}};
 	map<string, map<string, bool>>	foundOptions;
 
 	mutex							configMutex;
@@ -1312,7 +1315,8 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	static map<string, string>			docs;
 
 	void	recurseYaml(
-		YAML::Node	node,
+		const string&		file,
+		YAML::Node			node,
 		const string&		stack		= "",
 		const string&		aliasStack	= "");
 
@@ -1331,8 +1335,8 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	SatelliteOptions&			getSatOpts				(SatSys	Sat,	const vector<string>& suffixes = {});
 	ReceiverOptions&			getRecOpts				(string	id,		const vector<string>& suffixes = {});
 
-	map<string,		SatelliteOptions>	satOptsMap;
-	map<string,		ReceiverOptions>	recOptsMap;
+	unordered_map<string,		SatelliteOptions>	satOptsMap;
+	unordered_map<string,		ReceiverOptions>	recOptsMap;
 
 	PropagationOptions			propagationOptions;
 	PreprocOptions				preprocOpts;

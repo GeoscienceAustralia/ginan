@@ -102,7 +102,7 @@ def handle_post_request() -> str:
                 _data.id["state"] = _yaxis
                 if form["xaxis"] == "Epoch":
                     _x = _data.epoch[_data.subset]
-                    x_hover_template = "%{x|%Y-%m-%d %H:%M:%S}<br>"
+                    x_hover_template = "%{x|%Y-%m-%d %H:%M:%S}<br>%{y:.9e%}<br>"
                 else:
                     _x = _data.data[form["xaxis"]][_data.subset]
                     x_hover_template = "%{x}<br>"
@@ -115,7 +115,7 @@ def handle_post_request() -> str:
                         y=_data.data[_yaxis][_data.subset],
                         mode=mode,
                         name=f"{_data.id}",
-                        hovertemplate=x_hover_template,
+                        hovertemplate=x_hover_template + "%{y:.4e%}<br>" + f"{_data.id}",
                     )
                 )
                 table[f"{_data.id}"] = {"mean": _data.info[_yaxis]["mean"], "RMS": _data.info[_yaxis]["rms"]}

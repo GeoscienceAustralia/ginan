@@ -13,6 +13,7 @@ using std::unordered_map;
 
 #include "peaCommitStrings.hpp"
 #include "observations.hpp"
+#include "mongoWrite.hpp"
 #include "navigation.hpp"
 #include "constants.hpp"
 #include "acsConfig.hpp"
@@ -119,8 +120,6 @@ void printHex(
 }
 
 
-void mongoTrace(string, bool);
-
 void traceJson(
 	int						level,
 	Trace&					trace,
@@ -159,7 +158,7 @@ void traceJson(
 	}
 	if (acsConfig.mongoOpts.output_trace)
 	{
-		mongoTrace(json, acsConfig.mongoOpts.queue_outputs);
+		mongoTrace({json}, acsConfig.mongoOpts.queue_outputs);
 	}
 }
 

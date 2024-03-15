@@ -2123,13 +2123,14 @@ SatelliteOptions& ACSConfig::getSatOpts(
 {
 	Instrument	instrument(__FUNCTION__);
 
-	lock_guard<mutex> guard(configMutex);
-
 	string fullId = Sat.id();
 	for (auto& suffix : suffixes)
 	{
-		fullId += "." + suffix;
+		fullId += ".";
+		fullId += suffix;
 	}
+
+	lock_guard<mutex> guard(configMutex);
 
 	auto& satOpts = satOptsMap[fullId];
 
@@ -2239,13 +2240,15 @@ ReceiverOptions& ACSConfig::getRecOpts(
 {
 	Instrument	instrument(__FUNCTION__);
 
-	lock_guard<mutex> guard(configMutex);
-
 	string fullId = id;
+
 	for (auto& suffix : suffixes)
 	{
-		fullId += "." + suffix;
+		fullId += ".";
+		fullId += suffix;
 	}
+
+	lock_guard<mutex> guard(configMutex);
 
 	auto& recOpts = recOptsMap[fullId];
 
@@ -2448,6 +2451,7 @@ void replaceTimes(
 }
 
 void ACSConfig::recurseYaml(
+	const string&	file,
 	YAML::Node		node,
 	const string&	stack,
 	const string&	aliasStack)
@@ -2463,10 +2467,10 @@ void ACSConfig::recurseYaml(
 
 		bool altered = false;
 
-		auto& found = foundOptions[""][newStack];
+		auto& found = foundOptions[file][newStack];
 		if (found)
 		{
-			BOOST_LOG_TRIVIAL(warning) << "Warning: Duplicate " << newStack << " entries found in config";
+			BOOST_LOG_TRIVIAL(warning) << "Warning: Duplicate " << newStack << " entries found in config file: " << file;
 		}
 		found = true;
 
@@ -2512,7 +2516,7 @@ void ACSConfig::recurseYaml(
 
 		if 		(node[key].IsMap())
 		{
-			recurseYaml(node[key], newStack, newAliasStack);
+			recurseYaml(file, node[key], newStack, newAliasStack);
 		}
 		else if (node[key].IsNull())
 		{
@@ -2852,6 +2856,7 @@ bool ACSConfig::parse(
 
 			yaml.reset();
 			yaml = YAML::LoadFile(filename);
+			yaml["yamlFilename"] = filename;
 		}
 		catch (const YAML::BadFile &e)
 		{
@@ -3234,6 +3239,8 @@ bool ACSConfig::parse(
 					tryGetStreamFromYaml(netOpts.uploadingStreamData[outLabel], streams, {outLabel});
 
 					conditionalPrefix("<ROOT_STREAM_URL>",	netOpts.uploadingStreamData[outLabel].url);
+
+					replaceTags(netOpts.uploadingStreamData[outLabel].url);
 				}
 			}
 		}
@@ -3386,6 +3393,7 @@ bool ACSConfig::parse(
 
 				tryGetEnumOpt	(receiver_reference_clk,					general, {"@ rec_reference_system"			}, "Receiver will use this system as reference clock");
 				tryGetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"			}, "Variance of phase bias to be considered fixed/binded");
+				tryGetFromYaml	(adjust_rec_clocks_by_spp,					general, {"@ adjust_rec_clocks_by_spp"		}, "Adjust receiver clocks by spp values to minimise prefit residuals");
 				tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"	}, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
 				tryGetFromYaml	(minimise_ionosphere_offsets,				general, {"@ minimise_ionosphere_offsets"	}, "Apply gauss-markov mu values to stec values to minimise offsets with respect to klobuchar values");
 
@@ -3862,7 +3870,11 @@ bool ACSConfig::parse(
 
 	for (auto& yaml : yamls)
 	{
-		recurseYaml(yaml);
+		string filename;
+		if (yaml["yamlFilename"])
+			filename = yaml["yamlFilename"].as<string>();
+
+		recurseYaml(filename, yaml);
 	}
 
 	for (auto& [stack, defaults] : acsConfig.yamlDefaults)

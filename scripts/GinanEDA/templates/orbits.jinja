@@ -57,68 +57,18 @@ Orbits
 
   <div class="col-lg-2">
     <label for="exclude">Exclude first (min):</label>
-    <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude"
-        {% if selection is defined and  selection['exclude'] %}value="{{ selection['exclude'] }}"{% endif %}
-        >
+    <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" {% if selection is defined
+      and selection['exclude'] %}value="{{ selection['exclude'] }}" {% endif %}>
   </div>
 
-    <div class="col-lg-2">
-      <label for="exclude">Exclude last (min):</label>
-      <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail"
-          {% if selection is defined and  selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}"{% endif %}
-          >
-    </div>
+  <div class="col-lg-2">
+    <label for="exclude">Exclude last (min):</label>
+    <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail" {% if
+      selection is defined and selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}" {% endif %}>
+  </div>
 
   <input type="submit" value="PLOT">
 </form>
-
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script type="text/javascript">
-  $(document).ready(function() {
-    // Function to update the options of the subset dropdown
-    function updateSubsetDropdown(selectedType) {
-      var subsetDropdown = document.getElementById('subset');
-
-      // Clear existing options
-            console.log('Options before clearing:', subsetDropdown.innerHTML);
-
-      subsetDropdown.innerHTML = '';
-      $(subsetDropdown).selectpicker('destroy');
-      $(subsetDropdown).selectpicker();
-      console.log('Options after clearing:', subsetDropdown.innerHTML);
-
-      if (selectedType === 'Site') {
-        // Populate options from session['site']
-        {% for site in session['list_site'] %}
-          subsetDropdown.innerHTML += '<option value="{{ site }}">{{ site }}</option>';
-        {% endfor %}
-      } else if (selectedType === 'Satellite') {
-        // Populate options from session['sat']
-        {% for sat in session['list_sat'] %}
-          subsetDropdown.innerHTML += '<option value="{{ sat }}">{{ sat }}</option>';
-        {% endfor %}
-      }
-      console.log('Options refill:', subsetDropdown.innerHTML);
-
-      // Refresh the selectpicker to update the dropdown UI
-      $(subsetDropdown).selectpicker('refresh');
-    }
-
-    // Event handler for type selection change
-    $('#clockType').change(function() {
-      var selectedType = $(this).val();
-      updateSubsetDropdown(selectedType);
-    });
-  });
-</script>
-
-
-
-
-{% endblock %}
-
-
 
 
 
@@ -127,7 +77,7 @@ Orbits
 
 
 <script>
-function notSelectedValue(fieldId, missingField) {
+  function notSelectedValue(fieldId, missingField) {
     var field = document.getElementById(fieldId);
     var selectedIndex = field.selectedIndex;
     console.log("selectedIndex: " + selectedIndex + " for fieldId: " + fieldId);
@@ -149,10 +99,9 @@ function notSelectedValue(fieldId, missingField) {
     var missingField = []; // Array to store the empty fields
 
     // Check if a value is selected in each field
-    notSelectedValue('clockType', missingField);
-notSelectedValue('series_base', missingField);
-notSelectedValue('series', missingField);
-notSelectedValue('subset', missingField);
+    notSelectedValue('orbitType', missingField);
+    notSelectedValue('series', missingField);
+    notSelectedValue('sat', missingField);
     console.log(missingField)
     if (missingField.length > 0) {
       var errorMessage = 'Please select a value in the following fields:\n\n';
@@ -166,4 +115,5 @@ notSelectedValue('subset', missingField);
     return true; // Allow form submission
   }
 </script>
+{% endblock %}
 {% endblock %}

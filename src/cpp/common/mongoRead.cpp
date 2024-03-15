@@ -68,45 +68,6 @@ RETTYPE getStraddle(
 	return ssr;
 }
 
-// GTime mongoReadLastClock()		//todo aaron delete me
-// {
-// 	GTime outTime;
-//
-// 	auto& mongo_ptr = remoteMongo_ptr;
-//
-// 	if (mongo_ptr == nullptr)
-// 	{
-// 		MONGO_NOT_INITIALISED_MESSAGE;
-// 		return outTime;
-// 	}
-//
-// 	Mongo&						mongo	= *mongo_ptr;
-// 	auto 						c		= mongo.pool.acquire();
-// 	mongocxx::client&			client	= *c;
-// 	mongocxx::database			db		= client[mongo.database];
-// 	mongocxx::collection		coll	= db[SSR_DB];
-//
-// 	auto docClk		= document{}	<< SSR_DATA		<< SSR_CLOCK
-// 									<< finalize;
-//
-// 	auto docSort	= document{}	<< SSR_EPOCH 		<< -1
-// 									<< finalize;
-//
-// 	auto findOpts 	= mongocxx::options::find{};
-// 	findOpts.limit(1);
-// 	findOpts.sort(docSort.view());
-//
-// 	auto cursor  	= coll.find(docClk.view(), findOpts);
-// 	for (auto doc : cursor)
-// 	{
-// 		PTime timeEpoch;
-// 		auto tp			= doc[SSR_EPOCH		].get_date();
-// 		timeEpoch.bigTime	= std::chrono::system_clock::to_time_t(tp);
-// 		outTime = timeEpoch;
-// 	}
-// 	return outTime;
-// }
-
 /** Read orbits and clocks from Mongo DB
 */
 SsrOutMap mongoReadOrbClk(
@@ -126,10 +87,7 @@ SsrOutMap mongoReadOrbClk(
 
 		auto& mongo = *mongo_ptr;
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[SSR_DB];
+		mongocxx::collection coll = getMongoCollection(mongo, SSR_DB);
 
 	// 	std::cout << "\nTrying to get things for " << targetTime.to_string(0) << std::endl;
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)referenceTime).bigTime)};
@@ -316,19 +274,14 @@ SsrPBMap mongoReadPhaseBias(
 
 	for (auto instance : {E_Mongo::PRIMARY, E_Mongo::SECONDARY})
 	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
+		auto mongo_ptr = mongo_ptr_arr[instance];
 
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
 		auto sats = getSysSats(targetSys);
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[SSR_DB];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, SSR_DB);
 
 		mongocxx::pipeline p;
 		p.match(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp(SSR_DATA, SSR_PHAS_BIAS)));
@@ -405,14 +358,9 @@ SsrCBMap mongoReadCodeBias(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
 		auto sats = getSysSats(targetSys);
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[SSR_DB];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, SSR_DB);
 
 		mongocxx::pipeline p;
 		p.match(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp(SSR_DATA, SSR_CODE_BIAS)));
@@ -480,12 +428,7 @@ Eph	mongoReadEphemeris(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db["Ephemeris"];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Ephemeris");
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)targetTime).bigTime)};
 
@@ -613,12 +556,7 @@ Geph mongoReadGloEphemeris(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db["Ephemeris"];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Ephemeris");
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)targetTime).bigTime)};
 
@@ -698,14 +636,9 @@ SSRAtm mongoReadCmpAtmosphere(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
 		ssrAtm.ssrMeta = ssrMeta;
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[SSR_DB];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, SSR_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -945,14 +878,9 @@ SSRAtm mongoReadIGSIonosphere(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
 		ssrAtm.ssrMeta = ssrMeta;
 
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[SSR_DB];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, SSR_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -1044,12 +972,7 @@ KFState mongoReadFilter(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[REMOTE_DATA_DB];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, REMOTE_DATA_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -1118,12 +1041,7 @@ map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[REMOTE_DATA_DB];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, REMOTE_DATA_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -1192,12 +1110,7 @@ map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db[REMOTE_DATA_DB];
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, REMOTE_DATA_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -1257,12 +1170,8 @@ void mongoReadFilter(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& mongo = *mongo_ptr;
-
-		auto 						c		= mongo.pool.acquire();
-		mongocxx::client&			client	= *c;
-		mongocxx::database			db		= client[mongo.database];
-		mongocxx::collection		coll	= db["REMOTE"];
+		// Is this intentionally different to the current value of REMOTE_DATA_DB ("Remote")?
+		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "REMOTE");
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 

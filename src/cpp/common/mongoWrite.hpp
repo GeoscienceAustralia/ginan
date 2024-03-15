@@ -35,8 +35,8 @@ void mongoMeasResiduals(
 	int					num		= -1);
 
 void mongoTrace(
-	string				json,
-	bool				queue = false);
+	const vector<string>&				jsons,
+	bool								queue = false);
 
 void mongoOutputConfig(
 	string& config);

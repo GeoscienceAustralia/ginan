@@ -1,27 +1,32 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <string>
 #include <map>
 
+using std::unordered_map;
 using std::string;
-using std::map;
 
+struct InstrumentEntry
+{
+	long int cpu	= 0;
+	long int time	= 0;
+	long int call	= 0;
+};
 
 struct Instrument
 {
-	static map<string, long int>	cpuMap;
-	static map<string, long int>	timeMap;
-	static map<string, long int>	callMap;
-	
+	static unordered_map<string, InstrumentEntry>	entries;
+
 	bool print = false;
 
 	long int	start;
 	long int	start_cpu;
 	string		description;
-	
+
 	Instrument(
-		const string&	desc, 
+		const string&	desc,
 		bool			print = false);
 
 	~Instrument();

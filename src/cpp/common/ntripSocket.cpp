@@ -358,6 +358,9 @@ void NtripSocket::request_response_handler(
 			networkLog(message.str());
 		}
 
+		std::erase(status_message, '\r');
+		std::erase(status_message, '\n');
+
 		BOOST_LOG_TRIVIAL(error) << "Error: NTRIP - " << status_code << " " << status_message << " in " << __FUNCTION__ << " for " << url.sanitised() << ", reconnecting in " << reconnectDelay;
 
 		delayed_reconnect();

@@ -48,19 +48,17 @@ const KFKey KFState::oneKey = {.type = KF::ONE};
 
 bool KFKey::operator ==(const KFKey& b) const
 {
-	if (str.compare(b.str)	!= 0)		return false;
-	if (Sat					!= b.Sat)	return false;
-	if (type				!= b.type)	return false;
-	if (num					!= b.num)	return false;
-	else								return true;
+	if (str		!= b.str)	return false;
+	if (Sat		!= b.Sat)	return false;
+	if (type	!= b.type)	return false;
+	if (num		!= b.num)	return false;
+	else					return true;
 }
 
 bool KFKey::operator <(const KFKey& b) const
 {
-	int strCompare = str.compare(b.str);
-
-	if (strCompare < 0)		return true;
-	if (strCompare > 0)		return false;
+	if (str < b.str)		return true;
+	if (str > b.str)		return false;
 
 	if (Sat < b.Sat)		return true;
 	if (Sat > b.Sat)		return false;
@@ -1436,6 +1434,9 @@ void KFState::filterKalman(
 				Pp = P;
 				dx = VectorXd::Zero(x.rows());
 
+
+	statisticsMap["States"] = x.rows();
+
 	bool first = true;
 	for (auto& fc : filterChunkList)
 	{
@@ -1445,7 +1446,7 @@ void KFState::filterKalman(
 		}
 		first = false;
 
-		statisticsMap["Observations"] += fc.numX;
+		statisticsMap["Observations"] += fc.numH;
 
 		KFStatistics statistics;
 		for (int i = 0; i < postfitOpts.max_iterations; i++)

@@ -383,6 +383,11 @@ E_Solution estpos(
 
 		VectorPos pos = ecef2pos(rRec);
 
+		if (pos.hgt() > 60'000'000)
+		{
+			return E_Solution::NONE;
+		}
+
 		KFMeasEntryList kfMeasEntryList;
 
 		for (auto& obs : only<GObs>(obsList))

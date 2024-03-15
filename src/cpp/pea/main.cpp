@@ -882,7 +882,8 @@ void createTracefiles(
 		{
 			if (acsConfig.output_receiver_trace)
 			{
-				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.receiver_trace_filename	+ suff,	rec.metaDataMap[TRACE_FILENAME_STR			+ metaSuff],	true,	acsConfig.output_config);
+				//dont add suff for this as we dont want smoothed version
+				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.receiver_trace_filename,					rec.metaDataMap[TRACE_FILENAME_STR			+ metaSuff],	true,	acsConfig.output_config);
 
 				if (suff.empty())
 				{
@@ -892,7 +893,8 @@ void createTracefiles(
 
 			if (acsConfig.output_json_trace)
 			{
-				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.receiver_trace_filename + "_json"	+ suff,	rec.metaDataMap[JSON_FILENAME_STR			+ metaSuff]);
+				//dont add suff for this as we dont want smoothed version
+				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.receiver_trace_filename + "_json",	rec.metaDataMap[JSON_FILENAME_STR			+ metaSuff]);
 
 				if (suff.empty())
 				{
@@ -1877,7 +1879,7 @@ int ginan(
 
 #ifdef ENABLE_PARALLELISATION
 	BOOST_LOG_TRIVIAL(info)
-	<< "Threading with max " << omp_get_num_threads()
+	<< "Threading with max " << omp_get_max_threads()
 	<< " omp threads";
 #endif
 
@@ -1983,8 +1985,6 @@ int ginan(
 
 	NtripSocket::startClients();
 
-	configureUploadingStreams();
-
 	if (acsConfig.start_epoch.is_not_a_date_time() == false)
 	{
 		PTime startTime;
@@ -1994,6 +1994,8 @@ int ginan(
 	}
 
 	createTracefiles(receiverMap, pppNet, ionNet);
+
+	configureUploadingStreams();
 
 	configAtmosRegions(std::cout, receiverMap);
 

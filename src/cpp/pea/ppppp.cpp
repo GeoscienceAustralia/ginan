@@ -511,6 +511,11 @@ void updateRecClocks(
 	ReceiverMap&	receiverMap,	///< List of stations containing observations for this epoch
 	KFState&		kfState)		///< Kalman filter object containing the network state parameters
 {
+	if (acsConfig.adjust_rec_clocks_by_spp == false)
+	{
+		return;
+	}
+
 	for (auto& [id, rec] : receiverMap)
 	{
 		auto	trace	= getTraceFile(rec);
@@ -580,7 +585,7 @@ void updateAvgIonosphere(
 			continue;
 		}
 
-		double alpha = 40.3e16 / SQR(CLIGHT / satNav.lamMap[F1]);
+		double alpha = 40.3e16 / SQR(CLIGHT / genericWavelength[F1]);
 
 		double ionosphereStec = diono / alpha;
 

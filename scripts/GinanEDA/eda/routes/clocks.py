@@ -1,10 +1,8 @@
-import numpy as np
 import plotly.graph_objs as go
-from flask import current_app, render_template, request, session
+from flask import current_app, render_template, request
 
-from backend.dbconnector.mongo import MongoDB
 from backend.data.clocks import Clocks
-from backend.data.measurements import MeasurementArray, Measurements
+from backend.data.measurements import MeasurementArray
 from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data
 from . import eda_bp
 
@@ -20,24 +18,26 @@ def clocks():
 def handle_post_request():
     current_app.logger.info("Entering request")
     form_data = request.form
-    form = {}
-    form["series"] = form_data.get("series")
-    form["series_base"] = form_data.get("series_base")
-    form["subset"] = form_data.getlist("subset")
-    form["exclude"] = form_data.get("exclude")
+    form = {
+        "series": form_data.get("series"),
+        "series_base": form_data.get("series_base"),
+        "subset": form_data.getlist("subset"),
+        "modes": form_data.getlist("modes"),
+        "exclude_tail": form_data.get("exclude_tail"),
+        "exclude": form_data.get("exclude"),
+        "clockType": form_data.get("clockType")
+    }
+    
     if form["exclude"] == "":
         form["exclude"] = 0
     else:
         form["exclude"] = int(form["exclude"])
 
-    form["exclude_tail"] = form_data.get("exclude_tail")
     if form["exclude_tail"] == "":
         form["exclude_tail"] = 0
     else:
         form["exclude_tail"] = int(form["exclude_tail"])
-
-    form["clockType"] = form_data.get("clockType")
-
+        
     db_, series_ = form["series"].split("\\")
     db_2, series_2 = form["series_base"].split("\\")
     if db_ != db_2:
@@ -45,7 +45,7 @@ def handle_post_request():
             "clocks.jinja",
             # content=client.mongo_content,
             extra=extra,
-            message=f"Error getting data: Can only compare series from the same database",
+            message="Error getting data: Can only compare series from the same database",
         )
     if form["clockType"] == "Satellite":
         state = ["SAT_CLOCK"]
@@ -69,14 +69,13 @@ def handle_post_request():
     data.adjust_slice(minutes_min=form["exclude"], minutes_max=form["exclude_tail"], trim=True)
 
     if form["clockType"] == "Satellite":
-        clocks = Clocks(data, satlist=sat_list, series=series_, series_base=series_2)
+        clocks_processor = Clocks(data, satlist=sat_list, series=series_, series_base=series_2)
     else:
-        clocks = Clocks(data, sitelist=site_list, series=series_, series_base=series_2)
+        clocks_processor = Clocks(data, sitelist=site_list, series=series_, series_base=series_2)
     trace = []
-    result = clocks.process()
+    result = clocks_processor.process(mode=form["modes"])
     result.sort()
     result.find_minmax()
-    # result.adjust_slice(minutes_min=form["exclude"], minutes_max=None)
     result.get_stats()
     table = {}
     for _clock in result:

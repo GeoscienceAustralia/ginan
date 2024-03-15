@@ -85,12 +85,6 @@ def handle_post_request():
     current_app.logger.warning("starting plots")
     for _data in data:
         for _yaxis in form["yaxis"]:
-            # try:
-            #     if np.isnan(_data.data[_yaxis][_data.subset]).any():
-            #         current_app.logger.warning(f"Nan detected for {_data.id}")
-            # except:
-            #     current_app.logger.debug(f"{_data.id} is not numbers")
-            #     pass
             try:
                 if form["xaxis"] == "Epoch":
                     _x = _data.epoch[_data.subset]

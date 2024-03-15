@@ -10,7 +10,7 @@ inputs:
 
     troposphere:
         gpt2grid_files: [ gpt_25.grd ]
-    
+
     tides:
         ocean_tide_loading_blq_files:   [ OLOAD_GO.BLQ                  ]
         atmos_tide_loading_blq_files:   [ ALOAD_GO.BLQ                  ]
@@ -22,10 +22,8 @@ inputs:
     gnss_observations:
         gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
         rtcm_inputs:
-            - ALIC00AUS0
-            - MAW100ATA0
-            - DARW00AUS0
-            - STR200AUS0
+            - RGDG00ARG0
+            - RIO200ARG0
 
     satellite_data:
         satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
@@ -33,7 +31,7 @@ inputs:
             ssr_antenna_offset: APC
             rtcm_inputs:
             - BCEP00BKG0
-            - SSRA00BKG0
+            # - SSRA00BKG0
 
 
 outputs:
@@ -43,11 +41,11 @@ outputs:
     outputs_root:              ./outputs/<CONFIG>
 
     trace:
-        level:                 2
+        level:                 4
         output_receivers:      true
         output_network:        true
-        receiver_filename:     <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
-        network_filename:      <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
+        receiver_filename:     <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        network_filename:      <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
         output_residuals:      true
         output_residual_chain: true
         output_config:         true
@@ -63,10 +61,8 @@ satellite_options:
         models:
             pos:
                 enable:             true
-                sources:            [ SSR ]
             clock:
                 enable:             true
-                sources:            [ SSR ]
             code_bias:
                 enable:             true
                 undefined_sigma:    3
@@ -77,47 +73,16 @@ satellite_options:
 
 receiver_options:
 
+    RIO2:
+        aliases: [BASE]
     global:
         elevation_mask:     15       # degrees
         error_model:        ELEVATION_DEPENDENT # {uniform,elevation_dependent}
         code_sigma:         0.3      # Standard deviation of code measurements, m
         phase_sigma:        0.003    # Standard deviation of phase measurmeents, m
-
-    ALIC:
-        receiver_type:      "SEPT POLARX5"                 # (string)
-        antenna_type:       "LEIAR25.R3      NONE"       # (string)
-        apriori_position:   [-4052052.8638, 4212835.9618,-2545104.4038] # [floats]
         models:
-            eccentricity:
+            phase_bias:
                 enable:     true
-                offset:     [0.0000,   0.0000,   0.0015] # [floats]
-
-    MAW1:
-        receiver_type:      "SEPT POLARX5"               # (string)
-        antenna_type:       "AOAD/M_T        AUST"       # (string)
-        apriori_position:   [ 1111287.2209, 2168911.1847,-5874493.6128] # [floats]
-        models:
-            eccentricity:
-                enable:     true
-                offset:     [0.0000,   0.0000,   0.0035] # [floats]
-
-    DARW:
-        receiver_type:      "SEPT POLARX5"                 # (string)
-        antenna_type:       "JAVRINGANT_DM   NONE"       # (string)
-        apriori_position:   [-4091359.7273, 4684606.3705,-1408578.9291] # [floats]
-        models:
-            eccentricity:
-                enable:     true
-                offset:     [0.0000,   0.0000,   0.0000] # [floats]
-
-    STR2:
-        receiver_type:      "TRIMBLE ALLOY"              # (string)
-        antenna_type:       "LEIAR25.R3      NONE"       # (string)
-        apriori_position:   [-4467075.3642, 2683011.8533,-3667006.8945] # [floats]
-        models:
-            eccentricity:
-                enable:     true
-                offset:     [0.0000,   0.0000,   0.0000] # [floats]
 
 
 processing_options:
@@ -132,34 +97,55 @@ processing_options:
     gnss_general:
         rec_reference_system:           GPS
 
+        # use_rtk_combo:  true
+        # common_atmosphere:  true
         sys_options:
             gps:
                 process:                true
                 reject_eclipse:         false
                 # clock_codes:            [ L1W, L2W ]
-                code_priorities:        [ L1W, L1C, L2W ]
-                ambiguity_resolution:   false
+                code_priorities:        [ L1C, L2W ]
+                ambiguity_resolution:   true
 
+    ambiguity_resolution:
+        # mode: LAMBDA
+        # fix_and_hold:   true
+        success_rate_threshold: 0.99999
+        once_per_epoch: true
 
 estimation_parameters:
 
+    satellites:
+        global:
+            clock:
+                estimated: [true]
+                sigma:  [1000]
+                process_noise:  [10]
+            phase_bias:
+                estimated:  [true]
+                sigma:      [10]
+                # process_noise:  [-1]
+
+
     receivers:
+        BASE:
+            pos:
+                estimated:  [false]
+            clock:
+                # estimated: [false]
+
         global:
             pos:
                 estimated:          [true]
-                sigma:              [1]
-                process_noise:      [0.0]
+                sigma:              [100]
+                process_noise:      [0]
             clock:
                 estimated:          [true]
                 sigma:              [1000]
                 process_noise:      [100]
-            clock_rate:
-                estimated:          [false]
-                sigma:              [0.005]
-                process_noise:      [1e-4]
             ambiguities:
                 estimated:          [true]
-                sigma:              [1000]
+                sigma:              [300]
                 process_noise:      [0]
             ion_stec:                        # Ionospheric slant delay
                 estimated:          [true]   # Estimate state in kalman filter
@@ -175,10 +161,10 @@ estimation_parameters:
                 process_noise:      [1.0E-6]
             code_bias:
                 estimated:          [true] # false
-                sigma:              [20]
+                sigma:              [30]
                 process_noise:      [0]
             phase_bias:
-                estimated:          [false]
+                estimated:          [true]
                 sigma:              [10]
                 process_noise:      [0]
 
@@ -196,5 +182,5 @@ mongo:                   # Mongo is a database used to store results and interme
 
 
 debug:
-
-    instrument: true
+    explain_measurements: true
+    # instrument: true

@@ -12,23 +12,21 @@ using std::ifstream;
 #include "acsConfig.hpp"
 #include "gTime.hpp"
 
-map<string, long int>		Instrument::timeMap;
-map<string, long int>		Instrument::callMap;
-map<string, long int>		Instrument::cpuMap;
+unordered_map<string, InstrumentEntry>	Instrument::entries;
 
 long int userTime()
 {
 	auto pid = getpid();
-	
+
 	char buff[64];
 	snprintf(buff, 64, "/proc/%d/stat", pid);
 	ifstream pidStat(buff);
-	
+
 	if (!pidStat)
 	{
 		return 0;
 	}
-	
+
 	string line;
 	int			pid2;
 	char		comm[64];
@@ -44,7 +42,7 @@ long int userTime()
 	long int	majflt;
 	long int	cmajflt;
 	long int	utime;
-	long int	stime;			
+	long int	stime;
 	long int	cutime;
 	long int	cstime;
 	long int	priority;
@@ -73,19 +71,19 @@ long int userTime()
 		&	priority,
 		&	nice,
 		&	num_threads);
-	
+
 	return utime;
 }
 
 Instrument::Instrument(
-	const string&	desc, 
+	const string&	desc,
 	bool			print)
 {
 	if (acsConfig.instrument == false)
 	{
 		return;
 	}
-	
+
 	this->print	= print;
 	start		= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 	start_cpu	= userTime();
@@ -98,13 +96,16 @@ Instrument::~Instrument()
 	{
 		return;
 	}
-	
+
 	size_t		stop		= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 	long int	stop_cpu	= userTime();
-	cpuMap	[description] += stop_cpu - start_cpu;
-	timeMap	[description] += stop - start;
-	callMap	[description] += 1;
-	
+
+	auto& entry = entries[description];
+
+	entry.cpu	+= stop_cpu - start_cpu;
+	entry.time	+= stop - start;
+	entry.call	+= 1;
+
 	if (print)
 		printf("\n%40s took %15ld us", description.c_str(), stop - start);
 }
@@ -114,27 +115,28 @@ extern GTime tsync;
 /** Print the status of completed (passed/failed) and remaining tests
 	*/
 void Instrument::printStatus(
-	bool clear) 
+	bool clear)
 {
 	if (acsConfig.instrument == false)
 	{
 		return;
 	}
-	
+
 // 	Block block(std::cout, "INSTRUMENTATION");
-	
+
 	map<size_t, string>	sortedTimes;
-	
-	for (auto& [desc, time] : timeMap)
+
+	for (auto& [desc, entry] : entries)
 	{
-		auto& calls	= callMap	[desc];
-		auto& user	= cpuMap	[desc];
-		
+		auto& time	= entry.time;
+		auto& calls	= entry.call;
+		auto& user	= entry.cpu;
+
 		char buff[1000];
 		snprintf(buff, sizeof(buff), "%40s took %15ld us over %5ld calls, averaging %-20ld user: %8ld cpu: %4.0f%%\n", desc.c_str(), time, calls, time/calls, user, user / (time * 1e-6) );
 		sortedTimes[time] = buff;
 	}
-	
+
 	for (auto& [time, thing] : sortedTimes)
 	{
 		if (trace_level >= 4)
@@ -144,11 +146,9 @@ void Instrument::printStatus(
 
 		std::cout << thing;
 	}
-	
+
 	if (clear)
 	{
-		cpuMap	.clear();
-		timeMap	.clear();
-		callMap	.clear();
+		entries.clear();
 	}
 }

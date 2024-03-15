@@ -17,7 +17,7 @@ extra["stateField"] = ["x", "dx", "sigma"]
 extra["stateField"] = ["x", "dx", "sigma"]
 extra["preprocess"] = ["None", "Fit", "Detrend"]
 extra["degree"] = ["0", "1", "2"]
-
+extra["clockModes"] = ["Series", "Epoch"]
 extra["orbitType"] = [
     "Residual RTN",
 ]

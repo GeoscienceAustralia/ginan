@@ -72,8 +72,8 @@ Measurements
   <div class="col-lg-1">
     <label for="xaxis" class="form-label">X-Axis:</label>
     <br>
-    <select  class="selectpicker form-control" name="xaxis" id="xaxis" data-hide-disabled="true"
-      data-live-search="true">
+    <select class="selectpicker form-control" name="xaxis" id="xaxis" data-hide-disabled="true" data-live-search="true"
+      , title="Select xvalue">
       {% for key_ in session['list_generic'] %}
       {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis']%}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
@@ -134,34 +134,41 @@ Measurements
   </div>
   <div class="col-lg-2">
     <label for="exclude">Exclude first (min):</label>
-    <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" 
-    {% if selection is defined and  selection['exclude'] %}value="{{ selection['exclude'] }}"{% endif %}  
-    >
-    </div>
+    <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" {% if selection is defined
+      and selection['exclude'] %}value="{{ selection['exclude'] }}" {% endif %}>
+  </div>
 
-      <div class="col-lg-2">
-        <label for="exclude">Exclude last (min):</label>
-        <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail"
-        {% if selection is defined and  selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}"{% endif %}
-        >
-        </div>
+  <div class="col-lg-2">
+    <label for="exclude">Exclude last (min):</label>
+    <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail" {% if
+      selection is defined and selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}" {% endif %}>
+  </div>
   <input type="submit" value="PLOT">
 </form>
 {% endblock %}
 
 {% block scripts %}
-<script >
-function notSelectedValue(fieldId, missingField) {
+<script>
+  function notSelectedValue(fieldId, missingField) {
     var field = document.getElementById(fieldId);
     var selectedIndex = field.selectedIndex;
     console.log("selectedIndex: " + selectedIndex + " for fieldId: " + fieldId);
-    if (selectedIndex == -1) {
-      missingField.push(fieldId);
+    // Check if the field is a single-selection dropdown
+    if (field.getAttribute('multiple') === null) {
+      // For single-selection dropdown, check if selectedIndex is 0 or -1
+      if (selectedIndex === 0 || selectedIndex === -1) {
+        missingField.push(fieldId);
+      }
+    } else {
+      // For multiple-selection dropdown, check if selectedIndex is -1
+      if (selectedIndex === -1) {
+        missingField.push(fieldId);
+      }
     }
   }
   function validateForm() {
     var missingField = []; // Array to store the empty fields
-    
+
     // Check if a value is selected in each field
     notSelectedValue('type', missingField);
     notSelectedValue('series', missingField);

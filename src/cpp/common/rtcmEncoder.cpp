@@ -340,7 +340,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 		case E_Sys::SBS:	np = 6;		ni =  9;	nj =  0;	break;
 		default:
 			BOOST_LOG_TRIVIAL(error) << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
-			return vector<uint8_t>();
+			return {};
 	}
 
 	int bitLen = 0;

@@ -496,7 +496,7 @@ inline void pppIonStec(COMMON_PPP_ARGS)
 		bool pass = ionoModel(time, pos, satStat, recOpts.mapping_function, acsConfig.pppOpts.ionoOpts.corr_mode, recOpts.mapping_function_layer_height, dummy, diono, varIono);
 		if (pass)
 		{
-			double ionC = SQR(lambda / obs.satNav_ptr->lamMap[F1]);
+			double ionC = SQR(lambda / genericWavelength[F1]);
 
 			ionosphere_m = factor * ionC * diono;
 		}
@@ -1654,6 +1654,8 @@ void receiverPPP(
 		double rRecSat	= (rSat - rRec).norm();
 		satStat.e		= (rSat - rRec).normalized();
 		satStat.nadir	= acos(satStat.e.dot(rSat.normalized()));
+
+		satazel(pos, satStat.e, satStat);
 
 // 		VectorEci rRecEci	= frameSwapper(rRec);
 // 		obs.rSatEciDt		= frameSwapper(rSat, obs.time - obs.tof - obs.dtSat[0]);
