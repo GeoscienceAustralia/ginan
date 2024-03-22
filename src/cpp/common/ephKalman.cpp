@@ -80,7 +80,8 @@ bool satPosKalman(
 	Trace&			trace,
 	GTime			time,
 	SatPos&			satPos,
-	const KFState*	kfState_ptr)
+	const KFState*	kfState_ptr,
+	bool			j2)
 {
 	VectorEci	rSat0;
 	VectorEci	vSat0;
@@ -131,12 +132,12 @@ bool satPosKalman(
 
 	double dt = (time - t0).to_double();
 
-// 	trace << std::endl << time << " " << satPos.Sat.id() << " dt: " << dt;
+	// trace << std::endl << time << " " << satPos.Sat.id() << " dt: " << dt;
 
 	if	( rSat0.isZero() == false
 		&&vSat0.isZero() == false)
 	{
-		satPos.rSatEciDt = propagateEllipse(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel);
+		satPos.rSatEciDt = propagateEllipse(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel, j2);
 	}
 
 	return true;

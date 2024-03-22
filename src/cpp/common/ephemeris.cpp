@@ -143,13 +143,6 @@ bool satpos(
 	{
 		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%s offsetType=%d", __FUNCTION__, time.to_string(3).c_str(), satPos.Sat.id().c_str(), ephType._to_string(), offsetType);
 
-// 		if	( satPos.ephPosValid
-// 			&&satPos.posSource	== ephType
-// 			&&satPos.posTime	== time)
-// 		{
-// 			returnValue = true;
-// 		}
-
 		if (returnValue == false)
 		switch (ephType)
 		{

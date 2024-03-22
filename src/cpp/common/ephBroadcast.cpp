@@ -45,19 +45,20 @@ EPHTYPE* selSysEphFromMap(
 	GTime																			time,
 	E_Sys																			sys,
 	E_NavMsgType																	type,
-	map<E_Sys, map<E_NavMsgType,	map<GTime, EPHTYPE,	std::greater<GTime>>>>&	ephMap)
+	map<E_Sys, map<E_NavMsgType,	map<GTime, EPHTYPE,	std::greater<GTime>>>>&		ephMap)
 {
 //	trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
 
-	auto& satEphMap = ephMap[sys][type];
+	if	(ephMap.find(sys)	== ephMap.end())		return nullptr;			auto& sysMap	= ephMap[sys];
+	if	(sysMap.find(type)	== sysMap.end())		return nullptr;			auto& sysEphMap = sysMap[type];
 
-	auto it = satEphMap.lower_bound(time);
-	if (it == satEphMap.end())
+	auto it = sysEphMap.lower_bound(time);
+	if (it == sysEphMap.end())
 	{
 		tracepdeex(5, trace, "\nno broadcast ephemeris (EOP/ION): %s sys=%s", time.to_string(0).c_str(), sys._to_string());
-		if (satEphMap.empty() == false)
+		if (sysEphMap.empty() == false)
 		{
-			tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string(0).c_str());
+			tracepdeex(5, trace, " last is %s", sysEphMap.begin()->first.to_string(0).c_str());
 		}
 		return nullptr;
 	}

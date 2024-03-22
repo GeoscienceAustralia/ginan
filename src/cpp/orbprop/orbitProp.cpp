@@ -176,9 +176,9 @@ void OrbitIntegrator::computeAcceleration(
 	const	GTime		time)
 {
 	auto trace = getTraceFile(nav.satNavMap[orbInit.Sat]);
-	
+
 	trace << std::endl << "Computing accelerations at " << time;
-	
+
 	Vector3d rSat = orbInit.pos;
 	Vector3d vSat = orbInit.vel;
 
@@ -206,7 +206,7 @@ void OrbitIntegrator::computeAcceleration(
 
 	{
 		Vector3d accPlanets = Vector3d::Zero();
-		
+
 		for (auto& planet : orbInit.planetary_perturbations)
 		{
 			if (planet == +E_ThirdBody::EARTH)
@@ -222,7 +222,7 @@ void OrbitIntegrator::computeAcceleration(
 		}
 
 		orbInit.componentsMap[E_Component::PLANETARY_PERTURBATION] = accPlanets.norm();
-		
+
 		acc += accPlanets;
 	}
 
@@ -878,11 +878,11 @@ void predictOrbits(
 	{
 		auto& satNav	= nav.satNavMap[orbit.Sat];
 		auto& satPos0	= satNav.satPos0;
-		
+
 		auto satTrace = getTraceFile(satNav);
-		
+
 		satTrace << std::endl << "Propagated orbit from " << kfState.time << " to " << time;
-		
+
 		for (auto& [component, value] : orbit.componentsMap)
 		{
 			tracepdeex(0, satTrace, "\n");

@@ -1,25 +1,6 @@
 
 // #pragma GCC optimize ("O0")
 
-/** \file
-* Precise point positioning
-*
-* ###References:
-*
-* 1.  D.D.McCarthy, IERS Technical Note 21, IERS Conventions 1996, July 1996
-* 2.  D.D.McCarthy and G.Petit, IERS Technical Note 32, IERS Conventions 2003, November 2003
-* 3.  D.A.Vallado, Fundamentals of Astrodynamics and Applications 2nd ed, Space Technology Library, 2004
-* 4.  J.Kouba, A Guide to using International GNSS Service (IGS) products, May 2009
-* 5.  RTCM Paper, April 12, 2010, Proposed SSR Messages for SV Orbit Clock, Code Biases, URA
-* 6.  MacMillan et al., Atmospheric gradients and the VLBI terrestrial and celestial reference frames, Geophys. Res. Let., 1997
-* 7.  G.Petit and B.Luzum (eds), IERS Technical Note No. 36, IERS Conventions (2010), 2010
-* 8.  J.Kouba, A simplified yaw-attitude model for eclipsing GPS satellites, GPS Solutions, 13:1-12, 2009
-* 9.  F.Dilssner, GPS IIF-1 satellite antenna phase center and attitude modeling, InsideGNSS, September, 2010
-* 10. F.Dilssner, The GLONASS-M satellite yaw-attitude model, Advances in Space Research, 2010
-* 11. IGS MGEX (http://igs.org/mgex)
-* 12. U.Hugentobler, S.Schaer, G.Beutler, H.Bock, R.Dach, A.Jäggi, M.Meindl, C.Urschl, L.Mervart, M.Rothacher & U.Wild, CODE IGS analysis center technical report 2002, 2002.
-*/
-
 
 #include <boost/log/trivial.hpp>
 
@@ -33,7 +14,6 @@ using std::vector;
 #include "observations.hpp"
 #include "algebraTrace.hpp"
 #include "coordinates.hpp"
-#include "linearCombo.hpp"
 #include "binaryStore.hpp"
 #include "ephPrecise.hpp"
 #include "navigation.hpp"
@@ -371,7 +351,7 @@ string ft2string(
 void removeBadAmbiguities(
 	Trace&			trace,			///< Trace to output to
 	KFState&		kfState, 		///< Filter to remove states from
-	ReceiverMap&		receiverMap)		///< List of stations containing observations for this epoch
+	ReceiverMap&	receiverMap)	///< List of stations containing observations for this epoch
 {
 	for (auto [key, index] : kfState.kfIndexMap)
 	{
@@ -507,6 +487,42 @@ void removeBadAmbiguities(
 	for (auto& [sig,	sigStat]	: satStat.sigStatMap)
 	{
 		sigStat.savedSlip.any = false;
+	}
+}
+
+void removeBadReceivers(
+	Trace&			trace,				///< Trace to output to
+	KFState&		kfState, 			///< Filter to remove states from
+	ReceiverMap&	receiverMap)	///< List of stations containing observations for this epoch
+{
+	if (acsConfig.errorAccumulation.enable == false)
+	{
+		return;
+	}
+
+	for (auto& [id, rec] : receiverMap)
+	{
+		if (rec.receiverErrorCount >= acsConfig.errorAccumulation.receiver_error_count_threshold)		rec.receiverErrorEpochs++;
+		else																							rec.receiverErrorEpochs = 0;
+
+		rec.receiverErrorCount	= 0;
+
+		if (rec.receiverErrorEpochs < acsConfig.errorAccumulation.receiver_error_epochs_threshold)
+		{
+			continue;
+		}
+
+		rec.receiverErrorEpochs	= 0;
+
+		for (auto [key, index] : kfState.kfIndexMap)
+		if (key.str == rec.id)
+		{
+			trace << std::endl << "State removed due to high receiver error counts: " << key;
+
+			kfState.removeState(key);
+		}
+
+		kfState.statisticsMap["Rec error resets"]++;
 	}
 }
 

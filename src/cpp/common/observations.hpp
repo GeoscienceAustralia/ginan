@@ -128,7 +128,6 @@ struct SatNav;
 struct Receiver;
 
 
-
 /** Observation metadata and data derived from it.
 * All processing relevant for a single rec:sat:epoch should be stored here.
 * For data that should persist across epochs: use SatStat.
@@ -142,7 +141,7 @@ struct GObsMeta : IonoObs
 
 	Receiver*	rec_ptr			= nullptr;
 
-	double 		rescode_v		= 0;				///< Residuals of code
+	double 		sppCodeResidual	= 0;				///< Residuals of code
 	double		tropSlant		= 0;				///< Troposphere slant delay
 	double		tropSlantVar	= 0;				///< Troposphere slant delay variance
 
@@ -174,9 +173,9 @@ struct SatPos
 	}
 
 	GTime		posTime;
-	SatSys		Sat				= {};				///> Satellite ID (system, prn)
-	SatNav*		satNav_ptr		= 0;				///< Pointer to a navigation object for this satellite
-	SatStat* 	satStat_ptr		= 0;				///< Pointer to a status object for this satellite
+	SatSys		Sat				= {};					///> Satellite ID (system, prn)
+	SatNav*		satNav_ptr		= nullptr;				///< Pointer to a navigation object for this satellite
+	SatStat* 	satStat_ptr		= nullptr;				///< Pointer to a status object for this satellite
 
 	E_Source	posSource		= E_Source::NONE;
 	E_Source	clkSource		= E_Source::NONE;
@@ -195,11 +194,12 @@ struct SatPos
 	double		satClkVel		= 0;
 	double		satClkVar		= 0;
 
+	bool		sppValid		= 0;				///< Valid satellite flag
+
 	int 		iodeClk			= -1;				///< Issue of data ephemeris
 	int 		iodePos			= -1;				///< Issue of data ephemeris
 	bool		ephPosValid		= false;
 	bool		ephClkValid		= false;
-	bool		vsat			= 0;				///< Valid satellite flag
 
 	double		tof				= 0;				///< Estimated time of flight
 
@@ -374,10 +374,6 @@ struct CrdSession
 
 
 vector<CrdSession> readCrdFile(string filepath);
-
-//forward declarations for pointers below
-struct SatStat;
-struct SatNav;
 
 struct LObsMeta
 {

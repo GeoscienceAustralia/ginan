@@ -32,7 +32,7 @@ void outputObservations(
 
 		tracepdeex(4, trace, "\n%s %5s %5s %14.4f %14.4f", obs.time.to_string(2).c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sig.L, sig.P);
 
-		traceJson(4, jsonTrace, obs.time, 
+		traceJson(4, jsonTrace, obs.time,
 		{
 			{"data", __FUNCTION__},
 			{"Sat", obs.Sat.id()},
@@ -201,7 +201,8 @@ void preprocessor(
 			continue;
 		}
 
-		obs.satNav_ptr = &nav.satNavMap[obs.Sat];
+		obs.rec_ptr		= &rec;
+		obs.satNav_ptr	= &nav.satNavMap[obs.Sat];
 
 		E_NavMsgType nvtyp = acsConfig.used_nav_types[obs.Sat.sys];
 		if (obs.Sat.sys == +E_Sys::GLO)		obs.satNav_ptr->eph_ptr = seleph<Geph>	(trace, obs.time, obs.Sat, nvtyp, ANY_IODE, nav);
@@ -219,7 +220,7 @@ void preprocessor(
 			continue;
 		}
 
-		obs.satNav_ptr = &nav.satNavMap[obs.Sat];
+		obs.satNav_ptr	= &nav.satNavMap[obs.Sat];
 
 		E_NavMsgType nvtyp = acsConfig.used_nav_types[obs.Sat.sys];
 		if (obs.Sat.sys == +E_Sys::GLO)		obs.satNav_ptr->eph_ptr	= seleph<Geph>	(trace, obs.time, obs.Sat, nvtyp, ANY_IODE, nav);

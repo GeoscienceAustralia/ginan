@@ -301,7 +301,7 @@ struct Exponential
 
 /** Kalman filter object.
 *
-* Contains most persistant parameters and values of state. Includes state vector, covariance, and process noise.
+* Contains most persistent parameters and values of state. Includes state vector, covariance, and process noise.
 *
 * This object performs all operations on the kalman filter to ensure that edge cases are included and state kept in a valid configuration.
 */

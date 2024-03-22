@@ -63,12 +63,7 @@ void ConsoleLog::consume(
 }
 
 
-int trace_level = 0;       ///< level of trace
-
-void tracelevel(int level)
-{
-	trace_level = level;
-}
+int traceLevel = 0;       ///< level of trace
 
 void traceFormatedFloat(Trace& trace, double val, string formatStr)
 {
@@ -83,21 +78,6 @@ void traceFormatedFloat(Trace& trace, double val, string formatStr)
 	}
 	tracepdeex(0, trace, formatStr.c_str(), base, exponent);
 }
-
-void tracepdeex(int level, FILE *fppde, const char *format, ...)
-{
-	va_list ap;
-
-	if (!fppde||level>trace_level)
-		return;
-
-	va_start(ap,format);
-		vfprintf(fppde,format,ap);
-	va_end(ap);
-
-	fflush(fppde);
-}
-
 
 void printHex(
 	Trace&					trace,
@@ -127,7 +107,7 @@ void traceJson(
 	vector<ArbitraryKVP>	id,
 	vector<ArbitraryKVP>	val)
 {
-	if (level > trace_level)
+	if (level > traceLevel)
 		return;
 
 	if	( acsConfig.output_json_trace		== false

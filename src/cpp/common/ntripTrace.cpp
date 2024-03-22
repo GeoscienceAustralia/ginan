@@ -27,7 +27,7 @@ void NetworkStatistics::onErrorStatistics(
 	{
 		return;
 	}
-	
+
 
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
@@ -35,9 +35,9 @@ void NetworkStatistics::onErrorStatistics(
 		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	connectCount++;
-	
+
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("StreamName",				streamName									));
 	doc.append(kvp("MessageType",				"Error"										));
@@ -45,7 +45,7 @@ void NetworkStatistics::onErrorStatistics(
 	doc.append(kvp("Error",						err.message()								));
 	doc.append(kvp("SocketOperation",			operation									));
 	doc.append(kvp("Time",						b_date {std::chrono::system_clock::now()}	));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -62,16 +62,16 @@ void NetworkStatistics::onConnectedStatistics()
 		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	connectCount++;
-	
+
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("StreamName",				streamName									));
 	doc.append(kvp("MessageType",				"Connected"									));
 	doc.append(kvp("Time",						b_date {std::chrono::system_clock::now()}	));
 	doc.append(kvp("ConnectCount",				connectCount								));
 	doc.append(kvp("DisonnectCount",			disconnectCount								));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -88,16 +88,16 @@ void NetworkStatistics::onDisconnectedStatistics()
 		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	disconnectCount++;
-	
+
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("StreamName",				streamName									));
 	doc.append(kvp("MessageType",				"Disconnected"								));
 	doc.append(kvp("Time",						b_date {std::chrono::system_clock::now()}	));
 	doc.append(kvp("ConnectCount",				connectCount								));
 	doc.append(kvp("DisonnectCount",			disconnectCount								));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -114,15 +114,15 @@ void NetworkStatistics::onChunkSentStatistics()
 		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	chunksSent++;
-	
+
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("StreamName",				streamName									));
 	doc.append(kvp("MessageType",				"ChunkSent"									));
 	doc.append(kvp("Time",						b_date {std::chrono::system_clock::now()}	));
 	doc.append(kvp("ChunksSent",				chunksSent									));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -132,25 +132,25 @@ void NetworkStatistics::onChunkReceivedStatistics()
 	{
 		return;
 	}
-	
-	if (trace_level < 5)
+
+	if (traceLevel < 5)
 		return;
-	
+
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
 	{
 		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
 		return;
 	}
-	
+
 	chunksReceived++;
-	
+
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("StreamName",				streamName									));
 	doc.append(kvp("MessageType",				"ChunkReceived"								));
 	doc.append(kvp("Time",						b_date {std::chrono::system_clock::now()}	));
 	doc.append(kvp("ChunksReceived",			chunksReceived								));
-	
+
 	fout << bsoncxx::to_json(doc) << std::endl;
 }
 
@@ -184,25 +184,25 @@ string NetworkStatistics::getNetworkStatistics(
 // 		else
 // 			connRatio = (double)connectedDuration.total_milliseconds() / (double)totalTime.total_milliseconds();
 // 	}
-// 
-// 
+//
+//
 // 	double meanReconn = 0;
 // 	if (disconnectionCount != 0)
 // 		meanReconn = (double)disconnectedDuration.total_milliseconds() / (60.0 * 1000.0 * disconnectionCount);
-// 
+//
 // 	doc.append(kvp("Disconnects", 		disconnectionCount));
 // 	doc.append(kvp("MeanDowntime", 		meanReconn));
 // 	doc.append(kvp("ConnectedRatio", 	connRatio));
 
 // 	double chunkRatio = 0;
-// 
+//
 // 	if (numberChunks != 0)
 // 		chunkRatio = (double)numberErroredChunks / (double)(numberChunks);
-// 
+//
 // 	doc.append(kvp("Chunks", 			numberChunks));
 // 	doc.append(kvp("ChunkErrors", 		numberErroredChunks));
 // 	doc.append(kvp("ChunkErrorRatio",	chunkRatio));
-	
+
 	return bsoncxx::to_json(doc);
 }
 
@@ -212,9 +212,9 @@ string NetworkStatistics::getNetworkStatistics(
 // 	std::stringstream traceStr;
 // 	traceStr << "Start           : " << std::put_time(std::localtime(&startTime.time),	"%F %X")	<< std::endl;
 // 	traceStr << "Finish          : " << std::put_time(std::localtime(&endTime.time),	"%F %X")	<< std::endl;
-// 
+//
 // 	double totalTime = timeGet() - startTime;
-// 
+//
 // 	double connRatio;
 // 	if (disconnectionCount == 0
 // 		&& numberChunks > 0)
@@ -228,31 +228,31 @@ string NetworkStatistics::getNetworkStatistics(
 // 		else
 // 			connRatio = (double) connectedDuration.total_milliseconds() / (double)totalTime.total_milliseconds();
 // 	}
-// 
+//
 // 	double meanReconn = 0;
 // 	if (disconnectionCount != 0)
 // 		meanReconn = (double)disconnectedDuration.total_milliseconds() / (60.0 * 1000.0 * disconnectionCount);
-// 
+//
 // 	traceStr << "Disconnects     : " << disconnectionCount 	<< std::endl;
 // 	traceStr << "MeanDowntime    : " << meanReconn 			<< std::endl;
 // 	traceStr << "ConnectedRatio  : " << connRatio 			<< std::endl;
-// 
+//
 // 	double chunkRatio = 0;
-// 
+//
 // 	if (numberChunks != 0)
 // 		chunkRatio = (double)numberErroredChunks / (double)(numberChunks);
-// 
+//
 // 	traceStr << "Chunks          : " << numberChunks		<< std::endl;
 // 	traceStr << "ChunkErrors     : " << numberErroredChunks	<< std::endl;
 // 	traceStr << "ChunkErrorRatio : " << chunkRatio			<< std::endl;
-// 
+//
 // 	bool printToTerminal = false;
 // 	if	( chunkRatio			> 0.01
 // 		||connRatio				< 0.99)
 // 	{
 // 		printToTerminal = true;
 // 	}
-// 
+//
 // 	string messLine;
 // 	while (std::getline(traceStr, messLine))
 // 		tracepde(0, trace, (messLine + "\n").c_str());

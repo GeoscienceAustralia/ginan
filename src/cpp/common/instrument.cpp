@@ -139,7 +139,7 @@ void Instrument::printStatus(
 
 	for (auto& [time, thing] : sortedTimes)
 	{
-		if (trace_level >= 4)
+		if (traceLevel >= 4)
 		{
 			std::cout << tsync << " ";
 		}

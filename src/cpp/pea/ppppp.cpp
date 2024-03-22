@@ -46,6 +46,12 @@ void explainMeasurements(
 	KFMeas&		meas,
 	KFState&	kfState)
 {
+	vector<Duo> duos =
+	{
+		{&kfState.kfIndexMap,		&meas.H},
+		{&kfState.noiseIndexMap,	&meas.H_star}
+	};
+
 	for (int i = 0; i < meas.obsKeys.size(); i++)
 	{
 		auto& obsKey		= meas.obsKeys		[i];
@@ -59,21 +65,25 @@ void explainMeasurements(
 		trace << std::endl << "============================";
 		trace << std::endl << "Explaining " << obsKey << " : " << obsKey.comment;
 
-
-		for (int col = 0; col < meas.H.cols(); col++)
+		for (auto duo : duos)
+		for (int col = 0; col < (*duo.designMatrix_ptr).cols(); col++)
 		{
-			double entry = meas.H(i, col);
+			double entry = (*duo.designMatrix_ptr)(i, col);
 
 			if (entry == 0)
 			{
 				continue;
 			}
 
-			for (auto& [kfKey, index] : kfState.kfIndexMap)
+			for (auto& [kfKey, index] : (*duo.indexMap_ptr))
 			{
 				if (index == col)
 				{
-					trace << std::endl << kfKey << " : " << entry;
+					trace << std::endl;
+					if (traceLevel >= 4)
+						trace << kfState.time << " " << obsKey;
+
+					trace << kfKey << " : " << entry;
 					break;
 				}
 			}
@@ -200,112 +210,6 @@ void makeIFLCs(
 
 /** Replace individual measurements with linear combinations
  */
-KFMeas makeIFLCs(
-	KFMeas&		combinedMeas,
-	KFState&	kfState)
-{
-	Instrument instrument(__FUNCTION__);
-
-	KFMeas newMeas;
-
-	vector<Triplet<double>> tripletList;
-	int meas = 0;
-
-	vector<Duo> duos =
-	{
-		{&kfState.kfIndexMap,		&combinedMeas.H},
-		{&kfState.noiseIndexMap,	&combinedMeas.H_star}
-	};
-
-	for (auto duo : duos)
-	for (auto& [kfKey, index] : *duo.indexMap_ptr)						{																if (kfKey.type != KF::IONO_STEC)	continue;
-	for (int i_2 = 0; i_2 < combinedMeas.obsKeys.size();	i_2++)		{	double coeff_2 = (*duo.designMatrix_ptr)(i_2, index);		if (coeff_2 == 0)					continue;
-	for (int i_1 = 0; i_1 < i_2;							i_1++)		{	double coeff_1 = (*duo.designMatrix_ptr)(i_1, index);		if (coeff_1 == 0)					continue;
-	{
-		if (coeff_1 * coeff_2 < 0)								{	continue;	}	//only combine similarly signed (code/phase) components
-		if (coeff_1	== coeff_2)									{	continue;	}	//dont combine if it will eliminate the entire measurement
-
-		if (combinedMeas.metaDataMaps[i_1]["IFLCcombined"])		{	continue;	}
-		if (combinedMeas.metaDataMaps[i_2]["IFLCcombined"]) 	{	continue;	}
-
-
-		//these measurements both share a common ionosphere, remove it.
-
-		double scalar = sqrt(  (SQR(coeff_1) + SQR(coeff_2)) / SQR(coeff_1 - coeff_2)  );
-
-		tripletList.push_back({meas, i_1, +coeff_2 * scalar});
-		tripletList.push_back({meas, i_2, -coeff_1 * scalar});
-		meas++;
-
-		auto& obsKey_1 = combinedMeas.obsKeys[i_1];
-		auto& obsKey_2 = combinedMeas.obsKeys[i_2];
-
-		auto newObsKey = obsKey_2;
-
-		newObsKey.num += 100 * obsKey_1.num;			//100(1) + 1(2)
-
-		newObsKey.comment = obsKey_1.comment + "-" + obsKey_2.comment;
-
-		newMeas.obsKeys			.push_back(newObsKey);
-
-		//copy metadata from the second to the first, then copy into the new measurement
-		for (auto& [id, value] : combinedMeas.metaDataMaps[i_2])
-		{
-			combinedMeas.metaDataMaps[i_1][id + "_alt"] = value;
-		}
-
-// 		for (auto& component : combinedMeas.componentLists[i_2])
-// 		{
-// 			combinedMeas.componentLists[i_1].push_back(component);
-// 		}
-
-		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i_1]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i_1]);
-
-		combinedMeas.metaDataMaps[i_1]["IFLCcombined"] = (void*) true;
-		combinedMeas.metaDataMaps[i_2]["IFLCcombined"] = (void*) true;
-
-		combinedMeas.metaDataMaps[i_1]["explain"]			= (void*) true;
-		combinedMeas.metaDataMaps[i_2]["explain"]			= (void*) true;
-	}}}}
-
-	if (meas == 0)
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No IONO_STEC measurements found - 'use_if_combo' requires 'ion_stec' estimation to be enabled in the config file.";
-	}
-
-	for (int i = 0; i < combinedMeas.obsKeys.size(); i++)
-	{
-		if (combinedMeas.metaDataMaps[i]["pseudoObs"] == (void*) false)
-		{
-			continue;
-		}
-
-		//need to keep this measurement even if its not a valid ionospheric one, copy it over
-
-		tripletList.push_back({meas, i, 1});
-		meas++;
-
-		newMeas.obsKeys			.push_back(combinedMeas.obsKeys			[i]);
-		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i]);
-	}
-
-	SparseMatrix<double> F;
-	F = SparseMatrix<double>(meas, combinedMeas.V.rows());
-	F.setFromTriplets(tripletList.begin(), tripletList.end());
-
-	newMeas.V		= F * combinedMeas.V;
-	newMeas.VV		= newMeas.V;
-	newMeas.H		= F * combinedMeas.H;
-	newMeas.R		= F * combinedMeas.R * F.transpose();
-	newMeas.time	= std::move(combinedMeas.time);
-
-	return newMeas;
-}
-
-/** Replace individual measurements with linear combinations
- */
 KFMeas makeGFLCs(
 	KFMeas&		combinedMeas,
 	KFState&	kfState)
@@ -399,11 +303,12 @@ KFMeas makeGFLCs(
 	F = SparseMatrix<double>(meas, combinedMeas.V.rows());
 	F.setFromTriplets(tripletList.begin(), tripletList.end());
 
-	newMeas.V		= F * combinedMeas.V;
-	newMeas.VV		= newMeas.V;
-	newMeas.H		= F * combinedMeas.H;
-	newMeas.R		= F * combinedMeas.R * F.transpose();
-	newMeas.time	= std::move(combinedMeas.time);
+	newMeas.V			= F * combinedMeas.V;
+	newMeas.H			= F * combinedMeas.H;
+	newMeas.H_star		= F * combinedMeas.H_star;
+	newMeas.R			= F * combinedMeas.R * F.transpose();
+	newMeas.VV			= newMeas.V;
+	newMeas.time		= std::move(combinedMeas.time);
 
 	return newMeas;
 }
@@ -431,14 +336,29 @@ KFMeas makeRTKLCs(
 	};
 
 	for (auto duo : duos)
-	for (auto& [kfKey, index] : *duo.indexMap_ptr)						{																if (kfKey.type != KF::SAT_CLOCK)	continue;
-	for (int i_2 = 0; i_2 < combinedMeas.obsKeys.size();	i_2++)		{	double coeff_2 = (*duo.designMatrix_ptr)(i_2, index);		if (coeff_2 == 0)					continue;
-	for (int i_1 = 0; i_1 < i_2;							i_1++)		{	double coeff_1 = (*duo.designMatrix_ptr)(i_1, index);		if (coeff_1 == 0)					continue;
+	for (auto& [kfKey, index] : *duo.indexMap_ptr)						{																if (kfKey.type != KF::PHASE_BIAS && kfKey.type != KF::CODE_BIAS)	continue;
+	for (int i_2 = 0; i_2 < combinedMeas.obsKeys.size();	i_2++)		{	double coeff_2 = (*duo.designMatrix_ptr)(i_2, index);		if (coeff_2 == 0)													continue;
+	for (int i_1 = 0; i_1 < i_2;							i_1++)		{	double coeff_1 = (*duo.designMatrix_ptr)(i_1, index);		if (coeff_1 == 0)													continue;
 	{
 		if (combinedMeas.metaDataMaps[i_1]["RTKcombined"])		{	continue;	}
 		if (combinedMeas.metaDataMaps[i_2]["RTKcombined"])		{	continue;	}
 
-		//these measurements both share a common satellite clock, remove it.
+		auto& obsKey1 = combinedMeas.obsKeys[i_1];
+		auto& obsKey2 = combinedMeas.obsKeys[i_2];
+
+		if (kfKey.str.empty() == false)
+		{
+			continue;
+		}
+
+		if (obsKey1.str == obsKey2.str)
+		{
+			continue;
+		}
+
+		//these measurements both share a common satellite bias, remove it.
+
+		// std::cout << kfKey << " " << combinedMeas.obsKeys[i_2]  << " " << combinedMeas.obsKeys[i_1] << std::endl;
 
 		tripletList.push_back({meas, i_1, +coeff_2});
 		tripletList.push_back({meas, i_2, -coeff_1});
@@ -466,8 +386,10 @@ KFMeas makeRTKLCs(
 // 			combinedMeas.componentLists[i_1].push_back(component);
 // 		}
 
+		combinedMeas.metaDataMaps[i_1]["explain"] = (void*) true;
+
 		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i_1]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i_1]);=
+// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i_1]);
 
 		combinedMeas.metaDataMaps[i_1]["RTKcombined"] = (void*) true;
 		combinedMeas.metaDataMaps[i_2]["RTKcombined"] = (void*) true;
@@ -496,9 +418,10 @@ KFMeas makeRTKLCs(
 	F.setFromTriplets(tripletList.begin(), tripletList.end());
 
 	newMeas.V		= F * combinedMeas.V;
-	newMeas.VV		= newMeas.V;
 	newMeas.H		= F * combinedMeas.H;
+	newMeas.H_star	= F * combinedMeas.H_star;
 	newMeas.R		= F * combinedMeas.R * F.transpose();
+	newMeas.VV		= newMeas.V;
 	newMeas.time	= std::move(combinedMeas.time);
 
 	return newMeas;
@@ -937,31 +860,37 @@ void updatePseudoPulses(
 			continue;
 		}
 
-// 	if (acsConfig.pseudoPulses.enable == false)
-// 	{
-// 		return;
-// 	}			//todo aaron, add config
+		auto& satOpts = acsConfig.getSatOpts(key.Sat);
 
+		if (satOpts.pseudoPulses.enable == false)
+		{
+			continue;
+		}
 
-// 		if	((epoch - 1) % (epochsPerDay / acsConfig.pseudoPulses.num_per_day) == 0)
-// 		{
-// 			if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(acsConfig.pseudoPulses.pos_proc_noise)});
-// 			else				kfState.setExponentialNoise(key, {SQR(acsConfig.pseudoPulses.vel_proc_noise)});
-// 		}
+		if	((epoch - 1) % (epochsPerDay / satOpts.pseudoPulses.num_per_day) == 0)
+		{
+			if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.pos_proc_noise)});
+			else				kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.vel_proc_noise)});
+		}
 	}
 }
 
 void removeBadAmbiguities(
 	Trace&			trace,
 	KFState&		kfState,
-	ReceiverMap&		receiverMap);
+	ReceiverMap&	receiverMap);
+
+void removeBadReceivers(
+	Trace&			trace,
+	KFState&		kfState,
+	ReceiverMap&	receiverMap);
 
 void removeBadIonospheres(
 	Trace&			trace,
 	KFState&		kfState);
 
 void incrementOutageCount(
-	ReceiverMap&		stations);
+	ReceiverMap&	receiverMap);
 
 void checkOrbits(
 	Trace&			trace,
@@ -978,6 +907,7 @@ void PPP(
 	{
 		Instrument instrument("PPP pppre");
 
+		removeBadReceivers	(trace, kfState, receiverMap);
 		removeBadAmbiguities(trace, kfState, receiverMap);
 		removeBadIonospheres(trace, kfState);
 
@@ -1074,6 +1004,8 @@ void PPP(
 	ambgPseudoObs			(trace,					kfState,	kfMeasEntryList);
 	initPseudoObs			(trace,					kfState,	kfMeasEntryList);
 	satClockPivotPseudoObs	(trace,					kfState,	kfMeasEntryList);
+	filterPseudoObs			(trace,					kfState,	kfMeasEntryList);
+
 	//use state transition to initialise new state elements
 	{
 		Instrument	instrument("PPP stateTransition2");

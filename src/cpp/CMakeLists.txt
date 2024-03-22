@@ -102,6 +102,14 @@ add_library(ginan_core
 		common/linearCombo.cpp
 		common/linearCombo.hpp
 		#common/mqtt.cpp
+
+		common/mongo.cpp
+		common/mongo.hpp
+		common/mongoRead.cpp
+		common/mongoRead.hpp
+		common/mongoWrite.cpp
+		common/mongoWrite.hpp
+
 		common/navigation.hpp
 		common/observations.hpp
 		common/ntripSocket.cpp
@@ -223,13 +231,6 @@ add_library(ginan_core
 		rtklib/lambda.cpp
 		rtklib/lambda.h
 		rtklib/rtkcmn.cpp
-
-		common/mongo.cpp
-		common/mongo.hpp
-		common/mongoRead.cpp
-		common/mongoRead.hpp
-		common/mongoWrite.cpp
-		common/mongoWrite.hpp
 )
 
 target_include_directories(ginan_core PUBLIC

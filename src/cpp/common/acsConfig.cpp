@@ -102,6 +102,9 @@ void conditionalPrefix(
 	if (path.empty())					{	return;	}
 	if (path.find(':') != string::npos)	{	return;	}
 
+	replaceString(prefix,	"<CWD>", std::filesystem::current_path());
+	replaceString(path,		"<CWD>", std::filesystem::current_path());
+
 	char* home = std::getenv("HOME");
 	if	( prefix[0] == '~'
 		&&home)
@@ -2646,8 +2649,6 @@ bool configure(
 		}
 	}
 
-	tracelevel(acsConfig.trace_level);
-
 	if	( acsConfig.compare_clocks
 		||vm.count("compare_clocks"))
 	{
@@ -2768,8 +2769,9 @@ bool ACSConfig::parse(
 	commandOpts = newCommandOpts;
 
 	//clear old saved parameters
-	satOptsMap.clear();
-	recOptsMap.clear();
+	foundOptions	.clear();
+	satOptsMap		.clear();
+	recOptsMap		.clear();
 	defaultOutputOptions();
 
 	for (int i = E_Sys::GPS; i < E_Sys::SUPPORTED; i++)
@@ -2934,6 +2936,8 @@ bool ACSConfig::parse(
 				conditionalPrefix("<TRACE_DIRECTORY>",	ionosphere_trace_filename,	tryGetFromYaml(ionosphere_trace_filename,	trace, {"1@ ionosphere_filename"	}, "(string) Template filename for ionosphere trace files"));
 				conditionalPrefix("<TRACE_DIRECTORY>",	network_trace_filename,		tryGetFromYaml(network_trace_filename,		trace, {"1! network_filename"		}, "Template filename for network trace files"));
 																					tryGetFromAny(trace_level, commandOpts,		trace, {"! level"					}, "(int) Threshold level for printing messages (0-6). Increasing this increases the amount of data stored in all trace files");
+
+				traceLevel = acsConfig.trace_level;
 
 																					tryGetFromYaml(output_residual_chain,		trace, {"! output_residual_chain"	}, "Output component-wise details for measurement residuals");
 																					tryGetFromYaml(output_residuals,			trace, {"! output_residuals"		}, "Output measurements and residuals");
@@ -3312,8 +3316,9 @@ bool ACSConfig::parse(
 
 				conditionalPrefix("<INPUTS_ROOT>", pseudo_obs_root,		tryGetFromYaml(pseudo_obs_root,	pseudo_observation_data,	{"0@ pseudo_observations_root"		}, "Root path to be added to all other pseudo obs data files (unless they are absolute)"));
 
-				tryGetMappedList(pseudo_sp3_inputs,	commandOpts,	pseudo_observation_data,	{"@@ sp3_inputs"		}, "<PSEUDO_OBS_ROOT>", "List of sp3 inputs to use for pseudoobservations");
-				tryGetMappedList(pseudo_snx_inputs,	commandOpts,	pseudo_observation_data,	{"1@ snx_inputs"		}, "<PSEUDO_OBS_ROOT>", "List of snx inputs to use for pseudoobservations");
+				tryGetMappedList(pseudo_sp3_inputs,		commandOpts,	pseudo_observation_data,	{"@@ sp3_inputs"		}, "<PSEUDO_OBS_ROOT>", "List of sp3 inputs to use for pseudoobservations");
+				tryGetMappedList(pseudo_snx_inputs,		commandOpts,	pseudo_observation_data,	{"1@ snx_inputs"		}, "<PSEUDO_OBS_ROOT>", "List of snx inputs to use for pseudoobservations");
+				conditionalPrefix("<PSEUDO_OBS_ROOT>", pseudo_filter_files,	tryGetFromAny(pseudo_filter_files,	commandOpts,	pseudo_observation_data,	{"1# filter_files"		}, "List of inputs to use for custom pseudoobservations"));
 
 				tryGetFromYaml(eci_pseudoobs,						pseudo_observation_data,	{"@ eci_pseudoobs"			}, "Pseudo observations are provided in eci frame rather than standard ECEF SP3 files");
 			}
@@ -3462,6 +3467,16 @@ bool ACSConfig::parse(
 					tryGetFromYaml(stateErrors.enable,				state_deweighting,	{"! enable"				}, "Enable deweighting of all referencing measurements");
 					tryGetFromYaml(stateErrors.deweight_factor,		state_deweighting,	{"! deweight_factor"	}, "Factor to downweight the variance of measurements with statistically detected errors");
 				}
+
+				{
+					auto error_accumulation = stringsToYamlObject(model_error_handling, {"0! error_accumulation"}, "Any receivers that are consistently getting many measurement rejections may be reinitialiased");
+
+					tryGetFromYaml(errorAccumulation.enable,							error_accumulation,	{"! enable"								}, "Enable reinitialisation of receivers upon many rejections");
+					tryGetFromYaml(errorAccumulation.receiver_error_count_threshold,	error_accumulation,	{"! receiver_error_count_threshold"		}, "Number of errors for a receiver to be considered in error for a single epoch");
+					tryGetFromYaml(errorAccumulation.receiver_error_epochs_threshold,	error_accumulation,	{"! receiver_error_epochs_threshold"	}, "Number of consecutive epochs with receiver in error before it is removed and reinitialised");
+				}
+
+
 
 				{
 					auto orbit_errors = stringsToYamlObject(model_error_handling, {"2@ orbit_errors"}, "Orbital states that are not consistent with measurements may be reinitialised to allow for dynamic maneuvers");
@@ -3802,6 +3817,7 @@ bool ACSConfig::parse(
 		replaceTags(gpt2grid_files);							globber(gpt2grid_files);
 		replaceTags(orography_files);							globber(orography_files);
 		replaceTags(atm_reg_definitions);						globber(atm_reg_definitions);
+		replaceTags(pseudo_filter_files);						globber(pseudo_filter_files);
 		replaceTags(planetary_ephemeris_files);					globber(planetary_ephemeris_files);
 		replaceTags(ocean_tide_potential_files);				globber(ocean_tide_potential_files);
 		replaceTags(atmos_tide_potential_files);				globber(atmos_tide_potential_files);

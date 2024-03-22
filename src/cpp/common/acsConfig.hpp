@@ -63,11 +63,11 @@ struct InputOptions
 {
 	string			inputs_root		= ".";
 
-	string			gnss_obs_root		= "<INPUTS_ROOT>";
-	string			pseudo_obs_root		= "<INPUTS_ROOT>";
-	string			sat_data_root		= "<INPUTS_ROOT>";
-	string			rtcm_inputs_root	= "<SAT_DATA_ROOT>";
-
+	string			gnss_obs_root			= "<INPUTS_ROOT>";
+	string			pseudo_obs_root			= "<INPUTS_ROOT>";
+	string			custom_pseudo_obs_root	= "<INPUTS_ROOT>";
+	string			sat_data_root			= "<INPUTS_ROOT>";
+	string			rtcm_inputs_root		= "<SAT_DATA_ROOT>";
 
 	vector<string>	atx_files;
 	vector<string>	snx_files;
@@ -89,6 +89,7 @@ struct InputOptions
 	vector<string>	hfeop_files;
 	vector<string>	gpt2grid_files;
 	vector<string>	orography_files;
+	vector<string>	pseudo_filter_files;
 	vector<string>	atm_reg_definitions;
 	vector<string>	planetary_ephemeris_files;
 	vector<string>	ocean_tide_potential_files;
@@ -415,6 +416,14 @@ struct MeasErrorHandler
 	double	deweight_factor	= 1000;
 };
 
+struct ErrorAccumulationHandler
+{
+	bool	enable							= true;
+	int		receiver_error_count_threshold	= 4;
+	int		receiver_error_epochs_threshold	= 4;
+};
+
+
 /** Options for the general operation of the software
 */
 struct GlobalOptions
@@ -535,8 +544,6 @@ struct GlobalOptions
 	bool common_rec_pco			= false;
 	bool use_trop_corrections	= false;
 
-	double clock_wrap_threshold = 0.05e-3;
-
 	//to be removed?
 
 	double			predefined_fail		= 0.001;	/* pre-defined fail-rate (0.01,0.001) */
@@ -627,9 +634,9 @@ struct PppOptions : FilterOptions
 	bool			common_atmosphere	= false;
 	bool			use_rtk_combo		= false;
 
-	bool			satellite_chunking	= false;
-	bool			receiver_chunking	= false;
-	int				chunk_size			= 0;
+	bool			satellite_chunking		= false;
+	bool			receiver_chunking		= false;
+	int				chunk_size				= 0;
 };
 
 struct SppOptions : FilterOptions
@@ -1354,6 +1361,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	AmbiguityErrorHandler		ambErrors;
 	OrbitErrorHandler			orbErrors;
 	IonoErrorHandler			ionErrors;
+	ErrorAccumulationHandler	errorAccumulation;
 
 	IonModelOptions				ionModelOpts;
 	MongoOptions				mongoOpts;

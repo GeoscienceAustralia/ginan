@@ -38,12 +38,12 @@ struct ConsoleLog : public sinks::basic_formatted_sink_backend<char, sinks::sync
 		sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	log_string);
 };
 
-extern int trace_level;
+extern int traceLevel;
 
 template<typename... Arguments>
 void tracepdeex(int level, Trace& stream, string const& fmt, Arguments&&... args)
 {
-	if (level > trace_level)
+	if (level > traceLevel)
 		return;
 
 	boost::format f(fmt);
@@ -82,7 +82,6 @@ void printHex(
 	Trace&					trace,
 	vector<unsigned char>&	chunk);
 
-void tracelevel(int level);
 void traceFormatedFloat(Trace& trace, double val, string formatStr);
 
 struct Block

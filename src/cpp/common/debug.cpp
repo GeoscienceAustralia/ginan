@@ -2018,6 +2018,62 @@ void getAccData()
 	}
 }
 
+#include "orbitProp.hpp"
+
+void perEpochPropTest(
+	KFState& kfState)
+{
+	KFState copy = kfState;
+
+	double dt = 30;
+
+	static double ellipseSumSqr	= 0;
+	static double j2SumSqr		= 0;
+
+	static double num			= 0;
+
+	GTime newTime = kfState.time + dt;
+
+	predictOrbits(std::cout, copy, newTime);
+	copy.stateTransition(std::cout, newTime);
+
+	std::cout << std::endl << kfState.time;
+
+	SatPos satPosProp;
+	SatPos satPosEllipse;
+	SatPos satPosJ2;
+
+	satPosProp		.Sat = SatSys("L51");
+	satPosEllipse	.Sat = SatSys("L51");
+	satPosJ2		.Sat = SatSys("L51");
+	bool pass;
+
+	pass = satPosKalman(std::cout, newTime,	satPosProp,		&copy);						std::cout << " prop Passed: "	<< pass;
+	pass = satPosKalman(std::cout, newTime,	satPosEllipse,	&kfState);					std::cout << " ellp Passed: "	<< pass;
+	pass = satPosKalman(std::cout, newTime,	satPosJ2,		&kfState,	true);			std::cout << " j2 Passed: "		<< pass;
+
+	VectorEci differenceEllipse	= satPosProp.rSatEciDt - satPosEllipse	.rSatEciDt;
+	VectorEci differenceJ2		= satPosProp.rSatEciDt - satPosJ2		.rSatEciDt;
+	VectorEci differenceProp	= satPosProp.rSatEciDt - satPosProp		.rSatEciDt;
+
+	std::cout << "\r\n" << satPosJ2			.rSatEciDt.transpose().format(heavyFmt) << "\t" << differenceJ2			.transpose().format(heavyFmt) << " \t" << differenceJ2		.norm();
+	std::cout << "\r\n" << satPosProp		.rSatEciDt.transpose().format(heavyFmt) << "\t" << differenceProp		.transpose().format(heavyFmt) << " \t" << differenceProp	.norm();
+	std::cout << "\r\n" << satPosEllipse	.rSatEciDt.transpose().format(heavyFmt) << "\t" << differenceEllipse	.transpose().format(heavyFmt) << " \t" << differenceEllipse	.norm();
+
+	ellipseSumSqr	+= differenceEllipse.squaredNorm();
+	j2SumSqr		+= differenceJ2		.squaredNorm();
+
+	num++;
+
+	double ellipseRms	= sqrt(ellipseSumSqr	/ num);
+	double j2Rms		= sqrt(j2SumSqr			/ num);
+
+	std::cout << std::endl;
+	std::cout << std::endl << "Ellipse   rms from prop with t=" << dt << " : " << ellipseRms;
+	std::cout << std::endl << "EllipseJ2 rms from prop with t=" << dt << " : " << j2Rms;
+}
+
+
 void doDebugs()
 {
 	// testt();

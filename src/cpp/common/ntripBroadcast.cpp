@@ -247,7 +247,7 @@ void NtripUploader::messageTimeout_handler(
 				auto buffer = encodeSsrOrbClk(ssrOutMap, messCode);
 				bool write = encodeWriteMessageToBuffer(buffer);
 
-				if (acsConfig.trace_level > 5)
+				if (traceLevel > 5)
 				{
 // 					debugSSR(t0, targetTime, sys, ssrOutMap);
 

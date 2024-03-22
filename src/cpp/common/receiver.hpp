@@ -4,6 +4,7 @@
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
 #include "attitude.hpp"
+#include "satStat.hpp"
 #include "common.hpp"
 #include "sinex.hpp"
 #include "cache.hpp"
@@ -17,10 +18,7 @@ struct Solution
 	/* solution type */
 	GTime				sppTime;       							///< time (GPST)
 	map<E_Sys, double>	dtRec_m; 								///< receiver clock bias to time systems (m)
-	map<E_Sys, double>	dtRec_m_ppp_old; 						///< previous receiver clock bias to time systems (m)
 	map<E_Sys, double>	dtRec_m_pppp_old; 						///< previous receiver clock bias to time systems (m)
-	map<E_Sys, double>	deltaDt_net_old;						///< previous receiver clock bias to time systems (m)
-	map<E_Sys, double>	pppdtRec_m;								///< receiver clock bias to time systems (s)
 	E_Solution			status;									///< solution status
 	int					numMeas			= 0;					///< number of valid satellites
 	KFState				sppState;								///< SPP filter object
@@ -51,6 +49,9 @@ struct ReceiverLogs
 	int		slipCount	= 0;
 	map<E_ObsCode, int>	codeCount;
 	map<string, int>	satCount;
+
+	int		receiverErrorEpochs	= 0;
+	int		receiverErrorCount	= 0;
 };
 
 
@@ -86,8 +87,6 @@ struct Rtk
 extern Sinex_siteid_t				dummySiteid;
 extern Sinex_receiver_t				dummyReceiver;
 extern Sinex_antenna_t				dummyAntenna;
-extern Sinex_gps_phase_center_t		dummyGps_phase_center;
-extern Sinex_gal_phase_center_t		dummyGal_phase_center;
 extern Sinex_site_ecc_t				dummySite_ecc;
 
 struct SinexRecData
@@ -95,8 +94,6 @@ struct SinexRecData
 	Sinex_siteid_t*				id_ptr		= &dummySiteid;
 	Sinex_receiver_t*			rec_ptr		= &dummyReceiver;
 	Sinex_antenna_t*			ant_ptr		= &dummyAntenna;
-	Sinex_gps_phase_center_t*	gpsPCO_ptr	= &dummyGps_phase_center;
-	Sinex_gal_phase_center_t*	galPCO_ptr	= &dummyGal_phase_center;
 	Sinex_site_ecc_t*			ecc_ptr		= &dummySite_ecc;
 
 	UYds		start;

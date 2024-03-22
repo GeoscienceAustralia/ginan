@@ -136,6 +136,35 @@ bool incrementPhaseSignalError(
 	return true;
 }
 
+/** Count all errors on receiver
+ */
+bool incrementReceiverError(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index,
+	bool		postFit)
+{
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+
+	unsigned int* receiverErrorCount_ptr = (unsigned int*) metaDataMap["receiverErrorCount"];
+
+	if (receiverErrorCount_ptr == nullptr)
+	{
+		return true;
+	}
+
+	unsigned int&	receiverErrorCount	= *receiverErrorCount_ptr;
+
+	//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
+	receiverErrorCount++;
+	metaDataMap["receiverErrorFlag"] = nullptr;
+
+	trace << std::endl << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[index] << " to " << receiverErrorCount;
+
+	return true;
+}
+
 bool resetPhaseSignalError(
 	KFMeas&		kfMeas,
 	int			index)

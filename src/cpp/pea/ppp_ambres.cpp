@@ -227,7 +227,7 @@ void fixAndHoldAmbiguities(
 	ARopt.nset		= acsConfig.ambrOpts.lambda_set;
 	ARopt.nitr		= acsConfig.ambrOpts.AR_max_itr;
 
-	if (acsConfig.trace_level > 4)
+	if (traceLevel > 4)
 		AR_VERBO = true;
 
 	// Resolve and apply ambiguities

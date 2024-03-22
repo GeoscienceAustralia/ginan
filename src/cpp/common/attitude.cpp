@@ -129,7 +129,7 @@ SatGeom satOrbitGeometry(
 	vSat			= satPos.satVel;
 
 	planetPosEcef(time, E_ThirdBody::SUN,	rSun);
-	planetPosEcef(time, E_ThirdBody::MOON,	rMoon);
+	planetPosEcef(time, E_ThirdBody::MOON,	rMoon);			//todo aaron roll this into loop
 	vSatPrime		= vSat;
 	vSatPrime[0]	-= OMGE * rSat[1];
 	vSatPrime[1]	+= OMGE * rSat[0];
@@ -146,7 +146,6 @@ SatGeom satOrbitGeometry(
 	wrapPlusMinusPi(beta);
 	wrapPlusMinusPi(mu);
 
-
 	// Beta & mu rates
 	double dt = 1;
 	ERPValues erpv = getErp(nav.erp, time);
@@ -154,10 +153,10 @@ SatGeom satOrbitGeometry(
 	VectorEci rSatEci;
 	VectorEci vSatEci;
 	rSatEci	= frameSwapper(rSat, &vSat, &vSatEci);
-	std::ostream nullout(nullptr);
+
 	VectorEcef	rSat2;
 	VectorEcef	vSat2;
-	propagateEllipse(nullout, time, dt, rSatEci, vSatEci, rSat2, &vSat2);
+	propagateEllipse(nullStream, time, dt, rSatEci, vSatEci, rSat2, &vSat2);
 
 	VectorEcef	rSun2;
 	planetPosEcef(time + dt, E_ThirdBody::SUN, rSun2);
@@ -357,8 +356,7 @@ void satSunMoonPos(
 	VectorEcef&	rSun,		///< Sun position (ECEF)
 	VectorEcef&	rMoon)		///< Moon position (ECEF)
 {
-	std::ostream nullout(nullptr);
-	propagateEllipse(nullout, eciTime, dt, rSatEci0, vSatEci0, rSat);
+	propagateEllipse(nullStream, eciTime, dt, rSatEci0, vSatEci0, rSat);
 	planetPosEcef(eciTime + dt, E_ThirdBody::SUN,	rSun);
 	planetPosEcef(eciTime + dt, E_ThirdBody::MOON,	rMoon);
 }
@@ -1348,7 +1346,7 @@ bool preciseAttitude(
 
 	Quaterniond	quatNow = quat1.slerp(frac, quat2);
 
-	Matrix3d body2Ecef;
+	Matrix3d body2Ecef = Matrix3d::Identity();
 	if		(entry1.frame == +E_ObxFrame::ECI)
 	{
 		Matrix3d eci2Body = quatNow.toRotationMatrix();
@@ -1371,8 +1369,7 @@ bool preciseAttitude(
 	}
 	else if	(entry1.frame == +E_ObxFrame::BCRS)
 	{
-		// Eugene to implement
-		body2Ecef = Matrix3d::Identity();
+
 	}
 	else
 	{

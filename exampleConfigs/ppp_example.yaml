@@ -204,6 +204,10 @@ processing_options:
         state_deweighting:               # Any "state" errors cause deweighting of all measurements that reference the state
             deweight_factor:       1000  # Factor to downweight the variance of measurements with statistically detected errors
             enable:                true  # Enable deweighting of all referencing measurements
+        error_accumulation:
+            enable:                             true
+            receiver_error_count_threshold:     4
+            receiver_error_epochs_threshold:    4
         ambiguities:
             outage_reset_limit:    5     # Wait for 5 consecutive missing epoch of data before reseting ambiguity
             phase_reject_limit:    2     # Reset ambiguity after 2 large fractional residuals are found (replaces phase_reject_count:)

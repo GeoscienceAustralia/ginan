@@ -479,6 +479,20 @@ void reloadInputFiles()
 		once = false;
 	}
 
+	// removeInvalidFiles(acsConfig.pseudo_filter_files);
+	for (auto& pseudo_filter_file : acsConfig.pseudo_filter_files)
+	{
+		if (fileChanged(pseudo_filter_file) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading Pseudo filter file " << pseudo_filter_file;
+
+		readPseudosFromFile(pseudo_filter_file);
+	}
+
 	removeInvalidFiles(acsConfig.vmf_files);
 	for (auto& vmffile : acsConfig.vmf_files)
 	{
@@ -692,15 +706,15 @@ void reloadInputFiles()
 		}
 	}
 
-	for (auto& [id, slrinputs]			: slrObsFiles)					{	addStationData(id,		slrinputs,					"SLR",		"OBS");			}
-	for (auto& [id, ubxinputs]			: acsConfig.ubx_inputs)			{	addStationData(id,		ubxinputs,					"UBX",		"OBS");			}
-	for (auto& [id, custominputs]		: acsConfig.custom_inputs)		{	addStationData(id,		custominputs,				"CUSTOM",	"OBS");			}
-	for (auto& [id, rnxinputs]			: acsConfig.rnx_inputs)			{	addStationData(id,		rnxinputs,					"RINEX",	"OBS");			}
-	for (auto& [id, rtcminputs]			: acsConfig.obs_rtcm_inputs)	{	addStationData(id,		rtcminputs,					"RTCM",		"OBS");			}
-	for (auto& [id, pseudosp3inputs]	: acsConfig.pseudo_sp3_inputs)	{	addStationData(id,		pseudosp3inputs,			"SP3",		"PSEUDO");		}
-	for (auto& [id, pseudosnxinputs]	: acsConfig.pseudo_snx_inputs)	{	addStationData(id,		pseudosnxinputs,			"SINEX",	"PSEUDO");		}
-																		{	addStationData("Nav",	acsConfig.nav_rtcm_inputs,	"RTCM",		"NAV");			}
-																		{	addStationData("QZSL6",	acsConfig.qzs_rtcm_inputs,	"RTCM",		"NAV");			}
+	for (auto& [id, slrinputs]			: slrObsFiles)						{	addStationData(id,		slrinputs,					"SLR",		"OBS");			}
+	for (auto& [id, ubxinputs]			: acsConfig.ubx_inputs)				{	addStationData(id,		ubxinputs,					"UBX",		"OBS");			}
+	for (auto& [id, custominputs]		: acsConfig.custom_inputs)			{	addStationData(id,		custominputs,				"CUSTOM",	"OBS");			}
+	for (auto& [id, rnxinputs]			: acsConfig.rnx_inputs)				{	addStationData(id,		rnxinputs,					"RINEX",	"OBS");			}
+	for (auto& [id, rtcminputs]			: acsConfig.obs_rtcm_inputs)		{	addStationData(id,		rtcminputs,					"RTCM",		"OBS");			}
+	for (auto& [id, pseudosp3inputs]	: acsConfig.pseudo_sp3_inputs)		{	addStationData(id,		pseudosp3inputs,			"SP3",		"PSEUDO");		}
+	for (auto& [id, pseudosnxinputs]	: acsConfig.pseudo_snx_inputs)		{	addStationData(id,		pseudosnxinputs,			"SINEX",	"PSEUDO");		}
+																			{	addStationData("Nav",	acsConfig.nav_rtcm_inputs,	"RTCM",		"NAV");			}
+																			{	addStationData("QZSL6",	acsConfig.qzs_rtcm_inputs,	"RTCM",		"NAV");			}
 }
 
 void configureUploadingStreams()
@@ -1846,7 +1860,7 @@ int ginan(
 	int		argc,
 	char**	argv)
 {
-	tracelevel(5);
+	traceLevel = 5;
 
 	// Register the sink in the logging core
 	boost::log::core::get()->add_sink(boost::make_shared<sinks::synchronous_sink<ConsoleLog>>());
@@ -1884,7 +1898,7 @@ int ginan(
 #endif
 
 	BOOST_LOG_TRIVIAL(info)
-	<< "Logging with trace level:" << acsConfig.trace_level << std::endl << std::endl;
+	<< "Logging with trace level:" << traceLevel << std::endl << std::endl;
 
 	//prepare the satNavMap so that it at least has entries for everything
 	for (auto [sys, max] :	{	tuple<E_Sys, int>{E_Sys::GPS, NSATGPS},
@@ -1918,6 +1932,7 @@ int ginan(
 
 		pppNet.kfState.measRejectCallbacks	.push_back(deweightMeas);
 		pppNet.kfState.measRejectCallbacks	.push_back(incrementPhaseSignalError);
+		pppNet.kfState.measRejectCallbacks	.push_back(incrementReceiverError);
 		pppNet.kfState.measRejectCallbacks	.push_back(pseudoMeasTest);
 
 		pppNet.kfState.stateRejectCallbacks	.push_back(orbitGlitchReaction);	//this goes before reject by state
@@ -2284,7 +2299,7 @@ int ginan(
 		}
 
 		BOOST_LOG_TRIVIAL(info)
-		<< "Synced " << dataAvailableMap.size() << " stations...";
+		<< "Synced " << dataAvailableMap.size() << " receivers...";
 
 		GTime epochStartTime	= timeGet();
 		{

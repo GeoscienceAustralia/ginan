@@ -222,7 +222,7 @@ int validateDOP(
 			continue;
 		}
 
-		if (obs.vsat == false)
+		if (obs.sppValid == false)
 			continue;
 
 		azels.push_back(obs.satStat_ptr->az);
@@ -409,7 +409,7 @@ E_Solution estpos(
 
 			kfState.getKFValue(recSysBiasKey, dtRec);
 
-			obs.vsat = false;
+			obs.sppValid = false;
 
 			Vector3d rSat = obs.rSatApc;
 			if (rSat.isZero())
@@ -467,9 +467,9 @@ E_Solution estpos(
 
 			tracepdeex(debuglvl, trace, ", %14.3f", range);
 
-			double el = satazel(pos, satStat.e, *obs.satStat_ptr);
+			double el = satazel(pos, satStat.e, satStat);
 			if	(  el < recOpts.elevation_mask_deg * D2R
-				&& adjustment < 10000)
+				&& adjustment < 1000)
 			{
 				obs.failureElevation = true;
 
@@ -483,7 +483,7 @@ E_Solution estpos(
 			// ionospheric corrections
 			double dion;
 			double vion;
-			pass = ionocorr(obs.time, pos, *obs.satStat_ptr, acsConfig.sppOpts.iono_mode, dion, vion);
+			pass = ionocorr(obs.time, pos, satStat, acsConfig.sppOpts.iono_mode, dion, vion);
 			if (pass == false)
 			{
 				obs.failureIonocorr = true;
@@ -505,7 +505,7 @@ E_Solution estpos(
 			double wetZTD;
 			double wetMap;
 
-			double dtrp = tropSAAS(trace, obs.time, pos, obs.satStat_ptr->el, dryZTD, dryMap, wetZTD, wetMap, vtrp);
+			double dtrp = tropSAAS(trace, obs.time, pos, satStat.el, dryZTD, dryMap, wetZTD, wetMap, vtrp);
 
 			tracepdeex(debuglvl, trace, ", %9.5f", dtrp);
 
@@ -552,8 +552,8 @@ E_Solution estpos(
 
 			kfMeasEntryList.push_back(codeMeas);
 
-			obs.vsat		= true;			//todo aaron, this is messy, lots of excludes dont work if spp not run, harmonise the spp/ppp exclusion methods.
-			obs.rescode_v	= res;
+			obs.sppValid		= true;			//todo aaron, this is messy, lots of excludes dont work if spp not run, harmonise the spp/ppp exclusion methods.
+			obs.sppCodeResidual	= res;
 		}
 
 		//force reinitialisation of everything by least squares
@@ -592,46 +592,50 @@ E_Solution estpos(
 		VectorXd dx;
 		kfState.leastSquareInitStates(trace, kfMeas, true, &dx);
 
-		if (trace_level >= 4)
+		if (traceLevel >= 4)
 		{
 			kfMeas.V = kfMeas.Y;
 			outputResiduals(trace, kfMeas, iter, (string)"/" + description, 0, kfMeas.H.rows());
 		}
 		adjustment = dx.norm();
 		tracepdeex(4, trace, "\nSPP dx: %15.4f\n", adjustment);
+
+
+		if	( adjustment < 4000
+			&&acsConfig.sppOpts.postfitOpts.sigma_check
+			&&removals < acsConfig.sppOpts.postfitOpts.max_iterations)
+		{
+			//use 'array' for component-wise calculations
+			auto		measVariations		= kfMeas.Y.array().square();	//delta squared
+
+			auto		measVariances		= kfMeas.R.diagonal().array().max(SQR(adjustment));
+
+			// trace << measVariances.sqrt();
+
+			ArrayXd		measRatios			= measVariations	/ measVariances;
+						measRatios			= measRatios.isFinite()	.select(measRatios,		0);
+
+			//if any are outside the expected values, flag an error
+
+			Eigen::ArrayXd::Index measIndex;
+
+// 			std::cout << "\nmeasRatios\n" << measRatios;
+
+			double maxMeasRatio		= measRatios	.maxCoeff(&measIndex);
+
+			if	(maxMeasRatio > SQR(acsConfig.sppOpts.postfitOpts.sigma_threshold))
+			{
+				trace << std::endl << "LARGE MEAS  ERROR OF " << maxMeasRatio << " AT " << measIndex << " : " << kfMeas.obsKeys[measIndex];
+
+				GObs& badObs = *(GObs*) kfMeas.metaDataMaps[measIndex]["obs_ptr"];
+
+				badObs.excludeOutlier = true;
+				continue;
+			}
+		}
+
 		if (adjustment < 1E-4)
 		{
-			if	( acsConfig.sppOpts.postfitOpts.sigma_check
-				&&removals < acsConfig.sppOpts.postfitOpts.max_iterations)
-			{
-				//use 'array' for component-wise calculations
-				auto		measVariations		= kfMeas.Y.array().square();	//delta squared
-
-				auto		measVariances		= kfMeas.R.diagonal().array();
-
-				ArrayXd		measRatios			= measVariations	/ measVariances;
-							measRatios			= measRatios.isFinite()	.select(measRatios,		0);
-
-				//if any are outside the expected values, flag an error
-
-				Eigen::ArrayXd::Index measIndex;
-
-	// 			std::cout << "\nmeasRatios\n" << measRatios;
-
-				double maxMeasRatio		= measRatios	.maxCoeff(&measIndex);
-
-				if	(maxMeasRatio > SQR(acsConfig.sppOpts.postfitOpts.sigma_threshold))
-				{
-					trace << std::endl << "LARGE MEAS  ERROR OF " << maxMeasRatio << " AT " << measIndex << " : " << kfMeas.obsKeys[measIndex];
-
-					GObs& badObs = *(GObs*) kfMeas.metaDataMaps[measIndex]["obs_ptr"];
-
-					badObs.excludeOutlier = true;
-					continue;
-				}
-			}
-
-
 			double dtRec_m = 0;
 			kfState.getKFValue({KF::REC_SYS_BIAS, SatSys(E_Sys::GPS), id}, dtRec_m);
 
@@ -644,7 +648,7 @@ E_Solution estpos(
 			tracepdeex(5, trace, "chi2stats: sqrt(var_pos) * chi^2/dof = %10f\n", a);
 			tracepdeex(5, trace, "chi2stats: sqrt(var_dclk)* chi^2/dof = %10f\n", b);
 
-			if (trace_level >= 4)
+			if (traceLevel >= 4)
 			{
 				kfState.outputStates(trace, (string)"/" + description);
 			}
@@ -678,22 +682,37 @@ E_Solution estpos(
 
 /** Receiver autonomous integrity monitoring (RAIM) failure detection and exclution
 */
-bool raim_fde(
+bool raim(
 	Trace&		trace,		///< Trace file to output to
 	ObsList&	obsList,	///< List of observations for this epoch
 	Solution&	sol,		///< Solution object containing initial conditions and results
 	string		id,			///< Id of receiver
 	KFState*	kfState_ptr = nullptr)
 {
-	double	rms_min	= 100;
+	trace << " Performing RAIM." << std::endl;
 
-	SatSys exSat = {};
+	double	bestRms	= 100;
+
+	SatSys exSat;
 
 	for (auto& testObs : only<GObs>(obsList))
 	{
 		if (testObs.exclude)
 		{
 			continue;
+		}
+
+		map<SatSys, SatStat> satStatBak;
+
+		//store 'best' satStats for later
+		for (auto& obs : only<GObs>(obsList))
+		{
+			if (obs.exclude)
+			{
+				continue;
+			}
+
+			satStatBak[obs.Sat] = *obs.satStat_ptr;
 		}
 
 		ObsList testList;
@@ -716,30 +735,45 @@ bool raim_fde(
 			continue;
 		}
 
-		int		nvsat = 0;
-		double	rms_e = 0;
+		int		numSat	= 0;
+		double	testRms	= 0;
 
 		for (auto& obs : only<GObs>(testList))
 		{
-			if (obs.vsat == false)
+			if (obs.sppValid == false)
 				continue;
 
-			rms_e += SQR(obs.rescode_v);
-			nvsat++;
+			testRms += SQR(obs.sppCodeResidual);
+			numSat++;
 		}
 
-		if (nvsat < 5)
+		testRms = sqrt(testRms / numSat);
+
+		if (numSat < 5)
 		{
-			tracepdeex(3, std::cout, "%s: exsat=%s lack of satellites nvsat=%2d\n", __FUNCTION__, testObs.Sat.id().c_str(), nvsat);
+			tracepdeex(3, trace, "%s: exsat=%s lack of satellites numSat=%2d\n", __FUNCTION__, testObs.Sat.id().c_str(), numSat);
 			continue;
 		}
 
-		rms_e = sqrt(rms_e / nvsat);
+		tracepdeex(3, trace, "%s: exsat=%s rms=%8.3f\n", __FUNCTION__, testObs.Sat.id().c_str(), testRms);
 
-		tracepdeex(3, trace, "%s: exsat=%s rms=%8.3f\n", __FUNCTION__, testObs.Sat.id().c_str(), rms_e);
+		if (testRms > bestRms)
+		{
+			//this solution is worse
 
-		if (rms_e > rms_min)
+			//revert satStats
+			for (auto& obs : only<GObs>(obsList))
+			{
+				if (obs.exclude)
+				{
+					continue;
+				}
+
+				*obs.satStat_ptr = satStatBak[obs.Sat];
+			}
+
 			continue;
+		}
 
 		/* save result */
 		for (auto& testObs : only<GObs>(testList))
@@ -750,15 +784,15 @@ bool raim_fde(
 				continue;
 			}
 
-			origObs.vsat		= testObs.vsat;
-			origObs.rescode_v	= testObs.rescode_v;
+			origObs.sppValid		= testObs.sppValid;
+			origObs.sppCodeResidual	= testObs.sppCodeResidual;
 		}
 
-		sol				= sol_e;
-		sol.status		= E_Solution::SINGLE;
-		exSat			= testObs.Sat;
-		rms_min			= rms_e;
-		testObs.vsat	= 0;
+		sol					= sol_e;
+		sol.status			= E_Solution::SINGLE;
+		exSat				= testObs.Sat;
+		bestRms				= testRms;
+		testObs.sppValid	= false;
 	}
 
 	if ((int) exSat)
@@ -815,8 +849,7 @@ void SPP(
 		if	( sol.numMeas >= 6		//need 6 so that 6-1 is still overconstrained, otherwise they all pass equally.
 			&&acsConfig.sppOpts.raim)
 		{
-			trace << " Performing RAIM." << std::endl;
-			raim_fde(trace, obsList, sol, id);
+			raim(trace, obsList, sol, id);
 		}
 	}
 
@@ -839,7 +872,7 @@ void SPP(
 		}
 
 		if	( obs.exclude
-			||obs.vsat)
+			||obs.sppValid)
 		{
 			continue;
 		}
@@ -854,7 +887,7 @@ void SPP(
 	for (short i = 0; i	< 3; i++)							{										sol.sppState.getKFValue({KF::REC_POS,		{},		id, i},	sol.sppRRec[i]);	}
 	for (short i = E_Sys::GPS; i < +E_Sys::SUPPORTED; i++)	{	E_Sys sys = E_Sys::_values()[i];	sol.sppState.getKFValue({KF::REC_SYS_BIAS,	{sys},	id},	sol.dtRec_m[sys]);	}
 
-	tracepdeex(3, trace,    "\n%s  sol: %f %f %f",	__FUNCTION__, sol.sppRRec[0], sol.sppRRec[1], sol.sppRRec[2]);
-	tracepdeex(3, trace,    "\n%s  clk: %f\n", 		__FUNCTION__, sol.dtRec_m[E_Sys::GPS]);
+	tracepdeex(3, trace, "\n%s  sol: %f %f %f",	__FUNCTION__, sol.sppRRec[0], sol.sppRRec[1], sol.sppRRec[2]);
+	tracepdeex(3, trace, "\n%s  clk: %f\n", 	__FUNCTION__, sol.dtRec_m[E_Sys::GPS]);
 }
 

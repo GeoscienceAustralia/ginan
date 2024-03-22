@@ -316,7 +316,8 @@ VectorEci propagateEllipse(
 	VectorEci&	rSat,
 	VectorEci&	vSat,
 	VectorEcef&	ecef,
-	VectorEcef* vSatEcef_ptr)
+	VectorEcef* vSatEcef_ptr,
+	bool		j2)
 {
 	ERPValues erpv = getErp(nav.erp, time);
 
@@ -364,6 +365,32 @@ VectorEci propagateEllipse(
 	keplers0[KEPLER::M] += 2 * PI * dt / T;
 
 	VectorEci newPos1 = keplers2Inertial(trace, keplers0);
+
+	if (j2)
+	{
+		double J2 = 0.00108263;
+
+		VectorEci a;
+
+		for (auto& rSat : {rSat, newPos1})
+		{
+			double R = rSat.norm();
+
+			double x = rSat.x();
+			double y = rSat.y();
+			double z = rSat.z();
+
+			a += 1.5 * J2 * MU * SQR(RE_MEAN)
+				/ (R * R * R * R * R) *
+				(	+ x	*	(5 * SQR(z/R) - 1) * Vector3d::UnitX()
+					+ y	*	(5 * SQR(z/R) - 1) * Vector3d::UnitY()
+					+ z * 	(5 * SQR(z/R) - 3) * Vector3d::UnitZ()	);
+		}
+
+		a /= 2;
+
+		newPos1 += 0.5 * a * SQR(dt);
+	}
 
 	double dtVel = 1e-4;
 

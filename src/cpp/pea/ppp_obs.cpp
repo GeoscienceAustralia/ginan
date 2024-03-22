@@ -28,6 +28,9 @@
 #include "tides.hpp"
 #include "trace.hpp"
 
+#include <functional>
+
+using std::function;
 
 
 struct AutoSender
@@ -1348,7 +1351,7 @@ void receiverPPP(
 	{
 		string		sigName			= sig.code._to_string();
 
-		AutoSender autoSenderTemplate (1, jsonTrace, time);
+		AutoSender autoSenderTemplate(1, jsonTrace, time);
 
 		autoSenderTemplate.baseKVPs =
 		{
@@ -1377,8 +1380,7 @@ void receiverPPP(
 		tracepdeex(1, trace, "\nProcessing %s: ", measDescription);
 
 		if	( obs.ephPosValid == false
-			||obs.ephClkValid == false
-			)
+			||obs.ephClkValid == false)
 		{
 			tracepdeex(2,trace, "\n%s excludeSvh", obs.Sat.id().c_str());
 
@@ -1446,13 +1448,15 @@ void receiverPPP(
 
 		if (measType == PHAS)
 		{
-			measEntry.metaDataMap["phaseRejectCount"] = &sigStat.phaseRejectCount;
-			measEntry.metaDataMap["phaseOutageCount"] = &sigStat.phaseOutageCount;
+			measEntry.metaDataMap["phaseRejectCount"]	= &sigStat.phaseRejectCount;
+			measEntry.metaDataMap["phaseOutageCount"]	= &sigStat.phaseOutageCount;
 			tracepdeex(2,trace,"\n PPP Phase counts: %s %s %s %d %d", rec.id.c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sigStat.phaseOutageCount, sigStat.phaseRejectCount);
 		}
 
 		{
-			measEntry.metaDataMap["ionoOutageCount"] = &satStat.ionoOutageCount;
+			measEntry.metaDataMap["receiverErrorCount"]	= &rec.receiverErrorCount;
+
+			measEntry.metaDataMap["ionoOutageCount"]	= &satStat.ionoOutageCount;
 			tracepdeex(2,trace,"\n PPP Iono  counts: %s %s %s %d", rec.id.c_str(), obs.Sat.id().c_str(), sig.code._to_string(), satStat.ionoOutageCount);
 		}
 
@@ -1483,6 +1487,8 @@ void receiverPPP(
 
 		VectorEcef rRec			= rec.aprioriPos;
 
+		vector<function<void(Vector3d, Vector3d)>>	delayedInits;
+
 		{
 			for (int i = 0; i < 3; i++)
 			{
@@ -1506,7 +1512,13 @@ void receiverPPP(
 
 				init.x = rRec[i];
 
-				measEntry.addDsgnEntry(kfKey, -satStat.e[i], init);
+				delayedInits.push_back([kfKey, init, i, &measEntry]
+					(Vector3d satStat_e, Vector3d eSatInertial)
+				{
+					measEntry.addDsgnEntry(kfKey, -satStat_e[i], init);
+				});
+
+				// measEntry.addDsgnEntry(kfKey, -satStat.e[i], init);
 
 				InitialState rateInit = initialStateFromConfig(recOpts.pos_rate, i);
 				if (rateInit.estimate)
@@ -1548,9 +1560,13 @@ void receiverPPP(
 
 					if (posInit.x == 0)			posInit.x = rRecInertial[i];
 
-					VectorEci eSatInertial	= frameSwapper(satStat.e);
+					delayedInits.push_back([posKey, posInit, i, &measEntry]
+						(Vector3d satStat_e, Vector3d eSatInertial)
+					{
+						measEntry.addDsgnEntry(posKey, -eSatInertial[i], posInit);
+					});
 
-					measEntry.addDsgnEntry	(posKey,			-eSatInertial[i],				posInit);
+					// measEntry.addDsgnEntry	(posKey,			-eSatInertial[i],				posInit);
 
 					kfState.addKFState		(velKey, 											velInit);
 				}
@@ -1605,10 +1621,15 @@ void receiverPPP(
 			if (posInit.x == 0)			posInit.x = obs.rSatEci0[i];
 			if (velInit.x == 0)			velInit.x = obs.vSatEci0[i];
 
-			VectorEci eSatInertial	= frameSwapper(satStat.e);
+			delayedInits.push_back([posKey, velKey, posInit, velInit, i, &obs, &measEntry]
+				(Vector3d satStat_e, Vector3d eSatInertial)
+			{
+				measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
+				measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
+			});
 
-			measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
-			measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
+			// measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
+			// measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
 
 			addEmpStates(satOpts, kfState, Sat);
 		}
@@ -1642,25 +1663,30 @@ void receiverPPP(
 			}
 		}
 
-		tracepdeex(3, trace, "\n%s rSatEcef   : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.rSatCom		.x(),	obs.rSatCom		.y(),	obs.rSatCom		.z());
-		tracepdeex(3, trace, "\n%s vSatEcef   : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.satVel		.x(),	obs.satVel		.y(),	obs.satVel		.z());
-		tracepdeex(4, trace, "\n%s rSatEciDt  : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.rSatEciDt	.x(),	obs.rSatEciDt	.y(),	obs.rSatEciDt	.z());
-		tracepdeex(4, trace, "\n%s rSatEci0   : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.rSatEci0	.x(),	obs.rSatEci0	.y(),	obs.rSatEci0	.z());
 
-
-		//Range
+		//Range and geometry
 
 
 		double rRecSat	= (rSat - rRec).norm();
 		satStat.e		= (rSat - rRec).normalized();
 		satStat.nadir	= acos(satStat.e.dot(rSat.normalized()));
 
+		VectorEci eSatInertial	= frameSwapper(satStat.e);
+
 		satazel(pos, satStat.e, satStat);
 
-// 		VectorEci rRecEci	= frameSwapper(rRec);
-// 		obs.rSatEciDt		= frameSwapper(rSat, obs.time - obs.tof - obs.dtSat[0]);
-//
-// 		rRecSat = (obs.rSatEciDt - rRecEci).norm();
+		//add initialisations for things waiting for an up-to-date satstat
+		for (auto& delayedInit : delayedInits)
+		{
+			delayedInit(satStat.e, eSatInertial);
+		}
+
+		tracepdeex(3, trace, "\n%s satstat.e  : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	satStat.e		.x(),	satStat.e		.y(),	satStat.e		.z());
+		tracepdeex(3, trace, "\n%s apriori    : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	rec.aprioriPos	.x(),	rec.aprioriPos	.y(),	rec.aprioriPos	.z());
+		tracepdeex(3, trace, "\n%s rSatEcef   : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.rSatCom		.x(),	obs.rSatCom		.y(),	obs.rSatCom		.z());
+		tracepdeex(3, trace, "\n%s vSatEcef   : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.satVel		.x(),	obs.satVel		.y(),	obs.satVel		.z());
+		tracepdeex(4, trace, "\n%s rSatEciDt  : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.rSatEciDt	.x(),	obs.rSatEciDt	.y(),	obs.rSatEciDt	.z());
+		tracepdeex(4, trace, "\n%s rSatEci0   : %20.4f\t%20.4f\t%20.4f", obs.Sat.id().c_str(),	obs.rSatEci0	.x(),	obs.rSatEci0	.y(),	obs.rSatEci0	.z());
 
 		if (recOpts.range)
 		{
@@ -1797,6 +1823,8 @@ void receiverPPP(
 		}
 
 		measEntry.setInnov(residual);
+
+		// measEntry.metaDataMap["explain"]	= (void*) true;
 
 		kfMeasEntryList.push_back(measEntry);
 	}

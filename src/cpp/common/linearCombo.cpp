@@ -181,13 +181,8 @@ void lcPrepareBase(
 
 	for (auto& [ft, sig] : obs.sigs)
 	{
-		auto& satStat = *obs.satStat_ptr;
-		auto& sigStat = satStat.sigStatMap[ft2string(ft)];
-		
-		sigStat.lambda	= obs.satNav_ptr->lamMap[ft];
-
 		//populate variables for later use.
-		lcBase.L_m[ft]	= sig.L * sigStat.lambda;
+		lcBase.L_m[ft]	= sig.L * obs.satNav_ptr->lamMap[ft];
 		lcBase.P[ft]	= sig.P;
 	}
 }
@@ -200,11 +195,11 @@ void obs2lc(
 	lc_t&	lcBase)	///< Linear combination base object to use
 {
 	int lv = 3;
-	
+
 	int sys = obs.Sat.sys;
 
 	/* SBS and LEO are not included */
-	if	(  sys == E_Sys::SBS 
+	if	(  sys == E_Sys::SBS
 		|| sys == E_Sys::LEO)
 	{
 		tracepdeex(lv, trace, "PDE, no relevant satellite system involved\n");
@@ -216,7 +211,7 @@ void obs2lc(
 	E_FType frq3;
 	if (!satFreqs(obs.Sat.sys,frq1,frq2,frq3))
 		return;
-	
+
 	char strprefix[64];
 	snprintf(strprefix, sizeof(strprefix), "%3s sat=%4s", obs.time.to_string().c_str(), obs.Sat.id().c_str());
 
@@ -237,14 +232,14 @@ void obs2lc(
 	tracepdeex(lv, trace, "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Code_m,	lc15.IF_Code_m,		lc25.IF_Code_m);
 	tracepdeex(lv, trace, "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n", strprefix, lcBase.mp[frq1],	lcBase.mp[frq2],	lcBase.mp[frq3]);
 
-	traceJson(lv, trace, obs.time, 
+	traceJson(lv, trace, obs.time,
 				{
 					{"data",	__FUNCTION__		},
-					{"Sat",		obs.Sat.id()		} 
+					{"Sat",		obs.Sat.id()		}
 				},
 				{
 					{"L1",		lcBase.L_m[frq1]	},	{"L2",		lcBase.L_m[frq2]	},	//etc
-					{"mp1",		lcBase.mp[frq1]		},	{"mp2",		lcBase.mp[frq2]		},	
+					{"mp1",		lcBase.mp[frq1]		},	{"mp2",		lcBase.mp[frq2]		},
 				});
 }
 
@@ -255,7 +250,7 @@ void obs2lcs(
 	ObsList&	obsList)	///< List of bservation to prepare combinations for
 {
 	Instrument instrument(__FUNCTION__);
-	
+
 	int lv = 3;
 
 	if (obsList.empty())

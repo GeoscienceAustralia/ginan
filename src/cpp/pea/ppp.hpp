@@ -8,17 +8,18 @@ using std::map;
 
 
 #include "algebra.hpp"
-#include "satStat.hpp"
 
 //forward declarations
-struct Receiver;
-struct Solution;
-struct Vmf3;
-struct gptgrid_t;
-struct AttStatus;
 struct PhaseCenterData;
 struct ReceiverMap;
+struct Receiver;
+struct Solution;
+struct gptgrid_t;
+struct AttStatus;
+struct ObsList;
 struct GTime;
+struct Vmf3;
+struct GObs;
 
 
 
@@ -75,20 +76,6 @@ int ionoModel(
 void outputApriori(
 	ReceiverMap& receiverMap);
 
-// void outputPPPSolution(
-// 	string		filename,
-// 	KFState&	kfState,
-// 	Receiver&	rec);
-//
-// void gpggaout(
-// 	string outfile,
-// 	KFState& KfState,
-// 	string recId,
-// 	int solStat,
-// 	int numSat,
-// 	double hdop,
-// 	bool lng);
-
 void selectAprioriSource(
 	Receiver&	rec,
 	GTime&		time,
@@ -126,6 +113,13 @@ bool countSignalErrors(
 	bool		postFit);
 
 bool incrementPhaseSignalError(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index,
+	bool		postFit);
+
+bool incrementReceiverError(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
@@ -174,7 +168,6 @@ void receiverPPP(
 			KFMeasEntryList&	kfMeasEntryList,
 	const	KFState&			remoteState);
 
-
 void orbitPseudoObs(
 			Trace&				pppTrace,
 			Receiver&			rec,
@@ -186,13 +179,22 @@ void initPseudoObs(
 			KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList);
 
+void filterPseudoObs(
+			Trace&				pppTrace,
+			KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList);
+
 void receiverPseudoObs(
 			Trace&				pppTrace,
 			Receiver&			rec,
 	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
-			ReceiverMap&			receiverMap,
+			ReceiverMap&		receiverMap,
 			MatrixXd*			R_ptr = nullptr);
+
+
+void readPseudosFromFile(
+	string&		file);
 
 void receiverSlr(
 			Trace&				pppTrace,
@@ -251,3 +253,8 @@ void satClockPivotPseudoObs(
 KFState propagateUncertainty(
 	Trace&			trace,
 	KFState&		kfState);
+
+void explainMeasurements(
+	Trace&		trace,
+	KFMeas&		meas,
+	KFState&	kfState);
