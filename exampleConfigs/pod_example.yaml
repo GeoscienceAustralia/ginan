@@ -475,7 +475,7 @@ estimation_parameters:
 
 
 mongo:
-    enable:                     primary
+    enable:                     none
     #enable:                     none
     output_components:          primary
     output_states:              primary

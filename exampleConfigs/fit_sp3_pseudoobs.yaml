@@ -181,7 +181,7 @@ estimation_parameters:
 
 
 mongo:
-    enable:                         primary
+    enable:                         none
     primary_database:               <CONFIG>
     output_measurements:            primary
     output_states:                  primary
