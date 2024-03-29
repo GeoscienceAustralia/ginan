@@ -87,7 +87,7 @@ SsrOutMap mongoReadOrbClk(
 
 		auto& mongo = *mongo_ptr;
 
-		mongocxx::collection coll = getMongoCollection(mongo, SSR_DB);
+		getMongoCollection(mongo, SSR_DB);
 
 	// 	std::cout << "\nTrying to get things for " << targetTime.to_string(0) << std::endl;
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)referenceTime).bigTime)};
@@ -279,9 +279,11 @@ SsrPBMap mongoReadPhaseBias(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		auto sats = getSysSats(targetSys);
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, SSR_DB);
+		getMongoCollection(mongo, SSR_DB);
 
 		mongocxx::pipeline p;
 		p.match(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp(SSR_DATA, SSR_PHAS_BIAS)));
@@ -358,9 +360,11 @@ SsrCBMap mongoReadCodeBias(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		auto sats = getSysSats(targetSys);
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, SSR_DB);
+		getMongoCollection(mongo, SSR_DB);
 
 		mongocxx::pipeline p;
 		p.match(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp(SSR_DATA, SSR_CODE_BIAS)));
@@ -428,7 +432,9 @@ Eph	mongoReadEphemeris(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Ephemeris");
+		auto& mongo = *mongo_ptr;
+
+		getMongoCollection(mongo, "Ephemeris");
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)targetTime).bigTime)};
 
@@ -556,7 +562,9 @@ Geph mongoReadGloEphemeris(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Ephemeris");
+		auto& mongo = *mongo_ptr;
+
+		getMongoCollection(mongo, "Ephemeris");
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)targetTime).bigTime)};
 
@@ -636,9 +644,11 @@ SSRAtm mongoReadCmpAtmosphere(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		ssrAtm.ssrMeta = ssrMeta;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, SSR_DB);
+		getMongoCollection(mongo, SSR_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -878,9 +888,11 @@ SSRAtm mongoReadIGSIonosphere(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		ssrAtm.ssrMeta = ssrMeta;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, SSR_DB);
+		getMongoCollection(mongo, SSR_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -972,7 +984,9 @@ KFState mongoReadFilter(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, REMOTE_DATA_DB);
+		auto& mongo = *mongo_ptr;
+
+		getMongoCollection(mongo, REMOTE_DATA_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -1041,7 +1055,9 @@ map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, REMOTE_DATA_DB);
+		auto& mongo = *mongo_ptr;
+
+		getMongoCollection(mongo, REMOTE_DATA_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -1110,7 +1126,9 @@ map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, REMOTE_DATA_DB);
+		auto& mongo = *mongo_ptr;
+
+		getMongoCollection(mongo, REMOTE_DATA_DB);
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 
@@ -1170,8 +1188,10 @@ void mongoReadFilter(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		// Is this intentionally different to the current value of REMOTE_DATA_DB ("Remote")?
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "REMOTE");
+		getMongoCollection(mongo, "REMOTE");
 
 		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
 

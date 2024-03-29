@@ -353,6 +353,7 @@ processing_options:
         translation:
             estimated:                [true]
         application_mode:             weight_matrix
+        # once_per_epoch:               true
         constrain_orbits:             false
         outlier_screening:                             # Statistical checks allow for detection of outliers that exceed their confidence intervals
             postfit:

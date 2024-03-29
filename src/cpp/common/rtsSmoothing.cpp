@@ -100,8 +100,8 @@ void postRTSActions(
 
 	for (auto& [id, rec] : receiverMap)
 	{
-		if (acsConfig.output_gpx)			{	writeGPX			(				kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	id);		}
 		if (acsConfig.output_cost)			{	outputCost			(				kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
+		if (acsConfig.output_gpx)			{	writeGPX			(				kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
 	}
 }
 

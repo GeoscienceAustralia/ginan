@@ -145,12 +145,13 @@ document entryToDocument(
 	DBEntry&	entry,
 	bool		type);
 
-mongocxx::database getMongoDatabase(
-	Mongo& mongo);
+#define getMongoCollection(MONGO,COLLECTION)					\
+	auto				c 			= MONGO.pool.acquire();		\
+	mongocxx::client&	client		= *c;						\
+	mongocxx::database	db			= client[MONGO.database];	\
+	auto				coll		= db[COLLECTION];
 
-mongocxx::collection getMongoCollection(
-	Mongo& mongo,
-	bsoncxx::string::view_or_value collection);
+
 
 extern array<Mongo*, 3>	mongo_ptr_arr;
 

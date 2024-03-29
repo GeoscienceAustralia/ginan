@@ -979,7 +979,7 @@ void PPP(
 			receiverSlr			(std::cout, rec,	constKfState, kfMeasEntryList);
 			receiverPseudoObs	(std::cout,	rec,	constKfState, kfMeasEntryList, receiverMap, R_ptr);
 
-			if (acsConfig.pppOpts.ionoOpts.use_if_combo)	makeIFLCs(trace, constKfState, kfMeasEntryList);
+			if (acsConfig.pppOpts.ionoOpts.use_if_combo)		makeIFLCs(trace, constKfState, kfMeasEntryList);
 		}
 		Eigen::setNbThreads(0);
 	}
@@ -1024,7 +1024,6 @@ void PPP(
 	}
 
 	if (acsConfig.pppOpts.ionoOpts	.use_gf_combo)	{	combinedMeas = makeGFLCs	(combinedMeas, kfState);	}
-// 	if (acsConfig.pppOpts.ionoOpts	.use_if_combo)	{	combinedMeas = makeIFLCs	(combinedMeas, kfState);	}
 	if (acsConfig.pppOpts			.use_rtk_combo)	{	combinedMeas = makeRTKLCs	(combinedMeas, kfState);	}
 
 	if (acsConfig.explain_measurements)

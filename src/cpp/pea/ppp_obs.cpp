@@ -515,7 +515,7 @@ inline void pppIonStec(COMMON_PPP_ARGS)
 		}
 
 		string recStr;
-		if (acsConfig.pppOpts.common_atmosphere == false)
+		if (acsConfig.pppOpts.equate_ionospheres == false)
 			recStr	= rec.id;
 
 		KFKey kfKey;
@@ -577,7 +577,7 @@ inline void pppIonStec2(COMMON_PPP_ARGS)
 		}
 
 		string recStr;
-		if (acsConfig.pppOpts.common_atmosphere == false)
+		if (acsConfig.pppOpts.equate_ionospheres == false)
 			recStr	= rec.id;
 
 		KFKey kfKey;
@@ -649,7 +649,7 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 		}
 
 		string recStr;
-		if (acsConfig.pppOpts.common_atmosphere == false)
+		if (acsConfig.pppOpts.equate_ionospheres == false)
 			recStr	= rec.id;
 
 		KFKey kfKey;
@@ -812,7 +812,7 @@ inline void pppTrop(COMMON_PPP_ARGS)
 	double troposphere_m	= 0;
 
 	string recStr;
-// 	if (acsConfig.pppOpts.common_atmosphere == false)
+	if (acsConfig.pppOpts.equate_tropospheres == false)
 	{
 		recStr	= rec.id;
 	}
@@ -1301,7 +1301,6 @@ void receiverPPP(
 // 	Instrument	instrument(__FUNCTION__ + rec.id);
 
 	tracepdeex(0, trace, "\n--------------------- Performing PPP -------------------");
-
 
 	if	(  rec.obsList.empty()
 		|| rec.invalid)

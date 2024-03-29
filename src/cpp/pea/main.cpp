@@ -93,7 +93,7 @@ using std::string;
 #include "api.hpp"
 
 Navigation				nav		= {};
-int						epoch	= 1;
+int						epoch	= 0;
 GTime					tsync	= GTime::noTime();
 map<int, SatIdentity>	satIdMap;
 ReceiverMap				receiverMap;
@@ -1174,15 +1174,16 @@ void mainOncePerEpochPerStation(
 	//recalculate variances now that elevations are known due to satellite postions calculation above
 	obsVariances(rec.obsList);
 
+	if (rec.ready == false)
+	{
+		trace << std::endl		<< "Receiver " << rec.id << " has no data for this epoch";
+		BOOST_LOG_TRIVIAL(info)	<< "Receiver " << rec.id << " has no data for this epoch";
+		return;
+	}
+
 	if (acsConfig.process_spp)
 	{
 		SPP(trace, rec.obsList, rec.sol, rec.id, &net.kfState, &remoteState);
-	}
-
-	if	(  rec.ready == false
-		|| rec.invalid)
-	{
-		return;
 	}
 
 	bool sppUsed;
@@ -1488,7 +1489,7 @@ void mainPerEpochPostProcessingAndOutputs(
 			}
 
 			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);		}
-			if (acsConfig.output_gpx)		{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ recId], kfState,	rec.id);	}
+			if (acsConfig.output_gpx)		{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ recId], kfState,	rec);	}
 		}
 
 		outputStatistics(pppTrace, pppNet.kfState.statisticsMap, pppNet.kfState.statisticsMapSum);
@@ -1869,7 +1870,8 @@ int ginan(
 	BOOST_LOG_TRIVIAL(info)
 	<< "PEA starting... (" << ginanBranchName() << " " << ginanCommitVersion() << " from " << ginanCommitDate() << ")" << std::endl;
 
-	GTime peaStartTime = timeGet();
+	GTime	peaStartTime		= timeGet();
+	auto	peaStartTimeChrono	= system_clock::now();
 
 	exitOnErrors();
 
@@ -2025,34 +2027,111 @@ int ginan(
 	<< std::endl;
 	BOOST_LOG_TRIVIAL(info)
 	<< "Starting to process epochs...";
-	BOOST_LOG_TRIVIAL(info)
-	<< "Starting epoch #1";
 
 	//============================================================================
 	// MAIN PROCESSING LOOP														//
 	//============================================================================
 
+	GTime lastEpochStartTime;
+	GTime lastEpochStopTime;
+
+	auto atLastEpoch = [&](bool processed = false) -> bool
+	{
+		// Check number of epochs
+		if	(  acsConfig.max_epochs	> 0
+			&& epoch				>= acsConfig.max_epochs)
+		{
+			BOOST_LOG_TRIVIAL(info)
+			<< std::endl
+			<< "Exiting at epoch " << epoch
+			<< " as epoch count " << acsConfig.max_epochs
+			<< " has been reached";
+
+			return true;
+		}
+
+		if (tsync == GTime::noTime())
+		{
+			return false;
+		}
+
+		int fractionalMilliseconds = (tsync.bigTime - (long int) tsync.bigTime) * 1000;
+		auto boostTime = boost::posix_time::from_time_t((time_t)((PTime)tsync).bigTime) + boost::posix_time::millisec(fractionalMilliseconds);
+
+		GWeek	week	= tsync;
+		GTow	tow		= tsync;
+
+		if (processed)
+		{
+			BOOST_LOG_TRIVIAL(info)
+			<< "Processed epoch #" << epoch
+			<< " - " << "GPS time: " << week << " " << std::setw(6) << tow << " - " << boostTime
+			<< " (took " << (lastEpochStopTime - lastEpochStartTime) << ")";
+		}
+
+		// Check end epoch
+		if	(  acsConfig.end_epoch.is_not_a_date_time() == false
+			&& boostTime >= acsConfig.end_epoch)
+		{
+			BOOST_LOG_TRIVIAL(info)
+			<< "Exiting at epoch " << epoch << " (" << boostTime
+			<< ") as end epoch " << acsConfig.end_epoch
+			<< " has been reached";
+
+			return true;
+		}
+
+		return false;
+	};
+
 	// Read the observations for each station and do stuff
-	bool	complete					= false;							// When all input files are empty the processing is deemed complete - run until then, or until something else breaks the loop
-	int		loopEpochs					= 0;								// A count of how many loops of epoch_interval this loop used up (usually one, but may be more if skipping epochs)
-	auto	nextNominalLoopStartTime	= system_clock::now() + 10s;		// The time the next loop is expected to start - if it doesnt start until after this, it may be skipped
+
+	bool	nextEpoch					= true;
+	bool	complete					= false;					// When all input files are empty the processing is deemed complete - run until then, or until something else breaks the loop
+	int		loopEpochs					= 0;						// A count of how many loops of epoch_interval this loop used up (usually one, but may be more if skipping epochs)
+	auto	nominalLoopStartTime		= system_clock::now();		// The time the next loop is expected to start - if it doesnt start until after this, it may be skipped
 	while (complete == false)
 	{
-		if (tsync != GTime::noTime())
+		if (nextEpoch)
 		{
-			tsync.bigTime			+= loopEpochs * acsConfig.epoch_interval;
+			nextEpoch = false;
+			epoch++;
 
-			if (fabs(tsync.bigTime - round(tsync.bigTime)) < acsConfig.epoch_tolerance)
+			BOOST_LOG_TRIVIAL(info) << std::endl
+			<< "Starting epoch #" << epoch;
+
+			nominalLoopStartTime += std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
+
+			if (tsync != GTime::noTime())
 			{
-				tsync.bigTime = round(tsync.bigTime);
+				tsync.bigTime += acsConfig.epoch_interval;
+
+				if (fabs(tsync.bigTime - round(tsync.bigTime)) < acsConfig.epoch_tolerance)
+				{
+					tsync.bigTime = round(tsync.bigTime);
+				}
+			}
+
+			for (auto& [id, rec] : receiverMap)
+			{
+				rec.ready = false;
+
+				auto trace		= getTraceFile(rec);
+
+				trace		<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
+				trace		<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
+			}
+
+			{
+				auto pppTrace	= getTraceFile(pppNet);
+
+				pppTrace	<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
+				pppTrace	<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
 			}
 		}
 
-		epoch						+= loopEpochs;
-		nextNominalLoopStartTime	+= loopEpochs * std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
-
 		// Calculate the time at which we will stop waiting for data to come in for this epoch
-		auto breakTime	= nextNominalLoopStartTime
+		auto breakTime	= nominalLoopStartTime
 						+ std::chrono::milliseconds((int)(acsConfig.wait_all_receivers	* 1000));
 
 		if (loopEpochs)
@@ -2061,34 +2140,28 @@ int ginan(
 			<< "Starting epoch #" << epoch;
 		}
 
-		for (auto& [id, rec] : receiverMap)
+		if (system_clock::now() > breakTime)
 		{
-			rec.ready = false;
+			BOOST_LOG_TRIVIAL(warning) << std::endl
+			<< "Warning: Excessive time elapsed, skipping epoch " << epoch
+			<< ". Configuration 'wait_next_epoch' is " << acsConfig.wait_next_epoch;
 
-			auto trace		= getTraceFile(rec);
+			nextEpoch = true;
 
-			trace		<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
-			trace		<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
-		}
+			if (atLastEpoch())
+			{
+				break;
+			}
 
-		{
-			auto pppTrace	= getTraceFile(pppNet);
-
-			pppTrace	<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
-			pppTrace	<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
+			continue;
 		}
 
 		//get observations from streams (allow some delay between stations, and retry, to ensure all messages for the epoch have arrived)
 		map<string, bool>	dataAvailableMap;
-		bool 				foundFirst	= false;
 		bool				repeat		= true;
-		bool				atLeastOnce	= true;
-		while	(   atLeastOnce
-				||( repeat
-				&&system_clock::now() < breakTime))
+		while	( repeat
+				&&system_clock::now() < breakTime)
 		{
-			atLeastOnce = false;
-
 			if (acsConfig.require_obs)
 			{
 				repeat = false;
@@ -2220,21 +2293,23 @@ int ginan(
 				auto& rec = receiverMap[id];
 
 				//try to get some data (again)
-				if (rec.ready == false)
+				if (rec.ready)
 				{
-					bool moreData = true;
-					while (moreData)
-					{
-						if (acsConfig.assign_closest_epoch)	rec.obsList = obsStream.getObs(tsync, acsConfig.epoch_interval / 2);
-						else								rec.obsList = obsStream.getObs(tsync, acsConfig.epoch_tolerance);
+					continue;
+				}
 
-						switch (obsStream.obsWaitCode)
-						{
-							case E_ObsWaitCode::EARLY_DATA:								preprocessor(pppNet, rec);	break;
-							case E_ObsWaitCode::OK:					moreData = false;	preprocessor(pppNet, rec);	break;
-							case E_ObsWaitCode::NO_DATA_WAIT:		moreData = false;								break;
-							case E_ObsWaitCode::NO_DATA_EVER:		moreData = false;								break;
-						}
+				bool moreData = true;
+				while (moreData)
+				{
+					if (acsConfig.assign_closest_epoch)	rec.obsList = obsStream.getObs(tsync, acsConfig.epoch_interval / 2);
+					else								rec.obsList = obsStream.getObs(tsync, acsConfig.epoch_tolerance);
+
+					switch (obsStream.obsWaitCode)
+					{
+						case E_ObsWaitCode::EARLY_DATA:								preprocessor(pppNet, rec);	break;
+						case E_ObsWaitCode::OK:					moreData = false;	preprocessor(pppNet, rec);	break;
+						case E_ObsWaitCode::NO_DATA_WAIT:		moreData = false;								break;
+						case E_ObsWaitCode::NO_DATA_EVER:		moreData = false;								break;
 					}
 				}
 
@@ -2264,24 +2339,41 @@ int ginan(
 					}
 				}
 
-				dataAvailableMap[rec.id] = true;
+				dataAvailableMap[rec.id]	= true;
+				rec.ready					= true;
 
-				if (foundFirst == false)
+				auto now = system_clock::now();
+
+				if (now >= nominalLoopStartTime)
 				{
-					foundFirst = true;
+					auto nominalLatency	= now - nominalLoopStartTime;
 
-					//first observation found for this epoch, give any other stations some time to get their observations too
+					BOOST_LOG_TRIVIAL(debug)
+					<< std::chrono::duration_cast<std::chrono::milliseconds>(nominalLoopStartTime	- peaStartTimeChrono).count() << "ms"	<< " "
+					<< std::chrono::duration_cast<std::chrono::milliseconds>(now					- peaStartTimeChrono).count() << "ms"	<< " "
+					<< rec.id << " nominal latency :  "
+					<< std::chrono::duration_cast<std::chrono::milliseconds>(nominalLatency								).count() << "ms";
+				}
+				else
+				{
+					//this observation is earlier than expected
 					//only shorten waiting periods, never extend
-					auto now = system_clock::now();
+
+					auto nominalLatency	= nominalLoopStartTime - now;
+
+					BOOST_LOG_TRIVIAL(debug)
+					<< std::chrono::duration_cast<std::chrono::milliseconds>(nominalLoopStartTime	- peaStartTimeChrono).count() << "ms"	<< " "
+					<< std::chrono::duration_cast<std::chrono::milliseconds>(now					- peaStartTimeChrono).count() << "ms"	<< " "
+					<< rec.id << " nominal latency : -"
+					<< std::chrono::duration_cast<std::chrono::milliseconds>(nominalLatency								).count() << "ms"
+					<< " Advancing start time";
 
 					auto alternateBreakTime = now + std::chrono::milliseconds((int)(acsConfig.wait_all_receivers	* 1000));
-					auto alternateStartTime = now + std::chrono::milliseconds((int)(acsConfig.wait_next_epoch		* 1000));
+					auto alternateStartTime = now;
 
-					if (alternateBreakTime < breakTime)						{	breakTime					= alternateBreakTime;	}
-					if (alternateStartTime < nextNominalLoopStartTime)		{	nextNominalLoopStartTime	= alternateStartTime;	}
+					if (alternateBreakTime < breakTime)					{	breakTime				= alternateBreakTime;	}
+					if (alternateStartTime < nominalLoopStartTime)		{	nominalLoopStartTime	= alternateStartTime;	}
 				}
-
-				rec.ready = true;
 			}
 		}
 
@@ -2301,65 +2393,19 @@ int ginan(
 		BOOST_LOG_TRIVIAL(info)
 		<< "Synced " << dataAvailableMap.size() << " receivers...";
 
-		GTime epochStartTime	= timeGet();
+		lastEpochStartTime	= timeGet();
 		{
 			mainOncePerEpoch(pppNet, ionNet, receiverMap, tsync);
 		}
-		GTime epochStopTime		= timeGet();
+		lastEpochStopTime	= timeGet();
 
 
-
-		GWeek	week	= tsync;
-		GTow	tow		= tsync;
-
-		int fractionalMilliseconds = (tsync.bigTime - (long int) tsync.bigTime) * 1000;
-		auto boostTime = boost::posix_time::from_time_t((time_t)((PTime)tsync).bigTime) + boost::posix_time::millisec(fractionalMilliseconds);
-
-		BOOST_LOG_TRIVIAL(info)
-		<< "Processed epoch #" << epoch
-		<< " - " << "GPS time: " << week << " " << std::setw(6) << tow << " - " << boostTime
-		<< " (took " << (epochStopTime-epochStartTime) << ")";
-
-		// Check end epoch
-		if	(  acsConfig.end_epoch.is_not_a_date_time() == false
-			&& boostTime >= acsConfig.end_epoch)
+		if (atLastEpoch(true))
 		{
-			BOOST_LOG_TRIVIAL(info)
-			<< "Exiting at epoch " << epoch << " (" << boostTime
-			<< ") as end epoch " << acsConfig.end_epoch
-			<< " has been reached";
-
 			break;
 		}
 
-		// Check number of epochs
-		if	(  acsConfig.max_epochs	> 0
-			&& epoch					>= acsConfig.max_epochs)
-		{
-			BOOST_LOG_TRIVIAL(info)
-			<< std::endl
-			<< "Exiting at epoch " << epoch << " (" << boostTime
-			<< ") as epoch count " << acsConfig.max_epochs
-			<< " has been reached";
-
-			break;
-		}
-
-		// Calculate how many loops need to be skipped based on when the next loop was supposed to begin
-		auto loopStopTime		= system_clock::now();
-		auto loopExcessDuration = loopStopTime - (nextNominalLoopStartTime + std::chrono::milliseconds((int)(acsConfig.wait_all_receivers * 1000)));
-		int excessLoops			= loopExcessDuration / std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
-
-		if (excessLoops < 0)		{	excessLoops = 0;	}
-		if (excessLoops > 0)
-		{
-			BOOST_LOG_TRIVIAL(warning) << std::endl
-			<< "Warning: Excessive time elapsed, skipping " << excessLoops
-			<< " epochs to epoch " << epoch + excessLoops + 1
-			<< ". Configuration 'wait_next_epoch' is " << acsConfig.wait_next_epoch;
-		}
-
-		loopEpochs = 1 + excessLoops;
+		nextEpoch = true;
 	}
 
 	// Disconnect the downloading clients and stop the io_service for clean shutdown.

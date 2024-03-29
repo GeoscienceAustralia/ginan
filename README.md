@@ -85,7 +85,7 @@ If instead you wish to build Ginan from source, there are several software depen
 * YAML      >  0.6
 * Boost     >= 1.73 (tested on 1.73). On Ubuntu 22.04 which uses gcc-11, you need Boost >= 1.74.0
 * MongoDB
-* Mongo_C   >= 1.71.1
+* Mongo_C   >= 1.17.1
 * Mongo_cxx >= 3.6.0
 * Eigen3    >  3.4
 * netCDF4

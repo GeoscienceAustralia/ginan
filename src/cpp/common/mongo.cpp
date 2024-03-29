@@ -48,9 +48,10 @@ void newMongoDatabase(
 	}
 
 	auto& mongo		= *mongo_ptr;
+
 	auto& config	= acsConfig.mongoOpts[instance];
 
-	mongocxx::database	db	= getMongoDatabase(mongo);
+	getMongoCollection(mongo, "Content");
 
 	BOOST_LOG_TRIVIAL(info)  << "Mongo connecting to database : " << mongo.database << " @ " << config.uri;
 	try
@@ -158,7 +159,9 @@ void MongoLogSinkBackend::consume(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Console");
+		auto& mongo = *mongo_ptr;
+
+		getMongoCollection(mongo, "Console");
 
 		//add a azimuth to a chunk
 		coll.insert_one(
@@ -170,17 +173,3 @@ void MongoLogSinkBackend::consume(
 	}
 }
 
-mongocxx::database getMongoDatabase(
-	Mongo& mongo)
-{
-	auto c = mongo.pool.acquire();
-	return c->database(mongo.database);
-}
-
-mongocxx::collection getMongoCollection(
-	Mongo& mongo,
-	bsoncxx::string::view_or_value collection)
-{
-	auto database = getMongoDatabase(mongo);
-	return database[collection];
-}

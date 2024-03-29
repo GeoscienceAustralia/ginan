@@ -23,6 +23,8 @@ bool deweightMeas(
 		return true;
 	}
 
+	double deweightFactor = acsConfig.measErrors.deweight_factor;
+
 	auto& key = kfMeas.obsKeys[index];
 
 	trace << std::endl << "Deweighting " << key << " - " << key.comment << std::endl;
@@ -33,8 +35,22 @@ bool deweightMeas(
 	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.str.c_str(),		KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.Sat.id().c_str(),	KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 
-	kfMeas.R.row(index) *= acsConfig.measErrors.deweight_factor;
-	kfMeas.R.col(index) *= acsConfig.measErrors.deweight_factor;
+	kfMeas.R.row(index) *= deweightFactor;
+	kfMeas.R.col(index) *= deweightFactor;
+
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+
+	MatrixXd*	otherNoiseMatrix_ptr	= (MatrixXd*)	metaDataMap["otherNoiseMatrix_ptr"];
+	long int	otherIndex				= (long int)	metaDataMap["otherIndex"];
+
+	if (otherNoiseMatrix_ptr)
+	{
+		//some measurements have noise matrices in 2 places (mincon) - update the other one too if its available.
+		auto& otherNoiseMatrix = *otherNoiseMatrix_ptr;
+
+		otherNoiseMatrix.row(otherIndex) *= deweightFactor;
+		otherNoiseMatrix.col(otherIndex) *= deweightFactor;
+	}
 
 	return true;
 }
@@ -85,6 +101,8 @@ bool deweightStationMeas(
 			continue;
 		}
 
+		double deweightFactor = acsConfig.stateErrors.deweight_factor;
+
 		trace << std::endl << "Deweighting " << key << " - " << key.comment << std::endl;
 
 		kfState.statisticsMap["Receiver deweight"]++;
@@ -92,8 +110,8 @@ bool deweightStationMeas(
 		char buff[64];
 		snprintf(buff, sizeof(buff), "Receiver Deweight-%4s-%sfit", key.str.c_str(),	postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 
-		kfMeas.R.row(i) *= acsConfig.stateErrors.deweight_factor;
-		kfMeas.R.col(i) *= acsConfig.stateErrors.deweight_factor;
+		kfMeas.R.row(i) *= deweightFactor;
+		kfMeas.R.col(i) *= deweightFactor;
 
 		map<string, void*>& metaDataMap = kfMeas.metaDataMaps[i];
 
@@ -102,6 +120,18 @@ bool deweightStationMeas(
 		if (used_ptr)
 		{
 			*used_ptr = false;
+		}
+
+		MatrixXd*	otherNoiseMatrix_ptr	= (MatrixXd*)	metaDataMap["otherNoiseMatrix_ptr"];
+		long int	otherIndex				= (long int)	metaDataMap["otherIndex"];
+
+		if (otherNoiseMatrix_ptr)
+		{
+			//some measurements have noise matrices in 2 places (mincon) - update the other one too if its available.
+			auto& otherNoiseMatrix = *otherNoiseMatrix_ptr;
+
+			otherNoiseMatrix.row(otherIndex) *= deweightFactor;
+			otherNoiseMatrix.col(otherIndex) *= deweightFactor;
 		}
 	}
 	return true;

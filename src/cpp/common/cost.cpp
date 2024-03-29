@@ -231,7 +231,7 @@ void outputCost(
 			continue;
 		}
 
-		if	( acsConfig.pppOpts.common_atmosphere	== false
+		if	( acsConfig.pppOpts.equate_tropospheres	== false
 			&&key.str								!= rec.id)
 		{
 			continue;

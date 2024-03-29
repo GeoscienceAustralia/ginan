@@ -631,7 +631,8 @@ struct PppOptions : FilterOptions
 
 	IonosphericOptions		ionoOpts;
 
-	bool			common_atmosphere	= false;
+	bool			equate_ionospheres	= false;
+	bool			equate_tropospheres	= false;
 	bool			use_rtk_combo		= false;
 
 	bool			satellite_chunking		= false;

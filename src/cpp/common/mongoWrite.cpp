@@ -1,5 +1,5 @@
 
-// #pragma GCC optimize ("O0")
+#pragma GCC optimize ("O0")
 
 
 #include "observations.hpp"
@@ -160,9 +160,11 @@ void mongoTestStat(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, STATES_DB);
+		getMongoCollection(mongo, STATES_DB);
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -194,8 +196,7 @@ void mongoTestStat(
 
 void mongoTrace(
 	const vector<string>&	jsons,
-	bool					queue
-)
+	bool					queue)
 {
 	auto instances = mongoInstances(acsConfig.mongoOpts.output_trace);
 	if (instances.empty())
@@ -225,7 +226,9 @@ void mongoTrace(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Trace");
+		auto& mongo = *mongo_ptr;
+
+		getMongoCollection(mongo, "Trace");
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -233,7 +236,9 @@ void mongoTrace(
 		auto bulk = coll.create_bulk_write(bulk_opts);
 		for (auto& json : jsons)
 		{
-			bulk.append(mongocxx::model::insert_one(bsoncxx::from_json(json)));
+			auto doc = bsoncxx::from_json(json);
+
+			bulk.append(mongocxx::model::insert_one(doc.view()));
 		}
 
 		bulk.execute();
@@ -258,7 +263,9 @@ void mongoOutputConfig(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Config");
+		auto& mongo = *mongo_ptr;
+
+		getMongoCollection(mongo, "Config");
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -300,9 +307,11 @@ void mongoMeasSatStat(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		mongocxx::collection coll = getMongoCollection(*mongo_ptr, "Geometry");
+		getMongoCollection(mongo, "Geometry");
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -378,10 +387,11 @@ void mongoMeasResiduals(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		mongocxx::database		db		= getMongoDatabase(*mongo_ptr);
-		mongocxx::collection	coll	= db["Measurements"];
+		getMongoCollection(mongo, "Measurements");
 
 		mongocxx::options::bulk_write bulk_opts;
 		bulk_opts.ordered(false);
@@ -539,10 +549,11 @@ void mongoStates(
 		if (mongo_ptr == nullptr)
 			continue;
 
+		auto& mongo = *mongo_ptr;
+
 		auto& config	= acsConfig.mongoOpts[instance];
 
-		mongocxx::database		db		= getMongoDatabase(*mongo_ptr);
-		mongocxx::collection	coll	= db[opts.collection];
+		getMongoCollection(mongo, opts.collection);
 
 		//todo aaron, need upsert for predicted states as per opts.upsert
 
@@ -652,13 +663,13 @@ void mongoCull(
 		if (mongo_ptr == nullptr)
 			continue;
 
-		auto& config	= acsConfig.mongoOpts[instance];
+		auto& mongo = *mongo_ptr;
 
-		mongocxx::database db = getMongoDatabase(*mongo_ptr);
+		auto& config	= acsConfig.mongoOpts[instance];
 
 		for (auto collection: {SSR_DB, REMOTE_DATA_DB})
 		{
-			mongocxx::collection coll = db[collection];
+			getMongoCollection(mongo, collection);
 
 			b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)(time - acsConfig.mongoOpts.min_cull_age)).bigTime)};
 

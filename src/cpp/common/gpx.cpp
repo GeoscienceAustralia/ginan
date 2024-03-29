@@ -87,37 +87,29 @@ struct XmlCloser
 
 void writeGPXEntry(
 	Trace&		output,
-	string		id,
+	Receiver&	rec,
 	KFState&	kfState)
 {
 	VectorEcef xyz;
 	VectorEcef var;
-	VectorEcef apriori;
+	VectorEcef apriori = rec.aprioriPos;
 
 	bool found = true;
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
 	{
-		if	( kfKey.type != KF::REC_POS
-			||kfKey.str		!= id)
+		if	( kfKey.type	!= KF::REC_POS
+			||kfKey.str		!= rec.id)
 		{
 			continue;
 		}
 
 		xyz[kfKey.num] =		kfState.x(index);
 		var[kfKey.num] = sqrt(	kfState.P(index, index));
-
-		if	( kfKey.num == 0
-			&&kfKey.rec_ptr)
-		{
-			auto& rec = *kfKey.rec_ptr;
-
-			apriori = rec.aprioriPos;
-		}
 	}
 
 	if (found == false)
 	{
-		return;
+		xyz = apriori;
 	}
 
 	VectorPos pos = ecef2pos(xyz);
@@ -148,7 +140,7 @@ void writeGPXEntry(
 		{
 			KFKey kfKey;
 			kfKey.type	= KF::ORIENTATION;
-			kfKey.str	= id;
+			kfKey.str	= rec.id;
 			kfKey.num	= i;
 
 			if (i == 0)		found &= kfState.getKFValue(kfKey, quat.w());
@@ -172,7 +164,7 @@ void writeGPXEntry(
 void writeGPX(
 	string		filename,
 	KFState&	kfState,
-	string		id)
+	Receiver&	rec)
 {
 	std::ofstream output(filename, std::fstream::in | std::fstream::out);
 	if (!output)
@@ -185,13 +177,13 @@ void writeGPX(
 
 	if (output.tellp() == 0)
 	{
-		writeGPXHeader(output, id, kfState.time);
+		writeGPXHeader(output, rec.id, kfState.time);
 		gpxEndOfContentPositionMap[filename] = output.tellp();
 	}
 
 	output.seekp(gpxEndOfContentPositionMap[filename]);
 
-	writeGPXEntry(output, id, kfState);
+	writeGPXEntry(output, rec, kfState);
 
 	gpxEndOfContentPositionMap[filename] = output.tellp();
 

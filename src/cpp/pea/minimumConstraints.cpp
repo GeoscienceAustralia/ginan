@@ -305,7 +305,6 @@ void mincon(
 
 		bool used = true;
 
-
 		MatrixXd noise = aprioriVar + filterVar;
 
 		if	( aprioriVar(0,0) <= 0
@@ -441,7 +440,8 @@ void mincon(
 				int xIndex = index + xyz;
 				indices.push_back(xIndex);
 				usedMap[xIndex] = true;
-				meas.metaDataMap["used_ptr"] = &usedMap[xIndex];
+				meas.metaDataMap["used_ptr"]	= &usedMap[xIndex];
+				meas.metaDataMap["otherIndex"]	= (void*) (measList.size() - 1);	//need an index into the big measurement matrix for deweighting to get applied in 2 places
 
 				measListCulled.push_back(meas);
 			}
@@ -457,6 +457,11 @@ void mincon(
 
 	KFMeas combinedMeas			= kfStateTrans.combineKFMeasList(measList,			GTime::noTime(), &R);
 	KFMeas combinedMeasCulled	= kfStateTrans.combineKFMeasList(measListCulled,	GTime::noTime(), &RR);
+
+	for (auto& metaDataMap : combinedMeasCulled.metaDataMaps)
+	{
+		metaDataMap["otherNoiseMatrix_ptr"] = &combinedMeas.R;
+	}
 
 	if (kfStateTrans.lsqRequired)
 	{

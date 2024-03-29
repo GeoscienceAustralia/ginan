@@ -3385,7 +3385,8 @@ bool ACSConfig::parse(
 				tryGetFromYaml	(pivot_satellite,							general, {"@ pivot_satellite" 				}, "Largely deprecated id of satellite to use for pivot constraints");
 				tryGetFromYaml	(interpolate_rec_pco,						general, {"@ interpolate_rec_pco" 			}, "Interpolate other known pco values to find pco for unknown frequencies");
 				tryGetFromYaml	(auto_fill_pco,								general, {"@ auto_fill_pco" 				}, "Use similar PCOs when requested values are not found");
-				tryGetFromYaml	(pppOpts.common_atmosphere,					general, {"@ common_atmosphere"				});
+				tryGetFromYaml	(pppOpts.equate_ionospheres,				general, {"@ equate_ionospheres"			}, "Use same STEC values for different receivers, useful for simulated rtk mode");
+				tryGetFromYaml	(pppOpts.equate_tropospheres,				general, {"@ equate_tropospheres"			}, "Use same troposphere values for different receivers, useful for simulated rtk mode");
 				tryGetFromYaml	(pppOpts.use_rtk_combo,						general, {"@ use_rtk_combo"					}, "Combine applicable observations to simulate an rtk solution");
 				tryGetFromYaml	(delete_old_ephemerides,					general, {"@ delete_old_ephemerides"		}, "Remove old ephemerides that have accumulated over time from before far before the currently processing epoch");
 				tryGetFromYaml	(use_tgd_bias,								general, {"@ use_tgd_bias"					}, "Use TGD/BGD bias from ephemeris, DO NOT turn on unless using Klobuchar/NeQuick Ionospheres");
@@ -3429,24 +3430,24 @@ bool ACSConfig::parse(
 
 				string startStr;
 				string stopStr;
-				tryGetFromAny(epoch_interval,		commandOpts,	epoch_control, {"! epoch_interval"		}, "Desired time step between each processing epoch");
-				tryGetFromAny(epoch_tolerance,		commandOpts,	epoch_control, {"@ epoch_tolerance"		}, "Tolerance of times to add to an epoch (usually half of the original data's sample rate)");
-				tryGetFromAny(max_epochs,			commandOpts,	epoch_control, {"! max_epochs"			}, "Maximum number of epochs to process");
-				tryGetFromAny(startStr,				commandOpts,	epoch_control, {"! start_epoch"			}, "(YYYY-MM-DD hh:mm:ss) The time of the first epoch to process (all observations before this will be skipped)");
-				tryGetFromAny(stopStr,				commandOpts,	epoch_control, {"! end_epoch"			}, "(YYYY-MM-DD hh:mm:ss) The time of the last epoch to process (all observations after this will be skipped)");
+				bool found =	tryGetFromAny(epoch_interval,		commandOpts,	epoch_control, {"! epoch_interval"		}, "Desired time step between each processing epoch");
+								tryGetFromAny(epoch_tolerance,		commandOpts,	epoch_control, {"@ epoch_tolerance"		}, "Tolerance of times to add to an epoch (usually half of the original data's sample rate)");
+								tryGetFromAny(max_epochs,			commandOpts,	epoch_control, {"! max_epochs"			}, "Maximum number of epochs to process");
+								tryGetFromAny(startStr,				commandOpts,	epoch_control, {"! start_epoch"			}, "(YYYY-MM-DD hh:mm:ss) The time of the first epoch to process (all observations before this will be skipped)");
+								tryGetFromAny(stopStr,				commandOpts,	epoch_control, {"! end_epoch"			}, "(YYYY-MM-DD hh:mm:ss) The time of the last epoch to process (all observations after this will be skipped)");
 
 				if (!startStr.empty())	start_epoch	= boost::posix_time::time_from_string(startStr);
 				if (!stopStr .empty())	end_epoch	= boost::posix_time::time_from_string(stopStr);
 
-				if (wait_next_epoch < epoch_interval)
-					wait_next_epoch = epoch_interval + 0.01;
+				if (found)
+					wait_next_epoch = epoch_interval + 0.05;
 
-				tryGetFromYaml(sleep_milliseconds,					epoch_control, {"# sleep_milliseconds"	}, "Time to sleep before checking for new data - lower numbers are associated with high idle cpu usage");
-				tryGetFromYaml(wait_next_epoch,						epoch_control, {"@ wait_next_epoch"		}, "Time to wait for next epochs data before skipping the epoch (will default to epoch_interval as an appropriate minimum value for realtime)");
-				tryGetFromYaml(wait_all_receivers,					epoch_control, {"@ wait_all_receivers"	}, "Time to wait from the reception of the first data of an epoch before skipping receivers with data still unreceived");
-				tryGetFromYaml(require_obs,							epoch_control, {"@ require_obs"			}, "Exit the program if no observation sources are available");
-				tryGetFromYaml(assign_closest_epoch,				epoch_control, {"@ assign_closest_epoch"}, "Assign observations to the closest epoch - don't skip observations that fall between epochs");
-				tryGetFromAny(simulate_real_time,	commandOpts,	epoch_control, {"@ simulate_real_time"	}, "For RTCM playback - delay processing to match original data rate");
+								tryGetFromYaml(sleep_milliseconds,					epoch_control, {"# sleep_milliseconds"	}, "Time to sleep before checking for new data - lower numbers are associated with high idle cpu usage");
+								tryGetFromYaml(wait_next_epoch,						epoch_control, {"@ wait_next_epoch"		}, "Time to wait for next epochs data before skipping the epoch (will default to epoch_interval as an appropriate minimum value for realtime)");
+								tryGetFromYaml(wait_all_receivers,					epoch_control, {"@ wait_all_receivers"	}, "Time to wait from the reception of the first data of an epoch before skipping receivers with data still unreceived");
+								tryGetFromYaml(require_obs,							epoch_control, {"@ require_obs"			}, "Exit the program if no observation sources are available");
+								tryGetFromYaml(assign_closest_epoch,				epoch_control, {"@ assign_closest_epoch"}, "Assign observations to the closest epoch - don't skip observations that fall between epochs");
+								tryGetFromAny(simulate_real_time,	commandOpts,	epoch_control, {"@ simulate_real_time"	}, "For RTCM playback - delay processing to match original data rate");
 			}
 
 

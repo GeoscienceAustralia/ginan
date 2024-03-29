@@ -101,8 +101,6 @@ add_library(ginan_core
 		common/ionModels.cpp
 		common/linearCombo.cpp
 		common/linearCombo.hpp
-		#common/mqtt.cpp
-
 		common/mongo.cpp
 		common/mongo.hpp
 		common/mongoRead.cpp
@@ -381,17 +379,6 @@ target_link_libraries(ginan_core PUBLIC
 					)
 
 
-add_executable(ginan
-	gui/ginan.cpp
-	gui/anode.cpp
-	gui/beast.cpp)
-
-target_include_directories(ginan PUBLIC
-	3rdparty/beast/
-	)
-
-target_link_libraries(ginan PRIVATE ginan_core)
-
 add_executable(pea
 	pea.cpp)
 
@@ -407,7 +394,6 @@ add_custom_target(peas)
 
 add_dependencies(peas
 					pea
-					ginan
 					)
 
 

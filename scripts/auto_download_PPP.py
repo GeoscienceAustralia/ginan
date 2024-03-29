@@ -5,19 +5,23 @@ import click
 import random
 import ftplib
 import logging
+import tarfile
 import requests
 import numpy as np
 from time import sleep
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Union
 from copy import deepcopy
-import concurrent.futures
-from itertools import repeat
 from urllib.parse import urlparse
 from contextlib import contextmanager
 from datetime import datetime, timedelta, date
 
-from gn_functions import GPSDate, gpswkD2dt, check_n_download, check_n_download_url, check_file_present, decompress_file
+from gn_functions import (
+    GPSDate,
+    gpswkD2dt,
+    decompress_file,
+    download_url,
+)
 
 API_URL = "https://data.gnss.ga.gov.au/api"
 
@@ -225,7 +229,13 @@ def generate_product_filename(
 
 
 def download_file_from_cddis(
-    filename: str, ftp_folder: str, output_folder: Path, max_retries: int = 3, uncomp: bool = True
+    filename: str,
+    ftp_folder: str,
+    output_folder: Path,
+    max_retries: int = 3,
+    decompress: bool = True,
+    if_file_present: str = "prompt_user",
+    note_filetype: str = None,
 ) -> None:
     with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
         ftps.cwd(ftp_folder)
@@ -233,14 +243,24 @@ def download_file_from_cddis(
         download_done = False
         while not download_done and retries <= max_retries:
             try:
-                logging.info(f"Attempting Download of: {filename}")
-                check_n_download(filename, str(output_folder) + "/", ftps, uncomp=uncomp)
+                download_filepath = attempt_ftps_download(
+                    download_dir=output_folder,
+                    ftps=ftps,
+                    filename=filename,
+                    type_of_file=note_filetype,
+                    if_file_present=if_file_present,
+                )
+                if decompress and download_filepath:
+                    download_filepath = decompress_file(
+                        input_filepath=download_filepath, delete_after_decompression=True
+                    )
                 download_done = True
-                logging.info(f"Downloaded {filename}")
+                if download_filepath:
+                    logging.info(f"Downloaded {download_filepath.name}")
             except ftplib.all_errors as e:
                 retries += 1
                 if retries > max_retries:
-                    logging.warning(f"Failed to download {filename} and reached maximum retry count ({max_retries}).")
+                    logging.info(f"Failed to download {filename} and reached maximum retry count ({max_retries}).")
                     if (output_folder / filename).is_file():
                         (output_folder / filename).unlink()
                     raise e
@@ -248,12 +268,7 @@ def download_file_from_cddis(
                 logging.debug(f"Received an error ({e}) while try to download {filename}, retrying({retries}).")
                 # Add some backoff time (exponential random as it appears to be contention based?)
                 sleep(random.uniform(0.0, 2.0**retries))
-
-
-def download_multiple_files_from_cddis(files: list, ftp_folder: str, output_folder: Path) -> None:
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Wrap this in a list to force iteration of results and so get the first exception if any were raised
-        list(executor.map(download_file_from_cddis, files, repeat(ftp_folder), repeat(output_folder)))
+    return download_filepath
 
 
 def download_product_from_cddis(
@@ -268,6 +283,7 @@ def download_product_from_cddis(
     sampling_rate: str = "15M",
     project_type: str = "OPS",
     timespan: timedelta = timedelta(days=2),
+    if_file_present: str = "prompt_user",
 ) -> None:
     """
     Download the file/s from CDDIS based on start and end epoch, to the
@@ -278,17 +294,12 @@ def download_product_from_cddis(
         start_epoch = GPSDate(str(start_epoch))
         start_epoch = gpswkD2dt(f"{start_epoch.gpswk}0")
         timespan = timedelta(days=7)
+    # Details for debugging purposes:
+    logging.debug("Attempting CDDIS Product download/s")
+    logging.debug(f"Start Epoch - {start_epoch}")
+    logging.debug(f"End Epoch - {end_epoch}")
 
-    logging.info(f"Attempting CDDIS Product download - {file_ext}")
-    logging.info(f"Start Epoch - {start_epoch}")
-    logging.info(f"End Epoch - {end_epoch}")
     reference_start = deepcopy(start_epoch)
-
-    # DZ: duplicate
-    # if solution_type == "ULT":
-    #     timespan = timedelta(days=2)
-    # elif solution_type == "RAP":
-    #     timespan = timedelta(days=1)
     product_filename, gps_date, reference_start = generate_product_filename(
         reference_start,
         file_ext,
@@ -299,15 +310,9 @@ def download_product_from_cddis(
         sampling_rate=sampling_rate,
         project=project_type,
     )
-    logging.info(
+    logging.debug(
         f"Generated filename: {product_filename}, with GPS Date: {gps_date.gpswkD} and reference: {reference_start}"
     )
-    # DZ: this terminates the download of multiple files as soon as one file is
-    # found to be already present, fixed below
-    # out_path = download_dir / product_filename[:-3]
-    # if out_path.is_file():
-    #     logging.info(f"File {product_filename[:-3]} already present in {download_dir}")
-    #     return
     with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
         try:
             ftps.cwd(f"gnss/products/{gps_date.gpswk}")
@@ -327,21 +332,13 @@ def download_product_from_cddis(
             )
             ftps.cwd(f"gnss/products/{gps_date.gpswk}")
 
-        all_files = ftps.nlst()
-        if not (product_filename in all_files):
-            logging.info(f"{product_filename} not in gnss/products/{gps_date.gpswk} - too recent")
-            raise FileNotFoundError
+            all_files = ftps.nlst()
+            if not (product_filename in all_files):
+                logging.info(f"{product_filename} not in gnss/products/{gps_date.gpswk} - too recent")
+                raise FileNotFoundError
 
-        # # Download File:
-        # download_file_from_cddis(
-        #     filename=product_filename,
-        #     ftp_folder=f"gnss/products/{gps_date.gpswk}",
-        #     output_folder=download_dir,
-        # )
-        # count = 1
-        # DZ: avoid downloading the first file again if it already exists
+        # reference_start will be changed in the first run through while loop below
         reference_start -= timedelta(hours=24)
-
         count = 0
         remain = end_epoch - reference_start
         while remain.total_seconds() > timespan.total_seconds():
@@ -351,7 +348,7 @@ def download_product_from_cddis(
                 product_filename, gps_date, reference_start = generate_product_filename(
                     reference_start,
                     file_ext,
-                    shift=24,
+                    shift=24,  # Shift at the start of the loop - speeds up total download time
                     long_filename=long_filename,
                     AC=analysis_center,
                     timespan=timespan,
@@ -359,52 +356,161 @@ def download_product_from_cddis(
                     sampling_rate=sampling_rate,
                     project=project_type,
                 )
-
-                out_path = download_dir / product_filename[:-3]
-                if out_path.is_file():
-                    logging.info(f"File {product_filename[:-3]} already present in {download_dir}")
-                else:
-                    # Download File:
-                    download_file_from_cddis(
-                        filename=product_filename,
-                        ftp_folder=f"gnss/products/{gps_date.gpswk}",
-                        output_folder=download_dir,
-                    )
+                download_file_from_cddis(
+                    filename=product_filename,
+                    ftp_folder=f"gnss/products/{gps_date.gpswk}",
+                    output_folder=download_dir,
+                    if_file_present=if_file_present,
+                    note_filetype=file_ext,
+                )
                 count += 1
                 remain = end_epoch - reference_start
 
 
-def download_atx(download_dir: Path, long_filename: bool = False) -> None:
+def check_whether_to_download(
+    filename: str, download_dir: Path, if_file_present: str = "prompt_user"
+) -> Union[Path, None]:
     """
-    Download the ATX file necessary for running the PEA
-    provided the download directory (download_dir) and FTP_TLS client object (ftps)
+    Determine whether to download given file (filename) to the desired location (download_dir) based on whether it is
+    already present and what action to take if it is (if_file_present). Output is the Path obj to the file to be
+    downloaded (output_path) or None if file is not to be downloaded (already present and skipped)
+    """
+    # Flag to determine whether to download:
+    download = None
+    # Create Path obj to where file will be - if original file is compressed, check for decompressed file
+    uncompressed_filename = generate_uncompressed_filename(filename)  # Returns original filename if not compressed
+    output_path = download_dir / uncompressed_filename
+    # Check if file already exists - if so, then re-download or not based on if_file_present value
+    if output_path.is_file():
+        if if_file_present == "prompt_user":
+            replace = click.confirm(
+                f"File {output_path} already present; download and replace? - Answer:", default=None
+            )
+            if replace:
+                logging.info(f"Option chosen: Replace. Re-downloading {output_path.name} to {download_dir}")
+                download = True
+            else:
+                logging.info(f"Option chosen: Don't Replace. Leaving {output_path.name} as is in {download_dir}")
+                download = False
+        elif if_file_present == "dont_replace":
+            logging.info(f"File {output_path} already present; Flag --dont-replace is on ... skipping download ...")
+            download = False
+        elif if_file_present == "replace":
+            logging.info(
+                f"File {output_path} already present; Flag --replace is on ... re-downloading to {download_dir}"
+            )
+            download = True
+    else:
+        download = True
+
+    if download == False:
+        return None
+    elif download == True:
+        if uncompressed_filename == filename:  # Existing Path obj is already the one we need to download
+            return output_path
+        else:
+            return download_dir / filename  # Path to compressed file to download
+    elif download == None:
+        logging.error(f"Invalid internal flag value for if_file_present: '{if_file_present}'")
+
+
+def attempt_ftps_download(
+    download_dir: Path,
+    ftps: ftplib.FTP_TLS,
+    filename: str,
+    type_of_file: str = None,
+    if_file_present: str = "prompt_user",
+) -> Path:
+    """
+    Attempt download of file (filename) given the ftps client object (ftps) to chosen location (download_dir)
+    """
+    logging.info(f"Attempting FTPS Download of {type_of_file} file - {filename} to {download_dir}")
+    download_filepath = check_whether_to_download(
+        filename=filename, download_dir=download_dir, if_file_present=if_file_present
+    )
+    if download_filepath:
+        logging.debug(f"Downloading {filename}")
+        with open(download_filepath, "wb") as local_file:
+            ftps.retrbinary(f"RETR {filename}", local_file.write)
+
+    return download_filepath
+
+
+def attempt_url_download(
+    download_dir: Path, url: str, filename: str = None, type_of_file: str = None, if_file_present: str = "prompt_user"
+) -> Path:
+    """
+    Attempt download of file given URL (url) to chosen location (download_dir)
+    """
+    # If the filename is not provided, use the filename from the URL
+    if not filename:
+        filename = url[url.rfind("/") + 1 :]
+    logging.info(f"Attempting URL Download of {type_of_file} file - {filename} to {download_dir}")
+    # Use the check_whether_to_download function to determine whether to download the file
+    download_filepath = check_whether_to_download(
+        filename=filename, download_dir=download_dir, if_file_present=if_file_present
+    )
+    if download_filepath:
+        download_url(url, download_filepath)
+    return download_filepath
+
+
+def download_atx(download_dir: Path, long_filename: bool = False, if_file_present: str = "prompt_user") -> None:
+    """
+    Download the ATX file necessary for running the PEA provided the download directory (download_dir)
     """
 
     if long_filename:
         atx_filename = "igs20.atx"
     else:
         atx_filename = "igs14.atx"
-    # Get the ATX file if not present already:
-    if not (download_dir / f"{atx_filename}").is_file():
-        ensure_folders([download_dir])
-        url = f"https://files.igs.org/pub/station/general/{atx_filename}"
-        logging.info(f"Downloading ATX file - {atx_filename}")
-        check_n_download_url(url, str(download_dir))
+    ensure_folders([download_dir])
+    url = f"https://files.igs.org/pub/station/general/{atx_filename}"
+    attempt_url_download(
+        download_dir=download_dir, url=url, filename=atx_filename, type_of_file="ATX", if_file_present=if_file_present
+    )
 
 
-def download_atmosphere_loading_model(download_dir: Path) -> None:
+def generate_uncompressed_filename(filename: str) -> str:
+    """
+    Name of uncompressed filename given the [assumed compressed] filename (filename).
+    If not one of the recognized compression format types, return original filename -
+    """
+    if filename.endswith(".tar.gz") or filename.endswith(".tar"):
+        with tarfile.open(filename, "r") as tar:
+            # Get name of file inside tar.gz file (assuming only one file)
+            return tar.getmembers()[0].name
+    elif filename.endswith(".crx.gz"):
+        return filename[:-6] + "rnx"
+    elif filename.endswith(".gz"):
+        return filename[:-3]
+    elif filename.endswith(".Z"):
+        return filename[:-2]
+    elif filename.endswith(".bz2"):
+        return filename[:-4]
+    else:
+        logging.debug(f"{filename} not compressed - extension not a recognized compression format")
+        return filename
+
+
+def download_atmosphere_loading_model(download_dir: Path, if_file_present: str = "prompt_user") -> Path:
     """
     Download the Atmospheric loading BLQ file necessary for running the PPP example
-    provided the download directory (download_dir)
+    provided the download directory (download_dir) and what to do if file already present (if_file_present)
     """
-    url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/ALOAD_GO.BLQ.gz"
-    filename = download_dir / "ALOAD_GO.BLQ.gz"
-    if (filename.parent / filename.stem).is_file():
-        logging.info(f"ALOAD file already present in {download_dir}")
-    else:
-        logging.info(f"Downloading Atmospheric Tide Loading Model - ALOAD file")
-        check_n_download_url(url, str(download_dir))
-        decompress_file(filename, delete_after_decompression=True)
+    ensure_folders([download_dir])
+    download_filepath = attempt_url_download(
+        download_dir=download_dir,
+        url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/ALOAD_GO.BLQ.gz",
+        filename="ALOAD_GO.BLQ.gz",
+        type_of_file="Atmospheric Tide Loading Model",
+        if_file_present=if_file_present,
+    )
+
+    if download_filepath:
+        download_filepath = decompress_file(input_filepath=download_filepath, delete_after_decompression=True)
+
+    return download_filepath
 
 
 def download_brdc(
@@ -414,6 +520,7 @@ def download_brdc(
     source: str = "cddis",
     rinexVersion: str = "3",
     filePeriod: str = "01D",
+    if_file_present: str = "prompt_user",
 ) -> None:
     """
     Download the most recent BRDC file/s from CDDIS
@@ -430,184 +537,255 @@ def download_brdc(
             file_period=filePeriod,
             file_type="nav",
             rinex_version=rinexVersion,
+            if_file_present=if_file_present,
         )
     elif source.lower() == "cddis":
         reference_dt = start_epoch - timedelta(days=1)
         while (end_epoch - reference_dt).total_seconds() > 0:
             doy = reference_dt.strftime("%j")
             brdc_compfile = f"BRDC00IGS_R_{reference_dt.year}{doy}0000_01D_MN.rnx.gz"  # DZ: download MN file
-            if check_file_present(brdc_compfile, str(download_dir)):
-                logging.info(f"File {brdc_compfile} already present in {download_dir}")
-            else:
+            if check_whether_to_download(
+                filename=brdc_compfile, download_dir=download_dir, if_file_present=if_file_present
+            ):
+
                 download_file_from_cddis(
                     filename=brdc_compfile,
                     ftp_folder=f"gnss/data/daily/{reference_dt.year}/brdc/",
                     output_folder=download_dir,
+                    if_file_present=if_file_present,
                 )
             reference_dt += timedelta(days=1)
 
 
-def download_geomagnetic_model(download_dir: Path, model: str = "igrf13") -> None:
+def download_geomagnetic_model(download_dir: Path, model: str = "igrf13", if_file_present: str = "prompt_user") -> Path:
     """
     Download the International Geomagnetic Reference Field model file necessary for running the PPP example
     provided the download directory (download_dir)
     Default: IGRF13 coefficients
     """
     if model == "igrf13":
-        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/igrf13coeffs.txt.gz"
-    filename = download_dir / "igrf13coeffs.txt.gz"
-    if (filename.parent / filename.stem).is_file():
-        logging.info(f"IGRF13 file already present in {download_dir}")
+        ensure_folders([download_dir])
+        download_filepath = attempt_url_download(
+            download_dir=download_dir,
+            url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/igrf13coeffs.txt.gz",
+            filename="igrf13coeffs.txt.gz",
+            type_of_file="Geomagnetic Field coefficients - IGRF13",
+            if_file_present=if_file_present,
+        )
     else:
-        logging.info(f"Downloading Geomagnetic Field coefficients - IGRF13 file")
-        check_n_download_url(url, str(download_dir))
-        decompress_file(filename, delete_after_decompression=True)
+        logging.info(f"Unsupported Geomagnetic Field coefficients model type - {model}")
+        download_filepath = None
+
+    if download_filepath:
+        download_filepath = decompress_file(input_filepath=download_filepath, delete_after_decompression=True)
+
+    return download_filepath
 
 
-def download_geopotential_model(download_dir: Path, model: str = "egm2008") -> None:
+def download_geopotential_model(
+    download_dir: Path, model: str = "egm2008", if_file_present: str = "prompt_user"
+) -> Path:
     """
     Download the Geopotential model file/s necessary for running the PPP example
     provided the download directory (download_dir)
     Default: EGM2008
     """
     if model == "egm2008":
-        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/EGM2008.gfc.gz"
-    filename = download_dir / "EGM2008.gfc.gz"
-    if (filename.parent / filename.stem).is_file():
-        logging.info(f"EGM2008 file already present in {download_dir}")
+        ensure_folders([download_dir])
+        download_filepath = attempt_url_download(
+            download_dir=download_dir,
+            url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/EGM2008.gfc.gz",
+            filename="EGM2008.gfc.gz",
+            type_of_file="Geopotential Model - EGM2008",
+            if_file_present=if_file_present,
+        )
     else:
-        logging.info(f"Downloading Geopotential Model - EGM2008 file")
-        check_n_download_url(url, str(download_dir))
-        decompress_file(filename, delete_after_decompression=True)
+        logging.info(f"Unsupported Geopotential model type - {model}")
+        download_filepath = None
+
+    if download_filepath:
+        download_filepath = decompress_file(input_filepath=download_filepath, delete_after_decompression=True)
+
+    return download_filepath
 
 
-def download_ocean_loading_model(download_dir: Path) -> None:
+def download_ocean_loading_model(download_dir: Path, if_file_present: str = "prompt_user") -> Path:
     """
     Download the Ocean Loading BLQ file necessary for running the PPP example
-    provided the download directory (download_dir)
+    provided the download directory (download_dir) and what to do if file already present (if_file_present)
     """
-    url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/OLOAD_GO.BLQ.gz"
-    filename = download_dir / "OLOAD_GO.BLQ.gz"
-    if (filename.parent / filename.stem).is_file():
-        logging.info(f"OLOAD file already present in {download_dir}")
-    else:
-        logging.info(f"Downloading Ocean Tide Loading Model - OLOAD_GO.BLQ file")
-        check_n_download_url(url, str(download_dir))
-        decompress_file(filename, delete_after_decompression=True)
+    ensure_folders([download_dir])
+    download_filepath = attempt_url_download(
+        download_dir=download_dir,
+        url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/OLOAD_GO.BLQ.gz",
+        filename="OLOAD_GO.BLQ.gz",
+        type_of_file="Ocean Tide Loading Model",
+        if_file_present=if_file_present,
+    )
+
+    if download_filepath:
+        download_filepath = decompress_file(input_filepath=download_filepath, delete_after_decompression=True)
+
+    return download_filepath
 
 
-def download_ocean_pole_tide_file(download_dir: Path) -> None:
+def download_ocean_pole_tide_file(download_dir: Path, if_file_present: str = "prompt_user") -> Path:
     """
     Download the Ocean Pole Tide Loading coefficients file necessary for running the PPP example
-    provided the download directory (download_dir)
+    provided the download directory (download_dir) and what to do if file already present (if_file_present)
     """
-    url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/opoleloadcoefcmcor.txt.gz"
-    filename = download_dir / "opoleloadcoefcmcor.txt.gz"
-    if (filename.parent / filename.stem).is_file():
-        logging.info(f"Ocean Pole Tide file already present in {download_dir}")
-    else:
-        logging.info(f"Downloading Ocean Pole Tide Loading Coefficients - opoleloadcoefcmcor.txt file")
-        check_n_download_url(url, str(download_dir))
-        decompress_file(filename, delete_after_decompression=True)
+    ensure_folders([download_dir])
+    download_filepath = attempt_url_download(
+        download_dir=download_dir,
+        url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/opoleloadcoefcmcor.txt.gz",
+        filename="opoleloadcoefcmcor.txt.gz",
+        type_of_file="Ocean Pole Tide Loading Coefficients",
+        if_file_present=if_file_present,
+    )
+
+    if download_filepath:
+        download_filepath = decompress_file(input_filepath=download_filepath, delete_after_decompression=True)
+
+    return download_filepath
 
 
-def download_ocean_tide_potential_model(download_dir: Path, model: str = "fes2014b") -> None:
+def download_ocean_tide_potential_model(
+    download_dir: Path, if_file_present: str = "prompt_user", model: str = "fes2014b"
+) -> Path:
     """
     Download the Ocean Tide Potential Model file necessary for running the PPP example
-    provided the download directory (download_dir)
+    provided the download directory (download_dir) and what to do if file already present (if_file_present)
     """
     if model == "fes2014b":
-        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/fes2014b_Cnm-Snm.dat.gz"
-        filename = download_dir / "fes2014b_Cnm-Snm.dat.gz"
-    if (filename.parent / filename.stem).is_file():
-        logging.info(f"Ocean Tide Potential file already present in {download_dir}")
+        ensure_folders([download_dir])
+        download_filepath = attempt_url_download(
+            download_dir=download_dir,
+            url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/fes2014b_Cnm-Snm.dat.gz",
+            filename="fes2014b_Cnm-Snm.dat.gz",
+            type_of_file="Ocean Tide Potential Model - fes2014b",
+            if_file_present=if_file_present,
+        )
     else:
-        logging.info(f"Downloading Ocean Tide Potential Model file - es2014b_Cnm-Snm.dat file")
-        check_n_download_url(url, str(download_dir))
-        decompress_file(filename, delete_after_decompression=True)
+        logging.info(f"Unsupported Ocean Tide Potential Model type - {model}")
+        download_filepath = None
+
+    if download_filepath:
+        download_filepath = decompress_file(input_filepath=download_filepath, delete_after_decompression=True)
+
+    return download_filepath
 
 
-def download_planetary_ephemerides_file(download_dir: Path, ephem_file: str = "DE436.1950.2050") -> None:
+def download_planetary_ephemerides_file(
+    download_dir: Path, if_file_present: str = "prompt_user", ephem_file: str = "DE436.1950.2050"
+) -> Path:
     """
     Download the Planetary Ephemerides file necessary for running the PPP example
-    provided the download directory (download_dir)
+    provided the download directory (download_dir) and what to do if file already present (if_file_present)
     Default: DE436.1950.2050
     """
     if ephem_file == "DE436.1950.2050":
-        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/DE436.1950.2050.gz"
-        filename = download_dir / "DE436.1950.2050.gz"
-    if (filename.parent / filename.stem).is_file():
-        logging.info(f"{filename.stem} file already present in {download_dir}")
+        ensure_folders([download_dir])
+        download_filepath = attempt_url_download(
+            download_dir=download_dir,
+            url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/DE436.1950.2050.gz",
+            filename="DE436.1950.2050.gz",
+            type_of_file="Planetary Ephemerides - DE436.1950.2050",
+            if_file_present=if_file_present,
+        )
     else:
-        logging.info(f"Downloading Planetary Ephemerides - {filename.stem} file")
-        check_n_download_url(url, str(download_dir))
-        decompress_file(filename, delete_after_decompression=True)
+        logging.info(f"Unsupported Planetary Ephemerides type - {ephem_file}")
+        download_filepath = None
+
+    if download_filepath:
+        download_filepath = decompress_file(input_filepath=download_filepath, delete_after_decompression=True)
+
+    return download_filepath
 
 
-def download_trop_model(download_dir: Path, model: str = "gpt2") -> None:
+def download_trop_model(download_dir: Path, if_file_present: str = "prompt_user", model: str = "gpt2") -> Path:
     """
     Download the relevant troposphere model file/s necessary for running the PEA
     provided the download directory (download_dir) and model
     Default is GPT 2.5
     """
     if model == "gpt2":
-        url = "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/gpt_25.grd.gz"
-        filename = download_dir / "gpt_25.grd.gz"
-        if (filename.parent / filename.stem).is_file():
-            logging.info(f"{filename.stem} file already present in {download_dir}")
-        else:
-            logging.info(f"Downloading Troposphere Model file - {filename.stem}")
-            check_n_download_url(url, str(download_dir))
-            decompress_file(filename, delete_after_decompression=True)
+        ensure_folders([download_dir])
+        download_filepath = attempt_url_download(
+            download_dir=download_dir,
+            url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/gpt_25.grd.gz",
+            filename="gpt_25.grd.gz",
+            type_of_file="Troposphere Model",
+            if_file_present=if_file_present,
+        )
+    else:
+        logging.info(f"Unsupported Troposphere model type - {model}")
+        download_filepath = None
+
+    if download_filepath:
+        download_filepath = decompress_file(input_filepath=download_filepath, delete_after_decompression=True)
+
+    return download_filepath
 
 
-def download_iau2000_file(download_dir: Path, start_epoch: datetime):
+def download_iau2000_file(download_dir: Path, start_epoch: datetime, if_file_present: str = "prompt_user"):
     """
     Download relevant IAU2000 file from CDDIS or IERS based on start_epoch of data
     """
-    # Download most recent daily IAU2000 file if running for a session within the past week
+    ensure_folders([download_dir])
+    # Download most recent daily IAU2000 file if running for a session within the past week (data is within 3 months)
     if datetime.now() - start_epoch < timedelta(weeks=1):
-        url = "https://datacenter.iers.org/products/eop/rapid/daily/finals2000A.daily"
-        target = "finals.data.iau2000.txt"
-        cddis_filename = "finals2000A.daily"
+        url_dir = "daily/"
+        iau2000_filename = "finals2000A.daily"
         logging.info("Attempting Download of finals2000A.daily file")
     # Otherwise download the IAU2000 file dating back to 1992
     else:
-        url = "https://datacenter.iers.org/products/eop/rapid/standard/finals2000A.data"
-        target = "finals.data.iau2000.txt"
-        cddis_filename = "finals2000A.data"
+        url_dir = "standard/"
+        iau2000_filename = "finals2000A.data"
         logging.info("Attempting Download of finals2000A.data file")
-    # Define output_file
-    output_file = download_dir / target
-    # Check if it exists; if not, download
-    if output_file.is_file():
-        logging.info(f"{target} already present in {download_dir}")
-    else:
-        try:
-            logging.info("Downloading IAU2000 file from CDDIS")
-            download_file_from_cddis(filename=cddis_filename, ftp_folder="products/iers", output_folder=download_dir)
-            (download_dir / cddis_filename).rename(output_file)
-        except:
-            logging.info("Failed CDDIS download - trying IERS")
-            check_n_download_url(url, dwndir=str(download_dir), filename=target)
+    # Attempt download from CDDIS first, if that fails try the IERS website
+    try:
+        logging.info("Downloading IAU2000 file from CDDIS")
+        if check_whether_to_download(
+            filename="finals.data.iau2000.txt", download_dir=download_dir, if_file_present=if_file_present
+        ):
+            download_filepath = download_file_from_cddis(
+                filename=iau2000_filename,
+                ftp_folder="products/iers",
+                output_folder=download_dir,
+                decompress=False,
+                if_file_present=if_file_present,
+            )
+            (download_dir / iau2000_filename).rename(download_dir / "finals.data.iau2000.txt")
+        else:
+            return None
+    except:
+        logging.info("Failed CDDIS download - Downloading IAU2000 file from IERS")
+        download_filepath = attempt_url_download(
+            download_dir=download_dir,
+            url="https://datacenter.iers.org/products/eop/rapid/" + url_dir + iau2000_filename,
+            filename="finals.data.iau2000.txt",
+            type_of_file="EOP IAU2000",
+            if_file_present=if_file_present,
+        )
+    return download_filepath
 
 
-def download_satellite_metadata_snx(download_dir: Path):
+def download_satellite_metadata_snx(download_dir: Path, if_file_present: str = "prompt_user") -> Path:
     """
     Download the most recent IGS satellite metadata file
     """
-    url = "https://files.igs.org/pub/station/general/igs_satellite_metadata.snx"
-    target = "igs_satellite_metadata.snx"
-    output_file = download_dir / target
-    # If file not already present in dwndir, download
-    if output_file.is_file():
-        logging.info(f"{target} already present in {download_dir}")
-    else:
-        logging.info("Downloading IGS satellite metadata file from igs.org")
-        check_n_download_url(url, dwndir=str(download_dir), filename=target)
+    ensure_folders([download_dir])
+    download_filepath = attempt_url_download(
+        download_dir=download_dir,
+        url="https://files.igs.org/pub/station/general/igs_satellite_metadata.snx",
+        filename="igs_satellite_metadata.snx",
+        type_of_file="IGS satellite metadata",
+        if_file_present=if_file_present,
+    )
+    return download_filepath
 
 
-def download_yaw_files(download_dir: Path):
+def download_yaw_files(download_dir: Path, if_file_present: str = "prompt_user"):
     """
     Download yaw rate / bias files
     """
@@ -617,19 +795,31 @@ def download_yaw_files(download_dir: Path):
         "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/qzss_yaw_modes.snx.gz",
         "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/sat_yaw_bias_rate.snx.gz",
     ]
+    download_filepaths = []
     targets = ["bds_yaw_modes.snx.gz", "qzss_yaw_modes.snx.gz", "sat_yaw_bias_rate.snx.gz"]
+
     for url, target in zip(urls, targets):
-        output_file = download_dir / target
-        if (download_dir / output_file.stem).is_file():
-            logging.info(f"{target} already present in {download_dir}")
-        else:
-            logging.info(f"Downloading {target}")
-            check_n_download_url(url, dwndir=str(download_dir), filename=target)
-            decompress_file(output_file, delete_after_decompression=True)
+
+        download_filepath = attempt_url_download(
+            download_dir=download_dir,
+            url=url,
+            filename=target,
+            type_of_file="Yaw Model SNX",
+            if_file_present=if_file_present,
+        )
+        if download_filepath:
+            download_filepaths.append(decompress_file(download_filepath, delete_after_decompression=True))
+
+    return download_filepaths
 
 
 def download_most_recent_cddis_file(
-    download_dir: Path, pointer_date: GPSDate, file_type: str = "SNX", long_filename: bool = False
+    download_dir: Path,
+    pointer_date: GPSDate,
+    file_type: str = "SNX",
+    long_filename: bool = False,
+    analysis_center: str = "IGS",
+    if_file_present: str = "prompt_user",
 ) -> None:
     """
     Download the most recent files from IGS provided the download directory (download_dir) session, and file type
@@ -648,7 +838,7 @@ def download_most_recent_cddis_file(
             ftps=ftps,
             long_filename=long_filename,
             file_type="SNX",
-            analysis_center="IGS",
+            analysis_center=analysis_center,
             timespan=timedelta(days=1),
             solution_type="SNX",
             sampling_rate="01D",
@@ -659,6 +849,7 @@ def download_most_recent_cddis_file(
         filename=target_filename,
         ftp_folder=f"gnss/products/{pointer_date.gpswk}",
         output_folder=download_dir,
+        if_file_present=if_file_present,
     )
 
 
@@ -721,48 +912,9 @@ def search_for_most_recent_file(
     return target_filename, pointer_date, ftps
 
 
-def available_stations_at_cddis(start_epoch: datetime, end_epoch: datetime) -> list:
-    """
-    Produce a list of the available daily IGS station observation file for the given time period (start to end epoch)
-    """
-    with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
-        avail_list = []
-
-        start_date = GPSDate(start_epoch.date().isoformat())
-        end_date = GPSDate((end_epoch - timedelta(seconds=1)).date().isoformat())
-
-        logging.info("Start date: " + str(start_date))
-        logging.info("End date: " + str(end_date))
-
-        date = start_date
-
-        while date.ts <= end_date.ts:
-            logging.info("Searching for:" + str(date))
-            c_dir = date.yr + "/" + date.dy + "/" + date.yr[-2:] + "d/"
-            ftps.cwd(f"/gnss/data/daily/{c_dir}")
-            c_list = [x[:4] for x in ftps.nlst() if x.endswith(".crx.gz")]
-            if avail_list == []:
-                avail_list = c_list
-            else:
-                avail_list = list(set(avail_list) & set(c_list))
-            date = date.next
-
-        return sorted(avail_list)
-
-
-def download_daily_rinex_files_from_cddis(station_list: list, target_date: GPSDate, rinex_data_dir: Path) -> None:
-    "Given a list of stations, target date and path to place files, download RINEX daily data from CDDIS"
-    with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
-        logging.info(f"Downloading daily RINEX data for date: {target_date}")
-        c_dir = target_date.yr + "/" + target_date.dy + "/" + target_date.yr[-2:] + "d/"
-        ftps.cwd(f"/gnss/data/daily/{c_dir}")
-        logging.info(f"Downloading stations: {station_list}")
-        day_files = [f for f in ftps.nlst() if f[:4] in station_list]
-        # Download
-        download_multiple_files_from_cddis(day_files, f"/gnss/data/daily/{c_dir}", rinex_data_dir)
-
-
-def download_gnss_data_entry(entry: dict, output_dir: Path, max_retries: int = 3) -> str:
+def download_gnss_data_entry(
+    entry: dict, output_dir: Path, max_retries: int = 3, if_file_present: str = "prompt_user"
+) -> str:
     file_url = entry["fileLocation"]
     file_type = entry["fileType"]
     retries = 0
@@ -771,26 +923,28 @@ def download_gnss_data_entry(entry: dict, output_dir: Path, max_retries: int = 3
         filename = urlparse(file_url).path.split("/")[-1].split(".")[0] + ".rnx"
     elif file_type == "nav":
         filename = ".".join(urlparse(file_url).path.split("/")[-1].split(".")[:2])
-    out_path = output_dir / filename
-    if out_path.is_file():
-        logging.info(f"File {filename} already present in {output_dir}")
-        return filename
-    else:
-        while not download_done and retries <= max_retries:
-            try:
-                logging.info(f"Downloading {filename} to {out_path}")
-                check_n_download_url(file_url, str(output_dir), filename)
-                download_done = True
-                logging.info(f"Downloaded {filename}")
-                return filename
-            except:
-                retries += 1
-                if retries > max_retries:
-                    logging.warning(f"Failed to download {file_url} and reached maximum retry count ({max_retries}).")
 
-                logging.debug(f"Received an error while try to download {file_url}, retrying({retries}).")
-                # Add some backoff time (exponential random as it appears to be contention based?)
-                sleep(random.uniform(0.0, 2.0**retries))
+    while not download_done or retries <= max_retries:
+        try:
+            # logging.info(f"Downloading {filename} to {out_path}")
+            download_filepath = attempt_url_download(
+                download_dir=output_dir,
+                url=file_url,
+                filename=filename,
+                type_of_file="RNX",
+                if_file_present=if_file_present,
+            )
+            download_done = True
+            # logging.info(f"Downloaded {filename}")
+            return download_filepath
+        except:
+            retries += 1
+            if retries > max_retries:
+                logging.warning(f"Failed to download {file_url} and reached maximum retry count ({max_retries}).")
+
+            logging.debug(f"Received an error while try to download {file_url}, retrying({retries}).")
+            # Add some backoff time (exponential random as it appears to be contention based?)
+            sleep(random.uniform(0.0, 2.0**retries))
 
 
 def download_files_from_gnss_data(
@@ -802,6 +956,7 @@ def download_files_from_gnss_data(
     rinex_version: int = 3,
     file_type: str = "obs",
     decompress: str = "true",
+    if_file_present: str = "prompt_user",
 ) -> None:
     "Given a list of stations, start and end datetime, and a path to place files, download RINEX data from gnss-data"
     # Parameters for the Query:
@@ -822,14 +977,19 @@ def download_files_from_gnss_data(
     # Download results:
     files_downloaded = []
     for query_response_item in json.loads(request.content):
-        filename = download_gnss_data_entry(entry=query_response_item, output_dir=data_dir, max_retries=3)
+        filename = download_gnss_data_entry(
+            entry=query_response_item, output_dir=data_dir, max_retries=3, if_file_present=if_file_present
+        )
         try:
-            files_downloaded.append(filename.upper())
+            files_downloaded.append(filename.name.upper())
         except AttributeError:
             files_downloaded.append(filename)
-    stations_downloaded = set([filename[:4] for filename in files_downloaded])
-    missing_stations = set(station_list) - stations_downloaded
-    logging.info(f"Not downloaded / missing: {list(missing_stations)}")
+    if files_downloaded == []:
+        logging.info("No files downloaded")
+    else:
+        stations_downloaded = set([filename[:4] for filename in files_downloaded if filename != None])
+        missing_stations = set(station_list) - stations_downloaded
+        logging.info(f"Not downloaded / missing: {list(missing_stations)}")
 
 
 def long_filename_cddis_cutoff(epoch: datetime) -> bool:
@@ -844,12 +1004,26 @@ def long_filename_cddis_cutoff(epoch: datetime) -> bool:
         return False
 
 
+def most_recent_6_hour():
+    """
+    Returns a datetime object set to the most recent hour divisible by 6: (0000, 0600, 1200 or 1800)
+    """
+    now_time = datetime.now()
+    now_hour = now_time.hour
+    # Subtract the remainder of division by 6, to get the most recent hour evenly divisible by 6.
+    # E.g. for hour 17: 17 % 6 = 5. 17-5=12.
+    latest_hour_interval = now_hour - (now_hour % 6)
+    return now_time.replace(hour=latest_hour_interval, minute=0, second=0, microsecond=0)
+
+
 def auto_download(
     target_dir: Path,
     preset: str,
     station_list: str,
     start_datetime: str,
     end_datetime: str,
+    replace: bool,
+    dont_replace: bool,
     most_recent: bool,
     analysis_center: str,
     atx: bool,
@@ -869,7 +1043,6 @@ def auto_download(
     clk: bool,
     bia: bool,
     gpt2: bool,
-    product_dir: Path,
     rinex_data_dir: Path,
     trop_dir: Path,
     model_dir: Path,
@@ -889,7 +1062,7 @@ def auto_download(
         most_recent = True
         atx = True
         oload = True
-        trop_model = "gpt2"
+        gpt2 = True
         snx = True
         sat_meta = True
         yaw = True
@@ -901,7 +1074,7 @@ def auto_download(
         igrf = True
         opole = True
         planet = True
-        trop_model = "gpt2"
+        gpt2 = True
         snx = True
         sat_meta = True
         yaw = True
@@ -921,24 +1094,36 @@ def auto_download(
         start_epoch = datetime.strptime(start_datetime, datetime_format)
         start_gpsdate = GPSDate(start_epoch.strftime("%Y-%m-%dT%H:%M"))
         long_filename = long_filename_cddis_cutoff(epoch=start_epoch)
+    else:
+        start_epoch = datetime.now()
+        start_gpsdate = GPSDate("today")
+        long_filename = long_filename_cddis_cutoff(epoch=datetime.today())
 
     if end_datetime:
         end_epoch = datetime.strptime(end_datetime, datetime_format)
 
     # If directories haven't been assigned use default: target-dir
-    if not product_dir:
-        product_dir = target_dir
     if not rinex_data_dir:
         rinex_data_dir = target_dir
     if not trop_dir:
-        trop_dir = product_dir / "tables"
+        trop_dir = target_dir / "tables"
     if not model_dir:
-        model_dir = product_dir / "tables"
+        model_dir = target_dir / "tables"
     if not rinex_file_period:
         rinex_file_period = "01D"
 
+    # Determine what to do when file already present in target-dir:
+    if replace and dont_replace:
+        raise Exception("Cannot set both --replace and --dont-replace flags")
+    elif replace:
+        if_file_present = "replace"
+    elif dont_replace:
+        if_file_present = "dont_replace"
+    else:
+        if_file_present = "prompt_user"
+
     # Ensure the directories exist:
-    dir_list = [target_dir, product_dir, rinex_data_dir, trop_dir, model_dir]
+    dir_list = [target_dir, rinex_data_dir, trop_dir, model_dir]
     ensure_folders(dir_list)
 
     # Assign variables based on flags
@@ -948,52 +1133,53 @@ def auto_download(
         trop_model = None
     if most_recent:
         start_gpsdate = GPSDate("today")
-        start_epoch = datetime.now()
+        start_epoch = most_recent_6_hour()
+        end_epoch = datetime.now()
         long_filename = long_filename_cddis_cutoff(epoch=datetime.today())
 
     # Download products based on flags
     if atx:
-        download_atx(download_dir=product_dir, long_filename=long_filename)
+        download_atx(download_dir=target_dir, long_filename=long_filename, if_file_present=if_file_present)
     if oload:
-        download_ocean_loading_model(download_dir=model_dir)
+        download_ocean_loading_model(download_dir=model_dir, if_file_present=if_file_present)
     if aload:
-        download_atmosphere_loading_model(download_dir=model_dir)
+        download_atmosphere_loading_model(download_dir=model_dir, if_file_present=if_file_present)
     if igrf:
-        download_geomagnetic_model(download_dir=model_dir)
+        download_geomagnetic_model(download_dir=model_dir, if_file_present=if_file_present)
     if egm:
-        download_geopotential_model(download_dir=model_dir)
+        download_geopotential_model(download_dir=model_dir, if_file_present=if_file_present)
     if opole:
-        download_ocean_pole_tide_file(download_dir=model_dir)
+        download_ocean_pole_tide_file(download_dir=model_dir, if_file_present=if_file_present)
     if fes:
-        download_ocean_tide_potential_model(download_dir=model_dir)
+        download_ocean_tide_potential_model(download_dir=model_dir, if_file_present=if_file_present)
     if planet:
-        download_planetary_ephemerides_file(download_dir=model_dir)
+        download_planetary_ephemerides_file(download_dir=model_dir, if_file_present=if_file_present)
     if trop_model:
-        download_trop_model(download_dir=trop_dir, model=trop_model)
+        download_trop_model(download_dir=trop_dir, model=trop_model, if_file_present=if_file_present)
     if sat_meta:
-        download_satellite_metadata_snx(download_dir=product_dir)
+        download_satellite_metadata_snx(download_dir=target_dir, if_file_present=if_file_present)
     if yaw:
-        download_yaw_files(download_dir=model_dir)
+        download_yaw_files(download_dir=model_dir, if_file_present=if_file_present)
     if nav:
-        # if data_source == "cddis":
-        download_brdc(download_dir=product_dir, start_epoch=start_epoch, end_epoch=end_epoch, source=data_source)
-        # elif data_source == "gnss-data": # Download nav file from GA
-        #     download_files_from_gnss_data(
-        #         station_list=station_list,
-        #         start_epoch=start_epoch,
-        #         end_epoch=end_epoch,
-        #         data_dir=product_dir,
-        #         file_period=rinex_file_period,
-        #         file_type="nav",
-        #     )
+        download_brdc(
+            download_dir=target_dir,
+            start_epoch=start_epoch,
+            end_epoch=end_epoch,
+            source=data_source,
+            if_file_present=if_file_present,
+        )
     if snx and most_recent:
         download_most_recent_cddis_file(
-            download_dir=product_dir, pointer_date=start_gpsdate, file_type="SNX", long_filename=long_filename
+            download_dir=target_dir,
+            pointer_date=start_gpsdate,
+            file_type="SNX",
+            long_filename=long_filename,
+            if_file_present=if_file_present,
         )
     if snx and not most_recent:
         try:
             download_product_from_cddis(
-                download_dir=product_dir,
+                download_dir=target_dir,
                 start_epoch=start_epoch,
                 end_epoch=end_epoch,
                 file_ext="SNX",
@@ -1003,16 +1189,17 @@ def auto_download(
                 solution_type="SNX",
                 sampling_rate=generate_sampling_rate(file_ext="SNX", analysis_center="IGS", solution_type="SNX"),
                 timespan=timedelta(days=1),
+                if_file_present=if_file_present,
             )
         except FileNotFoundError:
             logging.info(f"Received an error ({FileNotFoundError}) while try to download - date too recent.")
             logging.info(f"Downloading most recent SNX file available.")
             download_most_recent_cddis_file(
-                download_dir=product_dir, pointer_date=start_gpsdate, file_type="SNX", long_filename=long_filename
+                download_dir=target_dir, pointer_date=start_gpsdate, file_type="SNX", long_filename=long_filename
             )
     if sp3:
         download_product_from_cddis(
-            download_dir=product_dir,
+            download_dir=target_dir,
             start_epoch=start_epoch,
             end_epoch=end_epoch,
             file_ext="SP3",
@@ -1025,15 +1212,16 @@ def auto_download(
                 file_ext="SP3", analysis_center=analysis_center, solution_type=solution_type
             ),
             timespan=timespan,
+            if_file_present=if_file_present,
         )
     if erp:
         if iau2000:
             # If IAU2000 option is chosen, download IAU2000 data file for Earth rotation parameters
-            download_iau2000_file(download_dir=product_dir, start_epoch=start_epoch)
+            download_iau2000_file(download_dir=target_dir, start_epoch=start_epoch, if_file_present=if_file_present)
         else:
             # Otherwise, download the ERP file
             download_product_from_cddis(
-                download_dir=product_dir,
+                download_dir=target_dir,
                 start_epoch=start_epoch,
                 end_epoch=end_epoch,
                 file_ext="ERP",
@@ -1046,10 +1234,11 @@ def auto_download(
                     file_ext="ERP", analysis_center=analysis_center, solution_type=solution_type
                 ),
                 timespan=timespan,
+                if_file_present=if_file_present,
             )
     if clk:
         download_product_from_cddis(
-            download_dir=product_dir,
+            download_dir=target_dir,
             start_epoch=start_epoch,
             end_epoch=end_epoch,
             file_ext="CLK",
@@ -1062,10 +1251,11 @@ def auto_download(
                 file_ext="CLK", analysis_center=analysis_center, solution_type=solution_type
             ),
             timespan=timespan,
+            if_file_present=if_file_present,
         )
     if bia:
         download_product_from_cddis(
-            download_dir=product_dir,
+            download_dir=target_dir,
             start_epoch=start_epoch,
             end_epoch=end_epoch,
             file_ext="BIA",
@@ -1077,6 +1267,7 @@ def auto_download(
                 file_ext="BIA", analysis_center=analysis_center, solution_type=solution_type
             ),
             timespan=timespan,
+            if_file_present=if_file_present,
         )
     if station_list:
         # Download RINEX files from gnss-data (if station_list provided)
@@ -1087,15 +1278,31 @@ def auto_download(
             data_dir=rinex_data_dir,
             file_period=rinex_file_period,
             file_type="obs",
+            if_file_present=if_file_present,
         )
 
 
 @click.command()
 @click.option("--target-dir", required=True, help="Directory to place file downloads", type=Path)
-@click.option("--preset", help="Choose from: manual, real-time, igs-station", default="manual", type=str)
-@click.option("--station-list", help="If preset=igs-station, provide comma-separated list of IGS stations", type=str)
+@click.option(
+    "--preset",
+    help="""Choose from:
+    \n\n-'manual' (choose individual flags to download desired files),
+    \n\n-'real-time' (download files for processing real-time streams),
+    \n\n-'igs-station' (download files for processing IGS CORS stations - include start/end-datetime)
+    \n\nDefault: manual""",
+    default="manual",
+    type=str,
+)
+@click.option(
+    "--station-list",
+    help="Provide comma-separated list of IGS stations to download - daily observation RNX files",
+    type=str,
+)
 @click.option("--start-datetime", help="Start of date-time period to download files for", type=str)
 @click.option("--end-datetime", help="End of date-time period to download files for", type=str)
+@click.option("--replace", help=" Re-download all files already present in target-dir", default=False, is_flag=True)
+@click.option("--dont-replace", help="Skip all files already present in target-dir", default=False, is_flag=True)
 @click.option("--most-recent", help="Set to download latest version of files", default=False, is_flag=True)
 @click.option("--analysis-center", help="Analysis center of files to download", default="IGS", type=str)
 @click.option("--atx", help="Flag to Download ATX file", default=False, is_flag=True)
@@ -1115,7 +1322,6 @@ def auto_download(
 @click.option("--clk", help="Flag to Download CLK file/s", default=False, is_flag=True)
 @click.option("--bia", help="Flag to Download BIA bias file", default=False, is_flag=True)
 @click.option("--gpt2", help="Flag to Download GPT 2.5 file", default=False, is_flag=True)
-@click.option("--product-dir", help="Directory to Download product files. Default: target-dir", type=Path)
 @click.option("--rinex-data-dir", help="Directory to Download RINEX data file/s. Default: target-dir", type=Path)
 @click.option("--trop-dir", help="Directory to Download troposphere model file/s. Default: target-dir", type=Path)
 @click.option("--model-dir", help="Directory to Download static model files. Default: product-dir / tables", type=Path)
@@ -1164,6 +1370,8 @@ def auto_download_main(
     station_list,
     start_datetime,
     end_datetime,
+    replace,
+    dont_replace,
     most_recent,
     analysis_center,
     atx,
@@ -1183,7 +1391,6 @@ def auto_download_main(
     clk,
     bia,
     gpt2,
-    product_dir,
     rinex_data_dir,
     trop_dir,
     model_dir,
@@ -1208,6 +1415,8 @@ def auto_download_main(
         station_list,
         start_datetime,
         end_datetime,
+        replace,
+        dont_replace,
         most_recent,
         analysis_center,
         atx,
@@ -1227,7 +1436,6 @@ def auto_download_main(
         clk,
         bia,
         gpt2,
-        product_dir,
         rinex_data_dir,
         trop_dir,
         model_dir,
