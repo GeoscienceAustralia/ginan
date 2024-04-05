@@ -1528,7 +1528,11 @@ void receiverPPP(
 					rateKey.num		= i;
 					rateKey.comment	= rateInit.comment;
 
-					kfState.setKFTransRate(kfKey, rateKey,	1,	rateInit);
+					delayedInits.push_back([kfKey, rateKey, rateInit, &kfState]
+						(Vector3d satStat_e, Vector3d eSatInertial)
+					{
+						kfState.setKFTransRate(kfKey, rateKey,	1,	rateInit);
+					});
 				}
 			}
 
