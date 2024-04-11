@@ -9,10 +9,10 @@ inputs:
     planetary_ephemeris_files: [ ../../inputData/products/tables/DE436.1950.2050  ]
 
     troposphere:
-        gpt2grid_files: [ ../../inputData/products/gpt_25.grd ]
+        gpt2grid_files: [ ../../inputData/products/tables/gpt_25.grd ]
 
     tides:
-        ocean_tide_loading_blq_files: [ ../../inputData/products/OLOAD_GO.BLQ                ] # required if ocean loading is applied
+        ocean_tide_loading_blq_files: [ ../../inputData/products/tables/OLOAD_GO.BLQ                ] # required if ocean loading is applied
         ocean_tide_potential_files:   [ ../../inputData/products/tables/fes2014b_Cnm-Snm.dat ]
 
     snx_files:  [ "./downloads/*.SNX" ]
