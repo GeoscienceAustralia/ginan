@@ -22,3 +22,4 @@ scipy>=1.7.3
 statsmodels>=0.13.2
 hatanaka>=2.8.1
 gnssanalysis>=0.0.28
+git+https://github.com/breid-phys/georinex.git # fast processing patch - not yet merged into georinex https://github.com/geospace-code/georinex/pull/85
