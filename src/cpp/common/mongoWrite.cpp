@@ -272,8 +272,6 @@ void mongoOutputConfig(
 
 		auto bulk = coll.create_bulk_write(bulk_opts);
 
-		bool update = false;
-
 		try
 		{
 			auto doc = bsoncxx::from_json(config);

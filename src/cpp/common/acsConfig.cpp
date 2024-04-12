@@ -69,7 +69,7 @@ bool checkValidFile(
 		&&!std::filesystem::exists(path))
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error: Invalid " << description << " file "
+		<< "Error: Missing " << description << " file "
 		<< path;
 
 		return false;
@@ -2858,7 +2858,8 @@ bool ACSConfig::parse(
 
 			yaml.reset();
 			yaml = YAML::LoadFile(filename);
-			yaml["yamlFilename"] = filename;
+			yaml["yamlFilename"]	= filename;
+			yaml["yamlNumber"]		= i;
 		}
 		catch (const YAML::BadFile &e)
 		{
@@ -3792,6 +3793,7 @@ bool ACSConfig::parse(
 
 // 	Try to change all filenames to replace <YYYY> etc with other values.
 	{
+		replaceTags(config_description);
 		replaceTags(gnss_obs_root);
 		replaceTags(pseudo_obs_root);
 		replaceTags(sat_data_root);

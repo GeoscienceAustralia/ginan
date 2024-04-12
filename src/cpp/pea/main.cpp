@@ -240,7 +240,7 @@ void addStationData(
 		if	(  recOpts.exclude
 			|| recOpts.kill)
 		{
-			return;
+			continue;
 		}
 
 		string protocol;
@@ -257,7 +257,7 @@ void addStationData(
 		{
 			if (checkValidFile(subInputName, dataType) == false)
 			{
-				return;
+				continue;
 			}
 		}
 
@@ -1965,22 +1965,6 @@ int ginan(
 	//initialise mongo
 	mongoooo();
 
-	for (auto once : {1})
-	{
-		if (acsConfig.yamls.empty())
-		{
-			continue;
-		}
-
-		YAML::Emitter emitter;
-		emitter << YAML::DoubleQuoted << YAML::Flow << YAML::BeginSeq << acsConfig.yamls[0];
-
-		string config(emitter.c_str() + 1);
-
-		mongoOutputConfig(config);
-	}
-
-
 	if (acsConfig.rts_only)
 	{
 		pppNet.kfState.rts_lag = 4000;
@@ -2011,6 +1995,16 @@ int ginan(
 	}
 
 	createTracefiles(receiverMap, pppNet, ionNet);
+
+	for (auto yaml : acsConfig.yamls)
+	{
+		YAML::Emitter emitter;
+		emitter << YAML::DoubleQuoted << YAML::Flow << YAML::BeginSeq << yaml;
+
+		string config(emitter.c_str() + 1);
+
+		mongoOutputConfig(config);
+	}
 
 	configureUploadingStreams();
 
