@@ -940,7 +940,7 @@ struct CommonOptions
 	struct
 	{
 		bool				enable			= true;
-		vector<E_Source>	sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+		vector<E_Source>	sources			= {E_Source::KALMAN, E_Source::CONFIG, E_Source::PRECISE, E_Source::SPP, E_Source::BROADCAST};
 	} posModel;
 
 	struct

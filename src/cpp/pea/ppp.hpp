@@ -16,6 +16,7 @@ struct Receiver;
 struct Solution;
 struct gptgrid_t;
 struct AttStatus;
+struct KFState;
 struct ObsList;
 struct GTime;
 struct Vmf3;
@@ -79,7 +80,9 @@ void outputApriori(
 void selectAprioriSource(
 	Receiver&	rec,
 	GTime&		time,
-	bool&		sppUsed);
+	bool&		sppUsed,
+	KFState*	kfState_ptr	= nullptr,
+	KFState*	remote_ptr	= nullptr);
 
 void postFilterChecks(
 	KFMeas&	kfMeas);

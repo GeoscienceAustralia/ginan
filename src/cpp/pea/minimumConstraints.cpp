@@ -917,7 +917,7 @@ KFState minconOnly(
 		sinexPerEpochPerStation(time, rec);
 
 		bool dummy;
-		selectAprioriSource(rec, time, dummy);
+		selectAprioriSource(rec, time, dummy, &kfState);
 
 		rec.minconApriori = rec.aprioriPos;
 	}

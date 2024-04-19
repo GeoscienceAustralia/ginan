@@ -254,34 +254,108 @@ void outputApriori(
 void selectAprioriSource(
 	Receiver&	rec,
 	GTime&		time,
-	bool&		sppUsed)
+	bool&		sppUsed,
+	KFState*	kfState_ptr,
+	KFState*	remote_ptr)
 {
 	sppUsed = false;
 
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
 
-	if (recOpts.apriori_pos.isZero() == false)
+	E_Source foundSource = E_Source::NONE;
+	for (auto& source : recOpts.posModel.sources)
 	{
-		rec.aprioriPos		= recOpts.apriori_pos;
-	}
-	else if (rec.snx.pos(2) != 0)
-	{
-		rec.aprioriPos		= rec.snx.pos;
-		rec.primaryApriori	= rec.snx.primary;
-		for (int i = 0; i < 3; i++)
+		switch (source)
 		{
-			rec.aprioriTime[i] = rec.snx.start[i];
-		}
-	}
-	else
-	{
-		rec.aprioriTime = rec.sol.sppTime;
-		rec.aprioriPos	= rec.sol.sppRRec;
+			case E_Source::CONFIG:
+			{
+				if (recOpts.apriori_pos.isZero())
+				{
+					continue;
+				}
 
-		sppUsed			= true;
+				rec.aprioriPos		= recOpts.apriori_pos;
+
+				break;
+			}
+			case E_Source::PRECISE:
+			{
+				if (rec.snx.pos.isZero())
+				{
+					continue;
+				}
+
+				rec.aprioriPos		= rec.snx.pos;
+				rec.primaryApriori	= rec.snx.primary;
+				for (int i = 0; i < 3; i++)
+				{
+					rec.aprioriTime[i] = rec.snx.start[i];
+				}
+
+				break;
+			}
+			case E_Source::KALMAN:
+			case E_Source::REMOTE:
+			{
+				if (source == +E_Source::KALMAN	&& kfState_ptr	== nullptr)	continue;
+				if (source == +E_Source::REMOTE	&& remote_ptr	== nullptr)	continue;
+
+				bool found = true;
+				for (int i = 0; i < 3; i++)
+				{
+					KFKey kfKey;
+					kfKey.type		= KF::REC_POS;
+					kfKey.str		= rec.id;
+					kfKey.num		= i;
+
+					if (source == +E_Source::KALMAN)	found &= kfState_ptr->getKFValue(kfKey, rec.aprioriPos(i));
+					if (source == +E_Source::REMOTE)	found &= remote_ptr	->getKFValue(kfKey, rec.aprioriPos(i));
+				}
+
+				if (found == false)
+				{
+					continue;
+				}
+
+				break;
+			}
+			case E_Source::SPP:
+			{
+				rec.aprioriTime = rec.sol.sppTime;
+				rec.aprioriPos	= rec.sol.sppRRec;
+
+				sppUsed			= true;
+
+				break;
+			}
+			case E_Source::BROADCAST:
+			{
+				//todo for satellite receivers
+				// continue;
+			}
+			default:
+			{
+				BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown receiver apriori source found: " << source._to_string();
+				continue;
+			}
+		}
+
+		foundSource = source;
+		break;
+	}
+
+	if (foundSource == +E_Source::NONE)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori found for " << rec.id;
 	}
 
 	auto trace = getTraceFile(rec);
+
+	tracepdeex(4, trace, "\nUsing %s as source for receiver apriori position: %f %f %f",
+				foundSource._to_string(),
+				rec.aprioriPos.x(),
+				rec.aprioriPos.y(),
+				rec.aprioriPos.z());
 
 	double	dtRec		= 0;
 	double	dtRecVar	= 0;

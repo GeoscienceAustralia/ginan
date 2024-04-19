@@ -1187,7 +1187,7 @@ void mainOncePerEpochPerStation(
 	}
 
 	bool sppUsed;
-	selectAprioriSource(rec, tsync, sppUsed);
+	selectAprioriSource(rec, tsync, sppUsed, &net.kfState);
 
 	if (sppUsed)
 	{
