@@ -1,0 +1,10 @@
+<map id="sinexPerEpochPerStation" name="sinexPerEpochPerStation">
+<area shape="rect" id="node1" title=" " alt="" coords="5,157,189,184"/>
+<area shape="rect" id="node2" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="262,5,385,32"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#ae504318cd0c1f450949803a48ea72527" title="seconds diff bewteen left and right If left &lt; right the value is negative" alt="" coords="265,56,381,83"/>
+<area shape="rect" id="node4" href="$sinex_8cpp.html#ad20e49427687e154a8fd08b2723f7b6e" title=" " alt="" coords="279,107,367,133"/>
+<area shape="rect" id="node5" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="237,157,409,184"/>
+<area shape="rect" id="node6" href="$trace_8hpp.html#af5320371d0f15d74154b2b32d315684d" title=" " alt="" coords="273,208,373,235"/>
+<area shape="rect" id="node7" href="$antenna_8cpp.html#a204d102006d5bff3d311de7f6f189e44" title=" " alt="" coords="273,259,373,285"/>
+<area shape="rect" id="node8" href="$antenna_8cpp.html#a3beefedc70e84beab788d3d0dd2e9138" title="Change the last four characters of antenna type to NONE e,g, &quot;AOAD/M_T &#160;&#160;&#160;&#160;&#160;&#160;&#160;JPLA&quot; =&gt; &quot;AOAD/M_T &#160;&#160;&#160;&#160;..." alt="" coords="267,309,379,336"/>
+</map>

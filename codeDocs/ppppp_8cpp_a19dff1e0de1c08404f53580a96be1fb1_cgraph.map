@@ -1,0 +1,7 @@
+<map id="updateAvgClocks" name="updateAvgClocks">
+<area shape="rect" id="node1" title="Prepare Satellite clocks to minimise residuals to broadcast clocks." alt="" coords="5,81,140,108"/>
+<area shape="rect" id="node2" href="$ephBroadcast_8cpp.html#ab1c1a98259589f6e077e68b8c70091b9" title=" " alt="" coords="209,5,337,32"/>
+<area shape="rect" id="node3" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="188,56,357,83"/>
+<area shape="rect" id="node4" href="$algebra_8cpp.html#a4a6a1ebf759ddc5d9d6d1de14269c5af" title=" " alt="" coords="189,107,356,133"/>
+<area shape="rect" id="node5" href="$structKFState.html#a8f43fca242e78201e48996ebbb4fd69f" title="Tries to add a state to the filter object." alt="" coords="195,157,350,184"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="configAtmosRegion_File" name="configAtmosRegion_File">
+<area shape="rect" id="node1" title="Initializes local ionosphere maps Parameters are set from files indicated by nav.SSRAtmMap...." alt="" coords="208,5,387,32"/>
+<area shape="rect" id="node2" href="$localAtmosRegion_8cpp.html#a4f2c14c2994a3bb5761636e9196b34e8" title=" " alt="" coords="5,5,160,32"/>
+</map>

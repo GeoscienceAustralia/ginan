@@ -1,0 +1,4 @@
+<map id="colinearAngle" name="colinearAngle">
+<area shape="rect" id="node1" title="Calculates colinear angle &#45; the scalar angle between midnight or noon, whichever is closest." alt="" coords="164,29,275,56"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#abdce260d1dd40f5c15f4003e87bafd3b" title="Yaw model for GAL FOC sats." alt="" coords="5,29,116,56"/>
+</map>

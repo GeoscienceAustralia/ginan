@@ -1,0 +1,4 @@
+<map id="satYawGpsIII" name="satYawGpsIII">
+<area shape="rect" id="node1" title="Yaw model for GPS&#45;III sats Ref: https://www.gpsworld.com/new&#45;type&#45;on&#45;the&#45;block&#45;generating&#45;high&#45;precis..." alt="" coords="167,5,271,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#aac7be95f5d7dbf6cf5d647524555edcb" title="Calculates nominal &amp; model yaw." alt="" coords="5,5,119,32"/>
+</map>

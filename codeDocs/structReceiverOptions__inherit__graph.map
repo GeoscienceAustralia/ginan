@@ -1,0 +1,5 @@
+<map id="ReceiverOptions" name="ReceiverOptions">
+<area shape="rect" id="node1" title="Options to be applied to kalman filter states for individual receivers." alt="" coords="60,483,265,1176"/>
+<area shape="rect" id="node2" href="$structReceiverKalmans.html" title=" " alt="" coords="5,115,141,325"/>
+<area shape="rect" id="node3" href="$structCommonOptions.html" title=" " alt="" coords="166,5,341,435"/>
+</map>

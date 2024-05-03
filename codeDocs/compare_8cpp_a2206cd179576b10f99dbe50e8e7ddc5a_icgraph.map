@@ -1,0 +1,6 @@
+<map id="createDirectories" name="createDirectories">
+<area shape="rect" id="node1" title="Create directories if required." alt="" coords="284,56,419,83"/>
+<area shape="rect" id="node2" href="$compare_8cpp.html#aa8c289d9d4e60f862fb0a60566b76bd0" title=" " alt="" coords="115,5,233,32"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#afc11530de7eb5cfd21c9b3185337af96" title="Create new empty trace files only when required when the filename is changed." alt="" coords="112,56,236,83"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a2c1eabb2ea9b242d8d9fd2c1795849e9" title=" " alt="" coords="5,81,64,108"/>
+</map>

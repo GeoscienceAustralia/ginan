@@ -1,0 +1,6 @@
+<map id="queryBiasDCB" name="queryBiasDCB">
+<area shape="rect" id="node1" title="Estimate biases from Ionosphere modelling DCBs." alt="" coords="5,56,120,83"/>
+<area shape="rect" id="node2" href="$ionoModel_8cpp.html#a175955903dd3a1513dffa2fdd9535d6c" title=" " alt="" coords="188,5,303,32"/>
+<area shape="rect" id="node3" href="$structKFState.html#adf65ad6aa025b3b6279a476d00b1c0fc" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="168,56,323,83"/>
+<area shape="rect" id="node4" href="$tropGPT2_8cpp.html#aa061d99eb567e08008ee2e0b0463926d" title="coefficients multiplication" alt="" coords="220,107,271,133"/>
+</map>

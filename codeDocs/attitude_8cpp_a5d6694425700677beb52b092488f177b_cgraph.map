@@ -1,0 +1,5 @@
+<map id="preciseAttitude" name="preciseAttitude">
+<area shape="rect" id="node1" title="Retrieves precise attitude (from file) &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns f..." alt="" coords="5,31,127,57"/>
+<area shape="rect" id="node2" href="$erp_8cpp.html#a6c6ecf3c5c7d4367d78ad08621996580" title="Get earth rotation parameter values." alt="" coords="181,5,245,32"/>
+<area shape="rect" id="node3" href="$coordinates_8cpp.html#a832467a4f90572ab72bbc16a6261ba2b" title=" " alt="" coords="175,56,252,83"/>
+</map>

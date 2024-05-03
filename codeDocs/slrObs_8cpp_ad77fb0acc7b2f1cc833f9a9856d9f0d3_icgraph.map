@@ -1,0 +1,5 @@
+<map id="ilrsIdToSatSys" name="ilrsIdToSatSys">
+<area shape="rect" id="node1" title="Converts from ILRS ID to SatSys object." alt="" coords="147,31,259,57"/>
+<area shape="rect" id="node2" href="$slrObs_8cpp.html#a38ee0a5d01fed7dee3c29841ca02b54a" title="Extracts observations from a given CRD (.npt) file." alt="" coords="15,5,89,32"/>
+<area shape="rect" id="node3" href="$slrObs_8cpp.html#ace930bf70906d9d523b50c373ef1115a" title="Read one obs record from tabular slr obs file." alt="" coords="5,56,99,83"/>
+</map>

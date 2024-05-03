@@ -1,0 +1,4 @@
+<map id="getGeomagIntensityEcef" name="getGeomagIntensityEcef">
+<area shape="rect" id="node1" title="Compute the geomagnetic field components in ECEF reference system at given time and position." alt="" coords="156,5,339,32"/>
+<area shape="rect" id="node2" href="$ppp__obs_8cpp.html#a24d244860e2a252d6ec88d97ea129b80" title="2nd order ionospheric correction See ref [1]" alt="" coords="5,5,108,32"/>
+</map>

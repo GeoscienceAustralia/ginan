@@ -1,0 +1,7 @@
+<map id="configIonModel" name="configIonModel">
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,127,108"/>
+<area shape="rect" id="node2" href="$ionoSpherical_8cpp.html#a4a53e2c2efbd68f38326d2203c00cb72" title="configures the spherical harmonics model." alt="" coords="175,5,342,32"/>
+<area shape="rect" id="node3" href="$ionoSphericalCaps_8cpp.html#afee256473acb6fee42628c1622dca224" title="Initializes Spherical caps Ionosphere model The following configursation parameters are used." alt="" coords="175,56,343,83"/>
+<area shape="rect" id="node4" href="$ionoBSplines_8cpp.html#add645190e69c7febf9417e4653eac8b5" title="Initializes grid map model The following configursation parameters are used." alt="" coords="178,107,339,133"/>
+<area shape="rect" id="node5" href="$ionoLocalSTEC_8cpp.html#a1cedbdd8b110f5b0a25ca9f510005b82" title=" " alt="" coords="177,157,340,184"/>
+</map>

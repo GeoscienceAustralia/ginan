@@ -1,0 +1,4 @@
+<map id="decodeObsData" name="decodeObsData">
+<area shape="rect" id="node1" title="Decode obs data." alt="" coords="164,5,289,32"/>
+<area shape="rect" id="node2" href="$rinex_8cpp.html#a7d866c72fe703ad325f166a0126e1791" title="Read rinex obs data body." alt="" coords="5,5,116,32"/>
+</map>

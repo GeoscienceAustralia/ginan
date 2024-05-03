@@ -1,0 +1,8 @@
+<map id="decodeSSR_clock" name="decodeSSR_clock">
+<area shape="rect" id="node1" title="Compact SSR message type 3: global satellite clock offsets." alt="" coords="5,107,140,133"/>
+<area shape="rect" id="node2" href="$prototypeCmpSSRDecode_8cpp.html#a282774baece273841d915eca27bcc898" title=" " alt="" coords="191,5,337,32"/>
+<area shape="rect" id="node3" href="$trace_8hpp.html#a984a9b0c40d65d46f2c73a021a7b7de3" title=" " alt="" coords="406,95,501,121"/>
+<area shape="rect" id="node4" href="$prototypeCmpSSRDecode_8cpp.html#a739d46e0c477691b3ee0fcd54ccf3e39" title=" " alt="" coords="189,107,339,133"/>
+<area shape="rect" id="node5" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="388,183,519,209"/>
+<area shape="rect" id="node6" href="$prototypeCmpSSRDecode_8cpp.html#afdf8d88d02894f8e69fd4c8a4c3c9173" title=" " alt="" coords="188,208,340,235"/>
+</map>

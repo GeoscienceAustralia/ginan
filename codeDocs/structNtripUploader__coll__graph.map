@@ -1,0 +1,10 @@
+<map id="NtripUploader" name="NtripUploader">
+<area shape="rect" id="node1" title=" " alt="" coords="488,843,704,1037"/>
+<area shape="rect" id="node2" href="$structNtripSocket.html" title=" " alt="" coords="5,219,213,721"/>
+<area shape="rect" id="node3" title=" " alt="" coords="232,5,291,83"/>
+<area shape="rect" id="node8" href="$structSsrBroadcast.html" title=" " alt="" coords="345,431,452,509"/>
+<area shape="rect" id="node4" href="$structRtcmEncoder.html" title=" " alt="" coords="476,343,716,597"/>
+<area shape="rect" id="node5" title=" " alt="" coords="741,431,801,509"/>
+<area shape="rect" id="node6" title=" " alt="" coords="825,431,889,509"/>
+<area shape="rect" id="node7" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="923,160,1106,780"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="Att" name="Att">
+<area shape="rect" id="node1" title="Satellite attitude." alt="" coords="142,688,218,780"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,277,64,354"/>
+<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="89,5,271,625"/>
+<area shape="rect" id="node4" title=" " alt="" coords="295,277,398,354"/>
+</map>

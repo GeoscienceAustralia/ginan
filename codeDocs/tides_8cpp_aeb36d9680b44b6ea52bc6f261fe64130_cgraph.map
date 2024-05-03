@@ -1,0 +1,5 @@
+<map id="readBlq" name="readBlq">
+<area shape="rect" id="node1" title="Read BLQ ocean/atmospheric tide loading parameters." alt="" coords="5,31,77,57"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#a06fabc81a2cc41dfee260450a527ad2d" title="Trims leading &amp; trailing whitespace." alt="" coords="159,5,209,32"/>
+<area shape="rect" id="node3" href="$tides_8cpp.html#a22861873fc8c560c6d8d7a95b1335d52" title="Read BLQ record for a single station." alt="" coords="125,56,243,83"/>
+</map>

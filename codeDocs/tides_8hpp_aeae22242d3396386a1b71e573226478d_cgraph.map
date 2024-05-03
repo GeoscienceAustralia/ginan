@@ -1,0 +1,9 @@
+<map id="tideSolidPole" name="tideSolidPole">
+<area shape="rect" id="node1" title="Displacement by solid Earth pole tide See ref [1] 7.1.4." alt="" coords="5,132,112,159"/>
+<area shape="rect" id="node2" href="$trace_8hpp.html#a984a9b0c40d65d46f2c73a021a7b7de3" title=" " alt="" coords="183,5,277,32"/>
+<area shape="rect" id="node3" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="161,56,299,83"/>
+<area shape="rect" id="node4" href="$structVectorPos.html#aa693d5a52133cfb55040b768c6175bae" title=" " alt="" coords="160,107,300,133"/>
+<area shape="rect" id="node5" href="$tides_8cpp.html#a355b2b8163e37996af1622c2780315c8" title="IERS mean pole See ref [2.2] eq.21 Eugene: This function will be gone in the future as IERS2010::mean..." alt="" coords="175,157,285,184"/>
+<area shape="rect" id="node6" href="$structVectorPos.html#a63e862a389b3548bc5b4aedabd94540b" title=" " alt="" coords="175,208,285,235"/>
+<area shape="rect" id="node7" href="$structVectorPos.html#ab7ade23bd200ec4145eb389b58737dee" title=" " alt="" coords="173,259,287,285"/>
+</map>

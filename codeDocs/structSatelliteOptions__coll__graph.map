@@ -1,0 +1,9 @@
+<map id="SatelliteOptions" name="SatelliteOptions">
+<area shape="rect" id="node1" title="Options to be applied to kalman filter states for individual satellites." alt="" coords="480,564,661,700"/>
+<area shape="rect" id="node2" href="$structSatelliteKalmans.html" title=" " alt="" coords="5,277,139,355"/>
+<area shape="rect" id="node3" href="$structCommonOptions.html" title=" " alt="" coords="163,145,338,487"/>
+<area shape="rect" id="node4" title=" " alt="" coords="394,5,529,83"/>
+<area shape="rect" id="node5" href="$structOrbitOptions.html" title="Options associated with orbital force models." alt="" coords="363,189,560,443"/>
+<area shape="rect" id="node6" title=" " alt="" coords="740,277,799,355"/>
+<area shape="rect" id="node7" title=" " alt="" coords="823,277,1065,355"/>
+</map>

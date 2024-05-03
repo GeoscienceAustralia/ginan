@@ -1,0 +1,7 @@
+<map id="inEclipse" name="inEclipse">
+<area shape="rect" id="node1" title="Returns true if satellite is in eclipse (shadow umbra); else false." alt="" coords="376,81,456,108"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a52eb3d3990c9c0a2bd4e04e58fc00334" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="163,5,328,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#a46cec52b21a1c337c0ca23eba28f5bca" title="Yaw model for GPS&#45;IIA sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="5,19,115,45"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#af06aa2920ea6c715fd8973e86ab0822f" title="Yaw model for GPS&#45;IIF sats Ref: https://www.researchgate.net/publication/306924379_Observed_features_..." alt="" coords="6,81,114,108"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="15,144,105,171"/>
+</map>

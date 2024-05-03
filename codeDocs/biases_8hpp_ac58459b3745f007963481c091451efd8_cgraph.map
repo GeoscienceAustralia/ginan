@@ -1,0 +1,5 @@
+<map id="initialiseBias" name="initialiseBias">
+<area shape="rect" id="node1" title="Initialise satellite DSBs between default signals, e.g." alt="" coords="5,31,112,57"/>
+<area shape="rect" id="node2" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="170,5,265,32"/>
+<area shape="rect" id="node3" href="$biases_8cpp.html#ad7402956db3836fc8dbe7b8b51d04c69" title="Push forward and reverse bias entry into biasMaps." alt="" coords="160,56,275,83"/>
+</map>

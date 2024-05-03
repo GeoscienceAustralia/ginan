@@ -1,0 +1,4 @@
+<map id="eph2Pos" name="eph2Pos">
+<area shape="rect" id="node1" title="glonass ephemeris to satellite position and clock bias." alt="" coords="5,5,83,32"/>
+<area shape="rect" id="node2" href="$ephBroadcast_8cpp.html#a85401dd19686a023df6d387705483e50" title=" " alt="" coords="131,5,195,32"/>
+</map>

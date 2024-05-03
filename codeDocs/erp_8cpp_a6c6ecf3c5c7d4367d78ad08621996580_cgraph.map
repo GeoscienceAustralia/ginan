@@ -1,0 +1,7 @@
+<map id="getErp" name="getErp">
+<area shape="rect" id="node1" title="Get earth rotation parameter values." alt="" coords="5,81,69,108"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="117,5,289,32"/>
+<area shape="rect" id="node3" href="$ephPrecise_8cpp.html#a9a01152aef47228af7e3cfa035bd643d" title="polynomial interpolation by Neville&#39;s algorithm" alt="" coords="157,56,250,83"/>
+<area shape="rect" id="node4" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="142,107,265,133"/>
+<area shape="rect" id="node5" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="138,157,269,184"/>
+</map>

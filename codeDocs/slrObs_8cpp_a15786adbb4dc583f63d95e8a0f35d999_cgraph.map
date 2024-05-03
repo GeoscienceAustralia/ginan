@@ -1,0 +1,4 @@
+<map id="readSatId" name="readSatId">
+<area shape="rect" id="node1" title="Read sat ID file." alt="" coords="5,5,89,32"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#a06fabc81a2cc41dfee260450a527ad2d" title="Trims leading &amp; trailing whitespace." alt="" coords="137,5,187,32"/>
+</map>

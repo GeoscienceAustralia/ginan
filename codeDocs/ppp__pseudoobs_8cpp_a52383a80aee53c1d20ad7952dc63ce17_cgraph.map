@@ -1,0 +1,6 @@
+<map id="satClockPivotPseudoObs" name="satClockPivotPseudoObs">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,188,83"/>
+<area shape="rect" id="node2" href="$structKFMeasEntry.html#a358f854f4544c59fd129e46a1baf0e34" title="Adds a design matrix entry for this measurement." alt="" coords="238,5,445,32"/>
+<area shape="rect" id="node3" href="$structKFMeasEntry.html#ac15ff59e0acb09be8ed75ccee2411dd2" title="Adds the innovation value for this measurement." alt="" coords="256,56,427,83"/>
+<area shape="rect" id="node4" href="$structKFMeasEntry.html#a7b34625115c46a7943e1ac8ffb7478e9" title="Adds a noise element for this measurement." alt="" coords="236,107,447,133"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="setbitgInc" name="setbitgInc">
+<area shape="rect" id="node1" title="increasingly set sign&#45;magnitude bits applied in GLO nav messages" alt="" coords="285,5,372,32"/>
+<area shape="rect" id="node2" href="$structRtcmEncoder.html#af36c83c9a132fd9e303ffc337922fd51" title="encode GLO ephemeris messages" alt="" coords="5,5,237,32"/>
+</map>

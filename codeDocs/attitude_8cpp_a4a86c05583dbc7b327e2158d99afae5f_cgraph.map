@@ -1,0 +1,4 @@
+<map id="nominalYawGps" name="nominalYawGps">
+<area shape="rect" id="node1" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="5,5,131,32"/>
+<area shape="rect" id="node2" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="179,5,311,32"/>
+</map>

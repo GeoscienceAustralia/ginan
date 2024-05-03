@@ -1,0 +1,5 @@
+<map id="iersMeanPole" name="iersMeanPole">
+<area shape="rect" id="node1" title="IERS mean pole See ref [2.2] eq.21 Eugene: This function will be gone in the future as IERS2010::mean..." alt="" coords="169,31,280,57"/>
+<area shape="rect" id="node2" href="$tides_8cpp.html#aeae22242d3396386a1b71e573226478d" title="Displacement by solid Earth pole tide See ref [1] 7.1.4." alt="" coords="10,5,117,32"/>
+<area shape="rect" id="node3" href="$tides_8cpp.html#a722bd4420312b4c5c8f36aa0d905e0c3" title="Displacement by ocean pole tide See ref [1] 7.1.5." alt="" coords="5,56,121,83"/>
+</map>

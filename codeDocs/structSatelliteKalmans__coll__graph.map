@@ -1,0 +1,6 @@
+<map id="SatelliteKalmans" name="SatelliteKalmans">
+<area shape="rect" id="node1" title=" " alt="" coords="164,556,297,633"/>
+<area shape="rect" id="node2" href="$structCommonKalmans.html" title=" " alt="" coords="5,218,144,295"/>
+<area shape="rect" id="node3" href="$structInertialKalmans.html" title=" " alt="" coords="168,218,293,295"/>
+<area shape="rect" id="node4" href="$structEmpKalmans.html" title=" " alt="" coords="318,5,442,508"/>
+</map>

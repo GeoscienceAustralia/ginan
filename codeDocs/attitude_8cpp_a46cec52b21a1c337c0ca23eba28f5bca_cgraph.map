@@ -1,0 +1,12 @@
+<map id="satYawGpsIIA" name="satYawGpsIIA">
+<area shape="rect" id="node1" title="Yaw model for GPS&#45;IIA sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="5,227,115,254"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="596,227,721,254"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="769,278,901,305"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a3b2447912b724e96167465b4813d591b" title="Returns true if satellite is in eclipse (shadow umbra); else false." alt="" coords="422,75,502,102"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#a43e7b17b62853da813d5289667b3284e" title="Yaw model for GPS&#45;IIR sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="191,126,300,153"/>
+<area shape="rect" id="node6" href="$sinex_8cpp.html#aa047ec8b34506643b3e286d61d819a82" title="Get yaw rate sinex entry for sat." alt="" coords="377,126,547,153"/>
+<area shape="rect" id="node7" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="413,177,511,203"/>
+<area shape="rect" id="node8" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="401,329,523,355"/>
+<area shape="rect" id="node9" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="376,379,548,406"/>
+<area shape="rect" id="node10" href="$attitude_8cpp.html#a52eb3d3990c9c0a2bd4e04e58fc00334" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="163,329,328,355"/>
+</map>

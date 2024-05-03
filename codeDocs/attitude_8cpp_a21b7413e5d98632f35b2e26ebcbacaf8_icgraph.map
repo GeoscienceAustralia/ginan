@@ -1,0 +1,4 @@
+<map id="nominalYawRate" name="nominalYawRate">
+<area shape="rect" id="node1" title="Calculates nominal yaw rate." alt="" coords="184,5,315,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a3e7989bb7dc486d9a18929b3fca68e28" title="Finds time when max yaw&#45;rate catch&#45;up started, previous to this point in time." alt="" coords="5,5,136,32"/>
+</map>

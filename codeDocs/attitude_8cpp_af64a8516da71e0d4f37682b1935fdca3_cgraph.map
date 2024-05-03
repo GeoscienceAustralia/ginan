@@ -1,0 +1,12 @@
+<map id="satYawGlo" name="satYawGlo">
+<area shape="rect" id="node1" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="5,194,95,220"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="581,295,707,322"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="755,346,887,372"/>
+<area shape="rect" id="node4" href="$sinex_8cpp.html#aa047ec8b34506643b3e286d61d819a82" title="Get yaw rate sinex entry for sat." alt="" coords="143,42,313,68"/>
+<area shape="rect" id="node5" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="179,92,277,119"/>
+<area shape="rect" id="node6" href="$attitude_8cpp.html#a3b2447912b724e96167465b4813d591b" title="Returns true if satellite is in eclipse (shadow umbra); else false." alt="" coords="407,194,487,220"/>
+<area shape="rect" id="node7" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="167,194,289,220"/>
+<area shape="rect" id="node8" href="$attitude_8cpp.html#a52eb3d3990c9c0a2bd4e04e58fc00334" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="145,244,311,271"/>
+<area shape="rect" id="node9" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="361,295,533,322"/>
+<area shape="rect" id="node10" href="$attitude_8cpp.html#a3e9ea3b9538484ff8cb97789446dd1d1" title="Finds time when midnight/noon&#45;centred max yaw started, previous to this point in time." alt="" coords="151,396,305,423"/>
+</map>

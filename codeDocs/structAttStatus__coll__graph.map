@@ -1,0 +1,5 @@
+<map id="AttStatus" name="AttStatus">
+<area shape="rect" id="node1" title="Persistent data for yaw model." alt="" coords="116,761,251,912"/>
+<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,188,625"/>
+<area shape="rect" id="node3" href="$structVectorEcef.html" title=" " alt="" coords="212,240,328,391"/>
+</map>

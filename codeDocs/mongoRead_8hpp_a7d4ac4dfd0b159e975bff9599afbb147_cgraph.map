@@ -1,0 +1,5 @@
+<map id="mongoReadCodeBias" name="mongoReadCodeBias">
+<area shape="rect" id="node1" title="Read code biases from Mongo DB." alt="" coords="5,31,167,57"/>
+<area shape="rect" id="node2" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="247,5,342,32"/>
+<area shape="rect" id="node3" href="$mongoRead_8cpp.html#a5101d87f3967908ded4dbd7040662937" title="Group and sort biases in Mongo DB to avoid unnecessary requests." alt="" coords="215,56,375,83"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="pseudoMeasTest" name="pseudoMeasTest">
+<area shape="rect" id="node1" title="Call state rejection functions when a measurement is a pseudo observation." alt="" coords="5,5,136,32"/>
+<area shape="rect" id="node2" href="$ppp__callbacks_8cpp.html#a7cfa90aea5f0628c57a71537e9e365c8" title="Remove any states connected to a bad clock if it glitches." alt="" coords="184,5,331,32"/>
+</map>

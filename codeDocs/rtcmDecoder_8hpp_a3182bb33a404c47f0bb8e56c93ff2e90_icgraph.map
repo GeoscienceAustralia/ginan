@@ -1,0 +1,17 @@
+<map id="getbitsInc" name="getbitsInc">
+<area shape="rect" id="node1" title="increasingly extract signed bits from byte data" alt="" coords="527,335,613,361"/>
+<area shape="rect" id="node2" href="$prototypeIgsSSRDecode_8cpp.html#a52483b82b940e41a9ecf30d3f7ac5609" title=" " alt="" coords="283,5,440,32"/>
+<area shape="rect" id="node3" href="$prototypeCmpSSRDecode_8cpp.html#a739d46e0c477691b3ee0fcd54ccf3e39" title=" " alt="" coords="286,56,437,83"/>
+<area shape="rect" id="node4" href="$prototypeIgsSSRDecode_8cpp.html#ab6cefeb3a0e33cc2695ae53181b52644" title=" " alt="" coords="283,107,440,133"/>
+<area shape="rect" id="node5" href="$prototypeIgsSSRDecode_8cpp.html#aceada2a0110bf7d459a3f1c94bffd19b" title=" " alt="" coords="283,157,440,184"/>
+<area shape="rect" id="node6" href="$prototypeIgsSSRDecode_8cpp.html#a763dadb437e94655b4c4ab05830c7efa" title=" " alt="" coords="283,208,440,235"/>
+<area shape="rect" id="node7" href="$prototypeIgsSSRDecode_8cpp.html#a3e3cd021dda475685751a829bc5d7283" title=" " alt="" coords="283,259,440,285"/>
+<area shape="rect" id="node8" href="$prototypeIgsSSRDecode_8cpp.html#a91f3475d9c3dd88792324a011d597918" title=" " alt="" coords="283,309,440,336"/>
+<area shape="rect" id="node9" href="$rtcmDecoder_8cpp.html#ad8dd2031443a023c665ba918bcd91436" title="increasingly extract signed bits from RTCM messages" alt="" coords="318,360,405,387"/>
+<area shape="rect" id="node10" href="$rtcmDecoder_8cpp.html#ac0235020c0ce59b7095c246bcb8496cb" title="increasingly extract signed bits from RTCM messages with scale factor/resolution applied" alt="" coords="301,411,422,437"/>
+<area shape="rect" id="node11" href="$structRtcmDecoder.html#adae4ba7ddd9f744631b806a5d550fe39" title="decode RTCM SSR messages" alt="" coords="5,512,196,539"/>
+<area shape="rect" id="node12" href="$structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9" title="decode RTCM navigation messages" alt="" coords="244,461,479,488"/>
+<area shape="rect" id="node13" href="$prototypeIgsSSRDecode_8cpp.html#a5620a5359184703cf42d5a08c894b2e5" title=" " alt="" coords="283,512,440,539"/>
+<area shape="rect" id="node14" href="$prototypeCmpSSRDecode_8cpp.html#ac234f37b071bd110061762b1aa22cb69" title=" " alt="" coords="301,563,422,589"/>
+<area shape="rect" id="node15" href="$prototypeIgsSSRDecode_8cpp.html#abb805948265150eec95f44b3f7d6ad35" title=" " alt="" coords="283,664,440,691"/>
+</map>

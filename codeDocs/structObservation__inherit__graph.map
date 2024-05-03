@@ -1,0 +1,7 @@
+<map id="Observation" name="Observation">
+<area shape="rect" id="node1" title=" " alt="" coords="306,5,443,156"/>
+<area shape="rect" id="node2" href="$structFObs.html" title=" " alt="" coords="5,343,171,450"/>
+<area shape="rect" id="node3" href="$structGObs.html" title="Raw observation data from a receiver." alt="" coords="195,336,360,457"/>
+<area shape="rect" id="node4" href="$structLObs.html" title=" " alt="" coords="385,204,559,589"/>
+<area shape="rect" id="node5" href="$structPObs.html" title=" " alt="" coords="584,329,749,465"/>
+</map>

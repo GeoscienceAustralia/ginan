@@ -1,0 +1,6 @@
+<map id="propagateEllipse" name="propagateEllipse">
+<area shape="rect" id="node1" title=" " alt="" coords="192,56,323,83"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a1d392d7cfe6d33e3fa11664aeeef4f12" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="5,5,144,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#af94ae848e3defe09026efc7a408717f5" title=" " alt="" coords="12,56,137,83"/>
+<area shape="rect" id="node4" href="$ephKalman_8cpp.html#a6dfd0101e9a0fa343d4e3faba682486d" title=" " alt="" coords="17,107,132,133"/>
+</map>

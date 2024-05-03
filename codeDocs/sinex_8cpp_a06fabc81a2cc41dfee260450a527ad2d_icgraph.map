@@ -1,0 +1,17 @@
+<map id="trim" name="trim">
+<area shape="rect" id="node1" title="Trims leading &amp; trailing whitespace." alt="" coords="231,335,280,361"/>
+<area shape="rect" id="node2" href="$ppp__pseudoobs_8cpp.html#ac019b6a4c6207a0f220870d5bd55332b" title=" " alt="" coords="13,5,175,32"/>
+<area shape="rect" id="node3" href="$sinex_8cpp.html#a40336a0fa9614f22d1847a5195b9c37e" title=" " alt="" coords="21,56,167,83"/>
+<area shape="rect" id="node4" href="$sinex_8cpp.html#a2348c784c086038a7872a489caaf9a01" title=" " alt="" coords="42,107,146,133"/>
+<area shape="rect" id="node5" href="$sinex_8cpp.html#a19eaffee4d87a554badbc8bce195a742" title=" " alt="" coords="15,157,173,184"/>
+<area shape="rect" id="node6" href="$geomagField_8cpp.html#ad1877a5076ce9da964052260c9330d92" title="Read the IGRF file Only support the latest generations of IGRF file from IGRF&#45;11." alt="" coords="53,208,135,235"/>
+<area shape="rect" id="node7" href="$sinex_8cpp.html#a6a9cc5f44f378f2b887d60f6b0e6c5e4" title=" " alt="" coords="35,259,153,285"/>
+<area shape="rect" id="node8" href="$sinex_8cpp.html#aab0ec6ab1a3d28ad66ef56400ee8f192" title=" " alt="" coords="33,309,155,336"/>
+<area shape="rect" id="node9" href="$sinex_8cpp.html#a152f25b4ed98e3a1abd62cde9a470065" title=" " alt="" coords="5,360,183,387"/>
+<area shape="rect" id="node10" href="$sinex_8cpp.html#abda0837642c7fd4cc117688badd94268" title=" " alt="" coords="35,411,153,437"/>
+<area shape="rect" id="node11" href="$sinex_8cpp.html#a520e620ce8d85c227b6341126a4a5046" title=" " alt="" coords="43,461,145,488"/>
+<area shape="rect" id="node12" href="$tides_8cpp.html#aeb36d9680b44b6ea52bc6f261fe64130" title="Read BLQ ocean/atmospheric tide loading parameters." alt="" coords="58,512,130,539"/>
+<area shape="rect" id="node13" href="$orbex_8cpp.html#a70cc23de57bf5ae7065f885a917ee4cf" title="Read necessary information, e.g." alt="" coords="21,563,167,589"/>
+<area shape="rect" id="node14" href="$cost_8cpp.html#abc021ac32635abe4cf6daef44cabb888" title="Outputs troposphere COST file." alt="" coords="47,613,141,640"/>
+<area shape="rect" id="node15" href="$slrObs_8cpp.html#a15786adbb4dc583f63d95e8a0f35d999" title="Read sat ID file." alt="" coords="52,664,136,691"/>
+</map>

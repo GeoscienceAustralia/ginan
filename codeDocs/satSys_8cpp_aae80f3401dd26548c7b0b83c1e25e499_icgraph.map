@@ -1,0 +1,13 @@
+<map id="getSysSats" name="getSysSats">
+<area shape="rect" id="node1" title="Get all satellites of target system." alt="" coords="503,233,597,260"/>
+<area shape="rect" id="node2" href="$biases_8cpp.html#ac58459b3745f007963481c091451efd8" title="Initialise satellite DSBs between default signals, e.g." alt="" coords="318,5,425,32"/>
+<area shape="rect" id="node3" href="$biases_8cpp.html#ad625cfbdfa54750bc64d8692e398e16b" title="Add default 0 values to DSBs between default signals, e.g." alt="" coords="310,56,433,83"/>
+<area shape="rect" id="node4" href="$biasSINEXwrite_8cpp.html#a12cb4f62e73c021b02dc2f12e2154c04" title="Store bias output to write into bias SINEX files." alt="" coords="302,107,441,133"/>
+<area shape="rect" id="node5" href="$sp3Write_8cpp.html#ab4606ad3c7415880b4adc10c1bfeab0e" title=" " alt="" coords="308,157,435,184"/>
+<area shape="rect" id="node6" href="$mongoRead_8cpp.html#a25a89dedbcc39aa56dfb1eff65744154" title="Read orbits and clocks from Mongo DB." alt="" coords="299,208,443,235"/>
+<area shape="rect" id="node7" href="$structNtripUploader.html#a391d7d2c8f7b72a659bd35d8242fb30a" title=" " alt="" coords="5,277,240,318"/>
+<area shape="rect" id="node8" href="$mongoRead_8cpp.html#a1d89a7a6cae3e135ebc59b318cff9736" title="Read phase biases from Mongo DB." alt="" coords="288,259,455,285"/>
+<area shape="rect" id="node9" href="$mongoRead_8cpp.html#a7d4ac4dfd0b159e975bff9599afbb147" title="Read code biases from Mongo DB." alt="" coords="291,309,452,336"/>
+<area shape="rect" id="node10" href="$mongoWrite_8cpp.html#a0936cc081f59031ee1253c909285838c" title="Write states generating SSR corrections to Mongo DB." alt="" coords="305,360,438,387"/>
+<area shape="rect" id="node11" href="$orbexWrite_8cpp.html#a68acb232854e3173995f4c0441d7de70" title="Write ORBEX header lines and header blocks including FILE/DESCRIPTION and SATELLITE/ID_AND_DESCRIPTIO..." alt="" coords="301,461,442,488"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="detectslips" name="detectslips">
+<area shape="rect" id="node1" title="Detect slips for multiple observations." alt="" coords="5,105,99,132"/>
+<area shape="rect" id="node2" href="$trace_8hpp.html#a984a9b0c40d65d46f2c73a021a7b7de3" title=" " alt="" coords="288,80,383,106"/>
+<area shape="rect" id="node3" href="$acsQC_8cpp.html#a7cae7a76a291c0a56b01d929cb94e3ff" title="Detect cycle slip by reported loss of lock." alt="" coords="155,29,232,56"/>
+<area shape="rect" id="node4" href="$ppp_8cpp.html#add1aa65516313588ef8e125a7d748f51" title=" " alt="" coords="297,130,373,157"/>
+<area shape="rect" id="node5" href="$acsQC_8cpp.html#a0d2d4fd45a0cdf961784d89cc132442e" title="Detect cycle slip by geometry free phase jump." alt="" coords="152,80,235,106"/>
+<area shape="rect" id="node6" href="$acsQC_8cpp.html#a36663ab87649ee3624e072af7fec6409" title="Detect slip by Melbourne&#45;Wubbena linear combination jump." alt="" coords="147,130,240,157"/>
+<area shape="rect" id="node7" href="$acsQC_8cpp.html#a7b37fc255c80330a5497de5bee8f2dbb" title="Cycle slip detection and repair." alt="" coords="150,181,237,208"/>
+</map>

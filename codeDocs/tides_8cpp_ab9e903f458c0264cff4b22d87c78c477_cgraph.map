@@ -1,0 +1,11 @@
+<map id="tideSolidEarth" name="tideSolidEarth">
+<area shape="rect" id="node1" title="Displacement by solid Earth tide See ref [1] 7.1.1 Note: permanent deformation not removed,..." alt="" coords="5,179,119,205"/>
+<area shape="rect" id="node2" href="$trace_8hpp.html#a984a9b0c40d65d46f2c73a021a7b7de3" title=" " alt="" coords="368,5,463,32"/>
+<area shape="rect" id="node3" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="347,59,484,85"/>
+<area shape="rect" id="node4" href="$structVectorPos.html#aa693d5a52133cfb55040b768c6175bae" title=" " alt="" coords="345,135,485,161"/>
+<area shape="rect" id="node5" href="$coordinates_8cpp.html#a8473fa1efe21e24084f708ed9e9df38e" title=" " alt="" coords="193,153,271,180"/>
+<area shape="rect" id="node6" href="$structVectorPos.html#a63e862a389b3548bc5b4aedabd94540b" title=" " alt="" coords="360,197,471,224"/>
+<area shape="rect" id="node7" href="$structVectorPos.html#ab7ade23bd200ec4145eb389b58737dee" title=" " alt="" coords="358,248,473,275"/>
+<area shape="rect" id="node8" href="$tides_8cpp.html#ab44d5c92785ffe1d1628108425405b23" title="Step 1 of solid Earth tide computation: Corrections to be computed in the time domain (solar/lunar ti..." alt="" coords="167,204,297,231"/>
+<area shape="rect" id="node9" href="$structSofa.html#a3668c9368947f097705078736820f5e1" title=" " alt="" coords="175,305,289,332"/>
+</map>

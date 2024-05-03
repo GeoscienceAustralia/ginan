@@ -1,0 +1,7 @@
+<map id="ionModelCoef" name="ionModelCoef">
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,117,108"/>
+<area shape="rect" id="node2" href="$ionoSpherical_8cpp.html#aeb48df0b01dbc59042702f65f0c33275" title="Evaluates spherical harmonics basis functions int ind I obs I Ionosphere measurement struct latIPP &#45; ..." alt="" coords="166,5,283,32"/>
+<area shape="rect" id="node3" href="$ionoSphericalCaps_8cpp.html#ad60c18efacdc8835040dc2758dd0f7e1" title="Evaluates spherical cap harmonics basis functions int ind I Basis function number obs I Ionosphere me..." alt="" coords="165,56,284,83"/>
+<area shape="rect" id="node4" href="$ionoBSplines_8cpp.html#aea80ea81c569de9a47760e98fa6c92cf" title="Evaluates B&#45;splines basis functions int ind I Basis function number meas I Ionosphere measurement str..." alt="" coords="169,107,281,133"/>
+<area shape="rect" id="node5" href="$ionoLocalSTEC_8cpp.html#ad63cf6910bd223eb6900bfa300c53233" title="calcuates the partials of observations with respect to basis functions" alt="" coords="171,157,278,184"/>
+</map>

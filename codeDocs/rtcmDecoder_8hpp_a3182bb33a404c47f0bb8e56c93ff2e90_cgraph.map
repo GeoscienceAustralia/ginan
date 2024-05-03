@@ -1,0 +1,4 @@
+<map id="getbitsInc" name="getbitsInc">
+<area shape="rect" id="node1" title="increasingly extract signed bits from byte data" alt="" coords="5,5,92,32"/>
+<area shape="rect" id="node2" href="$rtcmDecoder_8cpp.html#a2b4fecad74db6a33e3e755d5c55245ad" title="extract signed bits from byte data" alt="" coords="140,5,207,32"/>
+</map>

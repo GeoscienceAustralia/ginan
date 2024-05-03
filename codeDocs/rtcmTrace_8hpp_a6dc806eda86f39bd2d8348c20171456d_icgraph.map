@@ -1,0 +1,5 @@
+<map id="traceBrdcEphBody" name="traceBrdcEphBody">
+<area shape="rect" id="node1" title=" " alt="" coords="283,31,424,57"/>
+<area shape="rect" id="node2" href="$structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1" title="Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file." alt="" coords="28,5,212,32"/>
+<area shape="rect" id="node3" href="$structUbxDecoder.html#a3edfc6fc421d31970881abd2f6db1f6d" title=" " alt="" coords="5,56,235,83"/>
+</map>

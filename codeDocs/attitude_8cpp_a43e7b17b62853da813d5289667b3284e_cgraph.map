@@ -1,0 +1,9 @@
+<map id="satYawGpsIIR" name="satYawGpsIIR">
+<area shape="rect" id="node1" title="Yaw model for GPS&#45;IIR sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="5,132,115,159"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#aa047ec8b34506643b3e286d61d819a82" title="Get yaw rate sinex entry for sat." alt="" coords="163,5,334,32"/>
+<area shape="rect" id="node3" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="200,56,297,83"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="383,208,508,235"/>
+<area shape="rect" id="node5" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="556,183,688,209"/>
+<area shape="rect" id="node6" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="187,208,310,235"/>
+<area shape="rect" id="node7" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="163,259,335,285"/>
+</map>

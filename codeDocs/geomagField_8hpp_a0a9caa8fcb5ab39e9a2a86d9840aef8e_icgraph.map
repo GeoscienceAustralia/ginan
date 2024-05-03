@@ -1,0 +1,5 @@
+<map id="decimalYear" name="decimalYear">
+<area shape="rect" id="node1" title="Convert time to decimal year For example: 2019&#45;07&#45;18 00:00:00 &#45;&gt; 2019.54247." alt="" coords="147,31,248,57"/>
+<area shape="rect" id="node2" href="$debug_8cpp.html#a25e72c6bf87e11fee70e99be7816a530" title=" " alt="" coords="5,5,99,32"/>
+<area shape="rect" id="node3" href="$geomagField_8cpp.html#afdeec0e39b8804b13d87c0d552f57438" title="Calculate the SH coefficients at given epoch based on a piecewise linear model For years starting in ..." alt="" coords="7,56,97,83"/>
+</map>

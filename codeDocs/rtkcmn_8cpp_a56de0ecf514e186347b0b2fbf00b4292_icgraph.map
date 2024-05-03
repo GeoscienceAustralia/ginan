@@ -1,0 +1,6 @@
+<map id="satazel" name="satazel">
+<area shape="rect" id="node1" title="satellite azimuth/elevation angle" alt="" coords="152,56,221,83"/>
+<area shape="rect" id="node2" href="$ppp__obs_8cpp.html#aa9dc8925a7e4b904e12660d44616f1fc" title=" " alt="" coords="5,5,104,32"/>
+<area shape="rect" id="node3" href="$ppp__slr_8cpp.html#a0f53eb82b1b0572a1aabec8b6fe5a6ad" title=" " alt="" coords="9,56,101,83"/>
+<area shape="rect" id="node4" href="$spp_8cpp.html#a9d6f3216e22cb09500173e6632bbdfbc" title="Estimate receiver position and biases using code measurements." alt="" coords="22,107,87,133"/>
+</map>

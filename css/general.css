@@ -1,0 +1,94 @@
+body {
+    background-color: #fff;
+    font-family: 'Roboto', sans-serif;
+  }
+
+.container {
+    padding: 1rem;
+}
+
+img.image-fluid {
+    margin: 20px 0px 0px 20px;
+}
+
+.jumbotron{
+    margin-top: 20px;
+    background-image: url("../images/JagXK3.jpg");
+    background-origin: content-box;
+    background-position: center center;
+    color: white;
+}
+
+  pre {
+    width: 100%;
+    padding: 10px;
+    margin: 0;
+    overflow: auto;
+    overflow-y: hidden;
+    font-size: 12px;
+    line-height: 20px;
+    background: #efefef;
+    border: 1px solid #777;
+  }
+  code 
+  {
+   color: #d63384;
+  }
+  .nav{
+    display: revert;
+    padding-left: revert;
+  }
+  #myNavbar{
+    max-width: 300px;
+    display: revert;
+    padding-left: revert;
+    font-size: small;
+  }
+  h2, h1, h3, h4, h5, h6{
+    scroll-margin-top: 100px;
+      margin-top: 1rem;
+  }
+
+  h6
+  {
+    display:inline;
+  }
+  h6+p
+  {
+    display:inline;
+  }
+  img
+  {
+
+    max-width: 100%;
+  }
+  blockquote
+  {
+    padding:  1em;
+    background-color: rgb(250, 229, 212);
+  }
+
+  blockquote > p
+  {
+    margin-bottom: 0;
+  }
+  td, th
+  {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+  img + em
+  {
+    display: block;
+    text-align: center;
+  }
+
+
+
+.fragment
+{
+  max-height: 60vh;
+  overflow: scroll;
+  background-color: #FFFAF1 !important
+}

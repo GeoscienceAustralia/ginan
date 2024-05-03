@@ -1,0 +1,5 @@
+<map id="queryBiasOutput" name="queryBiasOutput">
+<area shape="rect" id="node1" title="Find and combine biases from multiple sources: bias inputs, UC biases and DCB from ionosphere modules..." alt="" coords="192,31,323,57"/>
+<area shape="rect" id="node2" href="$biasSINEXwrite_8cpp.html#a12cb4f62e73c021b02dc2f12e2154c04" title="Store bias output to write into bias SINEX files." alt="" coords="5,5,144,32"/>
+<area shape="rect" id="node3" href="$mongoWrite_8cpp.html#a0936cc081f59031ee1253c909285838c" title="Write states generating SSR corrections to Mongo DB." alt="" coords="8,56,141,83"/>
+</map>

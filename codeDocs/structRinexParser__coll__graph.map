@@ -1,0 +1,8 @@
+<map id="RinexParser" name="RinexParser">
+<area shape="rect" id="node1" title=" " alt="" coords="282,175,405,311"/>
+<area shape="rect" id="node2" href="$structParser.html" title=" " alt="" coords="5,5,124,112"/>
+<area shape="rect" id="node3" href="$structObsLister.html" title=" " alt="" coords="147,20,230,97"/>
+<area shape="rect" id="node4" title=" " alt="" coords="255,13,432,105"/>
+<area shape="rect" id="node5" href="$structObsList.html" title="List of observations for an epoch." alt="" coords="456,20,580,97"/>
+<area shape="rect" id="node6" href="$structRinexStation.html" title=" " alt="" coords="604,20,709,97"/>
+</map>

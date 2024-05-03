@@ -1,0 +1,5 @@
+<map id="SatPos" name="SatPos">
+<area shape="rect" id="node1" title="Satellite position data &#45; for determining and storing satellite positions/clocks." alt="" coords="92,5,279,728"/>
+<area shape="rect" id="node2" href="$structGObs.html" title="Raw observation data from a receiver." alt="" coords="5,908,171,1029"/>
+<area shape="rect" id="node3" href="$structLObs.html" title=" " alt="" coords="195,776,370,1161"/>
+</map>

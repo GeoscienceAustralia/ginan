@@ -1,0 +1,4 @@
+<map id="KFState::chiQC" name="KFState::chiQC">
+<area shape="rect" id="node1" title="Perform chi squared quality control." alt="" coords="232,13,351,39"/>
+<area shape="rect" id="node2" href="$structKFState.html#ae1fc274c403b77dc814ed90763b4dea1" title="Least squares estimator for new kalman filter states." alt="" coords="5,5,184,47"/>
+</map>

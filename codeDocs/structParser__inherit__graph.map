@@ -1,0 +1,10 @@
+<map id="Parser" name="Parser">
+<area shape="rect" id="node1" title=" " alt="" coords="499,5,617,112"/>
+<area shape="rect" id="node2" href="$structCustomParser.html" title=" " alt="" coords="5,211,124,303"/>
+<area shape="rect" id="node3" href="$structRinexParser.html" title=" " alt="" coords="148,167,277,347"/>
+<area shape="rect" id="node4" href="$structRtcmParser.html" title=" " alt="" coords="302,197,425,318"/>
+<area shape="rect" id="node5" href="$structSinexParser.html" title=" " alt="" coords="449,160,667,355"/>
+<area shape="rect" id="node6" href="$structSlrParser.html" title="Interface for slr streams." alt="" coords="692,204,811,311"/>
+<area shape="rect" id="node7" href="$structSp3Parser.html" title=" " alt="" coords="835,197,953,318"/>
+<area shape="rect" id="node8" href="$structUbxParser.html" title=" " alt="" coords="977,211,1096,303"/>
+</map>

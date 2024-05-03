@@ -1,0 +1,9 @@
+<map id="UbxDecoder" name="UbxDecoder">
+<area shape="rect" id="node1" title=" " alt="" coords="459,703,626,883"/>
+<area shape="rect" id="node2" href="$structObsLister.html" title=" " alt="" coords="5,277,88,354"/>
+<area shape="rect" id="node3" href="$structIcdDecoder.html" title=" " alt="" coords="113,240,303,391"/>
+<area shape="rect" id="node4" title=" " alt="" coords="328,262,531,369"/>
+<area shape="rect" id="node5" title=" " alt="" coords="555,262,757,369"/>
+<area shape="rect" id="node6" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="782,5,965,625"/>
+<area shape="rect" id="node7" title=" " alt="" coords="989,277,1048,354"/>
+</map>

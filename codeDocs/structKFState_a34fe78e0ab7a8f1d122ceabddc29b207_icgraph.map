@@ -1,0 +1,7 @@
+<map id="KFState::initFilterEpoch" name="KFState::initFilterEpoch">
+<area shape="rect" id="node1" title="Clears and initialises the state transition matrix to identity at the beginning of an epoch." alt="" coords="280,81,453,108"/>
+<area shape="rect" id="node2" href="$structKFState.html#a35b82ca74c6a6795abf1b6e919a4fec1" title="Add process noise and dynamics to filter object manually." alt="" coords="5,5,232,32"/>
+<area shape="rect" id="node3" href="$structKFState.html#aa97674fcbd7bfbe3953005548b068cfb" title=" " alt="" coords="53,56,184,83"/>
+<area shape="rect" id="node4" href="$structKFState.html#a7f8e4b9291361c063cef8d9178f07707" title="Add process noise and dynamics to filter object according to time gap." alt="" coords="31,107,207,133"/>
+<area shape="rect" id="node5" href="$structKFState.html#ae99b9a0b478d94b6cff9ba2328914178" title="Kalman filter operation." alt="" coords="39,157,199,184"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="satYawGpsIIF" name="satYawGpsIIF">
+<area shape="rect" id="node1" title="Yaw model for GPS&#45;IIF sats Ref: https://www.researchgate.net/publication/306924379_Observed_features_..." alt="" coords="5,158,113,184"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="595,107,720,134"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="768,158,900,184"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a3b2447912b724e96167465b4813d591b" title="Returns true if satellite is in eclipse (shadow umbra); else false." alt="" coords="421,56,501,83"/>
+<area shape="rect" id="node5" href="$attitude_8cpp.html#a43e7b17b62853da813d5289667b3284e" title="Yaw model for GPS&#45;IIR sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="189,107,299,134"/>
+<area shape="rect" id="node6" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="399,208,522,235"/>
+<area shape="rect" id="node7" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="375,259,547,286"/>
+<area shape="rect" id="node8" href="$attitude_8cpp.html#a52eb3d3990c9c0a2bd4e04e58fc00334" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="161,208,327,235"/>
+</map>

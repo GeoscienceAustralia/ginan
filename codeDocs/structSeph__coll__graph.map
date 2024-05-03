@@ -1,0 +1,7 @@
+<map id="Seph" name="Seph">
+<area shape="rect" id="node1" title="SBAS ephemeris." alt="" coords="236,717,303,883"/>
+<area shape="rect" id="node2" href="$structBrdcEph.html" title=" " alt="" coords="5,277,80,354"/>
+<area shape="rect" id="node3" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="105,167,247,464"/>
+<area shape="rect" id="node4" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="271,5,454,625"/>
+<area shape="rect" id="node5" href="$structVectorEcef.html" title=" " alt="" coords="478,240,594,391"/>
+</map>

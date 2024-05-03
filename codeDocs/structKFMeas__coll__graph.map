@@ -1,0 +1,9 @@
+<map id="KFMeas" name="KFMeas">
+<area shape="rect" id="node1" title="Object to hold measurements, design matrices, and residuals for multiple observations." alt="" coords="357,732,489,824"/>
+<area shape="rect" id="node2" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,188,625"/>
+<area shape="rect" id="node3" title=" " alt="" coords="213,277,293,354"/>
+<area shape="rect" id="node4" title=" " alt="" coords="317,277,399,354"/>
+<area shape="rect" id="node5" title=" " alt="" coords="423,277,557,354"/>
+<area shape="rect" id="node6" title=" " alt="" coords="582,269,745,361"/>
+<area shape="rect" id="node7" title=" " alt="" coords="769,269,985,361"/>
+</map>

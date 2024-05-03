@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['generaldataentry_0',['GeneralDataEntry',['../structGeneralDataEntry.html',1,'']]],
+  ['geomagmainfield_1',['GeomagMainField',['../structGeomagMainField.html',1,'']]],
+  ['geomagsecularvariation_2',['GeomagSecularVariation',['../structGeomagSecularVariation.html',1,'']]],
+  ['geph_3',['Geph',['../structGeph.html',1,'']]],
+  ['gepoch_4',['GEpoch',['../structGEpoch.html',1,'']]],
+  ['getsnxresult_5',['GetSnxResult',['../unionGetSnxResult.html',1,'']]],
+  ['ginar_5fmtx_6',['GinAR_mtx',['../structGinAR__mtx.html',1,'']]],
+  ['ginar_5fopt_7',['GinAR_opt',['../structGinAR__opt.html',1,'']]],
+  ['globaloptions_8',['GlobalOptions',['../structGlobalOptions.html',1,'']]],
+  ['gobs_9',['GObs',['../structGObs.html',1,'']]],
+  ['gobsmeta_10',['GObsMeta',['../structGObsMeta.html',1,'']]],
+  ['gptgrid_11',['GptGrid',['../structGptGrid.html',1,'']]],
+  ['gptvals_12',['GPTVals',['../structGPTVals.html',1,'']]],
+  ['gtime_13',['GTime',['../structGTime.html',1,'']]],
+  ['gtow_14',['GTow',['../structGTow.html',1,'']]],
+  ['gweek_15',['GWeek',['../structGWeek.html',1,'']]]
+];

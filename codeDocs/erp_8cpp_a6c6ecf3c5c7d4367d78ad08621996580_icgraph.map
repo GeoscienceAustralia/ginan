@@ -1,0 +1,27 @@
+<map id="getErp" name="getErp">
+<area shape="rect" id="node1" title="Get earth rotation parameter values." alt="" coords="477,588,541,615"/>
+<area shape="rect" id="node2" href="$erp_8cpp.html#ace896737fa00aadf8e054cbb879c2bb3" title="Get earth rotation parameter values." alt="" coords="253,5,383,32"/>
+<area shape="rect" id="node3" href="$sp3Write_8cpp.html#a63449e78bf1e8eb81fdd0486adf37cb2" title=" " alt="" coords="21,715,143,741"/>
+<area shape="rect" id="node4" href="$debug_8cpp.html#a024d78c0bdafab9654bb34addd8d14cc" title=" " alt="" coords="239,56,397,83"/>
+<area shape="rect" id="node5" href="$debug_8cpp.html#af70de86752b2299dc960e06802ce7295" title=" " alt="" coords="253,107,383,133"/>
+<area shape="rect" id="node6" href="$debug_8cpp.html#a87c5753b6cf593f61c84b8b25cf8303f" title=" " alt="" coords="243,157,393,184"/>
+<area shape="rect" id="node7" href="$debug_8cpp.html#a80d24c0bf09dad23394c5fcac25aa80b" title=" " alt="" coords="27,816,137,843"/>
+<area shape="rect" id="node8" href="$debug_8cpp.html#a5b1ea12931531e9012bd2b1de294dd82" title=" " alt="" coords="277,259,359,285"/>
+<area shape="rect" id="node9" href="$compare_8cpp.html#aa8c289d9d4e60f862fb0a60566b76bd0" title=" " alt="" coords="23,765,141,792"/>
+<area shape="rect" id="node10" href="$debug_8cpp.html#a3a9dc241be6174dbd40a8bd071d6973d" title=" " alt="" coords="269,360,367,387"/>
+<area shape="rect" id="node11" href="$main_8cpp.html#a2b0d1066eac1a878cf982adcdd550ce1" title=" " alt="" coords="5,917,159,944"/>
+<area shape="rect" id="node12" href="$attitude_8cpp.html#a5d6694425700677beb52b092488f177b" title="Retrieves precise attitude (from file) &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns f..." alt="" coords="257,461,379,488"/>
+<area shape="rect" id="node13" href="$debug_8cpp.html#ab1c89bb12579ace0fe0ec45523ed9567" title=" " alt="" coords="257,512,379,539"/>
+<area shape="rect" id="node14" href="$minimumConstraints_8cpp.html#aeb8c374e79e38289a66b8b65d6574141" title=" " alt="" coords="32,867,132,893"/>
+<area shape="rect" id="node15" href="$attitude_8cpp.html#a52eb3d3990c9c0a2bd4e04e58fc00334" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="235,613,401,640"/>
+<area shape="rect" id="node16" href="$orbits_8cpp.html#a321da34884a36b067d66ae656636f404" title=" " alt="" coords="253,664,383,691"/>
+<area shape="rect" id="node17" href="$attitude_8cpp.html#a1d392d7cfe6d33e3fa11664aeeef4f12" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="13,664,151,691"/>
+<area shape="rect" id="node18" href="$ppp__obs_8cpp.html#aa9dc8925a7e4b904e12660d44616f1fc" title=" " alt="" coords="269,715,367,741"/>
+<area shape="rect" id="node19" href="$sp3Write_8cpp.html#a4b1d20154c3982bbbe24760f2a54c99a" title=" " alt="" coords="245,867,391,893"/>
+<area shape="rect" id="node20" href="$tides_8cpp.html#a1ca38a143043c722f3b7af0326f8e2f0" title=" " alt="" coords="280,917,356,944"/>
+<area shape="rect" id="node21" href="$structOrbitIntegrator.html#a58c972cf5ddac52358ccbd8f7c34b9cc" title=" " alt="" coords="227,969,409,1010"/>
+<area shape="rect" id="node22" href="$main_8cpp.html#a6c8573ceb67a86d932ae7861185b41b5" title=" " alt="" coords="207,1035,429,1061"/>
+<area shape="rect" id="node23" href="$minimumConstraints_8cpp.html#aa40934b017f373d875c3470591eff52e" title=" " alt="" coords="283,1085,353,1112"/>
+<area shape="rect" id="node24" href="$ppp__pseudoobs_8cpp.html#a49ce4050de278a66c933406b92bbbf39" title=" " alt="" coords="256,1136,380,1163"/>
+<area shape="rect" id="node25" href="$ppp__slr_8cpp.html#a0f53eb82b1b0572a1aabec8b6fe5a6ad" title=" " alt="" coords="272,1187,364,1213"/>
+</map>

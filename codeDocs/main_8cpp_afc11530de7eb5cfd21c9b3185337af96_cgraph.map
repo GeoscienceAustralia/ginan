@@ -1,0 +1,10 @@
+<map id="createTracefiles" name="createTracefiles">
+<area shape="rect" id="node1" title="Create new empty trace files only when required when the filename is changed." alt="" coords="5,157,129,184"/>
+<area shape="rect" id="node2" href="$gTime_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16" title="Returns (posix) for current epoch." alt="" coords="201,5,331,32"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a2206cd179576b10f99dbe50e8e7ddc5a" title="Create directories if required." alt="" coords="199,56,333,83"/>
+<area shape="rect" id="node4" href="$mongo_8cpp.html#a52ea466b77ea949c69649373cb073616" title=" " alt="" coords="195,107,337,133"/>
+<area shape="rect" id="node5" href="$acsConfig_8cpp.html#a611c3086ccdeb877c19a6b1d603227a4" title="search for and replace section of string" alt="" coords="403,183,511,209"/>
+<area shape="rect" id="node6" href="$trace_8cpp.html#a7eec1631c0092ac9e6c3222345cd3601" title=" " alt="" coords="191,157,341,184"/>
+<area shape="rect" id="node7" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="177,208,355,235"/>
+<area shape="rect" id="node8" href="$algebraTrace_8hpp.html#a763d8db4343fa73fa264de91d8cda786" title="Output filter state to a file for later reading." alt="" coords="208,259,324,285"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="IERS2010::doodson" name="IERS2010::doodson">
+<area shape="rect" id="node1" title=" " alt="" coords="508,56,655,83"/>
+<area shape="rect" id="node2" href="$structFrameSwapper.html#aebb17ff4787dc58070de473053c4825d" title=" " alt="" coords="236,5,460,32"/>
+<area shape="rect" id="node3" href="$structIERS2010.html#a235f709d37da714e34d2545e5e2ef4ab" title=" " alt="" coords="252,56,444,83"/>
+<area shape="rect" id="node4" href="$structOrbitIntegrator.html#a58c972cf5ddac52358ccbd8f7c34b9cc" title=" " alt="" coords="5,74,188,115"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="updateOrbexBody" name="updateOrbexBody">
+<area shape="rect" id="node1" title="Write EPHEMERIS/DATA block and update END_TIME line." alt="" coords="192,5,331,32"/>
+<area shape="rect" id="node2" href="$orbexWrite_8cpp.html#a180ef8ef5918ebb390be583771a0f4b7" title="Retrieve satellite orbits, clocks and attitudes for all included systems and write out to an ORBEX fi..." alt="" coords="5,5,144,32"/>
+</map>

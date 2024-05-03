@@ -1,0 +1,9 @@
+<map id="satYawGalFoc" name="satYawGalFoc">
+<area shape="rect" id="node1" title="Yaw model for GAL FOC sats." alt="" coords="5,95,116,122"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="384,46,509,72"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="557,20,689,47"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a95558ed9944dff71b37d685647155248" title="Calculates colinear angle &#45; the scalar angle between midnight or noon, whichever is closest." alt="" coords="195,70,305,96"/>
+<area shape="rect" id="node5" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="189,120,311,147"/>
+<area shape="rect" id="node6" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="164,171,336,198"/>
+<area shape="rect" id="node7" href="$attitude_8cpp.html#aafc9b40350ab3ffb027aa7572be560db" title="Smoothed yaw steering for GAL &amp; BDS." alt="" coords="194,222,306,248"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="CommonOptions" name="CommonOptions">
+<area shape="rect" id="node1" title=" " alt="" coords="129,5,303,435"/>
+<area shape="rect" id="node2" href="$structReceiverOptions.html" title="Options to be applied to kalman filter states for individual receivers." alt="" coords="5,483,211,1176"/>
+<area shape="rect" id="node3" href="$structSatelliteOptions.html" title="Options to be applied to kalman filter states for individual satellites." alt="" coords="235,732,416,927"/>
+</map>

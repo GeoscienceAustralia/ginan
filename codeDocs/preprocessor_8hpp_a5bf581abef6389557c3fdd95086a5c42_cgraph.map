@@ -1,0 +1,5 @@
+<map id="obsVariances" name="obsVariances">
+<area shape="rect" id="node1" title=" " alt="" coords="5,31,113,57"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="161,5,333,32"/>
+<area shape="rect" id="node3" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="163,56,332,83"/>
+</map>

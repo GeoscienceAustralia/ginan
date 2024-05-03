@@ -1,0 +1,4 @@
+<map id="Pclk" name="Pclk">
+<area shape="rect" id="node1" title="precise clock" alt="" coords="5,5,97,112"/>
+<area shape="rect" id="node2" href="$structPeph.html" title="precise ephemeris" alt="" coords="11,160,92,325"/>
+</map>

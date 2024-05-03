@@ -1,0 +1,6 @@
+<map id="PacketStatistics" name="PacketStatistics">
+<area shape="rect" id="node1" title=" " alt="" coords="167,5,349,244"/>
+<area shape="rect" id="node2" href="$structCustomParser.html" title=" " alt="" coords="5,453,124,545"/>
+<area shape="rect" id="node3" href="$structRtcmDecoder.html" title=" " alt="" coords="149,292,367,707"/>
+<area shape="rect" id="node4" href="$structUbxParser.html" title=" " alt="" coords="392,453,511,545"/>
+</map>

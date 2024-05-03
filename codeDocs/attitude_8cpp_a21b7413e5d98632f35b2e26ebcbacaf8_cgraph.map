@@ -1,0 +1,6 @@
+<map id="nominalYawRate" name="nominalYawRate">
+<area shape="rect" id="node1" title="Calculates nominal yaw rate." alt="" coords="5,24,136,50"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="404,24,529,50"/>
+<area shape="rect" id="node3" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="577,49,709,76"/>
+<area shape="rect" id="node4" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="184,24,356,50"/>
+</map>

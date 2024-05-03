@@ -1,0 +1,7 @@
+<map id="Geph" name="Geph">
+<area shape="rect" id="node1" title="GLONASS broadcast ephemeris." alt="" coords="218,717,321,1044"/>
+<area shape="rect" id="node2" href="$structBrdcEph.html" title=" " alt="" coords="5,277,80,354"/>
+<area shape="rect" id="node3" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="105,167,247,464"/>
+<area shape="rect" id="node4" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="271,5,454,625"/>
+<area shape="rect" id="node5" title=" " alt="" coords="478,277,557,354"/>
+</map>

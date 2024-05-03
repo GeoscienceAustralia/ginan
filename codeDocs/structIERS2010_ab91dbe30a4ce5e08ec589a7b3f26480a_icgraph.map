@@ -1,0 +1,6 @@
+<map id="IERS2010::meanPole" name="IERS2010::meanPole">
+<area shape="rect" id="node1" title=" " alt="" coords="497,56,653,83"/>
+<area shape="rect" id="node2" href="$structIERS2010.html#a6283c4fc62f79745033893cd35f6c6be" title=" " alt="" coords="236,5,449,32"/>
+<area shape="rect" id="node3" href="$structOrbitIntegrator.html#a58c972cf5ddac52358ccbd8f7c34b9cc" title=" " alt="" coords="5,49,188,90"/>
+<area shape="rect" id="node4" href="$structIERS2010.html#af377ca32afffb6da4e3eb30e1219263b" title=" " alt="" coords="249,56,437,83"/>
+</map>

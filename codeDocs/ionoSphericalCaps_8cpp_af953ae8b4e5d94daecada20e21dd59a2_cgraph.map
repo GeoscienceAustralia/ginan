@@ -1,0 +1,10 @@
+<map id="ippCheckSphcap" name="ippCheckSphcap">
+<area shape="rect" id="node1" title="transforms the Ionosphere Piercing Point and checks if it falls in area of coverage time: I time of o..." alt="" coords="5,139,135,166"/>
+<area shape="rect" id="node2" href="$structVectorPos.html#a9517f77c95322d34dc896a88db4a804f" title=" " alt="" coords="368,114,483,141"/>
+<area shape="rect" id="node3" href="$coordinates_8cpp.html#a726b77659a6e94017c3acc10bca86a29" title="Transform geodetic postion to ecef." alt="" coords="211,38,292,65"/>
+<area shape="rect" id="node4" href="$structVectorPos.html#a63e862a389b3548bc5b4aedabd94540b" title=" " alt="" coords="370,13,481,39"/>
+<area shape="rect" id="node5" href="$structVectorPos.html#ab7ade23bd200ec4145eb389b58737dee" title=" " alt="" coords="368,63,483,90"/>
+<area shape="rect" id="node6" href="$algebra__old_8cpp.html#adc33998911a24938042604ba1f8e6196" title=" " alt="" coords="215,89,288,115"/>
+<area shape="rect" id="node7" href="$utils_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="211,139,292,166"/>
+<area shape="rect" id="node8" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="183,241,320,267"/>
+</map>

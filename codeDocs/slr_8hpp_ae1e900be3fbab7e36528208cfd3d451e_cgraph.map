@@ -1,0 +1,5 @@
+<map id="satComOffGnss" name="satComOffGnss">
+<area shape="rect" id="node1" title="Center of mass to laser retroreflector array offset for GNSS satellites." alt="" coords="5,31,128,57"/>
+<area shape="rect" id="node2" href="$sinex_8cpp.html#a04a0376bd5cd6d04b58ad677105bed47" title=" " alt="" coords="177,5,265,32"/>
+<area shape="rect" id="node3" href="$coordinates_8cpp.html#a9860e0cea74eb4ca1383342104693565" title="transform vector in body frame to ecef" alt="" coords="176,56,267,83"/>
+</map>

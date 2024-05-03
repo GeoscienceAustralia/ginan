@@ -1,0 +1,4 @@
+<map id="findCatchupStart" name="findCatchupStart">
+<area shape="rect" id="node1" title="Finds time when max yaw&#45;rate catch&#45;up started, previous to this point in time." alt="" coords="5,5,136,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a21b7413e5d98632f35b2e26ebcbacaf8" title="Calculates nominal yaw rate." alt="" coords="184,5,315,32"/>
+</map>

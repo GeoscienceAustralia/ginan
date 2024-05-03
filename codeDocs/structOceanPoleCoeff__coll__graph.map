@@ -1,0 +1,4 @@
+<map id="OceanPoleCoeff" name="OceanPoleCoeff">
+<area shape="rect" id="node1" title="Structure for grid points of ocean pole load tide coefficients." alt="" coords="5,307,131,399"/>
+<area shape="rect" id="node2" href="$structVectorEnu.html" title=" " alt="" coords="11,5,125,229"/>
+</map>

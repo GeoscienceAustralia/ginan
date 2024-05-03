@@ -1,0 +1,4 @@
+<map id="getSHCoef" name="getSHCoef">
+<area shape="rect" id="node1" title="Calculate the SH coefficients at given epoch based on a piecewise linear model For years starting in ..." alt="" coords="208,5,299,32"/>
+<area shape="rect" id="node2" href="$geomagField_8cpp.html#a1a9089a9e8fb29db7da8a88c9abcf491" title="Compute the geomagnetic field components in geocentric local reference system at given time and posit..." alt="" coords="5,5,160,32"/>
+</map>

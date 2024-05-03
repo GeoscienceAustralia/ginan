@@ -1,0 +1,7 @@
+<map id="satClkPrecise" name="satClkPrecise">
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,116,108"/>
+<area shape="rect" id="node2" href="$trace_8hpp.html#a984a9b0c40d65d46f2c73a021a7b7de3" title=" " alt="" coords="182,5,277,32"/>
+<area shape="rect" id="node3" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="164,56,295,83"/>
+<area shape="rect" id="node4" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="186,107,273,133"/>
+<area shape="rect" id="node5" href="$ephPrecise_8cpp.html#a7152f02ef77017fa75612ac13eeda408" title="clock by precise clock" alt="" coords="193,157,266,184"/>
+</map>

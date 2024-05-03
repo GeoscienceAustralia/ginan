@@ -1,0 +1,7 @@
+<map id="readOceanPoleCoeff" name="readOceanPoleCoeff">
+<area shape="rect" id="node1" title="Read ocean pole load tide coefficients." alt="" coords="5,81,160,108"/>
+<area shape="rect" id="node2" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="221,5,297,32"/>
+<area shape="rect" id="node3" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="208,56,311,83"/>
+<area shape="rect" id="node4" href="$structVectorEnu.html#a6909ce4148ab35bce7d6333be89bad3d" title=" " alt="" coords="208,107,311,133"/>
+<area shape="rect" id="node5" href="$structVectorEnu.html#ae90c6dd0141c45c334e8df0f7a1eee4f" title=" " alt="" coords="208,157,311,184"/>
+</map>

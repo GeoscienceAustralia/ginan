@@ -1,0 +1,5 @@
+<map id="updateAvgIonosphere" name="updateAvgIonosphere">
+<area shape="rect" id="node1" title="Prepare stec values clocks to minimise residuals to klobuchar model." alt="" coords="5,31,168,57"/>
+<area shape="rect" id="node2" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="216,5,388,32"/>
+<area shape="rect" id="node3" href="$ionModels_8cpp.html#a40543623e2cbff738c3ce74aeda214fd" title="ionospheric model" alt="" coords="257,56,347,83"/>
+</map>

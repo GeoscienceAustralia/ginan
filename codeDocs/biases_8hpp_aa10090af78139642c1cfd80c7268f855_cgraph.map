@@ -1,0 +1,8 @@
+<map id="getBias" name="getBias">
+<area shape="rect" id="node1" title="Search for hardware biases in phase and code." alt="" coords="5,107,76,133"/>
+<area shape="rect" id="node2" href="$constants_8cpp.html#aae430c4cbc58c8759813666dd50f8aed" title=" " alt="" coords="130,5,245,32"/>
+<area shape="rect" id="node3" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="144,56,231,83"/>
+<area shape="rect" id="node4" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="124,107,251,133"/>
+<area shape="rect" id="node5" href="$trace_8hpp.html#a984a9b0c40d65d46f2c73a021a7b7de3" title=" " alt="" coords="140,157,235,184"/>
+<area shape="rect" id="node6" href="$biases_8cpp.html#a542bf5219749d84693d3f3c3e5cd173e" title="Search for hardware bias for given measurmenet type." alt="" coords="135,208,240,235"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="inEclipse" name="inEclipse">
+<area shape="rect" id="node1" title="Returns true if satellite is in eclipse (shadow umbra); else false." alt="" coords="5,5,85,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a543fde2ca3f11becceecfce52de34cd8" title="Calculates fraction of Sun&#39;s disk visible by spacecraft 0 = full eclipse (umbra) 0 &lt; fraction &lt; 1 = p..." alt="" coords="133,5,236,32"/>
+</map>

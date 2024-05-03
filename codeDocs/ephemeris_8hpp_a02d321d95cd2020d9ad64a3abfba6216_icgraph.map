@@ -1,0 +1,4 @@
+<map id="readsp3" name="readsp3">
+<area shape="rect" id="node1" title="read an epoch of data from an sp3 precise ephemeris file" alt="" coords="184,5,259,32"/>
+<area shape="rect" id="node2" href="$structSp3Parser.html#aced4fed564e773d77fa436e9842e03ee" title=" " alt="" coords="5,5,136,32"/>
+</map>

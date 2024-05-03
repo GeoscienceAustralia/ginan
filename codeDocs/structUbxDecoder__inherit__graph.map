@@ -1,0 +1,6 @@
+<map id="UbxDecoder" name="UbxDecoder">
+<area shape="rect" id="node1" title=" " alt="" coords="62,204,229,472"/>
+<area shape="rect" id="node4" href="$structUbxParser.html" title=" " alt="" coords="86,520,205,612"/>
+<area shape="rect" id="node2" href="$structObsLister.html" title=" " alt="" coords="5,42,112,119"/>
+<area shape="rect" id="node3" href="$structIcdDecoder.html" title=" " alt="" coords="137,5,327,156"/>
+</map>

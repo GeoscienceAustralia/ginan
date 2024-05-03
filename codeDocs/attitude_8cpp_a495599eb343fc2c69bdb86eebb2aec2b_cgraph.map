@@ -1,0 +1,4 @@
+<map id="satYawGloK" name="satYawGloK">
+<area shape="rect" id="node1" title="Yaw model for GLONASS Block K sats Note: no yaw model exists for GLONASS&#45;K yet." alt="" coords="5,5,104,32"/>
+<area shape="rect" id="node2" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="152,5,277,32"/>
+</map>

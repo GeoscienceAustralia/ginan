@@ -1,0 +1,5 @@
+<map id="EOP" name="EOP">
+<area shape="rect" id="node1" title="EOP message." alt="" coords="137,703,203,927"/>
+<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,167,148,464"/>
+<area shape="rect" id="node3" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="172,5,355,625"/>
+</map>

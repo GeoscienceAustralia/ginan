@@ -1,0 +1,5 @@
+<map id="getbituIncScale" name="getbituIncScale">
+<area shape="rect" id="node1" title="increasingly extract unsigned bits from RTCM messages with scale factor/resolution applied" alt="" coords="251,31,373,57"/>
+<area shape="rect" id="node2" href="$structRtcmDecoder.html#adae4ba7ddd9f744631b806a5d550fe39" title="decode RTCM SSR messages" alt="" coords="9,5,199,32"/>
+<area shape="rect" id="node3" href="$structRtcmDecoder.html#a794dff6b6cac1bb2f8dfa1b2e5bd6c61" title=" " alt="" coords="5,56,203,83"/>
+</map>

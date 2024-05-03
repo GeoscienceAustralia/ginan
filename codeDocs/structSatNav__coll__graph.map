@@ -1,0 +1,11 @@
+<map id="SatNav" name="SatNav">
+<area shape="rect" id="node1" title=" " alt="" coords="357,375,436,452"/>
+<area shape="rect" id="node9" href="$structSatPos.html" title="Satellite position data &#45; for determining and storing satellite positions/clocks." alt="" coords="206,515,393,1076"/>
+<area shape="rect" id="node2" title=" " alt="" coords="143,169,293,246"/>
+<area shape="rect" id="node3" href="$structSSRMaps.html" title=" " alt="" coords="317,161,407,253"/>
+<area shape="rect" id="node4" href="$structVectorEci.html" title=" " alt="" coords="5,132,119,283"/>
+<area shape="rect" id="node5" title=" " alt="" coords="219,5,297,83"/>
+<area shape="rect" id="node6" href="$structBrdcEph.html" title=" " alt="" coords="574,169,649,246"/>
+<area shape="rect" id="node7" href="$structAttStatus.html" title="Persistent data for yaw model." alt="" coords="673,132,808,283"/>
+<area shape="rect" id="node8" title=" " alt="" coords="833,169,891,246"/>
+</map>

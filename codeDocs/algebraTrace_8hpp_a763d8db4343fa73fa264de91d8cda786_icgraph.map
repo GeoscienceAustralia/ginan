@@ -1,0 +1,10 @@
+<map id="spitFilterToFile" name="spitFilterToFile">
+<area shape="rect" id="node1" title="Output filter state to a file for later reading." alt="" coords="399,157,515,184"/>
+<area shape="rect" id="node2" href="$structKFState.html#a35b82ca74c6a6795abf1b6e919a4fec1" title="Add process noise and dynamics to filter object manually." alt="" coords="124,5,351,32"/>
+<area shape="rect" id="node3" href="$structKFState.html#a7f8e4b9291361c063cef8d9178f07707" title="Add process noise and dynamics to filter object according to time gap." alt="" coords="149,56,325,83"/>
+<area shape="rect" id="node4" href="$minimumConstraints_8cpp.html#aa40934b017f373d875c3470591eff52e" title=" " alt="" coords="5,107,76,133"/>
+<area shape="rect" id="node5" href="$structKFState.html#ae99b9a0b478d94b6cff9ba2328914178" title="Kalman filter operation." alt="" coords="157,107,317,133"/>
+<area shape="rect" id="node6" href="$algebraTrace_8cpp.html#ab985d37dc7eba5832e0b6867d2e45dd6" title=" " alt="" coords="171,157,304,184"/>
+<area shape="rect" id="node7" href="$rtsSmoothing_8cpp.html#a97a246c19cbbc06a85a687849917dcd9" title=" " alt="" coords="183,208,292,235"/>
+<area shape="rect" id="node8" href="$main_8cpp.html#afc11530de7eb5cfd21c9b3185337af96" title="Create new empty trace files only when required when the filename is changed." alt="" coords="175,259,299,285"/>
+</map>

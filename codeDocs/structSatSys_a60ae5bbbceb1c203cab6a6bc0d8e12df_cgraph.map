@@ -1,0 +1,4 @@
+<map id="SatSys::sysFromChar" name="SatSys::sysFromChar">
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,164,32"/>
+<area shape="rect" id="node2" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="212,5,339,32"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="InertialState" name="InertialState">
+<area shape="rect" id="node1" title=" " alt="" coords="563,864,687,1029"/>
+<area shape="rect" id="node2" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="5,218,148,515"/>
+<area shape="rect" id="node3" title=" " alt="" coords="173,328,231,405"/>
+<area shape="rect" id="node4" href="$structKFState.html" title=" " alt="" coords="256,5,489,728"/>
+<area shape="rect" id="node5" title=" " alt="" coords="513,328,736,405"/>
+<area shape="rect" id="node6" title=" " alt="" coords="760,328,839,405"/>
+<area shape="rect" id="node7" title=" " alt="" coords="863,328,941,405"/>
+<area shape="rect" id="node8" title=" " alt="" coords="965,328,1047,405"/>
+</map>

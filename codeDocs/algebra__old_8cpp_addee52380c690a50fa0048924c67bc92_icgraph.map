@@ -1,0 +1,9 @@
+<map id="dot" name="dot">
+<area shape="rect" id="node1" title=" " alt="" coords="220,132,263,159"/>
+<area shape="rect" id="node2" href="$algebra__old_8cpp.html#abaa5d4a31df361116a9b2be552624cf9" title=" " alt="" coords="61,5,117,32"/>
+<area shape="rect" id="node3" href="$attitude_8cpp.html#a1d392d7cfe6d33e3fa11664aeeef4f12" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="19,56,158,83"/>
+<area shape="rect" id="node4" href="$ephBroadcast_8cpp.html#acf92dec14314e37b11d1fea4d109457d" title="glonass orbit differential equations" alt="" coords="65,107,112,133"/>
+<area shape="rect" id="node5" href="$coordinates_8cpp.html#a7efa6307cb6b9c8bc318bc47d698fed2" title="transform ecef to geodetic postion args : double *r I ecef position {x,y,z} (m) notes : WGS84,..." alt="" coords="48,157,129,184"/>
+<area shape="rect" id="node6" href="$structTidalWave.html#ae3e004ca457c57e7b0e6d783f3a55a73" title=" " alt="" coords="5,208,172,235"/>
+<area shape="rect" id="node7" href="$rtkcmn_8cpp.html#a56de0ecf514e186347b0b2fbf00b4292" title="satellite azimuth/elevation angle" alt="" coords="54,259,123,285"/>
+</map>
