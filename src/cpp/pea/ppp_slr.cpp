@@ -3,7 +3,6 @@
 
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
-#include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "receiver.hpp"
 #include "antenna.hpp"

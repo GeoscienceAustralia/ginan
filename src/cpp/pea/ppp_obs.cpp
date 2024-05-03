@@ -11,7 +11,6 @@
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
 #include "geomagField.hpp"
-#include "instrument.hpp"
 #include "tropModels.hpp"
 #include "acsConfig.hpp"
 #include "ionoModel.hpp"
@@ -1704,40 +1703,40 @@ void receiverPPP(
 
 		//Add modelled adjustments and estimated parameter
 		{
-			if (recOpts.clockModel.enable)			{	Instrument inst("pppRecClocks");		pppRecClocks		(COMMON_PPP_ARGS);	}
-			if (satOpts.clockModel.enable)			{	Instrument inst("pppSatClocks");		pppSatClocks		(COMMON_PPP_ARGS);	}
-			if (recOpts.eccentricityModel.enable)	{	Instrument inst("pppRecAntDelta");		pppRecAntDelta		(COMMON_PPP_ARGS);	}
-	// 		if (acsConfig.model.sat_ant_delta)		{	Instrument inst("pppSatAntDelta");		pppSatAntDelta		(COMMON_PPP_ARGS);	}
-			if (recOpts.pcoModel.enable)			{	Instrument inst("pppRecPCO");			pppRecPCO			(COMMON_PPP_ARGS);	}
-			if (satOpts.pcoModel.enable)			{	Instrument inst("pppSatPCO");			pppSatPCO			(COMMON_PPP_ARGS);	}
-			if (recOpts.pcvModel.enable)			{	Instrument inst("pppRecPCV");			pppRecPCV			(COMMON_PPP_ARGS);	}
-			if (satOpts.pcvModel.enable)			{	Instrument inst("pppSatPCV");			pppSatPCV			(COMMON_PPP_ARGS);	}
-			if (recOpts.tideModels.enable)			{	Instrument inst("pppTides");			pppTides			(COMMON_PPP_ARGS);	}
-			if (recOpts.relativity)					{	Instrument inst("pppRelativity");		pppRelativity		(COMMON_PPP_ARGS);	}
-			if (recOpts.relativity2)				{	Instrument inst("pppRelativity2");		pppRelativity2		(COMMON_PPP_ARGS);	}
-			if (recOpts.sagnac)						{	Instrument inst("pppSagnac");			pppSagnac			(COMMON_PPP_ARGS);	}
-			if (recOpts.ionospheric_component)		{	Instrument inst("pppIonStec");			pppIonStec			(COMMON_PPP_ARGS);	}
-			if (recOpts.ionospheric_component2)		{	Instrument inst("pppIonStec2");			pppIonStec2			(COMMON_PPP_ARGS);  }
-			if (recOpts.ionospheric_component3)		{	Instrument inst("pppIonStec3");			pppIonStec3			(COMMON_PPP_ARGS);  }
-			if (recOpts.ionospheric_model)			{	Instrument inst("pppIonModel");			pppIonModel			(COMMON_PPP_ARGS);	}
-			if (recOpts.tropModel.enable)			{	Instrument inst("pppTrop");				pppTrop				(COMMON_PPP_ARGS);	}
-// 			if (recOpts.orbits)						{	Instrument inst("pppOrbits");			pppOrbits			(COMMON_PPP_ARGS);	}
-			if (recOpts.eop)						{	Instrument inst("pppEopAdjustment");	pppEopAdjustment	(COMMON_PPP_ARGS);  }
+			if (recOpts.clockModel.enable)			{	pppRecClocks		(COMMON_PPP_ARGS);	}
+			if (satOpts.clockModel.enable)			{	pppSatClocks		(COMMON_PPP_ARGS);	}
+			if (recOpts.eccentricityModel.enable)	{	pppRecAntDelta		(COMMON_PPP_ARGS);	}
+	// 		if (acsConfig.model.sat_ant_delta)		{	pppSatAntDelta		(COMMON_PPP_ARGS);	}
+			if (recOpts.pcoModel.enable)			{	pppRecPCO			(COMMON_PPP_ARGS);	}
+			if (satOpts.pcoModel.enable)			{	pppSatPCO			(COMMON_PPP_ARGS);	}
+			if (recOpts.pcvModel.enable)			{	pppRecPCV			(COMMON_PPP_ARGS);	}
+			if (satOpts.pcvModel.enable)			{	pppSatPCV			(COMMON_PPP_ARGS);	}
+			if (recOpts.tideModels.enable)			{	pppTides			(COMMON_PPP_ARGS);	}
+			if (recOpts.relativity)					{	pppRelativity		(COMMON_PPP_ARGS);	}
+			if (recOpts.relativity2)				{	pppRelativity2		(COMMON_PPP_ARGS);	}
+			if (recOpts.sagnac)						{	pppSagnac			(COMMON_PPP_ARGS);	}
+			if (recOpts.ionospheric_component)		{	pppIonStec			(COMMON_PPP_ARGS);	}
+			if (recOpts.ionospheric_component2)		{	pppIonStec2			(COMMON_PPP_ARGS);  }
+			if (recOpts.ionospheric_component3)		{	pppIonStec3			(COMMON_PPP_ARGS);  }
+			if (recOpts.ionospheric_model)			{	pppIonModel			(COMMON_PPP_ARGS);	}
+			if (recOpts.tropModel.enable)			{	pppTrop				(COMMON_PPP_ARGS);	}
+// 			if (recOpts.orbits)						{	pppOrbits			(COMMON_PPP_ARGS);	}
+			if (recOpts.eop)						{	pppEopAdjustment	(COMMON_PPP_ARGS);  }
 		}
 
 		if (measType == PHAS)
 		{
-			if (recOpts.phaseWindupModel.enable)	{	Instrument inst("pppRecPhaseWindup");	pppRecPhaseWindup	(COMMON_PPP_ARGS);	}
-			if (satOpts.phaseWindupModel.enable)	{	Instrument inst("pppSatPhaseWindup");	pppSatPhaseWindup	(COMMON_PPP_ARGS);	}
-			if (recOpts.integer_ambiguity)			{	Instrument inst("pppIntegerAmbiguity");	pppIntegerAmbiguity	(COMMON_PPP_ARGS);	}
-			if (recOpts.phaseBiasModel.enable)		{	Instrument inst("pppRecPhasBias");		pppRecPhasBias		(COMMON_PPP_ARGS);	}
-			if (satOpts.phaseBiasModel.enable)		{	Instrument inst("pppSatPhasBias");		pppSatPhasBias		(COMMON_PPP_ARGS);	}
+			if (recOpts.phaseWindupModel.enable)	{	pppRecPhaseWindup	(COMMON_PPP_ARGS);	}
+			if (satOpts.phaseWindupModel.enable)	{	pppSatPhaseWindup	(COMMON_PPP_ARGS);	}
+			if (recOpts.integer_ambiguity)			{	pppIntegerAmbiguity	(COMMON_PPP_ARGS);	}
+			if (recOpts.phaseBiasModel.enable)		{	pppRecPhasBias		(COMMON_PPP_ARGS);	}
+			if (satOpts.phaseBiasModel.enable)		{	pppSatPhasBias		(COMMON_PPP_ARGS);	}
 		}
 
 		if (measType == CODE)
 		{
-			if (recOpts.codeBiasModel.enable)		{	Instrument inst("pppRecCodeBias");		pppRecCodeBias		(COMMON_PPP_ARGS);	}
-			if (satOpts.codeBiasModel.enable)		{	Instrument inst("pppSatCodeBias");		pppSatCodeBias		(COMMON_PPP_ARGS);	}
+			if (recOpts.codeBiasModel.enable)		{	pppRecCodeBias		(COMMON_PPP_ARGS);	}
+			if (satOpts.codeBiasModel.enable)		{	pppSatCodeBias		(COMMON_PPP_ARGS);	}
 		}
 
 		addNilDesignStates(recOpts.gyro_bias,			kfState,	KF::GYRO_BIAS,	3, recSatId);

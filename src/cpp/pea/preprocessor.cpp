@@ -3,7 +3,6 @@
 
 #include "observations.hpp"
 #include "navigation.hpp"
-#include "instrument.hpp"
 #include "GNSSambres.hpp"
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
@@ -152,8 +151,6 @@ void preprocessor(
 	{
 		return;
 	}
-
-	Instrument instrument(__FUNCTION__);
 
 	auto trace		= getTraceFile(rec);
 	auto jsonTrace	= getTraceFile(rec, true);

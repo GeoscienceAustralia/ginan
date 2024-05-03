@@ -17,7 +17,6 @@ using std::vector;
 #include "binaryStore.hpp"
 #include "ephPrecise.hpp"
 #include "navigation.hpp"
-#include "instrument.hpp"
 #include "mongoWrite.hpp"
 #include "ephPrecise.hpp"
 #include "testUtils.hpp"

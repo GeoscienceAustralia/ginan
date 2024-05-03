@@ -11,7 +11,6 @@ using std::pair;
 #include "algebraTrace.hpp"
 #include "binaryStore.hpp"
 #include "mongoWrite.hpp"
-#include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
 #include "algebra.hpp"
@@ -673,8 +672,6 @@ void KFState::preFitSigmaCheck(
 	int				begH,			///< Index of first measurement to process
 	int				numH)			///< Number of measurements to process
 {
-	Instrument	instrument(__FUNCTION__);
-
 	auto		v = kfMeas.V.segment(begH, numH);
 	auto		R = kfMeas.R.block(begH, begH, numH, numH);
 	auto		H = kfMeas.H.block(begH, begX, numH, numX);
@@ -759,8 +756,6 @@ void outputResiduals(
 	int				begH,			///< Index of first measurement to process
 	int				numH)			///< Number of measurements to process
 {
-	Instrument instrument(__FUNCTION__);
-
 	string name = "RESIDUALS";
 	name += suffix;
 	Block block(trace, name);
@@ -794,8 +789,6 @@ void KFState::postFitSigmaChecks(
 	int				begH,			///< Index of first measurement to process
 	int				numH)			///< Number of measurements to process
 {
-	Instrument	instrument(__FUNCTION__);
-
 	auto						H	= kfMeas.H.block(begH, begX, numH, numX);
 
 	//use 'array' for component-wise calculations
@@ -951,8 +944,6 @@ bool KFState::kFilter(
 	int				begH,		///< Index of first measurement to process
 	int				numH)		///< Number of measurements to process
 {
-	Instrument	instrument(__FUNCTION__);
-
 	auto& H = kfMeas.H;
 	auto& R = kfMeas.R;
 	auto& v = kfMeas.V;
@@ -1156,8 +1147,6 @@ KFMeas KFState::combineKFMeasList(
 	GTime				measTime,			///< Time to use for measurements and hence state transitions
 	MatrixXd*			noiseMatrix_ptr)	///< Optional pointer to use custom noise matrix
 {
-	Instrument	instrument(__FUNCTION__);
-
 	int numMeas = kfEntryList.size();
 
 	KFMeas kfMeas;
@@ -1345,8 +1334,6 @@ void KFState::filterKalman(
 	bool					innovReady,				///< Innovation already constructed
 	vector<FilterChunk>*	filterChunkList_ptr)	///< Optional ist of chunks for parallel processing of sub filters
 {
-	Instrument	instrument(__FUNCTION__);
-
 	if (kfMeas.time != GTime::noTime())
 	{
 		time = kfMeas.time;
@@ -1559,8 +1546,6 @@ void KFState::filterKalman(
 
 	if (rts_basename.empty() == false)
 	{
-		Instrument	instrument("spitFilterToFile");
-
 		spitFilterToFile(*this,		E_SerialObject::FILTER_MINUS, rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 	}
 
@@ -1576,8 +1561,6 @@ void KFState::filterKalman(
 
 	if (rts_basename.empty() == false)
 	{
-		Instrument	instrument("spitFilterToFile");
-
 		spitFilterToFile(*this,		E_SerialObject::FILTER_PLUS, rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 		spitFilterToFile(kfMeas,	E_SerialObject::MEASUREMENT, rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 	}
@@ -1914,8 +1897,6 @@ void KFState::outputStates(
 		int			begX,	///< Index of first state element to process
 		int			numX)   ///< Number of state elements to process
 {
-	Instrument	instrument(__FUNCTION__);
-
 	tracepdeex(2, trace, "\n\n");
 
 	string name = "STATES";

@@ -13,7 +13,6 @@ using std::map;
 #include "acceleration.hpp"
 #include "coordinates.hpp"
 #include "ubxDecoder.hpp"
-#include "instrument.hpp"
 #include "posProp.hpp"
 #include "planets.hpp"
 
@@ -202,8 +201,6 @@ void integrateInertials(
 	double				integrationPeriod,
 	double 				dtRequested)
 {
-	Instrument instrument(__FUNCTION__);
-
 	if	( inertials.empty()
 		||integrationPeriod == 0)
 	{
@@ -286,8 +283,6 @@ Inertials prepareInertials(
 	Trace&			trace,
 	const KFState&	kfState)
 {
-	Instrument instrument(__FUNCTION__);
-
 	Inertials inertials;
 
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
@@ -339,8 +334,6 @@ void applyInertials(
 	GTime			time,
 	double			tgap)
 {
-	Instrument instrument(__FUNCTION__);
-
 	for (auto& inertial : inertials)
 	{
 		if (inertial.exclude)
@@ -406,8 +399,6 @@ void predictInertials(
 	const KFState&	kfState,
 	GTime			time)
 {
-	Instrument instrument(__FUNCTION__);
-
 	double tgap = (time - kfState.time).to_double();
 
 	if (tgap == 0)

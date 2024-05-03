@@ -20,6 +20,7 @@ extra["degree"] = ["0", "1", "2"]
 extra["clockModes"] = ["Series", "Epoch"]
 extra["orbitType"] = [
     "Residual RTN",
+    "Residual ECI",
 ]
 
 
@@ -56,7 +57,7 @@ def generate_figs(traces):
     fig.update_layout(
         xaxis={"rangeslider":{"visible":True}, "showgrid":current_app.config["EDA_GRID"]},
         yaxis={"fixedrange":False, "tickformat":".3e", "showgrid":current_app.config["EDA_GRID"]},
-        height=1200,        
+        height=1200,
         # template=current_app.config["EDA_THEME"],
     )
     fig.layout.autosize = True
@@ -73,10 +74,10 @@ def aggregate_stats(data: dict) -> dict:
                 name = f"{db_} {series_} {_yaxis}"
                 if name not in table_agg:
                     table_agg[name] = {"mean": 0, "RMS": 0, "len": 0, "count": 0}
-                    table_agg[name]["mean"] += _data.info[_yaxis]["mean"]
-                    table_agg[name]["RMS"] += _data.info[_yaxis]["sumsqr"]
-                    table_agg[name]["len"] += _data.info[_yaxis]["len"]
-                    table_agg[name]["count"] += 1
+                table_agg[name]["mean"] += _data.info[_yaxis]["mean"]
+                table_agg[name]["RMS"] += _data.info[_yaxis]["sumsqr"]
+                table_agg[name]["len"] += _data.info[_yaxis]["len"]
+                table_agg[name]["count"] += 1
 
         for _name, _tab in table_agg.items():
             _tab["mean"] /= _tab["count"]

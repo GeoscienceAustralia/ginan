@@ -7,7 +7,6 @@
 #include "minimumConstraints.hpp"
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
-#include "instrument.hpp"
 #include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "tropModels.hpp"

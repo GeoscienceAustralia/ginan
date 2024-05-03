@@ -96,8 +96,6 @@ add_library(ginan_core
 		common/gTime.cpp
 		common/gTime.hpp
 		common/icdDecoder.hpp
-		common/instrument.cpp
-		common/instrument.hpp
 		common/ionModels.cpp
 		common/linearCombo.cpp
 		common/linearCombo.hpp

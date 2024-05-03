@@ -4,7 +4,6 @@
 #include "coordinates.hpp"
 #include "navigation.hpp"
 #include "tropModels.hpp"
-#include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "receiver.hpp"
 #include "common.hpp"

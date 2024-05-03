@@ -2124,8 +2124,6 @@ SatelliteOptions& ACSConfig::getSatOpts(
 	SatSys					Sat,		///< Satellite to search for options for
 	const vector<string>&	suffixes)	///< Optional suffix to get more specific versions
 {
-	Instrument	instrument(__FUNCTION__);
-
 	string fullId = Sat.id();
 	for (auto& suffix : suffixes)
 	{
@@ -2241,8 +2239,6 @@ ReceiverOptions& ACSConfig::getRecOpts(
 	string					id,			///< Receiver to search for options for
 	const vector<string>&	suffixes)	///< Optional suffix to get more specific versions
 {
-	Instrument	instrument(__FUNCTION__);
-
 	string fullId = id;
 
 	for (auto& suffix : suffixes)
@@ -3773,8 +3769,6 @@ bool ACSConfig::parse(
 			auto debug = stringsToYamlObject({yaml, ""}, {"9@ debug"}, "Debug options are designed for developers and should probably not be used by normal users");
 
 			tryGetFromAny(fatal_level,			commandOpts,	debug, {"# fatal_message_level"			}, "Threshold level for exiting the program early (0-2)");
-			tryGetFromYaml(instrument,							debug, {"# instrument"					}, "Debugging option to show run times of functions");
-			tryGetFromYaml(instrument_once_per_epoch,			debug, {"# instrument_once_per_epoch"	}, "Debugging option to show run times of functions every epoch");
 			tryGetFromYaml(check_plumbing,						debug, {"# check_plumbing"				}, "Debugging option to show sizes of objects in memory to detect leaks");
 			tryGetFromYaml(explain_measurements,				debug, {"# explain_measurements"		}, "Debugging option to show verbose measurement coefficients");
 			tryGetFromYaml(retain_rts_files,					debug, {"# retain_rts_files"			}, "Debugging option to keep rts files for post processing");

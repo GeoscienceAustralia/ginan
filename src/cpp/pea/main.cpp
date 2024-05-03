@@ -50,7 +50,6 @@ using std::string;
 #include "orbexWrite.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
-#include "instrument.hpp"
 #include "streamFile.hpp"
 #include "streamRtcm.hpp"
 #include "tropModels.hpp"
@@ -174,11 +173,8 @@ void initialiseStation(
 	BOOST_LOG_TRIVIAL(info)
 	<< "Initialising station " << id;
 
-	Instrument	instrument(__FUNCTION__);
-
 	rec.id = id;
 
-	// Read the OTL BLQ file
 	bool found = false;
 	for (auto& blqfile : acsConfig.ocean_tide_loading_blq_files)
 	{
@@ -191,7 +187,6 @@ void initialiseStation(
 		<< "Warning: No OTL BLQ for " << id;
 	}
 
-	// Read the ATL BLQ file
 	found = false;
 	for (auto& blqfile : acsConfig.atmos_tide_loading_blq_files)
 	{
@@ -1163,8 +1158,6 @@ void mainOncePerEpochPerStation(
 	bool&		emptyEpoch,
 	KFState&	remoteState)
 {
-	Instrument instrument(__FUNCTION__);
-
 	auto trace = getTraceFile(rec);
 
 	sinexPerEpochPerStation(tsync, rec);
@@ -1224,7 +1217,6 @@ void mainOncePerEpochPerStation(
 
 	//calculate statistics
 	{
-		Instrument instrument("Statistics");
 		if ((GTime) rec.firstEpoch	== GTime::noTime())		{	rec.firstEpoch	= rec.obsList.front()->time;		}
 																rec.lastEpoch	= rec.obsList.front()->time;
 		rec.epochCount++;
@@ -1536,11 +1528,6 @@ void mainPerEpochPostProcessingAndOutputs(
 	outputApriori			(receiverMap);
 	outputPredictedStates	(pppTrace, tempAugmentedKF);
 	prepareSsrStates		(pppTrace, tempAugmentedKF, ionState, time);
-
-	if (acsConfig.instrument_once_per_epoch)
-	{
-		Instrument::printStatus(true);
-	}
 }
 
 void mainOncePerEpochPerSatellite(
@@ -1849,8 +1836,6 @@ void mainPostProcessing(
 			rtsSmoothing(ionNet.kfState, receiverMap, true);
 		}
 	}
-
-	Instrument::printStatus();
 
 	outputSummaries(pppTrace, receiverMap);
 

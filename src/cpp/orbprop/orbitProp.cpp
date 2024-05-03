@@ -19,7 +19,6 @@ using std::map;
 #include "acceleration.hpp"
 #include "coordinates.hpp"
 #include "staticField.hpp"
-#include "instrument.hpp"
 #include "navigation.hpp"
 #include "orbitProp.hpp"
 #include "constants.hpp"
@@ -76,8 +75,6 @@ void OrbitIntegrator::computeCommon(
 		Snm = egm.gfctS;
 		if (acsConfig.propagationOptions.solid_earth_tide)
 		{
-			Instrument instrument("Earth tide");
-
 			MatrixXd Cnm_solid = MatrixXd::Zero(5, 5);
 			MatrixXd Snm_solid = MatrixXd::Zero(5, 5);
 
@@ -95,8 +92,6 @@ void OrbitIntegrator::computeCommon(
 
 		if (acsConfig.propagationOptions.pole_tide_ocean)
 		{
-			Instrument instrument("Ocean pole tide");
-
 			MatrixXd Cnm_poleTide = MatrixXd::Zero(Cnm.rows(), Cnm.cols());
 			MatrixXd Snm_poleTide = MatrixXd::Zero(Snm.rows(), Snm.cols());
 
@@ -133,15 +128,11 @@ void OrbitIntegrator::computeCommon(
 
 		if (acsConfig.propagationOptions.pole_tide_solid)
 		{
-			Instrument instrument("Solid tide");
-
 			IERS2010::poleSolidEarthTide(time, erpv.xp, erpv.yp, Cnm, Snm);
 		}
 
 		if (acsConfig.propagationOptions.ocean_tide)
 		{
-			Instrument instrument("Ocean tide");
-
 			MatrixXd Cnm_ocean = MatrixXd::Zero(Cnm.rows(), Cnm.cols());
 			MatrixXd Snm_ocean = MatrixXd::Zero(Snm.rows(), Snm.cols());
 
@@ -153,8 +144,6 @@ void OrbitIntegrator::computeCommon(
 
 		if (acsConfig.propagationOptions.atm_tide)
 		{
-			Instrument instrument("Atmospheric tide");
-
 			MatrixXd Cnm_atm = MatrixXd::Zero(Cnm.rows(), Cnm.cols());
 			MatrixXd Snm_atm = MatrixXd::Zero(Snm.rows(), Snm.cols());
 
@@ -541,8 +530,6 @@ void integrateOrbits(
 	double				integrationPeriod,
 	double 				dtRequested)
 {
-	Instrument instrument(__FUNCTION__);
-
 	if	( orbits.empty()
 		||integrationPeriod == 0)
 	{
@@ -626,8 +613,6 @@ Orbits prepareOrbits(
 	Trace&			trace,
 	const KFState&	kfState)
 {
-	Instrument instrument(__FUNCTION__);
-
 	Orbits orbits;
 
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
@@ -782,8 +767,6 @@ void applyOrbits(
 	GTime			time,
 	double			tgap)
 {
-	Instrument instrument(__FUNCTION__);
-
 	for (auto& orbit : orbits)
 	{
 		if (orbit.exclude)
@@ -849,8 +832,6 @@ void predictOrbits(
 	const KFState&	kfState,
 	GTime			time)
 {
-	Instrument instrument(__FUNCTION__);
-
 	double tgap = (time - kfState.time).to_double();
 
 	if (tgap == 0)

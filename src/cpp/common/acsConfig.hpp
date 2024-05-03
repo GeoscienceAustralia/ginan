@@ -29,7 +29,6 @@ using std::array;
 using std::map;
 using std::set;
 
-#include "instrument.hpp"
 #include "satSys.hpp"
 #include "trace.hpp"
 #include "enums.h"
@@ -332,8 +331,6 @@ struct OutputOptions
 */
 struct DebugOptions
 {
-	bool	instrument					= false;
-	bool	instrument_once_per_epoch	= false;
 	bool	mincon_only					= false;
 	bool	output_mincon				= false;
 	string	mincon_filename				= "preMinconState.bin";

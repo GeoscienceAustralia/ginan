@@ -1,4 +1,4 @@
-# ![gn_logo](https://raw.githubusercontent.com/GeoscienceAustralia/ginan/gh-pages/images/GinanLogo273.png)
+# ![gn_logo](https://raw.githubusercontent.com/GeoscienceAustralia/ginan/gh-pages/images/GinanLogo273-with-background.png)
 
 # Ginan: Software toolkit and service
 

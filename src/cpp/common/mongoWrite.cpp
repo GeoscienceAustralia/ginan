@@ -5,7 +5,6 @@
 #include "observations.hpp"
 #include "rtcmEncoder.hpp"
 #include "coordinates.hpp"
-#include "instrument.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
 #include "orbitProp.hpp"
@@ -141,8 +140,6 @@ void mongoTestStat(
 		return;
 	}
 
-	Instrument instrument(__FUNCTION__);
-
 	map<string, double> entries;
 	entries["StatsSumOfSquaresPre"		] = testStatistics.sumOfSquaresPre;
 	entries["StatsAverageRatioPre"		] = testStatistics.averageRatioPre;
@@ -217,8 +214,6 @@ void mongoTrace(
 		return;
 	}
 
-	Instrument instrument(__FUNCTION__);
-
 	for (auto instance : instances)
 	{
 		auto mongo_ptr = mongo_ptr_arr[instance];
@@ -253,8 +248,6 @@ void mongoOutputConfig(
 	{
 		return;
 	}
-
-	Instrument instrument(__FUNCTION__);
 
 	for (auto instance : instances)
 	{
@@ -295,8 +288,6 @@ void mongoMeasSatStat(
 	{
 		return;
 	}
-
-	Instrument instrument(__FUNCTION__);
 
 	for (auto instance : instances)
 	{
@@ -375,8 +366,6 @@ void mongoMeasResiduals(
 
 		return;
 	}
-
-	Instrument instrument(__FUNCTION__);
 
 	for (auto instance : instances)
 	{
@@ -537,8 +526,6 @@ void mongoStates(
 
 		return;
 	}
-
-	Instrument instrument(__FUNCTION__);
 
 	for (auto instance : instances)
 	{

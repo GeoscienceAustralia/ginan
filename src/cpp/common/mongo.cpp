@@ -5,7 +5,6 @@
 
 #include "observations.hpp"
 #include "rtcmEncoder.hpp"
-#include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "satStat.hpp"
 #include "common.hpp"

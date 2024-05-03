@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <math.h>
 
-
-#include "instrument.hpp"
 #include "testUtils.hpp"
 #include "acsConfig.hpp"
 #include "common.hpp"

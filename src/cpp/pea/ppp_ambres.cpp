@@ -14,7 +14,6 @@
 #include <math.h>
 
 #include "eigenIncluder.hpp"
-#include "instrument.hpp"
 #include "GNSSambres.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
@@ -181,8 +180,6 @@ void fixAndHoldAmbiguities(
 	Trace&		trace,		///< Debug trace
 	KFState&	kfState)	///< Filter state
 {
-	Instrument	instrument(__FUNCTION__);
-
 	tracepdeex(3, trace, "%s: %s\n", __FUNCTION__, kfState.time.to_string(2));
 
 	if (acsConfig.ambrOpts.mode == +E_ARmode::OFF)

@@ -5,16 +5,16 @@ inputs:
     atx_files:  [ igs20.atx                             ]
     egm_files:  [ tables/EGM2008.gfc                    ]
     igrf_files: [ tables/igrf13coeffs.txt               ]
-    erp_files:  [ tables/finals.data.iau2000.txt        ]
+    erp_files:  [ finals.data.iau2000.txt        ]
     planetary_ephemeris_files: [ tables/DE436.1950.2050 ]
 
     troposphere:
-        gpt2grid_files: [ gpt_25.grd ]
+        gpt2grid_files: [ tables/gpt_25.grd ]
 
     tides:
-        ocean_tide_loading_blq_files:   [ OLOAD_GO.BLQ                  ]
-        atmos_tide_loading_blq_files:   [ ALOAD_GO.BLQ                  ]
-        ocean_pole_tide_loading_files:  [ tables/opoleloadcoefcmcor.txt ]
+        ocean_tide_loading_blq_files:   [ tables/OLOAD_GO.BLQ                  ] # required if ocean loading is applied
+        atmos_tide_loading_blq_files:   [ tables/ALOAD_GO.BLQ                  ] # required if atmospheric tide loading is applied
+        ocean_pole_tide_loading_files:  [ tables/opoleloadcoefcmcor.txt ] # required if ocean pole tide loading is applied
         ocean_tide_potential_files:     [ tables/fes2014b_Cnm-Snm.dat   ]
 
     snx_files:  [ tables/igs_satellite_metadata_2203_plus.snx ]

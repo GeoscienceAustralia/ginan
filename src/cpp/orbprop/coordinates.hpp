@@ -3,7 +3,6 @@
 
 #include "centerMassCorrections.hpp"
 #include "eigenIncluder.hpp"
-#include "instrument.hpp"
 #include "constants.hpp"
 #include "attitude.hpp"
 #include "iers2010.hpp"
@@ -94,8 +93,6 @@ struct FrameSwapper
 		const	ERPValues&	erpVal)
 	:	time0 {time}
 	{
-		Instrument instrument(__FUNCTION__);
-
 		eci2ecef(time, erpVal, i2t_mat, &di2t_mat);
 
 		if (cmc.initialized)
@@ -119,8 +116,6 @@ struct FrameSwapper
 		const	VectorEci*	vEci_ptr	= nullptr,
 				VectorEcef*	vEcef_ptr	= nullptr)
 	{
-		Instrument instrument(__FUNCTION__);
-
 		if	(  vEci_ptr
 			&& vEcef_ptr)
 		{
@@ -139,8 +134,6 @@ struct FrameSwapper
 		const	VectorEcef*	vEcef_ptr	= nullptr,
 				VectorEci*	vEci_ptr	= nullptr)
 	{
-		Instrument instrument(__FUNCTION__);
-
 		if	(  vEcef_ptr
 			&& vEci_ptr)
 		{

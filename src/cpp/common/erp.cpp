@@ -11,7 +11,6 @@ using std::chrono::system_clock;
 using std::string;
 
 #include "peaCommitStrings.hpp"
-#include "instrument.hpp"
 #include "navigation.hpp"
 #include "ephPrecise.hpp"
 #include "constants.hpp"
@@ -306,8 +305,6 @@ ERPValues getErp(
 	ERP&		erp,		///< earth rotation parameters
 	GTime		time)		///< Time
 {
-	Instrument instrument(__FUNCTION__);
-
 	ERPValues erpv;
 
 	auto& recOpts = acsConfig.getRecOpts("global");

@@ -18,7 +18,6 @@ using std::map;
 
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
-#include "instrument.hpp"
 #include "mongoWrite.hpp"
 #include "navigation.hpp"
 #include "mongoRead.hpp"
@@ -97,8 +96,6 @@ void makeIFLCs(
 	const KFState&		kfState,
 	KFMeasEntryList&	kfMeasEntryList)
 {
-	Instrument instrument(__FUNCTION__);
-
 	bool iflcMade = false;
 
 	for (int i = 0; i < kfMeasEntryList.size(); i++)
@@ -214,8 +211,6 @@ KFMeas makeGFLCs(
 	KFMeas&		combinedMeas,
 	KFState&	kfState)
 {
-	Instrument instrument(__FUNCTION__);
-
 	KFMeas newMeas;
 
 	vector<Triplet<double>> tripletList;
@@ -320,8 +315,6 @@ KFMeas makeRTKLCs(
 	KFMeas&		combinedMeas,
 	KFState&	kfState)
 {
-	Instrument instrument(__FUNCTION__);
-
 	auto& recOpts = acsConfig.getRecOpts("");
 
 	KFMeas newMeas;
@@ -801,8 +794,6 @@ void chunkFilter(
 
 	if (acsConfig.pppOpts.chunk_size)
 	{
-		Instrument	instrument("PPP chunksize");
-
 		vector<FilterChunk> newFilterChunkList;
 		FilterChunk	bigFilterChunk;
 
@@ -902,11 +893,7 @@ void PPP(
 	KFState&		kfState,		///< Kalman filter object containing the network state parameters
 	KFState&		remoteState)	///< Optional pointer to remote kalman filter
 {
-	Instrument	instrument(__FUNCTION__);
-
 	{
-		Instrument instrument("PPP pppre");
-
 		removeBadReceivers	(trace, kfState, receiverMap);
 		removeBadAmbiguities(trace, kfState, receiverMap);
 		removeBadIonospheres(trace, kfState);
@@ -922,8 +909,6 @@ void PPP(
 	//add process noise and dynamics to existing states as a prediction of current state
 	if (kfState.assume_linearity == false)
 	{
-		Instrument instrument("PPP stateTransition1");
-
 		BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
 
 		kfState.stateTransition(trace, tsync);
@@ -948,8 +933,6 @@ void PPP(
 // 	mongoReadFilter(remoteState, GTime::noTime(), {});
 
 	{
-		Instrument instrument("PPP obsOMC");
-
 		BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << std::endl;
 
 		//calculate the measurements for each station
@@ -1007,15 +990,11 @@ void PPP(
 	filterPseudoObs			(trace,					kfState,	kfMeasEntryList);
 
 	//use state transition to initialise new state elements
-	{
-		Instrument	instrument("PPP stateTransition2");
+	BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
 
-		BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
+	kfState.stateTransition(trace, tsync);
 
-		kfState.stateTransition(trace, tsync);
-
-// 		kfState.outputStates(trace, "/INITIALISED");
-	}
+// 	kfState.outputStates(trace, "/INITIALISED");
 
 
 	KFMeas combinedMeas;
@@ -1052,11 +1031,7 @@ void PPP(
 
 	kfState.filterKalman(trace, combinedMeas, true, &filterChunkList);
 
-	{
-		Instrument	instrument("PPP postFilterChecks");
-
-		postFilterChecks(combinedMeas);
-	}
+	postFilterChecks(combinedMeas);
 
 	//output chunks if we are actually chunking still
 	if	( acsConfig.pppOpts.receiver_chunking
