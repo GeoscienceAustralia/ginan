@@ -161,7 +161,7 @@ find_package(NetCDF		REQUIRED)
 # find_package(netCDFCxx REQUIRED)
 
 # set(OPENBLAS_USE_STATIC_LIBS ON)
-set(BLA_VENDOR open)
+# set(BLA_VENDOR open)
 
 find_package(BLAS)
 if(BLAS_FOUND)

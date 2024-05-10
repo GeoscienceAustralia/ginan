@@ -52,7 +52,9 @@ void OrbitIntegrator::computeCommon(
 {
 	ERPValues	erpv = getErp(nav.erp, time);
 
-	eci2ecef(time, erpv, eci2ecf, &deci2ecf);
+	FrameSwapper frameSwapper(time, erpv);
+	eci2ecf		= frameSwapper.i2t_mat;
+	deci2ecf	= frameSwapper.di2t_mat;	//todo aaron, just fs this instead of matrices?
 
 	for (auto& body : E_ThirdBody::_values())
 	{

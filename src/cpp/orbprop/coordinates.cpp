@@ -26,8 +26,7 @@ void eci2ecef(
 	GTime				time,			///< Current time
 	const ERPValues&	erpVal,			///< Structure containing the erp values
 	Matrix3d&			U,				///< Matrix3d containing the rotation matrix
-	Matrix3d*			dU_ptr,			///< Matrix3d containing the time derivative of the rotation matrix
-	XFormData*			xFormData_ptr)	///< Optional output of computed values
+	Matrix3d*			dU_ptr)			///< Matrix3d containing the time derivative of the rotation matrix
 {
 	double xp		= erpVal.xp;
 	double yp		= erpVal.yp;
@@ -97,21 +96,6 @@ void eci2ecef(
 		Matrix3d matdTheta = omega * matS * theta; // matrix [1/s]
 
 		*dU_ptr = RPOM * matdTheta * RC2I;
-	}
-
-	if (xFormData_ptr)
-	{
-		auto& xFormData = *xFormData_ptr;
-
-		xFormData.xp_pm		= xp_pm;
-		xFormData.yp_pm		= yp_pm;
-		xFormData.ut1_pm	= ut1_pm;
-		xFormData.lod_pm	= lod_pm;
-		xFormData.xp_o		= xp_o;
-		xFormData.yp_o		= yp_o;
-		xFormData.ut1_o		= ut1_o;
-		xFormData.sp		= sp;
-		xFormData.era		= era;
 	}
 }
 

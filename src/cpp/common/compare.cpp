@@ -81,7 +81,7 @@ void compareOrbits(
 		{
 			pephMapMap0[time][id] = peph;
 		}
-		for (auto& [id,		pephMap]	: navVec[1].pephMap)
+		for (auto& [id,		pephMap]	: navVec[i].pephMap)
 		for (auto& [time,	peph]		: pephMap)
 		{
 			pephMapMap1[time][id] = peph;
@@ -113,7 +113,7 @@ void compareOrbits(
 				auto it2 = pephMap1.find(id);
 				if (it2 == pephMap1.end())
 				{
-					std::cout << std::endl << id << " not found in " << files[i] << " for " << time;
+					// std::cout << std::endl << id << " not found in " << files[i] << " for " << time;
 					continue;
 				}
 

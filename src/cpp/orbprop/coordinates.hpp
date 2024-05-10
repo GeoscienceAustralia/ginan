@@ -46,8 +46,7 @@ void eci2ecef(
 	GTime				time,
 	const ERPValues&	erpVal,
 	Matrix3d&			U,
-	Matrix3d*			dU_ptr			= nullptr,
-	XFormData*			xFormData_ptr	= nullptr);
+	Matrix3d*			dU_ptr = nullptr);
 
 void pos2enu(
 	const	VectorPos&	pos,

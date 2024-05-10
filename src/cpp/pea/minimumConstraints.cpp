@@ -744,13 +744,13 @@ void mincon(
 			string		aggregatedUsed	= "Agg-Used";
 			string		aggregatedAll	= "Agg-All";
 			string		str;
-			Vector3d	aprioriPos;
+			Vector3d	aprioriPos		= Vector3d::Zero();
 			if		(type == KF::REC_POS)	{	auto& rec		= *key.rec_ptr;				aprioriPos = rec.minconApriori;		str = key.str;		}
 			else if	(type == KF::ORBIT)		{	auto& satNav	= nav.satNavMap[key.Sat];	aprioriPos = satNav.aprioriPos;		str = key.Sat.id();	}
 
-			Vector3d deltaR = filterPos - aprioriPos;
+			Vector3d deltaR	= filterPos - aprioriPos;
 
-			Matrix3d E;
+			Matrix3d E		= Matrix3d::Zero();
 
 			if		(type == KF::REC_POS)	{	VectorPos pos = ecef2pos(filterPos);		pos2enu(pos, E.data());	}
 			else if	(type == KF::ORBIT)		{	E = ecef2rac(filterPos, filterVel);									}

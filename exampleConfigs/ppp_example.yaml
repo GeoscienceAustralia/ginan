@@ -140,6 +140,7 @@ processing_options:
 
     gnss_general:
         rec_reference_system:      GPS
+        add_eop_component:            true
         sys_options:
             gps:
                 process:                true
@@ -221,12 +222,12 @@ processing_options:
 estimation_parameters:
     global_models:
         eop:
-            estimated:        [false] # Estimate state in kalman filter
-            sigma:            [-1]    # Apriori sigma values - if zero, will be initialised using least squares
+            # estimated:        [true] # Estimate state in kalman filter
+            sigma:            [1000]    # Apriori sigma values - if zero, will be initialised using least squares
             process_noise:    [0]     # Process noise sigmas
         eop_rates:
-            estimated:        [false] # Estimate state in kalman filter
-            sigma:            [-1]    # Apriori sigma values - if zero, will be initialised using least squares
+            # estimated:        [true] # Estimate state in kalman filter
+            sigma:            [1000]    # Apriori sigma values - if zero, will be initialised using least squares
             process_noise:    [0]     # Process noise sigmas
         ion:
             estimated:        [false] # Estimate state in kalman filter

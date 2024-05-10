@@ -334,6 +334,7 @@ void readSp3ToNav(
 	if (!fileStream)
 	{
 		printf("\nSp3 file open error %s\n", file.c_str());
+		return;
 	}
 
 	vector<Peph>	pephList;

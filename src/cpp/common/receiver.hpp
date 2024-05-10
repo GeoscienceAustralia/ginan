@@ -137,7 +137,8 @@ struct Receiver : ReceiverLogs, Rtk
 
 	map<SatSys, GTime> savedSlips;
 
-	Cache<tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>> pppTideCache;
+	Cache<tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>>	pppTideCache;
+	Cache<tuple<Vector3d>>											pppEopCache;
 };
 
 struct ReceiverMap : map<string, Receiver>

@@ -842,7 +842,7 @@ void updatePseudoPulses(
 	Trace&			trace,
 	KFState&		kfState)
 {
-	int epochsPerDay = 86400 / acsConfig.epoch_interval;
+	int epochsPerDay = S_IN_DAY / acsConfig.epoch_interval;
 
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{

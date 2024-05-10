@@ -68,6 +68,8 @@ void postRTSActions(
 		kfState.outputStates(ofs, "/RTS");
 	}
 
+	nav.erp.filterValues = getErpFromFilter(kfState);
+
 	if (acsConfig.output_bias_sinex)
 	{
 		//todo aaron, this requires another ionospher kfState

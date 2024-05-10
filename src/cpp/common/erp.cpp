@@ -3,11 +3,13 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <sstream>
 #include <fstream>
 #include <string>
 #include <chrono>
 
 using std::chrono::system_clock;
+using std::stringstream;
 using std::string;
 
 #include "peaCommitStrings.hpp"
@@ -22,6 +24,29 @@ using std::string;
 
 #define NMAX	3			/* order of polynomial interpolation */
 
+
+string ERPValues::toString()
+{
+	Vector3d erp;
+	erp << xp, yp, ut1Utc;
+
+	stringstream ss;
+	ss << erp.transpose().format(heavyFmt);
+	return ss.str();
+}
+
+string ERPValues::toReadableString()
+{
+	Vector3d erp;
+	erp <<
+		xp		* R2MAS,
+		yp		* R2MAS,
+		ut1Utc	* S2MTS;
+
+	stringstream ss;
+	ss << erp.transpose().format(heavyFmt);
+	return ss.str();
+}
 
 /** read IGS ERP products
  */
@@ -303,8 +328,26 @@ void readIersBulletinA(
  */
 ERPValues getErp(
 	ERP&		erp,		///< earth rotation parameters
-	GTime		time)		///< Time
+	GTime		time,		///< Time
+	bool		useFilter)	///< Optionally use the filter values stored in the erp object
 {
+	if	( useFilter
+		&&erp.filterValues.isFiltered)
+	{
+		ERPValues erpv = erp.filterValues;
+
+		double dt = (time - erpv.time).to_double() / S_IN_DAY;
+		if (dt)
+		{
+			erpv.time	+= dt;
+			erpv.xp		+= erpv.xpr * dt;
+			erpv.yp		+= erpv.ypr * dt;
+			erpv.ut1Utc	-= erpv.lod * dt;
+		}
+
+		return erpv;
+	}
+
 	ERPValues erpv;
 
 	auto& recOpts = acsConfig.getRecOpts("global");
@@ -471,47 +514,44 @@ void writeErp(
 /** Get earth rotation parameter values
  */
 ERPValues getErpFromFilter(
-	KFState&	kfState)
+	const KFState&	kfState)
 {
 	ERPValues erpv;
 
-	ERPValues erpvs[2];
-	erpvs[0] = getErp(nav.erp, kfState.time);
-	erpvs[1] = getErp(nav.erp, kfState.time + 1);
-
-	erpv		= erpvs[0];
-	erpv.time	= kfState.time;
-	erpv.xpr	= (erpvs[1].xp		- erpvs[0].xp);						// per 1 second dt
-	erpv.ypr	= (erpvs[1].yp		- erpvs[0].yp);						// per 1 second dt
-	erpv.lod	= (erpvs[1].ut1Utc	- erpvs[0].ut1Utc) * -secondsInDay;	// (dumb sign convention and scaling)
-
+	bool found = false;
 	for (int i = 0; i < 3; i++)
 	{
-		double adjust			= 0;
-		double adjustVar		= 0;
-		double rateAdjust		= 0;
-		double rateAdjustVar	= 0;
+		double val		= 0;
+		double valVar	= 0;
+		double rate		= 0;
+		double rateVar	= 0;
 
 		KFKey kfKey;
 		kfKey.num	= i;
 
-		kfKey.type	= KF::EOP_ADJUST;
-		kfState.getKFValue(kfKey, adjust,		&adjustVar);
+		kfKey.type	= KF::EOP;
+		found |= kfState.getKFValue(kfKey, val,		&valVar);
 
-		kfKey.type	= KF::EOP_RATE_ADJUST;
-		kfState.getKFValue(kfKey, rateAdjust,	&rateAdjustVar);
+		kfKey.type	= KF::EOP_RATE;
+		found |= kfState.getKFValue(kfKey, rate,	&rateVar);
 
 		switch (i)
 		{
-			case 0:	erpv.xp		+= adjust		* MAS2R;		erpv.xpSigma		= sqrt(adjustVar)		* MAS2R;
-					erpv.xpr	+= rateAdjust	* MAS2R;		erpv.xprSigma		= sqrt(rateAdjustVar)	* MAS2R;	break;
-			case 1:	erpv.yp		+= adjust		* MAS2R;		erpv.ypSigma		= sqrt(adjustVar)		* MAS2R;
-					erpv.ypr	+= rateAdjust	* MAS2R;		erpv.yprSigma		= sqrt(rateAdjustVar)	* MAS2R;	break;
-			case 2:	erpv.ut1Utc	+= adjust		* MTS2S;		erpv.ut1UtcSigma	= sqrt(adjustVar)		* MTS2S;
-					erpv.lod	-= rateAdjust	* MTS2S;		erpv.lodSigma		= sqrt(rateAdjustVar)	* MTS2S;	break;
+			case 0:	erpv.xp		= +val	* MAS2R;		erpv.xpSigma		= sqrt(valVar)	* MAS2R;
+					erpv.xpr	= +rate	* MAS2R;		erpv.xprSigma		= sqrt(rateVar)	* MAS2R;	break;
+			case 1:	erpv.yp		= +val	* MAS2R;		erpv.ypSigma		= sqrt(valVar)	* MAS2R;
+					erpv.ypr	= +rate	* MAS2R;		erpv.yprSigma		= sqrt(rateVar)	* MAS2R;	break;
+			case 2:	erpv.ut1Utc	= +val	* MTS2S;		erpv.ut1UtcSigma	= sqrt(valVar)	* MTS2S;
+					erpv.lod	= -rate	* MTS2S;		erpv.lodSigma		= sqrt(rateVar)	* MTS2S;	break;
 			default:
 				break;
 		}
+	}
+
+	if (found)
+	{
+		erpv.isFiltered	= true;
+		erpv.time		= kfState.time;
 	}
 
 	return erpv;

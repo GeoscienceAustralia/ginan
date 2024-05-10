@@ -174,7 +174,7 @@ GTime yds2time(
 	int days = (year-1970)*365 + leapDays + doy - 1;
 
 	PTime pTime = {};
-	pTime.bigTime = days * 86400.0 + sec;	//.0 to prevent eventual overflow
+	pTime.bigTime = days * S_IN_DAY + sec;	//.0 to prevent eventual overflow
 
 	GTime time = pTime;
 	switch (tsys)

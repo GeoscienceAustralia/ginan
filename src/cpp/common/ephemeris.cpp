@@ -146,6 +146,7 @@ bool satpos(
 		if (returnValue == false)
 		switch (ephType)
 		{
+			case E_Source::CONFIG:		continue;
 			case E_Source::BROADCAST:	returnValue = satPosBroadcast	(trace, time, teph,		satPos, nav				);	break;
 			case E_Source::SSR:			returnValue = satPosSSR			(trace, time, teph,		satPos, nav				);	break;
 			case E_Source::PRECISE:		returnValue = satPosPrecise		(trace, time, 			satPos, nav				);	break;

@@ -170,10 +170,9 @@ bool replaceString(
 			&& warn)
 		{
 			BOOST_LOG_TRIVIAL(warning)
-			<< "Warning: " << subStr << " is used in config but is not defined, clearing...";
+			<< "Warning: " << subStr << " is used in config near " << str << " but is not defined...";
 
-			str.clear();
-			return true;
+			continue;
 		}
 
 		str.erase	(index, subStr.size());
@@ -2902,6 +2901,7 @@ bool ACSConfig::parse(
 				tryGetFromAny (stream_user,			commandOpts,	metadata, {"1! user"							}, "Username for connecting to NTRIP casters");
 				tryGetFromAny (stream_pass,			commandOpts,	metadata, {"1! pass"							}, "Password for connecting to NTRIP casters");
 				tryGetFromYaml(analysis_agency,						metadata, {"@ analysis_agency"					}, "Agency for output files headers");
+				tryGetFromYaml(config_details,						metadata, {"@ config_details"					}, "Comments and details specific to the config");
 				tryGetFromYaml(analysis_centre,						metadata, {"@ analysis_centre"					}, "Analysis centre for output files headers");
 				tryGetFromYaml(ac_contact,							metadata, {"@ ac_contact"						}, "Contact person for output files headers");
 				tryGetFromYaml(analysis_software,					metadata, {"@ analysis_software"				}, "Program for output files headers");
@@ -3385,6 +3385,7 @@ bool ACSConfig::parse(
 				tryGetFromYaml	(pppOpts.equate_ionospheres,				general, {"@ equate_ionospheres"			}, "Use same STEC values for different receivers, useful for simulated rtk mode");
 				tryGetFromYaml	(pppOpts.equate_tropospheres,				general, {"@ equate_tropospheres"			}, "Use same troposphere values for different receivers, useful for simulated rtk mode");
 				tryGetFromYaml	(pppOpts.use_rtk_combo,						general, {"@ use_rtk_combo"					}, "Combine applicable observations to simulate an rtk solution");
+				tryGetFromYaml	(pppOpts.add_eop_component,					general, {"@ add_eop_component"				}, "Add eop adjustments as a component in residual chain (for adjusting frames to match ecef ephemeris)");
 				tryGetFromYaml	(delete_old_ephemerides,					general, {"@ delete_old_ephemerides"		}, "Remove old ephemerides that have accumulated over time from before far before the currently processing epoch");
 				tryGetFromYaml	(use_tgd_bias,								general, {"@ use_tgd_bias"					}, "Use TGD/BGD bias from ephemeris, DO NOT turn on unless using Klobuchar/NeQuick Ionospheres");
 				tryGetFromYaml	(common_sat_pco,							general, {"@ common_sat_pco"				}, "Use L1 satellite PCO values for all signals");

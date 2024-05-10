@@ -363,6 +363,7 @@ endif()
 target_link_libraries(ginan_core PUBLIC
 						m
 						pthread
+						# openblasp
 						sofa_lib
 						${Boost_LIBRARIES}
 						${BLAS_LIBRARIES}

@@ -175,8 +175,8 @@ BETTER_ENUM(KF,				short int,
 
 	REC_PCV,
 
-	EOP_ADJUST,
-	EOP_RATE_ADJUST,
+	EOP,
+	EOP_RATE,
 
 	CALC,
 

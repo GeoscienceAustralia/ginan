@@ -95,7 +95,9 @@ struct AutoSender
 	COMMON_ARG(			double&				)	lambda,				\
 	COMMON_ARG(			SatSys&				)	sysSat,				\
 	COMMON_ARG(			AutoSender&			)	autoSenderTemplate,	\
-	COMMON_ARG(			VectorPos&			)	pos
+	COMMON_ARG(			VectorPos&			)	pos,				\
+	COMMON_ARG(			ERPValues&			)	erpv,				\
+	COMMON_ARG(			FrameSwapper&		)	frameSwapper
 
 
 inline void pppRecClocks(COMMON_PPP_ARGS)
@@ -1204,11 +1206,10 @@ inline void pppEopAdjustment(COMMON_PPP_ARGS)
 	Matrix3d partialMatrix	= stationEopPartials(rec.aprioriPos);
 	Vector3d eopPartials	= partialMatrix * satStat.e;
 
-	double adjustment = 0;
-
 	for (int i = 0; i < 3; i++)
 	{
-		InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop,					i);
+		InitialState init			= initialStateFromConfig(acsConfig.pppOpts.eop,			i);
+		InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	i);
 
 		if (init.estimate == false)
 		{
@@ -1216,19 +1217,21 @@ inline void pppEopAdjustment(COMMON_PPP_ARGS)
 		}
 
 		KFKey kfKey;
-		kfKey.type		= KF::EOP_ADJUST;
+		kfKey.type		= KF::EOP;
 		kfKey.num		= i;
 		kfKey.comment	= eopComments[i];
 
 		kfState.getKFValue(kfKey, init.x);
 
-		double component = init.x;
-
-		adjustment += eopPartials(i) * component;
+		if (init.x == 0)
+		switch (i)
+		{
+			case 0:	init.x = erpv.xp		* R2MAS;		eopRateInit.x = +erpv.xpr	* R2MAS;	break;
+			case 1:	init.x = erpv.yp		* R2MAS;		eopRateInit.x = +erpv.ypr	* R2MAS;	break;
+			case 2:	init.x = erpv.ut1Utc	* S2MTS;		eopRateInit.x = -erpv.lod	* S2MTS;	break;
+		}
 
 		measEntry.addDsgnEntry(kfKey,	eopPartials(i),				init);
-
-		InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	i);
 
 		if (eopRateInit.estimate == false)
 		{
@@ -1236,14 +1239,33 @@ inline void pppEopAdjustment(COMMON_PPP_ARGS)
 		}
 
 		KFKey rateKey;
-		rateKey.type	= KF::EOP_RATE_ADJUST;
+		rateKey.type	= KF::EOP_RATE;
 		rateKey.num		= i;
-		kfKey.comment	= eopComments[i];
+		kfKey.comment	= (string) eopComments[i] + "/day";
 
-		kfState.setKFTransRate(kfKey, rateKey,	1/86400.0,	eopRateInit);
+		kfState.setKFTransRate(kfKey, rateKey,	1/S_IN_DAY,	eopRateInit);
 	}
 
-	measEntry.componentsMap[E_Component::EOP] = {adjustment, "+ eop", -1};
+	if (acsConfig.pppOpts.add_eop_component)
+	{
+		auto& [eopAdjustment] = rec.pppEopCache.useCache([&]() -> tuple<Vector3d>
+		{
+			ERPValues erpvBase = getErp(nav.erp, time, false);
+
+			FrameSwapper frameSwapperBase(time, erpvBase);
+
+			Matrix3d erpEcefAdjustmentMat	= frameSwapper.i2t_mat * frameSwapperBase.i2t_mat.transpose()
+											- Matrix3d::Identity();
+
+			Vector3d eopAdjustment			= erpEcefAdjustmentMat * rec.aprioriPos;
+
+			return {eopAdjustment};
+		});
+
+		double adjustment = satStat.e.dot(eopAdjustment);
+
+		measEntry.componentsMap[E_Component::EOP] = {adjustment, "+ eop", -1};
+	}
 }
 
 
@@ -1310,6 +1332,7 @@ void receiverPPP(
 	}
 
 	rec.pppTideCache.uninit();
+	rec.pppEopCache	.uninit();
 
 	GTime time = rec.obsList.front()->time;
 

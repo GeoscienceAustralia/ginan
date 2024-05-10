@@ -131,9 +131,9 @@ bool readBlq(
 
 		return false;
 	}
-	
+
 	vector<E_TidalConstituent>	waveList;
-	
+
 	if		(type == +E_LoadingType::OCEAN)			{	waveList = acsConfig.otl_blq_col_order;	}
 	else if	(type == +E_LoadingType::ATMOSPHERIC)	{	waveList = acsConfig.atl_blq_col_order;	}
 
@@ -157,7 +157,7 @@ bool readBlq(
 			boost::split(waveNames, str, boost::is_any_of(" "), boost::token_compress_on);
 
 			waveList.clear();
-			
+
 			for (auto& waveName : waveNames)
 			{
 				try
@@ -205,8 +205,8 @@ bool readBlq(
 		}
 	}
 
-	BOOST_LOG_TRIVIAL(error)
-	<< __FUNCTION__ << ": no otl parameters: sta=" << rec.id << ", file=" << file << std::endl;
+	BOOST_LOG_TRIVIAL(warning)
+	<< "Warning: No otl parameters found for " << rec.id << " in " << file;
 
 	return false;
 }
@@ -855,7 +855,7 @@ void tideDisp(
 
 		tracepdeex(lv, trace,"\n%s   SOLID        %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
 	}
-	
+
 	if	( recOpts.tideModels.otl
 		&&rec.otlDisplacement.empty() == false)
 	{

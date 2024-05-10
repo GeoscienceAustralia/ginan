@@ -435,6 +435,7 @@ struct GlobalOptions
 	boost::posix_time::ptime end_epoch		{ boost::posix_time::not_a_date_time };
 
 	string	config_description				= "Pea";
+	string	config_details;
 	string	analysis_agency					= "GAA";
 	string	analysis_centre					= "Geoscience Australia";
 	string	analysis_software				= "Ginan";
@@ -628,9 +629,11 @@ struct PppOptions : FilterOptions
 
 	IonosphericOptions		ionoOpts;
 
-	bool			equate_ionospheres	= false;
-	bool			equate_tropospheres	= false;
-	bool			use_rtk_combo		= false;
+	bool			equate_ionospheres		= false;
+	bool			equate_tropospheres		= false;
+	bool			use_rtk_combo			= false;
+
+	bool			add_eop_component		= false;
 
 	bool			satellite_chunking		= false;
 	bool			receiver_chunking		= false;

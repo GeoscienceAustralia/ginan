@@ -243,7 +243,6 @@ void orbitPseudoObs(
 
 		SatPos satPos;
 
-		KFKey eopKeys[3];
 		Matrix3d eopPartialMatrixEci = Matrix3d::Zero();
 
 		if (acsConfig.eci_pseudoobs)
@@ -269,39 +268,16 @@ void orbitPseudoObs(
 			rSatEci			= frameSwapper(rSat,			&vSat,			&vSatEci);
 			satPos.rSatEci0	= frameSwapper(satPos.rSatCom,	&satPos.satVel,	&satPos.vSatEci0);
 
-			satPos.rSatEci0	= frameSwapper(satPos.rSatCom,	&satPos.satVel,	&satPos.vSatEci0);
-
 			if (acsConfig.pppOpts.eop.estimate[0])
 			{
 				eopPartialMatrixEci = stationEopPartials(rSat) * frameSwapper.i2t_mat;
-
-				for (int xyz = 0; xyz < 3; xyz++)
-				for (int num = 0; num < 3; num++)
-				{
-					InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop, num);
-
-					if (init.estimate == false)
-					{
-						continue;
-					}
-
-					eopKeys[num].type		= KF::EOP_ADJUST;
-					eopKeys[num].num		= num;
-					eopKeys[num].comment	= eopComments[num];
-
-					kfState.getKFValue(eopKeys[num], init.x);
-
-					double component = init.x;
-
-					double adjustment = eopPartialMatrixEci(num, xyz) * component;
-
-					rSatEci(xyz) -= adjustment;
-				}
 			}
 		}
 
 		KFKey satPosKeys[3];
 		KFKey satVelKeys[3];
+		KFKey eopKeys	[3];
+		KFKey rateKeys	[3];
 		for (int i = 0; i < 3; i++)
 		{
 			satPosKeys[i].type	= KF::ORBIT;
@@ -311,6 +287,14 @@ void orbitPseudoObs(
 			satVelKeys[i].type	= KF::ORBIT;
 			satVelKeys[i].Sat	= obs.Sat;
 			satVelKeys[i].num	= i + 3;
+
+			eopKeys[i].type		= KF::EOP;
+			eopKeys[i].num		= i;
+			eopKeys[i].comment	= eopComments[i];
+
+			rateKeys[i].type	= KF::EOP_RATE;
+			rateKeys[i].num		= i;
+			rateKeys[i].comment	= (string) eopComments[i] + "/day";
 		}
 
 		for (int i = 0; i < 3; i++)
@@ -339,31 +323,32 @@ void orbitPseudoObs(
 
 				kfMeasEntry.addDsgnEntry(satPosKeys[i], 1, posInit);
 
-
 				for (int num = 0; num < 3; num++)
 				{
-					InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop, num);
+					InitialState init			= initialStateFromConfig(acsConfig.pppOpts.eop,			num);
+					InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	num);
 
 					if (init.estimate == false)
 					{
 						continue;
 					}
 
-					kfMeasEntry.addDsgnEntry(eopKeys[num],	eopPartialMatrixEci(num, i),				init);
+					if (init.x == 0)
+					switch (num)
+					{
+						case 0:	init.x = erpv.xp		* R2MAS;		eopRateInit.x = +erpv.xpr	* R2MAS;	break;
+						case 1:	init.x = erpv.yp		* R2MAS;		eopRateInit.x = +erpv.ypr	* R2MAS;	break;
+						case 2:	init.x = erpv.ut1Utc	* S2MTS;		eopRateInit.x = -erpv.lod	* S2MTS;	break;
+					}
 
-					InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	num);
+					kfMeasEntry.addDsgnEntry(eopKeys[num],	eopPartialMatrixEci(num, i), init);
 
 					if (eopRateInit.estimate == false)
 					{
 						continue;
 					}
 
-					KFKey rateKey;
-					rateKey.type	= KF::EOP_RATE_ADJUST;
-					rateKey.num		= num;
-					rateKey.comment	= eopComments[num];
-
-					kfState.setKFTransRate(eopKeys[num], rateKey,	1/86400.0,	eopRateInit);
+					kfState.setKFTransRate(eopKeys[num], rateKeys[num],	1/S_IN_DAY,	eopRateInit);
 				}
 
 				double omc	= rSatEci[i]

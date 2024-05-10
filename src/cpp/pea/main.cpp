@@ -1386,6 +1386,8 @@ void mainPerEpochPostProcessingAndOutputs(
 					});
 	}
 
+	nav.erp.filterValues = getErpFromFilter(pppNet.kfState);
+
 	if	(	acsConfig.process_ppp
 		&&	acsConfig.ambrOpts.mode != +E_ARmode::OFF
 		&&	acsConfig.ambrOpts.once_per_epoch)

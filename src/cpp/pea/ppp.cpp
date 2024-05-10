@@ -293,7 +293,6 @@ void selectAprioriSource(
 
 				break;
 			}
-			case E_Source::KALMAN:
 			case E_Source::REMOTE:
 			{
 				if (source == +E_Source::KALMAN	&& kfState_ptr	== nullptr)	continue;
@@ -331,6 +330,11 @@ void selectAprioriSource(
 			{
 				//todo for satellite receivers
 				// continue;
+			}
+			case E_Source::KALMAN:
+			{
+				//skipping this for receivers because it breaks minimum constraints
+				continue;
 			}
 			default:
 			{

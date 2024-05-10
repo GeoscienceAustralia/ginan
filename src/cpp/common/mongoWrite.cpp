@@ -1,5 +1,5 @@
 
-#pragma GCC optimize ("O0")
+// #pragma GCC optimize ("O0")
 
 
 #include "observations.hpp"

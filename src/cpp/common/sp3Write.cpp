@@ -67,7 +67,7 @@ void writeSp3Header(
 
 	GWeek	week	= time;
 	GTow	tow		= time;
-	double mjdate = 7.0 * week + tow / 86400.0 + 44244.0;	//todo aaron ew.
+	double mjdate = 7.0 * week + tow / S_IN_DAY + 44244.0;	//todo aaron ew.
 	tracepdeex(0, sp3Stream, "## %4d %15.8f %14.8f %5.0f %15.13f\n",
 			   week,
 			   tow,
@@ -327,16 +327,8 @@ void writeSysSetSp3(
 {
 	map<int, Sp3Entry> entryList;
 
-	ERPValues filterErpv;
-	if (kfState_ptr)
-	{
-		filterErpv = getErpFromFilter(*kfState_ptr);
-	}
-
 	ERPValues erpv = getErp(nav.erp, time);
-
-	FrameSwapper frameSwapperUndo(time, erpv);
-	FrameSwapper frameSwapperRedo(time, filterErpv);
+	FrameSwapper frameSwapper(time, erpv);
 
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
@@ -358,30 +350,18 @@ void writeSysSetSp3(
 		}
 
 		Sp3Entry entry;
-		entry.Sat = Sat;
+
 		if (acsConfig.output_inertial_orbits)
 		{
-			obs.rSatEci0 = frameSwapperUndo(obs.rSatCom, &obs.satVel, &obs.vSatEci0);
+			obs.rSatEci0 = frameSwapper(obs.rSatCom, &obs.satVel, &obs.vSatEci0);
 
 			entry.satPos = obs.rSatEci0;
 			entry.satVel = obs.vSatEci0;
 		}
 		else
 		{
-			VectorEcef posEcef = obs.rSatCom;
-			VectorEcef velEcef = obs.satVel;
-
-			if (filterErpv.time != GTime::noTime())
-			{
-				VectorEci velEci;
-				VectorEci posEci;
-
-				posEci	= frameSwapperUndo(posEcef,	&velEcef,	&velEci);
-				posEcef = frameSwapperRedo(posEci,	&velEci,	&velEcef);
-			}
-
-			entry.satPos = posEcef;
-			entry.satVel = velEcef;
+			entry.satPos = obs.rSatCom;
+			entry.satVel = obs.satVel;
 		}
 
 		if (clkPass)
@@ -395,6 +375,7 @@ void writeSysSetSp3(
 			entry.satClkVel	= INVALID_CLOCK_VALUE / 1e6;
 		}
 
+		entry.Sat		= Sat;
 		entry.sigma		= sqrt(obs.satClkVar);
 		entry.predicted	= predicted;
 

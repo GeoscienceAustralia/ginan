@@ -24,7 +24,7 @@ outputs:
 
 satellite_options:
     global:
-        mincon_scale_apriori_var:     0.01
+        mincon_scale_apriori_sigma:     0.01
 
 
 processing_options:
