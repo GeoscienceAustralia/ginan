@@ -804,16 +804,15 @@ VectorEnu tideOceanPole(
 * See ref [1] 7.1
 */
 void tideDisp(
-	Trace&			trace,				///< Trace to output to
-	GTime			time,				///< GPS time
-	Receiver&		rec,				///< Receiver
-	Vector3d&		recPos,				///< Receiver position in ECEF (m)
-	Vector3d&		dr,					///< Total displacement by Earth tides in ECEF (m)
-	Vector3d*		solid_ptr,			///< Pointer of displacement by solid Earth tide
-	Vector3d*		otl_ptr,			///< Pointer of displacement by ocean tide
-	Vector3d*		atl_ptr,			///< Pointer of displacement by atmospheric tide
-	Vector3d*		spole_ptr,			///< Pointer of displacement by solid Earth pole tide
-	Vector3d*		opole_ptr)			///< Pointer of displacement by ocean pole tide
+	Trace&			trace,			///< Trace to output to
+	GTime			time,			///< GPS time
+	Receiver&		rec,			///< Receiver
+	Vector3d&		recPos,			///< Receiver position in ECEF (m)
+	Vector3d&		solid,			///< Displacement by solid Earth tide
+	Vector3d&		otl,			///< Displacement by ocean tide
+	Vector3d&		atl,			///< Displacement by atmospheric tide
+	Vector3d&		spole,			///< Displacement by solid Earth pole tide
+	Vector3d&		opole)			///< Displacement by ocean pole tide
 {
 	int lv = 3;
 
@@ -825,8 +824,6 @@ void tideDisp(
 
 	MjDateUt1 mjdUt1(time, erpv.ut1Utc);
 
-	dr = Vector3d::Zero();
-
 	if (recPos.isZero())
 		return;
 
@@ -834,95 +831,25 @@ void tideDisp(
 
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
 
+	VectorEcef	rSun;
+	VectorEcef	rMoon;
+
 	if (recOpts.tideModels.solid)
 	{
-		// solid Earth tides
-
 		// Sun and Moon positions in ECEF
-		VectorEcef	rSun;
-		VectorEcef	rMoon;
 		planetPosEcef(time, E_ThirdBody::MOON,	rMoon,	erpv);
 		planetPosEcef(time, E_ThirdBody::SUN,	rSun,	erpv);
-
-		Vector3d	drt		= tideSolidEarthDehant(trace, time, rSun, rMoon, recPos);
-
-		dr += drt;
-
-		if (solid_ptr)
-		{
-			*solid_ptr = drt;
-		}
-
-		tracepdeex(lv, trace,"\n%s   SOLID        %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
 	}
 
-	if	( recOpts.tideModels.otl
-		&&rec.otlDisplacement.empty() == false)
-	{
-		// ocean tide loading
+	if (recOpts.tideModels.solid)											{																						solid	= tideSolidEarthDehant(trace, time, rSun, rMoon, recPos);	}
+	if (recOpts.tideModels.otl		&&rec.otlDisplacement.empty() == false)	{	VectorEnu	denu	= tideOceanLoadHardisp	(trace, time,	rec.otlDisplacement);	otl		= (Vector3d) enu2ecef(pos, denu);							}
+	if (recOpts.tideModels.atl		&&rec.atlDisplacement.empty() == false)	{	VectorEnu	denu	= tideAtmosLoad			(trace, mjdUt1,	rec.atlDisplacement);	atl		= (Vector3d) enu2ecef(pos, denu);							}
+	if (recOpts.tideModels.spole)											{	VectorEnu	denu	= tideSolidPole			(trace, mjdUt1, pos, erpv);				spole	= (Vector3d) enu2ecef(pos, denu);							}
+	if (recOpts.tideModels.opole)											{	VectorEnu	denu	= tideOceanPole			(trace, mjdUt1, pos, erpv);				opole	= (Vector3d) enu2ecef(pos, denu);							}
 
-		VectorEnu	denu	= tideOceanLoadHardisp(trace, time, rec.otlDisplacement);
-		Vector3d	drt		= (Vector3d)enu2ecef(pos, denu);
-
-		dr += drt;
-
-		if (otl_ptr)
-		{
-			*otl_ptr = drt;
-		}
-
-		tracepdeex(lv, trace, "\n%s   OCEAN       %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
-	}
-
-	if	( recOpts.tideModels.atl
-		&&rec.atlDisplacement.empty() == false)
-	{
-		// atmospheric tide loading
-
-		VectorEnu	denu	= tideAtmosLoad(trace, mjdUt1, rec.atlDisplacement);
-		Vector3d	drt		= (Vector3d)enu2ecef(pos, denu);
-
-		dr += drt;
-
-		if (atl_ptr)
-		{
-			*atl_ptr = drt;
-		}
-
-		tracepdeex(lv, trace, "\n%s   ATMOSPHERIC %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
-	}
-
-	if (recOpts.tideModels.spole)
-	{
-		// solid Earth pole tide
-
-		VectorEnu	denu	= tideSolidPole(trace, mjdUt1, pos, erpv);
-		Vector3d	drt		= (Vector3d)enu2ecef(pos, denu);
-
-		dr += drt;
-
-		if (spole_ptr)
-		{
-			*spole_ptr = drt;
-		}
-
-		tracepdeex(lv, trace, "\n%s   SOLID POLE  %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
-	}
-
-	if (recOpts.tideModels.opole)
-	{
-		// ocean pole tide
-
-		VectorEnu	denu	= tideOceanPole(trace, mjdUt1, pos, erpv);
-		Vector3d	drt		= (Vector3d)enu2ecef(pos, denu);
-
-		dr += drt;
-
-		if (opole_ptr)
-		{
-			*opole_ptr = drt;
-		}
-
-		tracepdeex(lv, trace, "\n%s   OCEAN POLE  %14.6f %14.6f %14.6f", timeStr.c_str(), drt[0], drt[1], drt[2]);
-	}
+	tracepdeex(lv, trace, "\n%s   SOLID       %14.6f %14.6f %14.6f", timeStr.c_str(), solid	[0], solid	[1], solid	[2]);
+	tracepdeex(lv, trace, "\n%s   OCEAN       %14.6f %14.6f %14.6f", timeStr.c_str(), otl	[0], otl	[1], otl	[2]);
+	tracepdeex(lv, trace, "\n%s   ATMOSPHERIC %14.6f %14.6f %14.6f", timeStr.c_str(), atl	[0], atl	[1], atl	[2]);
+	tracepdeex(lv, trace, "\n%s   SOLID POLE  %14.6f %14.6f %14.6f", timeStr.c_str(), spole	[0], spole	[1], spole	[2]);
+	tracepdeex(lv, trace, "\n%s   OCEAN POLE  %14.6f %14.6f %14.6f", timeStr.c_str(), opole	[0], opole	[1], opole	[2]);
 }

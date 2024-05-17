@@ -106,8 +106,8 @@ void readionexdcb(
 		{
 			string sat(buff + 3,  3);
 			Sat = SatSys(sat.c_str());
-			entry.Sat  = Sat;
-			entry.name = "";
+			entry.Sat	= Sat;
+			entry.name	= "";
 			id = sat;
 
 			if (!refObs)

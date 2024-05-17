@@ -2021,12 +2021,44 @@ void getAccData()
 #include "orbitProp.hpp"
 
 void perEpochPropTest(
-	KFState& kfState)
+	GTime time)
 {
+	SatSys Sat = SatSys("L51");
+
+	SatPos satPos0;
+	satPos0.Sat = Sat;
+
+	bool pass = satPosPrecise(std::cout, time, satPos0, nav);
+
+	if (!pass)
+		return;
+
+	ERPValues erpv0 = getErp(nav.erp, time);
+	FrameSwapper frameSwapper0(time, erpv0);
+	satPos0.rSatEci0 = frameSwapper0(satPos0.rSatCom, &satPos0.satVel, &satPos0.vSatEci0);
+
+	KFState kfState;
+	kfState.time = time;
+
+	for (int i = 0; i < 3; i++)
+	{
+		KFKey kfKey;
+		kfKey.type	= KF::ORBIT;
+		kfKey.Sat	= Sat;
+
+		kfKey.num	= i;
+		kfState.addKFState(kfKey, {.x = satPos0.rSatEci0[i]});
+
+		kfKey.num	= i + 3;
+		kfState.addKFState(kfKey, {.x = satPos0.vSatEci0[i]});
+	}
+	kfState.stateTransition(std::cout, kfState.time);
+
 	KFState copy = kfState;
 
-	double dt = 30;
+	double dt = 60;
 
+	static double propSumSqr	= 0;
 	static double ellipseSumSqr	= 0;
 	static double j2SumSqr		= 0;
 
@@ -2037,40 +2069,52 @@ void perEpochPropTest(
 	predictOrbits(std::cout, copy, newTime);
 	copy.stateTransition(std::cout, newTime);
 
-	std::cout << std::endl << kfState.time;
+	std::cout << std::endl << std::endl << kfState.time;
 
+	SatPos satPosPrec;
 	SatPos satPosProp;
 	SatPos satPosEllipse;
 	SatPos satPosJ2;
 
+	satPosPrec		.Sat = SatSys("L51");
 	satPosProp		.Sat = SatSys("L51");
 	satPosEllipse	.Sat = SatSys("L51");
 	satPosJ2		.Sat = SatSys("L51");
-	bool pass;
 
-	pass = satPosKalman(std::cout, newTime,	satPosProp,		&copy);						std::cout << " prop Passed: "	<< pass;
-	pass = satPosKalman(std::cout, newTime,	satPosEllipse,	&kfState);					std::cout << " ellp Passed: "	<< pass;
-	pass = satPosKalman(std::cout, newTime,	satPosJ2,		&kfState,	true);			std::cout << " j2 Passed: "		<< pass;
+	pass = satPosPrecise(std::cout, newTime,	satPosPrec,		nav);						std::cout << " precise passed: "	<< pass;
+	pass = satPosKalman	(std::cout, newTime,	satPosProp,		&copy);						std::cout << " prop Passed: "		<< pass;
+	pass = satPosKalman	(std::cout, newTime,	satPosEllipse,	&kfState);					std::cout << " ellp Passed: "		<< pass;
+	pass = satPosKalman	(std::cout, newTime,	satPosJ2,		&kfState,	true);			std::cout << " j2 Passed: "			<< pass;
 
-	VectorEci differenceEllipse	= satPosProp.rSatEciDt - satPosEllipse	.rSatEciDt;
-	VectorEci differenceJ2		= satPosProp.rSatEciDt - satPosJ2		.rSatEciDt;
-	VectorEci differenceProp	= satPosProp.rSatEciDt - satPosProp		.rSatEciDt;
+	ERPValues erpv = getErp(nav.erp, newTime);
+	FrameSwapper frameSwapper(newTime, erpv);
+	satPosPrec.rSatEci0 = frameSwapper(satPosPrec.rSatCom, &satPosPrec.satVel, &satPosPrec.vSatEci0);
 
-	std::cout << "\r\n" << satPosJ2			.rSatEciDt.transpose().format(heavyFmt) << "\t" << differenceJ2			.transpose().format(heavyFmt) << " \t" << differenceJ2		.norm();
-	std::cout << "\r\n" << satPosProp		.rSatEciDt.transpose().format(heavyFmt) << "\t" << differenceProp		.transpose().format(heavyFmt) << " \t" << differenceProp	.norm();
-	std::cout << "\r\n" << satPosEllipse	.rSatEciDt.transpose().format(heavyFmt) << "\t" << differenceEllipse	.transpose().format(heavyFmt) << " \t" << differenceEllipse	.norm();
+	Matrix3d E = ecef2rac(satPosPrec.rSatEci0, satPosPrec.vSatEci0);
 
-	ellipseSumSqr	+= differenceEllipse.squaredNorm();
-	j2SumSqr		+= differenceJ2		.squaredNorm();
+	VectorEci differenceProp	= satPosProp	.rSatEciDt - satPosPrec.rSatEci0;		Vector3d rtnProp	= E * differenceProp;
+	VectorEci differenceEllipse	= satPosEllipse	.rSatEciDt - satPosPrec.rSatEci0;		Vector3d rtnEllipse	= E * differenceEllipse;
+	VectorEci differenceJ2		= satPosJ2		.rSatEciDt - satPosPrec.rSatEci0;		Vector3d rtnJ2		= E * differenceJ2;
+
+	std::cout << "\r\nPrecise:\t"	<< satPosPrec		.rSatEci0	.transpose().format(heavyFmt);
+	std::cout << "\r\nPropFull:\t"	<< satPosProp		.rSatEciDt	.transpose().format(heavyFmt) << "\t" << rtnProp	.transpose().format(heavyFmt) << " \t" << rtnProp	.norm();
+	std::cout << "\r\nEllipse:\t"	<< satPosEllipse	.rSatEciDt	.transpose().format(heavyFmt) << "\t" << rtnEllipse	.transpose().format(heavyFmt) << " \t" << rtnEllipse.norm();
+	std::cout << "\r\nEllipseJ2:\t"	<< satPosJ2			.rSatEciDt	.transpose().format(heavyFmt) << "\t" << rtnJ2		.transpose().format(heavyFmt) << " \t" << rtnJ2		.norm();
+
+	propSumSqr		+= rtnProp		.squaredNorm();
+	ellipseSumSqr	+= rtnEllipse	.squaredNorm();
+	j2SumSqr		+= rtnJ2		.squaredNorm();
 
 	num++;
 
+	double propRms		= sqrt(propSumSqr		/ num);
 	double ellipseRms	= sqrt(ellipseSumSqr	/ num);
 	double j2Rms		= sqrt(j2SumSqr			/ num);
 
 	std::cout << std::endl;
-	std::cout << std::endl << "Ellipse   rms from prop with t=" << dt << " : " << ellipseRms;
-	std::cout << std::endl << "EllipseJ2 rms from prop with t=" << dt << " : " << j2Rms;
+	std::cout << std::endl << "PropFull  rms from prec with t=" << dt << " : " << propRms;
+	std::cout << std::endl << "Ellipse   rms from prec with t=" << dt << " : " << ellipseRms;
+	std::cout << std::endl << "EllipseJ2 rms from prec with t=" << dt << " : " << j2Rms;
 }
 
 
@@ -2079,5 +2123,20 @@ void doDebugs()
 	// testt();
 // 	minimumTest(std::cout);
 // 	exit(0);
+
+	// debugSlrTrop();
+	// abort();
+
+	// PTime startTime;
+	// startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
+	// PTime endTime;
+	// endTime.bigTime = boost::posix_time::to_time_t(acsConfig.end_epoch);
+
+	// for (GTime time = (GTime)startTime; time <= (GTime)endTime; time += acsConfig.epoch_interval)
+	// {
+	// 	perEpochPropTest(time);
+	// }
+
+	// exit(0);
 }
 

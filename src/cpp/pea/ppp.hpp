@@ -9,13 +9,13 @@ using std::map;
 
 #include "algebra.hpp"
 
-//forward declarations
 struct PhaseCenterData;
+struct FrameSwapper;
+struct Observation;
 struct ReceiverMap;
+struct AttStatus;
 struct Receiver;
 struct Solution;
-struct gptgrid_t;
-struct AttStatus;
 struct KFState;
 struct ObsList;
 struct GTime;
@@ -23,7 +23,35 @@ struct Vmf3;
 struct GObs;
 
 
+double relativity2(
+	VectorEcef&		rSat,
+	VectorEcef&		rRec);
 
+double recAntDelta(
+	VectorEcef&		e,
+	Receiver&		rec);
+
+tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d> tideDelta(
+	Trace&				trace,
+	GTime				time,
+	Receiver&			rec,
+	VectorEcef&			rRec,
+	ReceiverOptions&	recOpts);
+
+void eopAdjustment(
+	GTime&			time,
+	VectorEcef&		e,
+	ERPValues&		erpv,
+	FrameSwapper&	frameSwapper,
+	Receiver&		rec,
+	VectorEcef&		rRec,
+	KFMeasEntry&	measEntry,
+	const KFState&	kfState);
+
+double netResidualAndChainOutputs(
+	Trace&			trace,
+	Observation&	obs,
+	KFMeasEntry&	measEntry);
 
 void removeUnmeasuredAmbiguities(
 	Trace&				trace,
@@ -85,7 +113,8 @@ void selectAprioriSource(
 	KFState*	remote_ptr	= nullptr);
 
 void postFilterChecks(
-	KFMeas&	kfMeas);
+	const	GTime&	time,
+			KFMeas&	kfMeas);
 
 bool deweightMeas(
 	Trace&		trace,
@@ -130,16 +159,19 @@ bool incrementReceiverError(
 	bool		postFit);
 
 bool resetPhaseSignalError(
-	KFMeas&		kfMeas,
-	int			index);
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index);
 
 bool resetPhaseSignalOutage(
-	KFMeas&		kfMeas,
-	int			index);
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index);
 
 bool resetIonoSignalOutage(
-	KFMeas&		kfMeas,
-	int			index);
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index);
 
 bool rejectByState(
 			Trace&		trace,

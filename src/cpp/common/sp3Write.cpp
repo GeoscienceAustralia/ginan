@@ -29,7 +29,7 @@ struct Sp3Entry
 	Vector3d	satPos		= Vector3d::Zero();				// Satellite position.
 	Vector3d	satVel		= Vector3d::Zero();				// Satellite velocity.
 	double	 	satClk		= INVALID_CLOCK_VALUE / 1e6;
-	double		satClkVel	= INVALID_CLOCK_VALUE / 1e6;
+	double		satClkVel	= INVALID_CLOCK_VALUE / 1e10;
 	double		sigma		= 0;
 	bool		predicted	= false;
 };
@@ -288,10 +288,10 @@ void updateSp3Body(
 			{
 				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f%15s%c%3s%c\n",
 						entry.Sat.id().c_str(),
-						entry.satVel.x(),
-						entry.satVel.y(),
-						entry.satVel.z(),
-						entry.satClkVel * 1e6,
+						entry.satVel.x() * 10,
+						entry.satVel.y() * 10,
+						entry.satVel.z() * 10,
+						entry.satClkVel * 1e10,
 						"",
 						predictedChar,
 						"",
@@ -372,7 +372,7 @@ void writeSysSetSp3(
 		else
 		{
 			entry.satClk	= INVALID_CLOCK_VALUE / 1e6;
-			entry.satClkVel	= INVALID_CLOCK_VALUE / 1e6;
+			entry.satClkVel	= INVALID_CLOCK_VALUE / 1e10;
 		}
 
 		entry.Sat		= Sat;

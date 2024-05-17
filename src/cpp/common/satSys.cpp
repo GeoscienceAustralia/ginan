@@ -22,6 +22,7 @@ vector<SatSys> getSysSats(
 	if (targetSys == +E_Sys::BDS)	for (int prn = 1; prn <= NSATBDS; prn++)	{ sats.push_back(SatSys(E_Sys::BDS, prn)); }
 	if (targetSys == +E_Sys::QZS)	for (int prn = 1; prn <= NSATQZS; prn++)	{ sats.push_back(SatSys(E_Sys::QZS, prn)); }
 	if (targetSys == +E_Sys::SBS)	for (int prn = 1; prn <= NSATSBS; prn++)	{ sats.push_back(SatSys(E_Sys::SBS, prn)); }
+	if (targetSys == +E_Sys::LEO)	for (int prn = 1; prn <= NSATLEO; prn++)	{ sats.push_back(SatSys(E_Sys::LEO, prn)); }
 
 	return sats;
 }

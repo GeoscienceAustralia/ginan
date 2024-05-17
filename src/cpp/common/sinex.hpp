@@ -365,7 +365,7 @@ struct Sinex_datahandling_t
 {
 	string	sitecode;	//4 - CDP ID
 	string	ptcode;		//2 - satellites these biases apply to (-- = all)
-	string	unit;		//4 - units of estimate
+	string	solnnum;    //4 - solution number
 	string	t;			//1
 	UYds	epochstart;	//yr:doy:sod
 	UYds	epochend;	//yr:doy:sod
@@ -373,6 +373,7 @@ struct Sinex_datahandling_t
 	double	estimate;
 	double	stddev;
 	double	estrate;
+	string	unit;		//4 - units of estimate
 	string	comments;	//4
 } ;
 
@@ -639,7 +640,7 @@ struct Sinex
 	map<int, Sinex_solapriori_t>			apriori_map;
 	list<Sinex_solneq_t>				list_normal_eqns;
 	map<matrix_value,list<Sinex_solmatrix_t>>  matrix_map[MAX_MATRIX_TYPE];
-	map<string,	map<char, map<GTime, Sinex_datahandling_t, std::greater<GTime>>>>	map_data_handling;
+	map<string,	map<string,	map<char, map<GTime, Sinex_datahandling_t, std::greater<GTime>>>>>	map_data_handling;
 
 	/* satellite stuff */
 	list<Sinex_satpc_t>				list_satpcs;
@@ -678,11 +679,11 @@ struct Sinex
 
 struct Sinex_stn_soln_t
 {
-	string 	type	= "";		 	/* parameter type */
-	string  unit	= "";           /* parameter units */
-	double  pos		= 0;            /* real position (ecef) (m)*/
-	double  pstd	= 0;           /* position std (m) */
-	UYds	yds;			/* epoch when valid */
+	string 	type;					/* parameter type */
+	string  unit;					/* parameter units */
+	double  pos		= 0;			/* real position (ecef) (m)*/
+	double  pstd	= 0;			/* position std (m) */
+	UYds	yds;					/* epoch when valid */
 };
 
 
@@ -747,11 +748,10 @@ union GetSnxResult
 };
 
 
-GetSnxResult getStnSnx	(string rec,	GTime time, SinexRecData&	snx);
-GetSnxResult getSatSnx	(string prn,	GTime time, SinexSatSnx&	snx);
+GetSnxResult	getRecSnx		(string id,				GTime time, SinexRecData&		snx);
+GetSnxResult	getSatSnx		(string prn,			GTime time, SinexSatSnx&		snx);
+void			getSlrRecBias	(string id,	string prn,	GTime time, map<char, double>&	recBias);
 
-void	getRecBias	(string station,	const UYds& yds, map<char, double>& stn_bias);
-long int time_compare(UYds& left, UYds& right);
 void sinex_add_statistic(const string& what, const int		value);
 void sinex_add_statistic(const string& what, const double	value);
 int sinex_check_add_ga_reference(string solType, string peaVer, bool isTrop);

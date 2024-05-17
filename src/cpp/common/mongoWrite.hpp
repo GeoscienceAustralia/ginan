@@ -7,11 +7,17 @@ using std::set;
 
 #include "satSys.hpp"
 #include "mongo.hpp"
+#include "trace.hpp"
 
+
+struct MongoOptions;
 struct ReceiverMap;
+struct OrbitState;
 struct KFMeas;
+struct GTime;
 struct Geph;
 struct Eph;
+
 
 struct TestStatistics
 {
@@ -27,12 +33,12 @@ struct TestStatistics
 };
 
 void mongoMeasResiduals(
-	GTime				time,
-	KFMeas&				kfMeas,
-	bool				queue	= false,
-	string				suffix	= "",
-	int					beg		= 0,
-	int					num		= -1);
+	const	GTime&	time,
+			KFMeas&	kfMeas,
+			bool	queue	= false,
+			string	suffix	= "",
+			int		beg		= 0,
+			int		num		= -1);
 
 void mongoTrace(
 	const vector<string>&				jsons,
@@ -43,7 +49,7 @@ void mongoOutputConfig(
 
 struct MongoStatesOptions
 {
-	string			suffix		= "";
+	string			suffix;
 	string			collection	= STATES_DB;
 	E_Mongo			instances;
 	bool			force		= false;
@@ -64,15 +70,11 @@ void mongoTestStat(
 	TestStatistics&		statistics);
 
 
-struct MongoOptions;
-struct OrbitState;
-typedef vector<OrbitState> Orbits;
-
-void	outputMongoPredictions(
-	Trace&			trace,
-	Orbits&			orbits,
-	GTime 			time,
-	MongoOptions&	config);
+// void	outputMongoPredictions(
+// 	Trace&			trace,
+// 	Orbits&			orbits,
+// 	GTime 			time,
+// 	MongoOptions&	config);
 
 void mongoCull(
 	GTime time);

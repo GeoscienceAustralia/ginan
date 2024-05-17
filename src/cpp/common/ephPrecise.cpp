@@ -471,11 +471,12 @@ bool satPosPrecise(
 
 	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
 
-	double tt = 1E-3;
+	double tt = 1e-3;
 
+	Vector3d rSat1 = Vector3d::Zero();
 	Vector3d rSat2 = Vector3d::Zero();
 
-	bool pass	=	pephpos(trace, time,		Sat, nav, rSat,		&ephVar)
+	bool pass	=	pephpos(trace, time - tt,	Sat, nav, rSat1,	&ephVar)
 				&&	pephpos(trace, time + tt,	Sat, nav, rSat2);
 
 	if 	(pass == false)
@@ -485,7 +486,8 @@ bool satPosPrecise(
 		return false;
 	}
 
-	satVel = (rSat2 - rSat) / tt;
+	rSat	= (rSat2 + rSat1) /  2;
+	satVel	= (rSat2 - rSat1) / (2 * tt);
 
 	return true;
 }

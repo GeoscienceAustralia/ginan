@@ -137,7 +137,16 @@ bool satPosKalman(
 	if	( rSat0.isZero() == false
 		&&vSat0.isZero() == false)
 	{
-		satPos.rSatEciDt = propagateEllipse(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel, j2);
+		auto& satOpts = acsConfig.getSatOpts(satPos.Sat);
+
+		if (dt <= satOpts.ellipse_propagation_time_tolerance)
+		{
+			satPos.rSatEciDt = propagateEllipse	(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel, j2);
+		}
+		else
+		{
+			satPos.rSatEciDt = propagateFull	(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel);
+		}
 	}
 
 	return true;

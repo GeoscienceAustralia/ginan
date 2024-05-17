@@ -10,7 +10,7 @@
 map<KFKey, map<int, BiasEntry>> sinexBiases_out;
 long int	bottomOfFile = 0;
 double 		startTimeofFile[3];
-string		lastBiasSINEXFile = "";
+string		lastBiasSINEXFile;
 
 /** Convert enum observation code to code string
 */

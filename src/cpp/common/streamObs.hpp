@@ -17,10 +17,13 @@ struct ObsStream : StreamParser
 {
 	E_ObsWaitCode	obsWaitCode = E_ObsWaitCode::OK;
 
+	bool	isPseudoRec;
+
 	ObsStream(
-		unique_ptr<Stream> stream_ptr,
-		unique_ptr<Parser> parser_ptr)
-	:	StreamParser(std::move(stream_ptr), std::move(parser_ptr))
+		unique_ptr<Stream>	stream_ptr,
+		unique_ptr<Parser>	parser_ptr,
+		bool				isPseudoRec = false)
+	:	StreamParser(std::move(stream_ptr), std::move(parser_ptr)), isPseudoRec{isPseudoRec}
 	{
 
 	}

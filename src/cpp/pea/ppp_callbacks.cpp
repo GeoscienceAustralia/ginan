@@ -3,6 +3,11 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <sstream>
+
+using std::ostringstream;
+
+#include "interactiveTerminal.hpp"
 #include "acsConfig.hpp"
 #include "receiver.hpp"
 #include "satStat.hpp"
@@ -27,7 +32,9 @@ bool deweightMeas(
 
 	auto& key = kfMeas.obsKeys[index];
 
-	trace << std::endl << "Deweighting " << key << " - " << key.comment << std::endl;
+	InteractiveTerminal ss("Deweights", trace, false);
+
+	ss << std::endl << kfState.time.to_string() << "\tDeweighting " << key << " - " << key.comment;
 
 	kfState.statisticsMap["Meas deweight"]++;
 
@@ -196,8 +203,9 @@ bool incrementReceiverError(
 }
 
 bool resetPhaseSignalError(
-	KFMeas&		kfMeas,
-	int			index)
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index)
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
@@ -221,46 +229,48 @@ bool resetPhaseSignalError(
 
 
 bool resetPhaseSignalOutage(
-	KFMeas&		kfMeas,
-	int			index)
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index)
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
 	for (auto suffix : {"", "_alt"})
 	{
-		unsigned int* phaseOutageCount_ptr = (unsigned int*) metaDataMap[(string)"phaseOutageCount" + suffix];
+		GTime* lastPhaseTime_ptr = (GTime*) metaDataMap[(string)"lastPhaseTime" + suffix];
 
-		if (phaseOutageCount_ptr == nullptr)
+		if (lastPhaseTime_ptr == nullptr)
 		{
 			return true;
 		}
 
-		unsigned int&	phaseOutageCount	= *phaseOutageCount_ptr;
+		GTime& lastPhaseTime = *lastPhaseTime_ptr;
 
-		phaseOutageCount = 0;
+		lastPhaseTime = time;
 	}
 
 	return true;
 }
 
 bool resetIonoSignalOutage(
-	KFMeas&		kfMeas,
-	int			index)
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index)
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
 	for (auto suffix : {"", "_alt"})
 	{
-		unsigned int* ionoOutageCount_ptr = (unsigned int*) metaDataMap[(string)"ionoOutageCount" + suffix];
+		GTime* lastIonTime_ptr = (GTime*) metaDataMap[(string)"lastIonTime" + suffix];
 
-		if (ionoOutageCount_ptr == nullptr)
+		if (lastIonTime_ptr == nullptr)
 		{
 			return true;
 		}
 
-		unsigned int&	ionoOutageCount	= *ionoOutageCount_ptr;
+		GTime& lastIonTime = *lastIonTime_ptr;
 
-		ionoOutageCount = 0;
+		lastIonTime = time;
 	}
 
 	return true;

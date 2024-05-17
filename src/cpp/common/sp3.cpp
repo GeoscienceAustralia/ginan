@@ -288,15 +288,6 @@ bool readsp3(
 					<< "Unknown sp3 time system: " << timeSysStr << std::endl;
 					return false;
 				}
-
-				// currently only GPST and UTC are supported
-				if	( tsys != +E_TimeSys::GPST
-					&&tsys != +E_TimeSys::UTC)
-				{
-					BOOST_LOG_TRIVIAL(error)
-					<< "Unsupported time system: " << timeSysStr << std::endl;
-					return false;
-				}
 			}
 			continue;
 		}

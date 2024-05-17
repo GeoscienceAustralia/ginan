@@ -16,6 +16,7 @@ using std::tuple;
 using std::map;
 
 
+#include "interactiveTerminal.hpp"
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
 #include "mongoWrite.hpp"
@@ -880,9 +881,6 @@ void removeBadIonospheres(
 	Trace&			trace,
 	KFState&		kfState);
 
-void incrementOutageCount(
-	ReceiverMap&	receiverMap);
-
 void checkOrbits(
 	Trace&			trace,
 	KFState&		kfState);
@@ -898,8 +896,6 @@ void PPP(
 		removeBadAmbiguities(trace, kfState, receiverMap);
 		removeBadIonospheres(trace, kfState);
 
-		incrementOutageCount(receiverMap);
-
 		updateRecClocks		(trace, receiverMap,			kfState);
 		updateAvgClocks		(trace, 				tsync,	kfState);
 		updateAvgIonosphere	(trace,					tsync,	kfState);
@@ -909,6 +905,8 @@ void PPP(
 	//add process noise and dynamics to existing states as a prediction of current state
 	if (kfState.assume_linearity == false)
 	{
+		InteractiveTerminal::setMode(E_InteractiveMode::StateTransition1);
+
 		BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
 
 		kfState.stateTransition(trace, tsync);
@@ -930,9 +928,9 @@ void PPP(
 // 		R_ptr = &R;
 	}
 
-// 	mongoReadFilter(remoteState, GTime::noTime(), {});
-
 	{
+		InteractiveTerminal::setMode(E_InteractiveMode::OMCCalculations);
+
 		BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << std::endl;
 
 		//calculate the measurements for each station
@@ -956,6 +954,9 @@ void PPP(
 			}
 
 			auto& kfMeasEntryList = stationKFEntryListMap[rec.id];
+
+			rec.pppTideCache.uninit();
+			rec.pppEopCache	.uninit();
 
 			orbitPseudoObs		(trace,		rec,	constKfState, kfMeasEntryList);
 			receiverPPP			(std::cout,	rec,	constKfState, kfMeasEntryList,	remoteState);
@@ -990,6 +991,8 @@ void PPP(
 	filterPseudoObs			(trace,					kfState,	kfMeasEntryList);
 
 	//use state transition to initialise new state elements
+	InteractiveTerminal::setMode(E_InteractiveMode::StateTransition2);
+
 	BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
 
 	kfState.stateTransition(trace, tsync);
@@ -1027,11 +1030,12 @@ void PPP(
 	chunkFilter(trace, kfState, combinedMeas, receiverMap, filterChunkList, traceList);
 
 
+	InteractiveTerminal::setMode(E_InteractiveMode::Filtering);
 	BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << std::endl;
 
 	kfState.filterKalman(trace, combinedMeas, true, &filterChunkList);
 
-	postFilterChecks(combinedMeas);
+	postFilterChecks(tsync, combinedMeas);
 
 	//output chunks if we are actually chunking still
 	if	( acsConfig.pppOpts.receiver_chunking

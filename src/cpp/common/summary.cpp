@@ -1,6 +1,7 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "interactiveTerminal.hpp"
 #include "receiver.hpp"
 #include "summary.hpp"
 
@@ -9,13 +10,15 @@ void outputStatistics(
 	map<string, int>&	statisticsMap,
 	map<string, int>&	statisticsMapSum)
 {
-	Block block(trace, "Filter Statistics");
-
 	for (auto& [str, count] : statisticsMap)
 	{
-		tracepdeex(0, trace, "! %-40s: %d\n", str.c_str(), count);
 		statisticsMapSum[str] += count;
 	}
+
+	{	InteractiveTerminal	ss(			"Filter-Statistics\tEpoch", trace);
+		Block				block(ss,	"Filter-Statistics/Epoch");				for (auto& [str, count] : statisticsMap)		tracepdeex(0, ss, "! %-40s: %d\n", str.c_str(), count);		}
+	{	InteractiveTerminal ss(			"Filter-Statistics\tTotal", trace);
+		Block				block(ss,	"Filter-Statistics/Total");				for (auto& [str, count] : statisticsMapSum)		tracepdeex(0, ss, "! %-40s: %d\n", str.c_str(), count);		}
 
 	statisticsMap.clear();
 }

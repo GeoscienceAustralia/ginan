@@ -27,8 +27,8 @@ using std::map;
 
 struct ClockEntry
 {
-	string			id		= "";		// Either station of satellite.
-	string			monid	= "";		// Monument identification, receiver.
+	string			id;					// Either station of satellite.
+	string			monid;				// Monument identification, receiver.
 	Vector3d		recPos	= {};		// Receiver position.
 	double	 		clock	= 0;		// Mean clock delta reference.
 	double	 		sigma	= 0;		// Standard deviation.
@@ -36,11 +36,14 @@ struct ClockEntry
 	vector<int>		clkIndices;
 };
 
-typedef std::vector<ClockEntry> ClockList;
+struct ClockList : vector<ClockEntry>
+{
+
+};
 
 void outputRinexClocksBody(
 	string&		filename,	    ///< Path to output file.
-	ClockList&	clkEntryList,	   ///< List of data to print.
+	ClockList&	clkEntryList,	///< List of data to print.
 	GTime&		time)		    ///< Epoch time.
 {
 	std::ofstream clockFile(filename, std::ofstream::app);

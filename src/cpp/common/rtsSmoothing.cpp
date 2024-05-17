@@ -18,7 +18,6 @@ using std::map;
 #include "rinexClkWrite.hpp"
 #include "algebraTrace.hpp"
 #include "rtsSmoothing.hpp"
-#include "binaryStore.hpp"
 #include "orbexWrite.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
@@ -45,12 +44,6 @@ void postRTSActions(
 		||acsConfig.pppOpts.output_intermediate_rts)
 	{
 		mongoStates(kfState, {.suffix = "_rts", .instances = acsConfig.mongoOpts.output_states});
-	}
-
-	if	( final
-		||acsConfig.pppOpts.output_intermediate_rts)
-	{
-		storeStates(kfState, "_rts");
 	}
 
 	if (final == false)
@@ -162,16 +155,14 @@ void RTS_Output(
 				string filename = metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX];
 
 				std::ofstream ofs(filename, std::ofstream::out | std::ofstream::app);
-				if (!ofs)
-				{
-					BOOST_LOG_TRIVIAL(error) << "BAD RTS Write to " << filename;
-					break;
-				}
-
-				if (acsConfig.output_residuals)
+				if	( ofs
+					&&acsConfig.output_residuals)
 				{
 					outputResiduals(ofs, archiveMeas, -1, "/RTS", 0, archiveMeas.obsKeys.size());
+				}
 
+				if (acsConfig.mongoOpts.output_measurements)
+				{
 					mongoMeasResiduals(archiveMeas.time, archiveMeas, acsConfig.mongoOpts.queue_outputs, "_rts");
 				}
 

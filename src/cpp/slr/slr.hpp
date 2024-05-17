@@ -12,6 +12,8 @@ using std::string;
 using std::map;
 
 struct VectorPos;
+struct TropStates;
+struct TropMapping;
 struct Navigation;
 struct Receiver;
 struct ObsList;
@@ -26,7 +28,10 @@ struct SphericalCom
 	double	comValue = 0;
 };
 
-typedef map<string, map<string, map<GTime, SphericalCom, std::greater<GTime>>>> SphericalComMap; // index by sat, then by rec
+struct SphericalComMap :  map<string, map<string, map<GTime, SphericalCom, std::greater<GTime>>>>  // index by sat, then by rec
+{
+
+};
 
 void readCom(
 	string filepath);
@@ -34,32 +39,22 @@ void readCom(
 bool isSpherical(
 	string satName);
 
-VectorEcef satComOffSphere(
+double		satComOffSphere(
 	LObs&	obs);
 
-VectorEcef satComOffGnss(
+VectorEcef	satComOffGnss(
 	LObs&	obs);
-
-void getRecPosApriori(
-	LObs&		obs,
-	Receiver&	rec);
 
 double laserTropDelay(
-	LObs&		obs,
-	VectorPos&	pos,
-	double		elevation);
+	LObs&			obs,
+	VectorPos&		pos,
+	AzEl&			azel,
+	TropStates&		tropStates,
+	TropMapping&	dTropDx,
+	double&			var);
 
-void applyBiases(
-	LObs&	obs);
-
-void satPossSlr(
-	Trace&				trace,
-	ObsList&			slrObsList,
-	Navigation&			nav,
-	vector<E_Source>	ephTypes,
-	E_OffsetType		offsetType,
-	E_Relativity		applyRelativity,
-	const KFState*		kfState_ptr);
+void updateSlrRecBiases(
+	LObs&		obs);
 
 extern map<string, map<GTime, shared_ptr<LObs>>> slrSiteObsMap;
 
@@ -78,3 +73,4 @@ int readSlrObs(
 
 extern map<string, vector<string>>	slrObsFiles;
 extern SphericalComMap				sphericalComMap;
+extern map<string, int>				cdpIdMap;

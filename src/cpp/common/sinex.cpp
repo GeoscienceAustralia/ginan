@@ -65,17 +65,6 @@ void trimCut(
 		line.pop_back();
 }
 
-/** seconds diff bewteen left and right
- * If left < right the value is negative
- */
-long int time_compare(UYds& left, UYds& right)			//todo aaron, delete this
-{
-	long int leftfull	= (left[0]	* 365 + left[1])	* 86400 + left[2];
-	long int rightfull	= (right[0] * 365 + right[1])	* 86400 + right[2];
-
-	return leftfull - rightfull;
-}
-
 bool compare(string& one, 	string& two)
 {
 	if (one.compare(two) == 0)
@@ -381,9 +370,9 @@ bool compare(Sinex_solepoch_t& one, 	Sinex_solepoch_t& two)
 
 bool compare(Sinex_solestimate_t& one, 	Sinex_solestimate_t& two)
 {
-	if 	( one.sitecode.compare(two.sitecode)		== 0
-		&&one.type.compare(two.type)				== 0
-		&&time_compare(one.refepoch, two.refepoch)	== 0)
+	if 	( one.sitecode.compare(two.sitecode)	== 0
+		&&one.type.compare(two.type)			== 0
+		&&one.refepoch == two.refepoch)
 	{
 		return true;
 	}
@@ -394,7 +383,7 @@ bool compare(Sinex_solapriori_t& one, 	Sinex_solapriori_t& two)
 {
 	if 	( one.sitecode.compare(two.sitecode)		== 0
 		&&one.param_type.compare(two.param_type)	== 0
-		&&time_compare(one.epoch, two.epoch)		== 0)
+		&&one.epoch == two.epoch)
 	{
 		return true;
 	}
@@ -403,9 +392,9 @@ bool compare(Sinex_solapriori_t& one, 	Sinex_solapriori_t& two)
 
 bool compare(Sinex_solneq_t& one, 	Sinex_solneq_t& two)
 {
-	if 	( one.site.compare(two.site)			== 0
-		&&one.ptype.compare(two.ptype)			== 0
-		&&time_compare(one.epoch, two.epoch)	== 0)
+	if 	( one.site.compare(two.site)	== 0
+		&&one.ptype.compare(two.ptype)	== 0
+		&&one.epoch == two.epoch)
 	{
 		return true;
 	}
@@ -528,9 +517,9 @@ void dedupe_sinex()
 // TODO; What if we are reading a second file. What wins?
 bool read_snx_header(std::ifstream& in)
 {
-	string s;
+	string line;
 
-	std::getline(in, s);
+	std::getline(in, line);
 
 	if (in.eof())
 	{
@@ -539,11 +528,11 @@ bool read_snx_header(std::ifstream& in)
 	}
 
 	// verify line contents
-	if 	(  s[0] != '%'
-		|| s[1] != '='
-		|| s[2] != 'S'
-		|| s[3] != 'N'
-		|| s[4] != 'X')
+	if 	(  line[0] != '%'
+		|| line[1] != '='
+		|| line[2] != 'S'
+		|| line[3] != 'N'
+		|| line[4] != 'X')
 	{
 		// error. not a sinex file
 		BOOST_LOG_TRIVIAL(error) << "Error: Not a sinex file" << endl;
@@ -551,14 +540,14 @@ bool read_snx_header(std::ifstream& in)
 	}
 
 	// remaining characters indiciate properties of the file
-	if (s.length() > 5)
+	if (line.length() > 5)
 	{
-		const char* p = s.c_str();
+		const char* buff = line.c_str();
 		char create_agc[4];
 		char data_agc[4];
 		char solcontents[7];
 
-		int  readcount = sscanf(p + 6, "%4lf %3s %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf %2lf:%3lf:%5lf %c %5d %c %c %c %c %c %c %c",
+		int  readcount = sscanf(buff + 6, "%4lf %3s %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf %2lf:%3lf:%5lf %c %5d %c %c %c %c %c %c %c",
 						&theSinex.ver,
 						create_agc,
 						&theSinex.filedate[0],
@@ -696,9 +685,9 @@ void write_snx_header(std::ofstream& out)
 	out << line << endl;
 }
 
-void parseReference(string& s)
+void parseReference(string& line)
 {
-	theSinex.refstrings.push_back(s);
+	theSinex.refstrings.push_back(line);
 }
 
 void write_as_comments(
@@ -707,12 +696,12 @@ void write_as_comments(
 {
 	for (auto& comment : comments)
 	{
-		string s = comment;
+		string line = comment;
 
 		// just make sure it starts with * as required by format
-		s[0] = '*';
+		line[0] = '*';
 
-		out << s << endl;
+		out << line << endl;
 	}
 }
 
@@ -757,22 +746,22 @@ void write_snx_comments(ofstream& out)
 	}
 }
 
-void parseInputHistory(string& s)
+void parseInputHistory(string& line)
 {
 	Sinex_input_history_t siht;
 	// remaining characters indiciate properties of the history
 
-	if (s.length() > 5)
+	if (line.length() > 5)
 	{
-		const char* p = s.c_str();
+		const char* buff = line.c_str();
 		char create_agc[4];
 		char data_agc[4];
 		char solcontents[7];
 		int  readcount;
 
-		siht.code = s[1];
+		siht.code = line[1];
 
-		readcount = sscanf(p + 6, "%4lf %3s %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf %2lf:%3lf:%5lf %c %5d %c %c %c %c %c %c %c",
+		readcount = sscanf(buff + 6, "%4lf %3s %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf %2lf:%3lf:%5lf %c %5d %c %c %c %c %c %c %c",
 							&siht.fmt,
 							create_agc,
 							&siht.create_time[0],
@@ -863,15 +852,15 @@ void write_snx_input_history(ofstream& out)
 	}
 }
 
-void parseInputFiles(string& s)
+void parseInputFiles(string& line)
 {
 	Sinex_input_file_t sif;
 	char agency[4];
-	const char* p	= s.c_str();
-	sif.file		= s.substr(18, 29);
-	sif.description	= s.substr(48, 32);
+	const char* buff	= line.c_str();
+	sif.file		= line.substr(18, 29);
+	sif.description	= line.substr(48, 32);
 
-	int  readcount = sscanf(p + 1, "%3s %2lf:%3lf:%5lf",
+	int  readcount = sscanf(buff + 1, "%3s %2lf:%3lf:%5lf",
 							agency,
 							&sif.yds[0],
 							&sif.yds[1],
@@ -918,12 +907,12 @@ void write_snx_input_files(ofstream& out)
 	}
 }
 
-void parseAcknowledgements(string& s)
+void parseAcknowledgements(string& line)
 {
 	Sinex_ack_t sat;
 
-	sat.description	= s.substr(5);
-	sat.agency		= s.substr(1, 3);
+	sat.description	= line.substr(5);
+	sat.agency		= line.substr(1, 3);
 
 	theSinex.acknowledgements.push_back(sat);
 }
@@ -945,19 +934,19 @@ void write_snx_acknowledgements(ofstream& out)
 	}
 }
 
-void parseSiteIds(string& s)
+void parseSiteIds(string& line)
 {
-	const char* p = s.c_str();
+	const char* buff = line.c_str();
 	Sinex_siteid_t sst;
 
-	sst.sitecode	= trim(s.substr(1, 4));
-	sst.ptcode		= s.substr(6, 2);
-	sst.domes		= s.substr(9, 9);
-	sst.typecode 	= s[19];
-	sst.desc		= s.substr(21, 22);
+	sst.sitecode	= trim(line.substr(1, 4));
+	sst.ptcode		= line.substr(6, 2);
+	sst.domes		= line.substr(9, 9);
+	sst.typecode 	= line[19];
+	sst.desc		= line.substr(21, 22);
 
 
-	int    readcount = sscanf(p + 44, "%3d %2d %4lf %3d %2d %4lf %7lf",
+	int    readcount = sscanf(buff + 44, "%3d %2d %4lf %3d %2d %4lf %7lf",
 						&sst.lon_deg,
 						&sst.lon_min,
 						&sst.lon_sec,
@@ -1004,28 +993,28 @@ void write_snx_siteids(ofstream& out)
 // compare by the 2 station ids only.
 bool compare_sitedata(const Sinex_sitedata_t& left, const Sinex_sitedata_t& right)
 {
-	int sitec = left.site.compare(right.site);
+	int comp = left.site.compare(right.site);
 
-	if (sitec == 0)
-		sitec = left.sitecode.compare(right.sitecode);
+	if (comp == 0)
+		comp = left.sitecode.compare(right.sitecode);
 
-	return (sitec < 0);
+	return (comp < 0);
 }
 
-void parseSiteData(string& s)
+void parseSiteData(string& line)
 {
-	const char* p = s.c_str();
+	const char* buff = line.c_str();
 
 	Sinex_sitedata_t sst;
 
-	sst.site		= s.substr(1, 4);
-	sst.station_pt	= s.substr(6, 2);
-	sst.soln_id		= s.substr(9, 4);
-	sst.sitecode	= s.substr(14, 4);
-	sst.site_pt		= s.substr(18, 2);
-	sst.sitesoln	= s.substr(20, 4);
+	sst.site		= line.substr(1, 4);
+	sst.station_pt	= line.substr(6, 2);
+	sst.soln_id		= line.substr(9, 4);
+	sst.sitecode	= line.substr(14, 4);
+	sst.site_pt		= line.substr(18, 2);
+	sst.sitesoln	= line.substr(20, 4);
 
-	sst.obscode		= s[24];
+	sst.obscode		= line[24];
 	UYds    start;
 	UYds    end;
 	UYds    create;
@@ -1033,7 +1022,7 @@ void parseSiteData(string& s)
 
 	int    readcount;
 
-	readcount = sscanf(p + 28, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf",
+	readcount = sscanf(buff + 28, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %3s %2lf:%3lf:%5lf",
 						&start[0],
 						&start[1],
 						&start[2],
@@ -1123,22 +1112,22 @@ void write_snx_sitedata(ofstream& out, list<SinexRecData>* pstns)
 	}
 }
 
-void parseReceivers(string& s)
+void parseReceivers(string& line)
 {
-	const char* p = s.c_str();
+	const char* buff = line.c_str();
 
 	Sinex_receiver_t srt;
 
-	srt.sitecode	= trim(s.substr(1, 4));
-	srt.ptcode		= s.substr(6, 2);
-	srt.solnid		= s.substr(9, 4);
-	srt.typecode	= s[14];
-	srt.type		= s.substr(42, 20);
-	srt.sn			= s.substr(63, 5);
-	srt.firm 		= trim(s.substr(69, 11));
+	srt.sitecode	= trim(line.substr(1, 4));
+	srt.ptcode		= line.substr(6, 2);
+	srt.solnid		= line.substr(9, 4);
+	srt.typecode	= line[14];
+	srt.type		= line.substr(42, 20);
+	srt.sn			= line.substr(63, 5);
+	srt.firm 		= trim(line.substr(69, 11));
 	int readcount;
 
-	readcount = sscanf(p + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
+	readcount = sscanf(buff + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 						&srt.start[0],
 						&srt.start[1],
 						&srt.start[2],
@@ -1200,20 +1189,20 @@ void write_snx_receivers(ofstream& out)
 	}
 }
 
-void parseAntennas(string& s)
+void parseAntennas(string& line)
 {
-	const char* p = s.c_str();
+	const char* buff = line.c_str();
 
 	Sinex_antenna_t ant;
 
-	ant.sitecode	= trim(s.substr(1, 4));
-	ant.ptcode		= s.substr(6, 2);
-	ant.solnnum		= s.substr(9, 4);
-	ant.typecode	= s[14];
-	ant.type		= s.substr(42, 20);
-	ant.sn			= trim(s.substr(63, 5));
+	ant.sitecode	= trim(line.substr(1, 4));
+	ant.ptcode		= line.substr(6, 2);
+	ant.solnnum		= line.substr(9, 4);
+	ant.typecode	= line[14];
+	ant.type		= line.substr(42, 20);
+	ant.sn			= trim(line.substr(63, 5));
 
-	int    readcount = sscanf(p + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
+	int    readcount = sscanf(buff + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 								&ant.start[0],
 								&ant.start[1],
 								&ant.start[2],
@@ -1280,22 +1269,22 @@ bool compare_gps_pc(Sinex_gps_phase_center_t& left, Sinex_gps_phase_center_t& ri
 {
 	int comp = left.antname.compare(right.antname);
 
-	if (!comp)
+	if (comp == 0)
 		comp = left.serialno.compare(right.serialno);
 
 	return (comp < 0);
 }
 
-void parseGpsPhaseCenters(string& s)
+void parseGpsPhaseCenters(string& line)
 {
-	const char* p = s.c_str();
+	const char* buff = line.c_str();
 	Sinex_gps_phase_center_t sgpct;
 
-	sgpct.antname	= s.substr(1, 20);
-	sgpct.serialno	= s.substr(22, 5);
-	sgpct.calib		= s.substr(70, 10);
+	sgpct.antname	= line.substr(1, 20);
+	sgpct.serialno	= line.substr(22, 5);
+	sgpct.calib		= line.substr(70, 10);
 
-	int readcount = sscanf(p + 28, "%6lf %6lf %6lf %6lf %6lf %6lf",
+	int readcount = sscanf(buff + 28, "%6lf %6lf %6lf %6lf %6lf %6lf",
 								&sgpct.L1[0],
 								&sgpct.L1[1],
 								&sgpct.L1[2],
@@ -1386,7 +1375,7 @@ bool compare_gal_pc(Sinex_gal_phase_center_t& left, Sinex_gal_phase_center_t& ri
 {
 	int comp = left.antname.compare(right.antname);
 
-	if (!comp)
+	if (comp == 0)
 		comp = left.serialno.compare(right.serialno);
 
 	return (comp < 0);
@@ -1408,17 +1397,17 @@ void parseGalPhaseCenters(string& s_x)
 
 	lineNum = 0;
 
-	auto& s = lines[0];
-	auto& t = lines[1];
-	auto& u = lines[2];
+	auto& line1 = lines[0];
+	auto& line2 = lines[1];
+	auto& line3 = lines[2];
 
 	Sinex_gal_phase_center_t sgpct;
 
-	sgpct.antname	= s.substr(1, 20);
-	sgpct.serialno	= s.substr(22, 5);
-	sgpct.calib		= s.substr(69, 10);
+	sgpct.antname	= line1.substr(1, 20);
+	sgpct.serialno	= line1.substr(22, 5);
+	sgpct.calib		= line1.substr(69, 10);
 
-	int readcount1 = sscanf(s.c_str() + 28, "%6lf %6lf %6lf %6lf %6lf %6lf",
+	int readcount1 = sscanf(line1.c_str() + 28, "%6lf %6lf %6lf %6lf %6lf %6lf",
 							&sgpct.L1[0],
 							&sgpct.L1[1],
 							&sgpct.L1[2],
@@ -1427,14 +1416,14 @@ void parseGalPhaseCenters(string& s_x)
 							&sgpct.L5[2]);
 
 		// Do we need to check the antenna name and serial each time? I am going to assume not
-	int	readcount2 = sscanf(t.c_str() + 28, "%6lf %6lf %6lf %6lf %6lf %6lf",
+	int	readcount2 = sscanf(line2.c_str() + 28, "%6lf %6lf %6lf %6lf %6lf %6lf",
 							&sgpct.L6[0],
 							&sgpct.L6[1],
 							&sgpct.L6[2],
 							&sgpct.L7[0],
 							&sgpct.L7[1],
 							&sgpct.L7[2]);
-	int	readcount3 = sscanf(u.c_str() + 28, "%6lf %6lf %6lf",
+	int	readcount3 = sscanf(line3.c_str() + 28, "%6lf %6lf %6lf",
 							&sgpct.L8[0],
 							&sgpct.L8[1],
 							&sgpct.L8[2]);
@@ -1551,19 +1540,19 @@ void write_snx_gal_pcs(ofstream& out, list<SinexRecData>* pstns)
 	}
 }
 
-void parseSiteEccentricity(string& s)
+void parseSiteEccentricity(string& line)
 {
-	const char* p = s.c_str();
+	const char* buff = line.c_str();
 	Sinex_site_ecc_t sset;
 
-	sset.sitecode 	= trim(s.substr(1, 4));
-	sset.ptcode		= s.substr(6, 2);
-	sset.solnnum	= s.substr(9, 4);
-	sset.typecode	= s[14];
-	sset.rs			= s.substr(42, 3);
+	sset.sitecode 	= trim(line.substr(1, 4));
+	sset.ptcode		= line.substr(6, 2);
+	sset.solnnum	= line.substr(9, 4);
+	sset.typecode	= line[14];
+	sset.rs			= line.substr(42, 3);
 	char   junk[4];
 
-	int readcount = sscanf(p + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %3s %8lf %8lf %8lf",
+	int readcount = sscanf(buff + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %3s %8lf %8lf %8lf",
 						&sset.start[0],
 						&sset.start[1],
 						&sset.start[2],
@@ -1635,7 +1624,7 @@ bool compare_site_epochs(Sinex_solepoch_t& left, Sinex_solepoch_t& right)
 	int comp = left.sitecode.compare(right.sitecode);
 	int i = 0;
 
-	while (!comp && i < 3)
+	while (comp == 0 && i < 3)
 	{
 		comp = left.start[i] - right.start[i];
 		i++;
@@ -1644,18 +1633,18 @@ bool compare_site_epochs(Sinex_solepoch_t& left, Sinex_solepoch_t& right)
 	return (comp < 0);
 }
 
-void parseEpochs(string& s)
+void parseEpochs(string& line)
 {
-	const char* p = s.c_str();
+	const char* buff = line.c_str();
 
 	Sinex_solepoch_t sst;
 
-	sst.sitecode	= trim(s.substr(1, 4));
-	sst.ptcode		= s.substr(6, 2);
-	sst.solnnum		= s.substr(9, 4);
-	sst.typecode	= s[14];
+	sst.sitecode	= trim(line.substr(1, 4));
+	sst.ptcode		= line.substr(6, 2);
+	sst.solnnum		= line.substr(9, 4);
+	sst.typecode	= line[14];
 
-	int readcount = sscanf(p + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %2lf:%3lf:%5lf",
+	int readcount = sscanf(buff + 16, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 								&sst.start[0],
 								&sst.start[1],
 								&sst.start[2],
@@ -1722,21 +1711,23 @@ void write_snx_epochs(
 	}
 }
 
-void parseStatistics(string& s)	//todo aaron, is this type stuff really necessary
+void parseStatistics(string& line)	//todo aaron, is this type stuff really necessary
 {
-	string  stat = s.substr(1, 30);
+	const char* buff = line.c_str();
+
+	string  stat = line.substr(1, 30);
 	double  dval;
 	int		ival;
 	short	etype;
 
-	if (s.substr(33).find(".") != string::npos)
+	if (line.substr(33).find(".") != string::npos)
 	{
-		dval = (double)atof(s.c_str() + 33);
+		dval = (double)atof(buff + 33);
 		etype = 1;
 	}
 	else
 	{
-		ival = atoi(s.c_str() + 33);
+		ival = atoi(buff + 33);
 		etype = 0;
 	}
 
@@ -1775,28 +1766,30 @@ void write_snx_statistics(ofstream& out)
 
 
 void parseSolutionEstimates(
-	string& s)
+	string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_solestimate_t sst;
 
 	sst.file		= theSinex.currentFile;
-	sst.type		= s.substr(7,	6);
-	sst.sitecode	= s.substr(14,	4);
-	sst.ptcode		= s.substr(19,	2);
-	sst.solnnum 	= s.substr(22,	4);
+	sst.type		= line.substr(7,	6);
+	sst.sitecode	= line.substr(14,	4);
+	sst.ptcode		= line.substr(19,	2);
+	sst.solnnum 	= line.substr(22,	4);
 
-	sst.index		= atoi(s.substr(1, 5).c_str());
+	sst.index		= (int)str2num(buff, 1, 5);
 
-	int	readcount	= sscanf(s.c_str() + 27, "%2lf:%3lf:%5lf",
+	int	readcount	= sscanf(buff + 27, "%2lf:%3lf:%5lf",
 						&sst.refepoch[0],
 						&sst.refepoch[1],
 						&sst.refepoch[2]);
 
-	sst.unit		= s.substr(40,	4);
+	sst.unit		= line.substr(40,	4);
 
-	sst.constraint	= s[45];
+	sst.constraint	= line[45];
 
-	readcount		+= sscanf(s.c_str() + 47, "%21lf %11lf",
+	readcount		+= sscanf(buff + 47, "%21lf %11lf",
 						&sst.estimate,
 						&sst.stddev);
 
@@ -1919,22 +1912,23 @@ void write_snx_estimates_from_filter(
 // }
 
 
-void parseApriori(string& s)
+void parseApriori(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_solapriori_t sst = {};
 
-	string index	= s.substr(1, 5);
-	sst.idx			= atoi(index.c_str());
-	sst.param_type	= s.substr(7, 6);
-	sst.sitecode	= s.substr(14, 4);
-	sst.ptcode		= s.substr(19, 2);
-	sst.solnnum		= s.substr(22, 4);
+	sst.idx			= (int)str2num(buff, 1, 5);
+	sst.param_type	= line.substr(7, 6);
+	sst.sitecode	= line.substr(14, 4);
+	sst.ptcode		= line.substr(19, 2);
+	sst.solnnum		= line.substr(22, 4);
 
 	char   unit[5];
 
 	unit[4] = '\0';
 
-	int    readcount = sscanf(s.c_str() + 27, "%2lf:%3lf:%5lf %4s %c %21lf %11lf",
+	int    readcount = sscanf(buff + 27, "%2lf:%3lf:%5lf %4s %c %21lf %11lf",
 								&sst.epoch[0],
 								&sst.epoch[1],
 								&sst.epoch[2],
@@ -2045,21 +2039,22 @@ void write_snx_apriori_from_stations(
 	}
 }
 
-void parseNormals(string& s)
+void parseNormals(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_solneq_t sst;
 
-	string parmnum	= s.substr(2, 5);
-	sst.param		= atoi(parmnum.c_str());
-	sst.ptype		= s.substr(7, 6);
-	sst.site		= s.substr(14, 4);
-	sst.pt			= s.substr(19, 2);
-	sst.solnnum		= s.substr(22, 4);
+	sst.param		= (int)str2num(buff, 2, 5);
+	sst.ptype		= line.substr(7, 6);
+	sst.site		= line.substr(14, 4);
+	sst.pt			= line.substr(19, 2);
+	sst.solnnum		= line.substr(22, 4);
 	char   unit[5];
 
 	unit[4] = '\0';
 
-	int    readcount = sscanf(s.c_str() + 27, "%2lf:%3lf:%5lf %4s %c %21lf",
+	int    readcount = sscanf(buff + 27, "%2lf:%3lf:%5lf %4s %c %21lf",
 						&sst.epoch[0],
 						&sst.epoch[1],
 						&sst.epoch[2],
@@ -2126,14 +2121,16 @@ void write_snx_normal(ofstream& out, list<SinexRecData>* pstns = nullptr)
 matrix_type		mat_type;
 matrix_value	mat_value;
 
-void parseMatrix(string& s)//, matrix_type type, matrix_value value)
+void parseMatrix(string& line)//, matrix_type type, matrix_value value)
 {
+	const char* buff = line.c_str();
+
 // 	//todo aaron, this is only half complete, the maxrow/col arent used but should be with multiple input matrices.
 	int		maxrow = 0;
 	int		maxcol = 0;
 	Sinex_solmatrix_t smt;
 
-	int readcount = sscanf(s.c_str(), " %5d %5d %21lf %21lf %21lf",
+	int readcount = sscanf(buff, " %5d %5d %21lf %21lf %21lf",
 						&smt.row,
 						&smt.col,
 						&smt.value[0],
@@ -2165,13 +2162,13 @@ void parseMatrix(string& s)//, matrix_type type, matrix_value value)
 }
 
 void parseSinexEstimates(
-	string& s)
+	string& line)
 {
 
 }
 
 void parseSinexEstimateMatrix(
-	string&	s)
+	string&	line)
 {
 
 }
@@ -2239,31 +2236,39 @@ void write_snx_matrices_from_filter(
 }
 
 
-void parseDataHandling(string& s)
+void parseDataHandling(string& line)
 {
 	Sinex_datahandling_t sdt;
 
-	sdt.sitecode	= trim(s.substr(1, 4));	//4 - CDP ID
-	sdt.ptcode		= s.substr(6, 2);	//2 - physical monument used at the site
-	sdt.unit		= s.substr(9, 4);	//4 - units of estimate
-	sdt.t			= s.substr(14, 1);	//1
-	sdt.m			= s.substr(42, 1);	//1
-	if (s.size() >= 75+4)
-		sdt.comments	= s.substr(75, 4);	//4
+	const char* buff = line.c_str();
 
-	int	readcount	= sscanf(s.c_str() + 16, "%2lf:%3lf:%5lf",
+	sdt.sitecode	= trim(line.substr(1, 4));	//4 - CDP ID
+	sdt.ptcode		= line.substr(6, 2);	//2 - satellites these biases apply to (-- = all)
+	sdt.solnnum		= line.substr(9, 4);	//4 - solution number
+	sdt.t			= line.substr(14, 1);	//1
+
+	int	readcount	= sscanf(buff + 16, "%2lf:%3lf:%5lf",
 					&sdt.epochstart[0],
 					&sdt.epochstart[1],
 					&sdt.epochstart[2]);
-	readcount		+= sscanf(s.c_str() + 29, "%2lf:%3lf:%5lf",
+	readcount		+= sscanf(buff + 29, "%2lf:%3lf:%5lf",
 					&sdt.epochend[0],
 					&sdt.epochend[1],
 					&sdt.epochend[2]);
 
-	sscanf(s.c_str() + 44, "%12lf %7lf %9lf",
-					&sdt.estimate,
-					&sdt.stddev,
-					&sdt.estrate);
+	sdt.m			= line.substr(42, 1);	//1
+
+	if (line.size() >= 79)
+	{
+		sdt.estimate	= str2num(buff, 44, 12);
+		sdt.stddev		= str2num(buff, 57,  7);
+		sdt.estrate		= str2num(buff, 65,  9);
+		sdt.unit		= line.substr(75, 4);	//4 - units of estimate
+	}
+	if (line.size() > 82)
+	{
+		sdt.comments	= line.substr(82);
+	}
 
 	if (readcount >= 6) //just need a start & stop time
 	{
@@ -2284,16 +2289,16 @@ void parseDataHandling(string& s)
 		GTime time = sdt.epochstart;
 
 		assert(sdt.m.size() == 1);		//todo, aaron whats this doing
-		theSinex.map_data_handling[sdt.sitecode][sdt.m.front()][time] = sdt;
+		theSinex.map_data_handling[sdt.sitecode][sdt.ptcode][sdt.m.front()][time] = sdt;
 	}
 }
 
-void parsePrecode(string& s)
+void parsePrecode(string& line)
 {
 	Sinex_precode_t snt;
 
-	snt.precesscode	= s.substr(1, 8);
-	snt.comment		= s.substr(10);
+	snt.precesscode	= line.substr(1, 8);
+	snt.comment		= line.substr(10);
 
 	theSinex.list_precessions.push_back(snt);
 }
@@ -2314,12 +2319,12 @@ void write_snx_precodes(ofstream& out)
 	}
 }
 
-void parseNutcode(string& s)
+void parseNutcode(string& line)
 {
 	Sinex_nutcode_t snt;
 
-	snt.nutcode = s.substr(1, 8);
-	snt.comment = s.substr(10);
+	snt.nutcode = line.substr(1, 8);
+	snt.comment = line.substr(10);
 
 	theSinex.list_nutcodes.push_back(snt);
 }
@@ -2342,14 +2347,14 @@ void write_snx_nutcodes(ofstream& out)
 	}
 }
 
-void parseSourceIds(string& s)
+void parseSourceIds(string& line)
 {
 	Sinex_source_id_t ssi;
 
-	ssi.source		= s.substr(1, 4);
-	ssi.iers		= s.substr(6, 8);
-	ssi.icrf		= s.substr(15, 16);
-	ssi.comments	= s.substr(32);
+	ssi.source		= line.substr(1, 4);
+	ssi.iers		= line.substr(6, 8);
+	ssi.icrf		= line.substr(15, 16);
+	ssi.comments	= line.substr(32);
 
 	theSinex.list_source_ids.push_back(ssi);
 }
@@ -2374,33 +2379,24 @@ void write_snx_sourceids(ofstream& out)
 
 bool compare_satids(Sinex_satid_t& left, Sinex_satid_t& right)
 {
-	char	constleft	= left.svn[0];
-	char    constright	= right.svn[0];
-	int     nleft	= atoi(left.svn.substr(1).c_str());
-	int     nright	= atoi(right.svn.substr(1).c_str());
-	int		comp;
-
-	if (constleft == constright)
-		comp = nleft - nright;
-	else
-		comp = constleft - constright;
+	int comp = left.svn.compare(right.svn);
 
 	return (comp < 0);
 }
 
-void parseSatelliteIds(string& s)
+void parseSatelliteIds(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_satid_t sst;
 
-	sst.svn			= s.substr(1, 4);
-	sst.prn			= sst.svn[0] + s.substr(6, 2);
-	sst.cospar		= s.substr(9, 9);
-	sst.obsCode		= s[18];
-	sst.antRcvType	= s.substr(47);
+	sst.svn			= line.substr(1, 4);
+	sst.prn			= sst.svn[0] + line.substr(6, 2);
+	sst.cospar		= line.substr(9, 9);
+	sst.obsCode		= line[18];
+	sst.antRcvType	= line.substr(47);
 
-	const char* p = s.c_str() + 21;
-
-	int 	readcount = sscanf(p, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
+	int 	readcount = sscanf(buff + 21, "%2lf:%3lf:%5lf %2lf:%3lf:%5lf",
 						&sst.timeSinceLaunch[0],
 						&sst.timeSinceLaunch[1],
 						&sst.timeSinceLaunch[2],
@@ -2445,15 +2441,17 @@ void write_snx_satids(ofstream& out)
 	}
 }
 
-void parseSatelliteIdentifiers(string& s)
+void parseSatelliteIdentifiers(string& line)
 {
+	const char* buff = line.c_str();
+
 	SinexSatIdentity sst;
 
-	sst.svn			= s.substr(1, 4);
-	sst.cospar		= s.substr(6, 9);
-	sst.category	= atoi(s.substr(16, 6).c_str());
-	sst.blocktype	= trim(s.substr(23, 15));
-	sst.comment		= s.substr(39);
+	sst.svn			= line.substr(1, 4);
+	sst.cospar		= line.substr(6, 9);
+	sst.category	= (int)str2num(buff, 16, 6);
+	sst.blocktype	= trim(line.substr(23, 15));
+	sst.comment		= line.substr(39);
 
 	theSinex.satIdentityMap[sst.svn] = sst;
 
@@ -2481,32 +2479,24 @@ void write_snx_satidents(ofstream& out)
 	}
 }
 
-// NB this DOES not compare by PRN!!
 bool compare_satprns(Sinex_satprn_t& left, Sinex_satprn_t& right)
 {
-	char	constleft	= left.svn[0];
-	char    constright	= right.svn[0];
-	int     nleft		= atoi(left.svn.substr(1).c_str());
-	int     nright		= atoi(right.svn.substr(1).c_str());
-	int		comp;
-
-	if (constleft == constright)
-		comp = nleft - nright;
-	else
-		comp = constleft - constright;
+	int comp = left.prn.compare(right.prn);
 
 	return (comp < 0);
 }
 
-void parseSatPrns(string& s)
+void parseSatPrns(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_satprn_t spt;
 
-	spt.svn			= s.substr(1, 4);
-	spt.prn			= s.substr(36, 3);
-	spt.comment		= s.substr(40);
+	spt.svn			= line.substr(1, 4);
+	spt.prn			= line.substr(36, 3);
+	spt.comment		= line.substr(40);
 
-	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf",
+	int readcount = sscanf(buff + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf",
 						&spt.start[0],
 						&spt.start[1],
 						&spt.start[2],
@@ -2551,31 +2541,26 @@ void write_snx_satprns(ofstream& out)
 bool compare_freq_channels(Sinex_satfreqchn_t& left, Sinex_satfreqchn_t& right)
 {
 	// start by comparing SVN...
-	char	constleft	= left	.svn[0];
-	char    constright	= right	.svn[0];
-	int     nleft		= atoi(left	.svn.substr(1).c_str());
-	int     nright		= atoi(right.svn.substr(1).c_str());
-	int		result;
-
-	if (constleft == constright)		result = nleft		- nright;
-	else								result = constleft	- constright;
+	int comp = left.svn.compare(right.svn);
 
 	// then by start time if the same space vehicle
 	for (int i = 0; i < 3; i++)
-		if (result == 0)
-			result = left.start[i] - right.start[i];
+		if (comp == 0)
+			comp = left.start[i] - right.start[i];
 
-	return (result < 0);
+	return (comp < 0);
 }
 
-void parseSatFreqChannels(string& s)
+void parseSatFreqChannels(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_satfreqchn_t	sfc;
 
-	sfc.svn		= s.substr(1, 4);
-	sfc.comment	= s.substr(40);
+	sfc.svn		= line.substr(1, 4);
+	sfc.comment	= line.substr(40);
 
-	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %3d",
+	int readcount = sscanf(buff + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %3d",
 						&sfc.start[0],
 						&sfc.start[1],
 						&sfc.start[2],
@@ -2616,14 +2601,16 @@ void write_snx_satfreqchn(ofstream& out)
 	}
 }
 
-void parseSatelliteMass(string& s)
+void parseSatelliteMass(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_satmass_t	ssm;
 
-	ssm.svn		= s.substr(1, 4);
-	ssm.comment	= s.substr(46);
+	ssm.svn		= line.substr(1, 4);
+	ssm.comment	= line.substr(46);
 
-	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %9lf",
+	int readcount = sscanf(buff + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %9lf",
 						&ssm.start[0],
 						&ssm.start[1],
 						&ssm.start[2],
@@ -2668,33 +2655,26 @@ void write_snx_satmass(ofstream& out)
 bool compare_satcom(Sinex_satcom_t& left, Sinex_satcom_t& right)
 {
 	// start by comparing SVN...
-	char	constleft		= left.svn[0];
-	char    constright		= right.svn[0];
-	int     nleft			= atoi(left.svn.substr(1).c_str());
-	int     nright			= atoi(right.svn.substr(1).c_str());
-	int		result;
-
-	if (constleft == constright)
-		result = nleft - nright;
-	else
-		result = constleft - constright;
+	int comp = left.svn.compare(right.svn);
 
 	// then by start time if the same space vehicle
 	for (int i = 0; i < 3; i++)
-		if (result == 0)
-			result = left.start[i] - right.start[i];
+		if (comp == 0)
+			comp = left.start[i] - right.start[i];
 
-	return (result < 0);
+	return (comp < 0);
 }
 
-void parseSatelliteComs(string& s)
+void parseSatelliteComs(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_satcom_t	sct;
 
-	sct.svn		= s.substr(1, 4);
-	sct.comment	= s.substr(66);
+	sct.svn		= line.substr(1, 4);
+	sct.comment	= line.substr(66);
 
-	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %9lf %9lf %9lf",
+	int readcount = sscanf(buff + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %9lf %9lf %9lf",
 						&sct.start[0],
 						&sct.start[1],
 						&sct.start[2],
@@ -2742,34 +2722,27 @@ void write_snx_satcom(ofstream& out)
 bool compare_satecc(Sinex_satecc_t& left, Sinex_satecc_t& right)
 {
 	// start by comparing SVN...
-	char	constleft	= left.svn[0];
-	char    constright	= right.svn[0];
-	int     nleft	= atoi(left.svn.substr(1).c_str());
-	int     nright	= atoi(right.svn.substr(1).c_str());
-	int		result;
-
-	if (constleft == constright)
-		result = nleft - nright;
-	else
-		result = constleft - constright;
+	int comp = left.svn.compare(right.svn);
 
 	// then by type (P or L)
-	if (result == 0)
-		result = static_cast<int>(left.type) - static_cast<int>(right.type);
+	if (comp == 0)
+		comp = static_cast<int>(left.type) - static_cast<int>(right.type);
 
-	return (result < 0);
+	return (comp < 0);
 }
 
-void parseSatelliteEccentricities(string& s)
+void parseSatelliteEccentricities(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_satecc_t	set;
 
-	set.svn		= s.substr(1, 4);
-	set.equip	= s.substr(6, 20);
-	set.type	= s[27];
-	set.comment	= s.substr(59);
+	set.svn		= line.substr(1, 4);
+	set.equip	= line.substr(6, 20);
+	set.type	= line[27];
+	set.comment	= line.substr(59);
 
-	int readcount = sscanf(s.c_str() + 29, "%9lf %9lf %9lf",
+	int readcount = sscanf(buff + 29, "%9lf %9lf %9lf",
 						&set.ecc[0],
 						&set.ecc[1],
 						&set.ecc[2]);
@@ -2803,14 +2776,16 @@ void write_snx_satecc(ofstream& out)
 	}
 }
 
-void parseSatellitePowers(string& s)
+void parseSatellitePowers(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_satpower_t	spt;
 
-	spt.svn		= s.substr(1, 4);
-	spt.comment	= s.substr(41);
+	spt.svn		= line.substr(1, 4);
+	spt.comment	= line.substr(41);
 
-	int readcount = sscanf(s.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %4d",
+	int readcount = sscanf(buff + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf %4d",
 						&spt.start[0],
 						&spt.start[1],
 						&spt.start[2],
@@ -2855,45 +2830,38 @@ void write_snx_satpower(ofstream& out)
 bool compare_satpc(Sinex_satpc_t& left, Sinex_satpc_t& right)
 {
 	// start by comparing SVN...
-	char	constleft	= left.svn[0];
-	char    constright	= right.svn[0];
-	int     nleft	= atoi(left.svn.substr(1).c_str());
-	int     nright	= atoi(right.svn.substr(1).c_str());
-	int		result;
-
-	if (constleft == constright)
-		result = nleft - nright;
-	else
-		result = constleft - constright;
+	int comp = left.svn.compare(right.svn);
 
 	// then by the first freq number
-	if (result == 0)
-		result = static_cast<int>(left.freq) - static_cast<int>(right.freq);
+	if (comp == 0)
+		comp = static_cast<int>(left.freq) - static_cast<int>(right.freq);
 
-	return (result < 0);
+	return (comp < 0);
 }
 
-void parseSatellitePhaseCenters(string& s)
+void parseSatellitePhaseCenters(string& line)
 {
+	const char* buff = line.c_str();
+
 	Sinex_satpc_t		spt;
 
 	int				readcount2;
 
-	spt.svn		= s.substr(1, 4);
-	spt.freq	= s[6];
-	spt.freq2	= s[29];
-	spt.antenna	= s.substr(52, 10);
-	spt.type	= s[63];
-	spt.model	= s[65];
+	spt.svn		= line.substr(1, 4);
+	spt.freq	= line[6];
+	spt.freq2	= line[29];
+	spt.antenna	= line.substr(52, 10);
+	spt.type	= line[63];
+	spt.model	= line[65];
 
-	int readcount = sscanf(s.c_str() + 6, "%6lf %6lf %6lf",
+	int readcount = sscanf(buff + 6, "%6lf %6lf %6lf",
 						&spt.zxy[0],
 						&spt.zxy[1],
 						&spt.zxy[2]);
 
 	if (spt.freq2 != ' ')
 	{
-		readcount2 = sscanf(s.c_str() + 31, "%6lf %6lf %6lf",
+		readcount2 = sscanf(buff + 31, "%6lf %6lf %6lf",
 						&spt.zxy2[0],
 						&spt.zxy2[1],
 						&spt.zxy2[2]);
@@ -2945,12 +2913,14 @@ void write_snx_satpc(ofstream& out)
 
 void parseSinexSatYawRates(string& line)
 {
+	const char* buff = line.c_str();
+
 	SinexSatYawRate entry;
 
 	entry.svn			= line.substr(1, 4);
 	entry.comment		= line.substr(51);
 
-	int readCount = sscanf(line.c_str() + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf    %c %8lf",
+	int readCount = sscanf(buff + 6, "%4lf:%3lf:%5lf %4lf:%3lf:%5lf    %c %8lf",
 						&entry.start[0],
 						&entry.start[1],
 						&entry.start[2],
@@ -2970,9 +2940,11 @@ void parseSinexSatYawRates(string& line)
 
 void parseSinexSatAttMode(string& line)
 {
+	const char* buff = line.c_str();
+
 	SinexSatAttMode entry;
 	entry.svn			= line.substr(1, 4);
-	int readCount = sscanf(line.c_str() + 6, "%4lf-%2lf-%2lf %2lf:%2lf:%2lf  %4lf-%2lf-%2lf %2lf:%2lf:%2lf ",
+	int readCount = sscanf(buff + 6, "%4lf-%2lf-%2lf %2lf:%2lf:%2lf  %4lf-%2lf-%2lf %2lf:%2lf:%2lf ",
 						&entry.start[0],
 						&entry.start[1],
 						&entry.start[2],
@@ -2993,7 +2965,7 @@ void parseSinexSatAttMode(string& line)
 	}
 }
 
-void nullFunction(string& s)
+void nullFunction(string& line)
 {
 
 }
@@ -3026,7 +2998,7 @@ bool readSinex(
 
 	void (*parseFunction)(string&) = nullFunction;
 
-	string			closure = "";
+	string closure;
 
 	bool failure = false;
 
@@ -3093,6 +3065,8 @@ bool readSinex(
 			else if	(line == "+SITE/GAL_PHASE_CENTER"			)	{ parseFunction = parseGalPhaseCenters;			}
 			else if	(line == "+SITE/ECCENTRICITY"				)	{ parseFunction = parseSiteEccentricity;		}
 			else if	(line == "+BIAS/EPOCHS"						)	{ parseFunction = parseEpochs;					}
+			else if	(line == "+MODEL/RANGE_BIAS"				)	{ parseFunction = parseDataHandling;			}	// Same format w/ SOLUTION/DATA_HANDLING
+			else if	(line == "+MODEL/TIME_BIAS"					)	{ parseFunction = parseDataHandling;			}	// Same format w/ SOLUTION/DATA_HANDLING
 			else if	(line == "+SOLUTION/EPOCHS"					)	{ parseFunction = parseEpochs;					}
 			else if	(line == "+SOLUTION/STATISTICS"				)	{ parseFunction = parseStatistics;				}
 			else if	(line == "+SOLUTION/ESTIMATE"				)	{ parseFunction = parseSolutionEstimates;		}
@@ -3313,14 +3287,14 @@ int sinex_check_add_ga_reference(string solType, string peaVer, bool isTrop)
 	// NB we do not increment the iterator in the loop because the erase if found will do it for us
 	for (auto it = theSinex.refstrings.begin(); it != theSinex.refstrings.end(); )
 	{
-		string	s = *it;
+		string	line = *it;
 
-		if 	( s.find("DESCRIPTION") != string::npos
-			||s.find("OUTPUT") 		!= string::npos
-			||s.find("CONTACT") 	!= string::npos
-			||s.find("SOFTWARE") 	!= string::npos
-			||s.find("HARDWARE") 	!= string::npos
-			||s.find("INPUT") 		!= string::npos)
+		if 	( line.find("DESCRIPTION")	!= string::npos
+			||line.find("OUTPUT") 		!= string::npos
+			||line.find("CONTACT") 		!= string::npos
+			||line.find("SOFTWARE") 	!= string::npos
+			||line.find("HARDWARE") 	!= string::npos
+			||line.find("INPUT") 		!= string::npos)
 		{
 			it = theSinex.refstrings.erase(it);
 		}
@@ -3395,13 +3369,13 @@ void setRestrictiveEndTime(
 {
 	UYds zeros;
 
-	if (time_compare(current,	zeros)		== 0)	{	current = potential;	return;	}	//current is zero, just use the new version for the end time
-	if (time_compare(potential,	zeros)		== 0)	{							return;	}	//potential time is zero, thats not restrictive, keep the current time
-	if (time_compare(potential,	current)	<  0)	{	current = potential;	return;	}	//potential end time is more restrictive
+	if (current		== zeros)	{	current = potential;	return;	}	//current is zero, just use the new version for the end time
+	if (potential	== zeros)	{							return;	}	//potential time is zero, thats not restrictive, keep the current time
+	if (potential	== current)	{	current = potential;	return;	}	//potential end time is more restrictive
 }
 
-GetSnxResult getStnSnx(
-	string			station,
+GetSnxResult getRecSnx(
+	string			id,
 	GTime			time,
 	SinexRecData&	recSnx)
 {
@@ -3412,8 +3386,8 @@ GetSnxResult getStnSnx(
 
 	bool found = false;
 
-	// search siteids for station (not time dependent)
-	auto siteIdIt = theSinex.map_siteids.find(station);
+	// search siteids for receiver (not time dependent)
+	auto siteIdIt = theSinex.map_siteids.find(id);
 	if (siteIdIt != theSinex.map_siteids.end())
 	{
 		auto& [dummy, siteId] = *siteIdIt;
@@ -3427,7 +3401,7 @@ GetSnxResult getStnSnx(
 		result.failureSiteId = true;
 	}
 
-	auto receiverIt = theSinex.map_receivers.find(station);
+	auto receiverIt = theSinex.map_receivers.find(id);
 	if (receiverIt != theSinex.map_receivers.end())
 	{
 		auto& [dummy, recTimeMap] = *receiverIt;
@@ -3461,13 +3435,13 @@ GetSnxResult getStnSnx(
 
 	found = false;
 
-	auto antIt = theSinex.map_antennas.find(station);
+	auto antIt = theSinex.map_antennas.find(id);
 	if (antIt != theSinex.map_antennas.end())
 	{
 		auto& [dummy, antTimeMap] = *antIt;
 
-		auto antIt2 = theSinex.map_antennas[station].lower_bound(time);
-		if (antIt2 != theSinex.map_antennas[station].end())
+		auto antIt2 = theSinex.map_antennas[id].lower_bound(time);
+		if (antIt2 != theSinex.map_antennas[id].end())
 		{
 			auto& [dummy, antenna] = *antIt2;
 
@@ -3477,7 +3451,7 @@ GetSnxResult getStnSnx(
 			recSnx.ant_ptr = &antenna;
 
 			// get next next start time as end time for this aspect
-			if (antIt2 != theSinex.map_antennas[station].begin())
+			if (antIt2 != theSinex.map_antennas[id].begin())
 			{
 				antIt2--;
 				auto& [dummy, nextAntenna] = *antIt2;
@@ -3494,13 +3468,13 @@ GetSnxResult getStnSnx(
 
 	found = false;
 
-	auto eccIt = theSinex.map_eccentricities.find(station);
+	auto eccIt = theSinex.map_eccentricities.find(id);
 	if (eccIt != theSinex.map_eccentricities.end())
 	{
 		auto& [dummy, eccMap] = *eccIt;
 
 		auto eccIt2 = eccMap.lower_bound(time);
-		if (eccIt2 != theSinex.map_eccentricities[station].end())
+		if (eccIt2 != theSinex.map_eccentricities[id].end())
 		{
 			auto& [dummy, ecc] = *eccIt2;
 
@@ -3511,7 +3485,7 @@ GetSnxResult getStnSnx(
 			recSnx.ecc_ptr = &ecc;
 
 			// get next next start time as end time for this aspect
-			if (eccIt2 != theSinex.map_eccentricities[station].begin())
+			if (eccIt2 != theSinex.map_eccentricities[id].begin())
 			{
 				eccIt2--;
 				auto& [dummy, nextEcc] = *eccIt2;
@@ -3555,7 +3529,7 @@ GetSnxResult getStnSnx(
 	{
 		type[3] = 'X' + i;
 
-		auto& estMap = theSinex.estimatesMap[station][type];
+		auto& estMap = theSinex.estimatesMap[id][type];
 
 		Sinex_solestimate_t* estimate_ptr = nullptr;
 
@@ -3687,7 +3661,7 @@ GetSnxResult getSatSnx(
 	}
 
 	if (!found)
-		result.failureCOM = true;;
+		result.failureCOM = true;
 
 	found = false;
 
@@ -3718,30 +3692,41 @@ GetSnxResult getSatSnx(
 	return result;
 }
 
-void getRecBias(
-			string				station,
-	const	UYds&				yds,
-			map<char, double>&	stationBias)
+void getSlrRecBias(
+	string				id,
+	string				prn,
+	GTime				time,
+	map<char, double>&	recBias)
 {
-	GTime time = yds;
+	string ptcode;
+	if (prn[1] == 'L')		ptcode = prn.substr(1, 2);	// Eugene to confirm prn only applied for 'L' sats for ptcode
+	else					ptcode = "--";
 
-	// Loop through "M" models codes - Ref: https://ilrs.dgfi.tum.de/fileadmin/data_handling/ILRS_Data_Handling_File.snx
-	const std::vector<char> codes = {'R', 'T', 'X', 'E', 'H', 'P', 'U', 'N', 'Q', 'V'};
-	for (auto code : codes)
+	// Loop through "M" models codes - Ref: https://ilrs.gsfc.nasa.gov/docs/2024/ILRS_Data_Handling_File_2024.02.13.snx
+	for (auto code : {'R', 'T', 'X', 'E', 'H', 'P', 'U', 'N', 'Q', 'V'})
 	{
-		bool excludeFlag = false;
-		auto it = theSinex.map_data_handling[station][code].lower_bound(time);
-		if (it == theSinex.map_data_handling[station][code].end())
+		auto it = theSinex.map_data_handling[id][ptcode][code].lower_bound(time);
+		if (it == theSinex.map_data_handling[id][ptcode][code].end())
 		{
-			continue;
+			if (ptcode == "--")	// have already searched for "--" (prn not applied for ptcode)
+			{
+				continue;
+			}
+
+			it = theSinex.map_data_handling[id]["--"][code].lower_bound(time);	// not found for prn number, furthur search for "--"
+			if (it == theSinex.map_data_handling[id]["--"][code].end())
+			{
+				continue;
+			}
 		}
 
-		double unitsFactor = 1;
-		auto& dataHandling = it->second;		//todo aaron
+		double unitsFactor = -1;
+		auto& [dummy, dataHandling] = *it;
 
-		const GTime stopTime = dataHandling.epochend;
+		GTime stopTime = dataHandling.epochend;
 
-		if (time >= stopTime)
+		if	( stopTime != GTime::noTime()
+			&&stopTime < time)
 		{
 			continue;
 		}
@@ -3749,36 +3734,24 @@ void getRecBias(
 		switch (code)
 		{
 			case 'R': // Range bias to be applied, no estimation of bias
-				if (dataHandling.unit == "mm  ")				unitsFactor = 1e-3;
-				else
-					BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code R : " << dataHandling.unit << endl;
+				if		(dataHandling.unit == "mm  ")			unitsFactor = 1e-3;
 				break;
 			case 'T': // Time bias in ms or µs & µs/d (T2L2) to be applied, NOT estimated
 				if		(dataHandling.unit == "ms  ")			unitsFactor = 1e-3;
 				else if (dataHandling.unit == "us  ")			unitsFactor = 1e-6;
-				else
-					BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code T: " << dataHandling.unit << endl;
 				break;
 			case 'E': // Estimation of range bias, known a priori values are given
 				if		(dataHandling.unit == "mm  ")			unitsFactor = 1e-3;
-				else
-					BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code R: " << dataHandling.unit << endl;
 				break;
 			case 'H': // humidity error (correction in %)
 				if		(dataHandling.unit == "%   ")			unitsFactor = 1e-3;
-				else
-					BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code H: " << dataHandling.unit << endl;
 				break;
 			case 'P': // pressure bias (correction in mB)
 				if		(dataHandling.unit == "mB  ")			unitsFactor = 1;
-				else
-					BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code P: " << dataHandling.unit << endl;
 				break;
 			case 'U': // Estimation of time bias in ms
 				if		(dataHandling.unit == "ms  ")			unitsFactor = 1e-3;
 				else if (dataHandling.unit == "us  ")			unitsFactor = 1e-6;
-				else
-					BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code U: " << dataHandling.unit << endl;
 				break;
 			// Equivalent to 'E':
 			case 'C': // Target signature bias, correction different from standard
@@ -3790,36 +3763,33 @@ void getRecBias(
 			case 'N': // unreliable station, should not be used in routine processing
 			case 'Q': // Receiver with data in quarantine, not to be used in official products
 			case 'V': // Receiver with not validated coordinates, not solving for biases
-				excludeFlag = true;
-				break;
+				recBias[code] = true;	// recBias['X'] == recBias['N'] == recBias['Q'] == recBias['V'] == true
+				continue;
 		}
 
-		if (excludeFlag)
+		if (unitsFactor < 0)
 		{
-			stationBias[code] = 1; // non-zero = true
+			BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code " << code << " : " << dataHandling.unit << endl;
+			continue;
 		}
-		else if (dataHandling.ptcode == "--")
+
+		recBias[code] = dataHandling.estimate * unitsFactor;
+
+		if	( code == 'T'
+			&&dataHandling.comments == "drift")
 		{
-			stationBias[code] = dataHandling.estimate * unitsFactor;
+			GTime end	= dataHandling.epochend;
+			GTime start	= dataHandling.epochstart;
 
-			if	( code == 'T'
-				&&dataHandling.comments == "drif")	// comments only read in first 4 characters
-			{
-				GTime end	= dataHandling.epochend;
-				GTime start	= dataHandling.epochstart;
+			double interval = (end - start).to_double();
+			GTime midInterval = start + interval / 2;
 
-				double interval = (end - start).to_double();
-				GTime midInterval = start + interval / 2;
+			double numDays = (time - midInterval).to_double() / S_IN_DAY;
 
-				double numDays = (time - midInterval).to_double() / S_IN_DAY;
-
-				stationBias[code] += dataHandling.estrate * numDays * 1e-6; // estrate units in us/day
-			}
+			recBias[code] += dataHandling.estrate * numDays * 1e-6; // estrate units in us/day
 		}
-		else
-		{
-			BOOST_LOG_TRIVIAL(error) << "Error: unhandled ptcode in getRecBias: " << dataHandling.ptcode << endl;
-		}
+
+		continue;
 	}
 }
 

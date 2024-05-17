@@ -56,7 +56,7 @@ using ssl_socket	= ssl::stream<tcp::socket>;
 	BOOST_LOG_TRIVIAL(error) << "Error: NTRIP - " << message << " in " << __FUNCTION__ << " for " << url.sanitised();			\
 																																\
 	if (err != boost::asio::error::operation_aborted)																			\
-		delayed_reconnect();																									\
+		delayedReconnect();																									\
 																																\
 	return;																														\
 }
@@ -116,60 +116,80 @@ struct Base64
 
 struct URL
 {
-	string  url;
-	string  protocol;
-	string  user;
-	string  pass;
-	string  host;
-	string  port_str;
-	int     port;
-	string  path;
+	string				url;
+	string				protocol;
+	string				portStr;
+	string				user;
+	string				pass;
+	string				host;
+	int					port;
+	string				path;
+	map<string, string>	params;
 
-	static URL parse(string url)
+	URL()
 	{
-		boost::regex re (R"((https?)://((.+):(.+)@)?([^:@]+)(:(\d+))?(/.*)$)", boost::regex::extended);
 
-		boost::smatch matches;
+	}
 
-		if (!boost::regex_match(url, matches, re))
+	URL(const string& url)
+	{
+		this->url = url;
+
+		bool fail = false;
+
+		string subUrl;
+		auto protocolPos	= url		.find("://");
+		if (protocolPos == string::npos)	{	protocol	= "file";								subUrl		= url;									}
+		else								{	protocol	= url		.substr(0, protocolPos);	subUrl		= url		.substr(protocolPos	+ 3);	}
+
+		string serverStr;
+		string pathNParams;
+		auto slashPos		= subUrl	.find("/");
+		if (slashPos == string::npos)		{	fail		= true;																						}
+		else								{	serverStr	= subUrl	.substr(0, slashPos);		pathNParams	= subUrl	.substr(slashPos	+ 1);	}
+
+		string passNUrl;
+		auto colonPos		= serverStr	.find(":");
+		if (colonPos == string::npos)		{		}
+		else								{	user		= serverStr	.substr(0, colonPos);		passNUrl	= serverStr	.substr(colonPos	+ 1);	}
+
+		string justUrl;
+		auto atPos			= passNUrl	.find("@");
+		if (atPos == string::npos)			{		}
+		else								{	pass		= passNUrl	.substr(0, atPos);			justUrl		= passNUrl	.substr(atPos		+ 1);	}
+
+
+		colonPos			= justUrl	.find(":");
+		if (colonPos == string::npos)		{	host		= justUrl;																					}
+		else								{	host		= justUrl	.substr(0, colonPos);		portStr		= justUrl	.substr(colonPos	+ 1);	}
+
+		size_t questionPos = pathNParams.find("?");
+		path = ((string)"/") + pathNParams.substr(0, questionPos);
+
+		while (questionPos != string::npos)
+		{
+			pathNParams = pathNParams.substr(questionPos	+ 1);		colonPos	= pathNParams.find(":");	string paramName	= pathNParams.substr(0, colonPos);
+			pathNParams = pathNParams.substr(colonPos		+ 1);		questionPos	= pathNParams.find("?");	string paramValue	= pathNParams.substr(0, questionPos);
+
+			params[paramName] = paramValue;
+		}
+
+		if (fail)
 		{
 			BOOST_LOG_TRIVIAL(debug) << "Invalid URL [" << url << "]";
-			return URL();
+			*this = URL();
+			return;
 		}
 
-		BOOST_LOG_TRIVIAL(debug)
-		<< "Valid URL ["    << url << "]";
+		if (protocol.empty())
+			protocol = "http";
 
-		BOOST_LOG_TRIVIAL(debug)
-		<< "protocol=["     << matches[1]
-
-		<< "] username=["   << matches[3]
-		<< "] password=["   << matches[4]
-		<< "] host=["       << matches[5]
-		<< "] port=["       << matches[7]
-		<< "] path=["       << matches[8] << "]";
-
-		URL out;
-
-		out.url = url;
-
-		string protocol	= matches[1];
-
-		out.user		= matches[3];
-		out.pass		= matches[4];
-		out.host		= matches[5];
-		out.port_str	= matches[7];
-		out.path		= matches[8];
-
-		out.protocol	= protocol.empty() ? "http"    : protocol;
-		if (out.port_str.empty())
+		if (portStr.empty())
 		{
-			if (out.protocol == "https")    out.port_str = "443";
-			else                            out.port_str = "2101";
+			if (protocol == "https")	portStr = "443";
+			else						portStr = "2101";
 		}
-		out.port		= std::stoi(out.port_str);
-
-		return out;
+		port = std::stoi(portStr);
 	}
 
 	string sanitised()
@@ -178,7 +198,7 @@ struct URL
 	}
 };
 
-struct NtripSocket : NetworkStatistics
+struct TcpSocket : NetworkStatistics, SerialStream
 {
 protected:
 	std::shared_ptr<tcp::socket>	_socket;
@@ -186,39 +206,42 @@ protected:
 	std::shared_ptr<ssl_socket>		_sslsocket;
 	std::shared_ptr<tcp::resolver>	_resolver;
 
-	string request_string;
-	string response_string;
-
 	boost::asio::deadline_timer		timer;
+
+	string readUntilString;
+	string requestString;
+	string responseString;
 
 	boost::asio::streambuf			request;
 	boost::asio::streambuf			downloadBuf;
 
-	vector<char>					receivedHttpData;
+	vector<char>					receivedTcpData;
 
 public:
 	URL		url;
 
-	double	reconnectDelay		= 1;
-	int		disconnectionCount	= 0;
-	bool	isConnected			= false;
+	double	reconnectDelay			= 1;
+	int		disconnectionCount		= 0;
+	bool	isConnected				= false;
 
-	int				numberErroredChunks		= 0;
-	bool			logHttpSentReceived		= false;
+	int		numberErroredChunks		= 0;
+	bool	logHttpSentReceived		= false;
 
 	unsigned int content_length = 0;
 
-	NtripSocket(const string& url_str) :
-		timer(io_service),
-		ssl_context(ssl::context::sslv23_client)
+	TcpSocket(const string& url_str,
+			  const string& readUntil = "\r\n\r\n")
+	:	timer			(ioService),
+		readUntilString	(readUntil),
+		sslContext		(ssl::context::sslv23_client)
 	{
-		url			= URL::parse(url_str);
+		url			= URL(url_str);
 		streamName	= url.path;
 	}
 
 	void setUrl(const string& url_str)
 	{
-		url			= URL::parse(url_str);
+		url			= URL(url_str);
 		streamName	= url.path;
 	}
 
@@ -226,36 +249,36 @@ public:
 	void disconnect();
 
 
-	void start_read(bool chunked);
+	void startRead(bool chunked);
 
-protected:
-	void delayed_reconnect();
+			void timeoutHandler			(const boost::system::error_code& err);
+			void delayedReconnect();
+			void connectHandler			(const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator);
+	virtual	void requestResponseHandler	(const boost::system::error_code& err) {};
 
 private:
+
+	std::mutex				receivedDataBufferMtx;	//< This mutex ensures that the main thread and the io_service thread dont alter the receivedDataBuffer buffer at the same time.
+	vector<vector<char>>	chunkList;
+
 	// These functions manage the connection using the boost service and
 	// asyncronous function calls.
-	void resolve_handler			(const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator);
-	void connect_handler			(const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator);
-	void sslhandshake_handler		(const boost::system::error_code& err);
-	void write_request_handler		(const boost::system::error_code& err);
-	void request_response_handler	(const boost::system::error_code& err);
-	void reconnect_timer_handler	(const boost::system::error_code& err);
-	void timeout_handler			(const boost::system::error_code& err);
+	void resolveHandler			(const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator);
+	void sslHandshakeHandler	(const boost::system::error_code& err);
+	void reconnectTimerHandler	(const boost::system::error_code& err);
 
-	void read_handler_content		(const boost::system::error_code& err);
-	void read_handler_chunked		(const boost::system::error_code& err);
+	void readHandlerContent		(const boost::system::error_code& err);
+	void readHandlerChunked		(const boost::system::error_code& err);
+	void writeRequestHandler	(const boost::system::error_code& err);
 
 public:
 	void logChunkError();
 
 
-	//content from a stream has been received - process it in virtual functions from other classes
-	virtual void dataChunkDownloaded(
-		vector<char>& dataChunk)
-	{
-	}
+	void dataChunkDownloaded(
+		vector<char>& dataChunk);
 
-	//content from a one-shot request has been received - process it in virtual functions from other classes
+	//content from a one-shot request has been received
 	virtual void readContentDownloaded(
 		vector<char> content)
 	{
@@ -264,7 +287,7 @@ public:
 
 	virtual void connected()
 	{
-
+		startRead(true);
 	}
 
 	virtual void messageChunkLog(
@@ -279,26 +302,29 @@ public:
 
 	}
 
-	virtual void connectionError(
+	void getData()
+	override;
+
+	void connectionError(
 		const boost::system::error_code&	err,
 		string								operation);
 
-	virtual void serverResponse(
-		unsigned int	status_code,
-		string			http_version);
+	B_asio::ssl::context sslContext;
 
-	B_asio::ssl::context ssl_context;
+	static B_asio::io_service ioService;
 
-	static B_asio::io_service io_service;
 	static void runService()
 	{
-		B_asio::io_service::work work(io_service);
-		io_service.run();
+		B_asio::io_service::work work(ioService);
+		ioService.run();
 	}
 
 	static void startClients()
 	{
-		std::thread(NtripSocket::runService).detach();
+		std::thread(TcpSocket::runService).detach();
 	}
+
+	virtual ~TcpSocket() = default;
 };
+
 

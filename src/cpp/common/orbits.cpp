@@ -21,6 +21,7 @@ using std::string;
 #include "ephPrecise.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
+#include "orbitProp.hpp"
 #include "algebra.hpp"
 #include "orbits.hpp"
 #include "satSys.hpp"
@@ -45,7 +46,7 @@ bool inertial2Keplers(
 	Vector3d L = r.cross(v);
 
 	//Obtain the eccentricity vector
-	Vector3d e	= v.cross(L) / MU - e_r;
+	Vector3d e	= v.cross(L) / GM_Earth - e_r;
 
 	double L_x = L(0);
 	double L_y = L(1);
@@ -165,7 +166,7 @@ VectorEci keplers2Inertial(
 	double nu	= 2 * atan2(	sqrt(1 + e_) * sin(E/2),
 								sqrt(1 - e_) * cos(E/2));
 
-	double r	= L.squaredNorm() / MU / (1 + e_ * cos(nu));
+	double r	= L.squaredNorm() / GM_Earth / (1 + e_ * cos(nu));
 
 	L.normalize();
 
@@ -246,7 +247,7 @@ VectorEci keplers2Inertial(
 
 // 	double A = r / (1 - e_ * cos(E));
 //
-// 	dM = sqrt(MU_GPS /A/A/A);
+// 	dM = sqrt(GM_Earth /A/A/A);
 }
 
 void getKeplerPartials(
@@ -360,9 +361,9 @@ VectorEci propagateEllipse(
 
 	double e = E.norm();
 
-	double T = 2 * PI / SQR(MU_GPS) * pow(h / sqrt(1 - SQR(e)), 3);		//2.82
+	double n = SQR(GM_Earth) / pow(h / sqrt(1 - SQR(e)), 3);		//2.82
 
-	keplers0[KEPLER::M] += 2 * PI * dt / T;
+	keplers0[KEPLER::M] += n * dt;
 
 	VectorEci newPos1 = keplers2Inertial(trace, keplers0);
 
@@ -380,11 +381,15 @@ VectorEci propagateEllipse(
 			double y = rSat.y();
 			double z = rSat.z();
 
-			a += 1.5 * J2 * MU * SQR(RE_MEAN)
-				/ (R * R * R * R * R) *
-				(	+ x	*	(5 * SQR(z/R) - 1) * Vector3d::UnitX()
-					+ y	*	(5 * SQR(z/R) - 1) * Vector3d::UnitY()
-					+ z * 	(5 * SQR(z/R) - 3) * Vector3d::UnitZ()	);
+			double commonTerm = 5 * SQR(z/R);
+
+			Vector3d vec = Vector3d(
+				x * (commonTerm - 1),
+				y * (commonTerm - 1),
+				z * (commonTerm - 3)
+			);
+
+			a += 1.5 * J2 * GM_Earth * SQR(RE_MEAN) / (R * R * R * R * R) * vec;
 		}
 
 		a /= 2;
@@ -394,7 +399,7 @@ VectorEci propagateEllipse(
 
 	double dtVel = 1e-4;
 
-	keplers0[KEPLER::M] += 2 * PI * dtVel / T;
+	keplers0[KEPLER::M] += n * dtVel;
 
 	VectorEci velEci;
 	if (vSatEcef_ptr)
@@ -411,3 +416,45 @@ VectorEci propagateEllipse(
 	return newPos1;
 }
 
+VectorEci propagateFull(
+	Trace&		trace,
+	GTime		time,
+	double		dt,
+	VectorEci&	rSat,
+	VectorEci&	vSat,
+	VectorEcef&	ecef,
+	VectorEcef* vSatEcef_ptr)
+{
+	ERPValues erpv = getErp(nav.erp, time + dt);
+	
+	FrameSwapper frameSwapper(time + dt, erpv);
+	
+	if (dt == 0)
+	{
+		ecef = frameSwapper(rSat, &vSat, vSatEcef_ptr);
+		
+		return rSat;
+	}
+
+	OrbitState orbit;
+	orbit.pos = rSat;
+	orbit.vel = vSat;
+	orbit.posVelSTM = MatrixXd::Identity(6, 6);
+
+	Orbits orbits;
+	orbits.push_back(orbit);
+
+	OrbitIntegrator integrator;
+	integrator.timeInit	= time;
+
+	integrateOrbits(integrator, orbits, dt, acsConfig.propagationOptions.integrator_time_step);
+
+	VectorEci newPos;
+	VectorEci velEci;
+	newPos	= orbits[0].pos;
+	velEci	= orbits[0].vel;
+	
+	ecef = frameSwapper(newPos, &velEci, vSatEcef_ptr);
+	
+	return newPos;
+}

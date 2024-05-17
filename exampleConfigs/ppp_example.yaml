@@ -149,7 +149,7 @@ processing_options:
                 code_priorities:        [ L1W, L1C, L2W ]
 
             gal:
-                process:                true
+                # process:                true
                 reject_eclipse:         false
                 code_priorities:        [ L1C, L5Q, L1X, L5X ]
 
@@ -210,7 +210,7 @@ processing_options:
             receiver_error_count_threshold:     4
             receiver_error_epochs_threshold:    4
         ambiguities:
-            outage_reset_limit:    5     # Wait for 5 consecutive missing epoch of data before reseting ambiguity
+            outage_reset_limit:    300
             phase_reject_limit:    2     # Reset ambiguity after 2 large fractional residuals are found (replaces phase_reject_count:)
             reset_on:                    # Reset ambiguities when slip is detected by the following
                 gf:                true  # GF test
@@ -223,15 +223,15 @@ estimation_parameters:
     global_models:
         eop:
             # estimated:        [true] # Estimate state in kalman filter
-            sigma:            [1000]    # Apriori sigma values - if zero, will be initialised using least squares
+            sigma:            [1000]    # Apriori sigma values
             process_noise:    [0]     # Process noise sigmas
         eop_rates:
             # estimated:        [true] # Estimate state in kalman filter
-            sigma:            [1000]    # Apriori sigma values - if zero, will be initialised using least squares
+            sigma:            [1000]    # Apriori sigma values
             process_noise:    [0]     # Process noise sigmas
         ion:
             estimated:        [false] # Estimate state in kalman filter
-            sigma:            [-1]    # Apriori sigma values - if zero, will be initialised using least squares
+            sigma:            [-1]    # Apriori sigma values
             process_noise:    [0]     # Process noise sigmas
 
     receivers:
@@ -242,7 +242,7 @@ estimation_parameters:
                 process_noise:      [30]
             pos_rate:                       # Velocity
                 estimated:          [false] # [bools] Estimate state in kalman filter
-                sigma:              [0]     # [floats] Apriori sigma values - if zero, will be initialised using least squares
+                sigma:              [0]     # [floats] Apriori sigma values
                 process_noise:      [0]     # [floats] Process noise sigmas
                 # process_noise_dt:   SECOND  # (enum) Time unit for process noise - sqrt_sec, sqrt_day etc
                 # apriori_val:        [0]     # [floats] Apriori state values
@@ -262,7 +262,7 @@ estimation_parameters:
                 process_noise:      [0]
             ion_stec:                        # Ionospheric slant delay
                 estimated:          [true]   # Estimate state in kalman filter
-                sigma:              [200]    # Apriori sigma values - if zero, will be initialised using least squares
+                sigma:              [200]    # Apriori sigma values
                 process_noise:      [10]     # Process noise sigmas
             trop:
                 estimated:          [true]

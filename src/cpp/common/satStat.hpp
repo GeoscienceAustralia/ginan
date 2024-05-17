@@ -32,7 +32,7 @@ struct SigStat
 	SlipStat slip;
 
 	unsigned int	phaseRejectCount	= 0;
-	unsigned int	phaseOutageCount	= 0;
+	GTime			lastPhaseTime;
 };
 
 struct IonoStat
@@ -83,7 +83,7 @@ struct SatStat : IonoStat, QC, AzEl
 	double  	mapWetGrads[2]	= {};		///< troposphere wet mapping function
 	VectorEcef	e;							///< Line-of-sight unit vector
 
-	int ionoOutageCount		= 0;			///< Count of epochs without measurements reffering to this satellite's ionosphere state
+	GTime lastIonTime;
 
 	double		dIono		= 0;			///< TD ionosphere residual
 	double		sigmaIono	= 0;			///< TD ionosphere residual noise

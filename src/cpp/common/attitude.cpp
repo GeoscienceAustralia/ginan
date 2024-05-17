@@ -1523,7 +1523,7 @@ bool basicRecAttitude(
 	Receiver&	rec,				///< Receiver position (ECEF)
 	AttStatus&	attStatus)			///< Attitude status
 {
-	VectorPos pos = ecef2pos(rec.sol.sppRRec);
+	VectorPos pos = ecef2pos(rec.aprioriPos);
 
 	Matrix3d E;
 	pos2enu(pos, E.data());

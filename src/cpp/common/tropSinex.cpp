@@ -151,7 +151,7 @@ void writeTropSiteId(
 		// Calc ant offset (ECEF)
 		SinexRecData	stationSinex;
 
-		auto result = getStnSnx(id, theSinex.solution_start_date, stationSinex);
+		auto result = getRecSnx(id, theSinex.solution_start_date, stationSinex);
 
 		if (result.failureSiteId)			continue;	// Receiver not found in sinex file
 		if (result.failureEstimate)			continue;	// Position not found in sinex file		//todo aaron, remove this, use other function

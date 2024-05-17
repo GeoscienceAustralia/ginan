@@ -147,11 +147,11 @@ bool satpos(
 		switch (ephType)
 		{
 			case E_Source::CONFIG:		continue;
-			case E_Source::BROADCAST:	returnValue = satPosBroadcast	(trace, time, teph,		satPos, nav				);	break;
-			case E_Source::SSR:			returnValue = satPosSSR			(trace, time, teph,		satPos, nav				);	break;
-			case E_Source::PRECISE:		returnValue = satPosPrecise		(trace, time, 			satPos, nav				);	break;
-			case E_Source::KALMAN:		returnValue = satPosKalman		(trace, time, 			satPos,	kfState_ptr		);	break;
-			case E_Source::REMOTE:		returnValue = satPosKalman		(trace, time, 			satPos,	remote_ptr		);	break;
+			case E_Source::BROADCAST:	returnValue = satPosBroadcast	(trace, time, teph,		satPos, nav					);	break;
+			case E_Source::SSR:			returnValue = satPosSSR			(trace, time, teph,		satPos, nav					);	break;
+			case E_Source::PRECISE:		returnValue = satPosPrecise		(trace, time, 			satPos, nav					);	break;
+			case E_Source::KALMAN:		returnValue = satPosKalman		(trace, time, 			satPos,	kfState_ptr,	true);	break;
+			case E_Source::REMOTE:		returnValue = satPosKalman		(trace, time, 			satPos,	remote_ptr,		true);	break;
 			default:					satPos.ephPosValid = false;	return false;
 		}
 

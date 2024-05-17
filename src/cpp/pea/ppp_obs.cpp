@@ -7,7 +7,12 @@
 * 3. U.Hugentobler, S.Schaer, G.Beutler, H.Bock, R.Dach, A.Jäggi, M.Meindl, C.Urschl, L.Mervart, M.Rothacher & U.Wild, CODE IGS analysis center technical report 2002, 2002.
 */
 
+#include <sstream>
 
+using std::ostringstream;
+
+
+#include "interactiveTerminal.hpp"
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
 #include "geomagField.hpp"
@@ -91,7 +96,6 @@ struct AutoSender
 	COMMON_ARG(			KFMeasEntry&		)	measEntry,			\
 	COMMON_ARG(			VectorEcef&			)	rRec,				\
 	COMMON_ARG(			VectorEcef&			)	rSat,				\
-	COMMON_ARG(			double&				)	rRecSat,			\
 	COMMON_ARG(			double&				)	lambda,				\
 	COMMON_ARG(			SatSys&				)	sysSat,				\
 	COMMON_ARG(			AutoSender&			)	autoSenderTemplate,	\
@@ -99,6 +103,122 @@ struct AutoSender
 	COMMON_ARG(			ERPValues&			)	erpv,				\
 	COMMON_ARG(			FrameSwapper&		)	frameSwapper
 
+
+double relativity2(
+	VectorEcef&		rSat,
+	VectorEcef&		rRec)
+{
+	double rRecSat	= (rSat - rRec).norm();
+
+	double ln		= log(	(rSat.norm() + rRec.norm() + rRecSat)
+						/	(rSat.norm() + rRec.norm() - rRecSat));
+	return 2 * MU * ln / CLIGHT / CLIGHT / CLIGHT;
+}
+
+tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d> tideDelta(
+	Trace&				trace,
+	GTime				time,
+	Receiver&			rec,
+	VectorEcef&			rRec,
+	ReceiverOptions&	recOpts)
+{
+	auto& tideVectors = rec.pppTideCache.useCache([&]() -> tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>
+	{
+		Vector3d solid	= Vector3d::Zero();
+		Vector3d otl	= Vector3d::Zero();
+		Vector3d atl	= Vector3d::Zero();
+		Vector3d spole	= Vector3d::Zero();
+		Vector3d opole	= Vector3d::Zero();
+
+		if	( recOpts.tideModels.solid
+			||recOpts.tideModels.otl
+			||recOpts.tideModels.atl
+			||recOpts.tideModels.spole
+			||recOpts.tideModels.opole)
+		{
+			tideDisp(trace, time, rec, rRec, solid, otl, atl, spole, opole);
+		}
+
+		return {solid, otl, atl, spole, opole};
+	});
+
+	return tideVectors;
+}
+
+void eopAdjustment(
+	GTime&			time,
+	VectorEcef&		e,
+	ERPValues&		erpv,
+	FrameSwapper&	frameSwapper,
+	Receiver&		rec,
+	VectorEcef&		rRec,
+	KFMeasEntry&	measEntry,
+	const KFState&	kfState)
+{
+	Matrix3d partialMatrix	= stationEopPartials(rRec);
+	Vector3d eopPartials	= partialMatrix * e;
+
+	for (int i = 0; i < 3; i++)
+	{
+		InitialState init			= initialStateFromConfig(acsConfig.pppOpts.eop,			i);
+		InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	i);
+
+		if (init.estimate == false)
+		{
+			continue;
+		}
+
+		KFKey kfKey;
+		kfKey.type		= KF::EOP;
+		kfKey.num		= i;
+		kfKey.comment	= eopComments[i];
+
+		kfState.getKFValue(kfKey, init.x);
+
+		if (init.x == 0)
+		switch (i)
+		{
+			case 0:	init.x = erpv.xp		* R2MAS;		eopRateInit.x = +erpv.xpr	* R2MAS;	break;
+			case 1:	init.x = erpv.yp		* R2MAS;		eopRateInit.x = +erpv.ypr	* R2MAS;	break;
+			case 2:	init.x = erpv.ut1Utc	* S2MTS;		eopRateInit.x = -erpv.lod	* S2MTS;	break;
+		}
+
+		measEntry.addDsgnEntry(kfKey,	eopPartials(i),				init);
+
+		if (eopRateInit.estimate == false)
+		{
+			continue;
+		}
+
+		KFKey rateKey;
+		rateKey.type	= KF::EOP_RATE;
+		rateKey.num		= i;
+		kfKey.comment	= (string) eopComments[i] + "/day";
+
+		kfState.setKFTransRate(kfKey, rateKey,	1/S_IN_DAY,	eopRateInit);
+	}
+
+	if (acsConfig.pppOpts.add_eop_component)
+	{
+		auto& [eopAdjustment] = rec.pppEopCache.useCache([&]() -> tuple<Vector3d>
+		{
+			ERPValues erpvBase = getErp(nav.erp, time, false);
+
+			FrameSwapper frameSwapperBase(time, erpvBase);
+
+			Matrix3d erpEcefAdjustmentMat	= frameSwapper.i2t_mat * frameSwapperBase.i2t_mat.transpose()
+											- Matrix3d::Identity();
+
+			Vector3d eopAdjustment			= erpEcefAdjustmentMat * rRec;
+
+			return {eopAdjustment};
+		});
+
+		double adjustment = e.dot(eopAdjustment);
+
+		measEntry.componentsMap[E_Component::EOP] = {adjustment, "+ eop", -1};
+	}
+}
 
 inline void pppRecClocks(COMMON_PPP_ARGS)
 {
@@ -425,32 +545,13 @@ inline void pppSatPCV(COMMON_PPP_ARGS)
 
 inline void pppTides(COMMON_PPP_ARGS)
 {
-	auto& [solid, otl, atl, spole, opole] = rec.pppTideCache.useCache([&]() -> tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>
-	{
-		Vector3d tideVectorSum		= Vector3d::Zero();
-		Vector3d tideVectorSolid	= Vector3d::Zero();
-		Vector3d tideVectorOTL		= Vector3d::Zero();
-		Vector3d tideVectorATL		= Vector3d::Zero();
-		Vector3d tideVectorSPole	= Vector3d::Zero();
-		Vector3d tideVectorOPole	= Vector3d::Zero();
+	auto [solid, otl, atl, spole, opole] = tideDelta(trace, time, rec, rRec, recOpts);
 
-		if	( recOpts.tideModels.solid
-			||recOpts.tideModels.otl
-			||recOpts.tideModels.atl
-			||recOpts.tideModels.spole
-			||recOpts.tideModels.opole)
-		{
-			tideDisp(trace, time, rec, rRec, tideVectorSum, &tideVectorSolid, &tideVectorOTL, &tideVectorATL, &tideVectorSPole, &tideVectorOPole);
-		}
-
-		return {tideVectorSolid, tideVectorOTL, tideVectorATL, tideVectorSPole, tideVectorOPole};
-	});
-
-	measEntry.componentsMap[E_Component::TIDES_SOLID	] = {-solid	.dot(satStat.e), "- E.dT1", 0};
-	measEntry.componentsMap[E_Component::TIDES_OTL		] = {-otl	.dot(satStat.e), "- E.dT2", 0};
-	measEntry.componentsMap[E_Component::TIDES_ATL		] = {-atl	.dot(satStat.e), "- E.dT3", 0};
-	measEntry.componentsMap[E_Component::TIDES_SPOLE	] = {-spole	.dot(satStat.e), "- E.dT4", 0};
-	measEntry.componentsMap[E_Component::TIDES_OPOLE	] = {-opole	.dot(satStat.e), "- E.dT5", 0};
+	measEntry.componentsMap[E_Component::TIDES_SOLID	] = {-satStat.e.dot(solid),	"- E.dT1", 0};
+	measEntry.componentsMap[E_Component::TIDES_OTL		] = {-satStat.e.dot(otl),	"- E.dT2", 0};
+	measEntry.componentsMap[E_Component::TIDES_ATL		] = {-satStat.e.dot(atl),	"- E.dT3", 0};
+	measEntry.componentsMap[E_Component::TIDES_SPOLE	] = {-satStat.e.dot(spole),	"- E.dT4", 0};
+	measEntry.componentsMap[E_Component::TIDES_OPOLE	] = {-satStat.e.dot(opole),	"- E.dT5", 0};
 };
 
 inline void pppRelativity(COMMON_PPP_ARGS)
@@ -464,16 +565,14 @@ inline void pppRelativity(COMMON_PPP_ARGS)
 inline void pppRelativity2(COMMON_PPP_ARGS)
 {
 	/* secondary relativity effect (Shapiro effect) */
-	double ln		= log(	(rSat.norm() + rRec.norm() + rRecSat)
-						/	(rSat.norm() + rRec.norm() - rRecSat));
-	double dtRel2 	= 2 * MU * ln / CLIGHT / CLIGHT / CLIGHT;
+	double dtRel2 	= relativity2(rSat, rRec);
 
 	measEntry.componentsMap[E_Component::RELATIVITY2] = {dtRel2	* CLIGHT, "+ rel2", 0};
 };
 
 inline void pppSagnac(COMMON_PPP_ARGS)
 {
-	double dSagnac = sagnac(rSat, rRec);
+	double dSagnac	= sagnac(rSat, rRec);
 
 	measEntry.componentsMap[E_Component::SAGNAC] = {dSagnac, "+ sag", 0};
 };
@@ -764,11 +863,10 @@ inline void pppIonModel(COMMON_PPP_ARGS)
 
 inline void pppTropMap(COMMON_PPP_ARGS)
 {
-	double troposphere_m	= tropDryZTD(trace, recOpts.tropModel.models, kfState.time, pos);
-
-	double		varTrop			= 0;
+	// double troposphere_m	= tropDryZTD(trace, recOpts.tropModel.models, kfState.time, pos);
 	TropStates	tropStates;					//todo aaron unused?
 	TropMapping	dTropDx;
+	double		varTrop = 0;
 
 	double modelTroposphere_m	= tropModel(trace, recOpts.tropModel.models, time, pos, satStat, tropStates, dTropDx, varTrop);
 
@@ -781,6 +879,7 @@ inline void pppTropMap(COMMON_PPP_ARGS)
 		for (int i = 0; i < acsConfig.ssrOpts.nbasis; i++)
 		{
 			double geoMap = tropModelCoef(i, pos);
+
 			if (geoMap == 0)
 				continue;
 
@@ -788,8 +887,7 @@ inline void pppTropMap(COMMON_PPP_ARGS)
 			kfKey.type	= KF::TROP_MODEL;
 			kfKey.num	= i;
 
-
-			double value=0;
+			double value = 0;
 			bool pass = kfState.getKFValue(kfKey, value);
 
 			modelTroposphere_m += geoMap * dTropDx.wetMap * value;
@@ -808,7 +906,7 @@ inline void pppTrop(COMMON_PPP_ARGS)
 {
 	TropStates	tropStates;
 	TropMapping	dTropDx;
-	double		varTrop			= 0;
+	double		varTrop		= 0;
 
 	double troposphere_m	= 0;
 
@@ -898,7 +996,7 @@ inline void pppTrop(COMMON_PPP_ARGS)
 		else			measEntry.addDsgnEntry(kfKey, dTropDx.eastMap,	init);
 	}
 
-	measEntry.componentsMap[E_Component::TROPOSPHERE] = {troposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", varTrop};
+	measEntry.componentsMap[E_Component::TROPOSPHERE] = {troposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", varTrop};	// todo Eugene: dryMap & gradients
 };
 
 inline void pppRecPhaseWindup(COMMON_PPP_ARGS)
@@ -987,8 +1085,6 @@ inline void pppRecPhasBias(COMMON_PPP_ARGS)
 
 	if (init.estimate)
 	{
-		init.x = recPhasBias;
-
 		if (init.Q < 0)
 		{
 			init.P = recPhasBiasVar;
@@ -1066,8 +1162,6 @@ inline void pppRecCodeBias(COMMON_PPP_ARGS)
 
 	if (init.estimate)
 	{
-		init.x = recCodeBias;
-
 		if (init.Q < 0)
 		{
 			init.P = recCodeBiasVar;
@@ -1203,69 +1297,7 @@ inline void pppEopAdjustment(COMMON_PPP_ARGS)
 		return;
 	}
 
-	Matrix3d partialMatrix	= stationEopPartials(rec.aprioriPos);
-	Vector3d eopPartials	= partialMatrix * satStat.e;
-
-	for (int i = 0; i < 3; i++)
-	{
-		InitialState init			= initialStateFromConfig(acsConfig.pppOpts.eop,			i);
-		InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	i);
-
-		if (init.estimate == false)
-		{
-			continue;
-		}
-
-		KFKey kfKey;
-		kfKey.type		= KF::EOP;
-		kfKey.num		= i;
-		kfKey.comment	= eopComments[i];
-
-		kfState.getKFValue(kfKey, init.x);
-
-		if (init.x == 0)
-		switch (i)
-		{
-			case 0:	init.x = erpv.xp		* R2MAS;		eopRateInit.x = +erpv.xpr	* R2MAS;	break;
-			case 1:	init.x = erpv.yp		* R2MAS;		eopRateInit.x = +erpv.ypr	* R2MAS;	break;
-			case 2:	init.x = erpv.ut1Utc	* S2MTS;		eopRateInit.x = -erpv.lod	* S2MTS;	break;
-		}
-
-		measEntry.addDsgnEntry(kfKey,	eopPartials(i),				init);
-
-		if (eopRateInit.estimate == false)
-		{
-			continue;
-		}
-
-		KFKey rateKey;
-		rateKey.type	= KF::EOP_RATE;
-		rateKey.num		= i;
-		kfKey.comment	= (string) eopComments[i] + "/day";
-
-		kfState.setKFTransRate(kfKey, rateKey,	1/S_IN_DAY,	eopRateInit);
-	}
-
-	if (acsConfig.pppOpts.add_eop_component)
-	{
-		auto& [eopAdjustment] = rec.pppEopCache.useCache([&]() -> tuple<Vector3d>
-		{
-			ERPValues erpvBase = getErp(nav.erp, time, false);
-
-			FrameSwapper frameSwapperBase(time, erpvBase);
-
-			Matrix3d erpEcefAdjustmentMat	= frameSwapper.i2t_mat * frameSwapperBase.i2t_mat.transpose()
-											- Matrix3d::Identity();
-
-			Vector3d eopAdjustment			= erpEcefAdjustmentMat * rec.aprioriPos;
-
-			return {eopAdjustment};
-		});
-
-		double adjustment = satStat.e.dot(eopAdjustment);
-
-		measEntry.componentsMap[E_Component::EOP] = {adjustment, "+ eop", -1};
-	}
+	eopAdjustment(time, satStat.e, erpv, frameSwapper, rec, rRec, measEntry, kfState);
 }
 
 
@@ -1331,11 +1363,6 @@ void receiverPPP(
 		return;
 	}
 
-	rec.pppTideCache.uninit();
-	rec.pppEopCache	.uninit();
-
-	GTime time = rec.obsList.front()->time;
-
 	for (auto& obs : only<GObs>(rec.obsList))
 	{
 		if (acsConfig.process_sys[obs.Sat.sys] == false)
@@ -1345,9 +1372,9 @@ void receiverPPP(
 
 		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
 
-		satPosClk(trace, time, obs, nav, satOpts.posModel.sources, satOpts.clockModel.sources, &kfState, nullptr, E_OffsetType::COM, E_Relativity::OFF);
+		satPosClk(trace, obs.time, obs, nav, satOpts.posModel.sources, satOpts.clockModel.sources, &kfState, nullptr, E_OffsetType::COM, E_Relativity::OFF);
 
-		traceJson(1, jsonTrace, time,
+		traceJson(1, jsonTrace, tsync,
 		{
 			{"data",	__FUNCTION__		},
 			{"Sat",		obs.Sat.id()		},
@@ -1361,18 +1388,18 @@ void receiverPPP(
 		});
 	}
 
-	ERPValues erpv = getErp(nav.erp, time);
+	ERPValues erpv = getErp(nav.erp, tsync);
 
-	FrameSwapper frameSwapper(time, erpv);
+	FrameSwapper frameSwapper(tsync, erpv);
 
 	for (auto&	obs				: only<GObs>(rec.obsList))
 	for (auto&	[ft, sigList]	: obs.sigsLists)
 	for (auto&	sig				: sigList)
 	for (auto	measType		: {PHAS, CODE})
 	{
-		string		sigName			= sig.code._to_string();
+		string sigName = sig.code._to_string();
 
-		AutoSender autoSenderTemplate(1, jsonTrace, time);
+		AutoSender autoSenderTemplate(1, jsonTrace, tsync);
 
 		autoSenderTemplate.baseKVPs =
 		{
@@ -1441,6 +1468,8 @@ void receiverPPP(
 
 		checkModels(recOpts, satOpts);
 
+		GTime time = obs.time;
+
 		auto		Sat			= obs.Sat;
 		auto		sys			= Sat.sys;
 		auto		sysSat		= SatSys(sys);
@@ -1467,18 +1496,16 @@ void receiverPPP(
 
 		measEntry.metaDataMap["obs_ptr"]	= &obs;
 
+		{
+			measEntry.metaDataMap["receiverErrorCount"]	= &rec.receiverErrorCount;
+			measEntry.metaDataMap["lastIonTime"]		= &satStat.lastIonTime;
+		}
+
 		if (measType == PHAS)
 		{
 			measEntry.metaDataMap["phaseRejectCount"]	= &sigStat.phaseRejectCount;
-			measEntry.metaDataMap["phaseOutageCount"]	= &sigStat.phaseOutageCount;
-			tracepdeex(2,trace,"\n PPP Phase counts: %s %s %s %d %d", rec.id.c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sigStat.phaseOutageCount, sigStat.phaseRejectCount);
-		}
-
-		{
-			measEntry.metaDataMap["receiverErrorCount"]	= &rec.receiverErrorCount;
-
-			measEntry.metaDataMap["ionoOutageCount"]	= &satStat.ionoOutageCount;
-			tracepdeex(2,trace,"\n PPP Iono  counts: %s %s %s %d", rec.id.c_str(), obs.Sat.id().c_str(), sig.code._to_string(), satStat.ionoOutageCount);
+			measEntry.metaDataMap["lastPhaseTime"]		= &sigStat.lastPhaseTime;
+			tracepdeex(2,trace,"\n PPP Phase count: %s %s %s %d", rec.id.c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sigStat.phaseRejectCount);
 		}
 
 		measEntry.obsKey.Sat	= obs.Sat;
@@ -1506,7 +1533,7 @@ void receiverPPP(
 
 		//Calculate the basic range
 
-		VectorEcef rRec			= rec.aprioriPos;
+		VectorEcef rRec = rec.aprioriPos;
 
 		vector<function<void(Vector3d, Vector3d)>>	delayedInits;
 
@@ -1522,16 +1549,18 @@ void receiverPPP(
 				kfKey.rec_ptr	= &rec;
 				kfKey.comment	= init.comment;
 
+				init.x = rRec[i];
+
 				if (init.estimate == false)
 				{
-					remoteKF.getKFValue(kfKey, rRec[i]);		//todo aaron this would be nice if it came from a function instead
+					remoteKF.getKFValue(kfKey, init.x);		//todo aaron this would be nice if it came from a function instead
 
 					continue;
 				}
 
-				kfState.getKFValue(kfKey, rRec[i]);
+				kfState.getKFValue(kfKey, init.x);
 
-				init.x = rRec[i];
+				rRec[i] = init.x;
 
 				delayedInits.push_back([kfKey, init, i, &measEntry]
 					(Vector3d satStat_e, Vector3d eSatInertial)
@@ -1580,10 +1609,11 @@ void receiverPPP(
 					velKey.num		= i + 3;
 					velKey.comment	= velInit.comment;
 
+					posInit.x = rRecInertial[i];
 
-					found |= kfState.getKFValue(posKey, rRecInertial[i]);
+					found |= kfState.getKFValue(posKey, posInit.x);
 
-					if (posInit.x == 0)			posInit.x = rRecInertial[i];
+					rRecInertial[i] = posInit.x;
 
 					delayedInits.push_back([posKey, posInit, i, &measEntry]
 						(Vector3d satStat_e, Vector3d eSatInertial)
@@ -1618,43 +1648,46 @@ void receiverPPP(
 		}
 
 		if (initialStateFromConfig(satOpts.orbit).estimate)
-		for (int i = 0; i < 3; i++)
 		{
-			InitialState posInit = initialStateFromConfig(satOpts.orbit, i);
-			InitialState velInit = initialStateFromConfig(satOpts.orbit, i + 3);
-
-			KFKey posKey;
-			posKey.type		= KF::ORBIT;
-			posKey.Sat		= obs.Sat;
-			posKey.num		= i;
-			posKey.comment	= posInit.comment;
-
-			KFKey velKey	= posKey;
-			velKey.num		= i + 3;
-			velKey.comment	= velInit.comment;
-
 			if (obs.rSatEci0.isZero())
 			{
 				//dont obliterate obs.rSat below, we still need the old one for next signal/phase
 				SatPos satPos0 = obs;
 
 				//use this to avoid adding the dt component of position
-				bool pass = satpos(trace, time, time, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav, &kfState);
+				bool pass = satpos(trace, tsync, tsync, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav, &kfState);
 
 				obs.rSatEci0 = frameSwapper(satPos0.rSatCom, &satPos0.satVel, &obs.vSatEci0);
 			}
-			if (posInit.x == 0)			posInit.x = obs.rSatEci0[i];
-			if (velInit.x == 0)			velInit.x = obs.vSatEci0[i];
 
-			delayedInits.push_back([posKey, velKey, posInit, velInit, i, &obs, &measEntry]
-				(Vector3d satStat_e, Vector3d eSatInertial)
+			for (int i = 0; i < 3; i++)
 			{
-				measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
-				measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
-			});
+				InitialState posInit = initialStateFromConfig(satOpts.orbit, i);
+				InitialState velInit = initialStateFromConfig(satOpts.orbit, i + 3);
 
-			// measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
-			// measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
+				KFKey posKey;
+				posKey.type		= KF::ORBIT;
+				posKey.Sat		= obs.Sat;
+				posKey.num		= i;
+				posKey.comment	= posInit.comment;
+
+				KFKey velKey	= posKey;
+				velKey.num		= i + 3;
+				velKey.comment	= velInit.comment;
+
+				if (posInit.x == 0)			posInit.x = obs.rSatEci0[i];
+				if (velInit.x == 0)			velInit.x = obs.vSatEci0[i];
+
+				delayedInits.push_back([posKey, velKey, posInit, velInit, i, &obs, &measEntry]
+					(Vector3d satStat_e, Vector3d eSatInertial)
+				{
+					measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
+					measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
+				});
+
+				// measEntry.addDsgnEntry(posKey,	+eSatInertial[i],							posInit);
+				// measEntry.addDsgnEntry(velKey,	-eSatInertial[i] * (obs.tof + obs.satClk),	velInit);
+			}
 
 			addEmpStates(satOpts, kfState, Sat);
 		}
@@ -1690,7 +1723,6 @@ void receiverPPP(
 
 
 		//Range and geometry
-
 
 		double rRecSat	= (rSat - rRec).norm();
 		satStat.e		= (rSat - rRec).normalized();
@@ -1771,8 +1803,6 @@ void receiverPPP(
 		//Calculate residuals and form up the measurement
 
 		measEntry.componentsMap[E_Component::NET_RESIDUAL] = {0, "", 0};
-		double residual		= 0;
-		double residualVar	= 0;
 
 		AutoSender autoSender = autoSenderTemplate;
 		autoSender.baseKVPs	.push_back({"data", __FUNCTION__});
@@ -1784,68 +1814,9 @@ void receiverPPP(
 		autoSender.valueKVPs.push_back({"Az",		satStat.az});
 		autoSender.valueKVPs.push_back({"Nadir",	satStat.nadir});
 
-		for (auto& [component, details] : measEntry.componentsMap)
-		{
-			auto& [componentVal, eq, var] = details;
+		InteractiveTerminal ss(string("Chains\t") + (string) measEntry.obsKey, trace);
 
-			residual -= componentVal;
-
-			if (var > 0)
-			{
-				residualVar += var;
-			}
-
-			if (acsConfig.output_residual_chain)
-			{
-				tracepdeex(0, trace, "\n");
-				tracepdeex(4, trace, "%s",		time.to_string().c_str());
-				tracepdeex(3, trace, "%30s",	((string)measEntry.obsKey).c_str());
-				tracepdeex(0, trace, " %-21s %+14.4f", component._to_string(), -componentVal);
-
-				if		(var >	0)		tracepdeex(3, trace, " ± %.2e ", var);
-				else if (var == 0)		tracepdeex(3, trace, " ± 0        ");
-				else					tracepdeex(3, trace, "   Estimated");
-
-				tracepdeex(0, trace, " -> %13.4f",	residual);
-				tracepdeex(3, trace, " ± %.2e ",	residualVar);
-
-				autoSender.valueKVPs.push_back({component._to_string(), componentVal});
-			}
-		}
-
-		if (1)
-		for (auto& [component, details] : measEntry.componentsMap)
-		{
-			auto& [componentVal, eq, var] = details;
-
-			if (var > 100)
-			{
-				BOOST_LOG_TRIVIAL(warning)
-				<< "Warning: Unestimated component '" << component._to_string() << "' for '" << measEntry.obsKey
-				<< "' has large variance (" << var << "), valid inputs may not (yet) be available";
-
-				trace << std::endl
-				<< "Warning: Unestimated component '" << component._to_string() << "' for '" << measEntry.obsKey
-				<< "' has large variance (" << var << "), valid inputs may not (yet) be available";
-			}
-		}
-
-		if (acsConfig.output_residual_chain)
-		{
-			trace << std::endl << std::endl << "0 =";
-
-			for (auto& [component, details] : measEntry.componentsMap)
-			{
-				auto& [componentVal, eq, var] = details;
-
-				tracepdeex(0, trace, " %s", eq.c_str());
-			}
-		}
-
-		if (abs(residual) > 1e30)
-		{
-			BOOST_LOG_TRIVIAL(warning) << "Warning: " << measEntry.obsKey << " has very large residual: " << residual;
-		}
+		double residual = netResidualAndChainOutputs(ss, obs, measEntry);
 
 		measEntry.setInnov(residual);
 

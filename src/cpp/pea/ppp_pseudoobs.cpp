@@ -561,7 +561,7 @@ void receiverPseudoObs(
 // 			if (found == false)
 			{
 				rec.id = key.str;
-				getStnSnx(rec.id, obs.time, rec.snx);
+				getRecSnx(rec.id, obs.time, rec.snx);
 				apriori = rec.snx.pos;
 			}
 

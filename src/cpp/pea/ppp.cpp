@@ -14,7 +14,6 @@ using std::vector;
 #include "observations.hpp"
 #include "algebraTrace.hpp"
 #include "coordinates.hpp"
-#include "binaryStore.hpp"
 #include "ephPrecise.hpp"
 #include "navigation.hpp"
 #include "mongoWrite.hpp"
@@ -42,8 +41,7 @@ using std::vector;
 void outputApriori(
 	ReceiverMap& receiverMap)
 {
-	if	(  acsConfig.mongoOpts.output_states    == +E_Mongo::NONE
-		&& acsConfig.store_binary_states		== false)
+	if (acsConfig.mongoOpts.output_states == +E_Mongo::NONE)
 	{
 		return;
 	}
@@ -128,8 +126,6 @@ void outputApriori(
 					.instances	= acsConfig.mongoOpts.output_states,
 					.queue		= acsConfig.mongoOpts.queue_outputs
 				});
-
-	storeStates(aprioriState, "apriori");
 }
 
 /** Compare estimated station position with benchmark in SINEX file
@@ -467,9 +463,10 @@ void removeBadAmbiguities(
 		auto& sigStat			= satStat.sigStatMap[sigName];
 		auto& preprocSigStat	= satStat.sigStatMap[preprocSigName];
 
-		if (sigStat.phaseOutageCount >= acsConfig.ambErrors.outage_reset_limit)
+		if	( sigStat.lastPhaseTime							!=	GTime::noTime()
+			&&(tsync - sigStat.lastPhaseTime).to_double()	>	acsConfig.ambErrors.outage_reset_limit)
 		{
-			sigStat.phaseOutageCount = 0;
+			sigStat.lastPhaseTime = GTime::noTime();
 
 			trace << std::endl << "Phase ambiguity removed due to long outage: " <<	sigName	<< " " << key;
 
@@ -627,13 +624,17 @@ void removeBadIonospheres(
 
 				kfState.removeState(key);
 			}
+
 			if (key.rec_ptr == nullptr)
 			{
 				auto& rec		= *key.rec_ptr;
 				auto& satStat	= rec.satStatMap[key.Sat];
 
-				if (satStat.ionoOutageCount >= acsConfig.ionErrors.outage_reset_limit)
+				if	( satStat.lastIonTime						!=	GTime::noTime()
+					&&(tsync - satStat.lastIonTime).to_double()	>	acsConfig.ionErrors.outage_reset_limit)
+				{
 					kfState.removeState(key);
+				}
 			}
 
 			continue;
@@ -653,9 +654,10 @@ void removeBadIonospheres(
 		auto& satStat	= rec.satStatMap[key.Sat];
 		auto& recOpts	= acsConfig.getRecOpts(key.str);
 
-		if (satStat.ionoOutageCount >= acsConfig.ionErrors.outage_reset_limit)
+		if	( satStat.lastIonTime						!=	GTime::noTime()
+			&&(tsync - satStat.lastIonTime).to_double()	>	acsConfig.ionErrors.outage_reset_limit)
 		{
-			satStat.ionoOutageCount = 0;
+			satStat.lastIonTime = GTime::noTime();
 
 			trace << std::endl << "Ionosphere removed due to long outage: " << key;
 
@@ -679,29 +681,14 @@ void removeBadIonospheres(
 }
 
 void postFilterChecks(
-	KFMeas&	kfMeas)
+	const	GTime&	time,
+			KFMeas&	kfMeas)
 {
 	for (int i = 0; i < kfMeas.V.rows(); i++)
 	{
-		resetPhaseSignalError	(kfMeas, i);
-		resetPhaseSignalOutage	(kfMeas, i);
-		resetIonoSignalOutage	(kfMeas, i);
-	}
-}
-
-void incrementOutageCount(
-	ReceiverMap&		stations)
-{
-	//increment the outage count for all signals
-	for (auto& [id,		rec]		: stations)
-	for (auto& [Sat,	satStat]	: rec.satStatMap)
-	{
-		for (auto& [ft,		sigStat]	: satStat.sigStatMap)
-		{
-			sigStat.phaseOutageCount++;
-		}
-
-		satStat.ionoOutageCount++;
+		resetPhaseSignalError	(time, kfMeas, i);
+		resetPhaseSignalOutage	(time, kfMeas, i);
+		resetIonoSignalOutage	(time, kfMeas, i);
 	}
 }
 
@@ -760,7 +747,7 @@ void outputPppNmea(
 		if	( key.type	== KF::TROP	//todo aaron needs iteration
 			&&key.str	== id)
 		{
-			string grad = "";
+			string grad;
 			double trop		= 0;
 			double tropVar	= 0;
 			if (key.num == 1)	grad = "_N";
@@ -815,4 +802,76 @@ void outputPppNmea(
 // 		             "%.4f,%.5f,%.5f,%.5f\n", week, tow, rtk->sol.stat, vel[0], vel[1],
 // 		             vel[2], acc[0], acc[1], acc[2], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 // 	}
+}
+
+
+double netResidualAndChainOutputs(
+	Trace&			trace,
+	Observation&	obs,
+	KFMeasEntry&	measEntry)
+{
+	double residual		= 0;
+	double residualVar	= 0;
+
+	for (auto& [component, details] : measEntry.componentsMap)
+	{
+		auto& [componentVal, eq, var] = details;
+
+		residual -= componentVal;
+
+		if (var > 0)
+		{
+			residualVar += var;
+		}
+
+		if (acsConfig.output_residual_chain)
+		{
+			tracepdeex(0, trace, "\n");
+			tracepdeex(4, trace, "%s",		obs.time.to_string());
+			tracepdeex(3, trace, "%30s",	((string)measEntry.obsKey).c_str());
+			tracepdeex(0, trace, " %-23s %+14.4f", component._to_string(), -componentVal);
+
+			if		(var >= 0)		tracepdeex(0, trace, " ~ %5.3e", var);
+			else if	(var == 0)		tracepdeex(0, trace, " ~ 0        ");
+			else					tracepdeex(0, trace, " ~ Estimated");
+
+			tracepdeex(0, trace, " -> %13.4f",	residual);
+			tracepdeex(3, trace, " ~ %.2e ",	residualVar);
+		}
+	}
+
+	for (auto& [component, details] : measEntry.componentsMap)
+	{
+		auto& [componentVal, eq, var] = details;
+
+		if (var > 100)
+		{
+			BOOST_LOG_TRIVIAL(warning)
+			<< "Warning: Unestimated component '" << component._to_string() << "' for '" << measEntry.obsKey
+			<< "' has large variance (" << var << "), valid inputs may not (yet) be available";
+
+			trace << std::endl
+			<< "Warning: Unestimated component '" << component._to_string() << "' for '" << measEntry.obsKey
+			<< "' has large variance (" << var << "), valid inputs may not (yet) be available";
+		}
+	}
+
+	if (acsConfig.output_residual_chain)
+	{
+		trace << std::endl << std::endl << "0 =";
+
+		for (auto& [component, details] : measEntry.componentsMap)
+		{
+			auto& [componentVal, eq, var] = details;
+
+			tracepdeex(0, trace, " %s", eq.c_str());
+		}
+	}
+
+	if (abs(residual) > 1e30)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: " << measEntry.obsKey << " has very large residual: " << residual;
+	}
+
+	return residual;
 }

@@ -29,10 +29,39 @@ struct PObs;
 struct FObs;
 struct LObs;
 
-struct Observation
+struct ObsMeta
 {
-	GTime	 	time	= {};       		///> Receiver sampling time (GPST)
-	string 		mount	= "";				///< ID of the receiver that generated the observation
+	ObsMeta() : exclude(0)
+	{
+
+	}
+
+	union
+	{
+		const unsigned int exclude = 0;
+		struct
+		{
+			unsigned excludeElevation		: 1;
+			unsigned excludeEclipse			: 1;
+			unsigned excludeSystem			: 1;
+			unsigned excludeOutlier			: 1;
+			unsigned excludeBadSPP			: 1;
+			unsigned excludeConfig			: 1;
+			unsigned excludeSVH				: 1;
+			unsigned excludeBadRange		: 1;
+			unsigned excludeDataHandling	: 1;
+			unsigned excludeCom				: 1;
+			unsigned excludeBadFlags		: 1;
+			unsigned excludeAlert			: 1;
+		};
+	};
+};
+
+struct Observation : ObsMeta
+{
+	GTime	 	time	= {};       ///< Receiver sampling time (GPST)
+	string 		mount;				///< ID of the receiver that generated the observation
+	double		ephVar	= 0;
 
 	virtual ~Observation() = default;
 
@@ -134,33 +163,11 @@ struct Receiver;
 **/
 struct GObsMeta : IonoObs
 {
-	GObsMeta() : exclude(0)
-	{
-
-	}
-
 	Receiver*	rec_ptr			= nullptr;
 
 	double 		sppCodeResidual	= 0;				///< Residuals of code
 	double		tropSlant		= 0;				///< Troposphere slant delay
 	double		tropSlantVar	= 0;				///< Troposphere slant delay variance
-
-
-	union
-	{
-		const unsigned int exclude = 0;
-		struct
-		{
-			unsigned excludeElevation		: 1;
-			unsigned excludeEclipse			: 1;
-			unsigned excludeSystem			: 1;
-			unsigned excludeOutlier			: 1;
-			unsigned excludeBadSPP			: 1;
-			unsigned excludeConfig			: 1;
-			unsigned excludeSVH				: 1;
-			unsigned excludeBadRange		: 1;
-		};
-	};
 };
 
 /** Satellite position data - for determining and storing satellite positions/clocks
@@ -394,28 +401,15 @@ struct LObs : Observation, LObsMeta, SatPos
 	GTime			timeTx				= {};
 	double			twoWayTimeOfFlight	= 0;
 
-	union
-	{
-		const unsigned int exclude = 0;
-		struct
-		{
-			unsigned excludeElevation		: 1;
-			unsigned excludeBias			: 1;
-			unsigned excludeEccentricity	: 1;
-			unsigned excludeSinexPos		: 1;
-			unsigned excludeSinex			: 1;
-			unsigned excludeTime			: 1;
-			unsigned excludeMeta			: 1;
-			unsigned excludeEphemeris		: 1;
-			unsigned excludeBadFlags		: 1;
-			unsigned excludeAlert			: 1;
-		};
-	};
-	double			pressure			= 0; //hPa (mbar)
-	double			temperature			= 0; //K
-	double			humidity			= 0; //0.00-1.00
-	double			wavelength			= 0; //nm
-	double			ephVar				= 0;
+	double			pressure			= 0;	// hPa (mbar)
+	double			temperature			= 0;	// K
+	double			humidity			= 0;	// 0.00-1.00
+	double			wavelengthNm		= 0;	// nm
+
+	double			rangeBias			= 0;	// m
+	double			timeBias			= 0;	// s
+	double			pressureBias		= 0;	// hPa (mbar)
+	double			humidityBias		= 0;	// 0.00-1.00
 
 	operator shared_ptr<LObs>()
 	{

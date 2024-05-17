@@ -67,6 +67,7 @@ struct InputOptions
 	string			custom_pseudo_obs_root	= "<INPUTS_ROOT>";
 	string			sat_data_root			= "<INPUTS_ROOT>";
 	string			rtcm_inputs_root		= "<SAT_DATA_ROOT>";
+	string			sisnet_inputs_root		= "<SAT_DATA_ROOT>";
 
 	vector<string>	atx_files;
 	vector<string>	snx_files;
@@ -99,6 +100,7 @@ struct InputOptions
 	vector<string>	atmos_oceean_dealiasing_files;
 	vector<string>	ocean_pole_tide_potential_files;
 
+	vector<string>	sisnet_inputs;
 	vector<string>	nav_rtcm_inputs;
 	vector<string>	qzs_rtcm_inputs;
 
@@ -137,8 +139,8 @@ struct InputOptions
 
 	bool						eci_pseudoobs		= false;
 
-	string stream_user	= "";
-	string stream_pass	= "";
+	string stream_user;
+	string stream_pass;
 };
 
 struct IonexOptions
@@ -304,10 +306,9 @@ struct OutputOptions
 	string	orbit_ics_directory			= "<OUTPUTS_ROOT>";
 	string	orbit_ics_filename			= "<ORBIT_ICS_DIRECTORY>/<CONFIG>-<LOGTIME>-orbits.yaml";
 
-
-	bool	enable_binary_store			= false;
-	bool	store_binary_states			= false;
-	bool	store_binary_measurements	= false;
+	bool	output_sbas_ems				= false;
+	string	ems_directory				= "<OUTPUTS_ROOT>";
+	string	ems_filename				= "<EMS_DIRECTORY>/y<YYYY>/d<DDD>/h<HH>.ems";
 
 	void defaultOutputOptions()
 	{
@@ -382,14 +383,14 @@ struct ExcludeOptions : SlipOptions
 struct AmbiguityErrorHandler
 {
 	int			phase_reject_limit		= 10;
-	int			outage_reset_limit		= 10;
+	int			outage_reset_limit		= 300;
 
 	SlipOptions	resetOnSlip;
 };
 
 struct IonoErrorHandler
 {
-	int			outage_reset_limit		= 10;
+	int			outage_reset_limit		= 300;
 };
 
 struct OrbitErrorHandler
@@ -471,7 +472,9 @@ struct GlobalOptions
 	bool	interpolate_rec_pco			= true;
 	bool	auto_fill_pco				= true;
 	bool	require_apriori_positions	= false;
+	bool	require_site_eccentricity	= false;
 	bool	require_antenna_details		= false;
+	bool	require_reflector_com		= false;
 
 
 	bool	use_tgd_bias	= false;
@@ -934,8 +937,10 @@ struct CommonOptions
 	double					mincon_scale_apriori_sigma	= 1;
 	double					mincon_scale_filter_sigma	= 0;
 
-	Vector3d				antenna_boresight		= { 0,  0, +1};
-	Vector3d				antenna_azimuth			= { 0, +1,  0};
+	Vector3d				antenna_boresight			= { 0,  0, +1};
+	Vector3d				antenna_azimuth				= { 0, +1,  0};
+
+	double					ellipse_propagation_time_tolerance	= 30;
 
 	struct
 	{
@@ -994,18 +999,18 @@ struct CommonOptions
 
 struct PropagationOptions
 {
-	int		egm_degree				= 12;
-	double	integrator_time_step	= 60;
-	bool	egm_field				= true;
-	bool	solid_earth_tide		= true;
-	bool	pole_tide_ocean			= true;
-	bool	pole_tide_solid			= true;
-	bool	ocean_tide				= true;
-	bool	indirect_J2				= true;
-	bool	aod						= false;
-	bool	atm_tide				= false;
-	bool	central_force			= true;
-	bool	general_relativity		= true;
+	int		egm_degree					= 12;
+	double	integrator_time_step		= 60;
+	bool	egm_field					= true;
+	bool	solid_earth_tide			= true;
+	bool	pole_tide_ocean				= true;
+	bool	pole_tide_solid				= true;
+	bool	ocean_tide					= true;
+	bool	indirect_J2					= true;
+	bool	aod							= false;
+	bool	atm_tide					= false;
+	bool	central_force				= true;
+	bool	general_relativity			= true;
 };
 
 struct SurfaceDetails
@@ -1018,6 +1023,9 @@ struct SurfaceDetails
 	double			diffusion_visible		= 0;
 	double			absorption_visible		= 0;
 	double			thermal_reemission		= 0;
+	double 			reflection_infrared		= 0;
+	double 			diffusion_infrared		= 0;
+	double 			absorption_infrared		= 0;
 };
 
 /** Options associated with orbital force models
@@ -1182,7 +1190,7 @@ struct MinimumConstraintOptions : FilterOptions
 struct MongoInstanceOptions
 {
 	string	uri			= "mongodb://localhost:27017";
-	string	suffix		= "";
+	string	suffix;
 	string	database	= "<CONFIG>";
 };
 
@@ -1256,6 +1264,16 @@ struct SsrInOptions
 	double			local_stec_valid_time	= 120;		///< Valid time period of SSR local Ionospheres
 	double			local_trop_valid_time	= 120;		///< Valid time period of SSR local Tropospheres
 	bool			one_freq_phase_bias		= false;
+};
+
+struct SbsInOptions
+{
+	string	host;		///< hostname is passed as acsConfig.sisnet_inputs
+	string 	port;		///< port of SISNet steam
+	string	user;		///< Username for SISnet stream access
+	string	pass;		///< Password for SISnet stream access
+	int 	prn;		///< prn of SBAS satellite
+	int		freq;		///< freq (L1 or L5) of SBAS channel
 };
 
 struct SSRMetaOpts
@@ -1337,6 +1355,8 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	void	info(
 		Trace& trace);
 
+	void	sanityChecks();
+
 	void	outputDefaultConfiguration(
 		int level);
 
@@ -1350,6 +1370,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	PreprocOptions				preprocOpts;
 	MinimumConstraintOptions	minconOpts;
 	SsrInOptions				ssrInOpts;
+	SbsInOptions				sbsInOpts;
 	AmbROptions					ambrOpts;
 	SsrOptions					ssrOpts;
 	PppOptions					pppOpts;

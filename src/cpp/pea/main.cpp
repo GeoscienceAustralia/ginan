@@ -28,6 +28,7 @@ using std::string;
 #include <boost/log/trivial.hpp>
 
 #include "centerMassCorrections.hpp"
+#include "interactiveTerminal.hpp"
 #include "minimumConstraints.hpp"
 #include "peaCommitStrings.hpp"
 #include "ntripBroadcast.hpp"
@@ -39,14 +40,12 @@ using std::string;
 #include "rtsSmoothing.hpp"
 #include "preprocessor.hpp"
 #include "streamCustom.hpp"
-#include "ntripSocket.hpp"
 #include "rtcmEncoder.hpp"
 #include "sinexParser.hpp"
 #include "streamRinex.hpp"
 #include "coordinates.hpp"
 #include "staticField.hpp"
 #include "geomagField.hpp"
-#include "binaryStore.hpp"
 #include "orbexWrite.hpp"
 #include "mongoWrite.hpp"
 #include "GNSSambres.hpp"
@@ -54,6 +53,7 @@ using std::string;
 #include "streamRtcm.hpp"
 #include "tropModels.hpp"
 #include "ephPrecise.hpp"
+#include "tcpSocket.hpp"
 #include "mongoRead.hpp"
 #include "acsConfig.hpp"
 #include "testUtils.hpp"
@@ -78,12 +78,14 @@ using std::string;
 #include "biases.hpp"
 #include "common.hpp"
 #include "orbits.hpp"
+#include "sisnet.hpp"
 #include "gTime.hpp"
 #include "trace.hpp"
 #include "debug.hpp"
 #include "sinex.hpp"
 #include "tides.hpp"
 #include "cost.hpp"
+#include "sbas.hpp"
 #include "enums.h"
 #include "aod.hpp"
 #include "ppp.hpp"
@@ -216,6 +218,7 @@ void addStationData(
 			continue;
 		}
 
+
 		string mountpoint;
 		auto lastSlashPos = inputName.find_last_of('/');
 		if (lastSlashPos == string::npos)		{	mountpoint = inputName;								}
@@ -261,6 +264,7 @@ void addStationData(
 		else if (protocol == "http")		{	stream_ptr = make_unique<NtripStream>	(inputName);	}
 		else if (protocol == "https")		{	stream_ptr = make_unique<NtripStream>	(inputName);	}
 		else if (protocol == "ntrip")		{	stream_ptr = make_unique<NtripStream>	(inputName);	}
+		else if (protocol == "sisnet")		{	stream_ptr = make_unique<SisnetStream>	(inputName);	}
 		else
 		{
 			BOOST_LOG_TRIVIAL(warning)
@@ -274,6 +278,7 @@ void addStationData(
 		else if (inputFormat == "SP3")		{	parser_ptr = make_unique<Sp3Parser>		();	}
 		else if (inputFormat == "SINEX")	{	parser_ptr = make_unique<SinexParser>	();	}
 		else if (inputFormat == "SLR")		{	parser_ptr = make_unique<SlrParser>		();	}
+		else if (inputFormat == "DS2DC")	{	parser_ptr = make_unique<DS2DCParser>	();	}
 		else
 		{
 			BOOST_LOG_TRIVIAL(warning)
@@ -283,7 +288,7 @@ void addStationData(
 		shared_ptr<StreamParser> streamParser_ptr;
 
 		if		(dataType == "OBS")		streamParser_ptr = make_shared<ObsStream>	(std::move(stream_ptr), std::move(parser_ptr));
-		else if	(dataType == "PSEUDO")	streamParser_ptr = make_shared<ObsStream>	(std::move(stream_ptr), std::move(parser_ptr));
+		else if	(dataType == "PSEUDO")	streamParser_ptr = make_shared<ObsStream>	(std::move(stream_ptr), std::move(parser_ptr), true);
 		else							streamParser_ptr = make_shared<StreamParser>(std::move(stream_ptr), std::move(parser_ptr));
 
 		if (dataType == "OBS")
@@ -710,6 +715,7 @@ void reloadInputFiles()
 	for (auto& [id, pseudosnxinputs]	: acsConfig.pseudo_snx_inputs)		{	addStationData(id,		pseudosnxinputs,			"SINEX",	"PSEUDO");		}
 																			{	addStationData("Nav",	acsConfig.nav_rtcm_inputs,	"RTCM",		"NAV");			}
 																			{	addStationData("QZSL6",	acsConfig.qzs_rtcm_inputs,	"RTCM",		"NAV");			}
+																			{	addStationData("sisnet",acsConfig.sisnet_inputs,	"DS2DC",	"NAV");			}
 }
 
 void configureUploadingStreams()
@@ -776,6 +782,7 @@ void createDirectories(
 								acsConfig.sp3_directory,
 								acsConfig.erp_directory,
 								acsConfig.gpx_directory,
+								acsConfig.ems_directory,
 								acsConfig.log_directory,
 								acsConfig.cost_directory,
 								acsConfig.ionex_directory,
@@ -841,8 +848,8 @@ void createTracefiles(
 		}
 
 
-		string suff		= "";
-		string metaSuff	= "";
+		string suff;
+		string metaSuff;
 
 		if (rts)
 		{
@@ -1004,6 +1011,11 @@ void createTracefiles(
 			pppNet.kfState.metaDataMap[ORBEX_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
 		}
 
+		if (acsConfig.output_sbas_ems)
+		{
+			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ems_filename, pppNet.kfState.metaDataMap[EMS_FILENAME_STR]);
+		}
+
 		if	(  rts
 			&& newTraceFile)
 		{
@@ -1158,6 +1170,11 @@ void mainOncePerEpochPerStation(
 	bool&		emptyEpoch,
 	KFState&	remoteState)
 {
+	if (rec.isPseudoRec)
+	{
+		return;
+	}
+
 	auto trace = getTraceFile(rec);
 
 	sinexPerEpochPerStation(tsync, rec);
@@ -1179,35 +1196,45 @@ void mainOncePerEpochPerStation(
 		SPP(trace, rec.obsList, rec.sol, rec.id, &net.kfState, &remoteState);
 	}
 
+	if	(  rec.ready == false
+		|| rec.invalid)
+	{
+		return;
+	}
+
+	auto missingWarnInvalidate = [&](
+			string	thing,
+			bool	failureBool,
+			bool	requiredConfig) -> bool
+	{
+		if (failureBool == false)
+		{
+			return false;
+		}
+
+		if (requiredConfig)
+		{
+			trace << std::endl			<< "Warning: Receiver " << rec.id << " rejected due to lack of " << thing;
+			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Receiver " << rec.id << " rejected due to lack of " << thing;
+
+			rec.invalid = true;
+
+			return true;
+		}
+
+		BOOST_LOG_TRIVIAL(warning)	<< "Warning: " << thing << " not found for " << rec.id;
+
+		return false;
+	};
+
 	bool sppUsed;
 	selectAprioriSource(rec, tsync, sppUsed, &net.kfState);
 
-	if (sppUsed)
-	{
-		if (acsConfig.require_apriori_positions)
-		{
-			trace << std::endl			<< "Warning: Receiver " << rec.id << " rejected due to lack of apriori position";
-			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Receiver " << rec.id << " rejected due to lack of apriori position";
-
-			rec.invalid = true;
-			return;
-		}
-
-		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Apriori position not found for " << rec.id;
-	}
-
-	if (rec.antennaId.empty())
-	{
-		if (acsConfig.require_antenna_details)
-		{
-			trace << std::endl			<< "Warning: Receiver " << rec.id << " rejected due to lack of antenna details";
-			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Receiver " << rec.id << " rejected due to lack of antenna details";
-			rec.invalid = true;
-			return;
-		}
-
-		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Antenna details not found for " << rec.id;
-	}
+	if (missingWarnInvalidate("Apriori position1",		sppUsed,					acsConfig.require_apriori_positions))		return;
+	if (missingWarnInvalidate("Apriori position2",		rec.failureAprioriPos,		acsConfig.require_apriori_positions))		return;
+	if (missingWarnInvalidate("Antenna details",		rec.antennaId.empty(),		acsConfig.require_antenna_details))			return;
+	if (missingWarnInvalidate("Site eccentricity",		rec.failureEccentricity,	acsConfig.require_site_eccentricity))		return;
+	if (missingWarnInvalidate("Sinex information",		rec.failureSinex,			1))											return;
 
 	emptyEpoch = false;
 
@@ -1264,6 +1291,7 @@ void outputPredictedStates(
 		return;
 	}
 
+	InteractiveTerminal::setMode(E_InteractiveMode::PredictingStates);
 	BOOST_LOG_TRIVIAL(info) << " ------- PREDICTING STATES            --------" << std::endl;
 
 	tuple<double, double>	forward = {+1, acsConfig.mongoOpts.forward_prediction_duration};
@@ -1317,7 +1345,7 @@ void outputPredictedStates(
 
 				orbitsTime = time;
 
-				std::cout << std::endl << "Propagated to " << time.to_string();
+				BOOST_LOG_TRIVIAL(info) << "Propagated to " << time.to_string();
 
 				KFState mongoState;
 				mongoState.time = time;
@@ -1438,11 +1466,13 @@ void mainPerEpochPostProcessingAndOutputs(
 
 			MinconStatistics minconStatistics;
 
-			mincon(pppTrace, tempAugmentedKF, &minconStatistics);				//todo aaron, orbits apriori need etting
+			InteractiveTerminal minconTrace("MinimumConstraints", pppTrace);
 
-			tempAugmentedKF.outputStates(pppTrace, "/CONSTRAINED");
+			mincon(minconTrace, tempAugmentedKF, &minconStatistics);				//todo aaron, orbits apriori need etting
 
-			outputMinconStatistics(pppTrace, minconStatistics);
+			tempAugmentedKF.outputStates(minconTrace, "/CONSTRAINED");
+
+			outputMinconStatistics(minconTrace, minconStatistics);
 
 			mongoStates(tempAugmentedKF,
 						{
@@ -1524,6 +1554,11 @@ void mainPerEpochPostProcessingAndOutputs(
 	if (acsConfig.output_orbit_ics)
 	{
 		outputOrbitConfig(kfState);
+	}
+
+	if (acsConfig.output_sbas_ems)
+	{
+		writeEMSdata(pppTrace, kfState.metaDataMap[EMS_FILENAME_STR]);
 	}
 
 	mongoMeasSatStat		(receiverMap);
@@ -1645,6 +1680,7 @@ void mainOncePerEpoch(
 		mainOncePerEpochPerSatellite(pppTrace, time, Sat);
 	}
 
+	InteractiveTerminal::setMode(E_InteractiveMode::Preprocessing);
 	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << std::endl;
 
 	KFState remoteState;
@@ -1749,6 +1785,7 @@ void mainPostProcessing(
 		&&	acsConfig.process_minimum_constraints
 		&&	acsConfig.minconOpts.once_per_epoch == false)
 	{
+		InteractiveTerminal::setMode(E_InteractiveMode::MinimumConstraints);
 		BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << std::endl;
 
 		for (auto& [id, rec] : receiverMap)
@@ -1781,11 +1818,14 @@ void mainPostProcessing(
 
 		MinconStatistics minconStatistics;
 
-		mincon(pppTrace, pppNet.kfState, &minconStatistics);
 
-		pppNet.kfState.outputStates(pppTrace, "/CONSTRAINED");
+		InteractiveTerminal minconTrace("MinimumConstraints", pppTrace);
 
-		outputMinconStatistics(pppTrace, minconStatistics);
+		mincon(minconTrace, pppNet.kfState, &minconStatistics);
+
+		pppNet.kfState.outputStates(minconTrace, "/CONSTRAINED");
+
+		outputMinconStatistics(minconTrace, minconStatistics);
 
 		mongoStates(pppNet.kfState,
 					{
@@ -1867,7 +1907,7 @@ int ginan(
 	{
 		BOOST_LOG_TRIVIAL(error) 	<< "Error: Incorrect configuration";
 		BOOST_LOG_TRIVIAL(info) 	<< "PEA finished";
-		NtripSocket::io_service.stop();
+		TcpSocket::ioService.stop();
 		return EXIT_FAILURE;
 	}
 
@@ -1971,7 +2011,7 @@ int ginan(
 
 	addDefaultBias();
 
-	NtripSocket::startClients();
+	TcpSocket::startClients();
 
 	if (acsConfig.start_epoch.is_not_a_date_time() == false)
 	{
@@ -2093,6 +2133,11 @@ int ginan(
 				}
 			}
 
+			InteractiveTerminal::clearModes(
+											(string)" Processing epoch "	+ std::to_string(epoch) + "    " + tsync.to_string(),
+											(string)" Last Epoch took "		+ std::to_string((lastEpochStopTime - lastEpochStartTime).to_double()) + "s");
+			InteractiveTerminal::setMode(E_InteractiveMode::Syncing);
+
 			for (auto& [id, rec] : receiverMap)
 			{
 				rec.ready = false;
@@ -2143,10 +2188,7 @@ int ginan(
 		while	( repeat
 				&&system_clock::now() < breakTime)
 		{
-			if (acsConfig.require_obs)
-			{
-				repeat = false;
-			}
+			repeat = false;
 
 			//load any changes from the config
 			bool newConfig = acsConfig.parse();
@@ -2249,6 +2291,8 @@ int ginan(
 				streamParser_ptr->parse();
 			}
 
+
+
 			for (auto& [id, streamParser_ptr] : streamParserMultimap)
 			{
 				ObsStream* obsStream_ptr;
@@ -2272,6 +2316,11 @@ int ginan(
 				}
 
 				auto& rec = receiverMap[id];
+
+				if (obsStream.isPseudoRec)
+				{
+					rec.isPseudoRec = true;
+				}
 
 				//try to get some data (again)
 				if (rec.ready)
@@ -2375,6 +2424,8 @@ int ginan(
 		<< "Synced " << dataAvailableMap.size() << " receivers...";
 
 		lastEpochStartTime	= timeGet();
+		if	( acsConfig.require_obs		== false
+			||dataAvailableMap.empty()	== false)
 		{
 			mainOncePerEpoch(pppNet, ionNet, receiverMap, tsync);
 		}
@@ -2396,7 +2447,7 @@ int ginan(
 	}
 
 	ntripBroadcaster.stopBroadcast();
-	NtripSocket::io_service.stop();
+	TcpSocket::ioService.stop();
 
 	GTime peaInterTime = timeGet();
 	BOOST_LOG_TRIVIAL(info)

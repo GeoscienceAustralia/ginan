@@ -14,6 +14,7 @@ using boost::algorithm::to_lower;
 using std::deque;
 using std::map;
 
+#include "interactiveTerminal.hpp"
 #include "oceanPoleTide.hpp"
 #include "eigenIncluder.hpp"
 #include "acceleration.hpp"
@@ -68,7 +69,7 @@ void OrbitIntegrator::computeCommon(
 	{
 		if (egm.initialised == false)
 		{
-			BOOST_LOG_TRIVIAL(error) << "Error: EGM data not initialised, check for valid egm file.";
+			BOOST_LOG_TRIVIAL(error) << "Error: EGM data not initialised, check for valid egm file";
 
 			break;
 		}
@@ -167,9 +168,9 @@ void OrbitIntegrator::computeAcceleration(
 	const	GTime		time)
 {
 	auto trace = getTraceFile(nav.satNavMap[orbInit.Sat]);
-
+	
 	trace << std::endl << "Computing accelerations at " << time;
-
+	
 	Vector3d rSat = orbInit.pos;
 	Vector3d vSat = orbInit.vel;
 
@@ -189,15 +190,14 @@ void OrbitIntegrator::computeAcceleration(
 	if (acsConfig.propagationOptions.central_force)
 	{
 		Vector3d accCF = accelCentralForce(rSat, GM_values[E_ThirdBody::EARTH], &dAdPos);
+        acc += accCF;
 
 		orbInit.componentsMap[E_Component::CENTRAL_FORCE] = accCF.norm();
-
-		acc += accCF;
 	}
 
 	{
 		Vector3d accPlanets = Vector3d::Zero();
-
+		
 		for (auto& planet : orbInit.planetary_perturbations)
 		{
 			if (planet == +E_ThirdBody::EARTH)
@@ -211,10 +211,9 @@ void OrbitIntegrator::computeAcceleration(
 
 			accPlanets += accPlanet;
 		}
+        acc += accPlanets;
 
 		orbInit.componentsMap[E_Component::PLANETARY_PERTURBATION] = accPlanets.norm();
-
-		acc += accPlanets;
 	}
 
 	if (acsConfig.propagationOptions.egm_field)
@@ -232,10 +231,9 @@ void OrbitIntegrator::computeAcceleration(
 
 			dAdPos.col(i) += eci2ecf.transpose() * (accPerturbed - accSPH) / posOffset;
 		}
+        acc += eci2ecf.transpose() * accSPH;
 
 		orbInit.componentsMap[E_Component::EGM] = accSPH.norm();
-
-		acc += eci2ecf.transpose() * accSPH;
 	}
 
 
@@ -245,10 +243,9 @@ void OrbitIntegrator::computeAcceleration(
 	for (const auto body : {E_ThirdBody::SUN, E_ThirdBody::MOON})
 	{
 		Vector3d accJ2 = accelJ2(Cnm(2,0), eci2ecf, planetsPosMap[body], GM_values[body]);
+        acc += eci2ecf.transpose() * accJ2;
 
 		orbInit.componentsMap[E_Component::INDIRECT_J2] = accJ2.norm();
-
-		acc += eci2ecf.transpose() * accJ2;
 	}
 
 	if (acsConfig.propagationOptions.general_relativity)
@@ -285,10 +282,9 @@ void OrbitIntegrator::computeAcceleration(
 
 			dAdVel.col(i) += (acc_rel_part - accRel) / velOffset;
 		}
+        acc += accRel;
 
 		orbInit.componentsMap[E_Component::GENERAL_RELATIVITY] = accRel.norm();
-
-		acc += accRel;
 	};
 
 	if (orbInit.antenna_thrust)
@@ -304,10 +300,9 @@ void OrbitIntegrator::computeAcceleration(
 
 			dAdPos.col(i) += (acc_pert - accAnt) / posOffset;
 		}
+        acc += accAnt;
 
 		orbInit.componentsMap[E_Component::ANTENNA_THRUST] = accAnt.norm();
-
-		acc += accAnt;
 	}
 
 	switch (orbInit.solar_radiation_pressure)
@@ -324,13 +319,12 @@ void OrbitIntegrator::computeAcceleration(
 			double R			= satToSun.norm();
 
 			dAdPos += scalar * (1 / pow(R, 3) * Matrix3d::Identity() - 3 * satToSun * (satToSun.transpose() / pow(R, 5)));
-
 			Vector3d accSrp = -1 * scalar * ed;
-
-			orbInit.componentsMap[E_Component::SRP_CANNONBALL] = accSrp.norm();
-
 			acc += accSrp;
-			break;
+
+            orbInit.componentsMap[E_Component::SRP_CANNONBALL] = accSrp.norm();
+
+            break;
 		}
 
 		case E_SRPModel::BOXWING:
@@ -351,43 +345,64 @@ void OrbitIntegrator::computeAcceleration(
 			Vector3d accSolarBoxwing = applyBoxwingSrp(orbInit, ed, eX, eY, eZ);
 
 			double eclipseFrac = sunVisibility(rSat, planetsPosMap[E_ThirdBody::SUN], planetsPosMap[E_ThirdBody::MOON]);
-
 			accSolarBoxwing *= eclipseFrac;
-
-			orbInit.componentsMap[E_Component::SRP_BOXWING] = accSolarBoxwing.norm();
-
 			acc +=  accSolarBoxwing;
 
-			break;
+            orbInit.componentsMap[E_Component::SRP_BOXWING] = accSolarBoxwing.norm();
+
+            break;
 		}
 	}
-
-	switch (orbInit.albedo)
+	if (orbInit.albedo != +E_SRPModel::NONE)
 	{
-		case E_SRPModel::CANNONBALL:
+		double A			= orbInit.area;
+		double m			= orbInit.mass;
+		double E 			= 1367;
+		double cBall		= 0.8 * E / CLIGHT;
+		double alpha		= 0.3;
+		double Ae			= M_PI * SQR(RE_WGS84);
+		Vector3d rSun		= planetsPosMap[E_ThirdBody::SUN];
+
+		double factor 		= Ae / rSat.squaredNorm();
+		double E_IR 		= (1 - alpha) / (4 * PI);
+
+		double cos_		= rSat.dot(rSun) / (rSat.norm() * rSun.norm());
+		double phi		= acos(cos_);
+		double sin_		= sin(phi);
+		double E_Vis	= 2 * alpha / (3 * SQR(PI)) * ((PI - phi) * cos_ + sin_);
+		E_Vis *= factor;
+		E_IR *= factor;
+		switch (orbInit.albedo)
 		{
-			double A			= orbInit.area;
-			double m			= orbInit.mass;
-			double E 			= 1367;
-			double cBall		= 0.8;
-			double alpha		= 0.3;
-			double Ae			= M_PI * SQR(RE_WGS84);
-			Vector3d rSun		= planetsPosMap[E_ThirdBody::SUN];
+			case E_SRPModel::CANNONBALL:
+			{
+				Vector3d accAlbedo = A / m * (E_Vis + E_IR) * cBall * rSat.normalized();
+				orbInit.componentsMap[E_Component::ALBEDO] = accAlbedo.norm();
+				acc += accAlbedo;
 
-			double E_IR 		= (1 - alpha) / (4 * PI) * Ae * E / rSat.squaredNorm();
+				break;
+			}
+			case E_SRPModel::BOXWING:
+			{
+				SatPos satPos;
+				satPos.rSatCom		= eci2ecf * rSat;
+				satPos.satVel		= eci2ecf * vSat + deci2ecf * rSat;
+				satPos.posTime		= timeInit;
+				satPos.Sat			= orbInit.Sat;
+				satPos.satNav_ptr 	= &nav.satNavMap[orbInit.Sat];
 
-			double cos_		= rSat.dot(rSun) / (rSat.norm() * rSun.norm());
-			double phi		= acos(cos_);
-			double sin_		= sin(phi);
-			double E_Vis	= 2 * alpha / (3 * SQR(PI)) * Ae * E / rSat.squaredNorm() * ((PI - phi) * cos_ + sin_);
+				updateSatAtts(satPos);
 
-			Vector3d accAlbedo = A / m * (E_Vis + E_IR)  / CLIGHT * cBall * rSat.normalized();
+				Vector3d eX = eci2ecf.transpose() * satPos.satNav_ptr->attStatus.eXBody;
+				Vector3d eY = eci2ecf.transpose() * satPos.satNav_ptr->attStatus.eYBody;
+				Vector3d eZ = eci2ecf.transpose() * satPos.satNav_ptr->attStatus.eZBody;
 
-			orbInit.componentsMap[E_Component::ALBEDO] = accAlbedo.norm();
+				Vector3d accAlbedoBoxwing = applyBoxwingAlbedo(orbInit, E_Vis, E_IR, rSat*-1.0, ed, eX, eY, eZ);
+				orbInit.componentsMap[E_Component::ALBEDO_BOXWING] = accAlbedoBoxwing.norm();
+				acc +=  accAlbedoBoxwing;
 
-			acc += accAlbedo;
-
-			break;
+				break;
+			}
 		}
 	}
 
@@ -551,7 +566,7 @@ void integrateOrbits(
 	{
 		double newDt = integrationPeriod / steps;
 
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Time step adjusted from " << dt << " to " << newDt ;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Time step adjusted from " << dt << " to " << newDt;
 
 		dt = newDt;
 	}
@@ -848,6 +863,7 @@ void predictOrbits(
 		return;
 	}
 
+	InteractiveTerminal::setMode(E_InteractiveMode::PropagatingOrbits);
 	BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING ORBITS           --------" << std::endl;
 
 	OrbitIntegrator integrator;
@@ -861,11 +877,11 @@ void predictOrbits(
 	{
 		auto& satNav	= nav.satNavMap[orbit.Sat];
 		auto& satPos0	= satNav.satPos0;
-
+		
 		auto satTrace = getTraceFile(satNav);
-
+		
 		satTrace << std::endl << "Propagated orbit from " << kfState.time << " to " << time;
-
+		
 		for (auto& [component, value] : orbit.componentsMap)
 		{
 			tracepdeex(0, satTrace, "\n");

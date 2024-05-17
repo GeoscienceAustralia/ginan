@@ -32,6 +32,8 @@ using Trace = std::ostream;
 
 struct ConsoleLog : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {
+	static bool useInteractive;
+
 	// The function consumes the log records that come from the frontend
 	void consume(
 		boost::log::record_view																	const&	rec,

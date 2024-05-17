@@ -68,8 +68,6 @@ add_library(ginan_core
 		common/biases.cpp
 		common/biasSINEXread.cpp
 		common/biasSINEXwrite.cpp
-		common/binaryStore.cpp
-		common/binaryStore.hpp
 		common/common.hpp
 		common/common.cpp
 		common/constants.hpp
@@ -96,6 +94,7 @@ add_library(ginan_core
 		common/gTime.cpp
 		common/gTime.hpp
 		common/icdDecoder.hpp
+		common/interactiveTerminal.cpp
 		common/ionModels.cpp
 		common/linearCombo.cpp
 		common/linearCombo.hpp
@@ -108,8 +107,6 @@ add_library(ginan_core
 
 		common/navigation.hpp
 		common/observations.hpp
-		common/ntripSocket.cpp
-		common/ntripSocket.hpp
 		common/ntripTrace.cpp
 		common/ntripTrace.hpp
 		common/orbits.cpp
@@ -143,6 +140,8 @@ add_library(ginan_core
 		common/orbexWrite.hpp
 		common/orbexWrite.cpp
 		common/ssr.hpp
+		common/tcpSocket.cpp
+		common/tcpSocket.cpp
 		common/trace.cpp
 		common/trace.hpp
 		common/testUtils.cpp
@@ -227,6 +226,11 @@ add_library(ginan_core
 		rtklib/lambda.cpp
 		rtklib/lambda.h
 		rtklib/rtkcmn.cpp
+
+		sbas/sisnet.cpp
+		sbas/sisnet.hpp
+		sbas/sbas.cpp
+		sbas/sbas.hpp
 )
 
 target_include_directories(ginan_core PUBLIC
@@ -251,6 +255,7 @@ target_include_directories(ginan_core PUBLIC
 		peaUploader
 		rtklib
 		other_ssr
+		sbas
 
 		${EIGEN3_INCLUDE_DIRS}
 		${LAPACK_INCLUDE_DIRS}
@@ -375,6 +380,7 @@ target_link_libraries(ginan_core PUBLIC
 						${OPENSSL_LIBRARY_DIRS}
 						${OPENSSL_LIBRARIES}
 						dl
+						ncurses
 					)
 
 

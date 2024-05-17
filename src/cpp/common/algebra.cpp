@@ -1,15 +1,18 @@
 
 
-#include <utility>
 
+#include <utility>
+#include <sstream>
+
+using std::ostringstream;
 using std::pair;
 
 #include <boost/math/distributions/chi_squared.hpp>
 #include <boost/math/distributions/normal.hpp>
 
+#include "interactiveTerminal.hpp"
 #include "eigenIncluder.hpp"
 #include "algebraTrace.hpp"
-#include "binaryStore.hpp"
 #include "mongoWrite.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
@@ -1458,7 +1461,9 @@ void KFState::filterKalman(
 
 			if (output_residuals)
 			{
-				outputResiduals(trace, kfMeas, i, suffix, fc.begH, fc.numH);
+				InteractiveTerminal ss("Residuals" + suffix, trace);
+
+				outputResiduals(ss, kfMeas, i, suffix, fc.begH, fc.numH);
 			}
 
 			if (postfitOpts.sigma_check == false)
@@ -1470,10 +1475,11 @@ void KFState::filterKalman(
 			int		badMeasIndex = -1;
 
 			postFitSigmaChecks(chunkTrace, kfMeas, dx, i, badState, badMeasIndex, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
-			bool stopIterating = false;
-			if (badState.type)		{	chunkTrace << std::endl << "Postfit check failed state test";		bool keepGoing = doStateRejectCallbacks	(chunkTrace, kfMeas, badState,		true);					/*continue;*/	}	//always fallthrough
-			if (badMeasIndex >= 0)	{	chunkTrace << std::endl << "Postfit check failed measurement test";	bool keepGoing = doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex,	true);		stopIterating = false;		}	//retry next iteration
-			else					{	chunkTrace << std::endl << "Postfit check passed";																											stopIterating = true;		}	//all ok, finish
+			bool stopIterating = true;
+			if (badState.type)		{	chunkTrace << std::endl << "Postfit check failed state test";		bool keepGoing = doStateRejectCallbacks	(chunkTrace, kfMeas, badState,		true);		stopIterating = false;	}
+			if (badMeasIndex >= 0)	{	chunkTrace << std::endl << "Postfit check failed measurement test";	bool keepGoing = doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex,	true);		stopIterating = false;	}
+
+			if (stopIterating)		{	chunkTrace << std::endl << "Postfit check passed";																																	}
 
 			if	( stopIterating
 				||i == postfitOpts.max_iterations - 1)
@@ -1484,14 +1490,9 @@ void KFState::filterKalman(
 			}
 		}
 
-		if	(outputMongoMeasurements)
+		if (outputMongoMeasurements)
 		{
-			mongoMeasResiduals	(kfMeas.time, kfMeas, acsConfig.mongoOpts.queue_outputs, suffix, fc.begH, fc.numH);
-		}
-		if	(  acsConfig.store_binary_measurements
-			&& outputMongoMeasurements)
-		{
-			storeResiduals		(kfMeas.time, kfMeas.obsKeys, kfMeas.V, kfMeas.VV, kfMeas.R, suffix, fc.begH, fc.numH);
+			mongoMeasResiduals(kfMeas.time, kfMeas, acsConfig.mongoOpts.queue_outputs, suffix, fc.begH, fc.numH);
 		}
 
 		testStatistics.sumOfSquaresPost	+= statistics.sumOfSquares;
@@ -1892,15 +1893,17 @@ const
 /** Output keys and states in human readable format
 */
 void KFState::outputStates(
-		Trace&		trace,	///< Trace to output to
+		Trace&		output,	///< Trace to output to
 		string		suffix,	///< Suffix to append to state block info tag in trace files
 		int			begX,	///< Index of first state element to process
 		int			numX)   ///< Number of state elements to process
 {
-	tracepdeex(2, trace, "\n\n");
+	tracepdeex(2, output, "\n\n");
 
 	string name = "STATES";
 	name += suffix;
+
+	InteractiveTerminal trace(name, output);
 	Block block(trace, name);
 
 	tracepdeex(2, trace, "#\t%22s\t%20s\t%5s\t%3s\t%7s\t%17s\t%17s\t%15s", "Time", "Type", "Str", "Sat", "Num", "State", "Sigma", "Adjust");

@@ -32,7 +32,7 @@ struct BiasEntry
 	double		slop		= 0;					///< hardware bias slope in meters/second
 	double		var			= 0;					///< hardware bias variance in meters^2
 	double		slpv		= 0;					///< hardware bias slope variance in (meters/second)^2
-	string		name		= "";					///< receiver name for receiver bias
+	string		name;								///< receiver name for receiver bias
 	SatSys		Sat;								///< satellite prn for satellite bias / satellite system for receiver bias
 	string		source		= "X";
 

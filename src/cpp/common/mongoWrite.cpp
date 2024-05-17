@@ -35,6 +35,18 @@ using bsoncxx::types::b_date;
 
 using std::make_pair;
 
+
+struct DBEntry
+{
+	map<string, tuple<string,			bool>>		stringMap;
+	map<string, tuple<GTime,			bool>>		timeMap;
+	map<string, tuple<double,			bool>>		doubleMap;
+	map<string, tuple<int,				bool>>		intMap;
+	map<string, tuple<Vector3d,			bool>>		vectorMap;
+	map<string, tuple<vector<double>,	bool>>		doubleArrayMap;
+	map<string, tuple<deque<bool>,		bool>>		boolArrayMap;
+};
+
 struct QueuedMongo
 {
 	KFState				kfState;
@@ -310,28 +322,40 @@ void mongoMeasSatStat(
 		bool update = false;
 
 		for (auto& [id, rec] : receiverMap)
-		for (auto& obs : only<GObs>(rec.obsList))
 		{
-			if (obs.exclude)
-				continue;
+			for (auto& obs_ptr : rec.obsList)
+			{
+				auto& obs = *obs_ptr;
 
-			if (obs.satStat_ptr == nullptr)
-				continue;
+				try
+				{
+					auto& satPos  = dynamic_cast<SatPos&>(obs);
 
-			SatStat& satStat = *obs.satStat_ptr;
+					if	(obs.exclude)
+						continue;
 
-			bsoncxx::builder::stream::document doc{};
-			doc		<< "Epoch"		<< bDate(tsync)
-					<< "Site"		<< obs.mount
-					<< "Sat"		<< obs.Sat.id()
-					<< "Series"		<< config.suffix
-					<< "Azimuth"	<< satStat.az		* R2D
-					<< "Elevation"	<< satStat.el		* R2D
-					<< "Nadir"		<< satStat.nadir	* R2D;
+					if (satPos.satStat_ptr == nullptr)
+						continue;
 
-			bsoncxx::document::value doc_val = doc << finalize;
-			bulk.append(mongocxx::model::insert_one(doc_val.view()));
-			update = true;
+					SatStat& satStat = *satPos.satStat_ptr;
+
+					bsoncxx::builder::stream::document doc{};
+					doc		<< "Epoch"		<< bDate(tsync)
+							<< "Site"		<< obs.mount
+							<< "Sat"		<< satPos.Sat.id()
+							<< "Series"		<< config.suffix
+							<< "Azimuth"	<< satStat.az		* R2D
+							<< "Elevation"	<< satStat.el		* R2D
+							<< "Nadir"		<< satStat.nadir	* R2D;
+
+					bsoncxx::document::value doc_val = doc << finalize;
+					bulk.append(mongocxx::model::insert_one(doc_val.view()));
+					update = true;
+				}
+				catch (...)
+				{
+				}
+			}
 		}
 
 		if (update)
@@ -340,12 +364,12 @@ void mongoMeasSatStat(
 }
 
 void mongoMeasResiduals(
-	GTime				time,
-	KFMeas&				kfMeas,
-	bool				queue,
-	string				suffix,
-	int					beg,
-	int					num)
+	const	GTime&	time,
+			KFMeas&	kfMeas,
+			bool	queue,
+			string	suffix,
+			int		beg,
+			int		num)
 {
 	auto instances = mongoInstances(acsConfig.mongoOpts.output_measurements);
 
@@ -403,7 +427,7 @@ void mongoMeasResiduals(
 		{
 			KFKey& obsKey = kfMeas.obsKeys[i];
 
-			string commentString = "";
+			string commentString;
 			if (obsKey.comment.empty() == false)
 				commentString = obsKey.comment + "-";
 
@@ -429,7 +453,7 @@ void mongoMeasResiduals(
 			{
 				KFKey& obsKey = kfMeas.obsKeys[i];
 
-				string commentString = "";
+				string commentString;
 				if (obsKey.comment.empty() == false)
 					commentString = obsKey.comment + "-";
 

@@ -15,7 +15,9 @@
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/log/sinks/basic_sink_backend.hpp>
+
 
 #include <string>
 #include <vector>
@@ -27,21 +29,10 @@
 
 using std::string;
 using std::vector;
+using std::array;
 using std::deque;
 using std::tuple;
 using std::map;
-
-
-struct DBEntry
-{
-	map<string, tuple<string,			bool>>		stringMap;
-	map<string, tuple<GTime,			bool>>		timeMap;
-	map<string, tuple<double,			bool>>		doubleMap;
-	map<string, tuple<int,				bool>>		intMap;
-	map<string, tuple<Vector3d,			bool>>		vectorMap;
-	map<string, tuple<vector<double>,	bool>>		doubleArrayMap;
-	map<string, tuple<deque<bool>,		bool>>		boolArrayMap;
-};
 
 using bsoncxx::builder::stream::close_array;
 using bsoncxx::builder::stream::close_document;
@@ -51,6 +42,8 @@ using bsoncxx::builder::stream::open_array;
 using bsoncxx::builder::stream::open_document;
 
 namespace sinks = boost::log::sinks;
+
+struct DBEntry;
 
 
 struct Mongo

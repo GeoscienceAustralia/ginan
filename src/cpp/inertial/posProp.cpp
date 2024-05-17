@@ -220,7 +220,7 @@ void integrateInertials(
 	{
 		double newDt = integrationPeriod / steps;
 
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Time step adjusted from " << dt << " to " << newDt ;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Time step adjusted from " << dt << " to " << newDt;
 
 		dt = newDt;
 	}

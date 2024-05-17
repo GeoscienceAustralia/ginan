@@ -110,7 +110,8 @@ struct SinexRecData
 */
 struct Receiver : ReceiverLogs, Rtk
 {
-	bool				invalid	= false;
+	bool				isPseudoRec	= false;
+	bool				invalid		= false;
 	SinexRecData		snx;						///< Antenna information
 
 	map<string, string>					metaDataMap;
@@ -137,6 +138,17 @@ struct Receiver : ReceiverLogs, Rtk
 
 	map<SatSys, GTime> savedSlips;
 
+	union
+	{
+		const unsigned int failure = 0;
+		struct
+		{
+			unsigned failureSinex			: 1;
+			unsigned failureAprioriPos		: 1;
+			unsigned failureEccentricity	: 1;
+			unsigned failureAntenna			: 1;
+		};
+	};
 	Cache<tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>>	pppTideCache;
 	Cache<tuple<Vector3d>>											pppEopCache;
 };

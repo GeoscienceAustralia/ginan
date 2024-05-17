@@ -30,7 +30,7 @@ void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap);
 
 void NtripBroadcaster::startBroadcast()
 {
-	NtripSocket::startClients();
+	TcpSocket::startClients();
 }
 
 void NtripBroadcaster::stopBroadcast()
@@ -61,7 +61,7 @@ void NtripUploader::serverResponse(
 	GTime time = timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
-	doc.append(kvp("label", 			"serverResponse"));
+	doc.append(kvp("label", 			__FUNCTION__));
 	doc.append(kvp("Stream", 			url.path.substr(1,url.path.length())));
 	doc.append(kvp("Time", 				time.to_string()));
 	doc.append(kvp("ServerStatus", 		(int)status_code));
@@ -71,7 +71,7 @@ void NtripUploader::serverResponse(
 }
 
 
-void NtripUploader::write_handler(
+void NtripUploader::writeHandler(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -87,7 +87,7 @@ void NtripUploader::write_handler(
 	outMessagesMtx.unlock();
 }
 
-void NtripUploader::messageTimeout_handler(
+void NtripUploader::messageTimeoutHandler(
 	const boost::system::error_code& err)
 {
 	// BOOST_LOG_TRIVIAL(debug) << "started " << __FUNCTION__ << "\n";
@@ -99,7 +99,7 @@ void NtripUploader::messageTimeout_handler(
 	//fire this callback again in the future
 	{
 		sendTimer.expires_from_now(boost::posix_time::milliseconds(500));		// check uploader twice a second to account for aliasing
-		sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeout_handler, this, bp::error));
+		sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeoutHandler, this, bp::error));
 	}
 
 	SSRMeta		ssrMeta;
@@ -600,8 +600,8 @@ void NtripUploader::messageTimeout_handler(
 		chunkedStream	.write	(&data[0], length);
 		chunkedStream << "\r\n";
 
-		if (url.protocol == "https")	{	boost::asio::async_write(*_sslsocket,	outMessages, boost::bind(&NtripUploader::write_handler, this, bp::error));}
-		else							{	boost::asio::async_write(*_socket,		outMessages, boost::bind(&NtripUploader::write_handler, this, bp::error));}
+		if (url.protocol == "https")	{	boost::asio::async_write(*_sslsocket,	outMessages, boost::bind(&NtripUploader::writeHandler, this, bp::error));}
+		else							{	boost::asio::async_write(*_socket,		outMessages, boost::bind(&NtripUploader::writeHandler, this, bp::error));}
 
 		previousTargetTime = targetTime;
 	}
@@ -612,7 +612,7 @@ void NtripUploader::startBroadcast()
 	// BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " Starting Send Loop.\n";
 
 	sendTimer.expires_from_now(boost::posix_time::seconds(1));
-	sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeout_handler, this, bp::error));
+	sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeoutHandler, this, bp::error));
 }
 
 void NtripUploader::connected()
@@ -620,7 +620,7 @@ void NtripUploader::connected()
 	// BOOST_LOG_TRIVIAL(info) << "Uploader connected.\n";
 
 	// Although there should be no downloading attempting to download monitors the socket connection.
-	start_read(true);
+	startRead(true);
 
 	startBroadcast();
 }

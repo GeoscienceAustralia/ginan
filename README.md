@@ -38,10 +38,10 @@ The software consists of three main components:
 ## Using Ginan with an AppImage
 
 You can quickly download a precompiled binary of Ginan's pea from the `develop-weekly-appimage` branch of github.
+This allows you to run Ginan without the need for installing external dependencies.
+It contains no python scripts or example data, but is possible to run immediately on linux and windows systems as simply as:
 
     git clone -b develop-weekly-appimage --depth 1 --single-branch https://github.com/GeoscienceAustralia/ginan.git
-
-This contains no python scripts or example data, but is possible to run immediately on linux and windows systems as simply as:
 
     ginan/Ginan-x86_64.AppImage
 
@@ -49,6 +49,12 @@ or on windows:
 
     wsl --install -d ubuntu
     ginan/Ginan-x86_64.AppImage
+
+If the image fails to run, first ensure it is executable and all requires libraries are available
+
+    chmod 777 ginan/Ginan-x86_64.AppImage
+    apt install fuse libfuse2
+
 
 
 ## Using Ginan with Docker
@@ -246,6 +252,12 @@ You can remove the need for path specification to the executable by using the sy
 ```
 PATH="path_to_ginan_bin:$PATH"
 ```
+
+NB: For PPP positioning of a single station, we have noted that limiting the number of cores to 1 can reduce processing times. This can be achieved via setting the environment variable `OMP_NUM_THREADS`:
+
+    OMP_NUM_THREADS=1 ginan/Ginan-x86_64.AppImage
+
+
 
 ## Scripts
 In addition to the Ginan binaries, [scripts](scripts.index) are available to assist with downloading input files, and viewing and comparing generated outputs.

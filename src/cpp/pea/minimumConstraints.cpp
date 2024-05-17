@@ -60,7 +60,7 @@ void minSiteData(
 		MatrixXd filterVar;
 		Vector3d filterPos = kfStateStations.getSubState(kfKeyMap, &filterVar);
 
-		string constraint = "";
+		string constraint;
 		if (usedMap[index])
 		{
 			constraint = "!";
@@ -134,7 +134,7 @@ void minOrbitData(
 		Vector3d filterPos = filterState.head(3);
 		Vector3d filterVel = filterState.tail(3);
 
-		string constraint = "";
+		string constraint;
 		if (usedMap[index])
 		{
 			constraint = "!";
@@ -817,7 +817,7 @@ void mincon(
 			if (key.type == +KF::ONE)
 				continue;
 
-			char line[128] = "";
+			char line[128];
 			snprintf(line, sizeof(line), " Minimum Constraints Transform: %12s:%c %+9f %6s +- %8f",
 					KF::_from_integral(key.type)._to_string(),
 					'X' + key.num,

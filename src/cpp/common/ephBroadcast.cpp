@@ -502,8 +502,9 @@ bool satPosBroadcast(
 	int&			iode,
 	Navigation&		nav)
 {
-	Vector3d	rSat_1;
-	double		tt = 1E-3;
+	Vector3d	rSat1;
+	Vector3d	rSat2;
+	double		tt = 1e-3;
 
 //	trace(4, "%s: time=%s sat=%2d iode=%d\n",__FUNCTION__,time.to_string(3).c_str(),obs.Sat,iode);
 
@@ -521,8 +522,8 @@ bool satPosBroadcast(
 
 	auto& eph = *eph_ptr;
 
-	eph2Pos(time, 		eph, 	rSat, 		&ephVar);
-	eph2Pos(time + tt,	eph, 	rSat_1);
+	eph2Pos(time - tt, eph, rSat1, &ephVar);
+	eph2Pos(time + tt, eph, rSat2);
 
 	if (eph.svh == E_Svh::SVH_OK)
 	{
@@ -532,7 +533,8 @@ bool satPosBroadcast(
 	iode	= eph.iode;
 
 	/* satellite velocity and clock drift by differential approx */
-	satVel = (rSat_1 - rSat) / tt;
+	rSat	= (rSat2 + rSat1) /  2;
+	satVel	= (rSat2 - rSat1) / (2 * tt);
 
 	return true;
 }

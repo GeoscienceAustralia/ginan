@@ -20,3 +20,4 @@ using std::string;
 #define ION_FILENAME_STR		((string)"ionFilename")
 #define SP3_FILENAME_STR		((string)"sp3Filename")
 #define CLK_FILENAME_STR		((string)"clkFilename")
+#define EMS_FILENAME_STR		((string)"emsFilename")

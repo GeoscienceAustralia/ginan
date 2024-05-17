@@ -41,9 +41,9 @@ struct KFKey
 {
 	short int	type	= 0;			///< Key type (From enum)
 	SatSys		Sat		= {};			///< Satellite
-	string		str		= "";			///< String (receiver ID)
+	string		str;					///< String (receiver ID)
 	int 		num		= 0;			///< Subkey number (eg xyz => 0,1,2)
-	string		comment	= "";			///< Optional comment
+	string		comment;				///< Optional comment
 	Receiver*	rec_ptr	= 0;			///< Pointer to station object for dereferencing
 
 	bool operator ==	(const KFKey& b) const;
@@ -816,6 +816,7 @@ struct KFMeasEntry
 		this->innov = value;
 	}
 };
+
 
 KFState mergeFilters(
 	const vector<KFState*>&	kfStatePointerList,

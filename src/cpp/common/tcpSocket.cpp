@@ -12,7 +12,8 @@
 #include <chrono>
 
 
-#include "ntripSocket.hpp"
+#include "streamNtrip.hpp"
+#include "tcpSocket.hpp"
 #include "acsConfig.hpp"
 
 
@@ -21,10 +22,10 @@ using bsoncxx::builder::basic::kvp;
 
 namespace bp = boost::asio::placeholders;
 
-B_asio::io_service NtripSocket::io_service;
+B_asio::io_service TcpSocket::ioService;
 
 
-void NtripSocket::logChunkError()
+void TcpSocket::logChunkError()
 {
 // 	if (numberValidChunks == 0)
 // 		return;
@@ -52,17 +53,15 @@ void NtripSocket::logChunkError()
 }
 
 
-
-
-void NtripSocket::start_read(
+void TcpSocket::startRead(
 	bool chunked)
 {
-	auto function_ptr = &NtripSocket::read_handler_content;
+	auto function_ptr = &TcpSocket::readHandlerContent;
 
-	if (chunked)	function_ptr = &NtripSocket::read_handler_chunked;
-	else			function_ptr = &NtripSocket::read_handler_content;
+	if (chunked)	function_ptr = &TcpSocket::readHandlerChunked;
+	else			function_ptr = &TcpSocket::readHandlerContent;
 
-	//BOOST_LOG_TRIVIAL(debug) << "NtripSocket::start_read\n";
+	//BOOST_LOG_TRIVIAL(debug) << "TcpSocket::start_read\n";
 	//BOOST_LOG_TRIVIAL(debug) << "Downloading, length : " << content_length << std::endl;
 	//BOOST_LOG_TRIVIAL(debug) << "downloadBuf.size() : " << downloadBuf.size() << std::endl;
 
@@ -78,7 +77,7 @@ void NtripSocket::start_read(
 }
 
 
-void NtripSocket::read_handler_content(
+void TcpSocket::readHandlerContent(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -99,11 +98,11 @@ void NtripSocket::read_handler_content(
 		return;
 	}
 
-	start_read(false);
+	startRead(false);
 }
 
 
-void NtripSocket::read_handler_chunked(
+void TcpSocket::readHandlerChunked(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -133,26 +132,26 @@ void NtripSocket::read_handler_chunked(
 // 	unsigned int sz = downloadBuf.size();
 
 // 	std::cout << " size" << downloadBuf.size() << std::endl;
-	int oldSize		= receivedHttpData	.size();
+	int oldSize		= receivedTcpData	.size();
 	int extraSize	= downloadBuf		.size();
 
-	receivedHttpData.resize(oldSize + extraSize);
-	auto destination = boost::asio::buffer(&receivedHttpData[oldSize], extraSize);
+	receivedTcpData.resize(oldSize + extraSize);
+	auto destination = boost::asio::buffer(&receivedTcpData[oldSize], extraSize);
 	buffer_copy(destination, downloadBuf.data());
 	downloadBuf.consume(extraSize);
 
-	int last = receivedHttpData.size();
+	int last = receivedTcpData.size();
 
 	int start = 0;
-	if (receivedHttpData.empty() == false)
+	if (receivedTcpData.empty() == false)
 	while (true)
 	{
 		int endOfLength = 0;
 		int endOfHeader;
 		for (endOfHeader = start + 1; endOfHeader < last; endOfHeader++)
 		{
-			unsigned char c1 = receivedHttpData[endOfHeader - 1];
-			unsigned char c2 = receivedHttpData[endOfHeader];
+			unsigned char c1 = receivedTcpData[endOfHeader - 1];
+			unsigned char c2 = receivedTcpData[endOfHeader];
 
 			if	( c1 == ';')
 			{
@@ -182,7 +181,7 @@ void NtripSocket::read_handler_chunked(
 			continue;
 		}
 
-		string hexLength(&receivedHttpData[start], &receivedHttpData[endOfLength + 1]);
+		string hexLength(&receivedTcpData[start], &receivedTcpData[endOfLength + 1]);
 // 		std::cout << "\nhexLength: " << hexLength << "\n";
 
 		int messageLength;
@@ -209,15 +208,15 @@ void NtripSocket::read_handler_chunked(
 		int startOfMessage	= endOfHeader + 1;
 		int endOfMessage	= startOfMessage + messageLength - 1;
 
-		if (endOfMessage + 2 >= receivedHttpData.size())
+		if (endOfMessage + 2 >= receivedTcpData.size())
 		{
 			//not enough data, continue from this start later
 			break;
 		}
 
 
-		char  postAmble1	= receivedHttpData[endOfMessage + 1];
-		char  postAmble2	= receivedHttpData[endOfMessage + 2];
+		char  postAmble1	= receivedTcpData[endOfMessage + 1];
+		char  postAmble2	= receivedTcpData[endOfMessage + 2];
 
 		if	( postAmble1 != '\r'
 			||postAmble2 != '\n')
@@ -228,7 +227,7 @@ void NtripSocket::read_handler_chunked(
 		}
 // 		printf("\npostamble: %02x %02x\n", postAmble1, postAmble2);
 
-		vector<char> chunk(&receivedHttpData[startOfMessage], &receivedHttpData[endOfMessage] + 1);
+		vector<char> chunk(&receivedTcpData[startOfMessage], &receivedTcpData[endOfMessage] + 1);
 // 		printHex(std::cout, chunk);
 		dataChunkDownloaded(chunk);
 
@@ -237,14 +236,14 @@ void NtripSocket::read_handler_chunked(
 
 	if (start > 0)
 	{
-		receivedHttpData.erase(receivedHttpData.begin(), receivedHttpData.begin() + start);
+		receivedTcpData.erase(receivedTcpData.begin(), receivedTcpData.begin() + start);
 	}
 
-	start_read(true);
+	startRead(true);
 }
 
 
-void NtripSocket::reconnect_timer_handler(
+void TcpSocket::reconnectTimerHandler(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -255,7 +254,7 @@ void NtripSocket::reconnect_timer_handler(
 	connect();
 }
 
-void NtripSocket::timeout_handler(
+void TcpSocket::timeoutHandler(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -267,19 +266,18 @@ void NtripSocket::timeout_handler(
 	if (isConnected == false)
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error: " << url.sanitised() <<" connection timed out, check paths, usernames + passwords, and ports";
+		delayedReconnect();
 	}
 }
 
-void NtripSocket::delayed_reconnect()
+void TcpSocket::delayedReconnect()
 {
 	if (isConnected)
 	{
 		isConnected = false;
 		disconnectionCount++;
 
-		std::stringstream message;
-
-		networkLog(message.str());
+		networkLog("");
 	}
 	else
 	{
@@ -300,10 +298,10 @@ void NtripSocket::delayed_reconnect()
 	//wait a little longer next time;
 	reconnectDelay *= 2;
 
-	timer.async_wait(boost::bind(&NtripSocket::reconnect_timer_handler, this, bp::error));
+	timer.async_wait(boost::bind(&TcpSocket::reconnectTimerHandler, this, bp::error));
 }
 
-void NtripSocket::request_response_handler(
+void NtripStream::requestResponseHandler(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -317,53 +315,59 @@ void NtripSocket::request_response_handler(
 	responseVec.resize(downloadBuf.size());
 	buffer_copy(boost::asio::buffer(responseVec), downloadBuf.data());
 
-	response_string = "";
-	response_string.assign(responseVec.begin(), responseVec.end());
-	std::size_t pos = response_string.find("\r\n\r\n");
+	responseString.assign(responseVec.begin(), responseVec.end());
+
+	size_t pos = responseString.find("\r\n\r\n");
+
 	if (pos == string::npos)
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error handle_request_response : Invalid Server Response";
-		response_string = "";
-		delayed_reconnect();
+		responseString = "";
+		delayedReconnect();
 		return;
 	}
-	response_string = response_string.substr(0,pos);
-	response_string += "\r\n\r\n";
+
+	responseString = responseString.substr(0,pos);
+	responseString += "\r\n\r\n";
+
 	// Note read buffer can be longer than the supplied delimiter.
 	downloadBuf.consume(pos+4);
 
 
 	// Check that response is OK.
-	string bufStr = response_string;
-	std::stringstream response_stream(bufStr);
+	string bufStr = responseString;
+	std::stringstream responseStream(bufStr);
 
-	string			http_version;							response_stream >> http_version;
-	unsigned int	status_code;							response_stream >> status_code;
-	string			status_message;			std::getline(	response_stream, status_message);
+	string			httpVersion;							responseStream >> httpVersion;
+	unsigned int	statusCode;								responseStream >> statusCode;
+	string			statusMessage;			std::getline(	responseStream, statusMessage);
 
-	serverResponse(status_code, http_version);
+	serverResponse(statusCode, httpVersion);
 
-	if	( !response_stream
-		|| http_version.substr(0, 5) != "HTTP/"
-		|| status_code != 200)
+	if	( !responseStream
+		|| httpVersion.substr(0, 5)	!= "HTTP/"
+		|| statusCode				!= 200)
 	{
 		if (logHttpSentReceived)
 		{
 			std::stringstream message;
 			message << "\nHTTP Sent     : ";
-			message << request_string;
+			message << requestString;
 			message << "\nHTTP Received : ";
-			message << response_string;
+			message << responseString;
 
 			networkLog(message.str());
 		}
 
-		std::erase(status_message, '\r');
-		std::erase(status_message, '\n');
+		std::erase(statusMessage, '\r');
+		std::erase(statusMessage, '\n');
 
-		BOOST_LOG_TRIVIAL(error) << "Error: NTRIP - " << status_code << " " << status_message << " in " << __FUNCTION__ << " for " << url.sanitised() << ", reconnecting in " << reconnectDelay;
+		BOOST_LOG_TRIVIAL(error)
+		<< "Error: NTRIP - " << statusCode << " " << statusMessage
+		<< " in " << __FUNCTION__ << " for " << url.sanitised()
+		<< ", reconnecting in " << reconnectDelay;
 
-		delayed_reconnect();
+		delayedReconnect();
 
 		return;
 	}
@@ -397,7 +401,7 @@ void NtripSocket::request_response_handler(
 }
 
 
-void NtripSocket::write_request_handler(
+void TcpSocket::writeRequestHandler(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -409,20 +413,20 @@ void NtripSocket::write_request_handler(
 
 	//prepare a timeout because the read_until call doesnt seem to return on bad requests.
 	timer.expires_from_now(boost::posix_time::seconds(10));
-	timer.async_wait(boost::bind(&NtripSocket::timeout_handler, this, bp::error));
+	timer.async_wait(boost::bind(&TcpSocket::timeoutHandler, this, bp::error));
 
 	// Read the response status line.
 	if (url.protocol == "https")
 	{
-		boost::asio::async_read_until(*_sslsocket,	downloadBuf, "\r\n\r\n", boost::bind(&NtripSocket::request_response_handler, this, bp::error));
+		boost::asio::async_read_until(*_sslsocket,	downloadBuf, readUntilString, boost::bind(&TcpSocket::requestResponseHandler, this, bp::error));
 	}
 	else
 	{
-		boost::asio::async_read_until(*_socket,		downloadBuf, "\r\n\r\n", boost::bind(&NtripSocket::request_response_handler, this, bp::error));
+		boost::asio::async_read_until(*_socket,		downloadBuf, readUntilString, boost::bind(&TcpSocket::requestResponseHandler, this, bp::error));
 	}
 }
 
-void NtripSocket::sslhandshake_handler(
+void TcpSocket::sslHandshakeHandler(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -433,20 +437,20 @@ void NtripSocket::sslhandshake_handler(
 	//BOOST_LOG_TRIVIAL(debug) << "SSL Handshake Completed.\n";
 
 	// The connection was successful. Send the request.
-	boost::asio::async_write(*_sslsocket, request, boost::bind(&NtripSocket::write_request_handler, this, bp::error));
+	boost::asio::async_write(*_sslsocket, request, boost::bind(&TcpSocket::writeRequestHandler, this, bp::error));
 }
 
-void NtripSocket::connect_handler(
+void TcpSocket::connectHandler(
 	const boost::system::error_code&	err,
-	tcp::resolver::iterator				endpoint_iterator)
+	tcp::resolver::iterator				endpointIterator)
 {
 	if (err)
 	{
-		if (endpoint_iterator != tcp::resolver::iterator())
+		if (endpointIterator != tcp::resolver::iterator())
 		{
 			// The connection failed. Try the next endpoint in the list.
-			tcp::endpoint endpoint = *endpoint_iterator;
-			socket_ptr->async_connect(*endpoint_iterator, boost::bind(&NtripSocket::connect_handler, this, bp::error, ++endpoint_iterator));
+			tcp::endpoint endpoint = *endpointIterator;
+			socket_ptr->async_connect(*endpointIterator, boost::bind(&TcpSocket::connectHandler, this, bp::error, ++endpointIterator));
 
 			return;
 		}
@@ -462,19 +466,19 @@ void NtripSocket::connect_handler(
 
 	if (url.protocol == "https")
 	{
-		_sslsocket->async_handshake(boost::asio::ssl::stream_base::client, boost::bind(&NtripSocket::sslhandshake_handler, this, bp::error));
+		_sslsocket->async_handshake(boost::asio::ssl::stream_base::client, boost::bind(&TcpSocket::sslHandshakeHandler, this, bp::error));
 
 		return;
 	}
 
 	// The connection was successful. Send the request.
-	boost::asio::async_write(*_socket, request, boost::bind(&NtripSocket::write_request_handler, this, bp::error));
+	boost::asio::async_write(*_socket, request, boost::bind(&TcpSocket::writeRequestHandler, this, bp::error));
 }
 
 
-void NtripSocket::resolve_handler(
+void TcpSocket::resolveHandler(
 	const boost::system::error_code&	err,
-	tcp::resolver::iterator				endpoint_iterator)
+	tcp::resolver::iterator				endpointIterator)
 {
 	if (err)
 	{
@@ -486,17 +490,17 @@ void NtripSocket::resolve_handler(
 
 	// Attempt a connection to the first endpoint in the list. Each endpoint will be tried until we successfully establish a connection.
 
-	tcp::endpoint endpoint = *endpoint_iterator;
-	socket_ptr->async_connect(endpoint, boost::bind(&NtripSocket::connect_handler, this, bp::error, ++endpoint_iterator));
+	tcp::endpoint endpoint = *endpointIterator;
+	socket_ptr->async_connect(endpoint, boost::bind(&TcpSocket::connectHandler, this, bp::error, ++endpointIterator));
 }
 
-void NtripSocket::connect()
+void TcpSocket::connect()
 {
 	// Pointers are required as objects may need to be destroyed to full recover
 	// socket error.
-	_socket		= std::make_shared<tcp::socket>		(io_service);
-	_sslsocket	= std::make_shared<ssl_socket>		(io_service, ssl_context);
-	_resolver	= std::make_shared<tcp::resolver>	(io_service);
+	_socket		= std::make_shared<tcp::socket>		(ioService);
+	_sslsocket	= std::make_shared<ssl_socket>		(ioService, sslContext);
+	_resolver	= std::make_shared<tcp::resolver>	(ioService);
 
 	BOOST_LOG_TRIVIAL(debug) << "(Re)connecting " << url.sanitised() << std::endl;
 
@@ -505,16 +509,16 @@ void NtripSocket::connect()
 	if (url.protocol == "https")	socket_ptr = &_sslsocket->next_layer();
 	else 							socket_ptr = _socket.get();
 
-	std::ostream				request_stream(&request);
-								request_stream << request_string;
+	std::ostream				requestStream(&request);
+								requestStream << requestString;
 
-	//tcp::resolver::query query(url.host, url.port_str, boost::asio::ip::resolver_query_base::numeric_service);
-	tcp::resolver::query		query(boost::asio::ip::tcp::v4(), url.host, url.port_str);
+	//tcp::resolver::query query(url.host, url.portStr, boost::asio::ip::resolver_query_base::numeric_service);
+	tcp::resolver::query		query(boost::asio::ip::tcp::v4(), url.host, url.portStr);
 
-	_resolver->async_resolve(query, boost::bind(&NtripSocket::resolve_handler, this, bp::error, bp::iterator));
+	_resolver->async_resolve(query, boost::bind(&TcpSocket::resolveHandler, this, bp::error, bp::iterator));
 }
 
-void NtripSocket::disconnect()
+void TcpSocket::disconnect()
 {
 	onDisconnectedStatistics();
 
@@ -534,7 +538,7 @@ void NtripSocket::disconnect()
 }
 
 
-void NtripSocket::connectionError(
+void TcpSocket::connectionError(
 	const boost::system::error_code&	err,
 	string								operation)
 {
@@ -562,9 +566,9 @@ void NtripSocket::connectionError(
 	logStream << bsoncxx::to_json(doc) << std::endl;
 }
 
-void NtripSocket::serverResponse(
-	unsigned int	status_code,
-	string			http_version)
+void NtripStream::serverResponse(
+	unsigned int	statusCode,
+	string			httpVersion)
 {
 	if (acsConfig.output_ntrip_log == false)
 		return;
@@ -580,11 +584,11 @@ void NtripSocket::serverResponse(
 	GTime time = timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
-	doc.append(kvp("label", 		"serverResponse"));
+	doc.append(kvp("label", 		__FUNCTION__));
 	doc.append(kvp("Stream", 		url.path.substr(1,url.path.length())));
 	doc.append(kvp("Time", 			time.to_string()));
-	doc.append(kvp("ServerStatus", 	(int)status_code));
-	doc.append(kvp("VersionHTTP",	http_version));
+	doc.append(kvp("ServerStatus", 	(int)statusCode));
+	doc.append(kvp("VersionHTTP",	httpVersion));
 
 	logStream << bsoncxx::to_json(doc) << std::endl;
 }

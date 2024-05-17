@@ -11,6 +11,7 @@ using std::unordered_map;
 #include <boost/iostreams/stream.hpp>
 #include <boost/format.hpp>
 
+#include "interactiveTerminal.hpp"
 #include "peaCommitStrings.hpp"
 #include "observations.hpp"
 #include "mongoWrite.hpp"
@@ -24,6 +25,7 @@ using std::unordered_map;
 boost::iostreams::stream<boost::iostreams::null_sink> nullStream((boost::iostreams::null_sink()));
 
 
+bool ConsoleLog::useInteractive = false;
 
 void ConsoleLog::consume(
 	boost::log::record_view																	const&	rec,
@@ -46,20 +48,32 @@ void ConsoleLog::consume(
 		warned = true;
 	}
 
-	std::cout << std::endl;
+
+	string output;
+
+	output += "\r\n";
 	if (acsConfig.colourise_terminal)
 	{
-		if (sev == boost::log::trivial::warning)	std::cout << "\x1B[1;93m";
-		if (sev == boost::log::trivial::error)		std::cout << "\x1B[101m";
+		if (sev == boost::log::trivial::warning)	output += "\x1B[1;93m";
+		if (sev == boost::log::trivial::error)		output += "\x1B[101m";
 	}
-	std::cout << logString;
+	output += logString;
 
 	if (acsConfig.colourise_terminal)
 	{
-		std::cout << "\x1B[0m";
+		output += "\x1B[0m";
 	}
 
-	std::cout << std::flush;
+	if (useInteractive)
+	{
+		InteractiveTerminal::addString("Messages", logString);
+
+		// std::cerr << output << std::flush;
+	}
+	else
+	{
+		std::cout << output << std::flush;
+	}
 }
 
 
