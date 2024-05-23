@@ -1234,7 +1234,7 @@ void mainOncePerEpochPerStation(
 	if (missingWarnInvalidate("Apriori position2",		rec.failureAprioriPos,		acsConfig.require_apriori_positions))		return;
 	if (missingWarnInvalidate("Antenna details",		rec.antennaId.empty(),		acsConfig.require_antenna_details))			return;
 	if (missingWarnInvalidate("Site eccentricity",		rec.failureEccentricity,	acsConfig.require_site_eccentricity))		return;
-	if (missingWarnInvalidate("Sinex information",		rec.failureSinex,			1))											return;
+	if (missingWarnInvalidate("Sinex information",		rec.failureSinex,			acsConfig.require_sinex_data))				return;
 
 	emptyEpoch = false;
 

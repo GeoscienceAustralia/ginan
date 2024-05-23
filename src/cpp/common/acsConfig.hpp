@@ -473,6 +473,7 @@ struct GlobalOptions
 	bool	auto_fill_pco				= true;
 	bool	require_apriori_positions	= false;
 	bool	require_site_eccentricity	= false;
+	bool	require_sinex_data			= false;
 	bool	require_antenna_details		= false;
 	bool	require_reflector_com		= false;
 

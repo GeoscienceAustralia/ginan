@@ -27,8 +27,11 @@ struct InteractivePage
 
 struct InteractiveMode
 {
+	GTime	startTime;
+	GTime	stopTime;
+	double	duration	= 0;
+	int		active		= 0;
 	string	modeName;
-	int		active = 0;
 };
 
 struct InteractiveTerminal : ostringstream
@@ -39,6 +42,7 @@ struct InteractiveTerminal : ostringstream
 	static string										epoch;
 	static string										duration;
 	static E_InteractMode								interactMode;
+	static E_InteractiveMode							activeMode;
 	static bool											enabled;
 	static map<string,				InteractivePage>	pages;
 	static map<E_InteractiveMode,	InteractiveMode>	modes;
@@ -64,6 +68,8 @@ struct InteractiveTerminal : ostringstream
 		string epochStr		= "",
 		string durationStr	= "")
 	{
+		setMode(E_InteractiveMode::Syncing);
+
 		if (enabled == false)
 			return;
 

@@ -26,6 +26,7 @@ string										InteractiveTerminal::activePage;
 string										InteractiveTerminal::epoch;
 string										InteractiveTerminal::duration;
 E_InteractMode								InteractiveTerminal::interactMode	= E_InteractMode::Page;
+E_InteractiveMode							InteractiveTerminal::activeMode		= E_InteractiveMode::Syncing;
 bool										InteractiveTerminal::enabled		= false;
 map<string,				InteractivePage>	InteractiveTerminal::pages;
 map<E_InteractiveMode,	InteractiveMode>	InteractiveTerminal::modes;
@@ -245,8 +246,8 @@ void InteractiveTerminal::enable()
 	signal(SIGINT, sigIntHandler);
 
 	menu	= newwin(6,				COLS, 0,			0);
-	window	= newwin(LINES - 4 - 6,	COLS, 6,			0);
-	bar		= newwin(4,				COLS, LINES - 4,	0);
+	window	= newwin(LINES - 5 - 6,	COLS, 6,			0);
+	bar		= newwin(5,				COLS, LINES - 5,	0);
 
 	std::thread(keyboardHandler).detach();
 
@@ -350,7 +351,7 @@ void InteractiveTerminal::drawMenus()
 	}
 
 	wmove	(bar, 1, 1);
-	wprintw	(bar, "%30s",	epoch.c_str());
+	wprintw	(bar, "%35s",	epoch.c_str());
 	wprintw	(bar, "%s",		duration.c_str());
 
 	wmove	(bar, 2,1);
@@ -359,10 +360,16 @@ void InteractiveTerminal::drawMenus()
 		if (mode.active == 1)	wattron	(bar, A_STANDOUT);
 		if (mode.active >= 1)	wattron	(bar, A_BOLD);
 
+		int col1 = getcurx(bar);
 		wprintw(bar, " %s ", mode.modeName.c_str());
+		int col2 = getcurx(bar);
 
 								wattroff(bar, A_BOLD);
 								wattroff(bar, A_STANDOUT);
+
+		wmove(bar, 3, col1);
+		wprintw(bar, " %0.2fs", mode.duration);
+		wmove(bar, 2, col2);
 	}
 
 	wrefresh(menu);
@@ -374,7 +381,7 @@ void InteractiveTerminal::drawWindow()
 	lock_guard<mutex> guard(displayMutex);
 	wclear(window);
 
-	int offset = LINES - 6 - 6;
+	int offset = LINES - 7 - 6;
 
 	if (activePage.empty() == false)
 	{
@@ -477,6 +484,16 @@ void InteractiveTerminal::setMode(
 {
 	if (enabled == false)
 		return;
+
+	modes[activeMode].stopTime	= timeGet();
+
+	if (modes[activeMode].startTime != GTime::noTime())
+	{
+		modes[activeMode].duration = (modes[activeMode].stopTime - modes[activeMode].startTime).to_double();
+	}
+
+	activeMode = modeName;
+	modes[activeMode].startTime	= timeGet();
 
 	for (auto& [testMode, mode] : modes)
 	{
