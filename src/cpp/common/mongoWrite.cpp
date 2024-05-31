@@ -130,7 +130,7 @@ void queueMongo(
 }
 
 b_date bDate(
-	GTime time)
+	const GTime& time)
 {
 	int fractionalMilliseconds = (time.bigTime - (long int) time.bigTime) * 1000;
 
@@ -1349,7 +1349,7 @@ void outputMongoPredictions(
 		entry.stringMap	[REMOTE_SAT			]	= {orbit.Sat.id(),		true};
 		entry.timeMap	[REMOTE_EPOCH		]	= {time,				true};
 
-		entry.timeMap	[REMOTE_UPDATED		]	= {tsync,				false};
+		// entry.timeMap	[REMOTE_UPDATED		]	= {tsync,				false};
 		entry.vectorMap	[REMOTE_POS			]	= {orbit.pos,			false};
 		entry.vectorMap	[REMOTE_VEL			]	= {orbit.vel,			false};
 		entry.doubleMap	[REMOTE_VAR			]	= {orbit.posVar,		false};

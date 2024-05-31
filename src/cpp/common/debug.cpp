@@ -2083,8 +2083,8 @@ void perEpochPropTest(
 
 	pass = satPosPrecise(std::cout, newTime,	satPosPrec,		nav);						std::cout << " precise passed: "	<< pass;
 	pass = satPosKalman	(std::cout, newTime,	satPosProp,		&copy);						std::cout << " prop Passed: "		<< pass;
-	pass = satPosKalman	(std::cout, newTime,	satPosEllipse,	&kfState);					std::cout << " ellp Passed: "		<< pass;
-	pass = satPosKalman	(std::cout, newTime,	satPosJ2,		&kfState,	true);			std::cout << " j2 Passed: "			<< pass;
+	// pass = satPosKalman	(std::cout, newTime,	satPosEllipse,	&kfState);					std::cout << " ellp Passed: "		<< pass;
+	pass = satPosKalman	(std::cout, newTime,	satPosJ2,		&kfState);			std::cout << " j2 Passed: "			<< pass;
 
 	ERPValues erpv = getErp(nav.erp, newTime);
 	FrameSwapper frameSwapper(newTime, erpv);

@@ -1,5 +1,4 @@
 
-// #pragma GCC optimize ("O0")
 
 #include <memory>
 #include <thread>
@@ -12,6 +11,7 @@ using std::map;
 
 #include <boost/log/trivial.hpp>
 
+#include "interactiveTerminal.hpp"
 #include "rinexNavWrite.hpp"
 #include "eigenIncluder.hpp"
 #include "rinexObsWrite.hpp"
@@ -34,11 +34,13 @@ using std::map;
 #include "ppp.hpp"
 #include "gpx.hpp"
 
+// #pragma GCC optimize ("O0")
+
 
 void postRTSActions(
-	bool		final,			///< This is a final answer, not intermediate - output to files
-	KFState&	kfState,		///< State to get filter traces from
-	ReceiverMap&	receiverMap)		///< map of stations
+	bool			final,			///< This is a final answer, not intermediate - output to files
+	KFState&		kfState,		///< State to get filter traces from
+	ReceiverMap&	receiverMap)	///< map of receivers
 {
 	if	( final
 		||acsConfig.pppOpts.output_intermediate_rts)
@@ -103,9 +105,11 @@ void postRTSActions(
 /** Output filter states from a reversed binary trace file
 */
 void RTS_Output(
-	KFState&	kfState,			///< State to get filter traces from
-	ReceiverMap&	receiverMap)		///< map of stations
+	KFState&		kfState,			///< State to get filter traces from
+	ReceiverMap&	receiverMap)		///< map of receivers
 {
+	InteractiveTerminal::setMode(E_InteractiveMode::Outputs);
+
 	string reversedStatesFilename = kfState.rts_basename + BACKWARD_SUFFIX;
 
 	long int startPos = -1;
@@ -308,7 +312,10 @@ KFState rtsSmoothing(
 					return KFState();
 				}
 
-				transitionMatrix = (transitionMatrix * transistionMatrixObject.asMatrix()).eval();
+				MatrixXd transition = transistionMatrixObject.asMatrix();
+
+				if (transitionMatrix.rows() == 0)		transitionMatrix = transition;
+				else 									transitionMatrix = (transitionMatrix * transition).eval();
 
 				break;
 			}
@@ -325,7 +332,7 @@ KFState rtsSmoothing(
 					smoothedXready = true;
 				}
 
-				transitionMatrix = MatrixXd::Identity(kalmanMinus.x.rows(), kalmanMinus.x.rows());
+				transitionMatrix = MatrixXd::Identity(0, 0);
 
 				break;
 			}
@@ -367,24 +374,16 @@ KFState rtsSmoothing(
 					break;
 				}
 
+				InteractiveTerminal::setMode(E_InteractiveMode::Filtering);
+
 				smoothedKF.time = kalmanPlus.time;
 
 				smoothedKF. P	= (smoothedKF.	P	+ smoothedKF.	P.transpose()).eval() / 2;
-				kalmanMinus.P	= (kalmanMinus.	P	+ kalmanMinus.	P.transpose()).eval() / 2;
-				kalmanPlus. P	= (kalmanPlus.	P	+ kalmanPlus.	P.transpose()).eval() / 2;
 
 				//get process noise and dynamics
 				auto& F = transitionMatrix;
 
-				kalmanMinus.P(0,0) = 1;
-
 				MatrixXd FP = F * kalmanPlus.P;
-
-				auto Q = kalmanMinus.P.triangularView<Eigen::Upper>().transpose();
-
-				int fail1 = true;
-				int fail2 = true;
-				MatrixXd Ckt;
 
 				E_Inverter inverter = acsConfig.pppOpts.rts_inverter;
 
@@ -396,78 +395,115 @@ KFState rtsSmoothing(
 					BOOST_LOG_TRIVIAL(warning)
 					<< "Warning: Inverter type " << oldInverter._to_string() << " failed, trying " << inverter._to_string();
 				};
+				VectorXd deltaX = VectorXd::Zero(kalmanPlus.x.rows());
+				MatrixXd deltaP = MatrixXd::Zero(kalmanPlus.P.rows(), kalmanPlus.P.cols());
 
-				while	(inverter != +E_Inverter::FIRST_UNSUPPORTED
-						&&(  fail1
-						  || fail2))
-				switch (inverter)
+				for (auto& [id, fcP] : kalmanPlus.filterChunkMap)
 				{
-					default:
+					auto& fcM = kalmanMinus.filterChunkMap[id];
+
+					BOOST_LOG_TRIVIAL(debug) << "Filtering chunk " << id;
+					auto Q		= kalmanMinus.P	.block(fcM.begX, fcM.begX, fcM.numX, fcM.numX).triangularView<Eigen::Upper>().transpose();
+					auto FP_	= FP			.block(fcM.begX, fcP.begX, fcM.numX, fcP.numX);
+
+					MatrixXd Ck;
+
+					int pass = false;
+
+					auto solve = [&]<typename SOLVER>(SOLVER solver) -> bool
 					{
-						BOOST_LOG_TRIVIAL(warning)
-						<< "Warning: Inverter type " << acsConfig.pppOpts.rts_inverter._to_string() << " not supported, reverting to LDLT";
-
-						acsConfig.pppOpts.rts_inverter	= E_Inverter::LDLT;
-						inverter						= E_Inverter::LDLT;
-
-						continue;
-					}
-					case E_Inverter::INV:
-					{
-						Eigen::FullPivLU<MatrixXd> solver(Q);
-
-						if (solver.isInvertible() == false)
+						solver.compute(Q);
+						if (solver.info())
 						{
-							fail1 = true;
+							pass = false;
+							return pass;
+						}
 
-							failInversion();
+						Ck = solver.solve(FP_).transpose();
+
+						if (solver.info())
+						{
+							pass = false;
+							return pass;
+						}
+
+						pass = true;
+						return pass;
+					};
+
+					while	(inverter != +E_Inverter::FIRST_UNSUPPORTED
+							&&(pass == false))
+					switch (inverter)
+					{
+						default:
+						{
+							BOOST_LOG_TRIVIAL(warning)
+							<< "Warning: Inverter type " << acsConfig.pppOpts.rts_inverter._to_string() << " not supported, reverting to LDLT";
+
+							acsConfig.pppOpts.rts_inverter	= E_Inverter::LDLT;
+							inverter						= E_Inverter::LDLT;
+
+							continue;
+						}
+						case E_Inverter::FULLPIVLU:
+						case E_Inverter::INV:
+						{
+							Eigen::FullPivLU<MatrixXd> solver(kalmanMinus.P.block(fcM.begX, fcM.begX, fcM.numX, fcM.numX));
+
+							if (solver.isInvertible() == false)
+							{
+								failInversion();
+
+								break;
+							}
+
+							MatrixXd Pinv = solver.inverse();
+
+							Pinv = (Pinv + Pinv.transpose()).eval()	/ 2;
+
+							Ck = (FP_.transpose() * Pinv);
+
+
+							pass = true;
 
 							break;
 						}
+						case E_Inverter::LLT:		{	solve(Eigen::LLT					<MatrixXd>()); if (pass == false)	failInversion();	break;	}
+						case E_Inverter::LDLT:		{	solve(Eigen::LDLT					<MatrixXd>()); if (pass == false)	failInversion();	break;	}
+						case E_Inverter::COLPIVHQR:	{	solve(Eigen::ColPivHouseholderQR	<MatrixXd>()); if (pass == false)	failInversion();	break;	}
+						case E_Inverter::BDCSVD:	{	solve(Eigen::BDCSVD					<MatrixXd>()); if (pass == false)	failInversion();	break;	}
+						case E_Inverter::JACOBISVD:	{	solve(Eigen::JacobiSVD				<MatrixXd>()); if (pass == false)	failInversion();	break;	}
+	// 					case E_Inverter::FULLPIVHQR:{	solve(Eigen::FullPivHouseholderQR	<MatrixXd>()); if (pass == false)	failInversion();	break;	}
+					}
 
-						MatrixXd Pinv = solver.inverse();
+					if (pass == false)
+					{
+						BOOST_LOG_TRIVIAL(warning)
+						<< "Warning: RTS failed to find solution to invert system of equations, smoothed values may be bad";
 
-						Pinv = (Pinv + Pinv.transpose()).eval()	/ 2;
+						BOOST_LOG_TRIVIAL(debug) << "P-det: " << kalmanMinus.P.determinant();
 
-						Ckt = (kalmanPlus.P * F.transpose() * Pinv).transpose();
+						kalmanMinus.outputConditionNumber(std::cout);
 
-						fail1 = false;
-						fail2 = false;
+						BOOST_LOG_TRIVIAL(debug)  << "P:\n" << kalmanMinus.P.format(heavyFmt);
+						kalmanMinus.outputCorrelations(std::cout);
+						std::cout << std::endl;
 
+						//break out of the loop
+						lag = kfState.rts_lag;
 						break;
 					}
-					case E_Inverter::LLT:		{	Eigen::LLT					<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
-					case E_Inverter::LDLT:		{	Eigen::LDLT					<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
-					case E_Inverter::COLPIVHQR:	{	Eigen::ColPivHouseholderQR	<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
-					case E_Inverter::BDCSVD:	{	Eigen::BDCSVD				<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
-					case E_Inverter::JACOBISVD:	{	Eigen::JacobiSVD			<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
-// 					case E_Inverter::FULLPIVHQR:{	Eigen::FullPivHouseholderQR	<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
-// 					case E_Inverter::FULLPIVLU:	{	Eigen::FullPivLU			<MatrixXd> solver;	solver.compute(Q);	fail1 = solver.info();	Ckt = solver.solve(FP);	fail2 = solver.info();	if (fail1 || fail2)	failInversion();	break;	}
+
+					auto deltaX_	= deltaX		 .segment	(fcP.begX,				fcP.numX);
+					auto smoothedX	= smoothedKF.	x.segment	(fcM.begX,				fcM.numX);
+					auto xMinus		= kalmanMinus.	x.segment	(fcM.begX,				fcM.numX);
+					auto deltaP_	= deltaP		 .block		(fcP.begX, fcP.begX,	fcP.numX, fcP.numX);
+					auto smoothedP	= smoothedKF.	P.block		(fcM.begX, fcM.begX,	fcM.numX, fcM.numX);
+					auto minuxP		= kalmanMinus.	P.block		(fcM.begX, fcM.begX,	fcM.numX, fcM.numX);
+
+					deltaX_ = Ck * (smoothedX - xMinus);
+					deltaP_ = Ck * (smoothedP - minuxP) * Ck.transpose();
 				}
-
-				if	(  fail1
-					|| fail2)
-				{
-					BOOST_LOG_TRIVIAL(warning)
-					<< "Warning: RTS failed to find solution to invert system of equations, smoothed values may be bad " << fail1 << " " << fail2;
-
-					BOOST_LOG_TRIVIAL(debug) << "P-det: " << kalmanMinus.P.determinant();
-
-					kalmanMinus.outputConditionNumber(std::cout);
-
-					BOOST_LOG_TRIVIAL(debug)  << "P:\n" << kalmanMinus.P.format(heavyFmt);
-					kalmanMinus.outputCorrelations(std::cout);
-					std::cout << std::endl;
-
-					//break out of the loop
-					lag = kfState.rts_lag;
-					break;
-				}
-
-				MatrixXd Ck = Ckt.transpose();
-
-				VectorXd deltaX = Ck * (smoothedKF.x - kalmanMinus.x);
-				MatrixXd deltaP = Ck * (smoothedKF.P - kalmanMinus.P) * Ck.transpose();
 
 				smoothedKF.dx	= deltaX;
 				smoothedKF.x	= deltaX + kalmanPlus.x;
@@ -486,6 +522,8 @@ KFState rtsSmoothing(
 
 				if (write)
 				{
+					InteractiveTerminal::setMode(E_InteractiveMode::Outputs);
+
 					spitFilterToFile(smoothedKF,					E_SerialObject::FILTER_SMOOTHED,	outputFile, acsConfig.pppOpts.queue_rts_outputs);
 					spitFilterToFile(measurements,					E_SerialObject::MEASUREMENT,		outputFile, acsConfig.pppOpts.queue_rts_outputs);
 
@@ -523,6 +561,11 @@ KFState rtsSmoothing(
 					<< "Processed epoch"
 					<< " - " << boostTime
 					<< " (took " << (epochStopTime-epochStartTime) << ")";
+
+					InteractiveTerminal::clearModes(
+													(string)" Processing epoch "	+ kalmanPlus.time.to_string(),
+													(string)" Last Epoch took "		+ std::to_string((epochStopTime-epochStartTime).to_double()) + "s");
+					InteractiveTerminal::setMode(E_InteractiveMode::Syncing);
 				}
 				epochStartTime = timeGet();
 

@@ -43,7 +43,11 @@ using bsoncxx::builder::stream::open_document;
 
 namespace sinks = boost::log::sinks;
 
+using bsoncxx::types::b_date;
+
+
 struct DBEntry;
+struct GTime;
 
 
 struct Mongo
@@ -107,13 +111,37 @@ struct Mongo
 #define REMOTE_ORBIT		"Orbit"
 #define REMOTE_CLOCK		"Clock"
 #define REMOTE_SAT			"Sat"
-#define REMOTE_UPDATED		"Updated"
 #define REMOTE_POS			"Pos"
 #define REMOTE_VEL			"Vel"
 #define REMOTE_VAR			"Var"
 #define REMOTE_CLK			"Clk"
 #define REMOTE_CLK_DRIFT	"ClkRate"
 #define REMOTE_STR			"Str"
+
+#define MONGO_CONTENT		"Content"
+#define MONGO_VALUES		"Values"
+#define MONGO_UPDATED		"Updated"
+#define MONGO_EPOCH			"Epoch"
+#define MONGO_STATE			"State"
+#define MONGO_SAT			"Sat"
+#define MONGO_STR			"Site"
+#define MONGO_MEASUREMENTS	"Measurements"
+#define MONGO_CONFIG		"Config"
+#define MONGO_TRACE			"Trace"
+#define MONGO_GEOMETRY		"Geometry"
+#define MONGO_SERIES		"Series"
+#define MONGO_TYPE			"Type"
+#define MONGO_AVAILABLE		"Available"
+#define MONGO_DX			"dx"
+#define MONGO_NUM			"Num"
+#define MONGO_X				"x"
+#define MONGO_SIGMA			"sigma"
+#define MONGO_AZIMUTH		"Azimuth"
+#define MONGO_ELEVATION		"Elevation"
+#define MONGO_NADIR			"Nadir"
+
+b_date bDate(
+	const GTime& time);
 
 struct MongoLogSinkBackend : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {

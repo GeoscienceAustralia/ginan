@@ -108,7 +108,7 @@ void sinexPerEpochPerStation(
 		snxId = std::to_string(cdpId);
 	}
 
-	rec.failureEccentricity = true;
+	rec.failureEccentricity = rec.antDelta.isZero();
 
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
 	{

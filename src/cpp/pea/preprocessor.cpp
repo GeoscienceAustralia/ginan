@@ -54,6 +54,7 @@ void obsVariances(
 	for (auto& obs			: only<GObs>(obsList))
 	if (obs.satNav_ptr)
 	if (obs.satStat_ptr)
+	if (obs.exclude == false)
 	if (acsConfig.process_sys[obs.Sat.sys])
 	{
 		auto& recOpts = acsConfig.getRecOpts(obs.mount);
@@ -77,8 +78,11 @@ void obsVariances(
 			case E_NoiseModel::ELEVATION_DEPENDENT:		{	satElScaling = 1 / sin(el);		break;	}
 		}
 
-		for (auto& [ft, sig]	: obs.sigs)
+		for (auto& [ft, sig] : obs.sigs)
 		{
+			if (sig.P == 0)
+				continue;
+
 			string sigName = sig.code._to_string();
 
 			auto& satOpts = acsConfig.getSatOpts(obs.Sat,	{sigName});
@@ -168,7 +172,7 @@ void preprocessor(
 	start_time.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
 
 	double tol;
-	if (acsConfig.assign_closest_epoch)			tol = acsConfig.epoch_interval / 2;		//todo aaron this should be the other tolerance?
+	if (acsConfig.assign_closest_epoch)			tol = acsConfig.epoch_interval / 2;		//todo aaron this should be the epoch_tolerance?
 	else										tol = 0.5;
 
 	if	(  acsConfig.start_epoch.is_not_a_date_time() == false
@@ -198,8 +202,10 @@ void preprocessor(
 			continue;
 		}
 
-		obs.rec_ptr		= &rec;
-		obs.satNav_ptr	= &nav.satNavMap[obs.Sat];
+		auto& satNav = nav.satNavMap[obs.Sat];
+
+		obs.rec_ptr			= &rec;
+		obs.satNav_ptr		= &satNav;
 
 		E_NavMsgType nvtyp = acsConfig.used_nav_types[obs.Sat.sys];
 		if (obs.Sat.sys == +E_Sys::GLO)		obs.satNav_ptr->eph_ptr = seleph<Geph>	(trace, obs.time, obs.Sat, nvtyp, ANY_IODE, nav);

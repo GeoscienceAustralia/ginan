@@ -74,7 +74,7 @@ void tryPrepareFilterPointers(
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		KFKey kfKey = key;
-		
+
 		if (kfKey.type == +KF::REC_POS)
 		{
 			//make sure all rec pos are associated with receivers

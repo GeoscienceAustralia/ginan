@@ -49,7 +49,6 @@ void initPseudoObs(
 			continue;
 		}
 
-
 		bool newState = false;
 
 		for (int i = 0; i < 3; i++)
@@ -205,6 +204,8 @@ void filterPseudoObs(
 
 			kfMeasEntry.addDsgnEntry(pseudo.kfKey, 1);
 
+			pseudo.kfKey.type = KF::FILTER_MEAS;
+
 			kfMeasEntry.addNoiseEntry(pseudo.kfKey, 1, SQR(pseudo.sigma));
 
 			kfMeasEntryList.push_back(kfMeasEntry);
@@ -357,7 +358,7 @@ void orbitPseudoObs(
 				kfMeasEntry.setInnov(omc);
 
 				kfMeasEntry.obsKey.comment	= "ECI PseudoPos";
-				kfMeasEntry.obsKey.type		= KF::ORBIT;
+				kfMeasEntry.obsKey.type		= KF::ORBIT_MEAS;
 				kfMeasEntry.obsKey.Sat		= obs.Sat;
 				kfMeasEntry.obsKey.num		= i;
 				kfMeasEntry.metaDataMap["pseudoObs"] = (void*) true;
@@ -542,6 +543,11 @@ void receiverPseudoObs(
 				continue;
 			}
 
+			if (key.rec_ptr == nullptr)
+			{
+				continue;
+			}
+
 			auto& rec = *key.rec_ptr;
 			//try to get apriori from the existing state, otherwise use sinex.
 
@@ -647,7 +653,11 @@ void ambgPseudoObs(
 		if (key.type != KF::AMBIGUITY)
 			continue;
 
+		if (key.rec_ptr == nullptr)
+			continue;
+
 		auto& rec		= *key.rec_ptr;
+
 		auto& satStat	= rec.satStatMap[key.Sat];
 		auto& recOpts	= acsConfig.getRecOpts(key.str);
 
@@ -801,7 +811,7 @@ void tropPseudoObs(
 
 	for (auto& [id, rec] : receiverMap)
 	{
-		auto& recOpts = acsConfig.getRecOpts(rec.id);
+		auto& recOpts = acsConfig.getRecOpts(id);
 
 		if (recOpts.exclude)
 		{

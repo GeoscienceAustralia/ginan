@@ -890,7 +890,7 @@ void createTracefiles(
 			if	(  acsConfig.output_satellite_trace
 				&& suff.empty())
 			{
-				newTraceFile |= createNewTraceFile(Sat,			logptime,	acsConfig.satellite_trace_filename		+ suff,	satNav.traceFilename,										true,	acsConfig.output_config);
+				newTraceFile |= createNewTraceFile(Sat,				logptime,	acsConfig.satellite_trace_filename		+ suff,	satNav.traceFilename,										true,	acsConfig.output_config);
 			}
 		}
 
@@ -1298,9 +1298,9 @@ void outputPredictedStates(
 	tuple<double, double>	reverse = {-1, acsConfig.mongoOpts.reverse_prediction_duration};
 
 	MongoStatesOptions mongoStatesOpts;
+	mongoStatesOpts.suffix		= "/PREDICTED";
 	mongoStatesOpts.force		= true;
 	mongoStatesOpts.queue		= acsConfig.mongoOpts.queue_outputs;
-	mongoStatesOpts.index		= false;
 	mongoStatesOpts.instances	= acsConfig.mongoOpts.output_predictions;
 
 	for (auto& duo : {forward, reverse})
@@ -1398,7 +1398,7 @@ void mainPerEpochPostProcessingAndOutputs(
 	GTime			time,
 	bool			emptyEpoch)
 {
-// 	Instrument	instrument(__FUNCTION__);
+	InteractiveTerminal::setMode(E_InteractiveMode::Outputs);
 
 	auto pppTrace = getTraceFile(pppNet);
 	auto ionTrace = getTraceFile(ionNet);
@@ -1409,6 +1409,7 @@ void mainPerEpochPostProcessingAndOutputs(
 	{
 		mongoStates(kfState,
 					{
+						.suffix		= "/PPP",
 						.instances	= acsConfig.mongoOpts.output_states,
 						.queue		= acsConfig.mongoOpts.queue_outputs
 					});
@@ -1424,7 +1425,7 @@ void mainPerEpochPostProcessingAndOutputs(
 
 		mongoStates(kfState,
 					{
-						.suffix		= "_AR",
+						.suffix		= "/AR",
 						.instances	= acsConfig.mongoOpts.output_states,
 						.queue		= acsConfig.mongoOpts.queue_outputs
 					});
@@ -1476,7 +1477,7 @@ void mainPerEpochPostProcessingAndOutputs(
 
 			mongoStates(tempAugmentedKF,
 						{
-							.suffix		= "_mincon",
+							.suffix		= "/CONSTRAINED",
 							.instances	= acsConfig.mongoOpts.output_states,
 							.queue		= acsConfig.mongoOpts.queue_outputs
 						});
@@ -1627,19 +1628,12 @@ void mainOncePerEpochPerSatellite(
 	satPos0.Sat			= Sat;
 	satPos0.satNav_ptr	= &satNav;
 
-	bool pass =	satpos(nullStream, time, time, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav);
+	bool pass = satpos(nullStream, time, time, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav);
 	if (pass == false)
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";
 		return;
 	}
-
-	ERPValues erpv = getErp(nav.erp, time);
-
-	FrameSwapper frameSwapper(time, erpv);
-
-// 	satPos0.rSatEci0	= frameSwapper(satPos0.rSatCom);		//dont uncomment this, does double propagation in spp
-// 	satPos0.posTime		= time;
 
 	satNav.aprioriPos	= satPos0.rSatEci0;
 
@@ -1671,6 +1665,12 @@ void mainOncePerEpoch(
 	predictOrbits	(pppTrace, pppNet.kfState, time);
 	predictInertials(pppTrace, pppNet.kfState, time);
 
+	InteractiveTerminal::setMode(E_InteractiveMode::Preprocessing);
+	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << std::endl;
+
+	KFState remoteState;
+
+
 	//try to get svns & block types of all used satellites
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
@@ -1678,23 +1678,6 @@ void mainOncePerEpoch(
 			continue;
 
 		mainOncePerEpochPerSatellite(pppTrace, time, Sat);
-	}
-
-	InteractiveTerminal::setMode(E_InteractiveMode::Preprocessing);
-	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << std::endl;
-
-	KFState remoteState;
-	if (acsConfig.mongoOpts.use_predictions)
-	{
-		vector<KF> remoteTypes;					//todo aaron, may modify this to get only desired states, but recOpts configs determine those per sat/station...
-		remoteTypes.push_back(KF::ORBIT);
-		remoteTypes.push_back(KF::REC_POS);
-		remoteTypes.push_back(KF::CODE_BIAS);
-		remoteTypes.push_back(KF::PHASE_BIAS);
-
-		mongoReadFilter(remoteState, time, remoteTypes);
-
-		loadStateBiases(remoteState);
 	}
 
 	//do per-station pre processing
@@ -1776,6 +1759,7 @@ void mainPostProcessing(
 
 		mongoStates(pppNet.kfState,
 					{
+						.suffix		= "/AR",
 						.instances	= acsConfig.mongoOpts.output_states,
 						.queue		= acsConfig.mongoOpts.queue_outputs
 					});
@@ -1829,6 +1813,7 @@ void mainPostProcessing(
 
 		mongoStates(pppNet.kfState,
 					{
+						.suffix		= "/CONSTRAINED",
 						.instances	= acsConfig.mongoOpts.output_states,
 						.queue		= acsConfig.mongoOpts.queue_outputs
 					});
@@ -1846,16 +1831,17 @@ void mainPostProcessing(
 
 	outputPredictedStates(pppTrace, pppNet.kfState);
 
-	if (acsConfig.output_predicted_orbits)
-	{
-		outputMongoOrbits();
-	}
-
 	if (acsConfig.process_rts)
 	{
 		while (spitQueueRunning)
 		{
 			sleep_for(std::chrono::milliseconds(acsConfig.sleep_milliseconds));
+		}
+
+		for (auto& [Sat, satNav] : nav.satNavMap)
+		{
+			//prevent the memoised orbital positions being used in rts
+			satNav.satPos0.posTime = GTime::noTime();
 		}
 
 		if	( acsConfig.process_ppp
@@ -2469,7 +2455,17 @@ int ginan(
 	<< "and finished processing at : " << peaStopTime	<< std::endl
 	<< "Total processing duration  : " << (peaStopTime - peaStartTime) << std::endl << std::endl;
 
-	std::cout << std::endl << "PEA finished" << std::endl;
+	InteractiveTerminal::clearModes(
+									(string)" Processing complete at epoch "	+ std::to_string(epoch) + "    " + tsync.to_string(),
+									(string)" Processing took "					+ std::to_string((peaStopTime - peaStartTime).to_double()) + "s");
+	InteractiveTerminal::setMode(E_InteractiveMode::Complete);
+
+	BOOST_LOG_TRIVIAL(info) << "PEA finished";
+
+	while (InteractiveTerminal::enabled)
+	{
+		sleep_for(std::chrono::seconds(10));
+	}
 
 	return EXIT_SUCCESS;
 }

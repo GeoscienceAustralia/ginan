@@ -80,8 +80,7 @@ bool satPosKalman(
 	Trace&			trace,
 	GTime			time,
 	SatPos&			satPos,
-	const KFState*	kfState_ptr,
-	bool			j2)
+	const KFState*	kfState_ptr)
 {
 	VectorEci	rSat0;
 	VectorEci	vSat0;
@@ -97,7 +96,7 @@ bool satPosKalman(
 		vSat0	= satNav.satPos0.vSatEci0;
 		t0		= satNav.satPos0.posTime;
 	}
-// 	else
+	else
 	{
 		if (kfState_ptr == nullptr)
 		{
@@ -141,11 +140,11 @@ bool satPosKalman(
 
 		if (dt <= satOpts.ellipse_propagation_time_tolerance)
 		{
-			satPos.rSatEciDt = propagateEllipse	(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel, j2);
+			satPos.rSatEciDt = propagateEllipse	(trace, t0, dt, rSat0, vSat0, satPos, true);
 		}
 		else
 		{
-			satPos.rSatEciDt = propagateFull	(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel);
+			satPos.rSatEciDt = propagateFull	(trace, t0, dt, rSat0, vSat0, satPos);
 		}
 	}
 

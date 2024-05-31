@@ -448,8 +448,7 @@ bool satPosKalman(
 	Trace&			trace,
 	GTime			time,
 	SatPos&			satPos,
-	const KFState*	kfState_ptr,
-	bool			j2	= false);
+	const KFState*	kfState_ptr);
 
 bool satClkKalman(
 	Trace&			trace,

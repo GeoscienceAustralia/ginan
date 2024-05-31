@@ -385,7 +385,6 @@ void writeSysSetSp3(
 	updateSp3Body(filename, entryList, time, outSys);
 }
 
-
 void outputSp3(
 	string				filename,
 	GTime				time,
@@ -405,73 +404,5 @@ void outputSp3(
 	for (auto [filename, sysMap] : sysFilenames)
 	{
 		writeSysSetSp3(filename, time, sysMap, sp3OrbitSrcs, sp3ClockSrcs, kfState_ptr, predicted);
-	}
-}
-
-void outputMongoOrbits()
-{
-	map<GTime, map<int, Sp3Entry>> entryListMap;
-
-	auto orbitMapMap = mongoReadOrbits();
-	auto clockMapMap = mongoReadClocks();
-
-	map<E_Sys, bool> outSys;
-
-	auto sysFilenames = getSysOutputFilenames(acsConfig.predicted_sp3_filename, tsync);
-
-	for (auto [filename, sysMap] : sysFilenames)
-	{
-		for (auto& [Sat,	timeMap]	: orbitMapMap)
-		for (auto& [time,	state]		: timeMap)
-		{
-			ERPValues erpv = getErp(nav.erp, time);
-
-			FrameSwapper frameSwapper(time, erpv);
-
-			auto& entry = entryListMap[time][Sat];
-
-			entry.Sat		= Sat;
-			entry.predicted	= true;
-
-			if (acsConfig.output_inertial_orbits)
-			{
-				entry.satPos = state.head(3);
-				entry.satVel = state.tail(3);
-			}
-			else
-			{
-				VectorEci rSat = (Vector3d) state.head(3);
-				VectorEci vSat = (Vector3d) state.tail(3);
-
-				VectorEcef vSatEcef;
-				entry.satPos = frameSwapper(rSat, &vSat, &vSatEcef);
-				entry.satVel = vSatEcef;
-			}
-
-			auto timeMapIt = clockMapMap.find(Sat.id());
-			if (timeMapIt == clockMapMap.end())
-			{
-				continue;
-			}
-
-			auto& [dummy1, timeClkMap] = *timeMapIt;
-
-			auto timeIt = timeClkMap.find(time);
-			if (timeIt == timeClkMap.end())
-			{
-				continue;
-			}
-
-			auto& [dummy2, clockTuple]	= *timeIt;
-			auto& [clock, drift]		= clockTuple;
-
-			entry.satClk	= clock;
-			entry.satClkVel	= drift;
-		}
-
-		for (auto& [time, entryList] : entryListMap)
-		{
-			updateSp3Body(filename, entryList, time, sysMap);
-		}
 	}
 }

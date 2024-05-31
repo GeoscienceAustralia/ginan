@@ -856,7 +856,7 @@ void RtcmDecoder::decodeEphemeris(
 	{
 		nav.ephMap[eph.Sat][eph.type][eph.toe] = eph;
 
-		tracepdeex(6,std::cout, "\n#RTCM_BRD EPHEMR %s %s %d", eph.Sat.id().c_str(),eph.toe.to_string(2).c_str(), eph.iode);
+		traceTrivialDebug("#RTCM_BRD EPHEMR %s %s %d", eph.Sat.id().c_str(),eph.toe.to_string(2).c_str(), eph.iode);
 
 		if (acsConfig.output_decoded_rtcm_json)
 			traceBrdcEph(messCode, eph);
@@ -865,7 +865,7 @@ void RtcmDecoder::decodeEphemeris(
 	{
 		nav.gephMap[geph.Sat][geph.type][geph.toe] = geph;
 
-		tracepdeex(6,std::cout, "\n#RTCM_BRD EPHEMR %s %s %d", geph.Sat.id().c_str(), geph.toe.to_string(2).c_str(), geph.iode);
+		traceTrivialDebug("#RTCM_BRD EPHEMR %s %s %d", geph.Sat.id().c_str(), geph.toe.to_string(2).c_str(), geph.iode);
 
 		if (acsConfig.output_decoded_rtcm_json)
 			traceBrdcEph(messCode, geph);
@@ -1421,7 +1421,7 @@ ObsList RtcmDecoder::decodeMSM(
 		sig.D *= -freqcy	/ CLIGHT;	// m/s -> Hz
 
 
-		tracepdeex(6,std::cout, "\n#RTCM_MSM OBSERV %s %s %d %s %.4f %.4f", obs.time.to_string(2), obs.Sat.id().c_str(), ft, sig.code._to_string(), sig.P, sig.L );
+		traceTrivialDebug("#RTCM_MSM OBSERV %s %s %d %s %.4f %.4f", obs.time.to_string(2), obs.Sat.id().c_str(), ft, sig.code._to_string(), sig.P, sig.L );
 
 		if (acsConfig.output_decoded_rtcm_json)
 			traceMSM(messCode, obs.time, obs.Sat, sig);

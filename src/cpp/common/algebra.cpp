@@ -638,7 +638,6 @@ void KFState::stateTransition(
 	}
 
 	{
-// 		Instrument	instrument("PPPalgebra2");
 		x = (Fx										).eval();
 	}
 	if (simulate_filter_only)
@@ -646,7 +645,6 @@ void KFState::stateTransition(
 		Q0.setZero();
 	}
 	{
-// 		Instrument	instrument("PPPalgebra3");
 		P = (F		* P * F.transpose()		+ Q0	).eval();
 	}
 // 	std::cout << "F" << std::endl << MatrixXd(F).format(HeavyFmt) << std::endl;
@@ -1216,7 +1214,7 @@ KFMeas KFState::combineKFMeasList(
 				double deltaX = xVal - uVal;
 				if (deltaX)
 				{
-// 					BOOST_LOG_TRIVIAL(info) << std::fixed << "Adjusting meas '" << entry.obsKey << "' as '" << kfKey << "' changed " << deltaX << "\tfrom " << uVal << "\tto " << xVal << "\t : " << innov << "\t-> " << innov - deltaX * coeff;
+					BOOST_LOG_TRIVIAL(debug) << std::fixed << "Adjusting meas '" << entry.obsKey << "' as '" << kfKey << "' changed " << deltaX << "\tfrom " << uVal << "\tto " << xVal << "\t : " << innov << "\t-> " << innov - deltaX * coeff;
 					value -= deltaX * coeff;
 					innov -= deltaX * coeff;
 				}
@@ -1332,10 +1330,10 @@ bool KFState::doMeasRejectCallbacks(
 /** Kalman filter operation
 */
 void KFState::filterKalman(
-	Trace&					trace,					///< Trace file for output
-	KFMeas&					kfMeas,					///< Measurement object
-	bool					innovReady,				///< Innovation already constructed
-	vector<FilterChunk>*	filterChunkList_ptr)	///< Optional ist of chunks for parallel processing of sub filters
+	Trace&						trace,					///< Trace file for output
+	KFMeas&						kfMeas,					///< Measurement object
+	bool						innovReady,				///< Innovation already constructed
+	map<string, FilterChunk>*	filterChunkMap_ptr)		///< Optional list of chunks for parallel processing of sub filters
 {
 	if (kfMeas.time != GTime::noTime())
 	{
@@ -1366,26 +1364,31 @@ void KFState::filterKalman(
 		kfMeas.VV	= kfMeas.V;
 	}
 
-	vector<FilterChunk> dummyFilterChunkList;
-	if (filterChunkList_ptr == nullptr)
+	map<string, FilterChunk> dummyFilterChunkMap;
+	if (filterChunkMap_ptr == nullptr)
 	{
-		filterChunkList_ptr = &dummyFilterChunkList;
+		filterChunkMap_ptr = &dummyFilterChunkMap;
 	}
 
-	auto& filterChunkList = *filterChunkList_ptr;
+	filterChunkMap = *filterChunkMap_ptr;
 
-	if (filterChunkList.empty())
+	if (filterChunkMap.empty())
 	{
 		FilterChunk filterChunk;
 		filterChunk.trace_ptr = &trace;
 
-		filterChunkList.push_back(filterChunk);
+		filterChunkMap[""] = filterChunk;
 	}
 
 	TestStatistics testStatistics;
 
-	for (auto& filterChunk : filterChunkList)
+	for (auto& [id, filterChunk] : filterChunkMap)
 	{
+		if (filterChunk.numH == 0)
+		{
+			continue;
+		}
+
 		if (filterChunk.numX < 0)	filterChunk.numX = x.rows();
 		if (filterChunk.numH < 0)	filterChunk.numH = kfMeas.H.rows();
 
@@ -1411,7 +1414,7 @@ void KFState::filterKalman(
 		}
 
 		testStatistics.sumOfSquaresPre	+= statistics.sumOfSquares;
-		testStatistics.averageRatioPre	+= statistics.averageRatio / filterChunkList.size();
+		testStatistics.averageRatioPre	+= statistics.averageRatio / filterChunkMap.size();
 	}
 
 	if	(  prefitOpts.sigma_check
@@ -1427,14 +1430,17 @@ void KFState::filterKalman(
 
 	statisticsMap["States"] = x.rows();
 
-	bool first = true;
-	for (auto& fc : filterChunkList)
+	for (auto& [id, fc] : filterChunkMap)
 	{
-		if (first == false)
+		if (fc.numH == 0)
 		{
-			BOOST_LOG_TRIVIAL(info) << " ------- FILTERING CHUNK              --------\n";
+			continue;
 		}
-		first = false;
+
+		if (fc.id.empty() == false)
+		{
+			BOOST_LOG_TRIVIAL(info) << " ------- FILTERING CHUNK " << fc.id << "         --------\n";
+		}
 
 		statisticsMap["Observations"] += fc.numH;
 
@@ -1496,7 +1502,7 @@ void KFState::filterKalman(
 		}
 
 		testStatistics.sumOfSquaresPost	+= statistics.sumOfSquares;
-		testStatistics.averageRatioPost	+= statistics.averageRatio / filterChunkList.size();
+		testStatistics.averageRatioPost	+= statistics.averageRatio / filterChunkMap.size();
 	}
 
 	if (postfitOpts.sigma_check)
@@ -1504,8 +1510,13 @@ void KFState::filterKalman(
 
 	if (chi_square_test)
 	{
-		for (auto& fc : filterChunkList)
+		for (auto& [id, fc] : filterChunkMap)
 		{
+			if (fc.numH == 0)
+			{
+				continue;
+			}
+
 			auto& chunkTrace = *fc.trace_ptr;
 
 			switch (chi_square_mode)
@@ -1906,9 +1917,10 @@ void KFState::outputStates(
 	InteractiveTerminal trace(name, output);
 	Block block(trace, name);
 
-	tracepdeex(2, trace, "#\t%22s\t%20s\t%5s\t%3s\t%7s\t%17s\t%17s\t%15s", "Time", "Type", "Str", "Sat", "Num", "State", "Sigma", "Adjust");
-	tracepdeex(5, trace, "\t%17s", "Mu");
-	tracepdeex(2, trace, "\t%s\n", "Comments");
+	tracepdeex(1, trace, "#\t%22s\t%20s\t%5s\t%3s\t%7s\t%17s\t%17s\t%15s", "Time", "Type", "Str", "Sat", "Num", "State", "Sigma", "Adjust");
+	tracepdeex(5, trace, "\t%17s",	"Mu");
+	tracepdeex(2, trace, "\t%s",	"Comments");
+	tracepdeex(1, trace, "\n");
 
 	int endX;
 	if (numX < 0)	endX = x.rows();
@@ -1959,7 +1971,7 @@ void KFState::outputStates(
 		else																		snprintf(muStr, sizeof(muStr), "%17.4e",	mu);
 
 
-		tracepdeex(2, trace, "*\t%20s\t%20s\t%5s\t%3s\t%7d\t%s\t%s\t%s",
+		tracepdeex(1, trace, "*\t%20s\t%20s\t%5s\t%3s\t%7d\t%s\t%s\t%s",
 			time.to_string(0).c_str(),
 			type.c_str(),
 			key.str.c_str(),
@@ -1968,9 +1980,10 @@ void KFState::outputStates(
 			xStr,
 			pStr,
 			dStr);
-		tracepdeex(5, trace, "\t%17s",		muStr);
-		tracepdeex(6, trace, "\t%x",		key.rec_ptr);
-		tracepdeex(2, trace, "\t%-40s\n",	key.comment.c_str());
+		tracepdeex(5, trace, "\t%17s",	muStr);
+		tracepdeex(6, trace, "\t%x",	key.rec_ptr);
+		tracepdeex(2, trace, "\t%-40s",	key.comment.c_str());
+		tracepdeex(1, trace, "\n");
 	}
 }
 

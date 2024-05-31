@@ -1,5 +1,4 @@
 
-
 // #pragma GCC optimize ("O0")
 
 #include <boost/algorithm/string.hpp>
@@ -168,9 +167,9 @@ void OrbitIntegrator::computeAcceleration(
 	const	GTime		time)
 {
 	auto trace = getTraceFile(nav.satNavMap[orbInit.Sat]);
-	
+
 	trace << std::endl << "Computing accelerations at " << time;
-	
+
 	Vector3d rSat = orbInit.pos;
 	Vector3d vSat = orbInit.vel;
 
@@ -197,7 +196,7 @@ void OrbitIntegrator::computeAcceleration(
 
 	{
 		Vector3d accPlanets = Vector3d::Zero();
-		
+
 		for (auto& planet : orbInit.planetary_perturbations)
 		{
 			if (planet == +E_ThirdBody::EARTH)
@@ -353,31 +352,36 @@ void OrbitIntegrator::computeAcceleration(
             break;
 		}
 	}
+
 	if (orbInit.albedo != +E_SRPModel::NONE)
 	{
-		double A			= orbInit.area;
-		double m			= orbInit.mass;
-		double E 			= 1367;
-		double cBall		= 0.8 * E / CLIGHT;
-		double alpha		= 0.3;
-		double Ae			= M_PI * SQR(RE_WGS84);
-		Vector3d rSun		= planetsPosMap[E_ThirdBody::SUN];
+		double A		= orbInit.area;
+		double m		= orbInit.mass;
+		double E 		= 1367;
+		double cBall	= 0.8 * E / CLIGHT;
+		double alpha	= 0.3;
+		double Ae		= M_PI * SQR(RE_WGS84);
+		Vector3d rSun	= planetsPosMap[E_ThirdBody::SUN];
 
-		double factor 		= Ae / rSat.squaredNorm();
-		double E_IR 		= (1 - alpha) / (4 * PI);
+		double factor 	= Ae / rSat.squaredNorm();
+		double E_IR 	= (1 - alpha) / (4 * PI);
 
 		double cos_		= rSat.dot(rSun) / (rSat.norm() * rSun.norm());
 		double phi		= acos(cos_);
 		double sin_		= sin(phi);
 		double E_Vis	= 2 * alpha / (3 * SQR(PI)) * ((PI - phi) * cos_ + sin_);
-		E_Vis *= factor;
-		E_IR *= factor;
+
+		E_Vis	*= factor;
+		E_IR 	*= factor;
+
 		switch (orbInit.albedo)
 		{
 			case E_SRPModel::CANNONBALL:
 			{
 				Vector3d accAlbedo = A / m * (E_Vis + E_IR) * cBall * rSat.normalized();
+
 				orbInit.componentsMap[E_Component::ALBEDO] = accAlbedo.norm();
+
 				acc += accAlbedo;
 
 				break;
@@ -398,7 +402,9 @@ void OrbitIntegrator::computeAcceleration(
 				Vector3d eZ = eci2ecf.transpose() * satPos.satNav_ptr->attStatus.eZBody;
 
 				Vector3d accAlbedoBoxwing = applyBoxwingAlbedo(orbInit, E_Vis, E_IR, rSat*-1.0, ed, eX, eY, eZ);
+
 				orbInit.componentsMap[E_Component::ALBEDO_BOXWING] = accAlbedoBoxwing.norm();
+
 				acc +=  accAlbedoBoxwing;
 
 				break;
@@ -585,6 +591,23 @@ void integrateOrbits(
 			{
 				BOOST_LOG_TRIVIAL(warning) << " Integrator error " << errorMag << " greater than 1mm for " << error.Sat << " " << error.str;
 			}
+		}
+	}
+
+	for (auto& orbit : orbits)
+	{
+		auto& satNav	= nav.satNavMap[orbit.Sat];
+		auto& satPos0	= satNav.satPos0;
+
+		auto satTrace = getTraceFile(satNav);
+
+		satTrace << std::endl << "Propagated orbit from " << orbitPropagator.timeInit << " for " << integrationPeriod;
+
+		for (auto& [component, value] : orbit.componentsMap)
+		{
+			tracepdeex(0, satTrace, "\n");
+			tracepdeex(4, satTrace, "%s",				orbitPropagator.timeInit.to_string().c_str());
+			tracepdeex(0, satTrace, " %-25s %+14.4e",	component._to_string(), value);
 		}
 	}
 }
@@ -877,17 +900,6 @@ void predictOrbits(
 	{
 		auto& satNav	= nav.satNavMap[orbit.Sat];
 		auto& satPos0	= satNav.satPos0;
-		
-		auto satTrace = getTraceFile(satNav);
-		
-		satTrace << std::endl << "Propagated orbit from " << kfState.time << " to " << time;
-		
-		for (auto& [component, value] : orbit.componentsMap)
-		{
-			tracepdeex(0, satTrace, "\n");
-			tracepdeex(4, satTrace, "%s",				time.to_string().c_str());
-			tracepdeex(0, satTrace, " %-25s %+14.4e",	component._to_string(), value);
-		}
 
 		satPos0.posTime		= time;
 		satPos0.rSatEci0	= orbit.pos;

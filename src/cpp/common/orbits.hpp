@@ -19,17 +19,15 @@ VectorEci propagateEllipse(
 			Trace&		trace,
 			GTime		time,
 			double		dt,
-			VectorEci&	rSat,
-			VectorEci&	vSat,
-			VectorEcef&	ecef,
-			VectorEcef*	vSatEcef_ptr	= nullptr,
-			bool		j2				= false);
+	const	VectorEci&	rSat,
+	const	VectorEci&	vSat,
+			SatPos&		satPos,
+			bool		j2 = false);
 
 VectorEci propagateFull(
 			Trace&		trace,
 			GTime		time,
-			double		dt, 
+			double		dt,
 			VectorEci&	rSat,
-			VectorEci&	vSat, 
-			VectorEcef&	ecef, 
-			VectorEcef*	vSatEcef_ptr = nullptr);
+			VectorEci&	vSat,
+			SatPos&		satPos);

@@ -31,17 +31,37 @@ bool										InteractiveTerminal::enabled		= false;
 map<string,				InteractivePage>	InteractiveTerminal::pages;
 map<E_InteractiveMode,	InteractiveMode>	InteractiveTerminal::modes;
 
+struct Destructor
+{
+	~Destructor()
+	{
+		if (InteractiveTerminal::enabled)
+		{
+			werase(window);
+			werase(bar);
+			werase(menu);
+			erase();
+			endwin();
+
+			for (auto& line : InteractiveTerminal::pages["Messages"].lines)
+			{
+				std::cout << line << std::endl;
+			}
+		}
+	}
+};
+
+static Destructor destructor;
+
 // Define the function to be called when ctrl-c (SIGINT) is sent to process
 void sigIntHandler(
 	int signum)
 {
-	werase(window);
-	werase(bar);
-	werase(menu);
-	erase();
-	endwin();
+	destructor.~Destructor();
 	abort();
 }
+
+
 
 void InteractiveTerminal::keyboardHandler()
 {
@@ -81,7 +101,7 @@ void InteractiveTerminal::keyboardHandler()
 
 						vector<string> testSplit;
 
-						boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t"), boost::token_compress_on);
+						boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
 
 						bool commonBase = true;
 						for (int level = 0; level < activeLevel; level++)
@@ -108,7 +128,7 @@ void InteractiveTerminal::keyboardHandler()
 
 					vector<string> testSplit;
 
-					boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t"), boost::token_compress_on);
+					boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
 
 					bool levelDone = false;
 					for (int level = 0; level < activeLevel; level++)
@@ -145,7 +165,7 @@ void InteractiveTerminal::keyboardHandler()
 
 						vector<string> testSplit;
 
-						boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t"), boost::token_compress_on);
+						boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
 
 						bool commonBase = true;
 						for (int level = 0; level < activeLevel; level++)
@@ -172,7 +192,7 @@ void InteractiveTerminal::keyboardHandler()
 
 					vector<string> testSplit;
 
-					boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t"), boost::token_compress_on);
+					boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
 
 					bool levelDone = false;
 					for (int level = 0; level < activeLevel; level++)
@@ -197,10 +217,12 @@ void InteractiveTerminal::keyboardHandler()
 		{
 			switch (ch)
 			{
-				case KEY_UP:		{	page.currentLine -= 3;	page.followEnd = false;	break;		}
-				case KEY_DOWN:		{	page.currentLine += 3;							break;		}
-				case KEY_PPAGE:		{	page.currentLine -= 20;	page.followEnd = false;	break;		}
-				case KEY_NPAGE:		{	page.currentLine += 20;							break;		}
+				case KEY_UP:		{	page.currentLine -= 3;						page.followEnd = false;	break;		}
+				case KEY_DOWN:		{	page.currentLine += 3;												break;		}
+				case KEY_PPAGE:		{	page.currentLine -= 20;						page.followEnd = false;	break;		}
+				case KEY_NPAGE:		{	page.currentLine += 20;												break;		}
+				case KEY_HOME:		{	page.currentLine =  0;						page.followEnd = false;	break;		}
+				case KEY_END:		{	page.currentLine =  page.lines.size() + 1;							break;		}
 				default:
 				{
 					break;
@@ -269,7 +291,7 @@ void InteractiveTerminal::drawMenus()
 {
 	lock_guard<mutex> guard(displayMutex);
 
-	boost::algorithm::split(activeSplit, activePage, boost::is_any_of("\t"), boost::token_compress_on);
+	boost::algorithm::split(activeSplit, activePage, boost::is_any_of("\t/"), boost::token_compress_on);
 
 	werase	(menu);
 	box		(menu, 0, 0);
@@ -292,7 +314,7 @@ void InteractiveTerminal::drawMenus()
 		{
 			vector<string> testSplit;
 
-			boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t"), boost::token_compress_on);
+			boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
 
 			bool isVisible = true;
 
@@ -351,8 +373,8 @@ void InteractiveTerminal::drawMenus()
 	}
 
 	wmove	(bar, 1, 1);
-	wprintw	(bar, "%35s",	epoch.c_str());
-	wprintw	(bar, "%s",		duration.c_str());
+	wprintw	(bar, "%35s    ",	epoch.c_str());
+	wprintw	(bar, "%s",			duration.c_str());
 
 	wmove	(bar, 2,1);
 	for (auto& [modeName, mode] : modes)
@@ -361,7 +383,7 @@ void InteractiveTerminal::drawMenus()
 		if (mode.active >= 1)	wattron	(bar, A_BOLD);
 
 		int col1 = getcurx(bar);
-		wprintw(bar, " %s ", mode.modeName.c_str());
+		wprintw(bar, " %3s ", mode.modeName.c_str());
 		int col2 = getcurx(bar);
 
 								wattroff(bar, A_BOLD);
@@ -483,6 +505,9 @@ void InteractiveTerminal::setMode(
 	E_InteractiveMode		modeName)
 {
 	if (enabled == false)
+		return;
+
+	if (activeMode == modeName)
 		return;
 
 	modes[activeMode].stopTime	= timeGet();

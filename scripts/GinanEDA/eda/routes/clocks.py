@@ -45,6 +45,7 @@ def handle_post_request():
             "clocks.jinja",
             # content=client.mongo_content,
             extra=extra,
+            selection=form,
             message="Error getting data: Can only compare series from the same database",
         )
     if form["clockType"] == "Satellite":
@@ -63,6 +64,7 @@ def handle_post_request():
         return render_template(
             "clocks.jinja",
             extra=extra,
+            selection=form,
             message=f"Error getting data: {str(err)}",
         )
     data.find_minmax()

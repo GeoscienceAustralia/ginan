@@ -43,18 +43,22 @@ struct ConsoleLog : public sinks::basic_formatted_sink_backend<char, sinks::sync
 extern int traceLevel;
 
 template<typename... Arguments>
-void tracepdeex(int level, Trace& stream, string const& fmt, Arguments&&... args)
+void tracepdeex(
+	int				level,
+	Trace&			stream,
+	string const&	fmt,
+	Arguments&&...	args)
 {
 	if (level > traceLevel)
 		return;
 
 	boost::format f(fmt);
 	int unroll[] {0, (f % std::forward<Arguments>(args), 0)...};
-	static_cast<void>(unroll);
-
 	stream << boost::str(f);
 }
 
+template<typename... Args>void traceTrivialDebug(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(debug)	<< boost::str(f);}
+template<typename... Args>void traceTrivialInfo	(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(info)		<< boost::str(f);}
 
 template<typename T>
 std::ofstream getTraceFile(

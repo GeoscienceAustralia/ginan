@@ -103,7 +103,7 @@ double tropModelCoef(
 			if (dlatDeg > atmReg.intLatDeg || atmReg.intLatDeg == 0)		return 0;
 			if (dlonDeg > atmReg.intLonDeg || atmReg.intLonDeg == 0)		return 0;
 
-			return (1 - dlatDeg / atmReg.intLatDeg) * (1 - dlonDeg / atmReg.intLonDeg);		//todo aaorn use bilinear interpolation function?
+			return (1 - dlatDeg / atmReg.intLatDeg) * (1 - dlonDeg / atmReg.intLonDeg);		//todo aaron use bilinear interpolation function?
 		}
 		default:
 		{

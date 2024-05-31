@@ -15,9 +15,9 @@ void outputStatistics(
 		statisticsMapSum[str] += count;
 	}
 
-	{	InteractiveTerminal	ss(			"Filter-Statistics\tEpoch", trace);
+	{	InteractiveTerminal	ss(			"Filter-Statistics/Epoch", trace);
 		Block				block(ss,	"Filter-Statistics/Epoch");				for (auto& [str, count] : statisticsMap)		tracepdeex(0, ss, "! %-40s: %d\n", str.c_str(), count);		}
-	{	InteractiveTerminal ss(			"Filter-Statistics\tTotal", trace);
+	{	InteractiveTerminal ss(			"Filter-Statistics/Total", trace);
 		Block				block(ss,	"Filter-Statistics/Total");				for (auto& [str, count] : statisticsMapSum)		tracepdeex(0, ss, "! %-40s: %d\n", str.c_str(), count);		}
 
 	statisticsMap.clear();

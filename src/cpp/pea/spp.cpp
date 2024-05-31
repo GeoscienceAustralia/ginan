@@ -255,7 +255,7 @@ void printFailures(
 	const	string&		id,
 			ObsList&	obsList)
 {
-	InteractiveTerminal ss(string("Failures\t") + id, nullStream);
+	InteractiveTerminal ss(string("Failures/") + id, nullStream);
 
 	tracepdeex(4, ss, "\nFailures:");
 	tracepdeex(4, ss, "\n%20s ",""						);		for (auto& obs : only<GObs>(obsList))	tracepdeex(4, ss, "%c", obs.Sat.sysChar()			);
@@ -293,7 +293,7 @@ void printFailures(
 
 	tracepdeex(4, ss, "\n\n");
 
-	BOOST_LOG_TRIVIAL(info) << ss.str();
+	BOOST_LOG_TRIVIAL(debug) << ss.str();
 }
 
 
@@ -348,7 +348,7 @@ E_Solution estpos(
 	Solution&	sol,					///< Solution object containing initial conditions and results
 	string		id,						///< Id of receiver
 	KFState*	kfState_ptr = nullptr,	///< Optional kfstate pointer to retrieve ppp values from
-	string		description = "SPP-")	///< Description to prepend to clarify outputs
+	string		description = "SPP")	///< Description to prepend to clarify outputs
 {
 	int numMeas = 0;
 
@@ -363,11 +363,11 @@ E_Solution estpos(
 		kfState = KFState();		//reset to zero to prevent lock-in of bad positions
 	}
 
-	auto& recOpts = acsConfig.getRecOpts(id);
-
 	int iter;
 	int removals = 0;
 	double adjustment = 10000;
+
+	auto& recOpts = acsConfig.getRecOpts(id);
 
 	tracepdeex(5, trace, "\n ---- STARTING SPP LSQ ----");
 	for (iter = 0; iter < acsConfig.sppOpts.max_lsq_iterations; iter++)
@@ -738,7 +738,7 @@ bool raim(
 		Solution sol_e = sol;
 
 		//try to get position using test subset of all observations
-		E_Solution status = estpos(trace, testList, sol_e, id, kfState_ptr, (string)"RAIM-" + testObs.Sat.id());
+		E_Solution status = estpos(trace, testList, sol_e, id, kfState_ptr, (string)"RAIM/" + id + "/" + testObs.Sat.id());
 		if (status != +E_Solution::SINGLE)
 		{
 			continue;
@@ -848,7 +848,7 @@ void SPP(
 	tracepdeex(3,trace,	"\n%s  : tobs=%s n=%zu", __FUNCTION__, obsList.front()->time.to_string(3).c_str(), obsList.size());
 
 	//estimate receiver position with pseudorange
-	sol.status = estpos(trace, obsList, sol, id, kfState_ptr);	//todo aaron, remote too?
+	sol.status = estpos(trace, obsList, sol, id, kfState_ptr, (string) "SPP/" + id);	//todo aaron, remote too?
 
 	//Receiver Autonomous Integrity Monitoring
 	if (sol.status != +E_Solution::SINGLE)
@@ -890,7 +890,7 @@ void SPP(
 		obs.excludeBadSPP = true;
 	}
 
-	sol.sppState.outputStates(trace, "/SPP\t" + id);
+	sol.sppState.outputStates(trace, "/SPP/" + id);
 
 	//copy states to often-used vectors
 	for (short i = 0; i	< 3; i++)							{										sol.sppState.getKFValue({KF::REC_POS,		{},		id, i},	sol.sppRRec[i]);	}

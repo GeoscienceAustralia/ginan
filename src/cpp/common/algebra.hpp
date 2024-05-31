@@ -120,11 +120,20 @@ namespace std
 
 struct FilterChunk
 {
+	string	id;
 	Trace*	trace_ptr = nullptr;
 	int		begX		=  0;
 	int		numX		= -1;
 	int		begH		=  0;
 	int		numH		= -1;
+
+	template<class ARCHIVE>
+	void serialize(ARCHIVE& ar, const unsigned int& version)
+	{
+		ar & id;
+		ar & begX;
+		ar & numX;
+	}
 };
 
 /** Minimum viable kfState element object.
@@ -329,6 +338,8 @@ struct KFState_ : FilterOptions
 	vector<StateRejectCallback> 						stateRejectCallbacks;
 	vector<MeasRejectCallback> 							measRejectCallbacks;
 
+	map<string, FilterChunk>							filterChunkMap;
+
 	map<string, string>									metaDataMap;
 
 	bool		chiQCPass				= false;
@@ -399,6 +410,8 @@ struct KFState : KFState_
 		ar & time;
 		ar & x;
 		ar & dx;
+		ar & filterChunkMap;
+
 
 		double num;
 		int rows = P.rows();
@@ -593,10 +606,11 @@ struct KFState : KFState_
 		bool			postFit);
 
 	void	filterKalman(
-		Trace&					trace,
-		KFMeas&					kfMeas,
-		bool					innovReady			= false,
-		vector<FilterChunk>*	filterChunkList_ptr	= nullptr);
+		Trace&						trace,
+		KFMeas&						kfMeas,
+		bool						innovReady			= false,
+		map<string, FilterChunk>*	filterChunkMap_ptr	= nullptr);
+
 
 	void	leastSquareInitStates(
 		Trace&			trace,

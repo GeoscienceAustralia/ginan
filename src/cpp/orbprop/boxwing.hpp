@@ -15,8 +15,8 @@ Vector3d  applyBoxwingSrp(
 
 Vector3d  applyBoxwingAlbedo(
 	const OrbitOptions&	orbitOptions,
-	const double E_Vis,
-	const double E_IR,
+	const double		E_Vis,
+	const double		E_IR,
 	const Vector3d&		rsat,
 	const Vector3d& 	eD,
 	const Vector3d&		eX,

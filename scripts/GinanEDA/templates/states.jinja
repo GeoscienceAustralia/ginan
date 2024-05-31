@@ -9,13 +9,26 @@ States
   <div class="col-lg-1">
     <label for="type" class="form-label">Type:</label>
     <br>
+
+    {% if selection is not defined%}
+      {% set selection = {} %}
+      {% set _ = selection.__setitem__("type",    "Line") %}
+      {% set _ = selection.__setitem__("site",    "*") %}
+      {% set _ = selection.__setitem__("sat",     "*") %}
+      {% set _ = selection.__setitem__("series",  "*") %}
+      {% set _ = selection.__setitem__("xaxis",   "Epoch") %}
+      {% set _ = selection.__setitem__("yaxis",   "x") %}
+      {% set _ = selection.__setitem__("degree",  "0") %}
+      {% set _ = selection.__setitem__("process", "None") %}
+      {% set _ = selection.__setitem__("process", "None") %}
+    {% endif %}
     <select class="selectpicker form-control" name="type" id="type" data-container="body" data-live-search="true"
       title="Select type">
 
       {% for key_ in extra['plotType'] %}
       {% if key_ != 'QQ' %}
-      {% if selection is defined and selection['type']|length and key_ in selection['type']%}
-      <option value="{{key_}}" SELECTED>{{key_}}</option>"
+      {% if selection is defined and selection['type']|length and key_ in selection['type'] or "*" in selection['type'] %}
+      <option value="{{key_}}" selected>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
       {%endif%}
@@ -31,7 +44,7 @@ States
       data-virtual-scroll="false">
 
       {% for series_ in session['list_series'] %}
-      {% if selection is defined and selection['series']|length and series_ in selection['series']%}
+      {% if selection is defined and selection['series']|length and series_ in selection['series'] or "*" in selection['series'] %}
       <option value="{{series_}}" SELECTED>{{series_}}</option>"
       {%else%}
       <option value="{{series_}}">{{series_}}</option>"
@@ -46,7 +59,7 @@ States
       title="Select satellite" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
 
       {% for sat_ in session['list_sat'] %}
-      {% if selection is defined and selection['sat']|length and sat_ in selection['sat']%}
+      {% if selection is defined and selection['sat']|length and sat_ in selection['sat'] or "*" in selection['sat'] %}
       <option value="{{sat_}}" SELECTED>{{sat_}}</option>"
       {%else%}
       <option value="{{sat_}}">{{sat_}}</option>"
@@ -62,7 +75,7 @@ States
       data-virtual-scroll="false">
 
       {% for site_ in session['list_site'] %}
-      {% if selection is defined and selection['site']|length and site_ in selection['site']%}
+      {% if selection is defined and selection['site']|length and site_ in selection['site'] or "*" in selection['site'] %}
       <option value="{{site_}}" SELECTED>{{site_}}</option>"
       {%else%}
       <option value="{{site_}}">{{site_}}</option>"
@@ -74,10 +87,11 @@ States
     <label for="state" class="form-label">State:</label>
     <br>
     <select multiple class="selectpicker form-control" name="state" id="state" data-hide-disabled="true"
-      data-live-search="true" title="Select state">
+      data-live-search="true" title="Select state" data-actions-box="true"
+      data-virtual-scroll="false">
 
       {% for key_ in session['list_state'] %}
-      {% if selection is defined and selection['state']|length and key_ in selection['state']%}
+      {% if selection is defined and selection['state']|length and key_ in selection['state'] or "*" in selection['state'] %}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
@@ -91,7 +105,7 @@ States
     <select class="selectpicker form-control" name="xaxis" id="xaxis" data-container="body" data-live-search="true"
       title="Select xvalue">
       {% for key_ in session['list_generic'] %}
-      {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis']%}
+      {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis'] or "*" in selection['xaxis'] %}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
@@ -99,7 +113,7 @@ States
       {% endfor %}
       <option data-divider="true"></option> <!-- Virtual separator -->
       {% for key_ in session['list_geometry'] %}
-      {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis']%}
+      {% if selection is defined and selection['xaxis']|length and key_ in selection['xaxis'] or "*" in selection['xaxis'] %}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
@@ -115,7 +129,7 @@ States
     <select multiple class="selectpicker form-control" name="yaxis" id="yaxis" data-hide-disabled="true"
       data-live-search="true">
       {% for key_ in extra["stateField"] %}
-      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis']%}
+      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis'] or "*" in selection['yaxis'] %}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
@@ -129,7 +143,7 @@ States
       <select class="selectpicker form-control" name="degree" id="degree" data-container="body" data-live-search="true"
         title="degree">
         {% for key_ in extra["degree"] %}
-        {% if selection is defined and selection['degree']|length and key_ in selection['degree']%}
+        {% if selection is defined and selection['degree']|length and key_ in selection['degree'] or "*" in selection['degree'] %}
         <option value="{{key_}}" SELECTED>{{key_}}</option>"
         {%else%}
         <option value="{{key_}}">{{key_}}</option>"
@@ -143,7 +157,7 @@ States
     <select class="selectpicker form-control" name="process" id="process" data-container="body" data-live-search="true"
       title="Preprocessing">
       {% for key_ in extra["preprocess"] %}
-      {% if selection is defined and selection['process']|length and key_ in selection['process']%}
+      {% if selection is defined and selection['process']|length and key_ in selection['process'] or "*" in selection['process'] %}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"

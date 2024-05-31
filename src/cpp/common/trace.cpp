@@ -66,7 +66,12 @@ void ConsoleLog::consume(
 
 	if (useInteractive)
 	{
-		InteractiveTerminal::addString("Messages", logString);
+		InteractiveTerminal::addString("Messages/All", logString);
+
+		if		(sev == boost::log::trivial::info)		InteractiveTerminal::addString("Messages/Info",		logString);
+		else if	(sev == boost::log::trivial::warning)	InteractiveTerminal::addString("Messages/Warnings",	logString);
+		else if	(sev == boost::log::trivial::error)		InteractiveTerminal::addString("Messages/Errors",	logString);
+		else if	(sev == boost::log::trivial::debug)		InteractiveTerminal::addString("Messages/Debug",	logString);
 
 		// std::cerr << output << std::flush;
 	}
@@ -166,6 +171,11 @@ bool createNewTraceFile(
 {
 	replaceString(new_path_trace, "<RECEIVER>", id);
 	replaceTimes (new_path_trace, logptime);
+
+	if (new_path_trace == acsConfig.pppOpts.rts_smoothed_suffix)
+	{
+		return false;
+	}
 
 	// Create the trace file if its a new filename, otherwise, keep the old one
 	if	( new_path_trace == old_path_trace

@@ -311,22 +311,24 @@ void getKeplerInversePartials(
 }
 
 VectorEci propagateEllipse(
-	Trace&		trace,
-	GTime		time,
-	double		dt,
-	VectorEci&	rSat,
-	VectorEci&	vSat,
-	VectorEcef&	ecef,
-	VectorEcef* vSatEcef_ptr,
-	bool		j2)
+			Trace&		trace,
+			GTime		time,
+			double		dt,
+	const	VectorEci&	rSat,
+	const	VectorEci&	vSat,
+			SatPos&		satPos,
+			bool		j2)
 {
 	ERPValues erpv = getErp(nav.erp, time);
 
 	FrameSwapper frameSwapper(time + dt, erpv);
 
+	auto& ecef		= satPos.rSatCom;
+	auto& vSatEcef	= satPos.satVel;
+
 	if (dt == 0)
 	{
-		ecef = frameSwapper(rSat, &vSat, vSatEcef_ptr);
+		ecef = frameSwapper(rSat, &vSat, &vSatEcef);
 
 		return rSat;
 	}
@@ -340,7 +342,7 @@ VectorEci propagateEllipse(
 		VectorEci newPos	= rSat
 							+ vSat * dt;
 
-		ecef = frameSwapper(newPos, &vSat, vSatEcef_ptr);
+		ecef = frameSwapper(newPos, &vSat, &vSatEcef);
 
 		return newPos;
 	}
@@ -402,7 +404,7 @@ VectorEci propagateEllipse(
 	keplers0[KEPLER::M] += n * dtVel;
 
 	VectorEci velEci;
-	if (vSatEcef_ptr)
+	if (1)
 	{
 		VectorEci newPos2 = keplers2Inertial(trace, keplers0);
 
@@ -411,7 +413,7 @@ VectorEci propagateEllipse(
 
 // 	std::cout << "\nrSatInertial:       " << 		newPos.transpose();
 
-	ecef = frameSwapper(newPos1, &velEci, vSatEcef_ptr);
+	ecef = frameSwapper(newPos1, &velEci, &vSatEcef);
 
 	return newPos1;
 }
@@ -422,21 +424,24 @@ VectorEci propagateFull(
 	double		dt,
 	VectorEci&	rSat,
 	VectorEci&	vSat,
-	VectorEcef&	ecef,
-	VectorEcef* vSatEcef_ptr)
+	SatPos&		satPos)
 {
 	ERPValues erpv = getErp(nav.erp, time + dt);
-	
+
 	FrameSwapper frameSwapper(time + dt, erpv);
-	
+
+	auto& ecef		= satPos.rSatCom;
+	auto& vSatEcef	= satPos.satVel;
+
 	if (dt == 0)
 	{
-		ecef = frameSwapper(rSat, &vSat, vSatEcef_ptr);
-		
+		ecef = frameSwapper(rSat, &vSat, &vSatEcef);
+
 		return rSat;
 	}
 
 	OrbitState orbit;
+	orbit.Sat = satPos.Sat;
 	orbit.pos = rSat;
 	orbit.vel = vSat;
 	orbit.posVelSTM = MatrixXd::Identity(6, 6);
@@ -453,8 +458,8 @@ VectorEci propagateFull(
 	VectorEci velEci;
 	newPos	= orbits[0].pos;
 	velEci	= orbits[0].vel;
-	
-	ecef = frameSwapper(newPos, &velEci, vSatEcef_ptr);
-	
+
+	ecef = frameSwapper(newPos, &velEci, &vSatEcef);
+
 	return newPos;
 }

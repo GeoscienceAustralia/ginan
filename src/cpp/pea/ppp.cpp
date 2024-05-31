@@ -831,11 +831,11 @@ double netResidualAndChainOutputs(
 			tracepdeex(3, trace, "%30s",	((string)measEntry.obsKey).c_str());
 			tracepdeex(0, trace, " %-23s %+14.4f", component._to_string(), -componentVal);
 
-			if		(var >= 0)		tracepdeex(0, trace, " ~ %5.3e", var);
-			else if	(var == 0)		tracepdeex(0, trace, " ~ 0        ");
-			else					tracepdeex(0, trace, " ~ Estimated");
+			if		(var >= 0)		tracepdeex(2, trace, " ~ %5.3e", var);
+			else if	(var == 0)		tracepdeex(2, trace, " ~ 0        ");
+			else					tracepdeex(2, trace, " ~ Estimated");
 
-			tracepdeex(0, trace, " -> %13.4f",	residual);
+			tracepdeex(2, trace, " -> %13.4f",	residual);
 			tracepdeex(3, trace, " ~ %.2e ",	residualVar);
 		}
 	}

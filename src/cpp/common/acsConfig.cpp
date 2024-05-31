@@ -172,8 +172,6 @@ bool replaceString(
 		{
 			BOOST_LOG_TRIVIAL(warning)
 			<< "Warning: " << subStr << " is used in config near " << str << " but is not defined...";
-
-			continue;
 		}
 
 		str.erase	(index, subStr.size());
@@ -1092,12 +1090,14 @@ NodeStack stringsToYamlObject(
 
 	for (int i = 0; i < yamlNodeDescriptor.size(); i++)
 	{
-		auto& desc = yamlNodeDescriptor[i];
+		auto desc = yamlNodeDescriptor[i];
 
 		if (desc.empty())
 		{
 			continue;
 		}
+
+		boost::algorithm::to_lower(desc);
 
 		string dummy;
 		string shortDesc = nonNumericStack(desc, dummy, false);
@@ -2469,6 +2469,24 @@ void replaceTimes(
 	}
 }
 
+void recurseLowerCase(
+	YAML::Node& node)
+{
+	for (auto it = node.begin(); it != node.end(); ++it)
+	try
+	{
+		it->first = boost::algorithm::to_lower_copy(it->first.as<std::string>());
+		if	( it->second.IsSequence()
+			||it->second.IsMap())
+		{
+			recurseLowerCase(it->second);
+		}
+	}
+	catch (...)
+	{
+	}
+}
+
 void ACSConfig::recurseYaml(
 	const string&	file,
 	YAML::Node		node,
@@ -2917,6 +2935,8 @@ bool ACSConfig::parse(
 			BOOST_LOG_TRIVIAL(error) << e.what() << std::endl << std::endl;
 			return false;
 		}
+
+		recurseLowerCase(yaml);
 
 // 		outputs
 		{
@@ -3454,9 +3474,8 @@ bool ACSConfig::parse(
 				for (int i = E_Sys::GPS; i < E_Sys::SUPPORTED; i++)
 				{
 					E_Sys	sys			= E_Sys::_values()[i];
-					string	sysName		= "! " + boost::algorithm::to_lower_copy((string) sys._to_string());
 
-					auto sys_options = stringsToYamlObject(general, {"1! sys_options", sysName}, (string)"Options for the " + sys._to_string() + " constellation");
+					auto sys_options = stringsToYamlObject(general, {"1! sys_options", sys._to_string()}, (string)"Options for the " + sys._to_string() + " constellation");
 
 					tryGetFromYaml(process_sys			[sys],		sys_options, {"0! process"				}, "Process this constellation");
 					tryGetFromYaml(solve_amb_for		[sys],		sys_options, {"3! ambiguity_resolution"	}, "Solve carrier phase ambiguities for this constellation");

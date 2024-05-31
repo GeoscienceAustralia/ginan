@@ -66,7 +66,7 @@ struct SatNav
 	Vector3d			antBoresight	= {0,0,1};
 	Vector3d			antAzimuth		= {0,1,0};
 
-	SatPos				satPos0;
+	SatPos				satPos0;					///< Satellite position when propagated to nominal time
 };
 
 /** navigation data type

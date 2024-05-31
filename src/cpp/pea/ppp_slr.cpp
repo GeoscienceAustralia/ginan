@@ -237,8 +237,6 @@ void receiverSlr(
 	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
 			KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
 {
-	// 	Instrument	instrument(__FUNCTION__ + rec.id);
-
 	if (acsConfig.slrOpts.process_slr == false)
 	{
 		return;
@@ -311,6 +309,7 @@ void receiverSlr(
 		//Start with the observed measurement and its noise
 		{
 			KFKey obsKey;
+			obsKey.type		= KF::LASER_MEAS;
 			obsKey.str		= obs.recName;
 			obsKey.Sat		= obs.Sat;
 			obsKey.num		= obsNum;

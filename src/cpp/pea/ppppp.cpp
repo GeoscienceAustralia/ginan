@@ -712,8 +712,8 @@ void chunkFilter(
 	Trace&						trace,
 	KFState&					kfState,
 	KFMeas&						combinedMeas,
-	ReceiverMap&					receiverMap,
-	vector<FilterChunk>&		filterChunkList,
+	ReceiverMap&				receiverMap,
+	map<string, FilterChunk>&	filterChunkMap,
 	map<string, std::ofstream>&	traceList)
 {
 	if (acsConfig.pppOpts.receiver_chunking == false)
@@ -726,44 +726,53 @@ void chunkFilter(
 	map<string, int>	begX;
 	map<string, int>	endX;
 
-	//get all meas begs/ends for this type
-	for (int h = 0; h < combinedMeas.H.rows(); h++)
+	for (auto& [kfKey, x] : kfState.kfIndexMap)
 	{
-		auto& obsKey = combinedMeas.obsKeys[h];
+		if (kfKey.type == KF::ONE)
+		{
+			continue;
+		}
 
-		string chunkId = obsKey.str;
+		string chunkId = kfKey.str;
 
-		if (begH.find(chunkId) == begH.end())			{	begH[chunkId] = h;		}
-														{	endH[chunkId] = h;		}
+		if (begX.find(chunkId) == begX.end())								{	begX[chunkId] = x;		}
+																			{	endX[chunkId] = x;		}
 
-		for (int x = 0; x < kfState.x.rows(); x++)
+
+		for (int h = 0; h < combinedMeas.H.rows(); h++)
 		if (combinedMeas.H(h, x))
 		{
-			if (begX.find(chunkId) == begX.end())		{	begX[chunkId] = x;		}
-			if (x > endX[chunkId]) 						{	endX[chunkId] = x;		}
+			if (begH.find(chunkId) == begH.end() || h < begH[chunkId])		{	begH[chunkId] = h;		}
+			if (									h > endH[chunkId]) 		{	endH[chunkId] = h;		}
 		}
 	}
 
 	bool chunkX = true;
+	bool chunkH = true;
 
-	//check for overlapping x entries
-	for (auto& [str1, beg1]	: begX)
-	for (auto& [str2, beg2]	: begX)
+	//check for overlapping entries
+	for (auto& [str1, beg1]	: begH)
+	for (auto& [str2, beg2]	: begH)
 	{
-		auto& end1 = endX[str1];
+		auto& end1 = endH[str1];
 
 		if (str1 == str2)
 		{
 			continue;
 		}
 
-		auto& end2 = endX[str2];
+		auto& end2 = endH[str2];
 
-		if	( (beg2 > beg1 && beg2 < end1)		// 2 starts in the middle of beg,end
-			||(end2 > beg1 && end2 < end1))		// 2 ends   in the middle of beg,end
+		if	( (beg2 >= beg1 && beg2 <= end1)		// 2 starts in the middle of beg,end
+			||(end2 >= beg1 && end2 <= end1))		// 2 ends   in the middle of beg,end
 		{
-			chunkX = false;
+			chunkH = false;
 		}
+	}
+
+	if (chunkH == false)
+	{
+		return;
 	}
 
 	for (auto& [str, dummy] : begH)
@@ -776,7 +785,8 @@ void chunkFilter(
 
 			traceList[str] = getTraceFile(rec);
 
-			filterChunk.trace_ptr = &traceList[str];
+			filterChunk.id			= str;
+			filterChunk.trace_ptr	= &traceList[str];
 		}
 		else
 		{
@@ -784,32 +794,76 @@ void chunkFilter(
 		}
 
 // 		std::cout << std::endl << "Chunk : " << str << " " << begH[str] << " " << endH[str] << " " << begX[str] << " " << endX[str];
-							filterChunk.begH = begH[str];			filterChunk.numH = endH[str] - begH[str] + 1;
+		if (chunkH)		{	filterChunk.begH = begH[str];			filterChunk.numH = endH[str] - begH[str] + 1;		}
+		else			{	filterChunk.begH = 0;					filterChunk.numH = combinedMeas.H.rows();			}
 		if (chunkX)		{	filterChunk.begX = begX[str];			filterChunk.numX = endX[str] - begX[str] + 1;		}
 		else			{	filterChunk.begX = 0;					filterChunk.numX = kfState.x.rows();				}
 
-		filterChunkList.push_back(filterChunk);
+		filterChunkMap[str] = filterChunk;
 	}
 
-	std::sort(filterChunkList.begin(), filterChunkList.end(), [](FilterChunk& a, FilterChunk& b) {return a.begH < b.begH;});
+	//check all states are filtered despite not needing to be (required for rts)
+	//assume all chunks are in receiver order == state order
+	{
+		int x = 0;
+		map<string, FilterChunk> filterChunkExtras;
+
+		auto addChunk = [&](int lastX, int nextX)
+		{
+			FilterChunk filterChunk;
+			filterChunk.id		= "dummy " + std::to_string(x);
+			filterChunk.begX	= lastX + 1;
+			filterChunk.numX	= nextX - lastX - 1;
+			filterChunk.begH	= 0;
+			filterChunk.numH	= 0;
+
+			filterChunkExtras[filterChunk.id] = filterChunk;
+		};
+
+		for (auto& [str, filterChunk] : filterChunkMap)
+		{
+			if (filterChunk.begX != x + 1)
+			{
+				addChunk(x, filterChunk.begX);
+			}
+
+			x = filterChunk.begX + filterChunk.numX - 1;
+		}
+
+		if (x != kfState.x.rows() - 1)
+		{
+			addChunk(x, kfState.x.rows());
+		}
+
+		for (auto& [id, fc] : filterChunkExtras)
+		{
+			filterChunkMap[id] = std::move(fc);
+		}
+	}
 
 	if (acsConfig.pppOpts.chunk_size)
 	{
-		vector<FilterChunk> newFilterChunkList;
+		map<string, FilterChunk> newFilterChunkMap;
+
 		FilterChunk	bigFilterChunk;
 
-		int chunks		= (double) filterChunkList.size() / acsConfig.pppOpts.chunk_size	+ 0.5;
+		int chunks		= (double) filterChunkMap.size() / acsConfig.pppOpts.chunk_size	+ 0.5;
 		int chunkTarget = -1;
 		if (chunks)
-			chunkTarget = (double) filterChunkList.size() / chunks							+ 0.5;
+			chunkTarget = (double) filterChunkMap.size() / chunks						+ 0.5;
 
 		int count = 0;
-		for (auto& filterChunk : filterChunkList)
+		for (auto& [id, filterChunk] : filterChunkMap)
 		{
 			if (count == 0)
 			{
 				bigFilterChunk = filterChunk;
 				bigFilterChunk.trace_ptr = &trace;
+			}
+			else
+			{
+				bigFilterChunk.id += "-";
+				bigFilterChunk.id += filterChunk.id;
 			}
 
 			int chunkEndX = filterChunk.begX + filterChunk.numX - 1;
@@ -825,17 +879,17 @@ void chunkFilter(
 
 			if (count == chunkTarget)
 			{
-				newFilterChunkList.push_back(bigFilterChunk);
+				newFilterChunkMap[bigFilterChunk.id] = bigFilterChunk;
 				count = 0;
 			}
 		}
 
 		if (count)
 		{
-			newFilterChunkList.push_back(bigFilterChunk);
+			newFilterChunkMap[bigFilterChunk.id] = bigFilterChunk;
 		}
 
-		filterChunkList = std::move(newFilterChunkList);
+		filterChunkMap = std::move(newFilterChunkMap);
 	}
 }
 
@@ -1002,6 +1056,8 @@ void PPP(
 
 	KFMeas combinedMeas;
 	{
+		std::sort(kfMeasEntryList.begin(), kfMeasEntryList.end(), [](KFMeasEntry& a, KFMeasEntry& b) {return a.obsKey < b.obsKey;});
+
 		combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, tsync, R_ptr);
 	}
 
@@ -1024,25 +1080,28 @@ void PPP(
 		kfState.outputStates(trace, "/LSQ");
 	}
 
-	vector<FilterChunk>	filterChunkList;
+	map<string, FilterChunk>	filterChunkMap;
 	map<string, std::ofstream>	traceList;	//keep in large scope as we're using pointers
 
-	chunkFilter(trace, kfState, combinedMeas, receiverMap, filterChunkList, traceList);
+	chunkFilter(trace, kfState, combinedMeas, receiverMap, filterChunkMap, traceList);
 
 
 	InteractiveTerminal::setMode(E_InteractiveMode::Filtering);
 	BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << std::endl;
 
-	kfState.filterKalman(trace, combinedMeas, true, &filterChunkList);
+	kfState.filterKalman(trace, combinedMeas, true, &filterChunkMap);
 
 	postFilterChecks(tsync, combinedMeas);
 
 	//output chunks if we are actually chunking still
 	if	( acsConfig.pppOpts.receiver_chunking
 		||acsConfig.pppOpts.satellite_chunking)
-	for (auto& filterChunk : filterChunkList)
+	for (auto& [id, filterChunk] : filterChunkMap)
 	{
-		kfState.outputStates(*filterChunk.trace_ptr, "/PPP", filterChunk.begX, filterChunk.numX);
+		if (filterChunk.trace_ptr)
+		{
+			kfState.outputStates(*filterChunk.trace_ptr, "/PPP", filterChunk.begX, filterChunk.numX);
+		}
 	}
 
 	kfState.outputStates(trace, "/PPP");

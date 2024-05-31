@@ -188,7 +188,7 @@ processing_options:
             use_if_combo:                  false                  # Combine 'uncombined' measurements to simulate an ionosphere-free solution
 
         chunking:
-            by_receiver:           false # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
+            by_receiver:           true # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
             by_satellite:          false # Split large filter and measurement matrices blockwise by satellite ID to improve processing speed
             size:                  0
 
@@ -290,7 +290,7 @@ mongo:                   # Mongo is a database used to store results and interme
     # secondary_database:  <CONFIG>
     # secondary_suffix:    ""                          # Suffix to append to database elements to make distinctions between runs for comparison
     # secondary_uri:       mongodb://localhost:27017   # Location and port of the mongo database to connect to
-    # output_config:       NONE                        # Output config {none,primary,secondary,both}
+    # output_config:       primary                        # Output config {none,primary,secondary,both}
     output_components:   primary                     # Output components of measurements {none,primary,secondary,both}
     output_states:       primary                     # Output states {none,primary,secondary,both}
     output_measurements: primary                     # Output measurements and their residuals {none,primary,secondary,both}

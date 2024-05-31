@@ -152,8 +152,8 @@ struct IonoObs
 };
 
 //forward declarations for pointers below
-struct SatStat;
 struct SatNav;
+struct SatStat;
 struct Receiver;
 
 
@@ -168,6 +168,7 @@ struct GObsMeta : IonoObs
 	double 		sppCodeResidual	= 0;				///< Residuals of code
 	double		tropSlant		= 0;				///< Troposphere slant delay
 	double		tropSlantVar	= 0;				///< Troposphere slant delay variance
+
 };
 
 /** Satellite position data - for determining and storing satellite positions/clocks
@@ -179,10 +180,10 @@ struct SatPos
 
 	}
 
-	GTime		posTime;
-	SatSys		Sat				= {};					///> Satellite ID (system, prn)
-	SatNav*		satNav_ptr		= nullptr;				///< Pointer to a navigation object for this satellite
-	SatStat* 	satStat_ptr		= nullptr;				///< Pointer to a status object for this satellite
+	GTime				posTime;
+	SatSys				Sat				= {};					///> Satellite ID (system, prn)
+	SatNav*				satNav_ptr		= nullptr;				///< Pointer to a navigation object for this satellite
+	SatStat* 			satStat_ptr		= nullptr;				///< Pointer to a status object for this satellite
 
 	E_Source	posSource		= E_Source::NONE;
 	E_Source	clkSource		= E_Source::NONE;

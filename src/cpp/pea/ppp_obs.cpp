@@ -1351,8 +1351,6 @@ void receiverPPP(
 	auto trace		= getTraceFile(rec);
 	auto jsonTrace	= getTraceFile(rec, true);
 
-// 	Instrument	instrument(__FUNCTION__ + rec.id);
-
 	tracepdeex(0, trace, "\n--------------------- Performing PPP -------------------");
 
 	if	(  rec.obsList.empty()
@@ -1814,7 +1812,7 @@ void receiverPPP(
 		autoSender.valueKVPs.push_back({"Az",		satStat.az});
 		autoSender.valueKVPs.push_back({"Nadir",	satStat.nadir});
 
-		InteractiveTerminal ss(string("Chains\t") + (string) measEntry.obsKey, trace);
+		InteractiveTerminal ss(string("Chains/") + (string) measEntry.obsKey, trace);
 
 		double residual = netResidualAndChainOutputs(ss, obs, measEntry);
 

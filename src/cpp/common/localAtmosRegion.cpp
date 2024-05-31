@@ -301,11 +301,11 @@ bool configAtmosRegions(
 	int ngrid = 0;
 	if (coordFromRec)
 	{
-		for (auto& [id,rec] : receiverMap)
+		for (auto& [id, rec] : receiverMap)
 		{
 			VectorEcef&	snxPos		= rec.snx.pos;
 
-			auto& recOpts = acsConfig.getRecOpts(rec.id);
+			auto& recOpts = acsConfig.getRecOpts(id);
 
 			if (recOpts.apriori_pos.isZero() == false)
 				snxPos	= recOpts.apriori_pos;

@@ -71,6 +71,15 @@ void newMongoDatabase(
 					<< finalize,
 				{});
 
+		auto opts = mongocxx::options::index();
+		opts.sparse(true);
+
+		db[STATES_DB].create_index(
+				document{}
+					<< MONGO_TYPE	<< 1
+					<< finalize,
+				opts);
+
 		auto logInstances = mongoInstances(acsConfig.mongoOpts.output_logs);
 		if (std::find(logInstances.begin(), logInstances.end(), instance) != logInstances.end())
 		{

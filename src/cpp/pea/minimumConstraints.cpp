@@ -473,8 +473,6 @@ void mincon(
 
 	trace << std::endl << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
 
-	kfStateTrans.suffix = "/MINCON_TRANSFORM";
-
 	kfStateTrans.filterKalman(trace, combinedMeasCulled);
 
 	kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM");
@@ -486,7 +484,7 @@ void mincon(
 
 	mongoStates(kfStateTrans,
 				{
-					.suffix		= "_minconXform",
+					.suffix		= "/MINCON_TRANSFORM",
 					.instances	= acsConfig.mongoOpts.output_states,
 					.queue		= acsConfig.mongoOpts.queue_outputs
 				});

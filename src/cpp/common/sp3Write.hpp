@@ -19,5 +19,3 @@ void outputSp3(
 	KFState*			kfState_ptr	= nullptr,
 	bool				predicted	= false);
 
-void outputMongoOrbits();
-
