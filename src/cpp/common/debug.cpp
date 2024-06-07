@@ -2117,26 +2117,170 @@ void perEpochPropTest(
 	std::cout << std::endl << "EllipseJ2 rms from prec with t=" << dt << " : " << j2Rms;
 }
 
+void accel()
+{
+	KFState kfState;
+
+	GTime time;
+	time += 60;
+
+	double actualX = 0;
+	double actualV = 0;
+	double actualA = 0;
+
+	double actualScale	[2] = {1,1};//{1.2, 0.95};
+	double actualBias	[2] = {0.02, -0.1};
+
+	InitialState init;
+	init.P = 100;
+
+	InitialState sInit;
+	sInit.P = 100;
+	sInit.x = 1;
+
+	InitialState vInit;
+	vInit.P = 100;
+	// vInit.Q = 100;
+
+	InitialState aInit;
+	aInit.P = 100;
+
+
+	KFKey posKey	= {.type = KF::REC_POS};
+	KFKey velKey	= {.type = KF::REC_VEL};
+	KFKey accKey	= {.type = KF::REC_ACC};
+	KFKey scaleKey	= {.type = KF::ACCL_SCALE};
+	KFKey biasKey	= {.type = KF::ACCL_BIAS};
+
+
+	//not really about indirectly estimating acceleration,
+	//here, i indirectly estimated velocity instead as a first pass
+
+	kfState.output_residuals = true;
+
+	kfState.addKFState(posKey, init);
+
+	for (int i = 0; i < 400; i++)
+	{
+		if (i > 100)
+		{
+			actualA = 1;
+		}
+		if (i > 200)
+		{
+			actualA = -1;
+		}
+
+		actualV += actualA;
+		actualX += actualV;
+
+		kfState.removeState(accKey);
+
+		kfState.stateTransition(std::cout, time);
+
+		kfState.outputStates(std::cout, "/Deleted");
+		{
+			KFMeasEntryList kfMeasEntryList;
+
+			if (1)
+			for (int i = 0; i < 2; i++)
+			{
+				scaleKey.num	= i;
+				biasKey.num		= i;
+
+				KFMeasEntry measEntry(&kfState);
+
+				double stateBias			= 0;
+				double stateScale			= 1;
+				double stateAcceleration	= 0;
+
+				// kfState.addKFState(scaleKey,	sInit);
+				kfState.addKFState(biasKey,		init);
+
+				// kfState.getKFValue(scaleKey,	stateScale);
+				kfState.getKFValue(biasKey,		stateBias);
+				// kfState.getKFValue(velKey,		stateVelocity);
+
+				double measuredAcceleration		= actualA * actualScale[i] + actualBias[i];
+
+				double estimatedAcceleration	= (measuredAcceleration - stateBias) / stateScale;
+
+				measEntry.addDsgnEntry(accKey,	stateScale,		vInit);
+				measEntry.addDsgnEntry(biasKey,	-stateScale,	init);
+				// measEntry.addDsgnEntry(scaleKey,(measuredVelocity - stateBias),	sInit);
+
+				double omc	= measuredAcceleration
+							- stateAcceleration
+							+ stateBias;
+
+				std::cout << std::endl << "Acceleration  : " << actualA;
+				std::cout << std::endl << "Measured      : " << measuredAcceleration;
+				std::cout << std::endl << "Estimated     : " << estimatedAcceleration;
+				std::cout << std::endl << "OMC           : " << omc;
+				std::cout << std::endl;
+
+
+				measEntry.setInnov(omc);
+				measEntry.setNoise(0.01);
+				measEntry.obsKey.comment = "Acceleration";
+
+				kfMeasEntryList.push_back(measEntry);
+			}
+
+			kfState.setKFTransRate(posKey, velKey,	+1,	vInit);
+			kfState.setKFTransRate(velKey, accKey,	+1,	aInit);
+
+			kfState.stateTransition(std::cout, time);
+
+			KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+
+			kfState.filterKalman(std::cout, combinedMeas, true);
+
+			kfState.outputStates(std::cout, "/Accelerations");
+		}
+
+		time++;
+
+
+		kfState.stateTransition(std::cout, time);
+
+		kfState.outputStates(std::cout, "/PREDICTED");
+
+		//add measurement for position,
+		{
+			KFMeasEntryList kfMeasEntryList;
+
+			KFMeasEntry measEntry(&kfState);
+
+			double stateX = 0;
+
+			kfState.getKFValue(posKey,	stateX);
+
+			measEntry.addDsgnEntry(posKey,	1, init);
+
+			double omc	= actualX
+						- stateX;
+
+			std::cout << std::endl << "actualX  : " << actualX;
+			std::cout << std::endl << "stateX   : " << stateX;
+
+			measEntry.setInnov(omc);
+			measEntry.setNoise(1);
+			measEntry.obsKey.comment = "Position";
+
+			kfMeasEntryList.push_back(measEntry);
+
+			KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+
+			kfState.filterKalman(std::cout, combinedMeas, true);
+		}
+	}
+}
+
 
 void doDebugs()
 {
-	// testt();
-// 	minimumTest(std::cout);
-// 	exit(0);
-
-	// debugSlrTrop();
-	// abort();
-
-	// PTime startTime;
-	// startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
-	// PTime endTime;
-	// endTime.bigTime = boost::posix_time::to_time_t(acsConfig.end_epoch);
-
-	// for (GTime time = (GTime)startTime; time <= (GTime)endTime; time += acsConfig.epoch_interval)
-	// {
-	// 	perEpochPropTest(time);
-	// }
-
+	// accel();
 	// exit(0);
 }
 

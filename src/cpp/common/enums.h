@@ -140,7 +140,9 @@ BETTER_ENUM(KF,				short int,
 	ALL,
 
 	REC_POS,
-	REC_POS_RATE,
+	REC_VEL, 			REC_POS_RATE			= REC_VEL,
+	REC_ACC,
+
 	STRAIN_RATE,
 
 	POS,
