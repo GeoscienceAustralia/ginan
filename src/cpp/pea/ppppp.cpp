@@ -897,7 +897,7 @@ void updatePseudoPulses(
 	Trace&			trace,
 	KFState&		kfState)
 {
-	int epochsPerDay = S_IN_DAY / acsConfig.epoch_interval;
+	static map<KFKey, double> nextEpochMap;
 
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
@@ -908,15 +908,75 @@ void updatePseudoPulses(
 
 		auto& satOpts = acsConfig.getSatOpts(key.Sat);
 
-		if (satOpts.pseudoPulses.enable == false)
+		if	( satOpts.pseudoPulses.enable	== false
+			||satOpts.pseudoPulses.interval	== 0)
 		{
 			continue;
 		}
 
-		if	((epoch - 1) % (epochsPerDay / satOpts.pseudoPulses.num_per_day) == 0)
+		auto& nextEpoch = nextEpochMap[key];
+
+		if (epoch < nextEpoch)
 		{
-			if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.pos_proc_noise)});
-			else				kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.vel_proc_noise)});
+			continue;
+		}
+
+		double epochsPerInterval = satOpts.pseudoPulses.interval / acsConfig.epoch_interval;
+
+		if (nextEpoch == 0)
+		{
+			nextEpoch = epochsPerInterval + 1;
+		}
+
+		while (epoch >= nextEpoch)
+		{
+			nextEpoch += satOpts.pseudoPulses.interval / acsConfig.epoch_interval;
+		}
+
+		if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.pos_proc_noise)});
+		else				kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.vel_proc_noise)});
+	}
+}
+
+void updateNukeFilter(
+	Trace&		trace,
+	KFState&	kfState)
+{
+	if	( acsConfig.pppOpts.nuke_enable		== false
+		||acsConfig.pppOpts.nuke_interval	== 0)
+	{
+		return;
+	}
+
+	static double epochsPerInterval	= acsConfig.pppOpts.nuke_interval / acsConfig.epoch_interval;
+	static double nukeEpoch			= epochsPerInterval + 1;
+
+	if (epoch < nukeEpoch)
+	{
+		return;
+	}
+
+	while (epoch >= nukeEpoch)
+	{
+		nukeEpoch += epochsPerInterval;
+	}
+
+	auto& nuke_states = acsConfig.pppOpts.nuke_states;
+
+	bool foundAll = (std::find(nuke_states.begin(), nuke_states.end(), +KF::ALL) != nuke_states.end());
+
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type == KF::ONE)
+		{
+			continue;
+		}
+
+		if	( foundAll
+			||std::find(nuke_states.begin(), nuke_states.end(), key.type) != nuke_states.end())
+		{
+			trace << std::endl << "State removed due to nuclear config: " << key;
+			kfState.removeState(key);
 		}
 	}
 }
@@ -950,6 +1010,7 @@ void PPP(
 		removeBadAmbiguities(trace, kfState, receiverMap);
 		removeBadIonospheres(trace, kfState);
 
+		updateNukeFilter	(trace,							kfState);
 		updateRecClocks		(trace, receiverMap,			kfState);
 		updateAvgClocks		(trace, 				tsync,	kfState);
 		updateAvgIonosphere	(trace,					tsync,	kfState);

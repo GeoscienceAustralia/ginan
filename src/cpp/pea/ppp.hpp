@@ -91,7 +91,7 @@ void phaseWindup(
 	Receiver&	rec,
 	double&		phw);
 
-int ionoModel(
+bool ionoModel(
 	GTime&		time,
 	VectorPos&	pos,
 	AzEl&		azel,

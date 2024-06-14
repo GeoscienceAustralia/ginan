@@ -11,9 +11,9 @@ using std::string;
 
 struct ReceiverMap;
 
-KFState rtsSmoothing(
-	KFState&	kfState,
+void rtsSmoothing(
+	KFState&		kfState,
 	ReceiverMap&	receiverMap,
-	bool		write		= false);
+	bool			write = false);
 
 

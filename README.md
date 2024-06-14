@@ -206,7 +206,7 @@ Upon installation, the `ginan` directory should have the following structure:
 ## Documentation
 
 Ginan documentation consists of two parts: these documents, and separate Doxygen-generated documentation that shows the actual code infrastructure.
-It can be found [here](codeDocs/index.html), or generated manually as below.
+It can be found [here](https://geoscienceaustralia.github.io/ginan/codeDocs/index.html), or generated manually as below.
 
 ### Doxygen
 
@@ -260,7 +260,7 @@ NB: For PPP positioning of a single station, we have noted that limiting the num
 
 
 ## Scripts
-In addition to the Ginan binaries, [scripts](scripts.index) are available to assist with downloading input files, and viewing and comparing generated outputs.
+In addition to the Ginan binaries, [scripts](https://geoscienceaustralia.github.io/ginan/page.html?c=on&p=scripts.index) are available to assist with downloading input files, and viewing and comparing generated outputs.
 
 
 ### Acknowledgements:

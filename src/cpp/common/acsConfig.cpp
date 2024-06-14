@@ -1269,7 +1269,7 @@ string getEnumOpts(
 		string enumOption = boost::algorithm::to_lower_copy((string) names[i]);
 
 		if (i != 0)
-			enumOptions += ",";
+			enumOptions += ", ";
 		enumOptions += enumOption;
 	}
 
@@ -1647,7 +1647,7 @@ OrbitOptions& OrbitOptions::operator+=(
 	initDebug++;	initIfNeeded(*this, rhs, surface_details				);
 	initDebug++;
 	initDebug++;	initIfNeeded(*this, rhs, pseudoPulses.enable			);
-	initDebug++;	initIfNeeded(*this, rhs, pseudoPulses.num_per_day		);
+	initDebug++;	initIfNeeded(*this, rhs, pseudoPulses.interval			);
 	initDebug++;	initIfNeeded(*this, rhs, pseudoPulses.pos_proc_noise	);
 	initDebug++;	initIfNeeded(*this, rhs, pseudoPulses.vel_proc_noise	);
 
@@ -1898,8 +1898,8 @@ void getKalmanFromYaml(
 /** Set common options from yaml
 */
 void getOptionsFromYaml(
-	OrbitOptions&			orbOpts,			///< Satellite options variable to output to
-	NodeStack				yamlBase,			///< Yaml node to search within
+	OrbitOptions&			orbOpts,		///< Satellite options variable to output to
+	NodeStack				yamlBase,		///< Yaml node to search within
 	const vector<string>&	descriptorVec)	///< List of strings of keys of yaml hierarchy
 {
 	auto comNode = stringsToYamlObject(yamlBase, descriptorVec);
@@ -1926,7 +1926,7 @@ void getOptionsFromYaml(
 	}{	auto& thing = orbOpts.empirical_rtn_eclipse			;	setInited(orbOpts,	thing,	tryGetFromYaml	(thing, orbitsNode, {"@ empirical_rtn_eclipse"		}, "Turn on/off the eclipse on each axis (R, T, N)"));
 
 	}{	auto& thing = orbOpts.pseudoPulses.enable			;	setInited(orbOpts,	thing,	tryGetFromYaml	(thing, pseudo_pulses,	{"@ enable"					}, "Enable applying process noise impulses to orbits upon state errors"));
-	}{	auto& thing = orbOpts.pseudoPulses.num_per_day		;	setInited(orbOpts,	thing,	tryGetFromYaml	(thing, pseudo_pulses,	{"@ num_per_day"			}, "Enable applying process noise impulses to orbits upon state errors"));
+	}{	auto& thing = orbOpts.pseudoPulses.interval			;	setInited(orbOpts,	thing,	tryGetFromYaml	(thing, pseudo_pulses,	{"@ interval"				}, "Interval between applying pseudo pulses"));
 	}{	auto& thing = orbOpts.pseudoPulses.pos_proc_noise	;	setInited(orbOpts,	thing,	tryGetFromYaml	(thing, pseudo_pulses,	{"@ pos_process_noise"		}, "Sigma to add to orbital position states"));
 	}{	auto& thing = orbOpts.pseudoPulses.vel_proc_noise	;	setInited(orbOpts,	thing,	tryGetFromYaml	(thing, pseudo_pulses,	{"@ vel_process_noise"		}, "Sigma to add to orbital velocity states"));
 	}
@@ -2901,8 +2901,8 @@ bool ACSConfig::parse(
 
 			yaml.reset();
 			yaml = YAML::LoadFile(filename);
-			yaml["yamlFilename"]	= filename;
-			yaml["yamlNumber"]		= i;
+			yaml["yaml_filename"]	= filename;
+			yaml["yaml_number"]		= i;
 		}
 		catch (const YAML::BadFile &e)
 		{
@@ -3640,7 +3640,8 @@ bool ACSConfig::parse(
 					auto rts				= stringsToYamlObject(nodeStack,			{"@ rts"},					"RTS allows reverse smoothing of estimates such that early estimates can make use of later data.");
 
 																					tryGetFromYaml(process_rts,							rts,				{"0!  enable"				}, "Perform backward smoothing of states to improve precision of earlier states");
-																					tryGetFromYaml(filterOpts.rts_lag,					rts,				{"@ 1 lag"					}, "(int) Number of epochs to use in RTS smoothing. Negative numbers indicate full reverse smoothing.");
+																					tryGetFromYaml(filterOpts.rts_lag,					rts,				{"@ 1 lag"					}, "Number of epochs to use in RTS smoothing. Negative numbers indicate full reverse smoothing.");
+																					tryGetFromYaml(filterOpts.rts_interval,				rts,				{"# interval"				}, "Number of seconds to use between fixed lag in RTS smoothing.");
 					conditionalPrefix("<OUTPUTS_ROOT>",		pppOpts.rts_directory,	tryGetFromYaml(filterOpts.rts_directory,			rts,				{"@ directory"				}, "Directory for rts intermediate files"));
 					conditionalPrefix("<RTS_DIRECTORY>",	pppOpts.rts_filename,	tryGetFromYaml(filterOpts.rts_filename,				rts,				{"@ filename"				}, "Base filename for rts intermediate files"));
 																					tryGetFromYaml(filterOpts.queue_rts_outputs,		rts,				{"@ queue_outputs"			}, "Queue rts outputs so that processing is not limited by IO bandwidth");
@@ -3674,13 +3675,16 @@ bool ACSConfig::parse(
 			{
 				auto ppp_filter = stringsToYamlObject(processing_options, {"4! ppp_filter"}, "Configurations for the kalman filter and its sub processes");
 
-				tryGetFromYaml(pppOpts.simulate_filter_only,	ppp_filter,	{"@ simulate_filter_only"							}, "Residuals will be calculated, but no adjustments to state or covariances will be applied");
-				tryGetFromYaml(pppOpts.assume_linearity,		ppp_filter,	{"@ assume_linearity"								}, "Residuals will be adjusted during measurement combination rather than performing 2 seperate state transitions");
+				tryGetFromYaml	(pppOpts.simulate_filter_only,	ppp_filter,	{"@ simulate_filter_only"				}, "Residuals will be calculated, but no adjustments to state or covariances will be applied");
+				tryGetFromYaml	(pppOpts.assume_linearity,		ppp_filter,	{"@ assume_linearity"					}, "Residuals will be adjusted during measurement combination rather than performing 2 seperate state transitions");
 
-				tryGetFromYaml(pppOpts.chunk_size,				ppp_filter,	{"@ chunking", "@ size"							});
-				tryGetFromYaml(pppOpts.receiver_chunking,		ppp_filter,	{"@ chunking", "@ by_receiver"		}, "Split large filter and measurement matrices blockwise by receiver ID to improve processing speed");
-				tryGetFromYaml(pppOpts.satellite_chunking,		ppp_filter,	{"@ chunking", "@ by_satellite"		}, "Split large filter and measurement matrices blockwise by satellite ID to improve processing speed");
+				tryGetFromYaml	(pppOpts.chunk_size,			ppp_filter,	{"@ chunking", "@ size"					});
+				tryGetFromYaml	(pppOpts.receiver_chunking,		ppp_filter,	{"@ chunking", "@ by_receiver"			}, "Split large filter and measurement matrices blockwise by receiver ID to improve processing speed");
+				tryGetFromYaml	(pppOpts.satellite_chunking,	ppp_filter,	{"@ chunking", "@ by_satellite"			}, "Split large filter and measurement matrices blockwise by satellite ID to improve processing speed");
 
+				tryGetFromYaml	(pppOpts.nuke_enable,			ppp_filter,	{"@ periodic_reset", "@ enable"			}, "Enable periodic reset of filter states");
+				tryGetFromYaml	(pppOpts.nuke_interval,			ppp_filter,	{"@ periodic_reset", "@ interval"		}, "Interval between reset of filter states");
+				tryGetEnumVec	(pppOpts.nuke_states,			ppp_filter,	{"@ periodic_reset", "@ states"			}, "States to remove for periodic reset");
 
 // 				ionospheric_component
 				{
@@ -3957,8 +3961,8 @@ bool ACSConfig::parse(
 	for (auto& yaml : yamls)
 	{
 		string filename;
-		if (yaml["yamlFilename"])
-			filename = yaml["yamlFilename"].as<string>();
+		if (yaml["yaml_filename"])
+			filename = yaml["yaml_filename"].as<string>();
 
 		recurseYaml(filename, yaml);
 	}

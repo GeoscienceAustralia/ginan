@@ -55,14 +55,23 @@ double sagnac(
 	Vector3d	vel = Vector3d::Zero());
 
 
-double satazel(
+void satazel(
 	const	VectorPos&	pos,
 	const	VectorEcef&	e,
 			AzEl&		azel);
 
 unsigned int crc24q (const unsigned char *buff, int len);
 
-void dops(int ns, const double *azel, double elmin, double *dop);
+struct Dops
+{
+	double gdop = 0;
+	double pdop = 0;
+	double hdop = 0;
+	double vdop = 0;
+};
+
+Dops dopCalc(
+	const	vector<AzEl>&	azels);
 
 bool satFreqs(
 	E_Sys		sys,

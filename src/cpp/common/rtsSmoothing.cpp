@@ -126,6 +126,11 @@ void RTS_Output(
 		BOOST_LOG_TRIVIAL(debug)
 		<< "Outputting " << type._to_string() << " from file position " << startPos << std::endl;
 
+		if (type == +E_SerialObject::NONE)
+		{
+			break;
+		}
+
 		switch (type)
 		{
 			default:
@@ -218,15 +223,19 @@ void RTS_Output(
 	}
 }
 
-KFState rtsSmoothing(
-	KFState&	kfState,
+void rtsSmoothing(
+	KFState&		kfState,
 	ReceiverMap&	receiverMap,
-	bool		write)
+	bool			write)
 {
 	if (kfState.rts_lag == 0)
 	{
-		return KFState();
+		return;
 	}
+
+	BOOST_LOG_TRIVIAL(info)
+	<< std::endl
+	<< "---------------PROCESSING WITH RTS--------------------- " << std::endl;
 
 	for (auto& [id, rec] : receiverMap)
 		rec.obsList.clear();
@@ -283,12 +292,12 @@ KFState rtsSmoothing(
 				if (pass == false)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "CREASS" << std::endl;
-					return KFState();
+					return;
 				}
 
 				if (write)
 				{
-					spitFilterToFile(smoothedKF.metaDataMap,	E_SerialObject::METADATA, outputFile, acsConfig.pppOpts.queue_rts_outputs);
+					spitFilterToFile(smoothedKF.metaDataMap, E_SerialObject::METADATA, outputFile, acsConfig.pppOpts.queue_rts_outputs);
 				}
 
 				break;
@@ -298,7 +307,7 @@ KFState rtsSmoothing(
 				bool pass = getFilterObjectFromFile(type, measurements, startPos, inputFile);
 				if (pass == false)
 				{
-					return KFState();
+					return;
 				}
 
 				break;
@@ -309,7 +318,7 @@ KFState rtsSmoothing(
 				bool pass = getFilterObjectFromFile(type, transistionMatrixObject, startPos, inputFile);
 				if (pass == false)
 				{
-					return KFState();
+					return;
 				}
 
 				MatrixXd transition = transistionMatrixObject.asMatrix();
@@ -324,7 +333,7 @@ KFState rtsSmoothing(
 				bool pass = getFilterObjectFromFile(type, kalmanMinus, startPos, inputFile);
 				if (pass == false)
 				{
-					return KFState();
+					return;
 				}
 
 				if (smoothedXready == false)
@@ -342,7 +351,7 @@ KFState rtsSmoothing(
 				bool pass = getFilterObjectFromFile(type, kalmanPlus, startPos, inputFile);
 				if (pass == false)
 				{
-					return KFState();
+					return;
 				}
 
 				lag = (kfState.time - kalmanPlus.time).to_double();
@@ -398,9 +407,25 @@ KFState rtsSmoothing(
 				VectorXd deltaX = VectorXd::Zero(kalmanPlus.x.rows());
 				MatrixXd deltaP = MatrixXd::Zero(kalmanPlus.P.rows(), kalmanPlus.P.cols());
 
-				for (auto& [id, fcP] : kalmanPlus.filterChunkMap)
+				map<string, bool> filterChunks;
+				for (auto& [id, fcP] : kalmanPlus. filterChunkMap)		filterChunks[id] = true;
+				for (auto& [id, fcM] : kalmanMinus.filterChunkMap)		filterChunks[id] = true;
+
+				if (lag == 26700)
 				{
+					std::cout << "here";
+				}
+				for (auto& [id, dummy] : filterChunks)
+				{
+					auto& fcP = kalmanPlus. filterChunkMap[id];
 					auto& fcM = kalmanMinus.filterChunkMap[id];
+
+					if	( fcP.numX == 0
+						||fcM.numX == 0)
+					{
+						BOOST_LOG_TRIVIAL(debug) << "Ignoring  chunk " << id;
+						continue;
+					}
 
 					BOOST_LOG_TRIVIAL(debug) << "Filtering chunk " << id;
 					auto Q		= kalmanMinus.P	.block(fcM.begX, fcM.begX, fcM.numX, fcM.numX).triangularView<Eigen::Upper>().transpose();
@@ -509,6 +534,7 @@ KFState rtsSmoothing(
 				smoothedKF.x	= deltaX + kalmanPlus.x;
 				smoothedKF.P	= deltaP + kalmanPlus.P;
 
+				if (measurements.H.rows())
 				if (measurements.H.cols() == deltaX.rows())
 				{
 					measurements.VV -= measurements.H * deltaX;		//todo aaron, is this the correct deltaX to be adding here? wrong plus/minus timepoint?
@@ -600,7 +626,7 @@ KFState rtsSmoothing(
 			inputStream.seekg(0,	inputStream.end);
 			long int lengthPos = inputStream.tellg();
 
-			vector<char>	fileContents(lengthPos - startPos);
+			vector<char> fileContents(lengthPos - startPos);
 
 			inputStream.seekg(startPos,	inputStream.beg);
 
@@ -624,14 +650,5 @@ KFState rtsSmoothing(
 		<< "Removing RTS file: " << outputFile;
 
 		std::remove(outputFile.c_str());
-	}
-
-	if (lag == kfState.rts_lag)
-	{
-		return smoothedKF;
-	}
-	else
-	{
-		return KFState();
 	}
 }

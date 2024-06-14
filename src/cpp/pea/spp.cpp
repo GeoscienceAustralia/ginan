@@ -206,19 +206,18 @@ bool ionocorr(
 
 /** Validate Dilution of Precision of solution
 */
-int validateDOP(
-	Trace&		trace,					///< Trace file to output to
-	ObsList&	obsList,				///< List of observations for this epoch
-	double		elevationMask,
-	double*     dopout = nullptr)		///< Optional pointer to output for DOP
+bool validateDOP(
+	Trace&		trace,				///< Trace file to output to
+	ObsList&	obsList,			///< List of observations for this epoch
+	double		elevationMaskDeg,	///< Elevation mask
+	Dops*     	dops_ptr = nullptr)	///< Optional pointer to output for DOP
 {
-	vector<double> azels;
-	azels.reserve(16);
+	vector<AzEl> azels;
+	azels.reserve(8);
 	double dop[4] = {};
 // 	tracepde(3, trace, "valsol  : n=%d nv=%d\n", obsList.size(), nv);
 
 	// large gdop check
-	int ns = 0;
 	for (auto& obs : only<GObs>(obsList))
 	{
 		if (obs.exclude)
@@ -229,26 +228,32 @@ int validateDOP(
 		if (obs.sppValid == false)
 			continue;
 
-		azels.push_back(obs.satStat_ptr->az);
-		azels.push_back(obs.satStat_ptr->el);
-		ns++;
+		auto& satStat = *obs.satStat_ptr;
+
+		if (satStat.el < elevationMaskDeg * D2R)
+		{
+			continue;
+		}
+
+		azels.push_back(satStat);
 	}
 
-	dops(ns, azels.data(), elevationMask, dop);
+	Dops dops = dopCalc(azels);
 
-	if (dopout != nullptr)
+	if (dops_ptr != nullptr)
 	{
-		for(int i=0; i<4; i++)
-			dopout[i] = dop[i];
+		*dops_ptr = dops;
 	}
 
-	if	( dop[0] <= 0
-		||dop[0] > acsConfig.sppOpts.max_gdop)
+	if	( dops.gdop <= 0
+		||dops.gdop >  acsConfig.sppOpts.max_gdop)
 	{
-		BOOST_LOG_TRIVIAL(info) << "DOP Validation failed with gdop = " << dop[0] << " on " << obsList.front()->mount;
-		return 0;
+		BOOST_LOG_TRIVIAL(info) << "DOP Validation failed with gdop = " << dops.gdop << " on " << obsList.front()->mount;
+
+		return false;
 	}
-	return 1;
+
+	return true;
 }
 
 void printFailures(
@@ -476,8 +481,9 @@ E_Solution estpos(
 
 			tracepdeex(debuglvl, trace, ", %14.3f", range);
 
-			double el = satazel(pos, satStat.e, satStat);
-			if	(  el < recOpts.elevation_mask_deg * D2R
+			satazel(pos, satStat.e, satStat);
+
+			if	(  satStat.el < recOpts.elevation_mask_deg * D2R
 				&& adjustment < 1000)
 			{
 				obs.failureElevation = true;
@@ -487,7 +493,7 @@ E_Solution estpos(
 				continue;
 			}
 
-			tracepdeex(debuglvl, trace, ", %6.2f", el * R2D);
+			tracepdeex(debuglvl, trace, ", %6.2f", satStat.el * R2D);
 
 			// ionospheric corrections
 			double dion;
@@ -670,9 +676,10 @@ E_Solution estpos(
 				return E_Solution::SINGLE_X;
 			}
 
-			if (validateDOP(trace, obsList, recOpts.elevation_mask_deg, sol.dop) == false)
+			bool dopPass = validateDOP(trace, obsList, recOpts.elevation_mask_deg, &sol.dops);
+			if (dopPass == false)
 			{
-				tracepdeex(4, trace, " - Bad DOP %f", sol.dop[0]);
+				tracepdeex(4, trace, " - Bad DOP %f", sol.dops.gdop);
 				return E_Solution::SINGLE_X;
 			}
 

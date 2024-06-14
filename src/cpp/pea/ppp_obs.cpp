@@ -220,7 +220,7 @@ void eopAdjustment(
 	}
 }
 
-inline void pppRecClocks(COMMON_PPP_ARGS)
+inline static void pppRecClocks(COMMON_PPP_ARGS)
 {
 	double	recClk_m	= rec.aprioriClk;
 	double	dtRecVar	= rec.aprioriClkVar;
@@ -270,7 +270,7 @@ inline void pppRecClocks(COMMON_PPP_ARGS)
 };
 
 
-inline void pppSatClocks(COMMON_PPP_ARGS)
+inline static void pppSatClocks(COMMON_PPP_ARGS)
 {
 	double satClkVar	= 0;
 	double satClk_m		= obs.satClk * CLIGHT;
@@ -319,7 +319,7 @@ inline void pppSatClocks(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::SAT_CLOCK] = {-satClk_m, "- Cdt_s", satClkVar};
 };
 
-inline void pppRecAntDelta(COMMON_PPP_ARGS)
+inline static void pppRecAntDelta(COMMON_PPP_ARGS)
 {
 	VectorEcef recAntVector = body2ecef(rec.attStatus, rec.antDelta);
 
@@ -329,7 +329,7 @@ inline void pppRecAntDelta(COMMON_PPP_ARGS)
 };
 
 
-inline void pppRecPCO(COMMON_PPP_ARGS)
+inline static void pppRecPCO(COMMON_PPP_ARGS)
 {
 	E_FType recAtxFt = ft;
 	if (acsConfig.common_rec_pco)
@@ -398,7 +398,7 @@ inline void pppRecPCO(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::REC_PCO] = {recPCODelta, "- E.PCO_r", variance};
 };
 
-inline void pppSatPCO(COMMON_PPP_ARGS)
+inline static void pppSatPCO(COMMON_PPP_ARGS)
 {
 	E_FType satAtxFt = ft;
 
@@ -467,7 +467,7 @@ inline void pppSatPCO(COMMON_PPP_ARGS)
 
 };
 
-inline void pppRecPCV(COMMON_PPP_ARGS)
+inline static void pppRecPCV(COMMON_PPP_ARGS)
 {
 	E_FType recAtxFt = ft;
 
@@ -527,7 +527,7 @@ inline void pppRecPCV(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::REC_PCV] = {recPCVDelta, "+ PCV_r", 0};
 };
 
-inline void pppSatPCV(COMMON_PPP_ARGS)
+inline static void pppSatPCV(COMMON_PPP_ARGS)
 {
 	E_FType satAtxFt = ft;
 
@@ -543,7 +543,7 @@ inline void pppSatPCV(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::SAT_PCV] = {satPCVDelta, "+ PCV_s", 0};
 };
 
-inline void pppTides(COMMON_PPP_ARGS)
+inline static void pppTides(COMMON_PPP_ARGS)
 {
 	auto [solid, otl, atl, spole, opole] = tideDelta(trace, time, rec, rRec, recOpts);
 
@@ -554,7 +554,7 @@ inline void pppTides(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::TIDES_OPOLE	] = {-satStat.e.dot(opole),	"- E.dT5", 0};
 };
 
-inline void pppRelativity(COMMON_PPP_ARGS)
+inline static void pppRelativity(COMMON_PPP_ARGS)
 {
 	/* note that relativity effect to estimate sat clock */
 	double dtRel1	= relativity1(rSat, obs.satVel);
@@ -562,7 +562,7 @@ inline void pppRelativity(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::RELATIVITY1] = {dtRel1	* CLIGHT, "+ rel1", 0};
 };
 
-inline void pppRelativity2(COMMON_PPP_ARGS)
+inline static void pppRelativity2(COMMON_PPP_ARGS)
 {
 	/* secondary relativity effect (Shapiro effect) */
 	double dtRel2 	= relativity2(rSat, rRec);
@@ -570,14 +570,14 @@ inline void pppRelativity2(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::RELATIVITY2] = {dtRel2	* CLIGHT, "+ rel2", 0};
 };
 
-inline void pppSagnac(COMMON_PPP_ARGS)
+inline static void pppSagnac(COMMON_PPP_ARGS)
 {
 	double dSagnac	= sagnac(rSat, rRec);
 
 	measEntry.componentsMap[E_Component::SAGNAC] = {dSagnac, "+ sag", 0};
 };
 
-inline void pppIonStec(COMMON_PPP_ARGS)
+inline static void pppIonStec(COMMON_PPP_ARGS)
 {
 	double ionosphere_m	= 0;
 	double varIono		= 0;
@@ -647,7 +647,7 @@ inline void pppIonStec(COMMON_PPP_ARGS)
 /** 2nd order ionospheric correction
 * See ref [1]
 */
-inline void pppIonStec2(COMMON_PPP_ARGS)
+inline static void pppIonStec2(COMMON_PPP_ARGS)
 {
 	double ionosphere_m	= 0;
 	double varIono		= 0;
@@ -720,7 +720,7 @@ inline void pppIonStec2(COMMON_PPP_ARGS)
 /** 3rd order ionospheric correction
 * See ref [1]
 */
-inline void pppIonStec3(COMMON_PPP_ARGS)
+inline static void pppIonStec3(COMMON_PPP_ARGS)
 {
 	double ionosphere_m	= 0;
 	double varIono		= 0;
@@ -802,7 +802,7 @@ inline void pppIonStec3(COMMON_PPP_ARGS)
 	}
 };
 
-inline void pppIonModel(COMMON_PPP_ARGS)
+inline static void pppIonModel(COMMON_PPP_ARGS)
 {
 	if (acsConfig.use_for_iono_model[Sat.sys] == false)
 	{
@@ -861,7 +861,7 @@ inline void pppIonModel(COMMON_PPP_ARGS)
 	}
 };
 
-inline void pppTropMap(COMMON_PPP_ARGS)
+inline static void pppTropMap(COMMON_PPP_ARGS)
 {
 	// double troposphere_m	= tropDryZTD(trace, recOpts.tropModel.models, kfState.time, pos);
 	TropStates	tropStates;					//todo aaron unused?
@@ -902,7 +902,7 @@ inline void pppTropMap(COMMON_PPP_ARGS)
 }
 
 
-inline void pppTrop(COMMON_PPP_ARGS)
+inline static void pppTrop(COMMON_PPP_ARGS)
 {
 	TropStates	tropStates;
 	TropMapping	dTropDx;
@@ -999,7 +999,7 @@ inline void pppTrop(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::TROPOSPHERE] = {troposphere_m, "+ " + std::to_string(dTropDx.wetMap) + ".T", varTrop};	// todo Eugene: dryMap & gradients
 };
 
-inline void pppRecPhaseWindup(COMMON_PPP_ARGS)
+inline static void pppRecPhaseWindup(COMMON_PPP_ARGS)
 {
 	phaseWindup(obs, rec, satStat.phw);
 
@@ -1011,7 +1011,7 @@ inline void pppRecPhaseWindup(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::PHASE_WIND_UP] = {phaseWindup_m, "+ phi", 0};
 };
 
-inline void pppSatPhaseWindup(COMMON_PPP_ARGS)
+inline static void pppSatPhaseWindup(COMMON_PPP_ARGS)
 {
 // 	phaseWindup(obs, rec, satStat.phw);
 //
@@ -1023,7 +1023,7 @@ inline void pppSatPhaseWindup(COMMON_PPP_ARGS)
 // 	measEntry.componentsMap[E_Component::PHASE_WIND_UP] = {phaseWindup_m, "+ phi", 0};
 };
 
-inline void pppIntegerAmbiguity(COMMON_PPP_ARGS)
+inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 {
 	InitialState init		= initialStateFromConfig(recOpts.ambiguity);
 
@@ -1067,7 +1067,7 @@ inline void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::PHASE_AMBIGUITY] = {ambiguity_m, "+ " + std::to_string(lambda) + ".N", -1};
 };
 
-inline void pppRecPhasBias(COMMON_PPP_ARGS)
+inline static void pppRecPhasBias(COMMON_PPP_ARGS)
 {
 	double	recPhasBias		=  		recOpts.phaseBiasModel.default_bias;
 	double	recPhasBiasVar	= SQR(	recOpts.phaseBiasModel.undefined_sigma);
@@ -1106,7 +1106,7 @@ inline void pppRecPhasBias(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::REC_PHASE_BIAS] = {recPhasBias, "+ b_" + std::to_string(ft) + "r", recPhasBiasVar};
 };
 
-inline void pppSatPhasBias(COMMON_PPP_ARGS)
+inline static void pppSatPhasBias(COMMON_PPP_ARGS)
 {
 	double	satPhasBias		=		satOpts.phaseBiasModel.default_bias;
 	double	satPhasBiasVar	= SQR(	satOpts.phaseBiasModel.undefined_sigma);
@@ -1144,7 +1144,7 @@ inline void pppSatPhasBias(COMMON_PPP_ARGS)
 };
 
 
-inline void pppRecCodeBias(COMMON_PPP_ARGS)
+inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 {
 	double	recCodeBias		= 		recOpts.codeBiasModel.default_bias;
 	double	recCodeBiasVar	= SQR(	recOpts.codeBiasModel.undefined_sigma);
@@ -1217,7 +1217,7 @@ inline void pppRecCodeBias(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::REC_CODE_BIAS] = {recCodeBias, "+ d_" + std::to_string(ft) + "r", recCodeBiasVar};
 };
 
-inline void pppSatCodeBias(COMMON_PPP_ARGS)
+inline static void pppSatCodeBias(COMMON_PPP_ARGS)
 {
 	double	satCodeBias		=  		satOpts.codeBiasModel.default_bias;
 	double	satCodeBiasVar	= SQR(	satOpts.codeBiasModel.undefined_sigma);
@@ -1290,7 +1290,7 @@ inline void pppSatCodeBias(COMMON_PPP_ARGS)
 	measEntry.componentsMap[E_Component::SAT_CODE_BIAS] = {satCodeBias, "+ d_" + std::to_string(ft) + "s", satCodeBiasVar};
 };
 
-inline void pppEopAdjustment(COMMON_PPP_ARGS)
+inline static void pppEopAdjustment(COMMON_PPP_ARGS)
 {
 	if (acsConfig.pppOpts.eop.estimate[0] == false)
 	{

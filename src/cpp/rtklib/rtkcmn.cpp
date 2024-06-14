@@ -92,10 +92,10 @@ double sagnac(
 
 /** satellite azimuth/elevation angle
  */
-double satazel(
-	const	VectorPos&	pos,	///< geodetic position {lat,lon,h} (rad,m)
-	const	VectorEcef&	e,		///< receiver-to-satellilte unit vector (ecef)
-			AzEl&		azel)	///< azimuth/elevation {az,el} (rad) (nullptr: no output)
+void satazel(
+	const	VectorPos&	pos,	///< geodetic position
+	const	VectorEcef&	e,		///< receiver-to-satellilte unit vector
+			AzEl&		azel)	///< azimuth/elevation {az,el} (rad)
 {
 	azel.az = 0;
 	azel.el = PI/2;
@@ -112,53 +112,24 @@ double satazel(
 
 		azel.el = asin(enu.u());
 	}
-
-	return azel.el;
 }
 
-/* compute dops ----------------------------------------------------------------
-* compute DOP (dilution of precision)
-* args   : int    ns        I   number of satellites
-*          double *azel     I   satellite azimuth/elevation angle (rad)
-*          double elmin     I   elevation cutoff angle (rad)
-*          double *dop      O   DOPs {GDOP,PDOP,HDOP,VDOP}
-* notes  : dop[0]-[3] return 0 in case of dop computation error
-*-----------------------------------------------------------------------------*/
-void dops(
-	int				ns,
-	const double*	azel,
-	double			elmin,
-	double*			dop)
+/** compute DOP (dilution of precision)
+*/
+Dops dopCalc(
+	const vector<AzEl>&	azels)		///< satellite azimuth/elevation angles
 {
 	vector<double> H;
 	H.reserve(64);
 	int n = 0;
 
-	for (int i = 0; i < 4; i++)
-		dop[i] = 0;
-
-	for (int i = 0; i < ns; i++)
+	for (auto& azel : azels)
 	{
-		double az = azel[0+i*2];
-		double el = azel[1+i*2];
+		double cosel = cos(azel.el);
+		double sinel = sin(azel.el);
 
-		if (el * R2D < elmin)
-		{
-			fprintf(stderr,"dops(): below elevation mask azel %f elmin %f \n", el * R2D, elmin);
-			continue;
-		}
-
-		if (el <= 0)
-		{
-			printf("dops(): el below zero\n");
-			continue;
-		}
-
-		double cosel = cos(el);
-		double sinel = sin(el);
-
-		H.push_back(cosel * sin(az));
-		H.push_back(cosel * cos(az));
+		H.push_back(cosel * sin(azel.az));
+		H.push_back(cosel * cos(azel.az));
 		H.push_back(sinel);
 		H.push_back(1);
 		n++;
@@ -166,8 +137,8 @@ void dops(
 
 	if (n < 4)
 	{
-		fprintf(stderr,"dops(): Can not calculate the dops less than 4 sats\n");
-		return;
+		fprintf(stderr, "%s: Can not calculate the dops, less than 4 sats\n", __FUNCTION__);
+		return Dops();
 	}
 
 	auto H_mat = MatrixXd::Map(H.data(), 4, n).transpose();
@@ -175,14 +146,13 @@ void dops(
 
 	auto Q_inv = Q_mat.inverse();
 
-	dop[0] = SQRT(Q_inv(0,0) + Q_inv(1,1) + Q_inv(2,2) + Q_inv(3,3)	);	/* GDOP */
-	dop[1] = SQRT(Q_inv(0,0) + Q_inv(1,1) + Q_inv(2,2)				);	/* PDOP */
-	dop[2] = SQRT(Q_inv(0,0) + Q_inv(1,1)							);	/* HDOP */
-	dop[3] = SQRT(							Q_inv(2,2)				);	/* VDOP */
+	Dops dops;
+	dops.gdop = SQRT(Q_inv(0,0) + Q_inv(1,1) +	Q_inv(2,2) + Q_inv(3,3)	);
+	dops.pdop = SQRT(Q_inv(0,0) + Q_inv(1,1) +	Q_inv(2,2)				);
+	dops.hdop = SQRT(Q_inv(0,0) + Q_inv(1,1)							);
+	dops.vdop = SQRT(							Q_inv(2,2)				);
 
-//     {
-//         fprintf(stderr,"%s: error could not calculate the inverse\n",__FUNCTION__);
-//     }
+	return dops;
 }
 
 /** Low pass filter values

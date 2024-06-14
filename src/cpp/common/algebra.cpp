@@ -1340,6 +1340,23 @@ void KFState::filterKalman(
 		time = kfMeas.time;
 	}
 
+	map<string, FilterChunk> dummyFilterChunkMap;
+	if (filterChunkMap_ptr == nullptr)
+	{
+		filterChunkMap_ptr = &dummyFilterChunkMap;
+	}
+
+	filterChunkMap = *filterChunkMap_ptr;
+
+	if (filterChunkMap.empty())
+	{
+		FilterChunk filterChunk;
+		filterChunk.trace_ptr	= &trace;
+		filterChunk.numX		= x.rows();
+
+		filterChunkMap[""] = filterChunk;
+	}
+
 	auto returnEarlyPrep = [&]()
 	{
 		if (rts_basename.empty() == false)
@@ -1362,22 +1379,6 @@ void KFState::filterKalman(
 	{
 		kfMeas.V	= kfMeas.Y - kfMeas.H * x;
 		kfMeas.VV	= kfMeas.V;
-	}
-
-	map<string, FilterChunk> dummyFilterChunkMap;
-	if (filterChunkMap_ptr == nullptr)
-	{
-		filterChunkMap_ptr = &dummyFilterChunkMap;
-	}
-
-	filterChunkMap = *filterChunkMap_ptr;
-
-	if (filterChunkMap.empty())
-	{
-		FilterChunk filterChunk;
-		filterChunk.trace_ptr = &trace;
-
-		filterChunkMap[""] = filterChunk;
 	}
 
 	TestStatistics testStatistics;

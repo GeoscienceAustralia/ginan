@@ -589,6 +589,7 @@ struct RtsOptions
 	string		rts_filename			= "Filter-<CONFIG>-<RECEIVER>.rts";
 	string		rts_directory			= "<OUTPUTS_ROOT>";
 	int			rts_lag					= -1;
+	int			rts_interval			= 0;
 	string		rts_smoothed_suffix		= "_smoothed";
 	bool		output_intermediate_rts	= false;
 
@@ -642,6 +643,10 @@ struct PppOptions : FilterOptions
 	bool			satellite_chunking		= false;
 	bool			receiver_chunking		= false;
 	int				chunk_size				= 0;
+
+	bool			nuke_enable				= false;
+	int				nuke_interval			= 86400;
+	vector<KF>		nuke_states				= {KF::ALL};
 };
 
 struct SppOptions : FilterOptions
@@ -1052,7 +1057,7 @@ struct OrbitOptions
 	struct
 	{
 		bool	enable			= false;
-		int		num_per_day		= 1;
+		int		interval		= 1;
 
 		double	pos_proc_noise	= 10;
 		double	vel_proc_noise	= 5;
@@ -1326,7 +1331,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 {
 	vector<YAML::Node>				yamls;
 	map<string, YamlDefault>		yamlDefaults;
-	map<string, bool>				availableOptions	= {{"yamlFilename:", true}};
+	map<string, bool>				availableOptions	= {{"yaml_filename:", true}};
 	map<string, map<string, bool>>	foundOptions;
 
 	mutex							configMutex;

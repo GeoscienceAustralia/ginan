@@ -22,7 +22,7 @@ struct Solution
 	E_Solution			status;									///< solution status
 	int					numMeas			= 0;					///< number of valid satellites
 	KFState				sppState;								///< SPP filter object
-	double				dop[4];									///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
+	Dops				dops;									///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
 	VectorEcef			sppRRec;								///< Position vector from spp
 };
 

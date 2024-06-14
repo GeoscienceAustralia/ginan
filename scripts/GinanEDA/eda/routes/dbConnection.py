@@ -66,6 +66,12 @@ def handle_connect_request(form_data):
         client = MongoDB(url=connect_db_ip, port=db_port)
         client.connect()
         databases = client.get_list_db()
+        try:
+            databases.remove("admin")
+            databases.remove("local")
+            databases.remove("config")
+        except:
+            pass
         return render_template("connect.jinja", db_ip=connect_db_ip, db_port=db_port, databases=databases)
     except ServerSelectionTimeoutError:
         error_message = (

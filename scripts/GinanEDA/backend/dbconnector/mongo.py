@@ -61,7 +61,7 @@ class MongoDB:
         # print("index response:", resp)
 
         for cursor in self.mongo_client[self.mongo_db]["Content"].find():
-            self.mongo_content[cursor["type"]] = cursor["Values"]
+            self.mongo_content[cursor["Type"]] = cursor["Values"]
         self.mongo_content["Geometry"] = []
         geom = self.mongo_client[self.mongo_db]["Geometry"].find_one({})
         if "Measurements" in self.mongo_client[self.mongo_db].list_collection_names():

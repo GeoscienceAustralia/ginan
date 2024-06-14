@@ -2,7 +2,7 @@
 
 > For higher-level details of the Ginan project, visit the [main documentation](../index.html) pages.
 
-## Sofware flow overview
+## Software flow overview
 
 ### Ginan program entry point
 

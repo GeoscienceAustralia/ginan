@@ -123,7 +123,7 @@ struct FilterChunk
 	string	id;
 	Trace*	trace_ptr = nullptr;
 	int		begX		=  0;
-	int		numX		= -1;
+	int		numX		=  0;
 	int		begH		=  0;
 	int		numH		= -1;
 
@@ -351,7 +351,6 @@ struct KFState_ : FilterOptions
 	string		suffix					= "";
 
 	string		rts_basename			= "";
-	int			rts_lag					= 0;
 
 	bool		output_residuals		= false;
 	bool		outputMongoMeasurements	= false;

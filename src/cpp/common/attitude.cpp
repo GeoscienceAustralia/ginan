@@ -95,6 +95,7 @@ void testEclipse(
 
 struct SatGeom
 {
+	SatSys		Sat;				///< Satellite
 	VectorEcef	rSat;				///< Satellite position (ECEF)
 	VectorEcef	vSat;				///< Satellite velocity (ECEF)
 	VectorEcef	vSatPrime;			///< Satellite velocity (ECEF + Earth rotation component)
@@ -139,6 +140,8 @@ SatGeom satOrbitGeometry(
 	for (int dt : {DT, 0})
 	{
 		SatPos satPosDt;
+		satPosDt.Sat = satPos.Sat;
+
 		propagateEllipse(nullStream, time, dt, rSatEci, vSatEci, satPosDt);
 
 		rSat = satPosDt.rSatCom;
@@ -180,6 +183,7 @@ SatGeom satOrbitGeometry(
 	satGeom.mu			= mu	[0];
 	satGeom.betaRate	= dBeta	/ DT;
 	satGeom.muRate		= dMu	/ DT;
+	satGeom.Sat			= satPos.Sat;
 
 	return satGeom;
 }
@@ -362,9 +366,10 @@ void sunMoonPos(
 GTime findEclipseBoundaries(
 	GTime		time,					///< Solution time
 	SatGeom&	satGeom,				///< Satellite geometry
-	bool		searchForward,			///< Search forward in time
-	double		precision = 1)			///< Precision of boundary timing (sec), must be > 0
+	bool		searchForward)			///< Search forward in time
 {
+	double precision = 1;
+
 	VectorEcef rSat		= satGeom.rSat;
 	VectorEcef vSat		= satGeom.vSat;
 	VectorEcef rSun		= satGeom.rSun;
@@ -381,9 +386,9 @@ GTime findEclipseBoundaries(
 	double dt = 0;
 	if (searchForward)
 	{
-		double start = 0;
+		double start	= 0;
 		double interval = 0.5 * 60 * 60; // Eclipses are ~0.8-1.5hrs in length
-		double end = interval;
+		double end		= interval;
 
 		// Find rough 1/2hr interval that eclipse falls within
 		while (inEclipse(rSat, rSun, rMoon))
@@ -392,7 +397,10 @@ GTime findEclipseBoundaries(
 			end += interval;
 
 			SatPos satPos;
+			satPos.Sat = satGeom.Sat;
+
 			propagateEllipse(nullStream, time, end, rSatEci0, vSatEci0, satPos);
+
 			rSat = satPos.rSatCom;
 
 			sunMoonPos(time + end, rSun, rMoon);
@@ -404,7 +412,10 @@ GTime findEclipseBoundaries(
 			double mid = start + (end - start) / 2;
 
 			SatPos satPos;
+			satPos.Sat = satGeom.Sat;
+
 			propagateEllipse(nullStream, time, mid, rSatEci0, vSatEci0, satPos);
+
 			rSat = satPos.rSatCom;
 
 			sunMoonPos(time + mid, rSun, rMoon);
@@ -421,7 +432,10 @@ GTime findEclipseBoundaries(
 			dt -= precision;
 
 			SatPos satPos;
+			satPos.Sat = satGeom.Sat;
+
 			propagateEllipse(nullStream, time, dt, rSatEci0, vSatEci0, satPos);
+
 			rSat = satPos.rSatCom;
 
 			sunMoonPos(time + dt, rSun, rMoon);
@@ -538,7 +552,10 @@ bool satYawGpsIIA(
 	bool maxYawRateFound = getSnxSatMaxYawRate(Sat.svn(), time, maxYawRate);
 	if (maxYawRateFound == false)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__ << ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
+		<< ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
+
 		return false;
 	}
 
@@ -820,7 +837,10 @@ bool satYawGlo(
 	bool maxYawRateFound = getSnxSatMaxYawRate(Sat.svn(), time, maxYawRate);
 	if (maxYawRateFound == false)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__ << ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
+		<< ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
+
 		return false;
 	}
 

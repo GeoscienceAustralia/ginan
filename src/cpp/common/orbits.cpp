@@ -339,6 +339,11 @@ VectorEci propagateEllipse(
 
 	if (pass == false)
 	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Failed to determine keplers for " << satPos.Sat.id() << " , "
+		<< rSat.transpose().format(heavyFmt)
+		<< vSat.transpose().format(heavyFmt);
+
 		VectorEci newPos	= rSat
 							+ vSat * dt;
 

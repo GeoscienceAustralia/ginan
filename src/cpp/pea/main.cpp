@@ -841,7 +841,7 @@ void createTracefiles(
 	for (auto rts : {false, true})
 	{
 		if	(	rts
-			&&(	acsConfig.process_rts		== false
+			&&(	acsConfig.process_rts	== false
 			||acsConfig.pppOpts.rts_lag	== 0))
 		{
 			continue;
@@ -1242,6 +1242,27 @@ void mainOncePerEpochPerStation(
 	<< "Read " << rec.obsList.size()
 	<< " observations for station " << rec.id;
 
+	for (auto& obs : only<GObs>(rec.obsList))
+	{
+		if (obs.exclude)
+		{
+			continue;
+		}
+
+		if (obs.satStat_ptr == nullptr)
+		{
+			continue;
+		}
+
+		auto& satStat = *obs.satStat_ptr;
+		auto& recOpts = acsConfig.getRecOpts(rec.id, {obs.Sat.sysName()});
+
+		if (satStat.el < recOpts.elevation_mask_deg * D2R)
+		{
+			obs.excludeElevation = true;
+		}
+	}
+
 	//calculate statistics
 	{
 		if ((GTime) rec.firstEpoch	== GTime::noTime())		{	rec.firstEpoch	= rec.obsList.front()->time;		}
@@ -1498,12 +1519,20 @@ void mainPerEpochPostProcessingAndOutputs(
 			outputTropSinex(kfState.metaDataMap[TROP_FILENAME_STR], kfState.time, kfState, "MIX");
 		}
 
-		if	(  acsConfig.process_rts
-			&& acsConfig.pppOpts.rts_lag > 0)
-		{
-			rtsSmoothing(pppNet.kfState, receiverMap);
-		}
+		static double epochsPerRtsInterval	= acsConfig.pppOpts.rts_interval / acsConfig.epoch_interval;
+		static double intervalRtsEpoch		= epochsPerRtsInterval;
 
+		if	(  acsConfig.process_rts
+			&& acsConfig.pppOpts.rts_interval
+			&& epoch >= intervalRtsEpoch)
+		{
+			while (intervalRtsEpoch <= epoch)
+			{
+				intervalRtsEpoch += epochsPerRtsInterval;
+			}
+
+			rtsSmoothing(pppNet.kfState, receiverMap, true);
+		}
 
 		for (auto& [recId, rec] : receiverMap)
 		{
@@ -1844,23 +1873,13 @@ void mainPostProcessing(
 			satNav.satPos0.posTime = GTime::noTime();
 		}
 
-		if	( acsConfig.process_ppp
-			&&acsConfig.pppOpts.rts_lag < 0)
+		if (acsConfig.process_ppp)
 		{
-			BOOST_LOG_TRIVIAL(info)
-			<< std::endl
-			<< "---------------PROCESSING PPP WITH RTS--------------------- " << std::endl;
-
 			rtsSmoothing(pppNet.kfState, receiverMap, true);
 		}
 
-		if	( acsConfig.process_ionosphere
-			&&acsConfig.pppOpts.rts_lag < 0)
+		if (acsConfig.process_ionosphere)
 		{
-			BOOST_LOG_TRIVIAL(info)
-			<< std::endl
-			<< "---------------PROCESSING IONOSPHERE WITH RTS------------------ " << std::endl;
-
 			rtsSmoothing(ionNet.kfState, receiverMap, true);
 		}
 	}
@@ -1968,19 +1987,11 @@ int ginan(
 		ionNet.kfState.stateRejectCallbacks	.push_back(rejectByState);
 	}
 
-	if	(  acsConfig.process_rts
-		&& acsConfig.pppOpts.rts_lag)
-	{
-		pppNet.kfState.rts_lag		= acsConfig.pppOpts.rts_lag;
-		ionNet.kfState.rts_lag		= acsConfig.pppOpts.rts_lag;
-	}
-
 	//initialise mongo
 	mongoooo();
 
 	if (acsConfig.rts_only)
 	{
-		pppNet.kfState.rts_lag = 4000;
 		pppNet.kfState.rts_basename = acsConfig.pppOpts.rts_filename;
 
 		rtsSmoothing(pppNet.kfState, receiverMap);

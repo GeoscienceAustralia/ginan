@@ -41,15 +41,15 @@ inputs:
         rnx_inputs:
         # - "*.rnx"
         - ALIC00AUS_R_20191990000_01D_30S_MO.rnx
-        - DARW00AUS_R_20191990000_01D_30S_MO.rnx
-        - HOB200AUS_R_20191990000_01D_30S_MO.rnx
-        - "M*.rnx"
+        # - DARW00AUS_R_20191990000_01D_30S_MO.rnx
+        # - HOB200AUS_R_20191990000_01D_30S_MO.rnx
+        # - "M*.rnx"
 
 
 outputs:
 
     metadata:
-        config_description:    ppp_example
+        config_description:    ppp_example_<BRANCH>
 
     outputs_root:              ./outputs/<CONFIG>
 
@@ -135,7 +135,7 @@ processing_options:
         # start_epoch:         2019-07-18 00:00:00
         # end_epoch:           2019-07-18 23:59:30
         # max_epochs:          2880
-        epoch_interval:      30    # seconds
+        epoch_interval:      300    # seconds
         wait_next_epoch:     3600  # seconds (make large for post-processing)
 
     gnss_general:
@@ -192,11 +192,17 @@ processing_options:
             by_satellite:          false # Split large filter and measurement matrices blockwise by satellite ID to improve processing speed
             size:                  0
 
-        rts:                       # Rauch-Tung-Striebel (RTS) backwards smoothing
-            enable:                true
-            lag:                   -1
-            inverter:              LDLT  # Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability
-            filename:              <CONFIG>_<RECEIVER>.rts
+        rts:                        # Rauch-Tung-Striebel (RTS) backwards smoothing
+            enable:                 true
+            lag:                    -1
+            interval:               86400
+            inverter:               LDLT  # Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability
+            filename:               <CONFIG>_<RECEIVER>.rts
+
+        periodic_reset:
+            enable:                 true
+            # interval:              86400
+            # states:                [REC_POS]
 
     model_error_handling:
         meas_deweighting:                # Measurements that are outside the expected confidence bounds may be deweighted so that outliers do not contaminate the filtered solution
