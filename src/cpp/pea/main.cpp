@@ -93,13 +93,12 @@ using std::string;
 #include "slr.hpp"
 #include "api.hpp"
 
+bool					doDocs	= false;
 Navigation				nav		= {};
 int						epoch	= 0;
 GTime					tsync	= GTime::noTime();
 map<int, SatIdentity>	satIdMap;
 ReceiverMap				receiverMap;
-
-void outputMqtt(KFState& kfState);
 
 bool fileChanged(
 	string filename)
@@ -1177,13 +1176,6 @@ void mainOncePerEpochPerStation(
 
 	auto trace = getTraceFile(rec);
 
-	sinexPerEpochPerStation(tsync, rec);
-
-	preprocessor(net, rec, true);
-
-	//recalculate variances now that elevations are known due to satellite postions calculation above
-	obsVariances(rec.obsList);
-
 	if (rec.ready == false)
 	{
 		trace << std::endl		<< "Receiver " << rec.id << " has no data for this epoch";
@@ -1191,9 +1183,16 @@ void mainOncePerEpochPerStation(
 		return;
 	}
 
+	sinexPerEpochPerStation(tsync, rec);
+
+	preprocessor(net, rec, true);
+
+	//recalculate variances now that elevations are known due to satellite postions calculation above
+	obsVariances(rec.obsList);
+
 	if (acsConfig.process_spp)
 	{
-		SPP(trace, rec.obsList, rec.sol, rec.id, &net.kfState, &remoteState);
+		spp(trace, rec.obsList, rec.sol, rec.id, &net.kfState, &remoteState);
 	}
 
 	if	(  rec.ready == false
@@ -1228,7 +1227,7 @@ void mainOncePerEpochPerStation(
 	};
 
 	bool sppUsed;
-	selectAprioriSource(rec, tsync, sppUsed, &net.kfState);
+	selectAprioriSource(rec, tsync, sppUsed, &net.kfState, &remoteState);
 
 	if (missingWarnInvalidate("Apriori position1",		sppUsed,					acsConfig.require_apriori_positions))		return;
 	if (missingWarnInvalidate("Apriori position2",		rec.failureAprioriPos,		acsConfig.require_apriori_positions))		return;
@@ -1323,6 +1322,7 @@ void outputPredictedStates(
 	mongoStatesOpts.force		= true;
 	mongoStatesOpts.queue		= acsConfig.mongoOpts.queue_outputs;
 	mongoStatesOpts.instances	= acsConfig.mongoOpts.output_predictions;
+	mongoStatesOpts.updated		= tsync;
 
 	for (auto& duo : {forward, reverse})
 	{
@@ -1337,25 +1337,45 @@ void outputPredictedStates(
 		GTime	stopTime	= tsync + acsConfig.mongoOpts.prediction_offset + sign * duration;
 		double	timeDelta	= sign * acsConfig.mongoOpts.prediction_interval;
 
+		Orbits orbits = prepareOrbits(trace, kfState);
+
+		GTime orbitsTime = tsync;
+
+		KFState copyState = kfState;
+
+		for (GTime time = startTime; sign * (time - stopTime).to_double() <= 0; time += timeDelta)
 		{
-			KFState subState = kfState.getSubState({KF::REC_POS, KF::CODE_BIAS, KF::PHASE_BIAS});
-
-			mongoStates(subState, mongoStatesOpts);
-		}
-
-		//predict orbits
-		for (auto& once : {1})
-		{
-			Orbits orbits = prepareOrbits(trace, kfState);
-
-			if (orbits.empty())
+			//remove orbits because they're done separately
+			for (auto& [kfKey, index] : copyState.kfIndexMap)
 			{
-				continue;
+				if (kfKey.type == +KF::ORBIT)
+				{
+					copyState.removeState(kfKey);
+				}
 			}
 
-			GTime orbitsTime = tsync;
+			copyState.stateTransition(nullStream, time);
 
-			for (GTime time = startTime; sign * (time - stopTime).to_double() <= 0; time += timeDelta)
+			auto sent_predictions = acsConfig.mongoOpts.sent_predictions;
+
+			auto orbitIt	= std::find(sent_predictions.begin(), sent_predictions.end(), +KF::ORBIT);
+			auto allIt		= std::find(sent_predictions.begin(), sent_predictions.end(), +KF::ALL);
+
+			bool doOrbits	= orbitIt	!= sent_predictions.end();
+			bool doAll		= allIt		!= sent_predictions.end();
+
+			if (doOrbits)
+				sent_predictions.erase(orbitIt);
+
+			{
+				KFState subState = copyState.getSubState(sent_predictions);
+
+				mongoStates(subState, mongoStatesOpts);
+			}
+
+			if	( orbits.empty() == false
+				&&( doOrbits
+				  ||doAll))
 			{
 				OrbitIntegrator integrator;
 				integrator.timeInit				= orbitsTime;
@@ -1364,53 +1384,52 @@ void outputPredictedStates(
 
 				integrateOrbits(integrator, orbits, tgap, acsConfig.propagationOptions.integrator_time_step);
 
+				BOOST_LOG_TRIVIAL(info) << "Propagated " << tgap << "s to " << time.to_string();
+
 				orbitsTime = time;
 
-				BOOST_LOG_TRIVIAL(info) << "Propagated to " << time.to_string();
+				KFState propState;
+				propState.time = time;
 
-				KFState mongoState;
-				mongoState.time = time;
 				int s = 6 * orbits.size();
-				mongoState.x	.resize(s);
-				mongoState.dx	.resize(s);
-				mongoState.P	.resize(s, s);
+
+				propState.x	.resize(s);
+				propState.dx.resize(s);
+				propState.P	.resize(s, s);
 
 				int index = 0;
 				for (int o = 0; o < orbits.size(); o++)
 				{
 					auto& orbit = orbits[o];
 
-					for (auto& [key, i] : orbit.subState.kfIndexMap)
+					for (auto& [key, i] : orbit.subState_ptr->kfIndexMap)
 					{
 						if (key.type != KF::ORBIT)
 						{
 							continue;
 						}
 
-						if (key.num < 3)	mongoState.x(index)			= orbit.pos(i);
-						else				mongoState.x(index)			= orbit.vel(i-3);
+						if (key.num < 3)	propState.x(index)			= orbit.pos(i);
+						else				propState.x(index)			= orbit.vel(i-3);
 
-											mongoState.P(index,	index)	= orbit.posVelSTM(i, i);
+											propState.P(index,	index)	= orbit.posVelSTM(i, i);
 
-						mongoState.kfIndexMap[key] = index;
+						propState.kfIndexMap[key] = index;
 						index++;
 					}
-
-// 					if	(acsConfig.output_orbit_ics)
-// 					{
-// 						outputOrbitConfig(orbit.subState, "_prop");			//this wont work for predictions, substate isnt updated,
-// 					}
 				}
 
-				mongoStates(mongoState, mongoStatesOpts);
-
-// 				outputMongoPredictions(trace, orbits, time, mongoOptions);
+				mongoStates(propState, mongoStatesOpts);
 			}
+
+			//update to allow use of just-written values
+			mongoStatesAvailable(time, mongoStatesOpts);
 		}
 	}
 }
 
 void mainPerEpochPostProcessingAndOutputs(
+	Trace&			pppTrace,
 	Network&		pppNet,
 	Network&		ionNet,
 	ReceiverMap&	receiverMap,
@@ -1421,7 +1440,6 @@ void mainPerEpochPostProcessingAndOutputs(
 {
 	InteractiveTerminal::setMode(E_InteractiveMode::Outputs);
 
-	auto pppTrace = getTraceFile(pppNet);
 	auto ionTrace = getTraceFile(ionNet);
 
 	//todo aaron, check clocks output for switching on user mode
@@ -1442,6 +1460,7 @@ void mainPerEpochPostProcessingAndOutputs(
 		&&	acsConfig.ambrOpts.mode != +E_ARmode::OFF
 		&&	acsConfig.ambrOpts.once_per_epoch)
 	{
+		//while this may fix and hold ambiguities on this state, this state may be a copy of the main state from somewhere else
 		fixAndHoldAmbiguities(pppTrace, kfState);
 
 		mongoStates(kfState,
@@ -1542,7 +1561,7 @@ void mainPerEpochPostProcessingAndOutputs(
 				outputPppNmea(trace, kfState, rec.id);
 			}
 
-			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);		}
+			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);	}
 			if (acsConfig.output_gpx)		{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ recId], kfState,	rec);	}
 		}
 
@@ -1598,9 +1617,11 @@ void mainPerEpochPostProcessingAndOutputs(
 }
 
 void mainOncePerEpochPerSatellite(
-	Trace&	trace,
-	GTime	time,
-	SatSys	Sat)
+	Trace&		trace,
+	GTime		time,
+	SatSys		Sat,
+	KFState&	kfState,
+	KFState&	remoteKF)
 {
 	auto& satNav 	= nav.satNavMap[Sat];
 	auto& satOpts	= acsConfig.getSatOpts(Sat);
@@ -1657,7 +1678,7 @@ void mainOncePerEpochPerSatellite(
 	satPos0.Sat			= Sat;
 	satPos0.satNav_ptr	= &satNav;
 
-	bool pass = satpos(nullStream, time, time, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav);
+	bool pass = satpos(nullStream, time, time, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav, &kfState, &remoteKF);
 	if (pass == false)
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";
@@ -1698,7 +1719,25 @@ void mainOncePerEpoch(
 	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << std::endl;
 
 	KFState remoteState;
+	if (acsConfig.mongoOpts.use_predictions)
+	{
+		mongoReadFilter(remoteState, time, acsConfig.mongoOpts.used_predictions);
 
+		BOOST_LOG_TRIVIAL(info) << "Remote state was updated at " << remoteState.time.to_string();
+
+		remoteState.outputStates(pppTrace, "/REMOTE");
+
+		mongoStates(pppNet.kfState,
+					{
+						.suffix		= "/REMOTE",
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
+
+		pppNet.kfState.alternate_ptr = &remoteState;
+
+		nav.erp.filterValues = getErpFromFilter(pppNet.kfState);
+	}
 
 	//try to get svns & block types of all used satellites
 	for (auto& [Sat, satNav] : nav.satNavMap)
@@ -1706,7 +1745,7 @@ void mainOncePerEpoch(
 		if (acsConfig.process_sys[Sat.sys] == false)
 			continue;
 
-		mainOncePerEpochPerSatellite(pppTrace, time, Sat);
+		mainOncePerEpochPerSatellite(pppTrace, time, Sat, pppNet.kfState, remoteState);
 	}
 
 	//do per-station pre processing
@@ -1734,7 +1773,7 @@ void mainOncePerEpoch(
 
 	if (acsConfig.process_ppp)
 	{
-		PPP(pppTrace, receiverMap, pppNet.kfState, remoteState);
+		ppp(pppTrace, receiverMap, pppNet.kfState, remoteState);
 	}
 
 	KFState* kfState_ptr;
@@ -1746,7 +1785,7 @@ void mainOncePerEpoch(
 
 	auto& kfState = *kfState_ptr;
 
-	mainPerEpochPostProcessingAndOutputs(pppNet, ionNet, receiverMap, kfState, ionNet.kfState, time, emptyEpoch);
+	mainPerEpochPostProcessingAndOutputs(pppTrace, pppNet, ionNet, receiverMap, kfState, ionNet.kfState, time, emptyEpoch);
 
 	if (acsConfig.delete_old_ephemerides)
 	{
@@ -1765,6 +1804,8 @@ void mainOncePerEpoch(
 	callbacksOncePerEpoch();
 }
 
+/** Perform any post-final epoch calculations and outputs, then begin reverse smoothing and tidy up
+ */
 void mainPostProcessing(
 	Network&		pppNet,
 	Network&		ionNet,
@@ -1838,24 +1879,19 @@ void mainPostProcessing(
 
 		pppNet.kfState.outputStates(minconTrace, "/CONSTRAINED");
 
-		outputMinconStatistics(minconTrace, minconStatistics);
-
 		mongoStates(pppNet.kfState,
 					{
 						.suffix		= "/CONSTRAINED",
 						.instances	= acsConfig.mongoOpts.output_states,
 						.queue		= acsConfig.mongoOpts.queue_outputs
 					});
+
+		outputMinconStatistics(minconTrace, minconStatistics);
 	}
 
 	if (acsConfig.output_sinex)
 	{
 		sinexPostProcessing(tsync, receiverMap, pppNet.kfState);
-	}
-
-	if (acsConfig.process_ppp)
-	{
-// 		outputMqtt	(pppNet.kfState);
 	}
 
 	outputPredictedStates(pppTrace, pppNet.kfState);
@@ -1954,7 +1990,7 @@ int ginan(
 		if (satOpts.exclude)
 			continue;
 
-		nav.satNavMap[Sat].id = Sat.id();
+		nav.satNavMap[Sat].id			= Sat.id();
 	}
 
 	Network pppNet;

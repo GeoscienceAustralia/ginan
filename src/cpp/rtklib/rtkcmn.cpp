@@ -15,41 +15,46 @@
 #include "common.hpp"
 #include "enums.h"
 
-void updatenav(
-	SatPos& satPos)
+void updateLamMap(
+	const	GTime&	time,
+			SatPos&	satPos)
 {
-	int sys = satPos.Sat.sys;
+	E_Sys sys = satPos.Sat.sys;
 	if (satPos.satNav_ptr == nullptr)
 	{
 		return;
 	}
 
-	auto& satNav = *satPos.satNav_ptr;
+	auto& lamMap = satPos.satNav_ptr->lamMap;
 
-	if	( (sys == +E_Sys::GLO)
-		&&(satNav.eph_ptr != nullptr))
+	if (sys == +E_Sys::GLO)
 	{
-		auto& geph = *static_cast<Geph*>(satNav.eph_ptr);
+		auto* eph_ptr = seleph<Geph>(nullStream, time, satPos.Sat, acsConfig.used_nav_types[sys], ANY_IODE, nav);
 
-		satNav.lamMap[G1]	= CLIGHT / (FREQ1_GLO + DFRQ1_GLO * geph.frq);
-		satNav.lamMap[G2]	= CLIGHT / (FREQ2_GLO + DFRQ2_GLO * geph.frq);
-		satNav.lamMap[G3]	= CLIGHT / (FREQ3_GLO);
-		satNav.lamMap[G4]	= CLIGHT / (FREQ4_GLO);
-		satNav.lamMap[G6]	= CLIGHT / (FREQ6_GLO);
+		if (eph_ptr)
+		{
+			auto& geph = *static_cast<Geph*>(eph_ptr);
+
+			lamMap[G1]	= CLIGHT / (FREQ1_GLO + DFRQ1_GLO * geph.frq);
+			lamMap[G2]	= CLIGHT / (FREQ2_GLO + DFRQ2_GLO * geph.frq);
+			lamMap[G3]	= CLIGHT / (FREQ3_GLO);
+			lamMap[G4]	= CLIGHT / (FREQ4_GLO);
+			lamMap[G6]	= CLIGHT / (FREQ6_GLO);
+		}
 	}
 	else
 	{
-		satNav.lamMap[F1]	= CLIGHT / FREQ1; /* L1/E1/B1 */
-		satNav.lamMap[F2]	= CLIGHT / FREQ2; /* L2 */
-		satNav.lamMap[F5]	= CLIGHT / FREQ5; /* L5/E5a/B2a */
-		satNav.lamMap[F6]	= CLIGHT / FREQ6; /* E6/L6 */
-		satNav.lamMap[F7]	= CLIGHT / FREQ7; /* E5b/B2/B2b */
-		satNav.lamMap[F8]	= CLIGHT / FREQ8; /* E5a+b/B2a+b */
+		lamMap[F1]	= CLIGHT / FREQ1; /* L1/E1/B1 */
+		lamMap[F2]	= CLIGHT / FREQ2; /* L2 */
+		lamMap[F5]	= CLIGHT / FREQ5; /* L5/E5a/B2a */
+		lamMap[F6]	= CLIGHT / FREQ6; /* E6/L6 */
+		lamMap[F7]	= CLIGHT / FREQ7; /* E5b/B2/B2b */
+		lamMap[F8]	= CLIGHT / FREQ8; /* E5a+b/B2a+b */
 
 		if	(sys == +E_Sys::BDS)
 		{
-			satNav.lamMap[B1]	= CLIGHT / FREQ1_CMP; /* B2-1 */
-			satNav.lamMap[B3]	= CLIGHT / FREQ3_CMP; /* B3 */
+			lamMap[B1]	= CLIGHT / FREQ1_CMP; /* B2-1 */
+			lamMap[B3]	= CLIGHT / FREQ3_CMP; /* B3 */
 		}
 	}
 }

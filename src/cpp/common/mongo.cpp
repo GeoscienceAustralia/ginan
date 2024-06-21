@@ -3,6 +3,7 @@
 
 
 
+#include "architectureDocs.hpp"
 #include "observations.hpp"
 #include "rtcmEncoder.hpp"
 #include "acsConfig.hpp"
@@ -12,6 +13,24 @@
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
+
+/** Persistant formatted storage and inter-process communication.
+ * A mongodb database is mainly used for storage of filter states and measurements.
+ * This data is primarily used for later analysis and plotting using the python utility.
+ *
+ * Typically the data is stored in States and Measurements collections, with pseudo-indexes collections to allow other applications to see at-a-glance which elements are available for retrieval, without searching the whole db.
+ *
+ * The database's States collection is used as a method of inter-process communication, providing simple configuration of cross-network data passing, integrity and backup.
+ * It is used for recording clocks and orbits from a POD process, which are then sampled and formatted as RTCM SSR outputs
+ * - This allows separation of the estimation of parameters, and the generation and transmission of RTCM messages.
+ *
+ * The states collection may also be used to pass current or predicted values to another Pea instance, allowing several filters to run in a fast/slow configuration.
+ * In this case the states entries are marked with the time of update/prediction, and other db entries are used to signify validity of complete sets of db entries using the 'updated' time.
+ */
+Architecture Mongo_Database__()
+{
+
+}
 
 
 using bsoncxx::types::b_date;
@@ -134,8 +153,12 @@ bool startNewMongoDb(
 	return true;
 }
 
+
+
 void mongoooo()
 {
+	DOCS_REFERENCE(Mongo_Database__);
+
 	auto instances = mongoInstances(acsConfig.mongoOpts.enable);
 
 	for (auto instance : instances)

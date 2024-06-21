@@ -293,21 +293,20 @@ void filterIonosphere(
 	kfState.stateTransition(trace, time);
 
 	//combine the measurement list into a single design matrix, measurement vector, and measurement noise vector
-	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
+	KFMeas kfMeas(kfState, kfMeasEntryList);
 
 	//if there are uninitialised state values, estimate them using least squares
 	if (kfState.lsqRequired)
 	{
-		kfState.lsqRequired = false;
 		trace << std::endl << "-------INITIALISING IONO USING LEAST SQUARES--------" << std::endl;
 
-		kfState.leastSquareInitStates(std::cout, combinedMeas, true);
+		kfState.leastSquareInitStates(std::cout, kfMeas, true);
 	}
 	else
 	{
 		trace << std::endl << "------- DOING IONO KALMAN FILTER --------" << std::endl;
 
-		kfState.filterKalman(trace, combinedMeas, false);
+		kfState.filterKalman(trace, kfMeas, "/IONO", false);
 	}
 
 	kfState.outputStates(trace, "/ION");
@@ -324,8 +323,8 @@ double getSSRIono(
 {
 	double ionoDelay = 0;
 
-	if (getCmpSSRIono (trace, time, nav.ssrAtm, rRec,		ionoDelay, variance, Sat))		return ionoDelay;
-	if (getIGSSSRIono (trace, time, nav.ssrAtm, rRec, azel,	ionoDelay, variance))			return ionoDelay;
+	if (getCmpSSRIono(trace, time, nav.ssrAtm, rRec,		ionoDelay, variance, Sat))		return ionoDelay;
+	if (getIGSSSRIono(trace, time, nav.ssrAtm, rRec, azel,	ionoDelay, variance))			return ionoDelay;
 
 	variance = -1;
 

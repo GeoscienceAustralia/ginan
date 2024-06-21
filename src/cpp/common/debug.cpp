@@ -191,17 +191,16 @@ void minimumTest(
 		//add process noise to existing states as per their initialisations.
 		kfStateStations.stateTransition(trace, gtime);
 
-		KFMeas combinedMeas = kfStateStations.combineKFMeasList(stationEntries);
+		KFMeas combinedMeas(kfStateStations, stationEntries);
 
 		/* network parameter estimation */
 		if (kfStateStations.lsqRequired)
 		{
-			kfStateStations.lsqRequired = false;
 			trace << std::endl << "-------DOING LEAST SQUARES--------";
 			kfStateStations.leastSquareInitStates(trace, combinedMeas, true);
 		}
 
-		kfStateStations.filterKalman(trace, combinedMeas, true);
+		kfStateStations.filterKalman(trace, combinedMeas, "", true);
 
 	}
 
@@ -1219,57 +1218,16 @@ void debugAttitude()
 }
 
 
+struct Thing
+{
+
+};
+
+/** This function calls nothing
+ */
 void debugErp()
 {
-	ERP	erp = nav.erp;
-
-	// Output all ERP data
-	std::cout << std::endl << "EOP reading:";
-	for (auto& erpMap : erp.erpMaps)
-	{
-		std::cout << std::endl;
-		for (auto& [time, erpv] : erpMap)
-		{
-			MjDateUtc	mjd = time;
-			std::cout	<< std::setprecision( 6)	<< std::fixed
-						<< "\t"						<< time.to_string(1)
-						<< " "	<< std::setw( 8)	<< mjd.val;
-			std::cout	<< std::setprecision( 6)	<< std::fixed
-						<< " "	<< std::setw( 9)	<< erpv.xp / AS2R
-						<< " "	<< std::setw( 9)	<< erpv.yp / AS2R;
-			std::cout	<< std::setprecision( 7)	<< std::fixed
-						<< " "	<< std::setw(10)	<< erpv.ut1Utc
-						<< " "	<< std::setw(10)	<< erpv.lod
-						<< " "						<< (erpv.isPredicted ? 'P' : ' ')
-								<< std::endl;
-
-			writeErp(acsConfig.erp_filename, erpv);
-		}
-	}
-
-	MjDateUtc mjd;
-	mjd.val = 60069;
-	GTime time = mjd;
-
-	std::cout << std::endl << "EOP interpolation/extrapolation:" << std::endl;
-	for (int i = 0; i < 60; i++)
-	{
-		time += S_IN_DAY/4;
-		ERPValues erpv = getErp(erp, time);
-
-		MjDateUtc	mjd = time;
-		std::cout	<< std::setprecision( 6)	<< std::fixed
-					<< "\t"						<< time.to_string(1)
-					<< " "	<< std::setw( 8)	<< mjd.val;
-		std::cout	<< std::setprecision( 6)	<< std::fixed
-					<< " "	<< std::setw( 9)	<< erpv.xp / AS2R
-					<< " "	<< std::setw( 9)	<< erpv.yp / AS2R;
-		std::cout	<< std::setprecision( 7)	<< std::fixed
-					<< " "	<< std::setw(10)	<< erpv.ut1Utc
-					<< " "	<< std::setw(10)	<< erpv.lod
-					<< " "						<< (erpv.isPredicted ? 'P' : ' ')
-							<< std::endl;
-	}
+	Thing thing;
 }
 
 #include <fstream>
@@ -1900,10 +1858,14 @@ void debugTideOceanPole()
 	}
 }
 
+void alternatePostfits(
+	Trace&		trace,
+	KFMeas&		kfMeas,
+	KFState&	kfState);
+
 void infiniteTest()
 {
 	KFState kfState;
-
 
 	GTime time;
 	time += 60;
@@ -1918,6 +1880,7 @@ void infiniteTest()
 		ionoKey.type = KF::IONO_STEC;
 		ambKey.type = KF::AMBIGUITY;
 
+		kfState.advanced_postfits = true;
 
 		InitialState ionoInit;
 		ionoInit.P = 100;
@@ -1926,11 +1889,10 @@ void infiniteTest()
 		InitialState ambInit;
 		ambInit.P = 100;
 
-
-
 		{
 			KFKey obsKey;
-			obsKey.num = 1;
+			obsKey.num	= 1;
+			obsKey.type	= KF::PHAS_MEAS;
 
 			KFMeasEntry measEntry(&kfState);
 
@@ -1947,6 +1909,7 @@ void infiniteTest()
 		{
 			KFKey obsKey;
 			obsKey.num = 2;
+			obsKey.type = KF::PHAS_MEAS;
 
 			KFMeasEntry measEntry(&kfState);
 
@@ -1967,9 +1930,12 @@ void infiniteTest()
 
 		kfState.outputStates(std::cout);
 
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+		KFMeas kfMeas(kfState, kfMeasEntryList, time);
 
-		kfState.filterKalman(std::cout, combinedMeas, true);
+
+		alternatePostfits(std::cout, kfMeas, kfState);
+
+		kfState.filterKalman(std::cout, kfMeas, "", true);
 
 		kfState.outputStates(std::cout);
 
@@ -2232,9 +2198,9 @@ void accel()
 
 			kfState.stateTransition(std::cout, time);
 
-			KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+			KFMeas combinedMeas(kfState, kfMeasEntryList, time);
 
-			kfState.filterKalman(std::cout, combinedMeas, true);
+			kfState.filterKalman(std::cout, combinedMeas, "", true);
 
 			kfState.outputStates(std::cout, "/Accelerations");
 		}
@@ -2270,9 +2236,9 @@ void accel()
 
 			kfMeasEntryList.push_back(measEntry);
 
-			KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+			KFMeas combinedMeas(kfState, kfMeasEntryList, time);
 
-			kfState.filterKalman(std::cout, combinedMeas, true);
+			kfState.filterKalman(std::cout, combinedMeas, "", true);
 		}
 	}
 }
@@ -2280,7 +2246,5 @@ void accel()
 
 void doDebugs()
 {
-	// accel();
 	// exit(0);
 }
-

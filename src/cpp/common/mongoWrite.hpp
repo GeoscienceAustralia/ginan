@@ -8,13 +8,13 @@ using std::set;
 #include "satSys.hpp"
 #include "mongo.hpp"
 #include "trace.hpp"
+#include "gTime.hpp"
 
 
 struct MongoOptions;
 struct ReceiverMap;
 struct OrbitState;
 struct KFMeas;
-struct GTime;
 struct Geph;
 struct Eph;
 
@@ -56,7 +56,12 @@ struct MongoStatesOptions
 	bool			upsert		= false;
 	bool			queue		= false;
 	bool			index		= true;
+	GTime			updated;
 };
+
+void mongoStatesAvailable(
+	GTime				time,
+	MongoStatesOptions	opts = {});
 
 void mongoStates(
 	KFState&			kfState,
@@ -68,13 +73,6 @@ void mongoMeasSatStat(
 void mongoTestStat(
 	KFState&			kfState,
 	TestStatistics&		statistics);
-
-
-// void	outputMongoPredictions(
-// 	Trace&			trace,
-// 	Orbits&			orbits,
-// 	GTime 			time,
-// 	MongoOptions&	config);
 
 void mongoCull(
 	GTime time);

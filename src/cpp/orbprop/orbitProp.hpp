@@ -35,7 +35,7 @@ struct OrbitState : OrbitOptions
 
 	bool	exclude		= false;
 
-	KFState	subState;
+	shared_ptr<KFState>	subState_ptr;
 
 	vector<EMP> empInput;
 

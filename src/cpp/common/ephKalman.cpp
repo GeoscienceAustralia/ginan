@@ -105,8 +105,6 @@ bool satPosKalman(
 
 		auto& kfState = *kfState_ptr;
 
-		bool found = true;
-
 		//get orbit things from the state
 		for (int i = 0; i < 3; i++)
 		{
@@ -115,10 +113,10 @@ bool satPosKalman(
 			kfKey.Sat	= satPos.Sat;
 
 			kfKey.num	= i;
-			found &= kfState.getKFValue(kfKey, rSat0(i));
+			double dummy;
 
-			kfKey.num	= i + 3;
-			found &= kfState.getKFValue(kfKey, vSat0(i));
+			bool found	= (kfKey.num	= i,		kfState.getKFValue(kfKey, rSat0(i), &dummy, &dummy, false))
+						&&(kfKey.num	= i + 3,	kfState.getKFValue(kfKey, vSat0(i), &dummy, &dummy, false));
 
 			if (found == false)
 			{

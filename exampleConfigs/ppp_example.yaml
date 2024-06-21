@@ -58,20 +58,16 @@ outputs:
         filename:              <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.GPX
 
     trace:
-        level:                 2
-        output_receivers:      true
-        output_network:        true
-        receiver_filename:     <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
-        network_filename:      <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
-        output_residuals:      true
-        output_residual_chain: true
-        output_config:         true
-
-    # log:
-    #     output:                false
-    #     directory:             ./logs/
-    #     filename:              log<LOGTIME>.json
-
+        level:                      2
+        output_receivers:           true
+        output_network:             true
+        receiver_filename:          <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        network_filename:           <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+        output_initialised_states:  true
+        output_predicted_states:    true
 
 satellite_options:
 
@@ -135,7 +131,7 @@ processing_options:
         # start_epoch:         2019-07-18 00:00:00
         # end_epoch:           2019-07-18 23:59:30
         # max_epochs:          2880
-        epoch_interval:      300    # seconds
+        epoch_interval:      30    # seconds
         wait_next_epoch:     3600  # seconds (make large for post-processing)
 
     gnss_general:
@@ -195,12 +191,12 @@ processing_options:
         rts:                        # Rauch-Tung-Striebel (RTS) backwards smoothing
             enable:                 true
             lag:                    -1
-            interval:               86400
+            # interval:               86400
             inverter:               LDLT  # Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability
             filename:               <CONFIG>_<RECEIVER>.rts
 
         periodic_reset:
-            enable:                 true
+            # enable:                 true
             # interval:              86400
             # states:                [REC_POS]
 
@@ -245,7 +241,7 @@ estimation_parameters:
             pos:
                 estimated:          [true]
                 sigma:              [100]
-                process_noise:      [30]
+                # process_noise:      [30]
             pos_rate:                       # Velocity
                 estimated:          [false] # [bools] Estimate state in kalman filter
                 sigma:              [0]     # [floats] Apriori sigma values
@@ -258,6 +254,11 @@ estimation_parameters:
                 estimated:          [true]
                 sigma:              [1000]
                 process_noise:      [100]
+            ant_delta:
+                estimated:          [true]
+                sigma:              [10]
+                process_noise:      [1]
+                tau:                [100]
             clock_rate:
                 estimated:          [false]
                 sigma:              [0.005]

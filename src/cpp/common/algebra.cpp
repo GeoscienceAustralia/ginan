@@ -73,13 +73,27 @@ bool KFKey::operator <(const KFKey& b) const
 }
 
 
+/** Finds the position in the noise vector of particular noise elements.
+*/
+int KFMeas::getNoiseIndex(
+	const	KFKey&		key)		///< Key to search for in noise vector
+const
+{
+	auto index = noiseIndexMap.find(key);
+	if (index == noiseIndexMap.end())
+	{
+		return -1;
+	}
+
+	return index->second;
+}
+
 /** Clears and initialises the state transition matrix to identity at the beginning of an epoch.
 * Also clears any noise that was being added for the initialisation of a new state.
 */
 void KFState::initFilterEpoch()
 {
-// 	ZAdditionMap.		clear();
-	initNoiseMap.		clear();
+	initNoiseMap.clear();
 
 	for (auto& [key1, mapp]	: stateTransitionMap)
 	{
@@ -92,7 +106,7 @@ void KFState::initFilterEpoch()
 		mapp.erase(oneKey);
 	}
 
-	stateTransitionMap	[oneKey][oneKey][0]	= 1;
+	stateTransitionMap[oneKey][oneKey][0]	= 1;
 }
 
 /** Finds the position in the KF state vector of particular states.
@@ -109,39 +123,36 @@ const
 	return index->second;
 }
 
-/** Finds the position in the KF state vector of particular states.
-*/
-int KFState::getNoiseIndex(
-	const	KFKey&		key)		///< Key to search for in state
-const
-{
-	auto index = noiseIndexMap.find(key);
-	if (index == noiseIndexMap.end())
-	{
-		return -1;
-	}
-	return index->second;
-}
-
 /** Returns the value and variance of a state within the kalman filter object
 */
-bool KFState::getKFValue(
+E_Source KFState::getKFValue(
 	const	KFKey&		key,			///< Key to search for in state
 			double&		value,			///< Output value
 			double*		variance_ptr,	///< Optional variance output
-			double*		adjustment_ptr)	///< Optional adjustment output
+			double*		adjustment_ptr,	///< Optional adjustment output
+			bool		allowAlternate)	///< Optional flag to disable alternate filter
 const
 {
 	auto a = kfIndexMap.find(key);
 	if (a == kfIndexMap.end())
 	{
-//		std::cout << std::endl << "Warning: State not found in filter: " << key << std::endl;
-		return false;
+		if	( allowAlternate	== false
+			||alternate_ptr		== nullptr)
+		{
+			return E_Source::NONE;
+		}
+
+		E_Source found = alternate_ptr->getKFValue(key, value, variance_ptr, adjustment_ptr);
+		if (found)
+			return E_Source::REMOTE;
+
+		return  E_Source::NONE;
 	}
+
 	int index = a->second;
 	if (index >= x.size())
 	{
-		return false;
+		return E_Source::NONE;
 	}
 	value = x(index);
 
@@ -155,7 +166,7 @@ const
 		*adjustment_ptr	= dx(index);
 	}
 
-	return true;
+	return E_Source::KALMAN;
 }
 
 /** Returns the standard deviation of a state within the kalman filter object
@@ -256,10 +267,19 @@ bool KFState::addKFState(
 		return false;
 	}
 
-	//this is a new state, add to the state transition matrix to create a new state.
+	//this should be a new state, add to the state transition matrix to create a new state.
+
+	//check if it exists in the state though, identity STM causes double ups if its reinitialised too quickly
+	double currentX = 0;
+	auto it = kfIndexMap.find(kfKey);
+	if (it != kfIndexMap.end())
+	{
+		auto& [dummy, index] = *it;
+		currentX = x[index];
+	}
 
 	stateTransitionMap	[kfKey][kfKey]	[0]	= 1;
-	stateTransitionMap	[kfKey][oneKey]	[0]	= initialState.x;
+	stateTransitionMap	[kfKey][oneKey]	[0]	= initialState.x - currentX;
 	initNoiseMap		[kfKey]				= initialState.P;
 	procNoiseMap		[kfKey]				= initialState.Q;
 	gaussMarkovTauMap	[kfKey]				= initialState.tau;
@@ -279,18 +299,6 @@ void KFState::setExponentialNoise(
 	const	Exponential		exponential)
 {
 	exponentialNoiseMap[kfKey] = exponential;
-}
-
-
-/** Tries to add a noise element.
-*  If it does not exist, it adds it to a list of states to be added.
-*  Call consolidateKFState() to apply the list to the filter object
-*/
-void KFState::addNoiseElement(
-	const	KFKey&			kfKey,
-	const	double			variance)
-{
-	noiseElementMap[kfKey]	= variance;
 }
 
 /** Add process noise and dynamics to filter object manually. BEWARE!
@@ -328,15 +336,6 @@ void KFState::manualStateTransition(
 	initFilterEpoch();
 }
 
-void KFState::noiseElementStateTransition()
-{
-	int row = 0;
-	for (auto& [key, value] : noiseElementMap)
-	{
-		noiseIndexMap[key] = row;
-		row++;
-	}
-}
 
 /** Add process noise and dynamics to filter object according to time gap.
  * This will also sort states according to their kfKey as a result of the way the state transition matrix is generated.
@@ -370,7 +369,7 @@ void KFState::stateTransition(
 
 	//add transitions for any states (usually close to identity)
 	int row = 0;
-	map<KFKey, short int> newKFIndexMap;
+	map<KFKey, int> newKFIndexMap;
 	for (auto& [newStateKey, newStateMap] : stateTransitionMap)
 	{
 		newKFIndexMap[newStateKey] = row;
@@ -448,8 +447,6 @@ void KFState::stateTransition(
 
 		row++;
 	}
-
-	noiseElementStateTransition();
 
 	//scale and add process noise
 	MatrixXd Q0 = MatrixXd::Zero(newStateCount, newStateCount);
@@ -647,7 +644,7 @@ void KFState::stateTransition(
 	{
 		P = (F		* P * F.transpose()		+ Q0	).eval();
 	}
-// 	std::cout << "F" << std::endl << MatrixXd(F).format(HeavyFmt) << std::endl;
+	// std::cout << "F" << std::endl << MatrixXd(F).format(heavyFmt) << std::endl;
 // 	std::cout << "x1" << std::endl << MatrixXd(x).transpose().format(HeavyFmt) << std::endl;
 // 	std::cout << "Q0" << std::endl << Q0 << std::endl;
 // 	std::cout << "P" << std::endl << P << std::endl;
@@ -945,18 +942,21 @@ bool KFState::kFilter(
 	int				begH,		///< Index of first measurement to process
 	int				numH)		///< Number of measurements to process
 {
-	auto& H = kfMeas.H;
-	auto& R = kfMeas.R;
-	auto& v = kfMeas.V;
+	auto& R			= kfMeas.R;
+	auto& v			= kfMeas.V;
+	auto& H			= kfMeas.H;
+	auto& H_star	= kfMeas.H_star;
+	auto& noise		= kfMeas.uncorrelatedNoise.asDiagonal();
 
 	auto subH = H.block(begH, begX, numH, numX);
 
-	MatrixXd HP	= subH	* P.block(begX, begX, numX, numX);
-	MatrixXd Q	= HP	* subH.transpose();
-
-	Q += R.block(begH, begH, numH, numH);
+	auto		HRH_star	= H_star	* noise * H_star.transpose();
+	auto		HP			= subH		* P.block(begX, begX, numX, numX);
+	MatrixXd	Q			= HP		* subH.transpose()
+							+ R.block(begH, begH, numH, numH);
 
 	MatrixXd K;
+	MatrixXd HRHQ_star;
 
 	bool repeat = true;
 	while (repeat)
@@ -973,8 +973,9 @@ bool KFState::kFilter(
 			{
 				auto QQ = Q.triangularView<Eigen::Upper>().transpose();
 				LDLT<MatrixXd> solver;
-				solver.compute(QQ);
-				if (solver.info() != Eigen::ComputationInfo::Success)
+				if	( 						(				solver.compute(QQ),						solver.info() != Eigen::ComputationInfo::Success)
+					||						(K			=	solver.solve(HP)		.transpose(),	solver.info() != Eigen::ComputationInfo::Success)
+					||(advanced_postfits &&	(HRHQ_star	=	solver.solve(HRH_star)	.transpose(),	solver.info() != Eigen::ComputationInfo::Success)))
 				{
 					xp = x;
 					Pp = P;
@@ -991,47 +992,19 @@ bool KFState::kFilter(
 					return false;
 				}
 
-				auto Kt = solver.solve(HP);
-				if (solver.info() != Eigen::ComputationInfo::Success)
-				{
-					xp = x;
-					Pp = P;
-					dx = VectorXd::Zero(xp.rows());
-
-					BOOST_LOG_TRIVIAL(error) << "Error: Failed to calculate kalman gain, see trace file for matrices";
-
-					trace << std::endl << "Kalman Filter Error2";
-					trace << std::endl << "Q:" << std::endl << Q;
-					trace << std::endl << "H:" << std::endl << H;
-					trace << std::endl << "R:" << std::endl << R;
-					trace << std::endl << "P:" << std::endl << P;
-
-					return false;
-				}
-
-				K = Kt.transpose();
-
 				break;
 			}
 			case E_Inverter::LLT:
 			{
 				auto QQ = Q.triangularView<Eigen::Upper>().transpose();
 				LLT<MatrixXd> solver;
-				solver.compute(QQ);
-				if (solver.info() != Eigen::ComputationInfo::Success)
+				if	( 						(				solver.compute(QQ),						solver.info() != Eigen::ComputationInfo::Success)
+					||						(K			=	solver.solve(HP)		.transpose(),	solver.info() != Eigen::ComputationInfo::Success)
+					||(advanced_postfits &&	(HRHQ_star	=	solver.solve(HRH_star)	.transpose(),	solver.info() != Eigen::ComputationInfo::Success)))
 				{
 					inverter = E_Inverter::LDLT;
 					continue;
 				}
-
-				auto Kt = solver.solve(HP);
-				if (solver.info() != Eigen::ComputationInfo::Success)
-				{
-					inverter = E_Inverter::LDLT;
-					continue;
-				}
-
-				K = Kt.transpose();
 
 				break;
 			}
@@ -1040,12 +1013,20 @@ bool KFState::kFilter(
 				MatrixXd Qinv = Q.inverse();
 				K = P * H.transpose() * Qinv;
 
+				if (advanced_postfits)
+				{
+					HRHQ_star = HRH_star * Qinv;
+				}
 				break;
 			}
 		}
 		repeat = false;
 	}
 
+	if (advanced_postfits)
+	{
+		kfMeas.VV = HRHQ_star * v;
+	}
 
 	dx.segment(begX, numX)	= K * v.segment(begH, numH);
 	xp.segment(begX, numX)	= x. segment(begX, numX)
@@ -1143,33 +1124,54 @@ bool KFState::chiQC(
 
 /** Combine a list of KFMeasEntrys into a single KFMeas object for used in the filter
 */
-KFMeas KFState::combineKFMeasList(
+KFMeas::KFMeas(
+	KFState&			kfState,			///< Filter state to correspond to
 	KFMeasEntryList&	kfEntryList,		///< List of input measurements as lists of entries
 	GTime				measTime,			///< Time to use for measurements and hence state transitions
 	MatrixXd*			noiseMatrix_ptr)	///< Optional pointer to use custom noise matrix
 {
 	int numMeas = kfEntryList.size();
 
-	KFMeas kfMeas;
-
 	if (measTime == GTime::noTime())
 	{
 		measTime = time;
 	}
 
-	kfMeas.time = measTime;
+	time = measTime;
 
-	kfMeas.V	.resize(numMeas);
-	kfMeas.VV	.resize(numMeas);
-	kfMeas.Y	.resize(numMeas);
+	V	.resize(numMeas);
+	VV	.resize(numMeas);
+	Y	.resize(numMeas);
 
-	kfMeas.R		= MatrixXd::Zero(numMeas, numMeas);
-	kfMeas.H		= MatrixXd::Zero(numMeas, x.rows());
-	kfMeas.H_star	= MatrixXd::Zero(numMeas, noiseIndexMap.size());
+	//merge all individual noise elements into the a new map and then vector
+	{
+		map<KFKey,	double> noiseElementMap;
 
-	kfMeas.obsKeys			.resize(numMeas);
-	kfMeas.metaDataMaps		.resize(numMeas);
-	kfMeas.componentsMaps	.resize(numMeas);
+		for (auto& entry			: kfEntryList)
+		for (auto& [kfKey, value]	: entry.noiseElementMap)
+		{
+			noiseElementMap[kfKey] = value;
+		}
+
+		uncorrelatedNoise = VectorXd::Zero(noiseElementMap.size());
+
+		int noises = 0;
+		for (auto& [key, value] : noiseElementMap)
+		{
+			uncorrelatedNoise(noises) = value;
+
+			noiseIndexMap[key] = noises;
+			noises++;
+		}
+	}
+
+	R		= MatrixXd::Zero(numMeas, numMeas);
+	H		= MatrixXd::Zero(numMeas, kfState.x			.rows());
+	H_star	= MatrixXd::Zero(numMeas, uncorrelatedNoise	.rows());
+
+	obsKeys			.resize(numMeas);
+	metaDataMaps	.resize(numMeas);
+	componentsMaps	.resize(numMeas);
 
 	bool error = false;
 #	ifdef ENABLE_PARALLELISATION
@@ -1183,10 +1185,10 @@ KFMeas KFState::combineKFMeasList(
 
 		auto& entry = *it;
 
-		kfMeas.R(meas, meas)	= entry.noise;
+		R(meas, meas)	= entry.noise;
 
-		auto& value = kfMeas.Y(meas);
-		auto& innov = kfMeas.V(meas);
+		auto& value = Y(meas);
+		auto& innov = V(meas);
 
 		value			= entry.value;
 		innov			= entry.innov;
@@ -1198,23 +1200,29 @@ KFMeas KFState::combineKFMeasList(
 				continue;
 			}
 
-			int index = getKFIndex(kfKey);
+			int index = kfState.getKFIndex(kfKey);
 			if (index < 0)
 			{
 				std::cout << "Code error: Trying to create measurement for undefined key, check stateTransition() is called first: " << kfKey << std::endl;
 				error = true;
 			}
-			kfMeas.H(meas, index) = coeff;
+			H(meas, index) = coeff;
 
-			if (assume_linearity)
+			if (kfState.assume_linearity)
 			{
-				double xVal = x[index];
+				double xVal = kfState.x[index];
 				double uVal = entry.usedValueMap[kfKey];
 
 				double deltaX = xVal - uVal;
 				if (deltaX)
 				{
-					BOOST_LOG_TRIVIAL(debug) << std::fixed << "Adjusting meas '" << entry.obsKey << "' as '" << kfKey << "' changed " << deltaX << "\tfrom " << uVal << "\tto " << xVal << "\t : " << innov << "\t-> " << innov - deltaX * coeff;
+					BOOST_LOG_TRIVIAL(debug) << std::fixed
+					<< "Adjusting meas '" << entry.obsKey << "' as '" << kfKey << "' changed " << deltaX
+					<< "\tfrom "	<< uVal
+					<< "\tto "		<< xVal
+					<< "\t : "		<< innov
+					<< "\t-> "		<< innov - deltaX * coeff;
+
 					value -= deltaX * coeff;
 					innov -= deltaX * coeff;
 				}
@@ -1226,43 +1234,31 @@ KFMeas KFState::combineKFMeasList(
 			int index = getNoiseIndex(kfKey);
 			if (index < 0)
 			{
-				std::cout << "Code error: Trying to create measurement for undefined key, check stateTransition() or noiseElementStateTransition() is called first: " << kfKey << std::endl;
+				std::cout << "Code error: Trying to create measurement for undefined key :" << kfKey << std::endl;
 				error = true;
 			}
-			kfMeas.H_star(meas, index) = coeff;
+			H_star(meas, index) = coeff;
 		}
 
-		kfMeas.obsKeys			[meas] = std::move(entry.obsKey);
-		kfMeas.metaDataMaps		[meas] = std::move(entry.metaDataMap);
-		kfMeas.componentsMaps	[meas] = std::move(entry.componentsMap);
+		obsKeys			[meas] = std::move(entry.obsKey);
+		metaDataMaps	[meas] = std::move(entry.metaDataMap);
+		componentsMaps	[meas] = std::move(entry.componentsMap);
 	}
 	Eigen::setNbThreads(0);
 
 	if (error)
 	{
-		return KFMeas();
+		return;
 	}
 
 	if (noiseMatrix_ptr)
 	{
-		kfMeas.R = *noiseMatrix_ptr;
+		R = *noiseMatrix_ptr;
 	}
 
-	if (noiseElementMap.empty() == false)
+	if (uncorrelatedNoise.rows() != 0)
 	{
-		VectorXd uncorrelatedNoise = VectorXd::Zero(noiseElementMap.size());
-
-		map<KFKey, int>	noiseIndexMap;
-		int noises = 0;
-		for (auto& [kfKey, variance] : noiseElementMap)
-		{
-			uncorrelatedNoise(noises) = variance;
-
-			noiseIndexMap[kfKey] = noises;
-			noises++;
-		}
-
-		SparseMatrix<double> R_A = SparseMatrix<double>(numMeas, noiseElementMap.size());
+		SparseMatrix<double> R_A = SparseMatrix<double>(numMeas, uncorrelatedNoise.rows());
 
 		int meas = 0;
 		for (auto& entry: kfEntryList)
@@ -1277,15 +1273,8 @@ KFMeas KFState::combineKFMeasList(
 			meas++;
 		}
 
-// 		std::cout << MatrixXd(R_A) << std::endl;
-		kfMeas.R = R_A * uncorrelatedNoise.asDiagonal() * R_A.transpose();
-
-// 		std::cout << std::setprecision(5);
-// 		std::cout << "R" << std::endl << kfMeas.R << std::endl;
-// 		std::cout << "R_" << std::endl << uncorrelatedNoise << std::endl;
+		R = R_A * uncorrelatedNoise.asDiagonal() * R_A.transpose();
 	}
-
-	return kfMeas;
 }
 
 bool KFState::doStateRejectCallbacks(
@@ -1330,10 +1319,11 @@ bool KFState::doMeasRejectCallbacks(
 /** Kalman filter operation
 */
 void KFState::filterKalman(
-	Trace&						trace,					///< Trace file for output
-	KFMeas&						kfMeas,					///< Measurement object
-	bool						innovReady,				///< Innovation already constructed
-	map<string, FilterChunk>*	filterChunkMap_ptr)		///< Optional list of chunks for parallel processing of sub filters
+	Trace&						trace,				///< Trace file for output
+	KFMeas&						kfMeas,				///< Measurement object
+	const string&				suffix,				///< Suffix to append to residuals block
+	bool						innovReady,			///< Innovation already constructed
+	map<string, FilterChunk>*	filterChunkMap_ptr)	///< Optional map of chunks for parallel processing of sub filters
 {
 	if (kfMeas.time != GTime::noTime())
 	{
@@ -1351,6 +1341,7 @@ void KFState::filterKalman(
 	if (filterChunkMap.empty())
 	{
 		FilterChunk filterChunk;
+
 		filterChunk.trace_ptr	= &trace;
 		filterChunk.numX		= x.rows();
 
@@ -1425,7 +1416,7 @@ void KFState::filterKalman(
 	}
 
 	VectorXd	xp = x;
-				Pp = P;
+	MatrixXd	Pp = P;
 				dx = VectorXd::Zero(x.rows());
 
 
@@ -1459,12 +1450,11 @@ void KFState::filterKalman(
 				return;
 			}
 
-// 			std::cout << std::endl << "\nFrom " << fc.begH << " for " << fc.numH;
-// 			std::cout << std::endl << "\nStat " << fc.begX << " for " << fc.numX;
-// 			outputStates(std::cout, " Debug");
-
-			kfMeas.VV.segment(fc.begH, fc.numH) = kfMeas.V.segment(fc.begH,fc.numH)
-												- kfMeas.H.block(fc.begH, fc.begX, fc.numH, fc.numX) * dx.segment(fc.begX, fc.numX);
+			if (advanced_postfits == false)
+			{
+				kfMeas.VV.segment(fc.begH, fc.numH) = kfMeas.V.segment(fc.begH,fc.numH)
+													- kfMeas.H.block(fc.begH, fc.begX, fc.numH, fc.numX) * dx.segment(fc.begX, fc.numX);
+			}
 
 			if (output_residuals)
 			{
@@ -1579,7 +1569,6 @@ void KFState::filterKalman(
 	}
 
 	initFilterEpoch();
-	noiseElementMap.clear();
 }
 
 /** Least squares estimator for new kalman filter states.
@@ -1596,6 +1585,8 @@ void KFState::leastSquareInitStates(
 	VectorXd*		dx,					///< Optional output of state deltas
 	bool			innovReady)			///< Perform conversion between V & Y
 {
+	lsqRequired = false;
+
 	chiQCPass = false;
 
 	if (innovReady)
@@ -1876,6 +1867,11 @@ KFState KFState::getSubState(
 	vector<KF>	types)
 const
 {
+	if (std::find(types.begin(), types.end(), +KF::ALL) != types.end())
+	{
+		return *this;
+	}
+
 	KFState subState;
 
 	vector<int> indices;
@@ -1898,6 +1894,14 @@ const
 	subState.x		= x	(indices);
 	subState.dx		= dx(indices);
 	subState.P		= P	(indices, indices);
+
+	// for (auto& [kfKey,	thing] : stateTransitionMap)
+	// for (auto& [other,	entry] : thing)					try	{	subState.kfIndexMap.at(kfKey);
+	// 															subState.kfIndexMap.at(other);		subState.stateTransitionMap	[kfKey][other]	= entry;	}	catch (...){}
+	// for (auto& [kfKey,	entry] : gaussMarkovTauMap)		try	{	subState.kfIndexMap.at(kfKey);		subState.gaussMarkovTauMap	[kfKey]			= entry;	}	catch (...){}
+	// for (auto& [kfKey,	entry] : gaussMarkovMuMap)		try	{	subState.kfIndexMap.at(kfKey);		subState.gaussMarkovMuMap	[kfKey]			= entry;	}	catch (...){}
+	// for (auto& [kfKey,	entry] : procNoiseMap)			try	{	subState.kfIndexMap.at(kfKey);		subState.procNoiseMap		[kfKey]			= entry;	}	catch (...){}
+	// for (auto& [kfKey,	entry] : exponentialNoiseMap)	try	{	subState.kfIndexMap.at(kfKey);		subState.exponentialNoiseMap[kfKey]			= entry;	}	catch (...){}
 
 	return subState;
 }
@@ -2140,20 +2144,22 @@ InitialState initialStateFromConfig(
 {
 	InitialState init = {};
 
-	if (index < kalmanModel.estimate	.size())		init.estimate	= 		kalmanModel.estimate	[index];
-	else												init.estimate	= 		kalmanModel.estimate	.back();
-	if (index < kalmanModel.apriori_val	.size())		init.x			= 		kalmanModel.apriori_val	[index];
-	else												init.x			= 		kalmanModel.apriori_val	.back();
-	if (index < kalmanModel.sigma		.size())		init.P			= SQR(	kalmanModel.sigma		[index])	* SGN(kalmanModel.sigma		[index]);
-	else												init.P			= SQR(	kalmanModel.sigma		.back())	* SGN(kalmanModel.sigma		.back());
-	if (index < kalmanModel.tau			.size())		init.tau		= 		kalmanModel.tau			[index];
-	else												init.tau		= 		kalmanModel.tau			.back();
-	if (index < kalmanModel.mu			.size())		init.mu			= 		kalmanModel.mu			[index];
-	else												init.mu			= 		kalmanModel.mu			.back();
-	if (index < kalmanModel.proc_noise	.size())		init.Q			= SQR(	kalmanModel.proc_noise	[index])	* SGN(kalmanModel.proc_noise[index]);
-	else												init.Q			= SQR(	kalmanModel.proc_noise	.back())	* SGN(kalmanModel.proc_noise.back());
-	if (index < kalmanModel.comment		.size())		init.comment	= 		kalmanModel.comment		[index];
-	else												init.comment	= 		kalmanModel.comment		.back();
+	if (index < kalmanModel.estimate		.size())		init.estimate			= 		kalmanModel.estimate		[index];
+	else													init.estimate			= 		kalmanModel.estimate		.back();
+	if (index < kalmanModel.use_remote_sigma.size())		init.use_remote_sigma	= 		kalmanModel.use_remote_sigma[index];
+	else													init.use_remote_sigma	= 		kalmanModel.use_remote_sigma.back();
+	if (index < kalmanModel.apriori_value	.size())		init.x					= 		kalmanModel.apriori_value	[index];
+	else													init.x					= 		kalmanModel.apriori_value	.back();
+	if (index < kalmanModel.sigma			.size())		init.P					= SQR(	kalmanModel.sigma			[index])	* SGN(kalmanModel.sigma		[index]);
+	else													init.P					= SQR(	kalmanModel.sigma			.back())	* SGN(kalmanModel.sigma		.back());
+	if (index < kalmanModel.tau				.size())		init.tau				= 		kalmanModel.tau				[index];
+	else													init.tau				= 		kalmanModel.tau				.back();
+	if (index < kalmanModel.mu				.size())		init.mu					= 		kalmanModel.mu				[index];
+	else													init.mu					= 		kalmanModel.mu				.back();
+	if (index < kalmanModel.process_noise	.size())		init.Q					= SQR(	kalmanModel.process_noise	[index])	* SGN(kalmanModel.process_noise[index]);
+	else													init.Q					= SQR(	kalmanModel.process_noise	.back())	* SGN(kalmanModel.process_noise.back());
+	if (index < kalmanModel.comment			.size())		init.comment			= 		kalmanModel.comment			[index];
+	else													init.comment			= 		kalmanModel.comment			.back();
 
 	return init;
 }

@@ -103,7 +103,8 @@ def handle_load_request(form_data):
     session["mongo_port"] = db_port
     site = []
     sat = []
-    series = []
+    states_series = []
+    measurements_series = []
     mesurements = []
     geometry = []
     state = []
@@ -116,16 +117,22 @@ def handle_load_request(form_data):
             message.append(f"connected to {database}:  has {nsat} satellites and {nsite} sites")
             site += client.mongo_content["Site"]
             sat += client.mongo_content["Sat"]
-            series += [f"{database}\{series}" for series in client.mongo_content["Series"]]
+            try:
+                states_series       += [f"{database}>{series}" for series in client.mongo_content["Series"]]
+                measurements_series += [f"{database}>{series}" for series in client.mongo_content["Series"]]
+            except:
+                states_series       += [f"{database}>{series}" for series in client.mongo_content["StateSeries"]]
+                measurements_series += [f"{database}>{series}" for series in client.mongo_content["MeasurementsSeries"]]
             if client.mongo_content["Has_measurements"]:
                 mesurements += client.mongo_content["Measurements"]
             geometry += client.mongo_content["Geometry"]
             state += client.mongo_content["State"]
-    current_app.logger.debug(site, sat, series)
+    current_app.logger.debug(site, sat, states_series)
     current_app.logger.debug("\n".join(message))
     session["list_sat"] = sorted(set(sat))
     session["list_site"] = sorted(set(site))
-    session["list_series"] = sorted(set(series))
+    session["list_measurements_series"] = sorted(set(measurements_series))
+    session["list_states_series"] = sorted(set(states_series))
     session["list_generic"] = ["Epoch", "Sat", "Site", "Series"]
     session["list_geometry"] = sorted(set(geometry))
     # remove list_generic from list_geometry
@@ -135,6 +142,8 @@ def handle_load_request(form_data):
         session["list_measurements"] = sorted(set(mesurements))
 
     session["list_state"] = sorted(set(state))
+
+
     return render_template(
         "connect.jinja",
         db_ip=connect_db_ip,

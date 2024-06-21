@@ -29,6 +29,7 @@ def handle_post_request() -> str:
     form = {
         "type": form_data.get("type"),
         "series": form_data.getlist("series"),
+        "series_base": form_data.get("series_base"),
         "exclude": form_data.get("exclude"),
     }
     if form["exclude"] == "":
@@ -44,11 +45,12 @@ def handle_post_request() -> str:
 
     form["mode"] = form_data.get("mode")
     form["site"] = form_data.getlist("site")
-    suffix_series_base = "_apriori"
     data = MeasurementArray()
     base = MeasurementArray()
     for series in form["series"]:
-        db_, series_ = series.split("\\")
+        series_base = form["series_base"]
+        db_,      series_      = series.split(">")
+        db_base_, series_base_ = series_base.split(">")
         try:
             get_data(
                 db_,
@@ -62,12 +64,12 @@ def handle_post_request() -> str:
                 reshape_on="Num",
             )
             get_data(
-                db_,
+                db_base_,
                 "States",
                 ["REC_POS"],
                 form["site"],
                 [""],
-                [suffix_series_base],
+                [series_base_],
                 ["x"] + ["Epoch", "Num"],
                 base,
                 reshape_on="Num",
@@ -76,6 +78,7 @@ def handle_post_request() -> str:
             current_app.logger.error(err)
             return render_template(
                 "position.jinja",
+                selection=form,
                 # content=client.mongo_content,
                 extra=extra,
                 message=f"Error getting data: {str(err)}",
@@ -96,12 +99,13 @@ def handle_post_request() -> str:
     for _data in position_vector:
         for _yaxis in _data.data:
             _data.id["state"] = _yaxis
+            smallLegend = [_data.id[a] for a in _data.id]
             trace.append(
                 go.Scatter(
                     x=_data.epoch[_data.subset],
                     y=_data.data[_yaxis][_data.subset],
                     mode=type,
-                    name=f"{_data.id}",
+                    name=f"{smallLegend}",
                     hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>"
                     + "%{y:.4e%}<br>"
                     + f"{_data.id}",

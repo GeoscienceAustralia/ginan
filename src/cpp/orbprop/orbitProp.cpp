@@ -614,7 +614,7 @@ void integrateOrbits(
 
 /** Get the estimated elements for a single satellite's orbit
 */
-KFState getOrbitFromState(
+shared_ptr<KFState> getOrbitFromState(
 	Trace&			trace,
 	SatSys			Sat,
 	string			str,
@@ -646,7 +646,7 @@ KFState getOrbitFromState(
 	KFState subState;
 	kfState.getSubState(kfKeyMap, subState);
 
-	return subState;
+	return make_shared<KFState>(subState);
 }
 
 Orbits prepareOrbits(
@@ -669,21 +669,15 @@ Orbits prepareOrbits(
 	for (auto& orbit : orbits)
 	{
 		auto& Sat		= orbit.Sat;
-		auto& subState	= orbit.subState;
+		auto& satOpts	= acsConfig.getSatOpts(Sat);
 
-		subState = getOrbitFromState(trace, Sat, orbit.str, kfState);
+		orbit.subState_ptr = getOrbitFromState(trace, Sat, orbit.str, kfState);
 
-		auto& satOpts = acsConfig.getSatOpts(Sat);
+		auto& subState	= *orbit.subState_ptr;
 
 		vector<bool> eclipse;
-		for (int i = 0; i < 3; i++)
-		{
-			eclipse.push_back(queryVectorElement(satOpts.empirical_dyb_eclipse, i));
-		}
-		for (int i = 0; i < 3; i++)
-		{
-			eclipse.push_back(queryVectorElement(satOpts.empirical_rtn_eclipse, i));
-		}
+		for (int i = 0; i < 3; i++)		{	eclipse.push_back(queryVectorElement(satOpts.empirical_dyb_eclipse, i));	}
+		for (int i = 0; i < 3; i++)		{	eclipse.push_back(queryVectorElement(satOpts.empirical_rtn_eclipse, i));	}
 
 		for (auto& [subKey, index] : subState.kfIndexMap)
 		{
@@ -757,8 +751,8 @@ Orbits prepareOrbits(
 			}
 		}
 
-		orbit.pos		= orbit.subState.x.head		(3);
-		orbit.vel		= orbit.subState.x.segment	(3, 3);
+		orbit.pos		= subState.x.head		(3);
+		orbit.vel		= subState.x.segment	(3, 3);
 
 		if (orbit.pos.isZero())
 		{
@@ -766,7 +760,7 @@ Orbits prepareOrbits(
 			continue;
 		}
 
-		orbit.posVelSTM	= MatrixXd::Identity(6, orbit.subState.kfIndexMap.size());
+		orbit.posVelSTM	= MatrixXd::Identity(6, subState.kfIndexMap.size());
 
 		orbit.attStatus	= nav.satNavMap[Sat].attStatus;
 
@@ -814,7 +808,7 @@ void applyOrbits(
 			continue;
 		}
 
-		auto& subState = orbit.subState;
+		auto& subState = *orbit.subState_ptr;
 
 		Vector6d inertialState;
 		inertialState << orbit.pos, orbit.vel;

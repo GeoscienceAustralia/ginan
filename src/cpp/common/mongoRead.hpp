@@ -6,8 +6,6 @@
 
 struct SSRMeta;
 
-GTime mongoReadLastClock();
-
 SsrOutMap mongoReadOrbClk(
 	GTime		referenceTime,
 	SSRMeta&	ssrMeta,
@@ -41,17 +39,6 @@ SSRAtm mongoReadIGSIonosphere(
 SSRAtm mongoReadCmpAtmosphere(
 	GTime	time,
 	SSRMeta	ssrMeta);
-
-map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
-	GTime	time	= GTime::noTime(),
-	SatSys	Sat		= SatSys(),
-	bool	remote	= false,
-	double*	var_ptr	= nullptr);
-
-map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
-	GTime	time	= GTime::noTime(),
-	string	str		= "",
-	bool	remote	= false);
 
 class KF;
 struct KFState;

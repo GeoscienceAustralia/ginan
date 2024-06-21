@@ -5,6 +5,8 @@ add_subdirectory(3rdparty/sofa)
 
 add_library(ginan_core
 
+		../Architecture/Ginan.cpp
+
 		common/acsConfig.hpp
 		common/acsConfig.cpp
 		common/acsConfigDocs.cpp
@@ -243,6 +245,7 @@ target_include_directories(ginan_core PUBLIC
 		3rdparty/slr
 
 		configurator
+		../Architecture/
 
 		ambres
 		slr

@@ -116,6 +116,20 @@ bool satclk(
 		satPos.clkSource	= ephType;
 		satPos.ephClkValid	= true;
 
+		if	(acsConfig.check_broadcast_differences
+			&&ephType != +E_Source::BROADCAST)
+		{
+			SatPos copy = satPos;
+
+			bool pass = satClkBroadcast(trace, time, teph, copy, nav);
+			double delta = (copy.satClk - satPos.satClk) * CLIGHT;
+			if	( pass
+				&&fabs(delta) > 30)
+			{
+				BOOST_LOG_TRIVIAL(warning) << "Warning, clock for " << satPos.Sat.id() << " is " << delta << " from broadcast";
+			}
+		}
+
 		break;
 	}
 
@@ -167,6 +181,19 @@ bool satpos(
 			case E_Source::PRECISE:		satPos.rSatApc = satPos.rSatCom;	break;
 			case E_Source::KALMAN:		satPos.rSatApc = satPos.rSatCom;	break;
 			case E_Source::REMOTE:		satPos.rSatApc = satPos.rSatCom;	break;
+		}
+
+		if	( acsConfig.check_broadcast_differences
+			&&ephType != +E_Source::BROADCAST)
+		{
+			SatPos copy = satPos;
+			bool pass = satPosBroadcast(trace, time, teph, copy, nav);
+			double delta = (satPos.rSatApc - copy.rSatApc).norm();
+			if	( pass
+				&&delta > 10)
+			{
+				BOOST_LOG_TRIVIAL(warning) << "Warning, orbit for " << satPos.Sat.id() << " is " << delta << " from broadcast";
+			}
 		}
 
 		tracepdeex(4, trace, " - FOUND");
@@ -224,7 +251,8 @@ bool satpos(
 			||satPos.satNav_ptr->lamMap[j] == 0
 			||satPos.satNav_ptr->lamMap[k] == 0)
 		{
-			updatenav(satPos);		// satAntOff() requries lamMap
+			// satAntOff() requries lamMap
+			updateLamMap(time, satPos);
 		}
 
 		Vector3d dAnt = Vector3d::Zero();

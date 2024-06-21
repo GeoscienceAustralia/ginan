@@ -12,6 +12,7 @@ using std::unordered_map;
 #include <boost/format.hpp>
 
 #include "interactiveTerminal.hpp"
+#include "architectureDocs.hpp"
 #include "peaCommitStrings.hpp"
 #include "observations.hpp"
 #include "mongoWrite.hpp"
@@ -26,6 +27,35 @@ boost::iostreams::stream<boost::iostreams::null_sink> nullStream((boost::iostrea
 
 
 bool ConsoleLog::useInteractive = false;
+
+
+
+/** Semi-formatted text-based outputs.
+ * Trace files are the best record of the processing that occurs within the Pea.
+ *
+ * The level of trace may be set numerically by configuration.
+ * It will enable more or fewer lines of detail, and in some cases, the number of columns to be included in formatted sections.
+ *
+ * Receivers and Satellites may have trace file outputs configured, which will include details specific to their processing, such as any preprocessing,
+ * and details about measurements that are being computed.
+ *
+ * Calculated satellite and receiver positions, and reasons for the exclusion of any measurements are recorded in the receiver trace files.
+ *
+ * When satellite orbit propagation is enabled, some details about modelled forces may be available in satellite trace files.
+ *
+ * The receiver files may be configured with residual chain outputs on, which will produce formatted output of each modelled component as they are subtracted from the measured quantity.
+ * Depending on the possibility of chunking, receiver trace files may also include states that are usually only recorded in the network trace files.
+ *
+ * Once the list of measurements is aggregated and passed to the main filter, trace outputs are written to the 'network' trace file.
+ * This contains any filter states, measurement residuals, state removals or reinitialsations, and iteration details.
+ *
+ * The filter outputs in the network trace file include blocks that are formatted with SINEX-style +BLOCK...-BLOCK sections,
+ * which may allow for easier post-processing by eliminating any information outside of the required section.
+ */
+FileType Trace_Files__()
+{
+
+}
 
 void ConsoleLog::consume(
 	boost::log::record_view																	const&	rec,
@@ -119,22 +149,12 @@ void printHex(
 }
 
 
-void traceJson(
-	int						level,
+void traceJson_(
 	Trace&					trace,
 	string					time,
 	vector<ArbitraryKVP>	id,
 	vector<ArbitraryKVP>	val)
 {
-	if (level > traceLevel)
-		return;
-
-	if	( acsConfig.output_json_trace		== false
-		&&acsConfig.mongoOpts.output_trace	== false)
-	{
-		return;
-	}
-
 	string json = "{ \"Epoch\":\"" + time + "\", \"id\":{";
 	for (auto& thing : id)
 	{

@@ -38,8 +38,8 @@ def handle_post_request():
     else:
         form["exclude_tail"] = int(form["exclude_tail"])
         
-    db_, series_ = form["series"].split("\\")
-    db_2, series_2 = form["series_base"].split("\\")
+    db_, series_ = form["series"].split(">")
+    db_2, series_2 = form["series_base"].split(">")
     if db_ != db_2:
         return render_template(
             "clocks.jinja",
@@ -81,13 +81,14 @@ def handle_post_request():
     result.get_stats()
     table = {}
     for _clock in result:
+        smallLegend = [_clock.id[a] for a in _clock.id]
         trace.append(
             go.Scatter(
                 x=_clock.epoch[_clock.subset],
                 y=_clock.data["x"][_clock.subset],
                 mode="lines",
-                name=f"{_clock.id}",
-                hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>" + "%{y:.4e%}<br>" + f"{_clock.id}",
+                name=f"{smallLegend}",
+                hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>" + "%{y:.4e%}<br>" + f"{smallLegend}",
             )
         )
         current_app.logger.debug(_clock.info)

@@ -1000,7 +1000,7 @@ E_ObsCode RtcmDecoder::signal_to_code(E_Sys sys, uint8_t signal)
 	auto it1 = sysIdSignalMapMap.find(sys);
 	if (it1 == sysIdSignalMapMap.end())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " sys=" << sys;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " sys=" << sys;
 
 		return E_ObsCode::NONE;
 	}
@@ -1010,7 +1010,7 @@ E_ObsCode RtcmDecoder::signal_to_code(E_Sys sys, uint8_t signal)
 	auto it2 = idSignalMap.find(signal);
 	if (it2 == idSignalMap.end())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " sys=" << sys << " signal=" << (int)signal;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " sys=" << sys << " signal=" << (int)signal;
 
 		return E_ObsCode::NONE;
 	}
@@ -1063,7 +1063,7 @@ double highResLockTimeFromIndicator(
 	else if (i < 704)		lockTime = 1048576	* i - 671088640;
 	else if (i== 704)		lockTime = 2097152	* i - 1409286144;
 	else
-		tracepdeex(3, std::cout, "\nWarning high res lock time out of bounds\n");
+		BOOST_LOG_TRIVIAL(warning) << "Warning: High res lock time out of bounds: " << lockTime;
 
 	lockTime /= 1000;
 
@@ -1222,12 +1222,12 @@ ObsList RtcmDecoder::decodeMSM(
 			}
 			else
 			{
-				BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " messageNumber=" << messageNumber << " signal=" << sig.code;
+				BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " messageNumber=" << messageNumber << " signal=" << sig.code;
 			}
 		}
 		else
 		{
-			BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << "messageNumber=" << messageNumber;
+			BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << "messageNumber=" << messageNumber;
 		}
 
 		obs.sigsLists[ft].push_back(sig);

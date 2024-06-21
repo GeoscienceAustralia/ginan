@@ -40,18 +40,15 @@ struct ConsoleLog : public sinks::basic_formatted_sink_backend<char, sinks::sync
 		sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	log_string);
 };
 
+
 extern int traceLevel;
 
 template<typename... Arguments>
-void tracepdeex(
-	int				level,
+void tracepdeex_(
 	Trace&			stream,
 	string const&	fmt,
 	Arguments&&...	args)
 {
-	if (level > traceLevel)
-		return;
-
 	boost::format f(fmt);
 	int unroll[] {0, (f % std::forward<Arguments>(args), 0)...};
 	stream << boost::str(f);
@@ -137,8 +134,7 @@ struct ArbitraryKVP
 	}
 };
 
-void traceJson(
-	int						level,
+void traceJson_(
 	Trace&					trace,
 	string					time,
 	vector<ArbitraryKVP>	id,
@@ -152,3 +148,27 @@ bool createNewTraceFile(
 	string& 					old_path_trace,
 	bool						outputHeader = false,
 	bool						outputConfig = false);
+
+//wrap trace functions to lazily execute their parameter evaluations.
+#define tracepdeex(level, ...)								\
+do															\
+{															\
+	if (level > traceLevel)									\
+		continue; 											\
+															\
+	tracepdeex_	(__VA_ARGS__);								\
+} while (false)
+
+#define traceJson(level, ...)								\
+do															\
+{															\
+	if (level > traceLevel)									\
+		continue;											\
+															\
+	if	( acsConfig.output_json_trace		== false		\
+		&&acsConfig.mongoOpts.output_trace	== false)		\
+	{														\
+		continue;											\
+	}														\
+	traceJson_	(__VA_ARGS__); 								\
+} while (false)

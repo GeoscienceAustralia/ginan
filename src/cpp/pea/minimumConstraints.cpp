@@ -455,8 +455,8 @@ void mincon(
 
 	MatrixXd RR = R(indices, indices);
 
-	KFMeas combinedMeas			= kfStateTrans.combineKFMeasList(measList,			GTime::noTime(), &R);
-	KFMeas combinedMeasCulled	= kfStateTrans.combineKFMeasList(measListCulled,	GTime::noTime(), &RR);
+	KFMeas combinedMeas			(kfStateTrans, measList,		GTime::noTime(), &R);
+	KFMeas combinedMeasCulled	(kfStateTrans, measListCulled,	GTime::noTime(), &RR);
 
 	for (auto& metaDataMap : combinedMeasCulled.metaDataMaps)
 	{
@@ -473,7 +473,7 @@ void mincon(
 
 	trace << std::endl << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
 
-	kfStateTrans.filterKalman(trace, combinedMeasCulled);
+	kfStateTrans.filterKalman(trace, combinedMeasCulled, "/MINCON_TRANSFORM");
 
 	kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM");
 

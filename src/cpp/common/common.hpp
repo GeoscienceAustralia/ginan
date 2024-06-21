@@ -88,8 +88,9 @@ void replaceTimes(
 	string&						str,		///< String to replace macros within
 	boost::posix_time::ptime	time_time);	///< Time to use for replacements
 
-void updatenav(
-	SatPos&	obs);
+void updateLamMap(
+	const	GTime&	time,
+			SatPos&	obs);
 
 
 

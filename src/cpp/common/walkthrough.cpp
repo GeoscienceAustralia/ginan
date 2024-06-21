@@ -239,17 +239,17 @@ KFState walkthrough1()
 																						if (epoch == 1)	printWait(noteInit);
 																						if (epoch == 2)	printWait(noteProcNoise);
 
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);		//filterKalman requires a consolidated KFMeas input, rather than a list of individial KFMeasEntrys, create it here
+		KFMeas kfMeas(kfState, kfMeasEntryList, time);		//filterKalman requires a consolidated KFMeas input, rather than a list of individial KFMeasEntrys, create it here
 
 		if (1)
 		{
 			if (epoch == 1)
-				kfState.outputMeasurements(std::cout, combinedMeas);
+				kfState.outputMeasurements(std::cout, kfMeas);
 																						if (epoch == 1)	printWait(noteMeas);
 		}
 
 
-		kfState.filterKalman(std::cout, combinedMeas, true);		//perform the kalman filter operation (the true indicates this is an extended kalman filter using precalculated OMCs, this should generally be true in ginan)
+		kfState.filterKalman(std::cout, kfMeas, "", true);		//perform the kalman filter operation (the true indicates this is an extended kalman filter using precalculated OMCs, this should generally be true in ginan)
 																						if (epoch == 1)	printWait(noteResiduals);
 																						if (epoch == 2) printWait(noteReject);
 
@@ -397,13 +397,13 @@ void walkthrough2(
 			kfState.outputStates(std::cout, " - POST SECOND STATE TRANSITION");
 
 
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+		KFMeas kfMeas(kfState, kfMeasEntryList, time);
 
 
 		if (1)
 		{
 			if (t == 0)
-				kfState.outputMeasurements(std::cout, combinedMeas);
+				kfState.outputMeasurements(std::cout, kfMeas);
 																						if (t == 0)	printWait(noteMeas2);
 
 
@@ -413,7 +413,7 @@ void walkthrough2(
 		}
 
 
-		kfState.filterKalman(std::cout, combinedMeas, true);
+		kfState.filterKalman(std::cout, kfMeas, "", true);
 
 
 		kfState.outputStates(std::cout, " - POST FILTER");

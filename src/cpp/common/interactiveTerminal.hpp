@@ -54,10 +54,12 @@ struct InteractiveTerminal : ostringstream
 	static void keyboardHandler();
 
 	static void clearPage(
-		const string& pageName)
+		string pageName)
 	{
 		if (enabled == false)
 			return;
+
+		boost::replace_all(pageName, "\t", "/");
 
 		lock_guard<mutex> guard(dataMutex);
 
@@ -86,9 +88,9 @@ struct InteractiveTerminal : ostringstream
 		E_InteractiveMode		modeName);
 
 	static void addString(
-		const string&	pageName,
-		const string&	str,
-		bool			updateWindow = true);
+				string	pageName,
+		const	string&	str,
+				bool	updateWindow = true);
 
 
 	string	name;

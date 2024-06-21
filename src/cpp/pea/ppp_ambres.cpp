@@ -83,12 +83,12 @@ bool applyBestIntegerAmbiguity(
 
 	kfMeasEntryList.push_back(measEntry);
 
-	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, kfState.time);
+	KFMeas kfMeas(kfState, kfMeasEntryList, kfState.time);
 
 	filterError = false;
 	kfState.measRejectCallbacks.push_back(recordFilterError);
 	{
-		kfState.filterKalman(trace, combinedMeas);
+		kfState.filterKalman(trace, kfMeas);
 	}
 	kfState.measRejectCallbacks.pop_back();
 
@@ -97,7 +97,7 @@ bool applyBestIntegerAmbiguity(
 		return false;
 	}
 
-	kfState.outputStates(trace, "/FIX_SINGLE_AMBIGUITY");
+	kfState.outputStates(trace, "/AR1");
 
 	return true;
 }
@@ -130,8 +130,8 @@ void applyUCAmbiguities(
 
 		KFMeasEntry measEntry(&kfState);
 
-		measEntry.obsKey.type = KF::Z_AMB;
-		measEntry.obsKey.num  = i;
+		measEntry.obsKey.type		= KF::Z_AMB;
+		measEntry.obsKey.comment	= "Ambiguity Psueodobs";
 
 		measEntry.addNoiseEntry(measEntry.obsKey, 1, FIXED_AMB_VAR);
 
@@ -167,13 +167,11 @@ void applyUCAmbiguities(
 		kfMeasEntryList.push_back(measEntry);
 	}
 
-	kfState.noiseElementStateTransition();
+	KFMeas kfMeas(kfState, kfMeasEntryList, kfState.time);
 
-	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, kfState.time);
+	kfState.filterKalman(trace, kfMeas, "/AR", true);
 
-	kfState.filterKalman(trace, combinedMeas, true);
-
-	kfState.outputStates(trace, "/APPLY_UC_AMBIGUITIES");
+	kfState.outputStates(trace, "/AR");
 }
 
 void fixAndHoldAmbiguities(

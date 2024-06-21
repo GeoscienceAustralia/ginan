@@ -16,10 +16,14 @@ inputs:
                 - "<CWD>/rtk/A*.rnx"
             - BRAD:
                 - "<CWD>/rtk/B*.rnx"
-            # - CHAZ:
-            #     - "<CWD>/rtk/C*.rnx"
-            # - DAVE:
-            #     - "<CWD>/rtk/D*.rnx"
+            - CHAZ:
+                - "<CWD>/rtk/C*.rnx"
+            - DAVE:
+                - "<CWD>/rtk/D*.rnx"
+            # - FRAN:
+            #     - "<CWD>/rtk/F*.rnx"
+            # - GARY:
+            #     - "<CWD>/rtk/G*.rnx"
 
     satellite_data:
         sp3_files:
@@ -27,7 +31,7 @@ inputs:
 
 outputs:
     metadata:
-        config_description:    rtk
+        config_description:    rtk_A
 
     outputs_root:              ./outputs/<CONFIG>
 
@@ -53,8 +57,9 @@ satellite_options:
 receiver_options:
 
     global:
-        elevation_mask:     15
+        elevation_mask:     10
         code_sigma:         0.3
+        # code_sigma:         3000
         phase_sigma:        0.003    # Standard deviation of phase measurmeents, m
         models:
             phase_bias:
@@ -74,12 +79,22 @@ receiver_options:
         apriori_position: [-4454625.6083166, 2669830.4257644,-3691275.8084798]
 
     ALEX:
-        # code_sigma:         3000
         models:
             code_bias:
                 enable:     true
+
     BRAD:
         aliases:          [BASE]
+    FRAN:
+        # aliases:          [BASE]
+        apriori_position: [ -4454695.3171,  2669791.4467, -3691215.6759   ]
+
+    GARY:
+        # aliases:          [BASE]
+        apriori_position: [ -4454622.6297,  2669912.5450, -3691219.1597   ]
+
+    BASE:
+        code_sigma:         0.3
 
 processing_options:
 
@@ -91,11 +106,11 @@ processing_options:
 
     gnss_general:
         phase_measurements:
-            # process:                    false
+            process:                    false
 
-        equate_tropospheres:    true
-        equate_ionospheres:     true
-        use_rtk_combo:          true
+        # equate_tropospheres:    true
+        # equate_ionospheres:     true
+        # use_rtk_combo:          true
         sys_options:
             gps:
                 process:                true
@@ -103,7 +118,7 @@ processing_options:
 
     ppp_filter:
         ionospheric_components:
-            # common_ionosphere: false
+            common_ionosphere: false
             # use_if_combo: true
 
         advanced_postfits: true
@@ -122,31 +137,31 @@ estimation_parameters:
                 # process_noise:  [-1]
             code_bias:
                 estimated:          [true]
-                sigma:              [100]
+                sigma:              [10000]
                 process_noise:      [1]
 
     receivers:
         BASE:
             phase_bias:
-                estimated:  [false]
+                # estimated:  [false]
             pos:
                 estimated:  [false]
             code_bias:
                 estimated:  [false]
         ALEX:
             code_bias:
-                apriori_value: [8.62]
+                apriori_value: [20]
         CHAZ:
             code_bias:
-                apriori_value: [-0.9]
+                # apriori_value: [-0.9]
         DAVE:
             code_bias:
-                apriori_value: [0]
+                # apriori_value: [0]
         global:
             pos:
                 estimated:          [true]
                 sigma:              [1000]
-                process_noise:      [100]
+                process_noise:      [10]
             clock:
                 estimated:          [true]
                 sigma:              [1000]
@@ -158,19 +173,19 @@ estimation_parameters:
             trop:
                 estimated:          [true]
                 sigma:              [4]
-                process_noise:      [0.0001]
+                process_noise:      [0.001]
             phase_bias:
                 estimated:          [true]
-                sigma:              [1]
+                sigma:              [100]
                 process_noise:      [0]
             ambiguities:
                 estimated:          [true]
-                sigma:              [10000]
+                sigma:              [100000]
                 process_noise:      [0]
             code_bias:
                 # estimated:          [false, false, true]
                 estimated:          [true]
-                sigma:              [100]
+                sigma:              [10000]
                 process_noise:      [0]
                 # apriori_value: [1.5, 1.5, -1.5]
 

@@ -250,7 +250,7 @@ void updateNavSSR()
 		if (ssrBlock.phaseUpdated)
 		{
 			BiasEntry	entry;
-			string		id  = Sat + ":" + Sat.sysChar();
+			string		id  = Sat.id() + ":" + string(1, Sat.sysChar());
 			entry.measType	= PHAS;
 			entry.Sat		= Sat;
 			entry.tini		= ssrBlock.ssrPhasBias.t0 - ssrBlock.ssrPhasBias.udi/2.0;

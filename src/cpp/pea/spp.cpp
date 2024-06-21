@@ -582,7 +582,7 @@ E_Solution estpos(
 
 		//combine the measurement list into a single matrix
 		numMeas = kfMeasEntryList.size();
-		KFMeas kfMeas = kfState.combineKFMeasList(kfMeasEntryList);
+		KFMeas kfMeas(kfState, kfMeasEntryList);
 
 		if	( numMeas < kfMeas.H.cols() - 1
 			||numMeas == 0)
@@ -823,7 +823,7 @@ bool raim(
 
 /** Compute receiver position, velocity, clock bias by single-point positioning with pseudorange observables
 */
-void SPP(
+void spp(
 	Trace&		trace,			///< Trace file to output to
 	ObsList&	obsList,		///< List of observations for this epoch
 	Solution&	sol,			///< Solution object containing initial state and results

@@ -77,7 +77,7 @@ void addDefaultBias()
 	}
 }
 
-void loadStateBiases(
+void loadStateBiases(		//todo aaron this probably needs to be called to write biases from filter to files
 	KFState&	kfState)
 {
 	for (auto& [kfKey, index] : kfState.kfIndexMap)

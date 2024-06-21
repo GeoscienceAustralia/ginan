@@ -29,7 +29,7 @@ Clocks
     <br>
     <select class="selectpicker form-control" name="series_base" id="series_base" data-container="body"
       data-live-search="true" title="Select type">
-      {% for series_ in session['list_series'] %}
+      {% for series_ in session['list_states_series'] %}
       {% if selection is defined and selection['series_base']|length and series_ in selection['series_base']%}
       <option value="{{series_}}" SELECTED>{{series_}}</option>"
       {%else%}
@@ -44,7 +44,7 @@ Clocks
     <br>
     <select class="selectpicker form-control" name="series" id="series" data-container="body" data-live-search="true"
       title="Series">
-      {% for series_ in session['list_series'] %}
+      {% for series_ in session['list_states_series'] %}
       {% if selection is defined and selection['series']|length and series_ in selection['series']%}
       <option value="{{series_}}" SELECTED>{{series_}}</option>"
       {%else%}
@@ -101,13 +101,13 @@ Clocks
     </div>
   </div>
 
-  <div class="col-lg-2">
+  <div class="col-lg-1">
     <label for="exclude">Exclude first (min):</label>
     <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" {% if selection is defined
       and selection['exclude'] %}value="{{ selection['exclude'] }}" {% endif %}>
   </div>
 
-  <div class="col-lg-2">
+  <div class="col-lg-1">
     <label for="exclude">Exclude last (min):</label>
     <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail" {% if
       selection is defined and selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}" {% endif %}>

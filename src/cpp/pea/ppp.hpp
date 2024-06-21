@@ -63,7 +63,7 @@ void outputPppNmea(
 	KFState&	kfState,
 	string		id);
 
-void SPP(
+void spp(
 	Trace&		trace,
 	ObsList&	obsList,
 	Solution&	sol,
@@ -80,7 +80,7 @@ void pppCorrections(
 	Vector3d&	rRec,
 	Receiver&	rec);
 
-void PPP(
+void ppp(
 	Trace&			trace,
 	ReceiverMap&	receiverMap,
 	KFState&		kfState,
@@ -224,8 +224,7 @@ void receiverPseudoObs(
 			Receiver&			rec,
 	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
-			ReceiverMap&		receiverMap,
-			MatrixXd*			R_ptr = nullptr);
+			ReceiverMap&		receiverMap);
 
 
 void readPseudosFromFile(

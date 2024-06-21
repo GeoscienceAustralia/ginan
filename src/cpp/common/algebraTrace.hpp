@@ -118,10 +118,6 @@ struct TransitionMatrixObject
 	}
 };
 
-extern map<short int, string> idStringMap;
-extern map<string, short int> stringIdMap;
-
-
 using boost::serialization::serialize;
 using boost::archive::binary_oarchive;
 using boost::archive::binary_iarchive;

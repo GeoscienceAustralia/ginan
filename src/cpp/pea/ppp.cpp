@@ -1,7 +1,6 @@
 
 // #pragma GCC optimize ("O0")
 
-
 #include <boost/log/trivial.hpp>
 
 #include <iostream>
@@ -25,18 +24,12 @@ using std::vector;
 #include "receiver.hpp"
 #include "satStat.hpp"
 #include "algebra.hpp"
-#include "planets.hpp"
 #include "antenna.hpp"
-#include "biases.hpp"
-#include "orbits.hpp"
-#include "common.hpp"
 #include "gTime.hpp"
-#include "tides.hpp"
 #include "trace.hpp"
 #include "enums.h"
 #include "ppp.hpp"
 #include "erp.hpp"
-#include "slr.hpp"
 
 void outputApriori(
 	ReceiverMap& receiverMap)
@@ -46,17 +39,43 @@ void outputApriori(
 		return;
 	}
 
+	ERPValues erpv = getErp(nav.erp, tsync);
+
+	FrameSwapper frameSwapper(tsync, erpv);
+
 	KFState aprioriState;
+	KFState brdcState;
+
 	for (auto& [id, rec] : receiverMap)
 	{
-		KFKey kfKey;
-		kfKey.str	= id;
-		kfKey.type	= KF::REC_POS;
-
-		for (int i = 0; i < 3; i++)
+		// apriori_positions:
 		{
-			kfKey.num = i;
-			double apriori = rec.aprioriPos[i];
+			KFKey kfKey;
+			kfKey.str	= id;
+			kfKey.type	= KF::REC_POS;
+
+			for (int i = 0; i < 3; i++)
+			{
+				kfKey.num = i;
+				double apriori = rec.aprioriPos[i];
+
+				if (apriori == 0)
+				{
+					continue;
+				}
+
+				aprioriState.addKFState(kfKey, {.x = apriori});
+			}
+		}
+
+		// apriori_clocks:
+		{
+			KFKey kfKey;
+			kfKey.str	= id;
+			kfKey.Sat	= SatSys(E_Sys::GPS);
+			kfKey.type	= KF::REC_CLOCK;
+
+			double apriori = rec.aprioriClk;
 
 			if (apriori == 0)
 			{
@@ -64,21 +83,6 @@ void outputApriori(
 			}
 
 			aprioriState.addKFState(kfKey, {.x = apriori});
-		}
-	}
-
-	for (auto& [id, rec] : receiverMap)
-	{
-		KFKey kfKey;
-		kfKey.str	= id;
-		kfKey.Sat	= SatSys(E_Sys::GPS);
-		kfKey.type	= KF::REC_CLOCK;
-
-		double dtRec = 0;
-		int ret = pephclk(std::cout, tsync, id, nav, dtRec);
-		if (ret == 1)
-		{
-			aprioriState.addKFState(kfKey, {.x = CLIGHT * dtRec});
 		}
 	}
 
@@ -96,33 +100,73 @@ void outputApriori(
 			continue;
 		}
 
-		KFKey kfKey;
-		kfKey.Sat	= Sat;
-		kfKey.type	= KF::SAT_CLOCK;
+		SatPos satPos;
+		satPos.Sat = Sat;
 
-		double dtSat = 0;
-		int ret = pephclk(std::cout, tsync, kfKey.Sat.id(), nav, dtSat);
-		if (ret == 1)
-		{
-			aprioriState.addKFState(kfKey, {.x = CLIGHT * dtSat});
-		}
-
-		for (int i = 0; i < 3; i++)
+		//apriori_clocks:
 		{
 			KFKey kfKey;
 			kfKey.Sat	= Sat;
-			kfKey.num	= i;
-			kfKey.type	= KF::ORBIT;
+			kfKey.type	= KF::SAT_CLOCK;
 
-			aprioriState.addKFState(kfKey, {.x = satNav.aprioriPos(i)});
+			//search all receivers for an observation with this clock
+			for (auto& [id, rec] : receiverMap)
+			for (auto& obs : only<GObs>(rec.obsList))
+			{
+				if	( obs.exclude
+					||obs.Sat != Sat)
+				{
+					continue;
+				}
+
+				aprioriState.addKFState(kfKey, {.x = CLIGHT * obs.satClk});
+
+				goto breakOut;
+			} breakOut:
+
+			bool brdcPass = satClkBroadcast(nullStream, tsync, tsync, satPos, nav);
+			if (brdcPass)
+			{
+				brdcState.addKFState(kfKey, {.x = CLIGHT * satPos.satClk});
+
+				satPos.rSatEci0 = frameSwapper(satPos.rSatApc);
+			}
+		}
+
+		//apriori_positions:
+		{
+			bool brdcPass = satPosBroadcast(nullStream, tsync, tsync, satPos, nav);
+			if (brdcPass)
+			{
+				satPos.rSatEci0 = frameSwapper(satPos.rSatApc);
+			}
+
+			for (int i = 0; i < 3; i++)
+			{
+				KFKey kfKey;
+				kfKey.Sat	= Sat;
+				kfKey.num	= i;
+				kfKey.type	= KF::ORBIT;
+
+									aprioriState.addKFState(kfKey, {.x = satNav.aprioriPos	(i)});
+				if (brdcPass)		brdcState	.addKFState(kfKey, {.x = satPos.rSatEci0	(i)});
+			}
 		}
 	}
 
 	aprioriState.stateTransition(nullStream, tsync);
+	brdcState	.stateTransition(nullStream, tsync);
 
 	mongoStates(aprioriState,
 				{
-					.suffix		= "_apriori",
+					.suffix		= "/APRIORI",
+					.instances	= acsConfig.mongoOpts.output_states,
+					.queue		= acsConfig.mongoOpts.queue_outputs
+				});
+
+	mongoStates(brdcState,
+				{
+					.suffix		= "/BROADCAST",
 					.instances	= acsConfig.mongoOpts.output_states,
 					.queue		= acsConfig.mongoOpts.queue_outputs
 				});
@@ -258,7 +302,7 @@ void selectAprioriSource(
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
 
 	E_Source foundSource = E_Source::NONE;
-	for (auto& source : recOpts.posModel.sources)
+	for (auto source : recOpts.posModel.sources)
 	{
 		switch (source)
 		{
@@ -291,8 +335,10 @@ void selectAprioriSource(
 			}
 			case E_Source::REMOTE:
 			{
-				if (source == +E_Source::KALMAN	&& kfState_ptr	== nullptr)	continue;
-				if (source == +E_Source::REMOTE	&& remote_ptr	== nullptr)	continue;
+				if (remote_ptr == nullptr)
+				{
+					continue;
+				}
 
 				bool found = true;
 				for (int i = 0; i < 3; i++)
@@ -302,8 +348,7 @@ void selectAprioriSource(
 					kfKey.str		= rec.id;
 					kfKey.num		= i;
 
-					if (source == +E_Source::KALMAN)	found &= kfState_ptr->getKFValue(kfKey, rec.aprioriPos(i));
-					if (source == +E_Source::REMOTE)	found &= remote_ptr	->getKFValue(kfKey, rec.aprioriPos(i));
+					found &= remote_ptr->getKFValue(kfKey, rec.aprioriPos(i));
 				}
 
 				if (found == false)
@@ -315,17 +360,17 @@ void selectAprioriSource(
 			}
 			case E_Source::SPP:
 			{
-				rec.aprioriTime = rec.sol.sppTime;
-				rec.aprioriPos	= rec.sol.sppRRec;
+				rec.aprioriTime 	= rec.sol.sppTime;
+				rec.aprioriPos		= rec.sol.sppRRec;
 
-				sppUsed			= true;
+				sppUsed				= true;
 
 				break;
 			}
 			case E_Source::BROADCAST:
 			{
 				//todo for satellite receivers
-				// continue;
+				continue;
 			}
 			case E_Source::KALMAN:
 			{
@@ -334,7 +379,8 @@ void selectAprioriSource(
 			}
 			default:
 			{
-				BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown receiver apriori source found: " << source._to_string();
+				BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown receiver apriori position source found: " << source._to_string();
+
 				continue;
 			}
 		}
@@ -345,7 +391,7 @@ void selectAprioriSource(
 
 	if (foundSource == +E_Source::NONE)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori found for " << rec.id;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori position found for " << rec.id;
 	}
 
 	auto trace = getTraceFile(rec);
@@ -356,19 +402,78 @@ void selectAprioriSource(
 				rec.aprioriPos.y(),
 				rec.aprioriPos.z());
 
-	double	dtRec		= 0;
-	double	dtRecVar	= 0;
-	bool pass = pephclk(trace, time, rec.id, nav, dtRec, &dtRecVar);
-	if (pass)
+	foundSource = E_Source::NONE;
+
+	for (auto source : recOpts.clockModel.sources)
 	{
-		rec.aprioriClk		= dtRec		*		CLIGHT;
-		rec.aprioriClkVar	= dtRecVar	* SQR(	CLIGHT);
+		switch (source)
+		{
+			case E_Source::PRECISE:
+			{
+				double	dtRec		= 0;
+				double	dtRecVar	= 0;
+				bool pass = pephclk(trace, time, rec.id, nav, dtRec, &dtRecVar);
+				if (pass == false)
+				{
+					continue;
+				}
+
+				rec.aprioriClk		= dtRec		*		CLIGHT;
+				rec.aprioriClkVar	= dtRecVar	* SQR(	CLIGHT);
+
+				break;
+			}
+			case E_Source::KALMAN:
+			case E_Source::REMOTE:
+			{
+				if (source == +E_Source::KALMAN	&& kfState_ptr	== nullptr)	continue;
+				if (source == +E_Source::REMOTE	&& remote_ptr	== nullptr)	continue;
+
+				E_Source found;
+				{
+					KFKey kfKey;
+					kfKey.type		= KF::REC_CLOCK;
+					kfKey.str		= rec.id;
+
+					double dummy;
+
+					if (source == +E_Source::KALMAN)	found = kfState_ptr	->getKFValue(kfKey, rec.aprioriClk, &rec.aprioriClkVar, &dummy, false);
+					if (source == +E_Source::REMOTE)	found = remote_ptr	->getKFValue(kfKey, rec.aprioriClk, &rec.aprioriClkVar, &dummy, false);
+				}
+
+				if (found == false)
+				{
+					continue;
+				}
+
+				break;
+			}
+			case E_Source::SPP:
+			{
+				rec.aprioriClk		= rec.sol.dtRec_m[E_Sys::GPS];
+				rec.aprioriClkVar	= SQR(30);
+
+				break;
+			}
+			default:
+			{
+				BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown receiver apriori clock source found: " << source._to_string();
+				continue;
+			}
+		}
+
+		foundSource = source;
+		break;
 	}
-	else
+
+	if (foundSource == +E_Source::NONE)
 	{
-		rec.aprioriClk		= rec.sol.dtRec_m[E_Sys::GPS];
-		rec.aprioriClkVar	= SQR(30);
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori clock found for " << rec.id;
 	}
+
+	tracepdeex(4, trace, "\nUsing %s as source for receiver apriori clock: %f",
+				foundSource._to_string(),
+				rec.aprioriClk);
 
 	if (recOpts.apriori_sigma_enu.empty() == false)
 	{
@@ -498,7 +603,7 @@ void removeBadAmbiguities(
 
 			kfState.removeState(key);
 
-			InitialState init = initialStateFromConfig(acsConfig.getRecOpts("").ion_stec);
+			InitialState init = initialStateFromConfig(acsConfig.getRecOpts("global").ion_stec);
 
 			if (init.estimate == false)
 			{

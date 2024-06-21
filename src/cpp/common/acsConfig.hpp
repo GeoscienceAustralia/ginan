@@ -204,6 +204,8 @@ struct OutputOptions
 
 	string	root_stream_url				= "";
 
+	bool	output_predicted_states		= false;
+	bool	output_initialised_states	= false;
 	bool	output_residuals 			= false;
 	bool	output_residual_chain		= true;
 
@@ -218,7 +220,6 @@ struct OutputOptions
 	string					clocks_filename				= "<CLOCKS_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.clk";
 
 	bool					output_sp3 					= false;
-	bool					output_predicted_orbits 	= false;
 	bool					output_inertial_orbits		= false;
 	bool					output_sp3_velocities		= false;
 	vector<E_Source>		sp3_orbit_sources 			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
@@ -342,6 +343,8 @@ struct DebugOptions
 	bool	compare_orbits				= false;
 	bool	compare_clocks				= false;
 	bool	compare_attitudes			= false;
+
+	bool	check_broadcast_differences	= false;
 };
 
 /** Options for processing SLR observations
@@ -535,6 +538,7 @@ struct GlobalOptions
 
 	bool	adjust_rec_clocks_by_spp	= true;
 	bool	minimise_sat_clock_offsets	= false;
+	bool	minimise_sat_orbit_offsets	= false;
 	bool	minimise_ionosphere_offsets	= false;
 
 	map<E_Sys, bool> receiver_amb_pivot;		///< fix one ambiguity to eliminate rank deficiency
@@ -556,11 +560,12 @@ struct GlobalOptions
 struct KalmanModel
 {
 	vector<double>	sigma				= {-1};	//{0} is very necessary
-	vector<double>	apriori_val			= {0};
-	vector<double>	proc_noise			= {0};
+	vector<double>	apriori_value		= {0};
+	vector<double>	process_noise		= {0};
 	vector<double>	tau					= {-1};	//tau<0 (inf): Random Walk model; tau>0: First Order Gauss Markov model
 	vector<double>	mu					= {0};
 	vector<bool>	estimate			= {false};
+	vector<bool>	use_remote_sigma	= {false};
 	vector<string>	comment				= {""};
 
 	KalmanModel& operator+=(
@@ -604,6 +609,7 @@ struct FilterOptions : RtsOptions
 	E_ChiSqMode	chi_square_mode			= E_ChiSqMode::NONE;
 	bool		simulate_filter_only	= false;
 	bool		assume_linearity		= false;
+	bool		advanced_postfits		= false;
 
 	bool		joseph_stabilisation	= false;
 
@@ -854,6 +860,7 @@ struct CommonKalmans
 	KalmanModel			code_bias;
 	KalmanModel			phase_bias;
 	KalmanModel			pco;
+	KalmanModel			ant_delta;
 
 	CommonKalmans& operator+=(
 		const CommonKalmans& rhs)
@@ -866,6 +873,7 @@ struct CommonKalmans
 		code_bias		+= rhs.code_bias;
 		phase_bias		+= rhs.phase_bias;
 		pco				+= rhs.pco;
+		ant_delta		+= rhs.ant_delta;
 
 		return *this;
 	}
@@ -1205,7 +1213,9 @@ struct MongoOptions : array<MongoInstanceOptions, 3>
 	E_Mongo	enable					= E_Mongo::NONE;
 	E_Mongo	output_measurements		= E_Mongo::NONE;
 	E_Mongo	output_components		= E_Mongo::NONE;
+	E_Mongo	output_cumulative		= E_Mongo::NONE;
 	E_Mongo	output_states			= E_Mongo::NONE;
+	E_Mongo	output_state_covars		= E_Mongo::NONE;
 	E_Mongo	output_trace			= E_Mongo::NONE;
 	E_Mongo	output_config			= E_Mongo::NONE;
 	E_Mongo	output_test_stats		= E_Mongo::NONE;
@@ -1217,6 +1227,9 @@ struct MongoOptions : array<MongoInstanceOptions, 3>
 	E_Mongo	output_predictions		= E_Mongo::NONE;
 
 	bool	queue_outputs					= false;
+
+	vector<KF>	used_predictions	= {KF::ORBIT, KF::REC_POS, KF::SAT_CLOCK, KF::CODE_BIAS, KF::PHASE_BIAS, KF::EOP, KF::EOP_RATE};
+	vector<KF>	sent_predictions	= {KF::ORBIT, KF::REC_POS, KF::SAT_CLOCK, KF::CODE_BIAS, KF::PHASE_BIAS, KF::EOP, KF::EOP_RATE};
 
 	double	prediction_offset				= 0;
 	double	prediction_interval				= 30;
@@ -1331,7 +1344,10 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 {
 	vector<YAML::Node>				yamls;
 	map<string, YamlDefault>		yamlDefaults;
-	map<string, bool>				availableOptions	= {{"yaml_filename:", true}};
+	map<string, bool>				availableOptions	=	{
+																{"yaml_filename:",	true},
+																{"yaml_number:",	true},
+															};
 	map<string, map<string, bool>>	foundOptions;
 
 	mutex							configMutex;
@@ -1366,8 +1382,9 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	void	outputDefaultConfiguration(
 		int level);
 
-	SatelliteOptions&			getSatOpts				(SatSys	Sat,	const vector<string>& suffixes = {});
-	ReceiverOptions&			getRecOpts				(string	id,		const vector<string>& suffixes = {});
+
+	SatelliteOptions&			getSatOpts(SatSys	Sat,	const vector<string>& suffixes = {});
+	ReceiverOptions&			getRecOpts(string	id,		const vector<string>& suffixes = {});
 
 	unordered_map<string,		SatelliteOptions>	satOptsMap;
 	unordered_map<string,		ReceiverOptions>	recOptsMap;

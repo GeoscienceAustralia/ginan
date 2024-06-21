@@ -5,6 +5,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "minimumConstraints.hpp"
+#include "architectureDocs.hpp"
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
@@ -22,6 +23,12 @@
 
 
 #define PIVOT_MEAS_VARIANCE 	SQR(1E-5)
+
+
+Architecture Pseudo_Observations__()
+{
+
+}
 
 
 void initPseudoObs(
@@ -526,8 +533,7 @@ void receiverPseudoObs(
 			Receiver&			rec,				///< Receiver to perform calculations for                //todo aaron, this isnt a rec anymore
 	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
 			KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
-			ReceiverMap&		receiverMap,		///< Map of stations to retrieve receiver metadata from
-			MatrixXd*			R_ptr)				///< Optional pointer to measurement noise matrix
+			ReceiverMap&		receiverMap)		///< Map of stations to retrieve receiver metadata from
 {
 	GTime time = rec.obsList.front()->time;
 
@@ -629,13 +635,6 @@ void receiverPseudoObs(
 			indices.push_back(index);
 
 			kfMeasEntryList.push_back(kfMeasEntry);
-
-			if (R_ptr)
-			{
-				auto& R = *R_ptr;
-
-				R = obs.obsState.P(indices, indices);
-			}
 		}
 	}
 }

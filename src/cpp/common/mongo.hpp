@@ -136,6 +136,7 @@ struct Mongo
 #define MONGO_NUM			"Num"
 #define MONGO_X				"x"
 #define MONGO_SIGMA			"sigma"
+#define MONGO_COVAR			"Covar"
 #define MONGO_AZIMUTH		"Azimuth"
 #define MONGO_ELEVATION		"Elevation"
 #define MONGO_NADIR			"Nadir"

@@ -40,8 +40,8 @@ def handle_post_request():
         f"GET {form['orbitType']}, {form['series']}, {form['sat']},exclude {form['exclude']} minutes"
     )
     data = MeasurementArray()
-    for db in form["series"]:
-        db_, series_ = db.split("\\")
+    for series in form["series"]:
+        db_, series_ = series.split(">")
         with MongoDB(session["mongo_ip"], data_base=db_, port=session["mongo_port"]) as client:
             for sat in form["sat"]:
                 try:
@@ -61,12 +61,13 @@ def handle_post_request():
         for _data in meas.data:
             legend = meas.id
             legend["yaxis"] = _data
+            smallLegend = [legend[a] for a in legend]
             trace.append(
                 go.Scatter(
                     x=meas.epoch[meas.subset],
                     y=meas.data[_data][meas.subset],
                     mode=type,
-                    name=f"{legend}",
+                    name=f"{smallLegend}",
                     hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>" + "%{y:.4e%}<br>",
                 )
             )

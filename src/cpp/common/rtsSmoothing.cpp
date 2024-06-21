@@ -12,6 +12,8 @@ using std::map;
 #include <boost/log/trivial.hpp>
 
 #include "interactiveTerminal.hpp"
+#include "minimumConstraints.hpp"
+#include "architectureDocs.hpp"
 #include "rinexNavWrite.hpp"
 #include "eigenIncluder.hpp"
 #include "rinexObsWrite.hpp"
@@ -37,15 +39,30 @@ using std::map;
 // #pragma GCC optimize ("O0")
 
 
+Architecture RTS_Smoothing__()
+{
+	DOCS_REFERENCE(Binary_Archive__);
+}
+
 void postRTSActions(
 	bool			final,			///< This is a final answer, not intermediate - output to files
-	KFState&		kfState,		///< State to get filter traces from
+	KFState&		kfStateIn,		///< State to get filter traces from
 	ReceiverMap&	receiverMap)	///< map of receivers
 {
+	//need to copy to not destroy the smoothed filter in those cases this is called from there
+	KFState kfState = kfStateIn;
+
+	tryPrepareFilterPointers(kfState, receiverMap);
+
 	if	( final
 		||acsConfig.pppOpts.output_intermediate_rts)
 	{
-		mongoStates(kfState, {.suffix = "_rts", .instances = acsConfig.mongoOpts.output_states});
+		mongoStates(kfState,
+					{
+						.suffix		= "/RTS",
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
 	}
 
 	if (final == false)
@@ -58,12 +75,53 @@ void postRTSActions(
 		return;
 	}
 
+	std::ofstream pppTrace(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
+	kfState.outputStates(pppTrace, "/RTS");
+
+	//if AR and its not the special case of forward per epoch fixed and held which already has AR in the smoothed version
+	if	(	acsConfig.ambrOpts.mode			!= +E_ARmode::OFF
+		&&	acsConfig.ambrOpts.once_per_epoch
+		&&	acsConfig.ambrOpts.fix_and_hold	== false)
 	{
-		std::ofstream ofs(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
-		kfState.outputStates(ofs, "/RTS");
+		fixAndHoldAmbiguities(pppTrace, kfState);
+
+		kfState.outputStates(pppTrace, "/RTS_AR");
+
+		mongoStates(kfState,
+					{
+						.suffix		= "/RTS_AR",
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
 	}
 
-	nav.erp.filterValues = getErpFromFilter(kfState);
+	if	(  acsConfig.process_minimum_constraints
+		&& acsConfig.minconOpts.once_per_epoch)
+	{
+		BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << std::endl;
+
+		for (auto& [id, rec] : receiverMap)
+		{
+			rec.minconApriori = rec.aprioriPos;
+		}
+
+		MinconStatistics minconStatistics;
+
+		mincon(pppTrace, kfState, &minconStatistics);
+
+		kfState.outputStates(pppTrace, "/RTS_CONSTRAINED");
+
+		mongoStates(kfState,
+					{
+						.suffix		= "/RTS_CONSTRAINED",
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
+
+		outputMinconStatistics(pppTrace, minconStatistics);
+	}
+
+	nav.erp.filterValues = getErpFromFilter(kfState);		//todo aaron, this doesnt react well with remote filter values
 
 	if (acsConfig.output_bias_sinex)
 	{
@@ -71,28 +129,15 @@ void postRTSActions(
 // 		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], receiverMap);
 	}
 
-	if (acsConfig.output_orbit_ics)
 	{
-		outputOrbitConfig(kfState, "_smoothed");
-	}
-
-	if	(   acsConfig.output_clocks
-		&&( acsConfig.clocks_receiver_sources.front()	== +E_Source::KALMAN
-		  ||acsConfig.clocks_satellite_sources.front()	== +E_Source::KALMAN))
-	{
-		auto kfState2 = kfState;	//todo aaron, delete this after fixing something else, tryPrepareFilterPointers damages the state
-		tryPrepareFilterPointers(kfState2, receiverMap);
-
-												outputClocks		(kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, kfState2.time, kfState2, &receiverMap);
-	}
-
-	{
+		if (acsConfig.output_orbit_ics)		{	outputOrbitConfig	(																									kfState, acsConfig.pppOpts.rts_smoothed_suffix);																		}
+		if (acsConfig.output_clocks)		{	outputClocks		(				kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, kfState.time, kfState, &receiverMap);					}
 		if (acsConfig.output_orbex)			{	outputOrbex			(				kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbex_orbit_sources,	acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources,	&kfState);	}
 		if (acsConfig.output_sp3)			{	outputSp3			(				kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.sp3_orbit_sources,		acsConfig.sp3_clock_sources,										&kfState);	}
-		if (acsConfig.output_trop_sinex)	{	outputTropSinex		(				kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState, "MIX", true);																							}
-		if (acsConfig.output_ionex)			{	ionexFileWrite		(nullStream,	kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, kfState);																											}
-		if (acsConfig.output_erp)			{	writeErpFromNetwork	(				kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState);																														}
-		if (acsConfig.output_ionstec)		{	writeIonStec	 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX], kfState);																														}
+		if (acsConfig.output_trop_sinex)	{	outputTropSinex		(				kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time,	kfState, "MIX", true);																							}
+		if (acsConfig.output_ionex)			{	ionexFileWrite		(nullStream,	kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time,	kfState);																										}
+		if (acsConfig.output_erp)			{	writeErpFromNetwork	(				kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX],					kfState);																										}
+		if (acsConfig.output_ionstec)		{	writeIonStec	 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX],					kfState);																										}
 	}
 
 	for (auto& [id, rec] : receiverMap)
@@ -172,7 +217,7 @@ void RTS_Output(
 
 				if (acsConfig.mongoOpts.output_measurements)
 				{
-					mongoMeasResiduals(archiveMeas.time, archiveMeas, acsConfig.mongoOpts.queue_outputs, "_rts");
+					mongoMeasResiduals(archiveMeas.time, archiveMeas, acsConfig.mongoOpts.queue_outputs, "/RTS");
 				}
 
 				break;
@@ -190,17 +235,6 @@ void RTS_Output(
 				}
 
 				archiveKF.metaDataMap = metaDataMap;
-
-				if	(	acsConfig.ambrOpts.mode != +E_ARmode::OFF
-					&&	acsConfig.ambrOpts.once_per_epoch
-					&&	acsConfig.ambrOpts.fix_and_hold == false)		//this is to separate from already forward fixed and held? todo aaron
-				{
-					std::ofstream rtsTrace(archiveKF.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
-
-					fixAndHoldAmbiguities(rtsTrace, archiveKF);	//this is already a copy, no need to copy again for fix_and_hold
-
-					postRTSActions(true, archiveKF, receiverMap);
-				}
 
 				postRTSActions(true, archiveKF, receiverMap);
 
@@ -228,6 +262,8 @@ void rtsSmoothing(
 	ReceiverMap&	receiverMap,
 	bool			write)
 {
+	DOCS_REFERENCE(RTS_Smoothing__);
+
 	if (kfState.rts_lag == 0)
 	{
 		return;
@@ -387,10 +423,17 @@ void rtsSmoothing(
 
 				smoothedKF.time = kalmanPlus.time;
 
-				smoothedKF. P	= (smoothedKF.	P	+ smoothedKF.	P.transpose()).eval() / 2;
+				smoothedKF.P = (smoothedKF.P + smoothedKF.P.transpose()).eval() / 2;
 
 				//get process noise and dynamics
 				auto& F = transitionMatrix;
+
+				if	( F.rows() == 0
+					&&F.cols() == 0)
+				{
+					//assume identity state transition if none was performed/required
+					F = MatrixXd::Identity(kalmanPlus.P.rows(), kalmanPlus.P.rows());
+				}
 
 				MatrixXd FP = F * kalmanPlus.P;
 
@@ -411,10 +454,6 @@ void rtsSmoothing(
 				for (auto& [id, fcP] : kalmanPlus. filterChunkMap)		filterChunks[id] = true;
 				for (auto& [id, fcM] : kalmanMinus.filterChunkMap)		filterChunks[id] = true;
 
-				if (lag == 26700)
-				{
-					std::cout << "here";
-				}
 				for (auto& [id, dummy] : filterChunks)
 				{
 					auto& fcP = kalmanPlus. filterChunkMap[id];
@@ -484,10 +523,9 @@ void rtsSmoothing(
 
 							MatrixXd Pinv = solver.inverse();
 
-							Pinv = (Pinv + Pinv.transpose()).eval()	/ 2;
+							Pinv = (Pinv + Pinv.transpose()).eval() / 2;
 
 							Ck = (FP_.transpose() * Pinv);
-
 
 							pass = true;
 
@@ -537,7 +575,7 @@ void rtsSmoothing(
 				if (measurements.H.rows())
 				if (measurements.H.cols() == deltaX.rows())
 				{
-					measurements.VV -= measurements.H * deltaX;		//todo aaron, is this the correct deltaX to be adding here? wrong plus/minus timepoint?
+					measurements.VV -= measurements.H * deltaX;
 				}
 				else
 				{
@@ -568,12 +606,11 @@ void rtsSmoothing(
 						final = true;
 					}
 
-// 					smoothedKF.metaDataMap = kfState.metaDataMap;	//todo aaron check this
 					postRTSActions(final, smoothedKF, receiverMap);
 
 					if (acsConfig.pppOpts.output_intermediate_rts)
 					{
-						mongoMeasResiduals(smoothedKF.time, measurements, acsConfig.mongoOpts.queue_outputs, "_rts");
+						mongoMeasResiduals(smoothedKF.time, measurements, acsConfig.mongoOpts.queue_outputs, "/RTS");
 					}
 				}
 

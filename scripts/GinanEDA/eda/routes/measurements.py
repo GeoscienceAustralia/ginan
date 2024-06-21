@@ -46,7 +46,7 @@ def handle_post_request():
     data = MeasurementArray()
     data2 = MeasurementArray()
     for series in form["series"]:
-        db_, series_ = series.split("\\")
+        db_, series_ = series.split(">")
         get_data(db_, "Measurements", None, form["site"], form["sat"], [series_], form["yaxis"] + [form["xaxis"]], data)
         if any([yaxis in session["list_geometry"] for yaxis in form["yaxis"] + [form["xaxis"]]]):
             get_data(db_, "Geometry", None, form["site"], form["sat"], [""], form["yaxis"] + [form["xaxis"]], data2)
@@ -55,6 +55,7 @@ def handle_post_request():
         return render_template(
             "measurements.jinja",
             # content=client.mongo_content,
+            selection=form,
             extra=extra,
             message="Error getting data: No data",
         )
@@ -101,13 +102,14 @@ def handle_post_request():
                         _y = _data.data[_yaxis][_data.subset]
                     legend = _data.id
                     legend["yaxis"] = _yaxis
+                    smallLegend = [legend[a] for a in legend]
                     trace.append(
                         go.Scatter(
                             x=_x,
                             y=_y,
                             mode=mode,
-                            name=f"{legend}",
-                            hovertemplate=x_hover_template + "%{y:.4e%}<br>" + f"{legend}",
+                            name=f"{smallLegend}",
+                            hovertemplate=x_hover_template + "%{y:.4e%}<br>" + f"{smallLegend}",
                         )
                     )
                     try:

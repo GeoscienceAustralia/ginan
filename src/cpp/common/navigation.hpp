@@ -55,8 +55,6 @@ struct SatNav
 
 	VectorEci			aprioriPos;					///< Inertial satellite position at epoch time
 
-	BrdcEph*			eph_ptr			= nullptr;
-
 	AttStatus			attStatus		= {};		///< Persistent data for attitude model
 
 	string				id;

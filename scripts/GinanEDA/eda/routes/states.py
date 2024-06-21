@@ -57,7 +57,7 @@ def handle_post_request() -> str:
     data = MeasurementArray()
     data2 = MeasurementArray()
     for series in form["series"]:
-        db_, series_ = series.split("\\")
+        db_, series_ = series.split(">")
         get_data(
             db_,
             "States",
@@ -77,6 +77,7 @@ def handle_post_request() -> str:
         return render_template(
             "states.jinja",
             # content=client.mongo_content,
+            selection=form,
             extra=extra,
             message="Error getting data: No data",
         )
@@ -109,13 +110,14 @@ def handle_post_request() -> str:
                 if np.isnan(_data.data[_yaxis][_data.subset]).any():
                     current_app.logger.warning(f"Nan detected for {_data.id}")
                     current_app.logger.warning(np.argwhere(np.isnan(_data.data[_yaxis][_data.subset])))
+                smallLegend = [_data.id[a] for a in _data.id]
                 trace.append(
                     go.Scatter(
                         x=_x,
                         y=_data.data[_yaxis][_data.subset],
                         mode=mode,
-                        name=f"{_data.id}",
-                        hovertemplate=x_hover_template + "%{y:.4e%}<br>" + f"{_data.id}",
+                        name=f"{smallLegend}",
+                        hovertemplate=x_hover_template + "%{y:.4e%}<br>" + f"{smallLegend}",
                     )
                 )
                 table[f"{_data.id}"] = {"mean": _data.info[_yaxis]["mean"], "RMS": _data.info[_yaxis]["rms"]}

@@ -178,6 +178,8 @@ BETTER_ENUM(KF,				short int,
 
 	REC_PCV,
 
+	ANT_DELTA,
+
 	EOP,
 	EOP_RATE,
 

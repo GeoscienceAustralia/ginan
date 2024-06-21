@@ -3,6 +3,7 @@
 
 #include "interactiveTerminal.hpp"
 
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 #include <thread>
@@ -43,7 +44,7 @@ struct Destructor
 			erase();
 			endwin();
 
-			for (auto& line : InteractiveTerminal::pages["Messages"].lines)
+			for (auto& line : InteractiveTerminal::pages["Messages/All"].lines)
 			{
 				std::cout << line << std::endl;
 			}
@@ -86,101 +87,40 @@ void InteractiveTerminal::keyboardHandler()
 			{
 				case KEY_UP:		{	activeLevel--;	break;		}
 				case KEY_DOWN:		{	activeLevel++;	break;		}
+				case KEY_RIGHT:
 				case KEY_LEFT:
 				{
 					auto it = pages.find(activePage);
 
 					while (1)
 					{
-						if (it == pages.begin())
-							break;
+						//keep trying inc/decrement pages until the base prefix at the correct level changes
 
-						it--;
-
-						auto& [pageName, page] = *it;
-
-						vector<string> testSplit;
-
-						boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
-
-						bool commonBase = true;
-						for (int level = 0; level < activeLevel; level++)
+						if (ch == KEY_LEFT)
 						{
-							if (testSplit[level] != activeSplit[level])
-							{
-								commonBase = false;
+							if (it == pages.begin())
 								break;
-							}
-						}
-						if (commonBase == false)
-						{
-							break;
-						}
-						bool changed = (testSplit[activeLevel] != activeSplit[activeLevel]);
 
-						if (changed)
-						{
-							break;
-						}
-					}
-
-					auto& [pageName, page] = *it;
-
-					vector<string> testSplit;
-
-					boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
-
-					bool levelDone = false;
-					for (int level = 0; level < activeLevel; level++)
-					{
-						if (testSplit[level] != activeSplit[level])
-						{
-							levelDone = true;
-						}
-					}
-
-					if (levelDone == false)
-					{
-						activePage	= pageName;
-						activeSplit	= testSplit;
-					}
-
-					break;
-				}
-				case KEY_RIGHT:
-				{
-					auto it = pages.find(activePage);
-
-					while (1)
-					{
-						it++;
-
-						if (it == pages.end())
-						{
 							it--;
-							break;
 						}
-
-						auto& [pageName, page] = *it;
-
-						vector<string> testSplit;
-
-						boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
-
-						bool commonBase = true;
-						for (int level = 0; level < activeLevel; level++)
+						if (ch == KEY_RIGHT)
 						{
-							if (testSplit[level] != activeSplit[level])
+							it++;
+
+							if (it == pages.end())
 							{
-								commonBase = false;
+								it--;
 								break;
 							}
 						}
-						if (commonBase == false)
-						{
-							break;
-						}
-						bool changed = (testSplit[activeLevel] != activeSplit[activeLevel]);
+
+						auto& [testPage, page] = *it;
+
+						auto nthIt = boost::find_nth(activePage, "/", activeLevel);
+
+						int baseChars = std::distance(activePage.begin(), nthIt.begin());
+
+						bool changed = (activePage.substr(0, baseChars) != testPage.substr(0, baseChars));
 
 						if (changed)
 						{
@@ -188,25 +128,25 @@ void InteractiveTerminal::keyboardHandler()
 						}
 					}
 
-					auto& [pageName, page] = *it;
+					//found something with a different base, check if the base's base is common or not to determine if we can get to it from here
+					auto& [testPage, page] = *it;
 
-					vector<string> testSplit;
+					bool changed = false;
 
-					boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
-
-					bool levelDone = false;
-					for (int level = 0; level < activeLevel; level++)
+					if (activeLevel > 0)
 					{
-						if (testSplit[level] != activeSplit[level])
-						{
-							levelDone = true;
-						}
+						auto nthIt = boost::find_nth(activePage, "/", activeLevel-1);
+
+						int baseChars = std::distance(activePage.begin(), nthIt.begin());
+
+						changed = (activePage.substr(0, baseChars) != testPage.substr(0, baseChars));
 					}
 
-					if (levelDone == false)
+					if (changed == false)
 					{
-						activePage	= pageName;
-						activeSplit	= testSplit;
+						activePage	= testPage;
+
+						boost::algorithm::split(activeSplit, activePage, boost::is_any_of("\t/"), boost::token_compress_on);
 					}
 
 					break;
@@ -291,7 +231,7 @@ void InteractiveTerminal::drawMenus()
 {
 	lock_guard<mutex> guard(displayMutex);
 
-	boost::algorithm::split(activeSplit, activePage, boost::is_any_of("\t/"), boost::token_compress_on);
+	boost::algorithm::split(activeSplit, activePage, boost::is_any_of("/"), boost::token_compress_on);
 
 	werase	(menu);
 	box		(menu, 0, 0);
@@ -303,7 +243,7 @@ void InteractiveTerminal::drawMenus()
 
 		//get activeSplit
 
-		//level 0 - print the 0 split of everything but only once
+		//level 0 - print the 0 split of everything but only once (ignore repeated prefixes)
 
 		//level 1 - print the 1 split of everything that matches active.split0, but only once
 
@@ -314,10 +254,17 @@ void InteractiveTerminal::drawMenus()
 		{
 			vector<string> testSplit;
 
-			boost::algorithm::split(testSplit, pageName, boost::is_any_of("\t/"), boost::token_compress_on);
+			boost::algorithm::split(testSplit, pageName, boost::is_any_of("/"), boost::token_compress_on);
+
+			if (level >= testSplit.size())
+			{
+				//too deep already, couldnt possibly be anything to print
+				continue;
+			}
 
 			bool isVisible = true;
 
+			//check all levels
 			for (int i = 0; i < level; i++)
 			{
 				if (activeSplit[i] != testSplit[i])
@@ -328,28 +275,40 @@ void InteractiveTerminal::drawMenus()
 				}
 			}
 
-			if	( isVisible
-				&&testSplit[level] != lastPrinted)
+			if (isVisible == false)
 			{
-				lastPrinted = testSplit[level];
-
-				if (testSplit[level] == activeSplit[level])
-				{
-					wattron	(menu, A_BOLD);
-					wattron	(menu, A_UNDERLINE);
-
-					if (level == activeLevel)
-						wattron	(menu, A_STANDOUT);
-				}
-
-				string label = testSplit[level];
-				boost::trim(label);
-				wprintw(menu, " %s ", label.c_str());
-
-				wattroff(menu, A_STANDOUT);
-				wattroff(menu, A_UNDERLINE);
-				wattroff(menu, A_BOLD);
+				//difference in lower prefixes
+				continue;
 			}
+
+			string subPage = testSplit[level];
+
+			if (subPage == lastPrinted)
+			{
+				//just printed this for the last page which had same prefixes
+				continue;
+			}
+
+			if (subPage == activeSplit[level])
+			{
+				//this is (half) selected
+				wattron	(menu, A_BOLD);
+				wattron	(menu, A_UNDERLINE);
+
+				if (level == activeLevel)
+					wattron	(menu, A_STANDOUT);
+			}
+
+			string label = subPage;
+			boost::trim(label);
+
+			wprintw(menu, " %s ", label.c_str());
+
+			wattroff(menu, A_STANDOUT);
+			wattroff(menu, A_UNDERLINE);
+			wattroff(menu, A_BOLD);
+
+			lastPrinted = subPage;
 		}
 	}
 
@@ -416,7 +375,7 @@ void InteractiveTerminal::drawWindow()
 				continue;
 			}
 
-			string& line = page.lines[i];
+			string line = page.lines[i];
 
 			for (int i = 0; i < line.length(); i++)
 			{
@@ -452,12 +411,14 @@ void InteractiveTerminal::drawWindow()
 }
 
 void InteractiveTerminal::addString(
-	const string&	pageName,
-	const string&	str,
-	bool			updateWindow)
+			string	pageName,
+	const	string&	str,
+			bool	updateWindow)
 {
 	if (enabled == false)
 		return;
+
+	boost::replace_all(pageName, "\t", "/");
 
 	vector<string> split;
 

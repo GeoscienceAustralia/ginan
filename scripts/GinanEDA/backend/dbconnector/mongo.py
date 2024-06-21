@@ -61,7 +61,11 @@ class MongoDB:
         # print("index response:", resp)
 
         for cursor in self.mongo_client[self.mongo_db]["Content"].find():
-            self.mongo_content[cursor["Type"]] = cursor["Values"]
+            try:
+                self.mongo_content[cursor["Type"]] = cursor["Values"]
+            except:
+                self.mongo_content[cursor["type"]] = cursor["Values"]
+
         self.mongo_content["Geometry"] = []
         geom = self.mongo_client[self.mongo_db]["Geometry"].find_one({})
         if "Measurements" in self.mongo_client[self.mongo_db].list_collection_names():
@@ -212,12 +216,12 @@ class MongoDB:
         pipeline = []
         pipeline.append({"$match": matchObj})
         pipeline.append(
-            {   
-                "$group":      
+            {
+                "$group":
                 {
-                    "_id":      groupObj, 
-                    "Epoch":    {"$first":          "$Epoch"        }, 
-                    "y":        {"$addToSet":       "$" + yvalue    }, 
+                    "_id":      groupObj,
+                    "Epoch":    {"$first":          "$Epoch"        },
+                    "y":        {"$addToSet":       "$" + yvalue    },
                     "fields":   {"$mergeObjects":   "$id"           }
                 }
             })
