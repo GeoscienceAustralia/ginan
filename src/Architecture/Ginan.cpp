@@ -38,9 +38,38 @@ FileType SP3__()
 
 }
 
-Input Input_Files__()
+FileType ATX__()
+{
+
+}
+
+FileType SNX__()
+{
+
+}
+
+FileType OBX__()
+{
+
+}
+
+FileType RNX__()
+{
+
+}
+
+FileType IGS_Files__()
 {
 	DOCS_REFERENCE(SP3__);
+	DOCS_REFERENCE(ATX__);
+	DOCS_REFERENCE(SNX__);
+	DOCS_REFERENCE(RNX__);
+	DOCS_REFERENCE(OBX__);
+}
+
+Input Input_Files__()
+{
+	DOCS_REFERENCE(IGS_Files__);
 }
 
 Architecture Preprocessing__()
@@ -57,7 +86,7 @@ Architecture State_Propagation__()
  *
  * $$ K = HPH^\intercal + R $$ fgdfg
  */
-Architecture Kalman_Filter__()
+ParallelArchitecture Kalman_Filter__()
 {
 	DOCS_REFERENCE(Binary_Archive__);
 }
@@ -67,7 +96,7 @@ Architecture Error_Handling__()
 
 }
 
-Architecture UDUC_Measurements__()
+ParallelArchitecture UDUC_Measurements__()
 {
 
 }
@@ -80,6 +109,7 @@ Architecture Combinators__()
 Output Outputs__()
 {
 	DOCS_REFERENCE(Trace_Files__);
+	DOCS_REFERENCE(IGS_Files__);
 	DOCS_REFERENCE(Mongo_Database__);
 }
 
@@ -189,5 +219,3 @@ Architecture Ginan__()
 	DOCS_REFERENCE(Mongo_Database__);
 	DOCS_REFERENCE(Python_Scripts__);
 }
-
-

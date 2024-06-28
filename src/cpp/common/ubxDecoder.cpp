@@ -91,7 +91,7 @@ void UbxDecoder::decodeRAWX(
 		obs.Sat		= Sat;
 		obs.time	= gpst2time(week, rcvTow);
 
-		printf("meas %s %s %s %14.3lf %14.3lf\n", obs.time.to_string(4).c_str(), Sat.id().c_str(), obsCode._to_string(), pr, cp);
+		printf("meas %s %s %s %14.3lf %14.3lf\n", obs.time.to_string().c_str(), Sat.id().c_str(), obsCode._to_string(), pr, cp);
 		auto ft = code2Freq[sys][obsCode];
 		obs.sigsLists[ft].push_back(sig);
 	}

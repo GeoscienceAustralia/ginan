@@ -170,7 +170,7 @@ double tropModel(
 		if (var < 0)
 			continue;
 
-		tracepdeex(2, trace,"\nTroposphere Model %s %s  %d %d %d", time.to_string(0), model._to_string(), pos.latDeg(), pos.lonDeg(), pos.hgt());
+		tracepdeex(2, trace,"\nTroposphere Model %s %s  %d %d %d", time.to_string().c_str(), model._to_string(), pos.latDeg(), pos.lonDeg(), pos.hgt());
 
 		break;
 	}

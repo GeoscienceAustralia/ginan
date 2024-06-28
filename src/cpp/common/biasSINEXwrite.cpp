@@ -228,7 +228,7 @@ int addBiasEntry(
 		break;
 	}
 
-	tracepdeex(3,trace,"\n Searched %s bias for %s %2d %s:  ",(measType==CODE)?"CODE ":"PHASE", kfKey.Sat.id().c_str(), kfKey.num, tini.to_string(0).c_str());
+	tracepdeex(3,trace,"\n Searched %s bias for %s %2d %s:  ",(measType==CODE)?"CODE ":"PHASE", kfKey.Sat.id().c_str(), kfKey.num, tini.to_string().c_str());
 
 	if (found >= 0)
 	{
@@ -360,7 +360,7 @@ void writeBiasSinex(
 	string			biasfile,		///< File to write
 	ReceiverMap&	receiverMap)		///< stations for which to output receiver biases
 {
-	tracepdeex(3,trace,"Writing bias SINEX into: %s %s\n", biasfile.c_str(), time.to_string(0).c_str());
+	tracepdeex(3,trace,"Writing bias SINEX into: %s %s\n", biasfile.c_str(), time.to_string().c_str());
 
 	std::ofstream outputStream(biasfile, std::fstream::in | std::fstream::out);
 	if (!outputStream)
@@ -485,7 +485,7 @@ bool queryBiasOutput(
 	bias		= 0;
 	variance	= 0;
 
-	tracepdeex(3,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string(0).c_str());
+	tracepdeex(3,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string().c_str());
 
 	bool found = false;
 

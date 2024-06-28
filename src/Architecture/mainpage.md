@@ -7,7 +7,9 @@
 ### Architectural documentation
 
 The Ginan__() pseudo-function outlines the structure and flow of the software from a high level.
+
 The color coded block diagram call-graphs may be used to step through the high-level flow before entering the lower-level logical functions.
+A Legend__() for the diagrams is found here.
 
 ### Ginan program entry point
 

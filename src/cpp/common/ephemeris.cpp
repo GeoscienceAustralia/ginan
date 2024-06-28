@@ -96,7 +96,7 @@ bool satclk(
 
 	for (auto& ephType : ephTypes)
 	{
-		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%d", __FUNCTION__, time.to_string(3).c_str(), satPos.Sat.id().c_str(), ephType);
+		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%d", __FUNCTION__, time.to_string().c_str(), satPos.Sat.id().c_str(), ephType);
 
 		switch (ephType)
 		{
@@ -155,7 +155,7 @@ bool satpos(
 
 	for (auto& ephType : ephTypes)
 	{
-		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%s offsetType=%d", __FUNCTION__, time.to_string(3).c_str(), satPos.Sat.id().c_str(), ephType._to_string(), offsetType);
+		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%s offsetType=%d", __FUNCTION__, time.to_string().c_str(), satPos.Sat.id().c_str(), ephType._to_string(), offsetType);
 
 		if (returnValue == false)
 		switch (ephType)
@@ -322,7 +322,7 @@ bool satPosClk(
 		return false;
 	}
 
-	tracepdeex(3, trace, "\n%-10s: teph=%s %s", __FUNCTION__, teph.to_string(3).c_str(), obs.Sat.id());
+	tracepdeex(3, trace, "\n%-10s: teph=%s %s", __FUNCTION__, teph.to_string().c_str(), obs.Sat.id());
 
 	double pr = 0;
 
@@ -340,7 +340,7 @@ bool satPosClk(
 	{
 		obs.failureNoPseudorange = true;
 
-		tracepdeex(2, trace, "\nno pseudorange %s sat=%s", obs.time.to_string(3).c_str(), obs.Sat.id().c_str());
+		tracepdeex(2, trace, "\nno pseudorange %s sat=%s", obs.time.to_string().c_str(), obs.Sat.id().c_str());
 		return false;
 	}
 
@@ -359,11 +359,11 @@ bool satPosClk(
 	{
 		obs.failureNoSatClock = true;
 
-		tracepdeex(2, trace, "\nno satellite clock %s sat=%s", time.to_string(3).c_str(), obs.Sat.id().c_str());
+		tracepdeex(2, trace, "\nno satellite clock %s sat=%s", time.to_string().c_str(), obs.Sat.id().c_str());
 		return false;
 	}
 
-	tracepdeex(5, trace, "\neph time %s %s pr=%.5f, satClk= %.5f", obs.Sat.id().c_str(), time.to_string(3).c_str(), pr / CLIGHT, obs.satClk);
+	tracepdeex(5, trace, "\neph time %s %s pr=%.5f, satClk= %.5f", obs.Sat.id().c_str(), time.to_string().c_str(), pr / CLIGHT, obs.satClk);
 
 	time -= obs.satClk;	// Eugene: what if using ssr?
 
@@ -374,7 +374,7 @@ bool satPosClk(
 	{
 		obs.failureNoSatPos = true;
 
-		tracepdeex(3, trace, "\n%s failed (no ephemeris?) %s sat=%s", __FUNCTION__, time.to_string(3).c_str(), obs.Sat.id().c_str());
+		tracepdeex(3, trace, "\n%s failed (no ephemeris?) %s sat=%s", __FUNCTION__, time.to_string().c_str(), obs.Sat.id().c_str());
 
 		return false;
 	}
@@ -382,7 +382,7 @@ bool satPosClk(
 	adjustRelativity(obs, applyRelativity);
 
 	tracepdeex(3, trace, "\n%s sat=%s rs=%13.3f %13.3f %13.3f dtSat=%12.3f varPos=%7.3f varClk=%7.3f ephPosValid=%1X %s ephClkValid=%1X %s",
-			obs.time.to_string(6).c_str(),
+			obs.time.to_string().c_str(),
 			obs.Sat.id().c_str(),
 			obs.rSatCom[0],
 			obs.rSatCom[1],

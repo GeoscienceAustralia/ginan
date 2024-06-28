@@ -87,7 +87,7 @@ SsrOutMap mongoReadOrbClk(
 
 		getMongoCollection(mongo, SSR_DB);
 
-	// 	std::cout << "\nTrying to get things for " << targetTime.to_string(0) << std::endl;
+	// 	std::cout << "\nTrying to get things for " << targetTime.to_string() << std::endl;
 		b_date btime = bDate(referenceTime);
 
 		bool changeIod = false;
@@ -168,7 +168,7 @@ SsrOutMap mongoReadOrbClk(
 
 						clkValues.iode		= doc[SSR_IODE		].get_int32();
 
-	// 					std::cout << Sat.id() << " less:" << less << " brdc:" << broadcast << "   " << clkValues.time.to_string(0) << std::endl;
+	// 					std::cout << Sat.id() << " less:" << less << " brdc:" << broadcast << "   " << clkValues.time.to_string() << std::endl;
 
 						if (less)	clkVec	.push_front	(clkValues);
 						else		clkVec	.push_back	(clkValues);
@@ -180,19 +180,19 @@ SsrOutMap mongoReadOrbClk(
 
 	// 	for (auto& a : clkBroadcastVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final cbrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << std::endl;
+	// 		std::cout << Sat.id() << "Final cbrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string() << std::endl;
 	// 	}
 	// 	for (auto& a : clkPreciseVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final cprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << std::endl;
+	// 		std::cout << Sat.id() << "Final cprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string() << std::endl;
 	// 	}
 	// 	for (auto& a : ephBroadcastVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final ebrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << std::endl;
+	// 		std::cout << Sat.id() << "Final ebrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string() << std::endl;
 	// 	}
 	// 	for (auto& a : ephPreciseVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final eprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << std::endl;
+	// 		std::cout << Sat.id() << "Final eprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string() << std::endl;
 	// 	}
 
 			//try to find a set of things that straddle the reference time, with the same iode
@@ -854,7 +854,7 @@ SSRAtm mongoReadCmpAtmosphere(
 					{
 						string keyStr = "ionoPoly_" + std::to_string(i);
 						regData.stecData[sat][tatm].poly[i] = satDoc[keyStr].get_double();
-						tracepdeex (6,std::cout,"\n   Mongo_ionP  %s %2d %s %1d %8.4f", tatm.to_string(0), regId, sat.id().c_str(), i, regData.stecData[sat][tatm].poly[i]);
+						tracepdeex (6,std::cout,"\n   Mongo_ionP  %s %2d %s %1d %8.4f", tatm.to_string().c_str(), regId, sat.id().c_str(), i, regData.stecData[sat][tatm].poly[i]);
 					}
 
 					if (regData.ionoGrid)
@@ -862,7 +862,7 @@ SSRAtm mongoReadCmpAtmosphere(
 					{
 						string keyStr = "ionoGrid_" + std::to_string(ind);
 						regData.stecData[sat][tatm].grid[ind] = satDoc[keyStr].get_double();
-						tracepdeex (6,std::cout,"\n   Mongo_ionG  %s %2d %s %1d %8.4f", tatm.to_string(0), regId, sat.id().c_str(), ind, regData.stecData[sat][tatm].grid[ind]);
+						tracepdeex (6,std::cout,"\n   Mongo_ionG  %s %2d %s %1d %8.4f", tatm.to_string().c_str(), regId, sat.id().c_str(), ind, regData.stecData[sat][tatm].grid[ind]);
 					}
 				}
 			}

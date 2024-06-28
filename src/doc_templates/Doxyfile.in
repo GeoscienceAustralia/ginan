@@ -2466,3 +2466,47 @@ GENERATE_LEGEND        = YES
 # This tag requires that the tag HAVE_DOT is set to YES.
 
 DOT_CLEANUP            = YES
+
+DOT_USE_CUSTOM_TYPES   = YES
+
+
+
+DOT_CUSTOM_SHAPES =			"ParallelArchitecture:box3d"	\
+							"Database:cylinder"				\
+							"Library:folder"				\
+							"FileType:note"					\
+							"Input:tab"						\
+							"Output:tab"
+
+DOT_CUSTOM_FILLS =			"ParallelArchitecture:#88ff88"	\
+							"Architecture:#88ff88"			\
+							"Database:#ffc770"				\
+							"FileType:#ffc770"				\
+							"Input:#ffc770"					\
+							"Output:#ffc770"				\
+							"Library:#8888ff"
+
+DOT_CUSTOM_OUTLINES =		"ParallelArchitecture:#00aa00"	\
+							"Architecture:#00aa00"			\
+							"Database:#ff8f00"				\
+							"FileType:#ff8f00"				\
+							"Input:#ff8f00"					\
+							"Output:#ff8f00"				\
+							"Library:#0000aa"
+
+DOT_CUSTOM_STYLES 	=		"ParallelArchitecture:filled"	\
+							"Architecture:filled"			\
+							"Database:filled"				\
+							"FileType:filled"				\
+							"Library:filled"				\
+							"Input:filled"					\
+							"Output:filled"
+
+DOT_GRAPH_CUSTOM_DEPTH	=	"ParallelArchitecture:1"		\
+							"Architecture:filled"			\
+							"Database:filled"				\
+							"FileType:filled"				\
+							"Library:filled"				\
+							"Input:filled"					\
+							"Output:filled"
+

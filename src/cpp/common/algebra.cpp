@@ -1922,7 +1922,7 @@ void KFState::outputStates(
 	InteractiveTerminal trace(name, output);
 	Block block(trace, name);
 
-	tracepdeex(1, trace, "#\t%22s\t%20s\t%5s\t%3s\t%7s\t%17s\t%17s\t%15s", "Time", "Type", "Str", "Sat", "Num", "State", "Sigma", "Adjust");
+	tracepdeex(1, trace, "#\t%20s\t%20s\t%5s\t%3s\t%7s\t%17s\t%17s\t%15s", "Time", "Type", "Str", "Sat", "Num", "State", "Sigma", "Adjust");
 	tracepdeex(5, trace, "\t%17s",	"Mu");
 	tracepdeex(2, trace, "\t%s",	"Comments");
 	tracepdeex(1, trace, "\n");

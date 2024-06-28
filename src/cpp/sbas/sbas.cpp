@@ -64,7 +64,7 @@ void writeEMSdata(
 				break;
 			}
 
-			tracepdeex(4, trace, "\nWriting EMS file line: %s\n", frameTime.to_string(0));
+			tracepdeex(4, trace, "\nWriting EMS file line: %s\n", frameTime.to_string().c_str());
 			writeEMSline(frameTime, sbasData, outputStream);
 
 			lastEMSWritten = frameTime;

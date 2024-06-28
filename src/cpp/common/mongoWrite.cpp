@@ -466,7 +466,7 @@ void mongoMeasResiduals(
 				indexLabel[name + "-Postfit"]	= true;
 				indexLabel[name + "-Sigma"]		= true;
 
-				if	( instance & acsConfig.mongoOpts.output_components == +E_Mongo::NONE
+				if	( (instance & acsConfig.mongoOpts.output_components) == +E_Mongo::NONE
 					||kfMeas.componentsMaps.empty())
 				{
 					continue;

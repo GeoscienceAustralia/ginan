@@ -26,6 +26,7 @@ using std::map;
 
 #include "enums.h"
 
+#include "architectureDocs.hpp"
 
 struct ReceiverMap;
 struct KFState;
@@ -139,6 +140,8 @@ void spitFilterToFile(
 	string			filename,		///< Path to file to output to
 	bool			queue = false)	///< Optionally queue outputs in a separate thread
 {
+	DOCS_REFERENCE(Binary_Archive__);
+
 	if (queue)
 	{
 		shared_ptr<void> copy_ptr = make_shared<TYPE>(object);

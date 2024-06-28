@@ -233,7 +233,7 @@ void outputApriori(
 // 		tracepdeex(1, fout, "  Date       UTC time  Sta.   A priori X    A priori Y    A priori Z    Estimated X   Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
 // 	}
 //
-// 	fout << kfState.time.to_string(2) << " ";
+// 	fout << kfState.time.to_string() << " ";
 // 	fout << rec.id << " ";
 // 	fout << std::fixed << std::setprecision(4);
 // 	fout << snxPos.transpose() << "  ";

@@ -55,10 +55,10 @@ EPHTYPE* selSysEphFromMap(
 	auto it = sysEphMap.lower_bound(time);
 	if (it == sysEphMap.end())
 	{
-		tracepdeex(5, trace, "\nno broadcast ephemeris (EOP/ION): %s sys=%s", time.to_string(0).c_str(), sys._to_string());
+		tracepdeex(5, trace, "\nno broadcast ephemeris (EOP/ION): %s sys=%s", time.to_string().c_str(), sys._to_string());
 		if (sysEphMap.empty() == false)
 		{
-			tracepdeex(5, trace, " last is %s", sysEphMap.begin()->first.to_string(0).c_str());
+			tracepdeex(5, trace, " last is %s", sysEphMap.begin()->first.to_string().c_str());
 		}
 		return nullptr;
 	}
@@ -107,7 +107,7 @@ EPHTYPE* selSatEphFromMap(
 			return &eph;
 		}
 
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s with iode=%3d", time.to_string(0).c_str(), Sat.id().c_str(), iode);
+		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s with iode=%3d", time.to_string().c_str(), Sat.id().c_str(), iode);
 
 		return nullptr;
 	}
@@ -115,10 +115,10 @@ EPHTYPE* selSatEphFromMap(
 	auto it = satEphMap.lower_bound(time + tmax);
 	if (it == satEphMap.end())
 	{
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE+ ", time.to_string(0).c_str(), Sat.id().c_str());
+		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE+ ", time.to_string().c_str(), Sat.id().c_str());
 		if (satEphMap.empty() == false)
 		{
-			tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string(0).c_str());
+			tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string().c_str());
 		}
 
 		return nullptr;
@@ -128,7 +128,7 @@ EPHTYPE* selSatEphFromMap(
 
 	if (fabs((eph.toe - time).to_double()) > tmax)
 	{
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE-", time.to_string(0).c_str(), Sat.id().c_str());
+		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE-", time.to_string().c_str(), Sat.id().c_str());
 
 		return nullptr;
 	}
@@ -463,7 +463,7 @@ bool satClkBroadcast(
 
 	if (eph_ptr == nullptr)
 	{
-		tracepdeex(2,trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string(2));
+		tracepdeex(2,trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string().c_str());
 		return false;
 	}
 
@@ -516,7 +516,7 @@ bool satPosBroadcast(
 
 	if (eph_ptr == nullptr)
 	{
-		tracepdeex(2,trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string(2));
+		tracepdeex(2,trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string().c_str());
 		return false;
 	}
 

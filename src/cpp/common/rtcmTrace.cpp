@@ -109,9 +109,9 @@ void RtcmTrace::traceSsrEph(
 	doc.append(kvp("Mountpoint",				rtcmMountpoint									));
 	doc.append(kvp("MessageNumber",				messCode._to_integral()							));
 	doc.append(kvp("MessageType",				messCode._to_string()							));
-	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string(1)							));
-	doc.append(kvp("EpochTimeGPST",				ssrEph.ssrMeta.receivedTime.to_string(1)		));
-	doc.append(kvp("ReferenceTimeGPST",			ssrEph.t0.to_string(1)							));
+	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string()							));
+	doc.append(kvp("EpochTimeGPST",				ssrEph.ssrMeta.receivedTime.to_string()			));
+	doc.append(kvp("ReferenceTimeGPST",			ssrEph.t0.to_string()							));
 	doc.append(kvp("EpochTime1s",				ssrEph.ssrMeta.epochTime1s						));
 	doc.append(kvp("SSRUpdateIntervalSec",		ssrEph.udi										));
 	doc.append(kvp("SSRUpdateIntervalIndex",	ssrEph.ssrMeta.updateIntIndex					));
@@ -157,9 +157,9 @@ void RtcmTrace::traceSsrClk(
 	doc.append(kvp("Mountpoint",				rtcmMountpoint									));
 	doc.append(kvp("MessageNumber",				messCode._to_integral()							));
 	doc.append(kvp("MessageType",				messCode._to_string()							));
-	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string(1)							));
-	doc.append(kvp("EpochTimeGPST",				ssrClk.ssrMeta.receivedTime.to_string(1)		));
-	doc.append(kvp("ReferenceTimeGPST",			ssrClk.t0.to_string(1)							));
+	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string()							));
+	doc.append(kvp("EpochTimeGPST",				ssrClk.ssrMeta.receivedTime.to_string()			));
+	doc.append(kvp("ReferenceTimeGPST",			ssrClk.t0.to_string()							));
 	doc.append(kvp("EpochTime1s",				ssrClk.ssrMeta.epochTime1s						));
 	doc.append(kvp("SSRUpdateIntervalSec",		ssrClk.udi										));
 	doc.append(kvp("SSRUpdateIntervalIndex",	ssrClk.ssrMeta.updateIntIndex					));
@@ -200,9 +200,9 @@ void RtcmTrace::traceSsrUra(
 	doc.append(kvp("Mountpoint",				rtcmMountpoint									));
 	doc.append(kvp("MessageNumber",				messCode._to_integral()							));
 	doc.append(kvp("MessageType",				messCode._to_string()							));
-	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string(1)							));
-	doc.append(kvp("EpochTimeGPST",				ssrUra.ssrMeta.receivedTime.to_string(1)		));
-	doc.append(kvp("ReferenceTimeGPST",			ssrUra.t0.to_string(1)							));
+	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string()							));
+	doc.append(kvp("EpochTimeGPST",				ssrUra.ssrMeta.receivedTime.to_string()			));
+	doc.append(kvp("ReferenceTimeGPST",			ssrUra.t0.to_string()							));
 	doc.append(kvp("EpochTime1s",				ssrUra.ssrMeta.epochTime1s						));
 	doc.append(kvp("SSRUpdateIntervalSec",		ssrUra.udi										));
 	doc.append(kvp("SSRUpdateIntervalIndex",	ssrUra.ssrMeta.updateIntIndex					));
@@ -240,9 +240,9 @@ void RtcmTrace::traceSsrHRClk(
 	doc.append(kvp("Mountpoint",				rtcmMountpoint									));
 	doc.append(kvp("MessageNumber",				messCode._to_integral()							));
 	doc.append(kvp("MessageType",				messCode._to_string()							));
-	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string(1)							));
-	doc.append(kvp("EpochTimeGPST",				SsrHRClk.ssrMeta.receivedTime.to_string(1)		));
-	doc.append(kvp("ReferenceTimeGPST",			SsrHRClk.t0.to_string(1)						));
+	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string()							));
+	doc.append(kvp("EpochTimeGPST",				SsrHRClk.ssrMeta.receivedTime.to_string()		));
+	doc.append(kvp("ReferenceTimeGPST",			SsrHRClk.t0.to_string()							));
 	doc.append(kvp("EpochTime1s",				SsrHRClk.ssrMeta.epochTime1s					));
 	doc.append(kvp("SSRUpdateIntervalSec",		SsrHRClk.udi									));
 	doc.append(kvp("SSRUpdateIntervalIndex",	SsrHRClk.ssrMeta.updateIntIndex					));
@@ -281,9 +281,9 @@ void RtcmTrace::traceSsrCodeBias(
 	doc.append(kvp("Mountpoint",				rtcmMountpoint									));
 	doc.append(kvp("MessageNumber",				messCode._to_integral()							));
 	doc.append(kvp("MessageType",				messCode._to_string()							));
-	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string(1)							));
-	doc.append(kvp("EpochTimeGPST",				ssrBias.ssrMeta.receivedTime.to_string(1)		));
-	doc.append(kvp("ReferenceTimeGPST",			ssrBias.t0.to_string(1)							));
+	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string()							));
+	doc.append(kvp("EpochTimeGPST",				ssrBias.ssrMeta.receivedTime.to_string()		));
+	doc.append(kvp("ReferenceTimeGPST",			ssrBias.t0.to_string()							));
 	doc.append(kvp("EpochTime1s",				ssrBias.ssrMeta.epochTime1s						));
 	doc.append(kvp("SSRUpdateIntervalSec",		ssrBias.udi										));
 	doc.append(kvp("SSRUpdateIntervalIndex",	ssrBias.ssrMeta.updateIntIndex					));
@@ -323,9 +323,9 @@ void RtcmTrace::traceSsrPhasBias(
 	doc.append(kvp("Mountpoint",				rtcmMountpoint									));
 	doc.append(kvp("MessageNumber",				messCode._to_integral()							));
 	doc.append(kvp("MessageType",				messCode._to_string()							));
-	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string(1)							));
-	doc.append(kvp("EpochTimeGPST",				ssrBias.ssrMeta.receivedTime.to_string(1)		));
-	doc.append(kvp("ReferenceTimeGPST",			ssrBias.t0.to_string(1)							));
+	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string()							));
+	doc.append(kvp("EpochTimeGPST",				ssrBias.ssrMeta.receivedTime.to_string()		));
+	doc.append(kvp("ReferenceTimeGPST",			ssrBias.t0.to_string()							));
 	doc.append(kvp("EpochTime1s",				ssrBias.ssrMeta.epochTime1s						));
 	doc.append(kvp("SSRUpdateIntervalSec",		ssrBias.udi										));
 	doc.append(kvp("SSRUpdateIntervalIndex",	ssrBias.ssrMeta.updateIntIndex					));
@@ -398,11 +398,11 @@ void RtcmTrace::traceBrdcEph(	//todo aaron, template this for gps/glo?
 	doc.append(kvp("Mountpoint",			rtcmMountpoint			));
 	doc.append(kvp("MessageNumber",			messCode._to_integral()	));
 	doc.append(kvp("MessageType",			messCode._to_string()	));
-	doc.append(kvp("ReceivedSentTimeGPST",	nearTime.to_string(1)	));
+	doc.append(kvp("ReceivedSentTimeGPST",	nearTime.to_string()	));
 	doc.append(kvp("Type",					eph.type._to_string()	));
 
-	doc.append(kvp("ToeGPST",				eph.toe.to_string(1)	));
-	doc.append(kvp("TocGPST",				eph.toc.to_string(1)	));
+	doc.append(kvp("ToeGPST",				eph.toe.to_string()	));
+	doc.append(kvp("TocGPST",				eph.toc.to_string()	));
 
 	traceBrdcEphBody(doc, eph);
 
@@ -436,12 +436,12 @@ void RtcmTrace::traceBrdcEph(
 	doc.append(kvp("Mountpoint",			rtcmMountpoint			));
 	doc.append(kvp("MessageNumber",			messCode._to_integral()	));
 	doc.append(kvp("MessageType",			messCode._to_string()	));
-	doc.append(kvp("ReceivedSentTimeGPST",	nearTime.to_string(1)	));
+	doc.append(kvp("ReceivedSentTimeGPST",	nearTime.to_string()	));
 	doc.append(kvp("Sat",					geph.Sat.id()			));
 	doc.append(kvp("Type",					geph.type._to_string()	));
 
-	doc.append(kvp("ToeGPST",				geph.toe.to_string(1)	));
-	doc.append(kvp("TofGPST",				geph.tof.to_string(1)	));
+	doc.append(kvp("ToeGPST",				geph.toe.to_string()	));
+	doc.append(kvp("TofGPST",				geph.tof.to_string()	));
 
 	traceBrdcEphBody(doc, geph);
 
@@ -688,8 +688,8 @@ void RtcmTrace::traceMSM(
 	doc.append(kvp("Mountpoint",				rtcmMountpoint									));
 	doc.append(kvp("MessageNumber",				messCode._to_integral()							));
 	doc.append(kvp("MessageType",				messCode._to_string()							));
-	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string(1)							));
-	doc.append(kvp("EpochTimeGPST",				time.to_string(1)								));
+	doc.append(kvp("ReceivedSentTimeGPST",		nearTime.to_string()							));
+	doc.append(kvp("EpochTimeGPST",				time.to_string()								));
 	doc.append(kvp("Sat",						Sat.id()										));
 	doc.append(kvp("Code",						sig.code._to_string()							));
 	doc.append(kvp("Pseudorange",				sig.P											));

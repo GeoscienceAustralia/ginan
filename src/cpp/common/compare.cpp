@@ -243,7 +243,7 @@ void compareAttitudes(
 
 				double angle = att0.q.angularDistance(att.q) * R2D;
 
-				tracepdeex(0, std::cout, "\n%s - %s - %6.1fdeg", time.to_string(0).c_str(), id.c_str(), angle);
+				tracepdeex(0, std::cout, "\n%s - %s - %6.1fdeg", time.to_string().c_str(), id.c_str(), angle);
 			}
 		}
 	}

@@ -241,6 +241,7 @@ struct Typer
 
 
 /** Use only a subset of a vector that can be cast to a desired type
+ * \private
  */
 template<
 	typename OUT,

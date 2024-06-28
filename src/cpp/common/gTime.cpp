@@ -1,5 +1,5 @@
 
-// #pragma GCC optimize ("O0")
+#pragma GCC optimize ("O0")
 
 #include <string.h>
 #include <stdio.h>
@@ -400,8 +400,15 @@ GTime utc2gpst(UtcTime utcTime)
 }
 
 string GTime::to_string(
-	int n) const
+	int n)
+const
 {
+	if	( cacheTime == bigTime
+		&&cacheN	== n)
+	{
+		return cacheString;
+	}
+
 	GTime t = *this;
 
 	if		(n < 0) 		n = 0;
@@ -426,10 +433,15 @@ string GTime::to_string(
 			ep[2],
 			ep[3],
 			ep[4],
-			n<=0?2:n+3,n<=0?0:n,
+			n<=0?2:n+3,
+			n,
 			ep[5]);
 
-	return buff;
+	cacheString = buff;
+	cacheTime	= bigTime;
+	cacheN		= n;
+
+	return cacheString;
 }
 
 GTime::operator GEpoch() const
@@ -609,7 +621,7 @@ GTime::operator RTod()			const{	Duration seconds = *this - GLO_t0;		RTod	rTod	= 
 PTime::operator GTime() 		const{	GTime gTime;	gTime.bigTime	= bigTime - GPS_t0_sub_POSIX_t0;												return gTime;}
 GTime::operator PTime() 		const{	PTime pTime;	pTime.bigTime	= bigTime + GPS_t0_sub_POSIX_t0;												return pTime;}
 
-GTime::operator string()		const{	return to_string(2);	}
+GTime::operator string()		const{	return to_string();	}
 
 /** Returns (posix) for current epoch
  */

@@ -27,7 +27,7 @@
  * The states collection may also be used to pass current or predicted values to another Pea instance, allowing several filters to run in a fast/slow configuration.
  * In this case the states entries are marked with the time of update/prediction, and other db entries are used to signify validity of complete sets of db entries using the 'updated' time.
  */
-Architecture Mongo_Database__()
+Database Mongo_Database__()
 {
 
 }

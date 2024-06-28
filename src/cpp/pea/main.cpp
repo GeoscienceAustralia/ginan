@@ -307,6 +307,8 @@ void addStationData(
 
 void reloadInputFiles()
 {
+	DOCS_REFERENCE(Input_Files__);
+
 	removeInvalidFiles(acsConfig.atx_files);
 	for (auto& atxfile : acsConfig.atx_files)
 	{
@@ -1690,6 +1692,15 @@ void mainOncePerEpochPerSatellite(
 	updateSatAtts(satPos0);
 }
 
+void cullData(
+	GTime time)
+{
+	cullOldEphs		(time);
+	cullOldSSRs		(time);
+	cullOldBiases	(time);
+
+	mongoCull(time);
+}
 
 void mainOncePerEpoch(
 	Network&		pppNet,
@@ -1789,12 +1800,8 @@ void mainOncePerEpoch(
 
 	if (acsConfig.delete_old_ephemerides)
 	{
-		cullOldEphs		(time);
-		cullOldSSRs		(time);
-		cullOldBiases	(time);
+		cullData(time);
 	}
-
-	mongoCull(time);
 
 	if (acsConfig.check_plumbing)
 	{

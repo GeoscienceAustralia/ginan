@@ -29,7 +29,7 @@ void outputObservations(
 			continue;
 		}
 
-		tracepdeex(4, trace, "\n%s %5s %5s %14.4f %14.4f", obs.time.to_string(2).c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sig.L, sig.P);
+		tracepdeex(4, trace, "\n%s %5s %5s %14.4f %14.4f", obs.time.to_string().c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sig.L, sig.P);
 
 		traceJson(4, jsonTrace, obs.time,
 		{

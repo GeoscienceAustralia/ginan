@@ -40,7 +40,7 @@ map<E_UtcId, string> utcIdStr =
 };
 
 void outputNavRinexEph(
-	Eph&			eph, 
+	Eph&			eph,
 	Trace&			trace,
 	const double	rnxver)
 {
@@ -78,7 +78,7 @@ void outputNavRinexEph(
 	trace << "    ";
 	if (sys != +E_Sys::BDS)		{	traceFormatedFloat(trace, eph.iode,		formatStr);	}	/* GPS/QZS: IODE, GAL: IODnav */
 	else 						{	traceFormatedFloat(trace, eph.aode,		formatStr);	}	/* BDS: AODE */
-	
+
 	traceFormatedFloat(trace, eph.crs,		formatStr);
 	traceFormatedFloat(trace, eph.deln,		formatStr);
 	traceFormatedFloat(trace, eph.M0,		formatStr);
@@ -115,13 +115,13 @@ void outputNavRinexEph(
 	trace << "    ";
 	if (sys == +E_Sys::GAL)		{	traceFormatedFloat(trace, svaToSisa	(eph.sva),	formatStr);	}
 	else						{	traceFormatedFloat(trace, svaToUra	(eph.sva),	formatStr);	}
-	
+
 	traceFormatedFloat(trace, eph.svh,		formatStr);
 	traceFormatedFloat(trace, eph.tgd[0],	formatStr);	/* GPS/QZS:TGD, GAL:BGD E5a/E1, BDS: TGD1 B1/B3 */
 
 	if	(  sys == +E_Sys::GAL
-		|| sys == +E_Sys::BDS)	{	traceFormatedFloat(trace, eph.tgd[1],	formatStr);	}	/* GAL:BGD E5b/E1, BDS: TGD2 B2/B3 */	
-	else						{	traceFormatedFloat(trace, eph.iodc,		formatStr);	}	/* GPS/QZS:IODC */	
+		|| sys == +E_Sys::BDS)	{	traceFormatedFloat(trace, eph.tgd[1],	formatStr);	}	/* GAL:BGD E5b/E1, BDS: TGD2 B2/B3 */
+	else						{	traceFormatedFloat(trace, eph.iodc,		formatStr);	}	/* GPS/QZS:IODC */
 	trace << std::endl;
 
 	trace << "    ";
@@ -129,7 +129,7 @@ void outputNavRinexEph(
 	else						{	traceFormatedFloat(trace, BTow(eph.ttm), formatStr);	}
 
 	if		(sys == +E_Sys::GPS)	{		traceFormatedFloat(trace, eph.fit,		formatStr);	}	/* fit interval in hours for GPS */
-	else if (sys == +E_Sys::QZS)	{		traceFormatedFloat(trace, eph.fitFlag,	formatStr);	}	/* fit interval flag for QZS */	
+	else if (sys == +E_Sys::QZS)	{		traceFormatedFloat(trace, eph.fitFlag,	formatStr);	}	/* fit interval flag for QZS */
 	else if (sys == +E_Sys::BDS)	{		traceFormatedFloat(trace, eph.aodc,		formatStr);	}	/* BDS: AODC */
 	else							{		traceFormatedFloat(trace, 0,			formatStr);	}	/* spare */
 	trace << std::endl;
@@ -137,7 +137,7 @@ void outputNavRinexEph(
 
 
 void outputNavRinexGeph(
-	Geph&			geph, 
+	Geph&			geph,
 	Trace&			trace,
 	const double	rnxver)
 {
@@ -161,10 +161,10 @@ void outputNavRinexGeph(
 	utcTime = geph.tof;
 	fakeGTime.bigTime = utcTime.bigTime;
 	double tof = GTow(fakeGTime);
-	
+
 	double ep[6] = {0};
 	time2epoch(geph.toe, ep, E_TimeSys::UTC);
-	
+
 	tracepdeex(0, trace, "%-3s %04.0f %02.0f %02.0f %02.0f %02.0f %02.0f", geph.Sat.id().c_str(), ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 	traceFormatedFloat(trace,-geph.taun,	formatStr);   	// -taun
 	traceFormatedFloat(trace, geph.gammaN,	formatStr);
@@ -200,7 +200,7 @@ void outputNavRinexGeph(
 
 
 void outputNavRinexCeph(
-	Ceph&			ceph, 
+	Ceph&			ceph,
 	Trace&			trace,
 	const double	rnxver)
 {
@@ -386,7 +386,7 @@ void outputNavRinexCeph(
 
 
 void outputNavRinexSTO(
-	STO&			sto, 
+	STO&			sto,
 	Trace&			trace,
 	const double	rnxver)
 {
@@ -446,7 +446,7 @@ void outputNavRinexSTO(
 
 
 void outputNavRinexEOP(
-	EOP&			eop, 
+	EOP&			eop,
 	Trace&			trace,
 	const double	rnxver)
 {
@@ -478,7 +478,7 @@ void outputNavRinexEOP(
 
 	double ep[6] = {0};
 	time2epoch(eop.teop, ep, tsys);
-	
+
 	tracepdeex(0, trace, "    %04.0f %02.0f %02.0f %02.0f %02.0f %02.0f", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
 	traceFormatedFloat(trace, eop.xp	* R2AS,	formatStr);
@@ -509,7 +509,7 @@ void outputNavRinexEOP(
 
 
 void outputNavRinexION(
-	ION&			ion, 
+	ION&			ion,
 	Trace&			trace,
 	const double	rnxver)
 {
@@ -589,7 +589,7 @@ void outputNavRinexION(
 		traceFormatedFloat(trace, ion.a1,	formatStr);
 		traceFormatedFloat(trace, ion.a2,	formatStr);
 		trace << std::endl;
-		
+
 		trace << "    ";
 		traceFormatedFloat(trace, ion.a3,	formatStr);
 		traceFormatedFloat(trace, ion.b0,	formatStr);
@@ -633,14 +633,14 @@ void outputNavRinexBody(
 				continue;
 
 			E_NavMsgType nvtyp = acsConfig.used_nav_types[Sat.sys];
-			
+
 			if (sys == +E_Sys::GLO)
 			{
 				auto geph_ptr = seleph<Geph>(std::cout, tsync, Sat, nvtyp, ANY_IODE, nav);
 
 				if (geph_ptr == nullptr)
 					continue;
-				
+
 				auto& geph = *geph_ptr;
 
 				if	( outFileData.last_iode.find(Sat)	== outFileData.last_iode.end()
@@ -649,7 +649,7 @@ void outputNavRinexBody(
 					outFileData.last_iode[Sat] = geph.iode;
 					outputNavRinexGeph(geph, rinexStream, rnxver);
 				}
-				
+
 				continue;
 			}
 			else if (sys == +E_Sys::SBS)
@@ -666,24 +666,24 @@ void outputNavRinexBody(
 				// 	outFileData.last_iode[sat] = seph_ptr->iode;
 				// 	outputNavRinexSeph(*seph_ptr, rinexStream, rnxver);
 				// }
-				
+
 				continue;
 			}
 			else
 			{
 				auto eph_ptr = seleph<Eph>(std::cout, tsync, Sat, nvtyp, ANY_IODE, nav);
-			
+
 				if (eph_ptr == nullptr)
 					continue;
 
 				// Note iode can be zero, checking the map makes a zero entry as well.
-				if	(  outFileData.last_iode.find(Sat)	== outFileData.last_iode.end() 
+				if	(  outFileData.last_iode.find(Sat)	== outFileData.last_iode.end()
 					|| eph_ptr->iode					!= outFileData.last_iode[Sat])
 				{
 					outFileData.last_iode[Sat] = eph_ptr->iode;
 					outputNavRinexEph(*eph_ptr, rinexStream, rnxver);
 				}
-				
+
 				continue;
 			}
 		}
@@ -691,8 +691,8 @@ void outputNavRinexBody(
 }
 
 
-void rinexNavHeader( 
-	map<E_Sys, bool>&	sysMap, 
+void rinexNavHeader(
+	map<E_Sys, bool>&	sysMap,
 	Trace&				rinexStream,
 	const double		rnxver)
 {
@@ -709,7 +709,7 @@ void rinexNavHeader(
 	string sysDesc;
 	if (sysMap.size() == 1)	sysDesc = rinexSysDesc(sysMap.begin()->first);
 	else					sysDesc = rinexSysDesc(E_Sys::COMB);
-	
+
 	tracepdeex(0, rinexStream, "%9.2f%-11s%-20s%-20s%-20s\n",
 		rnxver,
 		"",
@@ -731,7 +731,7 @@ void rinexNavHeader(
 			{
 				continue;
 			}
-			
+
 			double* ion_arr1 = nullptr;
 			double* ion_arr2 = nullptr;
 			string	ion_str1;
@@ -754,17 +754,17 @@ void rinexNavHeader(
 						continue;
 				}
 
-				if (ion_arr1)	
+				if (ion_arr1)
 					tracepdeex(0, rinexStream, "%s %12.4E%12.4E%12.4E%12.4E%7s%-20s\n",
-						ion_str1.c_str(), 
+						ion_str1.c_str(),
 						ion_arr1[0],
 						ion_arr1[1],
 						ion_arr1[2],
 						ion_arr1[3], "", "IONOSPHERIC CORR");
-				
-				if (ion_arr2)	
+
+				if (ion_arr2)
 					tracepdeex(0, rinexStream, "%s %12.4E%12.4E%12.4E%12.4E%7s%-20s\n",
-						ion_str2.c_str(), 
+						ion_str2.c_str(),
 						ion_arr2[0],
 						ion_arr2[1],
 						ion_arr2[2],
@@ -806,8 +806,8 @@ void rinexNavHeader(
 
 					tracepdeex(0, rinexStream, "%s %17.10E%16.9E%7.0f%5.0f %-5s %-2s %-20s\n",
 						code._to_string(),
-						sto.A0, 
-						sto.A1, 
+						sto.A0,
+						sto.A1,
 						tow,
 						week, "", "", "TIME SYSTEM CORR");
 				}
@@ -822,23 +822,23 @@ void rinexNavHeader(
 void writeRinexNav(const double rnxver)
 {
 	auto filenameSysMap = getSysOutputFilenames(acsConfig.rinex_nav_filename, tsync);
-	
+
 	for (auto [filename, sysMap] : filenameSysMap)
 	{
 		auto& fileData = filenameNavFileDataMap[filename];
-		
+
 		std::ofstream rinexStream(filename, std::ofstream::app);
 		if (!rinexStream)
 		{
 			BOOST_LOG_TRIVIAL(error) << "Error opening " << filename << " for writing rinex nav";
 			return;
 		}
-		
+
 		if (rinexStream.tellp() == 0)
 			rinexNavHeader(sysMap, rinexStream, rnxver);
-		
+
 		fileData.sysMap = sysMap;
-		
+
 		outputNavRinexBody(fileData, rinexStream, rnxver);
 	}
 }
@@ -854,7 +854,7 @@ void outputNavRinexBodyAll(
 		for (auto it = stoList.rbegin(); it != stoList.rend(); it++)
 		{
 			auto& [key, value] = *it;
-			
+
 			outputNavRinexSTO(value, rinexStream, rnxver);
 		}
 
@@ -863,7 +863,7 @@ void outputNavRinexBodyAll(
 		for (auto it = eopList.rbegin(); it != eopList.rend(); it++)
 		{
 			auto& [key, value] = *it;
-			
+
 			outputNavRinexEOP(value, rinexStream, rnxver);
 		}
 
@@ -872,7 +872,7 @@ void outputNavRinexBodyAll(
 		for (auto it = ionList.rbegin(); it != ionList.rend(); it++)
 		{
 			auto& [key, value] = *it;
-			
+
 			outputNavRinexION(value, rinexStream, rnxver);
 		}
 	}
@@ -882,7 +882,7 @@ void outputNavRinexBodyAll(
 	for (auto it = ephList.rbegin(); it != ephList.rend(); it++)
 	{
 		auto& [key, value] = *it;
-			
+
 		outputNavRinexEph(value, rinexStream, rnxver);
 	}
 
@@ -891,7 +891,7 @@ void outputNavRinexBodyAll(
 	for (auto it = gephList.rbegin(); it != gephList.rend(); it++)
 	{
 		auto& [key, value] = *it;
-			
+
 		outputNavRinexGeph(value, rinexStream, rnxver);
 	}
 
@@ -899,7 +899,7 @@ void outputNavRinexBodyAll(
 	// for (auto it = sephList.rbegin(); it != sephList.rend(); it++)
 	// {
 // 			auto& [key, value] = *it;
-			
+
 	// 	outputNavRinexSeph(ritSeph->second, rinexStream, rnxver);
 	// }
 
@@ -908,14 +908,14 @@ void outputNavRinexBodyAll(
 	for (auto it = cephList.rbegin(); it != cephList.rend(); it++)
 	{
 		auto& [key, value] = *it;
-			
+
 		outputNavRinexCeph(value, rinexStream, rnxver);
 	}
 }
 
 void writeRinexNavAll(string filename, const double rnxver)
 {
-	map<E_Sys, bool>	sysMap = 
+	map<E_Sys, bool>	sysMap =
 	{
 		{E_Sys::GPS, true},
 		{E_Sys::GLO, true},
@@ -931,10 +931,10 @@ void writeRinexNavAll(string filename, const double rnxver)
 		BOOST_LOG_TRIVIAL(error) << "Error opening " << filename << " for writing rinex nav";
 		return;
 	}
-	
+
 	if (rinexStream.tellp() == 0)
 		rinexNavHeader(sysMap, rinexStream, rnxver);
-	
-	
+
+
 	outputNavRinexBodyAll(rinexStream, rnxver);
 }

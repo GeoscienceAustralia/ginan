@@ -818,7 +818,7 @@ void tideDisp(
 
 	string timeStr = time.to_string();
 
-	tracepdeex(lv, trace, "\n\n%s: time=%s", __FUNCTION__, time.to_string(2).c_str());
+	tracepdeex(lv, trace, "\n\n%s: time=%s", __FUNCTION__, time.to_string().c_str());
 
 	ERPValues erpv = getErp(nav.erp, time);
 

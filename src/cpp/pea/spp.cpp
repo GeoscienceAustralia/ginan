@@ -813,7 +813,7 @@ bool raim(
 
 	if ((int) exSat)
 	{
-		tracepdeex(3, trace, "%s: %s excluded by raim", obsList.front()->time.to_string(2).c_str(), exSat.id().c_str());
+		tracepdeex(3, trace, "%s: %s excluded by raim", obsList.front()->time.to_string().c_str(), exSat.id().c_str());
 		BOOST_LOG_TRIVIAL(debug) << "SPP converged after " << exSat.id() << " was excluded for " << obsList.front()->mount;
 		return true;
 	}
@@ -852,7 +852,7 @@ void spp(
 		satPosClk(trace, obs.time, obs, nav, satOpts.posModel.sources, satOpts.clockModel.sources, kfState_ptr, remote_ptr, E_OffsetType::APC);
 	}
 
-	tracepdeex(3,trace,	"\n%s  : tobs=%s n=%zu", __FUNCTION__, obsList.front()->time.to_string(3).c_str(), obsList.size());
+	tracepdeex(3,trace,	"\n%s  : tobs=%s n=%zu", __FUNCTION__, obsList.front()->time.to_string().c_str(), obsList.size());
 
 	//estimate receiver position with pseudorange
 	sol.status = estpos(trace, obsList, sol, id, kfState_ptr, (string) "SPP/" + id);	//todo aaron, remote too?

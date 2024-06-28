@@ -365,7 +365,7 @@ int readionexb(
 		else if (strstr(label, "END OF RMS MAP")		== label)
 		{
 			// if (fdebug)
-			// 	fprintf(fdebug, "%5ld data and %5ld rms entries for %s\n", navi->tecList[time.time].data.size(), navi->tecList[time.time].rms.size(), time.to_string(0).c_str());
+			// 	fprintf(fdebug, "%5ld data and %5ld rms entries for %s\n", navi->tecList[time.time].data.size(), navi->tecList[time.time].rms.size(), time.to_string().c_str());
 
 			type = 0;
 		}

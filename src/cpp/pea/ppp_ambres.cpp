@@ -178,7 +178,7 @@ void fixAndHoldAmbiguities(
 	Trace&		trace,		///< Debug trace
 	KFState&	kfState)	///< Filter state
 {
-	tracepdeex(3, trace, "%s: %s\n", __FUNCTION__, kfState.time.to_string(2));
+	tracepdeex(3, trace, "%s: %s\n", __FUNCTION__, kfState.time.to_string().c_str());
 
 	if (acsConfig.ambrOpts.mode == +E_ARmode::OFF)
 	{

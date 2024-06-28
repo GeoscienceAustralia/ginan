@@ -603,7 +603,7 @@ void debugTime()
 
 	std::cout << std::setprecision(1) << std::fixed << std::endl;
 	std::cout << "universal_time():   " << utcNow << std::endl;
-	std::cout << "timeGet():          " << gTime.bigTime << " " << gTime.to_string(1) << std::endl;
+	std::cout << "timeGet():          " << gTime.bigTime << " " << gTime.to_string() << std::endl;
 
 	PTime	pTime	= gTime;
 	auto	bTime	= boost::posix_time::from_time_t((time_t)pTime.bigTime);
@@ -622,7 +622,7 @@ void debugTime()
 	std::cout << std::setfill('0') << std::endl;
 	std::cout << "GTime to anything:"   << std::endl;
 	std::cout << "GTime to PTime:     " << pTime  .bigTime << " " << bTime                << std::endl;
-	std::cout << "GTime to UtcTime:   " << utcTime.bigTime << " " << utcTime.to_string(1) << std::endl;
+	std::cout << "GTime to UtcTime:   " << utcTime.bigTime << " " << utcTime.to_string() << std::endl;
 	std::cout << "GTime to GEpoch:    " << (int)gEpoch.year << "-" << std::setw(2) << (int)gEpoch.month << "-" << std::setw(2) << (int)gEpoch.day << " " << std::setw(2) << (int)gEpoch.hour << ":" << std::setw(2) << (int)gEpoch.min << ":" << std::setw(4) << gEpoch.sec << std::endl;
 	std::cout << "GTime to UYds:      " << (int)uYds.year << " " << (int)uYds.doy << " " << uYds.sod << std::endl;
 	std::cout << "GTime to GWeek:     " << gWeek.val << std::endl;
@@ -639,25 +639,25 @@ void debugTime()
 
 	std::cout << std::endl;
 	std::cout << "anything to GTime:"   << std::endl;
-	std::cout << "PTime   to GTime:   " << gTimeP.bigTime << " " << gTimeP.to_string(1) << std::endl;
-	std::cout << "UtcTime to GTime:   " << gTimeU.bigTime << " " << gTimeU.to_string(1) << std::endl;
-	std::cout << "GEpoch  to GTime:   " << gTimeE.bigTime << " " << gTimeE.to_string(1) << std::endl;
-	std::cout << "UYds    to GTime:   " << gTimeY.bigTime << " " << gTimeY.to_string(1) << std::endl;
+	std::cout << "PTime   to GTime:   " << gTimeP.bigTime << " " << gTimeP.to_string() << std::endl;
+	std::cout << "UtcTime to GTime:   " << gTimeU.bigTime << " " << gTimeU.to_string() << std::endl;
+	std::cout << "GEpoch  to GTime:   " << gTimeE.bigTime << " " << gTimeE.to_string() << std::endl;
+	std::cout << "UYds    to GTime:   " << gTimeY.bigTime << " " << gTimeY.to_string() << std::endl;
 
 	GTime	gTimeG	= GTime(gWeek, gTow);
 	GTime	gTimeB	= GTime(bWeek, bTow);
 
-	std::cout << "GTime(GWeek, GTow): " << gTimeG.bigTime << " " << gTimeG.to_string(1) << std::endl;
-	std::cout << "GTime(BWeek, BTow): " << gTimeB.bigTime << " " << gTimeB.to_string(1) << std::endl;
+	std::cout << "GTime(GWeek, GTow): " << gTimeG.bigTime << " " << gTimeG.to_string() << std::endl;
+	std::cout << "GTime(BWeek, BTow): " << gTimeB.bigTime << " " << gTimeB.to_string() << std::endl;
 
 	GTime	nearTime= timeGet();
 			gTimeG	= GTime(gTow, nearTime);
 			gTimeB	= GTime(bTow, nearTime);
 	GTime	gTimeR	= GTime(rTod, nearTime);
 
-	std::cout << "GTime(GTow, GTime): " << gTimeG.bigTime << " " << gTimeG.to_string(1) << std::endl;
-	std::cout << "GTime(BTow, GTime): " << gTimeB.bigTime << " " << gTimeB.to_string(1) << std::endl;
-	std::cout << "GTime(RTod, GTime): " << gTimeR.bigTime << " " << gTimeR.to_string(1) << std::endl;
+	std::cout << "GTime(GTow, GTime): " << gTimeG.bigTime << " " << gTimeG.to_string() << std::endl;
+	std::cout << "GTime(BTow, GTime): " << gTimeB.bigTime << " " << gTimeB.to_string() << std::endl;
+	std::cout << "GTime(RTod, GTime): " << gTimeR.bigTime << " " << gTimeR.to_string() << std::endl;
 
 
 	double ep[6];
@@ -665,19 +665,19 @@ void debugTime()
 	std::cout << std::endl;
 	std::cout << "GTime to epoch to GTime:"   << std::endl;
 	time2epoch(gTime, ep, E_TimeSys::GPST);						std::cout << "GTime to GPST     epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochGPS	= epoch2time(ep, E_TimeSys::GPST);		std::cout << "GPST     epoch to GTime: " << gTimeEpochGPS.to_string(1) << std::endl;
+	GTime gTimeEpochGPS	= epoch2time(ep, E_TimeSys::GPST);		std::cout << "GPST     epoch to GTime: " << gTimeEpochGPS.to_string() << std::endl;
 	time2epoch(gTime, ep, E_TimeSys::GLONASST);					std::cout << "GTime to GLONASST epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochGLO	= epoch2time(ep, E_TimeSys::GLONASST);	std::cout << "GLONASST epoch to GTime: " << gTimeEpochGLO.to_string(1) << std::endl;
+	GTime gTimeEpochGLO	= epoch2time(ep, E_TimeSys::GLONASST);	std::cout << "GLONASST epoch to GTime: " << gTimeEpochGLO.to_string() << std::endl;
 	time2epoch(gTime, ep, E_TimeSys::GST);						std::cout << "GTime to GST      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochGST	= epoch2time(ep, E_TimeSys::GST);		std::cout << "GST      epoch to GTime: " << gTimeEpochGST.to_string(1) << std::endl;
+	GTime gTimeEpochGST	= epoch2time(ep, E_TimeSys::GST);		std::cout << "GST      epoch to GTime: " << gTimeEpochGST.to_string() << std::endl;
 	time2epoch(gTime, ep, E_TimeSys::BDT);						std::cout << "GTime to BDT      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochBDT	= epoch2time(ep, E_TimeSys::BDT);		std::cout << "BDT      epoch to GTime: " << gTimeEpochBDT.to_string(1) << std::endl;
+	GTime gTimeEpochBDT	= epoch2time(ep, E_TimeSys::BDT);		std::cout << "BDT      epoch to GTime: " << gTimeEpochBDT.to_string() << std::endl;
 	time2epoch(gTime, ep, E_TimeSys::QZSST);					std::cout << "GTime to QZSST    epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochQZS	= epoch2time(ep, E_TimeSys::QZSST);		std::cout << "QZSST    epoch to GTime: " << gTimeEpochQZS.to_string(1) << std::endl;
+	GTime gTimeEpochQZS	= epoch2time(ep, E_TimeSys::QZSST);		std::cout << "QZSST    epoch to GTime: " << gTimeEpochQZS.to_string() << std::endl;
 	time2epoch(gTime, ep, E_TimeSys::TAI);						std::cout << "GTime to TAI      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochTAI	= epoch2time(ep, E_TimeSys::TAI);		std::cout << "TAI      epoch to GTime: " << gTimeEpochTAI.to_string(1) << std::endl;
+	GTime gTimeEpochTAI	= epoch2time(ep, E_TimeSys::TAI);		std::cout << "TAI      epoch to GTime: " << gTimeEpochTAI.to_string() << std::endl;
 	time2epoch(gTime, ep, E_TimeSys::UTC);						std::cout << "GTime to UTC      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochUTC	= epoch2time(ep, E_TimeSys::UTC);		std::cout << "UTC      epoch to GTime: " << gTimeEpochUTC.to_string(1) << std::endl;
+	GTime gTimeEpochUTC	= epoch2time(ep, E_TimeSys::UTC);		std::cout << "UTC      epoch to GTime: " << gTimeEpochUTC.to_string() << std::endl;
 
 
 	double yds[6];
@@ -685,19 +685,19 @@ void debugTime()
 	std::cout << std::endl;
 	std::cout << "GTime to yds to GTime:"   << std::endl;
 	time2yds(gTime, yds, E_TimeSys::GPST);						std::cout << "GTime to GPST     yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsGPS	= yds2time(yds, E_TimeSys::GPST);		std::cout << "GPST     yds to GTime: " << gTimeYdsGPS.to_string(1) << std::endl;
+	GTime gTimeYdsGPS	= yds2time(yds, E_TimeSys::GPST);		std::cout << "GPST     yds to GTime: " << gTimeYdsGPS.to_string() << std::endl;
 	time2yds(gTime, yds, E_TimeSys::GLONASST);					std::cout << "GTime to GLONASST yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsGLO	= yds2time(yds, E_TimeSys::GLONASST);	std::cout << "GLONASST yds to GTime: " << gTimeYdsGLO.to_string(1) << std::endl;
+	GTime gTimeYdsGLO	= yds2time(yds, E_TimeSys::GLONASST);	std::cout << "GLONASST yds to GTime: " << gTimeYdsGLO.to_string() << std::endl;
 	time2yds(gTime, yds, E_TimeSys::GST);						std::cout << "GTime to GST      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsGST	= yds2time(yds, E_TimeSys::GST);		std::cout << "GST      yds to GTime: " << gTimeYdsGST.to_string(1) << std::endl;
+	GTime gTimeYdsGST	= yds2time(yds, E_TimeSys::GST);		std::cout << "GST      yds to GTime: " << gTimeYdsGST.to_string() << std::endl;
 	time2yds(gTime, yds, E_TimeSys::BDT);						std::cout << "GTime to BDT      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsBDT	= yds2time(yds, E_TimeSys::BDT);		std::cout << "BDT      yds to GTime: " << gTimeYdsBDT.to_string(1) << std::endl;
+	GTime gTimeYdsBDT	= yds2time(yds, E_TimeSys::BDT);		std::cout << "BDT      yds to GTime: " << gTimeYdsBDT.to_string() << std::endl;
 	time2yds(gTime, yds, E_TimeSys::QZSST);						std::cout << "GTime to QZSST    yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsQZS	= yds2time(yds, E_TimeSys::QZSST);		std::cout << "QZSST    yds to GTime: " << gTimeYdsQZS.to_string(1) << std::endl;
+	GTime gTimeYdsQZS	= yds2time(yds, E_TimeSys::QZSST);		std::cout << "QZSST    yds to GTime: " << gTimeYdsQZS.to_string() << std::endl;
 	time2yds(gTime, yds, E_TimeSys::TAI);						std::cout << "GTime to TAI      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsTAI	= yds2time(yds, E_TimeSys::TAI);		std::cout << "TAI      yds to GTime: " << gTimeYdsTAI.to_string(1) << std::endl;
+	GTime gTimeYdsTAI	= yds2time(yds, E_TimeSys::TAI);		std::cout << "TAI      yds to GTime: " << gTimeYdsTAI.to_string() << std::endl;
 	time2yds(gTime, yds, E_TimeSys::UTC);						std::cout << "GTime to UTC      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsUTC	= yds2time(yds, E_TimeSys::UTC);		std::cout << "UTC      yds to GTime: " << gTimeYdsUTC.to_string(1) << std::endl;
+	GTime gTimeYdsUTC	= yds2time(yds, E_TimeSys::UTC);		std::cout << "UTC      yds to GTime: " << gTimeYdsUTC.to_string() << std::endl;
 
 
 	GTow	nearGTow= 1;
@@ -707,32 +707,32 @@ void debugTime()
 
 	std::cout << std::setfill(' ') << std::endl;
 	std::cout << "Week/Day roll-over:" << std::endl;
-	std::cout << "nearGTow: " << std::setw(8) << nearGTow.val << "\tnearTime:              " << nearTime.to_string(1) << std::endl;
-	std::cout << "gTow:     " << std::setw(8) << gTow.    val << "\tGTime(gTow, nearTime): " << gTimeG.  to_string(1) << std::endl;
+	std::cout << "nearGTow: " << std::setw(8) << nearGTow.val << "\tnearTime:              " << nearTime.to_string() << std::endl;
+	std::cout << "gTow:     " << std::setw(8) << gTow.    val << "\tGTime(gTow, nearTime): " << gTimeG.  to_string() << std::endl;
 
 			nearGTow= 604800 - 1;
 			nearTime= GTime(gWeek, nearGTow);
 			gTow	= 1.1;
 			gTimeG	= GTime(gTow, nearTime);
 
-	std::cout << "nearGTow: " << std::setw(8) << nearGTow.val << "\tnearTime:              " << nearTime.to_string(1) << std::endl;
-	std::cout << "gTow:     " << std::setw(8) << gTow.    val << "\tGTime(gTow, nearTime): " << gTimeG.  to_string(1) << std::endl;
+	std::cout << "nearGTow: " << std::setw(8) << nearGTow.val << "\tnearTime:              " << nearTime.to_string() << std::endl;
+	std::cout << "gTow:     " << std::setw(8) << gTow.    val << "\tGTime(gTow, nearTime): " << gTimeG.  to_string() << std::endl;
 
 	BTow	nearBTow= 1;
 			nearTime= GTime(bWeek, nearBTow);
 			bTow	= 604800 - 1.1;
 			gTimeB	= GTime(bTow, nearTime);
 
-	std::cout << "nearBTow: " << std::setw(8) << nearBTow.val << "\tnearTime:              " << nearTime.to_string(1) << std::endl;
-	std::cout << "bTow:     " << std::setw(8) << bTow.    val << "\tGTime(bTow, nearTime): " << gTimeB.  to_string(1) << std::endl;
+	std::cout << "nearBTow: " << std::setw(8) << nearBTow.val << "\tnearTime:              " << nearTime.to_string() << std::endl;
+	std::cout << "bTow:     " << std::setw(8) << bTow.    val << "\tGTime(bTow, nearTime): " << gTimeB.  to_string() << std::endl;
 
 			nearBTow= 604800 - 1;
 			nearTime= GTime(bWeek, nearBTow);
 			bTow	= 1.1;
 			gTimeB	= GTime(bTow, nearTime);
 
-	std::cout << "nearBTow: " << std::setw(8) << nearBTow.val << "\tnearTime:              " << nearTime.to_string(1) << std::endl;
-	std::cout << "bTow:     " << std::setw(8) << bTow.    val << "\tGTime(bTow, nearTime): " << gTimeB.  to_string(1) << std::endl;
+	std::cout << "nearBTow: " << std::setw(8) << nearBTow.val << "\tnearTime:              " << nearTime.to_string() << std::endl;
+	std::cout << "bTow:     " << std::setw(8) << bTow.    val << "\tGTime(bTow, nearTime): " << gTimeB.  to_string() << std::endl;
 
 	UYds	nearYds	= uYds;
 			nearYds.sod	= 86400 - 10800 + 1;
@@ -741,8 +741,8 @@ void debugTime()
 			rTod	= 86400 - 1.1;
 			gTimeR	= GTime(rTod,  nearTime);
 
-	std::cout << "nearSod:  " << std::setw(8) << nearYds. sod << "\tnearTime:              " << nearTime.to_string(1) << "\tnearTod:  " << nearTod. val << std::endl;
-	std::cout << "rTod:     " << std::setw(8) << rTod.    val << "\tGTime(rTod, nearTime): " << gTimeR.  to_string(1) << std::endl;
+	std::cout << "nearSod:  " << std::setw(8) << nearYds. sod << "\tnearTime:              " << nearTime.to_string() << "\tnearTod:  " << nearTod. val << std::endl;
+	std::cout << "rTod:     " << std::setw(8) << rTod.    val << "\tGTime(rTod, nearTime): " << gTimeR.  to_string() << std::endl;
 
 			nearYds.sod	= 86400 - 10800 - 1;
 			nearTime= nearYds;
@@ -750,8 +750,8 @@ void debugTime()
 			rTod	= 1.1;
 			gTimeR	= GTime(rTod,  nearTime);
 
-	std::cout << "nearSod:  " << std::setw(8) << nearYds. sod << "\tnearTime:              " << nearTime.to_string(1) << "\tnearTod:  " << nearTod. val << std::endl;
-	std::cout << "rTod:     " << std::setw(8) << rTod.    val << "\tGTime(rTod, nearTime): " << gTimeR.  to_string(1) << std::endl;
+	std::cout << "nearSod:  " << std::setw(8) << nearYds. sod << "\tnearTime:              " << nearTime.to_string() << "\tnearTod:  " << nearTod. val << std::endl;
+	std::cout << "rTod:     " << std::setw(8) << rTod.    val << "\tGTime(rTod, nearTime): " << gTimeR.  to_string() << std::endl;
 
 			gEpoch	= {2017, 1, 1, 0, 0, 17.9};
 			gTimeE	= gEpoch;
@@ -760,9 +760,9 @@ void debugTime()
 
 	std::cout << std::endl;
 	std::cout << "Leap second roll-over:" << std::endl;
-	std::cout << "GTime:              " << gTimeE. bigTime << " " << gTimeE .to_string(1) << std::endl;
-	std::cout << "GTime to UtcTime:   " << utcTime.bigTime << " " << utcTime.to_string(1) << std::endl;
-	std::cout << "UtcTime to GTime:   " << gTimeU. bigTime << " " << gTimeU .to_string(1) << std::endl;
+	std::cout << "GTime:              " << gTimeE. bigTime << " " << gTimeE .to_string() << std::endl;
+	std::cout << "GTime to UtcTime:   " << utcTime.bigTime << " " << utcTime.to_string() << std::endl;
+	std::cout << "UtcTime to GTime:   " << gTimeU. bigTime << " " << gTimeU .to_string() << std::endl;
 }
 
 #include "coordinates.hpp"

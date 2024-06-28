@@ -121,7 +121,7 @@ void NtripUploader::messageTimeoutHandler(
 		return;
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "SSR OUT Targeting epoch: " << targetTime.to_string(0) << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "SSR OUT Targeting epoch: " << targetTime.to_string() << std::endl;
 
 	ssrMeta.receivedTime		= targetTime;	// for rtcmTrace (debugging)
 	ssrMeta.multipleMessage 	= 1; // We assume there will be more messages.

@@ -195,9 +195,9 @@ bool pephpos(
 	{
 		tracepdeex(3, std::cout, "\nNo precise ephemeris for %s at %s, ephemerides cover %s to %s",
 				Sat.id()					.c_str(),
-				time		.to_string(0)	.c_str(),
-				firstTime	.to_string(0)	.c_str(),
-				lastTime	.to_string(0)	.c_str());
+				time		.to_string()	.c_str(),
+				firstTime	.to_string()	.c_str(),
+				lastTime	.to_string()	.c_str());
 
 		return false;
 	}
@@ -384,7 +384,7 @@ VectorEcef satAntOff(
 	SatSys& 			Sat,			///< Satellite ID
 	map<int, double>&	lamMap)			///< Lambda (wavelengths) map
 {
-	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
+	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string().c_str(), Sat.id().c_str());
 
 	VectorEcef dAnt;
 
@@ -431,7 +431,7 @@ bool satClkPrecise(
 	clk		= 0;
 	clkVel	= 0;
 
-	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
+	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string().c_str(), Sat.id().c_str());
 
 	double tt = 1E-3;
 
@@ -469,7 +469,7 @@ bool satPosPrecise(
 	rSat	= Vector3d::Zero();
 	satVel	= Vector3d::Zero();
 
-	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
+	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string().c_str(), Sat.id().c_str());
 
 	double tt = 1e-3;
 

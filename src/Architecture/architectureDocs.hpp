@@ -2,11 +2,13 @@
 #pragma once
 
 
+typedef void ParallelArchitecture;
 typedef void Architecture;
+typedef void FileType;
+typedef void Database;
 typedef void Library;
 typedef void Output;
 typedef void Input;
-typedef void FileType;
 
 #define DOCS_REFERENCE(ref)		\
 Architecture ref();				\

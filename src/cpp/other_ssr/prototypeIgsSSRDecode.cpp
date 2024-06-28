@@ -199,14 +199,14 @@ void updateNavSSR()
 		if (ssr.ssrEph_map.find(ssrBlock.ssrEph.t0) == ssr.ssrEph_map.end())
 		{
 			ssr.ssrEph_map[ssrBlock.ssrEph.t0] = ssrBlock.ssrEph;
-			tracepdeex(IGSSSRTRCLVL,std::cout, "\n#IGS_SSR ORBITS %s %s %4d %10.4f %10.4f %10.4f %d ",	Sat.id().c_str(),ssrBlock.ssrEph.t0.to_string(2).c_str(), ssrBlock.ssrEph.iode,ssrBlock.ssrEph.deph[0],ssrBlock.ssrEph.deph[1],ssrBlock.ssrEph.deph[2], ssrBlock.ssrEph.iod);
+			tracepdeex(IGSSSRTRCLVL,std::cout, "\n#IGS_SSR ORBITS %s %s %4d %10.4f %10.4f %10.4f %d ",	Sat.id().c_str(),ssrBlock.ssrEph.t0.to_string().c_str(), ssrBlock.ssrEph.iode,ssrBlock.ssrEph.deph[0],ssrBlock.ssrEph.deph[1],ssrBlock.ssrEph.deph[2], ssrBlock.ssrEph.iod);
 		}
 
 		if (ssrBlock.clkUpdated)
 		if ( ssr.ssrClk_map.find(ssrBlock.ssrClk.t0) == ssr.ssrClk_map.end())
 		{
 			ssr.ssrClk_map[ssrBlock.ssrClk.t0] = ssrBlock.ssrClk;
-			tracepdeex(IGSSSRTRCLVL,std::cout, "\n#IGS_SSR CLOCKS %s %s      %10.4f %10.4f %10.4f %d ",	Sat.id().c_str(),ssrBlock.ssrClk.t0.to_string(2).c_str(), ssrBlock.ssrClk.dclk[0], ssrBlock.ssrClk.dclk[1],ssrBlock.ssrClk.dclk[2], ssrBlock.ssrClk.iod);
+			tracepdeex(IGSSSRTRCLVL,std::cout, "\n#IGS_SSR CLOCKS %s %s      %10.4f %10.4f %10.4f %d ",	Sat.id().c_str(),ssrBlock.ssrClk.t0.to_string().c_str(), ssrBlock.ssrClk.dclk[0], ssrBlock.ssrClk.dclk[1],ssrBlock.ssrClk.dclk[2], ssrBlock.ssrClk.iod);
 		}
 
 		if (ssrBlock.hrclkUpdated)
@@ -226,7 +226,7 @@ void updateNavSSR()
 			entry.source	= "ssr";
 
 			tracepdeex(IGSSSRTRCLVL,std::cout, "\n#IGS_SSR CODBIA %s %s: ",
-					Sat.id().c_str(),ssrBlock.ssrCodeBias.t0.to_string(2).c_str());
+					Sat.id().c_str(),ssrBlock.ssrCodeBias.t0.to_string().c_str());
 
 			for (auto& [code,biasSSR] : ssrBlock.ssrCodeBias.obsCodeBiasMap)
 			{
@@ -257,7 +257,7 @@ void updateNavSSR()
 			entry.tfin		= entry.tini + acsConfig.ssrInOpts.code_bias_valid_time;
 			entry.source	= "ssr";
 
-			tracepdeex(IGSSSRTRCLVL,std::cout, "\n#IGS_SSR PHSBIA %s %s: ",	Sat.id().c_str(),ssrBlock.ssrPhasBias.t0.to_string(2).c_str());
+			tracepdeex(IGSSSRTRCLVL,std::cout, "\n#IGS_SSR PHSBIA %s %s: ",	Sat.id().c_str(),ssrBlock.ssrPhasBias.t0.to_string().c_str());
 
 			for (auto& [code,biasSSR] : ssrBlock.ssrPhasBias.obsCodeBiasMap)
 			{

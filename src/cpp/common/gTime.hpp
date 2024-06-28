@@ -204,7 +204,12 @@ struct Duration
 */
 struct GTime
 {
-	long double bigTime = 0;
+	mutable	long double	cacheTime = -1;
+	mutable string		cacheString;
+	mutable int			cacheN;
+
+	long double	bigTime = 0;
+
 
 	/** Uninitialised time for comparisons
 	*/
@@ -457,7 +462,7 @@ struct UtcTime
 		return time;
 	}
 
-	string to_string(int n) const
+	string to_string(int n = 2) const
 	{
 		GTime gTime;
 		gTime.bigTime	= this->bigTime;
