@@ -63,7 +63,7 @@ void DS2DCParser::parse(
 
 			char character = mess[index - 1];
 
-			int repeat = std::stoi(mess.substr(index+1, digits), nullptr, 16);
+			int repeat = std::stoi(mess.substr(index+1, digits), nullptr, 16)-1;
 
 			string replacement(repeat, character);
 
