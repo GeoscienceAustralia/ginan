@@ -123,3 +123,9 @@ struct InteractiveTerminal : ostringstream
 	}
 };
 
+struct InteractiveTerminalDestructor
+{
+	~InteractiveTerminalDestructor();
+};
+
+extern InteractiveTerminalDestructor interactiveTerminaldestructor;

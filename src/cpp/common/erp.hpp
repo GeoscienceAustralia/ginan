@@ -63,6 +63,19 @@ struct ERPValues
 		return erpv;
 	}
 
+	bool operator ==(const ERPValues& rhs) const
+	{
+		bool equal	=	time	== rhs.time
+					&&	xp		== rhs.xp
+					&&	yp		== rhs.yp
+					&&	ut1Utc	== rhs.ut1Utc
+					&&	lod		== rhs.lod
+					&&	xpr		== rhs.xpr
+					&&	ypr		== rhs.ypr;
+
+		return equal;
+	}
+
 	ERPValues operator *(const double scalar)
 	{
 		ERPValues erpv = *this;

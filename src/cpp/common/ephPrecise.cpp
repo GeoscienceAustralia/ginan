@@ -471,7 +471,7 @@ bool satPosPrecise(
 
 	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string().c_str(), Sat.id().c_str());
 
-	double tt = 1e-3;
+	double tt = 10e-3;
 
 	Vector3d rSat1 = Vector3d::Zero();
 	Vector3d rSat2 = Vector3d::Zero();

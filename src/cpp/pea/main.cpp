@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <iostream>
+#include <signal.h>
 #include <fstream>
 #include <memory>
 #include <chrono>
@@ -1750,6 +1751,16 @@ void mainOncePerEpoch(
 		nav.erp.filterValues = getErpFromFilter(pppNet.kfState);
 	}
 
+	const int DT = 1;
+	for (int dt : {DT, 0})
+	{
+		ERPValues erpv = getErp(nav.erp, time + dt);
+
+		FrameSwapper frameSwapper(time + dt, erpv);
+
+		frameSwapper.setCache(dt);
+	}
+
 	//try to get svns & block types of all used satellites
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
@@ -1932,6 +1943,27 @@ void mainPostProcessing(
 	outputStatistics(pppTrace, pppNet.kfState.statisticsMapSum, pppNet.kfState.statisticsMapSum);
 }
 
+void tryExitGracefully(
+	int signum)
+{
+	static bool closeRequest = false;
+
+	if (closeRequest)
+	{
+		//second time this is called, dont worry too much about gracefullness
+		interactiveTerminaldestructor.~InteractiveTerminalDestructor();
+
+		abort();
+	}
+
+	BOOST_LOG_TRIVIAL(info) << "SIGINT detected - tidying up and exiting...";
+
+	closeRequest = true;
+
+	acsConfig.max_epochs = 1;
+}
+
+
 int ginan(
 	int		argc,
 	char**	argv)
@@ -1950,6 +1982,9 @@ int ginan(
 
 	exitOnErrors();
 
+	// Define the function to be called when ctrl-c (SIGINT) is sent to process
+	signal(SIGINT, tryExitGracefully);
+
 	bool pass = configure(argc, argv);
 	if (pass == false)
 	{
@@ -1964,18 +1999,29 @@ int ginan(
 		addFileLog();
 	}
 
-	BOOST_LOG_TRIVIAL(info)
-	<< "Threading with max " << Eigen::nbThreads()
-	<< " eigen threads";
+	BOOST_LOG_TRIVIAL(info)	<< "Compilation details:";
+	BOOST_LOG_TRIVIAL(info)	<< "====================";
+	BOOST_LOG_TRIVIAL(info)	<< "Ginan branch:     " << ginanBranchName();
+	BOOST_LOG_TRIVIAL(info)	<< "Ginan version:    " << ginanCommitVersion();
+	BOOST_LOG_TRIVIAL(info)	<< "Commit date:      " << ginanCommitDate();
+	BOOST_LOG_TRIVIAL(info)	<< "Operating system: " << ginanOsName();
+	BOOST_LOG_TRIVIAL(info)	<< "Compiler version: " << ginanCompilerVersion();
+	BOOST_LOG_TRIVIAL(info)	<< "Boost version:    " << ginanBoostVersion();
+	BOOST_LOG_TRIVIAL(info)	<< "Eigen version:    " << ginanEigenVersion();
+	BOOST_LOG_TRIVIAL(info)	<< "Mongocxx version: " << ginanMongoVersion();
+	BOOST_LOG_TRIVIAL(info) << "\n";
 
+
+
+	BOOST_LOG_TRIVIAL(info)	<< "Runtime details:";
+	BOOST_LOG_TRIVIAL(info)	<< "================";
+	BOOST_LOG_TRIVIAL(info)	<< "Logging at trace level" << traceLevel;
+	BOOST_LOG_TRIVIAL(info)	<< "Threading with max " << Eigen::nbThreads()		<< " eigen threads";
 #ifdef ENABLE_PARALLELISATION
-	BOOST_LOG_TRIVIAL(info)
-	<< "Threading with max " << omp_get_max_threads()
-	<< " omp threads";
+	BOOST_LOG_TRIVIAL(info)	<< "Threading with max " << omp_get_max_threads()	<< " omp threads";
 #endif
 
-	BOOST_LOG_TRIVIAL(info)
-	<< "Logging with trace level:" << traceLevel << std::endl << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "\n" << "\n";
 
 	//prepare the satNavMap so that it at least has entries for everything
 	for (auto [sys, max] :	{	tuple<E_Sys, int>{E_Sys::GPS, NSATGPS},
@@ -2523,4 +2569,3 @@ int ginan(
 
 	return EXIT_SUCCESS;
 }
-

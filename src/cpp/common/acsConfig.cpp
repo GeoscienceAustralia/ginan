@@ -1018,7 +1018,7 @@ void ACSConfig::info(
 
 	ss << "\n\n";
 	ss << "===============================\n";
-	ss << "Configuration...\n";
+	ss << "Configuration Summary...\n";
 	ss << "===============================\n";
 	ss << "Inputs:\n";
 
@@ -1108,7 +1108,7 @@ void ACSConfig::info(
 
 	ss << "\n";
 	ss << "===============================\n";
-	ss << "...End Configuration\n";
+	ss << "...End Configuration Summary\n";
 	ss << "===============================\n";
 	ss << "\n";
 

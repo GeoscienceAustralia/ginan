@@ -22,6 +22,35 @@
 #include <iostream>
 #include <string>
 
+
+array<FrameSwapper, 2> FrameSwapper::cacheArr;
+
+FrameSwapper::FrameSwapper(
+			GTime		time,
+	const	ERPValues&	erpv)
+:	time0	{time},
+	erpv	{erpv}
+{
+	for (auto& cache : cacheArr)
+	{
+		if	( time0	== cache.time0
+			&&erpv	== cache.erpv)
+		{
+			*this = cache;
+			return;
+		}
+	}
+
+	eci2ecef(time, erpv, i2t_mat, &di2t_mat);
+
+	if (cmc.initialized)
+	{
+		Array6d dood_arr = IERS2010::doodson(time, 0); //Will need to add erpval.ut1Utc later
+
+		translation = cmc.estimate(dood_arr);
+	}
+}
+
 void eci2ecef(
 	GTime				time,			///< Current time
 	const ERPValues&	erpVal,			///< Structure containing the erp values

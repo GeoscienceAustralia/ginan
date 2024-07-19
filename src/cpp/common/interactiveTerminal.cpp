@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <iostream>
 #include <cstdlib>
-#include <signal.h>
 #include <ncurses.h>
 
 WINDOW* window;
@@ -32,37 +31,24 @@ bool										InteractiveTerminal::enabled		= false;
 map<string,				InteractivePage>	InteractiveTerminal::pages;
 map<E_InteractiveMode,	InteractiveMode>	InteractiveTerminal::modes;
 
-struct Destructor
-{
-	~Destructor()
-	{
-		if (InteractiveTerminal::enabled)
-		{
-			werase(window);
-			werase(bar);
-			werase(menu);
-			erase();
-			endwin();
+InteractiveTerminalDestructor interactiveTerminaldestructor;
 
-			for (auto& line : InteractiveTerminal::pages["Messages/All"].lines)
-			{
-				std::cout << line << std::endl;
-			}
+InteractiveTerminalDestructor::~InteractiveTerminalDestructor()
+{
+	if (InteractiveTerminal::enabled)
+	{
+		werase(window);
+		werase(bar);
+		werase(menu);
+		erase();
+		endwin();
+
+		for (auto& line : InteractiveTerminal::pages["Messages/All"].lines)
+		{
+			std::cout << line << std::endl;
 		}
 	}
-};
-
-static Destructor destructor;
-
-// Define the function to be called when ctrl-c (SIGINT) is sent to process
-void sigIntHandler(
-	int signum)
-{
-	destructor.~Destructor();
-	abort();
 }
-
-
 
 void InteractiveTerminal::keyboardHandler()
 {
@@ -204,8 +190,6 @@ void InteractiveTerminal::enable()
     cbreak();
 	noecho();
 	keypad(stdscr, true);
-
-	signal(SIGINT, sigIntHandler);
 
 	menu	= newwin(6,				COLS, 0,			0);
 	window	= newwin(LINES - 5 - 6,	COLS, 6,			0);

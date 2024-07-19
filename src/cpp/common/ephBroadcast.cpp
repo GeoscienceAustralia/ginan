@@ -504,7 +504,7 @@ bool satPosBroadcast(
 {
 	Vector3d	rSat1;
 	Vector3d	rSat2;
-	double		tt = 1e-3;
+	double		tt = 10e-3;
 
 //	trace(4, "%s: time=%s sat=%2d iode=%d\n",__FUNCTION__,time.to_string(3).c_str(),obs.Sat,iode);
 

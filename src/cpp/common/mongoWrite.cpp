@@ -22,6 +22,7 @@
 
 #include <bsoncxx/json.hpp>
 
+#include <optional>
 #include <thread>
 
 using bsoncxx::builder::stream::close_array;
@@ -47,9 +48,9 @@ struct DBEntry
 
 struct QueuedMongo
 {
-	KFState				kfState;
-	KFMeas				kfMeas;
-	vector<DBEntry>		dbEntryList;
+	std::optional<	KFState>			kfState_optl;
+	std::optional<	KFMeas>				kfMeas_optl;
+					vector<DBEntry>		dbEntryList;
 
 	E_MongoType			mongoType;
 	vector<E_Mongo>		instances;
@@ -97,9 +98,9 @@ void mongoQueueRun()
 		{
 			switch (object.mongoType)
 			{
-				case E_MongoType::STATES_AVAILABLE:	mongoStatesAvailable(object.kfState.time,					object.mongoStatesOpts);
-				case E_MongoType::STATES:			mongoStates			(						object.kfState,	object.mongoStatesOpts);									break;
-				case E_MongoType::RESIDUALS:		mongoMeasResiduals	(object.time,			object.kfMeas,				false,						object.suffix);		break;
+				case E_MongoType::STATES_AVAILABLE:	mongoStatesAvailable(object.kfState_optl->time,							object.mongoStatesOpts);
+				case E_MongoType::STATES:			mongoStates			(							*object.kfState_optl,	object.mongoStatesOpts);						break;
+				case E_MongoType::RESIDUALS:		mongoMeasResiduals	(object.time,				*object.kfMeas_optl,	false,						object.suffix);		break;
 				case E_MongoType::TRACE:			traceJsons.push_back(std::move(object.suffix));																			break;
 				case E_MongoType::LIST:				mongoOutput			(object.dbEntryList,								false, object.instances,	object.suffix);		break;
 			}
@@ -380,7 +381,7 @@ void mongoMeasResiduals(
 	if (queue)
 	{
 		QueuedMongo queueEntry;
-		queueEntry.kfMeas		= kfMeas;
+		queueEntry.kfMeas_optl	= kfMeas;
 		queueEntry.suffix		= suffix;
 		queueEntry.time			= time;
 		queueEntry.mongoType	= E_MongoType::RESIDUALS;
@@ -565,9 +566,9 @@ void mongoStatesAvailable(
 		opts.queue = false;
 
 		QueuedMongo queueEntry;
-		queueEntry.kfState.time		= time;
-		queueEntry.mongoType		= E_MongoType::STATES_AVAILABLE;
-		queueEntry.mongoStatesOpts	= opts;
+		queueEntry.kfState_optl->time	= time;
+		queueEntry.mongoType			= E_MongoType::STATES_AVAILABLE;
+		queueEntry.mongoStatesOpts		= opts;
 
 		queueMongo(queueEntry);
 
@@ -615,7 +616,7 @@ void mongoStates(
 		opts.queue = false;
 
 		QueuedMongo queueEntry;
-		queueEntry.kfState			= kfState;
+		queueEntry.kfState_optl		= kfState;
 		queueEntry.mongoType		= E_MongoType::STATES;
 		queueEntry.mongoStatesOpts	= opts;
 

@@ -1,5 +1,5 @@
 
-#pragma GCC optimize ("O0")
+// #pragma GCC optimize ("O0")
 
 /** References
 * 1. M.Fritsche, R.Dietrich, C.Knöfel, A.Rülke, S.Vey, M.Rothacher & P.Steigenberger, Impact of higher‐order ionospheric terms on GPS estimates. Geophysical research letters, 2005.
