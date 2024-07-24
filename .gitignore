@@ -1,0 +1,9 @@
+inputData/data/*
+inputData/products/*
+bin/*
+*.swp
+exampleConfigs/outputs/*
+lib/*
+src/build/
+src/cpp/pea/*
+
