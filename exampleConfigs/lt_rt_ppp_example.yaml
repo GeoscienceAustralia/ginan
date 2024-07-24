@@ -2,7 +2,8 @@ inputs:
 
     inputs_root: ./products/
 
-    atx_files:  [ igs20.atx                             ]
+    atx_files:  [ igs20.atx,
+        ../../../infra-terraform-swipos/services/tpp/main/assets/config/scheduled/TPPALL/Station_Files/ATX-Files/AGNES_individually_calibrated/*.atx   ]
     egm_files:  [ tables/EGM2008.gfc                    ]
     igrf_files: [ tables/igrf13coeffs.txt               ]
     erp_files:  [ finals.data.iau2000.txt        ]
@@ -28,11 +29,12 @@ inputs:
             - MAR3_RTCM
 
     satellite_data:
-        satellite_data_root: "https://<USER>:<PASS>@www.swipos-dev.ch:8100/"
-        rtcm_inputs:
-            ssr_antenna_offset: APC
-            rtcm_inputs:
-            - ZIM2_RTCM_EPH
+        #satellite_data_root: "https://<USER>:<PASS>@www.swipos-dev.ch:8100/"
+        #rtcm_inputs:
+        #    ssr_antenna_offset: APC
+        #    rtcm_inputs:
+        #    - ZIM2_RTCM_EPH
+        sp3_files: [COD0OPSULT.SP3]
 
 
 outputs:
@@ -82,41 +84,11 @@ receiver_options:
         code_sigma:         0.3      # Standard deviation of code measurements, m
         phase_sigma:        0.003    # Standard deviation of phase measurmeents, m
 
-    HOH2:
-        receiver_type:      "TRIMBLE NETR9"                 # (string)
-        antenna_type:       "TRM59800.00 NONE"       # (string)
-        apriori_position:   [4372948.807, 596124.163, 4590551.337] # [floats]
-        models:
-            eccentricity:
-                enable:     false
-                #enable:     true
-                offset:     [0.0000,   0.0000,   0.0015] # [floats]
-
-    ZERM:
-        receiver_type:      "TRIMBLE NETR9"               # (string)
-        antenna_type:       "TRM59800.00 NONE"       # (string)
-        apriori_position:   [4399182.965, 597294.450, 4566748.124] # [floats]
-        models:
-            eccentricity:
-                enable:     false
-               # enable:     true
-                offset:     [0.0000,   0.0000,   0.0035] # [floats]
-
-    MAR3:
-        receiver_type:      "TRIMBLE NETR9"                 # (string)
-        antenna_type:       "TRM59800.00 NONE"       # (string)
-        apriori_position:   [4395302.796, 545180.726, 4575138.925] # [floats]
-        models:
-            eccentricity:
-                enable:     true
-                #enable:     true
-                offset:     [0.0000,   0.0000,   0.0000] # [floats]
-
 processing_options:
 
     process_modes:
-        #ppp:                            true
-        network:                        true
+        ppp:                            true
+        #network:                        true
 
     epoch_control:
         epoch_interval:                 1
@@ -124,6 +96,7 @@ processing_options:
 
     gnss_general:
         rec_reference_system:           GPS
+        require_antenna_details: false
 
         sys_options:
             gps:
