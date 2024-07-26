@@ -1296,37 +1296,38 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
 		recCodeBiasVar = -1;
 
-		auto& recSysOpts = acsConfig.getRecOpts(rec.id, {sysSat.sys._to_string()});
-
-		auto thisIt = std::find		(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), sig.code);
-		auto autoIt = std::find		(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), +E_ObsCode::AUTO);
-		auto freqIt = std::find_if	(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), [&](E_ObsCode code)
+		if (Sat.sys == recOpts.receiver_reference_system)
 		{
-			return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code];
-		});
-
-		bool foundCode = thisIt != recSysOpts.clock_codes.end();
-		bool foundAuto = autoIt != recSysOpts.clock_codes.end();
-		bool foundFreq = freqIt != recSysOpts.clock_codes.end();
-
-		if	( foundAuto
-			&&foundFreq)
-		{
-			//this frequency is already used in the clock codes, dont use again
-			foundAuto = false;
-		}
-
-		if	( foundCode
-			||foundAuto)
-		{
-			//set the bias to zero, and dont let it change
-			init.x = 0;
-			init.P = 0;
-			init.Q = 0;
-
-			if (foundCode == false)
+			auto thisIt = std::find		(recOpts.clock_codes.begin(), recOpts.clock_codes.end(), sig.code);
+			auto autoIt = std::find		(recOpts.clock_codes.begin(), recOpts.clock_codes.end(), +E_ObsCode::AUTO);
+			auto freqIt = std::find_if	(recOpts.clock_codes.begin(), recOpts.clock_codes.end(), [&](E_ObsCode code)
 			{
-				*autoIt = sig.code;
+				return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code];
+			});
+
+			bool foundCode = thisIt != recOpts.clock_codes.end();
+			bool foundAuto = autoIt != recOpts.clock_codes.end();
+			bool foundFreq = freqIt != recOpts.clock_codes.end();
+
+			if	( foundAuto
+				&&foundFreq)
+			{
+				//this frequency is already used in the clock codes, dont use again
+				foundAuto = false;
+			}
+
+			if	( foundCode
+				||foundAuto)
+			{
+				//set the bias to zero, and dont let it change
+				init.x = 0;
+				init.P = 0;
+				init.Q = 0;
+
+				if (foundCode == false)
+				{
+					*autoIt = sig.code;
+				}
 			}
 		}
 

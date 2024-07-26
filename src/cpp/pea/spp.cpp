@@ -638,7 +638,7 @@ E_Solution estpos(
 
 			double maxMeasRatio		= measRatios	.maxCoeff(&measIndex);
 
-			if	(maxMeasRatio > SQR(acsConfig.sppOpts.postfitOpts.sigma_threshold))
+			if	(maxMeasRatio > SQR(acsConfig.sppOpts.postfitOpts.meas_sigma_threshold))
 			{
 				trace << std::endl << "LARGE MEAS  ERROR OF " << maxMeasRatio << " AT " << measIndex << " : " << kfMeas.obsKeys[measIndex];
 

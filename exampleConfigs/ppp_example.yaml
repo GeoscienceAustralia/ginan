@@ -94,6 +94,7 @@ receiver_options:
         phase_sigma:    0.003    # Standard deviation of phase measurmeents, m
         clock_codes:    [AUTO, AUTO]
         zero_dcb_codes: [AUTO, AUTO]
+        rec_reference_system: GPS
         models:
             phase_bias:
                 enable: false
@@ -135,7 +136,6 @@ processing_options:
         wait_next_epoch:     3600  # seconds (make large for post-processing)
 
     gnss_general:
-        rec_reference_system:      GPS
         add_eop_component:            true
         sys_options:
             gps:
@@ -172,11 +172,13 @@ processing_options:
                 max_iterations:  3     # Maximum number of measurements to exclude using prefit checks before attempting to filter
                 omega_test:      false # Enable omega-test
                 sigma_check:     true  # Enable sigma check
-                sigma_threshold: 4     # Sigma threshold
+                state_sigma_threshold: 4    # Sigma threshold for states
+                meas_sigma_threshold:  4    # Sigma threshold for measurements
             postfit:
                 max_iterations:  10    # Maximum number of measurements to exclude using postfit checks while iterating filter
                 sigma_check:     true  # Enable sigma check
-                sigma_threshold: 4     # Sigma threshold
+                state_sigma_threshold: 4    # Sigma threshold for states
+                meas_sigma_threshold:  4    # Sigma threshold for measurements
 
         ionospheric_components:            # Slant ionospheric components
             common_ionosphere:             true                   # Use the same ionosphere state for code and phase observations

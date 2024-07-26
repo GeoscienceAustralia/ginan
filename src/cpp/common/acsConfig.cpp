@@ -1774,6 +1774,7 @@ ReceiverOptions& ReceiverOptions::operator+=(
 	initIfNeeded(*this, rhs,	receiver_type					);
 	initIfNeeded(*this, rhs,	sat_id							);
 	initIfNeeded(*this, rhs,	elevation_mask_deg				);
+	initIfNeeded(*this, rhs,	receiver_reference_system		);
 
 	initIfNeeded(*this, rhs,	eccentricityModel.enable		);
 	initIfNeeded(*this, rhs,	eccentricityModel.eccentricity	);
@@ -2153,6 +2154,7 @@ void getOptionsFromYaml(
 	}{	auto& thing = recOpts.receiver_type					;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	recNode,	{"4@ receiver_type"								}, "Type of gnss receiver hardware"));
 	}{	auto& thing = recOpts.sat_id						;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	recNode,	{"4@ sat_id"									}, "Id for receivers that are also satellites"));
 	}{	auto& thing = recOpts.elevation_mask_deg			;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	recNode,	{"0! elevation_mask"							}, "Minimum elevation for satellites to be processed"));
+	}{	auto& thing = recOpts.receiver_reference_system		;	setInited(recOpts,	thing,	tryGetEnumOpt	(thing,	recNode,	{"@ rec_reference_system"						}, "Receiver will use this system as reference clock"));
 
 
 	}{	auto& thing = recOpts.error_model					;	setInited(recOpts,	thing,	tryGetEnumOpt	(thing,	recNode,	{"1! error_model"						}));
@@ -3533,7 +3535,6 @@ bool ACSConfig::parse(
 				tryGetFromYaml	(process_meas[CODE],						general, {"1@ code_measurements",		"process"	}, "Process code measurements");
 				tryGetFromYaml	(process_meas[PHAS],						general, {"1@ phase_measurements",		"process"	}, "Process phase measurements");
 
-				tryGetEnumOpt	(receiver_reference_clk,					general, {"@ rec_reference_system"			}, "Receiver will use this system as reference clock");
 				tryGetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"			}, "Variance of phase bias to be considered fixed/binded");
 				tryGetFromYaml	(adjust_rec_clocks_by_spp,					general, {"@ adjust_rec_clocks_by_spp"		}, "Adjust receiver clocks by spp values to minimise prefit residuals");
 				tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"	}, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
@@ -3676,33 +3677,49 @@ bool ACSConfig::parse(
 
 				if (std::get<1>(nodeStack).find("spp") == string::npos)
 				{
-					tryGetFromYaml(filterOpts.joseph_stabilisation,			nodeStack,			{"@ joseph_stabilisation"							});
+					tryGetFromYaml(filterOpts.joseph_stabilisation,			nodeStack,			{"@ joseph_stabilisation"						});
 					tryGetEnumOpt( filterOpts.inverter, 					nodeStack,			{"@ inverter" 									}, "Inverter to be used within the Kalman filter update stage, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
 					tryGetFromYaml(filterOpts.advanced_postfits,			nodeStack,			{"# advanced_postfits"							}, "Use alternate calculation method to determine postfit residuals");
 				}
 
+				bool foundOld	= false;
+				bool foundNew	= false;
 				{
 					auto prefit				= stringsToYamlObject(outlier_screening,	{"! prefit"});
 
-					tryGetFromYaml(filterOpts.prefitOpts.max_iterations,	prefit,				{"! max_iterations"			},	"Maximum number of measurements to exclude using prefit checks before attempting to filter");
-					tryGetFromYaml(filterOpts.prefitOpts.sigma_check,		prefit,				{"@ sigma_check"			},	"Enable sigma check");
-					tryGetFromYaml(filterOpts.prefitOpts.sigma_threshold,	prefit,				{"@ sigma_threshold"		},	"Sigma threshold");
-					tryGetFromYaml(filterOpts.prefitOpts.omega_test,		prefit,				{"@ omega_test"				},	"Enable omega-test");
+									tryGetFromYaml(filterOpts.prefitOpts.max_iterations,			prefit,				{"! max_iterations"			},	"Maximum number of measurements to exclude using prefit checks before attempting to filter");
+									tryGetFromYaml(filterOpts.prefitOpts.sigma_check,				prefit,				{"@ sigma_check"			},	"Enable sigma check");
+					bool found =	tryGetFromYaml(filterOpts.prefitOpts.state_sigma_threshold,		prefit,				{"@ sigma_threshold"		},	"Sigma threshold");
+									tryGetFromYaml(filterOpts.prefitOpts.meas_sigma_threshold,		prefit,				{"@ sigma_threshold"		},	"Sigma threshold");
+									tryGetFromYaml(filterOpts.prefitOpts.state_sigma_threshold,		prefit,				{"@ state_sigma_threshold"	},	"Sigma threshold for states");
+									tryGetFromYaml(filterOpts.prefitOpts.meas_sigma_threshold,		prefit,				{"@ meas_sigma_threshold"	},	"Sigma threshold for measurements");
+									tryGetFromYaml(filterOpts.prefitOpts.omega_test,				prefit,				{"@ omega_test"				},	"Enable omega-test");
+
+					if (found)
+						BOOST_LOG_TRIVIAL(warning) << "Warning: the yaml option 'prefit:sigma_threshold' is depreciated, better use 'prefit:state_sigma_threshold' and 'prefit:meas_sigma_threshold' instead";
 				}
 
 				{
 					auto postfit			= stringsToYamlObject(outlier_screening,	{"! postfit"});
 
-					tryGetFromYaml(filterOpts.postfitOpts.max_iterations,	postfit,			{"! max_iterations"			},	"Maximum number of measurements to exclude using postfit checks while iterating filter");
-					tryGetFromYaml(filterOpts.postfitOpts.sigma_check,		postfit,			{"@ sigma_check"			},	"Enable sigma check");
-					tryGetFromYaml(filterOpts.postfitOpts.sigma_threshold,	postfit,			{"@ sigma_threshold"		},	"Sigma threshold");
+									tryGetFromYaml(filterOpts.postfitOpts.max_iterations,			postfit,			{"! max_iterations"			},	"Maximum number of measurements to exclude using postfit checks while iterating filter");
+									tryGetFromYaml(filterOpts.postfitOpts.sigma_check,				postfit,			{"@ sigma_check"			},	"Enable sigma check");
+					bool found =	tryGetFromYaml(filterOpts.postfitOpts.state_sigma_threshold,	postfit,			{"@ sigma_threshold"		},	"Sigma threshold");
+									tryGetFromYaml(filterOpts.postfitOpts.meas_sigma_threshold,		postfit,			{"@ sigma_threshold"		},	"Sigma threshold");
+									tryGetFromYaml(filterOpts.postfitOpts.state_sigma_threshold,	postfit,			{"@ state_sigma_threshold"	},	"Sigma threshold for states");
+									tryGetFromYaml(filterOpts.postfitOpts.meas_sigma_threshold,		postfit,			{"@ meas_sigma_threshold"	},	"Sigma threshold for measurements");
+									tryGetFromYaml(filterOpts.chiSquareTest.sigma_threshold,		postfit,			{"@ sigma_threshold"		},	"Sigma threshold");
+
+					if (found)
+						BOOST_LOG_TRIVIAL(warning) << "Warning: the yaml option 'postfit:sigma_threshold' is depreciated, better use 'postfit:state_sigma_threshold' and 'postfit:meas_sigma_threshold' instead";
 				}
 
 				{
 					auto chi_sqaure			= stringsToYamlObject(outlier_screening,	{"! chi_square"});
 
-					tryGetFromYaml(filterOpts.chi_square_test,				chi_sqaure,			{"@ enable"		},	"Enable Chi-square test");
-					tryGetEnumOpt( filterOpts.chi_square_mode,				chi_sqaure,			{"@ mode"		},	"Chi-square test mode");
+									tryGetFromYaml(filterOpts.chiSquareTest.enable,					chi_sqaure,			{"@ enable"					},	"Enable Chi-square test");
+									tryGetEnumOpt( filterOpts.chiSquareTest.mode,					chi_sqaure,			{"@ mode"					},	"Chi-square test mode");
+									tryGetFromYaml(filterOpts.chiSquareTest.sigma_threshold,		chi_sqaure,			{"@ sigma_threshold"		},	"Chi-square test threshold in terms of 'times of sigma'");
 				}
 
 				if (std::get<1>(nodeStack).find("spp") == string::npos)
@@ -3787,7 +3804,7 @@ bool ACSConfig::parse(
 					a *= 1000; //km to m
 				}
 
-				getFilterOptions(ion_filter, pppOpts);
+				getFilterOptions(ion_filter, ionModelOpts);
 			}
 
 

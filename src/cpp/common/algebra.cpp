@@ -722,7 +722,7 @@ void KFState::preFitSigmaCheck(
 
 	//if any are outside the expected values, flag an error
 	if	( maxStateRatio > maxMeasRatio * 0.95
-		&&maxStateRatio > SQR(prefitOpts.sigma_threshold))
+		&&maxStateRatio > SQR(prefitOpts.state_sigma_threshold))
 	{
 		int chunkIndex = stateIndex + begX;
 
@@ -736,7 +736,7 @@ void KFState::preFitSigmaCheck(
 		badStateKey = key;
 	}
 
-	if	(maxMeasRatio > SQR(prefitOpts.sigma_threshold))
+	if	(maxMeasRatio > SQR(prefitOpts.meas_sigma_threshold))
 	{
 		int chunkIndex = measIndex + begH;
 
@@ -819,7 +819,7 @@ void KFState::postFitSigmaChecks(
 
 	//if any are outside the expected values, flag an error
 	if	( maxStateRatio > maxMeasRatio
-		&&maxStateRatio > SQR(postfitOpts.sigma_threshold))
+		&&maxStateRatio > SQR(postfitOpts.state_sigma_threshold))
 	{
 		int chunkIndex = stateIndex + begX;
 
@@ -833,7 +833,7 @@ void KFState::postFitSigmaChecks(
 		badStateKey = key;
 	}
 
-	if	(maxMeasRatio > SQR(postfitOpts.sigma_threshold))
+	if	(maxMeasRatio > SQR(postfitOpts.meas_sigma_threshold))
 	{
 		int chunkIndex = measIndex + begH;
 
@@ -1099,7 +1099,7 @@ bool KFState::chiQC(
 
 	boost::math::normal normDist;
 
-	double	alpha = cdf(complement(normDist, postfitOpts.sigma_threshold)) * 2;	//two-tailed
+	double	alpha = cdf(complement(normDist, chiSquareTest.sigma_threshold)) * 2;	//two-tailed
 
 	boost::math::chi_squared chiSqDist(dof);
 
@@ -1499,47 +1499,52 @@ void KFState::filterKalman(
 	if (postfitOpts.sigma_check)
 		trace << std::endl << "Sum-of-squared test statistics (postfit): " << testStatistics.sumOfSquaresPost << std::endl;
 
-	if (chi_square_test)
+	if (chiSquareTest.enable)
 	{
+		bool skip = false;
+
 		for (auto& [id, fc] : filterChunkMap)
 		{
-			if (fc.numH == 0)
+			if (skip || fc.numH == 0)
 			{
 				continue;
 			}
 
 			auto& chunkTrace = *fc.trace_ptr;
 
-			switch (chi_square_mode)
+			switch (chiSquareTest.mode)	// todo Eugene: rethink Chi-Square test modes, consider keep only INNOVATION and determine DOF automatically based on process noises
 			{
 				case E_ChiSqMode::INNOVATION:	{	testStatistics.chiSq += innovChiSquare	(chunkTrace, kfMeas,		fc.begX, fc.numX, fc.begH, fc.numH);	break;	}
 				case E_ChiSqMode::MEASUREMENT:	{	testStatistics.chiSq += measChiSquare	(chunkTrace, kfMeas,	dx,	fc.begX, fc.numX, fc.begH, fc.numH);	break;	}
 				case E_ChiSqMode::STATE:		{	testStatistics.chiSq += stateChiSquare	(chunkTrace, Pp,		dx,	fc.begX, fc.numX, fc.begH, fc.numH);	break;	}
-				default:							break;
+				default:						{	BOOST_LOG_TRIVIAL(error) << "Error: Unknown Chi-square test mode";	skip = true;							break;	}
 			}
 		}
 
-		trace << std::endl << "Number of measurements:" << kfMeas.H.rows() << "\tNumber of states:" << x.rows() - 1;
+		if (skip == false)
+		{
+			if (chiSquareTest.mode == +E_ChiSqMode::STATE)	testStatistics.dof	= 			x.rows() - 1;
+			else											testStatistics.dof	= kfMeas.	H.rows();	// todo Eugene: revisit DOF in the future for MEASUREMENT mode
 
-		if (chi_square_mode == +E_ChiSqMode::STATE)	testStatistics.dof	= 			x.rows() - 1;
-		else										testStatistics.dof	= kfMeas.	H.rows();
+			testStatistics.chiSqPerDof	= testStatistics.chiSq / testStatistics.dof;
 
-		testStatistics.chiSqPerDof	= testStatistics.chiSq / testStatistics.dof;
+			// check against threshold
+			boost::math::normal normDist;
+			double	alpha = cdf(complement(normDist, chiSquareTest.sigma_threshold)) * 2;	//two-tailed
 
-		// check against threshold
-		boost::math::normal normDist;
-		double	alpha = cdf(complement(normDist, postfitOpts.sigma_threshold)) * 2;	//two-tailed
+			boost::math::chi_squared chiSqDist(testStatistics.dof);
+			testStatistics.qc = quantile(complement(chiSqDist, alpha));
+			if (testStatistics.chiSq <= testStatistics.qc)		trace << std::endl << "Chi-square test passed";
+			else												trace << std::endl << "Chi-square test failed";
 
-		boost::math::chi_squared chiSqDist(testStatistics.dof);
-		testStatistics.qc = quantile(complement(chiSqDist, alpha));
-		if (testStatistics.chiSq <= testStatistics.qc)		trace << std::endl << "Chi-square test passed";
-		else												trace << std::endl << "Chi-square test failed";
-
-		trace << std::endl
-		<< "Chi-square increment: "	<< testStatistics.chiSq
-		<< "\tThreshold: "			<< testStatistics.qc
-		<< "\tDegree of freedom: "	<< testStatistics.dof
-		<< "\tChi-square per DOF: "	<< testStatistics.chiSqPerDof << std::endl;
+			trace << std::endl
+			<< "Chi-square increment: "		<< testStatistics.chiSq
+			<< "\tThreshold: "				<< testStatistics.qc
+			<< "\tNumber of measurements:"	<< kfMeas.H.rows()
+			<< "\tNumber of states:"		<< x.rows() - 1
+			<< "\tDegree of freedom: "		<< testStatistics.dof
+			<< "\tChi-square per DOF: "		<< testStatistics.chiSqPerDof << std::endl;
+		}
 	}
 
 	if (acsConfig.mongoOpts.output_test_stats)
@@ -1739,7 +1744,8 @@ void KFState::leastSquareInitStates(
 	}
 
 // 	std::cout << std::endl << "postLSQ" << std::endl;
-	chiQC(trace, leastSquareMeasSubs, x1);
+	if (chiSquareTest.enable)
+		chiQC(trace, leastSquareMeasSubs, x1);
 
 	if (dx)
 	{

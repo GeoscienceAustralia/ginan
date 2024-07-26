@@ -533,7 +533,6 @@ struct GlobalOptions
 		E_ObsCode::L5X
 	};
 
-	E_Sys  receiver_reference_clk = E_Sys::NONE;
 	double fixed_phase_bias_var   = 0.01;
 
 	bool	adjust_rec_clocks_by_spp	= true;
@@ -578,7 +577,9 @@ struct PrefitOptions
 {
 	int			max_iterations	 		= 2;
 	bool		sigma_check				= true;
-	double		sigma_threshold			= 4;
+	double		sigma_threshold			= 4;	// for backward compatiblility, not actually used
+	double		state_sigma_threshold	= 4;
+	double		meas_sigma_threshold	= 4;
 	bool		omega_test				= false;
 };
 
@@ -586,6 +587,15 @@ struct PostfitOptions
 {
 	int			max_iterations	 		= 2;
 	bool		sigma_check				= true;
+	double		sigma_threshold			= 4;	// for backward compatiblility, not actually used
+	double		state_sigma_threshold	= 4;
+	double		meas_sigma_threshold	= 4;
+};
+
+struct ChiSquareOptions
+{
+	bool		enable					= true;
+	E_ChiSqMode	mode					= E_ChiSqMode::NONE;	// todo Eugene: default to INNOVATION?
 	double		sigma_threshold			= 4;
 };
 
@@ -605,8 +615,6 @@ struct RtsOptions
 
 struct FilterOptions : RtsOptions
 {
-	bool		chi_square_test			= false;
-	E_ChiSqMode	chi_square_mode			= E_ChiSqMode::NONE;
 	bool		simulate_filter_only	= false;
 	bool		assume_linearity		= false;
 	bool		advanced_postfits		= false;
@@ -615,8 +623,9 @@ struct FilterOptions : RtsOptions
 
 	E_Inverter	inverter				= E_Inverter::LDLT;
 
-	PrefitOptions	prefitOpts;
-	PostfitOptions	postfitOpts;
+	PrefitOptions		prefitOpts;
+	PostfitOptions		postfitOpts;
+	ChiSquareOptions	chiSquareTest;
 };
 
 /** Options associated with the ionospheric modelling processing mode of operation
@@ -1114,13 +1123,14 @@ struct ReceiverOptions : ReceiverKalmans, CommonOptions
 
 	Rinex23Conversion	rinex23Conv;
 
-	bool				kill					= false;
-	vector<E_ObsCode>	zero_dcb_codes			= {};
-	Vector3d			apriori_pos				= Vector3d::Zero();
-	string				antenna_type			;
-	string				receiver_type			;
-	string				sat_id					;
-	double				elevation_mask_deg		= 10;
+	bool				kill						= false;
+	vector<E_ObsCode>	zero_dcb_codes				= {};
+	Vector3d			apriori_pos					= Vector3d::Zero();
+	string				antenna_type				;
+	string				receiver_type				;
+	string				sat_id						;
+	double				elevation_mask_deg			= 10;
+	E_Sys				receiver_reference_system	= E_Sys::NONE;
 
 	struct
 	{

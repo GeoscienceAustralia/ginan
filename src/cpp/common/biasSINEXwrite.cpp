@@ -95,7 +95,8 @@ void writeBSINEXHeader(
 	tracepdeex(0, trace, " BIAS_MODE                               ABSOLUTE\n");
 	tracepdeex(0, trace, " TIME_SYSTEM                             %s  \n", acsConfig.bias_time_system.c_str());
 
-	E_Sys refConst = acsConfig.receiver_reference_clk;
+	auto& recOpts = acsConfig.getRecOpts("global");
+	E_Sys refConst = recOpts.receiver_reference_system;
 	tracepdeex(0, trace, " RECEIVER_CLOCK_REFERENCE_GNSS           %c\n", refConst._to_string()[0]);
 
 	for (auto& [sys, solve] : acsConfig.solve_amb_for)

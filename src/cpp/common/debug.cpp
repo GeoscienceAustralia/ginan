@@ -302,12 +302,12 @@ void testOutlierDetection()
 	gtime++;
 	KFState kfState;
 
-	kfState.sigma_check		= false;
-	kfState.w_test			= true;
-	kfState.chi_square_test	= true;
-	kfState.chi_square_mode	= E_ChiSqMode::INNOVATION;
-	kfState.sigma_threshold	= 3;
-	kfState.max_prefit_remv = 1;
+	kfState.prefitOpts.sigma_check			= false;
+	kfState.prefitOpts.max_iterations 		= 1;
+	kfState.prefitOpts.w_test				= true;
+	kfState.chiSquareTest.enable			= true;
+	kfState.chiSquareTest.mode				= E_ChiSqMode::INNOVATION;
+	kfState.chiSquareTest.sigma_threshold	= 3;
 
 	for (int i = 0; i < 100; i++)
 	{

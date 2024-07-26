@@ -210,6 +210,7 @@ receiver_options:                                                 # Options to c
         phase_sigma:                0.002
         clock_codes:                [AUTO, AUTO]
         zero_dcb_codes:             [NONE, NONE]
+        rec_reference_system:       GPS
         models:
             eccentricity:
                 enable:             true                            # (bool) Enable modelling of antenna eccentricities
@@ -265,7 +266,6 @@ processing_options:
         wait_all_receivers:           1
 
     gnss_general:
-        rec_reference_system:         gps
         minimise_sat_clock_offsets:   true
         sys_options:
             gps:
@@ -305,12 +305,14 @@ processing_options:
             prefit:
                 max_iterations: 2
                 sigma_check: true
-                sigma_threshold: 5
+                state_sigma_threshold: 5               # Sigma threshold for states
+                meas_sigma_threshold:  5               # Sigma threshold for measurements
                 omega_test: false
             postfit:
                 max_iterations: 10
                 sigma_check: true
-                sigma_threshold: 3
+                state_sigma_threshold: 3               # Sigma threshold for states
+                meas_sigma_threshold:  3               # Sigma threshold for measurements
 
         rts:
             enable:                   true
@@ -359,12 +361,14 @@ processing_options:
             postfit:
                 max_iterations:       10               # Maximum number of measurements to exclude using postfit checks while iterating filter
                 sigma_check:          true             # Enable sigma check
-                sigma_threshold:      3                # Sigma threshold
+                state_sigma_threshold: 3               # Sigma threshold for states
+                meas_sigma_threshold:  3               # Sigma threshold for measurements
             prefit:
                 max_iterations:       2                # Maximum number of measurements to exclude using prefit checks before attempting to filter
                 omega_test:           false            # Enable omega-test
                 sigma_check:          true             # Enable sigma check
-                sigma_threshold:      5                # Sigma threshold
+                state_sigma_threshold: 5               # Sigma threshold for states
+                meas_sigma_threshold:  5               # Sigma threshold for measurements
 
     orbit_propagation:
         integrator_time_step:         60    # Timestep for the integrator, must be smaller than the processing time step, might be adjusted if the processing time step isn't a integer number of time steps

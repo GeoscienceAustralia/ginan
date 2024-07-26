@@ -139,7 +139,6 @@ processing_options:
         require_apriori_positions:      true
         require_site_eccentricity:      true
         require_reflector_com:          true
-        rec_reference_system:           GPS
 
         sys_options:
             leo:

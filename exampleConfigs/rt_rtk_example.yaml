@@ -80,6 +80,7 @@ receiver_options:
         error_model:        elevation_dependent # {uniform,elevation_dependent}
         code_sigma:         0.3      # Standard deviation of code measurements, m
         phase_sigma:        0.003    # Standard deviation of phase measurmeents, m
+        rec_reference_system:   GPS
         models:
             phase_bias:
                 enable:     true
@@ -99,8 +100,6 @@ processing_options:
         wait_all_receivers:             1
 
     gnss_general:
-        rec_reference_system:           GPS
-
         # use_rtk_combo:          true
         equate_tropospheres:    true
         equate_ionospheres:     true

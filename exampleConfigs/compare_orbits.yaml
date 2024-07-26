@@ -44,8 +44,10 @@ processing_options:
             prefit:
                 max_iterations:     3                # Maximum number of measurements to exclude using prefit checks before attempting to filter
                 sigma_check:        true             # (bool)  Enable prefit sigma check
-                sigma_threshold:    3.0              # (float) sigma threshold
+                state_sigma_threshold:  3.0          # (float) sigma threshold for states
+                meas_sigma_threshold:   3.0          # (float) sigma threshold for measurements
             postfit:
                 max_iterations:     20               # Maximum number of measurements to exclude using postfit checks while iterating filter
                 sigma_check:        true             # (bool)  Enable postfit sigma check
-                sigma_threshold:    3.0              # (float) sigma threshold
+                state_sigma_threshold:  3.0          # (float) sigma threshold for states
+                meas_sigma_threshold:   3.0          # (float) sigma threshold for measurements
