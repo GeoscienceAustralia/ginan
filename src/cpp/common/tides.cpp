@@ -228,8 +228,9 @@ bool readOceanPoleCoeff(
 	double v[11];
 	OceanPoleCoeff	oceanPoleCoeff;
 
-	if (oceanPoleGrid.grid.empty() == false)
-		oceanPoleGrid.grid.clear();
+	oceanPoleGrid.grid.clear();
+
+	bool headerDone = false;
 
 	while (fileStream)
 	{
@@ -238,14 +239,17 @@ bool readOceanPoleCoeff(
 
 		char* buff = &line[0];
 
-		if		(to_lower_copy(line.substr(0, 30)) == "number_longitude_grid_points =")	{	oceanPoleGrid.numLonGrid	= str2num(buff, 30, 10);	continue;	}
-		else if	(to_lower_copy(line.substr(0, 30)) == "first_longitude_degrees      =")	{	oceanPoleGrid.firstLonDeg	= str2num(buff, 30, 10);	continue;	}
-		else if	(to_lower_copy(line.substr(0, 30)) == "last_longitude_degrees       =")	{	oceanPoleGrid.lastLonDeg	= str2num(buff, 30, 10);	continue;	}
-		else if	(to_lower_copy(line.substr(0, 30)) == "longitude_step_degrees       =")	{	oceanPoleGrid.lonStepDeg	= str2num(buff, 30, 10);	continue;	}
-		else if	(to_lower_copy(line.substr(0, 30)) == "number_latitude_grid_points  =")	{	oceanPoleGrid.numLatGrid	= str2num(buff, 30, 10);	continue;	}
-		else if	(to_lower_copy(line.substr(0, 30)) == "first_latitude_degrees       =")	{	oceanPoleGrid.firstLatDeg	= str2num(buff, 30, 10);	continue;	}
-		else if	(to_lower_copy(line.substr(0, 30)) == "last_latitude_degrees        =")	{	oceanPoleGrid.lastLatDeg	= str2num(buff, 30, 10);	continue;	}
-		else if	(to_lower_copy(line.substr(0, 30)) == "latitude_step_degrees        =")	{	oceanPoleGrid.latStepDeg	= str2num(buff, 30, 10);	continue;	}
+		if (headerDone == false)
+		{
+			if		(to_lower_copy(line.substr(0, 30)) == "number_longitude_grid_points =")	{	oceanPoleGrid.numLonGrid	= str2num(buff, 30, 10);	continue;	}
+			else if	(to_lower_copy(line.substr(0, 30)) == "first_longitude_degrees      =")	{	oceanPoleGrid.firstLonDeg	= str2num(buff, 30, 10);	continue;	}
+			else if	(to_lower_copy(line.substr(0, 30)) == "last_longitude_degrees       =")	{	oceanPoleGrid.lastLonDeg	= str2num(buff, 30, 10);	continue;	}
+			else if	(to_lower_copy(line.substr(0, 30)) == "longitude_step_degrees       =")	{	oceanPoleGrid.lonStepDeg	= str2num(buff, 30, 10);	continue;	}
+			else if	(to_lower_copy(line.substr(0, 30)) == "number_latitude_grid_points  =")	{	oceanPoleGrid.numLatGrid	= str2num(buff, 30, 10);	continue;	}
+			else if	(to_lower_copy(line.substr(0, 30)) == "first_latitude_degrees       =")	{	oceanPoleGrid.firstLatDeg	= str2num(buff, 30, 10);	continue;	}
+			else if	(to_lower_copy(line.substr(0, 30)) == "last_latitude_degrees        =")	{	oceanPoleGrid.lastLatDeg	= str2num(buff, 30, 10);	continue;	}
+			else if	(to_lower_copy(line.substr(0, 30)) == "latitude_step_degrees        =")	{	oceanPoleGrid.latStepDeg	= str2num(buff, 30, 10);	continue;	}
+		}
 
 		int found = sscanf(buff, "%lf %lf %lf %lf %lf %lf %lf %lf",
 			&v[0],
@@ -259,6 +263,8 @@ bool readOceanPoleCoeff(
 
 		if (found != 8)
 			continue;
+
+		headerDone = true;
 
 		oceanPoleCoeff.lon		= v[0];
 		oceanPoleCoeff.lat		= v[1];

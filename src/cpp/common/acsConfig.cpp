@@ -3674,7 +3674,6 @@ bool ACSConfig::parse(
 			{
 				auto outlier_screening	= stringsToYamlObject(nodeStack,			{"! outlier_screening"},	"Statistical checks allow for detection of outliers that exceed their confidence intervals.");
 
-
 				if (std::get<1>(nodeStack).find("spp") == string::npos)
 				{
 					tryGetFromYaml(filterOpts.joseph_stabilisation,			nodeStack,			{"@ joseph_stabilisation"						});
@@ -3682,8 +3681,6 @@ bool ACSConfig::parse(
 					tryGetFromYaml(filterOpts.advanced_postfits,			nodeStack,			{"# advanced_postfits"							}, "Use alternate calculation method to determine postfit residuals");
 				}
 
-				bool foundOld	= false;
-				bool foundNew	= false;
 				{
 					auto prefit				= stringsToYamlObject(outlier_screening,	{"! prefit"});
 
@@ -3696,7 +3693,9 @@ bool ACSConfig::parse(
 									tryGetFromYaml(filterOpts.prefitOpts.omega_test,				prefit,				{"@ omega_test"				},	"Enable omega-test");
 
 					if (found)
+					{
 						BOOST_LOG_TRIVIAL(warning) << "Warning: the yaml option 'prefit:sigma_threshold' is depreciated, better use 'prefit:state_sigma_threshold' and 'prefit:meas_sigma_threshold' instead";
+					}
 				}
 
 				{
@@ -3711,7 +3710,9 @@ bool ACSConfig::parse(
 									tryGetFromYaml(filterOpts.chiSquareTest.sigma_threshold,		postfit,			{"@ sigma_threshold"		},	"Sigma threshold");
 
 					if (found)
+					{
 						BOOST_LOG_TRIVIAL(warning) << "Warning: the yaml option 'postfit:sigma_threshold' is depreciated, better use 'postfit:state_sigma_threshold' and 'postfit:meas_sigma_threshold' instead";
+					}
 				}
 
 				{

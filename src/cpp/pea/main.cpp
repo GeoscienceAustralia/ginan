@@ -495,20 +495,6 @@ void reloadInputFiles()
 		readPseudosFromFile(pseudo_filter_file);
 	}
 
-	removeInvalidFiles(acsConfig.vmf_files);
-	for (auto& vmffile : acsConfig.vmf_files)
-	{
-		if (fileChanged(vmffile) == false)
-		{
-			continue;
-		}
-
-		BOOST_LOG_TRIVIAL(info)
-		<< "Loading VMF file " << vmffile;
-
-		readvmf3(vmffile);
-	}
-
 	removeInvalidFiles(acsConfig.orography_files);
 	for (auto& orographyfile : acsConfig.orography_files)
 	{
@@ -521,6 +507,20 @@ void reloadInputFiles()
 		<< "Loading ORO from " << orographyfile;
 
 		readorog(orographyfile);
+	}
+
+	removeInvalidFiles(acsConfig.vmf_files);
+	for (auto& vmffile : acsConfig.vmf_files)
+	{
+		if (fileChanged(vmffile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading VMF file " << vmffile;
+
+		readvmf3(vmffile);
 	}
 
 	removeInvalidFiles(acsConfig.gpt2grid_files);

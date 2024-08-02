@@ -2,8 +2,11 @@
 #include <fstream>
 #include <cstring>
 #include <math.h>
+#include <array>
 
 using std::ifstream;
+using std::array;
+
 
 #include "tropModels.hpp"
 
@@ -22,16 +25,16 @@ struct GPTVals
  */
 struct GptGrid
 {
-			double	lat		= 0;		///< lat grid (degree)
-			double	lon		= 0;		///< lon grid (degree)
-	vector<	double>	pres;				///< pressure										a0 A1 B1 A2 B2 (pascal)
-	vector<	double>	temp;				///< temperature									a0 A1 B1 A2 B2 (kelvin)
-	vector<	double>	humid;				///< humidity										a0 A1 B1 A2 B2 (kg/kg)
-	vector<	double>	tlaps;				///< elapse rate									a0 A1 B1 A2 B2 (kelvin/m)
-	vector<	double>	ah;					///< hydrostatic	mapping function coefficient	a0 A1 B1 A2 B2
-	vector<	double>	aw;					///< wet			mapping function coefficient	a0 A1 B1 A2 B2
-			double	undu	= 0;		///< geoid undulation (m)
-			double	hgt		= 0;		///< orthometric height (m)
+	double			lat		= 0;		///< lat grid (degree)
+	double			lon		= 0;		///< lon grid (degree)
+	array<double,5>	pres;				///< pressure										a0 A1 B1 A2 B2 (pascal)
+	array<double,5>	temp;				///< temperature									a0 A1 B1 A2 B2 (kelvin)
+	array<double,5>	humid;				///< humidity										a0 A1 B1 A2 B2 (kg/kg)
+	array<double,5>	tlaps;				///< elapse rate									a0 A1 B1 A2 B2 (kelvin/m)
+	array<double,5>	ah;					///< hydrostatic	mapping function coefficient	a0 A1 B1 A2 B2
+	array<double,5>	aw;					///< wet			mapping function coefficient	a0 A1 B1 A2 B2
+	double			undu	= 0;		///< geoid undulation (m)
+	double			hgt		= 0;		///< orthometric height (m)
 };
 
 vector<GptGrid>		globalGPT2Grids			= {};		///< gpt grid information
@@ -138,12 +141,12 @@ void readgrid(
 		/* assign pres, temp, humid, tlaps, ah, aw */
 		for (int k = 0; k < 5; k++)
 		{
-			gptGridPoint.pres	.push_back(val[k+2]);			/* pressure */
-			gptGridPoint.temp	.push_back(val[k+7]);			/* temperature */
-			gptGridPoint.humid	.push_back(val[k+12]/1000);		/* humidity */
-			gptGridPoint.tlaps	.push_back(val[k+17]/1000);		/* temperature elapse rate */
-			gptGridPoint.ah		.push_back(val[k+24]/1000);		/* ah */
-			gptGridPoint.aw		.push_back(val[k+29]/1000);		/* aw */
+			gptGridPoint.pres	[k] = val[k+2];			/* pressure */
+			gptGridPoint.temp	[k] = val[k+7];			/* temperature */
+			gptGridPoint.humid	[k] = val[k+12]/1000;	/* humidity */
+			gptGridPoint.tlaps	[k] = val[k+17]/1000;	/* temperature elapse rate */
+			gptGridPoint.ah		[k] = val[k+24]/1000;	/* ah */
+			gptGridPoint.aw		[k] = val[k+29]/1000;	/* aw */
 		}
 
 		/* assign undulation and height */
@@ -159,7 +162,7 @@ void readgrid(
 /** coefficients multiplication
  */
 double coef(
-	const vector<double>&	a,
+	const array<double,5>&	a,
 	double					cosfy,
 	double					sinfy,
 	double					coshy,

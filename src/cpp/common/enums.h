@@ -300,7 +300,6 @@ BETTER_ENUM(E_Relativity,	short int,
 			ON)
 
 BETTER_ENUM(E_ChiSqMode,	int,
-			NONE,
 			INNOVATION,
 			MEASUREMENT,
 			STATE)

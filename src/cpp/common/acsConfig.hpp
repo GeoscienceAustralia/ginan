@@ -577,7 +577,6 @@ struct PrefitOptions
 {
 	int			max_iterations	 		= 2;
 	bool		sigma_check				= true;
-	double		sigma_threshold			= 4;	// for backward compatiblility, not actually used
 	double		state_sigma_threshold	= 4;
 	double		meas_sigma_threshold	= 4;
 	bool		omega_test				= false;
@@ -587,15 +586,14 @@ struct PostfitOptions
 {
 	int			max_iterations	 		= 2;
 	bool		sigma_check				= true;
-	double		sigma_threshold			= 4;	// for backward compatiblility, not actually used
 	double		state_sigma_threshold	= 4;
 	double		meas_sigma_threshold	= 4;
 };
 
 struct ChiSquareOptions
 {
-	bool		enable					= true;
-	E_ChiSqMode	mode					= E_ChiSqMode::NONE;	// todo Eugene: default to INNOVATION?
+	bool		enable					= false;
+	E_ChiSqMode	mode					= E_ChiSqMode::INNOVATION;
 	double		sigma_threshold			= 4;
 };
 
