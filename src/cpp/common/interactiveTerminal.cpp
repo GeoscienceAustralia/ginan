@@ -45,7 +45,7 @@ InteractiveTerminalDestructor::~InteractiveTerminalDestructor()
 
 		for (auto& line : InteractiveTerminal::pages["Messages/All"].lines)
 		{
-			std::cout << line << std::endl;
+			std::cout << line << "\n";
 		}
 	}
 }

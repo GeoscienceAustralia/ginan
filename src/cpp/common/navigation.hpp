@@ -49,11 +49,11 @@ struct TEC
 struct SatNav
 {
 	map<int, double>	lamMap;
-	double				wlbias;						///< wide-lane bias (cycle)
 
 	SSRMaps				receivedSSR;				///< SSR corrections
 
 	VectorEci			aprioriPos;					///< Inertial satellite position at epoch time
+	double				aprioriClk		= 0;		///< Apriori clock value at epoch time
 
 	AttStatus			attStatus		= {};		///< Persistent data for attitude model
 

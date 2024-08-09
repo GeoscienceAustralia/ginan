@@ -129,7 +129,7 @@ bool satPosKalman(
 
 	double dt = (time - t0).to_double();
 
-	// trace << std::endl << time << " " << satPos.Sat.id() << " dt: " << dt;
+	// trace << "\n" << time << " " << satPos.Sat.id() << " dt: " << dt;
 
 	if	( rSat0.isZero() == false
 		&&vSat0.isZero() == false)

@@ -34,7 +34,7 @@ bool deweightMeas(
 
 	InteractiveTerminal ss("Deweights", trace, false);
 
-	ss << std::endl << kfState.time.to_string() << "\tDeweighting " << key << " - " << key.comment;
+	ss << "\n" << kfState.time.to_string() << "\tDeweighting " << key << " - " << key.comment;
 
 	kfState.statisticsMap["Meas deweight"]++;
 
@@ -110,7 +110,7 @@ bool deweightStationMeas(
 
 		double deweightFactor = acsConfig.stateErrors.deweight_factor;
 
-		trace << std::endl << "Deweighting " << key << " - " << key.comment << std::endl;
+		trace << "\n" << "Deweighting " << key << " - " << key.comment << "\n";
 
 		kfState.statisticsMap["Receiver deweight"]++;
 
@@ -168,7 +168,7 @@ bool incrementPhaseSignalError(
 	phaseRejectCount++;
 	metaDataMap["phaseRejectCount"] = nullptr;
 
-	trace << std::endl << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
+	trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
 
 	return true;
 }
@@ -197,7 +197,7 @@ bool incrementReceiverError(
 	receiverErrorCount++;
 	metaDataMap["receiverErrorFlag"] = nullptr;
 
-	trace << std::endl << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[index] << " to " << receiverErrorCount;
+	trace << "\n" << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[index] << " to " << receiverErrorCount;
 
 	return true;
 }
@@ -290,7 +290,7 @@ bool rejectByState(
 		return true;
 	}
 
-	trace << std::endl << "Bad state detected " << kfKey << " - rejecting all referencing measurements" << std::endl;
+	trace << "\n" << "Bad state detected " << kfKey << " - rejecting all referencing measurements" << "\n";
 
 	kfState.statisticsMap["State rejection"]++;
 
@@ -326,7 +326,7 @@ bool rejectByState(
 // 		return true;
 // 	}
 //
-// 	trace << std::endl << "Bad clock detected " << kfKey << " - resetting linked states" << std::endl;
+// 	trace << "\n" << "Bad clock detected " << kfKey << " - resetting linked states" << "\n";
 //
 // 	kfState.statisticsMap["Clock glitch"]++;
 //
@@ -338,7 +338,7 @@ bool rejectByState(
 // 			  ||key	.type	== KF::SAT_CLOCK))
 // 		{
 // 			//remove the satellite clock, and any ambiguities that are connected to it.
-// 			trace << "- Removing " << key << std::endl;
+// 			trace << "- Removing " << key << "\n";
 //
 // 			kfState.removeState(key);
 // 		}
@@ -349,14 +349,14 @@ bool rejectByState(
 // 			  ||key	.type	== KF::REC_SYS_BIAS))
 // 		{
 // 			//remove the satellite clock, and any ambiguities that are connected to it.
-// 			trace << "- Removing " << key << std::endl;
+// 			trace << "- Removing " << key << "\n";
 //
 // 			kfState.removeState(key);
 //
 // 			if (kfKey.rec_ptr)
 // 			{
 // 				//make sure receiver clock corrections get reset too.
-// 				trace << "- Resetting clock adjustment" << std::endl;
+// 				trace << "- Resetting clock adjustment" << "\n";
 //
 // 				auto& rec = *kfKey.rec_ptr;
 //
@@ -386,7 +386,7 @@ bool orbitGlitchReaction(
 		return true;
 	}
 
-	trace << std::endl << "Bad orbit state detected " << kfKey;
+	trace << "\n" << "Bad orbit state detected " << kfKey;
 
 	kfState.statisticsMap["Orbit state reject"]++;
 

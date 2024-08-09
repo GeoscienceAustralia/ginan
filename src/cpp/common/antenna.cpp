@@ -483,7 +483,7 @@ void readantexf(
 	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening antex file" << filepath << std::endl;
+		<< "Error opening antex file" << filepath << "\n";
 		return;
 	}
 

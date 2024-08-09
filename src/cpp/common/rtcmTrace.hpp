@@ -44,12 +44,12 @@ struct RtcmTrace
 		std::ofstream outStream(rtcmTraceFilename, std::iostream::app);
 		if (!outStream)
 		{
-			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
 			return;
 		}
 
 		outStream << timeGet();
-		outStream << " " << __FUNCTION__ << message << std::endl;
+		outStream << " " << __FUNCTION__ << message << "\n";
 	}
 
 	void messageChunkLog(
@@ -63,12 +63,12 @@ struct RtcmTrace
 		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
 		if (!outStream)
 		{
-			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
 			return;
 		}
 
 		outStream << timeGet();
-		outStream << " messageRtcmLog" << message << std::endl;
+		outStream << " messageRtcmLog" << message << "\n";
 	}
 
 	void traceSsrEph(

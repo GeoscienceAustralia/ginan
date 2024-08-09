@@ -129,7 +129,7 @@ void readPseudosFromFile(
 
 		getline(fileStream, line);
 
-		output << line << std::endl;
+		output << line << "\n";
 
 		vector<string> tokens;
 		boost::split(tokens, line, boost::is_any_of("\t"));
@@ -166,7 +166,7 @@ void readPseudosFromFile(
 
 		pseudo.time = epoch;
 
-		// std::cout << std::endl << pseudo.time << " " << pseudo.kfKey;
+		// std::cout << "\n" << pseudo.time << " " << pseudo.kfKey;
 
 		pseudoListMap[pseudo.time].push_back(pseudo);
 	}

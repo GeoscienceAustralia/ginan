@@ -157,7 +157,7 @@ void spitFilterToFile(
 
 		if (!fileStream)
 		{
-			std::cout << std::endl << "Error opening algebra file '" << filename <<  "' for writing";
+			std::cout << "\n" << "Error opening algebra file '" << filename <<  "' for writing";
 			return;
 		}
 
@@ -194,7 +194,7 @@ bool getFilterObjectFromFile(
 
 	if (!fileStream)
 	{
-		std::cout << std::endl << "Error opening algebra file " << filename <<  "for reading";
+		std::cout << "\n" << "Error opening algebra file " << filename <<  "for reading";
 		return false;
 	}
 
@@ -219,7 +219,7 @@ bool getFilterObjectFromFile(
 	E_SerialObject type = E_SerialObject::_from_integral(typeInt);
 	if (type != expectedType)
 	{
-		std::cout << std::endl << "Error: Unexpected algebra file object type";
+		std::cout << "\n" << "Error: Unexpected algebra file object type";
 		return false;
 	}
 

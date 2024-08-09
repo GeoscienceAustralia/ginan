@@ -87,7 +87,8 @@ SsrOutMap mongoReadOrbClk(
 
 		getMongoCollection(mongo, SSR_DB);
 
-	// 	std::cout << "\nTrying to get things for " << targetTime.to_string() << std::endl;
+	// 	std::cout << "\nTrying to get things for " << targetTime.to_string(0) << "\n";
+
 		b_date btime = bDate(referenceTime);
 
 		bool changeIod = false;
@@ -118,7 +119,7 @@ SsrOutMap mongoReadOrbClk(
 				auto docSort	= document{}	<< SSR_EPOCH 		<< sortDir
 												<< finalize;
 
-	// 			fout << bsoncxx::to_json(doc) << std::endl;
+	// 			fout << bsoncxx::to_json(doc) << "\n";
 
 				auto findOpts 	= mongocxx::options::find{};
 				findOpts.limit(2);
@@ -168,7 +169,7 @@ SsrOutMap mongoReadOrbClk(
 
 						clkValues.iode		= doc[SSR_IODE		].get_int32();
 
-	// 					std::cout << Sat.id() << " less:" << less << " brdc:" << broadcast << "   " << clkValues.time.to_string() << std::endl;
+	// 					std::cout << Sat.id() << " less:" << less << " brdc:" << broadcast << "   " << clkValues.time.to_string(0) << "\n";
 
 						if (less)	clkVec	.push_front	(clkValues);
 						else		clkVec	.push_back	(clkValues);
@@ -180,19 +181,19 @@ SsrOutMap mongoReadOrbClk(
 
 	// 	for (auto& a : clkBroadcastVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final cbrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string() << std::endl;
+	// 		std::cout << Sat.id() << "Final cbrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << "\n";
 	// 	}
 	// 	for (auto& a : clkPreciseVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final cprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string() << std::endl;
+	// 		std::cout << Sat.id() << "Final cprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << "\n";
 	// 	}
 	// 	for (auto& a : ephBroadcastVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final ebrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string() << std::endl;
+	// 		std::cout << Sat.id() << "Final ebrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << "\n";
 	// 	}
 	// 	for (auto& a : ephPreciseVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final eprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string() << std::endl;
+	// 		std::cout << Sat.id() << "Final eprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << "\n";
 	// 	}
 
 			//try to find a set of things that straddle the reference time, with the same iode
@@ -1055,7 +1056,7 @@ void mongoReadFilter(
 		time			= updateDoc[MONGO_UPDATED].get_date();
 		pTime.bigTime	= std::chrono::system_clock::to_time_t(time);
 
-		std::cout <<  std::endl << bsoncxx::to_json(updateDoc) << std::endl;
+		std::cout <<  "\n" << bsoncxx::to_json(updateDoc) << "\n";
 
 										docMatch2 << MONGO_EPOCH		<< updateDoc[MONGO_EPOCH]	.get_date();
 										docMatch2 << MONGO_UPDATED		<< updateDoc[MONGO_UPDATED]	.get_date();
@@ -1063,15 +1064,15 @@ void mongoReadFilter(
 		if (str.empty() == false)		docMatch2 << MONGO_STR			<< str;
 		if (Sat.empty() == false)		docMatch2 << MONGO_SAT			<< Sat;
 
-		// std::cout <<  std::endl << bsoncxx::to_json(docMatch2.view()) << std::endl;
+		// std::cout <<  "\n" << bsoncxx::to_json(docMatch2.view()) << "\n";
 
 		mongocxx::pipeline p;
 		p.match		(docMatch2	.view());
 		p.project	(docProject2.view());
 		// p.group	(docGroup	.view());
 
-	// 	std::cout <<  std::endl << bsoncxx::to_json(docMatch);
-	// 	std::cout <<  std::endl << bsoncxx::to_json(docGroup);
+	// 	std::cout <<  "\n" << bsoncxx::to_json(docMatch);
+	// 	std::cout <<  "\n" << bsoncxx::to_json(docGroup);
 
 		auto cursor = coll.aggregate(p);
 
@@ -1087,7 +1088,7 @@ void mongoReadFilter(
 
 		for (auto doc : cursor)
 		{
-			// std::cout << bsoncxx::to_json(doc) <<  std::endl;
+			// std::cout << bsoncxx::to_json(doc) <<  "\n";
 
 			KFKey kfKey;
 			kfKey.type	= KF::_from_string(	doc[MONGO_STATE].get_utf8().value.to_string().c_str());

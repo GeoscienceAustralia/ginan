@@ -240,10 +240,9 @@ void decodeObsH(
 				//save the type char before cleaning the string
 				char typeChar = obsCode2str[0];
 
-
 				for (E_Sys sys : E_Sys::_values())
 				{
-					auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).id()});
+					auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).sysName()});
 
 					map<E_ObsCode2, E_ObsCode>* conversionMap_ptr;
 					if	( typeChar != 'C'
@@ -628,7 +627,7 @@ int readRnxH(
 						auto obs2 = E_ObsCode2	::_from_string_nocase(r2);
 						auto obs3 = E_ObsCode	::_from_string_nocase(r3);
 
-						auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).id()});
+						auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).sysName()});
 
 						auto& codeMap = recOpts.rinex23Conv.codeConv;
 						auto& phasMap = recOpts.rinex23Conv.phasConv;
@@ -644,22 +643,24 @@ int readRnxH(
 			}
 			else if (block)
 			{
-				double bias;
-				SatSys Sat;
+				//ignore reported widelane biases
 
-				// cnes/cls grg clock
-				if	( !strncmp(buff, "WL", 2)
-					&&(Sat = SatSys(buff + 3), Sat)
-					&& sscanf(buff+40, "%lf", &bias) == 1)
-				{
-					nav.satNavMap[Sat].wlbias = bias;
-				}
-				// cnes ppp-wizard clock
-				else if ((Sat = SatSys(buff + 1), Sat)
-						&&sscanf(buff+6, "%lf", &bias) == 1)
-				{
-					nav.satNavMap[Sat].wlbias = bias;
-				}
+				// double bias;
+				// SatSys Sat;
+    //
+				// // cnes/cls grg clock
+				// if	( !strncmp(buff, "WL", 2)
+				// 	&&(Sat = SatSys(buff + 3), Sat)
+				// 	&& sscanf(buff+40, "%lf", &bias) == 1)
+				// {
+				// 	nav.satNavMap[Sat].wlbias = bias;
+				// }
+				// // cnes ppp-wizard clock
+				// else if ((Sat = SatSys(buff + 1), Sat)
+				// 		&&sscanf(buff+6, "%lf", &bias) == 1)
+				// {
+				// 	nav.satNavMap[Sat].wlbias = bias;
+				// }
 			}
 			continue;
 		}

@@ -780,17 +780,17 @@ struct KFMeasEntry
 	{
 		if (value == 0)
 		{
-			std::cout << "Zero noise encountered"	<< std::endl;
+			std::cout << "Zero noise encountered"	<< "\n";
 // 			return;
 		}
 		if 		(std::isinf(value))
 		{
-			std::cout << "Inf noise encountered"	<< std::endl;
+			std::cout << "Inf noise encountered"	<< "\n";
 			return;
 		}
 		else if (std::isnan(value))
 		{
-			std::cout << "Nan noise encountered"	<< std::endl;
+			std::cout << "Nan noise encountered"	<< "\n";
 			return;
 		}
 

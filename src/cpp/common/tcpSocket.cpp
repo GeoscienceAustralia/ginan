@@ -37,19 +37,19 @@ void TcpSocket::logChunkError()
 	message << numberErroredChunks;
 // 	message << ", ratio (error/total) : " << (double)numberErroredChunks /(double)(numberErroredChunks+numberValidChunks);
 
-	std::cout << message.str() << std::endl;
+	std::cout << message.str() << "\n";
 	messageChunkLog(message.str());
 
 		//todo aaron
 // 		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
 // 		if (!outStream)
 // 		{
-// 			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+// 			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
 // 			return;
 // 		}
 //
 // 		outStream << timeGet();
-// 		outStream << " messageChunkLog" << message << std::endl;
+// 		outStream << " messageChunkLog" << message << "\n";
 }
 
 
@@ -62,8 +62,8 @@ void TcpSocket::startRead(
 	else			function_ptr = &TcpSocket::readHandlerContent;
 
 	//BOOST_LOG_TRIVIAL(debug) << "TcpSocket::start_read\n";
-	//BOOST_LOG_TRIVIAL(debug) << "Downloading, length : " << content_length << std::endl;
-	//BOOST_LOG_TRIVIAL(debug) << "downloadBuf.size() : " << downloadBuf.size() << std::endl;
+	//BOOST_LOG_TRIVIAL(debug) << "Downloading, length : " << content_length << "\n";
+	//BOOST_LOG_TRIVIAL(debug) << "downloadBuf.size() : " << downloadBuf.size() << "\n";
 
 	// Start reading remaining data until EOF.
 	if (url.protocol == "https")
@@ -86,8 +86,8 @@ void TcpSocket::readHandlerContent(
 	}
 
 	//BOOST_LOG_TRIVIAL(debug) << __FUNCTION__;
-	//BOOST_LOG_TRIVIAL(debug) << "Downloading, length : " << content_length << std::endl;
-	//BOOST_LOG_TRIVIAL(debug) << "downloadBuf.size() : " << downloadBuf.size() << std::endl;
+	//BOOST_LOG_TRIVIAL(debug) << "Downloading, length : " << content_length;
+	//BOOST_LOG_TRIVIAL(debug) << "downloadBuf.size() : " << downloadBuf.size();
 	if (downloadBuf.size() == content_length)
 	{
 		vector<char> content(downloadBuf.size());
@@ -131,7 +131,7 @@ void TcpSocket::readHandlerChunked(
 // 	std::istream messStream(&downloadBuf);
 // 	unsigned int sz = downloadBuf.size();
 
-// 	std::cout << " size" << downloadBuf.size() << std::endl;
+// 	std::cout << " size" << downloadBuf.size() << "\n";
 	int oldSize		= receivedTcpData	.size();
 	int extraSize	= downloadBuf		.size();
 
@@ -374,7 +374,7 @@ void NtripStream::requestResponseHandler(
 
 
 	//BOOST_LOG_TRIVIAL(debug) << "**********************************************\n";
-	BOOST_LOG_TRIVIAL(debug) << "Connected " << url.sanitised() << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "Connected " << url.sanitised();
 
 	//conneccted, turn the delay back down.
 	reconnectDelay = 1;
@@ -391,7 +391,7 @@ void NtripStream::requestResponseHandler(
 
 		networkLog(message.str());
 
-		//BOOST_LOG_TRIVIAL(debug) << message.str() << std::endl;
+		//BOOST_LOG_TRIVIAL(debug) << message.str();
 	}
 
 	boost::asio::socket_base::keep_alive option(true);
@@ -502,7 +502,7 @@ void TcpSocket::connect()
 	_sslsocket	= std::make_shared<ssl_socket>		(ioService, sslContext);
 	_resolver	= std::make_shared<tcp::resolver>	(ioService);
 
-	BOOST_LOG_TRIVIAL(debug) << "(Re)connecting " << url.sanitised() << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "(Re)connecting " << url.sanitised();
 
 	// The socket_ptr reduces some code, although the async_read and async_right
 	// must be called using _sslsocket in order to work correctly.
@@ -563,7 +563,7 @@ void TcpSocket::connectionError(
 	doc.append(kvp("BoostSysErrMess",	err.message()));
 	doc.append(kvp("SocketOperation",	operation));
 
-	logStream << bsoncxx::to_json(doc) << std::endl;
+	logStream << bsoncxx::to_json(doc) << "\n";
 }
 
 void NtripStream::serverResponse(
@@ -590,6 +590,6 @@ void NtripStream::serverResponse(
 	doc.append(kvp("ServerStatus", 	(int)statusCode));
 	doc.append(kvp("VersionHTTP",	httpVersion));
 
-	logStream << bsoncxx::to_json(doc) << std::endl;
+	logStream << bsoncxx::to_json(doc) << "\n";
 }
 

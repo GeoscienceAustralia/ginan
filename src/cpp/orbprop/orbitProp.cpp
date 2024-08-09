@@ -168,7 +168,7 @@ void OrbitIntegrator::computeAcceleration(
 {
 	auto trace = getTraceFile(nav.satNavMap[orbInit.Sat]);
 
-	trace << std::endl << "Computing accelerations at " << time;
+	trace << "\n" << "Computing accelerations at " << time;
 
 	Vector3d rSat = orbInit.pos;
 	Vector3d vSat = orbInit.vel;
@@ -429,18 +429,18 @@ void OrbitIntegrator::computeAcceleration(
 
 		Vector3d accAccl = eci2ecf.transpose() * accEcef;
 
-// 		std::cout << std::endl << "vSat: " << vSat.normalized().transpose();
-// 		std::cout << std::endl << "R: " << er.transpose();
-// 		std::cout << std::endl << "T: " << et.transpose();
-// 		std::cout << std::endl << "N: " << en.transpose();
+// 		std::cout << "\n" << "vSat: " << vSat.normalized().transpose();
+// 		std::cout << "\n" << "R: " << er.transpose();
+// 		std::cout << "\n" << "T: " << et.transpose();
+// 		std::cout << "\n" << "N: " << en.transpose();
 
 		Vector3d afX = eci2ecf.transpose() * body2ecef(orbInit.attStatus, Vector3d::UnitX());
 		Vector3d afY = eci2ecf.transpose() * body2ecef(orbInit.attStatus, Vector3d::UnitY());
 		Vector3d afZ = eci2ecf.transpose() * body2ecef(orbInit.attStatus, Vector3d::UnitZ());
 
-// 		std::cout << std::endl << "x: " << afX.transpose();
-// 		std::cout << std::endl << "y: " << afY.transpose();
-// 		std::cout << std::endl << "z: " << afZ.transpose();
+// 		std::cout << "\n" << "x: " << afX.transpose();
+// 		std::cout << "\n" << "y: " << afY.transpose();
+// 		std::cout << "\n" << "z: " << afZ.transpose();
 
 // 		dAdParam.col(orbInit.numEmp + 0) = afX;
 // 		dAdParam.col(orbInit.numEmp + 1) = afY;
@@ -601,7 +601,7 @@ void integrateOrbits(
 
 		auto satTrace = getTraceFile(satNav);
 
-		satTrace << std::endl << "Propagated orbit from " << orbitPropagator.timeInit << " for " << integrationPeriod;
+		satTrace << "\n" << "Propagated orbit from " << orbitPropagator.timeInit << " for " << integrationPeriod;
 
 		for (auto& [component, value] : orbit.componentsMap)
 		{
@@ -881,7 +881,7 @@ void predictOrbits(
 	}
 
 	InteractiveTerminal::setMode(E_InteractiveMode::PropagatingOrbits);
-	BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING ORBITS           --------" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING ORBITS           --------" << "\n";
 
 	OrbitIntegrator integrator;
 	integrator.timeInit				= kfState.time;
@@ -1085,7 +1085,7 @@ void outputOrbitConfig(
 		return;
 	}
 
-	output << bsoncxx::to_json(json) << std::endl;
+	output << bsoncxx::to_json(json) << "\n";
 }
 
 

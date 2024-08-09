@@ -127,7 +127,7 @@ bool readBlq(
 	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "BLQ file open error " << file << std::endl;
+		<< "BLQ file open error " << file;
 
 		return false;
 	}
@@ -168,7 +168,7 @@ bool readBlq(
 				catch (...)
 				{
 					BOOST_LOG_TRIVIAL(warning)
-					<< "Warning: Unknown tidal constituent in BLQ file header: " << waveName << std::endl;
+					<< "Warning: Unknown tidal constituent in BLQ file header: " << waveName << "\n";
 				}
 			}
 
@@ -185,7 +185,7 @@ bool readBlq(
 		if (!columnOrderFound)
 		{
 			BOOST_LOG_TRIVIAL(warning)
-			<< "Warning: Column order information not found in BLQ file header, (default) config is used" << std::endl;
+			<< "Warning: Column order information not found in BLQ file header, (default) config is used" << "\n";
 		}
 
 		string name = line.substr(2, 4);
@@ -199,7 +199,7 @@ bool readBlq(
 		else
 		{
 			BOOST_LOG_TRIVIAL(error)
-			<< __FUNCTION__ << ": Unspported file type" << std::endl;
+			<< __FUNCTION__ << ": Unspported file type" << "\n";
 
 			return false;
 		}
@@ -220,7 +220,7 @@ bool readOceanPoleCoeff(
 	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Ocean pole tide coefficient file open error " << file << std::endl;
+		<< "Ocean pole tide coefficient file open error " << file;
 
 		return false;
 	}
@@ -730,7 +730,7 @@ VectorEnu tideOceanPole(
 	if (oceanPoleGrid.grid.empty())
 	{
 		BOOST_LOG_TRIVIAL(warning)
-		<< "Warning: Ocean pole tide coefficients not available" << std::endl;
+		<< "Warning: Ocean pole tide coefficients not available" << "\n";
 
 		return VectorEnu();
 	}

@@ -1,5 +1,5 @@
 
-#pragma GCC optimize ("O0")
+// #pragma GCC optimize ("O0")
 
 #include <string.h>
 #include <stdio.h>
@@ -188,7 +188,7 @@ GTime yds2time(
 		case E_TimeSys::TAI:		{ time += GPS_SUB_TAI;												}	break;
 		default:
 		{
-			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << "\n";
 		}
 	}
 
@@ -281,7 +281,7 @@ void time2epoch(
 		case E_TimeSys::TAI:		{ time -= GPS_SUB_TAI;												}	break;
 		default:
 		{
-			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << "\n";
 		}
 	}
 
@@ -428,14 +428,14 @@ const
 
 	char buff[64];
 	snprintf(buff, sizeof(buff),"%04.0f-%02.0f-%02.0f %02.0f:%02.0f:%0*.*f",
-			ep[0],
-			ep[1],
-			ep[2],
-			ep[3],
-			ep[4],
-			n<=0?2:n+3,
+			ep.year,
+			ep.month,
+			ep.day,
+			ep.hour,
+			ep.min,
+			n <=0?2:n+3,
 			n,
-			ep[5]);
+			ep.sec);
 
 	cacheString = buff;
 	cacheTime	= bigTime;

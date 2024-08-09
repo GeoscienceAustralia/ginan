@@ -101,7 +101,7 @@ bool inertial2Keplers(
 
 	if (error)
 	{
-		std::cout << std::endl << "n0 " << n0.transpose();
+		std::cout << "\n" << "n0 " << n0.transpose();
 		std::cout << "\te " << e.transpose();
 		std::cout << "\tn1 " << n1.transpose();
 		std::cout << "\tnu " << nu;
@@ -237,7 +237,7 @@ VectorEci keplers2Inertial(
 
 	return rSat;
 // 	std::cout << "\te " << e.transpose();
-// 	std::cout << std::endl << "n0 " << n0.transpose();
+// 	std::cout << "\n" << "n0 " << n0.transpose();
 // 	std::cout << "\tn1 " << n1.transpose();
 
 // 	std::cout << "\tnu " << nu;

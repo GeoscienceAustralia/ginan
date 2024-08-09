@@ -86,7 +86,7 @@ struct SinexParser : Parser, ObsLister
 			{
 				// error - did not find closure line. Report and clean up.
 				BOOST_LOG_TRIVIAL(error)
-				<< "Error: Closure line not found before end." << std::endl;
+				<< "Error: Closure line not found before end.";
 
 				break;
 			}
@@ -106,7 +106,7 @@ struct SinexParser : Parser, ObsLister
 				{
 					BOOST_LOG_TRIVIAL(error)
 					<< "Error: Incorrect section closure line encountered: "
-					<< closure << " != " << line << std::endl;
+					<< closure << " != " << line;
 				}
 
 				closure = "";
@@ -136,7 +136,7 @@ struct SinexParser : Parser, ObsLister
 				else
 				{
 	// 				BOOST_LOG_TRIVIAL(error)
-	// 				<< "Error: error unknown header line: " << line << endl;
+	// 				<< "Error: error unknown header line: " << line;
 				}
 
 				continue;
@@ -153,7 +153,7 @@ struct SinexParser : Parser, ObsLister
 				{
 					// error in file. report it.
 					BOOST_LOG_TRIVIAL(error)
-					<< "Error: line starting '%' met not final line" << std::endl << line << std::endl;
+					<< "Error: line starting '%' met not final line" << "\n" << line;
 
 					return;
 				}
@@ -207,7 +207,7 @@ struct SinexParser : Parser, ObsLister
 
 			obsList.push_back((shared_ptr<FObs>)obs);
 
-			std::cout << "Got obs for " << obs.time << std::endl;
+			std::cout << "Got obs for " << obs.time << "\n";
 			obsListList.push_back(std::move(obsList));
 		}
 	}

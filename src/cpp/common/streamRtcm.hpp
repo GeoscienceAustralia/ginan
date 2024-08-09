@@ -31,7 +31,7 @@ struct RtcmParser : Parser, RtcmDecoder
 	void parse(
 		std::istream& inputStream)
 	{
-// 		std::cout << "Parsing rtcm" << std::endl;
+// 		std::cout << "Parsing rtcm" << "\n";
 
 		if (qzssL6)			//todo aaron move to own decoder type
 		{

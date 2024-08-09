@@ -104,7 +104,7 @@ void readgrid(
 	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening gpt grid file" << filepath << std::endl;
+		<< "Error opening gpt grid file" << filepath << "\n";
 		return;
 	}
 

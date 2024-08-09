@@ -18,7 +18,6 @@
 #include "sinex.hpp"
 #include "trace.hpp"
 
-using std::endl;
 using std::getline;
 using std::ifstream;
 using std::ofstream;
@@ -523,7 +522,7 @@ bool read_snx_header(std::ifstream& in)
 
 	if (in.eof())
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error: empty file" << endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: empty file";
 		return false;
 	}
 
@@ -535,7 +534,7 @@ bool read_snx_header(std::ifstream& in)
 		|| line[4] != 'X')
 	{
 		// error. not a sinex file
-		BOOST_LOG_TRIVIAL(error) << "Error: Not a sinex file" << endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: Not a sinex file";
 		return false;
 	}
 
@@ -573,7 +572,7 @@ bool read_snx_header(std::ifstream& in)
 		if (readcount < 15)
 		{
 			// error, not enough parameters
-			BOOST_LOG_TRIVIAL(error) << "Error: Not enough parameters on header line (expected min 15), got " << readcount << endl;
+			BOOST_LOG_TRIVIAL(error) << "Error: Not enough parameters on header line (expected min 15), got " << readcount;
 			return false;
 		}
 
@@ -682,7 +681,7 @@ void write_snx_header(std::ofstream& out)
 		else										c = ' ';
 	}
 
-	out << line << endl;
+	out << line << "\n";
 }
 
 void parseReference(string& line)
@@ -701,7 +700,7 @@ void write_as_comments(
 		// just make sure it starts with * as required by format
 		line[0] = '*';
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -732,7 +731,7 @@ void write_snx_reference(ofstream& out)
 
 	for (auto& refString : theSinex.refstrings)
 	{
-		out << refString << endl;
+		out << refString << "\n";
 	}
 }
 
@@ -742,7 +741,7 @@ void write_snx_comments(ofstream& out)
 
 	for (auto& commentstring : theSinex.blockComments[block.blockName])
 	{
-		out << commentstring << endl;
+		out << commentstring << "\n";
 	}
 }
 
@@ -848,7 +847,7 @@ void write_snx_input_history(ofstream& out)
 			else										c = ' ';
 		}
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -903,7 +902,7 @@ void write_snx_input_files(ofstream& out)
 			for (int i = len; i<29; i++)
 				sif.file += ' ';
 		}
-		out << line << sif.file << " " << sif.description << endl;
+		out << line << sif.file << " " << sif.description << "\n";
 	}
 }
 
@@ -930,7 +929,7 @@ void write_snx_acknowledgements(ofstream& out)
 		char line[81];
 		snprintf(line, sizeof(line), " %3s %s", ack.agency.c_str(), ack.description.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -1108,7 +1107,7 @@ void write_snx_sitedata(ofstream& out, list<SinexRecData>* pstns)
 		}
 
 		if (doit)
-			out << line << endl;
+			out << line << "\n";
 	}
 }
 
@@ -1365,7 +1364,7 @@ void write_snx_gps_pcs(ofstream& out, list<SinexRecData>* pstns)
 
 		if (doit)
 		{
-			out << line << endl;
+			out << line << "\n";
 		}
 	}
 }
@@ -1489,7 +1488,7 @@ void write_snx_gal_pcs(ofstream& out, list<SinexRecData>* pstns)
 			}
 
 			offset += snprintf(line + offset, sizeof(line) - offset, "%s", sgt.calib.c_str());
-			out << line << endl;
+			out << line << "\n";
 		}
 
 		{
@@ -1516,7 +1515,7 @@ void write_snx_gal_pcs(ofstream& out, list<SinexRecData>* pstns)
 
 			offset += snprintf(line + offset, sizeof(line) - offset, "%s", sgt.calib.c_str());
 
-			out << line << endl;
+			out << line << "\n";
 		}
 
 		{
@@ -1535,7 +1534,7 @@ void write_snx_gal_pcs(ofstream& out, list<SinexRecData>* pstns)
 
 			offset += snprintf(line + offset, sizeof(line) - offset, "                    ");
 			offset += snprintf(line + offset, sizeof(line) - offset, "%s", sgt.calib.c_str());
-			out << line << endl;
+			out << line << "\n";
 		}
 	}
 }
@@ -1760,7 +1759,7 @@ void write_snx_statistics(ofstream& out)
 		if (statistic.etype == 1) // double
 			snprintf(line, sizeof(line), " %-30s %22.15lf", statistic.name.c_str(), statistic.value.dval);
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -1866,7 +1865,7 @@ void write_snx_estimates_from_filter(
 // 	ofstream& out,
 // 	std::list<Sinex_stn_snx_t>* pstns = nullptr)
 // {
-// 	out << "+SOLUTION/ESTIMATE" << endl;
+// 	out << "+SOLUTION/ESTIMATE" << "\n";
 //
 // 	write_as_comments(out, theSinex.estimate_comments);
 //
@@ -1905,10 +1904,10 @@ void write_snx_estimates_from_filter(
 // 		        sst.estimate,
 // 		        sst.stddev);
 //
-// 		out << line << endl;
+// 		out << line << "\n";
 // 	}
 //
-// 	out << "-SOLUTION/ESTIMATE" << endl;
+// 	out << "-SOLUTION/ESTIMATE" << "\n";
 // }
 
 
@@ -1993,7 +1992,7 @@ void write_snx_apriori(ofstream& out, list<SinexRecData>* pstns = nullptr)
 				sst.param,
 				sst.stddev);
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2114,7 +2113,7 @@ void write_snx_normal(ofstream& out, list<SinexRecData>* pstns = nullptr)
 				sst.constraint,
 				sst.normal);
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2315,7 +2314,7 @@ void write_snx_precodes(ofstream& out)
 
 		snprintf(line, sizeof(line), " %8s %s", spt.precesscode.c_str(), spt.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2343,7 +2342,7 @@ void write_snx_nutcodes(ofstream& out)
 
 		snprintf(line, sizeof(line), " %8s %s", snt.nutcode.c_str(), snt.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2373,7 +2372,7 @@ void write_snx_sourceids(ofstream& out)
 
 		snprintf(line, sizeof(line), " %4s %8s %16s %s", ssi.source.c_str(), ssi.iers.c_str(), ssi.icrf.c_str(), ssi.comments.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2437,7 +2436,7 @@ void write_snx_satids(ofstream& out)
 				(int)ssi.timeUntilDecom[2],
 				ssi.antRcvType.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2475,7 +2474,7 @@ void write_snx_satidents(ofstream& out)
 				ssi.blocktype.c_str(),
 				ssi.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2534,7 +2533,7 @@ void write_snx_satprns(ofstream& out)
 				spt.prn.c_str(),
 				spt.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2597,7 +2596,7 @@ void write_snx_satfreqchn(ofstream& out)
 				sfc.channel,
 				sfc.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2648,7 +2647,7 @@ void write_snx_satmass(ofstream& out)
 				ssm.mass,
 				ssm.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2715,7 +2714,7 @@ void write_snx_satcom(ofstream& out)
 				sct.com[2],
 				sct.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2772,7 +2771,7 @@ void write_snx_satecc(ofstream& out)
 				set.ecc[2],
 				set.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2823,7 +2822,7 @@ void write_snx_satpower(ofstream& out)
 				spt.power,
 				spt.comment.c_str());
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2907,7 +2906,7 @@ void write_snx_satpc(ofstream& out)
 				spt.type,
 				spt.model);
 
-		out << line << endl;
+		out << line << "\n";
 	}
 }
 
@@ -2975,13 +2974,13 @@ bool readSinex(
 	bool primary)
 {
 // 	BOOST_LOG_TRIVIAL(info)
-// 	<< "reading " << filepath << std::endl;
+// 	<< "reading " << filepath;
 
 	ifstream filestream(filepath);
 	if (!filestream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening sinex file" << filepath << endl;
+		<< "Error opening sinex file" << filepath;
 		return false;
 	}
 
@@ -2989,7 +2988,7 @@ bool readSinex(
 	if (pass == false)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error reading header line." << endl;
+		<< "Error reading header line.";
 
 		return false;
 	}
@@ -3013,7 +3012,7 @@ bool readSinex(
 		{
 			// error - did not find closure line. Report and clean up.
 			BOOST_LOG_TRIVIAL(error)
-			<< "Error: Closure line not found before end." << endl;
+			<< "Error: Closure line not found before end.";
 
 			failure = true;
 			break;
@@ -3031,7 +3030,7 @@ bool readSinex(
 			{
 				BOOST_LOG_TRIVIAL(error)
 				<< "Error: Incorrect section closure line encountered: "
-				<< closure << " != " << line << endl;
+				<< closure << " != " << line;
 			}
 		}
 		else if (line[0] == ' ')
@@ -3090,7 +3089,7 @@ bool readSinex(
 			else
 			{
 				BOOST_LOG_TRIVIAL(error)
-				<< "Error: unknown header line: " << line << endl;
+				<< "Error: unknown header line: " << line;
 
 				failure = true;
 			}
@@ -3101,7 +3100,7 @@ bool readSinex(
 // 					if (!theSinex.epochs_have_bias && !theSinex.list_solepochs.empty())
 // 					{
 // 						BOOST_LOG_TRIVIAL(error)
-// 						<< "cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks." << endl;
+// 						<< "cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks.";
 //
 // 						failure = true;
 // 						break;
@@ -3117,7 +3116,7 @@ bool readSinex(
 // 					if (theSinex.epochs_have_bias && !theSinex.list_solepochs.empty())
 // 					{
 // 						BOOST_LOG_TRIVIAL(error)
-// 						<< "cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks." << endl;
+// 						<< "cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks.";
 //
 // 						failure = true;
 // 						break;
@@ -3167,7 +3166,7 @@ bool readSinex(
 			{
 				// error in file. report it.
 				BOOST_LOG_TRIVIAL(error)
-				<< "Error: line starting '%' met not final line" << endl << line << endl;
+				<< "Error: line starting '%' met not final line" << "\n" << line;
 
 				failure = true;
 			}
@@ -3242,7 +3241,7 @@ void writeSinex(
 //	if (!theSinex.list_nutcodes.				empty())	{	write_snx_nutcodes				(filestream);}
 //	if (!theSinex.list_precessions.				empty())	{	write_snx_precodes				(filestream);}
 
-	filestream << "%ENDSNX" << endl;
+	filestream << "%ENDSNX" << "\n";
 }
 
 
@@ -3769,7 +3768,7 @@ void getSlrRecBias(
 
 		if (unitsFactor < 0)
 		{
-			BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code " << code << " : " << dataHandling.unit << endl;
+			BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__ << ", model code " << code << " : " << dataHandling.unit;
 			continue;
 		}
 

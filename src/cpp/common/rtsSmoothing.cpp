@@ -78,6 +78,20 @@ void postRTSActions(
 	std::ofstream pppTrace(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
 	kfState.outputStates(pppTrace, "/RTS");
 
+	if (acsConfig.pivot_receiver != "NO_PIVOT")
+	{
+		KFState pivotedState = propagateUncertainty(pppTrace, kfState);
+
+		pivotedState.outputStates(pppTrace, "/RTS_PIVOT");
+
+		mongoStates(pivotedState,
+					{
+						.suffix		= "/RTS_PIVOT",
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
+	}
+
 	//if AR and its not the special case of forward per epoch fixed and held which already has AR in the smoothed version
 	if	(	acsConfig.ambrOpts.mode			!= +E_ARmode::OFF
 		&&	acsConfig.ambrOpts.once_per_epoch
@@ -98,7 +112,7 @@ void postRTSActions(
 	if	(  acsConfig.process_minimum_constraints
 		&& acsConfig.minconOpts.once_per_epoch)
 	{
-		BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << "\n";
 
 		for (auto& [id, rec] : receiverMap)
 		{
@@ -160,7 +174,7 @@ void RTS_Output(
 	long int startPos = -1;
 
 	BOOST_LOG_TRIVIAL(info)
-	<< "Outputting RTS products..." << std::endl;
+	<< "Outputting RTS products..." << "\n";
 
 	map<string, string> metaDataMap = kfState.metaDataMap;
 
@@ -169,7 +183,7 @@ void RTS_Output(
 		E_SerialObject type = getFilterTypeFromFile(startPos, reversedStatesFilename);
 
 		BOOST_LOG_TRIVIAL(debug)
-		<< "Outputting " << type._to_string() << " from file position " << startPos << std::endl;
+		<< "Outputting " << type._to_string() << " from file position " << startPos << "\n";
 
 		if (type == +E_SerialObject::NONE)
 		{
@@ -250,7 +264,7 @@ void RTS_Output(
 		if (startPos < 0)
 		{
 			BOOST_LOG_TRIVIAL(error)
-			<< "Oopsie " << std::endl;
+			<< "Oopsie " << "\n";
 
 			return;
 		}
@@ -270,8 +284,8 @@ void rtsSmoothing(
 	}
 
 	BOOST_LOG_TRIVIAL(info)
-	<< std::endl
-	<< "---------------PROCESSING WITH RTS--------------------- " << std::endl;
+	<< "\n"
+	<< "---------------PROCESSING WITH RTS--------------------- " << "\n";
 
 	for (auto& [id, rec] : receiverMap)
 		rec.obsList.clear();
@@ -306,7 +320,7 @@ void rtsSmoothing(
 	{
 		E_SerialObject type = getFilterTypeFromFile(startPos, inputFile);
 
-		BOOST_LOG_TRIVIAL(debug) << "Found " << type._to_string() << std::endl;
+		BOOST_LOG_TRIVIAL(debug) << "Found " << type._to_string() << "\n";
 
 		if (type == +E_SerialObject::NONE)
 		{
@@ -317,7 +331,7 @@ void rtsSmoothing(
 		{
 			default:
 			{
-				BOOST_LOG_TRIVIAL(error) << "Error: Unknown rts type" << std::endl;
+				BOOST_LOG_TRIVIAL(error) << "Error: Unknown rts type" << "\n";
 				break;
 			}
 			case E_SerialObject::METADATA:
@@ -327,7 +341,7 @@ void rtsSmoothing(
 				bool pass = getFilterObjectFromFile(type, smoothedKF.metaDataMap, startPos, inputFile);
 				if (pass == false)
 				{
-					BOOST_LOG_TRIVIAL(debug) << "CREASS" << std::endl;
+					BOOST_LOG_TRIVIAL(debug) << "CREASS" << "\n";
 					return;
 				}
 
@@ -550,7 +564,7 @@ void rtsSmoothing(
 
 						BOOST_LOG_TRIVIAL(debug)  << "P:\n" << kalmanMinus.P.format(heavyFmt);
 						kalmanMinus.outputCorrelations(std::cout);
-						std::cout << std::endl;
+						std::cout << "\n";
 
 						//break out of the loop
 						lag = kfState.rts_lag;
@@ -579,7 +593,7 @@ void rtsSmoothing(
 				}
 				else
 				{
-					BOOST_LOG_TRIVIAL(error)  << "RTScrewy" << std::endl;
+					BOOST_LOG_TRIVIAL(error)  << "RTScrewy" << "\n";
 				}
 
 				smoothedKF.kfIndexMap = kalmanPlus.kfIndexMap;

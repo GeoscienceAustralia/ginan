@@ -439,7 +439,7 @@ void dumpConfig(
 		string str;
 		while (std::getline(config, str))
 		{
-			trace << str << std::endl;
+			trace << str << "\n";
 		}
 	}
 }
@@ -658,16 +658,16 @@ void outputDefaultSiblings(
 			//output the boilerplate of the name, and comment up to the point where the children are nested
 			tracepdeex(0, std::cout, "\n%s%s\t%-30s", ((string)indentor).c_str(), token.c_str(), (defaultVal).c_str());
 
-			html << std::endl <<	htmlIndentor++		<< "<div class='element level" << optionLevel << "'>";
-			html << std::endl <<	htmlIndentor		<< "<input type='checkbox' id='" << flatStack << "'>";
-			html << std::endl <<	htmlIndentor++		<< "<div class='ident' data-indent='" <<  indentor << "'>"
+			html << "\n" <<	htmlIndentor++		<< "<div class='element level" << optionLevel << "'>";
+			html << "\n" <<	htmlIndentor		<< "<input type='checkbox' id='" << flatStack << "'>";
+			html << "\n" <<	htmlIndentor++		<< "<div class='ident' data-indent='" <<  indentor << "'>"
 					<< (nextIsChild ? "<b>" : "") << token
 					<< (nextIsChild ? " ⯆</b>" : "");
 
 			mdIndentor++;
 			if (mdIndentor.indentation == 2)
 			{
-				md << std::endl << mdIndentor << " " << token << std::endl;
+				md << "\n" << mdIndentor << " " << token << "\n";
 			}
 
 			string link;
@@ -683,17 +683,17 @@ void outputDefaultSiblings(
 
 			}
 
-			md << std::endl << "###### **`" << flatStack << "`**";
+			md << "\n" << "###### **`" << flatStack << "`**";
 
-			md << std::endl << " " << link << "`" << defaultVal << " `" << std::endl;
+			md << "\n" << " " << link << "`" << defaultVal << " `" << "\n";
 
 			if (comment.empty() == false)
 			{
 				std::cout << "\t# " << comment.substr(0, comment.find('.'));
-				html << std::endl <<	htmlIndentor		<< "<span class='tooltiptext'># " << comment << "</span>";
+				html << "\n" <<	htmlIndentor		<< "<span class='tooltiptext'># " << comment << "</span>";
 
 				auto period = comment.find('.');
-				md << std::endl << std::endl;
+				md << "\n" << "\n";
 
 				if (nextIsChild)
 					md << "> ";
@@ -702,14 +702,14 @@ void outputDefaultSiblings(
 // 				if	( period != string::npos
 // 					&&period + 2 < comment.size())
 // 				{
-// 					md << std::endl << std::endl <<		comment.substr(period + 2);
+// 					md << "\n" << "\n" <<		comment.substr(period + 2);
 // 				}
 			}
 
-			html << std::endl << --	htmlIndentor		<< "</div>";
+			html << "\n" << --	htmlIndentor		<< "</div>";
 
 
-			md		<< std::endl << std::endl << "---" << std::endl;
+			md		<< "\n" << "\n" << "---" << "\n";
 
 			//
 			bool firstChild = false;
@@ -720,7 +720,7 @@ void outputDefaultSiblings(
 					//initiate the section for embedding children nodes
 					firstChild = true;
 
-					html << std::endl <<	htmlIndentor++	<< "<div class='contents'>";
+					html << "\n" <<	htmlIndentor++	<< "<div class='contents'>";
 				}
 
 				// recurse to do children of this node
@@ -732,7 +732,7 @@ void outputDefaultSiblings(
 			if (firstChild)
 			{
 				//finalise the child section
-				html << std::endl << --	htmlIndentor		<< "</div>";
+				html << "\n" << --	htmlIndentor		<< "</div>";
 			}
 			else
 			{
@@ -744,12 +744,12 @@ void outputDefaultSiblings(
 					if (type == typeid(bool).name())
 					{
 
-						html << std::endl <<	htmlIndentor++	<< "<select class='value'>";
-						html << std::endl <<	htmlIndentor	<< "<option value='true' "	<< (defaultVal == "true"	? " selected" : "") << ">true</option>";
-						html << std::endl <<	htmlIndentor	<< "<option value='false' "	<< (defaultVal == "false"	? " selected" : "") << ">false</option>";
-						html << std::endl <<	htmlIndentor	<< "<option value='1' hidden>true</option>";
-						html << std::endl <<	htmlIndentor	<< "<option value='0' hidden>false</option>";
-						html << std::endl << --	htmlIndentor	<< "</select>";
+						html << "\n" <<	htmlIndentor++	<< "<select class='value'>";
+						html << "\n" <<	htmlIndentor	<< "<option value='true' "	<< (defaultVal == "true"	? " selected" : "") << ">true</option>";
+						html << "\n" <<	htmlIndentor	<< "<option value='false' "	<< (defaultVal == "false"	? " selected" : "") << ">false</option>";
+						html << "\n" <<	htmlIndentor	<< "<option value='1' hidden>true</option>";
+						html << "\n" <<	htmlIndentor	<< "<option value='0' hidden>false</option>";
+						html << "\n" << --	htmlIndentor	<< "</select>";
 						break;
 					}
 
@@ -764,33 +764,33 @@ void outputDefaultSiblings(
 						size_t pos_start = 0;
 						size_t pos_end;
 
-						html << std::endl <<	htmlIndentor++	<< "<select class='value'>";
+						html << "\n" <<	htmlIndentor++	<< "<select class='value'>";
 
 						//find each part of the stack for this entry and make a list of them
 						while ((pos_end = enums.find(',', pos_start)) != string::npos)
 						{
 							string token = enums.substr(pos_start, pos_end - pos_start);
 							pos_start = pos_end + 1;
-							html << std::endl <<	htmlIndentor	<< "<option value='" << token << "'>" << token << "</option>";
+							html << "\n" <<	htmlIndentor	<< "<option value='" << token << "'>" << token << "</option>";
 						}
 						//get last one
 						string token = enums.substr(pos_start);
-						html << std::endl <<	htmlIndentor	<< "<option value='" << token << "'>" << token << "</option>";
+						html << "\n" <<	htmlIndentor	<< "<option value='" << token << "'>" << token << "</option>";
 
-						html << std::endl << --	htmlIndentor	<< "</select>";
+						html << "\n" << --	htmlIndentor	<< "</select>";
 
 						break;
 					}
 
 					//general parameters
 					{
-						html << std::endl << htmlIndentor << "<input type='text' class='value' value='" << defaultVal << "'>";
+						html << "\n" << htmlIndentor << "<input type='text' class='value' value='" << defaultVal << "'>";
 					}
 
 				}
 			}
 
-			html	<< std::endl << --htmlIndentor		<< "</div>";
+			html	<< "\n" << --htmlIndentor		<< "</div>";
 
 			--mdIndentor;
 		}
@@ -804,14 +804,14 @@ void outputDefaultSiblings(
 void ACSConfig::outputDefaultConfiguration(
 	int level)
 {
-	std::cout << std::endl << "Default configuration values:\n\n";
+	std::cout << "\n" << "Default configuration values:\n\n";
 
 	std::ofstream html	("GinanYamlInspector.html");
 	std::ofstream md	("defaultConfiguration.md");
 
 	html <<
 	#include "htmlHeaderTemplate.html"
-	<< std::endl;
+	<< "\n";
 
 	auto it = acsConfig.yamlDefaults.begin();
 
@@ -819,43 +819,43 @@ void ACSConfig::outputDefaultConfiguration(
 	Indentor htmlIndentor;
 	Indentor mdIndentor('#', 1);
 	mdIndentor++;
-	md << std::endl << mdIndentor << " Default Configuration" << std::endl;
+	md << "\n" << mdIndentor << " Default Configuration" << "\n";
 
-	md << std::endl << "This document outlines the major configuration options available in ginan that are most applicable to general users. "
+	md << "\n" << "This document outlines the major configuration options available in ginan that are most applicable to general users. "
 	<< "For more advanced configuration options and their defaults, use the `-Y <level>` option at the command line to view increasing levels of advanced configurations.";
 
 	outputDefaultSiblings(level, html, md, it, indentor, htmlIndentor, mdIndentor);
 
-	std::cout << std::endl << std::endl;
+	std::cout << "\n" << "\n";
 
-	std::cout << "An interactive configuration inspector has been generated and saved to GinanYamlInspector.html" << std::endl;
+	std::cout << "An interactive configuration inspector has been generated and saved to GinanYamlInspector.html" << "\n";
 
 	html <<
 	#include "htmlFooterTemplate.html"
-	<< std::endl;
+	<< "\n";
 
-	md << std::endl << mdIndentor << " Enum Details" << std::endl;
+	md << "\n" << mdIndentor << " Enum Details" << "\n";
 
 	for (auto& [enumName, details] : enumDetailsMap)
 	{
-		md << std::endl << "---";
+		md << "\n" << "---";
 
-		md << std::endl << std::endl << "### " + enumName;
+		md << "\n" << "\n" << "### " + enumName;
 
-		md << std::endl << std::endl << "Valid enum values are:";
+		md << "\n" << "\n" << "Valid enum values are:";
 		for (auto& value : details.enums)
 		{
-			md << std::endl << "- `" << value << "`";
+			md << "\n" << "- `" << value << "`";
 
 			if (docs[value].empty() == false)
 				md << " : " << docs[value];
 		}
 
-		md << std::endl << std::endl << "For options:" << std::endl;
+		md << "\n" << "\n" << "For options:" << "\n";
 		for (auto& caller : details.usingOptions)
 		{
 			string dummy;
-			md << std::endl << "- [`" << caller << "`](#" << nonNumericStack(caller, dummy, false) << ")";
+			md << "\n" << "- [`" << caller << "`](#" << nonNumericStack(caller, dummy, false) << ")";
 		}
 	}
 }
@@ -2566,7 +2566,7 @@ void ACSConfig::recurseYaml(
 	{
 		string key = it->first.as<string>();
 
-// 		std::cout << key << std::endl;
+// 		std::cout << key << "\n";
 
 		string newStack			= stack			+ key + ":";
 		string newAliasStack	= aliasStack	+ key + ":";
@@ -2724,10 +2724,10 @@ bool configure(
 		exit(EXIT_SUCCESS);
 	}
 
-	if (vm.count("very-verbose"))	{	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::trace);		}
-	if (vm.count("verbose"))		{	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::debug);		}
-	if (vm.count("quiet"))			{	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::warning);	}
-	if (vm.count("very-quiet"))		{	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::error);		}
+	if (vm.count("very-verbose"))	{	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::trace);		acsSeverity = boost::log::trivial::trace;}
+	if (vm.count("verbose"))		{	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::debug);		acsSeverity = boost::log::trivial::debug;}
+	if (vm.count("quiet"))			{	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::warning);	acsSeverity = boost::log::trivial::warning;}
+	if (vm.count("very-quiet"))		{	boost::log::core::get()->set_filter (boost::log::trivial::severity >= boost::log::trivial::error);		acsSeverity = boost::log::trivial::error;}
 
 	if (vm.count("interactive"))	{	InteractiveTerminal::enable();		}
 
@@ -2758,30 +2758,30 @@ bool configure(
 	if	( acsConfig.compare_clocks
 		||vm.count("compare_clocks"))
 	{
-		std::cout << std::endl << "----- Clock Comparator -----" << std::endl;
+		std::cout << "\n" << "----- Clock Comparator -----" << "\n";
 		tryGetFromOpts(acsConfig.clk_files,			vm, {"clk_files"});
 		compareClocks(acsConfig.clk_files);
-		std::cout << std::endl << "----- Clock Comparator -----" << std::endl;
+		std::cout << "\n" << "----- Clock Comparator -----" << "\n";
 		exit(EXIT_SUCCESS);
 	}
 
 	if	( acsConfig.compare_orbits
 		||vm.count("compare_orbits"))
 	{
-		std::cout << std::endl << "----- Orbit Comparator -----" << std::endl;
+		std::cout << "\n" << "----- Orbit Comparator -----" << "\n";
 		tryGetFromOpts(acsConfig.sp3_files,			vm, {"sp3_files"});
 		compareOrbits(acsConfig.sp3_files);
-		std::cout << std::endl << "----- Orbit Comparator -----" << std::endl;
+		std::cout << "\n" << "----- Orbit Comparator -----" << "\n";
 		exit(EXIT_SUCCESS);
 	}
 
 	if	( acsConfig.compare_attitudes
 		||vm.count("compare_attitudes"))
 	{
-		std::cout << std::endl << "----- Attitude Comparator -----" << std::endl;
+		std::cout << "\n" << "----- Attitude Comparator -----" << "\n";
 		tryGetFromOpts(acsConfig.obx_files,			vm, {"obx_files"});
 		compareAttitudes(acsConfig.obx_files);
-		std::cout << std::endl << "----- Attitude Comparator -----" << std::endl;
+		std::cout << "\n" << "----- Attitude Comparator -----" << "\n";
 		exit(EXIT_SUCCESS);
 	}
 
@@ -2919,14 +2919,14 @@ bool ACSConfig::parse(
 			else
 			{
 				BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration file " << filename;
-				BOOST_LOG_TRIVIAL(error) << e.msg << std::endl;
+				BOOST_LOG_TRIVIAL(error) << e.msg << "\n";
 				return false;
 			}
 		}
 		catch (const YAML::ParserException& e)
 		{
 			BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration. Check for errors as described near the below:\n";
-			BOOST_LOG_TRIVIAL(error) << e.what() << std::endl << std::endl;
+			BOOST_LOG_TRIVIAL(error) << e.what() << "\n" << "\n";
 			return false;
 		}
 
@@ -2982,7 +2982,7 @@ bool ACSConfig::parse(
 			else
 			{
 				BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration file " << filename;
-				BOOST_LOG_TRIVIAL(error) << e.msg << std::endl;
+				BOOST_LOG_TRIVIAL(error) << e.msg << "\n";
 				return false;
 			}
 		}
@@ -3001,7 +3001,7 @@ bool ACSConfig::parse(
 		catch (const YAML::ParserException& e)
 		{
 			BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration. Check for errors as described near the below:\n";
-			BOOST_LOG_TRIVIAL(error) << e.what() << std::endl << std::endl;
+			BOOST_LOG_TRIVIAL(error) << e.what() << "\n" << "\n";
 			return false;
 		}
 
@@ -3537,6 +3537,7 @@ bool ACSConfig::parse(
 
 				tryGetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"			}, "Variance of phase bias to be considered fixed/binded");
 				tryGetFromYaml	(adjust_rec_clocks_by_spp,					general, {"@ adjust_rec_clocks_by_spp"		}, "Adjust receiver clocks by spp values to minimise prefit residuals");
+				tryGetFromYaml	(adjust_clocks_for_jumps_only,				general, {"@ adjust_clocks_for_jumps_only"	}, "Round clock adjustments from SPP to half milliseconds");
 				tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"	}, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
 				tryGetFromYaml	(minimise_sat_orbit_offsets,				general, {"@ minimise_sat_orbit_offsets"	}, "Apply gauss-markov mu values to satellite orbits to minimise offsets with respect to broadcast values");
 				tryGetFromYaml	(minimise_ionosphere_offsets,				general, {"@ minimise_ionosphere_offsets"	}, "Apply gauss-markov mu values to stec values to minimise offsets with respect to klobuchar values");
@@ -3581,7 +3582,7 @@ bool ACSConfig::parse(
 
 								tryGetFromYaml(sleep_milliseconds,					epoch_control, {"# sleep_milliseconds"	}, "Time to sleep before checking for new data - lower numbers are associated with high idle cpu usage");
 								tryGetFromYaml(wait_next_epoch,						epoch_control, {"@ wait_next_epoch"		}, "Time to wait for next epochs data before skipping the epoch (will default to epoch_interval as an appropriate minimum value for realtime)");
-								tryGetFromYaml(wait_all_receivers,					epoch_control, {"@ wait_all_receivers"	}, "Time to wait from the reception of the first data of an epoch before skipping receivers with data still unreceived");
+								tryGetFromYaml(max_latency,							epoch_control, {"@ max_latency"			}, "Time to wait from the reception of the first data of an epoch before skipping receivers with data still unreceived");
 								tryGetFromYaml(require_obs,							epoch_control, {"@ require_obs"			}, "Exit the program if no observation sources are available");
 								tryGetFromYaml(assign_closest_epoch,				epoch_control, {"@ assign_closest_epoch"}, "Assign observations to the closest epoch - don't skip observations that fall between epochs");
 								tryGetFromAny(simulate_real_time,	commandOpts,	epoch_control, {"@ simulate_real_time"	}, "For RTCM playback - delay processing to match original data rate");

@@ -118,8 +118,8 @@ void applyUCAmbiguities(
 
 	if (AR_VERBO)
 	{
-		trace << std::endl << "zfix =" << std::endl << zfix.transpose()	<< std::endl;
-		trace << std::endl << "Ztrs =" << std::endl << Z   			 	<< std::endl;
+		trace << "\n" << "zfix =" << "\n" << zfix.transpose()	<< "\n";
+		trace << "\n" << "Ztrs =" << "\n" << Z   			 	<< "\n";
 	}
 
 	KFMeasEntryList kfMeasEntryList;

@@ -640,7 +640,7 @@ E_Solution estpos(
 
 			if	(maxMeasRatio > SQR(acsConfig.sppOpts.postfitOpts.meas_sigma_threshold))
 			{
-				trace << std::endl << "LARGE MEAS  ERROR OF " << maxMeasRatio << " AT " << measIndex << " : " << kfMeas.obsKeys[measIndex];
+				trace << "\n" << "LARGE MEAS  ERROR OF " << maxMeasRatio << " AT " << measIndex << " : " << kfMeas.obsKeys[measIndex];
 
 				GObs& badObs = *(GObs*) kfMeas.metaDataMaps[measIndex]["obs_ptr"];
 
@@ -705,7 +705,7 @@ bool raim(
 	string		id,			///< Id of receiver
 	KFState*	kfState_ptr = nullptr)
 {
-	trace << " Performing RAIM." << std::endl;
+	trace << " Performing RAIM." << "\n";
 
 	double	bestRms	= 100;
 
@@ -860,7 +860,7 @@ void spp(
 	//Receiver Autonomous Integrity Monitoring
 	if (sol.status != +E_Solution::SINGLE)
 	{
-		trace << std::endl << "Spp error with " << sol.numMeas << " measurements.";
+		trace << "\n" << "Spp error with " << sol.numMeas << " measurements.";
 
 		if	( sol.numMeas >= 6		//need 6 so that 6-1 is still overconstrained, otherwise they all pass equally.
 			&&acsConfig.sppOpts.raim)

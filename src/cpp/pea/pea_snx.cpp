@@ -66,6 +66,7 @@ void sinexPostProcessing(
 }
 
 void sinexPerEpochPerStation(
+	Trace&		trace,
 	GTime		time,
 	Receiver&	rec)
 {
@@ -162,8 +163,6 @@ void sinexPerEpochPerStation(
 			}
 		}
 	}
-
-	auto trace = getTraceFile(rec);
 
 	// Initialise the receiver antenna information
 	for (bool once : {1})

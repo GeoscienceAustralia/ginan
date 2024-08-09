@@ -19,7 +19,6 @@
 using std::ifstream;
 using std::ofstream;
 using std::string;
-using std::endl;
 
 using namespace boost::algorithm;
 
@@ -78,7 +77,7 @@ vector<CrdSession> readCrdFile(
 	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening crd file " << filepath << std::endl;
+		<< "Error opening crd file " << filepath << "\n";
 
 		return crdSessions;
 	}

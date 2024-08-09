@@ -28,7 +28,7 @@ void ErrorExit::consume(
 
 	if (logLevel <= acsConfig.fatal_level)
 	{
-		std::cout << std::endl << "Message met fatal_message_level condition for exit.\nExiting...\n\n";
+		std::cout << "\n" << "Message met fatal_message_level condition for exit.\nExiting...\n\n";
 		exit(0);
 	}
 }

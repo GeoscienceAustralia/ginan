@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <tuple>
+#include <cmath>
 #include <map>
 
 #ifdef ENABLE_PARALLELISATION
@@ -84,8 +85,8 @@ void explainMeasurements(
 
 		InteractiveTerminal output((string)"Partials/" + (string)obsKey, trace);
 
-		output << std::endl << "============================";
-		output << std::endl << "Explaining " << obsKey << " : " << obsKey.comment;
+		output << "\n" << "============================";
+		output << "\n" << "Explaining " << obsKey << " : " << obsKey.comment;
 
 		for (auto duo :	{
 							Duo{kfState	.kfIndexMap,		kfMeas.H},
@@ -104,7 +105,7 @@ void explainMeasurements(
 			{
 				if (index == col)
 				{
-					output << std::endl;
+					output << "\n";
 					if (traceLevel >= 4)
 						output << kfState.time << " " << obsKey;
 
@@ -113,7 +114,7 @@ void explainMeasurements(
 				}
 			}
 		}
-		output << std::endl;
+		output << "\n";
 	}
 }
 
@@ -145,7 +146,7 @@ void alternatePostfits(
 			{
 				first = false;
 
-				trace << std::endl << "Removing " << kfKey << " from postfit residual calculations";
+				trace << "\n" << "Removing " << kfKey << " from postfit residual calculations";
 			}
 
 			entry = 0;
@@ -392,7 +393,7 @@ KFMeas makeRTKLCs1(
 
 		//these measurements both share a common satellite bias, remove it.
 
-		// std::cout << kfKey << " " << kfMeas.obsKeys[i_2]  << " " << kfMeas.obsKeys[i_1] << std::endl;
+		// std::cout << kfKey << " " << kfMeas.obsKeys[i_2]  << " " << kfMeas.obsKeys[i_1] << "\n";
 
 		tripletList.push_back({meas, i_1, +coeff_2});
 		tripletList.push_back({meas, i_2, -coeff_1});
@@ -562,9 +563,29 @@ void updateRecClocks(
 		double C_dtRecAdj	= rec.sol.dtRec_m[E_Sys::GPS]
 							- rec.sol.dtRec_m_pppp_old[E_Sys::GPS];
 
-		trace << std::endl
-		<< "Adjusting " << clkKey.str
-		<< " clock by " << C_dtRecAdj;
+		//for non-first epochs, and if enabled, do rounding
+		if	(  rec.sol.dtRec_m_pppp_old[E_Sys::GPS]
+			&& acsConfig.adjust_clocks_for_jumps_only)
+		{
+			const double scalar = 1000 * 2 / CLIGHT;
+
+			double halfMilliseconds = C_dtRecAdj * scalar;
+
+			C_dtRecAdj = round(halfMilliseconds) / scalar;
+
+			if (C_dtRecAdj)
+			{
+				trace << "\n"
+				<< "Jump of " << halfMilliseconds * 0.5 << "ms found, rounding";
+			}
+		}
+
+		// if (C_dtRecAdj)
+		{
+			trace << "\n"
+			<< "Adjusting " << clkKey.str
+			<< " clock by " << C_dtRecAdj;
+		}
 
 		rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = rec.sol.dtRec_m[E_Sys::GPS];
 
@@ -738,7 +759,7 @@ KFState propagateUncertainty(
 			&&key.type 		== KF::REC_CLOCK
 			&&key.num		== 0)
 		{
-			pivotRec = key;
+			pivotRec = key.str;
 		}
 
 		auto subKey = key;
@@ -952,7 +973,7 @@ void chunkFilter(
 			filterChunk.trace_ptr = &trace;
 		}
 
-// 		std::cout << std::endl << "Chunk : " << str << " " << begH[str] << " " << endH[str] << " " << begX[str] << " " << endX[str];
+// 		std::cout << "\n" << "Chunk : " << str << " " << begH[str] << " " << endH[str] << " " << begX[str] << " " << endX[str];
 		if (chunkH)		{	filterChunk.begH = begH[str];			filterChunk.numH = endH[str] - begH[str] + 1;		}
 		else			{	filterChunk.begH = 0;					filterChunk.numH = kfMeas.H.rows();					}
 		if (chunkX)		{	filterChunk.begX = begX[str];			filterChunk.numX = endX[str] - begX[str] + 1;		}
@@ -1134,7 +1155,7 @@ void updateNukeFilter(
 		if	( foundAll
 			||std::find(nuke_states.begin(), nuke_states.end(), key.type) != nuke_states.end())
 		{
-			trace << std::endl << "State removed due to nuclear config: " << key;
+			trace << "\n" << "State removed due to nuclear config: " << key;
 			kfState.removeState(key);
 		}
 	}
@@ -1158,6 +1179,71 @@ void checkOrbits(
 	Trace&			trace,
 	KFState&		kfState);
 
+void updateFilter(
+	Trace&			trace,			///< Trace to output to
+	ReceiverMap&	receiverMap,	///< List of receivers containing observations for this epoch
+	KFState&		kfState)		///< Kalman filter object containing the network state parameters
+{
+	removeBadReceivers	(trace, kfState, receiverMap);
+	removeBadAmbiguities(trace, kfState, receiverMap);
+	removeBadIonospheres(trace, kfState);
+
+	updateNukeFilter	(trace,							kfState);
+	updateRecClocks		(trace, receiverMap,			kfState);
+	updateAvgClocks		(trace, 				tsync,	kfState);
+	updateAvgOrbits		(trace, 				tsync,	kfState);
+	updateAvgIonosphere	(trace,					tsync,	kfState);
+	updatePseudoPulses	(trace,							kfState);
+}
+
+void perRecMeasurements(
+	Trace&				trace,
+	Receiver&			rec,
+	ReceiverMap&		receiverMap,	///< todo aaron ew.
+	KFMeasEntryList&	kfMeasEntryList,
+	const KFState&		kfState,
+	const KFState&		remoteState)
+{
+	rec.pppTideCache.uninit();
+	rec.pppEopCache	.uninit();
+
+	orbitPseudoObs		(trace,	rec,	kfState, kfMeasEntryList);
+	receiverPPP			(trace,	rec,	kfState, kfMeasEntryList,	remoteState);
+	receiverSlr			(trace, rec,	kfState, kfMeasEntryList);
+	receiverPseudoObs	(trace,	rec,	kfState, kfMeasEntryList,	receiverMap);
+
+	if (acsConfig.pppOpts.ionoOpts.use_if_combo)		makeIFLCs(trace, kfState, kfMeasEntryList);
+}
+
+void pppLinearCombinations(
+	KFMeas&		kfMeas,
+	KFState&	kfState)
+{
+	if (acsConfig.pppOpts.ionoOpts	.use_gf_combo)	{	kfMeas = makeGFLCs	(kfMeas, kfState);	}
+	if (acsConfig.pppOpts			.use_rtk_combo)	{	kfMeas = makeRTKLCs1(kfMeas, kfState);	}
+	if (acsConfig.pppOpts			.use_rtk_combo)	{	kfMeas = makeRTKLCs2(kfMeas, kfState);	}
+}
+
+void pppPseudoObs(
+	Trace&				trace,
+	ReceiverMap&		receiverMap,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList)
+{
+	DOCS_REFERENCE(Pseudo_Observations__);
+
+	// apply external estimates
+	ionoPseudoObs			(trace,	receiverMap,	kfState,	kfMeasEntryList);
+	tropPseudoObs			(trace, receiverMap,	kfState,	kfMeasEntryList);
+
+	//apply pseudoobs to states available from before
+	pseudoRecDcb			(trace,					kfState,	kfMeasEntryList);
+	ambgPseudoObs			(trace,					kfState,	kfMeasEntryList);
+	initPseudoObs			(trace,					kfState,	kfMeasEntryList);
+	satClockPivotPseudoObs	(trace,					kfState,	kfMeasEntryList);
+	filterPseudoObs			(trace,					kfState,	kfMeasEntryList);
+}
+
 void ppp(
 	Trace&			trace,			///< Trace to output to
 	ReceiverMap&	receiverMap,	///< List of receivers containing observations for this epoch
@@ -1166,25 +1252,14 @@ void ppp(
 {
 	DOCS_REFERENCE(Main_Filter__);
 
-	{
-		removeBadReceivers	(trace, kfState, receiverMap);
-		removeBadAmbiguities(trace, kfState, receiverMap);
-		removeBadIonospheres(trace, kfState);
-
-		updateNukeFilter	(trace,							kfState);
-		updateRecClocks		(trace, receiverMap,			kfState);
-		updateAvgClocks		(trace, 				tsync,	kfState);
-		updateAvgOrbits		(trace, 				tsync,	kfState);
-		updateAvgIonosphere	(trace,					tsync,	kfState);
-		updatePseudoPulses	(trace,							kfState);
-	}
+	updateFilter(trace, receiverMap, kfState);
 
 	//add process noise and dynamics to existing states as a prediction of current state
 	if (kfState.assume_linearity == false)
 	{
 		InteractiveTerminal::setMode(E_InteractiveMode::StateTransition1);
 
-		BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << "\n";
 
 		kfState.stateTransition(trace, tsync);
 
@@ -1211,7 +1286,7 @@ void ppp(
 	{
 		InteractiveTerminal::setMode(E_InteractiveMode::OMCCalculations);
 
-		BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << "\n";
 
 		//calculate the measurements for each station
 #		ifdef ENABLE_PARALLELISATION
@@ -1220,9 +1295,6 @@ void ppp(
 #		endif
 		for (int i = 0; i < receiverMap.size(); i++)
 		{
-			const KFState& constKfState = kfState;
-			descope kfState;
-
 			auto rec_iterator = receiverMap.begin();
 			std::advance(rec_iterator, i);
 
@@ -1237,15 +1309,7 @@ void ppp(
 
 			auto& kfMeasEntryList = stationKFEntryListMap[rec.id];
 
-			rec.pppTideCache.uninit();
-			rec.pppEopCache	.uninit();
-
-			orbitPseudoObs		(trace,		rec,	constKfState, kfMeasEntryList);
-			receiverPPP			(std::cout,	rec,	constKfState, kfMeasEntryList,	remoteState);
-			receiverSlr			(std::cout, rec,	constKfState, kfMeasEntryList);
-			receiverPseudoObs	(std::cout,	rec,	constKfState, kfMeasEntryList,	receiverMap);
-
-			if (acsConfig.pppOpts.ionoOpts.use_if_combo)		makeIFLCs(trace, constKfState, kfMeasEntryList);
+			perRecMeasurements(trace, rec, receiverMap, kfMeasEntryList, kfState, remoteState);
 		}
 		Eigen::setNbThreads(0);
 	}
@@ -1261,25 +1325,12 @@ void ppp(
 		}
 	}
 
-	{
-		DOCS_REFERENCE(Pseudo_Observations__);
-
-		// apply external estimates
-		ionoPseudoObs			(trace,	receiverMap,	kfState,	kfMeasEntryList);
-		tropPseudoObs			(trace, receiverMap,	kfState,	kfMeasEntryList);
-
-		//apply pseudoobs to states available from before
-		pseudoRecDcb			(trace,					kfState,	kfMeasEntryList);
-		ambgPseudoObs			(trace,					kfState,	kfMeasEntryList);
-		initPseudoObs			(trace,					kfState,	kfMeasEntryList);
-		satClockPivotPseudoObs	(trace,					kfState,	kfMeasEntryList);
-		filterPseudoObs			(trace,					kfState,	kfMeasEntryList);
-	}
+	pppPseudoObs(trace, receiverMap, kfState, kfMeasEntryList);
 
 	//use state transition to initialise new state elements
 	InteractiveTerminal::setMode(E_InteractiveMode::StateTransition2);
 
-	BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << "\n";
 
 	kfState.stateTransition(trace, tsync);
 
@@ -1299,9 +1350,7 @@ void ppp(
 
 	KFMeas kfMeas(kfState, kfMeasEntryList, tsync);
 
-	if (acsConfig.pppOpts.ionoOpts	.use_gf_combo)	{	kfMeas = makeGFLCs	(kfMeas, kfState);	}
-	if (acsConfig.pppOpts			.use_rtk_combo)	{	kfMeas = makeRTKLCs1(kfMeas, kfState);	}
-	if (acsConfig.pppOpts			.use_rtk_combo)	{	kfMeas = makeRTKLCs2(kfMeas, kfState);	}
+	pppLinearCombinations(kfMeas, kfState);
 
 	if (acsConfig.explain_measurements)
 	{
@@ -1312,7 +1361,7 @@ void ppp(
 
 	if (kfState.lsqRequired)
 	{
-		BOOST_LOG_TRIVIAL(info) << "-------INITIALISING PPPPP USING LEAST SQUARES--------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "-------INITIALISING PPPPP USING LEAST SQUARES--------" << "\n";
 
 		VectorXd dx;
  		kfState.leastSquareInitStates(trace, kfMeas, false, &dx, true);
@@ -1327,7 +1376,7 @@ void ppp(
 
 
 	InteractiveTerminal::setMode(E_InteractiveMode::Filtering);
-	BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << "\n";
 
 	kfState.filterKalman(trace, kfMeas, "/PPP", true, &filterChunkMap);
 
@@ -1345,8 +1394,6 @@ void ppp(
 	}
 
 	kfState.outputStates(trace, "/PPP");
-
-// 	propagateUncertainty(trace, kfState).outputStates(trace, "/PIVOT");
 }
 
 

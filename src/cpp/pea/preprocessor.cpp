@@ -145,7 +145,7 @@ void recordSlips(
 }
 
 void preprocessor(
-	Network&	net,
+	Trace&		trace,
 	Receiver&	rec,
 	bool		realEpoch)
 {
@@ -156,7 +156,6 @@ void preprocessor(
 		return;
 	}
 
-	auto trace		= getTraceFile(rec);
 	auto jsonTrace	= getTraceFile(rec, true);
 
 	acsConfig.getRecOpts(rec.id);

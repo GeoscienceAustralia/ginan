@@ -298,13 +298,13 @@ void filterIonosphere(
 	//if there are uninitialised state values, estimate them using least squares
 	if (kfState.lsqRequired)
 	{
-		trace << std::endl << "-------INITIALISING IONO USING LEAST SQUARES--------" << std::endl;
+		trace << "\n" << "-------INITIALISING IONO USING LEAST SQUARES--------" << "\n";
 
 		kfState.leastSquareInitStates(std::cout, kfMeas, true);
 	}
 	else
 	{
-		trace << std::endl << "------- DOING IONO KALMAN FILTER --------" << std::endl;
+		trace << "\n" << "------- DOING IONO KALMAN FILTER --------" << "\n";
 
 		kfState.filterKalman(trace, kfMeas, "/IONO", false);
 	}

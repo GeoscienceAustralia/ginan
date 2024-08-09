@@ -285,7 +285,7 @@ bool readsp3(
 				else
 				{
 					BOOST_LOG_TRIVIAL(error)
-					<< "Unknown sp3 time system: " << timeSysStr << std::endl;
+					<< "Unknown sp3 time system: " << timeSysStr;
 					return false;
 				}
 			}

@@ -864,7 +864,7 @@ void createTracefiles(
 
 				if (newTraceFile)
 				{
-	// 				std::cout << std::endl << "new trace file";
+	// 				std::cout << "\n" << "new trace file";
 					std::remove((pppNet.kfState.rts_basename					).c_str());
 					std::remove((pppNet.kfState.rts_basename + FORWARD_SUFFIX	).c_str());
 					std::remove((pppNet.kfState.rts_basename + BACKWARD_SUFFIX	).c_str());
@@ -877,7 +877,7 @@ void createTracefiles(
 
 				if (newTraceFile)
 				{
-	// 				std::cout << std::endl << "new trace file";
+	// 				std::cout << "\n" << "new trace file";
 					std::remove((ionNet.kfState.rts_basename					).c_str());
 					std::remove((ionNet.kfState.rts_basename + FORWARD_SUFFIX	).c_str());
 					std::remove((ionNet.kfState.rts_basename + BACKWARD_SUFFIX	).c_str());
@@ -1181,14 +1181,14 @@ void mainOncePerEpochPerStation(
 
 	if (rec.ready == false)
 	{
-		trace << std::endl		<< "Receiver " << rec.id << " has no data for this epoch";
+		trace << "\n"			<< "Receiver " << rec.id << " has no data for this epoch";
 		BOOST_LOG_TRIVIAL(info)	<< "Receiver " << rec.id << " has no data for this epoch";
 		return;
 	}
 
-	sinexPerEpochPerStation(tsync, rec);
+	sinexPerEpochPerStation(trace, tsync, rec);
 
-	preprocessor(net, rec, true);
+	preprocessor(trace, rec, true);
 
 	//recalculate variances now that elevations are known due to satellite postions calculation above
 	obsVariances(rec.obsList);
@@ -1216,7 +1216,7 @@ void mainOncePerEpochPerStation(
 
 		if (requiredConfig)
 		{
-			trace << std::endl			<< "Warning: Receiver " << rec.id << " rejected due to lack of " << thing;
+			trace << "\n"				<< "Warning: Receiver " << rec.id << " rejected due to lack of " << thing;
 			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Receiver " << rec.id << " rejected due to lack of " << thing;
 
 			rec.invalid = true;
@@ -1230,7 +1230,7 @@ void mainOncePerEpochPerStation(
 	};
 
 	bool sppUsed;
-	selectAprioriSource(rec, tsync, sppUsed, &net.kfState, &remoteState);
+	selectAprioriSource(trace, rec, tsync, sppUsed, net.kfState, &remoteState);
 
 	if (missingWarnInvalidate("Apriori position1",		sppUsed,					acsConfig.require_apriori_positions))		return;
 	if (missingWarnInvalidate("Apriori position2",		rec.failureAprioriPos,		acsConfig.require_apriori_positions))		return;
@@ -1315,7 +1315,7 @@ void outputPredictedStates(
 	}
 
 	InteractiveTerminal::setMode(E_InteractiveMode::PredictingStates);
-	BOOST_LOG_TRIVIAL(info) << " ------- PREDICTING STATES            --------" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << " ------- PREDICTING STATES            --------" << "\n";
 
 	tuple<double, double>	forward = {+1, acsConfig.mongoOpts.forward_prediction_duration};
 	tuple<double, double>	reverse = {-1, acsConfig.mongoOpts.reverse_prediction_duration};
@@ -1498,10 +1498,24 @@ void mainPerEpochPostProcessingAndOutputs(
 
 	if (acsConfig.process_ppp)
 	{
+		if (acsConfig.pivot_receiver != "NO_PIVOT")
+		{
+			KFState pivotedState = propagateUncertainty(pppTrace, kfState);
+
+			pivotedState.outputStates(pppTrace, "/PIVOT");
+
+			mongoStates(pivotedState,
+						{
+							.suffix		= "/PIVOT",
+							.instances	= acsConfig.mongoOpts.output_states,
+							.queue		= acsConfig.mongoOpts.queue_outputs
+						});
+		}
+
 		if	(  acsConfig.process_minimum_constraints
 			&& acsConfig.minconOpts.once_per_epoch)
 		{
-			BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << std::endl;
+			BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << "\n";
 
 			for (auto& [id, rec] : receiverMap)
 			{
@@ -1676,21 +1690,7 @@ void mainOncePerEpochPerSatellite(
 	satNav.antBoresight	= satOpts.antenna_boresight;
 	satNav.antAzimuth	= satOpts.antenna_azimuth;
 
-	auto& satPos0 = satNav.satPos0;
-
-	satPos0.Sat			= Sat;
-	satPos0.satNav_ptr	= &satNav;
-
-	bool pass = satpos(nullStream, time, time, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav, &kfState, &remoteKF);
-	if (pass == false)
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";
-		return;
-	}
-
-	satNav.aprioriPos	= satPos0.rSatEci0;
-
-	updateSatAtts(satPos0);
+	selectAprioriSource(Sat, time, kfState, &remoteKF);
 }
 
 void cullData(
@@ -1728,7 +1728,7 @@ void mainOncePerEpoch(
 	predictInertials(pppTrace, pppNet.kfState, time);
 
 	InteractiveTerminal::setMode(E_InteractiveMode::Preprocessing);
-	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << "\n";
 
 	KFState remoteState;
 	if (acsConfig.mongoOpts.use_predictions)
@@ -1840,8 +1840,8 @@ void mainPostProcessing(
 		&&	acsConfig.ambrOpts.fix_and_hold)
 	{
 		BOOST_LOG_TRIVIAL(info)
-		<< std::endl
-		<< "---------------PERFORMING AMBIGUITY RESOLUTION ON NETWORK WITH FIX AND HOLD ------------- " << std::endl;
+		<< "\n"
+		<< "---------------PERFORMING AMBIGUITY RESOLUTION ON NETWORK WITH FIX AND HOLD ------------- " << "\n";
 
 		fixAndHoldAmbiguities(pppTrace, pppNet.kfState);
 
@@ -1858,7 +1858,7 @@ void mainPostProcessing(
 		&&	acsConfig.minconOpts.once_per_epoch == false)
 	{
 		InteractiveTerminal::setMode(E_InteractiveMode::MinimumConstraints);
-		BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << "\n";
 
 		for (auto& [id, rec] : receiverMap)
 		{
@@ -1973,9 +1973,10 @@ int ginan(
 	// Register the sink in the logging core
 	boost::log::core::get()->add_sink(boost::make_shared<sinks::synchronous_sink<ConsoleLog>>());
 	boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::info);
+	acsSeverity = boost::log::trivial::info;
 
 	BOOST_LOG_TRIVIAL(info)
-	<< "PEA starting... (" << ginanBranchName() << " " << ginanCommitVersion() << " from " << ginanCommitDate() << ")" << std::endl;
+	<< "PEA starting... (" << ginanBranchName() << " " << ginanCommitVersion() << " from " << ginanCommitDate() << ")" << "\n";
 
 	GTime	peaStartTime		= timeGet();
 	auto	peaStartTimeChrono	= system_clock::now();
@@ -2020,8 +2021,8 @@ int ginan(
 #ifdef ENABLE_PARALLELISATION
 	BOOST_LOG_TRIVIAL(info)	<< "Threading with max " << omp_get_max_threads()	<< " omp threads";
 #endif
-
-	BOOST_LOG_TRIVIAL(info) << "\n" << "\n";
+	BOOST_LOG_TRIVIAL(info) << "\n";
+	BOOST_LOG_TRIVIAL(info) << "\n";
 
 	//prepare the satNavMap so that it at least has entries for everything
 	for (auto [sys, max] :	{	tuple<E_Sys, int>{E_Sys::GPS, NSATGPS},
@@ -2131,7 +2132,7 @@ int ginan(
 	doDebugs();
 
 	BOOST_LOG_TRIVIAL(info)
-	<< std::endl;
+	<< "\n";
 	BOOST_LOG_TRIVIAL(info)
 	<< "Starting to process epochs...";
 
@@ -2149,7 +2150,7 @@ int ginan(
 			&& epoch				>= acsConfig.max_epochs)
 		{
 			BOOST_LOG_TRIVIAL(info)
-			<< std::endl
+			<< "\n"
 			<< "Exiting at epoch " << epoch
 			<< " as epoch count " << acsConfig.max_epochs
 			<< " has been reached";
@@ -2204,7 +2205,7 @@ int ginan(
 			nextEpoch = false;
 			epoch++;
 
-			BOOST_LOG_TRIVIAL(info) << std::endl
+			BOOST_LOG_TRIVIAL(info) << "\n"
 			<< "Starting epoch #" << epoch;
 
 			nominalLoopStartTime += std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
@@ -2230,31 +2231,31 @@ int ginan(
 
 				auto trace		= getTraceFile(rec);
 
-				trace		<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
-				trace		<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
+				trace		<< "\n" << "------=============== Epoch " << epoch	<< " =============-----------" << "\n";
+				trace		<< "\n" << "------=============== Time  " << tsync	<< " =============-----------" << "\n";
 			}
 
 			{
 				auto pppTrace	= getTraceFile(pppNet);
 
-				pppTrace	<< std::endl << "------=============== Epoch " << epoch	<< " =============-----------" << std::endl;
-				pppTrace	<< std::endl << "------=============== Time  " << tsync	<< " =============-----------" << std::endl;
+				pppTrace	<< "\n" << "------=============== Epoch " << epoch	<< " =============-----------" << "\n";
+				pppTrace	<< "\n" << "------=============== Time  " << tsync	<< " =============-----------" << "\n";
 			}
 		}
 
 		// Calculate the time at which we will stop waiting for data to come in for this epoch
 		auto breakTime	= nominalLoopStartTime
-						+ std::chrono::milliseconds((int)(acsConfig.wait_all_receivers	* 1000));
+						+ std::chrono::milliseconds((int)(acsConfig.max_latency	* 1000));
 
 		if (loopEpochs)
 		{
-			BOOST_LOG_TRIVIAL(info) << std::endl
+			BOOST_LOG_TRIVIAL(info) << "\n"
 			<< "Starting epoch #" << epoch;
 		}
 
 		if (system_clock::now() > breakTime)
 		{
-			BOOST_LOG_TRIVIAL(warning) << std::endl
+			BOOST_LOG_TRIVIAL(warning) << "\n"
 			<< "Warning: Excessive time elapsed, skipping epoch " << epoch
 			<< ". Configuration 'wait_next_epoch' is " << acsConfig.wait_next_epoch;
 
@@ -2296,7 +2297,7 @@ int ginan(
 				if (recOpts.kill)
 				{
 					BOOST_LOG_TRIVIAL(info)
-					<< "Removing " << stream.sourceString << " due to kill config" << std::endl;
+					<< "Removing " << stream.sourceString << " due to kill config" << "\n";
 
 					for (auto& [key, index] : pppNet.kfState.kfIndexMap)
 					{
@@ -2332,7 +2333,7 @@ int ginan(
 				if (stream.isDead())
 				{
 					BOOST_LOG_TRIVIAL(info)
-					<< "No more data available on " << stream.sourceString << std::endl;
+					<< "No more data available on " << stream.sourceString << "\n";
 
 					//record as dead and erase
 					streamDOAMap[stream.sourceString] = true;
@@ -2355,7 +2356,7 @@ int ginan(
 					once = false;
 
 					BOOST_LOG_TRIVIAL(info)
-					<< std::endl;
+					<< "\n";
 					BOOST_LOG_TRIVIAL(info)
 					<< "Inputs finished at epoch #" << epoch;
 				}
@@ -2403,6 +2404,8 @@ int ginan(
 
 				auto& rec = receiverMap[id];
 
+				auto trace = getTraceFile(rec);
+
 				if (obsStream.isPseudoRec)
 				{
 					rec.isPseudoRec = true;
@@ -2422,8 +2425,8 @@ int ginan(
 
 					switch (obsStream.obsWaitCode)
 					{
-						case E_ObsWaitCode::EARLY_DATA:								preprocessor(pppNet, rec);	break;
-						case E_ObsWaitCode::OK:					moreData = false;	preprocessor(pppNet, rec);	break;
+						case E_ObsWaitCode::EARLY_DATA:								preprocessor(trace, rec);	break;
+						case E_ObsWaitCode::OK:					moreData = false;	preprocessor(trace, rec);	break;
 						case E_ObsWaitCode::NO_DATA_WAIT:		moreData = false;								break;
 						case E_ObsWaitCode::NO_DATA_EVER:		moreData = false;								break;
 					}
@@ -2484,7 +2487,7 @@ int ginan(
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(nominalLatency								).count() << "ms"
 					<< " Advancing start time";
 
-					auto alternateBreakTime = now + std::chrono::milliseconds((int)(acsConfig.wait_all_receivers	* 1000));
+					auto alternateBreakTime = now + std::chrono::milliseconds((int)(acsConfig.max_latency	* 1000));
 					auto alternateStartTime = now;
 
 					if (alternateBreakTime < breakTime)					{	breakTime				= alternateBreakTime;	}
@@ -2537,23 +2540,23 @@ int ginan(
 
 	GTime peaInterTime = timeGet();
 	BOOST_LOG_TRIVIAL(info)
-	<< std::endl
-	<< "PEA started  processing at : " << peaStartTime << std::endl
-	<< "and finished processing at : " << peaInterTime << std::endl
-	<< "Total processing duration  : " << (peaInterTime - peaStartTime) << std::endl << std::endl;
+	<< "\n"
+	<< "PEA started  processing at : " << peaStartTime << "\n"
+	<< "and finished processing at : " << peaInterTime << "\n"
+	<< "Total processing duration  : " << (peaInterTime - peaStartTime) << "\n" << "\n";
 
 	BOOST_LOG_TRIVIAL(info)
-	<< std::endl
+	<< "\n"
 	<< "Finalising streams and post processing...";
 
 	mainPostProcessing(pppNet, ionNet, receiverMap);
 
 	GTime peaStopTime = timeGet();
 	BOOST_LOG_TRIVIAL(info)
-	<< std::endl
-	<< "PEA started  processing at : " << peaStartTime	<< std::endl
-	<< "and finished processing at : " << peaStopTime	<< std::endl
-	<< "Total processing duration  : " << (peaStopTime - peaStartTime) << std::endl << std::endl;
+	<< "\n"
+	<< "PEA started  processing at : " << peaStartTime	<< "\n"
+	<< "and finished processing at : " << peaStopTime	<< "\n"
+	<< "Total processing duration  : " << (peaStopTime - peaStartTime) << "\n" << "\n";
 
 	InteractiveTerminal::clearModes(
 									(string)" Processing complete at epoch "	+ std::to_string(epoch) + "    " + tsync.to_string(),

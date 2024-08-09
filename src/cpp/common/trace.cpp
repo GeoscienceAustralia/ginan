@@ -57,6 +57,8 @@ FileType Trace_Files__()
 
 }
 
+boost::log::trivial::severity_level acsSeverity = boost::log::trivial::info;
+
 void ConsoleLog::consume(
 	boost::log::record_view																	const&	rec,
 	sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	logString)
@@ -137,7 +139,7 @@ void printHex(
 	for (int i = 0; i < chunk.size(); i++)
 	{
 		if (i % 40 == 0)
-			trace << std::endl;
+			trace << "\n";
 
 		if (i % 10 == 0)
 			trace << " ";
@@ -145,17 +147,29 @@ void printHex(
 		snprintf(hex, sizeof(hex),"%02x", chunk[i]);
 		tracepdeex(0, trace, "%s ", hex);
 	}
-	trace << std::endl;
+	trace << "\n";
 }
 
 
 void traceJson_(
 	Trace&					trace,
-	string					time,
+	GTime&					time,
 	vector<ArbitraryKVP>	id,
 	vector<ArbitraryKVP>	val)
 {
-	string json = "{ \"Epoch\":\"" + time + "\", \"id\":{";
+	GEpoch ep(time);
+
+	char timeBuff[64];
+	snprintf(timeBuff, sizeof(timeBuff),"%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%06.3fZ",
+			ep.year,
+			ep.month,
+			ep.day,
+			ep.hour,
+			ep.min,
+			ep.sec);
+
+	string json = (string) "{ \"Epoch\":{ \"$date\":\"" + timeBuff + "\"}, \"id\":{";
+
 	for (auto& thing : id)
 	{
 		json += "\"" + thing.name + "\":" + thing.value() + ",";
@@ -222,12 +236,12 @@ bool createNewTraceFile(
 	// Trace file head
 	if (outputHeader)
 	{
-		trace << "station    : " << id << std::endl;
-		trace << "start_epoch: " << acsConfig.start_epoch			<< std::endl;
-		trace << "end_epoch  : " << acsConfig.end_epoch				<< std::endl;
-		trace << "trace_level: " << acsConfig.trace_level			<< std::endl;
-		trace << "pea_version: " << ginanCommitVersion()			<< std::endl;
-// 		trace << "rts_lag    : " << acsConfig.pppOpts.rts_lag		<< std::endl;
+		trace << "station    : " << id << "\n";
+		trace << "start_epoch: " << acsConfig.start_epoch			<< "\n";
+		trace << "end_epoch  : " << acsConfig.end_epoch				<< "\n";
+		trace << "trace_level: " << acsConfig.trace_level			<< "\n";
+		trace << "pea_version: " << ginanCommitVersion()			<< "\n";
+// 		trace << "rts_lag    : " << acsConfig.pppOpts.rts_lag		<< "\n";
 	}
 
 	if (outputConfig)

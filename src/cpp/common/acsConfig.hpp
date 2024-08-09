@@ -484,7 +484,7 @@ struct GlobalOptions
 	bool	use_tgd_bias	= false;
 
 	double	wait_next_epoch				= 0;
-	double	wait_all_receivers			= 0;
+	double	max_latency					= 0;
 	bool	require_obs					= true;
 	bool	assign_closest_epoch		= false;
 
@@ -535,10 +535,11 @@ struct GlobalOptions
 
 	double fixed_phase_bias_var   = 0.01;
 
-	bool	adjust_rec_clocks_by_spp	= true;
-	bool	minimise_sat_clock_offsets	= false;
-	bool	minimise_sat_orbit_offsets	= false;
-	bool	minimise_ionosphere_offsets	= false;
+	bool	adjust_rec_clocks_by_spp		= true;
+	bool	adjust_clocks_for_jumps_only	= false;
+	bool	minimise_sat_clock_offsets		= false;
+	bool	minimise_sat_orbit_offsets		= false;
+	bool	minimise_ionosphere_offsets		= false;
 
 	map<E_Sys, bool> receiver_amb_pivot;		///< fix one ambiguity to eliminate rank deficiency
 	map<E_Sys, bool> network_amb_pivot;			///< fix ambiguities to eliminate network rank deficiencies
@@ -711,8 +712,17 @@ struct AmbROptions
 */
 struct Rinex23Conversion
 {
-	map<E_ObsCode2, E_ObsCode> codeConv;
-	map<E_ObsCode2, E_ObsCode> phasConv;
+	map<E_ObsCode2, E_ObsCode> codeConv =
+	{
+		{E_ObsCode2::P1, E_ObsCode::L1C},
+		{E_ObsCode2::P2, E_ObsCode::L2W}
+	};
+
+	map<E_ObsCode2, E_ObsCode> phasConv =
+	{
+		{E_ObsCode2::L1, E_ObsCode::L1C},
+		{E_ObsCode2::L2, E_ObsCode::L2W}
+	};
 
 	Rinex23Conversion& operator +=(const Rinex23Conversion& rhs)
 	{

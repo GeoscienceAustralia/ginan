@@ -133,7 +133,7 @@ void RtcmDecoder::decodeSSR(
 
 	int messageNumber			= getbituInc(data, i, 12);
 
-// 	std::cout << "SSR message received: " << messageNumber << std::endl;
+// 	std::cout << "SSR message received: " << messageNumber << "\n";
 
 	RtcmMessageType messCode;
 	try
@@ -220,7 +220,7 @@ void RtcmDecoder::decodeSSR(
 		t0				= GTime(GTow(referenceTime),	nearTime);
 	}
 
-//     std::cout << "SSR message received: " << messCode << std::endl;
+//     std::cout << "SSR message received: " << messCode << "\n";
 
 	unsigned int referenceDatum = 0;
 	if	( messTypeStr == "ORB_CORR"
@@ -1179,7 +1179,7 @@ ObsList RtcmDecoder::decodeMSM(
 
 		obsList.push_back((shared_ptr<GObs>)obs);
 
-// 		std::cout << obs.time << " " << obs.Sat.id() << std::endl;
+// 		std::cout << obs.time << " " << obs.Sat.id() << "\n";
 
 		nsat++;
 	}
@@ -1450,7 +1450,7 @@ E_ReturnType RtcmDecoder::decode(
 
 	int messageNumber			= getbitu(message, 0, 12);
 
-// 	std::cout << std::endl << "Received " << RtcmMessageType::_from_integral(messageNumber)._to_string();
+// 	std::cout << "\n" << "Received " << RtcmMessageType::_from_integral(messageNumber)._to_string();
 
 	switch (messageNumber)
 	{
@@ -1623,7 +1623,7 @@ int getbits(
 
 	if (bits == invalid)
 	{
-// 		std::cout << "warning: invalid number received on " << __FUNCTION__ << " " << invalid << " " << len << std::endl;
+// 		std::cout << "warning: invalid number received on " << __FUNCTION__ << " " << invalid << " " << len << "\n";
 		if (failure_ptr)
 		{
 			*failure_ptr = true;

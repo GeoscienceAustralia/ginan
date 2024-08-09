@@ -12,7 +12,6 @@
 #include "sinex.hpp"
 #include "EGM96.h"
 
-using std::endl;
 using std::ofstream;
 
 
@@ -340,7 +339,7 @@ void writeTropSiteCoord(
 	long int pos = theSinex.tropSiteCoordBodyFPosMap[filename];
 	if (pos == 0)
 	{
-		out << "+SITE/COORDINATES" << endl;
+		out << "+SITE/COORDINATES" << "\n";
 
 		write_as_comments(out, theSinex.blockComments["SITE/COORDINATES"]);
 
@@ -377,7 +376,7 @@ void writeTropSiteCoord(
 					acsConfig.analysis_agency);
 	}
 
-	out << "-SITE/COORDINATES" << endl << endl;
+	out << "-SITE/COORDINATES" << "\n" << "\n";
 }
 
 /** Set troposphere solution data from filter
@@ -522,7 +521,7 @@ void writeTropSol(
 	long int pos = theSinex.tropSolFootFPosMap[filename];
 	if (pos == 0)
 	{
-		out << "+TROP/SOLUTION" << endl;
+		out << "+TROP/SOLUTION" << "\n";
 		write_as_comments(out, theSinex.blockComments["TROP/SOLUTION"]);
 
 		pos = out.tellp();
@@ -550,7 +549,7 @@ void writeTropSol(
 			out << std::fixed << std::setprecision(2);  // set number of decimal digits to 2
 			out << " " << std::setw(solution.width) << solution.value * solution.units;
 		}
-		out << endl;
+		out << "\n";
 	}
 
 	pos = out.tellp();
@@ -558,7 +557,7 @@ void writeTropSol(
 	theSinex.tropSolList.clear();
 	theSinex.tropSolFootFPosMap[filename] = pos;
 
-	out << "-TROP/SOLUTION" << endl << endl;
+	out << "-TROP/SOLUTION" << "\n" << "\n";
 }
 
 /** Write troposphere Sinex data to file
@@ -595,7 +594,7 @@ void  writeTropSinexToFile(
 	if (	!theSinex.tropSiteCoordMapMap.	empty())	{	writeTropSiteCoord	(fout, markerName, filename);	}
 	if (	!theSinex.tropSolList.			empty())	{	writeTropSol		(fout, markerName, filename);	}
 
-	fout << "%=ENDTRO" << endl;
+	fout << "%=ENDTRO" << "\n";
 }
 
 /** Output troposphere SINEX data

@@ -23,6 +23,8 @@ namespace sinks = boost::log::sinks;
 using std::vector;
 using std::string;
 
+struct GTime;
+
 extern boost::iostreams::stream< boost::iostreams::null_sink> nullStream;
 
 
@@ -54,8 +56,8 @@ void tracepdeex_(
 	stream << boost::str(f);
 }
 
-template<typename... Args>void traceTrivialDebug(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(debug)	<< boost::str(f);}
-template<typename... Args>void traceTrivialInfo	(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(info)		<< boost::str(f);}
+template<typename... Args>void traceTrivialDebug_	(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(debug)	<< boost::str(f);}
+template<typename... Args>void traceTrivialInfo_	(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(info)		<< boost::str(f);}
 
 template<typename T>
 std::ofstream getTraceFile(
@@ -98,12 +100,12 @@ struct Block
 	:	trace		{trace},
 		blockName	{blockName}
 	{
-		trace << std::endl << "+" << blockName << std::endl;
+		trace << "\n" << "+" << blockName << "\n";
 	}
 
 	~Block()
 	{
-		trace << "-" << blockName << std::endl;
+		trace << "-" << blockName << "\n";
 	}
 };
 
@@ -136,7 +138,7 @@ struct ArbitraryKVP
 
 void traceJson_(
 	Trace&					trace,
-	string					time,
+	GTime&					time,
 	vector<ArbitraryKVP>	id,
 	vector<ArbitraryKVP>	val);
 
@@ -149,7 +151,29 @@ bool createNewTraceFile(
 	bool						outputHeader = false,
 	bool						outputConfig = false);
 
+
+extern boost::log::trivial::severity_level acsSeverity;
+
 //wrap trace functions to lazily execute their parameter evaluations.
+
+#define traceTrivialDebug(...)								\
+do															\
+{															\
+	if (acsSeverity > boost::log::trivial::debug)			\
+		continue;											\
+															\
+	traceTrivialDebug_ (__VA_ARGS__);						\
+} while (false)
+
+#define traceTrivialInfo(...)								\
+do															\
+{															\
+	if (acsSeverity > boost::log::trivial::info)			\
+		continue;											\
+															\
+	traceTrivialInfo_ (__VA_ARGS__);						\
+} while (false)
+
 #define tracepdeex(level, ...)								\
 do															\
 {															\

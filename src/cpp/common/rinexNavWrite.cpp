@@ -49,7 +49,7 @@ void outputNavRinexEph(
 	if (rnxver >= 4.0)
 	{
 		tracepdeex(0, trace, "> EPH %-3s %-4s", eph.Sat.id().c_str(), eph.type);
-		trace << std::endl;
+		trace << "\n";
 	}
 
 	auto sys = eph.Sat.sys;
@@ -73,7 +73,7 @@ void outputNavRinexEph(
 	traceFormatedFloat(trace, eph.f0,		formatStr);
 	traceFormatedFloat(trace, eph.f1,		formatStr);
 	traceFormatedFloat(trace, eph.f2,		formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	if (sys != +E_Sys::BDS)		{	traceFormatedFloat(trace, eph.iode,		formatStr);	}	/* GPS/QZS: IODE, GAL: IODnav */
@@ -82,35 +82,35 @@ void outputNavRinexEph(
 	traceFormatedFloat(trace, eph.crs,		formatStr);
 	traceFormatedFloat(trace, eph.deln,		formatStr);
 	traceFormatedFloat(trace, eph.M0,		formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, eph.cuc,		formatStr);
 	traceFormatedFloat(trace, eph.e,		formatStr);
 	traceFormatedFloat(trace, eph.cus,		formatStr);
 	traceFormatedFloat(trace, sqrt(eph.A),	formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, eph.toes,		formatStr);
 	traceFormatedFloat(trace, eph.cic,		formatStr);
 	traceFormatedFloat(trace, eph.OMG0,		formatStr);
 	traceFormatedFloat(trace, eph.cis,		formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, eph.i0,		formatStr);
 	traceFormatedFloat(trace, eph.crc,		formatStr);
 	traceFormatedFloat(trace, eph.omg,		formatStr);
 	traceFormatedFloat(trace, eph.OMGd,		formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, eph.idot,		formatStr);
 	traceFormatedFloat(trace, eph.code,		formatStr);
 	traceFormatedFloat(trace, eph.week,		formatStr);	/* GPS/QZS: GPS week, GAL: GAL week, BDS: BDT week */
 	traceFormatedFloat(trace, eph.flag,		formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	if (sys == +E_Sys::GAL)		{	traceFormatedFloat(trace, svaToSisa	(eph.sva),	formatStr);	}
@@ -122,7 +122,7 @@ void outputNavRinexEph(
 	if	(  sys == +E_Sys::GAL
 		|| sys == +E_Sys::BDS)	{	traceFormatedFloat(trace, eph.tgd[1],	formatStr);	}	/* GAL:BGD E5b/E1, BDS: TGD2 B2/B3 */
 	else						{	traceFormatedFloat(trace, eph.iodc,		formatStr);	}	/* GPS/QZS:IODC */
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	if	(sys != +E_Sys::BDS)	{	traceFormatedFloat(trace, GTow(eph.ttm), formatStr);	}
@@ -132,7 +132,7 @@ void outputNavRinexEph(
 	else if (sys == +E_Sys::QZS)	{		traceFormatedFloat(trace, eph.fitFlag,	formatStr);	}	/* fit interval flag for QZS */
 	else if (sys == +E_Sys::BDS)	{		traceFormatedFloat(trace, eph.aodc,		formatStr);	}	/* BDS: AODC */
 	else							{		traceFormatedFloat(trace, 0,			formatStr);	}	/* spare */
-	trace << std::endl;
+	trace << "\n";
 }
 
 
@@ -146,7 +146,7 @@ void outputNavRinexGeph(
 	if (rnxver >= 4.0)
 	{
 		tracepdeex(0, trace, "> EPH %-3s %-4s", geph.Sat.id().c_str(), geph.type);
-		trace << std::endl;
+		trace << "\n";
 	}
 
 	if (geph.Sat.sys != +E_Sys::GLO)
@@ -169,28 +169,28 @@ void outputNavRinexGeph(
 	traceFormatedFloat(trace,-geph.taun,	formatStr);   	// -taun
 	traceFormatedFloat(trace, geph.gammaN,	formatStr);
 	traceFormatedFloat(trace, tof, formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, geph.pos[0] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.vel[0] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.acc[0] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.svh, formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, geph.pos[1] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.vel[1] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.acc[1] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.frq, formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, geph.pos[2] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.vel[2] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.acc[2] / 1E3, formatStr);
 	traceFormatedFloat(trace, geph.age, formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	if (rnxver >= 3.05)
 	{
@@ -213,7 +213,7 @@ void outputNavRinexCeph(
 	}
 
 	tracepdeex(0, trace, "> EPH %-3s %-4s", ceph.Sat.id().c_str(), ceph.type);
-	trace << std::endl;
+	trace << "\n";
 
 	auto sys	= ceph.Sat.sys;
 	auto type	= ceph.type;
@@ -237,21 +237,21 @@ void outputNavRinexCeph(
 	traceFormatedFloat(trace, ceph.f0,		formatStr);
 	traceFormatedFloat(trace, ceph.f1,		formatStr);
 	traceFormatedFloat(trace, ceph.f2,		formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, ceph.Adot,	formatStr);
 	traceFormatedFloat(trace, ceph.crs,		formatStr);
 	traceFormatedFloat(trace, ceph.deln,	formatStr);
 	traceFormatedFloat(trace, ceph.M0,		formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, ceph.cuc,		formatStr);
 	traceFormatedFloat(trace, ceph.e,		formatStr);
 	traceFormatedFloat(trace, ceph.cus,		formatStr);
 	traceFormatedFloat(trace, sqrt(ceph.A),	formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	if	(sys != +E_Sys::BDS)	{	traceFormatedFloat(trace, ceph.tops,	formatStr);	}
@@ -260,14 +260,14 @@ void outputNavRinexCeph(
 	traceFormatedFloat(trace, ceph.cic,		formatStr);
 	traceFormatedFloat(trace, ceph.OMG0,	formatStr);
 	traceFormatedFloat(trace, ceph.cis,		formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, ceph.i0,		formatStr);
 	traceFormatedFloat(trace, ceph.crc,		formatStr);
 	traceFormatedFloat(trace, ceph.omg,		formatStr);
 	traceFormatedFloat(trace, ceph.OMGd,	formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	traceFormatedFloat(trace, ceph.idot,	formatStr);
@@ -277,21 +277,21 @@ void outputNavRinexCeph(
 	{
 		traceFormatedFloat(trace, ceph.ura[0],	formatStr);
 		traceFormatedFloat(trace, ceph.ura[1],	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		trace << "    ";
 		traceFormatedFloat(trace, ceph.ura[3],	formatStr);
 		traceFormatedFloat(trace, ceph.svh,		formatStr);
 		traceFormatedFloat(trace, ceph.tgd[0],	formatStr);
 		traceFormatedFloat(trace, ceph.ura[2],	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		trace << "    ";
 		traceFormatedFloat(trace, ceph.isc[0],	formatStr);
 		traceFormatedFloat(trace, ceph.isc[1],	formatStr);
 		traceFormatedFloat(trace, ceph.isc[2],	formatStr);
 		traceFormatedFloat(trace, ceph.isc[3],	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 
 		if (type==+E_NavMsgType::CNAV)
@@ -301,7 +301,7 @@ void outputNavRinexCeph(
 			traceFormatedFloat(trace, ceph.wnop,		formatStr);
 			trace << "                   ";
 			trace << "                   ";
-			trace << std::endl;
+			trace << "\n";
 		}
 		else if (type==+E_NavMsgType::CNV2)
 		{
@@ -310,28 +310,28 @@ void outputNavRinexCeph(
 			traceFormatedFloat(trace, ceph.isc[5],	formatStr);
 			trace << "                   ";
 			trace << "                   ";
-			trace << std::endl;
+			trace << "\n";
 
 			trace << "    ";
 			traceFormatedFloat(trace, GTow(ceph.ttm),	formatStr);
 			traceFormatedFloat(trace, ceph.wnop,		formatStr);
 			trace << "                   ";
 			trace << "                   ";
-			trace << std::endl;
+			trace << "\n";
 		}
 	}
 	else
 	{
 		traceFormatedFloat(trace, ceph.orb,		formatStr);
 		traceFormatedFloat(trace, ceph.tops,	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		trace << "    ";
 		traceFormatedFloat(trace, ceph.sis[0],	formatStr);
 		traceFormatedFloat(trace, ceph.sis[1],	formatStr);
 		traceFormatedFloat(trace, ceph.sis[2],	formatStr);
 		traceFormatedFloat(trace, ceph.sis[3],	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		if  ( type==+E_NavMsgType::CNV1
 			||type==+E_NavMsgType::CNV2)
@@ -349,21 +349,21 @@ void outputNavRinexCeph(
 			}
 			traceFormatedFloat(trace, ceph.tgd[0],	formatStr);
 			traceFormatedFloat(trace, ceph.tgd[1],	formatStr);
-			trace << std::endl;
+			trace << "\n";
 
 			trace << "    ";
 			traceFormatedFloat(trace, ceph.sis[4],	formatStr);
 			traceFormatedFloat(trace, ceph.svh,		formatStr);
 			traceFormatedFloat(trace, ceph.flag,	formatStr);
 			traceFormatedFloat(trace, ceph.iodc,	formatStr);
-			trace << std::endl;
+			trace << "\n";
 
 			trace << "    ";
 			traceFormatedFloat(trace, BTow(ceph.ttm),	formatStr);
 			trace << "                   ";
 			trace << "                   ";
 			traceFormatedFloat(trace, ceph.iode,		formatStr);
-			trace << std::endl;
+			trace << "\n";
 		}
 		else if (type==+E_NavMsgType::CNV3)
 		{
@@ -372,14 +372,14 @@ void outputNavRinexCeph(
 			traceFormatedFloat(trace, ceph.svh,		formatStr);
 			traceFormatedFloat(trace, ceph.flag,	formatStr);
 			traceFormatedFloat(trace, ceph.tgd[2],	formatStr);
-			trace << std::endl;
+			trace << "\n";
 
 			trace << "    ";
 			traceFormatedFloat(trace, BTow(ceph.ttm),	formatStr);
 			trace << "                   ";
 			trace << "                   ";
 			trace << "                   ";
-			trace << std::endl;
+			trace << "\n";
 		}
 	}
 }
@@ -400,7 +400,7 @@ void outputNavRinexSTO(
 
 	if (sto.Sat.prn > 0)	tracepdeex(0, trace, "> STO %-3s %-4s", sto.Sat.id().c_str(), sto.type);
 	else					tracepdeex(0, trace, "> STO %-3c %-4s", sto.Sat.sysChar(),    sto.type);
-	trace << std::endl;
+	trace << "\n";
 
 	auto sys = sto.Sat.sys;
 
@@ -428,7 +428,7 @@ void outputNavRinexSTO(
 		std::replace(sbasId.begin(), sbasId.end(), '_', '-');
 	}
 	tracepdeex(0, trace, " %-18s %-18s %-18s", sto.code._to_string(), sbasId.c_str(), utcIdStr[sto.uid]);
-	trace << std::endl;
+	trace << "\n";
 
 	double	ttm		= 0;
 	int		week	= 0;
@@ -441,7 +441,7 @@ void outputNavRinexSTO(
 	traceFormatedFloat(trace, sto.A0,	formatStr);
 	traceFormatedFloat(trace, sto.A1,	formatStr);
 	traceFormatedFloat(trace, sto.A2,	formatStr);
-	trace << std::endl;
+	trace << "\n";
 }
 
 
@@ -460,7 +460,7 @@ void outputNavRinexEOP(
 
 	if (eop.Sat.prn > 0)	tracepdeex(0, trace, "> EOP %-3s %-4s", eop.Sat.id().c_str(), eop.type);
 	else					tracepdeex(0, trace, "> EOP %-3c %-4s", eop.Sat.sysChar(),    eop.type);
-	trace << std::endl;
+	trace << "\n";
 
 	auto sys = eop.Sat.sys;
 
@@ -484,14 +484,14 @@ void outputNavRinexEOP(
 	traceFormatedFloat(trace, eop.xp	* R2AS,	formatStr);
 	traceFormatedFloat(trace, eop.xpr	* R2AS,	formatStr);
 	traceFormatedFloat(trace, eop.xprr	* R2AS,	formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	trace << "    ";
 	trace << "                   ";
 	traceFormatedFloat(trace, eop.yp	* R2AS,	formatStr);
 	traceFormatedFloat(trace, eop.ypr	* R2AS,	formatStr);
 	traceFormatedFloat(trace, eop.yprr	* R2AS,	formatStr);
-	trace << std::endl;
+	trace << "\n";
 
 	double	ttm		= 0;
 	int		week	= 0;
@@ -504,7 +504,7 @@ void outputNavRinexEOP(
 	traceFormatedFloat(trace, eop.dut1,			formatStr);
 	traceFormatedFloat(trace, eop.dur,			formatStr);
 	traceFormatedFloat(trace, eop.durr,			formatStr);
-	trace << std::endl;
+	trace << "\n";
 }
 
 
@@ -523,7 +523,7 @@ void outputNavRinexION(
 
 	if (ion.Sat.prn > 0)	tracepdeex(0, trace, "> ION %-3s %-4s", ion.Sat.id().c_str(), ion.type);
 	else					tracepdeex(0, trace, "> ION %-3c %-4s", ion.Sat.sysChar(),    ion.type);
-	trace << std::endl;
+	trace << "\n";
 
 	auto sys	= ion.Sat.sys;
 	auto type	= ion.type;
@@ -550,14 +550,14 @@ void outputNavRinexION(
 		traceFormatedFloat(trace, ion.ai0,	formatStr);
 		traceFormatedFloat(trace, ion.ai1,	formatStr);
 		traceFormatedFloat(trace, ion.ai2,	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		trace << "    ";
 		traceFormatedFloat(trace, ion.flag,	formatStr);
 		trace << "                   ";
 		trace << "                   ";
 		trace << "                   ";
-		trace << std::endl;
+		trace << "\n";
 	}
 	else if	( sys  == +E_Sys::BDS
 			&&type == +E_NavMsgType::CNVX)
@@ -565,21 +565,21 @@ void outputNavRinexION(
 		traceFormatedFloat(trace, ion.alpha1,	formatStr);
 		traceFormatedFloat(trace, ion.alpha2,	formatStr);
 		traceFormatedFloat(trace, ion.alpha3,	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		trace << "    ";
 		traceFormatedFloat(trace, ion.alpha4,	formatStr);
 		traceFormatedFloat(trace, ion.alpha5,	formatStr);
 		traceFormatedFloat(trace, ion.alpha6,	formatStr);
 		traceFormatedFloat(trace, ion.alpha7,	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		trace << "    ";
 		traceFormatedFloat(trace, ion.alpha8,	formatStr);
 		traceFormatedFloat(trace, ion.alpha9,	formatStr);
 		trace << "                   ";
 		trace << "                   ";
-		trace << std::endl;
+		trace << "\n";
 	}
 	else if	( type==+E_NavMsgType::LNAV
 			||type==+E_NavMsgType::D1D2
@@ -588,21 +588,21 @@ void outputNavRinexION(
 		traceFormatedFloat(trace, ion.a0,	formatStr);
 		traceFormatedFloat(trace, ion.a1,	formatStr);
 		traceFormatedFloat(trace, ion.a2,	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		trace << "    ";
 		traceFormatedFloat(trace, ion.a3,	formatStr);
 		traceFormatedFloat(trace, ion.b0,	formatStr);
 		traceFormatedFloat(trace, ion.b1,	formatStr);
 		traceFormatedFloat(trace, ion.b2,	formatStr);
-		trace << std::endl;
+		trace << "\n";
 
 		trace << "    ";
 		traceFormatedFloat(trace, ion.b3,	formatStr);
 		traceFormatedFloat(trace, ion.code,	formatStr);
 		trace << "                   ";
 		trace << "                   ";
-		trace << std::endl;
+		trace << "\n";
 	}
 }
 

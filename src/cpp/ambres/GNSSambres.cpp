@@ -15,7 +15,7 @@ double round_perr(
 	double dx,		///< Distance between value and mean
 	double var)		///< Variance
 {
-	if (var < 1e-20) 
+	if (var < 1e-20)
 		return 0;
 
 	double p0 = 0;
@@ -43,7 +43,7 @@ int simple_round(
 	mtrx.Ztrs.resize(0, 0);
 	mtrx.zfix.resize(0);
 
-	if (namb <= 0) 
+	if (namb <= 0)
 		return 0;
 
 	double ratthr = 1 / (opt.ratthr + 1);
@@ -70,7 +70,7 @@ int simple_round(
 
 	MatrixXd Z = MatrixXd::Identity(namb, namb);
 
-	if (nfix == 0) 
+	if (nfix == 0)
 		return 0;
 
 	mtrx.Ztrs = Z(zind, xind);
@@ -92,17 +92,17 @@ int interat_round(
 	mtrx.Ztrs.resize(0, 0);
 	mtrx.zfix.resize(0);
 
-	if (namb <= 0) 
+	if (namb <= 0)
 		return 0;
 
 	double sucthr = 1 - pow(opt.sucthr, 1.0 / namb);
 	double ratthr = 1 / (opt.ratthr + 1);
-	
+
 	vector <int> zind;
 	vector <int> xind;
 	xind.reserve(namb);
 
-	for (int i = 0; i < namb; i++) 
+	for (int i = 0; i < namb; i++)
 		xind.push_back(i);
 
 	MatrixXd I = MatrixXd::Identity(namb, namb);
@@ -161,15 +161,15 @@ bool LTDL_factorization(
 {
 	int n = mtrx.aflt.size();
 	MatrixXd P = mtrx.Paflt;
-	
+
 	MatrixXd L = MatrixXd::Zero(n,n);
 	VectorXd D = VectorXd::Zero(n);
-	
+
 	for (int i=n-1; i>=0; i--)
 	{
 		if (P(i,i)<=0)
 			return false;
-		
+
 		D(i) = P(i,i);
 		double a=sqrt(P(i,i));
 		L.block(i, 0, 1, i+1) = P.block(i, 0, 1, i+1)/a;
@@ -177,7 +177,7 @@ bool LTDL_factorization(
 			P.block(j, 0, 1, j+1)-= L(i,j)*L.block(i, 0, 1, j+1);
 		L.block(i, 0, 1, i+1)/= L(i,i);
 	}
-	
+
 	mtrx.Ltrs = L;
 	mtrx.Dtrs = D;
 	return true;
@@ -191,27 +191,27 @@ int Ztrans_reduction(
 	int n = mtrx.aflt.size();
 	if (n<1)
 		return -1;
-	
+
 	if (LTDL_factorization(mtrx) == false)
 	{
 		tracepdeex(1, trace, "WARNING: LD decomposition error, ambiguity matrix may not positive definite\n");
 		return -1;
 	}
-	
+
 	VectorXd x = mtrx.aflt;
 	VectorXd D = mtrx.Dtrs;
 	MatrixXd L = mtrx.Ltrs;
 	MatrixXd Z = MatrixXd::Identity(n, n);
-	
+
 	if (AR_VERBO)
 	{
-		trace << std::setprecision(8); 
-		trace << std::endl << "x =" << std::endl << x.transpose() << std::endl;
-		trace << std::endl << "Px=" << std::endl << mtrx.Paflt    << std::endl;
-		trace << std::endl << "Lx=" << std::endl << L             << std::endl;
-		trace << std::endl << "Dx=" << std::endl << D.transpose() << std::endl;
-	}	
-	
+		trace << std::setprecision(8);
+		trace << "\n" << "x =" << "\n" << x.transpose() << "\n";
+		trace << "\n" << "Px=" << "\n" << mtrx.Paflt    << "\n";
+		trace << "\n" << "Lx=" << "\n" << L             << "\n";
+		trace << "\n" << "Dx=" << "\n" << D.transpose() << "\n";
+	}
+
 	int k=n-2;
 	int j=n-2;
 	while (j>=0)
@@ -226,30 +226,30 @@ int Ztrans_reduction(
 				Z.col(j) -= mu * Z.col(i);
 			}
 		}
-		
+
 		double del = D(j) + L(j+1,j)*L(j+1,j)*D(j+1);
-		if ((del+1E-6)<D(j+1)) 
+		if ((del+1E-6)<D(j+1))
 		{
 			double eta = D(j) / del;
 			double lam = D(j+1) * L(j+1,j) / del;
-			
+
 			D(j)   = eta * D(j+1);
 			D(j+1) = del;
-			
-			MatrixXd a0 = L.block(j,   0, 1, j); 
+
+			MatrixXd a0 = L.block(j,   0, 1, j);
     		MatrixXd a1 = L.block(j+1, 0, 1, j);
     		L.block(j,   0, 1, j) = a1 - L(j+1,j)*a0;
 			L.block(j+1, 0, 1, j) = lam*a1 + eta*a0;
 			L(j+1,j) = lam;
-			
+
 			VectorXd Ltmp = L.block(j+2, j, n-j-2, 1);
 			L.block(j+2, j,   n-j-2, 1) = L.block(j+2, j+1, n-j-2, 1);
 			L.block(j+2, j+1, n-j-2, 1) = Ltmp;
-			
+
 			VectorXd Ztmp = Z.col(j);
 			Z.col(j)   = Z.col(j+1);
 			Z.col(j+1) = Ztmp;
-			
+
 			k=j;
 			j=n-2;
 		}
@@ -265,12 +265,12 @@ int Ztrans_reduction(
 	if (AR_VERBO)
 	{
 		trace << std::setprecision(8);
-		trace << std::endl << "z =" << std::endl << mtrx.zflt.transpose()	<< std::endl;
-		trace << std::endl << "Zt=" << std::endl << mtrx.Ztrs				<< std::endl;
-		trace << std::endl << "Lz=" << std::endl << L						<< std::endl;
-		trace << std::endl << "Dz=" << std::endl << D.transpose()			<< std::endl;
+		trace << "\n" << "z =" << "\n" << mtrx.zflt.transpose()	<< "\n";
+		trace << "\n" << "Zt=" << "\n" << mtrx.Ztrs				<< "\n";
+		trace << "\n" << "Lz=" << "\n" << L						<< "\n";
+		trace << "\n" << "Dz=" << "\n" << D.transpose()			<< "\n";
 	}
-	
+
 	return n;
 }
 
@@ -285,7 +285,7 @@ int Ztrans_reduction(
 // 	if (info < 0)
 // 		return 0;
 
-	
+
 
 // 	GinAR_mtx mtrx2;
 // 	mtrx2.aflt = mtrx.zflt;
@@ -317,7 +317,7 @@ int integer_bootst(
 
 	MatrixXd L_ = ldlt_.matrixL();
 	auto     tr = ldlt_.transpositionsP ();
-	
+
 	int siz = mtrx.aflt.size();
 	MatrixXd I0 = MatrixXd::Identity(siz, siz);
 	MatrixXd Zt = tr * I0;
@@ -346,11 +346,11 @@ int integer_bootst(
 
 	if (AR_VERBO)
 	{
-		trace << std::endl << "x_=" << std::endl << mtrx.aflt.transpose() 	<< std::endl;
-		trace << std::endl << "Px=" << std::endl << mtrx.Paflt 				<< std::endl;
-		trace << std::endl << "Zt=" << std::endl << Zt 						<< std::endl;
-		trace << std::endl << "z_=" << std::endl << z_.transpose() 			<< std::endl;
-		trace << std::endl << "Pz=" << std::endl << Pz						<< std::endl;
+		trace << "\n" << "x_=" << "\n" << mtrx.aflt.transpose() 	<< "\n";
+		trace << "\n" << "Px=" << "\n" << mtrx.Paflt 				<< "\n";
+		trace << "\n" << "Zt=" << "\n" << Zt 						<< "\n";
+		trace << "\n" << "z_=" << "\n" << z_.transpose() 			<< "\n";
+		trace << "\n" << "Pz=" << "\n" << Pz						<< "\n";
 	}
 
 	int nfix = interat_round(trace, mtrx2, opt);
@@ -375,14 +375,14 @@ int lambda_search(
 		return 0;
 	}
 
-	
+
 	int nmax = mtrx.Dtrs.size();
 	int k = nmax - 1;
 	int kmax = k;
 
 	double succ = erf(sqrt(1 / (8 * mtrx.Dtrs(k--))));
-	
-	if (succ < opt.sucthr) 
+
+	if (succ < opt.sucthr)
 		return 0;
 
 	int zsiz = 1;
@@ -396,7 +396,7 @@ int lambda_search(
 	}
 	if(zsiz<3)
 		return 0;
-	
+
 	int kmin=kmax-zsiz+1;
 
 	map<double, VectorXd> zfixList;
@@ -404,13 +404,13 @@ int lambda_search(
 	MatrixXd L = mtrx.Ltrs;
 	VectorXd D = mtrx.Dtrs;
 	VectorXd zflt = mtrx.zflt;
-	
+
 	VectorXd dist = VectorXd::Zero(nmax);
 	VectorXd zadj = VectorXd::Zero(nmax);
 	VectorXd zfix = VectorXd::Zero(nmax);
 	VectorXd zdif = VectorXd::Zero(nmax);
 	VectorXd step = VectorXd::Zero(nmax);
-	
+
 	k = kmax;
 	zadj(k) = zflt(k);
 	zfix(k) = ROUND(zadj(k));
@@ -419,7 +419,7 @@ int lambda_search(
 	bool search = true;
 	double maxdist = 1e99;
 	int ncand = 0;
-	
+
 	while (search)
 	{
 		double newdist = dist(k) + zdif(k) * zdif(k) / D(k);
@@ -430,11 +430,11 @@ int lambda_search(
 			{
 				k--;
 				dist(k) = newdist;
-				
+
 				zadj(k) = zflt(k);
 				for(int j = k+1; j<nmax; j++)
 					zadj(k)-= zdif(j)*L(j,k);
-				
+
 				zfix(k) = ROUND(zadj(k));
 				zdif(k) = zadj(k) - zfix(k);
 				step(k) = zdif(k) < 0 ? -1 : 1;
@@ -445,14 +445,14 @@ int lambda_search(
 				zfixList[newdist] = zcut;
 				ncand = zfixList.size();
 				double maxd = newdist * opt.ratthr;
-				
+
 				if (ncand > 1
-				 && maxd  < maxdist) 
+				 && maxd  < maxdist)
 					maxdist = maxd;
 
 				if(ncand > opt.nset)
 					break;
-				
+
 				if (opt.nset>0
 				&& (ncand >= opt.nset))
 				{
@@ -467,10 +467,10 @@ int lambda_search(
 							++it;
 						}
 					}
-					
-					if(maxd < maxdist) 
+
+					if(maxd < maxdist)
 						maxdist = maxd;
-			
+
 					ncand = zfixList.size();
 				}
 
@@ -492,7 +492,7 @@ int lambda_search(
 		}
 	}
 
-	if (zfixList.size() < 1) 
+	if (zfixList.size() < 1)
 		return 0;
 
 	double mindist = zfixList.begin()->first;
@@ -500,12 +500,12 @@ int lambda_search(
 	mtrx.zfix = zfix0;
 	MatrixXd Z = mtrx.Ztrs.bottomRows(zsiz);
 	mtrx.Ztrs = Z;
-	
+
 	switch (opt.mode)
 	{
 		case E_ARmode::LAMBDA:
 			return zfix0.size();
-			
+
 		case E_ARmode::LAMBDA_ALT:
 		{
 			double first  = 0;
@@ -516,44 +516,44 @@ int lambda_search(
 				else if	(second	== 0)	second	= dis;
 				else					break;
 			}
-			
+
 			if ((second/first) < opt.ratthr)	return 0;
 			else                                return zfix0.size();
 		}
-		
+
 		case E_ARmode::LAMBDA_AL2:
 		{
 			for (auto& [dis, fixvec] : zfixList)
 			{
-				if ((dis / mindist) > opt.ratthr) 
+				if ((dis / mindist) > opt.ratthr)
 					break;
-				
+
 				for (int l = 0; l < zfix0.size(); l++)
 				{
-					if (zfix0(l) == -99999.5) 
+					if (zfix0(l) == -99999.5)
 						continue;
 
 					if (zfix0(l) != fixvec(l))
 						zfix0(l) = -99999.5;
 				}
 			}
-			
+
 			vector<int> zind;
-			for (int k = 0; k < zfix0.size(); k++) 
+			for (int k = 0; k < zfix0.size(); k++)
 			if (zfix0(k) != -99999.5)
 				zind.push_back(k);
 			tracepdeex(2, trace, "... %d ambiguties in common\n", zind.size());
 
 			vector<int> xind;
-			for (int k = 0; k < nmax; k++) 
+			for (int k = 0; k < nmax; k++)
 				xind.push_back(k);
-			
+
 			mtrx.zfix = zfix0(zind);
 			mtrx.Ztrs = Z(zind, xind);
-			
+
 			return zind.size();
 		}
-	
+
 		case E_ARmode::LAMBDA_BIE:
 		{
 			double acum = 0;
@@ -569,13 +569,13 @@ int lambda_search(
 			for (auto& [dis, fixvec] : zfixList)
 			{
 				double fct  = exp(-0.5 * (dis-mindist)) / acum;
-				if (AR_VERBO) 
-					trace << std::endl << "BIE Candidate found:" << fixvec.transpose() << ";   dist= " << dis << ";   fact= " << fct;
+				if (AR_VERBO)
+					trace << "\n" << "BIE Candidate found:" << fixvec.transpose() << ";   dist= " << dis << ";   fact= " << fct;
 				zbie += fct * fixvec;
 			}
 
 			mtrx.zfix = zbie;
-			
+
 			return zbie.size();
 		}
 	}

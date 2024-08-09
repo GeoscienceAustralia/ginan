@@ -42,7 +42,7 @@ struct SerialState : SerialStateMembers, B_io::stream<B_io::basic_array_source<c
 	:	SerialStateMembers								(inputSource),
 		B_io::stream<B_io::basic_array_source<char>>	(input_source)
 	{
-// 		std::cout << "Serial State created, has length " << inputVector.size() << std::endl;
+// 		std::cout << "Serial State created, has length " << inputVector.size() << "\n";
 	}
 
 	~SerialState()
@@ -62,7 +62,7 @@ struct SerialState : SerialStateMembers, B_io::stream<B_io::basic_array_source<c
 			inputVector.clear();
 		}
 
-// 		std::cout << "Serial State destroyed, has length " << inputVector.size() << std::endl;
+// 		std::cout << "Serial State destroyed, has length " << inputVector.size() << "\n";
 	}
 };
 

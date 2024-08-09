@@ -208,7 +208,7 @@ VectorEnu ecef2enu(
 	VectorEnu enu = (Vector3d) (E * ecef);
 
 	return enu;
-// 	std::cout << "e\n" << e.transpose() << std::endl;
+// 	std::cout << "e\n" << e.transpose() << "\n";
 }
 
 /** transform local tangental coordinate vector to ecef
@@ -223,7 +223,7 @@ VectorEcef enu2ecef(
 	VectorEcef ecef = (Vector3d)(E.transpose() * enu);
 
 	return ecef;
-// 	std::cout << "E\n" << E << std::endl;
+// 	std::cout << "E\n" << E << "\n";
 }
 
 /** transform vector in body frame to ecef
@@ -275,7 +275,7 @@ Vector3d ecef2body(
 			dEdQ.col(i) = ((qCopy * ecef) - body) / delta;
 		}
 
-// 		std::cout << std::endl << dEdQ << std::endl;
+// 		std::cout << "\n" << dEdQ << "\n";
 	}
 	return body;
 }

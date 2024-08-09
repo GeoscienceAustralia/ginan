@@ -167,7 +167,7 @@ KFState walkthrough1()
 
 	for (int epoch = 1; epoch <= 2; epoch++)
 	{
-		std::cout << std::endl << "Begin Epoch " << epoch << std::endl;
+		std::cout << "\n" << "Begin Epoch " << epoch << "\n";
 		time += 60;
 
 		KFMeasEntryList kfMeasEntryList;
@@ -332,10 +332,10 @@ void walkthrough2(
 		double actualVelocity	= v0
 								+ a		* t;
 
-		std::cout << std::endl << "\n\n\n\nEpoch "
+		std::cout << "\n" << "\n\n\n\nEpoch "
 		<< "\n t = " << t
 		<< "\n x = " << actualPosition
-		<< "\n v = " << actualVelocity << std::endl;
+		<< "\n v = " << actualVelocity << "\n";
 		time += dt;														//generally we wouldnt be iterating over t, dt like this, we would be given a time from some external observation source and we'd just use it
 
 		KFMeasEntryList kfMeasEntryList;

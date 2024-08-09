@@ -488,6 +488,6 @@ void receiverSlr(
 		obsNum++;
 	}
 
-	trace << std::endl << std::endl;
+	trace << "\n" << "\n";
 }
 

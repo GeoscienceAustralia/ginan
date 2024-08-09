@@ -57,9 +57,9 @@ void propLinear(
 
 	Vector3d a = accAccl + accCF;
 
-// 	std::cout << std::endl << "                                      " << accCF	.transpose();
-// 	std::cout << std::endl << "                                      " << accAccl		.transpose();
-// 	std::cout << std::endl << "Using " << a.transpose();
+// 	std::cout << "\n" << "                                      " << accCF	.transpose();
+// 	std::cout << "\n" << "                                      " << accAccl		.transpose();
+// 	std::cout << "\n" << "Using " << a.transpose();
 
 	Vector3d gyroBody;
 	{
@@ -68,11 +68,11 @@ void propLinear(
 		auto& [foundTime, gyro] = *it;
 
 		gyroBody = ((gyro - gyroBias).array() * gyroScale.array()).matrix() * PI / 180;
-// 	std::cout << std::endl << "                                      " << gyro	.transpose();
-// 	std::cout << std::endl << "                                      " << gyroBias		.transpose();
+// 	std::cout << "\n" << "                                      " << gyro	.transpose();
+// 	std::cout << "\n" << "                                      " << gyroBias		.transpose();
 	}
 
-// 	std::cout << std::endl << "Guyo " << gyroBody.transpose();
+// 	std::cout << "\n" << "Guyo " << gyroBody.transpose();
 	Quaterniond qBody(Eigen::AngleAxis(gyroBody.norm() * dt, gyroBody.normalized()));
 
 	Vector3d 	rPlus = r + v * dt;
@@ -186,7 +186,7 @@ void InertialIntegrator::operator()(
 			Vector4d deltaQ = (q - q__) - (q_ - q0); 		A.col(index).segment(6, 4) = deltaQ / dt / offset;
 		}
 
-// 		std::cout << std::endl << "A" << std::endl << A << std::endl;
+// 		std::cout << "\n" << "A" << "\n" << A << "\n";
 
 		derivative.posVelQuatSTM	= A * inertialInit.posVelQuatSTM;
 
@@ -413,7 +413,7 @@ void predictInertials(
 		return;
 	}
 
-	BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING INERTIALS        --------" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING INERTIALS        --------" << "\n";
 
 	InertialIntegrator integrator;
 	integrator.timeInit				= kfState.time;

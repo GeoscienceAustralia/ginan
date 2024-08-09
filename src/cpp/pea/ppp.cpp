@@ -109,20 +109,7 @@ void outputApriori(
 			kfKey.Sat	= Sat;
 			kfKey.type	= KF::SAT_CLOCK;
 
-			//search all receivers for an observation with this clock
-			for (auto& [id, rec] : receiverMap)
-			for (auto& obs : only<GObs>(rec.obsList))
-			{
-				if	( obs.exclude
-					||obs.Sat != Sat)
-				{
-					continue;
-				}
-
-				aprioriState.addKFState(kfKey, {.x = CLIGHT * obs.satClk});
-
-				goto breakOut;
-			} breakOut:
+			aprioriState.addKFState(kfKey, {.x = CLIGHT * satNav.aprioriClk});
 
 			bool brdcPass = satClkBroadcast(nullStream, tsync, tsync, satPos, nav);
 			if (brdcPass)
@@ -240,7 +227,7 @@ void outputApriori(
 // 	fout << pppRRec.transpose() << "  ";
 // 	fout << diffEcef.transpose() << "  ";
 // 	fout << diffEnu.transpose() << "  ";
-// 	fout << std::endl;
+// 	fout << "\n";
 // }
 
 /** Output GPGGA or modified GPGGA messages
@@ -291,10 +278,58 @@ void outputApriori(
 // }
 
 void selectAprioriSource(
+	SatSys&		Sat,
+	GTime&		time,
+	KFState&	kfState,
+	KFState*	remote_ptr)
+{
+	auto& satOpts	= acsConfig.getSatOpts(Sat);
+
+	auto& satNav 	= nav.satNavMap[Sat];
+	auto& satPos0	= satNav.satPos0;
+
+	auto trace = getTraceFile(satNav);
+
+	satPos0.Sat			= Sat;
+	satPos0.satNav_ptr	= &satNav;
+
+	auto posModelSources = satOpts.posModel.sources;
+	auto clkModelSources = satOpts.clockModel.sources;
+
+	//remove kalman from the list to not corrupt the apriori states
+	auto brdcPosIt = std::find(posModelSources.begin(), posModelSources.end(), +E_Source::KALMAN);
+	auto brdcClkIt = std::find(clkModelSources.begin(), clkModelSources.end(), +E_Source::KALMAN);
+	posModelSources.erase(brdcPosIt);
+	clkModelSources.erase(brdcClkIt);
+
+	bool posPass = satpos(trace, time, time, satPos0, posModelSources, E_OffsetType::COM,	nav, &kfState, remote_ptr);
+	bool clkPass = satclk(trace, time, time, satPos0, clkModelSources,						nav, &kfState, remote_ptr);
+
+	if (posPass == false)	{	BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";	return;	}
+	if (clkPass == false)	{	BOOST_LOG_TRIVIAL(warning) << "Warning: No sat clk found for " << satPos0.Sat.id() << ".";	return;	}
+
+	ERPValues erpv = getErp(nav.erp, time);
+
+	FrameSwapper frameSwapper(time, erpv);
+
+	satNav.aprioriPos = frameSwapper(satPos0.rSatCom);
+	satNav.aprioriClk = satPos0.satClk;
+
+	tracepdeex(1, trace, "\n");
+	tracepdeex(1, trace, "\nSelecting apriori pos (ECI) at %s, found %-10s: [%f, %f, %f]",	time.to_string(), satPos0.posSource._to_string(), satNav.aprioriPos.x(), satNav.aprioriPos.x(), satNav.aprioriPos.x());
+	tracepdeex(1, trace, "\nSelecting apriori clk (m)   at %s, found %-10s: %f",			time.to_string(), satPos0.clkSource._to_string(), satNav.aprioriClk * CLIGHT);
+
+	updateSatAtts(satPos0);
+}
+
+
+
+void selectAprioriSource(
+	Trace&		trace,
 	Receiver&	rec,
 	GTime&		time,
 	bool&		sppUsed,
-	KFState*	kfState_ptr,
+	KFState&	kfState,
 	KFState*	remote_ptr)
 {
 	sppUsed = false;
@@ -394,8 +429,6 @@ void selectAprioriSource(
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori position found for " << rec.id;
 	}
 
-	auto trace = getTraceFile(rec);
-
 	tracepdeex(4, trace, "\nUsing %s as source for receiver apriori position: %f %f %f",
 				foundSource._to_string(),
 				rec.aprioriPos.x(),
@@ -426,7 +459,6 @@ void selectAprioriSource(
 			case E_Source::KALMAN:
 			case E_Source::REMOTE:
 			{
-				if (source == +E_Source::KALMAN	&& kfState_ptr	== nullptr)	continue;
 				if (source == +E_Source::REMOTE	&& remote_ptr	== nullptr)	continue;
 
 				E_Source found;
@@ -437,8 +469,8 @@ void selectAprioriSource(
 
 					double dummy;
 
-					if (source == +E_Source::KALMAN)	found = kfState_ptr	->getKFValue(kfKey, rec.aprioriClk, &rec.aprioriClkVar, &dummy, false);
-					if (source == +E_Source::REMOTE)	found = remote_ptr	->getKFValue(kfKey, rec.aprioriClk, &rec.aprioriClkVar, &dummy, false);
+					if (source == +E_Source::KALMAN)	found = kfState.	getKFValue(kfKey, rec.aprioriClk, &rec.aprioriClkVar, &dummy, false);
+					if (source == +E_Source::REMOTE)	found = remote_ptr->getKFValue(kfKey, rec.aprioriClk, &rec.aprioriClkVar, &dummy, false);
 				}
 
 				if (found == false)
@@ -454,6 +486,11 @@ void selectAprioriSource(
 				rec.aprioriClkVar	= SQR(30);
 
 				break;
+			}
+			case E_Source::BROADCAST:
+			{
+				//ignore broadcast thats in the common default list for satellites benefit
+				continue;
 			}
 			default:
 			{
@@ -573,7 +610,7 @@ void removeBadAmbiguities(
 		{
 			sigStat.lastPhaseTime = GTime::noTime();
 
-			trace << std::endl << "Phase ambiguity removed due to long outage: " <<	sigName	<< " " << key;
+			trace << "\n" << "Phase ambiguity removed due to long outage: " <<	sigName	<< " " << key;
 
 			kfState.statisticsMap["Phase outage resets"]++;
 
@@ -591,7 +628,7 @@ void removeBadAmbiguities(
 		{
 			sigStat.phaseRejectCount = 0;
 
-			trace << std::endl << "Phase ambiguity removed due to high reject count: " <<	sigName	<< " " 	<< key;
+			trace << "\n" << "Phase ambiguity removed due to high reject count: " <<	sigName	<< " " 	<< key;
 
 			kfState.statisticsMap["Phase reject resets"]++;
 
@@ -623,7 +660,7 @@ void removeBadAmbiguities(
 				||(acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)
 				||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)))
 		{
-			trace << std::endl << "Phase ambiguity removed due cycle slip detection: "	<< key;
+			trace << "\n" << "Phase ambiguity removed due cycle slip detection: "	<< key;
 
 			kfState.statisticsMap["Cycle slip resets"]++;
 
@@ -646,7 +683,7 @@ void removeBadAmbiguities(
 					||(acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)
 					||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)))
 			{
-				trace << std::endl << "Phase ambiguity removed due cycle slip detection: "	<< key;
+				trace << "\n" << "Phase ambiguity removed due cycle slip detection: "	<< key;
 
 				kfState.statisticsMap["Cycle slip resets*"]++;
 
@@ -696,7 +733,7 @@ void removeBadReceivers(
 		for (auto [key, index] : kfState.kfIndexMap)
 		if (key.str == rec.id)
 		{
-			trace << std::endl << "State removed due to high receiver error counts: " << key;
+			trace << "\n" << "State removed due to high receiver error counts: " << key;
 
 			kfState.removeState(key);
 		}
@@ -725,7 +762,7 @@ void removeBadIonospheres(
 
 			if (variance > SQR(recOpts.iono_sigma_limit))
 			{
-				trace << std::endl << "Ionosphere removed due to high variance: " << key;
+				trace << "\n" << "Ionosphere removed due to high variance: " << key;
 
 				kfState.removeState(key);
 			}
@@ -764,7 +801,7 @@ void removeBadIonospheres(
 		{
 			satStat.lastIonTime = GTime::noTime();
 
-			trace << std::endl << "Ionosphere removed due to long outage: " << key;
+			trace << "\n" << "Ionosphere removed due to long outage: " << key;
 
 			kfState.statisticsMap["Iono outage resets"]++;
 
@@ -778,7 +815,7 @@ void removeBadIonospheres(
 
 		if (variance > SQR(recOpts.iono_sigma_limit))
 		{
-			trace << std::endl << "Ionosphere removed due to high variance: " << key;
+			trace << "\n" << "Ionosphere removed due to high variance: " << key;
 
 			kfState.removeState(key);
 		}
@@ -955,7 +992,7 @@ double netResidualAndChainOutputs(
 			<< "Warning: Unestimated component '" << component._to_string() << "' for '" << measEntry.obsKey
 			<< "' has large variance (" << var << "), valid inputs may not (yet) be available";
 
-			trace << std::endl
+			trace << "\n"
 			<< "Warning: Unestimated component '" << component._to_string() << "' for '" << measEntry.obsKey
 			<< "' has large variance (" << var << "), valid inputs may not (yet) be available";
 		}
@@ -963,7 +1000,7 @@ double netResidualAndChainOutputs(
 
 	if (acsConfig.output_residual_chain)
 	{
-		trace << std::endl << std::endl << "0 =";
+		trace << "\n" << "\n" << "0 =";
 
 		for (auto& [component, details] : measEntry.componentsMap)
 		{

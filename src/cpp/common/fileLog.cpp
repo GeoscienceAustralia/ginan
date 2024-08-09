@@ -57,7 +57,7 @@ void FileLog::consume(
 	doc.append(kvp("level", 		logLevel));
 	doc.append(kvp("str", 			mess));
 	
-	logStream << bsoncxx::to_json(doc) << std::endl;
+	logStream << bsoncxx::to_json(doc) << "\n";
 }
 
 

@@ -1272,6 +1272,12 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 	kfKey.rec_ptr	= &rec;
 	kfKey.comment	= sigName;
 
+	if (sysSat.sys == +E_Sys::GLO)
+	{
+		//Glonass has different frequencies per (pair of) sattelite(s), use separate bias for each (ignore pair because geph may not be available)
+		kfKey.Sat	= obs.Sat;
+	}
+
 	E_Source found = kfState.getKFValue(kfKey, recCodeBias, &recCodeBiasVar);
 
 	InitialState init = initialStateFromConfig(recOpts.code_bias, sig.code);
@@ -1333,7 +1339,7 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
 		recCodeBias = init.x;
 
-		measEntry.addDsgnEntry	(kfKey, 1, init);
+		measEntry.addDsgnEntry(kfKey, 1, init);
 	}
 
 	measEntry.addNoiseEntry(kfKey, 1, recCodeBiasVar);
@@ -1451,6 +1457,9 @@ void checkModels(
 	test("sat_phase_bias",	satOpts.phase_bias.		estimate[0], satOpts.phaseBiasModel.enable);
 	test("sat_code_bias",	satOpts.code_bias.		estimate[0], satOpts.codeBiasModel.	enable);
 	test("emp_d_0",			satOpts.emp_d_0.		estimate[0], satOpts.empirical);
+
+	if (acsConfig.minimise_sat_clock_offsets		&& nav.ephMap.empty())		{	BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_clock_offsets` configured, but no broadcast ephemerides are available";	}
+	if (acsConfig.minimise_sat_orbit_offsets		&& nav.ephMap.empty())		{	BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_orbit_offsets` configured, but no broadcast ephemerides are available";	}
 }
 
 
@@ -2003,6 +2012,6 @@ void receiverPPP(
 		kfMeasEntryList.push_back(measEntry);
 	}
 
-	trace << std::endl << std::endl;
+	trace << "\n" << "\n";
 }
 

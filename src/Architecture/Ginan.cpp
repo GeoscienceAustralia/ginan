@@ -48,6 +48,21 @@ FileType SNX__()
 
 }
 
+FileType CLK__()
+{
+
+}
+
+FileType UBX__()
+{
+
+}
+
+FileType JSON__()
+{
+
+}
+
 FileType OBX__()
 {
 
@@ -58,17 +73,46 @@ FileType RNX__()
 
 }
 
+FileType GPX__()
+{
+
+}
+
+FileType BSX__()
+{
+
+}
+
+FileType COST__()
+{
+
+}
+
+FileType RTCM__()
+{
+
+}
+
 FileType IGS_Files__()
 {
+	DOCS_REFERENCE(CLK__);
 	DOCS_REFERENCE(SP3__);
+	DOCS_REFERENCE(BSX__);
 	DOCS_REFERENCE(ATX__);
 	DOCS_REFERENCE(SNX__);
 	DOCS_REFERENCE(RNX__);
 	DOCS_REFERENCE(OBX__);
 }
 
+FileType YAML__()
+{
+
+}
+
 Input Input_Files__()
 {
+	DOCS_REFERENCE(UBX__);
+	DOCS_REFERENCE(YAML__);
 	DOCS_REFERENCE(IGS_Files__);
 }
 
@@ -110,6 +154,10 @@ Output Outputs__()
 {
 	DOCS_REFERENCE(Trace_Files__);
 	DOCS_REFERENCE(IGS_Files__);
+	DOCS_REFERENCE(GPX__);
+	DOCS_REFERENCE(JSON__);
+	DOCS_REFERENCE(COST__);
+	DOCS_REFERENCE(RTCM__);
 	DOCS_REFERENCE(Mongo_Database__);
 }
 

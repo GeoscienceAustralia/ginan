@@ -29,25 +29,25 @@ void outputSummaries(
 	Trace&		trace,		///< Trace stream to output to
 	ReceiverMap&	receiverMap)	///< Map of stations used throughout the program.
 {
-	trace << std::endl << "--------------- SUMMARIES ------------------- " << std::endl;
+	trace << "\n" << "--------------- SUMMARIES ------------------- " << "\n";
 
 	for (auto& [id, rec] : receiverMap)
 	{
-		trace << std::endl << "------------------- " << rec.id << " --------------------";
+		trace << "\n" << "------------------- " << rec.id << " --------------------";
 		auto a	= boost::posix_time::from_time_t((time_t)rec.firstEpoch.bigTime);
 		auto b	= boost::posix_time::from_time_t((time_t)rec.lastEpoch.	bigTime);
 		auto ab	= b-a;
 
-		trace << std::endl << "First Epoch : " << a;
-		trace << std::endl << "Last  Epoch : " << b;
-		trace << std::endl << "Epoch Count : " << rec.epochCount;
+		trace << "\n" << "First Epoch : " << a;
+		trace << "\n" << "Last  Epoch : " << b;
+		trace << "\n" << "Epoch Count : " << rec.epochCount;
 		if (rec.epochCount > 1)
-			trace << std::endl << "Epoch Step  : " << ab / (rec.epochCount - 1);
-		trace << std::endl << "Duration    : " << ab;
-		trace << std::endl << "Observations: " << rec.obsCount;
+			trace << "\n" << "Epoch Step  : " << ab / (rec.epochCount - 1);
+		trace << "\n" << "Duration    : " << ab;
+		trace << "\n" << "Observations: " << rec.obsCount;
 
 		bool first = true;
-		trace << std::endl << "By Code     : ";
+		trace << "\n" << "By Code     : ";
 		for (auto& [code, count] : rec.codeCount)
 		{
 			if (first)
@@ -59,7 +59,7 @@ void outputSummaries(
 		}
 
 		first = true;
-		trace << std::endl << "By Satellite: ";
+		trace << "\n" << "By Satellite: ";
 		for (auto& [sat, count] : rec.satCount)
 		{
 			if (first)
@@ -69,7 +69,7 @@ void outputSummaries(
 
 			trace << sat << " : " << count;
 		}
-		trace << std::endl << "GObs/Slips   : " << rec.obsCount / (rec.slipCount + 1);
-		trace << std::endl;
+		trace << "\n" << "GObs/Slips   : " << rec.obsCount / (rec.slipCount + 1);
+		trace << "\n";
 	}
 }

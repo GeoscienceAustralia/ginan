@@ -776,6 +776,7 @@ void sinexPostProcessing(
 	KFState&				netKFState);
 
 void sinexPerEpochPerStation(
+	Trace&		trace,
 	GTime		time,
 	Receiver&	rec);
 

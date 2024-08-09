@@ -106,10 +106,17 @@ void outputApriori(
 	ReceiverMap& receiverMap);
 
 void selectAprioriSource(
+	Trace&		trace,
 	Receiver&	rec,
 	GTime&		time,
 	bool&		sppUsed,
-	KFState*	kfState_ptr	= nullptr,
+	KFState&	kfState,
+	KFState*	remote_ptr	= nullptr);
+
+void selectAprioriSource(
+	SatSys&		Sat,
+	GTime&		time,
+	KFState&	kfState,
 	KFState*	remote_ptr	= nullptr);
 
 void postFilterChecks(

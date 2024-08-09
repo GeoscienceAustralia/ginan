@@ -259,7 +259,7 @@ bool satPosSSR(
 			satPos.failureSSRFail = true;
 
 			BOOST_LOG_TRIVIAL(warning)	<< "Warning: SSR Corrections not found for " << satPos.Sat.id();
-			trace << std::endl			<< "Warning: SSR Corrections not found for " << satPos.Sat.id();
+			trace << "\n"				<< "Warning: SSR Corrections not found for " << satPos.Sat.id();
 
 			return false;
 		}
@@ -267,8 +267,8 @@ bool satPosSSR(
 		if	( ephValidStart >= clkValidStop
 			||clkValidStart >= ephValidStop)
 		{
-			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Timing inconsistent for " << satPos.Sat.id() << "   :   " << ephValidStart.to_string() << "  -  " << ephValidStop.to_string() << "   " << clkValidStart.to_string() << "  -  " << clkValidStop.to_string();
-			trace << std::endl			<< "Warning: Timing inconsistent for " << satPos.Sat.id() << "   :   " << ephValidStart.to_string() << "  -  " << ephValidStop.to_string() << "   " << clkValidStart.to_string() << "  -  " << clkValidStop.to_string();
+			BOOST_LOG_TRIVIAL(warning)	<< "Warning: Timing inconsistent for " << satPos.Sat.id() << "   :   " << ephValidStart.to_string(0) << "  -  " << ephValidStop.to_string(0) << "   " << clkValidStart.to_string(0) << "  -  " << clkValidStop.to_string(0);
+			trace << "\n"				<< "Warning: Timing inconsistent for " << satPos.Sat.id() << "   :   " << ephValidStart.to_string(0) << "  -  " << ephValidStop.to_string(0) << "   " << clkValidStart.to_string(0) << "  -  " << clkValidStop.to_string(0);
 
 			if (ephValidStart >= clkValidStop)		ephTime = clkValidStop - 0.5;
 			if (clkValidStart >= ephValidStop)		ephTime = ephValidStop - 0.5;
@@ -280,7 +280,7 @@ bool satPosSSR(
 			satPos.failureIodeConsistency = true;
 
 			BOOST_LOG_TRIVIAL(warning)	<< "Warning: IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
-			trace << std::endl			<< "Warning: IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
+			trace << "\n"				<< "Warning: IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
 
 			return false;
 		}
@@ -302,14 +302,14 @@ bool satPosSSR(
 				else								ephTime = ephValidStart - 0.5;
 
 				BOOST_LOG_TRIVIAL(warning)	<< "Warning: IODE BRDC not found for " << satPos.Sat.id() << " - adjusting ephTime";
-				trace << std::endl			<< "Warning: IODE BRDC not found for " << satPos.Sat.id() << " - adjusting ephTime";
+				trace << "\n"				<< "Warning: IODE BRDC not found for " << satPos.Sat.id() << " - adjusting ephTime";
 
 				continue;
 			}
 			satPos.failureBroadcastEph = true;
 
 			BOOST_LOG_TRIVIAL(warning)	<< "Warning: IODE BRDC not found for " << satPos.Sat.id();
-			trace << std::endl			<< "Warning: IODE BRDC not found for " << satPos.Sat.id();
+			trace << "\n"				<< "Warning: IODE BRDC not found for " << satPos.Sat.id();
 
 			return false;
 		}

@@ -191,7 +191,7 @@ void mincon(
 
 	if (acsConfig.output_mincon)
 	{
-		std::cout << std::endl << "Writing backup point for minimum constraints to " << acsConfig.mincon_filename;
+		std::cout << "\n" << "Writing backup point for minimum constraints to " << acsConfig.mincon_filename;
 
 		spitFilterToFile(kfStateStations, E_SerialObject::FILTER_PLUS, acsConfig.mincon_filename);
 	}
@@ -329,7 +329,7 @@ void mincon(
 			continue;
 		}
 
-		BOOST_LOG_TRIVIAL(debug) << std::endl << str << "Noises" << std::endl << aprioriVar << std::endl << filterVar;
+		BOOST_LOG_TRIVIAL(debug) << "\n" << str << "Noises" << "\n" << aprioriVar << "\n" << filterVar;
 
 		//get all of the position elements for this thing
 		Vector3d	filterPos = Vector3d::Zero();
@@ -451,7 +451,7 @@ void mincon(
 	//use a state transition to initialise elements
 	kfStateTrans.stateTransition(trace, kfStateStations.time);
 
-// 	std::cout << std::endl << "R" << std::endl << R << std::endl;
+// 	std::cout << "\n" << "R" << "\n" << R << "\n";
 
 	MatrixXd RR = R(indices, indices);
 
@@ -465,13 +465,13 @@ void mincon(
 
 	if (kfStateTrans.lsqRequired)
 	{
-		trace << std::endl << "------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
+		trace << "\n" << "------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << "\n";
 		kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, false, &kfStateTrans.dx);
 		kfStateTrans.dx = VectorXd::Zero(kfStateTrans.x.rows());
 		kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM_LSQ");
 	}
 
-	trace << std::endl << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << std::endl;
+	trace << "\n" << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << "\n";
 
 	kfStateTrans.filterKalman(trace, combinedMeasCulled, "/MINCON_TRANSFORM");
 
@@ -552,9 +552,9 @@ void mincon(
 			if (0)
 			{
 				VectorXd errors = tTheta - H * K * v;
-				std::cout << std::endl << "tTheta:"	<< std::endl << tTheta	<< std::endl;
-				std::cout << std::endl << "H:"		<< std::endl << H		<< std::endl;
-				std::cout << std::endl << "errors:"	<< std::endl << errors	<< std::endl;
+				std::cout << "\n" << "tTheta:"	<< "\n" << tTheta	<< "\n";
+				std::cout << "\n" << "H:"		<< "\n" << H		<< "\n";
+				std::cout << "\n" << "errors:"	<< "\n" << errors	<< "\n";
 			}
 			break;
 		}
@@ -570,7 +570,7 @@ void mincon(
 			//generalised inverse (Ref:E.3)
 			MatrixXd T = combinedMeas.H.bottomRightCorner(numStates, numXform);
 			MatrixXd W	= MatrixXd::Zero(numStates, numStates);
-			// 	std::cout << std::endl << "R" << std::endl << combinedMeasCulled.R<< std::endl;
+			// 	std::cout << "\n" << "R" << "\n" << combinedMeasCulled.R<< "\n";
 
 			switch (acsConfig.minconOpts.application_mode)
 			{
@@ -630,23 +630,23 @@ void mincon(
 
 			W = ((W + W.transpose()) / 2).eval();
 
-			// 	std::cout << std::endl << "P" << std::endl << kfStateStations.P << std::endl;
-// 				std::cout << std::endl << "W_" << std::endl << W << std::endl;
+			// 	std::cout << "\n" << "P" << "\n" << kfStateStations.P << "\n";
+// 				std::cout << "\n" << "W_" << "\n" << W << "\n";
 			//
-// 				std::cout << std::endl << "T" << std::endl << T << std::endl;
+// 				std::cout << "\n" << "T" << "\n" << T << "\n";
 
 			MatrixXd TW		= T.transpose() * W;
 
 			MatrixXd TWT	= TW * T;
 
-// 			std::cout << std::endl << "TWT" << std::endl << TWT << std::endl;
+// 			std::cout << "\n" << "TWT" << "\n" << TWT << "\n";
 
 			auto QQ = TWT.triangularView<Eigen::Upper>().transpose();
 			LDLT<MatrixXd> solver;
 			solver.compute(QQ);
 			if (solver.info() != Eigen::ComputationInfo::Success)
 			{
-				std::cout << "Mincon borked." << std::endl;
+				std::cout << "Mincon borked." << "\n";
 				return;
 			}
 
@@ -654,13 +654,13 @@ void mincon(
 			H.rightCols(numStates) = solver.solve(TW);
 			if (solver.info() != Eigen::ComputationInfo::Success)
 			{
-				std::cout << "Mincon borked!" << std::endl;
+				std::cout << "Mincon borked!" << "\n";
 				return;
 			}
 
-// 			std::cout << std::endl << "TWT" << std::endl << TWT << std::endl;
-// 			std::cout << std::endl << "TW" << std::endl << TW << std::endl;
-// 			std::cout << std::endl << "TDash" << std::endl << H << std::endl;
+// 			std::cout << "\n" << "TWT" << "\n" << TWT << "\n";
+// 			std::cout << "\n" << "TW" << "\n" << TW << "\n";
+// 			std::cout << "\n" << "TDash" << "\n" << H << "\n";
 
 			//calculate kalman gain
 			K = P * H.transpose() * (H * P * H.transpose()/* + Omega*/).inverse();
@@ -676,7 +676,7 @@ void mincon(
 		//use a state transition to ensure output logs are complete
 		kfState.stateTransition(std::cout, kfState.time);
 
-		trace << std::endl << " -------DOING KALMAN FILTER WITH PSEUDO ELEMENTS FOR MINIMUM CONSTRAINTS --------" << std::endl;
+		trace << "\n" << " -------DOING KALMAN FILTER WITH PSEUDO ELEMENTS FOR MINIMUM CONSTRAINTS --------" << "\n";
 
 		if (kfState.rts_basename.empty() == false)
 		{
@@ -689,7 +689,7 @@ void mincon(
 
 		if (isPositiveSemiDefinite(P) == false)
 		{
-			std::cout << std::endl << "WARNING, NOT PSD";
+			std::cout << "\n" << "WARNING, NOT PSD";
 		}
 
 		if (kfState.rts_basename.empty() == false)
@@ -869,7 +869,7 @@ KFState minconOnly(
 		return KFState();
 	}
 
-	trace << std::endl << "Performing minimum constraints using dataset saved to " << acsConfig.mincon_filename << std::endl;
+	trace << "\n" << "Performing minimum constraints using dataset saved to " << acsConfig.mincon_filename << "\n";
 
 	KFState kfState;
 	bool pass = getFilterObjectFromFile(type, kfState, startPos, acsConfig.mincon_filename);
@@ -912,10 +912,10 @@ KFState minconOnly(
 
 	for (auto& [id, rec] : receiverMap)
 	{
-		sinexPerEpochPerStation(time, rec);
+		sinexPerEpochPerStation(nullStream, time, rec);
 
 		bool dummy;
-		selectAprioriSource(rec, time, dummy, &kfState);
+		selectAprioriSource(nullStream, rec, time, dummy, kfState);
 
 		rec.minconApriori = rec.aprioriPos;
 	}

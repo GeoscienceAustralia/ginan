@@ -20,8 +20,8 @@ void CenterMassCorrections::read(
 	if (!infile)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "CMC file open error " << filename << std::endl;
-		
+		<< "CMC file open error " << filename;
+
 		return;
 	}
 
@@ -42,12 +42,12 @@ void CenterMassCorrections::read(
 		iss >> wavename >> dummy >> zIn >> zOut >> xIn >> xOut >> yIn >> yOut;
 		data[wavename] << xIn, yIn, zIn, xOut, yOut, zOut;
 	}
-	
+
 	for (auto& [wave, coeff] : data)
 	{
-		BOOST_LOG_TRIVIAL(debug) << wave << " " << coeff.transpose() << std::endl;
+		BOOST_LOG_TRIVIAL(debug) << wave << " " << coeff.transpose();
 	}
-	
+
 //    DoodsonNumbers["K1"] = Array6d (6);
 	doodsonNumbers["K1"]	<< 1, 1, 0, 0, 0, 0;	// 165.555
 	doodsonNumbers["K2"]	<< 2, 2, 0, 0, 0, 0;	// 275.555

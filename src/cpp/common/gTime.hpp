@@ -204,9 +204,9 @@ struct Duration
 */
 struct GTime
 {
-	mutable	long double	cacheTime = -1;
+	mutable int			cacheN		=  0;
+	mutable	long double	cacheTime	= -1;
 	mutable string		cacheString;
-	mutable int			cacheN;
 
 	long double	bigTime = 0;
 

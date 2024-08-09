@@ -178,7 +178,7 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
 
 					if (timeStamp < firstTime)
 					{
-						std::cout << "unexpected time here" << std::endl;
+						std::cout << "unexpected time here" << "\n";
 						exit(1);
 					}
 

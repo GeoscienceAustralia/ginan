@@ -67,7 +67,7 @@ void NtripUploader::serverResponse(
 	doc.append(kvp("ServerStatus", 		(int)status_code));
 	doc.append(kvp("VersionHTTP",		http_version));
 
-	logStream << bsoncxx::to_json(doc) << std::endl;
+	logStream << bsoncxx::to_json(doc) << "\n";
 }
 
 
@@ -121,7 +121,7 @@ void NtripUploader::messageTimeoutHandler(
 		return;
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "SSR OUT Targeting epoch: " << targetTime.to_string() << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "SSR OUT Targeting epoch: " << targetTime.to_string() << "\n";
 
 	ssrMeta.receivedTime		= targetTime;	// for rtcmTrace (debugging)
 	ssrMeta.multipleMessage 	= 1; // We assume there will be more messages.
@@ -191,7 +191,7 @@ void NtripUploader::messageTimeoutHandler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -210,7 +210,7 @@ void NtripUploader::messageTimeoutHandler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -253,7 +253,7 @@ void NtripUploader::messageTimeoutHandler(
 
 					if (write == false)
 					{
-						std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+						std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 					}
 				}
 
@@ -271,7 +271,7 @@ void NtripUploader::messageTimeoutHandler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -297,7 +297,7 @@ void NtripUploader::messageTimeoutHandler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -319,7 +319,7 @@ void NtripUploader::messageTimeoutHandler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -524,7 +524,7 @@ void NtripUploader::messageTimeoutHandler(
 							break;
 						}
 						// default:
-						// 	BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect compacr SSR type: " << subType.to_integral << std::endl;
+						// 	BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect compacr SSR type: " << subType.to_integral << "\n";
 
 					}
 				}
@@ -575,7 +575,7 @@ void NtripUploader::messageTimeoutHandler(
 				break;
 			}
 			default:
-				BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect message type: " << messCode << std::endl;
+				BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect message type: " << messCode << "\n";
 		}
 	}
 
@@ -586,7 +586,7 @@ void NtripUploader::messageTimeoutHandler(
 	int length = messStream.tellg();
 	messStream.seekg(0, messStream.beg);
 
-	BOOST_LOG_TRIVIAL(debug) << "Called " << __FUNCTION__ << " MessageLength : " << length << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "Called " << __FUNCTION__ << " MessageLength : " << length << "\n";
 	if (length != 0)
 	{
 		vector<char> data;

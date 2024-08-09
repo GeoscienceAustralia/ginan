@@ -484,7 +484,7 @@ void HfOceanEop::read(
 	if (!file)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "HF Ocean eop file open error " << filename << std::endl;
+		<< "HF Ocean eop file open error " << filename;
 
 		return;
 	}

@@ -36,14 +36,14 @@ int readOrbexHeader(
 
 	if (fileStream.eof())
 	{
-		BOOST_LOG_TRIVIAL(error) << "Empty file" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Empty file";
 		return 1;
 	}
 
 	// verify document type
 	if (line.substr(0, 7) != "%=ORBEX")
 	{
-		BOOST_LOG_TRIVIAL(error) << "Not an Orbex file" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Not an Orbex file";
 		return 2;
 	}
 
@@ -55,7 +55,7 @@ int readOrbexHeader(
 
 	if (line.substr(0, 2) != "%%")
 	{
-		BOOST_LOG_TRIVIAL(error) << "Incorrect format" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Incorrect format";
 		return 3;
 	}
 
@@ -98,7 +98,7 @@ bool readOrbexFileDesc(
 				else
 				{
 					BOOST_LOG_TRIVIAL(error)
-					<< "Unknown Orbex time system: " << timeSysStr << std::endl;
+					<< "Unknown Orbex time system: " << timeSysStr;
 					return false;
 				}
 
@@ -107,7 +107,7 @@ bool readOrbexFileDesc(
 					&&tsys != +E_TimeSys::UTC)
 				{
 					BOOST_LOG_TRIVIAL(error)
-					<< "Unsupported time system: " << timeSysStr << std::endl;
+					<< "Unsupported time system: " << timeSysStr;
 					return false;
 				}
 			}
@@ -122,14 +122,14 @@ bool readOrbexFileDesc(
 				catch (...)
 				{
 					BOOST_LOG_TRIVIAL(debug)
-					<< "Unknown Orbex frame type: " << frameTypeStr << std::endl;
+					<< "Unknown Orbex frame type: " << frameTypeStr;
 				}
 
 				if	( frame != +E_ObxFrame::ECEF
 					&&frame != +E_ObxFrame::ECI)
 				{
 					BOOST_LOG_TRIVIAL(error)
-					<< "Unsupported Orbex frame type: " << frameTypeStr << std::endl;
+					<< "Unsupported Orbex frame type: " << frameTypeStr;
 					return false;
 				}
 			}
@@ -142,7 +142,7 @@ bool readOrbexFileDesc(
 			{
 				BOOST_LOG_TRIVIAL(error)
 				<< "Incorrect block closure line encountered: "
-				<< line << " != " << closure << std::endl;
+				<< line << " != " << closure;
 				return false;
 			}
 			else
@@ -175,7 +175,7 @@ bool readOrbexSatId(
 			{
 				BOOST_LOG_TRIVIAL(error)
 				<< "Incorrect block closure line encountered: "
-				<< line << " != " << closure << std::endl;
+				<< line << " != " << closure;
 				return false;
 			}
 			else
@@ -218,7 +218,7 @@ bool readOrbexEph(
 			if (error)
 			{
 				BOOST_LOG_TRIVIAL(error)
-				<< "Invalid epoch line in Orbex file: " << line << std::endl;
+				<< "Invalid epoch line in Orbex file: " << line;
 				return false;
 			}
 
@@ -231,7 +231,7 @@ bool readOrbexEph(
 			if (nsat == 0)
 			{
 				BOOST_LOG_TRIVIAL(error)
-				<< "Epoch line invalid or not found before data records" << std::endl;
+				<< "Epoch line invalid or not found before data records";
 				return false;
 			}
 
@@ -251,7 +251,7 @@ bool readOrbexEph(
 				if (nRec != 4)
 				{
 					BOOST_LOG_TRIVIAL(error)
-					<< "Invalid number of data columns: " << nRec << std::endl;
+					<< "Invalid number of data columns: " << nRec;
 					return false;
 				}
 
@@ -271,7 +271,7 @@ bool readOrbexEph(
 				if (abs(att.q.norm() - 1) > 1E-6)
 				{
 					BOOST_LOG_TRIVIAL(warning)
-					<< "The quaternion is not approximately unit norm" << std::endl;
+					<< "The quaternion is not approximately unit norm";
 					continue;
 				}
 
@@ -289,7 +289,7 @@ bool readOrbexEph(
 			else
 			{
 				BOOST_LOG_TRIVIAL(error)
-				<< "Unsupported record type: " << recType << std::endl;
+				<< "Unsupported record type: " << recType;
 				return false;
 			}
 		}
@@ -301,7 +301,7 @@ bool readOrbexEph(
 			{
 				BOOST_LOG_TRIVIAL(error)
 				<< "Incorrect block closure line encountered: "
-				<< line << " != " << closure << std::endl;
+				<< line << " != " << closure;
 				return false;
 			}
 			else
@@ -324,7 +324,7 @@ void  readOrbex(
 	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Orbex file open error " << filepath << std::endl;
+		<< "Orbex file open error " << filepath;
 
 		return;
 	}
@@ -336,7 +336,7 @@ void  readOrbex(
 	if (failure)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error reading Orbex header lines" << std::endl;
+		<< "Error reading Orbex header lines";
 		return;
 	}
 
@@ -356,7 +356,7 @@ void  readOrbex(
 		{
 			// unexpected end of file
 			BOOST_LOG_TRIVIAL(error)
-			<< "Closure line not found before end of Orbex file " << filepath << std::endl;
+			<< "Closure line not found before end of Orbex file " << filepath;
 			break;
 		}
 		else if (line == "+FILE/DESCRIPTION")				pass = readOrbexFileDesc(fileStream,		tsys, frame	);
@@ -367,7 +367,7 @@ void  readOrbex(
 		if (pass == false)
 		{
 			BOOST_LOG_TRIVIAL(error)
-			<< "Error reading Orbex " << line << " block" << std::endl;
+			<< "Error reading Orbex " << line << " block";
 			return;
 		}
 	}

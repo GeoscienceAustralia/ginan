@@ -118,6 +118,7 @@ if (BUILD_DOC)
 			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_IN} -DOUT=${DOXYGEN_OUT} -P "../cmake/Configure.cmake"
 			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_LAYIN} -DOUT=${DOXYGEN_LAYOUT} -P "../cmake/Configure.cmake"
 			COMMAND				${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${DOXYGEN_OUT}
+			COMMAND				cp ../doc_templates/css.css ./
 			WORKING_DIRECTORY	${CMAKE_CURRENT_SOURCE_DIR}/build
 			COMMENT				"Generating API documentation with Doxygen"
 			VERBATIM )

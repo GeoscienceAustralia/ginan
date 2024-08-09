@@ -828,7 +828,7 @@ void readorog(
 	if (!filestream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening orography file" << filepath << std::endl;
+		<< "Error opening orography file" << filepath << "\n";
 		return;
 	}
 
@@ -868,7 +868,7 @@ void readvmf3(
 	if (!filestream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening vmf3 file" << filepath << std::endl;
+		<< "Error opening vmf3 file" << filepath << "\n";
 		return;
 	}
 

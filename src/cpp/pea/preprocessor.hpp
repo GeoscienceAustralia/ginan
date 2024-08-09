@@ -1,11 +1,10 @@
 
 #pragma once
 
-struct Network;
 struct Receiver;
 
 void preprocessor(
-	Network&	net,
+	Trace&		trace,
 	Receiver&	rec,
 	bool		realEpoch = false);
 

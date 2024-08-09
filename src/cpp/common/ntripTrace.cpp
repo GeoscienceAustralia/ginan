@@ -32,7 +32,7 @@ void NetworkStatistics::onErrorStatistics(
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
 	{
-		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
+		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << "\n";
 		return;
 	}
 
@@ -46,7 +46,7 @@ void NetworkStatistics::onErrorStatistics(
 	doc.append(kvp("SocketOperation",			operation									));
 	doc.append(kvp("Time",						b_date {std::chrono::system_clock::now()}	));
 
-	fout << bsoncxx::to_json(doc) << std::endl;
+	fout << bsoncxx::to_json(doc) << "\n";
 }
 
 void NetworkStatistics::onConnectedStatistics()
@@ -59,7 +59,7 @@ void NetworkStatistics::onConnectedStatistics()
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
 	{
-		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
+		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << "\n";
 		return;
 	}
 
@@ -72,7 +72,7 @@ void NetworkStatistics::onConnectedStatistics()
 	doc.append(kvp("ConnectCount",				connectCount								));
 	doc.append(kvp("DisonnectCount",			disconnectCount								));
 
-	fout << bsoncxx::to_json(doc) << std::endl;
+	fout << bsoncxx::to_json(doc) << "\n";
 }
 
 void NetworkStatistics::onDisconnectedStatistics()
@@ -85,7 +85,7 @@ void NetworkStatistics::onDisconnectedStatistics()
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
 	{
-		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
+		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << "\n";
 		return;
 	}
 
@@ -98,7 +98,7 @@ void NetworkStatistics::onDisconnectedStatistics()
 	doc.append(kvp("ConnectCount",				connectCount								));
 	doc.append(kvp("DisonnectCount",			disconnectCount								));
 
-	fout << bsoncxx::to_json(doc) << std::endl;
+	fout << bsoncxx::to_json(doc) << "\n";
 }
 
 void NetworkStatistics::onChunkSentStatistics()
@@ -111,7 +111,7 @@ void NetworkStatistics::onChunkSentStatistics()
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
 	{
-		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
+		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << "\n";
 		return;
 	}
 
@@ -123,7 +123,7 @@ void NetworkStatistics::onChunkSentStatistics()
 	doc.append(kvp("Time",						b_date {std::chrono::system_clock::now()}	));
 	doc.append(kvp("ChunksSent",				chunksSent									));
 
-	fout << bsoncxx::to_json(doc) << std::endl;
+	fout << bsoncxx::to_json(doc) << "\n";
 }
 
 void NetworkStatistics::onChunkReceivedStatistics()
@@ -139,7 +139,7 @@ void NetworkStatistics::onChunkReceivedStatistics()
 	std::ofstream fout(networkTraceFilename, std::ios::app);
 	if (!fout)
 	{
-		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << std::endl;
+		std::cout << "Error opening " << networkTraceFilename << " in " << __FUNCTION__ << "\n";
 		return;
 	}
 
@@ -151,7 +151,7 @@ void NetworkStatistics::onChunkReceivedStatistics()
 	doc.append(kvp("Time",						b_date {std::chrono::system_clock::now()}	));
 	doc.append(kvp("ChunksReceived",			chunksReceived								));
 
-	fout << bsoncxx::to_json(doc) << std::endl;
+	fout << bsoncxx::to_json(doc) << "\n";
 }
 
 
@@ -210,8 +210,8 @@ string NetworkStatistics::getNetworkStatistics(
 // 	Trace& trace)
 // {
 // 	std::stringstream traceStr;
-// 	traceStr << "Start           : " << std::put_time(std::localtime(&startTime.time),	"%F %X")	<< std::endl;
-// 	traceStr << "Finish          : " << std::put_time(std::localtime(&endTime.time),	"%F %X")	<< std::endl;
+// 	traceStr << "Start           : " << std::put_time(std::localtime(&startTime.time),	"%F %X")	<< "\n";
+// 	traceStr << "Finish          : " << std::put_time(std::localtime(&endTime.time),	"%F %X")	<< "\n";
 //
 // 	double totalTime = timeGet() - startTime;
 //
@@ -233,18 +233,18 @@ string NetworkStatistics::getNetworkStatistics(
 // 	if (disconnectionCount != 0)
 // 		meanReconn = (double)disconnectedDuration.total_milliseconds() / (60.0 * 1000.0 * disconnectionCount);
 //
-// 	traceStr << "Disconnects     : " << disconnectionCount 	<< std::endl;
-// 	traceStr << "MeanDowntime    : " << meanReconn 			<< std::endl;
-// 	traceStr << "ConnectedRatio  : " << connRatio 			<< std::endl;
+// 	traceStr << "Disconnects     : " << disconnectionCount 	<< "\n";
+// 	traceStr << "MeanDowntime    : " << meanReconn 			<< "\n";
+// 	traceStr << "ConnectedRatio  : " << connRatio 			<< "\n";
 //
 // 	double chunkRatio = 0;
 //
 // 	if (numberChunks != 0)
 // 		chunkRatio = (double)numberErroredChunks / (double)(numberChunks);
 //
-// 	traceStr << "Chunks          : " << numberChunks		<< std::endl;
-// 	traceStr << "ChunkErrors     : " << numberErroredChunks	<< std::endl;
-// 	traceStr << "ChunkErrorRatio : " << chunkRatio			<< std::endl;
+// 	traceStr << "Chunks          : " << numberChunks		<< "\n";
+// 	traceStr << "ChunkErrors     : " << numberErroredChunks	<< "\n";
+// 	traceStr << "ChunkErrorRatio : " << chunkRatio			<< "\n";
 //
 // 	bool printToTerminal = false;
 // 	if	( chunkRatio			> 0.01
