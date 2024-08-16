@@ -280,6 +280,7 @@ void replaceTags(
 					replaceString(str, "<SINEX_DIRECTORY>",					acsConfig.sinex_directory);
 					replaceString(str, "<LOG_DIRECTORY>",					acsConfig.log_directory);
 					replaceString(str, "<GPX_DIRECTORY>",					acsConfig.gpx_directory);
+					replaceString(str, "<POS_DIRECTORY>",					acsConfig.pos_directory);
 					replaceString(str, "<NTRIP_LOG_DIRECTORY>",				acsConfig.ntrip_log_directory);
 					replaceString(str, "<NETWORK_STATISTICS_DIRECTORY>",	acsConfig.network_statistics_json_directory);
 					replaceString(str, "<SP3_DIRECTORY>",					acsConfig.sp3_directory);
@@ -1075,10 +1076,11 @@ void ACSConfig::info(
 	if (output_cost)						{	ss << "\tcost filename:                 " << cost_filename						<< "\n"; }
 	if (output_trop_sinex)					{	ss << "\ttrop sinex filename:           " << trop_sinex_filename				<< "\n"; }
 	if (output_gpx)							{	ss << "\tgpx filename:                  " << gpx_filename						<< "\n"; }
+	if (output_pos)							{	ss << "\tpos filename:                  " << pos_filename						<< "\n"; }
 	if (output_sp3)							{	ss << "\tsp3 filename:                  " << sp3_filename						<< "\n"; }
 	if (output_decoded_rtcm_json)			{	ss << "\tdecoded rtcm json filename:    " << decoded_rtcm_json_filename			<< "\n"; }
 	if (output_encoded_rtcm_json)			{	ss << "\tencoded rtcm json filename:    " << encoded_rtcm_json_filename			<< "\n"; }
-	if (output_sbas_ems)					{	ss << "\tSBAS EMS filename:             " << ems_filename 					<< "\n"; }
+	if (output_sbas_ems)					{	ss << "\tSBAS EMS filename:             " << ems_filename 						<< "\n"; }
 
 	ss << "\n";
 
@@ -3169,6 +3171,13 @@ bool ACSConfig::parse(
 				conditionalPrefix("<OUTPUTS_ROOT>",		gpx_directory,		tryGetFromYaml(gpx_directory,			gpx, {"@ directory"			}));
 				conditionalPrefix("<GPX_DIRECTORY>",	gpx_filename,		tryGetFromYaml(gpx_filename,			gpx, {"@ filename"			}));
 			}
+			{
+				auto pos = stringsToYamlObject(outputs, {"3! pos"}, "POS files contain point data that may be easily viewed in GIS mapping software");
+
+																			tryGetFromYaml(output_pos,				pos, {"0! output"			});
+				conditionalPrefix("<OUTPUTS_ROOT>",		pos_directory,		tryGetFromYaml(pos_directory,			pos, {"@ directory"			}));
+				conditionalPrefix("<POS_DIRECTORY>",	pos_filename,		tryGetFromYaml(pos_filename,			pos, {"@ filename"			}));
+			}
 
 			{
 				auto ntrip_log = stringsToYamlObject(outputs, {"5@ ntrip_log"});
@@ -4006,6 +4015,7 @@ bool ACSConfig::parse(
 		replaceTags(sp3_directory);							replaceTags(sp3_filename);
 		replaceTags(erp_directory);							replaceTags(erp_filename);
 		replaceTags(gpx_directory);							replaceTags(gpx_filename);
+		replaceTags(pos_directory);							replaceTags(pos_filename);
 		replaceTags(log_directory);							replaceTags(log_filename);
 		replaceTags(cost_directory);						replaceTags(cost_filename);
 		replaceTags(sinex_directory);						replaceTags(sinex_filename);

@@ -18,10 +18,8 @@ extra["stateField"] = ["x", "dx", "sigma"]
 extra["preprocess"] = ["None", "Fit", "Detrend"]
 extra["degree"] = ["0", "1", "2"]
 extra["clockModes"] = ["Series", "Epoch"]
-extra["orbitType"] = [
-    "Residual RTN",
-    "Residual ECI",
-]
+extra["orbitType"] = ["Residual RTN", "Residual ECI"]
+extra["positionRef"] = ["All", "1st Epoch", "WMean"]
 
 
 def init_page(template: str) -> str:
@@ -31,8 +29,45 @@ def init_page(template: str) -> str:
     :return str: HTML Code
     """
     content = []
-    return render_template(template, content=content, extra=extra, exlcude=0)
+    return render_template(template, content=content, extra=extra, exlcude=0, selection=session[template.split(".")[0]])
 
+def initialize_session():
+    if not session.get('session_initialized'):
+        session['measurements'] = {
+            "plot": "Line",
+            "series": [],
+            "site": [],
+            "sat": [],
+            "xaxis": "Epoch"
+        }
+        session["states"] = {
+            "type": "Line",
+            "series": [],
+            "site": [],
+            "sat": [],
+            "xaxis": "Epoch",
+            "yaxis": "x",
+            "degree": "0",
+            "process": "None",
+        }
+        session["position"] = {
+            "type": "Line",
+            "series": [],
+            "series_base": "",
+        }
+        session["clocks"] = {
+            "series": "",
+            "series_base": "",
+            "subset": [],
+            "modes": [],
+            "clockType": ""
+        }
+        session["orbits"] = {
+            "orbitType": "",
+            "series": [],
+            "sat": [],
+        }
+        session['session_initialized'] = True
 
 def generate_fig(trace):
     fig = go.Figure(data=trace)
@@ -44,6 +79,7 @@ def generate_fig(trace):
     )
     fig.layout.autosize = True
     return pio.to_html(fig)
+
 
 def generate_figs(traces):
     fig = make_subplots(rows=max(1,len(traces)), cols=1,
@@ -121,6 +157,7 @@ def get_data(db, collection, state, site, sat, series, yaxis, data, reshape_on=N
             current_app.logger.warning(err)
             pass
 
+
 def get_keys_from_sub(ip, port, db, coll, element):
     with MongoDB(ip, data_base=db, port=port) as client:
         try:
@@ -151,3 +188,7 @@ def get_distinct_vals(ip, port, db, coll, element, reshape_on=None):
             print("thing3")
             current_app.logger.warning(err)
             pass
+
+def extract_database_series(series):
+    db_, series_ = series.split("\\")
+    return db_,series_

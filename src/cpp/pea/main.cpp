@@ -90,6 +90,7 @@ using std::string;
 #include "enums.h"
 #include "aod.hpp"
 #include "ppp.hpp"
+#include "pos.hpp"
 #include "gpx.hpp"
 #include "slr.hpp"
 #include "api.hpp"
@@ -784,6 +785,7 @@ void createDirectories(
 								acsConfig.sp3_directory,
 								acsConfig.erp_directory,
 								acsConfig.gpx_directory,
+								acsConfig.pos_directory,
 								acsConfig.ems_directory,
 								acsConfig.log_directory,
 								acsConfig.cost_directory,
@@ -928,6 +930,11 @@ void createTracefiles(
 			if (acsConfig.output_gpx)
 			{
 				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	pppNet.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
+			}
+
+			if (acsConfig.output_pos)
+			{
+				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.pos_filename				+ suff,	pppNet.kfState	.metaDataMap[POS_FILENAME_STR	+ id	+ metaSuff]);
 			}
 		}
 
@@ -1580,6 +1587,8 @@ void mainPerEpochPostProcessingAndOutputs(
 
 			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);	}
 			if (acsConfig.output_gpx)		{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ recId], kfState,	rec);	}
+			if (acsConfig.output_pos)		{	writePOS			(kfState.metaDataMap[POS_FILENAME_STR	+ recId], kfState,	rec);	}
+
 		}
 
 		outputStatistics(pppTrace, pppNet.kfState.statisticsMap, pppNet.kfState.statisticsMapSum);

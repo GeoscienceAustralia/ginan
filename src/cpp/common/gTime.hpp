@@ -233,6 +233,10 @@ struct GTime
 
 	string to_string(int n = 2) const;
 
+	string to_ISOstring(int n = 2) const;
+
+	double to_decyear() const;
+
 	bool operator ==	(const GTime& t2) const
 	{
 		if (this->bigTime	!= t2.bigTime)	return false;
@@ -466,8 +470,18 @@ struct UtcTime
 	{
 		GTime gTime;
 		gTime.bigTime	= this->bigTime;
+		string str = gTime.to_string(n);
+		str += "Z";
+		str[10]='T';
+		return str;
+	}
 
-		return gTime.to_string(n);
+	string to_ISOstring(int n = 2) const
+	{
+		GTime gTime;
+		gTime.bigTime	= this->bigTime;
+
+		return gTime.to_ISOstring(n)+'Z';
 	}
 
 	UtcTime()

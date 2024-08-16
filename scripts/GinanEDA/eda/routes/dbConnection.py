@@ -66,12 +66,17 @@ def handle_connect_request(form_data):
         client = MongoDB(url=connect_db_ip, port=db_port)
         client.connect()
         databases = client.get_list_db()
-        try:
-            databases.remove("admin")
-            databases.remove("local")
-            databases.remove("config")
-        except:
-            pass
+        print(databases)
+        # loop trhough all databases, and remove those who doesn't have a collection called Content
+        for database in databases:
+            try:
+                with MongoDB(connect_db_ip, port=db_port, data_base=database) as client2:
+                    print("looging for Content in ", database)
+                    client2.get_content()
+            except Exception as e:
+                print(f"Error in {database}: {e}")
+                databases.remove(database)
+        databases.remove("config")
         return render_template("connect.jinja", db_ip=connect_db_ip, db_port=db_port, databases=databases)
     except ServerSelectionTimeoutError:
         error_message = (
@@ -117,12 +122,12 @@ def handle_load_request(form_data):
             message.append(f"connected to {database}:  has {nsat} satellites and {nsite} sites")
             site += client.mongo_content["Site"]
             sat += client.mongo_content["Sat"]
-            try:
-                states_series       += [f"{database}>{series}" for series in client.mongo_content["Series"]]
-                measurements_series += [f"{database}>{series}" for series in client.mongo_content["Series"]]
-            except:
-                states_series       += [f"{database}>{series}" for series in client.mongo_content["StateSeries"]]
-                measurements_series += [f"{database}>{series}" for series in client.mongo_content["MeasurementsSeries"]]
+            if "Series" in client.mongo_content:
+                states_series       += [f"{database}\{series}" for series in client.mongo_content["Series"]]
+                measurements_series += [f"{database}\{series}" for series in client.mongo_content["Series"]]
+            else:
+                states_series       += [f"{database}\{series}" for series in client.mongo_content["StateSeries"]]
+                measurements_series += [f"{database}\{series}" for series in client.mongo_content["MeasurementsSeries"]]
             if client.mongo_content["Has_measurements"]:
                 mesurements += client.mongo_content["Measurements"]
             geometry += client.mongo_content["Geometry"]
@@ -142,7 +147,6 @@ def handle_load_request(form_data):
         session["list_measurements"] = sorted(set(mesurements))
 
     session["list_state"] = sorted(set(state))
-
 
     return render_template(
         "connect.jinja",

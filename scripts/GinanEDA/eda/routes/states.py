@@ -5,7 +5,7 @@ from flask import Blueprint, current_app, render_template, request, session
 from backend.data.measurements import MeasurementArray, Measurements
 from backend.dbconnector.mongo import MongoDB
 
-from ..utilities import extra, init_page, generate_fig, aggregate_stats, get_data
+from ..utilities import extra, init_page, generate_fig, aggregate_stats, get_data, extract_database_series
 from . import eda_bp
 
 
@@ -53,11 +53,11 @@ def handle_post_request() -> str:
         f"GET {form['type']}, {form['series']}, {form['sat']}, {form['site']}, {form['state']}, {form['xaxis']}, {form['yaxis']}, "
         f"{form['yaxis']+[form['xaxis']]}, exclude {form['exclude']} minutes"
     )
-
+    session["states"] = form
     data = MeasurementArray()
     data2 = MeasurementArray()
     for series in form["series"]:
-        db_, series_ = series.split(">")
+        db_, series_ = extract_database_series(series)
         get_data(
             db_,
             "States",
@@ -77,7 +77,7 @@ def handle_post_request() -> str:
         return render_template(
             "states.jinja",
             # content=client.mongo_content,
-            selection=form,
+            selection=session["states"],
             extra=extra,
             message="Error getting data: No data",
         )
@@ -134,7 +134,7 @@ def handle_post_request() -> str:
         extra=extra,
         graphJSON=generate_fig(trace),
         mode="plotly",
-        selection=form,
+        selection=session["states"],
         table_data=table,
         table_headers=["RMS", "mean", "Fit"],
         tableagg_data=table_agg,

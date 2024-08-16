@@ -7,20 +7,12 @@ add_library(ginan_core
 
 		../Architecture/Ginan.cpp
 
-		common/acsConfig.hpp
 		common/acsConfig.cpp
 		common/acsConfigDocs.cpp
 
-		3rdparty/enum.h
-		3rdparty/EigenDenseBaseAddons.h
-
 		3rdparty/jpl/jpl_eph.cpp
-		3rdparty/jpl/jpl_eph.hpp
-		3rdparty/jpl/jpl_int.hpp
 
 		3rdparty/egm96/EGM96.c
-		3rdparty/egm96/EGM96.h
-		3rdparty/egm96/EGM96_data.h
 
 		3rdparty/slr/read_crd.c
 
@@ -47,142 +39,85 @@ add_library(ginan_core
 		pea/ppp_callbacks.cpp
 		pea/ppp_pseudoobs.cpp
 		pea/ppp_slr.cpp
-		pea/ppp.hpp
 		pea/preprocessor.cpp
 		pea/spp.cpp
 
-		common/api.hpp
 		common/api.cpp
 		common/ntripBroadcast.cpp
-		common/ntripBroadcast.hpp
-		common/acsQC.hpp
 		common/acsQC.cpp
 		common/algebra.cpp
 		common/algebra_old.cpp
-		common/algebra.hpp
 		common/algebraTrace.cpp
-		common/algebraTrace.hpp
 		common/attitude.cpp
 		common/compare.cpp
-		common/compare.hpp
-		common/antenna.hpp
 		common/antenna.cpp
 		common/biases.cpp
 		common/biasSINEXread.cpp
 		common/biasSINEXwrite.cpp
-		common/common.hpp
 		common/common.cpp
-		common/constants.hpp
 		common/constants.cpp
 		common/customDecoder.cpp
-		common/cost.hpp
 		common/cost.cpp
 		common/debug.cpp
-		common/debug.hpp
-		common/eigenIncluder.hpp
 		common/ephemeris.cpp
 		common/ephemeris.hpp
 		common/ephBroadcast.cpp
 		common/ephKalman.cpp
 		common/ephPrecise.cpp
 		common/ephSSR.cpp
-		common/enums.h
 		common/erp.cpp
-		common/erp.hpp
 		common/fileLog.cpp
 		common/fileLog.hpp
 		common/gpx.cpp
-		common/gpx.hpp
+		common/pos.cpp
 		common/gTime.cpp
-		common/gTime.hpp
-		common/icdDecoder.hpp
 		common/interactiveTerminal.cpp
 		common/ionModels.cpp
 		common/linearCombo.cpp
-		common/linearCombo.hpp
 		common/mongo.cpp
-		common/mongo.hpp
 		common/mongoRead.cpp
-		common/mongoRead.hpp
 		common/mongoWrite.cpp
-		common/mongoWrite.hpp
 
-		common/navigation.hpp
-		common/observations.hpp
 		common/ntripTrace.cpp
-		common/ntripTrace.hpp
 		common/orbits.cpp
-		common/orbits.hpp
-		common/packetStatistics.hpp
 		common/receiver.cpp
 		common/receiver.cpp
 		common/rinex.cpp
-		common/rinex.hpp
 		common/rtsSmoothing.cpp
 		common/rtcmDecoder.cpp
-		common/rtcmDecoder.hpp
 		common/rtcmEncoder.cpp
-		common/rtcmEncoder.hpp
 		common/rtcmTrace.cpp
-		common/rtcmTrace.hpp
-		common/satStat.hpp
 		common/summary.cpp
-		common/summary.hpp
 		common/satSys.cpp
-		common/satSys.hpp
-		common/sinex.hpp
 		common/sinex.cpp
 		common/sinexParser.cpp
-		common/sinexParser.hpp
 		common/tropSinex.cpp
 		common/sp3.cpp
 		common/sp3Write.cpp
-		common/sp3Write.hpp
 		common/orbex.cpp
-		common/orbexWrite.hpp
 		common/orbexWrite.cpp
-		common/ssr.hpp
 		common/tcpSocket.cpp
 		common/tcpSocket.cpp
 		common/trace.cpp
-		common/trace.hpp
 		common/testUtils.cpp
-		common/testUtils.hpp
 		common/rinexClkWrite.cpp
-		common/rinexClkWrite.hpp
 		common/rinexNavWrite.cpp
-		common/rinexNavWrite.hpp
 		common/rinexObsWrite.cpp
-		common/rinexObsWrite.hpp
 		common/tides.cpp
-		common/tides.hpp
 		common/ubxDecoder.cpp
-		common/ubxDecoder.hpp
 		common/walkthrough.cpp
 		common/localAtmosRegion.cpp
 
-		common/streamFile.hpp
 		common/streamNtrip.cpp
-		common/streamNtrip.hpp
 		common/streamCustom.cpp
-		common/streamCustom.hpp
-		common/streamObs.hpp
-		common/streamRinex.hpp
-		common/streamRtcm.hpp
 		common/streamSerial.cpp
-		common/streamSerial.hpp
-		common/streamSp3.hpp
 		common/streamUbx.cpp
-		common/streamUbx.hpp
 		common/streamParser.cpp
-		common/streamParser.hpp
 
-		iono/geomagField.hpp
 		iono/geomagField.cpp
 		iono/ionex.cpp
 		iono/ionoMeas.cpp
 		iono/ionoModel.cpp
-		iono/ionoModel.hpp
 		iono/ionoSpherical.cpp
 		iono/ionoSphericalCaps.cpp
 		iono/ionoBSplines.cpp
@@ -191,7 +126,6 @@ add_library(ginan_core
 
 		inertial/posProp.cpp
 
-		trop/tropModels.hpp
 		trop/tropModels.cpp
 		trop/tropSAAS.cpp
 		trop/tropSBAS.cpp
@@ -226,13 +160,10 @@ add_library(ginan_core
 		orbprop/oceanPoleTide.cpp
 
 		rtklib/lambda.cpp
-		rtklib/lambda.h
 		rtklib/rtkcmn.cpp
 
 		sbas/sisnet.cpp
-		sbas/sisnet.hpp
 		sbas/sbas.cpp
-		sbas/sbas.hpp
 )
 
 target_include_directories(ginan_core PUBLIC

@@ -343,7 +343,7 @@ void mongoMeasSatStat(
 					doc		<< MONGO_EPOCH		<< bDate(tsync)
 							<< MONGO_STR		<< obs.mount
 							<< MONGO_SAT		<< satPos.Sat.id()
-							<< MONGO_SERIES		<< config.suffix
+							<< MONGO_SERIES		<< formatSeries(config.suffix)
 							<< MONGO_AZIMUTH	<< satStat.az		* R2D
 							<< MONGO_ELEVATION	<< satStat.el		* R2D
 							<< MONGO_NADIR		<< satStat.nadir	* R2D;
@@ -440,14 +440,15 @@ void mongoMeasResiduals(
 		{
 			bsoncxx::builder::stream::document doc{};
 			auto& [site, sat] = description;
+			auto series = formatSeries(config.suffix + suffix);
 			doc		<< MONGO_EPOCH		<< bDate(time)
 					<< MONGO_STR		<< site
 					<< MONGO_SAT		<< sat
-					<< MONGO_SERIES		<< config.suffix + suffix;
+					<< MONGO_SERIES		<< series;
 
-			indexSeries	[config.suffix + suffix]	= true;
-			indexSite	[site]						= true;
-			indexSat	[sat]						= true;
+			indexSeries	[series]	= true;
+			indexSite	[site]		= true;
+			indexSat	[sat]		= true;
 
 			for (int& i : index)
 			{
@@ -676,17 +677,17 @@ void mongoStates(
 			else				{	val_ptr = &keydoc;											}
 
 			auto& doc = *val_ptr;
-
+			string series = formatSeries(config.suffix + opts.suffix);
 			keydoc	<< MONGO_EPOCH		<< bDate(kfState.time)
 					<< MONGO_STR		<< site
 					<< MONGO_SAT		<< sat
 					<< MONGO_STATE		<< state
-					<< MONGO_SERIES		<< config.suffix + opts.suffix;
+					<< MONGO_SERIES		<< series;
 
-			indexSeries	[config.suffix + opts.suffix]	= true;
-			indexState	[state]							= true;
-			indexSat	[sat]							= true;
-			indexSite	[site]							= true;
+			indexSeries	[series]	= true;
+			indexState	[state]		= true;
+			indexSat	[sat]		= true;
+			indexSite	[site]		= true;
 
 			if (opts.updated != GTime::noTime())
 			{

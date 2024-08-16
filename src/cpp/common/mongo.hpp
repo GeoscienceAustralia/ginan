@@ -163,6 +163,8 @@ bool startNewMongoDb(
 	string  					new_database,
 	E_Mongo						instance);
 
+string formatSeries(string series);
+
 document entryToDocument(
 	DBEntry&	entry,
 	bool		type);

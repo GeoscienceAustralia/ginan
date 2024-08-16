@@ -662,6 +662,11 @@ void removeBadAmbiguities(
 		{
 			trace << "\n" << "Phase ambiguity removed due cycle slip detection: "	<< key;
 
+			if (acsConfig.ambErrors.resetOnSlip.LLI		&& preprocSigStat.savedSlip.LLI)		trace << "\t - LLI";
+			if (acsConfig.ambErrors.resetOnSlip.GF		&& preprocSigStat.savedSlip.GF)			trace << "\t - GF";
+			if (acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)			trace << "\t - MW";
+			if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)		trace << "\t - SCDIA";
+
 			kfState.statisticsMap["Cycle slip resets"]++;
 
 			char buff[64];
@@ -684,6 +689,11 @@ void removeBadAmbiguities(
 					||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)))
 			{
 				trace << "\n" << "Phase ambiguity removed due cycle slip detection: "	<< key;
+
+				if (acsConfig.ambErrors.resetOnSlip.LLI		&& sigStat.savedSlip.LLI)			trace << "\t - LLI";
+				if (acsConfig.ambErrors.resetOnSlip.GF		&& sigStat.savedSlip.GF)			trace << "\t - GF";
+				if (acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)			trace << "\t - MW";
+				if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)			trace << "\t - SCDIA";
 
 				kfState.statisticsMap["Cycle slip resets*"]++;
 

@@ -40,31 +40,14 @@ class MongoDB:
             raise ConnectionError("Failed to connect to MongoDB server") from err
 
     def get_content(self) -> None:
-        # Will need to find a better way for that, the EDA is readonly. addint the index with the EDA isn't a good idea. For large database it will take a long time
-        # resp = self.mongo_client[self.mongo_db]["Measurements"].create_index(
-        # [
-        #     ("Epoch", 1),
-        #     ("Site", 1),
-        #     ("Sat", 1)
-        # ])
-        #
-        # print("index response:", resp)
-        #
-        # resp = self.mongo_client[self.mongo_db]["States"].create_index(
-        # [
-        #     ("Epoch", 1),
-        #     ("Site", 1),
-        #     ("Sat", 1),
-        #     ("States", 1)
-        # ])
-        #
-        # print("index response:", resp)
+        if "Content" not in self.mongo_client[self.mongo_db].list_collection_names():
+            raise ValueError("No Content collection found")
 
+        first_cursor = self.mongo_client[self.mongo_db]["Content"].find_one()
+        key = "Type" if "Type" in first_cursor else "type"
         for cursor in self.mongo_client[self.mongo_db]["Content"].find():
-            try:
-                self.mongo_content[cursor["Type"]] = cursor["Values"]
-            except:
-                self.mongo_content[cursor["type"]] = cursor["Values"]
+            self.mongo_content[cursor[key]] = cursor["Values"]
+
 
         self.mongo_content["Geometry"] = []
         geom = self.mongo_client[self.mongo_db]["Geometry"].find_one({})

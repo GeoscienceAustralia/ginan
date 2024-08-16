@@ -35,6 +35,7 @@ using std::map;
 #include "cost.hpp"
 #include "ppp.hpp"
 #include "gpx.hpp"
+#include "pos.hpp"
 
 // #pragma GCC optimize ("O0")
 
@@ -158,6 +159,7 @@ void postRTSActions(
 	{
 		if (acsConfig.output_cost)			{	outputCost			(				kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
 		if (acsConfig.output_gpx)			{	writeGPX			(				kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
+		if (acsConfig.output_pos)			{	writePOS			(				kfState.metaDataMap[POS_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
 	}
 }
 

@@ -93,8 +93,10 @@ void writeGPXEntry(
 	VectorEcef xyz;
 	VectorEcef var;
 	VectorEcef apriori = rec.aprioriPos;
+	VectorEcef covar;
 
 	bool found = true;
+	int idx_cov = 0;
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
 	{
 		if	( kfKey.type	!= KF::REC_POS
@@ -105,6 +107,20 @@ void writeGPXEntry(
 
 		xyz[kfKey.num] =		kfState.x(index);
 		var[kfKey.num] = sqrt(	kfState.P(index, index));
+
+		for (auto& [kfKey2, index2] : kfState.kfIndexMap)
+		{
+			if (kfKey2.type != KF::REC_POS
+				|| kfKey2.str != rec.id)
+			{
+				continue;
+			}
+			if (kfKey2.num > kfKey.num)
+			{
+				covar(idx_cov++) = kfState.P(index, index2);
+			}
+		}
+
 	}
 
 	if (found == false)
@@ -123,16 +139,35 @@ void writeGPXEntry(
 	<< ">";
 
 	{	XmlCloser(output, "ele")			<< pos.hgt();	}
-	{	XmlCloser(output, "time")			<< boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t((time_t)((PTime)kfState.time).bigTime)) << "Z";	}
+	UtcTime utc (kfState.time);
+	{	XmlCloser(output, "time")			<< utc.to_ISOstring();	}
+	// Will need to convert into real UTC time
+	// {	XmlCloser(output, "time")			<< boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t((time_t)((PTime)utc).bigTime)) << "Z";	}
 
 
 	{
 		auto extensions = XmlCloser(output, "extensions");
 
-		{	XmlCloser(output, "ginan:time")		<< kfState.time;							}
-		{	XmlCloser(output, "ginan:xyz")		<< xyz		.transpose().format(lightFmt);	}
-		{	XmlCloser(output, "ginan:var")		<< var		.transpose().format(lightFmt);	}
-		{	XmlCloser(output, "ginan:apriori")	<< apriori	.transpose().format(lightFmt);	}
+		{	XmlCloser(output, "time")		<< kfState.time.to_ISOstring();							}
+		{	auto pos = XmlCloser(output, "pos");
+			{XmlCloser(output, "x")			<< xyz.x();	}
+			{XmlCloser(output, "y")			<< xyz.y();	}
+			{XmlCloser(output, "z")			<< xyz.z();	}
+		}
+		{
+			auto pos = XmlCloser(output, "variances");
+			{XmlCloser(output, "xx")			<< var.x();	}
+			{XmlCloser(output, "yy")			<< var.y();	}
+			{XmlCloser(output, "zz")			<< var.z();	}
+			{XmlCloser(output, "xy")			<< covar.x();	}
+			{XmlCloser(output, "xz")			<< covar.y();	}
+			{XmlCloser(output, "yz")			<< covar.z();	}
+		}
+		{	auto pos = XmlCloser(output, "apriori");
+			{XmlCloser(output, "x")			<< apriori.x();	}
+			{XmlCloser(output, "y")			<< apriori.y();	}
+			{XmlCloser(output, "z")			<< apriori.z();	}
+		}
 
 		Quaterniond quat;
 		found = true;

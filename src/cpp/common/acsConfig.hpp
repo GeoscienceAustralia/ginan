@@ -202,6 +202,10 @@ struct OutputOptions
 	string	gpx_directory				= "<OUTPUTS_ROOT>";
 	string  gpx_filename				= "<GPX_DIRECTORY>/<RECEIVER>-<LOGTIME>.gpx";
 
+	bool	output_pos					= false;
+	string	pos_directory				= "<OUTPUTS_ROOT>";
+	string  pos_filename				= "<POS_DIRECTORY>/<RECEIVER>-<LOGTIME>.pos";
+
 	string	root_stream_url				= "";
 
 	bool	output_predicted_states		= false;

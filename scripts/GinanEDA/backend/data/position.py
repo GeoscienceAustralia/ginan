@@ -45,16 +45,51 @@ class Position:
         self,
         data: MeasurementArray = None,
         base: MeasurementArray = None,
+        ref: str = "1st Epoch",
         sitelist: list = None,
     ) -> None:
         self.data = data
         self.base = base
         self.sitelist = sitelist
-        if self.base is not None:
-            self.data = self.data - self.base
+        self.ref = ref
+
 
     def __iter__(self):
         return iter(self.data)
+
+    def calculate(self) -> None:
+        if self.base is not None:
+            self.determine_base()
+
+    def determine_base(self) -> None:
+        if self.ref == "1st Epoch":
+            self._fill_with_first_epoch()
+        elif self.ref == "WMean":
+            self._fill_with_weighted_mean()
+        self.data = self.data - self.base
+
+
+    def _fill_with_first_epoch(self) -> None:
+        """
+        Fill the base with the first epoch values
+        """
+        for b in self.base:
+            for i in range(3):
+                b.data[f"REC_POS_x_{i}"].fill(b.data[f"REC_POS_x_{i}"][0])
+
+    def _fill_with_weighted_mean(self) -> None:
+        """
+        Fill the base with the weighted mean of the epochs, where the weights are the inverse of the sigma**2, if sigma isn't present, uses 1
+        """
+        for b in self.base:
+            for i in range(3):
+                rec_pos_key = f"REC_POS_x_{i}"
+                sigma_key = f"REC_POS_sigma_{i}"
+                temp_sigma = np.where(np.isnan(b.data[sigma_key]), 1, b.data[sigma_key])
+                sigmasInv = 1 / temp_sigma ** 2
+                Wapriori = np.sum((sigmasInv * np.asarray(b.data[rec_pos_key])),axis=0) / np.sum(sigmasInv,axis=0)
+                b.data[rec_pos_key].fill(Wapriori)
+
 
     def rotate_enu(self) -> None:
         """
@@ -67,7 +102,7 @@ class Position:
             data.epoch = _common
             data_matrix = np.column_stack([data.data[f"REC_POS_x_{i}"][in_data] for i in range(3)])
             base_matrix = np.column_stack([base.data[f"REC_POS_x_{i}"][in_base] for i in range(3)])
-            lat, lon, _height = xyz2blh(base_matrix[:, 0], base_matrix[:, 1], base_matrix[:, 2])
+            lat, lon, _ = xyz2blh(base_matrix[:, 0], base_matrix[:, 1], base_matrix[:, 2])
             rot = np.zeros((3, 3, len(lat)))
             rot[0, 0] = -np.sin(lon)
             rot[0, 1] = -np.sin(lat) * np.cos(lon)

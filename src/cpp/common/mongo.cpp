@@ -179,6 +179,14 @@ void mongoooo()
 	}
 }
 
+string formatSeries(const string series)
+{
+	string formatted = series;
+	formatted[0] = '_';
+	std::transform(formatted.begin(), formatted.end(), formatted.begin(), ::tolower);
+	return formatted;
+}
+
 void MongoLogSinkBackend::consume(
 	boost::log::record_view																	const&	rec,
 	sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>::string_type		const&	log_string)

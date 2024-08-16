@@ -444,6 +444,30 @@ const
 	return cacheString;
 }
 
+string GTime::to_ISOstring(
+	int n)
+const
+{
+	string s = this->to_string(n);
+	s[10] = 'T';
+	return s;
+}
+
+double GTime::to_decyear() const
+{
+    UYds yds = *this;
+
+    double year = yds.year;
+    double doy = yds.doy;
+    double sod = yds.sod;
+
+    // Determine if the year is a leap year
+    bool isLeapYear = (static_cast<int>(year) % 4 == 0 && static_cast<int>(year) % 100 != 0) || (static_cast<int>(year) % 400 == 0);
+    int totalDaysInYear = isLeapYear ? 366 : 365;
+
+    return year + (doy + sod / secondsInDay) / totalDaysInYear;
+}
+
 GTime::operator GEpoch() const
 {
 	GEpoch gEpoch;

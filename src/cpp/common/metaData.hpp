@@ -10,6 +10,7 @@ using std::string;
 #define BSX_FILENAME_STR		((string)"bsxFilename")
 #define ORBEX_FILENAME_STR		((string)"orbexFilename")
 #define GPX_FILENAME_STR		((string)"gpxFilename")
+#define POS_FILENAME_STR		((string)"posFilename")
 #define ERP_FILENAME_STR		((string)"erpFilename")
 #define TRACE_FILENAME_STR		((string)"traceFilename")
 #define JSON_FILENAME_STR		((string)"jsonFilename")

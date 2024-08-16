@@ -1060,7 +1060,7 @@ void mongoReadFilter(
 
 										docMatch2 << MONGO_EPOCH		<< updateDoc[MONGO_EPOCH]	.get_date();
 										docMatch2 << MONGO_UPDATED		<< updateDoc[MONGO_UPDATED]	.get_date();
-										docMatch2 << MONGO_SERIES		<< "/PREDICTED";
+										docMatch2 << MONGO_SERIES		<< "_predicted";
 		if (str.empty() == false)		docMatch2 << MONGO_STR			<< str;
 		if (Sat.empty() == false)		docMatch2 << MONGO_SAT			<< Sat;
 

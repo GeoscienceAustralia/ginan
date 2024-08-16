@@ -7,15 +7,7 @@
 Measurements
 {% endblock %}
 {% block menuselection %}
-    {% if selection is not defined%}
-      {% set selection = {} %}
-      {% set _ = selection.__setitem__("plot",    "Line") %}
-      {% set _ = selection.__setitem__("state",   "*") %}
-      {% set _ = selection.__setitem__("site",    "*") %}
-      {% set _ = selection.__setitem__("sat",     "*") %}
-      {% set _ = selection.__setitem__("series",  "*") %}
-      {% set _ = selection.__setitem__("xaxis",   "Epoch") %}
-    {% endif %}
+
 <form method="post" class="row g-5" role="form" onsubmit="return validateForm()">
   <div class="col-lg-1">
     <label for="type" class="form-label">Type:</label>
@@ -23,7 +15,7 @@ Measurements
     <select class="selectpicker form-control" name="type" id="type" data-container="body" data-live-search="true"
       title="Select type">
       {% for key_ in extra['plotType'] %}
-      {% if selection is defined and selection['plot']|length and key_ in selection['plot'] or "*" in selection['plot'] %}
+      {% if selection is defined and selection['plot']|length and key_ in selection['plot']%}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
@@ -38,7 +30,7 @@ Measurements
       data-live-search="true" title="Select series" data-hide-disabled="true" data-actions-box="true"
       data-virtual-scroll="false">
       {% for series_ in session['list_measurements_series'] %}
-      {% if selection is defined and selection['series']|length and series_ in selection['series'] or "*" in selection['series'] %}
+      {% if selection is defined and selection['series']|length and series_ in selection['series'] %}
       <option value="{{series_}}" SELECTED>{{series_}}</option>"
       {%else%}
       <option value="{{series_}}">{{series_}}</option>"
@@ -53,7 +45,7 @@ Measurements
     <select multiple class="selectpicker form-control" name="sat" id="sat" data-container="body" data-live-search="true"
       title="Select satellite" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false"> {% for
       sat_ in session['list_sat'] %}
-      {% if selection is defined and selection['sat']|length and sat_ in selection['sat'] or "*" in selection['sat'] %}
+      {% if selection is defined and selection['sat']|length and sat_ in selection['sat'] %}
       <option value="{{sat_}}" SELECTED>{{sat_}}</option>"
       {%else%}
       <option value="{{sat_}}">{{sat_}}</option>"
@@ -69,7 +61,7 @@ Measurements
       data-live-search="true" title="Select Site" data-hide-disabled="true" data-actions-box="true"
       data-virtual-scroll="false">
       {% for site_ in session['list_site'] %}
-      {% if selection is defined and selection['site']|length and site_ in selection['site'] or "*" in selection['site'] %}
+      {% if selection is defined and selection['site']|length and site_ in selection['site'] %}
       <option value="{{site_}}" SELECTED>{{site_}}</option>"
       {%else%}
       <option value="{{site_}}">{{site_}}</option>"
@@ -116,7 +108,7 @@ Measurements
       data-live-search="true" title="Select series" data-hide-disabled="true" data-actions-box="true"
       data-virtual-scroll="false">
       {% for key_ in session['list_generic'] %}
-      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis'] or "*" in selection['yaxis'] %}
+      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis'] %}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
@@ -124,7 +116,7 @@ Measurements
       {% endfor %}
       <option data-divider="true"></option> <!-- Virtual separator -->
       {% for key_ in session['list_geometry'] %}
-      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis'] or "*" in selection['yaxis'] %}
+      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis'] %}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"
@@ -133,7 +125,7 @@ Measurements
       <option data-divider="true"></option> <!-- Virtual separator -->
 
       {% for key_ in session['list_measurements'] %}
-      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis'] or "*" in selection['yaxis'] %}
+      {% if selection is defined and selection['yaxis']|length and key_ in selection['yaxis']  %}
       <option value="{{key_}}" SELECTED>{{key_}}</option>"
       {%else%}
       <option value="{{key_}}">{{key_}}</option>"

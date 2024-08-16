@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 
 from backend.dbconnector.mongo import MongoDB
 from backend.data.measurements import MeasurementArray, Measurements
-from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data
+from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data, extract_database_series
 from . import eda_bp
 
 
@@ -41,12 +41,12 @@ def handle_post_request():
     current_app.logger.info(
         f"GET {form['plot']}, {form['series']}, {form['sat']}, {form['site']}, {form['xaxis']}, {form['yaxis']}, {form['yaxis']+[form['xaxis']]}, exclude {form['exclude']} mintues"
     )
-
+    session["measurements"] = form
     current_app.logger.info("Getting Connection")
     data = MeasurementArray()
     data2 = MeasurementArray()
     for series in form["series"]:
-        db_, series_ = series.split(">")
+        db_, series_ = extract_database_series(series)
         get_data(db_, "Measurements", None, form["site"], form["sat"], [series_], form["yaxis"] + [form["xaxis"]], data)
         if any([yaxis in session["list_geometry"] for yaxis in form["yaxis"] + [form["xaxis"]]]):
             get_data(db_, "Geometry", None, form["site"], form["sat"], [""], form["yaxis"] + [form["xaxis"]], data2)
@@ -55,7 +55,7 @@ def handle_post_request():
         return render_template(
             "measurements.jinja",
             # content=client.mongo_content,
-            selection=form,
+            selection=session["measurements"],
             extra=extra,
             message="Error getting data: No data",
         )
@@ -129,7 +129,7 @@ def handle_post_request():
         extra=extra,
         graphJSON=generate_fig(trace),
         mode="plotly",
-        selection=form,
+        selection=session["measurements"],
         table_data=table,
         table_headers=["RMS", "mean"],
         tableagg_data=table_agg,

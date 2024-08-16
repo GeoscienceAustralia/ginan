@@ -3001,11 +3001,15 @@ bool readSinex(
 
 	bool failure = false;
 
+	int lineNumber = 0;
+
 	while (filestream)
 	{
 		string line;
 
 		getline(filestream, line);
+
+		lineNumber++;
 
 		// test below empty line (ie continue if something on the line)
 		if	(!filestream)
@@ -3029,14 +3033,27 @@ bool readSinex(
 			if (line != closure)
 			{
 				BOOST_LOG_TRIVIAL(error)
-				<< "Error: Incorrect section closure line encountered: "
+				<< "Error: Incorrect section closure line encountered on line " << lineNumber << ": "
 				<< closure << " != " << line;
 			}
 		}
 		else if (line[0] == ' ')
 		{
-			//this probably needs specialty parsing - use a prepared function pointer.
-			parseFunction(line);
+			try
+			{
+				//this probably needs specialty parsing - use a prepared function pointer.
+				parseFunction(line);
+			}
+			catch (std::out_of_range& e)
+			{
+				BOOST_LOG_TRIVIAL(error)
+				<< "Error: Sinex line width error on line "		<< lineNumber << ": '" << line << "'";
+			}
+			catch (...)
+			{
+				BOOST_LOG_TRIVIAL(error)
+				<< "Error: Sinex parsing error on line "		<< lineNumber << ": '" << line << "'";
+			}
 		}
 		else if (line[0] == '+')
 		{

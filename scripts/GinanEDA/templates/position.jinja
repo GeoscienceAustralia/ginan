@@ -61,22 +61,6 @@ Positions
     </select>
   </div>
 
-
-  <div class="col-lg-2">
-    <label for="mode" class="form-label">Mode:</label>
-    <br>
-    <select class="selectpicker form-control" name="mode" id="mode" data-container="body" data-live-search="true"
-      title="Select series" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
-      {% for mode in extra['posMode'] %}
-      {% if selection is defined and selection['mode']|length and mode in selection['mode']%}
-      <option value="{{mode}}" SELECTED>{{mode}}</option>"
-      {%else%}
-      <option value="{{mode}}">{{mode}}</option>"
-      {%endif%}
-      {% endfor %}
-    </select>
-  </div>
-
   <div class="col-lg-2">
     <label for="site" class="form-label">Site:</label>
     <br>
@@ -92,6 +76,37 @@ Positions
       {% endfor %}
     </select>
   </div>
+
+  <div class="col-lg-1">
+    <label for="mode" class="form-label">Mode:</label>
+    <br>
+    <select class="selectpicker form-control" name="mode" id="mode" data-container="body" data-live-search="true"
+      title="Select series" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
+      {% for mode in extra['posMode'] %}
+      {% if selection is defined and selection['mode']|length and mode in selection['mode']%}
+      <option value="{{mode}}" SELECTED>{{mode}}</option>"
+      {%else%}
+      <option value="{{mode}}">{{mode}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-lg-1">
+    <label for="mode" class="form-label">Reference (base):</label>
+    <br>
+    <select class="selectpicker form-control" name="ref" id="ref" data-container="body" data-live-search="true"
+      title="Select reference" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
+      {% for mode in extra['positionRef'] %}
+      {% if selection is defined and selection['mode']|length and mode in selection['ref']%}
+      <option value="{{mode}}" SELECTED>{{mode}}</option>"
+      {%else%}
+      <option value="{{mode}}">{{mode}}</option>"
+      {%endif%}
+      {% endfor %}
+    </select>
+  </div>
+
 
   <div class="col-lg-1">
     <label for="exclude">Exclude first (min):</label>
