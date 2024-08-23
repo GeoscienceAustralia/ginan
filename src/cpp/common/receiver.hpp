@@ -6,7 +6,6 @@
 #include "attitude.hpp"
 #include "satStat.hpp"
 #include "common.hpp"
-#include "sinex.hpp"
 #include "cache.hpp"
 #include "gTime.hpp"
 #include "ppp.hpp"
@@ -83,18 +82,22 @@ struct Rtk
 	AttStatus					attStatus;
 };
 
+struct SinexSiteId;
+struct SinexReceiver;
+struct SinexAntenna;
+struct SinexSiteEcc;
 
-extern Sinex_siteid_t				dummySiteid;
-extern Sinex_receiver_t				dummyReceiver;
-extern Sinex_antenna_t				dummyAntenna;
-extern Sinex_site_ecc_t				dummySite_ecc;
+extern SinexSiteId			dummySiteid;
+extern SinexReceiver		dummyReceiver;
+extern SinexAntenna			dummyAntenna;
+extern SinexSiteEcc			dummySiteEcc;
 
 struct SinexRecData
 {
-	Sinex_siteid_t*				id_ptr		= &dummySiteid;
-	Sinex_receiver_t*			rec_ptr		= &dummyReceiver;
-	Sinex_antenna_t*			ant_ptr		= &dummyAntenna;
-	Sinex_site_ecc_t*			ecc_ptr		= &dummySite_ecc;
+	SinexSiteId*			id_ptr		= &dummySiteid;
+	SinexReceiver*			rec_ptr		= &dummyReceiver;
+	SinexAntenna*			ant_ptr		= &dummyAntenna;
+	SinexSiteEcc*			ecc_ptr		= &dummySiteEcc;
 
 	UYds		start;
 	UYds		stop = UYds(-1,-1,-1);
@@ -158,6 +161,8 @@ struct ReceiverMap : map<string, Receiver>
 
 };
 
+extern ReceiverMap	receiverMap;
+
 struct Network
 {
 	string traceFilename;
@@ -166,3 +171,7 @@ struct Network
 
 	KFState kfState			= {};
 };
+
+void initialiseStation(
+	string		id,
+	Receiver&	rec);

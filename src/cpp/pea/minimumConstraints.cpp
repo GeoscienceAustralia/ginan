@@ -806,7 +806,7 @@ void mincon(
 			if	(  key.num	== 0
 				&& key.type	== KF::REC_POS)
 			{
-				sinex_add_comment((string)" Minimum Constraints Stations: " + key.str + (usedMap[index] ? "   used" : " unused"));
+				sinexAddComment((string)" Minimum Constraints Stations: " + key.str + (usedMap[index] ? "   used" : " unused"));
 			}
 		}
 
@@ -823,7 +823,7 @@ void mincon(
 					key.comment.c_str(),
 					sqrt(kfStateTrans.P(index,index)));
 
-			sinex_add_comment(line);
+			sinexAddComment(line);
 		}
 	}
 }
@@ -922,7 +922,7 @@ KFState minconOnly(
 
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
 	{
-		kfState.stateTransitionMap[kfKey][kfKey][0] = 1;		//todo aaron, remove, just in init function?
+		kfState.stateTransitionMap[kfKey][kfKey][0] = 1;
 	}
 
 	kfState.outputStates(trace, "/UNCONSTRAINED");

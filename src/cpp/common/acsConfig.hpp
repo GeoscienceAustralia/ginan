@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/program_options.hpp>
 
 #include <yaml-cpp/yaml.h>
@@ -220,6 +219,7 @@ struct OutputOptions
 	bool					output_clocks 				= false;
 	vector<E_Source>		clocks_receiver_sources  	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>		clocks_satellite_sources 	= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+	double					clocks_output_interval		= 1;
 	string					clocks_directory			= "<OUTPUTS_ROOT>";
 	string					clocks_filename				= "<CLOCKS_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.clk";
 
@@ -228,7 +228,7 @@ struct OutputOptions
 	bool					output_sp3_velocities		= false;
 	vector<E_Source>		sp3_orbit_sources 			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>		sp3_clock_sources 			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
-	int						sp3_output_interval			= 900;
+	double					sp3_output_interval			= 1;
 	string					sp3_directory				= "<OUTPUTS_ROOT>";
 	string					sp3_filename				= "<SP3_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>-Filt.sp3";
 	string					predicted_sp3_filename		= "<SP3_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>-Prop.sp3";
@@ -237,6 +237,7 @@ struct OutputOptions
 	vector<E_Source>		orbex_orbit_sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>		orbex_clock_sources			= {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
 	vector<E_Source>		orbex_attitude_sources 		= {E_Source::NOMINAL};
+	double					orbex_output_interval		= 1;
 	string					orbex_directory				= "<OUTPUTS_ROOT>";
 	string					orbex_filename				= "<ORBEX_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.obx";
 	vector<E_OrbexRecord>	orbex_record_types			= {E_OrbexRecord::ATT};
@@ -488,7 +489,7 @@ struct GlobalOptions
 	bool	use_tgd_bias	= false;
 
 	double	wait_next_epoch				= 0;
-	double	max_latency					= 0;
+	double	max_rec_latency				= 0;
 	bool	require_obs					= true;
 	bool	assign_closest_epoch		= false;
 
@@ -1273,7 +1274,6 @@ struct SsrOptions
 	vector<E_Source>	code_bias_sources		= {E_Source::PRECISE};
 	vector<E_Source>	phase_bias_sources		= {E_Source::NONE};
 	vector<E_Source>	atmosphere_sources		= {E_Source::NONE};
-	E_SSROutTiming		output_timing			= E_SSROutTiming::GPS_TIME;
 	bool cmpssr_cell_mask						= false;
 	int  cmpssr_stec_format						= 3;
 	int  cmpssr_trop_format						= 1;
@@ -1444,10 +1444,6 @@ bool replaceString(
 bool configure(
 	int		argc,
 	char**	argv);
-
-bool checkValidFile(
-	const string&	path,				///< Filename to check
-	const string&	description = "");	///< Description for error messages
 
 void dumpConfig(
 	Trace& trace);

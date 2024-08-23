@@ -1,6 +1,13 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+Architecture SPP__()
+{
+
+}
+
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -368,6 +375,8 @@ E_Solution estpos(
 		kfState = KFState();		//reset to zero to prevent lock-in of bad positions
 	}
 
+	kfState.FilterOptions::operator=(acsConfig.sppOpts);
+
 	int iter;
 	int removals = 0;
 	double adjustment = 10000;
@@ -399,6 +408,7 @@ E_Solution estpos(
 
 		if (pos.hgt() > 60'000'000)
 		{
+			tracepdeex(5, trace, "\nSPP found unfeasible position with height: %f", pos.hgt());
 			return E_Solution::NONE;
 		}
 
@@ -657,29 +667,34 @@ E_Solution estpos(
 			sol.numMeas	= numMeas;
 			sol.sppTime	= obsList.front()->time - dtRec_m / CLIGHT;
 
-			double a = sqrt( kfState.P(1,1) + kfState.P(2,2) + kfState.P(3,3)	) * kfState.chi / kfState.dof;
-			double b = sqrt( kfState.P(4,4)										) * kfState.chi / kfState.dof;
-
-			tracepdeex(5, trace, "chi2stats: sqrt(var_pos) * chi^2/dof = %10f\n", a);
-			tracepdeex(5, trace, "chi2stats: sqrt(var_dclk)* chi^2/dof = %10f\n", b);
-
 			if (traceLevel >= 4)
 			{
 				kfState.outputStates(trace, (string)"/" + description);
 			}
 
-			if (kfState.chiQCPass == false)
+			if (kfState.chiSquareTest.enable)
 			{
-				tracepdeex(4, trace, " - Bad chiQC");
+				double a = sqrt( kfState.P(1,1) + kfState.P(2,2) + kfState.P(3,3)	) * kfState.chi / kfState.dof;
+				double b = sqrt( kfState.P(4,4)										) * kfState.chi / kfState.dof;
 
-				//too many (false) positives, announce but ignore
-				return E_Solution::SINGLE_X;
+				tracepdeex(4, trace, "chi2stats: chi = %10f\n",							kfState.chi);
+				tracepdeex(4, trace, "chi2stats: dof = %10f\n",							kfState.dof);
+				tracepdeex(5, trace, "chi2stats: sqrt(var_pos) * chi^2/dof = %10f\n",	a);
+				tracepdeex(5, trace, "chi2stats: sqrt(var_dclk)* chi^2/dof = %10f\n",	b);
+
+				if (kfState.chiQCPass == false)
+				{
+					tracepdeex(4, trace, " - Bad chiQC");
+
+					return E_Solution::SINGLE_X;
+				}
 			}
 
 			bool dopPass = validateDOP(trace, obsList, recOpts.elevation_mask_deg, &sol.dops);
 			if (dopPass == false)
 			{
 				tracepdeex(4, trace, " - Bad DOP %f", sol.dops.gdop);
+
 				return E_Solution::SINGLE_X;
 			}
 
@@ -705,11 +720,29 @@ bool raim(
 	string		id,			///< Id of receiver
 	KFState*	kfState_ptr = nullptr)
 {
-	trace << " Performing RAIM." << "\n";
-
-	double	bestRms	= 100;
+	trace << "\n" << "Performing RAIM.";
 
 	SatSys exSat;
+	double bestRms = 100;
+
+	map<SatSys, SatStat> satStatBak;
+	map<SatSys, SatStat> satStatBest;
+
+	auto backupSatStats = [&](map<SatSys, SatStat>& dest, bool backup)
+	{
+		for (auto& obs : only<GObs>(obsList))
+		{
+			if (obs.exclude)
+			{
+				continue;
+			}
+
+			if (backup)		dest[obs.Sat]		= *obs.satStat_ptr;
+			else			*obs.satStat_ptr	= dest[obs.Sat];
+		}
+	};
+
+	backupSatStats(satStatBak, true);
 
 	for (auto& testObs : only<GObs>(obsList))
 	{
@@ -720,16 +753,7 @@ bool raim(
 
 		map<SatSys, SatStat> satStatBak;
 
-		//store 'best' satStats for later
-		for (auto& obs : only<GObs>(obsList))
-		{
-			if (obs.exclude)
-			{
-				continue;
-			}
-
-			satStatBak[obs.Sat] = *obs.satStat_ptr;
-		}
+		backupSatStats(satStatBak, false);
 
 		ObsList testList;
 
@@ -743,6 +767,9 @@ bool raim(
 		}
 
 		Solution sol_e = sol;
+
+		//avoid lock-in for raim despite config
+		sol_e.sppState = KFState();
 
 		//try to get position using test subset of all observations
 		E_Solution status = estpos(trace, testList, sol_e, id, kfState_ptr, (string)"RAIM/" + id + "/" + testObs.Sat.id());
@@ -776,33 +803,24 @@ bool raim(
 		if (testRms > bestRms)
 		{
 			//this solution is worse
-
-			//revert satStats
-			for (auto& obs : only<GObs>(obsList))
-			{
-				if (obs.exclude)
-				{
-					continue;
-				}
-
-				*obs.satStat_ptr = satStatBak[obs.Sat];
-			}
-
 			continue;
 		}
 
-		/* save result */
+		// copy test obs to real result
 		for (auto& testObs : only<GObs>(testList))
 		for (auto& origObs : only<GObs>(obsList))
 		{
 			if (testObs.Sat != origObs.Sat)
 			{
+				//only use the equivalent obs in the real list according to the test list
 				continue;
 			}
 
 			origObs.sppValid		= testObs.sppValid;
 			origObs.sppCodeResidual	= testObs.sppCodeResidual;
 		}
+
+		backupSatStats(satStatBest, true);
 
 		sol					= sol_e;
 		sol.status			= E_Solution::SINGLE;
@@ -813,8 +831,11 @@ bool raim(
 
 	if ((int) exSat)
 	{
-		tracepdeex(3, trace, "%s: %s excluded by raim", obsList.front()->time.to_string().c_str(), exSat.id().c_str());
+		backupSatStats(satStatBest, false);
+
+		tracepdeex(3, trace, "\n%s: %s excluded by RAIM", obsList.front()->time.to_string().c_str(), exSat.id().c_str());
 		BOOST_LOG_TRIVIAL(debug) << "SPP converged after " << exSat.id() << " was excluded for " << obsList.front()->mount;
+
 		return true;
 	}
 
@@ -857,11 +878,11 @@ void spp(
 	//estimate receiver position with pseudorange
 	sol.status = estpos(trace, obsList, sol, id, kfState_ptr, (string) "SPP/" + id);	//todo aaron, remote too?
 
-	//Receiver Autonomous Integrity Monitoring
 	if (sol.status != +E_Solution::SINGLE)
 	{
 		trace << "\n" << "Spp error with " << sol.numMeas << " measurements.";
 
+		//Receiver Autonomous Integrity Monitoring
 		if	( sol.numMeas >= 6		//need 6 so that 6-1 is still overconstrained, otherwise they all pass equally.
 			&&acsConfig.sppOpts.raim)
 		{
@@ -882,7 +903,7 @@ void spp(
 			&&sol.status != +E_Solution::SINGLE_X)
 		{
 			//all measurements are bad if we cant get spp
-// 			printf("\n all spp bad");
+			// printf("\n all spp bad");
 			obs.excludeBadSPP = true;
 			continue;
 		}
@@ -893,7 +914,7 @@ void spp(
 			continue;
 		}
 
-// 		printf("\n %s spp bad", obs.Sat.id().c_str());
+		// printf("\n %s spp bad", obs.Sat.id().c_str());
 		obs.excludeBadSPP = true;
 	}
 

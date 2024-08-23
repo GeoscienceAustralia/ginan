@@ -517,7 +517,7 @@ void HfOceanEop::read(
 		iss >> data.lodSin;
 		iss >> data.lodCos;
 
-		HfOcean_vector.push_back(data);
+		hfOceanDataVec.push_back(data);
 	}
 
 	initialized = true;
@@ -535,7 +535,7 @@ void HfOceanEop::compute(
 	ut1	= 0;
 	lod	= 0;
 
-	for (auto& hfdata : HfOcean_vector)
+	for (auto& hfdata : hfOceanDataVec)
 	{
 		double theta = (fundamentalArgs * hfdata.mFundamentalArgs).sum();
 

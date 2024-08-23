@@ -3,7 +3,7 @@
 
 add_subdirectory(3rdparty/sofa)
 
-add_library(ginan_core
+add_executable(pea
 
 		../Architecture/Ginan.cpp
 
@@ -28,6 +28,8 @@ add_library(ginan_core
 		3rdparty/iers2010/dehanttideinel/dehanttide_all.cpp
 
 		pea/main.cpp
+		pea/inputs.cpp
+		pea/outputs.cpp
 		pea/minimumConstraints.cpp
 		pea/minimumConstraints.hpp
 		pea/peaCommitStrings.cpp
@@ -166,7 +168,7 @@ add_library(ginan_core
 		sbas/sbas.cpp
 )
 
-target_include_directories(ginan_core PUBLIC
+target_include_directories(pea PUBLIC
 		3rdparty
 		3rdparty/egm96
 		3rdparty/iers2010
@@ -206,13 +208,13 @@ target_include_directories(ginan_core PUBLIC
 		"/usr/local/lib"
 		)
 
-target_compile_options(ginan_core PRIVATE -fpie)
+target_compile_options(pea PRIVATE -fpie)
 
 if(OpenMP_CXX_FOUND)
-	target_link_libraries(ginan_core PUBLIC OpenMP::OpenMP_CXX)
+	target_link_libraries(pea PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-target_compile_definitions(ginan_core PRIVATE
+target_compile_definitions(pea PRIVATE
 							EIGEN_USE_BLAS=1
 						)
 
@@ -295,11 +297,11 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 if(ENABLE_PARALLELISATION)
-	target_compile_definitions(ginan_core PRIVATE ENABLE_PARALLELISATION=1)
+	target_compile_definitions(pea PRIVATE ENABLE_PARALLELISATION=1)
 endif()
 
 
-target_link_libraries(ginan_core PUBLIC
+target_link_libraries(pea PUBLIC
 						m
 						pthread
 						# openblasp
@@ -317,17 +319,7 @@ target_link_libraries(ginan_core PUBLIC
 						ncurses
 					)
 
-
-add_executable(pea
-	pea.cpp)
-
 set_property(TARGET pea PROPERTY POSITION_INDEPENDENT_CODE FALSE)
-
-target_include_directories(pea PUBLIC
-	)
-
-target_link_libraries(pea PRIVATE ginan_core)
-
 
 add_custom_target(peas)
 

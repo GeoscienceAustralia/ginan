@@ -59,7 +59,6 @@ size_t bucket = 0;
 #include "receiver.hpp"
 #include "biases.hpp"
 
-extern ReceiverMap	receiverMap;
 
 static void* plumber_hook(size_t size, const void* caller);
 static void* plumber_hook(size_t size, const void* caller)

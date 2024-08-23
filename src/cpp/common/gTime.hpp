@@ -235,7 +235,7 @@ struct GTime
 
 	string to_ISOstring(int n = 2) const;
 
-	double to_decyear() const;
+	double to_decYear() const;
 
 	bool operator ==	(const GTime& t2) const
 	{
@@ -618,7 +618,7 @@ struct UYds : array<double, 3>
 		while (sod < 0)					{	sod += secondsInDay;		doy--;	}
 
 		while (doy > 366)				{	doy -= 365;					year++;	}
-		while (doy < 1)					{	doy += 365;					year--;	}	//todo aaron, ew
+		while (doy < 1)					{	doy += 365;					year--;	}
 
 		return *this;
 	}

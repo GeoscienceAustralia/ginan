@@ -39,7 +39,10 @@ using std::map;
 
 // #pragma GCC optimize ("O0")
 
-
+/** Rauch-Tung-Striebel Smoothing.
+ * Combine estimations using filtered data from before and after each epoch.
+ * Complete filter vectors and matrices are stored in a binary file that is able to be read in reverse.
+ */
 Architecture RTS_Smoothing__()
 {
 	DOCS_REFERENCE(Binary_Archive__);
@@ -144,26 +147,32 @@ void postRTSActions(
 // 		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], receiverMap);
 	}
 
+	auto time = kfState.time;
+
+	static GTime clkOutputTime = time.floorTime(acsConfig.clocks_output_interval);
+	static GTime obxOutputTime = time.floorTime(acsConfig.orbex_output_interval);
+	static GTime sp3OutputTime = time.floorTime(acsConfig.sp3_output_interval);
+
 	{
-		if (acsConfig.output_orbit_ics)		{	outputOrbitConfig	(																									kfState, acsConfig.pppOpts.rts_smoothed_suffix);																		}
-		if (acsConfig.output_clocks)		{	outputClocks		(				kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, kfState.time, kfState, &receiverMap);					}
-		if (acsConfig.output_orbex)			{	outputOrbex			(				kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.orbex_orbit_sources,	acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources,	&kfState);	}
-		if (acsConfig.output_sp3)			{	outputSp3			(				kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time, acsConfig.sp3_orbit_sources,		acsConfig.sp3_clock_sources,										&kfState);	}
-		if (acsConfig.output_trop_sinex)	{	outputTropSinex		(				kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time,	kfState, "MIX", true);																							}
-		if (acsConfig.output_ionex)			{	ionexFileWrite		(nullStream,	kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], kfState.time,	kfState);																										}
-		if (acsConfig.output_erp)			{	writeErpFromNetwork	(				kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX],					kfState);																										}
-		if (acsConfig.output_ionstec)		{	writeIonStec	 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX],					kfState);																										}
+		if (acsConfig.output_orbit_ics)										{	outputOrbitConfig	(																									kfState, acsConfig.pppOpts.rts_smoothed_suffix);																	}
+		if (acsConfig.output_clocks)		while (clkOutputTime >= time)	{	outputClocks		(				kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], clkOutputTime, acsConfig.clocks_receiver_sources,	acsConfig.clocks_satellite_sources, kfState, &receiverMap);							clkOutputTime -= acsConfig.clocks_output_interval;	}
+		if (acsConfig.output_orbex)			while (obxOutputTime >= time)	{	outputOrbex			(				kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], obxOutputTime, acsConfig.orbex_orbit_sources,		acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources,	&kfState);		obxOutputTime -= acsConfig.orbex_output_interval;	}
+		if (acsConfig.output_sp3)			while (sp3OutputTime >= time)	{	outputSp3			(				kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], sp3OutputTime, acsConfig.sp3_orbit_sources,			acsConfig.sp3_clock_sources,										&kfState);		sp3OutputTime -= acsConfig.sp3_output_interval;	}
+		if (acsConfig.output_trop_sinex)									{	outputTropSinex		(				kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], time,			kfState, "MIX", true);																								}
+		if (acsConfig.output_ionex)											{	ionexFileWrite		(nullStream,	kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], time,			kfState);																											}
+		if (acsConfig.output_erp)											{	writeErpFromNetwork	(				kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX],					kfState);																											}
+		if (acsConfig.output_ionstec)										{	writeIonStec	 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX],					kfState);																											}
 	}
 
 	for (auto& [id, rec] : receiverMap)
 	{
-		if (acsConfig.output_cost)			{	outputCost			(				kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
-		if (acsConfig.output_gpx)			{	writeGPX			(				kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
-		if (acsConfig.output_pos)			{	writePOS			(				kfState.metaDataMap[POS_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX], kfState,	rec);		}
+		if (acsConfig.output_cost)											{	outputCost			(				kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX],					kfState,	rec);		}
+		if (acsConfig.output_gpx)											{	writeGPX			(				kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX],					kfState,	rec);		}
+		if (acsConfig.output_pos)											{	writePOS			(				kfState.metaDataMap[POS_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX],					kfState,	rec);		}
 	}
 }
 
-/** Output filter states from a reversed binary trace file
+/** Output filter states in chronological order from a reversed binary trace file
 */
 void RTS_Output(
 	KFState&		kfState,			///< State to get filter traces from
@@ -273,6 +282,16 @@ void RTS_Output(
 	}
 }
 
+/** Iterate over stored filter states in reverse and perform filtering.
+ * Saves filtered states to a secondary binary file, which is in reverse-chronological order due to the save sequence.
+ * Most serial objects that are processed are merely stored or accumulated as prerequisites for the FILTER_PLUS object,
+ * which contains the state of the filter immediately after the update step.
+ * At that stage, the previously smoothed (next chronologically) filter state is combined with the next filter minus state
+ * (immediately before the next chronological update step), any state transitions, and the filter plus state, using the standard rts algorithm.
+ * The filtered state and a measurements object which has updated residuals are then stored in a binary file.
+ * If intermediate outputs are enabled (rare) it performs some outputs using each filter state, but typically outputs all states chronologically
+ * after the reverse running rts procedure has reached the first epoch and all data is available for output in the correct sequence.
+ */
 void rtsSmoothing(
 	KFState&		kfState,
 	ReceiverMap&	receiverMap,

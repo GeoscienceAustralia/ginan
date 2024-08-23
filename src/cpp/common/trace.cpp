@@ -1,6 +1,8 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
 #include <unordered_map>
 #include <functional>
 #include <stdarg.h>
@@ -12,8 +14,8 @@ using std::unordered_map;
 #include <boost/format.hpp>
 
 #include "interactiveTerminal.hpp"
-#include "architectureDocs.hpp"
 #include "peaCommitStrings.hpp"
+#include "inputsOutputs.hpp"
 #include "observations.hpp"
 #include "mongoWrite.hpp"
 #include "navigation.hpp"

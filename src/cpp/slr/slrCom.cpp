@@ -20,7 +20,7 @@ using namespace boost::algorithm;
 
 constexpr int MIN_LINE_LEN = 64;
 
-SphericalComMap	sphericalComMap;			//todo aaron, ew
+SphericalComMap	sphericalComMap;
 
 
 /** Read SLR spherical satellite centre-of-mass (CoM) file

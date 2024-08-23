@@ -14,6 +14,7 @@ using std::set;
 struct MongoOptions;
 struct ReceiverMap;
 struct OrbitState;
+struct KFState;
 struct KFMeas;
 struct Geph;
 struct Eph;
@@ -68,7 +69,7 @@ void mongoStates(
 	MongoStatesOptions	opts = {});
 
 void mongoMeasSatStat(
-	ReceiverMap&			receiverMap);
+	ReceiverMap&		receiverMap);
 
 void mongoTestStat(
 	KFState&			kfState,

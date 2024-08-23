@@ -30,7 +30,11 @@
 
 ## Ginan user stories
 
-> [![](images/AIMSThumb.png) A demonstration showing Ginan on air and sea drones at AIMS Reefworks. August 2023.](resources/GinanAIMSCaseStudy.pdf)
+> [![](images/Ginan_case_study_bom.png) Report on the results of taking "Ginan-in-a-box" to the edge of space on a weather balloon. Partners: Bureau of Metereology, FroniterSI. June 2024](https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/metadata/149656)
+
+> [![](images/Ginan_case_study_csiro.png) Report on using Ginan to measure the water level of Googong dam. Partners: Bureau of Metereology, FroniterSI. August 2024](https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/metadata/149667)
+
+> [![](images/AIMSThumb.png) Report on a demonstration showing Ginan on air and sea drones at AIMS Reefworks. August 2023.](https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/metadata/148622)
 
 > [![](images/Locate23_S_McClusky_frontpage101X57.jpg) Open-source Precise Point Positioning (PPP) with Ginan v2 - Simon McClusky, from Locate 23, 11 May 2023.](resources/Locate23_S_McClusky_final.pdf)
 

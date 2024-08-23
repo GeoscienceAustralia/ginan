@@ -1,6 +1,15 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/**
+ */
+ParallelArchitecture UDUC_GNSS_Measurements__()
+{
+
+}
+
 /** References
 * 1. M.Fritsche, R.Dietrich, C.Knöfel, A.Rülke, S.Vey, M.Rothacher & P.Steigenberger, Impact of higher‐order ionospheric terms on GPS estimates. Geophysical research letters, 2005.
 * 2. GAMIT 10.71
@@ -945,11 +954,11 @@ inline static void pppIonModel(COMMON_PPP_ARGS)
 inline static void pppTropMap(COMMON_PPP_ARGS)
 {
 	// double troposphere_m	= tropDryZTD(trace, recOpts.tropModel.models, kfState.time, pos);
-	TropStates	tropStates;					//todo aaron unused?
+	TropStates	tropStates;
 	TropMapping	dTropDx;
 	double		varTrop = 0;
 
-	double modelTroposphere_m	= tropModel(trace, recOpts.tropModel.models, time, pos, satStat, tropStates, dTropDx, varTrop);
+	double modelTroposphere_m = tropModel(trace, recOpts.tropModel.models, time, pos, satStat, tropStates, dTropDx, varTrop);
 
 	InitialState init = initialStateFromConfig(recOpts.trop_maps);
 
@@ -1478,13 +1487,15 @@ void checkModels(
 #define	COMMON_ARG(type)
 
 
-void receiverPPP(
+void receiverUducGnss(
 			Trace&				pppTrace,			///< Trace to output to
 			Receiver&			rec,				///< Receiver to perform calculations for
 	const	KFState&			kfState,			///< Kalman filter object containing the state parameters
 			KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
 	const	KFState&			remoteKF)			///< Kalman filter object containing remote filter values
 {
+	DOCS_REFERENCE(UDUC_GNSS_Measurements__);
+
 	auto trace		= getTraceFile(rec);
 	auto jsonTrace	= getTraceFile(rec, true);
 

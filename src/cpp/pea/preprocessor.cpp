@@ -1,6 +1,23 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/** Use linear combinations of primary signals to detect jumps in carrier phase observations
+ */
+Architecture Cycle_Slip_Detection__()
+{
+
+}
+
+/** Perform basic quality checks on observations
+ */
+Architecture Preprocessing__()
+{
+	DOCS_REFERENCE(Cycle_Slip_Detection__);
+	DOCS_REFERENCE(SPP__);
+}
+
 #include "observations.hpp"
 #include "navigation.hpp"
 #include "GNSSambres.hpp"
@@ -40,9 +57,9 @@ void outputObservations(
 		},
 		{
 			{"SNR", sig.snr},
-			// {"L", sig.L},
-			// {"P", sig.P},
-			// {"D", sig.D},
+			{"L",	sig.L},
+			{"P",	sig.P},
+			{"D",	sig.D},
 			// {"LLI", sig.lli},
 		});
 	}
@@ -149,6 +166,8 @@ void preprocessor(
 	Receiver&	rec,
 	bool		realEpoch)
 {
+	DOCS_REFERENCE(Preprocessing__);
+
 	if	( (acsConfig.process_preprocessor == false)
 		||(acsConfig.preprocOpts.preprocess_all_data == true	&& realEpoch == true)
 		||(acsConfig.preprocOpts.preprocess_all_data == false	&& realEpoch == false))

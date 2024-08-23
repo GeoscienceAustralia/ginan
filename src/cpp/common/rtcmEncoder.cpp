@@ -116,7 +116,7 @@ void calculateSsrComb(
 
 			ssrUra.ura		= uraSsr[0];
 
-			tracepdeex (6,std::cout,"\n   RTCM_intp_Clk  %s %s %8.3f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrClk.dclk[0]);
+			tracepdeex (6, std::cout, "\n   RTCM_intp_Clk  %s %s %8.3f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrClk.dclk[0]);
 
 		}
 		else
@@ -124,8 +124,8 @@ void calculateSsrComb(
 			ssrEph.deph		= ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) * posCorrections[1];
 			ssrClk.dclk[0]	= -clkCorrections[1];
 			ssrUra.ura		= uras[1];
-			tracepdeex (6,std::cout,"\n   RTCM_last_Clk  %s %s %8.4f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrClk.dclk[0]);
-			tracepdeex (6,std::cout,"\n   RTCM_last_Eph  %s %s %8.4f %8.4f %8.4f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrEph.deph[0], ssrEph.deph[1], ssrEph.deph[2]);
+			tracepdeex (6, std::cout, "\n   RTCM_last_Clk  %s %s %8.4f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrClk.dclk[0]);
+			tracepdeex (6, std::cout, "\n   RTCM_last_Eph  %s %s %8.4f %8.4f %8.4f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrEph.deph[0], ssrEph.deph[1], ssrEph.deph[2]);
 		}
 
 		//adjust all clock corrections so that they remain within the bounds of the outputs

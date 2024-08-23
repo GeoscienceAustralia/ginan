@@ -11,12 +11,12 @@ using std::vector;
 struct FundamentalArgs : Array6d
 {
 	double& gmst;
-	double& l;	
-	double& l_prime;	
-	double& f;	
-	double& d;	
+	double& l;
+	double& l_prime;
+	double& f;
+	double& d;
 	double& omega;
-	
+
 	FundamentalArgs(
 		GTime	time,
 		double	ut1_utc);
@@ -42,13 +42,13 @@ struct HfOceanEOPData
 
 struct HfOceanEop
 {
-	vector<HfOceanEOPData> HfOcean_vector;
+	vector<HfOceanEOPData> hfOceanDataVec;
 	string filename;
 	bool initialized = false;
-	
+
 	void read(
 		const string& filename);
-	
+
 	void compute(
 		Array6d&	fundamentalArgs,
 		double&		x,
@@ -65,46 +65,46 @@ struct IERS2010
 	static void PMGravi(
 		GTime			time,
 		double			ut1_utc,
-		double&			x, 
-		double&			y, 
-		double&			ut1, 
+		double&			x,
+		double&			y,
+		double&			ut1,
 		double&			lod);
 
 	static void PMUTOcean(
 		GTime			time,
 		double			ut1_utc,
-		double&			x, 
-		double&			y, 
+		double&			x,
+		double&			y,
 		double&			ut);
-	
+
 	static Array6d doodson(
 		GTime			time,
 		double			ut1_utc);
 
 	static void solidEarthTide1(
-		const Vector3d&	ITRFSun, 
-		const Vector3d&	ITRFMoon, 
-		MatrixXd&		Cnm, 
+		const Vector3d&	ITRFSun,
+		const Vector3d&	ITRFMoon,
+		MatrixXd&		Cnm,
 		MatrixXd&		Snm);
-	
+
 	static void solidEarthTide2(
 		GTime			time,
 		double			ut1_utc,
-		MatrixXd&		Cnm, 
+		MatrixXd&		Cnm,
 		MatrixXd&		Snm);
 
 	static void poleSolidEarthTide(
 		MjDateTT		mjdTT,
-		const double	xp, 
-		const double	yp, 
-		MatrixXd&		Cnm, 
+		const double	xp,
+		const double	yp,
+		MatrixXd&		Cnm,
 		MatrixXd&		Snm);
-	
+
 	static void poleOceanTide(
 		MjDateTT		mjdTT,
-		const double	xp, 
-		const double	yp, 
-		MatrixXd&		Cnm, 
+		const double	xp,
+		const double	yp,
+		MatrixXd&		Cnm,
 		MatrixXd&		Snm);
 
 	static Vector3d relativity(
@@ -116,7 +116,7 @@ struct IERS2010
 		const	Matrix3d&	dU);
 
 	static void meanPole(
-		const MjDateTT&	mjd, 
+		const MjDateTT&	mjd,
 		double&			xpv,
 		double&			ypv);
 };

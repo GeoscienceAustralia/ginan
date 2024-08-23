@@ -263,9 +263,9 @@ processing_options:
         ionosphere: false
 
     epoch_control:
-        epoch_interval: 300
-        wait_next_epoch: 3600 # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
-        wait_all_receivers: 1
+        epoch_interval:               300
+        wait_next_epoch:              3600     # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+        max_rec_latency:              1
 
     gnss_general:
         minimise_sat_clock_offsets: true

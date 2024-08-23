@@ -327,7 +327,7 @@ void NtripStream::requestResponseHandler(
 		return;
 	}
 
-	responseString = responseString.substr(0,pos);
+	responseString = responseString.substr(0, pos);
 	responseString += "\r\n\r\n";
 
 	// Note read buffer can be longer than the supplied delimiter.
@@ -557,7 +557,7 @@ void TcpSocket::connectionError(
 
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("label", 			"connectionError"));
-	doc.append(kvp("Stream", 			url.path.substr(1,url.path.length())));
+	doc.append(kvp("Stream", 			url.path.substr(1, url.path.length())));
 	doc.append(kvp("Time", 				time.to_string()));
 	doc.append(kvp("BoostSysErrCode",	err.value()));
 	doc.append(kvp("BoostSysErrMess",	err.message()));
@@ -585,7 +585,7 @@ void NtripStream::serverResponse(
 
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("label", 		__FUNCTION__));
-	doc.append(kvp("Stream", 		url.path.substr(1,url.path.length())));
+	doc.append(kvp("Stream", 		url.path.substr(1, url.path.length())));
 	doc.append(kvp("Time", 			time.to_string()));
 	doc.append(kvp("ServerStatus", 	(int)statusCode));
 	doc.append(kvp("VersionHTTP",	httpVersion));

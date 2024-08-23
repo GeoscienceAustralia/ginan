@@ -1,6 +1,15 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/**
+ */
+Architecture Orbit_Integrator__()
+{
+
+}
+
 #include <boost/algorithm/string.hpp>
 #include <deque>
 #include <map>
@@ -14,6 +23,7 @@ using std::deque;
 using std::map;
 
 #include "interactiveTerminal.hpp"
+#include "inputsOutputs.hpp"
 #include "oceanPoleTide.hpp"
 #include "eigenIncluder.hpp"
 #include "acceleration.hpp"
@@ -770,8 +780,8 @@ Orbits prepareOrbits(
 
 		string svn		= Sat.svn();
 
-		auto findPower_it = theSinex.map_satpowers.find(svn);
-		if (findPower_it != theSinex.map_satpowers.end())
+		auto findPower_it = theSinex.mapsatpowers.find(svn);
+		if (findPower_it != theSinex.mapsatpowers.end())
 		{
 			auto& [svn, satPowerMap] = *findPower_it;
 			auto& [time, firstPower] = *satPowerMap.begin();
@@ -779,8 +789,8 @@ Orbits prepareOrbits(
 			orbit.power = firstPower.power;
 		}
 
-		auto findMass_it = theSinex.map_satmasses.find(svn);
-		if (findMass_it != theSinex.map_satmasses.end())
+		auto findMass_it = theSinex.mapsatmasses.find(svn);
+		if (findMass_it != theSinex.mapsatmasses.end())
 		{
 			auto& [svn, satMassMap] = *findMass_it;
 			auto& [time, firstMass] = *satMassMap.begin();

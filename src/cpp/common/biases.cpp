@@ -1,6 +1,13 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+FileType BSX__()
+{
+
+}
+
 #include <functional>
 
 #include "constants.hpp"
@@ -380,6 +387,8 @@ bool calculateBias(
 		output = interpolateBias(time, bias1, bias2);
 		return true;
 	}
+
+	return false;
 }
 
 void setRestrictiveStartTime(

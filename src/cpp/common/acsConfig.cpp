@@ -1,6 +1,69 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/** YAML based configuration.
+ * The Pea uses one or more yaml files as its source of configuration. YAML files are simple heirarchical documents which are straightforward to edit in basic text editors.
+ *
+ *
+ * The configuration parser performs many functions simultaneously, which may lead to issues if modifications are made without due care.
+ * In most cases, finding a similar configuration and duplicating all references to it will be the most straightforward method of creating new parameters.
+ *
+ * The lines in this file can become very long, because they do perform so many functions at once, however they should be aligned such that columns of similar parameters form naturally on the screen.
+ * This is preferable to more standard formatting because of the vast amount of duplication that would be required otherwise. The block-select tool in the IDE will come in handy.
+ * There are cases where artificial scoping is used to allow dummy variables to be used such that rather than copying one variable name into multiple function calls, which is always a source of bugs,
+ * a single common parameter name may be used across many unrelated lines. `thing` is one such variable name.
+ *
+
+ */
+Architecture Config__()
+{
+	DOCS_REFERENCE(Globbing_And_Tags__);
+	DOCS_REFERENCE(Aliases_And_Inheritance__);
+	DOCS_REFERENCE(Default_Values_And_Configurator__);
+}
+
+/** Automatic expansion of configs.
+ *
+ */
+Architecture Globbing_And_Tags__()
+{
+
+}
+
+/** Some configuration structures are possible to be configured specific for eg a receiver or signal or combination of both.
+ * *
+ * Rather than creating multitudes of 'initialised' variables to correspond with config parameters, a map and pointer algebra is used to keep track of such things.
+ * Typically, the base container, the member variable, and a boolean to signify initialisation are included in a parsing line.
+ *
+ * Inheritance is performed by using the overloaded += operator on an object, with any configurations that have been initialised in the secondary object overwriting those values in the first.
+ */
+Architecture Aliases_And_Inheritance__()
+{
+
+}
+
+/**
+ *
+ * Each configuration parameter is defined with a default initialisation value which is most sensible for the majority of use-cases.
+ * Parameters which are not assigned using the config will default to those values, allowing the size of yaml files to be minimised.
+ *
+ * While parsing the code
+ */
+Architecture Default_Values_And_Configurator__()
+{
+
+}
+
+
+
+FileType YAML__()
+{
+
+}
+
+
 #include <filesystem>
 #include <iostream>
 #include <sstream>
@@ -28,74 +91,12 @@ using std::map;
 #include <yaml-cpp/yaml.h>
 
 #include "interactiveTerminal.hpp"
-#include "architectureDocs.hpp"
 #include "peaCommitStrings.hpp"
+#include "inputsOutputs.hpp"
 #include "constants.hpp"
 #include "acsConfig.hpp"
 #include "compare.hpp"
 #include "debug.hpp"
-
-/** \file
-
- * This file performs many functions simultaneously, which may lead to issues if modifications are made without due care.
- * In most cases, finding a similar configuration and duplicating all references to it will be the most straightforward method of creating new parameters.
- *
- * The lines in this file can become very long, because they do perform so many functions at once, however they should be aligned such that columns of similar parameters form naturally on the screen.
- * This is preferable to more standard formatting because of the vast amount of duplication that would be required otherwise. The block-select tool in the IDE will come in handy.
- * There are cases where artificial scoping is used to allow dummy variables to be used such that rather than copying one variable name into multiple function calls, which is always a source of bugs,
- * a single common parameter name may be used across many unrelated lines. `thing` is one such variable name.
- *
-
-*/
-
-
-
-/** YAML based configuration.
- * The Pea uses one or more yaml files as its source of configuration. YAML files are simple heirarchical documents which are straightforward to edit in basic text editors.
- *
- *
- */
-Architecture Config__()
-{
-	DOCS_REFERENCE(Globbing_And_Tags__);
-	DOCS_REFERENCE(Aliases_And_Inheritance__);
-	DOCS_REFERENCE(Default_Values_And_Configurator__);
-}
-
-/** Automatic expansion of configs.
- *
- */
-Architecture Globbing_And_Tags__()
-{
-
-}
-
-/** Some configuration structures are possible to be configured specific for eg a receiver or signal or combination of both.
- *
- *
- *
- * Rather than creating multitudes of 'initialised' variables to correspond with config parameters, a map and pointer algebra is used to keep track of such things.
- * Typically, the base container, the member variable, and a boolean to signify initialisation
- *
- *
- */
-Architecture Aliases_And_Inheritance__()
-{
-
-}
-
-/**
- *
- * Each configuration parameter is defined with a default initialisation value which is most sensible for the majority of use-cases.
- * Parameters which are not assigned using the config will default to those values, allowing the size of yaml files to be minimised.
- *
- * While parsing the code
- */
-Architecture Default_Values_And_Configurator__()
-{
-
-}
-
 
 
 ACSConfig acsConfig = {};
@@ -124,36 +125,6 @@ void tryGetValFromVM(
 	{
 		output = vm[key].as<TYPE>();
 	}
-}
-
-/** Check that filename is valid and the file exists
-*/
-bool checkValidFile(
-	const string&	path,			///< Filename to check
-	const string&	description)	///< Description for error messages
-{
-	if	( !path.empty()
-		&&!std::filesystem::exists(path))
-	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Error: Missing " << description << " file "
-		<< path;
-
-		return false;
-	}
-	return true;
-}
-
-bool checkValidFiles(
-	vector<string>&	paths,
-	const string&	description)
-{
-	bool pass = true;
-	for (auto& path : paths)
-	{
-		pass &= checkValidFile(path, description);
-	}
-	return pass;
 }
 
 void conditionalPrefix(
@@ -2215,6 +2186,8 @@ SatelliteOptions& ACSConfig::getSatOpts(
 	SatSys					Sat,		///< Satellite to search for options for
 	const vector<string>&	suffixes)	///< Optional suffix to get more specific versions
 {
+	DOCS_REFERENCE(Aliases_And_Inheritance__);
+
 	string fullId = Sat.id();
 	for (auto& suffix : suffixes)
 	{
@@ -2330,6 +2303,8 @@ ReceiverOptions& ACSConfig::getRecOpts(
 	string					id,			///< Receiver to search for options for
 	const vector<string>&	suffixes)	///< Optional suffix to get more specific versions
 {
+	DOCS_REFERENCE(Aliases_And_Inheritance__);
+
 	string fullId = id;
 
 	for (auto& suffix : suffixes)
@@ -2460,83 +2435,6 @@ void tryGetScaledFromYaml(
 	if (number != 0)
 	{
 		output = number;
-	}
-}
-
-/** Replace macros for times with numeric values.
-* Available replacements are "<DDD> <D> <WWWW> <YYYY> <YY> <MM> <DD> <HH> <hh> <mm> <LOGTIME>"
-*/
-void replaceTimes(
-	string&						str,		///< String to replace macros within
-	boost::posix_time::ptime	time_time)	///< Time to use for replacements
-{
-	string DDD;
-	string D;
-	string WWWW;
-	string YYYY;
-	string YY;
-	string MM;
-	string DD;
-	string HH;
-	string mm;
-
-	if (!time_time.is_not_a_date_time())
-	{
-		string gpsWeek0 = "1980-01-06 00:00:00.000";
-		auto gpsZero = boost::posix_time::time_from_string(gpsWeek0);
-		string time_string = boost::posix_time::to_iso_string(time_time);
-
-		auto tm = to_tm(time_time);
-		std::ostringstream ss;
-		ss << std::setw(3) << std::setfill('0') << tm.tm_yday+1;
-		string ddd = ss.str();
-
-		auto gpsWeek = (time_time - gpsZero);
-		int weeks = gpsWeek.hours() / 24 / 7;
-		ss.str("");
-		ss << std::setw(4) << std::setfill('0') << weeks;
-		string wwww = ss.str();
-
-		DDD	= ddd;
-		D	= std::to_string(tm.tm_wday);
-		WWWW	= wwww;
-		YYYY	= time_string.substr(0,		4);
-		YY		= time_string.substr(2,		2);
-		MM		= time_string.substr(4,		2);
-		DD		= time_string.substr(6,		2);
-		HH		= time_string.substr(9,		2);
-		mm		= time_string.substr(11,	2);
-	}
-
-	bool replaced = false;
-
-	replaced |= replaceString(str, "<LOGTIME>",	"<YYYY>-<MM>-<DD>_<HH>:<mm>",	false);
-	replaced |= replaceString(str, "<DDD>",		DDD,							false);
-	replaced |= replaceString(str, "<D>",		D,								false);
-	replaced |= replaceString(str, "<WWWW>",	WWWW,							false);
-	replaced |= replaceString(str, "<YYYY>",	YYYY,							false);
-	replaced |= replaceString(str, "<YY>",		YY,								false);
-	replaced |= replaceString(str, "<MM>",		MM,								false);
-	replaced |= replaceString(str, "<DD>",		DD,								false);
-	replaced |= replaceString(str, "<HH>",		HH,								false);
-	replaced |= replaceString(str, "<hh>",		HH,								false);
-	replaced |= replaceString(str, "<mm>",		mm,								false);
-
-	if	(  YY.empty()
-		&& replaced)
-	{
-		//replacing with nothing here may cause issues - kill the entire string to prevent damage
-		str = "";
-	}
-}
-
-void replaceTimes(
-	vector<string>&				strs,
-	boost::posix_time::ptime	time_time)
-{
-	for (auto& str : strs)
-	{
-		replaceTimes(str, time_time);
 	}
 }
 
@@ -2854,6 +2752,8 @@ bool ACSConfig::parse(
 	const vector<string>&					filenames,		///< Path to yaml based config file
 	boost::program_options::variables_map&	newCommandOpts)	///< Variable map object of command line options
 {
+	DOCS_REFERENCE(Config__);
+
 	configFilenames = filenames;
 
 	bool modified = false;
@@ -3091,6 +2991,7 @@ bool ACSConfig::parse(
 				conditionalPrefix("<CLOCKS_DIRECTORY>",	clocks_filename,	tryGetFromYaml(clocks_filename,				clocks, {"@ filename"				}, "Template filename for clock files"));
 																			tryGetEnumVec (clocks_receiver_sources,		clocks, {"@ receiver_sources"		});
 																			tryGetEnumVec (clocks_satellite_sources,	clocks, {"@ satellite_sources"		});
+																			tryGetFromYaml(clocks_output_interval,		clocks, {"@ output_interval"		}, "Update interval for clock records");
 			}
 
 			{
@@ -3200,13 +3101,13 @@ bool ACSConfig::parse(
 
 																				tryGetFromYaml(output_sp3,					sp3, {"0@ output"					}, "Enable SP3 file outputs");
 																				tryGetFromYaml(output_inertial_orbits, 		sp3, {"@ output_inertial"			}, "Output the entries using inertial positions and velocities");
-																				tryGetFromYaml(output_sp3_velocities,		sp3, {"@ output_velocities"			}, "Output velocity data to sp3 file");
+																				tryGetFromYaml(output_sp3_velocities,		sp3, {"@ output_velocities"			}, "Output velocity data to SP3 file");
 				conditionalPrefix("<OUTPUTS_ROOT>",		sp3_directory,			tryGetFromYaml(sp3_directory,				sp3, {"@ directory"					}, "Directory to store SP3 outputs"));
 				conditionalPrefix("<SP3_DIRECTORY>",	sp3_filename,			tryGetFromYaml(sp3_filename,				sp3, {"@ filename"					}, "SP3 output filename"));
 				conditionalPrefix("<SP3_DIRECTORY>",	predicted_sp3_filename,	tryGetFromYaml(predicted_sp3_filename,		sp3, {"@ predicted_filename"		}, "Filename for predicted SP3 outputs"));
 																				tryGetEnumVec (sp3_clock_sources,			sp3, {"@ clock_sources"				}, "List of sources for clock data for SP3 outputs");
 																				tryGetEnumVec (sp3_orbit_sources,			sp3, {"@ orbit_sources"				}, "List of sources for orbit data for SP3 outputs");
-																				tryGetFromYaml(sp3_output_interval,			sp3, {"@ output_interval"			}, "Update interval for sp3 records");
+																				tryGetFromYaml(sp3_output_interval,			sp3, {"@ output_interval"			}, "Update interval for SP3 records");
 			}
 
 			{
@@ -3226,7 +3127,8 @@ bool ACSConfig::parse(
 																			tryGetEnumVec (orbex_orbit_sources,		orbex, {"@ orbit_sources" 		}, "Sources for orbex orbits");
 																			tryGetEnumVec (orbex_clock_sources,		orbex, {"@ clock_sources" 		}, "Sources for orbex clocks");
 																			tryGetEnumVec (orbex_attitude_sources,	orbex, {"@ attitude_sources" 	}, "Sources for orbex attitudes");
-																			tryGetEnumVec (orbex_record_types,		orbex, {"@ record_types"		}, "List of record types to output to ORBEX file");
+																			tryGetEnumVec (orbex_record_types,		orbex, {"@ record_types"		}, "List of record types to output to orbex file");
+																			tryGetFromYaml(orbex_output_interval,	orbex, {"@ output_interval"		}, "Update interval for orbex records (irregular epoch interval is currently NOT supported)");
 			}
 
 			{
@@ -3330,7 +3232,6 @@ bool ACSConfig::parse(
 				tryGetEnumVec (ssrOpts.clock_sources, 			ssr_outputs, {"@ clock_sources" 			}, "Sources for SSR clocks");
 				tryGetEnumVec (ssrOpts.code_bias_sources, 		ssr_outputs, {"2@ code_bias_sources" 		}, "Sources for SSR code biases");
 				tryGetEnumVec (ssrOpts.phase_bias_sources, 		ssr_outputs, {"2@ phase_bias_sources" 		}, "Sources for SSR phase biases");
-				tryGetEnumOpt (ssrOpts.output_timing, 			ssr_outputs, {"@ output_timing" 			});
 				tryGetFromYaml(ssrOpts.prediction_interval,		ssr_outputs, {"@ prediction_interval"		});
 				tryGetFromYaml(ssrOpts.prediction_duration,		ssr_outputs, {"@ prediction_duration"		});
 				tryGetFromYaml(ssrOpts.extrapolate_corrections,	ssr_outputs, {"@ extrapolate_corrections"	});
@@ -3591,7 +3492,7 @@ bool ACSConfig::parse(
 
 								tryGetFromYaml(sleep_milliseconds,					epoch_control, {"# sleep_milliseconds"	}, "Time to sleep before checking for new data - lower numbers are associated with high idle cpu usage");
 								tryGetFromYaml(wait_next_epoch,						epoch_control, {"@ wait_next_epoch"		}, "Time to wait for next epochs data before skipping the epoch (will default to epoch_interval as an appropriate minimum value for realtime)");
-								tryGetFromYaml(max_latency,							epoch_control, {"@ max_latency"			}, "Time to wait from the reception of the first data of an epoch before skipping receivers with data still unreceived");
+								tryGetFromYaml(max_rec_latency,						epoch_control, {"@ max_rec_latency"		}, "Time to wait from the reception of the first data of an epoch before skipping receivers with data still unreceived");
 								tryGetFromYaml(require_obs,							epoch_control, {"@ require_obs"			}, "Exit the program if no observation sources are available");
 								tryGetFromYaml(assign_closest_epoch,				epoch_control, {"@ assign_closest_epoch"}, "Assign observations to the closest epoch - don't skip observations that fall between epochs");
 								tryGetFromAny(simulate_real_time,	commandOpts,	epoch_control, {"@ simulate_real_time"	}, "For RTCM playback - delay processing to match original data rate");

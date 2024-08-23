@@ -82,17 +82,17 @@ struct RtcmParser : Parser, RtcmDecoder
 					qzsL6BitsLeft = setbituInc(buf, qzsL6BitsLeft, 15, tmp);
 				}
 
-				tracepdeex(6,std::cout,"\n New QZSS L6 frame\n");
+				tracepdeex(6, std::cout,"\n New QZSS L6 frame\n");
 
 				int frameBits = 1;
 				while (frameBits > 0)
 				{
 					for (auto& byte : qzsL6buff)
-						tracepdeex(6,std::cout,"%02X", static_cast<int>(byte));
-					tracepdeex(6,std::cout,"\n");
+						tracepdeex(6, std::cout,"%02X", static_cast<int>(byte));
+					tracepdeex(6, std::cout,"\n");
 
 					int i = 0;
-					int messType = getbituInc(buf,i,12);
+					int messType = getbituInc(buf, i, 12);
 
 					if (messType == 4073)		//todo aaron enum
 					{
@@ -104,17 +104,17 @@ struct RtcmParser : Parser, RtcmDecoder
 
 						if (messType > 0)
 						{
-							tracepdeex(1,std::cout,"  WARNING: Error decoding QZSS L6 messages");
+							tracepdeex(1, std::cout,"  WARNING: Error decoding QZSS L6 messages");
 
 							while	(  messType != 4073
 									&& (frameBits+13) < qzsL6BitsLeft)
 							{
 								frameBits++;
 								int j = frameBits;
-								messType    = getbituInc(buf,j,12);
+								messType    = getbituInc(buf, j, 12);
 								if (messType == 4073) //todo aaron enum
 								{
-									int subtype = getbituInc(buf,j,4);
+									int subtype = getbituInc(buf, j, 4);
 									if	(  subtype != 6
 										&& subtype != 12)
 									{
@@ -130,12 +130,12 @@ struct RtcmParser : Parser, RtcmDecoder
 					if (frameBits == -2)
 					{
 						inputStream.seekg(pos);
-						tracepdeex(4,std::cout,"    Future frame detected, waiting");
+						tracepdeex(4, std::cout,"    Future frame detected, waiting");
 						return;
 					}
 
 					if (frameBits == -1)
-						tracepdeex(4,std::cout,"    Incomplete frame detected, topping up ");
+						tracepdeex(4, std::cout,"    Incomplete frame detected, topping up ");
 
 					if (frameBits == 0)
 					{
@@ -148,7 +148,7 @@ struct RtcmParser : Parser, RtcmDecoder
 						int i = frameBits;
 						qzsL6BitsLeft -= frameBits;
 
-						tracepdeex(4,std::cout,"    Valid frame detected (%d Bits)", frameBits);
+						tracepdeex(4, std::cout,"    Valid frame detected (%d Bits)", frameBits);
 
 						int nByte = frameBits / 8 + 1;
 						int nbit  = nByte * 8 - frameBits;

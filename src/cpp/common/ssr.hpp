@@ -146,7 +146,7 @@ struct SSRBias
 	int				iod		= -1;
 	unsigned int	nbias	= 0;
 	map<E_ObsCode, BiasVar> obsCodeBiasMap;
-	map<int,double> ionDCBOffset;
+	map<int, double> ionDCBOffset;
 };
 
 struct SSRCodeBias : SSRBias
@@ -285,8 +285,8 @@ struct SSRClkInput
 /* SSR correction type */
 struct SSRMaps
 {
-	map<GTime, SSRCodeBias,	std::greater<GTime>>	ssrCodeBias_map;
-	map<GTime, SSRPhasBias,	std::greater<GTime>>	ssrPhasBias_map;
+	map<GTime, SSRCodeBias,		std::greater<GTime>>	ssrCodeBias_map;
+	map<GTime, SSRPhasBias,		std::greater<GTime>>	ssrPhasBias_map;
 	map<GTime, SSRClk,			std::greater<GTime>>	ssrClk_map;
 	map<GTime, SSREph,			std::greater<GTime>>	ssrEph_map;
 	map<GTime, SSRHRClk,		std::greater<GTime>>	ssrHRClk_map;

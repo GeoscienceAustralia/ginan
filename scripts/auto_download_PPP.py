@@ -356,13 +356,17 @@ def download_product_from_cddis(
                     sampling_rate=sampling_rate,
                     project=project_type,
                 )
-                download_file_from_cddis(
-                    filename=product_filename,
-                    ftp_folder=f"gnss/products/{gps_date.gpswk}",
-                    output_folder=download_dir,
-                    if_file_present=if_file_present,
-                    note_filetype=file_ext,
+                download_filepath = check_whether_to_download(
+                    filename=product_filename, download_dir=download_dir, if_file_present=if_file_present
                 )
+                if download_filepath:
+                    download_file_from_cddis(
+                        filename=product_filename,
+                        ftp_folder=f"gnss/products/{gps_date.gpswk}",
+                        output_folder=download_dir,
+                        if_file_present=if_file_present,
+                        note_filetype=file_ext,
+                    )
                 count += 1
                 remain = end_epoch - reference_start
 

@@ -63,15 +63,13 @@ struct PacketStatistics
 		message << "\n";
 
 		std::cout << message.str();
-// 		messageRtcmLog(message.str());	//todo aaron
+// 		messageRtcmLog(message.str());
 	}
 
 
-// 	bool trigger = false;
 	void checksumSuccess(
 		unsigned int crcRead = 0)
 	{
-// 		std::cout << "Pass\n";
 		numFramesPassCRC++;
 
 // 		printf("\n CRC pass: %02x %02x %02x",
@@ -86,23 +84,17 @@ struct PacketStatistics
 // 		printf(".%02x", c);
 
 		numNonMessBytes++;
-// 		trigger = true;
 	}
 
 	void preambleFound()
 	{
-// 		if (trigger)
-// 		{
-// 			std::cout << "\n" << "premable";
-// 			trigger = false;
-// 		}
 		numPreambleFound++;
 
 		if (numNonMessBytes)
 		{
 			std::stringstream message;
 			message << "Extra Bytes, size : " << numNonMessBytes;
-// 			messageRtcmLog(message.str());//todo aaron
+// 			messageRtcmLog(message.str());
 		}
 
 		numNonMessBytes = 0;

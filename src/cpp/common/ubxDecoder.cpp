@@ -2,6 +2,13 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+FileType UBX__()
+{
+
+}
+
 #include "observations.hpp"
 #include "navigation.hpp"
 #include "ubxDecoder.hpp"

@@ -1,4 +1,11 @@
 
+#include "architectureDocs.hpp"
+
+FileType POS__()
+{
+
+}
+
 #include <boost/log/trivial.hpp>
 
 #include "coordinates.hpp"
@@ -23,7 +30,7 @@ First Epoch   : {FirstEpoch}
 XYZ Reference position :  {POSX} {POSY} {POSZ} (IGS20)
 NEU Reference position :  {POSN} {POSE} {POSU} (IGS20/WGS84)
 Start Field Description
-YYYY-MM-DDTHH:MM:SS.SS  Date and Time of given position epoch (GPS Time)
+YYYY-MM-DDTHH:MM:SS.SSS  Date and Time of given position epoch (GPS Time)
 YYYY.YYYYYYYYY          Decimal year of given position epoch (GPS Time)
 X                       X coordinate, Specified Reference Frame, meters
 Y                       Y coordinate, Specified Reference Frame, meters
@@ -48,30 +55,47 @@ Rnu                     Correlation between dN and dU
 Reu                     Correlation between dE and dU
 Soln                    Solution type
 End Field Description
-*YYYY-MM-DDTHH:MM:SS.SS YYYY.YYYYYYYYY        X             Y              Z           Sx         Sy        Sz      Rxy     Rxz     Ryz        NLat            Elong        Height         dN          dE          dU        Sn       Se         Su       Rne     Rnu     Reu  soln
+*YYYY-MM-DDTHH:MM:SS.SSS YYYY.YYYYYYYYY        X             Y              Z           Sx         Sy        Sz      Rxy     Rxz     Ryz        NLat            Elong        Height         dN          dE          dU        Sn       Se         Su       Rne     Rnu     Reu  soln
 )POSHEADER";
 
 map<string, VectorEcef>	posAprioriValue;
 
-void replacePlaceholder(string& str, const string& placeholder, const string& value) {
+void replacePlaceholder(
+			string& str,
+	const	string& placeholder,
+	const	string& value)
+{
 	size_t pos = str.find(placeholder);
-	if (pos != string::npos) {
+
+	if (pos != string::npos)
+	{
 		str.replace(pos, placeholder.length(), value);
 	}
 }
 
-void formatAndReplace(std::string& header, const std::string& placeholder, double value, int precision, int width) {
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(precision) << std::setw(width) << value;
-    replacePlaceholder(header, placeholder, oss.str());
+void formatAndReplace(
+			string& header,
+	const	string& placeholder,
+			double	value,
+			int		precision,
+			int		width)
+{
+	std::ostringstream oss;
+	oss << std::fixed << std::setprecision(precision) << std::setw(width) << value;
+	replacePlaceholder(header, placeholder, oss.str());
 }
 
 
 template <typename T>
-void formatAndOutput(std::ostream& output, T value, int precision, int width) {
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(precision) << std::setw(width) << value;
-    output << " " << oss.str();
+void formatAndOutput(
+	std::ostream&	output,
+	T				value,
+	int				precision,
+	int				width)
+{
+	std::ostringstream oss;
+	oss << std::fixed << std::setprecision(precision) << std::setw(width) << value;
+	output << " " << oss.str();
 }
 
 
@@ -85,18 +109,19 @@ void writePOSHeader(
 		name = "Track";
 	}
 
-	VectorEcef aprEcef = posAprioriValue[name];
-	VectorPos aprPos = ecef2pos(aprEcef);
-	string header = posHeader;
+	VectorEcef	aprEcef	= posAprioriValue[name];
+	VectorPos	aprPos	= ecef2pos(aprEcef);
+	string		header	= posHeader;
 
 	replacePlaceholder(header, "{ID}", name);
 	replacePlaceholder(header, "{FirstEpoch}", time.to_ISOstring(2));
-    formatAndReplace(header, "{POSX}", aprEcef.x(),		6,	13);
-    formatAndReplace(header, "{POSY}", aprEcef.y(),		6,	13);
-    formatAndReplace(header, "{POSZ}", aprEcef.z(),		6,	13);
-    formatAndReplace(header, "{POSN}", aprPos.latDeg(), 12,	14);
-    formatAndReplace(header, "{POSE}", aprPos.lonDeg(), 12,	14);
-    formatAndReplace(header, "{POSU}", aprPos.hgt(),	9,	12);
+
+	formatAndReplace(header, "{POSX}", aprEcef.x(),		6,	13);
+	formatAndReplace(header, "{POSY}", aprEcef.y(),		6,	13);
+	formatAndReplace(header, "{POSZ}", aprEcef.z(),		6,	13);
+	formatAndReplace(header, "{POSN}", aprPos.latDeg(), 12,	14);
+	formatAndReplace(header, "{POSE}", aprPos.lonDeg(), 12,	14);
+	formatAndReplace(header, "{POSU}", aprPos.hgt(),	9,	12);
 
 	output << header;
 }
@@ -107,10 +132,10 @@ void writePOSEntry(
 	Receiver&	rec,
 	KFState&	kfState)
 {
-	VectorEcef xyz;
-	VectorEcef apriori = rec.aprioriPos;
-	Matrix3d VCV;
-	bool found = true;
+	VectorEcef	apriori = rec.aprioriPos;
+	VectorEcef	xyz = apriori;
+	Matrix3d	vcv;
+
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
 	{
 		if	( kfKey.type	!= KF::REC_POS
@@ -119,73 +144,70 @@ void writePOSEntry(
 			continue;
 		}
 
-		xyz[kfKey.num] =	kfState.x(index);
+		xyz[kfKey.num] = kfState.x(index);
 
 		for (auto& [kfKey2, index2] : kfState.kfIndexMap)
 		{
-			if (kfKey2.type != KF::REC_POS
-				|| kfKey2.str != rec.id)
+			if	( kfKey2.type	!= KF::REC_POS
+				||kfKey2.str	!= rec.id)
 			{
 				continue;
 			}
-			VCV(kfKey.num, kfKey2.num) = kfState.P(index, index2);
+
+			vcv(kfKey.num, kfKey2.num) = kfState.P(index, index2);
 		}
-
-	}
-	if (found == false)
-	{
-		xyz = apriori;
 	}
 
-	VectorPos pos = ecef2pos(xyz);
-	VectorEcef aprEcef = posAprioriValue[rec.id];
-	VectorPos aprPos = ecef2pos(posAprioriValue[rec.id]);
+	VectorPos	pos		= ecef2pos(xyz);
+	VectorEcef	aprEcef	= posAprioriValue[rec.id];
+	VectorPos	aprPos	= ecef2pos(posAprioriValue[rec.id]);
 
 	VectorEcef diff = xyz - aprEcef;
 	Matrix3d E;
 	pos2enu(aprPos, E.data());
-	Vector3d diffENU = E * diff;
-	Matrix3d VCVenu = E * VCV  * E.transpose();
+	Vector3d diffEnu	= E * diff;
+	Matrix3d vcvEnu		= E * vcv * E.transpose();
 	Vector3d var;
-	Vector3d varENU;
+	Vector3d varEnu;
 
 	for (int i = 0; i < 3; i++)
 	{
-		var[i] = SQRT(VCV(i,i));
-		varENU[i] = SQRT(VCVenu(i,i));
+		var		[i] = SQRT(vcv		(i,i));
+		varEnu	[i] = SQRT(vcvEnu	(i,i));
 	}
-	for (int i = 0; i < 3; i++)
-		for (int j = i; j < 3; j++)
-		{
-			VCVenu(i,j) /= (varENU[i] * varENU[j]);
-			VCV(i,j)    /= (var[i] * var[j]);
-		}
 
-    output << " " << kfState.time.to_ISOstring(2);
-	formatAndOutput(output,	kfState.time.to_decyear(), 9, 14);
-    formatAndOutput(output,	xyz.x(),		5,	11);
-    formatAndOutput(output,	xyz.y(),		5,	11);
-    formatAndOutput(output,	xyz.z(),		5,	11);
-    formatAndOutput(output,	var.x(),		5,	9);
-    formatAndOutput(output,	var.y(),		5,	9);
-    formatAndOutput(output,	var.z(),		5,	9);
-    formatAndOutput(output,	VCV(0,1),		3,	7);
-    formatAndOutput(output,	VCV(0,2),		3,	7);
-    formatAndOutput(output,	VCV(1,2),		3,	7);
-    formatAndOutput(output,	pos.latDeg(),	10,	15);
-    formatAndOutput(output,	pos.lonDeg(),	10,	15);
-    formatAndOutput(output,	pos.hgt(),		5,	11);
-    formatAndOutput(output,	diffENU.y(),	5,	11);
-    formatAndOutput(output,	diffENU.x(),	5,	11);
-    formatAndOutput(output,	diffENU.z(),	5,	11);
-    formatAndOutput(output,	varENU(1),		5,	9);
-    formatAndOutput(output,	varENU(0),		5,	9);
-    formatAndOutput(output,	varENU(2),		5,	9);
-    formatAndOutput(output,	VCVenu(0,1),	3,	7);
-    formatAndOutput(output,	VCVenu(1,2),	3,	7);
-    formatAndOutput(output,	VCVenu(0,2),	3,	7);
+	for (int i = 0; i < 3; i++)
+	for (int j = i; j < 3; j++)
+	{
+		vcvEnu	(i,j) /= (varEnu	[i]	* varEnu[j]);
+		vcv		(i,j) /= (var		[i]	* var	[j]);
+	}
+
+	output << " " << kfState.time.to_ISOstring(3);
+	formatAndOutput(output,	kfState.time.to_decYear(),	9,	14);
+	formatAndOutput(output,	xyz.x(),					5,	11);
+	formatAndOutput(output,	xyz.y(),					5,	11);
+	formatAndOutput(output,	xyz.z(),					5,	11);
+	formatAndOutput(output,	var.x(),					5,	9);
+	formatAndOutput(output,	var.y(),					5,	9);
+	formatAndOutput(output,	var.z(),					5,	9);
+	formatAndOutput(output,	vcv(0,1),					3,	7);
+	formatAndOutput(output,	vcv(0,2),					3,	7);
+	formatAndOutput(output,	vcv(1,2),					3,	7);
+	formatAndOutput(output,	pos.latDeg(),				10,	15);
+	formatAndOutput(output,	pos.lonDeg(),				10,	15);
+	formatAndOutput(output,	pos.hgt(),					5,	11);
+	formatAndOutput(output,	diffEnu.y(),				5,	11);
+	formatAndOutput(output,	diffEnu.x(),				5,	11);
+	formatAndOutput(output,	diffEnu.z(),				5,	11);
+	formatAndOutput(output,	varEnu(1),					5,	9);
+	formatAndOutput(output,	varEnu(0),					5,	9);
+	formatAndOutput(output,	varEnu(2),					5,	9);
+	formatAndOutput(output,	vcvEnu(0,1),				3,	7);
+	formatAndOutput(output,	vcvEnu(1,2),				3,	7);
+	formatAndOutput(output,	vcvEnu(0,2),				3,	7);
 	output << " ginan"; //Placeholder for solution type.
-    output << "\n";
+	output << "\n";
 }
 
 void writePOS(
@@ -196,7 +218,7 @@ void writePOS(
 	std::ofstream output(filename, std::fstream::in | std::fstream::out);
 	if (!output)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening POS file '" << filename << "'\n";
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening POS file '" << filename << "'";
 		return;
 	}
 
@@ -204,11 +226,14 @@ void writePOS(
 
 	if (output.tellp() == 0)
 	{
-		VectorEcef apriori = rec.aprioriPos;
-		posAprioriValue[rec.id] = apriori;
+		if (posAprioriValue.find(rec.id) == posAprioriValue.end())
+		{
+			VectorEcef apriori = rec.aprioriPos;
+			posAprioriValue[rec.id] = apriori;
+		}
+
 		writePOSHeader(output, rec.id, kfState.time);
 	}
 
 	writePOSEntry(output, rec, kfState);
-
 }

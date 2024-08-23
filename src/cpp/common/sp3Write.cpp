@@ -57,23 +57,28 @@ void writeSp3Header(
 	sp3FileData.numEpoch = 1;
 
 	// note "#dV" for velocity and position.
-	if (acsConfig.output_sp3_velocities)		tracepdeex(0, sp3Stream, "#dV%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
-	else										tracepdeex(0, sp3Stream, "#dP%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
+	char velPos;
+
+	if (acsConfig.output_sp3_velocities)	velPos = 'V';
+	else									velPos = 'P';
+
+	tracepdeex(0, sp3Stream, "#d%c%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", velPos, ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
 	sp3FileData.numEpoch_pos = sp3Stream.tellp();
 
 	//TODO Check, coordinate system and Orbit Type from example product file.
-	tracepdeex(0, sp3Stream, "%7d ORBIT IGS14 HLM %4s\n",   sp3FileData.numEpoch,   acsConfig.analysis_agency.c_str());
+	tracepdeex(0, sp3Stream, "%7d ORBIT IGS14 FIT %4s\n", sp3FileData.numEpoch, acsConfig.analysis_agency.c_str());
 
-	GWeek	week	= time;
-	GTow	tow		= time;
-	double mjdate = 7.0 * week + tow / S_IN_DAY + 44244.0;	//todo aaron ew.
-	tracepdeex(0, sp3Stream, "## %4d %15.8f %14.8f %5.0f %15.13f\n",
+	GWeek		week	= time;
+	GTow		tow		= time;
+	MjDateTT	mjdate	= time;
+
+	tracepdeex(0, sp3Stream, "## %4d %15.8f %14.8f %5.0f %015.13f\n",
 			   week,
 			   tow,
 			   acsConfig.sp3_output_interval,
-			   mjdate,
-			   mjdate - floor(mjdate));
+			   mjdate.to_double(),
+			   0.0);
 
 	for (auto sys : {E_Sys::GPS, E_Sys::GLO, E_Sys::GAL, E_Sys::BDS, E_Sys::LEO})
 	{
@@ -393,12 +398,6 @@ void outputSp3(
 	KFState*			kfState_ptr,
 	bool				predicted)
 {
-	time = time.floorTime(1);
-
-	GTow tow = time;
-	if (int(tow) % acsConfig.sp3_output_interval != 0)
-		return;
-
 	auto sysFilenames = getSysOutputFilenames(filename, time);
 
 	for (auto [filename, sysMap] : sysFilenames)

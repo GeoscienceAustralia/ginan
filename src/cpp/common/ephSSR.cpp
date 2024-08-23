@@ -110,7 +110,7 @@ bool ssrPosDelta(
 	{
 		satPos.failureSsrPosUdi = true;
 
-		tracepdeex(2, std::cout, "age of ssr error: %s t=%.0f > %.0f\n",time.to_string().c_str(), tEph, ssrEph.udi * acsConfig.validity_interval_factor);
+		tracepdeex(2, std::cout, "age of ssr error: %s t=%.0f > %.0f\n", time.to_string().c_str(), tEph, ssrEph.udi * acsConfig.validity_interval_factor);
 		return false;
 	}
 
@@ -144,7 +144,7 @@ bool ssrClkDelta(
 	if (ssrMaps.ssrClk_map.empty())
 	{
 		satPos.failureSsrClkEmpty = true;
-		tracepdeex(4,std::cout, "No SSR corrections for sat=%s\n", satPos.Sat.id().c_str());
+		tracepdeex(4, std::cout, "No SSR corrections for sat=%s\n", satPos.Sat.id().c_str());
 		return false;
 	}
 
@@ -153,7 +153,7 @@ bool ssrClkDelta(
 	if (clkIt == ssrMaps.ssrClk_map.end())
 	{
 		satPos.failureSsrClkTime = true;
-		tracepdeex(4,std::cout, "No SSR corrections before %s sat=%s\n", ephTime.to_string().c_str(), satPos.Sat.id().c_str());
+		tracepdeex(4, std::cout, "No SSR corrections before %s sat=%s\n", ephTime.to_string().c_str(), satPos.Sat.id().c_str());
 		return false;
 	}
 
@@ -171,7 +171,7 @@ bool ssrClkDelta(
 	{
 		satPos.failureSsrClkUdi = true;
 
-        tracepdeex(4,std::cout, "age of ssr error: %s sat=%s\n", time.to_string().c_str(), satPos.Sat.id().c_str());
+        tracepdeex(4, std::cout, "age of ssr error: %s sat=%s\n", time.to_string().c_str(), satPos.Sat.id().c_str());
 		return false;
 	}
 
@@ -229,7 +229,7 @@ bool satPosSSR(
 	double&			posVar		= satPos.posVar;
 	double&			clkVar		= satPos.satClkVar;
 
-//     tracepdeex(4,trace, __FUNCTION__ ": time=%s sat=%2d\n",time.to_string(3).c_str(),satPos.Sat);
+//     tracepdeex(4, trace, __FUNCTION__ ": time=%s sat=%2d\n", time.to_string().c_str(), satPos.Sat);
 	ephPosValid = false;
 	ephClkValid = false;
 

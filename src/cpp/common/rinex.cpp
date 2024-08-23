@@ -1,6 +1,18 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+FileType CLK__()
+{
+
+}
+
+FileType RNX__()
+{
+
+}
+
 #include <boost/log/trivial.hpp>
 
 #include <string>

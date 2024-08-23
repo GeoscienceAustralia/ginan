@@ -84,10 +84,6 @@ double svaToSisa(int sva);
 int uraToSva(double ura);
 double svaToUra(int sva);
 
-void replaceTimes(
-	string&						str,		///< String to replace macros within
-	boost::posix_time::ptime	time_time);	///< Time to use for replacements
-
 void updateLamMap(
 	const	GTime&	time,
 			SatPos&	obs);

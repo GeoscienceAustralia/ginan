@@ -263,7 +263,7 @@ bool pephpos(
 		double std = middle0->second.posStd.norm();
 
 		/* extrapolation error for orbit */
-		if      (t[0   ] > 0) std += EXTERR_EPH * SQR(t[0   ]) / 2;		//todo aaron, needs straigtening as below?
+		if      (t[0   ] > 0) std += EXTERR_EPH * SQR(t[0   ]) / 2;
 		else if (t[NMAX] < 0) std += EXTERR_EPH * SQR(t[NMAX]) / 2;
 
 		*vare = SQR(std);

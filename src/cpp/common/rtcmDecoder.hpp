@@ -74,18 +74,18 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
 	ObsList decodeMSM(
 		vector<unsigned char>&	message);
 
-	string rtcm_filename;	//todo aaron rename
+	string recordFilename;
 
 	void recordFrame(
 		vector<unsigned char>&	data,
 		unsigned int			crcRead)
 	{
-		if (rtcm_filename.empty())
+		if (recordFilename.empty())
 		{
 			return;
 		}
 
-		std::ofstream ofs(rtcm_filename, std::ofstream::app);
+		std::ofstream ofs(recordFilename, std::ofstream::app);
 
 		if (!ofs)
 		{

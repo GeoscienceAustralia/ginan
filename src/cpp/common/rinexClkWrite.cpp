@@ -8,6 +8,7 @@
 
 using std::map;
 
+#include "inputsOutputs.hpp"
 #include "rinexNavWrite.hpp"
 #include "rinexObsWrite.hpp"
 #include "rinexClkWrite.hpp"
@@ -19,6 +20,7 @@ using std::map;
 #include "constants.hpp"
 #include "receiver.hpp"
 #include "algebra.hpp"
+#include "sinex.hpp"
 #include "rinex.hpp"
 #include "enums.h"
 
@@ -42,9 +44,9 @@ struct ClockList : vector<ClockEntry>
 };
 
 void outputRinexClocksBody(
-	string&		filename,	    ///< Path to output file.
-	ClockList&	clkEntryList,	///< List of data to print.
-	GTime&		time)		    ///< Epoch time.
+	string&			filename,	    ///< Path to output file.
+	ClockList&		clkEntryList,	///< List of data to print.
+	const GTime&	time)		    ///< Epoch time.
 {
 	std::ofstream clockFile(filename, std::ofstream::app);
 
@@ -178,7 +180,7 @@ void getKalmanRecClks(
 void getPreciseRecClks(
 	ClockList&  	clkEntryList,
 	ReceiverMap*	receiverMap_ptr,
-	GTime& 			time)
+	const GTime& 	time)
 {
 	if (receiverMap_ptr == nullptr)
 	{
@@ -215,7 +217,7 @@ void getPreciseRecClks(
 
 void getSatClksFromEph(
 	ClockList&  		clkEntryList,
-	GTime& 				time,
+	const GTime& 		time,
 	map<E_Sys, bool>&	outSys,
 	vector<E_Source>	ephType)
 {
@@ -367,7 +369,7 @@ void outputClocksSet(
 	string				filename,
 	vector<E_Source>	clkDataRecSrcs,
 	vector<E_Source>	clkDataSatSrcs,
-	GTime&				time,
+	const GTime&		time,
 	map<E_Sys, bool>&	outSys,
 	KFState&			kfState,
 	ReceiverMap*		receiverMap_ptr)
@@ -452,9 +454,9 @@ map<string, map<E_Sys, bool>> getSysOutputFilenames(
 
 void outputClocks(
 	string				filename,
+	const GTime&		time,
 	vector<E_Source>	clkDataRecSrcs,
 	vector<E_Source>	clkDataSatSrcs,
-	GTime&				time,
 	KFState&			kfState,
 	ReceiverMap*		receiverMap_ptr)
 {

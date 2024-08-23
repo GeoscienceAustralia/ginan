@@ -1,6 +1,14 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/**
+ */
+FileType ATX__()
+{
+
+}
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
@@ -475,6 +483,8 @@ void readantexf(
 	string		filepath,
 	Navigation&	nav)
 {
+	DOCS_REFERENCE(ATX__);
+
 	bool	noazi_flag		= false;
 	int		num_azi_rd		= 0;
 	int		irms			= 0;

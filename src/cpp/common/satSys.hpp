@@ -22,7 +22,7 @@ using std::map;
 #define NSATGAL   	36						///< potential number of Galileo satellites, PRN goes from 1 to this number
 #define NSATQZS   	7						///< potential number of QZSS satellites, PRN goes from 1 to this number
 #define NSATLEO		78                  	///< potential number of LEO satellites, PRN goes from 1 to this number
-#define NSATBDS   	61						///< potential number of Beidou satellites, PRN goes from 1 to this number
+#define NSATBDS   	62						///< potential number of Beidou satellites, PRN goes from 1 to this number
 #define NSATSBS   	39						///< potential number of SBAS satellites, PRN goes from 1 to this number
 
 /** Object holding satellite id, and providing related functions

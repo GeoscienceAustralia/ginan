@@ -1,4 +1,13 @@
 
+// #pragma GCC optimize ("O0")
+
+#include "architectureDocs.hpp"
+
+FileType GPX__()
+{
+
+}
+
 #include <boost/log/trivial.hpp>
 
 #include "coordinates.hpp"
@@ -90,13 +99,12 @@ void writeGPXEntry(
 	Receiver&	rec,
 	KFState&	kfState)
 {
-	VectorEcef xyz;
+	VectorEcef apriori	= rec.aprioriPos;
+	VectorEcef xyz		= apriori;
 	VectorEcef var;
-	VectorEcef apriori = rec.aprioriPos;
 	VectorEcef covar;
 
-	bool found = true;
-	int idx_cov = 0;
+	int covIdx = 0;
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
 	{
 		if	( kfKey.type	!= KF::REC_POS
@@ -105,27 +113,22 @@ void writeGPXEntry(
 			continue;
 		}
 
-		xyz[kfKey.num] =		kfState.x(index);
-		var[kfKey.num] = sqrt(	kfState.P(index, index));
+		xyz[kfKey.num] = kfState.x(index);
+		var[kfKey.num] = kfState.P(index, index);
 
 		for (auto& [kfKey2, index2] : kfState.kfIndexMap)
 		{
-			if (kfKey2.type != KF::REC_POS
-				|| kfKey2.str != rec.id)
+			if	(  kfKey2.type	!= KF::REC_POS
+				|| kfKey2.str	!= rec.id)
 			{
 				continue;
 			}
+
 			if (kfKey2.num > kfKey.num)
 			{
-				covar(idx_cov++) = kfState.P(index, index2);
+				covar(covIdx++) = kfState.P(index, index2);
 			}
 		}
-
-	}
-
-	if (found == false)
-	{
-		xyz = apriori;
 	}
 
 	VectorPos pos = ecef2pos(xyz);
@@ -139,38 +142,40 @@ void writeGPXEntry(
 	<< ">";
 
 	{	XmlCloser(output, "ele")			<< pos.hgt();	}
-	UtcTime utc (kfState.time);
-	{	XmlCloser(output, "time")			<< utc.to_ISOstring();	}
-	// Will need to convert into real UTC time
-	// {	XmlCloser(output, "time")			<< boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t((time_t)((PTime)utc).bigTime)) << "Z";	}
-
+	{	UtcTime utc (kfState.time);
+		XmlCloser(output, "time")			<< utc.to_ISOstring(3);
+	}
 
 	{
 		auto extensions = XmlCloser(output, "extensions");
 
-		{	XmlCloser(output, "time")		<< kfState.time.to_ISOstring();							}
-		{	auto pos = XmlCloser(output, "pos");
+		{
+			XmlCloser(output, "time")		<< kfState.time.to_ISOstring(3);
+		}
+		{
+			auto pos = XmlCloser(output, "pos");
 			{XmlCloser(output, "x")			<< xyz.x();	}
 			{XmlCloser(output, "y")			<< xyz.y();	}
 			{XmlCloser(output, "z")			<< xyz.z();	}
 		}
 		{
 			auto pos = XmlCloser(output, "variances");
-			{XmlCloser(output, "xx")			<< var.x();	}
-			{XmlCloser(output, "yy")			<< var.y();	}
-			{XmlCloser(output, "zz")			<< var.z();	}
-			{XmlCloser(output, "xy")			<< covar.x();	}
-			{XmlCloser(output, "xz")			<< covar.y();	}
-			{XmlCloser(output, "yz")			<< covar.z();	}
+			{XmlCloser(output, "xx")		<< var.x();		}
+			{XmlCloser(output, "yy")		<< var.y();		}
+			{XmlCloser(output, "zz")		<< var.z();		}
+			{XmlCloser(output, "xy")		<< covar(0);	}
+			{XmlCloser(output, "xz")		<< covar(1);	}
+			{XmlCloser(output, "yz")		<< covar(2);	}
 		}
-		{	auto pos = XmlCloser(output, "apriori");
+		{
+			auto pos = XmlCloser(output, "apriori");
 			{XmlCloser(output, "x")			<< apriori.x();	}
 			{XmlCloser(output, "y")			<< apriori.y();	}
 			{XmlCloser(output, "z")			<< apriori.z();	}
 		}
 
+		bool found = true;
 		Quaterniond quat;
-		found = true;
 		for (int i = 0; i < 4; i++)
 		{
 			KFKey kfKey;

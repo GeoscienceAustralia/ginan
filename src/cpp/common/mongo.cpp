@@ -1,18 +1,7 @@
 
 // #pragma GCC optimize ("O0")
 
-
-
 #include "architectureDocs.hpp"
-#include "observations.hpp"
-#include "rtcmEncoder.hpp"
-#include "acsConfig.hpp"
-#include "satStat.hpp"
-#include "common.hpp"
-#include "mongo.hpp"
-
-#include <boost/log/trivial.hpp>
-#include <boost/log/sinks/sync_frontend.hpp>
 
 /** Persistant formatted storage and inter-process communication.
  * A mongodb database is mainly used for storage of filter states and measurements.
@@ -32,6 +21,18 @@ Database Mongo_Database__()
 
 }
 
+
+
+#include "inputsOutputs.hpp"
+#include "observations.hpp"
+#include "rtcmEncoder.hpp"
+#include "acsConfig.hpp"
+#include "satStat.hpp"
+#include "common.hpp"
+#include "mongo.hpp"
+
+#include <boost/log/trivial.hpp>
+#include <boost/log/sinks/sync_frontend.hpp>
 
 using bsoncxx::types::b_date;
 
@@ -115,8 +116,26 @@ void newMongoDatabase(
 	}
 	catch (...)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error: Mongo connection failed - check if service is running at " << config.uri;
-		exit(1);
+		BOOST_LOG_TRIVIAL(fatal) << "Error: Mongo connection failed - check if service is running at " << config.uri;
+	}
+}
+
+void checkValidDbname(
+	string& new_database)
+{
+	if (new_database.empty())
+	{
+		BOOST_LOG_TRIVIAL(fatal) << "Error: Mongo database name is empty";
+	}
+	string old_database = new_database;
+	bool invalid = false;
+	for (string invalidChar : {"/", "\\", ".", "$", "*", "<", ">", ":", "|", "?"})
+	{
+		invalid |=  replaceString(new_database, invalidChar, "", false);
+	}
+	if (invalid)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Error: Mongo database name contains invalid characters, new database is: " << new_database << " previously: " << old_database;
 	}
 }
 
@@ -134,6 +153,7 @@ bool startNewMongoDb(
 	}
 
 	auto& mongo = *mongo_ptr;
+	checkValidDbname(new_database);
 
 	replaceString(new_database, "<RECEIVER>", id);
 	replaceTimes (new_database, logptime);

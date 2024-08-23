@@ -530,7 +530,7 @@ void pseudoRecDcb(
 
 void receiverPseudoObs(
 			Trace&				trace,				///< Trace to output to
-			Receiver&			rec,				///< Receiver to perform calculations for                //todo aaron, this isnt a rec anymore
+			Receiver&			rec,				///< (Pseudo) Receiver to perform calculations for
 	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
 			KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
 			ReceiverMap&		receiverMap)		///< Map of stations to retrieve receiver metadata from

@@ -1,4 +1,13 @@
 
+// #pragma GCC optimize ("O0")
+
+#include "architectureDocs.hpp"
+
+FileType COST__()
+{
+
+}
+
 #include <fstream>
 
 #include <boost/algorithm/string.hpp>
@@ -7,6 +16,7 @@
 #include "tropModels.hpp"
 #include "acsConfig.hpp"
 #include "receiver.hpp"
+#include "sinex.hpp"
 #include "trace.hpp"
 #include "cost.hpp"
 #include "EGM96.h"

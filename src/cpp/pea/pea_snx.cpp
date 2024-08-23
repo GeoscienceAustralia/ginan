@@ -7,6 +7,7 @@
 using boost::algorithm::to_lower_copy;
 
 #include "eigenIncluder.hpp"
+#include "inputsOutputs.hpp"
 #include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "receiver.hpp"
@@ -31,16 +32,16 @@ void sinexPostProcessing(
 	theSinex.acknowledgements.	clear();
 	theSinex.inputHistory.		clear();
 
-	sinex_check_add_ga_reference("PPP Solution", "2.1", false);
+	sinexCheckAddGaReference("PPP Solution", "2.1", false);
 
 	// add in the files used to create the solution
-	for (auto& [id, ubxinput] : acsConfig.ubx_inputs)	{	sinex_add_files(acsConfig.analysis_agency, time, ubxinput,				"UBX");			}
-	for (auto& [id, rnxinput] : acsConfig.rnx_inputs)	{	sinex_add_files(acsConfig.analysis_agency, time, rnxinput,				"RINEX v3.x");	}
-														{	sinex_add_files(acsConfig.analysis_agency, time, acsConfig.sp3_files,	"SP3");			}
-														{	sinex_add_files(acsConfig.analysis_agency, time, acsConfig.snx_files,	"SINEX");		}
+	for (auto& [id, ubxinput] : acsConfig.ubx_inputs)	{	sinexAddFiles(acsConfig.analysis_agency, time, ubxinput,			"UBX");			}
+	for (auto& [id, rnxinput] : acsConfig.rnx_inputs)	{	sinexAddFiles(acsConfig.analysis_agency, time, rnxinput,			"RINEX v3.x");	}
+														{	sinexAddFiles(acsConfig.analysis_agency, time, acsConfig.sp3_files,	"SP3");			}
+														{	sinexAddFiles(acsConfig.analysis_agency, time, acsConfig.snx_files,	"SINEX");		}
 
 	// Add other statistics as they become available...
-	sinex_add_statistic("SAMPLING INTERVAL (SECONDS)", acsConfig.epoch_interval);
+	sinexAddStatistic("SAMPLING INTERVAL (SECONDS)", acsConfig.epoch_interval);
 
 	char obsCode	= 'P';	//GNSS measurements
 	char constCode	= ' ';

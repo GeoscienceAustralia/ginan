@@ -145,7 +145,7 @@ bool satpos(
 	GTime				teph,				///< time to select ephemeris (gpst)
 	SatPos&				satPos,				///< Data required for determining and storing satellite positions/clocks
 	vector<E_Source>	ephTypes,			///< Source of ephemeris
-	E_OffsetType		offsetType,			///< Type of antenna offset to apply		//todo aaron, remove entirely?
+	E_OffsetType		offsetType,			///< Type of antenna offset to apply
 	Navigation&			nav,				///< navigation data
 	const KFState*		kfState_ptr,		///< Optional pointer to a kalman filter to take values from
 	const KFState*		remote_ptr)			///< Optional pointer to a kalman filter to take values from

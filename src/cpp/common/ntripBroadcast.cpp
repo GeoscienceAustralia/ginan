@@ -62,7 +62,7 @@ void NtripUploader::serverResponse(
 
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("label", 			__FUNCTION__));
-	doc.append(kvp("Stream", 			url.path.substr(1,url.path.length())));
+	doc.append(kvp("Stream", 			url.path.substr(1, url.path.length())));
 	doc.append(kvp("Time", 				time.to_string()));
 	doc.append(kvp("ServerStatus", 		(int)status_code));
 	doc.append(kvp("VersionHTTP",		http_version));
@@ -105,15 +105,12 @@ void NtripUploader::messageTimeoutHandler(
 	SSRMeta		ssrMeta;
 	SsrOutMap	ssrOutMap;
 
-	GTime	latestTime;
-
-	if		(acsConfig.ssrOpts.output_timing == +E_SSROutTiming::GPS_TIME) 					latestTime = timeGet();
-// 	else if (acsConfig.ssrOpts.output_timing == +E_SSROutTiming::LATEST_CLOCK_ESTIMATE)		latestTime = mongoReadLastClock();		//todo aaron
+	GTime	latestTime = timeGet();
 
 	if (latestTime == GTime::noTime())
 		return;
 
-	GTime	targetTime	= latestTime.floorTime(1);
+	GTime	targetTime = latestTime.floorTime(1);
 
 	if (targetTime == previousTargetTime)
 	{
@@ -448,7 +445,7 @@ void NtripUploader::messageTimeoutHandler(
 				map<SatSys, SSRCodeBias>		ssrCodMap;
 				map<SatSys, SSRPhasBias>		ssrPhsMap;
 
-				map<CompactSSRSubtype ,int>	approvedMessages;
+				map<CompactSSRSubtype, int>	approvedMessages;
 
 				bool new_mask = false;
 				for (auto [subType, subUdi] : msgOpts.comp_udi)

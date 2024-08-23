@@ -9,6 +9,7 @@ using std::vector;
 
 #include "minimumConstraints.hpp"
 #include "eigenIncluder.hpp"
+#include "inputsOutputs.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
 #include "ephemeris.hpp"
@@ -17,9 +18,6 @@ using std::vector;
 #include "attitude.hpp"
 #include "trace.hpp"
 #include "rinex.hpp"
-
-void createDirectories(
-	boost::posix_time::ptime	logptime);
 
 struct TraceDummy
 {

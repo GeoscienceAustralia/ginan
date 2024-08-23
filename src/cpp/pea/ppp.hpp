@@ -203,7 +203,7 @@ bool orbitGlitchReaction(
 
 
 
-void receiverPPP(
+void receiverUducGnss(
 			Trace&				pppTrace,
 			Receiver&			rec,
 	const	KFState&			kfState,

@@ -9,89 +9,13 @@ High level operational flows for Ginan__()
 #include "architectureDocs.hpp"
 
 
-/** Retrieve data from streams and process together once per epoch.
- *
- * In order to be capable of real-time and post-processed execution, the pea treats all observation inputs as streams.
- * These streams are created with a stream source type, and a parser, with the separation of these strategies allowing for far more reusable code,
- * and immediate extension of inputs from simply files, to Files, HTTP, TCP, Serial, Pipes etc.
- *
- * The fundamental tick of the pea is the `epoch_interval`, which drives all major processing steps.
- * Once an initial epoch has been designated the pea requests data for the next epoch from each stream.
- * The streams either respond with the data, or with a flag indicating the data may be available later, or will never be available.
- *
- * Various configuration parameters define the exact flow through the synchronisation code, however once all data is available, or no more is expected,
- * or a timeout has occurred, the epoch is considered synchronised and processing is performed.
- *
- * Unlike observation streams, which provide data up until the requested epoch time, other streams such as navigation streams parse all data available to them,
- * and output any values to global maps, which may be later accessed as required by other components.
- *
- * The synchronisation process parses all streams sequentially, without multithreading, so map collisions are not expected.
- */
-Architecture Streams_And_Synchronisation__()
-{
 
-}
-
-
-FileType SP3__()
-{
-
-}
-
-FileType ATX__()
-{
-
-}
-
-FileType SNX__()
-{
-
-}
-
-FileType CLK__()
-{
-
-}
-
-FileType UBX__()
-{
-
-}
 
 FileType JSON__()
 {
 
 }
 
-FileType OBX__()
-{
-
-}
-
-FileType RNX__()
-{
-
-}
-
-FileType GPX__()
-{
-
-}
-
-FileType BSX__()
-{
-
-}
-
-FileType COST__()
-{
-
-}
-
-FileType RTCM__()
-{
-
-}
 
 FileType IGS_Files__()
 {
@@ -104,61 +28,17 @@ FileType IGS_Files__()
 	DOCS_REFERENCE(OBX__);
 }
 
-FileType YAML__()
-{
 
-}
 
-Input Input_Files__()
-{
-	DOCS_REFERENCE(UBX__);
-	DOCS_REFERENCE(YAML__);
-	DOCS_REFERENCE(IGS_Files__);
-}
-
-Architecture Preprocessing__()
-{
-
-}
 
 Architecture State_Propagation__()
 {
-
-}
-
-/** Kalman Filter.
- *
- * $$ K = HPH^\intercal + R $$ fgdfg
- */
-ParallelArchitecture Kalman_Filter__()
-{
-	DOCS_REFERENCE(Binary_Archive__);
+	DOCS_REFERENCE(Orbit_Integrator__);
 }
 
 Architecture Error_Handling__()
 {
 
-}
-
-ParallelArchitecture UDUC_Measurements__()
-{
-
-}
-
-Architecture Combinators__()
-{
-
-}
-
-Output Outputs__()
-{
-	DOCS_REFERENCE(Trace_Files__);
-	DOCS_REFERENCE(IGS_Files__);
-	DOCS_REFERENCE(GPX__);
-	DOCS_REFERENCE(JSON__);
-	DOCS_REFERENCE(COST__);
-	DOCS_REFERENCE(RTCM__);
-	DOCS_REFERENCE(Mongo_Database__);
 }
 
 /** Linear algebra library.
@@ -185,19 +65,60 @@ Library Boost__()
 	DOCS_REFERENCE(Binary_Archive__);
 }
 
-/** YAML configuration.
+/** YAML file-format parser.
+ * The Pea makes great use of the heirarchical structure provided by YAML configuration files. This library agnostically parses files, ensuring compatibility with the YAML standard,
+ * and provides structured output for the Peas configuration functions to traverse.
  */
 Library Yaml_Cpp__()
 {
 
 }
 
+/** Analytic reference frame and timing routines.
+ */
 Library Sofa__()
 {
 
 }
 
+Library JPL_Planetary_Ephemerides__()
+{
+
+}
+
+/** C++ MongoDB API
+ */
+Library MongoCxx__()
+{
+
+}
+
+/** Automated source code documentation generator.
+ * In addition to generating documentation from source code, it is used to produce architectural flow-charts of high-level software features.
+ */
+Library Doxygen__()
+{
+
+}
+
+/** GNSS processing toolkit.
+ * Ginan was once based heavily on the RTKLib library, but has been converted to c++, and modified heavily to be object-oriented and suit the processing schemes used in Ginan.
+ */
+Library RTKLib__()
+{
+
+}
+
+Library IERS2010__()
+{
+
+}
+
 /** 3rd-party libraries extend functionality.
+ *
+ * Open source de-facto industry standard libraries are used to ensure long-term support into the future.
+ * They provide functionality which is outside the scope of the Ginan project.
+ *
  */
 Architecture Libraries__()
 {
@@ -205,6 +126,11 @@ Architecture Libraries__()
 	DOCS_REFERENCE(Yaml_Cpp__);
 	DOCS_REFERENCE(Boost__);
 	DOCS_REFERENCE(Sofa__);
+	DOCS_REFERENCE(JPL_Planetary_Ephemerides__);
+	DOCS_REFERENCE(IERS2010__);
+	DOCS_REFERENCE(MongoCxx__);
+	DOCS_REFERENCE(Doxygen__);
+	DOCS_REFERENCE(RTKLib__);
 }
 
 Architecture Augmentation__()
@@ -213,7 +139,7 @@ Architecture Augmentation__()
 }
 
 /** Ginan's main processing executable.
- * The Pea is a highly-configurable, application-specific, robust, kalman filter. It
+ * Written in C++, the Pea is a highly-configurable, application-specific, robust, kalman filter. It
  * - allows for vast configuration using the YAML configuration files,
  * - contains parsers for nearly all file-formats used in GNSS positioning,
  * - contains models and estimators for all major phyical phenomena affecting satellites, receivers, and the atmosphere between them,
@@ -252,14 +178,16 @@ Architecture Auto_Download__()
 
 }
 
-
+/** Utility scripts and visualisations
+ */
 Architecture Python_Scripts__()
 {
 	DOCS_REFERENCE(Ginan_EDA__);
 	DOCS_REFERENCE(Auto_Download__);
 }
 
-/** Ginan is a toolkit for processing GNSS measurements to produce precise positioning products
+/** Ginan is a toolkit for processing GNSS measurements to produce precise positioning products.
+ * As a system it comprises a C++ executable known as the Pea, with additional scripts and databases used for visualisation and post-processing data.
  */
 Architecture Ginan__()
 {

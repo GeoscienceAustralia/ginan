@@ -1,6 +1,15 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/**
+ */
+FileType SP3__()
+{
+
+}
+
 #include <iostream>
 #include <string>
 

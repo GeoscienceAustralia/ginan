@@ -1,6 +1,17 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/** Satellite Laser Ranging.
+ *
+ *
+ */
+ParallelArchitecture SLR_Mesaurements__()
+{
+
+}
+
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
 #include "tropModels.hpp"
@@ -22,6 +33,8 @@ using std::function;
 
 #define DEFAULT_RANG_BIAS_VAR SQR(0.001)
 #define DEFAULT_TIME_BIAS_VAR SQR(0.001)
+
+
 
 
 //this hideousness is a horrible hack to make this code compile on macs.
@@ -237,6 +250,8 @@ void receiverSlr(
 	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
 			KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
 {
+	DOCS_REFERENCE(SLR_Mesaurements__);
+
 	if (acsConfig.slrOpts.process_slr == false)
 	{
 		return;

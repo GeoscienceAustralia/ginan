@@ -1,41 +1,8 @@
 
 // #pragma GCC optimize ("O0")
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <tuple>
-#include <cmath>
-#include <map>
-
-#ifdef ENABLE_PARALLELISATION
-	#include "omp.h"
-#endif
-
-using std::string;
-using std::tuple;
-using std::map;
-
-
-#include "interactiveTerminal.hpp"
 #include "architectureDocs.hpp"
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "coordinates.hpp"
-#include "mongoWrite.hpp"
-#include "navigation.hpp"
-#include "mongoRead.hpp"
-#include "orbitProp.hpp"
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "metaData.hpp"
-#include "receiver.hpp"
-#include "posProp.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "lambda.h"
-#include "ppp.hpp"
+
 
 /** Primary estimation and filtering.
  *
@@ -54,13 +21,54 @@ using std::map;
  */
 Architecture Main_Filter__()
 {
-	DOCS_REFERENCE(UDUC_Measurements__);
+	DOCS_REFERENCE(UDUC_GNSS_Measurements__);
+	DOCS_REFERENCE(SLR_Mesaurements__);
 	DOCS_REFERENCE(Combinators__);
 	DOCS_REFERENCE(Pseudo_Observations__);
 	DOCS_REFERENCE(Kalman_Filter__);
 	DOCS_REFERENCE(Error_Handling__);
 }
 
+/**
+ */
+Architecture Combinators__()
+{
+
+}
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <tuple>
+#include <map>
+
+#ifdef ENABLE_PARALLELISATION
+	#include "omp.h"
+#endif
+
+using std::string;
+using std::tuple;
+using std::map;
+
+
+#include "interactiveTerminal.hpp"
+#include "eigenIncluder.hpp"
+#include "observations.hpp"
+#include "coordinates.hpp"
+#include "mongoWrite.hpp"
+#include "navigation.hpp"
+#include "mongoRead.hpp"
+#include "orbitProp.hpp"
+#include "ionoModel.hpp"
+#include "acsConfig.hpp"
+#include "metaData.hpp"
+#include "receiver.hpp"
+#include "posProp.hpp"
+#include "algebra.hpp"
+#include "common.hpp"
+#include "trace.hpp"
+#include "lambda.h"
+#include "ppp.hpp"
 
 struct Duo
 {
@@ -589,7 +597,7 @@ void updateRecClocks(
 
 		rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = rec.sol.dtRec_m[E_Sys::GPS];
 
-		kfState.setKFTrans(clkKey, KFState::oneKey, C_dtRecAdj, init);		//todo aaron, change to rate?
+		kfState.setKFTrans(clkKey, KFState::oneKey, C_dtRecAdj, init);
 	}
 }
 
@@ -1199,7 +1207,7 @@ void updateFilter(
 void perRecMeasurements(
 	Trace&				trace,
 	Receiver&			rec,
-	ReceiverMap&		receiverMap,	///< todo aaron ew.
+	ReceiverMap&		receiverMap,
 	KFMeasEntryList&	kfMeasEntryList,
 	const KFState&		kfState,
 	const KFState&		remoteState)
@@ -1208,7 +1216,7 @@ void perRecMeasurements(
 	rec.pppEopCache	.uninit();
 
 	orbitPseudoObs		(trace,	rec,	kfState, kfMeasEntryList);
-	receiverPPP			(trace,	rec,	kfState, kfMeasEntryList,	remoteState);
+	receiverUducGnss	(trace,	rec,	kfState, kfMeasEntryList,	remoteState);
 	receiverSlr			(trace, rec,	kfState, kfMeasEntryList);
 	receiverPseudoObs	(trace,	rec,	kfState, kfMeasEntryList,	receiverMap);
 

@@ -132,7 +132,7 @@ processing_options:
 
     epoch_control:
         epoch_interval:                 20
-        wait_all_receivers:             1
+        max_rec_latency:                1
 
     gnss_general:
         # use_rtk_combo:  true

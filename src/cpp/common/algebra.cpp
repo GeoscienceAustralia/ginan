@@ -1,4 +1,37 @@
 
+#include "architectureDocs.hpp"
+
+/** Kalman Filter.
+ *
+ * This software uses specialised kalman filter classes to perform filtering.
+ * Using classes such as KFState, KFMeas, etc, prevents duplication of code, and ensures that many edge cases are taken care of
+ * without the need for the developer to consider them explicitly.
+ *
+ * The basic workflow for using the filter is:
+ * create filter object,
+ * create a list of measurements (only adding entries for required states, using KFKeys to reference the state element)
+ * combine measurements that in a list into a single matrix corresponding to the new state,
+ * and filtering - filtering internally saves the states for RTS code, using a single sequential file that has some headers added so that it can be traversed backwards
+ *
+ * The filter has some pre/post fit checks that remove measurements that are out of expected ranges,
+ * and there are functions provided for setting, resetting, and getting values, noises, and covariance values.
+ *
+ * KFKey objects are used to identify states. They may have a KF type, SatSys value, string (usually used for receiver id), and number associated with them, and can be set and read from filter objects as required.
+ *
+ * KFMeasEntry objects are used for an individual measurement, before being combined into KFMeas objects that contain all of the measurements for a filter iteration.
+ *
+ * Internally, the data is stored in maps and Eigen matrices/vectors, but the accessors should be used rather than the vectors themselves to ensure that states have been initialised and are in the expected order.
+ *
+ * InitialState objects are created directly from yaml configurations, and contain the detailis about state transitions, including process noise, which are automatically added to the filter
+ * when a stateTransition() call is used, scaling any process noise according to the time gap since the last stateTransition.
+ *
+ * $$ K = HPH^\intercal + R $$ fgdfg
+ */
+ParallelArchitecture Kalman_Filter__()
+{
+	DOCS_REFERENCE(Binary_Archive__);
+}
+
 
 
 #include <utility>
@@ -22,28 +55,6 @@ using std::pair;
 #include "trace.hpp"
 
 // #pragma GCC optimize ("O0")
-
-/** \file
-* This software uses specialised kalman filter classes to perform filtering.
-* Using a classes such as KFState, KFMeas, etc, prevents duplication of code, and ensures that many edge cases are taken care of
-* without the need for the developer to consider them explicitly.
-*
-* The basic workflow for using the filter is:
-* create filter object,
-* initialise the state transition matrix at the beginning of each epoch
-* create a list of measurements (only adding entries for required states, using KFKeys to reference the state element)
-* combining measurements that were in a list into a single matrix corresponding to the new state,
-* and filtering - filtering internally saves the states for RTS code, using a single sequential file that has some headers added so that it can be traversed backwards
-*
-* The filter has some pre/post fit checks that remove measurements that are out of expected ranges,
-* and there are functions provided for setting, resetting, and getting values, noises, and covariance values.
-*
-* KFKeys are used to identify states. They may have a type, SatStat value, string, and number associated with them, and can be set and read from filter objects as required.
-*
-* KFMeasEntrys are used for an individual measurement, before being combined into KFMeas objects that contain all of the measurements for a filter iteration.
-*
-* Internally, the data is stored in maps and Eigen matrices/vectors, but the accessors should be used rather than the vectors themselves to ensure that states have been initialised and are in the expected order.
-*/
 
 const KFKey KFState::oneKey = {.type = KF::ONE};
 
@@ -1108,7 +1119,7 @@ bool KFState::chiQC(
 	/* chi-square validation */
 	if (chi > thres)
 	{
-		tracepdeex(5, trace, " ChiSquare error detected: dof:%d chi:%f thres:%f", dof, chi, thres);
+		tracepdeex(5, trace, "\nChiSquare error detected: dof:%d chi:%f thres:%f", dof, chi, thres);
 
 // 		auto variations	= v.array().square();
 // 		Eigen::MatrixXf::Index index;
@@ -1325,6 +1336,8 @@ void KFState::filterKalman(
 	bool						innovReady,			///< Innovation already constructed
 	map<string, FilterChunk>*	filterChunkMap_ptr)	///< Optional map of chunks for parallel processing of sub filters
 {
+	DOCS_REFERENCE(Kalman_Filter__);
+
 	if (kfMeas.time != GTime::noTime())
 	{
 		time = kfMeas.time;

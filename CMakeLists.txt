@@ -54,7 +54,7 @@ if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
 
-	option(BUILD_DOC                "BUILD_DOCUMENTATION"       ON)
+	option(BUILD_DOC                "BUILD_DOCUMENTATION"       OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    OFF)
@@ -118,8 +118,8 @@ if (BUILD_DOC)
 			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_IN} -DOUT=${DOXYGEN_OUT} -P "../cmake/Configure.cmake"
 			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_LAYIN} -DOUT=${DOXYGEN_LAYOUT} -P "../cmake/Configure.cmake"
 			COMMAND				${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${DOXYGEN_OUT}
-			COMMAND				cp ../doc_templates/css.css ./
-			WORKING_DIRECTORY	${CMAKE_CURRENT_SOURCE_DIR}/build
+			COMMAND				cp ${CMAKE_CURRENT_SOURCE_DIR}/doc_templates/css.css ./
+			WORKING_DIRECTORY	${CMAKE_BUILD_DIR}
 			COMMENT				"Generating API documentation with Doxygen"
 			VERBATIM )
 
