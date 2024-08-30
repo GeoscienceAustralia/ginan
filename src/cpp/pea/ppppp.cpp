@@ -553,6 +553,11 @@ void updateRecClocks(
 
 	for (auto& [id, rec] : receiverMap)
 	{
+		if (rec.isPseudoRec)
+		{
+			continue;
+		}
+
 		auto	trace	= getTraceFile(rec);
 		auto&	recOpts	= acsConfig.getRecOpts(id);
 

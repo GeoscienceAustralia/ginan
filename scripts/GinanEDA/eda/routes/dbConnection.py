@@ -67,16 +67,22 @@ def handle_connect_request(form_data):
         client.connect()
         databases = client.get_list_db()
         print(databases)
-        # loop trhough all databases, and remove those who doesn't have a collection called Content
+        to_remove = []
         for database in databases:
             try:
                 with MongoDB(connect_db_ip, port=db_port, data_base=database) as client2:
-                    print("looging for Content in ", database)
+                    current_app.logger.debug(f"looking for Content in {database}")
                     client2.get_content()
             except Exception as e:
-                print(f"Error in {database}: {e}")
-                databases.remove(database)
-        databases.remove("config")
+                current_app.logger.info(f"Error in {database}: {e}")
+                to_remove.append(database)
+                # databases.remove(database)
+        for database in to_remove:
+            databases.remove(database)
+        try:
+            databases.remove("config")
+        except:
+            pass
         return render_template("connect.jinja", db_ip=connect_db_ip, db_port=db_port, databases=databases)
     except ServerSelectionTimeoutError:
         error_message = (

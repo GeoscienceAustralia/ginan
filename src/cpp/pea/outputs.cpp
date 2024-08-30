@@ -833,22 +833,22 @@ void perEpochPostProcessingAndOutputs(
 	}
 
 	if (acsConfig.output_clocks)
-	while (obxOutputTime <= time)
+	while (clkOutputTime <= time)
 	{
-		outputClocks(acsConfig.clocks_filename,	clkOutputTime, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, tempAugmentedKF, &receiverMap);			clkOutputTime += acsConfig.clocks_output_interval;
+		outputClocks(acsConfig.clocks_filename,	clkOutputTime, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, tempAugmentedKF, &receiverMap);			clkOutputTime += std::max(acsConfig.epoch_interval, acsConfig.clocks_output_interval);
 	}
 
 	if (acsConfig.output_sp3)
 	while (sp3OutputTime <= time)
 	{
-		outputSp3(acsConfig.sp3_filename,		sp3OutputTime, acsConfig.sp3_orbit_sources, acsConfig.sp3_clock_sources, &tempAugmentedKF, emptyEpoch);							sp3OutputTime += acsConfig.sp3_output_interval;
+		outputSp3(acsConfig.sp3_filename,		sp3OutputTime, acsConfig.sp3_orbit_sources, acsConfig.sp3_clock_sources, &tempAugmentedKF, emptyEpoch);							sp3OutputTime += std::max(acsConfig.epoch_interval, acsConfig.sp3_output_interval);
 	}
 
 
 	if (acsConfig.output_orbex)
 	while (obxOutputTime <= time)
 	{
-		outputOrbex(acsConfig.orbex_filename,	obxOutputTime, acsConfig.orbex_orbit_sources, acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources, &kfState);		obxOutputTime += acsConfig.orbex_output_interval;
+		outputOrbex(acsConfig.orbex_filename,	obxOutputTime, acsConfig.orbex_orbit_sources, acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources, &kfState);		obxOutputTime += std::max(acsConfig.epoch_interval, acsConfig.orbex_output_interval);
 	}
 
 	if (acsConfig.output_ionex)
