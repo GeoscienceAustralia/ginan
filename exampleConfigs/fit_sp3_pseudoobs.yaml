@@ -1,0 +1,191 @@
+inputs:
+
+    include_yamls:  [ products/boxwing.yaml ] # required if using boxwing model
+
+    inputs_root:   ./products/
+
+    atx_files:      [ igs20.atx                             ] 
+    erp_files:      [ igs96p02.erp                          ]
+    egm_files:      [ tables/EGM2008.gfc                    ]  # Earth gravity model coefficients file
+    planetary_ephemeris_files:  [ tables/DE436.1950.2050    ]  # JPL planetary and lunar ephemerides file
+
+    tides:
+        # ocean_tide_loading_blq_files:   [ OLOAD_GO.BLQ                  ]
+        # atmos_tide_loading_blq_files:   [ ALOAD_GO.BLQ                  ]
+        # ocean_pole_tide_loading_files:  [ tables/opoleloadcoefcmcor.txt ]
+        ocean_tide_potential_files:     [ tables/fes2014b_Cnm-Snm.dat  ]
+
+    snx_files:
+    - IGS1R03SNX_20191950000_07D_07D_CRD.SNX
+    - tables/igs_satellite_metadata_2203_plus.snx
+    - tables/sat_yaw_bias_rate.snx
+    - tables/qzss_yaw_modes.snx
+    - tables/bds_yaw_modes.snx
+    
+    satellite_data:
+        nav_files:
+        - brdm1990.19p
+        sp3_files:
+        - IGS2R03FIN_20191980000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20192000000_01D_05M_ORB.SP3
+
+    pseudo_observations:
+        eci_pseudoobs: false
+        sp3_inputs:
+        - IGS2R03FIN_20191980000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+        - IGS2R03FIN_20192000000_01D_05M_ORB.SP3
+
+
+outputs:
+
+    outputs_root:                     outputs/<CONFIG>/
+
+    metadata:
+        config_description:           fit_sp3_pseudoobs
+        analysis_agency:              GAA
+        analysis_centre:              Geoscience Australia
+        analysis_program:             Ginan
+        rinex_comment:                AUSNETWORK1
+
+    trace:
+        output_receivers:             true
+        output_network:               true
+        level:                        3
+        directory:                    ./
+        receiver_filename:            <CONFIG>_<RECEIVER>.TRACE
+        network_filename:             <CONFIG>_<RECEIVER>.TRACE
+        output_residuals:             true
+        output_config:                true
+
+    log:
+        output:                       true
+        directory:                    ./
+        filename:                     log_<LOGTIME>.json
+
+    orbit_ics:
+        output:                       true
+        directory:                    ./orbit_ics
+        filename:                     <CONFIG>_<LOGTIME>_orbits.yaml
+
+    sp3:
+        output:                       true
+        directory:                    ./
+        filename:                     <CONFIG>_<LOGTIME>_<SYS>.sp3
+        output_interval:              300
+        output_velocities:            true
+        output_inertial:              true
+        orbit_sources:                [ KALMAN ]
+        clock_sources:                [ PRECISE ]
+
+    output_rotation:
+        period:                       1
+        period_units:                 day
+
+
+satellite_options:  # Options to configure individual satellites, systems, or global configs
+
+    global:
+        pseudo_sigma:                 1
+        orbit_propagation:
+            albedo:                   cannonball
+            antenna_thrust:           true
+            empirical:                true
+            empirical_dyb_eclipse:    [true, false, false]
+            planetary_perturbations:  [moon,sun,mercury,venus,mars,jupiter,saturn,uranus,neptune,pluto]
+            pseudo_pulses:
+                enable:               true
+            solar_radiation_pressure: boxwing
+            mass:                     1000
+            area:                     15
+            srp_cr:                   1.75
+            power:                    20
+        models:
+            pos:
+                enable:               true
+                sources:              [KALMAN, PRECISE, BROADCAST]
+            attitude:
+                enable:               true         # (bool) Enables non-nominal attitude types
+                sources:              [ NOMINAL ]  # List of sourecs to use for attitudes
+
+
+receiver_options:
+
+    global:
+        models:
+            eop:
+                enable:               true
+
+
+processing_options:
+
+    epoch_control:
+        epoch_interval:               300          # seconds
+
+
+    process_modes:
+        ppp:                          true
+        preprocessor:                 false
+        spp:                          false
+
+    gnss_general:
+        sys_options:
+            gps:
+                process:	          true
+
+    orbit_propagation:
+        central_force:                true
+        indirect_J2:                  true
+        egm_field:                    true
+        solid_earth_tide:             true
+        ocean_tide:                   true
+        general_relativity:           true
+        pole_tide_ocean:              true
+        pole_tide_solid:              true
+        integrator_time_step:         900
+        egm_degree:                   15
+
+    model_error_handling:
+        orbit_errors:
+            enable:                      true
+            pos_process_noise:           100
+            vel_process_noise:           1
+            vel_process_noise_trail:     1
+            vel_process_noise_trail_tau: 900
+
+
+estimation_parameters:
+
+    global_models:
+        eop:
+            estimated:                  [ true ]
+            sigma:                      [ 10 ]
+        eop_rates:
+            estimated:                  [ true ]
+            sigma:                      [ 10 ]
+
+    satellites:
+        global:
+            orbit:
+                estimated:            [true]
+                sigma:                [1]
+
+            emp_d_0: { estimated: [true], sigma: [1e3]}
+            emp_y_0: { estimated: [true], sigma: [1e3]}
+            emp_b_0: { estimated: [true], sigma: [1e3]}
+
+            emp_d_1: { estimated: [true], sigma: [1e3]}
+            emp_b_1: { estimated: [true], sigma: [1e3]}
+
+            emp_d_2: { estimated: [true], sigma: [1e2]}
+
+            emp_d_4: { estimated: [true], sigma: [1e3]}
+
+
+mongo:
+    enable:                         primary
+    primary_database:               <CONFIG>
+    output_measurements:            primary
+    output_states:                  primary
+    delete_history:                 primary

@@ -1,0 +1,204 @@
+inputs:
+    inputs_root: ./products/
+
+    atx_files: [igs20.atx]
+    egm_files: [tables/EGM2008.gfc]
+    igrf_files: [tables/igrf13coeffs.txt]
+    erp_files: [finals.data.iau2000.txt]
+    planetary_ephemeris_files: [tables/DE436.1950.2050]
+
+    troposphere:
+        gpt2grid_files: [tables/gpt_25.grd]
+
+    tides:
+        ocean_tide_loading_blq_files: [tables/OLOAD_GO.BLQ] # required if ocean loading is applied
+        atmos_tide_loading_blq_files: [tables/ALOAD_GO.BLQ] # required if atmospheric tide loading is applied
+        ocean_pole_tide_loading_files: [tables/opoleloadcoefcmcor.txt] # required if ocean pole tide loading is applied
+        ocean_tide_potential_files: [tables/fes2014b_Cnm-Snm.dat]
+
+    snx_files: [tables/igs_satellite_metadata_2203_plus.snx]
+
+    gnss_observations:
+        gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+            - ALIC00AUS0
+            - MAW100ATA0
+            - DARW00AUS0
+            - STR200AUS0
+
+    satellite_data:
+        satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+            ssr_antenna_offset: APC
+            rtcm_inputs:
+                - BCEP00BKG0
+                - SSRA00BKG0
+
+outputs:
+    metadata:
+        config_description: rt_ppp_example
+
+    outputs_root: ./outputs/<CONFIG>
+
+    trace:
+        level: 4
+        output_receivers: true
+        output_network: true
+        receiver_filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        network_filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        output_residuals: true
+        output_residual_chain: true
+        output_config: true
+
+    gpx:
+        output: true
+        filename: <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.GPX
+
+satellite_options:
+    global:
+        models:
+            pos:
+                enable: true
+                sources: [SSR]
+            clock:
+                enable: true
+                sources: [SSR]
+            code_bias:
+                enable: true
+                undefined_sigma: 3
+            phase_bias:
+                enable: true
+                undefined_sigma: 3
+
+receiver_options:
+    global:
+        elevation_mask: 15 # degrees
+        error_model: ELEVATION_DEPENDENT # {uniform,elevation_dependent}
+        code_sigma: 0.3 # Standard deviation of code measurements, m
+        phase_sigma: 0.003 # Standard deviation of phase measurmeents, m
+        rec_reference_system: GPS
+        models:
+            phase_bias:
+                enable: true
+
+    ALIC:
+        receiver_type: "SEPT POLARX5" # (string)
+        antenna_type: "LEIAR25.R3      NONE" # (string)
+        apriori_position: [-4052052.8638, 4212835.9618, -2545104.4038] # [floats]
+        models:
+            eccentricity:
+                enable: true
+                offset: [0.0000, 0.0000, 0.0015] # [floats]
+
+    MAW1:
+        receiver_type: "SEPT POLARX5" # (string)
+        antenna_type: "AOAD/M_T        AUST" # (string)
+        apriori_position: [1111287.2209, 2168911.1847, -5874493.6128] # [floats]
+        models:
+            eccentricity:
+                enable: true
+                offset: [0.0000, 0.0000, 0.0035] # [floats]
+
+    DARW:
+        receiver_type: "SEPT POLARX5" # (string)
+        antenna_type: "JAVRINGANT_DM   NONE" # (string)
+        apriori_position: [-4091359.7273, 4684606.3705, -1408578.9291] # [floats]
+        models:
+            eccentricity:
+                enable: true
+                offset: [0.0000, 0.0000, 0.0000] # [floats]
+
+    STR2:
+        receiver_type: "TRIMBLE ALLOY" # (string)
+        antenna_type: "LEIAR25.R3      NONE" # (string)
+        apriori_position: [-4467075.3642, 2683011.8533, -3667006.8945] # [floats]
+        models:
+            eccentricity:
+                enable: true
+                offset: [0.0000, 0.0000, 0.0000] # [floats]
+
+processing_options:
+    process_modes:
+        ppp: true
+
+    epoch_control:
+        epoch_interval: 20
+        max_rec_latency: 1
+
+    gnss_general:
+        # use_rtk_combo:  true
+        # common_atmosphere:  true
+        sys_options:
+            gps:
+                process: true
+                reject_eclipse: false
+                # clock_codes:            [ L1W, L2W ]
+                code_priorities: [L1W, L1C, L2W]
+                ambiguity_resolution: false
+
+estimation_parameters:
+    satellites:
+        global:
+            clock:
+                estimated: [true]
+                sigma: [1000]
+                process_noise: [10]
+            phase_bias:
+                estimated: [true]
+                sigma: [10]
+                # process_noise:  [-1]
+
+    receivers:
+        BASE:
+            pos:
+                estimated: [false]
+            clock:
+                # estimated: [false]
+
+        global:
+            pos:
+                estimated: [true]
+                sigma: [100]
+                process_noise: [0]
+            clock:
+                estimated: [true]
+                sigma: [1000]
+                process_noise: [100]
+            ambiguities:
+                estimated: [true]
+                sigma: [1000]
+                process_noise: [0]
+            ion_stec: # Ionospheric slant delay
+                estimated: [true] # Estimate state in kalman filter
+                sigma: [200] # Apriori sigma values - if zero, will be initialised using least squares
+                process_noise: [10] # Process noise sigmas
+            trop:
+                estimated: [true]
+                sigma: [0.3]
+                process_noise: [0.0001]
+            trop_grads:
+                estimated: [true]
+                sigma: [0.03]
+                process_noise: [1.0E-6]
+            code_bias:
+                estimated: [true] # false
+                sigma: [30]
+                process_noise: [0]
+            phase_bias:
+                # estimated:          [true]
+                sigma: [10]
+                process_noise: [0]
+
+mongo: # Mongo is a database used to store results and intermediate values for later analysis and inter-process communication
+    enable: primary # Enable and connect to mongo database {none,primary,secondary,both}
+    primary_uri: mongodb://localhost:27017 # Location and port of the mongo database to connect to
+    primary_database: <CONFIG>
+    output_components: primary # Output components of measurements {none,primary,secondary,both}
+    output_states: primary # Output states {none,primary,secondary,both}
+    output_measurements: primary # Output measurements and their residuals {none,primary,secondary,both}
+    output_test_stats: primary # Output test statistics {none,primary,secondary,both}
+    delete_history: primary # Drop the collection in the database at the beginning of the run to only show fresh data {none,primary,secondary,both}
+
+debug:
+    # explain_measurements: true
+    # instrument: true

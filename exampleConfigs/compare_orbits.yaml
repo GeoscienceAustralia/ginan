@@ -1,0 +1,53 @@
+
+debug:
+    compare_orbits: true
+
+
+inputs:
+    inputs_root: ./products
+
+    satellite_data:
+        sp3_files:
+        - gag20624.sp3
+        - igs20624.sp3
+
+outputs:
+    outputs_root: ./outputs/compare_orbits
+
+    trace:
+        level:                      3
+        output_config:              true
+        output_network:             true
+        output_residuals:           true
+        network_filename:           compare_orbits.TRACE
+
+
+satellite_options:
+    global:
+        mincon_scale_apriori_sigma:     0.01
+
+
+processing_options:
+    minimum_constraints:
+
+        enable:                     true
+
+        translation:                { estimated: [true] }
+        rotation:                   { estimated: [true] }
+        # scale:                      { estimated: [true] }
+        delay:                      { estimated: [true] }
+
+        outlier_screening:
+            chi_square:
+                enable:             false            # (bool)  Enable Chi-square test
+                mode:               none             # (enum)  Chi-square test mode - innovation, measurement, state {NONE,INNOVATION,MEASUREMENT,STATE}
+            prefit:
+                max_iterations:     3                # Maximum number of measurements to exclude using prefit checks before attempting to filter
+                sigma_check:        true             # (bool)  Enable prefit sigma check
+                state_sigma_threshold:  3.0          # (float) sigma threshold for states
+                meas_sigma_threshold:   3.0          # (float) sigma threshold for measurements
+            postfit:
+                max_iterations:     20               # Maximum number of measurements to exclude using postfit checks while iterating filter
+                sigma_check:        true             # (bool)  Enable postfit sigma check
+                state_sigma_threshold:  3.0          # (float) sigma threshold for states
+                meas_sigma_threshold:   3.0          # (float) sigma threshold for measurements

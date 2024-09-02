@@ -1,0 +1,54 @@
+inputs:
+  gnss_observations:
+    gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+    rtcm_inputs:
+    - ALIC00AUS0
+    - DARW00AUS0
+    - MOBS00AUS0
+    - TKBG00JPN0
+    - TLSE00FRA0
+
+outputs:
+  metadata:
+    config_description: "SNRREC"
+  trace:
+    level: 4
+    output_json: false
+    output_residual_chain: false
+
+processing_options:
+  epoch_control:
+    epoch_interval: 1
+    max_rec_latency: 1
+    require_obs: true
+  process_modes:
+    preprocessor: true
+    spp: false
+    ppp: false
+    ionosphere: false
+    slr: false
+  gnss_general:
+    sys_options:
+      gps:
+        process: true
+      gal:
+        process: true
+      glo:
+        process: true
+      bds:
+        process: true
+      qzs:
+        process: true
+      sbs:
+        process: true
+
+mongo:
+  enable: primary
+  output_trace: primary
+  output_config: primary
+  primary_uri: "mongodb://localhost:27017"
+  primary_database: "<CONFIG>"
+  primary_suffix: ""
+  delete_history: primary
+
+

@@ -1,0 +1,299 @@
+inputs:
+    inputs_root: ./products/
+
+    atx_files: [igs20.atx] # required
+    igrf_files: [tables/igrf13coeffs.txt]
+    erp_files: [finals.data.iau2000.txt]
+    planetary_ephemeris_files: [tables/DE436.1950.2050]
+
+    troposphere:
+        gpt2grid_files: [tables/gpt_25.grd]
+
+    tides:
+        ocean_tide_loading_blq_files: [tables/OLOAD_GO.BLQ] # required if ocean loading is applied
+        atmos_tide_loading_blq_files: [tables/ALOAD_GO.BLQ] # required if atmospheric tide loading is applied
+        ocean_pole_tide_loading_files: [tables/opoleloadcoefcmcor.txt] # required if ocean pole tide loading is applied
+
+    snx_files:
+        # - "*.SNX" # use a wild card to include all files matching the description in the directory
+        - igs_satellite_metadata.snx
+        - tables/sat_yaw_bias_rate.snx
+        - tables/qzss_yaw_modes.snx
+        - tables/bds_yaw_modes.snx
+        - IGS1R03SNX_20191950000_07D_07D_CRD.SNX
+
+    satellite_data:
+        # nav_files:
+        # - "*.rnx"
+        clk_files:
+            # - "*.CLK"
+            - IGS2R03FIN_20191990000_01D_30S_CLK.CLK
+        bsx_files:
+            # - "*.BIA"
+            - IGS2R03FIN_20191990000_01D_01D_OSB.BIA
+        sp3_files:
+            # - "*.SP3"
+            - IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+
+    gnss_observations:
+        gnss_observations_root: ../data/
+        rnx_inputs:
+            # - "*.rnx"
+            - ALIC00AUS_R_20191990000_01D_30S_MO.rnx
+        # - DARW00AUS_R_20191990000_01D_30S_MO.rnx
+        # - HOB200AUS_R_20191990000_01D_30S_MO.rnx
+        # - "M*.rnx"
+
+outputs:
+    metadata:
+        config_description: ppp_example_<BRANCH>
+
+    outputs_root: ./outputs/<CONFIG>
+
+    gpx:
+        output: true
+        filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.GPX
+    pos:
+        output: true
+        filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.POS
+    trace:
+        level: 2
+        output_receivers: true
+        output_network: true
+        receiver_filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        network_filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
+        output_residuals: true
+        output_residual_chain: true
+        output_config: true
+        output_initialised_states: true
+        output_predicted_states: true
+
+satellite_options:
+    global:
+        error_model: ELEVATION_DEPENDENT #  {uniform,elevation_dependent}
+        code_sigma: 0 # Standard deviation of code measurements
+        phase_sigma: 0 # Standard deviation of phase measurmeents
+        models:
+            phase_bias:
+                enable: false
+
+    # E05:
+    #     exclude: true # Exclude satellites
+    # E06:
+    #     exclude: true
+
+receiver_options:
+    global:
+        elevation_mask: 15 # degrees
+        error_model: ELEVATION_DEPENDENT # {uniform,elevation_dependent}
+        code_sigma: 0.3 # Standard deviation of code measurements, m
+        phase_sigma: 0.003 # Standard deviation of phase measurmeents, m
+        clock_codes: [AUTO, AUTO]
+        zero_dcb_codes: [AUTO, AUTO]
+        rec_reference_system: GPS
+        models:
+            phase_bias:
+                enable: false
+            troposphere: # Tropospheric modelling accounts for delays due to refraction of light in water vapour
+                enable: true
+                models: [gpt2] # List of models to use for troposphere [standard,sbas,vmf3,gpt2,cssr]
+            tides:
+                atl: true # Enable atmospheric tide loading
+                enable: true # Enable modelling of tidal disaplacements
+                opole: true # Enable ocean pole tides
+                otl: true # Enable ocean tide loading
+                solid: true # Enable solid Earth tides
+                spole: true # Enable solid Earth pole tides
+    # ALIC:
+    #     receiver_type:    "LEICA GR25"                 # (string)
+    #     antenna_type:     "LEIAR25.R3      NONE"       # (string)
+    #     apriori_position: [-4052052.7254, 4212835.9872,-2545104.6139] # [floats]
+    #     aliases:          [PIVOT] # set as pivot station
+    #     models:
+    #         eccentricity:
+    #             enable:   true
+    #             offset:   [0.0000,   0.0000,   0.0015] # [floats]
+
+processing_options:
+    process_modes:
+        preprocessor: true # Preprocessing and quality checks
+        spp: true # Perform SPP on receiver data
+        ppp: true # Perform PPP network or end user mode
+        ionosphere: false # Compute Ionosphere models based on GNSS measurements
+        slr: false # Process SLR observations
+
+    epoch_control:
+        # start_epoch:         2019-07-18 00:00:00
+        # end_epoch:           2019-07-18 23:59:30
+        # max_epochs:          2880
+        epoch_interval: 30 # seconds
+        wait_next_epoch: 3600 # seconds (make large for post-processing)
+
+    gnss_general:
+        add_eop_component: true
+        sys_options:
+            gps:
+                process: true
+                reject_eclipse: false
+                # clock_codes:            [ L1W, L2W ]
+                code_priorities: [L1W, L1C, L2W]
+
+            gal:
+                # process:                true
+                reject_eclipse: false
+                code_priorities: [L1C, L5Q, L1X, L5X]
+
+    preprocessor: # Configurations for the kalman filter and its sub processes
+        cycle_slips: # Cycle slips may be detected by the preprocessor and measurements rejected or ambiguities reinitialised
+            mw_process_noise: 0 # Process noise applied to filtered Melbourne-Wubenna measurements to detect cycle slips
+            slip_threshold: 0.05 # Value used to determine when a slip has occurred
+        preprocess_all_data: true
+
+    spp:
+        # always_reinitialise: false # Reset SPP state to zero to avoid potential for lock-in of bad states
+        max_lsq_iterations: 12 # Maximum number of iterations of least squares allowed for convergence
+        outlier_screening:
+            raim: true # Enable Receiver Autonomous Integrity Monitoring
+            max_gdop: 30 # Maximum dilution of precision before error is flagged
+
+    ppp_filter:
+        outlier_screening:
+            chi_square:
+                enable: false # Enable Chi-square test
+                mode: innovation # Chi-square test mode {none,innovation,measurement,state}
+            prefit:
+                max_iterations: 3 # Maximum number of measurements to exclude using prefit checks before attempting to filter
+                omega_test: false # Enable omega-test
+                sigma_check: true # Enable sigma check
+                state_sigma_threshold: 4 # Sigma threshold for states
+                meas_sigma_threshold: 4 # Sigma threshold for measurements
+            postfit:
+                max_iterations: 10 # Maximum number of measurements to exclude using postfit checks while iterating filter
+                sigma_check: true # Enable sigma check
+                state_sigma_threshold: 4 # Sigma threshold for states
+                meas_sigma_threshold: 4 # Sigma threshold for measurements
+
+        ionospheric_components: # Slant ionospheric components
+            common_ionosphere: true # Use the same ionosphere state for code and phase observations
+            use_gf_combo: false # Combine 'uncombined' measurements to simulate a geometry-free solution
+            use_if_combo: false # Combine 'uncombined' measurements to simulate an ionosphere-free solution
+
+        chunking:
+            by_receiver: true # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
+            by_satellite: false # Split large filter and measurement matrices blockwise by satellite ID to improve processing speed
+            size: 0
+
+        rts: # Rauch-Tung-Striebel (RTS) backwards smoothing
+            enable: true
+            lag: -1
+            # interval:               86400
+            inverter: LDLT # Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability
+            filename: <CONFIG>_<RECEIVER>.rts
+
+        periodic_reset:
+            # enable:                 true
+            # interval:              86400
+            # states:                [REC_POS]
+
+    model_error_handling:
+        meas_deweighting: # Measurements that are outside the expected confidence bounds may be deweighted so that outliers do not contaminate the filtered solution
+            deweight_factor: 1000 # Factor to downweight the variance of measurements with statistically detected errors
+            enable: true # Enable deweighting of all rejected measurement
+        state_deweighting: # Any "state" errors cause deweighting of all measurements that reference the state
+            deweight_factor: 1000 # Factor to downweight the variance of measurements with statistically detected errors
+            enable: true # Enable deweighting of all referencing measurements
+        error_accumulation:
+            enable: true
+            receiver_error_count_threshold: 4
+            receiver_error_epochs_threshold: 4
+        ambiguities:
+            outage_reset_limit: 300
+            phase_reject_limit: 2 # Reset ambiguity after 2 large fractional residuals are found (replaces phase_reject_count:)
+            reset_on: # Reset ambiguities when slip is detected by the following
+                gf: true # GF test
+                lli: true # LLI test
+                mw: true # MW test
+                scdia: true # SCDIA test
+
+estimation_parameters:
+    global_models:
+        eop:
+            # estimated:        [true] # Estimate state in kalman filter
+            sigma: [1000] # Apriori sigma values
+            process_noise: [0] # Process noise sigmas
+        eop_rates:
+            # estimated:        [true] # Estimate state in kalman filter
+            sigma: [1000] # Apriori sigma values
+            process_noise: [0] # Process noise sigmas
+        ion:
+            estimated: [false] # Estimate state in kalman filter
+            sigma: [-1] # Apriori sigma values
+            process_noise: [0] # Process noise sigmas
+
+    receivers:
+        global:
+            pos:
+                estimated: [true]
+                sigma: [100]
+                # process_noise:      [30]
+            pos_rate: # Velocity
+                estimated: [false] # [bools] Estimate state in kalman filter
+                sigma: [0] # [floats] Apriori sigma values
+                process_noise: [0] # [floats] Process noise sigmas
+                # process_noise_dt:   SECOND  # (enum) Time unit for process noise - sqrt_sec, sqrt_day etc
+                # apriori_val:        [0]     # [floats] Apriori state values
+                # mu:                 [0]     # [floats] Desired mean value for gauss markov states
+                # tau:                [-1]    # [floats] Correlation times for gauss markov noise, defaults to -1 -> inf (Random Walk)
+            clock:
+                estimated: [true]
+                sigma: [1000]
+                process_noise: [100]
+            ant_delta:
+                estimated: [true]
+                sigma: [10]
+                process_noise: [1]
+                tau: [100]
+            clock_rate:
+                estimated: [false]
+                sigma: [0.005]
+                process_noise: [1e-4]
+            ambiguities:
+                estimated: [true]
+                sigma: [1000]
+                process_noise: [0]
+            ion_stec: # Ionospheric slant delay
+                estimated: [true] # Estimate state in kalman filter
+                sigma: [200] # Apriori sigma values
+                process_noise: [10] # Process noise sigmas
+            trop:
+                estimated: [true]
+                sigma: [0.3]
+                process_noise: [0.0001]
+            trop_grads:
+                estimated: [true]
+                sigma: [0.03]
+                process_noise: [1.0E-6]
+            code_bias:
+                estimated: [true] # false
+                sigma: [20]
+                process_noise: [0]
+            phase_bias:
+                estimated: [false]
+                sigma: [10]
+                process_noise: [0]
+
+mongo: # Mongo is a database used to store results and intermediate values for later analysis and inter-process communication
+    enable: primary # Enable and connect to mongo database {none,primary,secondary,both}
+    primary_uri: mongodb://localhost:27017 # Location and port of the mongo database to connect to
+    primary_database: <CONFIG>
+    primary_suffix: "" # Suffix to append to database elements to make distinctions between runs for comparison
+    # secondary_database:  <CONFIG>
+    # secondary_suffix:    ""                          # Suffix to append to database elements to make distinctions between runs for comparison
+    # secondary_uri:       mongodb://localhost:27017   # Location and port of the mongo database to connect to
+    # output_config:       primary                        # Output config {none,primary,secondary,both}
+    output_components: primary # Output components of measurements {none,primary,secondary,both}
+    output_states: primary # Output states {none,primary,secondary,both}
+    output_measurements: primary # Output measurements and their residuals {none,primary,secondary,both}
+    output_test_stats: primary # Output test statistics {none,primary,secondary,both}
+    delete_history: primary # Drop the collection in the database at the beginning of the run to only show fresh data {none,primary,secondary,both}
+    output_trace: primary

@@ -1,0 +1,78 @@
+# Record and decode streams
+
+inputs:
+
+    inputs_root: ./products/
+
+    atx_files:
+    - igs20.atx
+
+    snx_files:
+    # - tables/igs_satellite_metadata.snx
+    - tables/igs_satellite_metadata_2203_plus.snx
+
+    gnss_observations:
+        gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+        - ALIC00AUS0
+
+    satellite_data:
+        satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+            ssr_antenna_offset: APC
+            rtcm_inputs:
+            - BCEP00BKG0
+            - SSRA00CNE0
+
+outputs:
+
+    metadata:
+        config_description:         record_streams
+
+    outputs_root:                   ./outputs/<CONFIG>/
+
+    rtcm_nav:
+        output:                     true
+
+    rtcm_obs:
+        output:                     true
+
+    decoded_rtcm:
+        output:                     true
+
+    rinex_nav:
+        output:                     true
+
+    rinex_obs:
+        output:                     true
+
+    sp3:
+        output:                     true
+        filename:                   <CONFIG>-<YYYY><DDD><HH>-<SYS>.sp3
+        orbit_sources:              [ SSR ]
+        output_interval:            300
+
+processing_options:
+
+    epoch_control:
+        # max_epochs:                 60
+        epoch_interval:             1
+        wait_next_epoch:            1
+        max_rec_latency:            0
+        require_obs:                false
+        sleep_milliseconds:         1
+
+    gnss_general:
+        common_sat_pco:             true
+        delete_old_ephemerides:     true
+        sys_options:
+            gps:
+                process:            true
+            gal:
+                process:            true
+            glo:
+                process:            false
+            bds:
+                process:            false
+            qzs:
+                process:            false
