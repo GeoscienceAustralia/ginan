@@ -1,0 +1,248 @@
+inputs:
+
+    include_yamls:              [   products/boxwing.yaml                               ]   # required if using boxwing model
+
+    inputs_root: products/
+
+    snx_files:                  [   slr/meta/ecc_une.snx,                                   # SLR station eccentricities
+                                    slr/ILRS_Data_Handling_File_2024.02.13.snx,             # SLR station biases
+                                    slr/meta/ITRF2014-ILRS-TRF-SSC.SNX,                     # SLR station positions + drifts
+                                    tables/igs_satellite_metadata_2203_plus.snx,
+                                    tables/sat_yaw_bias_rate.snx                        ]
+    erp_files:                  [   tables/EOP_14_C04_IAU2000A_one_file_1962-now.txt    ]  
+    egm_files:                  [   tables/goco05s.gfc                                  ]   # Earth gravity model coefficients file
+    planetary_ephemeris_files:  [   tables/DE436.1950.2050                              ]   # JPL planetary and lunar ephemerides file
+
+    satellite_data:
+        sp3_files:              [   IGS2R03FIN_20191950000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20191960000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20191970000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20191980000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20191990000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20192000000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20192010000_01D_05M_ORB.SP3              ]
+        sid_files:              [   slr/meta/sp3c-satlist.txt                           ]
+        com_files:              [   slr/com/com_lageos.txt                              ]
+        # crd_files:              [   slr/obs/galileo/galileo101_201907.npt               ]
+
+    tides:
+        ocean_tide_loading_blq_files:   [   slr/meta/OLOAD_SLR.BLQ                      ]   # required if ocean loading is applied
+        atmos_tide_loading_blq_files:   [   slr/meta/ALOAD_SLR.BLQ                      ]
+        ocean_pole_tide_loading_files:  [   tables/opoleloadcoefcmcor.txt               ]
+        ocean_tide_potential_files:     [   tables/fes2014b_Cnm-Snm.dat                 ]
+
+    pseudo_observations:
+        sp3_inputs:             [   IGS2R03FIN_20191950000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20191960000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20191970000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20191980000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20191990000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20192000000_01D_05M_ORB.SP3,
+                                    IGS2R03FIN_20192010000_01D_05M_ORB.SP3              ]
+        eci_pseudoobs:          false
+
+outputs:
+
+    metadata:
+        config_description:         slr_orb_fit_gal_3d_est_eop
+
+    outputs_root:                   outputs/<CONFIG>/
+    colourise_terminal:             false
+
+    trace:
+        output_receivers:           true
+        output_network:             true
+        level:                      2
+        receiver_filename:          <RECEIVER>-<CONFIG><YYYY><DDD><HH>-<LOGTIME>.TRACE
+        network_filename:           <RECEIVER>-<CONFIG><YYYY><DDD><HH>-<LOGTIME>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+
+    log:
+        output:                     true
+        directory:                  ./
+        filename:                   log_<LOGTIME>.json
+
+    output_rotation:
+        period:                     1
+        period_units:               day
+
+    sinex:
+        output:                     false
+    
+    erp:
+        output:                     false
+
+    orbit_ics:
+        output:                     true
+        directory:                  ./orbit_ics/
+        filename:                   <CONFIG>_<LOGTIME>_orbits.yaml
+
+    sp3:
+        output:                     true
+        output_interval:            1
+        output_inertial:            false
+        output_velocities:          true
+        orbit_sources:              [KALMAN]
+        clock_sources:              [PRECISE]
+
+    slr_obs:
+        output:                     true
+        directory:                  ./slr_obs/
+        filename:                   <RECEIVER>.slr_obs
+
+mongo:
+
+    enable:                         primary
+    primary_database:               <CONFIG>
+    output_config:                  primary
+    output_measurements:            primary
+    output_states:                  primary
+    output_test_stats:              primary
+    delete_history:                 primary
+    primary_uri:                    mongodb://127.0.0.1:27017
+    primary_suffix:                 ""
+
+satellite_options:
+
+    global:
+        pseudo_sigma:                   1
+
+        orbit_propagation:
+            mass:                       1000
+            area:                       15
+            srp_cr:                     1.75
+            power:                      20
+            planetary_perturbations:    [sun, moon, jupiter]
+            solar_radiation_pressure:   boxwing
+            antenna_thrust:             true
+            albedo:                     cannonball
+            empirical:                  true
+            empirical_dyb_eclipse:      [true, false, false]
+            pseudo_pulses:
+                enable:                 true
+
+        models:
+            pos:
+                enable:                 true
+                sources:                [KALMAN, PRECISE, BROADCAST]
+            attitude:
+                enable:                 true
+                sources:                [MODEL, PRECISE, NOMINAL]
+
+receiver_options:
+
+    global:
+        elevation_mask:                 10      # degrees
+        error_model:                    elevation_dependent     
+        laser_sigma:                    0.10
+
+        models:
+            eop:
+                enable:                 true
+
+processing_options:
+
+    epoch_control:
+        start_epoch:                    2019-07-17 00:00:00
+        end_epoch:                      2019-07-19 23:55:00
+        epoch_interval:                 300     # seconds
+        require_obs:                    true
+        assign_closest_epoch:           true
+
+    process_modes:
+        ppp:                            true
+        # slr:                            true    # Process SLR observations
+        # preprocessor:                   true
+        # spp:                            false
+
+    gnss_general:
+        # require_apriori_positions:      true
+        # require_site_eccentricity:      true
+        # require_reflector_com:          true
+
+        sys_options:
+            gal:
+                process:                true
+
+    ppp_filter:
+        inverter:                       ldlt    # LLT LDLT INV
+
+        outlier_screening:
+            prefit:
+                max_iterations:         10      # Maximum number of measurements to exclude using prefit checks before attempting to filter
+
+            postfit:
+                max_iterations:         10      # Maximum number of measurements to exclude using postfit checks while iterating filter
+
+        # rts:
+        #     enable:                     true
+
+    orbit_propagation:
+        integrator_time_step:           900
+        central_force:                  true
+        egm_field:                      true
+        egm_degree:                     15
+        indirect_J2:                    true
+        general_relativity:             true
+        solid_earth_tide:               true
+        ocean_tide:                     true
+        atm_tide:                       true
+        pole_tide_ocean:                true
+        pole_tide_solid:                true
+
+    model_error_handling:
+        meas_deweighting:
+            deweight_factor:            1000
+
+estimation_parameters:
+
+    global_models:
+        eop:
+            estimated:              [true]
+            sigma:                  [10]
+
+        eop_rates:
+            estimated:              [true]
+            sigma:                  [10]
+
+    receivers:
+        global:
+            pos:
+                estimated:          [false]
+                sigma:              [1.0]
+
+            slr_range_bias:
+                estimated:          [false]
+                sigma:              [0.01]
+
+            slr_time_bias:
+                estimated:          [false]
+                sigma:              [0.00001]
+
+    satellites:
+        global:
+            orbit:
+                estimated:          [true]
+                sigma:              [1]     # posX/Y/Z, velX/Y/Z (final element repeated as necessary)
+
+            emp_d_0: { estimated: [true], sigma: [1e3] }
+            emp_y_0: { estimated: [true], sigma: [1e3] }
+            emp_b_0: { estimated: [true], sigma: [1e3] }
+
+            emp_d_1: { estimated: [true], sigma: [1e3] }
+            # emp_y_1: { estimated: [false], sigma: [1e3] }
+            emp_b_1: { estimated: [true], sigma: [1e3] }
+
+            emp_d_2: { estimated: [true], sigma: [1e3] }
+            # emp_y_2: { estimated: [false], sigma: [1e3] }
+            # emp_b_2: { estimated: [false], sigma: [1e3] }
+
+            # emp_d_3: { estimated: [false], sigma: [1e3] }
+            # emp_y_3: { estimated: [false], sigma: [1e3] }
+            # emp_b_3: { estimated: [false], sigma: [1e3] }
+
+            emp_d_4: { estimated: [true], sigma: [1e3] }
+            # emp_y_4: { estimated: [false], sigma: [1e3] }
+            # emp_b_4: { estimated: [false], sigma: [1e3] }

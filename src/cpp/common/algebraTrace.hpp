@@ -26,6 +26,7 @@ using std::map;
 
 #include "enums.h"
 
+#include "architectureDocs.hpp"
 
 struct ReceiverMap;
 struct KFState;
@@ -118,10 +119,6 @@ struct TransitionMatrixObject
 	}
 };
 
-extern map<short int, string> idStringMap;
-extern map<string, short int> stringIdMap;
-
-
 using boost::serialization::serialize;
 using boost::archive::binary_oarchive;
 using boost::archive::binary_iarchive;
@@ -143,6 +140,8 @@ void spitFilterToFile(
 	string			filename,		///< Path to file to output to
 	bool			queue = false)	///< Optionally queue outputs in a separate thread
 {
+	DOCS_REFERENCE(Binary_Archive__);
+
 	if (queue)
 	{
 		shared_ptr<void> copy_ptr = make_shared<TYPE>(object);
@@ -158,7 +157,7 @@ void spitFilterToFile(
 
 		if (!fileStream)
 		{
-			std::cout << std::endl << "Error opening algebra file '" << filename <<  "' for writing";
+			std::cout << "\n" << "Error opening algebra file '" << filename <<  "' for writing";
 			return;
 		}
 
@@ -195,7 +194,7 @@ bool getFilterObjectFromFile(
 
 	if (!fileStream)
 	{
-		std::cout << std::endl << "Error opening algebra file " << filename <<  "for reading";
+		std::cout << "\n" << "Error opening algebra file " << filename <<  "for reading";
 		return false;
 	}
 
@@ -220,7 +219,7 @@ bool getFilterObjectFromFile(
 	E_SerialObject type = E_SerialObject::_from_integral(typeInt);
 	if (type != expectedType)
 	{
-		std::cout << std::endl << "Error: Unexpected algebra file object type";
+		std::cout << "\n" << "Error: Unexpected algebra file object type";
 		return false;
 	}
 

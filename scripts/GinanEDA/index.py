@@ -1,10 +1,11 @@
 import json
 import secrets
 import os
-from flask import Flask, g
+from flask import Flask, g, session
 
 from eda.routes import register_routes
 
+from eda.utilities import initialize_session
 
 def create_app():
     app = Flask(__name__, template_folder="templates/")
@@ -26,6 +27,9 @@ def create_app():
     def to_dict_filter(value):
         return dict(value)
 
+    @app.before_request
+    def before_request():
+        initialize_session()
     return app
 
 

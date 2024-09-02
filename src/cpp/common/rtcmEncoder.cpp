@@ -115,17 +115,17 @@ void calculateSsrComb(
 			ssrClk.dclk[2]	= 0;	// set to zero (not used)
 
 			ssrUra.ura		= uraSsr[0];
-			
-			tracepdeex (6,std::cout,"\n   RTCM_intp_Clk  %s %s %8.3f", referenceTime.to_string(0), Sat.id().c_str(), ssrClk.dclk[0]);
-			
+
+			tracepdeex (6, std::cout, "\n   RTCM_intp_Clk  %s %s %8.3f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrClk.dclk[0]);
+
 		}
 		else
 		{
 			ssrEph.deph		= ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) * posCorrections[1];
 			ssrClk.dclk[0]	= -clkCorrections[1];
 			ssrUra.ura		= uras[1];
-			tracepdeex (6,std::cout,"\n   RTCM_last_Clk  %s %s %8.4f", referenceTime.to_string(0), Sat.id().c_str(), ssrClk.dclk[0]);
-			tracepdeex (6,std::cout,"\n   RTCM_last_Eph  %s %s %8.4f %8.4f %8.4f", referenceTime.to_string(0), Sat.id().c_str(), ssrEph.deph[0], ssrEph.deph[1], ssrEph.deph[2]);
+			tracepdeex (6, std::cout, "\n   RTCM_last_Clk  %s %s %8.4f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrClk.dclk[0]);
+			tracepdeex (6, std::cout, "\n   RTCM_last_Eph  %s %s %8.4f %8.4f %8.4f", referenceTime.to_string().c_str(), Sat.id().c_str(), ssrEph.deph[0], ssrEph.deph[1], ssrEph.deph[2]);
 		}
 
 		//adjust all clock corrections so that they remain within the bounds of the outputs
@@ -496,7 +496,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Orbit/Clock.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -584,9 +584,9 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 		{
 			SSRPhaseCh ssrPhaseCh = ssrPhasBias.ssrPhaseChs[obsCode];
 
-			//BOOST_LOG_TRIVIAL(debug) << "Phase, obsCode : " << obsCode << std::endl;
-			//BOOST_LOG_TRIVIAL(debug) << "E_sys         : " << sys << std::endl;
-			//BOOST_LOG_TRIVIAL(debug) << "mCodes_gps.size() : " << mCodes_gps.size() << std::endl;
+			//BOOST_LOG_TRIVIAL(debug) << "Phase, obsCode : " << obsCode << "\n";
+			//BOOST_LOG_TRIVIAL(debug) << "E_sys         : " << sys << "\n";
+			//BOOST_LOG_TRIVIAL(debug) << "mCodes_gps.size() : " << mCodes_gps.size() << "\n";
 			//print_map( mCodes_gps.left, " E_ObsCode <--> RTCM ", BOOST_LOG_TRIVIAL(debug) );
 
 			int rtcmCode = 0;
@@ -597,7 +597,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 			else if (Sat.sys == +E_Sys::BDS)	{	rtcmCode = mCodes_bds.left.at(obsCode);	}
 			else if (Sat.sys == +E_Sys::SBS)	{	rtcmCode = mCodes_sbs.left.at(obsCode);	}
 
-			//BOOST_LOG_TRIVIAL(debug) << "rtcmCode      : " << rtcmCode << std::endl;
+			//BOOST_LOG_TRIVIAL(debug) << "rtcmCode      : " << rtcmCode << "\n";
 
 			int bias = (int)round(entry.bias / 0.0001);
 
@@ -615,7 +615,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 
 	i = setbituInc(buf, i, bitl, 0);
@@ -715,7 +715,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrCode(
 	if (bitl > 7)
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Code.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -791,7 +791,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrUra(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR URA.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -1058,7 +1058,7 @@ vector<uint8_t> RtcmEncoder::encodeEphemeris(
 	if (bitl > 7)
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding ephmeris.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -1137,7 +1137,7 @@ vector<uint8_t> RtcmEncoder::encodeEphemeris(
 	if (bitl > 7)
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding ephmeris.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 

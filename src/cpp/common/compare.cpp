@@ -9,6 +9,7 @@ using std::vector;
 
 #include "minimumConstraints.hpp"
 #include "eigenIncluder.hpp"
+#include "inputsOutputs.hpp"
 #include "coordinates.hpp"
 #include "navigation.hpp"
 #include "ephemeris.hpp"
@@ -17,9 +18,6 @@ using std::vector;
 #include "attitude.hpp"
 #include "trace.hpp"
 #include "rinex.hpp"
-
-void createDirectories(
-	boost::posix_time::ptime	logptime);
 
 struct TraceDummy
 {
@@ -67,10 +65,10 @@ void compareOrbits(
 
 	for (int i = 1; i < navVec.size(); i++)
 	{
-		std::cout << std::endl << "Comparing files:"
-		<< std::endl << files[0]
-		<< std::endl << files[i]
-		<< std::endl;
+		std::cout << "\n" << "Comparing files:"
+		<< "\n" << files[0]
+		<< "\n" << files[i]
+		<< "\n";
 
 		//invert maps
 		pephMapMap0.clear();
@@ -81,7 +79,7 @@ void compareOrbits(
 		{
 			pephMapMap0[time][id] = peph;
 		}
-		for (auto& [id,		pephMap]	: navVec[1].pephMap)
+		for (auto& [id,		pephMap]	: navVec[i].pephMap)
 		for (auto& [time,	peph]		: pephMap)
 		{
 			pephMapMap1[time][id] = peph;
@@ -96,7 +94,7 @@ void compareOrbits(
 			auto it = pephMapMap1.find(time);
 			if (it == pephMapMap1.end())
 			{
-				std::cout << std::endl << time << " not found in " << files[i];
+				std::cout << "\n" << time << " not found in " << files[i];
 				continue;
 			}
 
@@ -113,7 +111,7 @@ void compareOrbits(
 				auto it2 = pephMap1.find(id);
 				if (it2 == pephMap1.end())
 				{
-					std::cout << std::endl << id << " not found in " << files[i] << " for " << time;
+					// std::cout << "\n" << id << " not found in " << files[i] << " for " << time;
 					continue;
 				}
 
@@ -214,17 +212,17 @@ void compareAttitudes(
 		auto& nav0 = navVec[0];
 		auto& nav1 = navVec[1];
 
-		std::cout << std::endl << "Comparing files:"
-		<< std::endl << files[0]
-		<< std::endl << files[i]
-		<< std::endl;
+		std::cout << "\n" << "Comparing files:"
+		<< "\n" << files[0]
+		<< "\n" << files[i]
+		<< "\n";
 
 		for (auto& [id, attMap0] : nav0.attMapMap)
 		{
 			auto it = nav1.attMapMap.find(id);
 			if (it == nav1.attMapMap.end())
 			{
-				std::cout << std::endl << id << " not found in " << files[i];
+				std::cout << "\n" << id << " not found in " << files[i];
 				continue;
 			}
 
@@ -235,7 +233,7 @@ void compareAttitudes(
 				auto it = attMap.find(time);
 				if (it == attMap.end())
 				{
-					std::cout << std::endl << time << " not found in " << files[i] << " for " << id;
+					std::cout << "\n" << time << " not found in " << files[i] << " for " << id;
 					continue;
 				}
 
@@ -243,7 +241,7 @@ void compareAttitudes(
 
 				double angle = att0.q.angularDistance(att.q) * R2D;
 
-				tracepdeex(0, std::cout, "\n%s - %s - %6.1fdeg", time.to_string(0).c_str(), id.c_str(), angle);
+				tracepdeex(0, std::cout, "\n%s - %s - %6.1fdeg", time.to_string().c_str(), id.c_str(), angle);
 			}
 		}
 	}

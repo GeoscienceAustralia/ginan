@@ -161,7 +161,7 @@ double ionppp(
 /** interpolate tec grid data
  */
 int interpTec(
-	const	tec_t&		tec,
+	const	TEC&		tec,
 			int			k,
 	const	VectorPos&	posp,
 			double&		value,
@@ -247,7 +247,7 @@ int interpTec(
  */
 bool ionDelay(
 	GTime				time,			///< Time
-	const tec_t&		tec,			///< Input electron content data
+	const TEC&			tec,			///< Input electron content data
 	const VectorPos&	pos,			///< Position of receiver
 	const AzEl&			azel,			///< Azimuth and elevation of signal path
 	E_IonoMapFn			mapFn,			///< model of mapping function

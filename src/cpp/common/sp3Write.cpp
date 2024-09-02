@@ -29,7 +29,7 @@ struct Sp3Entry
 	Vector3d	satPos		= Vector3d::Zero();				// Satellite position.
 	Vector3d	satVel		= Vector3d::Zero();				// Satellite velocity.
 	double	 	satClk		= INVALID_CLOCK_VALUE / 1e6;
-	double		satClkVel	= INVALID_CLOCK_VALUE / 1e6;
+	double		satClkVel	= INVALID_CLOCK_VALUE / 1e10;
 	double		sigma		= 0;
 	bool		predicted	= false;
 };
@@ -57,23 +57,28 @@ void writeSp3Header(
 	sp3FileData.numEpoch = 1;
 
 	// note "#dV" for velocity and position.
-	if (acsConfig.output_sp3_velocities)		tracepdeex(0, sp3Stream, "#dV%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
-	else										tracepdeex(0, sp3Stream, "#dP%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
+	char velPos;
+
+	if (acsConfig.output_sp3_velocities)	velPos = 'V';
+	else									velPos = 'P';
+
+	tracepdeex(0, sp3Stream, "#d%c%4.0f %2.0f %2.0f %2.0f %2.0f %11.8f ", velPos, ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 
 	sp3FileData.numEpoch_pos = sp3Stream.tellp();
 
 	//TODO Check, coordinate system and Orbit Type from example product file.
-	tracepdeex(0, sp3Stream, "%7d ORBIT IGS14 HLM %4s\n",   sp3FileData.numEpoch,   acsConfig.analysis_agency.c_str());
+	tracepdeex(0, sp3Stream, "%7d ORBIT IGS14 FIT %4s\n", sp3FileData.numEpoch, acsConfig.analysis_agency.c_str());
 
-	GWeek	week	= time;
-	GTow	tow		= time;
-	double mjdate = 7.0 * week + tow / 86400.0 + 44244.0;	//todo aaron ew.
-	tracepdeex(0, sp3Stream, "## %4d %15.8f %14.8f %5.0f %15.13f\n",
+	GWeek		week	= time;
+	GTow		tow		= time;
+	MjDateTT	mjdate	= time;
+
+	tracepdeex(0, sp3Stream, "## %4d %15.8f %14.8f %5.0f %015.13f\n",
 			   week,
 			   tow,
 			   acsConfig.sp3_output_interval,
-			   mjdate,
-			   mjdate - floor(mjdate));
+			   mjdate.to_double(),
+			   0.0);
 
 	for (auto sys : {E_Sys::GPS, E_Sys::GLO, E_Sys::GAL, E_Sys::BDS, E_Sys::LEO})
 	{
@@ -288,10 +293,10 @@ void updateSp3Body(
 			{
 				tracepdeex(0, sp3Stream, "V%s%14.6f%14.6f%14.6f%14.6f%15s%c%3s%c\n",
 						entry.Sat.id().c_str(),
-						entry.satVel.x(),
-						entry.satVel.y(),
-						entry.satVel.z(),
-						entry.satClkVel * 1e6,
+						entry.satVel.x() * 10,
+						entry.satVel.y() * 10,
+						entry.satVel.z() * 10,
+						entry.satClkVel * 1e10,
 						"",
 						predictedChar,
 						"",
@@ -327,16 +332,8 @@ void writeSysSetSp3(
 {
 	map<int, Sp3Entry> entryList;
 
-	ERPValues filterErpv;
-	if (kfState_ptr)
-	{
-		filterErpv = getErpFromFilter(*kfState_ptr);
-	}
-
 	ERPValues erpv = getErp(nav.erp, time);
-
-	FrameSwapper frameSwapperUndo(time, erpv);
-	FrameSwapper frameSwapperRedo(time, filterErpv);
+	FrameSwapper frameSwapper(time, erpv);
 
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
@@ -358,30 +355,18 @@ void writeSysSetSp3(
 		}
 
 		Sp3Entry entry;
-		entry.Sat = Sat;
+
 		if (acsConfig.output_inertial_orbits)
 		{
-			obs.rSatEci0 = frameSwapperUndo(obs.rSatCom, &obs.satVel, &obs.vSatEci0);
+			obs.rSatEci0 = frameSwapper(obs.rSatCom, &obs.satVel, &obs.vSatEci0);
 
 			entry.satPos = obs.rSatEci0;
 			entry.satVel = obs.vSatEci0;
 		}
 		else
 		{
-			VectorEcef posEcef = obs.rSatCom;
-			VectorEcef velEcef = obs.satVel;
-
-			if (filterErpv.time != GTime::noTime())
-			{
-				VectorEci velEci;
-				VectorEci posEci;
-
-				posEci	= frameSwapperUndo(posEcef,	&velEcef,	&velEci);
-				posEcef = frameSwapperRedo(posEci,	&velEci,	&velEcef);
-			}
-
-			entry.satPos = posEcef;
-			entry.satVel = velEcef;
+			entry.satPos = obs.rSatCom;
+			entry.satVel = obs.satVel;
 		}
 
 		if (clkPass)
@@ -392,9 +377,10 @@ void writeSysSetSp3(
 		else
 		{
 			entry.satClk	= INVALID_CLOCK_VALUE / 1e6;
-			entry.satClkVel	= INVALID_CLOCK_VALUE / 1e6;
+			entry.satClkVel	= INVALID_CLOCK_VALUE / 1e10;
 		}
 
+		entry.Sat		= Sat;
 		entry.sigma		= sqrt(obs.satClkVar);
 		entry.predicted	= predicted;
 
@@ -404,7 +390,6 @@ void writeSysSetSp3(
 	updateSp3Body(filename, entryList, time, outSys);
 }
 
-
 void outputSp3(
 	string				filename,
 	GTime				time,
@@ -413,84 +398,10 @@ void outputSp3(
 	KFState*			kfState_ptr,
 	bool				predicted)
 {
-	time = time.floorTime(1);
-
-	GTow tow = time;
-	if (int(tow) % acsConfig.sp3_output_interval != 0)
-		return;
-
 	auto sysFilenames = getSysOutputFilenames(filename, time);
 
 	for (auto [filename, sysMap] : sysFilenames)
 	{
 		writeSysSetSp3(filename, time, sysMap, sp3OrbitSrcs, sp3ClockSrcs, kfState_ptr, predicted);
-	}
-}
-
-void outputMongoOrbits()
-{
-	map<GTime, map<int, Sp3Entry>> entryListMap;
-
-	auto orbitMapMap = mongoReadOrbits();
-	auto clockMapMap = mongoReadClocks();
-
-	map<E_Sys, bool> outSys;
-
-	auto sysFilenames = getSysOutputFilenames(acsConfig.predicted_sp3_filename, tsync);
-
-	for (auto [filename, sysMap] : sysFilenames)
-	{
-		for (auto& [Sat,	timeMap]	: orbitMapMap)
-		for (auto& [time,	state]		: timeMap)
-		{
-			ERPValues erpv = getErp(nav.erp, time);
-
-			FrameSwapper frameSwapper(time, erpv);
-
-			auto& entry = entryListMap[time][Sat];
-
-			entry.Sat		= Sat;
-			entry.predicted	= true;
-
-			if (acsConfig.output_inertial_orbits)
-			{
-				entry.satPos = state.head(3);
-				entry.satVel = state.tail(3);
-			}
-			else
-			{
-				VectorEci rSat = (Vector3d) state.head(3);
-				VectorEci vSat = (Vector3d) state.tail(3);
-
-				VectorEcef vSatEcef;
-				entry.satPos = frameSwapper(rSat, &vSat, &vSatEcef);
-				entry.satVel = vSatEcef;
-			}
-
-			auto timeMapIt = clockMapMap.find(Sat.id());
-			if (timeMapIt == clockMapMap.end())
-			{
-				continue;
-			}
-
-			auto& [dummy1, timeClkMap] = *timeMapIt;
-
-			auto timeIt = timeClkMap.find(time);
-			if (timeIt == timeClkMap.end())
-			{
-				continue;
-			}
-
-			auto& [dummy2, clockTuple]	= *timeIt;
-			auto& [clock, drift]		= clockTuple;
-
-			entry.satClk	= clock;
-			entry.satClkVel	= drift;
-		}
-
-		for (auto& [time, entryList] : entryListMap)
-		{
-			updateSp3Body(filename, entryList, time, sysMap);
-		}
 	}
 }

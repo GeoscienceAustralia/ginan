@@ -7,11 +7,18 @@ using std::set;
 
 #include "satSys.hpp"
 #include "mongo.hpp"
+#include "trace.hpp"
+#include "gTime.hpp"
 
+
+struct MongoOptions;
 struct ReceiverMap;
+struct OrbitState;
+struct KFState;
 struct KFMeas;
 struct Geph;
 struct Eph;
+
 
 struct TestStatistics
 {
@@ -27,52 +34,46 @@ struct TestStatistics
 };
 
 void mongoMeasResiduals(
-	GTime				time,
-	KFMeas&				kfMeas,
-	bool				queue	= false,
-	string				suffix	= "",
-	int					beg		= 0,
-	int					num		= -1);
+	const	GTime&	time,
+			KFMeas&	kfMeas,
+			bool	queue	= false,
+			string	suffix	= "",
+			int		beg		= 0,
+			int		num		= -1);
 
 void mongoTrace(
-	string				json,
-	bool				queue = false);
+	const vector<string>&				jsons,
+	bool								queue = false);
 
 void mongoOutputConfig(
 	string& config);
 
 struct MongoStatesOptions
 {
-	string			suffix		= "";
+	string			suffix;
 	string			collection	= STATES_DB;
 	E_Mongo			instances;
 	bool			force		= false;
 	bool			upsert		= false;
 	bool			queue		= false;
 	bool			index		= true;
+	GTime			updated;
 };
+
+void mongoStatesAvailable(
+	GTime				time,
+	MongoStatesOptions	opts = {});
 
 void mongoStates(
 	KFState&			kfState,
 	MongoStatesOptions	opts = {});
 
 void mongoMeasSatStat(
-	ReceiverMap&			receiverMap);
+	ReceiverMap&		receiverMap);
 
 void mongoTestStat(
 	KFState&			kfState,
 	TestStatistics&		statistics);
-
-
-struct MongoOptions;
-struct OrbitState;
-typedef vector<OrbitState> Orbits;
-
-void	outputMongoPredictions(
-	Trace&			trace,
-	Orbits&			orbits,
-	GTime 			time,
-	MongoOptions&	config);
 
 void mongoCull(
 	GTime time);

@@ -1,0 +1,443 @@
+inputs:
+
+    include_yamls: [ products/boxwing.yaml ] # required if using boxwing model
+
+    inputs_root: ./products/
+
+    atx_files:  [ igs20.atx                             ] # required
+    egm_files:  [ tables/EGM2008.gfc                    ] # Earth gravity model coefficients file
+    igrf_files: [ tables/igrf13coeffs.txt               ]
+    # erp_files:  [ <CWD>/latestProducts/finals.data.iau2000.txt              ]
+    planetary_ephemeris_files: [ tables/DE436.1950.2050 ]
+
+    pseudo_observations:
+        # filter_files:   [<CWD>/pseudo.filter]
+
+    troposphere:
+        gpt2grid_files: [ tables/gpt_25.grd ]
+
+    tides:
+        ocean_tide_loading_blq_files:   [ <CWD>/latestProducts/tables/OLOAD_GO.BLQ                  ] # required if ocean loading is applied
+        atmos_tide_loading_blq_files:   [ <CWD>/latestProducts/tables/ALOAD_GO.BLQ                  ] # required if atmospheric tide loading is applied
+        ocean_pole_tide_loading_files:  [ tables/opoleloadcoefcmcor.txt ] # required if ocean pole tide loading is applied
+        ocean_tide_potential_files:     [ tables/fes2014b_Cnm-Snm.dat   ]
+
+    snx_files:
+    # - "*.SNX" # use a wild card to include all files matching the description in the directory
+    # - igs20.ssc
+    - "<CWD>/latestProducts/*.SNX"
+    - "<CWD>/latestProducts/*.snx"
+    - tables/sat_yaw_bias_rate.snx
+    - tables/qzss_yaw_modes.snx
+    - tables/bds_yaw_modes.snx
+
+    satellite_data:
+        #satellite_data_root:    "<INPUTS_ROOT>"
+        rtcm_inputs:     # This section specifies how State State Representation (SSR) corrections are applied after they are downloaded from an NTRIP caster
+            #rtcm_inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+            rtcm_inputs_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"               # Root path to be added to all other rtcm inputs (unless they are absolute)
+            rtcm_inputs:
+            - "BCEP00BKG0"
+    gnss_observations:
+        #gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"                 # Root path to be added to all other gnss data inputs (unless they are absolute)
+        rtcm_inputs:
+        - "ALIC00AUS0"
+        - "LAUT00FJI0"
+        - "PTGG00PHL0"
+        - "CHTI00NZL0"
+        - "MAYG00MYT0"
+        - "COCO00AUS0"
+        - "KRGG00ATF0"
+        - "KIRI00KIR0"
+        - "MAC100AUS0"
+        - "CAS100ATA0"
+        - "DGAR00GBR0"
+        - "ASCG00SHN0"
+        - "IISC00IND0"
+        - "FAIR00USA0"
+        # - "ULAB00MNG0"
+        #- "WHU200CHN0"
+        #- "JFNG00CHN0"
+        #- "CHBN00MNG0"
+        - "MIZU00JPN0"
+        - "CKIS00COK0"
+        - "RGDG00ARG0"
+        - "SCTB00ATA0"
+        - "MAW100ATA0"
+        - "YAR200AUS0"
+        - "TOW200AUS0"
+        - "DARW00AUS0"
+        # - "KARR00AUS0"
+        - "REUN00REU0"
+        - "CZTG00ATF0"
+        - "MAL200KEN0"
+        - "DJIG00DJI0"
+        # - "KZN200RUS0"
+        - "UTQI00USA0"
+        # - "DUBO00CAN0"
+        - "YELL00CAN0"
+        - "PDEL00PRT0"
+        - "STHL00GBR0"
+        - "STR100AUS0"
+        - "STR200AUS0"
+        - "NKLG00GAB0"
+        - "SAVO00BRA0"
+        - "GAMB00PYF0"
+        - "GLPS00ECU0"
+        - "SGOC00LKA0"
+        - "POAL00BRA0"
+        - "FALK00FLK0"
+# Rb Atomic Clocks
+        - "TASH00UZB0"
+        - "AREG00PER0"
+# Cs Atomic Clocks
+        - "HARB00ZAF0"
+        - "MAS100ESP0"
+        - "KIRU00SWE0"
+        - "KOUG00GUF0"
+# HM Atomic Clocks
+        - "BREW00USA0"
+        - "KOUR00GUF0"
+        - "MGUE00ARG0"
+        - "PIE100USA0"
+        - "MKEA00USA0"
+        - "STJO00CAN0"
+        - "TID100AUS0"
+        - "MSSA00JPN0"
+        - "ONS100SWE0"
+#
+outputs:
+
+    outputs_root:                   outputs/<CONFIG>
+
+    metadata:
+        config_description:         dual_slow
+        time_system:                G                           # (string) Time system - e.g. "G", "UTC"
+
+    trace:
+        level:                      5
+        output_receivers:           true
+        output_network:             true
+        receiver_filename:          <RECEIVER>_<CONFIG>.TRACE
+        network_filename:           <RECEIVER>_<CONFIG>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_predicted_states:    true
+        output_config:              true
+
+satellite_options:
+
+    global:
+
+        #clock_codes:                       [AUTO, AUTO]
+
+        models:
+            clock:
+                enable:                    true
+                sources:                   [KALMAN, PRECISE, BROADCAST]
+            pos:
+                enable:                    true
+                sources:                   [KALMAN, PRECISE, BROADCAST]
+            attitude:
+                enable:                    true
+                sources:                   [MODEL, PRECISE, NOMINAL]
+            pco:
+                enable:                    true
+            pcv:
+                enable:                    true
+            code_bias:
+                enable:                    true
+                default_bias:              0
+                undefined_sigma:           0
+            phase_bias:
+                enable:                    false
+                default_bias:              0
+                undefined_sigma:           0
+
+        orbit_propagation:
+            albedo:                   cannonball
+            antenna_thrust:           true
+            empirical:                true
+            empirical_dyb_eclipse:    [true,false,false]
+            planetary_perturbations:  [moon,sun,mercury,venus,mars,jupiter,saturn,uranus,neptune,pluto]
+            pseudo_pulses:
+                enable:               false
+            solar_radiation_pressure: boxwing
+            mass:                     1000
+            area:                     15
+            srp_cr:                   1.75
+            power:                    20
+
+    GPS:
+        clock_codes: [ L1W,L2W ]
+
+    #G04:
+    #    exclude:                           true
+
+    E05: { exclude: true }
+    E06: { exclude: true }
+    E10: { exclude: true }
+    E16: { exclude: true }
+    E17: { exclude: true }
+    E23: { exclude: true }
+    E28: { exclude: true }
+    E29: { exclude: true }
+    E32: { exclude: true }
+    E34: { exclude: true }
+    E35: { exclude: true }
+
+
+receiver_options:                                                 # Options to configure individual stations or global configs
+
+    STJO:
+        aliases: [PIVOT]
+
+    global:
+
+        error_model:                elevation_dependent         # uniform, elevation_dependent
+        elevation_mask:             10
+        code_sigma:                 0.4
+        phase_sigma:                0.002 # F0, F1, F2, F5, F6, F7, F8
+        clock_codes:                [AUTO, AUTO]
+        zero_dcb_codes:             [NONE,NONE]
+        rec_reference_system:       gps
+        models:
+            eccentricity:
+                enable:             true                            # (bool) Enable modelling of antenna eccentricities
+            attitude:
+                enable:             true                            # (bool) Enables non-nominal attitude types
+                sources:            [MODEL, NOMINAL]       # List of sourecs to use for attitudes
+            clock:
+                enable:             true                            # (bool) Enable modelling of clocks
+            pco:
+                enable:             true                            # (bool) Enable modelling of phase center offsets
+            pcv:
+                enable:             true                            # (bool) Enable modelling of phase center variations
+            code_bias:
+                enable:             true                            # (bool) Enable modelling of code biases
+                default_bias:       0                               # (float) Bias to use when no code bias is found
+                undefined_sigma:    0                               # (float) Uncertainty sigma to apply to default code biases
+            phase_bias:
+                enable:             false                           # (bool) Enable modelling of phase biases
+                default_bias:       0                               # (float) Bias to use when no phase bias is found
+                undefined_sigma:    0                               # (float) Uncertainty sigma to apply to default phase biases
+            pos:
+                enable:             true                            # (bool) Enable modelling of position
+            ionospheric_components:                                 # Ionospheric models produce frequency-dependent effects
+                enable: true                                        # Enable ionospheric modelling
+                # use_2nd_order:  true
+                # use_3rd_order:  true
+            troposphere:
+                enable: true
+                models: [gpt2]
+            eop:
+                enable: true
+
+        #mincon_scale_apriori_sigma:  0                               # Use ALL fixed and/or SINEX file sigma's (!! first preference to the fixed sigma's !!)
+        apriori_sigma_enu:      [0.003, 0.003, 0.009]                 # Use these fixed igma'sfor sites listed below
+        mincon_scale_apriori_sigma:  1                                # Use ALL fixed and/or SINEX file sigma's (!! first preference to the fixed sigma's !!)
+        mincon_scale_filter_sigma:   0
+
+processing_options:
+
+    process_modes:
+        preprocessor:                 true
+        spp:                          true
+        ppp:                          true
+        ionosphere:                   false
+
+    epoch_control:
+        epoch_interval:         20
+        max_rec_latency:     5
+
+    gnss_general:
+        minimise_sat_clock_offsets:     true
+        # minimise_sat_orbit_offsets:     true
+        minimise_ionosphere_offsets:    true
+        adjust_rec_clocks_by_spp:           true
+        sys_options:
+            gps:
+                process:              true
+                ambiguity_resolution: false
+                reject_eclipse:       false
+                code_priorities:      [ L1C, L2W ]
+    spp:
+        always_reinitialise:          false
+        max_lsq_iterations:           12
+        outlier_screening:
+            max_gdop:                 30
+            postfit:
+                sigma_check:          true
+
+    ppp_filter:
+        advanced_postfits:              true
+        ionospheric_components:
+            common_ionosphere:        true
+            # use_if_combo:             true
+        outlier_screening:
+            prefit:
+                max_iterations:        2
+                sigma_check:           true
+                state_sigma_threshold: 5
+                meas_sigma_threshold:  5
+                omega_test:            false
+            postfit:
+                max_iterations:        10
+                sigma_check:           true
+                state_sigma_threshold: 3
+                meas_sigma_threshold:  3
+
+    model_error_handling:
+        meas_deweighting:
+            deweight_factor:          10000
+        state_deweighting:
+            deweight_factor:          10000
+        ambiguities:
+            outage_reset_limit:       300
+            phase_reject_limit:       2
+            reset_on:
+                gf:                   true
+                lli:                  true
+                mw:                   true
+                scdia:                true
+        exclusions:
+            gf:                       true
+            lli:                      true
+            mw:                       true
+            scdia:                    true
+            eclipse:                  false
+        ionospheric_components:
+            outage_reset_limit:       300
+        orbit_errors:
+            enable:                      false
+            pos_process_noise:           10
+            vel_process_noise:           1
+            vel_process_noise_trail:     0
+            vel_process_noise_trail_tau: 0
+
+    orbit_propagation:
+        integrator_time_step:         30    # Timestep for the integrator, must be smaller than the processing time step, might be adjusted if the processing time step isn't a integer number of time steps
+        central_force:                true
+        egm_field:                    true  # Acceleration due to the high degree model of the Earth gravity model (exclude degree 0, made by central_force)
+        egm_degree:                   15    # J2 acceleration perturbation due to the Sun and Moon
+        solid_earth_tide:             true  # Model accelerations due to solid earth tides
+        ocean_tide:                   true  # Model accelerations due to ocean tides model
+        pole_tide_solid:              true  # Model accelerations due to solid pole tide (degree 2 only)
+        pole_tide_ocean:              true
+        general_relativity:           true
+        indirect_J2:                  true
+
+    predictions:
+        offset:             20
+        interval:           5
+        forward_duration:   20
+
+estimation_parameters:
+
+    global_models:
+        eop:
+            estimated:              [true]
+            sigma:                  [10,10,1e-9]
+        eop_rates:
+            estimated:              [true]
+            sigma:                  [10]
+
+    receivers:
+
+        PIVOT:
+            #clock:
+            #    estimated:     [true]
+            #    process_noise: [0]
+            #    sigma:         [1e-9]
+            code_bias:
+                estimated: [false]
+
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [1]
+                process_noise:      [0.0]
+                # process_noise_dt:   second
+            clock:
+                estimated:          [true]
+                sigma:              [10]
+                process_noise:      [10] # [100]
+            ambiguities:
+                estimated:          [true]
+                sigma:              [1000]
+                process_noise:      [0]
+                # process_noise_dt:   day
+            trop:
+                estimated:          [true]
+                sigma:              [0.3]
+                process_noise:      [0.0001]
+                # process_noise_dt:   second
+            trop_grads:
+                estimated:          [true]
+                sigma:              [0.03]
+                process_noise:      [1.0E-6]
+                # process_noise_dt:   second
+            ion_stec:
+                estimated:          [true]
+                sigma:              [500]
+                process_noise:      [10]
+                # tau:                [3600]
+            code_bias:
+                estimated:          [true]
+                sigma:              [20]
+                process_noise:      [0]
+        # USN7:
+        #     clk:
+        #         estimated:          [false]    # Set reference (pivot) station clock
+        #     code_bias:
+        #         estimated:          [false]
+
+    satellites:
+        global:
+            clock:
+                estimated:          [true]
+                sigma:              [1000]
+                process_noise:      [1]
+                tau:                [30]
+                #mu:                 [10000]
+            code_bias:
+                estimated:          [true]
+                sigma:              [10]
+                process_noise:      [0]
+            orbit:                                            # Orbital state
+                estimated:          [true]                    # [bools] Estimate state in kalman filter
+                sigma:              [1, 1, 1, 0.01]   # [floats] Apriori sigma values - if zero, will be initialised using least squares
+                process_noise:      [0]
+                tau:                [1000]
+
+            emp_d_0: { estimated: [true], sigma: [10]}
+            emp_y_0: { estimated: [true], sigma: [1]}
+            emp_b_0: { estimated: [true], sigma: [1]}
+
+            emp_b_1: { estimated: [true], sigma: [1]}
+
+            emp_d_2: { estimated: [true], sigma: [1]}
+
+
+mongo:
+    enable:                     both
+    #enable:                     none
+    output_components:          primary
+    output_states:              primary
+    output_measurements:        primary
+    output_cumulative:        primary
+    output_test_stats:          none
+    delete_history:             both
+
+
+    output_predictions:         secondary
+    # sent_predictions:           [all]
+    secondary_database:         XFER
+
+
+debug:
+    check_broadcast_differences: true
+    #output_mincon: true
+    #mincon_filename: preMinconState.bin
+    #mincon_only: true

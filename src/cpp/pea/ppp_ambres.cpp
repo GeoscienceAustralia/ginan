@@ -14,7 +14,6 @@
 #include <math.h>
 
 #include "eigenIncluder.hpp"
-#include "instrument.hpp"
 #include "GNSSambres.hpp"
 #include "acsConfig.hpp"
 #include "algebra.hpp"
@@ -84,12 +83,12 @@ bool applyBestIntegerAmbiguity(
 
 	kfMeasEntryList.push_back(measEntry);
 
-	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, kfState.time);
+	KFMeas kfMeas(kfState, kfMeasEntryList, kfState.time);
 
 	filterError = false;
 	kfState.measRejectCallbacks.push_back(recordFilterError);
 	{
-		kfState.filterKalman(trace, combinedMeas);
+		kfState.filterKalman(trace, kfMeas);
 	}
 	kfState.measRejectCallbacks.pop_back();
 
@@ -98,7 +97,7 @@ bool applyBestIntegerAmbiguity(
 		return false;
 	}
 
-	kfState.outputStates(trace, "/FIX_SINGLE_AMBIGUITY");
+	kfState.outputStates(trace, "/AR1");
 
 	return true;
 }
@@ -119,8 +118,8 @@ void applyUCAmbiguities(
 
 	if (AR_VERBO)
 	{
-		trace << std::endl << "zfix =" << std::endl << zfix.transpose()	<< std::endl;
-		trace << std::endl << "Ztrs =" << std::endl << Z   			 	<< std::endl;
+		trace << "\n" << "zfix =" << "\n" << zfix.transpose()	<< "\n";
+		trace << "\n" << "Ztrs =" << "\n" << Z   			 	<< "\n";
 	}
 
 	KFMeasEntryList kfMeasEntryList;
@@ -131,8 +130,8 @@ void applyUCAmbiguities(
 
 		KFMeasEntry measEntry(&kfState);
 
-		measEntry.obsKey.type = KF::Z_AMB;
-		measEntry.obsKey.num  = i;
+		measEntry.obsKey.type		= KF::Z_AMB;
+		measEntry.obsKey.comment	= "Ambiguity Psueodobs";
 
 		measEntry.addNoiseEntry(measEntry.obsKey, 1, FIXED_AMB_VAR);
 
@@ -168,22 +167,18 @@ void applyUCAmbiguities(
 		kfMeasEntryList.push_back(measEntry);
 	}
 
-	kfState.noiseElementStateTransition();
+	KFMeas kfMeas(kfState, kfMeasEntryList, kfState.time);
 
-	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, kfState.time);
+	kfState.filterKalman(trace, kfMeas, "/AR", true);
 
-	kfState.filterKalman(trace, combinedMeas, true);
-
-	kfState.outputStates(trace, "/APPLY_UC_AMBIGUITIES");
+	kfState.outputStates(trace, "/AR");
 }
 
 void fixAndHoldAmbiguities(
 	Trace&		trace,		///< Debug trace
 	KFState&	kfState)	///< Filter state
 {
-	Instrument	instrument(__FUNCTION__);
-
-	tracepdeex(3, trace, "%s: %s\n", __FUNCTION__, kfState.time.to_string(2));
+	tracepdeex(3, trace, "%s: %s\n", __FUNCTION__, kfState.time.to_string().c_str());
 
 	if (acsConfig.ambrOpts.mode == +E_ARmode::OFF)
 	{
@@ -227,7 +222,7 @@ void fixAndHoldAmbiguities(
 	ARopt.nset		= acsConfig.ambrOpts.lambda_set;
 	ARopt.nitr		= acsConfig.ambrOpts.AR_max_itr;
 
-	if (acsConfig.trace_level > 4)
+	if (traceLevel > 4)
 		AR_VERBO = true;
 
 	// Resolve and apply ambiguities

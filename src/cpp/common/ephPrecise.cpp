@@ -195,9 +195,9 @@ bool pephpos(
 	{
 		tracepdeex(3, std::cout, "\nNo precise ephemeris for %s at %s, ephemerides cover %s to %s",
 				Sat.id()					.c_str(),
-				time		.to_string(0)	.c_str(),
-				firstTime	.to_string(0)	.c_str(),
-				lastTime	.to_string(0)	.c_str());
+				time		.to_string()	.c_str(),
+				firstTime	.to_string()	.c_str(),
+				lastTime	.to_string()	.c_str());
 
 		return false;
 	}
@@ -263,7 +263,7 @@ bool pephpos(
 		double std = middle0->second.posStd.norm();
 
 		/* extrapolation error for orbit */
-		if      (t[0   ] > 0) std += EXTERR_EPH * SQR(t[0   ]) / 2;		//todo aaron, needs straigtening as below?
+		if      (t[0   ] > 0) std += EXTERR_EPH * SQR(t[0   ]) / 2;
 		else if (t[NMAX] < 0) std += EXTERR_EPH * SQR(t[NMAX]) / 2;
 
 		*vare = SQR(std);
@@ -384,7 +384,7 @@ VectorEcef satAntOff(
 	SatSys& 			Sat,			///< Satellite ID
 	map<int, double>&	lamMap)			///< Lambda (wavelengths) map
 {
-	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
+	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string().c_str(), Sat.id().c_str());
 
 	VectorEcef dAnt;
 
@@ -431,7 +431,7 @@ bool satClkPrecise(
 	clk		= 0;
 	clkVel	= 0;
 
-	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
+	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string().c_str(), Sat.id().c_str());
 
 	double tt = 1E-3;
 
@@ -469,13 +469,14 @@ bool satPosPrecise(
 	rSat	= Vector3d::Zero();
 	satVel	= Vector3d::Zero();
 
-	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string(3).c_str(), Sat.id().c_str());
+	tracepdeex(4, trace, "\n%-10s: time=%s sat=%s", __FUNCTION__, time.to_string().c_str(), Sat.id().c_str());
 
-	double tt = 1E-3;
+	double tt = 10e-3;
 
+	Vector3d rSat1 = Vector3d::Zero();
 	Vector3d rSat2 = Vector3d::Zero();
 
-	bool pass	=	pephpos(trace, time,		Sat, nav, rSat,		&ephVar)
+	bool pass	=	pephpos(trace, time - tt,	Sat, nav, rSat1,	&ephVar)
 				&&	pephpos(trace, time + tt,	Sat, nav, rSat2);
 
 	if 	(pass == false)
@@ -485,7 +486,8 @@ bool satPosPrecise(
 		return false;
 	}
 
-	satVel = (rSat2 - rSat) / tt;
+	rSat	= (rSat2 + rSat1) /  2;
+	satVel	= (rSat2 - rSat1) / (2 * tt);
 
 	return true;
 }

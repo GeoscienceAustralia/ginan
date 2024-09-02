@@ -47,7 +47,9 @@ class Satellite:
             meas.data["T"] = self.rac[:, 1]
             meas.data["N"] = self.rac[:, 2]
         else:
-            logger.warning("not implemented yet")
+            meas.data["X"] = self.residual[:, 0]
+            meas.data["Y"] = self.residual[:, 1]
+            meas.data["Z"] = self.residual[:, 2]
         return meas
 
     def get_postfit(self):

@@ -103,7 +103,7 @@ double tropModelCoef(
 			if (dlatDeg > atmReg.intLatDeg || atmReg.intLatDeg == 0)		return 0;
 			if (dlonDeg > atmReg.intLonDeg || atmReg.intLonDeg == 0)		return 0;
 
-			return (1 - dlatDeg / atmReg.intLatDeg) * (1 - dlonDeg / atmReg.intLonDeg);		//todo aaorn use bilinear interpolation function?
+			return (1 - dlatDeg / atmReg.intLatDeg) * (1 - dlonDeg / atmReg.intLonDeg);		//todo aaron use bilinear interpolation function?
 		}
 		default:
 		{
@@ -170,7 +170,7 @@ double tropModel(
 		if (var < 0)
 			continue;
 
-		tracepdeex(2, trace,"\n Troposphere Model %s %s  %d %d %d", time.to_string(0), model._to_string(), pos.latDeg(), pos.lonDeg(), pos.hgt());
+		tracepdeex(2, trace,"\nTroposphere Model %s %s  %d %d %d", time.to_string().c_str(), model._to_string(), pos.latDeg(), pos.lonDeg(), pos.hgt());
 
 		break;
 	}

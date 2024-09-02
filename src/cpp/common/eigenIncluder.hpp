@@ -146,9 +146,9 @@ struct VectorEci : Vector3d
 		return *this;
 	}
 
-	VectorEci operator*(const double	rhs)	{		return Vector3d(((Vector3d)*this) * (			rhs));		}
-	VectorEci operator-(const VectorEci& rhs)	{		return Vector3d(((Vector3d)*this) - ((Vector3d)	rhs));		}
-	VectorEci operator+(const VectorEci& rhs)	{		return Vector3d(((Vector3d)*this) + ((Vector3d)	rhs));		}
+	VectorEci operator*(const double		rhs)	const	{		return Vector3d(((Vector3d)*this) * (			rhs));		}
+	VectorEci operator-(const VectorEci&	rhs)	const	{		return Vector3d(((Vector3d)*this) - ((Vector3d)	rhs));		}
+	VectorEci operator+(const VectorEci&	rhs)	const	{		return Vector3d(((Vector3d)*this) + ((Vector3d)	rhs));		}
 };
 
 struct VectorPos : Vector3d

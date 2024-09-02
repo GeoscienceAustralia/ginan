@@ -2,7 +2,14 @@
 
 > For higher-level details of the Ginan project, visit the [main documentation](../index.html) pages.
 
-## Sofware flow overview
+## Software flow overview
+
+### Architectural documentation
+
+The Ginan__() pseudo-function outlines the structure and flow of the software from a high level.
+
+The color coded block diagram call-graphs may be used to step through the high-level flow before entering the lower-level logical functions.
+A Legend__() for the diagrams is found here.
 
 ### Ginan program entry point
 
@@ -14,7 +21,7 @@ The functions mainOncePerEpoch(), mainOncePerEpochPerStation(), and mainOncePerE
 
 ### Main processing modes
 
-The preprocessor(), SPP(), and PPP() functions perform the majority of the GNSS-specific processing and filtering, with stationPPP() implementing most of the gnss models.
+The preprocessor(), spp(), and ppp() functions perform the majority of the GNSS-specific processing and filtering, with reveiverPPP() implementing most of the gnss models.
 
 ### Key data structures used within the code include:
 
@@ -26,7 +33,7 @@ The preprocessor(), SPP(), and PPP() functions perform the majority of the GNSS-
 #### Receivers and Satellites
 
 - SatSys
-- Station
+- Receiver
 
 #### Global configuration object
 

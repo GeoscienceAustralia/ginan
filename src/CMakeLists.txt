@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8...3.22)
 cmake_policy(SET CMP0063 NEW)
-
+list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/openblas")
 project(ginan)
 
 include(CheckPIESupported)
@@ -14,37 +14,47 @@ set(CMAKE_MODULE_PATH					"${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_VISIBILITY_PRESET     	hidden)
 set(CMAKE_VERBOSE_MAKEFILE				OFF)
 
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -std=c++2a")
-#set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -ggdb3")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fpermissive")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wall")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-write-strings")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-overflow")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-narrowing")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unused-but-set-variable")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-sign-compare")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-stringop-truncation")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unused-variable")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-switch")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-dangling-else")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-misleading-indentation")
-#set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fno-var-tracking-assignments")
-#set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unknown-warning-option")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-truncation")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-extern-c-compat")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-zero-length")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-array-bounds")
-set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-restrict")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+	message(STATUS "Using Clang complient compiler flags")
 
-#set(CMAKE_CXX_FLAGS 					"${CMAKE_CXX_FLAGS} -save-temps")
-#set(CMAKE_CXX_FLAGS 					"${CMAKE_CXX_FLAGS} -M")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-shift-overflow")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-string-concatenation")
+else ()
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-overflow")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-stringop-truncation")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-truncation")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-restrict")
+endif ()
+
+
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -std=c++2a")
+#	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -ggdb3")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fpermissive")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wall")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-write-strings")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-narrowing")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unused-but-set-variable")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-sign-compare")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unused-variable")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-switch")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-dangling-else")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-misleading-indentation")
+#	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fno-var-tracking-assignments")
+#	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unknown-warning-option")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-extern-c-compat")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-zero-length")
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-array-bounds")
+
+#	set(CMAKE_CXX_FLAGS 					"${CMAKE_CXX_FLAGS} -save-temps")
+#	set(CMAKE_CXX_FLAGS 					"${CMAKE_CXX_FLAGS} -M")
 
 if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
 
-	option(BUILD_DOC                "BUILD_DOCUMENTATION"       ON)
+	option(BUILD_DOC                "BUILD_DOCUMENTATION"       OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    OFF)
@@ -70,6 +80,14 @@ if(ENABLE_OPTIMISATION)
 	set(CMAKE_C_FLAGS					"${CMAKE_C_FLAGS} -O3")
 else()
 	message(STATUS "Setting optimisation      off")
+endif()
+
+if(ENABLE_ARCHITECTURE_OPTIMISATION)
+	message(STATUS "Setting arch optimisation on")
+	set(CMAKE_CXX_FLAGS					"${CMAKE_CXX_FLAGS} -march=native -mtune=native")
+	set(CMAKE_C_FLAGS					"${CMAKE_C_FLAGS} -march=native -mtune=native")
+else()
+	message(STATUS "Setting arch optimisation off")
 endif()
 
 if(ENABLE_PARALLELISATION)
@@ -100,7 +118,8 @@ if (BUILD_DOC)
 			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_IN} -DOUT=${DOXYGEN_OUT} -P "../cmake/Configure.cmake"
 			COMMAND				${CMAKE_COMMAND} -DIN=${DOXYGEN_LAYIN} -DOUT=${DOXYGEN_LAYOUT} -P "../cmake/Configure.cmake"
 			COMMAND				${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${DOXYGEN_OUT}
-			WORKING_DIRECTORY	${CMAKE_CURRENT_SOURCE_DIR}/build
+			COMMAND				cp ${CMAKE_CURRENT_SOURCE_DIR}/doc_templates/css.css ./
+			WORKING_DIRECTORY	${CMAKE_BUILD_DIR}
 			COMMENT				"Generating API documentation with Doxygen"
 			VERBATIM )
 
@@ -144,7 +163,7 @@ find_package(OpenSSL REQUIRED)
 
 #set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer stacktrace_addr2line stacktrace_backtrace)
+find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer stacktrace_addr2line)
 
 find_package(Eigen3 3.3.0)
 include_directories(${EIGEN3_INCLUDE_DIRS})
@@ -159,8 +178,8 @@ find_package(NetCDF		REQUIRED)
 # message(STATUS "...NETCDF_C++ >>>>>>   ${NETCDF_LIBRARIES_CXX} ${NETCDF_INCLUDES_CXX}" )
 # find_package(netCDFCxx REQUIRED)
 
-set(OPENBLAS_USE_STATIC_LIBS ON)
-set(BLA_VENDOR FlexiBLAS)
+# set(OPENBLAS_USE_STATIC_LIBS ON)
+# set(BLA_VENDOR open)
 
 find_package(BLAS)
 if(BLAS_FOUND)
@@ -211,7 +230,7 @@ IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
 	IF(GIT_FOUND)
 
 		EXECUTE_PROCESS(
-			COMMAND ${GIT_EXECUTABLE} log --pretty=format:'%h' -n 1
+			COMMAND ${GIT_EXECUTABLE} log --pretty=format:'%H' -n 1
 			OUTPUT_VARIABLE GINAN_COMMIT_HASH
 			ERROR_QUIET
 			OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -235,6 +254,11 @@ IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 			)
+		string(FIND "${GINAN_BRANCH_NAME}" "/" SLASH_POSITION)
+		if(SLASH_POSITION GREATER -1)
+			string(SUBSTRING "${GINAN_BRANCH_NAME}" ${SLASH_POSITION} -1 GINAN_BRANCH_NAME)
+			string(SUBSTRING "${GINAN_BRANCH_NAME}" 1 -1 GINAN_BRANCH_NAME) # Remove the leading '/'
+		endif()
 		EXECUTE_PROCESS(
 			COMMAND ${GIT_EXECUTABLE} log -1 --format=%cd --date=local
 			OUTPUT_VARIABLE "GINAN_COMMIT_DATE"

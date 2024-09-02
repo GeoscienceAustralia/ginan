@@ -15,5 +15,5 @@ void outputStatistics(
 	map<string, int>&		statisticsMapSum);
 
 void outputSummaries(
-	Trace&		trace,	
+	Trace&		trace,
 	ReceiverMap&	receiverMap);

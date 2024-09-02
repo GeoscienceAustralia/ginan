@@ -26,10 +26,12 @@ Yaml files assist with with confirming the exact processing options of the softw
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
+**Operating environment (please complete the following information):**
 - OS: [e.g. Widows, Linux, Mac + Version]
 - Version of Ginan:
 - Library used (Boost, Eigen, ...)
+
+These may be found in the 'Compilation details' section of the pea's output.
 
 **Additional context**
 Add any other context about the problem here.

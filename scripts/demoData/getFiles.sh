@@ -28,7 +28,7 @@ do
 	mkdir -p $dir
 	cd $dir
 	wget $url -N
-	gzip -dk $(basename "$line")
+	gzip -d $(basename "$line")
 	cd $rootdir
 done
 

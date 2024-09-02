@@ -35,7 +35,7 @@ void Tide::read(
 	if (!infile)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Tide file open error " << filename << std::endl;
+		<< "Tide file open error " << filename;
 
 		return;
 	}

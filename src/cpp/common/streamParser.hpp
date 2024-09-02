@@ -121,8 +121,6 @@ public:
 
 	void parse()
 	{
-// 		BOOST_LOG_TRIVIAL(debug) << "parsing " << stream.sourceString << " as " << parser.parserType() << std::endl;
-
 		auto iStream_ptr = stream.getIStream_ptr();
 		parser.parse(*iStream_ptr);
 	}

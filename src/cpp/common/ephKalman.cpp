@@ -96,7 +96,7 @@ bool satPosKalman(
 		vSat0	= satNav.satPos0.vSatEci0;
 		t0		= satNav.satPos0.posTime;
 	}
-// 	else
+	else
 	{
 		if (kfState_ptr == nullptr)
 		{
@@ -104,8 +104,6 @@ bool satPosKalman(
 		}
 
 		auto& kfState = *kfState_ptr;
-
-		bool found = true;
 
 		//get orbit things from the state
 		for (int i = 0; i < 3; i++)
@@ -115,10 +113,10 @@ bool satPosKalman(
 			kfKey.Sat	= satPos.Sat;
 
 			kfKey.num	= i;
-			found &= kfState.getKFValue(kfKey, rSat0(i));
+			double dummy;
 
-			kfKey.num	= i + 3;
-			found &= kfState.getKFValue(kfKey, vSat0(i));
+			bool found	= (kfKey.num	= i,		kfState.getKFValue(kfKey, rSat0(i), &dummy, &dummy, false))
+						&&(kfKey.num	= i + 3,	kfState.getKFValue(kfKey, vSat0(i), &dummy, &dummy, false));
 
 			if (found == false)
 			{
@@ -131,12 +129,21 @@ bool satPosKalman(
 
 	double dt = (time - t0).to_double();
 
-// 	trace << std::endl << time << " " << satPos.Sat.id() << " dt: " << dt;
+	// trace << "\n" << time << " " << satPos.Sat.id() << " dt: " << dt;
 
 	if	( rSat0.isZero() == false
 		&&vSat0.isZero() == false)
 	{
-		satPos.rSatEciDt = propagateEllipse(trace, t0, dt, rSat0, vSat0, satPos.rSatCom, &satPos.satVel);
+		auto& satOpts = acsConfig.getSatOpts(satPos.Sat);
+
+		if (dt <= satOpts.ellipse_propagation_time_tolerance)
+		{
+			satPos.rSatEciDt = propagateEllipse	(trace, t0, dt, rSat0, vSat0, satPos, true);
+		}
+		else
+		{
+			satPos.rSatEciDt = propagateFull	(trace, t0, dt, rSat0, vSat0, satPos);
+		}
 	}
 
 	return true;

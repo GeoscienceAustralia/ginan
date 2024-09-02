@@ -290,10 +290,10 @@ struct IcdDecoder
 		eph.toe		= GTime(GTow(eph.toes), eph.toc);
 		
 		
-// 		std::cout << std::endl << eph.ttm;
-// 		std::cout << std::endl << eph.toe;
-// 		std::cout << std::endl << eph.toc;
-// 		std::cout << std::endl;
+// 		std::cout << "\n" << eph.ttm;
+// 		std::cout << "\n" << eph.toe;
+// 		std::cout << "\n" << eph.toc;
+// 		std::cout << "\n";
 		
 		return true;
 	}

@@ -1,7 +1,10 @@
 
 #pragma once
 
+struct KFState;
+struct Receiver;
+
 void writeGPX(
 	string		filename,
 	KFState&	kfState,
-	string		id);
+	Receiver&	rec);

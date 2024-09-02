@@ -2,6 +2,13 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+FileType UBX__()
+{
+
+}
+
 #include "observations.hpp"
 #include "navigation.hpp"
 #include "ubxDecoder.hpp"
@@ -43,7 +50,7 @@ map<string, map<GTime, double,		std::greater<GTime>>>	UbxDecoder::tempDataMaps;
 void UbxDecoder::decodeRAWX(
 	vector<unsigned char>& payload)
 {
-// 	std::cout << "Recieved RAWX message" << std::endl;
+// 	std::cout << "Recieved RAWX message" << "\n";
 
 	double				rcvTow	= *((double*)				&payload[0]);
 	short unsigned	int	week	= *((short unsigned	int*)	&payload[8]);
@@ -55,7 +62,7 @@ void UbxDecoder::decodeRAWX(
 		return;
 	}
 
-// 	std::cout << std::endl << "Recieved RAWX message has " << numMeas << " measurements" << std::endl;
+// 	std::cout << "\n" << "Recieved RAWX message has " << numMeas << " measurements" << "\n";
 
 	map<SatSys, GObs> obsMap;
 
@@ -91,7 +98,7 @@ void UbxDecoder::decodeRAWX(
 		obs.Sat		= Sat;
 		obs.time	= gpst2time(week, rcvTow);
 
-		printf("meas %s %s %s %14.3lf %14.3lf\n", obs.time.to_string(4).c_str(), Sat.id().c_str(), obsCode._to_string(), pr, cp);
+		printf("meas %s %s %s %14.3lf %14.3lf\n", obs.time.to_string().c_str(), Sat.id().c_str(), obsCode._to_string(), pr, cp);
 		auto ft = code2Freq[sys][obsCode];
 		obs.sigsLists[ft].push_back(sig);
 	}
@@ -127,7 +134,7 @@ void UbxDecoder::decodeMEAS(
 
 	double timeOffset = ((signed int)(timeTag - lastTimeTag)) * 1e-3;
 
-// 	std::cout << std::endl << "Recieved MEAS message has " << numMeas << " measurements at " << timeOffset << std::endl;
+// 	std::cout << "\n" << "Recieved MEAS message has " << numMeas << " measurements at " << timeOffset << "\n";
 
 	for (int i = 0; i < numMeas; i++)
 	{
@@ -147,7 +154,7 @@ void UbxDecoder::decodeMEAS(
 		{
 			default:
 			{
-// 				std::cout << std::endl << measDataType._to_string();
+// 				std::cout << "\n" << measDataType._to_string();
 				break;
 			}
 			case E_MEASDataType::GYRO_X:
@@ -155,7 +162,7 @@ void UbxDecoder::decodeMEAS(
 			case E_MEASDataType::GYRO_Z:
 			{
 				double gyro = dataField * P2_12;
-// 				std::cout << std::endl << measDataType._to_string() << " : " << gyro;
+// 				std::cout << "\n" << measDataType._to_string() << " : " << gyro;
 
 				int index = 0;
 				if		(measDataType == +E_MEASDataType::GYRO_X)	index = 0;		//ubx indices are dumb and not ordered
@@ -171,7 +178,7 @@ void UbxDecoder::decodeMEAS(
 			case E_MEASDataType::ACCL_Z:
 			{
 				double accl = dataField * P2_10;
-// 				std::cout << std::endl << measDataType._to_string() << " : " << accl;
+// 				std::cout << "\n" << measDataType._to_string() << " : " << accl;
 
 				int index = 0;
 				if		(measDataType == +E_MEASDataType::ACCL_X)	index = 0;
@@ -185,7 +192,7 @@ void UbxDecoder::decodeMEAS(
 			case E_MEASDataType::GYRO_TEMP:
 			{
 				double temp = dataField * 1e-2;
-// 				std::cout << std::endl << measDataType._to_string() << " : " << temp;
+// 				std::cout << "\n" << measDataType._to_string() << " : " << temp;
 
 				tempDataMaps[recId][lastTime + timeOffset] = temp;
 
@@ -239,7 +246,7 @@ void UbxDecoder::decodeEphFrames(
 
 	if (pass)
 	{
-		std::cout << std::endl << "*";
+		std::cout << "\n" << "*";
 		eph.Sat		= Sat;
 		eph.type	= E_NavMsgType::LNAV;
 		nav.ephMap[eph.Sat][eph.type][eph.toe] = eph;
@@ -249,7 +256,7 @@ void UbxDecoder::decodeEphFrames(
 
 		traceBrdcEphBody(doc, eph);
 
-		std::cout << bsoncxx::to_json(doc) << std::endl;
+		std::cout << bsoncxx::to_json(doc) << "\n";
 //
 // 		if (acsConfig.output_decoded_rtcm_json)
 // 			traceBrdcEph(RtcmMessageType::GPS_EPHEMERIS, eph);
@@ -262,7 +269,7 @@ void UbxDecoder::decodeEphFrames(
 void UbxDecoder::decodeSFRBX(
 	vector<unsigned char>& payload)
 {
-// 	std::cout << "Recieved SFRBX message" << std::endl;
+// 	std::cout << "Recieved SFRBX message" << "\n";
 	if (payload.size() < 5)
 		return;
 

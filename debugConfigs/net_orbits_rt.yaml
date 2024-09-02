@@ -127,6 +127,7 @@ receiver_options:
         #error_model:    elevation_dependent
         #code_sigma:    [0.4]
         #phase_sigma:   [0.004]
+        rec_reference_system:   gps
 
         #models:
             #attitude:
@@ -179,7 +180,7 @@ processing_options:
     epoch_control:
         epoch_interval:      60
         #wait_next_epoch:     8
-        wait_all_receivers:   2
+        max_rec_latency:   2
     preprocessor:
         cycle_slips:
              mw_process_noise:  0
@@ -191,7 +192,6 @@ processing_options:
             postfit:
                 sigma_check:            true
     gnss_general:
-        rec_reference_system:               gps
         minimise_sat_clock_offsets:         true
         sys_options:  # Only GPS and Galileo are currently stable
             gps:
@@ -223,7 +223,7 @@ processing_options:
             sigma:      [ 1 ]
     model_error_handling:
         ambiguities:
-            outage_reset_limit:     4
+            outage_reset_limit:     300
             phase_reject_limit:     2
             reset_on:
                 gf:     true
@@ -255,11 +255,13 @@ processing_options:
                 max_iterations: 3
                 omega_test: true
                 sigma_check:    false
-                sigma_threshold: 5
+                state_sigma_threshold: 5
+                meas_sigma_threshold:  5
             postfit:
                 max_iterations: 20
-                sigma_threshold: 5
                 sigma_check:    true
+                state_sigma_threshold: 5
+                meas_sigma_threshold:  5
 
             chi_square:
                 mode: NONE

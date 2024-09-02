@@ -30,7 +30,7 @@ void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap);
 
 void NtripBroadcaster::startBroadcast()
 {
-	NtripSocket::startClients();
+	TcpSocket::startClients();
 }
 
 void NtripBroadcaster::stopBroadcast()
@@ -61,17 +61,17 @@ void NtripUploader::serverResponse(
 	GTime time = timeGet();
 
 	bsoncxx::builder::basic::document doc = {};
-	doc.append(kvp("label", 			"serverResponse"));
-	doc.append(kvp("Stream", 			url.path.substr(1,url.path.length())));
+	doc.append(kvp("label", 			__FUNCTION__));
+	doc.append(kvp("Stream", 			url.path.substr(1, url.path.length())));
 	doc.append(kvp("Time", 				time.to_string()));
 	doc.append(kvp("ServerStatus", 		(int)status_code));
 	doc.append(kvp("VersionHTTP",		http_version));
 
-	logStream << bsoncxx::to_json(doc) << std::endl;
+	logStream << bsoncxx::to_json(doc) << "\n";
 }
 
 
-void NtripUploader::write_handler(
+void NtripUploader::writeHandler(
 	const boost::system::error_code& err)
 {
 	if (err)
@@ -87,7 +87,7 @@ void NtripUploader::write_handler(
 	outMessagesMtx.unlock();
 }
 
-void NtripUploader::messageTimeout_handler(
+void NtripUploader::messageTimeoutHandler(
 	const boost::system::error_code& err)
 {
 	// BOOST_LOG_TRIVIAL(debug) << "started " << __FUNCTION__ << "\n";
@@ -99,21 +99,18 @@ void NtripUploader::messageTimeout_handler(
 	//fire this callback again in the future
 	{
 		sendTimer.expires_from_now(boost::posix_time::milliseconds(500));		// check uploader twice a second to account for aliasing
-		sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeout_handler, this, bp::error));
+		sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeoutHandler, this, bp::error));
 	}
 
 	SSRMeta		ssrMeta;
 	SsrOutMap	ssrOutMap;
 
-	GTime	latestTime;
-
-	if		(acsConfig.ssrOpts.output_timing == +E_SSROutTiming::GPS_TIME) 					latestTime = timeGet();
-// 	else if (acsConfig.ssrOpts.output_timing == +E_SSROutTiming::LATEST_CLOCK_ESTIMATE)		latestTime = mongoReadLastClock();		//todo aaron
+	GTime	latestTime = timeGet();
 
 	if (latestTime == GTime::noTime())
 		return;
 
-	GTime	targetTime	= latestTime.floorTime(1);
+	GTime	targetTime = latestTime.floorTime(1);
 
 	if (targetTime == previousTargetTime)
 	{
@@ -121,7 +118,7 @@ void NtripUploader::messageTimeout_handler(
 		return;
 	}
 
-	BOOST_LOG_TRIVIAL(debug) << "SSR OUT Targeting epoch: " << targetTime.to_string(0) << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "SSR OUT Targeting epoch: " << targetTime.to_string() << "\n";
 
 	ssrMeta.receivedTime		= targetTime;	// for rtcmTrace (debugging)
 	ssrMeta.multipleMessage 	= 1; // We assume there will be more messages.
@@ -191,7 +188,7 @@ void NtripUploader::messageTimeout_handler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -210,7 +207,7 @@ void NtripUploader::messageTimeout_handler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -247,13 +244,13 @@ void NtripUploader::messageTimeout_handler(
 				auto buffer = encodeSsrOrbClk(ssrOutMap, messCode);
 				bool write = encodeWriteMessageToBuffer(buffer);
 
-				if (acsConfig.trace_level > 5)
+				if (traceLevel > 5)
 				{
 // 					debugSSR(t0, targetTime, sys, ssrOutMap);
 
 					if (write == false)
 					{
-						std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+						std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 					}
 				}
 
@@ -271,7 +268,7 @@ void NtripUploader::messageTimeout_handler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -297,7 +294,7 @@ void NtripUploader::messageTimeout_handler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -319,7 +316,7 @@ void NtripUploader::messageTimeout_handler(
 
 				if (write == false)
 				{
-					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << std::endl;
+					std::cout << "RtcmMessageType::" << messCode._to_string() << " was not written" << "\n";
 				}
 
 				break;
@@ -448,7 +445,7 @@ void NtripUploader::messageTimeout_handler(
 				map<SatSys, SSRCodeBias>		ssrCodMap;
 				map<SatSys, SSRPhasBias>		ssrPhsMap;
 
-				map<CompactSSRSubtype ,int>	approvedMessages;
+				map<CompactSSRSubtype, int>	approvedMessages;
 
 				bool new_mask = false;
 				for (auto [subType, subUdi] : msgOpts.comp_udi)
@@ -524,7 +521,7 @@ void NtripUploader::messageTimeout_handler(
 							break;
 						}
 						// default:
-						// 	BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect compacr SSR type: " << subType.to_integral << std::endl;
+						// 	BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect compacr SSR type: " << subType.to_integral << "\n";
 
 					}
 				}
@@ -575,7 +572,7 @@ void NtripUploader::messageTimeout_handler(
 				break;
 			}
 			default:
-				BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect message type: " << messCode << std::endl;
+				BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect message type: " << messCode << "\n";
 		}
 	}
 
@@ -586,7 +583,7 @@ void NtripUploader::messageTimeout_handler(
 	int length = messStream.tellg();
 	messStream.seekg(0, messStream.beg);
 
-	BOOST_LOG_TRIVIAL(debug) << "Called " << __FUNCTION__ << " MessageLength : " << length << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "Called " << __FUNCTION__ << " MessageLength : " << length << "\n";
 	if (length != 0)
 	{
 		vector<char> data;
@@ -600,8 +597,8 @@ void NtripUploader::messageTimeout_handler(
 		chunkedStream	.write	(&data[0], length);
 		chunkedStream << "\r\n";
 
-		if (url.protocol == "https")	{	boost::asio::async_write(*_sslsocket,	outMessages, boost::bind(&NtripUploader::write_handler, this, bp::error));}
-		else							{	boost::asio::async_write(*_socket,		outMessages, boost::bind(&NtripUploader::write_handler, this, bp::error));}
+		if (url.protocol == "https")	{	boost::asio::async_write(*_sslsocket,	outMessages, boost::bind(&NtripUploader::writeHandler, this, bp::error));}
+		else							{	boost::asio::async_write(*_socket,		outMessages, boost::bind(&NtripUploader::writeHandler, this, bp::error));}
 
 		previousTargetTime = targetTime;
 	}
@@ -612,7 +609,7 @@ void NtripUploader::startBroadcast()
 	// BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " Starting Send Loop.\n";
 
 	sendTimer.expires_from_now(boost::posix_time::seconds(1));
-	sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeout_handler, this, bp::error));
+	sendTimer.async_wait(boost::bind(&NtripUploader::messageTimeoutHandler, this, bp::error));
 }
 
 void NtripUploader::connected()
@@ -620,7 +617,7 @@ void NtripUploader::connected()
 	// BOOST_LOG_TRIVIAL(info) << "Uploader connected.\n";
 
 	// Although there should be no downloading attempting to download monitors the socket connection.
-	start_read(true);
+	startRead(true);
 
 	startBroadcast();
 }

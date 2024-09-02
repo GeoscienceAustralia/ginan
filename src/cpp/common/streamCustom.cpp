@@ -18,7 +18,7 @@
 void CustomParser::parse(
 	std::istream& inputStream)
 {
-// 		std::cout << "Parsing ubx" << std::endl;
+// 		std::cout << "Parsing ubx" << "\n";
 
 	while (inputStream)
 	{

@@ -1,12 +1,51 @@
 
+#include "receiver.hpp"
 #include "sinex.hpp"
+#include "tides.hpp"
 
-Sinex_siteid_t					dummySiteid;
-Sinex_receiver_t				dummyReceiver;
-Sinex_antenna_t					dummyAntenna;
-Sinex_gps_phase_center_t		dummyGps_phase_center;
-Sinex_gal_phase_center_t		dummyGal_phase_center;
-Sinex_site_ecc_t				dummySite_ecc;
+SinexSiteId				dummySiteid;
+SinexReceiver			dummyReceiver;
+SinexAntenna			dummyAntenna;
+SinexSiteEcc			dummySiteEcc;
 
-SinexSatIdentity				dummySinexSatIdentity;
-Sinex_satecc_t					dummySinexSatEcc;
+SinexSatIdentity		dummySinexSatIdentity;
+SinexSatEcc				dummySinexSatEcc;
+
+
+
+
+ReceiverMap						receiverMap;
+
+void initialiseStation(
+	string		id,
+	Receiver&	rec)
+{
+	if (rec.id.empty() == false)
+	{
+		//already initialised
+		return;
+	}
+
+	BOOST_LOG_TRIVIAL(info)
+	<< "Initialising station " << id;
+
+	rec.id = id;
+
+	auto loadBlq = [&](vector<string> files, E_LoadingType type)
+	{
+		bool found = false;
+		for (auto& blqfile : acsConfig.ocean_tide_loading_blq_files)
+		{
+			found |= readBlq(blqfile, rec, E_LoadingType::OCEAN);
+		}
+
+		if (found == false)
+		{
+			BOOST_LOG_TRIVIAL(warning)
+			<< "Warning: No " << type._to_string() << " BLQ for " << id;
+		}
+	};
+
+	loadBlq(acsConfig.ocean_tide_loading_blq_files, E_LoadingType::OCEAN);
+	loadBlq(acsConfig.atmos_tide_loading_blq_files, E_LoadingType::ATMOSPHERIC);
+}

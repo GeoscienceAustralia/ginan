@@ -3,13 +3,62 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [3.1] 2024-09-02
+
+### Added
+
+Boxwing model for the albedo
+
+Sisnet (SouthPan) message support
+
+SLR processing capability
+
+PBO Position (.pos) format file output support
+
+Apple silicon (M-chip) support
+
+VMF3 file download python script (get_vmf3.py)
+
+POS file visualisation python script (plot_pos.py)
+
+### Changed
+
+EDA improvements
+
+Improved documentation
+
+Use case examples updated
+
+Frequency dependent GLONASS receiver code bias estimation enabled
+
+Improved missing/bad data handling
+
+Bias rates from .BIA/BSX files parsed and used
+
+Measurment and State error handling sigma_limit thresholds separated
+
+Config file reorganisation (rec_reference_system: moved to receiver_options:)
+
+Clock code handling modified
+
+### Fixed
+
+Many bug fixes
+
+### Deprecated
+
+### Removed
+
+### Security
+
+
 # [3.0] 2024-02-05
 
 ### Added
 IERS 2010 standard tide models implemeted and validated including:
-- Solid Earth (SE) Tide, 
-- SE Pole Tide, 
-- Ocean Tide Loading (OTL) 
+- Solid Earth (SE) Tide,
+- SE Pole Tide,
+- Ocean Tide Loading (OTL)
 - Ocean Pole Tide
 - Atmosphere Tide Loading (ATL)
 
@@ -269,44 +318,44 @@ Ginan v2 uncombined/undifferenced algorithm code framework implemented
 Output listing of all available PEA configuration options implemented with pea -Y option
 
 ### Changed
-PEA Rauch-Tung-Striebel (RTS) smoothing filter algorithm performance improved 
+PEA Rauch-Tung-Striebel (RTS) smoothing filter algorithm performance improved
 
 MongoDash visualisation tool renamed Ginan Exploratory Data Analysis tool (GinanEDA), numerous performance and analytical features added
 
-PEA output to MongoDB performance improvement and additional outputs implemented 
+PEA output to MongoDB performance improvement and additional outputs implemented
 
-PEA TRACE and solution summary (.SUM) file format updates. All output is now time tagged with improved formating for easier reading and searching 
+PEA TRACE and solution summary (.SUM) file format updates. All output is now time tagged with improved formating for easier reading and searching
 
-PEA Kalman Filter performance and stability improvements 
+PEA Kalman Filter performance and stability improvements
 
-Streamlined and improved handling of RTCM input and output data and correction streams 
+Streamlined and improved handling of RTCM input and output data and correction streams
 
-Unification of PEA user mode and network mode filters in the codebase 
+Unification of PEA user mode and network mode filters in the codebase
 
-Updated all Ginan PEA and POD user use-case examples to reflect changes since Ginanv-1.2-Aplha release 
+Updated all Ginan PEA and POD user use-case examples to reflect changes since Ginanv-1.2-Aplha release
 
-Updated all Ginan PEA and POD user use-case examples filenames to better reflect their purpose 
+Updated all Ginan PEA and POD user use-case examples filenames to better reflect their purpose
 
-Updated Ginan use case example downloader, download_examples.py script updated to allow individual data, products and solutions tar balls to be downloaded separately 
+Updated Ginan use case example downloader, download_examples.py script updated to allow individual data, products and solutions tar balls to be downloaded separately
 
-CMake.txt file simplification and build stability improvements 
+CMake.txt file simplification and build stability improvements
 
-New Ginan download, install, and use-case videos completed 
+New Ginan download, install, and use-case videos completed
 
 ### Deprecated
 ### Removed
 ### Fixed
-Missing .SP3 file entries and “0 position” satellite entries bug fixed in the POD 
+Missing .SP3 file entries and “0 position” satellite entries bug fixed in the POD
 
-Improved outlier and cycle slip detection and data downweighing in the PEA Kalman Filter 
+Improved outlier and cycle slip detection and data downweighing in the PEA Kalman Filter
 
-IONEX file output format bug fixes 
+IONEX file output format bug fixes
 
-Numerous new Ginan python utilities added (difftrace, diffsnx, duffutil, merge_sp3, log2snx, etc) 
+Numerous new Ginan python utilities added (difftrace, diffsnx, duffutil, merge_sp3, log2snx, etc)
 
-Default PEA Kalman Filter inverter changed to LDLT 
+Default PEA Kalman Filter inverter changed to LDLT
 
-Miscellaneous bug fixes and performance improvements 
+Miscellaneous bug fixes and performance improvements
 
 ### Security
 

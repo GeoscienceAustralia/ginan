@@ -137,11 +137,12 @@ def out_pea_yaml(
     product_dir: Path,
     data_dir: Path,
     pea_out_dir: Path,
+    config_name: str = "auto",
     relative_to_dir: Path = None,
     trop_model="gpt2",
     trop_dir: Path = None,
     enable_mongo: bool = True,
-    overrides=(),
+    overrides=[],
 ):
     """
     Output the YAML file used for rapid run
@@ -183,7 +184,7 @@ def out_pea_yaml(
     snx_out_name = "auto-<CONFIG>-<YYYY><DDD><HH>.snx"
 
     # Write template to file:
-    target = config_out_dir / f"auto_config_{template_path.stem}.yaml"
+    target = config_out_dir / f"{config_name}_{template_path.stem}.yaml"
 
     # If we've been given a directory to make things relative to we do that now
     # Unfortunately pathlib.Path.relative_to doesn't do what we want so we have to use os.path.relpath
@@ -244,14 +245,16 @@ def write_config_pea(
     trop_model: str,
     trop_dir: str,
     enable_mongo: bool,
-    overrides=(),
+    overrides=[],
 ):
     """
     Read a pea configuration yaml template from file, set it up for a run, and write it out to a file
     """
     # Read in the template
     with open(template_path, "r", encoding="utf-8") as f:
-        template = ruamel.yaml.safe_load(f)
+        yaml = ruamel.yaml.YAML(typ="safe", pure=True)
+        template = yaml.load(f)
+
     # Set up the template (inplace) with the appropriate data
     edit_config_template_pea(
         template,
@@ -280,7 +283,8 @@ def write_config_pea(
     # Write this configuration out
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as out_f:
-        ruamel.yaml.safe_dump(data=template, stream=out_f, default_flow_style=False)
+        yaml = ruamel.yaml.YAML(typ="safe", pure=True)
+        yaml.dump(data=template, stream=out_f)
 
 
 def edit_config_template_pea(
@@ -304,7 +308,7 @@ def edit_config_template_pea(
     trop_model: str,
     trop_dir: str,
     enable_mongo: bool,
-    overrides=(),
+    overrides=[],
     inplace=False,
 ):
     """
@@ -313,6 +317,9 @@ def edit_config_template_pea(
     # Dictionaries are mutable so if we don't want to make changes to the provided template we need to make a deep copy
     if not inplace:
         template = copy.deepcopy(template)
+
+    # TODO: Can we just use globs instead of specific filenames? Then we wouldn't need to modify these
+    # part of the template
 
     # Directories
     write_nested_dict_value(template, ["input_files", "root_input_directory"], product_dir)
@@ -364,7 +371,9 @@ def edit_config_template_pea(
 
 @click.command()
 @click.option("--target-dir", required=True, help="Directory to place the final config / YAML file, e.g. /var/config")
-@click.option("--template-path", required=True, help="Path to the YAML template to use, e.g. /var/ginan/exampleConfigs/ex12")
+@click.option(
+    "--template-path", required=True, help="Path to the YAML template to use, e.g. /var/ginan/exampleConfigs/ex12"
+)
 @click.option("--product-dir", required=True, help="Directory to input products, e.g. /var/product")
 @click.option("--data-dir", help="Directory to input data, e.g. /var/data. If missing same as product-dir")
 @click.option("--output-dir", help="Directory to output data, e.g. /var/output. If missing same as product-dir")
@@ -391,7 +400,6 @@ def auto_yaml_main(
     enable_mongo,
     verbose,
 ):
-
     configure_logging(verbose)
     target_dir = Path(target_dir)
     template_path = Path(template_path)

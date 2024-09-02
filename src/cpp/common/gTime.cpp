@@ -174,7 +174,7 @@ GTime yds2time(
 	int days = (year-1970)*365 + leapDays + doy - 1;
 
 	PTime pTime = {};
-	pTime.bigTime = days * 86400.0 + sec;	//.0 to prevent eventual overflow
+	pTime.bigTime = days * S_IN_DAY + sec;	//.0 to prevent eventual overflow
 
 	GTime time = pTime;
 	switch (tsys)
@@ -188,7 +188,7 @@ GTime yds2time(
 		case E_TimeSys::TAI:		{ time += GPS_SUB_TAI;												}	break;
 		default:
 		{
-			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << "\n";
 		}
 	}
 
@@ -281,7 +281,7 @@ void time2epoch(
 		case E_TimeSys::TAI:		{ time -= GPS_SUB_TAI;												}	break;
 		default:
 		{
-			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << std::endl;
+			BOOST_LOG_TRIVIAL(error) << "Unsupported / Unknown time system: " << tsys._to_string() << ", use GPST by default." << "\n";
 		}
 	}
 
@@ -400,8 +400,15 @@ GTime utc2gpst(UtcTime utcTime)
 }
 
 string GTime::to_string(
-	int n) const
+	int n)
+const
 {
+	if	( cacheTime == bigTime
+		&&cacheN	== n)
+	{
+		return cacheString;
+	}
+
 	GTime t = *this;
 
 	if		(n < 0) 		n = 0;
@@ -421,15 +428,44 @@ string GTime::to_string(
 
 	char buff[64];
 	snprintf(buff, sizeof(buff),"%04.0f-%02.0f-%02.0f %02.0f:%02.0f:%0*.*f",
-			ep[0],
-			ep[1],
-			ep[2],
-			ep[3],
-			ep[4],
-			n<=0?2:n+3,n<=0?0:n,
-			ep[5]);
+			ep.year,
+			ep.month,
+			ep.day,
+			ep.hour,
+			ep.min,
+			n <=0?2:n+3,
+			n,
+			ep.sec);
 
-	return buff;
+	cacheString = buff;
+	cacheTime	= bigTime;
+	cacheN		= n;
+
+	return cacheString;
+}
+
+string GTime::to_ISOstring(
+	int n)
+const
+{
+	string s = this->to_string(n);
+	s[10] = 'T';
+	return s;
+}
+
+double GTime::to_decYear() const
+{
+	UYds yds = *this;
+
+	double year	= yds.year;
+	double doy	= yds.doy;
+	double sod	= yds.sod;
+
+	// Determine if the year is a leap year
+	bool isLeapYear = (static_cast<int>(year) % 4 == 0 && static_cast<int>(year) % 100 != 0) || (static_cast<int>(year) % 400 == 0);
+	int totalDaysInYear = isLeapYear ? 366 : 365;
+
+	return year + (doy + sod / secondsInDay) / totalDaysInYear;
 }
 
 GTime::operator GEpoch() const
@@ -609,7 +645,7 @@ GTime::operator RTod()			const{	Duration seconds = *this - GLO_t0;		RTod	rTod	= 
 PTime::operator GTime() 		const{	GTime gTime;	gTime.bigTime	= bigTime - GPS_t0_sub_POSIX_t0;												return gTime;}
 GTime::operator PTime() 		const{	PTime pTime;	pTime.bigTime	= bigTime + GPS_t0_sub_POSIX_t0;												return pTime;}
 
-GTime::operator string()		const{	return to_string(2);	}
+GTime::operator string()		const{	return to_string();	}
 
 /** Returns (posix) for current epoch
  */

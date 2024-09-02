@@ -19,7 +19,7 @@ outputs:
 processing_options:
   epoch_control:
     epoch_interval: 1
-    wait_all_receivers: 1.0
+    max_rec_latency: 1
     require_obs: true
   process_modes:
     preprocessor: true
@@ -41,7 +41,7 @@ processing_options:
         process: true
       sbs:
         process: true
-    
+
 mongo:
   enable: primary
   output_trace: primary

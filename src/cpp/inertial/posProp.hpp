@@ -157,22 +157,7 @@ struct InertialIntegrator
 				MatrixXd&		dAdParam);
 };
 
-KFState getInertialsFromState(
-	Trace&			trace,
-	string			id,
-	const KFState&	kfState);
-
 void predictInertials(
 	Trace&			trace,
 	const KFState&	kfState,
 	GTime           time);
-
-Inertials prepareInertials(
-	Trace&			trace,
-	const KFState&	kfState);
-
-void integrateInertials(
-	InertialIntegrator&	inertialPropagator,
-	Inertials&			inertials,
-	double				integrationPeriod,
-	double 				dt);

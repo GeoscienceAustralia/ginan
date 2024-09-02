@@ -4,7 +4,8 @@ inputs:
 
     inputs_root: ./products/
 
-    atx_files:  [ igs20.atx                   ] # required
+    atx_files:
+    - igs20.atx
 
     snx_files:
     # - tables/igs_satellite_metadata.snx
@@ -16,7 +17,7 @@ inputs:
         - ALIC00AUS0
 
     satellite_data:
-        satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/" 
+        satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
         rtcm_inputs:
             ssr_antenna_offset: APC
             rtcm_inputs:
@@ -57,7 +58,7 @@ processing_options:
         # max_epochs:                 60
         epoch_interval:             1
         wait_next_epoch:            1
-        wait_all_receivers:         0
+        max_rec_latency:            0
         require_obs:                false
         sleep_milliseconds:         1
 
