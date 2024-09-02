@@ -1,0 +1,266 @@
+# ex44 - Network SLR Example
+
+inputs:
+
+    inputs_root: products/
+
+    # atx_files:                  [   igs20.atx                                   ]   # required
+    snx_files:                  [   IGS1R03SNX_20192000000_01D_01D_CRD.SNX,
+                                    slr/ecc_une.snx,                                # SLR station eccentricities
+                                    slr/ILRS_Data_Handling_File_2024.02.13.snx,     # SLR station biases
+                                    slr/ITRF2014-ILRS-TRF-SSC.SNX,                  # SLR station positions + drifts
+                                    tables/igs_satellite_metadata_2203_plus.snx ]   # required
+    erp_files:                  [   igs19P2062.erp                              ]  
+    egm_files:                  [   tables/EGM2008.gfc                          ]   # Earth gravity model coefficients file
+    planetary_ephemeris_files:  [   tables/DE436.1950.2050                      ]   # JPL planetary and lunar ephemerides file
+
+    satellite_data:
+        sp3_files:              [   slr/ilrsa.orb.lageos1.190720.v71.sp3        ]
+        # bsx_files:              [   IGS2R03FIN_20191990000_01D_01D_OSB.BIA      ]
+        sid_files:              [   slr/sp3c-satlist.txt                        ]
+        com_files:              [   slr/com/com_lageos.txt                      ]
+        crd_files:              [   slr/obs/lageos1/lageos1_201907.npt          ]
+
+    tides:
+        ocean_tide_loading_blq_files:   [   slr/OLOAD_SLR.BLQ                   ]   # required if ocean loading is applied
+        ocean_tide_potential_files:     [   tables/fes2014b_Cnm-Snm.dat         ]
+
+    # troposphere:
+    #     orography_files:        [   orography_ell_5x5                           ]
+    #     gpt2grid_files:         [   gpt_25.grd                                  ]
+    #     vmf_files:              [   grid5/VMF3_20190718.H00,
+    #                                 grid5/VMF3_20190718.H06,
+    #                                 grid5/VMF3_20190718.H12,
+    #                                 grid5/VMF3_20190718.H18,
+    #                                 grid5/VMF3_20190719.H00                     ]
+
+    # gnss_observations:
+    #     gnss_observations_root: data/
+
+outputs:
+
+    metadata:
+        config_description:         slr_est_off
+
+    outputs_root:                   outputs/<CONFIG>/
+    colourise_terminal:             false
+    # warn_once:                      false
+
+    trace:
+        output_receivers:           true
+        output_network:             true
+        level:                      2
+        receiver_filename:          <RECEIVER>-<CONFIG><YYYY><DDD><HH>-<LOGTIME>.TRACE
+        network_filename:           <RECEIVER>-<CONFIG><YYYY><DDD><HH>-<LOGTIME>.TRACE
+        output_residuals:           true
+        output_residual_chain:      true
+        output_config:              true
+
+    log:
+        output:                     true
+        directory:                  ./
+        filename:                   log_<LOGTIME>.json
+
+    output_rotation:
+        period:                     1
+        period_units:               day
+
+    # bias_sinex:
+    #     output:                     false
+    #     code_output_interval:       900.0
+    #     directory:                  ./
+    #     filename:                   <CONFIG>-<LOGTIME>.BIA
+    #     output_rec_bias:            false
+    #     phase_output_interval:      900.0
+
+    # clocks:
+    #     output:                     false
+    #     directory:                  ./
+    #     filename:                   <CONFIG><LOGTIME>.clk
+
+    sinex:
+        output:                     true
+    
+    erp:
+        output:                     false
+
+    sp3:
+        output:                     false
+        output_interval:            1
+        output_inertial:            false
+        # output_predicted_orbits:    true
+        output_velocities:          true
+        orbit_sources:              [KALMAN]
+        clock_sources:              [PRECISE]
+
+    slr_obs:
+        output:                     true
+        directory:                  ./slr_obs/
+        filename:                   <RECEIVER>.slr_obs
+
+mongo:
+
+    enable:                         primary
+    primary_database:               <CONFIG>
+    output_config:                  primary
+    output_measurements:            primary
+    output_components:              primary
+    output_states:                  primary
+    output_test_stats:              primary
+    output_trace:                   primary
+    delete_history:                 primary
+    primary_uri:                    mongodb://127.0.0.1:27017
+    primary_suffix:                 ""
+
+receiver_options:
+
+    global:
+        elevation_mask:             10          # degrees
+        error_model:                elevation_dependent     
+        # code_sigmas:                [0.3333]
+        # phase_sigmas:               [0.0033]
+        laser_sigma:                0.10
+        rec_reference_system:       GPS
+
+        models:
+            # troposphere:
+            #     enable:             true
+            #     models:             [vmf3]      # gpt2
+
+            eop:
+                enable:             true
+
+satellite_options:
+
+    global:
+        models:
+            pos:
+                enable:                 true
+                sources:                [PRECISE]
+
+            # attitude:
+            #     enable:                 true        # (bool) Enables non-nominal attitude types
+            #     sources:                [NOMINAL]   # List of sourecs to use for attitudes
+
+processing_options:
+
+    epoch_control:
+        start_epoch:                    2019-07-14 00:00:18
+        end_epoch:                      2019-07-20 23:58:18
+        # max_epochs:                     12      # 0 is infinite # comment for full day run
+        epoch_interval:                 60      # seconds
+        require_obs:                    true
+        assign_closest_epoch:           true
+
+    process_modes:
+        ppp:                            true
+        slr:                            true    # Process SLR observations
+        preprocessor:                   true
+        spp:                            false
+
+    gnss_general:
+        # common_sat_pco:                 false
+        # pivot_receiver:                 "USN7"  # if not provided then will be selected automatically
+
+        sys_options:
+            # gps:
+            #     process:                false
+            #     ambiguity_resolution:   false
+            #     reject_eclipse:         false
+            #     code_priorities:        [L1C, L1P, L1Y, L1W, L1M, L1N, L1S, L1L, L1X,
+            #                              L2W, L2P, L2Y, L2C, L2M, L2N, L2D, L2S, L2L, L2X,
+            #                             # L5I, L5Q, L5X
+            #                             ]
+            
+            leo:    # includes Lageos1
+                process:                true
+
+    # spp:
+    #     outlier_screening:
+    #         max_gdop:                   30
+    #         raim:                       true
+
+    ppp_filter:
+        # ionospheric_components:
+        #     corr_mode:                  iono_free_linear_combo
+        #     use_if_combo:               false
+
+        inverter:                       ldlt    # LLT LDLT INV
+
+        outlier_screening:
+            prefit:
+                max_iterations:         10      # Maximum number of measurements to exclude using prefit checks before attempting to filter
+
+            postfit:
+                max_iterations:         10      # Maximum number of measurements to exclude using postfit checks while iterating filter
+
+        # rts:
+        #     enable:                     true
+        #     lag:                        -1      # -ve for full reverse, +ve for limited epochs
+        #     directory:                  ./
+        #     filename:                   <CONFIG>-Netwuseork.rts
+
+    model_error_handling:
+        meas_deweighting:
+            deweight_factor:             1000
+
+        # ambiguities:
+        #     outage_reset_limit:          1
+        #     phase_reject_limit:          2
+
+estimation_parameters:
+
+    global_models:
+        eop:
+            estimated:              [false]
+            sigma:                  [30]
+            process_noise:          [0.0000036]
+
+        eop_rates:
+            estimated:              [false]
+            sigma:                  [10]
+            process_noise:          [0]
+
+    receivers:
+        global:
+            pos:
+                estimated:          [false]
+                sigma:              [1.0]
+                process_noise:      [0]
+
+            slr_range_bias:
+                estimated:          [false]
+                sigma:              [0.01]
+                process_noise:      [0]
+
+            slr_time_bias:
+                estimated:          [false]
+                sigma:              [0.00001]
+                process_noise:      [0]
+
+    satellites:
+        global:
+            orbit:
+                estimated:          [false]
+                sigma:              [5e-1, 5e-1, 5e-1, 5e-3, 5e-3, 5e-3]    # posX/Y/Z, velX/Y/Z (final element repeated as necessary)
+                process_noise:      [0]
+
+            # emp_r_0: { estimated: [false], sigma: [5e-6] }
+            emp_t_0: { estimated: [false], sigma: [5e-6] }
+            # emp_n_0: { estimated: [false], sigma: [5e-6] }
+
+            # emp_r_1: { estimated: [false], sigma: [5e-6] }
+            emp_t_1: { estimated: [false], sigma: [5e-6] }
+            emp_n_1: { estimated: [false], sigma: [5e-6] }
+
+            # emp_r_2: { estimated: [false], sigma: [5e-6] }
+            # emp_t_2: { estimated: [false], sigma: [5e-6] }
+            # emp_n_2: { estimated: [false], sigma: [5e-6] }
+
+            # emp_r_3: { estimated: [false], sigma: [5e-6] }
+            # emp_t_3: { estimated: [false], sigma: [5e-6] }
+            # emp_n_3: { estimated: [false], sigma: [5e-6] }
+
+            # emp_r_4: { estimated: [false], sigma: [5e-6] }
+            # emp_t_4: { estimated: [false], sigma: [5e-6] }
+            # emp_n_4: { estimated: [false], sigma: [5e-6] }

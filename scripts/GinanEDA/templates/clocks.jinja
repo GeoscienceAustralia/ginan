@@ -29,7 +29,7 @@ Clocks
     <br>
     <select class="selectpicker form-control" name="series_base" id="series_base" data-container="body"
       data-live-search="true" title="Select type">
-      {% for series_ in session['list_series'] %}
+      {% for series_ in session['list_states_series'] %}
       {% if selection is defined and selection['series_base']|length and series_ in selection['series_base']%}
       <option value="{{series_}}" SELECTED>{{series_}}</option>"
       {%else%}
@@ -44,7 +44,7 @@ Clocks
     <br>
     <select class="selectpicker form-control" name="series" id="series" data-container="body" data-live-search="true"
       title="Series">
-      {% for series_ in session['list_series'] %}
+      {% for series_ in session['list_states_series'] %}
       {% if selection is defined and selection['series']|length and series_ in selection['series']%}
       <option value="{{series_}}" SELECTED>{{series_}}</option>"
       {%else%}
@@ -54,28 +54,64 @@ Clocks
     </select>
   </div>
 
-<div class="col-lg-1">
-  <label for="subset" class="form-label">subset:</label>
-  <br>
-<select multiple class="selectpicker form-control"  name="subset" id="subset" data-container="body" data-live-search="true"
-      title="subset" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false">
-  </select>
-</div>
+  <div class="col-lg-1">
+    <label for="subset" class="form-label">subset:</label>
+    <br>
+    <select multiple class="selectpicker form-control" name="subset" id="subset" data-container="body"
+      data-live-search="true" title="subset" data-hide-disabled="true" data-actions-box="true"
+      data-virtual-scroll="false">
+      {% if selection is defined %}
+      {% if selection['clockType'] == "Site" %}
+      {% for site_ in session['list_site'] %}
+      {% if selection is defined and selection['subset']|length and site_ in selection['subset']%}
+      <option value="{{site_}}" SELECTED>{{site_}}</option>"
+      {%else%}
+      <option value="{{site_}}">{{site_}}</option>"
+      {%endif%}
+      {% endfor %}
+      {% endif %}
+      {% if selection['clockType'] == "Satellite" %}
+      {% for sat_ in session['list_sat'] %}
+      {% if selection is defined and selection['subset']|length and sat_ in selection['subset']%}
+      <option value="{{sat_}}" SELECTED>{{sat_}}</option>"
+      {%else%}
+      <option value="{{sat_}}">{{sat_}}</option>"
+      {%endif%}
+      {% endfor %}
+      {% endif %}
+      {% endif %}
+    </select>
 
-
-  <div class="col-lg-2">
-    <label for="exclude">Exclude first (min):</label>
-    <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" 
-        {% if selection is defined and  selection['exclude'] %}value="{{ selection['exclude'] }}"{% endif %}  
-        >
   </div>
 
-    <div class="col-lg-2">
-      <label for="exclude">Exclude last (min):</label>
-      <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail"
-          {% if selection is defined and  selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}"{% endif %}
-          >
+
+  <div class="col-lg-1">
+    <label for="modes" class="form-label">Modes:</label>
+    <div class="d-flex align-items-center">
+      <select multiple class="selectpicker form-control" name="modes" id="modes" data-container="body"
+        data-live-search="true" title="modes">
+        {% for key_ in extra["clockModes"] %}
+        {% if selection is defined and selection['modes']|length and key_ in selection['modes']%}
+        <option value="{{key_}}" SELECTED>{{key_}}</option>"
+        {%else%}
+        <option value="{{key_}}">{{key_}}</option>"
+        {%endif%}
+        {% endfor %}
+      </select>
     </div>
+  </div>
+
+  <div class="col-lg-1">
+    <label for="exclude">Exclude first (min):</label>
+    <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" {% if selection is defined
+      and selection['exclude'] %}value="{{ selection['exclude'] }}" {% endif %}>
+  </div>
+
+  <div class="col-lg-1">
+    <label for="exclude">Exclude last (min):</label>
+    <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail" {% if
+      selection is defined and selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}" {% endif %}>
+  </div>
 
   <input type="submit" value="PLOT">
 </form>
@@ -83,13 +119,13 @@ Clocks
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(document).ready(function () {
     // Function to update the options of the subset dropdown
     function updateSubsetDropdown(selectedType) {
       var subsetDropdown = document.getElementById('subset');
-      
+
       // Clear existing options
-            console.log('Options before clearing:', subsetDropdown.innerHTML);
+      console.log('Options before clearing:', subsetDropdown.innerHTML);
 
       subsetDropdown.innerHTML = '';
       $(subsetDropdown).selectpicker('destroy');
@@ -99,12 +135,12 @@ Clocks
       if (selectedType === 'Site') {
         // Populate options from session['site']
         {% for site in session['list_site'] %}
-          subsetDropdown.innerHTML += '<option value="{{ site }}">{{ site }}</option>';
+        subsetDropdown.innerHTML += '<option value="{{ site }}">{{ site }}</option>';
         {% endfor %}
       } else if (selectedType === 'Satellite') {
         // Populate options from session['sat']
         {% for sat in session['list_sat'] %}
-          subsetDropdown.innerHTML += '<option value="{{ sat }}">{{ sat }}</option>';
+        subsetDropdown.innerHTML += '<option value="{{ sat }}">{{ sat }}</option>';
         {% endfor %}
       }
       console.log('Options refill:', subsetDropdown.innerHTML);
@@ -114,7 +150,7 @@ Clocks
     }
 
     // Event handler for type selection change
-    $('#clockType').change(function() {
+    $('#clockType').change(function () {
       var selectedType = $(this).val();
       updateSubsetDropdown(selectedType);
     });
@@ -135,7 +171,7 @@ Clocks
 
 
 <script>
-function notSelectedValue(fieldId, missingField) {
+  function notSelectedValue(fieldId, missingField) {
     var field = document.getElementById(fieldId);
     var selectedIndex = field.selectedIndex;
     console.log("selectedIndex: " + selectedIndex + " for fieldId: " + fieldId);
@@ -152,15 +188,15 @@ function notSelectedValue(fieldId, missingField) {
       }
     }
   }
-  
+
   function validateForm() {
     var missingField = []; // Array to store the empty fields
-    
+
     // Check if a value is selected in each field
     notSelectedValue('clockType', missingField);
-notSelectedValue('series_base', missingField);
-notSelectedValue('series', missingField);
-notSelectedValue('subset', missingField);
+    notSelectedValue('series_base', missingField);
+    notSelectedValue('series', missingField);
+    notSelectedValue('subset', missingField);
     console.log(missingField)
     if (missingField.length > 0) {
       var errorMessage = 'Please select a value in the following fields:\n\n';

@@ -8,8 +8,6 @@
 
 using std::string;
 
-extern ReceiverMap receiverMap;
-
 void SinexParser::parseSinexEstimates(
 	string& s)
 {

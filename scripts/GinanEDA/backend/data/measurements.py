@@ -264,7 +264,8 @@ class Measurements:
         epoch_ = (self.epoch - self.epoch[0]).astype("timedelta64[s]").astype("float64")
         self.info["Fit"] = {}
         for key in self.data:
-            self.info["Fit"][key] = np.polyfit(epoch_, self.data[key], degree)
+            idx = np.isfinite(self.data[key]) & np.isfinite(epoch_)
+            self.info["Fit"][key] = np.polyfit(epoch_[idx], self.data[key][idx], degree)
 
     def detrend(self, degree=1):
         """
@@ -279,7 +280,8 @@ class Measurements:
                 self.data[key] -= np.polyval(self.info["Fit"][key], epoch_)
             else:
                 for i in range(self.data[key].shape[1]):
-                    self.data[key][:, i] -= np.polyval(self.info["Fit"][key][:, i], epoch_)
+                    idx = np.isfinite(self.data[key][:, i]) & np.isfinite(epoch_)
+                    self.data[key][idx, i] -= np.polyval(self.info["Fit"][key][idx, i], epoch_[idx])
 
     def plot(self, axis: plt.Axes):
         """

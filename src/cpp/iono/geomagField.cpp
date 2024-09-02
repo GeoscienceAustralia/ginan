@@ -65,7 +65,7 @@ void readIGRF(
 				int		maxDegree		= 13;
 				bool	isDefinitive	= false;
 
-				if	(year <= 1995)		
+				if	(year <= 1995)
 					maxDegree = 10;
 
 				GeomagMainField& igrfMF	= igrfMFMap[year];
@@ -146,11 +146,11 @@ bool getSHCoef(
 		return false;
 
 	double year	= decimalYear(time);
-	
+
 	if	( year >= igrfSV.yearEnd
 		||year <  1900)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Input epoch " << time.to_string(1) << " out of range covered by the IGRF file: 1900-" << igrfSV.yearEnd;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Input epoch " << time.to_string() << " out of range covered by the IGRF file: 1900-" << igrfSV.yearEnd;
 		return false;
 	}
 
@@ -170,7 +170,7 @@ bool getSHCoef(
 		gnmDot	= (igrfMFMap[year1].gnm - igrfMFMap[year0].gnm) / 5.0;
 		hnmDot	= (igrfMFMap[year1].hnm - igrfMFMap[year0].hnm) / 5.0;
 	}
-	
+
 	igrfMF.year			= year;
 	igrfMF.maxDegree	= igrfMFMap[year0].maxDegree;
 	igrfMF.gnm			= igrfMFMap[year0].gnm + gnmDot * dt;
@@ -195,7 +195,7 @@ VectorEnu getGeomagIntensity(
 	VectorEnu intensityEnu;
 
 	GeomagMainField igrfMF;
-	
+
 	bool pass = getSHCoef(time, igrfMF);
 	if (pass == false)
 	{
@@ -207,7 +207,7 @@ VectorEnu getGeomagIntensity(
 	double radius	= pos[2];
 
 	const double maxLat	= PI/2 - 1E-6;
-	
+
 	// resolve singularity
 	if		(pos.lat() > +maxLat)		{	lat = +maxLat;	}
 	else if	(pos.lat() < -maxLat)		{	lat = -maxLat;	}
@@ -228,7 +228,7 @@ VectorEnu getGeomagIntensity(
 		cosmPhi(m) = cosmPhi(m-1) * cosPhi - sinmPhi(m-1) * sinPhi;
 		sinmPhi(m) = sinmPhi(m-1) * cosPhi + cosmPhi(m-1) * sinPhi;
 	}
-	
+
 	Legendre leg(igrfMF.maxDegree);
 	leg.calculate(cosTheta);	// Pnm_gra_norm(cos(theta))
 
@@ -240,7 +240,7 @@ VectorEnu getGeomagIntensity(
 	for (int n = 1; n <= igrfMF.maxDegree; n++)
 	{
 		radiusRatio *= RE_IGRF / radius;	// (a/r)**n+2
-		
+
 		double dVtheta	= 0;
 		double dVphi	= 0;
 		double dVr		= 0;
@@ -251,7 +251,7 @@ VectorEnu getGeomagIntensity(
 			dVtheta	+= 		leg.dPnm(n, m) * (igrfMF.gnm(n, m) * cosmPhi(m) + igrfMF.hnm(n, m) * sinmPhi(m));	// lat
 			dVphi	+= m *	leg. Pnm(n, m) * (igrfMF.hnm(n, m) * cosmPhi(m) - igrfMF.gnm(n, m) * sinmPhi(m));	// lon
 			dVr		+= 		leg. Pnm(n, m) * (igrfMF.gnm(n, m) * cosmPhi(m) + igrfMF.hnm(n, m) * sinmPhi(m));	// r
-		}	
+		}
 
 		Btheta	+=			factor * radiusRatio * dVtheta;
 		Bphi	+=			factor * radiusRatio * dVphi;
@@ -261,7 +261,7 @@ VectorEnu getGeomagIntensity(
 	intensityEnu.e() = -Bphi / sinTheta;
 	intensityEnu.n() = +Btheta;
 	intensityEnu.u() = -Br;
-	
+
 	return intensityEnu;
 }
 

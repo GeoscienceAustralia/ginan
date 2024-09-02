@@ -1,6 +1,41 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+
+/** Primary estimation and filtering.
+ *
+ * While there are other auxiliary filters and states used within the Pea, all PPP processing flows through a common filtering stage.
+ *
+ * The residuals for all observations are first computed in an undifferenced-uncombined state, which leads to the greatest generality and extensibility.
+ * As each receiver's observations are then independent of each other, these computations are computed in parallel, using openMP directives, increasing thoughput.
+ *
+ * Bookkeeping around the initialisation of state elements and their state transitions is taken care of automatically at the point they are first referenced in the observation equations,
+ * using values as configured in the yaml file.
+ *
+ * The distinction between "Network" and "User" positioning modes that may be used in other software packages is not required in Ginan.
+ * All receivers are always stored in a large single filter.
+ * Depending on the configuration, the state and it's covariance matrix may turn out to be block-diagonal (user-mode), which will automatically be treated optimally upon the estimation stage by applying 'chunking'.
+ *
+ */
+Architecture Main_Filter__()
+{
+	DOCS_REFERENCE(UDUC_GNSS_Measurements__);
+	DOCS_REFERENCE(SLR_Mesaurements__);
+	DOCS_REFERENCE(Combinators__);
+	DOCS_REFERENCE(Pseudo_Observations__);
+	DOCS_REFERENCE(Kalman_Filter__);
+	DOCS_REFERENCE(Error_Handling__);
+}
+
+/**
+ */
+Architecture Combinators__()
+{
+
+}
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -16,9 +51,10 @@ using std::tuple;
 using std::map;
 
 
+#include "interactiveTerminal.hpp"
 #include "eigenIncluder.hpp"
 #include "observations.hpp"
-#include "instrument.hpp"
+#include "coordinates.hpp"
 #include "mongoWrite.hpp"
 #include "navigation.hpp"
 #include "mongoRead.hpp"
@@ -34,51 +70,95 @@ using std::map;
 #include "lambda.h"
 #include "ppp.hpp"
 
-
 struct Duo
 {
-	map<KFKey, short int>*	indexMap_ptr;
-	MatrixXd*				designMatrix_ptr;
+	map<KFKey, int>&	indexMap;
+	MatrixXd&			designMatrix;
 };
 
 void explainMeasurements(
 	Trace&		trace,
-	KFMeas&		meas,
+	KFMeas&		kfMeas,
 	KFState&	kfState)
 {
-	for (int i = 0; i < meas.obsKeys.size(); i++)
+	for (int i = 0; i < kfMeas.obsKeys.size(); i++)
 	{
-		auto& obsKey		= meas.obsKeys		[i];
-		auto& metaDataMap	= meas.metaDataMaps	[i];
+		auto& obsKey		= kfMeas.obsKeys		[i];
+		auto& metaDataMap	= kfMeas.metaDataMaps	[i];
 
 		if (metaDataMap["explain"] == nullptr)
 		{
 			continue;
 		}
 
-		trace << std::endl << "============================";
-		trace << std::endl << "Explaining " << obsKey << " : " << obsKey.comment;
+		InteractiveTerminal output((string)"Partials/" + (string)obsKey, trace);
 
+		output << "\n" << "============================";
+		output << "\n" << "Explaining " << obsKey << " : " << obsKey.comment;
 
-		for (int col = 0; col < meas.H.cols(); col++)
+		for (auto duo :	{
+							Duo{kfState	.kfIndexMap,		kfMeas.H},
+							Duo{kfMeas	.noiseIndexMap,		kfMeas.H_star}
+						})
+		for (int col = 0; col < duo.designMatrix.cols(); col++)
 		{
-			double entry = meas.H(i, col);
+			double entry = duo.designMatrix(i, col);
 
 			if (entry == 0)
 			{
 				continue;
 			}
 
-			for (auto& [kfKey, index] : kfState.kfIndexMap)
+			for (auto& [kfKey, index] : duo.indexMap)
 			{
 				if (index == col)
 				{
-					trace << std::endl << kfKey << " : " << entry;
+					output << "\n";
+					if (traceLevel >= 4)
+						output << kfState.time << " " << obsKey;
+
+					output << kfKey << " : " << entry;
 					break;
 				}
 			}
 		}
-		trace << std::endl;
+		output << "\n";
+	}
+}
+
+void alternatePostfits(
+	Trace&		trace,
+	KFMeas&		kfMeas,
+	KFState&	kfState)
+{
+	for (auto& [kfKey, col] : kfMeas.noiseIndexMap)
+	{
+		if	( kfKey.type > KF::BEGIN_MEAS_STATES
+			&&kfKey.type < KF::END_MEAS_STATES)
+		{
+			continue;
+		}
+
+		bool first = true;
+
+		for (int row = 0; row < kfMeas.H_star.rows(); row++)
+		{
+			double& entry = kfMeas.H_star(row, col);
+
+			if (entry == 0)
+			{
+				continue;
+			}
+
+			if (first)
+			{
+				first = false;
+
+				trace << "\n" << "Removing " << kfKey << " from postfit residual calculations";
+			}
+
+			entry = 0;
+		}
 	}
 }
 
@@ -87,8 +167,6 @@ void makeIFLCs(
 	const KFState&		kfState,
 	KFMeasEntryList&	kfMeasEntryList)
 {
-	Instrument instrument(__FUNCTION__);
-
 	bool iflcMade = false;
 
 	for (int i = 0; i < kfMeasEntryList.size(); i++)
@@ -163,6 +241,8 @@ void makeIFLCs(
 
 			for (auto& [key, valueI]	: kfMeasEntryI.usedValueMap)		kfMeasEntryJ.usedValueMap	[key] = valueI;
 
+			for (auto& [key, valueI]	: kfMeasEntryI.noiseElementMap)		kfMeasEntryJ.noiseElementMap[key] = valueI;
+
 			for (auto& [key, valueI]	: kfMeasEntryI.designEntryMap)		newDesignEntryMap			[key] += valueI * coeff_j * scalar * +1;
 			for (auto& [key, valueJ]	: kfMeasEntryJ.designEntryMap)		newDesignEntryMap			[key] += valueJ * coeff_i * scalar * -1;
 
@@ -184,6 +264,7 @@ void makeIFLCs(
 			newDesignEntryMap[ionKey_j] = 0;
 			kfMeasEntryJ.designEntryMap	= std::move(newDesignEntryMap);
 			kfMeasEntryJ.noiseEntryMap	= std::move(newNoiseEntryMap);
+			kfMeasEntryJ.componentsMap	= std::move(newComponentsMap);
 
 			kfState.removeState(ionKey_i);
 			kfState.removeState(ionKey_j);
@@ -200,139 +281,29 @@ void makeIFLCs(
 
 /** Replace individual measurements with linear combinations
  */
-KFMeas makeIFLCs(
-	KFMeas&		combinedMeas,
-	KFState&	kfState)
-{
-	Instrument instrument(__FUNCTION__);
-
-	KFMeas newMeas;
-
-	vector<Triplet<double>> tripletList;
-	int meas = 0;
-
-	vector<Duo> duos =
-	{
-		{&kfState.kfIndexMap,		&combinedMeas.H},
-		{&kfState.noiseIndexMap,	&combinedMeas.H_star}
-	};
-
-	for (auto duo : duos)
-	for (auto& [kfKey, index] : *duo.indexMap_ptr)						{																if (kfKey.type != KF::IONO_STEC)	continue;
-	for (int i_2 = 0; i_2 < combinedMeas.obsKeys.size();	i_2++)		{	double coeff_2 = (*duo.designMatrix_ptr)(i_2, index);		if (coeff_2 == 0)					continue;
-	for (int i_1 = 0; i_1 < i_2;							i_1++)		{	double coeff_1 = (*duo.designMatrix_ptr)(i_1, index);		if (coeff_1 == 0)					continue;
-	{
-		if (coeff_1 * coeff_2 < 0)								{	continue;	}	//only combine similarly signed (code/phase) components
-		if (coeff_1	== coeff_2)									{	continue;	}	//dont combine if it will eliminate the entire measurement
-
-		if (combinedMeas.metaDataMaps[i_1]["IFLCcombined"])		{	continue;	}
-		if (combinedMeas.metaDataMaps[i_2]["IFLCcombined"]) 	{	continue;	}
-
-
-		//these measurements both share a common ionosphere, remove it.
-
-		double scalar = sqrt(  (SQR(coeff_1) + SQR(coeff_2)) / SQR(coeff_1 - coeff_2)  );
-
-		tripletList.push_back({meas, i_1, +coeff_2 * scalar});
-		tripletList.push_back({meas, i_2, -coeff_1 * scalar});
-		meas++;
-
-		auto& obsKey_1 = combinedMeas.obsKeys[i_1];
-		auto& obsKey_2 = combinedMeas.obsKeys[i_2];
-
-		auto newObsKey = obsKey_2;
-
-		newObsKey.num += 100 * obsKey_1.num;			//100(1) + 1(2)
-
-		newObsKey.comment = obsKey_1.comment + "-" + obsKey_2.comment;
-
-		newMeas.obsKeys			.push_back(newObsKey);
-
-		//copy metadata from the second to the first, then copy into the new measurement
-		for (auto& [id, value] : combinedMeas.metaDataMaps[i_2])
-		{
-			combinedMeas.metaDataMaps[i_1][id + "_alt"] = value;
-		}
-
-// 		for (auto& component : combinedMeas.componentLists[i_2])
-// 		{
-// 			combinedMeas.componentLists[i_1].push_back(component);
-// 		}
-
-		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i_1]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i_1]);
-
-		combinedMeas.metaDataMaps[i_1]["IFLCcombined"] = (void*) true;
-		combinedMeas.metaDataMaps[i_2]["IFLCcombined"] = (void*) true;
-
-		combinedMeas.metaDataMaps[i_1]["explain"]			= (void*) true;
-		combinedMeas.metaDataMaps[i_2]["explain"]			= (void*) true;
-	}}}}
-
-	if (meas == 0)
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No IONO_STEC measurements found - 'use_if_combo' requires 'ion_stec' estimation to be enabled in the config file.";
-	}
-
-	for (int i = 0; i < combinedMeas.obsKeys.size(); i++)
-	{
-		if (combinedMeas.metaDataMaps[i]["pseudoObs"] == (void*) false)
-		{
-			continue;
-		}
-
-		//need to keep this measurement even if its not a valid ionospheric one, copy it over
-
-		tripletList.push_back({meas, i, 1});
-		meas++;
-
-		newMeas.obsKeys			.push_back(combinedMeas.obsKeys			[i]);
-		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i]);
-	}
-
-	SparseMatrix<double> F;
-	F = SparseMatrix<double>(meas, combinedMeas.V.rows());
-	F.setFromTriplets(tripletList.begin(), tripletList.end());
-
-	newMeas.V		= F * combinedMeas.V;
-	newMeas.VV		= newMeas.V;
-	newMeas.H		= F * combinedMeas.H;
-	newMeas.R		= F * combinedMeas.R * F.transpose();
-	newMeas.time	= std::move(combinedMeas.time);
-
-	return newMeas;
-}
-
-/** Replace individual measurements with linear combinations
- */
 KFMeas makeGFLCs(
-	KFMeas&		combinedMeas,
+	KFMeas&		kfMeas,
 	KFState&	kfState)
 {
-	Instrument instrument(__FUNCTION__);
-
-	KFMeas newMeas;
-
-	vector<Triplet<double>> tripletList;
 	int meas = 0;
 
-	vector<Duo> duos =
-	{
-		{&kfState.kfIndexMap,		&combinedMeas.H},
-		{&kfState.noiseIndexMap,	&combinedMeas.H_star}
-	};
+	vector<Triplet<double>>			tripletList;
+	decltype(KFMeas::metaDataMaps)	newMetaDataMaps;
+	decltype(KFMeas::obsKeys)		newObsKeys;
 
-	for (auto duo : duos)
-	for (auto& [kfKey, index] : *duo.indexMap_ptr)						{																if (kfKey.type != KF::IONO_STEC)	continue;
-	for (int i_2 = 0; i_2 < combinedMeas.obsKeys.size();	i_2++)		{	double coeff_2 = (*duo.designMatrix_ptr)(i_2, index);		if (coeff_2 == 0)					continue;
-	for (int i_1 = 0; i_1 < i_2;							i_1++)		{	double coeff_1 = (*duo.designMatrix_ptr)(i_1, index);		if (coeff_1 == 0)					continue;
+	for (auto duo :	{
+						Duo{kfState	.kfIndexMap,	kfMeas.H},
+						Duo{kfMeas	.noiseIndexMap,	kfMeas.H_star}
+					})
+	for (auto& [kfKey, index] : duo.indexMap)					{														if (kfKey.type != KF::IONO_STEC)	continue;
+	for (int i_2 = 0; i_2 < kfMeas.obsKeys.size();	i_2++)		{	double coeff_2 = duo.designMatrix(i_2, index);		if (coeff_2 == 0)					continue;
+	for (int i_1 = 0; i_1 < i_2;					i_1++)		{	double coeff_1 = duo.designMatrix(i_1, index);		if (coeff_1 == 0)					continue;
 	{
 		if (coeff_1 * coeff_2 < 0)								{	continue;	}
 		if (coeff_1	== coeff_2)									{	continue;	}	//dont combine if it will eliminate the entire measurement
 
-		if (combinedMeas.metaDataMaps[i_1]["GFLCcombined"])		{	continue;	}
-		if (combinedMeas.metaDataMaps[i_2]["GFLCcombined"]) 	{	continue;	}
+		if (kfMeas.metaDataMaps[i_1]["GFLCcombined"])			{	continue;	}
+		if (kfMeas.metaDataMaps[i_2]["GFLCcombined"]) 			{	continue;	}
 
 		//these measurements probably both share a common geometry, remove it.
 
@@ -342,35 +313,29 @@ KFMeas makeGFLCs(
 		tripletList.push_back({meas, i_2, -1 * scalar});
 		meas++;
 
-		auto& obsKey_1 = combinedMeas.obsKeys[i_1];
-		auto& obsKey_2 = combinedMeas.obsKeys[i_2];
+		auto& obsKey_1 = kfMeas.obsKeys[i_1];
+		auto& obsKey_2 = kfMeas.obsKeys[i_2];
 
 		auto newObsKey = obsKey_2;
 
-		newObsKey.num += 100 * obsKey_1.num;			//100(1) + 1(2)
+		newObsKey.num 		= 100 * obsKey_1.num
+							+   1 * obsKey_2.num;
 
-		newObsKey.comment = obsKey_1.comment + "-" + obsKey_2.comment;
+		newObsKey.comment	= obsKey_1.comment + "-"
+							+ obsKey_2.comment;
 
-		newMeas.obsKeys			.push_back(newObsKey);
+		newObsKeys			.push_back(newObsKey);
 
-		//copy metadata from the second to the first, then copy into the new measurement
-		for (auto& [id, value] : combinedMeas.metaDataMaps[i_2])
-		{
-			combinedMeas.metaDataMaps[i_1][id + "_alt"] = value;
-		}
+		//copy metadata into the new measurement
+		map<string, void*> newMetaData;
+		for (auto& [id, value] : kfMeas.metaDataMaps[i_1])		{	newMetaData[id]				= value;		}
+		for (auto& [id, value] : kfMeas.metaDataMaps[i_2])		{	newMetaData[id + "_alt"]	= value;		}
+																	newMetaData["explain"]		= (void*) true;
 
-// 		for (auto& component : combinedMeas.componentLists[i_2])
-// 		{
-// 			combinedMeas.componentLists[i_1].push_back(component);
-// 		}
+		newMetaDataMaps		.push_back(std::move(newMetaData));
 
-		combinedMeas.metaDataMaps[i_1]["explain"] = (void*) true;
-
-		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i_1]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i_1]);
-
-		combinedMeas.metaDataMaps[i_1]["GFLCcombined"] = (void*) true;
-		combinedMeas.metaDataMaps[i_2]["GFLCcombined"] = (void*) true;
+		kfMeas.metaDataMaps[i_1]["GFLCcombined"] = (void*) true;
+		kfMeas.metaDataMaps[i_2]["GFLCcombined"] = (void*) true;
 	}}}}
 
 	if (meas == 0)
@@ -378,9 +343,9 @@ KFMeas makeGFLCs(
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No IONO_STEC measurements found - 'use_gf_combo' requires 'iono_stec' estimation to be enabled in the config file.";
 	}
 
-	for (int i = 0; i < combinedMeas.obsKeys.size(); i++)
+	for (int i = 0; i < kfMeas.obsKeys.size(); i++)
 	{
-		if (combinedMeas.metaDataMaps[i]["pseudoObs"] == (void*) false)
+		if (kfMeas.metaDataMaps[i]["pseudoObs"] == (void*) false)
 		{
 			continue;
 		}
@@ -390,93 +355,87 @@ KFMeas makeGFLCs(
 		tripletList.push_back({meas, i, 1});
 		meas++;
 
-		newMeas.obsKeys			.push_back(combinedMeas.obsKeys			[i]);
-		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i]);
+		newObsKeys		.push_back(kfMeas.obsKeys		[i]);
+		newMetaDataMaps	.push_back(kfMeas.metaDataMaps	[i]);
 	}
 
-	SparseMatrix<double> F;
-	F = SparseMatrix<double>(meas, combinedMeas.V.rows());
-	F.setFromTriplets(tripletList.begin(), tripletList.end());
-
-	newMeas.V		= F * combinedMeas.V;
-	newMeas.VV		= newMeas.V;
-	newMeas.H		= F * combinedMeas.H;
-	newMeas.R		= F * combinedMeas.R * F.transpose();
-	newMeas.time	= std::move(combinedMeas.time);
-
-	return newMeas;
+	return KFMeas(kfMeas, std::move(tripletList), std::move(newObsKeys), std::move(newMetaDataMaps));
 }
 
 
 /** Replace individual measurements with linear combinations
  */
-KFMeas makeRTKLCs(
-	KFMeas&		combinedMeas,
+KFMeas makeRTKLCs1(
+	KFMeas&		kfMeas,
 	KFState&	kfState)
 {
-	Instrument instrument(__FUNCTION__);
-
-	auto& recOpts = acsConfig.getRecOpts("");
-
-	KFMeas newMeas;
-
-	vector<Triplet<double>> tripletList;
 	int meas = 0;
 
-	vector<Duo> duos =
-	{
-		{&kfState.kfIndexMap,		&combinedMeas.H},
-		{&kfState.noiseIndexMap,	&combinedMeas.H_star}
-	};
+	vector<Triplet<double>>			tripletList;
+	decltype(KFMeas::metaDataMaps)	newMetaDataMaps;
+	decltype(KFMeas::obsKeys)		newObsKeys;
 
-	for (auto duo : duos)
-	for (auto& [kfKey, index] : *duo.indexMap_ptr)						{																if (kfKey.type != KF::SAT_CLOCK)	continue;
-	for (int i_2 = 0; i_2 < combinedMeas.obsKeys.size();	i_2++)		{	double coeff_2 = (*duo.designMatrix_ptr)(i_2, index);		if (coeff_2 == 0)					continue;
-	for (int i_1 = 0; i_1 < i_2;							i_1++)		{	double coeff_1 = (*duo.designMatrix_ptr)(i_1, index);		if (coeff_1 == 0)					continue;
+	for (auto duo :	{
+						Duo{kfState	.kfIndexMap,	kfMeas.H},
+						Duo{kfMeas	.noiseIndexMap,	kfMeas.H_star}
+					})
+	for (auto& [kfKey, index] : duo.indexMap)					{													if (kfKey.type != KF::PHASE_BIAS && kfKey.type != KF::CODE_BIAS)	continue;
+	for (int i_2 = 0; i_2 < kfMeas.obsKeys.size();	i_2++)		{	double coeff_2 = duo.designMatrix(i_2, index);	if (coeff_2 == 0)													continue;
+	for (int i_1 = 0; i_1 < i_2;					i_1++)		{	double coeff_1 = duo.designMatrix(i_1, index);	if (coeff_1 == 0)													continue;
 	{
-		if (combinedMeas.metaDataMaps[i_1]["RTKcombined"])		{	continue;	}
-		if (combinedMeas.metaDataMaps[i_2]["RTKcombined"])		{	continue;	}
+		if (kfMeas.metaDataMaps[i_1]["RTKcombined1"])			{	continue;	}
+		if (kfMeas.metaDataMaps[i_2]["RTKcombined1"])			{	continue;	}
 
-		//these measurements both share a common satellite clock, remove it.
+		auto& obsKey1 = kfMeas.obsKeys[i_1];
+		auto& obsKey2 = kfMeas.obsKeys[i_2];
+
+		if (kfKey.str.empty() == false)
+		{
+			continue;
+		}
+
+		if (obsKey1.str == obsKey2.str)
+		{
+			continue;
+		}
+
+		//these measurements both share a common satellite bias, remove it.
+
+		// std::cout << kfKey << " " << kfMeas.obsKeys[i_2]  << " " << kfMeas.obsKeys[i_1] << "\n";
 
 		tripletList.push_back({meas, i_1, +coeff_2});
 		tripletList.push_back({meas, i_2, -coeff_1});
 		meas++;
 
-		auto& obsKey_1 = combinedMeas.obsKeys[i_1];
-		auto& obsKey_2 = combinedMeas.obsKeys[i_2];
+		auto& obsKey_1 = kfMeas.obsKeys[i_1];
+		auto& obsKey_2 = kfMeas.obsKeys[i_2];
 
 		auto newObsKey = obsKey_2;
 
-// 		newObsKey.num += 100 * obsKey_1.num;			//100(1) + 1(2)		//todo aaron
+		newObsKey.str.clear();
 
-		newObsKey.comment = obsKey_1.comment + "-" + obsKey_2.comment;
+		newObsKey.comment	= (string) obsKey_1	+ "-"
+							+ (string) obsKey_2	+ " "
+							+ obsKey_1.comment	+ "-"
+							+ obsKey_2.comment;
 
-		newMeas.obsKeys			.push_back(newObsKey);
+		newObsKeys		.push_back(newObsKey);
 
-		//copy metadata from the second to the first, then copy into the new measurement
-		for (auto& [id, value] : combinedMeas.metaDataMaps[i_2])
-		{
-			combinedMeas.metaDataMaps[i_1][id + "_alt"] = value;
-		}
+		//copy metadata into the new measurement
+		map<string, void*> newMetaData;
+		for (auto& [id, value] : kfMeas.metaDataMaps[i_1])		{	newMetaData[id]				= value;		}
+		for (auto& [id, value] : kfMeas.metaDataMaps[i_2])		{	newMetaData[id + "_alt"]	= value;		}
+																	newMetaData["explain"]		= (void*) true;
 
-// 		for (auto& component : combinedMeas.componentLists[i_2])
-// 		{
-// 			combinedMeas.componentLists[i_1].push_back(component);
-// 		}
+		newMetaDataMaps	.push_back(std::move(newMetaData));
 
-		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i_1]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i_1]);=
-
-		combinedMeas.metaDataMaps[i_1]["RTKcombined"] = (void*) true;
-		combinedMeas.metaDataMaps[i_2]["RTKcombined"] = (void*) true;
+		kfMeas.metaDataMaps[i_1]["RTKcombined"] = (void*) true;
+		kfMeas.metaDataMaps[i_2]["RTKcombined"] = (void*) true;
 	}}}}
 
-
-	for (int i = 0; i < combinedMeas.obsKeys.size(); i++)
+	for (int i = 0; i < kfMeas.obsKeys.size(); i++)
 	{
-		if (combinedMeas.metaDataMaps[i]["pseudoObs"] == (void*) false)
+		if (kfMeas.metaDataMaps[i]["pseudoObs"] == (void*) false)
 		{
 			continue;
 		}
@@ -486,22 +445,98 @@ KFMeas makeRTKLCs(
 		tripletList.push_back({meas, i, 1});
 		meas++;
 
-		newMeas.obsKeys			.push_back(combinedMeas.obsKeys			[i]);
-		newMeas.metaDataMaps	.push_back(combinedMeas.metaDataMaps	[i]);
-// 		newMeas.componentLists	.push_back(combinedMeas.componentLists	[i]);
+		newObsKeys		.push_back(kfMeas.obsKeys		[i]);
+		newMetaDataMaps	.push_back(kfMeas.metaDataMaps	[i]);
 	}
 
-	SparseMatrix<double> F;
-	F = SparseMatrix<double>(meas, combinedMeas.V.rows());
-	F.setFromTriplets(tripletList.begin(), tripletList.end());
+	return KFMeas(kfMeas, std::move(tripletList), std::move(newObsKeys), std::move(newMetaDataMaps));
+}
 
-	newMeas.V		= F * combinedMeas.V;
-	newMeas.VV		= newMeas.V;
-	newMeas.H		= F * combinedMeas.H;
-	newMeas.R		= F * combinedMeas.R * F.transpose();
-	newMeas.time	= std::move(combinedMeas.time);
 
-	return newMeas;
+/** Replace individual measurements with linear combinations
+ */
+KFMeas makeRTKLCs2(
+	KFMeas&		kfMeas,
+	KFState&	kfState)
+{
+	int meas = 0;
+
+	vector<Triplet<double>>			tripletList;
+	decltype(KFMeas::metaDataMaps)	newMetaDataMaps;
+	decltype(KFMeas::obsKeys)		newObsKeys;
+
+	for (auto duo :	{
+						Duo{kfState	.kfIndexMap,	kfMeas.H},
+						Duo{kfMeas	.noiseIndexMap,	kfMeas.H_star}
+					})
+	for (auto& [kfKey, index] : duo.indexMap)					{													if (kfKey.type != KF::PHASE_BIAS && kfKey.type != KF::CODE_BIAS)	continue;
+	for (int i_2 = 0; i_2 < kfMeas.obsKeys.size();	i_2++)		{	double coeff_2 = duo.designMatrix(i_2, index);	if (coeff_2 == 0)													continue;
+	for (int i_1 = 0; i_1 < i_2;					i_1++)		{	double coeff_1 = duo.designMatrix(i_1, index);	if (coeff_1 == 0)													continue;
+	{
+		// if (kfMeas.metaDataMaps[i_1]["RTKcombined2"])		{	continue;	}
+		if (kfMeas.metaDataMaps[i_2]["RTKcombined2"])			{	continue;	}
+
+		auto& obsKey1 = kfMeas.obsKeys[i_1];
+		auto& obsKey2 = kfMeas.obsKeys[i_2];
+
+		if (kfKey.str.empty())
+		{
+			continue;
+		}
+
+		if (obsKey1.Sat == obsKey2.Sat)
+		{
+			continue;
+		}
+
+		//these measurements both share a common receiver bias, remove it.
+
+		tripletList.push_back({meas, i_1, +coeff_2});
+		tripletList.push_back({meas, i_2, -coeff_1});
+		meas++;
+
+		auto& obsKey_1 = kfMeas.obsKeys[i_1];
+		auto& obsKey_2 = kfMeas.obsKeys[i_2];
+
+		auto newObsKey = obsKey_2;
+		newObsKey.Sat = SatSys();
+
+		newObsKey.comment	= (string) obsKey_1	+ "-"
+							+ (string) obsKey_2	+ " "
+							+ obsKey_1.comment	+ "-"
+							+ obsKey_2.comment;
+
+		newObsKeys			.push_back(newObsKey);
+
+		//copy metadata into the new measurement
+		map<string, void*> newMetaData;
+		for (auto& [id, value] : kfMeas.metaDataMaps[i_1])		{	newMetaData[id]				= value;		}
+		for (auto& [id, value] : kfMeas.metaDataMaps[i_2])		{	newMetaData[id + "_alt"]	= value;		}
+																	newMetaData["explain"]		= (void*) true;
+
+		newMetaDataMaps		.push_back(std::move(newMetaData));
+
+		kfMeas.metaDataMaps[i_1]["RTKcombined2"] = (void*) true;
+		kfMeas.metaDataMaps[i_2]["RTKcombined2"] = (void*) true;
+	}}}}
+
+	for (int i = 0; i < kfMeas.obsKeys.size(); i++)
+	{
+		if (kfMeas.metaDataMaps[i]["pseudoObs"] == (void*) false)
+		{
+			continue;
+		}
+
+		//need to keep this measurement even if its not a valid rtk one, copy it over
+
+		tripletList.push_back({meas, i, 1});
+		meas++;
+
+		newObsKeys			.push_back(kfMeas.obsKeys		[i]);
+		newMetaDataMaps		.push_back(kfMeas.metaDataMaps	[i]);
+	}
+
+	return KFMeas(kfMeas, std::move(tripletList), std::move(newObsKeys), std::move(newMetaDataMaps));
 }
 
 /** Prepare receiver clocks using spp values to minimise pre-fit residuals
@@ -511,8 +546,18 @@ void updateRecClocks(
 	ReceiverMap&	receiverMap,	///< List of stations containing observations for this epoch
 	KFState&		kfState)		///< Kalman filter object containing the network state parameters
 {
+	if (acsConfig.adjust_rec_clocks_by_spp == false)
+	{
+		return;
+	}
+
 	for (auto& [id, rec] : receiverMap)
 	{
+		if (rec.isPseudoRec)
+		{
+			continue;
+		}
+
 		auto	trace	= getTraceFile(rec);
 		auto&	recOpts	= acsConfig.getRecOpts(id);
 
@@ -531,13 +576,33 @@ void updateRecClocks(
 		double C_dtRecAdj	= rec.sol.dtRec_m[E_Sys::GPS]
 							- rec.sol.dtRec_m_pppp_old[E_Sys::GPS];
 
-		trace << std::endl
-		<< "Adjusting " << clkKey.str
-		<< " clock by " << C_dtRecAdj;
+		//for non-first epochs, and if enabled, do rounding
+		if	(  rec.sol.dtRec_m_pppp_old[E_Sys::GPS]
+			&& acsConfig.adjust_clocks_for_jumps_only)
+		{
+			const double scalar = 1000 * 2 / CLIGHT;
+
+			double halfMilliseconds = C_dtRecAdj * scalar;
+
+			C_dtRecAdj = round(halfMilliseconds) / scalar;
+
+			if (C_dtRecAdj)
+			{
+				trace << "\n"
+				<< "Jump of " << halfMilliseconds * 0.5 << "ms found, rounding";
+			}
+		}
+
+		// if (C_dtRecAdj)
+		{
+			trace << "\n"
+			<< "Adjusting " << clkKey.str
+			<< " clock by " << C_dtRecAdj;
+		}
 
 		rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = rec.sol.dtRec_m[E_Sys::GPS];
 
-		kfState.setKFTrans(clkKey, KFState::oneKey, C_dtRecAdj, init);		//todo aaron, change to rate?
+		kfState.setKFTrans(clkKey, KFState::oneKey, C_dtRecAdj, init);
 	}
 }
 
@@ -580,13 +645,63 @@ void updateAvgIonosphere(
 			continue;
 		}
 
-		double alpha = 40.3e16 / SQR(CLIGHT / satNav.lamMap[F1]);
+		double alpha = 40.3e16 / SQR(CLIGHT / genericWavelength[F1]);
 
 		double ionosphereStec = diono / alpha;
 
 		//update the mu value but dont use the state thing - it will re-add it after its deleted
 		// kfState.addKFState(key, init);
 		kfState.gaussMarkovMuMap[key] = ionosphereStec;
+	}
+}
+
+/** Prepare Satellite clocks to minimise residuals to broadcast clocks
+ */
+void updateAvgOrbits(
+	Trace&			trace,			///< Trace to output to
+	GTime			time,			///< Time
+	KFState&		kfState)		///< Kalman filter object containing the network state parameters
+{
+	if (acsConfig.minimise_sat_orbit_offsets == false)
+	{
+		return;
+	}
+
+	ERPValues erpv = getErp(nav.erp, time);
+
+	FrameSwapper frameSwapper(time, erpv);
+
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if	( key.type	!= KF::ORBIT
+			||key.num	!= 0)
+		{
+			continue;
+		}
+
+		SatPos satPos;
+		satPos.Sat			= key.Sat;
+		satPos.satNav_ptr	= &nav.satNavMap[key.Sat];
+
+		bool pass = satPosBroadcast(trace, time, time, satPos, nav);
+		if (pass == false)
+		{
+			continue;
+		}
+
+		auto& satOpts = acsConfig.getSatOpts(key.Sat);
+
+		satPos.rSatEci0 = frameSwapper(satPos.rSatCom);
+
+		for (int i = 0; i < 3; i++)
+		{
+			InitialState init = initialStateFromConfig(satOpts.orbit, i);
+
+			init.mu = satPos.rSatEci0(i);
+
+			//update the mu value
+			kfState.addKFState(key, init);
+		}
 	}
 }
 
@@ -657,7 +772,7 @@ KFState propagateUncertainty(
 			&&key.type 		== KF::REC_CLOCK
 			&&key.num		== 0)
 		{
-			pivotRec = key;
+			pivotRec = key.str;
 		}
 
 		auto subKey = key;
@@ -767,17 +882,17 @@ KFState propagateUncertainty(
 		return propagatedState;
 	}
 
-	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
+	KFMeas kfMeas(kfState, kfMeasEntryList);
 
 	propagatedState.time	= kfState.time;
-	propagatedState.P		= combinedMeas.H * kfState.P * combinedMeas.H.transpose();
-	propagatedState.x		= combinedMeas.H * kfState.x;
-	propagatedState.dx		= combinedMeas.H * kfState.dx;
+	propagatedState.P		= kfMeas.H * kfState.P * kfMeas.H.transpose();
+	propagatedState.x		= kfMeas.H * kfState.x;
+	propagatedState.dx		= kfMeas.H * kfState.dx;
 
 	propagatedState.kfIndexMap.clear();
 
 	int i = 0;
-	for (auto& obsKey : combinedMeas.obsKeys)
+	for (auto& obsKey : kfMeas.obsKeys)
 	{
 		propagatedState.kfIndexMap[obsKey] = i;
 		i++;
@@ -789,9 +904,9 @@ KFState propagateUncertainty(
 void chunkFilter(
 	Trace&						trace,
 	KFState&					kfState,
-	KFMeas&						combinedMeas,
-	ReceiverMap&					receiverMap,
-	vector<FilterChunk>&		filterChunkList,
+	KFMeas&						kfMeas,
+	ReceiverMap&				receiverMap,
+	map<string, FilterChunk>&	filterChunkMap,
 	map<string, std::ofstream>&	traceList)
 {
 	if (acsConfig.pppOpts.receiver_chunking == false)
@@ -804,44 +919,53 @@ void chunkFilter(
 	map<string, int>	begX;
 	map<string, int>	endX;
 
-	//get all meas begs/ends for this type
-	for (int h = 0; h < combinedMeas.H.rows(); h++)
+	for (auto& [kfKey, x] : kfState.kfIndexMap)
 	{
-		auto& obsKey = combinedMeas.obsKeys[h];
-
-		string chunkId = obsKey.str;
-
-		if (begH.find(chunkId) == begH.end())			{	begH[chunkId] = h;		}
-														{	endH[chunkId] = h;		}
-
-		for (int x = 0; x < kfState.x.rows(); x++)
-		if (combinedMeas.H(h, x))
+		if (kfKey.type == KF::ONE)
 		{
-			if (begX.find(chunkId) == begX.end())		{	begX[chunkId] = x;		}
-			if (x > endX[chunkId]) 						{	endX[chunkId] = x;		}
+			continue;
+		}
+
+		string chunkId = kfKey.str;
+
+		if (begX.find(chunkId) == begX.end())								{	begX[chunkId] = x;		}
+																			{	endX[chunkId] = x;		}
+
+
+		for (int h = 0; h < kfMeas.H.rows(); h++)
+		if (kfMeas.H(h, x))
+		{
+			if (begH.find(chunkId) == begH.end() || h < begH[chunkId])		{	begH[chunkId] = h;		}
+			if (									h > endH[chunkId]) 		{	endH[chunkId] = h;		}
 		}
 	}
 
 	bool chunkX = true;
+	bool chunkH = true;
 
-	//check for overlapping x entries
-	for (auto& [str1, beg1]	: begX)
-	for (auto& [str2, beg2]	: begX)
+	//check for overlapping entries
+	for (auto& [str1, beg1]	: begH)
+	for (auto& [str2, beg2]	: begH)
 	{
-		auto& end1 = endX[str1];
+		auto& end1 = endH[str1];
 
 		if (str1 == str2)
 		{
 			continue;
 		}
 
-		auto& end2 = endX[str2];
+		auto& end2 = endH[str2];
 
-		if	( (beg2 > beg1 && beg2 < end1)		// 2 starts in the middle of beg,end
-			||(end2 > beg1 && end2 < end1))		// 2 ends   in the middle of beg,end
+		if	( (beg2 >= beg1 && beg2 <= end1)		// 2 starts in the middle of beg,end
+			||(end2 >= beg1 && end2 <= end1))		// 2 ends   in the middle of beg,end
 		{
-			chunkX = false;
+			chunkH = false;
 		}
+	}
+
+	if (chunkH == false)
+	{
+		return;
 	}
 
 	for (auto& [str, dummy] : begH)
@@ -854,42 +978,85 @@ void chunkFilter(
 
 			traceList[str] = getTraceFile(rec);
 
-			filterChunk.trace_ptr = &traceList[str];
+			filterChunk.id			= str;
+			filterChunk.trace_ptr	= &traceList[str];
 		}
 		else
 		{
 			filterChunk.trace_ptr = &trace;
 		}
 
-// 		std::cout << std::endl << "Chunk : " << str << " " << begH[str] << " " << endH[str] << " " << begX[str] << " " << endX[str];
-							filterChunk.begH = begH[str];			filterChunk.numH = endH[str] - begH[str] + 1;
+// 		std::cout << "\n" << "Chunk : " << str << " " << begH[str] << " " << endH[str] << " " << begX[str] << " " << endX[str];
+		if (chunkH)		{	filterChunk.begH = begH[str];			filterChunk.numH = endH[str] - begH[str] + 1;		}
+		else			{	filterChunk.begH = 0;					filterChunk.numH = kfMeas.H.rows();					}
 		if (chunkX)		{	filterChunk.begX = begX[str];			filterChunk.numX = endX[str] - begX[str] + 1;		}
 		else			{	filterChunk.begX = 0;					filterChunk.numX = kfState.x.rows();				}
 
-		filterChunkList.push_back(filterChunk);
+		filterChunkMap[str] = filterChunk;
 	}
 
-	std::sort(filterChunkList.begin(), filterChunkList.end(), [](FilterChunk& a, FilterChunk& b) {return a.begH < b.begH;});
+	//check all states are filtered despite not needing to be (required for rts)
+	//assume all chunks are in receiver order == state order
+	{
+		int x = 0;
+		map<string, FilterChunk> filterChunkExtras;
+
+		auto addChunk = [&](int lastX, int nextX)
+		{
+			FilterChunk filterChunk;
+			filterChunk.id		= "dummy " + std::to_string(x);
+			filterChunk.begX	= lastX + 1;
+			filterChunk.numX	= nextX - lastX - 1;
+			filterChunk.begH	= 0;
+			filterChunk.numH	= 0;
+
+			filterChunkExtras[filterChunk.id] = filterChunk;
+		};
+
+		for (auto& [str, filterChunk] : filterChunkMap)
+		{
+			if (filterChunk.begX != x + 1)
+			{
+				addChunk(x, filterChunk.begX);
+			}
+
+			x = filterChunk.begX + filterChunk.numX - 1;
+		}
+
+		if (x != kfState.x.rows() - 1)
+		{
+			addChunk(x, kfState.x.rows());
+		}
+
+		for (auto& [id, fc] : filterChunkExtras)
+		{
+			filterChunkMap[id] = std::move(fc);
+		}
+	}
 
 	if (acsConfig.pppOpts.chunk_size)
 	{
-		Instrument	instrument("PPP chunksize");
+		map<string, FilterChunk> newFilterChunkMap;
 
-		vector<FilterChunk> newFilterChunkList;
 		FilterChunk	bigFilterChunk;
 
-		int chunks		= (double) filterChunkList.size() / acsConfig.pppOpts.chunk_size	+ 0.5;
+		int chunks		= (double) filterChunkMap.size() / acsConfig.pppOpts.chunk_size	+ 0.5;
 		int chunkTarget = -1;
 		if (chunks)
-			chunkTarget = (double) filterChunkList.size() / chunks							+ 0.5;
+			chunkTarget = (double) filterChunkMap.size() / chunks						+ 0.5;
 
 		int count = 0;
-		for (auto& filterChunk : filterChunkList)
+		for (auto& [id, filterChunk] : filterChunkMap)
 		{
 			if (count == 0)
 			{
 				bigFilterChunk = filterChunk;
 				bigFilterChunk.trace_ptr = &trace;
+			}
+			else
+			{
+				bigFilterChunk.id += "-";
+				bigFilterChunk.id += filterChunk.id;
 			}
 
 			int chunkEndX = filterChunk.begX + filterChunk.numX - 1;
@@ -905,17 +1072,17 @@ void chunkFilter(
 
 			if (count == chunkTarget)
 			{
-				newFilterChunkList.push_back(bigFilterChunk);
+				newFilterChunkMap[bigFilterChunk.id] = bigFilterChunk;
 				count = 0;
 			}
 		}
 
 		if (count)
 		{
-			newFilterChunkList.push_back(bigFilterChunk);
+			newFilterChunkMap[bigFilterChunk.id] = bigFilterChunk;
 		}
 
-		filterChunkList = std::move(newFilterChunkList);
+		filterChunkMap = std::move(newFilterChunkMap);
 	}
 }
 
@@ -923,7 +1090,7 @@ void updatePseudoPulses(
 	Trace&			trace,
 	KFState&		kfState)
 {
-	int epochsPerDay = 86400 / acsConfig.epoch_interval;
+	static map<KFKey, double> nextEpochMap;
 
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
@@ -932,68 +1099,194 @@ void updatePseudoPulses(
 			continue;
 		}
 
-// 	if (acsConfig.pseudoPulses.enable == false)
-// 	{
-// 		return;
-// 	}			//todo aaron, add config
+		auto& satOpts = acsConfig.getSatOpts(key.Sat);
 
+		if	( satOpts.pseudoPulses.enable	== false
+			||satOpts.pseudoPulses.interval	== 0)
+		{
+			continue;
+		}
 
-// 		if	((epoch - 1) % (epochsPerDay / acsConfig.pseudoPulses.num_per_day) == 0)
-// 		{
-// 			if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(acsConfig.pseudoPulses.pos_proc_noise)});
-// 			else				kfState.setExponentialNoise(key, {SQR(acsConfig.pseudoPulses.vel_proc_noise)});
-// 		}
+		auto& nextEpoch = nextEpochMap[key];
+
+		if (epoch < nextEpoch)
+		{
+			continue;
+		}
+
+		double epochsPerInterval = satOpts.pseudoPulses.interval / acsConfig.epoch_interval;
+
+		if (nextEpoch == 0)
+		{
+			nextEpoch = epochsPerInterval + 1;
+		}
+
+		while (epoch >= nextEpoch)
+		{
+			nextEpoch += satOpts.pseudoPulses.interval / acsConfig.epoch_interval;
+		}
+
+		if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.pos_proc_noise)});
+		else				kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.vel_proc_noise)});
+	}
+}
+
+void updateNukeFilter(
+	Trace&		trace,
+	KFState&	kfState)
+{
+	if	( acsConfig.pppOpts.nuke_enable		== false
+		||acsConfig.pppOpts.nuke_interval	== 0)
+	{
+		return;
+	}
+
+	static double epochsPerInterval	= acsConfig.pppOpts.nuke_interval / acsConfig.epoch_interval;
+	static double nukeEpoch			= epochsPerInterval + 1;
+
+	if (epoch < nukeEpoch)
+	{
+		return;
+	}
+
+	while (epoch >= nukeEpoch)
+	{
+		nukeEpoch += epochsPerInterval;
+	}
+
+	auto& nuke_states = acsConfig.pppOpts.nuke_states;
+
+	bool foundAll = (std::find(nuke_states.begin(), nuke_states.end(), +KF::ALL) != nuke_states.end());
+
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type == KF::ONE)
+		{
+			continue;
+		}
+
+		if	( foundAll
+			||std::find(nuke_states.begin(), nuke_states.end(), key.type) != nuke_states.end())
+		{
+			trace << "\n" << "State removed due to nuclear config: " << key;
+			kfState.removeState(key);
+		}
 	}
 }
 
 void removeBadAmbiguities(
 	Trace&			trace,
 	KFState&		kfState,
-	ReceiverMap&		receiverMap);
+	ReceiverMap&	receiverMap);
+
+void removeBadReceivers(
+	Trace&			trace,
+	KFState&		kfState,
+	ReceiverMap&	receiverMap);
 
 void removeBadIonospheres(
 	Trace&			trace,
 	KFState&		kfState);
 
-void incrementOutageCount(
-	ReceiverMap&		stations);
-
 void checkOrbits(
 	Trace&			trace,
 	KFState&		kfState);
 
-void PPP(
+void updateFilter(
 	Trace&			trace,			///< Trace to output to
-	ReceiverMap&	receiverMap,		///< List of stations containing observations for this epoch
+	ReceiverMap&	receiverMap,	///< List of receivers containing observations for this epoch
+	KFState&		kfState)		///< Kalman filter object containing the network state parameters
+{
+	removeBadReceivers	(trace, kfState, receiverMap);
+	removeBadAmbiguities(trace, kfState, receiverMap);
+	removeBadIonospheres(trace, kfState);
+
+	updateNukeFilter	(trace,							kfState);
+	updateRecClocks		(trace, receiverMap,			kfState);
+	updateAvgClocks		(trace, 				tsync,	kfState);
+	updateAvgOrbits		(trace, 				tsync,	kfState);
+	updateAvgIonosphere	(trace,					tsync,	kfState);
+	updatePseudoPulses	(trace,							kfState);
+}
+
+void perRecMeasurements(
+	Trace&				trace,
+	Receiver&			rec,
+	ReceiverMap&		receiverMap,
+	KFMeasEntryList&	kfMeasEntryList,
+	const KFState&		kfState,
+	const KFState&		remoteState)
+{
+	rec.pppTideCache.uninit();
+	rec.pppEopCache	.uninit();
+
+	orbitPseudoObs		(trace,	rec,	kfState, kfMeasEntryList);
+	receiverUducGnss	(trace,	rec,	kfState, kfMeasEntryList,	remoteState);
+	receiverSlr			(trace, rec,	kfState, kfMeasEntryList);
+	receiverPseudoObs	(trace,	rec,	kfState, kfMeasEntryList,	receiverMap);
+
+	if (acsConfig.pppOpts.ionoOpts.use_if_combo)		makeIFLCs(trace, kfState, kfMeasEntryList);
+}
+
+void pppLinearCombinations(
+	KFMeas&		kfMeas,
+	KFState&	kfState)
+{
+	if (acsConfig.pppOpts.ionoOpts	.use_gf_combo)	{	kfMeas = makeGFLCs	(kfMeas, kfState);	}
+	if (acsConfig.pppOpts			.use_rtk_combo)	{	kfMeas = makeRTKLCs1(kfMeas, kfState);	}
+	if (acsConfig.pppOpts			.use_rtk_combo)	{	kfMeas = makeRTKLCs2(kfMeas, kfState);	}
+}
+
+void pppPseudoObs(
+	Trace&				trace,
+	ReceiverMap&		receiverMap,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList)
+{
+	DOCS_REFERENCE(Pseudo_Observations__);
+
+	// apply external estimates
+	ionoPseudoObs			(trace,	receiverMap,	kfState,	kfMeasEntryList);
+	tropPseudoObs			(trace, receiverMap,	kfState,	kfMeasEntryList);
+
+	//apply pseudoobs to states available from before
+	pseudoRecDcb			(trace,					kfState,	kfMeasEntryList);
+	ambgPseudoObs			(trace,					kfState,	kfMeasEntryList);
+	initPseudoObs			(trace,					kfState,	kfMeasEntryList);
+	satClockPivotPseudoObs	(trace,					kfState,	kfMeasEntryList);
+	filterPseudoObs			(trace,					kfState,	kfMeasEntryList);
+}
+
+void ppp(
+	Trace&			trace,			///< Trace to output to
+	ReceiverMap&	receiverMap,	///< List of receivers containing observations for this epoch
 	KFState&		kfState,		///< Kalman filter object containing the network state parameters
 	KFState&		remoteState)	///< Optional pointer to remote kalman filter
 {
-	Instrument	instrument(__FUNCTION__);
+	DOCS_REFERENCE(Main_Filter__);
 
-	{
-		Instrument instrument("PPP pppre");
-
-		removeBadAmbiguities(trace, kfState, receiverMap);
-		removeBadIonospheres(trace, kfState);
-
-		incrementOutageCount(receiverMap);
-
-		updateRecClocks		(trace, receiverMap,			kfState);
-		updateAvgClocks		(trace, 				tsync,	kfState);
-		updateAvgIonosphere	(trace,					tsync,	kfState);
-		updatePseudoPulses	(trace,							kfState);
-	}
+	updateFilter(trace, receiverMap, kfState);
 
 	//add process noise and dynamics to existing states as a prediction of current state
 	if (kfState.assume_linearity == false)
 	{
-		Instrument instrument("PPP stateTransition1");
+		InteractiveTerminal::setMode(E_InteractiveMode::StateTransition1);
 
-		BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << "\n";
 
 		kfState.stateTransition(trace, tsync);
 
-// 		kfState.outputStates(trace, "/PREDICTED");
+		if (acsConfig.output_predicted_states)
+		{
+			kfState.outputStates(trace, "/PREDICTED");
+
+			mongoStates(kfState,
+						{
+							.suffix		= "/PREDICTED",
+							.instances	= acsConfig.mongoOpts.output_states,
+							.queue		= acsConfig.mongoOpts.queue_outputs
+						});
+		}
 	}
 
 	//prepare a map of lists of measurements for use below
@@ -1003,19 +1296,10 @@ void PPP(
 		stationKFEntryListMap[rec.id] = KFMeasEntryList();
 	}
 
-	MatrixXd	R;
-	MatrixXd*	R_ptr = nullptr;
-// 	if (kfMeasEntryList.empty())
 	{
-// 		R_ptr = &R;
-	}
+		InteractiveTerminal::setMode(E_InteractiveMode::OMCCalculations);
 
-// 	mongoReadFilter(remoteState, GTime::noTime(), {});
-
-	{
-		Instrument instrument("PPP obsOMC");
-
-		BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << "\n";
 
 		//calculate the measurements for each station
 #		ifdef ENABLE_PARALLELISATION
@@ -1024,27 +1308,21 @@ void PPP(
 #		endif
 		for (int i = 0; i < receiverMap.size(); i++)
 		{
-			const KFState& constKfState = kfState;
-			descope kfState;
-
 			auto rec_iterator = receiverMap.begin();
 			std::advance(rec_iterator, i);
 
 			auto& [id, rec] = *rec_iterator;
 
-			if (rec.obsList.empty())
+			if	( 0
+				// rec.ready == false
+				||rec.obsList.empty())
 			{
 				continue;
 			}
 
 			auto& kfMeasEntryList = stationKFEntryListMap[rec.id];
 
-			orbitPseudoObs		(trace,		rec,	constKfState, kfMeasEntryList);
-			receiverPPP			(std::cout,	rec,	constKfState, kfMeasEntryList,	remoteState);
-			receiverSlr			(std::cout, rec,	constKfState, kfMeasEntryList);
-			receiverPseudoObs	(std::cout,	rec,	constKfState, kfMeasEntryList, receiverMap, R_ptr);
-
-			if (acsConfig.pppOpts.ionoOpts.use_if_combo)	makeIFLCs(trace, constKfState, kfMeasEntryList);
+			perRecMeasurements(trace, rec, receiverMap, kfMeasEntryList, kfState, remoteState);
 		}
 		Eigen::setNbThreads(0);
 	}
@@ -1060,79 +1338,75 @@ void PPP(
 		}
 	}
 
-	// apply external estimates
-	ionoPseudoObs			(trace,	receiverMap,	kfState,	kfMeasEntryList);
-	tropPseudoObs			(trace, receiverMap,	kfState,	kfMeasEntryList);
+	pppPseudoObs(trace, receiverMap, kfState, kfMeasEntryList);
 
-	//apply pseudoobs to states available from before
-	pseudoRecDcb			(trace,					kfState,	kfMeasEntryList);
-	ambgPseudoObs			(trace,					kfState,	kfMeasEntryList);
-	initPseudoObs			(trace,					kfState,	kfMeasEntryList);
-	satClockPivotPseudoObs	(trace,					kfState,	kfMeasEntryList);
 	//use state transition to initialise new state elements
+	InteractiveTerminal::setMode(E_InteractiveMode::StateTransition2);
+
+	BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << "\n";
+
+	kfState.stateTransition(trace, tsync);
+
+	if (acsConfig.output_initialised_states)
 	{
-		Instrument	instrument("PPP stateTransition2");
+		kfState.outputStates(trace, "/INITIALISED");
 
-		BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << std::endl;
-
-		kfState.stateTransition(trace, tsync);
-
-// 		kfState.outputStates(trace, "/INITIALISED");
+		mongoStates(kfState,
+					{
+						.suffix		= "/INITIALISED",
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
 	}
 
+	std::sort(kfMeasEntryList.begin(), kfMeasEntryList.end(), [](KFMeasEntry& a, KFMeasEntry& b) {return a.obsKey < b.obsKey;});
 
-	KFMeas combinedMeas;
-	{
-		combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, tsync, R_ptr);
-	}
+	KFMeas kfMeas(kfState, kfMeasEntryList, tsync);
 
-	if (acsConfig.pppOpts.ionoOpts	.use_gf_combo)	{	combinedMeas = makeGFLCs	(combinedMeas, kfState);	}
-// 	if (acsConfig.pppOpts.ionoOpts	.use_if_combo)	{	combinedMeas = makeIFLCs	(combinedMeas, kfState);	}
-	if (acsConfig.pppOpts			.use_rtk_combo)	{	combinedMeas = makeRTKLCs	(combinedMeas, kfState);	}
+	pppLinearCombinations(kfMeas, kfState);
 
 	if (acsConfig.explain_measurements)
 	{
-		explainMeasurements(trace, combinedMeas, kfState);
+		explainMeasurements(trace, kfMeas, kfState);
 	}
+
+	alternatePostfits(trace, kfMeas, kfState);
 
 	if (kfState.lsqRequired)
 	{
-		kfState.lsqRequired = false;
-		BOOST_LOG_TRIVIAL(info) << "-------INITIALISING PPPPP USING LEAST SQUARES--------" << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "-------INITIALISING PPPPP USING LEAST SQUARES--------" << "\n";
 
 		VectorXd dx;
- 		kfState.leastSquareInitStates(trace, combinedMeas, false, &dx, true);
+ 		kfState.leastSquareInitStates(trace, kfMeas, false, &dx, true);
 
 		kfState.outputStates(trace, "/LSQ");
 	}
 
-	vector<FilterChunk>	filterChunkList;
+	map<string, FilterChunk>	filterChunkMap;
 	map<string, std::ofstream>	traceList;	//keep in large scope as we're using pointers
 
-	chunkFilter(trace, kfState, combinedMeas, receiverMap, filterChunkList, traceList);
+	chunkFilter(trace, kfState, kfMeas, receiverMap, filterChunkMap, traceList);
 
 
-	BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << std::endl;
+	InteractiveTerminal::setMode(E_InteractiveMode::Filtering);
+	BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << "\n";
 
-	kfState.filterKalman(trace, combinedMeas, true, &filterChunkList);
+	kfState.filterKalman(trace, kfMeas, "/PPP", true, &filterChunkMap);
 
-	{
-		Instrument	instrument("PPP postFilterChecks");
-
-		postFilterChecks(combinedMeas);
-	}
+	postFilterChecks(tsync, kfMeas);
 
 	//output chunks if we are actually chunking still
 	if	( acsConfig.pppOpts.receiver_chunking
 		||acsConfig.pppOpts.satellite_chunking)
-	for (auto& filterChunk : filterChunkList)
+	for (auto& [id, filterChunk] : filterChunkMap)
 	{
-		kfState.outputStates(*filterChunk.trace_ptr, "/PPP", filterChunk.begX, filterChunk.numX);
+		if (filterChunk.trace_ptr)
+		{
+			kfState.outputStates(*filterChunk.trace_ptr, (string)"/PPPChunk/" + id, filterChunk.begX, filterChunk.numX);
+		}
 	}
 
 	kfState.outputStates(trace, "/PPP");
-
-// 	propagateUncertainty(trace, kfState).outputStates(trace, "/PIVOT");
 }
 
 

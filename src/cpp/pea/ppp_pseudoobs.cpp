@@ -1,11 +1,13 @@
 
 // #pragma GCC optimize ("O0")
 
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "minimumConstraints.hpp"
+#include "architectureDocs.hpp"
 #include "eigenIncluder.hpp"
 #include "coordinates.hpp"
-#include "instrument.hpp"
 #include "navigation.hpp"
 #include "acsConfig.hpp"
 #include "tropModels.hpp"
@@ -21,6 +23,12 @@
 
 
 #define PIVOT_MEAS_VARIANCE 	SQR(1E-5)
+
+
+Architecture Pseudo_Observations__()
+{
+
+}
 
 
 void initPseudoObs(
@@ -47,7 +55,6 @@ void initPseudoObs(
 		{
 			continue;
 		}
-
 
 		bool newState = false;
 
@@ -87,6 +94,132 @@ void initPseudoObs(
 	}
 }
 
+struct Pseudo
+{
+	GTime	time;
+	KFKey	kfKey;
+	double	value = 0;
+	double	sigma = 0;
+};
+
+map<GTime, vector<Pseudo>> pseudoListMap;
+
+
+void readPseudosFromFile(
+	string&		file)
+{
+	std::ifstream fileStream(file);
+	if (!fileStream)
+	{
+		return;
+	}
+
+	std::ofstream output(file + "_read", std::fstream::app);
+	if (!output)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening read file '" << file  << "_read'\n";
+		return;
+	}
+
+
+
+	while (fileStream)
+	{
+		string line;
+
+		getline(fileStream, line);
+
+		output << line << "\n";
+
+		vector<string> tokens;
+		boost::split(tokens, line, boost::is_any_of("\t"));
+
+		if (tokens.size() < 8)
+		{
+			continue;
+		}
+
+
+		for (auto& token : tokens)
+		{
+			boost::trim(token);
+		}
+
+		Pseudo pseudo;
+		pseudo.kfKey.type	= KF::_from_string_nocase(	tokens[2].c_str());
+		pseudo.kfKey.str	= 							tokens[3];
+		pseudo.kfKey.Sat	= SatSys(					tokens[4].c_str());
+		pseudo.kfKey.num	= std::stoi(				tokens[5].c_str());
+		pseudo.value		= std::stod(				tokens[6].c_str());
+		pseudo.sigma		= std::stod(				tokens[7].c_str());
+
+		vector<string> timeTokens;
+		boost::split(timeTokens, tokens[1], boost::is_any_of(" -:"));
+
+		GEpoch epoch;
+		epoch.year	= std::stoi(	timeTokens[0].c_str());
+		epoch.month	= std::stoi(	timeTokens[1].c_str());
+		epoch.day	= std::stoi(	timeTokens[2].c_str());
+		epoch.hour	= std::stoi(	timeTokens[3].c_str());
+		epoch.min	= std::stoi(	timeTokens[4].c_str());
+		epoch.sec	= std::stoi(	timeTokens[5].c_str());
+
+		pseudo.time = epoch;
+
+		// std::cout << "\n" << pseudo.time << " " << pseudo.kfKey;
+
+		pseudoListMap[pseudo.time].push_back(pseudo);
+	}
+
+	remove(file.c_str());
+}
+
+void filterPseudoObs(
+			Trace&				trace,
+			KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList)
+{
+	for (auto it = pseudoListMap.begin(); it != pseudoListMap.end(); it = pseudoListMap.erase(it))
+	{
+		auto& [time, pseudoList] = *it;
+
+		if (time > tsync)
+		{
+			continue;
+		}
+
+		for (auto& pseudo : pseudoList)
+		{
+			double filterVal;
+
+			bool found = kfState.getKFValue(pseudo.kfKey, filterVal);
+
+			if (found == false)
+			{
+				continue;
+			}
+
+			KFMeasEntry kfMeasEntry(&kfState);
+
+			kfMeasEntry.obsKey = pseudo.kfKey;
+
+			kfMeasEntry.obsKey.comment	= "Fitler PseudoObs";
+
+			kfMeasEntry.metaDataMap["pseudoObs"] = (void*) true;
+
+			kfMeasEntry.setInnov(pseudo.value - filterVal);
+
+			kfMeasEntry.addDsgnEntry(pseudo.kfKey, 1);
+
+			pseudo.kfKey.type = KF::FILTER_MEAS;
+
+			kfMeasEntry.addNoiseEntry(pseudo.kfKey, 1, SQR(pseudo.sigma));
+
+			kfMeasEntryList.push_back(kfMeasEntry);
+		}
+	}
+}
+
 void orbitPseudoObs(
 			Trace&				trace,				///< Trace to output to
 			Receiver&			rec,				///< Receiver to perform calculations for
@@ -116,7 +249,8 @@ void orbitPseudoObs(
 		VectorEci rSatEci;
 		VectorEci vSatEci;
 
-		KFKey eopKeys[3];
+		SatPos satPos;
+
 		Matrix3d eopPartialMatrixEci = Matrix3d::Zero();
 
 		if (acsConfig.eci_pseudoobs)
@@ -126,13 +260,12 @@ void orbitPseudoObs(
 		}
 		else
 		{
+			satPos.Sat = obs.Sat;
+
+			satpos(trace, time, time, satPos, satOpts.posModel.sources, E_OffsetType::COM, nav);
+
 			if (obs.vel.isZero())
 			{
-				SatPos satPos;
-				satPos.Sat = obs.Sat;
-
-				satpos(trace, time, time, satPos, {E_Source::PRECISE}, E_OffsetType::COM, nav);
-
 				obs.vel = satPos.satVel;
 			}
 
@@ -140,39 +273,19 @@ void orbitPseudoObs(
 			VectorEcef rSat = obs.pos;
 			VectorEcef vSat = obs.vel;
 
-			rSatEci	= frameSwapper(rSat, &vSat, &vSatEci);
+			rSatEci			= frameSwapper(rSat,			&vSat,			&vSatEci);
+			satPos.rSatEci0	= frameSwapper(satPos.rSatCom,	&satPos.satVel,	&satPos.vSatEci0);
 
 			if (acsConfig.pppOpts.eop.estimate[0])
 			{
 				eopPartialMatrixEci = stationEopPartials(rSat) * frameSwapper.i2t_mat;
-
-				for (int xyz = 0; xyz < 3; xyz++)
-				for (int num = 0; num < 3; num++)
-				{
-					InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop, num);
-
-					if (init.estimate == false)
-					{
-						continue;
-					}
-
-					eopKeys[num].type		= KF::EOP_ADJUST;
-					eopKeys[num].num		= num;
-					eopKeys[num].comment	= eopComments[num];
-
-					kfState.getKFValue(eopKeys[num], init.x);
-
-					double component = init.x;
-
-					double adjustment = eopPartialMatrixEci(num, xyz) * component;
-
-					rSatEci(xyz) -= adjustment;
-				}
 			}
 		}
 
 		KFKey satPosKeys[3];
 		KFKey satVelKeys[3];
+		KFKey eopKeys	[3];
+		KFKey rateKeys	[3];
 		for (int i = 0; i < 3; i++)
 		{
 			satPosKeys[i].type	= KF::ORBIT;
@@ -182,6 +295,14 @@ void orbitPseudoObs(
 			satVelKeys[i].type	= KF::ORBIT;
 			satVelKeys[i].Sat	= obs.Sat;
 			satVelKeys[i].num	= i + 3;
+
+			eopKeys[i].type		= KF::EOP;
+			eopKeys[i].num		= i;
+			eopKeys[i].comment	= eopComments[i];
+
+			rateKeys[i].type	= KF::EOP_RATE;
+			rateKeys[i].num		= i;
+			rateKeys[i].comment	= (string) eopComments[i] + "/day";
 		}
 
 		for (int i = 0; i < 3; i++)
@@ -196,8 +317,8 @@ void orbitPseudoObs(
 
 				kfState.getKFValue(satPosKeys[i], statePosEci[i]);
 
-				if (posInit.x == 0)		posInit.x = rSatEci[i];
-				if (velInit.x == 0)		velInit.x = vSatEci[i];
+				if (posInit.x == 0)		posInit.x = satPos.rSatEci0[i];
+				if (velInit.x == 0)		velInit.x = satPos.vSatEci0[i];
 
 				bool newState = false;
 				newState |= kfState.addKFState(satPosKeys[i], posInit);
@@ -210,31 +331,32 @@ void orbitPseudoObs(
 
 				kfMeasEntry.addDsgnEntry(satPosKeys[i], 1, posInit);
 
-
 				for (int num = 0; num < 3; num++)
 				{
-					InitialState init	= initialStateFromConfig(acsConfig.pppOpts.eop, num);
+					InitialState init			= initialStateFromConfig(acsConfig.pppOpts.eop,			num);
+					InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	num);
 
 					if (init.estimate == false)
 					{
 						continue;
 					}
 
-					kfMeasEntry.addDsgnEntry(eopKeys[num],	eopPartialMatrixEci(num, i),				init);
+					if (init.x == 0)
+					switch (num)
+					{
+						case 0:	init.x = erpv.xp		* R2MAS;		eopRateInit.x = +erpv.xpr	* R2MAS;	break;
+						case 1:	init.x = erpv.yp		* R2MAS;		eopRateInit.x = +erpv.ypr	* R2MAS;	break;
+						case 2:	init.x = erpv.ut1Utc	* S2MTS;		eopRateInit.x = -erpv.lod	* S2MTS;	break;
+					}
 
-					InitialState eopRateInit	= initialStateFromConfig(acsConfig.pppOpts.eop_rates,	num);
+					kfMeasEntry.addDsgnEntry(eopKeys[num],	eopPartialMatrixEci(num, i), init);
 
 					if (eopRateInit.estimate == false)
 					{
 						continue;
 					}
 
-					KFKey rateKey;
-					rateKey.type	= KF::EOP_RATE_ADJUST;
-					rateKey.num		= num;
-					rateKey.comment	= eopComments[num];
-
-					kfState.setKFTransRate(eopKeys[num], rateKey,	1/86400.0,	eopRateInit);
+					kfState.setKFTransRate(eopKeys[num], rateKeys[num],	1/S_IN_DAY,	eopRateInit);
 				}
 
 				double omc	= rSatEci[i]
@@ -243,7 +365,7 @@ void orbitPseudoObs(
 				kfMeasEntry.setInnov(omc);
 
 				kfMeasEntry.obsKey.comment	= "ECI PseudoPos";
-				kfMeasEntry.obsKey.type		= KF::ORBIT;
+				kfMeasEntry.obsKey.type		= KF::ORBIT_MEAS;
 				kfMeasEntry.obsKey.Sat		= obs.Sat;
 				kfMeasEntry.obsKey.num		= i;
 				kfMeasEntry.metaDataMap["pseudoObs"] = (void*) true;
@@ -408,11 +530,10 @@ void pseudoRecDcb(
 
 void receiverPseudoObs(
 			Trace&				trace,				///< Trace to output to
-			Receiver&			rec,				///< Receiver to perform calculations for                //todo aaron, this isnt a rec anymore
+			Receiver&			rec,				///< (Pseudo) Receiver to perform calculations for
 	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
 			KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
-			ReceiverMap&		receiverMap,		///< Map of stations to retrieve receiver metadata from
-			MatrixXd*			R_ptr)				///< Optional pointer to measurement noise matrix
+			ReceiverMap&		receiverMap)		///< Map of stations to retrieve receiver metadata from
 {
 	GTime time = rec.obsList.front()->time;
 
@@ -424,6 +545,11 @@ void receiverPseudoObs(
 		{
 			if	( key.type	!= KF::REC_POS
 				||key.num	!= 0)
+			{
+				continue;
+			}
+
+			if (key.rec_ptr == nullptr)
 			{
 				continue;
 			}
@@ -447,7 +573,7 @@ void receiverPseudoObs(
 // 			if (found == false)
 			{
 				rec.id = key.str;
-				getStnSnx(rec.id, obs.time, rec.snx);
+				getRecSnx(rec.id, obs.time, rec.snx);
 				apriori = rec.snx.pos;
 			}
 
@@ -509,13 +635,6 @@ void receiverPseudoObs(
 			indices.push_back(index);
 
 			kfMeasEntryList.push_back(kfMeasEntry);
-
-			if (R_ptr)
-			{
-				auto& R = *R_ptr;
-
-				R = obs.obsState.P(indices, indices);
-			}
 		}
 	}
 }
@@ -533,7 +652,11 @@ void ambgPseudoObs(
 		if (key.type != KF::AMBIGUITY)
 			continue;
 
+		if (key.rec_ptr == nullptr)
+			continue;
+
 		auto& rec		= *key.rec_ptr;
+
 		auto& satStat	= rec.satStatMap[key.Sat];
 		auto& recOpts	= acsConfig.getRecOpts(key.str);
 
@@ -687,7 +810,7 @@ void tropPseudoObs(
 
 	for (auto& [id, rec] : receiverMap)
 	{
-		auto& recOpts = acsConfig.getRecOpts(rec.id);
+		auto& recOpts = acsConfig.getRecOpts(id);
 
 		if (recOpts.exclude)
 		{

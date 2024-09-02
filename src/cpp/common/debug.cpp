@@ -37,7 +37,7 @@ void minimumTest(
 {
 	GTime gtime;
 	gtime++;
-	trace << std::endl;
+	trace << "\n";
 	map<string, Vector3dInit> pointMap;
 	Vector3d p;
 
@@ -133,7 +133,7 @@ void minimumTest(
 			p += Vector3d{0.001,0.0025,0.003};
 
 // 			p = p * 1.0000001;
-// 			trace << "\t" << p(0) << "\t" << p(1) << "\t" << p(2) << std::endl;
+// 			trace << "\t" << p(0) << "\t" << p(1) << "\t" << p(2) << "\n";
 
 
 
@@ -191,17 +191,16 @@ void minimumTest(
 		//add process noise to existing states as per their initialisations.
 		kfStateStations.stateTransition(trace, gtime);
 
-		KFMeas combinedMeas = kfStateStations.combineKFMeasList(stationEntries);
+		KFMeas combinedMeas(kfStateStations, stationEntries);
 
 		/* network parameter estimation */
 		if (kfStateStations.lsqRequired)
 		{
-			kfStateStations.lsqRequired = false;
-			trace << std::endl << "-------DOING LEAST SQUARES--------";
+			trace << "\n" << "-------DOING LEAST SQUARES--------";
 			kfStateStations.leastSquareInitStates(trace, combinedMeas, true);
 		}
 
-		kfStateStations.filterKalman(trace, combinedMeas, true);
+		kfStateStations.filterKalman(trace, combinedMeas, "", true);
 
 	}
 
@@ -224,7 +223,7 @@ void minimumTest(
 
 	// 	kfStateStations.outputCorrelations(trace);
 
-			trace << std::endl << "-------NEW --------";
+			trace << "\n" << "-------NEW --------";
 	{
 		auto state = kfStateStations;
 		mincon(trace, state);
@@ -261,7 +260,7 @@ void minimumTest(
 			double exp;
 			if (type == KF::REC_POS)	exp =  6000000 * 2;
 			else						exp = 26000000 * 2;
-// 			std::cout << std::endl << "Distance:  " << ((point1-point2).norm() - exp);
+// 			std::cout << "\n" << "Distance:  " << ((point1-point2).norm() - exp);
 		}
 	}
 // 	kfStateStations.outputStates(trace);
@@ -277,7 +276,7 @@ void outputMeas(
 			GTime 		time,
 			KFMeas		meas)
 {
-	trace << std::endl << "+MEAS" << std::endl;
+	trace << "\n" << "+MEAS" << "\n";
 
 	tracepdeex(2, trace, "#\t%19s\t%15s\t%15s\t%15s\n", "Time", "Observed", "Meas Noise", "Design Mat");
 
@@ -288,7 +287,7 @@ void outputMeas(
 		for (int j = 0; j < meas.H.cols(); j++)		tracepdeex(2, trace, "\t%15.5f", meas.H(i, j));
 		tracepdeex(2, trace, "\n");
 	}
-	trace << "-MEAS" << std::endl;
+	trace << "-MEAS" << "\n";
 }
 #endif
 // modified from testClockParams() to test chi^2 computation
@@ -303,12 +302,12 @@ void testOutlierDetection()
 	gtime++;
 	KFState kfState;
 
-	kfState.sigma_check		= false;
-	kfState.w_test			= true;
-	kfState.chi_square_test	= true;
-	kfState.chi_square_mode	= E_ChiSqMode::INNOVATION;
-	kfState.sigma_threshold	= 3;
-	kfState.max_prefit_remv = 1;
+	kfState.prefitOpts.sigma_check			= false;
+	kfState.prefitOpts.max_iterations 		= 1;
+	kfState.prefitOpts.w_test				= true;
+	kfState.chiSquareTest.enable			= true;
+	kfState.chiSquareTest.mode				= E_ChiSqMode::INNOVATION;
+	kfState.chiSquareTest.sigma_threshold	= 3;
 
 	for (int i = 0; i < 100; i++)
 	{
@@ -346,15 +345,15 @@ void testOutlierDetection()
 
 		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList0);
 
-		std::cout << std::endl << "Epoch #: " << i << std::endl;
+		std::cout << "\n" << "Epoch #: " << i << "\n";
 
-		std::cout << std::endl << "Pre-fit:" << std::endl;
+		std::cout << "\n" << "Pre-fit:" << "\n";
 		kfState.outputStates(std::cout);
 // 		outputMeas(std::cout, gtime, combinedMeas);
 
 		kfState.filterKalman(std::cout, combinedMeas, false);
 
-		std::cout << std::endl << "Post-fit:" << std::endl;
+		std::cout << "\n" << "Post-fit:" << "\n";
 		kfState.outputStates(std::cout);
 	}
 //	exit(0);
@@ -569,7 +568,7 @@ void rtsBump()
 // 					case KF::SRP_SCALE:		{	acceleration = outputsMap["accSrp"];	break;	}	//this should be whatever was used in the propagator above, for this srp component only
 // 				}
 //
-// 				std::cout << std::endl << "add acceleration: " << acceleration.transpose() << std::endl;
+// 				std::cout << "\n" << "add acceleration: " << acceleration.transpose() << "\n";
 // 				//add state transition elements for each component
 // 				for (int i = 0; i < 3; i++)
 // 				{
@@ -592,9 +591,9 @@ void timecheck()
 	GTime	gNow	= now;
 	UtcTime uNow	= gNow;
 
-	std::cout << "now:   " << now.	bigTime << std::endl;
-	std::cout << "gNow:  " << gNow.	bigTime << std::endl;
-	std::cout << "uNow:  " << uNow.	bigTime << std::endl;
+	std::cout << "now:   " << now.	bigTime << "\n";
+	std::cout << "gNow:  " << gNow.	bigTime << "\n";
+	std::cout << "uNow:  " << uNow.	bigTime << "\n";
 }
 
 void debugTime()
@@ -602,9 +601,9 @@ void debugTime()
 	auto	utcNow	= boost::posix_time::microsec_clock::universal_time();
 	GTime	gTime	= timeGet();
 
-	std::cout << std::setprecision(1) << std::fixed << std::endl;
-	std::cout << "universal_time():   " << utcNow << std::endl;
-	std::cout << "timeGet():          " << gTime.bigTime << " " << gTime.to_string(1) << std::endl;
+	std::cout << std::setprecision(1) << std::fixed << "\n";
+	std::cout << "universal_time():   " << utcNow << "\n";
+	std::cout << "timeGet():          " << gTime.bigTime << " " << gTime.to_string(1) << "\n";
 
 	PTime	pTime	= gTime;
 	auto	bTime	= boost::posix_time::from_time_t((time_t)pTime.bigTime);
@@ -620,17 +619,17 @@ void debugTime()
 
 	RTod	rTod	= gTime;
 
-	std::cout << std::setfill('0') << std::endl;
-	std::cout << "GTime to anything:"   << std::endl;
-	std::cout << "GTime to PTime:     " << pTime  .bigTime << " " << bTime                << std::endl;
-	std::cout << "GTime to UtcTime:   " << utcTime.bigTime << " " << utcTime.to_string(1) << std::endl;
-	std::cout << "GTime to GEpoch:    " << (int)gEpoch.year << "-" << std::setw(2) << (int)gEpoch.month << "-" << std::setw(2) << (int)gEpoch.day << " " << std::setw(2) << (int)gEpoch.hour << ":" << std::setw(2) << (int)gEpoch.min << ":" << std::setw(4) << gEpoch.sec << std::endl;
-	std::cout << "GTime to UYds:      " << (int)uYds.year << " " << (int)uYds.doy << " " << uYds.sod << std::endl;
-	std::cout << "GTime to GWeek:     " << gWeek.val << std::endl;
-	std::cout << "GTime to GTow:      " << gTow. val << std::endl;
-	std::cout << "GTime to BWeek:     " << bWeek.val << std::endl;
-	std::cout << "GTime to BTow:      " << bTow. val << std::endl;
-	std::cout << "GTime to RTod:      " << rTod. val << std::endl;
+	std::cout << std::setfill('0') << "\n";
+	std::cout << "GTime to anything:"   << "\n";
+	std::cout << "GTime to PTime:     " << pTime  .bigTime << " " << bTime                << "\n";
+	std::cout << "GTime to UtcTime:   " << utcTime.bigTime << " " << utcTime.to_string(1) << "\n";
+	std::cout << "GTime to GEpoch:    " << (int)gEpoch.year << "-" << std::setw(2) << (int)gEpoch.month << "-" << std::setw(2) << (int)gEpoch.day << " " << std::setw(2) << (int)gEpoch.hour << ":" << std::setw(2) << (int)gEpoch.min << ":" << std::setw(4) << gEpoch.sec << "\n";
+	std::cout << "GTime to UYds:      " << (int)uYds.year << " " << (int)uYds.doy << " " << uYds.sod << "\n";
+	std::cout << "GTime to GWeek:     " << gWeek.val << "\n";
+	std::cout << "GTime to GTow:      " << gTow. val << "\n";
+	std::cout << "GTime to BWeek:     " << bWeek.val << "\n";
+	std::cout << "GTime to BTow:      " << bTow. val << "\n";
+	std::cout << "GTime to RTod:      " << rTod. val << "\n";
 
 
 	GTime	gTimeP	= pTime;
@@ -638,67 +637,67 @@ void debugTime()
 	GTime	gTimeE	= gEpoch;
 	GTime	gTimeY	= uYds;
 
-	std::cout << std::endl;
-	std::cout << "anything to GTime:"   << std::endl;
-	std::cout << "PTime   to GTime:   " << gTimeP.bigTime << " " << gTimeP.to_string(1) << std::endl;
-	std::cout << "UtcTime to GTime:   " << gTimeU.bigTime << " " << gTimeU.to_string(1) << std::endl;
-	std::cout << "GEpoch  to GTime:   " << gTimeE.bigTime << " " << gTimeE.to_string(1) << std::endl;
-	std::cout << "UYds    to GTime:   " << gTimeY.bigTime << " " << gTimeY.to_string(1) << std::endl;
+	std::cout << "\n";
+	std::cout << "anything to GTime:"   << "\n";
+	std::cout << "PTime   to GTime:   " << gTimeP.bigTime << " " << gTimeP.to_string(1) << "\n";
+	std::cout << "UtcTime to GTime:   " << gTimeU.bigTime << " " << gTimeU.to_string(1) << "\n";
+	std::cout << "GEpoch  to GTime:   " << gTimeE.bigTime << " " << gTimeE.to_string(1) << "\n";
+	std::cout << "UYds    to GTime:   " << gTimeY.bigTime << " " << gTimeY.to_string(1) << "\n";
 
 	GTime	gTimeG	= GTime(gWeek, gTow);
 	GTime	gTimeB	= GTime(bWeek, bTow);
 
-	std::cout << "GTime(GWeek, GTow): " << gTimeG.bigTime << " " << gTimeG.to_string(1) << std::endl;
-	std::cout << "GTime(BWeek, BTow): " << gTimeB.bigTime << " " << gTimeB.to_string(1) << std::endl;
+	std::cout << "GTime(GWeek, GTow): " << gTimeG.bigTime << " " << gTimeG.to_string(1) << "\n";
+	std::cout << "GTime(BWeek, BTow): " << gTimeB.bigTime << " " << gTimeB.to_string(1) << "\n";
 
 	GTime	nearTime= timeGet();
 			gTimeG	= GTime(gTow, nearTime);
 			gTimeB	= GTime(bTow, nearTime);
 	GTime	gTimeR	= GTime(rTod, nearTime);
 
-	std::cout << "GTime(GTow, GTime): " << gTimeG.bigTime << " " << gTimeG.to_string(1) << std::endl;
-	std::cout << "GTime(BTow, GTime): " << gTimeB.bigTime << " " << gTimeB.to_string(1) << std::endl;
-	std::cout << "GTime(RTod, GTime): " << gTimeR.bigTime << " " << gTimeR.to_string(1) << std::endl;
+	std::cout << "GTime(GTow, GTime): " << gTimeG.bigTime << " " << gTimeG.to_string(1) << "\n";
+	std::cout << "GTime(BTow, GTime): " << gTimeB.bigTime << " " << gTimeB.to_string(1) << "\n";
+	std::cout << "GTime(RTod, GTime): " << gTimeR.bigTime << " " << gTimeR.to_string(1) << "\n";
 
 
 	double ep[6];
 
-	std::cout << std::endl;
-	std::cout << "GTime to epoch to GTime:"   << std::endl;
-	time2epoch(gTime, ep, E_TimeSys::GPST);						std::cout << "GTime to GPST     epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochGPS	= epoch2time(ep, E_TimeSys::GPST);		std::cout << "GPST     epoch to GTime: " << gTimeEpochGPS.to_string(1) << std::endl;
-	time2epoch(gTime, ep, E_TimeSys::GLONASST);					std::cout << "GTime to GLONASST epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochGLO	= epoch2time(ep, E_TimeSys::GLONASST);	std::cout << "GLONASST epoch to GTime: " << gTimeEpochGLO.to_string(1) << std::endl;
-	time2epoch(gTime, ep, E_TimeSys::GST);						std::cout << "GTime to GST      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochGST	= epoch2time(ep, E_TimeSys::GST);		std::cout << "GST      epoch to GTime: " << gTimeEpochGST.to_string(1) << std::endl;
-	time2epoch(gTime, ep, E_TimeSys::BDT);						std::cout << "GTime to BDT      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochBDT	= epoch2time(ep, E_TimeSys::BDT);		std::cout << "BDT      epoch to GTime: " << gTimeEpochBDT.to_string(1) << std::endl;
-	time2epoch(gTime, ep, E_TimeSys::QZSST);					std::cout << "GTime to QZSST    epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochQZS	= epoch2time(ep, E_TimeSys::QZSST);		std::cout << "QZSST    epoch to GTime: " << gTimeEpochQZS.to_string(1) << std::endl;
-	time2epoch(gTime, ep, E_TimeSys::TAI);						std::cout << "GTime to TAI      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochTAI	= epoch2time(ep, E_TimeSys::TAI);		std::cout << "TAI      epoch to GTime: " << gTimeEpochTAI.to_string(1) << std::endl;
-	time2epoch(gTime, ep, E_TimeSys::UTC);						std::cout << "GTime to UTC      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << std::endl;
-	GTime gTimeEpochUTC	= epoch2time(ep, E_TimeSys::UTC);		std::cout << "UTC      epoch to GTime: " << gTimeEpochUTC.to_string(1) << std::endl;
+	std::cout << "\n";
+	std::cout << "GTime to epoch to GTime:"   << "\n";
+	time2epoch(gTime, ep, E_TimeSys::GPST);						std::cout << "GTime to GPST     epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << "\n";
+	GTime gTimeEpochGPS	= epoch2time(ep, E_TimeSys::GPST);		std::cout << "GPST     epoch to GTime: " << gTimeEpochGPS.to_string(1) << "\n";
+	time2epoch(gTime, ep, E_TimeSys::GLONASST);					std::cout << "GTime to GLONASST epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << "\n";
+	GTime gTimeEpochGLO	= epoch2time(ep, E_TimeSys::GLONASST);	std::cout << "GLONASST epoch to GTime: " << gTimeEpochGLO.to_string(1) << "\n";
+	time2epoch(gTime, ep, E_TimeSys::GST);						std::cout << "GTime to GST      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << "\n";
+	GTime gTimeEpochGST	= epoch2time(ep, E_TimeSys::GST);		std::cout << "GST      epoch to GTime: " << gTimeEpochGST.to_string(1) << "\n";
+	time2epoch(gTime, ep, E_TimeSys::BDT);						std::cout << "GTime to BDT      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << "\n";
+	GTime gTimeEpochBDT	= epoch2time(ep, E_TimeSys::BDT);		std::cout << "BDT      epoch to GTime: " << gTimeEpochBDT.to_string(1) << "\n";
+	time2epoch(gTime, ep, E_TimeSys::QZSST);					std::cout << "GTime to QZSST    epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << "\n";
+	GTime gTimeEpochQZS	= epoch2time(ep, E_TimeSys::QZSST);		std::cout << "QZSST    epoch to GTime: " << gTimeEpochQZS.to_string(1) << "\n";
+	time2epoch(gTime, ep, E_TimeSys::TAI);						std::cout << "GTime to TAI      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << "\n";
+	GTime gTimeEpochTAI	= epoch2time(ep, E_TimeSys::TAI);		std::cout << "TAI      epoch to GTime: " << gTimeEpochTAI.to_string(1) << "\n";
+	time2epoch(gTime, ep, E_TimeSys::UTC);						std::cout << "GTime to UTC      epoch: " << (int)ep[0] << "-" << std::setw(2) << (int)ep[1] << "-" << std::setw(2) << (int)ep[2] << " " << std::setw(2) << (int)ep[3] << ":" << std::setw(2) << (int)ep[4] << ":" << std::setw(4) << ep[5] << "\n";
+	GTime gTimeEpochUTC	= epoch2time(ep, E_TimeSys::UTC);		std::cout << "UTC      epoch to GTime: " << gTimeEpochUTC.to_string(1) << "\n";
 
 
 	double yds[6];
 
-	std::cout << std::endl;
-	std::cout << "GTime to yds to GTime:"   << std::endl;
-	time2yds(gTime, yds, E_TimeSys::GPST);						std::cout << "GTime to GPST     yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsGPS	= yds2time(yds, E_TimeSys::GPST);		std::cout << "GPST     yds to GTime: " << gTimeYdsGPS.to_string(1) << std::endl;
-	time2yds(gTime, yds, E_TimeSys::GLONASST);					std::cout << "GTime to GLONASST yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsGLO	= yds2time(yds, E_TimeSys::GLONASST);	std::cout << "GLONASST yds to GTime: " << gTimeYdsGLO.to_string(1) << std::endl;
-	time2yds(gTime, yds, E_TimeSys::GST);						std::cout << "GTime to GST      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsGST	= yds2time(yds, E_TimeSys::GST);		std::cout << "GST      yds to GTime: " << gTimeYdsGST.to_string(1) << std::endl;
-	time2yds(gTime, yds, E_TimeSys::BDT);						std::cout << "GTime to BDT      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsBDT	= yds2time(yds, E_TimeSys::BDT);		std::cout << "BDT      yds to GTime: " << gTimeYdsBDT.to_string(1) << std::endl;
-	time2yds(gTime, yds, E_TimeSys::QZSST);						std::cout << "GTime to QZSST    yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsQZS	= yds2time(yds, E_TimeSys::QZSST);		std::cout << "QZSST    yds to GTime: " << gTimeYdsQZS.to_string(1) << std::endl;
-	time2yds(gTime, yds, E_TimeSys::TAI);						std::cout << "GTime to TAI      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsTAI	= yds2time(yds, E_TimeSys::TAI);		std::cout << "TAI      yds to GTime: " << gTimeYdsTAI.to_string(1) << std::endl;
-	time2yds(gTime, yds, E_TimeSys::UTC);						std::cout << "GTime to UTC      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << std::endl;
-	GTime gTimeYdsUTC	= yds2time(yds, E_TimeSys::UTC);		std::cout << "UTC      yds to GTime: " << gTimeYdsUTC.to_string(1) << std::endl;
+	std::cout << "\n";
+	std::cout << "GTime to yds to GTime:"   << "\n";
+	time2yds(gTime, yds, E_TimeSys::GPST);						std::cout << "GTime to GPST     yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << "\n";
+	GTime gTimeYdsGPS	= yds2time(yds, E_TimeSys::GPST);		std::cout << "GPST     yds to GTime: " << gTimeYdsGPS.to_string(1) << "\n";
+	time2yds(gTime, yds, E_TimeSys::GLONASST);					std::cout << "GTime to GLONASST yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << "\n";
+	GTime gTimeYdsGLO	= yds2time(yds, E_TimeSys::GLONASST);	std::cout << "GLONASST yds to GTime: " << gTimeYdsGLO.to_string(1) << "\n";
+	time2yds(gTime, yds, E_TimeSys::GST);						std::cout << "GTime to GST      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << "\n";
+	GTime gTimeYdsGST	= yds2time(yds, E_TimeSys::GST);		std::cout << "GST      yds to GTime: " << gTimeYdsGST.to_string(1) << "\n";
+	time2yds(gTime, yds, E_TimeSys::BDT);						std::cout << "GTime to BDT      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << "\n";
+	GTime gTimeYdsBDT	= yds2time(yds, E_TimeSys::BDT);		std::cout << "BDT      yds to GTime: " << gTimeYdsBDT.to_string(1) << "\n";
+	time2yds(gTime, yds, E_TimeSys::QZSST);						std::cout << "GTime to QZSST    yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << "\n";
+	GTime gTimeYdsQZS	= yds2time(yds, E_TimeSys::QZSST);		std::cout << "QZSST    yds to GTime: " << gTimeYdsQZS.to_string(1) << "\n";
+	time2yds(gTime, yds, E_TimeSys::TAI);						std::cout << "GTime to TAI      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << "\n";
+	GTime gTimeYdsTAI	= yds2time(yds, E_TimeSys::TAI);		std::cout << "TAI      yds to GTime: " << gTimeYdsTAI.to_string(1) << "\n";
+	time2yds(gTime, yds, E_TimeSys::UTC);						std::cout << "GTime to UTC      yds: " << (int)yds[0] << " " << (int)yds[1] << " " << yds[2] << "\n";
+	GTime gTimeYdsUTC	= yds2time(yds, E_TimeSys::UTC);		std::cout << "UTC      yds to GTime: " << gTimeYdsUTC.to_string(1) << "\n";
 
 
 	GTow	nearGTow= 1;
@@ -706,34 +705,34 @@ void debugTime()
 			gTow	= 604800 - 1.1;
 			gTimeG	= GTime(gTow, nearTime);
 
-	std::cout << std::setfill(' ') << std::endl;
-	std::cout << "Week/Day roll-over:" << std::endl;
-	std::cout << "nearGTow: " << std::setw(8) << nearGTow.val << "\tnearTime:              " << nearTime.to_string(1) << std::endl;
-	std::cout << "gTow:     " << std::setw(8) << gTow.    val << "\tGTime(gTow, nearTime): " << gTimeG.  to_string(1) << std::endl;
+	std::cout << std::setfill(' ') << "\n";
+	std::cout << "Week/Day roll-over:" << "\n";
+	std::cout << "nearGTow: " << std::setw(8) << nearGTow.val << "\tnearTime:              " << nearTime.to_string(1) << "\n";
+	std::cout << "gTow:     " << std::setw(8) << gTow.    val << "\tGTime(gTow, nearTime): " << gTimeG.  to_string(1) << "\n";
 
 			nearGTow= 604800 - 1;
 			nearTime= GTime(gWeek, nearGTow);
 			gTow	= 1.1;
 			gTimeG	= GTime(gTow, nearTime);
 
-	std::cout << "nearGTow: " << std::setw(8) << nearGTow.val << "\tnearTime:              " << nearTime.to_string(1) << std::endl;
-	std::cout << "gTow:     " << std::setw(8) << gTow.    val << "\tGTime(gTow, nearTime): " << gTimeG.  to_string(1) << std::endl;
+	std::cout << "nearGTow: " << std::setw(8) << nearGTow.val << "\tnearTime:              " << nearTime.to_string(1) << "\n";
+	std::cout << "gTow:     " << std::setw(8) << gTow.    val << "\tGTime(gTow, nearTime): " << gTimeG.  to_string(1) << "\n";
 
 	BTow	nearBTow= 1;
 			nearTime= GTime(bWeek, nearBTow);
 			bTow	= 604800 - 1.1;
 			gTimeB	= GTime(bTow, nearTime);
 
-	std::cout << "nearBTow: " << std::setw(8) << nearBTow.val << "\tnearTime:              " << nearTime.to_string(1) << std::endl;
-	std::cout << "bTow:     " << std::setw(8) << bTow.    val << "\tGTime(bTow, nearTime): " << gTimeB.  to_string(1) << std::endl;
+	std::cout << "nearBTow: " << std::setw(8) << nearBTow.val << "\tnearTime:              " << nearTime.to_string(1) << "\n";
+	std::cout << "bTow:     " << std::setw(8) << bTow.    val << "\tGTime(bTow, nearTime): " << gTimeB.  to_string(1) << "\n";
 
 			nearBTow= 604800 - 1;
 			nearTime= GTime(bWeek, nearBTow);
 			bTow	= 1.1;
 			gTimeB	= GTime(bTow, nearTime);
 
-	std::cout << "nearBTow: " << std::setw(8) << nearBTow.val << "\tnearTime:              " << nearTime.to_string(1) << std::endl;
-	std::cout << "bTow:     " << std::setw(8) << bTow.    val << "\tGTime(bTow, nearTime): " << gTimeB.  to_string(1) << std::endl;
+	std::cout << "nearBTow: " << std::setw(8) << nearBTow.val << "\tnearTime:              " << nearTime.to_string(1) << "\n";
+	std::cout << "bTow:     " << std::setw(8) << bTow.    val << "\tGTime(bTow, nearTime): " << gTimeB.  to_string(1) << "\n";
 
 	UYds	nearYds	= uYds;
 			nearYds.sod	= 86400 - 10800 + 1;
@@ -742,8 +741,8 @@ void debugTime()
 			rTod	= 86400 - 1.1;
 			gTimeR	= GTime(rTod,  nearTime);
 
-	std::cout << "nearSod:  " << std::setw(8) << nearYds. sod << "\tnearTime:              " << nearTime.to_string(1) << "\tnearTod:  " << nearTod. val << std::endl;
-	std::cout << "rTod:     " << std::setw(8) << rTod.    val << "\tGTime(rTod, nearTime): " << gTimeR.  to_string(1) << std::endl;
+	std::cout << "nearSod:  " << std::setw(8) << nearYds. sod << "\tnearTime:              " << nearTime.to_string(1) << "\tnearTod:  " << nearTod. val << "\n";
+	std::cout << "rTod:     " << std::setw(8) << rTod.    val << "\tGTime(rTod, nearTime): " << gTimeR.  to_string(1) << "\n";
 
 			nearYds.sod	= 86400 - 10800 - 1;
 			nearTime= nearYds;
@@ -751,19 +750,19 @@ void debugTime()
 			rTod	= 1.1;
 			gTimeR	= GTime(rTod,  nearTime);
 
-	std::cout << "nearSod:  " << std::setw(8) << nearYds. sod << "\tnearTime:              " << nearTime.to_string(1) << "\tnearTod:  " << nearTod. val << std::endl;
-	std::cout << "rTod:     " << std::setw(8) << rTod.    val << "\tGTime(rTod, nearTime): " << gTimeR.  to_string(1) << std::endl;
+	std::cout << "nearSod:  " << std::setw(8) << nearYds. sod << "\tnearTime:              " << nearTime.to_string(1) << "\tnearTod:  " << nearTod. val << "\n";
+	std::cout << "rTod:     " << std::setw(8) << rTod.    val << "\tGTime(rTod, nearTime): " << gTimeR.  to_string(1) << "\n";
 
 			gEpoch	= {2017, 1, 1, 0, 0, 17.9};
 			gTimeE	= gEpoch;
 			utcTime	= gTimeE;
 			gTimeU	= utcTime;
 
-	std::cout << std::endl;
-	std::cout << "Leap second roll-over:" << std::endl;
-	std::cout << "GTime:              " << gTimeE. bigTime << " " << gTimeE .to_string(1) << std::endl;
-	std::cout << "GTime to UtcTime:   " << utcTime.bigTime << " " << utcTime.to_string(1) << std::endl;
-	std::cout << "UtcTime to GTime:   " << gTimeU. bigTime << " " << gTimeU .to_string(1) << std::endl;
+	std::cout << "\n";
+	std::cout << "Leap second roll-over:" << "\n";
+	std::cout << "GTime:              " << gTimeE. bigTime << " " << gTimeE .to_string(1) << "\n";
+	std::cout << "GTime to UtcTime:   " << utcTime.bigTime << " " << utcTime.to_string(1) << "\n";
+	std::cout << "UtcTime to GTime:   " << gTimeU. bigTime << " " << gTimeU .to_string(1) << "\n";
 }
 
 #include "coordinates.hpp"
@@ -817,7 +816,7 @@ void rotationTest()
 void longDoubleTest()
 {
 	long double a;
-	std::cout << std::endl << "This system uses " << sizeof(a) * 8 << " bits for long doubles. (Hopefully that number is 128...)" << std::endl;
+	std::cout << "\n" << "This system uses " << sizeof(a) * 8 << " bits for long doubles. (Hopefully that number is 128...)" << "\n";
 }
 
 #include "rtcmEncoder.hpp"
@@ -879,7 +878,7 @@ void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap)
 						<< "\tdecoded: "			<< std::setw(7)	<< dPos[1] .transpose()	<< "\t" << std::setw(8) << dClk[1]		<< "\t" << std::setw(8) << dClk[2]
 						<< "\tencoded: "			<< std::setw(7)	<< dPos[0] .transpose()	<< "\t" << std::setw(8) << dClk[0]
 						<< "\tencoded-decoded: "	<< std::setw(7)	<< dPosDiff.transpose()	<< "\t" << std::setw(8) << dClkDiff[1]
-													<< std::endl;
+													<< "\n";
 		}
 	}
 
@@ -899,7 +898,7 @@ void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap)
 					<< "\tiode[1]: "	<< std::setw( 3)	<< ssrOut.clkInput.vals[1].iode
 					<< "\tbrdc[1]: "	<< std::setw(12)	<< ssrOut.clkInput.vals[1].brdcClk
 					<< "\tprec[1]: "	<< std::setw(12)	<< ssrOut.clkInput.vals[1].precClk
-										<< std::endl;
+										<< "\n";
 	}
 }*/
 
@@ -955,9 +954,9 @@ void reflector()
 			Vector3d momentum	= (incoming + outgoing);
 
 
-// 			std::cout << incoming.transpose() << std::endl;
-// 			std::cout << reflected.transpose() << std::endl;
-// 			std::cout << emissive.transpose() << std::endl;
+// 			std::cout << incoming.transpose() << "\n";
+// 			std::cout << reflected.transpose() << "\n";
+// 			std::cout << emissive.transpose() << "\n";
 			totalMomentum += momentum;
 		}
 		totalMomentum /= totalFrontalarea;
@@ -970,14 +969,14 @@ void reflector()
 // {
 // 	int pid = fork();
 //
-// 	std::cout << pid << std::endl;
+// 	std::cout << pid << "\n";
 // 	if (pid)
 // 	{
 // 		return;
 // 		std::cout << "returning\n";
 // 	}
 // 	while (pid < 10000)
-// 		std::cout << pid++ << std::endl;
+// 		std::cout << pid++ << "\n";
 //
 // }
 
@@ -991,13 +990,13 @@ void reflector()
 
 void debugIGRF()
 {
-	std::cout << "\nDebugging IGRF:" << std::endl;
+	std::cout << "\nDebugging IGRF:" << "\n";
 
 	// // test 1 - file reading
-	// std::cout << "  n  m         g         h" << std::endl;
+	// std::cout << "  n  m         g         h" << "\n";
 	// for (auto& [year, igrfMF] : igrfMFMap)
 	// {
-	// 	std::cout << igrfMF.year << ":" << std::endl;
+	// 	std::cout << igrfMF.year << ":" << "\n";
 	// 	for (int i = 0; i <= igrfMF.maxDegree; i++)
 	// 	for (int j = 0; j <= i; j++)
 	// 	{
@@ -1006,12 +1005,12 @@ void debugIGRF()
 	// 					<< " " << std::setw(2) << j
 	// 					<< " " << std::setw(9) << igrfMF.gnm(i, j)
 	// 					<< " " << std::setw(9) << igrfMF.hnm(i, j)
-	// 					<< std::endl;
+	// 					<< "\n";
 	// 	}
 	// }
 
 	// {
-	// 	std::cout << igrfSV.year << "-" << igrfSV.yearEnd << ":" << std::endl;
+	// 	std::cout << igrfSV.year << "-" << igrfSV.yearEnd << ":" << "\n";
 	// 	for (int i = 0; i <= igrfSV.maxDegree; i++)
 	// 	for (int j = 0; j <= i; j++)
 	// 	{
@@ -1020,7 +1019,7 @@ void debugIGRF()
 	// 					<< " " << std::setw(2) << j
 	// 					<< " " << std::setw(9) << igrfSV.gnm(i, j)
 	// 					<< " " << std::setw(9) << igrfSV.hnm(i, j)
-	// 					<< std::endl;
+	// 					<< "\n";
 	// 	}
 	// }
 
@@ -1033,7 +1032,7 @@ void debugIGRF()
 	// 		std::cout	<< "   g " << std::setw(2) << i << "," << std::setw(2) << j
 	// 					<< "   h " << std::setw(2) << i << "," << std::setw(2) << j;
 	// 	}
-	// 	std::cout << std::endl;
+	// 	std::cout << "\n";
 	// }
 
 	// for (int year = 1981; year <= 2026; year++)
@@ -1055,7 +1054,7 @@ void debugIGRF()
 	// 		std::cout	<< " " << std::setw(9) << igrfMF.gnm(i, j)
 	// 					<< " " << std::setw(9) << igrfMF.hnm(i, j);
 	// 	}
-	// 	std::cout << std::endl;
+	// 	std::cout << "\n";
 	// }
 
 	// test 3.1 - time series
@@ -1067,7 +1066,7 @@ void debugIGRF()
 		pos[2] = r.norm();
 
 		std::cout	<< std::setprecision(5) << std::fixed;
-		std::cout	<< "\n\tGeocentric pos: " << pos[0]*R2D << " " << pos[1]*R2D << " " << pos[2]/1000 << std::endl;
+		std::cout	<< "\n\tGeocentric pos: " << pos[0]*R2D << " " << pos[1]*R2D << " " << pos[2]/1000 << "\n";
 
 		for (int year = 1981; year <= 2023; year++)
 		{
@@ -1082,7 +1081,7 @@ void debugIGRF()
 			std::cout	<< "\tX: " << std::setw(8) << intensity.x()
 						<< "\tY: " << std::setw(8) << intensity.y()
 						<< "\tZ: " << std::setw(8) << intensity.z()
-						<< std::endl;
+						<< "\n";
 		}
 	}
 
@@ -1093,7 +1092,7 @@ void debugIGRF()
 		double year = decimalYear(time);
 
 		std::cout	<< std::setprecision(5) << std::fixed;
-		std::cout	<< "\n\tyear: " << year << std::endl;
+		std::cout	<< "\n\tyear: " << year << "\n";
 
 		for (int lat =  -90; lat <=  90; lat += 10)
 		for (int lon = -180; lon <= 180; lon += 20)
@@ -1108,7 +1107,7 @@ void debugIGRF()
 			std::cout	<< "\tX: " << std::setw(8) << intensity.x()
 						<< "\tY: " << std::setw(8) << intensity.y()
 						<< "\tZ: " << std::setw(8) << intensity.z()
-						<< std::endl;
+						<< "\n";
 		}
 	}
 }
@@ -1219,57 +1218,16 @@ void debugAttitude()
 }
 
 
+struct Thing
+{
+
+};
+
+/** This function calls nothing
+ */
 void debugErp()
 {
-	ERP	erp = nav.erp;
-
-	// Output all ERP data
-	std::cout << std::endl << "EOP reading:";
-	for (auto& erpMap : erp.erpMaps)
-	{
-		std::cout << std::endl;
-		for (auto& [time, erpv] : erpMap)
-		{
-			MjDateUtc	mjd = time;
-			std::cout	<< std::setprecision( 6)	<< std::fixed
-						<< "\t"						<< time.to_string(1)
-						<< " "	<< std::setw( 8)	<< mjd.val;
-			std::cout	<< std::setprecision( 6)	<< std::fixed
-						<< " "	<< std::setw( 9)	<< erpv.xp / AS2R
-						<< " "	<< std::setw( 9)	<< erpv.yp / AS2R;
-			std::cout	<< std::setprecision( 7)	<< std::fixed
-						<< " "	<< std::setw(10)	<< erpv.ut1Utc
-						<< " "	<< std::setw(10)	<< erpv.lod
-						<< " "						<< (erpv.isPredicted ? 'P' : ' ')
-								<< std::endl;
-
-			writeErp(acsConfig.erp_filename, erpv);
-		}
-	}
-
-	MjDateUtc mjd;
-	mjd.val = 60069;
-	GTime time = mjd;
-
-	std::cout << std::endl << "EOP interpolation/extrapolation:" << std::endl;
-	for (int i = 0; i < 60; i++)
-	{
-		time += S_IN_DAY/4;
-		ERPValues erpv = getErp(erp, time);
-
-		MjDateUtc	mjd = time;
-		std::cout	<< std::setprecision( 6)	<< std::fixed
-					<< "\t"						<< time.to_string(1)
-					<< " "	<< std::setw( 8)	<< mjd.val;
-		std::cout	<< std::setprecision( 6)	<< std::fixed
-					<< " "	<< std::setw( 9)	<< erpv.xp / AS2R
-					<< " "	<< std::setw( 9)	<< erpv.yp / AS2R;
-		std::cout	<< std::setprecision( 7)	<< std::fixed
-					<< " "	<< std::setw(10)	<< erpv.ut1Utc
-					<< " "	<< std::setw(10)	<< erpv.lod
-					<< " "						<< (erpv.isPredicted ? 'P' : ' ')
-							<< std::endl;
-	}
+	Thing thing;
 }
 
 #include <fstream>
@@ -1296,22 +1254,22 @@ void debugBlq()
 
 	std::cout << std::fixed;
 
-	std::cout << "\nDebugging OTL BLQ: " << rec.id << std::fixed << std::endl;
+	std::cout << "\nDebugging OTL BLQ: " << rec.id << std::fixed << "\n";
 	for (auto& [wave, disp] : rec.otlDisplacement)
 	{
 		std::cout << wave._to_string() << ":";
 		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(5) << std::setw(9) << disp.amplitude[i];
 		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(1) << std::setw(9) << disp.phase[i];
-		std::cout << std::endl;
+		std::cout << "\n";
 	}
 
-	std::cout << "\nDebugging ATL BLQ: " << rec.id << std::fixed << std::endl;
+	std::cout << "\nDebugging ATL BLQ: " << rec.id << std::fixed << "\n";
 	for (auto& [wave, disp] : rec.atlDisplacement)
 	{
 		std::cout << wave._to_string() << ":";
 		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(5) << std::setw(9) << disp.amplitude[i];
 		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(1) << std::setw(9) << disp.phase[i];
-		std::cout << std::endl;
+		std::cout << "\n";
 	}
 }
 
@@ -1357,7 +1315,7 @@ map<string, map<double, VectorEnu>> readRefOtlDisp(string file)
 
 void debugTideOcean()
 {
-	std::cout << "\nDebugging OTL:" << std::endl;
+	std::cout << "\nDebugging OTL:" << "\n";
 
 	string filename = "testData/oload.test";
 	auto dispRefMap = readRefOtlDisp(filename);
@@ -1400,16 +1358,16 @@ void debugTideOcean()
 						<< "\t"	<< std::setw(10)	<< diff.e()
 						<< "\t"	<< std::setw(10)	<< diff.n()
 						<< "\t"	<< std::setw(10)	<< diff.u()
-						<< std::endl;
+						<< "\n";
 		}
-		std::cout << std::endl;
+		std::cout << "\n";
 	}
 }
 
 void debugHardisp()
 {
 	/// Read in ocean loading coefficients from stdin
-	std::cout << "\nDebugging OTL Hardisp:" << std::endl;
+	std::cout << "\nDebugging OTL Hardisp:" << "\n";
 
 	string filename = "testData/oload.test";
 	auto dispRefMap = readRefOtlDisp(filename);
@@ -1449,9 +1407,9 @@ void debugHardisp()
 						<< "\t"	<< std::setw(10)	<< diff.e()
 						<< "\t"	<< std::setw(10)	<< diff.n()
 						<< "\t"	<< std::setw(10)	<< diff.u()
-						<< std::endl;
+						<< "\n";
 		}
-		std::cout << std::endl;
+		std::cout << "\n";
 	}
 }
 
@@ -1536,7 +1494,7 @@ map<string, map<double, VectorEnu>> readRefAplDisp(string file)
 
 void debugTideAtmos()
 {
-	std::cout << "\nDebugging ATL:" << std::endl;
+	std::cout << "\nDebugging ATL:" << "\n";
 
 	string id = "ALIC";
 	Receiver rec;
@@ -1576,7 +1534,7 @@ void debugTideAtmos()
 					<< "\t"	<< std::setw(10)	<< diff.e()
 					<< "\t"	<< std::setw(10)	<< diff.n()
 					<< "\t"	<< std::setw(10)	<< diff.u()
-					<< std::endl;
+					<< "\n";
 	}
 
 	// // Test 2 - single station, multiple days (one year)
@@ -1604,7 +1562,7 @@ void debugTideAtmos()
 	// 				<< "\t"	<< std::setw(10)	<< diff.e()
 	// 				<< "\t"	<< std::setw(10)	<< diff.n()
 	// 				<< "\t"	<< std::setw(10)	<< diff.u()
-	// 				<< std::endl;
+	// 				<< "\n";
 	// }
 
 	// // Test 3 - multiple stations, single day
@@ -1643,13 +1601,13 @@ void debugTideAtmos()
 	// 				<< "\t"	<< std::setw(10)	<< diff.e()
 	// 				<< "\t"	<< std::setw(10)	<< diff.n()
 	// 				<< "\t"	<< std::setw(10)	<< diff.u()
-	// 				<< std::endl;
+	// 				<< "\n";
 	// }
 }
 
 void debugTideSolid()
 {
-	std::cout << "\nDebugging solid Earth tide:" << std::endl;
+	std::cout << "\nDebugging solid Earth tide:" << "\n";
 
 	// Test cases from DEHANTTIDEINEL.F
 	// Note that the last test case should be incorrect
@@ -1724,7 +1682,7 @@ void debugTideSolid()
 					<< "\t"	<< std::setw(10)	<< diff.x()
 					<< "\t"	<< std::setw(10)	<< diff.y()
 					<< "\t"	<< std::setw(10)	<< diff.z()
-					<< std::endl;
+					<< "\n";
 	}
 }
 
@@ -1767,7 +1725,7 @@ map<double, Vector3d> readRefSPoleDisp(string file)
 
 void debugTideSolidPole()
 {
-	std::cout << "\nDebugging solid Earth pole tide:" << std::endl;
+	std::cout << "\nDebugging solid Earth pole tide:" << "\n";
 
 	string filename = "testData/test_pole_tide.csv";
 	auto dispRefMap = readRefSPoleDisp(filename);
@@ -1794,7 +1752,7 @@ void debugTideSolidPole()
 					<< "\t"	<< std::setw(10)	<< dispRef(2)
 					<< "\t"	<< std::setw(10)	<< denu.u()
 					<< "\t"	<< std::setw(10)	<< diff
-					<< std::endl;
+					<< "\n";
 	}
 }
 
@@ -1835,7 +1793,7 @@ map<double, VectorEnu> readRefOPoleDisp(string file)
 
 void debugTideOceanPole()
 {
-	std::cout << "\nDebugging ocean pole tide:" << std::endl;
+	std::cout << "\nDebugging ocean pole tide:" << "\n";
 
 	string filename = acsConfig.inputs_root + "tables/opoleloadcoefcmcor.txt";
 	readOceanPoleCoeff(filename);
@@ -1896,14 +1854,18 @@ void debugTideOceanPole()
 					<< "\t"	<< std::setw(10)	<< diff.e()
 					<< "\t"	<< std::setw(10)	<< diff.n()
 					<< "\t"	<< std::setw(10)	<< diff.u()
-					<< std::endl;
+					<< "\n";
 	}
 }
+
+void alternatePostfits(
+	Trace&		trace,
+	KFMeas&		kfMeas,
+	KFState&	kfState);
 
 void infiniteTest()
 {
 	KFState kfState;
-
 
 	GTime time;
 	time += 60;
@@ -1918,6 +1880,7 @@ void infiniteTest()
 		ionoKey.type = KF::IONO_STEC;
 		ambKey.type = KF::AMBIGUITY;
 
+		kfState.advanced_postfits = true;
 
 		InitialState ionoInit;
 		ionoInit.P = 100;
@@ -1926,11 +1889,10 @@ void infiniteTest()
 		InitialState ambInit;
 		ambInit.P = 100;
 
-
-
 		{
 			KFKey obsKey;
-			obsKey.num = 1;
+			obsKey.num	= 1;
+			obsKey.type	= KF::PHAS_MEAS;
 
 			KFMeasEntry measEntry(&kfState);
 
@@ -1947,6 +1909,7 @@ void infiniteTest()
 		{
 			KFKey obsKey;
 			obsKey.num = 2;
+			obsKey.type = KF::PHAS_MEAS;
 
 			KFMeasEntry measEntry(&kfState);
 
@@ -1967,9 +1930,12 @@ void infiniteTest()
 
 		kfState.outputStates(std::cout);
 
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+		KFMeas kfMeas(kfState, kfMeasEntryList, time);
 
-		kfState.filterKalman(std::cout, combinedMeas, true);
+
+		alternatePostfits(std::cout, kfMeas, kfState);
+
+		kfState.filterKalman(std::cout, kfMeas, "", true);
 
 		kfState.outputStates(std::cout);
 
@@ -2012,83 +1978,273 @@ void getAccData()
 		time.bigTime = 630763200;
 		time += intTime;
 
-// 		std::cout << std::endl << time << " " << accl.transpose();
+// 		std::cout << "\n" << time << " " << accl.transpose();
 
 		UbxDecoder::acclDataMaps["L64"][time] = accl;
 	}
 }
 
-#include "gMap.hpp"
+#include "orbitProp.hpp"
 
-GMap<double, double,std::greater<double>> 	testa;
-map	<double, double,std::greater<double>> 	test2a;
-GMap<double, double> 						test;
-map	<double, double> 						test2;
-
-void testt()
+void perEpochPropTest(
+	GTime time)
 {
-	for (int i = 0; i < 20; i++)
+	SatSys Sat = SatSys("L51");
+
+	SatPos satPos0;
+	satPos0.Sat = Sat;
+
+	bool pass = satPosPrecise(std::cout, time, satPos0, nav);
+
+	if (!pass)
+		return;
+
+	ERPValues erpv0 = getErp(nav.erp, time);
+	FrameSwapper frameSwapper0(time, erpv0);
+	satPos0.rSatEci0 = frameSwapper0(satPos0.rSatCom, &satPos0.satVel, &satPos0.vSatEci0);
+
+	KFState kfState;
+	kfState.time = time;
+
+	for (int i = 0; i < 3; i++)
 	{
-		testa[i] = i;
-		test2a[i] = i;
-		test[i] = i;
-		test2[i] = i;
+		KFKey kfKey;
+		kfKey.type	= KF::ORBIT;
+		kfKey.Sat	= Sat;
+
+		kfKey.num	= i;
+		kfState.addKFState(kfKey, {.x = satPos0.rSatEci0[i]});
+
+		kfKey.num	= i + 3;
+		kfState.addKFState(kfKey, {.x = satPos0.vSatEci0[i]});
 	}
+	kfState.stateTransition(std::cout, kfState.time);
 
+	KFState copy = kfState;
 
-	std::cout << std::endl;
-	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
-	{
-		std::cout  << " " << i;
-	}
-	std::cout << std::endl;
+	double dt = 60;
 
+	static double propSumSqr	= 0;
+	static double ellipseSumSqr	= 0;
+	static double j2SumSqr		= 0;
 
-	std::cout << std::endl;
-	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
-	{
-		std::cout << std::endl << std::endl << "testing for : " << i;
-		auto it = test.lower_bound(i);
-		if (it != test.end())
-		std::cout  << " " << it->first;
-	}
-	std::cout << std::endl;
+	static double num			= 0;
 
+	GTime newTime = kfState.time + dt;
 
-	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
-	{
-		std::cout << std::endl << std::endl << "testing for : " << i;
-		auto it = test2.lower_bound(i);
-		if (it != test2.end())
-		std::cout  << " " << it->first;
-	}
-	std::cout << std::endl;
+	predictOrbits(std::cout, copy, newTime);
+	copy.stateTransition(std::cout, newTime);
 
+	std::cout << "\n" << "\n" << kfState.time;
 
-	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
-	{
-		std::cout << std::endl << std::endl << "testing for : " << i;
-		auto it = testa.lower_bound(i);
-		if (it != testa.end())
-		std::cout  << " " << it->first;
-	}
-	std::cout << std::endl;
+	SatPos satPosPrec;
+	SatPos satPosProp;
+	SatPos satPosEllipse;
+	SatPos satPosJ2;
 
+	satPosPrec		.Sat = SatSys("L51");
+	satPosProp		.Sat = SatSys("L51");
+	satPosEllipse	.Sat = SatSys("L51");
+	satPosJ2		.Sat = SatSys("L51");
 
-	for (double i : {3.2, 3.2, 2.0, -2.0, 5.1, 12.0, 1.0, 7.1, 6.9, 19.0, 24.0})
-	{
-		std::cout << std::endl << std::endl << "testing for : " << i;
-		auto it = test2a.lower_bound(i);
-		if (it != test2a.end())
-		std::cout  << " " << it->first;
-	}
-	std::cout << std::endl;
+	pass = satPosPrecise(std::cout, newTime,	satPosPrec,		nav);						std::cout << " precise passed: "	<< pass;
+	pass = satPosKalman	(std::cout, newTime,	satPosProp,		&copy);						std::cout << " prop Passed: "		<< pass;
+	// pass = satPosKalman	(std::cout, newTime,	satPosEllipse,	&kfState);					std::cout << " ellp Passed: "		<< pass;
+	pass = satPosKalman	(std::cout, newTime,	satPosJ2,		&kfState);			std::cout << " j2 Passed: "			<< pass;
 
+	ERPValues erpv = getErp(nav.erp, newTime);
+	FrameSwapper frameSwapper(newTime, erpv);
+	satPosPrec.rSatEci0 = frameSwapper(satPosPrec.rSatCom, &satPosPrec.satVel, &satPosPrec.vSatEci0);
+
+	Matrix3d E = ecef2rac(satPosPrec.rSatEci0, satPosPrec.vSatEci0);
+
+	VectorEci differenceProp	= satPosProp	.rSatEciDt - satPosPrec.rSatEci0;		Vector3d rtnProp	= E * differenceProp;
+	VectorEci differenceEllipse	= satPosEllipse	.rSatEciDt - satPosPrec.rSatEci0;		Vector3d rtnEllipse	= E * differenceEllipse;
+	VectorEci differenceJ2		= satPosJ2		.rSatEciDt - satPosPrec.rSatEci0;		Vector3d rtnJ2		= E * differenceJ2;
+
+	std::cout << "\r\nPrecise:\t"	<< satPosPrec		.rSatEci0	.transpose().format(heavyFmt);
+	std::cout << "\r\nPropFull:\t"	<< satPosProp		.rSatEciDt	.transpose().format(heavyFmt) << "\t" << rtnProp	.transpose().format(heavyFmt) << " \t" << rtnProp	.norm();
+	std::cout << "\r\nEllipse:\t"	<< satPosEllipse	.rSatEciDt	.transpose().format(heavyFmt) << "\t" << rtnEllipse	.transpose().format(heavyFmt) << " \t" << rtnEllipse.norm();
+	std::cout << "\r\nEllipseJ2:\t"	<< satPosJ2			.rSatEciDt	.transpose().format(heavyFmt) << "\t" << rtnJ2		.transpose().format(heavyFmt) << " \t" << rtnJ2		.norm();
+
+	propSumSqr		+= rtnProp		.squaredNorm();
+	ellipseSumSqr	+= rtnEllipse	.squaredNorm();
+	j2SumSqr		+= rtnJ2		.squaredNorm();
+
+	num++;
+
+	double propRms		= sqrt(propSumSqr		/ num);
+	double ellipseRms	= sqrt(ellipseSumSqr	/ num);
+	double j2Rms		= sqrt(j2SumSqr			/ num);
+
+	std::cout << "\n";
+	std::cout << "\n" << "PropFull  rms from prec with t=" << dt << " : " << propRms;
+	std::cout << "\n" << "Ellipse   rms from prec with t=" << dt << " : " << ellipseRms;
+	std::cout << "\n" << "EllipseJ2 rms from prec with t=" << dt << " : " << j2Rms;
 }
+
+void accel()
+{
+	KFState kfState;
+
+	GTime time;
+	time += 60;
+
+	double actualX = 0;
+	double actualV = 0;
+	double actualA = 0;
+
+	double actualScale	[2] = {1,1};//{1.2, 0.95};
+	double actualBias	[2] = {0.02, -0.1};
+
+	InitialState init;
+	init.P = 100;
+
+	InitialState sInit;
+	sInit.P = 100;
+	sInit.x = 1;
+
+	InitialState vInit;
+	vInit.P = 100;
+	// vInit.Q = 100;
+
+	InitialState aInit;
+	aInit.P = 100;
+
+
+	KFKey posKey	= {.type = KF::REC_POS};
+	KFKey velKey	= {.type = KF::REC_VEL};
+	KFKey accKey	= {.type = KF::REC_ACC};
+	KFKey scaleKey	= {.type = KF::ACCL_SCALE};
+	KFKey biasKey	= {.type = KF::ACCL_BIAS};
+
+
+	//not really about indirectly estimating acceleration,
+	//here, i indirectly estimated velocity instead as a first pass
+
+	kfState.output_residuals = true;
+
+	kfState.addKFState(posKey, init);
+
+	for (int i = 0; i < 400; i++)
+	{
+		if (i > 100)
+		{
+			actualA = 1;
+		}
+		if (i > 200)
+		{
+			actualA = -1;
+		}
+
+		actualV += actualA;
+		actualX += actualV;
+
+		kfState.removeState(accKey);
+
+		kfState.stateTransition(std::cout, time);
+
+		kfState.outputStates(std::cout, "/Deleted");
+		{
+			KFMeasEntryList kfMeasEntryList;
+
+			if (1)
+			for (int i = 0; i < 2; i++)
+			{
+				scaleKey.num	= i;
+				biasKey.num		= i;
+
+				KFMeasEntry measEntry(&kfState);
+
+				double stateBias			= 0;
+				double stateScale			= 1;
+				double stateAcceleration	= 0;
+
+				// kfState.addKFState(scaleKey,	sInit);
+				kfState.addKFState(biasKey,		init);
+
+				// kfState.getKFValue(scaleKey,	stateScale);
+				kfState.getKFValue(biasKey,		stateBias);
+				// kfState.getKFValue(velKey,		stateVelocity);
+
+				double measuredAcceleration		= actualA * actualScale[i] + actualBias[i];
+
+				double estimatedAcceleration	= (measuredAcceleration - stateBias) / stateScale;
+
+				measEntry.addDsgnEntry(accKey,	stateScale,		vInit);
+				measEntry.addDsgnEntry(biasKey,	-stateScale,	init);
+				// measEntry.addDsgnEntry(scaleKey,(measuredVelocity - stateBias),	sInit);
+
+				double omc	= measuredAcceleration
+							- stateAcceleration
+							+ stateBias;
+
+				std::cout << "\n" << "Acceleration  : " << actualA;
+				std::cout << "\n" << "Measured      : " << measuredAcceleration;
+				std::cout << "\n" << "Estimated     : " << estimatedAcceleration;
+				std::cout << "\n" << "OMC           : " << omc;
+				std::cout << "\n";
+
+
+				measEntry.setInnov(omc);
+				measEntry.setNoise(0.01);
+				measEntry.obsKey.comment = "Acceleration";
+
+				kfMeasEntryList.push_back(measEntry);
+			}
+
+			kfState.setKFTransRate(posKey, velKey,	+1,	vInit);
+			kfState.setKFTransRate(velKey, accKey,	+1,	aInit);
+
+			kfState.stateTransition(std::cout, time);
+
+			KFMeas combinedMeas(kfState, kfMeasEntryList, time);
+
+			kfState.filterKalman(std::cout, combinedMeas, "", true);
+
+			kfState.outputStates(std::cout, "/Accelerations");
+		}
+
+		time++;
+
+
+		kfState.stateTransition(std::cout, time);
+
+		kfState.outputStates(std::cout, "/PREDICTED");
+
+		//add measurement for position,
+		{
+			KFMeasEntryList kfMeasEntryList;
+
+			KFMeasEntry measEntry(&kfState);
+
+			double stateX = 0;
+
+			kfState.getKFValue(posKey,	stateX);
+
+			measEntry.addDsgnEntry(posKey,	1, init);
+
+			double omc	= actualX
+						- stateX;
+
+			std::cout << "\n" << "actualX  : " << actualX;
+			std::cout << "\n" << "stateX   : " << stateX;
+
+			measEntry.setInnov(omc);
+			measEntry.setNoise(1);
+			measEntry.obsKey.comment = "Position";
+
+			kfMeasEntryList.push_back(measEntry);
+
+			KFMeas combinedMeas(kfState, kfMeasEntryList, time);
+
+			kfState.filterKalman(std::cout, combinedMeas, "", true);
+		}
+	}
+}
+
+
 void doDebugs()
 {
-	// testt();
-// 	minimumTest(std::cout);
-// 	exit(0);
-}
 
+}

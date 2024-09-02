@@ -4,7 +4,6 @@
 #include "observations.hpp"
 #include "linearCombo.hpp"
 #include "navigation.hpp"
-#include "instrument.hpp"
 #include "testUtils.hpp"
 #include "satStat.hpp"
 #include "debug.hpp"
@@ -181,13 +180,8 @@ void lcPrepareBase(
 
 	for (auto& [ft, sig] : obs.sigs)
 	{
-		auto& satStat = *obs.satStat_ptr;
-		auto& sigStat = satStat.sigStatMap[ft2string(ft)];
-		
-		sigStat.lambda	= obs.satNav_ptr->lamMap[ft];
-
 		//populate variables for later use.
-		lcBase.L_m[ft]	= sig.L * sigStat.lambda;
+		lcBase.L_m[ft]	= sig.L * obs.satNav_ptr->lamMap[ft];
 		lcBase.P[ft]	= sig.P;
 	}
 }
@@ -199,24 +193,17 @@ void obs2lc(
 	GObs&	obs,	///< Observation to prepare combinations for
 	lc_t&	lcBase)	///< Linear combination base object to use
 {
-	int lv = 3;
-	
 	int sys = obs.Sat.sys;
-
-	/* SBS and LEO are not included */
-	if	(  sys == E_Sys::SBS 
-		|| sys == E_Sys::LEO)
-	{
-		tracepdeex(lv, trace, "PDE, no relevant satellite system involved\n");
-		return;
-	}
 
 	E_FType frq1;
 	E_FType frq2;
 	E_FType frq3;
-	if (!satFreqs(obs.Sat.sys,frq1,frq2,frq3))
+
+	bool pass = satFreqs(obs.Sat.sys, frq1, frq2, frq3);
+
+	if (pass == false)
 		return;
-	
+
 	char strprefix[64];
 	snprintf(strprefix, sizeof(strprefix), "%3s sat=%4s", obs.time.to_string().c_str(), obs.Sat.id().c_str());
 
@@ -227,24 +214,23 @@ void obs2lc(
 	S_LC& lc15 = getLC(obs, lcBase, frq1, frq3);
 	S_LC& lc25 = getLC(obs, lcBase, frq2, frq3);
 
-	tracepdeex(lv, trace, "%s zd L -- L1  =%14.4f L2  =%14.4f L5  =%14.4f\n", strprefix, lcBase.L_m[frq1],	lcBase.L_m[frq2],	lcBase.L_m[frq3]);
-	tracepdeex(lv, trace, "%s zd P -- P1  =%14.4f P2  =%14.4f P5  =%14.4f\n", strprefix, lcBase.P[frq1],	lcBase.P[frq2],		lcBase.P[frq3]);
-	tracepdeex(lv, trace, "%s gf L -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Phas_m,	lc15.GF_Phas_m,		lc25.GF_Phas_m);
-	tracepdeex(lv, trace, "%s gf P -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Code_m,	lc15.GF_Code_m,		lc25.GF_Code_m);
-	tracepdeex(lv, trace, "%s mw L -- mw12=%14.4f mw15=%14.4f mw25=%14.4f\n", strprefix, lc12.MW_c,			lc15.MW_c,			lc25.MW_c);
-	tracepdeex(lv, trace, "%s wl L -- wl12=%14.4f wl15=%14.4f wl25=%14.4f\n", strprefix, lc12.WL_Phas_m,	lc15.WL_Phas_m,		lc25.WL_Phas_m);
-	tracepdeex(lv, trace, "%s if L -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Phas_m,	lc15.IF_Phas_m,		lc25.IF_Phas_m);
-	tracepdeex(lv, trace, "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Code_m,	lc15.IF_Code_m,		lc25.IF_Code_m);
-	tracepdeex(lv, trace, "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n", strprefix, lcBase.mp[frq1],	lcBase.mp[frq2],	lcBase.mp[frq3]);
+	tracepdeex(3, trace, "%s zd L -- L1  =%14.4f L2  =%14.4f L5  =%14.4f\n", strprefix, lcBase.L_m	[frq1],		lcBase.L_m	[frq2],		lcBase.L_m	[frq3]);
+	tracepdeex(3, trace, "%s zd P -- P1  =%14.4f P2  =%14.4f P5  =%14.4f\n", strprefix, lcBase.P	[frq1],		lcBase.P	[frq2],		lcBase.P	[frq3]);
+	tracepdeex(5, trace, "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n", strprefix, lcBase.mp	[frq1],		lcBase.mp	[frq2],		lcBase.mp	[frq3]);
+	tracepdeex(5, trace, "%s gf L -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Phas_m,			lc15.GF_Phas_m,			lc25.GF_Phas_m);
+	tracepdeex(5, trace, "%s gf P -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n", strprefix, lc12.GF_Code_m,			lc15.GF_Code_m,			lc25.GF_Code_m);
+	tracepdeex(5, trace, "%s mw L -- mw12=%14.4f mw15=%14.4f mw25=%14.4f\n", strprefix, lc12.MW_c,				lc15.MW_c,				lc25.MW_c);
+	tracepdeex(5, trace, "%s wl L -- wl12=%14.4f wl15=%14.4f wl25=%14.4f\n", strprefix, lc12.WL_Phas_m,			lc15.WL_Phas_m,			lc25.WL_Phas_m);
+	tracepdeex(5, trace, "%s if L -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Phas_m,			lc15.IF_Phas_m,			lc25.IF_Phas_m);
+	tracepdeex(5, trace, "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n", strprefix, lc12.IF_Code_m,			lc15.IF_Code_m,			lc25.IF_Code_m);
 
-	traceJson(lv, trace, obs.time, 
+	traceJson(5, trace, obs.time,
 				{
 					{"data",	__FUNCTION__		},
-					{"Sat",		obs.Sat.id()		} 
+					{"Sat",		obs.Sat.id()		}
 				},
 				{
-					{"L1",		lcBase.L_m[frq1]	},	{"L2",		lcBase.L_m[frq2]	},	//etc
-					{"mp1",		lcBase.mp[frq1]		},	{"mp2",		lcBase.mp[frq2]		},	
+					{"L1",		lcBase.L_m[frq1]	},	{"L2",		lcBase.L_m[frq2]	}
 				});
 }
 
@@ -254,8 +240,6 @@ void obs2lcs(
 	Trace&		trace,		///< Trace to output to
 	ObsList&	obsList)	///< List of bservation to prepare combinations for
 {
-	Instrument instrument(__FUNCTION__);
-	
 	int lv = 3;
 
 	if (obsList.empty())

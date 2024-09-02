@@ -1,6 +1,6 @@
 inputs:
 
-    include_yamls:  [ boxwing.yaml ] # required if using boxwing model
+    include_yamls:  [ products/boxwing.yaml ] # required if using boxwing model
 
     inputs_root:   ./products/
 
@@ -95,13 +95,16 @@ satellite_options:  # Options to configure individual satellites, systems, or gl
             empirical_dyb_eclipse:    [true, false, false]
             planetary_perturbations:  [moon,sun,mercury,venus,mars,jupiter,saturn,uranus,neptune,pluto]
             pseudo_pulses:
-                enable: false
+                enable:               true
             solar_radiation_pressure: boxwing
             mass:                     1000
             area:                     15
             srp_cr:                   1.75
             power:                    20
         models:
+            pos:
+                enable:               true
+                sources:              [KALMAN, PRECISE, BROADCAST]
             attitude:
                 enable:               true         # (bool) Enables non-nominal attitude types
                 sources:              [ NOMINAL ]  # List of sourecs to use for attitudes
@@ -163,7 +166,7 @@ estimation_parameters:
             sigma:                      [ 10 ]
 
     satellites:
-        GPS:
+        global:
             orbit:
                 estimated:            [true]
                 sigma:                [1]

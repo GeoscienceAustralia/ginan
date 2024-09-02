@@ -1,4 +1,13 @@
 
+// #pragma GCC optimize ("O0")
+
+#include "architectureDocs.hpp"
+
+FileType GPX__()
+{
+
+}
+
 #include <boost/log/trivial.hpp>
 
 #include "coordinates.hpp"
@@ -87,37 +96,39 @@ struct XmlCloser
 
 void writeGPXEntry(
 	Trace&		output,
-	string		id,
+	Receiver&	rec,
 	KFState&	kfState)
 {
-	VectorEcef xyz;
+	VectorEcef apriori	= rec.aprioriPos;
+	VectorEcef xyz		= apriori;
 	VectorEcef var;
-	VectorEcef apriori;
+	VectorEcef covar;
 
-	bool found = true;
+	int covIdx = 0;
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
 	{
-		if	( kfKey.type != KF::REC_POS
-			||kfKey.str		!= id)
+		if	( kfKey.type	!= KF::REC_POS
+			||kfKey.str		!= rec.id)
 		{
 			continue;
 		}
 
-		xyz[kfKey.num] =		kfState.x(index);
-		var[kfKey.num] = sqrt(	kfState.P(index, index));
+		xyz[kfKey.num] = kfState.x(index);
+		var[kfKey.num] = kfState.P(index, index);
 
-		if	( kfKey.num == 0
-			&&kfKey.rec_ptr)
+		for (auto& [kfKey2, index2] : kfState.kfIndexMap)
 		{
-			auto& rec = *kfKey.rec_ptr;
+			if	(  kfKey2.type	!= KF::REC_POS
+				|| kfKey2.str	!= rec.id)
+			{
+				continue;
+			}
 
-			apriori = rec.aprioriPos;
+			if (kfKey2.num > kfKey.num)
+			{
+				covar(covIdx++) = kfState.P(index, index2);
+			}
 		}
-	}
-
-	if (found == false)
-	{
-		return;
 	}
 
 	VectorPos pos = ecef2pos(xyz);
@@ -131,24 +142,45 @@ void writeGPXEntry(
 	<< ">";
 
 	{	XmlCloser(output, "ele")			<< pos.hgt();	}
-	{	XmlCloser(output, "time")			<< boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t((time_t)((PTime)kfState.time).bigTime)) << "Z";	}
-
+	{	UtcTime utc (kfState.time);
+		XmlCloser(output, "time")			<< utc.to_ISOstring(3);
+	}
 
 	{
 		auto extensions = XmlCloser(output, "extensions");
 
-		{	XmlCloser(output, "ginan:time")		<< kfState.time;							}
-		{	XmlCloser(output, "ginan:xyz")		<< xyz		.transpose().format(lightFmt);	}
-		{	XmlCloser(output, "ginan:var")		<< var		.transpose().format(lightFmt);	}
-		{	XmlCloser(output, "ginan:apriori")	<< apriori	.transpose().format(lightFmt);	}
+		{
+			XmlCloser(output, "time")		<< kfState.time.to_ISOstring(3);
+		}
+		{
+			auto pos = XmlCloser(output, "pos");
+			{XmlCloser(output, "x")			<< xyz.x();	}
+			{XmlCloser(output, "y")			<< xyz.y();	}
+			{XmlCloser(output, "z")			<< xyz.z();	}
+		}
+		{
+			auto pos = XmlCloser(output, "variances");
+			{XmlCloser(output, "xx")		<< var.x();		}
+			{XmlCloser(output, "yy")		<< var.y();		}
+			{XmlCloser(output, "zz")		<< var.z();		}
+			{XmlCloser(output, "xy")		<< covar(0);	}
+			{XmlCloser(output, "xz")		<< covar(1);	}
+			{XmlCloser(output, "yz")		<< covar(2);	}
+		}
+		{
+			auto pos = XmlCloser(output, "apriori");
+			{XmlCloser(output, "x")			<< apriori.x();	}
+			{XmlCloser(output, "y")			<< apriori.y();	}
+			{XmlCloser(output, "z")			<< apriori.z();	}
+		}
 
+		bool found = true;
 		Quaterniond quat;
-		found = true;
 		for (int i = 0; i < 4; i++)
 		{
 			KFKey kfKey;
 			kfKey.type	= KF::ORIENTATION;
-			kfKey.str	= id;
+			kfKey.str	= rec.id;
 			kfKey.num	= i;
 
 			if (i == 0)		found &= kfState.getKFValue(kfKey, quat.w());
@@ -172,7 +204,7 @@ void writeGPXEntry(
 void writeGPX(
 	string		filename,
 	KFState&	kfState,
-	string		id)
+	Receiver&	rec)
 {
 	std::ofstream output(filename, std::fstream::in | std::fstream::out);
 	if (!output)
@@ -185,13 +217,13 @@ void writeGPX(
 
 	if (output.tellp() == 0)
 	{
-		writeGPXHeader(output, id, kfState.time);
+		writeGPXHeader(output, rec.id, kfState.time);
 		gpxEndOfContentPositionMap[filename] = output.tellp();
 	}
 
 	output.seekp(gpxEndOfContentPositionMap[filename]);
 
-	writeGPXEntry(output, id, kfState);
+	writeGPXEntry(output, rec, kfState);
 
 	gpxEndOfContentPositionMap[filename] = output.tellp();
 

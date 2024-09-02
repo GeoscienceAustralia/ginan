@@ -1350,7 +1350,7 @@ vector<uint8_t> encodeGridInfo(
 			case 1: bitlen+= 31; break;
 			case 2: bitlen+= 31; break;
 			default:
-				std::cout << "Unknown gridtype for region: " << regID << std::endl;
+				std::cout << "Unknown gridtype for region: " << regID << "\n";
 				regData.gridType = -1;
 				continue;
 		}

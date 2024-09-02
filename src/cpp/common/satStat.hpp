@@ -12,7 +12,7 @@ using std::map;
 #include "acsQC.hpp"
 #include "enums.h"
 
-/** Object containing persistant status parameters of individual signals
+/** Object containing persistent status parameters of individual signals
 */
 struct SigStat
 {
@@ -32,13 +32,7 @@ struct SigStat
 	SlipStat slip;
 
 	unsigned int	phaseRejectCount	= 0;
-	unsigned int	phaseOutageCount	= 0;
-
-	double recPco = 0;
-	double recPcv = 0;
-	double satPcv = 0;
-
-	double lambda = 0;
+	GTime			lastPhaseTime;
 };
 
 struct IonoStat
@@ -80,7 +74,7 @@ struct AzEl
 	double	el = 0;		///< elevation angle (rad)
 };
 
-/** Object containing persistant status parameters of individual satellites
+/** Object containing persistent status parameters of individual satellites
 */
 struct SatStat : IonoStat, QC, AzEl
 {
@@ -89,7 +83,7 @@ struct SatStat : IonoStat, QC, AzEl
 	double  	mapWetGrads[2]	= {};		///< troposphere wet mapping function
 	VectorEcef	e;							///< Line-of-sight unit vector
 
-	int ionoOutageCount		= 0;			///< Count of epochs without measurements reffering to this satellite's ionosphere state
+	GTime lastIonTime;
 
 	double		dIono		= 0;			///< TD ionosphere residual
 	double		sigmaIono	= 0;			///< TD ionosphere residual noise

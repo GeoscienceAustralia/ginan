@@ -54,8 +54,8 @@ void load_1_point(
 		// *greenEW_it *= sin(azimuth);
 		if (*greenZ_it != *greenZ_it)
 		{
-			std::cout << " nan detected for " << *lat_ptr << " " <<*lon_ptr << std::endl;
-			std::cout << dist << "  " << azimuth << std::endl;
+			std::cout << " nan detected for " << *lat_ptr << " " <<*lon_ptr << "\n";
+			std::cout << dist << "  " << azimuth << "\n";
 			exit(0);
 		}
 		greenZ_it++;

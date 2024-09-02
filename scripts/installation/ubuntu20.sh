@@ -32,7 +32,7 @@ echo "Updating package repositories..."
 $sudo_cmd apt update -y
 
 echo "Installing dependencies..."
-$sudo_cmd apt-get install --no-install-recommends --yes git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools  openssh-server cmake make libssl-dev wget sudo python3 python3-pip software-properties-common libnetcdf-dev libnetcdf-c++4-dev gpg-agent 
+$sudo_cmd apt-get install --no-install-recommends --yes git gobjc gobjc++ gfortran libopenblas-dev openssl libncurses5-dev curl net-tools  openssh-server cmake make libssl-dev wget sudo python3 python3-pip software-properties-common libnetcdf-dev libnetcdf-c++4-dev gpg-agent
 
 $sudo_cmd add-apt-repository ppa:ubuntu-toolchain-r/test -y
 
@@ -40,7 +40,7 @@ $sudo_cmd apt update
 
 $sudo_cmd apt install -y gcc-9 g++-9
 
-$sudo_cmd update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 51 
+$sudo_cmd update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 51
 
 $sudo_cmd update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 51
 

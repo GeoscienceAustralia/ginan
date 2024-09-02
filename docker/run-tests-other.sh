@@ -28,12 +28,12 @@ case $TEST_NUM in
   1)
     DIR="ex51"
     mkdir -p $DIR
-    make_otl_blq --config ex51_otl_fes2014b_gb.yaml --code 'ALIC 50137M0014' --location 133.8855 -23.6701 --output $DIR/alic.blq
-    make_otl_blq --config ex51_otl_fes2014b_gb.yaml --code 'BRO1 50176M003' --location 122.2090 -18.0039 --output $DIR/bro1.blq
+    make_otl_blq --type o --config ex51_otl_fes2014b_gb.yaml --code 'ALIC 50137M0014' --location 133.8855 -23.6701 --output $DIR/alic.blq
+    make_otl_blq --type o --config ex51_otl_fes2014b_gb.yaml --code 'BRO1 50176M003' --location 122.2090 -18.0039 --output $DIR/bro1.blq
 
     export OMP_NUM_THREADS=2 #gets killed in the pipeline if not overridden
-    make_otl_blq --config ex51_otl_fes2014b_gb.yaml --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50.blq
-    make_otl_blq --config ex51_otl_fes2014b_prem.yaml --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50_PREM.blq
+    make_otl_blq --type o --config ex51_otl_fes2014b_gb.yaml --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50.blq
+    make_otl_blq --type o --config ex51_otl_fes2014b_prem.yaml --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50_PREM.blq
 
     results2s3 $DIR
      ../scripts/download_example_input_data.py --push $DIR --tag $TAG
@@ -45,9 +45,9 @@ case $TEST_NUM in
   2)
     DIR="ex52"
     mkdir -p $DIR
-    interpolate_loading --grid ../inputData/loading/grids/oceantide.nc --code 'ALIC 50137M0014' --location 133.8855 -23.6701 --output $DIR/alic.blq
-    interpolate_loading --grid ../inputData/loading/grids/oceantide.nc --code 'BRO1 50176M003' --location 122.2090 -18.0039 --output $DIR/bro1.blq
-    interpolate_loading --grid ../inputData/loading/grids/oceantide.nc --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50.blq
+    interpolate_loading --type o --grid ../inputData/loading/grids/oceantide.nc --code 'ALIC 50137M0014' --location 133.8855 -23.6701 --output $DIR/alic.blq
+    interpolate_loading --type o --grid ../inputData/loading/grids/oceantide.nc --code 'BRO1 50176M003' --location 122.2090 -18.0039 --output $DIR/bro1.blq
+    interpolate_loading --type o --grid ../inputData/loading/grids/oceantide.nc --input ../inputData/loading/sites_coastal50.csv --output $DIR/coastal50.blq
     results2s3 $DIR
      ../scripts/download_example_input_data.py --push $DIR --tag $TAG
      ../scripts/download_example_input_data.py $DIR --tag $OTHER

@@ -8,20 +8,50 @@ using std::map;
 
 
 #include "algebra.hpp"
-#include "satStat.hpp"
 
-//forward declarations
+struct PhaseCenterData;
+struct FrameSwapper;
+struct Observation;
+struct ReceiverMap;
+struct AttStatus;
 struct Receiver;
 struct Solution;
-struct Vmf3;
-struct gptgrid_t;
-struct AttStatus;
-struct PhaseCenterData;
-struct ReceiverMap;
+struct KFState;
+struct ObsList;
 struct GTime;
+struct Vmf3;
+struct GObs;
 
 
+double relativity2(
+	VectorEcef&		rSat,
+	VectorEcef&		rRec);
 
+double recAntDelta(
+	VectorEcef&		e,
+	Receiver&		rec);
+
+tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d> tideDelta(
+	Trace&				trace,
+	GTime				time,
+	Receiver&			rec,
+	VectorEcef&			rRec,
+	ReceiverOptions&	recOpts);
+
+void eopAdjustment(
+	GTime&			time,
+	VectorEcef&		e,
+	ERPValues&		erpv,
+	FrameSwapper&	frameSwapper,
+	Receiver&		rec,
+	VectorEcef&		rRec,
+	KFMeasEntry&	measEntry,
+	const KFState&	kfState);
+
+double netResidualAndChainOutputs(
+	Trace&			trace,
+	Observation&	obs,
+	KFMeasEntry&	measEntry);
 
 void removeUnmeasuredAmbiguities(
 	Trace&				trace,
@@ -33,7 +63,7 @@ void outputPppNmea(
 	KFState&	kfState,
 	string		id);
 
-void SPP(
+void spp(
 	Trace&		trace,
 	ObsList&	obsList,
 	Solution&	sol,
@@ -50,7 +80,7 @@ void pppCorrections(
 	Vector3d&	rRec,
 	Receiver&	rec);
 
-void PPP(
+void ppp(
 	Trace&			trace,
 	ReceiverMap&	receiverMap,
 	KFState&		kfState,
@@ -61,7 +91,7 @@ void phaseWindup(
 	Receiver&	rec,
 	double&		phw);
 
-int ionoModel(
+bool ionoModel(
 	GTime&		time,
 	VectorPos&	pos,
 	AzEl&		azel,
@@ -75,27 +105,23 @@ int ionoModel(
 void outputApriori(
 	ReceiverMap& receiverMap);
 
-// void outputPPPSolution(
-// 	string		filename,
-// 	KFState&	kfState,
-// 	Receiver&	rec);
-//
-// void gpggaout(
-// 	string outfile,
-// 	KFState& KfState,
-// 	string recId,
-// 	int solStat,
-// 	int numSat,
-// 	double hdop,
-// 	bool lng);
-
 void selectAprioriSource(
+	Trace&		trace,
 	Receiver&	rec,
 	GTime&		time,
-	bool&		sppUsed);
+	bool&		sppUsed,
+	KFState&	kfState,
+	KFState*	remote_ptr	= nullptr);
+
+void selectAprioriSource(
+	SatSys&		Sat,
+	GTime&		time,
+	KFState&	kfState,
+	KFState*	remote_ptr	= nullptr);
 
 void postFilterChecks(
-	KFMeas&	kfMeas);
+	const	GTime&	time,
+			KFMeas&	kfMeas);
 
 bool deweightMeas(
 	Trace&		trace,
@@ -132,17 +158,27 @@ bool incrementPhaseSignalError(
 	int			index,
 	bool		postFit);
 
-bool resetPhaseSignalError(
+bool incrementReceiverError(
+	Trace&		trace,
+	KFState&	kfState,
 	KFMeas&		kfMeas,
-	int			index);
+	int			index,
+	bool		postFit);
+
+bool resetPhaseSignalError(
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index);
 
 bool resetPhaseSignalOutage(
-	KFMeas&		kfMeas,
-	int			index);
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index);
 
 bool resetIonoSignalOutage(
-	KFMeas&		kfMeas,
-	int			index);
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index);
 
 bool rejectByState(
 			Trace&		trace,
@@ -167,13 +203,12 @@ bool orbitGlitchReaction(
 
 
 
-void receiverPPP(
+void receiverUducGnss(
 			Trace&				pppTrace,
 			Receiver&			rec,
 	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
 	const	KFState&			remoteState);
-
 
 void orbitPseudoObs(
 			Trace&				pppTrace,
@@ -186,13 +221,21 @@ void initPseudoObs(
 			KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList);
 
+void filterPseudoObs(
+			Trace&				pppTrace,
+			KFState&			kfState,
+			KFMeasEntryList&	kfMeasEntryList);
+
 void receiverPseudoObs(
 			Trace&				pppTrace,
 			Receiver&			rec,
 	const	KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList,
-			ReceiverMap&			receiverMap,
-			MatrixXd*			R_ptr = nullptr);
+			ReceiverMap&		receiverMap);
+
+
+void readPseudosFromFile(
+	string&		file);
 
 void receiverSlr(
 			Trace&				pppTrace,
@@ -251,3 +294,8 @@ void satClockPivotPseudoObs(
 KFState propagateUncertainty(
 	Trace&			trace,
 	KFState&		kfState);
+
+void explainMeasurements(
+	Trace&		trace,
+	KFMeas&		meas,
+	KFState&	kfState);

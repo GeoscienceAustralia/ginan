@@ -1,0 +1,201 @@
+inputs:
+
+    inputs_root: ./products/
+
+    troposphere:
+        gpt2grid_files: [ tables/gpt_25.grd ]
+
+    snx_files:
+    - tables/igs_satellite_metadata_2203_plus.snx
+    - IGS1R03SNX_20191950000_07D_07D_CRD.SNX
+    - meta_gather_20210721.snx
+
+    gnss_observations:
+        rnx_inputs:
+            - ALEX:
+                - "<CWD>/rtk/A*.rnx"
+            - BRAD:
+                - "<CWD>/rtk/B*.rnx"
+            - CHAZ:
+                - "<CWD>/rtk/C*.rnx"
+            - DAVE:
+                - "<CWD>/rtk/D*.rnx"
+            # - FRAN:
+            #     - "<CWD>/rtk/F*.rnx"
+            # - GARY:
+            #     - "<CWD>/rtk/G*.rnx"
+
+    satellite_data:
+        sp3_files:
+            - "<CWD>/rtk/*.SP3"
+
+outputs:
+    metadata:
+        config_description:    rtk_A
+
+    outputs_root:              ./outputs/<CONFIG>
+
+    trace:
+        level:                      5
+        output_receivers:           true
+        output_network:             true
+        output_residuals:           true
+        output_residual_chain:      true
+        output_initialised_states:  true
+
+satellite_options:
+
+    global:
+        models:
+            code_bias:
+                enable: true
+            pco:
+                enable: false
+            pcv:
+                enable: false
+
+receiver_options:
+
+    global:
+        elevation_mask:     10
+        code_sigma:         0.3
+        # code_sigma:         3000
+        phase_sigma:        0.003    # Standard deviation of phase measurmeents, m
+        models:
+            phase_bias:
+                enable:     true
+            code_bias:
+                enable:     true
+            tides:
+                enable: false
+            pco:
+                enable: false
+            pcv:
+                enable: false
+            eccentricity:
+                enable: false
+            ionospheric_components:
+                iono_sigma_limit: 10000000
+        apriori_position: [-4454625.6083166, 2669830.4257644,-3691275.8084798]
+
+    ALEX:
+        models:
+            code_bias:
+                enable:     true
+
+    BRAD:
+        aliases:          [BASE]
+    FRAN:
+        # aliases:          [BASE]
+        apriori_position: [ -4454695.3171,  2669791.4467, -3691215.6759   ]
+
+    GARY:
+        # aliases:          [BASE]
+        apriori_position: [ -4454622.6297,  2669912.5450, -3691219.1597   ]
+
+    BASE:
+        code_sigma:         0.3
+
+processing_options:
+
+    process_modes:
+        ppp:                            true
+
+    epoch_control:
+        epoch_interval:                 1
+
+    gnss_general:
+        phase_measurements:
+            process:                    false
+
+        # equate_tropospheres:    true
+        # equate_ionospheres:     true
+        # use_rtk_combo:          true
+        sys_options:
+            gps:
+                process:                true
+                code_priorities:        [ L1C, L2W ]
+
+    ppp_filter:
+        ionospheric_components:
+            common_ionosphere: false
+            # use_if_combo: true
+
+        advanced_postfits: true
+
+estimation_parameters:
+    satellites:
+        global:
+            clock:
+                estimated: [true]
+                sigma:  [10000]
+                process_noise:  [10000]
+                # process_noise:  [-1]
+            phase_bias:
+                estimated:  [true]
+                sigma:      [1]
+                # process_noise:  [-1]
+            code_bias:
+                estimated:          [true]
+                sigma:              [10000]
+                process_noise:      [1]
+
+    receivers:
+        BASE:
+            phase_bias:
+                # estimated:  [false]
+            pos:
+                estimated:  [false]
+            code_bias:
+                estimated:  [false]
+        ALEX:
+            code_bias:
+                apriori_value: [20]
+        CHAZ:
+            code_bias:
+                # apriori_value: [-0.9]
+        DAVE:
+            code_bias:
+                # apriori_value: [0]
+        global:
+            pos:
+                estimated:          [true]
+                sigma:              [1000]
+                process_noise:      [10]
+            clock:
+                estimated:          [true]
+                sigma:              [1000]
+                process_noise:      [10000]
+            ion_stec:
+                estimated:          [true]
+                sigma:              [2000]
+                process_noise:      [-1]
+            trop:
+                estimated:          [true]
+                sigma:              [4]
+                process_noise:      [0.001]
+            phase_bias:
+                estimated:          [true]
+                sigma:              [100]
+                process_noise:      [0]
+            ambiguities:
+                estimated:          [true]
+                sigma:              [100000]
+                process_noise:      [0]
+            code_bias:
+                # estimated:          [false, false, true]
+                estimated:          [true]
+                sigma:              [10000]
+                process_noise:      [0]
+                # apriori_value: [1.5, 1.5, -1.5]
+
+mongo:
+    enable:                 primary
+    output_components:      primary
+    output_cumulative:      primary
+    output_states:          primary
+    output_measurements:    primary
+    delete_history:         primary
+
+debug:
+    explain_measurements: true

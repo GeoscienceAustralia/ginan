@@ -1,17 +1,19 @@
 
 #pragma once
 
+#include <array>
+
+using std::array;
+
 #include "centerMassCorrections.hpp"
 #include "eigenIncluder.hpp"
-#include "instrument.hpp"
 #include "constants.hpp"
 #include "attitude.hpp"
 #include "iers2010.hpp"
 #include "gTime.hpp"
+#include "erp.hpp"
 #include "sofam.h"
 #include "sofa.h"
-
-struct ERPValues;
 
 
 struct Sofa
@@ -47,8 +49,7 @@ void eci2ecef(
 	GTime				time,
 	const ERPValues&	erpVal,
 	Matrix3d&			U,
-	Matrix3d*			dU_ptr			= nullptr,
-	XFormData*			xFormData_ptr	= nullptr);
+	Matrix3d*			dU_ptr = nullptr);
 
 void pos2enu(
 	const	VectorPos&	pos,
@@ -83,44 +84,39 @@ Vector3d ecef2body(
 	VectorEcef&	ecef,
 	MatrixXd*	dEdQ_ptr = nullptr);
 
+
+
 struct FrameSwapper
 {
+	static array<FrameSwapper, 2> cacheArr;
+
 	GTime		time0;
-	Matrix3d	 i2t_mat;
+	ERPValues	erpv;
+
+	Matrix3d	i2t_mat;
 	Matrix3d	di2t_mat;
 	Vector3d	translation = Vector3d::Zero();
+
+	void setCache(
+		int cache)
+	{
+		cacheArr[cache] = *this;
+	}
+
+	FrameSwapper()
+	{
+
+	}
+
 	FrameSwapper(
 				GTime		time,
-		const	ERPValues&	erpVal)
-	:	time0 {time}
-	{
-		Instrument instrument(__FUNCTION__);
-
-		eci2ecef(time, erpVal, i2t_mat, &di2t_mat);
-
-		if (cmc.initialized)
-		{
-			Array6d dood_arr = IERS2010::doodson(time, 0); //Will need to add erpval.ut1Utc later
-
-			translation = cmc.estimate(dood_arr);
-		}
-	}
-
-	FrameSwapper& operator = (FrameSwapper& in)
-	{
-		this-> i2t_mat	= in. i2t_mat;
-		this->di2t_mat	= in.di2t_mat;
-
-		return *this;
-	}
+		const	ERPValues&	erpv);
 
 	VectorEcef	operator()(
 		const	VectorEci	rEci,
 		const	VectorEci*	vEci_ptr	= nullptr,
 				VectorEcef*	vEcef_ptr	= nullptr)
 	{
-		Instrument instrument(__FUNCTION__);
-
 		if	(  vEci_ptr
 			&& vEcef_ptr)
 		{
@@ -139,8 +135,6 @@ struct FrameSwapper
 		const	VectorEcef*	vEcef_ptr	= nullptr,
 				VectorEci*	vEci_ptr	= nullptr)
 	{
-		Instrument instrument(__FUNCTION__);
-
 		if	(  vEcef_ptr
 			&& vEci_ptr)
 		{

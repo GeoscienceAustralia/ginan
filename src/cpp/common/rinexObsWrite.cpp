@@ -16,7 +16,6 @@ using std::pair;
 #include "rinexObsWrite.hpp"
 #include "rinexClkWrite.hpp"
 #include "observations.hpp"
-#include "instrument.hpp"
 #include "acsConfig.hpp"
 #include "receiver.hpp"
 #include "common.hpp"
@@ -459,8 +458,6 @@ void writeRinexObs(
 	ObsList&		obsList,
 	const double	rnxver)
 {
-	Instrument instrument(__FUNCTION__);
-
 	string filename = acsConfig.rinex_obs_filename;
 
 	auto filenameSysMap = getSysOutputFilenames(filename, time, true, id);

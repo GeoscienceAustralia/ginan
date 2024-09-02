@@ -20,7 +20,6 @@ processing_options:
         epoch_interval:      5
         wait_all_stations:   2
     gnss_general:
-        rec_reference_system:               none
         minimise_sat_clock_offsets:         true
         minimise_rec_bias_offsets:          false
         sys_options:

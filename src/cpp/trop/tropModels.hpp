@@ -18,10 +18,10 @@ using std::string;
 
 struct TropMapping
 {
+	double dryMap	= 0;
 	double wetMap	= 0;
 	double northMap	= 0;
 	double eastMap	= 0;
-	double dryMap	= 0;
 };
 
 struct TropStates

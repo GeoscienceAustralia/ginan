@@ -34,7 +34,7 @@ struct TECPoint
 	double rms	= 0;		///< RMS values (tecu)
 };
 
-struct tec_t
+struct TEC
 {
 	/// TEC grid type
 	GTime				time;			///< epoch time (GPST)
@@ -49,13 +49,11 @@ struct tec_t
 struct SatNav
 {
 	map<int, double>	lamMap;
-	double				wlbias;						///< wide-lane bias (cycle)
 
 	SSRMaps				receivedSSR;				///< SSR corrections
 
 	VectorEci			aprioriPos;					///< Inertial satellite position at epoch time
-
-	BrdcEph*			eph_ptr			= nullptr;
+	double				aprioriClk		= 0;		///< Apriori clock value at epoch time
 
 	AttStatus			attStatus		= {};		///< Persistent data for attitude model
 
@@ -66,7 +64,7 @@ struct SatNav
 	Vector3d			antBoresight	= {0,0,1};
 	Vector3d			antAzimuth		= {0,1,0};
 
-	SatPos				satPos0;
+	SatPos				satPos0;					///< Satellite position when propagated to nominal time
 };
 
 /** navigation data type
@@ -74,23 +72,23 @@ struct SatNav
 struct Navigation
 {
 	//these are interpolated between, dont need greater
-	map<string,							GMap<GTime, Peph>> 														pephMap;	///< precise ephemeris
-	map<string,							GMap<GTime, Pclk>> 														pclkMap;	///< precise clock
-	map<string,							GMap<GTime, Att>>													 	attMapMap;	///< attitudes
+	map<string,							map<GTime, Peph>> 																pephMap;	///< precise ephemeris
+	map<string,							map<GTime, Pclk>> 																pclkMap;	///< precise clock
+	map<string,							map<GTime, Att>>															 	attMapMap;	///< attitudes
 
 	map<string,												map<GTime, AzElMapData<Vector3d>,	std::greater<GTime>>>	dragMap;
 	map<string,												map<GTime, AzElMapData<Vector3d>,	std::greater<GTime>>>	reflectorMap;
 	map<string, 	map<E_Sys,			map<E_FType, 		map<GTime, PhaseCenterOffset,		std::greater<GTime>>>>>	pcoMap;
 	map<string, 	map<E_Sys,			map<E_FType, 		map<GTime, PhaseCenterData,			std::greater<GTime>>>>>	pcvMap;
 
-	map<SatSys,		map<E_NavMsgType,	GMap<GTime, Eph,										std::greater<GTime>>>>	ephMap;			///< GPS/QZS/GAL/BDS ephemeris
-	map<SatSys,		map<E_NavMsgType,	GMap<GTime, Geph,										std::greater<GTime>>>>	gephMap;		///< GLONASS ephemeris
-	map<SatSys,		map<E_NavMsgType,	GMap<GTime, Seph,										std::greater<GTime>>>>	sephMap;		///< SBAS ephemeris
-	map<SatSys,		map<E_NavMsgType,	GMap<GTime, Ceph,										std::greater<GTime>>>>	cephMap;		///< GPS/QZS/BDS CNVX ephemeris
-	map<E_Sys,		map<E_NavMsgType,	GMap<GTime, ION,										std::greater<GTime>>>>	ionMap;			///< ION messages
-	map<E_StoCode,	map<E_NavMsgType,	GMap<GTime, STO,										std::greater<GTime>>>>	stoMap;			///< STO messages
-	map<E_Sys,		map<E_NavMsgType,	GMap<GTime, EOP,										std::greater<GTime>>>>	eopMap;			///< EOP messages
-	map<GTime,		tec_t,																		std::greater<GTime>>	tecMap;			///< tec grid data
+	map<SatSys,		map<E_NavMsgType,	map<GTime, Eph,											std::greater<GTime>>>>	ephMap;			///< GPS/QZS/GAL/BDS ephemeris
+	map<SatSys,		map<E_NavMsgType,	map<GTime, Geph,										std::greater<GTime>>>>	gephMap;		///< GLONASS ephemeris
+	map<SatSys,		map<E_NavMsgType,	map<GTime, Seph,										std::greater<GTime>>>>	sephMap;		///< SBAS ephemeris
+	map<SatSys,		map<E_NavMsgType,	map<GTime, Ceph,										std::greater<GTime>>>>	cephMap;		///< GPS/QZS/BDS CNVX ephemeris
+	map<E_Sys,		map<E_NavMsgType,	map<GTime, ION,											std::greater<GTime>>>>	ionMap;			///< ION messages
+	map<E_StoCode,	map<E_NavMsgType,	map<GTime, STO,											std::greater<GTime>>>>	stoMap;			///< STO messages
+	map<E_Sys,		map<E_NavMsgType,	map<GTime, EOP,											std::greater<GTime>>>>	eopMap;			///< EOP messages
+	map<GTime,		TEC,																		std::greater<GTime>>	tecMap;			///< tec grid data
 	map<SatSys,		map<GTime, string,															std::greater<GTime>>>	svnMap;			///< Sat SVNs
 
 	map<string,		string>																								blocktypeMap;	///< svn blocktypes
@@ -105,7 +103,6 @@ struct Navigation
 
 
 	struct jpl_eph_data*			jplEph_ptr = nullptr;
-	vector<string>					podInfoList;
 
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)

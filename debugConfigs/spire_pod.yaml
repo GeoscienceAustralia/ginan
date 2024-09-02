@@ -234,8 +234,9 @@ processing_options:
             chi_square_test:       false                # (bool)  Enable Chi-square test
             max_prefit_removals:   0                    # (int) Maximum number of measurements to exclude using prefit checks before attempting to filter
             #sigma_check:           false                 # (bool)  Enable prefit and postfit sigma check
-            sigma_threshold:       5                    # (float) sigma threshold
-            w_test:                false                # (bool)  Enable w-test
+            state_sigma_threshold:     5                    # (float) sigma threshold for states
+            meas_sigma_threshold:      5                    # (float) sigma threshold for measurements
+            omega_test:                false                # (bool)  Enable w-test
 
             
         inverter:                   LDLT         #LLT LDLT INV

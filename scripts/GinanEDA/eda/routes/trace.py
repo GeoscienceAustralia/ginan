@@ -141,6 +141,7 @@ def handle_post_request():
         for datax in datas:
             tracesX = []
             for label, traceData in datax.items():
+
                 traceX = []
                 traceY = []
                 for element in traceData:
@@ -159,6 +160,8 @@ def handle_post_request():
                         lpf = y
                         last = y
                         lastLast = y
+
+                    ybak = y
                     if type(y) == int or type(y) == float:
                         lpf = lpf + (y - lpf) * float(form["fCoeff"])
                         hpf = y - lpf
@@ -170,8 +173,10 @@ def handle_post_request():
                             y = y - last
                         if form["filter"] == "DIFF2":
                             y = y - 2 * last + lastLast
+
                     lastLast = last
-                    last = y
+                    last = ybak
+
                     traceX.append(x)
                     traceY.append(y)
                 x_hover_template = "%{x}<br>"

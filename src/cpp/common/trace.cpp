@@ -1,6 +1,8 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
 #include <unordered_map>
 #include <functional>
 #include <stdarg.h>
@@ -11,8 +13,11 @@ using std::unordered_map;
 #include <boost/iostreams/stream.hpp>
 #include <boost/format.hpp>
 
+#include "interactiveTerminal.hpp"
 #include "peaCommitStrings.hpp"
+#include "inputsOutputs.hpp"
 #include "observations.hpp"
+#include "mongoWrite.hpp"
 #include "navigation.hpp"
 #include "constants.hpp"
 #include "acsConfig.hpp"
@@ -23,6 +28,38 @@ using std::unordered_map;
 boost::iostreams::stream<boost::iostreams::null_sink> nullStream((boost::iostreams::null_sink()));
 
 
+bool ConsoleLog::useInteractive = false;
+
+
+
+/** Semi-formatted text-based outputs.
+ * Trace files are the best record of the processing that occurs within the Pea.
+ *
+ * The level of trace may be set numerically by configuration.
+ * It will enable more or fewer lines of detail, and in some cases, the number of columns to be included in formatted sections.
+ *
+ * Receivers and Satellites may have trace file outputs configured, which will include details specific to their processing, such as any preprocessing,
+ * and details about measurements that are being computed.
+ *
+ * Calculated satellite and receiver positions, and reasons for the exclusion of any measurements are recorded in the receiver trace files.
+ *
+ * When satellite orbit propagation is enabled, some details about modelled forces may be available in satellite trace files.
+ *
+ * The receiver files may be configured with residual chain outputs on, which will produce formatted output of each modelled component as they are subtracted from the measured quantity.
+ * Depending on the possibility of chunking, receiver trace files may also include states that are usually only recorded in the network trace files.
+ *
+ * Once the list of measurements is aggregated and passed to the main filter, trace outputs are written to the 'network' trace file.
+ * This contains any filter states, measurement residuals, state removals or reinitialsations, and iteration details.
+ *
+ * The filter outputs in the network trace file include blocks that are formatted with SINEX-style +BLOCK...-BLOCK sections,
+ * which may allow for easier post-processing by eliminating any information outside of the required section.
+ */
+FileType Trace_Files__()
+{
+
+}
+
+boost::log::trivial::severity_level acsSeverity = boost::log::trivial::info;
 
 void ConsoleLog::consume(
 	boost::log::record_view																	const&	rec,
@@ -45,29 +82,41 @@ void ConsoleLog::consume(
 		warned = true;
 	}
 
-	std::cout << std::endl;
+
+	string output;
+
+	output += "\r\n";
 	if (acsConfig.colourise_terminal)
 	{
-		if (sev == boost::log::trivial::warning)	std::cout << "\x1B[1;93m";
-		if (sev == boost::log::trivial::error)		std::cout << "\x1B[101m";
+		if (sev == boost::log::trivial::warning)	output += "\x1B[1;93m";
+		if (sev == boost::log::trivial::error)		output += "\x1B[101m";
 	}
-	std::cout << logString;
+	output += logString;
 
 	if (acsConfig.colourise_terminal)
 	{
-		std::cout << "\x1B[0m";
+		output += "\x1B[0m";
 	}
 
-	std::cout << std::flush;
+	if (useInteractive)
+	{
+		InteractiveTerminal::addString("Messages/All", logString);
+
+		if		(sev == boost::log::trivial::info)		InteractiveTerminal::addString("Messages/Info",		logString);
+		else if	(sev == boost::log::trivial::warning)	InteractiveTerminal::addString("Messages/Warnings",	logString);
+		else if	(sev == boost::log::trivial::error)		InteractiveTerminal::addString("Messages/Errors",	logString);
+		else if	(sev == boost::log::trivial::debug)		InteractiveTerminal::addString("Messages/Debug",	logString);
+
+		// std::cerr << output << std::flush;
+	}
+	else
+	{
+		std::cout << output << std::flush;
+	}
 }
 
 
-int trace_level = 0;       ///< level of trace
-
-void tracelevel(int level)
-{
-	trace_level = level;
-}
+int traceLevel = 0;       ///< level of trace
 
 void traceFormatedFloat(Trace& trace, double val, string formatStr)
 {
@@ -83,21 +132,6 @@ void traceFormatedFloat(Trace& trace, double val, string formatStr)
 	tracepdeex(0, trace, formatStr.c_str(), base, exponent);
 }
 
-void tracepdeex(int level, FILE *fppde, const char *format, ...)
-{
-	va_list ap;
-
-	if (!fppde||level>trace_level)
-		return;
-
-	va_start(ap,format);
-		vfprintf(fppde,format,ap);
-	va_end(ap);
-
-	fflush(fppde);
-}
-
-
 void printHex(
 	Trace&					trace,
 	vector<unsigned char>&	chunk)
@@ -107,7 +141,7 @@ void printHex(
 	for (int i = 0; i < chunk.size(); i++)
 	{
 		if (i % 40 == 0)
-			trace << std::endl;
+			trace << "\n";
 
 		if (i % 10 == 0)
 			trace << " ";
@@ -115,29 +149,29 @@ void printHex(
 		snprintf(hex, sizeof(hex),"%02x", chunk[i]);
 		tracepdeex(0, trace, "%s ", hex);
 	}
-	trace << std::endl;
+	trace << "\n";
 }
 
 
-void mongoTrace(string, bool);
-
-void traceJson(
-	int						level,
+void traceJson_(
 	Trace&					trace,
-	string					time,
+	GTime&					time,
 	vector<ArbitraryKVP>	id,
 	vector<ArbitraryKVP>	val)
 {
-	if (level > trace_level)
-		return;
+	GEpoch ep(time);
 
-	if	( acsConfig.output_json_trace		== false
-		&&acsConfig.mongoOpts.output_trace	== false)
-	{
-		return;
-	}
+	char timeBuff[64];
+	snprintf(timeBuff, sizeof(timeBuff),"%04.0f-%02.0f-%02.0fT%02.0f:%02.0f:%06.3fZ",
+			ep.year,
+			ep.month,
+			ep.day,
+			ep.hour,
+			ep.min,
+			ep.sec);
 
-	string json = "{ \"Epoch\":\"" + time + "\", \"id\":{";
+	string json = (string) "{ \"Epoch\":{ \"$date\":\"" + timeBuff + "\"}, \"id\":{";
+
 	for (auto& thing : id)
 	{
 		json += "\"" + thing.name + "\":" + thing.value() + ",";
@@ -159,7 +193,7 @@ void traceJson(
 	}
 	if (acsConfig.mongoOpts.output_trace)
 	{
-		mongoTrace(json, acsConfig.mongoOpts.queue_outputs);
+		mongoTrace({json}, acsConfig.mongoOpts.queue_outputs);
 	}
 }
 
@@ -173,6 +207,11 @@ bool createNewTraceFile(
 {
 	replaceString(new_path_trace, "<RECEIVER>", id);
 	replaceTimes (new_path_trace, logptime);
+
+	if (new_path_trace == acsConfig.pppOpts.rts_smoothed_suffix)
+	{
+		return false;
+	}
 
 	// Create the trace file if its a new filename, otherwise, keep the old one
 	if	( new_path_trace == old_path_trace
@@ -199,12 +238,12 @@ bool createNewTraceFile(
 	// Trace file head
 	if (outputHeader)
 	{
-		trace << "station    : " << id << std::endl;
-		trace << "start_epoch: " << acsConfig.start_epoch			<< std::endl;
-		trace << "end_epoch  : " << acsConfig.end_epoch				<< std::endl;
-		trace << "trace_level: " << acsConfig.trace_level			<< std::endl;
-		trace << "pea_version: " << ginanCommitVersion()			<< std::endl;
-// 		trace << "rts_lag    : " << acsConfig.pppOpts.rts_lag		<< std::endl;
+		trace << "station    : " << id << "\n";
+		trace << "start_epoch: " << acsConfig.start_epoch			<< "\n";
+		trace << "end_epoch  : " << acsConfig.end_epoch				<< "\n";
+		trace << "trace_level: " << acsConfig.trace_level			<< "\n";
+		trace << "pea_version: " << ginanCommitVersion()			<< "\n";
+// 		trace << "rts_lag    : " << acsConfig.pppOpts.rts_lag		<< "\n";
 	}
 
 	if (outputConfig)

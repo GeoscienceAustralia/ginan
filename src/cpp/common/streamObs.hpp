@@ -17,10 +17,13 @@ struct ObsStream : StreamParser
 {
 	E_ObsWaitCode	obsWaitCode = E_ObsWaitCode::OK;
 
+	bool	isPseudoRec;
+
 	ObsStream(
-		unique_ptr<Stream> stream_ptr,
-		unique_ptr<Parser> parser_ptr)
-	:	StreamParser(std::move(stream_ptr), std::move(parser_ptr))
+		unique_ptr<Stream>	stream_ptr,
+		unique_ptr<Parser>	parser_ptr,
+		bool				isPseudoRec = false)
+	:	StreamParser(std::move(stream_ptr), std::move(parser_ptr)), isPseudoRec{isPseudoRec}
 	{
 
 	}
@@ -120,7 +123,7 @@ struct ObsStream : StreamParser
 		GTime	time,			///< Timestamp to get observations for
 		double	delta = 0.5)	///< Acceptable tolerance around requested time
 	{
-		ObsList bigObsList = ObsList();
+		ObsList bigObsList;
 		bool foundGoodObs = false;
 		while (1)
 		{
@@ -132,6 +135,7 @@ struct ObsStream : StreamParser
 			else if	(obsList.front()->time	> time + delta)	{	obsWaitCode = E_ObsWaitCode::NO_DATA_EVER;										break;	}
 			else											{	foundGoodObs = true;						eatObs();	bigObsList += obsList;			}
 		}
+
 		if		(foundGoodObs)									obsWaitCode = E_ObsWaitCode::OK;
 		else if	(obsWaitCode == +E_ObsWaitCode::NO_DATA_EVER)	return ObsList();
 		return bigObsList;

@@ -92,15 +92,14 @@ VectorEnu tideOceanPole(
 	ERPValues&			erpv);
 
 void tideDisp(
-	Trace&			trace,
-	GTime			time,
-	Receiver&		rec,
-	Vector3d&		recPos,
-	Vector3d&		dr,
-	Vector3d*		solid_ptr	= nullptr,
-	Vector3d*		olt_ptr		= nullptr,
-	Vector3d*		alt_ptr		= nullptr,
-	Vector3d*		spole_ptr	= nullptr,
-	Vector3d*		opole_ptr	= nullptr);
+	Trace&		trace,
+	GTime		time,
+	Receiver&	rec,
+	Vector3d&	recPos,
+	Vector3d&	solid,
+	Vector3d&	olt,
+	Vector3d&	alt,
+	Vector3d&	spole,
+	Vector3d&	opole);
 
 

@@ -5,7 +5,7 @@ from flask import Blueprint, current_app, render_template, request, session
 from backend.data.measurements import MeasurementArray, Measurements
 from backend.dbconnector.mongo import MongoDB
 
-from ..utilities import extra, init_page, generate_fig, aggregate_stats, get_data
+from ..utilities import extra, init_page, generate_fig, aggregate_stats, get_data, extract_database_series
 from . import eda_bp
 
 
@@ -53,11 +53,11 @@ def handle_post_request() -> str:
         f"GET {form['type']}, {form['series']}, {form['sat']}, {form['site']}, {form['state']}, {form['xaxis']}, {form['yaxis']}, "
         f"{form['yaxis']+[form['xaxis']]}, exclude {form['exclude']} minutes"
     )
-
+    session["states"] = form
     data = MeasurementArray()
     data2 = MeasurementArray()
     for series in form["series"]:
-        db_, series_ = series.split("\\")
+        db_, series_ = extract_database_series(series)
         get_data(
             db_,
             "States",
@@ -77,6 +77,7 @@ def handle_post_request() -> str:
         return render_template(
             "states.jinja",
             # content=client.mongo_content,
+            selection=session["states"],
             extra=extra,
             message="Error getting data: No data",
         )
@@ -102,20 +103,21 @@ def handle_post_request() -> str:
                 _data.id["state"] = _yaxis
                 if form["xaxis"] == "Epoch":
                     _x = _data.epoch[_data.subset]
-                    x_hover_template = "%{x|%Y-%m-%d %H:%M:%S}<br>"
+                    x_hover_template = "%{x|%Y-%m-%d %H:%M:%S}<br>%{y:.9e%}<br>"
                 else:
                     _x = _data.data[form["xaxis"]][_data.subset]
                     x_hover_template = "%{x}<br>"
                 if np.isnan(_data.data[_yaxis][_data.subset]).any():
                     current_app.logger.warning(f"Nan detected for {_data.id}")
                     current_app.logger.warning(np.argwhere(np.isnan(_data.data[_yaxis][_data.subset])))
+                smallLegend = [_data.id[a] for a in _data.id]
                 trace.append(
                     go.Scatter(
                         x=_x,
                         y=_data.data[_yaxis][_data.subset],
                         mode=mode,
-                        name=f"{_data.id}",
-                        hovertemplate=x_hover_template,
+                        name=f"{smallLegend}",
+                        hovertemplate=x_hover_template + "%{y:.4e%}<br>" + f"{smallLegend}",
                     )
                 )
                 table[f"{_data.id}"] = {"mean": _data.info[_yaxis]["mean"], "RMS": _data.info[_yaxis]["rms"]}
@@ -132,7 +134,7 @@ def handle_post_request() -> str:
         extra=extra,
         graphJSON=generate_fig(trace),
         mode="plotly",
-        selection=form,
+        selection=session["states"],
         table_data=table,
         table_headers=["RMS", "mean", "Fit"],
         tableagg_data=table_agg,

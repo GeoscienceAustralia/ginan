@@ -6,7 +6,7 @@
 #include "eigenIncluder.hpp"
 #include "gTime.hpp"
 #include "trace.hpp"
-#include "gMap.hpp"
+// #include "gMap.hpp"
 
 #define SSR_UNAVAILABLE		-9999
 
@@ -146,7 +146,7 @@ struct SSRBias
 	int				iod		= -1;
 	unsigned int	nbias	= 0;
 	map<E_ObsCode, BiasVar> obsCodeBiasMap;
-	map<int,double> ionDCBOffset;
+	map<int, double> ionDCBOffset;
 };
 
 struct SSRCodeBias : SSRBias
@@ -285,12 +285,12 @@ struct SSRClkInput
 /* SSR correction type */
 struct SSRMaps
 {
-	GMap<GTime, SSRCodeBias,	std::greater<GTime>>	ssrCodeBias_map;
-	GMap<GTime, SSRPhasBias,	std::greater<GTime>>	ssrPhasBias_map;
-	GMap<GTime, SSRClk,			std::greater<GTime>>	ssrClk_map;
-	GMap<GTime, SSREph,			std::greater<GTime>>	ssrEph_map;
-	GMap<GTime, SSRHRClk,		std::greater<GTime>>	ssrHRClk_map;
-	GMap<GTime, SSRUra,			std::greater<GTime>>	ssrUra_map;
+	map<GTime, SSRCodeBias,		std::greater<GTime>>	ssrCodeBias_map;
+	map<GTime, SSRPhasBias,		std::greater<GTime>>	ssrPhasBias_map;
+	map<GTime, SSRClk,			std::greater<GTime>>	ssrClk_map;
+	map<GTime, SSREph,			std::greater<GTime>>	ssrEph_map;
+	map<GTime, SSRHRClk,		std::greater<GTime>>	ssrHRClk_map;
+	map<GTime, SSRUra,			std::greater<GTime>>	ssrUra_map;
 
 	int refd_;					///< sat ref datum (0:ITRF,1:regional)
 	unsigned char update_;		///< update flag (0:no update,1:update)

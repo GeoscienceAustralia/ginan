@@ -27,11 +27,11 @@ It may consist of RINEX files, or RTCM streams or files, which are specified as 
 ```
 	gnss_observations:
 		root_stations_directory: /data/acs/ginan/examples/data
-		rnx_files:
+		rnx_inputs:
 			- "ALIC*.rnx"
 			- "BAKO*.rnx"
 
-		#rtcm_files:
+		#rtcm_inputs:
 		#	- "*-OBS.rtcm3"
 
 		#streams:

@@ -1,8 +1,8 @@
-# ![gn_logo](https://raw.githubusercontent.com/GeoscienceAustralia/ginan/gh-pages/images/GinanLogo273.png)
+# ![gn_logo](https://raw.githubusercontent.com/GeoscienceAustralia/ginan/gh-pages/images/GinanLogo273-with-background.png)
 
 # Ginan: Software toolkit and service
 
-#### `Ginan v3.0.0`
+#### `Ginan v3.1.0`
 
 ## Overview
 
@@ -31,17 +31,16 @@ We are actively developing Ginan to have the following capabilities and features
 * Model Ocean Tide Loading (OTL) displacements.
 
 The software consists of three main components:
-* Network Parameter Estimation Algorithm (PEA)
-* Precise Orbit Determination (POD), and
+* Network Parameter Estimation Algorithm (PEA), and
 * Various scripts for combination and analysis of solutions
 
 ## Using Ginan with an AppImage
 
 You can quickly download a precompiled binary of Ginan's pea from the `develop-weekly-appimage` branch of github.
+This allows you to run Ginan without the need for installing external dependencies.
+It contains no python scripts or example data, but is possible to run immediately on linux and windows systems as simply as:
 
     git clone -b develop-weekly-appimage --depth 1 --single-branch https://github.com/GeoscienceAustralia/ginan.git
-
-This contains no python scripts or example data, but is possible to run immediately on linux and windows systems as simply as:
 
     ginan/Ginan-x86_64.AppImage
 
@@ -50,12 +49,18 @@ or on windows:
     wsl --install -d ubuntu
     ginan/Ginan-x86_64.AppImage
 
+If the image fails to run, first ensure it is executable and all requires libraries are available
+
+    chmod 777 ginan/Ginan-x86_64.AppImage
+    apt install fuse libfuse2
+
+
 
 ## Using Ginan with Docker
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v3.0.0 bash
+    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v3.1.0 bash
 
 This command connects the `${host_data_folder}` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
@@ -85,7 +90,7 @@ If instead you wish to build Ginan from source, there are several software depen
 * YAML      >  0.6
 * Boost     >= 1.73 (tested on 1.73). On Ubuntu 22.04 which uses gcc-11, you need Boost >= 1.74.0
 * MongoDB
-* Mongo_C   >= 1.71.1
+* Mongo_C   >= 1.17.1
 * Mongo_cxx >= 3.6.0
 * Eigen3    >  3.4
 * netCDF4
@@ -200,7 +205,7 @@ Upon installation, the `ginan` directory should have the following structure:
 ## Documentation
 
 Ginan documentation consists of two parts: these documents, and separate Doxygen-generated documentation that shows the actual code infrastructure.
-It can be found [here](codeDocs/index.html), or generated manually as below.
+It can be found [here](https://geoscienceaustralia.github.io/ginan/codeDocs/index.html), or generated manually as below.
 
 ### Doxygen
 
@@ -247,8 +252,14 @@ You can remove the need for path specification to the executable by using the sy
 PATH="path_to_ginan_bin:$PATH"
 ```
 
+NB: For PPP positioning of a single station, we have noted that limiting the number of cores to 1 can reduce processing times. This can be achieved via setting the environment variable `OMP_NUM_THREADS`:
+
+    OMP_NUM_THREADS=1 ginan/Ginan-x86_64.AppImage
+
+
+
 ## Scripts
-In addition to the Ginan binaries, [scripts](scripts.index) are available to assist with downloading input files, and viewing and comparing generated outputs.
+In addition to the Ginan binaries, [scripts](https://geoscienceaustralia.github.io/ginan/page.html?c=on&p=scripts.index) are available to assist with downloading input files, and viewing and comparing generated outputs.
 
 
 ### Acknowledgements:
@@ -258,6 +269,6 @@ We have used routines obtained from Better Enums, released under the BSD-2 licen
 
 We have used routines obtained from EGM96, released under the zlib license, these routines have been preserved in the folder `cpp/src/3rdparty/egm96` The original source code from EGM96 can be obtained from https://github.com/emericg/EGM96.
 
-We have used routines obtained from SOFA, released under the SOFA license, these routines have been preserved in the folder `cpp/src/3rdparty/egm96` The original source code from SOFA can be obtained from https://www.iausofa.org/.
+We have used routines obtained from SOFA, released under the SOFA license, these routines have been preserved in the folder `cpp/src/3rdparty/sofa` The original source code from SOFA can be obtained from https://www.iausofa.org/.
 
 We have used routines obtained from project Pluto, released under the GPL-3 license, these routines have been preserved in the folder `cpp/src/3rdparty/jplephem` The original source code from jpl ephem can be obtained from https://github.com/Bill-Gray/jpl_eph.

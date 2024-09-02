@@ -1,6 +1,6 @@
  
 
-![The Positioning Australia Ginan logo](images/GinanLogo273.png)
+![The Positioning Australia Ginan logo](images/GinanLogo273.png) [![Geospatial Excellence Awards 2023/24 - Regional Winner](images/GeospatialRegionalWinnerINDUSTRY.png)](https://geospatialcouncil.org.au/geospatial-excellence-award-winners-act/)
 
 Ginan is an open source toolkit for creating precise point positioning (PPP) analysis products, correction streams and positions. It is being actively developed in a Geoscience Australia Positioning Australia program.
 

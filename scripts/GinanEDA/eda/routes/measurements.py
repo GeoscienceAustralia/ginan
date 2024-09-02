@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 
 from backend.dbconnector.mongo import MongoDB
 from backend.data.measurements import MeasurementArray, Measurements
-from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data
+from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data, extract_database_series
 from . import eda_bp
 
 
@@ -41,12 +41,12 @@ def handle_post_request():
     current_app.logger.info(
         f"GET {form['plot']}, {form['series']}, {form['sat']}, {form['site']}, {form['xaxis']}, {form['yaxis']}, {form['yaxis']+[form['xaxis']]}, exclude {form['exclude']} mintues"
     )
-
+    session["measurements"] = form
     current_app.logger.info("Getting Connection")
     data = MeasurementArray()
     data2 = MeasurementArray()
     for series in form["series"]:
-        db_, series_ = series.split("\\")
+        db_, series_ = extract_database_series(series)
         get_data(db_, "Measurements", None, form["site"], form["sat"], [series_], form["yaxis"] + [form["xaxis"]], data)
         if any([yaxis in session["list_geometry"] for yaxis in form["yaxis"] + [form["xaxis"]]]):
             get_data(db_, "Geometry", None, form["site"], form["sat"], [""], form["yaxis"] + [form["xaxis"]], data2)
@@ -55,6 +55,7 @@ def handle_post_request():
         return render_template(
             "measurements.jinja",
             # content=client.mongo_content,
+            selection=session["measurements"],
             extra=extra,
             message="Error getting data: No data",
         )
@@ -85,12 +86,6 @@ def handle_post_request():
     current_app.logger.warning("starting plots")
     for _data in data:
         for _yaxis in form["yaxis"]:
-            # try:
-            #     if np.isnan(_data.data[_yaxis][_data.subset]).any():
-            #         current_app.logger.warning(f"Nan detected for {_data.id}")
-            # except:
-            #     current_app.logger.debug(f"{_data.id} is not numbers")
-            #     pass
             try:
                 if form["xaxis"] == "Epoch":
                     _x = _data.epoch[_data.subset]
@@ -107,13 +102,14 @@ def handle_post_request():
                         _y = _data.data[_yaxis][_data.subset]
                     legend = _data.id
                     legend["yaxis"] = _yaxis
+                    smallLegend = [legend[a] for a in legend]
                     trace.append(
                         go.Scatter(
                             x=_x,
                             y=_y,
                             mode=mode,
-                            name=f"{legend}",
-                            hovertemplate=x_hover_template + "%{y:.4e%}<br>" + f"{legend}",
+                            name=f"{smallLegend}",
+                            hovertemplate=x_hover_template + "%{y:.4e%}<br>" + f"{smallLegend}",
                         )
                     )
                     try:
@@ -133,7 +129,7 @@ def handle_post_request():
         extra=extra,
         graphJSON=generate_fig(trace),
         mode="plotly",
-        selection=form,
+        selection=session["measurements"],
         table_data=table,
         table_headers=["RMS", "mean"],
         tableagg_data=table_agg,

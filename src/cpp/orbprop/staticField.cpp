@@ -32,7 +32,7 @@ void StaticField::read(
 	if (!infile)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "EGM file open error " << filename << std::endl;
+		<< "EGM file open error " << filename;
 
 		return;
 	}

@@ -3,6 +3,11 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <sstream>
+
+using std::ostringstream;
+
+#include "interactiveTerminal.hpp"
 #include "acsConfig.hpp"
 #include "receiver.hpp"
 #include "satStat.hpp"
@@ -23,9 +28,13 @@ bool deweightMeas(
 		return true;
 	}
 
+	double deweightFactor = acsConfig.measErrors.deweight_factor;
+
 	auto& key = kfMeas.obsKeys[index];
 
-	trace << std::endl << "Deweighting " << key << " - " << key.comment << std::endl;
+	InteractiveTerminal ss("Deweights", trace, false);
+
+	ss << "\n" << kfState.time.to_string() << "\tDeweighting " << key << " - " << key.comment;
 
 	kfState.statisticsMap["Meas deweight"]++;
 
@@ -33,8 +42,22 @@ bool deweightMeas(
 	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.str.c_str(),		KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.Sat.id().c_str(),	KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 
-	kfMeas.R.row(index) *= acsConfig.measErrors.deweight_factor;
-	kfMeas.R.col(index) *= acsConfig.measErrors.deweight_factor;
+	kfMeas.R.row(index) *= deweightFactor;
+	kfMeas.R.col(index) *= deweightFactor;
+
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+
+	MatrixXd*	otherNoiseMatrix_ptr	= (MatrixXd*)	metaDataMap["otherNoiseMatrix_ptr"];
+	long int	otherIndex				= (long int)	metaDataMap["otherIndex"];
+
+	if (otherNoiseMatrix_ptr)
+	{
+		//some measurements have noise matrices in 2 places (mincon) - update the other one too if its available.
+		auto& otherNoiseMatrix = *otherNoiseMatrix_ptr;
+
+		otherNoiseMatrix.row(otherIndex) *= deweightFactor;
+		otherNoiseMatrix.col(otherIndex) *= deweightFactor;
+	}
 
 	return true;
 }
@@ -85,15 +108,17 @@ bool deweightStationMeas(
 			continue;
 		}
 
-		trace << std::endl << "Deweighting " << key << " - " << key.comment << std::endl;
+		double deweightFactor = acsConfig.stateErrors.deweight_factor;
+
+		trace << "\n" << "Deweighting " << key << " - " << key.comment << "\n";
 
 		kfState.statisticsMap["Receiver deweight"]++;
 
 		char buff[64];
 		snprintf(buff, sizeof(buff), "Receiver Deweight-%4s-%sfit", key.str.c_str(),	postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
 
-		kfMeas.R.row(i) *= acsConfig.stateErrors.deweight_factor;
-		kfMeas.R.col(i) *= acsConfig.stateErrors.deweight_factor;
+		kfMeas.R.row(i) *= deweightFactor;
+		kfMeas.R.col(i) *= deweightFactor;
 
 		map<string, void*>& metaDataMap = kfMeas.metaDataMaps[i];
 
@@ -102,6 +127,18 @@ bool deweightStationMeas(
 		if (used_ptr)
 		{
 			*used_ptr = false;
+		}
+
+		MatrixXd*	otherNoiseMatrix_ptr	= (MatrixXd*)	metaDataMap["otherNoiseMatrix_ptr"];
+		long int	otherIndex				= (long int)	metaDataMap["otherIndex"];
+
+		if (otherNoiseMatrix_ptr)
+		{
+			//some measurements have noise matrices in 2 places (mincon) - update the other one too if its available.
+			auto& otherNoiseMatrix = *otherNoiseMatrix_ptr;
+
+			otherNoiseMatrix.row(otherIndex) *= deweightFactor;
+			otherNoiseMatrix.col(otherIndex) *= deweightFactor;
 		}
 	}
 	return true;
@@ -131,14 +168,44 @@ bool incrementPhaseSignalError(
 	phaseRejectCount++;
 	metaDataMap["phaseRejectCount"] = nullptr;
 
-	trace << std::endl << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
+	trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
+
+	return true;
+}
+
+/** Count all errors on receiver
+ */
+bool incrementReceiverError(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index,
+	bool		postFit)
+{
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+
+	unsigned int* receiverErrorCount_ptr = (unsigned int*) metaDataMap["receiverErrorCount"];
+
+	if (receiverErrorCount_ptr == nullptr)
+	{
+		return true;
+	}
+
+	unsigned int&	receiverErrorCount	= *receiverErrorCount_ptr;
+
+	//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
+	receiverErrorCount++;
+	metaDataMap["receiverErrorFlag"] = nullptr;
+
+	trace << "\n" << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[index] << " to " << receiverErrorCount;
 
 	return true;
 }
 
 bool resetPhaseSignalError(
-	KFMeas&		kfMeas,
-	int			index)
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index)
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
@@ -162,46 +229,48 @@ bool resetPhaseSignalError(
 
 
 bool resetPhaseSignalOutage(
-	KFMeas&		kfMeas,
-	int			index)
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index)
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
 	for (auto suffix : {"", "_alt"})
 	{
-		unsigned int* phaseOutageCount_ptr = (unsigned int*) metaDataMap[(string)"phaseOutageCount" + suffix];
+		GTime* lastPhaseTime_ptr = (GTime*) metaDataMap[(string)"lastPhaseTime" + suffix];
 
-		if (phaseOutageCount_ptr == nullptr)
+		if (lastPhaseTime_ptr == nullptr)
 		{
 			return true;
 		}
 
-		unsigned int&	phaseOutageCount	= *phaseOutageCount_ptr;
+		GTime& lastPhaseTime = *lastPhaseTime_ptr;
 
-		phaseOutageCount = 0;
+		lastPhaseTime = time;
 	}
 
 	return true;
 }
 
 bool resetIonoSignalOutage(
-	KFMeas&		kfMeas,
-	int			index)
+	const	GTime&		time,
+			KFMeas&		kfMeas,
+			int			index)
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
 	for (auto suffix : {"", "_alt"})
 	{
-		unsigned int* ionoOutageCount_ptr = (unsigned int*) metaDataMap[(string)"ionoOutageCount" + suffix];
+		GTime* lastIonTime_ptr = (GTime*) metaDataMap[(string)"lastIonTime" + suffix];
 
-		if (ionoOutageCount_ptr == nullptr)
+		if (lastIonTime_ptr == nullptr)
 		{
 			return true;
 		}
 
-		unsigned int&	ionoOutageCount	= *ionoOutageCount_ptr;
+		GTime& lastIonTime = *lastIonTime_ptr;
 
-		ionoOutageCount = 0;
+		lastIonTime = time;
 	}
 
 	return true;
@@ -221,7 +290,7 @@ bool rejectByState(
 		return true;
 	}
 
-	trace << std::endl << "Bad state detected " << kfKey << " - rejecting all referencing measurements" << std::endl;
+	trace << "\n" << "Bad state detected " << kfKey << " - rejecting all referencing measurements" << "\n";
 
 	kfState.statisticsMap["State rejection"]++;
 
@@ -257,7 +326,7 @@ bool rejectByState(
 // 		return true;
 // 	}
 //
-// 	trace << std::endl << "Bad clock detected " << kfKey << " - resetting linked states" << std::endl;
+// 	trace << "\n" << "Bad clock detected " << kfKey << " - resetting linked states" << "\n";
 //
 // 	kfState.statisticsMap["Clock glitch"]++;
 //
@@ -269,7 +338,7 @@ bool rejectByState(
 // 			  ||key	.type	== KF::SAT_CLOCK))
 // 		{
 // 			//remove the satellite clock, and any ambiguities that are connected to it.
-// 			trace << "- Removing " << key << std::endl;
+// 			trace << "- Removing " << key << "\n";
 //
 // 			kfState.removeState(key);
 // 		}
@@ -280,14 +349,14 @@ bool rejectByState(
 // 			  ||key	.type	== KF::REC_SYS_BIAS))
 // 		{
 // 			//remove the satellite clock, and any ambiguities that are connected to it.
-// 			trace << "- Removing " << key << std::endl;
+// 			trace << "- Removing " << key << "\n";
 //
 // 			kfState.removeState(key);
 //
 // 			if (kfKey.rec_ptr)
 // 			{
 // 				//make sure receiver clock corrections get reset too.
-// 				trace << "- Resetting clock adjustment" << std::endl;
+// 				trace << "- Resetting clock adjustment" << "\n";
 //
 // 				auto& rec = *kfKey.rec_ptr;
 //
@@ -317,7 +386,7 @@ bool orbitGlitchReaction(
 		return true;
 	}
 
-	trace << std::endl << "Bad orbit state detected " << kfKey;
+	trace << "\n" << "Bad orbit state detected " << kfKey;
 
 	kfState.statisticsMap["Orbit state reject"]++;
 

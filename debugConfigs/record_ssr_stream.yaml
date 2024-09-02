@@ -1,0 +1,86 @@
+# Record and decode SSR stream
+
+inputs:
+
+    inputs_root: ./products/RAP/
+
+    atx_files:
+    - igs20.atx
+
+    snx_files:
+    - igs_satellite_metadata.snx
+    - tables/sat_yaw_bias_rate.snx
+
+    gnss_observations:
+        gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+        - DUMMY # needs something here to force the pea running at given epoch interval
+
+    satellite_data:
+        satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+        rtcm_inputs:
+            ssr_antenna_offset: APC
+            rtcm_inputs:
+            - BCEP00BKG0
+            - SSRA00BKG0
+
+outputs:
+
+    colourise_terminal:             false
+
+    metadata:
+        config_description:         SSRA00BKG0
+
+    outputs_root:                   ./outputs/record_ssr_streams/<CONFIG>/
+
+    output_rotation:
+        period:                     86400
+
+    rtcm_nav:
+        output:                     true
+        filename:                   <STREAM>_<YYYY><DDD><HH><mm>_NAV.rtcm
+
+    decoded_rtcm:
+        output:                     true
+        filename:                   <STREAM>_<YYYY><DDD><HH><mm>_DEC.json
+
+    rinex_nav:
+        output:                     true
+        filename:                   <CONFIG>_<YYYY><DDD><HH><mm>_NAV.rnx
+
+    clocks:
+        output:                     true
+        filename:                   <CONFIG>_<YYYY><DDD><HH><mm>_CLK.clk
+        receiver_sources:           [ NONE ]
+        satellite_sources:          [ SSR ]
+        output_interval:            30
+
+    sp3:
+        output:                     true
+        filename:                   <CONFIG>_<YYYY><DDD><HH><mm>_ORB.sp3
+        orbit_sources:              [ SSR ]
+        clock_sources:              [ SSR ]
+        output_interval:            300
+
+processing_options:
+
+    epoch_control:
+        require_obs:                false
+        epoch_interval:             1
+        wait_next_epoch:            1
+        sleep_milliseconds:         1
+
+    gnss_general:
+        common_sat_pco:             true
+        delete_old_ephemerides:     true
+        sys_options:
+            gps:
+                process:            true
+            gal:
+                process:            true
+            glo:
+                process:            true
+            bds:
+                process:            true
+            qzs:
+                process:            true

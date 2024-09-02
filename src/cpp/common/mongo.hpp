@@ -15,7 +15,9 @@
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/log/sinks/basic_sink_backend.hpp>
+
 
 #include <string>
 #include <vector>
@@ -27,21 +29,10 @@
 
 using std::string;
 using std::vector;
+using std::array;
 using std::deque;
 using std::tuple;
 using std::map;
-
-
-struct DBEntry
-{
-	map<string, tuple<string,			bool>>		stringMap;
-	map<string, tuple<GTime,			bool>>		timeMap;
-	map<string, tuple<double,			bool>>		doubleMap;
-	map<string, tuple<int,				bool>>		intMap;
-	map<string, tuple<Vector3d,			bool>>		vectorMap;
-	map<string, tuple<vector<double>,	bool>>		doubleArrayMap;
-	map<string, tuple<deque<bool>,		bool>>		boolArrayMap;
-};
 
 using bsoncxx::builder::stream::close_array;
 using bsoncxx::builder::stream::close_document;
@@ -51,6 +42,12 @@ using bsoncxx::builder::stream::open_array;
 using bsoncxx::builder::stream::open_document;
 
 namespace sinks = boost::log::sinks;
+
+using bsoncxx::types::b_date;
+
+
+struct DBEntry;
+struct GTime;
 
 
 struct Mongo
@@ -114,13 +111,38 @@ struct Mongo
 #define REMOTE_ORBIT		"Orbit"
 #define REMOTE_CLOCK		"Clock"
 #define REMOTE_SAT			"Sat"
-#define REMOTE_UPDATED		"Updated"
 #define REMOTE_POS			"Pos"
 #define REMOTE_VEL			"Vel"
 #define REMOTE_VAR			"Var"
 #define REMOTE_CLK			"Clk"
 #define REMOTE_CLK_DRIFT	"ClkRate"
 #define REMOTE_STR			"Str"
+
+#define MONGO_CONTENT		"Content"
+#define MONGO_VALUES		"Values"
+#define MONGO_UPDATED		"Updated"
+#define MONGO_EPOCH			"Epoch"
+#define MONGO_STATE			"State"
+#define MONGO_SAT			"Sat"
+#define MONGO_STR			"Site"
+#define MONGO_MEASUREMENTS	"Measurements"
+#define MONGO_CONFIG		"Config"
+#define MONGO_TRACE			"Trace"
+#define MONGO_GEOMETRY		"Geometry"
+#define MONGO_SERIES		"Series"
+#define MONGO_TYPE			"Type"
+#define MONGO_AVAILABLE		"Available"
+#define MONGO_DX			"dx"
+#define MONGO_NUM			"Num"
+#define MONGO_X				"x"
+#define MONGO_SIGMA			"sigma"
+#define MONGO_COVAR			"Covar"
+#define MONGO_AZIMUTH		"Azimuth"
+#define MONGO_ELEVATION		"Elevation"
+#define MONGO_NADIR			"Nadir"
+
+b_date bDate(
+	const GTime& time);
 
 struct MongoLogSinkBackend : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {
@@ -141,9 +163,18 @@ bool startNewMongoDb(
 	string  					new_database,
 	E_Mongo						instance);
 
+string formatSeries(string series);
+
 document entryToDocument(
 	DBEntry&	entry,
 	bool		type);
+
+#define getMongoCollection(MONGO,COLLECTION)					\
+	auto				c 			= MONGO.pool.acquire();		\
+	mongocxx::client&	client		= *c;						\
+	mongocxx::database	db			= client[MONGO.database];	\
+	auto				coll		= db[COLLECTION];
+
 
 
 extern array<Mongo*, 3>	mongo_ptr_arr;

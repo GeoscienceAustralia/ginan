@@ -1,0 +1,76 @@
+inputs:
+
+    include_yamls: [ pod_rt_example1.yaml ] # required if using boxwing model
+
+outputs:
+    metadata:
+        config_description:         dual_fast
+
+satellite_options:
+
+    global:
+
+        models:
+            clock:
+                sources:                    [KALMAN, REMOTE]
+            pos:
+                sources:                   [REMOTE]
+
+receiver_options:
+
+    global:
+        # exclude: true
+        models:
+            pos:
+                sources:                   [REMOTE]
+                # run both with same epoch interval so they have the same epochs and just look for differencess
+
+    GLPS:
+        # exclude: false
+processing_options:
+    gnss_general:
+        adjust_rec_clocks_by_spp:    false
+
+    epoch_control:
+        # epoch_interval:         2
+        max_rec_latency:     6
+
+    minimum_constraints:
+        enable:                       false
+
+estimation_parameters:
+
+    receivers:
+        global:
+            pos:
+                estimated:          [false]
+            code_bias:
+                estimated:          [false]
+            clock:
+                use_remote_sigma:   [true]
+                # sigma:              [100]
+                process_noise:      [-1] # [100]
+            ambiguities:
+                use_remote_sigma:   [true]
+            trop:
+                use_remote_sigma:   [true]
+            trop_grads:
+                use_remote_sigma:   [true]
+            ion_stec:
+                use_remote_sigma:   [true]
+    satellites:
+        global:
+            code_bias:
+                estimated:          [false]
+            orbit:
+                estimated:          [false]
+            clock:
+                use_remote_sigma:   [true]
+
+mongo:
+
+    output_predictions:         none
+    use_predictions:            secondary
+    used_predictions:           [all]
+    delete_history:             primary
+

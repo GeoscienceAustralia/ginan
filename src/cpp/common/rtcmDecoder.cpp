@@ -2,6 +2,18 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+FileType RTCM__()
+{
+
+}
+
+FileType SSR__()
+{
+
+}
+
 #include "rtcmEncoder.hpp"
 #include "rtcmDecoder.hpp"
 #include "streamRtcm.hpp"
@@ -133,7 +145,7 @@ void RtcmDecoder::decodeSSR(
 
 	int messageNumber			= getbituInc(data, i, 12);
 
-// 	std::cout << "SSR message received: " << messageNumber << std::endl;
+// 	std::cout << "SSR message received: " << messageNumber << "\n";
 
 	RtcmMessageType messCode;
 	try
@@ -220,7 +232,7 @@ void RtcmDecoder::decodeSSR(
 		t0				= GTime(GTow(referenceTime),	nearTime);
 	}
 
-//     std::cout << "SSR message received: " << messCode << std::endl;
+//     std::cout << "SSR message received: " << messCode << "\n";
 
 	unsigned int referenceDatum = 0;
 	if	( messTypeStr == "ORB_CORR"
@@ -282,7 +294,7 @@ void RtcmDecoder::decodeSSR(
 			ssrEph.ddeph[1]		= getbitsInc(data, i, 19) * 0.004e-3;
 			ssrEph.ddeph[2]		= getbitsInc(data, i, 19) * 0.004e-3;
 
-			tracepdeex(5,std::cout, "\n#RTCM_SSR ORBITS %s %s %4d %10.3f %10.3f %10.3f %d ", Sat.id().c_str(),ssrEph.t0.to_string(2).c_str(), ssrEph.iode,ssrEph.deph[0],ssrEph.deph[1],ssrEph.deph[2], iod);
+			tracepdeex(5, std::cout, "\n#RTCM_SSR ORBITS %s %s %4d %10.3f %10.3f %10.3f %d ", Sat.id().c_str(), ssrEph.t0.to_string().c_str(), ssrEph.iode, ssrEph.deph[0], ssrEph.deph[1], ssrEph.deph[2], iod);
 
 			ssr.ssrEph_map[receivedTime] = ssrEph;
 
@@ -306,7 +318,7 @@ void RtcmDecoder::decodeSSR(
 			ssrClk.dclk[1]		= getbitsInc(data, i, 21) * 0.001e-3;
 			ssrClk.dclk[2]		= getbitsInc(data, i, 27) * 0.00002e-3;
 
-			tracepdeex(5,std::cout, "\n#RTCM_SSR CLOCKS %s %s      %10.3f %10.3f %10.3f %d", Sat.id().c_str(),ssrClk.t0.to_string(2).c_str(), ssrClk.dclk[0],ssrClk.dclk[1],ssrClk.dclk[2], iod);
+			tracepdeex(5, std::cout, "\n#RTCM_SSR CLOCKS %s %s      %10.3f %10.3f %10.3f %d", Sat.id().c_str(), ssrClk.t0.to_string().c_str(), ssrClk.dclk[0], ssrClk.dclk[1], ssrClk.dclk[2], iod);
 
 			ssr.ssrClk_map[receivedTime] = ssrClk;
 
@@ -406,7 +418,7 @@ void RtcmDecoder::decodeSSR(
 					entry.slpv	= 0;
 
 					pushBiasEntry(id, entry);
-					tracepdeex(5,std::cout, "\n#RTCM_SSR CODBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
+					tracepdeex(5, std::cout, "\n#RTCM_SSR CODBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(), bias);
 				}
 
 				catch (std::exception& e)
@@ -487,7 +499,7 @@ void RtcmDecoder::decodeSSR(
 					entry.slpv	= 0;
 
 					pushBiasEntry(id, entry);
-					tracepdeex(5,std::cout, "\n#RTCM_SSR PHSBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(),bias);
+					tracepdeex(5, std::cout, "\n#RTCM_SSR PHSBIA for %s %s: %.4f", Sat.id().c_str(), obsCode._to_string(), bias);
 				}
 				catch (std::exception& e)
 				{
@@ -818,11 +830,11 @@ void RtcmDecoder::decodeEphemeris(
 		}
 		else if (messageNumber == RtcmMessageType::GAL_INAV_EPHEMERIS)
 		{
-			eph.tgd[1]		= getbitsInc(data, i,10)*P2_32;		// E5b/E1
-			eph.e5b_hs		= getbituInc(data, i, 2);			// E5b OSHS
-			eph.e5b_dvs		= getbituInc(data, i, 1);			// E5b OSDVS
-			eph.e1_hs		= getbituInc(data, i, 2);			// E1 OSHS
-			eph.e1_dvs		= getbituInc(data, i, 1);			// E1 OSDVS
+			eph.tgd[1]		= getbitsInc(data, i, 10)*P2_32;	// E5b/E1
+			eph.e5b_hs		= getbituInc(data, i,  2);			// E5b OSHS
+			eph.e5b_dvs		= getbituInc(data, i,  1);			// E5b OSDVS
+			eph.e1_hs		= getbituInc(data, i,  2);			// E1 OSHS
+			eph.e1_dvs		= getbituInc(data, i,  1);			// E1 OSDVS
 
 			int svh		= (eph.e5b_hs	<< 7)
 						+ (eph.e5b_dvs	<< 6)
@@ -856,7 +868,7 @@ void RtcmDecoder::decodeEphemeris(
 	{
 		nav.ephMap[eph.Sat][eph.type][eph.toe] = eph;
 
-		tracepdeex(6,std::cout, "\n#RTCM_BRD EPHEMR %s %s %d", eph.Sat.id().c_str(),eph.toe.to_string(2).c_str(), eph.iode);
+		traceTrivialDebug("#RTCM_BRD EPHEMR %s %s %d", eph.Sat.id().c_str(), eph.toe.to_string().c_str(), eph.iode);
 
 		if (acsConfig.output_decoded_rtcm_json)
 			traceBrdcEph(messCode, eph);
@@ -865,7 +877,7 @@ void RtcmDecoder::decodeEphemeris(
 	{
 		nav.gephMap[geph.Sat][geph.type][geph.toe] = geph;
 
-		tracepdeex(6,std::cout, "\n#RTCM_BRD EPHEMR %s %s %d", geph.Sat.id().c_str(), geph.toe.to_string(2).c_str(), geph.iode);
+		traceTrivialDebug("#RTCM_BRD EPHEMR %s %s %d", geph.Sat.id().c_str(), geph.toe.to_string().c_str(), geph.iode);
 
 		if (acsConfig.output_decoded_rtcm_json)
 			traceBrdcEph(messCode, geph);
@@ -1000,7 +1012,7 @@ E_ObsCode RtcmDecoder::signal_to_code(E_Sys sys, uint8_t signal)
 	auto it1 = sysIdSignalMapMap.find(sys);
 	if (it1 == sysIdSignalMapMap.end())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " sys=" << sys;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " sys=" << sys;
 
 		return E_ObsCode::NONE;
 	}
@@ -1010,7 +1022,7 @@ E_ObsCode RtcmDecoder::signal_to_code(E_Sys sys, uint8_t signal)
 	auto it2 = idSignalMap.find(signal);
 	if (it2 == idSignalMap.end())
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " sys=" << sys << " signal=" << (int)signal;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " sys=" << sys << " signal=" << (int)signal;
 
 		return E_ObsCode::NONE;
 	}
@@ -1063,7 +1075,7 @@ double highResLockTimeFromIndicator(
 	else if (i < 704)		lockTime = 1048576	* i - 671088640;
 	else if (i== 704)		lockTime = 2097152	* i - 1409286144;
 	else
-		tracepdeex(3, std::cout, "\nWarning high res lock time out of bounds\n");
+		BOOST_LOG_TRIVIAL(warning) << "Warning: High res lock time out of bounds: " << lockTime;
 
 	lockTime /= 1000;
 
@@ -1179,7 +1191,7 @@ ObsList RtcmDecoder::decodeMSM(
 
 		obsList.push_back((shared_ptr<GObs>)obs);
 
-// 		std::cout << obs.time << " " << obs.Sat.id() << std::endl;
+// 		std::cout << obs.time << " " << obs.Sat.id() << "\n";
 
 		nsat++;
 	}
@@ -1197,8 +1209,8 @@ ObsList RtcmDecoder::decodeMSM(
 	}
 
 	//create a temporary list of signal pointers for simpler iteration later
-	map<int,Sig*>	signalPointermap;
-	map<int,SatSys> cellSatellitemap;
+	map<int, Sig*>		signalPointermap;
+	map<int, SatSys>	cellSatellitemap;
 	int ncell = 0;
 	//create signals for observations according to existing observations, the list of signals, and the cell mask
 	for (auto& obs		: only<GObs>(obsList))
@@ -1222,12 +1234,12 @@ ObsList RtcmDecoder::decodeMSM(
 			}
 			else
 			{
-				BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " messageNumber=" << messageNumber << " signal=" << sig.code;
+				BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << " messageNumber=" << messageNumber << " signal=" << sig.code;
 			}
 		}
 		else
 		{
-			BOOST_LOG_TRIVIAL(warning) << "Error: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << "messageNumber=" << messageNumber;
+			BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised system in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint << "messageNumber=" << messageNumber;
 		}
 
 		obs.sigsLists[ft].push_back(sig);
@@ -1263,7 +1275,7 @@ ObsList RtcmDecoder::decodeMSM(
 		}
 	}
 
-	map<SatSys,map<E_FType,double>>  GLOFreqShift;
+	map<SatSys, map<E_FType, double>>	GLOFreqShift;
 	if (extrainfo)
 	{
 		for (auto& obs : only<GObs>(obsList))
@@ -1421,7 +1433,7 @@ ObsList RtcmDecoder::decodeMSM(
 		sig.D *= -freqcy	/ CLIGHT;	// m/s -> Hz
 
 
-		tracepdeex(6,std::cout, "\n#RTCM_MSM OBSERV %s %s %d %s %.4f %.4f", obs.time.to_string(2), obs.Sat.id().c_str(), ft, sig.code._to_string(), sig.P, sig.L );
+		traceTrivialDebug("#RTCM_MSM OBSERV %s %s %d %s %.4f %.4f", obs.time.to_string().c_str(), obs.Sat.id().c_str(), ft, sig.code._to_string(), sig.P, sig.L);
 
 		if (acsConfig.output_decoded_rtcm_json)
 			traceMSM(messCode, obs.time, obs.Sat, sig);
@@ -1450,7 +1462,7 @@ E_ReturnType RtcmDecoder::decode(
 
 	int messageNumber			= getbitu(message, 0, 12);
 
-// 	std::cout << std::endl << "Received " << RtcmMessageType::_from_integral(messageNumber)._to_string();
+// 	std::cout << "\n" << "Received " << RtcmMessageType::_from_integral(messageNumber)._to_string();
 
 	switch (messageNumber)
 	{
@@ -1565,7 +1577,7 @@ E_ReturnType RtcmDecoder::decode(
 			break;
 		}
 
-		case +RtcmMessageType::IGS_SSR:						if (decodeigsSSR	(message, rtcmTime()) == E_ReturnType::WAIT) 	retVal = E_ReturnType::WAIT;	break;	//todo aaron redundant
+		case +RtcmMessageType::IGS_SSR:						if (decodeigsSSR	(message, rtcmTime()) == E_ReturnType::WAIT) 	retVal = E_ReturnType::WAIT;	break;
 		case +RtcmMessageType::COMPACT_SSR:					if (decodecompactSSR(message, rtcmTime()) == E_ReturnType::WAIT) 	retVal = E_ReturnType::WAIT;	break;
 	}
 
@@ -1623,7 +1635,7 @@ int getbits(
 
 	if (bits == invalid)
 	{
-// 		std::cout << "warning: invalid number received on " << __FUNCTION__ << " " << invalid << " " << len << std::endl;
+// 		std::cout << "warning: invalid number received on " << __FUNCTION__ << " " << invalid << " " << len << "\n";
 		if (failure_ptr)
 		{
 			*failure_ptr = true;

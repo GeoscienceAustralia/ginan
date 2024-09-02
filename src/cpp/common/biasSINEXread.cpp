@@ -67,7 +67,7 @@ void read_biasSINEX_head(
 
 /** Read data line in bias SINEX file
 */
-int read_biasSINEX_line(
+bool read_biasSINEX_line(
 	char*		buff,	///< Line to read
 	E_TimeSys	tsys)	///< time system "UTC", "TAI", etc.
 {
@@ -75,14 +75,14 @@ int read_biasSINEX_line(
 
 	if (size < 91)
 	{
-		fprintf(stderr, " Short bias line in SINEX file (%3d): %s\n", size, buff);
-		return 0;
+		BOOST_LOG_TRIVIAL(error) << "Error: Short bias line in SINEX file (" << size << "): " << buff;
+		return false;
 	}
 
 	if (tsys == +E_TimeSys::NONE)
 	{
-		fprintf(stderr, " Unkown time system for bias SINEX file: %s\n", tsys._to_string());
-		return 0;
+		BOOST_LOG_TRIVIAL(error) << "Unkown time system for bias SINEX file: " << tsys._to_string();
+		return false;
 	}
 
 	BiasEntry entry;
@@ -102,13 +102,13 @@ int read_biasSINEX_line(
 	if	( type != "DSB "
 		&&type != "OSB ")
 	{
-		return 0;
+		return false;
 	}
 
 	SatSys Sat(sat.c_str());
 	if (acsConfig.process_sys[Sat.sys] == false)
 	{
-		return 0;
+		return false;
 	}
 
 	string id;
@@ -126,7 +126,7 @@ int read_biasSINEX_line(
 		if	( Sat.prn == 0
 			||Sat.sys == +E_Sys::NONE)
 		{
-			return 0;
+			return false;
 		}
 
 		entry.Sat  = Sat;
@@ -136,7 +136,7 @@ int read_biasSINEX_line(
 	else
 	{
 		//no valid identifier
-		return 0;
+		return false;
 	}
 
 	E_MeasType dummy;
@@ -157,6 +157,15 @@ int read_biasSINEX_line(
 	entry.tini = sinex_time_text(startTime,	tsys);
 	entry.tfin = sinex_time_text(endTime,	tsys);
 
+	if		(entry.tini != GTime::noTime() && entry.tfin != GTime::noTime())	entry.refTime = entry.tini + (entry.tfin - entry.tini).to_double() / 2;
+	else if	(entry.tini != GTime::noTime() && entry.tfin == GTime::noTime())	entry.refTime = entry.tini;
+	else if	(entry.tini == GTime::noTime() && entry.tfin != GTime::noTime())	entry.refTime = entry.tfin;
+	else
+	{
+		BOOST_LOG_TRIVIAL(error) << "Error: Invalid interval for bias in SINEX file: " << buff;
+		return false;
+	}
+
 	/* decoding units */
 	double fact = 0;
 
@@ -164,18 +173,18 @@ int read_biasSINEX_line(
 	else if (units == "cyc" && entry.measType == PHAS && lam1 > 0)		fact = lam1;
 	else
 	{
-		return 0;
+		return false;
 	}
 
 	/* decoding bias */
 	try
 	{
-		entry.bias = stod(biasStr, nullptr) * fact;
+		entry.bias = stod(biasStr) * fact;
 	}
 	catch (const std::invalid_argument& ia)
 	{
-		fprintf(stderr, " Invalid bias in SINEX file: %s\n", buff);
-		return 0;
+		BOOST_LOG_TRIVIAL(error) << "Error: Invalid bias in SINEX file: " << buff;
+		return false;
 	}
 
 	/* reading/decoding standard deviation */
@@ -185,8 +194,7 @@ int read_biasSINEX_line(
 
 		try
 		{
-			double stdv = 0;
-			stdv = stod(stdstr, nullptr) * fact;
+			double stdv = stod(stdstr) * fact;
 			entry.var	= SQR(stdv);
 		}
 		catch (const std::invalid_argument& ia)
@@ -195,8 +203,34 @@ int read_biasSINEX_line(
 		}
 	}
 
-	entry.slop	= 0;
-	entry.slpv	= 0;
+	if (strlen(buff) >= 125)
+	{
+		string slopStr	(buff + 104, 21);
+
+		try
+		{
+			entry.slop	= stod(slopStr) * fact;
+		}
+		catch (const std::invalid_argument& ia)
+		{
+			entry.slop	= 0;
+		}
+	}
+
+	if (strlen(buff) >= 137)
+	{
+		string stdstr	(buff + 126, 11);
+
+		try
+		{
+			double stdv = stod(stdstr) * fact;
+			entry.slpv	= SQR(stdv);
+		}
+		catch (const std::invalid_argument& ia)
+		{
+			entry.slpv	= 0;
+		}
+	}
 
 	if	( Sat.sys == +E_Sys::GLO
 		&&Sat.prn == 0)
@@ -225,7 +259,7 @@ int read_biasSINEX_line(
 		pushBiasEntry(id, entry);
 	}
 
-	return 1;
+	return true;
 }
 
 /** Read single bias SINEX file
@@ -240,7 +274,7 @@ bool readBiasSinex(
 	std::ifstream inputStream(filename);
 	if (!inputStream)
 	{
-		printf("Warning: could not find bias SINEX file %s \n", filename.c_str());
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Could not find bias SINEX file " << filename.c_str();
 		return false;
 	}
 
@@ -284,7 +318,7 @@ bool readBiasSinex(
 
 		if (strstr(buff, "%="))
 		{
-			printf(", Warning: erroneous bias SINEX file %s \n", filename.c_str());
+			BOOST_LOG_TRIVIAL(warning) << "Warning: erroneous bias SINEX file " << filename.c_str();
 			return false;
 		}
 
@@ -318,7 +352,7 @@ bool readBiasSinex(
 		if	(  strstr(buff, " DSB ")
 			|| strstr(buff, " OSB "))
 		{
-			if (read_biasSINEX_line(buff, tsys) > 0)
+			if (read_biasSINEX_line(buff, tsys))
 				nbia++;
 		}
 	}
