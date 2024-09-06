@@ -1766,7 +1766,7 @@ void writeSnxEpochs(
 
 	for (auto& [id, sst] : theSinex.solEpochMap)
 	{
-		tracepdeex(0, out, " %4s %2s %4s %c %2.2d:%3.3d:%5.5d %2.2d:%3.3d:%5.5d %2.2d:%3.3d:%5.5d\n",
+		tracepdeex(0, out, " %4s %2s %4s %c %02d:%03d:%05d %02d:%03d:%05d %02d:%03d:%05d\n",
 					sst.sitecode.c_str(),
 					sst.ptcode	.c_str(),
 					sst.solnnum	.c_str(),

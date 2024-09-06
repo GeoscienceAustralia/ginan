@@ -1,18 +1,22 @@
 
-> **5 Feb 2024** - the Ginan team is pleased to release v3.0.0 of the toolkit.
+> **2 Sept 2024** - the Ginan team is pleased to release v3.1.0 of the toolkit.
 >
 > The improvements delivered by this version include:
 >
-> * Unified User and Network operation modes (One Observation Model & Filter),
-> * Box-wing solar radiation modelling
-> * Increased configurability and streamlining of configuration files
-> * Grid-based model estimation
-> * Full Multi-Constellation capability,
-> * Better internal frequency indexing (complete multi-frequency capability),
-> * UnCombined / UnDifferenced (UDUC) processing
-> * Integrated and coupled Precise Orbit Determination capability (POD),
-> * More robust data handling in the filter for cycle slip and outlier detection and removal,
-> * Complete RTCM3 phase 1 and Phase 2 message decoding and encoding,
-> * Satellite Laser Ranging data handling fully implemented,
-> * Performance improvements,
+> * Boxwing model for the albedo
+> * Sisnet (SouthPan) message support
+> * SLR processing capability
+> * PBO Position (.pos) format file output support
+> * Apple silicon (M-chip) support
+> * VMF3 file download python script (get_vmf3.py)
+> * POS file visualisation python script (plot_pos.py)
+> * EDA improvements
+> * Improved documentation
+> * Use case examples updated
+> * Frequency dependent GLONASS receiver code bias estimation enabled
+> * Improved missing/bad data handling
+> * Bias rates from .BIA/BSX files parsed and used
+> * Measurment and State error handling sigma_limit thresholds separated
+> * Config file reorganisation (rec_reference_system: moved to receiver_options:)
+> * Clock code handling modified
 > * Many bug fixes.

@@ -1313,16 +1313,18 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
 		if (Sat.sys == recOpts.receiver_reference_system)
 		{
-			auto thisIt = std::find		(recOpts.clock_codes.begin(), recOpts.clock_codes.end(), sig.code);
-			auto autoIt = std::find		(recOpts.clock_codes.begin(), recOpts.clock_codes.end(), +E_ObsCode::AUTO);
-			auto freqIt = std::find_if	(recOpts.clock_codes.begin(), recOpts.clock_codes.end(), [&](E_ObsCode code)
+			auto& recSysOpts = acsConfig.getRecOpts(rec.id, {sysSat.sys._to_string()});
+
+			auto thisIt = std::find		(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), sig.code);
+			auto autoIt = std::find		(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), +E_ObsCode::AUTO);
+			auto freqIt = std::find_if	(recSysOpts.clock_codes.begin(), recSysOpts.clock_codes.end(), [&](E_ObsCode code)
 			{
 				return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code];
 			});
 
-			bool foundCode = thisIt != recOpts.clock_codes.end();
-			bool foundAuto = autoIt != recOpts.clock_codes.end();
-			bool foundFreq = freqIt != recOpts.clock_codes.end();
+			bool foundCode = thisIt != recSysOpts.clock_codes.end();
+			bool foundAuto = autoIt != recSysOpts.clock_codes.end();
+			bool foundFreq = freqIt != recSysOpts.clock_codes.end();
 
 			if	( foundAuto
 				&&foundFreq)

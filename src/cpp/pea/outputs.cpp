@@ -201,6 +201,16 @@ void createTracefiles(
 	startNewMongoDb("PRIMARY",		logptime,	acsConfig.mongoOpts[E_Mongo::PRIMARY]	.database,	E_Mongo::PRIMARY);
 	startNewMongoDb("SECONDARY",	logptime,	acsConfig.mongoOpts[E_Mongo::SECONDARY]	.database,	E_Mongo::SECONDARY);
 
+	auto insertSuffix = [](string str, string suffix)
+	{
+		auto pos = str.find_last_of('.');
+		if (pos == string::npos)
+		{
+			return str + suffix;
+		}
+		return str.substr(0, pos) + suffix + str.substr(pos);
+	};
+
 	for (auto rts : {false, true})
 	{
 		if	(	rts
@@ -253,7 +263,7 @@ void createTracefiles(
 			if	(  acsConfig.output_satellite_trace
 				&& suff.empty())
 			{
-				newTraceFile |= createNewTraceFile(Sat,				logptime,	acsConfig.satellite_trace_filename		+ suff,	satNav.traceFilename,										true,	acsConfig.output_config);
+				newTraceFile |= createNewTraceFile(Sat,				logptime,	insertSuffix(acsConfig.satellite_trace_filename, suff),	satNav.traceFilename,										true,	acsConfig.output_config);
 			}
 		}
 
@@ -273,7 +283,15 @@ void createTracefiles(
 			if (acsConfig.output_json_trace)
 			{
 				//dont add suff for this as we dont want smoothed version
-				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.receiver_trace_filename + "_json",	rec.metaDataMap[JSON_FILENAME_STR			+ metaSuff]);
+				string jsonTraceFilename = acsConfig.receiver_trace_filename;
+				auto pos = jsonTraceFilename.find_last_of('.');
+				if (pos != string::npos)
+				{
+					jsonTraceFilename = jsonTraceFilename.substr(0, pos);
+				}
+				jsonTraceFilename += ".json";
+
+				newTraceFile |= createNewTraceFile(id,				logptime,	jsonTraceFilename,	rec.metaDataMap[JSON_FILENAME_STR			+ metaSuff]);
 
 				if (suff.empty())
 				{
@@ -283,23 +301,23 @@ void createTracefiles(
 
 			if (acsConfig.output_cost)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.cost_filename				+ suff,	pppNet.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
+				newTraceFile |= createNewTraceFile(id,			logptime,	insertSuffix(acsConfig.cost_filename, suff),	pppNet.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
 			}
 
 			if (acsConfig.output_gpx)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.gpx_filename				+ suff,	pppNet.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
+				newTraceFile |= createNewTraceFile(id,			logptime,	insertSuffix(acsConfig.gpx_filename, suff),	pppNet.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
 			}
 
 			if (acsConfig.output_pos)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	acsConfig.pos_filename				+ suff,	pppNet.kfState	.metaDataMap[POS_FILENAME_STR	+ id	+ metaSuff]);
+				newTraceFile |= createNewTraceFile(id,			logptime,	insertSuffix(acsConfig.pos_filename, suff),	pppNet.kfState	.metaDataMap[POS_FILENAME_STR	+ id	+ metaSuff]);
 			}
 		}
 
 		if (acsConfig.output_network_trace)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	acsConfig.network_trace_filename	+ suff,	pppNet.kfState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
+			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(acsConfig.network_trace_filename, suff),	pppNet.kfState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
 
 			if (suff.empty())
 			{
@@ -309,7 +327,7 @@ void createTracefiles(
 
 		if (acsConfig.output_ionosphere_trace)
 		{
-			newTraceFile |= createNewTraceFile("IONO",	logptime,	acsConfig.ionosphere_trace_filename	+ suff,	ionNet.kfState.metaDataMap[TRACE_FILENAME_STR	+ metaSuff],	true,	acsConfig.output_config);
+			newTraceFile |= createNewTraceFile("IONO",	logptime,	insertSuffix(acsConfig.ionosphere_trace_filename, suff),	ionNet.kfState.metaDataMap[TRACE_FILENAME_STR	+ metaSuff],	true,	acsConfig.output_config);
 
 			if (suff.empty())
 			{
@@ -319,28 +337,28 @@ void createTracefiles(
 
 		if (acsConfig.output_ionex)
 		{
-			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ionex_filename			+ suff,	pppNet.kfState.metaDataMap[IONEX_FILENAME_STR	+ metaSuff]);
+			newTraceFile |= createNewTraceFile("",			logptime,	insertSuffix(acsConfig.ionex_filename, suff),	pppNet.kfState.metaDataMap[IONEX_FILENAME_STR	+ metaSuff]);
 		}
 
 		if (acsConfig.output_ionstec)
 		{
-			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ionstec_filename			+ suff,	pppNet.kfState.metaDataMap[IONSTEC_FILENAME_STR	+ metaSuff]);
+			newTraceFile |= createNewTraceFile("",			logptime,	insertSuffix(acsConfig.ionstec_filename, suff),	pppNet.kfState.metaDataMap[IONSTEC_FILENAME_STR	+ metaSuff]);
 		}
 
 		if (acsConfig.output_trop_sinex)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	acsConfig.trop_sinex_filename		+ suff,	pppNet.kfState.metaDataMap[TROP_FILENAME_STR	+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(acsConfig.trop_sinex_filename, suff),	pppNet.kfState.metaDataMap[TROP_FILENAME_STR	+ metaSuff]);
 		}
 
 		if (acsConfig.output_bias_sinex)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id, 	logptime,	acsConfig.bias_sinex_filename		+ suff,	pppNet.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
-			newTraceFile |= createNewTraceFile(pppNet.id, 	logptime,	acsConfig.bias_sinex_filename		+ suff,	ionNet.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id, 	logptime,	insertSuffix(acsConfig.bias_sinex_filename, suff),	pppNet.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id, 	logptime,	insertSuffix(acsConfig.bias_sinex_filename, suff),	ionNet.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
 		}
 
 		if (acsConfig.output_erp)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	acsConfig.erp_filename				+ suff,	pppNet.kfState.metaDataMap[ERP_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(acsConfig.erp_filename, suff),	pppNet.kfState.metaDataMap[ERP_FILENAME_STR		+ metaSuff]);
 		}
 
 		if (acsConfig.output_clocks)
@@ -349,10 +367,10 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.clocks_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
+				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(filename, suff),				fileNames[filename + metaSuff]);
 			}
 
-			pppNet.kfState.metaDataMap[CLK_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
+			pppNet.kfState.metaDataMap[CLK_FILENAME_STR	+ metaSuff] = insertSuffix(singleFilenameMap.begin()->first, suff);
 		}
 
 		if (acsConfig.output_sp3)
@@ -361,10 +379,10 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.sp3_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
+				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(filename, suff),				fileNames[filename + metaSuff]);
 			}
 
-			pppNet.kfState.metaDataMap[SP3_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
+			pppNet.kfState.metaDataMap[SP3_FILENAME_STR	+ metaSuff] = insertSuffix(singleFilenameMap.begin()->first, suff);
 		}
 
 		if (acsConfig.output_orbex)
@@ -373,10 +391,10 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.orbex_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	filename + suff,				fileNames[filename + metaSuff]);
+				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(filename, suff),				fileNames[filename + metaSuff]);
 			}
 
-			pppNet.kfState.metaDataMap[ORBEX_FILENAME_STR	+ metaSuff] = singleFilenameMap.begin()->first + suff;
+			pppNet.kfState.metaDataMap[ORBEX_FILENAME_STR	+ metaSuff] = insertSuffix(singleFilenameMap.begin()->first, suff);
 		}
 
 		if (acsConfig.output_sbas_ems)

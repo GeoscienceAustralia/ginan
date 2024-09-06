@@ -160,7 +160,7 @@ processing_options:
         outlier_screening:
             chi_square:
                 enable: false # Enable Chi-square test
-                mode: NONE # Chi-square test mode {none,innovation,measurement,state}
+                mode: innovation # Chi-square test mode {none,innovation,measurement,state}
             prefit:
                 max_iterations: 3 # Maximum number of measurements to exclude using prefit checks before attempting to filter
                 omega_test: false # Enable omega-test

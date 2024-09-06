@@ -2,7 +2,7 @@
 
 # Ginan: Software toolkit and service
 
-#### `Ginan v3.0.0`
+#### `Ginan v3.1.0`
 
 ## Overview
 
@@ -31,8 +31,7 @@ We are actively developing Ginan to have the following capabilities and features
 * Model Ocean Tide Loading (OTL) displacements.
 
 The software consists of three main components:
-* Network Parameter Estimation Algorithm (PEA)
-* Precise Orbit Determination (POD), and
+* Network Parameter Estimation Algorithm (PEA), and
 * Various scripts for combination and analysis of solutions
 
 ## Using Ginan with an AppImage
@@ -61,7 +60,7 @@ If the image fails to run, first ensure it is executable and all requires librar
 
 You can quickly download a ready-to-run Ginan environment using docker by running:
 
-    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v3.0.0 bash
+    docker run -it -v ${host_data_folder}:/data gnssanalysis/ginan:v3.1.0 bash
 
 This command connects the `${host_data_folder}` directory on the host (your pc), with the `/data` directory in the container, to allow file access between the two systems, and opens a command line (`bash`) for executing commands.
 
@@ -270,6 +269,6 @@ We have used routines obtained from Better Enums, released under the BSD-2 licen
 
 We have used routines obtained from EGM96, released under the zlib license, these routines have been preserved in the folder `cpp/src/3rdparty/egm96` The original source code from EGM96 can be obtained from https://github.com/emericg/EGM96.
 
-We have used routines obtained from SOFA, released under the SOFA license, these routines have been preserved in the folder `cpp/src/3rdparty/egm96` The original source code from SOFA can be obtained from https://www.iausofa.org/.
+We have used routines obtained from SOFA, released under the SOFA license, these routines have been preserved in the folder `cpp/src/3rdparty/sofa` The original source code from SOFA can be obtained from https://www.iausofa.org/.
 
 We have used routines obtained from project Pluto, released under the GPL-3 license, these routines have been preserved in the folder `cpp/src/3rdparty/jplephem` The original source code from jpl ephem can be obtained from https://github.com/Bill-Gray/jpl_eph.
