@@ -58,6 +58,7 @@ void tracepdeex_(
 
 template<typename... Args>void traceTrivialDebug_	(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(debug)	<< boost::str(f);}
 template<typename... Args>void traceTrivialInfo_	(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(info)		<< boost::str(f);}
+template<typename... Args>void traceTrivialTrace_	(string const& fmt,	Args&&... args){	boost::format f(fmt);	int unroll[] {0, (f % std::forward<Args>(args), 0)...};	BOOST_LOG_TRIVIAL(trace)	<< boost::str(f);}
 
 template<typename T>
 std::ofstream getTraceFile(
@@ -172,6 +173,15 @@ do															\
 		continue;											\
 															\
 	traceTrivialInfo_ (__VA_ARGS__);						\
+} while (false)
+
+#define traceTrivialTrace(...)								\
+do															\
+{															\
+	if (acsSeverity > boost::log::trivial::trace)			\
+		continue;											\
+															\
+	traceTrivialTrace_ (__VA_ARGS__);						\
 } while (false)
 
 #define tracepdeex(level, ...)								\

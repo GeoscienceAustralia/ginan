@@ -1244,18 +1244,18 @@ void debugBlq()
 
 	for (auto& blqfile : acsConfig.ocean_tide_loading_blq_files)
 	{
-		bool found = readBlq(blqfile, rec, E_LoadingType::OCEAN);
+		bool found = readBlq(blqfile, E_LoadingType::OCEAN);
 	}
 
 	for (auto& blqfile : acsConfig.atmos_tide_loading_blq_files)
 	{
-		bool found = readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);
+		bool found = readBlq(blqfile, E_LoadingType::ATMOSPHERIC);
 	}
 
 	std::cout << std::fixed;
 
 	std::cout << "\nDebugging OTL BLQ: " << rec.id << std::fixed << "\n";
-	for (auto& [wave, disp] : rec.otlDisplacement)
+	for (auto& [wave, disp] : otlDisplacementMap[id])
 	{
 		std::cout << wave._to_string() << ":";
 		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(5) << std::setw(9) << disp.amplitude[i];
@@ -1264,7 +1264,7 @@ void debugBlq()
 	}
 
 	std::cout << "\nDebugging ATL BLQ: " << rec.id << std::fixed << "\n";
-	for (auto& [wave, disp] : rec.atlDisplacement)
+	for (auto& [wave, disp] : atlDisplacementMap[id])
 	{
 		std::cout << wave._to_string() << ":";
 		for (int i = 0; i < 3; i++)		std::cout << "\t" << std::setprecision(5) << std::setw(9) << disp.amplitude[i];
@@ -1327,10 +1327,10 @@ void debugTideOcean()
 
 		for (auto& blqfile : acsConfig.ocean_tide_loading_blq_files)
 		{
-			bool found = readBlq(blqfile, rec, E_LoadingType::OCEAN);
+			readBlq(blqfile, E_LoadingType::OCEAN);
 		}
 
-		if (rec.otlDisplacement.empty())
+		if (otlDisplacementMap[id].empty())
 			return;
 
 		for (auto& [mjdval, denuRef] : dispTimeMap)
@@ -1342,8 +1342,8 @@ void debugTideOcean()
 			ERPValues erpv = getErp(nav.erp, time);
 			MjDateUt1 mjdUt1(time, erpv.ut1Utc);
 
-			// VectorEnu denu = tideOceanLoad (std::cout, mjdUt1, rec.otlDisplacement);
-			VectorEnu denu = tideOceanLoadAdjusted(std::cout, time, mjdUt1, rec.otlDisplacement);
+			// VectorEnu denu = tideOceanLoad (std::cout, mjdUt1, otlDisplacementMap[id]);
+			VectorEnu denu = tideOceanLoadAdjusted(std::cout, time, mjdUt1, otlDisplacementMap[id]);
 			VectorEnu diff = denu - denuRef;
 
 			std::cout	<< std::setprecision( 7)	<< std::fixed
@@ -1379,10 +1379,10 @@ void debugHardisp()
 
 		for (auto& blqfile : acsConfig.ocean_tide_loading_blq_files)
 		{
-			bool found = readBlq(blqfile, rec, E_LoadingType::OCEAN);
+			readBlq(blqfile, E_LoadingType::OCEAN);
 		}
 
-		if (rec.otlDisplacement.empty())
+		if (otlDisplacementMap[id].empty())
 			return;
 
 		for (auto& [mjdval, denuRef] : dispTimeMap)
@@ -1392,7 +1392,7 @@ void debugHardisp()
 
 			GTime time = GTime(mjdUtc);
 
-			VectorEnu denu = tideOceanLoadHardisp(std::cout, time, rec.otlDisplacement);
+			VectorEnu denu = tideOceanLoadHardisp(std::cout, time, otlDisplacementMap[id]);
 			VectorEnu diff = denu - denuRef;
 
 			std::cout	<< std::setprecision( 7)	<< std::fixed
@@ -1502,10 +1502,10 @@ void debugTideAtmos()
 
 	for (auto& blqfile : acsConfig.atmos_tide_loading_blq_files)
 	{
-		bool found = readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);
+		readBlq(blqfile, E_LoadingType::ATMOSPHERIC);
 	}
 
-	if (rec.atlDisplacement.empty())
+	if (atlDisplacementMap[id].empty())
 		return;
 
 	// Test 1 - single station, multiple days
@@ -1519,7 +1519,7 @@ void debugTideAtmos()
 		mjdUt1.val = mjdval;
 
 
-		VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, rec.atlDisplacement);
+		VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, atlDisplacementMap[id]);
 		VectorEnu diff = denu - denuRef;
 
 		std::cout	<< std::setprecision( 7)	<< std::fixed
@@ -1547,7 +1547,7 @@ void debugTideAtmos()
 	// 	MjDateUt1 mjdUt1;
 	// 	mjdUt1.val = mjdval;
 
-	// 	VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, rec.atlDisplacement);
+	// 	VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, atlDisplacementMap[id]);
 	// 	VectorEnu diff = denu - denuRef;
 
 	// 	std::cout	<< std::setprecision( 7)	<< std::fixed
@@ -1577,16 +1577,16 @@ void debugTideAtmos()
 
 	// 	for (auto& blqfile : acsConfig.atmos_tide_loading_blq_files)
 	// 	{
-	// 		bool found = readBlq(blqfile, rec, E_LoadingType::ATMOSPHERIC);
+	// 		 readBlq(blqfile, E_LoadingType::ATMOSPHERIC);
 	// 	}
 
-	// 	if (rec.atlDisplacement.empty())
+	// 	if (atlDisplacementMap[id].empty())
 	// 		continue;
 
 	// 	MjDateUt1 mjdUt1;
 	// 	mjdUt1.val = mjdval;
 
-	// 	VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, rec.atlDisplacement);
+	// 	VectorEnu denu = tideAtmosLoad(std::cout, mjdUt1, atlDisplacementMap[id]);
 	// 	VectorEnu diff = denu - denuRef;
 
 	// 	std::cout	<< std::setprecision( 7)	<< std::fixed

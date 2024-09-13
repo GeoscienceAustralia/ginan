@@ -805,11 +805,11 @@ Orbits prepareOrbits(
 /** Apply the prediction using the filter's state transition
 */
 void applyOrbits(
-	Trace&			trace,
-	Orbits&			orbits,
-	const KFState&	kfState,
-	GTime			time,
-	double			tgap)
+	Trace&		trace,
+	Orbits&		orbits,
+	KFState&	kfState,
+	GTime		time,
+	double		tgap)
 {
 	for (auto& orbit : orbits)
 	{
@@ -872,9 +872,9 @@ void applyOrbits(
 /** Use models to predict orbital motion and prepare state transition equations to implement those predictions in the filter
 */
 void predictOrbits(
-	Trace&			trace,
-	const KFState&	kfState,
-	GTime			time)
+	Trace&		trace,
+	KFState&	kfState,
+	GTime		time)
 {
 	double tgap = (time - kfState.time).to_double();
 
@@ -913,7 +913,7 @@ void predictOrbits(
 
 void addNilDesignStates(
 	const	KalmanModel&	model,
-	const	KFState&		kfState,
+			KFState&		kfState,
 	const	KF&				kfType,
 			int				num,
 	const	string&			id)
@@ -939,9 +939,9 @@ void addNilDesignStates(
 }
 
 void addEmpStates(
-	const EmpKalmans&	satOpts,
-	const KFState&		kfState,
-	const string&		id)
+	const	EmpKalmans&	satOpts,
+			KFState&	kfState,
+	const	string&		id)
 {
 	addNilDesignStates(satOpts.emp_d_0,		kfState,	KF::EMP_D_0,	1, id);
 	addNilDesignStates(satOpts.emp_d_1,		kfState,	KF::EMP_D_1,	2, id);

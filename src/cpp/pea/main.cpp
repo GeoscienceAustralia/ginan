@@ -348,7 +348,7 @@ void mainOncePerEpoch(
 	mongoooo();
 
 	//integrate accelerations and early prepare satPos0 with propagated values
-	predictOrbits	(pppTrace, pppNet.kfState, time);
+	predictOrbits(pppTrace, pppNet.kfState, time);
 	// predictInertials(pppTrace, pppNet.kfState, time);
 
 	InteractiveTerminal::setMode(E_InteractiveMode::Preprocessing);

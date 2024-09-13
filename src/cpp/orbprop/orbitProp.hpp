@@ -177,9 +177,9 @@ KFState getOrbitFromState(
 	const KFState&	kfState);
 
 void predictOrbits(
-	Trace&			trace,
-	const KFState&	kfState,
-	GTime           time);
+	Trace&		trace,
+	KFState&	kfState,
+	GTime		time);
 
 Orbits prepareOrbits(
 	Trace&			trace,
@@ -194,12 +194,12 @@ void integrateOrbits(
 
 void addEmpStates(
 	const	EmpKalmans&		satOpts,
-	const	KFState&		kfState,
+			KFState&		kfState,
 	const	string&			id);
 
 void addNilDesignStates(
 	const	KalmanModel&	model,
-	const	KFState&		kfState,
+			KFState&		kfState,
 	const	KF&				kfType,
 			int				num,
 	const	string&			id);

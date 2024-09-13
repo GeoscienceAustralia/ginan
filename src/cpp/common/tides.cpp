@@ -62,6 +62,9 @@ map<E_TidalComponent, int> blqIndexMap = 	///< Map of indexes of BLQ records
 	{E_TidalComponent::DOWN,	2},
 };
 
+map<string, TideMap>	otlDisplacementMap;
+map<string, TideMap>	atlDisplacementMap;
+
 /** Read BLQ record for a single station
 */
 bool readBlqRecord(
@@ -120,7 +123,6 @@ bool readBlqRecord(
 */
 bool readBlq(
 	string			file,		///< BLQ ocean tide loading parameter file
-	Receiver&		rec,		///< Receiver
 	E_LoadingType	type)		///< Type of loading (ocean, atmospheric)
 {
 	ifstream fileStream(file);
@@ -136,10 +138,6 @@ bool readBlq(
 
 	if		(type == +E_LoadingType::OCEAN)			{	waveList = acsConfig.otl_blq_col_order;	}
 	else if	(type == +E_LoadingType::ATMOSPHERIC)	{	waveList = acsConfig.atl_blq_col_order;	}
-
-	// station ID to upper case
-	string id = rec.id;
-	boost::to_upper(id);
 
 	bool columnOrderFound = false;
 	while (fileStream)
@@ -190,12 +188,10 @@ bool readBlq(
 
 		string name = line.substr(2, 4);
 		boost::to_upper(name);
-		if (name != id)
-			continue;
 
 		// read BLQ record for the station
-		if		(type == +E_LoadingType::OCEAN)			{	auto componentList = acsConfig.otl_blq_row_order;	return readBlqRecord(fileStream, waveList, componentList, rec.otlDisplacement);		}
-		else if	(type == +E_LoadingType::ATMOSPHERIC)	{	auto componentList = acsConfig.atl_blq_row_order;	return readBlqRecord(fileStream, waveList, componentList, rec.atlDisplacement);		}
+		if		(type == +E_LoadingType::OCEAN)			{	auto componentList = acsConfig.otl_blq_row_order;	readBlqRecord(fileStream, waveList, componentList, otlDisplacementMap[name]);		}
+		else if	(type == +E_LoadingType::ATMOSPHERIC)	{	auto componentList = acsConfig.atl_blq_row_order;	readBlqRecord(fileStream, waveList, componentList, atlDisplacementMap[name]);		}
 		else
 		{
 			BOOST_LOG_TRIVIAL(error)
@@ -205,10 +201,7 @@ bool readBlq(
 		}
 	}
 
-	BOOST_LOG_TRIVIAL(warning)
-	<< "Warning: No otl parameters found for " << rec.id << " in " << file;
-
-	return false;
+	return true;
 }
 
 /** Read ocean pole load tide coefficients
@@ -573,6 +566,11 @@ VectorEnu tideOceanLoadHardisp(
 	GTime		time,				///< GPS time
 	TideMap&	otlDisplacement)	///< OTL displacements in amplitude and phase
 {
+	if (otlDisplacement.empty())
+	{
+		return VectorEnu();
+	}
+
 	tracepdeex(4, trace, "\n%s:\n", __FUNCTION__);
 
 	double tamp	[3][ntin];
@@ -616,6 +614,11 @@ VectorEnu tideAtmosLoad(
 	MjDateUt1	mjdUt1,				///< UT1 time in MJD
 	TideMap&	atlDisplacement)	///< ATL displacements in amplitude and phase
 {
+	if (atlDisplacement.empty())
+	{
+		return VectorEnu();
+	}
+
 	map<E_TidalConstituent, double> args =
 	{
 		{E_TidalConstituent::S2,	1.45444E-4},  // S2: 2 cycles/day == 4*PI/86400
@@ -812,7 +815,7 @@ VectorEnu tideOceanPole(
 void tideDisp(
 	Trace&			trace,			///< Trace to output to
 	GTime			time,			///< GPS time
-	Receiver&		rec,			///< Receiver
+	string			id,				///< Receiver id
 	Vector3d&		recPos,			///< Receiver position in ECEF (m)
 	Vector3d&		solid,			///< Displacement by solid Earth tide
 	Vector3d&		otl,			///< Displacement by ocean tide
@@ -835,7 +838,7 @@ void tideDisp(
 
 	VectorPos pos = ecef2pos(recPos);
 
-	auto& recOpts = acsConfig.getRecOpts(rec.id);
+	auto& recOpts = acsConfig.getRecOpts(id);
 
 	VectorEcef	rSun;
 	VectorEcef	rMoon;
@@ -847,11 +850,17 @@ void tideDisp(
 		planetPosEcef(time, E_ThirdBody::SUN,	rSun,	erpv);
 	}
 
-	if (recOpts.tideModels.solid)											{																						solid	= tideSolidEarthDehant(trace, time, rSun, rMoon, recPos);	}
-	if (recOpts.tideModels.otl		&&rec.otlDisplacement.empty() == false)	{	VectorEnu	denu	= tideOceanLoadHardisp	(trace, time,	rec.otlDisplacement);	otl		= (Vector3d) enu2ecef(pos, denu);							}
-	if (recOpts.tideModels.atl		&&rec.atlDisplacement.empty() == false)	{	VectorEnu	denu	= tideAtmosLoad			(trace, mjdUt1,	rec.atlDisplacement);	atl		= (Vector3d) enu2ecef(pos, denu);							}
-	if (recOpts.tideModels.spole)											{	VectorEnu	denu	= tideSolidPole			(trace, mjdUt1, pos, erpv);				spole	= (Vector3d) enu2ecef(pos, denu);							}
-	if (recOpts.tideModels.opole)											{	VectorEnu	denu	= tideOceanPole			(trace, mjdUt1, pos, erpv);				opole	= (Vector3d) enu2ecef(pos, denu);							}
+	auto& otlMap = otlDisplacementMap[id];
+	auto& atlMap = atlDisplacementMap[id];
+
+	if (recOpts.tideModels.otl		&&otlMap.empty())	BOOST_LOG_TRIVIAL(warning) << "Warning: No otl parameters found for " << id;
+	if (recOpts.tideModels.atl		&&atlMap.empty())	BOOST_LOG_TRIVIAL(warning) << "Warning: No atl parameters found for " << id;
+
+	if (recOpts.tideModels.solid)		{																				solid	= tideSolidEarthDehant(trace, time, rSun, rMoon, recPos);	}
+	if (recOpts.tideModels.otl)			{	VectorEnu	denu	= tideOceanLoadHardisp	(trace, time,	otlMap);		otl		= (Vector3d) enu2ecef(pos, denu);							}
+	if (recOpts.tideModels.atl)			{	VectorEnu	denu	= tideAtmosLoad			(trace, mjdUt1,	atlMap);		atl		= (Vector3d) enu2ecef(pos, denu);							}
+	if (recOpts.tideModels.spole)		{	VectorEnu	denu	= tideSolidPole			(trace, mjdUt1, pos, erpv);		spole	= (Vector3d) enu2ecef(pos, denu);							}
+	if (recOpts.tideModels.opole)		{	VectorEnu	denu	= tideOceanPole			(trace, mjdUt1, pos, erpv);		opole	= (Vector3d) enu2ecef(pos, denu);							}
 
 	tracepdeex(lv, trace, "\n%s   SOLID       %14.6f %14.6f %14.6f", timeStr.c_str(), solid	[0], solid	[1], solid	[2]);
 	tracepdeex(lv, trace, "\n%s   OCEAN       %14.6f %14.6f %14.6f", timeStr.c_str(), otl	[0], otl	[1], otl	[2]);

@@ -221,10 +221,10 @@ void filterPseudoObs(
 }
 
 void orbitPseudoObs(
-			Trace&				trace,				///< Trace to output to
-			Receiver&			rec,				///< Receiver to perform calculations for
-	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
-			KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
+	Trace&				trace,				///< Trace to output to
+	Receiver&			rec,				///< Receiver to perform calculations for
+	KFState&			kfState,			///< Kalman filter object containing the network state parameters
+	KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
 {
 	GTime time = rec.obsList.front()->time;
 
@@ -529,11 +529,11 @@ void pseudoRecDcb(
 }
 
 void receiverPseudoObs(
-			Trace&				trace,				///< Trace to output to
-			Receiver&			rec,				///< (Pseudo) Receiver to perform calculations for
-	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
-			KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
-			ReceiverMap&		receiverMap)		///< Map of stations to retrieve receiver metadata from
+	Trace&				trace,				///< Trace to output to
+	Receiver&			rec,				///< (Pseudo) Receiver to perform calculations for
+	KFState&			kfState,			///< Kalman filter object containing the network state parameters
+	KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
+	ReceiverMap&		receiverMap)		///< Map of stations to retrieve receiver metadata from
 {
 	GTime time = rec.obsList.front()->time;
 

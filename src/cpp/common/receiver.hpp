@@ -53,22 +53,6 @@ struct ReceiverLogs
 	int		receiverErrorCount	= 0;
 };
 
-
-/** Structure of ocean/atmospheric tide loading displacements in amplitude and phase
-*/
-struct TidalDisplacement
-{
-	VectorEnu	amplitude;
-	VectorEnu	phase;
-};
-
-/** Map of ocean/atmospheric tide loading displacements
-*/
-struct TideMap : map<E_TidalConstituent, TidalDisplacement>
-{
-
-};
-
 struct Rtk
 {
 	Solution					sol;								///< RTK solution
@@ -76,8 +60,6 @@ struct Rtk
 	string						receiverType;
 	string						antennaId;
 	map<SatSys, SatStat>		satStatMap;
-	TideMap						otlDisplacement;					///< ocean tide loading parameters
-	TideMap						atlDisplacement;					///< atmospheric tide loading parameters
 	VectorEnu					antDelta;							///< antenna delta {rov_e,rov_n,rov_u}
 	AttStatus					attStatus;
 };
@@ -171,7 +153,3 @@ struct Network
 
 	KFState kfState			= {};
 };
-
-void initialiseStation(
-	string		id,
-	Receiver&	rec);

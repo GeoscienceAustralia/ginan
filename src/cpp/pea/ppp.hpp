@@ -46,7 +46,7 @@ void eopAdjustment(
 	Receiver&		rec,
 	VectorEcef&		rRec,
 	KFMeasEntry&	measEntry,
-	const KFState&	kfState);
+	KFState&		kfState);
 
 double netResidualAndChainOutputs(
 	Trace&			trace,
@@ -204,45 +204,44 @@ bool orbitGlitchReaction(
 
 
 void receiverUducGnss(
-			Trace&				pppTrace,
-			Receiver&			rec,
-	const	KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList,
-	const	KFState&			remoteState);
+	Trace&				pppTrace,
+	Receiver&			rec,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList,
+	KFState&			remoteState);
 
 void orbitPseudoObs(
-			Trace&				pppTrace,
-			Receiver&			rec,
-	const	KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList);
+	Trace&				pppTrace,
+	Receiver&			rec,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
 
 void initPseudoObs(
-			Trace&				pppTrace,
-			KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList);
+	Trace&				pppTrace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
 
 void filterPseudoObs(
-			Trace&				pppTrace,
-			KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList);
+	Trace&				pppTrace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
 
 void receiverPseudoObs(
-			Trace&				pppTrace,
-			Receiver&			rec,
-	const	KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList,
-			ReceiverMap&		receiverMap);
+	Trace&				pppTrace,
+	Receiver&			rec,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList,
+	ReceiverMap&		receiverMap);
 
 
 void readPseudosFromFile(
 	string&		file);
 
 void receiverSlr(
-			Trace&				pppTrace,
-			Receiver&			rec,
-	const	KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList);
-
+	Trace&				pppTrace,
+	Receiver&			rec,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
 
 bool satQuat(
 	SatPos&				satPos,

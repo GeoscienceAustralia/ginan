@@ -764,18 +764,7 @@ void removeBadIonospheres(
 	{
 		if (key.type == KF::IONOSPHERIC)
 		{
-			double state;
-			double variance;
-			kfState.getKFValue(key, state, &variance);
-
 			auto& recOpts = acsConfig.getRecOpts(key.str);
-
-			if (variance > SQR(recOpts.iono_sigma_limit))
-			{
-				trace << "\n" << "Ionosphere removed due to high variance: " << key;
-
-				kfState.removeState(key);
-			}
 
 			if (key.rec_ptr == nullptr)
 			{
@@ -816,18 +805,8 @@ void removeBadIonospheres(
 			kfState.statisticsMap["Iono outage resets"]++;
 
 			kfState.removeState(key);
+
 			continue;
-		}
-
-		double state;
-		double variance;
-		kfState.getKFValue(key, state, &variance);
-
-		if (variance > SQR(recOpts.iono_sigma_limit))
-		{
-			trace << "\n" << "Ionosphere removed due to high variance: " << key;
-
-			kfState.removeState(key);
 		}
 	}
 }

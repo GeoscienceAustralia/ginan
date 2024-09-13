@@ -89,7 +89,7 @@ public:
 //this will ust copy and paste the types and variable names for now, this is undefined later to remove the type names to pass in the parameters in the same order
 #define COMMON_ARG(type)    type
 
-#define COMMON_PPP_ARGS												\
+#define COMMON_PPP_ARGS										\
 	COMMON_ARG(			Trace&				)	trace,				\
 	COMMON_ARG(			Trace&				)	jsonTrace,			\
 	COMMON_ARG(			GObs&				)	obs,				\
@@ -104,8 +104,8 @@ public:
 	COMMON_ARG(			SatNav&				)	satNav,				\
 	COMMON_ARG(			ReceiverOptions&	)	recOpts,			\
 	COMMON_ARG(			SatelliteOptions&	)	satOpts,			\
-	COMMON_ARG(const	KFState&			)	kfState,			\
-	COMMON_ARG(const	KFState&			)	remoteKF,			\
+	COMMON_ARG(			KFState&			)	kfState,			\
+	COMMON_ARG(			KFState&			)	remoteKF,			\
 	COMMON_ARG(			KFMeasEntry&		)	measEntry,			\
 	COMMON_ARG(			VectorEcef&			)	rRec,				\
 	COMMON_ARG(			VectorEcef&			)	rSat,				\
@@ -149,7 +149,7 @@ tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d> tideDelta(
 			||recOpts.tideModels.spole
 			||recOpts.tideModels.opole)
 		{
-			tideDisp(trace, time, rec, rRec, solid, otl, atl, spole, opole);
+			tideDisp(trace, time, rec.id, rRec, solid, otl, atl, spole, opole);
 		}
 
 		return {solid, otl, atl, spole, opole};
@@ -166,7 +166,7 @@ void eopAdjustment(
 	Receiver&		rec,
 	VectorEcef&		rRec,
 	KFMeasEntry&	measEntry,
-	const KFState&	kfState)
+	KFState&		kfState)
 {
 	Matrix3d partialMatrix	= stationEopPartials(rRec);
 	Vector3d eopPartials	= partialMatrix * e;
@@ -1490,11 +1490,11 @@ void checkModels(
 
 
 void receiverUducGnss(
-			Trace&				pppTrace,			///< Trace to output to
-			Receiver&			rec,				///< Receiver to perform calculations for
-	const	KFState&			kfState,			///< Kalman filter object containing the state parameters
-			KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
-	const	KFState&			remoteKF)			///< Kalman filter object containing remote filter values
+	Trace&				pppTrace,			///< Trace to output to
+	Receiver&			rec,				///< Receiver to perform calculations for
+	KFState&			kfState,			///< Kalman filter object containing the state parameters
+	KFMeasEntryList&	kfMeasEntryList,	///< List to append kf measurements to
+	KFState&			remoteKF)			///< Kalman filter object containing remote filter values
 {
 	DOCS_REFERENCE(UDUC_GNSS_Measurements__);
 

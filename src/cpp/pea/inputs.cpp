@@ -229,7 +229,7 @@ void addStationData(
 		{
 			auto& rec = receiverMap[id];
 
-			initialiseStation(id, rec);
+			rec.id = id;
 		}
 
 		streamParser_ptr->stream.sourceString = inputName;
@@ -481,6 +481,34 @@ void reloadInputFiles()
 		<< "Loading Ocean Pole Tide file " << optfile;
 
 		readOceanPoleCoeff(optfile);
+	}
+
+	removeInvalidFiles(acsConfig.ocean_tide_loading_blq_files);
+	for (auto& otlfile : acsConfig.ocean_tide_loading_blq_files)
+	{
+		if (fileChanged(otlfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading Ocean Tide Loading BLQ file " << otlfile;
+
+		readBlq(otlfile, E_LoadingType::OCEAN);
+	}
+
+	removeInvalidFiles(acsConfig.atmos_tide_loading_blq_files);
+	for (auto& atlfile : acsConfig.atmos_tide_loading_blq_files)
+	{
+		if (fileChanged(atlfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading Atmos Tide Loading BLQ file " << atlfile;
+
+		readBlq(atlfile, E_LoadingType::ATMOSPHERIC);
 	}
 
 	removeInvalidFiles(acsConfig.sid_files); // satellite ID (sp3c code) data

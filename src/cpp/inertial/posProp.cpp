@@ -330,7 +330,7 @@ Inertials prepareInertials(
 void applyInertials(
 	Trace&			trace,
 	Inertials&		inertials,
-	const KFState&	kfState,
+	KFState&		kfState,
 	GTime			time,
 	double			tgap)
 {
@@ -395,9 +395,9 @@ void applyInertials(
 /** Use models to predict orbital motion and prepare state transition equations to implement those predictions in the filter
  */
 void predictInertials(
-	Trace&			trace,
-	const KFState&	kfState,
-	GTime			time)
+	Trace&		trace,
+	KFState&	kfState,
+	GTime		time)
 {
 	double tgap = (time - kfState.time).to_double();
 

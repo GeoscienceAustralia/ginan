@@ -158,6 +158,6 @@ struct InertialIntegrator
 };
 
 void predictInertials(
-	Trace&			trace,
-	const KFState&	kfState,
-	GTime           time);
+	Trace&		trace,
+	KFState&	kfState,
+	GTime		time);

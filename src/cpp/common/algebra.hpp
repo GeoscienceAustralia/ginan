@@ -14,10 +14,10 @@
 #include <map>
 
 using boost::algorithm::to_lower;
+using std::recursive_mutex;
 using std::lock_guard;
 using std::string;
 using std::vector;
-using std::mutex;
 using std::tuple;
 using std::hash;
 using std::pair;
@@ -276,6 +276,7 @@ struct InitialState
 	bool	use_remote_sigma	= false;
 	double	x					= 0;	///< State value
 	double	P					= -1;	///< State Covariance
+	double	sigmaMax			= 0;	///< Sigma limit
 	double	Q					= 0;	///< Process Noise, -ve indicates infinite (throw away state)
 	double	tau					= -1;	///< Correlation Time, default to -1 (inf) (Random Walk)
 	double	mu					= 0;	///< Desired Mean Value
@@ -339,6 +340,7 @@ struct KFState_ : FilterOptions
 	map<KFKey, double>									gaussMarkovMuMap;
 	map<KFKey, double>									procNoiseMap;
 	map<KFKey, double>									initNoiseMap;
+	map<KFKey, double>									sigmaMaxMap;
 	map<KFKey, Exponential>								exponentialNoiseMap;
 
 	vector<StateRejectCallback> 						stateRejectCallbacks;
@@ -366,16 +368,11 @@ struct KFState_ : FilterOptions
 };
 
 
-/** Wrapper to protect main KFState_ structure from multithreading issues.
- * The main purpose of this structure is to allow the use of the `const` attribute, signifying whether the object is safe to be modified without multithreading locks.
- *
- * When a KFState is passed to multithreading code, it should be passed as a `const` reference, preventing ordinary modification of its members, which are likely to collide during parallel calculations.
- *
- * Wrapper functions cast the object so it is as-if it were const and then call the ordinary functions after obtaining the object's mutex
+/** Wrapper to simplify copying with default copy but overriding slightly.
  */
 struct KFState : KFState_
 {
-	mutex kfStateMutex;
+	recursive_mutex kfStateMutex;
 
 	static const KFKey oneKey;			///< KFStates generally contain a ONE state as the first element, used for converting matrix additions to matrix multiplications.
 
@@ -638,50 +635,6 @@ struct KFState : KFState_
 	KFState getSubState(
 		vector<KF>)
 	const;
-
-	void	removeState(
-		const	KFKey&			kfKey)
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.removeState		(kfKey);
-	}
-
-	void setExponentialNoise(
-		const	KFKey&			kfKey,
-		const	Exponential		exponential)
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setExponentialNoise	(kfKey, exponential);
-	}
-
-	bool 	addKFState(
-		const	KFKey&			kfKey,
-		const	InitialState&	initialState = {})
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	return	kfState.addKFState		(kfKey, initialState);
-	}
-
-	void	setKFTrans(
-		const	KFKey&			dest,
-		const	KFKey&			source,
-		const	double			value,
-		const	InitialState&	initialState = {})
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setKFTrans		(dest, source, value, initialState);
-	}
-
-	void	setKFTransRate(
-		const	KFKey&			integral,
-		const	KFKey&			rate,
-		const	double			value,
-		const	InitialState&	initialRateState		= {},
-		const	InitialState&	initialIntegralState	= {})
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	kfState.setKFTransRate	(integral, rate, value, initialRateState, initialIntegralState);
-	}
 };
 
 /** Object to hold an individual measurement.
@@ -690,14 +643,13 @@ struct KFState : KFState_
 */
 struct KFMeasEntry
 {
-			KFState*					kfState_ptr			= nullptr;			///< Pointer to filter object that measurements are referencing
-	const	KFState*					constKfState_ptr	= nullptr;			///< Pointer to filter object that measurements are referencing
+	KFState*	kfState_ptr	= nullptr;			///< Pointer to filter object that measurements are referencing
 
-	double valid	= true;			///< Optional parameter to invalidate a measurement (to avoid needing to delete it and reshuffle a vector)
-	double value	= 0;			///< Value of measurement (for linear systems)
-	double noise	= 0;			///< Noise of measurement
-	double innov	= 0;			///< Innovation of measurement (for non-linear systems)
-	KFKey obsKey	= {};			///< Optional labels to be used in output traces
+	double		valid		= true;			///< Optional parameter to invalidate a measurement (to avoid needing to delete it and reshuffle a vector)
+	double		value		= 0;			///< Value of measurement (for linear systems)
+	double		noise		= 0;			///< Noise of measurement
+	double		innov		= 0;			///< Innovation of measurement (for non-linear systems)
+	KFKey		obsKey		= {};			///< Optional labels to be used in output traces
 
 	map<E_Component, ComponentsDetails> componentsMap;
 
@@ -711,15 +663,6 @@ struct KFMeasEntry
 				KFState*	kfState_ptr,
 				KFKey		obsKey		= {})
 	:	kfState_ptr			(kfState_ptr),
-		obsKey				(obsKey)
-	{
-
-	}
-
-	KFMeasEntry(
-		const	KFState*	constKfState_ptr,
-				KFKey		obsKey		= {})
-	:	constKfState_ptr	(constKfState_ptr),
 		obsKey				(obsKey)
 	{
 
@@ -765,9 +708,10 @@ struct KFMeasEntry
 			return;
 		}
 
-		bool retval = false;
-		if (kfState_ptr)		{	kfState_ptr		->addKFState(kfKey, initialState);		}
-		if (constKfState_ptr)	{	constKfState_ptr->addKFState(kfKey, initialState);		}
+		if (kfState_ptr)
+		{
+			kfState_ptr->addKFState(kfKey, initialState);
+		}
 
 		usedValueMap	[kfKey] =  initialState.x;
 		designEntryMap	[kfKey] += value;

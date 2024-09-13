@@ -35,9 +35,27 @@ struct OceanPoleGrid
 	vector<OceanPoleCoeff>	grid		= {};	///< grid map of ocean pole load tide coefficients
 };
 
+/** Structure of ocean/atmospheric tide loading displacements in amplitude and phase
+*/
+struct TidalDisplacement
+{
+	VectorEnu	amplitude;
+	VectorEnu	phase;
+};
+
+/** Map of ocean/atmospheric tide loading displacements
+*/
+struct TideMap : map<E_TidalConstituent, TidalDisplacement>
+{
+
+};
+
+extern map<string, TideMap>	otlDisplacementMap;					///< ocean tide loading parameters
+extern map<string, TideMap>	atlDisplacementMap;					///< atmospheric tide loading parameters
+
+
 bool readBlq(
 	string			file,
-	Receiver&		rec,
 	E_LoadingType	type);
 
 bool readOceanPoleCoeff(
@@ -94,7 +112,7 @@ VectorEnu tideOceanPole(
 void tideDisp(
 	Trace&		trace,
 	GTime		time,
-	Receiver&	rec,
+	string		id,
 	Vector3d&	recPos,
 	Vector3d&	solid,
 	Vector3d&	olt,

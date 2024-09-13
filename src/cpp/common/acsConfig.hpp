@@ -565,6 +565,7 @@ struct GlobalOptions
 struct KalmanModel
 {
 	vector<double>	sigma				= {-1};	//{0} is very necessary
+	vector<double>	sigma_limit			= {0};
 	vector<double>	apriori_value		= {0};
 	vector<double>	process_noise		= {0};
 	vector<double>	tau					= {-1};	//tau<0 (inf): Random Walk model; tau>0: First Order Gauss Markov model
@@ -1182,7 +1183,6 @@ struct ReceiverOptions : ReceiverKalmans, CommonOptions
 	E_IonoMapFn		mapping_function				= E_IonoMapFn::MSLM;
 	double			geomagnetic_field_height		= 450;
 	double			mapping_function_layer_height	= 506.7;
-	double			iono_sigma_limit				= 1000;
 
 	E_NoiseModel			error_model			= E_NoiseModel::ELEVATION_DEPENDENT;
 	double					code_sigma			= 1;

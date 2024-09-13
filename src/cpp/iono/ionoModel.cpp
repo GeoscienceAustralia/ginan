@@ -212,7 +212,6 @@ void filterIonosphere(
 		if (obs.ionExclude)											{	continue;	}
 		if (obs.stecType <= 0)										{	continue;	}
 		if (stationList[rec.id][sys] < MIN_NSAT_REC)				{	continue;	}
-		if (obs.stecVar > SQR(recOpts.iono_sigma_limit)) 			{	continue;	}
 
 		/************ Ionosphere Measurements ************/
 		KFKey obsKey;

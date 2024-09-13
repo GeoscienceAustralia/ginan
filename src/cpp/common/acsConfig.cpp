@@ -1457,6 +1457,7 @@ void tryGetKalmanFromYaml(
 	}{auto& thing = output.sigma			;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"1! sigma" 				}, "Apriori sigma values - if zero, will be initialised using least squares"));
 	}{auto& thing = output.apriori_value	;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"3! apriori_value"		}, "Apriori state values"));
 	}{auto& thing = output.process_noise	;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"2! process_noise" 		}, "Process noise sigmas"));
+	}{auto& thing = output.sigma_limit		;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ sigma_limit" 		}, "Maximum sigma before the state is removed"));
 	}{auto& thing = output.tau				;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ tau"					}, "Correlation times for gauss markov noise, defaults to -1 -> inf (Random Walk)"));
 	}{auto& thing = output.mu				;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ mu"					}, "Desired mean value for gauss markov states"));
 	}{auto& thing = output.comment			;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ comment"				}, "Comment to apply to the state"));
@@ -1703,6 +1704,7 @@ KalmanModel& KalmanModel::operator+=(
 	const KalmanModel& rhs)
 {
 	initIfNeeded(*this, rhs,	sigma			);
+	initIfNeeded(*this, rhs,	sigma_limit		);
 	initIfNeeded(*this, rhs,	apriori_value	);
 	initIfNeeded(*this, rhs,	process_noise	);
 	initIfNeeded(*this, rhs,	tau				);
@@ -1777,7 +1779,6 @@ ReceiverOptions& ReceiverOptions::operator+=(
 	initIfNeeded(*this, rhs,	mapping_function				);
 	initIfNeeded(*this, rhs,	geomagnetic_field_height		);
 	initIfNeeded(*this, rhs,	mapping_function_layer_height	);
-	initIfNeeded(*this, rhs,	iono_sigma_limit				);
 
 	initIfNeeded(*this, rhs,	error_model						);
 	initIfNeeded(*this, rhs,	code_sigma						);
@@ -2159,7 +2160,6 @@ void getOptionsFromYaml(
 	}{	auto& thing = recOpts.mapping_function				;	setInited(recOpts,	thing,	tryGetEnumOpt	(thing,	modelsNode,	{"@ ionospheric_components",	"@ mapping_function" 				}, "Mapping function if not specified in the data or model"));
 	}{	auto& thing = recOpts.geomagnetic_field_height		;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	modelsNode,	{"@ ionospheric_components",	"@ geomagnetic_field_height"		}, "ionospheric pierce point layer height if not specified in the data or model (km)"));
 	}{	auto& thing = recOpts.mapping_function_layer_height	;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	modelsNode,	{"@ ionospheric_components",	"@ mapping_function_layer_height"	}, "mapping function layer height if not specified in the data or model (km)"));
-	}{	auto& thing = recOpts.iono_sigma_limit				;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	modelsNode,	{"@ ionospheric_components",	"@ iono_sigma_limit"				}, "Ionosphere states are removed when their sigma exceeds this value"));
 	}{	auto& thing = recOpts.ionospheric_model				;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	modelsNode,	{"@ ionospheric_model",			"enable"		}, "Compute ionosphere maps from a network of receivers"));
 	}{	auto& thing = recOpts.tropospheric_map				;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	modelsNode,	{"@ tropospheric_map",			"enable"		}, "Compute tropospheric maps from a network of receivers"));
 	}{	auto& thing = recOpts.eop							;	setInited(recOpts,	thing,	tryGetFromYaml	(thing,	modelsNode,	{"@ eop",						"enable"		}, "Enable modelling of eops"));

@@ -164,7 +164,7 @@ void alternatePostfits(
 
 void makeIFLCs(
 	Trace&				trace,
-	const KFState&		kfState,
+	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList)
 {
 	bool iflcMade = false;
@@ -261,13 +261,12 @@ void makeIFLCs(
 			kfMeasEntryJ.metaDataMap["IFLCcombined"]	= (void*) true;
 // 			kfMeasEntryJ.metaDataMap["explain"]			= (void*) true;
 
-			newDesignEntryMap[ionKey_j] = 0;
+			newDesignEntryMap[ionKey_i] = 0;
 			kfMeasEntryJ.designEntryMap	= std::move(newDesignEntryMap);
 			kfMeasEntryJ.noiseEntryMap	= std::move(newNoiseEntryMap);
 			kfMeasEntryJ.componentsMap	= std::move(newComponentsMap);
 
 			kfState.removeState(ionKey_i);
-			kfState.removeState(ionKey_j);
 			break;
 		}
 	}
@@ -1214,8 +1213,8 @@ void perRecMeasurements(
 	Receiver&			rec,
 	ReceiverMap&		receiverMap,
 	KFMeasEntryList&	kfMeasEntryList,
-	const KFState&		kfState,
-	const KFState&		remoteState)
+	KFState&			kfState,
+	KFState&			remoteState)
 {
 	rec.pppTideCache.uninit();
 	rec.pppEopCache	.uninit();

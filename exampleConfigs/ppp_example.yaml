@@ -265,6 +265,7 @@ estimation_parameters:
                 estimated: [true] # Estimate state in kalman filter
                 sigma: [200] # Apriori sigma values
                 process_noise: [10] # Process noise sigmas
+                sigma_limit:    [1000]
             trop:
                 estimated: [true]
                 sigma: [0.3]

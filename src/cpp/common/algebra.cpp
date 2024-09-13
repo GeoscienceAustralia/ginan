@@ -117,7 +117,23 @@ void KFState::initFilterEpoch()
 		mapp.erase(oneKey);
 	}
 
-	stateTransitionMap[oneKey][oneKey][0]	= 1;
+	stateTransitionMap[oneKey][oneKey][0] = 1;
+
+
+	//make a copy because iterators will be invalidated
+	auto sigmaMaxMapCopy = sigmaMaxMap;
+
+	//remove any states that have exceeded their max variances
+	for (auto& [key, sigmaMax] : sigmaMaxMapCopy)
+	{
+		double sigma = 0;
+		getKFSigma(key, sigma);
+
+		if (sigma > sigmaMax)
+		{
+			removeState(key);
+		}
+	}
 }
 
 /** Finds the position in the KF state vector of particular states.
@@ -225,6 +241,8 @@ void KFState::setKFTrans(
 	const	double			value,			///< Input value
 	const	InitialState&	initialState)	///< Initial state.
 {
+	lock_guard guard(kfStateMutex);
+
 	addKFState(dest, initialState);
 
 	auto& transition = stateTransitionMap[dest][source][0];
@@ -241,6 +259,8 @@ void KFState::setKFTransRate(
 	const	InitialState&	initialRateState,		///< Initial state for rate state.
 	const	InitialState&	initialIntegralState)	///< Initial state for the thing that is modified by the rate
 {
+	lock_guard guard(kfStateMutex);
+
 	addKFState(rateKey,		initialRateState);
 	addKFState(integralKey,	initialIntegralState);
 
@@ -252,7 +272,12 @@ void KFState::setKFTransRate(
 void KFState::removeState(
 	const	KFKey&			kfKey)				///< Key to search for in state
 {
+	lock_guard guard(kfStateMutex);
+
+	traceTrivialTrace("Removing '%s'", ((string) kfKey).c_str());
+
 	stateTransitionMap.		erase(kfKey);
+	sigmaMaxMap.			erase(kfKey);
 	procNoiseMap.			erase(kfKey);
 	gaussMarkovTauMap.		erase(kfKey);
 	gaussMarkovMuMap.		erase(kfKey);
@@ -267,13 +292,16 @@ bool KFState::addKFState(
 	const	KFKey&			kfKey,			///< The key to add to the state
 	const	InitialState&	initialState)	///< The initial conditions to add to the state
 {
+	lock_guard guard(kfStateMutex);
+
 	auto iter = stateTransitionMap.find(kfKey);
 	if (iter != stateTransitionMap.end())
 	{
 		//is an existing state, just update values
-		if (initialState.Q		!= 0)		{	procNoiseMap		[kfKey]	= initialState.Q;		}
-		if (initialState.mu		!= 0)		{	gaussMarkovMuMap	[kfKey]	= initialState.mu;		}
-		if (initialState.tau	!= 0)		{	gaussMarkovTauMap	[kfKey] = initialState.tau;		}
+		if (initialState.Q			!= 0)		{	procNoiseMap		[kfKey]	= initialState.Q;			}
+		if (initialState.mu			!= 0)		{	gaussMarkovMuMap	[kfKey]	= initialState.mu;			}
+		if (initialState.tau		!= 0)		{	gaussMarkovTauMap	[kfKey] = initialState.tau;			}
+		if (initialState.sigmaMax	!= 0)		{	sigmaMaxMap			[kfKey] = initialState.sigmaMax;	}
 
 		return false;
 	}
@@ -289,12 +317,13 @@ bool KFState::addKFState(
 		currentX = x[index];
 	}
 
-	stateTransitionMap	[kfKey][kfKey]	[0]	= 1;
-	stateTransitionMap	[kfKey][oneKey]	[0]	= initialState.x - currentX;
-	initNoiseMap		[kfKey]				= initialState.P;
-	procNoiseMap		[kfKey]				= initialState.Q;
-	gaussMarkovTauMap	[kfKey]				= initialState.tau;
-	gaussMarkovMuMap	[kfKey]				= initialState.mu;
+								stateTransitionMap	[kfKey][kfKey]	[0]	= 1;
+								stateTransitionMap	[kfKey][oneKey]	[0]	= initialState.x - currentX;
+	if (initialState.P)			initNoiseMap		[kfKey]				= initialState.P;
+	if (initialState.Q)			procNoiseMap		[kfKey]				= initialState.Q;
+	if (initialState.mu)		gaussMarkovMuMap	[kfKey]				= initialState.mu;
+	if (initialState.tau)		gaussMarkovTauMap	[kfKey]				= initialState.tau;
+	if (initialState.sigmaMax)	sigmaMaxMap			[kfKey]				= initialState.sigmaMax;
 
 	if (initialState.P < 0)
 	{
@@ -309,6 +338,8 @@ void KFState::setExponentialNoise(
 	const	KFKey&			kfKey,
 	const	Exponential		exponential)
 {
+	lock_guard guard(kfStateMutex);
+
 	exponentialNoiseMap[kfKey] = exponential;
 }
 
@@ -2165,6 +2196,8 @@ InitialState initialStateFromConfig(
 	else													init.x					= 		kalmanModel.apriori_value	.back();
 	if (index < kalmanModel.sigma			.size())		init.P					= SQR(	kalmanModel.sigma			[index])	* SGN(kalmanModel.sigma		[index]);
 	else													init.P					= SQR(	kalmanModel.sigma			.back())	* SGN(kalmanModel.sigma		.back());
+	if (index < kalmanModel.sigma_limit		.size())		init.sigmaMax			= 		kalmanModel.sigma_limit		[index];
+	else													init.sigmaMax			= 		kalmanModel.sigma_limit		.back();
 	if (index < kalmanModel.tau				.size())		init.tau				= 		kalmanModel.tau				[index];
 	else													init.tau				= 		kalmanModel.tau				.back();
 	if (index < kalmanModel.mu				.size())		init.mu					= 		kalmanModel.mu				[index];

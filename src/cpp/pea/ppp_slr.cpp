@@ -43,23 +43,23 @@ using std::function;
 //this will ust copy and paste the type for now, this is undefined later to remove the type names to pass in the parameters in the same order
 #define COMMON_ARG(type)    type
 
-#define COMMON_PPP_ARGS											\
-	COMMON_ARG(			Trace&				)	trace,			\
-	COMMON_ARG(			LObs&				)	obs,			\
-	COMMON_ARG(			GTime&				)	time,			\
-	COMMON_ARG(			SatStat&			)	satStat,		\
-	COMMON_ARG(			ReceiverOptions&	)	recOpts,		\
-	COMMON_ARG(			SatelliteOptions&	)	satOpts,		\
-	COMMON_ARG(			SatNav&				)	satNav,			\
-	COMMON_ARG(			VectorEcef&			)	rRec,			\
-	COMMON_ARG(			VectorEcef&			)	rSat,			\
-	COMMON_ARG(			double&				)	rRecSat,		\
-	COMMON_ARG(			VectorPos&			)	pos,			\
-	COMMON_ARG(			Receiver&			)	rec,			\
-	COMMON_ARG(const	KFState&			)	kfState,		\
-	COMMON_ARG(			ERPValues&			)	erpv,			\
-	COMMON_ARG(			FrameSwapper&		)	frameSwapper,	\
-	COMMON_ARG(			KFMeasEntry&		)	measEntry
+#define COMMON_PPP_ARGS									\
+	COMMON_ARG(Trace&				)	trace,			\
+	COMMON_ARG(LObs&				)	obs,			\
+	COMMON_ARG(GTime&				)	time,			\
+	COMMON_ARG(SatStat&				)	satStat,		\
+	COMMON_ARG(ReceiverOptions&		)	recOpts,		\
+	COMMON_ARG(SatelliteOptions&	)	satOpts,		\
+	COMMON_ARG(SatNav&				)	satNav,			\
+	COMMON_ARG(VectorEcef&			)	rRec,			\
+	COMMON_ARG(VectorEcef&			)	rSat,			\
+	COMMON_ARG(double&				)	rRecSat,		\
+	COMMON_ARG(VectorPos&			)	pos,			\
+	COMMON_ARG(Receiver&			)	rec,			\
+	COMMON_ARG(KFState&				)	kfState,		\
+	COMMON_ARG(ERPValues&			)	erpv,			\
+	COMMON_ARG(FrameSwapper&		)	frameSwapper,	\
+	COMMON_ARG(KFMeasEntry&			)	measEntry
 
 
 /** Satellite retroreflector delta from CoM
@@ -245,10 +245,10 @@ inline void slrEopAdjustment(COMMON_PPP_ARGS)
 #define	COMMON_ARG(type)
 
 void receiverSlr(
-			Trace&				pppTrace,			///< Trace to output to
-			Receiver&			rec,				///< Receiver to perform calculations for
-	const	KFState&			kfState,			///< Kalman filter object containing the network state parameters
-			KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
+	Trace&				pppTrace,			///< Trace to output to
+	Receiver&			rec,				///< Receiver to perform calculations for
+	KFState&			kfState,			///< Kalman filter object containing the network state parameters
+	KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
 {
 	DOCS_REFERENCE(SLR_Mesaurements__);
 
