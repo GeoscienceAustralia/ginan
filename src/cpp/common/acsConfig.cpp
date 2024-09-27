@@ -1557,9 +1557,13 @@ void tryGetStreamFromYaml(
 
 			auto msgOptions = stringsToYamlObject(outStreamsYaml, {"0@ messages", str},	"Message type to output");
 
-			bool found = tryGetFromYaml(outStreamData.rtcmMsgOptsMap[msgType].igs_udi[subType],		msgOptions, {"0@ udi"},	"Update interval");
+			int udi = 0;
+			bool found = tryGetFromYaml(udi,		msgOptions, {"0@ udi"},	"Update interval");
 			if (found)
-				outStreamData.rtcmMsgOptsMap[msgType].udi = 1;
+			{
+				outStreamData.rtcmMsgOptsMap[msgType].igs_udi[subType]	= udi;
+				outStreamData.rtcmMsgOptsMap[msgType].udi				= 1;
+			}
 		}
 
 		else if (msgType == +RtcmMessageType::COMPACT_SSR)
@@ -1569,9 +1573,13 @@ void tryGetStreamFromYaml(
 
 			auto msgOptions = stringsToYamlObject(outStreamsYaml, {"0@ messages", str},	"Message type to output");
 
-			bool found = tryGetFromYaml(outStreamData.rtcmMsgOptsMap[msgType].comp_udi[subType],	msgOptions, {"0@ udi"},	"Update interval");
+			int udi = 0;
+			bool found = tryGetFromYaml(udi,	msgOptions, {"0@ udi"},	"Update interval");
 			if (found)
-				outStreamData.rtcmMsgOptsMap[msgType].udi = 1;
+			{
+				outStreamData.rtcmMsgOptsMap[msgType].comp_udi[subType]	= udi;
+				outStreamData.rtcmMsgOptsMap[msgType].udi				= 1;
+			}
 		}
 
 		else
@@ -1580,7 +1588,12 @@ void tryGetStreamFromYaml(
 
 			auto msgOptions = stringsToYamlObject(outStreamsYaml, {"0@ messages", str},	"Message type to output");
 
-			tryGetFromYaml(outStreamData.rtcmMsgOptsMap[msgType].udi, msgOptions, {"0@ udi"},	"Update interval");
+			int udi = 0;
+			bool found = tryGetFromYaml(udi, msgOptions, {"0@ udi"},	"Update interval");
+			if (found)
+			{
+				outStreamData.rtcmMsgOptsMap[msgType].udi = udi;
+			}
 		}
 	}
 

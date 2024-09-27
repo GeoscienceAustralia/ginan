@@ -53,8 +53,12 @@ endif ()
 if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(CMAKE_CXX_FLAGS					"${CMAKE_CXX_FLAGS} -O0 -g")
+	set(CMAKE_C_FLAGS					"${CMAKE_C_FLAGS} -O0 -g")
+endif ()
 
-	option(BUILD_DOC                "BUILD_DOCUMENTATION"       OFF)
+option(BUILD_DOC                "BUILD_DOCUMENTATION"       OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    OFF)

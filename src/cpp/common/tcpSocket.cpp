@@ -301,7 +301,7 @@ void TcpSocket::delayedReconnect()
 	timer.async_wait(boost::bind(&TcpSocket::reconnectTimerHandler, this, bp::error));
 }
 
-void NtripStream::requestResponseHandler(
+void NtripResponder::requestResponseHandler(
 	const boost::system::error_code& err)
 {
 	if (err)

@@ -13,7 +13,7 @@
 #include "enums.h"
 
 
-struct NtripUploader : TcpSocket, RtcmEncoder
+struct NtripUploader : NtripResponder, RtcmEncoder
 {
 	boost::posix_time::ptime		timeNextMessage;
 
@@ -33,7 +33,7 @@ struct NtripUploader : TcpSocket, RtcmEncoder
 
 	NtripUploader(
 		const string& url_str)
-								:	TcpSocket(url_str),
+								:	NtripResponder(url_str),
 									sendTimer(ioService)
 	{
 		if (url.path.empty())
@@ -83,7 +83,8 @@ struct NtripUploader : TcpSocket, RtcmEncoder
 
 	void serverResponse(
 		unsigned int	status_code,
-		string 			http_version);
+		string 			http_version)
+	override;
 
 	void getJsonNetworkStatistics(
 		GTime now);

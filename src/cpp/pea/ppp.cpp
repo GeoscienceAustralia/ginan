@@ -299,8 +299,15 @@ void selectAprioriSource(
 	//remove kalman from the list to not corrupt the apriori states
 	auto brdcPosIt = std::find(posModelSources.begin(), posModelSources.end(), +E_Source::KALMAN);
 	auto brdcClkIt = std::find(clkModelSources.begin(), clkModelSources.end(), +E_Source::KALMAN);
-	posModelSources.erase(brdcPosIt);
-	clkModelSources.erase(brdcClkIt);
+
+	if (brdcPosIt != posModelSources.end())
+	{
+		posModelSources.erase(brdcPosIt);
+	}
+	if (brdcClkIt != clkModelSources.end())
+	{
+		clkModelSources.erase(brdcClkIt);
+	}
 
 	bool posPass = satpos(trace, time, time, satPos0, posModelSources, E_OffsetType::COM,	nav, &kfState, remote_ptr);
 	bool clkPass = satclk(trace, time, time, satPos0, clkModelSources,						nav, &kfState, remote_ptr);

@@ -8,12 +8,33 @@
 #include <mutex>
 
 
+struct NtripResponder : TcpSocket
+{
+	NtripResponder(
+		const string& url_str)
+		:	TcpSocket(url_str)
+	{
 
-struct NtripStream : TcpSocket
+	}
+
+	void requestResponseHandler(
+		const boost::system::error_code& err)
+	override;
+
+	virtual void serverResponse(
+		unsigned int	statusCode,
+		string			httpVersion)
+	{
+		std::cout << "Code Error: No server response defined" << std::endl;
+	};
+};
+
+
+struct NtripStream : NtripResponder
 {
 	NtripStream(
 		const string& url_str)
-		:	TcpSocket(url_str)
+		:	NtripResponder(url_str)
 	{
 		std::stringstream	requestStream;
 							requestStream	<< "GET " 		<< url.path << " HTTP/1.1"				<< "\r\n";
@@ -33,13 +54,10 @@ struct NtripStream : TcpSocket
 		connect();
 	}
 
-	void requestResponseHandler(
-		const boost::system::error_code& err)
-	override;
-
 	void serverResponse(
 		unsigned int	statusCode,
-		string			httpVersion);
+		string			httpVersion)
+	override;
 
 	~NtripStream(){};
 };
