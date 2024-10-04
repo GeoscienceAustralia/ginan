@@ -1,6 +1,8 @@
 inputs:
     inputs_root: ./products/
 
+    allow_missing_inputs: true
+
     atx_files: [igs20.atx] # required
     igrf_files: [tables/igrf13coeffs.txt]
     erp_files: [finals.data.iau2000.txt]
@@ -40,6 +42,7 @@ inputs:
         rnx_inputs:
             # - "*.rnx"
             - ALIC00AUS_R_20191990000_01D_30S_MO.rnx
+            # - ALIC2.rnx
         # - DARW00AUS_R_20191990000_01D_30S_MO.rnx
         # - HOB200AUS_R_20191990000_01D_30S_MO.rnx
         # - "M*.rnx"

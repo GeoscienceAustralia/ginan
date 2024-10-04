@@ -70,6 +70,11 @@ struct Stream
 		return false;
 	}
 
+	virtual bool isAvailable()
+	{
+		return true;
+	}
+
 	virtual ~Stream() = default;
 };
 

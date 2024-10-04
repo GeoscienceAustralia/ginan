@@ -126,7 +126,7 @@ class MongoDB:
                 "$push": {"$cond": [{"$eq": [{"$ifNull": [f"${key}", None]}, None]}, float("nan"), f"${key}"]}
             }
         logger.info(agg_pipeline)
-        cursor = self.mongo_client[self.mongo_db][collection].aggregate(agg_pipeline)
+        cursor = self.mongo_client[self.mongo_db][collection].aggregate(agg_pipeline, allowDiskUse=True)
         # check if cursor is empty
         if not cursor.alive:
             raise ValueError("No data found")

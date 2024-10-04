@@ -61,6 +61,8 @@ struct InputOptions
 {
 	string			inputs_root		= ".";
 
+	bool			allow_missing_inputs	= false;
+
 	string			gnss_obs_root			= "<INPUTS_ROOT>";
 	string			pseudo_obs_root			= "<INPUTS_ROOT>";
 	string			custom_pseudo_obs_root	= "<INPUTS_ROOT>";

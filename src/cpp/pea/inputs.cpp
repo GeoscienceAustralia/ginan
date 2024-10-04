@@ -187,7 +187,8 @@ void addStationData(
 		if	( protocol == "file"
 			||protocol == "serial")
 		{
-			if (checkValidFile(subInputName, dataType) == false)
+			if	( acsConfig.allow_missing_inputs			== false
+				&&checkValidFile(subInputName, dataType)	== false)
 			{
 				continue;
 			}

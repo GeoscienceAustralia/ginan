@@ -21,7 +21,7 @@ struct FileState : std::ifstream
 		string					path,
 		long int&				filePos,
 		std::ifstream::openmode	mode = std::ifstream::in)
-			: filePos {filePos}
+		: filePos				{filePos}
 	{
 		if (filePos < 0)
 		{
@@ -84,16 +84,19 @@ struct FileStream : Stream
 			return true;
 		}
 
-		auto iStream_ptr = this->getIStream_ptr();
+		return false;
+	}
 
-		if	(*iStream_ptr)
-		{
-			return false;
-		}
-		else
+	bool isAvailable() override
+	{
+		std::ifstream input(path, std::ifstream::in);
+
+		if (input)
 		{
 			return true;
 		}
+
+		return false;
 	}
 };
 

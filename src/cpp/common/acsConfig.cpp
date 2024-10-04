@@ -3306,6 +3306,8 @@ bool ACSConfig::parse(
 
 			tryGetFromAny(inputs_root,					commandOpts,	inputs,	{"0! inputs_root"			}, "Root path to be added to all other input files (unless they are absolute)");
 
+			tryGetFromYaml(allow_missing_inputs,						inputs, {"@ allow_missing_inputs"	}, "Allow adding inpuut files which do not (yet) exist");
+
 			auto getAppendFiles = [&](
 				vector<string>&	output,
 				NodeStack&		nodeStack,

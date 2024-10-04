@@ -818,6 +818,7 @@ int main(
 
 	// Read the observations for each station and do stuff
 
+	bool	waitMessage					= false;
 	bool	nextEpoch					= true;
 	bool	complete					= false;					// When all input files are empty the processing is deemed complete - run until then, or until something else breaks the loop
 	int		loopEpochs					= 0;						// A count of how many loops of epoch_interval this loop used up (usually one, but may be more if skipping epochs)
@@ -879,6 +880,8 @@ int main(
 		{
 			BOOST_LOG_TRIVIAL(info) << "\n"
 			<< "Starting epoch #" << epoch;
+
+			waitMessage = false;
 		}
 
 		if (system_clock::now() > breakTime)
@@ -958,7 +961,8 @@ int main(
 				}
 				catch(...){}
 
-				if (stream.isDead())
+				if	( stream.isAvailable()
+					&&stream.isDead())
 				{
 					BOOST_LOG_TRIVIAL(info)
 					<< "No more data available on " << stream.sourceString << "\n";
@@ -1022,6 +1026,11 @@ int main(
 				}
 
 				auto& obsStream = *obsStream_ptr;
+
+				if (obsStream.stream.isAvailable() == false)
+				{
+					continue;
+				}
 
 				auto& recOpts = acsConfig.getRecOpts(id);
 
@@ -1127,6 +1136,20 @@ int main(
 		if (complete)
 		{
 			break;
+		}
+
+		if	( acsConfig.allow_missing_inputs
+			&&dataAvailableMap.empty())
+		{
+			if (waitMessage == false)
+			{
+				waitMessage = true;
+
+				BOOST_LOG_TRIVIAL(info)
+				<< "No more data available, waiting for further inputs...";
+			}
+
+			continue;
 		}
 
 		if (tsync == GTime::noTime())
