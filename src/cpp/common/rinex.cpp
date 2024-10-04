@@ -904,52 +904,49 @@ int readRnxObsB(
 {
 	GTime			time	= {};
 	int				i		= 0;
-	int				nSats	= 0;	//cant replace with sats.size()
+	int				nSats	= 0;	// can't replace with sats.size()
 	vector<SatSys>	sats;
 
 	// read record
 	string			line;
 	std::streampos	pos;
-	while (pos = inputStream.tellg(), std::getline(inputStream, line))
+	while (std::getline(inputStream, line))
 	{
 		// decode obs epoch
-		if (i == 0)
+		if (line[0] == '>')
 		{
 			nSats = decodeObsEpoch(inputStream, line, ver, tsys, time, flag, sats);
 			if (nSats <= 0)
 			{
 				continue;
 			}
+			i = 0; // reset satellite index for the next epoch
 		}
-		else if (line[0] == '>')
-		{
-			BOOST_LOG_TRIVIAL(warning) << "Warning: unexpected end of epoch in rinex file at " << time;
-			inputStream.seekg(pos);
-			return obsList.size();
-		}
-		else if ( flag <= 2
-				||flag == 6)
+		else if (flag <= 2 || flag == 6)
 		{
 			GObs rawObs = {};
 
 			rawObs.time	= time;
 
 			// decode obs data
-			bool pass = decodeObsData(inputStream, line, ver, sysCodeTypes, rawObs, sats[i-1]);
-			if	(pass)
+			bool pass = decodeObsData(inputStream, line, ver, sysCodeTypes, rawObs, sats[i]);
+			if (pass)
 			{
 				// save obs data
 				obsList.push_back((shared_ptr<GObs>)rawObs);
 			}
+
+			i++;
+
+			if (i >= nSats)
+			{
+				// Continue reading the next epoch
+				continue;
+			}
 		}
-
-		i++;
-
-		if (i > nSats)
-			return obsList.size();
 	}
 
-	return -1;
+	return obsList.size();
 }
 
 /** Read rinex obs
