@@ -102,6 +102,7 @@ struct Receiver : ReceiverLogs, Rtk
 	map<string, string>					metaDataMap;
 	ObsList								obsList;					///< Observations available for this station at this epoch
 	string								id;							///< Unique name for this station (4 characters)
+	string								source;						///< Source of most recently synchronised data
 
 	bool		primaryApriori	= false;
 	UYds		aprioriTime;

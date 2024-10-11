@@ -523,7 +523,7 @@ inline static void pppSatPCO(COMMON_PPP_ARGS)
 
 	AutoSender autoSender = autoSenderTemplate;
 
-	autoSender.pushBaseKVP	(4, {"data", __FUNCTION__});
+	autoSender.pushBaseKVP	(4, {"data", "attitude"});
 	autoSender.setValueKVPs	(4,
 	{
 		{"bodyLook[0]",	bodyLook[0]},
@@ -1469,9 +1469,14 @@ void checkModels(
 	test("sat_code_bias",	satOpts.code_bias.		estimate[0], satOpts.codeBiasModel.	enable);
 	test("emp_d_0",			satOpts.emp_d_0.		estimate[0], satOpts.empirical);
 
-	if (acsConfig.minimise_sat_clock_offsets		&& nav.ephMap.empty())		{	BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_clock_offsets` configured, but no broadcast ephemerides are available";	}
-	if (acsConfig.minimise_sat_orbit_offsets		&& nav.ephMap.empty())		{	BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_orbit_offsets` configured, but no broadcast ephemerides are available";	}
+	if (acsConfig.minimise_sat_clock_offsets		&& nav.ephMap.empty())				{	BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_clock_offsets` configured, but no broadcast ephemerides are available";							}
+	if (acsConfig.minimise_sat_orbit_offsets		&& nav.ephMap.empty())				{	BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_orbit_offsets` configured, but no broadcast ephemerides are available";							}
+	if (acsConfig.pppOpts.ionoOpts.use_if_combo		&& recOpts.ionospheric_component2)	{	BOOST_LOG_TRIVIAL(warning) << "Warning: `ionospheric_components: use_2nd_order` configured, but can not be used in conjunction with `use_if_combo`";	}
+	if (acsConfig.pppOpts.ionoOpts.use_if_combo		&& recOpts.ionospheric_component3)	{	BOOST_LOG_TRIVIAL(warning) << "Warning: `ionospheric_components: use_3rd_order` configured, but can not be used in conjunction with `use_if_combo`";	}
 }
+
+
+
 
 
 
@@ -1524,9 +1529,9 @@ void receiverUducGnss(
 
 		traceJson(1, jsonTrace, tsync,
 		{
-			{"data",	__FUNCTION__		},
-			{"Sat",		obs.Sat.id()		},
-			{"Rec",		obs.mount			}
+			{"data",	"uducGnss"		},
+			{"Sat",		obs.Sat.id()	},
+			{"Rec",		obs.mount		}
 		},
 		{
 			{"rSatCom[0]",	obs.rSatCom[0]},
@@ -1551,10 +1556,10 @@ void receiverUducGnss(
 
 		autoSenderTemplate.setBaseKVPs(0,
 		{
-			{"Sat",		obs.Sat.id()		},
-			{"Rec",		obs.mount			},
-			{"Sig",		sigName				},
-			{"Type",	(long int) measType	}
+			{"Sat",		obs.Sat.id()				},
+			{"Rec",		obs.mount					},
+			{"Sig",		sigName						},
+			{"Type",	std::to_string(measType)	}
 		});
 
 		char measDescription[64];
@@ -2005,7 +2010,7 @@ void receiverUducGnss(
 		measEntry.componentsMap[E_Component::NET_RESIDUAL] = {0, "", 0};
 
 		AutoSender autoSender = autoSenderTemplate;
-		autoSender.pushBaseKVP	(0, {"data", __FUNCTION__});
+		autoSender.pushBaseKVP	(0, {"data", "position"});
 
 		autoSender.pushValueKVP	(1, {"rRec[0]",	rRec[0]});
 		autoSender.pushValueKVP	(1, {"rRec[1]",	rRec[1]});

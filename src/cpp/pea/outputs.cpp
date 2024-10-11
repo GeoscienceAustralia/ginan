@@ -19,9 +19,6 @@ Output Outputs__()
 #include <chrono>
 #include <thread>
 
-using std::this_thread::sleep_for;
-
-
 #include "interactiveTerminal.hpp"
 #include "minimumConstraints.hpp"
 #include "rinexObsWrite.hpp"
@@ -56,6 +53,8 @@ using std::this_thread::sleep_for;
 #include "gpx.hpp"
 #include "pos.hpp"
 
+using std::this_thread::sleep_for;
+using boost::date_time::not_a_date_time;
 
 /** Replace macros for times with numeric values.
 * Available replacements are "<DDD> <D> <WWWW> <YYYY> <YY> <MM> <DD> <HH> <hh> <mm> <LOGTIME>"
@@ -231,7 +230,7 @@ void createTracefiles(
 
 			if (acsConfig.process_ppp)
 			{
-				bool newTraceFile = createNewTraceFile(pppNet.id,	boost::posix_time::not_a_date_time,	acsConfig.pppOpts.rts_filename,		pppNet.kfState.rts_basename);
+				bool newTraceFile = createNewTraceFile(pppNet.id, "Network",	not_a_date_time,	acsConfig.pppOpts.rts_filename,						pppNet.kfState.rts_basename);
 
 				if (newTraceFile)
 				{
@@ -244,7 +243,7 @@ void createTracefiles(
 
 			if (acsConfig.process_ionosphere)
 			{
-				bool newTraceFile = createNewTraceFile(ionNet.id,	boost::posix_time::not_a_date_time,	acsConfig.pppOpts.rts_filename,		ionNet.kfState.rts_basename);
+				bool newTraceFile = createNewTraceFile(ionNet.id, "Network",	not_a_date_time,	acsConfig.pppOpts.rts_filename,						ionNet.kfState.rts_basename);
 
 				if (newTraceFile)
 				{
@@ -260,64 +259,48 @@ void createTracefiles(
 
 		for (auto& [Sat, satNav] : nav.satNavMap)
 		{
-			if	(  acsConfig.output_satellite_trace
-				&& suff.empty())
+			if (acsConfig.output_satellite_trace)
+			if (rts == false)
 			{
-				newTraceFile |= createNewTraceFile(Sat,				logptime,	insertSuffix(acsConfig.satellite_trace_filename, suff),	satNav.traceFilename,										true,	acsConfig.output_config);
+				newTraceFile |= createNewTraceFile(Sat,			"Sats",			logptime,	acsConfig.satellite_trace_filename,							satNav.traceFilename,													true,	acsConfig.output_config);
 			}
 		}
 
 		for (auto& [id, rec] : receiverMap)
 		{
 			if (acsConfig.output_receiver_trace)
+			if (rts == false)
 			{
 				//dont add suff for this as we dont want smoothed version
-				newTraceFile |= createNewTraceFile(id,				logptime,	acsConfig.receiver_trace_filename,					rec.metaDataMap[TRACE_FILENAME_STR			+ metaSuff],	true,	acsConfig.output_config);
-
-				if (suff.empty())
-				{
-					rec.traceFilename = rec.metaDataMap[TRACE_FILENAME_STR];
-				}
+				newTraceFile |= createNewTraceFile(id,			rec.source,		logptime,	acsConfig.receiver_trace_filename,							rec.traceFilename,														true,	acsConfig.output_config);
 			}
 
 			if (acsConfig.output_json_trace)
+			if (rts == false)
 			{
 				//dont add suff for this as we dont want smoothed version
-				string jsonTraceFilename = acsConfig.receiver_trace_filename;
-				auto pos = jsonTraceFilename.find_last_of('.');
-				if (pos != string::npos)
-				{
-					jsonTraceFilename = jsonTraceFilename.substr(0, pos);
-				}
-				jsonTraceFilename += ".json";
-
-				newTraceFile |= createNewTraceFile(id,				logptime,	jsonTraceFilename,	rec.metaDataMap[JSON_FILENAME_STR			+ metaSuff]);
-
-				if (suff.empty())
-				{
-					rec.jsonTraceFilename = rec.metaDataMap[JSON_FILENAME_STR];
-				}
+				newTraceFile |= createNewTraceFile(id,			rec.source,		logptime,	acsConfig.receiver_json_filename,							rec.jsonTraceFilename);
 			}
 
 			if (acsConfig.output_cost)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	insertSuffix(acsConfig.cost_filename, suff),	pppNet.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
+				newTraceFile |= createNewTraceFile(id,			rec.source,		logptime,	insertSuffix(acsConfig.cost_filename,				suff),	pppNet.kfState	.metaDataMap[COST_FILENAME_STR	+ id	+ metaSuff]);
 			}
 
 			if (acsConfig.output_gpx)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	insertSuffix(acsConfig.gpx_filename, suff),	pppNet.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
+				newTraceFile |= createNewTraceFile(id,			rec.source,		logptime,	insertSuffix(acsConfig.gpx_filename,				suff),	pppNet.kfState	.metaDataMap[GPX_FILENAME_STR	+ id	+ metaSuff]);
 			}
 
 			if (acsConfig.output_pos)
 			{
-				newTraceFile |= createNewTraceFile(id,			logptime,	insertSuffix(acsConfig.pos_filename, suff),	pppNet.kfState	.metaDataMap[POS_FILENAME_STR	+ id	+ metaSuff]);
+				newTraceFile |= createNewTraceFile(id,			rec.source,		logptime,	insertSuffix(acsConfig.pos_filename,				suff),	pppNet.kfState	.metaDataMap[POS_FILENAME_STR	+ id	+ metaSuff]);
 			}
 		}
 
 		if (acsConfig.output_network_trace)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(acsConfig.network_trace_filename, suff),	pppNet.kfState.metaDataMap[TRACE_FILENAME_STR		+ metaSuff],	true,	acsConfig.output_config);
+			newTraceFile |= createNewTraceFile(pppNet.id,		"Network",		logptime,	insertSuffix(acsConfig.network_trace_filename,		suff),	pppNet.kfState	.metaDataMap[TRACE_FILENAME_STR			+ metaSuff],	true,	acsConfig.output_config);
 
 			if (suff.empty())
 			{
@@ -327,7 +310,7 @@ void createTracefiles(
 
 		if (acsConfig.output_ionosphere_trace)
 		{
-			newTraceFile |= createNewTraceFile("IONO",	logptime,	insertSuffix(acsConfig.ionosphere_trace_filename, suff),	ionNet.kfState.metaDataMap[TRACE_FILENAME_STR	+ metaSuff],	true,	acsConfig.output_config);
+			newTraceFile |= createNewTraceFile("IONO",			"Network",		logptime,	insertSuffix(acsConfig.ionosphere_trace_filename,	suff),	ionNet.kfState	.metaDataMap[TRACE_FILENAME_STR			+ metaSuff],	true,	acsConfig.output_config);
 
 			if (suff.empty())
 			{
@@ -337,28 +320,28 @@ void createTracefiles(
 
 		if (acsConfig.output_ionex)
 		{
-			newTraceFile |= createNewTraceFile("",			logptime,	insertSuffix(acsConfig.ionex_filename, suff),	pppNet.kfState.metaDataMap[IONEX_FILENAME_STR	+ metaSuff]);
+			newTraceFile |= createNewTraceFile("",				"Network",		logptime,	insertSuffix(acsConfig.ionex_filename,				suff),	pppNet.kfState	.metaDataMap[IONEX_FILENAME_STR			+ metaSuff]);
 		}
 
 		if (acsConfig.output_ionstec)
 		{
-			newTraceFile |= createNewTraceFile("",			logptime,	insertSuffix(acsConfig.ionstec_filename, suff),	pppNet.kfState.metaDataMap[IONSTEC_FILENAME_STR	+ metaSuff]);
+			newTraceFile |= createNewTraceFile("",				"Network",		logptime,	insertSuffix(acsConfig.ionstec_filename,			suff),	pppNet.kfState	.metaDataMap[IONSTEC_FILENAME_STR		+ metaSuff]);
 		}
 
 		if (acsConfig.output_trop_sinex)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(acsConfig.trop_sinex_filename, suff),	pppNet.kfState.metaDataMap[TROP_FILENAME_STR	+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id,		"Network",		logptime,	insertSuffix(acsConfig.trop_sinex_filename,			suff),	pppNet.kfState	.metaDataMap[TROP_FILENAME_STR			+ metaSuff]);
 		}
 
 		if (acsConfig.output_bias_sinex)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id, 	logptime,	insertSuffix(acsConfig.bias_sinex_filename, suff),	pppNet.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
-			newTraceFile |= createNewTraceFile(pppNet.id, 	logptime,	insertSuffix(acsConfig.bias_sinex_filename, suff),	ionNet.kfState.metaDataMap[BSX_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id, 		"Network",		logptime,	insertSuffix(acsConfig.bias_sinex_filename,			suff),	pppNet.kfState	.metaDataMap[BSX_FILENAME_STR			+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id, 		"Network",		logptime,	insertSuffix(acsConfig.bias_sinex_filename,			suff),	ionNet.kfState	.metaDataMap[BSX_FILENAME_STR			+ metaSuff]);
 		}
 
 		if (acsConfig.output_erp)
 		{
-			newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(acsConfig.erp_filename, suff),	pppNet.kfState.metaDataMap[ERP_FILENAME_STR		+ metaSuff]);
+			newTraceFile |= createNewTraceFile(pppNet.id,		"Network",		logptime,	insertSuffix(acsConfig.erp_filename,				suff),	pppNet.kfState	.metaDataMap[ERP_FILENAME_STR			+ metaSuff]);
 		}
 
 		if (acsConfig.output_clocks)
@@ -367,7 +350,7 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.clocks_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(filename, suff),				fileNames[filename + metaSuff]);
+				newTraceFile |= createNewTraceFile(pppNet.id,	"Network",		logptime,	insertSuffix(filename,								suff),	fileNames[filename + metaSuff]);
 			}
 
 			pppNet.kfState.metaDataMap[CLK_FILENAME_STR	+ metaSuff] = insertSuffix(singleFilenameMap.begin()->first, suff);
@@ -379,7 +362,7 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.sp3_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(filename, suff),				fileNames[filename + metaSuff]);
+				newTraceFile |= createNewTraceFile(pppNet.id,	"Network",		logptime,	insertSuffix(filename,								suff),	fileNames[filename + metaSuff]);
 			}
 
 			pppNet.kfState.metaDataMap[SP3_FILENAME_STR	+ metaSuff] = insertSuffix(singleFilenameMap.begin()->first, suff);
@@ -391,7 +374,7 @@ void createTracefiles(
 			auto filenameMap		= getSysOutputFilenames(acsConfig.orbex_filename,	tsync);
 			for (auto& [filename, dummy] : filenameMap)
 			{
-				newTraceFile |= createNewTraceFile(pppNet.id,	logptime,	insertSuffix(filename, suff),				fileNames[filename + metaSuff]);
+				newTraceFile |= createNewTraceFile(pppNet.id,	"Network",		logptime,	insertSuffix(filename,								suff),	fileNames[filename + metaSuff]);
 			}
 
 			pppNet.kfState.metaDataMap[ORBEX_FILENAME_STR	+ metaSuff] = insertSuffix(singleFilenameMap.begin()->first, suff);
@@ -399,7 +382,7 @@ void createTracefiles(
 
 		if (acsConfig.output_sbas_ems)
 		{
-			newTraceFile |= createNewTraceFile("",			logptime,	acsConfig.ems_filename, pppNet.kfState.metaDataMap[EMS_FILENAME_STR]);
+			newTraceFile |= createNewTraceFile("",				"Network",		logptime,	acsConfig.ems_filename,										pppNet.kfState	.metaDataMap[EMS_FILENAME_STR]);
 		}
 
 		if	(  rts
@@ -411,7 +394,7 @@ void createTracefiles(
 
 	if (acsConfig.output_log)
 	{
-		createNewTraceFile("",			logptime,	acsConfig.log_filename,								FileLog::path_log);
+		createNewTraceFile("",									"Network",		logptime,	acsConfig.log_filename,										FileLog::path_log);
 	}
 
 	if (acsConfig.output_ntrip_log)
@@ -420,7 +403,7 @@ void createTracefiles(
 		{
 			auto& stream = *stream_ptr;
 
-			createNewTraceFile(id,			logptime,	acsConfig.ntrip_log_filename,					stream.networkTraceFilename);
+			createNewTraceFile(id,								"NTRIP",		logptime,	acsConfig.ntrip_log_filename,								stream.networkTraceFilename);
 		}
 
 		for (auto& [id, streamParser_ptr] : streamParserMultimap)
@@ -428,7 +411,7 @@ void createTracefiles(
 		{
 			auto& ntripStream = dynamic_cast<NtripStream&>(streamParser_ptr->stream);
 
-			createNewTraceFile(id,			logptime,	acsConfig.ntrip_log_filename,					ntripStream.networkTraceFilename);
+			createNewTraceFile(id,								"NTRIP",		logptime,	acsConfig.ntrip_log_filename,								ntripStream.networkTraceFilename);
 		}
 		catch(std::bad_cast& e){/* Ignore expected bad casts for different types */}
 	}
@@ -439,7 +422,7 @@ void createTracefiles(
 		auto filenameMap = getSysOutputFilenames(acsConfig.rinex_obs_filename,	tsync, true, id);
 		for (auto& [filename, dummy] : filenameMap)
 		{
-			createNewTraceFile(id,		logptime,	filename,											fileNames[filename]);
+			createNewTraceFile(id,								rec.source,		logptime,	filename,													fileNames[filename]);
 		}
 	}
 
@@ -448,7 +431,7 @@ void createTracefiles(
 		auto filenameMap = getSysOutputFilenames(acsConfig.rinex_nav_filename,	tsync);
 		for (auto& [filename, dummy] : filenameMap)
 		{
-			createNewTraceFile("Navs",	logptime,	filename,											fileNames[filename]);
+			createNewTraceFile("Navs",							"Network",		logptime,	filename,													fileNames[filename]);
 		}
 	}
 
@@ -459,11 +442,7 @@ void createTracefiles(
 
 		if (acsConfig.output_decoded_rtcm_json)
 		{
-			string filename = acsConfig.decoded_rtcm_json_filename;
-
-			replaceString(filename, "<STREAM>",		rtcmParser.rtcmMountpoint);
-
-			createNewTraceFile(id, 		logptime,	filename,	rtcmParser.rtcmTraceFilename);
+			createNewTraceFile(id, 				rtcmParser.rtcmMountpoint,		logptime,	acsConfig.decoded_rtcm_json_filename,						rtcmParser.rtcmTraceFilename);
 		}
 
 		for (auto nav : {false, true})
@@ -485,9 +464,7 @@ void createTracefiles(
 				if (nav)	filename = acsConfig.rtcm_nav_filename;
 				else		filename = acsConfig.rtcm_obs_filename;
 
-				replaceString(filename, "<STREAM>",		rtcmParser.rtcmMountpoint);
-
-				createNewTraceFile(id, 		logptime,	filename,	rtcmParser.recordFilename);
+				createNewTraceFile(id, 			rtcmParser.rtcmMountpoint,		logptime,	filename,													rtcmParser.recordFilename);
 			}
 		}
 	}
@@ -500,9 +477,7 @@ void createTracefiles(
 
 		if (acsConfig.record_raw_ubx)
 		{
-			string filename = acsConfig.raw_ubx_filename;
-
-			createNewTraceFile(id, 		logptime,	filename,	ubxParser.raw_ubx_filename);
+			createNewTraceFile(id, 	streamParser_ptr->stream.sourceString,		logptime,	acsConfig.raw_ubx_filename,									ubxParser.raw_ubx_filename);
 		}
 	}
 	catch(std::bad_cast& e){/* Ignore expected bad casts for different types */}
@@ -514,9 +489,7 @@ void createTracefiles(
 
 		if (acsConfig.record_raw_custom)
 		{
-			string filename = acsConfig.raw_custom_filename;
-
-			createNewTraceFile(id, 		logptime,	filename,	customParser.raw_custom_filename);
+			createNewTraceFile(id,	streamParser_ptr->stream.sourceString,		logptime,	acsConfig.raw_custom_filename,								customParser.raw_custom_filename);
 		}
 	}
 	catch(std::bad_cast& e){/* Ignore expected bad casts for different types */}

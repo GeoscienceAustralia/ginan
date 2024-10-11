@@ -118,10 +118,17 @@ struct ArbitraryKVP
 	long int	integer	= 0;
 	int			type	= 0;
 
-	ArbitraryKVP(string name, string	str)		: name {name}, str		{str		}	{	type = 0;	}
-	ArbitraryKVP(string name, double	num)		: name {name}, num		{num		}	{	type = 1;	}
-	ArbitraryKVP(string name, int		integer)	: name {name}, integer	{integer	}	{	type = 2;	}
-	ArbitraryKVP(string name, long int	integer)	: name {name}, integer	{integer	}	{	type = 2;	}
+	ArbitraryKVP(string name, const char*	str)		: name {name}, str		{str		}	{	type = 0;	}
+	ArbitraryKVP(string name, string		str)		: name {name}, str		{str		}	{	type = 0;	}
+	ArbitraryKVP(string name, double		num)		: name {name}, num		{num		}	{	type = 1;	}
+	ArbitraryKVP(string name, int			integer)	: name {name}, integer	{integer	}	{	type = 2;	}
+	ArbitraryKVP(string name, long int		integer)	: name {name}, integer	{integer	}	{	type = 2;	}
+	ArbitraryKVP(string name, bool			integer)	: name {name}, integer	{integer	}	{	type = 3;	}
+
+	bool isBool() const
+	{
+		return type == 3;
+	}
 
 	string value()
 	{
@@ -133,6 +140,7 @@ struct ArbitraryKVP
 		if		(type == 0)		return "\"" + str + "\"";
 		else if	(type == 1)		return std::to_string(num);
 		else if	(type == 2)		return std::to_string(integer);
+		else if	(type == 3)		return std::to_string(integer);
 		else					return "";
 	}
 };
@@ -146,6 +154,7 @@ void traceJson_(
 
 bool createNewTraceFile(
 	const string				id,
+	const string&				source,
 	boost::posix_time::ptime	logptime,
 	string  					new_path_trace,
 	string& 					old_path_trace,

@@ -364,7 +364,7 @@ bool satPosSSR(
 	{
 		traceJson(1, nullStream, time,
 			{
-				{"data",	__FUNCTION__		},
+				{"data",	"satPosSSR"			},
 				{"Sat",		satPos.Sat.id()		}
 			},
 			{

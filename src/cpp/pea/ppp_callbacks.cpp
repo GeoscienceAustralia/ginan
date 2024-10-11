@@ -34,13 +34,19 @@ bool deweightMeas(
 
 	InteractiveTerminal ss("Deweights", trace, false);
 
-	ss << "\n" << kfState.time.to_string() << "\tDeweighting " << key << " - " << key.comment;
+	double preSigma = sqrt(kfMeas.R(index,index));
+	double residual;
 
-	kfState.statisticsMap["Meas deweight"]++;
+	string description;
+	if (postFit)	{	description = "postfit";	residual = kfMeas.VV(index);	}
+	else			{	description = "prefit";		residual = kfMeas.V	(index);	}
 
-	char buff[64];
-	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.str.c_str(),		KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
-	snprintf(buff, sizeof(buff), "Meas Deweight-%4s-%s-%sfit",		key.Sat.id().c_str(),	KF::_from_integral(key.type)._to_string(), postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
+	addRejectDetails(kfState.time, trace, kfState, key, "Measurement Deweighted", description,
+					 {
+						 {"preDeweightSigma",			preSigma},
+						 {description + "Residual",		residual},
+						 {description + "Ratio",	abs(residual / preSigma)}
+					});
 
 	kfMeas.R.row(index) *= deweightFactor;
 	kfMeas.R.col(index) *= deweightFactor;
@@ -110,12 +116,7 @@ bool deweightStationMeas(
 
 		double deweightFactor = acsConfig.stateErrors.deweight_factor;
 
-		trace << "\n" << "Deweighting " << key << " - " << key.comment << "\n";
-
-		kfState.statisticsMap["Receiver deweight"]++;
-
-		char buff[64];
-		snprintf(buff, sizeof(buff), "Receiver Deweight-%4s-%sfit", key.str.c_str(),	postFit ? "Post" : "Pre");			kfState.statisticsMap[buff]++;
+		addRejectDetails(kfState.time, trace, kfState, key, "Station Meas Deweighted", postFit ? "Postfit" : "Prefit");
 
 		kfMeas.R.row(i) *= deweightFactor;
 		kfMeas.R.col(i) *= deweightFactor;

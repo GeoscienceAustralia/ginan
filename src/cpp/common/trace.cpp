@@ -199,14 +199,30 @@ void traceJson_(
 
 bool createNewTraceFile(
 	const string				id,
+	const string&				source,
 	boost::posix_time::ptime	logptime,
 	string  					new_path_trace,
 	string& 					old_path_trace,
 	bool						outputHeader,
 	bool						outputConfig)
 {
-	replaceString(new_path_trace, "<RECEIVER>", id);
-	replaceTimes (new_path_trace, logptime);
+	int lastSlash = source.find_last_of('/');
+
+	if (lastSlash == string::npos)
+	{
+		lastSlash = 0;
+	}
+
+	string shortSource = source.substr(lastSlash);
+	if (shortSource.empty())
+	{
+		shortSource = id;
+	}
+
+	replaceString(new_path_trace, "<STREAM>",	shortSource);
+	replaceString(new_path_trace, "<SOURCE>",	shortSource);
+	replaceString(new_path_trace, "<RECEIVER>",	id);
+	replaceTimes (new_path_trace,				logptime);
 
 	if (new_path_trace == acsConfig.pppOpts.rts_smoothed_suffix)
 	{

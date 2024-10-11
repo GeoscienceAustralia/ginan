@@ -1097,6 +1097,7 @@ int main(
 
 				dataAvailableMap[rec.id]	= true;
 				rec.ready					= true;
+				rec.source					= obsStream.stream.sourceString;
 
 				auto now = system_clock::now();
 

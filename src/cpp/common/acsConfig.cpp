@@ -1033,25 +1033,25 @@ void ACSConfig::info(
 														ss << "\n";
 
 	ss << "Outputs:\n";
-	if (1)									{	ss << "\ttrace level:                   " << trace_level 						<< "\n"; }
-	if (output_satellite_trace)				{	ss << "\tsatellite trace filename:      " << satellite_trace_filename 			<< "\n"; }
-	if (output_receiver_trace)				{	ss << "\treceiver trace filename:       " << receiver_trace_filename 			<< "\n"; }
-	if (output_json_trace)					{	ss << "\tjson trace filename:           " << receiver_trace_filename + "_json"	<< "\n"; }
-	if (output_network_trace)				{	ss << "\tnetwork trace filename:        " << network_trace_filename 			<< "\n"; }
-	if (output_ionosphere_trace)			{	ss << "\tionosphere trace filename:     " << ionosphere_trace_filename 			<< "\n"; }
-	if (output_clocks)						{	ss << "\tclocks filename:               " << clocks_filename 					<< "\n"; }
-	if (output_ionex)						{	ss << "\tionex filename:                " << ionex_filename 					<< "\n"; }
-	if (output_sinex)						{	ss << "\tsinex filename:                " << sinex_filename 					<< "\n"; }
-	if (output_ionstec)						{	ss << "\tionstec filename:              " << ionstec_filename 					<< "\n"; }
-	if (output_bias_sinex)					{	ss << "\tbias sinex filename:           " << bias_sinex_filename				<< "\n"; }
-	if (output_cost)						{	ss << "\tcost filename:                 " << cost_filename						<< "\n"; }
-	if (output_trop_sinex)					{	ss << "\ttrop sinex filename:           " << trop_sinex_filename				<< "\n"; }
-	if (output_gpx)							{	ss << "\tgpx filename:                  " << gpx_filename						<< "\n"; }
-	if (output_pos)							{	ss << "\tpos filename:                  " << pos_filename						<< "\n"; }
-	if (output_sp3)							{	ss << "\tsp3 filename:                  " << sp3_filename						<< "\n"; }
-	if (output_decoded_rtcm_json)			{	ss << "\tdecoded rtcm json filename:    " << decoded_rtcm_json_filename			<< "\n"; }
-	if (output_encoded_rtcm_json)			{	ss << "\tencoded rtcm json filename:    " << encoded_rtcm_json_filename			<< "\n"; }
-	if (output_sbas_ems)					{	ss << "\tSBAS EMS filename:             " << ems_filename 						<< "\n"; }
+	if (1)									{	ss << "\ttrace level:                   " << trace_level 				<< "\n"; }
+	if (output_satellite_trace)				{	ss << "\tsatellite trace filename:      " << satellite_trace_filename 	<< "\n"; }
+	if (output_receiver_trace)				{	ss << "\treceiver trace filename:       " << receiver_trace_filename 	<< "\n"; }
+	if (output_json_trace)					{	ss << "\tjson trace filename:           " << receiver_json_filename 	<< "\n"; }
+	if (output_network_trace)				{	ss << "\tnetwork trace filename:        " << network_trace_filename 	<< "\n"; }
+	if (output_ionosphere_trace)			{	ss << "\tionosphere trace filename:     " << ionosphere_trace_filename 	<< "\n"; }
+	if (output_clocks)						{	ss << "\tclocks filename:               " << clocks_filename 			<< "\n"; }
+	if (output_ionex)						{	ss << "\tionex filename:                " << ionex_filename 			<< "\n"; }
+	if (output_sinex)						{	ss << "\tsinex filename:                " << sinex_filename 			<< "\n"; }
+	if (output_ionstec)						{	ss << "\tionstec filename:              " << ionstec_filename 			<< "\n"; }
+	if (output_bias_sinex)					{	ss << "\tbias sinex filename:           " << bias_sinex_filename		<< "\n"; }
+	if (output_cost)						{	ss << "\tcost filename:                 " << cost_filename				<< "\n"; }
+	if (output_trop_sinex)					{	ss << "\ttrop sinex filename:           " << trop_sinex_filename		<< "\n"; }
+	if (output_gpx)							{	ss << "\tgpx filename:                  " << gpx_filename				<< "\n"; }
+	if (output_pos)							{	ss << "\tpos filename:                  " << pos_filename				<< "\n"; }
+	if (output_sp3)							{	ss << "\tsp3 filename:                  " << sp3_filename				<< "\n"; }
+	if (output_decoded_rtcm_json)			{	ss << "\tdecoded rtcm json filename:    " << decoded_rtcm_json_filename	<< "\n"; }
+	if (output_encoded_rtcm_json)			{	ss << "\tencoded rtcm json filename:    " << encoded_rtcm_json_filename	<< "\n"; }
+	if (output_sbas_ems)					{	ss << "\tSBAS EMS filename:             " << ems_filename 				<< "\n"; }
 
 	ss << "\n";
 
@@ -2964,6 +2964,7 @@ bool ACSConfig::parse(
 				conditionalPrefix("<OUTPUTS_ROOT>",		trace_directory,			tryGetFromYaml(trace_directory,				trace, {"! directory"				}, "Directory to output trace files to"));
 				conditionalPrefix("<TRACE_DIRECTORY>",	satellite_trace_filename,	tryGetFromYaml(satellite_trace_filename,	trace, {"1@ satellite_filename"		}, "Template filename for satellite trace files"));
 				conditionalPrefix("<TRACE_DIRECTORY>",	receiver_trace_filename,	tryGetFromYaml(receiver_trace_filename,		trace, {"1! receiver_filename"		}, "Template filename for receiver trace files"));
+				conditionalPrefix("<TRACE_DIRECTORY>",	receiver_json_filename,		tryGetFromYaml(receiver_json_filename,		trace, {"1! json_filename"			}, "Template filename for receiver json files"));
 				conditionalPrefix("<TRACE_DIRECTORY>",	ionosphere_trace_filename,	tryGetFromYaml(ionosphere_trace_filename,	trace, {"1@ ionosphere_filename"	}, "Template filename for ionosphere trace files"));
 				conditionalPrefix("<TRACE_DIRECTORY>",	network_trace_filename,		tryGetFromYaml(network_trace_filename,		trace, {"1! network_filename"		}, "Template filename for network trace files"));
 																					tryGetFromAny(trace_level, commandOpts,		trace, {"! level"					}, "Threshold level for printing messages (0-6). Increasing this increases the amount of data stored in all trace files");
@@ -2975,6 +2976,8 @@ bool ACSConfig::parse(
 																					tryGetFromYaml(output_initialised_states,	trace, {"! output_initialised_states"	}, "Output states after state transition 2");
 																					tryGetFromYaml(output_residuals,			trace, {"! output_residuals"			}, "Output measurements and residuals");
 																					tryGetFromYaml(output_config,				trace, {"! output_config"				}, "Output configuration files to top of trace files");
+																					tryGetFromYaml(output_statistics,			trace, {"! output_statistics"			}, "Output statistics accumulated each epoch");
+																					tryGetFromYaml(output_summaries,			trace, {"! output_summaries"			}, "Output summaries accumulated each epoch");
 																					tryGetFromYaml(output_json_trace,			trace, {"@ output_json"					}, "Output json formatted trace files");
 			}
 
@@ -3953,6 +3956,7 @@ bool ACSConfig::parse(
 		replaceTags(pppOpts.rts_directory);					replaceTags(pppOpts.rts_filename);
 		replaceTags(sp3_directory);							replaceTags(predicted_sp3_filename);
 		replaceTags(ems_directory);							replaceTags(ems_filename);
+		replaceTags(trace_directory);						replaceTags(receiver_json_filename);
 		replaceTags(trace_directory);						replaceTags(receiver_trace_filename);
 		replaceTags(trace_directory);						replaceTags(network_trace_filename);
 		replaceTags(trace_directory);						replaceTags(satellite_trace_filename);

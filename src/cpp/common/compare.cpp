@@ -50,7 +50,7 @@ void compareOrbits(
 
 		createDirectories(logptime);
 
-		createNewTraceFile("Network",	logptime,	acsConfig.network_trace_filename,	traceDummy.traceFilename,	true,	acsConfig.output_config);
+		createNewTraceFile("Network", "", logptime,	acsConfig.network_trace_filename,	traceDummy.traceFilename,	true,	acsConfig.output_config);
 	}
 
 	auto trace = getTraceFile(traceDummy);

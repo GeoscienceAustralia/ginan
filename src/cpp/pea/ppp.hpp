@@ -298,3 +298,12 @@ void explainMeasurements(
 	Trace&		trace,
 	KFMeas&		meas,
 	KFState&	kfState);
+
+void addRejectDetails(
+	const	GTime&					time,
+			Trace&					trace,
+			KFState&				kfState,
+	const	KFKey&					key,
+	const	string&					action,
+	const	string&					reason,
+			vector<ArbitraryKVP>	details = {});

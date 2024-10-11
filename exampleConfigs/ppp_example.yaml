@@ -58,7 +58,7 @@ outputs:
         filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.GPX
     pos:
         output: true
-        filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.POS
+        filename: <SOURCE>.POS
     trace:
         level: 2
         output_receivers: true

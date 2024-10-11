@@ -50,7 +50,7 @@ void outputObservations(
 
 		traceJson(4, jsonTrace, obs.time,
 		{
-			{"data", __FUNCTION__},
+			{"data", "observations"},
 			{"Sat", obs.Sat.id()},
 			{"Rec", obs.mount},
 			{"Sig", sig.code._to_string()}

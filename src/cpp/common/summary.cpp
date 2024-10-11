@@ -2,6 +2,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "interactiveTerminal.hpp"
+#include "acsConfig.hpp"
 #include "receiver.hpp"
 #include "summary.hpp"
 
@@ -10,15 +11,20 @@ void outputStatistics(
 	map<string, int>&	statisticsMap,
 	map<string, int>&	statisticsMapSum)
 {
+	if (acsConfig.output_statistics == false)
+	{
+		return;
+	}
+
 	for (auto& [str, count] : statisticsMap)
 	{
 		statisticsMapSum[str] += count;
 	}
 
 	{	InteractiveTerminal	ss(			"Filter-Statistics/Epoch", trace);
-		Block				block(ss,	"Filter-Statistics/Epoch");				for (auto& [str, count] : statisticsMap)		tracepdeex(0, ss, "! %-40s: %d\n", str.c_str(), count);		}
+		Block				block(ss,	"Filter-Statistics/Epoch");				for (auto& [str, count] : statisticsMap)		tracepdeex(0, ss, "! %-75s: %d\n", str.c_str(), count);		}
 	{	InteractiveTerminal ss(			"Filter-Statistics/Total", trace);
-		Block				block(ss,	"Filter-Statistics/Total");				for (auto& [str, count] : statisticsMapSum)		tracepdeex(0, ss, "! %-40s: %d\n", str.c_str(), count);		}
+		Block				block(ss,	"Filter-Statistics/Total");				for (auto& [str, count] : statisticsMapSum)		tracepdeex(0, ss, "! %-75s: %d\n", str.c_str(), count);		}
 
 	statisticsMap.clear();
 }
@@ -26,9 +32,14 @@ void outputStatistics(
 /** Output statistics from each station.
 * Including observation counts, slips, beginning and ending epochs*/
 void outputSummaries(
-	Trace&		trace,		///< Trace stream to output to
+	Trace&			trace,			///< Trace stream to output to
 	ReceiverMap&	receiverMap)	///< Map of stations used throughout the program.
 {
+	if (acsConfig.output_summaries == false)
+	{
+		return;
+	}
+
 	trace << "\n" << "--------------- SUMMARIES ------------------- " << "\n";
 
 	for (auto& [id, rec] : receiverMap)

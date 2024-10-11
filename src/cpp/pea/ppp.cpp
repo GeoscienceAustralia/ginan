@@ -566,6 +566,54 @@ string ft2string(
 	return "F" + std::to_string(ft);
 }
 
+void addRejectDetails(
+	const	GTime&					time,
+			Trace&					trace,
+			KFState&				kfState,
+	const	KFKey&					key,
+	const	string&					action,
+	const	string&					reason,
+			vector<ArbitraryKVP>	details)
+{
+	tracepdeex(0, trace, "\n%s\t%s-%s\t%s",
+				time.to_string().c_str(),
+				action.c_str(),
+				reason.c_str(),
+				((string) key).c_str());
+
+	for (auto& detail : details)
+	{
+		tracepdeex(0, trace, "\t- %s", detail.name.c_str());
+
+		if (detail.isBool() == false)
+		{
+			tracepdeex(0, trace, ": %s", detail.value().c_str());
+		}
+	};
+
+	details.push_back({"reason", reason});
+
+	KFKey subKey; subKey.str = key.str;
+
+	char buff[64];
+	for (auto& description : {reason.c_str(), "TOTAL"})
+	{
+		{	KFKey subKey; 								snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
+		{	KFKey subKey; subKey		= key;			snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
+		{	KFKey subKey; subKey.str	= key.str;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
+//		{	KFKey subKey; subKey.Sat	= key.Sat;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
+//		{	KFKey subKey; subKey.num	= key.num;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
+//		{	KFKey subKey; subKey.type	= key.type;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
+	}
+	traceJson(0, trace, tsync,
+			{
+				{"data",		action					},
+				{MONGO_SAT,		key.Sat.id()			},
+				{MONGO_STR,		key.str					},
+				{MONGO_NUM,		std::to_string(key.num)	}
+			},
+			details);
+}
 /** Remove ambiguity states from filter when they deemed old or bad
  * This effectively reinitialises them on the following epoch as a new state, and can be used for simple
  * resolution of cycle-slips
@@ -617,17 +665,10 @@ void removeBadAmbiguities(
 		{
 			sigStat.lastPhaseTime = GTime::noTime();
 
-			trace << "\n" << "Phase ambiguity removed due to long outage: " <<	sigName	<< " " << key;
-
-			kfState.statisticsMap["Phase outage resets"]++;
-
-			char buff[64];
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-OUTAGE",	key.str.c_str());				kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-OUTAGE",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.str.c_str());				kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+			addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "OUTAGE");
 
 			kfState.removeState(key);
+
 			continue;
 		}
 
@@ -635,15 +676,7 @@ void removeBadAmbiguities(
 		{
 			sigStat.phaseRejectCount = 0;
 
-			trace << "\n" << "Phase ambiguity removed due to high reject count: " <<	sigName	<< " " 	<< key;
-
-			kfState.statisticsMap["Phase reject resets"]++;
-
-			char buff[64];
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-REJECT",	key.str.c_str());				kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-REJECT",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.str.c_str());				kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+			addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "REJECT");
 
 			kfState.removeState(key);
 
@@ -667,20 +700,14 @@ void removeBadAmbiguities(
 				||(acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)
 				||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)))
 		{
-			trace << "\n" << "Phase ambiguity removed due cycle slip detection: "	<< key;
+			vector<ArbitraryKVP> details;
 
-			if (acsConfig.ambErrors.resetOnSlip.LLI		&& preprocSigStat.savedSlip.LLI)		trace << "\t - LLI";
-			if (acsConfig.ambErrors.resetOnSlip.GF		&& preprocSigStat.savedSlip.GF)			trace << "\t - GF";
-			if (acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)			trace << "\t - MW";
-			if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)		trace << "\t - SCDIA";
+			if (acsConfig.ambErrors.resetOnSlip.LLI		&& preprocSigStat.savedSlip.LLI)		details.push_back({"LLI",	true});
+			if (acsConfig.ambErrors.resetOnSlip.GF		&& preprocSigStat.savedSlip.GF)			details.push_back({"GF",	true});
+			if (acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)			details.push_back({"MW",	true});
+			if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)		details.push_back({"SCDIA",	true});
 
-			kfState.statisticsMap["Cycle slip resets"]++;
-
-			char buff[64];
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-PREPROC",	key.str.c_str());				kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-PREPROC",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.str.c_str());				kfState.statisticsMap[buff]++;
-			snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+			addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "PREPROC", details);
 
 			kfState.removeState(key);
 		}
@@ -695,20 +722,14 @@ void removeBadAmbiguities(
 					||(acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)
 					||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)))
 			{
-				trace << "\n" << "Phase ambiguity removed due cycle slip detection: "	<< key;
+				vector<ArbitraryKVP> details;
 
-				if (acsConfig.ambErrors.resetOnSlip.LLI		&& sigStat.savedSlip.LLI)			trace << "\t - LLI";
-				if (acsConfig.ambErrors.resetOnSlip.GF		&& sigStat.savedSlip.GF)			trace << "\t - GF";
-				if (acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)			trace << "\t - MW";
-				if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)			trace << "\t - SCDIA";
+				if (acsConfig.ambErrors.resetOnSlip.LLI		&& sigStat.savedSlip.LLI)			details.push_back({"LLI",	true});
+				if (acsConfig.ambErrors.resetOnSlip.GF		&& sigStat.savedSlip.GF)			details.push_back({"GF",	true});
+				if (acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)			details.push_back({"MW",	true});
+				if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)			details.push_back({"SCDIA",	true});
 
-				kfState.statisticsMap["Cycle slip resets*"]++;
-
-				char buff[64];
-				snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-PREPROC",	key.str.c_str());				kfState.statisticsMap[buff]++;
-				snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-PREPROC",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
-				snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.str.c_str());				kfState.statisticsMap[buff]++;
-				snprintf(buff, sizeof(buff), "Ambiguity Reset-%4s-TOTAL",	key.Sat.id().c_str());			kfState.statisticsMap[buff]++;
+				addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "PREPROC", details);
 
 				kfState.removeState(key);
 			}
@@ -756,6 +777,8 @@ void removeBadReceivers(
 		}
 
 		kfState.statisticsMap["Rec error resets"]++;
+
+		rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = 0;
 	}
 }
 

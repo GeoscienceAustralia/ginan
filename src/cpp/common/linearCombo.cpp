@@ -226,7 +226,7 @@ void obs2lc(
 
 	traceJson(5, trace, obs.time,
 				{
-					{"data",	__FUNCTION__		},
+					{"data",	"linearCombos"		},
 					{"Sat",		obs.Sat.id()		}
 				},
 				{

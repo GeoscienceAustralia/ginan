@@ -205,7 +205,8 @@ class MongoDB:
                     "_id":      groupObj,
                     "Epoch":    {"$first":          "$Epoch"        },
                     "y":        {"$addToSet":       "$" + yvalue    },
-                    "fields":   {"$mergeObjects":   "$id"           }
+                    "fields":   {"$mergeObjects":   "$id"           },
+                    "other":    {"$mergeObjects":   "$val"          }
                 }
             })
         pipeline.append({"$sort":       sortObj})
