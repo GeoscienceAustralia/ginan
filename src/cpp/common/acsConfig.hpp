@@ -611,7 +611,7 @@ struct ChiSquareOptions
 
 struct RtsOptions
 {
-	string		rts_filename			= "Filter-<CONFIG>-<RECEIVER>.rts";
+	string		rts_filename			= "Filter-<CONFIG>-<RECEIVER>-<PID>.rts";
 	string		rts_directory			= "<OUTPUTS_ROOT>";
 	int			rts_lag					= -1;
 	int			rts_interval			= 0;

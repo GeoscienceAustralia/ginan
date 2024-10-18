@@ -222,12 +222,42 @@ bool replaceString(
 	return replaced;
 }
 
+static map<string, string> userAliases;
+
+void getUserAliases(
+	vector<string>& aliasPairs)
+{
+	userAliases.clear();
+
+	for (auto& aliasPair : aliasPairs)
+	{
+		int colonPos = aliasPair.find(':');
+		if (colonPos == string::npos)
+		{
+			BOOST_LOG_TRIVIAL(warning) << "Warning: User defined alias '" << aliasPair << "' doesnt take form 'alias:value'";
+			continue;
+		}
+
+		string alias = "<" + aliasPair.substr(0, colonPos) + ">";
+		string value = aliasPair.substr(colonPos + 1);
+
+		boost::to_upper(alias);
+
+		userAliases[alias] = value;
+	}
+}
+
 /** Replace macros for times with configured values.
 */
 void replaceTags(
 	string& str)		///< String to replace macros within
 {
 	char* home = std::getenv("HOME");
+
+	for (auto& [alias, value] : userAliases)
+	{
+					replaceString(str, alias,								value);
+	}
 
 					replaceString(str, "<SAT_DATA_ROOT>",					acsConfig.sat_data_root);
 					replaceString(str, "<GNSS_OBS_ROOT>",					acsConfig.gnss_obs_root);
@@ -273,8 +303,11 @@ void replaceTags(
 					replaceString(str, "<PASS>",							acsConfig.stream_pass);
 					replaceString(str, "<CONFIG>",							acsConfig.config_description);
 					replaceString(str, "<CWD>",								std::filesystem::current_path());
+					replaceString(str, "<PID>",								std::to_string(getpid()));
 	if (home)		replaceString(str, "~",									home);
 }
+
+
 
 void replaceTags(
 	vector<string>&		strs)
@@ -2584,6 +2617,7 @@ bool configure(
 	("user,u",							boost::program_options::value<string>(),						"Username for RTCM streams")
 	("pass,p",							boost::program_options::value<string>(),						"Password for RTCM streams")
 	("config,y",						boost::program_options::value<vector<string>>()->multitoken(),	"Configuration file")
+	("user_aliases,a",					boost::program_options::value<vector<string>>()->multitoken(),	"User definable aliases")
 	("atx_files",						boost::program_options::value<vector<string>>()->multitoken(),	"ANTEX files")
 	("nav_files",						boost::program_options::value<vector<string>>()->multitoken(),	"Navigation files")
 	("snx_files",						boost::program_options::value<vector<string>>()->multitoken(),	"SINEX files")
@@ -3813,6 +3847,15 @@ bool ACSConfig::parse(
 				tryGetFromYaml(propagationOptions.aod						, orbit_propagation,	{"@ aod"						}, "Model Atmospheric and Oceanic non tidal accelerations");
 				tryGetFromYaml(propagationOptions.central_force				, orbit_propagation,	{"@ central_force"				}, "Acceleration due to the central force");
 				tryGetFromYaml(propagationOptions.general_relativity		, orbit_propagation,	{"@ general_relativity"			}, "Model acceleration due general relativisty");
+			}
+
+			// other
+			{
+				vector<string> aliasPairs;
+
+				tryGetFromAny(aliasPairs,	commandOpts,	processing_options, {"user_aliases"	}, "User definable alias pairs, eg 'myuser:mypass' (use quotes) will replace instances of <MYUSER> with mypass in relevant filenames");
+
+				getUserAliases(aliasPairs);
 			}
 		}
 
