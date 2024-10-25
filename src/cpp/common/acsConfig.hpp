@@ -611,8 +611,8 @@ struct ChiSquareOptions
 
 struct RtsOptions
 {
-	string		rts_filename			= "Filter-<CONFIG>-<RECEIVER>-<PID>.rts";
-	string		rts_directory			= "<OUTPUTS_ROOT>";
+	string		rts_filename			= "Filter-<RECEIVER>.rts";
+	string		rts_directory			= "./";
 	int			rts_lag					= -1;
 	int			rts_interval			= 0;
 	string		rts_smoothed_suffix		= "_smoothed";
@@ -662,6 +662,7 @@ struct PppOptions : FilterOptions
 	bool			equate_ionospheres		= false;
 	bool			equate_tropospheres		= false;
 	bool			use_rtk_combo			= false;
+	bool			use_primary_signals		= false;
 
 	bool			add_eop_component		= false;
 

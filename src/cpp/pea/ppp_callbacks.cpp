@@ -156,20 +156,26 @@ bool incrementPhaseSignalError(
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
-	unsigned int* phaseRejectCount_ptr = (unsigned int*) metaDataMap["phaseRejectCount"];
-
-	if (phaseRejectCount_ptr == nullptr)
+	for (auto suffix : {"", "_alt"})
 	{
-		return true;
+		string metaData = "phaseRejectCount";
+		metaData += suffix;
+
+		unsigned int* phaseRejectCount_ptr = (unsigned int*) metaDataMap[metaData];
+
+		if (phaseRejectCount_ptr == nullptr)
+		{
+			continue;
+		}
+
+		unsigned int&	phaseRejectCount	= *phaseRejectCount_ptr;
+
+		//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
+		phaseRejectCount++;
+		metaDataMap[metaData] = nullptr;
+
+		trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
 	}
-
-	unsigned int&	phaseRejectCount	= *phaseRejectCount_ptr;
-
-	//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
-	phaseRejectCount++;
-	metaDataMap["phaseRejectCount"] = nullptr;
-
-	trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
 
 	return true;
 }

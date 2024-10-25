@@ -102,6 +102,11 @@ void explainMeasurements(
 						})
 		for (int col = 0; col < duo.designMatrix.cols(); col++)
 		{
+			if (col == 0)
+			{
+				output << "\n" << "============================";
+			}
+
 			double entry = duo.designMatrix(i, col);
 
 			if (entry == 0)
@@ -167,6 +172,11 @@ void makeIFLCs(
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList)
 {
+	if (kfMeasEntryList.empty())
+	{
+		return;
+	}
+
 	bool iflcMade = false;
 
 	for (int i = 0; i < kfMeasEntryList.size(); i++)
@@ -180,16 +190,26 @@ void makeIFLCs(
 
 		double	coeff_i = 0;
 		KFKey	ionKey_i;
+		bool	useDesignMap = true;
 
-		for (auto& [key, value] : kfMeasEntryI.designEntryMap)
+		for (auto designMap : {true, false})
 		{
-			if (key.type == KF::IONO_STEC)
+			map<KFKey, double>*	entryMapPtr;
+			if (designMap)		entryMapPtr = &kfMeasEntryI.designEntryMap;
+			else				entryMapPtr = &kfMeasEntryI.noiseEntryMap;
+
+			for (auto& [key, value] : *entryMapPtr)
 			{
-				ionKey_i	= key;
-				coeff_i		= value;
-				break;
+				if (key.type == KF::IONO_STEC)
+				{
+					ionKey_i		= key;
+					coeff_i			= value;
+					useDesignMap	= designMap;
+					goto breakI;
+				}
 			}
 		}
+		breakI:
 
 		if (coeff_i == 0)
 		{
@@ -207,15 +227,17 @@ void makeIFLCs(
 			if (kfMeasEntryI.metaDataMap["IFLCcombined"])			{	continue;	}
 			if (kfMeasEntryJ.metaDataMap["IFLCcombined"])			{	continue;	}
 
-			auto it = kfMeasEntryJ.designEntryMap.find(ionKey_i);
-			if (it == kfMeasEntryJ.designEntryMap.end())
+			map<KFKey, double>* entryMapPtr;
+			if (useDesignMap)	entryMapPtr = &kfMeasEntryJ.designEntryMap;
+			else				entryMapPtr = &kfMeasEntryJ.noiseEntryMap;
+
+			auto it = entryMapPtr->find(ionKey_i);
+			if (it == entryMapPtr->end())
 			{
 				continue;
 			}
 
 			auto& [ionKey_j, coeff_j] = *it;
-
-			double coefj = coeff_j;
 
 			if (coeff_i * coeff_j < 0)								{	continue;	}	//only combine similarly signed (code/phase) components
 			if (coeff_i == coeff_j)									{	continue;	}	//dont combine if it will eliminate the entire measurement
@@ -261,7 +283,8 @@ void makeIFLCs(
 			kfMeasEntryJ.metaDataMap["IFLCcombined"]	= (void*) true;
 // 			kfMeasEntryJ.metaDataMap["explain"]			= (void*) true;
 
-			newDesignEntryMap[ionKey_i] = 0;
+			if (useDesignMap)		newDesignEntryMap	[ionKey_i] = 0;
+			else 					newNoiseEntryMap	[ionKey_i] = 0;
 			kfMeasEntryJ.designEntryMap	= std::move(newDesignEntryMap);
 			kfMeasEntryJ.noiseEntryMap	= std::move(newNoiseEntryMap);
 			kfMeasEntryJ.componentsMap	= std::move(newComponentsMap);
@@ -271,8 +294,7 @@ void makeIFLCs(
 		}
 	}
 
-	if	( kfMeasEntryList.empty()	== false
-		&&iflcMade					== false)
+	if (iflcMade == false)
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: No IONO_STEC measurements found - 'use_if_combo' requires 'ion_stec' estimation to be enabled in the config file.";
 	}
@@ -632,8 +654,6 @@ void updateAvgIonosphere(
 		auto& rec = *key.rec_ptr;
 
 		auto& satStat	= rec.satStatMap[key.Sat];
-		auto& satNav	= nav.satNavMap[key.Sat];
-		auto& recOpts	= acsConfig.getRecOpts(rec.id);
 
 		double diono	= 0;
 		double dummy	= 0;

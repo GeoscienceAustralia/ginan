@@ -19,7 +19,6 @@ using std::map;
 
 struct PhaseCenterData : AzElMapData<double>
 {
-	/* antenna parameter type */
 	E_FType	ft;
 	string	type;					///< antenna type
 	string	code;					///< serial number or satellite code
@@ -27,14 +26,17 @@ struct PhaseCenterData : AzElMapData<double>
 	string	cospar;					///< Cospar code satellites
 	string	calibModel;				///< name of the antenna calibration model
 
-	double tf[6];					///< valid from YMDHMS
-	double tu[6];					///< valid until YMDHMS
+	GTime	validFrom;
+	GTime	validUntil;
 };
 
 struct PhaseCenterOffset
 {
 	Vector3d	satPco = Vector3d::Zero();
 	Vector3d	recPco = Vector3d::Zero();
+
+	GTime	validFrom;
+	GTime	validUntil;
 };
 
 //forward declaration for pointer below

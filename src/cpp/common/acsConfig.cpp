@@ -254,57 +254,64 @@ void replaceTags(
 {
 	char* home = std::getenv("HOME");
 
-	for (auto& [alias, value] : userAliases)
-	{
-					replaceString(str, alias,								value);
-	}
+	bool repeat = true;
 
-					replaceString(str, "<SAT_DATA_ROOT>",					acsConfig.sat_data_root);
-					replaceString(str, "<GNSS_OBS_ROOT>",					acsConfig.gnss_obs_root);
-					replaceString(str, "<PSEUDO_OBS_ROOT>",					acsConfig.pseudo_obs_root);
-					replaceString(str, "<RTCM_INPUTS_ROOT>",				acsConfig.rtcm_inputs_root);
-					replaceString(str, "<SISNET_INPUTS_ROOT>",				acsConfig.sisnet_inputs_root);
-					replaceString(str, "<ROOT_STREAM_URL>",					acsConfig.root_stream_url);
-					replaceString(str, "<HASH>",							ginanCommitHash());
-					replaceString(str, "<BRANCH>",							ginanBranchName());
-					replaceString(str, "<AGENCY>",							acsConfig.analysis_agency);
-					replaceString(str, "<SOFTWARE>",						acsConfig.analysis_software.substr(0,3));
-					replaceString(str, "<INPUTS_ROOT>",						acsConfig.inputs_root);
-					replaceString(str, "<TRACE_DIRECTORY>",					acsConfig.trace_directory);
-					replaceString(str, "<BIAS_SINEX_DIRECTORY>",			acsConfig.bias_sinex_directory);
-					replaceString(str, "<CLOCKS_DIRECTORY>",				acsConfig.clocks_directory);
-					replaceString(str, "<DECODED_RTCM_DIRECTORY>",			acsConfig.decoded_rtcm_json_directory);
-					replaceString(str, "<ENCODED_RTCM_DIRECTORY>",			acsConfig.encoded_rtcm_json_directory);
-					replaceString(str, "<ERP_DIRECTORY>",					acsConfig.erp_directory);
-					replaceString(str, "<IONEX_DIRECTORY>",					acsConfig.ionex_directory);
-					replaceString(str, "<IONSTEC_DIRECTORY>",				acsConfig.ionstec_directory);
-					replaceString(str, "<SINEX_DIRECTORY>",					acsConfig.sinex_directory);
-					replaceString(str, "<LOG_DIRECTORY>",					acsConfig.log_directory);
-					replaceString(str, "<GPX_DIRECTORY>",					acsConfig.gpx_directory);
-					replaceString(str, "<POS_DIRECTORY>",					acsConfig.pos_directory);
-					replaceString(str, "<NTRIP_LOG_DIRECTORY>",				acsConfig.ntrip_log_directory);
-					replaceString(str, "<NETWORK_STATISTICS_DIRECTORY>",	acsConfig.network_statistics_json_directory);
-					replaceString(str, "<SP3_DIRECTORY>",					acsConfig.sp3_directory);
-					replaceString(str, "<ORBIT_ICS_DIRECTORY>",				acsConfig.orbit_ics_directory);
-					replaceString(str, "<ORBEX_DIRECTORY>",					acsConfig.orbex_directory);
-					replaceString(str, "<COST_DIRECTORY>",					acsConfig.cost_directory);
-					replaceString(str, "<RINEX_NAV_DIRECTORY>",				acsConfig.rinex_nav_directory);
-					replaceString(str, "<RINEX_OBS_DIRECTORY>",				acsConfig.rinex_obs_directory);
-					replaceString(str, "<RTCM_NAV_DIRECTORY>",				acsConfig.rtcm_nav_directory);
-					replaceString(str, "<RTCM_OBS_DIRECTORY>",				acsConfig.rtcm_obs_directory);
-					replaceString(str, "<CUSTOM_DIRECTORY>",				acsConfig.raw_custom_directory);
-					replaceString(str, "<UBX_DIRECTORY>",					acsConfig.raw_ubx_directory);
-					replaceString(str, "<SLR_OBS_DIRECTORY>",				acsConfig.slr_obs_directory);
-					replaceString(str, "<TROP_SINEX_DIRECTORY>",			acsConfig.trop_sinex_directory);
-					replaceString(str, "<EMS_DIRECTORY>",					acsConfig.ems_directory);
-					replaceString(str, "<RTS_DIRECTORY>",					acsConfig.pppOpts.rts_directory);
-					replaceString(str, "<OUTPUTS_ROOT>",					acsConfig.outputs_root);
-					replaceString(str, "<USER>",							acsConfig.stream_user);
-					replaceString(str, "<PASS>",							acsConfig.stream_pass);
-					replaceString(str, "<CONFIG>",							acsConfig.config_description);
-					replaceString(str, "<CWD>",								std::filesystem::current_path());
-					replaceString(str, "<PID>",								std::to_string(getpid()));
-	if (home)		replaceString(str, "~",									home);
+	while (repeat)
+	{
+		repeat = false;
+
+		for (auto& [alias, value] : userAliases)
+		{
+						repeat |= replaceString(str, alias,								value);
+		}
+
+						repeat |= replaceString(str, "<SAT_DATA_ROOT>",					acsConfig.sat_data_root);
+						repeat |= replaceString(str, "<GNSS_OBS_ROOT>",					acsConfig.gnss_obs_root);
+						repeat |= replaceString(str, "<PSEUDO_OBS_ROOT>",				acsConfig.pseudo_obs_root);
+						repeat |= replaceString(str, "<RTCM_INPUTS_ROOT>",				acsConfig.rtcm_inputs_root);
+						repeat |= replaceString(str, "<SISNET_INPUTS_ROOT>",			acsConfig.sisnet_inputs_root);
+						repeat |= replaceString(str, "<OUTPUTS_ROOT>",					acsConfig.outputs_root);
+						repeat |= replaceString(str, "<ROOT_STREAM_URL>",				acsConfig.root_stream_url);
+						repeat |= replaceString(str, "<HASH>",							ginanCommitHash());
+						repeat |= replaceString(str, "<BRANCH>",						ginanBranchName());
+						repeat |= replaceString(str, "<AGENCY>",						acsConfig.analysis_agency);
+						repeat |= replaceString(str, "<SOFTWARE>",						acsConfig.analysis_software.substr(0,3));
+						repeat |= replaceString(str, "<INPUTS_ROOT>",					acsConfig.inputs_root);
+						repeat |= replaceString(str, "<TRACE_DIRECTORY>",				acsConfig.trace_directory);
+						repeat |= replaceString(str, "<BIAS_SINEX_DIRECTORY>",			acsConfig.bias_sinex_directory);
+						repeat |= replaceString(str, "<CLOCKS_DIRECTORY>",				acsConfig.clocks_directory);
+						repeat |= replaceString(str, "<DECODED_RTCM_DIRECTORY>",		acsConfig.decoded_rtcm_json_directory);
+						repeat |= replaceString(str, "<ENCODED_RTCM_DIRECTORY>",		acsConfig.encoded_rtcm_json_directory);
+						repeat |= replaceString(str, "<ERP_DIRECTORY>",					acsConfig.erp_directory);
+						repeat |= replaceString(str, "<IONEX_DIRECTORY>",				acsConfig.ionex_directory);
+						repeat |= replaceString(str, "<IONSTEC_DIRECTORY>",				acsConfig.ionstec_directory);
+						repeat |= replaceString(str, "<SINEX_DIRECTORY>",				acsConfig.sinex_directory);
+						repeat |= replaceString(str, "<LOG_DIRECTORY>",					acsConfig.log_directory);
+						repeat |= replaceString(str, "<GPX_DIRECTORY>",					acsConfig.gpx_directory);
+						repeat |= replaceString(str, "<POS_DIRECTORY>",					acsConfig.pos_directory);
+						repeat |= replaceString(str, "<NTRIP_LOG_DIRECTORY>",			acsConfig.ntrip_log_directory);
+						repeat |= replaceString(str, "<NETWORK_STATISTICS_DIRECTORY>",	acsConfig.network_statistics_json_directory);
+						repeat |= replaceString(str, "<SP3_DIRECTORY>",					acsConfig.sp3_directory);
+						repeat |= replaceString(str, "<ORBIT_ICS_DIRECTORY>",			acsConfig.orbit_ics_directory);
+						repeat |= replaceString(str, "<ORBEX_DIRECTORY>",				acsConfig.orbex_directory);
+						repeat |= replaceString(str, "<COST_DIRECTORY>",				acsConfig.cost_directory);
+						repeat |= replaceString(str, "<RINEX_NAV_DIRECTORY>",			acsConfig.rinex_nav_directory);
+						repeat |= replaceString(str, "<RINEX_OBS_DIRECTORY>",			acsConfig.rinex_obs_directory);
+						repeat |= replaceString(str, "<RTCM_NAV_DIRECTORY>",			acsConfig.rtcm_nav_directory);
+						repeat |= replaceString(str, "<RTCM_OBS_DIRECTORY>",			acsConfig.rtcm_obs_directory);
+						repeat |= replaceString(str, "<CUSTOM_DIRECTORY>",				acsConfig.raw_custom_directory);
+						repeat |= replaceString(str, "<UBX_DIRECTORY>",					acsConfig.raw_ubx_directory);
+						repeat |= replaceString(str, "<SLR_OBS_DIRECTORY>",				acsConfig.slr_obs_directory);
+						repeat |= replaceString(str, "<TROP_SINEX_DIRECTORY>",			acsConfig.trop_sinex_directory);
+						repeat |= replaceString(str, "<EMS_DIRECTORY>",					acsConfig.ems_directory);
+						repeat |= replaceString(str, "<RTS_DIRECTORY>",					acsConfig.pppOpts.rts_directory);
+						repeat |= replaceString(str, "<USER>",							acsConfig.stream_user);
+						repeat |= replaceString(str, "<PASS>",							acsConfig.stream_pass);
+						repeat |= replaceString(str, "<CONFIG>",						acsConfig.config_description);
+						repeat |= replaceString(str, "<CWD>",							std::filesystem::current_path());
+						repeat |= replaceString(str, "<PID>",							std::to_string(getpid()));
+		if (home)		repeat |= replaceString(str, "~",								home);
+	}
 }
 
 
@@ -2647,7 +2654,7 @@ bool configure(
 	("walkthrough",																						"Run demonstration code interactively with commentary")
 	("compare_clocks",																					"Compare clock files")
 	("compare_orbits",																					"Compare sp3 files")
-	("compare_attitudes",																				"Compare antex files")
+	("compare_attitudes",																				"Compare orbex files")
 	;
 
 	boost::program_options::variables_map vm;
@@ -3487,6 +3494,7 @@ bool ACSConfig::parse(
 				tryGetFromYaml	(pppOpts.equate_ionospheres,				general, {"@ equate_ionospheres"			}, "Use same STEC values for different receivers, useful for simulated rtk mode");
 				tryGetFromYaml	(pppOpts.equate_tropospheres,				general, {"@ equate_tropospheres"			}, "Use same troposphere values for different receivers, useful for simulated rtk mode");
 				tryGetFromYaml	(pppOpts.use_rtk_combo,						general, {"@ use_rtk_combo"					}, "Combine applicable observations to simulate an rtk solution");
+				tryGetFromYaml	(pppOpts.use_primary_signals,				general, {"@ use_primary_signals"			}, "Limit processing to first signal of a frequency when multiple are available");
 				tryGetFromYaml	(pppOpts.add_eop_component,					general, {"@ add_eop_component"				}, "Add eop adjustments as a component in residual chain (for adjusting frames to match ecef ephemeris)");
 				tryGetFromYaml	(delete_old_ephemerides,					general, {"@ delete_old_ephemerides"		}, "Remove old ephemerides that have accumulated over time from before far before the currently processing epoch");
 				tryGetFromYaml	(use_tgd_bias,								general, {"@ use_tgd_bias"					}, "Use TGD/BGD bias from ephemeris, DO NOT turn on unless using Klobuchar/NeQuick Ionospheres");

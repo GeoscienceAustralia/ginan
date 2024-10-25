@@ -5,8 +5,10 @@
 
 #include <unordered_map>
 #include <functional>
+#include <filesystem>
 #include <stdarg.h>
 #include <ctype.h>
+#include <cstdio>
 
 using std::unordered_map;
 
@@ -235,6 +237,13 @@ bool createNewTraceFile(
 	{
 		//the filename is the same, keep using the old ones
 		return false;
+	}
+
+	if	( old_path_trace.empty() == false
+		&&std::filesystem::file_size(old_path_trace) == 0)
+	{
+		//the previous file wasnt used before changing the name, remove it
+		std::remove(old_path_trace.c_str());
 	}
 
 	old_path_trace = new_path_trace;

@@ -386,35 +386,46 @@ void pseudoRecDcb(
 			KFMeasEntryList&	kfMeasEntryList)	///< List to append kf measurements to
 {
 	string doneRec;
-	SatSys doneSat;
+	SatSys doneSys;
+
+	static map<KFKey, SatSys> setSatMap;
 
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
-		if (key.type != KF::CODE_BIAS)
+		if	( key.type != KF::CODE_BIAS
+			||key.str.empty())
 		{
+			//only do receiver code biases
 			continue;
 		}
 
-		if (key.rec_ptr == nullptr)
-		{
-			continue;
-		}
-
-		auto& rec = *key.rec_ptr;
+		SatSys sysSat(key.Sat.sys);
 
 		//there are code biases for this receiver+system, check the dcbs all at once at the first one
-		if	( key.str == doneRec
-			&&key.Sat == doneSat)
+		if	( key.str	== doneRec
+			&&sysSat	== doneSys)
 		{
 			continue;
 		}
 
-		auto sys = key.Sat.sys;
+		auto sys = sysSat.sys;
+
+		KFKey sysKey = key;
+		sysKey.Sat = SatSys(sys);
+		sysKey.num = 0;
+
+		auto& setSat = setSatMap[sysKey];
+		if	( setSat.sys
+			&&setSat != key.Sat)
+		{
+			//have used a different key before, only use that one again.
+			continue;
+		}
 
 		doneRec = key.str;
-		doneSat = key.Sat;
+		doneSys = sysSat;
 
-		auto& recSysOpts = acsConfig.getRecOpts(rec.id, {sys._to_string()});
+		auto& recSysOpts = acsConfig.getRecOpts(key.str, {sys._to_string()});
 
 		if (recSysOpts.zero_dcb_codes.size() != 2)
 		{
@@ -429,10 +440,12 @@ void pseudoRecDcb(
 		auto it = kfState.kfIndexMap.find(key);
 
 		KFKey testKey;
+
 		while	(  it != kfState.kfIndexMap.end()
 				&& (testKey = it->first, true)
 				&& testKey.type	== +KF::CODE_BIAS
-				&& testKey.str	== rec.id)
+				&& testKey.str	== key.str
+				&& testKey.Sat	== key.Sat)
 		{
 			codeBiasKeys.push_back(testKey);
 			++it;
@@ -501,7 +514,7 @@ void pseudoRecDcb(
 
 		KFMeasEntry measEntry(&kfState);
 		measEntry.obsKey.type		= KF::CODE_BIAS;
-		measEntry.obsKey.Sat		= key.Sat;
+		measEntry.obsKey.Sat		= sysSat;
 		measEntry.obsKey.str		= key.str;
 		measEntry.obsKey.comment	= "Zero DCB";
 
@@ -523,6 +536,8 @@ void pseudoRecDcb(
 		measEntry.setInnov(bias2 - bias1);
 
 		measEntry.addNoiseEntry(measEntry.obsKey, 1, PIVOT_MEAS_VARIANCE);
+
+		setSat = key1.Sat;
 
 		kfMeasEntryList.push_back(measEntry);
 	}

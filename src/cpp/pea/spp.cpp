@@ -453,7 +453,7 @@ E_Solution estpos(
 			double range;
 			double vMeas;
 			double vBias;
-			int pass = prange(trace, obs, acsConfig.sppOpts.iono_mode, range, vMeas, vBias, kfState_ptr);
+			bool pass = prange(trace, obs, acsConfig.sppOpts.iono_mode, range, vMeas, vBias, kfState_ptr);
 			if (pass == false)
 			{
 				obs.failurePrange = true;

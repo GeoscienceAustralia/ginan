@@ -1183,7 +1183,7 @@ inline static void pppRecPhasBias(COMMON_PPP_ARGS)
 {
 	double	recPhasBias		=  		recOpts.phaseBiasModel.default_bias;
 	double	recPhasBiasVar	= SQR(	recOpts.phaseBiasModel.undefined_sigma);
-	getBias(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
+	bool biasFound = getBias(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
 
 	KFKey kfKey;
 	kfKey.type		= KF::PHASE_BIAS;
@@ -1218,6 +1218,12 @@ inline static void pppRecPhasBias(COMMON_PPP_ARGS)
 
 		measEntry.addDsgnEntry(kfKey, 1, init);
 	}
+	else if (biasFound == false)
+	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Receiver phase bias not found for " << rec.id << " : " << sig.code._to_string()
+		<< ". Using undefined_sigma: " << recOpts.phaseBiasModel.undefined_sigma;
+	}
 
 	measEntry.addNoiseEntry(kfKey, 1, recPhasBiasVar);
 
@@ -1228,7 +1234,7 @@ inline static void pppSatPhasBias(COMMON_PPP_ARGS)
 {
 	double	satPhasBias		=		satOpts.phaseBiasModel.default_bias;
 	double	satPhasBiasVar	= SQR(	satOpts.phaseBiasModel.undefined_sigma);
-	getBias(trace, time, Sat, Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
+	bool biasFound = getBias(trace, time, Sat, Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
 
 	KFKey kfKey;
 	kfKey.type		= KF::PHASE_BIAS;
@@ -1261,6 +1267,12 @@ inline static void pppSatPhasBias(COMMON_PPP_ARGS)
 
 		measEntry.addDsgnEntry(kfKey, 1, init);
 	}
+	else if (biasFound == false)
+	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Satellite phase bias not found for " << Sat.id() << " : " << sig.code._to_string()
+		<< ". Using undefined_sigma: " << recOpts.phaseBiasModel.undefined_sigma;
+	}
 
 	measEntry.addNoiseEntry(kfKey, 1, satPhasBiasVar);
 
@@ -1271,7 +1283,7 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 {
 	double	recCodeBias		= 		recOpts.codeBiasModel.default_bias;
 	double	recCodeBiasVar	= SQR(	recOpts.codeBiasModel.undefined_sigma);
-	getBias(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
+	bool biasFound = getBias(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
 
 	KFKey kfKey;
 	kfKey.type		= KF::CODE_BIAS;
@@ -1352,6 +1364,12 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
 		measEntry.addDsgnEntry(kfKey, 1, init);
 	}
+	else if (biasFound == false)
+	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Receiver code bias not found for " << rec.id << " : " << sig.code._to_string()
+		<< ". Using undefined_sigma: " << recOpts.codeBiasModel.undefined_sigma;
+	}
 
 	measEntry.addNoiseEntry(kfKey, 1, recCodeBiasVar);
 
@@ -1362,7 +1380,7 @@ inline static void pppSatCodeBias(COMMON_PPP_ARGS)
 {
 	double	satCodeBias		=  		satOpts.codeBiasModel.default_bias;
 	double	satCodeBiasVar	= SQR(	satOpts.codeBiasModel.undefined_sigma);
-	getBias(trace, time, Sat, Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
+	bool biasFound = getBias(trace, time, Sat, Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
 
 	KFKey kfKey;
 	kfKey.type		= KF::CODE_BIAS;
@@ -1428,6 +1446,12 @@ inline static void pppSatCodeBias(COMMON_PPP_ARGS)
 		satCodeBias = init.x;
 
 		measEntry.addDsgnEntry	(kfKey, 1, init);
+	}
+	else if (biasFound == false)
+	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Satellite code bias not found for " << Sat.id() << " : " << sig.code._to_string()
+		<< ". Using undefined_sigma: " << satOpts.codeBiasModel.undefined_sigma;
 	}
 
 	measEntry.addNoiseEntry(kfKey, 1, satCodeBiasVar);
@@ -1568,6 +1592,13 @@ void receiverUducGnss(
 		if (acsConfig.process_sys[obs.Sat.sys] == false)
 		{
 			tracepdeex(4, trace, "\n%s - System skipped", measDescription);
+			continue;
+		}
+
+		if	( acsConfig.pppOpts.use_primary_signals
+			&&&sig != &sigList[0])
+		{
+			tracepdeex(4, trace, "\n%s - Secondary signal skipped", measDescription);
 			continue;
 		}
 
