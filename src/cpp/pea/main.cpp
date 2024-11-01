@@ -253,7 +253,7 @@ void mainOncePerEpochPerStation(
 
 	if (acsConfig.output_rinex_obs)
 	{
-		writeRinexObs(rec.id, rec.snx, tsync, rec.obsList, acsConfig.rinex_obs_version);
+		writeRinexObs(rec.id, rec, tsync, rec.obsList, acsConfig.rinex_obs_version);
 	}
 }
 
@@ -1105,7 +1105,7 @@ int main(
 				{
 					auto nominalLatency	= now - nominalLoopStartTime;
 
-					BOOST_LOG_TRIVIAL(debug)
+					trace << "\n"
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(nominalLoopStartTime	- peaStartTimeChrono).count() << "ms"	<< " "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(now					- peaStartTimeChrono).count() << "ms"	<< " "
 					<< rec.id << " nominal latency :  "
@@ -1118,7 +1118,7 @@ int main(
 
 					auto nominalLatency	= nominalLoopStartTime - now;
 
-					BOOST_LOG_TRIVIAL(debug)
+					trace << "\n"
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(nominalLoopStartTime	- peaStartTimeChrono).count() << "ms"	<< " "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(now					- peaStartTimeChrono).count() << "ms"	<< " "
 					<< rec.id << " nominal latency : -"

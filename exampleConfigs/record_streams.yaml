@@ -24,6 +24,16 @@ inputs:
             - BCEP00BKG0
             - SSRA00CNE0
 
+receiver_options:
+    ALIC:
+        receiver_type: "SEPT POLARX5" # (string)
+        antenna_type: "LEIAR25.R3      NONE" # (string)
+        apriori_position: [-4052052.8638, 4212835.9618, -2545104.4038] # [floats]
+        models:
+            eccentricity:
+                enable: true
+                offset: [0.0000, 0.0000, 0.0015] # [floats]
+
 outputs:
 
     metadata:

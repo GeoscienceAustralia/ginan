@@ -1596,7 +1596,7 @@ void receiverUducGnss(
 		}
 
 		if	( acsConfig.pppOpts.use_primary_signals
-			&&&sig != &sigList[0])
+			&& &sig != &(*sigList.begin()))
 		{
 			tracepdeex(4, trace, "\n%s - Secondary signal skipped", measDescription);
 			continue;

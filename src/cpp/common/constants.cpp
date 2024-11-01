@@ -12,7 +12,7 @@ using std::map;
 
 #include <boost/assign.hpp>
 
-map<E_FType, double> genericWavelength = 
+map<E_FType, double> genericWavelength =
 {
 	{F1, CLIGHT / FREQ1},
 	{F2, CLIGHT / FREQ2},
@@ -77,7 +77,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 			{E_ObsCode::L4A,	G4	},
 			{E_ObsCode::L4B,	G4	},
 			{E_ObsCode::L4X,	G4	},
-			
+
 			{E_ObsCode::L6A,	G6	},
 			{E_ObsCode::L6B,	G6	},
 			{E_ObsCode::L6X,	G6	}
@@ -124,7 +124,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 			{E_ObsCode::L1Z,	F1	},
 			{E_ObsCode::L1A,	F1	},
 			{E_ObsCode::L1N,	F1	},
-			
+
 			{E_ObsCode::L2I,	B1	},
 			{E_ObsCode::L2Q,	B1	},
 			{E_ObsCode::L2X,	B1	},
@@ -150,7 +150,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 
 			{E_ObsCode::L8D,	F8	},
 			{E_ObsCode::L8P,	F8	},
-			{E_ObsCode::L8Z,	F8	}
+			{E_ObsCode::L8X,	F8	}
 		}
 	},
 
@@ -187,7 +187,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 	{	E_Sys::IRN,
 		{
 			/* NavIC F1 in the works... */
-			
+
 			{E_ObsCode::NONE,	FTYPE_NONE},
 			{E_ObsCode::L5A,	F5	},
 			{E_ObsCode::L5B,	F5	},
@@ -200,7 +200,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 			{E_ObsCode::L9X,	I9	}
 		}
 	},
-	
+
 	{	E_Sys::SBS,
 		{
 			{E_ObsCode::NONE,	FTYPE_NONE},
@@ -211,7 +211,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 			{E_ObsCode::L5X,	F5	}
 		}
 	},
-	
+
     {	E_Sys::LEO,
 		{
 			{E_ObsCode::NONE,	FTYPE_NONE},
@@ -301,7 +301,7 @@ const boost::bimap<E_ObsCode,int> mCodes_gps = boost::assign::list_of<boost::bim
 	(E_ObsCode::L5I,14)
 	(E_ObsCode::L5Q,15)
 	(E_ObsCode::L5X,16);
-	
+
 const boost::bimap<E_ObsCode,int> mCodes_glo = boost::assign::list_of<boost::bimap<E_ObsCode,int>::relation>
 	(E_ObsCode::L1C,0)
 	(E_ObsCode::L1P,1)
@@ -387,7 +387,7 @@ map<E_Sys, map<E_FType, E_ObsCode>> codeHax =
 			{G3, E_ObsCode::L3I  },
 			{G4, E_ObsCode::L4B  },
 			{G6, E_ObsCode::L6B  }
-		}	
+		}
 	},
 
 	{	E_Sys::GAL,
@@ -426,7 +426,7 @@ map<E_Sys, map<E_FType, E_ObsCode>> codeHax =
 			{I9, E_ObsCode::L9A }
 		}
 	},
-	
+
 	{	E_Sys::SBS,
 		{
 			{F1, E_ObsCode::L1C },
@@ -436,14 +436,14 @@ map<E_Sys, map<E_FType, E_ObsCode>> codeHax =
 };
 
 E_ObsCode freq2CodeHax(
-	E_Sys	sys, 
+	E_Sys	sys,
 	E_FType	ft)
 {
 	if (codeHax.find(sys) == codeHax.end())
 		return E_ObsCode::NONE;
-	
+
 	if (codeHax[sys].find(ft) == codeHax[sys].end())
 		return E_ObsCode::NONE;
-	
+
 	return codeHax[sys][ft];
 }

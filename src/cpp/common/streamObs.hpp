@@ -75,15 +75,11 @@ struct ObsStream : StreamParser
 						break;
 					}
 				}
-
-				auto it = std::remove_if(sigsList.begin(), sigsList.end(), [sys](Sig& a)
+                sigsList.remove_if([sys](Sig& a)
 					{
 						return std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), a.code) == acsConfig.code_priorities[sys].end();
 					});
-
-				sigsList.erase(it, sigsList.end());
-
-				std::sort(sigsList.begin(), sigsList.end(), [sys](Sig& a, Sig& b)
+                sigsList.sort([sys](Sig& a, Sig& b)
 					{
 						auto iterA = std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), a.code);
 						auto iterB = std::find(acsConfig.code_priorities[sys].begin(), acsConfig.code_priorities[sys].end(), b.code);

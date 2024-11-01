@@ -461,7 +461,7 @@ BETTER_ENUM(E_ObsCode, int,
 	L6L		= 36,			///< L6L    				(QZS)
 	L8I		= 37,			///< E5(a+b)I   			(GAL)
 	L8Q		= 38,			///< E5(a+b)Q   			(GAL)
-	L8X		= 39,			///< E5(a+b)I+Q 			(GAL)
+	L8X		= 39,			///< E5(a+b)I+Q 			(GAL, BDS)
 	L2I		= 40,			///< B1-2I      			(BDS)
 	L2Q		= 41,			///< B1-2Q      			(BDS)
 	L6I		= 42,			///< B3I        			(BDS)
@@ -493,7 +493,6 @@ BETTER_ENUM(E_ObsCode, int,
 	L7Z		= 69,			///< L7 Data+Pilot       	(BDS)
 	L8D		= 70,			///< L8 Data       			(BDS)
 	L8P		= 71,			///< L8 Pilot       		(BDS)
-	L8Z		= 72,			///< L8 Data+Pilot       	(BDS)
 	AUTO	= 9001
 )
 

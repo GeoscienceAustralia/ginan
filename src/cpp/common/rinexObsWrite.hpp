@@ -13,11 +13,11 @@ using std::string;
 
 #include "observations.hpp"
 
-struct SinexRecData;
+struct Receiver;
 
 void writeRinexObs(
 	string&			id,
-	SinexRecData&	snx,
+	Receiver&		snx,
 	GTime&			time,
 	ObsList&		obsList,
 	const double	rnxver = 3.05);

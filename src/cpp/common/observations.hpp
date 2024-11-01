@@ -245,7 +245,8 @@ struct SatPos
 struct GObs : Observation, GObsMeta, SatPos
 {
 	map<E_FType, Sig>				sigs;		///> Map of signals available in this observation (one per frequency only)
-	map<E_FType, vector<Sig>>		sigsLists;	///> Map of all signals available in this observation (may include multiple per frequency, eg L1X, L1C)
+    map<E_FType, list<Sig>>			sigsLists;	///> Map of all signals available in this observation (may include multiple per frequency, eg L1X, L1C)
+												//	 Do not replace the list with a vector, it causes issues in rt
 
 	operator shared_ptr<GObs>()
 	{
