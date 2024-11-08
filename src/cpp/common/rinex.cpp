@@ -315,12 +315,9 @@ void decodeObsH(
 			if (sscanf(p, "R%2d %2d", &prn, &fcn) < 2)
 				continue;
 
-			if (1 <= prn
-				&&prn <= NSATGLO)
-			{
-				nav.glo_fcn[prn - 1] = fcn + 8;
-			}
+			SatSys Sat(E_Sys::GLO, prn);
 
+			nav.gloFreqMap[Sat] = fcn;
 		}
 	}
 	else if (strstr(label, "GLONASS COD/PHS/BIS" ))

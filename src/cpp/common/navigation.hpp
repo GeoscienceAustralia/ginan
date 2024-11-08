@@ -93,12 +93,12 @@ struct Navigation
 
 	map<string,		string>																								blocktypeMap;	///< svn blocktypes
 
+	map<SatSys,		int>																								gloFreqMap;		///< glonass frequency channel numbers
 	map<SatSys,		SatNav>																								satNavMap;
 	SSRAtm			ssrAtm;
 
 	ERP		erp;						/* earth rotation parameters */
 	int		leaps	= -1;				/* leap seconds (s) */
-	char	glo_fcn[NSATGLO+1];			/* glonass frequency channel number + 8 */
 	double	glo_cpbias[4];				/* glonass code-phase bias {1C,1P,2C,2P} (m) */
 
 

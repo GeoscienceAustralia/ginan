@@ -136,6 +136,11 @@ void alternatePostfits(
 	KFMeas&		kfMeas,
 	KFState&	kfState)
 {
+	if (kfState.advanced_postfits == false)
+	{
+		return;
+	}
+
 	for (auto& [kfKey, col] : kfMeas.noiseIndexMap)
 	{
 		if	( kfKey.type > KF::BEGIN_MEAS_STATES

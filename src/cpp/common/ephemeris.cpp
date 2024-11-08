@@ -315,13 +315,6 @@ bool satPosClk(
 	E_OffsetType		offsetType,			///< Point of satellite to output position of
 	E_Relativity		applyRelativity)	///< Option to apply relativistic correction to clock
 {
-	if (obs.exclude)
-	{
-		obs.failureExclude = true;
-
-		return false;
-	}
-
 	tracepdeex(3, trace, "\n%-10s: teph=%s %s", __FUNCTION__, teph.to_string().c_str(), obs.Sat.id());
 
 	double pr = 0;

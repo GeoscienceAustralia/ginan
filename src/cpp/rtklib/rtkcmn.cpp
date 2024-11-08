@@ -29,18 +29,37 @@ void updateLamMap(
 
 	if (sys == +E_Sys::GLO)
 	{
-		auto* eph_ptr = seleph<Geph>(nullStream, time, satPos.Sat, acsConfig.used_nav_types[sys], ANY_IODE, nav);
+		int freqNum = 100;
 
-		if (eph_ptr)
+		auto it = nav.gloFreqMap.find(satPos.Sat);
+		if (it != nav.gloFreqMap.end())
 		{
-			auto& geph = *static_cast<Geph*>(eph_ptr);
+			auto& [sat, freq] = *it;
 
-			lamMap[G1]	= CLIGHT / (FREQ1_GLO + DFRQ1_GLO * geph.frq);
-			lamMap[G2]	= CLIGHT / (FREQ2_GLO + DFRQ2_GLO * geph.frq);
-			lamMap[G3]	= CLIGHT / (FREQ3_GLO);
-			lamMap[G4]	= CLIGHT / (FREQ4_GLO);
-			lamMap[G6]	= CLIGHT / (FREQ6_GLO);
+			freqNum = freq;
 		}
+		else
+		{
+			auto* eph_ptr = seleph<Geph>(nullStream, time, satPos.Sat, acsConfig.used_nav_types[sys], ANY_IODE, nav);
+
+			if (eph_ptr)
+			{
+				auto& geph = *static_cast<Geph*>(eph_ptr);
+
+				freqNum = geph.frq;
+			}
+		}
+
+		if (freqNum > 20)
+		{
+			return;
+		}
+
+		lamMap[G1]	= CLIGHT / (FREQ1_GLO + DFRQ1_GLO * freqNum);
+		lamMap[G2]	= CLIGHT / (FREQ2_GLO + DFRQ2_GLO * freqNum);
+		lamMap[G3]	= CLIGHT / (FREQ3_GLO);
+		lamMap[G4]	= CLIGHT / (FREQ4_GLO);
+		lamMap[G6]	= CLIGHT / (FREQ6_GLO);
 	}
 	else
 	{
