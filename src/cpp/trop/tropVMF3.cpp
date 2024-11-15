@@ -1066,7 +1066,7 @@ void legenpoly(
 	vmf3GP.mfh	= continuedFrac(ah, bh, ch);
 	vmf3GP.mfw	= continuedFrac(aw, bw, cw);
 
-	double h1	= 1 / sin(el)
+	double h1	= 1 / sinel
 				- continuedFrac(a1, b1, c1);
 
 	vmf3GP.mfh += h1 * hgt / 1000;
@@ -1133,6 +1133,12 @@ double tropVMF3(
 
 	if (lond < 0)
 		lond += 360;
+
+	if (el < 0)
+	{
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": el < 0, setting it to 1e-6";
+		el = 1e-6;
+	}
 
 	vector<double> fractionsa;
 	auto a = getStraddle(globalVMF3, time, fractionsa);

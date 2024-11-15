@@ -394,6 +394,7 @@ void rtsSmoothing(
 
 				MatrixXd transition = transistionMatrixObject.asMatrix();
 
+				//initialise a transition matrix or multiply to combine multiple of them
 				if (transitionMatrix.rows() == 0)		transitionMatrix = transition;
 				else 									transitionMatrix = (transitionMatrix * transition).eval();
 
@@ -412,7 +413,8 @@ void rtsSmoothing(
 					smoothedXready = true;
 				}
 
-				transitionMatrix = MatrixXd::Identity(0, 0);
+				//assume a trivial transition matrix unless overridden
+				transitionMatrix = MatrixXd::Identity(kalmanMinus.x.rows(), kalmanMinus.x.rows());
 
 				break;
 			}

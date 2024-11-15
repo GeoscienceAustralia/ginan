@@ -6,7 +6,7 @@
 
 /** SSR Troposphere model
  * compute tropospheric delay using compact SSR contents
- * Neill Mapping functions ia used for mapping
+ * Neill Mapping functions is used for mapping
 * return : tropospheric delay (m)
 */
 double tropCSSR(

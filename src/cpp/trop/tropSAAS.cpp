@@ -27,14 +27,14 @@ double interpc(const double coef[], double lat)
 	return coef[i - 1] * (1 - lat / 15 + i) + coef[i] * (lat / 15 - i);
 }
 
-/* troposphere model -----------------------------------------------------------
+
+/**
 * compute tropospheric delay by standard atmosphere (relative humidity of 0.7
 * 15 degrees of temperature at sea level) and saastamoinen model
-* Neill Mapping functions ia used for mapping
-* args   : gtime_t time     I   time
-*          double *pos      I   receiver position {lat,lon,h} (rad,m)
-* return : tropospheric delay (m)
-*-----------------------------------------------------------------------------*/
+* Neill Mapping functions is used for mapping
+* @note validity range of geodetic height is -1000 to 11000m, and of elevation is 0 to 90 degrees
+* @todo model can be extended to 51km using https://www.eoas.ubc.ca/books/Practical_Meteorology/prmet102/Ch01-atmos-v102b.pdf (eq 1.16/1.17)
+*/
 double tropSAAS(
 	Trace&		trace,
 	GTime		time,
@@ -49,22 +49,29 @@ double tropSAAS(
 	double lat = pos.latDeg();
 	double hgt = pos.hgt();
 
-	if	(hgt < -100
-		|| hgt	> +20000
-		|| el	<  0)
+	if (hgt < -1000)
 	{
-		dryMap = 0;
-		wetMap = 0;
-		dryMap = 0;
-		wetMap = 0;
-		var = SQR(ERR_TROP);
-		return 0;
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": hgt < -1000m, setting it to -1000m";
+		hgt = -1000;
 	}
+
+	if (hgt > +11000)
+	{
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": hgt > 11000m, setting it to 11000m";
+		hgt = 11000;
+	}
+
+	if (el < 0)
+	{
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": el < 0, setting it to 1e-6";
+		el = 1e-6;
+	}
+
 
 	UYds yds = time;
 	/* year from doy 28, added half a year for southern latitudes */
-	double y = (yds.doy - 28) / 365.25 + (lat < 0 ? 0.5 : 0);
-	double cosy = cos(2 * PI * y);
+	double yearFraction = (yds.doy - 28) / 365.25 + (lat < 0 ? 0.5 : 0);
+	double cosy = cos(2 * PI * yearFraction);
 	lat = fabs(lat);
 
 	double ah[3];

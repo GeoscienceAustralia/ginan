@@ -352,6 +352,12 @@ double tropGPT2(
 	double&		wetMap,
 	double&		var)
 {
+	if (el < 0)
+	{
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": el < 0, setting it to 1e-6";
+		el = 1e-6;
+	}
+
 	var = -1;
 	MjDateTT mjd_= time;
 	double   mjd = mjd_.to_double();

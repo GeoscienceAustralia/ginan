@@ -673,9 +673,6 @@ void mincon(
 	{
 		KFState& kfState = kfStateStations;
 
-		//use a state transition to ensure output logs are complete
-		kfState.stateTransition(std::cout, kfState.time);
-
 		trace << "\n" << " -------DOING KALMAN FILTER WITH PSEUDO ELEMENTS FOR MINIMUM CONSTRAINTS --------" << "\n";
 
 		if (kfState.rts_basename.empty() == false)

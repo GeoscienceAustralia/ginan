@@ -353,13 +353,16 @@ processing_options:
     minimum_constraints:
         enable: true
         rotation:
+            sigma:      [40]
             estimated: [true]
         scale:
+            sigma:      [40]
             estimated: [true]
         translation:
+            sigma:      [40]
             estimated: [true]
         application_mode:                   weight_matrix
-        # once_per_epoch:                   true
+        once_per_epoch:                   true
         constrain_orbits:                   false
         outlier_screening:                      # Statistical checks allow for detection of outliers that exceed their confidence intervals
             postfit:
