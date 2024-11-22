@@ -14,14 +14,15 @@ will NOT kill those processes. To kill all running processes started by this mas
 - Restart the same job using this master script (this will result in new running processes)
 """
 
-import json
-import click
-import logging
 import subprocess
-import gnssanalysis as ga
-from pathlib import Path
 from datetime import datetime
-from kill_pids import kill_pids
+from pathlib import Path
+
+import click
+
+import gnssanalysis as ga
+from kill_pids import kill_pids, save_pids
+from analyse_orbit_clock import str_to_list
 
 
 @click.command()
@@ -51,6 +52,13 @@ from kill_pids import kill_pids
     type=int,
 )
 @click.option(
+    "--ref-prefix",
+    required=True,
+    help="Prefix of reference products, e.g. 'IGS0OPSRAP'",
+    default="IGS0OPSRAP",
+    type=str,
+)
+@click.option(
     "--analysis-session-len",
     required=True,
     help="Length of a session for each gnssanalysis file/plot in days. Default: 1 (daily)",
@@ -66,13 +74,19 @@ from kill_pids import kill_pids
 @click.option(
     "--sat-sys",
     required=True,
-    help="Satellite system to analyse, G, R, E, C, or any combination without space",
+    help="Satellite system to analyse, 'G', 'R', 'E', 'C', or any combination without space",
     default="G",
     type=str,
 )
 @click.option(
+    "--orb-hlm-mode",
+    help="Helmert transformation to apply for orbit analysis, 'ECF', 'ECI', or 'none'",
+    default="none",
+    type=str,
+)
+@click.option(
     "--clk-norm-types",
-    help="Normalisations to apply for clock files for clock analysis, e.g. 'none', 'sv', 'G01', 'epoch', 'daily', or any combination. Default: 'epoch, daily'",
+    help="Normalisations to apply for clock analysis, e.g. 'none', 'sv', 'G01', 'epoch', 'daily', or any combination. Default: 'epoch, daily'",
     default="epoch, daily",
     type=str,
 )
@@ -115,9 +129,11 @@ def auto_record_ssr_streams_main(
     template_config,
     ssr_streams,
     rotation_days,
+    ref_prefix,
     analysis_session_len,
     align_to_gps_week,
     sat_sys,
+    orb_hlm_mode,
     clk_norm_types,
     min_upload_latency,
     cull_file_types,
@@ -128,9 +144,7 @@ def auto_record_ssr_streams_main(
 ):
     ga.gn_utils.ensure_folders([job_dir])
 
-    ssr_list = []
-    if ssr_streams:
-        ssr_list = ssr_streams.replace(" ", "").split(",")
+    ssr_list = str_to_list(ssr_streams)
 
     rotation_period = str(rotation_days * 86400)
     analysis_session_len = str(analysis_session_len)
@@ -202,10 +216,14 @@ def auto_record_ssr_streams_main(
             str(job_dir),
             "--ref-dir",
             str(product_dir),
+            "--ref-prefix",
+            ref_prefix,
             "--session-len",
             analysis_session_len,
             "--sat-sys",
             sat_sys,
+            "--orb-hlm-mode",
+            orb_hlm_mode,
             "--clk-norm-types",
             clk_norm_types,
         ]
@@ -249,11 +267,8 @@ def auto_record_ssr_streams_main(
     ]
 
     # Save PIDs of started commands to file to kill later
-    with pid_file_path.open("a") as pid_file:
-        for proc in proc_list:
-            json.dump({"PID": proc.pid, "command": " ".join(proc.args)}, pid_file)
-            pid_file.write("\n")
-        logging.debug(f"PIDs of started commands saved to file {pid_file_path}")
+    pid_list = [{"PID": proc.pid, "command": " ".join(proc.args)} for proc in proc_list]
+    save_pids(pid_file_path, pid_list)
 
     # Wait above commands to complete
     for proc in proc_list:

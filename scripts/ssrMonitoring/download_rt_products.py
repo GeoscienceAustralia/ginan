@@ -8,18 +8,20 @@ Script to regularly download/update necessary product files used for real-time p
 Other files can be added in the future. It will run infinitely and attempt download periodically once it is started.
 """
 
-import time
-import click
 import logging
-import gnssanalysis as ga
+import time
 from pathlib import Path
+
+import click
+
+import gnssanalysis as ga
 
 
 def download_rt_products(
     product_dir: Path,
 ) -> None:
     """
-    Download latest product files, including igs20.atx, igs_satellite_metadata.snx, and yaw files
+    Download latest product files, including 'igs20.atx', 'igs_satellite_metadata.snx', and yaw files
     for SSR streams recording.
 
     :param Path product_dir: Directory where downloaded product files to place
@@ -30,10 +32,10 @@ def download_rt_products(
     model_dir = product_dir / "tables"
 
     # Download required products
-    ga.gn_download.download_atx(
-        download_dir=product_dir, long_filename=True, if_file_present="replace"
+    ga.gn_download.download_atx(download_dir=product_dir, if_file_present="replace")
+    ga.gn_download.download_satellite_metadata_snx(
+        download_dir=product_dir, if_file_present="replace"
     )
-    ga.gn_download.download_satellite_metadata_snx(download_dir=product_dir, if_file_present="replace")
     ga.gn_download.download_yaw_files(download_dir=model_dir, if_file_present="replace")
 
     logging.info("Real-time products updated\n")
@@ -61,7 +63,7 @@ def download_rt_products_main(
 ):
     ga.gn_utils.configure_logging(verbose)
 
-    # Check every <interval> seconds if local files are outdated, and if so, download products
+    # Update/Download products every <interval> seconds
     while True:
         download_rt_products(product_dir)
 

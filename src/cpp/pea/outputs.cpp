@@ -780,6 +780,10 @@ void perEpochPostProcessingAndOutputs(
 							.instances	= acsConfig.mongoOpts.output_states,
 							.queue		= acsConfig.mongoOpts.queue_outputs
 						});
+
+			//erp values have probably changed due to mincon, update the nav vars before all the outputs
+			//will have to revert this below because mincon is supposed to be temporary in once_per_epoch mode
+			nav.erp.filterValues = getErpFromFilter(tempAugmentedKF);
 		}
 
 		static double epochsPerRtsInterval	= acsConfig.pppOpts.rts_interval / acsConfig.epoch_interval;
@@ -883,4 +887,7 @@ void perEpochPostProcessingAndOutputs(
 	outputApriori			(receiverMap);
 	outputPredictedStates	(pppTrace, tempAugmentedKF);
 	prepareSsrStates		(pppTrace, tempAugmentedKF, ionState, time);
+
+	//revert the erp filter values since we are done with the tempAugmentedKF
+	nav.erp.filterValues = getErpFromFilter(pppNet.kfState);
 }

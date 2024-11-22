@@ -621,7 +621,7 @@ int main(
 
 	if (acsConfig.output_log)
 	{
-		addFileLog();
+		addFileLog(acsConfig.log_json);
 	}
 
 	BOOST_LOG_TRIVIAL(info)	<< "Compilation details:";

@@ -6,22 +6,49 @@ The PIDs of and correponding commands for running processes should be
 recorded in a JSON file named 'pid.json' in the job directory.
 """
 
-import os
 import json
-import click
-import signal
 import logging
-import gnssanalysis as ga
+import os
+import signal
 from pathlib import Path
+
+import click
+
+import gnssanalysis as ga
+
+
+def save_pids(
+    pid_file_path: Path,
+    proc_list: dict,
+    overwrite: bool = False,
+) -> None:
+    """
+    Save PIDs and corresponding commmands to a JSON file.
+
+    :param Path pid_file_path: Path of the JSON file to log PIDs to
+    :param dict proc_list: A dictionary containing the PIDs and commands of the processes to log
+    :param bool overwrite: Overwrite existing PID file, defaults to False
+    :return None
+    """
+    mode = "w" if overwrite else "a"
+
+    try:
+        with pid_file_path.open(mode) as pid_file:
+            for proc in proc_list:
+                json.dump(proc, pid_file)
+                pid_file.write("\n")
+        logging.info(f"PIDs of running commands saved to file {pid_file_path}")
+    except Exception as error:
+        logging.error(f"Could not write PID file: {error}")
 
 
 def kill_pids(
     pid_file_path: Path,
 ) -> None:
     """
-    Kill running processes by their PIDs logged in a json file.
+    Kill running processes by their PIDs logged in a JSON file.
 
-    :param Path pid_file_path: Path of the json file where PIDs are logged
+    :param Path pid_file_path: Path of the JSON file where PIDs are logged
     :return None
     """
     logging.info("Killing running processes ...")
@@ -47,14 +74,13 @@ def kill_pids(
                 )
             except Exception as error:
                 procs_not_killed.append(proc)
-                logging.exception(f"Could not kill {pid}: '{arg}': {error}")
+                logging.warn(f"Could not kill {pid}: '{arg}': {error}")
 
     # Overwrite the PID file with PIDs not killed
-    with pid_file_path.open("w") as pid_file:
-        logging.debug(f"Updating {pid_file_path} with PIDs not killed")
-        for proc in procs_not_killed:
-            json.dump(proc, pid_file)
-            pid_file.write("\n")
+    if procs_not_killed:
+        logging.info(f"Updating {pid_file_path} with PIDs not killed")
+
+    save_pids(pid_file_path, procs_not_killed, overwrite=True)
 
     logging.info("Processes killed\n")
 

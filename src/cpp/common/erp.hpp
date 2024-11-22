@@ -99,8 +99,8 @@ struct ERPValues
 		return erpv;
 	}
 
-	string toString();
-	string toReadableString();
+	string toString()			const;
+	string toReadableString()	const;
 };
 
 struct ERP

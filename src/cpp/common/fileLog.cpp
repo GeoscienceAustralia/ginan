@@ -48,25 +48,29 @@ void FileLog::consume(
 
 	if (!logStream)
 		return;
-	
+
 	GTime time = timeGet();
-	
+
 	bsoncxx::builder::basic::document doc = {};
 	doc.append(kvp("label", 		"message"));
 	doc.append(kvp("Time", 			time.to_string()));
 	doc.append(kvp("level", 		logLevel));
 	doc.append(kvp("str", 			mess));
-	
-	logStream << bsoncxx::to_json(doc) << "\n";
+
+	if (json)		logStream << bsoncxx::to_json(doc)		<< "\n";
+	else			logStream << logLevel << ": " << mess	<< "\n";
 }
 
 
-void addFileLog()
+void addFileLog(
+	bool json)
 {
 	// Construct the sink
 	using LogSink = sinks::synchronous_sink<FileLog>;
 
 	boost::shared_ptr<LogSink> logSink = boost::make_shared<LogSink>();
+
+	logSink->locked_backend()->json = json;
 
 	// Register the sink in the logging core
 	boost::log::core::get()->add_sink(logSink);

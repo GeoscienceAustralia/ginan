@@ -224,7 +224,12 @@ def generate_product_filename(
             product_filename = f"igs{gps_date.yr[2:]}P{gps_date.gpswk}.snx.Z"
         else:
             hour = f"{reference_start.hour:02}"
-            product_filename = f"igu{gps_date.gpswkD}_{hour}.{file_ext}.Z"
+            prefix = "igs" if solution_type == "FIN" else "igr" if solution_type == "RAP" else "igu"
+            product_filename = (
+                f"{prefix}{gps_date.gpswkD}_{hour}.{file_ext}.Z"
+                if solution_type == "ULT"
+                else f"{prefix}{gps_date.gpswkD}.{file_ext}.Z"
+            )
     return product_filename, gps_date, reference_start
 
 
@@ -1331,7 +1336,7 @@ def auto_download(
 @click.option("--model-dir", help="Directory to Download static model files. Default: product-dir / tables", type=Path)
 @click.option(
     "--solution-type",
-    help="The solution type of products to download from CDDIS. 'RAP': rapid, or 'ULT': ultra-rapid. Default: RAP",
+    help="The solution type of products to download from CDDIS. 'FIN': final, or 'RAP': rapid, or 'ULT': ultra-rapid. Default: RAP",
     default="RAP",
     type=str,
 )

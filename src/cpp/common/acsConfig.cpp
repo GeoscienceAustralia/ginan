@@ -3118,6 +3118,7 @@ bool ACSConfig::parse(
 				auto log = stringsToYamlObject(outputs, {"3! log"}, "Log files store console output in files");
 
 																			tryGetFromYaml(output_log,				log, {"0! output"			}, "Enable console output logging");
+																			tryGetFromYaml(log_json,				log, {"0! json"				}, "Log with json metadata");
 				conditionalPrefix("<OUTPUTS_ROOT>",		log_directory,		tryGetFromYaml(log_directory,			log, {"@ directory"			}, "Log output directory"));
 				conditionalPrefix("<LOG_DIRECTORY>",	log_filename,		tryGetFromYaml(log_filename,			log, {"@ filename"			}, "Log output filename"));
 			}

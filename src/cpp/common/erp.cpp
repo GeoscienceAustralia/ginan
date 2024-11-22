@@ -25,7 +25,7 @@ using std::string;
 #define NMAX	3			/* order of polynomial interpolation */
 
 
-string ERPValues::toString()
+string ERPValues::toString() const
 {
 	Vector3d erp;
 	erp << xp, yp, ut1Utc;
@@ -35,7 +35,7 @@ string ERPValues::toString()
 	return ss.str();
 }
 
-string ERPValues::toReadableString()
+string ERPValues::toReadableString() const
 {
 	Vector3d erp;
 	erp <<

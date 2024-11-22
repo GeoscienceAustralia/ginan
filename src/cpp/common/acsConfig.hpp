@@ -193,6 +193,7 @@ struct OutputOptions
 	string  rtcm_nav_filename			= "<RTCM_NAV_DIRECTORY>/<STREAM>-<LOGTIME>-NAV.rtcm";
 
 	bool	output_log					= false;
+	bool	log_json					= true;
 	string	log_directory				= "<OUTPUTS_ROOT>";
 	string  log_filename				= "<LOG_DIRECTORY>/log-<LOGTIME>.json";
 
