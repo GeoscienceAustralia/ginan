@@ -179,14 +179,17 @@ void filterPseudoObs(
 			KFState&			kfState,
 			KFMeasEntryList&	kfMeasEntryList)
 {
-	for (auto it = pseudoListMap.begin(); it != pseudoListMap.end(); it = pseudoListMap.erase(it))
+	for (auto it = pseudoListMap.begin(); it != pseudoListMap.end(); )
 	{
 		auto& [time, pseudoList] = *it;
 
 		if (time > tsync)
 		{
+			it++;
 			continue;
 		}
+
+		it = pseudoListMap.erase(it);
 
 		for (auto& pseudo : pseudoList)
 		{
