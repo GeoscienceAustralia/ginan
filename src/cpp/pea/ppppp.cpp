@@ -679,7 +679,8 @@ void updateAvgIonosphere(
 	}
 }
 
-/** Prepare Satellite clocks to minimise residuals to broadcast clocks
+/** Prepare Satellite clocks to minimise residuals to broadcast orbits
+ * Provide a weak tiedown using mu values, which the state will attempt to exponentially decay toward using the configured tau value in stateTransition
  */
 void updateAvgOrbits(
 	Trace&			trace,			///< Trace to output to
@@ -723,13 +724,14 @@ void updateAvgOrbits(
 
 			init.mu = satPos.rSatEci0(i);
 
-			//update the mu value
+			//update the mu value,
 			kfState.addKFState(key, init);
 		}
 	}
 }
 
-/** Prepare Satellite clocks to minimise residuals to broadcast clocks
+/** Prepare Satellite clocks to minimise residuals to broadcast clocks.
+ * Provide a weak tiedown using mu values, which the state will attempt to exponentially decay toward using the configured tau value in stateTransition
  */
 void updateAvgClocks(
 	Trace&			trace,			///< Trace to output to
@@ -1203,6 +1205,10 @@ void removeBadAmbiguities(
 	KFState&		kfState,
 	ReceiverMap&	receiverMap);
 
+void removeBadSatellites(
+	Trace&			trace,
+	KFState&		kfState);
+
 void removeBadReceivers(
 	Trace&			trace,
 	KFState&		kfState,
@@ -1223,6 +1229,7 @@ void updateFilter(
 {
 	removeBadReceivers	(trace, kfState, receiverMap);
 	removeBadAmbiguities(trace, kfState, receiverMap);
+	removeBadSatellites	(trace, kfState);
 	removeBadIonospheres(trace, kfState);
 
 	updateNukeFilter	(trace,							kfState);

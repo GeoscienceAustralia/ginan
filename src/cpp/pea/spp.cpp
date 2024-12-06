@@ -387,7 +387,7 @@ E_Solution estpos(
 	for (iter = 0; iter < acsConfig.sppOpts.max_lsq_iterations; iter++)
 	{
 		tracepdeex(5, trace, "\nSPP It: %d", iter);
-		kfState.initFilterEpoch();
+		kfState.initFilterEpoch(trace);
 
 		Vector3d	rRec	= Vector3d::Zero();
 		double		dtRec	= 0;

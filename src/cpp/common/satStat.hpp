@@ -32,7 +32,6 @@ struct SigStat
 	SlipStat slip;
 
 	unsigned int	phaseRejectCount	= 0;
-	GTime			lastPhaseTime;
 };
 
 struct IonoStat

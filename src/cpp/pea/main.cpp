@@ -196,27 +196,6 @@ void mainOncePerEpochPerStation(
 	<< "Read " << rec.obsList.size()
 	<< " observations for station " << rec.id;
 
-	for (auto& obs : only<GObs>(rec.obsList))
-	{
-		if (obs.exclude)
-		{
-			continue;
-		}
-
-		if (obs.satStat_ptr == nullptr)
-		{
-			continue;
-		}
-
-		auto& satStat = *obs.satStat_ptr;
-		auto& recOpts = acsConfig.getRecOpts(rec.id, {obs.Sat.sysName()});
-
-		if (satStat.el < recOpts.elevation_mask_deg * D2R)
-		{
-			obs.excludeElevation = true;
-		}
-	}
-
 	//calculate statistics
 	{
 		if ((GTime) rec.firstEpoch	== GTime::noTime())		{	rec.firstEpoch	= rec.obsList.front()->time;		}
@@ -678,9 +657,10 @@ int main(
 		pppNet.kfState.output_residuals			= acsConfig.output_residuals;
 		pppNet.kfState.outputMongoMeasurements	= acsConfig.mongoOpts.output_measurements;
 
+		pppNet.kfState.measRejectCallbacks	.push_back(incrementReceiverErrors);
+		pppNet.kfState.measRejectCallbacks	.push_back(incrementSatelliteErrors);
 		pppNet.kfState.measRejectCallbacks	.push_back(deweightMeas);
 		pppNet.kfState.measRejectCallbacks	.push_back(incrementPhaseSignalError);
-		pppNet.kfState.measRejectCallbacks	.push_back(incrementReceiverError);
 		pppNet.kfState.measRejectCallbacks	.push_back(pseudoMeasTest);
 
 		pppNet.kfState.stateRejectCallbacks	.push_back(orbitGlitchReaction);	//this goes before reject by state

@@ -51,19 +51,19 @@ double tropSAAS(
 
 	if (hgt < -1000)
 	{
-		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": hgt < -1000m, setting it to -1000m";
+		BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": hgt < -1000m, setting it to -1000m";
 		hgt = -1000;
 	}
 
 	if (hgt > +11000)
 	{
-		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": hgt > 11000m, setting it to 11000m";
+		BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": hgt > 11000m, setting it to 11000m";
 		hgt = 11000;
 	}
 
 	if (el < 0)
 	{
-		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": el < 0, setting it to 1e-6";
+		BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": el < 0, setting it to 1e-6";
 		el = 1e-6;
 	}
 

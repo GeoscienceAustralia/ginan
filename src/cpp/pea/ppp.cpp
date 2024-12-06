@@ -660,18 +660,6 @@ void removeBadAmbiguities(
 		auto& sigStat			= satStat.sigStatMap[sigName];
 		auto& preprocSigStat	= satStat.sigStatMap[preprocSigName];
 
-		if	( sigStat.lastPhaseTime							!=	GTime::noTime()
-			&&(tsync - sigStat.lastPhaseTime).to_double()	>	acsConfig.ambErrors.outage_reset_limit)
-		{
-			sigStat.lastPhaseTime = GTime::noTime();
-
-			addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "OUTAGE");
-
-			kfState.removeState(key);
-
-			continue;
-		}
-
 		if (sigStat.phaseRejectCount >= acsConfig.ambErrors.phase_reject_limit)
 		{
 			sigStat.phaseRejectCount = 0;
@@ -744,10 +732,36 @@ void removeBadAmbiguities(
 	}
 }
 
+void removeBadSatellites(
+	Trace&			trace,				///< Trace to output to
+	KFState&		kfState) 			///< Filter to remove states from
+{
+	if (acsConfig.errorAccumulation.enable == false)
+	{
+		return;
+	}
+
+	for (auto& [Sat, satNav] : nav.satNavMap)
+	{
+		if (satNav.satelliteErrorCount >= acsConfig.errorAccumulation.satellite_error_count_threshold)	satNav.satelliteErrorEpochs++;
+		else																							satNav.satelliteErrorEpochs = 0;
+
+		satNav.satelliteErrorCount	= 0;
+
+		if (satNav.satelliteErrorEpochs < acsConfig.errorAccumulation.satellite_error_epochs_threshold)
+		{
+			continue;
+		}
+
+		satNav.satelliteErrorEpochs	= 0;
+	}
+}
+
+
 void removeBadReceivers(
 	Trace&			trace,				///< Trace to output to
 	KFState&		kfState, 			///< Filter to remove states from
-	ReceiverMap&	receiverMap)	///< List of stations containing observations for this epoch
+	ReceiverMap&	receiverMap)		///< List of stations containing observations for this epoch
 {
 	if (acsConfig.errorAccumulation.enable == false)
 	{
@@ -792,51 +806,23 @@ void removeBadIonospheres(
 {
 	for (auto [key, index] : kfState.kfIndexMap)
 	{
-		if (key.type == KF::IONOSPHERIC)
-		{
-			auto& recOpts = acsConfig.getRecOpts(key.str);
-
-			if (key.rec_ptr == nullptr)
-			{
-				auto& rec		= *key.rec_ptr;
-				auto& satStat	= rec.satStatMap[key.Sat];
-
-				if	( satStat.lastIonTime						!=	GTime::noTime()
-					&&(tsync - satStat.lastIonTime).to_double()	>	acsConfig.ionErrors.outage_reset_limit)
-				{
-					kfState.removeState(key);
-				}
-			}
-
-			continue;
-		}
-
-		if (key.type != KF::IONO_STEC)
+		if (key.type != KF::IONOSPHERIC)
 		{
 			continue;
 		}
+
+		auto& recOpts = acsConfig.getRecOpts(key.str);
 
 		if (key.rec_ptr == nullptr)
 		{
-			continue;
-		}
+			auto& rec		= *key.rec_ptr;
+			auto& satStat	= rec.satStatMap[key.Sat];
 
-		auto& rec		= *key.rec_ptr;
-		auto& satStat	= rec.satStatMap[key.Sat];
-		auto& recOpts	= acsConfig.getRecOpts(key.str);
-
-		if	( satStat.lastIonTime						!=	GTime::noTime()
-			&&(tsync - satStat.lastIonTime).to_double()	>	acsConfig.ionErrors.outage_reset_limit)
-		{
-			satStat.lastIonTime = GTime::noTime();
-
-			trace << "\n" << "Ionosphere removed due to long outage: " << key;
-
-			kfState.statisticsMap["Iono outage resets"]++;
-
-			kfState.removeState(key);
-
-			continue;
+			if	( satStat.lastIonTime						!=	GTime::noTime()
+				&&(tsync - satStat.lastIonTime).to_double()	>	acsConfig.ionErrors.outage_reset_limit)
+			{
+				kfState.removeState(key);
+			}
 		}
 	}
 }
@@ -848,7 +834,6 @@ void postFilterChecks(
 	for (int i = 0; i < kfMeas.V.rows(); i++)
 	{
 		resetPhaseSignalError	(time, kfMeas, i);
-		resetPhaseSignalOutage	(time, kfMeas, i);
 		resetIonoSignalOutage	(time, kfMeas, i);
 	}
 }

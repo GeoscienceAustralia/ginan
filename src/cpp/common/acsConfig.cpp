@@ -1498,6 +1498,7 @@ void tryGetKalmanFromYaml(
 	}{auto& thing = output.apriori_value	;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"3! apriori_value"		}, "Apriori state values"));
 	}{auto& thing = output.process_noise	;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"2! process_noise" 		}, "Process noise sigmas"));
 	}{auto& thing = output.sigma_limit		;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ sigma_limit" 		}, "Maximum sigma before the state is removed"));
+	}{auto& thing = output.outage_limit		;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ outage_limit" 		}, "Maximum unestimated time before the state is removed"));
 	}{auto& thing = output.tau				;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ tau"					}, "Correlation times for gauss markov noise, defaults to -1 -> inf (Random Walk)"));
 	}{auto& thing = output.mu				;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ mu"					}, "Desired mean value for gauss markov states"));
 	}{auto& thing = output.comment			;	setInited(output,	thing,	tryGetFromYaml(thing, newYaml, {"@ comment"				}, "Comment to apply to the state"));
@@ -1758,6 +1759,7 @@ KalmanModel& KalmanModel::operator+=(
 {
 	initIfNeeded(*this, rhs,	sigma			);
 	initIfNeeded(*this, rhs,	sigma_limit		);
+	initIfNeeded(*this, rhs,	outage_limit	);
 	initIfNeeded(*this, rhs,	apriori_value	);
 	initIfNeeded(*this, rhs,	process_noise	);
 	initIfNeeded(*this, rhs,	tau				);
@@ -2790,7 +2792,6 @@ bool configure(
 
 void ACSConfig::sanityChecks()
 {
-	if (ambErrors.outage_reset_limit <	epoch_interval)		BOOST_LOG_TRIVIAL(warning) << "Warning: outage_reset_limit < epoch_interval, but it probably shouldnt be";
 	if (ionErrors.outage_reset_limit <	epoch_interval)		BOOST_LOG_TRIVIAL(warning) << "Warning: outage_reset_limit < epoch_interval, but it probably shouldnt be";
 }
 
@@ -2874,14 +2875,14 @@ bool ACSConfig::parse(
 			}
 			else
 			{
-				BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration file " << filename;
+				BOOST_LOG_TRIVIAL(error) << "Error: Failed to parse configuration file " << filename;
 				BOOST_LOG_TRIVIAL(error) << e.msg << "\n";
 				return false;
 			}
 		}
 		catch (const YAML::ParserException& e)
 		{
-			BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration. Check for errors as described near the below:\n";
+			BOOST_LOG_TRIVIAL(error) << "Error: Failed to parse configuration. Check for errors as described near the below:";
 			BOOST_LOG_TRIVIAL(error) << e.what() << "\n" << "\n";
 			return false;
 		}
@@ -2937,7 +2938,7 @@ bool ACSConfig::parse(
 			}
 			else
 			{
-				BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration file " << filename;
+				BOOST_LOG_TRIVIAL(error) << "Error: Failed to parse configuration file " << filename;
 				BOOST_LOG_TRIVIAL(error) << e.msg << "\n";
 				return false;
 			}
@@ -2950,13 +2951,13 @@ bool ACSConfig::parse(
 			}
 			else
 			{
-				BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration file " << filename;
+				BOOST_LOG_TRIVIAL(error) << "Error: Failed to parse configuration file " << filename;
 				return false;
 			}
 		}
 		catch (const YAML::ParserException& e)
 		{
-			BOOST_LOG_TRIVIAL(error) << "Error: \nFailed to parse configuration. Check for errors as described near the below:\n";
+			BOOST_LOG_TRIVIAL(error) << "Error: Failed to parse configuration. Check for errors as described near the below:";
 			BOOST_LOG_TRIVIAL(error) << e.what() << "\n" << "\n";
 			return false;
 		}
@@ -3579,14 +3580,14 @@ bool ACSConfig::parse(
 				}
 
 				{
-					auto error_accumulation = stringsToYamlObject(model_error_handling, {"0! error_accumulation"}, "Any receivers that are consistently getting many measurement rejections may be reinitialiased");
+					auto error_accumulation = stringsToYamlObject(model_error_handling, {"0! error_accumulation"}, "Any receivers or satellites that are consistently getting many measurement rejections may be reinitialiased");
 
 					tryGetFromYaml(errorAccumulation.enable,							error_accumulation,	{"! enable"								}, "Enable reinitialisation of receivers upon many rejections");
 					tryGetFromYaml(errorAccumulation.receiver_error_count_threshold,	error_accumulation,	{"! receiver_error_count_threshold"		}, "Number of errors for a receiver to be considered in error for a single epoch");
 					tryGetFromYaml(errorAccumulation.receiver_error_epochs_threshold,	error_accumulation,	{"! receiver_error_epochs_threshold"	}, "Number of consecutive epochs with receiver in error before it is removed and reinitialised");
+					tryGetFromYaml(errorAccumulation.satellite_error_count_threshold,	error_accumulation,	{"! satellite_error_count_threshold"	}, "Number of errors for a satellite to be considered in error for a single epoch");
+					tryGetFromYaml(errorAccumulation.satellite_error_epochs_threshold,	error_accumulation,	{"! satellite_error_epochs_threshold"	}, "Number of consecutive epochs with satellite in error before it is reinitialised using the orbit_errors configs");
 				}
-
-
 
 				{
 					auto orbit_errors = stringsToYamlObject(model_error_handling, {"2@ orbit_errors"}, "Orbital states that are not consistent with measurements may be reinitialised to allow for dynamic maneuvers");
@@ -3601,7 +3602,6 @@ bool ACSConfig::parse(
 				{
 					auto ambiguities = stringsToYamlObject(model_error_handling, {"1! ambiguities"}, "Cycle slips in ambiguities are primary cause of incorrect gnss modelling and may be reinitialised");
 
-					tryGetFromYaml(ambErrors.outage_reset_limit,	ambiguities,	{"! outage_reset_limit"		}, "Maximum number of seconds without phase measurements before the ambiguity associated with the measurement is reset.");
 					tryGetFromYaml(ambErrors.phase_reject_limit,	ambiguities,	{"! phase_reject_limit"		}, "Maximum number of phase measurements to reject before the ambiguity associated with the measurement is reset.");
 
 					tryGetFromYaml(ambErrors.resetOnSlip.LLI,		ambiguities, {"@ reset_on",		"@ lli"		}, "Reset ambiguities if LLI   test is detecting a slip");

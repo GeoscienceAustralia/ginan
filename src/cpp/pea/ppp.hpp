@@ -53,11 +53,6 @@ double netResidualAndChainOutputs(
 	Observation&	obs,
 	KFMeasEntry&	measEntry);
 
-void removeUnmeasuredAmbiguities(
-	Trace&				trace,
-	KFState&			kfState,
-	map<KFKey, bool>	measuredStates);
-
 void outputPppNmea(
 	Trace&		trace,
 	KFState&	kfState,
@@ -158,7 +153,14 @@ bool incrementPhaseSignalError(
 	int			index,
 	bool		postFit);
 
-bool incrementReceiverError(
+bool incrementReceiverErrors(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index,
+	bool		postFit);
+
+bool incrementSatelliteErrors(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
@@ -166,11 +168,6 @@ bool incrementReceiverError(
 	bool		postFit);
 
 bool resetPhaseSignalError(
-	const	GTime&		time,
-			KFMeas&		kfMeas,
-			int			index);
-
-bool resetPhaseSignalOutage(
 	const	GTime&		time,
 			KFMeas&		kfMeas,
 			int			index);

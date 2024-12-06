@@ -65,6 +65,9 @@ struct SatNav
 	Vector3d			antAzimuth		= {0,1,0};
 
 	SatPos				satPos0;					///< Satellite position when propagated to nominal time
+
+	int		satelliteErrorEpochs	= 0;
+	int		satelliteErrorCount		= 0;
 };
 
 /** navigation data type

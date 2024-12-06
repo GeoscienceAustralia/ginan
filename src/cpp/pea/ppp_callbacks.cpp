@@ -182,7 +182,7 @@ bool incrementPhaseSignalError(
 
 /** Count all errors on receiver
  */
-bool incrementReceiverError(
+bool incrementReceiverErrors(
 	Trace&		trace,
 	KFState&	kfState,
 	KFMeas&		kfMeas,
@@ -191,22 +191,77 @@ bool incrementReceiverError(
 {
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
-	unsigned int* receiverErrorCount_ptr = (unsigned int*) metaDataMap["receiverErrorCount"];
+	unsigned int* receiverErrorCount_ptr	= (unsigned int*) metaDataMap["receiverErrorCount"];
 
-	if (receiverErrorCount_ptr == nullptr)
+	if (receiverErrorCount_ptr	== nullptr)
 	{
 		return true;
 	}
 
 	unsigned int&	receiverErrorCount	= *receiverErrorCount_ptr;
 
-	//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
+	//increment counters,
 	receiverErrorCount++;
-	metaDataMap["receiverErrorFlag"] = nullptr;
 
-	trace << "\n" << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[index] << " to " << receiverErrorCount;
+	trace << "\n" << "Incrementing receiverErrorCount  on " << kfMeas.obsKeys[index] << " to " << receiverErrorCount;
 
 	return true;
+}
+/** Count all errors on satellite
+ */
+bool incrementSatelliteErrors(
+	Trace&		trace,
+	KFState&	kfState,
+	KFMeas&		kfMeas,
+	int			index,
+	bool		postFit)
+{
+	if (acsConfig.errorAccumulation.enable == false)
+	{
+		return true;
+	}
+
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+
+	unsigned int* satelliteErrorCount_ptr	= (unsigned int*) metaDataMap["satelliteErrorCount"];
+	unsigned int* satelliteErrorEpochs_ptr	= (unsigned int*) metaDataMap["satelliteErrorEpochs"];
+
+	if	( satelliteErrorCount_ptr	== nullptr
+		||satelliteErrorEpochs_ptr	== nullptr)
+	{
+		return true;
+	}
+
+	unsigned int&	satelliteErrorCount		= *satelliteErrorCount_ptr;
+	unsigned int&	satelliteErrorEpochs	= *satelliteErrorEpochs_ptr;
+
+	satelliteErrorCount++;
+
+	trace << "\n" << "Incrementing satelliteErrorCount on " << kfMeas.obsKeys[index] << " to " << satelliteErrorCount;
+
+	if (satelliteErrorCount < acsConfig.errorAccumulation.satellite_error_count_threshold)
+	{
+		return true;
+	}
+
+	satelliteErrorEpochs++;
+
+	if (satelliteErrorEpochs < acsConfig.errorAccumulation.satellite_error_epochs_threshold)
+	{
+		return true;
+	}
+
+	KFKey kfKey;
+	kfKey.type	= KF::ORBIT;
+	kfKey.Sat	= kfMeas.obsKeys[index].Sat;
+
+	trace << "\n" << "Orbits relaxed due to high satellite error counts: " << kfKey;
+
+	orbitGlitchReaction(trace, kfState, kfMeas, kfKey, false);
+
+	kfState.statisticsMap["Sat error resets"]++;
+
+	return false;
 }
 
 bool resetPhaseSignalError(
@@ -229,31 +284,6 @@ bool resetPhaseSignalError(
 		unsigned int&	phaseRejectCount	= *phaseRejectCount_ptr;
 
 		phaseRejectCount = 0;
-	}
-
-	return true;
-}
-
-
-bool resetPhaseSignalOutage(
-	const	GTime&		time,
-			KFMeas&		kfMeas,
-			int			index)
-{
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
-
-	for (auto suffix : {"", "_alt"})
-	{
-		GTime* lastPhaseTime_ptr = (GTime*) metaDataMap[(string)"lastPhaseTime" + suffix];
-
-		if (lastPhaseTime_ptr == nullptr)
-		{
-			return true;
-		}
-
-		GTime& lastPhaseTime = *lastPhaseTime_ptr;
-
-		lastPhaseTime = time;
 	}
 
 	return true;
@@ -375,7 +405,9 @@ bool rejectByState(
 // 	return true;
 // }
 
-
+/** Immediately executed reaction to orbital state errors.
+ * Note there is also a 1 epoch delayed reaction function
+ */
 bool orbitGlitchReaction(
 			Trace&		trace,
 			KFState&	kfState,

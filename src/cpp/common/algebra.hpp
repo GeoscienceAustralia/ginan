@@ -48,6 +48,8 @@ struct KFKey
 	string		comment;				///< Optional comment
 	Receiver*	rec_ptr	= 0;			///< Pointer to station object for dereferencing
 
+	mutable	GTime estimatedTime;
+
 	bool operator ==	(const KFKey& b) const;
 	bool operator <		(const KFKey& b) const;
 
@@ -277,6 +279,7 @@ struct InitialState
 	double	x					= 0;	///< State value
 	double	P					= -1;	///< State Covariance
 	double	sigmaMax			= 0;	///< Sigma limit
+	double	outageLimit			= 0;	///< Maxiumum time without state estimation
 	double	Q					= 0;	///< Process Noise, -ve indicates infinite (throw away state)
 	double	tau					= -1;	///< Correlation Time, default to -1 (inf) (Random Walk)
 	double	mu					= 0;	///< Desired Mean Value
@@ -341,6 +344,7 @@ struct KFState_ : FilterOptions
 	map<KFKey, double>									procNoiseMap;
 	map<KFKey, double>									initNoiseMap;
 	map<KFKey, double>									sigmaMaxMap;
+	map<KFKey, double>									outageLimitMap;
 	map<KFKey, Exponential>								exponentialNoiseMap;
 
 	vector<StateRejectCallback> 						stateRejectCallbacks;
@@ -394,7 +398,7 @@ struct KFState : KFState_
 
 		kfIndexMap[oneKey]	= 0;
 
-		initFilterEpoch();
+		initFilterEpoch(nullStream);
 	}
 
 	KFState& operator=(
@@ -449,7 +453,8 @@ struct KFState : KFState_
 		}
 	}
 
-	void	initFilterEpoch();
+	void	initFilterEpoch(
+		Trace&		trace);
 
 	int		getKFIndex(
 		const	KFKey&		key)
@@ -528,7 +533,6 @@ struct KFState : KFState_
 		Trace&			trace,
 		KFMeas&			kfMeas,
 		VectorXd&		dx,
-		int				iteration,
 		KFKey&			badStateKey,
 		int&			badMeasIndex,
 		KFStatistics&	statistics,
@@ -710,7 +714,17 @@ struct KFMeasEntry
 
 		if (kfState_ptr)
 		{
-			kfState_ptr->addKFState(kfKey, initialState);
+			auto& kfState = *kfState_ptr;
+
+			kfState.addKFState(kfKey, initialState);
+
+			auto it = kfState.outageLimitMap.find(kfKey);
+			if (it != kfState.outageLimitMap.end())
+			{
+				auto& [editKey, dummy] = *it;
+
+				editKey.estimatedTime = kfState.time;
+			}
 		}
 
 		usedValueMap	[kfKey] =  initialState.x;

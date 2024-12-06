@@ -236,8 +236,8 @@ void writeRinexObsHeader(
 
 	tracepdeex(0, rinexStream, "%14.4f%14.4f%14.4f%-18s%-20s\n",
 		rec.antDelta[2],
-		rec.antDelta[1],
 		rec.antDelta[0],
+		rec.antDelta[1],
 		"",
 		"ANTENNA: DELTA H/E/N");
 

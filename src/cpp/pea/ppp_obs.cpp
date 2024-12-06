@@ -1619,6 +1619,7 @@ void receiverUducGnss(
 			obs.excludeSVH = true;
 		}
 
+
 		if (obs.exclude)
 		{
 			auto& ast = autoSenderTemplate;
@@ -1626,10 +1627,11 @@ void receiverUducGnss(
 			if (acsConfig.exclude.bad_spp	&& obs.excludeBadSPP)			{	tracepdeex(5, trace, " - excludeBadSPP");		ast.pushValueKVP(2, {"exclude", "bad_spp"	});		continue;	}
 			if (acsConfig.exclude.config	&& obs.excludeConfig)			{	tracepdeex(5, trace, " - excludeConfig");		ast.pushValueKVP(2, {"exclude", "config"	});		continue;	}
 			if (acsConfig.exclude.eclipse	&& obs.excludeEclipse)			{	tracepdeex(5, trace, " - excludeEclipse");		ast.pushValueKVP(2, {"exclude", "eclipse"	});		continue;	}
-			if (acsConfig.exclude.elevation	&& obs.excludeElevation)		{	tracepdeex(5, trace, " - excludeElevation");	ast.pushValueKVP(2, {"exclude", "elevation"	});		continue;	}
 			if (acsConfig.exclude.outlier	&& obs.excludeOutlier)			{	tracepdeex(5, trace, " - excludeOutlier");		ast.pushValueKVP(2, {"exclude", "outlier"	});		continue;	}
 			if (acsConfig.exclude.system	&& obs.excludeSystem)			{	tracepdeex(5, trace, " - excludeSystem");		ast.pushValueKVP(2, {"exclude", "system"	});		continue;	}
 			if (acsConfig.exclude.svh		&& obs.excludeSVH)				{	tracepdeex(5, trace, " - excludeSVH");			ast.pushValueKVP(2, {"exclude", "svh"		});		continue;	}
+			//elevation exclusion moved far below to ensure that elevation is computed first
+//			if (acsConfig.exclude.elevation	&& obs.excludeElevation)		{	tracepdeex(5, trace, " - excludeElevation");	ast.pushValueKVP(2, {"exclude", "elevation"	});		continue;	}
 		}
 
 		SatNav&		satNav			= *obs.satNav_ptr;
@@ -1681,14 +1683,15 @@ void receiverUducGnss(
 		measEntry.metaDataMap["obs_ptr"]	= &obs;
 
 		{
-			measEntry.metaDataMap["receiverErrorCount"]	= &rec.receiverErrorCount;
-			measEntry.metaDataMap["lastIonTime"]		= &satStat.lastIonTime;
+			measEntry.metaDataMap["satelliteErrorCount"]	= &satNav.satelliteErrorCount;
+			measEntry.metaDataMap["satelliteErrorEpochs"]	= &satNav.satelliteErrorEpochs;
+			measEntry.metaDataMap["receiverErrorCount"]		= &rec.receiverErrorCount;
+			measEntry.metaDataMap["lastIonTime"]			= &satStat.lastIonTime;
 		}
 
 		if (measType == PHAS)
 		{
 			measEntry.metaDataMap["phaseRejectCount"]	= &sigStat.phaseRejectCount;
-			measEntry.metaDataMap["lastPhaseTime"]		= &sigStat.lastPhaseTime;
 			tracepdeex(2,trace,"\n PPP Phase count: %s %s %s %d", rec.id.c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sigStat.phaseRejectCount);
 		}
 
@@ -1955,6 +1958,16 @@ void receiverUducGnss(
 		VectorEci eSatInertial = frameSwapper(satStat.e);
 
 		satazel(pos, satStat.e, satStat);
+
+		//continue the exclusion from above now that some elevation is guaranteed
+		if (satStat.el < recOpts.elevation_mask_deg * D2R)
+		{
+			obs.excludeElevation = true;
+		}
+
+		auto& ast = autoSenderTemplate;
+
+		if (acsConfig.exclude.elevation	&& obs.excludeElevation)		{	tracepdeex(5, trace, " - excludeElevation");	ast.pushValueKVP(2, {"exclude", "elevation"	});		continue;	}
 
 		//add initialisations for things waiting for an up-to-date satstat
 		for (auto& delayedInit : delayedInits)

@@ -102,7 +102,8 @@ const
 /** Clears and initialises the state transition matrix to identity at the beginning of an epoch.
 * Also clears any noise that was being added for the initialisation of a new state.
 */
-void KFState::initFilterEpoch()
+void KFState::initFilterEpoch(
+		Trace& trace)
 {
 	initNoiseMap.clear();
 
@@ -131,6 +132,22 @@ void KFState::initFilterEpoch()
 
 		if (sigma > sigmaMax)
 		{
+			trace << "\n" << "Removing '" << key << "' due to large sigma";
+			removeState(key);
+		}
+	}
+
+	//make a copy because iterators will be invalidated
+	auto outageLimitMapCopy = outageLimitMap;
+
+	//remove any states that have exceeded their max outages
+	for (auto& [key, outageLimit] : outageLimitMapCopy)
+	{
+		double outage = (time - key.estimatedTime).to_double();
+
+		if (outage > outageLimit)
+		{
+			trace << "\n" << "Removing '" << key << "' due to long outage";
 			removeState(key);
 		}
 	}
@@ -278,6 +295,7 @@ void KFState::removeState(
 
 	stateTransitionMap.		erase(kfKey);
 	sigmaMaxMap.			erase(kfKey);
+	outageLimitMap.			erase(kfKey);
 	procNoiseMap.			erase(kfKey);
 	gaussMarkovTauMap.		erase(kfKey);
 	gaussMarkovMuMap.		erase(kfKey);
@@ -298,10 +316,11 @@ bool KFState::addKFState(
 	if (iter != stateTransitionMap.end())
 	{
 		//is an existing state, just update values
-		if (initialState.Q			!= 0)		{	procNoiseMap		[kfKey]	= initialState.Q;			}
-		if (initialState.mu			!= 0)		{	gaussMarkovMuMap	[kfKey]	= initialState.mu;			}
-		if (initialState.tau		!= 0)		{	gaussMarkovTauMap	[kfKey] = initialState.tau;			}
-		if (initialState.sigmaMax	!= 0)		{	sigmaMaxMap			[kfKey] = initialState.sigmaMax;	}
+		if (initialState.Q				!= 0)		{	procNoiseMap		[kfKey]	= initialState.Q;			}
+		if (initialState.mu				!= 0)		{	gaussMarkovMuMap	[kfKey]	= initialState.mu;			}
+		if (initialState.tau			!= 0)		{	gaussMarkovTauMap	[kfKey] = initialState.tau;			}
+		if (initialState.sigmaMax		!= 0)		{	sigmaMaxMap			[kfKey] = initialState.sigmaMax;	}
+		if (initialState.outageLimit	!= 0)		{	outageLimitMap		[kfKey] = initialState.outageLimit;	}
 
 		return false;
 	}
@@ -317,13 +336,14 @@ bool KFState::addKFState(
 		currentX = x[index];
 	}
 
-								stateTransitionMap	[kfKey][kfKey]	[0]	= 1;
-								stateTransitionMap	[kfKey][oneKey]	[0]	= initialState.x - currentX;
-	if (initialState.P)			initNoiseMap		[kfKey]				= initialState.P;
-	if (initialState.Q)			procNoiseMap		[kfKey]				= initialState.Q;
-	if (initialState.mu)		gaussMarkovMuMap	[kfKey]				= initialState.mu;
-	if (initialState.tau)		gaussMarkovTauMap	[kfKey]				= initialState.tau;
-	if (initialState.sigmaMax)	sigmaMaxMap			[kfKey]				= initialState.sigmaMax;
+									stateTransitionMap	[kfKey][kfKey]	[0]	= 1;
+									stateTransitionMap	[kfKey][oneKey]	[0]	= initialState.x - currentX;
+	if (initialState.P)				initNoiseMap		[kfKey]				= initialState.P;
+	if (initialState.Q)				procNoiseMap		[kfKey]				= initialState.Q;
+	if (initialState.mu)			gaussMarkovMuMap	[kfKey]				= initialState.mu;
+	if (initialState.tau)			gaussMarkovTauMap	[kfKey]				= initialState.tau;
+	if (initialState.sigmaMax)		sigmaMaxMap			[kfKey]				= initialState.sigmaMax;
+	if (initialState.outageLimit)	outageLimitMap		[kfKey]				= initialState.outageLimit;
 
 	if (initialState.P < 0)
 	{
@@ -375,7 +395,7 @@ void KFState::manualStateTransition(
 		P = (F		* P * F.transpose()		+ Q0	).eval();
 	}
 
-	initFilterEpoch();
+	initFilterEpoch(trace);
 }
 
 
@@ -694,7 +714,7 @@ void KFState::stateTransition(
 	//replace the index map with the updated version that corresponds to the updated state
 	kfIndexMap = std::move(newKFIndexMap);
 
-	initFilterEpoch();
+	initFilterEpoch(trace);
 }
 
 /** Compare variances of measurements and pre-filtered states to detect unreasonable values
@@ -762,27 +782,28 @@ void KFState::preFitSigmaCheck(
 	double maxStateRatio	= stateRatios	.maxCoeff(&stateIndex);
 	double maxMeasRatio		= measRatios	.maxCoeff(&measIndex);
 
+	int stateChunkIndex	= stateIndex	+ begX;
+	int measChunkIndex	= measIndex		+ begH;
+
+	auto it = kfIndexMap.begin();
+	std::advance(it, stateIndex);
+
+	auto& [stateKey, dummy] = *it;
+
 	//if any are outside the expected values, flag an error
 	if	( maxStateRatio > maxMeasRatio * 0.95
 		&&maxStateRatio > SQR(prefitOpts.state_sigma_threshold))
 	{
-		int chunkIndex = stateIndex + begX;
+		trace << "\n" << "LARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
+		trace << "\n" << "Largest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
 
-		auto it = kfIndexMap.begin();
-		std::advance(it, stateIndex);
-
-		auto& [key, dummy] = *it;
-
-		trace << "\n" << "LARGE STATE ERROR OF " << maxStateRatio	<< " AT " << chunkIndex << " : " << key;
-
-		badStateKey = key;
+		badStateKey = stateKey;
 	}
 
 	if	(maxMeasRatio > SQR(prefitOpts.meas_sigma_threshold))
 	{
-		int chunkIndex = measIndex + begH;
-
-		trace << "\n" << "LARGE MEAS  ERROR OF " << maxMeasRatio	<< " AT " << chunkIndex << " : " << kfMeas.obsKeys[chunkIndex];
+		trace << "\n" << "LARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
+		trace << "\n" << "Largest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
 
 		badMeasIndex = measIndex + begH;
 	}
@@ -820,7 +841,6 @@ void KFState::postFitSigmaChecks(
 	Trace&			trace,      	///< Trace file to output to
 	KFMeas&			kfMeas,			///< Measurements, noise, and design matrix
 	VectorXd&		dx,				///< The innovations from filtering to recalculate the deltas.
-	int				iteration,		///< Number of iterations prior to this check
 	KFKey&			badStateKey,	///< Key to the state that has worst ratio (only if worse than badMeasIndex)
 	int&			badMeasIndex,	///< Index of the measurement that has the worst ratio
 	KFStatistics&	statistics,		///< Test statistics
@@ -853,42 +873,33 @@ void KFState::postFitSigmaChecks(
 	Eigen::ArrayXd::Index stateIndex;
 	Eigen::ArrayXd::Index measIndex;
 
-// 	std::cout << "\nStateRatios\n"	<< stateRatios;
-// 	std::cout << "\nmeasRatios\n"	<< measRatios;
-
 	double maxStateRatio	= stateRatios	.maxCoeff(&stateIndex);
 	double maxMeasRatio		= measRatios	.maxCoeff(&measIndex);
 
+	int stateChunkIndex	= stateIndex	+ begX;
+	int measChunkIndex	= measIndex		+ begH;
+
+	auto it = kfIndexMap.begin();
+	std::advance(it, stateIndex);
+
+	auto& [stateKey, dummy] = *it;
+
 	//if any are outside the expected values, flag an error
-	if	( maxStateRatio > maxMeasRatio
+	if	( maxStateRatio > maxMeasRatio * 0.95
 		&&maxStateRatio > SQR(postfitOpts.state_sigma_threshold))
 	{
-		int chunkIndex = stateIndex + begX;
+		trace << "\n" << "LARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
+		trace << "\n" << "Largest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
 
-		auto it = kfIndexMap.begin();
-		std::advance(it, stateIndex);
-
-		auto& [key, dummy] = *it;
-
-		trace << "\n" << "LARGE STATE ERROR OF " << maxStateRatio	<< " AT " << chunkIndex << " : " << key;
-
-		badStateKey = key;
+		badStateKey = stateKey;
 	}
 
 	if	(maxMeasRatio > SQR(postfitOpts.meas_sigma_threshold))
 	{
-		int chunkIndex = measIndex + begH;
-
-		trace << "\n" << "LARGE MEAS  ERROR OF " << maxMeasRatio	<< " AT " << chunkIndex << " : " << kfMeas.obsKeys[chunkIndex];
+		trace << "\n" << "LARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
+		trace << "\n" << "Largest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
 
 		badMeasIndex = measIndex + begH;
-
-// 		std::cout << "\n" << "P" << "\n" << P.diagonal() << "\n";
-// 		std::cout << "\n" << "H" << "\n" << H << "\n";
-// 		std::cout << "\n" << "dx" << "\n" << dx << "\n";
-// 		std::cout << "\n" << "kfMeas.VV" << "\n" << kfMeas.VV << "\n";
-// 		std::cout << "\n" << stateRatios << "\n" << "\n" << measRatios << "\n";
-
 	}
 }
 
@@ -1090,10 +1101,10 @@ bool KFState::kFilter(
 	else
 	{
 		Pp.block(begX, begX, numX, numX) = P.block(begX, begX, numX, numX) - K * HP;
-
-		Pp.block(begX, begX, numX, numX) = (	  Pp.block(begX, begX, numX, numX)
-												+ Pp.block(begX, begX, numX, numX).transpose()	).eval() / 2;
 	}
+
+	Pp.block(begX, begX, numX, numX) = (Pp.block(begX, begX, numX, numX) +	Pp.block(begX, begX, numX, numX).transpose()).eval() / 2;
+
 
 	bool error = xp.segment(begX, numX).array().isNaN().any();
 	if (error)
@@ -1444,9 +1455,25 @@ void KFState::filterKalman(
 
 			preFitSigmaCheck(chunkTrace, kfMeas, badState, badMeasIndex, statistics, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);
 
-			if (badState.type)		{	chunkTrace << "\n" << "Prefit check failed state test";		bool keepGoing = doStateRejectCallbacks	(chunkTrace, kfMeas, badState,		false);		/*continue;*/	}	//always fallthrough
-			if (badMeasIndex >= 0)	{	chunkTrace << "\n" << "Prefit check failed measurement test";	bool keepGoing = doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex,	false);		continue;		}	//retry next iteration
-			else					{	chunkTrace << "\n" << "Prefit check passed";																											break;			}
+			bool stopIterating = true;
+			if (badState.type)		{	chunkTrace << "\n" << "Prefit check failed state test";			doStateRejectCallbacks	(chunkTrace, kfMeas, badState,		false);		stopIterating = false;	}
+			if (badMeasIndex >= 0)	{	chunkTrace << "\n" << "Prefit check failed measurement test";	doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex,	false);		stopIterating = false;	}
+
+			if (stopIterating)		{	chunkTrace << "\n" << "Prefit check passed";																							stopIterating = true;	}
+			else
+			{
+				if (i == prefitOpts.max_iterations - 1)
+				{
+					BOOST_LOG_TRIVIAL(warning)	<< "Warning: Max pre-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << prefitOpts.max_iterations;
+					chunkTrace << "\n"			<< "Warning: Max pre-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << prefitOpts.max_iterations;
+				}
+			}
+
+			if (stopIterating)
+			{
+				break;
+			}
+
 		}
 
 		testStatistics.sumOfSquaresPre	+= statistics.sumOfSquares;
@@ -1515,15 +1542,24 @@ void KFState::filterKalman(
 			KFKey	badState;
 			int		badMeasIndex = -1;
 
-			postFitSigmaChecks(chunkTrace, kfMeas, dx, i, badState, badMeasIndex, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
+			postFitSigmaChecks(chunkTrace, kfMeas, dx, badState, badMeasIndex, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
 			bool stopIterating = true;
-			if (badState.type)		{	chunkTrace << "\n" << "Postfit check failed state test";		bool keepGoing = doStateRejectCallbacks	(chunkTrace, kfMeas, badState,		true);		stopIterating = false;	}
-			if (badMeasIndex >= 0)	{	chunkTrace << "\n" << "Postfit check failed measurement test";	bool keepGoing = doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex,	true);		stopIterating = false;	}
+			if (badState.type)		{	chunkTrace << "\n" << "Postfit check failed state test";		doStateRejectCallbacks	(chunkTrace, kfMeas, badState,		true);		stopIterating = false;	}
+			if (badMeasIndex >= 0)	{	chunkTrace << "\n" << "Postfit check failed measurement test";	doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex,	true);		stopIterating = false;	}
 
-			if (stopIterating)		{	chunkTrace << "\n" << "Postfit check passed";																																	}
+			if (stopIterating)		{	chunkTrace << "\n" << "Postfit check passed";																													}
+			else
+			{
+				if (i == postfitOpts.max_iterations - 1)
+				{
+					BOOST_LOG_TRIVIAL(warning)	<< "Warning: Max post-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << postfitOpts.max_iterations;
+					chunkTrace << "\n"			<< "Warning: Max post-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << postfitOpts.max_iterations;
 
-			if	( stopIterating
-				||i == postfitOpts.max_iterations - 1)
+					stopIterating = true;
+				}
+			}
+
+			if (stopIterating)
 			{
 				statisticsMap["Filter iterations " + std::to_string(i+1)]++;
 
@@ -1612,7 +1648,7 @@ void KFState::filterKalman(
 		spitFilterToFile(kfMeas,	E_SerialObject::MEASUREMENT, rts_basename + FORWARD_SUFFIX, acsConfig.pppOpts.queue_rts_outputs);
 	}
 
-	initFilterEpoch();
+	initFilterEpoch(trace);
 }
 
 /** Least squares estimator for new kalman filter states.
@@ -2198,6 +2234,8 @@ InitialState initialStateFromConfig(
 	else													init.P					= SQR(	kalmanModel.sigma			.back())	* SGN(kalmanModel.sigma		.back());
 	if (index < kalmanModel.sigma_limit		.size())		init.sigmaMax			= 		kalmanModel.sigma_limit		[index];
 	else													init.sigmaMax			= 		kalmanModel.sigma_limit		.back();
+	if (index < kalmanModel.outage_limit	.size())		init.outageLimit		= 		kalmanModel.outage_limit	[index];
+	else													init.outageLimit		= 		kalmanModel.outage_limit	.back();
 	if (index < kalmanModel.tau				.size())		init.tau				= 		kalmanModel.tau				[index];
 	else													init.tau				= 		kalmanModel.tau				.back();
 	if (index < kalmanModel.mu				.size())		init.mu					= 		kalmanModel.mu				[index];

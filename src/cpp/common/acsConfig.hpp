@@ -397,7 +397,6 @@ struct ExcludeOptions : SlipOptions
 struct AmbiguityErrorHandler
 {
 	int			phase_reject_limit		= 10;
-	int			outage_reset_limit		= 300;
 
 	SlipOptions	resetOnSlip;
 };
@@ -430,9 +429,11 @@ struct MeasErrorHandler
 
 struct ErrorAccumulationHandler
 {
-	bool	enable							= true;
-	int		receiver_error_count_threshold	= 4;
-	int		receiver_error_epochs_threshold	= 4;
+	bool	enable								= true;
+	int		receiver_error_count_threshold		= 4;
+	int		receiver_error_epochs_threshold		= 4;
+	int		satellite_error_count_threshold		= 4;
+	int		satellite_error_epochs_threshold	= 1;
 };
 
 
@@ -572,6 +573,7 @@ struct KalmanModel
 {
 	vector<double>	sigma				= {-1};	//{0} is very necessary
 	vector<double>	sigma_limit			= {0};
+	vector<double>	outage_limit		= {0};
 	vector<double>	apriori_value		= {0};
 	vector<double>	process_noise		= {0};
 	vector<double>	tau					= {-1};	//tau<0 (inf): Random Walk model; tau>0: First Order Gauss Markov model

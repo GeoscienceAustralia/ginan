@@ -353,13 +353,13 @@ processing_options:
     minimum_constraints:
         enable: true
         rotation:
-            sigma:      [40]
+            sigma:      [400]
             estimated: [true]
         scale:
-            sigma:      [40]
+            sigma:      [400]
             estimated: [true]
         translation:
-            sigma:      [40]
+            sigma:      [400]
             estimated: [true]
         application_mode:                   weight_matrix
         once_per_epoch:                   true
