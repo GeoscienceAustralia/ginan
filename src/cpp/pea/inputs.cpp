@@ -136,11 +136,11 @@ void removeInvalidFiles(
 
 
 
-/** Create a station object from an input
+/** Create a receiver object from an input
 */
-void addStationData(
-	string			stationId,			///< Id of station to add data for
-	vector<string>&	inputNames,			///< Filename to create station from
+void addReceiverData(
+	string			stationId,			///< Id of receiver to add data for
+	vector<string>&	inputNames,			///< Filename to create receiver from
 	string			inputFormat,		///< Type of data in file
 	string			dataType)			///< Type of data
 {
@@ -673,14 +673,14 @@ void reloadInputFiles()
 		}
 	}
 
-	for (auto& [id, slrinputs]			: slrObsFiles)						{	addStationData(id,		slrinputs,					"SLR",		"OBS");			}
-	for (auto& [id, ubxinputs]			: acsConfig.ubx_inputs)				{	addStationData(id,		ubxinputs,					"UBX",		"OBS");			}
-	for (auto& [id, custominputs]		: acsConfig.custom_inputs)			{	addStationData(id,		custominputs,				"CUSTOM",	"OBS");			}
-	for (auto& [id, rnxinputs]			: acsConfig.rnx_inputs)				{	addStationData(id,		rnxinputs,					"RINEX",	"OBS");			}
-	for (auto& [id, rtcminputs]			: acsConfig.obs_rtcm_inputs)		{	addStationData(id,		rtcminputs,					"RTCM",		"OBS");			}
-	for (auto& [id, pseudosp3inputs]	: acsConfig.pseudo_sp3_inputs)		{	addStationData(id,		pseudosp3inputs,			"SP3",		"PSEUDO");		}
-	for (auto& [id, pseudosnxinputs]	: acsConfig.pseudo_snx_inputs)		{	addStationData(id,		pseudosnxinputs,			"SINEX",	"PSEUDO");		}
-																			{	addStationData("Nav",	acsConfig.nav_rtcm_inputs,	"RTCM",		"NAV");			}
-																			{	addStationData("QZSL6",	acsConfig.qzs_rtcm_inputs,	"RTCM",		"NAV");			}
-																			{	addStationData("sisnet",acsConfig.sisnet_inputs,	"DS2DC",	"NAV");			}
+	for (auto& [id, slrinputs]			: slrObsFiles)						{	addReceiverData(id,			slrinputs,					"SLR",		"OBS");			}
+	for (auto& [id, ubxinputs]			: acsConfig.ubx_inputs)				{	addReceiverData(id,			ubxinputs,					"UBX",		"OBS");			}
+	for (auto& [id, custominputs]		: acsConfig.custom_inputs)			{	addReceiverData(id,			custominputs,				"CUSTOM",	"OBS");			}
+	for (auto& [id, rnxinputs]			: acsConfig.rnx_inputs)				{	addReceiverData(id,			rnxinputs,					"RINEX",	"OBS");			}
+	for (auto& [id, rtcminputs]			: acsConfig.obs_rtcm_inputs)		{	addReceiverData(id,			rtcminputs,					"RTCM",		"OBS");			}
+	for (auto& [id, pseudosp3inputs]	: acsConfig.pseudo_sp3_inputs)		{	addReceiverData(id,			pseudosp3inputs,			"SP3",		"PSEUDO");		}
+	for (auto& [id, pseudosnxinputs]	: acsConfig.pseudo_snx_inputs)		{	addReceiverData(id,			pseudosnxinputs,			"SINEX",	"PSEUDO");		}
+																			{	addReceiverData("Nav",		acsConfig.nav_rtcm_inputs,	"RTCM",		"NAV");			}
+																			{	addReceiverData("QZSL6",	acsConfig.qzs_rtcm_inputs,	"RTCM",		"NAV");			}
+																			{	addReceiverData("sisnet",	acsConfig.sisnet_inputs,	"DS2DC",	"NAV");			}
 }

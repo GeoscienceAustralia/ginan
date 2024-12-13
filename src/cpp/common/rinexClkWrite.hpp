@@ -18,7 +18,7 @@ class E_Source;
 void outputClocks(
 	string				filename,
 	const GTime&		time,
+	KFState&			kfState,
 	vector<E_Source>	clkDataRecSrcs,
 	vector<E_Source>	clkDataSatSrcs,
-	KFState&			kfState,
 	ReceiverMap*		receiverMap_ptr = nullptr);

@@ -569,7 +569,7 @@ KFMeas makeRTKLCs2(
  */
 void updateRecClocks(
 	Trace&			trace,			///< Trace to output to
-	ReceiverMap&	receiverMap,	///< List of stations containing observations for this epoch
+	ReceiverMap&	receiverMap,	///< List of receivers containing observations for this epoch
 	KFState&		kfState)		///< Kalman filter object containing the network state parameters
 {
 	if (acsConfig.adjust_rec_clocks_by_spp == false)
@@ -781,28 +781,46 @@ KFState propagateUncertainty(
 
 	map<KFKey, KFMeasEntry> kfMeasEntryMap;
 
-	string pivotRec = acsConfig.pivot_receiver;
+	string&		reference_clock	= acsConfig.reference_clock;
+	string&		reference_bias	= acsConfig.reference_bias;
 
+	static int	pivotNum = 0;
+
+	//add measEntries for each suitable state in the map.
 // 	if (0)
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
-		if	( key.type != KF::REC_CLOCK
-			&&key.type != KF::SAT_CLOCK
-			&&key.type != KF::REC_CLOCK_RATE
-			&&key.type != KF::SAT_CLOCK_RATE)
+		if	( ( key.type <	KF::BEGIN_CLOCK_STATES
+			  ||key.type >	KF::END_CLOCK_STATES)
+			&&( key.type !=	KF::PHASE_BIAS))
 		{
 			continue;
 		}
 
-		if	( pivotRec	== "<AUTO>"
+		//use first receiver clock for auto reference
+		if	( reference_clock	== "<AUTO>"
 			&&key.type 		== KF::REC_CLOCK
 			&&key.num		== 0)
 		{
-			pivotRec = key.str;
+			reference_clock = key.str;
+		}
+
+		//use first satellite bias for auto reference
+		if	( reference_bias	== "<AUTO>"
+			&&key.type 	== KF::PHASE_BIAS
+			&&key.str.empty())
+		{
+			reference_bias = key.Sat.id();
+			pivotNum = key.num;
 		}
 
 		auto subKey = key;
-		subKey.num = 0;
+		if	( key.type >	KF::BEGIN_CLOCK_STATES
+			&&key.type <	KF::END_CLOCK_STATES)
+		{
+			//accumulate all clock nums together
+			subKey.num = 0;
+		}
 
 		auto& kfMeasEntry = kfMeasEntryMap[subKey];
 
@@ -820,75 +838,54 @@ KFState propagateUncertainty(
 		kfMeasEntry.obsKey.comment = newComment;
 	}
 
-
-	if (0)
-	for (int i = 1; i < kfState.kfIndexMap.size();	i++)
-	for (int j = 0; j < i;							j++)
-	{
-		auto iti = kfState.kfIndexMap.begin();
-		auto itj = kfState.kfIndexMap.begin();
-
-		std::advance(iti, i);
-		std::advance(itj, j);
-
-		auto& [keyi, indexi] = *iti;
-		auto& [keyj, indexj] = *itj;
-
-		if (keyi.type != KF::AMBIGUITY)
-		{
-			continue;
-		}
-
-		if (keyj.type != KF::AMBIGUITY)
-		{
-			continue;
-		}
-
-		if (keyi.Sat != keyj.Sat)
-		{
-			continue;
-		}
-
-		if (keyi.str != keyj.str)
-		{
-			continue;
-		}
-
-		{
-		// 	auto& kfMeasEntry = kfMeasEntryMap[key.str + key.Sat.id()];
-		// 	kfMeasEntry.addDsgnEntry(keyi,	-60.0/600);
-		// 	kfMeasEntry.addDsgnEntry(keyj,	+77.0/600);
-  //
-		// 	kfMeasEntry.obsKey.str = keyi.str + " " + keyi.Sat.id() + "C";
-		// }
-		// {
-		// 	auto& kfMeasEntry = kfMeasEntryMap[key.str + key.Sat.id()];
-		// 	kfMeasEntry.addDsgnEntry(keyi,	+60);
-		// 	kfMeasEntry.addDsgnEntry(keyj,	-77);
-  //
-		// 	kfMeasEntry.obsKey.str = keyi.str + " " + keyi.Sat.id() + "D";
-		}
-	}
-
+	//add the right hand side for all the clock states
 	for (auto& [id, entry] : kfMeasEntryMap)
 	{
-		if (pivotRec != "NO_PIVOT")
+		if	(  id.type != KF::REC_CLOCK
+			&& id.type != KF::SAT_CLOCK)
+		{
+			continue;
+		}
+
+		if (reference_clock != "NO_REFERENCE")
 		for (auto& [pivotKey, pivotEntry] : kfState.kfIndexMap)
 		{
-			if	( pivotKey.type != KF::REC_CLOCK
-				&&pivotKey.type != KF::REC_CLOCK_RATE)
+			if (pivotKey.type != KF::REC_CLOCK)
 			{
 				continue;
 			}
 
-			if (pivotKey.str != pivotRec)
+			if (pivotKey.str != reference_clock)
 			{
 				continue;
 			}
 
-			if	(  pivotKey.type	== KF::REC_CLOCK
-				&& id.type			!= KF::REC_CLOCK
-				&& id.type			!= KF::SAT_CLOCK)
+			entry.addDsgnEntry(pivotKey, -1);
+
+			entry.obsKey.comment += " - [" + pivotKey.commaString() + "]";
+		}
+
+		kfMeasEntryList.push_back(entry);
+	}
+
+	//add the right hand side for all the bias states
+	for (auto& [id, entry] : kfMeasEntryMap)
+	{
+		if (id.type != KF::PHASE_BIAS)
+		{
+			continue;
+		}
+
+		if (reference_bias != "NO_REFERENCE")
+		for (auto& [pivotKey, pivotEntry] : kfState.kfIndexMap)
+		{
+			if (pivotKey.type != KF::PHASE_BIAS)
+			{
+				continue;
+			}
+
+			if	( pivotKey.Sat.id()	!= reference_bias
+				||pivotKey.num		!= pivotNum)
 			{
 				continue;
 			}
@@ -1286,6 +1283,7 @@ void pppPseudoObs(
 	initPseudoObs			(trace,					kfState,	kfMeasEntryList);
 	satClockPivotPseudoObs	(trace,					kfState,	kfMeasEntryList);
 	filterPseudoObs			(trace,					kfState,	kfMeasEntryList);
+	phasePseudoObs			(trace,					kfState,	kfMeasEntryList);
 }
 
 void ppp(
@@ -1321,10 +1319,10 @@ void ppp(
 	}
 
 	//prepare a map of lists of measurements for use below
-	map<string, KFMeasEntryList> stationKFEntryListMap;
+	map<string, KFMeasEntryList> receiverKFEntryListMap;
 	for (auto& [id, rec] : receiverMap)
 	{
-		stationKFEntryListMap[rec.id] = KFMeasEntryList();
+		receiverKFEntryListMap[rec.id] = KFMeasEntryList();
 	}
 
 	{
@@ -1332,7 +1330,7 @@ void ppp(
 
 		BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << "\n";
 
-		//calculate the measurements for each station
+		//calculate the measurements for each receiver
 #		ifdef ENABLE_PARALLELISATION
 			Eigen::setNbThreads(1);
 #			pragma omp parallel for
@@ -1351,7 +1349,7 @@ void ppp(
 				continue;
 			}
 
-			auto& kfMeasEntryList = stationKFEntryListMap[rec.id];
+			auto& kfMeasEntryList = receiverKFEntryListMap[rec.id];
 
 			perRecMeasurements(trace, rec, receiverMap, kfMeasEntryList, kfState, remoteState);
 		}
@@ -1360,8 +1358,8 @@ void ppp(
 
 	//combine all lists of measurements into a single list
 	KFMeasEntryList kfMeasEntryList;
-	for (auto& [rec, stationKFEntryList]	: stationKFEntryListMap)
-	for (auto& kfMeasEntry					: stationKFEntryList)
+	for (auto& [rec, receiverKFEntryList]	: receiverKFEntryListMap)
+	for (auto& kfMeasEntry					: receiverKFEntryList)
 	{
 		if (kfMeasEntry.valid)
 		{
@@ -1436,8 +1434,6 @@ void ppp(
 			kfState.outputStates(*filterChunk.trace_ptr, (string)"/PPPChunk/" + id, filterChunk.begX, filterChunk.numX);
 		}
 	}
-
-	kfState.outputStates(trace, "/PPP");
 }
 
 

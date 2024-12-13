@@ -24,11 +24,7 @@
 static bool filterError = false;
 
 bool recordFilterError(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit)
+	RejectCallbackDetails	rejectDetails)
 {
 	filterError = true;
 
@@ -170,8 +166,6 @@ void applyUCAmbiguities(
 	KFMeas kfMeas(kfState, kfMeasEntryList, kfState.time);
 
 	kfState.filterKalman(trace, kfMeas, "/AR", true);
-
-	kfState.outputStates(trace, "/AR");
 }
 
 void fixAndHoldAmbiguities(

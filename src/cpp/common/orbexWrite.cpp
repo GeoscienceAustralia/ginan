@@ -348,7 +348,7 @@ void writeSysSetOrbex(
 	vector<E_Source>	orbDataSrcs,		///< Data source for satellite positions & velocities
 	vector<E_Source>	clkDataSrcs,		///< Data source for satellite clocks
 	vector<E_Source>	attDataSrcs,		///< Data source for satellite attitudes
-	KFState*			kfState_ptr)		///< Pointer to a kalman filter to take values from
+	KFState&			kfState)			///< kalman filter to take values from
 {
 	map<int, OrbexEntry> entryList;
 
@@ -370,8 +370,8 @@ void writeSysSetOrbex(
 
 		// satellite orbit - position and velocity + satellite clock (for PCS and VCS record only)
 		bool orbPass = true;
-		orbPass &= satclk(nullStream, time, time, obs, clkDataSrcs,						nav, kfState_ptr);
-		orbPass &= satpos(nullStream, time, time, obs, orbDataSrcs, E_OffsetType::COM,	nav, kfState_ptr);
+		orbPass &= satclk(nullStream, time, time, obs, clkDataSrcs,						nav, &kfState);
+		orbPass &= satpos(nullStream, time, time, obs, orbDataSrcs, E_OffsetType::COM,	nav, &kfState);
 
 		if (orbPass)
 		{
@@ -418,15 +418,15 @@ void writeSysSetOrbex(
 void outputOrbex(
 	string				filename,		///< File to write to
 	GTime				time,			///< Epoch time (GPST)
+	KFState&			kfState,		///< Kalman filter to take values from
 	vector<E_Source>	orbDataSrcs,	///< Data source for satellite positions & velocities
 	vector<E_Source>	clkDataSrcs,	///< Data source for satellite clocks
-	vector<E_Source>	attDataSrcs,	///< Data source for satellite attitudes
-	KFState*			kfState_ptr)	///< Pointer to a kalman filter to take values from
+	vector<E_Source>	attDataSrcs)	///< Data source for satellite attitudes
 {
 	auto sysFilenames = getSysOutputFilenames(filename, time);
 
 	for (auto [filename, sysMap] : sysFilenames)
 	{
-		writeSysSetOrbex(filename, time, sysMap, orbexCombinedFileData, orbDataSrcs, clkDataSrcs, attDataSrcs, kfState_ptr);
+		writeSysSetOrbex(filename, time, sysMap, orbexCombinedFileData, orbDataSrcs, clkDataSrcs, attDataSrcs, kfState);
 	}
 }

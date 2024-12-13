@@ -132,5 +132,5 @@ void writeErpFromNetwork(
 ERPValues getErpFromFilter(
 	const KFState&	kfState);
 
-Matrix3d stationEopPartials(
+Matrix3d receiverEopPartials(
 	Vector3d&	rRec);

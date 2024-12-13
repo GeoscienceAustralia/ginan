@@ -21,7 +21,6 @@ Architecture Preprocessing__()
 #include "observations.hpp"
 #include "navigation.hpp"
 #include "GNSSambres.hpp"
-#include "testUtils.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
 #include "receiver.hpp"

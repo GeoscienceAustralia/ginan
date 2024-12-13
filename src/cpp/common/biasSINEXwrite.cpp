@@ -273,7 +273,7 @@ void updateBiasOutput(
 	GTime			time,			///< Time of bias update
 	KFState&		kfState,		///< Filter state to take biases from
 	KFState&		ionState,		///< Filter state to take biases from
-	ReceiverMap&	receiverMap,		///< stations for which to output receiver biases
+	ReceiverMap&	receiverMap,	///< Receivers for which to output biases
 	E_MeasType		measType)		///< Type of measurement to find bias for
 {
 	int nstore = 0;
@@ -355,11 +355,11 @@ void updateBiasOutput(
 */
 void writeBiasSinex(
 	Trace&			trace,			///< Trace to output to
+	string			biasfile,		///< File to write
 	GTime			time,			///< Time of bias to write
 	KFState&		kfState,		///< Filter state to take biases from
 	KFState&		ionState,		///< Filter state to take biases from
-	string			biasfile,		///< File to write
-	ReceiverMap&	receiverMap)		///< stations for which to output receiver biases
+	ReceiverMap&	receiverMap)	///< Receivers for which to output biases
 {
 	tracepdeex(3,trace,"Writing bias SINEX into: %s %s\n", biasfile.c_str(), time.to_string().c_str());
 

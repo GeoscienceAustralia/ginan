@@ -53,8 +53,9 @@ Output Outputs__()
 #include "gpx.hpp"
 #include "pos.hpp"
 
-using std::this_thread::sleep_for;
 using boost::date_time::not_a_date_time;
+using std::this_thread::sleep_for;
+using std::max;
 
 /** Replace macros for times with numeric values.
 * Available replacements are "<DDD> <D> <WWWW> <YYYY> <YY> <MM> <DD> <HH> <hh> <mm> <LOGTIME>"
@@ -271,14 +272,12 @@ void createTracefiles(
 			if (acsConfig.output_receiver_trace)
 			if (rts == false)
 			{
-				//dont add suff for this as we dont want smoothed version
 				newTraceFile |= createNewTraceFile(id,			rec.source,		logptime,	acsConfig.receiver_trace_filename,							rec.traceFilename,														true,	acsConfig.output_config);
 			}
 
 			if (acsConfig.output_json_trace)
 			if (rts == false)
 			{
-				//dont add suff for this as we dont want smoothed version
 				newTraceFile |= createNewTraceFile(id,			rec.source,		logptime,	acsConfig.receiver_json_filename,							rec.jsonTraceFilename);
 			}
 
@@ -675,57 +674,92 @@ void configureUploadingStreams()
 	}
 }
 
-
-
 void perEpochPostProcessingAndOutputs(
 	Trace&			pppTrace,
-	Network&		pppNet,
 	Network&		ionNet,
 	ReceiverMap&	receiverMap,
 	KFState&		kfState,
-	KFState&		ionState,
-	const GTime&	time,
-	bool			emptyEpoch)
+	bool			emptyEpoch,
+	bool			inRts,
+	bool			firstRtsEpoch)
 {
 	InteractiveTerminal::setMode(E_InteractiveMode::Outputs);
 
-	auto ionTrace = getTraceFile(ionNet);
+	string	_RTS;
+	string	META_SUFFIX;
+
+	if (inRts)
+	{
+		if (kfState.metaDataMap["SKIP_RTS_OUTPUT"] == "TRUE")
+		{
+			return;
+		}
+
+		_RTS		= "_RTS";
+		META_SUFFIX	= SMOOTHED_SUFFIX;
+	}
+
+	//check whether we can write to the main state or need to make a copy (remember it will store in rts too)
+	bool hold = false;
+
+	if	( inRts == false
+		&&acsConfig.ambrOpts.fix_and_hold)
+	{
+		hold = true;
+	}
+
+	auto time = kfState.time;
+
+	static GTime clkOutputTime;
+	static GTime obxOutputTime;
+	static GTime sp3OutputTime;
+
+	static bool firstEpoch = true;
+
+	if (firstRtsEpoch)
+	{
+		//reset the first epoch things when starting rts
+		firstEpoch = true;
+	}
+
+	if (firstEpoch)
+	{
+		//dont move above, rts resets these
+		clkOutputTime = time.floorTime(acsConfig.clocks_output_interval);
+		obxOutputTime = time.floorTime(acsConfig.orbex_output_interval);
+		sp3OutputTime = time.floorTime(acsConfig.sp3_output_interval);
+
+		firstEpoch = false;
+	}
+
+	tryPrepareFilterPointers(kfState, receiverMap);
 
 	if (acsConfig.process_ppp)
 	{
 		mongoStates(kfState,
 					{
-						.suffix		= "/PPP",
+						.suffix		= "/PPP" + _RTS,
 						.instances	= acsConfig.mongoOpts.output_states,
 						.queue		= acsConfig.mongoOpts.queue_outputs
 					});
+
+		kfState.outputStates(pppTrace, "/PPP" + _RTS);
 	}
 
-	nav.erp.filterValues = getErpFromFilter(pppNet.kfState);
-
-	if	(	acsConfig.process_ppp
-		&&	acsConfig.ambrOpts.mode != +E_ARmode::OFF
-		&&	acsConfig.ambrOpts.once_per_epoch)
-	{
-		//while this may fix and hold ambiguities on this state, this state may be a copy of the main state from somewhere else
-		fixAndHoldAmbiguities(pppTrace, kfState);
-
-		mongoStates(kfState,
-					{
-						.suffix		= "/AR",
-						.instances	= acsConfig.mongoOpts.output_states,
-						.queue		= acsConfig.mongoOpts.queue_outputs
-					});
-	}
+	nav.erp.filterValues = getErpFromFilter(kfState);
 
 	if	(  acsConfig.ionModelOpts.model
 		&& acsConfig.ssrOpts.atmosphere_sources.front() == +E_Source::KALMAN)
 	{
+		auto ionTrace = getTraceFile(ionNet);
+
 		ionosphereSsrUpdate(ionTrace, kfState);
 	}
 
 	if (acsConfig.process_ionosphere)
 	{
+		auto ionTrace = getTraceFile(ionNet);
+
 		obsIonoDataFromFilter(ionTrace, receiverMap, kfState);
 
 		filterIonosphere(ionTrace, ionNet.kfState, receiverMap, time);
@@ -736,22 +770,29 @@ void perEpochPostProcessingAndOutputs(
 		}
 	}
 
-	KFState tempAugmentedKF = kfState;
+	KFState augmentedKF = kfState;
 
 	if (acsConfig.process_ppp)
 	{
-		if (acsConfig.pivot_receiver != "NO_PIVOT")
+		if	( acsConfig.reference_clock	!= "NO_REFERENCE"
+			||acsConfig.reference_bias	!= "NO_REFERENCE")
 		{
-			KFState pivotedState = propagateUncertainty(pppTrace, kfState);
+			augmentedKF = propagateUncertainty(pppTrace, kfState);
 
-			pivotedState.outputStates(pppTrace, "/PIVOT");
+			augmentedKF.outputStates(pppTrace, "/PIVOT" + _RTS);
 
-			mongoStates(pivotedState,
+			mongoStates(augmentedKF,
 						{
-							.suffix		= "/PIVOT",
+							.suffix		= "/PIVOT" + _RTS,
 							.instances	= acsConfig.mongoOpts.output_states,
 							.queue		= acsConfig.mongoOpts.queue_outputs
 						});
+
+			if (hold)
+			{
+				BOOST_LOG_TRIVIAL(error) << "Error: Ambiguity fix_and_hold requested but is not possible with pre-pivoted states";
+				hold = false;
+			}
 		}
 
 		if	(  acsConfig.process_minimum_constraints
@@ -768,24 +809,105 @@ void perEpochPostProcessingAndOutputs(
 
 			InteractiveTerminal minconTrace("MinimumConstraints", pppTrace);
 
-			mincon(minconTrace, tempAugmentedKF, &minconStatistics);				//todo aaron, orbits apriori need etting
+			mincon(minconTrace, augmentedKF, &minconStatistics);				//todo aaron, orbits apriori need etting
 
-			tempAugmentedKF.outputStates(minconTrace, "/CONSTRAINED");
+			augmentedKF.outputStates(minconTrace, "/CONSTRAINED" + _RTS);
 
 			outputMinconStatistics(minconTrace, minconStatistics);
 
-			mongoStates(tempAugmentedKF,
+			mongoStates(augmentedKF,
 						{
-							.suffix		= "/CONSTRAINED",
+							.suffix		= "/CONSTRAINED" + _RTS,
 							.instances	= acsConfig.mongoOpts.output_states,
 							.queue		= acsConfig.mongoOpts.queue_outputs
 						});
 
 			//erp values have probably changed due to mincon, update the nav vars before all the outputs
 			//will have to revert this below because mincon is supposed to be temporary in once_per_epoch mode
-			nav.erp.filterValues = getErpFromFilter(tempAugmentedKF);
+			nav.erp.filterValues = getErpFromFilter(augmentedKF);
+
+			if (hold)
+			{
+				BOOST_LOG_TRIVIAL(error) << "Error: Ambiguity fix_and_hold requested but is not possible with minimally constrained states";
+				hold = false;
+			}
 		}
 
+		bool arPossible = true;
+		if	( inRts
+			&&acsConfig.ambrOpts.fix_and_hold)
+		{
+			//was fixed on the forward run, dont do again
+			arPossible = false;
+		}
+
+		if	(	arPossible
+			&&	acsConfig.ambrOpts.mode
+			&&	acsConfig.ambrOpts.once_per_epoch)
+		{
+			KFState* arState_ptr;
+
+			if (hold)	{	arState_ptr = &kfState;			BOOST_LOG_TRIVIAL(info) << "Performing AR with fix and hold";	}
+			else		{	arState_ptr = &augmentedKF;																		}
+
+			auto& arState = *arState_ptr;
+
+			fixAndHoldAmbiguities(pppTrace, arState);
+
+			arState.outputStates(pppTrace, "/AR" + _RTS);
+
+			mongoStates(arState,
+						{
+							.suffix		= "/AR" + _RTS,
+							.instances	= acsConfig.mongoOpts.output_states,
+							.queue		= acsConfig.mongoOpts.queue_outputs
+						});
+
+			//erp values have probably changed due to AR, update the nav vars before all the outputs
+			//will have to revert this below because AR is supposed to be temporary in once_per_epoch mode
+			nav.erp.filterValues = getErpFromFilter(arState);
+		}
+
+		for (auto& [id, rec] : receiverMap)
+		{
+			auto recTrace = getTraceFile(rec);
+																			{	outputPppNmea(	recTrace,																	augmentedKF,	id);	}
+			if (acsConfig.output_cost)										{	outputCost(					kfState.metaDataMap[COST_FILENAME_STR	+ id + META_SUFFIX],	augmentedKF,	rec);	}
+			if (acsConfig.output_gpx)										{	writeGPX(					kfState.metaDataMap[GPX_FILENAME_STR	+ id + META_SUFFIX],	augmentedKF,	rec);	}
+			if (acsConfig.output_pos)										{	writePOS(					kfState.metaDataMap[POS_FILENAME_STR	+ id + META_SUFFIX],	augmentedKF,	rec);	}
+		}
+	}
+
+	if (1)
+	{
+		if (acsConfig.output_orbit_ics)										{	outputOrbitConfig(																						augmentedKF,			inRts);	}
+		if (acsConfig.output_trop_sinex)									{	outputTropSinex(			kfState.metaDataMap[TROP_FILENAME_STR		+ META_SUFFIX],	time,			augmentedKF,	"MIX",	inRts);	}
+		if (acsConfig.output_bias_sinex)									{	writeBiasSinex(	pppTrace,	kfState.metaDataMap[BSX_FILENAME_STR		+ META_SUFFIX],	time, 			augmentedKF,	ionNet.kfState,															receiverMap);	}
+		if (acsConfig.output_clocks)		while (clkOutputTime <= time)	{	outputClocks(				kfState.metaDataMap[CLK_FILENAME_STR		+ META_SUFFIX],	clkOutputTime,	augmentedKF,	acsConfig.clocks_receiver_sources,	acsConfig.clocks_satellite_sources,	&receiverMap);							clkOutputTime += max(acsConfig.epoch_interval, acsConfig.clocks_output_interval);	}
+		if (acsConfig.output_orbex)			while (obxOutputTime <= time)	{	outputOrbex(				kfState.metaDataMap[ORBEX_FILENAME_STR		+ META_SUFFIX],	obxOutputTime,	augmentedKF,	acsConfig.orbex_orbit_sources,		acsConfig.orbex_clock_sources,		acsConfig.orbex_attitude_sources);		obxOutputTime += max(acsConfig.epoch_interval, acsConfig.orbex_output_interval);	}
+		if (acsConfig.output_sp3)			while (sp3OutputTime <= time)	{	outputSp3(					kfState.metaDataMap[SP3_FILENAME_STR		+ META_SUFFIX],	sp3OutputTime,	augmentedKF,	acsConfig.sp3_orbit_sources,		acsConfig.sp3_clock_sources,		emptyEpoch);							sp3OutputTime += max(acsConfig.epoch_interval, acsConfig.sp3_output_interval);		}
+		if (acsConfig.output_erp)											{	writeErpFromNetwork(		kfState.metaDataMap[ERP_FILENAME_STR		+ META_SUFFIX],					augmentedKF)																												;	}
+		if (acsConfig.output_ionstec)										{	writeIonStec(				kfState.metaDataMap[IONSTEC_FILENAME_STR	+ META_SUFFIX],					augmentedKF)																												;	}
+		if (acsConfig.output_ionex)
+		{
+			auto ionTrace = getTraceFile(ionNet);
+
+			if (acsConfig.process_ionosphere)								{	ionexFileWrite(	ionTrace,	kfState.metaDataMap[IONEX_FILENAME_STR		+ META_SUFFIX],	time,			ionNet.kfState);	}
+			else															{	ionexFileWrite(	pppTrace,	kfState.metaDataMap[IONEX_FILENAME_STR		+ META_SUFFIX],	time,			augmentedKF);	}
+		}
+	}
+
+	if (inRts == false)
+	{
+		if (acsConfig.output_rinex_nav)										{	writeRinexNav(																							acsConfig.rinex_nav_version);	}
+		if (acsConfig.output_sbas_ems)										{	writeEMSdata(	pppTrace,	kfState.metaDataMap[EMS_FILENAME_STR]);		}
+
+		mongoMeasSatStat		(receiverMap);
+		outputApriori			(receiverMap);
+		outputPredictedStates	(pppTrace, augmentedKF);
+		prepareSsrStates		(pppTrace, augmentedKF, ionNet.kfState, time);
+
+		//Only do rts if its not already in progress
 		static double epochsPerRtsInterval	= acsConfig.pppOpts.rts_interval / acsConfig.epoch_interval;
 		static double intervalRtsEpoch		= epochsPerRtsInterval;
 
@@ -798,96 +920,12 @@ void perEpochPostProcessingAndOutputs(
 				intervalRtsEpoch += epochsPerRtsInterval;
 			}
 
-			rtsSmoothing(pppNet.kfState, receiverMap, true);
+			rtsSmoothing(kfState, receiverMap, true);
 		}
 
-		for (auto& [recId, rec] : receiverMap)
-		{
-			auto trace = getTraceFile(rec);
-
-			{
-				outputPppNmea(trace, kfState, rec.id);
-			}
-
-			if (acsConfig.output_cost)		{	outputCost			(kfState.metaDataMap[COST_FILENAME_STR	+ recId], kfState,	rec);	}
-			if (acsConfig.output_gpx)		{	writeGPX			(kfState.metaDataMap[GPX_FILENAME_STR	+ recId], kfState,	rec);	}
-			if (acsConfig.output_pos)		{	writePOS			(kfState.metaDataMap[POS_FILENAME_STR	+ recId], kfState,	rec);	}
-
-		}
-
-		outputStatistics(pppTrace, pppNet.kfState.statisticsMap, pppNet.kfState.statisticsMapSum);
+		outputStatistics(pppTrace, kfState.statisticsMap, kfState.statisticsMapSum);
 	}
-
-	static GTime clkOutputTime = time.floorTime(acsConfig.clocks_output_interval);
-	static GTime obxOutputTime = time.floorTime(acsConfig.orbex_output_interval);
-	static GTime sp3OutputTime = time.floorTime(acsConfig.sp3_output_interval);
-
-	if (acsConfig.output_rinex_nav)
-	{
-		writeRinexNav(acsConfig.rinex_nav_version);
-	}
-
-	if (acsConfig.output_clocks)
-	while (clkOutputTime <= time)
-	{
-		outputClocks(acsConfig.clocks_filename,	clkOutputTime, acsConfig.clocks_receiver_sources, acsConfig.clocks_satellite_sources, tempAugmentedKF, &receiverMap);			clkOutputTime += std::max(acsConfig.epoch_interval, acsConfig.clocks_output_interval);
-	}
-
-	if (acsConfig.output_sp3)
-	while (sp3OutputTime <= time)
-	{
-		outputSp3(acsConfig.sp3_filename,		sp3OutputTime, acsConfig.sp3_orbit_sources, acsConfig.sp3_clock_sources, &tempAugmentedKF, emptyEpoch);							sp3OutputTime += std::max(acsConfig.epoch_interval, acsConfig.sp3_output_interval);
-	}
-
-
-	if (acsConfig.output_orbex)
-	while (obxOutputTime <= time)
-	{
-		outputOrbex(acsConfig.orbex_filename,	obxOutputTime, acsConfig.orbex_orbit_sources, acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources, &kfState);		obxOutputTime += std::max(acsConfig.epoch_interval, acsConfig.orbex_output_interval);
-	}
-
-	if (acsConfig.output_ionex)
-	{
-		if (acsConfig.process_ionosphere)			ionexFileWrite(ionTrace, kfState.metaDataMap[IONEX_FILENAME_STR], time, ionNet.kfState);
-		else										ionexFileWrite(pppTrace, kfState.metaDataMap[IONEX_FILENAME_STR], time, kfState);
-	}
-
-	if (acsConfig.output_ionstec)
-	{
-		writeIonStec(kfState.metaDataMap[IONSTEC_FILENAME_STR], kfState);
-	}
-
-	if (acsConfig.output_bias_sinex)
-	{
-		writeBiasSinex(pppTrace, time, kfState, ionState, kfState.metaDataMap[BSX_FILENAME_STR], receiverMap);
-	}
-
-	if (acsConfig.output_orbit_ics)
-	{
-		outputOrbitConfig(kfState);
-	}
-
-	if (acsConfig.output_sbas_ems)
-	{
-		writeEMSdata(pppTrace, kfState.metaDataMap[EMS_FILENAME_STR]);
-	}
-
-	if (acsConfig.output_erp)
-	{
-		writeErpFromNetwork(kfState.metaDataMap[ERP_FILENAME_STR], kfState);
-	}
-
-
-	if (acsConfig.output_trop_sinex)
-	{
-		outputTropSinex(kfState.metaDataMap[TROP_FILENAME_STR], kfState.time, kfState, "MIX");
-	}
-
-	mongoMeasSatStat		(receiverMap);
-	outputApriori			(receiverMap);
-	outputPredictedStates	(pppTrace, tempAugmentedKF);
-	prepareSsrStates		(pppTrace, tempAugmentedKF, ionState, time);
 
 	//revert the erp filter values since we are done with the tempAugmentedKF
-	nav.erp.filterValues = getErpFromFilter(pppNet.kfState);
+	nav.erp.filterValues = getErpFromFilter(kfState);
 }

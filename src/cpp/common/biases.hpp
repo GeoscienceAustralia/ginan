@@ -100,10 +100,10 @@ bool getBias(
 
 void writeBiasSinex(
 	Trace&			trace,
+	string			biasfile,
 	GTime			time,
 	KFState&		kfState,
 	KFState&		ionState,
-	string			biasfile,
 	ReceiverMap&	receiverMap);
 
 bool queryBiasOutput(

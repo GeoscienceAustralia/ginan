@@ -17,7 +17,6 @@ using std::vector;
 #include "navigation.hpp"
 #include "mongoWrite.hpp"
 #include "ephPrecise.hpp"
-#include "testUtils.hpp"
 #include "ephemeris.hpp"
 #include "acsConfig.hpp"
 #include "constants.hpp"
@@ -621,7 +620,7 @@ void addRejectDetails(
 void removeBadAmbiguities(
 	Trace&			trace,			///< Trace to output to
 	KFState&		kfState, 		///< Filter to remove states from
-	ReceiverMap&	receiverMap)	///< List of stations containing observations for this epoch
+	ReceiverMap&	receiverMap)	///< List of receivers containing observations for this epoch
 {
 	for (auto [key, index] : kfState.kfIndexMap)
 	{
@@ -759,9 +758,9 @@ void removeBadSatellites(
 
 
 void removeBadReceivers(
-	Trace&			trace,				///< Trace to output to
-	KFState&		kfState, 			///< Filter to remove states from
-	ReceiverMap&	receiverMap)		///< List of stations containing observations for this epoch
+	Trace&			trace,			///< Trace to output to
+	KFState&		kfState, 		///< Filter to remove states from
+	ReceiverMap&	receiverMap)	///< List of receivers containing observations for this epoch
 {
 	if (acsConfig.errorAccumulation.enable == false)
 	{

@@ -722,16 +722,16 @@ void KFState::stateTransition(
 * &  Wieser et al. (2004) - Failure Scenarios to be Considered with Kinematic High Precision Relative GNSS Positioning - http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.573.9628&rep=rep1&type=pdf
 */
 void KFState::preFitSigmaCheck(
-	Trace&			trace,			///< Trace to output to
-	KFMeas&			kfMeas,			///< Measurements, noise, and design matrix
-	KFKey&			badStateKey,	///< Key to the state that has worst ratio (only if worse than badMeasIndex)
-	int&			badMeasIndex,	///< Index of the measurement that has the worst ratio
-	KFStatistics&	statistics,		///< Test statistics
-	int				begX,			///< Index of first state element to process
-	int				numX,			///< Number of states elements to process
-	int				begH,			///< Index of first measurement to process
-	int				numH)			///< Number of measurements to process
+	RejectCallbackDetails&	callbackDetails,
+	KFStatistics&			statistics,		///< Test statistics
+	int						begX,			///< Index of first state element to process
+	int						numX,			///< Number of states elements to process
+	int						begH,			///< Index of first measurement to process
+	int						numH)			///< Number of measurements to process
 {
+	auto& kfMeas	= callbackDetails.kfMeas;
+	auto& trace		= callbackDetails.trace;
+
 	auto		v = kfMeas.V.segment(begH, numH);
 	auto		R = kfMeas.R.block(begH, begH, numH, numH);
 	auto		H = kfMeas.H.block(begH, begX, numH, numX);
@@ -742,17 +742,19 @@ void KFState::preFitSigmaCheck(
 
 	if (prefitOpts.sigma_check)
 	{
+// 		trace << "\n" << "DOING PRE SIGMA CHECK: ";
+
 		//use 'array' for component-wise calculations
 		auto		measVariations	= v.array().square();	//delta squared
 		auto		measVariances	= ((H*P*H.transpose()).diagonal() + R.diagonal()).array();
 
 		measRatios	= measVariations	/ measVariances;
 		measRatios	= measRatios.isFinite()	.select(measRatios,		0);
-
-// 		trace << "\n" << "DOING PRE SIGMA CHECK: ";
 	}
 	else if (prefitOpts.omega_test)
 	{
+// 		trace << "\n" << "DOING W-test: ";
+
 		MatrixXd	Qinv	= (H*P*H.transpose() + R).inverse();
 		MatrixXd	H_Qinv	= H.transpose() * Qinv;
 
@@ -767,8 +769,6 @@ void KFState::preFitSigmaCheck(
 		measRatios	= measRatios.isFinite()	.select(measRatios,		0);	//set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
 		stateRatios	= stateNumerator	/ stateDenominator;
 		stateRatios	= stateRatios.isFinite().select(stateRatios,	0);
-
-// 		trace << "\n" << "DOING W-test: ";
 	}
 
 	statistics.sumOfSquares	= measRatios.sum();
@@ -791,13 +791,13 @@ void KFState::preFitSigmaCheck(
 	auto& [stateKey, dummy] = *it;
 
 	//if any are outside the expected values, flag an error
-	if	( maxStateRatio > maxMeasRatio * 0.95
+	if	( maxStateRatio > maxMeasRatio
 		&&maxStateRatio > SQR(prefitOpts.state_sigma_threshold))
 	{
 		trace << "\n" << "LARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
 		trace << "\n" << "Largest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
 
-		badStateKey = stateKey;
+		callbackDetails.kfKey = stateKey;
 	}
 
 	if	(maxMeasRatio > SQR(prefitOpts.meas_sigma_threshold))
@@ -805,7 +805,7 @@ void KFState::preFitSigmaCheck(
 		trace << "\n" << "LARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
 		trace << "\n" << "Largest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
 
-		badMeasIndex = measIndex + begH;
+		callbackDetails.measIndex = measChunkIndex;
 	}
 }
 
@@ -838,17 +838,17 @@ void outputResiduals(
 /** Compare variances of measurements and filtered states to detect unreasonable values
 */
 void KFState::postFitSigmaChecks(
-	Trace&			trace,      	///< Trace file to output to
-	KFMeas&			kfMeas,			///< Measurements, noise, and design matrix
-	VectorXd&		dx,				///< The innovations from filtering to recalculate the deltas.
-	KFKey&			badStateKey,	///< Key to the state that has worst ratio (only if worse than badMeasIndex)
-	int&			badMeasIndex,	///< Index of the measurement that has the worst ratio
-	KFStatistics&	statistics,		///< Test statistics
-	int				begX,			///< Index of first state element to process
-	int				numX,			///< Number of state elements to process
-	int				begH,			///< Index of first measurement to process
-	int				numH)			///< Number of measurements to process
+	RejectCallbackDetails&	callbackDetails,
+	VectorXd&				dx,				///< The innovations from filtering to recalculate the deltas.
+	KFStatistics&			statistics,		///< Test statistics
+	int						begX,			///< Index of first state element to process
+	int						numX,			///< Number of state elements to process
+	int						begH,			///< Index of first measurement to process
+	int						numH)			///< Number of measurements to process
 {
+	auto& kfMeas	= callbackDetails.kfMeas;
+	auto& trace		= callbackDetails.trace;
+
 	auto						H	= kfMeas.H.block(begH, begX, numH, numX);
 
 	//use 'array' for component-wise calculations
@@ -862,8 +862,6 @@ void KFState::postFitSigmaChecks(
 				measRatios			= measRatios.isFinite()	.select(measRatios,		0);
 	ArrayXd		stateRatios			= stateVariations	/ stateVariances;
 				stateRatios			= stateRatios.isFinite().select(stateRatios,	0);
-
-// 	trace << "\n" << "DOING SIGMACHECK: ";
 
 	statistics.sumOfSquares	= measRatios.sum();
 	statistics.averageRatio	= measRatios.mean();
@@ -885,13 +883,13 @@ void KFState::postFitSigmaChecks(
 	auto& [stateKey, dummy] = *it;
 
 	//if any are outside the expected values, flag an error
-	if	( maxStateRatio > maxMeasRatio * 0.95
+	if	( maxStateRatio > maxMeasRatio
 		&&maxStateRatio > SQR(postfitOpts.state_sigma_threshold))
 	{
 		trace << "\n" << "LARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
 		trace << "\n" << "Largest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
 
-		badStateKey = stateKey;
+		callbackDetails.kfKey = stateKey;
 	}
 
 	if	(maxMeasRatio > SQR(postfitOpts.meas_sigma_threshold))
@@ -899,7 +897,7 @@ void KFState::postFitSigmaChecks(
 		trace << "\n" << "LARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
 		trace << "\n" << "Largest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
 
-		badMeasIndex = measIndex + begH;
+		callbackDetails.measIndex = measChunkIndex;
 	}
 }
 
@@ -1331,14 +1329,11 @@ KFMeas::KFMeas(
 }
 
 bool KFState::doStateRejectCallbacks(
-	Trace&		trace,				///< Trace file for output
-	KFMeas&		kfMeas,				///< Measurements that were passed to the filter
-	KFKey&		badKey,				///< Key in state that was unsatisfactory
-	bool		postFit)			///< Rejection occured during post-filtering checks
+	RejectCallbackDetails	rejectDetails)
 {
 	for (auto& callback : stateRejectCallbacks)
 	{
-		bool keepGoing = callback(trace, *this, kfMeas, badKey, postFit);
+		bool keepGoing = callback(rejectDetails);
 
 		if (keepGoing == false)
 		{
@@ -1350,14 +1345,11 @@ bool KFState::doStateRejectCallbacks(
 }
 
 bool KFState::doMeasRejectCallbacks(
-	Trace&		trace,				///< Trace file for output
-	KFMeas&		kfMeas,				///< Measurements that were passed to the filter
-	int			badIndex,			///< Index in measurement list that was unsatisfactory
-	bool		postFit)			///< Rejection occured during post-filtering checks
+	RejectCallbackDetails	rejectDetails)
 {
 	for (auto& callback : measRejectCallbacks)
 	{
-		bool keepGoing = callback(trace, *this, kfMeas, badIndex, postFit);
+		bool keepGoing = callback(rejectDetails);
 
 		if (keepGoing == false)
 		{
@@ -1397,7 +1389,6 @@ void KFState::filterKalman(
 	{
 		FilterChunk filterChunk;
 
-		filterChunk.trace_ptr	= &trace;
 		filterChunk.numX		= x.rows();
 
 		filterChunkMap[""] = filterChunk;
@@ -1429,51 +1420,53 @@ void KFState::filterKalman(
 
 	TestStatistics testStatistics;
 
-	for (auto& [id, filterChunk] : filterChunkMap)
+	for (auto& [id, fc] : filterChunkMap)
 	{
-		if (filterChunk.numH == 0)
+		if (fc.numH == 0)
 		{
 			continue;
 		}
 
-		if (filterChunk.numX < 0)	filterChunk.numX = x.rows();
-		if (filterChunk.numH < 0)	filterChunk.numH = kfMeas.H.rows();
+		if (fc.numX < 0)	fc.numX = x.rows();
+		if (fc.numH < 0)	fc.numH = kfMeas.H.rows();
 
 		KFStatistics statistics;
 		for (int i = 0; i < prefitOpts.max_iterations; i++)
 		{
-			auto& chunkTrace = *filterChunk.trace_ptr;
-
 			if	(  prefitOpts.sigma_check	== false
 				&& prefitOpts.omega_test	== false)
 			{
 				continue;
 			}
 
-			KFKey	badState;
-			int		badMeasIndex = -1;
+			std::stringstream stringBuffer;
 
-			preFitSigmaCheck(chunkTrace, kfMeas, badState, badMeasIndex, statistics, filterChunk.begX, filterChunk.numX, filterChunk.begH, filterChunk.numH);
+			RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, kfMeas);
+			rejectCallbackDetails.postFit = false;
+
+			preFitSigmaCheck(rejectCallbackDetails, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
 
 			bool stopIterating = true;
-			if (badState.type)		{	chunkTrace << "\n" << "Prefit check failed state test";			doStateRejectCallbacks	(chunkTrace, kfMeas, badState,		false);		stopIterating = false;	}
-			if (badMeasIndex >= 0)	{	chunkTrace << "\n" << "Prefit check failed measurement test";	doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex,	false);		stopIterating = false;	}
+			if (rejectCallbackDetails.kfKey.type)		{	stringBuffer << "\n" << "Prefit check failed state test";			doStateRejectCallbacks	(rejectCallbackDetails);		stopIterating = false;	}
+			if (rejectCallbackDetails.measIndex >= 0)	{	stringBuffer << "\n" << "Prefit check failed measurement test";		doMeasRejectCallbacks	(rejectCallbackDetails);		stopIterating = false;	}
 
-			if (stopIterating)		{	chunkTrace << "\n" << "Prefit check passed";																							stopIterating = true;	}
+			if (stopIterating)							{	stringBuffer << "\n" << "Prefit check passed";																										}
 			else
 			{
 				if (i == prefitOpts.max_iterations - 1)
 				{
 					BOOST_LOG_TRIVIAL(warning)	<< "Warning: Max pre-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << prefitOpts.max_iterations;
-					chunkTrace << "\n"			<< "Warning: Max pre-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << prefitOpts.max_iterations;
+					stringBuffer << "\n"		<< "Warning: Max pre-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << prefitOpts.max_iterations;
 				}
 			}
+
+									trace			<< stringBuffer.str();
+			if (fc.trace_ptr)		*fc.trace_ptr	<< stringBuffer.str();
 
 			if (stopIterating)
 			{
 				break;
 			}
-
 		}
 
 		testStatistics.sumOfSquaresPre	+= statistics.sumOfSquares;
@@ -1510,13 +1503,11 @@ void KFState::filterKalman(
 		KFStatistics statistics;
 		for (int i = 0; i < postfitOpts.max_iterations; i++)
 		{
-			auto& chunkTrace = *fc.trace_ptr;
-
-			bool pass = kFilter(chunkTrace, kfMeas, xp, Pp, dx, fc.begX, fc.numX, fc.begH, fc.numH);
+			bool pass = kFilter(trace, kfMeas, xp, Pp, dx, fc.begX, fc.numX, fc.begH, fc.numH);
 
 			if (pass == false)
 			{
-				chunkTrace << "FILTER FAILED" << "\n";
+				trace << "FILTER FAILED" << "\n";
 				returnEarlyPrep();
 				return;
 			}
@@ -1539,25 +1530,31 @@ void KFState::filterKalman(
 				break;
 			}
 
-			KFKey	badState;
-			int		badMeasIndex = -1;
+			std::stringstream stringBuffer;
 
-			postFitSigmaChecks(chunkTrace, kfMeas, dx, badState, badMeasIndex, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
+			RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, kfMeas);
+			rejectCallbackDetails.postFit = true;
+
+			postFitSigmaChecks(rejectCallbackDetails, dx, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
+
 			bool stopIterating = true;
-			if (badState.type)		{	chunkTrace << "\n" << "Postfit check failed state test";		doStateRejectCallbacks	(chunkTrace, kfMeas, badState,		true);		stopIterating = false;	}
-			if (badMeasIndex >= 0)	{	chunkTrace << "\n" << "Postfit check failed measurement test";	doMeasRejectCallbacks	(chunkTrace, kfMeas, badMeasIndex,	true);		stopIterating = false;	}
+			if (rejectCallbackDetails.kfKey.type)		{	stringBuffer << "\n" << "Postfit check failed state test";			doStateRejectCallbacks	(rejectCallbackDetails);		stopIterating = false;	}
+			if (rejectCallbackDetails.measIndex >= 0)	{	stringBuffer << "\n" << "Postfit check failed measurement test";	doMeasRejectCallbacks	(rejectCallbackDetails);		stopIterating = false;	}
 
-			if (stopIterating)		{	chunkTrace << "\n" << "Postfit check passed";																													}
+			if (stopIterating)							{	stringBuffer << "\n" << "Postfit check passed";																										}
 			else
 			{
 				if (i == postfitOpts.max_iterations - 1)
 				{
 					BOOST_LOG_TRIVIAL(warning)	<< "Warning: Max post-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << postfitOpts.max_iterations;
-					chunkTrace << "\n"			<< "Warning: Max post-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << postfitOpts.max_iterations;
+					stringBuffer << "\n"		<< "Warning: Max post-fit filter iterations limit reached at " << time << " in " << suffix << ", limit is " << postfitOpts.max_iterations;
 
 					stopIterating = true;
 				}
 			}
+
+									trace			<< stringBuffer.str();
+			if (fc.trace_ptr)		*fc.trace_ptr	<< stringBuffer.str();
 
 			if (stopIterating)
 			{

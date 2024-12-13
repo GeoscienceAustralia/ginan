@@ -12,30 +12,18 @@ using std::map;
 #include <boost/log/trivial.hpp>
 
 #include "interactiveTerminal.hpp"
-#include "minimumConstraints.hpp"
 #include "architectureDocs.hpp"
-#include "rinexNavWrite.hpp"
 #include "eigenIncluder.hpp"
-#include "rinexObsWrite.hpp"
-#include "rinexClkWrite.hpp"
+#include "inputsOutputs.hpp"
 #include "algebraTrace.hpp"
 #include "rtsSmoothing.hpp"
-#include "orbexWrite.hpp"
 #include "mongoWrite.hpp"
-#include "GNSSambres.hpp"
-#include "orbitProp.hpp"
+#include "navigation.hpp"
 #include "acsConfig.hpp"
-#include "testUtils.hpp"
 #include "constants.hpp"
-#include "ionoModel.hpp"
-#include "sp3Write.hpp"
+#include "receiver.hpp"
 #include "metaData.hpp"
 #include "algebra.hpp"
-#include "sinex.hpp"
-#include "cost.hpp"
-#include "ppp.hpp"
-#include "gpx.hpp"
-#include "pos.hpp"
 
 // #pragma GCC optimize ("O0")
 
@@ -48,133 +36,9 @@ Architecture RTS_Smoothing__()
 	DOCS_REFERENCE(Binary_Archive__);
 }
 
-void postRTSActions(
-	bool			final,			///< This is a final answer, not intermediate - output to files
-	KFState&		kfStateIn,		///< State to get filter traces from
-	ReceiverMap&	receiverMap)	///< map of receivers
-{
-	//need to copy to not destroy the smoothed filter in those cases this is called from there
-	KFState kfState = kfStateIn;
-
-	tryPrepareFilterPointers(kfState, receiverMap);
-
-	if	( final
-		||acsConfig.pppOpts.output_intermediate_rts)
-	{
-		mongoStates(kfState,
-					{
-						.suffix		= "/RTS",
-						.instances	= acsConfig.mongoOpts.output_states,
-						.queue		= acsConfig.mongoOpts.queue_outputs
-					});
-	}
-
-	if (final == false)
-	{
-		return;
-	}
-
-	if (kfState.metaDataMap["SKIP_RTS_OUTPUT"] == "TRUE")
-	{
-		return;
-	}
-
-	std::ofstream pppTrace(kfState.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
-	kfState.outputStates(pppTrace, "/RTS");
-
-	if (acsConfig.pivot_receiver != "NO_PIVOT")
-	{
-		KFState pivotedState = propagateUncertainty(pppTrace, kfState);
-
-		pivotedState.outputStates(pppTrace, "/RTS_PIVOT");
-
-		mongoStates(pivotedState,
-					{
-						.suffix		= "/RTS_PIVOT",
-						.instances	= acsConfig.mongoOpts.output_states,
-						.queue		= acsConfig.mongoOpts.queue_outputs
-					});
-	}
-
-	//if AR and its not the special case of forward per epoch fixed and held which already has AR in the smoothed version
-	if	(	acsConfig.ambrOpts.mode			!= +E_ARmode::OFF
-		&&	acsConfig.ambrOpts.once_per_epoch
-		&&	acsConfig.ambrOpts.fix_and_hold	== false)
-	{
-		fixAndHoldAmbiguities(pppTrace, kfState);
-
-		kfState.outputStates(pppTrace, "/RTS_AR");
-
-		mongoStates(kfState,
-					{
-						.suffix		= "/RTS_AR",
-						.instances	= acsConfig.mongoOpts.output_states,
-						.queue		= acsConfig.mongoOpts.queue_outputs
-					});
-	}
-
-	if	(  acsConfig.process_minimum_constraints
-		&& acsConfig.minconOpts.once_per_epoch)
-	{
-		BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << "\n";
-
-		for (auto& [id, rec] : receiverMap)
-		{
-			rec.minconApriori = rec.aprioriPos;
-		}
-
-		MinconStatistics minconStatistics;
-
-		mincon(pppTrace, kfState, &minconStatistics);
-
-		kfState.outputStates(pppTrace, "/RTS_CONSTRAINED");
-
-		mongoStates(kfState,
-					{
-						.suffix		= "/RTS_CONSTRAINED",
-						.instances	= acsConfig.mongoOpts.output_states,
-						.queue		= acsConfig.mongoOpts.queue_outputs
-					});
-
-		outputMinconStatistics(pppTrace, minconStatistics);
-	}
-
-	nav.erp.filterValues = getErpFromFilter(kfState);		//todo aaron, this doesnt react well with remote filter values
-
-	if (acsConfig.output_bias_sinex)
-	{
-		//todo aaron, this requires another ionospher kfState
-// 		writeBiasSinex(nullStream, kfState.time, kfState, kfState.metaDataMap[BSX_FILENAME_STR + SMOOTHED_SUFFIX], receiverMap);
-	}
-
-	auto time = kfState.time;
-
-	static GTime clkOutputTime = time.floorTime(acsConfig.clocks_output_interval);
-	static GTime obxOutputTime = time.floorTime(acsConfig.orbex_output_interval);
-	static GTime sp3OutputTime = time.floorTime(acsConfig.sp3_output_interval);
-
-	{
-		if (acsConfig.output_orbit_ics)										{	outputOrbitConfig	(																									kfState, acsConfig.pppOpts.rts_smoothed_suffix);																	}
-		if (acsConfig.output_clocks)		while (clkOutputTime <= time)	{	outputClocks		(				kfState.metaDataMap[CLK_FILENAME_STR			+ SMOOTHED_SUFFIX], clkOutputTime, acsConfig.clocks_receiver_sources,	acsConfig.clocks_satellite_sources, kfState, &receiverMap);							clkOutputTime += std::max(acsConfig.epoch_interval, acsConfig.clocks_output_interval);	}
-		if (acsConfig.output_orbex)			while (obxOutputTime <= time)	{	outputOrbex			(				kfState.metaDataMap[ORBEX_FILENAME_STR			+ SMOOTHED_SUFFIX], obxOutputTime, acsConfig.orbex_orbit_sources,		acsConfig.orbex_clock_sources, acsConfig.orbex_attitude_sources,	&kfState);		obxOutputTime += std::max(acsConfig.epoch_interval, acsConfig.orbex_output_interval);	}
-		if (acsConfig.output_sp3)			while (sp3OutputTime <= time)	{	outputSp3			(				kfState.metaDataMap[SP3_FILENAME_STR			+ SMOOTHED_SUFFIX], sp3OutputTime, acsConfig.sp3_orbit_sources,			acsConfig.sp3_clock_sources,										&kfState);		sp3OutputTime += std::max(acsConfig.epoch_interval, acsConfig.sp3_output_interval);		}
-		if (acsConfig.output_trop_sinex)									{	outputTropSinex		(				kfState.metaDataMap[TROP_FILENAME_STR			+ SMOOTHED_SUFFIX], time,			kfState, "MIX", true);																								}
-		if (acsConfig.output_ionex)											{	ionexFileWrite		(nullStream,	kfState.metaDataMap[IONEX_FILENAME_STR			+ SMOOTHED_SUFFIX], time,			kfState);																											}
-		if (acsConfig.output_erp)											{	writeErpFromNetwork	(				kfState.metaDataMap[ERP_FILENAME_STR			+ SMOOTHED_SUFFIX],					kfState);																											}
-		if (acsConfig.output_ionstec)										{	writeIonStec	 	(				kfState.metaDataMap[IONSTEC_FILENAME_STR		+ SMOOTHED_SUFFIX],					kfState);																											}
-	}
-
-	for (auto& [id, rec] : receiverMap)
-	{
-		if (acsConfig.output_cost)											{	outputCost			(				kfState.metaDataMap[COST_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX],					kfState,	rec);		}
-		if (acsConfig.output_gpx)											{	writeGPX			(				kfState.metaDataMap[GPX_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX],					kfState,	rec);		}
-		if (acsConfig.output_pos)											{	writePOS			(				kfState.metaDataMap[POS_FILENAME_STR	+ id	+ SMOOTHED_SUFFIX],					kfState,	rec);		}
-	}
-}
-
 /** Output filter states in chronological order from a reversed binary trace file
 */
-void RTS_Output(
+void rtsOutput(
 	KFState&		kfState,			///< State to get filter traces from
 	ReceiverMap&	receiverMap)		///< map of receivers
 {
@@ -188,6 +52,8 @@ void RTS_Output(
 	<< "Outputting RTS products..." << "\n";
 
 	map<string, string> metaDataMap = kfState.metaDataMap;
+
+	bool firstEpoch = true;
 
 	while (1)
 	{
@@ -261,7 +127,12 @@ void RTS_Output(
 
 				archiveKF.metaDataMap = metaDataMap;
 
-				postRTSActions(true, archiveKF, receiverMap);
+				Network dummyNet;
+				std::ofstream trace(archiveKF.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
+
+				perEpochPostProcessingAndOutputs(trace, dummyNet, receiverMap, archiveKF, false, true, firstEpoch);
+
+				firstEpoch = false;
 
 				break;
 			}
@@ -637,17 +508,12 @@ void rtsSmoothing(
 				}
 				else
 				{
-					bool final = false;
 					if (lag >= kfState.rts_lag)
 					{
-						final = true;
-					}
+						Network dummyNet;
+						std::ofstream trace(smoothedKF.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
 
-					postRTSActions(final, smoothedKF, receiverMap);
-
-					if (acsConfig.pppOpts.output_intermediate_rts)
-					{
-						mongoMeasResiduals(smoothedKF.time, measurements, acsConfig.mongoOpts.queue_outputs, "/RTS");
+						perEpochPostProcessingAndOutputs(trace, dummyNet, receiverMap, smoothedKF, false, true);
 					}
 				}
 
@@ -686,7 +552,7 @@ void rtsSmoothing(
 			sleep_for(std::chrono::milliseconds(acsConfig.sleep_milliseconds));
 		}
 
-		RTS_Output(kfState, receiverMap);
+		rtsOutput(kfState, receiverMap);
 	}
 
 	if (lag == kfState.rts_lag)

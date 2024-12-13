@@ -100,6 +100,7 @@ struct Receiver : ReceiverLogs, Rtk
 	SinexRecData		snx;						///< Antenna information
 
 	map<string, string>					metaDataMap;
+
 	ObsList								obsList;					///< Observations available for this station at this epoch
 	string								id;							///< Unique name for this station (4 characters)
 	string								source;						///< Source of most recently synchronised data
@@ -108,7 +109,7 @@ struct Receiver : ReceiverLogs, Rtk
 	UYds		aprioriTime;
 	double		aprioriClk		= 0;
 	double		aprioriClkVar	= 0;
-	Vector3d	aprioriPos		= Vector3d::Zero();		///< station position (ecef) (m)
+	Vector3d	aprioriPos		= Vector3d::Zero();		///< receiver position (ecef) (m)
 	Matrix3d	aprioriVar		= Matrix3d::Zero();
 	Vector3d	minconApriori	= Vector3d::Zero();
 

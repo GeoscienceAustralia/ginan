@@ -7,7 +7,6 @@
 #include "observations.hpp"
 #include "navigation.hpp"
 #include "acsConfig.hpp"
-#include "testUtils.hpp"
 #include "constants.hpp"
 #include "satStat.hpp"
 #include "algebra.hpp"

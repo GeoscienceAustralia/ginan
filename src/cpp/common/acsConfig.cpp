@@ -3484,35 +3484,38 @@ bool ACSConfig::parse(
 			{
 				auto general = stringsToYamlObject(processing_options, {"0! gnss_general"}, "Options to specify the processing of gnss observations");
 
-				tryGetFromYaml	(require_apriori_positions,					general, {"@ require_apriori_positions" 	}, "Restrict processing to receivers that have apriori positions available");
-				tryGetFromYaml	(require_site_eccentricity,					general, {"@ require_site_eccentricity" 	}, "Restrict processing to receivers that have site eccentricity information");
-				tryGetFromYaml	(require_sinex_data,						general, {"@ require_sinex_data" 			}, "Restrict processing to receivers that have sinex data available");
-				tryGetFromYaml	(require_antenna_details,					general, {"@ require_antenna_details" 		}, "Restrict processing to receivers that have antenna details");
-				tryGetFromYaml	(require_reflector_com,						general, {"@ require_reflector_com" 		}, "Restrict processing to SLR observations that have center of mass to laser retroreflector array offsets");
-				tryGetFromYaml	(pivot_receiver,							general, {"@ pivot_receiver" 				}, "Largely deprecated id of receiver to use for pivot constraints");
-				tryGetFromYaml	(pivot_satellite,							general, {"@ pivot_satellite" 				}, "Largely deprecated id of satellite to use for pivot constraints");
-				tryGetFromYaml	(interpolate_rec_pco,						general, {"@ interpolate_rec_pco" 			}, "Interpolate other known pco values to find pco for unknown frequencies");
-				tryGetFromYaml	(auto_fill_pco,								general, {"@ auto_fill_pco" 				}, "Use similar PCOs when requested values are not found");
-				tryGetFromYaml	(pppOpts.equate_ionospheres,				general, {"@ equate_ionospheres"			}, "Use same STEC values for different receivers, useful for simulated rtk mode");
-				tryGetFromYaml	(pppOpts.equate_tropospheres,				general, {"@ equate_tropospheres"			}, "Use same troposphere values for different receivers, useful for simulated rtk mode");
-				tryGetFromYaml	(pppOpts.use_rtk_combo,						general, {"@ use_rtk_combo"					}, "Combine applicable observations to simulate an rtk solution");
-				tryGetFromYaml	(pppOpts.use_primary_signals,				general, {"@ use_primary_signals"			}, "Limit processing to first signal of a frequency when multiple are available");
-				tryGetFromYaml	(pppOpts.add_eop_component,					general, {"@ add_eop_component"				}, "Add eop adjustments as a component in residual chain (for adjusting frames to match ecef ephemeris)");
-				tryGetFromYaml	(delete_old_ephemerides,					general, {"@ delete_old_ephemerides"		}, "Remove old ephemerides that have accumulated over time from before far before the currently processing epoch");
-				tryGetFromYaml	(use_tgd_bias,								general, {"@ use_tgd_bias"					}, "Use TGD/BGD bias from ephemeris, DO NOT turn on unless using Klobuchar/NeQuick Ionospheres");
-				tryGetFromYaml	(common_sat_pco,							general, {"@ common_sat_pco"				}, "Use L1 satellite PCO values for all signals");
-				tryGetFromYaml	(common_rec_pco,							general, {"@ common_rec_pco"				}, "Use L1 receiver PCO values for all signals");
-				tryGetFromYaml	(leap_seconds,								general, {"@ gpst_utc_leap_seconds"			}, "Difference between gps time and utc in leap seconds");
+				tryGetFromYaml	(require_apriori_positions,					general, {"@ require_apriori_positions" 		}, "Restrict processing to receivers that have apriori positions available");
+				tryGetFromYaml	(require_site_eccentricity,					general, {"@ require_site_eccentricity" 		}, "Restrict processing to receivers that have site eccentricity information");
+				tryGetFromYaml	(require_sinex_data,						general, {"@ require_sinex_data" 				}, "Restrict processing to receivers that have sinex data available");
+				tryGetFromYaml	(require_antenna_details,					general, {"@ require_antenna_details" 			}, "Restrict processing to receivers that have antenna details");
+				tryGetFromYaml	(require_reflector_com,						general, {"@ require_reflector_com" 			}, "Restrict processing to SLR observations that have center of mass to laser retroreflector array offsets");
+				tryGetFromYaml	(reference_clock,							general, {"@ reference_clock" 					}, "ID of sat/rec to use for reference clock in pivot calculations");
 
-				tryGetFromYaml	(process_meas[CODE],						general, {"1@ code_measurements",		"process"	}, "Process code measurements");
-				tryGetFromYaml	(process_meas[PHAS],						general, {"1@ phase_measurements",		"process"	}, "Process phase measurements");
+				tryGetFromYaml	(reference_bias,							general, {"@ reference_bias" 					}, "ID of sat/rec to use for reference bias in pivot calculations");
+				tryGetFromYaml	(pivot_receiver,							general, {"@ pivot_receiver" 					}, "Largely deprecated option for iono");
+				tryGetFromYaml	(interpolate_rec_pco,						general, {"@ interpolate_rec_pco" 				}, "Interpolate other known pco values to find pco for unknown frequencies");
+				tryGetFromYaml	(auto_fill_pco,								general, {"@ auto_fill_pco" 					}, "Use similar PCOs when requested values are not found");
+				tryGetFromYaml	(pppOpts.equate_ionospheres,				general, {"@ equate_ionospheres"				}, "Use same STEC values for different receivers, useful for simulated rtk mode");
+				tryGetFromYaml	(pppOpts.equate_tropospheres,				general, {"@ equate_tropospheres"				}, "Use same troposphere values for different receivers, useful for simulated rtk mode");
+				tryGetFromYaml	(pppOpts.use_rtk_combo,						general, {"@ use_rtk_combo"						}, "Combine applicable observations to simulate an rtk solution");
+				tryGetFromYaml	(pppOpts.use_primary_signals,				general, {"@ use_primary_signals"				}, "Limit processing to first signal of a frequency when multiple are available");
+				tryGetFromYaml	(pppOpts.add_eop_component,					general, {"@ add_eop_component"					}, "Add eop adjustments as a component in residual chain (for adjusting frames to match ecef ephemeris)");
+				tryGetFromYaml	(delete_old_ephemerides,					general, {"@ delete_old_ephemerides"			}, "Remove old ephemerides that have accumulated over time from before far before the currently processing epoch");
+				tryGetFromYaml	(use_tgd_bias,								general, {"@ use_tgd_bias"						}, "Use TGD/BGD bias from ephemeris, DO NOT turn on unless using Klobuchar/NeQuick Ionospheres");
+				tryGetFromYaml	(common_sat_pco,							general, {"@ common_sat_pco"					}, "Use L1 satellite PCO values for all signals");
+				tryGetFromYaml	(common_rec_pco,							general, {"@ common_rec_pco"					}, "Use L1 receiver PCO values for all signals");
+				tryGetFromYaml	(leap_seconds,								general, {"@ gpst_utc_leap_seconds"				}, "Difference between gps time and utc in leap seconds");
 
-				tryGetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"			}, "Variance of phase bias to be considered fixed/binded");
-				tryGetFromYaml	(adjust_rec_clocks_by_spp,					general, {"@ adjust_rec_clocks_by_spp"		}, "Adjust receiver clocks by spp values to minimise prefit residuals");
-				tryGetFromYaml	(adjust_clocks_for_jumps_only,				general, {"@ adjust_clocks_for_jumps_only"	}, "Round clock adjustments from SPP to half milliseconds");
-				tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"	}, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
-				tryGetFromYaml	(minimise_sat_orbit_offsets,				general, {"@ minimise_sat_orbit_offsets"	}, "Apply gauss-markov mu values to satellite orbits to minimise offsets with respect to broadcast values");
-				tryGetFromYaml	(minimise_ionosphere_offsets,				general, {"@ minimise_ionosphere_offsets"	}, "Apply gauss-markov mu values to stec values to minimise offsets with respect to klobuchar values");
+
+				tryGetFromYaml	(process_meas[CODE],						general, {"1@ code_measurements",	"process"	}, "Process code measurements");
+				tryGetFromYaml	(process_meas[PHAS],						general, {"1@ phase_measurements",	"process"	}, "Process phase measurements");
+
+				tryGetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"				}, "Variance of phase bias to be considered fixed/binded");
+				tryGetFromYaml	(adjust_rec_clocks_by_spp,					general, {"@ adjust_rec_clocks_by_spp"			}, "Adjust receiver clocks by spp values to minimise prefit residuals");
+				tryGetFromYaml	(adjust_clocks_for_jumps_only,				general, {"@ adjust_clocks_for_jumps_only"		}, "Round clock adjustments from SPP to half milliseconds");
+				tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"		}, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
+				tryGetFromYaml	(minimise_sat_orbit_offsets,				general, {"@ minimise_sat_orbit_offsets"		}, "Apply gauss-markov mu values to satellite orbits to minimise offsets with respect to broadcast values");
+				tryGetFromYaml	(minimise_ionosphere_offsets,				general, {"@ minimise_ionosphere_offsets"		}, "Apply gauss-markov mu values to stec values to minimise offsets with respect to klobuchar values");
 
 				for (int i = E_Sys::GPS; i < E_Sys::SUPPORTED; i++)
 				{
@@ -3520,15 +3523,18 @@ bool ACSConfig::parse(
 
 					auto sys_options = stringsToYamlObject(general, {"1! sys_options", sys._to_string()}, (string)"Options for the " + sys._to_string() + " constellation");
 
-					tryGetFromYaml(process_sys			[sys],		sys_options, {"0! process"				}, "Process this constellation");
-					tryGetFromYaml(solve_amb_for		[sys],		sys_options, {"3! ambiguity_resolution"	}, "Solve carrier phase ambiguities for this constellation");
-					tryGetFromYaml(reject_eclipse		[sys],		sys_options, {"2@ reject_eclipse"		}, "Exclude satellites that are in eclipsing region");
-					tryGetFromYaml(receiver_amb_pivot	[sys],		sys_options, {"2@ receiver_amb_pivot"	}, "Constrain: set of ambiguities, to eliminate receiver rank deficiencies");
-					tryGetFromYaml(network_amb_pivot	[sys],		sys_options, {"2@ network_amb_pivot"	}, "Constrain: set of ambiguities, to eliminate network  rank deficiencies");
-					tryGetFromYaml(use_for_iono_model	[sys],		sys_options, {"2@ use_for_iono_model"	}, "Use this constellation as part of Ionospheric model");
-					tryGetFromYaml(use_iono_corrections	[sys],		sys_options, {"2@ use_iono_corrections"	}, "Use external ionosphere delay estimation for this constellation");
-					tryGetEnumOpt( used_nav_types		[sys],		sys_options, {"2@ used_nav_type"		});
-					tryGetEnumVec (code_priorities		[sys], 		sys_options, {"2! code_priorities" 		}, "List of observation codes to use in processing");
+					tryGetFromYaml(process_sys						[sys],	sys_options, {"0! process"				}, "Process this constellation");
+					tryGetFromYaml(solve_amb_for					[sys],	sys_options, {"3! ambiguity_resolution"	}, "Solve carrier phase ambiguities for this constellation");
+					tryGetFromYaml(reject_eclipse					[sys],	sys_options, {"2@ reject_eclipse"		}, "Exclude satellites that are in eclipsing region");
+					tryGetFromYaml(receiver_amb_pivot				[sys],	sys_options, {"2@ receiver_amb_pivot"	}, "Constrain: set of ambiguities, to eliminate receiver rank deficiencies");
+					tryGetFromYaml(network_amb_pivot				[sys],	sys_options, {"2@ network_amb_pivot"	}, "Constrain: set of ambiguities, to eliminate network  rank deficiencies");
+					tryGetFromYaml(use_for_iono_model				[sys],	sys_options, {"2@ use_for_iono_model"	}, "Use this constellation as part of Ionospheric model");
+					tryGetFromYaml(use_iono_corrections				[sys],	sys_options, {"2@ use_iono_corrections"	}, "Use external ionosphere delay estimation for this constellation");
+					tryGetEnumOpt( used_nav_types					[sys],	sys_options, {"2@ used_nav_type"		});
+					tryGetEnumVec (code_priorities					[sys], 	sys_options, {"2! code_priorities" 		}, "List of observation codes to use in processing");
+					tryGetFromYaml(constrain_best_ambiguity_integer	[sys],	sys_options, {"@ constrain_best_ambiguity_integer" 	}, "Constrain the best ambiguity of a sys/code pair to an integer once");
+					tryGetFromYaml(constrain_clock					[sys],	sys_options, {"@ constrain_clock" 					}, "ID of a sat/rec for constraining its clock");
+					tryGetFromYaml(constrain_phase_bias				[sys],	sys_options, {"@ constrain_phase_bias" 				}, "ID of a sat/rec for constraining its phase bias");
 				}
 			}
 
@@ -3575,8 +3581,9 @@ bool ACSConfig::parse(
 				{
 					auto state_deweighting = stringsToYamlObject(model_error_handling, {"0! state_deweighting"}, "Any \"state\" errors cause deweighting of all measurements that reference the state");
 
-					tryGetFromYaml(stateErrors.enable,				state_deweighting,	{"! enable"				}, "Enable deweighting of all referencing measurements");
-					tryGetFromYaml(stateErrors.deweight_factor,		state_deweighting,	{"! deweight_factor"	}, "Factor to downweight the variance of measurements with statistically detected errors");
+					tryGetFromYaml(stateErrors.enable,					state_deweighting,	{"! enable"					}, "Enable deweighting of all referencing measurements");
+					tryGetFromYaml(stateErrors.scale_by_design_entry,	state_deweighting,	{"! scale_by_design_entry"	}, "Scale the deweighting by the magnitude of the design entry");
+					tryGetFromYaml(stateErrors.deweight_factor,			state_deweighting,	{"! deweight_factor"		}, "Factor to downweight the variance of measurements with statistically detected errors");
 				}
 
 				{
@@ -3590,13 +3597,14 @@ bool ACSConfig::parse(
 				}
 
 				{
-					auto orbit_errors = stringsToYamlObject(model_error_handling, {"2@ orbit_errors"}, "Orbital states that are not consistent with measurements may be reinitialised to allow for dynamic maneuvers");
+					auto satellite_errors = stringsToYamlObject(model_error_handling, {"2@ satellite_errors"}, "Orbital states that are not consistent with measurements may be reinitialised to allow for dynamic maneuvers");
 
-					tryGetFromYaml(orbErrors.enable,					orbit_errors,	{"@ enable"							}, "Enable applying process noise impulses to orbits upon state errors");
-					tryGetFromYaml(orbErrors.pos_proc_noise,			orbit_errors,	{"@ pos_process_noise"				}, "Sigma to apply to orbital position states as reinitialisation");
-					tryGetFromYaml(orbErrors.vel_proc_noise,			orbit_errors,	{"@ vel_process_noise"				}, "Sigma to apply to orbital velocity states as reinitialisation");
-					tryGetFromYaml(orbErrors.vel_proc_noise_trail,		orbit_errors,	{"@ vel_process_noise_trail"		}, "Initial sigma for exponentially decaying noise to apply for subsequent epochs as soft reinitialisation");
-					tryGetFromYaml(orbErrors.vel_proc_noise_trail_tau,	orbit_errors,	{"@ vel_process_noise_trail_tau"	}, "Time constant for exponentially decauing noise");
+					tryGetFromYaml(satelliteErrors.enable,						satellite_errors,	{"@ enable"							}, "Enable applying process noise impulses to satellites upon state errors");
+					tryGetFromYaml(satelliteErrors.clk_proc_noise,				satellite_errors,	{"@ clk_process_noise"				}, "Sigma to apply to satellite clock states as reinitialisation");
+					tryGetFromYaml(satelliteErrors.pos_proc_noise,				satellite_errors,	{"@ pos_process_noise"				}, "Sigma to apply to orbital position states as reinitialisation");
+					tryGetFromYaml(satelliteErrors.vel_proc_noise,				satellite_errors,	{"@ vel_process_noise"				}, "Sigma to apply to orbital velocity states as reinitialisation");
+					tryGetFromYaml(satelliteErrors.vel_proc_noise_trail,		satellite_errors,	{"@ vel_process_noise_trail"		}, "Initial sigma for exponentially decaying noise to apply for subsequent epochs as soft reinitialisation");
+					tryGetFromYaml(satelliteErrors.vel_proc_noise_trail_tau,	satellite_errors,	{"@ vel_process_noise_trail_tau"	}, "Time constant for exponentially decauing noise");
 				}
 
 				{
@@ -3707,7 +3715,6 @@ bool ACSConfig::parse(
 																					tryGetFromYaml(filterOpts.queue_rts_outputs,		rts,				{"@ queue_outputs"			}, "Queue rts outputs so that processing is not limited by IO bandwidth");
 																					tryGetFromYaml(filterOpts.rts_smoothed_suffix,		rts,				{"@ suffix"					}, "Suffix to be applied to smoothed versions of files");
 																					tryGetEnumOpt( filterOpts.rts_inverter, 			rts,				{"@ inverter" 				}, "Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
-																					tryGetFromYaml(filterOpts.output_intermediate_rts,	rts,				{"@ output_intermediates"	}, "Output best available smoothed states when performing fixed-lag rts (slow, use only when needed)");
 				}
 			};
 
@@ -3780,7 +3787,6 @@ bool ACSConfig::parse(
 				getFilterOptions(ion_filter, ionModelOpts);
 			}
 
-
 // 			spp
 			{
 				auto spp = stringsToYamlObject(processing_options, {"1! spp"}, "Configurations for the kalman filter and its sub processes");
@@ -3811,7 +3817,6 @@ bool ACSConfig::parse(
 				}
 			}
 
-// 				tryGetFromYaml(orbitOpts.degree_max,				orbit_propagation, {"@ degree_max"					}, "Maximum degree of spherical harmonics model");
 // 			ambiguity_resolution
 			{
 				auto ambiguity_resolution = stringsToYamlObject(processing_options, {"5@ ambiguity_resolution"});
@@ -3828,7 +3833,6 @@ bool ACSConfig::parse(
 				tryGetFromYaml(ambrOpts.fix_and_hold,		ambiguity_resolution, {"@ fix_and_hold"					},	"Perform ambiguity resolution and commit results to the main processing filter");
 			}
 
-
 // 			predictions
 			{
 				auto predictions = stringsToYamlObject(processing_options, {"5@ predictions"});
@@ -3838,7 +3842,6 @@ bool ACSConfig::parse(
 				tryGetScaledFromYaml(mongoOpts.forward_prediction_duration,	predictions, {"4@ forward_duration"	},	{"@ duration_units"	},	E_Period::_from_string_nocase);
 				tryGetScaledFromYaml(mongoOpts.reverse_prediction_duration,	predictions, {"4@ reverse_duration"	},	{"@ duration_units"	},	E_Period::_from_string_nocase);
 			}
-
 
 // 			orbit_propagation
 			{

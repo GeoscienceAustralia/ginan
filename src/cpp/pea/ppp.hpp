@@ -118,87 +118,24 @@ void postFilterChecks(
 	const	GTime&	time,
 			KFMeas&	kfMeas);
 
-bool deweightMeas(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool pseudoMeasTest(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool deweightStationMeas(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool countSignalErrors(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool incrementPhaseSignalError(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool incrementReceiverErrors(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool incrementSatelliteErrors(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
+bool deweightMeas(				RejectCallbackDetails	rejectDetails);
+bool pseudoMeasTest(			RejectCallbackDetails	rejectDetails);
+bool deweightStationMeas(		RejectCallbackDetails	rejectDetails);
+bool incrementPhaseSignalError(	RejectCallbackDetails	rejectDetails);
+bool incrementReceiverErrors(	RejectCallbackDetails	rejectDetails);
+bool incrementSatelliteErrors(	RejectCallbackDetails	rejectDetails);
+bool rejectByState(				RejectCallbackDetails	rejectDetails);
+bool clockGlitchReaction(		RejectCallbackDetails	rejectDetails);
+bool satelliteGlitchReaction(	RejectCallbackDetails	rejectDetails);
 
 bool resetPhaseSignalError(
-	const	GTime&		time,
-			KFMeas&		kfMeas,
+	const	GTime&		time,			KFMeas&		kfMeas,
 			int			index);
 
 bool resetIonoSignalOutage(
 	const	GTime&		time,
 			KFMeas&		kfMeas,
 			int			index);
-
-bool rejectByState(
-			Trace&		trace,
-			KFState&	kfState,
-			KFMeas&		kfMeas,
-	const	KFKey&		kfKey,
-			bool		postFit);
-
-bool clockGlitchReaction(
-			Trace&		trace,
-			KFState&	kfState,
-			KFMeas&		kfMeas,
-	const	KFKey&		kfKey,
-			bool		postFit);
-
-bool orbitGlitchReaction(
-			Trace&		trace,
-			KFState&	kfState,
-			KFMeas&		kfMeas,
-	const	KFKey&		kfKey,
-			bool		postFit);
-
-
 
 void receiverUducGnss(
 	Trace&				pppTrace,
@@ -270,6 +207,11 @@ void ambgPseudoObs(
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
 
+void phasePseudoObs(
+	Trace&				trace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
+
 void ionoPseudoObs(
 	Trace&				trace,
 	ReceiverMap&		receiverMap,
@@ -288,8 +230,8 @@ void satClockPivotPseudoObs(
 	KFMeasEntryList&	kfMeasEntryList);
 
 KFState propagateUncertainty(
-	Trace&			trace,
-	KFState&		kfState);
+	Trace&		trace,
+	KFState&	kfState);
 
 void explainMeasurements(
 	Trace&		trace,

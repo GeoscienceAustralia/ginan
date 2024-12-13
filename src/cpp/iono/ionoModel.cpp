@@ -8,7 +8,6 @@ using std::string;
 using std::map;
 
 #include "ionoModel.hpp"
-#include "testUtils.hpp"
 #include "acsConfig.hpp"
 #include "receiver.hpp"
 #include "algebra.hpp"

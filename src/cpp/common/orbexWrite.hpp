@@ -22,21 +22,11 @@ struct OrbexFileData
 	long 				endDataPos		= 0;	///< Position of put pointer for end of EPHEMERIS/DATA block
 };
 
-void writeSysSetOrbex(
-	string				filename,
-	GTime				time,
-	map<E_Sys, bool>&	outSys,
-	OrbexFileData&		outFileDat,
-	vector<E_Source>	orbDataSrcs,
-	vector<E_Source>	clkDataSrcs,
-	vector<E_Source>	attDataSrcs,
-	KFState*			kfState_ptr = nullptr);
-
 void outputOrbex(
 	string				filename,
 	GTime				time,
+	KFState&			kfState,
 	vector<E_Source>	orbDataSrcs,
 	vector<E_Source>	clkDataSrcs,
-	vector<E_Source>	attDataSrcs,
-	KFState*			kfState_ptr = nullptr);
+	vector<E_Source>	attDataSrcs);
 

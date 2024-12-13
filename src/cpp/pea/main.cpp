@@ -401,16 +401,7 @@ void mainOncePerEpoch(
 		ppp(pppTrace, receiverMap, pppNet.kfState, remoteState);
 	}
 
-	KFState* kfState_ptr;
-
-	KFState tempKfState;
-
-	if (acsConfig.ambrOpts.fix_and_hold)	{									kfState_ptr = &pppNet.kfState;		}
-	else									{	tempKfState = pppNet.kfState;	kfState_ptr = &tempKfState;		}
-
-	auto& kfState = *kfState_ptr;
-
-	perEpochPostProcessingAndOutputs(pppTrace, pppNet, ionNet, receiverMap, kfState, ionNet.kfState, time, emptyEpoch);
+	perEpochPostProcessingAndOutputs(pppTrace, ionNet, receiverMap, pppNet.kfState, emptyEpoch);
 
 	if (acsConfig.delete_old_ephemerides)
 	{
@@ -663,7 +654,7 @@ int main(
 		pppNet.kfState.measRejectCallbacks	.push_back(incrementPhaseSignalError);
 		pppNet.kfState.measRejectCallbacks	.push_back(pseudoMeasTest);
 
-		pppNet.kfState.stateRejectCallbacks	.push_back(orbitGlitchReaction);	//this goes before reject by state
+		pppNet.kfState.stateRejectCallbacks	.push_back(satelliteGlitchReaction);	//this goes before reject by state
 		pppNet.kfState.stateRejectCallbacks	.push_back(rejectByState);
 	}
 

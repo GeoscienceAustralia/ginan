@@ -140,7 +140,6 @@ add_executable(pea
 
 		slr/slrCom.cpp
 		slr/slrObs.cpp
-		slr/slrSat.cpp
 		slr/slrRec.cpp
 
 		other_ssr/otherSSR.hpp

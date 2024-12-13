@@ -994,7 +994,7 @@ void addEmpStates(
 
 void outputOrbitConfig(
 		KFState&	kfState,
-		string		suffix)
+		bool		isSmoothed)
 {
 	document satellites;
 
@@ -1075,7 +1075,12 @@ void outputOrbitConfig(
 	document json;						json					<< "processing_options"		<< processing_options;
 										json					<< "estimation_parameters"	<< estimation_parameters;
 
-	string filename = acsConfig.orbit_ics_filename + suffix;
+	string filename = acsConfig.orbit_ics_filename;
+
+	if (isSmoothed)
+	{
+		filename += acsConfig.pppOpts.rts_smoothed_suffix;
+	}
 
 	PTime logtime = kfState.time;
 

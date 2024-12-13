@@ -9,7 +9,6 @@
 #include "constants.hpp"
 #include "acsConfig.hpp"
 #include "ephemeris.hpp"
-#include "testUtils.hpp"
 #include "algebra.hpp"
 #include "orbits.hpp"
 #include "satSys.hpp"

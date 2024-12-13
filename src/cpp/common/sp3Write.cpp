@@ -327,7 +327,7 @@ void writeSysSetSp3(
 	map<E_Sys, bool>&	outSys,
 	vector<E_Source>	sp3OrbitSrcs,
 	vector<E_Source>	sp3ClockSrcs,
-	KFState*			kfState_ptr,
+	KFState&			kfState,
 	bool				predicted)
 {
 	map<int, Sp3Entry> entryList;
@@ -345,8 +345,8 @@ void writeSysSetSp3(
 		obs.Sat			= Sat;
 		obs.satNav_ptr	= &nav.satNavMap[Sat];
 
-		bool clkPass = satclk(nullStream, time, time, obs, sp3ClockSrcs,					nav, kfState_ptr);
-		bool posPass = satpos(nullStream, time, time, obs, sp3OrbitSrcs, E_OffsetType::COM,	nav, kfState_ptr);
+		bool clkPass = satclk(nullStream, time, time, obs, sp3ClockSrcs,					nav, &kfState);
+		bool posPass = satpos(nullStream, time, time, obs, sp3OrbitSrcs, E_OffsetType::COM,	nav, &kfState);
 
 		if (posPass == false)
 		{
@@ -393,15 +393,15 @@ void writeSysSetSp3(
 void outputSp3(
 	string				filename,
 	GTime				time,
+	KFState&			kfState,
 	vector<E_Source>	sp3OrbitSrcs,
 	vector<E_Source>	sp3ClockSrcs,
-	KFState*			kfState_ptr,
 	bool				predicted)
 {
 	auto sysFilenames = getSysOutputFilenames(filename, time);
 
 	for (auto [filename, sysMap] : sysFilenames)
 	{
-		writeSysSetSp3(filename, time, sysMap, sp3OrbitSrcs, sp3ClockSrcs, kfState_ptr, predicted);
+		writeSysSetSp3(filename, time, sysMap, sp3OrbitSrcs, sp3ClockSrcs, kfState, predicted);
 	}
 }

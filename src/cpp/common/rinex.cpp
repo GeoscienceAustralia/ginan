@@ -276,6 +276,12 @@ void decodeObsH(
 					{
 						E_ObsCode2	obsCode2	= E_ObsCode2::_from_string(obsCode2str);
 						E_ObsCode	obsCode		= conversionMap[obsCode2];
+
+						if (obsCode == +E_ObsCode::NONE)
+						{
+							BOOST_LOG_TRIVIAL(warning) << "Warning: Unmapped code in V2 rinex: " << obsCode2str;
+						}
+
 						codeType.code = obsCode;
 						codeType.type = typeChar;
 					}

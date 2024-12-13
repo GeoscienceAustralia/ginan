@@ -206,5 +206,5 @@ void addNilDesignStates(
 
 void outputOrbitConfig(
 		KFState&	kfState,
-		string		suffix = "");
+		bool		isSmoothed = false);
 

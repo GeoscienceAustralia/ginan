@@ -406,19 +406,21 @@ struct IonoErrorHandler
 	int			outage_reset_limit		= 300;
 };
 
-struct OrbitErrorHandler
+struct SatelliteErrorHandler
 {
 	bool	enable						= false;
 	double	pos_proc_noise				= 10;
 	double	vel_proc_noise				= 5;
 	double	vel_proc_noise_trail		= 1;
 	double	vel_proc_noise_trail_tau	= 0.05;
+	double	clk_proc_noise				= 1000;
 };
 
 struct StateErrorHandler
 {
-	bool	enable			= true;
-	double	deweight_factor	= 1000;
+	bool	enable					= true;
+	bool	scale_by_design_entry	= false;
+	double	deweight_factor			= 1000;
 };
 
 struct MeasErrorHandler
@@ -481,8 +483,9 @@ struct GlobalOptions
 	map<E_Sys,	bool>				reject_eclipse;
 
 
-	string	pivot_receiver	= "NO_PIVOT";
-	string	pivot_satellite	= "NO_PIVOT";
+	string	reference_clock						= "NO_REFERENCE";
+	string	reference_bias						= "NO_REFERENCE";
+	string	pivot_receiver						= "NO_REFERENCE";
 
 	bool	interpolate_rec_pco			= true;
 	bool	auto_fill_pco				= true;
@@ -558,6 +561,10 @@ struct GlobalOptions
 	map<E_Sys, bool> use_for_iono_model;		///< use system for ionospheric modelling
 	map<E_Sys, bool> use_iono_corrections;		///< use system for ionospheric modelling
 
+	map<E_Sys, bool>	constrain_best_ambiguity_integer;
+	map<E_Sys, string>	constrain_clock;
+	map<E_Sys, string>	constrain_phase_bias;
+
 	bool common_sat_pco			= false;
 	bool common_rec_pco			= false;
 	bool use_trop_corrections	= false;
@@ -614,12 +621,11 @@ struct ChiSquareOptions
 
 struct RtsOptions
 {
-	string		rts_filename			= "Filter-<RECEIVER>.rts";
+	string		rts_filename			= "<RTS_DIRECTORY>/Filter-<RECEIVER>.rts";
 	string		rts_directory			= "./";
 	int			rts_lag					= -1;
 	int			rts_interval			= 0;
 	string		rts_smoothed_suffix		= "_smoothed";
-	bool		output_intermediate_rts	= false;
 
 	bool		queue_rts_outputs		= false;
 
@@ -1435,7 +1441,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	StateErrorHandler			stateErrors;
 	MeasErrorHandler			measErrors;
 	AmbiguityErrorHandler		ambErrors;
-	OrbitErrorHandler			orbErrors;
+	SatelliteErrorHandler		satelliteErrors;
 	IonoErrorHandler			ionErrors;
 	ErrorAccumulationHandler	errorAccumulation;
 

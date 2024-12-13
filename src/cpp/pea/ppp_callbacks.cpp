@@ -17,29 +17,34 @@ using std::ostringstream;
 /** Deweight worst measurement
  */
 bool deweightMeas(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit)
+	RejectCallbackDetails	rejectDetails)
 {
+	auto& trace			= rejectDetails.trace;
+	auto& kfMeas		= rejectDetails.kfMeas;
+	auto& kfState		= rejectDetails.kfState;
+	auto& measIndex		= rejectDetails.measIndex;
+	auto& postFit		= rejectDetails.postFit;
+
 	if (acsConfig.measErrors.enable == false)
 	{
 		return true;
 	}
 
-	double deweightFactor = acsConfig.measErrors.deweight_factor;
+	double deweightFactor;
 
-	auto& key = kfMeas.obsKeys[index];
+	if (rejectDetails.scalar)		deweightFactor = acsConfig.stateErrors.	deweight_factor * rejectDetails.scalar;
+	else							deweightFactor = acsConfig.measErrors.	deweight_factor;
+
+	auto& key = kfMeas.obsKeys[measIndex];
 
 	InteractiveTerminal ss("Deweights", trace, false);
 
-	double preSigma = sqrt(kfMeas.R(index,index));
+	double preSigma = sqrt(kfMeas.R(measIndex,measIndex));
 	double residual;
 
 	string description;
-	if (postFit)	{	description = "postfit";	residual = kfMeas.VV(index);	}
-	else			{	description = "prefit";		residual = kfMeas.V	(index);	}
+	if (postFit)	{	description = "postfit";	residual = kfMeas.VV(measIndex);	}
+	else			{	description = "prefit";		residual = kfMeas.V	(measIndex);	}
 
 	addRejectDetails(kfState.time, trace, kfState, key, "Measurement Deweighted", description,
 					 {
@@ -48,10 +53,10 @@ bool deweightMeas(
 						 {description + "Ratio",	abs(residual / preSigma)}
 					});
 
-	kfMeas.R.row(index) *= deweightFactor;
-	kfMeas.R.col(index) *= deweightFactor;
+	kfMeas.R.row(measIndex) *= deweightFactor;
+	kfMeas.R.col(measIndex) *= deweightFactor;
 
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[measIndex];
 
 	MatrixXd*	otherNoiseMatrix_ptr	= (MatrixXd*)	metaDataMap["otherNoiseMatrix_ptr"];
 	long int	otherIndex				= (long int)	metaDataMap["otherIndex"];
@@ -71,23 +76,23 @@ bool deweightMeas(
 /** Call state rejection functions when a measurement is a pseudo observation
  */
 bool pseudoMeasTest(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit)
+	RejectCallbackDetails	rejectDetails)
 {
-	if (kfMeas.metaDataMaps[index]["pseudoObs"] == (void*) false)
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& kfState	= rejectDetails.kfState;
+	auto& measIndex	= rejectDetails.measIndex;
+
+	if (kfMeas.metaDataMaps[measIndex]["pseudoObs"] == (void*) false)
 	{
 		return true;
 	}
 
 	for (auto& [key, state] : kfState.kfIndexMap)
 	{
-		if	( kfMeas.H(index, state)
+		if	( kfMeas.H(measIndex, state)
 			&&key.type == KF::ORBIT)
 		{
-			orbitGlitchReaction(trace, kfState, kfMeas, key, postFit);
+			satelliteGlitchReaction(rejectDetails);
 		}
 	}
 
@@ -97,13 +102,15 @@ bool pseudoMeasTest(
 /** Deweight measurement and its relatives
  */
 bool deweightStationMeas(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit)
+	RejectCallbackDetails	rejectDetails)
 {
-	string id = kfMeas.obsKeys[index].str;
+	auto& trace		= rejectDetails.trace;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& kfState	= rejectDetails.kfState;
+	auto& measIndex	= rejectDetails.measIndex;
+	auto& postFit	= rejectDetails.postFit;
+
+	string id = kfMeas.obsKeys[measIndex].str;
 
 	for (int i = 0; i < kfMeas.obsKeys.size(); i++)
 	{
@@ -148,13 +155,13 @@ bool deweightStationMeas(
 /** Count worst measurement
  */
 bool incrementPhaseSignalError(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit)
+	RejectCallbackDetails	rejectDetails)
 {
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+	auto& trace		= rejectDetails.trace;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& measIndex	= rejectDetails.measIndex;
+
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[measIndex];
 
 	for (auto suffix : {"", "_alt"})
 	{
@@ -174,7 +181,7 @@ bool incrementPhaseSignalError(
 		phaseRejectCount++;
 		metaDataMap[metaData] = nullptr;
 
-		trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[index].Sat.id() << " to " << phaseRejectCount;
+		trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[measIndex].Sat.id() << " to " << phaseRejectCount;
 	}
 
 	return true;
@@ -183,13 +190,13 @@ bool incrementPhaseSignalError(
 /** Count all errors on receiver
  */
 bool incrementReceiverErrors(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit)
+	RejectCallbackDetails	rejectDetails)
 {
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+	auto& trace		= rejectDetails.trace;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& measIndex	= rejectDetails.measIndex;
+
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[measIndex];
 
 	unsigned int* receiverErrorCount_ptr	= (unsigned int*) metaDataMap["receiverErrorCount"];
 
@@ -203,25 +210,26 @@ bool incrementReceiverErrors(
 	//increment counters,
 	receiverErrorCount++;
 
-	trace << "\n" << "Incrementing receiverErrorCount  on " << kfMeas.obsKeys[index] << " to " << receiverErrorCount;
+	trace << "\n" << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[measIndex] << " to " << receiverErrorCount;
 
 	return true;
 }
 /** Count all errors on satellite
  */
 bool incrementSatelliteErrors(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit)
+	RejectCallbackDetails	rejectDetails)
 {
 	if (acsConfig.errorAccumulation.enable == false)
 	{
 		return true;
 	}
 
-	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
+	auto& trace		= rejectDetails.trace;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& kfState	= rejectDetails.kfState;
+	auto& measIndex	= rejectDetails.measIndex;
+
+	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[measIndex];
 
 	unsigned int* satelliteErrorCount_ptr	= (unsigned int*) metaDataMap["satelliteErrorCount"];
 	unsigned int* satelliteErrorEpochs_ptr	= (unsigned int*) metaDataMap["satelliteErrorEpochs"];
@@ -237,7 +245,7 @@ bool incrementSatelliteErrors(
 
 	satelliteErrorCount++;
 
-	trace << "\n" << "Incrementing satelliteErrorCount on " << kfMeas.obsKeys[index] << " to " << satelliteErrorCount;
+	trace << "\n" << "Incrementing satelliteErrorCount on " << kfMeas.obsKeys[measIndex] << " to " << satelliteErrorCount;
 
 	if (satelliteErrorCount < acsConfig.errorAccumulation.satellite_error_count_threshold)
 	{
@@ -252,12 +260,11 @@ bool incrementSatelliteErrors(
 	}
 
 	KFKey kfKey;
-	kfKey.type	= KF::ORBIT;
-	kfKey.Sat	= kfMeas.obsKeys[index].Sat;
+	kfKey.Sat	= kfMeas.obsKeys[measIndex].Sat;
 
-	trace << "\n" << "Orbits relaxed due to high satellite error counts: " << kfKey;
+	trace << "\n" << "Satellite relaxed due to high satellite error counts: " << kfKey;
 
-	orbitGlitchReaction(trace, kfState, kfMeas, kfKey, false);
+	satelliteGlitchReaction(rejectDetails);
 
 	kfState.statisticsMap["Sat error resets"]++;
 
@@ -316,12 +323,13 @@ bool resetIonoSignalOutage(
 /** Reject measurements attached to worst state using measurement reject callback list
  */
 bool rejectByState(
-			Trace&		trace,
-			KFState&	kfState,
-			KFMeas&		kfMeas,
-	const	KFKey&		kfKey,
-			bool		postFit)
+	RejectCallbackDetails	rejectDetails)
 {
+	auto& trace		= rejectDetails.trace;
+	auto& kfKey		= rejectDetails.kfKey;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& kfState	= rejectDetails.kfState;
+
 	if (acsConfig.stateErrors.enable == false)
 	{
 		return true;
@@ -335,107 +343,55 @@ bool rejectByState(
 
 	for (int meas = 0; meas < kfMeas.H.rows(); meas++)
 	{
-		if (kfMeas.H(meas, stateIndex))
+		rejectDetails.measIndex	= meas;
+		rejectDetails.scalar	= abs(kfMeas.H(meas, stateIndex));
+
+		if (rejectDetails.scalar == 0)
 		{
-			kfState.doMeasRejectCallbacks(trace, kfMeas, meas, postFit);
+			continue;
 		}
+
+		if (acsConfig.stateErrors.scale_by_design_entry == false)
+		{
+			rejectDetails.scalar = 1;
+		}
+
+		kfState.doMeasRejectCallbacks(rejectDetails);
 	}
 
 	return true;
 }
 
-/** Remove any states connected to a bad clock if it glitches
- */
-// bool clockGlitchReaction(		//todo aaron orphan
-// 			Trace&		trace,
-// 			KFState&	kfState,
-// 			KFMeas&		kfMeas,
-// 	const	KFKey&		kfKey)
-// {
-// 	if	(  kfKey.type != KF::SAT_CLOCK
-// 		&& kfKey.type != KF::REC_SYS_BIAS)
-// 	{
-// 		return true;
-// 	}
-//
-// 	if (acsConfig.reinit_on_clock_error == false)
-// 	{
-// 		return true;
-// 	}
-//
-// 	trace << "\n" << "Bad clock detected " << kfKey << " - resetting linked states" << "\n";
-//
-// 	kfState.statisticsMap["Clock glitch"]++;
-//
-// 	for (auto& [key, index] : kfState.kfIndexMap)
-// 	{
-// 		if	(  kfKey.type	== KF::SAT_CLOCK
-// 			&& kfKey.Sat	== key.Sat
-// 			&&( key	.type	== KF::AMBIGUITY
-// 			  ||key	.type	== KF::SAT_CLOCK))
-// 		{
-// 			//remove the satellite clock, and any ambiguities that are connected to it.
-// 			trace << "- Removing " << key << "\n";
-//
-// 			kfState.removeState(key);
-// 		}
-//
-// 		if	(  kfKey.type	== KF::REC_SYS_BIAS
-// 			&& kfKey.str	== key.str
-// 			&&( key	.type	== KF::AMBIGUITY
-// 			  ||key	.type	== KF::REC_SYS_BIAS))
-// 		{
-// 			//remove the satellite clock, and any ambiguities that are connected to it.
-// 			trace << "- Removing " << key << "\n";
-//
-// 			kfState.removeState(key);
-//
-// 			if (kfKey.rec_ptr)
-// 			{
-// 				//make sure receiver clock corrections get reset too.
-// 				trace << "- Resetting clock adjustment" << "\n";
-//
-// 				auto& rec = *kfKey.rec_ptr;
-//
-// 				rec.sol.deltaDt_net_old[E_Sys::GPS] = 0;
-// 			}
-// 		}
-// 	}
-//
-// 	return true;
-// }
-
 /** Immediately executed reaction to orbital state errors.
  * Note there is also a 1 epoch delayed reaction function
  */
-bool orbitGlitchReaction(
-			Trace&		trace,
-			KFState&	kfState,
-			KFMeas&		kfMeas,
-	const	KFKey&		kfKey,
-			bool		postFit)
+bool satelliteGlitchReaction(
+	RejectCallbackDetails	rejectDetails)
 {
-	if (kfKey.type != KF::ORBIT)
+	if (acsConfig.satelliteErrors.enable == false)
 	{
 		return true;
 	}
 
-	if (acsConfig.orbErrors.enable == false)
-	{
-		return true;
-	}
+	auto& trace		= rejectDetails.trace;
+	auto& kfKey		= rejectDetails.kfKey;
+	auto& kfState	= rejectDetails.kfState;
 
-	trace << "\n" << "Bad orbit state detected " << kfKey;
+	trace << "\n" << "Bad satellite state detected " << kfKey;
 
-	kfState.statisticsMap["Orbit state reject"]++;
+	kfState.statisticsMap["Satellite state reject"]++;
 
 	Exponential exponentialNoise;
-	exponentialNoise.tau	=		acsConfig.orbErrors.vel_proc_noise_trail_tau;
-	exponentialNoise.value	= SQR(	acsConfig.orbErrors.vel_proc_noise_trail);
+	exponentialNoise.tau	=		acsConfig.satelliteErrors.vel_proc_noise_trail_tau;
+	exponentialNoise.value	= SQR(	acsConfig.satelliteErrors.vel_proc_noise_trail);
 
 	MatrixXd F = MatrixXd::Identity	(kfState.x.rows(), kfState.x.rows());
 	MatrixXd Q = MatrixXd::Zero		(kfState.x.rows(), kfState.x.rows());
 
+	bool transitionRequired = false;
+
+	if	( kfKey.type == KF::NONE
+		||kfKey.type == KF::ORBIT)
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		if	(  key.type	!= KF::ORBIT
@@ -445,20 +401,75 @@ bool orbitGlitchReaction(
 			continue;
 		}
 
-		if (key.num	< 3)
+		if	( key.num < 3
+			&&acsConfig.satelliteErrors.pos_proc_noise)
 		{
-			Q(index, index) = SQR(acsConfig.orbErrors.pos_proc_noise);
+			trace << "\n - Adding " << acsConfig.satelliteErrors.pos_proc_noise << " to sigma of " << key;
+
+			Q(index, index) = SQR(acsConfig.satelliteErrors.pos_proc_noise);
+
+			transitionRequired = true;
 		}
-		else
+
+		if	( key.num >= 3
+			&&acsConfig.satelliteErrors.vel_proc_noise)
 		{
-			Q(index, index) = SQR(acsConfig.orbErrors.vel_proc_noise);
+			trace << "\n - Adding " << acsConfig.satelliteErrors.vel_proc_noise << " to sigma of " << key;
+
+			Q(index, index) = SQR(acsConfig.satelliteErrors.vel_proc_noise);
 
 			kfState.setExponentialNoise(key, exponentialNoise);
+
+			transitionRequired = true;
 		}
 	}
 
-	kfState.manualStateTransition(trace, kfState.time, F, Q);
+	if	( kfKey.type == KF::NONE
+		||kfKey.type == KF::SAT_CLOCK)
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if	(  key.type	!= KF::SAT_CLOCK
+			|| key.str	!= kfKey.str
+			|| key.Sat	!= kfKey.Sat)
+		{
+			continue;
+		}
 
-	return false;
+		if (acsConfig.satelliteErrors.clk_proc_noise)
+		{
+			trace << "\n - Adding " << acsConfig.satelliteErrors.clk_proc_noise << " to sigma of " << key;
+
+			Q(index, index) = SQR(acsConfig.satelliteErrors.clk_proc_noise);
+
+			transitionRequired = true;
+		}
+	}
+
+	if (transitionRequired)
+	{
+		int index = -1;
+
+		auto it = kfState.kfIndexMap.find(kfKey);
+		if (it != kfState.kfIndexMap.end())
+		{
+			index = it->second;
+		}
+
+		if (index >= 0)
+		{
+			trace << "\n - Pre-transition state sigma: " << kfState.P(index, index);
+		}
+
+		kfState.manualStateTransition(trace, kfState.time, F, Q);
+
+		if (index >= 0)
+		{
+			trace << "\n - Post-transition state sigma: " << kfState.P(index, index);
+		}
+
+		return false;
+	}
+
+	return true;
 }
 

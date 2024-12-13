@@ -35,13 +35,12 @@ void createDirectories(
 
 void perEpochPostProcessingAndOutputs(
 	Trace&			pppTrace,
-	Network&		pppNet,
 	Network&		ionNet,
 	ReceiverMap&	receiverMap,
 	KFState&		kfState,
-	KFState&		ionState,
-	const GTime&	time,
-	bool			emptyEpoch);
+	bool			emptyEpoch,
+	bool			inRts = false,
+	bool			firstEpoch = false);
 
 void createTracefiles(
 	ReceiverMap&	receiverMap,

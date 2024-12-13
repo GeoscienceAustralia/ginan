@@ -455,9 +455,9 @@ map<string, map<E_Sys, bool>> getSysOutputFilenames(
 void outputClocks(
 	string				filename,
 	const GTime&		time,
+	KFState&			kfState,
 	vector<E_Source>	clkDataRecSrcs,
 	vector<E_Source>	clkDataSatSrcs,
-	KFState&			kfState,
 	ReceiverMap*		receiverMap_ptr)
 {
 	auto filenameSysMap = getSysOutputFilenames(filename, time);

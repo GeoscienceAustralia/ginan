@@ -168,7 +168,7 @@ void eopAdjustment(
 	KFMeasEntry&	measEntry,
 	KFState&		kfState)
 {
-	Matrix3d partialMatrix	= stationEopPartials(rRec);
+	Matrix3d partialMatrix	= receiverEopPartials(rRec);
 	Vector3d eopPartials	= partialMatrix * e;
 
 	for (int i = 0; i < 3; i++)

@@ -281,7 +281,7 @@ void orbitPseudoObs(
 
 			if (acsConfig.pppOpts.eop.estimate[0])
 			{
-				eopPartialMatrixEci = stationEopPartials(rSat) * frameSwapper.i2t_mat;
+				eopPartialMatrixEci = receiverEopPartials(rSat) * frameSwapper.i2t_mat;
 			}
 		}
 
@@ -657,94 +657,124 @@ void receiverPseudoObs(
 	}
 }
 
+/** Add pseudo-observations to set one satellite's phase biases variances to zero.
+ * This shouldnt occur in the parallel section because multiple receivers may be trying to set different satellites to 0 if they see different satellites.
+ */
+void phasePseudoObs(
+	Trace&				trace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList)
+{
+	for (auto& [key, index] : kfState.kfIndexMap)
+	{
+		if (key.type != KF::PHASE_BIAS)
+		{
+			continue;
+		}
+
+		string& constrain_phase_bias = acsConfig.constrain_phase_bias[key.Sat.sys];
+
+		if (constrain_phase_bias.empty())
+		{
+			continue;
+		}
+
+		if (constrain_phase_bias == "<AUTO>")
+		{
+			constrain_phase_bias = key.Sat.id();
+		}
+
+		if (key.Sat.id() != constrain_phase_bias)
+		{
+			continue;
+		}
+
+		double dummy;
+		double var;
+		kfState.getKFValue(key, dummy, &var);
+
+		if (var < 2 * PIVOT_MEAS_VARIANCE)
+		{
+			continue;
+		}
+
+		KFMeasEntry kfMeasEntry(&kfState, key);
+
+		kfMeasEntry.obsKey.comment = "Phase bias constraint";
+
+		kfMeasEntry.addDsgnEntry	(key, +1);
+		kfMeasEntry.addNoiseEntry	(key, +1, PIVOT_MEAS_VARIANCE);
+
+		kfMeasEntryList.push_back(kfMeasEntry);
+	}
+}
+
 void ambgPseudoObs(
 	Trace&				trace,
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList)
 {
-	map<string,	map<E_Sys,	map<int, SatSys>>>	recBound;
-	map<SatSys,				map<int, string>>	satBound;
+	static map<E_Sys,	map<int, tuple<KFKey, double, bool>>>	bestForSysCode;
 
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		if (key.type != KF::AMBIGUITY)
-			continue;
-
-		if (key.rec_ptr == nullptr)
-			continue;
-
-		auto& rec		= *key.rec_ptr;
-
-		auto& satStat	= rec.satStatMap[key.Sat];
-		auto& recOpts	= acsConfig.getRecOpts(key.str);
-
-		if (satStat.el < (recOpts.elevation_mask_deg + 5) * D2R)	//todo aaron wrong mask
-			continue;
-
-		KFKey satKey	= key;
-		satKey.type 	= KF::PHASE_BIAS;
-		satKey.str		= "";
-
-		KFKey recKey	= key;
-		recKey.type 	= KF::PHASE_BIAS;
-		recKey.Sat		= SatSys(key.Sat.sys);
-
-		double sbias	= 0;
-		double svar		= 0;
-		double rbias	= 0;
-		double rvar		= 0;
-
-		kfState.getKFValue(satKey, sbias, &svar);
-		kfState.getKFValue(recKey, rbias, &rvar);
-
-		bool apply = false;
-		if (acsConfig.network_amb_pivot[key.Sat.sys])
-		{
-			bool recBind =	(  rvar	> acsConfig.fixed_phase_bias_var * 2
-							&& svar	< acsConfig.fixed_phase_bias_var
-							&& recBound[key.str][key.Sat.sys].find(key.num) == recBound[key.str][key.Sat.sys].end());
-			if (recBind)
-			{
-				recBound[key.str][key.Sat.sys][key.num] = key.Sat;
-				apply = true;
-			}
-
-			bool satBind =	(  svar	> acsConfig.fixed_phase_bias_var * 2
-							&& rvar	< acsConfig.fixed_phase_bias_var
-							&& satBound[key.Sat].find(key.num) == satBound[key.Sat].end());
-			if (satBind)
-			{
-				satBound[key.Sat][key.num] = key.str;
-				apply = true;
-			}
-		}
-		else if (acsConfig.receiver_amb_pivot[key.Sat.sys])
-		{
-			apply = (  rvar > acsConfig.fixed_phase_bias_var
-					&& recBound[key.str][key.Sat.sys].find(key.num) == recBound[key.str][key.Sat.sys].end());
-
-			if (apply)
-				recBound[key.str][key.Sat.sys][key.num] = key.Sat;
-		}
-
-		if (apply == false)
 		{
 			continue;
 		}
 
-		double floatAmb = 0;
+		if (acsConfig.constrain_best_ambiguity_integer[key.Sat.sys] == false)
+		{
+			continue;
+		}
 
-		kfState.getKFValue(key, floatAmb);
+		double dummy;
+		double var = 0;
 
-		double fixedAmb = ROUND(floatAmb);
+		kfState.getKFValue(key, dummy, &var);
 
-		tracepdeex(4, trace, "\nAmbiguity pseudo-obs %s", key);
+		auto& [bestKey, bestVar, done] = bestForSysCode[key.Sat.sys][key.num];
+
+		if (done)
+		{
+			continue;
+		}
+
+		if	( bestVar == 0
+			||var < bestVar)
+		{
+			//new best variance for this frequency
+			bestForSysCode[key.Sat.sys][key.num] = {key, var, false};
+		}
+	}
+
+	for (auto& [sys,	codeMap]	: bestForSysCode)
+	for (auto& [code,	best]		: codeMap)
+	{
+		auto& [key, var, done] = best;
+
+		if (done)
+		{
+			continue;
+		}
+
+		if (var < 2 * PIVOT_MEAS_VARIANCE)
+		{
+			continue;
+		}
+
+		//this is the most constrained ambiguity of an unconstrained system, constrain it to an integer value
 
 		KFMeasEntry measEntry(&kfState);
 		measEntry.obsKey			= key;
-		measEntry.obsKey.comment	= "phase binding";
+		measEntry.obsKey.comment	= "Integer ambiguity constraint";
 
 		measEntry.addDsgnEntry(key, +1);
+
+		double floatAmb;
+		kfState.getKFValue(key, floatAmb);
+
+		double fixedAmb = round(floatAmb);
 
 		measEntry.setInnov(fixedAmb - floatAmb);
 
@@ -754,6 +784,8 @@ void ambgPseudoObs(
 		measEntry.addNoiseEntry(measEntry.obsKey, 1, PIVOT_MEAS_VARIANCE);
 
 		kfMeasEntryList.push_back(measEntry);
+
+		done = true;
 	}
 }
 
@@ -878,11 +910,6 @@ void satClockPivotPseudoObs(
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList)
 {
-	if (acsConfig.pivot_satellite == "NO_PIVOT")
-	{
-		return;
-	}
-
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		if (key.type != KF::SAT_CLOCK)
@@ -890,8 +917,15 @@ void satClockPivotPseudoObs(
 			continue;
 		}
 
-		if	( acsConfig.pivot_satellite != "<AUTO>"
-			&&key.Sat != SatSys(acsConfig.pivot_satellite.c_str()))
+		string& constrain_clock = acsConfig.constrain_clock[key.Sat.sys];
+
+		if (constrain_clock.empty())
+		{
+			continue;
+		}
+
+		if	( constrain_clock != "<AUTO>"
+			&&constrain_clock != key.Sat.id())
 		{
 			continue;
 		}
@@ -899,6 +933,7 @@ void satClockPivotPseudoObs(
 		KFMeasEntry measEntry(&kfState);
  		measEntry.obsKey.type		= KF::SAT_CLOCK;
  		measEntry.obsKey.Sat		= key.Sat;
+		measEntry.obsKey.comment	= "Satellite pivot constraint";
 
 		measEntry.addDsgnEntry(key, +1);
 

@@ -41,6 +41,14 @@ struct SatSys
 
 	}
 
+	/** Uninitialised sat for comparisons
+	*/
+	static SatSys noSat()
+	{
+		SatSys nothing;
+		return nothing;
+	}
+
 	struct SatData
 	{
 		string	block;
@@ -113,11 +121,11 @@ struct SatSys
 	string id() const
 	{
 		char cstring[5];
-		
+
 		getId(cstring);
-		
+
 		string str = cstring;
-		
+
 		if (str != "-00")
 			return str;
 		else
@@ -129,22 +137,22 @@ struct SatSys
 	operator string() const
 	{
 		return id();
-	}	
-	
+	}
+
 	static E_Sys sysFromChar(
 		char sysChar)
 	{
 		switch (sysChar)
 		{
-			case 'G': return E_Sys::GPS;	
-			case 'R': return E_Sys::GLO;	
-			case 'E': return E_Sys::GAL;	
-			case 'J': return E_Sys::QZS;	
-			case 'C': return E_Sys::BDS;	
-			case 'L': return E_Sys::LEO;	
-			case 'I': return E_Sys::IRN;	
-			case 'S': return E_Sys::SBS;	
-			default:  return E_Sys::NONE;	
+			case 'G': return E_Sys::GPS;
+			case 'R': return E_Sys::GLO;
+			case 'E': return E_Sys::GAL;
+			case 'J': return E_Sys::QZS;
+			case 'C': return E_Sys::BDS;
+			case 'L': return E_Sys::LEO;
+			case 'I': return E_Sys::IRN;
+			case 'S': return E_Sys::SBS;
+			default:  return E_Sys::NONE;
 		}
 	}
 
@@ -159,22 +167,22 @@ struct SatSys
 		{
 			prn = prn_;
 			if (1 <= prn && prn <= NSATGPS) {	sys = E_Sys::GPS;	return;}
-			
+
 			prn = prn_ - RAW_SBAS_PRN_OFFSET;
 			if (1 <= prn && prn <= NSATSBS) {	sys = E_Sys::SBS;	return;}
-			
+
 			prn = prn_ - RAW_QZSS_PRN_OFFSET;
 			if (1 <= prn && prn <= NSATQZS) {	sys = E_Sys::QZS;	return;}
-			
+
 			prn = prn_;							sys = E_Sys::NONE;	return;
 		}
-		
+
 		int found = sscanf(id, "%c%d", &code, &prn_);
 		if (found > 0)
 		{
 			sys = sysFromChar(code);
 		}
-		
+
 		if (found > 1)
 			prn = prn_;
 	}

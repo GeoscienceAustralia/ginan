@@ -4,7 +4,6 @@
 #include "observations.hpp"
 #include "linearCombo.hpp"
 #include "navigation.hpp"
-#include "testUtils.hpp"
 #include "satStat.hpp"
 #include "debug.hpp"
 #include "acsQC.hpp"

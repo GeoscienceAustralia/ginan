@@ -99,15 +99,15 @@ void tryPrepareFilterPointers(
 			receiverMap[kfKey.str].id = kfKey.str;
 		}
 
-		if	(  kfKey.rec_ptr == nullptr
-			&& kfKey.str.empty() == false)
+		if	(  kfKey.rec_ptr		== nullptr
+			&& kfKey.str.empty()	== false)
 		{
 			auto it = receiverMap.find(kfKey.str);
 			if (it != receiverMap.end())
 			{
-				auto& [id, station]	= *it;
+				auto& [id, rec]	= *it;
 
-				kfKey.rec_ptr = &station;
+				kfKey.rec_ptr = &rec;
 			}
 		}
 

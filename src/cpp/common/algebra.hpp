@@ -13,6 +13,7 @@
 #include <tuple>
 #include <map>
 
+using boost::algorithm::to_upper;
 using boost::algorithm::to_lower;
 using std::recursive_mutex;
 using std::lock_guard;
@@ -82,7 +83,7 @@ struct KFKey
 		char buff[100];
 		snprintf(buff, sizeof(buff), "%s,%s,%s,%d", KF::_from_integral(type)._to_string(), Sat.id().c_str(), str.c_str(), num);
 		string str = buff;
-		to_lower(str);
+		to_upper(str);
 
 		return str;
 	}
@@ -312,8 +313,32 @@ struct KFMeasEntryList : vector<KFMeasEntry>
 
 };
 
-typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, const	KFKey&	key,	bool postFit);
-typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, 			int		index,	bool postFit);
+struct RejectCallbackDetails
+{
+	Trace&		trace;			///< Trace to output to
+	KFState&	kfState;
+	KFMeas&		kfMeas;			///< Measurements, noise, and design matrix
+
+	RejectCallbackDetails(
+		Trace&		trace,
+		KFState&	kfState,
+		KFMeas&		kfMeas)
+	:	trace		{trace},
+		kfState		{kfState},
+		kfMeas		{kfMeas}
+	{
+
+	}
+
+	KFKey		kfKey;						///< Key to the state that has worst ratio (only if worse than badMeasIndex)
+	int			measIndex	= -1;			///< Index of the measurement that has the worst ratio
+	bool		postFit		= false;
+	double		scalar		= 0;
+};
+
+
+typedef bool (*StateRejectCallback)	(RejectCallbackDetails rejectCallbackDetails);
+typedef bool (*MeasRejectCallback)	(RejectCallbackDetails rejectCallbackDetails);
 
 struct Exponential
 {
@@ -519,27 +544,21 @@ struct KFState : KFState_
 		MatrixXd&	procNoise);
 
 	void	preFitSigmaCheck(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		KFKey&			badStateKey,
-		int&			badMeasIndex,
-		KFStatistics&	statistics,
-		int				begX,
-		int				numX,
-		int				begH,
-		int				numH);
+		RejectCallbackDetails&	callbackDetails,
+		KFStatistics&			statistics,
+		int						begX,
+		int						numX,
+		int						begH,
+		int						numH);
 
 	void	postFitSigmaChecks(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		VectorXd&		dx,
-		KFKey&			badStateKey,
-		int&			badMeasIndex,
-		KFStatistics&	statistics,
-		int				begX,
-		int				numX,
-		int				begH,
-		int				numH);
+		RejectCallbackDetails&	callbackDetails,
+		VectorXd&				dx,
+		KFStatistics&			statistics,
+		int						begX,
+		int						numX,
+		int						begH,
+		int						numH);
 
 	double stateChiSquare(
 		Trace&		trace,
@@ -600,16 +619,10 @@ struct KFState : KFState_
 		KFMeas&		meas);
 
 	bool	doStateRejectCallbacks(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		KFKey&			badKey,
-		bool			postFit);
+		RejectCallbackDetails	rejectDetails);
 
 	bool	doMeasRejectCallbacks(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		int				badIndex,
-		bool			postFit);
+		RejectCallbackDetails	rejectDetails);
 
 	void	filterKalman(
 		Trace&						trace,

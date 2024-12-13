@@ -609,7 +609,7 @@ void readErp(
 	erp.erpMaps.push_back(erpMap);
 }
 
-Matrix3d stationEopPartials(
+Matrix3d receiverEopPartials(
 	Vector3d&	rRec)
 {
 	//compute partials and convert to units of MxS
