@@ -3486,11 +3486,11 @@ bool ACSConfig::parse(
 
 				tryGetFromYaml	(require_apriori_positions,					general, {"@ require_apriori_positions" 		}, "Restrict processing to receivers that have apriori positions available");
 				tryGetFromYaml	(require_site_eccentricity,					general, {"@ require_site_eccentricity" 		}, "Restrict processing to receivers that have site eccentricity information");
+				tryGetFromYaml	(pppOpts.merge_correlated_states,			general, {"@ merge_correlated_states"			}, "Combine correlated states to eliminate unestimable states");
 				tryGetFromYaml	(require_sinex_data,						general, {"@ require_sinex_data" 				}, "Restrict processing to receivers that have sinex data available");
 				tryGetFromYaml	(require_antenna_details,					general, {"@ require_antenna_details" 			}, "Restrict processing to receivers that have antenna details");
 				tryGetFromYaml	(require_reflector_com,						general, {"@ require_reflector_com" 			}, "Restrict processing to SLR observations that have center of mass to laser retroreflector array offsets");
 				tryGetFromYaml	(reference_clock,							general, {"@ reference_clock" 					}, "ID of sat/rec to use for reference clock in pivot calculations");
-
 				tryGetFromYaml	(reference_bias,							general, {"@ reference_bias" 					}, "ID of sat/rec to use for reference bias in pivot calculations");
 				tryGetFromYaml	(pivot_receiver,							general, {"@ pivot_receiver" 					}, "Largely deprecated option for iono");
 				tryGetFromYaml	(interpolate_rec_pco,						general, {"@ interpolate_rec_pco" 				}, "Interpolate other known pco values to find pco for unknown frequencies");

@@ -38,6 +38,7 @@ Architecture Combinators__()
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <map>
@@ -46,6 +47,7 @@ Architecture Combinators__()
 	#include "omp.h"
 #endif
 
+using std::stringstream;
 using std::string;
 using std::tuple;
 using std::map;
@@ -563,6 +565,118 @@ KFMeas makeRTKLCs2(
 	}
 
 	return KFMeas(kfMeas, std::move(tripletList), std::move(newObsKeys), std::move(newMetaDataMaps));
+}
+
+void mergeCorrelated(
+	Trace&				trace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList)
+{
+	//count the number of measurements that refer to a given state in the design entry map
+	map<KFKey, int> refCountMap;
+
+	static map<KFKey, bool> dontMergeMap;
+
+	for (auto& kfMeasEntry	: kfMeasEntryList)
+	for (auto& [key, value]	: kfMeasEntry.designEntryMap)
+	{
+		if (kfMeasEntry.valid == false)
+		{
+			continue;
+		}
+
+		if (value == 0)
+		{
+			continue;
+		}
+
+		refCountMap[key]++;
+	}
+
+	for (auto& kfMeasEntry : kfMeasEntryList)
+	{
+		if (kfMeasEntry.valid == false)
+		{
+			continue;
+		}
+
+		map<KFKey, double> correlatedMap;
+
+		for (auto& [key, value] : kfMeasEntry.designEntryMap)
+		{
+			if (value == 0)
+			{
+				continue;
+			}
+
+			if (dontMergeMap[key])
+			{
+				continue;
+			}
+
+			if (refCountMap[key] != 1)
+			{
+				dontMergeMap[key] = true;
+				continue;
+			}
+
+			//this key appears in this measurement only.
+
+			correlatedMap[key] = value;
+		}
+
+		if (correlatedMap.size() < 2)
+		{
+			continue;
+		}
+
+		stringstream ss;
+
+		ss << "\n" << "Combining ";
+
+		int scalar = 1;
+
+		KFKey bigKey;
+		for (auto& [key, value] : correlatedMap)
+		{
+			if (bigKey.type == KF::NONE)
+			{
+				bigKey = key;
+			}
+			else
+			{
+				scalar *= 100;
+				bigKey.num		+= scalar * key.num;
+				bigKey.comment	+= (string) ", " + key.comment;
+			}
+
+			ss << "\t[" << key.commaString() << "]: \t" << value << ",";
+
+			kfMeasEntry.designEntryMap[key] = 0;
+		}
+
+		//add the new key and its design entry
+
+		ss << "\tto create " << bigKey;
+
+		try
+		{
+			bool stateCreated = kfState.addPseudoState(bigKey, correlatedMap);
+
+			if (stateCreated)
+			{
+				trace << ss.str();
+			}
+
+			kfMeasEntry.designEntryMap[bigKey] = 1;
+		}
+		catch (...)
+		{
+			//trying to re-merge can alrady merged state
+			BOOST_LOG_TRIVIAL(warning) << "Removing measurement " << kfMeasEntry.obsKey;
+			kfMeasEntry.valid = false;
+		}
+	}
 }
 
 /** Prepare receiver clocks using spp values to minimise pre-fit residuals
@@ -1260,9 +1374,9 @@ void pppLinearCombinations(
 	KFMeas&		kfMeas,
 	KFState&	kfState)
 {
-	if (acsConfig.pppOpts.ionoOpts	.use_gf_combo)	{	kfMeas = makeGFLCs	(kfMeas, kfState);	}
-	if (acsConfig.pppOpts			.use_rtk_combo)	{	kfMeas = makeRTKLCs1(kfMeas, kfState);	}
-	if (acsConfig.pppOpts			.use_rtk_combo)	{	kfMeas = makeRTKLCs2(kfMeas, kfState);	}
+	if (acsConfig.pppOpts.ionoOpts	.use_gf_combo)				{	kfMeas = makeGFLCs		(kfMeas, kfState);	}
+	if (acsConfig.pppOpts			.use_rtk_combo)				{	kfMeas = makeRTKLCs1	(kfMeas, kfState);	}
+	if (acsConfig.pppOpts			.use_rtk_combo)				{	kfMeas = makeRTKLCs2	(kfMeas, kfState);	}
 }
 
 void pppPseudoObs(
@@ -1337,10 +1451,10 @@ void ppp(
 #		endif
 		for (int i = 0; i < receiverMap.size(); i++)
 		{
-			auto rec_iterator = receiverMap.begin();
-			std::advance(rec_iterator, i);
+			auto recIterator = receiverMap.begin();
+			std::advance(recIterator, i);
 
-			auto& [id, rec] = *rec_iterator;
+			auto& [id, rec] = *recIterator;
 
 			if	( 0
 				// rec.ready == false
@@ -1368,6 +1482,11 @@ void ppp(
 	}
 
 	pppPseudoObs(trace, receiverMap, kfState, kfMeasEntryList);
+
+	if (acsConfig.pppOpts.merge_correlated_states)
+	{
+		mergeCorrelated(trace, kfState, kfMeasEntryList);
+	}
 
 	//use state transition to initialise new state elements
 	InteractiveTerminal::setMode(E_InteractiveMode::StateTransition2);

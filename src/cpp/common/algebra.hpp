@@ -42,15 +42,16 @@ struct KFState;
 */
 struct KFKey
 {
-	short int	type	= 0;			///< Key type (From enum)
-	SatSys		Sat		= {};			///< Satellite
-	string		str;					///< String (receiver ID)
-	int 		num		= 0;			///< Subkey number (eg xyz => 0,1,2)
-	string		comment;				///< Optional comment
-	Receiver*	rec_ptr	= 0;			///< Pointer to station object for dereferencing
+	short int		type	= 0;			///< Key type (From enum)
+	SatSys			Sat		= {};			///< Satellite
+	string			str;					///< String (receiver ID)
+	int 			num		= 0;			///< Subkey number (eg xyz => 0,1,2)
+	string			comment;				///< Optional comment
+	Receiver*		rec_ptr	= 0;			///< Pointer to station object for dereferencing
 
-	mutable	GTime estimatedTime;
+	mutable	GTime	estimatedTime;
 
+	bool operator !=	(const KFKey& b) const;
 	bool operator ==	(const KFKey& b) const;
 	bool operator <		(const KFKey& b) const;
 
@@ -372,6 +373,9 @@ struct KFState_ : FilterOptions
 	map<KFKey, double>									outageLimitMap;
 	map<KFKey, Exponential>								exponentialNoiseMap;
 
+	map<KFKey, map<KFKey, double>>						pseudoStateMap;			///< Map of pseudo states, and a further map of their coefficients
+	map<KFKey, KFKey>									pseudoParentMap;		///< Map from ordinary states to their combined pseudo state parent.
+
 	vector<StateRejectCallback> 						stateRejectCallbacks;
 	vector<MeasRejectCallback> 							measRejectCallbacks;
 
@@ -493,6 +497,13 @@ struct KFState : KFState_
 				bool		allowAlternate	= true)
 	const;
 
+	E_Source	getPseudoValue(
+		const	KFKey&		key,
+				double&		value,
+				double*		variance		= nullptr,
+				double*		adjustment_ptr	= nullptr)
+	const;
+
 	bool	getKFSigma(
 		const	KFKey&		key,
 				double&		sigma);
@@ -500,6 +511,10 @@ struct KFState : KFState_
 	bool	addKFState(
 		const	KFKey&			kfKey,
 		const	InitialState&	initialState = {});
+
+	bool	addPseudoState(
+		const	KFKey&				kfKey,
+		const	map<KFKey, double>&	coeffMap);
 
 	void	setExponentialNoise(
 		const	KFKey&			kfKey,
@@ -530,7 +545,8 @@ struct KFState : KFState_
 		const	double			variance);
 
 	void	removeState(
-		const	KFKey&			kfKey);
+		const	KFKey&			kfKey,
+				bool			allowDeleteParent = true);
 
 	void	stateTransition(
 		Trace&		trace,
@@ -651,6 +667,10 @@ struct KFState : KFState_
 
 	KFState getSubState(
 		vector<KF>)
+	const;
+
+	vector<KFKey> decomposedStateKeys(
+		const KFKey& composedKey)
 	const;
 };
 

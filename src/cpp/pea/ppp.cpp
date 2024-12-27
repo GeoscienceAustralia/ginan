@@ -622,7 +622,8 @@ void removeBadAmbiguities(
 	KFState&		kfState, 		///< Filter to remove states from
 	ReceiverMap&	receiverMap)	///< List of receivers containing observations for this epoch
 {
-	for (auto [key, index] : kfState.kfIndexMap)
+	for (auto& [testKey, dummy]	: kfState.kfIndexMap)
+	for (auto& key				: kfState.decomposedStateKeys(testKey))
 	{
 		if (key.type != KF::AMBIGUITY)
 		{
@@ -640,7 +641,7 @@ void removeBadAmbiguities(
 		string	preprocSigName;
 		string	sigName;
 
-		if	(acsConfig.process_ppp)
+		if (acsConfig.process_ppp)
 		{
 			E_ObsCode	obsCode	= E_ObsCode::_from_integral(key.num);
 			E_FType		ft		= code2Freq[key.Sat.sys][obsCode];

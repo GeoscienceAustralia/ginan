@@ -808,6 +808,7 @@ BETTER_ENUM(E_Source, short int,
 		BROADCAST,
 		NOMINAL,
 		MODEL,
+		PSEUDO,
 		REMOTE)
 
 BETTER_ENUM(E_OrbexRecord, short int,

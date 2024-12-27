@@ -68,6 +68,11 @@ bool KFKey::operator ==(const KFKey& b) const
 	else					return true;
 }
 
+bool KFKey::operator != (const KFKey& b) const
+{
+	return !(*this == b);
+}
+
 bool KFKey::operator <(const KFKey& b) const
 {
 	if (str < b.str)		return true;
@@ -148,6 +153,9 @@ void KFState::initFilterEpoch(
 		if (outage > outageLimit)
 		{
 			trace << "\n" << "Removing '" << key << "' due to long outage";
+
+			outageLimitMap.erase(key);
+
 			removeState(key);
 		}
 	}
@@ -167,6 +175,81 @@ const
 	return index->second;
 }
 
+vector<KFKey> KFState::decomposedStateKeys(
+	const KFKey& composedKey)
+const
+{
+	auto it = pseudoStateMap.find(composedKey);
+	if (it == pseudoStateMap.end())
+	{
+		return {composedKey};
+	}
+
+	auto& [dummy, pseudoMap] = *it;
+
+	vector<KFKey> decomposedKeys;
+	for (auto& [key, coeff] : pseudoMap)
+	{
+		decomposedKeys.push_back(key);
+	}
+
+	return decomposedKeys;
+}
+
+/** Retrieve values from pseudo-states.
+ * Pseudo states are linear combinations of correlated states, and this function returns the value of the states
+ * assuming that the correlations from the point of creation are still valid.
+ * It returns the entirety of the state component for the primary state, with others returning 0.
+ * Later linear combinations of these should return the correct value for the combined state.
+ */
+E_Source KFState::getPseudoValue(
+	const	KFKey&		key,			///< Key to search for in state
+			double&		value,			///< Output value
+			double*		variance_ptr,	///< Optional variance output
+			double*		adjustment_ptr)	///< Optional adjustment output
+const
+{
+	lock_guard guard(kfStateMutex);
+
+	auto it = pseudoParentMap.find(key);
+	if (it == pseudoParentMap.end())
+	{
+		return E_Source::NONE;
+	}
+
+	//this is a linear combination, make assumptions and return the values
+
+	auto& [dummy, parent] = *it;
+
+	auto& pseudoMap = pseudoStateMap.at(parent);
+
+	auto& [primary, coeff] = *pseudoMap.begin();
+
+	if (key == primary)
+	{
+		//only the primary key returns values, assume all others 0
+
+		double pseudoValue;
+		double pseudoVariance;
+		double pseudoAdjustment;
+		getKFValue(parent, pseudoValue, &pseudoVariance, &pseudoAdjustment);
+
+		double scalar = 1 / coeff;
+
+							value			= scalar * pseudoValue;
+		if (variance_ptr)	*variance_ptr	= scalar * pseudoVariance * scalar;
+		if (adjustment_ptr)	*adjustment_ptr	= scalar * pseudoAdjustment;
+
+		return E_Source::PSEUDO;
+	}
+
+							value			= 0;
+	if (variance_ptr)		*variance_ptr	= 0;
+	if (adjustment_ptr)		*adjustment_ptr	= 0;
+
+	return E_Source::PSEUDO;
+}
+
 /** Returns the value and variance of a state within the kalman filter object
 */
 E_Source KFState::getKFValue(
@@ -180,13 +263,18 @@ const
 	auto a = kfIndexMap.find(key);
 	if (a == kfIndexMap.end())
 	{
+		E_Source found = getPseudoValue(key, value, variance_ptr, adjustment_ptr);
+
+		if (found)
+			return E_Source::PSEUDO;
+
 		if	( allowAlternate	== false
 			||alternate_ptr		== nullptr)
 		{
 			return E_Source::NONE;
 		}
 
-		E_Source found = alternate_ptr->getKFValue(key, value, variance_ptr, adjustment_ptr);
+		found = alternate_ptr->getKFValue(key, value, variance_ptr, adjustment_ptr);
 		if (found)
 			return E_Source::REMOTE;
 
@@ -287,19 +375,39 @@ void KFState::setKFTransRate(
 /** Remove a state from a kalman filter object.
 */
 void KFState::removeState(
-	const	KFKey&			kfKey)				///< Key to search for in state
+	const	KFKey&			kfKey,					///< Key to search for in state
+			bool			allowDeleteParent)
 {
 	lock_guard guard(kfStateMutex);
 
-	traceTrivialTrace("Removing '%s'", ((string) kfKey).c_str());
+	KFKey removeKey = kfKey;
 
-	stateTransitionMap.		erase(kfKey);
-	sigmaMaxMap.			erase(kfKey);
-	outageLimitMap.			erase(kfKey);
-	procNoiseMap.			erase(kfKey);
-	gaussMarkovTauMap.		erase(kfKey);
-	gaussMarkovMuMap.		erase(kfKey);
-	exponentialNoiseMap.	erase(kfKey);
+	//for psuedo states this can get a bit recursive states are removed after they're combined, so it needs to be prevent specifically in that case
+	if (allowDeleteParent)
+	{
+		auto it = pseudoParentMap.find(kfKey);
+		if (it != pseudoParentMap.end())
+		{
+			auto& [dummy, parent] = *it;
+
+			removeKey = parent;
+
+			traceTrivialTrace("Removing '%s' because of '%s'", ((string) removeKey).c_str(), ((string) kfKey).c_str());
+		}
+	}
+
+	traceTrivialTrace("Removing '%s'", ((string) removeKey).c_str());
+
+	stateTransitionMap.		erase(removeKey);
+	sigmaMaxMap.			erase(removeKey);
+	procNoiseMap.			erase(removeKey);
+	gaussMarkovTauMap.		erase(removeKey);
+	gaussMarkovMuMap.		erase(removeKey);
+	exponentialNoiseMap.	erase(removeKey);
+
+	//do pseudo state removal after state transition is complete,
+	//outage limits should stay with the non-pseudo states, and shouldnt be deleted with the non-pseudo
+	// outageLimitMap.			erase(removeKey);
 }
 
 /** Tries to add a state to the filter object.
@@ -322,6 +430,13 @@ bool KFState::addKFState(
 		if (initialState.sigmaMax		!= 0)		{	sigmaMaxMap			[kfKey] = initialState.sigmaMax;	}
 		if (initialState.outageLimit	!= 0)		{	outageLimitMap		[kfKey] = initialState.outageLimit;	}
 
+		return false;
+	}
+
+	auto pseudoIt = pseudoParentMap.find(kfKey);
+	if (pseudoIt != pseudoParentMap.end())
+	{
+		//this is an existing pseudostate, dont re-add a real state
 		return false;
 	}
 
@@ -353,6 +468,58 @@ bool KFState::addKFState(
 
 	return true;
 }
+
+/** Create a pseudo state that represents the linear combination of two or more perfectly correlated states.
+ * The configuration of the states that are combined are added according to the coefficients of correlation,
+ * which may not be appropriate for things like process noise or max sigmas, and should be configured accordingly.
+ */
+bool KFState::addPseudoState(
+		const	KFKey&				kfKey,
+		const	map<KFKey, double>&	coeffMap)
+{
+	lock_guard guard(kfStateMutex);
+
+	InitialState init;
+	init.P = 0;
+
+	for (auto& [key, coeff] : coeffMap)
+	{
+		auto& parentKey = pseudoParentMap[key];
+
+		if	( parentKey.type != KF::NONE
+			&&parentKey			!= kfKey)
+		{
+			BOOST_LOG_TRIVIAL(warning)
+			<< "Warning: Pseudo state added with multiple parents. " << key
+			<< " has parents '" << parentKey << "' and '" << kfKey;
+
+			throw true;
+		}
+	}
+
+	for (auto& [key, coeff] : coeffMap)
+	{
+		pseudoParentMap[key] = kfKey;
+
+		//get initial values from other states
+		init.x += coeff * stateTransitionMap[key][oneKey][0];
+		init.P += coeff * initNoiseMap		[key] * coeff;
+
+		//expect these to not be in the maps, use `at` rather than adding surplus entries or dealing with iterators
+		try {	init.sigmaMax		+= coeff *	sigmaMaxMap			.at(key);	} catch (...) {}
+		try {	init.Q				+= coeff *	procNoiseMap		.at(key);	} catch (...) {}
+		try {	init.tau			+=			gaussMarkovTauMap	.at(key);	} catch (...) {}
+
+		removeState(key, false);
+	}
+
+	pseudoStateMap[kfKey] = coeffMap;
+
+	bool stateCreated = addKFState(kfKey, init);
+
+	return stateCreated;
+}
+
 
 void KFState::setExponentialNoise(
 	const	KFKey&			kfKey,
@@ -713,6 +880,33 @@ void KFState::stateTransition(
 
 	//replace the index map with the updated version that corresponds to the updated state
 	kfIndexMap = std::move(newKFIndexMap);
+
+	//remove any details about pseudo states that are no longer in the state vector
+	//do it here because it causes issues if maps dont exist in other places before state transitions
+	for (auto pseudoIt = pseudoStateMap.begin(); pseudoIt != pseudoStateMap.end(); )
+	{
+		auto& [parent, childrenMap] = *pseudoIt;
+
+		auto it = kfIndexMap.find(parent);
+
+		if (it == kfIndexMap.end())
+		{
+			//not in state any more, remove the pseudos
+
+			//first erase the children pointing to this parent from the other map
+			for (auto& [child, coeff] : childrenMap)
+			{
+				pseudoParentMap.erase(child);
+			}
+
+			//and erase it from this map pointing to them
+			pseudoIt = pseudoStateMap.erase(pseudoIt);
+		}
+		else
+		{
+			pseudoIt++;
+		}
+	}
 
 	initFilterEpoch(trace);
 }

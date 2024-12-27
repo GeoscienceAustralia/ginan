@@ -671,6 +671,7 @@ struct PppOptions : FilterOptions
 	bool			equate_ionospheres		= false;
 	bool			equate_tropospheres		= false;
 	bool			use_rtk_combo			= false;
+	bool			merge_correlated_states	= false;
 	bool			use_primary_signals		= false;
 
 	bool			add_eop_component		= false;

@@ -152,6 +152,8 @@ processing_options:
                 process:                true
                 reject_eclipse: false
                 code_priorities: [L1C, L2C]
+        # phase_measurements:
+            # process: false
 
     preprocessor: # Configurations for the kalman filter and its sub processes
         cycle_slips: # Cycle slips may be detected by the preprocessor and measurements rejected or ambiguities reinitialised

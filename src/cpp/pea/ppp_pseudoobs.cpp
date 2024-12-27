@@ -486,21 +486,28 @@ void pseudoRecDcb(
 
 				//need to replace this code with the first one found in the sorted code_priorities
 
-				for (auto& codeBiasKey : codeBiasKeys)
+				try
 				{
-					E_ObsCode keyCode = E_ObsCode::_from_integral(codeBiasKey.num);
-
-					if (code2Freq[sys][keyCode] == code2Freq[sys][firstCode])
+					for (auto& codeBiasKey : codeBiasKeys)
 					{
-						//would duplicate frequency, skip. (also works for auto in firstCode)
-						continue;
+						E_ObsCode keyCode = E_ObsCode::_from_integral(codeBiasKey.num);
+
+						if (code2Freq[sys][keyCode] == code2Freq[sys][firstCode])
+						{
+							//would duplicate frequency, skip. (also works for auto in firstCode)
+							continue;
+						}
+
+						code = keyCode;
+
+						BOOST_LOG_TRIVIAL(debug) << "Setting zero_dcb_code for " << key.str << " " << sys._to_string() << " to " << code;
+
+						break;
 					}
-
-					code = keyCode;
-
-					BOOST_LOG_TRIVIAL(debug) << "Setting zero_dcb_code for " << key.str << " " << sys._to_string() << " to " << code;
-
-					break;
+				}
+				catch (...)
+				{
+					continue;
 				}
 			}
 		}
