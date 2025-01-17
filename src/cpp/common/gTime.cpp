@@ -661,3 +661,30 @@ boost::posix_time::ptime currentLogptime()
 	}
 	return logptime;
 }
+
+
+double ymdhms2jd(
+        const double time[6])	///< civil date time [YMDHMS]
+{
+    double i;
+    double j;
+    double yr	= time[0];
+    double mon	= time[1];
+// 	double day	= time[2];
+    double hr	= time[3];
+    double min	= time[4];
+    double sec	= time[5];
+    if (yr<=0||yr>=2099) return 0;
+    if (mon>2)	{	i = yr;		j = mon;    	}
+    else		{	i = yr - 1;	j = mon + 12;	}
+    double day	= time[2]
+                    + hr	/ 24
+                    + min	/ 24 / 60
+                    + sec	/ secondsInDay;
+    double jd	= floor(365.25*i)
+                   + floor(30.6001*(j+1))
+                   + day
+                   + 1720981.5;
+// 	BOOST_LOG_TRIVIAL(debug) << "YMDH to JD: year=" << yr << " mon=" << mon << " day=" << day << " hour=" << hr << ", jd=" << jd;
+    return jd;
+};

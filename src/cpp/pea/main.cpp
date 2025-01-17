@@ -401,7 +401,7 @@ void mainOncePerEpoch(
 		ppp(pppTrace, receiverMap, pppNet.kfState, remoteState);
 	}
 
-	perEpochPostProcessingAndOutputs(pppTrace, ionNet, receiverMap, pppNet.kfState, emptyEpoch);
+	perEpochPostProcessingAndOutputs(pppTrace, time, ionNet, receiverMap, pppNet.kfState, emptyEpoch);
 
 	if (acsConfig.delete_old_ephemerides)
 	{

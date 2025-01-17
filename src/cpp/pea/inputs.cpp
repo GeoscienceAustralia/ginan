@@ -16,6 +16,7 @@ Input Input_Files__()
 #include "oceanPoleTide.hpp"
 #include "streamCustom.hpp"
 #include "streamSerial.hpp"
+#include "spaceWeather.hpp"
 #include "sinexParser.hpp"
 #include "streamRinex.hpp"
 #include "streamNtrip.hpp"
@@ -573,6 +574,21 @@ void reloadInputFiles()
 		egm.read(egmfile, acsConfig.propagationOptions.egm_degree);
 	}
 
+	removeInvalidFiles(acsConfig.space_weather_files);
+	for (auto& swfile : acsConfig.space_weather_files)
+	{
+		if (fileChanged(swfile) == false)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(info)
+		<< "Loading SW file " << swfile;
+
+		spaceWeatherData.read(swfile);
+	}
+
+
 	removeInvalidFiles(acsConfig.ocean_tide_potential_files);
 	for (auto& tidefile : acsConfig.ocean_tide_potential_files)
 	{
@@ -627,8 +643,8 @@ void reloadInputFiles()
 		hfEop.read(hfeopfile);
 	}
 
-	removeInvalidFiles(acsConfig.atmos_oceean_dealiasing_files);
-	for (auto& aod1b_file : acsConfig.atmos_oceean_dealiasing_files)
+	removeInvalidFiles(acsConfig.atmos_ocean_dealiasing_files);
+	for (auto& aod1b_file : acsConfig.atmos_ocean_dealiasing_files)
 	{
 		if (fileChanged(aod1b_file) == false)
 		{

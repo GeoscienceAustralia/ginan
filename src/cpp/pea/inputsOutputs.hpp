@@ -35,6 +35,7 @@ void createDirectories(
 
 void perEpochPostProcessingAndOutputs(
 	Trace&			pppTrace,
+	GTime			time,
 	Network&		ionNet,
 	ReceiverMap&	receiverMap,
 	KFState&		kfState,

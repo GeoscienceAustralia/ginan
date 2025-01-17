@@ -27,6 +27,9 @@ add_executable(pea
 		3rdparty/iers2010/hardisp/tdfrph.cpp
 		3rdparty/iers2010/dehanttideinel/dehanttide_all.cpp
 
+		3rdparty/nrlmsise/nrlmsise-00.cpp
+		3rdparty/nrlmsise/nrlmsise-00_data.cpp
+
 		pea/main.cpp
 		pea/inputs.cpp
 		pea/outputs.cpp
@@ -159,6 +162,7 @@ add_executable(pea
 		orbprop/staticField.cpp
 		orbprop/centerMassCorrections.cpp
 		orbprop/oceanPoleTide.cpp
+		orbprop/spaceWeather.cpp
 
 		rtklib/lambda.cpp
 		rtklib/rtkcmn.cpp
@@ -175,6 +179,7 @@ target_include_directories(pea PUBLIC
 		3rdparty/jpl
 		3rdparty/mqtt_cpp/
 		3rdparty/slr
+		3rdparty/nrlmsise
 
 		configurator
 		../Architecture/

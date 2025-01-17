@@ -272,3 +272,5 @@ We have used routines obtained from EGM96, released under the zlib license, thes
 We have used routines obtained from SOFA, released under the SOFA license, these routines have been preserved in the folder `cpp/src/3rdparty/sofa` The original source code from SOFA can be obtained from https://www.iausofa.org/.
 
 We have used routines obtained from project Pluto, released under the GPL-3 license, these routines have been preserved in the folder `cpp/src/3rdparty/jplephem` The original source code from jpl ephem can be obtained from https://github.com/Bill-Gray/jpl_eph.
+
+We have used routines obtained from nrlmsise,  these routines have been preserved in the folder `cpp/src/3rdparty/nrlmsise`. The original source code  can be obtaiend from https://github.com/c0d3runn3r/nrlmsise/tree/master

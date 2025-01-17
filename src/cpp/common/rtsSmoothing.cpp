@@ -127,10 +127,11 @@ void rtsOutput(
 
 				archiveKF.metaDataMap = metaDataMap;
 
+				GTime dummyTime;
 				Network dummyNet;
 				std::ofstream trace(archiveKF.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
 
-				perEpochPostProcessingAndOutputs(trace, dummyNet, receiverMap, archiveKF, false, true, firstEpoch);
+				perEpochPostProcessingAndOutputs(trace, dummyTime, dummyNet, receiverMap, archiveKF, false, true, firstEpoch);
 
 				firstEpoch = false;
 
@@ -510,10 +511,11 @@ void rtsSmoothing(
 				{
 					if (lag >= kfState.rts_lag)
 					{
+						GTime dummyTime;
 						Network dummyNet;
 						std::ofstream trace(smoothedKF.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX], std::ofstream::out | std::ofstream::app);
 
-						perEpochPostProcessingAndOutputs(trace, dummyNet, receiverMap, smoothedKF, false, true);
+						perEpochPostProcessingAndOutputs(trace, dummyTime, dummyNet, receiverMap, smoothedKF, false, true);
 					}
 				}
 

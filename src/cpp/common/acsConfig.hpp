@@ -92,13 +92,14 @@ struct InputOptions
 	vector<string>	orography_files;
 	vector<string>	pseudo_filter_files;
 	vector<string>	atm_reg_definitions;
+	vector<string>	space_weather_files;
 	vector<string>	planetary_ephemeris_files;
 	vector<string>	ocean_tide_potential_files;
 	vector<string>	atmos_tide_potential_files;
 	vector<string>	ocean_tide_loading_blq_files;
 	vector<string>	atmos_tide_loading_blq_files;
 	vector<string>	ocean_pole_tide_loading_files;
-	vector<string>	atmos_oceean_dealiasing_files;
+	vector<string>	atmos_ocean_dealiasing_files;
 	vector<string>	ocean_pole_tide_potential_files;
 
 	vector<string>	sisnet_inputs;
@@ -734,17 +735,8 @@ struct AmbROptions
 */
 struct Rinex23Conversion
 {
-	map<E_ObsCode2, E_ObsCode> codeConv =
-	{
-		{E_ObsCode2::P1, E_ObsCode::L1C},
-		{E_ObsCode2::P2, E_ObsCode::L2W}
-	};
-
-	map<E_ObsCode2, E_ObsCode> phasConv =
-	{
-		{E_ObsCode2::L1, E_ObsCode::L1C},
-		{E_ObsCode2::L2, E_ObsCode::L2W}
-	};
+	map<E_ObsCode2, E_ObsCode> codeConv;
+	map<E_ObsCode2, E_ObsCode> phasConv;
 
 	Rinex23Conversion& operator +=(const Rinex23Conversion& rhs)
 	{
@@ -900,7 +892,8 @@ struct CommonKalmans
 	KalmanModel			phase_bias;
 	KalmanModel			pco;
 	KalmanModel			ant_delta;
-
+	KalmanModel			cr;
+	KalmanModel			cd;
 	CommonKalmans& operator+=(
 		const CommonKalmans& rhs)
 	{
@@ -913,6 +906,8 @@ struct CommonKalmans
 		phase_bias		+= rhs.phase_bias;
 		pco				+= rhs.pco;
 		ant_delta		+= rhs.ant_delta;
+		cr				+= rhs.cr;
+		cd 				+= rhs.cd;
 
 		return *this;
 	}
@@ -1089,12 +1084,14 @@ struct OrbitOptions
 	double					area		= 20;
 	double					power		= 20;
 	double					srp_cr		= 1.25;
+	double					drag_cd		= 2.2;
 
 	vector<E_ThirdBody>		planetary_perturbations			= {E_ThirdBody::SUN, E_ThirdBody::MOON, E_ThirdBody::JUPITER };
 	bool					empirical						= true;
 	bool					antenna_thrust					= true;
 	E_SRPModel				albedo							= E_SRPModel::NONE;
 	E_SRPModel				solar_radiation_pressure		= E_SRPModel::NONE;
+	bool					drag							= false;
 
 	vector<bool>			empirical_dyb_eclipse			= {true};
 	vector<bool> 			empirical_rtn_eclipse			= {false};

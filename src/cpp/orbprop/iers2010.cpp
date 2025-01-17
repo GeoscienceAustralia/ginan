@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <cmath>
+#include <omp.h>
 
 #include "acceleration.hpp"
 #include "coordinates.hpp"
@@ -524,24 +525,50 @@ void HfOceanEop::read(
 }
 
 void HfOceanEop::compute(
-	Array6d&	fundamentalArgs,
-	double&		x,
-	double&		y,
-	double&		ut1,
-	double&		lod)
+    Array6d& fundamentalArgs,
+    double& x,
+    double& y,
+    double& ut1,
+    double& lod)
 {
-	x	= 0;
-	y	= 0;
-	ut1	= 0;
-	lod	= 0;
+    // Initialize output values
+    x = 0;
+    y = 0;
+    ut1 = 0;
+    lod = 0;
 
-	for (auto& hfdata : hfOceanDataVec)
-	{
-		double theta = (fundamentalArgs * hfdata.mFundamentalArgs).sum();
+    // Parallelize the loop and avoid atomic by using local copies
+    #pragma omp parallel
+    {
+        // Thread-local accumulators
+        double thread_x = 0;
+        double thread_y = 0;
+        double thread_ut1 = 0;
+        double thread_lod = 0;
 
-		x		+= hfdata.xCos		* cos(theta) + hfdata.xSin		* sin(theta);
-		y		+= hfdata.yCos		* cos(theta) + hfdata.ySin		* sin(theta);
-		ut1		+= hfdata.ut1Cos	* cos(theta) + hfdata.ut1Sin	* sin(theta);
-		lod		+= hfdata.lodCos	* cos(theta) + hfdata.lodSin	* sin(theta);
-	}
+        // Perform computations in parallel
+        #pragma omp for
+        for (size_t i = 0; i < hfOceanDataVec.size(); ++i)
+        {
+            auto& hfdata = hfOceanDataVec[i];
+            double theta = (fundamentalArgs * hfdata.mFundamentalArgs).sum();
+            double cosTheta = cos(theta);
+            double sinTheta = sin(theta);
+
+            // Accumulate results in thread-local variables
+            thread_x += hfdata.xCos * cosTheta + hfdata.xSin * sinTheta;
+            thread_y += hfdata.yCos * cosTheta + hfdata.ySin * sinTheta;
+            thread_ut1 += hfdata.ut1Cos * cosTheta + hfdata.ut1Sin * sinTheta;
+            thread_lod += hfdata.lodCos * cosTheta + hfdata.lodSin * sinTheta;
+        }
+
+        // Combine the thread-local results into the global ones
+        #pragma omp critical
+        {
+            x += thread_x;
+            y += thread_y;
+            ut1 += thread_ut1;
+            lod += thread_lod;
+        }
+    }
 }

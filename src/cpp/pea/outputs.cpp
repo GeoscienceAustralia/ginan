@@ -676,6 +676,7 @@ void configureUploadingStreams()
 
 void perEpochPostProcessingAndOutputs(
 	Trace&			pppTrace,
+	GTime			time,
 	Network&		ionNet,
 	ReceiverMap&	receiverMap,
 	KFState&		kfState,
@@ -708,7 +709,8 @@ void perEpochPostProcessingAndOutputs(
 		hold = true;
 	}
 
-	auto time = kfState.time;
+	if (time == GTime::noTime())
+		time = kfState.time;
 
 	static GTime clkOutputTime;
 	static GTime obxOutputTime;
